@@ -24,8 +24,6 @@ B<generate_abstracts> I<archiveid> [B<options>]
 
 This script recreates every static abstract page for an eprints archive. To save load on the database, as archived data should not change, EPrints creates static webpages containing the summary of each eprint. If you change the way the abstracts are rendered or change the site template then you will want to run this script.
 
-You must have run B<generate_dtd> at some point before this script as it will need the dtd file(s).
-
 =head1 ARGUMENTS
 
 =over 8

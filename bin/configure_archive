@@ -526,7 +526,6 @@ you might as well except the defaults for now...
 
 Then run:
 
-bin/generate_dtd $archiveid
 bin/create_tables $archiveid
 bin/generate_static $archiveid
 bin/generate_apacheconf $archiveid
@@ -539,6 +538,9 @@ Then restart your webserver:
 
 Now connect to the archive, see everything work perfectly first time...(!)
 --------------------------------------------------------------------------
+
+Don't forget to register your archive at http://www.eprints.org/
+
 END
 
 exit;

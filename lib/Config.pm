@@ -276,6 +276,7 @@ sub load_archive_config_module
 
 	my $function = "EPrints::Config::".$id."::get_conf";
 	my $config = &{$function}( $info );
+
 	return $config;
 }
 

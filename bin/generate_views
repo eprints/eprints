@@ -32,8 +32,6 @@ Advantages of this are that this puts less load on the database than user search
 
 This script should be run every hour or so, but that should once a day or even once a week on large archives, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
 
-You must have run B<generate_dtd> at some point before this script as it will need the dtd file(s).
-
 =head1 ARGUMENTS
 
 =over 8

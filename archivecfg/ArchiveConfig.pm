@@ -552,8 +552,10 @@ sub log
 #      entity value string
 #
 ######################################################################
-# get_entities is used by the generate_dtd script to get the entities
-# for the phrase files and config files. It is called once for each
+# get_entities is used by eprints to get the entities
+# for the phrase files and config files. 
+#
+# When EPrints loads the archive config, it is called once for each
 # supported language, although that probably only affects the archive
 # name.
 #

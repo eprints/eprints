@@ -8,8 +8,6 @@
 #
 ######################################################################
 
-#cjg NOT data_set !!!
-#cjg why not make loads of accessors instead of get_dataset?
 package EPrints::Archive;
 
 use EPrints::Config;
@@ -18,6 +16,7 @@ use EPrints::DataSet;
 use EPrints::Language;
 
 use Filesys::DiskSpace;
+use File::Copy;
 
 my %ARCHIVE_CACHE = ();
 
@@ -70,6 +69,7 @@ sub new_archive_by_id
 	# abort loading the config for this archive.
 	unless( $noxml )
 	{
+		$self->generate_dtd() || return;
 		$self->get_ruler() || return;
 		$self->_load_datasets() || return;
 		$self->_load_languages() || return;
@@ -434,6 +434,44 @@ sub invocation
 	return $command;
 }
 
+sub generate_dtd
+{
+	my( $self ) = @_;
+
+	my $langid;
+	foreach $langid ( @{$self->get_conf( "languages" )} )
+	{	
+		my %entities = $self->call( "get_entities", $self, $langid );
+		my $file = $self->get_conf( "config_path" ).
+				"/entities-$langid.dtd";
+		my $tmpfile = $file.".".$$;
+		open( DTD, ">$tmpfile" ) || die "Failed to open $tmpfile for writing";
+
+		my $siteid = $self->{id};
+	
+		print DTD <<END;
+<!-- 
+	Entities file for $siteid, language ID "$langid"
+
+	*** DO NOT EDIT, This is auto-generated ***
+
+-->
+
+END
+		foreach( keys %entities )
+		{
+			my $value = $entities{$_};
+			$value=~s/&/&#x26;/g;
+			$value=~s/"/&#x22;/g;
+			$value=~s/%/&#x25;/g;
+			print DTD "<!ENTITY $_ \"$value\" >\n";
+		}
+		close DTD;
+		move( $tmpfile, $file );
+	}
+
+	return 1;
+}
 
 
 1;

@@ -47,7 +47,7 @@ This is an XML file with the following structure:
    </body>
  </page>
 
-The resulting file will be a .html file (foo.xpage becomes foo.html). It will take the template for this archive and insert the title and body from the appropriate places.  It will also cause the the special EPrints entities to be converted as it is copied. See the docs for B<generate_dtd> for more about these entities. 
+The resulting file will be a .html file (foo.xpage becomes foo.html). It will take the template for this archive and insert the title and body from the appropriate places.  It will also cause the the special EPrints entities to be converted as it is copied. See the main documentation.
 
 =item B<.xhtml> 
 
@@ -56,11 +56,10 @@ This is a normal XHTML file but with the following XML header:
  <?xml version="1.0" standalone="no" ?>
  <!DOCTYPE html SYSTEM "entities-en.dtd" >
 
-This will cause the the special EPrints entities to be converted as it is copied. See the docs for B<generate_dtd> for more about these entities. It will also be renamed to .html for example, foo.xhtml will become foo.html
+This will cause the the special EPrints entities to be converted as it is copied. See the main documentation for more about these entities. It will also be renamed to .html for example, foo.xhtml will become foo.html
 
 =back
 
-You must have run B<generate_dtd> at some point before this script as it will need the dtd file(s).
 
 =head1 NOTE FOR THE NON-ENGLISH MAJORITY
 
@@ -134,9 +133,6 @@ $|=1;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
-
-# change to base of site so expat can find the dtd directory. cjg (still needed???)
-chdir( $session->get_archive()->get_conf( "archiveroot" ) );
 
 my $langid;
 my $generalpath = $session->get_archive()->get_conf( "static_path" )."/general";

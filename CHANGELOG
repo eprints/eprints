@@ -1,7 +1,9 @@
 
 EPrints 2 changelog.
 
+======================================================================
 09/01/2002 - EPRINTS-2-ALPHA-2
+======================================================================
 
 10/01/2002
  - Added CHANGELOG!
@@ -399,5 +401,11 @@ on pointless undef checking.
 - added user help page.
 - configure_archive now lets archive hostnames have "-" in!
 
+13/02/2002
 - VLit No longer checks for text mimetype.
+- Removed "generate_dtd" - it now regenerates the DTD each time it 
+ loads the archive configuration. One less annoyance!
 
+======================================================================
+14/02/2002 - EPRINTS-2.0
+======================================================================
