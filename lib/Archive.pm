@@ -329,4 +329,25 @@ sub get_id
 
 	return $self->{id};
 }
+
+sub exec
+{
+	my( $self, $cmd_id, %map ) = @_;
+
+	my $execs = $self->get_conf( "executables" );
+	foreach( keys %{$execs} )
+	{
+		$map{$_} = $execs->{$_};
+	}
+
+	my $command = $self->get_conf( "invocation" )->{ $cmd_id };
+
+	$command =~ s/\$\(([a-z]*)\)/$map{$1}/gei;
+
+	my $rc = 0xffff & system $command;
+
+	return $rc;
+}	
+
+
 1;

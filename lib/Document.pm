@@ -589,7 +589,7 @@ sub upload
 	$file =~ s/.*\://;     # Remove everything before a ":" (MSDOS or Win)
 	$file =~ s/.*\///;     # Remove everything before a "/" (UNIX)
 
-	$file =~ s/[ \.]/_/g;      # Change spaces and dots into underscores
+	$file =~ s/ /_/g;      # Change spaces into underscores
 
 	my( $bytes, $buffer );
 
@@ -630,16 +630,11 @@ sub upload_archive
 	my $dest = $self->local_path();
 	my $arc_tmp =  $dest . "/" . $file;
 
-	# Make the extraction command line
-	my $extract_command =
-		$self->{session}->get_archive()->get_conf( "archive_extraction_commands" )->{ $archive_format };
-
-	$extract_command =~ s/_DIR_/$dest/g;
-	$extract_command =~ s/_ARC_/$arc_tmp/g;
-	
-
 	# Do the extraction
-	my $rc = 0xffff & system $extract_command;
+	my $rc = $self->{session}->get_archive()->exec( 
+			$archive_format, 
+			DIR => $dest,
+			ARC => $arc_tmp );
 	
 	# Remove the temp archive
 	unlink $arc_tmp;
@@ -701,17 +696,12 @@ sub upload_url
 	# If the result is less than zero, assume no cut dirs (probably have URL
 	# with no trailing slash, an INCORRECT result from URI::Heuristic
 	$cut_dirs = 0 if( $cut_dirs < 0 );
-	
-	# Construct wget command line.
-	my $command = $self->{session}->get_archive()->get_conf( "wget_command" );
-	#my $escaped_url = uri_escape( $url );
-	
-	$command =~ s/_CUTDIRS_/$cut_dirs/g;
-	$command =~ s/_URL_/"$url"/g;
-	
-	# Run the command
-	my $rc = 0xffff & system $command;
 
+	my $rc = $self->{session}->get_archive()->exec( 
+			"wget",
+			CUTDIRS => $cut_dirs,
+			URL => '"'.$url.'"' );
+	
 	# If something's gone wrong...
 	return( 0 ) if ( $rc!=0 );
 

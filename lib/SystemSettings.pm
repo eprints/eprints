@@ -29,9 +29,9 @@ $EPrints::SystemSettings::conf =
 		tar 	=> "/bin/tar"
 	},
 	invocation => {
-		zip 	=> '$(zip) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)',
-	        targz  	=> '$(gunzip) -c < $(ARC) 2>/dev/null | $(tar) xf - -C $(DIR) >/dev/null 2>\&1',
-		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)',
+		zip 	=> '$(zip) 1>/dev/null 2>&1 -qq -o -d $(DIR) $(ARC)',
+	        targz  	=> '$(gunzip) -c < $(ARC) 2>/dev/null | $(tar) xf - -C $(DIR) >/dev/null 2>&1',
+		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
 		sendmail => '$(sendmail) -oi -t -odb --'
 	},
 	archive_extensions => {
