@@ -92,7 +92,7 @@ $standard_time_zone = $EPrintSite::SiteInfo::standard_time_zone;
 
 # Any services in this array will not be registered at load time even if they
 # are present in the Services Directory
-@excludeServices = qw/Index Collection QM LibMgt UI/;
+@excludeServices = qw/CVS Index Collection QM LibMgt UI/;
 
 # establish my identity
 $server_name = "Dienst";	

@@ -151,7 +151,7 @@ sub LoadCode {
 
     foreach $file (@dienst::dienst_common_files) {
     	if (! do $file) {
-	    print "Could not load $file.";
+	    print STDERR "Could not load $file.";
 	    &exit(0);
 	}
     }
@@ -173,7 +173,7 @@ sub LoadCode {
 
 	    $loadfile = $s . '_protocol.pl';
 	    if (! do $loadfile) {
-		print "Could not load $loadfile. '$@'";
+		print STDERR "Could not load $loadfile. '$@'";
 		&exit(0);
 	    }
 	}
@@ -186,7 +186,7 @@ sub LoadCode {
 
 	    $loadfile = $s . '_init.pl';
 	    if (! do $loadfile) {
-		print "Could not load $loadfile. '$@'";
+		print STDERR "Could not load $loadfile. '$@'";
 		&exit(0);
 	    }
 	}

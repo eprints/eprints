@@ -121,7 +121,8 @@ sub identity {
     $writer->end ();
     $output1->close();
     &dienst::xmit_file ("$XMLOutputTempFile", "text/xml", 1);
-    unlink $XMLOutputTempFile;
+print STDERR "Dienst: info: Temp file is $XMLOutputTempFile\n";
+#    unlink $XMLOutputTempFile;
 
 }
 

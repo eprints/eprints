@@ -358,7 +358,7 @@ $EPrintSite::SiteInfo::signature =
 #
 
 # Domain the software is running in
-$EPrintSite::SiteInfo::domain = "ecs.soton.ac.uk";
+$EPrintSite::SiteInfo::domain = "dibble.ecs.soton.ac.uk";
 # Port the perl server is running on
 $EPrintSite::SiteInfo::server_perl_port = "80";
 # Standard time zone
