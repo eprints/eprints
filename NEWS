@@ -28,7 +28,8 @@ OAI-PMH v2.0 support and a few new configuration options.
         documentation. Use "perldoc Foo.pm" to view docs of a file.
 
 *       Added a new type of metafield - "search". Which is a serialised 
-        search expression. 
+        search expression. Not very useful for normal metadata - the primary
+        use is for subscriptions.
 
 *       You can now use XHTML entites in the phrase files, static pages
         and the page template eg. &nbsp; &pound; &eacute; etc. These are
@@ -49,6 +50,12 @@ OAI-PMH v2.0 support and a few new configuration options.
         - "submission_stages" which allows the admin to change the order
           of the submission form.
 
+        - "submission_hide_howmanyfiles"
+          "submission_hide_upload_archive"
+          "submission_hide_upload_graburl"
+          "submission_hide_upload_plain" - these allow an admin to supress
+          parts of the eprints file upload page.
+
 *       New metafield attributes: 
 
         - export_as_xml: This defaults to 1 but if explicitly set to zero it 
@@ -59,6 +66,9 @@ OAI-PMH v2.0 support and a few new configuration options.
 
         - make_single_value_orderkey: as above but only gets passed individual
           values even if the field is multiple.
+        
+        - fieldnames: used by search fields to configure which fields can be
+          searched.  
 
 *       New script - upgrade. This updates the SQL database of an archive to
         work with the latest version of eprints.

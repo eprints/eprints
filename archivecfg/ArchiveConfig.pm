@@ -271,6 +271,22 @@ $c->{submission_hide_language} = 1;
 # confidential contents.
 $c->{submission_hide_security} = 0;
 
+# This option removes the "how many files do you want
+# to upload" from the document file upload page and
+# defaults it to "1" instead. This is useful if your
+# policy only allows one file per document.
+$c->{submission_hide_howmanyfiles} = 0;
+
+# These options allow you to suppress various file
+# upload methods. You almost certainly do not want
+# to supress "plain" but you may well wish to supress
+# URL capture. Especially if wget is broken for some 
+# reason. They must not ALL be supressed.
+$c->{submission_hide_upload_archive} = 0;
+$c->{submission_hide_upload_graburl} = 0;
+$c->{submission_hide_upload_plain} = 0;
+
+
 ######################################################################
 #
 # Language

@@ -8,8 +8,6 @@
 General
 ----------------------------------------------------------------------
 
-- missing phrase: pin_timeout
-
 - If a user area function is broken, the system does not notice.
 
 - VLit code does not understand that server may not be running on
@@ -247,6 +245,8 @@ it has been added]
 - some virtual host setups would prefer x.x.x.x:80 rather than * for
    virtual hosts - add it to SystemSettings?
 - only allows [a-z]+ as passwords for mysql
+- missing phrase: pin_timeout [ no we're not]
+
 
 
 

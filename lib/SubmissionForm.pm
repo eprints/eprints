@@ -1584,7 +1584,23 @@ sub _do_stage_fileview
 
 	############################
 
-#cjg Need to make "graburl" dependent on the setted-ness of "wget"
+	my $options = [];
+	my $hideopts = {};
+	foreach( "archive", "graburl", "plain" )
+	{
+		$hideopts->{$_} = 0;
+		my $copt = $self->{session}->get_archive->get_conf( 
+			"submission_hide_upload_".$_ );
+		$hideopts->{$_} = 1 if( defined $copt && $copt );
+	}
+
+	push @{$options},"plain" unless( $hideopts->{plain} );
+	push @{$options},"graburl" unless( $hideopts->{graburl} );
+	unless( $hideopts->{archive} )
+	{
+		push @{$options}, @{$self->{session}->get_archive()->get_conf( 
+					"archive_formats" )}
+	}
 
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
@@ -1592,19 +1608,29 @@ sub _do_stage_fileview
 		name=>'arc_format',
 		required=>1,
 		type=>'set',
-		options => [ 
-				"plain", 
-				"graburl", 
-				@{$self->{session}->get_archive()->get_conf( 
-					"archive_formats" )}
-			] );		
+		options => $options );
 
-	my $num_files_field = EPrints::MetaField->new(
-		confid=>'format',
-		archive=> $self->{session}->get_archive(),
-		name=>'num_files',
-		type=>'int',
-		digits=>2 );
+	my $fields = [ $arc_format_field ];
+
+	my $hidehowmany = $self->{session}->get_archive->get_conf(
+		"submission_hide_howmanyfiles" );
+	if( defined $hidehowmany && $hidehowmany )
+	{	
+		# This hidden field will appear in the other
+		# forms on this page too, but that will not hurt.
+		$hidden_fields->{num_files} = 1;
+	}
+	else
+	{	
+		my $num_files_field = EPrints::MetaField->new(
+			confid=>'format',
+			archive=> $self->{session}->get_archive(),
+			name=>'num_files',
+			type=>'int',
+			digits=>2 );
+	
+		push @{$fields}, $num_files_field;
+	}
 
 	my $submit_buttons;
 	$submit_buttons = {
@@ -1613,10 +1639,7 @@ sub _do_stage_fileview
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			fields=>[ 
-				$arc_format_field, 
-				$num_files_field 
-			],
+			fields=>$fields,
 			values=>{
 				num_files => 1,	
 				arc_format => "plain"

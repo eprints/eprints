@@ -22,12 +22,17 @@ B<generate_apacheconf> [I<archiveid>] [B<options>]
 
 =head1 DESCRIPTION
 
-This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your main 
-apache configuration file - often, but not always, B</usr/local/apache/conf/httpd.conf>
+This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your main apache configuration file - often, but not always, B</usr/local/apache/conf/httpd.conf>
 
  Include /opt/eprints2/cfg/apache.conf
 
 Or elsewhere if you installed EPrints somewhere other than /opt/eprints2. This file then uses the "Include" directive to include all relevant apache config files from this EPrints installation.
+
+By default the virtualhost directives are
+
+ <VirtualHost *>
+
+But the * can be changed to something different by editing the <virtualhost> option in SystemSettings.pm
 
 =head1 ARGUMENTS
 

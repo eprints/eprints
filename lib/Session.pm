@@ -681,7 +681,11 @@ sub render_ruler
 {
 	my( $self ) = @_;
 
-	return $self->{archive}->get_ruler();
+	my $ruler = $self->{archive}->get_ruler();
+	
+	$self->take_ownership( $ruler );
+
+	return $ruler;
 }
 
 

@@ -118,6 +118,7 @@ $fields->{eprint} = [
 
 	{ name => "refereed", type => "boolean", input_style=>"radio" },
 
+# nb. Can't call this field "references" because that's a MySQL keyword.
 	{ name => "referencetext", type => "longtext", input_rows => 3 },
 
 	{ name => "reportno", type => "text" },

@@ -642,7 +642,25 @@ before next release. (metadata types & fields)
 - removed code which always put <a name="t"></a> at the top of pages when
    an "internal" button was pushed. This broke the whole idea of the #t jump
    to where you were before.
-
 - added new config option (submission_stages) which lets the admin override the
    default order of the submission form stages.
+
+2002-06-28
+- Added new config options:
+   submission_hide_howmanyfiles
+   submission_hide_upload_archive
+   submission_hide_upload_graburl
+   submission_hide_upload_plain
+  to allow the admin to supress various parts of the submission file upload
+  form.
+
+2002-07-01
+ - Fixed bug in render_ruler : it failed to take ownership of the
+   new fuler.
+ - Added more details into "information" page in default config. And a
+   GNU linking to gnu.org.
+
+======================================================================
+??/07/2002 - EPRINTS-2.1
+======================================================================
 

@@ -17,9 +17,14 @@
 <h2>About this software</h2>
 <p>This site is running software from eprints.org / revision: &version;</p>
 <p>EPrints is free software developed by the University of Southampton, England.</p>
-<p><em>EPrints2</em> by <a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a>, assisted by Mike Jewell.</p>
-<p>Original version 1.0 software design and implemention by Robert Tansley.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a></p>
+
+<h2>Credits</h2>
+<p><a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a> - Designer and coder of <em>EPrints version 2</em>.</p>
+<p>Mike Jewell - Pre-release testing. The initial versions of scripts for creating and installing an <em>EPrints v2</em> package. Some coding assistance.</p>
+<p>Robert Tansley - Creator of <em>EPrints 1</em> on which <em>EPrints 2</em> is based.</p>
+<p>Al Riddoch &lt;<a href="mailto:ajr@ecs.soton.ac.uk">ajr@ecs.soton.ac.uk</a>&gt; - Assistance in writing the "configure" script for the installer.</p>
+<p>Gui Power - Adapting the <a href="&base_url;/help/">online help</a> for version 2.</p>
 
 &ruler;
 
@@ -33,6 +38,7 @@
 <a href="http://perl.apache.org/"><img border="0" align="middle" src="&base_url;/images/mod_perl.gif" alt="Powered by mod_perl!" /></a>
 <a href="http://www.apache.org/"><img src="&base_url;/images/apache_pb.gif" border="0" alt="Powered by Apache" align="middle" /></a>
 <a href="vlit.html"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
+<a href="http://www.gnu.org/"><img src="&base_url;/images/gnu-head-sm.jpg" border="0" alt="Part of the GNU Project" align="middle" width="129" height="122" /></a>
 <br />
 <a href="http://www.w3c.org/XML/">XML</a> &amp; 
 <a href="http://www.w3c.org/DOM/">DOM</a> 

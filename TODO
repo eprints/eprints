@@ -1,10 +1,14 @@
+This is the rough and ready list of stuff that needs doing on
+eprints 2. It's really for my benefit, I include it here in
+case it might be helpful.
+
 Subscriptions/subject-editors
 
 +	Subject-editors (editors can only edit within certain subjects/search)
 
 +	Alerts for editors about things they can edit (flag in User fields?)
 
--	Subscriptions - importing from v1.
+-	Subscriptions - importing from eprints v1.
 
 
 Metadata Fields
@@ -90,7 +94,11 @@ Searches
 
 Installer / Package Builder
 
-** 	Do not put SystemSettings in the distribution!
+-	Make a simple version of file upload for archives which only want one
+         (PDF) document with no security etc.
+
+
+Submission Page
 
 Other Stuff
 
@@ -98,8 +106,6 @@ Other Stuff
 
 +	Option for "subjects" to not appear with heirarchy when presented
 	in input forms.
-
-*	Make "stages" in sub form over-ridable.
 
 *	Make "Submit Later" option on submit form final page.
 
@@ -250,6 +256,9 @@ DONE ====================================================================
 +	Ordervalues for sets & subjects being on their NAME not value? 
 *	Turn succeeds, replacedby & commentary into "int" rather than "text"
 	[done in pm but needs to be done by "upgrade"]
+*	Make "stages" in sub form over-ridable.
+** 	Do not put SystemSettings in the distribution!
+
 
 
 

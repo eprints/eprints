@@ -2245,6 +2245,7 @@ sub ordervalue
 # 
 ######################################################################
 
+# cjg shouldn't we do main/id part BEFORE multilang?
 sub _ordervalue_aux1
 {
 	my( $self , $value , $session , $langid ) = @_;
@@ -2311,13 +2312,9 @@ sub _ordervalue_aux3
 
 	return "" if( !defined $value );
 
-	## cjg
-	# Subject & set should probably be expanded out into their cosmetic
-	# names.
-
-	if( defined $self->{make_orderkey_for_single_value} )
+	if( defined $self->{make_single_value_orderkey} )
 	{
-		return &{$self->{make_orderkey_for_single_value}}( 
+		return &{$self->{make_single_value_orderkey}}( 
 			$self, 
 			$value ); 
 	}
