@@ -333,6 +333,14 @@ sub get_url
 	return( $self->{query}->url() );
 }
 
+sub get_noise
+{
+	my( $self ) = @_;
+	
+	return( $self->{noise} );
+}
+
+
 
 
 

@@ -244,6 +244,10 @@ else
 	$count = &from_ascii_file( $session , $filename , $noise );
 }
 print "Done importing $count subjects from $filename\n" if( $noise >= 1 );
+print "Reindexing subject dataset to set ancestor data\n" if( $noise >= 1 );
+my $subds = $session->get_archive()->get_dataset( "subject" );
+$subds->reindex( $session );
+print "Done reindexing\n" if( $noise >= 1 );
 
 $session->terminate();
 print "Exiting normally.\n" if( $noise >= 2 );
@@ -251,8 +255,7 @@ exit;
 
 sub deal 
 {
-#cjg table? do I mean dataset?
-	my( $session , $table , $subject, $info ) = @_;
+	my( $session , $dataset , $subject, $info ) = @_;
 
 	if( $info->{noise} >= 2 )
 	{

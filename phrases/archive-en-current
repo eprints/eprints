@@ -8,6 +8,7 @@
     <ep:phrase ref="document_typename_pdf">PDF</ep:phrase>
     <ep:phrase ref="document_typename_ps">Postscript</ep:phrase>
     <ep:phrase ref="document_typename_other">Other</ep:phrase>
+    <ep:phrase ref="document_typename_coverimage">Image of Cover (to show on abstract page)</ep:phrase>
 
     <ep:phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</ep:phrase>
     <ep:phrase ref="document_fieldhelp_format">Please select the storage format of this document.</ep:phrase>

@@ -87,6 +87,18 @@ sub eprint_render
 		}
 	}		
 
+	# This is where the cover image, if any, will go
+	# we can append stuff to it in a minute.
+	my $imagetable = $session->make_element( "table", border=>0 );
+	my $imagetr = $session->make_element( "tr" );
+	my $imagetd = $session->make_element( "td" );
+	my $docstd = $session->make_element( "td" );
+	
+	$page->appendChild( $imagetable );
+	$imagetable->appendChild( $imagetr );
+	$imagetr->appendChild( $imagetd );
+	$imagetr->appendChild( $docstd );
+
 	# Available documents
 	my @documents = $eprint->get_all_documents();
 
@@ -94,10 +106,19 @@ sub eprint_render
 	$p->appendChild( $session->html_phrase( "page:fulltext" ) );
 	foreach( @documents )
 	{
+		if( $_->get_value( "format" ) eq "coverimage" )
+		{
+			$imagetd->appendChild( $session->make_element(
+				"img",
+				align=>"left",
+				src=>$_->get_url(),
+				alt=>$_->get_value( "formatdesc" ) ) );
+			next;
+		}
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $_->render_citation_link() );
 	}
-	$page->appendChild( $p );
+	$docstd->appendChild( $p );
 
 
 	# Then the abstract

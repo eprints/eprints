@@ -153,9 +153,7 @@
 #	Named values in Constructors all round?
 #	cmp methods : is they still needed?
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
-#	What type for ordervalues? Something which keeps memory use down... NR
 
-#`	subjec t importer has iffy ordering - should really re-commit 'em all to update ancestors list. NR
 # import_subjects does not check for errors very well.
 
 #TODO
@@ -180,7 +178,9 @@
 #---- MIKE----
 # Post Upgrading people should re-run generate_apacheconf and restart the server.
 # Comment out the line in XML::DOM which calls deb() from ExternEnt [mike] NR
-# bibtex, whatsnew, importer
+# bibtex, 
+# whatsnew, 
+# importer
 #	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
 # 	Make man pages from /bin etc build into docs. NR [mike]
 # SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
@@ -198,7 +198,11 @@
 
 # namespace static files NR
 
-# check CGI scripts use DOM in title
+# check CGI scripts use DOM in title NR
 
-# todo: TTTTTTTTTTTTTbbbbbbbbbbbbmmm
+# Xhtml docs: [gui]
+
+# browse by subject: title is screwed.
+
+# todo: TTTTTTTTTTTbbbbbbbbbbbbmmmmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

@@ -575,13 +575,21 @@ sub render_citation
 	{
 		push @{$nodes->{!defined $url?"keep":"lose"}}, $node;
 	}
-	foreach $node ( $cstyle->getElementsByTagName( "a" , 1 ) )
+	foreach $node ( $cstyle->getElementsByTagName( "linkhere" , 1 ) )
 	{
 		if( !defined $url )
 		{
+			# keep the contents (but remove the node itself)
 			push @{$nodes->{keep}}, $node;
 			next;
 		}
+
+		# nb. setTagName is not really a proper
+		# DOM command, but it's much quicker than
+		# making a new <a> element and moving it 
+		# all across.
+
+		$node->setTagName( "a" );
 		$node->setAttribute( "href", $url );
 	}
 	foreach $node ( @{$nodes->{keep}} )

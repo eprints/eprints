@@ -435,8 +435,7 @@ sub get_url
 	# point into the secure area. 
 
 	my $basepath;
-	if( $self->get_value( "security" ) eq "public"
-	 && $eprint->get_dataset()->id() eq "archive" )
+	if( !$self->is_set( "security" ) && $eprint->get_dataset()->id() eq "archive" )
 	{
 		$basepath = $archive->get_conf( "documents_url" );
 	}
@@ -844,7 +843,6 @@ sub upload_url
 #
 ######################################################################
 
-## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;

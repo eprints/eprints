@@ -311,11 +311,15 @@ sub get_dataset
 {
 	my( $self , $setname ) = @_;
 
-	return $self->{datasets}->{$setname};
+	my $ds = $self->{datasets}->{$setname};
+	if( !defined $ds )
+	{
+		$self->log( "Unknown dataset: ".$setname );
+	}
+
+	return $ds;
 }
 
-
-## WP1: GOOD
 sub get_conf
 {
 	my( $self, $key, @subkeys ) = @_;

@@ -88,16 +88,18 @@ foreach( "archive", "deletion" )
 {
 	print "Writing $_ abstracts\n" if( $noise > 0);
 	my $dataset = $session->get_archive()->get_dataset( "$_" );
-	my $count  = $dataset->map( $session , \&make_static );
-	print "Done writing $count $_ abstracts\n" if( $noise > 0);
+	my $info = { count=>0 };
+	$dataset->map( $session , \&make_static, $info );
+	print "Done writing ".$info->{count}." $_ abstracts\n" if( $noise > 0);
 }
 
 sub make_static
 {
-	my( $eprint ) = @_;
+	my( $session, $dataset, $eprint, $info ) = @_;
 	$eprint->generate_static();
 	if( $noise > 1 )
 	{
 		print "Generated ".$eprint->get_value( "eprintid" )."\n";
 	}
+	$info->{count}++;
 }

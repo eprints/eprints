@@ -471,7 +471,7 @@ sub get_cache_id
 	return $self->{cache_id};
 }
 
-
+# is max still used? cjg
 sub perform_search
 {
 	my( $self, $max ) = @_;
@@ -551,16 +551,19 @@ sub perform_search
 	if( $self->{use_cache} || $self->{use_oneshot_cache} || $self->{use_private_cache} )
 	{
 		my $order;
-		if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+		if( defined $self->{order} )
 		{
-			$order = $self->{custom_order};
-		}
-		else
-		{
-			$order = $self->{session}->get_archive()->get_conf( 
+			if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+			{
+				$order = $self->{custom_order};
+			}
+			else
+			{
+				$order = $self->{session}->get_archive()->get_conf( 
 						"order_methods" , 
 						$self->{dataset}->confid() ,
 						$self->{order} );
+			}
 		}
 
 		$self->{cache_id} = $self->{session}->get_db()->cache( 

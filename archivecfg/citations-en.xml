@@ -11,63 +11,63 @@
 	xmlns:ep="http://eprints.org/ep2/citations">
 
 <!-- test citations -->
-    <ep:citation type="eprint_misc"><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.<ep:iflink> [<ep:a>view</ep:a>]</ep:iflink></span></ep:citation>
-    <ep:citation type="eprint_title_only"><tr><td>&title; [<ep:a>view</ep:a>]</td></tr></ep:citation>
+    <ep:citation type="eprint_misc"><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.<ep:iflink> [<ep:linkhere>view</ep:linkhere>]</ep:iflink></span></ep:citation>
+    <ep:citation type="eprint_title_only"><tr><td>&title; [<ep:linkhere>view</ep:linkhere>]</td></tr></ep:citation>
 
 <!-- eprint citations -->
     <ep:citation type="eprint"><ep:ifset name="title">&title;</ep:ifset><ep:ifnotset name="title">Untitled &eprintid;</ep:ifnotset></ep:citation>
 
-    <ep:citation type="eprint_book"><ep:a><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:a></ep:citation>
+    <ep:citation type="eprint_book"><ep:linkhere><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_bookchapter"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="publication"><i>&publication;</i></ep:ifset><ep:ifset name="chapter">, chapter &chapter;</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:a></ep:citation>
+    <ep:citation type="eprint_bookchapter"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="publication"><i>&publication;</i></ep:ifset><ep:ifset name="chapter">, chapter &chapter;</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_proceedings"><ep:a><span class="citation"><ep:ifset name="editors">&editors; </ep:ifset> (&year;) &title;. <I>&conference;</I><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_proceedings"><ep:linkhere><span class="citation"><ep:ifset name="editors">&editors; </ep:ifset> (&year;) &title;. <I>&conference;</I><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_confpaper"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_confpaper"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_inproceedings"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_inproceedings"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_confposter"><ep:a><span class="citation">&authors; <ep:ifset name="years">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><i>Proceedings &conference;</i></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_confposter"><ep:linkhere><span class="citation">&authors; <ep:ifset name="years">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><i>Proceedings &conference;</i></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_incollection"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_incollection"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_techreport"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. Technical Report<ep:ifset name="reportno"> &reportno;</ep:ifset><ep:ifset name="department">, &department;</ep:ifset><ep:ifset name="institution">, &institution;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_techreport"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. Technical Report<ep:ifset name="reportno"> &reportno;</ep:ifset><ep:ifset name="department">, &department;</ep:ifset><ep:ifset name="institution">, &institution;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_journale"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_journale"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_journalp"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">:&pages;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_journalp"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">:&pages;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_newsarticle"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <i>&publication;</i><ep:ifset name="volume">, &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages"> pages &pages;</ep:ifset><ep:ifset name="publisher">, &publisher;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_newsarticle"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <i>&publication;</i><ep:ifset name="volume">, &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages"> pages &pages;</ep:ifset><ep:ifset name="publisher">, &publisher;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_other"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_other"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_preprint"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_preprint"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_thesis"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>. &thesistype;,<ep:ifset name="department"> &department;,</ep:ifset><ep:ifset name="institution"> &institution;</ep:ifset>.</span></ep:a></ep:citation>
+    <ep:citation type="eprint_thesis"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>. &thesistype;,<ep:ifset name="department"> &department;,</ep:ifset><ep:ifset name="institution"> &institution;</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_thread_succeeds"><ep:a><span class="citation">&title; (deposited &datestamp;)</span></ep:a></ep:citation>
+    <ep:citation type="eprint_thread_succeeds"><ep:linkhere><span class="citation">&title; (deposited &datestamp;)</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_thread_commentary"><ep:a><span class="citation">&authors;. &title;. (deposited &datestamp;)</span></ep:a></ep:citation>
+    <ep:citation type="eprint_thread_commentary"><ep:linkhere><span class="citation">&authors;. &title;. (deposited &datestamp;)</span></ep:linkhere></ep:citation>
 
 <!-- user citations -->
     <ep:citation type="user"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">User &username;</ep:ifnotset></ep:citation>
 
-    <ep:citation type="user_admin"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
+    <ep:citation type="user_admin"><ep:linkhere><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:linkhere></ep:citation>
 
-    <ep:citation type="user_editor"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
+    <ep:citation type="user_editor"><ep:linkhere><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:linkhere></ep:citation>
 
-    <ep:citation type="user_user"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
-
-<!-- document citations -->
-    <ep:citation type="document"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifnotset name="format">??</ep:ifnotset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a></ep:citation>
-
-    <ep:citation type="document_html"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
-    <ep:citation type="document_ascii"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
-    <ep:citation type="document_ps"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset> - Requires a viewer, such as GhostView</ep:citation>
-
-    <ep:citation type="document_pdf"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset> - Requires <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a> or other PDF viewer.</ep:citation>
+    <ep:citation type="user_user"><ep:linkhere><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:linkhere></ep:citation>
 
 <!-- document citations -->
-    <ep:citation type="subject"><ep:a><span class="subject"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">(&subjectid;)</ep:ifnotset></span></ep:a></ep:citation>
+    <ep:citation type="document"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifnotset name="format">??</ep:ifnotset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere></ep:citation>
+
+    <ep:citation type="document_html"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
+    <ep:citation type="document_ascii"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
+    <ep:citation type="document_ps"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset> - Requires a viewer, such as GhostView</ep:citation>
+
+    <ep:citation type="document_pdf"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset> - Requires <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a> or other PDF viewer.</ep:citation>
+
+<!-- document citations -->
+    <ep:citation type="subject"><ep:linkhere><span class="subject"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">(&subjectid;)</ep:ifnotset></span></ep:linkhere></ep:citation>
 
 </ep:citations>

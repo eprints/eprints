@@ -220,4 +220,23 @@ Cache-Control: must-revalidate
 [C] - added validate_document_meta to ArchiveValidateConfig.pm - this checks
 just the meta data of a document. 
  
+ - fixed bug when you have more than 3 items in a list. The form renderer was
+chopping off the rest!
+ - added a new doc-type: coverimage, which renders as an image on the abstract
+page. It's not a required format, though.
+ - renamed <ep:a> to <ep:linkhere> because it was clashing with XHTML's <a> 
+and DOM lv 1 does not support namespaces.
+ - added reindex method to dataset which re-commits EVERY item. Which will 
+recreate index and ordervalue tables.
+ - added bin/reindex  which is just a handle on that function.
+ - added get_noise to session.pm to give the current noise level in command
+line tools.
+ - made dataset::map actually do a map rather than do it the stupid way. 
+Changed the syntax to be the same as searchexp::map and changed things which 
+call it.
+ - fixed some bits in Document.pm which still thought public docs were 
+"public" not "".
+ - fixed something in searchexp::perform which assumed we had an order set
+when we might not.
+ - order values now correctly sort year and int (int not tested yet!)
 

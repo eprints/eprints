@@ -716,6 +716,12 @@ sub render_input_field
 	if( $self->get_property( "multiple" ) )
 	{
 		my $boxcount = $self->{input_boxes};
+		$value = [] if( !defined $value );
+		my $cnt = scalar @{$value};
+		if( $boxcount<=$cnt )
+		{
+			$boxcount = $cnt+$self->{input_add_boxes};
+		}
 		my $spacesid = $self->{name}."_spaces";
 
 		if( $session->internal_button_pressed() )
@@ -1683,6 +1689,17 @@ sub ordervalue_aux3
 		}
 		return join( "," , @a );
 	}
+
+	if( $self->is_type( "int", "year" ) )
+	{
+		my $pad = 4;
+		if( $self->is_type( "int" ) )
+		{
+ 			$pad = $self->get_property( "digits" ) ;
+		}
+		return sprintf( "%0".$pad."d",$value );
+	}
+
 	return $value;
 }
 

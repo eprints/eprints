@@ -1051,7 +1051,7 @@ sub generate_static
 		my $doc;
 		foreach $doc ( @docs )
 		{
-			if( $doc->get_value( "security" ) eq "public" ) 
+			unless( $doc->is_set( "security" ) )
 			{
 				$doc->create_symlink( $self, $full_path );
 			}

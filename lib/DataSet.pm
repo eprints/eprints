@@ -515,18 +515,16 @@ sub get_dataset_ids
 
 sub map
 {
-	my( $self, $session, $method ) = @_;
+	my( $self, $session, $fn, $info ) = @_;
 	
-	# this needs to be BETTER later! cjg 
-	# this is just so we don't have to change the way
-	# things are called later.
-
-	my @records = $session->get_db()->get_all( $self );
-	foreach( @records ) 
-	{
-		&{$method}( $_ );
-	}
-	return scalar @records;
+	my $searchexp = EPrints::SearchExpression->new(
+		allow_blank => 1,
+		use_oneshot_cache => 1,
+		dataset => $self,
+		session => $session );
+	$searchexp->perform_search();
+	$searchexp->map( $fn, $info );
+	$searchexp->dispose();
 }
 
 sub get_archive
@@ -535,4 +533,21 @@ sub get_archive
 	
 	return $self->{archive};
 }
+
+sub reindex
+{
+	my( $self, $session ) = @_;
+
+	my $fn = sub {
+		my( $session, $dataset, $item ) = @_;
+		if( $session->get_noise() >= 2 )
+		{
+			print STDERR "Reindexing item: ".$dataset->id()."/".$item->get_id()."\n";
+		}
+		$item->commit();
+	};
+
+	$self->map( $session, $fn );
+}
+
 1;

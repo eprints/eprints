@@ -31,13 +31,12 @@ exit( 1 ) unless( defined $session );
 
 my $user_ds = $session->get_archive()->get_dataset( "user" );
 $user_ds->map( $session, \&print_user_email );
-my @users = $session->get_db()->get_all( $user_ds );
 
 $session->terminate();
 
 sub print_user_email
 {
-	my( $user ) = @_;
+	my( $session, $dataset, $user ) = @_;
 	
 	print $user->get_value( "email" )."\n";
 }

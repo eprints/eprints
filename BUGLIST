@@ -42,6 +42,7 @@ Searching
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
+- ANY ID is invalid in the "later version of" field.
 
 - .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
    install mode failing to preserve the "executables" field.
@@ -104,5 +105,9 @@ like it's supposed to.
 - If you select a file to upload (in submission form) but click back then
    it still uploads the file then discards it (which can be annoying if it's
    big) Back buttons should be in a seperate form.
+
+FIXED: 31/01
+- Problem with more than 3 authors(or whatever) - edit form only EVER
+   starts with 3 spaces (and loses other values)
 
 
