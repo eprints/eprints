@@ -111,7 +111,7 @@ sub get_subjects
 		
 		unless( defined $sub ) 
 		{
-			EPrints::Log::log_entry( "L:invalid_tag", { tag=>$_ } );
+			$session->get_site()->log( "List contain invalid tag $_" );
 		}
 	}
 	

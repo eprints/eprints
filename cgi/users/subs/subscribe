@@ -38,7 +38,6 @@ if( !defined $user )
 
 my @all_subs = EPrints::Subscription::subscriptions_for( $session, $user );
 
-#EPrints::Log::debug( "subscribe", "Got ".scalar @all_subs." subscriptions for user $user->{username}" );
 
 my $subscription = undef;
 
@@ -51,7 +50,6 @@ $action_remove    = $session->{lang}->phrase( "F:remove" );
 # Do we have an action?
 my $action = $session->{render}->param( "submit" );
 
-#EPrints::Log::debug( "subscribe", "Action: $action" );
 
 if( defined $action && $action eq $action_subscribe )
 {
@@ -145,7 +143,6 @@ sub no_subscription
 {
 	my( $session ) = @_;
 
-#EPrints::Log::debug( "subscribe", "no_subscription" );
 
 	print $session->{render}->start_html( 
 		$session->{lang}->phrase( "H:subscribe" ) );
@@ -178,7 +175,6 @@ sub edit_subscription
 {
 	my( $session, $subscription, $problems ) = @_;
 
-#EPrints::Log::debug( "subscribe", "edit_subscription" );
 
 	print $session->{render}->start_html( 
 		$session->{lang}->phrase( "H:subscribe" ) );
@@ -227,7 +223,6 @@ sub update_subscription
 
 	my $success = $subscription->commit();
 
-#EPrints::Log::debug( "subscribe", "update_subscription" );
 
 	if( $success )
 	{

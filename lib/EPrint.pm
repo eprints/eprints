@@ -131,15 +131,15 @@ sub new
 	{
 		if( defined $dataset )
 		{
-			return $session->getDB()->get_single( $dataset , $id );
+			return $session->get_db()->get_single( $dataset , $id );
 		}
 
 		## Work out in which table the EPrint resides.
 		## and return the eprint.
 		foreach( "archive" , "inbox" , "buffer" )
 		{
-			my $ds = $session->getSite()->getDataSet( $_ );
-			$self = $session->getDB()->get_single( $ds, $id );
+			my $ds = $session->get_site()->getDataSet( $_ );
+			$self = $session->get_db()->get_single( $ds, $id );
 			if ( defined $self ) 
 			{
 				$self->{dataset} = $ds;
@@ -189,7 +189,7 @@ sub create
 print STDERR "($new_id)($dir)\n";
 	if( !defined $dir )
 	{
-		$session->getSite->log( "Failed to make dir." );
+		$session->get_site()->log( "Failed to make dir." );
 		return( undef );
 	}
 
@@ -198,7 +198,7 @@ print STDERR "($new_id)($dir)\n";
 	$data->{dir} = $dir;
 	
 # cjg add_record call
-	my $success = $session->getDB->add_record(
+	my $success = $session->get_db()->add_record(
 		$dataset,
 		$data );
 
@@ -226,14 +226,14 @@ sub _create_id
 {
 	my( $session ) = @_;
 	
-	my $new_id = $session->getDB->counter_next( "eprintid" );
+	my $new_id = $session->get_db()->counter_next( "eprintid" );
 
 	while( length $new_id < $EPrints::EPrint::id_code_digits )
 	{
 		$new_id = "0".$new_id;
 	}
 
-	return( $session->getSite->getConf( "eprint_id_stem" ) . $new_id );
+	return( $session->get_site()->getConf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -253,8 +253,8 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-print STDERR $session->getSite()->getConf( "local_document_root" )."\n";
-	opendir DOCSTORE, $session->getSite()->getConf( "local_document_root" )
+print STDERR $session->get_site()->getConf( "local_document_root" )."\n";
+	opendir DOCSTORE, $session->get_site()->getConf( "local_document_root" )
 		or return( undef );
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -268,13 +268,13 @@ print STDERR $session->getSite()->getConf( "local_document_root" )."\n";
 	foreach (sort @avail)
 	{
 		my $free_space = 
-			(df $session->getSite->getConf( "local_document_root" )."/$_" )[3];
-print STDERR "(".$session->getSite->getConf( "local_document_root" )."/$_)($free_space)\n";
+			(df $session->get_site()->getConf( "local_document_root" )."/$_" )[3];
+print STDERR "(".$session->get_site()->getConf( "local_document_root" )."/$_)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $session->getSite()->getConf("diskspace_error_threshold") )
+			if( $free_space >= $session->get_site()->getConf("diskspace_error_threshold") )
 			{
 				# Enough space on this drive.
 				$storedir = $_;
@@ -298,7 +298,7 @@ print STDERR "oraok\n";
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $session->getSite()->getConf("diskspace_warn_threshold") )
+	if( $best_free_space < $session->get_site()->getConf("diskspace_warn_threshold") )
 	{
 # cjg - not done this bit yet...
 #
@@ -317,7 +317,7 @@ print STDERR "oak\n";
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $session->getSite()->getConf( "eprint_id_stem" );
+	my $sitestem = $session->get_site()->getConf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
 		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
@@ -326,7 +326,7 @@ print STDERR "soak\n";
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
 	# Full path including doc store root
-	my $full_path = $session->getSite()->getConf("local_document_root")."/$dir";
+	my $full_path = $session->get_site()->getConf("local_document_root")."/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
 print "($full_path)\n";
@@ -338,15 +338,12 @@ print "($full_path)\n";
 
 #	foreach (@created)
 #	{
-#		EPrints::Log::debug( "EPrint", "Created directory $_" );
 #	}
 
 	# Error if we couldn't even create one
 	if( $#created == -1 )
 	{
-		EPrints::Log::log_entry( 
-			"L:mkdir_err" ,
-				{ path=>$full_path , errmsg=>$@ } );
+		$session->get_site()->log( "Failed to create directory ".$full_path.": $@"); 
 		return( undef );
 	}
 
@@ -388,10 +385,7 @@ sub remove
 		$success = $success && $_->remove();
 		if( !$success )
 		{
-			EPrints::Log::log_entry( 
-					"L:doc_rm_err",
-					{ docid=>$_->{docid},
-					errmsg=>$! } );
+			$self->{session}->get_site()->log( "Error removing doc ".$_->{docid}.": $!" );
 		}
 	}
 
@@ -400,11 +394,7 @@ sub remove
 	
 	if( $num_deleted <= 0 )
 	{
-		EPrints::Log::log_entry(
-				"L:file_rm_err", 
-				{ eprintid=>$self->{eprint},
-				path=>$self->local_path(),
-				errmsg=>$! } );
+		$self->{session}->get_site()->log( "Error removing files for ".$self->{eprint}.", path ".$self->local_path().": $!" );
 		$success = 0;
 	}
 
@@ -618,10 +608,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log::log_entry(
-				"error_commit",
-				{ eprintid=>$self->{eprintid},
-				errmsg=>$db_error } );
+		$self->{session}->get_site()->log( "Error committing EPrint ".$self->{eprintid}.": $db_error" );
 	}
 
 	return( $success );
@@ -1104,7 +1091,6 @@ sub prune
 {
 	my( $self ) = @_;
 	
-#EPrints::Log::debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
 
 	$self->prune_documents();
 	
@@ -1120,7 +1106,6 @@ sub prune
 		}
 	}
 
-#EPrints::Log::debug( "EPrint", "prune: end EPrint ID: $self->{eprintid}" );
 }
 
 
@@ -1244,7 +1229,7 @@ sub url_stem
 {
 	my( $self ) = @_;
 	
-	return( $self->{session}->getSite->getConf( "server_document_root" ).
+	return( $self->{session}->get_site()->getConf( "server_document_root" ).
 		"/".$self->{data}->{eprintid}."/" );
 }
 
@@ -1288,7 +1273,7 @@ sub generate_static
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $self->{session}->getSite->getConf( "eprint_id_stem" );
+	my $sitestem = $self->{session}->get_site()->getConf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
 		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
@@ -1300,7 +1285,7 @@ sub generate_static
 
 
 		my $full_path = 
-			$self->{session}->getSite->getConf( "local_html_root" ).
+			$self->{session}->get_site()->getConf( "local_html_root" ).
 			"/$langid/archive/$1/$2/$3/$3";
 
 		my @created = eval
@@ -1310,10 +1295,10 @@ sub generate_static
 		};
 		print "yo:".join(",",@created)."\n";
 
-		$self->{session}->newPage( $langid );
+		$self->{session}->new_page( $langid );
 		my $page = $self->toHTMLPage;
-		$self->{session}->buildPage( "TITLE?????", $page ); #cjg title?
-		$self->{session}->pageToFile( $full_path .
+		$self->{session}->build_page( "TITLE?????", $page ); #cjg title?
+		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
 		# SYMLINK's to DOCS...
 	}
@@ -1330,7 +1315,7 @@ sub toHTMLPage
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->getSite->call( "eprint_render_full", $self, 0 );
+        my $dom = $self->{session}->get_site()->call( "eprint_render_full", $self, 0 );
 
         return( $dom );
 }
@@ -1340,7 +1325,7 @@ sub toHTMLStaffPage
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->getSite->call( "eprint_render_full", $self, 1 );
+        my $dom = $self->{session}->get_site()->call( "eprint_render_full", $self, 1 );
 
         return( $dom );
 }
@@ -1420,7 +1405,6 @@ sub first_in_thread
 {
 	my( $self, $field ) = @_;
 	
-#EPrints::Log::debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
 
 	my $first = $self;
 	
@@ -1549,7 +1533,7 @@ sub toHTML
 	
 	if( !defined $cstyle )
 	{
-		$cstyle = $self->{session}->getSite->call( "getEPrintCitationStyle", $self );
+		$cstyle = $self->{session}->get_site()->call( "getEPrintCitationStyle", $self );
 	}
 
 	my $ifnode;

@@ -32,6 +32,7 @@ use XML::DOM;
 use XML::Parser;
 
 use strict;
+#require 'sys/syscall.ph';
 
 ######################################################################
 #
@@ -120,7 +121,7 @@ sub new
 	}
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
 	
-	$self->newPage;
+	$self->new_page;
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -133,7 +134,6 @@ sub new
 
 #$self->{starttime} = gmtime( time );
 
-#EPrints::Log::debug( "Session", "Started session at $self->{starttime}" );
 	
 	$self->{site}->call( "session_init", $self, $offline );
 
@@ -143,7 +143,6 @@ sub new
 #	foreach (@params)
 #	{
 #		my @vals = $self->{render}->{query}->param($_);
-#		EPrints::Log::debug( "Session", "Param <$_> Values:<".@vals.">" );
 #	}
 	
 
@@ -151,7 +150,7 @@ sub new
 }
 
 ## WP1: BAD
-sub newPage
+sub new_page
 {
 	my( $self , $langid ) = @_;
 
@@ -169,14 +168,14 @@ sub newPage
 			"html",
 			"DTD/xhtml1-transitional.dtd",
 			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
-	$self->takeOwnership( $doctype );
+	$self->take_ownership( $doctype );
 	$self->{page}->setDoctype( $doctype );
 
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
 
 	my $newpage = $self->{site}->getConf( "htmlpage" , $langid )->cloneNode( 1 );
-	$self->takeOwnership( $newpage );
+	$self->take_ownership( $newpage );
 	$self->{page}->appendChild( $newpage );
 }
 
@@ -215,7 +214,6 @@ sub terminate
 {
 	my( $self ) = @_;
 	
-#EPrints::Log::debug( "Session", "Closing session started at $self->{starttime}" );
 	$self->{site}->call( "session_close", $self );
 
 	$self->{database}->disconnect();
@@ -267,7 +265,7 @@ sub html_phrase
 					\%inserts , 
 					$self );
 	print STDERR ">>>".$result->toString."\n";
-	return $self->treeToXHTML( $result );
+	return $self->tree_to_xhtml( $result );
 }
 
 ## WP1: GOOD
@@ -277,7 +275,7 @@ sub phrase
 
 	foreach( keys %inserts )
 	{
-		$inserts{$_} = $self->makeText( $inserts{$_} );
+		$inserts{$_} = $self->make_text( $inserts{$_} );
 		
 	}
         my @callinfo = caller();
@@ -285,11 +283,11 @@ sub phrase
 
         my $r = $self->{lang}->file_phrase( $&, $phraseid, \%inserts , $self);
 
-	return $self->treeToUTF8( $r );
+	return $self->tree_to_utf8( $r );
 }
 
 ## WP1: BAD
-sub treeToUTF8
+sub tree_to_utf8
 {
 	my( $self, $node ) = @_;
 
@@ -303,7 +301,7 @@ sub treeToUTF8
 	my $string = "";
 	foreach( $node->getChildNodes )
 	{
-		$string .= $self->treeToUTF8( $_ );
+		$string .= $self->tree_to_utf8( $_ );
 	}
 
 	if( $name eq "fallback" )
@@ -316,7 +314,7 @@ sub treeToUTF8
 }
 
 ## WP1: BAD
-sub treeToXHTML
+sub tree_to_xhtml
 {
 	my( $self, $node ) = @_;
 
@@ -327,7 +325,7 @@ sub treeToXHTML
 	
 
 ## WP1: BAD
-sub getDB
+sub get_db
 {
 	my( $self ) = @_;
 	return $self->{database};
@@ -341,7 +339,7 @@ sub get_query
 }
 
 ## WP1: BAD
-sub getSite
+sub get_site
 {
 	my( $self ) = @_;
 	return $self->{site};
@@ -357,7 +355,7 @@ sub getSite
 ######################################################################
 
 ## WP1: BAD
-sub sendHTTPHeader
+sub send_http_header
 {
 	my( $self, %opts ) = @_;
 
@@ -390,7 +388,7 @@ sub start_html
 	my( $self, $title, $langid ) = @_;
 die "NOPE";
 
-	$self->sendHTTPHeader();
+	$self->send_http_header();
 
 	my $html = "<BODY> begin here ";
 
@@ -430,7 +428,7 @@ die "NOPE";
 ######################################################################
 
 ## WP1: BAD
-sub getURL
+sub get_url
 {
 	my( $self ) = @_;
 	
@@ -656,7 +654,7 @@ sub make_submit_buttons
 		@submit_buttons = ( "Submit" );
 	}
 
-	my $frag = $self->makeDocFragment;
+	my $frag = $self->make_doc_fragment();
 
 	foreach( @submit_buttons )
 	{
@@ -667,7 +665,7 @@ sub make_submit_buttons
 				type => "submit",
 				name => "_submit",
 				value => $_ ) );
-		$frag->appendChild( $self->makeText( latin1(" ") ) );
+		$frag->appendChild( $self->make_text( latin1(" ") ) );
 	}
 
 	return( $frag );
@@ -675,7 +673,7 @@ sub make_submit_buttons
 
 # $text is a UTF8 String!
 ## WP1: BAD
-sub makeText
+sub make_text
 {
 	my( $self , $text ) = @_;
 
@@ -683,7 +681,7 @@ sub makeText
 }
 
 ## WP1: BAD
-sub makeDocFragment
+sub make_doc_fragment
 {
 	my( $self ) = @_;
 
@@ -720,7 +718,7 @@ sub bomb
 }
 
 ## WP1: BAD
-sub takeOwnership
+sub take_ownership
 {
 	my( $self , $domnode ) = @_;
 
@@ -728,11 +726,11 @@ sub takeOwnership
 }
 
 ## WP1: BAD
-sub buildPage
+sub build_page
 {
 	my( $self, $title, $mainbit ) = @_;
 	
-	$self->takeOwnership( $mainbit );
+	$self->take_ownership( $mainbit );
 	my $node;
 	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
@@ -748,16 +746,16 @@ sub buildPage
 }
 
 ## WP1: BAD
-sub sendPage
+sub send_page
 {
 	my( $self, %httpopts ) = @_;
-	$self->sendHTTPHeader( %httpopts );
+	$self->send_http_header( %httpopts );
 	print $self->{page}->toString;
 	$self->{page}->dispose();
 }
 
 ## WP1: BAD
-sub pageToFile
+sub page_to_file
 {
 	my( $self , $filename ) = @_;
 
@@ -766,7 +764,7 @@ sub pageToFile
 }
 
 ## WP1: BAD
-sub setPage
+sub set_page
 {
 	my( $self, $newhtml ) = @_;
 	
@@ -791,11 +789,11 @@ sub setPage
 ######################################################################
 
 ## WP1: BAD
-sub subjectTree
+sub subject_tree
 {
 	my( $self, $subject ) = @_;
 
-	my $frag = $self->makeDocFragment;
+	my $frag = $self->make_doc_fragment();
 	
 	# Get the parents
 	my $parent = $subject->parent;
@@ -855,12 +853,12 @@ sub _render_children
 {
 	my( $self, $subject ) = @_;
 
-	my $frag = $self->makeDocFragment;
+	my $frag = $self->make_doc_fragment();
 	my @children = $subject->children;
 
 print "ooooooooooooooooooook: ".(scalar @children)."\n";
 print "doin:\n";
-print EPrints::Log::render_struct( $subject );
+print EPrints::Session::render_struct( $subject );
 print "has ".(scalar @children)." kids\n";
 	if( @children )
 	{
@@ -906,32 +904,32 @@ sub subject_desc
 		$frag = $self->make_element(
 				"a",
 				href=>
-			$self->getSite->getConf( "server_static" ).
+			$self->get_site()->getConf( "server_static" ).
 			"/view/".$subject->{subjectid}.".html" );
 	}
 	else
 	{
-		$frag = $self->makeDocFragment;
+		$frag = $self->make_doc_fragment();
 	}
 	
 
 	if( defined $full && $full )
 	{
-		$frag->appendChild( $self->makeText(
+		$frag->appendChild( $self->make_text(
 			EPrints::Subject::subject_label( 
 						$self,
 		                                $subject->{subjectid} ) ) );
 	}
 	else
 	{
-		$frag->appendChild( $self->makeText( $subject->{name} ) );
+		$frag->appendChild( $self->make_text( $subject->{name} ) );
 	}
 		
 	if( $count && $subject->{depositable} eq "TRUE" )
 	{
-		my $text = $self->makeText( 
+		my $text = $self->make_text( 
 			latin1(" (" .$subject->count_eprints( 
-				$self->getSite->getDataSet( "archive" ) ).
+				$self->get_site()->getDataSet( "archive" ) ).
 				")" ) );
 		$frag->appendChild( $text );
 	}
@@ -957,7 +955,7 @@ sub render_error
 	
 	if( !defined $back_to )
 	{
-		$back_to = $self->getSite->getConf( "frontpage" );
+		$back_to = $self->get_site()->getConf( "frontpage" );
 	}
 	if( !defined $back_to_text )
 	{
@@ -975,17 +973,17 @@ sub render_error
 	else
 	{
 		my( $p, $page, $a );
-		$page = $self->makeDocFragment;
+		$page = $self->make_doc_fragment();
 
 		$p = $self->make_element( "p" );
 		$p->appendChild( $self->html_phrase( 
 			"some_error",
-			sitename => $self->makeText( 
-				$self->getSite->getConf( "sitename" ) ) ) );
+			sitename => $self->make_text( 
+				$self->get_site()->getConf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
-		$p->appendChild( $self->makeText( $error_text ) );
+		$p->appendChild( $self->make_text( $error_text ) );
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
@@ -994,24 +992,24 @@ sub render_error
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
-					$self->getSite->getConf( "admin" ) ),
-			sitename => $self->makeText(
-				$self->getSite->getConf( "sitename" ) ) ) );
+					$self->get_site()->getConf( "admin" ) ),
+			sitename => $self->make_text(
+				$self->get_site()->getConf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 				
 		$p = $self->make_element( "p" );
 		$a = $self->make_element( 
 				"a",
 				href => $back_to );
-		$a->appendChild( $self->makeText( $back_to_text ) );
+		$a->appendChild( $self->make_text( $back_to_text ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 
-		$self->buildPage(	
+		$self->build_page(	
 			$self->phrase( "error_title" ),
 			$page );
 
-		$self->sendPage;
+		$self->send_page();
 	}
 }
 
@@ -1119,7 +1117,7 @@ sub render_form
 	my( $self, $fields, $values, $show_names, $show_help, $submit_buttons,
 	    $hidden_fields, $dest ) = @_;
 
-print STDERR EPrints::Log::render_struct( $values );
+print STDERR EPrints::Session::render_struct( $values );
 
 	my $query = $self->{query};
 
@@ -1173,7 +1171,7 @@ sub render_form_field
 	
 	my( $div, $html, $span );
 
-	$html = $self->makeDocFragment();
+	$html = $self->make_doc_fragment();
 
 	if( $show_names )
 	{
@@ -1184,15 +1182,15 @@ sub render_form_field
 		# dosn't make much sense to highlight them.	
 
 		$div->appendChild( 
-			$self->makeText( $field->display_name( $self ) ) );
+			$self->make_text( $field->display_name( $self ) ) );
 
 		if( $field->get_property( "required ") && !$field->is_type( "boolean" ) )
 		{
 			$span = $self->make_element( 
 					"span", 
 					class => "requiredstar" );	
-			$span->appendChild( $self->makeText( "*" ) );	
-			$div->appendChild( $self->makeText( " " ) );	
+			$span->appendChild( $self->make_text( "*" ) );	
+			$div->appendChild( $self->make_text( " " ) );	
 			$div->appendChild( $span );
 		}
 		$html->appendChild( $div );
@@ -1205,7 +1203,7 @@ sub render_form_field
 		$div = $self->make_element( "div", class => "formfieldhelp" );
 
 		$div->appendChild( 
-			$self->makeText( $field->display_help( $self ) ) );
+			$self->make_text( $field->display_help( $self ) ) );
 		$html->appendChild( $div );
 	}
 
@@ -1216,6 +1214,113 @@ sub render_form_field
 	return( $html );
 }	
 
+######################################################################
+#
+# $text = render_struct( $ref, $depth )
+#
+#  Renders a reference into a human readable tree.
+#
+######################################################################
+
+
+## WP1: BAD
+sub render_struct
+{
+	my( $ref , $depth , %done) = @_;
+
+	$depth = 0 if ( !defined $depth );
+	my $text = "";
+	my $type = "";
+
+	if ( !defined $ref )
+	{
+		$text = "  "x$depth;
+		$text.= "[undef]\n";
+		return $text;
+	}
+	
+	if ( defined $done{$ref} )
+	{
+		$text = "  "x$depth;
+		$text.= "[LOOP]\n";
+		return $text;
+	}
+
+	$done{$ref} = 1;
+	
+	$type = ref( $ref );
+	
+	if( $type eq "" )
+	{
+		$text.= "  "x$depth;
+		$text.= "\"$ref\"\n";
+		return $text;
+	}
+
+	if( $type eq "SCALAR" )
+	{
+		$text.= "  "x$depth;
+		$text.= "SCALAR: \"$ref\"\n";
+		return $text;
+	}
+
+	if ( $type eq "ARRAY" )
+	{
+		my @bits = @{$ref};
+		$text.= "  "x$depth;
+		$text.= "ARRAY (".(scalar @bits).")\n";
+		foreach( @bits )
+		{
+			$text.= render_struct( $_ , $depth+1 , %done );
+		}
+		return $text;
+	}
+
+	# HASH or CLASS
+
+	# Hack: I really don't want to see the whole session
+
+	if( $type eq "EPrints::Session" || $type eq "Apache"
+		|| $type eq "EPrints::DataSet"  || $type eq "CODE" )
+	{
+		$text.= "  "x$depth;
+		$text.= "$type\n";
+		return $text;
+	}
+print STDERR "=$type=\n";
+
+	my %bits = %{$ref};
+	$text.= "  "x$depth;
+	$text.= "$type\n";
+	foreach( keys %bits )
+	{
+		$text.= "  "x$depth;
+		$text.= " $_=>\n";
+		$text.= render_struct( $bits{$_} , $depth+1 , %done );
+	}
+	return $text;
+}
+
+## WP1: BAD
+sub microtime
+{
+        # disabled due to bug.
+        return time();
+
+        my $TIMEVAL_T = "LL";
+	my $t = "";
+	my @t = ();
+
+        $t = pack($TIMEVAL_T, ());
+
+        syscall( &SYS_gettimeofday, $t, 0) != -1
+                or die "gettimeofday: $!";
+
+        @t = unpack($TIMEVAL_T, $t);
+        $t[1] /= 1_000_000;
+
+        return $t[0]+$t[1];
+}
 
 1;
 

@@ -21,7 +21,6 @@ package EPrints::Database;
 use DBI;
 use EPrints::Deletion;
 use EPrints::EPrint;
-use EPrints::Log;
 use EPrints::Subscription;
 
 #
@@ -138,7 +137,8 @@ sub disconnect
 	if( defined $self->{dbh} )
 	{
 		$self->{dbh}->disconnect() ||
-			EPrints::Log::log_entry( "Database", $self->{dbh}->errstr );
+			$self->{session}->get_site()->log( "Database disconnect error: ".
+				$self->{dbh}->errstr );
 	}
 }
 
@@ -182,7 +182,7 @@ sub create_archive_tables
 		 "document" , "subject" , "subscription" , "deletion" )
 	{
 		$success = $success && $self->_create_table( 
-			$self->{session}->getSite()->getDataSet( $_ ) );
+			$self->{session}->get_site()->getDataSet( $_ ) );
 	}
 
 	#$success = $success && $self->_create_tempmap_table();
@@ -323,7 +323,6 @@ sub _create_table_aux
 	
 	$sql .= ");";
 	
-#EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	$rv = $rv && $self->do( $sql );
@@ -410,6 +409,7 @@ sub prepValue
 sub update
 {
 	my( $self, $dataset, $data ) = @_;
+	#my( $database_self, $dataset_ds, $struct_md_data ) = @_;
 
 	my $rv = 1;
 	my $sql;
@@ -581,7 +581,7 @@ sub _create_counter_table
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->getSite->getDataSet( "counter" );
+	my $counter_ds = $self->{session}->get_site()->getDataSet( "counter" );
 	
 	# The table creation SQL
 	my $sql = "CREATE TABLE ".$counter_ds->getSQLTableName.
@@ -623,7 +623,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $ds = $self->{session}->getSite()->getDataSet( "tempmap" );
+	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
 	my $sql = "CREATE TABLE ".$ds->getSQLTableName." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
@@ -654,7 +654,7 @@ sub counter_next
 	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->getSite()->getDataSet( "counter" );
+	my $ds = $self->{session}->get_site()->getDataSet( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->getSQLTableName()." SET counter=".
@@ -686,14 +686,13 @@ sub create_cache
 
 	my $sql;
 
-	my $ds = $self->{session}->getSite()->getDataSet( "tempmap" );
+	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
 	$sql = "INSERT INTO ".$ds->getSQLTableName." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
 
 	$sql = "SELECT LAST_INSERT_ID()";
 
-#EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
@@ -716,7 +715,6 @@ sub create_buffer
 {
 	my ( $self , $keyname ) = @_;
 
-#EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $tmptable = "searchbuffer".($NEXTBUFFER++);
 
@@ -833,7 +831,7 @@ sub drop_cache
 	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
 		my $sql;
-		my $ds = $self->{session}->getSite->getDataSet( "tempmap" );
+		my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
 
 		$sql = "DELETE FROM ".$ds->getSQLTableName.
 		       " WHERE tableid = $1";
@@ -847,7 +845,7 @@ sub drop_cache
 	}
 	else
 	{
-		$self->{session}->getSite->log( "Bad Cache ID: $tmptable" );
+		$self->{session}->get_site()->log( "Bad Cache ID: $tmptable" );
 	}
 
 }
@@ -859,7 +857,6 @@ sub count_buffer
 
 	my $sql = "SELECT COUNT(*) FROM $buffer";
 
-#EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
@@ -1054,7 +1051,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( "   ".$sql );
+	$self->{session}->get_site()->log( "Database do debug: $sql" );
 
 	return $result;
 }
@@ -1072,7 +1069,6 @@ sub prepare
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }
@@ -1090,7 +1086,7 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( "   ".$sql );
+	$self->{session}->get_site()->log( "Database execute debug: $sql" );
 
 	return $result;
 }
@@ -1154,7 +1150,7 @@ sub _freetext_index
 
 	my $indextable = $dataset->getSQLIndexTableName;
 	
-	my( $good , $bad ) = $self->{session}->getSite->call( "extract_words" , $value );
+	my( $good , $bad ) = $self->{session}->get_site()->call( "extract_words" , $value );
 
 	my $sql;
 	foreach( @{$good} )

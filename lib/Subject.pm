@@ -17,7 +17,6 @@
 package EPrints::Subject;
 
 use EPrints::Database;
-use EPrints::Log;
 use EPrints::SearchExpression;
 
 use strict;
@@ -100,7 +99,7 @@ sub new
 	{
 		# Got ID, need to read stuff in from database
 		return $session->{database}->get_single( 
-			$session->getSite()->getDataSet( "subject" ), 
+			$session->get_site()->getDataSet( "subject" ), 
 			$id );
 
 	}
@@ -148,8 +147,8 @@ sub create_subject
 		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
 
 # cjg add_record call
-	return( undef ) unless( $session->getDB()->add_record( 
-		$session->getSite()->getDataSet( "subject" ), 
+	return( undef ) unless( $session->get_db()->add_record( 
+		$session->get_site()->getDataSet( "subject" ), 
 		$newsub ) );
 
 	return( new EPrints::Subject( $session, undef, $newsub ) );
@@ -194,7 +193,7 @@ sub children
 	my( $self ) = @_;
 
 print "ack\n";
-	my $ds = $self->{session}->getSite->getDataSet( "subject" );
+	my $ds = $self->{session}->get_site()->getDataSet( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
@@ -209,13 +208,12 @@ print "ack\n";
 	my $searchid = $searchexp->perform_search;
 	my @children = $searchexp->get_records;
 
-	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 
 	my $child;
 print "gin' loop:\n";
 	foreach $child (@children)
 	{
-print EPrints::Log::render_struct( $child );
+print EPrints::Session::render_struct( $child );
 print "ack\n";
 		# Sort out the full label for displaying in listboxes etc.
 		if( defined $self->{label} )
@@ -226,8 +224,7 @@ print "ack\n";
 		{
 			$child->{label} = $child->{name};
 		}
-
-		EPrints::Log::debug( "Subject", "Child: $child->{subjectid}" );
+		$self->{session}->get_site()->log( "Subject debug: Child: ".$child->{subjectid} );
 	}
 print "done\n";
 	return( @children );
@@ -291,7 +288,7 @@ sub create_subject_table
 	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $session->getSite()->getConf( "subject_config" ) or return( 0 );
+	open SUBJECTS, $session->get_site()->getConf( "subject_config" ) or return( 0 );
 
 	my $success = 1;
 	
@@ -302,7 +299,6 @@ sub create_subject_table
 		next if /^\s*#/;
 		my @vals = split /:/;
 		
-		#EPrints::Log::debug( "Subject", "ID: $vals[0]  Name: $vals[1]  Parent: $vals[2]  Depositable: $vals[3]" );
 		$success = $success &&
 			( defined EPrints::Subject->create_subject( $session,
 			                                            $vals[0],
@@ -430,7 +426,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $ds = $session->getSite()->getDataSet();
+		my $ds = $session->get_site()->getDataSet();
 		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
@@ -516,8 +512,8 @@ sub get_all
 	my( $session ) = @_;
 	
 	# Retrieve all of the subjects
-	my @rows = $session->getDB()->get_all( 
-		$session->getSite()->getDataSet( "subject" ) );
+	my @rows = $session->get_db()->get_all( 
+		$session->get_site()->getDataSet( "subject" ) );
 
 	return( undef ) if( scalar @rows == 0 );
 
@@ -534,7 +530,6 @@ sub get_all
 #		{
 #			$p .= " $_";
 #		}
-#		EPrints::Log::debug( "Subject", $p );
 print STDERR "Subject: ".$_->getValue("subjectid")."\n";
 	}
 	

@@ -21,9 +21,6 @@ use Apache::Constants qw( OK AUTH_REQUIRED FORBIDDEN DECLINED SERVER_ERROR );
 use EPrints::Session;
 use EPrints::RequestWrapper;
 
-#tmp
-use EPrints::Log;
-
 ## WP1: BAD
 sub authen
 {
@@ -54,9 +51,9 @@ print STDERR "URL: ".$r->the_request()."\n";
 
 print STDERR "THE USER IS: $user_sent\n";
 
-	my $ds = $session->getSite->getDataSet( "user" );
+	my $ds = $session->get_site()->getDataSet( "user" );
 
-	my $user = $session->getDB->get_single( $ds , $user_sent );
+	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( !defined $user )
 	{
 print STDERR "zong\n";
@@ -65,12 +62,12 @@ print STDERR "zong\n";
 		return AUTH_REQUIRED;
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
-	my $usertypedata = $session->getSite->getConf( 
+	my $usertypedata = $session->get_site()->getConf( 
 		"userauth", $user->getValue( "usertype" ) );
 	if( !defined $usertypedata )
 	{
 #cjg this is an error
-		$session->getSite->log(
+		$session->get_site()->log(
 			"Unknown user type: $user->{usertype}" );
 		$session->terminate();
 		return AUTH_REQUIRED;
@@ -90,7 +87,7 @@ sub authz
 	my( $r ) = @_;
 print STDERR "Authz\n";
 print STDERR "XX:".$r->requires()."\n";
-print STDERR EPrints::Log::render_struct( $r->requires() );
+print STDERR EPrints::Session::render_struct( $r->requires() );
 	my %okgroups = ();
 	my $authz = 0;
 	my $reqset;
@@ -114,11 +111,11 @@ print STDERR "REQUIRES: $val\n";
 	my $user_sent = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 print STDERR "THE USER IS: $user_sent\n";
-	my $ds = $session->getSite->getDataSet( "user" );
-	my $user = $session->getDB->get_single( $ds , $user_sent );
+	my $ds = $session->get_site()->getDataSet( "user" );
+	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( defined $user )
 	{
-		foreach( @{$session->getSite->getConf( 
+		foreach( @{$session->get_site()->getConf( 
 					"userauth", 
 					$user->getValue( "usertype" ), 
 					"priv" )} )

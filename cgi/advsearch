@@ -26,8 +26,8 @@ Apache::exit( 0 ) unless( defined $session );
 
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
-	dataset => $session->getSite->getDataSet( "archive" ),
-	fieldnames=>$session->getSite->getConf( "advanced_search_fields" ) );
+	dataset => $session->get_site()->getDataSet( "archive" ),
+	fieldnames=>$session->get_site()->getConf( "advanced_search_fields" ) );
 
 my $preamble = $session->make_element( "p" );
 $preamble->appendChild( $session->html_phrase( "dont_panic" ) );

@@ -10,12 +10,6 @@
 </file>
 
 <file name="Document.pm">
-    <phrase ref="error_mkdir">Error creating directory for EPrint <pin ref="eprintid" /> format <pin ref="format" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_cp">Error copying from <pin ref="frompath" /> to <pin ref="topath" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_rm">Error removing document <pin ref="docid" /> from database: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_rmfiles">Error removing document files for <pin ref="docid" />, path <pin ref="path" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_rmfile">Error removing file <pin ref="filename" /> for doc <pin ref="docid" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_commit">Error committing Document <pin ref="docid" />: <pin ref="errmsg" /></phrase>
     <phrase ref="no_files">You haven't uploaded any files!</phrase>
     <phrase ref="no_first">You need to select a file to be shown first.</phrase>
     <phrase ref="no_desc">You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0</phrase>
@@ -26,10 +20,6 @@
     <phrase ref="disklow">The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.</phrase>
     <phrase ref="diskout_sub">ERROR: Out of Disk Space</phrase>
     <phrase ref="diskout">There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</phrase>
-    <phrase ref="mkdir_err">Failed to create directory <pin ref="path" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="doc_rm_err">Error removing doc <pin ref="docid" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="file_rm_err">Error removing files for <pin ref="eprintid" />, path <pin ref="path" />: <pin ref="errmsg" /></phrase>
-    <phrase ref="error_commit">Error committing EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
     <phrase ref="no_type">You haven't selected a type for this EPrint.</phrase>
     <phrase ref="invalid_type">This EPrint doesn't seem to have a valid type.</phrase>
     <phrase ref="not_done_field">You haven't filled out the required <pin ref="fieldname" /> field.</phrase>
@@ -133,15 +123,11 @@
 </file>
 
 <file name="SubjectList.pm">
-    <phrase ref="invalid_tag">List contains invalid tag <pin ref="tag" /></phrase>
 </file>
 
 <file name="SubmissionForm.pm">
-    <phrase ref="dberr">Database Error: <pin ref="errmsg" /></phrase>
     <phrase ref="useautharea">Use your author area to deposit new documents</phrase>
-    <phrase ref="errclone">Error cloning EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
     <phrase ref="uploadprob">There was a problem uploading your file(s). Please try again.</phrase>
-    <phrase ref="removeerror">DB Error removing EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
     <phrase ref="seltype">Please select the most appropriate type for your deposit.</phrase>
     <phrase ref="bibinfo">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
     <phrase ref="verify">Verify:</phrase>
@@ -172,7 +158,6 @@
     <phrase ref="suredelete">Are you absolutely sure you want to delete this entry?</phrase>
     <phrase ref="filledwrong">The form doesn't seem to be filled out correctly:</phrase>
     <phrase ref="pleasecomplete">Please complete the form before continuing.</phrase>
-    <phrase ref="idnotmatch">EPrint ID in form &gt;<pin ref="form" />&lt; doesn't match object id <pin ref="eprintid" /></phrase>
     <phrase ref="filename">Filename</phrase>
     <phrase ref="sizebytes">Size (Bytes)</phrase>
     <phrase ref="shownfirst">Shown First</phrase>
@@ -218,12 +203,10 @@
     <phrase ref="weekly">weekly</phrase>
     <phrase ref="daily">daily</phrase>
     <phrase ref="monthly">monthly</phrase>
-    <phrase ref="notopenrec">Couldn't open user record for user <pin ref="user" /> (sub ID <pin ref="subid" />)</phrase>
     <phrase ref="blurb">This mail contains your <pin ref="howoften" /> subscription to <pin ref="sitename" />.\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n <pin ref="url" />\n\n</phrase>
     <phrase ref="newsub">One new submission was received.</phrase>
     <phrase ref="newsubs"><pin ref="n" /> new submissions were received.</phrase>
     <phrase ref="subsubj">Subscription</phrase>
-    <phrase ref="failsend">Failed to send subscription to user <pin ref="user" />: <pin ref="errmsg" /></phrase>
 </file>
 
 <file name="User.pm">

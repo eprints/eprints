@@ -21,7 +21,6 @@ use EPrints::EPrint;
 use EPrints::Session;
 use EPrints::HTMLRender;
 use EPrints::Subject;
-use EPrints::Log;
 
 use strict;
 
@@ -29,7 +28,7 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
-my $dataset = $session->getSite->getDataSet( "archive" ),
+my $dataset = $session->get_site()->getDataSet( "archive" ),
 
 print "start\n";
 my @eprints = $session->{database}->get_all( $dataset );
@@ -38,8 +37,6 @@ print "gotall\n";
 my $eprint;
 foreach $eprint (@eprints)
 {
-#	EPrints::Log::debug( "generate_abstracts",
-#	                     "Generating abstract for $eprint->{eprintid}" );
 	$eprint->generate_static();
 }
 print "done\n";

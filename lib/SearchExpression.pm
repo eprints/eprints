@@ -204,7 +204,7 @@ sub render_search_form
 		$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
-		$div->appendChild( $self->{session}->makeText( 
+		$div->appendChild( $self->{session}->make_text( 
 					$sf->getDisplayName ) );
 		$form->appendChild( $div );
 		my $shelp = $sf->getHelp;
@@ -213,7 +213,7 @@ sub render_search_form
 			$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldhelp" );
-			$div->appendChild( $self->{session}->makeText( $shelp ) );
+			$div->appendChild( $self->{session}->make_text( $shelp ) );
 			$form->appendChild( $div );
 			#$shown_help{$shelp}=1;
 		}
@@ -246,7 +246,7 @@ sub render_search_form
 		$form->appendChild( $div );	
 	}
 
-	my @tags = keys %{$self->{session}->getSite->getConf(
+	my @tags = keys %{$self->{session}->get_site()->getConf(
 			"order_methods",
 			$self->{dataset}->confid )};
 	$menu = $self->{session}->make_option_list(
@@ -351,7 +351,6 @@ sub toString
 			( defined $_->getValue ? _escape_search_string( $_->getValue ) : "" )."\]";
 	}
 	
-#EPrints::Log::debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
 
 	return( $text_rep );
 }
@@ -386,8 +385,7 @@ sub _unescape_search_string
 sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
-	
-EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
+	$self->{session}->get_site()->log( "SearchExpression state_from_string debug: $text_rep" );	
 
 	# Split everything up
 
@@ -415,12 +413,10 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 		my $value = shift @elements;
 	
 		my $sf = $self->{searchfieldmap}->{$formname};
-#EPrints::Log::debug( "SearchExpression", "Eep! $formname not in searchmap!" )
 #	if( !defined $sf );
 		$sf->set_value( $value ) if( defined $sf && defined $value && $value ne "" );
 	}
 
-#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->toString.")" );
 }
 
 
@@ -442,15 +438,14 @@ sub perform_search
 	@searchon = sort { return $a->approx_rows <=> $b->approx_rows } 
 		         @searchon;
 
-#EPrints::Log::debug("optimised order:");
 
 	my $buffer = undef;
 	$self->{ignoredwords} = [];
 	my $badwords;
 	foreach( @searchon )
 	{
-EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
-EPrints::Log::debug( $buffer."!\n" );
+		$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
+		$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
 		my $error;
 		( $buffer , $badwords , $error) = 
 			$_->do( $buffer , $self->{satisfy_all} );
@@ -479,11 +474,11 @@ sub count
 
 	if( $self->{tmptable} )
 	{
-		return $self->{session}->getDB->count_buffer( 
+		return $self->{session}->get_db()->count_buffer( 
 			$self->{tmptable} );
 	}	
 
-	$self->{session}->getSite->log( "Search has not been performed" );
+	$self->{session}->get_site()->log( "Search has not been performed" );
 		
 }
 
@@ -497,12 +492,12 @@ sub get_records
 	{
         	my( $keyfield ) = $self->{dataset}->getKeyField;
 		my( $buffer, $overlimit ) = 
-			$self->{session}->getDB->distinct_and_limit( 
+			$self->{session}->get_db()->distinct_and_limit( 
 							$self->{tmptable}, 
 							$keyfield, 
 							$max );
 
-		my @records = $self->{session}->getDB->from_buffer( 
+		my @records = $self->{session}->get_db()->from_buffer( 
 							$self->{dataset}, 
 							$buffer );
 
@@ -513,7 +508,7 @@ sub get_records
  print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";
 
-			my $cmpmethod = $self->{session}->getSite->getConf( 
+			my $cmpmethod = $self->{session}->get_site()->getConf( 
 						"order_methods" , 
 						$self->{dataset}->confid, 
 						$self->{order} );
@@ -523,7 +518,7 @@ print STDERR "ORDER BY: $self->{order}\n";
 		return @records;
 	}	
 
-	$self->{session}->getSite->log( "Search not yet performed" );
+	$self->{session}->get_site()->log( "Search not yet performed" );
 		
 }
 
@@ -569,15 +564,14 @@ sub process_webpage
 
 		# Everything OK with form.
 			
-#EPrints::Log::debug( "SearchForm", $self->toString() );
 
 		my( $t1 , $t2 , $t3 , @results );
 
-		$t1 = EPrints::Log::microtime();
+		$t1 = EPrints::Session::microtime();
 
 		$self->perform_search();
 
-		$t2 = EPrints::Log::microtime();
+		$t2 = EPrints::Session::microtime();
 
 		if( defined $self->{error} ) 
 		{	
@@ -595,9 +589,9 @@ sub process_webpage
 		my $MAX=1000;
 
 		@results = $self->get_records( $MAX );
-		$t3 = EPrints::Log::microtime();
+		$t3 = EPrints::Session::microtime();
 
-		my $page = $self->{session}->makeDocFragment;
+		my $page = $self->{session}->make_doc_fragment();
 
 		if( $n_results > $MAX) 
 		{
@@ -627,15 +621,15 @@ sub process_webpage
        		$p->appendChild(  
 			$self->{session}->html_phrase( 
 				$code,  
-				n => $self->{session}->makeText( 
+				n => $self->{session}->make_text( 
 							$n_results ) ) );
 
 		if( @{ $self->{ignoredwords} } )
 		{
 			my %words = ();
-			$p->appendChild( $self->{session}->makeText( " " ) );
+			$p->appendChild( $self->{session}->make_text( " " ) );
 			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
-			my $words = $self->{session}->makeText( 
+			my $words = $self->{session}->make_text( 
 					join( ", ", sort keys %words ) );
 			$p->appendChild(
        				$self->{session}->html_phrase( 
@@ -644,12 +638,12 @@ sub process_webpage
 		
 		}
 
-		$p->appendChild( $self->{session}->makeText( " " ) );
+		$p->appendChild( $self->{session}->make_text( " " ) );
 		$p->appendChild(
        			$self->{session}->html_phrase( 
 				"search_time", 
-				searchtime=>$self->{session}->makeText($t2-$t1),
-				gettime=>$self->{session}->makeText($t3-$t2) ) );
+				searchtime=>$self->{session}->make_text($t2-$t1),
+				gettime=>$self->{session}->make_text($t3-$t2) ) );
 
 		my $form = $self->{session}->make_form( "get" );
 		foreach( $self->{session}->param() )
@@ -673,12 +667,12 @@ sub process_webpage
 		$page->appendChild( $form->cloneNode( 1 ) );
 			
 		# Print out state stuff for a further invocation
-		$self->{session}->buildPage( 
+		$self->{session}->build_page( 
 			$self->{session}->phrase( 
 					"results_for", 
 					title => $title ),
 			$page );
-		$self->{session}->sendPage();
+		$self->{session}->send_page();
 		return;
 	}
 
@@ -706,12 +700,12 @@ print STDERR "URLURL URL URL: $url\n";
 
 	# Just print the form...
 
-	my $page = $self->{session}->makeDocFragment;
+	my $page = $self->{session}->make_doc_fragment();
 	$page->appendChild( $preamble );
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 
-	$self->{session}->buildPage( $title, $page );
-	$self->{session}->sendPage;
+	$self->{session}->build_page( $title, $page );
+	$self->{session}->send_page();
 }
 
 ## WP1: BAD
@@ -720,7 +714,7 @@ sub _render_problems
 	my( $self , $title, $preamble, @problems ) = @_;	
 	# Problem with search expression. Report an error, and redraw the form
 		
-	my $page = $self->{session}->makeDocFragment;
+	my $page = $self->{session}->make_doc_fragment();
 	$page->appendChild( $preamble );
 
 	my $p = $self->{session}->make_element( "p" );
@@ -734,7 +728,7 @@ sub _render_problems
 			"li",
 			class=>"problem" );
 		$ul->appendChild( $li );
-		$li->appendChild( $self->{session}->makeText( $_ ) );
+		$li->appendChild( $self->{session}->make_text( $_ ) );
 	}
 	my $hr = $self->{session}->make_element( 
 			"hr", 
@@ -743,8 +737,8 @@ sub _render_problems
 	$page->appendChild( $hr );
 	$page->appendChild( $self->render_search_form );
 			
-	$self->{session}->buildPage( $title, $page );
-	$self->{session}->sendPage();
+	$self->{session}->build_page( $title, $page );
+	$self->{session}->send_page();
 }
 
 

@@ -25,7 +25,6 @@ use EPrints::EPrint;
 use EPrints::Session;
 use EPrints::HTMLRender;
 use EPrints::Subject;
-use EPrints::Log;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
@@ -37,7 +36,7 @@ my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 my $langid;
 foreach $langid ( keys %EPrints::Site::General::languages )
 {
-	my $dir =  $session->getSite->getConf( "local_html_root" ).
+	my $dir =  $session->get_site()->getConf( "local_html_root" ).
 		"/".$langid."/view";
 	unless( -d $dir )
 	{
@@ -72,29 +71,29 @@ sub write_subject_view
 {
 	my( $session, $langid, $file, $subject ) = @_;
 	
-	$session->newPage( $langid );
-	my $page = $session->makeDocFragment;
+	$session->new_page( $langid );
+	my $page = $session->make_doc_fragment();
 	
 	# Title (cjg NOT INTL)
 	my $title = "Browse by Subject: ".$subject->{name};
 	
 	# Tree at the top
-	$page->appendChild( $session->subjectTree( $subject ) );
+	$page->appendChild( $session->subject_tree( $subject ) );
 	my $hr = $session->make_element( "hr",
 			size => 2,
 			noshade => "noshade" );
 	$page->appendChild( $hr );
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( 
-		$session->getSite->getDataSet( "archive" ) );
+		$session->get_site()->getDataSet( "archive" ) );
 
 	# not INTL!cjg
 	my $p = $session->make_element( "p" );
 	my $n = $session->make_element( "span", class=>"number" );
-	$p->appendChild( $session->makeText("This subject category contains "));
-	$n->appendChild( $session->makeText(scalar @eprints) );
+	$p->appendChild( $session->make_text("This subject category contains "));
+	$n->appendChild( $session->make_text(scalar @eprints) );
 	$p->appendChild( $n );
-	$p->appendChild( $session->makeText(" entries"));
+	$p->appendChild( $session->make_text(" entries"));
 	$page->appendChild( $p );		
 	
 	my $eprint;
@@ -104,6 +103,6 @@ sub write_subject_view
 		$p->appendChild( $eprint->toHTMLLink );
 		$page->appendChild( $p );
 	}
-	$session->buildPage( $title, $page );
-	$session->pageToFile( $file );
+	$session->build_page( $title, $page );
+	$session->page_to_file( $file );
 }

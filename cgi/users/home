@@ -53,15 +53,15 @@ my $valid_user = ( $#{$probs} == -1 );
 
 my( $p, $page, $dl, $dt, $dd, $a );
 
-$page = $session->makeDocFragment;
+$page = $session->make_doc_fragment();
 
 ### Welcome author blurb
 $p = $session->make_element( "p" );
 $p->appendChild( 
 	$session->html_phrase( 
 		"welcome",
-		sitename => $session->makeText( 
-			$session->getSite()->getConf( "sitename" ) ) ) );
+		sitename => $session->make_text( 
+			$session->get_site()->getConf( "sitename" ) ) ) );
 $page->appendChild( $p );
 
 
@@ -133,10 +133,10 @@ if( $user->has_priv( "subscription" ) )
 
 $page->appendChild( $dl );
 
-$session->buildPage( 
+$session->build_page( 
 		$session->phrase( "user_home", name => $fullname ),
 		$page );
-$session->sendPage();
+$session->send_page();
 
 $session->terminate();
 

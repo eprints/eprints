@@ -71,7 +71,7 @@ sub process
 	{
 		my( $page, $p, $a );
 
-		$page = $self->{session}->makeDocFragment;
+		$page = $self->{session}->make_doc_fragment();
 
 		$p = $self->{session}->make_element( "p" );		
 		$p->appendChild( $self->{session}->html_phrase( 
@@ -83,7 +83,7 @@ sub process
 
 		$a = $self->{session}->make_element( 
 			"a", 
-			href => $self->{session}->getSite()->
+			href => $self->{session}->get_site()->
 				  getConf( "server_static" ).
 				"/register.html"  );
 		$p = $self->{session}->make_element( "p" );		
@@ -94,11 +94,11 @@ sub process
 
 		$page->appendChild( $self->_render_form() );
 
-		$self->{session}->buildPage(
+		$self->{session}->build_page(
 			$self->{session}->
 				phrase( "recfor", name => $full_name ),
 			$page );
-		$self->{session}->sendPage();
+		$self->{session}->send_page();
 
 		return;
 	}
@@ -160,7 +160,7 @@ sub _render_form
 	
 	my @edit_fields;
 	my $field;
-	my $user_ds = $self->{session}->getSite()->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
 	my @all_fields = $user_ds->get_fields;
 	
 	# Get the appropriate fields
@@ -202,14 +202,14 @@ sub _update_from_form
 		$self->{user}->getValue( "username" ) )
 	{
 		my $form_id = $self->{session}->param( "username" );
-		$self->{session}->getSite()->log( 
+		$self->{session}->get_site()->log( 
 			"Username in $form_id doesn't match object username ".
 			 $self->{username} );
 	
 		return( 0 );
 	}
 	
-	my @all_fields = $self->{session}->getSite()->
+	my @all_fields = $self->{session}->get_site()->
 					getDataSet( "user" )->get_fields();
 
 	my $field;

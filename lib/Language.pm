@@ -107,7 +107,7 @@ sub file_phrase
 
 	if( !defined $response )
 	{
-		$response = $session->makeText(  
+		$response = $session->make_text(  
 				"[\"$file:$phraseid\" not defined]" );
 	}
 	$inserts = {} if( !defined $inserts );
@@ -119,9 +119,9 @@ sub file_phrase
 	}
 	else
 	{
-		$result = $session->makeDocFragment;
+		$result = $session->make_doc_fragment;
 	}
-	$session->takeOwnership( $response );
+	$session->take_ownership( $response );
 	$result->appendChild( $response );
 
 	my $pin;
@@ -136,7 +136,7 @@ sub file_phrase
 		}
 		else
 		{
-			$repl = $session->makeText( "[ref missing: $ref]" );
+			$repl = $session->make_text( "[ref missing: $ref]" );
 		}
 		print STDERR "= ".$repl->toString."\n";
 

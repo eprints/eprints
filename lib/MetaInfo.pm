@@ -23,7 +23,6 @@ use EPrints::EPrint;
 use EPrints::User;
 use EPrints::MetaField;
 use EPrints::Document;
-use EPrints::Log;
 use EPrints::Subject;
 use EPrints::Subscription;
 

@@ -19,7 +19,6 @@ package EPrints::User;
 
 use EPrints::Database;
 use EPrints::MetaField;
-use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::Subscription;
 
@@ -82,8 +81,8 @@ sub new
 
 	if( !defined $known )
 	{
-		return $session->getDB->get_single( 
-			$session->getSite->getDataSet( "user" ),
+		return $session->get_db()->get_single( 
+			$session->get_site()->getDataSet( "user" ),
 			$username );
 	} 
 
@@ -145,13 +144,13 @@ sub create_user
 	my $used_count = 0;
 	my $candidate = $username_candidate;
 
-	my $user_ds = $session->getSite->getDataSet( "user" );
+	my $user_ds = $session->get_site()->getDataSet( "user" );
 		
 	while( $found==0 )
 	{
 		#print "Trying $candidate\n";
 	
-		if( $session->getDB->exists( $user_ds, $candidate ) )
+		if( $session->get_db()->exists( $user_ds, $candidate ) )
 		{
 			# Already exists. Try again...
 			$used_count++;
@@ -228,7 +227,7 @@ sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
-	my $user_ds = $session->getSite->getDataSet( "user" );
+	my $user_ds = $session->get_site()->getDataSet( "user" );
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
 		$user_ds,
@@ -262,7 +261,7 @@ sub full_name
 	my( $self ) = @_;
 
 	# Delegate to site-specific routine
-	return( $self->{session}->getSite()->call(
+	return( $self->{session}->get_site()->call(
 			"user_display_name",
 			$self ) );
 }
@@ -286,7 +285,7 @@ sub validate
 
 	my @all_problems;
 	my @all_fields = $self->{session}->
-		getSite()->getDataSet( "user" )->get_fields();
+		get_site()->getDataSet( "user" )->get_fields();
 
 	my $field;
 	foreach $field (@all_fields)
@@ -303,7 +302,7 @@ sub validate
 		else
 		{
 			# Give the validation module a go
-			my $problem = $self->{session}->getSite()->call(
+			my $problem = $self->{session}->get_site()->call(
 				"validate_user_field",
 				$field,
 				$self->getValue( $field->get_name() ),
@@ -318,7 +317,6 @@ sub validate
 
 #	foreach (@all_problems)
 #	{
-#		EPrints::Log::debug( "User", "validate: got problem $_" );
 #	}
 
 	return( \@all_problems );
@@ -338,7 +336,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my $user_ds = $self->{session}->getSite->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
 	my $success = $self->{session}->{database}->update(
 		$user_ds,
 		$self->{data} );
@@ -430,14 +428,13 @@ sub retrieve_users
 	
 	my @fields = $session->{metainfo}->get_fields( "user" );
 
-	my $user_ds = $session->getSite->getDataSet( "user" );
+	my $user_ds = $session->get_site()->getDataSet( "user" );
 	my $rows = $session->{database}->retrieve_fields(
 		$user_ds,
 		\@fields,
 		$conditions,
 		$order );
 
-#EPrints::Log::debug( "EPrint", "Making User objects" );
 
 	my $r;
 	my @users;
@@ -491,7 +488,7 @@ sub remove
 	}
 
 	# Now remove user record
-	my $user_ds = $self->{session}->getSite->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
 	$success = $success && $self->{session}->{database}->remove(
 		$user_ds,
 		"username",
@@ -531,7 +528,7 @@ sub toString
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->getSite()->call( "user_display_name" , $self  ) );
+	return( $self->{session}->get_site()->call( "user_display_name" , $self  ) );
 }
 
 ## WP1: GOOD
@@ -585,7 +582,7 @@ sub has_priv
 {
 	my( $self, $resource ) = @_;
 
-	my $userprivs = $self->{session}->getSite->
+	my $userprivs = $self->{session}->get_site()->
 		getConf( "userauth", $self->getValue( "usertype" ), "priv" );
 
 	foreach my $priv ( @{$userprivs} )

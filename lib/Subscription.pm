@@ -443,10 +443,7 @@ sub process
 	
 	unless( defined $user )
 	{
-		EPrints::Log::log_entry(
-			"L:notopenrec",
-		             { user=>$self->{username},
-			subid=>$self->{subid} } );
+		$self->{session}->get_site()->log( "Couldn't open user record for user ".$self->{username}." (sub ID ".$self->{subid}.")" );
 		return( 0 );
 	}
 
@@ -553,10 +550,7 @@ sub process
 
 		unless( $success )
 		{
-			EPrints::Log::log_entry(
-				"L:failsend", 
-					{ user=>$user->{username}, 
-					errmsg=>$! } );
+			$self->{session}->log( "Failed to send subscription to user ".$user->{username}.": $!" );
 		}
 	}
 		

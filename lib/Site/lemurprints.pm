@@ -1426,7 +1426,7 @@ sub eprint_render_full
 
 	my $session = $eprint->getSession;
 
-	my $page = $session->makeDocFragment;
+	my $page = $session->make_doc_fragment;
 
 	# Citation
 	my $p = $session->make_element( "p" );
@@ -1472,10 +1472,10 @@ sub eprint_render_full
 	# Then the abstract
 
 	my $h2 = $session->make_element( "h2" );
-	$h2->appendChild( $session->makeText( "Abstract" ) ); # not langed #cjg
+	$h2->appendChild( $session->make_text( "Abstract" ) ); # not langed #cjg
 
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->makeText( $eprint->getValue( "abstract" ) ) );
+	$p->appendChild( $session->make_text( $eprint->getValue( "abstract" ) ) );
 	$page->appendChild( $p );
 	
 	my( $table, $tr, $td );	# this table needs more class cjg
@@ -1496,10 +1496,10 @@ sub eprint_render_full
 	{
 		$tr = $session->make_element( "tr" );
 		$td = $session->make_element( "td" ); 
-		$td->appendChild( $session->makeText( "Keywords:" ) ); #cjg i18l
+		$td->appendChild( $session->make_text( "Keywords:" ) ); #cjg i18l
 		$tr->appendChild( $td );
 		$td = $session->make_element( "td" ); 
-		$td->appendChild( $session->makeText( $keywords ) );
+		$td->appendChild( $session->make_text( $keywords ) );
 		$tr->appendChild( $td );
 		$table->appendChild( $tr );	
 	}
@@ -1694,7 +1694,7 @@ sub getEPrintCitationStyle
 ## Crash if unknown style... cjg
 
 	my $style = $CITATION_SPEC_DOMTREE{$eprint->getValue( "type" )}->cloneNode( 1 );
-	$eprint->{session}->takeOwnership( $style );
+	$eprint->{session}->take_ownership( $style );
 	
 	return $style;
 }

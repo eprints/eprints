@@ -25,51 +25,51 @@ my $newlang = $session->param( "langid" );
 
 if( !defined $newlang )
 {
-	my $page = $session->makeDocFragment;
+	my $page = $session->make_doc_fragment;
 	foreach( keys %EPrints::Site::General::languages )
 	{	
 	
 		my $p = $session->make_element( "p" );
 		my $a = $session->make_element( "a", 
 				href => "setlang?langid=$_" );
-		$a->appendChild( $session->makeText( 
+		$a->appendChild( $session->make_text( 
 			$EPrints::Site::General::languages{$_} ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
-	$session->buildPage( "Change Language", $page );
-        $session->sendPage();
+	$session->build_page( "Change Language", $page );
+        $session->send_page();
 }
 elsif( defined $EPrints::Site::General::languages{$newlang} )
 {
-	my $page = $session->makeDocFragment;
+	my $page = $session->make_doc_fragment;
 	$session->change_lang( $newlang );
 	#print $session->start_html( "Language Changed" , $newlang );
 	my $p;
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->makeText(
+	$p->appendChild( $session->make_text(
 		"Language changed to: ".
 		$EPrints::Site::General::languages{$newlang} ) );
 	$page->appendChild( $p );
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->makeText(
+	$p->appendChild( $session->make_text(
 		"Default language of this archive is: ".
 		$EPrints::Site::General::languages{ 
-			$session->getSite()->getConf( "default_language" )} ) );
+			$session->get_site()->getConf( "default_language" )} ) );
 	$page->appendChild( $p );
 	$session->newPage( $newlang );
-	$session->buildPage( "Language Changed", $page );
-        $session->sendPage( lang=>$newlang );
+	$session->build_page( "Language Changed", $page );
+        $session->send_page( lang=>$newlang );
 }
 else 
 {
-	my $page = $session->makeDocFragment;
+	my $page = $session->make_doc_fragment;
 	my $p = $session->make_element( "p" );
-	$p->appendChild( $session->makeText(
+	$p->appendChild( $session->make_text(
 		"Unknown language identifier: \"$newlang\"" ) );
 	$page->appendChild( $p );
-	$session->buildPage( "Language Change Failed", $page );
-        $session->sendPage();
+	$session->build_page( "Language Change Failed", $page );
+        $session->send_page();
 }
 
 $session->terminate();

@@ -16,7 +16,7 @@
 
 package EPrints::MetaField;
 
-use EPrints::Log;
+use EPrints::Session;
 use EPrints::Database;
 
 use strict;
@@ -99,7 +99,7 @@ sub new
 	{
 		if( !defined $properties->{$_} )
 		{
-	print STDERR EPrints::Log::render_struct( $properties );
+	print STDERR EPrints::Session::render_struct( $properties );
 			die "No $_ defined for field. (".join(",",caller()).")";	
 		}
 		$self->set_property( $_, $properties->{$_} );
@@ -156,24 +156,6 @@ sub new
 
 	return( $self );
 }
-
-
-######################################################################
-#
-# $value = get( $field )
-#
-#  Get information about the metadata field.
-#
-######################################################################
-
-## WP1: BAD
-sub get
-{
-	my( $self, $field ) = @_;
-	
-	return( $self->{$field} );
-}
-
 
 ######################################################################
 #
@@ -372,7 +354,7 @@ sub getHTML
 
 	if( !defined $value || $value eq "" )
 	{
-		return $session->makeText( "" );
+		return $session->make_text( "" );
 	}
 
 	my $html;
@@ -380,23 +362,23 @@ sub getHTML
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
 	{
 		# Render text
-		return $session->makeText( $value );
+		return $session->make_text( $value );
 	}
 
 	if( $self->is_type( "name" ) )
 	{
-		return $session->makeText(
+		return $session->make_text(
 			EPrints::Name::format_names( $value ) );
 	}
 
 	if( $self->is_type( "datatype" ) )
 	{
 		$html = $self->{labels}->{$value} if( defined $value );
-		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
+		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 	}
 	elsif( $self->is_type( "boolean" ) )
 	{
-		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
+		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
 	elsif( $self->is_type( "longtext" ) )
@@ -498,7 +480,7 @@ sub getHTML
 		}
 	}
 	
-	$session->getSite()->log( "Unknown field type: ".$self->{type} );
+	$session->get_site()->log( "Unknown field type: ".$self->{type} );
 	return undef;
 
 }
@@ -511,7 +493,7 @@ sub render_input_field
 
 	my( $html, $frag );
 
-	$html = $session->makeDocFragment();
+	$html = $session->make_doc_fragment();
 
 	# subject fields can be rendered here and now
 	# without looping and calling the aux function.
@@ -533,7 +515,7 @@ sub render_input_field
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $session->getSite()->getDataSet( 
+			my $ds = $session->get_site()->getDataSet( 
 					$self->{datasetid} );	
 			$tags = $ds->getTypes();
 			$labels = $ds->getTypeNames( $session );
@@ -628,7 +610,7 @@ sub render_input_field
 			my $more = undef;
 			if( $i == $boxcount )
 			{
-				$more = $session->makeDocFragment();
+				$more = $session->make_doc_fragment();
 				$more->appendChild( $session->make_element(
 					"input",
 					type => "hidden",
@@ -672,7 +654,7 @@ print STDERR "val($value)\n";
 	# These DO NOT belong here. cjg.
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 
-	my $html = $session->makeDocFragment();
+	my $html = $session->make_doc_fragment();
 	if( $self->is_type( "text", "username", "url", "int", "email" ) )
 	{
 		my( $maxlength, $size, $div, $id );
@@ -730,7 +712,7 @@ print STDERR "val($value)\n";
 			rows => $self->{displaylines},
 			cols => $FORM_WIDTH,
 			wrap => "virtual" );
-		$textarea->appendChild( $session->makeText( $value ) );
+		$textarea->appendChild( $session->make_text( $value ) );
 		$div->appendChild( $textarea );
 		if( defined $morebutton )
 		{
@@ -816,9 +798,9 @@ print STDERR "val($value)\n";
 			size => 6,
 			maxlength => 10 ) );
 
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 		$div->appendChild( $session->html_phrase( "to" ) );
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
 			"input",
@@ -857,7 +839,7 @@ print STDERR "val($value)\n";
 		}
 
 		$div->appendChild( $session->html_phrase( "year" ) );
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
 			"input",
@@ -866,18 +848,18 @@ print STDERR "val($value)\n";
 			size => 4,
 			maxlength => 4 ) );
 
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 		$div->appendChild( $session->html_phrase( "month" ) );
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_option_list(
 			name => $monthid,
 			values => \@monthkeys,
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 		$div->appendChild( $session->html_phrase( "day" ) );
-		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
 			"input",
@@ -893,8 +875,8 @@ print STDERR "val($value)\n";
 	}
 	else
 	{
-		$html->appendChild( $session->makeText( "???" ) );
-		$session->getSite()->log( "Don't know how to render input".
+		$html->appendChild( $session->make_text( "???" ) );
+		$session->get_site()->log( "Don't know how to render input".
 					  "field of type: ".$self->get_type() );
 	}
 	return $html;
@@ -1029,7 +1011,7 @@ sub _form_value_aux
 	}
 	else
 	{
-		$session->getSite()->log( 
+		$session->get_site()->log( 
 			"Error: can't do _form_value_aux on type ".
 			"'".$self->{type}."'" );
 		return undef;

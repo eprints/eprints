@@ -37,7 +37,6 @@ use EPrints::EPrint;
 use EPrints::HTMLRender;
 use EPrints::ImportXML;
 use EPrints::Language;
-use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::MetaField;
 use EPrints::Name;

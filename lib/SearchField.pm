@@ -22,7 +22,6 @@ use EPrints::Session;
 use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Subject;
-use EPrints::Log;
 
 use Text::ParseWords;
 use strict;
@@ -222,7 +221,6 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			# We have some values. Join them together.
 			$val = join ' ', @vals;
 
-			#EPrints::Log::debug( "SearchField", "Joined values: $val" );
 
 			# But if one of them was the "any" option, we don't want a value.
 			foreach (@vals)
@@ -230,7 +228,6 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 				undef $val if( $_ eq "NONE" );
 			}
 
-			#EPrints::Log::debug( "SearchField", "Joined values post NONE check: $val" );
 		}
 
 		if( defined $val )
@@ -263,11 +260,9 @@ print STDERR "zz($val))\n";
 	}
 	else
 	{
-		$self->{session}->getSite->log( "Unknown search type." );
+		$self->{session}->get_site()->log( "Unknown search type." );
 	}
 
-#EPrints::Log::debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
-#EPrints::Log::debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
 
 	return( $problem );
 }
@@ -469,7 +464,7 @@ sub get_conditions
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
-				$self->{session}->getSite->call(
+				$self->{session}->get_site()->call(
 					"extract_words",
 					$text );
 
@@ -517,7 +512,7 @@ sub get_conditions
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
-			$self->{session}->getSite->call( 
+			$self->{session}->get_site()->call( 
 				"extract_words",
 				$text );
 
@@ -878,9 +873,8 @@ sub toHTML
 		            "TRUE"   => $self->{session}->phrase( "bool_yes" ),
 		            "FALSE"  => $self->{session}->phrase( "bool_no" ) );
 
-#EPrints::Log::debug( "SearchField", "rendering field $self->{self->{formname}} of type $self->{type}" );
 
-	my $frag = $self->{session}->makeDocFragment;
+	my $frag = $self->{session}->make_doc_fragment();
 	
 	if( $self->is_type( "boolean" ) )
 	{
@@ -903,7 +897,7 @@ sub toHTML
 				value => $self->{string},
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
-		$frag->appendChild( $self->{session}->makeText(" ") );
+		$frag->appendChild( $self->{session}->make_text(" ") );
 		$frag->appendChild( 
 			$self->{session}->make_option_list(
 				name=>$self->{formname}."_srchtype",
@@ -936,7 +930,7 @@ sub toHTML
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $self->{session}->getSite()->getDataSet( 
+			my $ds = $self->{session}->get_site()->getDataSet( 
 					$self->{field}->getDataSet() );
 			$tags = $ds->getTypes();
 			$labels = $ds->getTypeNames( $self->{session} );
@@ -969,7 +963,7 @@ sub toHTML
 
 		if( $self->{multiple} )
 		{
-			$frag->appendChild( $self->{session}->makeText(" ") );
+			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 
 				$self->{session}->make_option_list(
 					name=>$self->{formname}."_self->{anyall}",
@@ -998,7 +992,7 @@ sub toHTML
 	}
 	else
 	{
-		$self->{session}->getSite()->log( "Can't Render: ".$self->getType() );
+		$self->{session}->get_site()->log( "Can't Render: ".$self->getType() );
 	}
 
 	return $frag;

@@ -631,7 +631,7 @@ sub start_response
 	
 	$writer->dataElement(
 		"requestURL",
-		EPrints::OpenArchives::to_utf8( $session->getURL.
+		EPrints::OpenArchives::to_utf8( $session->get_url().
 		  "?" . $session->get_query->query_string() ) );
 
 	return( $writer );

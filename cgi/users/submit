@@ -29,7 +29,7 @@ my $subform = new EPrints::SubmissionForm(
 	$session,
 	"home",
 	0,
-       	$session->getSite->getDataSet( "inbox" ) );
+       	$session->get_site->getDataSet( "inbox" ) );
 $subform->process;
 
 $session->terminate;

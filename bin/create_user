@@ -31,7 +31,7 @@ if( $#ARGV < 3 || $#ARGV > 4 )
 my $session = EPrints::Session->new( 1 , $ARGV[0] );
 exit unless( defined $session );
 
-my $user_ds = $session->getSite->getDataSet( "user" );
+my $user_ds = $session->get_site()->getDataSet( "user" );
 
 my $valid_access_level = 0;
 foreach (@{ $user_ds->getTypes })
@@ -63,7 +63,7 @@ print "SET: $ARGV[4]\n";
 	}
 	else
 	{
-		my $db_error = $session->getDB->error();
+		my $db_error = $session->get_db()->error();
 		print STDERR "Error creating user: $db_error\n";
 	}
 }

@@ -19,7 +19,6 @@ package EPrints::OpenArchives;
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::MetaField;
-use EPrints::Log;
 use EPrints::Session;
 
 use Unicode::String qw(utf8 latin1);

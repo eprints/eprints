@@ -114,10 +114,9 @@ sub process
 		# Check it was retrieved OK
 		if( !defined $self->{eprint} )
 		{
-			my $db_error = $self->{session}->getDB->error;
-			#cjg LOG...
-			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
-
+			my $db_error = $self->{session}->get_db()->error;
+			#cjg LOG..
+			$self->{session}->log( "Database Error: $db_error" );
 			$self->_database_err;
 			return;
 		}
@@ -163,7 +162,6 @@ print STDERR "YAY\n";
 		# Clear the form, so there are no residual values
 		$self->{session}->{render}->clear();
 
-#EPrints::Log::debug( "SubmissionForm", "To stage: $self->{next_stage}" );
 
 		my $function_name = "_do_$self->{next_stage}";
 
@@ -239,16 +237,12 @@ sub _from_home
 			if( !defined $self->{eprint} )
 			{
 				my $db_error = $self->{session}->{database}->error();
-				EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
-
+				$self->{session}->get_site()->log( "Database Error: $db_error" );
 				$self->_database_err;
 				return( 0 );
 			}
 			else
 			{
-#				EPrints::Log::debug(
-#					"SubmissionForm",
-#					"Created new EPrint with ID $self->{eprint}->{eprintid}" );
 
 				$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 			}
@@ -289,14 +283,7 @@ sub _from_home
 		else
 		{
 			my $error = $self->{session}->{database}->error();
-		
-			EPrints::Log::log_entry(
-				"SubmissionForm",
-				$self->{session}->phrase(
-					"L:errclone",
-					eprintid=>$self->{eprint}->{eprintid},
-					errmsg=>$error ) );
-
+			$self->{session}->log( "SubmissionForm error: Error cloning EPrint ".$self->{eprint}->{eprintid}.": $error" );	
 			$self->_database_err;
 			return( 0 );
 		}
@@ -937,12 +924,7 @@ sub _from_stage_confirmdel
 		else
 		{
 			my $db_error = $self->{session}->{database}->error();
-
-			EPrints::Log::log_entry(
-				"L:removeerror",
-				         { eprintid=> $self->{eprint}->{eprintid},
-				          errmsg=>$db_error } );
-
+			$self->{session}->get_site()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );
 			$self->_database_err;
 			return( 0 );
 		}
@@ -1280,7 +1262,7 @@ sub _do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
-		my $ds = $self->{session}->getSite()->getDataSet( "document" );
+		my $ds = $self->{session}->get_site()->getDataSet( "document" );
 		my $desc_field = $ds->getField( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
@@ -1631,10 +1613,8 @@ sub _list_problems
 {
 	my( $self, $before, $after ) = @_;
 	
-#EPrints::Log::debug( "SubmissionForm", "problems is ".(defined $self->{problems} ? $self->{problems} : "undef" ) );
 #	foreach( @{$self->{problems}} )
 #	{
-#EPrints::Log::debug( "SubmissionForm", "problem: $_" );
 #	}
 
 	if( defined $self->{problems} && $#{$self->{problems}} >= 0 )
@@ -1731,12 +1711,7 @@ sub _update_from_type_form
 	    $self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-
-		EPrints::Log::log_entry(
-			"Forms",
-			"EPrint ID in form >$form_id< doesn't match object id ".
-				">$self->{eprint}->{eprintid}<" );
-
+		$self->{session}->get_site()->log( "Form error: EPrint ID in form $form_id doesn't match object id ".$self->{eprint}->{eprintid} );
 		return( 0 );
 	}
 	else
@@ -1807,12 +1782,7 @@ sub _update_from_meta_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-
-		EPrints::Log::log_entry(
-				"L:idnotmatch",
-				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} } );
-
+		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 		return( 0 );
 	}
 	else
@@ -1909,11 +1879,7 @@ sub _update_from_subject_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-
-		EPrints::Log::log_entry(
-				"L:idnotmatch",
-				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} } );
+		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 
 		return( 0 );
 	}
@@ -1965,11 +1931,7 @@ sub _update_from_users_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-
-		EPrints::Log::log_entry(
-				"L:idnotmatch",
-				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} } );
+		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 
 		return( 0 );
 	}

@@ -32,7 +32,6 @@ die "DEPRECATED";
 #
 ######################################################################
 
-#use EPrints::Log;
 #use EPrints::Mailer;
 #use EPrints::Session;
 #use EPrints::User;
@@ -76,8 +75,6 @@ die "DEPRECATED";
 #
 #if( !defined $subject || !defined $from )
 #{
-#	EPrints::Log::log_entry( "process_mail",
-#	                         "Error in mail: From or Subject line missing" );
 #}
 #elsif( $subject =~ /new\s?user/i )
 #{

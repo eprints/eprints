@@ -18,7 +18,6 @@
 package EPrints::Document;
 
 use EPrints::Database;
-use EPrints::Log;
 use EPrints::EPrint;
 
 use File::Basename;
@@ -141,7 +140,7 @@ sub new
 	
 	foreach $field (@fields)
 	{
-		my $field_name = $field->get("name");
+		my $field_name = $field->get_name();
 
 		$self->{$field_name} = $row[$i];
 		$i++;
@@ -175,11 +174,7 @@ sub create
 	unless( defined $dir )
 	{
 		# Some error while making it
-		EPrints::Log::log_entry(
-			"L:error_mkdir",{
-			          eprintid=>$eprint->{eprintid},
-			         format=>$format,
-			           errmsg=>$! } );
+		$session->get_site()->log( "Error creating directory for Eprint ".$eprint->{eprintid}." format ".$format.": $!" );
 		return( undef );
 	}
 
@@ -310,10 +305,7 @@ sub clone
 	# If something's gone wrong...
 	if ( $rc!=0 )
 	{
-		EPrints::Log::log_entry(
-			"L:error_cp",{ frompath=>$self->local_path(),
-				       topath=>$new_doc->local_path(),
-			               errmsg=>$! } );
+		$self->{session}->get_site()->log( "Error copying from ".$self->local_path()." to ".$new_doc->local_path().": $!" );
 		return( 0 );
 	}
 
@@ -351,10 +343,7 @@ sub remove
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log::log_entry(
-			"L:error_rm",{
-			                              docid=>$self->{docid},
-			                              errmsg=>$db_error } );
+		$self->{session}->get_site()->log( "Error removing document ".$self->{docid}." from database: $db_error" );
 		return( 0 );
 	}
 
@@ -364,11 +353,7 @@ sub remove
 
 	if( $num_deleted <= 0 )
 	{
-		EPrints::Log::log_entry(
-			"L:error_rmfiles",{
-			                              docid=>$self->{docid},
-			                              path=>$full_path,
-			                              errmsg=>$! } );
+		$self->{session}->get_site()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
 		$success = 0;
 	}
 
@@ -532,13 +517,8 @@ sub remove_file
 	
 	if( $count != 1 )
 	{
-		EPrints::Log::log_entry(
-			"L:error_rmfile",{
-			          filename=>$filename,
-			          docid=>$self->{docid},
-			          errmsg=>$! } );
+		$self->{session}->get_site()->log( "Error removing file $filename for doc ".$self->{docid}.": $!" );
 	}
-
 	return( $count==1 );
 }
 
@@ -566,11 +546,7 @@ sub remove_all_files
 
 	if( $num_deleted < scalar @to_delete )
 	{
-		EPrints::Log::log_entry(
-			"L:error_rmfiles",{
-			          docid=>$self->{docid},
-			          path=>$full_path,
-			          errmsg=>$! } );
+		$self->{session}->get_site()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
 		return( 0 );
 	}
 
@@ -727,7 +703,6 @@ sub upload_archive
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
 	
-#EPrints::Log::debug( "Document", "EXEC:$extract_command" );
 
 	# Do the extraction
 	my $rc = 0xffff & system $extract_command;
@@ -854,10 +829,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log::log_entry(
-			"L:error_commit", {
-			         docid=>$self->{docid},
-			         errmsg=>$db_error } );
+		$self->{session}->get_site()->log( "Error committing Document ".$self->{docid}.": ".$db_error );
 	}
 
 	return( $success );

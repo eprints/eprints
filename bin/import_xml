@@ -38,13 +38,13 @@ exit;
 sub deal 
 {
 	my( $session , $table , $eprint ) = @_;
-	print EPrints::Log::render_struct( $eprint );
+	print EPrints::Session::render_struct( $eprint );
 
 
 	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
 	print "------------\n";
-	my $ds = $session->getSite->getDataSet( "archive" );
-	if( $session->getDB->exists( $ds , $eprint->getValue( "eprintid" ) ) )
+	my $ds = $session->get_site()->getDataSet( "archive" );
+	if( $session->get_db()->exists( $ds , $eprint->getValue( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";
 		$eprint->commit;

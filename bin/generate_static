@@ -29,15 +29,15 @@ my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
 # change to base of site so expat can find the dtd directory.
-chdir( $session->getSite->getConf( "site_root" ) );
+chdir( $session->get_site()->getConf( "site_root" ) );
 
 print "____________________________\n";
 my $langid;
-my $generalpath = $session->getSite->getConf( "static_html_root" )."/general";
+my $generalpath = $session->get_site()->getConf( "static_html_root" )."/general";
 foreach $langid ( keys %EPrints::Site::General::languages )
 {
 	print $langid."\n";
-	my $basepath = $session->getSite->getConf( "static_html_root" ).
+	my $basepath = $session->get_site()->getConf( "static_html_root" ).
 	               "/$langid";
 	my $func;
 	$func = sub { generate_static( $langid, $basepath, $session ) };
@@ -56,22 +56,22 @@ sub generateDTD
 
 	my $dtd = "";
 	$dtd.= "<!ENTITY sitename \"".
-		$session->getSite->getConf( "sitename" ).
+		$session->get_site()->getConf( "sitename" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY description \"".
-		$session->getSite->getConf( "description" ).
+		$session->get_site()->getConf( "description" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY admin \"".
-		$session->getSite->getConf( "admin" ).
+		$session->get_site()->getConf( "admin" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY perlroot \"".
-		$session->getSite->getConf( "server_perl" ).
+		$session->get_site()->getConf( "server_perl" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY staticroot \"".
-		$session->getSite->getConf( "server_static" ).
+		$session->get_site()->getConf( "server_static" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY frontpage \"".
-		$session->getSite->getConf( "frontpage" ).
+		$session->get_site()->getConf( "frontpage" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY version \"".
 		$EPrints::Version::eprints_software_version.
@@ -88,7 +88,7 @@ sub generate_static
 
 	my $destination_filename = $File::Find::name;
 
-	my $newpath = $session->getSite->getConf( "local_html_root" ).
+	my $newpath = $session->get_site()->getConf( "local_html_root" ).
 	              "/$langid";
 	$destination_filename =~ s/$basepath/$newpath/;
 
@@ -143,8 +143,8 @@ print "$xhtml\n\n";
 			}
 
 			$doc->removeChild( $page );
-			$session->newPage( $langid );
-			$session->takeOwnership( $page );
+			$session->new_page( $langid );
+			$session->take_ownership( $page );
 			$doc->dispose();
 
 			if( $mode eq "page" )
@@ -171,14 +171,14 @@ print "$xhtml\n\n";
 						$File::Find::name );
 				}
 				$page->removeChild( $main );
-				$session->buildPage( $titletext, $main );
+				$session->build_page( $titletext, $main );
 				$page->dispose();
 			}
 			else 	# $mode is "html"
 			{
-				$session->setPage( $page );	
+				$session->set_page( $page );	
 			}	
-			$session->pageToFile( $destination_filename );
+			$session->page_to_file( $destination_filename );
 
 		}
 		else

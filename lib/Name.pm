@@ -14,7 +14,6 @@
 
 package EPrints::Name;
 
-use EPrints::Log;
 
 use strict;
 
