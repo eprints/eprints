@@ -20,7 +20,7 @@ $EPrints::SystemSettings::conf =
 		ZIP 	=> "$(EXE_ZIP) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)",
 	        TARGZ  	=> "$(EXE_GUNZIP) -c < $(ARC) 2>/dev/null | $(EXE_TAR) xf - -C $(DIR) >/dev/null 2>\&1",
 		WGET 	=> "$(EXE_WGET)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)",
-		SENDMAIL => "$(EXE_SENDMAIL) -oi -t -odb --";
+		SENDMAIL => "$(EXE_SENDMAIL) -oi -t -odb --"
 	},
 	archive_extensions => {
 		"ZIP"    =>  ".zip",
@@ -32,3 +32,5 @@ $EPrints::SystemSettings::conf =
 	orig_version => "2.0.a",
 	orig_version_desc => "EPrints 2.0 Alpha (Anchovy)"
 };
+
+1;
