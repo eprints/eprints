@@ -26,9 +26,10 @@ use File::Find;
 use strict;
 
 
-my $session = new EPrints::Session( 1 );
+my $session = new EPrints::Session( 1 , $ARGV[0] );
 
-find( \&generate_static, $EPrintSite::SiteInfo::static_html_root );
+find( { wanted=>\&generate_static, follow=>1 },
+      $EPrintSite::SiteInfo::static_html_root."/" );
 
 $session->terminate();
 
@@ -40,6 +41,8 @@ sub generate_static
 
 	my $destination_filename = $File::Find::name;
 	$destination_filename =~ s/$EPrintSite::SiteInfo::static_html_root/$EPrintSite::SiteInfo::local_html_root/;
+
+print STDERR "$File::Find::name -> $destination_filename\n";
 	
 	if( -d $File::Find::name )
 	{

@@ -22,6 +22,7 @@ use File::Find;
 
 use strict;
 
+die "DEPRECATED";
 find( \&update_htaccess,
       $EPrintSite::SiteInfo::static_html_root,
       $EPrintSite::SiteInfo::local_perl_root );

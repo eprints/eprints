@@ -270,9 +270,11 @@ sub _create_directory
 	# Warn the administrator if we're low on space
 	if( $best_free_space < $EPrintSite::SiteInfo::diskspace_warn_threshold )
 	{
-		$session->mail_administrator(
-			EPrints::Language::logphrase( "S:disklow_sub" ),
-			EPrints::Language::logphrase( "M:disklow" ) );
+# cjg - not done this bit yet...
+#
+#		$session->mail_administrator(
+#			EPrints::Language::logphrase( "S:disklow_sub" ),
+#			EPrints::Language::logphrase( "M:disklow" ) );
 	}
 
 	# For now, just choose first

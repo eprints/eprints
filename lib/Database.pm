@@ -28,8 +28,6 @@ use EPrints::Subscription;
 
 use strict;
 
-$EPrints::Database::driver = "DBI:mysql:";
-
 #
 # Table names
 #
@@ -120,21 +118,23 @@ $EPrints::Database::nextbuffer = 0;
 
 sub build_connection_string
 {
+	my( $site ) = @_;
+
         # build the connection string
-        my $dsn = $EPrints::Database::driver.
-                "database=".$EPrintSite::SiteInfo::database;
-        if (defined $EPrintSite::SiteInfo::db_host)
+        my $dsn = "DBI:mysql:database=$site->{db_name}";
+        if( defined $site->{db_host} )
         {
-                $dsn.= ";host=".$EPrintSite::SiteInfo::db_host;
+                $dsn.= ";host=$site->{db_host}";
         }
-        if (defined $EPrintSite::SiteInfo::db_port)
+        if( defined $site->{db_port} )
         {
-                $dsn.= ";port=".$EPrintSite::SiteInfo::db_port;
+                $dsn.= ";port=$site->{db_port}";
         }
-        if (defined $EPrintSite::SiteInfo::db_socket)
+        if( defined $site->{db_sock} )
         {
-                $dsn.= ";mysql_socket=".$EPrintSite::SiteInfo::db_socket;
+                $dsn.= ";mysql_socket=$site->{db_sock}";
         }
+print STDERR ">>$dsn\n";
         return $dsn;
 }
 
@@ -157,9 +157,9 @@ sub new
 	$self->{session} = $session;
 
 	# Connect to the database
-	$self->{dbh} = DBI->connect( &EPrints::Database::build_connection_string,
-	                             $EPrintSite::SiteInfo::username,
-	                             $EPrintSite::SiteInfo::password,
+	$self->{dbh} = DBI->connect( build_connection_string( $session->{site} ),
+	                             $session->{site}->{db_user},
+	                             $session->{site}->{db_pass},
 	                             { PrintError => 1, AutoCommit => 1 } );
 
 #	                             { PrintError => 0, AutoCommit => 1 } );

@@ -17,4 +17,4 @@ PerlAuthzHandler  EPrints::Auth::authz
 
 #PerlSetVar Auth_DBI_encrypted     off
 
-require group user
+require group user sith

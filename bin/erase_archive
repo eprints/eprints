@@ -22,6 +22,8 @@
 ######################################################################
 
 
+## NEEDS A SESSION, eh?
+$session XXX
 use EPrints::Database;
 use EPrintSite::SiteInfo;
 
@@ -30,7 +32,9 @@ use strict;
 # This script dosn't currently work on remote machines, which may well
 # not allow remote admin log in anyway.
 
-if ( defined $EPrintSite::SiteInfo::db_host ||
+
+# make this work dammit cjg
+if ( defined $db_host ||
      defined $EPrintSite::SiteInfo::db_socket ||
      defined $EPrintSite::SiteInfo::db_port ) 
 {
