@@ -100,7 +100,7 @@ sub process
 	my( $self ) = @_;
 	
 #cjg NOT VERY FAR YET...	
-	$self->{action}    = $self->{session}->param( "submit" );
+	$self->{action}    = $self->{session}->param( "_submit" );
 	$self->{stage}     = $self->{session}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
 

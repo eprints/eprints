@@ -124,7 +124,7 @@ unless( $page_written )
 		print "</P></CENTER>\n";		
 		
 		print $session->{render}->start_form();
-		print $session->{render}->hidden_field( "seen", "true" );
+		print $session->{render}->hidden_field( "_seen", "true" );
 
 		print "<CENTER><TABLE BORDER=1 CELLPADDING=3>\n";
 		print "<TR><TH><STRONG>";

@@ -599,16 +599,18 @@ sub render_input_field
 
 	$html = $session->makeDocFragment();
 
-	my $boxcount = 2;
-
 	# subject fields can be rendered here and now
 	# without looping and calling the aux function.
 
-	if( $self->is_type( "subject" ) ||
-	    $self->is_type( "datatype" ) ||
-	    $self->is_type( "set" ) )
+	if( $self->is_type( "subject", "datatype", "set" ) )
 	{
-		my( $tags, $labels );
+		my( $tags, $labels, $id );
+ 		$id = $self->{name};
+		if( $session->internal_button_pressed() )
+		{
+			my @values = $session->param( $id );
+			$value = \@values;
+		}
 	
 		if( $self->is_type( "set" ) )
 		{
@@ -653,7 +655,7 @@ sub render_input_field
 		}
 
 		$html->appendChild( $session->make_option_list(
-			name => $self->{name},
+			name => $id,
 			values => $tags,
 			default => $value,
 			height => $height,
@@ -695,21 +697,44 @@ sub render_input_field
 
 	if( $self->isMultiple() )
 	{
+		my $boxcount = 3;
+		my $spacesid = $self->{name}."_spaces";
+
+		if( $session->internal_button_pressed() )
+		{
+			$boxcount = $session->param( $spacesid );
+			if( $session->param( "_internal" ) eq  
+				$session->phrase( "more_spaces" ) )
+			{
+				$boxcount += 2;
+			}
+		}
+	
 		my $i;
 		for( $i=1 ; $i<=$boxcount ; ++$i )
 		{
-			my $morebutton = undef;
+			my $more = undef;
 			if( $i == $boxcount )
 			{
-				$morebutton = $session->make_submit_buttons(
-					$session->phrase( "more_spaces" ) );
+				$more = $session->makeDocFragment();
+				$more->appendChild( $session->make_element(
+					"input",
+					type => "hidden",
+					name => $spacesid,
+					value => $boxcount ) );
+				$more->appendChild( $session->make_element(
+					"input",
+					type => "submit",
+					name => "_internal",
+					value => $session->phrase( 
+							"more_spaces" ) ) );
 			}
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 
 					$session, 
 					$value->[$i], 
 					$i,
-					$morebutton ) );
+					$more ) );
 		}
 	}
 	else
@@ -736,14 +761,15 @@ print STDERR "val($value)\n";
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 
 	my $html = $session->makeDocFragment();
-	if( 
-		$self->is_type( "text" ) ||
-		$self->is_type( "username" ) ||
-		$self->is_type( "url" ) ||
-		$self->is_type( "int" ) ||
-		$self->is_type( "email" ) )
+	if( $self->is_type( "text", "username", "url", "int", "email" ) )
 	{
-		my( $maxlength, $size, $div );
+		my( $maxlength, $size, $div, $id );
+ 		$id = $self->{name}.$id_suffix;
+		if( $session->internal_button_pressed() )
+		{
+			$value = $session->param( $id );
+		}
+
 		if( $self->is_type( "int" ) )
 		{
 			$maxlength = $self->{digits};
@@ -766,10 +792,11 @@ print STDERR "val($value)\n";
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix,
+			name => $id,
 			value => $value,
 			size => $size,
 			maxlength => $maxlength ) );
+
 		if( defined $morebutton )
 		{
 			$div->appendChild( $morebutton );
@@ -778,11 +805,16 @@ print STDERR "val($value)\n";
 	}
 	elsif( $self->is_type( "longtext" ) )
 	{
-		my( $div , $textarea );
+		my( $div , $textarea , $id );
+ 		$id = $self->{name}.$id_suffix;
+		if( $session->internal_button_pressed() )
+		{
+			$value = $session->param( $id );
+		}
 		$div = $session->make_element( "div" );	
 		$textarea = $session->make_element(
 			"textarea",
-			name => $self->{name}.$id_suffix,
+			name => $id,
 			rows => $self->{displaylines},
 			cols => $FORM_WIDTH,
 			wrap => "virtual" );
@@ -797,7 +829,12 @@ print STDERR "val($value)\n";
 	}
 	elsif( $self->is_type( "boolean" ) )
 	{
-		my( $div );
+		my( $div , $id);
+ 		$id = $self->{name}.$id_suffix;
+		if( $session->internal_button_pressed() )
+		{
+			$value = $session->param( $id );
+		}
 
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
@@ -805,19 +842,26 @@ print STDERR "val($value)\n";
 			type => "checkbox",
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
-			name => $self->{name}.$id_suffix,
+			name => $id,
 			value => "TRUE" ) );
 		# No more button for boolean. That would be silly.
 		$html->appendChild( $div );
 	}
 	elsif( $self->is_type( "name" ) )
 	{
-		my( $tr, $td );
+		my( $tr, $td , $givenid, $familyid );
+ 		$givenid = $self->{name}.$id_suffix."_given";
+ 		$familyid = $self->{name}.$id_suffix."_family";
+		if( $session->internal_button_pressed() )
+		{
+			$value->{familyname} = $session->param( $familyid );
+			$value->{givenname} = $session->param( $givenid );
+		}
 		$tr = $session->make_element( "tr" );
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_familyname",
+			name => $familyid,
 			value => $value->{familyname},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
@@ -825,7 +869,7 @@ print STDERR "val($value)\n";
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_givenname",
+			name => $givenid,
 			value => $value->{givenname},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
@@ -840,15 +884,22 @@ print STDERR "val($value)\n";
 	}
 	elsif( $self->is_type( "pagerange" ) )
 	{
-		my( $div , @pages );
-		
+		my( $div , @pages , $fromid, $toid );
 		@pages = split /-/, $value if( defined $value );
+ 		$fromid = $self->{name}.$id_suffix."_from";
+ 		$toid = $self->{name}.$id_suffix."_to";
+		if( $session->internal_button_pressed() )
+		{
+			$pages[0] = $session->param( $fromid );
+			$pages[1] = $session->param( $toid );
+		}
+		
 		
 		$div = $session->make_element( "div" );	
 
 		$div->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_from",
+			name => $fromid,
 			value => $pages[0],
 			size => 6,
 			maxlength => 10 ) );
@@ -859,8 +910,8 @@ print STDERR "val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_from",
-			value => $pages[0],
+			name => $toid,
+			value => $pages[1],
 			size => 6,
 			maxlength => 10 ) );
 		if( defined $morebutton )
@@ -872,7 +923,7 @@ print STDERR "val($value)\n";
 	}
 	elsif( $self->is_type( "date" ) )
 	{
-		my( $div );
+		my( $div, $yearid, $monthid, $dayid );
 		$div = $session->make_element( "div" );	
 		my( $year, $month, $day ) = ("", "", "");
 		if( defined $value && $value ne "" )
@@ -883,13 +934,22 @@ print STDERR "val($value)\n";
 				($year, $month, $day) = ("", "00", "");
 			}
 		}
+ 		$dayid = $self->{name}.$id_suffix."_day";
+ 		$monthid = $self->{name}.$id_suffix."_month";
+ 		$yearid = $self->{name}.$id_suffix."_year";
+		if( $session->internal_button_pressed() )
+		{
+			$month = $session->param( $monthid );
+			$day = $session->param( $dayid );
+			$year = $session->param( $yearid );
+		}
 
 		$div->appendChild( $session->html_phrase( "year" ) );
 		$div->appendChild( $session->makeText(" ") );
 
 		$div->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_year",
+			name => $yearid,
 			value => $year,
 			size => 4,
 			maxlength => 4 ) );
@@ -899,7 +959,7 @@ print STDERR "val($value)\n";
 		$div->appendChild( $session->makeText(" ") );
 
 		$div->appendChild( $session->make_option_list(
-			name => $self->{name}.$id_suffix."_month",
+			name => $monthid,
 			values => \@monthkeys,
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
@@ -909,7 +969,7 @@ print STDERR "val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}.$id_suffix."_day",
+			name => $dayid,
 			value => $day,
 			size => 2,
 			maxlength => 2 ) );
@@ -926,30 +986,6 @@ print STDERR "val($value)\n";
 					  "field of type: ".$self->get_type() );
 	}
 	return $html;
-
-my $field = 1;
-	
-	my $type = $field->{type};
-
-	if( $type eq "eprinttype" )
-	{
-
-	}
-	elsif( $type eq "name" )
-	{
-		
-#		if( $field->{multiple} )
-#		{
-#			$html .= "<td>".$self->named_submit_button( 
-#				"name_more_$field->{name}",
-#				$self->{session}->phrase( "F:more_spaces" ) );
-#			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
-#			$html .= "</td>";
-#		}
-		
-	}
-	
-	return( $html );
 }
 
 #WP1: BAD

@@ -24,6 +24,7 @@ use EPrints::SearchExpression;
 use EPrints::Session;
 use EPrints::User;
 
+### SUBS MUST BE FLAGGED AS BULK cjg
 
 use strict;
 #"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"

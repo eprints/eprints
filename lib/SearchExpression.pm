@@ -542,7 +542,7 @@ sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
 	
-	my $submit_button = $self->{session}->param( "submit" );
+	my $submit_button = $self->{session}->param( "_submit" );
 
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
@@ -654,7 +654,7 @@ sub process_webpage
 		my $form = $self->{session}->make_form( "get" );
 		foreach( $self->{session}->param() )
 		{
-			next if( $_ eq "submit" );
+			next if( $_ eq "_submit" );
 			$form->appendChild(
 				$self->{session}->make_hidden_field( $_ ) );
 		}

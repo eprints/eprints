@@ -661,7 +661,7 @@ sub make_submit_buttons
 			$self->make_element( "input",
 				class => "submitbutton",
 				type => "submit",
-				name => "submit",
+				name => "_submit",
 				value => $_ ) );
 		$frag->appendChild( $self->makeText( latin1(" ") ) );
 	}
@@ -1071,8 +1071,8 @@ sub seen_form
 	
 	my $result = 0;
 
-	$result = 1 if( defined $self->{query}->param( 'seen' ) &&
-	                $self->{query}->param( 'seen' ) eq 'true' );
+	$result = 1 if( defined $self->{query}->param( "_seen" ) &&
+	                $self->{query}->param( "_seen" ) eq "true" );
 
 	return( $result );
 }
@@ -1082,7 +1082,7 @@ sub internal_button_pressed
 {
 	my( $self ) = @_;
 	
-	return( $self->{internalbuttonpressed} );
+        return( defined $self->{query}->param( '_internal' ) );
 }
 
 ######################################################################
@@ -1136,7 +1136,7 @@ print STDERR "==>".$field->getName()." = ".$values->{$field->getName()}."\n";
 
 	# Hidden field, so caller can tell whether or not anything's
 	# been POSTed
-	$form->appendChild( $self->make_hidden_field( "seen", "true" ) );
+	$form->appendChild( $self->make_hidden_field( "_seen", "true" ) );
 
 	if( defined $hidden_fields )
 	{
