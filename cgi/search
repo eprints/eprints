@@ -29,8 +29,8 @@ my @metafields = EPrints::SearchExpression->make_meta_fields(
 my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprints",
-	$EPrints::Database::table_archive,
 	0,
+	$EPrints::Database::table_archive,
 	\@metafields,
 	"Simple Search",
 	"<CENTER><P><A HREF=\"advsearch\">Click here for an advanced search.</A>".

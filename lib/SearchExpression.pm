@@ -286,7 +286,7 @@ sub do_eprint_search
 	
 	return( EPrints::EPrint->retrieve_eprints(
 		$self->{session},
-		$EPrints::Database::table_archive,
+		$self->{table},
 		( defined $sql ? [ $sql ] : undef ),
 		$order ) );
 }

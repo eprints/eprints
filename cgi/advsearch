@@ -30,8 +30,8 @@ my @metafields = EPrints::SearchExpression->make_meta_fields(
 my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprints",
-	$EPrints::Database::table_archive,
 	0,
+	$EPrints::Database::table_archive,
 	\@metafields,
 	"Advanced Search",
 	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
