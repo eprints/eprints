@@ -80,6 +80,7 @@
 
     <phrase ref="eprint_fieldname_editors">Editors</phrase>
     <phrase ref="eprint_fieldhelp_editors">Please enter the names of the editors.</phrase>
+    <phrase ref="eprint_fieldname_editors_id">Person ID</phrase>
 
     <phrase ref="eprint_fieldname_institution">Institution</phrase>
     <phrase ref="eprint_fieldhelp_institution">Please enter the institution from which the deposit originated.</phrase>
@@ -95,7 +96,6 @@
 
     <phrase ref="eprint_fieldname_month">Month</phrase>
     <phrase ref="eprint_fieldhelp_month">Please enter the month in which your deposit was published.</phrase>
-<!--Unspecified?-->
     <phrase ref="eprint_fieldopt_month_jan">January</phrase>
     <phrase ref="eprint_fieldopt_month_feb">February</phrase>
     <phrase ref="eprint_fieldopt_month_mar">March</phrase>

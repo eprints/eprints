@@ -13,6 +13,8 @@
 
 package EPrints::DataSet;
 
+
+# cjg allowblank vs allow_blank
 use EPrints::Document;
 
 #cjg Should deletion be just another "eprints" dataset.
@@ -263,6 +265,13 @@ sub id
 {
 	my( $self ) = @_;
 	return $self->{id};
+}
+
+sub count
+{
+	my( $self, $session ) = @_;
+
+	return $session->get_db()->count_table( $self->get_sql_table_name() );
 }
 
 # string get_sql_table_name()

@@ -363,11 +363,9 @@ $c->{archivefields}->{user} = [
 
 	{ name => "address", type => "longtext", displaylines => 5 },
 
-	{ name => "oook", type => "text", multiple => 1 },
+	{ name => "country", type => "text" },
 
-	{ name => "country", type => "text", hasid => 1 },
-
-	{ name => "url", type => "url", multiple => 1 },
+	{ name => "url", type => "url" },
 
 	{ name => "filter", type => "subject", showall => 1, multiple => 1 }
 ];
@@ -391,9 +389,9 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "confloc", type => "text" },
 
-	{ name => "department", type => "text", hasid=>1 },
+	{ name => "department", type => "text" },
 
-	{ name => "editors", type => "name", multiple => 1, multilang => 1, hasid=>1 },
+	{ name => "editors", type => "name", multiple => 1, hasid=>1 },
 
 	{ name => "institution", type => "text" },
 
@@ -423,12 +421,10 @@ $c->{archivefields}->{eprint} = [
 	{ name => "reportno", type => "text" },
 
 	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1 },
-	{ name => "groups", type=>"subject", top=>"group", multiple => 1 },
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", multilang => 1, 
-		requiredlangs=>["fr"], hasid=>1 },
+	{ name => "title", type => "text" },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 

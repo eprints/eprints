@@ -451,7 +451,7 @@ sub state_from_string
 }
 
 
-sub perform_search2
+sub perform_search
 {
 	my( $self ) = @_;
 
@@ -494,7 +494,14 @@ sub perform_search2
 
 		$firstpass = 0;
 	}
-	$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
+	if( scalar @searchon == 0 )
+	{
+		$self->{tmptable} = ( $self->{allow_blank} ? "ALL" : "NONE" );
+	}
+	else
+	{
+		$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
+	}
 }
 
 sub _merge
@@ -519,76 +526,31 @@ sub _merge
 sub dispose
 {
 	my( $self ) = @_;
-	
-	$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+
+	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
+	{
+		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+	}
 }
 
-## WP1: BAD
-sub perform_search 
-{
-	my ( $self ) = @_;
-
-	return $self->perform_search2;
-
-	my @searchon = ();
-	my $search_field;
-	foreach $search_field ( @{$self->{searchfields}} )
-	{
-		if ( defined $search_field->get_value() )
-		{
-			push @searchon , $search_field;
-		}
-	}
-	@searchon = sort { return $a->approx_rows <=> $b->approx_rows } 
-		         @searchon;
-
-	if( scalar @searchon == 0 )
-	{
-		$self->{error} = undef;
-		$self->{tmptable} = $self->{dataset}->get_sql_table_name();
-	}
-	else 
-	{
-		my $buffer = undef;
-		$self->{ignoredwords} = [];
-		my $badwords;
-		foreach $search_field( @searchon )
-		{
-print STDERR "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--(".$search_field->{value}.")";
-print STDERR "SearchExpression perform_search debug: ".(defined $buffer?$buffer:"[no buffer]")."!\n" ;
-			my $error;
-			( $buffer , $badwords , $error) = 
-				$search_field->do( $buffer , $self->{satisfy_all} );
-	
-			if( defined $error )
-			{
-				$self->{tmptable} = undef;
-				$self->{error} = $error;
-				return;
-			}
-
-			if( defined $badwords )
-			{
-				push @{$self->{ignoredwords}},@{$badwords};
-			}
-		}
-		
-		$self->{error} = undef;
-		$self->{tmptable} = $buffer;
-	##print STDERR "SHIOOOK: ".$buffer."\n";
-	}
-
-
-}
-	
 ## WP1: BAD
 sub count 
 {
 	my( $self ) = @_;
 
-	if( $self->{tmptable} )
+	if( defined $self->{tmptable} )
 	{
-		return $self->{session}->get_db()->count_buffer( 
+		if( $self->{tmptable} eq "NONE" )
+		{
+			return 0;
+		}
+
+		if( $self->{tmptable} eq "ALL" )
+		{
+			return $self->{dataset}->count();
+		}
+
+		return $self->{session}->get_db()->count_table( 
 			$self->{tmptable} );
 	}	
 	#cjg ERROR to user?
@@ -604,10 +566,25 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
+		if( $self->{tmptable} eq "NONE" )
+		{
+			return ();
+		}
+		my $srctable;
+		if( $self->{tmptable} eq "ALL" )
+		{
+			$srctable = $self->{dataset}->get_sql_table_name();
+		}
+		else
+		{
+			$srctable = $self->{tmptable};
+		}
+		
+
         	my( $keyfield ) = $self->{dataset}->get_key_field();
 		my( $buffer, $overlimit ) = 
 			$self->{session}->get_db()->distinct_and_limit( 
-							$self->{tmptable}, 
+							$srctable,
 							$keyfield, 
 							$max );
 
@@ -633,7 +610,6 @@ sub get_records
 		# in fact it should not be temporary!
 		$self->{session}->get_db()->dispose_buffer( $buffer );
 		return @records;
-
 	}	
 
 #ERROR TO USER cjg

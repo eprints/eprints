@@ -1034,7 +1034,7 @@ sub distinct_and_limit
 
 	if( defined $max )
 	{
-		my $count = $self->count_buffer( $tmptable );
+		my $count = $self->count_table( $tmptable );
 		return( $tmptable , ($count >= $max) );
 	}
 	else
@@ -1072,12 +1072,11 @@ sub drop_cache
 }
 
 ## WP1: BAD
-sub count_buffer
+sub count_table
 {
 	my ( $self , $buffer ) = @_;
 
 	my $sql = "SELECT COUNT(*) FROM $buffer";
-
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );

@@ -87,11 +87,7 @@ else
 		if( defined $user )
 		{
 #cjg Has view-user priv?
-			$td->appendChild( $user->render_citation_link( undef, 1 );
-			$a = $session->make_element( "a", 
-				href=>"view_user?userid=".$e->get_value("userid") );
-			$a->appendChild( $session->make_text( $user->full_name() ) );
-			$td->appendChild( $a );
+			$td->appendChild( $user->render_citation_link( undef, 1 ) );
 		}
 		else
 		{

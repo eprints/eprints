@@ -1482,5 +1482,13 @@ sub remove_from_threads
 	}
 }
 
+sub render_value
+{
+	my( $self, $fieldname, $showall ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );	
+	
+	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
 	
 1;

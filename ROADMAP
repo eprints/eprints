@@ -49,6 +49,7 @@
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 #	Fix "upload then back" bug
+#	Bug in render_citation - emails are links!
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
 #	Clean up validators - Don't validate records with fields which have bad langids
