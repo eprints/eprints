@@ -30,7 +30,7 @@ use strict;
 
 
 # Supported version of OAI
-$EPrints::OpenArchives::oai_version = "0.2";
+$EPrints::OpenArchives::oai_version = "1.0";
 
 ######################################################################
 #
@@ -138,24 +138,14 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		# Horrible hack to get round (possibly very valid) inability of
-		# XML::Writer to use namespace prefix as element name
+		$writer->startTag( $metadataFormat, 
+			"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat} );
 		
-		my $out = $writer->getOutput();
-		$out->printf(
-			"<%s xmlns:%s=\"%s\">",
-			$metadataFormat,
-			$metadataFormat,
-			$EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat} );
-		
-#		$writer->startTag(
-#			[ $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
-#			  $metadataFormat ] );
 		_write_record_aux( $writer, $metadata );
 
-		$out->printf( "</%s>", $metadataFormat );
-
-		$writer->endTag();
+		$writer->endTag( $metadataFormat );
+		
+		$writer->endTag( "metadata" );
 	}
 	
 	$writer->endTag(); # Ends the "record" tag
