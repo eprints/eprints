@@ -39,28 +39,28 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"name",
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"parent",
 		type=>"text",
 		required=>0,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"depositable",
 		type=>"boolean",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	} );
 }
 

@@ -39,14 +39,14 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"username",
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"spec",
@@ -54,7 +54,7 @@ sub get_system_field_info
 		displaylines=>3,
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"frequency",
@@ -62,7 +62,7 @@ sub get_system_field_info
 		options=>["never","daily","weekly","monthly"],
 		required=>1,
 		editable=>1,
-		visable=>1
+		visible=>1
 	} );
 }
 

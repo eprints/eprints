@@ -38,21 +38,21 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"passwd",
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"usertype",
 		type=>"set",
 		required=>1,
 		editable=>0,
-		visable=>0,
+		visible=>0,
 		options=>\@usertypes
 	},
 	{
@@ -60,13 +60,13 @@ sub get_system_field_info
 		type=>"date",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"email",
 		type=>"email",
 		required=>1,
-		visable=>1
+		visible=>1
 	} );
 };
 

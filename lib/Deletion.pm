@@ -44,14 +44,14 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"replacement",
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"subjects",
@@ -59,14 +59,14 @@ sub get_system_field_info
 		multiple=>1,
 		required=>0,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"deletiondate",
 		type=>"date",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	} );
 }
 

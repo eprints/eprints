@@ -56,21 +56,21 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>1
+		visible=>1
 	},
 	{
 		name=>"eprintid",
 		type=>"text",
 		required=>1,
 		editable=>0,
-		visable=>0
+		visible=>0
 	},
 	{
 		name=>"format",
 		type=>"set",
 		required=>1,
 		editable=>1,
-		visable=>1,
+		visible=>1,
 		options=>[] #cjg
 	},
 	{
@@ -78,14 +78,14 @@ sub get_system_field_info
 		type=>"text",
 		required=>1,
 		editable=>1,
-		visable=>1
+		visible=>1
 	},
 	{
 		name=>"main",
 		type=>"text",
 		required=>1,
 		editable=>1,
-		visable=>1
+		visible=>1
 	}
 );
 
