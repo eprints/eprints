@@ -400,6 +400,16 @@ sub render_hidden_field
 		type => "hidden" );
 }
 
+sub render_upload_field
+{
+	my( $self, $name ) = @_;
+	
+	return( $self->make_element(
+		"input", 
+		name => $name,
+		type => "file" ) );
+}
+
 sub render_action_buttons
 {
 	my( $self, %buttons ) = @_;

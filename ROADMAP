@@ -9,7 +9,6 @@
 -	"Create New Archive" Script
 -	Tool to manage XML Phrase files and spot missing bits.
 -	Tool to manage XML Template files
-0	Translate Initial phrases and templates into French
 -	Archive Apache Config Maker (still needs to do virtualhosts)
 -	System Apache Config Maker
 -	languages.xml file to configure what languages EPrints has heard of
@@ -18,7 +17,7 @@
 -	Alpha Install Docs.
 -	Executable files should check they are running as the correct user.
 
-*	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. [YOU ARE HERE]
+*	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
 3	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
@@ -46,6 +45,7 @@
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 0	Default Values for metadata
 0	Subject field root is not always ROOT - can come into different places in the subject tree
+0	Translate Initial phrases and templates into French
 0	Indexing on name fields
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.

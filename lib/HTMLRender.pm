@@ -179,16 +179,6 @@ die"nope";
 ######################################################################
 
 ## WP1: BAD
-sub upload_field
-{
-	my( $self, $name ) = @_;
-	
-	return( $self->{query}->filefield(
-		-name=>$name,
-		-default=>"",
-		-size=>$EPrints::HTMLRender::form_width,
-		-maxlength=>$EPrints::HTMLRender::field_max ) );
-}
 
 
 

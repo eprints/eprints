@@ -638,33 +638,11 @@ print STDERR "($doc_action)($docid)\n";
 		return( 1 );
 	}
 
-
-#		if( $doc_action eq "edit" )
-#		{
-#			# Edit the document, creating it first if necessary
-#			if( !defined $self->{document} )
-#			{
-#				# Need to create a new doc object
-#				$self->{document} = EPrints::Document::create( $self->{session},
-#				                                               $self->{eprint},
-#				                                               $format );
-#
-#				if( !defined $self->{document} )
-#				{
-#					$self->_database_err;
-#					return( 0 );
-#				}
-#			}
-#
-#			$self->{new_stage} = $EPrints::SubmissionForm::stage_fileview;
-#			return( 1 );
-#		}
-#
-#		$self->_corrupt_err;
-#		return( 0 );
-#	}
-
-
+	if( $doc_action eq "edit" )
+	{
+		$self->{new_stage} = "fileview";
+		return( 1 );
+	}
 
 	$self->_corrupt_err;
 	return( 0 );
@@ -740,33 +718,32 @@ print STDERR $self->{action}."\n";
 #		$self->{new_stage} = "fileview";
 #		return( 1 );
 #	}
-#	
-#
-#	# Fileview button wasn't pressed, so it was an action button
-#	# Update the description if appropriate
-#	if( $self->{document}->{format} eq $EPrints::Document::OTHER )
-#	{
-#		$self->{document}->{formatdesc} =
-#			$self->{session}->{render}->param( "formatdesc" );
-#		$self->{document}->commit();
-#	}
 
 	if( $self->{action} eq "prev" )
 	{
 		$self->{new_stage} = "format";
 		return( 1 );
 	}
-#
-#	if( $self->{action} eq "upload" )
-#	{
-#		# Set up info for next stage
-#		$self->{arc_format} =
-#			$self->{session}->{render}->param( "arc_format" );
-#		$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
-#		$self->{new_stage} = "upload";
-#		return( 1 );
-#	}
-#	
+
+	# Fileview button wasn't pressed, and neiter was prev so it's
+	# either upload or finished -
+	# Update the description if appropriate
+	$self->{document}->set_value( "formatdesc",
+		$self->{session}->param( "formatdesc" ) );
+	$self->{document}->set_value( "format",
+		$self->{session}->param( "format" ) );
+	$self->{document}->commit();
+
+	if( $self->{action} eq "upload" )
+	{
+		# Set up info for next stage
+		$self->{arc_format} = $self->{session}->param( "arc_format" );
+		$self->{num_files} = $self->{session}->param( "num_files" );
+print STDERR "arc(".$self->{arc_format}.")(".$self->{num_files}.")\n";
+		$self->{new_stage} = "upload";
+		return( 1 );
+	}
+	
 #	if( $self->{action} eq "finished" )
 #	{
 #		# Finished uploading apparently. Validate.
@@ -829,14 +806,14 @@ sub _from_stage_upload
 	if( $self->{action} eq "upload" )
 	{
 		my $arc_format = $self->{session}->{render}->param( "arc_format" );
-		my $numfiles   = $self->{session}->{render}->param( "numfiles" );
+		my $num_files   = $self->{session}->{render}->param( "num_files" );
 		my( $success, $file );
 
 		if( $arc_format eq "plain" )
 		{
 			my $i;
 			
-			for( $i=0; $i<$numfiles; $i++ )
+			for( $i=0; $i<$num_files; $i++ )
 			{
 				$file = $self->{session}->{render}->param( "file_$i" );
 				
@@ -1267,7 +1244,6 @@ sub _do_stage_format
 	$tr->appendChild( $th );
 	$th->appendChild( 
 		$self->{session}->html_phrase("lib/submissionform:files_uploaded") );
-
 	
 	my $doc;
 	foreach $doc ( $self->{eprint}->get_all_documents() )
@@ -1321,23 +1297,23 @@ sub _do_stage_format
 #	{
 #		my $req = EPrints::Document::required_format( $self->{session} , $f );
 #		my $doc = $self->{eprint}->get_document( $f );
-#		my $numfiles = 0;
+#		my $num_files = 0;
 #		if( defined $doc )
 #		{
 #			my %files = $doc->files();
-#			$numfiles = scalar( keys %files );
+#			$num_files = scalar( keys %files );
 #		} 
 #
 #		print "<TR><TD>";
 #		print "<STRONG>" if $req;
 #		print EPrints::Document::format_name( $self->{session}, $f );
 #		print "</STRONG>" if $req;
-#		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
+#		print "</TD><TD ALIGN=CENTER>$num_files</TD><TD>";
 #		print $self->{session}->{render}->named_submit_button(
 #			"edit_$f",
 #			$self->{session}->phrase("lib/submissionform:action_uploadedit") );
 #		print "</TD><TD>";
-#		if( $numfiles > 0 )
+#		if( $num_files > 0 )
 ##		{
 #			print $self->{session}->{render}->named_submit_button(
 #				"remove_$f",
@@ -1350,21 +1326,21 @@ sub _do_stage_format
 #	{
 #		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
 #		my $othername = "Other";
-#		my $numfiles = 0;
+#		my $num_files = 0;
 #		
 #		if( defined $other )
 #		{
 #			$othername = $other->{formatdesc} if( $other->{formatdesc} ne "" );
 #			my %files = $other->files();
-#			$numfiles = scalar( keys %files );
+#			$num_files = scalar( keys %files );
 #		} 
 #
-#		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
+#		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$num_files</TD><TD>";
 #		print $self->{session}->{render}->named_submit_button(
 #			"edit_$EPrints::Document::OTHER",
 #			$self->{session}->phrase("lib/submissionform:uploadedit") );
 #		print "</TD><TD>";
-#		if( $numfiles > 0 )
+#		if( $num_files > 0 )
 #		{
 #			print $self->{session}->{render}->named_submit_button(
 #				"remove_$EPrints::Document::OTHER",
@@ -1401,19 +1377,22 @@ sub _do_stage_fileview
 
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
-		name=>'arcformat',
+		name=>'arc_format',
 		type=>'set',
 		options => [ 
 				"plain", 
 				"graburl", 
-				@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )}
+				@{$self->{session}->get_archive()->get_conf( 
+					"supported_archive_formats" )}
 			] );		
 
 	my $num_files_field = EPrints::MetaField->new(
 		confid=>'format',
-		name=>'nfields',
+		name=>'num_files',
 		type=>'int',
 		digits=>2 );
+
+	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
 
 	my $hidden_fields = {	
 		docid => $doc->get_value( "docid" ),
@@ -1436,8 +1415,13 @@ sub _do_stage_fileview
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			[ $arc_format_field, $num_files_field ],
-			{},
+			[ 
+				$docds->get_field( "format" ),
+				$docds->get_field( "formatdesc" ),
+				$arc_format_field, 
+				$num_files_field 
+			],
+			$doc->get_data(),
 			0,
 			1,
 			$submit_buttons,
@@ -1543,83 +1527,78 @@ sub _do_stage_upload
 {
 	my( $self ) = @_;
 
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_upload} ) );
-	print $self->{session}->{render}->start_form();
+	my( $page, $form, $p );
 
-	my $num_files;
+	$page = $self->{session}->make_doc_fragment();
+	$form = $self->{session}->render_form( "post", "submit#t" );
+	$page->appendChild( $form );
 
 	if( $self->{arc_format} eq "graburl" )
 	{
-		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:enter_url");
-		print "</CENTER></P>\n";
-		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("lib/submissionform:url_warning");
-		print "</EM></CENTER></P>\n";
-		my $url_field = EPrints::MetaField->new( "url:text:::::" );
-		print "<P><CENTER>";
-		print $self->{session}->{render}->input_field( $url_field, "" );
-		print "</CENTER></P>\n";
+		$p = $self->{session}->make_element( "p" );
+		$p->appendChild( $self->{session}->html_phrase( "lib/submissionform:enter_url" ) );
+		$form->appendChild( $p );
+		$p = $self->{session}->make_element( "p" );
+		$p->appendChild( $self->{session}->html_phrase( "lib/submissionform:url_warning" ) );
+		$form->appendChild( $p );
+		my $field = EPrints::MetaField->new( 
+			name => "url",
+			type => "text" );
+		$form->appendChild( $field->render_input_field( $self->{session} ) );
 	}
 	else
 	{
-		if( $self->{arc_format} ne "plain" )
+		$p = $self->{session}->make_element( "p" );
+		$form->appendChild( $p );
+		if( $self->{arc_format} eq "plain" )
 		{
-			$num_files = 1;
-			print "<P><CENTER>";
-			print $self->{session}->phrase("lib/submissionform:entercompfile");
-			print "</CENTER></P>\n";
-		}
-		else
-		{
-			$num_files = $self->{numfiles};
-
-			if( $self->{numfiles} > 1 )
+			if( $self->{num_files} > 1 )
 			{
-				print "<P><CENTER>";
-				print $self->{session}->phrase("lib/submissionform:enter_files");
-				print "</CENTER></P>\n";
+				$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_files") );
 			}
 			else
 			{
-				print "<P><CENTER>";
-				print $self->{session}->phrase("lib/submissionform:enter_file");
-				print "</CENTER></P>\n";
+				$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_file") );
 			}
 		}
-
-		my $i;
-		for( $i=0; $i < $num_files; $i++ )
+		else
 		{
-			print "<P><CENTER>";
-			print $self->{session}->{render}->upload_field( "file_$i" );
-			print "</CENTER></P>\n";
+			$self->{num_files} = 1;
+			$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_compfile") );
+		}
+		my $i;
+		for( $i=0; $i < $self->{num_files}; $i++ )
+		{
+			$form->appendChild( $self->{session}->render_upload_field( "file_$i" ) );
 		}
 	}
 	
-	print "<P><CENTER>";
-	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("lib/submissionform:action_prev"),
-		  $self->{session}->phrase("lib/submissionform:action_upload") ] );
-	print "</CENTER></P>\n";
-	print $self->{session}->{render}->hidden_field(
-		"stage",
-		$EPrints::SubmissionForm::stage_upload );
-	print $self->{session}->{render}->hidden_field(
-		"eprintid",
-		$self->{eprint}->{eprintid} );#cjg!!!
-	print $self->{session}->{render}->hidden_field( "docid",
-	                                                $self->{document}->{docid} );
-	print $self->{session}->{render}->hidden_field( "numfiles",
-	                                                $self->{numfiles} );
-	print $self->{session}->{render}->hidden_field( "arc_format",
-	                                                 $self->{arc_format} );
+##############
 
-	print $self->{session}->{render}->end_form();
-	print $self->{session}->{render}->end_html();
+	my %hidden_fields = (
+		stage => "upload",
+		eprintd => $self->{eprint}->get_value( "eprintid" ),
+		docid => $self->{document}->get_value( "docid" ),
+		num_files => $self->{num_files},
+		arc_format => $self->{arc_format} 
+	);
+	foreach( keys %hidden_fields )
+	{
+		$form->appendChild( $self->{session}->render_hidden_field(
+			$_, $hidden_fields{$_} ) );
+	}	
+
+	$form->appendChild( $self->{session}->render_action_buttons(
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ),
+		upload => $self->{session}->phrase( 
+				"lib/submissionform:action_upload" ) ) );
+
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_upload" ),
+		$page );
+	$self->{session}->send_page();
 }
 
 

@@ -559,14 +559,15 @@ sub short_title
 sub commit
 {
 	my( $self ) = @_;
-	my $success = $self->{session}->{database}->update(
+
+	my $success = $self->{session}->get_db()->update(
 		$self->{dataset},
 		$self->{data} );
 
 	if( !$success )
 	{
-		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_archive()->log( "Error committing EPrint ".$self->{eprintid}.": $db_error" );
+		my $db_error = $self->{session}->get_db()->error();
+		$self->{session}->get_archive()->log( "Error committing EPrint ".$self->get_value( "eprintid" ).": $db_error" );
 	}
 
 	return( $success );
@@ -1504,11 +1505,11 @@ sub get_session
 	return $self->{session};
 }
 
-## WP1: BAD
 sub get_data
 {
 	my( $self ) = @_;
 	
 	return $self->{data};
 }
+
 1;

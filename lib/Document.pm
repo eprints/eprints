@@ -747,22 +747,17 @@ sub upload_url
 sub commit
 {
 	my( $self ) = @_;
+
+	my $dataset = $self->{session}->get_archive()->get_dataset( "document" );
+
+	my $success = $self->{session}->get_db()->update(
+		$dataset,
+		$self->{data} );
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
-
-	my $key_field = shift @fields;
-	my $key_value = $self->{$key_field->{name}};
-
-	my $success = $self->{session}->{database}->update(
-		EPrints::Database::table_name( "document" ),
-		$key_field->{name},
-		$key_value,
-		$self );
-
 	if( !$success )
 	{
-		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_archive()->log( "Error committing Document ".$self->{docid}.": ".$db_error );
+		my $db_error = $self->{session}->get_db()->error();
+		$self->{session}->get_archive()->log( "Error committing Document ".$self->get_value( "docid" ).": $db_error" );
 	}
 
 	return( $success );
@@ -898,6 +893,20 @@ sub get_value
 	}
 
 	return $self->{data}->{$fieldname};
+}
+
+sub set_value
+{
+	my( $self , $fieldname, $value ) = @_;
+
+	$self->{data}->{$fieldname} = $value;
+}
+
+sub get_data
+{
+	my( $self ) = @_;
+	
+	return $self->{data};
 }
 
 1;
