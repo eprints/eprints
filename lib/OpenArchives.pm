@@ -192,10 +192,10 @@ sub get_oams_tags
 	$tags{accession} = $eprint->{datestamp};
 
 	# Display ID (URL)
-	$tags{displayID} = [ $eprint->static_page_url() ];
+	$tags{displayId} = [ $eprint->static_page_url() ];
 
 	# FullID
-	$tags{fullID} = &fullID( $eprint );
+	$tags{fullId} = &fullID( $eprint );
 
 	# Other tags are site-specific. Delegate to site routine.
 	EPrintSite::SiteRoutines::eprint_get_oams( $eprint, \%tags );
