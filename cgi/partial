@@ -16,6 +16,7 @@ sub process
 	my( $session ) = @_;
 
 	my $LSMAP = {
+"area" => \&ls_area,
 "byterange" => \&ls_byterange
 };
 
@@ -74,14 +75,8 @@ sub process
 		return;
 	}
 
-	my $value = &$fn( $filepath, $lsparam );
+	&$fn( $filepath, $lsparam, $resspec, $session );
 
-	if( defined $value )
-	{
-		send_header( $session );
-
-		print $value;
-	}
 
 }
 
@@ -106,10 +101,10 @@ END
 
 sub send_header
 {
-	my( $session ) = @_;
+	my( $session, $type ) = @_;
 
 	my $r = Apache->request;
-	$r->content_type( 'text/plain' );
+	$r->content_type( $type );
 	$r->status_line( "200 YAY" );
 	$r->send_http_header;
 }
@@ -118,15 +113,24 @@ sub send_header
 
 sub ls_byterange
 {
-	my( $file, $param ) = @_;
-	
-	unless( $param=~m/^(\d+)\/(\d+)$/ )
+	my( $file, $param, $resspec, $session ) = @_;
+
+	my( $offset, $length );
+	if( $param eq "" )
 	{
-		send_http_error( $session, 404, "Malformed byterange param: $param" );
-		return;
+		$offset = 0;
+		$length = -s $file;
+	}
+	else
+	{	
+		unless( $param=~m/^(\d+)\/(\d+)$/ )
+		{
+			send_http_error( $session, 404, "Malformed byterange param: $param" );
+			return;
+		}
+		( $offset, $length ) = ( $1, $2 );
 	}
 	
-	my( $offset, $length ) = ( $1, $2 );
 
 	unless( open( FILE, $file ) )
 	{
@@ -138,5 +142,124 @@ sub ls_byterange
 	read FILE, $data, $length;
 	close FILE;
 
-	return $data;
+	my $mode = $session->param( "mode" );
+	
+	if( $mode eq "human" || $mode eq 'spanSelect' || $mode eq 'endSelect' || $mode eq 'link' )
+	{
+		my $html = "";
+		my $o;
+		for $o (0..$length-1)
+		{
+			my $c=substr($data,$o,1);
+			$c = '&amp;' if( $c eq "&" );
+			$c = '&gt;' if( $c eq ">" );
+			$c = '&lt;' if( $c eq "<" );
+			$c = '<br />' if( $c eq "\n" );
+			if( $mode eq 'spanSelect' )
+			{ 
+				my $url = 'http://lemur1.ecs.soton.ac.uk/perl/partial?resSpec='.$resspec.'&locSpec=byterange:'.($offset+$o)."/".($length-$o).'&mode=endSelect';
+				$c ='<a href="'.$url.'">'.$c.'</a>';
+			}
+			if( $mode eq 'endSelect' )
+			{ 
+				my $url = 'http://lemur1.ecs.soton.ac.uk/perl/partial?resSpec='.$resspec.'&locSpec=byterange:'.($offset)."/".($o+1).'&mode=link';
+				$c ='<a href="'.$url.'">'.$c.'</a>';
+			}
+			$html.=$c;
+		}
+		my $url = 'http://lemur1.ecs.soton.ac.uk/perl/partial?resSpec='.$resspec.'&locSpec=byterange:&mode='.$mode;
+		my $front = '';
+		unless( $param eq "" )
+		{
+			$front = '<big><sup><a href="'.$url.'">trans</a></sup></big> ';
+		}
+		$front .= '<big><sup><a href="http://xanadu.com">&copy;</a></sup></big>';
+		my $msg='';
+		if( $mode eq "endSelect" )
+		{ 
+			$msg='<h1>select end point:</h1>';
+		}
+		if( $mode eq "spanSelect" )
+		{ 
+			$msg='<h1>select start point:</h1>';
+		}
+		
+			
+		send_header( $session, "text/html" );
+		my $title = "Byterange from: $resspec (from $offset, length $length)";
+		if( $mode eq 'link' )
+		{
+			my $url = 'http://lemur1.ecs.soton.ac.uk/perl/partial?resSpec='.$resspec.'&locSpec=byterange:'.($offset)."/".($length);
+			my $urlh = $url.'&mode=human';
+			$msg=<<END;
+<p><b>$title</b></p>
+<p>Raw byte quote: <a href="$url">$url</a></p>
+<p>Human readable (HTML): <a href="$urlh">$urlh</a></p>
+<hr noshade="noshade">
+END
+		}
+		print <<END;
+<html>
+<head><title>$title</title></head>
+<body>
+$msg
+ <p>$front $html</p>
+</body>
+</html>
+END
+	}
+	else
+	{
+		send_header( $session, "text/plain" );
+		print $data;
+	}
 }
+
+sub ls_area
+{
+	my( $file, $param, $resspec, $session ) = @_;
+	
+	unless( $param=~m/^(\d+),(\d+)\/(\d+),(\d+)$/ )
+	{
+		send_http_error( $session, 404, "Malformed area param: $param" );
+		return;
+	}
+	
+	my $cache = cache_file( $resspec, $param );
+	
+	unless( -e $cache )
+	{
+		my( $x, $y, $w, $h ) = ( $1, $2, $3, $4 );
+
+		my $cmd = "convert -crop ".$w."x".$h."+$x+$y '$file' 'gif:$cache'";
+print STDERR "$cmd\n";
+		`$cmd`;
+
+		if( !-e $cache )
+		{
+			send_http_error( $session, 500, "Error making image" );
+			return;
+		}
+	}
+
+	send_header( $session, "image/gif" );
+	print `cat $cache`;
+}
+
+
+sub cache_file
+{
+	my( $resspec, $param ) = @_;
+
+	my $TMPDIR = "/tmp/partial";
+
+	$resspec =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
+	$param =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
+
+	my $dir = $TMPDIR."/".$resspec;
+	
+	mkdir( $dir ) if( !-d $dir );
+
+	return $dir."/".$param;
+}
+
