@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  16/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -19,15 +20,16 @@ use strict;
 
 ######################################################################
 #
-# $userform = new( $session, $redirect, $staff )
+# $userform = new( $session, $redirect, $staff, $user )
 #
-#  Create a new user form session.
+#  Create a new user form session. If $user is unspecified, the current
+#  user (from Apache cookies) is used.
 #
 ######################################################################
 
 sub new
 {
-	my( $class, $session, $redirect, $staff ) = @_;
+	my( $class, $session, $redirect, $staff, $user ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -35,7 +37,8 @@ sub new
 	$self->{session} = $session;
 	$self->{redirect} = $redirect;
 	$self->{staff} = $staff;
-
+	$self->{user} = $user;
+	
 	return( $self );
 }
 
@@ -52,7 +55,8 @@ sub process
 {
 	my( $self ) = @_;
 	
-	$self->{user} = EPrints::User->current_user( $self->{session} );
+	$self->{user} = EPrints::User->current_user( $self->{session} )
+		unless( defined $self->{user} );
 
 	if( !defined $self->{user} )
 	{
@@ -92,7 +96,7 @@ sub process
 			{
 				# User has entered everything OK
 				$self->{user}->commit();
-				$self->{session}->{render}->redirect( "home" );
+				$self->{session}->{render}->redirect( $self->{redirect} );
 				print $self->{session}->{render}->start_html(
 					"Record for $full_name" );
 
@@ -159,7 +163,7 @@ sub render_form
 		push @edit_fields, $field if( $self->{staff} || $field->{editable} );
 	}
 	
-	my %hidden = ( "user_id"=>$self->{user}->{username} );
+	my %hidden = ( "username"=>$self->{user}->{username} );
 	
 	$self->{session}->{render}->render_form( \@edit_fields,
 	                                         $self->{user},
@@ -186,7 +190,7 @@ sub update_from_form
 	my $field;
 
 	# Ensure correct user
-	if( $self->{session}->{render}->param( "user_id" ) eq
+	if( $self->{session}->{render}->param( "username" ) eq
 		$self->{user}->{username} )
 	{
 		foreach $field (@all_fields)
@@ -204,7 +208,7 @@ sub update_from_form
 	}
 	else
 	{
-		my $form_id = $self->{session}->{render}->param( "user_id" );
+		my $form_id = $self->{session}->{render}->param( "username" );
 		EPrints::Log->log_entry(
 			"User",
 			"Username in form $form_id doesn't match object username ".
