@@ -41,6 +41,10 @@ sub new
 	$self->{redirect} = $redirect;
 	$self->{staff} = $staff;
 	$self->{user} = $user;
+	if( !defined $self->{user} ) 
+	{
+		$self->{user} = $self->{session}->current_user();
+	}
 	
 	return( $self );
 }
@@ -59,14 +63,11 @@ sub process
 {
 	my( $self ) = @_;
 	
-	if( !defined $self->{user} ) 
-	{
-		$self->{user} = $self->{session}->current_user();
-	}
 	my $full_name = $self->{user}->full_name();
 
 	if( $self->{session}->seen_form() == 0 ||
-	    $self->{session}->internal_button_pressed() )
+	    $self->{session}->internal_button_pressed() ||
+	    $self->{session}->get_action_button() eq "edit" )
 	{
 		my( $page, $p, $a );
 
@@ -153,17 +154,8 @@ sub _render_user_form
 	
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 
-	my @fields;
-	if( $self->{staff} )
-	{
- 		@fields = $user_ds->get_fields();
-	}
-	else
-	{
-		@fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ) );
-	}
-	
-	my %hidden = ( "username"=>$self->{user}->get_value( "username" ) );
+	my @fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ), $self->{staff} );
+	my %hidden = ( "userid"=>$self->{user}->get_value( "userid" ) );
 
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 
@@ -189,7 +181,7 @@ sub _render_user_form
 sub _update_from_form
 {
 	my( $self ) = @_;
-
+#cjg xxxxxxxxx
 	# Ensure correct user
 	if( $self->{session}->param( "username" ) ne
 		$self->{user}->get_value( "username" ) )
@@ -203,15 +195,8 @@ sub _update_from_form
 	}
 	
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
-	my @fields;
-	if( $self->{staff} )
-	{
- 		@fields = $user_ds->get_fields();
-	}
-	else
-	{
-		@fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ) );
-	}
+
+	my @fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ), $self->{staff} );
 	
 
 	my $field;

@@ -255,6 +255,10 @@ sub _load_datasets
 				{
 					$finfo->{required} = 1;
 				}
+				if( $field_tag->getAttribute( "staffonly" ) eq "yes" )
+				{
+					$finfo->{staffonly} = 1;
+				}
 				push @{$dsconf->{$ds_id}->{$type_id}},$finfo;
 			}
 		}

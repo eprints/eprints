@@ -466,7 +466,7 @@ sub _from_stage_meta
 
 	# Process uploaded data
 
-	my @fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
+	my @fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ), $self->{staff} );
 
 	my $field;
 	foreach $field (@fields)
@@ -1071,7 +1071,7 @@ sub _do_stage_meta
 
 	$page->appendChild( $self->{session}->html_phrase( "lib/submissionform:bib_info" ) );
 	
-	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
+	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ), $self->{staff} );
 
 	my $hidden_fields = {	
 		eprintid => $self->{eprint}->get_value( "eprintid" ),

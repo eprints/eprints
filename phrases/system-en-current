@@ -213,6 +213,8 @@ EPrints Modules
     <phrase ref="lib/userpage:unknown_user">Unknown user.</phrase>
     <phrase ref="lib/userpage:title">User record for <pin ref="name" /></phrase>
     <phrase ref="lib/userpage:number_of_records"><p><pin ref="link">Number of records user has in archive: <strong><pin ref="n" /></strong></pin></p></phrase>
+    <phrase ref="lib/userpage:action_edit">Edit User</phrase>
+    <phrase ref="lib/userpage:action_delete">Delete User</phrase>
 
 <!-- Utils -->
 
@@ -415,6 +417,11 @@ Staff CGI Scripts
     <phrase ref="cgi/users/edit_eprint:action_move">Move to Buffer</phrase>
     <phrase ref="cgi/users/edit_eprint:action_remove">Remove</phrase>
 
+<!-- edit_user -->
+    <phrase ref="cgi/users/edit_user:really_remove"><p>Delete this user, and all of their records in the archive?</p></phrase>
+    <phrase ref="cgi/users/edit_user:action_confirm">Confirm Deletion</phrase>
+    <phrase ref="cgi/users/edit_user:action_cancel">Cancel</phrase>
+    <phrase ref="cgi/users/edit_user:delete_title">Delete User</phrase>
 
 <!--********************************************************************** 
 Public CGI Scripts

@@ -48,27 +48,30 @@ sub process
 
 	if( $action eq "delete" )
 	{
-		print $session->{render}->start_html( "Delete User" );
+		$page->appendChild( $user->render_full() );
+		$page->appendChild( $session->render_ruler() );
+		$page->appendChild( $session->html_phrase( "cgi/users/edit_user:really_remove" ) );
+		$page->appendChild( $session->render_input_form(
+			buttons=>{
+				confirm=>$session->phrase( "cgi/users/edit_user:action_confirm" ),
+				cancel=>$session->phrase( "cgi/users/edit_user:action_cancel" ) 
+			},
+			hidden_fields=>{
+				userid=>$user->get_value( "userid" )
+			}
+		) );			
 
-		print $session->{render}->render_user( $user, 0 );
-		
-		print "<HR>\n";
-		
-		print "<CENTER><P>Delete this user, and all of their records ".
-			"in the archive?</P></CENTER>\n";
-		
-		print $session->{render}->start_form();
-		print "<CENTER><P>";
-		print $session->{render}->submit_buttons( [ "Confirm Deletion",
-		                                            "Cancel" ]);
-		print "</P></CENTER>\n";
-		print $session->{render}->hidden_field( "username", $username );
-		print $session->{render}->end_form();
+		$session->build_page(
+			$session->phrase( "cgi/users/edit_user:delete_title" ),
+			$page );
+		$session->send_page();
 
-		print $session->{render}->end_html();
+		return;
 	}
-	elsif( $action eq "confirm" )
+
+	if( $action eq "confirm" )
 	{
+		#cjg NOT DONE
 		my $success = $user->remove();
 
 		if( !$success )
@@ -88,21 +91,21 @@ sub process
 			"Click here to return to staff area</A></P></CENTER>\n";
 
 		print $session->{render}->end_html();
+		return;
 	}
-	elsif( $action eq "cancel" )
-	{
-		$session->{render}->redirect(
-			$session->get_archive()->get_conf( "server_static" )."/staff" );
-	}
-	else
-	{
-		my $userform = new EPrints::UserForm(
-			$session,
-			$session->get_archive()->get_conf( "server_static" )."/staff",
-			1,
-			$user );
 
-		$userform->process();
+	if( $action eq "cancel" )
+	{
+		$session->redirect( $session->get_archive()->get_conf( "server_perl_root" )."/users/home" );
+		return;
 	}
+	
+
+	my $userform = new EPrints::UserForm(
+		$session,
+		$session->get_archive()->get_conf( "server_perl_root" )."/users/home",
+		1,
+		$user );
+	$userform->process();
 }
 

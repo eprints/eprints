@@ -49,11 +49,19 @@ sub render_form
 	my( $session , $page ) = @_;
 
 	$page->appendChild( $session->html_phrase( "cgi/users/add_user:enter_username" ) );
+	my $userds = $session->get_archive()->get_dataset( "user" );
 
-	my $username_field = new EPrints::MetaField( name=>"username", type=>"text" );	
 	$page->appendChild( $session->render_input_form(
-		fields=>[ $username_field ],
-		buttons=>{ createuser=>$session->phrase( "cgi/users/add_user:create_user" ) } ) );
+		show_names=>1,
+		show_help=>1,
+		fields=>[
+			$userds->get_field( "username" ),
+			$userds->get_field( "usertype" )
+		],
+		buttons=>{ 
+			createuser=>$session->phrase( "cgi/users/add_user:create_user" ) 
+		} 
+	) );
 	
 	$session->build_page(
 		$session->phrase( "cgi/users/add_user:create_user_title" ),
@@ -89,11 +97,15 @@ sub process_form
 		return;
 	}
 
+
+	my $usertype = $session->param( "usertype" );
+	if( !defined $usertype )
+	{
+		$usertype = $session->get_archive()->get_conf( "default_user_type" ); 
+	}
+
 	# Attempt to create a new account
-	my $new_user = EPrints::User::create_user(
-		$session,
-		$session->get_archive()->get_conf( "default_user_type" ) ); 
-	$new_user->set_value( "username", $candidate_username );
+	my $new_user = EPrints::User::create_user( $session, $usertype );
 	
 	unless( defined $new_user )
 	{
@@ -101,6 +113,9 @@ sub process_form
 			$session->html_phrase( "cgi/users/add_user:mk_acc_err" ) );
 		return;
 	}
+
+	$new_user->set_value( "username", $candidate_username );
+	$new_user->commit();
 
 	# Created the user OK, send to edit screen
 	$session->redirect(

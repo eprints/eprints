@@ -1361,6 +1361,13 @@ sub user_render
 		my $field;
 		foreach $field ( @fields )
 		{
+			my $name = $field->get_name();
+			# Skip fields which are only used by eprints internals
+			# and would just confuse the issue to print
+			next if( $name eq "newemail" );
+			next if( $name eq "newpassword" );
+			next if( $name eq "pin" );
+			next if( $name eq "pinsettime" );
 			$table->appendChild( _render_row(
 				$session,
 				$session->make_text( 

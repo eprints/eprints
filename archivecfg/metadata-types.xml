@@ -292,7 +292,9 @@
     <type name="user" >
       <field name="password" />
       <field name="lang" />
-      <field name="usertype" />
+      <field name="usertype" staffonly="yes"/>
+      <field name="username" staffonly="yes"/>
+      <field name="email" staffonly="yes" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
@@ -303,25 +305,30 @@
     <type name="editor" >
       <field name="password" />
       <field name="lang" />
-      <field name="usertype" />
+      <field name="usertype" staffonly="yes" />
+      <field name="username" staffonly="yes"/>
+      <field name="email" staffonly="yes" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
       <field name="country" />
       <field name="url" />
+      <field name="editorsubjects" staffonly="yes" />
     </type>
     <type name="admin" >
       <field name="password" />
       <field name="lang" />
-      <field name="usertype" />
+      <field name="usertype" staffonly="yes" />
+      <field name="username" staffonly="yes" />
+      <field name="email" staffonly="yes" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
       <field name="country" />
       <field name="url" />
-      <field name="filter" />
+      <field name="editorsubjects" staffonly="yes" />
     </type>
   </dataset>
 

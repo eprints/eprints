@@ -1231,7 +1231,7 @@ sub _month_names
 	my $month;
 	foreach $month ( @monthkeys )
 	{
-		$months->{$month} = get_month_label( $session, $month );
+		$months->{$month} = EPrints::Utils::get_month_label( $session, $month );
 	}
 
 	return $months;

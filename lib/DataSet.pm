@@ -127,6 +127,10 @@ sub new
 	$self->{system_fields} = [];
 	$self->{field_index} = {};
 	$self->{types} = {};
+	# staff types is the same list, but includes fields
+	# which are only shown during staff mode editing. 
+	# eg. The "Editor" filter.
+	$self->{stafftypes} = {};
 	$self->{typeorder} = [];
 
 	if( $datasetname eq "language" )
@@ -143,6 +147,7 @@ sub new
 		foreach( @{$archive->get_conf( "languages" )} )
 		{
 			$self->{types}->{$_} = [];
+			$self->{stafftypes}->{$_} = [];
 			push @{$self->{typeorder}},$_;
 		}
 		return $self;
@@ -181,6 +186,7 @@ sub new
 			next if( $typeid eq "_order" );
 
 			$self->{types}->{$typeid} = [];
+			$self->{stafftypes}->{$typeid} = [];
 
 			# System fields are now not part of the "type" fields
 			# unless expicitly set.
@@ -204,7 +210,11 @@ sub new
 						$self->{confid}."($typeid)" );
 				}
 				$field->set_property( "required" , $f->{required} );
-				push @{$self->{types}->{$typeid}}, $field;
+				unless( $f->{staffonly} ) 
+				{
+					push @{$self->{types}->{$typeid}}, $field;
+				}
+				push @{$self->{stafftypes}->{$typeid}}, $field;
 			}
 		}
 	}
@@ -460,9 +470,9 @@ sub render_type_name
 
 sub get_type_fields
 {
-	my( $self, $type ) = @_;
+	my( $self, $type, $staff ) = @_;
 
-	return @{$self->{types}->{$type}};
+	return @{$self->{($staff?"stafftypes":"types")}->{$type}};
 }
 
 # fields which are required for the given type, or just
@@ -474,6 +484,8 @@ sub get_required_type_fields
 	my %req = ();
 	my $field;
 
+	# Looks iffy, shouldn't get_fields be get_system_fields?
+	# needs to handle staff only required fiedls. cjg
 	foreach $field ( $self->get_fields(), $self->get_type_fields( $type ) )
 	{
 		if( $field->get_property( "required" ) )

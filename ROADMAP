@@ -225,7 +225,7 @@
 # cgi/users/staff/view_user		*
 # cgi/users/staff/edit_subject		*
 
-# lose cgi/remind
+
 # allow configure_archive to specify archive name on command line.
 # sort out "deletion"
 # abstract page for deleted records?
@@ -241,3 +241,5 @@
 #
 # check Database.pm for any sql without escaping. and SearchExpression.pm and
 # SearchField.pm
+
+#cjg Named Constructors all round?

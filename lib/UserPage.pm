@@ -106,16 +106,20 @@ sub process
 				n=>$session->make_text( $count ),
 				link=>$link ) );
 
-
-
-
-#		print $session->{render}->start_form( "edit_user" );
-#		print "<CENTER><P>";
-#		print $session->{render}->hidden_field( "username", $userid );
-#		print $session->{render}->submit_buttons( [ "Edit User",
-#		                                            "Delete User" ] );
-#		print "</P></CENTER>\n";
-
+	if( $staff && $session->current_user()->has_priv( "edit-user" ) )
+	{
+		$page->appendChild( $session->render_input_form(
+			buttons=>{
+				edit=>$session->phrase( "lib/userpage:action_edit" ),
+				delete=>$session->phrase( "lib/userpage:action_delete" )
+			},
+			hidden_fields=>{
+				userid=>$user->get_value( "userid" )
+			},
+			dest=>"edit_user"
+		) );			
+	}	
+	
 
 	$session->build_page(
 		$session->phrase( "lib/userpage:title",
