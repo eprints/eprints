@@ -381,7 +381,8 @@ sub to_string
 	
 	foreach (@{$self->{searchfields}})
 	{
-		$text_rep .= "\[$_->{formname}\]\[$_->{value}\]";
+		$text_rep .= "\[$_->{formname}\]\[".
+			( defined $_->{value} ? $_->{value} : "" )."\]";
 	}
 	
 #EPrints::Log->debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
