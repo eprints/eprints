@@ -36,15 +36,22 @@ if( !$session->auth_check )
 	Apache::exit( 0 );
 }
 
+# If we were sent here by change_user then we have an icky url
+# eg .../home/username rather than .../home 
+# let's clean it up...
+if( $ENV{PATH_INFO} ne "" )
+{
+	$session->redirect( $session->get_archive()->get_conf( "userhome" ) );
+	$session->terminate();
+	exit;
+}
+	
 my $user = $session->current_user;
 
 my $fullname = $user->full_name();
 
-#cjg user is validating when it shouldn't.
 my $probs = $user->validate();
 my $valid_user = ( scalar @{$probs} == 0 );
-print STDERR "----\n";
-foreach( @{$probs} ) { print STDERR "[prob:$_]\n"; }
 
 ######################################################################
 #
@@ -109,43 +116,57 @@ $dl->appendChild( $dd );
 my $tools = [
 	### Change subscription options
 #	{ 
+#		code=>"subscribe",
 #		page=>"subscribe",
 #		priv=>"subscription"
 #	},
 	### View the archive status page
 	{ 
+		code=>"status",
 		page=>"status",
 		priv=>"view-status"
 	},
 	### Review items we've got in archive
 	{
+		code=>"review",
 		page=>"review",
 		priv=>"deposit"
 	},
 	### View the Editor submission buffer
 	{
+		code=>"staff_buffer",
 		page=>"staff/buffer",
 		priv=>"editor"
 	},
 	### Staff EPrints Search
 	{
+		code=>"staff_eprint_search",
 		page=>"staff/eprint_search",
 		priv=>"staff-view"
 	},
 	### Staff User Search
 	{
+		code=>"staff_user_search",
 		page=>"staff/user_search",
 		priv=>"staff-view"
 	},
 	### Add New User
 	{
+		code=>"staff_add_user",
 		page=>"staff/add_user",
 		priv=>"edit-user"
 	},
 	### Use the Subject Edit Tool
 	{
+		code=>"staff_edit_subject",
 		page=>"staff/edit_subject",
 		priv=>"edit-subject"
+	},
+	### Use the Subject Edit Tool
+	{
+		code=>"change_user",
+		page=>"/change_user/".($user->get_value( "username" )),
+		priv=>"change-user"
 	}
 ];
 
@@ -158,12 +179,12 @@ if( $valid_user )
 	
 		$dt = $session->make_element( "dt" );
 		$a = $session->make_element( "a", href => $tool->{page} );
-		$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_link" ) );
+		$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{code}."_link" ) );
 		$dt->appendChild( $a );
 		$dl->appendChild( $dt );
 	
 		$dd = $session->make_element( "dd" );
-		$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
+		$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{code}."_info" ) );
 		$dl->appendChild( $dd );
 	}
 }

@@ -528,20 +528,21 @@ my $CRYPTED_DBI = {
 #edit-subject
 #edit-user
 #change-email
+#change-user
 
 # Please the the documentation for a full explanation of user privs.
 
 $c->{userauth} = {
 	user => { 
 		auth  => $CRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email" ] },
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email", "change-user" ] },
 	editor => { 
 		auth  => $CRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email", "change-user",
 				"view-status", "editor", "staff-view" ] },
 	admin => { 
 		auth  => $CRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email", "change-user",
 				"view-status", "editor", "staff-view", 
 				"edit-subject", "edit-user" ] }
 };

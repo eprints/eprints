@@ -58,11 +58,11 @@ sub new
 	my( $class, $mode, $param, $noise, $nocheckdb ) = @_;
 	# mode = 0    - We are online (CGI script)
 	# mode = 1    - We are offline (bin script) param is archiveid
-	# mode = 2    - We are offline (auth) param is host and path.	
+	# mode = 2    - We are online (auth) param is host and path.	
 	my $self = {};
 	bless $self, $class;
 
-	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
+	$self->{query} = ( $mode!=1 ? new CGI() : new CGI( {} ) );
 	
 	$noise = 0 unless defined( $noise );
 	$self->{noise} = $noise;

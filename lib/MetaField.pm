@@ -14,6 +14,27 @@
 #
 ######################################################################
 
+=pod
+
+=head1 NAME
+
+EPrints::MetaField - Class representing an information field in an eprint dataset
+
+=head1 SYNOPSIS
+
+ use EPrints::Metafield;
+
+ my $field = EPrints::Metafield->new(
+	dataset => $session->get_archive()->get_dataset( "archive" ),
+	name => "authors",
+	type => "name",
+	multiple => 1 );
+	
+ my $dom_fragment = $field->render_value( $session, $value );
+
+
+=cut 
+
 # Bugs: Need to be able to unset 'sets' which are no multiple and
 # not required.
 

@@ -252,6 +252,7 @@ my $adminemail = $archive->get_conf( "adminemail" );
 my $htdocs_path = $archive->get_conf( "htdocs_path" );
 my $htdocs_secure_path = $archive->get_conf( "htdocs_secure_path" );
 my $host = $archive->get_conf( "host" );
+my $userhome = $archive->get_conf( "userhome" );
 
 print "Creating $sysfile.\n" if( $noise >= 2 );
 open( CONF, ">$sysfile" ) || die "Can't write to $sysfile";
@@ -340,7 +341,6 @@ print CONF <<END;
     PerlSetVar EPrints_Security_Area Documents
     require valid-user
   </Directory>
-
   <Directory "$cgidir">
     SetHandler perl-script
     PerlHandler Apache::Registry
@@ -361,12 +361,28 @@ print CONF <<END;
     AddType 'text/html; charset=UTF-8' .html
 #???
   </Directory>
+
+  # This sets up the change_user URL, which does
+  # not have a REAL file associated with it, it
+  # forces the browser to fail to register the
+  # current user as a valid user, and thus ask
+  # for re-validation.
+  <Location "/change_user">
+    AuthName "User Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Auth::authen
+    PerlAuthzHandler EPrints::Auth::authz
+    PerlSetVar EPrints_Security_Area ChangeUser
+    require valid-user
+    Redirect /change_user $userhome
+  </Location>
 </VirtualHost>
 
 END
 
 close CONF;
-print "...done creating apache conf files for archive $archiveid...\n" if( $noise >= 1 );
+print "...done creating apache conf files for archive $archiveid.\n" if( $noise >= 1 );
+print "\nDo not forget to stop and restart apache to cause changes to take effect!\n" if( $noise >= 1 );
 
 print "Exiting normally.\n" if( $noise >= 2 );
 exit;

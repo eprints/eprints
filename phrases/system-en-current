@@ -260,20 +260,23 @@ User Area CGI Scripts
     <phrase ref="cgi/users/home:status_link">View the archive status</phrase>
     <phrase ref="cgi/users/home:status_info"><p>This option allows you to view the current status of the system, including the number of items in each dataset.</p></phrase>
     
-    <phrase ref="cgi/users/home:staff/buffer_link">View the Submission Buffer</phrase>
-    <phrase ref="cgi/users/home:staff/buffer_info"><p>This option allows you to view, edit and approve records which users have submitted but have not yet been approved for the archive. You may only edit records within your subject area.</p></phrase>
+    <phrase ref="cgi/users/home:staff_buffer_link">View the Submission Buffer</phrase>
+    <phrase ref="cgi/users/home:staff_buffer_info"><p>This option allows you to view, edit and approve records which users have submitted but have not yet been approved for the archive. You may only edit records within your subject area.</p></phrase>
 
-    <phrase ref="cgi/users/home:staff/eprint_search_link">Staff EPrint Search</phrase>
-    <phrase ref="cgi/users/home:staff/eprint_search_info"><p>This search gives you more power than the public search. It also gives you the option to edit or delete records.</p></phrase>
+    <phrase ref="cgi/users/home:staff_eprint_search_link">Staff EPrint Search</phrase>
+    <phrase ref="cgi/users/home:staff_eprint_search_info"><p>This search gives you more power than the public search. It also gives you the option to edit or delete records.</p></phrase>
 
-    <phrase ref="cgi/users/home:staff/user_search_link">User Search</phrase>
-    <phrase ref="cgi/users/home:staff/user_search_info"><p>Search the list of users, view ALL their details and edit their records.</p></phrase>
+    <phrase ref="cgi/users/home:staff_user_search_link">User Search</phrase>
+    <phrase ref="cgi/users/home:staff_user_search_info"><p>Search the list of users, view ALL their details and edit their records.</p></phrase>
 
-    <phrase ref="cgi/users/home:staff/add_user_link">Add New User</phrase>
-    <phrase ref="cgi/users/home:staff/add_user_info"><p>Create a new user.</p></phrase>
+    <phrase ref="cgi/users/home:staff_add_user_link">Add New User</phrase>
+    <phrase ref="cgi/users/home:staff_add_user_info"><p>Create a new user.</p></phrase>
 
-    <phrase ref="cgi/users/home:staff/edit_subject_link">Use the Subject Editing Tool</phrase>
-    <phrase ref="cgi/users/home:staff/edit_subject_info"><p>This option allows you to create, delete unlink, and link items in the subject tree.</p></phrase>
+    <phrase ref="cgi/users/home:staff_edit_subject_link">Use the Subject Editing Tool</phrase>
+    <phrase ref="cgi/users/home:staff_edit_subject_info"><p>This option allows you to create, delete unlink, and link items in the subject tree.</p></phrase>
+
+    <phrase ref="cgi/users/home:change_user_link">Change User Login</phrase>
+    <phrase ref="cgi/users/home:change_user_info"><p>Log in to EPrints as a different user. There is currently no "logout" feature.</p></phrase>
 
     <phrase ref="cgi/users/home:docs"><h3>Documents in your Workspace</h3></phrase>
     <phrase ref="cgi/users/home:depositing"><p>These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <strong>New</strong>, or you can select a document from the list, and select one of the other options.</p></phrase>

@@ -88,7 +88,7 @@
 0	Translate Initial phrases and templates into French
 0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Alerts for editors about things they can edit (flag in User fields?)
-0 	- Logout feature (or maybe force a revalidate so someone can switch user).
+- 	Change User - allows you to log in as a different user (handy for admin users)
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0	Some kind of BibTeX support (fill in metadata form from bibtex)
 -	Search by ID field (in search exp)
@@ -155,7 +155,7 @@
 #	Order buttons somehow using extra param to render input form...    ....done but now need to go and use it everywhere (_order=>[foo,bar]
 #	Default Action when buttons pushed (set in render input form?)...    .....Appears to just push first button!
 #	Fix "upload then back" bug in submission form
-#	Status search field buggered
+#	Status/set search field buggered
 #	directory listing on perl dir is showing and should be hidden.
 #	SearchExp still appears to run do's on searchfields when cached (?)
 #	Linking values to views seems to be broken.

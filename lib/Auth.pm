@@ -34,6 +34,7 @@ print STDERR "Authen\n";
 
 	return OK unless $r->is_initial_req; # only the first internal request
 
+
 	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
 	my $session = new EPrints::Session( 2 , $hpp );
 	
@@ -45,6 +46,20 @@ print STDERR "Authen\n";
 	if( !defined $user_sent )
 	{
 		$session->terminate();
+		return AUTH_REQUIRED;
+	}
+
+	my $area = $r->dir_config( "EPrints_Security_Area" );
+	if( $area eq "ChangeUser" )
+	{
+		my $user_sent = $r->connection->user;
+		if( $r->uri !~ m#/$user_sent$# )
+		{
+			return OK;
+		}
+print STDERR "2:".($r->uri)."!\n";
+		
+		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
 	}
 
@@ -96,6 +111,17 @@ sub authz
 	my $uri = $r->uri;
 
 	my $area = $r->dir_config( "EPrints_Security_Area" );
+
+	if( $area eq "ChangeUser" )
+	{
+		# All we need here is to check it's a valid user
+		# this is a valid user, which we have so let's
+		# return OK.
+
+		$session->terminate();
+		return OK;
+	}
+
 	if( $area eq "User" )
 	{
 		# All we need in the user area is to check that
