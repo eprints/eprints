@@ -19,17 +19,34 @@ use EPrints::UserForm;
 
 use strict;
 
+my $session = EPrints::Session->new();
+Apache::exit( 0 ) unless( defined $session );
 
-my $session = new EPrints::Session;
-
-my $username = $session->{render}->param( "username" );
-my $user = new EPrints::User( $session, $username );
-
-if( defined $user )
+# Check we have privs
+if( !$session->auth_check( "edit-user" ) )
 {
-	my $submit = $session->{render}->param( "submit" );
+	$session->terminate();
+	Apache::exit( 0 );
+}
 
-	if( $submit eq "Delete User" )
+&process( $session );
+
+$session->terminate();
+
+sub process
+{
+	my( $session ) = @_;
+
+	my $user = EPrints::UserPage::user_from_param( $session );
+
+	return if( !defined $user );
+
+	my $action = $session->get_action_button();
+
+	my( $page, $title );
+	$page = $session->make_doc_fragment();
+
+	if( $action eq "delete" )
 	{
 		print $session->{render}->start_html( "Delete User" );
 
@@ -50,31 +67,29 @@ if( defined $user )
 
 		print $session->{render}->end_html();
 	}
-	elsif( $submit eq "Confirm Deletion" )
+	elsif( $action eq "confirm" )
 	{
 		my $success = $user->remove();
-		
-		if( $success )
-		{
-			print $session->{render}->start_html( "Delete User" );
 
-			print "<CENTER><P>User has been deleted.</P></CENTER>\n";
-			print "<CENTER><P><A HREF=\"".
-				$session->get_archive()->get_conf( "server_static ")."/staff\">".
-				"Click here to return to staff area</A></P></CENTER>\n";
-
-			print $session->{render}->end_html();
-		}
-		else
+		if( !$success )
 		{
-#cjg NOT DOM NOT LANG
 			$session->render_error(
 				"Couldn't remove user! Check logs for details.",
 				$session->get_archive()->get_conf( "server_static" )."/staff",
 				"Return to staff area" );
+			return;
 		}
+		
+		print $session->{render}->start_html( "Delete User" );
+
+		print "<CENTER><P>User has been deleted.</P></CENTER>\n";
+		print "<CENTER><P><A HREF=\"".
+		$session->get_archive()->get_conf( "server_static ")."/staff\">".
+			"Click here to return to staff area</A></P></CENTER>\n";
+
+		print $session->{render}->end_html();
 	}
-	elsif( $submit eq "Cancel" )
+	elsif( $action eq "cancel" )
 	{
 		$session->{render}->redirect(
 			$session->get_archive()->get_conf( "server_static" )."/staff" );
@@ -90,14 +105,4 @@ if( defined $user )
 		$userform->process();
 	}
 }
-else
-{
-#cjg NOT DOM NOT LANG
-	$session->render_error( 
-		"Error accessing user record or user not specified",
-		$session->get_archive()->get_conf( "server_static" )."/staff",
-		"Return to staff area" );
-}
 
-
-$session->terminate();

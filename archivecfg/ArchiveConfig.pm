@@ -366,28 +366,29 @@ $c->{default_user_type} = "user";
 
 #cjg = no default user type = no web signup???
 
-#user
 #subscription
+#set-password
+#deposit
 #view-status
 #editor
-#set-password
 #staff-view -> view & search users & eprints in staff mode.
-#deposit
- 
+#edit-subject
+#edit-user
+
  
 $c->{userauth} = {
 	user => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "user", "subscription", "set-password", "deposit" ] },
+		priv  =>  [ "subscription", "set-password", "deposit" ] },
 	editor => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", 
-				"set-password", "staff-view", "deposit"] },
+		priv  =>  [ "subscription", "set-password", "deposit",
+				"view-status", "editor", "staff-view" ] },
 	admin => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", 
-				"set-password", "edit-subject", "staff-view", 
-				"deposit"] }
+		priv  =>  [ "subscription", "set-password", "deposit",
+				"view-status", "editor", "staff-view", 
+				"edit-subject", "edit-user" ] }
 };
 
 
