@@ -19,7 +19,7 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::User;
-#crashy cjg
+
 use strict;
 
 my $session = new EPrints::Session;

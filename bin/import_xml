@@ -73,6 +73,7 @@ sub deal
 	else 
 	{
 		print  "NOT EXISTS!\n";
+		#cjg needs a userid
 		$eprint = EPrints::EPrint::create( $session, $info->{ds}, undef, $eprint->get_data() );
 	}
 	push @{$info->{update_abstracts}}, $eprint->get_all_related();

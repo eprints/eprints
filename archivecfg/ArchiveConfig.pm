@@ -108,17 +108,20 @@ if( $c->{port} != 80 )
 	$c->{server_static}.= ":".$c->{port}; 
 }
 
-# Mod_perl script server, including port
-$c->{server_perl} = "$c->{server_static}/perl";
-
 # Site "home page" address
 $c->{frontpage} = "$c->{server_static}/";
 
 # Corresponding URL of document file hierarchy
-$c->{server_document_root} = "$c->{server_static}/archive"; 
+$c->{server_document_path} = "/archive";
+$c->{server_document_root} = $c->{server_static}.$c->{server_document_path};
 
 # URL of secure document file hierarchy
-$c->{server_secure_root} = "$c->{server_static}/secure"; 
+$c->{server_secure_path} = "/secure"; 
+$c->{server_secure_root} = $c->{server_static}.$c->{server_secure_path};
+
+# Mod_perl script server, including port
+$c->{server_perl_path} = "/perl";
+$c->{server_perl_root} = $c->{server_static}.$c->{server_perl_path};
 
 ######################################################################
 #
@@ -192,7 +195,7 @@ $c->{oai_metadata_schemas} =
 };
 
 # Base URL of OAI
-$c->{oai_base_url} = $c->{server_perl}."/oai";
+$c->{oai_base_url} = $c->{server_perl_root}."/oai";
 
 $c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 	$c->{oai_archive_id},
@@ -411,9 +414,6 @@ $c->{archivefields}->{eprint} = [
 	{ name => "keywords", type => "longtext", displaylines => 2 },
 
 	{ name => "month", type => "set",
-#cjg BAD CHRIS NO BISCUIT
-#cjg options should be set with "" so you can 'unset' them.
-#cjg maybe not if they are required AND have a default
 		options => [ "jan","feb","mar","apr","may","jun",
 			"jul","aug","sep","oct","nov","dec" ] },
 
@@ -891,6 +891,8 @@ sub render_value_with_id
 	# eg if the ID is a staff username
 	# you may wish to link to their homepage. 
 
+#cjg Link Baton?
+
 # Simple Example:
 #
 #	if( $field->get_name() eq "SOMENAME" ) 
@@ -905,6 +907,37 @@ sub render_value_with_id
 	return( $rendered );
 }
 
+sub can_user_view_document
+{
+	my( $doc, $user ) = @_;
+
+	my $eprint = $doc->get_eprint();
+	my $security = $doc->get_value( "security" );
+
+	# If the document belongs to an eprint which is in the
+	# inbox or the submissionbuffer then we treat the security
+	# as staff only, whatever it's actual setting.
+	if( $eprint->get_dataset()->id() ne "archive" )
+	{
+		$security = "staffonly";
+	}
+
+	# Add/remove types of security in metadata-types.xml
+
+	# Trivial cases:
+	return( 1 ) if( $security eq "public" );
+	return( 1 ) if( $security eq "validuser" );
+	
+	if( $security eq "staffonly" )
+	{
+		# If you want to finer tune this, you could create
+		# a new priv. and use that.
+		return $user->has_priv( "editor" );
+	}
+
+	# Unknown security type, be paranoid and deny permission.
+	return( 0 );
+}
 
 ######################################################################
 #
@@ -960,7 +993,7 @@ sub eprint_render_full
 	$p->appendChild( $eprint->render_citation() );
 	$page->appendChild( $p );
 
-	# Available formats
+	# Available documents
 	my @documents = $eprint->get_all_documents();
 
 	$p = $session->make_element( "p" );
@@ -1048,7 +1081,7 @@ sub eprint_render_full
 	if( defined $user )
 	{
 		$usersname = $session->make_element( "a", 
-				href=>$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?userid=".$user->get_value( "userid" ) );
+				href=>$eprint->{session}->get_archive()->get_conf( "server_perl_root" )."/user?userid=".$user->get_value( "userid" ) );
 		$usersname->appendChild( 
 			$session->make_text( $user->full_name() ) );
 	}
@@ -1092,22 +1125,22 @@ sub eprint_render_full
 	# additional subject categories
 	if( $show_all )
 	{
-		$page->appendChild( $session->make_text( "SHOW ALL FIELDS" ) );
-		#my $additional_field = 
-			#$eprint->{session}->{metainfo}->find_table_field( "eprint", "additional" );
-		#my $reason_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
-#
-		## Write suggested extra subject category
-		#if( defined $eprint->{additional} )
-		#{
-			#$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
-			#$html .= "<TR><TD><STRONG>".$additional_field->display_name( $session ).":</STRONG>".
-				#"</TD><TD>$eprint->{additional}</TD></TR>\n";
-			#$html .= "<TR><TD><STRONG>".$reason_field->display_name( $session ).":</STRONG>".
-				#"</TD><TD>$eprint->{reasons}</TD></TR>\n";
-#
-			#$html .= "</TABLE>\n";
-		#}
+		# Show all the other fields
+
+		my $field;
+		foreach $field ( $eprint->get_dataset()->get_type_fields(
+			  $eprint->get_value( "type" ) ) )
+		{
+			print STDERR "ST:".$field->get_name()."\n";
+			$table->appendChild( _render_row(
+				$session,
+				$session->make_text( 
+					$field->display_name( $session ) ),	
+				$eprint->render_value( 
+					$field->get_name(), 
+					$show_all ) ) );
+
+		}
 	}
 			
 	# Now show the version and commentary response threads
@@ -1762,7 +1795,7 @@ sub get_entities
 	my %entities = ();
 	$entities{archivename} = $archive->get_conf( "archivename", $langid );
 	$entities{adminemail} = $archive->get_conf( "adminemail" );
-	$entities{cgiroot} = $archive->get_conf( "server_perl" );
+	$entities{cgiroot} = $archive->get_conf( "server_perl_root" );
 	$entities{htmlroot} = $archive->get_conf( "server_static" );
 	$entities{frontpage} = $archive->get_conf( "frontpage" );
 	$entities{version} = EPrints::Config::get( "version_desc" );

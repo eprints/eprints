@@ -23,7 +23,6 @@
       <field name="subjects" required="yes" />
       <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
-      <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />

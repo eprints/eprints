@@ -974,7 +974,6 @@ sub build_page
 {
 	my( $self, $title, $mainbit ) = @_;
 	
-	print STDERR "BUILDPAGE go!\n";	
 #cjg Could be different eg. <EPRINTSHOOK type="title" />	
 #cjg Could be different eg. <EPRINTSHOOK type="page" />	
 #cjg Could be different eg. <EPRINTSHOOK type="topofpage" />	
@@ -1006,7 +1005,6 @@ sub build_page
 		$node->getParentNode()->replaceChild( $topofpage, $node );
 		$node->dispose();
 	}
-	print STDERR "BUILDPAGE stop!\n";	
 }
 
 sub send_page
@@ -1039,12 +1037,8 @@ sub set_page
 
 sub new_page
 {
-	my( $self , $langid ) = @_;
+	my( $self ) = @_;
 
-	if( !defined $langid )
-	{
-		$langid = $self->{lang}->get_id();
-	}
 
 	$self->{page} = new EPrints::DOM::Document();
 
@@ -1056,8 +1050,7 @@ sub new_page
 
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
-print STDERR "new_page:$langid\n";
-	my $html = $self->{archive}->get_template( $langid )->cloneNode( 1 );
+	my $html = $self->{archive}->get_template( $self->get_langid() )->cloneNode( 1 );
 	$self->take_ownership( $html );
 	$self->{page}->appendChild( $html );
 

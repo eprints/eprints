@@ -115,7 +115,8 @@ sub process
 		{
 			my $db_error = $self->{session}->get_db()->error;
 			#cjg LOG..
-			$self->{session}->log( "Database Error: $db_error" );
+			$self->{session}->get_archive()->log( 
+				"Database Error: $db_error" );
 			$self->_database_err;
 			return( 0 );
 		}
@@ -478,7 +479,6 @@ sub _from_stage_meta
 	{
 		$self->_update_from_form( $field->get_name() );
 	}
-print STDERR "FACTS-----------\n".Dumper( $self->{eprint}->{data} )."\n////////\n";
 	$self->{eprint}->commit();
 
 	# What stage now?
@@ -718,9 +718,6 @@ sub _from_stage_fileview
 		$self->{session}->param( "language" ) );
 	$self->{document}->set_value( "security",
 		$self->{session}->param( "security" ) );
-use Data::Dumper;
-print STDERR "\n-----------------\naboot to commit.\n";
-print STDERR Dumper($self->{document}->{data});
 	$self->{document}->commit();
 
 	if( $self->{action} eq "finished" )
@@ -866,7 +863,7 @@ sub _from_stage_verify
 		if( scalar @{$problems} == 0 )
 		{
 			# OK, no problems, submit it to the archive
-			if( $self->{eprint}->submit() )
+			if( $self->{eprint}->move_to_buffer() )
 			{
 				$self->_set_stage_next;
 				return( 1 );
@@ -1726,8 +1723,6 @@ sub _update_from_form
 	my $field = $self->{dataset}->get_field( $field_id );
 
 	my $value = $field->form_value( $self->{session} );
-
-print STDERR "From form: ".$field->get_name()."----------\n".Dumper( $value )."----/\n";
 
 	$self->{eprint}->set_value( $field_id, $value );
 }

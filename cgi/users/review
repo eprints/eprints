@@ -267,7 +267,7 @@ sub handle_removal_request
 		
 		$msg .= $session->{lang}->phrase( "cgi/users/review:visit_url" )."\n\n";
 			
-		$msg .= $session->get_archive()->get_conf( "server_perl" )."/staff/edit_eprint?".
+		$msg .= $session->get_archive()->get_conf( "server_perl_root" )."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
 		$session->mail_administrator( #cjg MAIL IN ADMIN LANG

@@ -198,7 +198,7 @@ $aliases
 
   # Protect /perl/ from other rewrite rules
   RewriteRule ^/perl/      -   [L]
-
+#cjg all this can come from config
   RewriteRule ^/secure/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /secure/\$1/\$2/\$3/\$4/\$5 [L]
 
   RewriteRule ^/archive/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5

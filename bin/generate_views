@@ -35,8 +35,7 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-#my $fieldids = [ "subjects","groups","title","ispublished","type" ,"datestamp"];
-my $fieldids = [ "subjects", "year", "type" ];
+my $fieldids = [ "year", "subjects", "type" ];
 
 my $ds = $session->get_archive()->get_dataset( "archive" );
 
@@ -117,7 +116,7 @@ sub make_field_pages
 	##
 	## Make Browse Pages
 
-	my %size = {};
+	my %size = ();
 
 	foreach $value ( @values )
 	{
@@ -147,9 +146,7 @@ sub make_field_pages
 				session=>$session,
 				dataset=>$ds );
 
-        	$searchexp->add_field(
-                	$field,
-                	"PHR:EQ:".$value );
+        	$searchexp->add_field( $field, "PHR:EQ:".$value );
 
 		#cjg set order (it's in the site config)
 
@@ -157,10 +154,11 @@ sub make_field_pages
 		my $count = $searchexp->count();
 		$size{$value} = $count;
 
+		my $links = $session->make_doc_fragment();
 		my $MAX = 5000;#cjg MAKE ME A CONFIG OPTION!
 
 		if( $count > $MAX ) {
-			$page->appendChild( $session->html_phrase( "bin/generate_views:toobig",
+			$links->appendChild( $session->html_phrase( "bin/generate_views:toobig",
 				n=>$session->make_text( $count ),
 				max=>$session->make_text( $MAX ) ) );
 		}
@@ -168,7 +166,7 @@ sub make_field_pages
 		{
         		my @eprints = $searchexp->get_records();
 
-			$page->appendChild( $session->html_phrase( "bin/generate_views:blurb",
+			$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
 					n=>$session->make_text( $count ) ) );
 
 			my $eprint;
@@ -176,18 +174,26 @@ sub make_field_pages
 			{
 				my $p = $session->make_element( "p" );
 				$p->appendChild( $eprint->render_citation_link() );
-				$page->appendChild( $p );
+				$links->appendChild( $p );
 			}
 		}
 		$searchexp->dispose();
+		$page->appendChild( $links );
 
 		$title = $session->phrase( "bin/generate_views:title", 
 					fieldname=>$field->display_name( $session ),
 					fieldvalue=>$field->get_value_label( $session, $value ) );
+
 		$file = $dir."/$value.html";
 		$session->build_page( $title, $page );
-	print STDERR "Writing: $file\n";
+		print STDERR "Writing: $file\n";
 		$session->page_to_file( $file );
+	
+		$file = $dir."/$value.include";
+		print STDERR "Writing: $file\n";
+		open( FILE, ">$file" );
+		print FILE $links->toString;
+		close FILE;
 	}
 
 	#################################################

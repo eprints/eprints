@@ -82,7 +82,9 @@ else
 		    $session->{render}->param( "submit" ) eq "Move to Buffer" )
 		{
 			$eprint->remove_from_threads();
-			
+		
+			#cjg uh-oh - transfer must be done via a different
+			# mehtod - one which lets me keep an eye on things.	
 			if( $eprint->transfer( EPrints::Database::table_name( "buffer" ) ) )
 			{
 				print $session->{render}->start_html( "Move Successful" );

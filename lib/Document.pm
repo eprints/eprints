@@ -77,20 +77,21 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $docid, $known ) = @_;
+	my( $class, $session, $docid ) = @_;
 
-print STDERR "(newdoc)\n";
+	return $session->get_db()->get_single( 
+		$session->get_archive()->get_dataset( "document" ),
+		$docid );
+}
 
-	if( !defined $known )
-	{
-		return $session->get_db()->get_single( 
-			$session->get_archive()->get_dataset( "document" ),
-			$docid );
-	} 
+sub new_from_data
+{
+	my( $class, $session, $known ) = @_;
 
 	my $self = {};
 	bless $self, $class;
 	$self->{data} = $known;
+	$self->{dataset} = $session->get_archive()->get_dataset( "document" ),
 	$self->{session} = $session;
 
 	return( $self );
@@ -105,9 +106,6 @@ sub create
 	my $doc_id = _generate_doc_id( $session, $eprint );
 	# Make directory on filesystem
 	return undef unless _create_directory( $doc_id, $eprint ); 
-
-	# Make secure area symlink
-	return undef unless( _create_secure_symlink( $doc_id, $eprint ) );
 
 	my $data = {};
 	$session->get_archive()->call( 
@@ -127,7 +125,11 @@ sub create
 
 	if( $success )
 	{
-		return( EPrints::Document->new( $session, $doc_id, undef ) );
+		my $doc = EPrints::Document->new( $session, $doc_id );
+		# Make secure area symlink
+		my $linkdir = _secure_symlink_path( $eprint );
+		$doc->create_symlink( $eprint, $linkdir );
+		return $doc;
 	}
 	else
 	{
@@ -170,15 +172,16 @@ sub _create_directory
 	}
 }
 
-sub _create_secure_symlink
+sub create_symlink
 {
-	my( $id, $eprint ) = @_;
+	my( $self, $eprint, $linkdir ) = @_;
+
+	my $id = $self->get_value( "docid" );
 
 	my $archive = $eprint->get_session()->get_archive();
 
 	my $dir = $eprint->local_path()."/".docid_to_path( $archive, $id );
 
-	my $linkdir = _secure_symlink_path( $eprint );
 	print STDERR "\nLINKDIR=($linkdir)\n\n";
 	if( -d $linkdir )
 	{
@@ -206,13 +209,14 @@ sub _create_secure_symlink
 	return( 1 );
 }
 
-sub _remove_secure_symlink
+sub remove_symlink
 {
-	my( $id, $eprint ) = @_;
+	my( $self, $eprint, $linkdir ) = @_;
+
+	my $id = $self->get_value( "docid" );
 
 	my $archive = $eprint->get_session()->get_archive();
 
-	my $linkdir = _secure_symlink_path( $eprint );
 	my $symlink = $linkdir."/".docid_to_path( $archive, $id );
 
 	unless( unlink( $symlink ) )
@@ -350,9 +354,12 @@ sub remove
 
 	# If removing the symlink fails then it's not the end of the 
 	# world. We will delete all the files it points to. 
-	_remove_secure_symlink( 
-		$self->get_value( "docid" ), 
-		$self->get_eprint() );
+
+	my $eprint = $self->get_eprint();
+
+	$self->remove_symlink( 
+		$self->get_eprint(),
+		_secure_symlink_path( $eprint ) );
 
 	# Remove database entry
 	my $success = $self->{session}->get_db()->remove(
@@ -421,10 +428,6 @@ sub url
 
 	my $eprint = $self->get_eprint();
 
-print STDERR "sEPID: ".$self->get_value( "eprintid" )."\n";
-print STDERR "eEPID: ".$eprint->get_value( "eprintid" )."\n";
-use Data::Dumper;
-print STDERR Dumper( $eprint->{data} );
 	return( undef ) if( !defined $eprint );
 
 	my $archive = $self->{session}->get_archive();
@@ -432,8 +435,17 @@ print STDERR Dumper( $eprint->{data} );
 	# Unless this is a public doc in "archive" then the url should
 	# point into the secure area. 
 
-	return $archive->get_conf( "server_secure_root" ) . "/" .
-		$archive->get_conf( "eprint_id_stem" ) .
+	my $basepath;
+	if( $self->get_value( "security" ) eq "public"
+	 && $eprint->get_dataset()->id() eq "archive" )
+	{
+		$basepath = $archive->get_conf( "server_document_root" );
+	}
+	else
+	{
+		$basepath = $archive->get_conf( "server_secure_root" );
+	}
+	return $basepath . "/" . $archive->get_conf( "eprint_id_stem" ) .
 		sprintf( "%08d", $eprint->get_value( "eprintid" )) . "/" .
 		docid_to_path( $archive, $self->get_value( "docid" ) ) . "/" . 
 		$self->get_main();
@@ -863,7 +875,20 @@ sub render_link
 
 	$a->appendChild( $self->render_desc() );
 
-	return $a;
+	my $security = $self->get_value( "security" );
+	if( $security eq "public" )
+	{
+		return $a;
+	}
+
+	my $frag = $self->{session}->make_doc_fragment();
+	my $secfield = $self->{dataset}->get_field( "security" );
+	$frag->appendChild( $a );
+	$frag->appendChild( $self->{session}->make_text( " (" ) );
+	$frag->appendChild( 
+		$secfield->render_value( $self->{session}, $security ) );
+	$frag->appendChild( $self->{session}->make_text( ")" ) );
+	return $frag;
 }
 
 sub render_desc
@@ -944,6 +969,16 @@ sub get_data
 	my( $self ) = @_;
 	
 	return $self->{data};
+}
+
+sub can_view
+{
+	my( $self, $user ) = @_;
+
+	return $self->{session}->get_archive()->call( 
+		"can_user_view_document",
+		$self,
+		$user );	
 }
 
 sub render_value

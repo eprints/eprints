@@ -121,7 +121,7 @@ sub accepted
 {
 	my( $session, $eprint ) = @_;
 
-	if( $eprint->archive() )
+	if( $eprint->move_to_archive() )
 	{
 		# Successfully archived, redirect
 		$session->redirect( "buffer" );
@@ -211,7 +211,7 @@ sub bounce
 	else
 	{
 		# Transfer the EPrint back to the user's inbox
-		$success = $eprint->transfer( $session->get_archive()->get_dataset( "inbox" ) );
+		$success = $eprint->move_to_inbox();
 	}
 	
 	unless( $success )

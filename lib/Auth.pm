@@ -34,12 +34,7 @@ print STDERR "Authen\n";
 
 	return OK unless $r->is_initial_req; # only the first internal request
 
-print STDERR "URI: ".$r->uri()."\n";
-
-
 	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
-print STDERR "Rebuilt URL Stub: $hpp\n";
-
 	my $session = new EPrints::Session( 2 , $hpp );
 	
 	if( !defined $session )
@@ -49,25 +44,20 @@ print STDERR "Rebuilt URL Stub: $hpp\n";
 
 	if( !defined $user_sent )
 	{
-print STDERR "no user name\n";
 		$session->terminate();
 		return AUTH_REQUIRED;
 	}
-print STDERR "therequest: ".$r->the_request()."\n";
-
-print STDERR "THE USER IS: $user_sent\n";
 
 	my $user_ds = $session->get_archive()->get_dataset( "user" );
 
 	my $user = EPrints::User::user_with_username( $session, $user_sent );
 	if( !defined $user )
 	{
-print STDERR "NO SUCH USER\n";
 		$r->note_basic_auth_failure;
 		$session->terminate();
 		return AUTH_REQUIRED;
 	}
-print STDERR "GRP:".$user->{usertype}."\n";
+
 	my $userauthdata = $session->get_archive()->get_conf( 
 		"userauth", $user->get_value( "usertype" ) );
 
@@ -82,7 +72,7 @@ print STDERR "GRP:".$user->{usertype}."\n";
 	my $handler = $authconfig->{handler}; 
 	# {handler} should really be removed before passing authconfig
 	# to the requestwrapper. cjg
-print STDERR "X2:".join(",",keys %{$userauthdata->{auth}})."\n";
+
 	my $rwrapper = EPrints::RequestWrapper->new( $r , $authconfig );
 	my $result = &{$handler}( $rwrapper );
 	$session->terminate();
@@ -95,56 +85,52 @@ sub authz
 {
 	my( $r ) = @_;
 
-	return 1;
-#          |
-#### JUNK \|/ 
+	# If we are looking at the users section then do nothing, 
+	# but if we are looking at a document in the secure area then
+	# we need to do some work.
 
-print STDERR "Authz\n";
-print STDERR "XX:".$r->requires()."\n";
-print STDERR EPrints::Session::render_struct( $r->requires() );
-	my %okgroups = ();
-	my $authz = 0;
-	my $reqset;
-	foreach $reqset ( @{$r->requires()} )
-	{
-		my $val = $reqset->{requirement};
-print STDERR "REQUIxxx: $val\n";
-		$val =~ s/^\s*require\s+//;
-		# handle different requirement-types
-		if ($val =~ /valid-user/) {
-			$authz = 1;
-		} elsif ($val =~ s/^group\s+//go) {
-			foreach( split(/\s+/,$val) )
-			{
-				$okgroups{$_}++;
-			}
-		}
-print STDERR "REQUIRES: $val\n";
-	}
+	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
+	my $session = new EPrints::Session( 2 , $hpp );
+	my $archive = $session->get_archive();
+
+	my $uri = $r->uri;
 	
-	my $user_sent = $r->connection->user;
-	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
-print STDERR "THE USER IS: $user_sent\n";
-	my $ds = $session->get_archive()->get_dataset( "user" );
-	my $user = $session->get_db()->get_single( $ds , $user_sent );
-	if( defined $user )
+	my $secpath = $archive->get_conf( "server_secure_path" );
+	
+	if( $uri !~ m#^$secpath# )
 	{
-		foreach( @{$session->get_archive()->get_conf( 
-					"userauth", 
-					$user->get_value( "usertype" ), 
-					"priv" )} )
-		{
-			$authz = 1 if( defined $okgroups{$_} );
-		}
+		print STDERR "OK\n";
+		# Not the secure documents area, so probably the script area
+		# which handles security on a script by script basis.
+		$session->terminate();
+		return OK;
+	}	
+
+	my $idstem = $archive->get_conf( "eprint_id_stem" );
+
+	if( $uri !~ m#^$secpath/$idstem(\d+)/(\d+)/# )
+	{
+		print STDERR "URL in secure area fails to match pattern\n";
+		print STDERR "$uri\n";
+		$r->note_basic_auth_failure;
+		$session->terminate();
+		return AUTH_REQUIRED;
 	}
 
-	$session->terminate;
+	my $user_sent = $r->connection->user;
+	my $eprintid = $1+0; # force it to be integer.
+	my $docid = "$eprintid-$2";
+	my $user = EPrints::User::user_with_username( $session, $user_sent );
+	my $document = EPrints::Document->new( $session, $docid );
 
-	return OK if( $authz );
+	unless( $document->can_view( $user ) )
+	{
+		$session->terminate();
+		return FORBIDDEN;
+	}	
 
-	$r->note_basic_auth_failure;
-
-	return AUTH_REQUIRED;
+	$session->terminate();
+	return OK;
 }
 
 1;

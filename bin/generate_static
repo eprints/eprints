@@ -55,6 +55,7 @@ sub generate_static
 	my( $langid , $basepath , $session ) = @_;
 	# Ignore CVS directories
 	return if( $File::Find::name =~ /\/CVS/ );
+	$session->change_lang( $langid );
 
 	my $destination_filename = $File::Find::name;
 
@@ -93,7 +94,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 			}
 
 			$doc->removeChild( $page );
-			$session->new_page( $langid );
+			$session->new_page();
 			$session->take_ownership( $page );
 			$doc->dispose();
 

@@ -14,6 +14,10 @@
 #
 ######################################################################
 
+# Bugs: Need to be able to unset 'sets' which are no multiple and
+# not required.
+
+
 package EPrints::MetaField;
 
 use EPrints::Utils;
@@ -272,41 +276,44 @@ sub get_datestamp
 	return( $year."-".$month."-".$day );
 }
 
-
-## WP1: BAD
 sub tags_and_labels
 {
 	my( $self , $session ) = @_;
 	my %labels = ();
 	foreach( @{$self->{options}} )
 	{
-		$labels{$_} = "$_ multilang opts not done";
+		$labels{$_} = $self->display_option( $_ );
 	}
 	return ($self->{options}, \%labels);
 }
 
-## WP1: BAD
 sub display_name
 {
 	my( $self, $session ) = @_;
 
-	my $dname = $session->phrase( $self->{confid}."_fieldname_".$self->{name} );
+	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
+	$phrasename.= "_id" if( $self->get_property( "idpart" ) );
 
-	$dname.= "_id" if( $self->get_property( "idpart" ) );
-
-	return $dname;
+	return $session->phrase( $phrasename );
 }
 
-## WP1: BAD
 sub display_help
 {
 	my( $self, $session ) = @_;
 
-	my $dhelp = $session->phrase( $self->{confid}."_fieldhelp_".$self->{name} );
+	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
+	$phrasename.= "_id" if( $self->get_property( "idpart" ) );
 
-	$dhelp.= "_id" if( $self->get_property( "idpart" ) );
+	return $session->phrase( $phrasename );
+}
 
-	return $dhelp;
+sub display_option
+{
+	my( $self, $session, $option ) = @_;
+
+	my $phrasename = $self->{confid}."_fieldopt_".$self->{name}."_".$option;
+
+	return $session->phrase( $phrasename );
 }
 
 ## WP1: BAD
@@ -595,6 +602,12 @@ sub _render_value3
 		return $subject->render();
 	}
 
+	if( $self->is_type( "set" ) )
+	{
+		return $session->make_text( 
+			$self->display_option( $session , $value ) );
+	}
+
 return $session->make_text( "<<".$value.">>" );#cjg!!!!!
 my $html;
 
@@ -626,24 +639,6 @@ my $html;
 		}
 	}
 
-	if( $self->is_type( "set" ) )
-	{
-		$html = "";
-		my @setvalues;
-		@setvalues = split /:/, $value if( defined $value );
-		my $first = 0;
-		my $value;
-		foreach $value (@setvalues)
-		{
-			if( $value ne "" )
-			{
-				$html .=  ", " unless( $first );
-				$first=1 if( $first );
-	#bad {labels} dep
-				$html .= $self->{labels}->{$value};
-			}
-		}
-	}
 	
 	$session->get_archive()->log( "Unknown field type: ".$self->{type} );
 	return undef;
@@ -712,7 +707,9 @@ sub render_input_field
 			{
 				$tags = $self->{options};
 				$labels = {};
-				foreach( @{$tags} ) { $labels->{$_} = $_; } # hack!!!cjg
+				foreach( @{$tags} ) { 
+					$labels->{$_} = $self->display_option( $session, $_ );
+				}
 			}
 			else # is "datatype"
 			{
@@ -1507,7 +1504,7 @@ sub get_value_label
 
 	if( $self->is_type( "set" ) )
 	{
-		return "SET($value)";
+		return $self->display_option( $session, $value );
 	}
 
 	if( $self->is_type( "subject" ) )

@@ -538,7 +538,6 @@ sub get_conditions
 ## WP1: BAD
 sub _get_conditions_aux
 {
-print STDERR "ack\n";
 	my ( $self , $wheres , $freetext ) = @_;
 	my $searchtable = $self->{dataset}->get_sql_table_name();
 	if ($self->{field}->{multiple}) 
@@ -548,7 +547,6 @@ print STDERR "ack\n";
 	if( $freetext )
 	{
 		$searchtable= "!".$self->{dataset}->get_sql_index_table_name();
-#print STDERR "ock\n";
 	}
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_sql_name() );
 
@@ -693,7 +691,6 @@ sub do2
 		{
 			my $tname = $tablename;
 			my $where = $searches->{$tablename}->[$i];
-			print STDERR "($i)($where)($tablename)\n";
 
 			# Tables have a colon and fieldname after them
 			# to make sure references to different fields are

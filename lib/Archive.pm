@@ -30,11 +30,9 @@ sub new_archive_by_host_port_path
 {
 	my( $class, $hostpath ) = @_;
 	my $archive;
-	print STDERR "a($hostpath)\n";
 
 	my $id = EPrints::Config::get_id_from_host_port_path( $hostpath );
 
-print STDERR "id: $id\n";
 	return if( !defined $id );
 
 	return new_archive_by_id( $class, $id );

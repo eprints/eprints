@@ -79,14 +79,16 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $userid, $known ) = @_;
+	my( $class, $session, $userid ) = @_;
 
-	if( !defined $known )
-	{
-		return $session->get_db()->get_single( 
-			$session->get_archive()->get_dataset( "user" ),
-			$userid );
-	} 
+	return $session->get_db()->get_single( 
+		$session->get_archive()->get_dataset( "user" ),
+		$userid );
+}
+
+sub new_from_data
+{
+	my( $class, $session, $known ) = @_;
 
 	my $self = {};
 	bless $self, $class;
@@ -96,6 +98,9 @@ sub new
 
 	return( $self );
 }
+
+
+
 
 ######################################################################
 #

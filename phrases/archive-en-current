@@ -85,28 +85,28 @@
 
     <phrase ref="eprint_fieldname_ispublished">Status</phrase>
     <phrase ref="eprint_fieldhelp_ispublished">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</phrase>
-# value unpub = Unpublished
-# value inpress = In Press
-# value pub = Published
+    <phrase ref="eprint_fieldopt_ispublished_unpub">Unpublished</phrase>
+    <phrase ref="eprint_fieldopt_ispublished_inpress">In Press</phrase>
+    <phrase ref="eprint_fieldopt_ispublished_pub">Published</phrase>
 
     <phrase ref="eprint_fieldname_keywords">Keywords</phrase>
     <phrase ref="eprint_fieldhelp_keywords">Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.</phrase>
 
     <phrase ref="eprint_fieldname_month">Month</phrase>
     <phrase ref="eprint_fieldhelp_month">Please enter the month in which your deposit was published.</phrase>
-# value unspec = Unspecified
-# value jan = January
-# value feb = February
-# value mar = March
-# value apr = April
-# value may = May
-# value jun = June
-# value jul = July
-# value aug = August
-# value sep = September
-# value oct = October
-# value nov = November
-# value dec = December
+<!--Unspecified?-->
+    <phrase ref="eprint_fieldopt_month_jan">January</phrase>
+    <phrase ref="eprint_fieldopt_month_feb">February</phrase>
+    <phrase ref="eprint_fieldopt_month_mar">March</phrase>
+    <phrase ref="eprint_fieldopt_month_apr">April</phrase>
+    <phrase ref="eprint_fieldopt_month_may">May</phrase>
+    <phrase ref="eprint_fieldopt_month_jun">June</phrase>
+    <phrase ref="eprint_fieldopt_month_jul">July</phrase>
+    <phrase ref="eprint_fieldopt_month_aug">August</phrase>
+    <phrase ref="eprint_fieldopt_month_sep">September</phrase>
+    <phrase ref="eprint_fieldopt_month_oct">October</phrase>
+    <phrase ref="eprint_fieldopt_month_nov">November</phrase>
+    <phrase ref="eprint_fieldopt_month_dec">December</phrase>
 
     <phrase ref="eprint_fieldname_number">Number</phrase>
     <phrase ref="eprint_fieldhelp_number">Enter the issue number of the journal in which your deposit appeared.</phrase>

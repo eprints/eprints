@@ -27,16 +27,16 @@
 2	Web-based Email Change
 -	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
-1	Generate abstract page routine will create symlinks to actual docs (if appropriate)
-2	Security -> config,edit,authz [used for unfinished items too?]
+-	Generate abstract page routine will create symlinks to actual docs (if appropriate)
+-	Security -> config,edit,authz [used for unfinished items too?]
 -	Multilang. Config for mails and submission agreement.
 -	"Magic" Next & Prev in SubmissionForm
-4	Multi-Lang fields in HTML
+-	Multi-Lang fields in HTML
 4	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 -	Skippable Stages in SubmissionForm, and multiple page metadata form.
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
-0	Phrasify Option Fields
+-	Phrasify Option Fields
 -	Editor Pages -approve,bounce,edit etc.
 1	Staff EPrint Edit
 0	Staff User Edit/Create
@@ -45,17 +45,17 @@
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 0	Password Encryption. (Via callback)
 - 	Super all-singing/dancing etc. Subject Editor
-1	From Form needs to do some trimming.
-0	ROADMAP item which disappears when done?
+3	From Form needs to do some trimming.
 0	Don't validate records with fields which have bad langids
 0	More opts for fields: freetext/idrequired etc.
--	Numeric fields (not silly prefix)
+-	Numeric fields (not prefix'd)
 0	Move as much as possible of config into XML conf file.
-0	Views (and searches?) with JUST results - no wrapper. For including in other pages.
+-	Views (and searches?) with JUST results - no wrapper. For including in other pages.
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
+0	ROADMAP item which disappears when done?
 0	PDF Mollycoddler
 0	Make all possible field-types browseable.
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.

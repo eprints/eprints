@@ -95,7 +95,7 @@ sub new_stub
 	bless $self, $class;
 	$self->{datasetname} = $datasetname;
 
-	$self->{id} = $INFO->{$datasetname}->{confid};
+	$self->{id} = $datasetname;
 	$self->{confid} = $INFO->{$datasetname}->{confid};
 	$self->{confid} = $datasetname unless( defined $self->{confid} );
 
@@ -258,6 +258,7 @@ sub confid
 	my( $self ) = @_;
 	return $self->{confid};
 }
+
 sub id
 {
 	my( $self ) = @_;
@@ -376,16 +377,14 @@ sub make_object
 
 	if ( $class eq "EPrints::EPrint" ) 
 	{
-		return EPrints::EPrint->new( 
+		return EPrints::EPrint->new_from_data( 
 			$session,
 			$self,
-			undef,
 			$item );
 	}
 
-	return $class->new( 
+	return $class->new_from_data( 
 		$session,
-		undef,
 		$item );
 
 }

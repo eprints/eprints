@@ -906,13 +906,12 @@ sub garbage_collect
 		$self->dispose_buffer( $_ );
 		$dropped++;
 	}
-#print STDERR "Done. Dropped $dropped tables.\n";
+
 }
 
 sub dispose_buffer
 {
 	my( $self, $id ) = @_;
-print STDERR "Dropping $id\n";
 	
 	return unless( defined $TEMPTABLES{$id} );
 	my $sql = "DROP TABLE $id";

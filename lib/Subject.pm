@@ -67,39 +67,43 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $subjectid, $known ) = @_;
+	my( $class, $session, $subjectid ) = @_;
+
+	if( $subjectid eq $EPrints::Subject::root_subject )
+	{
+		my $data = {
+			subjectid => $EPrints::Subject::root_subject,
+			#cjg NOT LANG'd
+			name => $EPrints::Subject::root_subject_name,
+			parents => [],
+			ancestors => [ $EPrints::Subject::root_subject ],
+			depositable => "FALSE" 
+		};
+
+		return EPrints::Subject->new_from_data( $session, $data );
+	}
+
+	return $session->get_db()->get_single( 
+			$session->get_archive()->get_dataset( "subject" ), 
+			$subjectid );
+
+}
+
+
+sub new_from_data
+{
+	my( $class, $session, $known ) = @_;
 
 	my $self = {};
 	
-	if( defined $known )
-	{
-		$self->{data} = $known;
-	}
-	else
-	{
-		if( defined $subjectid && 
-			$subjectid ne $EPrints::Subject::root_subject )
-		{
-			# Got ID, need to read stuff in from database
-			return $session->get_db()->get_single( 
-				$session->get_archive()->get_dataset( "subject" ), 
-				$subjectid );
-		}
-		# Create a root subject object
-		$self->{data} = {};
-		$self->{data}->{subjectid} = $EPrints::Subject::root_subject;
-		$self->{data}->{name} = $EPrints::Subject::root_subject_name; #cjg!
-		$self->{data}->{parents} = [];
-		$self->{data}->{ancestors} = [ $EPrints::Subject::root_subject ];
-		$self->{data}->{depositable} = "FALSE";
-	}
-
+	$self->{data} = $known;
 	$self->{dataset} = $session->get_archive()->get_dataset( "subject" ); 
 	$self->{session} = $session;
 	bless $self, $class;
 
 	return( $self );
 }
+
 
 sub commit 
 {

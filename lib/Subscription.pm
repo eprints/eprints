@@ -60,6 +60,7 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
+#cjg whatever...clean me up later
 	my( $class, $session, $subid, $dbrow ) = @_;
 	
 	my $self = {};
@@ -501,7 +502,7 @@ sub process
 		my $body = $self->{session}->phrase( 
 			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
-			     url=>$self->{session}->get_archive()->get_conf( "server_perl" )."/users/subscribe" );
+			     url=>$self->{session}->get_archive()->get_conf( "server_perl_root" )."/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";

@@ -138,7 +138,7 @@ EPrints Modules
     <phrase ref="lib/submissionform:enter_file"><p>Please enter the filename (with full path) of the document file in the box below.</p></phrase>
     <phrase ref="lib/submissionform:enter_files"><p>Please enter the filenames (with full paths) of the document files in the boxes below.</p></phrase>
     <phrase ref="lib/submissionform:fix_probs">Before you deposit this entry to the archive, the following problems need to be corrected:</phrase>
-    <phrase ref="lib/submissionform:please_verify"><p>Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.</p></phrase>
+    <phrase ref="lib/submissionform:please_verify"><p><strong>You have not finished yet!</strong></p><p>Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.</p><p>When you are satisfied click the submit button at the foot of this page.</p></phrase>
     <phrase ref="lib/submissionform:thanks"><p>Thank you.</p><p>Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</p><p><a href="home">Click here to return to your deposit papers page</a></p></phrase>
     <phrase ref="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this entry? <pin ref="title" /></p></phrase>
     <phrase ref="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</phrase>

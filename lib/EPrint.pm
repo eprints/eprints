@@ -77,33 +77,33 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $dataset, $id, $known ) = @_;
+	my( $class, $session, $dataset, $id ) = @_;
 
-	my $self;
-
-	if ( !defined $known )	
+	if( defined $dataset )
 	{
-		if( defined $dataset )
-		{
-			return $session->get_db()->get_single( $dataset , $id );
-		}
-
-		## Work out in which table the EPrint resides.
-		## and return the eprint.
-		foreach( "archive" , "inbox" , "buffer" )
-		{
-			my $ds = $session->get_archive()->get_dataset( $_ );
-			$self = $session->get_db()->get_single( $ds, $id );
-			if ( defined $self ) 
-			{
-				$self->{dataset} = $ds;
-				return $self;
-			}
-		}
-		return undef;
+		return $session->get_db()->get_single( $dataset , $id );
 	}
 
-	$self = {};
+	## Work out in which table the EPrint resides.
+	## and return the eprint.
+	foreach( "archive" , "inbox" , "buffer" )
+	{
+		my $ds = $session->get_archive()->get_dataset( $_ );
+		my $self = $session->get_db()->get_single( $ds, $id );
+		if ( defined $self ) 
+		{
+			$self->{dataset} = $ds;
+			return $self;
+		}
+	}
+	return undef;
+}
+
+sub new_from_data
+{
+	my( $class, $session, $dataset, $known ) = @_;
+
+	my $self = {};
 	if( defined $known )
 	{
 		$self->{data} = $known;
@@ -479,14 +479,13 @@ die "clone NOT DONE"; #cjg
 
 ######################################################################
 #
-# $success = transfer( $dataset )
+# $success = _transfer( $dataset )
 #
 #  Move the EPrint to the given table
 #
 ######################################################################
 
-## WP1: BAD
-sub transfer
+sub _transfer
 {
 	my( $self, $dataset ) = @_;
 
@@ -502,6 +501,9 @@ sub transfer
 		$dataset,
 		{ "eprintid"=>$self->get_value( "eprintid" ) } );
 
+	# Datestamp every time we move between tables.
+	$self->datestamp();
+
 	# Write self to new table
 	$success =  $success && $self->commit();
 
@@ -509,6 +511,13 @@ sub transfer
 	$success = $success && $self->{session}->get_db()->remove(
 		$old_dataset,
 		$self->get_value( "eprintid" ) );
+
+	# Need to clean up stuff if we move this record out of the
+	# archive.
+	if( $old_dataset->id() eq "archive" )
+	{
+		$self->_move_from_archive();
+	}
 	
 	return( $success );
 }
@@ -955,31 +964,6 @@ sub prune
 
 ######################################################################
 #
-# $success = submit()
-#
-#  Attempt to transfer the EPrint to the submissions buffer.
-#
-######################################################################
-
-sub submit
-{
-	my( $self ) = @_;
-	
-	my $success = $self->transfer( $self->{session}->get_archive()->get_dataset( "buffer" ) );
-	
-	if( $success )
-	{
-		$self->{session}->get_archive()->call( "update_submitted_eprint", $self );
-		$self->datestamp();
-		$self->commit();
-	}
-	
-	return( $success );
-}
-
-
-######################################################################
-#
 # datestamp()
 #
 #  Set the datestamp field to today's date (GMT).
@@ -1004,18 +988,69 @@ sub datestamp
 #
 ######################################################################
 
-## WP1: BAD
-sub archive
+sub move_to_inbox
 {
 	my( $self ) = @_;
 
-	my $arcds = $self->{session}->get_archive()->get_dataset( "archive" );
-	my $success = $self->transfer( $arcds );
+	# if we is currently in archive... cjg
+
+	my $ds = $self->{session}->get_archive()->get_dataset( "inbox" );
+	
+	my $success = $self->_transfer( $ds );
+	
+	return $success;
+}
+
+sub move_to_buffer
+{
+	my( $self ) = @_;
+	
+	my $ds = $self->{session}->get_archive()->get_dataset( "buffer" );
+
+	my $success = $self->_transfer( $ds );
+	
+	if( $success )
+	{
+		$self->{session}->get_archive()->call( "update_submitted_eprint", $self );
+		$self->commit();
+	}
+	
+	return( $success );
+}
+
+sub remove_static()
+{
+	my( $self ) = @_;
+	#cjg tsk needs to actually clean up symlinks abstracts etc.
+}	
+
+sub _move_from_archive
+{
+	my( $self ) = @_;
+
+	$self->remove_static();
+
+	# Generate static pages for everything in threads, if 
+	# appropriate
+	my @to_update = $self->get_all_related();
+		
+	# Do the actual updates
+	foreach (@to_update)
+	{
+		$_->generate_static();
+	}
+}
+
+sub move_to_archive
+{
+	my( $self ) = @_;
+
+	my $ds = $self->{session}->get_archive()->get_dataset( "archive" );
+	my $success = $self->_transfer( $ds );
 	
 	if( $success )
 	{
 		$self->{session}->get_archive()->call( "update_archived_eprint", $self );
-		$self->datestamp(); # Reset the datestamp.
 		$self->commit();
 		$self->generate_static();
 
@@ -1104,15 +1139,16 @@ sub generate_static
 {
 	my( $self ) = @_;
 
-	print "ID: ".$self->get_value( "eprintid" )."\n";
-
 	my $eprint_id = $self->get_value( "eprintid" );
+
+	# We is going to temporarily change the language of our session to
+	# render the abstracts in each language.
+	my $real_langid = $self->{session}->get_langid();
 
 	my $langid;
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
-		print "LANG: $langid\n";	
-
+		$self->{session}->change_lang( $langid );
 		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprint_id );
 
 		my @created = eval
@@ -1120,19 +1156,25 @@ sub generate_static
 			my @created = mkpath( $full_path, 0, 0775 );
 			return( @created );
 		};
-		print "yo:".join(",",@created)."\n";
 
-		$self->{session}->new_page( $langid );
+		$self->{session}->new_page();
 		my( $page, $title ) = $self->render_abstract_page();
 
 		$self->{session}->build_page( $title, $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
 
-		# SYMLINK's to DOCS...cjg
+		my @docs = $self->get_all_documents();
+		my $doc;
+		foreach $doc ( @docs )
+		{
+			if( $doc->get_value( "security" ) eq "public" ) 
+			{
+				$doc->create_symlink( $self, $full_path );
+			}
+		}
 	}
-	
-	return;	
+	$self->{session}->change_lang( $real_langid );
 }
 
 
@@ -1455,6 +1497,13 @@ sub get_data
 	my( $self ) = @_;
 	
 	return $self->{data};
+}
+
+sub get_dataset
+{
+	my( $self ) = @_;
+	
+	return $self->{dataset};
 }
 
 sub get_user
