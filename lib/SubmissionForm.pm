@@ -75,22 +75,6 @@ my $STAGES = {
 	confirmdel => { prev => "return", next => "return" }
 };
 
-$EPrints::SubmissionForm::STAGES = {
-	home => { next => "type" },
-	type => { prev => "return", next => "linking" },
-	linking => { prev => "type", next => "meta" },
-	meta => { prev => "linking", next => "files" },
-	files => { prev => "meta", next => "verify" },
-	docmeta => {},
-	fileview => {},
-	upload => {},
-	verify => { prev => "files", next => "done" },
-	quickverify => { prev => "return", next => "done" },
-	done => {},
-	return => {},
-	confirmdel => { prev => "return", next => "return" }
-};
-
 
 ######################################################################
 =pod
@@ -475,8 +459,14 @@ sub _from_stage_type
 {
 	my( $self ) = @_;
 
-	## Process uploaded data
+	if( $self->{action} eq "cancel" )
+	{
+		# Cancelled, go back to author area.
+		$self->_set_stage_prev();
+		return( 1 );
+	}
 
+	## Process uploaded data
 	$self->_update_from_form( "type" );
 	$self->{eprint}->commit();
 
@@ -495,13 +485,6 @@ sub _from_stage_type
 
 		# No problems, onto the next stage
 		$self->_set_stage_next();
-		return( 1 );
-	}
-
-	if( $self->{action} eq "cancel" )
-	{
-		# Cancelled, go back to author area.
-		$self->_set_stage_prev();
 		return( 1 );
 	}
 
@@ -1047,6 +1030,12 @@ sub _from_stage_verify
 	if( $self->{action} eq "prev" )
 	{
 		$self->_set_stage_prev;
+		return( 1 );
+	}
+
+	if( $self->{action} eq "later" )
+	{
+		$self->{new_stage} = "return";
 		return( 1 );
 	}
 
@@ -1970,7 +1959,10 @@ sub _do_stage_verify
 	};
 	my $submit_buttons = {
 		prev => $self->{session}->phrase(
-				"lib/submissionform:action_prev" )
+				"lib/submissionform:action_prev" ),
+		later => $self->{session}->phrase(
+				"lib/submissionform:action_later" ),
+		_order => [ "prev", "later" ]
 	};
 	my $default_action = "prev";
 
@@ -1984,18 +1976,21 @@ sub _do_stage_verify
 	}
 	else
 	{
-		$page->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
+		$page->appendChild( $self->{session}->html_phrase(
+			"lib/submissionform:please_verify") );
 
 		$page->appendChild( $self->{session}->render_ruler() );	
 		$page->appendChild( $self->{eprint}->render_full() );
 		$page->appendChild( $self->{session}->render_ruler() );	
 
-		# cjg Should be from an XML-lang file NOT the main config.
 		$page->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
+		$page->appendChild( $self->{session}->render_ruler );
 
-		$submit_buttons->{submit} = $self->{session}->phrase( "lib/submissionform:action_submit" );
+
+		$submit_buttons->{submit} = $self->{session}->phrase( 
+			"lib/submissionform:action_submit" );
 		$default_action = "submit";
-		$submit_buttons->{_order} = [ "prev","submit" ];
+		$submit_buttons->{_order} = [ "prev", "later", "submit" ];
 	}
 
 	$page->appendChild( 

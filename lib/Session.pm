@@ -635,6 +635,8 @@ sub make_text
 	{
 		$text = "";
 	}
+        
+        $text =~ s/[\x00-\x08\x0B\x0C\x0E-\x1F]//g;
 
 	my $textnode = $self->{doc}->createTextNode( $text );
 
@@ -706,7 +708,7 @@ sub render_data_element
 
 	my $f = $self->make_doc_fragment();
 	my $el = $self->make_element( $elementname, %opts );
-	$el->appendChild( $self->{doc}->createTextNode( $value ) );
+	$el->appendChild( $self->make_text( $value ) );
 	$f->appendChild( $self->make_indent( $indent ) );
 	$f->appendChild( $el );
 
@@ -828,6 +830,7 @@ sub render_option_list
 		if( $params{height} ne "ALL" )
 		{
 			$size = $params{height} if( $params{height} < $size );
+			$size = 2 if( $params{height} > 1 && $size==1 );
 		}
 		$element->setAttribute( "size" , $size );
 	}

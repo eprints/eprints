@@ -13,8 +13,6 @@ General
 - VLit code does not understand that server may not be running on
    port 80. [can't confirm]
 
-- set_email missing(?) [ I can't seem to confirm this problem ]
-
 - Does not give validation error when multilang with required lang
 does NOT have all required langs filled in.
 
@@ -52,9 +50,6 @@ element. [Mark Faine]
 
 - Mozilla puts whitespace under imgs for no good reason if there
   is an <?xml ?> header or XHTML DOCTYPE 
-
-- broken link in "record_for_user" goes to "set_email" not "change_email"
-  ?? did I fix this absent mindedly?
 
 - Full summary and abstract summary should say what TYPE the eprint is.
 
@@ -101,8 +96,6 @@ EPrints Submission Form
 
 - does not notice if a "name" type field is blank, even if it's 
   required.
-
-- "Cancel" from the "EPrint Type" page still appears to set the type.
 
 - "Edit" and "Remove" buttons on list-of-formats page vary in order.
 
@@ -298,6 +291,12 @@ Fixed in CVS
 - oai2 uses oai1 archive id for records.
 - "No eprint selected" from user home. Continue takes back to archive
     home which is annoying.
+- set_email missing(?) [ I can't seem to confirm this problem ]
+- broken link in "record_for_user" goes to "set_email" not "change_email"
+  ?? did I fix this absent mindedly?
+- "Cancel" from the "EPrint Type" page still appears to set the type.
+
+
 
 
 

@@ -909,4 +909,21 @@ before next release. (metadata types & fields)
  - Improved EPrints::XML::to_string to make <br/> into <br />
 
 
+2002-10-08 cjg
+ - [c] Fixed ArchiveConfig.pm so that a user can always view a document
+     they deposited even if it's secure.
+ - Added regexp to make_text to remove all characters < ord(32) except
+    0x09, 0x0a and 0x0d. They're not legal in XML!
+ - Modified the selection field renderer so that if the specified height
+    is 2 or more, the actual height will always be at least 2. (so it does
+    not become a pull-down).
+ - Fixed a bug in SubmissionForm so that "cancel" on the "eprinttype" page
+    does not store any change in type.
+ - Added a "submit later" button to Deposit Page.
+ - Changed the submission form "thanks" page to mention that it is awaiting
+    approval by an editor.
+ - Fixed an error in "lib/userform:blurb" phrase which linked to set_email 
+    rather than change_email. 
+ - Added google_site which appends "site:whatever.com" to a search param
+    and redirects that search to google.
 

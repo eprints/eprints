@@ -4,12 +4,23 @@ case it might be helpful.
 
 PRE Release Checks for 2.2
 
+*	404 hooks
+
 *	Make a list of phrase file changes. (Scripted?)
 
 *	Check Garbage collection in OAI code.
 
 *	Check ArchiveConfig.pm is sane and normal. Double check diff from
           2.1.1. Clean up default views config.
+
+*	ReSync VLit from Giles.
+
+*	All other giles hacks.
+
+*	Investigate: (subjects_self->{merge})(ANY)
+
+*	Linkbatton renderer?
+
 
 SQL Tables
 
@@ -143,7 +154,7 @@ Other Stuff
 
 *	Make a permission for users to be able to edit their OWN records.
 
-*       Make a way of .css working in both https and http - possibly
++       Make a way of .css working in both https and http - possibly
         a new entity which does something different on the https server.
 
 -	CSS searchfield input.

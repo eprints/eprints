@@ -648,8 +648,23 @@ sub can_user_view_document
 	if( $security eq "staffonly" )
 	{
 		# If you want to finer tune this, you could create
-		# a new priv. and use that.
-		return $user->has_priv( "editor" );
+		# new privs and use them.
+
+		# people with priv editor can read this document...
+		if( $user->has_priv( "editor" ) )
+		{
+			return 1;
+		}
+
+		# ...as can the user who deposited it...
+		if( $user->get_value( "userid" ) == $eprint->get_value( "userid" ) )
+		{
+			return 1;
+		}
+
+		# ...but nobody else can
+		return 0;
+		
 	}
 
 	# Unknown security type, be paranoid and deny permission.
