@@ -21,7 +21,7 @@ use EPrints::Database;
 
 use strict;
 
-# Month names
+# Month names #cjg SHOULD BE INTL
 my %monthnames =
 (
 	"00"     => "Unspecified",
@@ -557,4 +557,373 @@ sub getHTML
 	return undef;
 
 }
+
+
+## WP1: BAD
+sub render_input_field
+{
+	my( $self, $session, $value ) = @_;
+
+	my( $html, $frag );
+
+	$html = $session->makeDocFragment();
+	$html->appendChild( $session->makeText( $self->get_type() ) );
+
+	$frag = $html;
+
+	my $boxcount = 2;
+
+	if( $self->is_type( "name" ) )
+	{
+		my( $table, $tr, $th );
+		$table = $session->make_element( "table", border=>0 );
+		$tr = $session->make_element( "tr" );
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "surname" ) );
+		$tr->appendChild( $th );
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "first_names" ) );
+		$tr->appendChild( $th );
+		$table->appendChild( $tr );
+	
+		$html->appendChild( $table );
+		$frag = $table;
+	}
+
+	if( $self->isMultiple() )
+	{
+		my $i;
+		for( $i=1 ; $i<$boxcount ; ++$i )
+		{
+			$frag->appendChild( 
+				$self->_render_input_field_aux( 
+					$session, 
+					$value->[$i], 
+					$i ) );
+		}
+	}
+	else
+	{
+		$frag->appendChild( 
+			$self->_render_input_field_aux( 
+				$session, 
+				$value ) );
+	}
+
+	return $html;
+}
+
+
+sub _render_input_field_aux
+{
+	my( $self, $session, $value, $n ) = @_;
+
+	my $id_suffix = "";
+	$id_suffix = "_$n" if( defined $n );
+
+	# These DO NOT belong here. cjg.
+	my( $FORM_WIDTH, $INPUT_MAX ) = ( 22, 255 );
+
+	my $html = $session->makeDocFragment();
+	if( 
+		$self->is_type( "text" ) ||
+		$self->is_type( "url" ) ||
+		$self->is_type( "email" ) )
+	{
+		my $maxlength = ( defined $self->{maxlength} ? 
+				$self->{maxlength} : 
+				$INPUT_MAX );
+		my $size = ( $maxlength > $FORM_WIDTH ?
+				$FORM_WIDTH : 
+				$maxlength );
+	
+		$html->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}.$id_suffix,
+			default => $value,
+			size => $size,
+			maxlength => $maxlength ) );
+	}
+	elsif( $self->is_type( "name" ) )
+	{
+		my( $tr, $td );
+		$tr = $session->make_element( "tr" );
+		$td = $session->make_element( "td" );
+		$td->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}."_familyname".$id_suffix,
+			default => $value->{familyname},
+			size => $FORM_WIDTH,
+			maxlength => $INPUT_MAX ) );
+		$tr->appendChild( $td );
+		$td = $session->make_element( "td" );
+		$td->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}."_givenname".$id_suffix,
+			default => $value->{givenname},
+			size => $FORM_WIDTH,
+			maxlength => $INPUT_MAX ) );
+		$tr->appendChild( $td );
+		$html->appendChild( $tr );
+	}
+	else
+	{
+		$html->appendChild( $session->makeText( "???" ) );
+		$session->getSite()->log( "Don't know how to render input".
+					  "field of type: ".$self->get_type() );
+	}
+	return $html;
+
+my $field = 1;
+my @months = qw/ a b c d e f g h i j k l m n /;
+	
+	my $type = $field->{type};
+
+	if( $type eq "text" || $type eq "url" || $type eq "email" )
+	{
+	}
+	elsif( $type eq "date" )
+	{
+		my( $year, $month, $day ) = ("", "", "");
+		if( defined $value && $value ne "" )
+		{
+			($year, $month, $day) = split /-/, $value;
+			($year, $month, $day) = ("", "00", "") if( $month == 0 );
+		}
+
+		$html = $self->{session}->phrase( "H:year" );
+		$html .= $self->{query}->textfield( -name=>"$field->{name}_year",
+		                                    -default=>$year,
+		                                    -size=>4,
+		                                    -maxlength=>4 );
+		$html .= " ".$self->{session}->phrase( "H:month" );
+		$html .= $self->{query}->popup_menu( -name=>"$field->{name}_month",
+		                                     -values=>\@months,
+		                                     -default=>$month,
+		                                     -labels=>\%monthnames );
+		$html .= " ".$self->{session}->phrase( "H:day" );
+		$html .= $self->{query}->textfield( -name=>"$field->{name}_day",
+		                                    -default=>$day,
+		                                    -size=>2,
+		                                    -maxlength=>2 );
+	}
+	elsif( $type eq "int" )
+	{
+		$html = $self->{query}->textfield( -name=>$field->{name},
+		                                   -default=>$value,
+		                                   -size=>$field->{displaydigits},
+		                                   -maxlength=>$field->{displaydigits} );
+	}
+	elsif( $type eq "boolean" )
+	{
+		$html = $self->{query}->checkbox(
+			-name=>$field->{name},
+			-checked=>( defined $value && $value eq "TRUE" ? "checked" : undef ),
+			-value=>"TRUE",
+			-label=>"" );
+	}
+	elsif( $type eq "longtext" )
+	{
+		$html = $self->{query}->textarea(
+			-name=>$field->{name},
+			-default=>$value,
+			-rows=>$field->{displaylines},
+			-columns=>$EPrints::HTMLRender::form_width,
+			-wrap=>"soft" );
+	}
+	elsif( $type eq "set" )
+	{
+		my @actual;
+		@actual = split /:/, $value if( defined $value );
+
+		# Get rid of beginning and end empty values
+		shift @actual if( defined $actual[0] && $actual[0] eq "" );
+		pop @actual if( defined $actual[$#actual] && $actual[$#actual] eq "" );
+
+		$html = $self->{query}->scrolling_list(
+			-name=>$field->{name},
+			-values=>$field->{tags},
+			-default=>\@actual,
+			-size=>( $field->{displaylines} ),
+			-multiple=>( $field->{multiple} ? 'true' : undef ),
+			-labels=>$field->{labels} );
+	}
+	elsif( $type eq "pagerange" )
+	{
+		my @pages;
+		
+		@pages = split /-/, $value if( defined $value );
+		
+		$html = $self->{query}->textfield( -name=>"$field->{name}_from",
+		                                   -default=>$pages[0],
+		                                   -size=>6,
+		                                   -maxlength=>10 );
+
+		$html .= "&nbsp;to&nbsp;";
+
+		$html .= $self->{query}->textfield( -name=>"$field->{name}_to",
+		                                    -default=>$pages[1],
+		                                    -size=>6,
+		                                    -maxlength=>10 );
+	}
+	elsif( $type eq "year" )
+	{
+		$html = $self->{query}->textfield( -name=>$field->{name},
+		                                   -default=>$value,
+		                                   -size=>4,
+		                                   -maxlength=>4 );
+	}
+	elsif( $type eq "eprinttype" )
+	{
+		my @eprint_types = $self->{session}->{metainfo}->get_types( "eprint" );
+		my $labels = $self->{session}->{metainfo}->get_type_names( $self->{session}, "eprint" );
+
+		my $actual = [ ( !defined $value || $value eq "" ?
+			$eprint_types[0] : $value ) ];
+		my $height = ( $EPrints::HTMLRender::list_height_max < $#eprint_types+1 ?
+		               $EPrints::HTMLRender::list_height_max : $#eprint_types+1 );
+
+		$html = $self->{query}->scrolling_list(
+			-name=>$field->{name},
+			-values=>\@eprint_types,
+			-default=>$actual,
+			-size=>$height,
+			-labels=>$labels );
+	}
+	elsif( $type eq "subject" )
+	{
+		my $subject_list = EPrints::SubjectList->new( $value );
+
+		# If in the future more user-specific subject tuning is needed,
+		# will need to put the current user in the place of undef.
+		my( $sub_tags, $sub_labels );
+		
+		if( $field->{showall} )
+		{
+			( $sub_tags, $sub_labels ) = EPrints::Subject::all_subject_labels( 
+				$self->{session} ); 
+		}
+		else
+		{			
+			( $sub_tags, $sub_labels ) = EPrints::Subject::get_postable( 
+				$self->{session}, 
+				$self->{session}->current_user );
+		}
+
+		my $height = ( $EPrints::HTMLRender::list_height_max < $#{$sub_tags}+1 ?
+		               $EPrints::HTMLRender::list_height_max : $#{$sub_tags}+1 );
+
+		my @selected_tags = $subject_list->get_tags();
+
+		$html = $self->{query}->scrolling_list(
+			-name=>$field->{name},
+			-values=>$sub_tags,
+			-default=>\@selected_tags,
+			-size=>$height,
+			-multiple=>( $field->{multiple} ? "true" : undef ),
+			-labels=>$sub_labels );
+	}
+	elsif( $type eq "name" )
+	{
+		# Get the names out
+		my @names = EPrints::Name::extract( $value );
+
+		my $boxcount = $self->{nameinfo}->{"name_boxes_$field->{name}"};
+
+		if( defined $self->{nameinfo}->{"name_more_$field->{name}"} )
+		{
+			$boxcount += $EPrints::HTMLRender::add_boxes;
+		}
+
+		# Ensure at least 1...
+		$boxcount = 1 if( !defined $boxcount );
+		# And that there's enough to fit all the names in
+		$boxcount = $#names+1 if( $boxcount < $#names+1 );
+		my $i;
+		# Render the boxes
+		for( $i = 0; $i < $boxcount; $i++ )
+		{
+			my( $surname, $firstnames );
+			
+			if( $i <= $#names )
+			{
+				( $surname, $firstnames ) = @{$names[$i]};
+			}
+					
+			$html .= "</tr>\n<tr><td>";
+			$html .= "</td>";
+		}
+		
+		if( $field->{multiple} )
+		{
+			$html .= "<td>".$self->named_submit_button( 
+				"name_more_$field->{name}",
+				$self->{session}->phrase( "F:more_spaces" ) );
+			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
+			$html .= "</td>";
+		}
+		
+		$html .= "</tr>\n</table>\n";
+	}
+	elsif( $type eq "username" )
+	{
+		# Get the usernames out
+		my @usernames = EPrints::User::extract( $value );
+
+		my $boxcount = $self->{usernameinfo}->{"username_boxes_$field->{name}"};
+
+		if( defined $self->{usernameinfo}->{"username_more_$field->{name}"} )
+		{
+			$boxcount += $EPrints::HTMLRender::add_boxes;
+		}
+
+		# Ensure at least 1...
+		$boxcount = 1 if( !defined $boxcount );
+		# And that there's enough to fit all the usernames in
+		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
+
+		# Render the boxes
+		$html = "<table border=0><tr><th>";
+		$html.= $self->{session}->phrase( "H:username_title" );
+		$html.= "</th>";
+		
+		my $i;
+		for( $i = 0; $i < $boxcount; $i++ )
+		{
+			my $username;	
+			if( $i <= $#usernames )
+			{
+				( $username ) = $usernames[$i];
+			}
+					
+			$html .= "</tr>\n<tr><td>";
+			$html .= $self->{query}->textfield(
+				-name=>"username_$i"."_$field->{name}",
+				-default=>$username,
+				-size=>$EPrints::HTMLRender::form_username_width,
+				-maxlength=>$EPrints::HTMLRender::field_max );
+			$html .= "</td>";
+		}
+		
+		if( $field->{multiple} )
+		{
+			$html .= "<td>".$self->named_submit_button( 
+				"username_more_$field->{name}",
+				$self->{session}->phrase( "F:more_spaces" ) );
+			$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
+			$html .= "</td>";
+		}
+		
+		$html .= "</tr>\n</table>\n";
+	}
+	else
+	{
+		$html = "N/A";
+
+	}
+	
+	return( $html );
+}
+
+
 

@@ -194,7 +194,7 @@ sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
 
-	my $form = $self->{session}->makeGetForm;
+	my $form = $self->{session}->make_form( "get" );
 	my $div;
 
 	my %shown_help;
@@ -651,7 +651,7 @@ sub process_webpage
 				searchtime=>$self->{session}->makeText($t2-$t1),
 				gettime=>$self->{session}->makeText($t3-$t2) ) );
 
-		my $form = $self->{session}->makeGetForm();
+		my $form = $self->{session}->make_form( "get" );
 		foreach( $self->{session}->param() )
 		{
 			next if( $_ eq "submit" );

@@ -377,7 +377,7 @@ $c->{userauth} = {
 $c->{sitefields}->{user} = [
 	{
 		name => "name",
-		type => "text",
+		type => "name",
 		required => 1,
 		editable => 1,
 		visible => 1
@@ -416,7 +416,8 @@ $c->{sitefields}->{user} = [
 		type => "url",
 		required => 0,
 		editable => 1,
-		visible => 1
+		visible => 1,
+		multiple => 1 # TEMP cjg
 	},
 	{
 		name => "filter",

@@ -88,7 +88,7 @@ sub process
 				registerlink => $a ) );	
 		$page->appendChild( $p );
 
-		#$self->_render_form();
+		$page->appendChild( $self->_render_form() );
 
 		$self->{session}->buildPage(
 			$self->{session}->
@@ -169,13 +169,14 @@ sub _render_form
 	
 	my %hidden = ( "username"=>$self->{user}->getValue( "username" ) );
 
-###cjg UPTOHERRE!!!	
-	$self->{session}->{render}->render_form( \@edit_fields,
-	                                         $self->{user},
-	                                         1,
-	                                         1,
-	                                         [ "Update Record" ],
-	                                         \%hidden );
+	my $buttons = [ $self->{session}->phrase( "update_record" ) ];
+
+	return $self->{session}->render_form( \@edit_fields,
+	                                      $self->{user},
+	                                      1,
+	                                      1,
+	                                      $buttons,
+	                                      \%hidden );
 }
 
 ######################################################################

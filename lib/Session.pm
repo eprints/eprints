@@ -660,13 +660,14 @@ sub makeDocFragment
 	return $self->{page}->createDocumentFragment;
 }
 
-## WP1: BAD
-sub makeGetForm
+## WP1: BAD (dest is optional)
+#cjg "POST" forms must be utf8 and multipart
+sub make_form
 {
-	my( $self, $dest ) = @_;
+	my( $self, $method, $dest ) = @_;
 	
 	my $form = $self->{page}->createElement( "form" );
-	$form->setAttribute( "method", "get" );
+	$form->setAttribute( "method", $method );
 	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
 	$form->setAttribute( "action", $dest );
 	return $form;
@@ -1052,5 +1053,125 @@ sub internal_button_pressed
 	
 	return( $self->{internalbuttonpressed} );
 }
+
+######################################################################
+#
+# render_form( $fields,              #array_ref
+#              $values,              #hash_ref
+#              $show_names,
+#              $show_help,
+#              $submit_buttons,      #array_ref
+#              $hidden_fields,       #hash_ref
+#              $dest
+#
+#  Renders an HTML form. $fields is a reference to metadata fields
+#  in the usual format. $values should map field names to existing values.
+#  This function also puts in a hidden parameter "seen" and sets it to
+#  true. That way, a calling script can check the value of the parameter
+#  "seen" to see if the users seen and responded to the form.
+#
+#  Submit buttons are specified in a reference to an array of names.
+#  If $submit_buttons isn't passed in (or is undefined), a simple
+#  default "Submit" button is slapped on.
+#
+#  $dest should contain the URL of the destination
+#
+######################################################################
+
+## WP1: BAD
+sub render_form
+{
+	my( $self, $fields, $values, $show_names, $show_help, $submit_buttons,
+	    $hidden_fields, $dest ) = @_;
+
+	my $query = $self->{query};
+
+	my( $form );
+
+	$form =	$self->make_form( "post", $dest );
+	
+	foreach (@$fields)
+	{
+		$form->appendChild( $self->makeText("[".$_->getName."]"));
+		$form->appendChild( $self->render_form_field( $_,
+		                             $values->{$_->{name}},
+		                             $show_names,
+		                             $show_help ) );
+	}
+
+	# Hidden field, so caller can tell whether or not anything's
+	# been POSTed
+	$form->appendChild( $self->make_hidden_field( "seen", "true" ) );
+
+	if( defined $hidden_fields )
+	{
+		foreach (keys %{$hidden_fields})
+		{
+			$form->appendChild( $self->make_hidden_field( 
+						$_, 
+						$hidden_fields->{$_} ) );
+		}
+	}
+
+	$form->appendChild( $self->make_submit_buttons( @{$submit_buttons} ) );
+
+	return $form;
+}
+
+
+######################################################################
+#
+# $html = input_field_tr( $field, $value, $show_names, $show_help )
+#
+#  Write a table row with the given field and value.
+#
+######################################################################
+
+## WP1: BAD
+sub render_form_field
+{
+	my( $self, $field, $value, $show_names, $show_help ) = @_;
+	
+	my( $div, $html );
+
+	$html = $self->makeDocFragment();
+
+	if( $show_names )
+	{
+		$div = $self->make_element( "div", class => "formfieldname" );
+
+		# Field name should have a star next to it if it is required
+		# special case for booleans - even if they're required it
+		# dosn't make much sense to highlight them.	
+
+		if( $field->isRequired() && !$field->is_type( "boolean" ) )
+		{
+			$div->appendChild( $self->makeText( "* " ) );	
+		}
+		$div->appendChild( 
+			$self->makeText( $field->display_name( $self ) ) );
+		$html->appendChild( $div );
+	}
+
+	if( $show_help )
+	{
+		my $help = $field->display_help( $self );
+
+		$div = $self->make_element( "div", class => "formfieldhelp" );
+
+		$div->appendChild( 
+			$self->makeText( $field->display_help( $self ) ) );
+		$html->appendChild( $div );
+	}
+
+	$div = $self->make_element( "div", class => "formfieldinput" );
+
+	$div->appendChild( $field->render_input_field( $self, $value ) );
+
+	$html->appendChild( $div );
+
+	return( $html );
+}	
+
 
 1;
