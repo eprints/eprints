@@ -76,7 +76,7 @@
 -	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology. But make it optional.
 1	Indexing on name fields(?)
 0	patch for config files when upgrading.(?)
-0	different looks for boolean/opts eg. check/radio boxes.
+-	different looks for boolean/opts eg. check/radio boxes.
 -	Allow users to request a username when registering.
 4	Bulk XML Dumper
 
@@ -147,19 +147,18 @@
 
 
 #Clean UP
-#	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
-#	print STDERR's should be log()
-#	Eliminate HTMLRenderer
-#	Make SearchFields have a better call method.
-#	Put System field titles in system phrase file.
-#	Not everything should be no-cache! (HTTP header)
-# 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
+#	Edit abstract renderer to add comments on how to view PS and PDF etc.#  NR
+#	print STDERR's should be log() NR
+#	Make SearchFields have a better call method. NR
+#	Put System field titles in system phrase file. NR
+#	Not everything should be no-cache! (HTTP header) NR
+# 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR
 #	Named values in Constructors all round?
 #	cmp methods : is they still needed?
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
-#	What type for ordervalues? Something which keeps memory use down...
+#	What type for ordervalues? Something which keeps memory use down... NR
 
-#`	subjec t importer has iffy ordering - should really re-commit 'em all to update ancestors list.
+#`	subjec t importer has iffy ordering - should really re-commit 'em all to update ancestors list. NR
 # import_subjects does not check for errors very well.
 
 #TODO
@@ -168,22 +167,33 @@
 #LESS URGENT TODO...
 #	langid's -> validate they is correct (in multilang)
 #	sort subject input fields
-#	text area without CR's (config flag) eg. for title.
 #	Magic search fields - eg. Must have HTML format document/public document...
 #	no new eprints when disk fullish
 #	Add POD manuals to ALL lib and CGI files.
-# 	Make man pages from /bin etc build into docs.
-#	import_xml becomes import_foo etc. eprint/user/whatever.
+# 	Make man pages from /bin etc build into docs. NR
+#	import_xml becomes import_foo etc. eprint/user/whatever. NR
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
-#	ordervalues for sets & subjects being on their NAME not value?
+#	ordervalues for sets & subjects being on their NAME not value? NR
 
 
-## Need to make OAI get_values get values for deletion & archive so if the only
-## 1853 paper is deleted the set does not disappear.
+## Need to make OAI get_values get values for deletion & archive so if the only NR
+## 1853 paper is deleted the set does not disappear. NR
 
-# Need to make Next FOO records give the right answer.
+# Need to make Next FOO records give the right answer. NR
 
-# searchexp/file upload : idea: don't allow finished from doc page until a
+# searchexp/file upload : idea: don't allow finished from doc page until a NR
 # valid format is selected.
 
-# SystemSettings needs the new latex stuff. and add ' to all invocations. 
+# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR
+
+# robots.txt file
+# metadata in LINKS for title, creator etc?
+
+# nice 404 / 401 pages.
+
+# get RIGHT XHTML namespace
+
+# lose all die statements
+
+# MD5 LatexCache
+# Check Referer on LatexCache.

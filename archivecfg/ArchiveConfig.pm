@@ -22,10 +22,10 @@ package EPrints::Config::lemurprints;
 # them to the normal roster. cjg non-public comments field?
 
 use EPrints::Utils;
-use EPrints::DOM;
-use Unicode::String qw(utf8 latin1 utf16);
 use EPrints::OpenArchives;
 
+use XML::DOM;
+use Unicode::String qw(utf8 latin1 utf16);
 use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
@@ -57,6 +57,14 @@ $c->{allow_user_removal_request} = 1;
 # VLit support will allow character ranges to be served as well as 
 # whole documents. 
 $c->{enable_vlit_support} = 1;
+
+# VARCHAR size. The size of the fields used to store text in the database.
+# text is stored in UTF-8 so if you use lots of non ASCII chars then you
+# may wish to up this.
+# WARNING: Don't change this after the archive is set up. You will have
+# to re-run create_tables and start from scratch to change this setting.
+$c->{varchar_size} = 512;
+ 
 
 ######################################################################
 #
@@ -205,6 +213,47 @@ $c->{default_user_type} = "user";
 
 ######################################################################
 #
+#  Field Property Defaults
+#
+######################################################################
+
+# This lets you set the default values for 
+# certain cosmetic properties of metadata fields
+# rather than set them individually. Settings on
+# a metafield will override these values.
+
+# Number of rows of a textarea input or max number of elements before
+# a scrollbar appears in sets, subjects and datatype fields. A value
+# of ALL will show all the settings in a set, subject or datatype.
+$c->{field_defaults}->{input_rows} = 10;
+
+# Number of columns (characters) of a textarea input or text
+# input field.
+$c->{field_defaults}->{input_cols} = 60;
+
+# Default size of the "name" input field parts.
+$c->{field_defaults}->{input_name_cols} = {
+	honourific=>8,
+	given=>20,
+	family=>20,
+	lineage=>8 
+};
+
+# Default number of cols in an ID input field.
+$c->{field_defaults}->{input_id_cols} = 40;
+
+# Default number of boxes to add when clicking the "more spaces"
+# button on a multiple field.
+$c->{field_defaults}->{input_add_boxes} = 2;
+
+# Default number of boxes to show on a multiple field.
+$c->{field_defaults}->{input_boxes} = 3;
+
+# Max digits in an integer.
+$c->{field_defaults}->{digits} = 20;
+
+######################################################################
+#
 #  Submission Form Customisation
 #
 ######################################################################
@@ -303,7 +352,7 @@ $c->{archivefields}->{user} = [
 
 	{ name => "org", type => "text" },
 
-	{ name => "address", type => "longtext", displaylines => 5 },
+	{ name => "address", type => "longtext", input_rows => 5 },
 
 	{ name => "country", type => "text" },
 
@@ -317,7 +366,7 @@ $c->{archivefields}->{user} = [
 ];
 
 $c->{archivefields}->{eprint} = [
-	{ name => "abstract", displaylines => 10, type => "longtext" },
+	{ name => "abstract", input_rows => 10, type => "longtext" },
 
 	{ name => "altloc", type => "url", multiple => 1 },
 
@@ -342,27 +391,27 @@ $c->{archivefields}->{eprint} = [
 	{ name => "ispublished", type => "set", 
 			options => [ "unpub","inpress","pub" ] },
 
-	{ name => "keywords", type => "longtext", displaylines => 2 },
+	{ name => "keywords", type => "longtext", input_rows => 2 },
 
 	{ name => "month", type => "set",
 		options => [ "jan","feb","mar","apr","may","jun",
 			"jul","aug","sep","oct","nov","dec" ] },
 
-	{ name => "note", type => "longtext", displaylines => 3 },
+	{ name => "note", type => "longtext", input_rows => 3 },
 
 	{ name => "number", type => "text", maxlength => 6 },
 
 	{ name => "pages", type => "pagerange" },
 
-	{ name => "pubdom", type => "boolean" },
+	{ name => "pubdom", type => "boolean", input_style=>"radio" },
 
 	{ name => "publication", type => "text" },
 
 	{ name => "publisher", type => "text" },
 
-	{ name => "refereed", type => "boolean" },
+	{ name => "refereed", type => "boolean", input_style=>"menu" },
 
-	{ name => "referencetext", type => "longtext", displaylines => 3 },
+	{ name => "referencetext", type => "longtext", input_rows => 3 },
 
 	{ name => "reportno", type => "text" },
 
@@ -372,7 +421,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", render_single_value=>\&EPrints::Latex::render_string },
+	{ name => "title", type => "text", render_single_value=>\&EPrints::Latex::render_string, input_style=>'textarea' },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
@@ -380,7 +429,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "suggestions", type => "longtext" }
 ];
-use EPrints::Latex; #cjg
+
 # Don't worry about this bit, remove it if you want.
 # it's to store some information for a citation-linking
 # modules we've not built yet. 
@@ -1674,11 +1723,15 @@ sub validate_field
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
 	if( $field->is_type( "url" ) && defined $value && $value ne "" )
 	{
-		if( $value !~ /^\w+:/ )
+		$value = [$value] unless( $field->get_property( "multiple" ) );
+		foreach( @{$value} )
 		{
-			push @problems,
-				$session->html_phrase( "validate:missing_http",
-				fieldname=>$session->make_text( $field->display_name( $session ) ) );
+			if( $_ !~ /^\w+:/ )
+			{
+				push @problems,
+					$session->html_phrase( "validate:missing_http",
+					fieldname=>$session->make_text( $field->display_name( $session ) ) );
+			}
 		}
 	}
 

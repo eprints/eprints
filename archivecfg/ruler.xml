@@ -2,7 +2,7 @@
 <!DOCTYPE ruler >
 
 <ep:ruler
-        xmlns="http://www.w3.org/HTML/1998/html4"
+        xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ep="http://eprints.org/ep2/ruler">
 
   <hr noshade="noshade" size="2" />

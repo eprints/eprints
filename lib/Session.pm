@@ -26,15 +26,15 @@ package EPrints::Session;
 use EPrints::Database;
 use EPrints::Language;
 use EPrints::Archive;
-use EPrints::DOM;
 
 use Unicode::String qw(utf8 latin1);
 use Apache;
 use CGI;
-
-
-EPrints::DOM::setTagCompression( \&_tag_compression );
-
+# DOM runs really slowly if it checks all it's data is
+# valid...
+use XML::DOM;
+$XML::DOM::SafeMode = 0;
+XML::DOM::setTagCompression( \&_tag_compression );
 
 use strict;
 #require 'sys/syscall.ph';
@@ -1007,7 +1007,7 @@ sub new_page
 	my( $self ) = @_;
 
 
-	$self->{page} = new EPrints::DOM::Document();
+	$self->{page} = new XML::DOM::Document();
 
 	my $doctype = $self->{page}->createDocumentType(
 			"html",

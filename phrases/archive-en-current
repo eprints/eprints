@@ -1,290 +1,292 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<phrases>
-    <phrase ref="document_typename_ascii">ASCII</phrase>
-    <phrase ref="document_typename_html">HTML</phrase>
-    <phrase ref="document_typename_pdf">PDF</phrase>
-    <phrase ref="document_typename_ps">Postscript</phrase>
-    <phrase ref="document_typename_other">Other</phrase>
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep2/phrases">
+    <ep:phrase ref="document_typename_ascii">ASCII</ep:phrase>
+    <ep:phrase ref="document_typename_html">HTML</ep:phrase>
+    <ep:phrase ref="document_typename_pdf">PDF</ep:phrase>
+    <ep:phrase ref="document_typename_ps">Postscript</ep:phrase>
+    <ep:phrase ref="document_typename_other">Other</ep:phrase>
 
-    <phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</phrase>
-    <phrase ref="document_fieldhelp_format">Please select the storage format of this document.</phrase>
-    <phrase ref="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</phrase>
-    <phrase ref="document_fieldhelp_security">Please indicate the required "security level" of this document. Who is allowed to download it?</phrase>
+    <ep:phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</ep:phrase>
+    <ep:phrase ref="document_fieldhelp_format">Please select the storage format of this document.</ep:phrase>
+    <ep:phrase ref="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</ep:phrase>
+    <ep:phrase ref="document_fieldhelp_security">Please indicate the required "security level" of this document. Who is allowed to download it?</ep:phrase>
 
-    <phrase ref="format_fieldhelp_arc_format">Please select an upload method.</phrase>
-    <phrase ref="format_fieldhelp_num_files">If uploading plain files, please indicate how many.</phrase>
+    <ep:phrase ref="format_fieldhelp_arc_format">Please select an upload method.</ep:phrase>
+    <ep:phrase ref="format_fieldhelp_num_files">If uploading plain files, please indicate how many.</ep:phrase>
 
-    <phrase ref="security_typename_public">Anyone</phrase>
-    <phrase ref="security_typename_validuser">Registered users only</phrase>
-    <phrase ref="security_typename_staffonly">Archive staff only</phrase>
+    <ep:phrase ref="security_typename_public">Anyone</ep:phrase>
+    <ep:phrase ref="security_typename_validuser">Registered users only</ep:phrase>
+    <ep:phrase ref="security_typename_staffonly">Archive staff only</ep:phrase>
 
-    <phrase ref="eprint_fieldname_eprintid">EPrint ID</phrase>
+    <ep:phrase ref="eprint_fieldname_eprintid">EPrint ID</ep:phrase>
 
-    <phrase ref="eprint_fieldname_username">Depositing User</phrase>
+    <ep:phrase ref="eprint_fieldname_username">Depositing User</ep:phrase>
 
-    <phrase ref="eprint_fieldname_dir">Dir</phrase>
+    <ep:phrase ref="eprint_fieldname_dir">Dir</ep:phrase>
 
-    <phrase ref="eprint_fieldname_datestamp">Date Deposited</phrase>
+    <ep:phrase ref="eprint_fieldname_datestamp">Date Deposited</ep:phrase>
 
-    <phrase ref="eprint_fieldname_type">EPrint Type</phrase>
-    <phrase ref="eprint_fieldhelp_type">Please select the most appropriate type for your deposit.</phrase>
+    <ep:phrase ref="eprint_fieldname_type">EPrint Type</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_type">Please select the most appropriate type for your deposit.</ep:phrase>
 
 
-    <phrase ref="eprint_fieldhelp_additional">If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.</phrase>
+    <ep:phrase ref="eprint_fieldhelp_additional">If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.</ep:phrase>
 
-    <phrase ref="eprint_fieldhelp_reasons">Here you can offer justification for your suggested new subject(s).</phrase>
+    <ep:phrase ref="eprint_fieldhelp_reasons">Here you can offer justification for your suggested new subject(s).</ep:phrase>
 
-    <phrase ref="eprint_fieldname_commentary">Commentary on</phrase>
-    <phrase ref="eprint_fieldhelp_commentary">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</phrase>
+    <ep:phrase ref="eprint_fieldname_commentary">Commentary on</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_commentary">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_succeeds">Later Version of</phrase>
-    <phrase ref="eprint_fieldhelp_succeeds">If this document is a revised version of another document in the archive, please enter its ID code in this box.</phrase>
+    <ep:phrase ref="eprint_fieldname_succeeds">Later Version of</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_succeeds">If this document is a revised version of another document in the archive, please enter its ID code in this box.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_subjects">Subjects</phrase>
-    <phrase ref="eprint_fieldhelp_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, in the list below. In some browsers you may have to hold CTRL or SHIFT to select more than one subject.</phrase>
+    <ep:phrase ref="eprint_fieldname_subjects">Subjects</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, in the list below. In some browsers you may have to hold CTRL or SHIFT to select more than one subject.</ep:phrase>
 
 <!-- locally defined fields -->
 
-    <phrase ref="eprint_fieldname_abstract">Abstract</phrase>
-    <phrase ref="eprint_fieldhelp_abstract">Please enter the abstract of your deposit. You can easily copy and paste it into this box. </phrase>
+    <ep:phrase ref="eprint_fieldname_abstract">Abstract</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_abstract">Please enter the abstract of your deposit. You can easily copy and paste it into this box. </ep:phrase>
 
-    <phrase ref="eprint_fieldname_altloc">Alternative Locations</phrase>
-    <phrase ref="eprint_fieldhelp_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</phrase>
+    <ep:phrase ref="eprint_fieldname_altloc">Alternative Locations</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_authors">Authors</phrase>
-    <phrase ref="eprint_fieldname_authors_id">Person ID</phrase>
-    <phrase ref="eprint_fieldhelp_authors">Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.</phrase>
+    <ep:phrase ref="eprint_fieldname_authors">Authors</ep:phrase>
+    <ep:phrase ref="eprint_fieldname_authors_id">Person ID</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_authors">Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_chapter">Chapter</phrase>
-    <phrase ref="eprint_fieldhelp_chapter">Please enter the full name of the conference.</phrase>
+    <ep:phrase ref="eprint_fieldname_chapter">Chapter</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_chapter">Please enter the full name of the conference.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_note">Additional Information</phrase>
-    <phrase ref="eprint_fieldhelp_note">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.</phrase>
+    <ep:phrase ref="eprint_fieldname_note">Additional Information</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_note">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_commref">Commentary on</phrase>
-    <phrase ref="eprint_fieldhelp_commref">If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.</phrase>
+    <ep:phrase ref="eprint_fieldname_commref">Commentary on</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_commref">If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_confdates">Conference Date</phrase>
-    <phrase ref="eprint_fieldhelp_confdates">Please enter when the conference took place.</phrase>
+    <ep:phrase ref="eprint_fieldname_confdates">Conference Date</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_confdates">Please enter when the conference took place.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_conference">Conference</phrase>
-    <phrase ref="eprint_fieldhelp_conference">Please enter the full name of the conference.</phrase>
+    <ep:phrase ref="eprint_fieldname_conference">Conference</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_conference">Please enter the full name of the conference.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_confloc">Location</phrase>
-    <phrase ref="eprint_fieldhelp_confloc">Enter here where the conference took place.</phrase>
+    <ep:phrase ref="eprint_fieldname_confloc">Location</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_confloc">Enter here where the conference took place.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_department">Department</phrase>
-    <phrase ref="eprint_fieldhelp_department">Please enter the department from which the deposit originated.</phrase>
+    <ep:phrase ref="eprint_fieldname_department">Department</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_department">Please enter the department from which the deposit originated.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_editors">Editors</phrase>
-    <phrase ref="eprint_fieldhelp_editors">Please enter the names of the editors.</phrase>
-    <phrase ref="eprint_fieldname_editors_id">Person ID</phrase>
+    <ep:phrase ref="eprint_fieldname_editors">Editors</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_editors">Please enter the names of the editors.</ep:phrase>
+    <ep:phrase ref="eprint_fieldname_editors_id">Person ID</ep:phrase>
 
-    <phrase ref="eprint_fieldname_institution">Institution</phrase>
-    <phrase ref="eprint_fieldhelp_institution">Please enter the institution from which the deposit originated.</phrase>
+    <ep:phrase ref="eprint_fieldname_institution">Institution</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_institution">Please enter the institution from which the deposit originated.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_ispublished">Status</phrase>
-    <phrase ref="eprint_fieldhelp_ispublished">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</phrase>
-    <phrase ref="eprint_fieldopt_ispublished_unpub">Unpublished</phrase>
-    <phrase ref="eprint_fieldopt_ispublished_inpress">In Press</phrase>
-    <phrase ref="eprint_fieldopt_ispublished_pub">Published</phrase>
+    <ep:phrase ref="eprint_fieldname_ispublished">Status</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_ispublished">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_ispublished_unpub">Unpublished</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_ispublished_inpress">In Press</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_ispublished_pub">Published</ep:phrase>
 
-    <phrase ref="eprint_fieldname_keywords">Keywords</phrase>
-    <phrase ref="eprint_fieldhelp_keywords">Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.</phrase>
+    <ep:phrase ref="eprint_fieldname_keywords">Keywords</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_keywords">Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_month">Month</phrase>
-    <phrase ref="eprint_fieldhelp_month">Please enter the month in which your deposit was published.</phrase>
-    <phrase ref="eprint_fieldopt_month_jan">January</phrase>
-    <phrase ref="eprint_fieldopt_month_feb">February</phrase>
-    <phrase ref="eprint_fieldopt_month_mar">March</phrase>
-    <phrase ref="eprint_fieldopt_month_apr">April</phrase>
-    <phrase ref="eprint_fieldopt_month_may">May</phrase>
-    <phrase ref="eprint_fieldopt_month_jun">June</phrase>
-    <phrase ref="eprint_fieldopt_month_jul">July</phrase>
-    <phrase ref="eprint_fieldopt_month_aug">August</phrase>
-    <phrase ref="eprint_fieldopt_month_sep">September</phrase>
-    <phrase ref="eprint_fieldopt_month_oct">October</phrase>
-    <phrase ref="eprint_fieldopt_month_nov">November</phrase>
-    <phrase ref="eprint_fieldopt_month_dec">December</phrase>
+    <ep:phrase ref="eprint_fieldname_month">Month</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_month">Please enter the month in which your deposit was published.</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_jan">January</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_feb">February</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_mar">March</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_apr">April</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_may">May</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_jun">June</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_jul">July</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_aug">August</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_sep">September</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_oct">October</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_nov">November</ep:phrase>
+    <ep:phrase ref="eprint_fieldopt_month_dec">December</ep:phrase>
 
-    <phrase ref="eprint_fieldname_number">Number</phrase>
-    <phrase ref="eprint_fieldhelp_number">Enter the issue number of the journal in which your deposit appeared.</phrase>
+    <ep:phrase ref="eprint_fieldname_number">Number</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_number">Enter the issue number of the journal in which your deposit appeared.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_pages">Pages</phrase>
-    <phrase ref="eprint_fieldhelp_pages">Please enter the (inclusive) range of pages in which your paper appeared.</phrase>
+    <ep:phrase ref="eprint_fieldname_pages">Pages</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_pages">Please enter the (inclusive) range of pages in which your paper appeared.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_pubdom">Public Domain</phrase>
-    <phrase ref="eprint_fieldhelp_pubdom">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</phrase>
+    <ep:phrase ref="eprint_fieldname_pubdom">Public Domain</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_pubdom">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</ep:phrase>
+    <ep:phrase ref="eprint_radio_pubdom"><ep:pin ref="true" />Yes, it is public domain.<br /><ep:pin ref="false" />No.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_publication">Publication</phrase>
-    <phrase ref="eprint_fieldname_publication_id">ISSN Code</phrase>
-    <phrase ref="eprint_fieldhelp_publication">Please enter the full title of the publication your deposit appeared in.</phrase>
+    <ep:phrase ref="eprint_fieldname_publication">Publication</ep:phrase>
+    <ep:phrase ref="eprint_fieldname_publication_id">ISSN Code</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_publication">Please enter the full title of the publication your deposit appeared in.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_publisher">Publisher</phrase>
-    <phrase ref="eprint_fieldhelp_publisher">Please enter the name of the publisher.</phrase>
+    <ep:phrase ref="eprint_fieldname_publisher">Publisher</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_publisher">Please enter the name of the publisher.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_refereed">Refereed</phrase>
-    <phrase ref="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</phrase>
+    <ep:phrase ref="eprint_fieldname_refereed">Refereed</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_referencetext">References</phrase>
-    <phrase ref="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.</phrase>
+    <ep:phrase ref="eprint_fieldname_referencetext">References</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_reportno">Report no.</phrase>
-    <phrase ref="eprint_fieldhelp_reportno">Please enter the report number.</phrase>
+    <ep:phrase ref="eprint_fieldname_reportno">Report no.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_reportno">Please enter the report number.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_series">Series.</phrase>
-    <phrase ref="eprint_fieldhelp_series">The title of the series or set of books.</phrase>
+    <ep:phrase ref="eprint_fieldname_series">Series.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_series">The title of the series or set of books.</ep:phrase>
 
 
-    <phrase ref="eprint_fieldname_thesistype">Thesis Type</phrase>
-    <phrase ref="eprint_fieldhelp_thesistype">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</phrase>
+    <ep:phrase ref="eprint_fieldname_thesistype">Thesis Type</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_thesistype">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_title">Title</phrase>
-    <phrase ref="eprint_fieldname_title_id">ISBN Code</phrase>
-    <phrase ref="eprint_fieldhelp_title">Please enter the full title of the deposit.</phrase>
+    <ep:phrase ref="eprint_fieldname_title">Title</ep:phrase>
+    <ep:phrase ref="eprint_fieldname_title_id">ISBN Code</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_title">Please enter the full title of the deposit.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_volume">Volume</phrase>
-    <phrase ref="eprint_fieldhelp_volume">Enter the volume number of the journal in which your deposit appeared.</phrase>
+    <ep:phrase ref="eprint_fieldname_volume">Volume</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_volume">Enter the volume number of the journal in which your deposit appeared.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_year">Year</phrase>
-    <phrase ref="eprint_fieldhelp_year">Please enter the year in which your deposit was published or produced.</phrase>
+    <ep:phrase ref="eprint_fieldname_year">Year</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_year">Please enter the year in which your deposit was published or produced.</ep:phrase>
 
-    <phrase ref="eprint_fieldname_suggestions">Comments and Suggestions</phrase>
-    <phrase ref="eprint_fieldhelp_suggestions">Any comments to the editor (this information will not be displayed to the public). Suggestions for additional subject fields.</phrase>
+    <ep:phrase ref="eprint_fieldname_suggestions">Comments and Suggestions</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_suggestions">Any comments to the editor (this information will not be displayed to the public). Suggestions for additional subject fields.</ep:phrase>
 
 <!-- Eprint Type Names -->
 
-    <phrase ref="eprint_typename_book">Book</phrase>
-    <phrase ref="eprint_typename_bookchapter">Book Chapter</phrase>
-    <phrase ref="eprint_typename_proceedings">Conference Proceedings</phrase>
-    <phrase ref="eprint_typename_confpaper">Conference Paper</phrase>
-    <phrase ref="eprint_typename_confposter">Conference Poster</phrase>
-    <phrase ref="eprint_typename_incollection">In Collection</phrase>
-    <phrase ref="eprint_typename_techreport">Departmental Technical Report</phrase>
-    <phrase ref="eprint_typename_journale">Journal (On-line/Unpaginated)</phrase>
-    <phrase ref="eprint_typename_journalp">Journal (Paginated)</phrase>
-    <phrase ref="eprint_typename_newsarticle">Newspaper/Magazine Article</phrase>
-    <phrase ref="eprint_typename_other">Other</phrase>
-    <phrase ref="eprint_typename_preprint">Preprint</phrase>
-    <phrase ref="eprint_typename_thesis">Thesis</phrase>
+    <ep:phrase ref="eprint_typename_book">Book</ep:phrase>
+    <ep:phrase ref="eprint_typename_bookchapter">Book Chapter</ep:phrase>
+    <ep:phrase ref="eprint_typename_proceedings">Conference Proceedings</ep:phrase>
+    <ep:phrase ref="eprint_typename_confpaper">Conference Paper</ep:phrase>
+    <ep:phrase ref="eprint_typename_confposter">Conference Poster</ep:phrase>
+    <ep:phrase ref="eprint_typename_incollection">In Collection</ep:phrase>
+    <ep:phrase ref="eprint_typename_techreport">Departmental Technical Report</ep:phrase>
+    <ep:phrase ref="eprint_typename_journale">Journal (On-line/Unpaginated)</ep:phrase>
+    <ep:phrase ref="eprint_typename_journalp">Journal (Paginated)</ep:phrase>
+    <ep:phrase ref="eprint_typename_newsarticle">Newspaper/Magazine Article</ep:phrase>
+    <ep:phrase ref="eprint_typename_other">Other</ep:phrase>
+    <ep:phrase ref="eprint_typename_preprint">Preprint</ep:phrase>
+    <ep:phrase ref="eprint_typename_thesis">Thesis</ep:phrase>
 
 <!-- Upload Format Option Names -->
 
-    <phrase ref="format_fieldopt_arc_format_plain">File Upload</phrase>
-    <phrase ref="format_fieldopt_arc_format_graburl">Capture from URL</phrase>
-    <phrase ref="format_fieldopt_arc_format_zip">.ZIP Archive Upload</phrase>
-    <phrase ref="format_fieldopt_arc_format_targz">.tar.gz Archive Upload</phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_plain">File Upload</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_graburl">Capture from URL</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_zip">.ZIP Archive Upload</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_targz">.tar.gz Archive Upload</ep:phrase>
 
 <!-- Sort Order names -->
 
-    <phrase ref="ordername_eprint_byyear">by year (most recent first)</phrase>
-    <phrase ref="ordername_eprint_byyearoldest">by year (oldest first)</phrase>
-    <phrase ref="ordername_eprint_byname">by author's name</phrase>
-    <phrase ref="ordername_eprint_bytitle">by title</phrase>
+    <ep:phrase ref="ordername_eprint_byyear">by year (most recent first)</ep:phrase>
+    <ep:phrase ref="ordername_eprint_byyearoldest">by year (oldest first)</ep:phrase>
+    <ep:phrase ref="ordername_eprint_byname">by author's name</ep:phrase>
+    <ep:phrase ref="ordername_eprint_bytitle">by title</ep:phrase>
 
 <!-- Browse Views Names -->
 
-    <phrase ref="viewname_eprint_people">Person</phrase>
-    <phrase ref="viewname_eprint_year">Year</phrase>
-    <phrase ref="viewname_eprint_subjects">Subject</phrase>
+    <ep:phrase ref="viewname_eprint_people">Person</ep:phrase>
+    <ep:phrase ref="viewname_eprint_year">Year</ep:phrase>
+    <ep:phrase ref="viewname_eprint_subjects">Subject</ep:phrase>
 
 <!-- User Field Names -->
 
-    <phrase ref="user_fieldname_name">Name</phrase>
-    <phrase ref="user_fieldhelp_name"></phrase>
+    <ep:phrase ref="user_fieldname_name">Name</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_name"></ep:phrase>
 
-    <phrase ref="user_fieldname_os">Operating System</phrase>
-    <phrase ref="user_fieldhelp_os"></phrase>
-    <phrase ref="user_fieldopt_os_unspec">Unspecified</phrase>
-    <phrase ref="user_fieldopt_os_win9x">Windows/DOS</phrase>
-    <phrase ref="user_fieldopt_os_unix">UNIX</phrase>
-    <phrase ref="user_fieldopt_os_vms">VMS</phrase>
-    <phrase ref="user_fieldopt_os_mac">Macintosh</phrase>
-    <phrase ref="user_fieldopt_os_other">Other</phrase>
+    <ep:phrase ref="user_fieldname_os">Operating System</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_os"></ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_unspec">Unspecified</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_win9x">Windows/DOS</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_unix">UNIX</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_vms">VMS</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_mac">Macintosh</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_other">Other</ep:phrase>
 
-    <phrase ref="user_fieldname_dept">Department</phrase>
-    <phrase ref="user_fieldhelp_dept"></phrase>
+    <ep:phrase ref="user_fieldname_dept">Department</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_dept"></ep:phrase>
 
-    <phrase ref="user_fieldname_org">Organisation</phrase>
-    <phrase ref="user_fieldhelp_org"></phrase>
+    <ep:phrase ref="user_fieldname_org">Organisation</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_org"></ep:phrase>
 
-    <phrase ref="user_fieldname_address">Address</phrase>
-    <phrase ref="user_fieldhelp_address"></phrase>
+    <ep:phrase ref="user_fieldname_address">Address</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_address"></ep:phrase>
 
-    <phrase ref="user_fieldname_country">Country</phrase>
-    <phrase ref="user_fieldhelp_country"></phrase>
+    <ep:phrase ref="user_fieldname_country">Country</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_country"></ep:phrase>
 
-    <phrase ref="user_fieldname_url">Homepage URL</phrase>
-    <phrase ref="user_fieldhelp_url"></phrase>
+    <ep:phrase ref="user_fieldname_url">Homepage URL</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_url"></ep:phrase>
 
-    <phrase ref="user_fieldname_expertise">Expertise</phrase>
-    <phrase ref="user_fieldhelp_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</phrase>
+    <ep:phrase ref="user_fieldname_expertise">Expertise</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</ep:phrase>
 
-   <phrase ref="user_fieldname_username">Username</phrase>
-   <phrase ref="user_fieldhelp_username"></phrase>
+   <ep:phrase ref="user_fieldname_username">Username</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_username"></ep:phrase>
 
-   <phrase ref="user_fieldname_password">Password</phrase>
-   <phrase ref="user_fieldhelp_password">Leaving this field blank will not affect the password.</phrase>
+   <ep:phrase ref="user_fieldname_password">Password</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_password">Leaving this field blank will not affect the password.</ep:phrase>
 
-   <phrase ref="user_fieldname_usertype">User Type</phrase>
-   <phrase ref="user_fieldhelp_usertype"></phrase>
+   <ep:phrase ref="user_fieldname_usertype">User Type</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_usertype"></ep:phrase>
 
-   <phrase ref="user_fieldname_joined">Date User Account was Created</phrase>
-   <phrase ref="user_fieldhelp_joined"></phrase>
+   <ep:phrase ref="user_fieldname_joined">Date User Account was Created</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_joined"></ep:phrase>
 
-   <phrase ref="user_fieldname_filter">User's Editor "Filter"</phrase>
-   <phrase ref="user_fieldhelp_filter"></phrase>
+   <ep:phrase ref="user_fieldname_filter">User's Editor "Filter"</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_filter"></ep:phrase>
 
-   <phrase ref="user_fieldname_lang">Preferred Language</phrase>
-   <phrase ref="user_fieldhelp_lang">Your prefered language. Where possible information will be mailed in this language.</phrase>
+   <ep:phrase ref="user_fieldname_lang">Preferred Language</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_lang">Your prefered language. Where possible information will be mailed in this language.</ep:phrase>
 
-   <phrase ref="user_fieldname_hideemail">Hide Email</phrase>
-   <phrase ref="user_fieldhelp_hideemail">Select this item if you do not wish your email to be displayed on public pages. The EPrints administrators will still be able to see it.</phrase>
+   <ep:phrase ref="user_fieldname_hideemail">Hide Email</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_hideemail">Select this item if you do not wish your email to be displayed on public pages. The EPrints administrators will still be able to see it.</ep:phrase>
 
-   <phrase ref="user_fieldname_editorsubjects">Editor Subjects</phrase>
-   <phrase ref="user_fieldhelp_editorsubjects">The subjects within which this user may "edit" eprints. That is they may review and approve/bounce them etc.</phrase>
+   <ep:phrase ref="user_fieldname_editorsubjects">Editor Subjects</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_editorsubjects">The subjects within which this user may "edit" eprints. That is they may review and approve/bounce them etc.</ep:phrase>
 
 
-   <phrase ref="user_fieldhelp_email">The email address for this user</phrase>
-   <phrase ref="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</phrase>
+   <ep:phrase ref="user_fieldhelp_email">The email address for this user</ep:phrase>
+   <ep:phrase ref="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</ep:phrase>
 
-   <phrase ref="user_typename_user">User</phrase>
-   <phrase ref="user_typename_editor">Editor</phrase>
-   <phrase ref="user_typename_admin">EPrints Administrator</phrase>
+   <ep:phrase ref="user_typename_user">User</ep:phrase>
+   <ep:phrase ref="user_typename_editor">Editor</ep:phrase>
+   <ep:phrase ref="user_typename_admin">EPrints Administrator</ep:phrase>
 
-   <phrase ref="mail_sig">
+   <ep:phrase ref="mail_sig">
 <hr /><p>
 &archivename;<br />
 &frontpage;<br />
 &adminemail;
 </p>
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="mail_bounce_reason">
+    <ep:phrase ref="mail_bounce_reason">
 Unfortunately your eprint:
 
-<pin ref="title" />
+<ep:pin ref="title" />
 
 could not be accepted into &archivename; as-is.
 
 The eprint has been returned to your workspace. If you
 visit your item depositing page you will be able to
 edit your eprint, fix the problem and redeposit.
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="mail_delete_reason">
+    <ep:phrase ref="mail_delete_reason">
 Unfortunately your eprint:
 
-<pin ref="title" />
+<ep:pin ref="title" />
 
 could not be accepted into &archivename;.
 
 The eprint has been deleted.
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="deposit_agreement_text">
+    <ep:phrase ref="deposit_agreement_text">
 <p><strong>For work being deposited by its own author:</strong> 
 In self-archiving this collection of files and associated bibliographic 
 metadata, I grant &archivename; the right to store 
@@ -304,23 +306,23 @@ that distributing these files or metadata may entail.</p>
 
 <p>Clicking on the deposit button indicates your agreement to these 
 terms.</p>
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="page:fulltext">Full text available as:</phrase>
-    <phrase ref="page:abstract">Abstract</phrase>
-    <phrase ref="page:deposited_by">Deposited By</phrase>
-    <phrase ref="page:deposited_on">Deposited On</phrase>
-    <phrase ref="page:id_code">ID Code</phrase>
-    <phrase ref="page:invalid_user">INVALID USER</phrase>
-    <phrase ref="page:latest_version"><p><em>This is the latest version of this eprint.</em></p></phrase>
-    <phrase ref="page:not_latest_version"><p class="notice">There is a more recent version of this eprint available. <pin ref="link">Click here to view it.</pin></p></phrase>
-    <phrase ref="page:available_versions"><h3>Available Versions of this Item</h3></phrase>
-    <phrase ref="page:commentary_threads"><h3>Commentary/Response Threads</h3></phrase>
+    <ep:phrase ref="page:fulltext">Full text available as:</ep:phrase>
+    <ep:phrase ref="page:abstract">Abstract</ep:phrase>
+    <ep:phrase ref="page:deposited_by">Deposited By</ep:phrase>
+    <ep:phrase ref="page:deposited_on">Deposited On</ep:phrase>
+    <ep:phrase ref="page:id_code">ID Code</ep:phrase>
+    <ep:phrase ref="page:invalid_user">INVALID USER</ep:phrase>
+    <ep:phrase ref="page:latest_version"><p><em>This is the latest version of this eprint.</em></p></ep:phrase>
+    <ep:phrase ref="page:not_latest_version"><p class="notice">There is a more recent version of this eprint available. <ep:pin ref="link">Click here to view it.</ep:pin></p></ep:phrase>
+    <ep:phrase ref="page:available_versions"><h3>Available Versions of this Item</h3></ep:phrase>
+    <ep:phrase ref="page:commentary_threads"><h3>Commentary/Response Threads</h3></ep:phrase>
 
-    <phrase ref="validate:missing_http">The URL given for <pin ref="fieldname" /> is invalid. Did you include the initial <strong>http://</strong>?</phrase>
-    <phrase ref="validate:need_description">Documents of type <em><pin ref="type" /></em> need a description.</phrase>
+    <ep:phrase ref="validate:missing_http">The URL given for <ep:pin ref="fieldname" /> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
+    <ep:phrase ref="validate:need_description">Documents of type <em><ep:pin ref="type" /></em> need a description.</ep:phrase>
 
-    <phrase ref="mail_password_pin">
+    <ep:phrase ref="mail_password_pin">
 
 <p>Dear User,</p>
 
@@ -328,7 +330,7 @@ terms.</p>
 
 <p>You now need to activate your new password, using the following URL:</p>
 
-<p><pin ref="confirmurl" /></p>
+<p><ep:pin ref="confirmurl" /></p>
 
 <p>Once you have confirmed your identity you may also subscribe to the E-Mail subscription service, to be automatically informed of new deposits in the archive in your chosen subject areas in a daily, weekly or monthly digest.</p>
 
@@ -349,14 +351,14 @@ the following Web address:</p>
 <p>Have your username and password ready when visiting any of the above pages.</p> <p>This message was generated automatically by software. If you have any questions, then please feel free to E-mail a real person at:</p>
 
 <p>&adminemail;</p>
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="site_description">
+    <ep:phrase ref="site_description">
 Your site Description goes here. (edit this text in the archive-phrases file(s).
-    </phrase>
+    </ep:phrase>
 
-    <phrase ref="subject_fieldname_name">Subject Name</phrase>
-    <phrase ref="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</phrase>
+    <ep:phrase ref="subject_fieldname_name">Subject Name</ep:phrase>
+    <ep:phrase ref="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</ep:phrase>
 
 
-</phrases>
+</ep:phrases>

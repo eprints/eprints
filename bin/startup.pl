@@ -1,5 +1,4 @@
 use lib '/opt/eprints/perl_lib';
-use strict;
 
 ######################################################################
 #
@@ -24,6 +23,8 @@ print STDERR "EPRINTS: Loading Core Modules\n";
 use Apache::DBI;
 #$Apache::DBI::DEBUG = 3;
 use Apache::Registry;          
+
+use XML::DOM;
 
 use EPrints::Utils;
 use EPrints::Config;
@@ -52,6 +53,8 @@ use EPrints::UserForm;
 use EPrints::User;
 use EPrints::UserPage;
 use EPrints::VLit;
+
+use strict;
 
 print STDERR "EPRINTS: Core Modules Loaded\n";
 

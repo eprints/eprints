@@ -7,7 +7,7 @@
 -->
 
 <ep:citations
-        xmlns="http://www.w3.org/HTML/1998/html4"
+        xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ep="http://eprints.org/ep2/citations">
 <!-- test citations -->
     <ep:citation type="eprint_misc"><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.<ep:iflink> [<ep:a>view</ep:a>]</ep:iflink></span></ep:citation>

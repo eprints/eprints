@@ -63,7 +63,6 @@ __GENERICPOD__
 
 
 use EPrints::Config;
-use EPrints::DOM;
 use EPrints::Database;
 use EPrints::Utils;
 
@@ -421,7 +420,7 @@ END
 # Write XML Config FIle
 #
 
-my $doc = new EPrints::DOM::Document();
+my $doc = new XML::DOM::Document();
 my $doctype = $doc->createDocumentType( "archive" );
 $doc->setDoctype( $doctype );
 

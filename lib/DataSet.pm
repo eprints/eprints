@@ -528,4 +528,11 @@ sub map
 	}
 	return scalar @records;
 }
+
+sub get_archive
+{
+	my( $self ) = @_;
+	
+	return $self->{archive};
+}
 1;

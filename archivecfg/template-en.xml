@@ -2,7 +2,7 @@
 <!DOCTYPE html SYSTEM "entities-en.dtd" > 
 
 <html
-        xmlns="http://www.w3.org/HTML/1998/html4"
+        xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ep="http://eprints.org/ep2/template">
   <head>
     <title><ep:titlehere/></title>

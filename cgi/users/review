@@ -223,7 +223,7 @@ sub removal_request_form
 		confid=>'remove_request',
 		name=>'reason',
 		type=>'longtext',
-		displaylines=>15 );
+		input_rows=>15 );
 
 	$page->appendChild(
 		$session->render_input_form(

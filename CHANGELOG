@@ -38,18 +38,18 @@ XML element containing some text eg. (4,"key","value") ...
 right place).
  - fixed bug in the ordervalues table which only showed when the archive had
 more than one supported language.
-[CONFIG] - added make_metadata_oai_dc
-[CONFIG] - XML config files for citation, ruler and phrases now use namespaces 
+[C] - added make_metadata_oai_dc
+[C] - XML config files for citation, ruler and phrases now use namespaces 
 so that EPrints tags can be prefixed with "ep:" but XHTML tags remain the 
 same. Which should make them clearer.
-[CONFIG] - Added oai_metadata_functions to ArchiveConfig.pm 
-[CONFIG] - renamed oai_metadata_formats to oai_metadata_namespaces
-[CONFIG] - added "enable_vlit_support" config option, so you can disable it!
-[CONFIG] - Added new options to browse views: noindex, nohtml, include, plain, 
+[C] - Added oai_metadata_functions to ArchiveConfig.pm 
+[C] - renamed oai_metadata_formats to oai_metadata_namespaces
+[C] - added "enable_vlit_support" config option, so you can disable it!
+[C] - Added new options to browse views: noindex, nohtml, include, plain, 
 citation
-[CONFIG] - changed citations to contain SPAN class="citation" rather than do 
+[C] - changed citations to contain SPAN class="citation" rather than do 
 it in code. and to contain <ep:a> </ep:a> to show where to put the link.
-[CONFIG] - added oai_sets config option, same format as browse views. 
+[C] - added oai_sets config option, same format as browse views. 
 
 23/01/2002
  - generate_apacheconf now (optionally) includes directives to pass .txt and
@@ -72,5 +72,34 @@ into a PNG and also a method which renders a string as DOM but replaces
 bits which look like latex with <img>s which point to cgi/latex2png 
  - added cgi/latex2png which uses Latex.pm to create an image from a latex 
 string and serve it. (uses a cache dir so each one only has to be done once)
-[CONFIG] - added "enable_vlit_support" to the ApacheConfig.pm file. If set to
-zero then the VLit handler is not turned on.
+
+25/01/2002
+
+ - corrected the namespace in the XML files for XHTML1.
+ - removed DOM.pm - going back to using normal one, not our hacked
+one.
+ - added a get_archive() method to DataSet.pm
+ - MetaField: TYPE_SQL and TYPE_INDEX constants are removed and the
+results generated directly from the subs which used them. This allows
+different values for each archive (eg. for VARCHAR sizes)
+ - MetaField: PROPERTIES is now just a list of properties. A value of
+-1 means there is no default.
+ - get_property_default returns what PROPERTIES used to contain. Allows
+archive specific field property defaults.
+ - the input field renderer routines now use the properties:
+input_rows input_cols input_name_cols input_id_cols input_add_boxes
+input_boxes input_style (and digits) to decide size and height and stuff
+ - removed HTMLRenderer
+ - booleans now can render as menus, radio buttons OR a checkbox 
+ - plain text fields can have textareas as their input field.
+ - phrase files now have namespaces for ep:foo like other XML files with
+XHTML in.
+[C] - added varchar_size option to set how big the SQL fields are.
+[C] - added FIELD PROPERTY DEFAULTS SECTION WITH the fields:
+input_rows input_cols input_name_cols input_id_cols input_add_boxes
+input_boxes digits
+[C] - fixed BUG in default field validator - now handles multiple
+URL fields.
+[C] - displaylines renamed to input_rows
+
+

@@ -48,87 +48,48 @@ use EPrints::Database;
 
 use strict;
 #CJG Option for Boolean to be a menu or radio buttons?
+
 # Months
 my @monthkeys = ( 
 	"00", "01", "02", "03", "04", "05", "06",
 	"07", "08", "09", "10", "11", "12" );
 
-my $VARCHAR_SIZE = 255;
-
-# These '255'... Maybe make them bigger due to UTF-8
-# UTF-8 chars max 3 times normal (for unicode)
-
-# ID and LANGID are for internal use only!
-
-my %TYPE_SQL =
-(
- 	int        => "\$(name) INTEGER \$(param)",
- 	date       => "\$(name) DATE \$(param)",
- 	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
- 	set        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	text       => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	secret     => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	longtext   => "\$(name) TEXT \$(param)",
- 	url        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	email      => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	subject    => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	pagerange  => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	year       => "\$(name) INTEGER \$(param)",
- 	datatype   => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	langid	   => "\$(name) CHAR(16) \$(param)",
-	id         => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	name       => "\$(name)_honourific VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_given VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_family VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_lineage VARCHAR($VARCHAR_SIZE) \$(param)"
- );
- 
-# Map of INDEXs required if a user wishes a field indexed.
-my %TYPE_INDEX =
-(
- 	int        => "INDEX(\$(name))",
- 	date       => "INDEX(\$(name))",
-	boolean    => "INDEX(\$(name))",
- 	set        => "INDEX(\$(name))",
- 	text       => "INDEX(\$(name))",
- 	longtext   => undef,
- 	secret     => undef,
- 	url        => "INDEX(\$(name))",
- 	email      => "INDEX(\$(name))",
- 	subject    => "INDEX(\$(name))",
- 	pagerange  => "INDEX(\$(name))",
- 	year       => "INDEX(\$(name))",
- 	datatype   => "INDEX(\$(name))",
- 	langid	   => "INDEX(\$(name))",
- 	id	   => "INDEX(\$(name))",
- 	name       => "INDEX(\$(name)_honourific), INDEX(\$(name)_given), INDEX(\$(name)_family), INDEX(\$(name)_lineage)"
-);
 
 # list of legal properties used to check
 # get & set property.
 
-#cjg MAYBE this could be the defaults? not just =>1
+# a setting of -1 means that this property must be set
+# explicitly and does not therefore have a default
 
-my $PROPERTIES = {
-	confid => "UNDEF",
-	datasetid => "NO_DEFAULT",
-	digits => 20,
-	displaylines => 12,
-	fromform => "UNDEF",
-	toform => "UNDEF",
-	maxlength => $VARCHAR_SIZE,
-	hasid => 0,
-	multilang => 0,
-	multiple => 0,
-	name => "NO_DEFAULT",
-	options => "NO_DEFAULT",
-	required => 0,
-	requiredlangs => [],
-	showall => 0, 
-	showtop => 0, 
-	idpart => 0,
-	mainpart => 0,
-	render_single_value => "UNDEF",
-	render_value => "UNDEF",
-	top => "subjects", #cjg is this right?
-	type => "NO_DEFAULT"
+my $PROPERTIES = 
+{
+	datasetid => -1,
+	digits => 1,
+	input_rows => 1,
+	input_cols => 1,
+	input_name_cols => 1,
+	input_id_cols => 1,
+	input_add_boxes => 1,
+	input_boxes => 1,
+	input_style => 1,
+	fromform => 1,
+	toform => 1,
+	maxlength => 1,
+	hasid => 1,
+	multilang => 1,
+	multiple => 1,
+	name => -1,
+	options => -1,
+	required => 1,
+	requiredlangs => 1,
+	showall => 1,
+	showtop => 1,
+	idpart => 1,
+	mainpart => 1,
+	render_single_value => 1,
+	render_value => 1,
+	top => 1,
+	type => -1
 };
 
 ######################################################################
@@ -141,7 +102,7 @@ my $PROPERTIES = {
 # required # default = no
 # multiple # default = no
 # 
-# displaylines   # for longtext and set (int)   # default = 5
+# input_rows   # for longtext and set (int)   # default = 5
 # digits  # for int  (int)   # default = 20
 # options # for set (array)   **required if type**
 # maxlength # for text (maybe url & email?)
@@ -161,74 +122,28 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-	#if( $_[1] =~ m/[01]:[01]:[01]/ ) { print STDERR "---\n".join("\n",caller())."\n"; die "WRONG KIND OF CALL TO NEW METAFIELD: $_[1]"; } #cjg to debug
-
-	$self->set_property( "name", $properties{name} );
-	$self->set_property( "type", $properties{type} );
-	$self->set_property( "required", $properties{required} );
-	$self->set_property( "multiple", $properties{multiple} );
-
-	$self->set_property( "fromform", $properties{fromform} );
-	$self->set_property( "toform", $properties{toform} );
-	$self->set_property( "render_single_value", $properties{render_single_value} );
-	$self->set_property( "render_value", $properties{render_value} );
-
 	$self->{confid} = $properties{confid};
 
 	if( defined $properties{dataset} ) { 
 		$self->{confid} = $properties{dataset}->confid(); 
 		$self->{dataset} = $properties{dataset};
 	}
-
-	if( $self->is_type( "longtext", "set", "subject", "datatype" ) )
-	{
-		$self->set_property( "displaylines", $properties{displaylines} );
-	}
-
-	if( $self->is_type( "text","longtext","name" ) )
-	{
-		$self->set_property( "multilang", $properties{multilang} );
-	}
-	if( $self->is_type( "int" ) )
-	{
-		$self->set_property( "digits", $properties{digits} );
-	}
-
-	if( $self->is_type( "subject" ) )
-	{
-		$self->set_property( "showall" , $properties{showall} );
-		$self->set_property( "showtop" , $properties{showtop} );
-		$self->set_property( "top" , $properties{top} );
-	}
-
+	$self->set_property( "name", $properties{name} );
+	$self->set_property( "type", $properties{type} );
 	if( $self->is_type( "datatype" ) )
 	{
 		$self->set_property( "datasetid" , $properties{datasetid} );
-	}
-
-	if( $self->is_type( "text" , "secret" ) )
-	{
-		$self->set_property( "maxlength" , $properties{maxlength} );
 	}
 
 	if( $self->is_type( "set" ) )
 	{
 		$self->set_property( "options" , $properties{options} );
 	}
-
-	if( $self->is_type( "text", "name" ) )
+	my $p;
+	foreach $p ( keys %{$PROPERTIES} )
 	{
-		$self->set_property( "hasid" , $properties{hasid} );
-		$self->set_property( "mainpart" , $properties{mainpart} );
-	}
-	if( $self->is_type( "id" ) )
-	{
-		$self->set_property( "idpart" , $properties{idpart} );
-	}
-
-	if( $self->get_property( "multilang" ) )
-	{
-		$self->set_property( "requiredlangs", $properties{requiredlangs} );
+		next unless( $PROPERTIES->{$p} == 1 );
+		$self->set_property( $p, $properties{$p} );
 	}
 
 	return( $self );
@@ -349,46 +264,77 @@ sub get_sql_type
 {
         my( $self , $notnull ) = @_;
 
-	my $type = $TYPE_SQL{$self->{type}};
 	my $sqlname = $self->get_sql_name();
-	$type =~ s/\$\(name\)/$sqlname/g;
-	if( $notnull )
+	my $param = "";
+	$param = "NOT NULL" if( $notnull );
+
+	if( $self->is_type( "int", "year" ) )
 	{
-		$type =~ s/\$\(param\)/NOT NULL/g;
-	}
-	else
-	{
-		$type =~ s/\$\(param\)//g;
+ 		return $sqlname.' INTEGER '.$param;
 	}
 
-	return $type;
+	if( $self->is_type( "langid" ) )
+	{
+ 		return $sqlname.' CHAR(16) '.$param;
+	}
+
+	if( $self->is_type( "longtext" ) )
+	{
+ 		return $sqlname.' TEXT '.$param;
+	}
+
+	if( $self->is_type( "date" ) )
+	{
+ 		return $sqlname.' DATE '.$param;
+	}
+
+	if( $self->is_type( "boolean" ) )
+	{
+ 		return $sqlname." SET('TRUE','FALSE') ".$param;
+	}
+
+	my $varchar_size = $self->get_dataset()->get_archive()->get_conf( "varchar_size" );
+
+	if( $self->is_type( "name" ) )
+	{
+		return $sqlname."_honourific VARCHAR($varchar_size) ".$param.", ".
+			$sqlname."_given VARCHAR($varchar_size) ".$param.", ".
+			$sqlname."_family VARCHAR($varchar_size) ".$param.", ".
+			$sqlname."_lineage VARCHAR($varchar_size) ".$param;
+	}
+
+	# all others: set, text, secret, url, email, subject, pagerange, datatype, id
+
+	# This is not very effecient, but diskspace is cheap, right?
+
+	return $sqlname." VARCHAR($varchar_size) ".$param;
 }
 
-## WP1: BAD
 sub get_sql_index
 {
         my( $self ) = @_;
 
-	my $index = $TYPE_INDEX{$self->{type}};
-	
-	if( defined $index )
+	if( $self->is_type( "longtext", "secret" ) )
 	{
-		my $sqlname = $self->get_sql_name();
-		$index =~ s/\$\(name\)/$sqlname/g;
+		return undef;
 	}
 
-	return $index;
-}
-
+	my $sqlname = $self->get_sql_name();
 	
-## WP1: BAD
+	if( $self->is_type( "name" ) )
+	{
+		return "INDEX( ".$sqlname."_given), INDEX( ".$sqlname."_family)";
+	}
+
+	return "INDEX( ".$sqlname.")";
+}
+	
 sub get_name
 {
 	my( $self ) = @_;
 	return $self->{name};
 }
 
-## WP1: BAD
 sub get_type
 {
 	my( $self ) = @_;
@@ -399,21 +345,17 @@ sub set_property
 {
 	my( $self , $property , $value ) = @_;
 
-	if( !defined $PROPERTIES->{$property})
+	if( !defined $PROPERTIES->{$property} )
 	{
 		die "BAD METAFIELD set_property NAME: \"$property\"";
 	}
 	if( !defined $value )
 	{
-		if( $PROPERTIES->{$property} eq "NO_DEFAULT" )
+		if( $PROPERTIES->{$property} == -1 )
 		{
 			EPrints::Config::abort( $property." on a metafield can't be undef" );
 		}
-		$self->{$property} = $PROPERTIES->{$property};
-		if( $self->{$property} eq "UNDEF" )
-		{
-			$self->{$property} = undef;
-		}
+		$self->{$property} = $self->get_property_default( $property );
 	}
 	else
 	{
@@ -433,7 +375,6 @@ sub get_property
 	return( $self->{$property} ); 
 } 
 
-## WP1: BAD
 sub is_type
 {
 	my( $self , @typenames ) = @_;
@@ -445,7 +386,6 @@ sub is_type
 	return 0;
 }
 
-## WP1: BAD
 sub is_text_indexable
 {
 	my( $self ) = @_;
@@ -686,7 +626,6 @@ sub _render_value3
 }
 
 
-## WP1: BAD
 sub render_input_field
 {
 	my( $self, $session, $value ) = @_;
@@ -723,8 +662,7 @@ sub render_input_field
 			$settings{default} = $value; 
 		}
 
-		$settings{height} = $self->{displaylines};
-#print STDERR "HEIGHT: $settings{height}\n";
+		$settings{height} = $self->{input_rows};
 		if( $settings{height} ne "ALL" && $settings{height} == 0 )
 		{
 			$settings{height} = undef;
@@ -769,7 +707,7 @@ sub render_input_field
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my $boxcount = 3;
+		my $boxcount = $self->{input_boxes};
 		my $spacesid = $self->{name}."_spaces";
 
 		if( $session->internal_button_pressed() )
@@ -777,7 +715,7 @@ sub render_input_field
 			$boxcount = $session->param( $spacesid );
 			if( $session->internal_button_pressed( $self->{name}."_morespaces" ) )
 			{
-				$boxcount += 2;
+				$boxcount += $self->{input_add_boxes};
 			}
 		}
 	
@@ -830,7 +768,7 @@ sub _render_input_field_aux
 		$value = $value->{main};
 	}
 	my( $boxcount, $spacesid, $buttonid, $rows );
-#print STDERR "AUX: ".$self->{name}."\n";
+
 	if( $self->get_property( "multilang" ) )
 	{
 		$boxcount = 1;
@@ -846,7 +784,7 @@ sub _render_input_field_aux
 			}
 			if( $session->internal_button_pressed( $buttonid ) )
 			{
-				$boxcount += 2;
+				$boxcount += $self->{input_add_boxes};
 			}
 		}
 		
@@ -878,11 +816,6 @@ sub _render_input_field_aux
 				delete( $langstodo{$langid} );
 			}
 			
-#print STDERR "****************".$suffix."_".$i."\n";
-#use Data::Dumper;
-#print STDERR Dumper( $langid, $value, $value->{$langid} );
-#print STDERR "************\n";
-
 			my $langparamid = $self->{name}.$suffix."_".$i."_lang";
 			my $langbit;
 			if( $forced )
@@ -904,7 +837,9 @@ sub _render_input_field_aux
 					default => $langid,
 					labels => \%langlabels );
 			}
-			$langbit->appendChild( $session->make_text( " (LANGID:$langid)") );
+			
+			## $langbit->appendChild( $session->make_text( " (LANGID:$langid)") );
+
 			my $aux2;
 			if( $self->get_property( "hasid" ) )	
 			{
@@ -933,10 +868,6 @@ sub _render_input_field_aux
 				$rows->appendChild( $div );
 			}
 			
-#print STDERR "****************".$suffix."_".$i."\n";
-#use Data::Dumper;
-#print STDERR Dumper( $langid, $value, $value->{$langid} );
-#print STDERR "************\n\n";
 			++$i;
 		}
 				
@@ -957,7 +888,6 @@ sub _render_input_field_aux
 		if( $self->get_property( "hasid" ) )	
 		{
 			$aux2 = $self->get_main_field()->_render_input_field_aux2( $session, $value, $suffix );
-print SDTERR "ZOOKl\n";
 		}
 		else
 		{
@@ -1015,6 +945,7 @@ print SDTERR "ZOOKl\n";
 		$block->appendChild( $session->render_internal_buttons(
 			$buttonid => $session->phrase( "lib/metafield:more_langs" ) ) );
 	}
+
 	if( $self->get_property( "hasid" ) )
 	{
 		my $div;
@@ -1029,7 +960,7 @@ print SDTERR "ZOOKl\n";
 			"accept-charset" => "utf-8",
 			name => $self->{name}.$suffix."_id",
 			value => $idvalue,
-			size => 40 ) );
+			size => $self->{input_id_cols} ) );
 		$block->appendChild( $div );
 	}
 	
@@ -1039,14 +970,27 @@ print SDTERR "ZOOKl\n";
 sub _render_input_field_aux2
 {
 	my( $self, $session, $value, $suffix ) = @_;
-#print STDERR "$suffix ... val($value)\n";
 
-
-	# These DO NOT belong here. cjg.
-	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, $VARCHAR_SIZE );
 # not return DIVs? cjg (currently some types do some don't)
+
 	my $frag = $session->make_doc_fragment();
-	if( $self->is_type( "text", "url", "int", "email", "year","secret" ) )
+	if( $self->is_type( "longtext" ) || $self->{input_style} eq "textarea" )
+	{
+		my( $div , $textarea , $id );
+ 		$id = $self->{name}.$suffix;
+		$div = $session->make_element( "div" );	
+		$textarea = $session->make_element(
+			"textarea",
+			name => $id,
+			rows => $self->{input_rows},
+			cols => $self->{input_cols},
+			wrap => "virtual" );
+		$textarea->appendChild( $session->make_text( $value ) );
+		$div->appendChild( $textarea );
+		
+		$frag->appendChild( $div );
+	}
+	elsif( $self->is_type( "text", "url", "int", "email", "year","secret" ) )
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$suffix;
@@ -1065,13 +1009,11 @@ sub _render_input_field_aux2
 		}
 		else
 		{
-			$maxlength = ( defined $self->{maxlength} ? 
-					$self->{maxlength} : 
-					$INPUT_MAX );
+			$maxlength = $self->{maxlength};
 		}
 
-		$size = ( $maxlength > $FORM_WIDTH ?
-					$FORM_WIDTH : 
+		$size = ( $maxlength > $self->{input_cols} ?
+					$self->{input_cols} : 
 					$maxlength );
 
 		$frag->appendChild( $session->make_element(
@@ -1083,38 +1025,64 @@ sub _render_input_field_aux2
 			size => $size,
 			maxlength => $maxlength ) );
 	}
-	elsif( $self->is_type( "longtext" ) )
-	{
-		my( $div , $textarea , $id );
- 		$id = $self->{name}.$suffix;
-		$div = $session->make_element( "div" );	
-		$textarea = $session->make_element(
-			"textarea",
-			name => $id,
-			rows => $self->{displaylines},
-			cols => $FORM_WIDTH,
-			wrap => "virtual" );
-		$textarea->appendChild( $session->make_text( $value ) );
-		$div->appendChild( $textarea );
-		
-		$frag->appendChild( $div );
-	}
 	elsif( $self->is_type( "boolean" ) )
 	{
 		#cjg OTHER METHOD THAN CHECKBOX? TRUE/FALSE MENU?
 		my( $div , $id);
  		$id = $self->{name}.$suffix;
+		
 
 		$div = $session->make_element( "div" );	
-		$div->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
-			type => "checkbox",
-			checked=>( defined $value && $value eq 
-					"TRUE" ? "checked" : undef ),
-			name => $id,
-			value => "TRUE" ) );
-		# No more button for boolean. That would be silly.
+		if( $self->{input_style} eq "menu" )
+		{
+			my %settings = (
+				height=>2,
+				values=>[ "TRUE", "FALSE" ],
+				labels=>{
+					TRUE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
+					FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
+				},
+				name=>$id,
+				default=>$value
+			);
+			$div->appendChild( $session->render_option_list( %settings ) );
+		}
+		elsif( $self->{input_style} eq "radio" )
+		{
+			# render as radio buttons
+
+			my $true = $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				type => "radio",
+				checked=>( defined $value && $value eq 
+						"TRUE" ? "checked" : undef ),
+				name => $id,
+				value => "TRUE" );
+			my $false = $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				type => "radio",
+				checked=>( defined $value && $value ne 
+						"TRUE" ? "checked" : undef ),
+				name => $id,
+				value => "FALSE" );
+			$div->appendChild( $session->html_phrase(
+				$self->{confid}."_radio_".$self->{name},
+				true=>$true,
+				false=>$false ) );
+		}
+		else
+		{
+			$div->appendChild( $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				type => "checkbox",
+				checked=>( defined $value && $value eq 
+						"TRUE" ? "checked" : undef ),
+				name => $id,
+				value => "TRUE" ) );
+		}
 		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "name" ) )
@@ -1133,15 +1101,7 @@ sub _render_input_field_aux2
 	
 		foreach( @namebits )
 		{
-			my $size;
-			if( $_ eq "given" || $_ eq "family" )
-			{
-				$size = int( $FORM_WIDTH / 2 );
-			}
-			else
-			{
-				$size = int( $FORM_WIDTH / 4 );
-			}
+			my $size = $self->{input_name_cols}->{$_};
 			$td = $session->make_element( "td" );
 			$frag->appendChild( $td );
 			$td->appendChild( $session->make_element(
@@ -1150,7 +1110,7 @@ sub _render_input_field_aux2
 				name => $self->{name}.$suffix."_".$_,
 				value => $value->{$_},
 				size => $size,
-				maxlength => $INPUT_MAX ) );
+				maxlength => $self->{maxlength} ) );
 		}
 
 	}
@@ -1385,6 +1345,10 @@ sub _form_value_aux2
 	{
 		my $value = $session->param( $self->{name}.$suffix );
 		return undef if( $value eq "" );
+		if( !$self->is_type( "longtext" ) && $self->{input_style} eq "textarea" )
+		{
+			$value=~s/[\n\r]+/ /gs;
+		}
 		return $value;
 	}
 	elsif( $self->is_type( "pagerange" ) )
@@ -1707,6 +1671,56 @@ sub ordervalue_aux3
 	}
 	return $value;
 }
+
+
+sub get_property_default
+{
+	my( $self, $property ) = @_;
+
+	my $archive = $self->get_dataset()->get_archive();
+
+	foreach( 
+		"digits", 
+		"input_rows", 
+		"input_cols", 
+		"input_name_cols",
+		"input_id_cols",
+		"input_add_boxes", 
+		"input_boxes" )
+	{
+		if( $property eq $_ )
+		{
+			return $archive->get_conf( "field_defaults" )->{$_};
+		}
+	}	
+
+	if( $property eq "maxlength" )
+	{
+		return $archive->get_conf( "varchar_size" );
+	}
+
+	return [] if( $property eq "requiredlangs" );
+
+	return 0 if( $property eq "input_style" );
+	return 0 if( $property eq "hasid" );
+	return 0 if( $property eq "multiple" );
+	return 0 if( $property eq "multilang" );
+	return 0 if( $property eq "required" );
+	return 0 if( $property eq "showall" );
+	return 0 if( $property eq "showtop" );
+	return 0 if( $property eq "idpart" );
+	return 0 if( $property eq "mainpart" );
+
+	return "subjects" if( $property eq "top" );
+
+	return undef if( $property eq "confid" );
+	return undef if( $property eq "fromform" );
+	return undef if( $property eq "toform" );
+	return undef if( $property eq "render_single_value" );
+	return undef if( $property eq "render_value" );
+
+	EPrints::Config::abort( "Unknown property in get_property_default: $property" );
+};
 
 		
 1;

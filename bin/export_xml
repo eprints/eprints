@@ -38,7 +38,7 @@ my $sexp = EPrints::SearchExpression->new(
 		dataset => $ds , 
 		session => $session );
 $sexp->perform_search();
-my $info = { doc => new EPrints::DOM::Document() };
+my $info = { doc => XML::DOM::Document->new() };
 print '<table name="subject">'."\n";
 $sexp->map( \&deal, $info );
 print '</table>'."\n";

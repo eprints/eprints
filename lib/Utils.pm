@@ -18,8 +18,8 @@ package EPrints::Utils;
 use strict;
 use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
-use EPrints::DOM;
 use File::Path;
+use XML::DOM;
 
 my $DF_AVAILABLE;
 

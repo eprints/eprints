@@ -19,7 +19,6 @@ package EPrints::EPrint;
 use EPrints::DataObj;
 
 use EPrints::Database;
-use EPrints::DOM;
 use EPrints::Document;
 
 use File::Path;
@@ -52,7 +51,7 @@ sub get_system_field_info
 	{ name=>"datestamp", type=>"date", required=>0 },
 
 	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, 
-		displaylines=>"ALL" },
+		input_rows=>"ALL" },
 
 	{ name=>"succeeds", type=>"text", required=>0 },
 

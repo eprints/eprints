@@ -21,10 +21,10 @@
 package EPrints::Config;
 use EPrints::Utils;
 use EPrints::SystemSettings;
-use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);
 
 use Data::Dumper;
+use XML::DOM;
 
 
 BEGIN {
@@ -233,7 +233,7 @@ sub parse_xml
 
 	foreach( keys %config ) { $c{$_}=$config{$_}; }
 
-	my $parser = EPrints::DOM::Parser->new( %c );
+	my $parser = XML::DOM::Parser->new( %c );
 
 	unless( open( XML, $file ) )
 	{

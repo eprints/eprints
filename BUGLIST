@@ -17,6 +17,11 @@ General
 - passwords set via the web are not crypted until they are accepted.
 (No loss of security from eprints-1 but annoying)
 
+- Latex image cache will break if image tex has more than 127 chars
+due to filename limit of 255 chars.
+
+- OAI fails to flag deleted records as deleted!
+
 ----------------------------------------------------------------------
 Rendering
 ----------------------------------------------------------------------
@@ -76,6 +81,11 @@ EPrints Submission Form
 - the final page of submission should indicate that the first block is
    the "abstract page" and the second block is a dump of all fields.
 
+- weird bug with multiple languages that they move the values around when
+   you hit "more languages". Possily due to bad "squash up" code.
+
+- no way to unselect a month (set) when it's not multiple. OK for required
+   fields but bad otherwise.
 
 ----------------------------------------------------------------------
 Installation
