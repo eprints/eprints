@@ -19,7 +19,7 @@ use EPrints::Session;
 use EPrints::Name;
 
 use strict;
-
+use diagnostics;
 
 
 ######################################################################
@@ -57,7 +57,7 @@ sub eprint_short_title
 sub eprint_render_full
 {
 	my( $class, $eprint ) = @_;
-	
+
 	my $html = "<P><TABLE BORDER=0>\n";
 	
 	my @fields = EPrints::MetaInfo->get_eprint_fields( $eprint->{type} );
@@ -70,7 +70,7 @@ sub eprint_render_full
 			$html .= "<TR><TD><STRONG>$field->{displayname}</STRONG></TD><TD>";
 			$html .= $eprint->{session}->{render}->format_field(
 				$field,
-				$eprint->{$field->{name}} );
+				$eprint->{$field->{name}} ) if( defined $eprint->{$field->{name}} );
 			$html .= "</TD></TR>\n";
 		}
 	}
