@@ -109,7 +109,6 @@ sub new
 	
 	# Create an HTML renderer object
 	$self->{render} = EPrints::HTMLRender->new( $self, $offline, $self->{query} );
-
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
 	

@@ -248,17 +248,17 @@ sub find_field
 
 ######################################################################
 #
-# $field = find_eprint_field( $field_name )
+# $field = find_table_field( $tableid, $field_name )
 #
-#  Find a specific eprint field
+#  Find a specific table field
 #
 ######################################################################
 
-sub find_eprint_field
+sub find_table_field
 {
-	my( $self , $field_name ) = @_;
+	my( $self , $tableid,  $field_name ) = @_;
 	
-	return( find_field( $self->{eprint_meta_fields}, $field_name ) );
+	return( find_field( $self->{$tableid}->{fields}, $field_name ) );
 }
 
 ######################################################################

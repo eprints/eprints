@@ -28,7 +28,7 @@ use strict;
 ######################################################################
 #
 # $exp = new( $session,
-#             $table,
+#             $tableid,
 #             $allow_blank,
 #             $satisfy_all,
 #             $fields,
@@ -74,7 +74,7 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-
+print STDERR "SE:[$tableid]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$allow_blank = 0 if ( !defined $allow_blank );
@@ -143,7 +143,7 @@ sub add_field
 
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
-	                                            $self->{tableid},					
+	                                            $self->{tableid},
 	                                            $field,
 	                                            $value );
 

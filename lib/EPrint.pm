@@ -1287,7 +1287,7 @@ sub generate_static
 {
 	my( $self ) = @_;
 	
-	my $offline_renderer = new EPrints::HTMLRender( $self->{session}, 1 );
+	my $offline_renderer = new EPrints::HTMLRender( $self->{session}, 1 , new CGI( {} ));
 	
 	my $ok = open OUT, ">".$self->static_page_local();
 

@@ -55,7 +55,7 @@ use strict;
 
 ######################################################################
 #
-# $field = new( $session, $table, $field, $value )
+# $field = new( $session, $tableid, $field, $value )
 #
 #  Create a new search field for the metadata field $field. $value
 #  is a default value, if there's one already. You can pass in a
@@ -71,13 +71,14 @@ use strict;
 
 sub new
 {
-	my( $class, $session, $table, $field, $value ) = @_;
+	my( $class, $session, $tableid, $field, $value ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 	
 	$self->{session} = $session;
-	$self->{table} = $table;
+	$self->{tableid} = $tableid;
+print STDERR "TID: $tableid\n";
 	$self->set_value( $value );
 
 		
@@ -661,7 +662,7 @@ sub get_conditions
 			{
 				my $sfield = new EPrints::SearchField( 
 					$self->{session},
-					$self->{table},
+					$self->{tableid},
 					$self->{field},
 					"PHR:IN:$1" );
 				my ($buffer,$bad,$error) = $sfield->do( undef , undef );
@@ -708,17 +709,23 @@ sub get_conditions
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
-	my $searchtable = $self->{table};
+	my $searchtable = EPrints::Database::table_name( $self->{tableid} );
 	if ($self->{field}->{multiple}) 
 	{	
-		$searchtable.= $EPrints::Database::seperator.$self->{field}->{name};
+		$searchtable= EPrints::Database::sub_table_name(
+			$self->{tableid},
+			$self->{field} );
+print STDERR "ack\n";
 	}	
 	if( $freetext )
 	{
-		$searchtable = EPrints::Database::index_name( $self->{table} );
+		$searchtable = EPrints::Database::index_name( $self->{tableid} );
+print STDERR "ock\n";
 	}
 
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->{name} );
+print STDERR "!!!!>>> $fieldname ON $searchtable\n";
+print STDERR "!!!!>>> $self->{tableid}\n";
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done
@@ -760,7 +767,7 @@ sub benchmark
 
 	my( $table , $field ) = split /:/ , $tablefield;
 
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
         my $keyfield = $fields[0];
 
 	if ( !defined $self->{benchcache}->{"$table:$where"} )
@@ -791,7 +798,7 @@ sub _get_tables_searches
 		{
 			my $sfield = new EPrints::SearchField( 
 				$self->{session},
-				$self->{table},
+				$self->{tableid},
 				$_,
 				$self->{value} );
 			my ($table,$where,$bad,$error) = 
@@ -834,7 +841,7 @@ sub do
 {
 	my ( $self , $searchbuffer , $satisfy_all) = @_;
 	
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
         my $keyfield = $fields[0];
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
@@ -947,6 +954,11 @@ sub approx_rows
 	my ( $self ) = @_;
 
 	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches( 1 );
+
+print STDERR ">>>>>$tables,$searches,$badwords,$error\n";
+print STDERR EPrints::Log::render_struct($tables);
+print STDERR EPrints::Log::render_struct($searches);
+
 	if( defined $error )
 	{
 		return 0;

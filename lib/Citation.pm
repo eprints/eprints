@@ -60,7 +60,7 @@ sub render_citation
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-		my $field = $session->{metainfo}->find_eprint_field( $fieldname );
+		my $field = $session->{metainfo}->find_table_field( "eprint", $fieldname );
 
 		# Check we have it
 		if( defined $field )
@@ -106,7 +106,7 @@ sub render_citation
 	while( $citation =~ /{([^}]+)}/ )
 	{
 		my $entry = $1;
-		my $field = $session->{metainfo}->find_eprint_field( $entry );
+		my $field = $session->{metainfo}->find_table_field( "eprint", $entry );
 
 		# Check we have it
 		if( defined $field )

@@ -33,7 +33,7 @@ my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprint",
 	0,
-	EPrints::Database::table_name( "archive" ),
+	"archive",
 	\@metafields,
 	$session->{lang}->phrase( "H:simple_search" ),
 	"<P><A HREF=\"advsearch\">".

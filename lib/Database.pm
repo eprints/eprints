@@ -321,7 +321,7 @@ sub _create_table_aux
 			my $pos = EPrints::MetaField->new( { name=>"pos", type=>"int" } );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
-				$tablename.$SEPERATOR.$field->{name},
+				sub_table_name( $tableid, $field ),
 				$tableid,
 				0, # no primary key
 				@auxfields );
@@ -535,7 +535,7 @@ sub update
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $auxtable = $table.$SEPERATOR.$multifield->{name};
+		my $auxtable = sub_table_name( $tableid, $multifield );
 		$sql = "DELETE FROM $auxtable WHERE $where";
 		$rv = $rv && $self->do( $sql );
 
@@ -831,9 +831,21 @@ sub distinct_and_limit
 {
 	my( $self, $buffer, $keyfield, $max ) = @_;
 	my $tmptable = $self->create_buffer( $keyfield->{name} );
-	$self->do( "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer LIMIT $max" );
-	my $count = $self->count_buffer( $tmptable );
-	return( $tmptable , ($count >= $max) );
+	my $sql = "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer";
+	if( defined $max )
+	{
+		$sql.= " LIMIT $max";
+	}
+	$self->do( $sql );
+	if( defined $max )
+	{
+		my $count = $self->count_buffer( $tmptable );
+		return( $tmptable , ($count >= $max) );
+	}
+	else
+	{
+		return( $tmptable , 0 );
+	}
 }
 
 sub drop_cache
@@ -997,20 +1009,20 @@ sub _get
 		if ( $mode == 0 )	
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table.$SEPERATOR."$multifield->{name} AS M ";
+			$sql.= sub_table_name($tableid,$multifield)." AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=\"".prep_value( $param )."\"";
 		}
 		elsif ( $mode == 1)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
-		        $sql.= $table.$SEPERATOR."$multifield->{name} AS M ";
+			$sql.= sub_table_name($tableid,$multifield)." AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
 		}	
 		elsif ( $mode == 2)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table.$SEPERATOR."$multifield->{name} AS M";
+			$sql.= sub_table_name($tableid,$multifield)." AS M ";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -1166,15 +1178,6 @@ sub exists
 	return 0;
 }
 
-sub index_name
-{
-	my( $tableid ) = @_;
-
-	my $table = table_name( $tableid );
-
-	return $table.$SEPERATOR.$SEPERATOR."index";
-}
-	
 sub _freetext_index
 {
 	my( $self , $tableid , $id , $field , $value ) = @_;
@@ -1220,6 +1223,22 @@ sub table_name
 	return $TABLE_NAMES{ $tableid };
 }
 
+sub sub_table_name
+{
+	my( $tableid, $field ) = @_;
+	
+	return table_name( $tableid ).$SEPERATOR.$field->{name};
+}
+
+sub index_name
+{
+	my( $tableid ) = @_;
+
+	my $table = table_name( $tableid );
+
+	return $table.$SEPERATOR.$SEPERATOR."index";
+}
+	
 sub table_class
 {
 	my( $tableid ) = @_;

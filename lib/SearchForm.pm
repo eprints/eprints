@@ -29,7 +29,7 @@ use strict;
 # $searchform = new( $session,
 #                    $what,
 #                    $allow_blank,
-#                    $table,
+#                    $tableid,
 #                    $default_fields,
 #                    $title,
 #                    $preamble,
@@ -43,7 +43,7 @@ use strict;
 #                    if "user",  will search for users.
 #  $allow_blank    - if the searcher is allowed to leave everything
 #                  - blank and retrieve everything
-#  $table          - the database table to search
+#  $tableid          - the database table to search
 #  $default_fields - which fields to display (MetaField objects)
 #  $title          - title for the form
 #  $preamble       - put at the top of the page.
@@ -59,7 +59,7 @@ sub new
 	    $session,
 	    $what,
 	    $allow_blank,
-	    $table,
+	    $tableid,
 	    $default_fields,
 	    $title,
 		 $preamble,
@@ -73,7 +73,7 @@ sub new
 	$self->{session} = $session;
 	$self->{what} = $what;
 	$self->{allow_blank} = $allow_blank;
-	$self->{table} = $table;
+	$self->{tableid} = $tableid;
 	$self->{default_fields} = $default_fields;
 	$self->{title} = $title;
 	$self->{preamble} = $preamble;
@@ -103,7 +103,7 @@ sub process
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$self->{table},
+		$self->{tableid},
 		$self->{allow_blank},
 		1,
 		$self->{default_fields},

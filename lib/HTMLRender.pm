@@ -102,7 +102,7 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-	
+
 	$self->{offline} = $offline;
 	$self->{query} = $query;
 
@@ -123,7 +123,6 @@ sub new
 		
 		$self->{namebuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
 	}
-
 	# Get username boxcount stuff
 
 	$self->{usernamebuttonpressed} = 0;

@@ -27,7 +27,9 @@ use EPrintSite::SiteInfo;
 
 use strict;
 
-my $session = new EPrints::Session( 1 );
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+
 
 print "start\n";
 my @eprints = $session->{database}->get_all( "archive" );
