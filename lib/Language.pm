@@ -1,5 +1,13 @@
 ######################################################################
 #
+# EPrints Language class module
+#
+#  This module represents a language, and provides methods for 
+#  retrieving phrases in that language (from a config file)
+#
+#  All errors in the Language file are in english, otherwise we could
+#  get into a loop!
+#
 ######################################################################
 #
 #  __COPYRIGHT__
@@ -201,8 +209,10 @@ sub make_file_phrases
 		# Get the phrase out of a line "id = phrase";
 		elsif( /^\s*([a-z0-9_]+)\s*=\s*(.*)$/i )
 		{
-			# maybe process \n's etc?
-			$self->{data}->{$filename}->{$1}=$2;
+			my ( $key , $val ) = ( $1 , $2 );
+			# convert \n to actual CR's
+			$val =~ s/\\n/\n/g;
+			$self->{data}->{$filename}->{$key}=$val;
 		}
 		# Can ignore everything else
 	}

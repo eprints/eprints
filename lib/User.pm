@@ -327,7 +327,8 @@ sub validate
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
 			push @all_problems, 
-				"You haven't filled out the required $field->{displayname} field.";
+			   $self->{session}->{lang}->phrase( "missedfield", 
+			                                     $field->{displayname} );
 		}
 		else
 		{
@@ -412,11 +413,21 @@ sub send_introduction
 {
 	my( $self ) = @_;
 
+	my $subj;
+	if ( $self->{groups} eq "Staff" )
+	{
+		$subj = "newstaff";
+   }
+	else
+	{
+		$subj = "newuser";
+   }
 	# Try and send the mail
 	return( EPrints::Mailer->prepare_send_mail(
-		"New $EPrintSite::SiteInfo::sitename $self->{groups}",
+		$self->{lang}->parse( $subj , $EPrintSite::SiteInfo::sitename ),
 		$self->{email},
-		"Welcome to $EPrintSite::SiteInfo::sitename!",
+		$self->{session}->{lang}->parse( "welcome", 
+		                                 $EPrintSite::SiteInfo::sitename ),
 		$EPrintSite::SiteInfo::template_user_intro,
 		$self ) );
 }
@@ -436,21 +447,18 @@ sub send_reminder
 {
 	my( $self, $message ) = @_;
 	
-	my $full_message =
-		"Dear $EPrintSite::SiteInfo::sitename User,\n\n";
-	
-	$full_message .= "$message\n\n" if( defined $message );
-
-	$full_message .= "Your username and password for the site are:\n\n".
-		"User name: $self->{username}\n".
-		"Password:  $self->{passwd}\n\n".
-		"If you didn't expect this e-mail, please contact the site\n".
-		"administrator at:\n\n".
-		"$EPrintSite::SiteInfo::admin\n";
+	my $full_message = $self->{session}->{lang}->phrase(
+	     "reminder",
+		  $EPrintSite::SiteInfo::sitename,
+	     ( defined $message ? "$message\n\n" : "" ),
+		  $self->{username},
+		  $self->{passwd},
+		  $EPrintSite::SiteInfo::admin );
 
 	return( EPrints::Mailer::send_mail( $self->full_name(),
 	                                    $self->{email},
-	                                    "Your username and password",
+	                                    $self->{session}->{lang}->phrase( 
+                                          "remindersub" ),
 	                                    $full_message ) );
 }
 

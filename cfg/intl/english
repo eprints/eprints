@@ -12,5 +12,40 @@ dude = Internationalisation Rocks.
 
 <file Citation.pm>
 unknowneprint = Unknown EPrint field $(1) in "$(2)"
-na = "N/A"
+na = N/A
+</file>
+
+<file UserForm.pm>
+dontknow = I don't know who you are
+recfor = Record for $(1)
+blurb = Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
+changeemail = For instructions on how to change your e-mail address, $(1).
+clickhere = click here
+formincorrect = The form doesn't seem to be filled out correctly:
+completeform = Please complete the form before continuing.
+problemupdating = There was a problem reading the posted data and updating the database. Please try again later
+usernotmatch = Username in form $(1) doesn't match object username $(2)
+</file>
+
+<file User.pm>
+missedfield = You haven't filled out the required $(1) field.
+weclome = Welcome to $(1)!
+reminder = Dear $(1) User,\n\n$(2)Your username and password for the site are:\n\nUser name: $(3)\nPassword:  $(4)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(5)\n
+remindersub = Your username and password
+newuser = New $(1) User
+newstaff = New $(1) Staff
+</file>
+
+<file Subscription.pm>
+sendupdates = Send updates: $(1)
+weekly = weekly
+daily = daily
+monthly = monthly
+never = never
+notopenrec = Couldn't open user record for user $(1) (sub ID $(2))
+blurb = This mail contains your $(1) subscription to $(2).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(3)\n\n
+newsub = One new submission was received.
+newsubs = $(1) new submissions were received.
+subsubj = Subscription
+failsend = Failed to send subscription to user $(1): $(2)
 </file>

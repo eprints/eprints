@@ -64,8 +64,9 @@ sub process
 	if( !defined $self->{user} )
 	{
 		# Can't find the user
-		$self->{session}->{render}->render_error( "I don't know who you are",
-		                                  $self->{redirect} );
+		$self->{session}->{render}->render_error(
+		            $self->{session}->{lang}->phrase( "dontknow" ),
+		            $self->{redirect} );
 		return;
 	}
 
@@ -74,18 +75,15 @@ sub process
 	if( $self->{session}->{render}->seen_form() == 0 ||
 	    $self->{session}->{render}->internal_button_pressed() )
 	{
-		print $self->{session}->{render}->start_html( "Record for $full_name" );
+		print $self->{session}->{render}->start_html( 
+			$self->{session}->{lang}->phrase( "recfor", $full_name ) );
 
-		# Blurb
-		print "<P>Please enter correct information about yourself for our ".
-			"records. This	information will be useful to us and readers of your ".
-			"papers. You don't have to	supply all this information if you don\'t ".
-			"want to; you need only fill out those	fields marked with a * to ".
-			"start using the archive.</P>\n";
+		print "<P>".$self->{session}->{lang}->phrase( "blurb" )."</P>\n"; 
 
-		print "<P>For instructions on how to change your e-mail address, ".
+		print "<P>".$self->{session}->{lang}->phrase( 
+		        "changeemail",
 			"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
-			"click here</A>.</P>\n";
+			$self->{session}->{lang}->phrase( "clickhere" )."</A>" )."</P>";
 
 		$self->render_form();
 
@@ -107,18 +105,21 @@ sub process
 			}
 			else
 			{
-				print $self->{session}->{render}->start_html(
-					"Record for $full_name" );
+				print $self->{session}->{render}->start_html( 
+					$self->{session}->{lang}->phrase( "recfor", $full_name ) );
 
-				print "<P>The form doesn\'t seem to be filled out correctly:</P>\n".
-					"<UL>\n";
+				print "<P>".$self->{session}->{lang}->phrase( "formincorrect" ).
+				      "</P>\n";
+				print "<UL>\n";
 
 				foreach (@$problems)
 				{
 					print "<LI>$_</LI>\n";
 				}
 
-				print "</UL>\n<P>Please complete the form before continuing.</P>\n";
+				print "</UL>\n";
+				print "<P>".$self->{session}->{lang}->phrase( "completeform" ).
+				      "</P>\n";
 
 				$self->render_form();
 
@@ -128,8 +129,7 @@ sub process
 		else
 		{
 			$self->{session}->{render}->render_error(
-				"There was a problem reading the posted data and updating the ".
-					"database. Please try again later",
+				$self->{session}->{lang}->phrase( "problemupdating" ),
 				$self->{redirect} );
 		}
 	}
@@ -208,8 +208,9 @@ sub update_from_form
 		my $form_id = $self->{session}->{render}->param( "username" );
 		EPrints::Log::log_entry(
 			"User",
-			"Username in form $form_id doesn't match object username ".
-				"$self->{username}" );
+			EPrints::Language::logphrase( "usernotmatch",
+			                              $form_id,
+			                              $self->{username} ) );
 
 		return( 0 );
 	}

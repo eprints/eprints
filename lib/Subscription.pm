@@ -212,10 +212,11 @@ sub render_subscription_form
 	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
 	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
 	
-	$html .= "<CENTER><P>Send updates: ";
-	$html .= $self->{session}->{render}->input_field( 
-		EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
-		$self->{frequency} );
+	$html .= "<CENTER><P>";
+	$html .= $self->{session}->{lang}->phrase( "sendupdates",
+	           $self->{session}->{render}->input_field( 
+		        EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
+		        $self->{frequency} ) );
 	$html .= "</P></CENTER>\n";
 	
 	return( $html );
@@ -416,8 +417,9 @@ sub process
 	{
 		EPrints::Log::log_entry(
 			"Subscription",
-			"Couldn't open user record for user $self->{username} (sub ID ".
-				"$self->{subid})" );
+			EPrints::Language::logphrase( "notopenrec",
+		                                 $self->{username},
+				                           $self->{subid} ) );
 		return( 0 );
 	}
 
@@ -480,17 +482,28 @@ sub process
 		# Don't send a mail if we've retrieved nothing
 		return( 1 ) if( scalar @eprints == 0 );
 
+		my $freqphrase = $self->{session}->{lang}->phrase($freq);
+
 		# Put together the body of the message. First some blurb:
-		my $body = "This mail contains your $freq subscription to ".
-			"$EPrintSite::SiteInfo::sitename.\n\nTo cancel, temporarily disable ".
-			"or alter your subscription, visit the following Web page:\n\n".
-			"$EPrintSite::SiteInfo::server_perl/users/subscribe\n\n";
+		my $body = $self->{session}->{lang}->phrase( 
+			   "blurb",
+				$freqphrase,
+			   $EPrintSite::SiteInfo::sitename,
+				"$EPrintSite::SiteInfo::server_perl/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
-		$body .= "   ".scalar @eprints." new submission";
-		$body .= ( scalar @eprints==1 ? " was" : "s were" );
-		$body .= " received.\n\n\n";
+		$body .= "   ";
+		if ( scalar @eprints==1 )
+		{
+			$body .= $self->{session}->{lang}->phrase( "newsub" ); 
+		}
+		else
+		{
+			$body .= $self->{session}->{lang}->phrase( "newsubs", 
+			                                           scalar @eprints ); 
+		}
+		$body .= "\n\n\n";
 		
 		# Then citations, with links to appropriate pages.
 		foreach (@eprints)
@@ -501,15 +514,17 @@ sub process
 		}
 		
 		# Send the mail.
-		$success = EPrints::Mailer::send_mail( $user->full_name(),
-		                                       $user->{email},
-		                                       "Subscription",
-		                                       $body );
+		$success = EPrints::Mailer::send_mail( 
+		             $user->full_name(),
+		             $user->{email},
+			          $self->{session}->{lang}->phrase( "subsubj" ),
+		             $body );
+
 		unless( $success )
 		{
 			EPrints::Log::log_entry(
 				"Subscription",
-				"Failed to send subscription to user $user->{username}: $!" );
+				EPrints::Language::logphrase( "failsend", $user->{username}, $! ) );
 		}
 	}
 		
