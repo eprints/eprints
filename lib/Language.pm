@@ -169,8 +169,8 @@ sub phrase
 		{
 			if( !$used->{$_} )
 			{
-				$session->get_archive->log(
-"Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
+				# Should log this, but somtimes it's supposed to happen!
+				# $session->get_archive->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
 				EPrints::XML::dispose( $inserts->{$_} );
 			}
 		}

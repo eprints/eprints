@@ -6,7 +6,7 @@
 <ep:title>Welcome to &archivename;</ep:title>
 <ep:body>
 
-<p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/">eprints.org archive software</a>.</p>
+<p>Welcome to this generic eprint server, running the default configuration for <a href="http://software.eprints.org/">GNU EPrints archive software</a>.</p>
 
 <p><a href="information.html">More information</a> is available about the archive.</p>
 
@@ -56,7 +56,7 @@
 
  <p>&archivename; is running on <em>GNU EPrints</em> archive-creating software, which generates eprints archives that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
 
- <p>The eprints.org archive-creating software is available for free at <a href="http://www.eprints.org/">http://www.eprints.org/</a>.</p>
+ <p>The GNU EPrints archive-creating software is available for free at <a href="http://software.eprints.org/">http://software.eprints.org/</a>.</p>
 
 </td>
 <td>

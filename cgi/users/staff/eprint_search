@@ -52,6 +52,15 @@ if( $datasetid ne "archive" &&
 	$datasetid = "archive";
 }
 
+my $defaults = { dataset=>$datasetid };
+my $d = $session->get_archive()->get_conf( "advanced_search_defaults" );
+if( defined $d )
+{
+	foreach( keys %{$d} )
+	{
+		$defaults->{$_} = $d->{$_};
+	}
+}
 my $dataset = $session->get_archive()->get_dataset( $datasetid );
 
 my $searchexp = new EPrints::SearchExpression(
@@ -60,7 +69,7 @@ my $searchexp = new EPrints::SearchExpression(
 	use_oneshot_cache => 1,
 	dataset => $dataset,
 	fieldnames => \@search_fields,
-	defaults => $session->get_archive()->get_conf( "advanced_search_defaults" ),
+	defaults => $defaults,
 	extrafields => $extrafields );
 
 my $preamble = $session->html_phrase( "cgi/users/eprint_search:preamble" );

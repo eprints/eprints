@@ -161,7 +161,7 @@ sub new
 		elsif( $fieldname =~ m/^!(.*)$/ )
 		{
 			# "extra" field - one not in the current dataset.
-			$self->add_extrafield( $data{extrafields}->{$1}, $self->{defaults}->{$fieldname} );
+			$self->add_extrafield( $data{extrafields}->{$1}, $self->{defaults}->{$1} );
 		}
 		else
 		{

@@ -998,3 +998,12 @@ before next release. (metadata types & fields)
 2002-10-29 cjg
  - export_xml was using XML::DOM (now uses EPrints::XML)
 
+2002-10-29 cjg
+ - staff eprint search now defaults to showing "archive" as the selected
+    dataset
+ - phrases no longer log unused parameters (but still log missing ones)
+ - "extra" search fields can now have defaults
+ - corrected some spelling
+ - changed links on default pages to go to software.eprints.org and
+    call the software GNU EPrints not eprints.org software.
+

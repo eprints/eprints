@@ -453,6 +453,7 @@ User Area CGI Scripts
     <ep:phrase ref="subscription_fieldopt_frequency_daily">Once per Day</ep:phrase>
     <ep:phrase ref="subscription_fieldopt_frequency_weekly">Once per Week</ep:phrase>
     <ep:phrase ref="subscription_fieldopt_frequency_monthly">Once per Month</ep:phrase>
+    <ep:phrase ref="subscription_fieldname_userid">User ID of Subscriber</ep:phrase>
     <ep:phrase ref="subscription_fieldname_mailempty">Mail Empty Results</ep:phrase>
     <ep:phrase ref="subscription_fieldhelp_mailempty">If there are no new items matching your subscription, since it was last mailed, do you still want to be mailed?</ep:phrase>
     <ep:phrase ref="subscription_radio_mailempty"><ep:pin ref="true" />Yes, mail me empty subscriptions.<br /><ep:pin ref="false" />No. Only mail me subscriptions with content.</ep:phrase>
@@ -510,7 +511,7 @@ Staff CGI Scripts
 
     <ep:phrase ref="cgi/users/eprint_search:title">Staff EPrint Search</ep:phrase>
     <ep:phrase ref="cgi/users/eprint_search:preamble"><p>Don't panic! Just leave the fields you don't want to search blank.</p></ep:phrase>
-    <ep:phrase ref="dataset_fieldname_dataset">EPrint Catagory</ep:phrase>
+    <ep:phrase ref="dataset_fieldname_dataset">EPrint Category</ep:phrase>
     <ep:phrase ref="dataset_fieldopt_dataset_archive">Main Archive</ep:phrase>
     <ep:phrase ref="dataset_fieldopt_dataset_deletion">Deleted EPrints</ep:phrase>
     <ep:phrase ref="dataset_fieldopt_dataset_buffer">Submission Buffer (awaiting approval)</ep:phrase>
