@@ -261,7 +261,7 @@ sub dumpPartition {
     $writer->endTag('partition');
 }
 
-# Structure verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
+# Structure verb
 sub mr_structure {
     my ($fullID, $kwArgs, $Context) = @_;
     my ($view) = $kwArgs->{'view'};
@@ -269,6 +269,13 @@ sub mr_structure {
 	&dienst::complaint(400, "# is the only valid view that can be specified");
 	exit;
     }
+
+    unless( EPrints::OpenArchives->valid_fullID( $fullID ) )
+    {
+	&dienst::complaint( 404, "Unknown record specified" );
+	exit;
+    }
+
     # start the XML output
     my $XMLOutputTempFile = POSIX::tmpnam();
     my $output = new IO::File(">$XMLOutputTempFile");
@@ -278,8 +285,8 @@ sub mr_structure {
     $writer->startTag ("$Context->{'verb'}", 
 		       "version" => $Context->{'version'});
 
-    # dummy list of meta-formats for testing
-    my @metaFormats = qw/rfc1807 oams/;
+    # Only one meta-format
+    my @metaFormats = qw/oams/;
 
     # dump out the meta formats
     $writer->startTag("meta-format");

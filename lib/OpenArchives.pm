@@ -120,6 +120,28 @@ sub _partitionise_subjects
 
 ######################################################################
 #
+# $valid = valid_fullID( $fullID )
+#
+#  Returns non-zero if $fullID is valid.
+#
+######################################################################
+
+sub valid_fullID
+{
+	my( $class, $fullID ) = @_;
+	
+	my( $arc_id, $record_id ) = split /$EPrints::OpenArchives::id_separator/,
+	                            $fullID;
+
+	# Return true if we have values for both archive ID and record ID,
+	# and the archive identifier received matches our archive identifier.
+	return( defined $arc_id && defined $record_id &&
+		$arc_id eq $EPrintSite::SiteInfo::archive_identifier );
+}
+
+
+######################################################################
+#
 # %tags = get_oams_tags( $eprint )
 #
 #  Get OAMS tags for the given eprint.
