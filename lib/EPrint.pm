@@ -189,7 +189,11 @@ sub new_from_data
 	my $self = {};
 	if( defined $data )
 	{
-		$self->{data} = $data;
+		$self->{data} = EPrints::Utils::clone( $data );
+	}
+	else
+	{
+		$self->{data} = {};
 	}
 	$self->{dataset} = $dataset;
 	$self->{session} = $session;
@@ -418,11 +422,18 @@ sub clone
 {
 	my( $self, $dest_dataset, $copy_documents ) = @_;
 
+	my $data = EPrints::Utils::clone( $self->{data} );
+	foreach my $field ( $self->{dataset}->get_fields )
+	{
+		next if( $field->get_property( "can_clone" ) );
+		delete $data->{$field->get_name};
+	}
+
 	# Create the new EPrint record
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
 		$dest_dataset,
-		$self->{data} );
+		$data );
 	
 	unless( defined $new_eprint )
 	{

@@ -87,6 +87,7 @@ my @monthkeys = (
 my $PROPERTIES = 
 {
 	browse_link => 1,
+	can_clone => 1,
 	confid => -1,
 	datasetid => -1,
 	digits => 1,
@@ -2286,6 +2287,11 @@ sub _ordervalue_aux2
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
+	# cjg: this is acutally to supress an occasional error
+	# from somewhere "upstream" in the code. Must figure it
+	# out properly. Something to do with idpart ordervalues.
+	return $value if( ref($value) eq "" );
+
 	my $v = $value;
 	if( $self->get_property( "idpart" ) )
 	{
@@ -2403,6 +2409,7 @@ sub get_property_default
 	return 0 if( $property eq "idpart" );
 	return 0 if( $property eq "mainpart" );
 	return 1 if( $property eq "export_as_xml" );
+	return 1 if( $property eq "can_clone" );
 
 	return "subjects" if( $property eq "top" );
 

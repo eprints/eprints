@@ -238,6 +238,107 @@ END
 	}
 }
 
+if( $dbversion eq "2.1" )
+{
+	my $sql;
+	print <<END;
+======================================================================
+About to upgrade tables from 2.1 to 2.2
+
+This will:
+
+ * in dataset "subscription"
+    - add a new boolean field "mailempty"
+
+ * in dataset "user"
+    - remove the field "editorsubjects"
+    - add the following fields:
+       + editperms (search) 
+       + mailempty (boolean) 
+       + frequency (set) 
+    
+Are you sure you want to do this? (yes/no)
+END
+	
+	my $input = <STDIN>;
+	chomp( $input );
+	if( $input ne "yes" )
+	{
+		print "Aborting then.\n";
+		$session->terminate();
+		exit( 1 );
+	}
+
+	$rootdbh = &getrootdbh( $session ) unless( defined $rootdbh );
+
+	my $ok = 1;
+	$ok = $ok && defined $rootdbh;
+
+	my @tables = $db->get_tables;
+
+	# add "mailempty" to subscription
+
+	$sql = "ALTER TABLE subscription ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^subscription__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD mailempty text AFTER frequency",
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	# remove users "editorsubjects"
+
+	$sql = "DROP TABLE users_editorsubjects";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^users__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table DROP editorsubjects";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	# add "editperms","frequency" & "mailempty" to subscription
+
+	$sql = "ALTER TABLE users ADD editperms TEXT default NULL AFTER lang";
+	$ok = $ok && $rootdbh->do( $sql );
+	$sql = "ALTER TABLE users ADD frequency varchar(255) default NULL AFTER editperms";
+	$ok = $ok && $rootdbh->do( $sql );
+	$sql = "ALTER TABLE users ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^users__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD editperms TEXT AFTER lang";
+			$ok = $ok && $rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD frequency TEXT AFTER editperms";
+			$ok = $ok && $rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD mailempty TEXT AFTER frequency";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	if( !$ok )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.1 -> 2.2 done!\n";
+		$dbversion = "2.2";
+		$db->set_version( $dbversion );
+	}
+}
+
 if( $TARGET eq $dbversion)
 {
 	if( $noise>=1 )
@@ -270,7 +371,8 @@ sub getrootdbh
 	print <<END;
 
 We will need to do some stuff to the database as root. Please enter
-the MySQL root password. (Warning: It will not be ****'d out when you type it).
+the MySQL root password. (Warning: It will not be ****'d out when you 
+type it).
 
 END
 	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );

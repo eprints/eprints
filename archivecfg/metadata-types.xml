@@ -54,7 +54,7 @@
       <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" required="yes" />
-      <field name="publication" required="yes" />
+      <field name="publication" />
       <field name="chapter" />
       <field name="pages" />
       <field name="editors" />
@@ -190,7 +190,7 @@
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
-      <field name="publication" required="yes" />
+      <field name="publication" />
       <field name="volume" />
       <field name="number" />
       <field name="editors" />
@@ -212,7 +212,7 @@
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
-      <field name="publication" required="yes" />
+      <field name="publication" />
       <field name="volume" />
       <field name="number" />
       <field name="pages" />
@@ -235,7 +235,7 @@
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
-      <field name="publication" required="yes" />
+      <field name="publication" />
       <field name="volume" />
       <field name="number" />
       <field name="pages" />

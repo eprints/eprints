@@ -516,6 +516,7 @@ sub get_conf
 	my $val = $self->{config}->{$key};
 	foreach( @subkeys )
 	{
+		return undef unless defined $val;
 		$val = $val->{$_};
 	} 
 

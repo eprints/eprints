@@ -216,25 +216,27 @@ sub render_name
 {
 	my( $session, $name, $familylast ) = @_;
 
-	my $firstbit;
+	my $firstbit = "";
 	if( defined $name->{honourific} && $name->{honourific} ne "" )
 	{
-		$firstbit = $name->{honourific}." ".$name->{given};
+		$firstbit = $name->{honourific}." ";
 	}
-	else
+	if( defined $name->{given} )
 	{
-		$firstbit = $name->{given};
+		$firstbit.= $name->{given};
 	}
 	
-	my $secondbit;
-	if( defined $name->{lineage} && $name->{lineage} ne "" )
-	{
-		$secondbit = $name->{family}." ".$name->{lineage};
-	}
-	else
+	
+	my $secondbit = "";
+	if( defined $name->{family} )
 	{
 		$secondbit = $name->{family};
 	}
+	if( defined $name->{lineage} && $name->{lineage} ne "" )
+	{
+		$secondbit .= " ".$name->{lineage};
+	}
+
 	
 	if( $familylast )
 	{
@@ -879,8 +881,12 @@ sub render_citation
 	}
 	foreach $node ( @{$nodes->{lose}} )
 	{
-		$node->getParentNode->removeChild( $node );
-		$node->dispose();
+		my $parent = $node->getParentNode;
+		if( defined $parent )
+		{
+			$parent->removeChild( $node );
+			$node->dispose();
+		}
 	}
 
 	_expand_references( $obj, $cstyle );

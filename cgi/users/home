@@ -89,15 +89,17 @@ $dl = $session->make_element( "dl" );
 
 ### Change author record
 
-$dt = $session->make_element( "dt" );
-$a = $session->render_link( "record" );
-$a->appendChild( $session->html_phrase( "cgi/users/home:change_link" ) );
-$dt->appendChild( $a );
-$dl->appendChild( $dt );
-$dd = $session->make_element( "dd" );
-$dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
-
-$dl->appendChild( $dd );
+unless( $user->has_priv( "no_edit_own_record" ) )
+{
+	$dt = $session->make_element( "dt" );
+	$a = $session->render_link( "record" );
+	$a->appendChild( $session->html_phrase( "cgi/users/home:change_link" ) );
+	$dt->appendChild( $a );
+	$dl->appendChild( $dt );
+	$dd = $session->make_element( "dd" );
+	$dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
+	$dl->appendChild( $dd );
+}
 
 my $changeuserpath = "/change_user/".($user->get_value( "username" ));
 my $securehost = $session->get_archive->get_conf( "securehost" );

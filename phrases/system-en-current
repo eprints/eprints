@@ -407,6 +407,9 @@ User Area CGI Scripts
     <ep:phrase ref="subscription_fieldopt_frequency_daily">Once per Day</ep:phrase>
     <ep:phrase ref="subscription_fieldopt_frequency_weekly">Once per Week</ep:phrase>
     <ep:phrase ref="subscription_fieldopt_frequency_monthly">Once per Month</ep:phrase>
+    <ep:phrase ref="subscription_fieldname_mailempty">Mail Empty Results</ep:phrase>
+    <ep:phrase ref="subscription_fieldhelp_mailempty">If there are no new items matching your subscription, since it was last mailed, do you still want to be mailed?</ep:phrase>
+    <ep:phrase ref="subscription_radio_mailempty"><ep:pin ref="true" />Yes, mail me empty subscriptions.<br /><ep:pin ref="false" />No. Only mail me subscriptions with content.</ep:phrase>
 
 
 <!--********************************************************************** 

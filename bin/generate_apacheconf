@@ -93,6 +93,10 @@ apache configuration directives here. By default it just includes the automatica
 
 This file contains all the configuration directives needed for an archive. This is where the bulk of the configuration appears, the clever stuff, if you will. This file should not be edited by hand.
 
+=item B<EPRINTS/archives/ARCHIVEDIR/cfg/apachevhost.conf>
+
+This file is not updated if it already exists, it is included into the virutalhost in auto-apache.conf so that you can a couple of additional directives if you need to. For example, redirects or additional log directives.
+
 =back
 
 __GENERICPOD__
@@ -247,6 +251,7 @@ exit( 1 ) unless( defined $archive );
 
 my $sysfile = $archive->get_conf( "config_path" )."/auto-apache.conf";
 my $userfile = $archive->get_conf( "config_path" )."/apache.conf";
+my $vhostfile = $archive->get_conf( "config_path" )."/apachevhost.conf";
 
 my $id = $archive->get_id();
 
@@ -275,6 +280,31 @@ else
 {
 	print "$userfile already exists.\n" if( $noise >= 2 );
 }
+
+
+unless( -e $vhostfile )
+{
+	print "Creating $vhostfile.\n" if( $noise >= 2 );
+	open( CONF, ">$vhostfile" ) || die "Can't write to $vhostfile";
+	print CONF <<END;
+#
+# apachevhost.conf include file for $id
+#
+# If this file exists then it will not be over written by
+# the generate_apacheconf command.
+#
+# Directives in this file are interpreted inside the virtualhost 
+# configuration for this archive.
+#
+
+
+END
+}
+else
+{
+	print "$vhostfile already exists.\n" if( $noise >= 2 );
+}
+
 
 my $cgidir = EPrints::Config::get( "cgi_path" );
 my $adminemail = $archive->get_conf( "adminemail" );
@@ -339,13 +369,17 @@ $aliases
 
   RewriteEngine on
 
+  # Include this here, so that it's rewrite ruls come first.
+  Include $vhostfile
+
+
   # Rewrite Rules. [L] means "last". So the rewrite engine goes
   # no further if it matches.
 
   # Protect /perl/ from other rewrite rules
   RewriteRule ^/perl/      -   [L]
   RewriteRule ^/secure/    -   [L]
-  RewriteRule ^/archive/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5
+  RewriteRule ^/archive/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])(.*)\$ /archive/\$1/\$2/\$3/\$4\$5
 
 END
 
@@ -420,7 +454,7 @@ my $secureconfig = <<END;
     require valid-user
     RewriteEngine on
     RewriteBase $securepath/secure
-    RewriteRule ^([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ \$1/\$2/\$3/\$4/\$5 [L]
+    RewriteRule ^([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])(.*)\$ \$1/\$2/\$3/\$4\$5 [L]
   </Directory>
 
   # This sets up the change_user URL, which does

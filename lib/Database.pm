@@ -68,7 +68,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "2.1";
+$EPrints::Database::DBVersion = "2.2";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 

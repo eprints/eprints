@@ -78,7 +78,9 @@ sub get_system_field_info
 		},
 
 		{ name=>"frequency", type=>"set", required=>1,
-			options=>["never","daily","weekly","monthly"] } 
+			options=>["never","daily","weekly","monthly"] },
+
+		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
 	);
 }
 

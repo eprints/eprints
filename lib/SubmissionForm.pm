@@ -1449,7 +1449,7 @@ sub _do_stage_files
 	}
 
 	my @reqformats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};	
-	if( scalar @reqformats >= 0 )
+	if( scalar @reqformats > 0 )
 	{
  		my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
 

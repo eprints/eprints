@@ -721,3 +721,37 @@ before next release. (metadata types & fields)
  - made the Auth.pm module accept /00/00/00/00/00/ format document paths
     for authentications in addition to /0000000/00/. (needed for https
     mode).
+
+2002-08-08 [cjg]
+ - [c] Increased default results page size to 100 from 10.
+ - [c] Increased default witdth of abstract input to 90 cols.
+ - [c] Increased default number of author input fields to 6.
+ - [c] Some tweaks to default citations.
+ - [c] Made "publication" field optional in all types.
+ - [c] Added a new config file to archives - apachevhost.conf - which is 
+    included into the configuration inside the virutalhost definition.
+ - Modified apacheconf rewrite rules so that a trailing "/" is not required
+    to get record abstract pages.
+ - Modified generate_views so that files for values which contain " " or "/"
+    have "_" in their stead.
+ - [db] Added new system fields to the database. DB version is now 2.2. 
+    bin/upgrade will make the changes. Changes are:
+      * in dataset "subscription"
+         - add a new boolean field "mailempty"
+      * in dataset "user"
+         - remove the field "editorsubjects"
+         - add the following fields:
+            + editperms (search) 
+            + mailempty (boolean) 
+            + frequency (set) 
+ - [c] New configuration option "catch404" which may be undefined, but may
+    be a reference to a subroutine which takes ($session, $url) and returns
+    either a new URL to redirect to or undef if it's really a 404. This is
+    to handle migration from eprints 1 or other systems.
+ - [c] New "priv" for users: "no_edit_own_record" which actually removes the
+    edit my record option from the user page (for DB's where the users are
+    imported not web-registered.)
+ - Edit subscriptions page now includes extra option to indicate if a user
+    wants a mail when there are zero matches.
+ - Changed the layout of the subscriptions summary page to be a bit clearer.
+

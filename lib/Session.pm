@@ -196,9 +196,7 @@ sub new
 			if( $self->{database}->has_table( "archive" ) )
 			{	
 				$self->get_archive()->log( 
-					"Database tables are in old ".
-					"configuration. Please run\n".
-					"bin/upgrade" );
+	"Database tables are in old configuration. Please run bin/upgrade" );
 			}
 			else
 			{

@@ -83,27 +83,36 @@ sub get_system_field_info
 
 		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"password", type=>"secret", fromform=>\&EPrints::Utils::crypt_password },
+		{ name=>"password", type=>"secret", 
+			fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"usertype", type=>"datatype", required=>1, 
 			datasetid=>"user" },
 	
 		{ name=>"newemail", type=>"email" },
 	
-		{ name=>"newpassword", type=>"secret", fromform=>\&EPrints::Utils::crypt_password },
+		{ name=>"newpassword", type=>"secret", 
+			fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"pin", type=>"text" },
 
 		{ name=>"pinsettime", type=>"int" },
-
-		{ name=>"editorsubjects", type=>"subject", multiple=>1, showall=>1, showtop=>1, top=>"ROOT" },
 
 		{ name=>"joined", type=>"date", required=>1 },
 
 		{ name=>"email", type=>"email", required=>1 },
 
 		{ name=>"lang", type=>"datatype", required=>0, 
-			datasetid=>"arclanguage", input_rows=>1 }
+			datasetid=>"arclanguage", input_rows=>1 },
+
+		{ name => "editperms", type => "search", 
+			datasetid => "buffer",
+			fieldnames => "editpermfields" },
+
+		{ name=>"frequency", type=>"set", 
+			options=>["never","daily","weekly","monthly"] },
+
+		{ name=>"mailempty", type=>"boolean", input_style=>"radio" }
 	)
 };
 

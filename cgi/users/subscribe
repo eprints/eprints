@@ -76,8 +76,14 @@ elsif( $action =~ /^edit_([0-9]+)$/ || $action eq "finish" )
 					$session ) );
 			$subscr->set_value( 
 				"frequency",
-				$subs_ds->get_field( "frequency" )->form_value(
-					$session ) );
+				$subs_ds->get_field( 
+					"frequency" )->form_value(
+						$session ) );
+			$subscr->set_value( 
+				"mailempty",
+				$subs_ds->get_field( 
+					"mailempty" )->form_value(
+						$session ) );
 			$subscr->commit()
 			&show_subscriptions( $session, $subs_ds, $user );
 		}
@@ -150,44 +156,15 @@ sub show_subscriptions
 			"table",
 			style => "margin-bottom: 12pt",
 			cellpadding => 4,
+			cellspacing => 0,
 			border => 1 );
 		$form->appendChild( $table );
 		
-		$tr = $session->make_element( "tr" );
-		$table->appendChild( $tr );
-
-		# 50% width on this column. Not very CSS.	
-		$th = $session->make_element( 
-			"th",
-			width => '50%' );
-		$tr->appendChild( $th );
-		$th->appendChild( $session->make_text(
-			$subs_ds->get_field( "spec" )->display_name( 
-				$session ) ) );
-
-		$th = $session->make_element( "th" );
-		$tr->appendChild( $th );
-		$th->appendChild( $session->make_text(
-			$subs_ds->get_field( "frequency" )->display_name( 
-				$session ) ) );
-	
-		$th = $session->make_element( "th" );
-		$tr->appendChild( $th );
-	
 		foreach my $subscr ( @subs )
 		{
 			$tr = $session->make_element( "tr" );
 			$table->appendChild( $tr );
-		
-			$td = $session->make_element( "td" );
-			$tr->appendChild( $td );
-			$td->appendChild( $subscr->render_value( "spec" ) );
-	
-			$td = $session->make_element( "td" );
-			$tr->appendChild( $td );
-			$td->appendChild( $subscr->render_value( 
-				"frequency" ) );
-	
+
 			my $id = $subscr->get_id;
 			my %buttons = (
 				 _order => [ "edit_".$id, "remove_".$id ] );
@@ -196,10 +173,29 @@ sub show_subscriptions
 			$buttons{"remove_".$id} = $session->phrase( 
 				"cgi/users/subscribe:action_remove" );
 			
-			$td = $session->make_element( "td" );
+			$td = $session->make_element( 
+				"td",
+				width=>"20%",
+				align=>"center" );
 			$tr->appendChild( $td );
 			$td->appendChild( $session->render_action_buttons( 
 				%buttons ) );
+		
+			$td = $session->make_element( "td" );
+			$tr->appendChild( $td );
+
+			foreach( "frequency","spec","mailempty" )
+			{
+				my $strong;
+				$strong = $session->make_element( "strong" );
+				$strong->appendChild( $session->make_text( $subs_ds->get_field( $_ )->display_name( $session ) ) );
+				$strong->appendChild( 
+					$session->make_text( ": " ) );
+				$td->appendChild( $strong );
+				$td->appendChild( $subscr->render_value( $_ ) );
+				$td->appendChild( $session->make_element( "br" ) );
+			}
+
 		}
 		
 	}
@@ -228,7 +224,8 @@ sub edit_subscription
 		$session->render_input_form( 
 			fields => [
 				$subs_ds->get_field( "spec" ),
-				$subs_ds->get_field( "frequency" )
+				$subs_ds->get_field( "frequency" ),
+				$subs_ds->get_field( "mailempty" )
 			],
 			values => $subscr->get_data,
 			show_names => 1,

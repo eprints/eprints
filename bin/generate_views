@@ -242,6 +242,7 @@ sub make_view_pages
 	{
 		$fileid = $value;
 		if( $fileid eq "" ) { $fileid = "NULL"; }
+                $fileid =~ s/[\s\/]/_/g; 
 		print "[".$info->{id}."] = \"$fileid\"\n" if( $noise > 1 );
 
 		if( $info->{dom} )
@@ -401,6 +402,7 @@ sub make_view_pages
 		{
 			$fileid = $value;
 			if( $fileid eq "" ) { $fileid = "NULL"; }
+                	$fileid =~ s/[\s\/]/_/g; 
 			$li = $session->make_element( "li" );
 			$a = $session->render_link( $fileid.".html" );
 			$a->appendChild( 

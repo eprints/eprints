@@ -24,7 +24,19 @@ Apache::exit( 0 ) unless( defined $session );
 
 my $url = $ENV{REDIRECT_URL};
 
-if( $url =~ m#^/view/# )
+
+my $newurl;
+my $fn = $session->get_archive->get_conf( "catch404" );
+if( defined $fn )
+{
+	$newurl = &{$fn}( $session, $url );
+}
+
+if( defined $newurl )
+{
+	$session->redirect( $newurl );
+}
+elsif( $url =~ m#^/view/# )
 {
 	&noview_404( $session );
 }

@@ -670,6 +670,7 @@ sub _unserialise_aux
 	return unless( EPrints::Utils::is_set( $string ) );
 
 	my( $pstring , $fstring ) = split /\|-\|/ , $string ;
+	$fstring = "" unless( defined $fstring ); # avoid a warning
 
 	my @parts = split( /\|/ , $pstring );
 	$self->{allow_blank} = $parts[0];

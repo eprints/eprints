@@ -18,10 +18,13 @@ General
 - Does not give validation error when multilang with required lang
 does NOT have all required langs filled in.
 
-- URLS like http://eprints.ecs.soton.ac.uk/archive/00000001 fail
-   for lack of a trailing / -=- make 404 page spot them?
-
 - does not check email address even looks valid in "register"
+
+----------------------------------------------------------------------
+Documentation
+----------------------------------------------------------------------
+
+- subscriptions not allowed to be blank! (should be allow blank!)
 
 ----------------------------------------------------------------------
 Documentation
@@ -55,6 +58,8 @@ element. [Mark Faine]
 - broken link in "record_for_user" goes to "set_email" not "change_email"
   ?? did I fix this absent mindedly?
 
+- render_citation_link on a user points to a non existant cgi script.
+
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
@@ -66,6 +71,12 @@ Apache Configuration & Page Serving
 Searching
 ----------------------------------------------------------------------
 
+- Staff search appears to "lose" the dataset being searched when 
+   'next' is clicked. Eg. Start searching inbox and next page is
+   main archive.
+
+- ID Search appears to return values twice.
+
 - Does not ignore umlauts etc. in NAME searches.
 
 - No way to search date fields, via the forms interface.
@@ -76,12 +87,19 @@ Searching
 - Problems in subscription having no conditions, just an order. Loses
    the order in serialising?
 
+- Does not index short numbers. eg.'17'
+
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
 
+- If no required doc formats then message is silly. [fixed] BUT now
+   buttons all appear on one line.
+
 - does not notice if a "name" type field is blank, even if it's 
   required.
+
+- "Cancel" from the "EPrint Type" page still appears to set the type.
 
 ----------------------------------------------------------------------
 EPrints "Staff" Edit
@@ -109,6 +127,8 @@ causes a 500 error. [gone away?]
  [Thu Feb 21 12:15:02 2002] [error] Bizarre copy of HASH in aassign at /usr/lib/perl5/5.6.0/Carp/Heavy.pm line 79.
 
 - null datestamp field caused OAI go barf.
+
+- oai2 uses oai1 archive id for records.
 
 ======================================================================
 Fixed in Release 2.0 (major bugs in alpha-2)
@@ -255,6 +275,9 @@ it has been added]
 - Docs don't tell people how to do the main part of the upgrade!
 - Tim Brody's reports of some incorrect responses in obscure cases.
    [tested now and appears to work].
+- URLS like http://eprints.ecs.soton.ac.uk/archive/00000001 fail
+   for lack of a trailing / [ apache conf now matches these.]
+
 
 
 

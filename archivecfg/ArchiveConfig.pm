@@ -349,7 +349,7 @@ $c->{browse_views} = [
 ];
 
 # Number of results to display on a single search results page
-$c->{results_page_size} = 10;
+$c->{results_page_size} = 100;
 
 # Fields for a simple user search
 $c->{simple_search_fields} =
