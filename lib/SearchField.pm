@@ -71,7 +71,7 @@ use strict;
 #cjg MAKE $field $fields and _require_ a [] 
 sub new
 {
-	my( $class, $session, $dataset, $field, $value ) = @_;
+	my( $class, $session, $dataset, $fields, $value ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -81,41 +81,29 @@ sub new
 #print STDERR "TID: $dataset\n";
 	$self->set_value( $value );
 
-		
-	if( ref( $field ) eq "ARRAY" )
+	#cjg Hmmm.
+	if( ref( $fields ) ne "ARRAY" )
 	{
-		# Search >1 field
-		$self->{multifields} = $field;
-		my( @fieldnames, @display_names );
-		foreach (@{$field})
-		{
-			if( !defined $_ )
-			{
-				#cjg an aktual error.
-				exit;
-			}
-			push @fieldnames, $_->get_sql_name();
-			push @display_names, $_->display_name( $self->{session} );
-		}
-	
-		$self->{display_name} = join '/', @display_names;
-		# we sort the fieldnames so that form_name is the same
-		# no matter what order the fieldnames are in 
-		# (for serialisation)
-		$self->{form_name} = join '/', sort @fieldnames;
-		$self->{field} = $field->[0];
+		$fields = [ $fields ];
 	}
-	else
+
+	$self->{fieldlist} = $fields;
+	my( @fieldnames, @display_names );
+	foreach (@{$fields})
 	{
-		$self->{field} = $field;
-		if( !defined $field ) { 
-			#cjg print error
+		if( !defined $_ )
+		{
+			#cjg an aktual error.
 			exit;
 		}
-
-		$self->{display_name} = $field->display_name( $self->{session} );
-		$self->{form_name} = $field->get_name();
+		push @fieldnames, $_->get_sql_name();
+		push @display_names, $_->display_name( $self->{session} );
 	}
+	
+	$self->{display_name} = join '/', @display_names;
+	$self->{form_name_prefix} = join '/', sort @fieldnames;
+	$self->{field} = $fields->[0];
+
 	if( $self->{field}->get_property( "hasid" ) )
 	{
 		$self->{field} = $self->{field}->get_main_field();
@@ -171,10 +159,10 @@ sub from_form
 	# Remove any default we have
 	$self->set_value( "" );
 #print STDERR "------llll\n";	
-#print STDERR  $self->{form_name} ."\n";
+#print STDERR  $self->{form_name_prefix} ."\n";
 #print STDERR  $self->{field}->{type}."\n";
-#print STDERR  $self->{session}->param( $self->{form_name} )."\n";
-	my $val = $self->{session}->param( $self->{form_name} );
+#print STDERR  $self->{session}->param( $self->{form_name_prefix} )."\n";
+	my $val = $self->{session}->param( $self->{form_name_prefix} );
 	$val =~ s/^\s+//;
 	$val =~ s/\s+$//;
 	$val = undef if( $val eq "" );
@@ -196,7 +184,7 @@ sub from_form
 	{
 		# complex text types
 		my $search_type = $self->{session}->param( 
-			$self->{form_name}."_srchtype" );
+			$self->{form_name_prefix}."_srchtype" );
 		my $exact = "IN";
 		
 		# Default search type if none supplied (to allow searches using simple
@@ -211,7 +199,7 @@ sub from_form
 	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
 	{
 		my @vals = ();
-		foreach( $self->{session}->param( $self->{form_name} ) )
+		foreach( $self->{session}->param( $self->{form_name_prefix} ) )
 		{
 			next if m/^\s*$/;
 			push @vals,$_;
@@ -235,7 +223,7 @@ sub from_form
 		{
 			# ANY or ALL?
 			my $anyall = $self->{session}->param(
-				$self->{form_name}."_anyall" );
+				$self->{form_name_prefix}."_anyall" );
 				
 			$val = (defined $anyall? "$anyall" : "ANY" ).":EQ:$val";
 
@@ -602,48 +590,34 @@ sub _get_tables_searches
 	my %searches = ();
 	my @tables = ();
 	my @badwords = ();
-	if( defined $self->{multifields} )
+
+	my $field;
+	foreach $field ( @{$self->{fieldlist}} ) 
 	{
-		my $multifield;
-		foreach $multifield ( @{$self->{multifields}} ) 
-		{
-			my $sfield = new EPrints::SearchField( 
-				$self->{session},
-				$self->{dataset},
-				$multifield,
-				$self->{value} );
-			my ($table,$where,$bad,$error) = 
-				$sfield->get_conditions();
-			if( defined $error )
-			{
-				return( undef, undef, undef, $error );
-			}
-			if( defined $where )
-			{
-				if( !defined $searches{$table} )
-				{
-					push @tables,$table;
-					$searches{$table}=[];
-				}
-	##print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
-				push @{$searches{$table}},@{$where};
-			}
-			if( defined $bad ) 
-			{ 
-				push @badwords, @{$bad}; 
-			}
-		}
-	}
-	else 
-	{
-		my ($table,$where,$bad,$error) = $self->get_conditions();
+		my $sfield = new EPrints::SearchField( 
+			$self->{session},
+			$self->{dataset},
+			$field,
+			$self->{value} );
+		my ($table,$where,$bad,$error) = $sfield->get_conditions();
 		if( defined $error )
 		{
 			return( undef, undef, undef, $error );
 		}
-		push @tables, $table;
-		$searches{$table} = $where;
-		if( defined $bad ) { push @badwords, @{$bad}; }
+		if( defined $where )
+		{
+			if( !defined $searches{$table} )
+			{
+				push @tables,$table;
+				$searches{$table}=[];
+			}
+	##print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
+			push @{$searches{$table}},@{$where};
+		}
+		if( defined $bad ) 
+		{ 
+			push @badwords, @{$bad}; 
+		}
 	}
 	return (\@tables, \%searches, \@badwords);
 }
@@ -760,7 +734,7 @@ sub to_html
 	
 		$frag->appendChild( 
 			$self->{session}->render_option_list(
-				name => $self->{form_name},
+				name => $self->{form_name_prefix},
 				values => \@bool_tags,
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
@@ -772,14 +746,14 @@ sub to_html
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
 				type => "text",
-				name => $self->{form_name},
+				name => $self->{form_name_prefix},
 				value => $self->{string},
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
 		$frag->appendChild( $self->{session}->make_text(" ") );
 		$frag->appendChild( 
 			$self->{session}->render_option_list(
-				name=>$self->{form_name}."_srchtype",
+				name=>$self->{form_name_prefix}."_srchtype",
 				values=>\@text_tags,
 				value=>$self->{anyall},
 				labels=>\%text_labels ) );
@@ -799,7 +773,7 @@ sub to_html
 		}
 
 		my %settings = (
-			name => $self->{form_name},
+			name => $self->{form_name_prefix},
 			default => \@defaults,
 			multiple => "multiple" );
 		
@@ -858,7 +832,7 @@ sub to_html
 			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 
 				$self->{session}->render_option_list(
-					name=>$self->{form_name}."_self->{anyall}",
+					name=>$self->{form_name_prefix}."_self->{anyall}",
 					values=>\@set_tags,
 					value=>$self->{anyall},
 					labels=>\%set_labels ) );
@@ -869,7 +843,7 @@ sub to_html
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
-				name=>$self->{form_name},
+				name=>$self->{form_name_prefix},
 				value=>$self->{string},
 				size=>9,
 				maxlength=>100 ) );
@@ -879,7 +853,7 @@ sub to_html
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
-				name=>$self->{form_name},
+				name=>$self->{form_name_prefix},
 				value=>$self->{string},
 				size=>9,
 				maxlength=>9 ) );
@@ -917,7 +891,7 @@ sub get_display_name
 sub get_form_name
 {
 	my( $self ) = @_;
-	return $self->{form_name};
+	return $self->{form_name_prefix};
 }
 
 sub is_set
@@ -936,9 +910,15 @@ sub serialise
 	# cjg. Might make an teeny improvement if
 	# we sorted the {string} so that equiv. searches
 	# have the same serialisation string.
+
+	my @fnames;
+	foreach( @{$self->{fieldlist}} )
+	{
+		push @fnames, $_->get_name().($_->get_property( "idpart" )?".id":"");
+	}
 	
 	my @escapedparts;
-	foreach($self->{form_name},
+	foreach(join( "/", sort @fnames ),
 		$self->{anyall}, 	
 		$self->{match}, 
 		$self->{string} )
@@ -961,7 +941,7 @@ sub unserialise
 	#cjg sick lose this dreadful "value"
 	my $value = "$parts[1]:$parts[2]:$parts[3]";
 	my @fields = ();
-	foreach( split( "/" , $part[0] ) )
+	foreach( split( "/" , $parts[0] ) )
 	{
 		push @fields, $dataset->get_field( $_ );
 	}

@@ -78,11 +78,14 @@ sub new
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order / )
 	{
 		$self->{$_} = $data{$_};
 	}
-	$self->{order} = $self->{dataset}->default_order(); 
+	if( !defined $self->{order} )
+	{
+		$self->{order} = $self->{dataset}->default_order(); 
+	}
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -366,12 +369,18 @@ sub serialise
 {
 	my( $self ) = @_;
 
+	# nb. We don't serialise 'staff mode' as that does not affect the
+	# results of a search, only how it is represented.
+
 	my @parts;
-	push @parts, $self->{allow_blank};
-	push @parts, $self->{satisfy_all};
+	push @parts, $self->{allow_blank}?1:0;
+	push @parts, $self->{satisfy_all}?1:0;
 	push @parts, $self->{order};
 	push @parts, $self->{dataset}->id();
-
+	# This inserts an empty field which we use to spot the join between
+	# the properties and the fields, so in a pinch we can add a new 
+	# property in a later version without breaking when we upgrade.
+	push @parts, "";
 	my $search_field;
 	foreach $search_field (sort {$a->get_form_name() cmp $b->get_form_name()} @{$self->{searchfields}})
 	{
@@ -393,10 +402,31 @@ sub serialise
 
 sub unserialise
 {
-	#foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff / )
-}
-	
+	my( $class, $session, $string ) = @_;
 
+	my( $pstring , $fstring ) = split /\|\|/ , $string ;
+	my %properties = ();
+	$properties{session} = $session;
+	my @parts = split( /\|/ , $pstring );
+	$properties{allow_blank} = $parts[0];
+	$properties{satisfy_all} = $parts[1];
+	$properties{order} = $parts[2];
+	$properties{dataset} = $session->get_archive()->get_dataset( $parts[3] );
+	my $searchexp = $class->new( %properties );
+	foreach( split /\|/ , $fstring )
+	{
+		my $searchfield = EPrints::SearchField->unserialise(
+			$session, $properties{dataset}, $_ );
+
+		# Add it to our list
+		push @{$searchexp->{searchfields}}, $searchfield;
+		# Put it in the name -> searchfield map
+		my $formname = $searchfield->get_form_name();
+		$searchexp->{searchfieldmap}->{$formname} = $searchfield;
+		
+	}
+	return $searchexp;	
+}
 
 sub perform_search
 {
@@ -474,7 +504,11 @@ sub dispose
 {
 	my( $self ) = @_;
 
-	print STDERR "Disposing:\n".$self->serialise()."\n";
+	my $sstring = $self->serialise();
+	print STDERR "Disposing:\n$sstring\n";
+	my $newsearch = EPrints::SearchExpression->unserialise( $self->{session}, $sstring );
+	print STDERR $newsearch->serialise()."\n";
+
 
 	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
 	{

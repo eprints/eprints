@@ -1449,25 +1449,7 @@ sub execute
 	return $result;
 }
 
-#cjg no longer needed?
-## WP1: BAD
-sub benchmark
-{
-	my ( $self , $keyfield , $tables , $where ) = @_;
 
-	my $sql = $self->_make_select( $keyfield, $tables, $where );
-
-	$sql= "EXPLAIN $sql";
-
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth , $sql );
-	my @info = $sth->fetchrow_array;
-
-	return $info[6];
-
-}	
-
-## WP1: BAD
 sub exists
 {
 	my( $self, $dataset, $id ) = @_;
