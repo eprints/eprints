@@ -280,7 +280,7 @@ END
 		print "Setting MySQL privs\n";
 		#cjg @localhost ??? what about remote mysql's?
 
-		my $SQL = 'GRANT SELECT, INSERT, UPDATE, DELETE, CREATE ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost IDENTIFIED BY "'.$config{dbpass}.'"';
+		my $SQL = 'GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost IDENTIFIED BY "'.$config{dbpass}.'"';
 		print "DOING: $SQL\n";
 		$dbh->do( $SQL );
 
