@@ -24,7 +24,7 @@ my $session = new EPrints::Session();
 # Get the old ID
 my $path = $session->{render}->{query}->path_info();
 
-$path =~ /\/(\w+)\/papers\/\d+\/(\d\d\d\d\d\d\d\d\d)/i;
+$path =~ /\/(\w+)\/(\d\d\d\d\d\d\d\d\d)\/.*/i;
 
 my $old_id = $1 . "/" . $2;
 
