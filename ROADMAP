@@ -19,28 +19,29 @@
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
--	Get the Deposit Item form working
--	Turn off caching of on-the-fly pages?
-0	Generate abstract page routine will create symlinks to actual docs.
-0	Security -> config,edit,authz (used for unfinished items too?)
-0	Multilang. Config for mails and submission agreement.
+0	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
+1	Multilangify Subject Fields and Subject DB
 0	"ID" fields for ISBN/userid etc.
--	Magic Next & Prev in SubmissionForm
-4	Multi-Lang fields in HTML
-0	Field Value Renderer 
-0	Best version sub for multilang fields (picks the best choice of language when a field has several set)
-0	Skippable Stages in SubmissionForm
-2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
-0	Phrasify Option Fields
-1	Editor Pages -approve,bounce,edit etc.
-0	Staff EPrint Edit
-0	Staff User Edit/Create
 2	Subject editors (editors can only edit within certain subjects)
 0	Web-based registration and Email Change
+-	Get the Deposit Item form working
+-	Turn off caching of on-the-fly pages?
+1	Generate abstract page routine will create symlinks to actual docs (if appropriate)
+2	Security -> config,edit,authz (used for unfinished items too?)
+-	Multilang. Config for mails and submission agreement.
+-	"Magic" Next & Prev in SubmissionForm
+4	Multi-Lang fields in HTML
+2	Field Value Renderer 
+-	Best version sub for multilang fields (picks the best choice of language when a field has several set)
+0	Skippable Stages in SubmissionForm, and multiple page metadata form.
+2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
+0	Phrasify Option Fields
+2	Editor Pages -approve,bounce,edit etc.
+0	Staff EPrint Edit
+0	Staff User Edit/Create
 0	Mailer (Unicode friendly?)
-0	Indexcode generator in ArchiveConfig.pm needs to be UTF-8 clean
-1	Multilangify Subject Fields and Subject DB
-0	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
+0	Autodetect optional system features: microtime, df etc. (Is this possible?)
+-	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
@@ -51,7 +52,7 @@
 0 	Metadata approve page in Submission Form for Admin Conf'd comments
 1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
-0	Default Values for metadata
+2	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
 0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
 0	Translate Initial phrases and templates into French

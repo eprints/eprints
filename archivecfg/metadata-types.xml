@@ -7,8 +7,15 @@
     <type name="pdf" />
     <type name="ps" />
     <type name="ascii" />
+    <type name="other" />
 <!-- arbitary formats? -->
 <!-- required?? -->
+  </dataset>
+
+  <dataset name="security">
+    <type name="public" />
+    <type name="validuser" />
+    <type name="staffonly" />
   </dataset>
   
   <dataset name="eprint">

@@ -31,7 +31,8 @@ my $openarchives_id_stem = $session->get_archive()->get_conf( "oai_archive_id" )
 	$EPrints::OpenArchives::id_separator .
 	$session->get_archive()->get_conf( "eprint_id_stem" );
 
-my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits;
+
+my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits; #cjg id_code_digits no longer exists
 my $eprintid = undef;
 
 if( defined $eprintid_in )
@@ -57,7 +58,7 @@ if( defined $eprintid_in )
 	{
 		# Just some digits. Prepend the site stem and any necessary zeroes.
 		$eprintid = $session->get_archive()->get_conf( "eprint_id_stem" ) .
-			"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) .
+			"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) . #cjg id_code_digits no longer exists
 			$eprintid_in;
 	}
 }

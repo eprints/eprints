@@ -24,6 +24,7 @@ use File::Path;
 use Filesys::DiskSpace;
 use strict;
 
+#cjg doc validation lets through docs with no type (??)
 
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
@@ -46,9 +47,8 @@ sub get_system_field_info
 
 	{ name=>"datestamp", type=>"date", required=>0 },
 
-	{ name=>"additional", type=>"text", required=>0 },
-
-	{ name=>"reasons", type=>"longtext", required=>0, displaylines=>6 },
+	{ name=>"additional", type=>"text", required=>0 },#cjg DOOM
+	{ name=>"reasons", type=>"longtext", required=>0, displaylines=>6 },#cjg DOOM
 
 	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, 
 		displaylines=>"ALL" },
@@ -180,12 +180,7 @@ sub _create_id
 {
 	my( $session ) = @_;
 	
-	my $new_id = $session->get_db()->counter_next( "eprintid" );
-
-	while( length $new_id < $EPrints::EPrint::id_code_digits )
-	{
-		$new_id = "0".$new_id;
-	}
+	my $new_id = sprintf( "%08", $session->get_db()->counter_next( "eprintid" ) );
 
 	return( $session->get_archive()->get_conf( "eprint_id_stem" ) . $new_id );
 }
@@ -263,26 +258,19 @@ print STDERR "oraok\n";
 	}
 
 	# For now, just choose first
-print STDERR "ook\n";
 	return( undef ) if( !defined $avail[0] );
 	
-print STDERR "oak\n";
-	# Work out the directory path. It's worked out using the ID of the EPrint.
-	# It takes the numerical suffix of the ID, and divides it into four
-	# components, which become the directory path for the EPrint.
-	# e.g. "stem001020304" is given the path "001/02/03/04"
+	# Work out the directory path. It's worked out using the ID of the 
+	# EPrint.
+	my $idpath = eprintid_to_path( $session->get_archive(), $eprint_id );
+	return( undef ) if( !defined $idpath );
 
-	my $archivestem = $session->get_archive()->get_conf( "eprint_id_stem" );
+	my $dir = $storedir."/".$idpath;
 
-	return( undef ) unless( $eprint_id =~
-		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
-
-print STDERR "soak\n";
-	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
-	
 	# Full path including doc store root
-	my $full_path = $session->get_archive()->get_conf("local_document_root")."/$dir";
+	my $full_path = $session->get_archive()->get_conf("local_document_root")."/".$dir;
 
+################## cjg should be a mkdir routine in Utils.pm
 	# Ensure the path is there. Dir. is made group writable.
 	my @created = eval
 	{
@@ -290,25 +278,37 @@ print STDERR "soak\n";
 		return( @created );
 	};
 
-#	foreach (@created)
-#	{
-#	}
-
 	# Error if we couldn't even create one
-	if( $#created == -1 )
+	if( scalar @created == 0 )
 	{
 		$session->get_archive()->log( "Failed to create directory ".$full_path.": $@"); 
 		return( undef );
 	}
+######################
 
 	# Return the path relative to the document store root
 	return( $dir );
 }
 
 
+# should be in Utils.pm cjg
+sub eprintid_to_path
+{
+	my( $archive, $eprint_id ) = @_;
 
+	# It takes the numerical suffix of the ID, and divides it into four
+	# components, which become the directory path for the EPrint.
+	# e.g. "stem001020304" is given the path "001/02/03/04"
 
+	my $archivestem = $archive->get_conf( "eprint_id_stem" );
 
+	return( undef ) unless( $eprint_id =~
+		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
+
+	return( $1 . "/" . $2 . "/" . $3 . "/" . $4 );
+}
+	
+	
 ######################################################################
 #
 # $success = remove()
@@ -326,7 +326,7 @@ sub remove
 	
 	# Create a deletion record if we're removing the record from the main
 	# archive
-	if( $self->{dataset}->to_string() eq "archive" )
+	if( $self->{dataset}->id() eq "archive" )
 	{
 		#cjg Test this!
 		$success = $success && EPrints::Deletion::add_deletion_record( $self );
@@ -1124,7 +1124,8 @@ sub generate_static
 
 	my $eprint_id = $self->get_value( "eprintid" );
 
-	# Work out the directory path. It's worked out using the ID of the EPrint.
+	# Work out the directory path. It's worked out using the 
+	# ID of the EPrint.
 	# It takes the numerical suffix of the ID, and divides it into four
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
@@ -1159,9 +1160,6 @@ sub generate_static
 			  "/" . $EPrints::EPrint::static_page );
 		# SYMLINK's to DOCS...
 	}
-
-
-
 	
 	return;	
 }
@@ -1464,6 +1462,7 @@ sub get_value
 }
 
 # should be a generic function in, er, Config? or even Utils.pm
+# ALL cjg get_value should use this.
 sub _isset
 {
 	my( $r ) = @_;
@@ -1476,24 +1475,23 @@ sub _isset
 	}
 	if( ref($r) eq "ARRAY" )
 	{
-		my $ok=0;
 		foreach( @$r )
 		{
-			$ok = 1 if( _isset($_));
+			return( 1 );
 		}
-		return $ok;
+		return( 0 );
 	}
 	if( ref($r) eq "HASH" )
 	{
-		my $ok=0;
 		foreach( keys %$r )
 		{
-			$ok = 1 if( _isset($r->{$_}));
+			return( 1 );
 		}
-		return $ok;
+		return( 0 );
 	}
 	# Hmm not a scalar, or a hash or array ref.
-	return 1;
+	# Lets assume it's set. (it is probably a blessed thing)
+	return( 1 );
 }
 
 ## WP1: BAD

@@ -36,15 +36,6 @@ $EPrints::Document::OTHER = "OTHER";
 my $DIGITS = 2;
 
 
-# cjg this belongs elsewhere
-%EPrints::Document::help =
-(
-	"format"     => "Please select the storage format you wish to upload.",
-	"formatdesc" => "If you are uploading a non-listed format, please enter ".
-	                "details about the format below. Please be sure to include ".
-	                "version information."
-);
-
 ## WP1: BAD
 sub get_system_field_info
 {
@@ -59,7 +50,11 @@ sub get_system_field_info
 		{ name=>"format", type=>"datatype", required=>1, datasetid=>"document" },
 
 		{ name=>"formatdesc", type=>"text", required=>1 },
-#Language?
+
+		{ name=>"language", type=>"datatype", required=>1, datasetid=>"language" },
+
+		{ name=>"security", type=>"datatype", required=>1, datasetid=>"security" },
+
 		{ name=>"main", type=>"text", required=>1 }
 	);
 
@@ -111,15 +106,17 @@ sub create
 	
 	# Make directory on filesystem
 	my $dir = _create_directory( $doc_id, $eprint );
+	return undef unless( defined $dir );
 
-	unless( defined $dir )
-	{
-		# Some error while making it
-		$session->get_archive()->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).": $!" );
-		return( undef );
-	}
+	# Make secure area symlink
+	return undef unless( _create_secure_symlink( $doc_id, $eprint ) );
 
 	my $data = {};
+	$session->get_archive()->call( 
+			"set_document_defaults", 
+			$data,
+ 			$session,
+ 			$eprint );
 	$data->{docid} = $doc_id;
 	$data->{eprintid} = $eprint->get_value( "eprintid" );
 
@@ -155,19 +152,93 @@ sub _create_directory
 {
 	my( $id, $eprint ) = @_;
 	
-	# Get the EPrint's directory
-	my $dir = $eprint->local_path() . "/" . $id;
+	my $dir = $eprint->local_path()."/".docid_to_path( $eprint->get_session()->get_archive(), $id );
 
 	# Ensure the path is there. Dir. is made group writable.
 	my @created = mkpath( $dir, 0, 0775 );
 print STDERR "DOCDIR : ".join( " / ", @created )."\n";
 
 	# Return undef if dir creation failed. Should always have created 1 dir.
-	return( undef ) unless( $#created >= 0 );
+	if( scalar @created == 0 )
+	{
+		$eprint->get_session()->get_archive()->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($dir): ".$! );
+		return( undef );
+	}
 
 	return( $dir );
 }
 
+sub _create_secure_symlink
+{
+	my( $id, $eprint ) = @_;
+
+	my $archive = $eprint->get_session()->get_archive();
+
+	my $dir = $eprint->local_path()."/".docid_to_path( $archive, $id );
+
+	my $linkdir = _secure_symlink_path( $eprint );
+	print STDERR "\nLINKDIR=($linkdir)\n\n";
+	my @created = mkpath( $linkdir, 0, 0775 );
+
+	if( scalar @created == 0 )
+	{
+		$archive->log( "Error creating symlink dir for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($linkdir): ".$! );
+		return( 0 );
+	}
+
+	my $symlink = $linkdir."/".docid_to_path( $archive, $id );
+
+	unless( symlink( $dir, $symlink ) )
+	{
+		$archive->log( "Error creating symlink for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." symlink($dir to $symlink): ".$! );
+		return( 0 );
+	}	
+
+	return( 1 );
+}
+
+sub _remove_secure_symlink
+{
+	my( $id, $eprint ) = @_;
+
+	my $archive = $eprint->get_session()->get_archive();
+
+	my $linkdir = _secure_symlink_path( $eprint );
+	my $symlink = $linkdir."/".docid_to_path( $archive, $id );
+
+	unless( unlink( $symlink ) )
+	{
+		$archive->log( "Failed to unlink secure symlink for ".$eprint->get_value( "eprintid" ).", docid=".$id." ($symlink): ".$! );
+		return( 0 );
+	}
+	return( 1 );	
+}
+
+#cjg: should this belong to eprint?
+sub _secure_symlink_path
+{
+	my( $eprint ) = @_;
+
+	my $archive = $eprint->get_session()->get_archive();
+		
+	return( $archive->get_conf( "local_secure_root" )."/".EPrints::EPrint::eprintid_to_path( $archive, $eprint->get_value( "eprintid" ) ) );
+}
+
+sub docid_to_path
+{
+	my( $archive, $docid ) = @_;
+
+	$docid =~ m/-(\d+)$/;
+	my $id = $1;
+	if( !defined $1 )
+	{
+		$archive->log( "Doc ID did not take expected format: \"".$docid."\"" );
+		# Setting id to "badid" is messy, but recoverable. And should
+		# be noticed easily enough.
+		$id = "badid";
+	}
+	return $id;
+}
 
 ######################################################################
 #
@@ -217,7 +288,7 @@ sub _generate_doc_id
 #
 ######################################################################
 
-## WP1: BAD
+## WP1: BAD #cjg NOT DONE
 sub clone
 {
 	my( $self, $eprint ) = @_;
@@ -268,11 +339,18 @@ sub remove
 {
 	my( $self ) = @_;
 
+	# If removing the symlink fails then it's not the end of the 
+	# world. We will delete all the files it points to. 
+	_remove_secure_symlink( 
+		$self->get_value( "docid" ), 
+		$self->get_eprint() );
+
 	# Remove database entry
 	my $success = $self->{session}->get_db()->remove(
 		$self->{session}->get_archive()->get_dataset( "document" ),
 		$self->get_value( "docid" ) );
 	
+
 	if( !$success )
 	{
 		my $db_error = $self->{session}->get_db()->error();
@@ -335,9 +413,16 @@ sub url
 	my $eprint = $self->get_eprint();
 
 	return( undef ) if( !defined $eprint );
-	
-	return( URI::Escape::uri_escape(
-		$eprint->url_stem() . $self->get_value( "docid" ) . "/" . $self->get_main() ) );
+
+	my $archive = $self->{session}->get_archive();
+
+	# Unless this is a public doc in "archive" then the url should
+	# point into the secure area. 
+
+	return $archive->get_conf( "server_secure_root" ) . "/" .
+		$eprint->get_value( "eprintid" ) . "/" .
+		docid_to_path( $archive, $self->get_value( "docid" ) ) . "/" . 
+		$self->get_main();
 }
 
 
@@ -358,7 +443,7 @@ sub local_path
 	
 	return( undef ) if( !defined $eprint );
 	
-	return( $eprint->local_path() . "/" . $self->get_value( "docid" ) );
+	return( $eprint->local_path()."/".docid_to_path( $self->{session}->get_archive(), $self->get_value( "docid" ) ) );
 }
 
 

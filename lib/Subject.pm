@@ -227,7 +227,7 @@ sub children #cjg should be get_children()
 
 	$searchexp->add_field(
 		$self->{dataset}->get_field( "parents" ),
-		"PHR:EQ:$self->{subjectid}" );
+		"PHR:EQ:".$self->get_value( "subjectid" ) );
 
 #cjg set order (it's in the site config)
 

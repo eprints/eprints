@@ -68,7 +68,7 @@ sub new
 	bless $self, $class;
 print STDERR "k:[".join(",",keys %data)."]\n";
 print STDERR "SE1:[".$data{dataset}."]\n";
-print STDERR "SE2:[".$data{dataset}->to_string()."]\n";
+print STDERR "SE2:[".$data{dataset}->confid()."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
@@ -454,7 +454,7 @@ sub perform_search
 		foreach $search_field( @searchon )
 		{
 			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--(".$search_field->{value}.")");
-			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
+			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".(defined $buffer?$buffer:"[no buffer]")."!\n" );
 			my $error;
 			( $buffer , $badwords , $error) = 
 				$search_field->do( $buffer , $self->{satisfy_all} );

@@ -64,6 +64,13 @@ $c->{eprint_id_stem} = "zook";
 $c->{allow_user_removal_request} = 1;
 
 
+###cjg Devel hack#############
+my $realid = `hostname`;
+chomp $realid;
+if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
+##############################
+
+
 ######################################################################
 #
 #  Site information that shouldn't need changing
@@ -79,6 +86,7 @@ $c->{system_files_path} = "$c->{archiveroot}/sys";
 $c->{static_html_root} = "$c->{archiveroot}/cfg/static";
 $c->{local_html_root} = "$c->{archiveroot}/html";
 $c->{local_document_root} = "$c->{archiveroot}/documents";
+$c->{local_secure_root} = "$c->{static_html_root}/secure";
 
 ######################################################################
 # URLS
@@ -99,6 +107,9 @@ $c->{frontpage} = "$c->{server_static}/";
 
 # Corresponding URL of document file hierarchy
 $c->{server_document_root} = "$c->{server_static}/archive"; 
+
+# URL of secure document file hierarchy
+$c->{server_secure_root} = "$c->{server_static}/secure"; 
 
 ######################################################################
 #
@@ -1590,7 +1601,33 @@ sub log
 	print STDERR "EP(".$archive->get_id().") ".$message."\n";
 }
 
-## WP1: BAD
+sub set_document_defaults
+{
+	my( $data, $session, $eprint ) = @_;
+
+	$data->{language} = $session->get_langid();
+	$data->{format} = "other";
+	$data->{formatdesc} = "bunch of arse";
+}
+
+#cjg not used yet
+sub set_user_defaults
+{
+	my( $data, $session ) = @_;
+}
+
+#cjg not used yet
+sub set_eprint_defaults
+{
+	my( $data, $session, $user ) = @_;
+}
+
+#cjg not used yet
+sub set_subscription_defaults
+{
+	#cjg(?)do we need this one?
+	my( $data, $session, $user ) = @_;
+}
 
 sub get_entities
 {
@@ -1606,6 +1643,8 @@ sub get_entities
 
 	return %entities;
 }
+
+
 	
 
 1;

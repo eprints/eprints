@@ -204,11 +204,13 @@ sub _load_datasets
 	{
 		my $ds_id = $ds_tag->getAttribute( "name" );
 		my $type_tag;
+		$dsconf->{$ds_id}->{_order} = [];
 		foreach $type_tag ( $ds_tag->getElementsByTagName( "type" ) )
 		{
 			my $type_id = $type_tag->getAttribute( "name" );
 			my $field_tag;
 			$dsconf->{$ds_id}->{$type_id} = [];
+			push @{$dsconf->{$ds_id}->{_order}}, $type_id;
 			foreach $field_tag ( $type_tag->getElementsByTagName( "field" ) )
 			{
 				my $finfo = {};

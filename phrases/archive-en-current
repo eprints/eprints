@@ -6,6 +6,19 @@
     <phrase ref="document_typename_html">HTML</phrase>
     <phrase ref="document_typename_pdf">PDF</phrase>
     <phrase ref="document_typename_ps">Postscript</phrase>
+    <phrase ref="document_typename_other">Other</phrase>
+
+    <phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</phrase>
+    <phrase ref="document_fieldhelp_format">Please select the storage format of this document.</phrase>
+    <phrase ref="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</phrase>
+    <phrase ref="document_fieldhelp_security">Please indicate the required "security level" of this document. Who is allowed to download it?</phrase>
+
+    <phrase ref="format_fieldhelp_arc_format">Please select an upload method.</phrase>
+    <phrase ref="format_fieldhelp_num_files">If uploading plain files, please indicate how many.</phrase>
+
+    <phrase ref="security_typename_public">Anyone</phrase>
+    <phrase ref="security_typename_validuser">Registered users only</phrase>
+    <phrase ref="security_typename_staffonly">Archive staff only</phrase>
 
     <phrase ref="eprint_fieldname_eprintid">EPrint ID</phrase>
 
@@ -144,10 +157,10 @@
 
 <!-- Sort Order names -->
 
-    <phrase ref="ordername_archive_byyear">by year (most recent first)</phrase>
-    <phrase ref="ordername_archive_byyearoldest">by year (oldest first)</phrase>
-    <phrase ref="ordername_archive_byname">by author's name</phrase>
-    <phrase ref="ordername_archive_bytitle">by title</phrase>
+    <phrase ref="ordername_eprint_byyear">by year (most recent first)</phrase>
+    <phrase ref="ordername_eprint_byyearoldest">by year (oldest first)</phrase>
+    <phrase ref="ordername_eprint_byname">by author's name</phrase>
+    <phrase ref="ordername_eprint_bytitle">by title</phrase>
 
 
 <!-- User Field Names -->

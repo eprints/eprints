@@ -27,7 +27,6 @@ use strict;
 
 
 
-
 ######################################################################
 #
 # $language = new( $langid, $archive )
@@ -78,6 +77,8 @@ sub phrase
 	}
 	$inserts = {} if( !defined $inserts );
 
+print STDERR "PHRASE($phraseid)";
+
 if( !defined $session ) {
 	EPrints::Session::bomb();
 } 
@@ -99,7 +100,7 @@ if( !defined $session ) {
 		my $ref = $pin->getAttribute( "ref" );
 		print STDERR "^*^ $ref\n";
 		my $repl;
-		if( $inserts->{$ref} )
+		if( defined $inserts->{$ref} )
 		{
 			$repl = $inserts->{$ref};
 		}
@@ -107,7 +108,6 @@ if( !defined $session ) {
 		{
 			$repl = $session->make_text( "[ref missing: $ref]" );
 		}
-		print STDERR "= ".$repl->toString()."\n";
 
 		# All children remain untouched, only the PIN is
 		# changed.

@@ -15,6 +15,10 @@ package EPrints::DataSet;
 
 use EPrints::Document;
 
+#cjg Should deletion be just another "eprints" dataset.
+
+
+
 my $INFO = {
 	tempmap => {
 		sqlname => "Xtempmap"
@@ -59,7 +63,11 @@ my $INFO = {
 	},
 	eprint => {
 		class => "EPrints::EPrint"
-	}
+	},
+	# language and security are here so they can be used in
+	# "datatype" fields.
+	language => {},
+	security => {}
 };
 
 #
@@ -86,6 +94,7 @@ sub new_stub
 	bless $self, $class;
 	$self->{datasetname} = $datasetname;
 
+	$self->{id} = $INFO->{$datasetname}->{confid};
 	$self->{confid} = $INFO->{$datasetname}->{confid};
 	$self->{confid} = $datasetname unless( defined $self->{confid} );
 
@@ -114,6 +123,18 @@ sub new
 	$self->{fields} = [];
 	$self->{system_fields} = [];
 	$self->{field_index} = {};
+	$self->{types} = {};
+	$self->{typeorder} = [];
+
+	if( $datasetname eq "language" )
+	{	
+		foreach( EPrints::Config::get_languages() )
+		{
+			$self->{types}->{$_} = [];
+			push @{$self->{typeorder}},$_;
+		}
+		return $self;
+	}
 
 	if( defined $INFO->{$self->{confid}}->{class} )
 	{
@@ -138,12 +159,14 @@ sub new
 		}
 	}
 
-	$self->{types} = {};
 	if( defined $typesconf->{$self->{confid}} )
 	{
 		my $typeid;
+		$self->{typeorder} = $typesconf->{$self->{confid}}->{_order};
 		foreach $typeid ( keys %{$typesconf->{$self->{confid}}} )
 		{
+			next if( $typeid eq "_order" );
+
 			$self->{types}->{$typeid} = [];
 
 			# System fields are now not part of the "type" fields
@@ -221,17 +244,10 @@ sub confid
 	my( $self ) = @_;
 	return $self->{confid};
 }
-
-#
-# string to_string()
-#
-#  This returns a printable name of this dataset, for logging and errors.
-
-## WP1: BAD
-sub to_string
+sub id
 {
 	my( $self ) = @_;
-	return $self->{datasetname};
+	return $self->{id};
 }
 
 # string get_sql_table_name()
@@ -287,7 +303,6 @@ sub get_fields
 #  returns the keyfield for this dataset, the unqiue identifier field.
 #  (always the first field).
 
-## WP1: BAD
 sub get_key_field
 {
 	my( $self ) = @_;
@@ -345,8 +360,7 @@ sub get_types
 {
 	my( $self ) = @_;
 
-	my @types = sort keys %{$self->{types}};
-	return \@types;
+	return $self->{typeorder};
 }
 
 # hash ref get_type_names( $session )
@@ -371,11 +385,27 @@ sub get_type_names
 sub get_type_name
 {
 	my( $self, $session, $type ) = @_;
+
+	if( $self->{confid} eq "language" )
+	{
+		if( $type eq "?" )
+		{
+			return $session->phrase( "lib/dataset:no_language" );
+		}
+		return EPrints::Config::lang_title( $type );
+	}
+
         return $session->phrase( $self->confid()."_typename_".$type );
 }
+
 sub render_type_name
 {
 	my( $self, $session, $type ) = @_;
+
+	if( $self->{confid} eq "language" )
+	{
+		return $session->make_text( $self->get_type_name( $session, $type ) );
+	}
         return $session->html_phrase( $self->confid()."_typename_".$type );
 }
 

@@ -227,6 +227,13 @@ sub phrase
 	return EPrints::Config::tree_to_utf8( $r );
 }
 
+sub get_langid
+{
+	my( $self ) = @_;
+
+	return $self->{lang}->get_id();
+}
+
 sub best_language
 {
 	my( $self, %values ) = @_;
@@ -274,7 +281,7 @@ sub get_order_name
 	my( $self, $dataset, $orderid ) = @_;
 	
         return $self->phrase( 
-		"ordername_".$dataset->to_string()."_".$orderid );
+		"ordername_".$dataset->confid()."_".$orderid );
 }
 
 

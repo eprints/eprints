@@ -16,6 +16,10 @@
 EPrints Modules  
 ***********************************************************************-->
 
+<!-- Dataset -->
+
+    <phrase ref="lib/dataset:no_language">Unknown/Other</phrase>
+
 <!-- Document -->
 
     <phrase ref="lib/document:no_files">You haven't uploaded any files!</phrase>
@@ -171,7 +175,6 @@ EPrints Modules
     <phrase ref="lib/submissionform:action_submit">Submit EPrint</phrase>
     <phrase ref="lib/submissionform:title_type">Deposit Type</phrase>
     <phrase ref="lib/submissionform:title_meta">Bibliographic Information</phrase>
-    <phrase ref="lib/submissionform:title_subject">Subject Categories</phrase>
     <phrase ref="lib/submissionform:title_linking">Succession/Commentary</phrase>
     <phrase ref="lib/submissionform:title_format">Document Storage Formats</phrase>
     <phrase ref="lib/submissionform:title_fileview">Document File Upload</phrase>

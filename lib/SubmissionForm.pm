@@ -40,15 +40,10 @@ my $STAGES = {
 	},
 	meta => {
 		prev => "linking",
-		next => "subject"
-	},
-#cjg subject field should be turned into something like "comments"
-	subject => { 
-		prev => "meta",
 		next => "format"
 	},
 	format => {
-		prev => "subject",
+		prev => "meta",
 		next => "verify"
 	},
 	fileview => {},
@@ -220,7 +215,7 @@ sub _corrupt_err
 	$self->{session}->render_error( 
 		$self->{session}->html_phrase( 
 			"lib/submissionform:corrupt_err",
-			line_no => (caller())[2] ) );
+			line_no => $self->{session}->make_text( (caller())[2] ) ) );
 
 }
 
@@ -232,7 +227,7 @@ sub _database_err
 	$self->{session}->render_error( 
 		$self->{session}->html_phrase( 
 			"lib/submissionform:database_err",
-			line_no => (caller())[2] ) );
+			line_no => $self->{session}->make_text( (caller())[2] ) ) );
 
 }
 
@@ -524,51 +519,6 @@ sub _from_stage_meta
 
 ######################################################################
 #
-# Come from subject form
-#
-######################################################################
-
-## WP1: BAD
-sub _from_stage_subject
-{
-	my( $self ) = @_;
-print STDERR "sigh?\n";
-	# Process uploaded data
-	$self->_update_from_form( "subjects" );
-	$self->_update_from_form( "additional" );
-	$self->_update_from_form( "reasons" );
-	$self->{eprint}->commit();
-	
-	if( $self->{action} eq "next" )
-	{
-		$self->{problems} = $self->{eprint}->validate_subject();
-		if( scalar @{$self->{problems}} > 0 )
-		{
-			# There were problems with the uploaded type, don't move further
-			$self->_set_stage_this;
-			return( 1 );
-		}
-
-		# No problems, onto the next stage
-		$self->_set_stage_next;
-		return( 1 );
-	}
-
-	if( $self->{action} eq "prev" )
-	{
-		$self->_set_stage_prev;
-		return( 1 );
-	}
-
-	# Don't have a valid action!
-	$self->_corrupt_err;
-	return( 0 );
-}
-
-
-
-######################################################################
-#
 #  From "select doc format" page
 #
 ######################################################################
@@ -746,15 +696,6 @@ sub _from_stage_fileview
 		return( 1 );
 	}
 
-	# Fileview button wasn't pressed, and neiter was prev so it's
-	# either upload or finished -
-	# Update the description if appropriate
-	$self->{document}->set_value( "formatdesc",
-		$self->{session}->param( "formatdesc" ) );
-	$self->{document}->set_value( "format",
-		$self->{session}->param( "format" ) );
-	$self->{document}->commit();
-
 	if( $self->{action} eq "upload" )
 	{
 		# Set up info for next stage
@@ -763,7 +704,23 @@ sub _from_stage_fileview
 		$self->{new_stage} = "upload";
 		return( 1 );
 	}
-	
+
+	# Fileview button wasn't pressed, and neiter was "prev" or "upload"
+	# so it must (should) be "finished" -
+	# Update the description if appropriate
+	$self->{document}->set_value( "formatdesc",
+		$self->{session}->param( "formatdesc" ) );
+	$self->{document}->set_value( "format",
+		$self->{session}->param( "format" ) );
+	$self->{document}->set_value( "language",
+		$self->{session}->param( "language" ) );
+	$self->{document}->set_value( "security",
+		$self->{session}->param( "security" ) );
+use Data::Dumper;
+print STDERR "\n-----------------\naboot to commit.\n";
+print STDERR Dumper($self->{document}->{data});
+	$self->{document}->commit();
+
 	if( $self->{action} eq "finished" )
 	{
 		# Finished uploading apparently. Validate.
@@ -1164,56 +1121,6 @@ sub _do_stage_meta
 	$self->{session}->send_page();
 }
 
-######################################################################
-#
-#  Select subject(s) form
-#
-######################################################################
-
-## WP1: BAD
-sub _do_stage_subject
-{
-	my( $self ) = @_;
-
-	my( $page );
-
-	$page = $self->{session}->make_doc_fragment();
-
-	$page->appendChild( $self->_render_problems() );
-
-	my $hidden_fields = {	
-		eprintid => $self->{eprint}->get_value( "eprintid" ),
-		stage => "subject" };
-
-	my $submit_buttons = {
-		prev => $self->{session}->phrase(
-				"lib/submissionform:action_prev" ),
-		next => $self->{session}->phrase( 
-				"lib/submissionform:action_next" ) };
-
-
-	my @edit_fields;
-	push @edit_fields, $self->{dataset}->get_field( "subjects" );
-	push @edit_fields, $self->{dataset}->get_field( "additional" );
-	push @edit_fields, $self->{dataset}->get_field( "reasons" );
-
-	$page->appendChild( 
-		$self->{session}->render_input_form( 
-			\@edit_fields,
-			$self->{eprint}->get_data(),
-			0,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			"submit#t" ) );
-
-	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_subject" ),
-		$page );
-	$self->{session}->send_page();
-}	
-
 
 
 ######################################################################
@@ -1348,6 +1255,8 @@ sub _do_stage_fileview
 		stage => "fileview" };
 
 	############################
+
+#cjg Need to make "graburl" dependent on the setted-ness of "wget"
 
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
@@ -1540,12 +1449,11 @@ sub _do_stage_fileview
 		$self->{session}->render_input_form( 
 			[ 
 				$docds->get_field( "format" ),
-				$docds->get_field( "formatdesc" )
+				$docds->get_field( "formatdesc" ),
+				$docds->get_field( "language" ),
+				$docds->get_field( "security" )
 			],
-			{
-				format => $self->{document}->get_value( "format" ),
-				formatdesc => $self->{document}->get_value( "formatdesc" )
-			},
+			$self->{document}->get_data(),
 			0,
 			1,
 			$submit_buttons,

@@ -140,6 +140,7 @@ END
 my $cgidir = EPrints::Config::get( "cgi_path" );
 my $adminemail = $archive->get_conf( "adminemail" );
 my $local_html_root = $archive->get_conf( "local_html_root" );
+my $local_secure_root = $archive->get_conf( "local_secure_root" );
 my $host = $archive->get_conf( "host" );
 my $idstem = $archive->get_conf( "eprint_id_stem" );
 
@@ -187,7 +188,7 @@ $aliases
   Alias /perl $cgidir
 
   ErrorDocument 401 /error401.html
-  ErrorDocument 404 /error401.html
+  #ErrorDocument 404 /error401.html
 #cjg Do these even work?
 
   RewriteEngine on
@@ -196,7 +197,9 @@ $aliases
   # no further if it matches.
 
   # Protect /perl/ from other rewrite rules
-  RewriteRule ^/perl/.*\$      -   [L]
+  RewriteRule ^/perl/      -   [L]
+
+  RewriteRule ^/secure/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /secure/\$1/\$2/\$3/\$4/\$5 [L]
 
   RewriteRule ^/archive/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5
 
@@ -218,22 +221,35 @@ print CONF <<END;
   # Default Language
   RewriteRule ^/(.*)\$         /$deflang/\$1   [L]
 
-  <Directory \"$cgidir\">
+  <Directory "$local_secure_root">
+    AuthName "Secure Document Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Auth::authen
+    PerlAuthzHandler EPrints::Auth::authz
+    require valid-user
+  </Directory>
+
+  <Directory "$cgidir">
     SetHandler perl-script
     PerlHandler Apache::Registry
 #cjg what does this do?
     PerlSendHeader Off
     Options +ExecCGI
-    AllowOverride AuthConfig 
-#cjg Auth here rather than put it in .htaccess?
+  </Directory>
+  <Directory "$cgidir/users">
+    AuthName "User Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Auth::authen
+    PerlAuthzHandler EPrints::Auth::authz
+    require valid-user
   </Directory>
 
-  <Directory \"$local_html_root\">
+  <Directory "$local_html_root">
     AddType 'text/html; charset=UTF-8' .html
 #???
   </Directory>
-
 </VirtualHost>
+
 END
 
 close CONF;

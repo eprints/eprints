@@ -24,6 +24,8 @@ use EPrints::SystemSettings;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);
 
+use Data::Dumper;
+
 
 BEGIN {
 	# Paranoia: This may annoy people, or help them... cjg
