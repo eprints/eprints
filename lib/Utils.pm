@@ -59,9 +59,10 @@ use Carp;
 
 use EPrints::SystemSettings;
 
-my $DF_AVAILABLE = 0;
+my $DF_AVAILABLE;
 
 BEGIN {
+	$DF_AVAILABLE = 0;
 
 	sub detect_df 
 	{
