@@ -4,8 +4,6 @@
 #
 # File: utilities.pl
 #
-# Version: $Id$
-#
 # Description:
 #       Generic utitilities
 #

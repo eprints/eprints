@@ -4,8 +4,6 @@
 #
 # File: dienst.pl
 #
-# Versions: $Id$
-#
 # Description:
 #       This is the main entry point for DIENST.
 #

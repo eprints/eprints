@@ -4,8 +4,6 @@
 #
 # File: config_constants.pl
 #
-# Version: $Id$
-#
 # Description:
 #       configuration settings
 #

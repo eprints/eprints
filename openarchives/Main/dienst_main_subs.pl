@@ -4,8 +4,6 @@
 #
 # File: dienst_main_subs.pl
 #
-# Versions: $Id$
-#
 # Description:
 #       Subroutines used by Main
 #

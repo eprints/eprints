@@ -4,8 +4,6 @@
 #
 # File: Dispatch.pm (Beta 1.0)
 #
-# Version: $Id$
-#
 # Description:
 #       Code for defining and calling Dienst handlers.
 #

@@ -3,8 +3,6 @@
 # library                                                                   #
 # File: Repository_protocol.pl                                              #
 #
-# Version: $Id$
-#                                                                           #
 # Description:                                                              #
 #      Repository protocol spec.
 #

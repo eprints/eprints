@@ -4,8 +4,6 @@
 #
 # File: mr.pl
 #
-# Versions: $Id$
-#
 # Description:
 #       Repository
 #
