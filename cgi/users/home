@@ -17,7 +17,6 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::EPrint;
-use EPrints::SubmissionForm;
 
 use strict;
 
@@ -211,7 +210,7 @@ sub render_workspace
 	# One or more items in workspace.
 	# Render a form to let the user fiddle with them.
 
-	my( $html, $h3, $p, $form );
+	my( $html, $h3, $p, $form, $div );
 
 	$html = $session->make_doc_fragment();
 
@@ -238,15 +237,21 @@ sub render_workspace
 				type=>"set",
 				displaylines=>6,
 				options=>\@eprintids );
-	# If there is only one eprint in the workspace, 
-	# select it by default
-	my %default_values;
-	if( scalar @eprints==1 )
-	{
-		$default_values{"eprintid"} = $eprintids[0] 
-	}
 
-	my $buttons = {
+	### Now put them in a form
+	$form = $session->render_form( "post", "submit#t" );
+
+	$div = $session->make_element( "div", class => "formfieldinput" );
+	$form->appendChild( $div );
+	$div->appendChild( $session->render_option_list(
+		name => "eprintid",
+		height => 6,
+		values => \@eprintids,
+		labels => \%eprint_titles,
+		default => ( scalar @eprints==1 ? $eprintids[0] : undef ) 
+	) );
+
+	$form->appendChild( $session->render_action_buttons(
 		new => 
 		  $session->phrase("cgi/users/home:action_new"),
 		edit => 
@@ -257,19 +262,7 @@ sub render_workspace
 		  $session->phrase("cgi/users/home:action_delete"),
 		submit => 
 		  $session->phrase("cgi/users/home:action_submit") 
-	};
-
-	### Now put them in a form
-	$form = $session->render_form( "post", "submit#t" );	
-	$form->appendChild( $session->render_input_form(
-		[ $set_field ],
-		\%default_values,
-		0,
-		0,
-		$buttons,
-		undef,
-		undef,
-		"submit" ) );
+	) );
 
 	$html->appendChild( $form );
 
