@@ -157,7 +157,7 @@ sub eprint_render_full
 		$eprint->{eprintid}."</TD></TR>\n";
 
 	# And who submitted it, and when.
-	$html .= "<TR><TD VALIGN=TOP><STRONG>Submitted by:</STRONG></TD><TD>";
+	$html .= "<TR><TD VALIGN=TOP><STRONG>Deposited by:</STRONG></TD><TD>";
 	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	if( defined $user )
 	{
@@ -169,10 +169,13 @@ sub eprint_render_full
 		$html .= "INVALID USER";
 	}
 
-	my $date_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
-	$html .= " on ".$eprint->{session}->{render}->format_field(
-		$date_field,
-		$eprint->{datestamp} );
+	if( $eprint->{table} eq $EPrints::Database::table_archive )
+	{
+		my $date_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
+		$html .= " on ".$eprint->{session}->{render}->format_field(
+			$date_field,
+			$eprint->{datestamp} );
+	}
 	$html .= "</TD></TR>\n";
 
 	# Alternative locations

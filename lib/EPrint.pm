@@ -68,14 +68,14 @@ my $digits = 8;
 		"manner similar to those displayed in the above list.",
 	"reasons" => "Here you can offer justification for your suggested added ".
 		"subject(s).",
-	"commentary" => "If your paper is a commentary on (or a response to) ".
-		"another document in the archive, please enter its ID in this box.",
+	"commentary" => "If your paper is a commentary on another document (or ".
+		"author's response to a commentary) in the archive, please enter its ".
+		"ID in this box.",
 	"succeeds" => "If this document is a revised version of another document ".
 		"in the archive, please enter its ID code in this box.",
 	"subjects" => "Please enter at least one main subject category, and ".
-		"optionally any other subject categories you think are appropriate for ".
-		"your submisson."
-
+		"optionally up to two other subject categories you think are ".
+		"appropriate for your submisson."
 );
 
 $EPrints::EPrint::static_page = "index.html";
@@ -274,7 +274,8 @@ sub _create_directory
 	
 	foreach (sort @avail)
 	{
-		my $free_space = df $EPrintSite::SiteInfo::local_document_root . "/" . $_;
+		my $free_space = 
+			(df $EPrintSite::SiteInfo::local_document_root . "/" . $_ )[3];
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -543,12 +544,6 @@ sub clone
 				$new_eprint->{$field_name} = $self->{$field_name};
 			}
 		}
-
-		# Add "Clone of" to the title
-		$new_eprint->{title} = "Clone of $self->{title}"
-			if( defined $self->{title} );
-		$new_eprint->{title} = "Clone of $self->{eprintid}"
-			if( !defined $self->{title} );
 
 		# We assume the new eprint will be a later version of this one,
 		# so we'll fill in the succeeds field, provided this one is

@@ -27,6 +27,7 @@ use EPrints::Log;
 use EPrints::EPrint;
 use EPrintSite::SiteInfo;
 
+use File::Basename;
 use File::Path;
 use File::Copy;
 use Cwd;

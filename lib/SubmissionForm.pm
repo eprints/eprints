@@ -1320,6 +1320,9 @@ sub do_stage_fileview
 
 		print "</CENTER></P>\n";
 		print $self->render_file_view( $doc );
+
+		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>".
+			"Click here to view and verify the uploaded files</A></P>\n";
 	}
 
 	# Render upload file options
@@ -1381,7 +1384,7 @@ sub do_stage_upload
 		print "<P><CENTER><EM>Occasionally, uploading this way may ".
 			"not produce a totally accurate copy. This is because some ".
 			"assumptions about the structure of the HTML must be made, to stop ".
-			"the software trying to upload the whole World-Wide Web!</EM>".
+			"the software from trying to upload the whole World-Wide Web!</EM>".
 			"</CENTER></P>\n";
 		my $url_field = EPrints::MetaField->new( "url:text:::::" );
 		print "<P><CENTER>";
@@ -1495,7 +1498,7 @@ sub do_stage_verify
 	{
 		print "<P><CENTER>Please verify that all of the details about your ".
 			"deposit are correct, and that all necessary document files ".
-			"have been correctly upload including any figures.</CENTER></P>\n";
+			"have been correctly uploaded including any figures.</CENTER></P>\n";
 		print "<HR>\n";
 		
 		print $self->{session}->{render}->render_eprint_full( $self->{eprint} );

@@ -217,11 +217,9 @@ visible = YES
 type = "multitext"
 displayname = "References"
 displaylines = 3
-help = "In the future, the software should support hypertext citation linking "
-help = "between papers and archives. It would really assist this effort, and "
-help = "give your deposit a much higher chance of being usefully linked, "
-help = "if you would paste the references of papers your deposit cites as "
-help = "ASCII text in the box below. This is of course entirely optional."
+help = "You are strongly encouraged to paste in the reference list of your "
+help = "paper into the box below. It will be used to link your paper to those "
+help = "it cites and to those that cite it."
 </field>
 
 <field reportno>

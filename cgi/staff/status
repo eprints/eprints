@@ -114,8 +114,8 @@ my $best_size = 0;
 
 foreach( @avail )
 {
-	my $size = df $EPrintSite::SiteInfo::local_document_root."/".$_;
-	&print_row( "Document partition $_:", $size."Kb free" );
+	my $size = ( df $EPrintSite::SiteInfo::local_document_root."/".$_ )[3];
+	&print_row( "Document partition $_:", int($size/1024)."Mb free" );
 
 	$best_size = $size if( $size > $best_size );
 }
