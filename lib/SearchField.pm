@@ -158,237 +158,263 @@ sub get_sql
 #EPrints::Log::debug( "SearchField", "making SQL for $self->{formname} of type $self->{type}" );
 #EPrints::Log::debug( "SearchField", "Value is $self->{value}" );
 
+	unless( defined $self->{value} && $self->{value} ne "" )
+	{
+		return ( undef , undef );
+	}
+
 	# Get the SQL for a single term
 
 	my $type = $self->{type};
 	my $value = $self->{value};
-	my $name = $self->{field}->{name};
-	my $sql = undef;
-	my %auxtables = ();
+	
+	# boolean
+	#
+	# TRUE 
+	# FALSE
 
 	if( $type eq "boolean" )
 	{
-		$sql = "__FIELDNAME__ LIKE \"TRUE\""
-			if( defined $value && $value eq "TRUE" );
-		$sql = "__FIELDNAME__ LIKE \"FALSE\""
-			if( defined $value && $value eq "FALSE" );
-		# Otherwise, leave it alone, no preference
+		return $self->_get_sql_aux( 
+			"ANY",
+			"__FIELDNAME__ = '$value'" );
 	}
-	elsif( $type eq "date" )
+
+	# date
+	#
+	# YYYY-MM-DD 
+	# YYYY-MM-DD-
+	# -YYYY-MM-DD
+	# YYYY-MM-DD-YYYY-MM-DD
+
+	if( $type eq "date" )
 	{
-		if( defined $value && $value ne "" )
+		my $sql;
+		if( $value =~ /^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
 		{
-			if( $value =~ /^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
+			# Range of dates
+			if( defined $1 && $1 ne "" )
 			{
-				# Range of dates
-				if( defined $1 && $1 ne "" )
+				if( defined $2 && $2 ne "" )
 				{
-					if( defined $2 && $2 ne "" )
-					{
-						# YYYY-MM-DD-YYYY-MM-DD
-						$sql = "__FIELDNAME__ BETWEEN \"$1\" AND \"$2\"";
-					}
-					else
-					{
-						# YYYY-MM-DD-
-						$sql = "__FIELDNAME__ >= \"$1\"";
-					}
-				}
-				elsif( defined $2 && $2 ne "" )
-				{
-					# -YYYY-MM-DD
-					$sql = "__FIELDNAME__ <= \"$2\"";
-				}
-
-				# Otherwise, must be invalid
-			}
-			else
-			{
-				$sql = "__FIELDNAME__ = \"$value\"";
-			}
-		}
-	}
-	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" )
-	{
-		# Just search for it as a substring
-		$value = lc $value;
-
-		$sql = "__FIELDNAME__ LIKE \"\%$value\%\""
-			if( defined $value && $value ne "" );
-	}
-	elsif( $type eq "enum" || $type eq "eprinttype" )
-	{
-		if( defined $value && $value ne "" )
-		{
-			my @vals = split /:/, $value;
-			my $first = 1;
-
-			# Put the values together into a WHERE clause. Always OR, as "AND"
-			# makes no sense since enum can only have one value.
-			foreach (@vals)
-			{
-				$sql .= " OR " unless( $first );
-				$first = 0 if( $first );
-
-				$sql .= "(__FIELDNAME__ LIKE \"$_\")";
-			}
-		}
-	}
-	elsif( $type eq "multitext" || $type eq "text" )
-	{
-		$sql = $self->terms_to_sql( "__FIELDNAME__", $value, "\%", "\%" );
-	}
-	elsif( $type eq "name" )
-	{
-		$sql = $self->terms_to_sql( "__FIELDNAME__", $value, "\%:", ",\%" );
-	}
-	elsif( $type eq "set" || $type eq "subjects" || $type eq "username" )
-	{
-		# Need to construct an OR statement if it's 
-		if( defined $value && $value ne "" )
-		{
-			my @vals = split /:/, $value;
-			my $any_or_all = pop @vals;
-
-			my $count = 0;
-
-			# Put the values together into a WHERE clause. 
-			my $auxtable;
-			if ($self->{field}->{multiple}) 
-			{	
-				$auxtable = $self->{table}."aux".$self->{field}->{name};
-			}
-			my $auxalias;
-			foreach (@vals)
-			{
-				if ( $any_or_all eq "ANY" ) 
-				{
-					$sql .= " OR " if ( $count > 0);
-					$auxalias = "__aux__";
-				} 
-				else
-				{
-					$sql .= " AND " if ( $count > 0);
-					$auxalias = "__aux".$count."__";
-				}
-				if ($self->{field}->{multiple}) 
-				{
-					$auxtables{$auxalias} = $auxtable;
+					# YYYY-MM-DD-YYYY-MM-DD
+					$sql = "__FIELDNAME__ BETWEEN \"$1\" AND \"$2\"";
 				}
 				else
 				{
-					$auxalias = $self->{table};
+					# YYYY-MM-DD-
+					$sql = "__FIELDNAME__ >= \"$1\"";
 				}
-				$sql .= "($auxalias.$name LIKE \"$_\")";
-
-				$count++;
 			}
-		}
-	}
-	elsif( $type eq "year" )
-	{
-		if( defined $value && $value ne "" )
-		{
-			if( $value =~ /^(\d\d\d\d)?\-(\d\d\d\d)?$/ )
+			elsif( defined $2 && $2 ne "" )
 			{
-				# Range of years
-				if( defined $1 && $1 ne "" )
-				{
-					if( defined $2 && $2 ne "" )
-					{
-						# YYYY-ZZZZ
-						$sql = "__FIELDNAME__ BETWEEN $1 AND $2";
-					}
-					else
-					{
-						# YYYY-
-						$sql = "__FIELDNAME__ >= $1";
-					}
-				}
-				elsif( defined $2 && $2 ne "" )
-				{
-					# -ZZZZ
-					$sql = "__FIELDNAME__ <= $2";
-				}
+				# -YYYY-MM-DD
+				$sql = "__FIELDNAME__ <= \"$2\"";
+			}
+			# Otherwise, must be invalid
+		}
+		else
+		{
+			$sql = "__FIELDNAME__ = \"$value\"";
+		}
+		if ( defined $sql )
+		{
+			# An empty value is passed to force the
+			# routine to generate one clause.
+			return $self->_get_sql_aux( "ANY" , $sql );
+		}	
+		return ( "BAD_DATE_SEARCH" , undef );
+	}
 
-				# Otherwise, must be invalid
+	# email, url, multiurl
+	# text, multitext
+	#
+	# ANY|ALL|PHR:IN|EQ:foo bar...
+
+	if( $type eq "email" || $type eq "multiurl" || $type eq "url" ||
+		$type eq "text" || $type eq "multitext"	)
+	{
+		unless ($value =~ m/^(ANY|ALL|PHR):(IN|EQ):(.*)$/)
+		{
+			return ( "BAD_"."\U$type"."_SEARCH" , undef );
+		}
+		my $mode = $1;
+		my $match = $2;
+		my @vals;
+		if ( $mode eq "PHR" ) 
+		{
+			$vals[0] = $3;
+			$mode = "ANY";
+		}
+		else
+		{
+			@vals = split /\s+/ , $3 ;
+		}
+
+		my @sql;
+		foreach( @vals )
+		{
+			if ( $match eq "IN" ) 
+			{
+				push @sql,"__FIELDNAME__ LIKE '\%$_\%'";
 			}
 			else
 			{
-				$sql = "__FIELDNAME__ = \"$value\"";
+				push @sql,"__FIELDNAME__ = '$_'";
 			}
 		}
+		# mode is ALL or ANY
+		return $self->_get_sql_aux( $mode , @sql );
+	}
+
+	# set, subjects, username
+	# enum, eprinttype
+	#
+	# ANY|ALL:foo:bar:...
+	
+	if( $type eq "set" || $type eq "subjects" || $type eq "username" ||
+		$type eq "enum" || $type eq "eprinttype" ) 
+	{
+		my @sql;
+		my @vals = split /:/, $value;
+		my $mode = shift @vals;
+		foreach( @vals )
+		{
+			push @sql , "__FIELDNAME__ = '$_'";
+		}
+
+		return $self->_get_sql_aux( $mode , @sql );
+
+	}
+
+	# year, int
+	#
+	# N
+	# N-
+	# -N
+	# N-N
+
+	if( $type eq "year" || $type eq "int" )
+	{
+		my $sql;
+		if( $value =~ /^(\d+)?\-(\d+)?$/ )
+		{
+			# Range of numbers
+			if( defined $1 && $1 ne "" )
+			{
+				if( defined $2 && $2 ne "" )
+				{
+					# N-N
+					$sql = "__FIELDNAME__ BETWEEN $1 AND $2";
+				}
+				else
+				{
+					# N-
+					$sql = "__FIELDNAME__ >= $1";
+				}
+			}
+			elsif( defined $2 && $2 ne "" )
+			{
+				# -N
+				$sql = "__FIELDNAME__ <= $2";
+			}
+
+			# Otherwise, must be invalid
+		}
+		else
+		{
+			$sql = "__FIELDNAME__ = \"$value\"";
+		}
+		if ( defined $sql )
+		{
+			# An empty value is passed to force the
+			# routine to generate one clause.
+			return $self->_get_sql_aux( "ANY" , $sql );
+		}	
+		return ( "BAD_"."\U$type"."_SEARCH" , undef );
+	}
+
+	# name
+	#
+	# ANY|ALL|EQ|IN:smith:jones,bob:...
+
+	if( $type eq "name" )
+	{
+		my @vals = split /:/ , $value ;
+		my $mode = shift @vals;
+		my $match = shift @vals;
+		my @sql;
+		foreach( @vals )
+		{
+			m/^([^,])+(,(.*))?$/;
+			my ( $family , $given ) = ( $1 , $3 );
+			if ( $match eq "IN" )
+			{
+				$family .= "\%";
+				if ( defined $given )
+				{
+					$given .= "\%";
+				}
+			}
+			my $s = "__FIELDNAME___family LIKE '$family'";
+			if ( defined $given )
+			{
+				$s.= "__FIELDNAME___given LIKE '$given'";
+			}
+			push @sql , $s;
+		}	
+		return $self->_get_sql_aux( $mode , @sql );
+		
 	}
 
 #EPrints::Log::debug( "SearchField", "SQL = $all_sql" );
 
-	return( $sql , \%auxtables );
+	return( "UNKNOWN_TYPE" , undef );
 }
 
-
-######################################################################
-#
-# $sql = terms_to_sql( $fieldname, $terms, $pattern_left, $pattern_right );
-#
-#  Converts $terms (a text query) into SQL.
-#
-#  Search terms are by default OR'd. i.e. a record will be retrieved if
-#  any of the terms are present in the relevant field. You can assert
-#  that a term MUST be present by prefixing it with a "+". You can assert
-#  that a term MUST NOT be present by prefixing it with a "-". Terms can
-#  appear in any order. To match a multi-word phrase, enclose it in quotes.
-#  Everything is case _insensitive_.
-#
-#  $pattern_left and $pattern_right specify what should be prepended
-#  and appended to each term to make it an SQL search pattern. Most often
-#  they will both be %, but you might want to do something fancier.
-#
-#  You can pass in an empty string or undef for $terms, and undef will
-#  be returned.
-#
-######################################################################
-
-sub terms_to_sql
+sub _get_sql_aux
 {
-	my( $self, $fieldname, $terms, $pattern_left, $pattern_right ) = @_;
+	my ( $self , $mode , @sqlbits ) = @_;
 
-	my $sql = undef;
-	
-	my( $search_type, $search_terms ) = &_get_search_type( $terms );
-	
-	if( defined $search_terms && $search_terms ne "" )
+	my $sql = "";
+	my %auxtables = ();
+
+	my $count = 0;
+
+	# Put the values together into a WHERE clause. 
+	my $auxtable;
+	if ($self->{field}->{multiple}) 
+	{	
+		$auxtable = $self->{table}."aux".$self->{field}->{name};
+	}	
+	my $bit;
+	foreach $bit (@sqlbits)
 	{
-		my @terms = split /\s+/, $search_terms;
+		my $auxalias;
+		if ( $mode eq "ANY" ) 
+		{
+			$sql .= " OR " if ( $count > 0);
+			$auxalias = "__aux__";
+		} 
+		else
+		{
+			$sql .= " AND " if ( $count > 0);
+			$auxalias = "__aux".$count."__";
+		}
+		if ($self->{field}->{multiple}) 
+		{
+			$auxtables{$auxalias} = $auxtable;
+		}
+		else
+		{
+			$auxalias = $self->{table};
+		}
+		$bit =~ s/__FIELDNAME__/$auxalias.$self->{field}->{name}/g;
+		$sql .= $bit;
 
-		if( $search_type eq "all" )
-		{
-			# Match all of the terms
-			foreach (@terms)
-			{
-				$sql .= " AND " if( defined $sql );
-				$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
-				(lc $_)."$pattern_right\")";
-			}
-		}
-		elsif( $search_type eq "any" )
-		{
-			# Match any of the terms
-			foreach (@terms)
-			{
-				$sql .= " OR " if( defined $sql );
-				$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
-				(lc $_)."$pattern_right\")";
-			}
-		}
-		elsif( $search_type eq "phr" )
-		{
-			# Phrase search
-			$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
-				(lc $search_terms)."$pattern_right\")";
-		}
+		$count++;
 	}
-	
-	return( $sql );
+	return( $sql , \%auxtables );
 }
 
 

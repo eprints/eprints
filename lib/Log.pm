@@ -106,7 +106,7 @@ sub debug
 
 ######################################################################
 #
-# render_struct( $ref, $depth )
+# $text = render_struct( $ref, $depth )
 #
 #  Renders a reference into a human readable tree.
 #

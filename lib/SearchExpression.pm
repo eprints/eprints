@@ -572,7 +572,6 @@ sub cache
 			$where .= "($sql_term)";
 		}
 	}
-print "SearchExp = ".join(" , ",caller())."\n";
 	$self->{tmptable} = $self->{session}->{database}->cache(
 				$self->{table},
 				\%aux_tables,

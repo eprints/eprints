@@ -843,7 +843,6 @@ sub count_cache
 sub from_cache 
 {
 	my ( $self , $table , $cache ) = @_;
-print join("  ,  ",caller())."\n";
 	return $self->_get( $table, 1 , $cache );
 }
 

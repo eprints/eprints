@@ -17,6 +17,7 @@
 package EPrints::Subject;
 
 use EPrints::Database;
+use EPrints::Log;
 use EPrintSite::SiteInfo;
 use EPrints::SearchExpression;
 
@@ -56,25 +57,13 @@ $EPrints::Subject::root_subject_name = "(Top Level)";
 
 sub new
 {
-	my( $class, $session, $id, $row ) = @_;
+	my( $class, $session, $id, $known ) = @_;
 
 	my $self;
-	if( defined $row )
-	{
-		$self = $row;	
-	}
-	else 
-	{
-		$self = {};
-	}
-	$self->{session} = $session;
 	
-	if( defined $row )
+	if( defined $known )
 	{
-		if (! defined $self->{parent} ) {
-			$self->{parent} = $EPrints::Subject::root_subject;
-		}
-print "A\n";
+		$self = $known;
 	}
 	elsif( !defined $id || $id eq $EPrints::Subject::root_subject )
 	{
@@ -83,23 +72,21 @@ print "A\n";
 		$self->{subjectid} = $EPrints::Subject::root_subject;
 		$self->{depositable} = "FALSE";
 		$self->{name} = $EPrints::Subject::root_subject_name;
-print "B\n";
 	}
 	else
 	{
 		# Got ID, need to read stuff in from database
-		my @retr_row = $self->{session}->{database}->get_single(
+		$self = $session->{database}->get_single(
 			$EPrints::Database::table_subject,
 			$id );
 
-		return( undef ) if( $#retr_row==-1 );    # If a db error
-
-		$self->{subjectid} = $retr_row[0];
-		$self->{name} = $retr_row[1];
-		$self->{parent} = $retr_row[2];
-		$self->{depositable} = $retr_row[3];
-print "C\n";
+		return( undef ) if( !defined $self ); # DB err
 	}
+
+	if (! defined $self->{parent} ) {
+		$self->{parent} = $EPrints::Subject::root_subject;
+	}
+	$self->{session} = $session;
 	bless $self, $class;
 
 	return( $self );
@@ -198,8 +185,7 @@ sub children
 		EPrints::MetaInfo::find_table_field(
 			"subjects",
 			"parent" ),
-		"$self->{subjectid}:ALL,EXACT" );
-
+		"ALL:EQ:$self->{subjectid}" );
 	my $searchid = $searchexp->cache();
 	my @rows = $searchexp->get_eprints();
 	$searchexp->drop_cache();
@@ -226,7 +212,6 @@ sub children
 		#EPrints::Log::debug( "Subject", "Child: $child->{subjectid}" );
 		push @children, $child;
 	}
-	
 	return( @children );
 }
 
@@ -391,19 +376,18 @@ sub subject_name
 {
 	my( $session, $subject_tag ) = @_;
 
-	my @row = $session->{database}->retrieve_single(
+	my $data = $session->{database}->get_single(
 		$EPrints::Database::table_subject,
-		"subjectid",
 		$subject_tag );
 
 	# If we can't find it, the tag must be invalid.
-	if( $#row == -1 )
+	if( !defined $data )
 	{
 		return( undef );
 	}
 
 	# return the name
-	return $row[1];
+	return $data->{name};
 }
 
 ######################################################################
@@ -424,26 +408,25 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my @row = $session->{database}->retrieve_single(
+		my $data = $session->{database}->get_single(
 			$EPrints::Database::table_subject,
-			"subjectid",
 			$tag );
 		
 		# If we can't find it, the tag must be invalid.
-		if( $#row == -1 )
+		if( !defined $data )
 		{
 			return( undef );
 		}
 
-		$tag = $row[2];
+		$tag = $data->{parent};
 
 		if( $label eq "" )
 		{
-			$label = $row[1];
+			$label = $data->{name};
 		}
 		else
 		{
-			$label = $row[1] . ": " . $label;
+			$label = $data->{name} . ": " . $label;
 		}
 	}
 	
@@ -550,9 +533,6 @@ sub posted_eprints
 {
 	my( $self, $table ) = @_;
 
-print "SELF:$self\n";
-
-
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
 		$table,
@@ -566,7 +546,7 @@ print "SELF:$self\n";
 		EPrints::MetaInfo::find_table_field(
 			"archive",
 			"subjects" ),
-		"$self->{subjectid}:ALL" );
+		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->cache();
 	my @data = $searchexp->get_eprints();
@@ -604,7 +584,7 @@ sub count_eprints
 		EPrints::MetaInfo::find_table_field(
 			"archive",
 			"subjects" ),
-		"$self->{subjectid}:ALL" );
+		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->cache();
 	my $count = $searchexp->count();
