@@ -33,6 +33,8 @@ use strict;
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
 
+my $CJGDEBUG = 0;
+
 ## WP1: BAD
 sub get_conf
 {
@@ -65,6 +67,7 @@ $c->{pin_timeout} = 3;
 my $realid = `hostname`;
 chomp $realid;
 if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
+$CJGDEBUG = 1 if( $realid eq "destiny.totl.net" || $realid eq "lemur" );
 ##############################
 
 
@@ -388,7 +391,9 @@ $c->{userauth} = {
 				"deposit"] }
 };
 
-
+$c->{userauth}->{user}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
+$c->{userauth}->{editor}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
+$c->{userauth}->{admin}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
 
 ######################################################################
 # METADATA CONFIGURATION
@@ -416,6 +421,10 @@ $c->{archivefields}->{user} = [
 
 	{ name => "filter", type => "subject", showall => 1, multiple => 1 }
 ];
+
+if( $CJGDEBUG ) {
+	push @{$c->{archivefields}->{user}},{ name => "ecsid", type=>"int" };
+}
 
 $c->{archivefields}->{eprint} = [
 	{ name => "abstract", displaylines => 10, type => "longtext" },
@@ -1341,8 +1350,9 @@ sub user_render
 					border=>"0",
 					cellpadding=>"3" );
 
+		my @fields = $user->get_dataset()->get_fields( $user->get_value( "usertype" ) );
 		my $field;
-		foreach $field ( $user->get_dataset()->get_type_fields( $user->get_value( "usertype" ) ) )
+		foreach $field ( @fields )
 		{
 			$table->appendChild( _render_row(
 				$session,

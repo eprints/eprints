@@ -361,42 +361,6 @@ sub send_reminder
 	                $full_message ) );
 }
 
-######################################################################
-#
-# @users = retrieve_users( $session, $conditions, $order )
-#
-#  Retrieves users from the database, returning User objects. [STATIC]
-#
-######################################################################
-
-## WP1: BAD
-sub retrieve_users
-{
-	my( $session, $conditions, $order ) = @_;
-	
-	my @fields = $session->{metainfo}->get_fields( "user" );
-
-	my $user_ds = $session->get_archive()->get_dataset( "user" );
-	my $rows = $session->{database}->retrieve_fields(
-		$user_ds,
-		\@fields,
-		$conditions,
-		$order );
-
-
-	my $r;
-	my @users;
-
-	foreach $r (@$rows)
-	{
-		push @users, new EPrints::User( $session,
-		                                $r->[0],
-		                                $r );
-	}
-	
-	return( @users );		                                        
-}
-
 
 ######################################################################
 #
@@ -459,7 +423,7 @@ sub get_value
 {
 	my( $self , $fieldname ) = @_;
 
-	if( $self->{data}->{$fieldname} eq "")
+	unless( EPrints::Utils::is_set( $self->{data}->{$fieldname} ) )
 	{
 		return undef;
 	}

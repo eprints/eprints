@@ -48,6 +48,8 @@
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
+#	always use encrypted passwords
+#	erase_archives needs to spot lack of mysqladmin
 #	Fix "upload then back" bug
 #	Bug in render_citation - emails are links!
 #	Default Action when buttons pushed
@@ -91,6 +93,7 @@
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
+0	Some kind of BibTeX support (fill in metadata form from bibtex)
 0	Search by ID field (in search exp)
 0	What's new? page(s) (just a fixed search)
 0	Subscriptions - editing
@@ -160,7 +163,7 @@
 # bin/generate_abstracts		*
 # bin/generate_static			*
 # bin/generate_views			*
-# bin/list_user_emails			.
+# bin/list_user_emails			*
 # bin/generate_dtd			*
 # bin/rebuild_sets			.
 # bin/subs_daily			.

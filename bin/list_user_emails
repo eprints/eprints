@@ -21,14 +21,18 @@ use EPrints::User;
 
 use strict;
  
-my $session = new EPrints::Session( 1 );
+my $session = new EPrints::Session( 1, $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my @users = EPrints::User::retrieve_users( $session );
-
-foreach $user (@users)
-{
-	print $user->{email} . "\n";
-}
+my $user_ds = $session->get_archive()->get_dataset( "user" );
+$user_ds->map( $session, \&print_user_email );
+my @users = $session->get_db()->get_all( $user_ds );
 
 $session->terminate();
+
+sub print_user_email
+{
+	my( $user ) = @_;
+	
+	print $user->get_value( "email" )."\n";
+}

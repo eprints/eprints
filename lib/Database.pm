@@ -1581,7 +1581,6 @@ sub _deindex
 	while( $code = $sth->fetchrow_array )
 	{
 		push @codes,$code;
-		print STDERR "($code)\n";
 	}
 	foreach( @codes )
 	{
