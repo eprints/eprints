@@ -1,0 +1,19 @@
+
+
+A:typename_eprint_bookchapter   = l'Book Chapter
+A:typename_eprint_confpaper     = l'Conference Paper
+A:typename_eprint_confposter    = l'Conference Poster
+A:typename_eprint_techreport    = l'Departmental Technical Report
+A:typename_eprint_journale      = l'Journal (On-line/Unpaginated)
+A:typename_eprint_journalp      = l'Journal (Paginated)
+A:typename_eprint_newsarticle   = l'Newspaper/Magazine Article
+A:typename_eprint_other         = l'Other
+A:typename_eprint_preprint      = l'Preprint
+A:typename_eprint_thesis        = l'Thesis
+
+### Sort Order names
+
+A:ordername_archive_byyear	= by l'year (most recent first)
+A:ordername_archive_byyearoldest = by l'year (oldest first)
+A:ordername_archive_byname 	= by l'author's name
+A:ordername_archive_bytitle 	= by l'title
