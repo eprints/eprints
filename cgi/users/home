@@ -227,7 +227,7 @@ sub render_workspace
 	{
 		my $id = $e->get_value( "eprintid" );
 		push @eprintids, $id;
-		$eprint_titles{$id} = EPrints::Config::tree_to_utf8(
+		$eprint_titles{$id} = EPrints::Utils::tree_to_utf8(
 					$e->render_short_title() );
 	}
 
