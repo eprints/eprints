@@ -26,13 +26,18 @@ use strict;
 
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
+
+# change to base of site so expat can find the dtd directory.
+chdir( $session->getSite->getConf( "site_root" ) );
+
 print "____________________________\n";
 my $language;
 foreach $language ( keys %EPrints::Site::General::languages )
 {
 	print $language."\n";
 	my $basepath = $session->getSite->getConf( "static_html_root" ).
-	               "/$language/";
+	               "/$language";
+	generateDTD( $session, $language, $basepath );	
 	my $func = sub { generate_static( $language, $basepath, $session ) };
 	find( { wanted=>$func, follow=>1 }, $basepath );
 }
@@ -41,6 +46,43 @@ exit;
 
 $session->terminate();
 
+sub generateDTD
+{
+	my( $session, $language, $basepath ) = @_;
+	my $filename = $basepath."/eprints.dtd";
+	print "Writing DTD: $filename\n";
+	
+	open( DTD, ">$filename" ) || 
+		die( "Can't open $filename for writing" );
+
+	print DTD "<!-- DTD created and used by generate_static -->\n";
+	print DTD "<!ENTITY sitename \"".
+		$session->getSite->getConf( "sitename" ).
+		"\" >\n";
+	print DTD "<!ENTITY description \"".
+		$session->getSite->getConf( "description" ).
+		"\" >\n";
+	print DTD "<!ENTITY admin \"".
+		$session->getSite->getConf( "admin" ).
+		"\" >\n";
+	print DTD "<!ENTITY perlroot \"".
+		$session->getSite->getConf( "server_perl" ).
+		"\" >\n";
+	print DTD "<!ENTITY staticroot \"".
+		$session->getSite->getConf( "server_static" ).
+		"\" >\n";
+	print DTD "<!ENTITY frontpage \"".
+		$session->getSite->getConf( "frontpage" ).
+		"\" >\n";
+	print DTD "<!ENTITY subjectroot \"".
+		$session->getSite->getConf( "server_subject_view_stem" ).
+		"\" >\n";
+	print DTD "<!ENTITY version \"".
+		$EPrints::Version::eprints_software_version.
+		"\" >\n";
+	close DTD;
+}
+	
 
 sub generate_static
 {
@@ -51,7 +93,7 @@ sub generate_static
 	my $destination_filename = $File::Find::name;
 
 	my $newpath = $session->getSite->getConf( "local_html_root" ).
-	              "/$language/";
+	              "/$language";
 	$destination_filename =~ s/$basepath/$newpath/;
 
 print STDERR "$File::Find::name -> $destination_filename\n";
