@@ -52,6 +52,7 @@
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
 #	Clean up validators - Don't validate records with fields which have bad langids
+#	Order buttons
 #	Staff EPrint Edit
 #	Threads rendering code.
 #	Staff User Edit/Create
@@ -59,6 +60,7 @@
 #	home needs 'items in archive' link.
 #	Make all possible field-types browseable.
 #	Make SearchFields have a better call method.
+#	Bug: Why does 'help' disappear when there is a problem with a search?
 
 0	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
@@ -81,6 +83,7 @@
 0	"secret" field should never have a default set, but no value should not erase previous value.
 0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
 0	Translate Initial phrases and templates into French
+#!!!!!!!!!!!VVVVVV
 0	Indexing on name fields
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
@@ -174,7 +177,7 @@
 # cgi/oai				.
 # cgi/remind				 ?
 # cgi/search				*
-# cgi/user				.
+# cgi/user				*
 # cgi/user_eprints			.
 # cgi/view_eprint			.
 # cgi/confirm				*
@@ -183,7 +186,7 @@
 # cgi/users/tester			 ?
 # cgi/users/home			*
 # cgi/users/record			*
-# cgi/users/review			.
+# cgi/users/review			*
 # cgi/users/submit			*
 # cgi/users/subscribe			.
 # cgi/users/status			*
@@ -196,5 +199,5 @@
 # cgi/users/staff/eprint_search		*
 # cgi/users/staff/user_search		.
 # cgi/users/staff/view_submission	*
-# cgi/users/staff/view_user		.
+# cgi/users/staff/view_user		*
 # cgi/users/staff/edit_subject		*

@@ -1472,9 +1472,11 @@ sub mail_administrator
 	return EPrints::Utils::send_mail(
 		$self->{archive},
 		$langid,
-		$lang->phrase( "lib/session:archive_admin", {}, $self ),
+		EPrints::Utils::tree_to_utf8( 
+			$lang->phrase( "lib/session:archive_admin", {}, $self ) ),
 		$self->{archive}->get_conf( "adminemail" ),
-		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self ) ),
+		EPrints::Utils::tree_to_utf8( 
+			$lang->phrase( $subjectid, {}, $self ) ),
 		$lang->phrase( $messageid, \%inserts, $self ), 
 		$lang->phrase( "mail_sig", {}, $self ) ); 
 }

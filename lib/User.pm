@@ -341,6 +341,7 @@ sub send_introduction
 ######################################################################
 
 ## WP1: BAD
+#cjg is this used?
 sub send_reminder
 {
 	my( $self, $message ) = @_;
@@ -560,6 +561,33 @@ sub get_editable_eprints
 	$searchexp->dispose();
 	return @records;
 }
+
+# This is subtley different from just getting all the
+# eprints this user deposited. They may 'own' - be allowed
+# to edit, request removal etc. of others, for example ones
+# on which they are an author. Although this is a problem for
+# the site admin, not the core code.
+sub get_owned_eprints
+{
+	my( $self ) = @_;
+
+	#cheap hack for now#cjg
+	my $ds = $self->{session}->get_archive()->get_dataset( "archive" );	
+	return $self->get_eprints( $ds );
+}
+
+sub is_owner
+{
+	my( $self, $eprint ) = @_;
+
+	#cjg hack
+	if( $eprint->get_value( "userid" ) eq $self->get_value( "userid" ) )
+	{
+		return 1;
+	}
+	return 0;
+}
+
 
 sub mail
 {

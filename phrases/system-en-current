@@ -285,18 +285,35 @@ User Area CGI Scripts
     <phrase ref="cgi/users/review:clone">Clone</phrase>
     <phrase ref="cgi/users/review:req_remove">Request Removal</phrase>
     <phrase ref="cgi/users/review:cant_clone">Unable to clone that record. Please try again later.</phrase>
-
     <phrase ref="cgi/users/review:remove_title">Request EPrint Removal</phrase>
-    <phrase ref="cgi/users/review:remove_blurb">Please note that we strongly discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</phrase>
-    <phrase ref="cgi/users/review:removing">You are requesting the removal of:</phrase>
-    <phrase ref="cgi/users/review:send_req">Send Request</phrase>
+    <phrase ref="cgi/users/review:remove_blurb">
+<p><em>Please note that we strongly discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</em></p>
+<p>You are requesting the removal of:<br /><pin ref="citation" /></p>
+</phrase>
     <phrase ref="cgi/users/review:cancel">Cancel</phrase>
+    <phrase ref="cgi/users/review:send">Send Request</phrase>
     <phrase ref="cgi/users/review:cant_find_it">Couldn't find the EPrint! There's probably a problem with the database. Try again later.</phrase>
-    <phrase ref="cgi/users/review:remove_mail">User <pin ref="user" /> (E-Mail: <pin ref="email" />)\nrequests the removal of the following EPrint:</phrase>
-    <phrase ref="cgi/users/review:reason">The following reason was given:</phrase>
+    <phrase ref="remove_request_fieldhelp_reason">Please enter the reason for removal. The request will be sent to the site administrator.</phrase>
+    <phrase ref="cgi/users/review:remove_mail_subject">EPrint Removal Request</phrase>
+    <phrase ref="cgi/users/review:remove_mail">
+<p>User <pin ref="user" /> (E-Mail: <pin ref="email" />) requests the removal of the following EPrint:</p>
+
+<p><pin ref="citation" /></p>
+
+<p>The following reason was given:</p>
+
+<p><pin ref="reason" /></p>
+
+<p>Visit the following URL to view the EPrint and have the option to remove it:</p>
+
+<p><pin ref="url" /></p>
+
+    </phrase>
     <phrase ref="cgi/users/review:no_reason">No reason was given.</phrase>
-    <phrase ref="cgi/users/review:visit_url">Visit the following URL to view the EPrint and have the option to remove it:</phrase>
-    <phrase ref="cgi/users/review:remove_sub">EPrint Removal Request </phrase>
+    <phrase ref="cgi/users/review:done"><p>Your request has been sent the the adminstrator.</p></phrase>
+    <phrase ref="cgi/users/review:cant_remove">You may not request the removal of this eprint</phrase>
+
+
 
 <!-- subscribe -->
 

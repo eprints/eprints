@@ -209,7 +209,6 @@ sub send_mail
 
 	#cjg should be in the top of the file.
 	my $MAILWIDTH = 80;
-
 	my $arcname_q = mime_encode_q( EPrints::Session::best_language( 
 		$archive,
 		$langid,
@@ -363,7 +362,7 @@ sub tree_to_utf8
         if( defined $width )
         {
                 # If we are supposed to be doing an 80 character wide display
-                # then only do 79, so the last char does not force a line break.                $width = $width - 1;
+                # then only do 78, so the last char does not force a line break.                $width = $width - 2;
         }
 
         my $name = $node->getNodeName;

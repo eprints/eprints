@@ -40,7 +40,6 @@ if( !defined $action )
 else
 {
 	$page = process_form( $session, $action );
-}	
 }
 
 $session->terminate();
@@ -131,6 +130,9 @@ sub make_form
 
 		}
 	}
+	$session->build_page( $title, $page );
+	$session->send_page();
+	return;
 
 }
 
@@ -139,12 +141,11 @@ sub process_form
 	my( $session, $action ) = @_;
 
 	my $user = $session->current_user;
-	my $page = $session->make_doc_fragment();
-	my $title = $session->phrase( "cgi/users/review:title" );
+	my $ds = $session->get_archive()->get_dataset( "archive" );	
 
 	if( $action =~ m/^clone_(.+)$/ )
 	{
-		my $eprint = EPrints::EPrint->new( $session, undef, $1 );
+		my $eprint = EPrints::EPrint->new( $session, $ds, $1 );
 		my $inbox_ds = $session->get_archive()->get_dataset( "inbox" );
 		if( defined $eprint )
 		{
@@ -153,6 +154,8 @@ sub process_form
 			{
 				# Copied OK, redirect to workspace
 				$session->redirect( "home" );
+				my $page = $session->make_doc_fragment();
+				my $title = $session->phrase( "cgi/users/review:title" );
 				$session->build_page( $title, $page );
 				$session->send_page();
 				return;
@@ -162,142 +165,139 @@ sub process_form
 			$session->html_phrase( "cgi/users/review:cant_clone" ) );
 		return;
 	}
-	print STDERR "ACTION:$action\n";
+	my $r_req = $session->get_archive()->get_conf( 
+			"allow_user_removal_request" ); 
+
+	if( $action=~ m/^remove_(.+)$/ && $r_req )
+	{
+		my $eprint = EPrints::EPrint->new( $session, $ds, $1 );
+		if( !defined $eprint )
+		{
+			$session->render_error(
+				$session->html_phrase( "cgi/users/review:cant_find_it" ) );
+			return;
+		}		
+		if( $user->is_owner( $eprint ) )
+		{
+			&removal_request_form( $session, $eprint );
+			return;
+		}
+		$session->render_error(
+			$session->html_phrase( "cgi/users/review:cant_remove" ) );
+		return;
+	}
+
+	# If submit is defined, must have been a removal request form that was
+	# filled out.
+	if( $action eq "send" )
+	{
+		&handle_removal_request( $session, $user );
+		return;
+	}
+		
+	# no valid action or "cancel" from the remove request.
+	&make_form( $session );
 }
 
-#	# If submit is defined, must have been a removal request form that was
-#	# filled out.
-#	if( defined $session->{render}->param( "submit" ) )
-#	{
-#		$page_written = &handle_removal_request( $session, $user );
-#	}
-#	else
-#	{
-#		my $ep;
-#
-#		# They've clicked on something
-#		foreach $ep (@eprints)
-#		{
-#			# See if they clicked a request removal button
-#			# Sanity check: Make sure it's this user's item
-#			if( $session->get_archive()->get_conf( "allow_user_removal_request" ) &&
-#		   	 defined $session->{render}->param( "remove_$ep->{eprintid}" ) &&
-#		   	 $ep->{username} eq $user->{username} )
-#			{
-#				&removal_request_form( $session, $ep );
-#				$page_written = 1;
-#			}
-#		}
-#	}
 
 
-#######################################################################
 ##
 ## remove_request_form( $session, $eprint )
 ##
 ##  Display a removal request form.
 ##
-#######################################################################
-#
-#sub removal_request_form
-#{
-#	my( $session, $eprint ) = @_;
-#	
-#	print $session->{render}->start_html( 
-#		$session->{lang}->phrase( "cgi/users/review:remove_title" ) );
-#	
-#	print "<P><EM>";
-#	print $session->{lang}->phrase( "cgi/users/review:remove_blurb" ) );
-#	print "</EM></P>\n";
-#	
-#	print "<P>";
-#	print $session->{lang}->phrase( "cgi/users/review:removing" ) );
-#	print "</P>\n<P>";
-#	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
-#	print "</P>\n";
-#
-#	my $reason_field = new EPrints::MetaField(
-#		"removal_reason:longtext:15:Reason for Requesting Removal:1:1:1" );
-#	$reason_field->{help} = "Please enter the reason for your removal ".
-#		"request in the box below. The request will be sent to the site ".
-#		"administrator.";
-#	
-#	$session->{render}->render_input_form(
-#		[ $reason_field ],
-#		{},
-#		0,
-#		1,
-#		[ 
-#			$session->{lang}->phrase( "cgi/users/review:send_req" ),
-#			$session->{lang}->phrase( "cgi/users/review:cancel" )
-#		],
-#		{ "eprint_id" => $eprint->{eprintid} } );
-#	
-#	print $session->{render}->end_html();
-#}
-#
-#
-#######################################################################
+
+sub removal_request_form
+{
+	my( $session, $eprint ) = @_;
+
+	my $title = $session->phrase( "cgi/users/review:remove_title" );
+	my $page = $session->make_doc_fragment();
+
+	$page->appendChild( $session->html_phrase( "cgi/users/review:remove_blurb",
+		citation=>$eprint->render_citation_link() ) );
+
+	my( $form, $table, $tr, $td, $th );
+
+
+	my $reason_field = EPrints::MetaField->new(
+		confid=>'remove_request',
+		name=>'reason',
+		type=>'longtext',
+		displaylines=>15 );
+
+	$page->appendChild(
+		$session->render_input_form(
+			[
+				$reason_field
+			],
+			{},
+			0,
+			1,
+			{
+				send => $session->phrase( "cgi/users/review:send" ),
+				cancel => $session->phrase( "cgi/users/review:cancel" )
+			},
+			{
+				eprintid => $eprint->get_value( "eprintid" )
+			},
+			{},
+			"review" ) );
+
+	$session->build_page( $title, $page );
+	$session->send_page();
+	return;
+}
+
+
 ##
 ## $wrote_page = handle_removal_request( $session, $user )
 ##
 ##  Handle the POSTed information from a removal request form.
 ##
-#######################################################################
-#
-#sub handle_removal_request
-#{
-#	my( $session, $user ) = @_;
-#	
-#	# Get the EPrint we're dealing with
-#	my $eprintid = $session->{render}->param( "eprint_id" );
-#
-#	my $eprint = new EPrints::EPrint( $session,
-#	                                  EPrints::Database::table_name( "archive" ),
-#	                                  $eprintid ) if( defined $eprintid );
-#
-#	# Make sure it's valid, and the user's own EPrint
-#	unless( defined $eprintid && defined $eprint &&
-#	        $eprint->{username} eq $user->{username} )
-#	{
-#		$session->render_error(
-#			$session->html_phrase( "cgi/users/review:cant_find_it" ),
-#			"home",
-#			$session->html_phrase( "cgi/users/review:deposit_page" ) );
-#		return( 1 );
-#	}
-#	
-#	if( $session->{render}->param( "submit") eq 
-#		$session->{lang}->phrase( "cgi/users/review:send_req" ) 
-#	{
-#		my $msg = $session->{lang}->phrase( 
-#			"cgi/users/review:remove_mail",
-#			{ user=>$user->full_name(),
-#			email=>$user->{email} } )."\n\n";
-#		$msg .= $session->{render}->render_eprint_citation( $eprint, 0, 0 );
-#		$msg .= "\n\n";
-#		
-#		my $reason = $session->{render}->param( "removal_reason" );
-#
-#		if( defined $reason && $reason ne "" )
-#		{
-#			$msg .= $session->{lang}->phrase( "cgi/users/review:reason" );
-#			$msg .= "\n\n$reason\n\n";
-#		}
-#		else
-#		{
-#			$msg .= $session->{lang}->phrase( "cgi/users/review:no_reason" );
-#		}
-#		
-#		$msg .= $session->{lang}->phrase( "cgi/users/review:visit_url" )."\n\n";
-#			
-#		$msg .= $session->get_archive()->get_conf( "server_perl_root" )."/staff/edit_eprint?".
-#			"eprint_id=$eprint->{eprintid}";
-#
-#		$session->mail_administrator( #cjg MAIL IN ADMIN LANG
-#			$session->{lang}->phrase( "cgi/users/review:remove_sub" ),
-#			$msg );
-#	}
-#	return( 0 );
-#}
-#			
+
+sub handle_removal_request
+{
+	my( $session, $user ) = @_;
+	
+	# Get the EPrint we're dealing with
+	my $ds = $session->get_archive()->get_dataset( "archive" );	
+
+	my $eprint = EPrints::EPrint->new( $session, $ds, $session->param( "eprintid" ) );
+	if( !defined $eprint )
+	{
+		$session->render_error(
+			$session->html_phrase( "cgi/users/review:cant_find_it" ) );
+		return;
+	}		
+	if( !$user->is_owner( $eprint ) )
+	{
+		$session->render_error(
+			$session->html_phrase( "cgi/users/review:cant_remove" ) );
+		return;
+	}
+
+	my $reason = $session->param( "reason" );
+	my $url = $session->get_archive()->get_conf( "server_perl_root" ).
+		"/users/staff/edit_eprint?eprint_id=".$eprint->get_value( "eprintid" );
+	
+	$session->mail_administrator( 	
+		"cgi/users/review:remove_mail_subject",
+		"cgi/users/review:remove_mail",
+		citation=>$eprint->render_citation(),
+		user=>$session->make_text($user->full_name()),
+		email=>$user->render_value( "email" ),
+		reason=>( EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason ) 
+			 : $session->html_phrase( "cgi/users/review:no_reason" ) ),
+		url=>$session->make_text( $url ) );
+	#cjg err sending mail check?
+
+	my $title = $session->phrase( "cgi/users/review:remove_title" );
+	my $page = $session->make_doc_fragment();
+	$page->appendChild( $session->html_phrase( "cgi/users/review:done" ) );
+	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
+	$session->build_page( $title, $page );
+	$session->send_page();
+	
+	return;
+}
