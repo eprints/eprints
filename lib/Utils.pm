@@ -658,16 +658,6 @@ sub _expand_references
 	}
 }
 
-# cjg Eh? What's this doing here?
-sub render_value
-{
-	my( $self, $fieldname, $showall ) = @_;
-
-	my $field = $self->{dataset}->get_field( $fieldname );	
-	
-	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
-}
-
 sub field_from_config_string
 {
 	my( $dataset, $fieldname ) = @_;
@@ -780,6 +770,80 @@ sub url_escape
 	my $uri = URI->new( $url );
 	return $uri->as_string;
 }
+
+
+
+#
+# This code is for debugging memory leaks in objects.
+# It is not used by EPrints except when developing. 
+#
+# 
+# my %OBJARRAY = ();
+# my %OBJSCORE = ();
+# my %OBJPOS = ();
+# my %OBJPOSR = ();
+# my $c = 0;
+
+sub destroy
+{
+
+#	my( $ref ) = @_;
+#
+#	my $class = delete $OBJARRAY{"$ref"};
+#	my $n = delete $OBJPOS{"$ref"};
+#	delete $OBJPOSR{$n};
+#	
+#	$OBJSCORE{$class}--;
+#	print "Kill: $ref ($class) [$OBJSCORE{$class}]\n";
+
+}
+
+#my %OBJOLDSCORE = ();
+#use Data::Dumper;
+#sub debug
+#{
+#	my @k = sort {$b<=>$a} keys %OBJPOSR;
+#	for(0..9)
+#	{
+#		print "=========================================\n";
+#		print $OBJPOSR{$k[$_]}."\n";
+#	}
+#	foreach( keys %OBJSCORE ) { 
+#		my $diff = $OBJSCORE{$_}-$OBJOLDSCORE{$_};
+#		if( $diff > 0 ) { $diff ="+$diff"; }
+#		print "$_ $OBJSCORE{$_}   $diff\n"; 
+#		$OBJOLDSCORE{$_} = $OBJSCORE{$_};
+#	}
+#}
+#
+#sub bless
+#{
+#	my( $ref, $class ) = @_;
+#
+#	CORE::bless $ref, $class;
+#
+#	$OBJSCORE{$class}++;
+#	print "Make: $ref ($class) [$OBJSCORE{$class}]\n";
+#	$OBJARRAY{"$ref"}=$class;
+#	$OBJPOS{"$ref"} = $c;
+#	#my $x = $ref;
+#	$OBJPOSR{$c} = "$c - $ref\n";
+#	my $i=1;
+#	my @info;
+#	while( @info = caller($i++) )
+#	{
+#		$OBJPOSR{$c}.="$info[3] $info[2]\n";
+#	}
+#
+#
+#	if( ref( $ref ) =~ /XML::DOM/  )
+#	{
+#		#$OBJPOSR{$c}.= $ref->toString."\n";
+#	}
+#	++$c;
+#
+#	return $ref;
+#}
 
 
 1;

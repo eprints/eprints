@@ -1801,4 +1801,11 @@ sub get_top_subject
 	return $topsubject;
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
+
 1;		

@@ -298,7 +298,7 @@ sub render_with_path
 {
 	my( $self, $session, $topsubjid ) = @_;
 
-	my @paths = $self->_get_paths( $session, $topsubjid );
+	my @paths = $self->get_paths( $session, $topsubjid );
 
 	my $v = $session->make_doc_fragment();
 
@@ -323,7 +323,7 @@ sub render_with_path
 
 # This function returns all the paths from this subject back up to the
 # specified top subject.
-sub _get_paths
+sub get_paths
 {
 	my( $self, $session, $topsubjid ) = @_;
 
@@ -340,7 +340,7 @@ sub _get_paths
 	foreach( @{$self->{data}->{parents}} )
 	{
 		my $subj = new EPrints::Subject( $session, $_ );
-		push @paths, $subj->_get_paths( $session, $topsubjid );
+		push @paths, $subj->get_paths( $session, $topsubjid );
 	}
 	foreach( @paths )
 	{

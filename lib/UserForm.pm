@@ -215,5 +215,11 @@ sub _update_from_form
 	return( 1 );
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
 
 1;

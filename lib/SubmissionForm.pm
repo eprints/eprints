@@ -107,6 +107,14 @@ sub process
 	# If we have an EPrint ID, retrieve its entry from the database
 	if( defined $self->{eprintid} )
 	{
+		if( $self->{staff} )
+		{
+			if( defined $self->{session}->param( "dataset" ) )
+			{
+				$self->{dataset} = $self->{session}->get_archive()->
+					get_dataset( $self->{session}->param( "dataset" ) );
+			}
+		}
 		$self->{eprint} = EPrints::EPrint->new( $self->{session},
 		                                        $self->{dataset},
 		                                        $self->{eprintid} );
@@ -990,8 +998,12 @@ sub _do_stage_type
 	        show_help=>1,
 		default_action=>"next",
 	        buttons=>$submit_buttons,
-	        hidden_fields=>{ stage => "type", 
-		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
+	        hidden_fields=>
+		{ 
+			stage => "type", 
+			dataset => $self->{dataset}->id(),
+			eprintid => $self->{eprint}->get_value( "eprintid" ) 
+		},
 		dest=>$self->{formtarget}."#t"
 	) );
 
@@ -1072,8 +1084,12 @@ sub _do_stage_linking
 	        show_help=>1,
 	        buttons=>$submit_buttons,
 		default_action=>"next",
-	        hidden_fields=>{ stage => "linking",
-		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
+	        hidden_fields=>
+		{ 
+			stage => "linking", 
+			dataset => $self->{dataset}->id(),
+			eprintid => $self->{eprint}->get_value( "eprintid" ) 
+		},
 		comments=>$comment,
 		dest=>$self->{formtarget}."#t"
 	) );
@@ -1109,8 +1125,10 @@ sub _do_stage_meta
 	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ), $self->{staff} );
 
 	my $hidden_fields = {	
-		eprintid => $self->{eprint}->get_value( "eprintid" ),
-		stage => "meta" };
+			stage => "meta", 
+			dataset => $self->{dataset}->id(),
+			eprintid => $self->{eprint}->get_value( "eprintid" ) 
+		};
 
 	my $submit_buttons = {
 		_order => [ "prev", "next" ],
@@ -1221,6 +1239,9 @@ sub _do_stage_files
 	$form->appendChild( $self->{session}->render_hidden_field(
 		"eprintid",
 		$self->{eprint}->get_value( "eprintid" ) ) );
+	$form->appendChild( $self->{session}->render_hidden_field(
+		"dataset",
+		$self->{eprint}->get_dataset()->id() ) );
 
 	my %buttons;
 	$buttons{prev} = $self->{session}->phrase( "lib/submissionform:action_prev" );
@@ -1281,6 +1302,7 @@ sub _do_stage_docmeta
 	# The hidden fields, used by all forms.
 	my $hidden_fields = {	
 		docid => $self->{document}->get_value( "docid" ),
+		dataset => $self->{eprint}->get_dataset()->id(),
 		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		stage => "docmeta" };
 
@@ -1340,6 +1362,7 @@ sub _do_stage_fileview
 	# The hidden fields, used by all forms.
 	my $hidden_fields = {	
 		docid => $self->{document}->get_value( "docid" ),
+		dataset => $self->{eprint}->get_dataset()->id(),
 		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		stage => "fileview" };
 
@@ -1606,6 +1629,7 @@ sub _do_stage_upload
 	my %hidden_fields = (
 		stage => "upload",
 		eprintid => $self->{eprint}->get_value( "eprintid" ),
+		dataset => $self->{eprint}->get_dataset()->id(),
 		docid => $self->{document}->get_value( "docid" ),
 		num_files => $self->{num_files},
 		arc_format => $self->{arc_format} 
@@ -1655,6 +1679,7 @@ sub _do_stage_verify
 	# stage could be either verify or quickverify
 	my $hidden_fields = {
 		stage => $self->{new_stage},
+		dataset => $self->{eprint}->get_dataset()->id(),
 		eprintid => $self->{eprint}->get_value( "eprintid" )
 	};
 	my $submit_buttons = {
@@ -1742,6 +1767,7 @@ sub _do_stage_confirmdel
 
 	my $hidden_fields = {
 		stage => "confirmdel",
+		dataset => $self->{eprint}->get_dataset()->id(),
 		eprintid => $self->{eprint}->get_value( "eprintid" )
 	};
 
@@ -1898,6 +1924,12 @@ sub _set_stage_this
 	my( $self ) = @_;
 
 	$self->{new_stage} = $self->{stage};
+}
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
 }
 
 1;

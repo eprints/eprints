@@ -173,7 +173,7 @@ while( $file = readdir( CFG ) )
 	{
 		$ainfo->{configmodule}= $ainfo->{archiveroot}."/".$ainfo->{configmodule};
 	}
-	$ARCHIVEMAP{$ainfo->{host}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
+	$ARCHIVEMAP{$ainfo->{host}.$ainfo->{urlpath}} = $id;
 	$ainfo->{aliases} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "alias" ) )
 	{
@@ -183,7 +183,7 @@ while( $file = readdir( CFG ) )
 		$alias->{name} = $val; 
 		$alias->{redirect} = ( $tag->getAttribute( "redirect" ) eq "yes" );
 		push @{$ainfo->{aliases}},$alias;
-		$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
+		$ARCHIVEMAP{$alias->{name}.$ainfo->{urlpath}} = $id;
 	}
 	$ainfo->{languages} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "language" ) )
@@ -223,7 +223,7 @@ sub get_supported_languages
 	return @SUPPORTEDLANGLIST;
 }
 
-sub get_id_from_host_port_path
+sub get_id_from_host_and_path
 {
 	my( $hostpath ) = @_;
 

@@ -543,4 +543,11 @@ sub reindex
 	$self->map( $session, $fn );
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
+
 1;

@@ -1754,4 +1754,11 @@ sub set_debug
 	$self->{debug} = $debug;
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
+
 1; # For use/require success

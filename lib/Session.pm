@@ -69,18 +69,12 @@ sub new
 		$self->{request} = Apache->request();
 		$self->{query} = new CGI;
 		$self->{offline} = 0;
-		my $hpp=$self->{request}->hostname.":".$self->{request}->get_server_port.$self->{request}->uri;
-		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $hpp );
+		my $hp=$self->{request}->hostname.$self->{request}->uri;
+		$self->{archive} = EPrints::Archive->new_archive_by_host_and_path( $hp );
 		if( !defined $self->{archive} )
 		{
-			#cjg icky error handler...
-			$self->{request}->content_type( 'text/html' );
-			$self->{request}->send_http_header;
-			
-			print STDERR "xCan't load archive module for URL: ".$self->{query}->url()."\n";
-
-			return undef;
-			
+			EPrints::Config::abort( "Can't load archive module for URL: ".
+				$self->{query}->url()."\n"." ( hpcode=$hp, mode=0 )" );
 		}
 	}
 	elsif( $mode == 1 )
@@ -103,11 +97,11 @@ sub new
 	{
 		$self->{query} = new CGI( {} );
 		$self->{offline} = 1;
-		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $param );
+		$self->{archive} = EPrints::Archive->new_archive_by_host_and_path( $param );
 		if( !defined $self->{archive} )
 		{
-			print STDERR "Can't load archive module for URL: $param\n";
-			return undef;
+			EPrints::Config::abort( "Can't load archive module for URL: ".
+				$self->{query}->url()."\n"." ( hpcode=$param, mode=2 )" );
 		}
 	}
 	else
@@ -180,6 +174,10 @@ sub terminate
 	$self->{archive}->call( "session_close", $self );
 	$self->{database}->disconnect();
 
+	# If we've not printed the XML page, we need to dispose of
+	# it now.
+	if( $self->{pagemade} ) { $self->{page}->dispose(); }
+
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Session.\n"; }
 }
 
@@ -228,7 +226,9 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-	return EPrints::Utils::tree_to_utf8( $r, 40 );#cjg so undo this
+	my $string =  EPrints::Utils::tree_to_utf8( $r, 40 );
+	$r->dispose();
+	return $string;
 }
 
 sub get_langid
@@ -1000,6 +1000,7 @@ sub build_page
 		{
 			$map->{$_} = $self->make_doc_fragment();
 		}
+		$self->take_ownership( $map->{$_} );
 	}
 
 	my $node;
@@ -1025,7 +1026,11 @@ sub build_page
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
-
+	foreach( keys %{$map} )
+	{
+		next if( $_ eq "page" );
+		$map->{$_}->dispose();
+	}
 }
 
 sub send_page
@@ -1041,7 +1046,8 @@ sub page_to_file
 	my( $self , $filename ) = @_;
 
 	$self->{page}->printToFile( $filename );
-
+	$self->{page}->dispose();
+	$self->{pagemade} = 0;
 }
 
 sub set_page
@@ -1052,6 +1058,7 @@ sub set_page
 	$self->{page}->removeChild( $html );
 	$self->{page}->appendChild( $newhtml );
 	$html->dispose();
+	$self->{pagemade} = 0;
 }
 
 sub new_page
@@ -1073,6 +1080,7 @@ sub new_page
 	$self->take_ownership( $html );
 	$self->{page}->appendChild( $html );
 
+	$self->{pagemade} = 1;
 }
 
 
@@ -1453,4 +1461,11 @@ sub get_http_status
 	my( $self ) = @_;
 
 	return $self->{request}->status();
+}
+
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
 }

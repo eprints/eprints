@@ -17,8 +17,12 @@ package EPrints::VLit;
 use CGI;
 use Apache;
 use Apache::Constants;
+use Digest::MD5;
 
 use strict;
+
+my $TMPDIR = "/tmp/partial";
+
 
 sub handler
 {
@@ -51,6 +55,7 @@ sub handler
 
 	my $LSMAP = {
 "area" => \&ls_area,
+"pagearea" => \&ls_pagearea,
 "charrange" => \&ls_charrange
 };
 
@@ -288,7 +293,7 @@ sub ls_area
 		return;
 	}
 	
-	my $cache = cache_file( $resspec, $param );
+	my $cache = cache_file( "area", $param );
 	
 	unless( -e $cache )
 	{
@@ -308,15 +313,59 @@ sub ls_area
 	print `cat $cache`;
 }
 
+sub ls_pagearea
+{
+	my( $file, $param, $resspec, $session ) = @_;
+	
+	unless( $param=~m/^(\d+)\/(\d+),(\d+)\/(\d+),(\d+)$/ )
+	{
+		send_http_error( 400, "Malformed pagearea param: $param" );
+		return;
+	}
+	
+	my $cache = cache_file( "pagearea", $param );
+
+	unless( -e $cache )
+	{
+		my( $p, $x, $y, $w, $h ) = ( $1, $2, $3, $4, $5 );
+
+		# pagearea/ exists cus of cache_file called above.
+		my $dir = $TMPDIR."/pagearea/".Digest::MD5::md5_hex( $file );
+print STDERR "dir=$dir\n";	
+		if( !-d $dir )
+		{
+print STDERR "mkdir=$dir\n";	
+			mkdir( $dir );
+			my $cmd = "convert '$file' '$dir/%d'";
+print STDERR "c1=$cmd\n";
+			`$cmd`;
+		}
+
+		my $cmd = "convert -crop ".$w."x".$h."+$x+$y '$dir/$p' 'gif:$cache'";
+print STDERR "c2=$cmd\n";
+		`$cmd`;
+
+		if( !-e $cache )
+		{
+			send_http_error( 500, "Error making image" );
+			return;
+		}
+	}
+
+	send_http_header( "image/gif" );
+	print `cat $cache`;
+}
+
 
 sub cache_file
 {
 	my( $resspec, $param ) = @_;
 
-	my $TMPDIR = "/tmp/partial";
-
 	$resspec =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
 	$param =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
+
+
+	mkdir( $TMPDIR ) if( !-d $TMPDIR );
 
 	my $dir = $TMPDIR."/".$resspec;
 	

@@ -50,5 +50,11 @@ foreach $thing ( keys %Apache:: )
 	eval $sub;
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
 1;
 

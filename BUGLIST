@@ -11,11 +11,12 @@ General
 - If a user area function is broken, the system does not notice.
 
 - VLit code does not understand that server may not be running on
-   port 80.
-
-- Several Problems running EPrints on a high port.
+   port 80. [can't confirm]
 
 - set_email missing(?) [ I can't seem to confirm this problem ]
+
+- Does not give validation error when multilang with required lang
+does NOT have all required langs filled in.
 
 ----------------------------------------------------------------------
 Default Configuration
@@ -37,8 +38,6 @@ Rendering
 
 - cant use &nbsp; in pages.
 
-- does not remove abstracts of deleted papers!
-
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
@@ -59,14 +58,9 @@ EPrints Submission Form
 EPrints Editorial Buffer
 ----------------------------------------------------------------------
 
-- Can't delete or bounce an item belonging to a deleted user.
-
 ----------------------------------------------------------------------
 Installation
 ----------------------------------------------------------------------
-
-- Refers to apache.conf which is sometimes called httpd.conf and
-  is ambiguous which file to edit.
 
 ----------------------------------------------------------------------
 Email
@@ -118,6 +112,15 @@ would be more appropriate. [ In fact all occurancies of
   to document the problem! ]
 - Default template: html page title does not include site name [ now
  HTML page title is "sitename - pagetitle" ]
+- Refers to apache.conf which is sometimes called httpd.conf and
+  is ambiguous which file to edit.
+- does not remove abstracts of deleted papers! [fixed]
+- Several Problems running EPrints on a high port. [can't replicate
+ this problem] [appears to be due to incorrect value of 80 being
+ returned as the server port on some versions of mod_perl/perl]
+ ["fixed" by eprints now ignoring port when picking which archive]
+- Can't delete or bounce an item belonging to a deleted user. [new
+ combined edit_eprint handles this ok]
 
 
 
@@ -196,25 +199,3 @@ straight away.]
    [ turns out to be the a bug in the renderer! ]
 
 
-===
-notes
-===
-
-Chris,
-
-this looks like a simple typo in your scripts.
-
-When running generate apacheconf I get the error Can't locate
-EPrints/Archive.pm in @INC
-The @INC includes
-
-opt/eprints/perl_lib
-
-but the real directory created was
-
-opt/eprints2/perl_lib
-
-since this is version 2.
-
-Looks like you need to modify one of the scripts to add the "2" - sorry.
-====

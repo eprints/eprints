@@ -427,11 +427,11 @@ CHANGES BELOW ARE CURRENTLY IN CVS ONLY
 
 
 03/03/2002
-- Fixed typo in citations "years" instead of "year"
+[c]- Fixed typo in citations "years" instead of "year"
 - 404 page now spots /view/ and suggests you need to run generate_views
 - "latest" cgi script no longer uses cached results.
 - get_value on a non existant field now gives a clear error rather than
-  a perl !defined error.
+  a perl !defined error. (calls abort)
 - importXML - treated whitespace inbetween <lang> tags as a lang'less 
   version of the value. Now ignores it. Still does that with non-white
   space.
@@ -442,5 +442,54 @@ CHANGES BELOW ARE CURRENTLY IN CVS ONLY
 - Fixed mistake in /help/ which refers to lemur1 rather than the current
   archive.
 
+03/04/2002
+[c] - All occurancies of
+(defined $foo->get_value( "bar" )) have become ($foo->is_set( "bar" ))
+in default configuration. Easier to understand and avoids a few bugs.
+- abort() now gives an HTML page as well as logging, if we are running
+in a CGI script (under mod_perl).
+- configure_archive now defaults the MySQL user to $archiveid rather
+than "eprints" which stops the problem of changing the MySQL User:
+"eprints"'s password on ALL archives.
+[c] - default template: now <title> contains the name of the archive
+"sitename - pagetitle"
+[c] - some rewrites to ArchiveFreeTextIndexingConfig - most importantly
+now treats chars< #32 (eg RETURN and NEWLINE) as breaking characters.
+*** Users should replace old ArchiveFreeTextIndexingConfig with new one
+unless they have good reason not to.
+- Changed the email change to tell you what your email just got changed
+to.
+- lack of "deposit" priv was not hiding the deposit option on the user
+page (now it does).
+- ImportXML now has an error context of 5 lines to aid debugging.
+- Main phrases file now rephrased to be "go to homepage" rather than
+"return to homepage" to make context more simple. Also "author page" or
+"admin page", "staff area" and "your deposit items page"  renamed to
+"user homepage".
 
-
+16/04/2002
+[c] - Abstract h2 was not added to render_eprint page. Now is.
+- added $session->terminate() to generate_abstracts
+- generate_apacheconf configuration now refers to apache configuration
+rather than apache.conf (which was wrong)
+- OAI: got rid of OAI_VERSION constant - now just hardwired.
+- edit_eprint now does function of view_submission & edit_submission too and
+can edit eprints in ANY dataset. Also now has a clone function.
+- edit buffer page now links to edit_eprint
+- staff eprint search now searches all datasets 
+- SearchExpression can now have extra fields which don't get passed into
+the actual search. Just rendered as part of the form. These are indicated
+by ! before the name.
+- SubmissionForm now maintains dataset as well as eprintid.
+- added some debugging code to trace objects. This won't normally be
+used. Mostly DESTORY subs, and hooks on bless.
+- Changed Session, Archive & Auth to no longer use "port" when calculating
+which archive config to use.
+- editors can now succeed other peoples eprints.
+- deletion records now auto fill in the suceeds fill when cloned (like
+archive records always did)
+- EPrint->remove_static now works properly. Actually removes the abstract.
+- added DataObj->get_values to return a list of all the values of a given
+metadata field - needed by OAI2 to list SetSpec's of an article.
+- added oai2 protocol talkin' script /cgi/oai2 and modified some bits of
+OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)

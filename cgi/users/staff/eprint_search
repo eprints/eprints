@@ -27,15 +27,40 @@ if( !$session->auth_check( "staff-view" ) )
 }
 
 my $user = $session->current_user();
-my @search_fields = ( "eprintid", "userid", "dir" );
+my @search_fields = ( "!dataset", "eprintid", "userid", "dir" );
 push @search_fields, @{$session->get_archive()->get_conf( "advanced_search_fields" )};
+
+my $extrafields = {
+	dataset=>EPrints::MetaField->new(
+		confid=>'dataset',
+		archive=>$session->get_archive(),
+		name=>'dataset',
+                required=>1,
+                type=>'set',
+                options => [ "archive", "deletion", "buffer", "inbox" ] ) };
+
+my $datasetid = $session->param( "dataset" );
+
+# When in doubt, use the main archive.
+
+$datasetid = "archive" if( !defined $datasetid );
+if( $datasetid ne "archive" && 
+    $datasetid ne "inbox" && 
+    $datasetid ne "deletion" && 
+    $datasetid ne "buffer" )
+{
+	$datasetid = "archive";
+}
+
+my $dataset = $session->get_archive()->get_dataset( $datasetid );
 
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	staff => 1,
 	use_oneshot_cache => 1,
-	dataset => $session->get_archive()->get_dataset( "archive" ),
-	fieldnames => \@search_fields );
+	dataset => $dataset,
+	fieldnames => \@search_fields,
+	extrafields => $extrafields );
 
 my $preamble = $session->html_phrase( "cgi/users/eprint_search:preamble" );
 

@@ -34,11 +34,7 @@ if( !$session->auth_check( "editor" ) )
 }
 
 my( $title, $page ) = &process( $session );
-if( defined $title )
-{
-	$session->build_page( $title, $page );
-	$session->send_page();
-}
+
 $session->terminate();
 
 
@@ -47,38 +43,24 @@ sub process
 {
 	my( $session ) = @_;
 
-	my( $page );
+	my $datasetid = $session->param( "dataset" );
+
+	# When in doubt, use the main archive.
+
+	$datasetid = "archive" if( !defined $datasetid );
+	if( $datasetid ne "archive" && 
+    		$datasetid ne "inbox" && 
+    		$datasetid ne "deletion" && 
+    		$datasetid ne "buffer" )
+	{
+		$datasetid = "archive";
+	}
+	
+	my $dataset = $session->get_archive()->get_dataset( $datasetid );
 
 	my $eprintid = $session->param( "eprintid" );
 
-	$page = $session->make_doc_fragment();
-
-	if( !EPrints::Utils::is_set( $eprintid ) )
-	{
-
-		my $id_field = EPrints::MetaField->new(
-			archive=> $session->get_archive(),
-			confid=>"editeprint",
-			name=>"eprintid",
-			type=>"text" );
-		#"eprintid:text::ID of EPrint to View:1:1:1" );
-	
-		$page->appendChild( $session->render_input_form(
-			fields=>[ $id_field ],
-			show_names=>1,
-			buttons=>{
-				check=>$session->phrase( 
-					"cgi/users/edit_eprint:action_check" )
-			}
-		) ),
-
-		return( $session->html_phrase( "cgi/users/edit_eprint:form_title" ),
-			$page );
-	}
-
-	my $arc_ds = $session->get_archive->get_dataset( "archive" );
-
-	my $eprint = new EPrints::EPrint( $session, $arc_ds, $eprintid );
+	my $eprint = new EPrints::EPrint( $session, $dataset, $eprintid );
 	my $action = $session->get_action_button();
 
 	if( !defined $eprint )
@@ -89,72 +71,366 @@ sub process
 		return;
 	}
 
-	if( defined $action && $action eq "remove" )
+	if( !defined $action )
 	{
-		if( $eprint->move_to_deletion() )
+		&view_page( $session, $eprint );
+		return;
+	}
+
+	if( $action eq "_toinbox" )
+	{
+		# Bounce button pressed - get reason
+		&bounce_form( $session, 0, $eprint );
+		return;
+	}
+
+	if( $action eq "_remove" )
+	{
+		# Remove button pressed - get reason
+		&bounce_form( $session, 1, $eprint );
+		return;
+	}
+
+	if( $action eq "_send" )
+	{
+		# Actually do the bounce
+		&bounce( $session, $eprint );
+		return;
+	}
+
+	if( $action eq "_toarchive" )
+	{	
+		# Accept button pressed
+
+		my $dsid = $eprint->get_dataset()->id();
+
+		unless( $eprint->move_to_archive() )
 		{
-			$page->appendChild( $session->html_phrase( 
-				"cgi/users/edit_eprint:removed" ) );
-			$page->appendChild( $session->html_phrase( 
-				"general:userhome_link" ) );
-			return( $session->html_phrase( 
-					"cgi/users/edit_eprint:remove_title" ),
-	 			$page );
+			$session->render_error( $session->html_phrase(
+				"cgi/users/edit_eprint:cant_move",
+				id=>$session->make_text( $eprintid ) ) );
+			return;
+		}
+
+		# Successfully archived, redirect
+		if( $dsid eq "buffer" )
+		{
+			$session->redirect( "buffer" );
+		}
+		else
+		{
+			$session->redirect( $session->get_archive()->get_conf( "userhome" ) );
+		}
+		return;
+	}
+
+	if( $action eq "_tobuffer" )
+	{
+		
+		unless( $eprint->move_to_buffer() )
+		{
+			$session->render_error( $session->html_phrase(
+				"cgi/users/edit_eprint:cant_move",
+				id=>$session->make_text( $eprintid ) ) );
+			return;
+		}
+
+		my $page = $session->make_doc_fragment();
+		$page->appendChild( $session->html_phrase( 
+			"cgi/users/edit_eprint:moved",
+			link=>$session->render_link( "edit_eprint?dataset=buffer&eprintid=".$eprintid ) ) );
+		$page->appendChild( $session->html_phrase( 
+			"general:userhome_link" ) );
+		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:move_title" ), $page );
+		$session->send_page();
+		return;
+	}
+
+	if( $action eq "_todeletion" )
+	{
+		unless( $eprint->move_to_deletion() )
+		{
+			$session->render_error( $session->html_phrase(
+				"cgi/users/edit_eprint:cant_remove",
+				id=>$session->make_text( $eprintid ) ) );
+			return;
+		}
+		my $page = $session->make_doc_fragment();
+		$page->appendChild( $session->html_phrase( 
+			"cgi/users/edit_eprint:removed" ) );
+		$page->appendChild( $session->html_phrase( 
+			"general:userhome_link" ) );
+		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:remove_title" ), $page );
+		$session->send_page();
+		return;
+	}
+
+	if( $action eq "_clone" )
+	{
+                my $new_eprint = $eprint->clone( $session->get_archive()->get_dataset( "buffer" ), 1 );
+		unless( defined $new_eprint )
+		{
+			$session->render_error( $session->html_phrase(
+				"cgi/users/edit_eprint:cant_clone",
+				id=>$session->make_text( $eprintid ) ) );
+			return;
 		}
 		
-		$session->render_error( $session->html_phrase(
-			"cgi/users/edit_eprint:cant_remove",
-			id=>$session->make_text( $eprintid ) ) );
+                $session->redirect( "edit_eprint?dataset=buffer&eprintid=".$new_eprint->get_id() );
 		return;
 	}
 
-	if( defined $action && $action eq "move" )
+	#########################################################
+	
+	# OK, so we are (presumably) editing it then...
+
+	my $stage = $session->param( "stage" );
+	# If we are skipping the files stage then we have to work out what the
+	# actual last stage is...
+	my $laststage = "files";
+	my @stages = ( "meta","linking","type" );
+	while( $session->get_archive()->get_conf( "submission_stage_skip", $laststage ) )
 	{
-		
-		if( $eprint->move_to_buffer() )
-		{
-			$page->appendChild( $session->html_phrase( 
-				"cgi/users/edit_eprint:moved",
-				link=>$session->render_link( "view_submission?eprintid=".$eprintid ) ) );
-			$page->appendChild( $session->html_phrase( 
-				"general:userhome_link" ) );
-			return( $session->html_phrase( 
-					"cgi/users/edit_eprint:move_title" ),
-	 			$page );
-		}
-
-		$session->render_error( $session->html_phrase(
-			"cgi/users/edit_eprint:cant_move",
-			id=>$session->make_text( $eprintid ) ) );
-		return;
+		$laststage = pop @stages;
+		last if( $laststage eq "type" );
 	}
 
-	if( defined $action && $action eq "cancel" )
-	{
-		$session->redirect(
-			$session->get_archive()->get_conf( "userhome" ) );
-		return;
-	}
+	if( defined $stage && $laststage eq $stage && defined $action && ($action eq "finished" || $action eq "next") )
+        {
+                # Intercept the verify page, that's what we were doing!
+                $session->redirect( "edit_eprint?dataset=$datasetid&eprintid=$eprintid" );
+                return;
+        }
 
+	# Give other cases to the edit form
+	my $subform = new EPrints::SubmissionForm(
+		$session,
+		"edit_eprint?dataset=$datasetid&eprintid=$eprintid",
+		1,
+		$dataset,
+		"edit_eprint" );
+
+	$subform->process();
+	return;
+
+}
+
+# Show metadata & options:
+
+sub view_page
+{
+	my( $session, $eprint ) = @_;
+
+	my $page = $session->make_doc_fragment();
+	
+	$page->appendChild( $session->html_phrase( 
+		"cgi/users/edit_eprint:status",
+		dataset => $session->html_phrase( "dataset_fieldopt_dataset_".$eprint->get_dataset()->id() ) ) );
+	
 	$page->appendChild( $eprint->render_full() );
 			
-	$page->appendChild( $session->render_ruler() );
+	# Possible actions
+	# inbox buffer archive deletion
+	#   *     *       *       *      edit
+	#   *     *                      remove - and send message to depositing user
+	#         *                      move to inbox - and send message to user
+	#   *             *              move to buffer  - "
+	#         *               *      move to archive  - "
+	#                 *              move to deletion  - "
+	#   *     *       *       *      clone to buffer
 
-	$page->appendChild( $session->render_input_form(
-		# no input fields; no need for a default action.
-		buttons=>{
-			_order => [ "remove", "move", "cancel" ],
-			remove=>$session->phrase( 
-				"cgi/users/edit_eprint:action_remove" ),
-			move=>$session->phrase( 
-				"cgi/users/edit_eprint:action_move" ),
-			cancel=>$session->phrase( 
-				"cgi/users/edit_eprint:action_cancel" )
-		},
-		hidden_fields=>{ eprintid=>$eprintid }
-	) );
+	# actions for this form begin with _ (except edit and
+	# those passed to submission form)
+
+	my $buttons = {};
+	my $r1 = [];
+	my $r2 = [];
+	if( $eprint->get_dataset()->id() eq "inbox" )
+	{
+		$r1 = [ "_tobuffer" ];
+		$r2 = [ "edit", "_remove", "_clone" ];
+	}
+	if( $eprint->get_dataset()->id() eq "buffer" )
+	{
+		$r1 = [];
+		# only offer to return this to the inbox
+		# if it's owned by a valid user.
+		if( defined $eprint->get_user() )
+		{
+			push @{$r1}, "_toinbox";
+		}
+		push @{$r1}, "_toarchive";
+		$r2 = [ "edit", "_remove", "_clone" ];
+	}
+	if( $eprint->get_dataset()->id() eq "archive" )
+	{
+		$r1 = [ "_tobuffer", "_todeletion" ];
+		$r2 = [ "edit", "_clone" ];
+	}
+	if( $eprint->get_dataset()->id() eq "deletion" )
+	{
+		$r1 = [ "_toarchive" ];
+		$r2 = [ "edit", "_clone" ];
+	}
+
+
+	my $form = $session->render_form( "post", "edit_eprint" );
+	foreach( @{$r1}, @{$r2} )
+	{
+		$buttons->{$_} = $session->phrase( "cgi/users/edit_eprint:action_".$_ );
+	}
+	
+	$form->appendChild( $session->render_ruler() );
+	$buttons->{_order} = $r1;
+	$form->appendChild( $session->render_action_buttons( %{$buttons} ) );
+
+	$form->appendChild( $session->render_ruler() );
+	$buttons->{_order} = $r2;
+	$form->appendChild( $session->render_action_buttons( %{$buttons} ) );
+
+	$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id() ) );
+	$form->appendChild( $session->render_hidden_field( "dataset", $eprint->get_dataset()->id() ) );
+
+	$page->appendChild( $form );
+	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 		
-	return( $session->html_phrase( "cgi/users/edit_eprint:form_title" ), $page );
+	$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:form_title" ), $page );
+	$session->send_page();
 }
 
 
+sub bounce_form
+{
+	my( $session, $delete, $eprint ) = @_;
+
+	# Get the user's details
+	my $user = $eprint->get_user();
+	# We can't bounce it if there's no user associated - but
+	# we can still delete it.
+	if( !defined $user && !$delete)
+	{
+		$session->render_error( 
+			$session->html_phrase( "cgi/users/edit_eprint:no_user" ),
+			"buffer" );
+		return;
+	}
+
+	my $page = $session->make_doc_fragment();
+
+	my $form = $session->render_form( "post", "edit_eprint" );
+	if( defined $user )
+	{
+		$page->appendChild( $session->html_phrase( "cgi/users/edit_eprint:bounce_form_intro", langpref=>$user->render_value( "lang" ) ) );
+		my $div = $session->make_element( "div", class => "formfieldinput" );
+		my $textarea = $session->make_element(
+			"textarea",
+			name => "reason",
+			rows => 20,
+			cols => 60,
+			wrap => "virtual" );
+		# remove any markup:
+		my $title = $session->make_text( EPrints::Utils::tree_to_utf8( $eprint->render_description() ) );
+	
+		$textarea->appendChild( $session->html_phrase(
+			( $delete ? "mail_delete_reason" : "mail_bounce_reason" ),
+			title => $title ) );
+		$div->appendChild( $textarea );
+		$form->appendChild( $div );
+
+		$form->appendChild( $session->render_action_buttons(
+			"_send" => $session->phrase( "cgi/users/edit_eprint:action_send" ) ) );
+	}
+	else
+	{
+		my $p = $session->make_element( "p" );
+		$p->appendChild( $eprint->render_description() );
+		$form->appendChild( $p );
+
+		$form->appendChild( $session->render_action_buttons(
+			"_send" => $session->phrase( "cgi/users/edit_eprint:action_reallydelete" ) ) );
+	}
+	
+
+	$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_value( "eprintid" ) ) );
+	$form->appendChild( $session->render_hidden_field( "dataset", $eprint->get_dataset()->id() ) );
+	$form->appendChild( $session->render_hidden_field( "delete", $delete ) );
+
+	$page->appendChild( $form );
+
+	$session->build_page(
+		$session->html_phrase( "cgi/users/edit_eprint:title_".( $delete ? "delete" : "bounce" )."_form" ),
+		$page );
+	$session->send_page();
+}
+
+
+sub bounce
+{
+	my( $session, $eprint ) = @_;
+
+	my $delete = $session->param( "delete" );
+
+	# Get the user's details
+	my $user = $eprint->get_user();
+	# We can't bounce it if there's no user associated - but
+	# we can still delete it.
+	if( !defined $user && !$delete)
+	{
+		# Can't find the user
+		$session->render_error( 
+			$session->html_phrase( "cgi/users/edit_eprint:no_user" ),
+			"buffer" );
+		return;
+	}
+	
+	my $success = 0;
+	
+	if( $delete )
+	{
+		# Delete the submission
+		$success = $eprint->remove();
+	}
+	else
+	{
+		# Transfer the EPrint back to the user's inbox
+		$success = $eprint->move_to_inbox();
+	}
+	
+	unless( $success )
+	{
+		# Couldn't be bounced at all
+		$session->render_error( 
+			$session->html_phrase( "cgi/users/edit_eprint:bord_fail" ),
+			"buffer" );
+		return;
+	}
+
+	if( !defined $user )
+	{
+		# Can't send mail to a user what does not
+		# exist.
+		$session->redirect( "buffer" );
+		return;
+	}
+
+	my $mail = $session->make_element( "mail" );
+	$mail->appendChild( $session->make_text( $session->param( "reason" ) ) );
+
+	# Successfully transferred, mail the user with the reason
+	if( $user->mail(
+		"cgi/users/edit_eprint:subject_bounce",
+		$mail,
+		$session->current_user() ) )
+	{	
+		# Successfully bounced, redirect
+		$session->redirect( "buffer" );
+		return;
+	}
+
+	# Couldn't mail
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/edit_eprint:mail_fail",
+			username=>$user->render_value( "username" ),
+			email=>$user->render_value( "email" ) ),
+		"buffer" );
+}

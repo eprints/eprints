@@ -113,7 +113,7 @@ sub new_from_data
 	$self->{dataset} = $dataset;
 	$self->{session} = $session;
 
-	bless $self, $class;
+	bless( $self, $class );
 
 	return( $self );
 }
@@ -316,7 +316,8 @@ sub clone
 	# We assume the new eprint will be a later version of this one,
 	# so we'll fill in the succeeds field, provided this one is
 	# already in the main archive.
-	if( $self->{dataset}->id() eq  "archive"  )
+	if( $self->{dataset}->id() eq  "archive" || 
+	    $self->{dataset}->id() eq  "deletion" )
 	{
 		$new_eprint->set_value( "succeeds" , 
 			$self->get_value( "eprintid" ) );
@@ -525,7 +526,12 @@ sub validate_linking
 		if( $field_id eq "succeeds" )
 		{
 			# Ensure that the user is authorised to post to this
-			if( $test_eprint->get_value("userid") ne $self->get_value("userid") )
+			# either the same user owns both eprints, or the current user
+			# is an editor.
+			my $user = $self->{session}->current_user();
+			unless( 
+				(defined $user && $user->has_priv( "editor" ) ) ||
+				( $test_eprint->get_value("userid") eq $self->get_value("userid") ) )
 			{
  				# Not the same user. 
 
@@ -842,11 +848,6 @@ sub move_to_deletion
 
 	my $success = $self->_transfer( $ds );
 
-	if( $success )
-	{
-		$self->generate_static();
-	}
-	
 	return $success;
 }
 
@@ -880,11 +881,6 @@ sub move_to_buffer
 	return( $success );
 }
 
-sub remove_static()
-{
-	my( $self ) = @_;
-	#cjg tsk needs to actually clean up symlinks abstracts etc.
-}	
 
 sub _move_from_archive
 {
@@ -985,7 +981,7 @@ sub generate_static
 	my $eprintid = $self->get_value( "eprintid" );
 
 	my $ds_id = $self->{dataset}->id();
-	if( $ds_id ne "deletion" && $ds_id ne "archive" )
+	if( $ds_id ne "archive" && $ds_id ne "deletion" )
 	{
 		$self->{session}->get_archive()->log( 
 			"Attempt to generate static files for record ".
@@ -1001,7 +997,7 @@ sub generate_static
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		$self->{session}->change_lang( $langid );
-		my $full_path = $self->{session}->get_archive()->get_conf( "htdocs_path" )."/$langid/archive/".eprintid_to_path( $eprintid );
+		my $full_path = $self->_htmlpath( $langid );
 
 		my @created = eval
 		{
@@ -1033,6 +1029,23 @@ sub generate_static
 	$self->{session}->change_lang( $real_langid );
 }
 
+sub remove_static
+{
+	my( $self ) = @_;
+
+	my $langid;
+	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
+	{
+		rmtree( $self->_htmlpath( $langid ) );
+	}
+}
+
+sub _htmlpath
+{
+	my( $self, $langid ) = @_;
+	return $self->{session}->get_archive()->get_conf( "htdocs_path" ).
+		"/".$langid."/archive/".eprintid_to_path( $self->get_value( "eprintid" ) );
+}
 
 sub render
 {
@@ -1088,7 +1101,8 @@ sub get_url
 	if( defined $staff && $staff )
 	{
 		return $self->{session}->get_archive()->get_conf( "perl_url" ).
-			"/users/staff/edit_eprint?eprintid=".$self->get_value( "eprintid" );
+			"/users/staff/edit_eprint?eprintid=".$self->get_value( "eprintid" )."&".
+			"dataset=".$self->get_dataset()->id();
 	}
 	
 	return( $self->url_stem() );
@@ -1420,5 +1434,7 @@ sub get_type
 }
 
 
+
 1; # For use/require success
+
 	

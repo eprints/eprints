@@ -994,4 +994,12 @@ sub set_dataset
 
 	$self->{dataset} = $dataset;
 }
+
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
+	
 1;

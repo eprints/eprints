@@ -24,8 +24,29 @@ use EPrints::Session;
 use strict;
 
 
-# Supported version of OAI
-$EPrints::OpenArchives::OAI_VERSION = "1.1";
+
+######################################################################
+#
+# $stamp = $utc_timestamp()
+#
+#  Return a UTC timestamp of the form YYYY-MM-DDTHH:MM:SSZ
+#
+#  Used by OAI v2.0
+#
+#  e.g. 2000-05-01T15:32:23Z
+#
+######################################################################
+
+sub utc_timestamp
+{
+	my( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) 
+		= gmtime();
+
+	return sprintf( "%04d-%02d-%02dT%02d:%02d:%02dZ", 
+			$year+1900, $mon+1, $mday, 
+			$hour, $min, $sec );
+}
+
 
 
 ######################################################################
@@ -33,6 +54,8 @@ $EPrints::OpenArchives::OAI_VERSION = "1.1";
 # $stamp = $full_timestamp()
 #
 #  Return a full timestamp of the form YYYY-MM-DDTHH:MM:SS[GMT-delta]
+#
+#  Used by OAI v1
 #
 #  e.g. 2000-05-01T15:32:23+01:00
 #
@@ -101,12 +124,10 @@ sub full_timestamp
 		( $offset < 0 ? "-" : "+" ) . "$hours_offset:$minutes_offset" );
 }
 
-
-sub make_record
+sub make_header
 {
-	my( $session, $eprint, $fn ) = @_;
+	my ( $session, $eprint, $oai2 ) = @_;
 
-	my $record = $session->make_element( "record" );
 	my $header = $session->make_element( "header" );
 	$header->appendChild( $session->render_data_element(
 		6,
@@ -118,12 +139,83 @@ sub make_record
 		6,
 		"datestamp",
 		$eprint->get_value( "datestamp" ) ) );
+
+	if( EPrints::Utils::is_set( $oai2 ) )
+	{
+		if( $eprint->get_dataset()->id() eq "deletion" )
+		{
+			$header->setAttribute( "status" , "deleted" );
+			return $header;
+		}
+
+		my $viewconf = $session->get_archive()->get_conf( "oai","sets" );
+        	foreach my $info ( @{$viewconf} )
+        	{
+			my @values = $eprint->get_values( $info->{fields} );
+			my $afield = EPrints::Utils::field_from_config_string( 
+					$eprint->get_dataset(), 
+					( split( "/" , $info->{fields} ) )[0] );
+
+			foreach my $v ( @values )
+			{
+				print STDERR "$info->{id} a($v)\n";
+				if( $v eq "" && !$info->{allow_null} ) { next;  }
+
+				my @l;
+				if( $afield->is_type( "subject" ) )
+				{
+					my $subj = new EPrints::Subject( $session, $v );
+					next unless( defined $subj );
+	
+					my @paths = $subj->get_paths( 
+						$session, 
+						$afield->get_property( "top" ) );
+
+					foreach my $path ( @paths )
+					{
+						my @ids;
+						foreach( @{$path} ) 
+						{
+							push @ids, $_->get_id();
+						}
+						push @l, encode_setspec( @ids );
+					}
+				}
+				else
+				{
+					@l = ( encode_setspec( $v ) );
+				}
+
+				foreach( @l )
+				{
+					$header->appendChild( $session->render_data_element(
+						6,
+						"setSpec",
+						encode_setspec( $info->{id}.'=' ).$_ ) );
+				}
+			}
+		}
+	}
+
+	return $header;
+}
+
+sub make_record
+{
+	my( $session, $eprint, $fn, $oai2 ) = @_;
+
+	my $record = $session->make_element( "record" );
+
+	my $header = make_header( $session, $eprint, $oai2 );
 	$record->appendChild( $session->make_indent( 4 ) );
 	$record->appendChild( $header );
 
 	if( $eprint->get_dataset()->id() eq "deletion" )
 	{
-		$record->setAttribute( "status" , "deleted" );
+		unless( EPrints::Utils::is_set( $oai2 ) )
+		{
+			$record->setAttribute( "status" , "deleted" );
+		}
 		return $record;
 	}
 

@@ -29,8 +29,8 @@ sub authen
 	return OK unless $r->is_initial_req; # only the first internal request
 
 
-	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
-	my $session = new EPrints::Session( 2 , $hpp );
+	my $hp=$r->hostname.$r->uri;
+	my $session = new EPrints::Session( 2 , $hp );
 	
 	if( !defined $session )
 	{
@@ -95,8 +95,8 @@ sub authz
 	# but if we are looking at a document in the secure area then
 	# we need to do some work.
 
-	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
-	my $session = new EPrints::Session( 2 , $hpp );
+	my $hp=$r->hostname.$r->uri;
+	my $session = new EPrints::Session( 2 , $hp );
 	my $archive = $session->get_archive();
 
 	my $uri = $r->uri;

@@ -184,7 +184,7 @@ sub identify
 	$response->appendChild( $session->render_data_element(
 		2,
 		"protocolVersion",
-		$EPrints::OpenArchives::OAI_VERSION ) );
+		"1.1" ) );
 
 	$response->appendChild( $session->render_data_element(
 		2,
@@ -375,7 +375,7 @@ sub get_searchexp_from_params
 			{
 				my $type = $field->get_type();
 				EPrints::Config::abort( <<END );
-Cannot generate browse pages for field "$_"
+Cannot generate oai set for field "$_"
 - Type "$type" cannot be browsed.
 END
 				return;

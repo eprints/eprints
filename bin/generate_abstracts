@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib 
 
 ######################################################################
 #
@@ -100,6 +100,9 @@ foreach( "archive", "deletion" )
 	$dataset->map( $session , \&make_static, $info );
 	print "Done writing ".$info->{count}." $_ abstracts\n" if( $noise > 0);
 }
+
+$session->terminate();
+exit;
 
 sub make_static
 {

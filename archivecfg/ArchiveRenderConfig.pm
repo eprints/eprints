@@ -125,7 +125,8 @@ sub eprint_render
 		my $h2 = $session->make_element( "h2" );
 		$h2->appendChild( 
 			$session->html_phrase( "eprint_fieldname_abstract" ) );
-	
+		$page->appendChild( $h2 );
+
 		$p = $session->make_element( "p" );
 		$p->appendChild( $eprint->render_value( "abstract" ) );
 		$page->appendChild( $p );

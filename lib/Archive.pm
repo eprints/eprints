@@ -20,12 +20,12 @@ use File::Copy;
 
 my %ARCHIVE_CACHE = ();
 
-sub new_archive_by_host_port_path
+sub new_archive_by_host_and_path
 {
 	my( $class, $hostpath ) = @_;
 	my $archive;
 
-	my $id = EPrints::Config::get_id_from_host_port_path( $hostpath );
+	my $id = EPrints::Config::get_id_from_host_and_path( $hostpath );
 
 	return if( !defined $id );
 
@@ -473,5 +473,11 @@ END
 	return 1;
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
 
 1;

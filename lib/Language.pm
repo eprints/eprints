@@ -219,4 +219,11 @@ sub get_id
 	return $self->{id};
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
+
 1;

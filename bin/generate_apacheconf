@@ -22,8 +22,8 @@ B<generate_apacheconf> [I<archiveid>] [B<options>]
 
 =head1 DESCRIPTION
 
-This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your
-apache B<httpd.conf> file:
+This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your main 
+apache configuration file - often, but not always, B</usr/local/apache/conf/httpd.conf>
 
  Include /opt/eprints2/cfg/apache.conf
 

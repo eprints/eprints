@@ -16,6 +16,8 @@ print STDERR "EPRINTS: Loading Core Modules\n";
 ## you won't get constant connections and everything
 ## will go horribly wrong...
 
+use Carp qw(verbose);
+
 use Apache::DBI;
 #$Apache::DBI::DEBUG = 3;
 use Apache::Registry;          
@@ -28,7 +30,6 @@ use EPrints::Config;
 $ENV{MOD_PERL} or EPrints::Utils::abort( "not running under mod_perl!" );
  
 # This code is interpreted *once* when the server starts
-
 use EPrints::Auth;
 use EPrints::Database;
 use EPrints::Document;

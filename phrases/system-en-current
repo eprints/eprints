@@ -407,29 +407,6 @@ Staff CGI Scripts
     <ep:phrase ref="cgi/users/buffer:invalid">INVALID</ep:phrase>
     <ep:phrase ref="cgi/users/buffer:return_staff">Click here to go to the User Area</ep:phrase>
 
-<!-- view_submission -->
-
-    <ep:phrase ref="cgi/users/view_submission:not_directly">Do not access this page directly, come to it from the submission buffer page.</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:no_eprint">Problem retrieving the submission with ID=<ep:pin ref="eprintid" />. May be a problem with the database, check the logs.</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:title">Viewing Submission</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:action_accept">Accept</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:action_edit">Edit</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:action_bounce">Bounce</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:action_delete">Delete</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:back"><p><a href="buffer">Go to buffer overview</a></p></ep:phrase>
-
-<!-- edit_submission -->
-
-    <ep:phrase ref="cgi/users/edit_submission:problem_getting">Problem retrieving the submission with ID="<ep:pin ref="eprintid" />"</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:no_user">Cannot find the data for the user who submitted this item.</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this submission, and any possible fix. This will be e-mailed to the relevant author.</p><p>(The authors language of preference is &quot;<ep:pin ref="langpref" />&quot;.)</p></ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:title_delete_form">Deleting Submission</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:title_bounce_form">Bouncing Submission</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:action_send">Send</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:subject_bounce">Problem with Submission</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:mail_fail">The submission was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><ep:pin ref="username" /></strong>, email <ep:pin ref="email" />.</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_submission:bord_fail">The submission could not be bounced/deleted - this probably indicates a database error. Check the logs.</ep:phrase>
-
 <!-- edit_subject -->
 
     <ep:phrase ref="cgi/users/edit_subject:title">Edit Subject: <ep:pin ref="subjectname" /></ep:phrase>
@@ -458,21 +435,42 @@ Staff CGI Scripts
 
     <ep:phrase ref="cgi/users/eprint_search:title">Staff EPrint Search</ep:phrase>
     <ep:phrase ref="cgi/users/eprint_search:preamble"><p>Don't panic! Just leave the fields you don't want to search blank.</p></ep:phrase>
+    <ep:phrase ref="dataset_fieldname_dataset">EPrint Catagory</ep:phrase>
+    <ep:phrase ref="dataset_fieldopt_dataset_archive">Main Archive</ep:phrase>
+    <ep:phrase ref="dataset_fieldopt_dataset_deletion">Deleted EPrints</ep:phrase>
+    <ep:phrase ref="dataset_fieldopt_dataset_buffer">Submission Buffer (awaiting approval)</ep:phrase>
+    <ep:phrase ref="dataset_fieldopt_dataset_inbox">User Workarea</ep:phrase>
 
 <!-- edit_eprint -->
 
+    <ep:phrase ref="cgi/users/edit_eprint:status"><p>Current status of this EPrint: in <ep:pin ref="dataset" />.</p></ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_find_it">Can't retrieve EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_remove">Problem removing EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:cant_remove">Problem moving EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:form_title">View/Withdraw EPrint</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:cant_move">Problem moving EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:cant_clone">Problem cloning EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this submission, and any possible fix. This will be e-mailed to the relevant author.</p><p>(The authors language of preference is &quot;<ep:pin ref="langpref" />&quot;.)</p></ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:title_delete_form">Deleting Submission</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:title_bounce_form">Bouncing Submission</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action_send">Send</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:no_user">Cannot find the data for the user who submitted this item.</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:subject_bounce">Problem with Submission</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:mail_fail">The submission was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><ep:pin ref="username" /></strong>, email <ep:pin ref="email" />.</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:bord_fail">The submission could not be bounced/deleted - this probably indicates a database error. Check the logs.</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:form_title">Move/Edit EPrint</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:remove_title">Removal Successful</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:removed"><p>EPrint Successfully Removed</p></ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:move_title">Move Successful</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:moved"><p>EPrint Successfully moved back into the buffer.</p><p>You may now <ep:pin ref="link">edit it</ep:pin> if you wish.</p></ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:action_check">Check</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:action_cancel">Cancel</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:action_move">Move to Buffer</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:action_remove">Remove</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action_edit">Edit EPrint</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__remove">Remove EPrint</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__clone">Clone EPrint</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__toinbox">Bounce EPrint back to Submitter</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__tobuffer">Move EPrint to Submission Buffer</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__toarchive">Move EPrint to Main Archive</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action__todeletion">Move EPrint to Deleted Buffer</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action_send">Send</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:action_reallydelete">Really Delete</ep:phrase>
+
 
 <!-- edit_user -->
     <ep:phrase ref="cgi/users/edit_user:really_remove"><p>Delete this user, and all of their records in the archive?</p></ep:phrase>

@@ -67,6 +67,35 @@ sub set_value
 	$self->{data}->{$fieldname} = $value;
 }
 
+
+# return all values of this
+# allows config style fieldnames eg author.id/editor.id
+sub get_values
+{
+	my( $self, $fieldnames ) = @_;
+
+	my %values = ();
+	foreach my $fieldname ( split( "/" , $fieldnames ) )
+	{
+		my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname );
+		my $v = $self->{data}->{$field->get_name()};
+		if( $field->get_property( "multiple" ) )
+		{
+			foreach( @{$v} )
+			{
+				$values{$field->which_bit( $_ )} = 1;
+			}
+		}
+		else
+		{
+			$values{$field->which_bit( $v )} = 1;
+		}
+	}
+
+	return keys %values;
+}
+
+
 sub get_session
 {
 	my( $self ) = @_;
@@ -180,5 +209,12 @@ sub get_type
 # validate
 
 # render
+
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
 
 1; # for use success

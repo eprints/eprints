@@ -120,9 +120,15 @@ sub new
 			# Add a reference to the list
 			$self->add_field( \@multiple_fields );
 		}
+		elsif( $fieldname =~ m/^!(.*)$/ )
+		{
+			# "extra" field - one not in the current dataset.
+			$self->add_extrafield( $data{extrafields}->{$1} );
+		}
 		else
 		{
 			# Single field
+			
 			$self->add_field( EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname ) );
 		}
 	}
@@ -150,7 +156,7 @@ sub new
 
 sub add_field
 {
-	my( $self, $field, $value, $match, $merge ) = @_;
+	my( $self, $field, $value, $match, $merge, $extra ) = @_;
 
 	#field may be a field OR a ref to an array of fields
 
@@ -166,11 +172,26 @@ sub add_field
 	unless( defined $self->{searchfieldmap}->{$formname} )
 	{
 		# Add it to our list
-		push @{$self->{searchfields}}, $formname;
+		# if it's "extra" then it's not a searchfield
+		# but will still appear on the form.
+
+		unless( $extra )
+		{
+			push @{$self->{searchfields}}, $formname;
+		}
+
+		push @{$self->{allfields}}, $formname;
 	}
 	# Put it in the name -> searchfield map
 	# (possibly replacing an old one)
 	$self->{searchfieldmap}->{$formname} = $searchfield;
+}
+
+sub add_extrafield
+{
+	my( $self, $field, $value, $match, $merge ) = @_;
+
+	$self->add_field( $field, $value, $match, $merge, 1 );
 }
 
 sub get_searchfield
@@ -221,7 +242,7 @@ sub render_search_form
 
 	my %shown_help;
 	my $sf;
-	foreach ( @{$self->{searchfields}} )
+	foreach ( @{$self->{allfields}} )
 	{
 		my $sf = $self->get_searchfield( $_ );
 		$div = $self->{session}->make_element( 
@@ -709,7 +730,7 @@ sub map
 
 	my $count = $self->count();
 
-	my $CHUNKSIZE = 512;
+	my $CHUNKSIZE = 100;
 
 	my $offset;
 	for( $offset = 0; $offset < $count; $offset+=$CHUNKSIZE )
@@ -997,4 +1018,10 @@ sub set_dataset
 	}
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::destroy( $self );
+}
 1;
