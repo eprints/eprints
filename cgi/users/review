@@ -61,7 +61,7 @@ if( $session->{render}->seen_form() )
 		foreach $ep (@eprints)
 		{
 			# See if they clicked a clone button, also sanity check to make sure
-			# it's this user's paper
+			# it's this user's item
 			if( defined $session->{render}->param( "clone_$ep->{eprintid}" ) &&
 		   	 $ep->{username} eq $user->{username} )
 			{
@@ -77,14 +77,14 @@ if( $session->{render}->seen_form() )
 					$session->{render}->render_error(
 						"Unable to clone that record. Please try again later.",
 						"home",
-						"Deposit Papers Page" );
+						"Deposit Items Page" );
 				}
 
 				$page_written = 1;				
 			}
 
 			# See if they clicked a request removal button
-			# Sanity check: Make sure it's this user's paper
+			# Sanity check: Make sure it's this user's item
 			if( $EPrintSite::SiteInfo::allow_user_removal_request &&
 		   	 defined $session->{render}->param( "remove_$ep->{eprintid}" ) &&
 		   	 $ep->{username} eq $user->{username} )
@@ -106,7 +106,7 @@ unless( $page_written )
 			"</STRONG></P></CENTER>\n";
 		
 		print "<CENTER><P><A HREF=\"home\">Click here to return to your ".
-			"deposit papers page</A></P></CENTER>\n";
+			"deposit items page</A></P></CENTER>\n";
 	}
 	else
 	{
@@ -224,7 +224,7 @@ sub handle_removal_request
 			"Couldn't find the EPrint! There's probably a problem with the ".
 				"database. Try again later.",
 			"home",
-			"Deposit papers page" );
+			"Deposit items page" );
 		return( 1 );
 	}
 	

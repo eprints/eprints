@@ -51,11 +51,11 @@ my $valid_user = ( $#{$probs} == -1 );
 #
 ######################################################################
 
-print $session->{render}->start_html( "Deposit Papers ($fullname)" );
+print $session->{render}->start_html( "Deposit Items ($fullname)" );
 
 
 ### Welcome author blurb
-print "<P><CENTER>Welcome to the paper depositing area at ".
+print "<P><CENTER>Welcome to the item depositing area at ".
 	"$EPrintSite::SiteInfo::sitename. Please select one of the options ".
 	"below.</CENTER></P>\n";
 
@@ -69,7 +69,7 @@ if( $valid_user )
 
 	print "<HR>\n";
 
-	### View papers in archive
+	### View items in archive
 	print "<DL><DT><STRONG><A HREF=\"review\">Review your documents in the ".
 		"archive</A></STRONG></DT>\n";
 	print "<DD><P>This options allows you to view your documents in the main ".
@@ -118,7 +118,7 @@ $session->terminate();
 #
 # render_workspace( $session, $user )
 #
-#  This puts all of the user's papers in the inbox table in a form.
+#  This puts all of the user's items in the inbox table in a form.
 #  The buttons will POST stuff to the submit script, with the possible
 #  actions:
 #
@@ -129,7 +129,7 @@ $session->terminate();
 #   Deposit (Submit the selected EPrint to the archive)
 #
 #
-#  If the user has no papers in the inbox, a single button is drawn,
+#  If the user has no items in the inbox, a single button is drawn,
 #  Allowing them to start the upload process.
 #
 ######################################################################
@@ -138,7 +138,7 @@ sub render_workspace
 {
 	my( $session, $user ) = @_;
 
-	### Get the actual papers in the workspace
+	### Get the actual items in the workspace
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$session,
 		$EPrints::Database::table_inbox,
@@ -202,7 +202,7 @@ sub render_workspace
 #
 # show_pending( $session, $user)
 #
-#  Show any papers that are in the submissions buffer, if any
+#  Show any items that are in the submissions buffer, if any
 #
 ######################################################################
 
@@ -210,7 +210,7 @@ sub show_pending
 {
 	my( $session, $user ) = @_;
 
-	### Get the papers in the buffer
+	### Get the items in the buffer
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$session,
 		$EPrints::Database::table_buffer,
@@ -218,7 +218,7 @@ sub show_pending
 
 	if( $#eprints >= 0 )
 	{
-		print "<CENTER><H3>Pending Papers</H3></CENTER>\n";
+		print "<CENTER><H3>Pending Items</H3></CENTER>\n";
 		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
 		my $e;
 		foreach $e (@eprints)

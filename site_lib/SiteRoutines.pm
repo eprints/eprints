@@ -236,7 +236,7 @@ sub eprint_render_full
 	# Now show the version and commentary response threads
 	if( $has_multiple_versions )
 	{
-		$html .= "<h3>Available Versions of This Paper</h3>\n";
+		$html .= "<h3>Available Versions of This Item</h3>\n";
 		$html .= $eprint->{session}->{render}->write_version_thread(
 			$eprint,
 			$succeeds_field );

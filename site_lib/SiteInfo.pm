@@ -239,7 +239,7 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Register</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Deposit\&nbsp;Papers</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Deposit\&nbsp;Items</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
           </td>
         </tr>
@@ -280,7 +280,7 @@ $EPrintSite::SiteInfo::default_bounce_reason =
 "  _SUBMISSION_TITLE_\n\n".
 "could not be accepted into $EPrintSite::SiteInfo::sitename as-is.\n\n\n\n".
 "The eprint has been returned to your workspace. If you\n".
-"visit your paper depositing page you will be able to\n".
+"visit your item depositing page you will be able to\n".
 "edit your eprint, fix the problem and redeposit.\n";
 
 #  Default text to send a user when rejecting a submission outright.

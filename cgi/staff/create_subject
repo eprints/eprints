@@ -41,7 +41,7 @@ $name_field->{help} =
 my $depositable_field = new EPrints::MetaField(
 	"deposit:boolean::Depositable:1:1:1" );
 $depositable_field->{help} =
-	"Select this box if users are to be allowed to put papers in this ".
+	"Select this box if users are to be allowed to put items in this ".
 	"subject.";
 
 my $error;
