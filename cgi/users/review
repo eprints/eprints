@@ -249,7 +249,7 @@ sub handle_removal_request
 		$msg .= "Visit the following URL to view the EPrint and have the ".
 			"option to remove it:\n\n";
 			
-		$msg .= $EPrintSite::SiteInfo::server_perl."/staff/remove_eprint?".
+		$msg .= $EPrintSite::SiteInfo::server_perl."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
 		$session->mail_administrator(

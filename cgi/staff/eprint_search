@@ -42,7 +42,8 @@ my $searchform = new EPrints::SearchForm(
 		" blank. <A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
 		"Click here to return to the staff page.</A></P></CENTER>",
 	\%EPrintSite::SiteInfo::eprint_order_methods,
-	$EPrintSite::SiteInfo::eprint_default_order );
+	$EPrintSite::SiteInfo::eprint_default_order,
+	1 );
 
 $searchform->process();
 

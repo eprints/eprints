@@ -38,7 +38,8 @@ my $action_update    = "Update the search";
 #                    $title,
 #                    $preamble,
 #                    $order_methods,
-#                    $default_order )
+#                    $default_order,
+#                    $staff )
 #
 #  Create a new search form handler object.
 #
@@ -52,6 +53,7 @@ my $action_update    = "Update the search";
 #  $preamble       - put at the top of the page.
 #  $order_methods  - map description of ordering to SQL clause
 #  $default_order  - default order (key to order_methods)
+#  $staff          - boolean: does user have staff access?
 #
 ######################################################################
 
@@ -66,7 +68,8 @@ sub new
 	    $title,
 		 $preamble,
 	    $order_methods,
-	    $default_order ) = @_;
+	    $default_order,
+	    $staff ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -80,6 +83,7 @@ sub new
 	$self->{preamble} = $preamble;
 	$self->{order_methods} = $order_methods;
 	$self->{default_order} = $default_order;
+	$self->{staff} = $staff;
 
 	return( undef ) unless( $what eq "users" || $what eq "eprints" );
 	
@@ -162,10 +166,23 @@ sub process
 
 				foreach (@eprints)
 				{
-					print "<P>".$self->{session}->{render}->render_eprint_citation(
-						$_,
-						1,
-						1 )."</P>\n";
+					if( $self->{staff} )
+					{
+						print "<P><A HREF=\"$EPrintSite::SiteInfo::server_perl/".
+							"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
+							$self->{session}->{render}->render_eprint_citation(
+								$_,
+								1,
+								0 )."</A></P>\n";
+					}
+					else
+					{
+						print "<P>".
+							$self->{session}->{render}->render_eprint_citation(
+								$_,
+								1,
+								1 )."</P>\n";
+					}
 				}
 			}
 			elsif( $self->{what} eq "users" )

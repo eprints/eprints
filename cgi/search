@@ -39,7 +39,8 @@ my $searchform = new EPrints::SearchForm(
 	"<CENTER><P><A HREF=\"advsearch\">Click here for an advanced search.</A>".
 		"</P></CENTER>",
 	\%EPrintSite::SiteInfo::eprint_order_methods,
-	$EPrintSite::SiteInfo::eprint_default_order );
+	$EPrintSite::SiteInfo::eprint_default_order,
+	0 );
 
 $searchform->process();
 

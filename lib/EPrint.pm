@@ -445,43 +445,8 @@ sub remove
 		$success = 0;
 	}
 
-	my @related;
-
-#EPrints::Log::debug( "EPrint", "Table is $self->{table}" );
-
-	if( $self->{table} eq $EPrints::Database::table_archive )
-	{
-		# It's in the main archive, so we have to extract ourself
-		# from any threads we're in
-		@related = $self->get_all_related();
-
-#EPrints::Log::debug( "EPrint", scalar @related." related eprints to update" );
-
-		if( scalar @related > 0 )
-		{
-			# We were in at least one thread
-			my $succeeds_field =
-				EPrints::MetaInfo::find_eprint_field( "succeeds" );
-			my $commentary_field =
-				EPrints::MetaInfo::find_eprint_field( "commentary" );
-
-			# Remove all references to ourself
-			my @later = $self->later_in_thread( $succeeds_field );
-			foreach (@later)
-			{
-				$_->{succeeds} = undef;
-				$_->commit();
-			}
-
-			@later = $self->later_in_thread( $commentary_field );
-			foreach (@later)
-			{
-				$_->{commentary} = undef;
-				$_->commit();
-			}
-		}
-	}
-
+	# Remove from any threads
+	$self->remove_from_threads();
 
 	# Remove our entry from the DB
 	$success = $success && $self->{session}->{database}->remove(
@@ -489,18 +454,50 @@ sub remove
 		"eprintid",
 		$self->{eprintid} );
 	
-	# Update static pages in same thread
-	foreach (@related)
-	{
-		# Update the objects if they refer to us (the objects were retrieved
-		# before we unlinked ourself)
-		$_->{succeeds} = undef if( $_->{succeeds} = $self->{eprintid} );
-		$_->{commentary} = undef if( $_->{commentary} = $self->{eprintid} );
-
-		$_->generate_static();
-	}
-
 	return( $success );
+}
+
+
+######################################################################
+#
+# remove_from_threads()
+#
+#  Extracts the eprint from any threads it's in. i.e., if any other
+#  paper is a later version of or commentary on this paper, the link
+#  from that paper to this will be removed.
+#
+######################################################################
+
+sub remove_from_threads
+{
+	my( $self ) = @_;
+	
+	if( $self->{table} eq $EPrints::Database::table_archive )
+	{
+		# Remove thread info in this eprint
+		$self->{succeeds} = undef;
+		$self->{commentary} = undef;
+		$self->commit();
+
+		my @related = $self->get_all_related();
+
+		# Remove all references to this eprint
+		foreach (@related)
+		{
+			# Update the objects if they refer to us (the objects were retrieved
+			# before we unlinked ourself)
+			$_->{succeeds} = undef if( $_->{succeeds} eq $self->{eprintid} );
+			$_->{commentary} = undef if( $_->{commentary} eq $self->{eprintid} );
+
+			$_->commit();
+		}
+
+		# Update static pages for each eprint
+		foreach (@related)
+		{
+			$_->generate_static() unless( $_->{eprintid} eq $self->{eprintid} );
+		}
+	}
 }
 
 
