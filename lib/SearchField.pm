@@ -1,4 +1,4 @@
-######################################################################
+#####################################################################
 #
 #  Search Field
 #
@@ -800,7 +800,7 @@ sub from_form
 		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
 		my $search_type = $self->{session}->{render}->param( 
 			$self->{formname}."_srchtype" );
-		my $exact = "EQ";
+		my $exact = "IN";
 		
 		# Default search type if none supplied (to allow searches using simple
 		# HTTP GETs)
@@ -983,7 +983,7 @@ sub get_conditions
 			}
 			push @where , $s;
 		}	
-		return( $self->_get_conditions_aux( \@where ) );
+		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
 	# year, int
@@ -1030,48 +1030,76 @@ sub get_conditions
 			}
 			push @where, $sql;
 		}
-		return( $self->_get_conditions_aux( \@where ) );
+		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
 	#
-	# not exactly done yet...
+	#  word word "a phrase" word
 	#
 
 	if ( $self->{field}->{type} eq "text" )
 	{
 		my @where = ();
-		foreach( split /\s+/ , $self->{string} )
+		my @phrases = ();
+		my $text = $self->{string};
+		if ( $self->{anyall} ne "PHR" ) 
+		{
+### Phase code still needs work.
+			while ($text =~ s/"([^"]+)"//g)
+			{
+				push @phrases,$1;
+			}
+		}
+		my( $good , $bad ) = 
+			EPrintSite::SiteRoutines::extract_words( $text );
+		foreach( @{$good} )
 		{
 			push @where, "__FIELDNAME__ = '$_'";
-
 		}
-		return( $self->_get_conditions_aux( \@where ) );
+
+		return ( $self->_get_conditions_aux( 
+				\@where ,  
+				$self->{match} eq "IN" ) , $bad );
 	}
 
 }
 
 sub _get_conditions_aux
 {
-	my ( $self , $wheres ) = @_;
+	my ( $self , $wheres , $freetext ) = @_;
 
 	my $searchtable = $self->{table};
+	my $freetextcond;
 	if ($self->{field}->{multiple}) 
 	{	
 		$searchtable.= $EPrints::Database::seperator.$self->{field}->{name};
 	}	
+	if( $freetext )
+	{
+		$searchtable = EPrints::Database::index_name( $self->{table} );
+		$freetextcond = "M.field = \"$self->{field}->{name}\"";
+	}
+
+	my $fieldname = "M.".($freetext ? "word" : $self->{field}->{name} );
+
 	foreach( @{$wheres} )
 	{
-		s/__FIELDNAME__/M.$self->{field}->{name}/g;
+		s/__FIELDNAME__/$fieldname/g;
 	}
 
 	if ( $self->{anyall} eq "ANY" ) 
 	{
-		return $searchtable , [ join( " OR " , @{$wheres} ) ];
+		$wheres = [ join( " OR " , @{$wheres} ) ];
 	}
-	else
+	if( $freetext )
 	{
-		return $searchtable , $wheres;
+		foreach( @{$wheres} )
+		{
+			$_="($_) AND $freetextcond"; 
+		}
 	}
+
+	return $searchtable , $wheres;
 
 }
 
@@ -1107,6 +1135,7 @@ sub _get_tables_searches
 
 	my %searches = ();
 	my @tables = ();
+	my @badwords = ();
 	if( defined $self->{multifields} )
 	{
 		foreach( @{$self->{multifields}} ) 
@@ -1116,18 +1145,21 @@ sub _get_tables_searches
 				$self->{table},
 				$_,
 				$self->{value} );
-			my ($table,$where) = $sfield->get_conditions();
+			my ($table,$where,$bad) = 
+				$sfield->get_conditions();
 			push @tables,$table;
 			$searches{$table}=$where;
+			push @badwords, @{$bad};
 		}
 	}
 	else 
 	{
-		my ($table,$where) = $self->get_conditions();
+		my ($table,$where,$bad) = $self->get_conditions();
 		push @tables, $table;
 		$searches{$table} = $where;
+		push @badwords, @{$bad};
 	}
-	return (\@tables, \%searches);
+	return (\@tables, \%searches, \@badwords);
 }
 
 sub do
@@ -1137,7 +1169,7 @@ sub do
         my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
         my $keyfield = $fields[0];
 
-	my ($tables, $searches) = $self->_get_tables_searches();
+	my ($tables, $searches, $badwords) = $self->_get_tables_searches();
 	my $n = scalar @{$searches->{$tables->[0]}};
 	
 	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
@@ -1194,7 +1226,7 @@ EPrints::Log::debug("n: [$n]");
 	}
 
 EPrints::Log::debug("retbuffer: [$buffer]");
-	return $buffer;
+	return ( $buffer, $badwords );
 
 }
 

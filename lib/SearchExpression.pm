@@ -310,6 +310,7 @@ sub from_form
 
 sub to_string
 {
+die "Needs updating cjg";
 	my( $self ) = @_;
 
 	# Start with satisfy all
@@ -346,6 +347,7 @@ sub to_string
 sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
+die "Needs updating cjg";
 	
 #EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
@@ -442,11 +444,6 @@ sub make_meta_fields
 #
 # NEW DB DEVEL CODE!!
 
-sub _approx_fastest
-{
-	my ( $a , $b ) = @_;
-}
-
 sub perform_search 
 {
 	my ( $self ) = @_;
@@ -465,10 +462,14 @@ sub perform_search
 #EPrints::Log::debug("optimised order:");
 
 	my $buffer = undef;
+	$self->{ignoredwords} = [];
+	my $badwords;
 	foreach( @searchon )
 	{
 		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
-		$buffer = $_->do($buffer , $self->{satisfy_all} );
+		( $buffer , $badwords ) = 
+			$_->do($buffer , $self->{satisfy_all} );
+		push @{$self->{ignoredwords}},@{$badwords};
 EPrints::Log::debug("buffer:".$buffer);
 	}
 	$self->{tmptable} = $buffer;

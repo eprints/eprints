@@ -153,23 +153,42 @@ sub process
 			print $self->{session}->{render}->start_html(
 				$self->{session}->{lang}->phrase( "H:results_for",
 				                                  $self->{title} ) );
-			
+
+			my $t1 = EPrints::Log::microtime();
+			my $searchid = $searchexp->perform_search();
+			my $t2 = EPrints::Log::microtime();
+			my @results = $searchexp->get_records();
+			my $t3 = EPrints::Log::microtime();
+
+			my $code;
+			if( scalar @results==0 )
+			{
+				$code = "H:no_hits";
+			}
+			elsif( scalar @results==1 )
+			{
+				$code = "H:one_hit";
+			}
+			else
+			{
+				$code = "H:n_hits";
+			}
+			print "<P>";
+	       		print $self->{session}->{lang}->phrase( $code, "<STRONG>".(scalar @results)."</STRONG>" );
+			print "</P>";
+
+printf("<P>cachetime: <B>%.4f</B></P>",($t2-$t1));
+printf("<P>gettime: <B>%.4f</B></P>",($t3-$t2));
+if( @{ $searchexp->{ignoredwords} } )
+{
+	print "<P>Ignored words: <B>".join(", ",@{$searchexp->{ignoredwords}})."</B>.</P>";
+}
 			# Print results
 
 			if( $self->{what} eq "eprints" )
 			{
-				my $t1 = EPrints::Log::microtime();
-				my $searchid = $searchexp->perform_search();
-				my $t2 = EPrints::Log::microtime();
-				my @eprints = $searchexp->get_records();
-				my $t3 = EPrints::Log::microtime();
-
-				print _render_matchcount( $self->{session} , scalar @eprints );
-printf("<P>cachetime: <B>%.4f</B></P>",($t2-$t1));
-printf("<P>gettime: <B>%.4f</B></P>",($t3-$t2));
-
 				
-				foreach (@eprints)
+				foreach (@results)
 				{
 					if( $self->{staff} )
 					{
@@ -192,16 +211,18 @@ printf("<P>gettime: <B>%.4f</B></P>",($t3-$t2));
 			}
 			elsif( $self->{what} eq "users" )
 			{
-				my @users = $searchexp->do_user_search();
 				
-				print _render_matchcount( $self->{session} , scalar @users );
-
-				foreach (@users)
+				foreach (@results)
 				{
 					print "<P>";
 					print $self->{session}->{render}->render_user_name( $_, 1 );
 					print "</P>\n";
 				}
+			}
+			else
+			{
+				die "dammit";
+				#cjg
 			}
 			
 			# Print out state stuff for a further invocation
@@ -266,24 +287,7 @@ sub _render_matchcount
 {
 	my( $session, $count ) = @_;
 
-	my $code;
-	if( $count==0 )
-	{
-		$code = "H:no_hits";
-	}
-	elsif( $count==1 )
-	{
-		$code = "H:one_hit";
-	}
-	else
-	{
-		$code = "H:n_hits";
-	}
-	return "<CENTER><P>".
-	       $session->{lang}->phrase( $code, "<STRONG>".$count."</STRONG>" ).
-	       "</P></CENTER>";
 }
-
 
 ######################################################################
 #

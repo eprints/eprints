@@ -191,7 +191,8 @@ sub render_struct
 
 sub microtime
 {
-	return 0;
+	# disabled due to bug.
+	return time();
 
 	my $TIMEVAL_T = "LL";
 

@@ -310,7 +310,7 @@ sub _create_table
 	my $word = EPrints::MetaField->new( "word:text:0:Word:1:0:0:1" );
 	
 	$success = $self->_create_table_aux(
-		_index_name( $name ),
+		index_name( $name ),
 		0,
 		( $keyfield , $field, $word ) );
 
@@ -512,7 +512,7 @@ sub update
 	my $where = "$keyfield->{name} = \"$keyvalue\"";
 
 	# clearout the freetext search index table for this record.
-	my $sql = "DELETE FROM "._index_name( $table )." WHERE $where";
+	my $sql = "DELETE FROM ".index_name( $table )." WHERE $where";
 	my $rv = $self->do( $sql );
 
 	my @aux;
@@ -1298,7 +1298,7 @@ sub exists
 	return 0;
 }
 
-sub _index_name
+sub index_name
 {
 	my( $table ) = @_;
 
@@ -1319,7 +1319,7 @@ sub _freetext_index
 
 	my( $good , $bad ) = EPrintSite::SiteRoutines::extract_words( $value );
 
-	my $indextable = _index_name( $table );
+	my $indextable = index_name( $table );
 
 	print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 	my $sql;
