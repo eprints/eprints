@@ -1497,11 +1497,12 @@ sub do_stage_verify
 		
 		print $self->{session}->{render}->render_eprint_full( $self->{eprint} );
 	
-		print "<HR>\n<P><CENTER>";
+		print "<HR>\n";
 
 		print $EPrintSite::SiteInfo::deposit_agreement_text."\n"
 			if( defined $EPrintSite::SiteInfo::deposit_agreement_text );
 
+		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
 			[ $EPrints::SubmissionForm::action_prev,
 			  $EPrints::SubmissionForm::action_submit ] );

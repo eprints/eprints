@@ -29,25 +29,25 @@ use strict;
 ######################################################################
 
 # Name for the site
-$EPrintSite::SiteInfo::sitename = "CogPrints";
-
-# Short text description
-$EPrintSite::SiteInfo::description = "Cognitive Sciences Eprint Archive";
+$EPrintSite::SiteInfo::sitename = "Eprints";
 
 # E-mail address for automatic administration account
-$EPrintSite::SiteInfo::automail = "auto\@eprints.org";
+$EPrintSite::SiteInfo::automail = "MUST CHANGE";
+
+# Short text description
+$EPrintSite::SiteInfo::description = "Generic Eprint Archive";
 
 # E-mail address for human-read administration mail
-$EPrintSite::SiteInfo::admin = "rob\@soton.ac.uk";
+$EPrintSite::SiteInfo::admin = "MUST CHANGE";
 
 # Root of EPrint installation on the machine
 $EPrintSite::SiteInfo::local_root = "/opt/eprints";
 
 # Host the machine is running on
-$EPrintSite::SiteInfo::host = "dibble.ecs.soton.ac.uk";
+$EPrintSite::SiteInfo::host = "localhost";
 
 # Stem for local ID codes
-$EPrintSite::SiteInfo::eprint_id_stem = "cog";
+$EPrintSite::SiteInfo::eprint_id_stem = "MUST CHANGE";
 
 # If 1, users can request the removal of their submissions from the archive
 $EPrintSite::SiteInfo::allow_user_removal_request = 1;
@@ -219,7 +219,7 @@ $EPrintSite::SiteInfo::html_banner = "
 <table border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td align=\"center\" valign=\"top\" bgcolor=\"#dddddd\" fgcolor=\"white\">
-      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=0 src=$EPrintSite::SiteInfo::server_static/images/logo_small.gif ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
+      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=0 src=\"$EPrintSite::SiteInfo::server_static/images/logo_small.gif\" ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
     </td>
     <td width=\"100\%\" colspan=2 align=center valign=\"middle\" bgcolor=\"white\" fgcolor=\"black\">
       <H1>TITLE_PLACEHOLDER</H1>
@@ -256,11 +256,6 @@ $EPrintSite::SiteInfo::html_banner = "
 #  up any tags left open in html_banner.
 $EPrintSite::SiteInfo::html_tail = "<BR>
 <HR>
-
-<a href=\"http://www.ukoln.ac.uk/services/elib/\"><img src=\"$EPrintSite::SiteInfo::server_static/images/logo_elib.gif\" alt=\"Elib logo\" border=0 hspace=5 vspace=5 align=\"left\"></a>
-<p>The <strong>CogPrints</strong> project is funded by the <a href=\"http://www.jisc.ac.uk/\">Joint Information Systems Committee (JISC)</a> of the Higher Education Funding Councils, as part of its <a href=\"http://www.ukoln.ac.uk/services/elib/\">Electronic Libraries (eLib) Programme</a>.<br clear=\"left\"></p>
-
-<HR>
 <address>
 Contact site administrator at: <a href=\"mailto:$EPrintSite::SiteInfo::admin\">$EPrintSite::SiteInfo::admin</a>
 </address>
@@ -273,7 +268,7 @@ Contact site administrator at: <a href=\"mailto:$EPrintSite::SiteInfo::admin\">$
 #  E-mail signature, appended to every email sent by the software
 $EPrintSite::SiteInfo::signature =
 "--
- $EPrintSite::SiteInfo::sitename EPrint Archive
+ $EPrintSite::SiteInfo::sitename
  $EPrintSite::SiteInfo::frontpage
  $EPrintSite::SiteInfo::admin\n";
 
@@ -360,7 +355,7 @@ $EPrintSite::SiteInfo::diskspace_error_threshold = 20480;
 
 # If ever the amount of free space drops below this threshold, the
 # archive administrator is sent a warning email. In kilobytes.
-$EPrintSite::SiteInfo::diskspace_warn_threshold = 102400;
+$EPrintSite::SiteInfo::diskspace_warn_threshold = 512000;
 
 # A list of compressed/archive formats that are accepted
 @EPrintSite::SiteInfo::supported_archive_formats =
@@ -438,7 +433,7 @@ $EPrintSite::SiteInfo::password = "eprints";
 
 # Site specific **UNIQUE** archive identifier.
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
-$EPrintSite::SiteInfo::archive_identifier = "cogprints";
+$EPrintSite::SiteInfo::archive_identifier = "MUST CHANGE";
 
 # Exported metadata formats. The hash should map format ids to namespaces.
 %EPrintSite::SiteInfo::oai_metadata_formats =
@@ -449,7 +444,7 @@ $EPrintSite::SiteInfo::archive_identifier = "cogprints";
 
 # Base URL of OAI
 $EPrintSite::SiteInfo::oai_base_url =
-	$EPrintSite::SiteInfo::server_perl."/oai-0.2";
+	$EPrintSite::SiteInfo::server_perl."/not-yet-implemented";
 
 
 

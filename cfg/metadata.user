@@ -29,22 +29,6 @@ VALUE mac = "Macintosh"
 VALUE other = "Other"
 </field>
 
-<field status>
-required = NO
-type = "enum"
-displayname = "Status"
-editable = YES
-visible = NO
-VALUE unspec = "Unspecified"
-VALUE prof = "Professor"
-VALUE doctor = "Doctor"
-VALUE researcher = "Researcher"
-VALUE graduate = "Graduate"
-VALUE undergrad = "Undergraduate"
-VALUE staff = "Staff"
-VALUE other = "Other"
-</field>
-
 <field dept>
 required = NO
 editable = YES
@@ -99,12 +83,4 @@ help = "those areas. Avoid over-general terms (`chemistry') and "
 help = "over-particular terms (`my non-quantal theory of chemical reactions') "
 help = "that no one is likely to search on. Enter as many keyword/phrases "
 help = "as you wish."
-</field>
-
-<field official>
-required = NO
-editable = NO
-type = "boolean"
-visible = NO
-displayname = "Official"
 </field>
