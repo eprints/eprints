@@ -57,7 +57,7 @@ $EPrints::Database::table_subscription = "subscriptions";
 	"multitext"  => "TEXT",
 	"url"        => "VARCHAR(255)",
 	"email"      => "VARCHAR(255)",
-	"subjects"   => "VARCHAR(255)",
+	"subjects"   => "TEXT",
 	"pagerange"  => "VARCHAR(255)",
 	"year"       => "INT UNSIGNED",
 	"multiurl"   => "TEXT",
@@ -348,6 +348,9 @@ sub update
 		if( defined $column_array[1] )
 		{
 			$value = $column_array[1];
+			# Convert \ to \\
+			$value =~ s/\\/\\\\/g;
+			# Convert " to \"
 			$value =~ s/"/\\"/g;
 			$value = "\"".$value."\"";
 		}
