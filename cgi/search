@@ -18,6 +18,7 @@ use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
 use EPrints::SearchForm;
+use EPrints::Constants;
 
 use strict;
 
@@ -25,14 +26,13 @@ my $session = new EPrints::Session;
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
-	"eprint",
+	$TID_EPRINT,
 	$session->{site}->{simple_search_fields} );
 
 my $searchform = new EPrints::SearchForm(
 	$session,
-	"eprint",
 	0,
-	"archive",
+	$TID_ARCHIVE,
 	\@metafields,
 	$session->{lang}->phrase( "H:simple_search" ),
 	"<P><A HREF=\"advsearch\">".

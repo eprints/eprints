@@ -25,6 +25,7 @@ use EPrints::Session;
 use EPrints::Subject;
 use EPrints::SubjectList;
 use EPrints::Name;
+use EPrints::Constants;
 
 
 sub new
@@ -347,7 +348,7 @@ $self->{userauth} = {
 			Auth_DBI_data_source  =>  $connect_string,
 			Auth_DBI_username  =>  $self->{db_user},
 			Auth_DBI_password  =>  $self->{db_pass},
-			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( TID_USER ),
+			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( $TID_USER ),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -359,7 +360,7 @@ $self->{userauth} = {
 			Auth_DBI_data_source  =>  $connect_string,
 			Auth_DBI_username  =>  $self->{db_user},
 			Auth_DBI_password  =>  $self->{db_pass},
-			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( TID_USER ),
+			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( $TID_USER ),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -371,31 +372,31 @@ $self->{userauth} = {
 # USER FIELDS
 ######################################################################
 
-$self->{sitefields}->{TID_USER} = [
+$self->{sitefields}->{$TID_USER} = [
 	{
 		name => "name",
-		type => FT_NAME,
+		type => $FT_NAME,
 		required => 1,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "dept",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "org",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "address",
-		type => FT_LONGTEXT,
+		type => $FT_LONGTEXT,
 		displaylines => "5",
 		required => 0,
 		editable => 1,
@@ -403,21 +404,21 @@ $self->{sitefields}->{TID_USER} = [
 	},
 	{
 		name => "country",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "url",
-		type => FT_URL,
+		type => $FT_URL,
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "filter",
-		type => FT_SUBJECT,
+		type => $FT_SUBJECT,
 		required => 0,
 		editable => 1,
 		visible => 1,
@@ -425,17 +426,17 @@ $self->{sitefields}->{TID_USER} = [
 	}
 ];
 
-$self->{sitefields}->{TID_EPRINT} = [
+$self->{sitefields}->{$TID_EPRINT} = [
 	{
 		name => "abstract",
-		type => FT_LONGTEXT,
+		type => $FT_LONGTEXT,
 		displaylines => "10",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "altloc",
-		type => FT_URL,
+		type => $FT_URL,
 		displaylines => "3",
 		editable => 1,
 		multiple => 1,
@@ -443,167 +444,167 @@ $self->{sitefields}->{TID_EPRINT} = [
 	},
 	{
 		name => "authors",
-		type => FT_NAME,
+		type => $FT_NAME,
 		editable => 1,
 		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "chapter",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1,
 		maxlength => 5
 	},
 	{
 		name => "comments",
-		type => FT_LONGTEXT,
+		type => $FT_LONGTEXT,
 		editable => 1,
 		displaylines => 3,
 		visible => 1
 	},
 	{
 		name => "commref",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "confdates",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "conference",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "confloc",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "department",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "editors",
-		type => FT_NAME,
+		type => $FT_NAME,
 		editable => 1,
 		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "institution",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "ispublished",
-		type => FT_SET,
+		type => $FT_SET,
 		editable => 1,
 		visible => 1,
 		options => [ "unpub","inpress","pub" ]
 	},
 	{
 		name => "keywords",
-		type => FT_LONGTEXT,
+		type => $FT_LONGTEXT,
 		editable => 1,
 		displaylines => 2,
 		visible => 1
 	},
 	{
 		name => "month",
-		type => FT_SET,
+		type => $FT_SET,
 		editable => 1,
 		visible => 1,
 		options => [ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
 	},
 	{
 		name => "number",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		maxlength => 6,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "pages",
-		type => FT_PAGERANGE,
+		type => $FT_PAGERANGE,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "pubdom",
-		type => FT_BOOLEAN,
+		type => $FT_BOOLEAN,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "publication",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "publisher",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "refereed",
-		type => FT_BOOLEAN,
+		type => $FT_BOOLEAN,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "referencetext",
-		type => FT_LONGTEXT,
+		type => $FT_LONGTEXT,
 		editable => 1,
 		visible => 1,
 		displaylines => 3
 	},
 	{
 		name => "reportno",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "thesistype",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "title",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "volume",
-		type => FT_TEXT,
+		type => $FT_TEXT,
 		maxlength => "6",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "year",
-		type => FT_YEAR,
+		type => $FT_YEAR,
 		editable => 1,
 		visible => 1
 	}
 ];
 	
-$self->{sitetypes}->{TID_EPRINT} = {
+$self->{sitetypes}->{$TID_EPRINT} = {
 	"bookchapter" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
@@ -796,7 +797,7 @@ $self->{sitetypes}->{TID_EPRINT} = {
 	]
 };
 
-$self->{sitetypes}->{TID_USER} = { 
+$self->{sitetypes}->{$TID_USER} = { 
 	Staff  =>  [],
 	User  =>  []
 };

@@ -56,8 +56,8 @@ print STDERR "NEW METAINFO\n";
 	# Read in system and site USER metadata fields
 	#
 
-	foreach( TID_USER, TID_DOCUMENT, TID_SUBSCRIPTION,
-		TID_SUBJECT, TID_EPRINT, TID_DELETION )
+	foreach( $TID_USER, $TID_DOCUMENT, $TID_SUBSCRIPTION,
+		$TID_SUBJECT, $TID_EPRINT, $TID_DELETION )
 	{
 		$self->{$_} = {};
 		$self->{$_}->{fields} = [];
@@ -70,7 +70,11 @@ print STDERR "NEW METAINFO\n";
 		if( defined $site->{sitefields}->{$_} )
 		{
 			push @data, @{ $site->{sitefields}->{$_} };
+print STDERR "$class -> BING\n";
 		}
+print STDERR "$class -> $_\n";
+print STDERR join(",",sort keys %{ $site->{sitefields} })."!zzz\n";
+
 		foreach $field_data ( @data )
 		{
 			$field_data->{tableid} = $_;
@@ -131,6 +135,7 @@ print STDERR "$tableid:$type\n";
 sub get_types
 {
 	my( $self, $tableid ) = @_;
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 
 	my @types =  sort keys %{$self->{$tableid}->{types}};
 	
@@ -146,6 +151,7 @@ sub get_types
 sub get_type_names
 {
 	my( $self, $session, $tableid ) = @_;
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 		
 	my %names = ();
 	foreach( keys %{$self->{$tableid}->{types}} ) 
@@ -166,8 +172,11 @@ sub get_type_names
 sub get_type_name
 {
 	my( $self, $session, $tableid, $type ) = @_;
-	
-        return $session->{lang}->phrase( "A:typename_".$tableid."_".$type );
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
+        return $session->{lang}->phrase( 
+		"A:typename_".
+		EPrints::Database::table_string( $tableid ).
+		"_".$type );
 }
 
 
@@ -184,7 +193,6 @@ sub get_type_name
 sub find_field
 {
 	my( $fields, $field_name ) = @_;
-	
 	my $f;
 	
 	foreach $f (@$fields)
@@ -207,6 +215,7 @@ sub find_field
 sub find_table_field
 {
 	my( $self , $tableid,  $field_name ) = @_;
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 	
 	return( find_field( $self->{$tableid}->{fields}, $field_name ) );
 }
@@ -222,6 +231,7 @@ sub find_table_field
 sub get_fields
 {
 	my ( $self , $tableid ) = @_;
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 print STDERR "GF: $tableid\n";
 
 	if( !defined $self->{$tableid}->{fields} )
@@ -238,6 +248,8 @@ print STDERR join(",",caller())."\n";
 sub get_order_names
 {
 	my( $self, $session, $tableid ) = @_;
+print STDERR "SELF:".join(",",keys %{$self} )."\n";
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 		
 	my %names = ();
 	foreach( keys %{$session->{site}->{order_methods}->{$tableid}} )
@@ -250,8 +262,12 @@ sub get_order_names
 sub get_order_name
 {
 	my( $self, $session, $tableid, $orderid ) = @_;
+	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 	
-        return $session->{lang}->phrase( "A:ordername_".$tableid."_".$orderid );
+        return $session->{lang}->phrase( 
+		"A:ordername_".
+		EPrints::Database::table_string( $tableid ).
+		"_".$orderid );
 }
 
 

@@ -20,6 +20,7 @@ use EPrints::MetaField;
 use EPrints::MetaInfo;
 use EPrints::Session;
 use EPrints::Language;
+use EPrints::Constants;
 
 use strict;
 
@@ -60,7 +61,7 @@ sub render_citation
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-		my $field = $session->{metainfo}->find_table_field( "eprint", $fieldname );
+		my $field = $session->{metainfo}->find_table_field( $TID_EPRINT, $fieldname );
 
 		# Check we have it
 		if( defined $field )
@@ -106,7 +107,7 @@ sub render_citation
 	while( $citation =~ /{([^}]+)}/ )
 	{
 		my $entry = $1;
-		my $field = $session->{metainfo}->find_table_field( "eprint", $entry );
+		my $field = $session->{metainfo}->find_table_field( $TID_EPRINT, $entry );
 
 		# Check we have it
 		if( defined $field )

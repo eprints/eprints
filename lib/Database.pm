@@ -33,30 +33,43 @@ use EPrints::Constants;
 # the X is to make sure I'm not using table
 # names directly in the code...
 my %TABLE_NAMES = (
-	(TID_TEMPMAP) =>	"Xtempmap",
-	(TID_COUNTER) =>	"Xcounters",
-	(TID_USER) =>	"Xusers",
-	(TID_INBOX) =>	"Xinbox",
-	(TID_BUFFER) =>	"Xbuffer",
-	(TID_ARCHIVE) =>	"Xarchive",
-	(TID_DOCUMENT) =>	"Xdocuments",
-	(TID_SUBJECT) =>	"Xsubjects",
-	(TID_SUBSCRIPTION) => "Xsubscriptions",
-	(TID_DELETION) =>	"Xdeletions"
+	($TID_TEMPMAP) =>	"Xtempmap",
+	($TID_COUNTER) =>	"Xcounters",
+	($TID_USER) =>	"Xusers",
+	($TID_INBOX) =>	"Xinbox",
+	($TID_BUFFER) =>	"Xbuffer",
+	($TID_ARCHIVE) =>	"Xarchive",
+	($TID_DOCUMENT) =>	"Xdocuments",
+	($TID_SUBJECT) =>	"Xsubjects",
+	($TID_SUBSCRIPTION) => "Xsubscriptions",
+	($TID_DELETION) =>	"Xdeletions"
 );
 
 
 # 'eprint' isn't really a table, but it's a generic handle for all three.
 my %TABLE_CLASS = (
-	(TID_EPRINT) => 	"EPrints::EPrint",
-	(TID_USER) => 	"EPrints::User",
-	(TID_INBOX) => 	"EPrints::EPrint",
-	(TID_BUFFER) => 	"EPrints::EPrint",
-	(TID_ARCHIVE) => 	"EPrints::EPrint",
-	(TID_DOCUMENT) =>	"EPrints::Document",
-	(TID_SUBJECT) => 	"EPrints::Subject",
-	(TID_SUBSCRIPTION) =>	"EPrints::Subscription",
-	(TID_DELETION) => "EPrints::Deletion"
+	($TID_EPRINT) => 	"EPrints::EPrint",
+	($TID_USER) => 	"EPrints::User",
+	($TID_INBOX) => 	"EPrints::EPrint",
+	($TID_BUFFER) => 	"EPrints::EPrint",
+	($TID_ARCHIVE) => 	"EPrints::EPrint",
+	($TID_DOCUMENT) =>	"EPrints::Document",
+	($TID_SUBJECT) => 	"EPrints::Subject",
+	($TID_SUBSCRIPTION) =>	"EPrints::Subscription",
+	($TID_DELETION) => "EPrints::Deletion"
+);
+
+# these are used for building phrase identifiers.
+my %TABLE_STRING = (
+	($TID_EPRINT) => 	"eprint",
+	($TID_USER) => 	"user",
+	($TID_INBOX) => 	"eprint",
+	($TID_BUFFER) => 	"eprint",
+	($TID_ARCHIVE) => 	"eprint",
+	($TID_DOCUMENT) =>	"document",
+	($TID_SUBJECT) => 	"subject",
+	($TID_SUBSCRIPTION) =>	"subscription",
+	($TID_DELETION) => "deletion"
 );
 
 #
@@ -76,39 +89,39 @@ my $SEPERATOR = "_";
 #
 my %DATATYPES =
 (
-	(FT_INT)        => "\$(name) INT UNSIGNED \$(param)",
-	(FT_DATE)       => "\$(name) DATE \$(param)",
-	(FT_BOOLEAN)    => "\$(name) SET('TRUE','FALSE') \$(param)",
-	(FT_SET)        => "\$(name) VARCHAR(255) \$(param)",
-	(FT_TEXT)       => "\$(name) VARCHAR(255) \$(param)",
-	(FT_LONGTEXT)   => "\$(name) TEXT \$(param)",
-	(FT_URL)        => "\$(name) VARCHAR(255) \$(param)",
-	(FT_EMAIL)      => "\$(name) VARCHAR(255) \$(param)",
-	(FT_SUBJECT)    => "\$(name) VARCHAR(255) \$(param)",
-	(FT_USERNAME)   => "\$(name) VARCHAR(255) \$(param)",
-	(FT_PAGERANGE)  => "\$(name) VARCHAR(255) \$(param)",
-	(FT_YEAR)       => "\$(name) INT UNSIGNED \$(param)",
-	(FT_EPRINTTYPE) => "\$(name) VARCHAR(255) \$(param)",
-	(FT_NAME)       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
+	($FT_INT)        => "\$(name) INT UNSIGNED \$(param)",
+	($FT_DATE)       => "\$(name) DATE \$(param)",
+	($FT_BOOLEAN)    => "\$(name) SET('TRUE','FALSE') \$(param)",
+	($FT_SET)        => "\$(name) VARCHAR(255) \$(param)",
+	($FT_TEXT)       => "\$(name) VARCHAR(255) \$(param)",
+	($FT_LONGTEXT)   => "\$(name) TEXT \$(param)",
+	($FT_URL)        => "\$(name) VARCHAR(255) \$(param)",
+	($FT_EMAIL)      => "\$(name) VARCHAR(255) \$(param)",
+	($FT_SUBJECT)    => "\$(name) VARCHAR(255) \$(param)",
+	($FT_USERNAME)   => "\$(name) VARCHAR(255) \$(param)",
+	($FT_PAGERANGE)  => "\$(name) VARCHAR(255) \$(param)",
+	($FT_YEAR)       => "\$(name) INT UNSIGNED \$(param)",
+	($FT_EPRINTTYPE) => "\$(name) VARCHAR(255) \$(param)",
+	($FT_NAME)       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
 );
 
 # Map of INDEXs required if a user wishes a field indexed.
 my %DATAINDEXES =
 (
-	(FT_INT)        => "INDEX(\$(name))",
-	(FT_DATE)       => "INDEX(\$(name))",
-	(FT_BOOLEAN)    => "INDEX(\$(name))",
-	(FT_SET)        => "INDEX(\$(name))",
-	(FT_TEXT)       => "INDEX(\$(name))",
-	(FT_LONGTEXT)   => "INDEX(\$(name))",
-	(FT_URL)        => "INDEX(\$(name))",
-	(FT_EMAIL)      => "INDEX(\$(name))",
-	(FT_SUBJECT)    => "INDEX(\$(name))",
-	(FT_USERNAME)   => "INDEX(\$(name))",
-	(FT_PAGERANGE)  => "INDEX(\$(name))",
-	(FT_YEAR)       => "INDEX(\$(name))",
-	(FT_EPRINTTYPE) => "INDEX(\$(name))",
-	(FT_NAME)       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
+	($FT_INT)        => "INDEX(\$(name))",
+	($FT_DATE)       => "INDEX(\$(name))",
+	($FT_BOOLEAN)    => "INDEX(\$(name))",
+	($FT_SET)        => "INDEX(\$(name))",
+	($FT_TEXT)       => "INDEX(\$(name))",
+	($FT_LONGTEXT)   => "INDEX(\$(name))",
+	($FT_URL)        => "INDEX(\$(name))",
+	($FT_EMAIL)      => "INDEX(\$(name))",
+	($FT_SUBJECT)    => "INDEX(\$(name))",
+	($FT_USERNAME)   => "INDEX(\$(name))",
+	($FT_PAGERANGE)  => "INDEX(\$(name))",
+	($FT_YEAR)       => "INDEX(\$(name))",
+	($FT_EPRINTTYPE) => "INDEX(\$(name))",
+	($FT_NAME)       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
 #
@@ -238,8 +251,8 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( TID_USER, TID_INBOX, TID_BUFFER, TID_ARCHIVE, 
-		TID_DOCUMENT, TID_SUBJECT, TID_SUBSCRIPTION, TID_DELETION )
+	foreach( $TID_USER, $TID_INBOX, $TID_BUFFER, $TID_ARCHIVE, 
+		$TID_DOCUMENT, $TID_SUBJECT, $TID_SUBSCRIPTION, $TID_DELETION )
 	{
 		$success = $success && $self->_create_table( $_ );
 	}
@@ -278,7 +291,7 @@ sub _create_table
 	my $fieldword = EPrints::MetaField->new( 
 		{ 
 			name => "fieldword", 
-			type => FT_TEXT 
+			type => $FT_TEXT 
 		} );
 
 	$rv = $rv & $self->_create_table_aux(
@@ -323,7 +336,7 @@ sub _create_table_aux
 			my $pos = EPrints::MetaField->new( 
 				{ 
 					name => "pos", 
-					type => FT_INT 
+					type => $FT_INT 
 				} );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
@@ -501,7 +514,7 @@ sub update
 		{
 			# clearout the freetext search index table for this field.
 
-			if( $_->{type} == FT_NAME )
+			if( $_->{type} == $FT_NAME )
 			{
 				$values{"$_->{name}_given"} = 
 					prep_value( $data->{$_->{name}}->{given} );
@@ -557,7 +570,7 @@ print STDERR "*".$multifield->{name}."\n";
 		foreach( @{$data->{$multifield->{name}}} )
 		{
 			$sql = "INSERT INTO $auxtable ($keyfield->{name},pos,";
-			if( $multifield->{type} == FT_NAME )
+			if( $multifield->{type} == $FT_NAME )
 			{
 				$sql.="$multifield->{name}_given,$multifield->{name}_family";
 			}
@@ -630,7 +643,7 @@ sub _create_counter_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".EPrints::Database::table_name( TID_COUNTER ).
+	my $sql = "CREATE TABLE ".EPrints::Database::table_name( $TID_COUNTER ).
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
@@ -642,7 +655,7 @@ sub _create_counter_table
 	# Create the counters
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".EPrints::Database::table_name( TID_COUNTER)." VALUES ".
+		$sql = "INSERT INTO ".EPrints::Database::table_name( $TID_COUNTER)." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );
@@ -668,7 +681,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".EPrints::Database::table_name( TID_TEMPMAP ).
+	my $sql = "CREATE TABLE ".EPrints::Database::table_name( $TID_TEMPMAP ).
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
 	
@@ -698,7 +711,7 @@ sub counter_next
 	my( $self, $counter ) = @_;
 
 	# Update the counter	
-	my $sql = "UPDATE ".EPrints::Database::table_name( TID_COUNTER )." SET counter=".
+	my $sql = "UPDATE ".EPrints::Database::table_name( $TID_COUNTER )." SET counter=".
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
 	
 	# Send to the database
@@ -726,7 +739,7 @@ sub create_cache
 
 	my $sql;
 
-	$sql = "INSERT INTO ".EPrints::Database::table_name( TID_TEMPMAP ).
+	$sql = "INSERT INTO ".EPrints::Database::table_name( $TID_TEMPMAP ).
 	       "VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
@@ -864,7 +877,7 @@ sub drop_cache
 	{
 		my $sql;
 
-		$sql = "DELETE FROM ".EPrints::Database::table_name( TID_TEMPMAP ).
+		$sql = "DELETE FROM ".EPrints::Database::table_name( $TID_TEMPMAP ).
 	               "WHERE tableid = $1";
 
 		$self->do( $sql );
@@ -948,7 +961,7 @@ sub _get
 				$cols .= ", ";
 			}
 			my $col = "M.".$_->{name};
-			if ( $_->{type} == FT_NAME )
+			if ( $_->{type} == $FT_NAME )
 			{
 				$col = "M.$_->{name}_given,M.$_->{name}_family";
 			}
@@ -986,7 +999,7 @@ sub _get
 			else 
 			{
 				my $value;
-				if ($_->{type} == FT_NAME )
+				if ($_->{type} == $FT_NAME )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -1007,7 +1020,7 @@ sub _get
 	foreach $multifield ( @aux )
 	{
 		my $col = "M.$multifield->{name}";
-		if ( $multifield->{type} == FT_NAME )
+		if ( $multifield->{type} == $FT_NAME )
 		{
 			$col = "M.$multifield->{name}_given,M.$multifield->{name}_family";
 		}
@@ -1038,7 +1051,7 @@ sub _get
 		{
 			my $n = $lookup{ $id };
 			my $value;
-			if ($multifield->{type} == FT_NAME )
+			if ($multifield->{type} == $FT_NAME )
 			{
 				$value = {};
 				$value->{given} = shift @values;
@@ -1220,10 +1233,10 @@ sub _freetext_type
 {
 	my( $field ) = @_;	
 	return ( 
-		$field->{type} == FT_TEXT || 
-		$field->{type} == FT_LONGTEXT || 
-		$field->{type} == FT_URL || 
-		$field->{type} == FT_EMAIL );
+		$field->{type} == $FT_TEXT || 
+		$field->{type} == $FT_LONGTEXT || 
+		$field->{type} == $FT_URL || 
+		$field->{type} == $FT_EMAIL );
 }
 
 sub table_name
@@ -1256,6 +1269,15 @@ print STDERR "TABLE_CLASS: $tableid\n";
 print STDERR $TABLE_CLASS{ $tableid }."z\n";
 print STDERR ">".join(",",keys %TABLE_CLASS)."<\n";
 	return $TABLE_CLASS{ $tableid };
+}
+
+sub table_string
+{
+	my( $tableid ) = @_;
+print STDERR "TABLE_STRING: $tableid\n";
+print STDERR $TABLE_STRING{ $tableid }."z\n";
+print STDERR ">".join(",",keys %TABLE_STRING)."<\n";
+	return $TABLE_STRING{ $tableid };
 }
 	
 

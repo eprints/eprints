@@ -36,8 +36,6 @@ use strict;
 #
 #  Create a new search form handler object.
 #
-#  $what           - if "eprint", the search form will search for eprint.
-#                    if "user",  will search for users.
 #  $allow_blank    - if the searcher is allowed to leave everything
 #                  - blank and retrieve everything
 #  $tableid          - the database table to search

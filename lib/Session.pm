@@ -58,7 +58,7 @@ sub new
 
 	my $offline;
 
-	if( $mode == 0 )
+	if( $mode == 0 || !defined $mode )
 	{
 		$offline = 0;
 		$self->{site} = EPrints::Site::get_site_by_url(

@@ -378,14 +378,11 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 ######################################################################
 #
-# @metafields = make_meta_fields( $session, $what, $fieldnames )
+# @metafields = make_meta_fields( $session, $tableid, $fieldnames )
 #
 #  A static method, that finds MetaField objects for the given named
 #  metafields. You can pass @metafields to the SearchForm and 
 #  SearchExpression constructors.
-#
-#  $what must be "eprint" or "user", depending on what metafields
-#  you want.
 #
 #  If a field name is given as e.g. "title/keywords/abstract", they'll
 #  be put in an array ref in the returned array. When @metafields is
@@ -396,13 +393,14 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 sub make_meta_fields
 {
-	my( $session, $what, $fieldnames ) = @_;
+	my( $session, $tableid, $fieldnames ) = @_;
 
 	my @metafields;
-
+print STDERR "S($session)\n";
+print STDERR "M($session->{matainfo})\n";
 	# We want to search the relevant MetaFields
 	my @all_fields;
-	@all_fields = $session->{metainfo}->get_fields( $what );
+	@all_fields = $session->{metainfo}->get_fields( $tableid );
 
 	foreach (@$fieldnames)
 	{

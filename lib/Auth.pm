@@ -20,6 +20,7 @@ use Apache::Constants qw( OK AUTH_REQUIRED FORBIDDEN DECLINED SERVER_ERROR );
 
 use EPrints::Session;
 use EPrints::RequestWrapper;
+use EPrints::Constants;
 
 #tmp
 use EPrints::Log;
@@ -45,7 +46,7 @@ print STDERR ref($r)."!!\n";
 	print STDERR "URL: ".$r->the_request()."\n";
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( "user" , $user_sent );
+	my $user = $session->{database}->get_single( $TID_USER , $user_sent );
 	if( !defined $user )
 	{
 	print STDERR "zong\n";
@@ -99,7 +100,7 @@ sub authz
 	my ($user_sent) = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( "user" , $user_sent );
+	my $user = $session->{database}->get_single( $TID_USER , $user_sent );
 	if( defined $user )
 	{
 		foreach( @{$session->{site}->{userauth}->{$user->{usertype}}->{priv}} )
