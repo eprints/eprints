@@ -39,8 +39,9 @@ sub dir_config
 my $thing;
 foreach $thing ( keys %Apache:: )
 {
-	next if( $thing eq "new" || $thing eq "dir_config" ||
-		$thing eq "import" );
+	next if( $thing eq "new" || 
+		 $thing eq "dir_config" ||
+		 $thing eq "import" );
 	my $sub = '';
 	$sub.= 'sub '.$thing;
 	$sub.= '{ ';

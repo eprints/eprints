@@ -127,9 +127,9 @@ sub process
 			my $db_error = $self->{session}->{database}->error();
 			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( 
+			$self->exit_error( $self->{session}->phrase( 
 				"H:database_err" , 
-				{ siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+				siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return;
 		}
 
@@ -137,7 +137,7 @@ sub process
 		if( !$self->{staff} &&
 			$self->{eprint}->{username} ne $self->{user}->{username} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return;
 		}
 	}
@@ -162,7 +162,7 @@ sub process
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return;
 	}
 
@@ -232,7 +232,7 @@ sub from_home
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $self->{session}->{lang}->phrase( "F:action_new" ) )
+	if( $self->{action} eq $self->{session}->phrase( "F:action_new" ) )
 	{
 		if( !$self->{staff} )
 		{
@@ -246,7 +246,7 @@ sub from_home
 				my $db_error = $self->{session}->{database}->error();
 				EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+				$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 			else
@@ -260,16 +260,16 @@ sub from_home
 		}
 		else
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase(
+			$self->exit_error( $self->{session}->phrase(
 			        "H:useautharea" ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_edit") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_edit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
+			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -277,11 +277,11 @@ sub from_home
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase( "F:action_clone" ) )
+	elsif( $self->{action} eq $self->{session}->phrase( "F:action_clone" ) )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
+			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -297,41 +297,41 @@ sub from_home
 		
 			EPrints::Log::log_entry(
 				"SubmissionForm",
-				$self->{session}->{lang}->phrase(
+				$self->{session}->phrase(
 					"L:errclone",
-					{ eprintid=>$self->{eprint}->{eprintid},
-					errmsg=>$error } ) );
+					eprintid=>$self->{eprint}->{eprintid},
+					errmsg=>$error ) );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_delete") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_delete") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
+			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_submit") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_submit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
+			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -351,7 +351,7 @@ sub from_stage_type
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -359,7 +359,7 @@ sub from_stage_type
 	$self->update_from_type_form();
 	$self->{eprint}->commit();
 
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_type();
 		if( $#{$self->{problems}} >= 0 )
@@ -373,7 +373,7 @@ sub from_stage_type
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
 	{
 		# Cancelled, go back to author area.
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
@@ -381,7 +381,7 @@ sub from_stage_type
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -401,7 +401,7 @@ sub from_stage_meta
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -414,7 +414,7 @@ sub from_stage_meta
 		# Leave the form as is
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_next") )
 	{
 		# validation checks
 		$self->{problems} = $self->{eprint}->validate_meta();
@@ -430,14 +430,14 @@ sub from_stage_meta
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -457,7 +457,7 @@ sub from_stage_subject
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -465,7 +465,7 @@ sub from_stage_subject
 	$self->update_from_subject_form();
 	$self->{eprint}->commit();
 	
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_subject();
 		if( $#{$self->{problems}} >= 0 )
@@ -479,14 +479,14 @@ sub from_stage_subject
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -506,7 +506,7 @@ sub from_stage_linking
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -522,7 +522,7 @@ sub from_stage_linking
 	$self->{eprint}->commit();
 	
 	# What's the next stage?
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_linking();
 
@@ -537,11 +537,11 @@ sub from_stage_linking
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_verify") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_verify") )
 	{
 		# Just stick with this... want to verify ID's
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
@@ -549,7 +549,7 @@ sub from_stage_linking
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 }	
@@ -567,7 +567,7 @@ sub from_stage_format
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -583,7 +583,7 @@ sub from_stage_format
 			# Remove the offending document
 			if( !defined $self->{document} || !$self->{document}->remove() )
 			{
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+				$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 
@@ -601,7 +601,7 @@ sub from_stage_format
 
 				if( !defined $self->{document} )
 				{
-					$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+					$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 					return( 0 );
 				}
 			}
@@ -610,16 +610,16 @@ sub from_stage_format
 		}
 		else
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		# prev stage depends if we're linking users or not
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_finished") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_finished") )
 	{
 		$self->{problems} = $self->{eprint}->validate_documents();
 
@@ -637,7 +637,7 @@ sub from_stage_format
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}		
 
@@ -657,7 +657,7 @@ sub from_stage_fileview
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -670,7 +670,7 @@ sub from_stage_fileview
 	if( !defined $self->{document} ||
 	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 	}
 	
 	# Check to see if a fileview button was pressed, process it if necessary
@@ -679,7 +679,7 @@ sub from_stage_fileview
 		# Doc object will have updated as appropriate, commit changes
 		unless( $self->{document}->commit() )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 		
@@ -696,11 +696,11 @@ sub from_stage_fileview
 			$self->{document}->commit();
 		}
 
-		if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+		if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 		{
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
-		elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_upload") )
+		elsif( $self->{action} eq $self->{session}->phrase("F:action_upload") )
 		{
 			# Set up info for next stage
 			$self->{arc_format} =
@@ -708,7 +708,7 @@ sub from_stage_fileview
 			$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_upload;
 		}
-		elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_finished") )
+		elsif( $self->{action} eq $self->{session}->phrase("F:action_finished") )
 		{
 			# Finished uploading apparently. Validate.
 			$self->{problems} = $self->{document}->validate();
@@ -725,7 +725,7 @@ sub from_stage_fileview
 		else
 		{
 			# Erk! Unknown action.
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -746,7 +746,7 @@ sub from_stage_upload
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -759,7 +759,7 @@ sub from_stage_upload
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -769,15 +769,15 @@ sub from_stage_upload
 	# button, so we can't tell whether the "Back" or "Upload" button is
 	# appropriate. We have to assume that if the user's pressed return they
 	# want to go ahead with the upload, so we default to the upload button:
-	$self->{action} = $self->{session}->{lang}->phrase("F:action_upload")
+	$self->{action} = $self->{session}->phrase("F:action_upload")
 		unless( defined $self->{action} );
 
 
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_upload") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_upload") )
 	{
 		my $arc_format = $self->{session}->{render}->param( "arc_format" );
 		my $numfiles   = $self->{session}->{render}->param( "numfiles" );
@@ -807,7 +807,7 @@ sub from_stage_upload
 		if( !$success )
 		{
 			$self->{problems} = [
-				$self->{session}->{lang}->phrase( "H:uploadprob" ) ];
+				$self->{session}->phrase( "H:uploadprob" ) ];
 		}
 		elsif( !defined $doc->get_main() )
 		{
@@ -825,7 +825,7 @@ sub from_stage_upload
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -844,7 +844,7 @@ sub from_stage_verify
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -852,7 +852,7 @@ sub from_stage_verify
 	# behaves sensibly. It's in a hidden field.
 	my $prev_stage = $self->{session}->{render}->param( "prev_stage" );
 
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
 	{
 		# Go back to the relevant page
 		if( $prev_stage eq "home" )
@@ -866,11 +866,11 @@ sub from_stage_verify
 		else
 		{
 			# No relevant page! erk!
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_submit") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_submit") )
 	{
 		# Do the commit to the archive thang. One last check...
 		my $problems = $self->{eprint}->validate_full();
@@ -885,7 +885,7 @@ sub from_stage_verify
 			}
 			else
 			{
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+				$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 		}
@@ -898,7 +898,7 @@ sub from_stage_verify
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -919,11 +919,11 @@ sub from_stage_confirmdel
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_confirm") )
+	if( $self->{action} eq $self->{session}->phrase("F:action_confirm") )
 	{
 		if( $self->{eprint}->remove() )
 		{
@@ -938,18 +938,18 @@ sub from_stage_confirmdel
 				         { eprintid=> $self->{eprint}->{eprintid},
 				          errmsg=>$db_error } );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=> $self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=> $self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
+		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 )
 	}
 
@@ -977,17 +977,17 @@ sub do_stage_type
 {
 	my( $self ) = @_;
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_type} ) );
 
 	$self->list_problems();
 	
-	print "<P>".$self->{session}->{lang}->phrase( "H:seltype" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "H:seltype" )."</P>\n";
 
 	$self->render_type_form(
-		[ $self->{session}->{lang}->phrase("F:action_cancel"),
-			$self->{session}->{lang}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("F:action_cancel"),
+			$self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_type } );
 
 	print $self->{session}->{render}->end_html();
@@ -1005,16 +1005,16 @@ sub do_stage_meta
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_meta} ) );
 	$self->list_problems();
 
-	print "<P>".$self->{session}->{lang}->phrase( "H:bibinfo" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "H:bibinfo" )."</P>\n";
 
 	$self->render_meta_form(
-		[ $self->{session}->{lang}->phrase("F:action_prev"),
-		  $self->{session}->{lang}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("F:action_prev"),
+		  $self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_meta }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1031,14 +1031,14 @@ sub do_stage_subject
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_subject} ) );
 	$self->list_problems();
 
 	$self->render_subject_form(
-		[ $self->{session}->{lang}->phrase("F:action_prev"),
-		  $self->{session}->{lang}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("F:action_prev"),
+		  $self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_subject }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1057,7 +1057,7 @@ sub do_stage_linking
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_linking} ) );
 	
@@ -1088,7 +1088,7 @@ sub do_stage_linking
 		if( defined $older_eprint )
 		{
 			print "<TR><TD><STRONG>";
-			print $self->{session}->{lang}->phrase( "H:verify" );
+			print $self->{session}->phrase( "H:verify" );
 			print "</STRONG></TD><TD>";
 			print $self->{session}->{render}->render_eprint_citation(
 				$older_eprint );
@@ -1097,9 +1097,9 @@ sub do_stage_linking
 		else
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
-			print $self->{session}->{lang}->phrase( 
+			print $self->{session}->phrase( 
 				"H:invaleprint",
-				{ eprintid=>$self->{eprint}->{succeeds} } );
+				eprintid=>$self->{eprint}->{succeeds} );
 			print "</STRONG></TD></TR>\n";
 		}
 	}
@@ -1129,9 +1129,9 @@ sub do_stage_linking
 		else
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
-			print $self->{session}->{lang}->phrase( 
+			print $self->{session}->phrase( 
 				"H:invaleprint",
-				{ eprintid=>$self->{eprint}->{commentary} } );
+				eprintid=>$self->{eprint}->{commentary} );
 			print "</STRONG></TD></TR>\n";
 		}
 	}
@@ -1148,9 +1148,9 @@ sub do_stage_linking
 
 	print "<CENTER><P>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->{lang}->phrase("F:action_prev"),
-		  $self->{session}->{lang}->phrase("F:action_verify"),
-		  $self->{session}->{lang}->phrase("F:action_next") ] );
+		[ $self->{session}->phrase("F:action_prev"),
+		  $self->{session}->phrase("F:action_verify"),
+		  $self->{session}->phrase("F:action_next") ] );
 	print "</P></CENTER>";
 
 	print $self->{session}->{render}->end_form();
@@ -1171,7 +1171,7 @@ sub do_stage_format
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_format} ) );
 	$self->list_problems();
@@ -1181,11 +1181,11 @@ sub do_stage_format
 	my $probs = $self->{eprint}->validate_documents();
 
 	print "<P><CENTER>";
-	print $self->{session}->{lang}->phrase("H:validformats");
+	print $self->{session}->phrase("H:validformats");
 
 	if( @{$self->{session}->{site}->{required_formats}} >= 0 )
 	{
-		print $self->{session}->{lang}->phrase("H:leastone");
+		print $self->{session}->phrase("H:leastone");
 	}
 
 	print "</CENTER></P>\n";
@@ -1196,8 +1196,8 @@ sub do_stage_format
 	$self->render_format_form();
 
 	# Write a back button, and a finished button, if the docs are OK
-	my @buttons = ( $self->{session}->{lang}->phrase("F:action_prev") );
-	push @buttons, $self->{session}->{lang}->phrase("F:action_finished")
+	my @buttons = ( $self->{session}->phrase("F:action_prev") );
+	push @buttons, $self->{session}->phrase("F:action_finished")
 		if( $#{$probs} == -1 );
 	
 	print "<P><CENTER>";
@@ -1231,8 +1231,8 @@ sub do_stage_fileview
 	# Make some metadata fields
 	my @arc_formats = ( "plain", "graburl" );
 	my %arc_labels = (
-		"plain"   => $self->{session}->{lang}->phrase("F:plain"),
-		"graburl" => $self->{session}->{lang}->phrase("F:graburl")
+		"plain"   => $self->{session}->phrase("F:plain"),
+		"graburl" => $self->{session}->phrase("F:graburl")
 	);
 
 	foreach (@{$self->{session}->{site}->{supported_archive_formats}})
@@ -1255,13 +1255,13 @@ sub do_stage_fileview
 	# Render the form
 
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_fileview} ) );
 
 	$self->list_problems(
-		$self->{session}->{lang}->phrase("H:fixupload"),
-		$self->{session}->{lang}->phrase("H:pleasefix") );
+		$self->{session}->phrase("H:fixupload"),
+		$self->{session}->phrase("H:pleasefix") );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1286,44 +1286,44 @@ sub do_stage_fileview
 	if( scalar keys %files == 0 )
 	{
 		print "<P><CENTER><EM>";
-		print $self->{session}->{lang}->phrase("H:nofiles");
+		print $self->{session}->phrase("H:nofiles");
 		print "</EM></CENTER></P>\n";
 	}
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->{lang}->phrase("H:filesforformat");
+		print $self->{session}->phrase("H:filesforformat");
 
 		if( !defined $doc->get_main() )
 		{
-			print $self->{session}->{lang}->phrase("H:selfirst");
+			print $self->{session}->phrase("H:selfirst");
 		}
 
 		print "</CENTER></P>\n";
 		print $self->render_file_view( $doc );
 
 		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
-		print $self->{session}->{lang}->phrase("H:heretoview");
+		print $self->{session}->phrase("H:heretoview");
 		print "</A></P>\n";
 	}
 
 	# Render upload file options
 	print "<P><CENTER>";
-	print $self->{session}->{lang}->phrase("H:fileupmethod")." ";
+	print $self->{session}->phrase("H:fileupmethod")." ";
 	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
 
 	print "</CENTER></P>\n<P><CENTER><em>";
-	print $self->{session}->{lang}->phrase("H:plainonly")." ";
+	print $self->{session}->phrase("H:plainonly")." ";
 	print "</em> ";
-	print $self->{session}->{lang}->phrase("H:numfiles")." ";
+	print $self->{session}->phrase("H:numfiles")." ";
 	print $self->{session}->{render}->input_field( $num_files_field, 1 );
 	print "</CENTER></P>\n";
 
 	# Action buttons
 	my @buttons = (
-		$self->{session}->{lang}->phrase("F:action_prev"),
-		$self->{session}->{lang}->phrase("F:action_upload") );
-	push @buttons, $self->{session}->{lang}->phrase("F:action_finished")
+		$self->{session}->phrase("F:action_prev"),
+		$self->{session}->phrase("F:action_upload") );
+	push @buttons, $self->{session}->phrase("F:action_finished")
 		if( scalar keys %files > 0 );
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons( \@buttons );
@@ -1354,7 +1354,7 @@ sub do_stage_upload
 	my( $self ) = @_;
 
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_upload} ) );
 	print $self->{session}->{render}->start_form();
@@ -1364,10 +1364,10 @@ sub do_stage_upload
 	if( $self->{arc_format} eq "graburl" )
 	{
 		print "<P><CENTER>";
-		print $self->{session}->{lang}->phrase("H:enterurl");
+		print $self->{session}->phrase("H:enterurl");
 		print "</CENTER></P>\n";
 		print "<P><CENTER><EM>";
-		print $self->{session}->{lang}->phrase("H:urlwarning");
+		print $self->{session}->phrase("H:urlwarning");
 		print "</EM></CENTER></P>\n";
 		my $url_field = EPrints::MetaField->new( "url:text:::::" );
 		print "<P><CENTER>";
@@ -1380,7 +1380,7 @@ sub do_stage_upload
 		{
 			$num_files = 1;
 			print "<P><CENTER>";
-			print $self->{session}->{lang}->phrase("H:entercompfile");
+			print $self->{session}->phrase("H:entercompfile");
 			print "</CENTER></P>\n";
 		}
 		else
@@ -1390,13 +1390,13 @@ sub do_stage_upload
 			if( $self->{numfiles} > 1 )
 			{
 				print "<P><CENTER>";
-				print $self->{session}->{lang}->phrase("H:enterfiles");
+				print $self->{session}->phrase("H:enterfiles");
 				print "</CENTER></P>\n";
 			}
 			else
 			{
 				print "<P><CENTER>";
-				print $self->{session}->{lang}->phrase("H:enterfile");
+				print $self->{session}->phrase("H:enterfile");
 				print "</CENTER></P>\n";
 			}
 		}
@@ -1412,8 +1412,8 @@ sub do_stage_upload
 	
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->{lang}->phrase("F:action_prev"),
-		  $self->{session}->{lang}->phrase("F:action_upload") ] );
+		[ $self->{session}->phrase("F:action_prev"),
+		  $self->{session}->phrase("F:action_upload") ] );
 	print "</CENTER></P>\n";
 	print $self->{session}->{render}->hidden_field(
 		"stage",
@@ -1449,7 +1449,7 @@ sub do_stage_verify
 	$self->{problems} = $self->{eprint}->validate_full();
 
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_verify} ) );
 
@@ -1472,18 +1472,18 @@ sub do_stage_verify
 	if( $#{$self->{problems}} >= 0 )
 	{
 		$self->list_problems(
-			$self->{session}->{lang}->phrase("H:fixprobs"),
+			$self->{session}->phrase("H:fixprobs"),
 			"" );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->{lang}->phrase("F:action_prev") ] );
+			[ $self->{session}->phrase("F:action_prev") ] );
 		print "</CENTER></P>\n";
 	}
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->{lang}->phrase("H:pleaseverify");
+		print $self->{session}->phrase("H:pleaseverify");
 		print "</CENTER></P>\n";
 		print "<HR>\n";
 		
@@ -1496,8 +1496,8 @@ sub do_stage_verify
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->{lang}->phrase("F:action_prev"),
-			  $self->{session}->{lang}->phrase("F:action_submit") ] );
+			[ $self->{session}->phrase("F:action_prev"),
+			  $self->{session}->phrase("F:action_submit") ] );
 		print "</CENTER></P>\n";
 	}
 	
@@ -1517,20 +1517,20 @@ sub do_stage_done
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_done} ) );
 	
 	print "<P><CENTER><STRONG>";
-	print $self->{session}->{lang}->phrase("H:thanks");
+	print $self->{session}->phrase("H:thanks");
 	print "</STRONG><CENTER></P>\n";
 	
 	print "<P><CENTER>";
-	print $self->{session}->{lang}->phrase("H:inbuffer");
+	print $self->{session}->phrase("H:inbuffer");
 	print "</CENTER></P>\n";
 	
 	print "<P><CENTER><A HREF=\"home\">";
-	print $self->{session}->{lang}->phrase("H:retdeppage");
+	print $self->{session}->phrase("H:retdeppage");
 	print "</A></CENTER></P>\n";
 
 	print $self->{session}->{render}->end_html();
@@ -1548,12 +1548,12 @@ sub do_stage_confirmdel
 	my( $self ) = @_;
 
 	print $self->{session}->{render}->start_html(
-		$self->{session}->{lang}->phrase(
+		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_confirmdel} ) );
 
 	print "<P><CENTER><strong>";
-	print $self->{session}->{lang}->phrase("H:suredelete");
+	print $self->{session}->phrase("H:suredelete");
 	print "</strong></CENTER></P>\n<P><CENTER>";
 	
 	print $self->{eprint}->short_title();
@@ -1568,8 +1568,8 @@ sub do_stage_confirmdel
 		"stage",
 		$EPrints::SubmissionForm::stage_confirmdel );
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->{lang}->phrase("F:action_confirm"),
-		  $self->{session}->{lang}->phrase("F:action_cancel") ] );
+		[ $self->{session}->phrase("F:action_confirm"),
+		  $self->{session}->phrase("F:action_cancel") ] );
 	print $self->{session}->{render}->end_form();
 
 	print "</CENTER></P>\n";
@@ -1631,7 +1631,7 @@ sub list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->{lang}->phrase("H:filledwrong");
+			print $self->{session}->phrase("H:filledwrong");
 			print "</P>";
 		}
 		
@@ -1649,7 +1649,7 @@ sub list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->{lang}->phrase("H:pleasecomplete");
+			print $self->{session}->phrase("H:pleasecomplete");
 			print "</P>";
 		}
 	}
@@ -2001,8 +2001,8 @@ sub render_file_view
 	my $html;
 	
 	$html = "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH></TH>".
-		"<TH>".$self->{session}->{lang}->phrase("H:filename")."</TH>".
-		"<TH>".$self->{session}->{lang}->phrase("H:sizebytes")."</TH>".
+		"<TH>".$self->{session}->phrase("H:filename")."</TH>".
+		"<TH>".$self->{session}->phrase("H:sizebytes")."</TH>".
 		"<TH></TH><TH></TH></TR>\n";
 	
 	my %files = $document->files();
@@ -2016,7 +2016,7 @@ sub render_file_view
 		if( defined $main && $main eq $filename )
 		{
 			$html .= "<STRONG>";
-			$html .= $self->{session}->{lang}->phrase("H:shownfirst");
+			$html .= $self->{session}->phrase("H:shownfirst");
 			$html .= " -\&gt;</STRONG>"
 		}
 		
@@ -2026,12 +2026,12 @@ sub render_file_view
 		{
 			$html .= $self->{session}->{render}->named_submit_button(
 				"main_$filecount",
-				$self->{session}->{lang}->phrase("F:showfirst") );
+				$self->{session}->phrase("F:showfirst") );
 		}
 		$html .= "</TD><TD>";
 		$html .= $self->{session}->{render}->named_submit_button(
 			"delete_$filecount",
-			$self->{session}->{lang}->phrase("F:delete") );
+			$self->{session}->phrase("F:delete") );
 		$html .= "</TD></TR>\n";
 		$filecount++;
 	}
@@ -2041,7 +2041,7 @@ sub render_file_view
 	$html .= "<P><CENTER>";
 	$html .= $self->{session}->{render}->named_submit_button(
 		"deleteall",
-		$self->{session}->{lang}->phrase("F:delete_all") );
+		$self->{session}->phrase("F:delete_all") );
 	$html .= "</CENTER></P>\n";
 
 	return( $html );
@@ -2113,10 +2113,10 @@ sub render_format_form
 	my( $self ) = @_;
 
 	print "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH><STRONG>".
-		$self->{session}->{lang}->phrase("H:format").
+		$self->{session}->phrase("H:format").
 		"</STRONG></TH>".
 		"<TH><STRONG>".
-		$self->{session}->{lang}->phrase("H:files_uploaded").
+		$self->{session}->phrase("H:files_uploaded").
 		"</STRONG></TH></TR>\n";
 	
 	my $f;
@@ -2138,13 +2138,13 @@ sub render_format_form
 		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$f",
-			$self->{session}->{lang}->phrase("F:uploadedit") );
+			$self->{session}->phrase("F:uploadedit") );
 		print "</TD><TD>";
 		if( $numfiles > 0 )
 		{
 			print $self->{session}->{render}->named_submit_button(
 				"remove_$f",
-				$self->{session}->{lang}->phrase("F:remove") );
+				$self->{session}->phrase("F:remove") );
 		}
 		print "</TD></TR>\n";
 	}
@@ -2165,13 +2165,13 @@ sub render_format_form
 		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$EPrints::Document::OTHER",
-			$self->{session}->{lang}->phrase("F:uploadedit") );
+			$self->{session}->phrase("F:uploadedit") );
 		print "</TD><TD>";
 		if( $numfiles > 0 )
 		{
 			print $self->{session}->{render}->named_submit_button(
 				"remove_$EPrints::Document::OTHER",
-				$self->{session}->{lang}->phrase("F:remove") );
+				$self->{session}->phrase("F:remove") );
 		}
 		print "</TD></TR>\n";
 	}		
@@ -2228,11 +2228,11 @@ sub update_from_format_form
 sub initial_actions 
 {
 	my ( $session ) = @_;
-	return [ $session->{lang}->phrase("F:action_new"),
-		 $session->{lang}->phrase("F:action_edit"),
-		 $session->{lang}->phrase("F:action_clone"),
-		 $session->{lang}->phrase("F:action_delete"),
-		 $session->{lang}->phrase("F:action_submit") ];
+	return [ $session->phrase("F:action_new"),
+		 $session->phrase("F:action_edit"),
+		 $session->phrase("F:action_clone"),
+		 $session->phrase("F:action_delete"),
+		 $session->phrase("F:action_submit") ];
 }
 
 1;

@@ -241,7 +241,7 @@ sub render_subscription_form
 	
 	$html .= "<P>";
 #cjg
-	#$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
+	#$html .= $self->{session}}->phrase( "H:sendupdates",
 	           #{ howoften=>$self->{session}->{render}->input_field( 
 		        #EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
 		        #$self->{frequency} ) } );
@@ -501,26 +501,26 @@ sub process
 		# Don't send a mail if we've retrieved nothing
 		return( 1 ) if( scalar @eprints == 0 );
 
-		my $freqphrase = $self->{session}->{lang}->phrase("M:$freq");
+		my $freqphrase = $self->{session}->phrase("M:$freq");
 
 		# Put together the body of the message. First some blurb:
-		my $body = $self->{session}->{lang}->phrase( 
+		my $body = $self->{session}->phrase( 
 			   "M:blurb",
-			   { howoften=>$freqphrase,
+			   howoften=>$freqphrase,
 			     sitename=>$self->{session}->{site}->{sitename},
-			     url=>"$self->{session}->{site}->{server_perl}/users/subscribe" } );
+			     url=>"$self->{session}->{site}->{server_perl}/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
 		$body .= "   ";
 		if ( scalar @eprints==1 )
 		{
-			$body .= $self->{session}->{lang}->phrase( "M:newsub" ); 
+			$body .= $self->{session}->phrase( "M:newsub" ); 
 		}
 		else
 		{
-			$body .= $self->{session}->{lang}->phrase( "M:newsubs", 
-			                                           { n=>scalar @eprints } ); 
+			$body .= $self->{session}->phrase( "M:newsubs", 
+			                                   n=>scalar @eprints ); 
 		}
 		$body .= "\n\n\n";
 		
@@ -534,10 +534,10 @@ sub process
 		
 		# Send the mail.
 		$success = EPrints::Mailer::send_mail( 
-				$self->{session},
+			$self->{session},
 		             $user->full_name(),
 		             $user->{email},
-			          $self->{session}->{lang}->phrase( "S:subsubj" ),
+			     $self->{session}->phrase( "S:subsubj" ),
 		             $body );
 
 		unless( $success )

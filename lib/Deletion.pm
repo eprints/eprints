@@ -24,6 +24,7 @@ use EPrints::Session;
 
 use strict;
 
+# cjg for another day........
 
 @EPrints::Deletion::system_meta_fields =
 (

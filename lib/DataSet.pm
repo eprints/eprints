@@ -48,6 +48,14 @@ my $INFO = {
 	}
 };
 
+#
+# EPrints::Dataset newStub( $datasetname )
+#                           string
+#
+#  Creates a stub of a dataset on which functions such as 
+#  getSQLTableName can be called, but which dosn't know anything
+#  about it's fields. 
+
 sub newStub
 {
 	my( $class , $datasetname ) = @_;
@@ -61,10 +69,20 @@ sub newStub
 	bless $self, $class;
 	$self->{datasetname} = $datasetname;
 
+	$self->{confid} = $INFO->{$datasetname}->{confid};
+	$self->{confid} = $datasetname unless( defined $self->{confid} );
+
 	return $self;
 }
 
 
+# EPrints::DataSet new( $site, $datasetname )
+#                       |      string
+#                       EPrints::Site
+#
+#  Create a new dataset object and get all the information
+#  on types, system fields, and user fields from the various
+#  sources - the packages and the site config module.
 
 sub new
 {
@@ -76,14 +94,11 @@ sub new
 
 	$self->{site} = $site;
 
-	my $confid = $INFO->{$datasetname}->{confid};
-	$confid = $datasetname unless( defined $confid );
-
 	$self->{fields} = [];
 	$self->{system_fields} = [];
 	$self->{field_index} = {};
 
-	if( defined $INFO->{$confid}->{class} )
+	if( defined $INFO->{$self->{confid}}->{class} )
 	{
 		my $class = $INFO->{$datasetname}->{class};
 		my $fielddata;
@@ -95,36 +110,37 @@ sub new
 			$self->{field_index}->{$field->getName()} = $field;
 		}
 	}
-	if( defined $site->getConf("sitefields")->{$confid} )
+	my $sitefields = $site->getConf( "sitefields", $self->{confid} );
+	if( $sitefields )
 	{
 		$site->log( "$datasetname has EXTRA FIELDS!" );
-		foreach $fielddata ( @{$site->getConf("sitefields")->{$confid}} )
+		foreach $fielddata ( @{$sitefields} )
 		{
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
-			$self->{field_index}->{$field->getName()} = $field;
+			$self->{field_index}->{$field->getName} = $field;
 		}
 	}
 
 	$self->{types} = {};
-	if( defined $site->getConf("types")->{$confid} )
+	if( defined $site->getConf( "types", $self->{confid} ) )
 	{
 		my $type;
-		foreach $type ( keys %{$site->getConf("types")->{$confid}} )
+		foreach $type ( keys %{$site->getConf( "types", $self->{confid} )} )
 		{
 			$self->{types}->{$type} = [];
 			foreach( @{$self->{system_fields}} )
 			{
 				push @{$self->{types}->{$type}}, $_;
 			}
-			foreach ( @{$site->getConf("types")->{$confid}->{$type}} )
+			foreach ( @{$site->getConf( "types", $self->{confid}, $type )} )
 			{
 				my $required = ( s/^REQUIRED:// );
 				my $field = $self->{field_index}->{$_};
 				if( !defined $field )
 				{
 					$site->log( "Unknown field: $_ in ".
-							"$confid($type)" );
+						$self->{confid}."($type)" );
 				}
 				if( $required )
 				{
@@ -137,32 +153,49 @@ sub new
 	}
 	
 	$self->{default_order} = $self->{site}->
-			getConf( "default_order" )->{$confid};
-
-	$self->{confid} = $confid;
+			getConf( "default_order" , $self->{confid} );
 
 	return $self;
 }
 
-sub get_field
+# EPrints::MetaField getField( $fieldname )
+#                              string
+#  
+#  returns a MetaField object describing the asked for field
+#  in this dataset, or undef if there is no such field.
+
+sub getField
 {
 	my( $self, $fieldname ) = @_;
 
 	my $value = $self->{field_index}->{$fieldname};
 	if (!defined $value) {
 		$self->{site}->log( 
-			"dataset ".$self->{datasetname}." no field ".
+			"dataset ".$self->{datasetname}." has no field: ".
 			$fieldname );
+		return undef;
 	}
 	return $self->{field_index}->{$fieldname};
 }
 
-sub default_order
+# 
+# string defaultOrder()
+#
+#  returns the id of the default order type.  
+
+sub defaultOrder
 {
 	my( $self ) = @_;
 
 	return $self->{default_order};
 }
+
+#
+# string confid()
+#
+#  returns the id string to be used to identify this dataset in the 
+#  config and phrases ( in a nutshell "Archive", "Buffer" and "Inbox"
+#  all return "eprint" because they all (must) have identical structure.
 
 sub confid
 {
@@ -170,17 +203,32 @@ sub confid
 	return $self->{confid};
 }
 
+#
+# string toString()
+#
+#  This returns a printable name of this dataset, for logging and errors.
+
 sub toString
 {
 	my( $self ) = @_;
 	return $self->{datasetname};
 }
 
+# string getSQLTableName()
+#
+#  This returns the name of the main SQL Table containing this dataset.
+#  the other SQL tables names are based on this name.
+ 
 sub getSQLTableName
 {
 	my( $self ) = @_;
 	return $INFO->{$self->{datasetname}}->{sqlname};
 }
+
+# string getSQLIndexTableName()
+#
+#  Gives the name of the SQL table which contains the free text indexing
+#  information.
 
 sub getSQLIndexTableName
 {
@@ -188,17 +236,21 @@ sub getSQLIndexTableName
 	return $self->getSQLTableName()."__"."index";
 }
 
+# string getSQLSubTableName( $field )
+#                            EPrints::MetaField
+#
+#  Returns the name of the SQL Table which contains the information
+#  on the "multiple" field.
+
 sub getSQLSubTableName
 {
 	my( $self , $field ) = @_;
 	return $self->getSQLTableName()."_".$field->getName();
 }
 
-sub getField
-{
-	my( $self, $fieldname ) = @_;
-	return $self->{field_index}->{$fieldname};
-}
+# (Array of EPrints::MetaField) getFields()
+#
+#  returns all the fields of this DataSet, in order.
 
 sub getFields
 {
@@ -206,13 +258,25 @@ sub getFields
 	return @{ $self->{fields} };
 }
 
+# EPrints::MetaField getKeyField()
+#
+#  returns the keyfield for this dataset, the unqiue identifier field.
+#  (always the first field).
+
 sub getKeyField
 {
 	my( $self ) = @_;
 	return $self->{fields}->[0];
 }
 
-sub make_object
+# EPrints::????? makeObject( $session, $item )
+#                            |         hash ref
+#                            EPrints::Session
+#
+#  This rather strange method turns the hash array in item into 
+#  an object of the type belonging to this dataset.
+
+sub makeObject
 {
 	my( $self , $session , $item ) = @_;
 
@@ -245,6 +309,11 @@ sub make_object
 
 }
 
+# (array of strings) ref getTypes()
+#
+#  returns a reference to a list of all types of this dataset (eg. 
+#  eprint record types or types of user)
+
 sub getTypes
 {
 	my( $self ) = @_;
@@ -252,6 +321,12 @@ sub getTypes
 	my @types = sort keys %{$self->{types}};
 	return \@types;
 }
+
+# hash ref getTypeNames( $session )
+#                        EPrints::Session
+#
+#  returns a reference to a hash table which maps the id's of types given
+#  by getTypes to printable names in the language of the session. 
 
 sub getTypeNames
 {
@@ -265,13 +340,19 @@ sub getTypeNames
 	return( \%names );
 }
 
+# string getTypeName( $session, $type )
+#                     |         string
+#                     EPrints::Session
+# 
+#  returns the printable name of the $type belonging to this
+#  dataset, in the language of the $session.
+
 sub getTypeName
 {
 	my( $self, $session, $type ) = @_;
 
-        return $session->phrase( "typename_".$self->toString()."_".$type );
+        return $session->phrase( "typename_".$self->confid."_".$type );
 }
-
 
 
 1;

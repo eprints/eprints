@@ -4,11 +4,6 @@
 # Library Files
 ######################################################################
 
-
-FILE = Citation.pm
-unknowneprint = Unknown EPrint field $(fieldname) in "$(citation_spec)"
-na = N/A
-
 FILE = Database.pm
 created_table	= Created table: $(tablename)
 bad_cache 	= Not a legal cache table: $(tableid)

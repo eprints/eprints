@@ -65,7 +65,7 @@ sub process
 	{
 		# Can't find the user
 		$self->{session}->{render}->render_error(
-		            $self->{session}->{lang}->phrase( "H:dontknow" ),
+		            $self->{session}->phrase( "H:dontknow" ),
 		            $self->{redirect} );
 		return;
 	}
@@ -76,15 +76,15 @@ sub process
 	    $self->{session}->{render}->internal_button_pressed() )
 	{
 		print $self->{session}->{render}->start_html( 
-			$self->{session}->{lang}->phrase( 
-				"H:recfor", { name=>$full_name } ) );
+			$self->{session}->phrase( 
+				"H:recfor", name=>$full_name ) );
 
-		print "<P>".$self->{session}->{lang}->phrase( "H:blurb" )."</P>\n"; 
+		print "<P>".$self->{session}->phrase( "H:blurb" )."</P>\n"; 
 
-		print "<P>".$self->{session}->{lang}->phrase( 
+		print "<P>".$self->{session}->phrase( 
 		        "H:changeemail",
-			{ clickhere=>"<a href=\"$self->{session}->{site}->{server_static}/register.html\">".
-			$self->{session}->{lang}->phrase( "H:clickhere" )."</A>" } )."</P>";
+			clickhere=>"<a href=\"$self->{session}->{site}->{server_static}/register.html\">".
+			$self->{session}->phrase( "H:clickhere" )."</A>" )."</P>";
 
 		$self->render_form();
 
@@ -107,9 +107,9 @@ sub process
 			else
 			{
 				print $self->{session}->{render}->start_html( 
-					$self->{session}->{lang}->phrase( "H:recfor", { name=>$full_name } ) );
+					$self->{session}->phrase( "H:recfor", name=>$full_name ) );
 
-				print "<P>".$self->{session}->{lang}->phrase( "H:formincorrect" )."</P>\n";
+				print "<P>".$self->{session}->phrase( "H:formincorrect" )."</P>\n";
 				print "<UL>\n";
 
 				foreach (@$problems)
@@ -118,7 +118,7 @@ sub process
 				}
 
 				print "</UL>\n";
-				print "<P>".$self->{session}->{lang}->phrase( "H:completeform" )."</P>\n";
+				print "<P>".$self->{session}->phrase( "H:completeform" )."</P>\n";
 
 				$self->render_form();
 
@@ -128,7 +128,7 @@ sub process
 		else
 		{
 			$self->{session}->{render}->render_error(
-				$self->{session}->{lang}->phrase( "H:problemupdating" ),
+				$self->{session}->phrase( "H:problemupdating" ),
 				$self->{redirect} );
 		}
 	}

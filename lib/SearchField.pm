@@ -23,7 +23,6 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Subject;
 use EPrints::Log;
-use EPrints::Constants;
 
 use Text::ParseWords;
 use strict;
@@ -309,7 +308,7 @@ sub get_conditions
 		my @where;
 		foreach( @fields )
 		{
-			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($_)."'";
+			my $s = "__FIELDNAME__ = '".EPrints::Database::prepValue($_)."'";
 			push @where , $s;
 		}	
 		return( $self->_get_conditions_aux( \@where , 0) );
@@ -335,8 +334,8 @@ sub get_conditions
 		foreach( @names )
 		{
 			m/^([^,]+)(,(.*))?$/;
-			my $family = EPrints::Database::prep_value( $1 );
-			my $given = EPrints::Database::prep_value( $3 );
+			my $family = EPrints::Database::prepValue( $1 );
+			my $given = EPrints::Database::prepValue( $3 );
 			if ( $self->{match} eq "IN" )
 			{
 				$family .= "\%";
@@ -478,7 +477,7 @@ sub get_conditions
 
 			if( $self->{match} eq "EQ" )
 			{
-				$text = EPrints::Database::prep_value( $text );
+				$text = EPrints::Database::prepValue( $text );
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
@@ -494,7 +493,7 @@ sub get_conditions
 				{
 					$_ = "$self->{field}->{name}:$_";
 				}
-				$_ = EPrints::Database::prep_value( $_ );
+				$_ = EPrints::Database::prepValue( $_ );
 				push @where, "__FIELDNAME__ = '$_'";
 			}
 			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
@@ -543,7 +542,7 @@ sub get_conditions
 			{
 				$_ = "$self->{field}->{name}:$_";
 			}
-			$_ = EPrints::Database::prep_value( $_ );
+			$_ = EPrints::Database::prepValue( $_ );
 			push @where, "__FIELDNAME__ = '$_'";
 		}
 		return ( $self->_get_conditions_aux( 
@@ -767,7 +766,7 @@ sub do
 		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
 		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
 						[ "__FIELDNAME__ LIKE \"\%".
-						  EPrints::Database::prep_value( $self->{string} )."\%\"" ] , 
+						  EPrints::Database::prepValue( $self->{string} )."\%\"" ] , 
 						  0 );
 		my $table = $tablefield;
 		$table=~s/:.*//;
@@ -849,7 +848,7 @@ print STDERR ">>>>>$tables,$searches,$badwords,$error\n";
 }
 
 
-sub get_field
+sub getField
 {
 	my( $self ) = @_;
 	return $self->{field};
@@ -1026,6 +1025,18 @@ sub getDisplayName
 {
 	my( $self ) = @_;
 	return $self->{displayname};
+}
+
+sub getFormName
+{
+	my( $self ) = @_;
+	return $self->{formname};
+}
+
+sub getValue
+{
+	my( $self ) = @_;
+	return $self->{value};
 }
 
 1;

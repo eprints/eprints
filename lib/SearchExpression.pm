@@ -65,7 +65,7 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-print STDERR "SE:[".$data{dataset}->toString()."]\n";
+print STDERR "SE:[".$data{dataset}->toString."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
@@ -76,7 +76,7 @@ print STDERR "SE:[".$data{dataset}->toString()."]\n";
 	{
 		$self->{$_} = $data{$_};
 	}
-	$self->{order} = $self->{dataset}->default_order(); 
+	$self->{order} = $self->{dataset}->defaultOrder; 
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -100,7 +100,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 			foreach (@multiple_names)
 			{
 				push @multiple_fields, 
-					$self->{dataset}->get_field( $_ );
+					$self->{dataset}->getField( $_ );
 			}
 			
 			# Add a reference to the list
@@ -109,7 +109,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 		else
 		{
 			# Single field
-			$self->add_field( $self->{dataset}->get_field( $_ ) );
+			$self->add_field( $self->{dataset}->getField( $_ ) );
 		}
 	}
 	
@@ -137,17 +137,18 @@ sub add_field
 	                                            $self->{dataset},
 	                                            $field,
 	                                            $value );
-	if( defined $self->{searchfieldmap}->{$searchfield->{formname}} )
+	my $formname = $searchfield->getFormName;
+	if( defined $self->{searchfieldmap}->{$formname} )
 	{
 		# Already got a seachfield, just update the value
-		$self->{searchfieldmap}->{$searchfield->{formname}}->set_value( $value );
+		$self->{searchfieldmap}->{$formname}->set_value( $value );
 	}
 	else
 	{
 		# Add it to our list
 		push @{$self->{searchfields}}, $searchfield;
 		# Put it in the name -> searchfield map
-		$self->{searchfieldmap}->{$searchfield->{formname}} = $searchfield;
+		$self->{searchfieldmap}->{$formname} = $searchfield;
 	}
 }
 
@@ -187,19 +188,20 @@ sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
 
-	my $form = $self->{session}->makeGetForm();
+	my $form = $self->{session}->makeGetForm;
 	my $div;
 
 	my %shown_help;
 	my $sf;
-	foreach $sf (@{$self->{searchfields}})
+	foreach $sf ( @{$self->{searchfields}} )
 	{
 		$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
-		$div->appendChild( $self->{session}->makeText( $sf->getDisplayName ) );
+		$div->appendChild( $self->{session}->makeText( 
+					$sf->getDisplayName ) );
 		$form->appendChild( $div );
-		my $shelp = $sf->getHelp();
+		my $shelp = $sf->getHelp;
 		if( $help && !defined $shown_help{$shelp} )
 		{
 			$div = $self->{session}->make_element( 
@@ -225,22 +227,22 @@ sub render_search_form
 			values=>[ "ALL", "ANY" ],
 			default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			labels=>{ "ALL" => $self->{session}->phrase("all"),
-				  "ANY" => $self->{session}->phrase("any") } );
+			labels=>{ "ALL" => $self->{session}->phrase( "all" ),
+				  "ANY" => $self->{session}->phrase( "any" )} );
 
 		$div = $self->{session}->make_element( 
 			"div" , 
 			class => "searchanyall" );
 		$div->appendChild( 
-			$self->{session}->html_phrase( 
+			$self->{session}->HTMLPhrase( 
 				"must_fulfill",  
 				anyall=>$menu ) );
 		$form->appendChild( $div );	
 	}
 
-	my @tags = keys %{$self->{session}->getSite()->getConf(
+	my @tags = keys %{$self->{session}->getSite->getConf(
 			"order_methods",
-			$self->{dataset}->confid() )};
+			$self->{dataset}->confid )};
 	$menu = $self->{session}->make_option_list(
 		name=>"_order",
 		values=>\@tags,
@@ -253,7 +255,7 @@ sub render_search_form
 		class => "searchorder" );
 
 	$div->appendChild( 
-		$self->{session}->html_phrase( 
+		$self->{session}->HTMLPhrase( 
 			"order_results", 
 			ordermenu => $menu  ) );
 
@@ -263,8 +265,8 @@ sub render_search_form
 		"div" , 
 		class => "searchbuttons" );
 	$div->appendChild( $self->{session}->make_submit_buttons( 
-		$self->{session}->phrase("action_search"), 
-		$self->{session}->phrase("action_reset") ) );
+		$self->{session}->phrase( "action_search" ), 
+		$self->{session}->phrase( "action_reset" ) ) );
 	$form->appendChild( $div );	
 
 	return( $form );
@@ -289,13 +291,13 @@ sub from_form
 	
 	foreach( @{$self->{searchfields}} )
 	{
-		my $prob = $_->from_form();
+		my $prob = $_->from_form;
 		$onedefined = 1 if( defined $_->{value} );
 		
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, $self->{session}->phrase("leastone")
+	push @problems, $self->{session}->phrase( "leastone" )
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->param( "_satisfyall" );
@@ -337,8 +339,8 @@ sub toString
 	
 	foreach (@{$self->{searchfields}})
 	{
-		$text_rep .= "\["._escape_search_string( $_->{formname} )."\]\[".
-			( defined $_->{value} ? _escape_search_string( $_->{value} ) : "" )."\]";
+		$text_rep .= "\["._escape_search_string( $_->getFormName )."\]\[".
+			( defined $_->getValue ? _escape_search_string( $_->getValue ) : "" )."\]";
 	}
 	
 #EPrints::Log::debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
@@ -407,7 +409,7 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 		$sf->set_value( $value ) if( defined $sf && defined $value && $value ne "" );
 	}
 
-#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->toString().")" );
+#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->toString.")" );
 }
 
 
@@ -420,12 +422,12 @@ sub perform_search
 	my @searchon = ();
 	foreach( @{$self->{searchfields}} )
 	{
-		if ( defined $_->{value} )
+		if ( defined $_->getValue )
 		{
 			push @searchon , $_;
 		}
 	}
-	@searchon = sort { return $a->approx_rows() <=> $b->approx_rows() } 
+	@searchon = sort { return $a->approx_rows <=> $b->approx_rows } 
 		         @searchon;
 
 #EPrints::Log::debug("optimised order:");
@@ -435,11 +437,11 @@ sub perform_search
 	my $badwords;
 	foreach( @searchon )
 	{
-		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
-		EPrints::Log::debug( $buffer."!\n" );
+EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
+EPrints::Log::debug( $buffer."!\n" );
 		my $error;
 		( $buffer , $badwords , $error) = 
-			$_->do($buffer , $self->{satisfy_all} );
+			$_->do( $buffer , $self->{satisfy_all} );
 
 		if( defined $error )
 		{
@@ -460,15 +462,15 @@ sub perform_search
 	
 sub count 
 {
-	my ( $self ) = @_;
+	my( $self ) = @_;
 
-	if ( $self->{tmptable} )
+	if( $self->{tmptable} )
 	{
-		return $self->{session}->{database}->count_buffer( 
+		return $self->{session}->getDB->count_buffer( 
 			$self->{tmptable} );
 	}	
 
-	$self->{session}->getSite()->log( "Search has not been performed" );
+	$self->{session}->getSite->log( "Search has not been performed" );
 		
 }
 
@@ -479,33 +481,42 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
-        	my $keyfield = $self->{dataset}->getKeyField();
-
-		my ( $buffer, $overlimit ) = $self->{session}->getDB()->distinct_and_limit( 
+        	my( $keyfield ) = $self->{dataset}->getKeyField;
+		my( $buffer, $overlimit ) = 
+			$self->{session}->getDB->distinct_and_limit( 
 							$self->{tmptable}, 
 							$keyfield, 
 							$max );
 
-		my @records = $self->{session}->getDB()->from_buffer( $self->{dataset}, $buffer );
+		my @records = $self->{session}->getDB->from_buffer( 
+							$self->{dataset}, 
+							$buffer );
+
+		# We don't bother sorting if we got too many results.	
 		if( !$overlimit )
 		{
  print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";
-			@records = sort 
-				{ &{$self->{session}->getSite()->getConf( "order_methods" , $self->{dataset}->confid(), $self->{order} )}($a,$b); }
-				@records;
+
+			my $cmpmethod = $self->{session}->getSite->getConf( 
+						"order_methods" , 
+						$self->{dataset}->confid, 
+						$self->{order} );
+
+			@records = sort { &{$cmpmethod}($a,$b); } @records;
 		}
 		return @records;
 	}	
 
-	$self->{session}->getSite()->log( "Search not yet performed" );
+	$self->{session}->getSite->log( "Search not yet performed" );
 		
 }
 
 
 ######################################################################
 #
-# process_webpage()
+# process_webpage( $title, $preamble )
+#                  string  DOM
 #
 #  Process the search form, writing out the form and/or results.
 #
@@ -521,18 +532,24 @@ sub process_webpage
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"
 	#     (i.e. the search is a direct GET from somewhere else)
-	if( ( defined $submit_button && $submit_button eq $self->{session}->phrase("action_search") ) || 
-	    ( !defined $submit_button && $self->{session}->have_parameters() ) )
+
+	if( ( defined $submit_button && 
+	      $submit_button eq $self->{session}->phrase( "action_search" ) ) 
+            || 
+	    ( !defined $submit_button && 
+              $self->{session}->have_parameters ) )
 	{
 		# We need to do a search
-		my $problems = $self->from_form();
+		my $problems = $self->from_form;
 		
-		if( defined $problems && scalar (@$problems) > 0 )
+		if( defined $problems && scalar( @$problems ) > 0 )
 		{
-			$self->_render_problems( $title, $preamble, @$problems );
+			$self->_render_problems( 
+					$title, 
+					$preamble, 
+					@$problems );
 			return;
 		}
-
 
 		# Everything OK with form.
 			
@@ -541,18 +558,24 @@ sub process_webpage
 		my( $t1 , $t2 , $t3 , @results );
 
 		$t1 = EPrints::Log::microtime();
+
 		$self->perform_search();
+
 		$t2 = EPrints::Log::microtime();
 
 		if( defined $self->{error} ) 
 		{	
 			# Error with search.
-			$self->_render_problems( $title, $preamble, $self->{error} );
+			$self->_render_problems( 
+					$title, 
+					$preamble, 
+					$self->{error} );
 			return;
 		}
 
 		my $n_results = $self->count();
 
+		# cjg this should be in site config.
 		my $MAX=1000;
 
 		@results = $self->get_records( $MAX );
@@ -564,7 +587,10 @@ sub process_webpage
 		{
 			my $p = $self->{session}->make_element( "p" );
 			$page->appendChild( $p );
-			$p->appendChild( $self->{session}->html_phrase( "too_many", n=>$MAX ) );
+			$p->appendChild( 
+				$self->{session}->HTMLPhrase( 
+							"too_many", 
+							n=>$MAX ) );
 		}
 	
 		my $code;
@@ -582,26 +608,29 @@ sub process_webpage
 		}
 		my $p = $self->{session}->make_element( "p" );
 		$page->appendChild( $p );
-       		$p->appendChild(  $self->{session}->html_phrase( 
-			$code,  
-			n=>$self->{session}->makeText( $n_results ) ) );
+       		$p->appendChild(  
+			$self->{session}->HTMLPhrase( 
+				$code,  
+				n => $self->{session}->makeText( 
+							$n_results ) ) );
 
 		if( @{ $self->{ignoredwords} } )
 		{
 			my %words = ();
 			$p->appendChild( $self->{session}->makeText( " " ) );
 			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
+			my $words = $self->{session}->makeText( 
+					join( ", ", sort keys %words ) );
 			$p->appendChild(
-       				$self->{session}->html_phrase( 
+       				$self->{session}->HTMLPhrase( 
 					"ignored",
-					words=>$self->{session}->makeText( 
-						join( ", ", sort keys %words ) ) ) );
+					words => $words ) );
 		
 		}
 
 		$p->appendChild( $self->{session}->makeText( " " ) );
 		$p->appendChild(
-       			$self->{session}->html_phrase( 
+       			$self->{session}->HTMLPhrase( 
 				"search_time", 
 				searchtime=>$self->{session}->makeText($t2-$t1),
 				gettime=>$self->{session}->makeText($t3-$t2) ) );
@@ -629,19 +658,25 @@ sub process_webpage
 			
 		# Print out state stuff for a further invocation
 		
-
 		$self->{session}->printPage( 
-			$self->{session}->phrase( "results_for", {title=>$title} ),
+			$self->{session}->phrase( 
+					"results_for", 
+					title => $title ),
 			$page );
 		return;
 	}
 
-	if( defined $submit_button && ( $submit_button eq $self->{session}->phrase("action_reset") || 
-		$submit_button eq $self->{session}->phrase("action_newsearch") ) )
+	if( defined $submit_button 
+            && 
+	    ( $submit_button eq $self->{session}->phrase( "action_reset" ) 
+	      || 
+	      $submit_button eq $self->{session}->phrase(" action_newsearch" ) 
+	  ) )
 	{
 		# To reset the form, just reset the URL.
-		my $url = $self->{session}->url();
+		my $url = $self->{session}->getURL;
 		# Remove everything that's part of the query string.
+print STDERR "URLURL URL URL: $url\n";
 		$url =~ s/\?.*//;
 		$self->{session}->redirect( $url );
 		return;
@@ -671,7 +706,7 @@ sub _render_problems
 	$page->appendChild( $preamble );
 
 	my $p = $self->{session}->make_element( "p" );
-	$p->appendChild( $self->{session}->html_phrase( "form_problem" ) );
+	$p->appendChild( $self->{session}->HTMLPhrase( "form_problem" ) );
 	$page->appendChild( $p );
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );

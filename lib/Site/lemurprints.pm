@@ -18,14 +18,12 @@ use EPrints::Site::General;
 use EPrints::Version;
 use EPrints::Document;
 use EPrints::OpenArchives;
-use EPrints::Citation;
 use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Session;
 use EPrints::Subject;
 use EPrints::SubjectList;
 use EPrints::Name;
-use EPrints::Constants;
 
 use strict;
 
@@ -1339,7 +1337,7 @@ sub eprint_render_full
 		$description = $_->{formatdesc}
 			if( $_->{format} eq $EPrints::Document::OTHER );
 
-		$html .= "<A href=\"".$_->url()."\">$description</A><BR>";
+		$html .= "<A href=\"".$_->url."\">$description</A><BR>";
 	}
 
 	$html .= "</TD></TR></TABLE>\n";

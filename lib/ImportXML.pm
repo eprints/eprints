@@ -131,7 +131,7 @@ sub _handle_end
 
 
 		my $ds = $parser->{eprints}->{dataset};
-		my $item = $ds->make_object(
+		my $item = $ds->makeObject(
 			$parser->{eprints}->{session},
 			$parser->{eprints}->{data} );
 

@@ -23,16 +23,11 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Log;
 use EPrints::Subscription;
-use EPrints::Constants;
 
 #
 # Table names
 #
 
-#
-# Seperator - used to join parts of the name of a table
-#
-my $SEPERATOR = "_";
 
 #
 # Counters
@@ -49,9 +44,12 @@ my $NEXTBUFFER = 0;
 
 ######################################################################
 #
-# build_connection_string()
-#
+# connection_handle build_connection_string( %params )
+#                                            
 #  Build the string to use to connect via DBI
+#  params are:
+#     db_host, db_port, db_name and db_sock.
+#  Only db_name is required.
 #
 ######################################################################
 
@@ -81,8 +79,9 @@ print STDERR ">>$dsn\n";
 
 ######################################################################
 #
-# new()
-#
+# EPrints::Database new( $session )
+#                        EPrints::Session
+#                          
 #  Connect to the database.
 #
 ######################################################################
@@ -96,16 +95,16 @@ sub new
 	$self->{session} = $session;
 
 	# Connect to the database
-	$self->{dbh} = DBI->connect( build_connection_string( 
-					db_host => $session->{site}->getConf("db_host"),
-					db_sock => $session->{site}->getConf("db_sock"),
-					db_port => $session->{site}->getConf("db_port"),
-					db_name => $session->{site}->getConf("db_name") ),
-	                             $session->{site}->getConf("db_user"),
-	                             $session->{site}->getConf("db_pass"),
-	                             { PrintError => 1, AutoCommit => 1 } );
+	$self->{dbh} = DBI->connect( 
+		build_connection_string( 
+			db_host => $session->{site}->getConf("db_host"),
+			db_sock => $session->{site}->getConf("db_sock"),
+			db_port => $session->{site}->getConf("db_port"),
+			db_name => $session->{site}->getConf("db_name") ),
+	        $session->{site}->getConf("db_user"),
+	        $session->{site}->getConf("db_pass") );
 
-#	                             { PrintError => 0, AutoCommit => 1 } );
+#	        { PrintError => 0, AutoCommit => 1 } );
 
 	if( !defined $self->{dbh} )
 	{
@@ -144,7 +143,8 @@ sub disconnect
 ######################################################################
 #
 # $error = error()
-#
+# string 
+# 
 #  Gives details of any errors that have occurred
 #
 ######################################################################
@@ -160,6 +160,7 @@ sub error
 ######################################################################
 #
 # $success = create_archive_tables()
+# boolean 
 #
 #  Creates the archive tables (user, archive and buffer) from the
 #  metadata tables.
@@ -190,10 +191,10 @@ sub create_archive_tables
 
 ######################################################################
 #
-# $success = _create_table( $name, @fields )
+# $success = _create_table( $dataset )
+# boolean                   EPrints::DataSet
 #
-#  Create a database table with the given name, and columns specified
-#  in @fields, which is an array of MetaField types.
+#  Create a database table to contain the given dataset.
 #
 #  The aux. function has an extra parameter which means the table
 #  has no primary key, this is for purposes of recursive table 
@@ -207,7 +208,7 @@ sub _create_table
 	
 	my $rv = 1;
 
-	my $keyfield = $dataset->getKeyField()->clone();
+	my $keyfield = $dataset->getKeyField()->clone;
 
 	$keyfield->{indexed} = 1;
 	my $fieldword = EPrints::MetaField->new( 
@@ -218,19 +219,23 @@ sub _create_table
 		} );
 
 	$rv = $rv & $self->_create_table_aux(
-			$dataset->getSQLIndexTableName(),
+			$dataset->getSQLIndexTableName,
 			$dataset,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
 	$rv = $rv && $self->_create_table_aux( 
-				$dataset->getSQLTableName(), 
+				$dataset->getSQLTableName, 
 				$dataset, 
 				1, 
-				$dataset->getFields() );
+				$dataset->getFields );
 
 	return $rv;
 }
+
+# $rv = _create_table_aux( $tablename, $dataset, $setkey, @fields )
+# boolean                  string      |         boolean  array of
+#                                      EPrints::DataSet   EPrint::MetaField
 
 sub _create_table_aux
 {
@@ -247,7 +252,7 @@ sub _create_table_aux
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
-		if ( $field->isMultiple() )
+		if ( $field->isMultiple )
 		{ 	
 			# make an aux. table for a multiple field
 			# which will contain the same type as the
@@ -255,9 +260,10 @@ sub _create_table_aux
 			# multiple version of this field.
 			# auxfield and keyfield must be indexed or 
 			# there's not much point. 
-			my $auxfield = $field->clone();
+
+			my $auxfield = $field->clone;
 			$auxfield->setMultiple( 0 );
-			my $keyfield = $dataset->getKeyField()->clone();
+			my $keyfield = $dataset->getKeyField->clone;
 			$keyfield->setIndexed( 1 );
 			my $pos = EPrints::MetaField->new( 
 				undef,
@@ -281,33 +287,25 @@ sub _create_table_aux
 		{
 			$sql .= ", ";
 		}
-		my $part = $field->get_sql_type();
-		my %bits = (
-			 "name"=>$field->{name},
-			 "param"=>"" );
-
+		my $notnull = 0;
 			
 		# First field is primary key.
 		if( !defined $key && $setkey)
 		{
 			$key = $field;
-			$bits{"param"} = "NOT NULL";
+			$notnull = 1;
 		}
-		elsif( $field->{indexed} )
+		elsif( $field->isIndexed )
 		{
-			$bits{"param"} = "NOT NULL";
-			my $index = $field->get_sql_index();
-	
-			while( $index =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
-			push @indices, $index;
+			$notnull = 1;
+			push @indices, $field->getSQLIndex;
 		}
-		while( $part =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
-		$sql .= $part;
+		$sql .= $field->getSQLType( $notnull );
 
 	}
 	if ( $setkey )	
 	{
-		$sql .= ", PRIMARY KEY ($key->{name})";
+		$sql .= ", PRIMARY KEY (".$key->getName.")";
 	}
 
 	
@@ -330,10 +328,11 @@ sub _create_table_aux
 
 ######################################################################
 #
-# $success = add_record( $table, $data )
+# $success = add_record( $dataset, $data )
+# boolean                |         Structured Data
+#                        EPrints::DataSet     
 #
 #  Add data to the given table. 
-#
 #
 ######################################################################
 
@@ -341,13 +340,18 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
-	my $table = $dataset->getSQLTableName();
+	my $table = $dataset->getSQLTableName;
 	
-	my $keyfield = $dataset->getKeyField();
+	my $keyfield = $dataset->getKeyField;
 
-	my $sql = "INSERT INTO ".$dataset->getSQLTableName()." ";
-	$sql   .= " (".$dataset->getKeyField()->getName().") ";
-	$sql   .= "VALUES (\"".prep_value($data->{$dataset->getKeyField()->getName()})."\")";
+	# To save duplication of code, all this function does is insert
+	# a stub entry, then call the update method which does the hard
+	# work.
+
+	my $sql = "INSERT INTO ".$dataset->getSQLTableName." ";
+	$sql   .= " (".$dataset->getKeyField->getName.") ";
+	$sql   .= "VALUES (\"".
+	          prepValue( $data->{$dataset->getKeyField->getName} )."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -359,31 +363,18 @@ sub add_record
 	return( defined $rv );
 }
 
-######################################################################
-#
-# $munged = _escape_chars( $value )
-#
-#  Modify value such that " becomes \" and \ becomes \\ [STATIC]
-#
-######################################################################
-
-sub _escape_chars
-{
-	my( $value ) = @_; 
-	$value =~ s/["\\.'%]/\\$&/g;
-	return $value;
-}
 
 ######################################################################
 #
-# $munged = prep_value( $value )
+# $munged = prepValue( $value )
 #
-#  Call _escape_chars on value. If value is not defined return
-#  an empty string instead. [STATIC]
+# [STATIC]
+#  Modify value such that " becomes \" and \ becomes \\ 
+#  Returns "" if $value is undefined.
 #
 ######################################################################
 
-sub prep_value
+sub prepValue
 {
 	my( $value ) = @_; 
 	
@@ -392,16 +383,17 @@ sub prep_value
 		return "";
 	}
 	
-	return _escape_chars( $value );
+	$value =~ s/["\\.'%]/\\$&/g;
+	return $value;
 }
 
 ######################################################################
 #
-# $success = update( $table, $key_field, $key_value, $data )
+# $success = update( $dataset, $data )
+# boolean            |         structured data
+#                    EPrints::DataSet
 #
-#  Update the row where $key_field is $key_value, in $table, with
-#  the given values. Dosn't handle aux fields (yet).
-#  key_field MUST NOT be a multiple type.
+#  Updates the record described by the $data.  
 #
 ######################################################################
 
@@ -414,16 +406,15 @@ sub update
 
 	my @fields = $dataset->getFields();
 
-	# skip the keyfield;
 	my $keyfield = $dataset->getKeyField();
 
-	my $keyvalue = prep_value($data->{$keyfield->getName()});
+	my $keyvalue = prepValue( $data->{$keyfield->getName} );
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
-	my $where = $keyfield->getName()." = \"$keyvalue\"";
+	my $where = $keyfield->getName." = \"$keyvalue\"";
 
-	my $indextable = $dataset->getSQLIndexTableName();
+	my $indextable = $dataset->getSQLIndexTableName;
 	$sql = "DELETE FROM $indextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
 
@@ -432,7 +423,7 @@ sub update
 
 	foreach( @fields ) 
 	{
-		if( $_->isMultiple() ) 
+		if( $_->isMultiple ) 
 		{ 
 			push @aux,$_;
 		}
@@ -442,24 +433,28 @@ sub update
 
 			if( $_->isType( "name" ) )
 			{
-				$values{$_->getName()."_given"} = 
-					$data->{$_->getName()}->{given};
-				$values{$_->getName()."_family"} = 
-					$data->{$_->getName()}->{family};
+				$values{$_->getName."_given"} = 
+					$data->{$_->getName}->{given};
+				$values{$_->getName."_family"} = 
+					$data->{$_->getName}->{family};
 			}
 			else
 			{
-				$values{$_->getName()} =
-					$data->{$_->getName()};
+				$values{$_->getName} =
+					$data->{$_->getName};
 			}
-			if( $_->isTextIndexable() )
+			if( $_->isTextIndexable )
 			{ 
-				$self->_freetext_index( $dataset, $keyvalue, $_, $data->{$_->getName()} );
+				$self->_freetext_index( 
+					$dataset, 
+					$keyvalue, 
+					$_, 
+					$data->{$_->getName} );
 			}
 		}
 	}
 	
-	$sql = "UPDATE ".$dataset->getSQLTableName()." SET ";
+	$sql = "UPDATE ".$dataset->getSQLTableName." SET ";
 	my $first=1;
 	foreach( keys %values ) {
 		if( $first )
@@ -470,7 +465,7 @@ sub update
 		{
 			$sql.= ", ";
 		}
-		$sql.= "$_ = \"".prep_value($values{$_})."\"";
+		$sql.= "$_ = \"".prepValue( $values{$_} )."\"";
 	}
 	$sql.=" WHERE $where";
 	
@@ -486,44 +481,49 @@ sub update
 
 		# skip to next table if there are no values at all for this
 		# one.
-		if( !defined $data->{$multifield->getName()} )
+		if( !defined $data->{$multifield->getName} )
 		{
 			next;
 		}
 print STDERR "*".$data->{$multifield->getName()}."\n";
 print STDERR "*".$multifield->getName()."\n";
-		my $i=0;
-		foreach( @{$data->{$multifield->getName()}} )
+		my $position=0;
+		foreach( @{$data->{$multifield->getName}} )
 		{
-			$sql = "INSERT INTO $auxtable (".$keyfield->getName().",pos,";
+			$sql = "INSERT INTO $auxtable (".
+			       $keyfield->getName.", pos, ";
 			if( $multifield->isType( "name" ) )
 			{
-				$sql.=$multifield->getName."_given, ";
-				$sql.=$multifield->getName."_family";
+				$sql .= $multifield->getName."_given, ";
+				$sql .= $multifield->getName."_family";
 			}
 			else
 			{
-				$sql.=$multifield->getName;
+				$sql .= $multifield->getName;
 			}
-			$sql .= ") VALUES (\"$keyvalue\",\"$i\",";
+			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
 			if( $multifield->isType( "name" ) )
 			{
-				$sql .= "\"".prep_value($_->{given})."\",";
-				$sql .= "\"".prep_value($_->{family})."\"";
+				$sql .= "\"".prepValue( $_->{given} )."\", ";
+				$sql .= "\"".prepValue( $_->{family} )."\"";
 			}
 			else
 			{
-				$sql .= "\"".prep_value($_)."\"";
+				$sql .= "\"".prepValue( $_ )."\"";
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
 
-			if( $multifield->isTextIndexable() )
+			if( $multifield->isTextIndexable )
 			{
-				$self->_freetext_index( $dataset, $keyvalue, $multifield, $_ );
+				$self->_freetext_index( 
+					$dataset, 
+					$keyvalue, 
+					$multifield, 
+					$_ );
 			}
 
-			++$i;
+			++$position;
 		}
 	}
 	
@@ -569,10 +569,10 @@ sub _create_counter_table
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->getSite()->getDataSet( "counter" );
+	my $counter_ds = $self->{session}->getSite->getDataSet( "counter" );
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".$ds->getSQLTableName().
+	my $sql = "CREATE TABLE ".$counter_ds->getSQLTableName.
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
@@ -581,10 +581,10 @@ sub _create_counter_table
 	# Return with an error if unsuccessful
 	return( 0 ) unless defined( $sth );
 
-	# Create the counters
+	# Create the counters 
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".$ds->getSQLTableName()." VALUES ".
+		$sql = "INSERT INTO ".$ds->getSQLTableName." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );
@@ -610,7 +610,8 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".EPrints::Database::table_name( $TID_TEMPMAP ).
+	my $ds = $self->{session}->getSite()->getDataSet( "tempmap" );
+	my $sql = "CREATE TABLE ".$ds->getSQLTableName." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
 	
@@ -641,7 +642,6 @@ sub counter_next
 
 	my $ds = $self->{session}->getSite()->getDataSet( "counter" );
 
-
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->getSQLTableName()." SET counter=".
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
@@ -671,8 +671,8 @@ sub create_cache
 
 	my $sql;
 
-	$sql = "INSERT INTO ".EPrints::Database::table_name( $TID_TEMPMAP ).
-	       "VALUES ( NULL , NOW() )";
+	my $ds = $self->{session}->getSite()->getDataSet( "tempmap" );
+	$sql = "INSERT INTO ".$ds->getSQLTableName." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
 
@@ -726,20 +726,20 @@ sub _make_select
 {
 	my( $self, $keyfield, $tables, $conditions ) = @_;
 	
-	my $sql= "SELECT ".((keys %{$tables})[0]).".$keyfield->{name} FROM ";
+	my $sql = "SELECT ".((keys %{$tables})[0]).".".
+	          $keyfield->getName." FROM ";
 	my $first = 1;
 	foreach( keys %{$tables} )
 	{
-		$sql .= " INNER JOIN " unless( $first );
-		$sql .= "${$tables}{$_} AS $_";
-		$sql .= " USING ($keyfield->{name})" unless( $first );
+		$sql .= " INNER JOIN" unless( $first );
+		$sql .= " ${$tables}{$_} AS $_";
+		$sql .= " USING (".$keyfield->getName.")" unless( $first );
 		$first = 0;
 	}
 	if( defined $conditions )
 	{
 		$sql .= " WHERE $conditions";
 	}
-
 
 	return $sql;
 }
@@ -767,11 +767,11 @@ sub buffer
 	} 
 	elsif( $keep )
 	{
-		$targetbuffer = $self->create_cache( $keyfield->{name} );
+		$targetbuffer = $self->create_cache( $keyfield->getName );
 	}
 	else
 	{
-		$targetbuffer = $self->create_buffer( $keyfield->{name} );
+		$targetbuffer = $self->create_buffer( $keyfield->getName );
 	}
 
 	$self->do( "INSERT INTO $targetbuffer $sql" );
@@ -782,13 +782,18 @@ sub buffer
 sub distinct_and_limit
 {
 	my( $self, $buffer, $keyfield, $max ) = @_;
-	my $tmptable = $self->create_buffer( $keyfield->{name} );
-	my $sql = "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer";
+
+	my $tmptable = $self->create_buffer( $keyfield->getName );
+
+	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->getName.
+	          " FROM $buffer";
+
 	if( defined $max )
 	{
 		$sql.= " LIMIT $max";
 	}
 	$self->do( $sql );
+
 	if( defined $max )
 	{
 		my $count = $self->count_buffer( $tmptable );
@@ -808,9 +813,10 @@ sub drop_cache
 	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
 		my $sql;
+		my $ds = $self->{session}->getSite->getDataSet( "tempmap" );
 
-		$sql = "DELETE FROM ".EPrints::Database::table_name( $TID_TEMPMAP ).
-	               "WHERE tableid = $1";
+		$sql = "DELETE FROM ".$ds->getSQLTableName.
+		       " WHERE tableid = $1";
 
 		$self->do( $sql );
 
@@ -821,9 +827,7 @@ sub drop_cache
 	}
 	else
 	{
-		EPrints::Log::log_entry( 
-			"L:bad_cache",
-			{ tableid=>$tmptable } );
+		$self->{session}->getSite->log( "Bad Cache ID: $tmptable" );
 	}
 
 }
@@ -869,18 +873,18 @@ sub _get
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
-	my $table = $dataset->getSQLTableName();
+	my $table = $dataset->getSQLTableName;
 
-	my @fields = $dataset->getFields();
+	my @fields = $dataset->getFields;
 
 	my $keyfield = $fields[0];
-	my $kn = $keyfield->getName();
+	my $kn = $keyfield->getName;
 
 	my $cols = "";
 	my @aux = ();
 	my $first = 1;
 	foreach (@fields) {
-		if ( $_->isMultiple() )
+		if ( $_->isMultiple )
 		{ 
 			push @aux,$_;
 		}
@@ -894,22 +898,27 @@ sub _get
 			{
 				$cols .= ", ";
 			}
-			my $col = "M.".$_->getName();
 			if ( $_->isType( "name" ) )
 			{
-				$col = "M.".$_->getName()."_given,M.".$_->getName()."_family";
+				$cols .= "M.".$_->getName."_given, ".
+				         "M.".$_->getName."_family";
 			}
-			$cols .= $col;
+			else 
+			{
+				$cols .= "M.".$_->getName;
+			}
 		}
 	}
 	my $sql;
 	if ( $mode == 0 )
 	{
-		$sql = "SELECT $cols FROM $table AS M WHERE M.$kn = \"".prep_value($param)."\"";
+		$sql = "SELECT $cols FROM $table AS M ".
+		       "WHERE M.$kn = \"".prepValue( $param )."\"";
 	}
 	elsif ( $mode == 1 )	
 	{
-		$sql = "SELECT $cols FROM $param AS C, $table AS M WHERE M.$kn = C.$kn";
+		$sql = "SELECT $cols FROM $param AS C, $table AS M ".
+		       "WHERE M.$kn = C.$kn";
 	}
 	elsif ( $mode == 2 )	
 	{
@@ -926,14 +935,14 @@ sub _get
 		my $record = {};
 		$lookup{$row[0]} = $count;
 		foreach( @fields ) { 
-			if ( $_->isMultiple() )
+			if( $_->isMultiple )
 			{
-				$$record{$_->{name}} = [];
+				$record->{$_->{name}} = [];
 			}
 			else 
 			{
 				my $value;
-				if ($_->isType( "name" ) )
+				if( $_->isType( "name" ) )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -943,7 +952,7 @@ sub _get
 				{
 					$value = shift @row;
 				}
-				$$record{$_->{name}} = $value;
+				$record->{$_->getName} = $value;
 			}
 		}
 		$data[$count] = $record;
@@ -953,19 +962,18 @@ sub _get
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $mn = $multifield->getName();
+		my $mn = $multifield->getName;
 		my $col = "M.$mn";
 		if( $multifield->isType( "name" ) )
 		{
-			$col = "M.".$mn."_given,M.".$mn."_family";
+			$col = "M.$mn\_given,M.$mn\_family";
 		}
 		
-		$col =~ s/\$\(name\)/M.$mn/g;
 		if( $mode == 0 )	
 		{
-			$sql = "SELECT M.$kn,M.pos,$col FROM ";
+			$sql = "SELECT M.$kn, M.pos, $col FROM ";
 			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
-			$sql.= "WHERE M.$kn=\"".prep_value( $param )."\"";
+			$sql.= "WHERE M.$kn=\"".prepValue( $param )."\"";
 		}
 		elsif( $mode == 1)
 		{
@@ -986,7 +994,7 @@ sub _get
 		{
 			my $n = $lookup{ $id };
 			my $value;
-			if ( $multifield->isType( "name" ) )
+			if( $multifield->isType( "name" ) )
 			{
 				$value = {};
 				$value->{given} = shift @values;
@@ -1002,7 +1010,7 @@ sub _get
 
 	foreach( @data )
 	{
-		$_ = $dataset->make_object( $self->{session} ,  $_);
+		$_ = $dataset->makeObject( $self->{session} ,  $_);
 	}
 
 	return @data;
@@ -1046,7 +1054,7 @@ sub execute
 {
 	my ( $self , $sth , $sql ) = @_;
 
-	my $result = $sth->execute();
+	my $result = $sth->execute;
 
 	if ( !$result ) {
 		print "--------\n";
@@ -1084,11 +1092,11 @@ sub exists
 		return undef;
 	}
 	
-	my $keyfield = $dataset->getKeyField();
+	my $keyfield = $dataset->getKeyField;
 
-	my $sql = "SELECT ".$keyfield->getName().
-		" FROM ".$dataset->getSQLTableName()." WHERE ".
-		$keyfield->getName()." = \"".prep_value( $id )."\";";
+	my $sql = "SELECT ".$keyfield->getName.
+		" FROM ".$dataset->getSQLTableName." WHERE ".
+		$keyfield->getName()." = \"".prepValue( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1111,17 +1119,17 @@ sub _freetext_index
 		return $rv;
 	}
 
-	my $keyfield = $dataset->getKeyField();
+	my $keyfield = $dataset->getKeyField;
 
-	my $indextable = $dataset->getSQLIndexTableName();
+	my $indextable = $dataset->getSQLIndexTableName;
 	
-	my( $good , $bad ) = $self->{session}->getSite()->call( "extract_words" , $value );
+	my( $good , $bad ) = $self->{session}->getSite->call( "extract_words" , $value );
 
 	my $sql;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( ".$keyfield->getName()." , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prep_value($field->getName().":$_")."\")";
+		$sql = "INSERT INTO $indextable ( ".$keyfield->getName." , fieldword ) VALUES ";
+		$sql.= "( \"$id\" , \"".prepValue($field->getName.":$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;
@@ -1131,8 +1139,8 @@ sub _freetext_index
 sub table_name
 {
 	my( $tableid ) = @_;
+#cjg
 EPrints::Session::bomb();
-	return $TABLE_NAMES{ $tableid };
 }
 
 

@@ -94,39 +94,38 @@ sub new
 	return( $self );
 }
 
-######################################################################
-#
-# $phrase = phrase( $phraseid, @inserts )
-#
-# Return the phrase represented by phraseid in the language 
-# of this object.
-# Inserts the @inserts into $(1), $(2) etc...
-#
-######################################################################
-
-sub phrase 
-{
-	my( $self , $phraseid , $inserts ) = @_;
-
-	my @callinfo = caller();
-	$callinfo[1] =~ m#[^/]+$#;
-	return $self->file_phase( $& , $phraseid , $inserts );
-}
-
-
 sub file_phase
 {
-	my( $self , $file , $phraseid , $inserts ) = @_;
+	my( $self , $file , $phraseid , %inserts ) = @_;
 
 	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
 	if( !defined $response )
 	{
 		$response = "[\"$file:$phraseid\" not defined]";
 	}
-	$response = "*".$response."*" if ( $fb );
-	$inserts = {} if( !defined $inserts );
-	$response =~ s/\$\(([a-z_]+)\)/$inserts->{$1}/ieg;
-	return $response;
+	$response = "*".$response."*" if( $fb );
+
+	my $result = "";
+	while( $response =~ s/^(\$\([a-z_]+\)|[^\$]+|\$)// )
+	{	
+		my $part = $&;
+		if( $part =~ m/^\$\(([a-z_]+)\)$/ )
+		{
+			if( defined $inserts{$1} )
+			{
+				$result .= $inserts{$1};
+			}
+			else
+			{
+				$result .= "[missing factor: \"$1\"]";
+			}
+		}
+		else
+		{
+			$result .= $part;
+		}
+	}
+	return $result;
 }
 
 sub html_file_phrase
@@ -151,7 +150,7 @@ sub html_file_phrase
 	{
 		$result = $session->makeDocFragment;
 	}
-	while($response=~s/^(\$\([a-z_]+\)|[^\$]+|\$)//)
+	while( $response =~ s/^(\$\([a-z_]+\)|[^\$]+|\$)// )
 	{	
 		my $part = $&;
 		my $element;
@@ -160,7 +159,8 @@ sub html_file_phrase
 			$element = $inserts->{$1};
 			if( !defined $element )
 			{
-				$element = $session->makeText( "[missing factor: \"$1\"]" );
+				$element = $session->makeText( 
+						"[missing factor: \"$1\"]" );
 			}
 		}
 		else

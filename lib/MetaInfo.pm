@@ -31,7 +31,6 @@ use EPrints::Document;
 use EPrints::Log;
 use EPrints::Subject;
 use EPrints::Subscription;
-use EPrints::Constants;
 
 
 ######################################################################

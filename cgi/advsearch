@@ -28,7 +28,7 @@ my $searchexp = new EPrints::SearchExpression(
 	fieldnames=>$session->getSite()->getConf( "advanced_search_fields" ) );
 
 my $preamble = $session->make_element( "p" );
-$preamble->appendChild( $session->html_phrase( "dont_panic" ) );
+$preamble->appendChild( $session->HTMLPhrase( "dont_panic" ) );
 
 $searchexp->process_webpage(
 	$session->phrase( "adv_search" ),

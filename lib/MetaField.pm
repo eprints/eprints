@@ -18,7 +18,6 @@ package EPrints::MetaField;
 
 use EPrints::Log;
 use EPrints::Database;
-use EPrints::Constants;
 
 use strict;
 
@@ -276,29 +275,43 @@ sub display_name
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "fieldname_".$self->{dataset}->confid()."_".$self->{name} );
+	return $session->phrase( "fieldname_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
 sub display_help
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "fieldhelp_".$self->{dataset}->confid()."_".$self->{name} );
+	return $session->phrase( "fieldhelp_".$self->{dataset}->confid."_".$self->{name} );
 }
 
-sub get_sql_type
+sub getSQLType
+{
+        my( $self , $notnull ) = @_;
+
+	my $type = $TYPE_SQL{$self->{type}};
+
+	$type =~ s/\$\(name\)/$self->{name}/g;
+	if( $notnull )
+	{
+		$type =~ s/\$\(param\)/NOT NULL/g;
+	}
+	else
+	{
+		$type =~ s/\$\(param\)//g;
+	}
+
+	return $type;
+}
+
+sub getSQLIndex
 {
         my( $self ) = @_;
 
-        return $TYPE_SQL{$self->{type}};
-}
-
-sub get_sql_index
-{
-        my( $self ) = @_;
-
-print STDERR "gsind: $self->{type}\n";
-        return $TYPE_INDEX{$self->{type}};
+	my $index = $TYPE_INDEX{$self->{type}};
+	$index =~ s/\$\(name\)/$self->{name}/g;
+print STDERR "gsind: $self->{type}...($index)\n";
+	return $index;
 }
 
 sub getName

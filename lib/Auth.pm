@@ -20,7 +20,6 @@ use Apache::Constants qw( OK AUTH_REQUIRED FORBIDDEN DECLINED SERVER_ERROR );
 
 use EPrints::Session;
 use EPrints::RequestWrapper;
-use EPrints::Constants;
 
 #tmp
 use EPrints::Log;
@@ -29,44 +28,49 @@ sub authen
 {
 	my( $r ) = @_;
 
-	print STDERR "Authen\n";
+print STDERR "Authen\n";
 
 	my($res, $passwd_sent) = $r->get_basic_auth_pw;
 
 	my ($user_sent) = $r->connection->user;
 
-print STDERR ref($r)."!!\n";
 	return OK unless $r->is_initial_req; # only the first internal request
 
 	if( !defined $user_sent )
 	{
-		print STDERR "bleep\n";
+print STDERR "no user name\n";
 		return AUTH_REQUIRED;
 	}
-	print STDERR "URL: ".$r->the_request()."\n";
+print STDERR "URL: ".$r->the_request()."\n";
+
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
-	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( $TID_USER , $user_sent );
+
+print STDERR "THE USER IS: $user_sent\n";
+
+	my $ds = $session->getSite->getDataSet( "user" );
+
+	my $user = $session->getDB->get_single( $ds , $user_sent );
 	if( !defined $user )
 	{
-	print STDERR "zong\n";
+print STDERR "zong\n";
 		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
-	my $usertypedata = $session->{site}->{userauth}->{$user->{usertype}};
+	my $usertypedata = $session->getSite->getConf( 
+		"userauth", $user->getValue( "usertype" ) );
 	if( !defined $usertypedata )
 	{
 #cjg this is an error
-		print STDERR "Unknown user type: $user->{usertype}\n";
+		$session->getSite->log(
+			"Unknown user type: $user->{usertype}" );
 		return AUTH_REQUIRED;
 	}
-	print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
+print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
 	my $rwrapper = EPrints::RequestWrapper->new( 
 			$r , 
 			$usertypedata->{conf} );
-	my $result;
-	$result = &{$usertypedata->{routine}}( $rwrapper );
+	my $result = &{$usertypedata->{routine}}( $rwrapper );
 	$session->terminate();
 	return $result;
 }
@@ -74,16 +78,16 @@ print STDERR "GRP:".$user->{usertype}."\n";
 sub authz
 {
 	my( $r ) = @_;
-	print STDERR "Authz\n";
-	print STDERR "XX:".$r->requires()."\n";
-	print STDERR EPrints::Log::render_struct( $r->requires() );
+print STDERR "Authz\n";
+print STDERR "XX:".$r->requires()."\n";
+print STDERR EPrints::Log::render_struct( $r->requires() );
 	my %okgroups = ();
 	my $authz = 0;
 	my $reqset;
 	foreach $reqset ( @{$r->requires()} )
 	{
 		my $val = $reqset->{requirement};
-		print STDERR "REQUIxxx: $val\n";
+print STDERR "REQUIxxx: $val\n";
 		$val =~ s/^\s*require\s+//;
 		# handle different requirement-types
 		if ($val =~ /valid-user/) {
@@ -94,26 +98,29 @@ sub authz
 				$okgroups{$_}++;
 			}
 		}
-		print STDERR "REQUIRES: $val\n";
+print STDERR "REQUIRES: $val\n";
 	}
 	
-	my ($user_sent) = $r->connection->user;
+	my $user_sent = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
-	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( $TID_USER , $user_sent );
+print STDERR "THE USER IS: $user_sent\n";
+	my $ds = $session->getSite->getDataSet( "user" );
+	my $user = $session->getDB->get_single( $ds , $user_sent );
 	if( defined $user )
 	{
-		foreach( @{$session->{site}->{userauth}->{$user->{usertype}}->{priv}} )
+		foreach( @{$session->getSite->getConf( 
+				"userauth", $user->{usertype}, "priv" )} )
 		{
 			$authz = 1 if( defined $okgroups{$_} );
 		}
 	}
 
-	$session->terminate();
+	$session->terminate;
 
 	return OK if( $authz );
 
 	$r->note_basic_auth_failure;
+
 	return AUTH_REQUIRED;
 }
 

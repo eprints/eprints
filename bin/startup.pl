@@ -30,7 +30,6 @@ use Apache::Registry;
 
 
 use EPrints::Auth;
-use EPrints::Citation;
 use EPrints::Database;
 use EPrints::Deletion;
 use EPrints::Document;

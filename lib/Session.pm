@@ -55,10 +55,6 @@ sub new
 
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 
-	# Errors in english - no configuration yet.
-	# These are pretty fatal - nothing will work if
-	# this bit dosn't.
-
 	my $offline;
 
 	if( $mode == 0 || !defined $mode )
@@ -102,7 +98,7 @@ sub new
 	$self->{page} = new XML::DOM::Document;
 
 	my $doctype = XML::DOM::DocumentType->new(
-			"foo",
+			"foo", #cjg what's this bit?
 			"html",
 			"DTD/xhtml1-transitional.dtd",
 			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
@@ -126,7 +122,7 @@ sub new
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
-		$self->failure( $self->{lang}->phrase( "H:fail_db_connect" ) );
+		$self->failure( $self->phrase( "H:fail_db_connect" ) );
 	}
 
 #$self->{starttime} = gmtime( time );
@@ -220,7 +216,7 @@ sub mail_administrator
 		$message_body );
 }
 
-sub html_phrase
+sub HTMLPhrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
 
@@ -231,11 +227,11 @@ sub html_phrase
 
 sub phrase
 {
-	my( $self, $phraseid , $inserts ) = @_;
+	my( $self, $phraseid, %inserts ) = @_;
 
         my @callinfo = caller();
         $callinfo[1] =~ m#[^/]+$#;
-        return $self->{lang}->file_phase( $& , $phraseid , $inserts );
+        return $self->{lang}->file_phase( $&, $phraseid, %inserts );
 }
 
 sub getDB
@@ -296,6 +292,7 @@ sub sendHTTPHeader
 sub start_html
 {
 	my( $self, $title, $langid ) = @_;
+die "NOPE";
 
 	$self->sendHTTPHeader();
 
@@ -317,6 +314,7 @@ sub start_html
 sub end_html
 {
 	my( $self ) = @_;
+die "NOPE";
 	
 	# End of HTML gubbins
 	my $html = $self->{site}->getConf("html_tail")."\n";
@@ -334,7 +332,7 @@ sub end_html
 #
 ######################################################################
 
-sub url
+sub getURL
 {
 	my( $self ) = @_;
 	
@@ -385,7 +383,7 @@ die "NOPE";
 ######################################################################
 #
 # $html = render_submit_buttons( $submit_buttons )
-#                           array_ref
+#                                array_ref
 #
 #  Returns HTML for buttons all with the name "submit" but with the
 #  values given in the array. A single "Submit" button is printed
@@ -413,7 +411,7 @@ sub get_order_name
 {
 	my( $self, $dataset, $orderid ) = @_;
 	
-        return $self->{lang}->phrase( 
+        return $self->phrase( 
 		"ordername_".$dataset->toString()."_".$orderid );
 }
 
@@ -441,7 +439,7 @@ sub param
 	}
 	else
 	{
-		@result = $self->{query}->param();
+		@result = $self->{query}->param;
 	}
 
 	return( @result );
@@ -560,7 +558,7 @@ sub make_submit_buttons
 				type => "submit",
 				name => "submit",
 				value => $_ ) );
-		$frag->appendChild( $self->makeText(" ") );
+		$frag->appendChild( $self->makeText( " " ) );
 	}
 
 	return( $frag );

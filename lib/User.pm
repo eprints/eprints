@@ -91,8 +91,9 @@ sub new
 		return $session->{database}->get_single( "user", $username );
 	} 
 
-	my $self = $known;
+	my $self = {};
 	bless $self, $class;
+	$self->{data} = $known;
 	$self->{session} = $session;
 
 	return( $self );
@@ -316,8 +317,8 @@ sub validate
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
 			push @all_problems, 
-			   $self->{session}->{lang}->phrase( "H:missedfield", 
-			                                     { field=>$field->display_name( $self->{session} ) } );
+			   $self->{session}->phrase( "H:missedfield", 
+			                             field=>$field->display_name( $self->{session} ) );
 		}
 		else
 		{
@@ -389,10 +390,10 @@ sub send_introduction
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
-		$self->{session}->{lang}->phrase( $subj , { sitename=>$self->{session}->{site}->{sitename} } ),
+		$self->{session}->phrase( $subj , sitename=>$self->{session}->{site}->{sitename} ),
 		$self->{email},
-		$self->{session}->{lang}->phrase( "S:welcome", 
-		                                 { sitename=>$self->{session}->{site}->{sitename} } ),
+		$self->{session}->phrase( "S:welcome", 
+		                          sitename=>$self->{session}->{site}->{sitename} ),
 		$self->{session}->{site}->{template_user_intro},
 		$self ) );
 }
@@ -412,20 +413,19 @@ sub send_reminder
 {
 	my( $self, $message ) = @_;
 	
-	my $full_message = $self->{session}->{lang}->phrase(
-	     "M:reminder",
-		  { sitename=>$self->{session}->{site}->{sitename},
-	     	  message=>( defined $message ? "$message\n\n" : "" ),
-		  username=>$self->{username},
-		  password=>$self->{passwd},
-		  adminemail=>$self->{session}->{site}->{admin} } );
+	my $full_message = $self->{session}->phrase(
+	     	"M:reminder",
+		 sitename=>$self->{session}->{site}->{sitename},
+	     	 message=>( defined $message ? "$message\n\n" : "" ),
+		 username=>$self->{username},
+		 password=>$self->{passwd},
+		 adminemail=>$self->{session}->{site}->{admin}  );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},
 			$self->full_name(),
 	                $self->{email},
-	                $self->{session}->{lang}->phrase( 
-                        	"S:remindersub" ),
+	                $self->{session}->phrase( "S:remindersub" ),
 	                $full_message ) );
 }
 
@@ -546,7 +546,7 @@ sub getValue
 {
 	my( $self , $fieldname ) = @_;
 
-	return $self->{$fieldname};
+	return $self->{data}->{$fieldname};
 }
 
 1;

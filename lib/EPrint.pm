@@ -645,11 +645,11 @@ sub validate_type
 	# configured EPrint types
 	if( !defined $self->{type} || $self->{type} eq "" )
 	{
-		push @problems, $self->{session}->{lang}->phrase( "H:no_type" );
+		push @problems, $self->{session}->phrase( "H:no_type" );
 	}
 	elsif( !defined $self->{session}->{metainfo}->get_type_name( $self->{session} , "eprintid", $self->{type} ) )
 	{
-		push @problems, $self->{session}->{lang}->phrase( "H:invalid_type" );
+		push @problems, $self->{session}->phrase( "H:invalid_type" );
 	}
 	
 	return( \@problems );
@@ -683,9 +683,9 @@ sub validate_meta
 		if( $field->{required} && ( !defined $self->{$field->{name}} ||
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
-			$problem = $self->{session}->{lang}->phrase( 
+			$problem = $self->{session}->phrase( 
 				"H:not_done_field" ,
-				{ fieldname=>$field->displayname( $self->{session} ) } );
+				fieldname=>$field->displayname( $self->{session} ) );
 		}
 		else
 		{
@@ -711,9 +711,9 @@ sub validate_meta
 			}
 			if ( scalar @invalid > 0 )
 			{
-				$problem = $self->{session}->{lang}->phrase(
+				$problem = $self->{session}->phrase(
 						"H:invalid_users",
-				            	{ usernames=>join(", ",@invalid) } );
+				            	usernames=>join(", ",@invalid) );
 			}
 		}
 
@@ -759,7 +759,7 @@ sub validate_subject
 			if( !defined $self->{$field->{name}} ||
 			    $self->{$field->{name}} eq ":" )
 			{
-				$problem = $self->{session}->{lang}->phrase(
+				$problem = $self->{session}->phrase(
 						"H:least_one_sub" );
 			}
 		}
@@ -806,9 +806,9 @@ sub validate_linking
 		                                       $self->{succeeds} );
 		unless( defined( $test_eprint ) )
 		{
-			push @problems, $self->{session}->{lang}->phrase(
+			push @problems, $self->{session}->phrase(
 				"H:invalid_succ",	
-				{ field=>$succeeds_field->displayname( $self->{session} ) } );
+				field=>$succeeds_field->displayname( $self->{session} ) );
 		}
 
 		if( defined $test_eprint )
@@ -824,7 +824,7 @@ sub validate_linking
 #				                              $self->{username} );
 #				if( !defined $user && $user->{
 
-				push @problems, $self->{session}->{lang}->phrase(
+				push @problems, $self->{session}->phrase(
 					"H:cant_succ" );
 			}
 		}
@@ -837,9 +837,9 @@ sub validate_linking
 		                                       $self->{commentary} );
 		
 		unless( defined( $test_eprint ) ) { 
-			push @problems, $self->{session}->{lang}->phrase(
+			push @problems, $self->{session}->phrase(
 				"H:invalid_id",
-				{ field=>$commentary_field->displayname( $self->{session} ) } );
+				field=>$commentary_field->displayname( $self->{session} ) );
 		}
 
 	}
@@ -971,7 +971,7 @@ sub validate_documents
 
 	if( !$ok )
 	{
-		my $prob = $self->{session}->{lang}->phrase( "H:need_a_format" );
+		my $prob = $self->{session}->phrase( "H:need_a_format" );
 		$prob .= "<UL>\n";
 		foreach (@{$self->{session}->{required_formats}})
 		{
@@ -1282,11 +1282,11 @@ sub generate_static
 	{
 		EPrints::Log::log_entry(
 			"EPrint",
-			$self->{session}->{lang}->phrase(
+			$self->{session}->phrase(
 				"L:error_gen_st",
-				{ path=>$self->static_page_local(),
+				path=>$self->static_page_local(),
 				eprintid=>$self->{eprintid},
-				errmsg=>$! } ) );
+				errmsg=>$! ) );
 		return( 0 );
 	}
 

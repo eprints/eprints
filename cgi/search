@@ -28,7 +28,7 @@ my $searchexp = new EPrints::SearchExpression(
 
 my $preamble = $session->make_element( "p" );
 my $a = $session->make_element( "a", href=>"advsearch" );
-$a->appendChild( $session->html_phrase( "adv_search" ) );
+$a->appendChild( $session->HTMLPhrase( "adv_search" ) );
 $preamble->appendChild( $a );
 
 my $title = $session->phrase( "simple_search" );

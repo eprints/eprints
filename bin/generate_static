@@ -26,20 +26,33 @@ use strict;
 
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
+print "____________________________\n";
+my $language;
+foreach $language ( keys %EPrints::Site::General::languages )
+{
+	print $language."\n";
+	my $basepath = $session->getSite->getConf( "static_html_root" ).
+	               "/$language/";
+	my $func = sub { generate_static( $language, $basepath, $session ) };
+	find( { wanted=>$func, follow=>1 }, $basepath );
+}
+exit;
 
-find( { wanted=>\&generate_static, follow=>1 },
-      $session->{site}->{static_html_root}."/" );
 
 $session->terminate();
 
 
 sub generate_static
 {
+	my( $language , $basepath , $session ) = @_;
 	# Ignore CVS directories
 	return if( $File::Find::name =~ /\/CVS/ );
 
 	my $destination_filename = $File::Find::name;
-	$destination_filename =~ s/$session->{site}->{static_html_root}/$session->{site}->{local_html_root}/;
+
+	my $newpath = $session->getSite->getConf( "local_html_root" ).
+	              "/$language/";
+	$destination_filename =~ s/$basepath/$newpath/;
 
 print STDERR "$File::Find::name -> $destination_filename\n";
 	
@@ -48,55 +61,31 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 		# If it's a directory, just make sure it exists in the destination.
 		unless( -e $destination_filename )
 		{
-			mkdir $destination_filename, 0775
+			mkdir( $destination_filename, 0775 )
 				or die "Can't make directory $destination_filename: $!\n";
 		}
 	}
 	else
 	{
-		# Is this is an HTML file?
-		if( /.+\.html/i )
+		# Is this is an HTML template file?
+		if( $destination_filename =~ s/\.xhtml$/.html/i )
 		{
-			# It's an HTML file.  Add the "skin" if necessary
-			my $must_add_skin = 0;
-
-			# Open up the files
-			open IN, $File::Find::name
-				or die "Error opening $File::Find::name: $!\n";
-
-			open OUT, ">$destination_filename"
-				or die "Error opening $destination_filename for writing: $!\n";
-
-			my $first_line = <IN>;
-			chomp();
-
-			if( $first_line =~ s/^title:\s+//i )
+			my $parser = new XML::DOM::Parser( 
+					ParseParamEnt => 1,
+					NoLWP => 1,
+					ProtocolEncoding => "ISO-8859-1" );
+			my $dom = eval { 
+				$parser->parsefile( $File::Find::name );
+			};
+			if( $@ )
 			{
-				# We need to add the site frame
-				$must_add_skin = 1;
-
-				print OUT $session->{render}->start_html( $first_line );
+				my $err = $@;
+				$err =~ s# at /.*##;
+				die "Error parsing $File::Find::name\n$err";
 			}
-			else
-			{
-				# We're just copying verbatim
-				print OUT "$first_line\n";
-			}
-
-			# Copy the file across
-			while( <IN> )
-			{
-				chomp();
-				print OUT EPrints::Mailer::update_template_line($session, $_, undef );
-				print OUT "\n";
-			}
-
-			# Write the site frame terminator if appropriate
-			print OUT $session->{render}->end_html() if( $must_add_skin );
-
-			# Close the files
-			close( IN );
-			close( OUT );
+			print STDERR "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ \n";
+			print STDERR $dom->getFirstChild->getNodeName."\n";
+			print $dom->printToFile( $destination_filename );
 		}
 		else
 		{

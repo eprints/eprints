@@ -194,24 +194,24 @@ sub render_error
 
 	if ( $self->{offline} )
 	{
-		print $self->{session}->{lang}->phrase( 
+		print $self->{session}->phrase( 
 			"A:some_error",
-			{ sitename=>$self->{session}->{site}->{sitename} } );
+			sitename=>$self->{session}->{site}->{sitename} );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
 	else
 	{
 		print $self->start_html( 
-			$self->{session}->{lang}->phrase( "H:error_title" ) );
+			$self->{session}->phrase( "H:error_title" ) );
 
-		print "<P>".$self->{session}->{lang}->phrase( 
+		print "<P>".$self->{session}->phrase( 
 			"H:some_error",
-			{ sitename=>$self->{session}->{site}->{sitename} } )."</P>\n";
+			sitename=>$self->{session}->{site}->{sitename} )."</P>\n";
 		print "<P>$error_text</P>\n";
-		print "<P>".$self->{session}->{lang}->phrase( 
+		print "<P>".$self->{session}->phrase( 
 			"H:contact",
-			{ adminemail=>"<A HREF=\"mailto:$self->{session}->{site}->{admin}\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$self->{session}->{site}->{sitename} } )."</A>" } )."</P>\n";
+			adminemail=>"<A HREF=\"mailto:$self->{session}->{site}->{admin}\">".$self->{session}->phrase( "H:sitename_admin" , sitename=>$self->{session}->{site}->{sitename} )."</A>"  )."</P>\n";
 				
 		print "<P><A HREF=\"$back_to\">$back_to_text</A></P>\n";
 	
@@ -260,17 +260,17 @@ sub input_field
 			($year, $month, $day) = ("", "00", "") if( $month == 0 );
 		}
 
-		$html = $self->{session}->{lang}->phrase( "H:year" );
+		$html = $self->{session}->phrase( "H:year" );
 		$html .= $self->{query}->textfield( -name=>"$field->{name}_year",
 		                                    -default=>$year,
 		                                    -size=>4,
 		                                    -maxlength=>4 );
-		$html .= " ".$self->{session}->{lang}->phrase( "H:month" );
+		$html .= " ".$self->{session}->phrase( "H:month" );
 		$html .= $self->{query}->popup_menu( -name=>"$field->{name}_month",
 		                                     -values=>\@months,
 		                                     -default=>$month,
 		                                     -labels=>\%monthnames );
-		$html .= " ".$self->{session}->{lang}->phrase( "H:day" );
+		$html .= " ".$self->{session}->phrase( "H:day" );
 		$html .= $self->{query}->textfield( -name=>"$field->{name}_day",
 		                                    -default=>$day,
 		                                    -size=>2,
@@ -411,9 +411,9 @@ sub input_field
 
 		# Render the boxes
 		$html  = "<table border=0><tr><th>";
-		$html .= $self->{session}->{lang}->phrase( "H:surname" );
+		$html .= $self->{session}->phrase( "H:surname" );
 		$html .= "</th><th>";
-		$html .= $self->{session}->{lang}->phrase( "H:first_names" );
+		$html .= $self->{session}->phrase( "H:first_names" );
 		$html .= "</th>";
 		
 		my $i;
@@ -445,7 +445,7 @@ sub input_field
 		{
 			$html .= "<td>".$self->named_submit_button( 
 				"name_more_$field->{name}",
-				$self->{session}->{lang}->phrase( "F:more_spaces" ) );
+				$self->{session}->phrase( "F:more_spaces" ) );
 			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
 		}
@@ -471,7 +471,7 @@ sub input_field
 
 		# Render the boxes
 		$html = "<table border=0><tr><th>";
-		$html.= $self->{session}->{lang}->phrase( "H:username_title" );
+		$html.= $self->{session}->phrase( "H:username_title" );
 		$html.= "</th>";
 		
 		my $i;
@@ -496,7 +496,7 @@ sub input_field
 		{
 			$html .= "<td>".$self->named_submit_button( 
 				"username_more_$field->{name}",
-				$self->{session}->{lang}->phrase( "F:more_spaces" ) );
+				$self->{session}->phrase( "F:more_spaces" ) );
 			$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
 		}
@@ -1152,7 +1152,7 @@ sub _write_version_thread_aux
 	if( $eprint->{eprintid} eq $eprint_shown->{eprintid} ) 
 	{
 		$html .= " <strong>[";
-		$html .= $self->{session}->{lang}->phrase( "H:curr_disp" );
+		$html .= $self->{session}->phrase( "H:curr_disp" );
 		$html .= "]</strong>";
 	}
 	
@@ -1200,16 +1200,16 @@ sub render_deleted_eprint
 		if( defined $deletion_record->{replacement} );
 	
 	my $html = $self->start_html( 
-		$self->{session}->{lang}->phrase( "H:eprint_gone_title" ) );
+		$self->{session}->phrase( "H:eprint_gone_title" ) );
 	
 	$html .= "<P>";
-	$html .= $self->{session}->{lang}->phrase( "H:eprint_gone" );
+	$html .= $self->{session}->phrase( "H:eprint_gone" );
 	$html .= "</P>\n";
 	
 	if( defined $replacement_eprint )
 	{
 		$html .= "<P>";
-		$html .= $self->{session}->{lang}->phrase( "H:later_version" );
+		$html .= $self->{session}->phrase( "H:later_version" );
 		$html .= "</P>\n";
 		$html .= "<P ALIGN=CENTER>";
 
