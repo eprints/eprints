@@ -370,53 +370,64 @@ $c->{userauth} = {
 		priv  =>  [ "tester", "subscription" ] }
 };
 
+
+
 ######################################################################
-# USER FIELDS
+# METADATA CONFIGURATION
 ######################################################################
+# The archive specific fields for users and eprints.
+#
+# "editable" is almost always true (1), but there are times you
+# might not want this. For example if you have a system which 
+# imports information about users from another database, you
+# may not wish them to be able to change those fields.
+#
+######################################################################
+
 
 $c->{sitefields}->{user} = [
 	{
 		name => "name",
 		type => "name",
 		required => 1,
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "dept",
 		type => "text",
 		required => 0,
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "org",
 		type => "text",
 		required => 0,
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "address",
 		type => "longtext",
 		displaylines => 5,
 		required => 0,
+		editable => 1
+	},
+	{
+		name => "oook",
+		type => "text",
 		editable => 1,
-		visible => 1
+		multiple => 1
 	},
 	{
 		name => "country",
 		type => "text",
 		required => 0,
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "url",
 		type => "url",
 		required => 0,
 		editable => 1,
-		visible => 1,
 		multiple => 1 # TEMP cjg
 	},
 	{
@@ -424,7 +435,6 @@ $c->{sitefields}->{user} = [
 		type => "subject",
 		required => 0,
 		editable => 1,
-		visible => 1,
 		showall => 1,
 		multiple => 1
 	}
@@ -435,176 +445,149 @@ $c->{sitefields}->{eprint} = [
 		name => "abstract",
 		displaylines => 10,
 		type => "longtext",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "altloc",
 		displaylines => 3,
 		type => "url",
 		editable => 1,
-		multiple => 1,
-		visible => 1
+		multiple => 1
 	},
 	{
 		name => "authors",
 		type => "name",
 		editable => 1,
-		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "chapter",
 		type => "text",
 		editable => 1,
-		visible => 1,
 		maxlength => 5
 	},
 	{
 		name => "comments",
 		type => "longtext",
 		editable => 1,
-		displaylines => 3,
-		visible => 1
+		displaylines => 3
 	},
 	{
 		name => "commref",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "confdates",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "conference",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "confloc",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "department",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "editors",
 		type => "name",
 		editable => 1,
-		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "institution",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "ispublished",
 		type => "set",
 		editable => 1,
-		visible => 1,
 		options => [ "unpub","inpress","pub" ]
 	},
 	{
 		name => "keywords",
 		type => "longtext",
 		editable => 1,
-		displaylines => 2,
-		visible => 1
+		displaylines => 2
 	},
 	{
 		name => "month",
 		type => "set",
 		editable => 1,
-		visible => 1,
 		options => [ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
 	},
 	{
 		name => "number",
 		type => "text",
 		maxlength => 6,
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "pages",
 		type => "pagerange",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "pubdom",
 		type => "boolean",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "publication",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "publisher",
 		type => "text",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "refereed",
 		type => "boolean",
-		editable => 1,
-		visible => 1
+		editable => 1
 	},
 	{
 		name => "referencetext",
 		type => "longtext",
 		editable => 1,
-		visible => 1,
 		displaylines => 3
 	},
 	{
 		name => "reportno",
 		type => "text",
 		editable => 1,
-		visible => 1
 	},
 	{
 		name => "thesistype",
 		type => "text",
 		editable => 1,
-		visible => 1
 	},
 	{
 		name => "title",
 		type => "text",
 		editable => 1,
-		visible => 1
 	},
 	{
 		name => "volume",
 		type => "text",
 		maxlength => 6,
 		editable => 1,
-		visible => 1
 	},
 	{
 		name => "year",
 		type => "year",
 		editable => 1,
-		visible => 1
 	}
 ];
 	
@@ -1810,20 +1793,16 @@ sub user_render_full
 
 		foreach $field (@fields)
 		{
-			if( !$public || $field->{visible} )
+			$html .= "<TR><TD VALIGN=TOP><STRONG>".$field->display_name( $user->{session} ).
+				"</STRONG></TD><TD>";
+
+			if( defined $user->{$field->{name}} )
 			{
-				$html .= "<TR><TD VALIGN=TOP><STRONG>".$field->display_name( $user->{session} ).
-					"</STRONG></TD><TD>";
-
-				if( defined $user->{$field->{name}} )
-				{
-					$html .= $user->{session}->{render}->format_field(
-						$field,
-						$user->{$field->{name}} );
-				}
-
-				$html .= "</TD></TR>\n";
+				$html .= $user->{session}->{render}->format_field(
+					$field,
+					$user->{$field->{name}} );
 			}
+			$html .= "</TD></TR>\n";
 		}
 
 		$html .= "</table></p>\n";

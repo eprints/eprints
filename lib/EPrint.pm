@@ -40,54 +40,47 @@ sub get_system_field_info
 		name=>"eprintid",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visable=>1
+		editable=>0
 	},
 	{
 		name=>"username",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visable=>1
+		editable=>0
 	},
 	{
 		name=>"dir",
 		type=>"text",
 		required=>0,
-		editable=>0,
-		visable=>0
+		editable=>0
 	},
 	{
 		name=>"datestamp",
 		type=>"date",
 		required=>0,
-		editable=>0,
-		visable=>1
+		editable=>0
 	},
                           # Subject categories. Tagged as
-                          # "not visible" since it's a special
+                          # "not editable" since it's a special
                           # case.
 	{
 		name=>"subjects",
 		type=>"subject",
 		required=>0,
 		editable=>0,
-		visable=>0,
 		multiple=>1
 	},
 	{
 		name=>"additional",
 		type=>"text",
 		required=>0,
-		editable=>0,
-		visable=>0
+		editable=>0
 	},
 	{
 		name=>"reasons",
 		type=>"longtext",
 		required=>0,
 		editable=>0,
-		visable=>0,
 		displaylines=>6
 	},
 	{
@@ -95,22 +88,19 @@ sub get_system_field_info
 		type=>"datatype",
 		datasetid=>"eprint",
 		required=>1,
-		editable=>0,
-		visable=>0
+		editable=>0
 	},
 	{
 		name=>"succeeds",
 		type=>"text",
 		required=>0,
-		editable=>0,
-		visable=>0
+		editable=>0
 	},
 	{
 		name=>"commentary",
 		type=>"text",
 		required=>0,
-		editable=>0,
-		visable=>0
+		editable=>0
 	} );
 }
 

@@ -39,31 +39,27 @@ sub get_system_field_info
 		name=>"subid",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"username",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"spec",
 		type=>"longtext",
 		displaylines=>3,
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"frequency",
 		type=>"set",
 		options=>["never","daily","weekly","monthly"],
 		required=>1,
-		editable=>1,
-		visible=>1
+		editable=>1
 	} );
 }
 

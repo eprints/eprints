@@ -35,36 +35,31 @@ sub get_system_field_info
 		name=>"username",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"passwd",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"usertype",
 		type=>"datatype",
 		required=>1,
 		editable=>0,
-		visible=>0,
 		datasetid=>"user"
 	},
 	{
 		name=>"joined",
 		type=>"date",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"email",
 		type=>"email",
-		required=>1,
-		visible=>1
+		required=>1
 	} );
 };
 

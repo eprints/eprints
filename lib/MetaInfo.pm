@@ -5,11 +5,6 @@
 #  Holds and maintains information about metadata fields.
 #
 #
-#  The user metadata format is:
-#
-#  field_name:type:arguments:display name:required?:user editable?:
-#  publically visible?
-#   1 = true, 0 = false for the last three.
 #
 ######################################################################
 #

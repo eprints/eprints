@@ -254,6 +254,10 @@ sub mail_administrator
 sub html_phrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
+	# $phraseid [ASCII] 
+	# %inserts [HASH: ASCII->DOM]
+	#
+	# returns [DOM]	
 
         my @callinfo = caller();
         $callinfo[1] =~ m#[^/]+$#;

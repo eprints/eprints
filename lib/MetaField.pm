@@ -73,7 +73,6 @@ my %TYPE_INDEX =
 # type   **required**
 # required # default = no
 # editable # default = no
-# visible  # default = no
 # multiple # default = no
 # tableid # for help & name 
 # 
@@ -105,7 +104,7 @@ sub new
 		}
 		$self->setProperty( $_, $properties->{$_} );
 	}
-	foreach( "required" , "editable" , "visible" , "multiple" )
+	foreach( "required" , "editable" , "multiple" )
 	{
 		$self->setProperty( $_, $properties->{$_}, 0 );
 	}
@@ -310,7 +309,7 @@ print STDERR "gsind: $self->{type}...($index)\n";
 }
 
 ## WP1: BAD
-sub getName
+sub get_name
 {
 	my( $self ) = @_;
 	return $self->{name};

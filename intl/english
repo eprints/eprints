@@ -53,7 +53,7 @@
     <phrase ref="day">Day:</phrase>
     <phrase ref="to">to</phrase>
     <phrase ref="family_name">Family Name</phrase>
-    <phrase ref="first_names">First Names</phrase>
+    <phrase ref="first_names">Given Names</phrase>
     <phrase ref="more_spaces">More Spaces</phrase>
     <phrase ref="month_00">Unspecified</phrase>
     <phrase ref="month_01">January</phrase>

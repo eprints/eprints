@@ -39,29 +39,25 @@ sub get_system_field_info
 		name=>"subjectid",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"name",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"parent",
 		type=>"text",
 		required=>0,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"depositable",
 		type=>"boolean",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	} );
 }
 

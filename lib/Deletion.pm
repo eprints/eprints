@@ -24,16 +24,6 @@ use EPrints::Session;
 
 use strict;
 
-# cjg for another day........
-
-@EPrints::Deletion::system_meta_fields =
-(
-	"eprintid:text::EPrint ID:1:0:0",
-	"replacement:text::ID of Replacement:1:0:0",
-	"subjects:subject::Subject Categories:0:0:0:1",
-	"deletiondate:date::Date Removed:1:0:0"
-);
-
 ## WP1: BAD
 sub get_system_field_info
 {
@@ -44,30 +34,26 @@ sub get_system_field_info
 		name=>"eprintid",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"replacement",
 		type=>"text",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"subjects",
 		type=>"subject",
 		multiple=>1,
 		required=>0,
-		editable=>0,
-		visible=>0
+		editable=>0
 	},
 	{
 		name=>"deletiondate",
 		type=>"date",
 		required=>1,
-		editable=>0,
-		visible=>0
+		editable=>0
 	} );
 }
 
