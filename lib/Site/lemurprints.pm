@@ -102,9 +102,6 @@ $c->{frontpage} = "$c->{server_static}/";
 # Corresponding URL of document file hierarchy
 $c->{server_document_root} = "$c->{server_static}/documents"; 
 
-# Corresponding URL stem for "browse by subject" HTML files
-$c->{server_subject_view_stem} = "$c->{server_static}/view-";
-
 #################################################################
 #  Files
 #################################################################
@@ -809,10 +806,6 @@ $c->{types}->{user} = {
 #
 ######################################################################
 
-# Location of the root of the subject tree
-#$EPrintSite::SiteInfo::server_subject_view_root = 
-#	$EPrintSite::SiteInfo::server_subject_view_stem."ROOT.html";
-
 # parameters to generate the HTML header with.
 # TITLE will be set by the system as appropriate.
 # See the CGI.pm manpage for more info ( man CGI ).
@@ -844,7 +837,7 @@ $c->{htmlpage}->{english} = parseHTML( <<END );
 
             <a class="menulink" href="$c->{frontpage}">Home</a> ||
             <a class="menulink" href="$c->{server_static}/information.html">About</a> ||
-            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">Browse</a> ||
+            <a class="menulink" href="$c->{server_static}/view/">Browse</a> ||
             <a class="menulink" href="$c->{server_perl}/search">Search</a> ||
             <a class="menulink" href="$c->{server_static}/register.html">Register</a> ||
             <a class="menulink" href="$c->{server_perl}/users/subscribe">Subscriptions</a> ||
@@ -896,7 +889,7 @@ $c->{htmlpage}->{french} = parseHTML( <<END );
 
             <a class="menulink" href="$c->{frontpage}">l'Home</a> ||
             <a class="menulink" href="$c->{server_static}/information.html">l'About</a> ||
-            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">l'Browse</a> ||
+            <a class="menulink" href="$c->{server_static}/view/">l'Browse</a> ||
             <a class="menulink" href="$c->{server_perl}/search">l'Search</a> ||
             <a class="menulink" href="$c->{server_static}/register.html">l'Register</a> ||
             <a class="menulink" href="$c->{server_perl}/users/subscribe">l'Subscriptions</a> ||
@@ -957,7 +950,7 @@ $c->{htmlpage}->{dummy} = parseHTML( <<END );
 
             <a class="menulink" href="$c->{frontpage}">HOME</a> ||
             <a class="menulink" href="$c->{server_static}/information.html">ABOUT</a> ||
-            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">BROWSE</a> ||
+            <a class="menulink" href="$c->{server_subject}/view/">BROWSE</a> ||
             <a class="menulink" href="$c->{server_perl}/search">SEARCH</a> ||
             <a class="menulink" href="$c->{server_static}/register.html">REGISTER</a> ||
             <a class="menulink" href="$c->{server_perl}/users/subscribe">SUBSCRIPTIONS</a> ||

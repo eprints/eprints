@@ -189,23 +189,21 @@ sub create_child
 sub children
 {
 	my( $self ) = @_;
-	
-	my @fields = $self->{session}->{metainfo}->get_fields( "subject" );
+
+	my $ds = $self->{session}->getSite->getDataSet( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
-		$self->{session},
-		"subject" );
+		session=>$self->{session},
+		dataset=>$ds );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field(
-			"subject",
-			"parent" ),
+		$ds->getField( "parent" ),
 		"ALL:EQ:$self->{subjectid}" );
 
 #cjg set order (it's in the site config)
 
-	my $searchid = $searchexp->perform_search();
-	my @rows = $searchexp->get_records();
+	my $searchid = $searchexp->perform_search;
+	my @rows = $searchexp->get_records;
 
 	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 

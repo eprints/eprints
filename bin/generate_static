@@ -72,9 +72,6 @@ sub generateDTD
 	$dtd.= "<!ENTITY frontpage \"".
 		$session->getSite->getConf( "frontpage" ).
 		"\" >\n";
-	$dtd.= "<!ENTITY subjectroot \"".
-		$session->getSite->getConf( "server_subject_view_stem" ).
-		"\" >\n";
 	$dtd.= "<!ENTITY version \"".
 		$EPrints::Version::eprints_software_version.
 		"\" >\n";

@@ -124,8 +124,6 @@ sub update_template_line
 	$new_line =~ s/__perlroot__/$session->{site}->{server_perl}/g;
 	$new_line =~ s/__staticroot__/$session->{site}->{server_static}/g;
 	$new_line =~ s/__frontpage__/$session->{site}->{frontpage}/g;
-	$new_line =~
-		s/__subjectroot__/$session->{site}->{server_subject_view_stem}/g;
 	$new_line =~ s/__version__/$EPrints::Version::eprints_software_version/g;
 	
 	return( $new_line );

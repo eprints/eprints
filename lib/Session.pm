@@ -674,6 +674,157 @@ sub setPage
 
 	
 	
+######################################################################
+#
+# $html = subject_tree( $subject )
+#
+#  Return HTML for a subject tree for the given subject. If $subject is
+#  undef, the root subject is assumed.
+#
+#  The tree will feature the current tree, the parents up to the root,
+#  and all children.
+#
+######################################################################
+
+sub subjectTree
+{
+	my( $self, $subject ) = @_;
+
+	my $frag = $self->makeDocFragment;
+	
+	# Get the parents
+	my $parent = $subject->parent();
+	my @parents;
+	
+	while( defined $parent )
+	{
+		push @parents, $parent;
+		$parent = $parent->parent();
+	}
+	
+	# Render the parents
+	my $ul = $self->make_element( "ul" );
+	$frag->appendChild( $ul );
+	while( $#parents >= 0 )
+	{
+		$parent = pop @parents;
+
+		my $li = $self->make_element( "li" );
+		$li->appendChild(
+			$self->subject_desc( $parent, 1, 0, 1 ) );
+		$ul->appendChild( $li );
+		my $newul = $self->make_element( "ul" );
+		$ul->appendChild( $newul );
+		$ul = $newul;
+	}
+	
+	# Render this subject
+	if( defined $subject &&
+		( $subject->{subjectid} ne $EPrints::Subject::root_subject ) )
+	{
+		my $li = $self->make_element( "li" );
+		$li->appendChild(
+			$self->subject_desc( $subject, 0, 0, 1 ) );
+		$ul->appendChild( $li );
+		my $newul = $self->make_element( "ul" );
+		$ul->appendChild( $newul );
+		$ul = $newul;
+	}
+	
+	# Render children
+	$ul->appendChild( $self->_render_children( $subject ) );
+
+	return( $frag );
+}
+
+######################################################################
+#
+# $html = _render_children( $subject )
+#
+#  Recursively render the children of the given subject into HTML lists.
+#
+######################################################################
+
+sub _render_children
+{
+	my( $self, $subject ) = @_;
+
+	my $frag = $self->makeDocFragment;
+	my @children = $subject->children();
+
+	if( $#children >= 0 )
+	{
+		my $ul = $self->make_element( "ul" );
+		$frag->appendChild( $ul );
+	
+		foreach (@children)
+		{
+			my $li = $self->make_element( "li" );
+			
+			$li->appendChild( $self->subject_desc( $_, 1, 0, 1 ) );
+			$li->appendChild( $self->_render_children( $_ ) );
+			$ul->appendChild( $li );
+		}
+		
+	}
+	
+	return( $frag );
+}
+
+
+######################################################################
+#
+# $html = subject_desc( $subject, $link, $full, $count )
+#
+#  Return the HTML to render the title of $subject. If $link is non-zero,
+#  the title is linked to the static subject view. If $full is non-zero,
+#  the full name of the subject is given. If $count is non-zero, the
+#  number of eprints in that subject is appended in brackets.
+#
+######################################################################
+
+sub subject_desc
+{
+	my( $self, $subject, $link, $full, $count ) = @_;
+	
+	my $frag;
+	if( $link )
+	{
+		$frag = $self->make_element(
+				"a",
+				href=>
+			$self->getSite->getConf( "server_static" ).
+			"/view/".$subject->{subjectid}.".html\">" );
+	}
+	else
+	{
+		$frag = $self->makeDocFragment;
+	}
+	
+
+	if( defined $full && $full )
+	{
+		$frag->appendChild( $self->makeText(
+			EPrints::Subject::subject_label( 
+						$self,
+		                                $subject->{subjectid} ) ) );
+	}
+	else
+	{
+		$frag->appendChild( $self->makeText( $subject->{name} ) );
+	}
+		
+	if( $count && $subject->{depositable} eq "TRUE" )
+	{
+		$frag->appendChild( $self->makeText( 
+			" (" .$subject->count_eprints( 
+				$self->getSite->getDataSet( "archive" ) ) ).
+			")" );
+	}
+	
+	return( $frag );
+}
+
 		
 
 1;

@@ -27,20 +27,39 @@ use EPrints::HTMLRender;
 use EPrints::Subject;
 use EPrints::Log;
 
-my $session = new EPrints::Session( 1 );
+my $session = new EPrints::Session( 1 , $ARGV[0] );
 
 
 # Get all of the available subjects
 my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 
-# Start with the root
-&write_subject_view( $session, new EPrints::Subject( $session ) );
-
-# Now do each of the subjects
-foreach (@$subjects)
+my $langid;
+foreach $langid ( keys %EPrints::Site::General::languages )
 {
-	#EPrints::Log::debug( "generate_views", "Generating view for $_->{name}" );
-	&write_subject_view( $session, $_ );
+	my $dir =  $session->getSite->getConf( "local_html_root" ).
+		"/".$langid."/view";
+	unless( -d $dir )
+	{
+		print "mkdir $dir\n";
+		mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
+	}
+	# Start with the root
+	&write_subject_view( 
+		$session, 
+		$langid, 
+		$dir."/index.html",
+		new EPrints::Subject( $session ) );
+
+	# Now do each of the subjects
+
+	foreach (@$subjects)
+	{
+		&write_subject_view( 
+			$session, 
+			$langid, 
+			$dir."/".$_->{subjectid}.".html",
+			$_ );
+	}
 }
 
 $session->terminate();
@@ -49,29 +68,25 @@ $session->terminate();
 
 sub write_subject_view
 {
-	my( $session, $subject ) = @_;
+	my( $session, $langid, $file, $subject ) = @_;
 	
-	my $output = $session->{site}->{local_subject_view_stem}.
-		$subject->{subjectid}.".html";
-
 	# Open the subject view file
-	my $ok = open( OUT, ">$output" );
+	my $ok = open( OUT, ">$file" );
 	
 	unless( $ok )
 	{
 		EPrints::Log::log_entry(
 			"generate_views",
-			"Error writing subject view for $subject->{subjectid} to $output:".
+			"Error writing subject view for $subject->{subjectid} to $file:".
 				" $!" );
 		return;
 	}
 	
 	# Title
-	print OUT $session->{render}->start_html(
-		"Browse by Subject: $subject->{name}" );
+	print OUT "Browse by Subject: $subject->{name}" ;
 	
 	# Tree at the top
-	print OUT $session->{render}->subject_tree( $subject );
+	print OUT $session->subjectTree( $subject );
 	print OUT "<HR noshade size=\"2\">\n";	
 
 	# The entries themselves
@@ -87,5 +102,4 @@ sub write_subject_view
 		print OUT "</P>\n";
 	}
 	
-	print OUT $session->{render}->end_html();
 }
