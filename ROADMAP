@@ -162,6 +162,8 @@
 
 #TODO
 #	Call backs for LEAVING archive and buffer=>inbox
+# list of editors?
+
 
 #LESS URGENT TODO...
 #	langid's -> validate they is correct (in multilang)
@@ -174,12 +176,6 @@
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value? NR
 
-
-## Need to make OAI get_values get values for deletion & archive so if the only NR
-## 1853 paper is deleted the set does not disappear. NR
-
-# Need to make Next FOO records give the right answer. NR
-
 # searchexp/file upload : idea: don't allow finished from doc page until a NR
 # valid format is selected.
 
@@ -188,7 +184,7 @@
 # robots.txt file
 # metadata in LINKS for title, creator etc?
 
-# nice 404 / 401 pages. NR
+# nice 401 / 403 / 404 pages. NR
 
 # lose all die statements
 
@@ -196,21 +192,14 @@
 # Check Referer on LatexCache.?
 
 # OAI - cache timeouts. NR
-# OAI - pagesize. NR
 
 # Document form in 2 bits is confusing if bit 2 is off page. NR
 
-# Bounce and accept messages need to say which editor. NR
-
 # sub form: should say "new window" on "view files" NR
-
-# DOM: Status NR
 
 # Search -= cachecode not searchexp. NR
 
-# mail "From" to correct editor! NR
-
 #edit_user !!! bits not done NR
 
-# todo: #########################
-# bugs: ##################
+# todo: TTTTTTTTTTTTTTTTTTTTbbbbbbbbbbbbbbbbb
+#      10  9  8  7  6  5  4  3  2  1  31  30  29 

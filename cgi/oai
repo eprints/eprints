@@ -450,7 +450,7 @@ sub _list
 	#mode 1 = ID 
 	#mode 2 = full metadata
 	
-	my $PAGESIZE = 10;
+	my $PAGESIZE = 100;
 
 
 	my( $searchexp, $offset, $metadata_format ) = get_searchexp_from_params( $session, $mode );
@@ -650,6 +650,7 @@ sub list_sets
 	my $response = make_basic_oai_response( $session, "ListSets" );
 
 	my $ds = $session->get_archive()->get_dataset( "archive" );
+	my $ds_del = $session->get_archive()->get_dataset( "deletion" );
 
 	my $viewconf = $session->get_archive()->get_conf( "oai_sets" );
 	my $info;
@@ -679,7 +680,11 @@ sub list_sets
 			}
 			else
 			{
-				foreach( $field->get_values( $session ) )
+				my @v = $field->get_values( $session );
+				my $delfield = $field->clone();
+				$delfield->set_dataset( $ds_del );
+				push @v, $delfield->get_values( $session );
+				foreach( @v )
 				{
 					my $key = EPrints::OpenArchives::encode_setspec( $_ );
 					if( !defined $key ) { $key=""; }

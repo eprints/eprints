@@ -1605,7 +1605,7 @@ sub make_metadata_oai_dc
 		$dc->appendChild(  $session->render_data_element( 
 			8,
 			"creator",
-			EPrints::Utils::format_name( $session, $author, 0 ) ) );
+			EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ) );
 	}
 
 	my $subjectid;
@@ -1615,7 +1615,7 @@ sub make_metadata_oai_dc
 		$dc->appendChild(  $session->render_data_element( 
 			8,
 			"subject",
-			$subject->get_name() ) );
+			EPrints::Utils::tree_to_utf8( $subject->render_description() ) ) );
 	}
 
 	$dc->appendChild(  $session->render_data_element( 

@@ -20,7 +20,6 @@ General
 - Latex image cache will break if image tex has more than 127 chars
 due to filename limit of 255 chars.
 
-- OAI fails to flag deleted records as deleted!
 
 ----------------------------------------------------------------------
 Rendering
@@ -28,6 +27,9 @@ Rendering
 
 - /views/ pages do not correctly sort the list of fields (it's done 
    by ID not the rendered phrase). 
+
+- tree_to_utf8 for emails does not appear to be wrapping on 80 chars
+like it's supposed to.
 
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
@@ -103,5 +105,6 @@ FIXED: 28/01
 - "bounce" email has DOM reference rather than the actual email!
 - the final page of submission should indicate that the first block is
    the "abstract page" and the second block is a dump of all fields.
+- OAI fails to flag deleted records as deleted!
 
 

@@ -873,8 +873,8 @@ sub process_webpage
 		{
 			my $href="$url?_exp=$escexp&_offset=".($offset+$pagesize);
 			$a = $self->{session}->make_element( "a", href=>$href );
-			my $nn = $n_results-$offset;
-			$nn = $pagesize if $pagesize< $nn;
+			my $nn = $n_results - $offset - $pagesize;
+			$nn = $pagesize if( $pagesize < $nn);
 			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
 						n=>$self->{session}->make_text( $nn ) ) );
 			$controls->appendChild( $a );

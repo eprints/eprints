@@ -241,7 +241,8 @@ sub bounce
 	# Successfully transferred, mail the user with the reason
 	if( $user->mail(
 		"cgi/users/edit_submission:subject_bounce",
-		$pre ) )
+		$pre,
+		$session->current_user() ) )
 	{	
 		# Successfully bounced, redirect
 		$session->redirect( "buffer" );

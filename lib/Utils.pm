@@ -224,10 +224,12 @@ sub cmp_dates
 	return cmp_strings( $a, $b, $fieldname );
 }
 
+# replyto / replytoname are optional (both or neither), they set
+# the reply-to header.
 sub send_mail
 {
-	my( $archive, $langid, $name, $address, $subject, $body, $sig ) = @_;
-	#   Archive   string   utf8   utf8      utf8      DOM    DOM
+	my( $archive, $langid, $name, $address, $subject, $body, $sig, $replyto, $replytoname ) = @_;
+	#   Archive   string   utf8   utf8      utf8      DOM    DOM   string    utf8
 
 	unless( open( SENDMAIL, "|".$archive->invocation( "sendmail" ) ) )
 	{
@@ -261,15 +263,24 @@ sub send_mail
 		$utf8all = $utf8all->latin1; 
 	}
 	#precedence bulk to avoid automail replies?  cjg
-	print SENDMAIL <<END;
-From: $arcname_q <$adminemail>
-To: $name_q <$address>
+	my $sendmailtext = "";
+	if( defined $replyto )
+	{
+		my $replytoname_q = mime_encode_q( $replytoname );
+		$sendmailtext.= <<END;
+Reply-To: "$replytoname_q" <$replyto>
+END
+	}
+	$sendmailtext.= <<END;
+From: "$arcname_q" <$adminemail>
+To: "$name_q" <$address>
 Subject: $arcname_q: $subject_q
 Content-Type: $content_type_q
 Content-Transfer-Encoding: 8bit
 
+$utf8all
 END
-	print SENDMAIL $utf8all;
+	print SENDMAIL $sendmailtext;
 	close(SENDMAIL) or return( 0 );
 	return( 1 );
 }

@@ -1163,7 +1163,6 @@ sub auth_check
 }
 
 
-## WP1: GOOD
 sub current_user
 {
 	my( $self ) = @_;

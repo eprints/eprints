@@ -1597,6 +1597,13 @@ sub get_dataset
 	return $self->{dataset};
 }		
 
+sub set_dataset
+{
+	my( $self , $dataset ) = @_;
+
+	return $self->{dataset} = $dataset;
+}
+
 sub ordervalue
 {
 	my( $self , $value , $archive , $langid ) = @_;

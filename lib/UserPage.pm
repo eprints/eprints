@@ -111,7 +111,7 @@ sub process
 		$page->appendChild( $session->render_input_form(
 			# no input fields so no need for a default
 			buttons=>{
-				_order = [ "edit", "delete" ],
+				_order => [ "edit", "delete" ],
 				edit=>$session->phrase( "lib/userpage:action_edit" ),
 				delete=>$session->phrase( "lib/userpage:action_delete" )
 			},
@@ -125,7 +125,7 @@ sub process
 
 	$session->build_page(
 		$session->html_phrase( "lib/userpage:title",
-				name=>$user->full_name() ), 
+				name=>$user->render_description() ), 
 		$page );
 	$session->send_page();
 }

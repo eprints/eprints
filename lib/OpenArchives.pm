@@ -122,6 +122,12 @@ sub make_record
 	$record->appendChild( $session->make_indent( 4 ) );
 	$record->appendChild( $header );
 
+	if( $eprint->get_dataset()->id() eq "deletion" )
+	{
+		$record->setAttribute( "status" , "deleted" );
+		return $record;
+	}
+
 	my $md = &{$fn}( $eprint, $session );
 	if( defined $md )
 	{

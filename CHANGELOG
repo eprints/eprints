@@ -157,3 +157,17 @@ to view PDF and PS.
  - fixed a bug in edit_subject : was rendering list of eprints in buffer, not
 archive.
 [C] - added a subject default citation to citations list.
+
+ - upped OAI pagesize to 100 records (from 10)
+ - OAI now correctly flags deleted records.
+ - OAI now includes values from the deleted eprints when generating sets.
+ - cgi/status now uses the phrase file. 
+ - added code to Utils::send_mail and User::mail to allow a reply-to
+header, other than the eprints admin.
+ - fixed bug in search results page which said next 10 records, even if there
+were only 7 left.
+ - bounce & delete records from buffer now sets the reply-to field of the
+email as the editor who did it.
+ - fixed a couple of typos from where I added  _order to button lists.
+ - added "quotes" around the names in the Utils::send_mail routine to stop
+problems with names containing commas.

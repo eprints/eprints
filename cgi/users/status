@@ -26,7 +26,7 @@ my $session = new EPrints::Session;
 my $rows;
 
 # Number of users in each group
-my $num_users = $session->get_archive()->get_dataset( "user" )->count( $session );
+my $total_users = $session->get_archive()->get_dataset( "user" )->count( $session );
 
 my( %num_users, $usertypes, $usertype, $userds );
 $userds = $session->get_archive()->get_dataset( "user" );
@@ -46,22 +46,19 @@ foreach $usertype ( @{$usertypes} )
 	$searchexp->dispose();
 }
 
-# Number of submissions in workspace
-my $num_inbox = $session->get_archive()->get_dataset( "inbox" )->count( $session );
+my %num_eprints = ();
+my @esets = ( "archive", "buffer", "inbox", "deletion" );
 
-# Number of submissions in buffer
-my $num_buffer = $session->get_archive()->get_dataset( "buffer" )->count( $session );
-
-# Number of submissions in archive
-my $num_archive = $session->get_archive()->get_dataset( "archive" )->count( $session );
-
-# Number of deleted eprints
-my $num_deleted = $session->get_archive()->get_dataset( "deletion" )->count( $session );
+foreach( @esets )
+{
+	# Number of submissions in dataset
+	$num_eprints{$_} = $session->get_archive()->get_dataset( $_ )->count( $session );
+}
 
 # Number of subscriptions
-my $num_subs = $session->get_archive()->get_dataset( "subscription" )->count( $session );
+# my $num_subs = $session->get_archive()->get_dataset( "subscription" )->count( $session );
 
-my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
+my $db_status = ( $total_users > 0 ? "OK" : "DOWN" );
 
 
 my( $html , $table , $p , $span );
@@ -75,21 +72,20 @@ $html->appendChild( $table );
 
 $table->appendChild( render_row( 
 		$session,
-		$session->make_text( "EPrints Release:" ), 
+		$session->html_phrase( "cgi/users/status:release" ),
 		$session->make_text( 
 			EPrints::Config::get( "version" ) ) ) );
 
 $table->appendChild(
 	render_row( 
 		$session,
-		$session->make_text( "Database Status:" ), 
+		$session->html_phrase( "cgi/users/status:database" ),
 		$session->make_text( $db_status ) ) );
 
 $table->appendChild( render_empty_row( $session ) );
 
 foreach $usertype ( keys %num_users )
 {
-	#lang cjg
 	$table->appendChild(
 		render_row( 
 			$session,
@@ -100,39 +96,19 @@ foreach $usertype ( keys %num_users )
 $table->appendChild(
 	render_row( 
 		$session,
-		$session->make_text( "Total Users:" ), 
-		$session->make_text( $num_users ) ) );
+		$session->html_phrase( "cgi/users/status:users" ),
+		$session->make_text( $total_users ) ) );
 
 $table->appendChild( render_empty_row( $session ) );
 
-$table->appendChild(
-	render_row( 
-		$session,
-		$session->make_text( "Articles in archive:" ), 
-		$session->make_text( $num_archive ) ) );
-$table->appendChild(
-	render_row( 
-		$session,
-		$session->make_text( "Articles in buffer:" ), 
-		$session->make_text( $num_buffer ) ) );
-$table->appendChild(
-	render_row( 
-		$session,
-		$session->make_text( "Articles in workspace:" ), 
-		$session->make_text( $num_inbox ) ) );
-$table->appendChild(
-	render_row( 
-		$session,
-		$session->make_text( "Deleted Articles:" ),
-		$session->make_text( $num_deleted ) ) );
-
-$table->appendChild( render_empty_row( $session ) );
-
-$table->appendChild(
-	render_row( 
-		$session,
-		$session->make_text( "Subscriptions:" ), 
-		$session->make_text( $num_subs ) ) );
+foreach( @esets )
+{
+	$table->appendChild(
+		render_row( 
+			$session,
+			$session->html_phrase( "cgi/users/status:set_".$_ ),
+			$session->make_text( $num_eprints{$_} ) ) );
+}
 
 $table->appendChild( render_empty_row( $session ) );
 
@@ -146,8 +122,10 @@ foreach $dir ( @dirs )
 	$table->appendChild(
 		render_row( 
 			$session,
-			$session->make_text( "Document partition $dir:" ), 
-			$session->make_text( int($size/1024)."Mb free" ) ) );
+			$session->html_phrase( "cgi/users/status:diskfree",
+				dir=>$session->make_text( $dir ) ),
+			$session->html_phrase( "cgi/users/status:mbfree",
+				mb=>$session->make_text( int($size/1024) ) ) ) );
 
 	$best_size = $size if( $size > $best_size );
 }
@@ -156,25 +134,20 @@ if( $best_size < $session->get_archive()->get_conf( "diskspace_error_threshold" 
 {
 	$p = $session->make_element( "p" );
 	$html->appendChild( $p );
-	$span = $session->make_element( "span", class=>"alert" );
-	$p->appendChild( $span );
-	$span->appendChild( 
-		$session->make_text( "NO SPACE LEFT FOR EPRINTS!" ) );
+	$p->appendChild( 
+		$session->html_phrase( "cgi/users/status:out_of_space" ) );
 }
 elsif( $best_size < $session->get_archive()->get_conf( "diskspace_warn_threshold" ) )
 {
 	$p = $session->make_element( "p" );
 	$html->appendChild( $p );
-	$span = $session->make_element( "span", class=>"alert" );
-	$p->appendChild( $span );
-	$span->appendChild( 
-		$session->make_text( "WARNING:" ) );
 	$p->appendChild( 
-		$session->make_text( 
-			" Available space for new EPrints running low" ) );
+		$session->html_phrase( "cgi/users/status:nearly_out_of_space" ) );
 }
 
-$session->build_page( $session->make_text( "Server Status" ), $html );
+$session->build_page( 
+	$session->html_phrase( "cgi/users/status:title" ),
+	$html );
 
 $session->send_page(); 
 

@@ -333,6 +333,21 @@ User Area CGI Scripts
     <ep:phrase ref="cgi/users/review:done"><p>Your request has been sent the the adminstrator.</p></ep:phrase>
     <ep:phrase ref="cgi/users/review:cant_remove">You may not request the removal of this eprint</ep:phrase>
 
+<!-- status -->
+
+    <ep:phrase ref="cgi/users/status:release">EPrints Release:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:database">Database Status:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:users">Total Users:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:set_archive">Articles in Archive:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:set_buffer">Articles in Buffer:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:set_inbox">Articles in Workspace:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:set_deletion">Deleted Articles:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:diskfree">Document Partition <pin ref="dir" />:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:mbfree"><pin ref="mb" />Mb free</ep:phrase>
+    <ep:phrase ref="cgi/users/status:out_of_space"><span class="alert">NO SPACE LEFT FOR EPRINTS!</span></ep:phrase>
+    <ep:phrase ref="cgi/users/status:nearly_out_of_space"><span class="alert">WARNING:</span> Available space for new EPrints running low</ep:phrase>
+    <ep:phrase ref="cgi/users/status:title">Server Status</ep:phrase>
+
 <!-- subscribe -->
 
     <ep:phrase ref="cgi/users/subscribe:dont_know_you">I don't know who you are</ep:phrase>
