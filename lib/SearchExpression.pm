@@ -23,7 +23,7 @@ use EPrints::Database;
 use EPrints::Language;
 
 use strict;
-
+# order method not presercved.
 
 ######################################################################
 #
@@ -606,6 +606,17 @@ sub process_webpage
 				searchtime=>$self->{session}->makeText($t2-$t1),
 				gettime=>$self->{session}->makeText($t3-$t2) ) );
 
+		my $form = $self->{session}->makeGetForm();
+		foreach( $self->{session}->param() )
+		{
+			next if( $_ eq "submit" );
+			$form->appendChild(
+				$self->{session}->make_hidden_field( $_ ) );
+		}
+		$form->appendChild( $self->{session}->make_submit_buttons( 
+			$self->{session}->phrase("action_update"), 
+			$self->{session}->phrase("action_newsearch") ) );
+		$page->appendChild( $form );
 		
 		foreach (@results)
 		{
@@ -613,26 +624,12 @@ sub process_webpage
 			$p->appendChild( $_->toHTML );
 			$page->appendChild( $p );
 		}
+
+		$page->appendChild( $form->cloneNode( 1 ) );
 			
 		# Print out state stuff for a further invocation
 		
-		my $form = $self->{session}->makeGetForm();
-		$page->appendChild( $form );
 
-		foreach( $self->{session}->param() )
-		{
-			next if( $_ eq "submit" );
-			$form->appendChild(
-				$self->{session}->make_hidden_field( $_ ) );
-		}
-
-		$form->appendChild( $self->{session}->make_submit_buttons( 
-			$self->{session}->phrase("action_update"), 
-			$self->{session}->phrase("action_newsearch") ) );
-
-		#print $self->{session}->start_html(
-			#$self->{session}->phrase( "results_for",
-			                                  #{ title=>$title } ) );
 		$self->{session}->printPage( 
 			$self->{session}->phrase( "results_for", {title=>$title} ),
 			$page );
@@ -643,10 +640,10 @@ sub process_webpage
 		$submit_button eq $self->{session}->phrase("action_newsearch") ) )
 	{
 		# To reset the form, just reset the URL.
-		my $url = $self->{session}->{render}->url();
+		my $url = $self->{session}->url();
 		# Remove everything that's part of the query string.
 		$url =~ s/\?.*//;
-		$self->{session}->{render}->redirect( $url );
+		$self->{session}->redirect( $url );
 		return;
 	}
 	
