@@ -8,6 +8,7 @@
 ######################################################################
 #
 # 10/11/99 - Created by Robert Tansley
+# $Id$
 #
 ######################################################################
 
@@ -274,34 +275,27 @@ sub clone
 	$new_doc->{main} = $self->{main};
 	
 	# Copy files
-	my %files = $self->files();
-	my $f;
-	my $success = 1;
+	my $rc = 0xffff & system
+		"cp -a ".$self->local_path()."/* ".$new_doc->local_path();
 
-	foreach $f (keys %files)
+	# If something's gone wrong...
+	if ( $rc!=0 )
 	{
-		my $from = $self->full_path() . "/" . $f;
-		my $to = $new_doc->full_path() . "/" . $f;
-
-		my $tempsuc = copy( $from, $to );
-		$success = $success && $tempsuc;
-
-		if( $tempsuc==0 )
-		{
-EPrints::Log->debug( "submit", "Error copying from $from to $to: $!" );
-		}
+		EPrints::Log->log_entry(
+			"Document",
+			"Error copying from $self->local_path() to ".
+				"$new_doc->local_path(): $!" );
+		return( 0 );
 	}
-	
-	$success = $success && $new_doc->commit();
-	
-	if( !$success )
+
+	if( $new_doc->commit() )
 	{
-		$new_doc->remove();
-		return( undef );
+		return( $new_doc );
 	}
 	else
 	{
-		return( $new_doc );
+		$new_doc->remove();
+		return( undef );
 	}
 }
 
