@@ -23,6 +23,7 @@ package EPrints::Language;
 
 use EPrints::Site::General;
 
+use XML::DOM;
 use strict;
 
 # Cache for language objects NOT attached to a config.
@@ -94,41 +95,8 @@ sub new
 	return( $self );
 }
 
-sub file_phase
-{
-	my( $self , $file , $phraseid , %inserts ) = @_;
 
-	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
-	if( !defined $response )
-	{
-		$response = "[\"$file:$phraseid\" not defined]";
-	}
-	$response = "*".$response."*" if( $fb );
-
-	my $result = "";
-	while( $response =~ s/^(\$\([a-z_]+\)|[^\$]+|\$)// )
-	{	
-		my $part = $&;
-		if( $part =~ m/^\$\(([a-z_]+)\)$/ )
-		{
-			if( defined $inserts{$1} )
-			{
-				$result .= $inserts{$1};
-			}
-			else
-			{
-				$result .= "[missing factor: \"$1\"]";
-			}
-		}
-		else
-		{
-			$result .= $part;
-		}
-	}
-	return $result;
-}
-
-sub html_file_phrase
+sub file_phrase
 {
 	my( $self, $file, $phraseid, $inserts, $session ) = @_;
 
@@ -136,39 +104,39 @@ sub html_file_phrase
 
 	if( !defined $response )
 	{
-		$response = "[\"$file:$phraseid\" not defined]";
+		$response = $session->makeText(  
+				"[\"$file:$phraseid\" not defined]" );
 	}
 	$inserts = {} if( !defined $inserts );
 
-	print STDERR "BEGIN\n";
 	my $result;
 	if( $fb )
 	{
-		$result = $session->make_element( "SPAN" , class=>"fallbacklanguage" );
+		$result = $session->make_element( "fallback" );
 	}
 	else
 	{
 		$result = $session->makeDocFragment;
 	}
-	while( $response =~ s/^(\$\([a-z_]+\)|[^\$]+|\$)// )
-	{	
-		my $part = $&;
-		my $element;
-		if( $part =~ m/^\$\(([a-z_]+)\)$/ )
+	$session->takeOwnership( $response );
+	$result->appendChild( $response );
+
+	foreach( $result->getElementsByTagName( "pin", 1 ) )
+	{
+		my $ref = $_->getAttribute( "ref" );
+		print STDERR "^*^ $ref\n";
+		my $repl;
+		if( $inserts->{$ref} )
 		{
-			$element = $inserts->{$1};
-			if( !defined $element )
-			{
-				$element = $session->makeText( 
-						"[missing factor: \"$1\"]" );
-			}
+			$repl = $inserts->{$ref};
 		}
 		else
 		{
-			$element = $session->makeText( $part );
+			$repl = $session->makeText( "[ref missing: $ref]" );
 		}
-		$result->appendChild( $element );
+		$_->getParentNode->replaceChild( $repl, $_ );	
 	}
+
 	return $result;
 }
 
@@ -180,27 +148,27 @@ sub _file_phrase
 	my $res = undef;
 
 	$res = $self->{sitedata}->{MAIN}->{$phraseid};
-	return $res if ( defined $res );
+	return $res->cloneNode( 1 ) if ( defined $res );
 	$res = $self->{sitedata}->{$file}->{$phraseid};
-	return $res if ( defined $res );
+	return $res->cloneNode( 1 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_sitedata()->{MAIN}->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
-		$res = $self->{fallback}->_get_sitedata()->{$file}->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_sitedata->{MAIN}->{$phraseid};
+		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_sitedata->{$file}->{$phraseid};
+		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
 	}
 
 	$res = $self->{data}->{MAIN}->{$phraseid};
-	return $res if ( defined $res );
+	return $res->cloneNode( 1 ) if ( defined $res );
 	$res = $self->{data}->{$file}->{$phraseid};
-	return $res if ( defined $res );
+	return $res->cloneNode( 1 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_data()->{MAIN}->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
-		$res = $self->{fallback}->_get_data()->{$file}->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_data->{MAIN}->{$phraseid};
+		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_data->{$file}->{$phraseid};
+		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
 	}
 
 
@@ -229,47 +197,64 @@ sub read_phrases
 {
 	my( $file ) = @_;
 	
-	unless( open(LANG, $file) )
+
+	my $parser = new XML::DOM::Parser;
+	my $doc = eval {
+		$parser->parsefile( $file );
+	};
+	if( $@ )
 	{
-		# can't translate yet...
-		print STDERR "Can't open eprint language file: $file: $!\n";
-		return {};
+		my $err = $@;
+		$err =~ s# at /.*##;
+		die "Error parsing $file\n$err";
 	}
-	
-	my $data = {};	
-
-	print STDERR "opened eprint language file: $file\n";
-
-	my $CURRENTFILE = 'MAIN';
-	while( <LANG> )
+	my $phrases;
+	foreach( $doc->getChildNodes )
 	{
-		chomp;
-		next if /^\s*#/;
-		next if /^\s*$/;
-		
-		if( /FILE\s*=\s*([^\s]+)/ )
+		$phrases = $_ if( $_->getNodeName eq "phrases" );
+	}
+	if( !defined $phrases ) 
+	{
+		die "Error parsing $file\nCan't find top level element.";
+	}
+	my $data;
+
+	my $element;
+	foreach $element ( $phrases->getChildNodes )
+	{
+		my $name = $element->getNodeName;
+		if( $name eq "phrase" )
 		{
-			$CURRENTFILE=$1;
-			if( !defined $data->{$CURRENTFILE} )
+			my $key = $element->getAttribute( "ref" );
+			my $val = $doc->createDocumentFragment;
+			foreach( $element->getChildNodes )
 			{
-				$data->{$CURRENTFILE} = {};
+				$element->removeChild( $_ );
+				$val->appendChild( $_ ); 
+			}
+			$data->{MAIN}->{$key} = $val;
+		}
+		if( $name eq "file" )
+		{
+			my $fname = $element->getAttribute( "name" );
+			my $subelement;
+			foreach $subelement ( $element->getChildNodes )
+			{
+				unless( $subelement->getNodeName eq "phrase" )
+				{
+					next;
+				}
+				my $key = $subelement->getAttribute( "ref" );
+				my $val = $doc->createDocumentFragment;
+				foreach( $subelement->getChildNodes )
+				{
+					$subelement->removeChild( $_ );
+					$val->appendChild( $_ ); 
+				}
+				$data->{$fname}->{$key} = $val;
 			}
 		}
-		elsif( /^\s*([:A-Za-z0-9_]+)\s*=\s*(.*)$/ )
-		{
-			my ( $key , $val ) = ( $1 , $2 );
-			# convert \n to actual CR's
-			$val =~ s/\\n/\n/g;
-			$data->{$CURRENTFILE}->{$key}=$val;
-		}
-		else
-		{
-			print STDERR "ERROR in language file: $file near:\n$_\n";
-		}
 	}
-print STDERR "Loaded: $file\n";
-
-	close( LANG );
 
 	return $data;
 }

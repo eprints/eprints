@@ -241,17 +241,66 @@ sub HTMLPhrase
 
         my @callinfo = caller();
         $callinfo[1] =~ m#[^/]+$#;
-        return $self->{lang}->html_file_phrase( $& , $phraseid , \%inserts , $self);
+        my $result = $self->{lang}->file_phrase( 
+					$& , 
+					$phraseid , 
+					\%inserts , 
+					$self );
+	print STDERR ">>>".$result->toString."\n";
+	return $self->treeToXHTML( $result );
 }
 
 sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
 
+	foreach( keys %inserts )
+	{
+		$inserts{$_} = $self->makeText( $_ );
+	}
         my @callinfo = caller();
         $callinfo[1] =~ m#[^/]+$#;
-        return $self->{lang}->file_phase( $&, $phraseid, %inserts );
+
+        my $r = $self->{lang}->file_phrase( $&, $phraseid, \%inserts , $self);
+
+	return $self->treeToUTF8( $r );
 }
+
+sub treeToUTF8
+{
+	my( $self, $node ) = @_;
+
+
+	my $name = $node->getNodeName;
+	if( $name eq "#text" || $name eq "#cdata-section")
+	{
+		return $node->getNodeValue;
+	}
+
+	my $string = "";
+	foreach( $node->getChildNodes )
+	{
+		$string .= $self->treeToUTF8( $_ );
+	}
+
+	if( $name eq "fallback" )
+	{
+		$string = latin1("*").$string.latin("*");
+	}
+
+	return $string;
+	
+}
+
+sub treeToXHTML
+{
+	my( $self, $node ) = @_;
+
+	return $node;
+}
+	
+
+	
 
 sub getDB
 {
@@ -587,9 +636,7 @@ sub makeText
 {
 	my( $self , $text ) = @_;
 
-	my $u = latin1( $text );
-
-	return $self->{page}->createTextNode( $u->utf8 );
+	return $self->{page}->createTextNode( $text );
 }
 
 sub makeDocFragment

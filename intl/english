@@ -1,382 +1,393 @@
-# English Language Phrases
+<?xml version="1.0" encoding="iso-8859-1"?>
 
-######################################################################
-# Library Files
-######################################################################
+<phrases>
+<!-- English Language Phrases -->
+<!-- library files  -->
 
-FILE = Database.pm
-created_table	= Created table: $(tablename)
-bad_cache 	= Not a legal cache table: $(tableid)
+<file name="Database.pm">
+    <phrase ref="created_table">Created table: <pin ref="tablename" /></phrase>
+    <phrase ref="bad_cache">Not a legal cache table: <pin ref="tableid" /></phrase>
+</file>
 
-FILE = Document.pm
-error_mkdir	= Error creating directory for EPrint $(eprintid) format $(format): $(errmsg)
-error_cp	= Error copying from $(frompath) to $(topath): $(errmsg)
-error_rm	= Error removing document $(docid) from database: $(errmsg)
-error_rmfiles	= Error removing document files for $(docid), path $(path): $(errmsg)
-error_rmfile	= Error removing file $(filename) for doc $(docid): $(errmsg)
-error_commit	= Error committing Document $(docid): $(errmsg)
-no_files	= You haven't uploaded any files!
-no_first	= You need to select a file to be shown first.
-no_desc	= You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0
+<file name="Document.pm">
+    <phrase ref="error_mkdir">Error creating directory for EPrint <pin ref="eprintid" /> format <pin ref="format" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_cp">Error copying from <pin ref="frompath" /> to <pin ref="topath" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_rm">Error removing document <pin ref="docid" /> from database: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_rmfiles">Error removing document files for <pin ref="docid" />, path <pin ref="path" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_rmfile">Error removing file <pin ref="filename" /> for doc <pin ref="docid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_commit">Error committing Document <pin ref="docid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="no_files">You haven't uploaded any files!</phrase>
+    <phrase ref="no_first">You need to select a file to be shown first.</phrase>
+    <phrase ref="no_desc">You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0</phrase>
+</file>
 
-FILE = EPrint.pm
-disklow_sub 	= Warning: Low on disk space
-disklow	= The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.
-diskout_sub 	= ERROR: Out of Disk Space
-diskout	= There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.
-mkdir_err	= Failed to create directory $(path): $(errmsg)
-doc_rm_err	= Error removing doc $(docid): $(errmsg)
-file_rm_err	= Error removing files for $(eprintid), path $(path): $(errmsg)
-error_commit	= Error committing EPrint $(eprintid): $(errmsg)
-no_type	= You haven't selected a type for this EPrint.
-invalid_type	= This EPrint doesn't seem to have a valid type.
-not_done_field= You haven't filled out the required $(fieldname) field.
-invalid_users = The following usernames are not valid: $(usernames).
-least_one_sub	= You need to select at least one subject from the list!
-invalid_succ	= EPrint ID in $(field) field is invalid
-cant_succ	= You cannot succeed an EPrint that someone else has posted
-invalid_id	= EPrint ID in $(field) field is invalid
-need_a_format = You need to upload at least one of the following formats:
-error_gen_st	= Error generating static page "$(path)" for $(eprintid): $(errmsg)
+<file name="EPrint.pm">
+    <phrase ref="disklow_sub">Warning: Low on disk space</phrase>
+    <phrase ref="disklow">The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.</phrase>
+    <phrase ref="diskout_sub">ERROR: Out of Disk Space</phrase>
+    <phrase ref="diskout">There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</phrase>
+    <phrase ref="mkdir_err">Failed to create directory <pin ref="path" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="doc_rm_err">Error removing doc <pin ref="docid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="file_rm_err">Error removing files for <pin ref="eprintid" />, path <pin ref="path" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="error_commit">Error committing EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="no_type">You haven't selected a type for this EPrint.</phrase>
+    <phrase ref="invalid_type">This EPrint doesn't seem to have a valid type.</phrase>
+    <phrase ref="not_done_field">You haven't filled out the required <pin ref="fieldname" /> field.</phrase>
+    <phrase ref="invalid_users">The following usernames are not valid: <pin ref="usernames" />.</phrase>
+    <phrase ref="least_one_sub">You need to select at least one subject from the list!</phrase>
+    <phrase ref="invalid_succ">EPrint ID in <pin ref="field" /> field is invalid</phrase>
+    <phrase ref="cant_succ">You cannot succeed an EPrint that someone else has posted</phrase>
+    <phrase ref="invalid_id">EPrint ID in <pin ref="field" /> field is invalid</phrase>
+    <phrase ref="need_a_format">You need to upload at least one of the following formats:</phrase>
+    <phrase ref="error_gen_st">Error generating static page "<pin ref="path" />" for <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
+</file>
 
-FILE = HTMLRender.pm
-some_error	= $(sitename) has encountered an error:
-some_error	= $(sitename) has encountered an error:
-contact	= Feel free to contact $(adminemail) with details.
-sitename_admin= $(sitename) administration
-cant_do_field= Error: Don't know how to render field of type $(type)
-year		= Year:
-month		= Month:
-day		= Day:
-surname	= Surname
-first_names	= First Names
-more_spaces	= More Spaces
-username_title= Usernames
-input_field_err= Don't know how to render input field for type $(type)
-curr_disp	= Currently Displayed
-error_title	= Error
-eprint_gone_title = EPrint Removed
-eprint_gone	= You seem to be attempting to access an eprint that has been removed from the archive.
-later_version = There is a later version of the eprint you are trying to access:
+<file name="HTMLRender.pm">
+    <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
+    <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
+    <phrase ref="contact">Feel free to contact <pin ref="adminemail" /> with details.</phrase>
+    <phrase ref="sitename_admin"><pin ref="sitename" /> administration</phrase>
+    <phrase ref="cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
+    <phrase ref="year">Year:</phrase>
+    <phrase ref="month">Month:</phrase>
+    <phrase ref="day">Day:</phrase>
+    <phrase ref="surname">Surname</phrase>
+    <phrase ref="first_names">First Names</phrase>
+    <phrase ref="more_spaces">More Spaces</phrase>
+    <phrase ref="username_title">Usernames</phrase>
+    <phrase ref="input_field_err">Don't know how to render input field for type <pin ref="type" /></phrase>
+    <phrase ref="curr_disp">Currently Displayed</phrase>
+    <phrase ref="error_title">Error</phrase>
+    <phrase ref="eprint_gone_title">EPrint Removed</phrase>
+    <phrase ref="eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
+    <phrase ref="later_version">There is a later version of the eprint you are trying to access:</phrase>
+</file>
 
-FILE = MetaField.pm
-bad_value	= Garbled value for $(option) in field $(field)
-bad_type	= Unknown field type $(option) for field $(field)
-not_all_info	= Not all necessary information specified for field $(field)
-cant_open_file= Can't open metadata config file: $(file): $(errmsg)
+<file name="MetaField.pm">
+    <phrase ref="bad_value">Garbled value for <pin ref="option" /> in field <pin ref="field" /></phrase>
+    <phrase ref="bad_type">Unknown field type <pin ref="option" /> for field <pin ref="field" /></phrase>
+    <phrase ref="not_all_info">Not all necessary information specified for field <pin ref="field" /></phrase>
+    <phrase ref="cant_open_file">Can't open metadata config file: <pin ref="file" />: <pin ref="errmsg" /></phrase>
+</file>
 
-FILE = SearchExpression.pm
-leastone	= You need to specify something for at least one field!
-any		= any
-all		= all
-must_fulfill	= Retrieved records must fulfill $(anyall) of these conditions.
-order_results	= Order the results: $(ordermenu)
-not_cached	= error: Search has not been performed yet
-action_search    = Search
-action_reset     = Reset the form
-action_newsearch = Start new search
-action_update    = Update the search
-form_problem	= There is a problem with the form:
-too_many	= Warning - too many results. Unsorted sample of $(n) shown.
-search_time	= Search time: $(searchtime) sec. Retrieval and sort time: $(gettime) sec.
-ignored	= Ignored words: $(words).
-results_for	= Results for $(title)
-no_hits	= Search returned no results.
-one_hit	= Search returned $(n) result.
-n_hits	= Search returned $(n) results.
+<file name="SearchExpression.pm">
+    <phrase ref="leastone">You need to specify something for at least one field!</phrase>
+    <phrase ref="any">any</phrase>
+    <phrase ref="all">all</phrase>
+    <phrase ref="must_fulfill">Retrieved records must fulfill <pin ref="anyall" /> of these conditions.</phrase>
+    <phrase ref="order_results">Order the results: <pin ref="ordermenu" /></phrase>
+    <phrase ref="not_cached">error: Search has not been performed yet</phrase>
+    <phrase ref="action_search">Search</phrase>
+    <phrase ref="action_reset">Reset the form</phrase>
+    <phrase ref="action_newsearch">Start new search</phrase>
+    <phrase ref="action_update">Update the search</phrase>
+    <phrase ref="form_problem">There is a problem with the form:</phrase>
+    <phrase ref="too_many">Warning - too many results. Unsorted sample of <pin ref="n" /> shown.</phrase>
+    <phrase ref="search_time">Search time: <pin ref="searchtime" /> sec. Retrieval and sort time: <pin ref="gettime" /> sec.</phrase>
+    <phrase ref="ignored">Ignored words: <pin ref="words" />.</phrase>
+    <phrase ref="results_for">Results for <pin ref="title" /></phrase>
+    <phrase ref="no_hits">Search returned no results.</phrase>
+    <phrase ref="one_hit">Search returned <pin ref="n" /> result.</phrase>
+    <phrase ref="n_hits">Search returned <pin ref="n" /> results.</phrase>
+</file>
 
-FILE = SearchField.pm
-year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
-no_words	= Search field contains no indexable words: "$(words)".
-help_boolean	= Select a value.
-help_email    = Enter some text to search for.
-help_eprinttype= Select one or more values from the list. Default is (Any).
-help_longtext	= Enter a term or terms to search for.
-help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".
-help_set 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
-help_subject 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
-help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
-help_text	= Enter a term or terms to search for.
-help_url 	= Enter some text to search for.
-help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
-bool_nopref	= No Preference
-bool_yes	= Yes
-bool_no	= No
-set_any	= Any of these
-set_all	= All of these
-text_any	= Match any
-text_all	= Match all, in any order
+<file name="SearchField.pm">
+    <phrase ref="year_err">A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</phrase>
+    <phrase ref="no_words">Search field contains no indexable words: "<pin ref="words" />".</phrase>
+    <phrase ref="help_boolean">Select a value.</phrase>
+    <phrase ref="help_email">Enter some text to search for.</phrase>
+    <phrase ref="help_eprinttype">Select one or more values from the list. Default is (Any).</phrase>
+    <phrase ref="help_longtext">Enter a term or terms to search for.</phrase>
+    <phrase ref="help_name">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".</phrase>
+    <phrase ref="help_set">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+    <phrase ref="help_subject">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+    <phrase ref="help_username">Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+    <phrase ref="help_text">Enter a term or terms to search for.</phrase>
+    <phrase ref="help_url">Enter some text to search for.</phrase>
+    <phrase ref="help_year">Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.</phrase>
+    <phrase ref="bool_nopref">No Preference</phrase>
+    <phrase ref="bool_yes">Yes</phrase>
+    <phrase ref="bool_no">No</phrase>
+    <phrase ref="set_any">Any of these</phrase>
+    <phrase ref="set_all">All of these</phrase>
+    <phrase ref="text_any">Match any</phrase>
+    <phrase ref="text_all">Match all, in any order</phrase>
+</file>
 
+<file name="Session.pm">
+    <phrase ref="fail_db_connect">Failed to connect to database</phrase>
+    <phrase ref="msg_at">Site maintenance message generated at <pin ref="time" /></phrase>
+    <phrase ref="site_admin">Site Administrator</phrase>
+</file>
 
-FILE = SearchForm.pm
+<file name="SubjectList.pm">
+    <phrase ref="invalid_tag">List contains invalid tag <pin ref="tag" /></phrase>
+</file>
 
-FILE = Session.pm
-fail_db_connect	= Failed to connect to database
-msg_at	= Site maintenance message generated at $(time)
-site_admin	= Site Administrator
+<file name="SubmissionForm.pm">
+    <phrase ref="dberr">Database Error: <pin ref="errmsg" /></phrase>
+    <phrase ref="useautharea">Use your author area to deposit new documents</phrase>
+    <phrase ref="errclone">Error cloning EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="uploadprob">There was a problem uploading your file(s). Please try again.</phrase>
+    <phrase ref="removeerror">DB Error removing EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="seltype">Please select the most appropriate type for your deposit.</phrase>
+    <phrase ref="bibinfo">Please enter the bibliographic data about your deposit. Fields marked with a * are fields that must be filled out before your deposit will be accepted.</phrase>
+    <phrase ref="verify">Verify:</phrase>
+    <phrase ref="invaleprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
+    <phrase ref="validformats">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
+    <phrase ref="leastone">You must upload at least one of the formats listed in bold.</phrase>
+    <phrase ref="plain">Plain Files</phrase>
+    <phrase ref="graburl">From an Existing Web Site</phrase>
+    <phrase ref="fixupload">The document upload can't be completed because:</phrase>
+    <phrase ref="pleasefix">Please fix this before continuing.</phrase>
+    <phrase ref="nofiles">No files have been uploaded for this format.</phrase>
+    <phrase ref="heretoview">Click here to view and verify the uploaded files</phrase>
+    <phrase ref="selfirst">You need to select the file that should be shown first when a reader wishes to view your deposit.</phrase>
+    <phrase ref="filesforformat">These are the files you have uploaded for this format.</phrase>
+    <phrase ref="fileupmethod">File upload method:</phrase>
+    <phrase ref="plainonly">(Plain files only)</phrase>
+    <phrase ref="numfiles">Number of files to upload:</phrase>
+    <phrase ref="enterurl">Please enter the URL of the document you wish to upload to the archive in the box below.</phrase>
+    <phrase ref="urlwarning">Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!</phrase>
+    <phrase ref="entercompfile">Enter the filename (with full path) of the compressed file in the box below.</phrase>
+    <phrase ref="enterfile">Please enter the filename (with full path) of the document file in the box below.</phrase>
+    <phrase ref="enterfiles">Please enter the filenames (with full paths) of the document files in the boxes below.</phrase>
+    <phrase ref="fixprobs">Before you deposit this entry to the archive, the following problems need to be corrected:</phrase>
+    <phrase ref="pleaseverify">Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  </phrase>
+    <phrase ref="thanks">Thank you.</phrase>
+    <phrase ref="inbuffer">Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</phrase>
+    <phrase ref="retdeppage">Click here to return to your deposit papers page </phrase>
+    <phrase ref="suredelete">Are you absolutely sure you want to delete this entry?</phrase>
+    <phrase ref="filledwrong">The form doesn't seem to be filled out correctly:</phrase>
+    <phrase ref="pleasecomplete">Please complete the form before continuing.</phrase>
+    <phrase ref="idnotmatch">EPrint ID in form &gt;<pin ref="form" />&lt; doesn't match object id <pin ref="eprintid" /></phrase>
+    <phrase ref="filename">Filename</phrase>
+    <phrase ref="sizebytes">Size (Bytes)</phrase>
+    <phrase ref="shownfirst">Shown First</phrase>
+    <phrase ref="showfirst">Show first</phrase>
+    <phrase ref="action_new">New</phrase>
+    <phrase ref="action_delete">Delete</phrase>
+    <phrase ref="action_edit">Edit</phrase>
+    <phrase ref="action_next">Néxt ></phrase>
+    <phrase ref="action_prev">&lt; Back</phrase>
+    <phrase ref="action_submit">Deposit</phrase>
+    <phrase ref="action_cancel">Cancel</phrase>
+    <phrase ref="action_confirm">Confirm</phrase>
+    <phrase ref="action_clone">Clone</phrase>
+    <phrase ref="action_uploadedit">Upload/Edit </phrase>
+    <phrase ref="action_finished">Finished</phrase>
+    <phrase ref="action_upload">Upload ></phrase>
+    <phrase ref="action_verify">Verify ID's</phrase>
+    <phrase ref="title_type">Deposit Type</phrase>
+    <phrase ref="title_meta">Bibliographic Information</phrase>
+    <phrase ref="title_subject">Subject Categories</phrase>
+    <phrase ref="title_linking">Succession/Commentary</phrase>
+    <phrase ref="title_format">Document Storage Formats</phrase>
+    <phrase ref="title_fileview">Document File Upload</phrase>
+    <phrase ref="title_upload">Document File Upload</phrase>
+    <phrase ref="title_verify">Deposit Verification</phrase>
+    <phrase ref="title_done">Completed Deposit</phrase>
+    <phrase ref="title_error">Error</phrase>
+    <phrase ref="title_return">Return to Author's Home</phrase>
+    <phrase ref="title_confirmdel">Confirm Deletion</phrase>
+    <phrase ref="corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. If this has happened in the normal course of operation please tell the <pin ref="siteadmin" />.</phrase>
+    <phrase ref="database_err">There's been a problem accessing the site database. Please try again later, and contact the <pin ref="siteadmin" /> if the problem persists.</phrase>
+    <phrase ref="siteadmin">site administrator </phrase>
+    <phrase ref="nosel_err">You hadn't selected a paper to edit, clone, delete or deposit!</phrase>
+    <phrase ref="delete">Delete</phrase>
+    <phrase ref="delete_all">Delete All Files</phrase>
+    <phrase ref="format">Format</phrase>
+    <phrase ref="files_uploaded">Files Uploaded</phrase>
+    <phrase ref="uploadedit">Upload/Edit</phrase>
+    <phrase ref="remove">Remove</phrase>
+</file>
 
-FILE = SubjectList.pm
-invalid_tag	= List contains invalid tag $(tag)
+<file name="Subscription.pm">
+    <phrase ref="sendupdates">Send updates: <pin ref="howoften" /></phrase>
+    <phrase ref="weekly">weekly</phrase>
+    <phrase ref="daily">daily</phrase>
+    <phrase ref="monthly">monthly</phrase>
+    <phrase ref="notopenrec">Couldn't open user record for user <pin ref="user" /> (sub ID <pin ref="subid" />)</phrase>
+    <phrase ref="blurb">This mail contains your <pin ref="howoften" /> subscription to <pin ref="sitename" />.\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n <pin ref="url" />\n\n</phrase>
+    <phrase ref="newsub">One new submission was received.</phrase>
+    <phrase ref="newsubs"><pin ref="n" /> new submissions were received.</phrase>
+    <phrase ref="subsubj">Subscription</phrase>
+    <phrase ref="failsend">Failed to send subscription to user <pin ref="user" />: <pin ref="errmsg" /></phrase>
+</file>
 
-FILE = SubmissionForm.pm
-dberr 	= Database Error: $(errmsg)
-useautharea	= Use your author area to deposit new documents
-errclone	= Error cloning EPrint $(eprintid): $(errmsg)
-uploadprob	= There was a problem uploading your file(s). Please try again.
-removeerror	= DB Error removing EPrint $(eprintid): $(errmsg)
-seltype	= Please select the most appropriate type for your deposit.
-bibinfo	= Please enter the bibliographic data about your deposit. Fields marked with a * are fields that must be filled out before your deposit will be accepted.
-verify	= Verify:
-invaleprint	= ID $(eprintid) is not a valid EPrint ID!
-validformats	= Here are the available upload formats, and how many files you have uploaded for each.
-leastone	= You must upload at least one of the formats listed in bold.
-plain		= Plain Files
-graburl	= From an Existing Web Site
-fixupload	= The document upload can't be completed because:
-pleasefix	= Please fix this before continuing.
-nofiles	= No files have been uploaded for this format.
-heretoview	= Click here to view and verify the uploaded files
-selfirst	= You need to select the file that should be shown first when a reader wishes to view your deposit.
-filesforformat= These are the files you have uploaded for this format.
-fileupmethod	= File upload method:
-plainonly	= (Plain files only)
-numfiles	= Number of files to upload:
-enterurl	= Please enter the URL of the document you wish to upload to the archive in the box below.
-urlwarning	= Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!
-entercompfile = Enter the filename (with full path) of the compressed file in the box below.
-enterfile	= Please enter the filename (with full path) of the document file in the box below.
-enterfiles	= Please enter the filenames (with full paths) of the document files in the boxes below.
-fixprobs	= Before you deposit this entry to the archive, the following problems need to be corrected:
-pleaseverify	= Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  
-thanks	= Thank you.
-inbuffer	= Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.
-retdeppage	= Click here to return to your deposit papers page 
-suredelete	= Are you absolutely sure you want to delete this entry?
-filledwrong	= The form doesn't seem to be filled out correctly:
-pleasecomplete= Please complete the form before continuing.
-idnotmatch	= EPrint ID in form >$(form)< doesn't match object id $(eprintid)
-filename	= Filename
-sizebytes	= Size (Bytes)
-shownfirst	= Shown First
-showfirst	= Show first
-action_new    = New
-action_delete = Delete
-action_edit   = Edit
-action_next   = Néxt >
-action_prev   = < Back
-action_submit = Deposit
-action_cancel = Cancel
-action_confirm= Confirm
-action_clone  = Clone
-action_uploadedit = Upload/Edit 
-action_finished   = Finished
-action_upload = Upload >
-action_verify = Verify ID's
-title_type       = Deposit Type
-title_meta       = Bibliographic Information
-title_subject    = Subject Categories
-title_linking    = Succession/Commentary
-title_format     = Document Storage Formats
-title_fileview   = Document File Upload
-title_upload     = Document File Upload
-title_verify     = Deposit Verification
-title_done       = Completed Deposit
-title_error      = Error
-title_return     = Return to Author's Home
-title_confirmdel = Confirm Deletion
-corrupt_err	= An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form.</P><P>If this has happened in the normal course of operation please tell the $(siteadmin).
-database_err 	= There's been a problem accessing the site database. Please try again later, and contact the $(siteadmin) if the problem persists.
-siteadmin	= site administrator 
-nosel_err	= You hadn't selected a paper to edit, clone, delete or deposit!
-delete	= Delete
-delete_all	= Delete All Files
-format	= Format
-files_uploaded= Files Uploaded
-uploadedit	= Upload/Edit
-remove	= Remove
+<file name="User.pm">
+    <phrase ref="missedfield">You haven't filled out the required <pin ref="field" /> field.</phrase>
+    <phrase ref="weclome">Welcome to <pin ref="sitename" />!</phrase>
+    <phrase ref="reminder">Dear <pin ref="sitename" /> User,\n\n<pin ref="message" />Your username and password for the site are:\n\nUser name: <pin ref="username" />\nPassword:  <pin ref="password" />\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n<pin ref="adminemail" />\n</phrase>
+    <phrase ref="remindersub">Your username and password</phrase>
+    <phrase ref="newuser">New <pin ref="sitename" /> User</phrase>
+    <phrase ref="newstaff">New <pin ref="sitename" /> Staff</phrase>
+</file>
 
-FILE = Subscription.pm
-sendupdates 	= Send updates: $(howoften)
-weekly 	= weekly
-daily 	= daily
-monthly 	= monthly
-notopenrec 	= Couldn't open user record for user $(user) (sub ID $(subid))
-blurb 	= This mail contains your $(howoften) subscription to $(sitename).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(url)\n\n
-newsub 	= One new submission was received.
-newsubs 	= $(n) new submissions were received.
-subsubj 	= Subscription
-failsend 	= Failed to send subscription to user $(user): $(errmsg)
+<file name="UserForm.pm">
+    <phrase ref="dontknow">I don't know who you are</phrase>
+    <phrase ref="recfor">Record for <pin ref="name" /></phrase>
+    <phrase ref="blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.</phrase>
+    <phrase ref="changeemail">For instructions on how to change your e-mail address, <pin ref="clickhere" />.</phrase>
+    <phrase ref="clickhere">click here</phrase>
+    <phrase ref="formincorrect">The form doesn't seem to be filled out correctly:</phrase>
+    <phrase ref="completeform">Please complete the form before continuing.</phrase>
+    <phrase ref="problemupdating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
+    <phrase ref="usernotmatch">Username in form <pin ref="formid" /> doesn't match object username <pin ref="username" /></phrase>
+</file>
 
-FILE = User.pm
-missedfield = You haven't filled out the required $(field) field.
-weclome = Welcome to $(sitename)!
-reminder = Dear $(sitename) User,\n\n$(message)Your username and password for the site are:\n\nUser name: $(username)\nPassword:  $(password)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(adminemail)\n
-remindersub = Your username and password
-newuser = New $(sitename) User
-newstaff = New $(sitename) Staff
+<!-- cgi/users  -->
 
-FILE = UserForm.pm
-dontknow 	= I don't know who you are
-recfor 	= Record for $(name)
-blurb 	= Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
-changeemail 	= For instructions on how to change your e-mail address, $(clickhere).
-clickhere 	= click here
-formincorrect = The form doesn't seem to be filled out correctly:
-completeform 	= Please complete the form before continuing.
-problemupdating = There was a problem reading the posted data and updating the database. Please try again later
-usernotmatch 	= Username in form $(formid) doesn't match object username $(username)
-
-######################################################################
-# cgi/users 
-######################################################################
-
-FILE = home
-dont_know_you	= I don't know who you are
-deposit_items = Deposit Items
-welcome	= Welcome to the item depositing area at $(sitename). Please select one of the options below.
-review	= Review your documents in the archive
-review_info	= This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.
-remove_info	= You can also remove documents from the archive.
-change	= View/change your user record
-change_info	= Select this option to see your user record, and to correct or update your user information.
-before	= Before you upload any documents, please fill out your user record.
-sub_opts	= Change your subscription options
-sub_opts_info = Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.
-docs		= Documents in your Workspace
-depositing	= These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.
-start_upload	= Click here to start uploading a document
-pending_title = Pending Items
-deposited_at	= Deposited $(time)
-
-FILE = record
-
-FILE = review
-dont_know_you	= I don't know who you are
-cant_clone	= Unable to clone that record. Please try again later.
-deposit_page	= Deposit Items Page
-review_title	= Review Documents
-no_docs	= You have no documents in the main archive.
-ret_deposit	= Click here to return to your deposit items page
-blurb_below	= Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.
-remove_info	= You can also request the removal of a document, but this is <strong>strongly</strong> discouraged, since different versions of a document can all be linked in the archive.
-document	= Document
-clone		= Clone
-req_remove	= Request Removal
-remove_title	= Request EPrint Removal
-remove_blurb	= Please note that we <STRONG>strongly</STRONG> discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.
-removing	= You are requesting the removal of:
-send_req	= Send Request
-cancel	= Cancel
-cant_find_it	= Couldn't find the EPrint! There's probably a problem with the database. Try again later.
-remove_mail	= User $(user) (E-Mail: $(email))\nrequests the removal of the following EPrint:
-reason	= The following reason was given:
-no_reason	= No reason was given.
-visit_url	= Visit the following URL to view the EPrint and have the option to remove it:
-remove_sub	= EPrint Removal Request 
-
-FILE = subscribe
-dont_know_you	= I don't know who you are
-subscribe	= Subscribe
-create	= Create a Subscription
-remove	= Remove the Subscription
-mk_sub_error	= Unable to create your subscription. The database may be busy. Please try again later.
-return_dep	= Return to your deposit items page
-rm_sub_error	= Unable to remove your subscription. The database may be busy. Please try again later.
-no_sub	= You do not currently have a subscription. Click on the button below to create subscription.
-subscribe	= Subscribe
-cant_accept	= The subscription could not be accepted because:
-please_enter	= Enter the criteria for your subscription below.
-sub_accept	= Your subscription has been accepted.
-ret_deposit	= Click here to return to your deposit items page.
-ud_sub_error	= Unable to update your subscription. The database may be busy. Please try again later.
+<file name="home">
+    <phrase ref="dont_know_you">I don't know who you are</phrase>
+    <phrase ref="deposit_items">Deposit Items</phrase>
+    <phrase ref="welcome">Welcome to the item depositing area at <pin ref="sitename" />. Please select one of the options below.</phrase>
+    <phrase ref="review">Review your documents in the archive</phrase>
+    <phrase ref="review_info">This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.</phrase>
+    <phrase ref="remove_info">You can also remove documents from the archive.</phrase>
+    <phrase ref="change">View/change your user record</phrase>
+    <phrase ref="change_info">Select this option to see your user record, and to correct or update your user information.</phrase>
+    <phrase ref="before">Before you upload any documents, please fill out your user record.</phrase>
+    <phrase ref="sub_opts">Change your subscription options</phrase>
+    <phrase ref="sub_opts_info">Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.</phrase>
+    <phrase ref="docs">Documents in your Workspace</phrase>
+    <phrase ref="depositing">These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.</phrase>
+    <phrase ref="start_upload">Click here to start uploading a document</phrase>
+    <phrase ref="pending_title">Pending Items</phrase>
+    <phrase ref="deposited_at">Deposited <pin ref="time" /></phrase>
+</file>
 
 
-######################################################################
-# cgi/staff 
-######################################################################
+<file name="review">
+    <phrase ref="dont_know_you">I don't know who you are</phrase>
+    <phrase ref="cant_clone">Unable to clone that record. Please try again later.</phrase>
+    <phrase ref="deposit_page">Deposit Items Page</phrase>
+    <phrase ref="review_title">Review Documents</phrase>
+    <phrase ref="no_docs">You have no documents in the main archive.</phrase>
+    <phrase ref="ret_deposit">Click here to return to your deposit items page</phrase>
+    <phrase ref="blurb_below">Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.</phrase>
+    <phrase ref="remove_info">You can also request the removal of a document, but this is strongly discouraged, since different versions of a document can all be linked in the archive.</phrase>
+    <phrase ref="document">Document</phrase>
+    <phrase ref="clone">Clone</phrase>
+    <phrase ref="req_remove">Request Removal</phrase>
+    <phrase ref="remove_title">Request EPrint Removal</phrase>
+    <phrase ref="remove_blurb">Please note that we strongly discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</phrase>
+    <phrase ref="removing">You are requesting the removal of:</phrase>
+    <phrase ref="send_req">Send Request</phrase>
+    <phrase ref="cancel">Cancel</phrase>
+    <phrase ref="cant_find_it">Couldn't find the EPrint! There's probably a problem with the database. Try again later.</phrase>
+    <phrase ref="remove_mail">User <pin ref="user" /> (E-Mail: <pin ref="email" />)\nrequests the removal of the following EPrint:</phrase>
+    <phrase ref="reason">The following reason was given:</phrase>
+    <phrase ref="no_reason">No reason was given.</phrase>
+    <phrase ref="visit_url">Visit the following URL to view the EPrint and have the option to remove it:</phrase>
+    <phrase ref="remove_sub">EPrint Removal Request </phrase>
+</file>
 
-FILE = add_user
-mk_acc_err	= Error creating user's account.
-staff_area	= Staff Area
-no_username	= No username entered!
-try_again	= Try Again
-create_title  = Create a User
-enter_username= Enter a username for the new user below.
-create_user	= Create User
+<file name="subscribe">
+    <phrase ref="dont_know_you">I don't know who you are</phrase>
+    <phrase ref="subscribe">Subscribe</phrase>
+    <phrase ref="create">Create a Subscription</phrase>
+    <phrase ref="remove">Remove the Subscription</phrase>
+    <phrase ref="mk_sub_error">Unable to create your subscription. The database may be busy. Please try again later.</phrase>
+    <phrase ref="return_dep">Return to your deposit items page</phrase>
+    <phrase ref="rm_sub_error">Unable to remove your subscription. The database may be busy. Please try again later.</phrase>
+    <phrase ref="no_sub">You do not currently have a subscription. Click on the button below to create subscription.</phrase>
+    <phrase ref="subscribe">Subscribe</phrase>
+    <phrase ref="cant_accept">The subscription could not be accepted because:</phrase>
+    <phrase ref="please_enter">Enter the criteria for your subscription below.</phrase>
+    <phrase ref="sub_accept">Your subscription has been accepted.</phrase>
+    <phrase ref="ret_deposit">Click here to return to your deposit items page.</phrase>
+    <phrase ref="ud_sub_error">Unable to update your subscription. The database may be busy. Please try again later.</phrase>
+</file>
 
-FILE = buffer
-ov_title	= Submission Buffer Overview
-no_entries	= There are no entries in the submission buffer at the moment.
-buffer_blurb  = Click on the title of an entry to view, edit, accept or reject it.
-title		= Title
-sub_by	= Submitted by
-sub_date	= Submission Date
-invalid	= INVALID
-return_staff	= Click here to return to the Staff Area
+<file name="add_user">
+    <phrase ref="mk_acc_err">Error creating user's account.</phrase>
+    <phrase ref="staff_area">Staff Area</phrase>
+    <phrase ref="no_username">No username entered!</phrase>
+    <phrase ref="try_again">Try Again</phrase>
+    <phrase ref="create_title">Create a User</phrase>
+    <phrase ref="enter_userref">Enter a username for the new user below.</phrase>
+    <phrase ref="create_user">Create User</phrase>
+</file>
+
+<file name="buffer">
+    <phrase ref="ov_title">Submission Buffer Overview</phrase>
+    <phrase ref="no_entries">There are no entries in the submission buffer at the moment.</phrase>
+    <phrase ref="buffer_blurb">Click on the title of an entry to view, edit, accept or reject it.</phrase>
+    <phrase ref="title">Title</phrase>
+    <phrase ref="sub_by">Submitted by</phrase>
+    <phrase ref="sub_date">Submission Date</phrase>
+    <phrase ref="invalid">INVALID</phrase>
+    <phrase ref="return_staff">Click here to return to the Staff Area</phrase>
+</file>
+
+<!-- cgi files -->
+
+<file name="advsearch">
+    <phrase ref="adv_search">Advanced Search</phrase>
+    <phrase ref="dont_panic">Don't panic! Just leave the fields you don't want to search blank.</phrase>
+    <phrase ref="simple_search">Click here for a simple search.</phrase>
+</file>
+
+<file name="handle_404">
+    <phrase ref="doc_not_found">Document Not Found</phrase>
+    <phrase ref="file_not_found">File not found:</phrase>
+    <phrase ref="looking_for">Perhaps you're looking for the following eprint:</phrase>
+    <phrase ref="blurb">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <pin ref="siteadmin" />.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</phrase>
+    <phrase ref="site_admin">Site Administrator</phrase>
+</file>
+
+<file name="oai">
+<!-- OAI should only be used by automatic systems so we have not provided a translation. -->
+</file>
+
+<file name="remind">
+    <phrase ref="rem_sent_title">Reminder Sent</phrase>
+    <phrase ref="sent_blurb">A reminder of your username and password has been sent to you in an E-mail. If you still have problems, please mail the <pin ref="siteadmin" />.</phrase>
+    <phrase ref="site_admin">Site Administrator</phrase>
+    <phrase ref="return_home">Return to <pin ref="sitename" /> Home</phrase>
+    <phrase ref="form_title">Username and Password Reminder Form</phrase>
+    <phrase ref="form_blurb">If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.</phrase>
+    <phrase ref="send">Send</phrase>
+</file>
+
+<file name="search">
+    <phrase ref="simple_search">Simple Search</phrase>
+    <phrase ref="adv_search">Click Música, ¡Genial!. &#36103;
+ here for an advanced search</phrase>
+</file>
+
+<file name="user">
+    <phrase ref="user_title">User record for <pin ref="name" /></phrase>
+    <phrase ref="one_record">User has 1 EPrint in the archive.</phrase>
+    <phrase ref="n_records">User has <pin ref="n" /> EPrints in the archive.</phrase>
+    <phrase ref="view_link">Click here to view this author's EPrints.</phrase>
+    <phrase ref="unknown_user">Unknown User</phrase>
+    <phrase ref="return_front">Return to front page</phrase>
+    <phrase ref="no_user">No user specified!</phrase>
+</file>
+
+<file name="user_eprints">
+    <phrase ref="eprints_title">EPrints submitted by <pin ref="name" /></phrase>
+    <phrase ref="record_link">Click here to see user's record.</phrase>
+    <phrase ref="no_eprints">User has submitted no EPrints.</phrase>
+    <phrase ref="one_eprint">User has submitted <pin ref="n" /> EPrint.</phrase>
+    <phrase ref="n_eprints">User has submitted <pin ref="n" /> EPrints.</phrase>
+    <phrase ref="unknown_user">Unknown User</phrase>
+    <phrase ref="return_front">Return to front page</phrase>
+    <phrase ref="no_user">No user specified!</phrase>
+</file>
+
+<file name="view_eprint">
+    <phrase ref="code_title">Enter EPrint ID Code</phrase>
+    <phrase ref="invalid_code">The specified ID code is not a valid ID code.</phrase>
+    <phrase ref="enter_code">Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.</phrase>
+    <phrase ref="view_eprint">View EPrint</phrase>
+</file>
 
 
-######################################################################
-# cgi
-######################################################################
+<file name="update_ecs_users">
+    <phrase ref="dude">Internationalisation Rocks.</phrase>
+</file>
 
-FILE = advsearch
-adv_search	= Advanced Search
-dont_panic	= Don't panic! Just leave the fields you don't want to search blank.
-simple_search   = Click here for a simple search.
-
-FILE = handle_404
-doc_not_found	= Document Not Found
-file_not_found= File not found:
-looking_for	= Perhaps you're looking for the following eprint:
-blurb		= The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the $(siteadmin).  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.
-site_admin	= Site Administrator
-
-FILE = oai
-# OAI should only be used by automatic systems so we have not
-# provided a translation.
-
-FILE = remind
-rem_sent_title= Reminder Sent
-sent_blurb	= A reminder of your username and password has been sent to you in an E-mail. If you still have problems, please mail the $(siteadmin).
-site_admin	= Site Administrator
-return_home 	= Return to $(sitename) Home
-form_title	= Username and Password Reminder Form
-form_blurb	= If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.
-send		= Send
-
-FILE = search
-simple_search	= Simple Search
-adv_search	= Click here for an advanced search
-
-FILE = user
-user_title	= User record for $(name)
-one_record	= User has 1 EPrint in the archive.
-n_records	= User has $(n) EPrints in the archive.
-view_link	= Click here to view this author's EPrints.
-unknown_user	= Unknown User
-return_front	= Return to front page
-no_user	= No user specified!
-
-FILE = user_eprints
-eprints_title	= EPrints submitted by $(name)
-record_link	= Click here to see user's record.
-no_eprints	= User has submitted no EPrints.
-one_eprint	= User has submitted $(n) EPrint.
-n_eprints	= User has submitted $(n) EPrints.
-unknown_user	= Unknown User
-return_front	= Return to front page
-no_user	= No user specified!
-
-FILE = view_eprint
-code_title	= Enter EPrint ID Code
-invalid_code	= The specified ID code is not a valid ID code.
-enter_code	= Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.
-view_eprint	= View EPrint
-
-
-######################################################################
-
-
-FILE = update_ecs_users
-dude = Internationalisation Rocks.
-
+</phrases>

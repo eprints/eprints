@@ -1,88 +1,76 @@
-# English Language Phrases (Site Specific)
+<phrases>
+    <phrase ref="fieldname_eprint_eprintid">EPrint ID</phrase>
 
-# First letter donates use:
-#
-# H = HTML
-# A = ASCII
-# L = Log
-# S = Mail Subject (or From) Line
-# M = Mail Message
-# F = HTML Form (Some characters maybe illegal! Don't use &eacute; escaping) 
+    <phrase ref="fieldname_eprint_username">Depositing User</phrase>
 
-######################################################################
+    <phrase ref="fieldname_eprint_dir">Dir</phrase>
 
-fieldname_eprint_eprintid = EPrint ID
+    <phrase ref="fieldname_eprint_datestamp">Date Deposited</phrase>
 
-fieldname_eprint_username = Depositing User
+    <phrase ref="fieldname_eprint_type">EPrint Type</phrase>
 
-fieldname_eprint_dir = Dir
+    <phrase ref="fieldhelp_eprint_additional">If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.</phrase>
 
-fieldname_eprint_datestamp = Date Deposited
+    <phrase ref="fieldhelp_eprint_reasons">Here you can offer justification for your suggested new subject(s).</phrase>
 
-fieldname_eprint_type = EPrint Type
+    <phrase ref="fieldname_eprint_commentary">Commentary on</phrase>
+    <phrase ref="fieldhelp_eprint_commentary">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</phrase>
 
-fieldhelp_eprint_additional = If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.
+    <phrase ref="fieldname_eprint_succeeds">Later Version of</phrase>
+    <phrase ref="fieldhelp_eprint_succeeds">If this document is a revised version of another document in the archive, please enter its ID code in this box.</phrase>
 
-fieldhelp_eprint_reasons = Here you can offer justification for your suggested new subject(s).
+    <phrase ref="fieldname_eprint_subjects">Subjects</phrase>
+    <phrase ref="fieldhelp_eprint_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, in the list below. In some browsers you may have to hold CTRL or SHIFT to select more than one subject.</phrase>
 
-fieldname_eprint_commentary = Commentary on
-fieldhelp_eprint_commentary = If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.
+<!-- locally defined fields -->
 
-fieldname_eprint_succeeds = Later Version of
-fieldhelp_eprint_succeeds = If this document is a revised version of another document in the archive, please enter its ID code in this box.
+    <phrase ref="fieldname_eprint_abstract">Abstract</phrase>
+    <phrase ref="fieldhelp_eprint_abstract">Please enter the abstract of your deposit. You can easily copy and paste it into this box. </phrase>
 
-fieldname_eprint_subjects = Subjects
-fieldhelp_eprint_subjects = Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, in the list below. In some browsers you may have to hold CTRL or SHIFT to select more than one subject.
+    <phrase ref="fieldname_eprint_altloc">Alternative Locations</phrase>
+    <phrase ref="fieldhelp_eprint_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</phrase>
 
-## locally defined fields
+    <phrase ref="fieldname_eprint_authors">Authors</phrase>
+    <phrase ref="fieldhelp_eprint_authors">Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.</phrase>
 
-fieldname_eprint_abstract = Abstract
-fieldhelp_eprint_abstract = Please enter the abstract of your deposit. You can easily copy and paste it into this box. If you want to include formatting such as italics and bold print, you can use HTML style tags, such as <em>&lt;EM&gt;</em> or <strong>&lt;strong&gt;</strong>.
+    <phrase ref="fieldname_eprint_chapter">Chapter</phrase>
+    <phrase ref="fieldhelp_eprint_chapter">Please enter the full name of the conference.</phrase>
 
-fieldname_eprint_altloc = Alternative Locations
-fieldhelp_eprint_altloc = If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.
+    <phrase ref="fieldname_eprint_comments">Additional Information</phrase>
+    <phrase ref="fieldhelp_eprint_comments">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.</phrase>
 
-fieldname_eprint_authors = Authors
-fieldhelp_eprint_authors = Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.
+    <phrase ref="fieldname_eprint_commref">Commentary on</phrase>
+    <phrase ref="fieldhelp_eprint_commref">If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.</phrase>
 
-fieldname_eprint_chapter = Chapter
-fieldhelp_eprint_chapter = Please enter the full name of the conference.
+    <phrase ref="fieldname_eprint_confdates">Conference Date</phrase>
+    <phrase ref="fieldhelp_eprint_confdates">Please enter when the conference took place.</phrase>
 
-fieldname_eprint_comments = Additional Information
-fieldhelp_eprint_comments = If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.
+    <phrase ref="fieldname_eprint_conference">Conference</phrase>
+    <phrase ref="fieldhelp_eprint_conference">Please enter the full name of the conference.</phrase>
 
-fieldname_eprint_commref = Commentary on
-fieldhelp_eprint_commref = If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.
+    <phrase ref="fieldname_eprint_confloc">Location</phrase>
+    <phrase ref="fieldhelp_eprint_confloc">Enter here where the conference took place.</phrase>
 
-fieldname_eprint_confdates = Conference Date
-fieldhelp_eprint_confdates = Please enter when the conference took place.
+    <phrase ref="fieldname_eprint_department">Department</phrase>
+    <phrase ref="fieldhelp_eprint_department">Please enter the department from which the deposit originated.</phrase>
 
-fieldname_eprint_conference = Conference
-fieldhelp_eprint_conference = Please enter the full name of the conference.
+    <phrase ref="fieldname_eprint_editors">Editors</phrase>
+    <phrase ref="fieldhelp_eprint_editors">Please enter the names of the editors.</phrase>
 
-fieldname_eprint_confloc = Location
-fieldhelp_eprint_confloc = Enter here where the conference took place.
+    <phrase ref="fieldname_eprint_institution">Institution</phrase>
+    <phrase ref="fieldhelp_eprint_institution">Please enter the institution from which the deposit originated.</phrase>
 
-fieldname_eprint_department = Department
-fieldhelp_eprint_department = Please enter the department from which the deposit originated.
-
-fieldname_eprint_editors = Editors
-fieldhelp_eprint_editors = Please enter the names of the editors.
-
-fieldname_eprint_institution = Institution
-fieldhelp_eprint_institution = Please enter the institution from which the deposit originated.
-
-fieldname_eprint_ispublished = Status
-fieldhelp_eprint_ispublished = Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.
+    <phrase ref="fieldname_eprint_ispublished">Status</phrase>
+    <phrase ref="fieldhelp_eprint_ispublished">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</phrase>
 # value unpub = Unpublished
 # value inpress = In Press
 # value pub = Published
 
-fieldname_eprint_keywords = Keywords
-fieldhelp_eprint_keywords = Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.
+    <phrase ref="fieldname_eprint_keywords">Keywords</phrase>
+    <phrase ref="fieldhelp_eprint_keywords">Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.</phrase>
 
-fieldname_eprint_month = Month
-fieldhelp_eprint_month = Please enter the month in which your deposit was published.
+    <phrase ref="fieldname_eprint_month">Month</phrase>
+    <phrase ref="fieldhelp_eprint_month">Please enter the month in which your deposit was published.</phrase>
 # value unspec = Unspecified
 # value jan = January
 # value feb = February
@@ -97,61 +85,61 @@ fieldhelp_eprint_month = Please enter the month in which your deposit was publis
 # value nov = November
 # value dec = December
 
-fieldname_eprint_number = Number
-fieldhelp_eprint_number = Enter the issue number of the journal in which your deposit appeared.
+    <phrase ref="fieldname_eprint_number">Number</phrase>
+    <phrase ref="fieldhelp_eprint_number">Enter the issue number of the journal in which your deposit appeared.</phrase>
 
-fieldname_eprint_pages = Pages
-fieldhelp_eprint_pages = Please enter the (inclusive) range of pages in which your paper appeared.
+    <phrase ref="fieldname_eprint_pages">Pages</phrase>
+    <phrase ref="fieldhelp_eprint_pages">Please enter the (inclusive) range of pages in which your paper appeared.</phrase>
 
-fieldname_eprint_pubdom = Public Domain
-fieldhelp_eprint_pubdom = If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.
+    <phrase ref="fieldname_eprint_pubdom">Public Domain</phrase>
+    <phrase ref="fieldhelp_eprint_pubdom">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</phrase>
 
-fieldname_eprint_publication = Publication
-fieldhelp_eprint_publication = Please enter the full title of the publication your deposit appeared in.
+    <phrase ref="fieldname_eprint_publication">Publication</phrase>
+    <phrase ref="fieldhelp_eprint_publication">Please enter the full title of the publication your deposit appeared in.</phrase>
 
-fieldname_eprint_publisher = Publisher
-fieldhelp_eprint_publisher = Please enter the name of the publisher.
+    <phrase ref="fieldname_eprint_publisher">Publisher</phrase>
+    <phrase ref="fieldhelp_eprint_publisher">Please enter the name of the publisher.</phrase>
 
-fieldname_eprint_refereed = Refereed
-fieldhelp_eprint_refereed = Please indicate whether this version of the work been refereed below.
+    <phrase ref="fieldname_eprint_refereed">Refereed</phrase>
+    <phrase ref="fieldhelp_eprint_refereed">Please indicate whether this version of the work been refereed below.</phrase>
 
-fieldname_eprint_referencetext = References
-fieldhelp_eprint_referencetext = You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.
+    <phrase ref="fieldname_eprint_referencetext">References</phrase>
+    <phrase ref="fieldhelp_eprint_referencetext">You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.</phrase>
 
-fieldname_eprint_reportno = Report no.
-fieldhelp_eprint_reportno = Please enter the report number.
+    <phrase ref="fieldname_eprint_reportno">Report no.</phrase>
+    <phrase ref="fieldhelp_eprint_reportno">Please enter the report number.</phrase>
 
-fieldname_eprint_thesistype = Thesis Type
-fieldhelp_eprint_thesistype = Please enter the thesis type, e.g. <strong>PhD thesis</strong>.
+    <phrase ref="fieldname_eprint_thesistype">Thesis Type</phrase>
+    <phrase ref="fieldhelp_eprint_thesistype">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</phrase>
 
-fieldname_eprint_title = Title
-fieldhelp_eprint_title = Please enter the full title of the deposit.
+    <phrase ref="fieldname_eprint_title">Title</phrase>
+    <phrase ref="fieldhelp_eprint_title">Please enter the full title of the deposit.</phrase>
 
-fieldname_eprint_volume = Volume
-fieldhelp_eprint_volume = Enter the volume number of the journal in which your deposit appeared.
+    <phrase ref="fieldname_eprint_volume">Volume</phrase>
+    <phrase ref="fieldhelp_eprint_volume">Enter the volume number of the journal in which your deposit appeared.</phrase>
 
-fieldname_eprint_year = Year
-fieldhelp_eprint_year = Please enter the year in which your deposit was published or produced.
-
-
-### Eprint Type Names
-
-typename_eprint_bookchapter 	= Book Chapter
-typename_eprint_confpaper 	= Conference Paper
-typename_eprint_confposter 	= Conference Poster
-typename_eprint_techreport 	= Departmental Technical Report
-typename_eprint_journale 	= Journal (On-line/Unpaginated)
-typename_eprint_journalp 	= Journal (Paginated)
-typename_eprint_newsarticle 	= Newspaper/Magazine Article
-typename_eprint_other 	= Other
-typename_eprint_preprint 	= Preprint
-typename_eprint_thesis 	= Thesis
-
-### Sort Order names
-
-ordername_archive_byyear	= by year (most recent first)
-ordername_archive_byyearoldest = by year (oldest first)
-ordername_archive_byname 	= by author's name
-ordername_archive_bytitle 	= by title
+    <phrase ref="fieldname_eprint_year">Year</phrase>
+    <phrase ref="fieldhelp_eprint_year">Please enter the year in which your deposit was published or produced.</phrase>
 
 
+<!-- Eprint Type Names -->
+
+    <phrase ref="typename_eprint_bookchapter">Book Chapter</phrase>
+    <phrase ref="typename_eprint_confpaper">Conference Paper</phrase>
+    <phrase ref="typename_eprint_confposter">Conference Poster</phrase>
+    <phrase ref="typename_eprint_techreport">Departmental Technical Report</phrase>
+    <phrase ref="typename_eprint_journale">Journal (On-line/Unpaginated)</phrase>
+    <phrase ref="typename_eprint_journalp">Journal (Paginated)</phrase>
+    <phrase ref="typename_eprint_newsarticle">Newspaper/Magazine Article</phrase>
+    <phrase ref="typename_eprint_other">Other</phrase>
+    <phrase ref="typename_eprint_preprint">Preprint</phrase>
+    <phrase ref="typename_eprint_thesis">Thesis&#25606;</phrase>
+
+<!-- Sort Order names -->
+
+    <phrase ref="ordername_archive_byyear">by year (most recent first)</phrase>
+    <phrase ref="ordername_archive_byyearoldest">by year (oldest first)</phrase>
+    <phrase ref="ordername_archive_byname">by author's name</phrase>
+    <phrase ref="ordername_archive_bytitle">by title</phrase>
+
+</phrases>

@@ -12,7 +12,9 @@
 
 package EPrints::Site::lemurprints;
 
+
 use XML::DOM;
+use Unicode::String qw(utf8 latin1 utf16);
 
 use EPrints::Site::General;
 use EPrints::Version;
@@ -39,12 +41,12 @@ sub get_conf
 #
 ######################################################################
 
-$c->{sitename} = "Lemur Prints Archive";
-
+$c->{sitename} = latin1( "Lemur Prints Archive" );
+ 
 $c->{siteid} = "lemurprints";
 
 # Short text description
-$c->{description} = "Your Site Description Here";
+$c->{description} = latin1( "Your Site Description Here" );
 
 # E-mail address for human-read administration mail
 $c->{admin} = "admin\@lemur.ecs.soton.ac.uk";
@@ -59,7 +61,7 @@ chomp $host;
 if( $host eq "lemur" ) {
 	$c->{host} = "lemur.ecs.soton.ac.uk";
 } else {
-	$c->{host} = "destiny.totl.net";
+	$c->{host} = "destiny";
 }
 
 
@@ -130,6 +132,7 @@ $c->{useridfield} = "ecsid";
 
 # Supported document storage formats, given as an array and a hash value,
 #  so that some order of preference can be imposed.
+#cjg should these have screenable names?
 $c->{supported_formats} =
 [
 	"HTML",
@@ -271,7 +274,7 @@ $c->{oai_content}->{"url"} = undef;
 # oai_metadataPolicy{"text"} and/or oai_metadataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$c->{oai_metadata_policy}->{"text"} = <<END;
+$c->{oai_metadata_policy}->{"text"} = latin1( <<END );
 No metadata policy defined. 
 This server has not yet been fully configured.
 END
@@ -284,7 +287,7 @@ $c->{oai_metadata_policy}->{"url"} = undef;
 # oai_dataPolicy{"text"} and/or oai_dataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$c->{oai_data_policy}->{"text"} = <<END;
+$c->{oai_data_policy}->{"text"} = latin1( <<END );
 No data policy defined. 
 This server has not yet been fully configured.
 END
@@ -294,7 +297,7 @@ $c->{oai_data_policy}->{"url"} = undef;
 # policies relating to the submission of content to the repository (or
 # other accession mechanisms).
 
-$c->{oai_submission_policy}->{"text"} = <<END;
+$c->{oai_submission_policy}->{"text"} = latin1( <<END );
 No submission-data policy defined. 
 This server has not yet been fully configured.
 END
@@ -308,7 +311,7 @@ $c->{oai_submission_policy}->{"url"} = undef;
 # An array of comments to be returned. May be empty.
 
 $c->{oai_comments} = [
-	"System is EPrints ".
+	latin1( "System is EPrints ").
 	$EPrints::Version::eprints_software_version.
 	" (http://www.eprints.org)" ];
 
@@ -974,6 +977,7 @@ $c->{htmlpage}->{dummy} = parseHTML( <<END );
 
 END
 
+#########cjg latin etc not done from here...
 
 #  E-mail signature, appended to every email sent by the software
 $c->{signature} = <<END;
@@ -2234,7 +2238,7 @@ sub log
 sub parseHTML
 {
 	my( $html ) = @_;
-	my $parser = new XML::DOM::Parser( ProtocolEncoding=>"ISO-8859-1" );
+	my $parser = new XML::DOM::Parser();
 	my $dom = $parser->parse( $html );
 	my $element = $dom->getFirstChild;	
 	$dom->removeChild( $element );

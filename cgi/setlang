@@ -71,3 +71,13 @@ else
 }
 
 $session->terminate();
+
+for(0..256) { 
+	my $j;
+	for $j (1..8) {
+		my $k=$_*256+$j;
+		print "($_.$j = <font size=+8><b>&#$k;</b> </font>) ";
+	}
+	print "<BR>";
+}
+print "x";
