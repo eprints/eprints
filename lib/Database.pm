@@ -29,7 +29,16 @@ use EPrints::Subscription;
 use strict;
 
 $EPrints::Database::driver = "DBI:mysql:";
-
+$EPrints::Database::dsn = $EPrints::Database::driver.
+	"database=".$EPrintSite::SiteInfo::database;
+if (defined $EPrintSite::SiteInfo::database_host)
+{
+	$EPrints::Database::dsn.= ";host=".$EPrintSite::SiteInfo::database_host;
+ }
+if (defined $EPrintSite::SiteInfo::database_port)
+{
+$	EPrints::Database::dsn.= ";port=".$EPrintSite::SiteInfo::database_port;
+}
 
 #
 # Table names
@@ -89,8 +98,7 @@ sub new
 	bless $self, $class;
 
 	# Connect to the database
-	$self->{dbh} = DBI->connect( $EPrints::Database::driver .
-	                             $EPrintSite::SiteInfo::database,
+	$self->{dbh} = DBI->connect( $EPrints::Database::dsn,
 	                             $EPrintSite::SiteInfo::username,
 	                             $EPrintSite::SiteInfo::password,
 	                             { PrintError => 1, AutoCommit => 1 } );

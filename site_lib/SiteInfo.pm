@@ -18,6 +18,7 @@
 package EPrintSite::SiteInfo;
 
 use EPrints::Document;
+use EPrints::OpenArchives;
 
 use strict;
 
@@ -422,6 +423,8 @@ $EPrintSite::SiteInfo::sendmail =
 # Database information: Since we hold the password here unencrypted, this
 # file should have suitable strict read permissions
 $EPrintSite::SiteInfo::database = "eprints";
+#$EPrintSite::SiteInfo::database_host = "mysql.somewhere.else";
+#$EPrintSite::SiteInfo::database_port = 3306;
 $EPrintSite::SiteInfo::username = "eprints";
 $EPrintSite::SiteInfo::password = "eprints";
 
@@ -445,13 +448,68 @@ $EPrintSite::SiteInfo::archive_identifier = "MUST CHANGE";
 
 # Base URL of OAI
 $EPrintSite::SiteInfo::oai_base_url =
-	$EPrintSite::SiteInfo::server_perl."/not-yet-implemented";
+	$EPrintSite::SiteInfo::server_perl."/oai";
+
+$EPrintSite::SiteInfo::oai_sample_identifier = EPrints::OpenArchives::to_oai_identifier(
+	$EPrintSite::SiteInfo::eprint_id_stem."00000023" );
+
+# Information for "Identify" responses.
+
+# "content" : Text and/or a URL linking to text describing the content
+# of the repository.  It would be appropriate to indicate the language(s)
+# of the metadata/data in the repository.
+
+$EPrintSite::SiteInfo::oai_content{"text"} = 
+	$EPrintSite::SiteInfo::description;
+$EPrintSite::SiteInfo::oai_content{"url"} = undef;
+
+# "metadataPolicy" : Text and/or a URL linking to text describing policies
+# relating to the use of metadata harvested through the OAI interface.
+
+# oai_metadataPolicy{"text"} and/or oai_metadataPolicy{"url"} 
+# MUST be defined to comply to OAI.
+
+$EPrintSite::SiteInfo::oai_metadataPolicy{"text"} = 
+	"No metadata policy defined. ".
+	"This server has not yet been fully configured.";
+$EPrintSite::SiteInfo::oai_metadataPolicy{"url"} = undef;
+
+# "dataPolicy" : Text and/or a URL linking to text describing policies
+# relating to the data held in the repository.  This may also describe
+# policies regarding downloading data (full-content).
+
+# oai_dataPolicy{"text"} and/or oai_dataPolicy{"url"} 
+# MUST be defined to comply to OAI.
+
+$EPrintSite::SiteInfo::oai_dataPolicy{"text"} = 
+	"No data policy defined. ".
+	"This server has not yet been fully configured.";
+$EPrintSite::SiteInfo::oai_dataPolicy{"url"} = undef;
+
+# "submissionPolicy" : Text and/or a URL linking to text describing
+# policies relating to the submission of content to the repository (or
+# other accession mechanisms).
+
+$EPrintSite::SiteInfo::oai_submissionPolicy{"text"} = 
+	"No submission-data policy defined. ".
+	"This server has not yet been fully configured.";
+$EPrintSite::SiteInfo::oai_submissionPolicy{"url"} = undef;
+
+# "comment" : Text and/or a URL linking to text describing anything else
+# that is not covered by the fields above. It would be appropriate to
+# include additional contact details (additional to the adminEmail that
+# is part of the response to the Identify request).
+
+# An array of comments to be returned. May be empty.
+
+@EPrintSite::SiteInfo::oai_comments = ( "System is EPrints ".
+	$EPrints::Session::eprints_software_version.
+	" (http://www.eprints.org)" );
 
 
 
-
-# Parameters for Dienst software: Required for now, but will not be required
-# in later versions
+# Dienst configuration - not required but provided for 
+# people who still might want the dienst interface
 
 # Domain the software is running in
 $EPrintSite::SiteInfo::domain = $EPrintSite::SiteInfo::host;
@@ -464,3 +522,5 @@ $EPrintSite::SiteInfo::daylight_savings_time_zone = "BST";
 
 
 1; # For use/require success
+
+
