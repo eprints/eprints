@@ -75,15 +75,15 @@ sub process
 	
 	$self->{action}    = $self->{session}->get_action_button();
 	$self->{stage}     = $self->{session}->param( "stage" );
-	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
+	$self->{eprintid}  = $self->{session}->param( "eprintid" );
 	$self->{user}      = $self->{session}->current_user();
 
 	# If we have an EPrint ID, retrieve its entry from the database
-	if( defined $self->{eprint_id} )
+	if( defined $self->{eprintid} )
 	{
 		$self->{eprint} = EPrints::EPrint->new( $self->{session},
 		                                        $self->{dataset},
-		                                        $self->{eprint_id} );
+		                                        $self->{eprintid} );
 
 		# Check it was retrieved OK
 		if( !defined $self->{eprint} )
@@ -98,13 +98,13 @@ sub process
 		# check that we got the record we wanted - if we didn't
 		# then something is heap big bad. ( This is being a bit
 		# over paranoid, but what the hell )
-		if( $self->{session}->param( "eprint_id" ) ne
+		if( $self->{session}->param( "eprintid" ) ne
 	    		$self->{eprint}->get_value( "eprintid" ) )
 		{
-			my $form_id = $self->{session}->param( "eprint_id" );
+			my $form_id = $self->{session}->param( "eprintid" );
 			$self->{session}->get_archive()->log( 
 				"Form error: EPrint ID in form ".
-				$self->{session}->param( "eprint_id" ).
+				$self->{session}->param( "eprintid" ).
 				" doesn't match object id ".
 				$self->{eprint}->get_value( "eprintid" ) );
 			$self->_corrupt_err;
@@ -286,7 +286,7 @@ sub _from_home
 		else
 		{
 			my $error = $self->{session}->{database}->error();
-			$self->{session}->log( "SubmissionForm error: Error cloning EPrint ".$self->{eprint}->{eprintid}.": $error" );	
+			$self->{session}->log( "SubmissionForm error: Error cloning EPrint ".$self->{eprint}->{eprintid}.": $error" );	#cjg!!
 			$self->_database_err;
 			return( 0 );
 		}
@@ -659,7 +659,7 @@ sub _from_stage_fileview
 		$self->{session}->{render}->param( "doc_id" ) );
 
 	if( !defined $self->{document} ||
-	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
+	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )#cjg!!
 	{
 		$self->_corrupt_err;
 		return( 0 );
@@ -744,7 +744,7 @@ sub _from_stage_upload
 		$self->{session}->{render}->param( "doc_id" ) );
 	$self->{document} = $doc;
 
-	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
+	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )#cjg!!
 	{
 		$self->_corrupt_err;
 		return( 0 );
@@ -862,7 +862,6 @@ sub _from_stage_verify
 			# OK, no problems, submit it to the archive
 			if( $self->{eprint}->submit() )
 			{
-				$self->{id} = $self->{eprint}->{eprintid};
 				$self->{next_stage} = $EPrints::SubmissionForm::stage_done;
 			}
 			else
@@ -909,7 +908,7 @@ sub _from_stage_confirmdel
 		else
 		{
 			my $db_error = $self->{session}->{database}->error();
-			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );
+			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );#cjg!!
 			$self->_database_err;
 			return( 0 );
 		}
@@ -975,7 +974,7 @@ sub _do_stage_type
 	        0,
 	        $submit_buttons,
 	        { stage => "type", 
-		  eprint_id => $self->{eprint}->get_value( "eprintid" ) },
+		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
 		{},
 		"submit#t"
 	) );
@@ -1057,7 +1056,7 @@ sub _do_stage_linking
 	        1,
 	        $submit_buttons,
 	        { stage => "linking",
-		  eprint_id => $self->{eprint}->get_value( "eprintid" ) },
+		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
 		$comment,
 		"submit#t"
 	) );
@@ -1102,7 +1101,7 @@ sub _do_stage_meta
 	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
 
 	my $hidden_fields = {	
-		eprint_id => $self->{eprint}->get_value( "eprintid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		stage => "meta" };
 
 	my $submit_buttons = {
@@ -1114,7 +1113,7 @@ sub _do_stage_meta
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
 			\@edit_fields,
-			$self->{eprint}->{data},
+			$self->{eprint}->get_data(),
 			1,
 			1,
 			$submit_buttons,
@@ -1146,7 +1145,7 @@ sub _do_stage_subject
 	$page->appendChild( $self->_render_problems() );
 
 	my $hidden_fields = {	
-		eprint_id => $self->{eprint}->get_value( "eprintid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		stage => "subject" };
 
 	my $submit_buttons = {
@@ -1164,7 +1163,7 @@ sub _do_stage_subject
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
 			\@edit_fields,
-			$self->{eprint}->{data},
+			$self->{eprint}->get_data(),
 			0,
 			1,
 			$submit_buttons,
@@ -1269,7 +1268,7 @@ sub _do_stage_format
 		"stage",
 		"format" ) );
 	$form->appendChild( $self->{session}->render_hidden_field(
-		"eprint_id",
+		"eprintid",
 		$self->{eprint}->get_value( "eprintid" ) ) );
 
 	my %buttons;
@@ -1357,128 +1356,142 @@ sub _do_stage_fileview
 {
 	my( $self ) = @_;
 
+	my $page = $self->{session}->make_doc_fragment();
+
 	my $doc = $self->{document};
 
-	# Make some metadata fields
-#	my $arc_format_field = EPrints::MetaField->new(
-#	"arc_format",
-#	undef,
-#	\@arc_formats,
- #	\%arc_labels );
-   ##
-     #########
+	my $arc_format_field = EPrints::MetaField->new(
+		config=>'format',
+		name=>'arcformat',
+		type=>'set',
+		options => [ 
+				"plain", 
+				"graburl", 
+				@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )}
+			] );		
 
-	my @arc_formats = ( "plain", "graburl" );
-	my %arc_labels = (
-		"plain"   => $self->{session}->phrase("lib/submissionform:plain"),
-		"graburl" => $self->{session}->phrase("lib/submissionform:grab_url")
-	);
-	my $format;
-	foreach $format (@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )})
-	{
-		push @arc_formats, $format;
-		$arc_labels{$format} = EPrints::Document::archive_name( 
-					$self->{session},
-					$format );
-	}
+	my $num_files_field = EPrints::MetaField->new(
+		config=>'format',
+		name=>'nfields',
+		type=>'int',
+		digits=>2 );
 
-	my $arc_format_field = EPrints::MetaField->make_enum(
-		"arc_format",
-		undef,
-		\@arc_formats,
-		\%arc_labels );
+	my $hidden_fields = {	
+		docid => $doc->get_value( "docid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
+		stage => "subject" };
 
-	my $num_files_field = EPrints::MetaField->new( "numfiles:int:2::::" );
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ),
+		upload => $self->{session}->phrase( 
+				"lib/submissionform:action_upload" ) };
 
-
-	# Render the form
-
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_fileview} ) );
-
-	$self->_render_problems(
+	#if( scalar keys %files > 0 ) {
+		$submit_buttons->{finished} = $self->{session}->phrase("lib/submissionform:action_finished");
+	#}
+	$page->appendChild( $self->_render_problems(
 		$self->{session}->phrase("lib/submissionform:fix_upload"),
-		$self->{session}->phrase("lib/submissionform:please_fix") );
+		$self->{session}->phrase("lib/submissionform:please_fix") ) );
 
-	print $self->{session}->{render}->start_form();
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			[ $arc_format_field, $num_files_field ],
+			{},
+			0,
+			1,
+			$submit_buttons,
+			$hidden_fields,
+			{},
+			"submit#t" ) );
+
 	
-	# Format description, if appropriate
+#
+#
+#	# Render the form
+#
+#	print $self->{session}->{render}->start_html(
+#		$self->{session}->phrase(
+#			$EPrints::SubmissionForm::stage_titles{
+#				$EPrints::SubmissionForm::stage_fileview} ) );
+#
+#	print $self->{session}->{render}->start_form();
+#	
+#	# Format description, if appropriate
+#
+#	if( $doc->{format} eq $EPrints::Document::OTHER )
+#	{
+#		my $ds = $self->{session}->get_archive()->get_dataset( "document" );
+#		my $desc_field = $ds->get_field( "formatdesc" );
+#
+#		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
+#		print "<P><CENTER>";
+#		print $self->{session}->{render}->input_field( $desc_field, 
+#		                                               $doc->{formatdesc} );
+#		print "</CENTER></P>\n";
+#	}
+#	
+#	# Render info about uploaded files
+#
+#	my %files = $doc->files();
+#	
+#	if( scalar keys %files == 0 )
+#	{
+#		print "<P><CENTER><EM>";
+#		print $self->{session}->phrase("lib/submissionform:no_files");
+#		print "</EM></CENTER></P>\n";
+#	}
+#	else
+#	{
+#		print "<P><CENTER>";
+#		print $self->{session}->phrase("lib/submissionform:files_for_format");
+#
+#		if( !defined $doc->get_main() )
+#		{
+#			print $self->{session}->phrase("lib/submissionform:sel_first");
+#		}
+#
+#		print "</CENTER></P>\n";
+#		print $self->_render_file_view( $doc );
+#
+#		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
+#		print $self->{session}->phrase("lib/submissionform:here_to_view");
+#		print "</A></P>\n";
+#	}
+#
+#	# Render upload file options
+#	print "<P><CENTER>";
+#	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
+#	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
+#
+#	print "</CENTER></P>\n<P><CENTER><em>";
+#	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
+#	print "</em> ";
+#	print $self->{session}->phrase("lib/submissionform:num_files")." ";
+#	print $self->{session}->{render}->input_field( $num_files_field, 1 );
+#	print "</CENTER></P>\n";
+#
+#	# Action buttons
+#	print "<P><CENTER>";
+#	print $self->{session}->{render}->submit_buttons( \@buttons );
+#	print "</CENTER></P>\n";
+#		
+#	print $self->{session}->{render}->hidden_field(
+#		"stage",
+#		$EPrints::SubmissionForm::stage_fileview );
+#	print $self->{session}->{render}->hidden_field(
+#		"eprintid",
+#		$self->{eprint}->{eprintid} );
+#	print $self->{session}->{render}->hidden_field( "doc_id", $doc->{docid} );
+#
+#	$self->{session}->{render}->end_form();
 
-	if( $doc->{format} eq $EPrints::Document::OTHER )
-	{
-		my $ds = $self->{session}->get_archive()->get_dataset( "document" );
-		my $desc_field = $ds->get_field( "formatdesc" );
 
-		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
-		print "<P><CENTER>";
-		print $self->{session}->{render}->input_field( $desc_field, 
-		                                               $doc->{formatdesc} );
-		print "</CENTER></P>\n";
-	}
-	
-	# Render info about uploaded files
-
-	my %files = $doc->files();
-	
-	if( scalar keys %files == 0 )
-	{
-		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("lib/submissionform:no_files");
-		print "</EM></CENTER></P>\n";
-	}
-	else
-	{
-		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:files_for_format");
-
-		if( !defined $doc->get_main() )
-		{
-			print $self->{session}->phrase("lib/submissionform:sel_first");
-		}
-
-		print "</CENTER></P>\n";
-		print $self->_render_file_view( $doc );
-
-		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
-		print $self->{session}->phrase("lib/submissionform:here_to_view");
-		print "</A></P>\n";
-	}
-
-	# Render upload file options
-	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
-	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
-
-	print "</CENTER></P>\n<P><CENTER><em>";
-	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
-	print "</em> ";
-	print $self->{session}->phrase("lib/submissionform:num_files")." ";
-	print $self->{session}->{render}->input_field( $num_files_field, 1 );
-	print "</CENTER></P>\n";
-
-	# Action buttons
-	my @buttons = (
-		$self->{session}->phrase("lib/submissionform:action_prev"),
-		$self->{session}->phrase("lib/submissionform:action_upload") );
-	push @buttons, $self->{session}->phrase("lib/submissionform:action_finished")
-		if( scalar keys %files > 0 );
-	print "<P><CENTER>";
-	print $self->{session}->{render}->submit_buttons( \@buttons );
-	print "</CENTER></P>\n";
-		
-	print $self->{session}->{render}->hidden_field(
-		"stage",
-		$EPrints::SubmissionForm::stage_fileview );
-	print $self->{session}->{render}->hidden_field(
-		"eprint_id",
-		$self->{eprint}->{eprintid} );
-	print $self->{session}->{render}->hidden_field( "doc_id", $doc->{docid} );
-
-	$self->{session}->{render}->end_form();
-
-	print $self->{session}->{render}->end_html();
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_fileview" ),
+		$page );
+	$self->{session}->send_page();
 }
 	
 
@@ -1559,8 +1572,8 @@ sub _do_stage_upload
 		"stage",
 		$EPrints::SubmissionForm::stage_upload );
 	print $self->{session}->{render}->hidden_field(
-		"eprint_id",
-		$self->{eprint}->{eprintid} );
+		"eprintid",
+		$self->{eprint}->{eprintid} );#cjg!!!
 	print $self->{session}->{render}->hidden_field( "doc_id",
 	                                                $self->{document}->{docid} );
 	print $self->{session}->{render}->hidden_field( "numfiles",
@@ -1607,8 +1620,8 @@ sub _do_stage_verify
 		"stage",
 		$EPrints::SubmissionForm::stage_verify );
 	print $self->{session}->{render}->hidden_field(
-		"eprint_id",
-		$self->{eprint}->{eprintid} );
+		"eprintid",
+		$self->{eprint}->{eprintid} );#cjg!!
 
 	if( $#{$self->{problems}} >= 0 )
 	{
@@ -1705,8 +1718,8 @@ sub _do_stage_confirmdel
 
 	print $self->{session}->{render}->start_form();
 	print $self->{session}->{render}->hidden_field(
-		"eprint_id",
-		$self->{eprint}->{eprintid} );
+		"eprintid",
+		$self->{eprint}->{eprintid} );#cjg!!
 	print $self->{session}->{render}->hidden_field(
 		"stage",
 		$EPrints::SubmissionForm::stage_confirmdel );

@@ -938,7 +938,8 @@ sub to_html
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $self->{field}->get_dataset();
+			my $ds = $self->{session}->get_archive()->get_dataset(
+                                        $self->{field}->get_property( "datasetid" ) );
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $self->{session} );
 		}

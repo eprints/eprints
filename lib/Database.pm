@@ -213,11 +213,8 @@ sub _create_table
 	my $keyfield = $dataset->get_key_field()->clone;
 
 	my $fieldword = EPrints::MetaField->new( 
-		undef,
-		{ 
-			name => "fieldword", 
-			type => "text"
-		} );
+		name => "fieldword", 
+		type => "text");
 
 	$rv = $rv & $self->_create_table_aux(
 			$dataset->get_sql_index_table_name,
@@ -281,21 +278,15 @@ sub _create_table_aux
 			if ( $field->get_property( "multiple" ) )
 			{
 				my $pos = EPrints::MetaField->new( 
-					undef,
-					{ 
-						name => "pos", 
-						type => "int",
-					} );
+					name => "pos", 
+					type => "int" );
 				push @auxfields,$pos;
 			}
 			if ( $field->get_property( "multilang" ) )
 			{
 				my $lang = EPrints::MetaField->new( 
-					undef,
-					{ 
-						name => "lang", 
-						type => "langid",
-					} );
+					name => "lang", 
+					type => "langid" );
 				push @auxfields,$lang;
 			}
 			push @auxfields,$auxfield;

@@ -121,7 +121,7 @@ sub new
 		my $fielddata;
 		foreach $fielddata ( $class->get_system_field_info() )
 		{
-			my $field = EPrints::MetaField->new( $self , $fielddata );	
+			my $field = EPrints::MetaField->new( dataset=>$self , %{$fielddata} );	
 			push @{$self->{fields}}	, $field;
 			push @{$self->{system_fields}} , $field;
 			$self->{field_index}->{$field->get_name()} = $field;
@@ -132,7 +132,7 @@ sub new
 	{
 		foreach $fielddata ( @{$archivefields} )
 		{
-			my $field = EPrints::MetaField->new( $self , $fielddata );	
+			my $field = EPrints::MetaField->new( dataset=>$self , %{$fielddata} );	
 			push @{$self->{fields}}	, $field;
 			$self->{field_index}->{$field->get_name()} = $field;
 		}

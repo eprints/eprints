@@ -121,6 +121,7 @@ sub create
 
 	my $data = {};
 	$data->{docid} = $doc_id;
+	$data->{eprintid} = $eprint->get_value( "eprintid" );
 
 	# Make database entry
 	my $dataset = $session->get_archive()->get_dataset( "document" );
@@ -159,6 +160,7 @@ sub _create_directory
 
 	# Ensure the path is there. Dir. is made group writable.
 	my @created = mkpath( $dir, 0, 0775 );
+print STDERR "DOCDIR : ".join( " / ", @created )."\n";
 
 	# Return undef if dir creation failed. Should always have created 1 dir.
 	return( undef ) unless( $#created >= 0 );
@@ -202,7 +204,7 @@ sub _generate_doc_id
 	}
 	$n = $n + 1;
 
-	return sprintf( "%s-%02d", $eprint->{eprintid}, $n );
+	return sprintf( "%s-%02d", $eprint->get_value( "eprintid" ), $n );
 }
 
 

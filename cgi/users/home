@@ -196,31 +196,29 @@ print STDERR "FOO: ###".scalar(@eprints)."\n";
 			$session->html_phrase( "cgi/users/home:docs" ));
 		$html->appendChild( $h3 );
 
-		my @eprint_ids;
+		my @eprintids;
 		my %eprint_titles;
 		my $e;
 
 		foreach $e (@eprints)
 		{
 			my $id = $e->get_value( "eprintid" );
-			push @eprint_ids, $id;
+			push @eprintids, $id;
 			$eprint_titles{$id} = $e->short_title();
 		}
 
 		my $set_field = EPrints::MetaField->new(
-					$ds,
-					{
-						name=>"eprint_id",
-						type=>"set",
-                                        	displaylines=>6,
-						options=>\@eprint_ids 
-					} );
+					dataset => $ds,
+					name=>"eprintid",
+					type=>"set",
+                                       	displaylines=>6,
+					options=>\@eprintids );
 		# If there is only one eprint in the workspace, 
 		# select it by default
 		my %default_values;
 		if( scalar @eprints==1 )
 		{
-			$default_values{"eprint_id"} = $eprint_ids[0] 
+			$default_values{"eprintid"} = $eprintids[0] 
 		}
 
 		my $buttons = {

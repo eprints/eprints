@@ -1354,6 +1354,7 @@ sub send_http_header
 
 	my $r = Apache->request;
 	$r->content_type( 'text/html; charset=UTF-8' );
+	$r->no_cache( 1 );
 
 	if( defined $opts{lang} )
 	{

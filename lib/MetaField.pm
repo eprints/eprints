@@ -110,7 +110,7 @@ my $PROPERTIES = {
 ## WP1: BAD
 sub new
 {
-	my( $class, $dataset, $properties ) = @_;
+	my( $class, %properties ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -119,51 +119,54 @@ sub new
 
 	foreach( "name" , "type" )
 	{
-		$self->set_property( $_, $properties->{$_} );
+		$self->set_property( $_, $properties{$_} );
 	}
 	foreach( "required" , "multiple" )
 	{
-		$self->set_property( $_, $properties->{$_} );
+		$self->set_property( $_, $properties{$_} );
 	}
 
-	$self->{dataset} = $dataset;
+	$self->{confid} = $properties{confid};
+	if( defined $properties{dataset} ) { 
+		$self->{confid} = $properties{dataset}->confid(); 
+	}
 
 	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
-		$self->set_property( "displaylines", $properties->{displaylines} );
+		$self->set_property( "displaylines", $properties{displaylines} );
 	}
 
 	if( $self->is_type( "text","longtext","name" ) )
 	{
-		$self->set_property( "multilang", $properties->{multilang} );
+		$self->set_property( "multilang", $properties{multilang} );
 	}
 	if( $self->is_type( "int" ) )
 	{
-		$self->set_property( "digits", $properties->{digits} );
+		$self->set_property( "digits", $properties{digits} );
 	}
 
 	if( $self->is_type( "subject" ) )
 	{
-		$self->set_property( "showall" , $properties->{showall} );
+		$self->set_property( "showall" , $properties{showall} );
 	}
 
 	if( $self->is_type( "datatype" ) )
 	{
-		$self->set_property( "datasetid" , $properties->{datasetid} );
+		$self->set_property( "datasetid" , $properties{datasetid} );
 	}
 
 	if( $self->is_type( "text" ) )
 	{
-		$self->set_property( "maxlength" , $properties->{maxlength} );
+		$self->set_property( "maxlength" , $properties{maxlength} );
 	}
 
 	if( $self->is_type( "set" ) )
 	{
-		$self->set_property( "options" , $properties->{options} );
+		$self->set_property( "options" , $properties{options} );
 	}
 	if( $self->get_property( "multilang" ) )
 	{
-		$self->set_property( "requiredlangs", $properties->{requiredlangs} );
+		$self->set_property( "requiredlangs", $properties{requiredlangs} );
 	}
 
 	return( $self );
@@ -184,7 +187,7 @@ sub clone
 {
 	my( $self ) = @_;
 
-	return EPrints::MetaField->new( $self->{dataset} , $self );
+	return EPrints::MetaField->new( %{$self} );
 }
 
 
@@ -260,16 +263,16 @@ sub tags_and_labels
 sub display_name
 {
 	my( $self, $session ) = @_;
-	
-	return $session->phrase( $self->{dataset}->confid()."_fieldname_".$self->{name} );
+
+	return $session->phrase( $self->{confid}."_fieldname_".$self->{name} );
 }
 
 ## WP1: BAD
 sub display_help
 {
 	my( $self, $session ) = @_;
-	
-	return $session->phrase( $self->{dataset}->confid."_fieldhelp_".$self->{name} );
+
+	return $session->phrase( $self->{confid}."_fieldhelp_".$self->{name} );
 }
 
 ## WP1: BAD
@@ -307,11 +310,6 @@ sub get_sql_index
 	return $index;
 }
 
-sub get_dataset
-{
-	my( $self ) = @_;
-	return $self->{dataset};
-}
 	
 ## WP1: BAD
 sub get_name
@@ -339,8 +337,7 @@ sub set_property
 	{
 		if( $PROPERTIES->{$property} eq "NO_DEFAULT" )
 		{
-			EPrints::Session::bomb();#cjg
-			die $property." on a metafield can't be undef";
+			EPrints::Config::abort( $property." on a metafield can't be undef" );
 		}
 		$self->{$property} = $PROPERTIES->{$property};
 	}
