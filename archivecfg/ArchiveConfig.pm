@@ -76,7 +76,7 @@ $c->{allow_user_removal_request} = 1;
 
 $c->{config_path} = "$c->{archiveroot}/cfg";
 $c->{system_files_path} = "$c->{archiveroot}/sys";
-$c->{static_html_root} = "$c->{archiveroot}/static";
+$c->{static_html_root} = "$c->{archiveroot}/cfg/static";
 $c->{local_html_root} = "$c->{archiveroot}/html";
 $c->{local_document_root} = "$c->{archiveroot}/documents";
 

@@ -69,7 +69,7 @@ else
 	$config{host} = undef;
 	$config{urlpath} = '/';
 	$config{archiveroot} = "archives/".$archiveid;
-	$config{configmodule} = "cfg/archive_config.pm";
+	$config{configmodule} = "cfg/ArchiveConfig.pm";
 	$config{aliases} = [];
 	$config{dbname} = $archiveid;
 	$config{dbhost} = "localhost";
@@ -313,6 +313,9 @@ $doc->printToFile( $configfile );
 chmod( 0600, $configfile );
 
 # Make filesystem
+# copy defaultcfg to PATH/cfg/
+# replace package line in PATH/cfg/ArchiveConfig.pm
+# mkdir html, sys, archive
 
 # Link in initial disk0  (?)
 
@@ -320,22 +323,20 @@ chmod( 0600, $configfile );
 
 print <<END;
 
+====================================================
 That seemed to more or less work...
-
+====================================================
 Now run:
-bin/make_apacheconf $archiveid
+bin/generate_apacheconf $archiveid
 
 Make any changes to the cfg files. As this is just an alpha install
 you might as well except the defaults for now...
 
 Then run:
 
+bin/create_databases $archiveid
 bin/generate_dtd $archiveid
 bin/generate_static $archiveid
-bin/generate_views $archiveid
-( Views will be very dull as this version does not have any subjects by
-default )
-
 
 bin/create_user $archiveid <userid> <email> staff <password>
 
@@ -344,6 +345,7 @@ Then restart your webserver:
 /etc/rc.d/init.d/httpd start
 
 Now connect to the archive, see everything work perfectly first time...(!)
+====================================================
 END
 
 exit;
