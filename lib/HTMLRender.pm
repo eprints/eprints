@@ -42,24 +42,6 @@ $EPrints::HTMLRender::list_height_max = 20;
 $EPrints::HTMLRender::add_boxes = 3;
 
 
-# Month names
-my %monthnames =
-(
-	"00"     => "Unspecified",
-	"01"     => "January",
-	"02"     => "February",
-	"03"     => "March",
-	"04"     => "April",
-	"05"     => "May",
-	"06"     => "June",
-	"07"     => "July",
-	"08"     => "August",
-	"09"     => "September",
-	"10"     => "October",
-	"11"     => "November",
-	"12"     => "December"
-);
-
 
 
 
@@ -251,29 +233,6 @@ sub upload_field
 ######################################################################
 
 
-
-######################################################################
-#
-# redirect( $url )
-#
-#  Redirects the browser to $url.
-#
-######################################################################
-
-## WP1: BAD
-sub redirect
-{
-	my( $self, $url ) = @_;
-
-	# Write HTTP headers if appropriate
-	unless( $self->{offline} )
-	{
-		# For some reason, redirection doesn't work with CGI::Apache.
-		# We have to use CGI.
-		print $self->{query}->redirect( -uri=>$url );
-	}
-
-}
 
 
 

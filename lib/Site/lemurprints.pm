@@ -1983,7 +1983,7 @@ sub oai_get_eprint_metadata
 
 		#cjg SubjectList deprecated do it another way?
 		#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-		#my @subjects = $subject_list->get_subjects( $eprint->{session} );
+		my @subjects    ;#   = $subject_list->get_subjects( $eprint->{session} );
 		$tags{subject} = [];
 
 		foreach (@subjects)

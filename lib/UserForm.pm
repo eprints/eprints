@@ -100,46 +100,65 @@ sub process
 			$page );
 		$self->{session}->send_page();
 
-		return;
 	}
-
-	# Update the user values
-	if( $self->_update_from_form() )
+	elsif( $self->_update_from_form() )
 	{
+		# Update the user values
+
 		# Validate the changes
 		my $problems = $self->{user}->validate();
-exit;
+
+$self->{session}->get_site()->log( "PROBLEMS: ".join(",",@{$problems}) );
+
+
+		# cjg NOT YET.
 		if( $#{$problems} == -1 )
 		{
 			# User has entered everything OK
 			$self->{user}->commit();
-			$self->{session}->{render}->redirect( $self->{redirect} );
+			$self->{session}->redirect( $self->{redirect} );
 			return;
 		}
 
-		print $self->{session}->{render}->start_html( 
-			$self->{session}->phrase( "H:recfor", name=>$full_name ) );
+		my( $page, $p, $ul, $li );
 
-			print "<P>".$self->{session}->phrase( "H:formincorrect" )."</P>\n";
-		print "<UL>\n";
+		$page = $self->{session}->make_doc_fragment();
 
-		foreach (@$problems)
+		$p = $self->{session}->make_element( "p" );
+		$p->appendChild( 
+			$self->{session}->html_phrase( "formincorrect" ) );
+		$page->appendChild( $p );
+
+		$ul = $self->{session}->make_element( "ul" );
+		my( $problem );
+		foreach $problem (@$problems)
 		{
-			print "<LI>$_</LI>\n";
+			$li = $self->{session}->make_element( "li" );
+			$li->appendChild( 
+				$self->{session}->make_text( $problem ) );
+			$ul->appendChild( $li );
 		}
+		$page->appendChild( $ul );
 
-		print "</UL>\n";
-		print "<P>".$self->{session}->phrase( "H:completeform" )."</P>\n";
+		$p = $self->{session}->make_element( "p" );
+		$p->appendChild( 
+			$self->{session}->html_phrase( "completeform" ) );
+		$page->appendChild( $p );
+	
+		$page->appendChild( $self->_render_form() );
 
-		$self->_render_form();
-
-		print $self->{session}->{render}->end_html();
-		return;
+		$self->{session}->build_page(
+			$self->{session}->
+				phrase( "recfor", name => $full_name ),
+			$page );
+		$self->{session}->send_page();
 	}
-
-	$self->{session}->render_error(
-		$self->{session}->phrase( "problemupdating" ),
-		$self->{redirect} );
+	else 
+	{
+		$self->{session}->render_error(
+			$self->{session}->phrase( "problemupdating" ),
+			$self->{redirect} );
+	}
 }
 
 
@@ -192,7 +211,7 @@ sub _render_form
 #
 ######################################################################
 
-## WP1: BAD
+
 sub _update_from_form
 {
 	my( $self ) = @_;
