@@ -443,7 +443,7 @@ $EPrintSite::SiteInfo::archive_identifier = "MUST CHANGE";
 # Exported metadata formats. The hash should map format ids to namespaces.
 %EPrintSite::SiteInfo::oai_metadata_formats =
 (
-	"oai_dc"   => "http://purl.org/dc/elements/1.1"
+	"oai_dc"   => "http://purl.org/dc/elements/1.1/"
 );
 
 # Exported metadata formats. The hash should map format ids to schemas.
