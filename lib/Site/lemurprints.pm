@@ -187,15 +187,15 @@ $self->{wget_executable} = "/usr/bin/wget";
 # if everything went OK, non-zero in the case of any error.
 $self->{archive_extraction_commands} =
 {
-	"ZIP"   => "$self->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
-	"TARGZ" => "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
+	"ZIP"    =>  "$self->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
+	"TARGZ"  =>  "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
 };
 
 # The extensions to give the temporary uploaded file for each format.
 $self->{archive_extensions} =
 {
-	"ZIP"   => ".zip",
-	"TARGZ" => ".tar.gz"
+	"ZIP"    =>  ".zip",
+	"TARGZ"  =>  ".tar.gz"
 };
 
 #  Command to run to grab URLs. Should:
@@ -245,13 +245,13 @@ $self->{oai_archive_id} = "lemurid";
 # Exported metadata formats. The hash should map format ids to namespaces.
 $self->{oai_metadata_formats} =
 {
-	"oai_dc"   => "http://purl.org/dc/elements/1.1/"
+	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
 };
 
 # Exported metadata formats. The hash should map format ids to schemas.
 $self->{oai_metadata_schemas} =
 {
-	"oai_dc"   => "http://www.openarchives.org/OAI/dc.xsd"
+	"oai_dc"    =>  "http://www.openarchives.org/OAI/dc.xsd"
 };
 
 # Base URL of OAI
@@ -337,274 +337,274 @@ $self->{lang_cookie_name} = $self->{siteid}."_lang";
 # We need to calculate the connection string, so we can pass it
 # into the AuthDBI config. 
 my $connect_string = EPrints::Database::build_connection_string(
-	{ db_name => $self->{db_name}, db_port => $self->{db_port},
- 	  db_sock => $self->{db_sock}, db_host => $self->{db_host} } );
+	{ db_name  =>  $self->{db_name}, db_port  =>  $self->{db_port},
+ 	  db_sock  =>  $self->{db_sock}, db_host  =>  $self->{db_host} } );
  
 $self->{userauth} = {
-	User=>{ 
-		routine => \&Apache::AuthDBI::authen,
-		conf => {
-			Auth_DBI_data_source => $connect_string,
-			Auth_DBI_username => $self->{db_user},
-			Auth_DBI_password => $self->{db_pass},
-			Auth_DBI_pwd_table => EPrints::Database::table_name( "user" ),
-			Auth_DBI_uid_field => "username",
-			Auth_DBI_pwd_field => "passwd",
-			Auth_DBI_grp_field => "groups",
-			Auth_DBI_encrypted => "off" },
-		priv => [ "user" ] },
-	Staff=>{ 
-		routine => \&Apache::AuthDBI::authen,
-		conf => {
-			Auth_DBI_data_source => $connect_string,
-			Auth_DBI_username => $self->{db_user},
-			Auth_DBI_password => $self->{db_pass},
-			Auth_DBI_pwd_table => EPrints::Database::table_name( "user" ),
-			Auth_DBI_uid_field => "username",
-			Auth_DBI_pwd_field => "passwd",
-			Auth_DBI_grp_field => "groups",
-			Auth_DBI_encrypted => "off" }, 
-		priv => [ "user" ] }
+	User => { 
+		routine  =>  \&Apache::AuthDBI::authen,
+		conf  =>  {
+			Auth_DBI_data_source  =>  $connect_string,
+			Auth_DBI_username  =>  $self->{db_user},
+			Auth_DBI_password  =>  $self->{db_pass},
+			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( TID_USER ),
+			Auth_DBI_uid_field  =>  "username",
+			Auth_DBI_pwd_field  =>  "passwd",
+			Auth_DBI_grp_field  =>  "groups",
+			Auth_DBI_encrypted  =>  "off" },
+		priv  =>  [ "user" ] },
+	Staff => { 
+		routine  =>  \&Apache::AuthDBI::authen,
+		conf  =>  {
+			Auth_DBI_data_source  =>  $connect_string,
+			Auth_DBI_username  =>  $self->{db_user},
+			Auth_DBI_password  =>  $self->{db_pass},
+			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( TID_USER ),
+			Auth_DBI_uid_field  =>  "username",
+			Auth_DBI_pwd_field  =>  "passwd",
+			Auth_DBI_grp_field  =>  "groups",
+			Auth_DBI_encrypted  =>  "off" }, 
+		priv  =>  [ "user" ] }
 };
 
 ######################################################################
 # USER FIELDS
 ######################################################################
 
-$self->{sitefields}->{user} = [
+$self->{sitefields}->{TID_USER} = [
 	{
-		name=>"name",
-		type=>"name",
-		required=>1,
-		editable=>1,
-		visible=>1
+		name => "name",
+		type => FT_NAME,
+		required => 1,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"dept",
-		type=>"text",
-		required=>0,
-		editable=>1,
-		visible=>1
+		name => "dept",
+		type => FT_TEXT,
+		required => 0,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"org",
-		type=>"text",
-		required=>0,
-		editable=>1,
-		visible=>1
+		name => "org",
+		type => FT_TEXT,
+		required => 0,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"address",
-		type=>"longtext",
-		displaylines=>"5",
-		required=>0,
-		editable=>1,
-		visible=>1
+		name => "address",
+		type => FT_LONGTEXT,
+		displaylines => "5",
+		required => 0,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"country",
-		type=>"text",
-		required=>0,
-		editable=>1,
-		visible=>1
+		name => "country",
+		type => FT_TEXT,
+		required => 0,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"url",
-		type=>"url",
-		required=>0,
-		editable=>1,
-		visible=>1
+		name => "url",
+		type => FT_URL,
+		required => 0,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"filter",
-		type=>"subject",
-		required=>0,
-		editable=>1,
-		visible=>1,
-		multiple=>1
+		name => "filter",
+		type => FT_SUBJECT,
+		required => 0,
+		editable => 1,
+		visible => 1,
+		multiple => 1
 	}
 ];
 
-$self->{sitefields}->{eprint} = [
+$self->{sitefields}->{TID_EPRINT} = [
 	{
-		name=>"abstract",
-		type=>"longtext",
-		displaylines=>"10",
-		editable=>1,
-		visible=>1
+		name => "abstract",
+		type => FT_LONGTEXT,
+		displaylines => "10",
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"altloc",
-		type=>"url",
-		displaylines=>"3",
-		editable=>1,
-		multiple=>1,
-		visible=>1
+		name => "altloc",
+		type => FT_URL,
+		displaylines => "3",
+		editable => 1,
+		multiple => 1,
+		visible => 1
 	},
 	{
-		name=>"authors",
-		type=>"name",
-		editable=>1,
-		visible=>1,
-		multiple=>1
+		name => "authors",
+		type => FT_NAME,
+		editable => 1,
+		visible => 1,
+		multiple => 1
 	},
 	{
-		name=>"chapter",
-		type=>"text",
-		editable=>1,
-		visible=>1,
-		maxlength=>5
+		name => "chapter",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1,
+		maxlength => 5
 	},
 	{
-		name=>"comments",
-		type=>"longtext",
-		editable=>1,
-		displaylines=>"3",
-		visible=>1
+		name => "comments",
+		type => FT_LONGTEXT,
+		editable => 1,
+		displaylines => 3,
+		visible => 1
 	},
 	{
-		name=>"commref",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "commref",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"confdates",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "confdates",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"conference",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "conference",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"confloc",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "confloc",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"department",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "department",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"editors",
-		type=>"name",
-		editable=>1,
-		visible=>1,
-		multiple=>1
+		name => "editors",
+		type => FT_NAME,
+		editable => 1,
+		visible => 1,
+		multiple => 1
 	},
 	{
-		name=>"institution",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "institution",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"ispublished",
-		type=>"set",
-		editable=>1,
-		visible=>1,
-		options=>[ "unpub","inpress","pub" ]
+		name => "ispublished",
+		type => FT_SET,
+		editable => 1,
+		visible => 1,
+		options => [ "unpub","inpress","pub" ]
 	},
 	{
-		name=>"keywords",
-		type=>"longtext",
-		editable=>1,
-		displaylines=>2,
-		visible=>1
+		name => "keywords",
+		type => FT_LONGTEXT,
+		editable => 1,
+		displaylines => 2,
+		visible => 1
 	},
 	{
-		name=>"month",
-		type=>"set",
-		editable=>1,
-		visible=>1,
-		options=>[ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
+		name => "month",
+		type => FT_SET,
+		editable => 1,
+		visible => 1,
+		options => [ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
 	},
 	{
-		name=>"number",
-		type=>"text",
-		maxlength=>"6",
-		editable=>1,
-		visible=>1
+		name => "number",
+		type => FT_TEXT,
+		maxlength => 6,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"pages",
-		type=>"pagerange",
-		editable=>1,
-		visible=>1
+		name => "pages",
+		type => FT_PAGERANGE,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"pubdom",
-		type=>"boolean",
-		editable=>1,
-		visible=>1
+		name => "pubdom",
+		type => FT_BOOLEAN,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"publication",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "publication",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"publisher",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "publisher",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"refereed",
-		type=>"boolean",
-		editable=>1,
-		visible=>1
+		name => "refereed",
+		type => FT_BOOLEAN,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"referencetext",
-		type=>"longtext",
-		editable=>1,
-		visible=>1,
-		displaylines=>3
+		name => "referencetext",
+		type => FT_LONGTEXT,
+		editable => 1,
+		visible => 1,
+		displaylines => 3
 	},
 	{
-		name=>"reportno",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "reportno",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"thesistype",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "thesistype",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"title",
-		type=>"text",
-		editable=>1,
-		visible=>1
+		name => "title",
+		type => FT_TEXT,
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"volume",
-		type=>"text",
-		maxlength=>"6",
-		editable=>1,
-		visible=>1
+		name => "volume",
+		type => FT_TEXT,
+		maxlength => "6",
+		editable => 1,
+		visible => 1
 	},
 	{
-		name=>"year",
-		type=>"year",
-		editable=>1,
-		visible=>1
+		name => "year",
+		type => FT_YEAR,
+		editable => 1,
+		visible => 1
 	}
 ];
 	
-$self->{sitetypes}->{eprint} = {
-	"bookchapter"=>[
+$self->{sitetypes}->{TID_EPRINT} = {
+	"bookchapter" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -623,7 +623,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"confpaper"=>[
+	"confpaper" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -645,7 +645,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"confposter"=>[
+	"confposter" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -667,7 +667,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"techreport"=>[
+	"techreport" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -685,7 +685,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"journale"=>[
+	"journale" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -705,28 +705,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"journalp"=>[
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:publication",
-		"volume",
-		"number",
-		"pages",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"newsarticle"=>[
+	"journalp" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -747,7 +726,28 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"other"=>[
+	"newsarticle" => [
+		"REQUIRED:ispublished",
+		"REQUIRED:refereed",
+		"REQUIRED:pubdom",
+		"REQUIRED:authors",
+		"REQUIRED:title",
+		"REQUIRED:year",
+		"month",
+		"REQUIRED:abstract",
+		"REQUIRED:publication",
+		"volume",
+		"number",
+		"pages",
+		"editors",
+		"publisher",
+		"commref",
+		"altloc",
+		"keywords",
+		"comments",
+		"referencetext"
+	],
+	"other" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -762,7 +762,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"preprint"=>[
+	"preprint" => [
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
 		"REQUIRED:authors",
@@ -776,7 +776,7 @@ $self->{sitetypes}->{eprint} = {
 		"comments",
 		"referencetext"
 	],
-	"thesis"=>[
+	"thesis" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
 		"REQUIRED:pubdom",
@@ -796,9 +796,9 @@ $self->{sitetypes}->{eprint} = {
 	]
 };
 
-$self->{sitetypes}->{user} = { 
-	Staff => [],
-	User => []
+$self->{sitetypes}->{TID_USER} = { 
+	Staff  =>  [],
+	User  =>  []
 };
 
 ######################################################################
@@ -816,18 +816,18 @@ $self->{sitetypes}->{user} = {
 # See the CGI.pm manpage for more info ( man CGI ).
 
 $self->{start_html_params}  = {
-	-BGCOLOR=>"#ffffff",
-	-FGCOLOR=>"#000000",
-	-HEAD=>[ Link( {-rel=>'stylesheet',
-			-type=>'text/css',
-			-href=>'/eprints.css',
-			-title=>'screen stylesheet',
-			-media=>'screen'} ) ],
-	-AUTHOR=>$self->{admin},
-	-TOPMARGIN=>"0",
-	-LEFTMARGIN=>"0",
-	-MARGINWIDTH=>"0",
-	-MARGINHEIGHT=>"0" };
+	-BGCOLOR => "#ffffff",
+	-FGCOLOR => "#000000",
+	-HEAD => [ Link( {-rel => 'stylesheet',
+			-type => 'text/css',
+			-href => '/eprints.css',
+			-title => 'screen stylesheet',
+			-media => 'screen'} ) ],
+	-AUTHOR => $self->{admin},
+	-TOPMARGIN => "0",
+	-LEFTMARGIN => "0",
+	-MARGINWIDTH => "0",
+	-MARGINHEIGHT => "0" };
 
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
@@ -1015,10 +1015,10 @@ $self->{subscription_fields} =
 # Ways of ordering search results
 $self->{order_methods}->{archive} =
 {
-	"byyear" 	=> \&eprint_cmp_by_year,
-	"byyearoldest"	=> \&eprint_cmp_by_year_oldest_first,
-	"byname"  	=> \&eprint_cmp_by_author,
-	"bytitle" 	=> \&eprint_cmp_by_title 
+	"byyear" 	 =>  \&eprint_cmp_by_year,
+	"byyearoldest"	 =>  \&eprint_cmp_by_year_oldest_first,
+	"byname"  	 =>  \&eprint_cmp_by_author,
+	"bytitle" 	 =>  \&eprint_cmp_by_title 
 };
 
 # The default way of ordering a search result
@@ -1042,10 +1042,10 @@ $self->{user_search_fields} =
 # cjg needs doing....
 $self->{user_order_methods} =
 {
-	"by surname"                          => "name",
-	"by joining date (most recent first)" => "joined DESC, name",
-	"by joining date (oldest first)"      => "joined ASC, name",
-	"by group"                            => "group, name "
+	"by surname"                           =>  "name",
+	"by joining date (most recent first)"  =>  "joined DESC, name",
+	"by joining date (oldest first)"       =>  "joined ASC, name",
+	"by group"                             =>  "group, name "
 };
 
 # Default order for a staff user search (must be key to user_order_methods)
@@ -1055,8 +1055,8 @@ $self->{default_user_order} = "by surname";
 #  See lib/Citation.pm for information on how to specify this.
 $self->{thread_citation_specs} =
 {
-	"succeeds"   => "{title} (deposited {datestamp})",
-	"commentary" => "{authors}. {title}. (deposited {datestamp})"
+	"succeeds"    =>  "{title} (deposited {datestamp})",
+	"commentary"  =>  "{authors}. {title}. (deposited {datestamp})"
 };
 
 	return $self;
@@ -1132,15 +1132,15 @@ my $FREETEXT_MIN_WORD_SIZE = 3;
 
 # Words to never index, despite their length.
 my $FREETEXT_NEVER_WORDS = {
-		"the"=>1,
-		"you"=>1,
-		"for"=>1,
-		"and"=>1 
+		"the" => 1,
+		"you" => 1,
+		"for" => 1,
+		"and" => 1 
 };
 
 # Words to always index, despite their length.
 my $FREETEXT_ALWAYS_WORDS = {
-		"ok"=>1 
+		"ok" => 1 
 };
 
 # This map is used to convert ASCII characters over
@@ -1150,30 +1150,30 @@ my $FREETEXT_ALWAYS_WORDS = {
 # There's no reason mappings have to be a single character.
 
 my $FREETEXT_CHAR_MAPPING = {
-"¡"=>"!",	"¢"=>"c",	"£"=>"L",	"¤"=>"o",	
-"¥"=>"Y",	"¦"=>"|",	"§"=>"S",	"¨"=>"\"",	
-"©"=>"(c)",	"ª"=>"a",	"«"=>"<<",	"¬"=>"-",	
-"­"=>"-",	"®"=>"(R)",	"¯"=>"-",	"°"=>"o",	
-"±"=>"+-",	"²"=>"2",	"³"=>"3",	"´"=>"'",	
-"µ"=>"u",	"¶"=>"q",	"·"=>".",	"¸"=>",",	
-"¹"=>"1",	"º"=>"o",	"»"=>">>",	"¼"=>"1/4",	
-"½"=>"1/2",	"¾"=>"3/4",	"¿"=>"?",	"À"=>"A",	
-"Á"=>"A",	"Â"=>"A",	"Ã"=>"A",	"Ä"=>"A",	
-"Å"=>"A",	"Æ"=>"AE",	"Ç"=>"C",	"È"=>"E",	
-"É"=>"E",	"Ê"=>"E",	"Ë"=>"E",	"Ì"=>"I",	
-"Í"=>"I",	"Î"=>"I",	"Ï"=>"I",	"Ð"=>"D",	
-"Ñ"=>"N",	"Ò"=>"O",	"Ó"=>"O",	"Ô"=>"O",	
-"Õ"=>"O",	"Ö"=>"O",	"×"=>"x",	"Ø"=>"O",	
-"Ù"=>"U",	"Ú"=>"U",	"Û"=>"U",	"Ü"=>"U",	
-"Ý"=>"Y",	"Þ"=>"b",	"ß"=>"B",	"à"=>"a",	
-"á"=>"a",	"â"=>"a",	"ã"=>"a",	"ä"=>"a",	
-"å"=>"a",	"æ"=>"ae",	"ç"=>"c",	"è"=>"e",	
-"é"=>"e",	"ê"=>"e",	"ë"=>"e",	"ì"=>"i",	
-"í"=>"i",	"î"=>"i",	"ï"=>"i",	"ð"=>"d",	
-"ñ"=>"n",	"ò"=>"o",	"ó"=>"o",	"ô"=>"o",	
-"õ"=>"o",	"ö"=>"o",	"÷"=>"/",	"ø"=>"o",	
-"ù"=>"u",	"ú"=>"u",	"û"=>"u",	"ü"=>"u",	
-"ý"=>"y",	"þ"=>"B",	"ÿ"=>"y" };
+"¡" => "!",	"¢" => "c",	"£" => "L",	"¤" => "o",	
+"¥" => "Y",	"¦" => "|",	"§" => "S",	"¨" => "\"",	
+"©" => "(c)",	"ª" => "a",	"«" => "<<",	"¬" => "-",	
+"­" => "-",	"®" => "(R)",	"¯" => "-",	"°" => "o",	
+"±" => "+-",	"²" => "2",	"³" => "3",	"´" => "'",	
+"µ" => "u",	"¶" => "q",	"·" => ".",	"¸" => ",",	
+"¹" => "1",	"º" => "o",	"»" => ">>",	"¼" => "1/4",	
+"½" => "1/2",	"¾" => "3/4",	"¿" => "?",	"À" => "A",	
+"Á" => "A",	"Â" => "A",	"Ã" => "A",	"Ä" => "A",	
+"Å" => "A",	"Æ" => "AE",	"Ç" => "C",	"È" => "E",	
+"É" => "E",	"Ê" => "E",	"Ë" => "E",	"Ì" => "I",	
+"Í" => "I",	"Î" => "I",	"Ï" => "I",	"Ð" => "D",	
+"Ñ" => "N",	"Ò" => "O",	"Ó" => "O",	"Ô" => "O",	
+"Õ" => "O",	"Ö" => "O",	"×" => "x",	"Ø" => "O",	
+"Ù" => "U",	"Ú" => "U",	"Û" => "U",	"Ü" => "U",	
+"Ý" => "Y",	"Þ" => "b",	"ß" => "B",	"à" => "a",	
+"á" => "a",	"â" => "a",	"ã" => "a",	"ä" => "a",	
+"å" => "a",	"æ" => "ae",	"ç" => "c",	"è" => "e",	
+"é" => "e",	"ê" => "e",	"ë" => "e",	"ì" => "i",	
+"í" => "i",	"î" => "i",	"ï" => "i",	"ð" => "d",	
+"ñ" => "n",	"ò" => "o",	"ó" => "o",	"ô" => "o",	
+"õ" => "o",	"ö" => "o",	"÷" => "/",	"ø" => "o",	
+"ù" => "u",	"ú" => "u",	"û" => "u",	"ü" => "u",	
+"ý" => "y",	"þ" => "B",	"ÿ" => "y" };
 
 
 
@@ -1520,16 +1520,16 @@ sub eprint_render_full
 
 my %CITATION_SPECS =
 (
-	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>, in [{editors}, Eds. ][<i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
-	"confpaper"   => "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
-	"confposter"  => "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
-	"techreport"  => "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
-	"journale"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})].",
-	"journalp"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})][:{pages}].",
-	"newsarticle" => "{authors} [({year}) ]{title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}][, {publisher}].",
-	"other"       => "{authors} [({year}) ]{title}.",
-	"preprint"    => "{authors} [({year}) ]{title}.",
-	"thesis"      => "{authors} [({year}) ]<i>{title}</i>. {thesistype},[ {department},][ {institution}]."
+	"bookchapter"  =>  "{authors} [({year}) ]<i>{title}</i>, in [{editors}, Eds. ][<i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
+	"confpaper"    =>  "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"confposter"   =>  "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"techreport"   =>  "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
+	"journale"     =>  "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})].",
+	"journalp"     =>  "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})][:{pages}].",
+	"newsarticle"  =>  "{authors} [({year}) ]{title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}][, {publisher}].",
+	"other"        =>  "{authors} [({year}) ]{title}.",
+	"preprint"     =>  "{authors} [({year}) ]{title}.",
+	"thesis"       =>  "{authors} [({year}) ]<i>{title}</i>. {thesistype},[ {department},][ {institution}]."
 );
 
 sub eprint_render_citation
@@ -1771,19 +1771,19 @@ sub oai_list_metadata_formats
 #  The value of each key should be either a scalar value (string)
 #  indicating the value for that string, e.g:
 #
-#   "title" => "Full Title of the Paper"
+#   "title"  =>  "Full Title of the Paper"
 #
 #  or it can be a reference to a list of scalars, indicating multiple
 #  values:
 #
-#   "author" => [ "J. R. Hartley", "J. N. Smith" ]
+#   "author"  =>  [ "J. R. Hartley", "J. N. Smith" ]
 #
 #  it can also be nested:
 #
-#   "nested" => [
+#   "nested"  =>  [
 #                  {
-#                    "nested_key 1" => "nested value 1",
-#                    "nested_key 2" => "nested value 2"
+#                    "nested_key 1"  =>  "nested value 1",
+#                    "nested_key 2"  =>  "nested value 2"
 #                  },
 #                  {
 #                    "more nested values"
@@ -1834,19 +1834,19 @@ sub oai_get_eprint_metadata
 		if( defined $eprint->{month} )
 		{
 			my %month_numbers = (
-				unspec => "01",
-				jan => "01",
-				feb => "02",
-				mar => "03",
-				apr => "04",
-				may => "05",
-				jun => "06",
-				jul => "07",
-				aug => "08",
-				sep => "09",
-				oct => "10",
-				nov => "11",
-				dec => "12" );
+				unspec  =>  "01",
+				jan  =>  "01",
+				feb  =>  "02",
+				mar  =>  "03",
+				apr  =>  "04",
+				may  =>  "05",
+				jun  =>  "06",
+				jul  =>  "07",
+				aug  =>  "08",
+				sep  =>  "09",
+				oct  =>  "10",
+				nov  =>  "11",
+				dec  =>  "12" );
 
 			$month = $month_numbers{$eprint->{month}};
 		}

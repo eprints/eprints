@@ -27,7 +27,6 @@ use strict;
 ######################################################################
 #
 # $searchform = new( $session,
-#                    $what,
 #                    $allow_blank,
 #                    $tableid,
 #                    $default_fields,
@@ -53,7 +52,6 @@ sub new
 {
 	my( $class,
 	    $session,
-	    $what,
 	    $allow_blank,
 	    $tableid,
 	    $default_fields,
@@ -65,7 +63,6 @@ sub new
 	bless $self, $class;
 
 	$self->{session} = $session;
-	$self->{what} = $what;
 	$self->{allow_blank} = $allow_blank;
 	$self->{tableid} = $tableid;
 	$self->{default_fields} = $default_fields;
@@ -73,8 +70,6 @@ sub new
 	$self->{preamble} = $preamble;
 	$self->{staff} = $staff;
 
-	return( undef ) unless( $what eq "users" || $what eq "eprint" );
-	
 	return( $self );
 }
 
@@ -210,7 +205,7 @@ sub process
 				}
 			}
 		}
-		elsif( $self->{what} eq "users" )
+		elsif( $self->{what} eq "user" )
 		{
 			
 			foreach (@results)

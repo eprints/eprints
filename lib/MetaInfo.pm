@@ -22,6 +22,7 @@
 ######################################################################
 
 package EPrints::MetaInfo;
+use strict;
 
 use EPrints::EPrint;
 use EPrints::User;
@@ -30,8 +31,7 @@ use EPrints::Document;
 use EPrints::Log;
 use EPrints::Subject;
 use EPrints::Subscription;
-
-use strict;
+use EPrints::Constants;
 
 
 ######################################################################
@@ -56,7 +56,8 @@ print STDERR "NEW METAINFO\n";
 	# Read in system and site USER metadata fields
 	#
 
-	foreach( "user", "document", "subscription", "subject", "eprint" , "deletion" )
+	foreach( TID_USER, TID_DOCUMENT, TID_SUBSCRIPTION,
+		TID_SUBJECT, TID_EPRINT, TID_DELETION )
 	{
 		$self->{$_} = {};
 		$self->{$_}->{fields} = [];
