@@ -16,21 +16,25 @@ H3 {
 .searchfieldname {
 	font-weight: bold;
 	text-align: right;
+	margin-bottom: 1em;
+	margin-right: 1em;
 }
 
-TD.searchfieldhelp {
+.searchfieldhelp {
         font-style: italic;	
 	text-align: center;
 }
 
-INPUT.submitbutton {
-	padding-left: 1em;
+.searchfieldinput {
+	margin-left: 1em;
+	margin-bottom: 1em;
 }
 
-TABLE.submitbuttons {
-	text-align: center;
+.submitbutton {
+	border: 1em;
 }
 
 .main {
 	padding-left: 2em;
+	background-color: red;
 }

@@ -866,10 +866,10 @@ $c->{htmlpage} = parseHTML( <<END );
       <BR/>
     </td>
     <td valign="top" width="95%">
-      <DIV class="main">
       <PAGEHERE/>
       <HR noshade="yes" size="2"/>
-      <address>Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a></address>
+      <DIV class="main">
+      <P>Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a></P>
       </DIV>
     </td>
   </tr>
@@ -878,71 +878,6 @@ $c->{htmlpage} = parseHTML( <<END );
 </HTML>
 END
 
-
-# This is the HTML put at the top of every page. It will be put in the <BODY>,
-#  so shouldn't include a <BODY> tag.
-$c->{html_banner} = <<END;
-<table border="0" cellpadding="0" cellspacing="0">
-  <tr>
-    <td align="center" valign="top" bgcolor="#dddddd" fgcolor="white">
-      <br>
-      <a href="$c->{frontpage}"><IMG border="0" width="100" height="100" src="$c->{server_static}/images/logo_sidebar.gif" ALT="$c->{sitename}"></a>
-    </td>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderr.gif"></td>
-    <td>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-    <td>
-      <BR>
-      <H1>TITLE_PLACEHOLDER</H1>
-    </td>
-  </tr>
-  <tr>
-    <td bgcolor="#dddddd" align="center" valign="top">
-      <table border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align=center valign=top>
-            <A HREF="$c->{frontpage}">Home</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_static}/information.html">About</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_subject_view_stem}"."ROOT.html">Browse</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_perl}/search">Search</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_static}/register.html">Register</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_perl}/users/subscribe">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_perl}/users/home">Deposit\&nbsp;Items</A>\&nbsp;<BR><BR>
-            <A HREF="$c->{server_static}/help">Help</A><BR><BR><BR><BR>
-            <I><A HREF="$c->{server_perl}/setlang?langid=english">English</A></I><BR><BR>
-            <I><A HREF="$c->{server_perl}/setlang?langid=french">Français</A></I><BR><BR>
-            <I><A HREF="$c->{server_perl}/setlang?langid=dummy">Test Lang</A></I><BR><BR>
-          </td>
-        </tr>
-      </table>
-      <br>
-    </td>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderr.gif"></td>
-    <td>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-    <td valign="top" width="95%">
-<BR>
-END
-
-# This is the HTML put at the bottom of every page. Obviously, it should close
-#  up any tags left open in html_banner.
-$c->{html_tail} = <<END;
-<BR>
-<HR noshade size="2">
-<address>
-Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a>
-</address>
-<BR><BR>
-    </td>
-  </tr>
-  <tr>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderb.gif"></td>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderc.gif"></td>
-  </tr>
-</table>
-END
 
 #  E-mail signature, appended to every email sent by the software
 $c->{signature} = <<END;

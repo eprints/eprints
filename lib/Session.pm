@@ -623,7 +623,12 @@ sub printPage
 	}
 	foreach( $self->{page}->getElementsByTagName( "PAGEHERE" , 1 ) )
 	{
-		$_->getParentNode()->replaceChild( $mainbit, $_ );
+		my $node;
+		foreach $node ( $mainbit->getChildNodes )
+		{
+			$_->getParentNode()->insertBefore( $node, $_ );
+		}
+		$_->getParentNode()->removeChild( $_ );
 	}
 	$self->sendHTTPHeader( %httpopts );
 	print $self->{page}->toString;

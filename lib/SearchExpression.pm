@@ -208,18 +208,20 @@ sub render_search_form
 			my $td = $self->{session}->make_element( "TD", colspan=>2 , class=>"searchfieldhelp" );
 			$tr->appendChild( $td );
 			$td->appendChild( $self->{session}->makeText( $shelp ) );
-			$shown_help{$shelp}=1;
+			#$shown_help{$shelp}=1;
 			$table->appendChild( $tr );
 		}
 
 		my $tr = $self->{session}->make_element( "TR" );
-		my $td = $self->{session}->make_element( "TD" );
+		my $td = $self->{session}->make_element( "TD" , class=>"searchfieldname");
 		my $span = $self->{session}->make_element( "SPAN" , class=>"searchfieldname" );
 		$span->appendChild( $self->{session}->makeText( $sf->getDisplayName ) );
 		$td->appendChild( $span );
 		$tr->appendChild( $td );
 		$td = $self->{session}->make_element( "TD" );
-		$td->appendChild( $sf->toHTML );
+		$span = $self->{session}->make_element( "SPAN" , class=>"searchfieldinput" );
+		$span->appendChild( $sf->toHTML );
+		$td->appendChild( $span );
 		$tr->appendChild( $td );
 		$table->appendChild( $tr );
 	}
@@ -640,13 +642,14 @@ print "---------<BR>\n";
 	}
 	
 	if( defined $submit_button && 
-		$submit_button eq $self->{session}->phrase("action_update") )
+		$submit_button eq $self->{session}->phrase( "action_update" ) )
 	{
 		$self->from_form();
 	}
 
 	# Just print the form...
-	my $page = $self->{session}->make_element( "DIV" );
+
+	my $page = $self->{session}->make_element( "PAGE" );
 	$page->appendChild( $preamble );
 	$page->appendChild( $self->render_search_form( 1 ) );
 
