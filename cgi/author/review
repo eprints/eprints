@@ -9,11 +9,12 @@
 #
 ######################################################################
 
-
-use EPrints::User;
-use EPrints::Session;
 use EPrints::Database;
 use EPrints::EPrint;
+use EPrints::HTMLRender;
+use EPrints::MetaField;
+use EPrints::Session;
+use EPrints::User;
 
 use strict;
 
@@ -39,49 +40,58 @@ my @eprints = EPrints::EPrint->retrieve_eprints(
 	[ "username LIKE \"$user->{username}\"" ] );
 
 
+my $page_written = 0;
+
 if( $session->{render}->seen_form() )
 {
-	# They've clicked on something, clone the record
-	my $ok = 0;
-
-	foreach (@eprints)
+	# If submit is defined, must have been a removal request form that was
+	# filled out.
+	if( defined $session->{render}->param( "submit" ) )
 	{
-		if( defined $session->{render}->param( "clone_$_->{eprintid}" ) )
-		{
-			# Sanity check: Make sure it's this user's paper
-			if( $_->{username} eq $user->{username} )
-			{
-				my $copy = $_->clone( $EPrints::Database::table_inbox,
-			                         1 );
-				$ok = ( defined $copy );
-			}
-		}
-
-		if( $EPrintSite::SiteInfo::allow_user_removal &&
-		    defined $session->{render}->param( "remove_$_->{eprintid}" ) )
-		{
-			# Sanity check: Make sure it's this user's paper
-			if( $_->{username} eq $user->{username} )
-			{
-				$ok = $_->remove();
-			}
-		}
-
-	}
-
-	if( $ok )
-	{
-		$session->{render}->redirect( "home" );
+		$page_written = &handle_removal_request( $session, $user );
 	}
 	else
 	{
-		$session->{render}->render_error(
-			"Unable to operate on that record. Please try again later.",
-			"home",
-			"Author Area" );
+		# They've clicked on something
+		foreach (@eprints)
+		{
+			# See if they clicked a clone button, also sanity check to make sure
+			# it's this user's paper
+			if( defined $session->{render}->param( "clone_$_->{eprintid}" ) &&
+		   	 $_->{username} eq $user->{username} )
+			{
+				my $copy = $_->clone( $EPrints::Database::table_inbox,
+			                        	 1 );
+				if( defined $copy )
+				{
+					# Copied OK, redirect to workspace
+					$session->{render}->redirect( "home" );
+				}
+				else
+				{
+					$session->{render}->render_error(
+						"Unable to clone that record. Please try again later.",
+						"home",
+						"Author Area" );
+				}
+
+				$page_written = 1;				
+			}
+
+			# See if they clicked a request removal button
+			# Sanity check: Make sure it's this user's paper
+			if( $EPrintSite::SiteInfo::allow_user_removal_request &&
+		   	 defined $session->{render}->param( "remove_$_->{eprintid}" ) &&
+		   	 $_->{username} eq $user->{username} )
+			{
+				&removal_request_form( $session, $_ );
+				$page_written = 1;
+			}
+		}
 	}
 }
-else
+
+unless( $page_written )
 {
 	print $session->{render}->start_html( "Review Documents" );
 	
@@ -106,7 +116,7 @@ else
 
 		print "<CENTER><TABLE BORDER=1 CELLPADDING=3>\n";
 		print "<TR><TH><STRONG>Document</STRONG><TH></TH>";
-		print "<TH></TH>" if( $EPrintSite::SiteInfo::allow_user_removal );
+		print "<TH></TH>" if( $EPrintSite::SiteInfo::allow_user_removal_request );
 		print "</TR>\n";
 		
 		foreach (@eprints)
@@ -118,8 +128,8 @@ else
 				"clone_$_->{eprintid}", "Clone" );
 
 			print "</TD><TD>".$session->{render}->named_submit_button(
-				"remove_$_->{eprintid}", "Remove" )
-				if( $EPrintSite::SiteInfo::allow_user_removal );
+				"remove_$_->{eprintid}", "Request Removal" )
+				if( $EPrintSite::SiteInfo::allow_user_removal_request );
 
 			print "</TD></TR>\n";
 		}
@@ -134,3 +144,108 @@ else
 }
 
 $session->terminate();
+
+######################################################################
+#
+# remove_request_form( $session, $eprint )
+#
+#  Display a removal request form.
+#
+######################################################################
+
+sub removal_request_form
+{
+	my( $session, $eprint ) = @_;
+	
+	print $session->{render}->start_html( "Request EPrint Removal" );
+	
+	print "<P><EM>Please note that we <STRONG>strongly</STRONG> discourage ".
+		"removal of EPrints from the archive. If you upload a new version of ".
+		"an EPrint, a link to the later version will appear on the older ".
+		"version. Thus, anyone finding the old version will be able to see that ".
+		"a newer version has been deposited.</EM></P>\n";
+	
+	print "<P>You are requesting the removal of:</P>\n<P>";
+	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
+	print "</P>\n";
+
+	my $reason_field = new EPrints::MetaField(
+		"removal_reason:multitext:15:Reason for Requesting Removal:1:1:1" );
+	$reason_field->{help} = "Please enter the reason for your removal ".
+		"request in the box below. The request will be sent to the site ".
+		"administrator.";
+	
+	$session->{render}->render_form(
+		[ $reason_field ],
+		{},
+		0,
+		1,
+		[ "Send Request", "Cancel" ],
+		{ "eprint_id" => $eprint->{eprintid} } );
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# $wrote_page = handle_removal_request( $session, $user )
+#
+#  Handle the POSTed information from a removal request form.
+#
+######################################################################
+
+sub handle_removal_request
+{
+	my( $session, $user ) = @_;
+	
+	# Get the EPrint we're dealing with
+	my $eprintid = $session->{render}->param( "eprint_id" );
+
+	my $eprint = new EPrints::EPrint( $session,
+	                                  $EPrints::Database::table_archive,
+	                                  $eprintid ) if( defined $eprintid );
+
+	# Make sure it's valid, and the user's own EPrint
+	unless( defined $eprintid && defined $eprint &&
+	        $eprint->{username} eq $user->{username} )
+	{
+		$session->{render}->render_error(
+			"Couldn't find the EPrint! There's probably a problem with the ".
+				"database. Try again later.",
+			"home",
+			"Author Area" );
+		return( 1 );
+	}
+	
+	if( $session->{render}->param( "submit") eq "Send Request" )
+	{
+		my $msg = "User ".$user->full_name()." (E-Mail: ".$user->{email}.")\n";
+		$msg .= "requests the removal of the following EPrint:\n\n";
+		$msg .= $session->{render}->render_eprint_citation( $eprint, 0, 0 );
+		$msg .= "\n\n";
+		
+		my $reason = $session->{render}->param( "removal_reason" );
+
+		if( defined $reason && $reason ne "" )
+		{
+			$msg .= "The following reason was given:\n\n$reason\n\n";
+		}
+		else
+		{
+			$msg .= "No reason was given.\n\n";
+		}
+		
+		$msg .= "Visit the following URL to view the EPrint and have the ".
+			"option to remove it:\n\n";
+			
+		$msg .= $EPrintSite::SiteInfo::server_perl."/staff/remove_eprint?".
+			"eprint_id=$eprint->{eprintid}";
+
+		$session->mail_administrator(
+			"EPrint Removal Request from ".$user->full_name(),
+			$msg );
+	}
+	return( 0 );
+}
+			

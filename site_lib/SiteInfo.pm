@@ -43,7 +43,7 @@ $EPrintSite::SiteInfo::server_subject_view_stem = "$EPrintSite::SiteInfo::server
 $EPrintSite::SiteInfo::eprint_id_stem = "cog";
 
 # If 1, users can remove their own submissions from the archive.
-$EPrintSite::SiteInfo::allow_user_removal = 1;
+$EPrintSite::SiteInfo::allow_user_removal_request = 1;
 
 
 
