@@ -91,7 +91,7 @@ else
 		"or update your user information.</P></DD>\n";
 	
 	### Change subscription options
-	print "<DT><STRONG><A HREF=\"../reader/subscribe\">Change your ".
+	print "<DT><STRONG><A HREF=\"subscribe\">Change your ".
 		"subscription options</A></STRONG></DT>\n";
 	print "<DD><P>Select this option to change your subscription. This allows ".
 		"you to instruct the archive to automatically e-mail you with lists ".
