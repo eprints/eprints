@@ -228,7 +228,7 @@ sub render_subscription_form
 	
 	$html .= "<P>";
 #cjg
-	#$html .= $self->{session}}->phrase( "lib/subscription:sendupdates",
+	#$html .= $self->{session}}->phrase( "lib/subscription:send_updates",
 	           #{ howoften=>$self->{session}->{render}->input_field( 
 		        #EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
 		        #$self->{frequency} ) } );
@@ -511,7 +511,7 @@ sub process
 		}
 		else
 		{
-			$body .= $self->{session}->phrase( "lib/subscription:newsubs", 
+			$body .= $self->{session}->phrase( "lib/subscription:new_subs", 
 			                                   n=>scalar @eprints ); 
 		}
 		$body .= "\n\n\n";

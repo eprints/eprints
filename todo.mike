@@ -7,7 +7,6 @@ As the changes get more atomic we can start doing a changelog and stuff.
 
 Things to do (Mike)
 
-
 	* spot all naughty regexps (ones which opperate(sp?) on UTF8),
 		and similar things like split which can't be trusted
 		either.
@@ -35,7 +34,6 @@ move done things to here :
 
 DONE:
 ===================================
-	* nothing yet
 	* finish turning fooBar to foo_bar
 	* rename all things in intl/english to have the suffix in  the file eg
 	* tidy up lemurprints.pm "big type lists"

@@ -88,7 +88,7 @@ sub process
 				"/register.html"  );
 		$p = $self->{session}->make_element( "p" );		
 		$p->appendChild( $self->{session}->html_phrase( 
-				"lib/userform:changeemail",
+				"lib/userform:change_email",
 				registerlink => $a ) );	
 		$page->appendChild( $p );
 
@@ -96,7 +96,7 @@ sub process
 
 		$self->{session}->build_page(
 			$self->{session}->
-				phrase( "lib/userform:recfor", name => $full_name ),
+				phrase( "lib/userform:record_for", name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 
@@ -122,7 +122,7 @@ sub process
 
 		$p = $self->{session}->make_element( "p" );
 		$p->appendChild( 
-			$self->{session}->html_phrase( "lib/userform:formincorrect" ) );
+			$self->{session}->html_phrase( "lib/userform:form_incorrect" ) );
 		$page->appendChild( $p );
 
 		$ul = $self->{session}->make_element( "ul" );
@@ -138,21 +138,21 @@ sub process
 
 		$p = $self->{session}->make_element( "p" );
 		$p->appendChild( 
-			$self->{session}->html_phrase( "lib/userform:completeform" ) );
+			$self->{session}->html_phrase( "lib/userform:complete_form" ) );
 		$page->appendChild( $p );
 	
 		$page->appendChild( $self->_render_form() );
 
 		$self->{session}->build_page(
 			$self->{session}->
-				phrase( "lib/userform:recfor", name => $full_name ),
+				phrase( "lib/userform:record_for", name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 	}
 	else 
 	{
 		$self->{session}->render_error(
-			$self->{session}->phrase( "lib/userform:problemupdating" ),
+			$self->{session}->phrase( "lib/userform:problem_updating" ),
 			$self->{redirect} );
 	}
 }

@@ -305,7 +305,7 @@ sub from_form
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, $self->{session}->phrase( "lib/searchexpression:leastone" )
+	push @problems, $self->{session}->phrase( "lib/searchexpression:least_one" )
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->param( "_satisfyall" );

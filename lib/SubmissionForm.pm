@@ -250,7 +250,7 @@ sub _from_home
 		else
 		{
 			$self->{session}->render_error( $self->{session}->phrase(
-			        "lib/submissionform:useautharea" ) );
+			        "lib/submissionform:use_auth_area" ) );
 			return( 0 );
 		}
 	}
@@ -797,7 +797,7 @@ sub _from_stage_upload
 		if( !$success )
 		{
 			$self->{problems} = [
-				$self->{session}->phrase( "lib/submissionform:uploadprob" ) ];
+				$self->{session}->phrase( "lib/submissionform:upload_prob" ) ];
 		}
 		elsif( !defined $doc->get_main() )
 		{
@@ -971,7 +971,7 @@ sub _do_stage_type
 
 	$self->_list_problems();
 	
-	print "<P>".$self->{session}->phrase( "lib/submissionform:seltype" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "lib/submissionform:sel_type" )."</P>\n";
 
 	$self->_render_type_form(
 		[ $self->{session}->phrase("lib/submissionform:action_cancel"),
@@ -999,7 +999,7 @@ sub _do_stage_meta
 				$EPrints::SubmissionForm::stage_meta} ) );
 	$self->_list_problems();
 
-	print "<P>".$self->{session}->phrase( "lib/submissionform:bibinfo" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "lib/submissionform:bib_info" )."</P>\n";
 
 	$self->_render_meta_form(
 		[ $self->{session}->phrase("lib/submissionform:action_prev"),
@@ -1089,7 +1089,7 @@ sub _do_stage_linking
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->phrase( 
-				"lib/submissionform:invaleprint",
+				"lib/submissionform:invalid_eprint",
 				eprintid=>$self->{eprint}->{succeeds} );
 			print "</STRONG></TD></TR>\n";
 		}
@@ -1121,7 +1121,7 @@ sub _do_stage_linking
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->phrase( 
-				"lib/submissionform:invaleprint",
+				"lib/submissionform:invalid_eprint",
 				eprintid=>$self->{eprint}->{commentary} );
 			print "</STRONG></TD></TR>\n";
 		}
@@ -1173,11 +1173,11 @@ sub _do_stage_format
 	my $probs = $self->{eprint}->validate_documents();
 
 	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:validformats");
+	print $self->{session}->phrase("lib/submissionform:valid_formats");
 
 	if( @{$self->{session}->get_archive()->{required_formats}} >= 0 )
 	{
-		print $self->{session}->phrase("lib/submissionform:leastone");
+		print $self->{session}->phrase("lib/submissionform:least_one");
 	}
 
 	print "</CENTER></P>\n";
@@ -1225,7 +1225,7 @@ sub _do_stage_fileview
 	my @arc_formats = ( "plain", "graburl" );
 	my %arc_labels = (
 		"plain"   => $self->{session}->phrase("lib/submissionform:plain"),
-		"graburl" => $self->{session}->phrase("lib/submissionform:graburl")
+		"graburl" => $self->{session}->phrase("lib/submissionform:grab_url")
 	);
 
 	foreach (@{$self->{session}->get_archive()->{supported_archive_formats}})
@@ -1253,8 +1253,8 @@ sub _do_stage_fileview
 				$EPrints::SubmissionForm::stage_fileview} ) );
 
 	$self->_list_problems(
-		$self->{session}->phrase("lib/submissionform:fixupload"),
-		$self->{session}->phrase("lib/submissionform:pleasefix") );
+		$self->{session}->phrase("lib/submissionform:fix_upload"),
+		$self->{session}->phrase("lib/submissionform:please_fix") );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1279,36 +1279,36 @@ sub _do_stage_fileview
 	if( scalar keys %files == 0 )
 	{
 		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("lib/submissionform:nofiles");
+		print $self->{session}->phrase("lib/submissionform:no_files");
 		print "</EM></CENTER></P>\n";
 	}
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:filesforformat");
+		print $self->{session}->phrase("lib/submissionform:files_for_format");
 
 		if( !defined $doc->get_main() )
 		{
-			print $self->{session}->phrase("lib/submissionform:selfirst");
+			print $self->{session}->phrase("lib/submissionform:sel_first");
 		}
 
 		print "</CENTER></P>\n";
 		print $self->_render_file_view( $doc );
 
 		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
-		print $self->{session}->phrase("lib/submissionform:heretoview");
+		print $self->{session}->phrase("lib/submissionform:here_to_view");
 		print "</A></P>\n";
 	}
 
 	# Render upload file options
 	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:fileupmethod")." ";
+	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
 	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
 
 	print "</CENTER></P>\n<P><CENTER><em>";
-	print $self->{session}->phrase("lib/submissionform:plainonly")." ";
+	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
 	print "</em> ";
-	print $self->{session}->phrase("lib/submissionform:numfiles")." ";
+	print $self->{session}->phrase("lib/submissionform:num_files")." ";
 	print $self->{session}->{render}->input_field( $num_files_field, 1 );
 	print "</CENTER></P>\n";
 
@@ -1358,10 +1358,10 @@ sub _do_stage_upload
 	if( $self->{arc_format} eq "graburl" )
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:enterurl");
+		print $self->{session}->phrase("lib/submissionform:enter_url");
 		print "</CENTER></P>\n";
 		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("lib/submissionform:urlwarning");
+		print $self->{session}->phrase("lib/submissionform:url_warning");
 		print "</EM></CENTER></P>\n";
 		my $url_field = EPrints::MetaField->new( "url:text:::::" );
 		print "<P><CENTER>";
@@ -1384,13 +1384,13 @@ sub _do_stage_upload
 			if( $self->{numfiles} > 1 )
 			{
 				print "<P><CENTER>";
-				print $self->{session}->phrase("lib/submissionform:enterfiles");
+				print $self->{session}->phrase("lib/submissionform:enter_files");
 				print "</CENTER></P>\n";
 			}
 			else
 			{
 				print "<P><CENTER>";
-				print $self->{session}->phrase("lib/submissionform:enterfile");
+				print $self->{session}->phrase("lib/submissionform:enter_file");
 				print "</CENTER></P>\n";
 			}
 		}
@@ -1467,7 +1467,7 @@ sub _do_stage_verify
 	if( $#{$self->{problems}} >= 0 )
 	{
 		$self->_list_problems(
-			$self->{session}->phrase("lib/submissionform:fixprobs"),
+			$self->{session}->phrase("lib/submissionform:fix_probs"),
 			"" );
 
 		print "<P><CENTER>";
@@ -1478,7 +1478,7 @@ sub _do_stage_verify
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:pleaseverify");
+		print $self->{session}->phrase("lib/submissionform:please_verify");
 		print "</CENTER></P>\n";
 		print "<HR>\n";
 		
@@ -1522,11 +1522,11 @@ sub _do_stage_done
 	print "</STRONG><CENTER></P>\n";
 	
 	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:inbuffer");
+	print $self->{session}->phrase("lib/submissionform:in_buffer");
 	print "</CENTER></P>\n";
 	
 	print "<P><CENTER><A HREF=\"home\">";
-	print $self->{session}->phrase("lib/submissionform:retdeppage");
+	print $self->{session}->phrase("lib/submissionform:ret_dep_page");
 	print "</A></CENTER></P>\n";
 
 	print $self->{session}->{render}->end_html();
@@ -1550,7 +1550,7 @@ sub _do_stage_confirmdel
 				$EPrints::SubmissionForm::stage_confirmdel} ) );
 
 	print "<P><CENTER><strong>";
-	print $self->{session}->phrase("lib/submissionform:suredelete");
+	print $self->{session}->phrase("lib/submissionform:sure_delete");
 	print "</strong></CENTER></P>\n<P><CENTER>";
 	
 	print $self->{eprint}->short_title();
@@ -1628,7 +1628,7 @@ sub _list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->phrase("lib/submissionform:filledwrong");
+			print $self->{session}->phrase("lib/submissionform:filled_wrong");
 			print "</P>";
 		}
 		
@@ -1646,7 +1646,7 @@ sub _list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->phrase("lib/submissionform:pleasecomplete");
+			print $self->{session}->phrase("lib/submissionform:please_complete");
 			print "</P>";
 		}
 	}
@@ -1990,7 +1990,7 @@ sub _render_file_view
 	
 	$html = "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH></TH>".
 		"<TH>".$self->{session}->phrase("lib/submissionform:filename")."</TH>".
-		"<TH>".$self->{session}->phrase("lib/submissionform:sizebytes")."</TH>".
+		"<TH>".$self->{session}->phrase("lib/submissionform:size_bytes")."</TH>".
 		"<TH></TH><TH></TH></TR>\n";
 	
 	my %files = $document->files();
@@ -2004,7 +2004,7 @@ sub _render_file_view
 		if( defined $main && $main eq $filename )
 		{
 			$html .= "<STRONG>";
-			$html .= $self->{session}->phrase("lib/submissionform:shownfirst");
+			$html .= $self->{session}->phrase("lib/submissionform:shown_first");
 			$html .= " -\&gt;</STRONG>"
 		}
 		
@@ -2014,7 +2014,7 @@ sub _render_file_view
 		{
 			$html .= $self->{session}->{render}->named_submit_button(
 				"main_$filecount",
-				$self->{session}->phrase("lib/submissionform:showfirst") );
+				$self->{session}->phrase("lib/submissionform:show_first") );
 		}
 		$html .= "</TD><TD>";
 		$html .= $self->{session}->{render}->named_submit_button(

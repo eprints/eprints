@@ -277,7 +277,7 @@ sub validate
 		{
 			push @all_problems, 
 			  $self->{session}->phrase( 
-			   "lib/user:missedfield", 
+			   "lib/user:missed_field", 
 			   field => $field->display_name( $self->{session} ) );
 		}
 		else
@@ -341,11 +341,11 @@ sub send_introduction
 	my $subj;
 	if ( $self->{usertype} eq "staff" )
 	{
-		$subj = "lib/user:newstaff";
+		$subj = "lib/user:new_staff";
 	}
 	else
 	{
-		$subj = "lib/user:newuser";
+		$subj = "lib/user:new_user";
 	}
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
@@ -386,7 +386,7 @@ sub send_reminder
 			$self->{session},
 			$self->full_name(),
 	                $self->{email},
-	                $self->{session}->phrase( "lib/user:remindersub" ),
+	                $self->{session}->phrase( "lib/user:reminder_sub" ),
 	                $full_message ) );
 }
 

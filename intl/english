@@ -57,7 +57,7 @@
 
 <!-- SearchExpression -->
 
-    <phrase ref="lib/searchexpression:leastone">You need to specify something for at least one field!</phrase>
+    <phrase ref="lib/searchexpression:least_one">You need to specify something for at least one field!</phrase>
     <phrase ref="lib/searchexpression:any">any</phrase>
     <phrase ref="lib/searchexpression:all">all</phrase>
     <phrase ref="lib/searchexpression:must_fulfill">Retrieved records must fulfill <pin ref="anyall" /> of these conditions.</phrase>
@@ -118,42 +118,42 @@
 
 <!-- SubmissionForm -->
 
-    <phrase ref="lib/submissionform:useautharea">Use your author area to deposit new documents</phrase>
-    <phrase ref="lib/submissionform:uploadprob">There was a problem uploading your file(s). Please try again.</phrase>
-    <phrase ref="lib/submissionform:seltype">Please select the most appropriate type for your deposit.</phrase>
-    <phrase ref="lib/submissionform:bibinfo">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
+    <phrase ref="lib/submissionform:use_auth_area">Use your author area to deposit new documents</phrase>
+    <phrase ref="lib/submissionform:upload_prob">There was a problem uploading your file(s). Please try again.</phrase>
+    <phrase ref="lib/submissionform:sel_type">Please select the most appropriate type for your deposit.</phrase>
+    <phrase ref="lib/submissionform:bib_info">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
     <phrase ref="lib/submissionform:verify">Verify:</phrase>
-    <phrase ref="lib/submissionform:invaleprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
-    <phrase ref="lib/submissionform:validformats">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
-    <phrase ref="lib/submissionform:leastone">You must upload at least one of the formats listed in bold.</phrase>
+    <phrase ref="lib/submissionform:invalid_eprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
+    <phrase ref="lib/submissionform:valid_formats">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
+    <phrase ref="lib/submissionform:least_one">You must upload at least one of the formats listed in bold.</phrase>
     <phrase ref="lib/submissionform:plain">Plain Files</phrase>
-    <phrase ref="lib/submissionform:graburl">From an Existing Web Site</phrase>
-    <phrase ref="lib/submissionform:fixupload">The document upload can't be completed because:</phrase>
-    <phrase ref="lib/submissionform:pleasefix">Please fix this before continuing.</phrase>
-    <phrase ref="lib/submissionform:nofiles">No files have been uploaded for this format.</phrase>
-    <phrase ref="lib/submissionform:heretoview">Click here to view and verify the uploaded files</phrase>
-    <phrase ref="lib/submissionform:selfirst">You need to select the file that should be shown first when a reader wishes to view your deposit.</phrase>
-    <phrase ref="lib/submissionform:filesforformat">These are the files you have uploaded for this format.</phrase>
-    <phrase ref="lib/submissionform:fileupmethod">File upload method:</phrase>
-    <phrase ref="lib/submissionform:plainonly">(Plain files only)</phrase>
-    <phrase ref="lib/submissionform:numfiles">Number of files to upload:</phrase>
-    <phrase ref="lib/submissionform:enterurl">Please enter the URL of the document you wish to upload to the archive in the box below.</phrase>
-    <phrase ref="lib/submissionform:urlwarning">Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!</phrase>
-    <phrase ref="lib/submissionform:entercompfile">Enter the filename (with full path) of the compressed file in the box below.</phrase>
-    <phrase ref="lib/submissionform:enterfile">Please enter the filename (with full path) of the document file in the box below.</phrase>
-    <phrase ref="lib/submissionform:enterfiles">Please enter the filenames (with full paths) of the document files in the boxes below.</phrase>
-    <phrase ref="lib/submissionform:fixprobs">Before you deposit this entry to the archive, the following problems need to be corrected:</phrase>
-    <phrase ref="lib/submissionform:pleaseverify">Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  </phrase>
+    <phrase ref="lib/submissionform:grab_url">From an Existing Web Site</phrase>
+    <phrase ref="lib/submissionform:fix_upload">The document upload can't be completed because:</phrase>
+    <phrase ref="lib/submissionform:please_fix">Please fix this before continuing.</phrase>
+    <phrase ref="lib/submissionform:no_files">No files have been uploaded for this format.</phrase>
+    <phrase ref="lib/submissionform:here_to_view">Click here to view and verify the uploaded files</phrase>
+    <phrase ref="lib/submissionform:sel_first">You need to select the file that should be shown first when a reader wishes to view your deposit.</phrase>
+    <phrase ref="lib/submissionform:files_for_format">These are the files you have uploaded for this format.</phrase>
+    <phrase ref="lib/submissionform:file_up_method">File upload method:</phrase>
+    <phrase ref="lib/submissionform:plain_only">(Plain files only)</phrase>
+    <phrase ref="lib/submissionform:num_files">Number of files to upload:</phrase>
+    <phrase ref="lib/submissionform:enter_url">Please enter the URL of the document you wish to upload to the archive in the box below.</phrase>
+    <phrase ref="lib/submissionform:url_warning">Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!</phrase>
+    <phrase ref="lib/submissionform:enter_compfile">Enter the filename (with full path) of the compressed file in the box below.</phrase>
+    <phrase ref="lib/submissionform:enter_file">Please enter the filename (with full path) of the document file in the box below.</phrase>
+    <phrase ref="lib/submissionform:enter_files">Please enter the filenames (with full paths) of the document files in the boxes below.</phrase>
+    <phrase ref="lib/submissionform:fix_probs">Before you deposit this entry to the archive, the following problems need to be corrected:</phrase>
+    <phrase ref="lib/submissionform:please_verify">Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  </phrase>
     <phrase ref="lib/submissionform:thanks">Thank you.</phrase>
-    <phrase ref="lib/submissionform:inbuffer">Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</phrase>
-    <phrase ref="lib/submissionform:retdeppage">Click here to return to your deposit papers page </phrase>
-    <phrase ref="lib/submissionform:suredelete">Are you absolutely sure you want to delete this entry?</phrase>
-    <phrase ref="lib/submissionform:filledwrong">The form doesn't seem to be filled out correctly:</phrase>
-    <phrase ref="lib/submissionform:pleasecomplete">Please complete the form before continuing.</phrase>
+    <phrase ref="lib/submissionform:in_buffer">Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</phrase>
+    <phrase ref="lib/submissionform:ret_dep_page">Click here to return to your deposit papers page </phrase>
+    <phrase ref="lib/submissionform:sure_delete">Are you absolutely sure you want to delete this entry?</phrase>
+    <phrase ref="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</phrase>
+    <phrase ref="lib/submissionform:please_complete">Please complete the form before continuing.</phrase>
     <phrase ref="lib/submissionform:filename">Filename</phrase>
-    <phrase ref="lib/submissionform:sizebytes">Size (Bytes)</phrase>
-    <phrase ref="lib/submissionform:shownfirst">Shown First</phrase>
-    <phrase ref="lib/submissionform:showfirst">Show first</phrase>
+    <phrase ref="lib/submissionform:size_bytes">Size (Bytes)</phrase>
+    <phrase ref="lib/submissionform:shown_first">Shown First</phrase>
+    <phrase ref="lib/submissionform:show_first">Show first</phrase>
     <phrase ref="lib/submissionform:action_new">New</phrase>
     <phrase ref="lib/submissionform:action_delete">Delete</phrase>
     <phrase ref="lib/submissionform:action_edit">Edit</phrase>
@@ -190,33 +190,33 @@
 
 <!-- Subscription -->
 
-    <phrase ref="lib/subscription:sendupdates">Send updates: <pin ref="howoften" /></phrase>
+    <phrase ref="lib/subscription:send_updates">Send updates: <pin ref="howoften" /></phrase>
     <phrase ref="lib/subscription:weekly">weekly</phrase>
     <phrase ref="lib/subscription:daily">daily</phrase>
     <phrase ref="lib/subscription:monthly">monthly</phrase>
     <phrase ref="lib/subscription:blurb">This mail contains your <pin ref="howoften" /> subscription to <pin ref="sitename" />.\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n <pin ref="url" />\n\n</phrase>
     <phrase ref="newsub">One new submission was received.</phrase>
-    <phrase ref="lib/subscription:newsubs"><pin ref="n" /> new submissions were received.</phrase>
-    <phrase ref="lib/subscription:subsubj">Subscription</phrase>
+    <phrase ref="lib/subscription:new_subs"><pin ref="n" /> new submissions were received.</phrase>
+    <phrase ref="lib/subscription:sub_subj">Subscription</phrase>
 
 <!-- User -->
 
-    <phrase ref="lib/user:missedfield">You haven't filled out the required <pin ref="field" /> field.</phrase>
+    <phrase ref="lib/user:missed_field">You haven't filled out the required <pin ref="field" /> field.</phrase>
     <phrase ref="lib/user:weclome">Welcome to <pin ref="sitename" />!</phrase>
     <phrase ref="lib/user:reminder">Dear <pin ref="sitename" /> User,\n\n<pin ref="message" />Your username and password for the site are:\n\nUser name: <pin ref="username" />\nPassword:  <pin ref="password" />\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n<pin ref="adminemail" />\n</phrase>
-    <phrase ref="lib/user:remindersub">Your username and password</phrase>
-    <phrase ref="lib/user:newuser">New <pin ref="sitename" /> User</phrase>
-    <phrase ref="lib/user:newstaff">New <pin ref="sitename" /> Staff</phrase>
+    <phrase ref="lib/user:reminder_sub">Your username and password</phrase>
+    <phrase ref="lib/user:new_user">New <pin ref="sitename" /> User</phrase>
+    <phrase ref="lib/user:new_staff">New <pin ref="sitename" /> Staff</phrase>
 
 <!-- UserForm -->
 
-    <phrase ref="lib/userform:dontknow">I don't know who you are</phrase>
-    <phrase ref="lib/userform:recfor">Record for <pin ref="name" /></phrase>
+    <phrase ref="lib/userform:dont_know">I don't know who you are</phrase>
+    <phrase ref="lib/userform:record_for">Record for <pin ref="name" /></phrase>
     <phrase ref="lib/userform:blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <pin ref="star">*</pin> to start using the archive.</phrase>
-    <phrase ref="lib/userform:changeemail">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
-    <phrase ref="lib/userform:formincorrect">The form doesn't seem to be filled out correctly:</phrase>
+    <phrase ref="lib/userform:change_email">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
+    <phrase ref="lib/userform:form_incorrect">The form doesn't seem to be filled out correctly:</phrase>
     <phrase ref="lib/userform:completeform">Please complete the form before continuing.</phrase>
-    <phrase ref="lib/userform:problemupdating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
+    <phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
     <phrase ref="lib/userform:update_record">Update Record</phrase>
 
 <!-- cgi/users  -->
