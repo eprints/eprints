@@ -1,32 +1,125 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-#  Generate static pages using site template.
-#
-#   This trawls through local_root/static. Every HTML file is given
-#   the site frame and written to htdocs_path. HTML files that
-#   already have the full <HTML> .. </HTML> gubbins are left as-is.
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+
+=pod
+
+=head1 NAME
+
+B<generate_static> - Generate static pages of an EPrint archive using the template.
+
+=head1 SYNOPSIS
+
+B<generate_static> I<archiveid> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script creates the static web site for EPrints (or, if you are running in multiple lanugages it generates the websites).
+
+It processes every file in B<EPRINTS/archives/ARCHIVE/cfg/static/LANGID/>. For each language processes all the files in /LANGID/ and /generic/ into B<EPRINTS/archives/ARCHIVE/html/LANGID>. If that sounds confusing, don't worry, it's not that bad, just put your webpage outlines in static/en/ and your image files and the like in static/generic/ and run this script and see what happens.
+
+Most files are copied into the target directory as is and directory structure is preserved. 
+
+Files with a .xpage or .xhtml suffix are processed as they are copied.
+
+
+=over 8
+
+=item B<.xpage> 
+
+This is an XML file with the following structure:
+
+ <?xml version="1.0" standalone="no" ?>
+ <!DOCTYPE page SYSTEM "entities-en.dtd" >
+ <page>
+   <title>This is the page title</title>
+   <body>
+     <p>Some XHTML body</p><p>Which is <b>neat</b></p>
+   </body>
+ </page>
+
+The resulting file will be a .html file (foo.xpage becomes foo.html). It will take the template for this archive and insert the title and body from the appropriate places.  It will also cause the the special EPrints entities to be converted as it is copied. See the docs for B<generate_dtd> for more about these entities. 
+
+=item B<.xhtml> 
+
+This is a normal XHTML file but with the following XML header:
+
+ <?xml version="1.0" standalone="no" ?>
+ <!DOCTYPE html SYSTEM "entities-en.dtd" >
+
+This will cause the the special EPrints entities to be converted as it is copied. See the docs for B<generate_dtd> for more about these entities. It will also be renamed to .html for example, foo.xhtml will become foo.html
+
+=back
+
+You must have run B<generate_dtd> at some point before this script as it will need the dtd file(s).
+
+=head1 NOTE FOR THE NON-ENGLISH MAJORITY
+
+If you are running EPrints in a language other than English then place the static files in a directory of your ISO language ID instead of B<en>, for example French is B<fr>. The generic directory is for language neutral stuff. Which is extra handy if you want to run the site in more than one language. Also the entities file should be renamed from -en to -whatever eg. B<entities-fr.xml>.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+__GENERICPOD__
+
+=cut
 
 use EPrints::Session;
 
-#cjg Nice Command Options
-#cjg man page
 use File::Copy;
 use File::Find;
 use strict;
+use Getopt::Long;
+use Pod::Usage;
 
-my $session = new EPrints::Session( 1 , $ARGV[0] );
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
+my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
 # change to base of site so expat can find the dtd directory. cjg (still needed???)
@@ -37,7 +130,7 @@ my $generalpath = $session->get_archive()->get_conf( "static_path" )."/general";
 my $errcnt = 0;
 foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
-	#print $langid."\n";
+	print "Starting language $langid...\n" if( $noise >=1 );
 	my $basepath = $session->get_archive()->get_conf( "static_path" ).
 	               "/$langid";
 	my $func;
@@ -45,20 +138,23 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	find( { wanted=>$func, follow=>1 }, $basepath );
 	$func = sub { generate_static( $langid, $generalpath, $session, \$errcnt ) };
 	find( { wanted=>$func, follow=>1 }, $generalpath );
+
+	print "...done $langid\n" if( $noise >=1 );
 }
 if( $errcnt )
 {
 	print "Errors Encountered: $errcnt\n";
 }
-exit;
-
 
 $session->terminate();
 	
+exit;
+
 
 sub generate_static
 {
 	my( $langid , $basepath , $session, $errcnt ) = @_;
+
 	# Ignore CVS directories
 	return if( $File::Find::name =~ /\/CVS/ );
 	$session->change_lang( $langid );
@@ -69,15 +165,14 @@ sub generate_static
 	              "/$langid";
 	$destination_filename =~ s/$basepath/$newpath/;
 
-#cjg cmd line flag for verbose/quiet?
-#print STDERR "$File::Find::name -> $destination_filename\n";
+	print "$File::Find::name -> $destination_filename\n" if( $noise >= 2 );
 	
 	if( -d $File::Find::name )
 	{
 		# If it's a directory, just make sure it exists in the destination.
 		unless( -e $destination_filename )
 		{
-			print "mkdir $destination_filename\n";
+			print "mkdir $destination_filename\n" if( $noise >= 1);
 			mkdir( $destination_filename, 0775 )
 				or die "Can't make directory $destination_filename: $!\n";
 		}

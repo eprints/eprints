@@ -4,11 +4,11 @@
 
 =head1 NAME
 
-B<erase-archive> - Erase all database tables and files associated with an EPrint archive
+B<erase_archive> - Erase all database tables and files associated with an EPrint archive
 
 =head1 SYNOPSIS
 
-B<import_subjects> I<archiveid> [B<options>] 
+B<erase_archive> I<archiveid> [B<options>] 
 
 =head1 DESCRIPTION
 
@@ -31,6 +31,8 @@ The ID of the eprint archive to use.
 
 This option allows you to specify the MySQL root password, which will skip the bit where you get asked for it. It's not very secure to put a root password on the command line. Consider yourself warned...
 
+=back
+
 =head1 OPTIONS
 
 =over 8
@@ -51,21 +53,28 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 
 Explain in detail what is going on.
 
-	'force' => \$force , 
-	'erasedb!' => \$erasedb , 
-	'erasefiles!' => \$erasefiles , 
+=item B<-force>
 
-=item B<-xml>
+Don't ask before making the changes.
 
-Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
+=item B<-noerasedb>
+
+Don't delete the database tables.
+
+=item B<-noerasefiles>
+
+Don't erase the document and website files. 
 
 =back   
 
+
 =head1 BUGS
 
-This assumes that the root mysql user is called root.
+This script assumes that the root mysql user is called root.
 
 You may run into problems if your mysql install is not on the same machine as EPrints. If this happens use B<--noerasefiles> and delete and recreate the database yourself.
+
+You can specify B<-noerasedb> and B<-noerasefiles> at the same time, but that's really stupid, as then nothing will happen.
 
 __GENERICPOD__
 

@@ -1,37 +1,123 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-#cjg SOME /bin scripts should skip LANG loading...
-#
-######################################################################
-#
-#  Create a new EPrints user
-#
-#  Usage: create_user <username> <email> <access-level>
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-# __LICENSE__
-#
-######################################################################
+=pod
+
+=head1 NAME
+
+B<create_user> - add a new user to an EPrint archive
+
+=head1 SYNOPSIS
+
+B<create_user> I<archiveid> [B<options>] I<username> I<email> I<usertype> [I<password>]
+
+=head1 DESCRIPTION
+
+Create a new user to an eprint archive. 
+
+This is handy for making the initial admin user at the very least.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<archiveid> 
+
+The ID of the EPrint archive to add a user to.
+
+=item I<username> 
+
+The requested username for the new user. If a user with this name already exists then the script will abort with a error.
+
+=item I<email> 
+
+The email address of the new user.
+
+=item I<usertype> 
+
+The type of the new user. The type of a user sets how much they can do in the system. The default EPrints configuration provides 3 types of users:
+
+=over 8
+
+=item I<user>
+
+Normal everyday joe public users.
+
+=item I<editor>
+
+Editors may approve eprints for addition, browse the submission buffer, and check the archive status.
+
+=item I<admin>
+
+Administrators may do everything. That's probably what for yourself if you are the person setting up the archive.
+
+=back
+
+=item I<password>
+
+The initial password for this user. You don't have to specify it here if you don't want to.
+
+=item I<archiveid> 
+
+The ID of the EPrint archive to add a user to.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+#cjg Does not use noise levels
 
 use EPrints::Database;
 use EPrints::User;
 use EPrints::Session;
 
-#cjg Nice Command Options
-#cjg man page
 use strict;
+use Getopt::Long;
+use Pod::Usage;
 
-if( $#ARGV < 3 || $#ARGV > 4 )
-{
-	die "Usage: create_user <archiveid> <username> <email> <access-level> [<password>]\n";
-}
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
 
-my $session = EPrints::Session->new( 1 , $ARGV[0] );
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 3 && scalar @ARGV != 4 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
+my $session = EPrints::Session->new( 1 , $ARGV[0], $noise );
 exit unless( defined $session );
 
 my $user_ds = $session->get_archive()->get_dataset( "user" );
@@ -61,10 +147,16 @@ elsif( $valid_access_level )
 
 	if( defined $new_user )
 	{
-		print "Successfully created new user:\n";
-		print "       ID: ".$new_user->get_value( "userid" )."\n";
-		print " Username: ".$new_user->get_value( "username" )."\n";
-		print "     Type: ".$new_user->get_value( "usertype" )."\n";
+		if( $noise >= 1 )
+		{
+			print "Successfully created new user:\n";
+			print "       ID: ".$new_user->get_value( "userid" )."\n";
+		}
+		if( $noise >= 2 )
+		{
+			print " Username: ".$new_user->get_value( "username" )."\n";
+			print "     Type: ".$new_user->get_value( "usertype" )."\n";
+		}
 	}
 	else
 	{

@@ -200,3 +200,7 @@
 #	New search exp style which makes a one shot cache for dumping etc.
 #	Default config should have a "comments" subject
 #	make bin scripts flush ...'s before "done"'s
+#	browse fields should each have their own seperate order .
+#	Add POD manuals to ALL lib and CGI files.
+# 	Make man pages from /bin etc build into docs.
+

@@ -1,33 +1,127 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-#  Generate DTD
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+=pod
+
+=head1 NAME
+
+B<generate_apacheconf> - Create the apache config files needed for EPrints
+
+=head1 SYNOPSIS
+
+B<generate_apacheconf> [I<archiveid>] [B<options>] 
+
+=head1 DESCRIPTION
+
+This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your
+apache B<httpd.conf> file:
+
+ Include /opt/eprints2/cfg/apache.conf
+
+Or elsewhere if you installed EPrints somewhere other than /opt/eprints2. This file then uses the "Include" directive to include all relevant apache config files from this EPrints installation.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+=head1 FILES
+
+=over 4
+
+=item B<EPRINTS/cfg/apache.conf>
+
+This file is not updated if it already exists, so you can add system-wide
+apache configuration directives here. By default it just includes the two other system wide files: auto-apache-includes.conf and auto-apache.conf
+
+=item B<EPRINTS/cfg/auto-apache-includes.conf>
+
+This file is updated with Include lines to each of the archive specific apache config files. This file should not be edited by hand,
+
+=item B<EPRINTS/cfg/auto-apache.conf>
+
+This file contains the system wide apache directives required by EPrints. This file should not be edited by hand.
+
+=item B<EPRINTS/archives/ARCHIVEDIR/cfg/apache.conf>
+
+This file is not updated if it already exists, so you can add archive-specific
+apache configuration directives here. By default it just includes the automatically generated archive specific file: auto-apache.conf
+
+=item B<EPRINTS/archives/ARCHIVEDIR/cfg/auto-apache.conf>
+
+This file contains all the configuration directives needed for an archive. This is where the bulk of the configuration appears, the clever stuff, if you will. This file should not be edited by hand.
+
+=back
+
+__GENERICPOD__
+
+=cut
+
 
 use EPrints::Archive;
 use EPrints::Config;
 use strict;
 
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 && scalar @ARGV != 0 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
 #cjg Write a more simple conf if only one language involved?
-#cjg Nice Command Options
-#cjg man page
 
 my $archiveid = $ARGV[0];
 my $site_sysfile = EPrints::Config::get( "sys_path" )."/auto-apache.conf";
 my $site_incfile = EPrints::Config::get( "sys_path" )."/auto-apache-includes.conf";
 my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
+
+print "Creating system wide apache conf files...\n" if( $noise >= 1 );
 unless( -e $site_userfile )
 {
+	print "Creating $site_userfile.\n" if( $noise >= 2 );
 	open( CONF, ">$site_userfile" ) || die "Can't write to $site_userfile";
 	print CONF <<END;
 #
@@ -53,8 +147,12 @@ Include $site_sysfile
 END
 	close CONF;
 }
+else
+{
+	print "$site_userfile already exists.\n" if( $noise >= 2 );
+}
 
-
+print "Creating $site_sysfile.\n" if( $noise >= 2 );
 my $startupfile = EPrints::Config::get( "bin_path" )."/startup.pl";
 open( CONF, ">$site_sysfile" ) || die "Can't write to $site_sysfile";
 print CONF <<END;
@@ -73,10 +171,11 @@ END
 close CONF;
 
 
+print "Creating $site_incfile.\n" if( $noise >= 2 );
 open( CONF, ">$site_incfile" ) || die "Can't write to $site_incfile";
 print CONF <<END;
 #
-# auto-apache-inc.conf include file for EPrints
+# auto-apache-includes.conf include file for EPrints
 #
 # DO NOT EDIT, this file is created by bin/generate_apacheconf
 # and may be overwritten. To modify, change the archive configuration
@@ -97,11 +196,12 @@ Include $archive_inc
 END
 }
 close CONF;
+print "...done creating system wide apache conf files.\n" if( $noise >= 1 );
 
 
 unless( defined $archiveid )
 {
-	print "No archive ID specified, just updating general eprints apache conf files.\n\n";
+	print "No archive ID specified, only system wide apache conf files updated\n" if( $noise >= 1 );
 	exit;
 }
 
@@ -118,8 +218,10 @@ my $userfile = $archive->get_conf( "config_path" )."/apache.conf";
 
 my $id = $archive->get_id();
 
+print "Creating apache conf files for archive $archiveid...\n" if( $noise >= 1 );
 unless( -e $userfile )
 {
+	print "Creating $userfile.\n" if( $noise >= 2 );
 	open( CONF, ">$userfile" ) || die "Can't write to $userfile";
 	print CONF <<END;
 #
@@ -136,7 +238,10 @@ unless( -e $userfile )
 
 Include $sysfile
 END
-	print "no userfile\n";
+}
+else
+{
+	print "$userfile already exists.\n" if( $noise >= 2 );
 }
 
 my $cgidir = EPrints::Config::get( "cgi_path" );
@@ -145,6 +250,7 @@ my $htdocs_path = $archive->get_conf( "htdocs_path" );
 my $htdocs_secure_path = $archive->get_conf( "htdocs_secure_path" );
 my $host = $archive->get_conf( "host" );
 
+print "Creating $sysfile.\n" if( $noise >= 2 );
 open( CONF, ">$sysfile" ) || die "Can't write to $sysfile";
 print CONF <<END;
 #
@@ -257,5 +363,8 @@ print CONF <<END;
 END
 
 close CONF;
+print "...done creating apache conf files for archive $archiveid...\n" if( $noise >= 1 );
 
+print "Exiting normally.\n" if( $noise >= 2 );
+exit;
 

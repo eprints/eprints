@@ -1,10 +1,10 @@
 =head1 AUTHOR
 
-This file is part of __VERSION__. EPrints-2 is written by Christopher Gutteridge. EPrints-1 was written by Robert Tansley.
+This is part of this EPrints-2 system. EPrints-2 is written by Christopher Gutteridge. EPrints-1 was written by Robert Tansley.
 
 =head1 VERSION
 
-__VERSION__
+EPrints Version: __VERSION__
 
 =head1 CONTACT
 

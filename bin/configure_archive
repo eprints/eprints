@@ -1,21 +1,66 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-# COMMENTME
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+=pod
 
-#cjg Nice Command Options
-#cjg man page
+=head1 NAME
+
+B<configure_archive> - create a new EPrint Archive, or edit the basic options of an existing archive
+
+=head1 SYNOPSIS
+
+B<configure_archive> [I<archiveid>] [B<options>]
+
+=head1 DESCRIPTION
+
+Create a new EPrint Archive, or edit the basic options of an existing archive.
+
+This script will prompt the user for various basic information about the archive and then will:
+
+  - create a basic XML config file
+  - make the archive directory
+  - copy default files into the archive directory
+  - create the MySQL database (but not the tables)
+
+After running this script you should edit the files created in the archives B<cfg> directory, especially B<ArchiveConfig.pm> then you will need to run a number of setup scripts, starting with B<create_tables>.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<archiveid> 
+
+The ID of the EPrint archive to modify (or create).
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+#cjg Does not use noise levels
+
 
 use Sys::Hostname;
 use Cwd;
@@ -26,8 +71,30 @@ use EPrints::Utils;
 use DBI;
 use Unicode::String qw(utf8 latin1);
 
-
 use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV > 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
+my $archiveid = $ARGV[0];
 
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
@@ -40,7 +107,9 @@ my $REGEXP_ANY = '^.*$';
 
 my %config = ();
 
-print <<END;
+if( !defined $archiveid )
+{
+	print <<END;
 
 Create or Edit an EPrint Archive
 
@@ -51,13 +120,14 @@ a number) eg. "lemurprints" or "test3"
 Enter an already existing archive ID to edit the settings.
 
 END
-if( scalar EPrints::Config::get_archive_ids() )
-{
-	print "Existing archives:\n";
-	print join( ", ", EPrints::Config::get_archive_ids() )."\n\n";
-}
+	if( scalar EPrints::Config::get_archive_ids() )
+	{
+		print "Existing archives:\n";
+		print join( ", ", EPrints::Config::get_archive_ids() )."\n\n";
+	}
 
-my $archiveid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
+	$archiveid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
+}
 
 my( $configfile ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid.".xml";
 my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
@@ -432,9 +502,9 @@ END
 
 print <<END;
 
-==========================================================================
+--------------------------------------------------------------------------
 That seemed to more or less work...
-==========================================================================
+--------------------------------------------------------------------------
 Now run:
 bin/generate_apacheconf $archiveid
 
@@ -444,7 +514,7 @@ you might as well except the defaults for now...
 Then run:
 
 bin/generate_dtd $archiveid
-bin/create_databases $archiveid
+bin/create_tables $archiveid
 bin/generate_static $archiveid
 
 bin/create_user $archiveid <username> <email> staff <password>
@@ -454,7 +524,7 @@ Then restart your webserver:
 /etc/rc.d/init.d/httpd start
 
 Now connect to the archive, see everything work perfectly first time...(!)
-==========================================================================
+--------------------------------------------------------------------------
 END
 
 exit;

@@ -1,54 +1,99 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-#  EPrint Static Abstract Page Generator
-#
-#   Causes the system to (re)generate static abstract pages for all
-#   of the eprints in the system.
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+=pod
 
-use EPrints::EPrint;
-use EPrints::Session;
-use EPrints::Subject;
+=head1 NAME
+
+B<generate_abstracts> - Regenerate all the static abstract pages for an EPrint archive
+
+=head1 SYNOPSIS
+
+B<generate_abstracts> I<archiveid> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script recreates every static abstract page for an eprints archive. To save load on the database, as archived data should not change, EPrints creates static webpages containing the summary of each eprint. If you change the way the abstracts are rendered or change the site template then you will want to run this script.
+
+You must have run B<generate_dtd> at some point before this script as it will need the dtd file(s).
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+
+use EPrints::Database;
 
 use strict;
-#cjg Nice Command Options
-#cjg man page
+use Getopt::Long;
+use Pod::Usage;
 
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
 
-my $session = new EPrints::Session( 1 , $ARGV[0] );
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
+my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
-
-our $noiselevel = 1;
-if( defined $ARGV[1] )
-{
-	$noiselevel = 0 if( $ARGV[1] eq "-q" );
-	$noiselevel = 2 if( $ARGV[1] eq "-v" );
-}
 
 foreach( "archive", "deletion" )
 {
-	print "Writing $_ abstracts\n" if( $noiselevel > 0);
+	print "Writing $_ abstracts\n" if( $noise > 0);
 	my $dataset = $session->get_archive()->get_dataset( "$_" );
 	my $count  = $dataset->map( $session , \&make_static );
-	print "Done writing $count $_ abstracts\n" if( $noiselevel > 0);
+	print "Done writing $count $_ abstracts\n" if( $noise > 0);
 }
 
 sub make_static
 {
 	my( $eprint ) = @_;
 	$eprint->generate_static();
-	if( $noiselevel > 1 )
+	if( $noise > 1 )
 	{
 		print "Generated ".$eprint->get_value( "eprintid" )."\n";
 	}

@@ -1,28 +1,128 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-#  Generate DTD
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+=pod
+
+=head1 NAME
+
+B<generate_dtd> - Generate the DTD file(s) used by EPrints when reading XML files.
+
+=head1 SYNOPSIS
+
+B<generate_dtd> I<archiveid> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script generates the DTD file(s) required by the EPrints system. One of these files is created per supported language. This DTD file defines certain entities which are used in the static XHTML and phrase files. 
+
+The initial EPrints configuration defineds the following entities:
+
+=over 12
+
+=item B<archivename>
+
+The name of the archive.
+
+=item B<version>
+
+The current EPrints version.
+
+=item B<adminemail>
+
+The email of the administrator of this archive.
+
+=item B<frontpage>
+
+The frontpage URL of this archive.
+
+=item B<userhome>
+
+The user area homepage URL.
+
+=item B<perl_url>
+
+The base URL of the modperl area.
+
+=item B<base_url>
+
+The base URL of the archive.
+
+=item B<ruler>
+
+The XHTML describing a horizontal divider (from B<ruler.xml>)
+
+=back
+
+These are useful to add into the static XHTML, the site template and the site phrase files. They are included as XML entities, eg. &base_url; or &ruler;
+
+If you want changes to the DTD to be reflected on the static web pages, then you
+will need to re-run the B<generate_static>, the B<generate_views> and the B<generate_abstracts> scripts.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
 
 use EPrints::Archive;
+
 use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
 
 my $siteid = $ARGV[0];
 
 my $archive = EPrints::Archive->new_archive_by_id( $siteid, 1 );
 exit( 1 ) unless( defined $archive );
-#cjg Nice Command Options
-#cjg man page
 
 my $langid;
 foreach $langid ( @{$archive->get_conf( "languages" )} )
@@ -32,7 +132,6 @@ foreach $langid ( @{$archive->get_conf( "languages" )} )
 			"/entities-$langid.dtd";
 	open( DTD, ">$file" ) || die "Failed to open $file for writing";
 
-#cjg NOT ENCODED PROPERLY UTF8 will probably bugger it up
 	print DTD <<END;
 <!-- 
 	Entities file for $siteid, language ID "$langid"
