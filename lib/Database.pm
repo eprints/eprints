@@ -867,7 +867,6 @@ sub create_buffer
 {
 	my ( $self , $keyname ) = @_;
 
-
 	my $tmptable = "searchbuffer".($NEXTBUFFER++);
 	$TEMPTABLES{$tmptable} = 1;
 	#print STDERR "Pushed $tmptable onto temporary table list\n";

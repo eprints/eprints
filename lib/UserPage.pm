@@ -53,7 +53,6 @@ sub process
 
 	$userid = $user->get_value( "userid" );
 
-	my $dataset = $user->get_dataset();
 
 	my( $page );
 
@@ -70,12 +69,13 @@ sub process
 
 	$page->appendChild( $session->render_ruler() );
 
+	my $arc_ds = $session->get_archive()->get_dataset( "archive" );
 	my $searchexp = new EPrints::SearchExpression(
 		session => $session,
-		dataset => $dataset );
+		dataset => $arc_ds );
 
 	$searchexp->add_field(
-		$dataset->get_field( "userid" ),
+		$arc_ds->get_field( "userid" ),
 		"PHR:EQ:$userid" );
 
 	$searchexp->perform_search();

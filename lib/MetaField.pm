@@ -427,11 +427,11 @@ sub is_text_indexable
 
 sub render_value
 {
-	my( $self, $session, $value, $alllangs, $ignoreid ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->_render_value1( $session, $value, $alllangs, $ignoreid );
+		return $self->_render_value1( $session, $value, $alllangs, $nolink );
 	}
 
 	if(! EPrints::Utils::is_set( $value ) )
@@ -461,7 +461,7 @@ sub render_value
 		{
 			$html->appendChild( $session->make_text( $sep ) );
 		}
-		$html->appendChild( $self->_render_value1( $session, $_, $alllangs, $ignoreid ) );
+		$html->appendChild( $self->_render_value1( $session, $_, $alllangs, $nolink ) );
 	}
 	return $html;
 
@@ -470,9 +470,9 @@ sub render_value
 
 sub _render_value1
 {
-	my( $self, $session, $value, $alllangs ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
-	my $rendered = $self->_render_value2( $session, $value, $alllangs );
+	my $rendered = $self->_render_value2( $session, $value, $alllangs, $nolink );
 
 	if( $self->get_property( "hasid" ) )
 	{
@@ -482,7 +482,7 @@ sub _render_value1
 		# or wrap it in a link.
 		
 		return $session->get_archive()->call( "render_value_with_id",  
-			$self, $session, $value, $alllangs, $rendered );
+			$self, $session, $value, $alllangs, $rendered, $nolink );
 	}
 	else
 	{
@@ -493,7 +493,7 @@ sub _render_value1
 
 sub _render_value2
 {
-	my( $self, $session, $value, $alllangs ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
 	# We don't care about the ID
 	if( $self->get_property( "hasid" ) )
@@ -503,13 +503,13 @@ sub _render_value2
 
 	if( !$self->get_property( "multilang" ) )
 	{
-		return $self->_render_value3( $session, $value );
+		return $self->_render_value3( $session, $value, $nolink );
 	}
 
 	if( !$alllangs )
 	{
 		my $v = EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %$value );
-		return $self->_render_value3( $session, $v );
+		return $self->_render_value3( $session, $v, $nolink );
 	}
 	my( $table, $tr, $td, $th );
 	$table = $session->make_element( "table" );
@@ -531,7 +531,7 @@ sub _render_value2
 
 sub _render_value3
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, $nolink ) = @_;
 
 	if( !defined $value )
 	{
@@ -559,8 +559,13 @@ sub _render_value3
 
 	if( $self->is_type( "email" ) )
 	{
+		my $text =  $session->make_text( $value ) ;
+		if( $nolink )
+		{
+			return $text;
+		}
 		my $a = $session->make_element( "a", href=>"mailto:".$value );
-		$a->appendChild( $session->make_text( $value ) );
+		$a->appendChild( $text );
 		return $a;
 	}
 

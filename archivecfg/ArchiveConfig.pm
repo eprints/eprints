@@ -266,7 +266,7 @@ $c->{oai_comments} = [
 # feel that they will confuse your users. This
 # makes no difference to the actual database,
 # the fields will just be unused.
-$c->{hide_honourific} = 1;
+$c->{hide_honourific} = 0;
 $c->{hide_lineage} = 0;
 
 ###########################################
@@ -431,9 +431,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "altloc", type => "url", multiple => 1 },
 
-	{ name => "authors", type => "name", multiple => 1, hasid => 1
-#		, fromform=>\&authors_fromform, toform=>\&authors_toform 
-	},
+	{ name => "authors", type => "name", multiple => 1, hasid => 1 },
 
 	{ name => "chapter", type => "text", maxlength => 5 },
 
@@ -478,6 +476,8 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "reportno", type => "text" },
 
+	{ name => "series", type => "text" },
+
 	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1 },
 
 	{ name => "thesistype", type => "text" },
@@ -491,6 +491,11 @@ $c->{archivefields}->{eprint} = [
 	{ name => "suggestions", type => "longtext" }
 ];
 	
+
+if( $CJGDEBUG ) {
+	$c->{archivefields}->{eprint}->[2]->{fromform}=\&authors_fromform;
+	$c->{archivefields}->{eprint}->[2]->{toform}=\&authors_toform;
+}
 
 ######################################################################
 #
@@ -1882,59 +1887,59 @@ sub get_entities
 # Experimental Code:
 #########################################################
 
-#sub authors_fromform
-#{
-#	my( $value, $session ) = @_;
-#
-#	# convert usernames to ecsid's
-#	foreach( @{$value} )
-#	{
-#		next unless( defined $_->{id} );
-#		my $user = EPrints::User::user_with_username( $session, $_->{id} );
-#		next unless( defined $user );
-#		$_->{id} = $user->get_value( "ecsid" );
-#	}
-#
-#	return $value;
-#}
-#
-#sub authors_toform
-#{
-#	my( $value , $session ) = @_;
-#
-#	# convert ecsid's to usernames
-#	foreach( @{$value} )
-#	{
-#		next unless( defined $_->{id} );
-#		my $user = _user_with_ecsid( $session, $_->{id} );
-#		next unless( defined $user );
-#		$_->{id} = $user->get_value( "username" );
-#	}
-#
-#	return $value;
-#}
-#
-#sub _user_with_ecsid
-#{
-#	my( $session, $ecsid ) = @_;
-#	
-#	my $user_ds = $session->get_archive()->get_dataset( "user" );
-#
-#	my $searchexp = new EPrints::SearchExpression(
-#		session=>$session,
-#		dataset=>$user_ds );
-#
-#	$searchexp->add_field(
-#		$user_ds->get_field( "ecsid" ),
-#		"PHR:EQ:".$ecsid );
-#
-#	my $searchid = $searchexp->perform_search;
-#
-#	my @records = $searchexp->get_records;
-#	$searchexp->dispose();
-#	
-#	return $records[0];
-#}
+sub authors_fromform
+{
+	my( $value, $session ) = @_;
+
+	# convert usernames to ecsid's
+	foreach( @{$value} )
+	{
+		next unless( defined $_->{id} );
+		my $user = EPrints::User::user_with_username( $session, $_->{id} );
+		next unless( defined $user );
+		$_->{id} = $user->get_value( "ecsid" );
+	}
+
+	return $value;
+}
+
+sub authors_toform
+{
+	my( $value , $session ) = @_;
+
+	# convert ecsid's to usernames
+	foreach( @{$value} )
+	{
+		next unless( defined $_->{id} );
+		my $user = _user_with_ecsid( $session, $_->{id} );
+		next unless( defined $user );
+		$_->{id} = $user->get_value( "username" );
+	}
+
+	return $value;
+}
+
+sub _user_with_ecsid
+{
+	my( $session, $ecsid ) = @_;
+	
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
+
+	my $searchexp = new EPrints::SearchExpression(
+		session=>$session,
+		dataset=>$user_ds );
+
+	$searchexp->add_field(
+		$user_ds->get_field( "ecsid" ),
+		"PHR:EQ:".$ecsid );
+
+	my $searchid = $searchexp->perform_search;
+
+	my @records = $searchexp->get_records;
+	$searchexp->dispose();
+	
+	return $records[0];
+}
 
 1;
 

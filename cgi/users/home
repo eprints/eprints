@@ -135,6 +135,11 @@ my $tools = [
 		page=>"staff/eprint_search",
 		priv=>"staff-view"
 	},
+	### Staff User Search
+	{
+		page=>"staff/user_search",
+		priv=>"staff-view"
+	},
 	### Use the Subject Edit Tool
 	{
 		page=>"staff/edit_subject",

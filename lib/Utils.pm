@@ -528,6 +528,9 @@ sub render_citation
 
 	# This should belong to the base class of EPrint User Subject and
 	# Subscription, if we were better OO people...
+
+	# cjg BUG in nested <ifset>'s ?
+
 	my $nodes = { keep=>[], lose=>[] };
 	my $node;
 
@@ -579,7 +582,9 @@ sub _expand_references
 			my $field = $obj->get_dataset()->get_field( $fname );
 			my $fieldvalue = $field->render_value( 
 						$obj->get_session(),
-						$obj->get_value( $fname ) );
+						$obj->get_value( $fname ),
+						0,
+ 						1 );
 			$node->replaceChild( $fieldvalue, $_ );
 			$_->dispose();
 		}

@@ -377,10 +377,10 @@ sub serialise
 	push @parts, $self->{satisfy_all}?1:0;
 	push @parts, $self->{order};
 	push @parts, $self->{dataset}->id();
-	# This inserts an empty field which we use to spot the join between
+	# This inserts an "-" field which we use to spot the join between
 	# the properties and the fields, so in a pinch we can add a new 
 	# property in a later version without breaking when we upgrade.
-	push @parts, "";
+	push @parts, "-";
 	my $search_field;
 	foreach $search_field (sort {$a->get_form_name() cmp $b->get_form_name()} @{$self->{searchfields}})
 	{
@@ -394,6 +394,7 @@ sub serialise
 		# clone the string, so we can escape it without screwing
 		# up the origional.
 		my $bit = $_;
+		$bit="" unless defined( $bit );
 		$bit =~ s/[\\\|]/\\$&/g; 
 		push @escapedparts,$bit;
 	}
@@ -404,7 +405,7 @@ sub unserialise
 {
 	my( $class, $session, $string ) = @_;
 
-	my( $pstring , $fstring ) = split /\|\|/ , $string ;
+	my( $pstring , $fstring ) = split /\|-\|/ , $string ;
 	my %properties = ();
 	$properties{session} = $session;
 	my @parts = split( /\|/ , $pstring );
@@ -412,6 +413,7 @@ sub unserialise
 	$properties{satisfy_all} = $parts[1];
 	$properties{order} = $parts[2];
 	$properties{dataset} = $session->get_archive()->get_dataset( $parts[3] );
+	print STDERR "Dataset: $parts[3]\n";
 	my $searchexp = $class->new( %properties );
 	foreach( split /\|/ , $fstring )
 	{

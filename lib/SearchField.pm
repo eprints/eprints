@@ -739,7 +739,7 @@ sub to_html
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
 	}
-	elsif( $self->is_type( "boolean","longtext","text","name","url","id" ) )
+	elsif( $self->is_type( "boolean","longtext","text","name","url","id","email" ) )
 	{
 		# complex text types
 		$frag->appendChild(

@@ -100,7 +100,9 @@ print "T:".$params{name}."\n";
 		{
 			$parser->{eprints}->{currentfield} = $params{name};
 			$parser->{eprints}->{currentdata} = "";
+			$parser->{eprints}->{currentid} = $params{id};
 		}
+
 		return;
 	}
 

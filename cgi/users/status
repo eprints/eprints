@@ -39,7 +39,7 @@ foreach $usertype ( @{$usertypes} )
 		dataset => $userds );
 
 	$searchexp->add_field(
-		$dataset->get_field( "usertype" ),
+		$userds->get_field( "usertype" ),
 		"PHR:EQ:".$usertype );
 
 	$searchexp->perform_search();

@@ -51,6 +51,7 @@ use EPrints::SubmissionForm;
 use EPrints::Subscription;
 use EPrints::UserForm;
 use EPrints::User;
+use EPrints::UserPage;
 
 print STDERR "EPRINTS: Core Modules Loaded\n";
 

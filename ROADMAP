@@ -47,7 +47,6 @@
 
 #	always use encrypted passwords
 #	Fix "upload then back" bug
-#	Bug in render_citation - emails are links!
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
 #	Bug: Why does 'help' disappear when there is a problem with a search?
@@ -66,6 +65,7 @@
 #	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 #	"secret" field should never have a default set in forms, but no value should not erase previous value.
 #	lose "bomb"
+#	Put System field titles in system phrase file.
 
 #	Eliminate HTMLRenderer
 
@@ -86,7 +86,7 @@
 -	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
-3	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
+-	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
