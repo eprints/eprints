@@ -1,4 +1,4 @@
-AuthName "EPrints User Area"
+AuthName "User Area"
 AuthType Basic
 
 PerlAuthenHandler Apache::AuthDBI::authen
