@@ -41,7 +41,7 @@ sub render_citation
 {
 	my( $class, $session, $citation_spec, $value_hash, $html ) = @_;
 	
-EPrints::Log->debug( "Citation", "Citation for $value_hash->{eprintid}" );
+#EPrints::Log->debug( "Citation", "Citation for $value_hash->{eprintid}" );
 
 	my $citation = $citation_spec;
 
@@ -58,13 +58,13 @@ EPrints::Log->debug( "Citation", "Citation for $value_hash->{eprintid}" );
 	{
 		my $entry = $1;
 
-EPrints::Log->debug( "Citation", "Entry: \"$entry\"" );
+#EPrints::Log->debug( "Citation", "Entry: \"$entry\"" );
 
 		# Get the fieldname and MetaField entry
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-EPrints::Log->debug( "Citation", "Fieldname: \"$fieldname\"" );
+#EPrints::Log->debug( "Citation", "Fieldname: \"$fieldname\"" );
 
 		my $field = EPrints::MetaInfo->find_eprint_field( $fieldname );
 
@@ -73,7 +73,7 @@ EPrints::Log->debug( "Citation", "Fieldname: \"$fieldname\"" );
 		{
 			# Get the value out of thehash
 			my $value = $value_hash->{$fieldname};
-EPrints::Log->debug( "Citation", "Value for field: ".(defined $value ? $value : "undef" ) );
+#EPrints::Log->debug( "Citation", "Value for field: ".(defined $value ? $value : "undef" ) );
 
 			if( defined $value && $value ne "" )
 			{
@@ -81,9 +81,9 @@ EPrints::Log->debug( "Citation", "Value for field: ".(defined $value ? $value : 
 				# substitution
 				my $rendered = $session->{render}->format_field( $field, $value );
 				my $new_entry = $entry;
-EPrints::Log->debug( "Citation", "Rendered value for field: $rendered" );
+#EPrints::Log->debug( "Citation", "Rendered value for field: $rendered" );
 				$new_entry =~ s/{$fieldname}/$rendered/;
-EPrints::Log->debug( "Citation", "new entry: $new_entry" );
+#EPrints::Log->debug( "Citation", "new entry: $new_entry" );
 				substr( $citation,
 				        (index $citation, "[$entry]"),
 				        length "[$entry]" ) = $new_entry;
@@ -97,9 +97,9 @@ EPrints::Log->debug( "Citation", "new entry: $new_entry" );
 				        length "[$entry]" ) = "";
 
 				$citation =~ s/\[$entry\]//;
-EPrints::Log->debug( "Citation", "Removing entry" );
+#EPrints::Log->debug( "Citation", "Removing entry" );
 			}
-EPrints::Log->debug( "Citation", "Citation is now: \"$citation>\"" );
+#EPrints::Log->debug( "Citation", "Citation is now: \"$citation>\"" );
 
 		}
 		else

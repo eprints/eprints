@@ -31,9 +31,9 @@ use diagnostics;
 	"confpaper"   => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
 	"confposter"  => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
 	"techreport"  => "{authors}. {title}. Technical Report[ {reportno}], [{department}, ][{institution}, ][{month}, ]{year}.",
-	"journale"    => "{authors}. {title}. <i>{publication}</i> {volume}[({number})], [{month}, ]{year}.",
-	"journalp"    => "{authors}. {title}. <i>{publication}</i> {volume}[({number})][:{pages}], [{month}, ]{year}.",
-	"newsarticle" => "{authors}. {title}. In <i>{publication}</i>, {volume}[({number})][:{pages}], [{publisher} ][{month}, ]{year}.",
+	"journale"    => "{authors}. {title}. <i>{publication}</i>[ {volume}][({number})], [{month}, ]{year}.",
+	"journalp"    => "{authors}. {title}. <i>{publication}</i>[ {volume}][({number})][:{pages}], [{month}, ]{year}.",
+	"newsarticle" => "{authors}. {title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}], [{publisher} ][{month}, ]{year}.",
 	"other"       => "{authors}. {title}. [{month}, ]{year}.",
 	"preprint"    => "{authors}. {title}. [{month}, ]{year}.",
 	"thesis"      => "{authors}. <i>{title}</i>. {thesistype}, [{department}, ][{institution}, ][{month}, ]{year}."
