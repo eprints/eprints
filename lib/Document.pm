@@ -957,7 +957,7 @@ sub validate
 	}
 		
 	# Site-specific checks
-	EPrintSite::Validate::validate_document( $self, \@problems );
+	$self->{session}->{site}->validate_document( $self, \@problems );
 
 	return( \@problems );
 }

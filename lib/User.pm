@@ -23,8 +23,6 @@ use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::Subscription;
-use EPrintSite::SiteRoutines;
-use EPrintSite::Validate;
 
 use strict;
 
@@ -289,7 +287,7 @@ sub full_name
 	my( $self ) = @_;
 
 	# Delegate to site-specific routine
-	return( EPrintSite::SiteRoutines::user_display_name( $self ) );
+	return( $self->{session}->{site}->user_display_name( $self ) );
 }
 
 
@@ -325,7 +323,7 @@ sub validate
 		else
 		{
 			# Give the validation module a go
-			my $problem = EPrintSite::Validate::validate_user_field(
+			my $problem = $self->{session}->{site}->validate_user_field(
 				$field,
 				$self->{$field->{name}} );
 

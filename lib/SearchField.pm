@@ -637,7 +637,7 @@ sub get_conditions
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
-				&{$self->{session}->{site}->{extract_words}}( $text );
+				$self->{session}->{site}->extract_words( $text );
 
 			# If there are no useful words in the phrase, abort!
 			if( scalar @{$good} == 0) {
@@ -683,7 +683,7 @@ sub get_conditions
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
-			&{$self->{session}->{site}->{extract_words}}( $text );
+			$self->{session}->{site}->extract_words( $text );
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{

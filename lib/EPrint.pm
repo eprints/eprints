@@ -18,7 +18,6 @@ package EPrints::EPrint;
 
 use EPrints::Database;
 use EPrints::MetaInfo;
-use EPrintSite::SiteRoutines;
 
 use File::Path;
 use Filesys::DiskSpace;
@@ -607,7 +606,7 @@ sub short_title
 {
 	my( $self ) = @_;
 
-	return( EPrintSite::SiteRoutines::eprint_short_title( $self ) );
+	return( $self->{session}->{site}->eprint_short_title( $self ) );
 }
 
 
@@ -705,7 +704,7 @@ sub validate_meta
 		else
 		{
 			# Give the site validation module a go
-			$problem = EPrintSite::Validate::validate_eprint_field(
+			$problem = $self->{session}->{site}->validate_eprint_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -741,7 +740,7 @@ sub validate_meta
 	}
 
 	# Site validation routine for eprint metadata as a whole:
-	EPrintSite::Validate::validate_eprint_meta( $self, \@all_problems );
+	$self->{session}->{site}->validate_eprint_meta( $self, \@all_problems );
 
 	return( \@all_problems );
 }
@@ -781,7 +780,7 @@ sub validate_subject
 		else
 		{
 			# Give the validation module a go
-			$problem = EPrintSite::Validate::validate_subject_field(
+			$problem = $self->{session}->{site}->validate_subject_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -1053,7 +1052,7 @@ sub validate_full
 	}
 
 	# Now give the site specific stuff one last chance to have a gander.
-	EPrintSite::Validate::validate_eprint( $self, \@problems );
+	$self->{session}->{site}->validate_eprint( $self, \@problems );
 
 	return( \@problems );
 }
@@ -1141,7 +1140,7 @@ sub submit
 	
 	if( $success )
 	{
-		EPrintSite::SiteRoutines::update_submitted_eprint( $self );
+		$self->{session}->{site}->update_submitted_eprint( $self );
 		$self->datestamp();
 		$self->commit();
 	}
@@ -1187,7 +1186,7 @@ sub archive
 	
 	if( $success )
 	{
-		EPrintSite::SiteRoutines::update_archived_eprint( $self );
+		$self->{session}->{site}->update_archived_eprint( $self );
 		$self->commit();
 		$self->generate_static();
 

@@ -20,8 +20,6 @@ use EPrints::User;
 use EPrints::SubmissionForm;
 use EPrints::MetaField;
 
-use EPrintSite::SiteRoutines;
-
 use strict;
 
 my $session = new EPrints::Session();

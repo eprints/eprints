@@ -18,7 +18,6 @@ package EPrints::HTMLRender;
 
 use EPrints::SubjectList;
 use EPrints::Name;
-use EPrintSite::SiteRoutines;
 
 use strict;
 
@@ -1262,7 +1261,7 @@ sub render_eprint_full
 {
 	my( $self, $eprint, $for_staff ) = @_;
 
-	my $html = EPrintSite::SiteRoutines::eprint_render_full( $eprint,
+	my $html = $self->{session}->{site}->eprint_render_full( $eprint,
 	                                                         $for_staff );
 
 	return( $html );
@@ -1284,9 +1283,8 @@ sub render_eprint_citation
 {
 	my( $self, $eprint, $html, $linked ) = @_;
 	
-	my $citation = EPrintSite::SiteRoutines::eprint_render_citation( $eprint,
+	my $citation = $self->{session}->{site}->eprint_render_citation( $eprint,
 	                                                                 $html );
-	
 	if( $html && $linked )
 	{
 		$citation = "<A HREF=\"".$eprint->static_page_url()."\">$citation</A>";
@@ -1309,7 +1307,7 @@ sub render_user
 {
 	my( $self, $user, $public ) = @_;
 
-	return( EPrintSite::SiteRoutines::user_render_full( $user, $public ) );
+	return( $self->{session}->{site}->user_render_full( $user, $public ) );
 }
 
 
@@ -1331,7 +1329,7 @@ sub render_user_name
 	$html = "<A HREF=\"$self->{session}->{site}->{server_perl}/staff/".
 		"view_user?username=$user->{username}\">" if( $linked );
 
-	$html .= EPrintSite::SiteRoutines::user_display_name( $user );
+	$html .= $self->{session}->{site}->user_display_name( $user );
 
 	$html .= "</A>" if( $linked );
 	

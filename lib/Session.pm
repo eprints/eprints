@@ -26,8 +26,6 @@ use EPrints::HTMLRender;
 use EPrints::Language;
 use EPrints::ConfigLoader;
 
-use EPrintSite::SiteRoutines;
-
 use strict;
 
 ######################################################################
@@ -121,7 +119,7 @@ sub new
 
 #EPrints::Log::debug( "Session", "Started session at $self->{starttime}" );
 	
-	EPrintSite::SiteRoutines::session_init( $self, $offline );
+	$self->{site}->session_init( $self, $offline );
 
 #
 #	my @params = $self->{render}->{query}->param();
@@ -168,7 +166,7 @@ sub terminate
 	my( $self ) = @_;
 	
 #EPrints::Log::debug( "Session", "Closing session started at $self->{starttime}" );
-	EPrintSite::SiteRoutines::session_close( $self );
+	$self->{site}->session_close( $self );
 
 	$self->{database}->disconnect();
 

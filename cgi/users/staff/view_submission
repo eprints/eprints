@@ -19,8 +19,6 @@ use EPrints::Session;
 use EPrints::User;
 use EPrints::SubmissionForm;
 
-use EPrintSite::SiteRoutines;
-
 use strict;
 
 

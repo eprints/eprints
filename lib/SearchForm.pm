@@ -196,7 +196,6 @@ sub process
 			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
 
 		# Print results
-
 		if( $self->{what} eq "eprint" )
 		{
 			

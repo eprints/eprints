@@ -22,7 +22,6 @@ use EPrints::MetaField;
 use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Session;
-use EPrintSite::SiteRoutines;
 
 use Unicode::String qw(utf8 latin1);
 use strict;
@@ -139,7 +138,7 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		EPrintSite::SiteRoutines::oai_write_eprint_metadata(
+		$session->{site}->oai_write_eprint_metadata(
 			$eprint,
 			$metadataFormat,
 			$writer);
@@ -238,7 +237,7 @@ sub get_eprint_metadata
 	
 	if( defined $eprint->{session}->{site}->{oai_metadata_formats}->{$metadataFormat} )
 	{
-		my %md = EPrintSite::SiteRoutines::oai_get_eprint_metadata(
+		my %md = $eprint->{session}->{site}->oai_get_eprint_metadata(
 			$eprint,
 			$metadataFormat );
 

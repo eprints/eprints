@@ -18,8 +18,6 @@ use EPrints::Database;
 use EPrints::Session;
 use EPrints::User;
 
-use EPrintSite::SiteRoutines;
-
 use strict;
 
 
