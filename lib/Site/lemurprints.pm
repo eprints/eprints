@@ -1277,6 +1277,7 @@ my $FREETEXT_CHAR_MAPPING = {
 #
 ######################################################################
 
+#cjg NOT UTF-8
 sub extract_words
 {
 	my( $text ) = @_;
@@ -1423,174 +1424,189 @@ sub eprint_short_title
 sub eprint_render_full
 {
 	my( $eprint, $for_staff ) = @_;
-	my $html = "";
 
-	my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-	my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
+	#my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+	#my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
+	#my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
+
+	my $session = $eprint->getSession;
+
+	my $page = $session->makeDocFragment;
 
 	# Citation
-	$html .= "<P>";
-	$html .= $eprint->{session}->{render}->render_eprint_citation(
-		$eprint,
-		1,
-		0 );
-	$html .= "</P>\n";
+	my $p = $session->make_element( "p" );
+	$p->appendChild( $eprint->toHTML );
+	$page->appendChild( $p );
 
 	# Available formats
-	my @documents = $eprint->get_all_documents();
+	#my @documents = $eprint->get_all_documents();
 	
-	$html .= "<TABLE BORDER=0 CELLPADDING=5><TR><TD VALIGN=TOP><STRONG>Full ".
-		"text available as:</STRONG></TD><TD>";
+	#$html .= "<TABLE BORDER=0 CELLPADDING=5><TR><TD VALIGN=TOP><STRONG>Full ".
+		#"text available as:</STRONG></TD><TD>";
 	
-	foreach (@documents)
-	{
-		my $description = EPrints::Document::format_name( $eprint->{session}, $_->{format} );
-		$description = $_->{formatdesc}
-			if( $_->{format} eq $EPrints::Document::OTHER );
-
-		$html .= "<A href=\"".$_->url."\">$description</A><BR>";
-	}
-
-	$html .= "</TD></TR></TABLE>\n";
+	#foreach (@documents)
+	#{
+		#my $description = EPrints::Document::format_name( $eprint->{session}, $_->{format} );
+		#$description = $_->{formatdesc}
+			#if( $_->{format} eq $EPrints::Document::OTHER );
+#
+		#$html .= "<A href=\"".$_->url."\">$description</A><BR>";
+	#}
+#
+	#$html .= "</TD></TR></TABLE>\n";
 
 	# Put in a message describing how this document has other versions
 	# in the archive if appropriate
-	if( $has_multiple_versions)
-	{
-		my $latest = $eprint->last_in_thread( $succeeds_field );
-
-		if( $latest->{eprintid} eq $eprint->{eprintid} )
-		{
-			$html .= "<P ALIGN=CENTER><EM>This is the latest version of this ".
-				"eprint.</EM></P>\n";
-		}
-		else
-		{
-			$html .= "<P ALIGN=CENTER><EM>There is a later version of this ".
-				"eprint available: <A href=\"" . $latest->static_page_url() . 
-				"\">Click here to view it.</A></EM></P>\n";
-		}
-	}		
-
+	#if( $has_multiple_versions)
+	#{
+		#my $latest = $eprint->last_in_thread( $succeeds_field );
+#
+		#if( $latest->{eprintid} eq $eprint->{eprintid} )
+		#{
+			#$html .= "<P ALIGN=CENTER><EM>This is the latest version of this ".
+				#"eprint.</EM></P>\n";
+		#}
+		#else
+		#{
+			#$html .= "<P ALIGN=CENTER><EM>There is a later version of this ".
+				#"eprint available: <A href=\"" . $latest->static_page_url() . 
+				#"\">Click here to view it.</A></EM></P>\n";
+		#}
+	#}		
+#
 	# Then the abstract
-	$html .= "<H2>Abstract</H2>\n";
-	$html .= "<P>$eprint->{abstract}</P>\n";
+
+	my $h2 = $session->make_element( "h2" );
+	$h2->appendChild( $session->makeText( "Abstract" ) ); # not langed #cjg
+
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->makeText( $eprint->getValue( "abstract" ) ) );
+	$page->appendChild( $p );
 	
-	$html .= "<P><TABLE BORDER=0 CELLPADDING=3>\n";
-	
-	# Keywords
-	if( defined $eprint->{commref} && $eprint->{commref} ne "" )
-	{
-		$html .= "<TR><TD VALIGN=TOP><STRONG>Commentary on:</STRONG></TD><TD>".
-			$eprint->{commref}."</TD></TR>\n";
-	}
+	my( $table, $tr, $td );	# this table needs more class cjg
+	$table = $session->make_element( "table",
+					border=>"0",
+					cellpadding=>"3" );
+
+	#commentary	
+	#if( defined $eprint->{commref} && $eprint->{commref} ne "" )
+	#{
+	#	$html .= "<TR><TD VALIGN=TOP><STRONG>Commentary on:</STRONG></TD><TD>".
+	#		$eprint->{commref}."</TD></TR>\n";
+	#}
 
 	# Keywords
-	if( defined $eprint->{keywords} && $eprint->{keywords} ne "" )
+	my $keywords = $eprint->getValue( "keywords ");
+	if( defined $keywords && $keywords ne "" )
 	{
-		$html .= "<TR><TD VALIGN=TOP><STRONG>Keywords:</STRONG></TD><TD>".
-			$eprint->{keywords}."</TD></TR>\n";
+		$tr = $session->make_element( "tr" );
+		$td = $session->make_element( "td" ); 
+		$td->appendChild( $session->makeText( "Keywords:" ) ); #cjg i18l
+		$tr->appendChild( $td );
+		$td = $session->make_element( "td" ); 
+		$td->appendChild( $session->makeText( $keywords ) );
+		$tr->appendChild( $td );
+		$table->appendChild( $tr );	
 	}
 
 	# Comments:
-	if( defined $eprint->{comments} && $eprint->{comments} ne "" )
-	{
-		$html .= "<TR><TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
-			$eprint->{comments}."</TD></TR>\n";
-	}
+	#if( defined $eprint->{comments} && $eprint->{comments} ne "" )
+	#{
+		#$html .= "<TR><TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
+			#$eprint->{comments}."</TD></TR>\n";
+	#}
 
 	# Subjects...
-	$html .= "<TR><TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
+	#$html .= "<TR><TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
 
-	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-	my @subjects = $subject_list->get_subjects( $eprint->{session} );
+	#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+	#my @subjects = $subject_list->get_subjects( $eprint->{session} );
 
-	foreach (@subjects)
-	{
-		$html .= $eprint->{session}->{render}->subject_desc( $_, 1, 1, 0 );
-		$html .= "<BR>\n";
-	}
+	#foreach (@subjects)
+	#{
+		#$html .= $eprint->{session}->{render}->subject_desc( $_, 1, 1, 0 );
+		#$html .= "<BR>\n";
+	#}
 
 	# ID code...
-	$html .= "</TD><TR>\n<TD VALIGN=TOP><STRONG>ID code:</STRONG></TD><TD>".
-		$eprint->{eprintid}."</TD></TR>\n";
+	#$html .= "</TD><TR>\n<TD VALIGN=TOP><STRONG>ID code:</STRONG></TD><TD>".
+		#$eprint->{eprintid}."</TD></TR>\n";
 
 	# And who submitted it, and when.
-	$html .= "<TR><TD VALIGN=TOP><STRONG>Deposited by:</STRONG></TD><TD>";
-	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
-	if( defined $user )
-	{
-		$html .= "<A href=\"$eprint->{session}->{site}->{server_perl}/user?username=".
-			$user->{username}."\">".$user->full_name()."</A>";
-	}
-	else
-	{
-		$html .= "INVALID USER";
-	}
-
-	if( $eprint->{table} eq $EPrints::Database::table_archive )
-	{
-		my $date_field = $eprint->{session}->{metainfo}->find_table_field( "eprint","datestamp" );
-		$html .= " on ".$eprint->{session}->{render}->format_field(
-			$date_field,
-			$eprint->{datestamp} );
-	}
-	$html .= "</TD></TR>\n";
-
+	#$html .= "<TR><TD VALIGN=TOP><STRONG>Deposited by:</STRONG></TD><TD>";
+	#my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
+	#if( defined $user )
+	#{
+		#$html .= "<A href=\"$eprint->{session}->{site}->{server_perl}/user?username=".
+			#$user->{username}."\">".$user->full_name()."</A>";
+	#}
+	#else
+	#{
+		#$html .= "INVALID USER";
+	#}
+#
+	#if( $eprint->{table} eq $EPrints::Database::table_archive )
+	#{
+		#my $date_field = $eprint->{session}->{metainfo}->find_table_field( "eprint","datestamp" );
+		#$html .= " on ".$eprint->{session}->{render}->format_field(
+			#$date_field,
+			#$eprint->{datestamp} );
+	#}
+	#$html .= "</TD></TR>\n";
+#
 	# Alternative locations
-	if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
-	{
-		$html .= "<TR><TD VALIGN=TOP><STRONG>Alternative Locations:".
-			"</STRONG></TD><TD>";
-		my $altloc_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "altloc" );
-		$html .= $eprint->{session}->{render}->format_field(
-			$altloc_field,
-			$eprint->{altloc} );
-		$html .= "</TD></TR>\n";
-	}
-
-	$html .= "</TABLE></P>\n";
-
+	#if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
+	#{
+		#$html .= "<TR><TD VALIGN=TOP><STRONG>Alternative Locations:".
+			#"</STRONG></TD><TD>";
+		#my $altloc_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "altloc" );
+		#$html .= $eprint->{session}->{render}->format_field(
+			#$altloc_field,
+			#$eprint->{altloc} );
+		#$html .= "</TD></TR>\n";
+	#}
+#
+	#$html .= "</TABLE></P>\n";
+#
 	# If being viewed by a staff member, we want to show any suggestions for
 	# additional subject categories
 	if( $for_staff )
 	{
-		my $additional_field = 
-			$eprint->{session}->{metainfo}->find_table_field( "eprint", "additional" );
-		my $reason_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
-
-		# Write suggested extra subject category
-		if( defined $eprint->{additional} )
-		{
-			$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
-			$html .= "<TR><TD><STRONG>".$additional_field->display_name().":</STRONG>".
-				"</TD><TD>$eprint->{additional}</TD></TR>\n";
-			$html .= "<TR><TD><STRONG>".$reason_field->display_name().":</STRONG>".
-				"</TD><TD>$eprint->{reasons}</TD></TR>\n";
-
-			$html .= "</TABLE>\n";
-		}
+		#my $additional_field = 
+			#$eprint->{session}->{metainfo}->find_table_field( "eprint", "additional" );
+		#my $reason_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
+#
+		## Write suggested extra subject category
+		#if( defined $eprint->{additional} )
+		#{
+			#$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
+			#$html .= "<TR><TD><STRONG>".$additional_field->display_name().":</STRONG>".
+				#"</TD><TD>$eprint->{additional}</TD></TR>\n";
+			#$html .= "<TR><TD><STRONG>".$reason_field->display_name().":</STRONG>".
+				#"</TD><TD>$eprint->{reasons}</TD></TR>\n";
+#
+			#$html .= "</TABLE>\n";
+		#}
 	}
 			
 	# Now show the version and commentary response threads
-	if( $has_multiple_versions )
-	{
-		$html .= "<h3>Available Versions of This Item</h3>\n";
-		$html .= $eprint->{session}->{render}->write_version_thread(
-			$eprint,
-			$succeeds_field );
-	}
-	
-	if( $eprint->in_thread( $commentary_field ) )
-	{
-		$html .= "<h3>Commentary/Response Threads</h3>\n";
-		$html .= $eprint->{session}->{render}->write_version_thread(
-			$eprint,
-			$commentary_field );
-	}
-
-	return( $html );
+	#if( $has_multiple_versions )
+	#{
+		#$html .= "<h3>Available Versions of This Item</h3>\n";
+		#$html .= $eprint->{session}->{render}->write_version_thread(
+			#$eprint,
+			#$succeeds_field );
+	#}
+	#
+	#if( $eprint->in_thread( $commentary_field ) )
+	#{
+		#$html .= "<h3>Commentary/Response Threads</h3>\n";
+		#$html .= $eprint->{session}->{render}->write_version_thread(
+			#$eprint,
+			#$commentary_field );
+	#}
+#
+	return( $page );
 }
 
 
@@ -1678,8 +1694,10 @@ foreach( keys %CITATION_SPECS )
 sub getEPrintCitationStyle 
 {
 	my( $eprint ) = @_;
-	
-	my $style = $CITATION_SPEC_DOMTREE{$eprint->{type}}->cloneNode( 1 );
+
+## Crash if unknown style... cjg
+
+	my $style = $CITATION_SPEC_DOMTREE{$eprint->getValue( "type" )}->cloneNode( 1 );
 	$eprint->{session}->takeOwnership( $style );
 	
 	return $style;

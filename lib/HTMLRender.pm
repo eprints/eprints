@@ -901,26 +901,6 @@ sub clear
 
 
 
-######################################################################
-#
-# $html = render_eprint_full( $eprint, $for_staff )
-#
-#  Return the EPrint, with all appropriate fields and formats
-#  displayed.  Delegates to the site-specific routine to display the
-#  record itself. If $for_staff is non-zero, then additional information
-#  may be displayed, for instance the suggested new subject categories.
-#
-######################################################################
-
-sub render_eprint_full
-{
-	my( $self, $eprint, $for_staff ) = @_;
-
-	my $html = $self->{session}->{site}->eprint_render_full( $eprint,
-	                                                         $for_staff );
-
-	return( $html );
-}
 
 
 ######################################################################

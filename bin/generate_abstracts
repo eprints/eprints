@@ -28,15 +28,21 @@ use strict;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 
+my $dataset = $session->getSite->getDataSet( "archive" ),
 
 print "start\n";
-my @eprints = $session->{database}->get_all( "archive" );
+my @eprints = $session->{database}->get_all( $dataset );
 print "gotall\n";
 
-foreach (@eprints)
+my $eprint;
+foreach $eprint (@eprints)
 {
+	print "-----ON--------\n";
+	print EPrints::Log::render_struct( $eprint );
+	print "-----OFF--------\n";
 #	EPrints::Log::debug( "generate_abstracts",
-#	                     "Generating abstract for $_->{eprintid}" );
-	$_->generate_static();
+#	                     "Generating abstract for $eprint->{eprintid}" );
+print $eprint->getValue( "eprintid" )."\n";
+	$eprint->generate_static();
 }
 print "done\n";

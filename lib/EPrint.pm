@@ -156,12 +156,10 @@ sub new
 		return undef;
 	}
 
+	$self = {};
 	if( defined $known )
 	{
-		## Rows are already known
-		$self = $known;
-	} else {
-		$self = {};
+		$self->{data} = $known;
 	}
 	$self->{dataset} = $dataset;
 	$self->{session} = $session;
@@ -187,25 +185,28 @@ sub create
 {
 	my( $session, $dataset, $username, $data ) = @_;
 
-	my $new_eprint = ( defined $data ? $data : {} );
+	if( !defined $data )
+	{
+		$data = {};
+	}
 
 	my $new_id = _create_id( $session );
 	my $dir = _create_directory( $session, $new_id );
 print STDERR "($new_id)($dir)\n";
 	if( !defined $dir )
 	{
-		$session->getSite()->log( "Failed to make dir." );
+		$session->getSite->log( "Failed to make dir." );
 		return( undef );
 	}
 
-	$new_eprint->{eprintid} = $new_id;
-	$new_eprint->{username} = $username;
-	$new_eprint->{dir} = $dir;
+	$data->{eprintid} = $new_id;
+	$data->{username} = $username;
+	$data->{dir} = $dir;
 	
 # cjg add_record call
-	my $success = $session->{database}->add_record(
+	my $success = $session->getDB->add_record(
 		$dataset,
-		$new_eprint );
+		$data );
 
 	if( $success )
 	{
@@ -230,14 +231,14 @@ sub _create_id
 {
 	my( $session ) = @_;
 	
-	my $new_id = $session->{database}->counter_next( "eprintid" );
+	my $new_id = $session->getDB->counter_next( "eprintid" );
 
 	while( length $new_id < $EPrints::EPrint::id_code_digits )
 	{
 		$new_id = "0".$new_id;
 	}
 
-	return( $session->getSite()->getConf( "eprint_id_stem" ) . $new_id );
+	return( $session->getSite->getConf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -271,8 +272,8 @@ print STDERR $session->getSite()->getConf( "local_document_root" )."\n";
 	foreach (sort @avail)
 	{
 		my $free_space = 
-			(df $session->getSite()->getConf( "local_document_root" )."/$_" )[3];
-print STDERR "(".$session->getSite()->getConf( "local_document_root" )."/$_)($free_space)\n";
+			(df $session->getSite->getConf( "local_document_root" )."/$_" )[3];
+print STDERR "(".$session->getSite->getConf( "local_document_root" )."/$_)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -480,7 +481,7 @@ sub remove_from_threads
 sub clone
 {
 	my( $self, $dest_dataset, $copy_documents ) = @_;
-	
+die "clone NOT DONE"; #cjg	
 	# Create the new EPrint record
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
@@ -610,7 +611,7 @@ sub commit
 	my( $self ) = @_;
 	my $success = $self->{session}->{database}->update(
 		$self->{dataset},
-		$self );
+		$self->{data} );
 
 	if( !$success )
 	{
@@ -1273,32 +1274,68 @@ sub static_page_url
 sub generate_static
 {
 	my( $self ) = @_;
-	
-	my $offline_renderer = new EPrints::HTMLRender( $self->{session}, 1 , new CGI( {} ));
-	
-	my $ok = open OUT, ">".$self->static_page_local();
 
-	unless( $ok )
+	print "ID: ".$self->getValue( "eprintid" )."\n";
+
+	my $eprint_id = $self->getValue( "eprintid" );
+
+	# Work out the directory path. It's worked out using the ID of the EPrint.
+	# It takes the numerical suffix of the ID, and divides it into four
+	# components, which become the directory path for the EPrint.
+	# e.g. "stem001020304" is given the path "001/02/03/04"
+
+	my $sitestem = $self->{session}->getSite->getConf( "eprint_id_stem" );
+
+	return( undef ) unless( $eprint_id =~
+		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
+	
+	my $aroot = $self->{session}->getSite->getConf( "local_abstract_root" );
+
+print STDERR "soak\n";
+	my $full_path = $aroot . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
+
+	my @created = eval
 	{
-		EPrints::Log::log_entry(
-			"EPrint",
-			$self->{session}->phrase(
-				"L:error_gen_st",
-				path=>$self->static_page_local(),
-				eprintid=>$self->{eprintid},
-				errmsg=>$! ) );
-		return( 0 );
+		my @created = mkpath( $full_path, 0, 0775 );
+		return( @created );
+	};
+	print "yo:".join(",",@created)."\n";
+
+	my $langid;
+	foreach $langid ( keys %EPrints::Site::General::languages )
+	{
+		print "LANG: $langid\n";	
+		$self->{session}->newPage( $langid );
+		my $page = $self->toHTMLPage;
+		$self->{session}->buildPage( "TITLE?????", $page ); #cjg title?
+		$self->{session}->pageToFile( $full_path."/".$langid.".html" );
+		
 	}
 
-	print OUT $offline_renderer->start_html( $self->short_title() );
+
+	# SYMLINK's to DOCS...
+
 	
-	print OUT $offline_renderer->render_eprint_full( $self );
-	
-	print OUT $offline_renderer->end_html();
-	
-	close( OUT );
-	
-	return( 1 );
+	return;	
+}
+
+
+sub toHTMLPage
+{
+        my( $self ) = @_;
+
+        my $dom = $self->{session}->getSite->call( "eprint_render_full", $self, 0 );
+
+        return( $dom );
+}
+
+sub toHTMLStaffPage
+{
+        my( $self ) = @_;
+
+        my $dom = $self->{session}->getSite->call( "eprint_render_full", $self, 1 );
+
+        return( $dom );
 }
 
 
@@ -1520,7 +1557,7 @@ sub toHTML
 		my $fieldname = $_->getAttribute( "name" );
 		my $el = $self->{dataset}->getField( $fieldname )->getHTML( 
 			$self->{session},
-			$self->{$fieldname} );
+			$self->getValue( $fieldname ) );
 		$_->getParentNode()->replaceChild( $el, $_ );
 	}
 
@@ -1532,7 +1569,27 @@ sub getValue
 {
 	my( $self , $fieldname ) = @_;
 
-	return $self->{$fieldname};
+	return $self->{data}->{$fieldname};
 }
 
+sub setValue
+{
+	my( $self , $fieldname, $value ) = @_;
+
+	$self->{data}->{$fieldname} = $value;
+}
+
+sub getSession
+{
+	my( $self ) = @_;
+
+	return $self->{session};
+}
+
+sub getData
+{
+	my( $self ) = @_;
+	
+	return $self->{data};
+}
 1;

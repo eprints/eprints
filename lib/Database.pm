@@ -584,7 +584,7 @@ sub _create_counter_table
 	# Create the counters 
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".$ds->getSQLTableName." VALUES ".
+		$sql = "INSERT INTO ".$counter_ds->getSQLTableName." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );

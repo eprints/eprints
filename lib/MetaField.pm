@@ -378,6 +378,8 @@ sub getHTML
 	my( $self, $session, $value ) = @_;
 #cjg not DOM
 
+
+print "ARGH: $self->{name}, $self->{type}, $value\n ";
 	if( !defined $value || $value eq "" )
 	{
 		return $session->makeText( "" );
