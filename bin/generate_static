@@ -54,7 +54,7 @@ EPrints::Log->debug( "generate_static", "Generating static page for $File::Find:
 		# We need to add the site frame
 		$must_add_frame = 1;
 
-		print OUT $session->{render}->start_html( $_ );
+		print OUT $session->{render}->start_html( $first_line );
 	}
 	else
 	{
