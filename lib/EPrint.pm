@@ -358,7 +358,7 @@ sub retrieve_eprints
                                                      $conditions,
                                                      $order );
 
-EPrints::Log->debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
+#EPrints::Log->debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
 
 	my $r;
 	my @eprints;

@@ -1872,6 +1872,15 @@ sub update_from_subject_form
 			}
 		}
 
+		my $additional_field = 
+			EPrints::MetaInfo->find_eprint_field( "additional" );
+		my $reason_field = EPrints::MetaInfo->find_eprint_field( "reasons" );
+
+		$self->{eprint}->{$additional_field->{name}} =
+			$self->{session}->{render}->form_value( $additional_field );
+		$self->{eprint}->{$reason_field->{name}} =
+			$self->{session}->{render}->form_value( $reason_field );
+
 		return( 1 );
 	}
 }

@@ -68,9 +68,10 @@ sub eprint_short_title
 
 ######################################################################
 #
-# $title = eprint_render_full( $eprint )
+# $title = eprint_render_full( $eprint, $for_staff )
 #
-#  Return HTML for rendering an EPrint
+#  Return HTML for rendering an EPrint. If $for_staff is non-zero,
+#  extra information appropriate for only staff may be shown.
 #
 ######################################################################
 

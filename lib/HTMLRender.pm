@@ -1142,19 +1142,41 @@ sub clear
 
 ######################################################################
 #
-# $html = render_eprint_full( $eprint )
+# $html = render_eprint_full( $eprint, $for_staff )
 #
 #  Return the EPrint, with all appropriate fields and formats
 #  displayed.  Delegates to the site-specific routine to display the
-#  record itself.
+#  record itself. If $for_staff is non-zero, then additional information
+#  may be displayed, for instance the suggested new subject categories.
 #
 ######################################################################
 
 sub render_eprint_full
 {
-	my( $self, $eprint ) = @_;
+	my( $self, $eprint, $for_staff ) = @_;
 
-	my $html = EPrintSite::SiteRoutines->eprint_render_full( $eprint );
+	my $html = EPrintSite::SiteRoutines->eprint_render_full( $eprint,
+	                                                         $for_staff );
+
+	if( $for_staff )
+	{
+		my $additional_field = 
+			EPrints::MetaInfo->find_eprint_field( "additional" );
+		my $reason_field = EPrints::MetaInfo->find_eprint_field( "reasons" );
+
+		# Write suggested extra subject category
+		if( defined $eprint->{additional} )
+		{
+			$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
+			$html .= "<TR><TD><STRONG>$additional_field->{displayname}:</STRONG>".
+				"</TD><TD>$eprint->{additional}</TD></TR>\n";
+			$html .= "<TR><TD><STRONG>$reason_field->{displayname}:</STRONG>".
+				"</TD><TD>$eprint->{reasons}</TD></TR>\n";
+
+			$html .= "</TABLE>\n";
+		}
+	}
+			
 
 	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
 	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );

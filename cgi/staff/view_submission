@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  16/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -46,7 +47,7 @@ else
 	{	
 		print $session->{render}->start_html( "Viewing Submission" );
 
-		print $session->{render}->render_eprint_full( $eprint );
+		print $session->{render}->render_eprint_full( $eprint, 1 );
 
 		print "<HR>\n";		
 
