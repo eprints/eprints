@@ -329,17 +329,6 @@ foreach $langid ( @langs )
 END
 }
 
-my $vlit = "";
-
-if( $archive->get_conf( "enable_vlit_support" ) )
-{
-    # cjg, this should really be only some file formats not all of them!
-	$vlit = <<END;
-    SetHandler perl-script
-    PerlHandler EPrints::Xanadu::handler
-END
-}
-
 print CONF <<END;
   # Default Language
   RewriteRule ^/(.*)\$         /$defaultlang/\$1   [L]
@@ -351,13 +340,11 @@ print CONF <<END;
     PerlAuthzHandler EPrints::Auth::authz
     PerlSetVar EPrints_Security_Area Documents
     require valid-user
-$vlit
   </Directory>
 
   <Directory "$cgidir">
     SetHandler perl-script
     PerlHandler Apache::Registry
-#cjg what does this do?
     PerlSendHeader Off
     Options +ExecCGI
   </Directory>
@@ -372,8 +359,26 @@ $vlit
 
   <Directory "$htdocs_path">
     AddType 'text/html; charset=UTF-8' .html
-$vlit
   </Directory>
+
+END
+
+if( $archive->get_conf( "enable_vlit_support" ) )
+{
+	print CONF <<END;
+  <Files ~ "\\.txt\$">
+    SetHandler perl-script
+    PerlHandler EPrints::VLit::handler
+  </Files>
+  <Files ~ "\\.uni\$">
+    SetHandler perl-script
+    PerlHandler EPrints::VLit::handler
+  </Files>
+
+END
+}
+
+print CONF <<END;
 
   # This sets up the change_user URL, which does
   # not have a REAL file associated with it, it
@@ -389,6 +394,7 @@ $vlit
     require valid-user
     Redirect /change_user $userhome
   </Location>
+
 </VirtualHost>
 
 END

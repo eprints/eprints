@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-package EPrints::Xanadu;
+package EPrints::VLit;
 
 use CGI;
 use Apache;

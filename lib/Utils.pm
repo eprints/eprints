@@ -506,6 +506,11 @@ sub tree_to_utf8
         {
                 $string = "\n";
         }
+        if( $name eq "img" )
+        {
+		my $alt = $node->getAttribute( "alt" );
+		$string = $alt if( defined $alt );
+        }
         return $string;
 }
 
@@ -514,7 +519,7 @@ sub mkdir
 	my( $full_path ) = @_;
 	my @created = eval
         {
-                my @created = mkpath( $full_path, 0, 0775 );
+                return mkpath( $full_path, 0, 0775 );
         };
         return ( scalar @created > 0 )
 }

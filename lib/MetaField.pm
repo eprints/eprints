@@ -125,6 +125,8 @@ my $PROPERTIES = {
 	showtop => 0, 
 	idpart => 0,
 	mainpart => 0,
+	render_single_value => "UNDEF",
+	render_value => "UNDEF",
 	top => "subjects", #cjg is this right?
 	type => "NO_DEFAULT"
 };
@@ -168,6 +170,8 @@ sub new
 
 	$self->set_property( "fromform", $properties{fromform} );
 	$self->set_property( "toform", $properties{toform} );
+	$self->set_property( "render_single_value", $properties{render_single_value} );
+	$self->set_property( "render_value", $properties{render_value} );
 
 	$self->{confid} = $properties{confid};
 
@@ -453,17 +457,9 @@ sub render_value
 {
 	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
-	if( !defined $self->{browse} )
+	if( defined $self->{render_value} )
 	{
-		my $browsefields = $session->get_archive()->get_conf( "browse_fields" );
-		$self->{browse} = 0;
-		foreach( @{$browsefields} )
-		{
-			if( $_ eq $self->get_name() )
-			{
-				$self->{browse} = 1;
-			}
-		}
+		return &{$self->{render_value}}( $session, $self, $value, $alllangs, $nolink );
 	}
 
 	if( !$self->get_property( "multiple" ) )
@@ -527,6 +523,7 @@ sub _render_value1
 	else
 	{
 #print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
+#cjg fix links to views!
 		if( $self->{browse} && !$nolink)
 		{
 			my $url = $session->get_archive()->get_conf( "base_url" ).
@@ -588,6 +585,11 @@ sub _render_value3
 	if( !defined $value )
 	{
 		return $session->html_phrase( "lib/metafield:unspecified" );
+	}
+
+	if( defined $self->{render_single_value} )
+	{
+		return &{$self->{render_single_value}}( $session, $self, $value );
 	}
 
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )

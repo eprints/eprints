@@ -38,6 +38,7 @@ use EPrints::Document;
 use EPrints::EPrint;
 use EPrints::ImportXML;
 use EPrints::Language;
+use EPrints::Latex;
 use EPrints::MetaField;
 use EPrints::OpenArchives;
 use EPrints::Archive;
@@ -50,7 +51,7 @@ use EPrints::Subscription;
 use EPrints::UserForm;
 use EPrints::User;
 use EPrints::UserPage;
-use EPrints::Xanadu;
+use EPrints::VLit;
 
 print STDERR "EPRINTS: Core Modules Loaded\n";
 

@@ -95,9 +95,9 @@
 0	What's new? page(s) (just a fixed search)
 0	Subscriptions - editing
 0	Subscriptions - sending
-0	MathML support
-2	TeX mathmode support.
-0	XML 1.1 Support(?)
+2	MathML support
+-	TeX mathmode support.
+#0	XML 1.1 Support(?)
 1	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
 0	Taint all code to force sanity checking of all data
 0	Probity (see www.probity.org for more info)
@@ -112,7 +112,7 @@
 2	XML Importer
 0	Improve name search syntax (?)
 2	Remove (Hide) Lanuage related options if only one language supported.
-3	Xanadu interface(!)
+4	VLit/Xanadu interface(!)
 0	"Special search" which redirects to the abstract if only one match.
 
 
@@ -138,7 +138,7 @@
 
 
 0	Sleep
-3	Beer
+2	Beer
 0	Peer Review
 0	Mirroring
 0	Citation Scanning
@@ -158,7 +158,7 @@
 #	cmp methods : is they still needed?
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 #	What type for ordervalues? Something which keeps memory use down...
-#	Standardise some functions between Subject, EPrint and User.(and Subsc?)
+
 #`	subjec t importer has iffy ordering - should really re-commit 'em all to update ancestors list.
 # import_subjects does not check for errors very well.
 
@@ -166,7 +166,6 @@
 #	Call backs for LEAVING archive and buffer=>inbox
 
 #LESS URGENT TODO...
-#	Call backs to handle Latex processing... Do with a value in the metafield config.
 #	langid's -> validate they is correct (in multilang)
 #	sort subject input fields
 #	text area without CR's (config flag) eg. for title.
@@ -177,11 +176,14 @@
 #	import_xml becomes import_foo etc. eprint/user/whatever.
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value?
-#	set browse methods to an optional "don't advertise"
-#	.plain like .include but with nothing but the citation. Configure options for generation of html/plain/include and which citation and generation of indexes.ZZ
 
 
 ## Need to make OAI get_values get values for deletion & archive so if the only
 ## 1853 paper is deleted the set does not disappear.
 
 # Need to make Next FOO records give the right answer.
+
+# searchexp/file upload : idea: don't allow finished from doc page until a
+# valid format is selected.
+
+# SystemSettings needs the new latex stuff. and add ' to all invocations. 

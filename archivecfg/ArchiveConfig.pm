@@ -372,7 +372,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text" },
+	{ name => "title", type => "text", render_single_value=>\&EPrints::Latex::render_string },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
@@ -380,7 +380,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "suggestions", type => "longtext" }
 ];
-
+use EPrints::Latex; #cjg
 # Don't worry about this bit, remove it if you want.
 # it's to store some information for a citation-linking
 # modules we've not built yet. 

@@ -1474,6 +1474,7 @@ sub send_http_header
 		$opts{content_type} = 'text/html; charset=UTF-8';
 	}
 	$self->{request}->content_type( $opts{content_type} );
+
 	$self->{request}->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
 	$self->{request}->header_out( "Pragma"=>"no-cache" );
 

@@ -1,0 +1,18 @@
+# cjg comment me
+
+use EPrints::Session;
+
+use strict;
+
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my $latex = $session->param( "latex" );
+$latex = "???" if( !defined $latex );
+
+my $pngfile = EPrints::Latex::texstring_to_png( $session, $latex );
+
+$session->send_http_header( content_type=>'image/png' );
+print `cat -- $pngfile`;
+
+$session->terminate();

@@ -14,6 +14,9 @@ General
 - does not appear to remove eprint from ordervalues table if it is
    removed.
 
+- passwords set via the web are not crypted until they are accepted.
+(No loss of security from eprints-1 but annoying)
+
 ----------------------------------------------------------------------
 Rendering
 ----------------------------------------------------------------------

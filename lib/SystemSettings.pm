@@ -26,13 +26,19 @@ $EPrints::SystemSettings::conf =
 		wget 	=> "/usr/bin/wget",
 		sendmail => "/usr/sbin/sendmail",
 		gunzip 	=> "/bin/gunzip",
-		tar 	=> "/bin/tar"
+		tar 	=> "/bin/tar",
+		latex 	=> "/usr/bin/latex",
+		dvips 	=> "/usr/bin/dvips",
+		convert	=> "/usr/X11R6/bin/convert"
 	},
 	invocation => {
-		zip 	=> '$(zip) 1>/dev/null 2>&1 -qq -o -d $(DIR) $(ARC)',
-	        targz  	=> '$(gunzip) -c < $(ARC) 2>/dev/null | $(tar) xf - -C $(DIR) >/dev/null 2>&1',
-		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
-		sendmail => '$(sendmail) -oi -t -odb --'
+		zip 	=> '$(zip) 1>/dev/null 2>&1 -qq -o -d \'$(DIR)\' \'$(ARC)\'',
+	        targz  	=> '$(gunzip) -c < \'$(ARC)\' 2>/dev/null | $(tar) xf - -C \'$(DIR)\' >/dev/null 2>&1',
+		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) \'$(URL)\'',
+		sendmail => '$(sendmail) -oi -t -odb --',
+		latex => '$(latex) \'$(SOURCE)\'',
+		dvips => '$(dvips) \'$(SOURCE)\' -o \'$(TARGET)\'',
+		convert_crop_white => '$(convert) -crop 0x0 -bordercolor white -border 4x4 \'$(SOURCE)\' \'$(TARGET)\''
 	},
 	archive_extensions => {
 		"zip"    =>  ".zip",
