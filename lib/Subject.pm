@@ -580,11 +580,14 @@ sub _get_subjects2
 {
 	my( $self, $postableonly, $hidenode, $nestids, $subjectmap, $rmap, $prefix ) = @_; 
 	
-	my $namefield = $self->{dataset}->get_field( "name" );
 
 	my $postable = ($self->get_value( "depositable" ) eq "TRUE" ? 1 : 0 );
 	my $id = $self->get_value( "subjectid" );
-	my $label = $namefield->most_local( $self->{session}, $self->get_value( "name" ) );
+
+	my $desc = $self->render_description;
+	my $label = EPrints::Utils::tree_to_utf8( $desc );
+	$desc->dispose();
+
 	my $subpairs = [];
 	if( (!$postableonly || $postable) && (!$hidenode) )
 	{
@@ -705,9 +708,24 @@ sub get_all
 			push @{$rmap{$_}}, $subject;
 		}
 	}
+	my $namefield = $session->get_archive->get_dataset(
+		"subject" )->get_field( "name" );
+	foreach( keys %rmap )
+	{
+		#cjg note the OO busting speedup hack.
+		@{$rmap{$_}} = sort {   
+my $av = $namefield->most_local( $session, $a->{data}->{name} );
+my $bv = $namefield->most_local( $session, $b->{data}->{name} );
+$av cmp $bv;
+			} @{$rmap{$_}};
+	}
+
 	
 	return( \%subjectmap, \%rmap );
 }
+
+
+
 
 
 

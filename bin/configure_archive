@@ -375,10 +375,11 @@ END
 my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", $exists?"no":"yes" );
 if( $makedb eq "yes" )
 {
+	#cjg hide password from display?
 	print <<END;
 
 Ok, I'll need to connect to the mysql database as root. What is the root 
-password? #cjg hide password from display?
+password? 
 	
 END
 	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
@@ -398,7 +399,7 @@ END
 	{
 		print <<END;
 
-Hmmm. Problem connecting to database as root. We'll skip skip this but
+Hmmm. Problem connecting to database as root. We'll skip this but
 you should create it by hand.
 
 END

@@ -54,7 +54,7 @@
 
 <td>
 
- <p>&archivename; is running on <em>EPrints2</em> archive-creating software, which generates eprints archives that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1</a>.</p>
+ <p>&archivename; is running on <em>GNU EPrints</em> archive-creating software, which generates eprints archives that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
 
  <p>The eprints.org archive-creating software is available for free at <a href="http://www.eprints.org/">http://www.eprints.org/</a>.</p>
 

@@ -335,7 +335,7 @@ sub get_sql_type
  		return $sqlname.' CHAR(16) '.$param;
 	}
 
-	if( $self->is_type( "longtext", "searchfield" ) )
+	if( $self->is_type( "longtext", "search" ) )
 	{
  		return $sqlname.' TEXT '.$param;
 	}
@@ -2129,7 +2129,8 @@ sub get_value_label
 	{
 		my $ds = $session->get_archive()->get_dataset( 
 				$self->{datasetid} );	
-		return $ds->get_type_name( $session, $value );
+		return $session->make_text( 
+			$ds->get_type_name( $session, $value ) );
 	}
 
 	if( $self->is_type( "date" ) )

@@ -660,6 +660,15 @@ before next release. (metadata types & fields)
  - Added more details into "information" page in default config. And a
    GNU linking to gnu.org.
 
+2002-07-03
+ - Fixed typo in MetaField.pm - had "searchfield" not "search" which
+   meant search fields were ending up as VARCHAR not TEXT.
+ - Missing subject titles now display as [Subjectid=footle]
+ - Fixed some typos in installer
+ - generate_views now treats a SystemSettings->virtualhost of "" as
+   undefined.
+ - Subjects now sort into correct order(yay!)
+
 ======================================================================
 ??/07/2002 - EPRINTS-2.1
 ======================================================================

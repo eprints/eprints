@@ -180,7 +180,10 @@ else
 }
 
 my $virtualhost = EPrints::Config::get( "virtualhost" );
-$virtualhost = '*' unless( defined $virtualhost );
+if( !EPrints::Utils::is_set( $virtualhost ) )
+{
+	$virtualhost = '*';
+}
 
 print "Creating $site_sysfile.\n" if( $noise >= 2 );
 my $startupfile = EPrints::Config::get( "bin_path" )."/startup.pl";

@@ -21,12 +21,12 @@ does NOT have all required langs filled in.
 - URLS like http://eprints.ecs.soton.ac.uk/archive/00000001 fail
    for lack of a trailing / -=- make 404 page spot them?
 
+- does not check email address even looks valid in "register"
+
 ----------------------------------------------------------------------
 Documentation
 ----------------------------------------------------------------------
 
- - no documentation on how to add &entities; to phrases & templates.
- 
 ----------------------------------------------------------------------
 Default Configuration
 ----------------------------------------------------------------------
@@ -86,8 +86,6 @@ Installation & Archive Setup Script
 
 - Maximum of 32 Indexes on a MySQL table can cause problems.
 
-- Docs don't tell people how to do the main part of the upgrade!
-
 ----------------------------------------------------------------------
 Email
 ----------------------------------------------------------------------
@@ -95,9 +93,6 @@ Email
 ----------------------------------------------------------------------
 OAI
 ----------------------------------------------------------------------
-
-- Tim Brody's reports of some incorrect responses in obscure cases.
-   [more info later]
 
 - http://eprints.aktors.org/perl/oai?verb=GetRecord&identifier=oai:akt:00000017&metadataPrefix=oai_dc
 causes a 500 error. [gone away?]
@@ -220,7 +215,7 @@ would be more appropriate. [ In fact all occurancies of
 - Default subjects - replace with Library of Congress.
 
 ======================================================================
-Fixed in CVS
+Fixed in 2.1
 ======================================================================
 
 - df - still has problems [but a configuration option to work around
@@ -246,6 +241,11 @@ it has been added]
    virtual hosts - add it to SystemSettings?
 - only allows [a-z]+ as passwords for mysql
 - missing phrase: pin_timeout [ no we're not]
+ - no documentation on how to add &entities; to phrases & templates.
+- Docs don't tell people how to do the main part of the upgrade!
+- Tim Brody's reports of some incorrect responses in obscure cases.
+   [tested now and appears to work].
+
 
 
 
