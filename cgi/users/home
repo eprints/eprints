@@ -63,7 +63,7 @@ $p->appendChild(
 	$session->html_phrase( 
 		"cgi/users/home:welcome",
 		sitename => $session->make_text( 
-			$session->get_archive()->get_conf( "sitename" ) ) ) );
+			$session->get_archive()->get_conf( "archivename" ) ) ) );
 $page->appendChild( $p );
 
 
@@ -85,12 +85,12 @@ if( $valid_user )
 { #cjg THIS IS NOT DONE
 	### View items in archive
 	#print "<DL><DT><STRONG><A HREF=\"review\">";
-	#$session->{lang}->phrase( "cgi/users/home:review" );
+	#$session->phrase( "cgi/users/home:review" );
 	#print "</A></STRONG></DT>\n";
 	#print "<DD><P>";
-	#$session->{lang}->phrase( "cgi/users/home:review_info" );
+	#$session->phrase( "cgi/users/home:review_info" );
 	#if( $session->get_archive()->get_conf( "allow_user_removal" ) ) {
-		#$session->{lang}->phrase( "cgi/users/home:remove_info" );
+		#$session->phrase( "cgi/users/home:remove_info" );
 	#}
 	#print "</P></DD>\n";
 }
@@ -177,12 +177,14 @@ sub render_workspace
 
 	### Get the actual items in the workspace
 
-	if( scalar @eprints > 0 )
+	if( scalar @eprints > 0)
 	{
-#cjg
-		print "<CENTER><H3>";	
-		print $session->{lang}->phrase( "cgi/users/home:docs" );
-		print "</H3></CENTER>\n";
+		my( $h3, $p, $form );
+	
+		$h3 = $session->make_element( "h3" );
+		$h3->appendChild( 
+			$session->html_phrase( "cgi/users/home:docs" ));
+		$html->appendChild( $h3 );
 
 		my @eprint_ids;
 		my %eprint_titles;
@@ -190,33 +192,59 @@ sub render_workspace
 
 		foreach $e (@eprints)
 		{
-			push @eprint_ids, $e->{eprintid};
-			$eprint_titles{$e->{eprintid}} = $e->short_title();
+			my $id = $e->get_value( "eprintid" );
+			push @eprint_ids, $id;
+			$eprint_titles{$id} = $e->short_title();
 		}
 
-		my $set_field = EPrints::MetaField->new({
-					name=>"eprint_id",
-					type=>"set",
-                                        displaylines=>6,
-					options=>\@eprint_ids } );
-
-		# If there is only one eprint in the workspace, select it by default
+		my $set_field = EPrints::MetaField->new(
+					$ds,
+					{
+						name=>"eprint_id",
+						type=>"set",
+                                        	displaylines=>6,
+						options=>\@eprint_ids 
+					} );
+		# If there is only one eprint in the workspace, 
+		# select it by default
 		my %default_values;
-		$default_values{"eprint_id"} = $eprint_ids[0] if( scalar @eprints==1 );
+		if( scalar @eprints==1 )
+		{
+			$default_values{"eprint_id"} = $eprint_ids[0] 
+		}
+
+		my $buttons = {
+			new => 
+			  $session->phrase("cgi/users/home:action_new"),
+			edit => 
+			  $session->phrase("cgi/users/home:action_edit"),
+			clone => 
+			  $session->phrase("cgi/users/home:action_clone"),
+			delete => 
+			  $session->phrase("cgi/users/home:action_delete"),
+			submit => 
+			  $session->phrase("cgi/users/home:action_submit") 
+		};
 
 		### Now put them in a form
-		$session->{render}->render_input_form(
+		$form = $session->render_form( "post", "submit" );	
+		$form->appendChild( $session->render_input_form(
 			[ $set_field ],
 			\%default_values,
 			0,
 			0,
-			EPrints::SubmissionForm::initial_actions($session ),#badbuttons
+			$buttons,
 			undef,
-			"submit" );
+			undef,
+			"submit" ) );
+# cjg MULTILANG LABELS... callback?
+		$html->appendChild( $form );
 
-		print "<P><CENTER><EM>";
-		print $session->{lang}->phrase( "cgi/users/home:depositing" );
-		print "</EM></CENTER></P>\n";
+		$p = $session->make_element( "p" );
+		$p->appendChild( 
+			$session->html_phrase( "cgi/users/home:depositing" ) );
+		$html->appendChild( $p );
+
 	}
 	else
 	{
@@ -233,6 +261,7 @@ sub render_workspace
 
 	return $html;
 }
+
 
 
 ######################################################################
@@ -257,7 +286,7 @@ sub show_pending
 	if( $#eprints >= 0 )
 	{
 		print "<CENTER><H3>";
-		print $session->{lang}->phrase( "cgi/users/home:pending_title" );
+		print $session->phrase( "cgi/users/home:pending_title" );
 		print "</H3></CENTER>\n";
 		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
 		my $e;
@@ -266,7 +295,7 @@ sub show_pending
 			print "<TR><TD><EM>";
 			print $e->short_title();
 			print "</EM></TD><TD>";
-			print $session->{lang}->phrase( 
+			print $session->phrase( 
 				"cgi/users/home:deposited_at",
 				{ time=>$session->{render}->format_field(
 					$session->{metainfo}->find_table_field( "eprint", "datestamp" ),

@@ -284,7 +284,6 @@ print STDERR "soak\n";
 	my $full_path = $session->get_archive()->get_conf("local_document_root")."/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
-print "($full_path)\n";
 	my @created = eval
 	{
 		my @created = mkpath( $full_path, 0, 0775 );
@@ -539,7 +538,9 @@ sub short_title
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->get_archive()->eprint_short_title( $self ) );
+	return( $self->{session}->get_archive()->call(
+			"eprint_short_title",
+			$self ) );
 }
 
 
@@ -589,13 +590,15 @@ sub validate_type
 
 	# Make sure we have a value for the type, and that it's one of the
 	# configured EPrint types
-	if( !defined $self->{type} || $self->{type} eq "" )
+	if( !defined $self->get_value( "type" ) )
 	{
-		push @problems, $self->{session}->phrase( "lib/eprint:no_type" );
-	}
-	elsif( !defined $self->{session}->{metainfo}->get_type_name( $self->{session} , "eprintid", $self->{type} ) )
+		push @problems, 
+			$self->{session}->html_phrase( "lib/eprint:no_type" );
+	} 
+	elsif( ! $self->{dataset}->is_valid_type( $self->get_value( "type" ) ) )
 	{
-		push @problems, $self->{session}->phrase( "lib/eprint:invalid_type" );
+		push @problems, $self->{session}->html_phrase( 
+					"lib/eprint:invalid_type" );
 	}
 	
 	return( \@problems );
@@ -619,62 +622,44 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
+	my @all_fields = $self->{dataset}->get_type_fields( $self->{type} );
+
 	my $field;
-	
 	foreach $field (@all_fields)
 	{
 		my $problem;
 		
 		# Check that the field is filled in if it is required
-		if( $field->{required} && ( !defined $self->{$field->{name}} ||
-		                        	 $self->{$field->{name}} eq "" ) )
+		if( $field->{required} && 
+		    ( !defined $self->get_value( $field->{name} ) ) )
 		{
-			$problem = $self->{session}->phrase( 
+			$problem = $self->{session}->html_phrase( 
 				"lib/eprint:not_done_field" ,
-				fieldname=>$field->displayname( $self->{session} ) );
+				fieldname=> $self->{session}->make_text( 
+				   $field->display_name( $self->{session} ) ) );
 		}
 		else
 		{
 			# Give the site validation module a go
-			$problem = $self->{session}->get_archive()->validate_eprint_field(
+			$problem = $self->{session}->get_archive()->call(
+				"validate_eprint_field",
 				$field,
-				$self->{$field->{name}} );
+				$self->get_value( $field->{name} ) );
 		}
 
-		if( $field->{type} eq "username")
-		{
-			my @usernames;
-			@usernames = split( ":", $self->{$field->{name}} );
-			my @invalid;
-			my $username;
-			foreach $username ( @usernames )
-			{
-				next if( $username eq "" );
-				my $user = new EPrints::User( $self->{session} , $username );
-				if ( !defined $user ) 
-				{
-					push @invalid, $username;
-				}
-			}
-			if ( scalar @invalid > 0 )
-			{
-				$problem = $self->{session}->phrase(
-						"lib/eprint:invalid_users",
-				            	usernames=>join(", ",@invalid) );
-			}
-		}
-
-
+		# cjg USERNAME TYPE CHECK?
 		
-		if( defined $problem && $problem ne "" )
+		if( defined $problem )
 		{
 			push @all_problems, $problem;
 		}
 	}
 
 	# Site validation routine for eprint metadata as a whole:
-	$self->{session}->get_archive()->validate_eprint_meta( $self, \@all_problems );
+	$self->{session}->get_archive()->call(
+		"validate_eprint_meta",
+		$self, 
+		\@all_problems );
 
 	return( \@all_problems );
 }
@@ -1253,7 +1238,7 @@ sub generate_static
 		print "yo:".join(",",@created)."\n";
 
 		$self->{session}->new_page( $langid );
-		my $page = $self->to_html_page;
+		my $page = $self->render_abstract_page();
 		$self->{session}->build_page( "TITLE?????", $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
@@ -1268,7 +1253,7 @@ sub generate_static
 
 
 ## WP1: BAD
-sub to_html_page
+sub render_abstract_page
 {
         my( $self ) = @_;
 
@@ -1278,7 +1263,7 @@ sub to_html_page
 }
 
 ## WP1: BAD
-sub to_html_staff_page
+sub render_staff_page
 {
         my( $self ) = @_;
 
@@ -1473,18 +1458,18 @@ sub last_in_thread
 }
 
 ## WP1: BAD
-sub to_html_link
+sub render_citation_link
 {
 	my( $self , $cstyle ) = @_;
 	my $a = $self->{session}->make_element( "A",
 			href => $self->static_page_url() );
-	$a->appendChild( $self->to_html( $cstyle ) );
+	$a->appendChild( $self->render_citation( $cstyle ) );
 
 	return $a;
 }
 
 ## WP1: BAD
-sub to_html
+sub render_citation
 {
 	my( $self , $cstyle) = @_;
 	

@@ -112,6 +112,9 @@ sub phrase
 	}
 	$inserts = {} if( !defined $inserts );
 
+if( $session == undef ) {
+	EPrints::Session::bomb();
+} 
 	my $result;
 	if( $fb )
 	{
@@ -119,7 +122,7 @@ sub phrase
 	}
 	else
 	{
-		$result = $session->make_doc_fragment;
+		$result = $session->make_doc_fragment();
 	}
 	$session->take_ownership( $response );
 	$result->appendChild( $response );

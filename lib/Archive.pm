@@ -67,6 +67,9 @@ sub new_site_by_id
 	{
 		return $ID2SITE{$id};
 	}
+	
+	print STDERR "******** REALLY LOADING $id *********\n";
+
 	my $self = {};
 	bless $self, $class;
 

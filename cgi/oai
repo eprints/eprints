@@ -158,7 +158,7 @@ sub identify
 	
 	$writer->dataElement( 
 		"repositoryName",
-		EPrints::OpenArchives::to_utf8( $session->get_archive()->get_conf( "sitename" ) ) );
+		EPrints::OpenArchives::to_utf8( $session->get_archive()->get_conf( "archivename" ) ) );
 	
 	$writer->dataElement( "baseURL",
 	                      $session->get_archive()->get_conf( "oai_base_url" ) );

@@ -690,7 +690,7 @@ $c->{htmlpage}->{english} = parse_html( <<END );
 <div class="header">
 <table  cellpadding="5" border="0" cellspacing="0" width="100%">
 <tr><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{archivename}</h1>
+<h1 class="archivetitle">$c->{archivename}</h1>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/english.png" width="60" height="40" alt="english mode" /></a>
 </td></tr>
@@ -746,7 +746,7 @@ $c->{htmlpage}->{french} = parse_html( <<END );
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{archivename}</h1>
+<h1 class="archivetitle">$c->{archivename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/french.png" width="60" height="40" alt="l'mode francais" /></a>
@@ -808,7 +808,7 @@ $c->{htmlpage}->{dummy} = parse_html( <<END );
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{archivename}</h1>
+<h1 class="archivetitle">$c->{archivename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/dummy.png" width="60" height="40" alt="DUMMY MODE" /></a>
@@ -1231,7 +1231,7 @@ sub extract_words
 			# This isn't perfect "mose" will match "moses" and
 			# "nappy" still won't match "nappies" but it's a
 			# reasonable attempt.
-			word =~ s/s$//;
+			$word =~ s/s$//;
 
 			# If any of the characters are lowercase then lower
 			# case the entire word so "Mesh" becomes "mesh" but
@@ -1273,13 +1273,13 @@ sub eprint_short_title
 {
 	my( $eprint ) = @_;
 	
-	if( !defined $eprint->{title} || $eprint->{title} eq "" )
+	if( !defined $eprint->get_value( "title" ) )
 	{
-		return( "Untitled (ID: $eprint->{eprintid})" );
+		return( "Untitled (ID: ".$eprint->get_value( "eprintid" ).")");
 	}
 	else
 	{
-		return( $eprint->{title} );
+		return( $eprint->get_value( "title" ) );
 	}
 }
 
@@ -1308,7 +1308,7 @@ sub eprint_render_full
 
 	# Citation
 	my $p = $session->make_element( "p" );
-	$p->appendChild( $eprint->to_html() );
+	$p->appendChild( $eprint->render_citation() );
 	$page->appendChild( $p );
 
 	# Available formats
@@ -1985,7 +1985,7 @@ sub validate_user_field
 #			if( $value !~ /^\w+:/ );
 #	}
 
-	return( (!defined $problem || $problem eq "" ) ? undef : $problem );
+	return( $problem );
 }
 
 
@@ -2010,10 +2010,12 @@ sub validate_eprint_field
 	my( $field, $value );
 
 	my $problem;
+#cjg SHOULD THIS BE GENERIC ie validate_field, but with a ref to what
+#type it is
 
 	# CHECKS IN HERE
 
-	return( (!defined $problem || $problem eq "" ) ? undef : $problem );
+	return( $problem );
 }
 
 
@@ -2042,7 +2044,7 @@ sub validate_subject_field
 	# CHECKS IN HERE
 
 
-	return( (!defined $problem || $problem eq "" ) ? undef : $problem );
+	return( $problem );
 }
 
 
@@ -2117,10 +2119,10 @@ sub validate_eprint_meta
 {
 	my( $eprint, $problems ) = @_;
 
-	# CHECKS IN HERE
+	# CHECKS IN HERE cjg NOT DONE
 
-	# We check that if a journal article is published, then it has the volume
-	# number and page numbers.
+	# We check that if a journal article is published, then it 
+	# has the volume number and page numbers.
 	if( $eprint->{type} eq "journalp" && $eprint->{ispublished} eq "pub" )
 	{
 		push @$problems, "You haven't specified any page numbers"
@@ -2139,7 +2141,7 @@ sub validate_eprint_meta
 sub log
 {
 	my( $archive, $message ) = @_;
-	print STDERR "EPRINTS:".$archive->get_conf("siteid").": ".$message."\n";
+	print STDERR "EPRINTS:".$archive->get_conf("archiveid").": ".$message."\n";
 }
 
 ## WP1: BAD

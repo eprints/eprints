@@ -22,37 +22,22 @@ use EPrints::Document;
 use strict;
 
 
-
 # Stages of upload
 
-$EPrints::SubmissionForm::stage_type       = "stage_type";       # EPrint type (e.g. journal article)
-$EPrints::SubmissionForm::stage_meta       = "stage_meta";       # Metadata (authors, title, etc)
-$EPrints::SubmissionForm::stage_subject    = "stage_subject";    # Subject tag form
-$EPrints::SubmissionForm::stage_linking    = "stage_linking";    # Linking to other eprints
-$EPrints::SubmissionForm::stage_format     = "stage_format";     # File format selection form
-$EPrints::SubmissionForm::stage_fileview   = "stage_fileview";   # View/delete files
-$EPrints::SubmissionForm::stage_upload     = "stage_upload";     # Upload file form
-$EPrints::SubmissionForm::stage_verify     = "stage_verify";     # Verify and confirm submission
-$EPrints::SubmissionForm::stage_done       = "stage_done";       # All done. Congrats.
-$EPrints::SubmissionForm::stage_error      = "stage_error";      # Some sort of terminal error.
-$EPrints::SubmissionForm::stage_return     = "stage_return";     # Auto. return to author area
-$EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm deletion
-
-%EPrints::SubmissionForm::stage_titles =
-(
-	$EPrints::SubmissionForm::stage_type       => "lib/submissionform:title_type",
-	$EPrints::SubmissionForm::stage_meta       => "lib/submissionform:title_meta",
-	$EPrints::SubmissionForm::stage_subject    => "lib/submissionform:title_subject",
-	$EPrints::SubmissionForm::stage_linking    => "lib/submissionform:title_linking",
-	$EPrints::SubmissionForm::stage_format     => "lib/submissionform:title_format",
-	$EPrints::SubmissionForm::stage_fileview   => "lib/submissionform:title_fileview",
-	$EPrints::SubmissionForm::stage_upload     => "lib/submissionform:title_upload",
-	$EPrints::SubmissionForm::stage_verify     => "lib/submissionform:title_verify",
-	$EPrints::SubmissionForm::stage_done       => "lib/submissionform:title_done",
-	$EPrints::SubmissionForm::stage_error      => "lib/submissionform:title_error",
-	$EPrints::SubmissionForm::stage_return     => "lib/submissionform:title_return",
-	$EPrints::SubmissionForm::stage_confirmdel => "lib/submissionform:title_confirmdel",
-);
+my $STAGES = {
+	type => 1,
+	linking => 1,
+	meta => 1,
+	subject => 1,
+	format => 1,
+	fileview => 1,
+	upload => 1,
+	verify => 1,
+	done => 1,
+	error => 1,
+	return => 1,
+	confirmdel => 1 
+};
 
 
 ######################################################################
@@ -72,7 +57,7 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $redirect, $staff, $table ) = @_;
+	my( $class, $session, $redirect, $staff, $dataset ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -80,7 +65,7 @@ sub new
 	$self->{session} = $session;
 	$self->{redirect} = $redirect;
 	$self->{staff} = $staff;
-	$self->{table} = $table;
+	$self->{dataset} = $dataset;
 
 	return( $self );
 }
@@ -103,12 +88,13 @@ sub process
 	$self->{action}    = $self->{session}->get_action_button();
 	$self->{stage}     = $self->{session}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
+	$self->{user}      = $self->{session}->current_user();
 
 	# If we have an EPrint ID, retrieve its entry from the database
 	if( defined $self->{eprint_id} )
 	{
 		$self->{eprint} = EPrints::EPrint->new( $self->{session},
-		                                        $self->{table},
+		                                        $self->{dataset},
 		                                        $self->{eprint_id} );
 
 		# Check it was retrieved OK
@@ -121,11 +107,32 @@ sub process
 			return;
 		}
 
+		# check that we got the record we wanted - if we didn't
+		# then something is heap big bad. ( This is being a bit
+		# over paranoid, but what the hell )
+		if( $self->{session}->param( "eprint_id" ) ne
+	    		$self->{eprint}->get_value( "eprintid" ) )
+		{
+			my $form_id = $self->{session}->param( "eprint_id" );
+			$self->{session}->get_archive()->log( 
+				"Form error: EPrint ID in form ".
+				$self->{session}->param( "eprint_id" ).
+				" doesn't match object id ".
+				$self->{eprint}->get_value( "eprintid" ) );
+			$self->_corrupt_err;
+			return;
+		}
+
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
 			( $self->{eprint}->get_value( "username" ) ne 
 			  $self->{user}->get_value( "username" ) ) )
 		{
+			$self->{session}->get_archive()->log( 
+				"Illegal attempt to edit record ".
+				$self->{eprint}->get_value( "eprintid" ).
+				" by user with id ".
+				$self->{user}->get_value( "username" ) );
 			$self->_corrupt_err;
 			return;
 		}
@@ -133,17 +140,26 @@ sub process
 
 	$self->{problems} = [];
 	my $ok = 1;
-print STDERR "YAY\n";
 	# Process data from previous stage
 	if( !defined $self->{stage} )
 	{
 		$ok = $self->_from_home();
 	}
-	elsif( defined $EPrints::SubmissionForm::stage_titles{$self->{stage}} )
+	elsif( defined $STAGES->{$self->{stage}} )
 	{
-		# It's a valid stage. Process the results of that stage - done by
-		# calling the function &_from_<stage>
-		my $function_name = "_from_$self->{stage}";
+		# It's a valid stage. 
+
+		# But if we don't have an eprint then something's
+		# gone wrong.
+		if( !defined $self->{eprint} )
+		{
+			$self->_corrupt_err;
+			return( 0 );
+		}
+
+		# Process the results of that stage - done 
+		# by calling the function &_from_stage_<stage>
+		my $function_name = "_from_stage_".$self->{stage};
 		{
 			no strict 'refs';
 			$ok = $self->$function_name();
@@ -155,16 +171,12 @@ print STDERR "YAY\n";
 		return;
 	}
 
+print STDERR "SUBMISSION YAY\n";
 	if( $ok )
 	{
 		# Render stuff for next stage
 
-		# Clear the form, so there are no residual values
-		$self->{session}->{render}->clear();
-
-
-		my $function_name = "_do_$self->{next_stage}";
-
+		my $function_name = "_do_stage_".$self->{next_stage};
 		{
 			no strict 'refs';
 			$self->$function_name();
@@ -225,14 +237,14 @@ sub _from_home
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_new" ) )
+	if( $self->{action} eq "new" )
 	{
 		if( !$self->{staff} )
 		{
 			$self->{eprint} = EPrints::EPrint::create(
 				$self->{session},
-				$self->{table},
-				$self->{user}->{username} );
+				$self->{dataset},
+				$self->{user}->get_value( "username" ) );
 
 			if( !defined $self->{eprint} )
 			{
@@ -244,7 +256,7 @@ sub _from_home
 			else
 			{
 
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
+				$self->{next_stage} = "type";
 			}
 		}
 		else
@@ -254,6 +266,7 @@ sub _from_home
 			return( 0 );
 		}
 	}
+#cjg NOT DONE REST OF THIS FUNCTION
 	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_edit") )
 	{
 		if( !defined $self->{eprint} )
@@ -274,7 +287,7 @@ sub _from_home
 			return( 0 );
 		}
 		
-		my $new_eprint = $self->{eprint}->clone( $self->{table}, 1 );
+		my $new_eprint = $self->{eprint}->clone( $self->{dataset}, 1 );
 
 		if( defined $new_eprint )
 		{
@@ -332,34 +345,32 @@ sub _from_stage_type
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
+	## Process uploaded data
 
-	# Process uploaded data
-	$self->_update_from_type_form();
+	$self->_update_from_form( "type" );
 	$self->{eprint}->commit();
 
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
+	## Process the action
+
+	if( $self->{action} eq "next" )
 	{
 		$self->{problems} = $self->{eprint}->validate_type();
-		if( $#{$self->{problems}} >= 0 )
+		if( scalar @{$self->{problems}} > 0 )
 		{
-			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
+			# There were problems with the uploaded type, 
+			# don't move further
+			$self->{next_stage} = "type";
 		}
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+			$self->{next_stage} = "linking";
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
+	elsif( $self->{action} eq "cancel" )
 	{
 		# Cancelled, go back to author area.
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
+		$self->{next_stage} = "return";
 	}
 	else
 	{
@@ -370,6 +381,58 @@ sub _from_stage_type
 
 	return( 1 );
 }
+
+######################################################################
+#
+#  From sucession/commentary stage
+#
+######################################################################
+
+## WP1: BAD
+sub _from_stage_linking
+{
+	my( $self ) = @_;
+	
+	## Process uploaded data
+
+	$self->_update_from_form( "succeeds" );
+	$self->_update_from_form( "commentary" );
+	$self->{eprint}->commit();
+
+	## What's the next stage?
+
+	if( $self->{action} eq "next" )
+	{
+		$self->{problems} = $self->{eprint}->validate_linking();
+
+		if( scalar @{$self->{problems}} > 0 )
+		{
+			# There were problems with the uploaded type, 
+			# don't move further
+			$self->{next_stage} = "linking";
+		}
+		else
+		{
+			# No problems, onto the next stage
+			$self->{next_stage} = "meta";
+		}
+	}
+	elsif( $self->{action} eq "prev" )
+	{
+		$self->{next_stage} = "type";
+	}
+	elsif( $self->{action} eq "verify" )
+	{
+		# Just stick with this... want to verify ID's
+		$self->{next_stage} = "linking";
+	}
+	else
+	{
+		# Don't have a valid action!
+		$self->_corrupt_err;
+		return( 0 );
+	}
+}	
 
 
 ######################################################################
@@ -382,12 +445,6 @@ sub _from_stage_type
 sub _from_stage_meta
 {
 	my( $self ) = @_;
-
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
 
 	# Process uploaded data
 	$self->_update_from_meta_form();
@@ -440,12 +497,6 @@ sub _from_stage_subject
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
 	# Process uploaded data
 	$self->_update_from_subject_form();
 	$self->{eprint}->commit();
@@ -479,67 +530,6 @@ sub _from_stage_subject
 }
 
 
-######################################################################
-#
-#  From sucession/commentary stage
-#
-######################################################################
-
-## WP1: BAD
-sub _from_stage_linking
-{
-	my( $self ) = @_;
-	
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
-	# Update the values
-	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-
-	$self->{eprint}->{succeeds} =
-		$self->{session}->{render}->form_value( $succeeds_field );
-	$self->{eprint}->{commentary} =
-		$self->{session}->{render}->form_value( $commentary_field );
-	
-	$self->{eprint}->commit();
-	
-	# What's the next stage?
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
-	{
-		$self->{problems} = $self->{eprint}->validate_linking();
-
-		if( $#{$self->{problems}} >= 0 )
-		{
-			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
-		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
-		}
-	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
-	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
-	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_verify") )
-	{
-		# Just stick with this... want to verify ID's
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
-	}
-}	
-
 
 ######################################################################
 #
@@ -552,12 +542,6 @@ sub _from_stage_format
 {
 	my( $self ) = @_;
 	
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
 	my( $format, $button ) = $self->_update_from_format_form();
 
 	if( defined $format )
@@ -643,12 +627,6 @@ sub _from_stage_fileview
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-	
 	# Check the document is OK, and that it is associated with the current
 	# eprint
 	$self->{document} = EPrints::Document->new(
@@ -733,12 +711,6 @@ sub _from_stage_fileview
 sub _from_stage_upload
 {
 	my( $self ) = @_;
-
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
 
 	# Check the document is OK, and that it is associated with the current
 	# eprint
@@ -833,12 +805,6 @@ sub _from_stage_verify
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
 	# We need to know where we came from, so that the Back < button
 	# behaves sensibly. It's in a hidden field.
 	my $prev_stage = $self->{session}->{render}->param( "prev_stage" );
@@ -909,12 +875,6 @@ sub _from_stage_confirmdel
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{eprint} )
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
 	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_confirm") )
 	{
 		if( $self->{eprint}->remove() )
@@ -964,22 +924,124 @@ sub _from_stage_confirmdel
 sub _do_stage_type
 {
 	my( $self ) = @_;
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_type} ) );
 
-	$self->_list_problems();
-	
-	print "<P>".$self->{session}->phrase( "lib/submissionform:sel_type" )."</P>\n";
+	my( $page, $p );
 
-	$self->_render_type_form(
-		[ $self->{session}->phrase("lib/submissionform:action_cancel"),
-			$self->{session}->phrase("lib/submissionform:action_next") ],
-		{ stage=>$EPrints::SubmissionForm::stage_type } );
+	$page = $self->{session}->make_doc_fragment();
 
-	print $self->{session}->{render}->end_html();
+	$page->appendChild( $self->_render_problems() );
+
+	# should this be done with "help?" cjg
+	$p = $self->{session}->make_element( "p" );	
+	$p->appendChild( 
+		$self->{session}->html_phrase( "lib/submissionform:sel_type" ));
+	$page->appendChild( $p );
+
+	my $submit_buttons = {
+		cancel => $self->{session}->phrase(
+				"lib/submissionform:action_cancel" ),
+		next => $self->{session}->phrase( 
+				"lib/submissionform:action_next" ) };
+
+	$page->appendChild( $self->{session}->render_input_form( 
+		[ $self->{dataset}->get_field( "type" ) ],
+	        $self->{eprint}->get_data(),
+	        0,
+	        0,
+	        $submit_buttons,
+	        { stage => "type", 
+		  eprint_id => $self->{eprint}->get_value( "eprintid" ) }
+	) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_type" ),
+		$page );
+	$self->{session}->send_page();
 }
+
+######################################################################
+#
+#  Succession/Commentary form
+#
+######################################################################
+
+## WP1: BAD
+sub _do_stage_linking
+{
+	my( $self ) = @_;
+	
+	my( $page, $p );
+
+	$page = $self->{session}->make_doc_fragment();
+
+	$page->appendChild( $self->_render_problems() );
+
+	my $archive_ds =
+		$self->{session}->get_archive()->get_data_set( "archive" );
+	my $comment = {};
+	my $field_id;
+	foreach $field_id ( "succeeds", "commentary" )
+	{
+		next unless( defined $self->{eprint}->get_value( $field_id ) );
+
+		my $older_eprint = new EPrints::EPrint( 
+			$self->{session}, 
+		        $archive_ds,
+		        $self->{eprint}->get_value( $field_id ) );
+	
+		$comment->{$field_id} = $self->{session}->make_doc_fragment();	
+
+		if( defined $older_eprint )
+		{
+			my $citation = $older_eprint->render_citation();
+			$comment->{$field_id}->appendChild( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:verify",
+					citation => $citation ) );
+		}
+		else
+		{
+			my $idtext = $self->{session}->make_text(
+					$self->{eprint}->get_value($field_id));
+
+			$comment->{$field_id}->appendChild( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:invalid_eprint",
+					eprintid => $idtext ) );
+		}
+	}
+			
+
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ),
+		verify => $self->{session}->phrase(
+				"lib/submissionform:action_verify" ),
+		next => $self->{session}->phrase( 
+				"lib/submissionform:action_next" ) };
+
+	$page->appendChild( $self->{session}->render_input_form( 
+		[ 
+			$self->{dataset}->get_field( "succeeds" ),
+			$self->{dataset}->get_field( "commentary" ) 
+		],
+	        $self->{eprint}->get_data(),
+	        1,
+	        1,
+	        $submit_buttons,
+	        { stage => "linking",
+		  eprint_id => $self->{eprint}->get_value( "eprintid" ) },
+		$comment
+	) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_linking" ),
+		$page );
+	$self->{session}->send_page();
+
+}
+	
+
 
 
 ######################################################################
@@ -997,7 +1059,7 @@ sub _do_stage_meta
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_meta} ) );
-	$self->_list_problems();
+	$self->_render_problems();
 
 	print "<P>".$self->{session}->phrase( "lib/submissionform:bib_info" )."</P>\n";
 
@@ -1024,7 +1086,7 @@ sub _do_stage_subject
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_subject} ) );
-	$self->_list_problems();
+	$self->_render_problems();
 
 	$self->_render_subject_form(
 		[ $self->{session}->phrase("lib/submissionform:action_prev"),
@@ -1034,121 +1096,6 @@ sub _do_stage_subject
 	print $self->{session}->{render}->end_html();
 }	
 
-
-
-######################################################################
-#
-#  Succession/Commentary form
-#
-######################################################################
-
-## WP1: BAD
-sub _do_stage_linking
-{
-	my( $self ) = @_;
-	
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_linking} ) );
-	
-	$self->_list_problems();
-
-	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-
-	print $self->{session}->{render}->start_form();
-	
-	print "<CENTER><P><TABLE BORDER=0>\n";
-
-	# Get the previous version
-
-	print $self->{session}->{render}->input_field_tr(
-		$succeeds_field,
-		$self->{eprint}->{succeeds},
-		1,
-		1 );
-	
-	if( defined $self->{eprint}->{succeeds} &&
-		$self->{eprint}->{succeeds} ne "" )
-	{
-		my $older_eprint = new EPrints::EPrint( $self->{session}, 
-		                                        EPrints::Database::table_name( "archive" ),
-		                                        $self->{eprint}->{succeeds} );
-		
-		if( defined $older_eprint )
-		{
-			print "<TR><TD><STRONG>";
-			print $self->{session}->phrase( "lib/submissionform:verify" );
-			print "</STRONG></TD><TD>";
-			print $self->{session}->{render}->_render_eprint_citation(
-				$older_eprint );
-			print "</TD></TR>\n";
-		}
-		else
-		{
-			print "<TR><TD COLSPAN=2><STRONG>";
-			print $self->{session}->phrase( 
-				"lib/submissionform:invalid_eprint",
-				eprintid=>$self->{eprint}->{succeeds} );
-			print "</STRONG></TD></TR>\n";
-		}
-	}
-			
-	# Get the paper commented on
-
-	print $self->{session}->{render}->input_field_tr(
-		$commentary_field,
-		$self->{eprint}->{commentary},
-		1,
-		1 );
-	
-	if( defined $self->{eprint}->{commentary} &&
-		$self->{eprint}->{commentary} ne "" )
-	{
-		my $older_eprint = new EPrints::EPrint( $self->{session}, 
-		                                        EPrints::Database::table_name( "archive" ),
-		                                        $self->{eprint}->{commentary} );
-		
-		if( defined $older_eprint )
-		{
-			print "<TR><TD><STRONG>Verify:</STRONG></TD><TD>";
-			print $self->{session}->{render}->_render_eprint_citation(
-				$older_eprint );
-			print "</TD></TR>\n";
-		}
-		else
-		{
-			print "<TR><TD COLSPAN=2><STRONG>";
-			print $self->{session}->phrase( 
-				"lib/submissionform:invalid_eprint",
-				eprintid=>$self->{eprint}->{commentary} );
-			print "</STRONG></TD></TR>\n";
-		}
-	}
-
-	print "</TABLE></P></CENTER>\n";
-
-	print $self->{session}->{render}->hidden_field(
-		"eprint_id",
-		$self->{eprint}->{eprintid} );
-	
-	print $self->{session}->{render}->hidden_field(
-		"stage",
-		$EPrints::SubmissionForm::stage_linking );
-
-	print "<CENTER><P>";
-	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("lib/submissionform:action_prev"),
-		  $self->{session}->phrase("lib/submissionform:action_verify"),
-		  $self->{session}->phrase("lib/submissionform:action_next") ] );
-	print "</P></CENTER>";
-
-	print $self->{session}->{render}->end_form();
-	
-	print $self->{session}->{render}->end_html();
-}
-	
 
 
 ######################################################################
@@ -1166,7 +1113,7 @@ sub _do_stage_format
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_format} ) );
-	$self->_list_problems();
+	$self->_render_problems();
 
 	# Validate again, so we know what buttons to put up and how to state stuff
 	$self->{eprint}->prune_documents();
@@ -1252,7 +1199,7 @@ sub _do_stage_fileview
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_fileview} ) );
 
-	$self->_list_problems(
+	$self->_render_problems(
 		$self->{session}->phrase("lib/submissionform:fix_upload"),
 		$self->{session}->phrase("lib/submissionform:please_fix") );
 
@@ -1466,7 +1413,7 @@ sub _do_stage_verify
 
 	if( $#{$self->{problems}} >= 0 )
 	{
-		$self->_list_problems(
+		$self->_render_problems(
 			$self->{session}->phrase("lib/submissionform:fix_probs"),
 			"" );
 
@@ -1597,9 +1544,20 @@ sub _do_stage_return
 #
 ######################################################################
 
+sub _update_from_form
+{
+	my( $self, $field_id ) = @_;
+	
+	my $field = $self->{dataset}->get_field( $field_id );
+
+	$self->{eprint}->set_value( 
+		$field_id,
+		$field->form_value( $self->{session} ) );
+}
+
 ######################################################################
 #
-# _list_problems( $before, $after )
+# _render_problems( $before, $after )
 #
 #  Lists the given problems with the form. If $before and/or $after
 #  are given, they are printed before and after the list. If they're
@@ -1609,121 +1567,66 @@ sub _do_stage_return
 
 
 ## WP1: BAD
-sub _list_problems
+sub _render_problems
 {
 	my( $self, $before, $after ) = @_;
-	
-#	foreach( @{$self->{problems}} )
-#	{
-#	}
 
-	if( defined $self->{problems} && $#{$self->{problems}} >= 0 )
+	my( $p, $ul, $li, $frag );
+	$frag = $self->{session}->make_doc_fragment();
+
+	if( !defined $self->{problems} || scalar @{$self->{problems}} == 0 )
 	{
-		# List the problem(s)
-
-		if( defined $before )
-		{
-			print "<P>$before</P>\n";
-		}
-		else
-		{
-			print "<P>";
-			print $self->{session}->phrase("lib/submissionform:filled_wrong");
-			print "</P>";
-		}
-		
-		print "<UL>\n";
-		foreach (@{$self->{problems}})
-		{
-			print "<LI>$_</LI>\n";
-		}
-		print "</UL>\n";
-		
-		if( defined $after )
-		{
-			print "<P>$after</P>\n";
-		}
-		else
-		{
-			print "<P>";
-			print $self->{session}->phrase("lib/submissionform:please_complete");
-			print "</P>";
-		}
+		# No problems - return an empty node.
+		return $frag;
 	}
-}
 
+	# List the problem(s)
 
-
-
-
-
-
-######################################################################
-#
-#  EPRINT forms
-#
-######################################################################
-
-
-######################################################################
-#
-# _render_type_form( $submit_buttons, $hidden_fields )
-#                     array_ref         hash_ref
-#
-#  Renders the type form. $submit_buttons should be a reference to
-#  an array with the values for submit buttons that should be shown.
-#
-######################################################################
-
-## WP1: BAD
-sub _render_type_form
-{
-	my( $self, $submit_buttons, $hidden_fields ) = @_;
-	
-	my $field = $self->{session}->{metainfo}->find_table_field( "eprint", "type" );
-
-	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
-	
-	$self->{session}->{render}->render_input_form( [ $field ],
-	                                         $self->{eprint},
-	                                         0,
-	                                         0,
-	                                         $submit_buttons,
-	                                         $hidden_fields );
-}
-
-
-######################################################################
-#
-# $success = _update_from_type_form()
-#
-#  Update values from a type form. Doesn't update the database entry -
-#  use commit() to make the changes permanent.
-#
-######################################################################
-
-## WP1: BAD
-sub _update_from_type_form
-{
-	my( $self ) = @_;
-	
-	if( $self->{session}->{render}->param( "eprint_id" ) ne
-	    $self->{eprint}->{eprintid} )
+	$p = $self->{session}->make_element( "p" );
+	if( defined $before )
 	{
-		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_archive()->log( "Form error: EPrint ID in form $form_id doesn't match object id ".$self->{eprint}->{eprintid} );
-		return( 0 );
+		$p->appendChild( $before );
 	}
 	else
 	{
-		my $field = $self->{session}->{metainfo}->find_table_field( "eprint", "type" );
-
-		$self->{eprint}->{type} =
-			$self->{session}->{render}->form_value( $field );
+		$p->appendChild( 	
+			$self->{session}->html_phrase(
+				"lib/submissionform:filled_wrong" ) );
 	}
+	$frag->appendChild( $p );
 
-	return( 1 );
+	$ul = $self->{session}->make_element( "ul" );	
+	foreach (@{$self->{problems}})
+	{
+		$li = $self->{session}->make_element( "li" );
+		$li->appendChild( $_ );
+		$ul->appendChild( $li );
+	}
+	$frag->appendChild( $ul );
+	
+	$p = $self->{session}->make_element( "p" );
+	if( defined $after )
+	{
+		$p->appendChild( $after );
+	}
+	else
+	{
+		$p->appendChild( 	
+			$self->{session}->html_phrase(
+				"lib/submissionform:please_complete" ) );
+	}
+	$frag->appendChild( $p );
+	
+	return $frag;
 }
+
+
+
+
+
+
+
+
 
 ######################################################################
 #
@@ -1841,7 +1744,7 @@ sub _render_subject_form
 #  Render a form for the usernames field.
 #
 ######################################################################
-
+# cjg WHAT DOES THIS DO?
 ## WP1: BAD
 sub _render_users_form
 {
@@ -1921,7 +1824,7 @@ sub _update_from_subject_form
 #  Update usernames data from the form
 #
 ######################################################################
-
+#cjg what is this for?
 ## WP1: BAD
 sub _update_from_users_form
 {
@@ -2205,26 +2108,6 @@ sub _update_from_format_form
 			"remove_$EPrints::DocumentOTHERother" ) );
 	
 	return( undef, undef );
-}
-
-######################################################################
-#
-# initial_actions()
-#
-#  Returns an array of the names of the buttons of the actions 
-#  which may start a submission.
-#
-######################################################################
-
-## WP1: BAD
-sub initial_actions 
-{
-	my ( $session ) = @_;
-	return [ $session->phrase("lib/submissionform:action_new"),
-		 $session->phrase("lib/submissionform:action_edit"),
-		 $session->phrase("lib/submissionform:action_clone"),
-		 $session->phrase("lib/submissionform:action_delete"),
-		 $session->phrase("lib/submissionform:action_submit") ];
 }
 
 1;

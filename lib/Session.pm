@@ -395,10 +395,8 @@ sub render_hidden_field
 {
 	my( $self , $name , $value ) = @_;
 
-	if( defined $self->param( $name ) )
-	{
-		$value = $self->param( $name );
-	}
+# used to grab values from param() if it exists
+# but dosn't now. Is that bad? cjg
 
 	return $self->make_element( "input",
 		name => $name,
@@ -425,6 +423,7 @@ sub render_internal_buttons
 }
 
 
+# cjg buttons nead an order... They are done by a hash
 sub _render_buttons_aux
 {
 	my( $self, $btype, %buttons ) = @_;
@@ -635,7 +634,7 @@ sub render_error
 	{
 		print $self->phrase( 
 			"lib/session:some_error",
-			sitename=>$self->get_archive()->get_conf( "sitename" ) );
+			sitename=>$self->get_archive()->get_conf( "archivename" ) );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
@@ -646,9 +645,9 @@ sub render_error
 
 		$p = $self->make_element( "p" );
 		$p->appendChild( $self->html_phrase( 
-			"some_error",
+			"lib/session:some_error",
 			sitename => $self->make_text( 
-				$self->get_archive()->get_conf( "sitename" ) ) ) );
+				$self->get_archive()->get_conf( "archivename" ) ) ) );
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
@@ -663,7 +662,7 @@ sub render_error
 				href => "mailto:".
 					$self->get_archive()->get_conf( "admin" ) ),
 			sitename => $self->make_text(
-				$self->get_archive()->get_conf( "sitename" ) ) ) );
+				$self->get_archive()->get_conf( "archivename" ) ) ) );
 		$page->appendChild( $p );
 				
 		$p = $self->make_element( "p" );
@@ -708,7 +707,7 @@ sub render_error
 sub render_input_form
 {
 	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
-	    $hidden_fields, $dest ) = @_;
+	    $hidden_fields, $comments, $dest ) = @_;
 
 print STDERR EPrints::Session::render_struct( $values );
 
@@ -725,7 +724,8 @@ print STDERR EPrints::Session::render_struct( $values );
 					     $field,
 		                             $values->{$field->get_name()},
 		                             $show_names,
-		                             $show_help ) );
+		                             $show_help,
+		                             $comments->{$field->get_name()} ) );
 	}
 
 	# Hidden field, so caller can tell whether or not anything's
@@ -750,7 +750,7 @@ print STDERR EPrints::Session::render_struct( $values );
 
 sub _render_input_form_field
 {
-	my( $self, $field, $value, $show_names, $show_help ) = @_;
+	my( $self, $field, $value, $show_names, $show_help, $comment ) = @_;
 	
 	my( $div, $html, $span );
 
@@ -793,6 +793,15 @@ sub _render_input_form_field
 	$div = $self->make_element( "div", class => "formfieldinput" );
 	$div->appendChild( $field->render_input_field( $self, $value ) );
 	$html->appendChild( $div );
+
+	if( defined $comment )
+	{
+		$div = $self->make_element( 
+			"div", 
+			class => "formfieldcomment" );
+		$div->appendChild( $comment );
+		$html->appendChild( $div );
+	}
 
 	return( $html );
 }	
@@ -902,7 +911,7 @@ sub _tag_compression
 	my ($tag, $elem) = @_;
 
 	# Print empty br, hr and img tags like this: <br />
-	return 2 if $tag =~ /^(br|hr|img)$/;
+	return 2 if $tag =~ /^(br|hr|img|input)$/;
 	
 	# Print other empty tags like this: <empty></empty>
 	return 1;

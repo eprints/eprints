@@ -190,70 +190,9 @@ sub upload_field
 		-maxlength=>$EPrints::HTMLRender::field_max ) );
 }
 
-######################################################################
-#
-# $seen = seen_form()
-#
-#  Returns 1 if form data has been posted; i.e. if the script has already
-#  been called and the user has entered data and clicked "submit."
-#
-######################################################################
 
 
 
-
-
-
-######################################################################
-#
-# set_param( $name, $value )
-#
-#  Set a query parameter, in case you want to change the default
-#  for a form.
-#
-######################################################################
-
-## WP1: BAD
-sub set_param
-{
-	my( $self, $name, $value ) = @_;
-
-	$self->{query}->param( -name=>$name, -value=>$value );
-}
-
-
-
-
-######################################################################
-#
-# clear()
-#
-#  Clears the form data.
-#
-######################################################################
-
-## WP1: BAD
-sub clear
-{
-	my( $self ) = @_;
-	
-	$self->{query}->delete_all();
-}
-
-
-
-
-
-######################################################################
-#
-# $citation = render_eprint_citation( $eprint, $html, $linked )
-#
-#  Render a citation for the given EPrint. If $html is non-zero, the 
-#  citation will be rendered in HTML, otherwise it will just be plain
-#  text. If $linked and $html are non-zero, the citation will be
-#  rendered as a link to the static page.
-#
-######################################################################
 
 
 ######################################################################

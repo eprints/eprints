@@ -368,5 +368,17 @@ sub get_type_name
         return $session->phrase( "typename_".$self->confid()."_".$type );
 }
 
+sub get_type_fields
+{
+	my( $self, $type ) = @_;
+
+	return @{$self->{types}->{$type}};
+}
+
+sub is_valid_type
+{
+	my( $self, $type ) = @_;
+	return( defined $self->{types}->{$type} );
+}
 
 1;

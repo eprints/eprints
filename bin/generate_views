@@ -97,7 +97,7 @@ sub write_subject_view
 	foreach $eprint (@eprints)
 	{
 		$p = $session->make_element( "p" );
-		$p->appendChild( $eprint->to_html_link() );
+		$p->appendChild( $eprint->render_citation_link() );
 		$page->appendChild( $p );
 	}
 	$session->build_page( $title, $page );

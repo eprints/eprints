@@ -56,7 +56,7 @@ sub generate_dtd
 
 	my $dtd = "";
 	$dtd.= "<!ENTITY sitename \"".
-		$session->get_archive()->get_conf( "sitename" ).
+		$session->get_archive()->get_conf( "archivename" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY description \"".
 		$session->get_archive()->get_conf( "description" ).

@@ -33,7 +33,7 @@ sub get_system_field_info
 	( 
 		{ name=>"username", type=>"text", required=>1, editable=>0 },
 
-		{ name=>"passwd", type=>"text", required=>1, editable=>0 },
+		{ name=>"passwd", type=>"text", required=>1, editable=>1 },
 
 		{ name=>"usertype", type=>"datatype", required=>1, editable=>0, datasetid=>"user" },
 
@@ -350,10 +350,10 @@ sub send_introduction
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
-		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_archive()->get_conf( "sitename" ) ),
+		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_archive()->get_conf( "archivename" ) ),
 		$self->{email},
 		$self->{session}->phrase( "lib/user:welcome", 
-		                          sitename=>$self->{session}->get_archive()->get_conf( "sitename" ) ),
+		                          sitename=>$self->{session}->get_archive()->get_conf( "archivename" ) ),
 		$self->{session}->get_archive()->get_conf( "template_user_intro" ),
 		$self ) );
 }
@@ -376,7 +376,7 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->phrase(
 	     	"lib/user:reminder",
-		 sitename=>$self->{session}->get_archive()->get_conf( "sitename" ),
+		 sitename=>$self->{session}->get_archive()->get_conf( "archivename" ),
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},

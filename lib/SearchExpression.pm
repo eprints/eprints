@@ -672,7 +672,7 @@ sub process_webpage
 		foreach $result (@results)
 		{
 			$p = $self->{session}->make_element( "p" );
-			$p->appendChild( $result->to_html_link() );
+			$p->appendChild( $result->render_citation_link() );
 			$page->appendChild( $p );
 		}
 

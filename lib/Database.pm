@@ -432,7 +432,7 @@ sub update
 	my @aux;
 	my %values = ();
 	my $field;
-	foreach( @fields ) 
+	foreach $field ( @fields ) 
 	{
 		if( $field->get_property( "multiple" ) ) 
 		{ 

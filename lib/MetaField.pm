@@ -321,7 +321,8 @@ sub set_property
 	{
 		if( $PROPERTIES->{$property} eq "NO_DEFAULT" )
 		{
-			die $PROPERTIES->{$property}." on a metafield can't be undef";
+			EPrints::Session::bomb();#cjg
+			die $property." on a metafield can't be undef";
 		}
 		$self->{$property} = $PROPERTIES->{$property};
 	}
@@ -399,6 +400,7 @@ sub render_value
 
 	if( $self->is_type( "datatype" ) )
 	{
+		# BAD {labels} DEPR
 		$html = $self->{labels}->{$value} if( defined $value );
 		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 	}
@@ -480,6 +482,7 @@ sub render_value
 			{
 				$html .=  ", " unless( $first );
 				$first=1 if( $first );
+	#bad {labels} dep
 				$html .= $self->{labels}->{$value};
 			}
 		}
@@ -534,8 +537,9 @@ sub render_input_field
 	
 		if( $self->is_type( "set" ) )
 		{
-			$tags = $self->{tags};
-			$labels = $self->{labels};
+			$tags = $self->{options};
+			$labels = {};
+			foreach( @{$tags} ) { $labels->{$_} = $_; } # hack!!!cjg
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
@@ -721,7 +725,7 @@ print STDERR "$n... val($value)\n";
 	{
 		my( $div , $textarea , $id );
  		$id = $self->{name}.$id_suffix;
-		if( $session->internal_button_pressed() )
+		if( $session->internal_button_pressed() )#cjg???
 		{
 			$value = $session->param( $id );
 		}
@@ -745,7 +749,7 @@ print STDERR "$n... val($value)\n";
 	{
 		my( $div , $id);
  		$id = $self->{name}.$id_suffix;
-		if( $session->internal_button_pressed() )
+		if( $session->internal_button_pressed() )#cjg???
 		{
 			$value = $session->param( $id );
 		}
@@ -766,7 +770,7 @@ print STDERR "$n... val($value)\n";
 		my( $tr, $td , $givenid, $familyid );
  		$givenid = $self->{name}.$id_suffix."_given";
  		$familyid = $self->{name}.$id_suffix."_family";
-		if( $session->internal_button_pressed() )
+		if( $session->internal_button_pressed() )#cjg???
 		{
 			$value->{family} = $session->param( $familyid );
 			$value->{given} = $session->param( $givenid );
@@ -802,7 +806,7 @@ print STDERR "$n... val($value)\n";
 		@pages = split /-/, $value if( defined $value );
  		$fromid = $self->{name}.$id_suffix."_from";
  		$toid = $self->{name}.$id_suffix."_to";
-		if( $session->internal_button_pressed() )
+		if( $session->internal_button_pressed() )#cjg???
 		{
 			$pages[0] = $session->param( $fromid );
 			$pages[1] = $session->param( $toid );
@@ -851,7 +855,7 @@ print STDERR "$n... val($value)\n";
  		$dayid = $self->{name}.$id_suffix."_day";
  		$monthid = $self->{name}.$id_suffix."_month";
  		$yearid = $self->{name}.$id_suffix."_year";
-		if( $session->internal_button_pressed() )
+		if( $session->internal_button_pressed() )#cjg???
 		{
 			$month = $session->param( $monthid );
 			$day = $session->param( $dayid );

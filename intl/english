@@ -112,7 +112,6 @@
     <phrase ref="lib/session:eprint_gone_title">EPrint Removed</phrase>
     <phrase ref="lib/session:eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
     <phrase ref="lib/session:later_version">There is a later version of the eprint you are trying to access:</phrase>
-
     <phrase ref="lib/session:no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
     <phrase ref="lib/session:no_priv">Your account does not have the required privilege to use this function.</phrase>
 
@@ -122,7 +121,7 @@
     <phrase ref="lib/submissionform:upload_prob">There was a problem uploading your file(s). Please try again.</phrase>
     <phrase ref="lib/submissionform:sel_type">Please select the most appropriate type for your deposit.</phrase>
     <phrase ref="lib/submissionform:bib_info">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
-    <phrase ref="lib/submissionform:verify">Verify:</phrase>
+    <phrase ref="lib/submissionform:verify">Verify: <pin ref="citation" /></phrase>
     <phrase ref="lib/submissionform:invalid_eprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
     <phrase ref="lib/submissionform:valid_formats">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
     <phrase ref="lib/submissionform:least_one">You must upload at least one of the formats listed in bold.</phrase>
@@ -154,15 +153,10 @@
     <phrase ref="lib/submissionform:size_bytes">Size (Bytes)</phrase>
     <phrase ref="lib/submissionform:shown_first">Shown First</phrase>
     <phrase ref="lib/submissionform:show_first">Show first</phrase>
-    <phrase ref="lib/submissionform:action_new">New</phrase>
-    <phrase ref="lib/submissionform:action_delete">Delete</phrase>
-    <phrase ref="lib/submissionform:action_edit">Edit</phrase>
     <phrase ref="lib/submissionform:action_next">Néxt ></phrase>
     <phrase ref="lib/submissionform:action_prev">&lt; Back</phrase>
-    <phrase ref="lib/submissionform:action_submit">Deposit</phrase>
     <phrase ref="lib/submissionform:action_cancel">Cancel</phrase>
     <phrase ref="lib/submissionform:action_confirm">Confirm</phrase>
-    <phrase ref="lib/submissionform:action_clone">Clone</phrase>
     <phrase ref="lib/submissionform:action_uploadedit">Upload/Edit </phrase>
     <phrase ref="lib/submissionform:action_finished">Finished</phrase>
     <phrase ref="lib/submissionform:action_upload">Upload ></phrase>
@@ -238,6 +232,11 @@
     <phrase ref="cgi/users/home:start_upload">Click here to start uploading a document</phrase>
     <phrase ref="cgi/users/home:pending_title">Pending Items</phrase>
     <phrase ref="cgi/users/home:deposited_at">Deposited <pin ref="time" /></phrase>
+    <phrase ref="cgi/users/home:action_new">New</phrase>
+    <phrase ref="cgi/users/home:action_delete">Delete</phrase>
+    <phrase ref="cgi/users/home:action_edit">Edit</phrase>
+    <phrase ref="cgi/users/home:action_clone">Clone</phrase>
+    <phrase ref="cgi/users/home:action_submit">Deposit</phrase>
 
 <!-- review -->
 

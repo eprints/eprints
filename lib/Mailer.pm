@@ -41,9 +41,9 @@ sub send_mail
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";
-From: $session->get_archive()->get_conf( "sitename" ) <$session->get_archive()->get_conf( "admin" )>
+From: $session->get_archive()->get_conf( "archivename" ) <$session->get_archive()->get_conf( "admin" )>
 To: $name <$address>
-Subject: $session->get_archive()->get_conf( "sitename" ): $subject
+Subject: $session->get_archive()->get_conf( "archivename" ): $subject
 
 $body
 
@@ -121,7 +121,7 @@ sub update_template_line
 		$new_line =~ s/__usermail__/$user->{email}/g;
 	}
 	
-	$new_line =~ s/__sitename__/$session->get_archive()->get_conf( "sitename" )/g;
+	$new_line =~ s/__sitename__/$session->get_archive()->get_conf( "archivename" )/g;
 	$new_line =~ s/__description__/$session->get_archive()->get_conf( "description" )n/g;
 	$new_line =~ s/__admin__/$session->get_archive()->get_conf( "admin" )/g;
 	$new_line =~ s/__perlroot__/$session->get_archive()->get_conf( "server_perl" )/g;
