@@ -160,34 +160,37 @@ sub process
 	{
 		$self->{stage} = "home";
 	}
-
-	if( defined $STAGES->{$self->{stage}} )
+	else
 	{
-		# It's a valid stage. 
-
-		# But if we don't have an eprint then something's
+		# For stages other than home, 
+		# if we don't have an eprint then something's
 		# gone wrong.
 		if( !defined $self->{eprint} )
 		{
 			$self->_corrupt_err;
 			return( 0 );
 		}
+	}
 
-		# Process the results of that stage - done 
-		# by calling the function &_from_stage_<stage>
-		my $function_name = "_from_stage_".$self->{stage};
-		{
-			no strict 'refs';
-			$ok = $self->$function_name();
-		}
-print STDERR "SUBMISSION done $function_name\n";
-	}
-	else
+	if( !defined $STAGES->{$self->{stage}} )
 	{
-		$self->_corrupt_err;
-		return( 0 );
+		# It's not a valid stage. 
+		if( !defined $self->{eprint} )
+		{
+			$self->_corrupt_err;
+			return( 0 );
+		}
 	}
-print STDERR "xxxxxxxxxxxxxxxxxxxxxxxx\n";
+
+	# Process the results of that stage - done 
+	# by calling the function &_from_stage_<stage>
+	my $function_name = "_from_stage_".$self->{stage};
+	{
+		no strict 'refs';
+		$ok = $self->$function_name();
+	}
+
+print STDERR "xxxxxxxxx SUBMISSION done $function_name\n";
 
 	if( $ok )
 	{
@@ -257,48 +260,44 @@ sub _from_stage_home
 	# Create a new EPrint
 	if( $self->{action} eq "new" )
 	{
-		if( !$self->{staff} )
-		{
-			$self->{eprint} = EPrints::EPrint::create(
-				$self->{session},
-				$self->{dataset},
-				$self->{user}->get_value( "username" ) );
-
-			if( !defined $self->{eprint} )
-			{
-				my $db_error = $self->{session}->{database}->error();
-				$self->{session}->get_archive()->log( "Database Error: $db_error" );
-				$self->_database_err;
-				return( 0 );
-			}
-			else
-			{
-
-				$self->_set_stage_next();
-			}
-		}
-		else
+		if( $self->{staff} )
 		{
 			$self->{session}->render_error( $self->{session}->phrase(
-			        "lib/submissionform:use_auth_area" ) );
+		        	"lib/submissionform:use_auth_area" ) );
 			return( 0 );
 		}
+		$self->{eprint} = EPrints::EPrint::create(
+			$self->{session},
+			$self->{dataset},
+			$self->{user}->get_value( "username" ) );
+
+		if( !defined $self->{eprint} )
+		{
+			my $db_error = $self->{session}->{database}->error();
+			$self->{session}->get_archive()->log( "Database Error: $db_error" );
+			$self->_database_err;
+			return( 0 );
+		}
+
+		$self->_set_stage_next();
+		return( 1 );
 	}
-	elsif( $self->{action} eq "edit" )
+
+	if( $self->{action} eq "edit" )
 	{
 		if( !defined $self->{eprint} )
 		{
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
-		else
-		{
-			$self->_set_stage_next;
-			return( 1 );
-		}
+
+		$self->_set_stage_next;
+		return( 1 );
 	}
+
+
 #cjg NOT DONE REST OF THIS FUNCTION
-	elsif( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
+	if( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
 	{
 		if( !defined $self->{eprint} )
 		{
@@ -587,32 +586,60 @@ sub _from_stage_format
 		return( 1 );
 	}
 
-	# edit
-	# finished	
-	# remove
-
-####	x17
-#	my( $format, $button ) = $self->_update_from_format_form();
-#
-#	if( defined $format )
+#	if( $self->{action} eq "finished" )
 #	{
-#		# Find relevant document object
-#		$self->{document} = $self->{eprint}->get_document( $format );
+#		$self->{problems} = $self->{eprint}->validate_documents();
 #
-#		if( $button eq "remove" )
+#		if( $#{$self->{problems}} >= 0 )
 #		{
-#			# Remove the offending document
-#			if( !defined $self->{document} || !$self->{document}->remove() )
-#			{
-#				$self->_corrupt_err;
-#				return( 0 );
-#			}
-#
-#			$self->{new_stage} = $EPrints::SubmissionForm::stage_format;
-#			return( 1 );
+#			# Problems, don't advance a stage
+#			$self->_set_stage_this;
+#			return( 1 )
 #		}
+#
+#		$self->_set_stage_next;
+#		return( 1 );
+#	}
 
-#		if( $button eq "edit" )
+	#### The other actions ( edit & remove ) have a doc
+	#### Attached to their action id.
+
+print STDERR "=====================================\n";	
+print STDERR $self->{action}."!";
+
+	unless( $self->{action} =~ m/^([a-z]+)_(.*)$/ )
+	{
+		$self->_corrupt_err;
+		return( 0 );
+	}
+	my( $doc_action, $docid ) = ( $1, $2 );
+		
+print STDERR "($doc_action)($docid)\n";
+
+	# Find relevant document object
+	$self->{document} = EPrints::Document->new( $self->{session}, $docid );
+
+	if( !defined $self->{document} )
+	{
+		$self->_corrupt_err;
+		return( 0 );
+	}
+
+	if( $doc_action eq "remove" )
+	{
+		# Remove the offending document
+		if( !$self->{document}->remove() )
+		{
+			$self->_corrupt_err;
+			return( 0 );
+		}
+
+		$self->{new_stage} = "format";
+		return( 1 );
+	}
+
+
+#		if( $doc_action eq "edit" )
 #		{
 #			# Edit the document, creating it first if necessary
 #			if( !defined $self->{document} )
@@ -637,32 +664,10 @@ sub _from_stage_format
 #		return( 0 );
 #	}
 
-#	if( $self->{action} eq "prev" )
-#	{
-#		# prev stage depends if we're linking users or not
-#		$self->_set_stage_prev;
-#		return( 1 );
-#	}
 
-#	if( $self->{action} eq "finished" )
-#	{
-#		$self->{problems} = $self->{eprint}->validate_documents();
-#
-#		if( $#{$self->{problems}} >= 0 )
-#		{
-#			# Problems, don't advance a stage
-#			$self->_set_stage_this;
-#			return( 1 )
-#		}
-#
-#		$self->_set_stage_next;
-#		return( 1 );
-#	}
-#
-#
-#	$self->_corrupt_err;
-#	return( 0 );
-#		
+
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -681,69 +686,101 @@ sub _from_stage_fileview
 	# eprint
 	$self->{document} = EPrints::Document->new(
 		$self->{session},
-		$self->{session}->{render}->param( "doc_id" ) );
+		$self->{session}->param( "docid" ) );
 
 	if( !defined $self->{document} ||
-	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )#cjg!!
+	    $self->{document}->get_value( "eprintid" ) ne $self->{eprint}->get_value( "eprintid" ) )
 	{
 		$self->_corrupt_err;
 		return( 0 );
 	}
-	
-	# Check to see if a fileview button was pressed, process it if necessary
-	if( $self->_update_from_fileview( $self->{document} ) )
-	{
-		# Doc object will have updated as appropriate, commit changes
-		unless( $self->{document}->commit() )
-		{
-			$self->_database_err;
-			return( 0 );
-		}
-		
-		$self->{new_stage} = "fileview";
-		return( 1 );
-	}
-	
+print STDERR "_-----------------------------\n";
+print STDERR $self->{action}."\n";
 
-	# Fileview button wasn't pressed, so it was an action button
-	# Update the description if appropriate
-	if( $self->{document}->{format} eq $EPrints::Document::OTHER )
-	{
-		$self->{document}->{formatdesc} =
-			$self->{session}->{render}->param( "formatdesc" );
-		$self->{document}->commit();
-	}
+#	my %files_unsorted = $self->{document}->files();
+#	my @files = sort keys %files_unsorted;
+#	my $i;
+#	my $consumed = 0;
+#	
+#	# Determine which button was pressed
+#	if( defined $self->{session}->{render}->param( "deleteall" ) )
+#	{
+#		# Delete all button
+#		$self->{document}->remove_all_files();
+#		$consumed = 1;
+#	}
+#
+#	for( $i=0; $i <= $#files; $i++ )
+#	{
+#		if( defined $self->{session}->{render}->param( "main_$i" ) )
+#		{
+#			# Pressed "Show First" button for this file
+#			$self->{document}->set_main( $files[$i] );
+#			$consumed = 1;
+#		}
+#		elsif( defined $self->{session}->{render}->param( "delete_$i" ) )
+#		{
+#			# Pressed "delete" button for this file
+#			$self->{document}->remove_file( $files[$i] );
+#			$self->{document}->set_main( undef ) if( $files[$i] eq $self->{document}->{main} );
+#			$consumed = 1;
+#		}
+#	}
+#	
+#	# Check to see if a fileview button was pressed, process it if necessary
+#	if( $consumed )
+#	{
+#		# Doc object will have updated as appropriate, commit changes
+#		unless( $self->{document}->commit() )
+#		{
+#			$self->_database_err;
+#			return( 0 );
+#		}
+#		
+#		$self->{new_stage} = "fileview";
+#		return( 1 );
+#	}
+#	
+#
+#	# Fileview button wasn't pressed, so it was an action button
+#	# Update the description if appropriate
+#	if( $self->{document}->{format} eq $EPrints::Document::OTHER )
+#	{
+#		$self->{document}->{formatdesc} =
+#			$self->{session}->{render}->param( "formatdesc" );
+#		$self->{document}->commit();
+#	}
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{new_stage} = "fileview";
-		return( 1 );
-	}
-
-	if( $self->{action} eq "upload" )
-	{
-		# Set up info for next stage
-		$self->{arc_format} =
-			$self->{session}->{render}->param( "arc_format" );
-		$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
-		$self->{new_stage} = "upload";
-		return( 1 );
-	}
-	
-	if( $self->{action} eq "finished" )
-	{
-		# Finished uploading apparently. Validate.
-		$self->{problems} = $self->{document}->validate();
-			
-		if( $#{$self->{problems}} >= 0 )
-		{
-			$self->{new_stage} = "fileview";
-			return( 1 );
-		}
-
 		$self->{new_stage} = "format";
 		return( 1 );
 	}
+#
+#	if( $self->{action} eq "upload" )
+#	{
+#		# Set up info for next stage
+#		$self->{arc_format} =
+#			$self->{session}->{render}->param( "arc_format" );
+#		$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
+#		$self->{new_stage} = "upload";
+#		return( 1 );
+#	}
+#	
+#	if( $self->{action} eq "finished" )
+#	{
+#		# Finished uploading apparently. Validate.
+#		$self->{problems} = $self->{document}->validate();
+#			
+#		if( $#{$self->{problems}} >= 0 )
+#		{
+#			$self->{new_stage} = "fileview";
+#			return( 1 );
+#		}
+#
+#		$self->{new_stage} = "format";
+#		return( 1 );
+#	}
 	
 	# Erk! Unknown action.
 	$self->_corrupt_err;
@@ -766,7 +803,7 @@ sub _from_stage_upload
 	# eprint
 	my $doc = EPrints::Document->new(
 		$self->{session},
-		$self->{session}->{render}->param( "doc_id" ) );
+		$self->{session}->{render}->param( "docid" ) );
 	$self->{document} = $doc;
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )#cjg!!
@@ -1215,7 +1252,7 @@ sub _do_stage_format
 			"lib/submissionform:valid_formats") );
 	$page->appendChild( $p );
 
-	$form = $self->{session}->render_form( "post" );
+	$form = $self->{session}->render_form( "post", "submit#t" );
 	$page->appendChild( $form );
 
 	$table = $self->{session}->make_element( "table", border=>1 );
@@ -1255,7 +1292,11 @@ sub _do_stage_format
 		$td->appendChild( $self->{session}->render_action_buttons(
 			"edit_".$doc->get_value( "docid" ) => 
 				$self->{session}->phrase( 
-					"lib/submissionform:action_edit" ) ) );
+					"lib/submissionform:action_edit" ) ,
+			"remove_".$doc->get_value( "docid" ) => 
+				$self->{session}->phrase( 
+					"lib/submissionform:action_remove" ) 
+		) );
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons(
@@ -1359,7 +1400,7 @@ sub _do_stage_fileview
 	my $doc = $self->{document};
 
 	my $arc_format_field = EPrints::MetaField->new(
-		config=>'format',
+		confid=>'format',
 		name=>'arcformat',
 		type=>'set',
 		options => [ 
@@ -1369,7 +1410,7 @@ sub _do_stage_fileview
 			] );		
 
 	my $num_files_field = EPrints::MetaField->new(
-		config=>'format',
+		confid=>'format',
 		name=>'nfields',
 		type=>'int',
 		digits=>2 );
@@ -1377,7 +1418,7 @@ sub _do_stage_fileview
 	my $hidden_fields = {	
 		docid => $doc->get_value( "docid" ),
 		eprintid => $self->{eprint}->get_value( "eprintid" ),
-		stage => "subject" };
+		stage => "fileview" };
 
 	my $submit_buttons = {
 		prev => $self->{session}->phrase(
@@ -1385,13 +1426,13 @@ sub _do_stage_fileview
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) };
 
+	#cjg
 	#if( scalar keys %files > 0 ) {
 		$submit_buttons->{finished} = $self->{session}->phrase("lib/submissionform:action_finished");
 	#}
 	$page->appendChild( $self->_render_problems(
 		$self->{session}->phrase("lib/submissionform:fix_upload"),
 		$self->{session}->phrase("lib/submissionform:please_fix") ) );
-
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
@@ -1405,8 +1446,6 @@ sub _do_stage_fileview
 			"submit#t" ) );
 
 	
-#
-#
 #	# Render the form
 #
 #	print $self->{session}->{render}->start_html(
@@ -1481,7 +1520,7 @@ sub _do_stage_fileview
 #	print $self->{session}->{render}->hidden_field(
 #		"eprintid",
 #		$self->{eprint}->{eprintid} );
-#	print $self->{session}->{render}->hidden_field( "doc_id", $doc->{docid} );
+#	print $self->{session}->{render}->hidden_field( "docid", $doc->{docid} );
 #
 #	$self->{session}->{render}->end_form();
 
@@ -1572,7 +1611,7 @@ sub _do_stage_upload
 	print $self->{session}->{render}->hidden_field(
 		"eprintid",
 		$self->{eprint}->{eprintid} );#cjg!!!
-	print $self->{session}->{render}->hidden_field( "doc_id",
+	print $self->{session}->{render}->hidden_field( "docid",
 	                                                $self->{document}->{docid} );
 	print $self->{session}->{render}->hidden_field( "numfiles",
 	                                                $self->{numfiles} );
@@ -1903,56 +1942,6 @@ sub _render_file_view
 
 	return( $html );
 }
-
-######################################################################
-#
-# $consumed = _update_from_fileview()
-#
-#  Update document object according to form. If $consumed, then a
-#  button on the fileview form was pressed. $consumed is left as 0
-#  if the fileview didn't receive a button press (hence another button
-#  must have been pressed.)
-#
-######################################################################
-
-## WP1: BAD
-sub _update_from_fileview
-{
-	my( $self, $document ) = @_;
-	
-	my %files_unsorted = $document->files();
-	my @files = sort keys %files_unsorted;
-	my $i;
-	my $consumed = 0;
-	
-	# Determine which button was pressed
-	if( defined $self->{session}->{render}->param( "deleteall" ) )
-	{
-		# Delete all button
-		$document->remove_all_files();
-		$consumed = 1;
-	}
-
-	for( $i=0; $i <= $#files; $i++ )
-	{
-		if( defined $self->{session}->{render}->param( "main_$i" ) )
-		{
-			# Pressed "Show First" button for this file
-			$document->set_main( $files[$i] );
-			$consumed = 1;
-		}
-		elsif( defined $self->{session}->{render}->param( "delete_$i" ) )
-		{
-			# Pressed "delete" button for this file
-			$document->remove_file( $files[$i] );
-			$document->set_main( undef ) if( $files[$i] eq $document->{main} );
-			$consumed = 1;
-		}
-	}
-
-	return( $consumed );
-}
-
 
 sub _set_stage_next
 {

@@ -439,8 +439,7 @@ sub update
 	# it now:
 	my $where = $keyfield->get_name()." = \"$keyvalue\"";
 
-	my $indextable = $dataset->get_sql_index_table_name();
-	$sql = "DELETE FROM $indextable WHERE $where";
+	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
 	$rv = $rv && $self->do( $sql );
 
 	my @aux;
@@ -610,6 +609,7 @@ sub update
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
 
+
 			if( $multifield->is_text_indexable )
 			{
 				$self->_freetext_index( 
@@ -640,14 +640,33 @@ sub update
 ## WP1: BAD
 sub remove
 {
-die "remove not fini_cjgshed";# don't forget to prep values
-	my( $self, $tableid, $field, $value ) = @_;
+	my( $self, $dataset, $id ) = @_;
 
-	my $table = table_name( $tableid );
-	
-	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
+	my $rv=1;
 
-	my $rv = $self->do( $sql );
+	my $keyfield = $dataset->get_key_field();
+
+	my $keyvalue = prep_value( $id );
+
+	my $where = $keyfield->get_name()." = \"$keyvalue\"";
+
+	# Delete Index
+	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
+	$rv = $rv && $self->do( $sql );
+
+	# Delete Subtables
+	my $field;
+	foreach $field ( @fields ) 
+	{
+		next unless( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) );
+		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
+		$sql = "DELETE FROM $auxtable WHERE $where";
+		$rv = $rv && $self->do( $sql );
+	}
+
+	# Delete main table
+	$sql = "DELETE FROM ".$dataset->get_sql_table_name()." WHERE ".$where;
+	$rv = $rv && $self->do( $sql );
 
 	# Return with an error if unsuccessful
 	return( defined $rv )

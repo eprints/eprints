@@ -263,21 +263,19 @@ sub clone
 #
 ######################################################################
 
-## WP1: BAD NEEEEEEEEEEEEED
 sub remove
 {
 	my( $self ) = @_;
 
 	# Remove database entry
-	my $success = $self->{session}->{database}->remove(
-		EPrints::Database::table_name( "document" ),
-		"docid",
-		$self->{docid} );
+	my $success = $self->{session}->get_db()->remove(
+		$self->{session}->get_archive()->get_dataset( "document" ),
+		$self->get_value( "docid" ) );
 	
 	if( !$success )
 	{
-		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_archive()->log( "Error removing document ".$self->{docid}." from database: $db_error" );
+		my $db_error = $self->{session}->get_db()->error();
+		$self->{session}->get_archive()->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
 		return( 0 );
 	}
 
@@ -287,7 +285,7 @@ sub remove
 
 	if( $num_deleted <= 0 )
 	{
-		$self->{session}->get_archive()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
+		$self->{session}->get_archive()->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
 		$success = 0;
 	}
 
@@ -307,7 +305,6 @@ sub remove
 sub get_eprint
 {
 	my( $self ) = @_;
-die "bugger off";
 	
 	# If we have it already just pass it on
 	return( $self->{eprint} ) if( defined $self->{eprint} );
@@ -315,7 +312,7 @@ die "bugger off";
 	# Otherwise, create object and return
 	$self->{eprint} = new EPrints::EPrint( $self->{session},
 	                                       undef,
-	                                       $self->{eprintid} );
+	                                       $self->get_value( "eprintid" ) );
 	
 	return( $self->{eprint} );
 }
@@ -360,7 +357,7 @@ sub local_path
 	
 	return( undef ) if( !defined $eprint );
 	
-	return( $eprint->local_path() . "/" . $self->{docid} );
+	return( $eprint->local_path() . "/" . $self->get_value( "docid" ) );
 }
 
 

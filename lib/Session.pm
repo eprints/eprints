@@ -1354,7 +1354,8 @@ sub send_http_header
 
 	my $r = Apache->request;
 	$r->content_type( 'text/html; charset=UTF-8' );
-	$r->no_cache( 1 );
+	$r->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
+	$r->header_out( "Pragma"=>"no-cache" );
 
 	if( defined $opts{lang} )
 	{

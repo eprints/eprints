@@ -759,41 +759,6 @@ sub validate_linking
 }
 
 
-######################################################################
-#
-# $document = get_document( $format )
-#
-#  Gets an associated document with the given format.
-#
-######################################################################
-
-## WP1: BAD
-sub get_document
-{
-	my( $self, $format ) = @_;
-	
-	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
-
-	# Grab relevant rows from the database.
-	my $rows = $self->{session}->{database}->retrieve_fields(
-		"document",
-		\@fields,
-		[ "eprintid LIKE \"$self->{eprintid}\"", "format LIKE \"$format\"" ] );
-
-	if( $#{$rows} == -1 )
-	{
-		# Haven't got one
-		return( undef );
-	}
-	else
-	{
-		# Return the first
-		my $document = EPrints::Document->new( $self->{session},
-		                                       undef,
-		                                       $rows->[0] );
-		return( $document );
-	}
-}
 
 
 ######################################################################
