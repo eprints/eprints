@@ -41,6 +41,8 @@
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
+0	MathML/TeX mathmode support.
+0	Multiple Citation formats
 0	UserSearch needs to work and stuff.
 0	Staff Eprint & User searches
 0	XML 1.1 Support

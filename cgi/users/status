@@ -67,7 +67,7 @@ $table->appendChild( render_row(
 		$session,
 		$session->make_text( "EPrints Release:" ), 
 		$session->make_text( 
-			$EPrints::Config::get( "version_desc" ) ) ) );
+			EPrints::Config::get( "version_desc" ) ) ) );
 
 $table->appendChild(
 	render_row( 
