@@ -1,0 +1,105 @@
+######################################################################
+#
+#  View Record
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::HTMLRender;
+use EPrints::MetaField;
+use EPrints::OpenArchives;
+use EPrints::Session;
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session();
+
+# First work out what the ID is
+my $eprintid_in = $session->{render}->param( "eprintid" );
+
+my $openarchives_id_stem = $EPrintSite::SiteInfo::archive_identifier .
+	$EPrints::OpenArchives::id_separator .
+	$EPrintSite::SiteInfo::eprint_id_stem;
+
+my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits;
+my $eprintid = undef;
+
+# Work out what form it's in
+if( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
+{
+	# Full open archives ID
+	$eprintid = $EPrintSite::SiteInfo::eprint_id_stem . $1;
+}
+elsif( $eprintid_in =~
+	/^($EPrintSite::SiteInfo::eprint_id_stem$idcode_match)$/ )
+{
+	# Standard EPrint ID code
+	$eprintid = $1;
+}
+elsif( $eprintid_in =~ /^\d+$/ )
+{
+	# Just some digits. Prepend the site stem and any necessary zeroes.
+	$eprintid = $EPrintSite::SiteInfo::eprint_id_stem .
+		"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) .
+		$eprintid_in;
+}
+
+
+# See if we can make an EPrint object (and hence if the ID is valid)
+
+my $eprint = undef;
+
+if( defined $eprintid )
+{
+	my $eprint = new EPrints::EPrint( $session,
+	                                  $EPrints::Database::table_archive,
+	                                  $eprintid );
+	
+	if( defined $eprint )
+	{
+		# ID is OK, so we can redirect to the abstract page
+		$session->{render}->redirect( $eprint->static_page_url() );
+	}
+}
+
+
+unless( defined $eprint )
+{
+	# We don't have an EPrint object, so the ID code is valid, or we didn't get
+	# one
+	$session->{render}->clear();
+	print $session->{render}->start_html( "Enter EPrint ID Code" );
+	
+	if( defined $eprintid_in && $eprintid_in ne "" )
+	{
+		# Write an error message if we got an invalid ID code in
+		print "<P ALIGN=\"CENTER\"><STRONG>The specified ID code is not a valid ".
+			"ID code.</STRONG></P>\n";
+	}
+	
+	print "<P ALIGN=\"CENTER\">Please enter the ID code of the record you ".
+		"wish to view below. You can enter a standard ID code, an Open ".
+		"Archives full ID code, or just the digits on the right hand side ".
+		"of an ID code.</P>\n";
+	
+	my $id_field = new EPrints::MetaField( "eprintid:text::EPrint ID Code::::" );
+	
+	$session->{render}->render_form( [ $id_field ],
+	                                 {},
+	                                 1,
+	                                 0,
+	                                 [ "View EPrint" ] );
+
+	print $session->{render}->end_html();
+}
+
+$session->terminate();

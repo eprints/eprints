@@ -17,14 +17,31 @@
 
 <TABLE BORDER=0 CELLPADDING=15 WIDTH="100%">
 	<TR>
-		<TD WIDTH="50%" ALIGN=CENTER VALIGN=TOP>
+		<TD WIDTH="50%" ALIGN=CENTER VALIGN=TOP COLSPAN=2>
 			<P><STRONG><A HREF="__subjectroot__ROOT.html">Browse by Subject</A></STRONG></P>
 			<P>This option lets you browse the subject hierarchy and see what papers are in each subject category.</P>
 		</TD>
 
-		<TD WIDTH="50%" ALIGN=CENTER VALIGN=TOP>
+		<TD WIDTH="50%" ALIGN=CENTER VALIGN=TOP COLSPAN=2>
 			<P><STRONG><A HREF="__perlroot__/search">Search the Archive</A></STRONG></P>
 			<P>A simple search will let you search for author, title, publication and year, and advanced search will let you search more fields too.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH="25%">
+			&nbsp;
+		</TD>
+		<TD WIDTH="50%" COLSPAN=2 ALIGN=CENTER VALIGN=TOP>
+			<P><STRONG><A HREF="__perlroot__/view_eprint">Enter an ID code</A></STRONG></P>
+			<P>
+				<FORM METHOD="GET" ENCTYPE="application/x-www-form-urlencoded" ACTION="__perlroot__/view_eprint">
+					<INPUT TYPE="text" NAME="eprintid" SIZE=20 MAXLENGTH=255>
+					<INPUT TYPE="submit" NAME="submit" VALUE="View EPrint">
+				</FORM>
+			</P>
+		</TD>					
+		<TD WIDTH="25%">
+			&nbsp;
 		</TD>
 	</TR>
 </TABLE>

@@ -25,7 +25,7 @@ use Filesys::DiskSpace;
 use strict;
 
 # Number of digits in generated ID codes
-my $digits = 8;
+$EPrints::EPrint::id_code_digits = 8;
 
 #
 # System fields, common to all EPrint types
@@ -234,7 +234,7 @@ sub _create_id
 	
 	my $new_id = $session->{database}->counter_next( "eprintid" );
 
-	while( length $new_id < $digits )
+	while( length $new_id < $EPrints::EPrint::id_code_digits )
 	{
 		$new_id = "0".$new_id;
 	}
