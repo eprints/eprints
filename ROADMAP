@@ -28,7 +28,7 @@
 -	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
 1	Generate abstract page routine will create symlinks to actual docs (if appropriate)
-2	Security -> config,edit,authz (used for unfinished items too?)
+2	Security -> config,edit,authz [used for unfinished items too?]
 -	Multilang. Config for mails and submission agreement.
 -	"Magic" Next & Prev in SubmissionForm
 4	Multi-Lang fields in HTML
