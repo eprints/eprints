@@ -1490,7 +1490,11 @@ sub get_sql_name
 	}
 	if( $self->get_property( "mainpart" ) )
 	{
-		return $self->{name}."_main";
+		#cjg I'm not at all sure about if the main
+		# bit should be the plain name or name_main
+		#return $self->{name}."_main";
+
+		return $self->{name};
 	}
 	return $self->{name};
 }

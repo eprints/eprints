@@ -969,7 +969,10 @@ sub cache
 			$sql .= ", " if( !$first );
 			my $desc = 0;
 			if( s/^-// ) { $desc = 1; }
-			$sql .= "O.$_"."_".$self->{session}->get_langid();
+			my $field = EPrints::Utils::field_from_config_string(
+					$dataset,
+					$_ );
+			$sql .= "O.".$field->get_sql_name()."_".$self->{session}->get_langid();
 			$sql .= " DESC" if $desc;
 			$first = 0;
 		}
@@ -1263,10 +1266,10 @@ if( ref($dataset) eq "" ) { confess(); }
 	{
 print STDERR "From cache $param\n";
 		$sql = "SELECT $cols, C.pos FROM $param AS C, $table AS M ";
-		$sql.= "WHERE M.$kn = C.$kn AND C.pos>=$offset ";
+		$sql.= "WHERE M.$kn = C.$kn AND C.pos>$offset ";
 		if( $ntoreturn > 0 )
 		{
-			$sql.="AND C.pos<".($offset+$ntoreturn)." ";
+			$sql.="AND C.pos<=".($offset+$ntoreturn)." ";
 		}
 		$sql .= "ORDER BY C.pos";
 		print STDERR "$sql\n";

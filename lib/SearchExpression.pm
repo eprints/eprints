@@ -112,7 +112,7 @@ sub new
 			# Put the MetaFields in a list
 			foreach (@multiple_names)
 			{
-				push @multiple_fields, _searching_field( $self->{dataset}, $_ ); 
+				push @multiple_fields, EPrints::Utils::field_from_config_string( $self->{dataset}, $_ );
 			}
 			
 			# Add a reference to the list
@@ -121,37 +121,12 @@ sub new
 		else
 		{
 			# Single field
-			$self->add_field( _searching_field( $self->{dataset}, $fieldname ) );
+			$self->add_field( EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname ) );
 		}
 	}
 	
 	
 	return( $self );
-}
-
-sub _searching_field
-{
-	my( $dataset, $fieldname ) = @_;
-
-	my $useid = ( $fieldname=~s/\.id$// );
-	# use id side of a field if the fieldname
-	# ends in .id (and strip the .id)
-#print STDERR "FN: ($fieldname)\n";
-	my $field = $dataset->get_field( $fieldname );
-	if( $field->get_property( "hasid" ) )
-	{
-		if( $useid )
-		{
-			$field = $field->get_id_field();
-		}
-		else
-		{
-			$field = $field->get_main_field();
-		
-		}
-	}
-	
-	return $field;
 }
 
 

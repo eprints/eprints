@@ -161,7 +161,6 @@
 #	Status search field buggered
 #	 FIX installer - phrases don't work! some dirs are wrong # 	what about a default disk0 dir?
 #	directory listing on perl dir is showing and should be hidden.
-#	Paged results are out by one (only 9 on page 1!)
 
 #Clean UP
 #	print STDERR's should be log()
@@ -174,10 +173,12 @@
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
 #	 remove non system editor filter
 #	Named values in Constructors all round?
-#	subject label cache - scrap it?
+#	subject label cache - scrap it or fix it?
+#	cmp methods : is they still needed?
 #	search buttons at top and bottom of search & (some) submission forms.
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
-#	paged searches are not very neat(understatement!)
+#	paged searches are not very neat(understatement!)Q
+#	What type for ordervalues? Something which keeps memory use down...
 
 #TODO
 #	Clean up validators - Don't validate records with fields which have bad langids including user validate.

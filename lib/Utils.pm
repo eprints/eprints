@@ -595,6 +595,7 @@ sub _expand_references
 	}
 }
 
+# cjg Eh? What's this doing here?
 sub render_value
 {
 	my( $self, $fieldname, $showall ) = @_;
@@ -603,6 +604,32 @@ sub render_value
 	
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
+
+sub field_from_config_string
+{
+	my( $dataset, $fieldname ) = @_;
+
+	my $useid = ( $fieldname=~s/\.id$// );
+	# use id side of a field if the fieldname
+	# ends in .id (and strip the .id)
+print STDERR "FN: ($fieldname)\n";
+	my $field = $dataset->get_field( $fieldname );
+	if( $field->get_property( "hasid" ) )
+	{
+		if( $useid )
+		{
+			$field = $field->get_id_field();
+		}
+		else
+		{
+			$field = $field->get_main_field();
+		
+		}
+	}
+	
+	return $field;
+}
+
 
 sub get_input
 {

@@ -571,10 +571,11 @@ $c->{subscription_fields} =
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
-	"byyear" 	 => "-year/authors_main/title",
-	"byyearoldest"	 => "year/authors_main/title",
-	"byname"  	 => "authors_main/-year/title",
-	"bytitle" 	 => "title/authors_main/-year"
+	"test"		=> "authors.id/-year",
+	"byyear" 	 => "-year/authors/title",
+	"byyearoldest"	 => "year/authors/title",
+	"byname"  	 => "authors/-year/title",
+	"bytitle" 	 => "title/authors/-year"
 };
 
 
@@ -583,6 +584,7 @@ $c->{order_methods}->{eprint} =
 $c->{default_order}->{eprint} = "byname";
 
 # How to order the articles in a "browse by subject" view.
+#cjg HMMMM.
 $c->{view_order} = \&eprint_cmp_by_author;
 
 # Fields for a staff user search.
@@ -598,10 +600,10 @@ $c->{user_search_fields} =
 # Ways of ordering user search results
 $c->{order_methods}->{user} =
 {
-	"byname" 	 =>  \&user_cmp_by_name,
-	"byjoin"	 =>  \&user_cmp_by_join,
-	"byrevjoin"  	 =>  \&user_cmp_by_revjoin,
-	"bytype" 	 =>  \&user_cmp_by_type 
+	"byname" 	 =>  "name/joined",
+	"byjoin"	 =>  "joined/name",
+	"byrevjoin"  	 =>  "-joined/name",
+	"bytype" 	 =>  "usertype/name"
 };
 
 # The default way of ordering a search result
@@ -624,85 +626,6 @@ $c->{thread_citation_specs} =
 };
 
 	return $c;
-}
-
-######################################################################
-#
-# Sort Routines
-#
-#  The following routines are used to sort lists of eprints according
-#  to different schemes. They are linked to text descriptions of ways
-#  of ordering eprints lists in SiteInfo.
-#
-#  Each method has two automatic parameters $_[0] and $_[1], both of which 
-#  are eprint objects. The routine should return 
-#   -1 if $_[0] is earlier in the ordering scheme than $_[1]
-#    1 if $_[0] is later in the ordering scheme than $_[1]
-#    0 if $_[0] is at the same point in the ordering scheme than $_[1]
-#
-#  These routines are not called by name, but by reference (see above)
-#  so you can create your own methods as long as you add them to the
-#  hash of sort methods.
-#
-######################################################################
-
-
-
-sub eprint_cmp_by_year
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_ints( $b, $a, "year" ) ||
-	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
-	EPrints::Utils::cmp_strings( $a, $b, "title" );
-}
-
-sub eprint_cmp_by_year_oldest_first
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_ints( $a, $b, "year" ) ||
-	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
-	EPrints::Utils::cmp_strings( $a, $b, "title" );
-}
-
-sub eprint_cmp_by_author
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
-	EPrints::Utils::cmp_ints( $b, $a, "year" ) ||
-	EPrints::Utils::cmp_strings( $a, $b, "title" );
-}
-
-sub eprint_cmp_by_title
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_strings( $a, $b, "title" ) ||
-	EPrints::Utils::cmp_names( $a, $b, "authors" ) ||
-	EPrints::Utils::cmp_ints( $b, $a, "year" );
-}
-
-sub user_cmp_by_name
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_names( $a, $b, "name" ) ||
-	EPrints::Utils::cmp_dates( $a, $b, "joined" );
-}
-sub user_cmp_by_join
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_dates( $a, $b, "joined" ) ||
-	EPrints::Utils::cmp_names( $a, $b, "name" );
-}
-sub user_cmp_by_revjoin
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_dates( $b, $a, "joined" ) ||
-	EPrints::Utils::cmp_names( $a, $b, "name" );
-}
-sub user_cmp_by_type
-{
-	my( $a, $b ) = @_;
-	EPrints::Utils::cmp_strings( $a, $b, "usertype" ) ||
-	EPrints::Utils::cmp_names( $a, $b, "name" );
 }
 
 ######################################################################
