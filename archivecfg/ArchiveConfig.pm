@@ -1518,34 +1518,6 @@ sub validate_eprint_field
 }
 
 
-######################################################################
-#
-# $problem = validate_subject_field( $field, $value )
-#   str                            MetaField  str
-#
-#  Validate the subjects field of an eprint's metadata. Should return
-#  undef if the field is OK, otherwise should return a textual
-#  description of the problem. This description should make sense on
-#  its own (i.e. should include the name of the field.)
-#
-#  The "required" field is checked elsewhere, no need to check that
-#  here.
-#
-######################################################################
-
-## WP1: BAD
-sub validate_subject_field
-{
-	my( $field, $value ) = @_;
-
-	my $problem;
-
-	# CHECKS IN HERE
-
-
-	return( $problem );
-}
-
 
 ######################################################################
 #

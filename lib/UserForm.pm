@@ -178,7 +178,7 @@ sub _render_user_form
 	my @fields;
 	if( $self->{staff} )
 	{
- 		@fields = $user_ds->get_fields;
+ 		@fields = $user_ds->get_fields();
 	}
 	else
 	{
@@ -191,7 +191,7 @@ sub _render_user_form
 
 	return $self->{session}->render_input_form( 
 					\@fields,
-					$self->{user}->getValues(),
+					$self->{user}->get_values(),
 					1,
 					1,
 					$buttons,

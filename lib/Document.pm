@@ -82,67 +82,27 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $doc_id, $known, $eprint ) = @_;
-	
-	my $self={};
-	bless $self, $class;
-
-	$self->{session} = $session;
-	$self->{eprint} = $eprint;
-	
-	my @row;
+	my( $class, $session, $docid, $known ) = @_;
 
 	if( !defined $known )
 	{
-		# Need to read data from the database
-		@row = $self->{session}->{database}->retrieve_single(
-			EPrints::Database::table_name( "document" ),
-			"docid",
-			$doc_id );
-	}
-	else
-	{
-		@row = @$known;
-	}
-	
-	if( $#row == -1 )
-	{
-		# No such document
-		return( undef );
-	}
+		return $session->get_db()->get_single( 
+			$session->get_archive()->get_dataset( "document" ),
+			$docid );
+	} 
 
-	# Lob the row data into the relevant fields
-	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
-
-	my $i=0;
-	my $field;
-	
-	foreach $field (@fields)
-	{
-		my $field_name = $field->get_name();
-
-		$self->{$field_name} = $row[$i];
-		$i++;
-	}
+	my $self = {};
+	bless $self, $class;
+	$self->{data} = $known;
+	$self->{session} = $session;
 
 	return( $self );
 }
 
 
-######################################################################
-#
-# $doc = create( $session, $eprint, $format )
-#
-#  Create a new document entry and associated directory, for the given
-#  EPrint, in the given format. $format is optional, you can set it
-#  later with $doc->set_format( $format ).
-#
-######################################################################
-
-## WP1: BAD
 sub create
 {
-	my( $session, $eprint, $format ) = @_;
+	my( $session, $eprint ) = @_;
 	
 	# Generate new doc id
 	my $doc_id = _generate_doc_id( $session, $eprint );
@@ -153,7 +113,7 @@ sub create
 	unless( defined $dir )
 	{
 		# Some error while making it
-		$session->get_archive()->log( "Error creating directory for Eprint ".$eprint->{eprintid}." format ".$format.": $!" );
+		$session->get_archive()->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).": $!" );
 		return( undef );
 	}
 
@@ -162,8 +122,7 @@ sub create
 	my $success = $session->{database}->add_record(
 		EPrints::Database::table_name( "document" ),
 		{ "docid"=>$doc_id,
-		  "eprintid"=>$eprint->{eprintid},
-		  "format"=>$format } );
+		  "eprintid"=>$eprint->{eprintid} } );
 		  
 	if( $success )
 	{
@@ -212,7 +171,30 @@ sub _create_directory
 ######################################################################
 
 ## WP1: BAD
-sub _generate_doc_id
+sub generate_doc_id
+{
+	my( $session, $eprint ) = @_;
+
+	my $dataset = $session->get_archive()->get_dataset( "document" );
+
+	my $searchexp = new EPrints::SearchExpression(
+				session=>$session,
+				dataset=>$dataset );
+	$searchexp->add_field(
+		$dataset->get_field( "eprintid" ),
+		"PHR:EQ:".$eprint->get_value( "eprint_id" ) );
+	$searchexp->perform_search();
+
+	my( @docs ) = $searchexp->get_records();
+
+	foreach( @docs )
+	{
+		print $_->get_value( "docid" );
+	}
+	exit;
+}
+
+sub _generate_doc_id2
 {
 	my( $session, $eprint ) = @_;
 	
@@ -352,6 +334,7 @@ sub remove
 sub get_eprint
 {
 	my( $self ) = @_;
+die "bugger off";
 	
 	# If we have it already just pass it on
 	return( $self->{eprint} ) if( defined $self->{eprint} );
@@ -933,6 +916,18 @@ sub validate
 	$self->{session}->get_archive()->validate_document( $self, \@problems );
 
 	return( \@problems );
+}
+
+sub get_value
+{
+	my( $self , $fieldname ) = @_;
+
+	if( $self->{data}->{$fieldname} eq "")
+	{
+		return undef;
+	}
+
+	return $self->{data}->{$fieldname};
 }
 
 1;

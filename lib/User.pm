@@ -529,7 +529,7 @@ sub get_value
 	return $self->{data}->{$fieldname};
 }
 
-sub getValues
+sub get_values
 {
 	my( $self ) = @_;
 

@@ -678,38 +678,22 @@ print STDERR "====: ".$self->get_value( $field->{name} )."\n";
 sub validate_subject
 {
 	my( $self ) = @_;
-#cjg!!!!
-exit;	
+
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
-	my $field;
-
-	foreach $field (@all_fields)
+	my $subjects = $self->get_value( "subjects" );
+	if( !defined $subjects )
 	{
-		my $problem;
-	
-		if( $field->{type} eq "subject")
-		{
-			# Make sure at least one subject is selected
-			if( !defined $self->{$field->{name}} ||
-			    $self->{$field->{name}} eq ":" )
-			{
-				$problem = $self->{session}->phrase(
-						"lib/eprint:least_one_sub" );
-			}
-		}
-		else
-		{
-			# Give the validation module a go
-			$problem = $self->{session}->get_archive()->validate_subject_field(
-				$field,
-				$self->{$field->{name}} );
-		}
-
-		if( defined $problem && $problem ne "" )
-		{
-			push @all_problems, $problem;
-		}
+		push @all_problems, 
+			$self->{session}->phrase( "lib/eprint:least_one_sub" );
+	} 
+	else
+	{
+		my $field = $self->{dataset}->get_field( "subjects" );
+		my $problem = $self->{session}->get_archive()->call( 
+			"validate_eprint_field",
+			$field,
+			$subjects );
+		push @all_problems, $problem if( defined $problem );
 	}
 
 	return( \@all_problems );
@@ -825,15 +809,15 @@ sub get_all_documents
 {
 	my( $self ) = @_;
 
-	my $searchexp = new EPrints::SearchExpression(
-		$self->{session},
-		"document" );
+	my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
+
+	my $searchexp = EPrints::SearchExpression->new(
+		session=>$self->{session},
+		dataset=>$doc_ds );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( 
-			"document",
-			"eprintid" ),
-		"PHR:EQ:$self->{eprintid}" );
+		$doc_ds->get_field( "eprintid" ),
+		"PHR:EQ:".$self->get_value( "eprintid" ) );
 
 	my $searchid = $searchexp->perform_search();
 	my @documents = $searchexp->get_records();

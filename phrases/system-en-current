@@ -163,9 +163,10 @@ EPrints Modules
     <phrase ref="lib/submissionform:action_prev">&lt; Back</phrase>
     <phrase ref="lib/submissionform:action_cancel">Cancel</phrase>
     <phrase ref="lib/submissionform:action_confirm">Confirm</phrase>
-    <phrase ref="lib/submissionform:action_uploadedit">Upload/Edit </phrase>
+    <phrase ref="lib/submissionform:action_upload">Upload</phrase>
+    <phrase ref="lib/submissionform:action_edit">Edit</phrase>
     <phrase ref="lib/submissionform:action_finished">Finished</phrase>
-    <phrase ref="lib/submissionform:action_upload">Upload ></phrase>
+    <phrase ref="lib/submissionform:action_upload">Upload</phrase>
     <phrase ref="lib/submissionform:action_verify">Verify ID's</phrase>
     <phrase ref="lib/submissionform:title_type">Deposit Type</phrase>
     <phrase ref="lib/submissionform:title_meta">Bibliographic Information</phrase>

@@ -42,19 +42,6 @@ my $STAGES = {
 #cjg SKIP STAGES???
 #cjg "NEW" sets defaults?
 
-######################################################################
-#
-# $subform = new( $session, $redirect, $staff, $table )
-#
-#  Create a submission session. $redirect is where the user should be
-#  directed when the submission has finished/failed. $staff indicates
-#  whether it's a staff member that's doing the editing. If $staff is
-#  1, no authorisation checks are done, but if $staff is 0, and the
-#  user is somehow attempting to edit a record they don't have
-#  permission to edit, they'll be presented with an error. $table is
-#  the table in which the eprint being edited resides.
-#
-######################################################################
 
 ## WP1: BAD
 sub new
@@ -172,6 +159,7 @@ sub process
 		$self->_corrupt_err;
 		return;
 	}
+print STDERR "xxxxxxxxxxxxxxxxxxxxxxxx\n";
 
 	if( $ok )
 	{
@@ -507,7 +495,7 @@ sub _from_stage_meta
 sub _from_stage_subject
 {
 	my( $self ) = @_;
-
+print STDERR "sigh?\n";
 	# Process uploaded data
 	$self->_update_from_form( "subjects" );
 	$self->_update_from_form( "additional" );
@@ -527,19 +515,18 @@ sub _from_stage_subject
 			# No problems, onto the next stage
 			$self->{next_stage} = "format";
 		}
-	}
-	elsif( $self->{action} eq "prev" )
-	{
-		$self->{next_stage} = "meta";
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
+		return 1;
 	}
 
-	return( 1 );
+	if( $self->{action} eq "prev" )
+	{
+		$self->{next_stage} = "meta";
+		return 1;
+	}
+
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -554,78 +541,103 @@ sub _from_stage_subject
 sub _from_stage_format
 {
 	my( $self ) = @_;
-	
-	my( $format, $button ) = $self->_update_from_format_form();
 
-	if( defined $format )
+	if( $self->{action} eq "prev" )
 	{
-		# Find relevant document object
-		$self->{document} = $self->{eprint}->get_document( $format );
-
-		if( $button eq "remove" )
+		$self->{next_stage} = "subject";
+		return 1;
+	}
+		
+	if( $self->{action} eq "upload" )
+	{
+		$self->{document} = EPrints::Document::create( 
+			$self->{session},
+			$self->{eprint} );
+		if( !defined $self->{document} )
 		{
-			# Remove the offending document
-			if( !defined $self->{document} || !$self->{document}->remove() )
-			{
-				$self->_corrupt_err;
-				return( 0 );
-			}
-
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-		}
-		elsif( $button eq "edit" )
-		{
-			# Edit the document, creating it first if necessary
-			if( !defined $self->{document} )
-			{
-				# Need to create a new doc object
-				$self->{document} = EPrints::Document::create( $self->{session},
-				                                               $self->{eprint},
-				                                               $format );
-
-				if( !defined $self->{document} )
-				{
-					$self->_database_err;
-					return( 0 );
-				}
-			}
-
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
-		}
-		else
-		{
-			$self->_corrupt_err;
+			$self->_database_err;
 			return( 0 );
 		}
+		$self->{next_stage} = "fileview";
+		return 1;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
-	{
-		# prev stage depends if we're linking users or not
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
-	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
-	{
-		$self->{problems} = $self->{eprint}->validate_documents();
 
-		if( $#{$self->{problems}} >= 0 )
-		{
-			# Problems, don't advance a stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-		}
-		else
-		{
-			# prev stage depends if we're linking users or not
-			$self->{prev_stage} = $EPrints::SubmissionForm::stage_subject;
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
-		}
-	}
-	else
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}		
+	# edit
+	# finished	
+	# remove
 
-	return( 1 );
+####	x17
+#	my( $format, $button ) = $self->_update_from_format_form();
+#
+#	if( defined $format )
+#	{
+#		# Find relevant document object
+#		$self->{document} = $self->{eprint}->get_document( $format );
+#
+#		if( $button eq "remove" )
+#		{
+#			# Remove the offending document
+#			if( !defined $self->{document} || !$self->{document}->remove() )
+#			{
+#				$self->_corrupt_err;
+#				return( 0 );
+#			}
+#
+#			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+#		}
+#		elsif( $button eq "edit" )
+#		{
+#			# Edit the document, creating it first if necessary
+#			if( !defined $self->{document} )
+#			{
+#				# Need to create a new doc object
+#				$self->{document} = EPrints::Document::create( $self->{session},
+#				                                               $self->{eprint},
+#				                                               $format );
+#
+#				if( !defined $self->{document} )
+#				{
+#					$self->_database_err;
+#					return( 0 );
+#				}
+#			}
+#
+#			$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
+#		}
+#		else
+#		{
+#			$self->_corrupt_err;
+			return( 0 );
+#		}
+#	}
+#	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+#	{
+#		# prev stage depends if we're linking users or not
+#		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
+#	}
+#	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
+#	{
+#		$self->{problems} = $self->{eprint}->validate_documents();
+#
+#		if( $#{$self->{problems}} >= 0 )
+#		{
+#			# Problems, don't advance a stage
+#			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+#		}
+#		else
+#		{
+#			# prev stage depends if we're linking users or not
+#			$self->{prev_stage} = $EPrints::SubmissionForm::stage_subject;
+#			$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
+#		}
+##	}
+	#else
+	#{
+	#	$self->_corrupt_err;
+	#	return( 0 );
+	#}		
+
+	#return( 1 );
 }
 
 
@@ -1179,58 +1191,159 @@ sub _do_stage_format
 {
 	my( $self ) = @_;
 
-	my( $page );
+	my( $page, $p, $form, $table, $tr, $td, $th  );
 
 	$page = $self->{session}->make_doc_fragment();
 
 	$page->appendChild( $self->_render_problems() );
 
-	###	######################
-
-	# Validate again, so we know what buttons to put up and how to state stuff
-	$self->{eprint}->prune_documents();
-	my $probs = $self->{eprint}->validate_documents();
-
-	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:valid_formats");
+	##########################
+	# Validate again, so we know what buttons to put up and how 
+	# to state stuff
+	# $self->{eprint}->prune_documents(); cjg
+	# my $probs = $self->{eprint}->validate_documents();
 
 	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
 	{
-		print $self->{session}->phrase("lib/submissionform:least_one");
+		$p = $self->{session}->make_element( "p" );
+		$p->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:least_one") );
+		$page->appendChild( $p );
 	}
 
-	print "</CENTER></P>\n";
+	$p = $self->{session}->make_element( "p" );
+	$p->appendChild(
+		$self->{session}->html_phrase(
+			"lib/submissionform:valid_formats") );
+	$page->appendChild( $p );
 
-	print $self->{session}->{render}->start_form();
+	$form = $self->{session}->render_form( "post" );
+	$page->appendChild( $form );
 
-	# Render a form
-	$self->_render_format_form();
+	$table = $self->{session}->make_element( "table", border=>1 );
+	$form->appendChild( $table );
+	$tr = $self->{session}->make_element( "tr" );
+	$table->appendChild( $tr );
+	$th = $self->{session}->make_element( "th" );
+	$tr->appendChild( $th );
+	$th->appendChild( 
+		$self->{session}->html_phrase("lib/submissionform:format") );
+	$th = $self->{session}->make_element( "th" );
+	$tr->appendChild( $th );
+	$th->appendChild( 
+		$self->{session}->html_phrase("lib/submissionform:files_uploaded") );
 
-	# Write a back button, and a finished button, if the docs are OK
-	my @buttons = ( $self->{session}->phrase("lib/submissionform:action_prev") );
-	push @buttons, $self->{session}->phrase("lib/submissionform:action_finished")
-		if( $#{$probs} == -1 );
 	
-	print "<P><CENTER>";
-	print $self->{session}->{render}->submit_buttons( \@buttons );
-	print "</CENTER></P>\n";
+	my $doc;
+	foreach $doc ( $self->{eprint}->get_all_documents() )
+	{
+		$tr = $self->{session}->make_element( "tr" );
+		$table->appendChild( $tr );
+		my $nfiles = "???";
+		$td = $self->{session}->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $self->{session}->make_text("cjg:format(".$doc->get_value( "format" ).")") );
+		my $desc = $doc->get_value( "formatdesc" ); 
+		# not calling proper render function here. cjg
+		if( defined $desc )
+		{
+			$td->appendChild( $self->{session}->make_text( " ( $desc )" ) );
+		}
+		$td = $self->{session}->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $self->{session}->make_text( $nfiles ) );
+		$td = $self->{session}->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $self->{session}->render_action_buttons(
+			"edit_".$doc->get_value( "docid" ) => 
+				$self->{session}->phrase( 
+					"lib/submissionform:action_edit" ) ) );
+	}
+
+	$form->appendChild( $self->{session}->render_action_buttons(
+		upload => $self->{session}->phrase( 
+				"lib/submissionform:action_upload" ) ) );
 		
-	print $self->{session}->{render}->hidden_field(
+	$form->appendChild( $self->{session}->render_hidden_field(
 		"stage",
-		$EPrints::SubmissionForm::stage_format );
-	print $self->{session}->{render}->hidden_field(
+		"format" ) );
+	$form->appendChild( $self->{session}->render_hidden_field(
 		"eprint_id",
-		 $self->{eprint}->{eprintid} );
-	
-	print $self->{session}->{render}->end_form();
+		$self->{eprint}->get_value( "eprintid" ) ) );
 
-	###	######################
+	my %buttons;
+	$buttons{prev} = $self->{session}->phrase( "lib/submissionform:action_prev" );
+	$buttons{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" ) ; #cjg IF NO PROBS...
+	
+	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
+
+#	my $f;
+#	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
+#	{
+#		my $req = EPrints::Document::required_format( $self->{session} , $f );
+#		my $doc = $self->{eprint}->get_document( $f );
+#		my $numfiles = 0;
+#		if( defined $doc )
+#		{
+#			my %files = $doc->files();
+#			$numfiles = scalar( keys %files );
+#		} 
+#
+#		print "<TR><TD>";
+#		print "<STRONG>" if $req;
+#		print EPrints::Document::format_name( $self->{session}, $f );
+#		print "</STRONG>" if $req;
+#		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
+#		print $self->{session}->{render}->named_submit_button(
+#			"edit_$f",
+#			$self->{session}->phrase("lib/submissionform:action_uploadedit") );
+#		print "</TD><TD>";
+#		if( $numfiles > 0 )
+##		{
+#			print $self->{session}->{render}->named_submit_button(
+#				"remove_$f",
+#				$self->{session}->phrase("lib/submissionform:remove") );
+#		}
+#		print "</TD></TR>\n";
+#	}
+#
+#	if( $self->{session}->get_archive()->get_conf( "allow_arbitrary_formats" ) )
+#	{
+#		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
+#		my $othername = "Other";
+#		my $numfiles = 0;
+#		
+#		if( defined $other )
+#		{
+#			$othername = $other->{formatdesc} if( $other->{formatdesc} ne "" );
+#			my %files = $other->files();
+#			$numfiles = scalar( keys %files );
+#		} 
+#
+#		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
+#		print $self->{session}->{render}->named_submit_button(
+#			"edit_$EPrints::Document::OTHER",
+#			$self->{session}->phrase("lib/submissionform:uploadedit") );
+#		print "</TD><TD>";
+#		if( $numfiles > 0 )
+#		{
+#			print $self->{session}->{render}->named_submit_button(
+#				"remove_$EPrints::Document::OTHER",
+#				$self->{session}->phrase("lib/submissionform:remove") );
+#		}
+#		print "</TD></TR>\n";
+#	}		
+#
+#	print "</TABLE></CENTER>\n";
+#
 
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_format" ),
 		$page );
 	$self->{session}->send_page();
+
 }
 
 ######################################################################
@@ -1700,91 +1813,6 @@ sub _render_problems
 
 
 
-
-
-
-
-
-
-
-
-
-######################################################################
-#
-# _render_users_form(  $submit_buttons, $hidden_fields )
-#                           array_ref        hash_ref
-#
-#  Render a form for the usernames field.
-#
-######################################################################
-# cjg WHAT DOES THIS DO?
-## WP1: BAD
-sub _render_users_form
-{
-	my( $self, $submit_buttons, $hidden_fields ) = @_;
-
-	my @edit_fields;
-
-	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "usernames" );
-
-	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
-
-	$self->{session}->{render}->render_input_form( \@edit_fields,
-	                                         $self->{eprint},
-	                                         0,
-	                                         1,
-	                                         $submit_buttons,
-	                                         $hidden_fields,
-			{},
-			"submit#t" );
-}
-
-
-
-######################################################################
-#
-# _update_from_users_form()
-#
-#  Update usernames data from the form
-#
-######################################################################
-#cjg what is this for?
-## WP1: BAD
-sub _update_from_users_form
-{
-	my( $self ) = @_;
-	
-	if( $self->{session}->{render}->param( "eprint_id" ) ne
-		$self->{eprint}->{eprintid} )
-	{
-		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
-
-		return( 0 );
-	}
-	else
-	{
-		my @all_fields = $self->{session}->{metainfo}->get_fields(
-			"eprint",
-			$self->{eprint}->{type} );
-		my $field;
-
-		foreach $field (@all_fields)
-		{
-			if( $field->{type} eq "username")
-			{
-				my $param =
-					$self->{eprint}->{session}->{render}->form_value( $field );
-				$self->{eprint}->{$field->{name}} = $param;
-			}
-		}
-
-		return( 1 );
-	}
-}
-
-
-
 ######################################################################
 #
 #  DOCUMENT forms
@@ -1913,125 +1941,6 @@ sub _update_from_fileview
 
 
 
-######################################################################
-#
-# _render_format_form()
-#
-#  Render a table showing what formats have been uploaded for the
-#  current EPrint. Buttons named "edit_<format>" (e.g. "edit_html")
-#  will also be written into the table, and buttons named
-#  "remove_<format>"
-#
-######################################################################
 
-## WP1: BAD
-sub _render_format_form
-{
-	my( $self ) = @_;
-
-	print "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH><STRONG>".
-		$self->{session}->phrase("lib/submissionform:format").
-		"</STRONG></TH>".
-		"<TH><STRONG>".
-		$self->{session}->phrase("lib/submissionform:files_uploaded").
-		"</STRONG></TH></TR>\n";
-	
-	my $f;
-	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
-	{
-		my $req = EPrints::Document::required_format( $self->{session} , $f );
-		my $doc = $self->{eprint}->get_document( $f );
-		my $numfiles = 0;
-		if( defined $doc )
-		{
-			my %files = $doc->files();
-			$numfiles = scalar( keys %files );
-		} 
-
-		print "<TR><TD>";
-		print "<STRONG>" if $req;
-		print EPrints::Document::format_name( $self->{session}, $f );
-		print "</STRONG>" if $req;
-		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
-		print $self->{session}->{render}->named_submit_button(
-			"edit_$f",
-			$self->{session}->phrase("lib/submissionform:action_uploadedit") );
-		print "</TD><TD>";
-		if( $numfiles > 0 )
-		{
-			print $self->{session}->{render}->named_submit_button(
-				"remove_$f",
-				$self->{session}->phrase("lib/submissionform:remove") );
-		}
-		print "</TD></TR>\n";
-	}
-
-	if( $self->{session}->get_archive()->get_conf( "allow_arbitrary_formats" ) )
-	{
-		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
-		my $othername = "Other";
-		my $numfiles = 0;
-		
-		if( defined $other )
-		{
-			$othername = $other->{formatdesc} if( $other->{formatdesc} ne "" );
-			my %files = $other->files();
-			$numfiles = scalar( keys %files );
-		} 
-
-		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
-		print $self->{session}->{render}->named_submit_button(
-			"edit_$EPrints::Document::OTHER",
-			$self->{session}->phrase("lib/submissionform:uploadedit") );
-		print "</TD><TD>";
-		if( $numfiles > 0 )
-		{
-			print $self->{session}->{render}->named_submit_button(
-				"remove_$EPrints::Document::OTHER",
-				$self->{session}->phrase("lib/submissionform:remove") );
-		}
-		print "</TD></TR>\n";
-	}		
-
-	print "</TABLE></CENTER>\n";
-}		
-	
-
-######################################################################
-#
-# ( $format, $button ) = _update_from_format_form()
-#
-#  Works out whether a button on the format form rendered by
-#  _render_format_form was pressed. If it was, the format concerned is
-#  returned in $format, and the button type "remove" or "edit" is
-#  given in $button.
-#
-######################################################################
-
-## WP1: BAD
-sub _update_from_format_form
-{
-	my( $self ) = @_;
-	
-	my $f;
-
-# what about arbitary formats?
-	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
-	{
-		return( $f, "edit" )
-			if( defined $self->{session}->{render}->param( "edit_$f" ) );
-		return( $f, "remove" )
-			if( defined $self->{session}->{render}->param( "remove_$f" ) );
-	}
-
-	return( $EPrints::Document::OTHER, "edit" )
-		if( defined $self->{eprint}->{session}->{render}->param(
-			"edit_$EPrints::Document::OTHER" ) );
-	return( $EPrints::Document::OTHER, "remove" )
-		if( defined $self->{eprint}->{session}->{render}->param(
-			"remove_$EPrints::DocumentOTHERother" ) );
-	
-	return( undef, undef );
-}
 
 1;
