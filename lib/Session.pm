@@ -103,9 +103,7 @@ sub failure
 {
 	my( $self, $problem ) = @_;
 	
-	my $error_text = "<STRONG>$problem</STRONG>";
-
-	$self->{render}->render_error( $error_text,
+	$self->{render}->render_error( $problem,
 	                               $EPrintSite::SiteInfo::frontpage,
 	                               $EPrintSite::SiteInfo::sitename );
 }

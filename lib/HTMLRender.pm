@@ -253,14 +253,22 @@ sub render_error
 {
 	my( $self, $error_text, $back_to, $back_to_text ) = @_;
 
-	print $self->start_html( "Error" );
+	if ( $self->{offline} )
+	{
+		print "$EPrintSite::SiteInfo::sitename has encountered an error:\n\n";
+		print "$error_text\n\n";
+	} 
+	else
+	{
+		print $self->start_html( "Error" );
 
-	print "<P>$EPrintSite::SiteInfo::sitename has encountered an error:</P>\n";
-	print "<P>$error_text</P>\n";
-	print "<P>Feel free to contact <A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">$EPrintSite::SiteInfo::sitename administration</A> with details.</P>\n";
-	print "<P><CENTER><A HREF=\"$back_to\">$back_to_text</A></CENTER></P>\n";
+		print "<P>$EPrintSite::SiteInfo::sitename has encountered an error:</P>\n";
+		print "<P>$error_text</P>\n";
+		print "<P>Feel free to contact <A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">$EPrintSite::SiteInfo::sitename administration</A> with details.</P>\n";
+		print "<P><CENTER><A HREF=\"$back_to\">$back_to_text</A></CENTER></P>\n";
 	
-	print $self->end_html();
+		print $self->end_html();
+	}
 }
 
 ######################################################################
