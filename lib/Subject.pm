@@ -296,19 +296,6 @@ sub can_post
 	return( $self->{data}->{depositable} eq "TRUE" ? 1 : 0 );
 }
 
-sub render
-{
-	my( $self, $session ) = @_;
-
-	my $ds = $self->{session}->get_archive()->get_dataset( "subject" );
-	my $name = $self->{data}->{name};
-	if( $name eq '' ) { $name = "(".$self->{data}->{subjectid}.")"; }
-	my $namefield = $ds->get_field( "name" );
-	my $html = $namefield->render_value( 
-			$self->{session}, 
-			$name );
-}
-
 
 sub render_with_path
 {
@@ -330,7 +317,7 @@ sub render_with_path
 				$div->appendChild( $session->make_text( ": ") );
 			}
 			$first = 0;
-			$div->appendChild( $_->render() );
+			$div->appendChild( $_->render_description() );
 		}
 		$v->appendChild( $div );
 	}
@@ -558,6 +545,7 @@ sub count_eprints
 
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
+		satisfy_all => 0, 
 		session => $self->{session},
 		dataset => $dataset );
 
@@ -586,13 +574,6 @@ sub count_eprints
 
 }
 
-sub get_name
-{
-	my( $self ) = @_;
-
-	my $html = $self->render();
-	return EPrints::Utils::tree_to_utf8( $html );
-}
 
 
 # Subjects don't have a URL.
@@ -607,5 +588,10 @@ sub get_name
 # {
 # }
 
+#deprecated
+sub render
+{
+	confess( "oooops" ); # use render citation
+}
 
 1;

@@ -1557,7 +1557,7 @@ sub get_value_label
 	if( $self->is_type( "subject" ) )
 	{
 		my $subj = EPrints::Subject->new( $session, $value );
-		return $subj->get_name();
+		return $subj->render_description();
 	}
 
 	if( $self->is_type( "datatype" ) )

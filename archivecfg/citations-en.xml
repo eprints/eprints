@@ -67,4 +67,7 @@
 
     <ep:citation type="document_pdf"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset> - Requires <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a> or other PDF viewer.</ep:citation>
 
+<!-- document citations -->
+    <ep:citation type="subject"><ep:a><span class="subject"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">(&subjectid;)</ep:ifnotset></span></ep:a></ep:citation>
+
 </ep:citations>

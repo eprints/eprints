@@ -152,4 +152,8 @@ will fix it. It means in the document citations we can do ifset on "security".
 [C] - added document citations to the citations file - with advice on how
 to view PDF and PS.
 
-
+ - removed Subject::get_name and render and replaced with render_description
+(well the one inherrited from DataObj)
+ - fixed a bug in edit_subject : was rendering list of eprints in buffer, not
+archive.
+[C] - added a subject default citation to citations list.

@@ -37,6 +37,7 @@ if( defined $subid )
 else
 {
 	#cjg How About Whole Lot on this page - all subjects?
+
 	$session->build_page( 
 		$session->html_phrase( "cgi/users/edit_subject:intro_title" ),
 		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
@@ -57,7 +58,6 @@ sub mkpage_editsubject
 	my $subject_ds = $session->get_archive()->get_dataset( "subject" );
 	my $archive_ds = $session->get_archive()->get_dataset( "archive" );
 	my $buffer_ds = $session->get_archive()->get_dataset( "buffer" );
-
 	my $subject = EPrints::Subject->new( $session, $subid );
 	if( !defined $subject )
 	{
@@ -88,7 +88,6 @@ sub mkpage_editsubject
 			my $victim = EPrints::Subject->new( $session, $victimid );
 				foreach( @{$victim->get_value( "parents" )} )
 				{
-	print STDERR "PARENT($_)\n";
 				}
 			if( !defined $victim )
 			{
@@ -97,11 +96,9 @@ sub mkpage_editsubject
 			elsif( scalar @{$victim->get_value( "parents" )}==1 )
 			{
 				$victim->remove();
-print STDERR "UNLINK\n";
 			}
 			else
 			{
-print STDERR "dEStROY\n";
 				my @newparents = ();
 				foreach( @{$victim->get_value( "parents" )} )
 				{
@@ -147,12 +144,10 @@ print STDERR "dEStROY\n";
 				push @problems, $session->html_phrase( "cgi/users/edit_subject:problem_noid" );
 			}
 		}
-		print STDERR "ACTION::".$action."\n";
 	}
 	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:subjectid", 
 		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
 	$page->appendChild( $session->render_ruler() );
-
 
 	if( scalar @problems )
 	{
@@ -244,17 +239,17 @@ print STDERR "dEStROY\n";
 
 		$td = $session->make_element( "td", align=>"left");
 		$a = $session->make_element( "a", href=>"edit_subject?subjectid=".$_->get_value( "subjectid" ) );
-		$a->appendChild( $_->render() );
+		$a->appendChild( $_->render_description() );
 		$td->appendChild( $a );
 		$tr->appendChild( $td );
 		
-#		$td = $session->make_element( "td", align=>"center");
-#		$td->appendChild( $session->make_text( $_->count_eprints( $archive_ds ) ) );
-#		$tr->appendChild( $td );
-
 		$td = $session->make_element( "td", align=>"center");
-		$td->appendChild( $session->make_text( $_->count_eprints( $buffer_ds ) ) );
+		$td->appendChild( $session->make_text( $_->count_eprints( $archive_ds ) ) );
 		$tr->appendChild( $td );
+
+#		$td = $session->make_element( "td", align=>"center");
+#		$td->appendChild( $session->make_text( $_->count_eprints( $buffer_ds ) ) );
+#		$tr->appendChild( $td );
 
 		my $parents_n = scalar @{$_->get_value( "parents" )};
 		my $children_n = scalar $_->children();
@@ -288,7 +283,7 @@ print STDERR "dEStROY\n";
 	$form->appendChild( $session->render_action_buttons( 
 		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
 
-	$title = $session->html_phrase( "cgi/users/edit_subject:title", subjectname=>$subject->get_name() ), 
+	$title = $session->html_phrase( "cgi/users/edit_subject:title", subjectname=>$subject->render_description() ), 
 
 	$session->build_page( $title, $page );
 	$session->send_page();

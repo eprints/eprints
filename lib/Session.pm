@@ -632,7 +632,7 @@ sub _render_subjects_aux
 		}
 	}
 	$li->appendChild( $elementx );
-	$elementx->appendChild( $subjects->{$id}->render() );
+	$elementx->appendChild( $subjects->{$id}->render_description() );
 	if( defined $sizes && $sizes->{$id} > 0 )
 	{
 		$elementx->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );

@@ -206,8 +206,11 @@
 
 # DOM: Status NR
 
-# Search -= cachecode not searchexp.
+# Search -= cachecode not searchexp. NR
 
-# mail "From" to correct editor!
+# mail "From" to correct editor! NR
 
-#edit_user !!! bits not done
+#edit_user !!! bits not done NR
+
+# todo: #########################
+# bugs: ##################
