@@ -20,83 +20,102 @@ use EPrints::User;
 
 use strict;
 
-
 my $session = EPrints::Session->new();
 
-print $session->{render}->start_html( 
-	$session->{lang}->phrase( "cgi/users/buffer:overview_title" ) );
+# Check we have privs
+if( !$session->auth_check( "editor" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my( $page, $p, $table, $tr, $td, $th, $a );
+
+$page = $session->make_doc_fragment();
 
 # Get EPrints in the submission buffer
-my @eprints = EPrints::EPrint::retrieve_eprints(
-	$session,
-	EPrints::Database::table_name( "buffer" ),
-	undef );
+my $buffds = $session->get_archive()->get_dataset( "buffer" );
 
-if( $#eprints == -1 )
+#cjg later should be only ones which match filter.
+my @eprints = $session->get_db()->get_all( $buffds );
+
+if( scalar @eprints == 0 )
 {
 	# No EPrints
-	print "<P><CENTER><STRONG>";
-	print $session->{lang}->phrase( "cgi/users/buffer:no_entries" ) );
-	print "</STRONG></CENTER></P>\n";
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->html_phrase( "cgi/users/buffer:no_entries" ) );
+	$page->appendChild( $p );
 }
 else
 {
-	print "<P><CENTER>";
-	print $session->{lang}->phrase( "cgi/users/buffer:buffer_blurb" ) );
-	print "</CENTER></P>\n";
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->html_phrase( "cgi/users/buffer:buffer_blurb" ) );
+	$page->appendChild( $p );
 
-	print "<CENTER><TABLE BORDER=1 CELLPADDING=5>\n";
-	print "<TR><TH><STRONG>";
-	print $session->{lang}->phrase( "cgi/users/buffer:title" ) );
-	print "</STRONG></TH><TH><STRONG>";
-	print $session->{lang}->phrase( "cgi/users/buffer:sub_by" ) );
-	print "</STRONG></TH><TH><STRONG>";
-	print $session->{lang}->phrase( "cgi/users/buffer:sub_date" ) );
-	print "</STRONG></TH></TR>\n";
+	$table = $session->make_element( "table", border=>1, cellpadding=>5 );
+	$page->appendChild( $table );
+	$tr = $session->make_element( "tr" );
+	$table->appendChild( $tr );
+	
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/buffer:title" ) );
+	$tr->appendChild( $th );
+
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/buffer:sub_by" ) );
+	$tr->appendChild( $th );
+
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/buffer:sub_date" ) );
+	$tr->appendChild( $th );
 
 	my $e;
 	foreach $e (@eprints)
 	{
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+
 		# Title
-		print "<TR><TD><A HREF=\"view_submission?eprintid=$e->{eprintid}\">";
-		print $e->short_title();
-		print "</A></TD>";
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$a = $session->make_element( "a", 
+			href=>"view_submission?eprintid=".$e->get_value("eprintid") );
+		$a->appendChild( $session->make_text( $e->short_title() ) );
+		$td->appendChild( $a );
 		
 		# Link to user
-		print "<TD>";
+		my $user = new EPrints::User( $session, $e->get_value( "username" ) );
 		
-		my $user = new EPrints::User( $session, $e->{username} );
-		
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
 		if( defined $user )
 		{
-			print "<A HREF=\"view_user?username=$e->{username}\">";
-			print $user->full_name();
-			print "</A>";
+			$a = $session->make_element( "a", 
+				href=>"view_user?username=".$e->get_value("username") );
+			$a->appendChild( $session->make_text( $user->full_name() ) );
+			$td->appendChild( $a );
 		}
 		else
 		{
-			print "<STRONG>";
-			print $session->{lang}->phrase( "cgi/users/buffer:invalid" ) );
-			print "</STRONG>";
+			$td->appendChild( $session->html_phrase( "cgi/users/buffer:invalid" ) );
 		}
 		
-		print "</TD>";
 		
-		# Submission date
-
-		print "<TD>";
-		print $session->{render}->format_field(
-			$session->{metainfo}->find_table_field( "eprint","datestamp" ),
-			$e->{datestamp} );
-		print "</TD></TR>\n";
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $buffds->get_field( "datestamp" )->render_value( $session, $e->get_value( "datestamp" ) ) );
 	}
-	
-	print "</TABLE></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"".$session->get_archive()->get_conf( "server_static ")."/staff/\">";
-print $session->{lang}->phrase( "cgi/users/buffer:return_staff" );
-print "</A></CENTER></P>\n";
+$p = $session->make_element( "p" );
+$a = $session->make_element( "a", href=>"????????cjg" );
+$p->appendChild( $a );
+$a->appendChild( $session->html_phrase( "cgi/users/buffer:return_staff" ) );
+$page->appendChild( $p );
 
-print $session->{render}->end_html();
+$session->build_page(
+	$session->phrase( "cgi/users/buffer:overview_title" ), 
+	$page );
+$session->send_page();
+
 $session->terminate();

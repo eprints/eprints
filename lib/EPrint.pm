@@ -46,8 +46,6 @@ sub get_system_field_info
 
 	{ name=>"datestamp", type=>"date", required=>0 },
 
-	{ name=>"subjects", type=>"subject", required=>0, multiple=>1 },
-
 	{ name=>"additional", type=>"text", required=>0 },
 
 	{ name=>"reasons", type=>"longtext", required=>0, displaylines=>6 },

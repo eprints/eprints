@@ -927,49 +927,62 @@ sub to_html
 			@defaults = ();
 		}
 
-		# Make a list of possible values
-		my( $tags, $labels );
+		my %settings = (
+			name => $self->{formname},
+			default => \@defaults,
+			multiple => "multiple" );
 		
 		if( $self->is_type( "subject" ) )
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
-			# if the "postability" algorithm checks user info.
-			( $tags, $labels ) = EPrints::Subject::get_postable( $self->{session}, {} );
-		}
-		elsif( $self->is_type( "datatype" ) )
-		{
-			my $ds = $self->{session}->get_archive()->get_dataset(
-                                        $self->{field}->get_property( "datasetid" ) );
-			$tags = $ds->get_types();
-			$labels = $ds->get_type_names( $self->{session} );
+			# if the "postability" algorithm checks user info. cjg
+			my $topsubj = EPrints::Subject->new(
+				$self->{session},
+				$self->{field}->get_property( "top" ) );
+			my ( $pairs ) = $topsubj->get_subjects( 0, 0 );
+			splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
+			$settings{pairs} = $pairs;
+			$settings{size} = ( 
+				scalar @$pairs > $EPrints::HTMLRender::list_height_max ?
+				$EPrints::HTMLRender::list_height_max :
+				scalar @$pairs );
 		}
 		else
 		{
-			# set
-			( $tags, $labels ) = $self->{field}->tags_and_labels( $self->{session} );
-		}
+			my( $tags, $labels );
+			if( $self->is_type( "datatype" ) )
+			{
+				my $ds = $self->{session}->get_archive()->get_dataset(
+                                        	$self->{field}->get_property( "datasetid" ) );
+				$tags = $ds->get_types();
+				$labels = $ds->get_type_names( $self->{session} );
+			}
+			else # type is "set"
+			{
+				( $tags, $labels ) = $self->{field}->tags_and_labels( $self->{session} );
+			}
+		
+			my( $old_tags, $old_labels ) = ( $tags, $labels );
 	
-		my( $old_tags, $old_labels ) = ( $tags, $labels );
-
-		$tags = [ "NONE" ];
-
-		# we have to copy the tags and labels as they are currently
-		# references to the origionals. 
+			$tags = [ "NONE" ];
 	
-		push @{$tags}, @{$old_tags};
-		$labels->{NONE} = "(Any)";
+			# we have to copy the tags and labels as they are currently
+			# references to the origionals. 
+		
+			push @{$tags}, @{$old_tags};
+			$labels->{NONE} = "(Any)"; #cjg lang
+			$settings{labels} = $labels;
+			$settings{values} = $tags;
+			$settings{size} = ( 
+				scalar @$tags > $EPrints::HTMLRender::list_height_max ?
+				$EPrints::HTMLRender::list_height_max :
+				scalar @$tags );
+		}	
 
 		$frag->appendChild( $self->{session}->render_option_list(
-			name => $self->{formname},
-			values => $tags,
-			default => \@defaults,
-			size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
-				scalar @$tags ),
-			multiple => "multiple",
-			labels => $labels ) );
+			%settings ) );
 
-		if( $self->{multiple} )
+		if( $self->{field}->get_property( "multiple" ) )
 		{
 			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 

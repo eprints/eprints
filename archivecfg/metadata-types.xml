@@ -13,6 +13,8 @@
   
   <dataset name="eprint">
     <type name="bookchapter">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
@@ -33,6 +35,8 @@
       <field name="referencetext" />
     </type>
     <type name="confpaper">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -55,6 +59,8 @@
       <field name="referencetext" />
     </type>
     <type name="confposter">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -77,6 +83,8 @@
       <field name="referencetext" />
     </type>
     <type name="techreport">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -95,6 +103,8 @@
       <field name="referencetext" />
     </type>
     <type name="journale">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -115,6 +125,8 @@
       <field name="referencetext" />
     </type>
     <type name="journalp">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -136,6 +148,8 @@
       <field name="referencetext" />
     </type>
     <type name="newsarticle">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -157,6 +171,8 @@
       <field name="referencetext" />
     </type>
     <type name="other">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -172,6 +188,8 @@
       <field name="referencetext" />
     </type>
     <type name="preprint">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
@@ -186,6 +204,8 @@
       <field name="referencetext" />
     </type>
     <type name="thesis">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
@@ -204,6 +224,8 @@
       <field name="referencetext" />
     </type>
     <type name="stupid">
+      <field name="subjects" required="yes" />
+      <field name="groups" required="yes" />
       <field name="comments" />
       <field name="month" required="yes" />
     </type>

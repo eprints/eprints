@@ -352,12 +352,12 @@ sub render_option_list
 	{
 		foreach( @{$params{default}} )
 		{
-			$defaults{$_}++;
+			$defaults{$_} = 1;
 		}
 	}
 	else
 	{
-		$defaults{$params{default}}++;
+		$defaults{$params{default}} = 1;
 	}
 
 	my $element = $self->make_element( "select" , name => $params{name} );
@@ -369,22 +369,48 @@ sub render_option_list
 	{
 		$element->setAttribute( "multiple" , $params{multiple} );
 	}
-	my $option_value;
-	foreach $option_value( @{$params{values}} )
+
+	if( defined $params{pairs} )
 	{
-		my $opt = $self->make_element( "option", value => $option_value );
-		$opt->appendChild( 
-			$self->{page}->createTextNode( 
-				$params{labels}->{$option_value} ) );
-		if( defined $defaults{$option_value} )
+		my $pair;
+		foreach $pair ( @{$params{pairs}} )
 		{
-			$opt->setAttribute( "selected" , "selected" );
+			$element->appendChild( 
+				$self->render_single_option(
+					$pair->[0],
+					$pair->[1],
+					$defaults{$pair->[0]} ) );
 		}
-		$element->appendChild( $opt );
+	}
+	else
+	{
+		foreach( @{$params{values}} )
+		{
+			$element->appendChild( 
+				$self->render_single_option(
+					$_,
+					$params{labels}->{$_},
+					$defaults{$_} ) );
+			
+						
+		}
 	}
 	return $element;
 }
 
+sub render_single_option
+{
+	my( $self, $key, $desc, $selected ) = @_;
+
+	my $opt = $self->make_element( "option", value => $key );
+	$opt->appendChild( $self->{page}->createTextNode( $desc ) );
+
+	if( $selected )
+	{
+		$opt->setAttribute( "selected" , "selected" );
+	}
+	return $opt;
+}
 
 sub render_hidden_field
 {
@@ -596,7 +622,7 @@ sub render_subject_desc
 	if( defined $full && $full )
 	{
 		$frag->appendChild( $self->make_text(
-			EPrints::Subject::subject_label( 
+			EPrints::Subject::subject_label(  #cjg!!
 						$self,
 		                                $subject->{subjectid} ) ) );
 	}

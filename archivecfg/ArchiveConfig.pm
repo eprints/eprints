@@ -289,7 +289,7 @@ $c->{userauth} = {
 		priv  =>  [ "user", "subscription" ] },
 	staff => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status" ] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor" ] }
 };
 
 
@@ -306,7 +306,7 @@ $c->{archivefields}->{document} = [
 #cjg what does required actually do??
 $c->{archivefields}->{user} = [
 
-	{ name => "name", type => "name", required => 1 },
+	{ name => "name", type => "name" },
 
 	{ name => "dept", type => "text" },
 
@@ -375,6 +375,9 @@ $c->{archivefields}->{eprint} = [
 	{ name => "referencetext", type => "longtext", displaylines => 3 },
 
 	{ name => "reportno", type => "text" },
+
+	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1 },
+	{ name => "groups", type=>"subject", top=>"group", multiple => 1 },
 
 	{ name => "thesistype", type => "text" },
 

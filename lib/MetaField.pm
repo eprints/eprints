@@ -17,6 +17,7 @@
 package EPrints::MetaField;
 
 use EPrints::Session;
+use EPrints::Subject;
 use EPrints::Database;
 
 use strict;
@@ -76,7 +77,7 @@ my %TYPE_INDEX =
 my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	digits => 20,
-	displaylines => 0,
+	displaylines => 12,
 	maxlength => 255,
 	multilang => 0,
 	multiple => 0,
@@ -85,6 +86,7 @@ my $PROPERTIES = {
 	required => 0,
 	requiredlangs => [],
 	showall => 0, 
+	top => "subjects",
 	type => "NO_DEFAULT"
 };
 
@@ -127,7 +129,7 @@ sub new
 		$self->{confid} = $properties{dataset}->confid(); 
 	}
 
-	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
+	if( $self->is_type( "longtext", "set", "subject", "datatype" ) )
 	{
 		$self->set_property( "displaylines", $properties{displaylines} );
 	}
@@ -144,6 +146,7 @@ sub new
 	if( $self->is_type( "subject" ) )
 	{
 		$self->set_property( "showall" , $properties{showall} );
+		$self->set_property( "top" , $properties{top} );
 	}
 
 	if( $self->is_type( "datatype" ) )
@@ -388,7 +391,7 @@ sub render_value
 {
 	my( $self, $session, $value ) = @_;
 #cjg not DOM
-
+#cjg needs to handle multilang and multiple fields.
 
 	if( !defined $value || $value eq "" )
 	{
@@ -402,6 +405,8 @@ sub render_value
 		# Render text
 		return $session->make_text( $value );
 	}
+
+return $session->make_text( $value ); #cjg!!!!!!!!!!!!!!!!
 
 	if( $self->is_type( "name" ) )
 	{
@@ -477,7 +482,7 @@ sub render_value
 				$html .= "<BR>";
 			}
 			
-			$html .= EPrints::Subject::subject_label( $self->{session}, $sub );
+			$html .= EPrints::Subject::subject_label( $self->{session}, $sub ); #cjg!!
 		}
 	}
 	elsif( $self->is_type( "set" ) )
@@ -541,69 +546,68 @@ print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
 
 	if( $self->is_type( "subject", "datatype", "set" ) )
 	{
-		my( $tags, $labels, $id );
- 		$id = $self->{name};
-	
-		if( $self->is_type( "set" ) )
-		{
-			$tags = $self->{options};
-			$labels = {};
-			foreach( @{$tags} ) { $labels->{$_} = $_; } # hack!!!cjg
-		}
-		elsif( $self->is_type( "datatype" ) )
-		{
-			my $ds = $session->get_archive()->get_dataset( 
-					$self->{datasetid} );	
-			$tags = $ds->get_types();
-			$labels = $ds->get_type_names( $session );
-		}
-		elsif( $self->is_type( "subject" ) )
-		{
-			if( $self->{showall} )
-			{
-				( $tags, $labels ) = 
-					EPrints::Subject::all_subject_labels(
- 					$session ); 
-			}
-			else
-			{			
-				( $tags, $labels ) = 
-					EPrints::Subject::get_postable( 
-						$session, 
-						$session->current_user );
-	print STDERR "##(".join(",",@{$tags}).")\n";
-	print STDERR "##(".join(",",%{$labels}).")\n";
-			}
-		}
+		my %settings;
+		$settings{name} = $self->{name};
+		$settings{multiple} = 
+			( $self->{multiple} ?  "multiple" : undef );
 
 		if( !defined $value )
 		{
-			$value = [];
+			$settings{default} = []; 
 		}
 		elsif( !$self->get_property( "multiple" ) )
 		{
-			$value = [ $value ];
+			$settings{default} = [ $value ]; 
+		}
+		else
+		{
+			$settings{default} = $value; 
 		}
 
-		my $height = $self->{displaylines};
-print STDERR "HEIGHT: $height\n";
-		if( $height eq "ALL")
+		$settings{height} = $self->{displaylines};
+print STDERR "HEIGHT: $settings{height}\n";
+		if( $settings{height} == 0 )
 		{
-			$height = scalar @{$tags};
-		}
-		if( $height == 0 )
-		{
-			$height = undef;
+			$settings{height} = undef;
 		}
 
-		$html->appendChild( $session->render_option_list(
-			name => $id,
-			values => $tags,
-			default => $value,
-			height => $height,
-			multiple => ( $self->{multiple} ? 
-					"multiple" : undef ),
-			labels => $labels ) );
+		if( $self->is_type( "subject" ) )
+		{
+			my $topsubj = EPrints::Subject->new(
+				$session,
+				$self->get_property( "top" ) );
+			my ( $pairs ) = $topsubj->get_subjects( 
+				!($self->{showall}), 
+				0 );
+			$settings{pairs} = $pairs;
+			if( $settings{height} eq "ALL")
+			{
+				$settings{height} = scalar @{$pairs};
+			}
+		} else {
+			my($tags,$labels);
+			if( $self->is_type( "set" ) )
+			{
+				$tags = $self->{options};
+				$labels = {};
+				foreach( @{$tags} ) { $labels->{$_} = $_; } # hack!!!cjg
+			}
+			else # is "datatype"
+			{
+				my $ds = $session->get_archive()->get_dataset( 
+						$self->{datasetid} );	
+				$tags = $ds->get_types();
+				$labels = $ds->get_type_names( $session );
+			}
+			$settings{values} = $tags;
+			$settings{labels} = $labels;
+			if( $settings{height} eq "ALL")
+			{
+				$settings{height} = scalar @{$tags};
+			}
+
+		}
+		$html->appendChild( $session->render_option_list( %settings ) );
 
 		return $html;
 	}
@@ -1132,4 +1136,18 @@ sub _form_value_aux2
 	}	
 }
 
+# cjg this function should return the most useful version of a field if it
+# is a multilang field. Initially the search order will be:
+# language of 'session'
+# default language
+# any language
+sub most_local
+{
+	#cjg not done yet
+	my( $self, $session, $value ) = @_;
 
+	return $value;
+}
+
+
+1;

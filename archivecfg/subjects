@@ -7,7 +7,12 @@
 # This file will be scrapped or changed when subjects
 # are multilang.
 #
-phys:Physical Sciences & Mathematics::0
+group:Research Groups:ROOT:0
+group-isis:ISIS Research Groups:group:1
+group-iam:IAM Research Groups:group:1
+group-esd:ESD Research Groups:group:1
+subjects:Subject Areas:ROOT:0
+phys:Physical Sciences & Mathematics:subjects:0
 phys-astr:Astronomy:phys:1
 phys-astrp:Astrophysics:phys:1
 phys-chms:Chemistry:phys:1
@@ -16,7 +21,7 @@ phys-mtrl:Materials Science:phys:1
 phys-mthm:Mathematics:phys:1
 phys-phys:Physics:phys:1
 phys-stts:Statistics:phys:1
-scls:Social Sciences::0
+scls:Social Sciences:subjects:0
 scls-accn:Accounting:scls:1
 scls-anth:Anthropology:scls:1
 scls-arch:Archaeology:scls:1
@@ -39,11 +44,11 @@ scls-psyc:Psychology:scls:1
 scls-sclw:Social Work:scls:1
 scls-sclg:Sociology:scls:1
 scls-urbn:Urban Planning:scls:1
-blgc:Biological Sciences::0
+blgc:Biological Sciences:subjects:0
 blgc-antm:Anatomy:blgc:1
 blgc-bchm:Biochemistry:blgc:1
 blgc-blgy:Biology:blgc:1
-blgc-bphy:Biophysics:blgc:1
+blgc-bphy:Biophysics:blgc,phys:1
 blgc-bstt:Biostatistics:blgc:1
 blgc-btny:Botany:blgc:1
 blgc-cllb:Cell Biology:blgc:1
@@ -57,7 +62,7 @@ blgc-nrsc:Neuroscience:blgc:1
 blgc-phys:Physiology:blgc:1
 blgc-plnt:Plant Sciences:blgc:1
 blgc-zlgy:Zoology:blgc:1
-mdcn:Medicine::0
+mdcn:Medicine:subjects:0
 mdcn-anst:Anesthesiology:mdcn:1
 mdcn-dnts:Dentistry:mdcn:1
 mdcn-drmt:Dermatology:mdcn:1
@@ -89,7 +94,7 @@ mdcn-srgr:Surgery:mdcn:1
 mdcn-txcl:Toxicology:mdcn:1
 mdcn-urlg:Urology:mdcn:1
 mdcn-vtrn:Veterinary Services:mdcn:1
-engn:Engineering::0
+engn:Engineering:subjects:0
 engn-arnt:Aeronautics:engn:1
 engn-astr:Astronautics:engn:1
 engn-appl:Applied Mathematics:engn:1
@@ -105,7 +110,7 @@ engn-infr:Information Studies:engn:1
 engn-mchn:Mechanical Engineering:engn:1
 engn-tchn:Technology:engn:1
 engn-tlcm:Telecommunications:engn:1
-hmnt:Humanities::0
+hmnt:Humanities:subjects:0
 hmnt-arch:Architecture:hmnt:1
 hmnt-clss:Classics:hmnt:1
 hmnt-cmpr:Comparative Literature:hmnt:1
@@ -132,7 +137,7 @@ hmnt-slvc:Slavic Languages:hmnt:1
 hmnt-spns:Spanish:hmnt:1
 hmnt-spch:Speech:hmnt:1
 hmnt-wmns:Women's Studies:hmnt:1
-arts:Arts::0
+arts:Arts:subjects:0
 arts-art:Art:arts:1
 arts-arth:Art History:arts:1
 arts-dsgn:Design:arts:1

@@ -324,7 +324,7 @@ sub commit
 	my( $self ) = @_;
 	
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
-	my $success = $self->{session}->{database}->update(
+	my $success = $self->{session}->get_db()->update(
 		$user_ds,
 		$self->{data} );
 

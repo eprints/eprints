@@ -301,7 +301,8 @@ sub XmlUtf8Decode
 }
 
 $IgnoreReadOnly = 0;
-$SafeMode = 1;
+#$SafeMode = 1;
+$SafeMode = 0; #cjg ( Should be an option!)
 
 sub getIgnoreReadOnly
 {

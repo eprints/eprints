@@ -25,11 +25,13 @@
 0	"ID" fields for ISBN/userid etc.
 -	Magic Next & Prev in SubmissionForm
 4	Multi-Lang fields in HTML
+0	Field Value Renderer 
+0	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 0	Skippable Stages in SubmissionForm
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 0	Phrasify Option Fields
-0	Editor Pages -approve,bounce,filter etc.
-0	Subject editors
+1	Editor Pages -approve,bounce,filter etc.
+2	Subject editors
 0	Web-based registration and Email Change
 0	Mailer (Unicode friendly?)
 0	Indexcode generator in ArchiveConfig.pm needs to be UTF-8 clean
@@ -44,7 +46,8 @@
 1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 0	Default Values for metadata
-0	Subject field root is not always ROOT - can come into different places in the subject tree
+-	Subject field root is not always ROOT - can come into different places in the subject tree
+0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
 0	Translate Initial phrases and templates into French
 0	Indexing on name fields
 

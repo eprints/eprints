@@ -78,7 +78,7 @@ sub phrase
 	}
 	$inserts = {} if( !defined $inserts );
 
-if( $session == undef ) {
+if( !defined $session ) {
 	EPrints::Session::bomb();
 } 
 	my $result;
