@@ -409,6 +409,17 @@ $EPrintSite::SiteInfo::password = "eprints";
 # Site specific **UNIQUE** archive identifier.
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
 $EPrintSite::SiteInfo::archive_identifier = "cogprints";
+
+# Exported metadata formats. The hash should map format ids to namespaces.
+%EPrintSite::SiteInfo::oai_metadata_formats =
+(
+	"oams" => "http://www.openarchives.org/sfc/sfc_oams.htm"
+);
+
+
+# Parameters for Dienst software: Required for now, but will not be required
+# in later versions
+
 # Domain the software is running in
 $EPrintSite::SiteInfo::domain = $EPrintSite::SiteInfo::host;
 # Port the perl server is running on

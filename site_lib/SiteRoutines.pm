@@ -411,11 +411,60 @@ sub update_archived_eprint
 
 ######################################################################
 #
-# eprint_get_oams( $eprint, $tags )
-#                          hash_ref
+# @formats = oai_list_metadata_formats( $eprint )
 #
-#  Fill out the OAMS in $tags from the record $eprint. The tags (hash
-#  values) be filled out are:
+#  This should return the metadata formats we can export for the given
+#  eprint. If $eprint is undefined, just return all the metadata
+#  formats supported by the archive.
+#
+#  The returned values must be keys to
+#  %EPrintSite::SiteInfo::oai_metadata_formats.
+#
+######################################################################
+
+sub oai_list_metadata_formats
+{
+	my( $eprint ) = @_;
+	
+	# This returns the list of all metadata formats, suitable if we
+	# can export any of those metadata format for any record.
+	return( keys %EPrintSite::SiteInfo::oai_metadata_formats );
+}
+
+
+######################################################################
+#
+# %metadata = oai_get_eprint_metadata( $eprint, $format )
+#
+#  Return metadata for the given eprint in the given format.
+#  The value of each key should be either a scalar value (string)
+#  indicating the value for that string, e.g:
+#
+#   "title" => "Full Title of the Paper"
+#
+#  or it can be a reference to a list of scalars, indicating multiple
+#  values:
+#
+#   "author" => [ "J. R. Hartley", "J. N. Smith" ]
+#
+#  it can also be nested:
+#
+#   "nested" => [
+#                  {
+#                    "nested_key 1" => "nested value 1",
+#                    "nested_key 2" => "nested value 2"
+#                  },
+#                  {
+#                    "more nested values"
+#                  }
+#               ]
+#
+#  Return undefined if the metadata format requested is not available
+#  for the given eprint.
+#
+######################################################################
+#
+#  For Santa-Fe complaint OAMS, the tags are:
 #
 #  title [M]      =>  "document title"
 #  author [M][R}  =>  [ { name => "author's name",
@@ -438,40 +487,44 @@ sub update_archived_eprint
 #
 ######################################################################
 
-sub eprint_get_oams
+sub oai_get_eprint_metadata
 {
-	my( $eprint, $tags ) = @_;
+	my( $eprint, $format ) = @_;
+
+	return( undef ) unless( $format eq "oams" );
 	
+	my %tags;
+
 	# Title
-	$tags->{title} = $eprint->{title};
+	$tags{title} = $eprint->{title};
 	
 	# Authors
 	my @authors = EPrints::Name::extract( $eprint->{authors} );
-	$tags->{author} = [];
+	$tags{author} = [];
 	
 	foreach (@authors)
 	{
 		my( $surname, $firstnames ) = @$_;
-		push @{$tags->{author}}, { "name" => "$firstnames $surname",
+		push @{$tags{author}}, { "name" => "$firstnames $surname",
 		                           "organization" => "" };
 	}
 
 	# Subject field will just be the subject descriptions
 	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
 	my @subjects = $subject_list->get_subjects( $eprint->{session} );
-	$tags->{subject} = [];
+	$tags{subject} = [];
 
 	foreach (@subjects)
 	{
-		push @{$tags->{subject}},
+		push @{$tags{subject}},
 		     $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
 	}
 	
 	# Abstract
-	$tags->{abstract} = $eprint->{abstract};
+	$tags{abstract} = $eprint->{abstract};
 
 	# Comment
-	$tags->{comment} = $eprint->{comment} if( defined $eprint->{comment} );
+	$tags{comment} = $eprint->{comment} if( defined $eprint->{comment} );
 	
 	# Date for discovery. For a month/day we don't have, assume 01.
 	my $year = $eprint->{year};
@@ -497,7 +550,9 @@ sub eprint_get_oams
 		$month = $month_numbers{$eprint->{month}};
 	}
 	
-	$tags->{discovery} = "$year-$month-01";
+	$tags{discovery} = "$year-$month-01";
+
+	return( %tags );
 }
 
 
