@@ -186,3 +186,5 @@ methods from ArchiveConfig.pm, copy ArchiveOAIConfig.pm into the archives
 /cfg/ dir, and then add to ArchiveConfig.pm:
 require "cfg/ArchiveOAIConfig.pm";
 $c->{oai} = get_oai_conf();
+- Latex.pm now uses MD5 to generate cache filename (so it does not go over
+256 char limit)

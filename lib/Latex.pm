@@ -3,8 +3,8 @@ package EPrints::Latex;
 
 use EPrints::Session;
 
+use Digest::MD5;
 use strict;
-
 
 
 sub render_string
@@ -136,9 +136,8 @@ sub texstring_to_png
 {
 	my( $session, $texstring ) = @_;
 
-	my $ofile = $texstring;
-	$ofile =~ s/./sprintf('%02X',ord($&))/ieg;
-	$ofile.=".png";
+	# create an MD5 of the TexString to use as a cache filename.
+	my $ofile = Digest::MD5::md5_hex( $texstring ).".png";
 
 	my $archive =  $session->get_archive();
 

@@ -17,8 +17,6 @@ General
 - passwords set via the web are not crypted until they are accepted.
 (No loss of security from eprints-1 but annoying)
 
-- Latex image cache will break if image tex has more than 127 chars
-due to filename limit of 255 chars.
 
 
 ----------------------------------------------------------------------
@@ -107,4 +105,7 @@ FIXED: 28/01
    the "abstract page" and the second block is a dump of all fields.
 - OAI fails to flag deleted records as deleted!
 
+FIXED: 30/01
+- Latex image cache will break if image tex has more than 127 chars
+due to filename limit of 255 chars. [now MD5's it instead]
 
