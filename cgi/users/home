@@ -24,7 +24,7 @@ use strict;
 #
 ######################################################################
 
-my $session = EPrints::Session->new();
+my $session = new EPrints::Session();
 
 my $user = EPrints::User::current_user( $session );
 
@@ -162,10 +162,14 @@ sub render_workspace
                                              		 \%eprint_titles,
                                              		 0 );
 
+		# If there is only one eprint in the workspace, select it by default
+		my %default_values;
+		$default_values{"eprint_id"} = $eprint_ids[0] if( scalar @eprints==1 );
+
 		### Now put them in a form
 		$session->{render}->render_form(
 			[ $set_field ],
-			{},
+			\%default_values,
 			0,
 			0,
 			[ "New", "Edit", "Clone", "Delete", "Submit" ],
