@@ -52,15 +52,17 @@ if( $session->{render}->seen_form() )
 	}
 	else
 	{
+		my $ep;
+
 		# They've clicked on something
-		foreach (@eprints)
+		foreach $ep (@eprints)
 		{
 			# See if they clicked a clone button, also sanity check to make sure
 			# it's this user's paper
-			if( defined $session->{render}->param( "clone_$_->{eprintid}" ) &&
-		   	 $_->{username} eq $user->{username} )
+			if( defined $session->{render}->param( "clone_$ep->{eprintid}" ) &&
+		   	 $ep->{username} eq $user->{username} )
 			{
-				my $copy = $_->clone( $EPrints::Database::table_inbox,
+				my $copy = $ep->clone( $EPrints::Database::table_inbox,
 			                        	 1 );
 				if( defined $copy )
 				{
@@ -81,10 +83,10 @@ if( $session->{render}->seen_form() )
 			# See if they clicked a request removal button
 			# Sanity check: Make sure it's this user's paper
 			if( $EPrintSite::SiteInfo::allow_user_removal_request &&
-		   	 defined $session->{render}->param( "remove_$_->{eprintid}" ) &&
-		   	 $_->{username} eq $user->{username} )
+		   	 defined $session->{render}->param( "remove_$ep->{eprintid}" ) &&
+		   	 $ep->{username} eq $user->{username} )
 			{
-				&removal_request_form( $session, $_ );
+				&removal_request_form( $session, $ep );
 				$page_written = 1;
 			}
 		}

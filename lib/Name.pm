@@ -84,9 +84,9 @@ sub extract
 	
 #EPrints::Log->debug( "Name", "in: $names" );
 
-	my( @nameslist, $i );
+	my( @nameslist, $i, @namesplit );
 	
-	my @namesplit = split /:/, $names;
+	@namesplit = split /:/, $names if( defined $names );
 
 #EPrints::Log->debug( "Name", "Split into $#namesplit (+1)" );
 

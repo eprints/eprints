@@ -16,7 +16,7 @@ use EPrints::Session;
 use EPrints::Subscription;
 
 use strict;
-
+use vars qw($action_subscribe $action_create $action_remove);
 
 my $session = new EPrints::Session;
 
@@ -40,16 +40,16 @@ my $subscription = undef;
 
 $subscription = $all_subs[0] if( scalar @all_subs > 0 );
 
-my $action_subscribe = "Subscribe";
-my $action_create    = "Create a Subscription";
-my $action_remove    = "Remove the Subscription";
+$action_subscribe = "Subscribe";
+$action_create    = "Create a Subscription";
+$action_remove    = "Remove the Subscription";
 
 # Do we have an action?
 my $action = $session->{render}->param( "submit" );
 
-EPrints::Log->debug( "subscribe", "Action: $action" );
+#EPrints::Log->debug( "subscribe", "Action: $action" );
 
-if( $action eq $action_subscribe )
+if( defined $action && $action eq $action_subscribe )
 {
 	# User wants to update subscription info.
 	if( defined $subscription )
@@ -66,7 +66,7 @@ if( $action eq $action_subscribe )
 		}
 	}
 }
-elsif( $action eq $action_create )
+elsif( defined $action && $action eq $action_create )
 {
 	# Create a new subscription if necessary
 	if( !defined $subscription )
@@ -90,7 +90,7 @@ elsif( $action eq $action_create )
 		&edit_subscription( $session, $subscription, undef );
 	}
 }
-elsif( $action eq $action_remove )
+elsif( defined $action && $action eq $action_remove )
 {
 	# Remove the user's subscription. For now, remove the first in the list
 	# (which should only ever have one in it anyway.)

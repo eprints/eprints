@@ -28,14 +28,14 @@ my $action = $session->{render}->param( "submit" );
 my $stage = $session->{render}->param( "stage" );
 my $eprint_id = $session->{render}->param( "eprint_id" );
 
-if( $stage eq $EPrints::SubmissionForm::stage_format &&
-	 $action eq $EPrints::SubmissionForm::action_finished )
+if( defined $stage && $stage eq $EPrints::SubmissionForm::stage_format &&
+	 defined $action && $action eq $EPrints::SubmissionForm::action_finished )
 {
 	# Intercept the verify page, that's what we were doing!
 	$session->{render}->redirect( "view_submission?eprintid=$eprint_id" );
 }
-elsif( $action eq "Accept" || $action eq "Bounce" || $action eq "Send" ||
-	$action eq "Delete" )
+elsif( defined $action && ( $action eq "Accept" || $action eq "Bounce" ||
+	$action eq "Send" || $action eq "Delete" ) )
 {
 	# Specialist cases, not for Submission Form
 	

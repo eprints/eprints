@@ -520,7 +520,7 @@ sub remove_all_files
 
 	$self->set_main( undef );
 
-	if( $num_deleted != $#to_delete+1 )
+	if( $num_deleted < scalar @to_delete )
 	{
 		EPrints::Log->log_entry(
 			"Document",
@@ -857,9 +857,9 @@ sub validate
 	
 	# System default checks:
 	# Make sure there's at least one file!!
-	my %files = $self->{files};
+	my %files = $self->files();
 
-	if( scalar( %files ) ==0 )
+	if( scalar keys %files ==0 )
 	{
 		push @problems, "You haven't uploaded any files!";
 	}

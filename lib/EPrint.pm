@@ -63,7 +63,11 @@ my $digits = 8;
 	"commentary" => "If your paper is a commentary on (or a response to) ".
 		"another document in the archive, please enter its ID in this box.",
 	"succeeds" => "If this document is a revised version of another document ".
-		"in the archive, please enter its ID code in this box."
+		"in the archive, please enter its ID code in this box.",
+	"subjects" => "Please enter at least one main subject category, and ".
+		"optionally any other subject categories you think are appropriate for ".
+		"your submisson."
+
 );
 
 $EPrints::EPrint::static_page = "index.html";
@@ -1078,7 +1082,7 @@ sub prune_documents
 	{
 		my $doc = EPrints::Document->new( $self->{session}, $_->[0], $_ );
 		my %files = $doc->files();
-		if( scalar (%files) == 0 )
+		if( scalar keys %files == 0 )
 		{
 			# Has no associated files, prune
 			$doc->remove();

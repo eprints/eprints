@@ -1060,10 +1060,6 @@ sub do_stage_subject
 			$EPrints::SubmissionForm::stage_subject} );
 	$self->list_problems();
 
-	print "<P>Please enter at least one main subject category, and ".
-		"optionally any other subject categories you think are appropriate for ".
-		"your submisson.</P>\n";
-
 	$self->render_subject_form(
 		[ $EPrints::SubmissionForm::action_prev,
 		  $EPrints::SubmissionForm::action_next ],
@@ -1298,7 +1294,7 @@ sub do_stage_fileview
 
 	my %files = $doc->files();
 	
-	if( scalar( %files ) == 0 )
+	if( scalar keys %files == 0 )
 	{
 		print "<P><CENTER><EM>No files have been uploaded for this format.".
 			"</EM></CENTER></P>\n";
@@ -1333,7 +1329,7 @@ sub do_stage_fileview
 		$EPrints::SubmissionForm::action_prev,
 		$EPrints::SubmissionForm::action_upload );
 	push @buttons, $EPrints::SubmissionForm::action_finished
-		if( scalar( %files ) > 0 );
+		if( scalar keys %files > 0 );
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons( \@buttons );
 	print "</CENTER></P>\n";

@@ -190,7 +190,7 @@ sub update_from_form
 		foreach $field (@all_fields)
 		{
 			my $param = $self->{session}->{render}->form_value( $field );
-			$param = undef if( $param eq "" );
+			$param = undef if( defined $param && $param eq "" );
 
 			# Only update if a value for the field was entered in the form.
 			if( $self->{staff} || $field->{editable} )

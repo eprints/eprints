@@ -96,7 +96,7 @@ sub new
 		$self->{order_sql}->{$id} = $orderby->{$_};
 		push @{$self->{order_ids}}, $id;
 	
-		$self->{order} = $id if( $defaultorder eq $_ );
+		$self->{order} = $id if( defined $defaultorder && $defaultorder eq $_ );
 	}
 
 	# Array for the SearchField objects

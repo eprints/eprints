@@ -469,7 +469,7 @@ sub input_field
 	{
 		$html = $self->{query}->checkbox(
 			-name=>$field->{name},
-			-checked=>( $value eq "TRUE" ? "checked" : undef ),
+			-checked=>( defined $value && $value eq "TRUE" ? "checked" : undef ),
 			-value=>"TRUE",
 			-label=>"" );
 	}
@@ -483,7 +483,8 @@ sub input_field
 	}
 	elsif( $type eq "set" )
 	{
-		my @actual = split /:/, $value;
+		my @actual;
+		@actual = split /:/, $value if( defined $value );
 
 		# Get rid of beginning and end empty values
 		shift @actual if( defined $actual[0] && $actual[0] eq "" );
@@ -1102,7 +1103,7 @@ sub form_value
 	else
 	{
 		$value = $self->param( $field->{name} );
-		$value = undef if( $value eq "" );
+		$value = undef if( defined $value && $value eq "" );
 	}
 	
 	return( $value );
