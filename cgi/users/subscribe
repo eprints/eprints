@@ -234,7 +234,7 @@ sub update_subscription
 		print "<CENTER><P><STRONG>Your subscription has been accepted.</STRONG>".
 			"</P></CENTER>";
 		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::server_perl/users/".
-			"home\">Click here to return to your deposit papers page.</P>".
+			"home\">Click here to return to your deposit papers page.</A></P>".
 			"</CENTER>\n";
 		print $session->{render}->end_html();
 	}
