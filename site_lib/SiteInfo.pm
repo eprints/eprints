@@ -286,7 +286,7 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_static/accounts.html\">Join&nbsp;up</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Registrations</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/reader/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">Author\&nbsp;Area</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
@@ -328,7 +328,7 @@ $EPrintSite::SiteInfo::html_banner = "
 $EPrintSite::SiteInfo::html_tail = "<BR>
 <HR>
 
-<img src=\"$EPrintSite::SiteInfo::server_static/images/logo_elib.gif\" alt=\"Elib logo\" border=0 hspace=5 vspace=5 align=\"left\">
+<a href=\"http://www.ukoln.ac.uk/services/elib/\"><img src=\"$EPrintSite::SiteInfo::server_static/images/logo_elib.gif\" alt=\"Elib logo\" border=0 hspace=5 vspace=5 align=\"left\"></a>
 <p>The <strong>CogPrints</strong> project is funded by the <a href=\"http://www.jisc.ac.uk/\">Joint Information Systems Committee (JISC)</a> of the Higher Education Funding Councils, as part of its <a href=\"http://www.ukoln.ac.uk/services/elib/\">Electronic Libraries (eLib) Programme</a>.<br clear=\"left\"></p>
 
 <HR>
