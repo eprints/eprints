@@ -566,7 +566,6 @@ sub update
 								p => $position,
 								l => $langid
 							};
-							push @values,$v;
 							$incp=1;
 						}
 					}
