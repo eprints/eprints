@@ -94,11 +94,11 @@ sub render_citation
 		{
 			EPrints::Log::log_entry(
 				"Citation",
-				EPrints::Language::logphrase( "unknowneprint",
+				EPrints::Language::logphrase( "L:unknowneprint",
 						              $fieldname,
 						     	      $citation_spec ) 
                                 					 );
-			return( $session->{lang}->phrase( "na" ) );
+			return( $session->{lang}->phrase( "A:na" ) );
 		}
 	}
 
@@ -108,7 +108,6 @@ sub render_citation
 	while( $citation =~ /{([^}]+)}/ )
 	{
 		my $entry = $1;
-
 		my $field = EPrints::MetaInfo::find_eprint_field( $entry );
 
 		# Check we have it
@@ -135,7 +134,7 @@ sub render_citation
 		{
 			EPrints::Log::log_entry(
 				"Citation",
-				EPrints::Language::logphrase( "unknowneprint",
+				EPrints::Language::logphrase( "L:unknowneprint",
 						              $entry,
 						     	      $citation_spec ) 
                                 					 );
@@ -165,9 +164,9 @@ sub render_citation
 sub _remove_problematic
 {
 	my $old = shift;
-	
-	$old =~ tr/\[/(/;
-	$old =~ tr/\]/)/;
+
+	$old =~ s/[\[{]/(/g;	
+	$old =~ s/[\]}]/)/g;	
 	
 	return( $old );
 }

@@ -21,7 +21,7 @@ use strict;
 
 my $session = new EPrints::Session( 1 );
 
-EPrints::ImportXML::import_file( $session , "/tmp/data.xml" , \&deal );
+EPrints::ImportXML::import_file( $session , $ARGV[0] , \&deal );
 
 $session->terminate();
 
