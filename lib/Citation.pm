@@ -133,7 +133,7 @@ sub render_citation
 	# Remove HTML formatting if not HTML
 	unless( $html )
 	{
-		$citation =~ s/<[^>]>//g;
+		$citation =~ s/<[^>]+>//g;
 	}
 	
 	return( $citation );
