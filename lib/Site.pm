@@ -95,15 +95,17 @@ $self->log("done: $id");
 	return $self;
 }
 
-## WP1: BAD
+## WP1: GOOD
 sub getConf
 {
 	my( $self, $key, @subkeys ) = @_;
+
 	my $val = $self->{config}->{$key};
 	foreach( @subkeys )
 	{
 		$val = $val->{$_};
 	} 
+
 	return $val;
 }
 

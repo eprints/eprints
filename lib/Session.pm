@@ -240,14 +240,15 @@ sub HTMLPhrase
 	return $self->treeToXHTML( $result );
 }
 
-## WP1: BAD
+## WP1: GOOD
 sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
 
 	foreach( keys %inserts )
 	{
-		$inserts{$_} = $self->makeText( $_ );
+		$inserts{$_} = $self->makeText( $inserts{$_} );
+		
 	}
         my @callinfo = caller();
         $callinfo[1] =~ m#[^/]+$#;
@@ -917,7 +918,7 @@ sub subject_desc
 sub render_error
 {
 	my( $self, $error_text, $back_to, $back_to_text ) = @_;
-
+	
 	if( !defined $back_to )
 	{
 		$back_to = $self->getSite->getConf( "frontpage" );
@@ -985,6 +986,13 @@ sub auth_check
 	if( !defined $user )
 	{
 		$self->render_error( $self->phrase( "no_login" ) );
+		return;
+	}
+
+	# Don't need to do any more if we aren't checking for a specific
+	# resource.
+	if( !defined $resource )
+	{
 		return;
 	}
 

@@ -188,9 +188,8 @@
     <phrase ref="title_error">Error</phrase>
     <phrase ref="title_return">Return to Author's Home</phrase>
     <phrase ref="title_confirmdel">Confirm Deletion</phrase>
-    <phrase ref="corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. If this has happened in the normal course of operation please tell the <pin ref="siteadmin" />.</phrase>
-    <phrase ref="database_err">There's been a problem accessing the site database. Please try again later, and contact the <pin ref="siteadmin" /> if the problem persists.</phrase>
-    <phrase ref="siteadmin">site administrator </phrase>
+    <phrase ref="corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <pin ref="line_no" />)</phrase>
+    <phrase ref="database_err">There's been a problem accessing the site database. Please try again later. #cjg# could be old no disk0 problem... (Code <pin ref="line_no" /></phrase>
     <phrase ref="nosel_err">You hadn't selected a paper to edit, clone, delete or deposit!</phrase>
     <phrase ref="delete">Delete</phrase>
     <phrase ref="delete_all">Delete All Files</phrase>

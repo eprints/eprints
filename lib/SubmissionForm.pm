@@ -101,7 +101,6 @@ sub process
 	
 #cjg NOT VERY FAR YET...	
 	$self->{action}    = $self->{session}->param( "submit" );
-
 	$self->{stage}     = $self->{session}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
 
@@ -119,17 +118,16 @@ sub process
 			#cjg LOG...
 			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-			$self->{session}->render_error( $self->{session}->phrase( 
-				"database_err" , 
-				siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
+			$self->_database_err;
 			return;
 		}
 
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
-			$self->{eprint}->getValue( "username" ) ne $self->{user}->getValue( "username" ) )
+			( $self->{eprint}->getValue( "username" ) ne 
+			  $self->{user}->getValue( "username" ) ) )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "corrupt_err" , siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
+			$self->_corrupt_err;
 			return;
 		}
 	}
@@ -140,13 +138,13 @@ print STDERR "YAY\n";
 	# Process data from previous stage
 	if( !defined $self->{stage} )
 	{
-		$ok = $self->from_home();
+		$ok = $self->_from_home();
 	}
 	elsif( defined $EPrints::SubmissionForm::stage_titles{$self->{stage}} )
 	{
 		# It's a valid stage. Process the results of that stage - done by
-		# calling the function &from_<stage>
-		my $function_name = "from_$self->{stage}";
+		# calling the function &_from_<stage>
+		my $function_name = "_from_$self->{stage}";
 		{
 			no strict 'refs';
 			$ok = $self->$function_name();
@@ -154,7 +152,7 @@ print STDERR "YAY\n";
 	}
 	else
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return;
 	}
 
@@ -167,7 +165,7 @@ print STDERR "YAY\n";
 
 #EPrints::Log::debug( "SubmissionForm", "To stage: $self->{next_stage}" );
 
-		my $function_name = "do_$self->{next_stage}";
+		my $function_name = "_do_$self->{next_stage}";
 
 		{
 			no strict 'refs';
@@ -179,6 +177,29 @@ print STDERR "YAY\n";
 }
 
 
+## WP1: BAD
+sub _corrupt_err
+{
+	my( $self ) = @_;
+
+	$self->{session}->_render_error( 
+		$self->{session}->phrase( 
+			"corrupt_err",
+			line_no => (caller())[2] ) );
+
+}
+
+## WP1: BAD
+sub _database_err
+{
+	my( $self ) = @_;
+
+	$self->{session}->_render_error( 
+		$self->{session}->phrase( 
+			"database_err",
+			line_no => (caller())[2] ) );
+
+}
 
 ######################################################################
 #
@@ -201,12 +222,12 @@ print STDERR "YAY\n";
 ######################################################################
 
 ## WP1: BAD
-sub from_home
+sub _from_home
 {
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $self->{session}->phrase( "F:action_new" ) )
+	if( $self->{action} eq $self->{session}->phrase( "action_new" ) )
 	{
 		if( !$self->{staff} )
 		{
@@ -220,7 +241,7 @@ sub from_home
 				my $db_error = $self->{session}->{database}->error();
 				EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-				$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->_database_err;
 				return( 0 );
 			}
 			else
@@ -234,7 +255,7 @@ sub from_home
 		}
 		else
 		{
-			$self->{session}->render_error( $self->{session}->phrase(
+			$self->{session}->_render_error( $self->{session}->phrase(
 			        "H:useautharea" ) );
 			return( 0 );
 		}
@@ -243,7 +264,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -255,7 +276,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -276,7 +297,7 @@ sub from_home
 					eprintid=>$self->{eprint}->{eprintid},
 					errmsg=>$error ) );
 
-			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_database_err;
 			return( 0 );
 		}
 	}
@@ -284,7 +305,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
@@ -293,7 +314,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
@@ -305,7 +326,7 @@ sub from_home
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 	
@@ -320,18 +341,18 @@ sub from_home
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_type
+sub _from_stage_type
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
 	# Process uploaded data
-	$self->update_from_type_form();
+	$self->_update_from_type_form();
 	$self->{eprint}->commit();
 
 	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
@@ -356,7 +377,7 @@ sub from_stage_type
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -371,18 +392,18 @@ sub from_stage_type
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_meta
+sub _from_stage_meta
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
 	# Process uploaded data
-	$self->update_from_meta_form();
+	$self->_update_from_meta_form();
 	$self->{eprint}->commit();
 
 	if( $self->{session}->{render}->internal_button_pressed() )
@@ -413,7 +434,7 @@ sub from_stage_meta
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -428,18 +449,18 @@ sub from_stage_meta
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_subject
+sub _from_stage_subject
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
 	# Process uploaded data
-	$self->update_from_subject_form();
+	$self->_update_from_subject_form();
 	$self->{eprint}->commit();
 	
 	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
@@ -463,7 +484,7 @@ sub from_stage_subject
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -478,13 +499,13 @@ sub from_stage_subject
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_linking
+sub _from_stage_linking
 {
 	my( $self ) = @_;
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -527,7 +548,7 @@ sub from_stage_linking
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 }	
@@ -540,17 +561,17 @@ sub from_stage_linking
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_format
+sub _from_stage_format
 {
 	my( $self ) = @_;
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
-	my( $format, $button ) = $self->update_from_format_form();
+	my( $format, $button ) = $self->_update_from_format_form();
 
 	if( defined $format )
 	{
@@ -562,7 +583,7 @@ sub from_stage_format
 			# Remove the offending document
 			if( !defined $self->{document} || !$self->{document}->remove() )
 			{
-				$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->_corrupt_err;
 				return( 0 );
 			}
 
@@ -580,7 +601,7 @@ sub from_stage_format
 
 				if( !defined $self->{document} )
 				{
-					$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+					$self->_database_err;
 					return( 0 );
 				}
 			}
@@ -589,7 +610,7 @@ sub from_stage_format
 		}
 		else
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_corrupt_err;
 			return( 0 );
 		}
 	}
@@ -616,7 +637,7 @@ sub from_stage_format
 	}
 	else
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}		
 
@@ -631,13 +652,13 @@ sub from_stage_format
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_fileview
+sub _from_stage_fileview
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 	
@@ -650,16 +671,17 @@ sub from_stage_fileview
 	if( !defined $self->{document} ||
 	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
+		return( 0 );
 	}
 	
 	# Check to see if a fileview button was pressed, process it if necessary
-	if( $self->update_from_fileview( $self->{document} ) )
+	if( $self->_update_from_fileview( $self->{document} ) )
 	{
 		# Doc object will have updated as appropriate, commit changes
 		unless( $self->{document}->commit() )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_database_err;
 			return( 0 );
 		}
 		
@@ -705,7 +727,7 @@ sub from_stage_fileview
 		else
 		{
 			# Erk! Unknown action.
-			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_corrupt_err;
 			return( 0 );
 		}
 	}
@@ -721,13 +743,13 @@ sub from_stage_fileview
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_upload
+sub _from_stage_upload
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -740,7 +762,7 @@ sub from_stage_upload
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 	
@@ -806,7 +828,7 @@ sub from_stage_upload
 	}
 	else
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -820,13 +842,13 @@ sub from_stage_upload
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_verify
+sub _from_stage_verify
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -848,7 +870,7 @@ sub from_stage_verify
 		else
 		{
 			# No relevant page! erk!
-			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_corrupt_err;
 			return( 0 );
 		}
 	}
@@ -867,7 +889,7 @@ sub from_stage_verify
 			}
 			else
 			{
-				$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->_database_err;
 				return( 0 );
 			}
 		}
@@ -880,7 +902,7 @@ sub from_stage_verify
 	}
 	else
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 	
@@ -896,13 +918,13 @@ sub from_stage_verify
 ######################################################################
 
 ## WP1: BAD
-sub from_stage_confirmdel
+sub _from_stage_confirmdel
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 );
 	}
 
@@ -921,7 +943,7 @@ sub from_stage_confirmdel
 				         { eprintid=> $self->{eprint}->{eprintid},
 				          errmsg=>$db_error } );
 
-			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=> $self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->_database_err;
 			return( 0 );
 		}
 	}
@@ -932,7 +954,7 @@ sub from_stage_confirmdel
 	else
 	{
 		# Don't have a valid action!
-		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->_corrupt_err;
 		return( 0 )
 	}
 
@@ -957,7 +979,7 @@ sub from_stage_confirmdel
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_type
+sub _do_stage_type
 {
 	my( $self ) = @_;
 	print $self->{session}->{render}->start_html(
@@ -965,11 +987,11 @@ sub do_stage_type
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_type} ) );
 
-	$self->list_problems();
+	$self->_list_problems();
 	
 	print "<P>".$self->{session}->phrase( "H:seltype" )."</P>\n";
 
-	$self->render_type_form(
+	$self->_render_type_form(
 		[ $self->{session}->phrase("F:action_cancel"),
 			$self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_type } );
@@ -985,7 +1007,7 @@ sub do_stage_type
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_meta
+sub _do_stage_meta
 {
 	my( $self ) = @_;
 	
@@ -993,11 +1015,11 @@ sub do_stage_meta
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_meta} ) );
-	$self->list_problems();
+	$self->_list_problems();
 
 	print "<P>".$self->{session}->phrase( "H:bibinfo" )."</P>\n";
 
-	$self->render_meta_form(
+	$self->_render_meta_form(
 		[ $self->{session}->phrase("F:action_prev"),
 		  $self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_meta }  );
@@ -1012,7 +1034,7 @@ sub do_stage_meta
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_subject
+sub _do_stage_subject
 {
 	my( $self ) = @_;
 	
@@ -1020,9 +1042,9 @@ sub do_stage_subject
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_subject} ) );
-	$self->list_problems();
+	$self->_list_problems();
 
-	$self->render_subject_form(
+	$self->_render_subject_form(
 		[ $self->{session}->phrase("F:action_prev"),
 		  $self->{session}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_subject }  );
@@ -1039,7 +1061,7 @@ sub do_stage_subject
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_linking
+sub _do_stage_linking
 {
 	my( $self ) = @_;
 	
@@ -1048,7 +1070,7 @@ sub do_stage_linking
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_linking} ) );
 	
-	$self->list_problems();
+	$self->_list_problems();
 
 	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
 	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
@@ -1077,7 +1099,7 @@ sub do_stage_linking
 			print "<TR><TD><STRONG>";
 			print $self->{session}->phrase( "H:verify" );
 			print "</STRONG></TD><TD>";
-			print $self->{session}->{render}->render_eprint_citation(
+			print $self->{session}->{render}->_render_eprint_citation(
 				$older_eprint );
 			print "</TD></TR>\n";
 		}
@@ -1109,7 +1131,7 @@ sub do_stage_linking
 		if( defined $older_eprint )
 		{
 			print "<TR><TD><STRONG>Verify:</STRONG></TD><TD>";
-			print $self->{session}->{render}->render_eprint_citation(
+			print $self->{session}->{render}->_render_eprint_citation(
 				$older_eprint );
 			print "</TD></TR>\n";
 		}
@@ -1154,7 +1176,7 @@ sub do_stage_linking
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_format
+sub _do_stage_format
 {
 	my( $self ) = @_;
 	
@@ -1162,7 +1184,7 @@ sub do_stage_format
 		$self->{session}->phrase(
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_format} ) );
-	$self->list_problems();
+	$self->_list_problems();
 
 	# Validate again, so we know what buttons to put up and how to state stuff
 	$self->{eprint}->prune_documents();
@@ -1181,7 +1203,7 @@ sub do_stage_format
 	print $self->{session}->{render}->start_form();
 
 	# Render a form
-	$self->render_format_form();
+	$self->_render_format_form();
 
 	# Write a back button, and a finished button, if the docs are OK
 	my @buttons = ( $self->{session}->phrase("F:action_prev") );
@@ -1211,7 +1233,7 @@ sub do_stage_format
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_fileview
+sub _do_stage_fileview
 {
 	my( $self ) = @_;
 
@@ -1248,7 +1270,7 @@ sub do_stage_fileview
 			$EPrints::SubmissionForm::stage_titles{
 				$EPrints::SubmissionForm::stage_fileview} ) );
 
-	$self->list_problems(
+	$self->_list_problems(
 		$self->{session}->phrase("H:fixupload"),
 		$self->{session}->phrase("H:pleasefix") );
 
@@ -1289,7 +1311,7 @@ sub do_stage_fileview
 		}
 
 		print "</CENTER></P>\n";
-		print $self->render_file_view( $doc );
+		print $self->_render_file_view( $doc );
 
 		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
 		print $self->{session}->phrase("H:heretoview");
@@ -1339,7 +1361,7 @@ sub do_stage_fileview
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_upload
+sub _do_stage_upload
 {
 	my( $self ) = @_;
 
@@ -1430,7 +1452,7 @@ sub do_stage_upload
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_verify
+sub _do_stage_verify
 {
 	my( $self ) = @_;
 
@@ -1462,7 +1484,7 @@ sub do_stage_verify
 
 	if( $#{$self->{problems}} >= 0 )
 	{
-		$self->list_problems(
+		$self->_list_problems(
 			$self->{session}->phrase("H:fixprobs"),
 			"" );
 
@@ -1478,7 +1500,7 @@ sub do_stage_verify
 		print "</CENTER></P>\n";
 		print "<HR>\n";
 		
-		print $self->{session}->{render}->render_eprint_full( $self->{eprint} );
+		print $self->{session}->{render}->_render_eprint_full( $self->{eprint} );
 	
 		print "<HR>\n";
 
@@ -1504,7 +1526,7 @@ sub do_stage_verify
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_done
+sub _do_stage_done
 {
 	my( $self ) = @_;
 	
@@ -1536,7 +1558,7 @@ sub do_stage_done
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_confirmdel
+sub _do_stage_confirmdel
 {
 	my( $self ) = @_;
 
@@ -1578,7 +1600,7 @@ sub do_stage_confirmdel
 ######################################################################
 
 ## WP1: BAD
-sub do_stage_return
+sub _do_stage_return
 {
 	my( $self ) = @_;
 
@@ -1595,7 +1617,7 @@ sub do_stage_return
 
 ######################################################################
 #
-# list_problems( $before, $after )
+# _list_problems( $before, $after )
 #
 #  Lists the given problems with the form. If $before and/or $after
 #  are given, they are printed before and after the list. If they're
@@ -1605,7 +1627,7 @@ sub do_stage_return
 
 
 ## WP1: BAD
-sub list_problems
+sub _list_problems
 {
 	my( $self, $before, $after ) = @_;
 	
@@ -1665,7 +1687,7 @@ sub list_problems
 
 ######################################################################
 #
-# render_type_form( $submit_buttons, $hidden_fields )
+# _render_type_form( $submit_buttons, $hidden_fields )
 #                     array_ref         hash_ref
 #
 #  Renders the type form. $submit_buttons should be a reference to
@@ -1674,7 +1696,7 @@ sub list_problems
 ######################################################################
 
 ## WP1: BAD
-sub render_type_form
+sub _render_type_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 	
@@ -1682,7 +1704,7 @@ sub render_type_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 	
-	$self->{session}->{render}->render_form( [ $field ],
+	$self->{session}->{render}->_render_form( [ $field ],
 	                                         $self->{eprint},
 	                                         0,
 	                                         0,
@@ -1693,7 +1715,7 @@ sub render_type_form
 
 ######################################################################
 #
-# $success = update_from_type_form()
+# $success = _update_from_type_form()
 #
 #  Update values from a type form. Doesn't update the database entry -
 #  use commit() to make the changes permanent.
@@ -1701,7 +1723,7 @@ sub render_type_form
 ######################################################################
 
 ## WP1: BAD
-sub update_from_type_form
+sub _update_from_type_form
 {
 	my( $self ) = @_;
 	
@@ -1730,7 +1752,7 @@ sub update_from_type_form
 
 ######################################################################
 #
-# render_meta_form( $submit_buttons, $hidden_fields )
+# _render_meta_form( $submit_buttons, $hidden_fields )
 #                      array_ref        hash_ref
 #
 #  Render a form for the (site-specific) metadata fields.
@@ -1738,7 +1760,7 @@ sub update_from_type_form
 ######################################################################
 
 ## WP1: BAD
-sub render_meta_form
+sub _render_meta_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 	
@@ -1756,7 +1778,7 @@ sub render_meta_form
 	
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->render_form( \@edit_fields,
+	$self->{session}->{render}->_render_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         1,
 	                                         1,
@@ -1767,14 +1789,14 @@ sub render_meta_form
 
 ######################################################################
 #
-# update_from_meta_form()
+# _update_from_meta_form()
 #
 #  Updated metadata from the form.
 #
 ######################################################################
 
 ## WP1: BAD
-sub update_from_meta_form
+sub _update_from_meta_form
 {
 	my( $self ) = @_;
 
@@ -1811,7 +1833,7 @@ sub update_from_meta_form
 
 ######################################################################
 #
-# render_subject_form(  $submit_buttons, $hidden_fields )
+# _render_subject_form(  $submit_buttons, $hidden_fields )
 #                           array_ref        hash_ref
 #
 #  Render a form for the subject(s) field.
@@ -1819,7 +1841,7 @@ sub update_from_meta_form
 ######################################################################
 
 ## WP1: BAD
-sub render_subject_form
+sub _render_subject_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 
@@ -1831,7 +1853,7 @@ sub render_subject_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->render_form( \@edit_fields,
+	$self->{session}->{render}->_render_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         0,
 	                                         1,
@@ -1843,7 +1865,7 @@ sub render_subject_form
 
 ######################################################################
 #
-# render_users_form(  $submit_buttons, $hidden_fields )
+# _render_users_form(  $submit_buttons, $hidden_fields )
 #                           array_ref        hash_ref
 #
 #  Render a form for the usernames field.
@@ -1851,7 +1873,7 @@ sub render_subject_form
 ######################################################################
 
 ## WP1: BAD
-sub render_users_form
+sub _render_users_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 
@@ -1861,7 +1883,7 @@ sub render_users_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->render_form( \@edit_fields,
+	$self->{session}->{render}->_render_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         0,
 	                                         1,
@@ -1872,14 +1894,14 @@ sub render_users_form
 
 ######################################################################
 #
-# update_from_subject_form()
+# _update_from_subject_form()
 #
 #  Update subject data from the form
 #
 ######################################################################
 
 ## WP1: BAD
-sub update_from_subject_form
+sub _update_from_subject_form
 {
 	my( $self ) = @_;
 	
@@ -1928,14 +1950,14 @@ sub update_from_subject_form
 
 ######################################################################
 #
-# update_from_users_form()
+# _update_from_users_form()
 #
 #  Update usernames data from the form
 #
 ######################################################################
 
 ## WP1: BAD
-sub update_from_users_form
+sub _update_from_users_form
 {
 	my( $self ) = @_;
 	
@@ -1983,7 +2005,7 @@ sub update_from_users_form
 
 ######################################################################
 #
-# $html = render_file_view()
+# $html = _render_file_view()
 #
 #  Renders an HTML table showing the files in this document, together
 #  with buttons allowing deletion and setting which one gets shown first.
@@ -1999,7 +2021,7 @@ sub update_from_users_form
 ######################################################################
 
 ## WP1: BAD
-sub render_file_view
+sub _render_file_view
 {
 	my( $self, $document ) = @_;
 	my $html;
@@ -2053,7 +2075,7 @@ sub render_file_view
 
 ######################################################################
 #
-# $consumed = update_from_fileview()
+# $consumed = _update_from_fileview()
 #
 #  Update document object according to form. If $consumed, then a
 #  button on the fileview form was pressed. $consumed is left as 0
@@ -2063,7 +2085,7 @@ sub render_file_view
 ######################################################################
 
 ## WP1: BAD
-sub update_from_fileview
+sub _update_from_fileview
 {
 	my( $self, $document ) = @_;
 	
@@ -2104,7 +2126,7 @@ sub update_from_fileview
 
 ######################################################################
 #
-# render_format_form()
+# _render_format_form()
 #
 #  Render a table showing what formats have been uploaded for the
 #  current EPrint. Buttons named "edit_<format>" (e.g. "edit_html")
@@ -2114,7 +2136,7 @@ sub update_from_fileview
 ######################################################################
 
 ## WP1: BAD
-sub render_format_form
+sub _render_format_form
 {
 	my( $self ) = @_;
 
@@ -2188,17 +2210,17 @@ sub render_format_form
 
 ######################################################################
 #
-# ( $format, $button ) = update_from_format_form()
+# ( $format, $button ) = _update_from_format_form()
 #
 #  Works out whether a button on the format form rendered by
-#  render_format_form was pressed. If it was, the format concerned is
+#  _render_format_form was pressed. If it was, the format concerned is
 #  returned in $format, and the button type "remove" or "edit" is
 #  given in $button.
 #
 ######################################################################
 
 ## WP1: BAD
-sub update_from_format_form
+sub _update_from_format_form
 {
 	my( $self ) = @_;
 	

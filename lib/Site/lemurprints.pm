@@ -367,7 +367,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
 			Auth_DBI_encrypted  =>  "off" }, 
-		priv  =>  [ "user" ] }
+		priv  =>  [ "tester" ] }
 };
 
 ######################################################################

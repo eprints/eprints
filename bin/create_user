@@ -30,8 +30,10 @@ if( $#ARGV < 3 || $#ARGV > 4 )
 
 my $session = EPrints::Session->new( 1 , $ARGV[0] );
 
+my $user_ds = $session->getSite->getDataSet( "user" );
+
 my $valid_access_level = 0;
-foreach (@{$session->{metainfo}->get_types( "user" )})
+foreach (@{ $user_ds->getTypes })
 {
 	$valid_access_level = 1 if( $ARGV[3] eq $_ );
 }
@@ -43,28 +45,31 @@ if( $valid_access_level )
 	                                           $ARGV[2],
 	                                           $ARGV[3] );
 
-	if( $#ARGV == 3 )
+	if( $#ARGV == 4 )
 	{
-		$new_user->{passwd} = $ARGV[4];
-		$new_user->commit();
+		$new_user->setValue( "passwd" , $ARGV[4] );
+print "SET: $ARGV[4]\n";
+		$new_user->commit;
 	}
 
 	if( defined $new_user )
 	{
 		print STDERR "Successfully created new user:\n";
-		print STDERR " User ID:  $new_user->{username}\n";
-		print STDERR " Password: $new_user->{passwd}\n";
+		print STDERR " User ID:  ".
+		             $new_user->getValue( "username" )."\n";
+		print STDERR " Password: ".
+		             $new_user->getValue( "passwd" )."\n";
 	}
 	else
 	{
-		my $db_error = $session->{database}->error();
+		my $db_error = $session->getDB->error();
 		print STDERR "Error creating user: $db_error\n";
 	}
 }
 else
 {
 	print STDERR "Invalid access level. Valid access levels are:\n";
-	foreach (@{$session->{metainfo}->get_types( "user" )})
+	foreach (@{ $user_ds->getTypes })
 	{
 		print "  $_\n";
 	}

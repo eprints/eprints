@@ -137,6 +137,7 @@ sub file_phrase
 		{
 			$repl = $session->makeText( "[ref missing: $ref]" );
 		}
+		print STDERR "= ".$repl->toString."\n";
 
 		# All children remain untouched, only the PIN is
 		# changed.

@@ -151,12 +151,14 @@ sub create_user
 	my $found = 0;
 	my $used_count = 0;
 	my $candidate = $username_candidate;
-	
+
+	my $user_ds = $session->getSite->getDataSet( "user" );
+		
 	while( $found==0 )
 	{
 		#print "Trying $candidate\n";
 	
-		if( $session->{database}->exists( "user", $candidate ) )
+		if( $session->getDB->exists( $user_ds, $candidate ) )
 		{
 			# Already exists. Try again...
 			$used_count++;
@@ -177,7 +179,7 @@ sub create_user
 
 	# Add the user to the database... e-mail add. is lowercased
 # cjg add_record call
-	$session->{database}->add_record( "user",
+	$session->{database}->add_record( $user_ds,
 	                                  { "username"=>$candidate,
 	                                    "passwd"=>$passwd,
 	                                    "usertype"=>$access_level,
@@ -233,9 +235,10 @@ sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
+	my $user_ds = $session->getSite->getDataSet( "user" );
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
-		"user",
+		$user_ds,
 		"email",
 		lc $email );
 
@@ -336,9 +339,10 @@ sub commit
 {
 	my( $self ) = @_;
 	
+	my $user_ds = $self->{session}->getSite->getDataSet( "user" );
 	my $success = $self->{session}->{database}->update(
-		"user",
-		$self );
+		$user_ds,
+		$self->{data} );
 
 	return( $success );
 }
@@ -427,8 +431,9 @@ sub retrieve_users
 	
 	my @fields = $session->{metainfo}->get_fields( "users" );
 
+	my $user_ds = $session->getSite->getDataSet( "user" );
 	my $rows = $session->{database}->retrieve_fields(
-		"user",
+		$user_ds,
 		\@fields,
 		$conditions,
 		$order );
@@ -487,8 +492,9 @@ sub remove
 	}
 
 	# Now remove user record
+	my $user_ds = $self->{session}->getSite->getDataSet( "user" );
 	$success = $success && $self->{session}->{database}->remove(
-		"user",
+		$user_ds,
 		"username",
 		$self->{username} );
 	
@@ -529,7 +535,7 @@ sub toString
 	return( $self->{session}->getSite()->call( "user_display_name" , $self  ) );
 }
 
-## WP1: BAD
+## WP1: GOOD
 sub getValue
 {
 	my( $self , $fieldname ) = @_;
@@ -537,12 +543,26 @@ sub getValue
 	return $self->{data}->{$fieldname};
 }
 
-## WP1: BAD
+## WP1: GOOD
+sub setValue
+{
+	my( $self , $fieldname, $newvalue ) = @_;
+
+	$self->{data}->{$fieldname} = $newvalue;
+}
+
+## WP1: GOOD
 sub has_priv
 {
 	my( $self, $resource ) = @_;
 
-	print EPrints::Log::render_struct( $self );
+	my $userprivs = $self->{session}->getSite->
+		getConf( "userauth", $self->getValue( "usertype" ), "priv" );
+
+	foreach my $priv ( @{$userprivs} )
+	{
+		return 1 if( $priv eq $resource );
+	}
 
 	return 0;
 }

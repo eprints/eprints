@@ -111,7 +111,9 @@ print STDERR "THE USER IS: $user_sent\n";
 	if( defined $user )
 	{
 		foreach( @{$session->getSite->getConf( 
-				"userauth", $user->{usertype}, "priv" )} )
+					"userauth", 
+					$user->getValue( "usertype" ), 
+					"priv" )} )
 		{
 			$authz = 1 if( defined $okgroups{$_} );
 		}
