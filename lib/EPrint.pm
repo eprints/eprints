@@ -314,8 +314,9 @@ sub remove
 	if( $self->{dataset}->id() eq "archive" )
 	{
 		#cjg Test this!
-		$success = $success && EPrints::Deletion::add_deletion_record( $self );
-		#cjg REMOVE ABSTRACTS!
+		#	$success = $success && EPrints::Deletion::add_deletion_record( $self );
+		#cjg move to deletion.
+		#cjg REMOVE ABSTRACT PAGES!
 	
 	}
 
@@ -1448,6 +1449,13 @@ sub render_value
 	my $field = $self->{dataset}->get_field( $fieldname );	
 	
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
+
+sub get_id
+{
+	my( $self ) = @_;
+
+	return $self->{data}->{eprintid};
 }
 	
 1;

@@ -1,4 +1,12 @@
-# This file describes how far we've got at the time this distribution was created.
+#
+# This file describes how far we've got at the time this distribution was 
+# created.
+#
+# This is a pretty "scruffy" file, it gets updated everytime we add, modify
+# or remove code. Fix a bug, or have an idea. More or less.
+#
+
+
 # 0-4 shows amount of "Doneness" 
 # - means done.
 
@@ -51,7 +59,6 @@
 #	Bug: Why does 'help' disappear when there is a problem with a search?
 #	Clean up validators - Don't validate records with fields which have bad langids including user validate.
 #	Order buttons somehow
-#	Staff EPrint Edit
 #	Threads rendering code.
 #	Staff User Edit/Create
 #	Delete records function.
@@ -60,14 +67,12 @@
 #	Make SearchFields have a better call method.
 #	Get install upgrader working properly.
 #	"Squash" reverse indexes?
-#	rationalise names of cgi and bin scripts ?
+#	rationalise names of cgi and bin scripts ? 
 #	clone cocks up later version id
 #	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
-#	"secret" field should never have a default set in forms, but no value should not erase previous value.
 #	lose "bomb"
 #	Put System field titles in system phrase file.
 #	Bug: 500 error when search for only ignored words.
-# 	"Bad archive ID" on bin scripts rather than weird crash.
 #	print STDERR's should be log()
 #	Eliminate HTMLRenderer
 
@@ -106,6 +111,7 @@
 
 #	OAI support working.
 
+0 - Logout fature (or maybe force a revalidate so someone can switch user).
 0	Some kind of BibTeX support (fill in metadata form from bibtex)
 0	Search by ID field (in search exp)
 0	What's new? page(s) (just a fixed search)
@@ -152,8 +158,8 @@
 # *	EPrints 1.2 Final Planned EPrints 1.* release.
 
 
-1	Sleep
-2	Beer
+2	Sleep
+1	Beer
 0	Peer Review
 0	Mirroring
 0	Citation Scanning
@@ -190,7 +196,7 @@
 # cgi/set_password			*
 # cgi/advsearch				*
 # cgi/handle_404			.
-# NEED: cgi/handle_403
+# what error page for forbidden docs in the secure area?
 # cgi/oai				.
 # cgi/remind				 ?
 # cgi/search				*
@@ -220,3 +226,17 @@
 # cgi/users/staff/edit_subject		*
 
 # lose cgi/remind
+# allow configure_archive to specify archive name on command line.
+# sort out "deletion"
+# abstract page for deleted records?
+# set all rel. search exp's to cache
+
+# newmethods for BD: c
+#- cache( searchexp, \@records )#!:
+#- is_cached( searchexp )
+#- from_cache( dataset, searchexp , from , count )
+	# from, count optional
+	# this 'un prunes it too.
+#- count_cache( $searchexp )
+#
+# check Database.pm for any sql without escaping.

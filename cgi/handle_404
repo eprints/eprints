@@ -15,7 +15,6 @@
 
 #cjg NOT DONE.
 
-use EPrints::Deletion;
 use EPrints::Session;
 
 use strict;
@@ -36,7 +35,8 @@ if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
 	my $guessed_id = $1.$2.$3.$4;
 
 	# Was the eprint deleted?
-	my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
+	#cjg!
+	#my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
 	
 	if( defined $deletion_record )
 	{

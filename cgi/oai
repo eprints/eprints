@@ -20,7 +20,6 @@
 
 #cjg NO WHERE NEAR DONE
 use EPrints::Database;
-use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::OpenArchives;
 use EPrints::Session;
@@ -481,7 +480,8 @@ sub list_records
 	# Write the deleted eprints
 	foreach (@deleted_eprintids)
 	{
-		my $deletion = new EPrints::Deletion( $session, $_ );
+		#cjg!!!!!!!!!!!!1 sort out deleted
+		#my $deletion = new EPrints::Deletion( $session, $_ );
 
 		$writer->startTag( "record", "status"=>"deleted" );
 		EPrints::OpenArchives::write_record_header(

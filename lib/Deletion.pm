@@ -17,6 +17,17 @@
 
 package EPrints::Deletion;
 
+die "Deletion Deprecated.";
+
+
+
+
+
+
+
+
+
+
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::SearchField;

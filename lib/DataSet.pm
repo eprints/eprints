@@ -61,7 +61,8 @@ my $INFO = {
 	},
 	deletion => {
 		sqlname => "deletion",
-		class => "EPrints::Deletion"
+		class => "EPrints::EPrint",
+		confid => "eprint"
 	},
 	eprint => {
 		class => "EPrints::EPrint"

@@ -1294,7 +1294,6 @@ sub get_citation_spec
 {
 	my( $self, $dataset, $ctype ) = @_;
 
-
 	my $citation_id = $dataset->confid()."_".$ctype;
 
 	my $citespec = $self->{archive}->get_citation_spec( 

@@ -75,17 +75,20 @@ sub new
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
+	$data{use_cache} = 0 if ( !defined $data{use_cache} );
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache / )
 	{
 		$self->{$_} = $data{$_};
 	}
-	if( !defined $self->{order} )
-	{
-		$self->{order} = $self->{dataset}->default_order(); 
-	}
+
+	# cjg order CAN be null, can't it?
+	#if( !defined $self->{order} )
+	#{
+		#$self->{order} = $self->{dataset}->default_order(); 
+	#}
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -432,7 +435,7 @@ sub unserialise
 
 sub perform_search
 {
-	my( $self ) = @_;
+	my( $self, $max ) = @_;
 
 	my $matches = [];
 	my $firstpass = 1;
@@ -479,6 +482,14 @@ sub perform_search
 	}
 	else
 	{
+		if( $max && scalar @{$matches} > $max )
+		{
+			$self->{realmatches} = scalar @{$matches};
+			$self->{overlimit} = 1;
+			# remove anything 
+			splice( @{$matches}, $max );
+		}
+
 		$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
 	}
 }
@@ -506,10 +517,10 @@ sub dispose
 {
 	my( $self ) = @_;
 
-	my $sstring = $self->serialise();
-	print STDERR "Disposing:\n$sstring\n";
-	my $newsearch = EPrints::SearchExpression->unserialise( $self->{session}, $sstring );
-	print STDERR $newsearch->serialise()."\n";
+	#my $sstring = $self->serialise();
+	#print STDERR "Disposing:\n$sstring\n";
+	#my $newsearch = EPrints::SearchExpression->unserialise( $self->{session}, $sstring );
+	#print STDERR $newsearch->serialise()."\n";
 
 
 	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
@@ -518,10 +529,17 @@ sub dispose
 	}
 }
 
-## WP1: BAD
+# Note, is number returned, not number of matches.
 sub count 
 {
 	my( $self ) = @_;
+
+	#cjg special with cache!
+	if( $self->{use_cache} && 
+		$self->{session}->get_db()->is_cached( $self->serialise() ) )
+	{
+		return $self->{session}->get_db()->count_cache( $self->serialise() );
+	}
 
 	if( defined $self->{tmptable} )
 	{
@@ -547,9 +565,23 @@ sub count
 ## WP1: BAD
 sub get_records 
 {
-	my ( $self , $max ) = @_;
+	my ( $self , $from , $count ) = @_;
+
+	if( $self->{use_cache} && 
+		$self->{session}->get_db()->is_cached( $self->serialise() ) )
+	{
+			
+		my @records = $self->{session}->get_db()->from_cache( 
+							$self->{dataset}, 
+							$self->serialise(),
+							$from,
+							$count );
+		return @records;
+	}
+		
+
 	
-	if ( $self->{tmptable} )
+	if( $self->{tmptable} )
 	{
 		if( $self->{tmptable} eq "NONE" )
 		{
@@ -565,21 +597,13 @@ sub get_records
 			$srctable = $self->{tmptable};
 		}
 		
-
-        	my( $keyfield ) = $self->{dataset}->get_key_field();
-		my( $buffer, $overlimit ) = 
-			$self->{session}->get_db()->distinct_and_limit( 
-							$srctable,
-							$keyfield, 
-							$max );
-
 		my @records = $self->{session}->get_db()->from_buffer( 
 							$self->{dataset}, 
-							$buffer );
+							$self->{tmptable} );
 
 		# We don't bother sorting if we got too many results.	
 		# or no order method was specified.
-		if( !$overlimit && defined $self->{order})
+		if( !$self->{overlimit} && defined $self->{order})
 		{
  #print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 #print STDERR "ORDER BY: $self->{order}\n";
@@ -591,15 +615,19 @@ sub get_records
 
 			@records = sort { &{$cmpmethod}($a,$b); } @records;
 		}
-		#cjg Don't erase this buffer if we need it later...
-		# in fact it should not be temporary!
-		$self->{session}->get_db()->dispose_buffer( $buffer );
+		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+		if( $self->{use_cache} )
+		{
+			$self->{session}->get_db()->cache( 
+				$self->serialise(), 
+				$self->{dataset},
+				\@records );
+		}
 		return @records;
 	}	
 
 #ERROR TO USER cjg
 	$self->{session}->get_archive()->log( "Search not yet performed" );
-		
 }
 
 
@@ -646,7 +674,9 @@ sub process_webpage
 
 		$t1 = EPrints::Session::microtime();
 
-		$self->perform_search();
+		# cjg this should be in site config.
+		my $MAX=1000;
+		$self->perform_search( $MAX );
 
 		$t2 = EPrints::Session::microtime();
 
@@ -662,10 +692,7 @@ sub process_webpage
 
 		my $n_results = $self->count();
 
-		# cjg this should be in site config.
-		my $MAX=1000;
-
-		@results = $self->get_records( $MAX );
+		@results = $self->get_records();
 		$t3 = EPrints::Session::microtime();
 		$self->dispose();
 
@@ -673,6 +700,7 @@ sub process_webpage
 
 		if( $n_results > $MAX) 
 		{
+			#cjg this is all wrong with cached results
 			$page->appendChild( 
 				$self->{session}->html_phrase( 
 							"lib/searchexpression:too_many", 

@@ -622,4 +622,12 @@ sub render_citation
 	EPrints::Utils::render_citation( $self , $cstyle );
 }
 
+sub get_id
+{
+	my( $self ) = @_;
+
+	return $self->{data}->{userid};
+}
+	
+
 1;

@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::Database;
-use EPrints::Deletion;
 use EPrints::MetaField;
 use EPrints::OpenArchives;
 use EPrints::Session;
@@ -81,6 +80,7 @@ if( defined $eprintid )
 	}
 	else
 	{
+		# cjg! sort out deletion
 		# See if it's a deleted eprint ID
 		$deletion_record = new EPrints::Deletion( $session, $eprintid );
 		if( defined $deletion_record )

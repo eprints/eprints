@@ -64,6 +64,7 @@ sub deal
 	#print "------------\n";
 
 	$eprint->set_value( "subjects" , ["blgc-bchm"] );
+	$eprint->set_value( "eprinttype" , "other" );
 	if( $session->get_db()->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";

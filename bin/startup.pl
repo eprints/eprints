@@ -34,7 +34,6 @@ $ENV{MOD_PERL} or EPrints::Utils::abort( "not running under mod_perl!" );
 
 use EPrints::Auth;
 use EPrints::Database;
-use EPrints::Deletion;
 use EPrints::Document;
 use EPrints::EPrint;
 use EPrints::ImportXML;

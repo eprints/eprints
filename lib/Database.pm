@@ -19,7 +19,6 @@
 package EPrints::Database;
 
 use DBI;
-use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
@@ -183,7 +182,7 @@ sub create_archive_tables
 			$self->{session}->get_archive()->get_dataset( $_ ) );
 	}
 
-	#$success = $success && $self->_create_tempmap_table();
+	$success = $success && $self->_create_tempmap_table();
 
 	$success = $success && $self->_create_counter_table();
 	
@@ -282,9 +281,9 @@ sub _create_table_aux
 			$auxfield->set_property( "multiple", 0 );
 			$auxfield->set_property( "multilang", 0 );
 			my $keyfield = $dataset->get_key_field()->clone;
-print $field->get_name()."\n";
-foreach( keys %{$auxfield} ) { print "* $_ => ".$auxfield->{$_}."\n"; }
-print "\n\n";
+#print $field->get_name()."\n";
+#foreach( keys %{$auxfield} ) { print "* $_ => ".$auxfield->{$_}."\n"; }
+#print "\n\n";
 
 			# cjg Hmmmm
 			#  Multiple ->
@@ -783,9 +782,13 @@ sub _create_tempmap_table
 	
 	# The table creation SQL
 	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-	my $sql = "CREATE TABLE ".$ds->get_sql_table_name()." ".
-		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
-		"created DATETIME NOT NULL)";
+	my $table_name = $ds->get_sql_table_name();
+	my $sql = <<END;
+CREATE TABLE $table_name ( 
+	tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	lastused DATETIME NOT NULL, 
+	searchexp TEXT )
+END
 	
 	# Send to the database
 	my $sth = $self->do( $sql );
@@ -832,38 +835,73 @@ sub counter_next
 	return( $row[0] );
 }
 
-######################################################################
-#
-# $cacheid = create_cache( $keyname )
-#
-######################################################################
 
-## WP1: BAD
-sub create_cache
+sub cache_id
 {
-	my ( $self , $keyname ) = @_;
+	my( $self , $code ) = @_;
+
+	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	#cjg NOT escaped!!!
+	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code'";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+
+	return $sth->fetchrow_array;
+}
+
+sub is_cached
+{
+	my( $self , $code ) = @_;
+
+	return defined $self->cache_id( $code );
+}
+
+sub count_cache
+{
+	my( $self , $code ) = @_;
+
+	my $id = $self->cache_id( $code );
+	return undef if( !defined $id );
+
+	return $self->count_table( "cache".$id );
+}
+
+sub cache
+{
+	my( $self , $code , $dataset , $records ) = @_;
 
 	my $sql;
+	my $sth;
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW() )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW()  , '$code' )";
 	
 	$self->do( $sql );
 
 	$sql = "SELECT LAST_INSERT_ID()";
 
-
-	my $sth = $self->prepare( $sql );
+	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
-	my ( $id ) = $sth->fetchrow_array;
+	my( $id ) = $sth->fetchrow_array;
+
+	my $keyfield = $dataset->get_key_field();
 
 	my $tmptable  = "cache".$id;
-#needs to know type of keyfield.
-        $sql = "CREATE TABLE $tmptable ".
-	       "( $keyname VARCHAR(255) NOT NULL)";
 
+        $sql = "CREATE TABLE $tmptable ".
+	       "( pos INTEGER NOT NULL, ".
+		$keyfield->get_sql_type( 1 )." )";
 	$self->do( $sql );
-	
+
+	$sql = "INSERT INTO $tmptable VALUES ( ? , ? )";
+	$sth = $self->prepare( $sql );
+	my $c = 0;
+	foreach( @{$records} )
+	{
+		$sth->execute( $c++ , $_->get_id() );
+	}
+
 	return $tmptable;
 }
 
@@ -986,68 +1024,7 @@ sub search
 	return( $results );
 }
 
-## WP1: BAD
-sub buffer
-{
-	my( $self, $keyfield, $tables, $conditions , $orbuffer , $keep ) = @_;
 
-	# can we be REALLY lazy here?
-	if( !defined $orbuffer && !$keep && !defined $conditions && scalar(keys %{$tables})==1 ) {
-		# We're just going to copy from one table into a brand new one.
-		# Might as well just return the ID of the previous table.
-		
-		return (values %{$tables})[0];
-		
-	}
-
-	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
-
-	my $targetbuffer;
-
-	if( defined $orbuffer )
-	{
-		$targetbuffer = $orbuffer;
-	} 
-	elsif( $keep )
-	{
-		$targetbuffer = $self->create_cache( $keyfield->get_sql_name() );
-	}
-	else
-	{
-		$targetbuffer = $self->create_buffer( $keyfield->get_sql_name() );
-	}
-
-	$self->do( "INSERT INTO $targetbuffer $sql" );
-
-	return( $targetbuffer );
-}
-
-## WP1: BAD
-sub distinct_and_limit
-{
-	my( $self, $buffer, $keyfield, $max ) = @_;
-
-	my $tmptable = $self->create_buffer( $keyfield->get_sql_name() );
-
-	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->get_sql_name().
-	          " FROM $buffer";
-
-	if( defined $max )
-	{
-		$sql.= " LIMIT $max";
-	}
-	$self->do( $sql );
-
-	if( defined $max )
-	{
-		my $count = $self->count_table( $tmptable );
-		return( $tmptable , ($count >= $max) );
-	}
-	else
-	{
-		return( $tmptable , 0 );
-	}
-}
 
 ## WP1: BAD
 sub drop_cache
@@ -1059,16 +1036,15 @@ sub drop_cache
 	{
 		my $sql;
 		my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-
-		$sql = "DELETE FROM ".$ds->get_sql_table_name().
-		       " WHERE tableid = $1";
-
-		$self->do( $sql );
+		# We drop the table before removing the entry from the tempmap
 
         	$sql = "DROP TABLE $tmptable";
-
 		$self->do( $sql );
 		
+		$sql = "DELETE FROM ".$ds->get_sql_table_name().
+		       " WHERE tableid = $1";
+		$self->do( $sql );
+
 	}
 	else
 	{
@@ -1080,9 +1056,9 @@ sub drop_cache
 ## WP1: BAD
 sub count_table
 {
-	my ( $self , $buffer ) = @_;
+	my ( $self , $tablename ) = @_;
 
-	my $sql = "SELECT COUNT(*) FROM $buffer";
+	my $sql = "SELECT COUNT(*) FROM $tablename";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
