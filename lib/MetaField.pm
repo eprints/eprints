@@ -261,7 +261,7 @@ sub display_name
 {
 	my( $self, $session ) = @_;
 	
-	return $session->phrase( "fieldname_".$self->{dataset}->confid()."_".$self->{name} );
+	return $session->phrase( $self->{dataset}->confid()."_fieldname_".$self->{name} );
 }
 
 ## WP1: BAD
@@ -269,7 +269,7 @@ sub display_help
 {
 	my( $self, $session ) = @_;
 	
-	return $session->phrase( "fieldhelp_".$self->{dataset}->confid."_".$self->{name} );
+	return $session->phrase( $self->{dataset}->confid."_fieldhelp_".$self->{name} );
 }
 
 ## WP1: BAD
