@@ -844,7 +844,36 @@ sub _render_citation_aux
 	if( EPrints::XML::is_dom( $node, "Text" ) ||
 	    EPrints::XML::is_dom( $node, "CDataSection" ) )
 	{
-		return $session->clone_for_me( $node );
+		my $rendered = $session->make_doc_fragment;
+		my $v = $node->getData;
+		my $inside = 0;
+		foreach( split( '@' , $v ) )
+		{
+			if( $inside )
+			{
+				$inside = 0;
+				unless( EPrints::Utils::is_set( $_ ) )
+				{
+					$rendered->appendChild( 
+						$session->make_text( '@' ) );
+					next;
+				}
+				my $field = $obj->get_dataset()->get_field( 
+						$_ );
+				$rendered->appendChild( 
+					$field->render_value( 
+						$obj->get_session(),
+						$obj->get_value( $_ ),
+						0,
+ 						1 ) );
+				next;
+			}
+
+			$rendered->appendChild( 
+				$session->make_text( $_ ) );
+			$inside = 1;
+		}
+		return $rendered;
 	}
 
 	if( EPrints::XML::is_dom( $node, "EntityReference" ) )
@@ -948,6 +977,7 @@ sub _render_citation_aux
 			my $attr = $attrs->item( $i );
 			my $v = $attr->getValue;
 			$v =~ s/@([a-z0-9_]+)@/$obj->get_value( $1 )/egi;
+			$v =~ s/@@/@/gi;
 			$attr->setValue( $v );
 		}
 	}
@@ -1279,8 +1309,7 @@ sub render_xhtml_field
                 ErrorContext => 2,
                 NoLWP => 1 );
 
-        my $parser = 0;# XML::DOM::Parser->new( %c );
-        my $doc = eval { $parser->parse( "<fragment>".$value."</fragment>" ); };
+        my $doc = eval { EPrints::XML::parse_xml_string( "<fragment>".$value."</fragment>" ); };
         if( $@ )
         {
                 my $err = $@;
@@ -1414,8 +1443,9 @@ sub get_UTC_timestamp
 	my $stamp = "Error in get_UTC_timestamp";
 	eval {
 		use POSIX qw(strftime);
-		$stamp = strftime( "%Y-%m-%dT%H:%M:%SZ", time);
-	};	
+		$stamp = strftime( "%Y-%m-%dT%H:%M:%SZ", gmtime);
+	};
+print STDERR $@;
 	return $stamp;
 }
 

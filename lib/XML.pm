@@ -82,6 +82,67 @@ sub _xmldom_tag_compression
 ######################################################################
 =pod
 
+=item $doc = EPrints::XML::parse_xml_string( $string );
+
+Return a DOM document describing the XML string %string.
+
+If we are using GDOME then it will create an XML::GDOME document
+instead.
+
+In the event of an error in the XML file, report to STDERR and
+return undef.
+
+=cut
+######################################################################
+
+sub parse_xml_string
+{
+	my( $string ) = @_;
+
+#	print "Loading XML: $file\n";
+
+	my $doc;
+	if( $gdome )
+	{
+		# For some reason the GDOME constants give an error,
+		# using their values instead (could cause a problem if
+		# they change in a subsequent version).
+
+		my $opts = 8; #GDOME_LOAD_COMPLETE_ATTRS
+		#unless( $no_expand )
+		#{
+			#$opts += 4; #GDOME_LOAD_SUBSTITUTE_ENTITIES
+		#}
+		$doc = XML::GDOME->createDocFromString( $string, $opts );
+	}
+	else
+	{
+
+		my( %c ) = (
+			Namespaces => 1,
+			ParseParamEnt => 1,
+			ErrorContext => 2,
+			NoLWP => 1 );
+		$c{ParseParamEnt} = 0;
+		my $parser =  XML::DOM::Parser->new( %c );
+
+		$doc = eval { $parser->parse( $string ); };
+		if( $@ )
+		{
+			my $err = $@;
+			$err =~ s# at /.*##;
+			print STDERR "Error parsing XML $string";
+			return;
+		}
+	}
+	return $doc;
+}
+
+	
+
+######################################################################
+=pod
+
 =item $doc = EPrints::XML::parse_xml( $file, $basepath, $no_expand )
 
 Return a DOM document describing the XML file specified by $file.

@@ -1,4 +1,4 @@
-use lib '/opt/eprints/perl_lib';
+use lib '/opt/eprints2/perl_lib';
 
 ######################################################################
 #
@@ -50,6 +50,7 @@ use EPrints::UserForm;
 use EPrints::User;
 use EPrints::UserPage;
 use EPrints::VLit;
+use EPrints::Paracite;
 
 use strict;
 

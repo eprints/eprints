@@ -542,9 +542,11 @@ bin/generate_apacheconf
 
 bin/create_user $archiveid <username> <email> admin <password>
 
-Then restart your webserver: 
+Then stop and start your webserver:
+Often:
 /etc/rc.d/init.d/httpd stop
 /etc/rc.d/init.d/httpd start
+(or maybe /usr/local/apache/bin/apachectl stop & start)
 
 Now connect to the archive, see everything work perfectly first time...(!)
 --------------------------------------------------------------------------

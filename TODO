@@ -4,11 +4,6 @@ case it might be helpful.
 
 PRE Release Checks for 2.2
 
-* 	Fix RenderXHTML
-*	Editors with no scope may edit "ANYTHING" rather than "NOTHING"
-
-*	Check ArchiveConfig.pm is sane and normal. Double check diff from
-          2.1.1. Clean up default views config.
 
 
 *	Make a list of phrase file changes. (Scripted?)
@@ -20,9 +15,6 @@ PRE Release Checks for 2.2
 
 *	Linkbatton renderer?
 
-*	Paracite renderer & cgi
-
-*	Configure - make optional stuff that's missing clearly optional.
 
 * 	Docs: 
 		- We need lots of RAM!
@@ -31,7 +23,6 @@ PRE Release Checks for 2.2
 
 * 	lib/searchfield:help_date
 *	Date search
-* 	Probity Stuff
 
 
 -	Upload files: link the individual filenames

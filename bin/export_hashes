@@ -69,10 +69,9 @@ May be repeated for greater effect.
 
 Output version information and exit.
 
-=item B<--force>
+=item B<--all>
 
-Don't ask before running. If you want to automate this script, eg. run it once
-every 6 months, you don't want it interactively checking if you want to continue!
+Output hashes of ALL .xsh files for each document, not just the most recent. This takes longer but should be logged periodically.
 
 =back   
 
@@ -94,7 +93,7 @@ my $xml = 0;
 my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
-my $force = 0;
+my $all = 0;
 my $purge = 1;
 my $help = 0;
 my $man = 0;
@@ -102,7 +101,7 @@ my $man = 0;
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,
-	'force' => \$force , 
+	'all' => \$all , 
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
@@ -124,7 +123,7 @@ my $session = new EPrints::Session( 1, $ARGV[0], $noise );
 exit( 1 ) unless defined $session;
 
 my $ds = $session->get_archive()->get_dataset( "document" );
-my $info = { files=>[] };
+my $info = { files=>[], all=>$all };
 $ds->map( $session, \&show_hash, $info );
 
 my $filename;
@@ -145,13 +144,19 @@ sub show_hash
 {
 	my( $session, $dataset, $doc, $info ) = @_;
 
-	my $path = $doc->get_eprint->local_path;
 	my $id = $doc->get_id;
+	my $eprint = $doc->get_eprint;
+	if( !defined $eprint )
+	{
+		$session->get_archive->log( "No eprint for document: $id" );
+		return;
+	}
+	my $path = $eprint->local_path;
+
  	opendir CDIR, $path or return;
 	my @filesread = readdir CDIR;
 	closedir CDIR;
 
-	my $all = 0;
 	my $latest;
 
 	my $file;
@@ -160,7 +165,7 @@ sub show_hash
 		if( $_ =~ m/^$id\.(.*).xsh$/ )
 		{
 			my $filename = $path."/".$_;
-			if( $all )
+			if( $info->{all} )
 			{
 				push @{$info->{files}}, $filename;
 			}
@@ -168,7 +173,7 @@ sub show_hash
 		}
 	}
 
-	unless( $all )
+	unless( $info->{all} )
 	{
 		push @{$info->{files}}, $latest;
 	}

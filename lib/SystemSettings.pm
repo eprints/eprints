@@ -16,7 +16,7 @@ package EPrints::SystemSettings;
 
 $EPrints::SystemSettings::conf = 
 {
-	base_path => "/opt/eprints",
+	base_path => "/opt/eprint_dev",
 	executables => {
 		unzip 	=> "/usr/bin/unzip",
 		wget 	=> "/usr/bin/wget",

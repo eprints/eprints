@@ -980,3 +980,18 @@ before next release. (metadata types & fields)
  - Fixed VLit & configure_archive to use whichever XML library is prefered.
  - more work on the tools/update_phrase_file utility to aid translation. Still
     not finished.
+
+2002-10-29 cjg
+ - Cleaned up ArchiveConfig.pm (views etc)
+ - Citations may now use @title@ instead of &title; although this is optional
+ - Changed default citation file to use @title@ format
+ - Removed some junk from metadata-types.xml (junk comment)
+ - Improved text about restarting apache in configure_archive
+ - Added a --all option to export_hashes
+ - Fixed bug in UTC timestamp function (now uses gmtime, like it was supposed 
+    to)
+ - Added parse_xml_string to EPrints::XML to do the obvious
+ - Added Paracite module and cgi script to render reference links. Added 
+    Citation/Parser to bundled libraries. Added a "seek" image for links
+    to paracite.
+

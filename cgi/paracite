@@ -1,0 +1,113 @@
+use EPrints::Session;
+use EPrints::EPrint;
+use EPrints::SearchExpression;
+use Citation::Parser::Simple;
+use URI;
+
+use strict;
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my $ds = $session->get_archive()->get_dataset( "archive" );
+
+&process( $session );
+
+$session->terminate;
+
+exit;
+
+
+sub process
+{
+	my( $session ) = @_;
+	
+	my $title = $session->html_phrase( "cgi/paracite:title" );
+
+	unless( EPrints::Utils::is_set( $session->param("ref") ) )
+	{
+		$session->build_page( 
+			$title, 
+			$session->html_phrase( "cgi/paracite:no_reference" ),
+			"paracite" );
+		$session->send_page();
+		return;
+	}
+
+
+	my $ref = $session->param("ref");
+
+	my $parser = new Citation::Parser::Simple();
+	my $metadata = $parser->parse($ref);
+	my ($year, $author) = ($metadata->{year}, $metadata->{aulast});
+
+	if (!defined $year || $year eq "") 
+	{
+		$_ = $ref;
+		/\b(\d{4})\b/;
+		$year = $1;
+		if ($year !~ /^\d{4}/) { $year = ""; }
+	}
+	if (!defined $author || $author eq "")
+	{
+		$ref =~ m/^([a-zA-Z]+)/;
+		$author = $1;
+	}
+
+       	my $url = $ref;
+	my $uri = URI->new( $url );
+       	$url =  $uri->as_string;
+	$url =~ s/&/%26/g;
+	my $paraurl = 'http://paracite.eprints.org/cgi-bin/paracite.cgi?ref='.$url;
+
+	unless( EPrints::Utils::is_set( $author ) )
+	{
+		$session->redirect( $paraurl );
+		return;
+	}
+
+	my $searchexp = new EPrints::SearchExpression(
+		session => $session,
+		use_cache => 0,
+		dataset => $ds );
+
+	if( EPrints::Utils::is_set( $author ) )
+	{
+		$searchexp->add_field( $ds->get_field( "authors" ), $author );
+	}
+
+	if( EPrints::Utils::is_set( $year ) )
+	{
+		$searchexp->add_field( $ds->get_field( "year" ), $year );
+	}
+
+	$searchexp->perform_search();
+	my $count = $searchexp->count();
+	if( $count == 0 )
+	{
+		$session->redirect( $paraurl );
+		$searchexp->dispose;
+		return;
+	}
+
+	my $page = $session->make_doc_fragment();
+	my $p = $session->make_element( "p" );
+	$p->appendChild( $session->make_text( $ref ) );
+	$page->appendChild( $p );
+	my @matches = $searchexp->get_records( 0, 10 );
+	$page->appendChild( $session->html_phrase( "cgi/paracite:possible_matches" ) );
+	foreach my $m ( @matches )
+	{
+		my $p = $session->make_element( "p" );
+		$p->appendChild( $m->render_citation_link );
+		$page->appendChild( $p );
+	}
+	$page->appendChild( $session->render_ruler );
+	my $a = $session->make_element( "a", href=>$paraurl );
+	$page->appendChild( $session->html_phrase( 
+		"cgi/paracite:paracite_link",
+		link=>$a ));
+
+	$session->build_page( $title, $page, "paracite" );
+	$session->send_page();
+	return;
+}

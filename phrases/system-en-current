@@ -574,6 +574,13 @@ Public CGI Scripts
 
     <ep:phrase ref="cgi/handle_http_error:404_title">404 File not Found</ep:phrase>
     <ep:phrase ref="cgi/handle_http_error:404_blurb"><p>Could not find the file: <code><pin ref="url" /></code></p><p>The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <a href="mailto:&adminemail;">&archivename; administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p></ep:phrase>
+
+<!-- paracite -->
+
+    <ep:phrase ref="cgi/paracite:title">Search by Reference</ep:phrase>
+    <ep:phrase ref="cgi/paracite:no_reference"><p>ERROR: No reference specified.</p></ep:phrase>
+    <ep:phrase ref="cgi/paracite:possible_matches"><h2>Possible Matches</h2></ep:phrase>
+    <ep:phrase ref="cgi/paracite:paracite_link"><p>You may also wish to try searching for your item using the <ep:pin ref="link">ParaCite assisted searching service</ep:pin>.</p></ep:phrase>
     
 <!-- remind -->
 

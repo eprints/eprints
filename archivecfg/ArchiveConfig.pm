@@ -343,12 +343,19 @@ $c->{vlit}->{context_size} = 1024;
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
 $c->{browse_views} = [
-#{ id=>"name",  allow_null=>1, fields=>"authors", order=>"-year" }
-	{ id=>"subjects", fields=>"subjects", order=>"title/authors", hideempty=>1 },
-	#{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
-
-	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 }
+	{ id=>"subjects", fields=>"subjects", order=>"title/authors" },
+	{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" }
 ];
+# examples of some other useful views you might want to add
+#
+# Browse by the ID's of authors & editors (CV Pages)
+# { id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 }
+#
+# Browse by the names of authors (less reliable than Id's)
+#{ id=>"name",  allow_null=>1, fields=>"authors", order=>"-year" }
+#
+# Browse by the type of eprint (poster, report etc).
+#{ id=>"type",  fields=>"type", order=>"-year" }
 
 # Number of results to display on a single search results page
 $c->{results_page_size} = 100;
