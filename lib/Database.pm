@@ -371,7 +371,7 @@ sub _create_table_aux
 	
 	$sql .= ");";
 	
-EPrints::Log::debug( "Database", "SQL: $sql" );
+#EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	print EPrints::Language::logphrase( 
 		"L:created_table" ,
@@ -482,7 +482,7 @@ sub update
 		}
 		$sql .= "," unless $first;
 
-EPrints::Log::debug( "Database", "$f->{name} type $f->{type}!!" );
+#EPrints::Log::debug( "Database", "$f->{name} type $f->{type}!!" );
 
 		my $value;
 		
@@ -572,7 +572,7 @@ sub retrieve
 
 	$sql .= ";";
 
-EPrints::Log::debug( "Database", "SQL:$sql" );
+#EPrints::Log::debug( "Database", "SQL:$sql" );
 	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return( $ret_rows );
@@ -745,7 +745,7 @@ sub create_cache
 
 	$sql = "SELECT LAST_INSERT_ID()";
 
-EPrints::Log::debug( "Database", "SQL:$sql" );
+#EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
 	$sth->execute();
@@ -831,7 +831,7 @@ sub count_cache
 
 	my $sql = "SELECT COUNT(*) FROM $cache";
 
-EPrints::Log::debug( "Database", "SQL:$sql" );
+#EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
 	$sth->execute();
@@ -996,7 +996,7 @@ sub do
 {
 	my ( $self , $sql ) = @_;
 
-EPrints::Log::debug( "Database", "$sql" );
+#EPrints::Log::debug( "Database", "$sql" );
 print "$sql\n";
 
 	return $self->{dbh}->do( $sql );
@@ -1006,7 +1006,7 @@ sub prepare
 {
 	my ( $self , $sql ) = @_;
 
-EPrints::Log::debug( "Database", "$sql" );
+#EPrints::Log::debug( "Database", "$sql" );
 print "$sql\n";
 
 	return $self->{dbh}->prepare( $sql );

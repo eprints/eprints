@@ -198,7 +198,7 @@ sub children
 		EPrints::MetaInfo::find_table_field(
 			"subjects",
 			"parent" ),
-		"$self->{subjectid}:ALL" );
+		"$self->{subjectid}:ALL,EXACT" );
 
 	my $searchid = $searchexp->cache();
 	my @rows = $searchexp->get_eprints();
