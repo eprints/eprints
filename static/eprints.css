@@ -13,7 +13,24 @@ H3 {
         color: #606060;
 }
 
-.highlight {
+.searchfieldname {
 	font-weight: bold;
+	text-align: right;
 }
 
+TD.searchfieldhelp {
+        font-style: italic;	
+	text-align: center;
+}
+
+INPUT.submitbutton {
+	padding-left: 1em;
+}
+
+TABLE.submitbuttons {
+	text-align: center;
+}
+
+.main {
+	padding-left: 2em;
+}
