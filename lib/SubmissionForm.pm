@@ -137,6 +137,7 @@ sub process
 	}
 	
 	$self->{action}    = $self->{session}->{render}->param( "submit" );
+
 	$self->{stage}     = $self->{session}->{render}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->{render}->param( "eprint_id" );
 
@@ -721,6 +722,16 @@ sub from_stage_upload
 		return( 0 );
 	}
 	
+	# We need to address a common "feature" of browsers here. If a form has
+	# only one text field in it, and the user types things into it and presses
+	# return, the form gets submitted but without any values for the submit
+	# button, so we can't tell whether the "Back" or "Upload" button is
+	# appropriate. We have to assume that if the user's pressed return they
+	# want to go ahead with the upload, so we default to the upload button:
+	$self->{action} = $EPrints::SubmissionForm::action_upload
+		unless( defined $self->{action} );
+
+
 	if( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
