@@ -503,7 +503,7 @@ sub render_value
 		}
 	}
 	
-	$session->get_site()->log( "Unknown field type: ".$self->{type} );
+	$session->get_archive()->log( "Unknown field type: ".$self->{type} );
 	return undef;
 
 }
@@ -538,7 +538,7 @@ sub render_input_field
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $session->get_site()->get_data_set( 
+			my $ds = $session->get_archive()->get_data_set( 
 					$self->{datasetid} );	
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $session );
@@ -895,7 +895,7 @@ print STDERR "$n... val($value)\n";
 	else
 	{
 		$html->appendChild( $session->make_text( "???" ) );
-		$session->get_site()->log( "Don't know how to render input".
+		$session->get_archive()->log( "Don't know how to render input".
 					  "field of type: ".$self->get_type() );
 	}
 	return $html;
@@ -1028,7 +1028,7 @@ sub _form_value_aux
 	}
 	else
 	{
-		$session->get_site()->log( 
+		$session->get_archive()->log( 
 			"Error: can't do _form_value_aux on type ".
 			"'".$self->{type}."'" );
 		return undef;

@@ -79,7 +79,7 @@ sub new_stub
 }
 
 
-# EPrints::DataSet new( $site, $datasetname )
+# EPrints::DataSet new( $archive, $datasetname )
 #                       |      string
 #                       EPrints::Site
 #
@@ -88,14 +88,14 @@ sub new_stub
 #  sources - the packages and the site config module.
 
 ## WP1: BAD
-# note that dataset know $site and vice versa - bad for GCollection.
+# note that dataset know $archive and vice versa - bad for GCollection.
 sub new
 {
-	my( $class , $site , $datasetname ) = @_;
+	my( $class , $archive , $datasetname ) = @_;
 	
 	my $self = EPrints::DataSet->new_stub( $datasetname );
 
-	$self->{site} = $site;
+	$self->{archive} = $archive;
 
 	$self->{fields} = [];
 	$self->{system_fields} = [];
@@ -113,10 +113,10 @@ sub new
 			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
-	my $sitefields = $site->get_conf( "sitefields", $self->{confid} );
-	if( $sitefields )
+	my $archivefields = $archive->get_conf( "sitefields", $self->{confid} );
+	if( $archivefields )
 	{
-		foreach $fielddata ( @{$sitefields} )
+		foreach $fielddata ( @{$archivefields} )
 		{
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
@@ -125,23 +125,23 @@ sub new
 	}
 
 	$self->{types} = {};
-	if( defined $site->get_conf( "types", $self->{confid} ) )
+	if( defined $archive->get_conf( "types", $self->{confid} ) )
 	{
 		my $type;
-		foreach $type ( keys %{$site->get_conf( "types", $self->{confid} )} )
+		foreach $type ( keys %{$archive->get_conf( "types", $self->{confid} )} )
 		{
 			$self->{types}->{$type} = [];
 			foreach( @{$self->{system_fields}} )
 			{
 				push @{$self->{types}->{$type}}, $_;
 			}
-			foreach ( @{$site->get_conf( "types", $self->{confid}, $type )} )
+			foreach ( @{$archive->get_conf( "types", $self->{confid}, $type )} )
 			{
 				my $required = ( s/^REQUIRED:// );
 				my $field = $self->{field_index}->{$_};
 				if( !defined $field )
 				{
-					$site->log( "Unknown field: $_ in ".
+					$archive->log( "Unknown field: $_ in ".
 						$self->{confid}."($type)" );
 				}
 				if( $required )
@@ -154,7 +154,7 @@ sub new
 		}
 	}
 	
-	$self->{default_order} = $self->{site}->
+	$self->{default_order} = $self->{archive}->
 			get_conf( "default_order" , $self->{confid} );
 
 	return $self;
@@ -173,7 +173,7 @@ sub get_field
 
 	my $value = $self->{field_index}->{$fieldname};
 	if (!defined $value) {
-		$self->{site}->log( 
+		$self->{archive}->log( 
 			"dataset ".$self->{datasetname}." has no field: ".
 			$fieldname );
 		return undef;

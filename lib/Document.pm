@@ -153,7 +153,7 @@ sub create
 	unless( defined $dir )
 	{
 		# Some error while making it
-		$session->get_site()->log( "Error creating directory for Eprint ".$eprint->{eprintid}." format ".$format.": $!" );
+		$session->get_archive()->log( "Error creating directory for Eprint ".$eprint->{eprintid}." format ".$format.": $!" );
 		return( undef );
 	}
 
@@ -284,7 +284,7 @@ sub clone
 	# If something's gone wrong...
 	if ( $rc!=0 )
 	{
-		$self->{session}->get_site()->log( "Error copying from ".$self->local_path()." to ".$new_doc->local_path().": $!" );
+		$self->{session}->get_archive()->log( "Error copying from ".$self->local_path()." to ".$new_doc->local_path().": $!" );
 		return( 0 );
 	}
 
@@ -322,7 +322,7 @@ sub remove
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_site()->log( "Error removing document ".$self->{docid}." from database: $db_error" );
+		$self->{session}->get_archive()->log( "Error removing document ".$self->{docid}." from database: $db_error" );
 		return( 0 );
 	}
 
@@ -332,7 +332,7 @@ sub remove
 
 	if( $num_deleted <= 0 )
 	{
-		$self->{session}->get_site()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
+		$self->{session}->get_archive()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
 		$success = 0;
 	}
 
@@ -496,7 +496,7 @@ sub remove_file
 	
 	if( $count != 1 )
 	{
-		$self->{session}->get_site()->log( "Error removing file $filename for doc ".$self->{docid}.": $!" );
+		$self->{session}->get_archive()->log( "Error removing file $filename for doc ".$self->{docid}.": $!" );
 	}
 	return( $count==1 );
 }
@@ -525,7 +525,7 @@ sub remove_all_files
 
 	if( $num_deleted < scalar @to_delete )
 	{
-		$self->{session}->get_site()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
+		$self->{session}->get_archive()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
 		return( 0 );
 	}
 
@@ -677,7 +677,7 @@ sub upload_archive
 
 	# Make the extraction command line
 	my $extract_command =
-		$self->{session}->get_site()->{archive_extraction_commands}->{ $archive_format };
+		$self->{session}->get_archive()->{archive_extraction_commands}->{ $archive_format };
 
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
@@ -748,7 +748,7 @@ sub upload_url
 	$cut_dirs = 0 if( $cut_dirs < 0 );
 	
 	# Construct wget command line.
-	my $command = $self->{session}->get_site()->{wget_command};
+	my $command = $self->{session}->get_archive()->{wget_command};
 	#my $escaped_url = uri_escape( $url );
 	
 	$command =~ s/_CUTDIRS_/$cut_dirs/g;
@@ -808,7 +808,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_site()->log( "Error committing Document ".$self->{docid}.": ".$db_error );
+		$self->{session}->get_archive()->log( "Error committing Document ".$self->{docid}.": ".$db_error );
 	}
 
 	return( $success );
@@ -855,11 +855,11 @@ sub required_format
 {
 	my( $session , $format ) = @_;
 	
-	return( 1 ) unless( @{$session->get_site()->{required_formats}} );
+	return( 1 ) unless( @{$session->get_archive()->{required_formats}} );
 
 	my $req = 0;
 
-	foreach (@{$session->get_site()->{required_formats}})
+	foreach (@{$session->get_archive()->{required_formats}})
 	{
 		$req = 1 if( $format eq $_ );
 	}
@@ -929,7 +929,7 @@ sub validate
 	}
 		
 	# Site-specific checks
-	$self->{session}->get_site()->validate_document( $self, \@problems );
+	$self->{session}->get_archive()->validate_document( $self, \@problems );
 
 	return( \@problems );
 }

@@ -41,9 +41,9 @@ sub get_conf
 #
 ######################################################################
 
-$c->{sitename} = latin1( "Lemur Prints Archive" );
+$c->{archivename} = latin1( "Lemur Prints Archive" );
  
-$c->{siteid} = "lemurprints";
+$c->{archiveid} = "lemurprints";
 
 # Short text description
 $c->{description} = latin1( "Your Site Description Here" );
@@ -82,12 +82,12 @@ $c->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$c->{site_root} = "$EPrints::Site::General::base_path/sites/$c->{siteid}";
+$c->{archive_root} = "$EPrints::Site::General::base_path/sites/$c->{archiveid}";
 $c->{bin_root} = "$EPrints::Site::General::base_path/bin";
-$c->{phrases_path} = "$c->{site_root}/phrases";
-$c->{static_html_root} = "$c->{site_root}/static";
-$c->{local_html_root} = "$c->{site_root}/html";
-$c->{local_document_root} = "$c->{site_root}/documents";
+$c->{phrases_path} = "$c->{archive_root}/phrases";
+$c->{static_html_root} = "$c->{archive_root}/static";
+$c->{local_html_root} = "$c->{archive_root}/html";
+$c->{local_document_root} = "$c->{archive_root}/documents";
 
 ######################################################################
 # URLS
@@ -108,8 +108,8 @@ $c->{server_document_root} = "$c->{server_static}/archive";
 #  Files
 #################################################################
 
-$c->{template_user_intro} 	= "$c->{site_root}/cfg/template.user-intro";
-$c->{subject_config} 	= "$c->{site_root}/cfg/subjects";
+$c->{template_user_intro} 	= "$c->{archive_root}/cfg/template.user-intro";
+$c->{subject_config} 	= "$c->{archive_root}/cfg/subjects";
 
 ######################################################################
 #
@@ -384,7 +384,7 @@ $c->{userauth} = {
 ######################################################################
 
 
-$c->{sitefields}->{user} = [
+$c->{archivefields}->{user} = [
 
 	{ name => "name", type => "name", required => 1 },
 
@@ -404,7 +404,7 @@ $c->{sitefields}->{user} = [
 	{ name => "filter", type => "subject", required => 0, showall => 1, multiple => 1 }
 ];
 
-$c->{sitefields}->{eprint} = [
+$c->{archivefields}->{eprint} = [
 	{ name => "abstract", displaylines => 10, type => "longtext" },
 
 	{ name => "altloc", displaylines => 3, type => "url", multiple => 1 },
@@ -688,7 +688,7 @@ $c->{htmlpage}->{english} = parse_html( <<END );
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{sitename}</h1>
+<h1 class="sitetitle">$c->{archivename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/english.png" width="60" height="40" alt="english mode" /></a>
@@ -741,7 +741,7 @@ $c->{htmlpage}->{french} = parse_html( <<END );
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{sitename}</h1>
+<h1 class="sitetitle">$c->{archivename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/french.png" width="60" height="40" alt="l'mode francais" /></a>
@@ -780,7 +780,7 @@ END
 #  E-mail signature, appended to every email sent by the software
 $c->{signature} = <<END;
 --
- $c->{sitename}
+ $c->{archivename}
  $c->{frontpage}
  $c->{admin}
 
@@ -803,7 +803,7 @@ $c->{htmlpage}->{dummy} = parse_html( <<END );
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="sitetitle">$c->{sitename}</h1>
+<h1 class="sitetitle">$c->{archivename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/dummy.png" width="60" height="40" alt="DUMMY MODE" /></a>
@@ -843,7 +843,7 @@ END
 #  E-mail signature, appended to every email sent by the software
 $c->{signature} = <<END;
 --
- $c->{sitename}
+ $c->{archivename}
  $c->{frontpage}
  $c->{admin}
 
@@ -856,7 +856,7 @@ Unfortunately your eprint:
 
   _SUBMISSION_TITLE_
 
-could not be accepted into $c->{sitename} as-is.
+could not be accepted into $c->{archivename} as-is.
 
 
 The eprint has been returned to your workspace. If you
@@ -871,7 +871,7 @@ Unfortunately your eprint:
 
   _SUBMISSION_TITLE_
 
-could not be accepted into $c->{sitename}.
+could not be accepted into $c->{archivename}.
 
 
 
@@ -885,10 +885,10 @@ $c->{deposit_agreement_text} = <<END;
 
 <P><EM><STRONG>For work being deposited by its own author:</STRONG> 
 In self-archiving this collection of files and associated bibliographic 
-metadata, I grant $c->{sitename} the right to store 
+metadata, I grant $c->{archivename} the right to store 
 them and to make them permanently available publicly for free on-line. 
 I declare that this material is my own intellectual property and I 
-understand that $c->{sitename} does not assume any 
+understand that $c->{archivename} does not assume any 
 responsibility if there is any breach of copyright in distributing these 
 files or metadata. (All authors are urged to prominently assert their 
 copyright on the title page of their work.)</EM></P>
@@ -896,7 +896,7 @@ copyright on the title page of their work.)</EM></P>
 <P><EM><STRONG>For work being deposited by someone other than its 
 author:</STRONG> I hereby declare that the collection of files and 
 associated bibliographic metadata that I am archiving at 
-$c->{sitename}) is in the public domain. If this is 
+$c->{archivename}) is in the public domain. If this is 
 not the case, I accept full responsibility for any breach of copyright 
 that distributing these files or metadata may entail.</EM></P>
 
@@ -1405,7 +1405,7 @@ sub eprint_render_full
 	#my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	#if( defined $user )
 	#{
-		#$html .= "<A href=\"$eprint->{session}->get_site()->{server_perl}/user?username=".
+		#$html .= "<A href=\"$eprint->{session}->get_archive()->{server_perl}/user?username=".
 			#$user->{username}."\">".$user->full_name()."</A>";
 	#}
 	#else
@@ -1796,7 +1796,7 @@ sub oai_list_metadata_formats
 	
 	# This returns the list of all metadata formats, suitable if we
 	# can export any of those metadata format for any record.
-	return( keys %{$eprint->{session}->get_site()->{oai_metadata_formats}} );
+	return( keys %{$eprint->{session}->get_archive()->{oai_metadata_formats}} );
 }
 
 
@@ -2131,8 +2131,8 @@ sub validate_eprint_meta
 ## WP1: BAD
 sub log
 {
-	my( $site, $message ) = @_;
-	print STDERR "EPRINTS:".$site->get_conf("siteid").": ".$message."\n";
+	my( $archive, $message ) = @_;
+	print STDERR "EPRINTS:".$archive->get_conf("siteid").": ".$message."\n";
 }
 
 ## WP1: BAD

@@ -32,7 +32,7 @@ use strict;
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
+	my( $class ) = @_;
 
 	return 
 	( 
@@ -98,7 +98,7 @@ sub new
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
 		$self->{session},
 		"eprint",
-		$self->{session}->get_site()->{subscription_fields} );
+		$self->{session}->get_archive()->{subscription_fields} );
 
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
@@ -427,7 +427,7 @@ sub process
 	
 	unless( defined $user )
 	{
-		$self->{session}->get_site()->log( "Couldn't open user record for user ".$self->{username}." (sub ID ".$self->{subid}.")" );
+		$self->{session}->get_archive()->log( "Couldn't open user record for user ".$self->{username}." (sub ID ".$self->{subid}.")" );
 		return( 0 );
 	}
 
@@ -499,8 +499,8 @@ sub process
 		my $body = $self->{session}->phrase( 
 			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
-			     sitename=>$self->{session}->get_site()->{sitename},
-			     url=>"$self->{session}->get_site()->{server_perl}/users/subscribe" );
+			     sitename=>$self->{session}->get_archive()->get_conf( "sitename" ),
+			     url=>$self->{session}->get_archive()->get_conf( "server_perl" )."/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";

@@ -158,17 +158,17 @@ sub identify
 	
 	$writer->dataElement( 
 		"repositoryName",
-		EPrints::OpenArchives::to_utf8( $session->get_site()->{sitename} ) );
+		EPrints::OpenArchives::to_utf8( $session->get_archive()->get_conf( "sitename" ) ) );
 	
 	$writer->dataElement( "baseURL",
-	                      $session->get_site()->{oai_base_url} );
+	                      $session->get_archive()->{oai_base_url} );
 
 	$writer->dataElement( "protocolVersion",
 	                      $EPrints::OpenArchives::OAI_VERSION );
 
 	$writer->dataElement(
 		"adminEmail",
-		EPrints::OpenArchives::to_utf8( "mailto:$session->get_site()->{admin}" ) );
+		EPrints::OpenArchives::to_utf8( "mailto:".$session->get_archive()->get_conf( "admin" ) ) );
 
 	$writer->startTag( "description");
 	$writer->startTag( "oai-identifier", 
@@ -179,10 +179,10 @@ sub identify
 
 	$writer->dataElement( "scheme", "oai" );
 	$writer->dataElement( "repositoryIdentifier",
-	                      $session->get_site()->{oai_archive_id} );
+	                      $session->get_archive()->{oai_archive_id} );
 	$writer->dataElement( "delimiter", ":" );
 	$writer->dataElement( "sampleIdentifier",
-	                      $session->get_site()->{oai_sample_identifier} );
+	                      $session->get_archive()->{oai_sample_identifier} );
 	$writer->endTag();
 	$writer->endTag( "description");
 
@@ -195,20 +195,20 @@ sub identify
 
 	write_text_url( $writer, 
                           "content", 
-                          $session->get_site()->{oai_content} );
+                          $session->get_archive()->{oai_content} );
 	write_text_urlL( $writer, 
                           "metadataPolicy", 
-                          $session->get_site()->{oai_metadataPolicy} );
+                          $session->get_archive()->{oai_metadataPolicy} );
 	write_text_url( $writer, 
                           "dataPolicy", 
-                          $session->get_site()->{oai_dataPolicy} );
+                          $session->get_archive()->{oai_dataPolicy} );
 	write_text_url( $writer, 
                           "submissionPolicy", 
-                          $session->get_site()->{oai_submissionPolicy} );
+                          $session->get_archive()->{oai_submissionPolicy} );
 
 	# Output all comments, if any.
 
-	foreach( @{$session->get_site()->{oai_comments}} ) 
+	foreach( @{$session->get_archive()->{oai_comments}} ) 
 	{
 		$writer->dataElement( "comment", EPrints::OpenArchives::to_utf8( $_ ) );
 	}
@@ -322,7 +322,7 @@ sub list_identifiers
 		$writer->dataElement(
 			"identifier",
 			EPrints::OpenArchives::to_oai_identifier( 
-				$session->get_site()->{oai_archive_id},
+				$session->get_archive()->{oai_archive_id},
 				$_->{eprintid} ) );
 	}
 	
@@ -364,7 +364,7 @@ sub list_metadata_formats
 		
 			# We have the eprint in question.  Find out how many metadata
 			# formats we can get for it.
-			foreach (keys %{$session->get_site()->{oai_metadata_formats}})
+			foreach (keys %{$session->get_archive()->{oai_metadata_formats}})
 			{
 				my $metadata = EPrints::OpenArchives::get_eprint_metadata(
 					$eprint,
@@ -376,7 +376,7 @@ sub list_metadata_formats
 	}
 	else
 	{
-		@metadata_formats = keys %{$session->get_site()->{oai_metadata_formats}};
+		@metadata_formats = keys %{$session->get_archive()->{oai_metadata_formats}};
 	}
 	
 	my $writer = start_response( $session, "ListMetadataFormats" );
@@ -387,9 +387,9 @@ sub list_metadata_formats
 		$writer->dataElement( "metadataPrefix",
 		                      $_ );
 		$writer->dataElement( "schema",
-		                      $session->get_site()->{oai_metadata_schemas}->{$_} );
+		                      $session->get_archive()->{oai_metadata_schemas}->{$_} );
 		$writer->dataElement( "metadataNamespace",
-		                      $session->get_site()->{oai_metadata_formats}->{$_} );
+		                      $session->get_archive()->{oai_metadata_formats}->{$_} );
 		$writer->endTag( "metadataFormat" );
 	}
 	

@@ -237,7 +237,7 @@ sub _from_home
 			if( !defined $self->{eprint} )
 			{
 				my $db_error = $self->{session}->{database}->error();
-				$self->{session}->get_site()->log( "Database Error: $db_error" );
+				$self->{session}->get_archive()->log( "Database Error: $db_error" );
 				$self->_database_err;
 				return( 0 );
 			}
@@ -924,7 +924,7 @@ sub _from_stage_confirmdel
 		else
 		{
 			my $db_error = $self->{session}->{database}->error();
-			$self->{session}->get_site()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );
+			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );
 			$self->_database_err;
 			return( 0 );
 		}
@@ -1175,7 +1175,7 @@ sub _do_stage_format
 	print "<P><CENTER>";
 	print $self->{session}->phrase("lib/submissionform:validformats");
 
-	if( @{$self->{session}->get_site()->{required_formats}} >= 0 )
+	if( @{$self->{session}->get_archive()->{required_formats}} >= 0 )
 	{
 		print $self->{session}->phrase("lib/submissionform:leastone");
 	}
@@ -1228,7 +1228,7 @@ sub _do_stage_fileview
 		"graburl" => $self->{session}->phrase("lib/submissionform:graburl")
 	);
 
-	foreach (@{$self->{session}->get_site()->{supported_archive_formats}})
+	foreach (@{$self->{session}->get_archive()->{supported_archive_formats}})
 	{
 		push @arc_formats, $_;
 		$arc_labels{$_} = EPrints::Document::archive_name( 
@@ -1262,7 +1262,7 @@ sub _do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
-		my $ds = $self->{session}->get_site()->get_data_set( "document" );
+		my $ds = $self->{session}->get_archive()->get_data_set( "document" );
 		my $desc_field = $ds->get_field( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
@@ -1486,8 +1486,8 @@ sub _do_stage_verify
 	
 		print "<HR>\n";
 
-		print $self->{session}->get_site()->{deposit_agreement_text}."\n"
-			if( defined $self->{session}->get_site()->{deposit_agreement_text} );
+		print $self->{session}->get_archive()->{deposit_agreement_text}."\n"
+			if( defined $self->{session}->get_archive()->{deposit_agreement_text} );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
@@ -1711,7 +1711,7 @@ sub _update_from_type_form
 	    $self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_site()->log( "Form error: EPrint ID in form $form_id doesn't match object id ".$self->{eprint}->{eprintid} );
+		$self->{session}->get_archive()->log( "Form error: EPrint ID in form $form_id doesn't match object id ".$self->{eprint}->{eprintid} );
 		return( 0 );
 	}
 	else
@@ -1782,7 +1782,7 @@ sub _update_from_meta_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
+		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 		return( 0 );
 	}
 	else
@@ -1879,7 +1879,7 @@ sub _update_from_subject_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
+		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 
 		return( 0 );
 	}
@@ -1931,7 +1931,7 @@ sub _update_from_users_form
 		$self->{eprint}->{eprintid} )
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_site()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
+		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
 
 		return( 0 );
 	}
@@ -2110,7 +2110,7 @@ sub _render_format_form
 		"</STRONG></TH></TR>\n";
 	
 	my $f;
-	foreach $f (@{$self->{session}->get_site()->{supported_formats}})
+	foreach $f (@{$self->{session}->get_archive()->{supported_formats}})
 	{
 		my $req = EPrints::Document::required_format( $self->{session} , $f );
 		my $doc = $self->{eprint}->get_document( $f );
@@ -2139,7 +2139,7 @@ sub _render_format_form
 		print "</TD></TR>\n";
 	}
 
-	if( $self->{session}->get_site()->{allow_arbitrary_formats} )
+	if( $self->{session}->get_archive()->{allow_arbitrary_formats} )
 	{
 		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
 		my $othername = "Other";
@@ -2189,7 +2189,7 @@ sub _update_from_format_form
 	my $f;
 
 # what about arbitary formats?
-	foreach $f (@{$self->{session}->get_site()->{supported_formats}})
+	foreach $f (@{$self->{session}->get_archive()->{supported_formats}})
 	{
 		return( $f, "edit" )
 			if( defined $self->{session}->{render}->param( "edit_$f" ) );

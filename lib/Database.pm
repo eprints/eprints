@@ -97,12 +97,12 @@ sub new
 	# Connect to the database
 	$self->{dbh} = DBI->connect( 
 		build_connection_string( 
-			db_host => $session->get_site()->get_conf("db_host"),
-			db_sock => $session->get_site()->get_conf("db_sock"),
-			db_port => $session->get_site()->get_conf("db_port"),
-			db_name => $session->get_site()->get_conf("db_name") ),
-	        $session->get_site()->get_conf("db_user"),
-	        $session->get_site()->get_conf("db_pass") );
+			db_host => $session->get_archive()->get_conf("db_host"),
+			db_sock => $session->get_archive()->get_conf("db_sock"),
+			db_port => $session->get_archive()->get_conf("db_port"),
+			db_name => $session->get_archive()->get_conf("db_name") ),
+	        $session->get_archive()->get_conf("db_user"),
+	        $session->get_archive()->get_conf("db_pass") );
 
 #	        { PrintError => 0, AutoCommit => 1 } );
 
@@ -136,7 +136,7 @@ sub disconnect
 	if( defined $self->{dbh} )
 	{
 		$self->{dbh}->disconnect() ||
-			$self->{session}->get_site()->log( "Database disconnect error: ".
+			$self->{session}->get_archive()->log( "Database disconnect error: ".
 				$self->{dbh}->errstr );
 	}
 }
@@ -181,7 +181,7 @@ sub create_archive_tables
 		 "document" , "subject" , "subscription" , "deletion" )
 	{
 		$success = $success && $self->_create_table( 
-			$self->{session}->get_site()->get_data_set( $_ ) );
+			$self->{session}->get_archive()->get_data_set( $_ ) );
 	}
 
 	#$success = $success && $self->_create_tempmap_table();
@@ -580,7 +580,7 @@ sub _create_counter_table
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->get_site()->get_data_set( "counter" );
+	my $counter_ds = $self->{session}->get_archive()->get_data_set( "counter" );
 	
 	# The table creation SQL
 	my $sql = "CREATE TABLE ".$counter_ds->get_sql_table_name().
@@ -622,7 +622,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
 	my $sql = "CREATE TABLE ".$ds->get_sql_table_name()." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
@@ -653,7 +653,7 @@ sub counter_next
 	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->get_site()->get_data_set( "counter" );
+	my $ds = $self->{session}->get_archive()->get_data_set( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
@@ -685,7 +685,7 @@ sub create_cache
 
 	my $sql;
 
-	my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
 	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
@@ -830,7 +830,7 @@ sub drop_cache
 	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
 		my $sql;
-		my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
+		my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
 
 		$sql = "DELETE FROM ".$ds->get_sql_table_name().
 		       " WHERE tableid = $1";
@@ -844,7 +844,7 @@ sub drop_cache
 	}
 	else
 	{
-		$self->{session}->get_site()->log( "Bad Cache ID: $tmptable" );
+		$self->{session}->get_archive()->log( "Bad Cache ID: $tmptable" );
 	}
 
 }
@@ -1050,7 +1050,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-	$self->{session}->get_site()->log( "Database do debug: $sql" );
+	$self->{session}->get_archive()->log( "Database do debug: $sql" );
 
 	return $result;
 }
@@ -1085,7 +1085,7 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-	$self->{session}->get_site()->log( "Database execute debug: $sql" );
+	$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 
 	return $result;
 }
@@ -1149,7 +1149,7 @@ sub _freetext_index
 
 	my $indextable = $dataset->get_sql_index_table_name();
 	
-	my( $good , $bad ) = $self->{session}->get_site()->call( "extract_words" , $value );
+	my( $good , $bad ) = $self->{session}->get_archive()->call( "extract_words" , $value );
 
 	my $sql;
 	foreach( @{$good} )

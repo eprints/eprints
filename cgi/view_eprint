@@ -27,9 +27,9 @@ Apache::exit( 0 ) unless( defined $session );
 # First work out what the ID is
 my $eprintid_in = $session->{render}->param( "eprintid" );
 
-my $openarchives_id_stem = $session->get_site()->{oai_archive_id} .
+my $openarchives_id_stem = $session->get_archive()->{oai_archive_id} .
 	$EPrints::OpenArchives::id_separator .
-	$session->get_site()->{eprint_id_stem};
+	$session->get_archive()->{eprint_id_stem};
 
 my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits;
 my $eprintid = undef;
@@ -40,15 +40,15 @@ if( defined $eprintid_in )
 	if( $eprintid_in =~ /^[Oo][Aa][Ii]:$openarchives_id_stem($idcode_match)$/ )
 	{
 		# Old style full open archives ID
-		$eprintid = $session->get_site()->{eprint_id_stem} . $1;
+		$eprintid = $session->get_archive()->{eprint_id_stem} . $1;
 	}
 	elsif( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
 	{
 		# Old style full open archives ID
-		$eprintid = $session->get_site()->{eprint_id_stem} . $1;
+		$eprintid = $session->get_archive()->{eprint_id_stem} . $1;
 	}
 	elsif( $eprintid_in =~
-		/^($session->get_site()->{eprint_id_stem}$idcode_match)$/ )
+		/^($session->get_archive()->{eprint_id_stem}$idcode_match)$/ )
 	{
 		# Standard EPrint ID code
 		$eprintid = $1;
@@ -56,7 +56,7 @@ if( defined $eprintid_in )
 	elsif( $eprintid_in =~ /^\d+$/ )
 	{
 		# Just some digits. Prepend the site stem and any necessary zeroes.
-		$eprintid = $session->get_site()->{eprint_id_stem} .
+		$eprintid = $session->get_archive()->{eprint_id_stem} .
 			"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) .
 			$eprintid_in;
 	}

@@ -63,7 +63,7 @@ sub new
 	if( !defined $known )
 	{
 		return $session->get_db()->get_single( 
-			$session->get_site()->get_data_set( "user" ),
+			$session->get_archive()->get_data_set( "user" ),
 			$username );
 	} 
 
@@ -125,7 +125,7 @@ sub create_user
 	my $used_count = 0;
 	my $candidate = $username_candidate;
 
-	my $user_ds = $session->get_site()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_data_set( "user" );
 		
 	while( $found==0 )
 	{
@@ -208,7 +208,7 @@ sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
-	my $user_ds = $session->get_site()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_data_set( "user" );
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
 		$user_ds,
@@ -242,7 +242,7 @@ sub full_name
 	my( $self ) = @_;
 
 	# Delegate to site-specific routine
-	return( $self->{session}->get_site()->call(
+	return( $self->{session}->get_archive()->call(
 			"user_display_name",
 			$self ) );
 }
@@ -266,7 +266,7 @@ sub validate
 
 	my @all_problems;
 	my @all_fields = $self->{session}->
-		get_site()->get_data_set( "user" )->get_fields();
+		get_archive()->get_data_set( "user" )->get_fields();
 
 	my $field;
 	foreach $field ( @all_fields )
@@ -283,7 +283,7 @@ sub validate
 		else
 		{
 			# Give the validation module a go
-			my $problem = $self->{session}->get_site()->call(
+			my $problem = $self->{session}->get_archive()->call(
 				"validate_user_field",
 				$field,
 				$self->get_value( $field->get_name() ),
@@ -313,7 +313,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
+	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
 	my $success = $self->{session}->{database}->update(
 		$user_ds,
 		$self->{data} );
@@ -350,11 +350,11 @@ sub send_introduction
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
-		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_site()->{sitename} ),
+		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_archive()->get_conf( "sitename" ) ),
 		$self->{email},
 		$self->{session}->phrase( "lib/user:welcome", 
-		                          sitename=>$self->{session}->get_site()->{sitename} ),
-		$self->{session}->get_site()->{template_user_intro},
+		                          sitename=>$self->{session}->get_archive()->get_conf( "sitename" ) ),
+		$self->{session}->get_archive()->{template_user_intro},
 		$self ) );
 }
 
@@ -376,11 +376,11 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->phrase(
 	     	"lib/user:reminder",
-		 sitename=>$self->{session}->get_site()->{sitename},
+		 sitename=>$self->{session}->get_archive()->get_conf( "sitename" ),
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},
-		 adminemail=>$self->{session}->get_site()->{admin}  );
+		 adminemail=>$self->{session}->get_archive()->{admin}  );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},
@@ -405,7 +405,7 @@ sub retrieve_users
 	
 	my @fields = $session->{metainfo}->get_fields( "user" );
 
-	my $user_ds = $session->get_site()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_data_set( "user" );
 	my $rows = $session->{database}->retrieve_fields(
 		$user_ds,
 		\@fields,
@@ -465,7 +465,7 @@ sub remove
 	}
 
 	# Now remove user record
-	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
+	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
 	$success = $success && $self->{session}->{database}->remove(
 		$user_ds,
 		"username",
@@ -505,7 +505,7 @@ sub to_string
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->get_site()->call( "user_display_name" , $self  ) );
+	return( $self->{session}->get_archive()->call( "user_display_name" , $self  ) );
 }
 
 ## WP1: GOOD
@@ -559,7 +559,7 @@ sub has_priv
 {
 	my( $self, $resource ) = @_;
 
-	my $userprivs = $self->{session}->get_site()->
+	my $userprivs = $self->{session}->get_archive()->
 		get_conf( "userauth", $self->get_value( "usertype" ), "priv" );
 
 	foreach my $priv ( @{$userprivs} )

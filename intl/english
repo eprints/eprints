@@ -101,8 +101,8 @@
 <!-- Session -->
 
     <phrase ref="lib/session:fail_db_connect">Failed to connect to database</phrase>
-    <phrase ref="lib/session:msg_at">Site maintenance message generated at <pin ref="time" /></phrase>
-    <phrase ref="lib/session:site_admin">Site Administrator</phrase>
+    <phrase ref="lib/session:msg_at">Archive maintenance message generated at <pin ref="time" /></phrase>
+    <phrase ref="lib/session:site_admin">Archive Administrator</phrase>
     <phrase ref="lib/session:some_error"><pin ref="sitename" /> has encountered an error:</phrase>
     <phrase ref="lib/session:contact">Feel free to contact <pin ref="adminemail"><pin ref="sitename" /> administration</pin> with details.</phrase>
     <phrase ref="lib/session:cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
@@ -314,12 +314,12 @@
     <phrase ref="cgi/handle_404:file_not_found">File not found:</phrase>
     <phrase ref="cgi/handle_404:looking_for">Perhaps you're looking for the following eprint:</phrase>
     <phrase ref="cgi/handle_404:blurb">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <pin ref="siteadmin" />.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</phrase>
-    <phrase ref="cgi/handle_404:site_admin">Site Administrator</phrase>
+    <phrase ref="cgi/handle_404:site_admin">Archive Administrator</phrase>
 
 <!-- remind -->
 
     <phrase ref="cgi/remind:rem_sent_title">Reminder Sent</phrase>
-    <phrase ref="cgi/remind:site_admin">Site Administrator</phrase>
+    <phrase ref="cgi/remind:site_admin">Archive Administrator</phrase>
     <phrase ref="cgi/remind:return_home">Return to <pin ref="sitename" /> Home</phrase>
     <phrase ref="cgi/remind:form_title">Username and Password Reminder Form</phrase>
     <phrase ref="cgi/remind:form_blurb">If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.</phrase>

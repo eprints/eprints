@@ -260,7 +260,7 @@ print STDERR "zz($val))\n";
 	}
 	else
 	{
-		$self->{session}->get_site()->log( "Unknown search type." );
+		$self->{session}->get_archive()->log( "Unknown search type." );
 	}
 
 
@@ -464,7 +464,7 @@ sub get_conditions
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
-				$self->{session}->get_site()->call(
+				$self->{session}->get_archive()->call(
 					"extract_words",
 					$text );
 
@@ -512,7 +512,7 @@ sub get_conditions
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
-			$self->{session}->get_site()->call( 
+			$self->{session}->get_archive()->call( 
 				"extract_words",
 				$text );
 
@@ -989,7 +989,7 @@ sub to_html
 	}
 	else
 	{
-		$self->{session}->get_site()->log( "Can't Render: ".$self->get_type() );
+		$self->{session}->get_archive()->log( "Can't Render: ".$self->get_type() );
 	}
 
 	return $frag;

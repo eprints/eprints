@@ -26,7 +26,7 @@ package EPrints::Session;
 use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Language;
-use EPrints::Site;
+use EPrints::Archive;
 use Unicode::String qw(utf8 latin1);
 
 
@@ -66,7 +66,7 @@ sub new
 	if( $mode == 0 || !defined $mode )
 	{
 		$offline = 0;
-		$self->{archive} = EPrints::Site->new_site_by_url( $self->{query}->url() );
+		$self->{archive} = EPrints::Archive->new_site_by_url( $self->{query}->url() );
 		if( !defined $self->{archive} )
 		{
 			#cjg icky error handler...
@@ -89,7 +89,7 @@ sub new
 			print STDERR "No archive id specified.\n";
 			return undef;
 		}
-		$self->{archive} = EPrints::Site->new_site_by_id( $param );
+		$self->{archive} = EPrints::Archive->new_site_by_id( $param );
 		if( !defined $self->{archive} )
 		{
 			print STDERR "Can't load archive module for: $param\n";
@@ -99,7 +99,7 @@ sub new
 	elsif( $mode == 2 )
 	{
 		$offline = 1;
-		$self->{archive} = EPrints::Site->new_site_by_host_and_path( $param );
+		$self->{archive} = EPrints::Archive->new_site_by_host_and_path( $param );
 		if( !defined $self->{archive} )
 		{
 			print STDERR "Can't load archive module for URL: $param\n";			return undef;
@@ -112,7 +112,7 @@ sub new
 		return undef;
 	}
 
-	#### Got Site Config Module ###
+	#### Got Archive Config Module ###
 
 	# What language is this session in?
 
@@ -332,7 +332,7 @@ sub get_query
 }
 
 ## WP1: BAD
-sub get_site
+sub get_archive
 {
 	my( $self ) = @_;
 	return $self->{archive};
@@ -908,7 +908,7 @@ sub subject_desc
 		$frag = $self->make_element(
 				"a",
 				href=>
-			$self->get_site()->get_conf( "server_static" ).
+			$self->get_archive()->get_conf( "server_static" ).
 			"/view/".$subject->{subjectid}.".html" );
 	}
 	else
@@ -933,7 +933,7 @@ sub subject_desc
 	{
 		my $text = $self->make_text( 
 			latin1(" (" .$subject->count_eprints( 
-				$self->get_site()->get_data_set( "archive" ) ).
+				$self->get_archive()->get_data_set( "archive" ) ).
 				")" ) );
 		$frag->appendChild( $text );
 	}
@@ -959,7 +959,7 @@ sub render_error
 	
 	if( !defined $back_to )
 	{
-		$back_to = $self->get_site()->get_conf( "frontpage" );
+		$back_to = $self->get_archive()->get_conf( "frontpage" );
 	}
 	if( !defined $back_to_text )
 	{
@@ -970,7 +970,7 @@ sub render_error
 	{
 		print $self->phrase( 
 			"lib/session:some_error",
-			sitename=>$self->{session}->{archive}->{sitename} );
+			sitename=>$self->get_archive()->get_conf( "sitename" ) );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
@@ -983,7 +983,7 @@ sub render_error
 		$p->appendChild( $self->html_phrase( 
 			"some_error",
 			sitename => $self->make_text( 
-				$self->get_site()->get_conf( "sitename" ) ) ) );
+				$self->get_archive()->get_conf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
@@ -996,9 +996,9 @@ sub render_error
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
-					$self->get_site()->get_conf( "admin" ) ),
+					$self->get_archive()->get_conf( "admin" ) ),
 			sitename => $self->make_text(
-				$self->get_site()->get_conf( "sitename" ) ) ) );
+				$self->get_archive()->get_conf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 				
 		$p = $self->make_element( "p" );
@@ -1384,7 +1384,7 @@ sub get_subjects
 		
 		unless( defined $sub ) 
 		{
-			$session->get_site()->log( "List contain invalid tag $_" );
+			$session->get_archive()->log( "List contain invalid tag $_" );
 		}
 	}
 	

@@ -37,17 +37,17 @@ sub send_mail
 {
 	my( $session, $name, $address, $subject, $body ) = @_;
 
-	open( SENDMAIL, "|$session->get_site()->{sendmail}" )
+	open( SENDMAIL, "|$session->get_archive()->{sendmail}" )
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";
-From: $session->get_site()->{sitename} <$session->get_site()->{admin}>
+From: $session->get_archive()->get_conf( "sitename" ) <$session->get_archive()->{admin}>
 To: $name <$address>
-Subject: $session->get_site()->{sitename}: $subject
+Subject: $session->get_archive()->( "sitename" ): $subject
 
 $body
 
-$session->get_site()->{signature}
+$session->get_archive()->{signature}
 EOF
 
 	close(SENDMAIL) or return( 0 );
@@ -121,12 +121,12 @@ sub update_template_line
 		$new_line =~ s/__usermail__/$user->{email}/g;
 	}
 	
-	$new_line =~ s/__sitename__/$session->get_site()->{sitename}/g;
-	$new_line =~ s/__description__/$session->get_site()->{descriptio}n/g;
-	$new_line =~ s/__admin__/$session->get_site()->{admin}/g;
-	$new_line =~ s/__perlroot__/$session->get_site()->{server_perl}/g;
-	$new_line =~ s/__staticroot__/$session->get_site()->{server_static}/g;
-	$new_line =~ s/__frontpage__/$session->get_site()->{frontpage}/g;
+	$new_line =~ s/__sitename__/$session->get_archive()->get_conf( "sitename" )/g;
+	$new_line =~ s/__description__/$session->get_archive()->get_conf( "description" )n/g;
+	$new_line =~ s/__admin__/$session->get_archive()->get_conf( "admin" )/g;
+	$new_line =~ s/__perlroot__/$session->get_archive()->get_conf( "server_perl" )/g;
+	$new_line =~ s/__staticroot__/$session->get_archive()->get_conf( "server_static" )/g;
+	$new_line =~ s/__frontpage__/$session->get_archive()->get_conf( "frontpage" )/g;
 	$new_line =~ s/__version__/$EPrints::Version::eprints_software_version/g;
 	
 	return( $new_line );

@@ -83,7 +83,7 @@ sub process
 
 		$a = $self->{session}->make_element( 
 			"a", 
-			href => $self->{session}->get_site()->
+			href => $self->{session}->get_archive()->
 				  get_conf( "server_static" ).
 				"/register.html"  );
 		$p = $self->{session}->make_element( "p" );		
@@ -175,7 +175,7 @@ sub _render_form
 	
 	my @edit_fields;
 	my $field;
-	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
+	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
 	my @all_fields = $user_ds->get_fields;
 	
 	# Get the appropriate fields
@@ -217,14 +217,14 @@ sub _update_from_form
 		$self->{user}->get_value( "username" ) )
 	{
 		my $form_id = $self->{session}->param( "username" );
-		$self->{session}->get_site()->log( 
+		$self->{session}->get_archive()->log( 
 			"Username in $form_id doesn't match object username ".
 			 $self->{username} );
 	
 		return( 0 );
 	}
 	
-	my @all_fields = $self->{session}->get_site()->
+	my @all_fields = $self->{session}->get_archive()->
 					get_data_set( "user" )->get_fields();
 
 	my $field;

@@ -92,7 +92,7 @@ sub new
 		## and return the eprint.
 		foreach( "archive" , "inbox" , "buffer" )
 		{
-			my $ds = $session->get_site()->get_data_set( $_ );
+			my $ds = $session->get_archive()->get_data_set( $_ );
 			$self = $session->get_db()->get_single( $ds, $id );
 			if ( defined $self ) 
 			{
@@ -143,7 +143,7 @@ sub create
 print STDERR "($new_id)($dir)\n";
 	if( !defined $dir )
 	{
-		$session->get_site()->log( "Failed to make dir." );
+		$session->get_archive()->log( "Failed to make dir." );
 		return( undef );
 	}
 
@@ -187,7 +187,7 @@ sub _create_id
 		$new_id = "0".$new_id;
 	}
 
-	return( $session->get_site()->get_conf( "eprint_id_stem" ) . $new_id );
+	return( $session->get_archive()->get_conf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -207,8 +207,8 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-print STDERR $session->get_site()->get_conf( "local_document_root" )."\n";
-	opendir DOCSTORE, $session->get_site()->get_conf( "local_document_root" )
+print STDERR $session->get_archive()->get_conf( "local_document_root" )."\n";
+	opendir DOCSTORE, $session->get_archive()->get_conf( "local_document_root" )
 		or return( undef );
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -223,13 +223,13 @@ print STDERR $session->get_site()->get_conf( "local_document_root" )."\n";
 	{
 #cjg use the lib!
 		my $free_space = 
-			(df $session->get_site()->get_conf( "local_document_root" )."/$_" )[3];
-print STDERR "(".$session->get_site()->get_conf( "local_document_root" )."/$_)($free_space)\n";
+			(df $session->get_archive()->get_conf( "local_document_root" )."/$_" )[3];
+print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$_)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $session->get_site()->get_conf("diskspace_error_threshold") )
+			if( $free_space >= $session->get_archive()->get_conf("diskspace_error_threshold") )
 			{
 				# Enough space on this drive.
 				$storedir = $_;
@@ -253,7 +253,7 @@ print STDERR "oraok\n";
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $session->get_site()->get_conf("diskspace_warn_threshold") )
+	if( $best_free_space < $session->get_archive()->get_conf("diskspace_warn_threshold") )
 	{
 # cjg - not done this bit yet...
 #
@@ -272,16 +272,16 @@ print STDERR "oak\n";
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $session->get_site()->get_conf( "eprint_id_stem" );
+	my $archivestem = $session->get_archive()->get_conf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
-		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
+		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
 
 print STDERR "soak\n";
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
 	# Full path including doc store root
-	my $full_path = $session->get_site()->get_conf("local_document_root")."/$dir";
+	my $full_path = $session->get_archive()->get_conf("local_document_root")."/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
 print "($full_path)\n";
@@ -298,7 +298,7 @@ print "($full_path)\n";
 	# Error if we couldn't even create one
 	if( $#created == -1 )
 	{
-		$session->get_site()->log( "Failed to create directory ".$full_path.": $@"); 
+		$session->get_archive()->log( "Failed to create directory ".$full_path.": $@"); 
 		return( undef );
 	}
 
@@ -340,7 +340,7 @@ sub remove
 		$success = $success && $_->remove();
 		if( !$success )
 		{
-			$self->{session}->get_site()->log( "Error removing doc ".$_->{docid}.": $!" );
+			$self->{session}->get_archive()->log( "Error removing doc ".$_->{docid}.": $!" );
 		}
 	}
 
@@ -349,7 +349,7 @@ sub remove
 	
 	if( $num_deleted <= 0 )
 	{
-		$self->{session}->get_site()->log( "Error removing files for ".$self->{eprint}.", path ".$self->local_path().": $!" );
+		$self->{session}->get_archive()->log( "Error removing files for ".$self->{eprint}.", path ".$self->local_path().": $!" );
 		$success = 0;
 	}
 
@@ -539,7 +539,7 @@ sub short_title
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->get_site()->eprint_short_title( $self ) );
+	return( $self->{session}->get_archive()->eprint_short_title( $self ) );
 }
 
 
@@ -563,7 +563,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		$self->{session}->get_site()->log( "Error committing EPrint ".$self->{eprintid}.": $db_error" );
+		$self->{session}->get_archive()->log( "Error committing EPrint ".$self->{eprintid}.": $db_error" );
 	}
 
 	return( $success );
@@ -637,7 +637,7 @@ sub validate_meta
 		else
 		{
 			# Give the site validation module a go
-			$problem = $self->{session}->get_site()->validate_eprint_field(
+			$problem = $self->{session}->get_archive()->validate_eprint_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -673,7 +673,7 @@ sub validate_meta
 	}
 
 	# Site validation routine for eprint metadata as a whole:
-	$self->{session}->get_site()->validate_eprint_meta( $self, \@all_problems );
+	$self->{session}->get_archive()->validate_eprint_meta( $self, \@all_problems );
 
 	return( \@all_problems );
 }
@@ -714,7 +714,7 @@ sub validate_subject
 		else
 		{
 			# Give the validation module a go
-			$problem = $self->{session}->get_site()->validate_subject_field(
+			$problem = $self->{session}->get_archive()->validate_subject_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -992,7 +992,7 @@ sub validate_full
 	}
 
 	# Now give the site specific stuff one last chance to have a gander.
-	$self->{session}->get_site()->validate_eprint( $self, \@problems );
+	$self->{session}->get_archive()->validate_eprint( $self, \@problems );
 
 	return( \@problems );
 }
@@ -1081,7 +1081,7 @@ sub submit
 	
 	if( $success )
 	{
-		$self->{session}->get_site()->update_submitted_eprint( $self );
+		$self->{session}->get_archive()->update_submitted_eprint( $self );
 		$self->datestamp();
 		$self->commit();
 	}
@@ -1129,7 +1129,7 @@ sub archive
 	
 	if( $success )
 	{
-		$self->{session}->get_site()->update_archived_eprint( $self );
+		$self->{session}->get_archive()->update_archived_eprint( $self );
 		$self->commit();
 		$self->generate_static();
 
@@ -1166,7 +1166,7 @@ sub local_path
 {
 	my( $self ) = @_;
 	
-	return( "$self->{session}->get_site()->{local_document_root}/$self->{dir}" );
+	return( "$self->{session}->get_archive()->{local_document_root}/$self->{dir}" );
 }
 
 
@@ -1184,7 +1184,7 @@ sub url_stem
 {
 	my( $self ) = @_;
 	
-	return( $self->{session}->get_site()->get_conf( "server_document_root" ).
+	return( $self->{session}->get_archive()->get_conf( "server_document_root" ).
 		"/".$self->{data}->{eprintid}."/" );
 }
 
@@ -1228,10 +1228,10 @@ sub generate_static
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $self->{session}->get_site()->get_conf( "eprint_id_stem" );
+	my $archivestem = $self->{session}->get_archive()->get_conf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
-		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
+		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
 	
 	my $langid;
 	foreach $langid ( keys %EPrints::Site::General::languages )
@@ -1240,7 +1240,7 @@ sub generate_static
 
 
 		my $full_path = 
-			$self->{session}->get_site()->get_conf( "local_html_root" ).
+			$self->{session}->get_archive()->get_conf( "local_html_root" ).
 			"/$langid/archive/$1/$2/$3/$3";
 
 		my @created = eval
@@ -1270,7 +1270,7 @@ sub to_html_page
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->get_site()->call( "eprint_render_full", $self, 0 );
+        my $dom = $self->{session}->get_archive()->call( "eprint_render_full", $self, 0 );
 
         return( $dom );
 }
@@ -1280,7 +1280,7 @@ sub to_html_staff_page
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->get_site()->call( "eprint_render_full", $self, 1 );
+        my $dom = $self->{session}->get_archive()->call( "eprint_render_full", $self, 1 );
 
         return( $dom );
 }
@@ -1488,7 +1488,7 @@ sub to_html
 	
 	if( !defined $cstyle )
 	{
-		$cstyle = $self->{session}->get_site()->call( "get_eprint_citation_style", $self );
+		$cstyle = $self->{session}->get_archive()->call( "get_eprint_citation_style", $self );
 	}
 
 	my $ifnode;

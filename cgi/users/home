@@ -63,7 +63,7 @@ $p->appendChild(
 	$session->html_phrase( 
 		"cgi/users/home:welcome",
 		sitename => $session->make_text( 
-			$session->get_site()->get_conf( "sitename" ) ) ) );
+			$session->get_archive()->get_conf( "sitename" ) ) ) );
 $page->appendChild( $p );
 
 
@@ -89,7 +89,7 @@ if( $valid_user )
 	#print "</A></STRONG></DT>\n";
 	#print "<DD><P>";
 	#$session->{lang}->phrase( "cgi/users/home:review_info" );
-	#if( $session->get_site()->{allow_user_removal} ) {
+	#if( $session->get_archive()->{allow_user_removal} ) {
 		#$session->{lang}->phrase( "cgi/users/home:remove_info" );
 	#}
 	#print "</P></DD>\n";
@@ -169,7 +169,7 @@ sub render_workspace
 {
 	my( $session, $user ) = @_;
 
-	my $ds = $session->get_site()->get_data_set( "inbox" );
+	my $ds = $session->get_archive()->get_data_set( "inbox" );
 
 	my @eprints =  $user->get_eprints( $ds );
 

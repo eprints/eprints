@@ -63,7 +63,7 @@ else
 				print $session->{render}->start_html( "Removal Successful" );
 
 				print "<CENTER><P>EPrint successfully removed.</P></CENTER>\n";
-				print "<P><CENTER><A HREF=\"$session->get_site()->{server_static}/".
+				print "<P><CENTER><A HREF=\"$session->get_archive()->{server_static}/".
 					"staff/\">Click here to return to the Staff Area</A></CENTER>".
 					"</P>\n";
 
@@ -86,7 +86,7 @@ else
 				print $session->{render}->start_html( "Move Successful" );
 
 				print "<CENTER><P>EPrint successfully moved.</P></CENTER>\n";
-				print "<P><CENTER><A HREF=\"$session->get_site()->{server_static}/".
+				print "<P><CENTER><A HREF=\"$session->get_archive()->{server_static}/".
 					"staff/\">Click here to return to the Staff Area</A></CENTER>".
 					"</P>\n";
 
@@ -103,7 +103,7 @@ else
 		       $session->{render}->param( "submit" ) eq "Cancel" )
 		{
 			$session->{render}->redirect(
-				"$session->get_site()->{server_static}/staff/" );
+				"$session->get_archive()->{server_static}/staff/" );
 		}
 		else
 		{

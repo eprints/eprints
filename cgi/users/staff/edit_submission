@@ -134,8 +134,8 @@ sub bounce_form
 	my $reason_field = new EPrints::MetaField(
 		"reason:longtext:20::0:1:1" );
 	my $default_reason =
-		( $delete ? $session->get_site()->{default_delete_reason}
-		          : $session->get_site()->{default_bounce_reason} );
+		( $delete ? $session->get_archive()->{default_delete_reason}
+		          : $session->get_archive()->{default_bounce_reason} );
 	my $title = $eprint->short_title();
 	$default_reason =~ s/_SUBMISSION_TITLE_/$title/g;
 	

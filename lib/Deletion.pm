@@ -27,7 +27,7 @@ use strict;
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
+	my( $class ) = @_;
 
 	return ( 
 		{ name=>"eprintid", type=>"text", required=>1, editable=>0 },

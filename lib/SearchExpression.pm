@@ -247,7 +247,7 @@ sub render_search_form
 		$form->appendChild( $div );	
 	}
 
-	my @tags = keys %{$self->{session}->get_site()->get_conf(
+	my @tags = keys %{$self->{session}->get_archive()->get_conf(
 			"order_methods",
 			$self->{dataset}->confid )};
 	$menu = $self->{session}->make_option_list(
@@ -386,7 +386,7 @@ sub _unescape_search_string
 sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
-	$self->{session}->get_site()->log( "SearchExpression state_from_string debug: $text_rep" );	
+	$self->{session}->get_archive()->log( "SearchExpression state_from_string debug: $text_rep" );	
 
 	# Split everything up
 
@@ -452,8 +452,8 @@ sub perform_search
 		my $badwords;
 		foreach( @searchon )
 		{
-			$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
-			$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
+			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
+			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
 			my $error;
 			( $buffer , $badwords , $error) = 
 				$_->do( $buffer , $self->{satisfy_all} );
@@ -489,7 +489,7 @@ sub count
 			$self->{tmptable} );
 	}	
 	#cjg ERROR to user?
-	$self->{session}->get_site()->log( "Search has not been performed" );
+	$self->{session}->get_archive()->log( "Search has not been performed" );
 		
 }
 
@@ -519,7 +519,7 @@ sub get_records
  print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";
 
-			my $cmpmethod = $self->{session}->get_site()->get_conf( 
+			my $cmpmethod = $self->{session}->get_archive()->get_conf( 
 						"order_methods" , 
 						$self->{dataset}->confid, 
 						$self->{order} );
@@ -530,7 +530,7 @@ print STDERR "ORDER BY: $self->{order}\n";
 	}	
 
 #ERROR TO USER cjg
-	$self->{session}->get_site()->log( "Search not yet performed" );
+	$self->{session}->get_archive()->log( "Search not yet performed" );
 		
 }
 

@@ -138,7 +138,7 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		$session->get_site()->oai_write_eprint_metadata(
+		$session->get_archive()->oai_write_eprint_metadata(
 			$eprint,
 			$metadataFormat,
 			$writer);
@@ -171,7 +171,7 @@ sub write_record_header
 	$writer->dataElement(
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier( 
-			$session->get_site()->{oai_archive_id},
+			$session->get_archive()->{oai_archive_id},
 			$eprint_id ) );
 	
 	$writer->dataElement( "datestamp",
@@ -183,7 +183,7 @@ sub write_record_header
 
 ######################################################################
 #
-# $oai_identifier = to_oai_identifier( $site_id , $eprint_id )
+# $oai_identifier = to_oai_identifier( $archive_id , $eprint_id )
 #
 #  Give the full OAI identifier of an eprint, given the local eprint id.
 #
@@ -192,9 +192,9 @@ sub write_record_header
 ## WP1: BAD
 sub to_oai_identifier
 {
-	my( $site_id , $eprint_id ) = @_;
+	my( $archive_id , $eprint_id ) = @_;
 	
-	return( "oai:$site_id:$eprint_id" );
+	return( "oai:$archive_id:$eprint_id" );
 }
 
 
@@ -213,7 +213,7 @@ sub from_oai_identifier
 	my( $session , $oai_identifier ) = @_;
 	
 	if( $oai_identifier =~
-		/^oai:$session->get_site()->{oai_archive_id}:($session->get_site()->{eprint_id_stem}\d+)$/ )
+		/^oai:$session->get_archive()->{oai_archive_id}:($session->get_archive()->{eprint_id_stem}\d+)$/ )
 	{
 		return( $1 );
 	}
@@ -239,9 +239,9 @@ sub get_eprint_metadata
 {
 	my( $eprint, $metadataFormat ) = @_;
 	
-	if( defined $eprint->{session}->get_site()->{oai_metadata_formats}->{$metadataFormat} )
+	if( defined $eprint->{session}->get_archive()->{oai_metadata_formats}->{$metadataFormat} )
 	{
-		my %md = $eprint->{session}->get_site()->oai_get_eprint_metadata(
+		my %md = $eprint->{session}->get_archive()->oai_get_eprint_metadata(
 			$eprint,
 			$metadataFormat );
 

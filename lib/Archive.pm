@@ -12,7 +12,7 @@
 #
 ######################################################################
 
-package EPrints::Site;
+package EPrints::Archive;
 
 use EPrints::Site::General;
 use EPrints::DataSet;
@@ -60,7 +60,7 @@ sub new_site_by_id
 
 	if( $id !~ m/[a-z_]+/ )
 	{
-		die "Site ID illegal: $id\n";
+		die "Archive ID illegal: $id\n";
 	}
 	
 	if( defined $ID2SITE{$id} )

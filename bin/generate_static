@@ -28,16 +28,16 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
-# change to base of site so expat can find the dtd directory.
-chdir( $session->get_site()->get_conf( "site_root" ) );
+# change to base of site so expat can find the dtd directory. cjg (still needed???)
+chdir( $session->get_archive()->get_conf( "archive_root" ) );
 
 print "____________________________\n";
 my $langid;
-my $generalpath = $session->get_site()->get_conf( "static_html_root" )."/general";
+my $generalpath = $session->get_archive()->get_conf( "static_html_root" )."/general";
 foreach $langid ( keys %EPrints::Site::General::languages )
 {
 	print $langid."\n";
-	my $basepath = $session->get_site()->get_conf( "static_html_root" ).
+	my $basepath = $session->get_archive()->get_conf( "static_html_root" ).
 	               "/$langid";
 	my $func;
 	$func = sub { generate_static( $langid, $basepath, $session ) };
@@ -56,22 +56,22 @@ sub generate_dtd
 
 	my $dtd = "";
 	$dtd.= "<!ENTITY sitename \"".
-		$session->get_site()->get_conf( "sitename" ).
+		$session->get_archive()->get_conf( "sitename" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY description \"".
-		$session->get_site()->get_conf( "description" ).
+		$session->get_archive()->get_conf( "description" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY admin \"".
-		$session->get_site()->get_conf( "admin" ).
+		$session->get_archive()->get_conf( "admin" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY perlroot \"".
-		$session->get_site()->get_conf( "server_perl" ).
+		$session->get_archive()->get_conf( "server_perl" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY staticroot \"".
-		$session->get_site()->get_conf( "server_static" ).
+		$session->get_archive()->get_conf( "server_static" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY frontpage \"".
-		$session->get_site()->get_conf( "frontpage" ).
+		$session->get_archive()->get_conf( "frontpage" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY version \"".
 		$EPrints::Version::eprints_software_version.
@@ -88,7 +88,7 @@ sub generate_static
 
 	my $destination_filename = $File::Find::name;
 
-	my $newpath = $session->get_site()->get_conf( "local_html_root" ).
+	my $newpath = $session->get_archive()->get_conf( "local_html_root" ).
 	              "/$langid";
 	$destination_filename =~ s/$basepath/$newpath/;
 

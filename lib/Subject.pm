@@ -31,7 +31,7 @@ $EPrints::Subject::root_subject_name = "(Top Level)";
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
+	my( $class ) = @_;
 
 	return 
 	( 
@@ -84,7 +84,7 @@ sub new
 	{
 		# Got ID, need to read stuff in from database
 		return $session->{database}->get_single( 
-			$session->get_site()->get_data_set( "subject" ), 
+			$session->get_archive()->get_data_set( "subject" ), 
 			$id );
 
 	}
@@ -133,7 +133,7 @@ sub create_subject
 
 # cjg add_record call
 	return( undef ) unless( $session->get_db()->add_record( 
-		$session->get_site()->get_data_set( "subject" ), 
+		$session->get_archive()->get_data_set( "subject" ), 
 		$newsub ) );
 
 	return( new EPrints::Subject( $session, undef, $newsub ) );
@@ -177,7 +177,7 @@ sub children
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_site()->get_data_set( "subject" );
+	my $ds = $self->{session}->get_archive()->get_data_set( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
@@ -207,7 +207,7 @@ print "ack\n";
 		{
 			$child->{label} = $child->{name};
 		}
-		$self->{session}->get_site()->log( "Subject debug: Child: ".$child->{subjectid} );
+		$self->{session}->get_archive()->log( "Subject debug: Child: ".$child->{subjectid} );
 	}
 print "done\n";
 	return( @children );
@@ -271,7 +271,7 @@ sub create_subject_table
 	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $session->get_site()->get_conf( "subject_config" ) or return( 0 );
+	open SUBJECTS, $session->get_archive()->get_conf( "subject_config" ) or return( 0 );
 
 	my $success = 1;
 	
@@ -409,7 +409,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $ds = $session->get_site()->get_data_set();
+		my $ds = $session->get_archive()->get_data_set();
 		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
@@ -489,6 +489,7 @@ sub subject_label_cache
 #
 ######################################################################
 
+
 ## WP1: BAD
 sub get_all
 {
@@ -496,7 +497,7 @@ sub get_all
 	
 	# Retrieve all of the subjects
 	my @rows = $session->get_db()->get_all( 
-		$session->get_site()->get_data_set( "subject" ) );
+		$session->get_archive()->get_data_set( "subject" ) );
 
 	return( undef ) if( scalar @rows == 0 );
 

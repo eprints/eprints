@@ -10,6 +10,7 @@ Things to do (Mike)
 		and similar things like split which can't be trusted
 		either.
 	* lose all $_ and give sensible named variables instead
+	* grep 'get_archive()\s*->\s*{' -r .    ===> get_conf instead.
 	* make MetaField->to_html render_value
 	* make SearchField->to_html render_input_field
 	* make ALL DOM methods render_foo_bar

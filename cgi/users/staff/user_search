@@ -27,7 +27,7 @@ my $session = new EPrints::Session;
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
 	"user",
-	$session->{site]->{user_search_fields} );
+	$session->{site]->{user_search_fields} );#cjg CRAP
 
 my $searchform = new EPrints::SearchForm(
 	$session,

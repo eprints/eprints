@@ -41,7 +41,7 @@ use EPrints::Mailer;
 use EPrints::MetaField;
 use EPrints::Name;
 use EPrints::OpenArchives;
-use EPrints::Site;
+use EPrints::Archive;
 use EPrints::Site::General;
 use EPrints::SearchExpression;
 use EPrints::SearchField;

@@ -31,13 +31,13 @@ my %LANG_CACHE = ();
 
 ######################################################################
 #
-# $language = fetch( $site , $langid )
+# $language = fetch( $archive , $langid )
 #
 # Return a language from the cache. If it isn't in the cache
 # attempt to load and return it.
 # Returns undef if it cannot be loaded.
 # Uses default language if langid is undef. [STATIC]
-# $site might not be defined if this is the log language and
+# $archive might not be defined if this is the log language and
 # therefore not of any specific site.
 #
 ######################################################################
@@ -45,14 +45,14 @@ my %LANG_CACHE = ();
 ## WP1: BAD
 sub fetch
 {
-	my( $site , $langid ) = @_;
+	my( $archive , $langid ) = @_;
 
 	if( !defined $langid )
 	{
-		$langid = $site->get_conf( "default_language" );
+		$langid = $archive->get_conf( "default_language" );
 	}
 
-	my $lang = EPrints::Language->new( $langid , $site );
+	my $lang = EPrints::Language->new( $langid , $archive );
 
 	return $lang;
 
@@ -61,12 +61,12 @@ sub fetch
 
 ######################################################################
 #
-# $language = new( $langid, $site )
+# $language = new( $langid, $archive )
 #
 # Create a new language object representing the language to use, 
 # loading it from a config file.
 #
-# $site is optional. If it exists then the language object
+# $archive is optional. If it exists then the language object
 # will query the site specific override files.
 #
 ######################################################################
@@ -74,24 +74,24 @@ sub fetch
 ## WP1: BAD
 sub new
 {
-	my( $class , $langid , $site ) = @_;
+	my( $class , $langid , $archive ) = @_;
 
 	my $self = {};
 	bless $self, $class;
 
 	$self->{id} = $langid;
 
-	$self->{sitedata} =
-		read_phrases( $site->get_conf( "phrases_path" )."/".$self->{id} );
+	$self->{archivedata} =
+		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id} );
 
 	$self->{data} =
 		read_phrases( $EPrints::Site::General::lang_path."/".$self->{id} );
 	
-	if( $site->get_conf("default_language") ne $self->{id})
+	if( $archive->get_conf("default_language") ne $self->{id})
 	{
 		$self->{fallback} = EPrints::Language::fetch( 
-					$site,  
-					$site->get_conf("default_language") );
+					$archive,  
+					$archive->get_conf("default_language") );
 	}
 
 	return( $self );
@@ -162,11 +162,11 @@ sub _phrase_aux
 
 	my $res = undef;
 
-	$res = $self->{sitedata}->{$phraseid};
+	$res = $self->{archivedata}->{$phraseid};
 	return $res->cloneNode( 1 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_sitedata->{$phraseid};
+		$res = $self->{fallback}->_get_archivedata->{$phraseid};
 		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
 	}
 
@@ -188,10 +188,10 @@ sub _get_data
 	return $self->{data};
 }
 ## WP1: BAD
-sub _get_sitedata
+sub _get_archivedata
 {
 	my( $self ) = @_;
-	return $self->{sitedata};
+	return $self->{archivedata};
 }
 ######################################################################
 #
