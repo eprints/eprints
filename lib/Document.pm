@@ -382,7 +382,8 @@ sub url
 
 	return( undef ) if( !defined $eprint );
 	
-	return( $eprint->url_stem() . $self->{docid} . "/" . $self->{main} );
+	return( URI::Escape::uri_escape(
+		$eprint->url_stem() . $self->{docid} . "/" . $self->{main} ) );
 }
 
 
@@ -742,10 +743,10 @@ sub upload_url
 	
 	# Construct wget command line.
 	my $command = $EPrintSite::SiteInfo::wget_command;
-	my $escaped_url = uri_escape( $url );
+	#my $escaped_url = uri_escape( $url );
 	
 	$command =~ s/_CUTDIRS_/$cut_dirs/g;
-	$command =~ s/_URL_/$escaped_url/g;
+	$command =~ s/_URL_/"$url"/g;
 	
 	# Run the command
 	my $rc = 0xffff & system $command;
