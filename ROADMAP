@@ -159,6 +159,7 @@
 #	Fix "upload then back" bug
 #	Status search field buggered
 #	 FIX installer - phrases don't work! some dirs are wrong # 	what about a default disk0 dir?
+#	directory listing on perl dir is showing and should be hidden.
 
 #Clean UP
 #	print STDERR's should be log()
@@ -178,13 +179,10 @@
 #TODO
 #	Clean up validators - Don't validate records with fields which have bad langids including user validate.
 #	Make all possible field-types browseable.
-#	Delete records function.
 #	Threads rendering code.
 #	"Squash" reverse indexes?
 #	 allow configure_archive to specify archive name on command line.
-#	 sort out "deletion"
-#	 abstract page for deleted records?
-#	verbose mode for bin scripts?
+#	verbose mode for bin scripts? proper switch handling|?
 #	 sort subject input fields
 #	 text area without CR's (config flag) eg. for title.
 #	 Magic search fields - eg. Must have HTML format document/public document...
@@ -194,3 +192,4 @@
 #	subject importer to use XML
 #	rename views to browse/ (?)
 #	rename rebuild_sets to something betterer?
+#	Edit abstract renderer to add comments on how to view PS and PDF etc.

@@ -23,7 +23,6 @@ use strict;
 #cjg check item is editable by this user.
 
 #cjg remove does not work
-#cjg cancel does not work
 
 my $session = EPrints::Session->new();
 
@@ -91,9 +90,7 @@ sub process
 
 	if( defined $action && $action eq "remove" )
 	{
-		$eprint->remove_from_threads();
-		
-		if( $eprint->remove() )
+		if( $eprint->move_to_deletion() )
 		{
 			$page->appendChild( $session->html_phrase( 
 				"cgi/users/edit_eprint:removed" ) );
@@ -133,7 +130,7 @@ sub process
 	if( defined $action && $action eq "cancel" )
 	{
 		$session->redirect(
-			$session->get_archive()->get_conf( "server_perl_root ")."/users/staff/" );
+			$session->get_archive()->get_conf( "server_perl_root" )."/users/home" );
 		return;
 	}
 

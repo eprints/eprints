@@ -27,14 +27,27 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my $dataset = $session->get_archive()->get_dataset( "archive" );
+our $noiselevel = 1;
+if( defined $ARGV[1] )
+{
+	$noiselevel = 0 if( $ARGV[1] eq "-q" );
+	$noiselevel = 2 if( $ARGV[1] eq "-v" );
+}
 
-print "start\n";
-my $count  = $dataset->map( $session , \&make_static );
-print "done $count\n";
+foreach( "archive", "deletion" )
+{
+	print "Writing $_ abstracts\n" if( $noiselevel > 0);
+	my $dataset = $session->get_archive()->get_dataset( "$_" );
+	my $count  = $dataset->map( $session , \&make_static );
+	print "Done writing $count $_ abstracts\n" if( $noiselevel > 0);
+}
 
 sub make_static
 {
 	my( $eprint ) = @_;
 	$eprint->generate_static();
+	if( $noiselevel > 1 )
+	{
+		print "Generated ".$eprint->get_value( "eprintid" )."\n";
+	}
 }

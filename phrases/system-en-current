@@ -40,6 +40,10 @@ EPrints Modules
     <phrase ref="lib/eprint:cant_succ">You cannot succeed an EPrint that someone else has posted</phrase>
     <phrase ref="lib/eprint:invalid_id">EPrint ID in "<pin ref="field" />" field is invalid</phrase>
     <phrase ref="lib/eprint:need_a_format">You need to upload at least one of the following formats:</phrase>
+    <phrase ref="lib/eprint:eprint_gone_title">EPrint Removed</phrase>
+    <phrase ref="lib/eprint:eprint_gone"><p>You seem to be attempting to access an eprint that has been removed from the archive.</p></phrase>
+    <phrase ref="lib/eprint:later_version"><p>There is a later version of the eprint you are trying to access:<br /><pin ref="citation" /></p></phrase>
+
 
 <!-- MetaField -->
 
@@ -110,9 +114,6 @@ EPrints Modules
     <phrase ref="lib/session:username_title">Usernames</phrase>
     <phrase ref="lib/session:curr_disp">Currently Displayed</phrase>
     <phrase ref="lib/session:error_title">Error</phrase>
-    <phrase ref="lib/session:eprint_gone_title">EPrint Removed</phrase>
-    <phrase ref="lib/session:eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
-    <phrase ref="lib/session:later_version">There is a later version of the eprint you are trying to access:</phrase>
     <phrase ref="lib/session:no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
     <phrase ref="lib/session:no_priv">Your account does not have the required privilege to use this function.</phrase>
 

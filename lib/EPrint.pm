@@ -54,7 +54,11 @@ sub get_system_field_info
 
 	{ name=>"succeeds", type=>"text", required=>0 },
 
-	{ name=>"commentary", type=>"text", required=>0 } );
+	{ name=>"commentary", type=>"text", required=>0 },
+
+	{ name=>"replacedby", type=>"text", required=>0 }
+
+	);
 }
 
 ######################################################################
@@ -297,65 +301,6 @@ sub _create_directory
 
 	
 	
-######################################################################
-#
-# $success = remove()
-#
-#  Attempts to remove this EPrint from the database.
-#
-######################################################################
-
-#cjg DELETE THE LAD< do it like move_to_buffer
-## WP1: BAD
-sub remove
-{
-	my( $self ) = @_;
-
-	my $success = 1;
-	
-	# Create a deletion record if we're removing the record from the main
-	# archive
-	if( $self->{dataset}->id() eq "archive" )
-	{
-		#cjg Test this!
-		#	$success = $success && EPrints::Deletion::add_deletion_record( $self );
-		#cjg move to deletion.
-		#cjg REMOVE ABSTRACT PAGES!
-	
-	}
-
-	# Remove the associated documents
-	my @docs = $self->get_all_documents();
-	my $doc;
-	foreach $doc (@docs)
-	{
-		$success = $success && $doc->remove();
-		if( !$success )
-		{
-			$self->{session}->get_archive()->log( "Error removing doc ".$doc->get_value( "docid" ).": $!" );
-		}
-	}
-
-	# Now remove the directory
-	my $num_deleted = rmtree( $self->local_path() );
-	if( $num_deleted <= 0 )
-	{
-		$self->{session}->get_archive()->log( "Error removing files for ".$self->get_value( "eprintid" ).", path ".$self->local_path().": $!" );
-		$success = 0;
-	}
-
-	# Remove from any threads
-	$self->remove_from_threads();
-
-	# Remove our entry from the DB
-	$success = $success && $self->{session}->get_db()->remove(
-		$self->{dataset},
-		$self->get_value( "eprintid" ) );
-	
-	return( $success );
-}
-
-
 ######################################################################
 #
 # $new_eprint = clone( $dest_table, $copy_documents )
@@ -836,6 +781,7 @@ sub prune_documents
 #
 ######################################################################
 
+#loseit? cjg
 sub prune
 {
 	my( $self ) = @_;
@@ -893,11 +839,39 @@ sub datestamp
 #
 ######################################################################
 
+sub move_to_deletion
+{
+	my( $self ) = @_;
+
+	my $ds = $self->{session}->get_archive()->get_dataset( "deletion" );
+	
+	my $last_in_thread = $self->last_in_thread( $ds->get_field( "succeeds" ) );
+	my $replacement_id = $last_in_thread->get_value( "eprintid" );
+
+	if( $replacement_id == $self->get_value( "eprintid" ) )
+	{
+		# This IS the last in the thread, so we should redirect
+		# enquirers to the one this replaced, if any.
+		$replacement_id = $self->get_value( "succeeds" );
+	}
+
+	$self->set_value( "replacedby" , $replacement_id );
+
+	my $success = $self->_transfer( $ds );
+
+	if( $success )
+	{
+		$self->generate_static();
+	}
+	
+	return $success;
+}
+
 sub move_to_inbox
 {
 	my( $self ) = @_;
 
-	# if we is currently in archive... cjg
+	# if we is currently in archive... cjg? eh???
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "inbox" );
 	
@@ -1045,6 +1019,15 @@ sub generate_static
 
 	my $eprintid = $self->get_value( "eprintid" );
 
+	my $ds_id = $self->{dataset}->id();
+	if( $ds_id ne "deletion" && $ds_id ne "archive" )
+	{
+		$self->{session}->get_archive()->log( 
+			"Attempt to generate static files for record ".
+			$eprintid." in dataset $ds_id (may only generate ".
+			"static for deletion and archive" );
+	}
+
 	# We is going to temporarily change the language of our session to
 	# render the abstracts in each language.
 	my $real_langid = $self->{session}->get_langid();
@@ -1068,6 +1051,10 @@ sub generate_static
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
 
+		next if( $ds_id ne "archive" );
+		# Only live archive records have actual documents 
+		# available.
+
 		my @docs = $self->get_all_documents();
 		my $doc;
 		foreach $doc ( @docs )
@@ -1086,7 +1073,27 @@ sub render
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 0 );
+        my( $dom, $title );
+	my $ds_id = $self->{dataset}->id();
+	if( $ds_id eq "deletion" )
+	{
+		$title = $self->{session}->phrase( "lib/eprint:eprint_gone_title" );
+		$dom = $self->{session}->make_doc_fragment();
+		$dom->appendChild( $self->{session}->html_phrase( "lib/eprint:eprint_gone" ) );
+		my $replacement = new EPrints::EPrint(
+			$self->{session},
+			$self->{session}->get_archive()->get_dataset( "archive" ),
+			$self->get_value( "replacedby" ) );
+		if( defined $replacement )
+		{
+			my $cite = $replacement->render_citation_link();
+			$dom->appendChild( $self->{session}->html_phrase( "lib/eprint:later_version", citation=>$cite ) );
+		}
+	}
+	else
+	{
+		($dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 0 );
+	}
 	
         return( $dom, $title );
 }

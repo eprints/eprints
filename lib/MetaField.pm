@@ -505,7 +505,7 @@ sub _render_value1
 	}
 	else
 	{
-print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
+#print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
 		if( $self->{browse} && !$nolink)
 		{
 			my $url = $session->get_archive()->get_conf( "server_static" ).
