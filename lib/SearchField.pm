@@ -748,7 +748,7 @@ sub do
 		}
 		$buffer = $nextbuffer;
 	}
-	if( $self->{anyall} eq "PHR" )
+	if( $self->{anyall} eq "PHR"  && $self->{anyall} eq "IN" )
 	{
 		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
 		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
