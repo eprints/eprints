@@ -32,9 +32,6 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
--  Bug with multiple languages that they move the values around when
-   you hit "more languages". Possily due to bad "squash up" code.
-
 ----------------------------------------------------------------------
 EPrints Editorial Buffer
 ----------------------------------------------------------------------
@@ -127,5 +124,8 @@ FIXED: 11/02
 - Regexp for hostnames does not allow "-" signs
 
 
-
+FIXED: 13/02
+-  Bug with multiple languages that they move the values around when
+   you hit "more languages". Possily due to bad "squash up" code.
+   [ turns out to be the a bug in the renderer! ]
 

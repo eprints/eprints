@@ -188,13 +188,14 @@
 # current urgent 2.0 todo
 # ***********************
 # MIKE: doc perl modules we need (and bundle)
-# SearchField widths?
 # Howtos, 
 # doc upgrade stuff.
-# VLit link
-# Xhtml docs: [gui]
+# VLit link & page
+# PROBLEMS IN INSTALLER: LWP(from DOM) 
+# clean up BUGS file.
 # ===Document backing up!!!
 
+# time stamp views
 
 # HOW-TOS
 #================

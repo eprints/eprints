@@ -272,6 +272,7 @@ terms.</p>
     <ep:phrase ref="page:suggestions_intro"><h3>The depositing user made the following comments and suggestions:</h3></ep:phrase>
 
     <ep:phrase ref="validate:missing_http">The URL given for <b><ep:pin ref="fieldname" /></b> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
+    <ep:phrase ref="validate:bad_email">The email given for <b><ep:pin ref="fieldname" /></b> is invalid.</ep:phrase>
     <ep:phrase ref="validate:missing_family">Name in field <b><ep:pin ref="fieldname" /></b> is missing the "family" part.</ep:phrase>
     <ep:phrase ref="validate:missing_given">Name in field <b><ep:pin ref="fieldname" /></b> is missing the "given names/initials" part.</ep:phrase>
     <ep:phrase ref="validate:need_description">Documents of type <em><ep:pin ref="type" /></em> need a description.</ep:phrase>

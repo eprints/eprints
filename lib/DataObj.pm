@@ -27,11 +27,21 @@ sub get_value
 	
 	my $r = $self->{data}->{$fieldname};
 
-	return undef unless( EPrints::Utils::is_set( $r ) );
+	my $field = $self->{dataset}->get_field( $fieldname );
+
+	unless( EPrints::Utils::is_set( $r ) )
+	{
+		if( $field->get_property( "multiple" ) )
+		{
+			return [];
+		}
+		else
+		{
+			return undef;
+		}
+	}
 
 	return $r unless( $no_id );
-
-	my $field = $self->{dataset}->get_field( $fieldname );
 
 	return $r unless( $field->get_property( "hasid" ) );
 

@@ -79,7 +79,9 @@ sub mkpage_editsubject
 		if( $action eq "submit" )
 		{
 			$subject->set_value( "name", $subject_ds->get_field( "name" )->form_value( $session ) );
-			$subject->set_value( "depositable", $subject_ds->get_field( "depositable" )->form_value( $session ) );
+
+			my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session );
+			$subject->set_value( "depositable", $depositable );
 			$subject->commit();
 		}
 		if( $action =~ m/^unlink_(.*)$/ )

@@ -17,11 +17,11 @@
 
 package EPrints::Config::lemurprints;
 
-require "cfg/ArchiveOAIConfig.pm";
-require "cfg/ArchiveRenderConfig.pm";
-require "cfg/ArchiveValidateConfig.pm";
-require "cfg/ArchiveTextIndexingConfig.pm";
-require "cfg/ArchiveMetadataFieldsConfig.pm";
+do "cfg/ArchiveOAIConfig.pm";
+do "cfg/ArchiveRenderConfig.pm";
+do "cfg/ArchiveValidateConfig.pm";
+do "cfg/ArchiveTextIndexingConfig.pm";
+do "cfg/ArchiveMetadataFieldsConfig.pm";
 
 use EPrints::Utils;
 
@@ -30,10 +30,6 @@ use Unicode::String qw(utf8 latin1 utf16);
 use strict;
 
 use EPrints::Latex;
-
-## Config to add: MAX browse items, MAX search results to display sorted
-## Fields to make browseable.
-
 
 sub get_conf
 {
@@ -95,7 +91,7 @@ $c->{htdocs_secure_path} = $c->{htdocs_path}."/secure";
 $c->{base_url} = "http://$c->{host}";
 if( $c->{port} != 80 )
 {
-	# cjg: Not SSL port 443 friendly
+	# Not SSL port 443 friendly
 	$c->{base_url}.= ":".$c->{port}; 
 }
 
@@ -145,25 +141,6 @@ $c->{diskspace_error_threshold} = 64*1024;
 # If ever the amount of free space drops below this threshold, the
 # archive administrator is sent a warning email. In kilobytes.
 $c->{diskspace_warn_threshold} = 512*1024;
-
-### Where put this info, cjg?
-# Command lines to execute to extract files from each type of archive.
-# Note that archive extraction programs should not ever do any prompting,
-# and should be SILENT whatever the error.  _DIR_ will be replaced with the 
-# destination dir, and _ARC_ with the full pathname of the .zip. (Each
-# occurence will be replaced if more than one of each.) Make NO assumptions
-# about which dir the command will be run in. Exit code is assumed to be zero
-# if everything went OK, non-zero in the case of any error.
-
-### Where put this info, cjg?
-#  Command to run to grab URLs. Should:
-#  - Produce no output
-#  - only follow relative links to same or subdirectory
-#  - chop of the number of top directories _CUTDIRS_, so a load of pointlessly
-#    deep directories aren't created
-#  - start grabbing at _URL_
-#
-
 
 ######################################################################
 #
@@ -242,6 +219,12 @@ $c->{field_defaults}->{input_boxes} = 3;
 # Max digits in an integer.
 $c->{field_defaults}->{digits} = 20;
 
+# Width of a search field
+$c->{field_defaults}->{search_cols} = 40;
+
+# Maximum rows to display in a subject or set search
+$c->{field_defaults}->{search_rows} = 12;
+
 ######################################################################
 #
 #  Submission Form Customisation
@@ -298,8 +281,6 @@ $c->{submission_hide_security} = 0;
 # Setting this to zero will simplify the
 # interface to the system if you want to 
 # operate in a single language. 
-# It will disable the following:
-# -cjg Stuff...
 $c->{multi_language_options} = 0;
 
 $c->{lang_cookie_domain} = $c->{host};
@@ -388,8 +369,6 @@ $c->{subscription_fields} =
 	"refereed",
 	"ispublished"
 ];
-
-#cjg normalise so byname=>by_name becomes by_name=>by_name
 
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
@@ -600,8 +579,6 @@ sub get_entities
 	return %entities;
 }
 
-#
-#cjg NEED introcomment
 sub can_user_view_document
 {
 	my( $doc, $user ) = @_;

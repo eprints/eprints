@@ -67,54 +67,54 @@ sub validate_field
 
 	# CHECKS IN HERE
 
+	# Loop over actual individual to check URLs, names and emails
+
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
-	if( $field->is_type( "url" ) && defined $value && $value ne "" )
+	if( $field->is_type( "url", "name", "email" ) && EPrints::Utils::is_set( $value ) )
 	{
 		$value = [$value] unless( $field->get_property( "multiple" ) );
 		foreach( @{$value} )
 		{
-			if( $_ !~ /^\w+:/ )
+			my $v = $_;
+			# If a name field has an ID part then we are looking at a hash
+			# with "main" and "id" parts. We just want the main part.
+			$v = $v->{main} if( $field->get_property( "hasid" ) );
+
+			# Check a URL for correctness
+			if( $field->is_type( "url" ) && $v !~ /^\w+:/ )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_http",
 					fieldname=>$session->make_text( $field->display_name( $session ) ) );
 			}
-		}
-	}
 
-	# Ensure that a "name" has a family AND given part. You might wish to have names with
-	# only "given" if you have limited information.
-	if( $field->is_type( "name" ) && defined $value && $value ne "" )
-	{
-		$value = [$value] unless( $field->get_property( "multiple" ) );
-		foreach( @{$value} )
-		{
-			# If a name field has an ID part then we are looking at a hash
-			# with "main" and "id" parts rather than the name.
-			my $name;
-			if( $field->get_property( "hasid" ) )
-			{
-				$name = $_->{main};
-			}
-			else
-			{
-				$name = $_;
-			}
-
-			if( !defined $name->{family} || $name->{family} eq "" )
+			# Check a name has a family part
+			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{family} ) )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_family",
 					fieldname=>$session->make_text( $field->display_name( $session ) ) );
 			}
-			if( !defined $name->{given} || $name->{given} eq "" )
+
+			# Check a name has a given part
+			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{given} ) )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_given",
 					fieldname=>$session->make_text( $field->display_name( $session ) ) );
 			}
+
+			# Check an email looks "ok". Just checks it has only one "@" and no
+			# spaces.
+			if( $field->is_type( "email" ) && $v !~ /^[^ \@]+\@[^ \@]+$/ )
+			{
+				push @problems,
+					$session->html_phrase( "validate:bad_email",
+					fieldname=>$session->make_text( $field->display_name( $session ) ) );
+			}
 		}
 	}
+
 
 	return( @problems );
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities-en.dtd" >
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>Transcopyright Permission</ep:title>
+<ep:body>
+
+<!-- ************************************************************* -->
+<!-- You should remove this block bto show that you approve of     -->
+<!-- the transcopyright statement below. (or edit the statement)   -->
+
+&ruler; <h2>The &archivename; admin has not yet approved the statement 
+below. Please contact them for confirmation of this copyright statement: 
+<a href="mailto:&adminemail;">&adminemail;</a>.</h2> &ruler;
+<!-- ************************************************************* -->
+
+<p>These contents may be quoted on line virtually and indirectly,
+ in any amount and any new context, provided that</p>
+<ul>
+<li>only addresses of these contents are distributed in files sent out;</li>
+<li>actual download of quoted content material is from this server;</li>
+<li>thus maintaining and offering the original context of such quotations.</li>
+</ul>
+
+<h2>Remarks</h2>
+
+<p>This server will send out arbitrary quotations into new windows
+ and allow users to jump to the original contexts of such quotations.
+ (Unfortunately as yet no file formats or mechanisms currently support
+ compositing of such quotations into pages in the browser.)</p>
+
+<p>See original copyright article at
+<a href="http://www.sfc.keio.ac.jp/~ted/transcopyright/transcopy.html">http://www.sfc.keio.ac.jp/~ted/transcopyright/transcopy.html</a>
+ and "Xanadu Model" and "Virtual Literary Format" at
+<a href="http://www.xanadu.com">http://www.xanadu.com</a>.</p>
+
+
+
+</ep:body>
+</ep:page>

@@ -384,3 +384,17 @@ types.xml file.
 - added "context" mode to vlit which highlights around the quote. 
 - vlit human mode now uses CSS.
 
+[c] - Changed 'require' to 'do' in ArchiveConfig.pm because otherwise PERL
+remembers it's seen that filename before and does not load it!
+- Fixed the "MultiLang fields getting corrupted" bug.
+- Added two new field properties - search_cols and search_rows for controling
+look of search fields.
+[c] - added defaults for search_cols and search_rows in ArchiveConfig.pm
+[c] - Changed validation code for fields: now checks emails too.
+[c] - Commented out uncommon languages from langauges.xml
+- DataObj::get_value now returns at [] for empty multiple fields to save
+on pointless undef checking.
+- Fixed bug that booleans shown as menu/radio always came back TRUE.
+- added Vlit copyright page.
+- added user help page.
+

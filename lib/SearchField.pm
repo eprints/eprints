@@ -776,6 +776,7 @@ sub render
 
 #cjg NO DATE SEARCH!!!
 	my $frag = $self->{session}->make_doc_fragment();
+
 	
 	if( $self->is_type( "boolean" ) )
 	{
@@ -797,9 +798,8 @@ sub render
 				type => "text",
 				name => $self->{form_name_prefix},
 				value => $self->{value},
-#cjg Number for form width1
-				size => $EPrints::HTMLRender::search_form_width,
-				maxlength => $EPrints::HTMLRender::field_max ) );
+				size => $self->{field}->get_property( "search_cols" ),
+				maxlength => 256 ) );
 		$frag->appendChild( $self->{session}->make_text(" ") );
 		$frag->appendChild( 
 			$self->{session}->render_option_list(
@@ -811,6 +811,7 @@ sub render
 	elsif( $self->is_type( "datatype" , "set" , "subject" ) )
 	{
 		my @defaults;
+		my $max_rows =  $self->{field}->get_property( "search_rows" );
 		
 		# Do we have any values already?
 		if( defined $self->{value} && $self->{value} ne "" )
@@ -837,10 +838,9 @@ sub render
 			my ( $pairs ) = $topsubj->get_subjects( 0, 0 );
 			#splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
 			$settings{pairs} = $pairs;
-			$settings{size} = ( 
-#cjg Number for form dfefaults
-				scalar @$pairs > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
+			$settings{height} = ( 
+				scalar @$pairs > $max_rows ?
+				$max_rows :
 				scalar @$pairs );
 		}
 		else
@@ -860,10 +860,9 @@ sub render
 		
 			$settings{labels} = $labels;
 			$settings{values} = $tags;
-			$settings{size} = ( 
-#form defaults
-				scalar @$tags > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
+			$settings{height} = ( 
+				scalar @$tags > $max_rows ?
+				$max_rows :
 				scalar @$tags );
 		}	
 

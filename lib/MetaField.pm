@@ -35,9 +35,6 @@ EPrints::MetaField - Class representing an information field in an eprint datase
 
 =cut 
 
-# Bugs: Need to be able to unset 'sets' which are no multiple and
-# not required.
-
 
 package EPrints::MetaField;
 
@@ -47,7 +44,6 @@ use EPrints::Subject;
 use EPrints::Database;
 
 use strict;
-#CJG Option for Boolean to be a menu or radio buttons?
 
 # Months
 my @monthkeys = ( 
@@ -74,6 +70,8 @@ my $PROPERTIES =
 	input_add_boxes => 1,
 	input_boxes => 1,
 	input_style => 1,
+	search_cols => 1,
+	search_rows => 1,
 	fromform => 1,
 	toform => 1,
 	maxlength => 1,
@@ -888,7 +886,8 @@ sub _render_input_field_aux
 			}
 			else
 			{
-				my $div = $session->make_element( "div" );# cjg style?
+				my $div = $session->make_element( "div" );
+				# cjg style?
 				$div->appendChild( $aux2 );
 				#space? cjg
 				$div->appendChild( $langbit );
@@ -1021,10 +1020,6 @@ sub _render_input_field_aux2
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$suffix;
-		if( $session->internal_button_pressed() )
-		{
-			$value = $session->param( $id );
-		}
 
 		if( $self->is_type( "int" ) )
 		{
@@ -1337,21 +1332,22 @@ sub _form_value_aux1
 		{
 			my $subvalue = $self->_form_value_aux2( $session, $suffix."_".$i );
 			my $langid = $session->param( $self->{name}.$suffix."_".$i."_lang" );
-			if( $langid eq "" ) { $langid = "_".$i; }
+			if( $langid eq "" ) 
+			{ 
+				$langid = "_".$i; 
+			}
 			if( defined $subvalue )
 			{
 				$value->{$langid} = $subvalue;
 #cjg -- does not check that this is a valid langid...
 			}
 		}
-#print STDERR "!!".Dumper( $value ) if( $self->{name} =~ m/editor/ );
 		$value = undef if( scalar keys %{$value} == 0 );
 	}
 	else
 	{
 		$value = $self->_form_value_aux2( $session, $suffix );
 	}
-#print STDERR ">>".Dumper( $value ) if( $self->{name} =~ m/editor/ );
 	if( $self->get_property( "hasid" ) )
 	{
 		my $id = $session->param( $self->{name}.$suffix."_id" );
@@ -1391,7 +1387,16 @@ sub _form_value_aux2
 	elsif( $self->is_type( "boolean" ) )
 	{
 		my $form_val = $session->param( $self->{name}.$suffix );
-		return ( defined $form_val ? "TRUE" : "FALSE" );
+		my $true = 0;
+		if( $self->{input_style} eq "radio" || $self->{input_style} eq "menu" )
+		{
+			$true = $form_val eq "TRUE";
+		}
+		else
+		{
+			$true = defined $form_val;
+		}
+		return ( $true ? "TRUE" : "FALSE" );
 	}
 	elsif( $self->is_type( "date" ) )
 	{
@@ -1645,12 +1650,13 @@ sub ordervalue_aux1
 {
 	my( $self , $value , $archive , $langid ) = @_;
 
-	return "" if( !defined $value );
+	return "" unless( EPrints::Utils::is_set( $value ) );
 
 	if( !$self->get_property( "multilang" ) )
 	{
 		return $self->ordervalue_aux2( $value );
 	}
+
 	return $self->ordervalue_aux2( 
 		EPrints::Session::best_language( 
 			$archive,
@@ -1662,7 +1668,7 @@ sub ordervalue_aux2
 {
 	my( $self , $value ) = @_;
 
-	return "" if( !defined $value );
+	return "" unless( EPrints::Utils::is_set( $value ) );
 
 	my $v = $value;
 	if( $self->get_property( "idpart" ) )
@@ -1724,6 +1730,8 @@ sub get_property_default
 	my $archive = $self->{archive};
 
 	foreach( 
+		"search_cols", 
+		"search_rows", 
 		"digits", 
 		"input_rows", 
 		"input_cols", 
