@@ -137,11 +137,24 @@ sub write_record
 	{
 		# Write the metadata
 		$writer->startTag( "metadata" );
-		$writer->startTag(
-			[ $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
-			  $metadataFormat ] );
+
+		# Horrible hack to get round (possibly very valid) inability of
+		# XML::Writer to use namespace prefix as element name
+		
+		my $out = $writer->getOutput();
+		$out->printf(
+			"<%s xmlns:%s=\"%s\">",
+			$metadataFormat,
+			$metadataFormat,
+			$EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat} );
+		
+#		$writer->startTag(
+#			[ $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
+#			  $metadataFormat ] );
 		_write_record_aux( $writer, $metadata );
-		$writer->endTag();
+
+		$out->printf( "</%s>", $metadataFormat );
+
 		$writer->endTag();
 	}
 	
