@@ -6,6 +6,7 @@
 -	Tool to manage XML Phrase files and spot missing bits.
 -	Tool to manage XML Template files
 0	Translate Initial phrases and templates into French
+4	Archive Apache Config Maker (still needs to do virtualhosts)
 -	System Apache Config Maker
 -	languages.xml file to configure what languages EPrints has heard of
 -	XML config files to tell eprints where to find each archive
