@@ -1,11 +1,11 @@
 ######################################################################
 #
-#  EPrints OAI 1.0b Handler
+#  EPrints OAI 1.1 Handler
 #
 #   Responds to incoming OAI requests
 #
 # Conforming to:
-# http://www.openarchives.org/OAI/openarchivesprotocol.htm
+# http://www.openarchives.org/OAI/1.1/openarchivesprotocol.htm
 #
 ######################################################################
 #
@@ -172,10 +172,10 @@ sub identify
 
 	$writer->startTag( "description");
 	$writer->startTag( "oai-identifier", 
-	                   "xmlns"=>"http://www.openarchives.org/OAI/oai-identifier",
-	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/oai-identifier ".
-	                                      "http://www.openarchives.org/OAI/oai-identifier.xsd");
+	                   "xmlns"=>"http://www.openarchives.org/OAI/1.1/oai-identifier",
+	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
+	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/oai-identifier ".
+	                                      "http://www.openarchives.org/OAI/1.1/oai-identifier.xsd");
 
 	$writer->dataElement( "scheme", "oai" );
 	$writer->dataElement( "repositoryIdentifier",
@@ -188,10 +188,10 @@ sub identify
 
 	$writer->startTag( "description");
 	$writer->startTag( "eprints", 
-	                   "xmlns"=>"http://www.openarchives.org/OAI/eprints",
-	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/eprints ".
-	                                      "http://www.openarchives.org/OAI/eprints.xsd");
+	                   "xmlns"=>"http://www.openarchives.org/OAI/1.1/eprints",
+	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
+	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/eprints ".
+	                                      "http://www.openarchives.org/OAI/1.1/eprints.xsd");
 
 	write_text_url( $writer, 
                           "content", 
@@ -277,8 +277,14 @@ sub list_identifiers
 	# Get arguments
 	my $start_date = $session->param( "from" );
 	my $end_date = $session->param( "until" );
-	my $set = $session->param( "set" );
 	# No support for resumptionToken
+	my $codedset = $session->param( "set" );
+	my $set;
+	if( defined $codedset )
+	{
+		$set = EPrints::Utils::decode_setspec( $codedset );
+	}
+
 
 	# Do some validation of the arguments
 	if( defined $start_date && $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
@@ -412,8 +418,13 @@ sub list_records
 	# Get arguments
 	my $start_date = $session->param( "from" );
 	my $end_date = $session->param( "until" );
-	my $set = $session->param( "set" );
 	my $metadata_format = $session->param( "metadataPrefix" );
+	my $codedset = $session->param( "set" );
+	my $set;
+	if( defined $codedset )
+	{
+		$set = EPrints::Utils::decode_setspec( $codedset );
+	}
 	# No support for resumptionToken
 
 	if( !defined $metadata_format )
@@ -530,7 +541,7 @@ sub _write_sets
 
 		$writer->startTag( "set" );
 		$writer->dataElement( "setSpec",
-		                      $child_setspec );
+		                      EPrints::Utils::encode_setspec( $child_setspec ) );
 		$writer->dataElement( "setName",
 		                      $_->{name} );
 		$writer->endTag( "set" );
@@ -588,27 +599,27 @@ sub start_response
 	# Namespaces and Schemas
 	my %verb_schemas =
 	(
-		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord.xsd",
-		"Identify"  => "http://www.openarchives.org/OAI/1.0/OAI_Identify.xsd",
+		"GetRecord" => "http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd",
+		"Identify"  => "http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd",
 		"ListIdentifiers" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListIdentifiers.xsd",
+			"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd",
 		"ListMetadataFormats" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListMetadataFormats.xsd",
+			"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd",
 		"ListRecords" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListRecords.xsd",
-		"ListSets" => "http://www.openarchives.org/OAI/1.0/OAI_ListSets.xsd"
+			"http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd",
+		"ListSets" => "http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd"
 	);
 	my %verb_namespaces =
 	(
-		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord",
-		"Identify"  => "http://www.openarchives.org/OAI/1.0/OAI_Identify",
+		"GetRecord" => "http://www.openarchives.org/OAI/1.1/OAI_GetRecord",
+		"Identify"  => "http://www.openarchives.org/OAI/1.1/OAI_Identify",
 		"ListIdentifiers" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListIdentifiers",
+			"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers",
 		"ListMetadataFormats" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListMetadataFormats",
+			"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats",
 		"ListRecords" =>
-			"http://www.openarchives.org/OAI/1.0/OAI_ListRecords",
-		"ListSets" => "http://www.openarchives.org/OAI/1.0/OAI_ListSets"
+			"http://www.openarchives.org/OAI/1.1/OAI_ListRecords",
+		"ListSets" => "http://www.openarchives.org/OAI/1.1/OAI_ListSets"
 	);
 
 	$session->{oai_output} = POSIX::tmpnam();
@@ -623,16 +634,22 @@ sub start_response
 
 	$writer->startTag( $verb, 
 	                   "xmlns"=>$verb_namespaces{$verb},
-	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
+	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
 	                   "xsi:schemaLocation"=>$verb_namespaces{$verb}." ".$verb_schemas{$verb} );
 	
 	$writer->dataElement( "responseDate",
 	                      EPrints::OpenArchives::full_timestamp() );
+
+	my @bits = ();
+	foreach( $session->param ) 
+	{
+		push @bits , "$_=".$session->param($_);
+	}
 	
 	$writer->dataElement(
 		"requestURL",
 		EPrints::OpenArchives::to_utf8( $session->get_url().
-		  "?" . $session->get_query->query_string() ) );
+		  "?" . join( '&', @bits ) ) );
 
 	return( $writer );
 }

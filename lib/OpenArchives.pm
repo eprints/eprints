@@ -26,7 +26,7 @@ use strict;
 
 
 # Supported version of OAI
-$EPrints::OpenArchives::OAI_VERSION = "1.0";
+$EPrints::OpenArchives::OAI_VERSION = "1.1";
 
 
 ######################################################################

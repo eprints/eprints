@@ -182,7 +182,7 @@ $c->{oai_metadata_formats} =
 # Exported metadata formats. The hash should map format ids to schemas.
 $c->{oai_metadata_schemas} =
 {
-	"oai_dc"    =>  "http://www.openarchives.org/OAI/dc.xsd"
+	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
 };
 
 # Base URL of OAI
