@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE phrases SYSTEM "entities-fr.dtd">
+<phrases>
+
+    <phrase ref="eprint_fieldhelp_abstract" note="UNTRANSLATED">Please enter the abstract of your deposit. You can easily copy and paste it into this box. </phrase>
+
+    <phrase ref="eprint_fieldhelp_additional" note="UNTRANSLATED">If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.</phrase>
+
+    <phrase ref="eprint_fieldhelp_altloc" note="UNTRANSLATED">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</phrase>
+
+    <phrase ref="eprint_fieldhelp_authors" note="UNTRANSLATED">Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.</phrase>
+
+    <phrase ref="eprint_fieldhelp_chapter" note="UNTRANSLATED">Please enter the full name of the conference.</phrase>
+
+    <phrase ref="eprint_fieldhelp_commentary" note="UNTRANSLATED">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</phrase>
+
+    <phrase ref="eprint_fieldhelp_comments" note="UNTRANSLATED">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.</phrase>
+
+    <phrase ref="eprint_fieldhelp_commref" note="UNTRANSLATED">If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.</phrase>
+
+    <phrase ref="eprint_fieldhelp_confdates" note="UNTRANSLATED">Please enter when the conference took place.</phrase>
+
+    <phrase ref="eprint_fieldhelp_conference" note="UNTRANSLATED">Please enter the full name of the conference.</phrase>
+
+    <phrase ref="eprint_fieldhelp_confloc" note="UNTRANSLATED">Enter here where the conference took place.</phrase>
+
+    <phrase ref="eprint_fieldhelp_department" note="UNTRANSLATED">Please enter the department from which the deposit originated.</phrase>
+
+    <phrase ref="eprint_fieldhelp_editors" note="UNTRANSLATED">Please enter the names of the editors.</phrase>
+
+    <phrase ref="eprint_fieldhelp_institution" note="UNTRANSLATED">Please enter the institution from which the deposit originated.</phrase>
+
+    <phrase ref="eprint_fieldhelp_ispublished" note="UNTRANSLATED">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</phrase>
+
+    <phrase ref="eprint_fieldhelp_keywords" note="UNTRANSLATED">Enter here any keywords you think will aid searchers in finding your deposit. Please be careful to enter specific keywords relevant to your deposit, and don't be too general.</phrase>
+
+    <phrase ref="eprint_fieldhelp_month" note="UNTRANSLATED">Please enter the month in which your deposit was published.</phrase>
+
+    <phrase ref="eprint_fieldhelp_number" note="UNTRANSLATED">Enter the issue number of the journal in which your deposit appeared.</phrase>
+
+    <phrase ref="eprint_fieldhelp_pages" note="UNTRANSLATED">Please enter the (inclusive) range of pages in which your paper appeared.</phrase>
+
+    <phrase ref="eprint_fieldhelp_pubdom" note="UNTRANSLATED">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</phrase>
+
+    <phrase ref="eprint_fieldhelp_publication" note="UNTRANSLATED">Please enter the full title of the publication your deposit appeared in.</phrase>
+
+    <phrase ref="eprint_fieldhelp_publisher" note="UNTRANSLATED">Please enter the name of the publisher.</phrase>
+
+    <phrase ref="eprint_fieldhelp_reasons" note="UNTRANSLATED">Here you can offer justification for your suggested new subject(s).</phrase>
+
+    <phrase ref="eprint_fieldhelp_refereed" note="UNTRANSLATED">Please indicate whether this version of the work been refereed below.</phrase>
+
+    <phrase ref="eprint_fieldhelp_referencetext" note="UNTRANSLATED">You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.</phrase>
+
+    <phrase ref="eprint_fieldhelp_reportno" note="UNTRANSLATED">Please enter the report number.</phrase>
+
+    <phrase ref="eprint_fieldhelp_subjects" note="UNTRANSLATED">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, in the list below. In some browsers you may have to hold CTRL or SHIFT to select more than one subject.</phrase>
+
+    <phrase ref="eprint_fieldhelp_succeeds" note="UNTRANSLATED">If this document is a revised version of another document in the archive, please enter its ID code in this box.</phrase>
+
+    <phrase ref="eprint_fieldhelp_thesistype" note="UNTRANSLATED">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</phrase>
+
+    <phrase ref="eprint_fieldhelp_title" note="UNTRANSLATED">Please enter the full title of the deposit.</phrase>
+
+    <phrase ref="eprint_fieldhelp_volume" note="UNTRANSLATED">Enter the volume number of the journal in which your deposit appeared.</phrase>
+
+    <phrase ref="eprint_fieldhelp_year" note="UNTRANSLATED">Please enter the year in which your deposit was published or produced.</phrase>
+
+    <phrase ref="eprint_fieldname_abstract" note="UNTRANSLATED">Abstract</phrase>
+
+    <phrase ref="eprint_fieldname_altloc" note="UNTRANSLATED">Alternative Locations</phrase>
+
+    <phrase ref="eprint_fieldname_authors" note="UNTRANSLATED">Authors</phrase>
+
+    <phrase ref="eprint_fieldname_chapter" note="UNTRANSLATED">Chapter</phrase>
+
+    <phrase ref="eprint_fieldname_commentary" note="UNTRANSLATED">Commentary on</phrase>
+
+    <phrase ref="eprint_fieldname_comments" note="UNTRANSLATED">Additional Information</phrase>
+
+    <phrase ref="eprint_fieldname_commref" note="UNTRANSLATED">Commentary on</phrase>
+
+    <phrase ref="eprint_fieldname_confdates" note="UNTRANSLATED">Conference Date</phrase>
+
+    <phrase ref="eprint_fieldname_conference" note="UNTRANSLATED">Conference</phrase>
+
+    <phrase ref="eprint_fieldname_confloc" note="UNTRANSLATED">Location</phrase>
+
+    <phrase ref="eprint_fieldname_datestamp" note="UNTRANSLATED">Date Deposited</phrase>
+
+    <phrase ref="eprint_fieldname_department" note="UNTRANSLATED">Department</phrase>
+
+    <phrase ref="eprint_fieldname_dir" note="UNTRANSLATED">Dir</phrase>
+
+    <phrase ref="eprint_fieldname_editors" note="UNTRANSLATED">Editors</phrase>
+
+    <phrase ref="eprint_fieldname_eprintid" note="UNTRANSLATED">EPrint ID</phrase>
+
+    <phrase ref="eprint_fieldname_institution" note="UNTRANSLATED">Institution</phrase>
+
+    <phrase ref="eprint_fieldname_ispublished" note="UNTRANSLATED">Status</phrase>
+
+    <phrase ref="eprint_fieldname_keywords" note="UNTRANSLATED">Keywords</phrase>
+
+    <phrase ref="eprint_fieldname_month" note="UNTRANSLATED">Month</phrase>
+
+    <phrase ref="eprint_fieldname_number" note="UNTRANSLATED">Number</phrase>
+
+    <phrase ref="eprint_fieldname_pages" note="UNTRANSLATED">Pages</phrase>
+
+    <phrase ref="eprint_fieldname_pubdom" note="UNTRANSLATED">Public Domain</phrase>
+
+    <phrase ref="eprint_fieldname_publication" note="UNTRANSLATED">Publication</phrase>
+
+    <phrase ref="eprint_fieldname_publisher" note="UNTRANSLATED">Publisher</phrase>
+
+    <phrase ref="eprint_fieldname_refereed" note="UNTRANSLATED">Refereed</phrase>
+
+    <phrase ref="eprint_fieldname_referencetext" note="UNTRANSLATED">References</phrase>
+
+    <phrase ref="eprint_fieldname_reportno" note="UNTRANSLATED">Report no.</phrase>
+
+    <phrase ref="eprint_fieldname_subjects" note="UNTRANSLATED">Subjects</phrase>
+
+    <phrase ref="eprint_fieldname_succeeds" note="UNTRANSLATED">Later Version of</phrase>
+
+    <phrase ref="eprint_fieldname_thesistype" note="UNTRANSLATED">Thesis Type</phrase>
+
+    <phrase ref="eprint_fieldname_title" note="UNTRANSLATED">Title</phrase>
+
+    <phrase ref="eprint_fieldname_type" note="UNTRANSLATED">EPrint Type</phrase>
+
+    <phrase ref="eprint_fieldname_username" note="UNTRANSLATED">Depositing User</phrase>
+
+    <phrase ref="eprint_fieldname_volume" note="UNTRANSLATED">Volume</phrase>
+
+    <phrase ref="eprint_fieldname_year" note="UNTRANSLATED">Year</phrase>
+
+    <phrase ref="eprint_typename_bookchapter" note="UNTRANSLATED">Book Chapter</phrase>
+
+    <phrase ref="eprint_typename_confpaper" note="UNTRANSLATED">Conference Paper</phrase>
+
+    <phrase ref="eprint_typename_confposter" note="UNTRANSLATED">Conference Poster</phrase>
+
+    <phrase ref="eprint_typename_journale" note="UNTRANSLATED">Journal (On-line/Unpaginated)</phrase>
+
+    <phrase ref="eprint_typename_journalp" note="UNTRANSLATED">Journal (Paginated)</phrase>
+
+    <phrase ref="eprint_typename_newsarticle" note="UNTRANSLATED">Newspaper/Magazine Article</phrase>
+
+    <phrase ref="eprint_typename_other" note="UNTRANSLATED">Other</phrase>
+
+    <phrase ref="eprint_typename_preprint" note="UNTRANSLATED">Preprint</phrase>
+
+    <phrase ref="eprint_typename_techreport" note="UNTRANSLATED">Departmental Technical Report</phrase>
+
+    <phrase ref="eprint_typename_thesis" note="UNTRANSLATED">Thesis&#25606;</phrase>
+
+    <phrase ref="ordername_archive_byname" note="UNTRANSLATED">by author's name</phrase>
+
+    <phrase ref="ordername_archive_bytitle" note="UNTRANSLATED">by title</phrase>
+
+    <phrase ref="ordername_archive_byyear" note="UNTRANSLATED">by year (most recent first)</phrase>
+
+    <phrase ref="ordername_archive_byyearoldest" note="UNTRANSLATED">by year (oldest first)</phrase>
+
+    <phrase ref="user_fieldhelp_address" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_country" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_dept" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_email" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_expertise" note="UNTRANSLATED">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</phrase>
+
+    <phrase ref="user_fieldhelp_filter" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_joined" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_name" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_org" note="UNTRANSLATED">Where you work, or something.</phrase>
+
+    <phrase ref="user_fieldhelp_os" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_passwd" note="UNTRANSLATED">This may be ignored if this user is authenticated by a different method.</phrase>
+
+    <phrase ref="user_fieldhelp_title" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_url" note="UNTRANSLATED">URL's about you!</phrase>
+
+    <phrase ref="user_fieldhelp_username" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldhelp_usertype" note="UNTRANSLATED"></phrase>
+
+    <phrase ref="user_fieldname_address" note="UNTRANSLATED">Address</phrase>
+
+    <phrase ref="user_fieldname_country" note="UNTRANSLATED">Country</phrase>
+
+    <phrase ref="user_fieldname_dept" note="UNTRANSLATED">Department</phrase>
+
+    <phrase ref="user_fieldname_email" note="UNTRANSLATED">User's Email</phrase>
+
+    <phrase ref="user_fieldname_expertise" note="UNTRANSLATED">Expertise</phrase>
+
+    <phrase ref="user_fieldname_filter" note="UNTRANSLATED">User's Editor "Filter"</phrase>
+
+    <phrase ref="user_fieldname_joined" note="UNTRANSLATED">Date User Account was Created</phrase>
+
+    <phrase ref="user_fieldname_name" note="UNTRANSLATED">User's Name</phrase>
+
+    <phrase ref="user_fieldname_org" note="UNTRANSLATED">Organisation</phrase>
+
+    <phrase ref="user_fieldname_os" note="UNTRANSLATED">Operating System</phrase>
+
+    <phrase ref="user_fieldname_passwd" note="UNTRANSLATED">User's Password</phrase>
+
+    <phrase ref="user_fieldname_title" note="UNTRANSLATED">Title</phrase>
+
+    <phrase ref="user_fieldname_url" note="UNTRANSLATED">Homepage URL</phrase>
+
+    <phrase ref="user_fieldname_username" note="UNTRANSLATED">User's Username</phrase>
+
+    <phrase ref="user_fieldname_usertype" note="UNTRANSLATED">User Type</phrase>
+
+    <phrase ref="user_typename_staff" note="UNTRANSLATED">Staff</phrase>
+
+    <phrase ref="user_typename_user" note="UNTRANSLATED">User</phrase>
+
+</phrases>

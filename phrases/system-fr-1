@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE phrases SYSTEM "entities-fr.dtd">
+<phrases>
+
+    <phrase ref="cgi/advsearch:adv_search" note="UNTRANSLATED">Advanced Search</phrase>
+
+    <phrase ref="cgi/advsearch:dont_panic" note="UNTRANSLATED">Don't panic! Just leave the fields you don't want to search blank. <pin ref="simplesearch">Click here for a simple search.</pin></phrase>
+
+    <phrase ref="cgi/handle_404:archive_admin" note="UNTRANSLATED">Archive Administrator</phrase>
+
+    <phrase ref="cgi/handle_404:blurb" note="UNTRANSLATED">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <pin ref="archiveadmin"></pin>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</phrase>
+
+    <phrase ref="cgi/handle_404:doc_not_found" note="UNTRANSLATED">Document Not Found</phrase>
+
+    <phrase ref="cgi/handle_404:file_not_found" note="UNTRANSLATED">File not found:</phrase>
+
+    <phrase ref="cgi/handle_404:looking_for" note="UNTRANSLATED">Perhaps you're looking for the following eprint:</phrase>
+
+    <phrase ref="cgi/remind:archive_admin" note="UNTRANSLATED">Archive Administrator</phrase>
+
+    <phrase ref="cgi/remind:form_blurb" note="UNTRANSLATED">If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.</phrase>
+
+    <phrase ref="cgi/remind:form_title" note="UNTRANSLATED">Username and Password Reminder Form</phrase>
+
+    <phrase ref="cgi/remind:rem_sent_title" note="UNTRANSLATED">Reminder Sent</phrase>
+
+    <phrase ref="cgi/remind:return_home" note="UNTRANSLATED">Return to &archivename; Home</phrase>
+
+    <phrase ref="cgi/remind:send" note="UNTRANSLATED">Send</phrase>
+
+    <phrase ref="cgi/search:adv_search" note="UNTRANSLATED">Click here for an advanced search</phrase>
+
+    <phrase ref="cgi/search:simple_search" note="UNTRANSLATED">Simple Search</phrase>
+
+    <phrase ref="cgi/user:n_records" note="UNTRANSLATED">User has <pin ref="n"></pin> EPrints in the archive.</phrase>
+
+    <phrase ref="cgi/user:no_user" note="UNTRANSLATED">No user specified!</phrase>
+
+    <phrase ref="cgi/user:one_record" note="UNTRANSLATED">User has 1 EPrint in the archive.</phrase>
+
+    <phrase ref="cgi/user:return_front" note="UNTRANSLATED">Return to front page</phrase>
+
+    <phrase ref="cgi/user:unknown_user" note="UNTRANSLATED">Unknown User</phrase>
+
+    <phrase ref="cgi/user:user_title" note="UNTRANSLATED">User record for <pin ref="name"></pin></phrase>
+
+    <phrase ref="cgi/user:view_link" note="UNTRANSLATED">Click here to view this author's EPrints.</phrase>
+
+    <phrase ref="cgi/user_eprints:eprints_title" note="UNTRANSLATED">EPrints submitted by <pin ref="name"></pin></phrase>
+
+    <phrase ref="cgi/user_eprints:n_eprints" note="UNTRANSLATED">User has submitted <pin ref="n"></pin> EPrints.</phrase>
+
+    <phrase ref="cgi/user_eprints:no_eprints" note="UNTRANSLATED">User has submitted no EPrints.</phrase>
+
+    <phrase ref="cgi/user_eprints:no_user" note="UNTRANSLATED">No user specified!</phrase>
+
+    <phrase ref="cgi/user_eprints:one_eprint" note="UNTRANSLATED">User has submitted <pin ref="n"></pin> EPrint.</phrase>
+
+    <phrase ref="cgi/user_eprints:record_link" note="UNTRANSLATED">Click here to see user's record.</phrase>
+
+    <phrase ref="cgi/user_eprints:return_front" note="UNTRANSLATED">Return to front page</phrase>
+
+    <phrase ref="cgi/user_eprints:unknown_user" note="UNTRANSLATED">Unknown User</phrase>
+
+    <phrase ref="cgi/users/add_user:create_user" note="UNTRANSLATED">Create User</phrase>
+
+    <phrase ref="cgi/users/add_user:create_user_title" note="UNTRANSLATED">Create a User</phrase>
+
+    <phrase ref="cgi/users/add_user:enter_username" note="UNTRANSLATED">Enter a username for the new user below.</phrase>
+
+    <phrase ref="cgi/users/add_user:mk_acc_err" note="UNTRANSLATED">Error creating user's account.</phrase>
+
+    <phrase ref="cgi/users/add_user:no_username" note="UNTRANSLATED">No username entered!</phrase>
+
+    <phrase ref="cgi/users/add_user:staff_area" note="UNTRANSLATED">Staff Area</phrase>
+
+    <phrase ref="cgi/users/add_user:try_again" note="UNTRANSLATED">Try Again</phrase>
+
+    <phrase ref="cgi/users/buffer:buffer_blurb" note="UNTRANSLATED">Click on the title of an entry to view, edit, accept or reject it.</phrase>
+
+    <phrase ref="cgi/users/buffer:invalid" note="UNTRANSLATED">INVALID</phrase>
+
+    <phrase ref="cgi/users/buffer:no_entries" note="UNTRANSLATED">There are no entries in the submission buffer at the moment.</phrase>
+
+    <phrase ref="cgi/users/buffer:overview_title" note="UNTRANSLATED">Submission Buffer Overview</phrase>
+
+    <phrase ref="cgi/users/buffer:return_staff" note="UNTRANSLATED">Click here to return to the Staff Area</phrase>
+
+    <phrase ref="cgi/users/buffer:sub_by" note="UNTRANSLATED">Submitted by</phrase>
+
+    <phrase ref="cgi/users/buffer:sub_date" note="UNTRANSLATED">Submission Date</phrase>
+
+    <phrase ref="cgi/users/buffer:title" note="UNTRANSLATED">Title</phrase>
+
+    <phrase ref="cgi/users/home:action_clone" note="UNTRANSLATED">Clone</phrase>
+
+    <phrase ref="cgi/users/home:action_delete" note="UNTRANSLATED">Delete</phrase>
+
+    <phrase ref="cgi/users/home:action_edit" note="UNTRANSLATED">Edit</phrase>
+
+    <phrase ref="cgi/users/home:action_new" note="UNTRANSLATED">New</phrase>
+
+    <phrase ref="cgi/users/home:action_submit" note="UNTRANSLATED">Deposit</phrase>
+
+    <phrase ref="cgi/users/home:before" note="UNTRANSLATED">Before you upload any documents, please fill out your user record.</phrase>
+
+    <phrase ref="cgi/users/home:change" note="UNTRANSLATED">View/change your user record</phrase>
+
+    <phrase ref="cgi/users/home:change_info" note="UNTRANSLATED">Select this option to see your user record, and to correct or update your user information.</phrase>
+
+    <phrase ref="cgi/users/home:deposited_at" note="UNTRANSLATED">Deposited <pin ref="time"></pin></phrase>
+
+    <phrase ref="cgi/users/home:depositing" note="UNTRANSLATED">These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.</phrase>
+
+    <phrase ref="cgi/users/home:docs" note="UNTRANSLATED">Documents in your Workspace</phrase>
+
+    <phrase ref="cgi/users/home:pending_title" note="UNTRANSLATED">Pending Items</phrase>
+
+    <phrase ref="cgi/users/home:remove_info" note="UNTRANSLATED">You can also remove documents from the archive.</phrase>
+
+    <phrase ref="cgi/users/home:review" note="UNTRANSLATED">Review your documents in the archive</phrase>
+
+    <phrase ref="cgi/users/home:review_info" note="UNTRANSLATED">This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.</phrase>
+
+    <phrase ref="cgi/users/home:start_upload" note="UNTRANSLATED">Click here to start uploading a document</phrase>
+
+    <phrase ref="cgi/users/home:status_info" note="UNTRANSLATED">This option allows you to view the current status of the system, including the number of items in each dataset.</phrase>
+
+    <phrase ref="cgi/users/home:status_link" note="UNTRANSLATED">View the archive status</phrase>
+
+    <phrase ref="cgi/users/home:subscribe_info" note="UNTRANSLATED">Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.</phrase>
+
+    <phrase ref="cgi/users/home:subscribe_link" note="UNTRANSLATED">Change your subscription options</phrase>
+
+    <phrase ref="cgi/users/home:user_home" note="UNTRANSLATED">User Area Homepage - <pin ref="name"></pin></phrase>
+
+    <phrase ref="cgi/users/home:welcome" note="UNTRANSLATED">Welcome to the item depositing area at &archivename;. Please select one of the options below.</phrase>
+
+    <phrase ref="cgi/users/review:blurb_below" note="UNTRANSLATED">Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.</phrase>
+
+    <phrase ref="cgi/users/review:cancel" note="UNTRANSLATED">Cancel</phrase>
+
+    <phrase ref="cgi/users/review:cant_clone" note="UNTRANSLATED">Unable to clone that record. Please try again later.</phrase>
+
+    <phrase ref="cgi/users/review:cant_find_it" note="UNTRANSLATED">Couldn't find the EPrint! There's probably a problem with the database. Try again later.</phrase>
+
+    <phrase ref="cgi/users/review:clone" note="UNTRANSLATED">Clone</phrase>
+
+    <phrase ref="cgi/users/review:deposit_page" note="UNTRANSLATED">Deposit Items Page</phrase>
+
+    <phrase ref="cgi/users/review:document" note="UNTRANSLATED">Document</phrase>
+
+    <phrase ref="cgi/users/review:dont_know_you" note="UNTRANSLATED">I don't know who you are</phrase>
+
+    <phrase ref="cgi/users/review:no_docs" note="UNTRANSLATED">You have no documents in the main archive.</phrase>
+
+    <phrase ref="cgi/users/review:no_reason" note="UNTRANSLATED">No reason was given.</phrase>
+
+    <phrase ref="cgi/users/review:reason" note="UNTRANSLATED">The following reason was given:</phrase>
+
+    <phrase ref="cgi/users/review:remove_blurb" note="UNTRANSLATED">Please note that we strongly discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</phrase>
+
+    <phrase ref="cgi/users/review:remove_info" note="UNTRANSLATED">You can also request the removal of a document, but this is strongly discouraged, since different versions of a document can all be linked in the archive.</phrase>
+
+    <phrase ref="cgi/users/review:remove_mail" note="UNTRANSLATED">User <pin ref="user"></pin> (E-Mail: <pin ref="email"></pin>)\nrequests the removal of the following EPrint:</phrase>
+
+    <phrase ref="cgi/users/review:remove_sub" note="UNTRANSLATED">EPrint Removal Request </phrase>
+
+    <phrase ref="cgi/users/review:remove_title" note="UNTRANSLATED">Request EPrint Removal</phrase>
+
+    <phrase ref="cgi/users/review:removing" note="UNTRANSLATED">You are requesting the removal of:</phrase>
+
+    <phrase ref="cgi/users/review:req_remove" note="UNTRANSLATED">Request Removal</phrase>
+
+    <phrase ref="cgi/users/review:ret_deposit" note="UNTRANSLATED">Click here to return to your deposit items page</phrase>
+
+    <phrase ref="cgi/users/review:review_title" note="UNTRANSLATED">Review Documents</phrase>
+
+    <phrase ref="cgi/users/review:send_req" note="UNTRANSLATED">Send Request</phrase>
+
+    <phrase ref="cgi/users/review:visit_url" note="UNTRANSLATED">Visit the following URL to view the EPrint and have the option to remove it:</phrase>
+
+    <phrase ref="cgi/users/subscribe:cant_accept" note="UNTRANSLATED">The subscription could not be accepted because:</phrase>
+
+    <phrase ref="cgi/users/subscribe:create" note="UNTRANSLATED">Create a Subscription</phrase>
+
+    <phrase ref="cgi/users/subscribe:dont_know_you" note="UNTRANSLATED">I don't know who you are</phrase>
+
+    <phrase ref="cgi/users/subscribe:mk_sub_error" note="UNTRANSLATED">Unable to create your subscription. The database may be busy. Please try again later.</phrase>
+
+    <phrase ref="cgi/users/subscribe:no_sub" note="UNTRANSLATED">You do not currently have a subscription. Click on the button below to create subscription.</phrase>
+
+    <phrase ref="cgi/users/subscribe:please_enter" note="UNTRANSLATED">Enter the criteria for your subscription below.</phrase>
+
+    <phrase ref="cgi/users/subscribe:remove" note="UNTRANSLATED">Remove the Subscription</phrase>
+
+    <phrase ref="cgi/users/subscribe:ret_deposit" note="UNTRANSLATED">Click here to return to your deposit items page.</phrase>
+
+    <phrase ref="cgi/users/subscribe:return_dep" note="UNTRANSLATED">Return to your deposit items page</phrase>
+
+    <phrase ref="cgi/users/subscribe:rm_sub_error" note="UNTRANSLATED">Unable to remove your subscription. The database may be busy. Please try again later.</phrase>
+
+    <phrase ref="cgi/users/subscribe:sub_accept" note="UNTRANSLATED">Your subscription has been accepted.</phrase>
+
+    <phrase ref="cgi/users/subscribe:subscribe" note="UNTRANSLATED">Subscribe</phrase>
+
+    <phrase ref="cgi/users/subscribe:ud_sub_error" note="UNTRANSLATED">Unable to update your subscription. The database may be busy. Please try again later.</phrase>
+
+    <phrase ref="cgi/view_eprint:code_title" note="UNTRANSLATED">Enter EPrint ID Code</phrase>
+
+    <phrase ref="cgi/view_eprint:enter_code" note="UNTRANSLATED">Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.</phrase>
+
+    <phrase ref="cgi/view_eprint:invalid_code" note="UNTRANSLATED">The specified ID code is not a valid ID code.</phrase>
+
+    <phrase ref="cgi:view_eprint:view_eprint" note="UNTRANSLATED">View EPrint</phrase>
+
+    <phrase ref="lib/document:no_desc" note="UNTRANSLATED">You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0</phrase>
+
+    <phrase ref="lib/document:no_files" note="UNTRANSLATED">You haven't uploaded any files!</phrase>
+
+    <phrase ref="lib/document:no_first" note="UNTRANSLATED">You need to select a file to be shown first.</phrase>
+
+    <phrase ref="lib/eprint:cant_succ" note="UNTRANSLATED">You cannot succeed an EPrint that someone else has posted</phrase>
+
+    <phrase ref="lib/eprint:disklow" note="UNTRANSLATED">The amount of disk space available for new EPrints has dropped below the archive threshold. New disk space will be needed soon.</phrase>
+
+    <phrase ref="lib/eprint:disklow_sub" note="UNTRANSLATED">Warning: Low on disk space</phrase>
+
+    <phrase ref="lib/eprint:diskout" note="UNTRANSLATED">There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</phrase>
+
+    <phrase ref="lib/eprint:diskout_sub" note="UNTRANSLATED">ERROR: Out of Disk Space</phrase>
+
+    <phrase ref="lib/eprint:invalid_id" note="UNTRANSLATED">EPrint ID in "<pin ref="field"></pin>" field is invalid</phrase>
+
+    <phrase ref="lib/eprint:invalid_type" note="UNTRANSLATED">This EPrint doesn't seem to have a valid type.</phrase>
+
+    <phrase ref="lib/eprint:invalid_users" note="UNTRANSLATED">The following usernames are not valid: <pin ref="usernames"></pin>.</phrase>
+
+    <phrase ref="lib/eprint:least_one_sub" note="UNTRANSLATED">You need to select at least one subject from the list!</phrase>
+
+    <phrase ref="lib/eprint:need_a_format" note="UNTRANSLATED">You need to upload at least one of the following formats:</phrase>
+
+    <phrase ref="lib/eprint:no_type" note="UNTRANSLATED">You haven't selected a type for this EPrint.</phrase>
+
+    <phrase ref="lib/eprint:not_done_field" note="UNTRANSLATED">You haven't filled out the required <pin ref="fieldname"></pin> field.</phrase>
+
+    <phrase ref="lib/metafield:day" note="UNTRANSLATED">Day:</phrase>
+
+    <phrase ref="lib/metafield:family_name" note="UNTRANSLATED">Family Name:</phrase>
+
+    <phrase ref="lib/metafield:first_names" note="UNTRANSLATED">Given Names:</phrase>
+
+    <phrase ref="lib/metafield:month" note="UNTRANSLATED">Month:</phrase>
+
+    <phrase ref="lib/metafield:month_00" note="UNTRANSLATED">Unspecified</phrase>
+
+    <phrase ref="lib/metafield:month_01" note="UNTRANSLATED">January</phrase>
+
+    <phrase ref="lib/metafield:month_02" note="UNTRANSLATED">Febuary</phrase>
+
+    <phrase ref="lib/metafield:month_03" note="UNTRANSLATED">March</phrase>
+
+    <phrase ref="lib/metafield:month_04" note="UNTRANSLATED">April</phrase>
+
+    <phrase ref="lib/metafield:month_05" note="UNTRANSLATED">May</phrase>
+
+    <phrase ref="lib/metafield:month_06" note="UNTRANSLATED">June</phrase>
+
+    <phrase ref="lib/metafield:month_07" note="UNTRANSLATED">July</phrase>
+
+    <phrase ref="lib/metafield:month_08" note="UNTRANSLATED">August</phrase>
+
+    <phrase ref="lib/metafield:month_09" note="UNTRANSLATED">September</phrase>
+
+    <phrase ref="lib/metafield:month_10" note="UNTRANSLATED">October</phrase>
+
+    <phrase ref="lib/metafield:month_11" note="UNTRANSLATED">November</phrase>
+
+    <phrase ref="lib/metafield:month_12" note="UNTRANSLATED">December</phrase>
+
+    <phrase ref="lib/metafield:more_langs" note="UNTRANSLATED">More Languages</phrase>
+
+    <phrase ref="lib/metafield:more_spaces" note="UNTRANSLATED">More Spaces</phrase>
+
+    <phrase ref="lib/metafield:to" note="UNTRANSLATED">to</phrase>
+
+    <phrase ref="lib/metafield:year" note="UNTRANSLATED">Year:</phrase>
+
+    <phrase ref="lib/searchexpression:action_newsearch" note="UNTRANSLATED">Start new search</phrase>
+
+    <phrase ref="lib/searchexpression:action_reset" note="UNTRANSLATED">Reset the form</phrase>
+
+    <phrase ref="lib/searchexpression:action_search" note="UNTRANSLATED">Search</phrase>
+
+    <phrase ref="lib/searchexpression:action_update" note="UNTRANSLATED">Update the search</phrase>
+
+    <phrase ref="lib/searchexpression:all" note="UNTRANSLATED">all</phrase>
+
+    <phrase ref="lib/searchexpression:any" note="UNTRANSLATED">any</phrase>
+
+    <phrase ref="lib/searchexpression:form_problem" note="UNTRANSLATED">There is a problem with the form:</phrase>
+
+    <phrase ref="lib/searchexpression:ignored" note="UNTRANSLATED">Ignored words: <pin ref="words"></pin>.</phrase>
+
+    <phrase ref="lib/searchexpression:least_one" note="UNTRANSLATED">You need to specify something for at least one field!</phrase>
+
+    <phrase ref="lib/searchexpression:must_fulfill" note="UNTRANSLATED">Retrieved records must fulfill <pin ref="anyall"></pin> of these conditions.</phrase>
+
+    <phrase ref="lib/searchexpression:n_hits" note="UNTRANSLATED">Search returned <pin ref="n"></pin> results.</phrase>
+
+    <phrase ref="lib/searchexpression:no_hits" note="UNTRANSLATED">Search returned no results.</phrase>
+
+    <phrase ref="lib/searchexpression:one_hit" note="UNTRANSLATED">Search returned <pin ref="n"></pin> result.</phrase>
+
+    <phrase ref="lib/searchexpression:order_results" note="UNTRANSLATED">Order the results: <pin ref="ordermenu"></pin></phrase>
+
+    <phrase ref="lib/searchexpression:results_for" note="UNTRANSLATED">Results for <pin ref="title"></pin></phrase>
+
+    <phrase ref="lib/searchexpression:search_time" note="UNTRANSLATED">Search time: <pin ref="searchtime"></pin> sec. Retrieval and sort time: <pin ref="gettime"></pin> sec.</phrase>
+
+    <phrase ref="lib/searchexpression:too_many" note="UNTRANSLATED">Warning - too many results. Unsorted sample of <pin ref="n"></pin> shown.</phrase>
+
+    <phrase ref="lib/searchfield:bool_no" note="UNTRANSLATED">No</phrase>
+
+    <phrase ref="lib/searchfield:bool_nopref" note="UNTRANSLATED">No Preference</phrase>
+
+    <phrase ref="lib/searchfield:bool_yes" note="UNTRANSLATED">Yes</phrase>
+
+    <phrase ref="lib/searchfield:help_boolean" note="UNTRANSLATED">Select a value.</phrase>
+
+    <phrase ref="lib/searchfield:help_datatype" note="UNTRANSLATED">Select one or more values from the list. Default is (Any).</phrase>
+
+    <phrase ref="lib/searchfield:help_email" note="UNTRANSLATED">Enter some text to search for.</phrase>
+
+    <phrase ref="lib/searchfield:help_longtext" note="UNTRANSLATED">Enter a term or terms to search for.</phrase>
+
+    <phrase ref="lib/searchfield:help_name" note="UNTRANSLATED">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".</phrase>
+
+    <phrase ref="lib/searchfield:help_set" note="UNTRANSLATED">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+
+    <phrase ref="lib/searchfield:help_subject" note="UNTRANSLATED">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+
+    <phrase ref="lib/searchfield:help_text" note="UNTRANSLATED">Enter a term or terms to search for.</phrase>
+
+    <phrase ref="lib/searchfield:help_url" note="UNTRANSLATED">Enter some text to search for.</phrase>
+
+    <phrase ref="lib/searchfield:help_username" note="UNTRANSLATED">Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
+
+    <phrase ref="lib/searchfield:help_year" note="UNTRANSLATED">Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.</phrase>
+
+    <phrase ref="lib/searchfield:no_words" note="UNTRANSLATED">Search field contains no indexable words: "<pin ref="words"></pin>".</phrase>
+
+    <phrase ref="lib/searchfield:set_all" note="UNTRANSLATED">All of these</phrase>
+
+    <phrase ref="lib/searchfield:set_any" note="UNTRANSLATED">Any of these</phrase>
+
+    <phrase ref="lib/searchfield:text_all" note="UNTRANSLATED">Match all, in any order</phrase>
+
+    <phrase ref="lib/searchfield:text_any" note="UNTRANSLATED">Match any</phrase>
+
+    <phrase ref="lib/searchfield:year_err" note="UNTRANSLATED">A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</phrase>
+
+    <phrase ref="lib/session:archive admin" note="UNTRANSLATED">Archive Administrator</phrase>
+
+    <phrase ref="lib/session:cant_do_field" note="UNTRANSLATED">Error: Don't know how to render field of type <pin ref="type"></pin></phrase>
+
+    <phrase ref="lib/session:contact" note="UNTRANSLATED">Feel free to contact <pin ref="adminemail">&archivename; administration</pin> with details.</phrase>
+
+    <phrase ref="lib/session:curr_disp" note="UNTRANSLATED">Currently Displayed</phrase>
+
+    <phrase ref="lib/session:eprint_gone" note="UNTRANSLATED">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
+
+    <phrase ref="lib/session:eprint_gone_title" note="UNTRANSLATED">EPrint Removed</phrase>
+
+    <phrase ref="lib/session:error_title" note="UNTRANSLATED">Error</phrase>
+
+    <phrase ref="lib/session:fail_db_connect" note="UNTRANSLATED">Failed to connect to database</phrase>
+
+    <phrase ref="lib/session:later_version" note="UNTRANSLATED">There is a later version of the eprint you are trying to access:</phrase>
+
+    <phrase ref="lib/session:msg_at" note="UNTRANSLATED">Archive maintenance message generated at <pin ref="time"></pin></phrase>
+
+    <phrase ref="lib/session:no_login" note="UNTRANSLATED">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
+
+    <phrase ref="lib/session:no_priv" note="UNTRANSLATED">Your account does not have the required privilege to use this function.</phrase>
+
+    <phrase ref="lib/session:some_error" note="UNTRANSLATED">&archivename; has encountered an error:</phrase>
+
+    <phrase ref="lib/session:username_title" note="UNTRANSLATED">Usernames</phrase>
+
+    <phrase ref="lib/submissionform:action_cancel" note="UNTRANSLATED">Cancel</phrase>
+
+    <phrase ref="lib/submissionform:action_confirm" note="UNTRANSLATED">Confirm</phrase>
+
+    <phrase ref="lib/submissionform:action_finished" note="UNTRANSLATED">Finished</phrase>
+
+    <phrase ref="lib/submissionform:action_next" note="UNTRANSLATED">N&#233;xt ></phrase>
+
+    <phrase ref="lib/submissionform:action_prev" note="UNTRANSLATED">&lt; Back</phrase>
+
+    <phrase ref="lib/submissionform:action_upload" note="UNTRANSLATED">Upload ></phrase>
+
+    <phrase ref="lib/submissionform:action_uploadedit" note="UNTRANSLATED">Upload/Edit </phrase>
+
+    <phrase ref="lib/submissionform:action_verify" note="UNTRANSLATED">Verify ID's</phrase>
+
+    <phrase ref="lib/submissionform:bib_info" note="UNTRANSLATED">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
+
+    <phrase ref="lib/submissionform:corrupt_err" note="UNTRANSLATED">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <pin ref="line_no"></pin>)</phrase>
+
+    <phrase ref="lib/submissionform:database_err" note="UNTRANSLATED">There's been a problem accessing the archive database. Please try again later. #cjg# could be old no disk0 problem... (Code <pin ref="line_no"></pin></phrase>
+
+    <phrase ref="lib/submissionform:delete" note="UNTRANSLATED">Delete</phrase>
+
+    <phrase ref="lib/submissionform:delete_all" note="UNTRANSLATED">Delete All Files</phrase>
+
+    <phrase ref="lib/submissionform:enter_compfile" note="UNTRANSLATED">Enter the filename (with full path) of the compressed file in the box below.</phrase>
+
+    <phrase ref="lib/submissionform:enter_file" note="UNTRANSLATED">Please enter the filename (with full path) of the document file in the box below.</phrase>
+
+    <phrase ref="lib/submissionform:enter_files" note="UNTRANSLATED">Please enter the filenames (with full paths) of the document files in the boxes below.</phrase>
+
+    <phrase ref="lib/submissionform:enter_url" note="UNTRANSLATED">Please enter the URL of the document you wish to upload to the archive in the box below.</phrase>
+
+    <phrase ref="lib/submissionform:file_up_method" note="UNTRANSLATED">File upload method:</phrase>
+
+    <phrase ref="lib/submissionform:filename" note="UNTRANSLATED">Filename</phrase>
+
+    <phrase ref="lib/submissionform:files_for_format" note="UNTRANSLATED">These are the files you have uploaded for this format.</phrase>
+
+    <phrase ref="lib/submissionform:files_uploaded" note="UNTRANSLATED">Files Uploaded</phrase>
+
+    <phrase ref="lib/submissionform:filled_wrong" note="UNTRANSLATED">The form doesn't seem to be filled out correctly:</phrase>
+
+    <phrase ref="lib/submissionform:fix_probs" note="UNTRANSLATED">Before you deposit this entry to the archive, the following problems need to be corrected:</phrase>
+
+    <phrase ref="lib/submissionform:fix_upload" note="UNTRANSLATED">The document upload can't be completed because:</phrase>
+
+    <phrase ref="lib/submissionform:format" note="UNTRANSLATED">Format</phrase>
+
+    <phrase ref="lib/submissionform:grab_url" note="UNTRANSLATED">From an Existing Web Site</phrase>
+
+    <phrase ref="lib/submissionform:here_to_view" note="UNTRANSLATED">Click here to view and verify the uploaded files</phrase>
+
+    <phrase ref="lib/submissionform:in_buffer" note="UNTRANSLATED">Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</phrase>
+
+    <phrase ref="lib/submissionform:invalid_eprint" note="UNTRANSLATED">ID <pin ref="eprintid"></pin> is not a valid EPrint ID!</phrase>
+
+    <phrase ref="lib/submissionform:least_one" note="UNTRANSLATED">You must upload at least one of the formats listed in bold.</phrase>
+
+    <phrase ref="lib/submissionform:no_files" note="UNTRANSLATED">No files have been uploaded for this format.</phrase>
+
+    <phrase ref="lib/submissionform:nosel_err" note="UNTRANSLATED">You hadn't selected a paper to edit, clone, delete or deposit!</phrase>
+
+    <phrase ref="lib/submissionform:num_files" note="UNTRANSLATED">Number of files to upload:</phrase>
+
+    <phrase ref="lib/submissionform:plain" note="UNTRANSLATED">Plain Files</phrase>
+
+    <phrase ref="lib/submissionform:plain_only" note="UNTRANSLATED">(Plain files only)</phrase>
+
+    <phrase ref="lib/submissionform:please_complete" note="UNTRANSLATED">Please complete the form before continuing.</phrase>
+
+    <phrase ref="lib/submissionform:please_fix" note="UNTRANSLATED">Please fix this before continuing.</phrase>
+
+    <phrase ref="lib/submissionform:please_verify" note="UNTRANSLATED">Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  </phrase>
+
+    <phrase ref="lib/submissionform:remove" note="UNTRANSLATED">Remove</phrase>
+
+    <phrase ref="lib/submissionform:ret_dep_page" note="UNTRANSLATED">Click here to return to your deposit papers page </phrase>
+
+    <phrase ref="lib/submissionform:sel_first" note="UNTRANSLATED">You need to select the file that should be shown first when a reader wishes to view your deposit.</phrase>
+
+    <phrase ref="lib/submissionform:sel_type" note="UNTRANSLATED">Please select the most appropriate type for your deposit.</phrase>
+
+    <phrase ref="lib/submissionform:show_first" note="UNTRANSLATED">Show first</phrase>
+
+    <phrase ref="lib/submissionform:shown_first" note="UNTRANSLATED">Shown First</phrase>
+
+    <phrase ref="lib/submissionform:size_bytes" note="UNTRANSLATED">Size (Bytes)</phrase>
+
+    <phrase ref="lib/submissionform:sure_delete" note="UNTRANSLATED">Are you absolutely sure you want to delete this entry?</phrase>
+
+    <phrase ref="lib/submissionform:thanks" note="UNTRANSLATED">Thank you.</phrase>
+
+    <phrase ref="lib/submissionform:title_confirmdel" note="UNTRANSLATED">Confirm Deletion</phrase>
+
+    <phrase ref="lib/submissionform:title_done" note="UNTRANSLATED">Completed Deposit</phrase>
+
+    <phrase ref="lib/submissionform:title_error" note="UNTRANSLATED">Error</phrase>
+
+    <phrase ref="lib/submissionform:title_fileview" note="UNTRANSLATED">Document File Upload</phrase>
+
+    <phrase ref="lib/submissionform:title_format" note="UNTRANSLATED">Document Storage Formats</phrase>
+
+    <phrase ref="lib/submissionform:title_linking" note="UNTRANSLATED">Succession/Commentary</phrase>
+
+    <phrase ref="lib/submissionform:title_meta" note="UNTRANSLATED">Bibliographic Information</phrase>
+
+    <phrase ref="lib/submissionform:title_return" note="UNTRANSLATED">Return to Author's Home</phrase>
+
+    <phrase ref="lib/submissionform:title_subject" note="UNTRANSLATED">Subject Categories</phrase>
+
+    <phrase ref="lib/submissionform:title_type" note="UNTRANSLATED">Deposit Type</phrase>
+
+    <phrase ref="lib/submissionform:title_upload" note="UNTRANSLATED">Document File Upload</phrase>
+
+    <phrase ref="lib/submissionform:title_verify" note="UNTRANSLATED">Deposit Verification</phrase>
+
+    <phrase ref="lib/submissionform:upload_prob" note="UNTRANSLATED">There was a problem uploading your file(s). Please try again.</phrase>
+
+    <phrase ref="lib/submissionform:url_warning" note="UNTRANSLATED">Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!</phrase>
+
+    <phrase ref="lib/submissionform:use_auth_area" note="UNTRANSLATED">Use your author area to deposit new documents</phrase>
+
+    <phrase ref="lib/submissionform:valid_formats" note="UNTRANSLATED">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
+
+    <phrase ref="lib/submissionform:verify" note="UNTRANSLATED">Verify: <pin ref="citation"></pin></phrase>
+
+    <phrase ref="lib/subscription:blurb" note="UNTRANSLATED">This mail contains your <pin ref="howoften"></pin> subscription to &archivename;.\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n <pin ref="url"></pin>\n\n</phrase>
+
+    <phrase ref="lib/subscription:daily" note="UNTRANSLATED">daily</phrase>
+
+    <phrase ref="lib/subscription:monthly" note="UNTRANSLATED">monthly</phrase>
+
+    <phrase ref="lib/subscription:new_subs" note="UNTRANSLATED"><pin ref="n"></pin> new submissions were received.</phrase>
+
+    <phrase ref="lib/subscription:send_updates" note="UNTRANSLATED">Send updates: <pin ref="howoften"></pin></phrase>
+
+    <phrase ref="lib/subscription:sub_subj" note="UNTRANSLATED">Subscription</phrase>
+
+    <phrase ref="lib/subscription:weekly" note="UNTRANSLATED">weekly</phrase>
+
+    <phrase ref="lib/user:missed_field" note="UNTRANSLATED">You haven't filled out the required <pin ref="field"></pin> field.</phrase>
+
+    <phrase ref="lib/user:new_staff" note="UNTRANSLATED">New &archivename; /> Staff</phrase>
+
+    <phrase ref="lib/user:new_user" note="UNTRANSLATED">New &archivename; /> User</phrase>
+
+    <phrase ref="lib/user:reminder" note="UNTRANSLATED">Dear &archivename; User,\n\n<pin ref="message"></pin>Your username and password for the archive are:\n\nUser name: <pin ref="username"></pin>\nPassword:  <pin ref="password"></pin>\n\nIf you didn't expect this e-mail, please contact the archive nadministrator at:\n\n<pin ref="adminemail"></pin>\n</phrase>
+
+    <phrase ref="lib/user:reminder_sub" note="UNTRANSLATED">Your username and password</phrase>
+
+    <phrase ref="lib/user:weclome" note="UNTRANSLATED">Welcome to &archivename; !</phrase>
+
+    <phrase ref="lib/userform:blurb" note="UNTRANSLATED">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <pin ref="star">*</pin> to start using the archive.</phrase>
+
+    <phrase ref="lib/userform:change_email" note="UNTRANSLATED">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
+
+    <phrase ref="lib/userform:complete_form" note="UNTRANSLATED">Please complete the form before continuing.</phrase>
+
+    <phrase ref="lib/userform:dont_know" note="UNTRANSLATED">I don't know who you are</phrase>
+
+    <phrase ref="lib/userform:form_incorrect" note="UNTRANSLATED">The form doesn't seem to be filled out correctly:</phrase>
+
+    <phrase ref="lib/userform:problem_updating" note="UNTRANSLATED">There was a problem reading the posted data and updating the database. Please try again later</phrase>
+
+    <phrase ref="lib/userform:record_for" note="UNTRANSLATED">Record for <pin ref="name"></pin></phrase>
+
+    <phrase ref="lib/userform:update_record" note="UNTRANSLATED">Update Record</phrase>
+
+    <phrase ref="newsub" note="UNTRANSLATED">One new submission was received.</phrase>
+
+</phrases>

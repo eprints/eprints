@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w -I /opt/eprints/perl_lib
 
+
+
 #cjg ??? Write datestamps?
 
 #cjg need to somehow keep track of comments. Maybe tag them onto next
@@ -45,7 +47,7 @@ foreach $type ( "archive","system" )
 	my $doc = new EPrints::DOM::Document;
 	my $doctype = $doc->createDocumentType( "phrases", "entities-".$langid.".dtd" );
 	$doc->setDoctype( $doctype );
-	my $xmldecl = $doc->createXMLDecl( "1.0", "UTF-8", "yes" );
+	my $xmldecl = $doc->createXMLDecl( "1.0", "UTF-8", 0 );
 	$doc->setXMLDecl( $xmldecl );
 	my $phrases = $doc->createElement( "phrases" );
 	$doc->appendChild( $phrases );
@@ -55,7 +57,7 @@ foreach $type ( "archive","system" )
 		my $node = $doc->createElement( "phrase" );
 		$node->setAttribute( "ref", $_ );
 		my $f;
-		if( !defined $f_info->{$_} )
+		if( !defined $f_info->{$_} || !defined $b1_info->{$_} )
 		{
 			$node->setAttribute( "note", "UNTRANSLATED" );
 			$f = $b_info->{$_};
@@ -121,7 +123,8 @@ sub load_n
 	return {} if( $n == 0 );
 
 	my $filename = "$set-$langid-$n";
-	my $p = new EPrints::DOM::Parser( ErrorContext => 3 );
+	print "Parsing: $filename\n";
+	my $p = new EPrints::DOM::Parser( ErrorContext => 3, ParseParamEnt => 0, NoLWP=>1 );
 	my $doc = $p->parsefile( $filename );
 
 	my $info = {};
@@ -137,8 +140,12 @@ sub load_n
 
 sub tag_compression
 {
-	my( $tag, $elem ) = @_;
+        my ($tag, $elem) = @_;
 
-	return 1;
+        # Print empty br, hr and img tags like this: <br />
+        return 2 if $tag =~ /^(br|hr|img|input|pin)$/;
+
+        # Print other empty tags like this: <empty></empty>
+        return 1;
 }
 
