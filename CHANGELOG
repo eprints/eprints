@@ -2,7 +2,7 @@
 EPrints 2 changelog.
 
 ======================================================================
-09/01/2002 - EPRINTS-2-ALPHA-2
+2002-01-09 - EPRINTS-2-ALPHA-2
 ======================================================================
 
 10/01/2002
@@ -416,7 +416,7 @@ Due to change in functionality of uri_escape in URI 1.18
 - removed <p> tag around URL's in emails - don't want them word wrapped!
 
 ======================================================================
-14/02/2002 - EPRINTS-2.0
+2002-02-14 - EPRINTS-2.0
 ======================================================================
 
 
@@ -490,7 +490,7 @@ OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)
 - replaced subject file with lib of Congress.
 
 ======================================================================
-16/04/2002 - EPRINTS-2.0.1
+2002-04-16 - EPRINTS-2.0.1
 ======================================================================
 
 2002-05-20
@@ -671,6 +671,6 @@ before next release. (metadata types & fields)
  - Bug in scoping for DF_AVAILABLE in Utils.pm - fixed.
 
 ======================================================================
-??/07/2002 - EPRINTS-2.1
+04/07/2002 - EPRINTS-2.1
 ======================================================================
 
