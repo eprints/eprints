@@ -21,7 +21,6 @@ use EPrintSite::SiteInfo;
 
 use File::Path;
 use File::Copy;
-use File::Basename;
 use Cwd;
 use URI::Escape;
 
@@ -604,7 +603,16 @@ sub upload
 {
 	my( $self, $filehandle, $filename ) = @_;
 
-	my( $file, $path ) = fileparse( $filename );
+	# Get the filename. File::Basename isn't flexible enough (setting internal
+	# globals in reentrant code very dodgy.)
+	my $file = $filename;
+	
+	$file =~ s/.*\\//;     # Remove everything before a "\" (MSDOS or Win)
+	$file =~ s/.*\://;     # Remove everything before a ":" (MSDOS or Win)
+	$file =~ s/.*\///;     # Remove everything before a "/" (UNIX)
+
+	$file =~ s/ /_/g;      # Change spaces into underscores
+
 	my( $bytes, $buffer );
 
 	my $out_path = $self->local_path() . "/" . $file;
