@@ -90,12 +90,12 @@ sub new
 	# We're going to change the orderby stuff, so that we get
 	#   $self->{order_ids}  array of ids
 	#   $self->{order_desc} maps ids -> descriptions
-	#   $self->{order_sql}  maps ids -> sql
+	#   $self->{order_func}  maps ids -> func
 	#   $self->{order}      id of default
 	my $idcount = 0;
 	$self->{order_ids} = [];
 	$self->{order_desc} = {};
-	$self->{order_sql} = {};
+	$self->{order_func} = {};
 	
 	foreach (sort keys %{$orderby})
 	{
@@ -104,7 +104,7 @@ sub new
 		$idcount++;
 		$self->{order_desc}->{$id} = $_;
 #EPrints::Log::debug( "SearchExpression", "Desc: $id -> $_" );
-		$self->{order_sql}->{$id} = $orderby->{$_};
+		$self->{order_func}->{$id} = $orderby->{$_};
 		push @{$self->{order_ids}}, $id;
 	
 		$self->{order} = $id if( defined $defaultorder && $defaultorder eq $_ );
@@ -504,13 +504,6 @@ sub count
 }
 
 
-sub eprint_authcmp
-{	
-	return EPrints::Name::cmp_names( $a->{authors} , $b->{authors} ) ||
-		( $a->{year} <=> $b->{year} ) ||
-		( $a->{title} cmp $b->{title} ) ;
-}
-
 sub get_records 
 {
 	my ( $self , $max ) = @_;
@@ -532,8 +525,10 @@ sub get_records
 		}
 		else
 		{
-			$self->{warning} = "Sorting not implemented";
-			@records = sort eprint_authcmp @records;
+				print STDERR "!!".$self->{order_func}->{$self->{order}}."\n";
+			@records = sort 
+				{ &{$self->{order_func}->{$self->{order}}}($a,$b); }
+				@records;
 		}
 		return @records;
 	}	

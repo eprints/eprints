@@ -156,374 +156,6 @@ sub process_value
 	print STDERR "NEW SE ($1)($2)($3) [$self->{value}] \n";
 }
 
-######################################################################
-#
-# $sql = get_sql()
-#
-#  Get the condition(s), in SQL form, that will retrieve relevant
-#  results for this search term. undef is returned if the term does
-#  not affect the results of the search.
-#
-######################################################################
-
-sub get_sql
-{
-	my( $self ) = @_;
-	unless( defined $self->{value} && $self->{value} ne "" )
-	{
-		return ( undef , undef );
-	}
-
-	if ( defined $self->{multifields} )
-	{
-		my $sql = "";
-		my %aux_tables = ();
-		my $v = $self->{value};
-		# This bit assumes that ALL: always means
-		# what it usually means at the start of 
-		# a value.
-		$v =~ s/^ALL:/SEP:/i;
-		my @parts;
-		my $fieldcount = 0;
-		my $auxcount=0;
-		foreach ( @{$self->{multifields}} ) 
-		{
-			my $sfield = new EPrints::SearchField( 
-				$self->{session},
-				$self->{table},
-				$_,
-				$v );
-			my ( $sql_term , $aux_tables_term ) = 
-				$sfield->get_sql();
-			if ($self->{value} =~ m/^ALL:/i) 
-			{
-				my $clause;
-				my $clausecount=0;
-				foreach $clause ( @{$sql_term} )
-				{
-					my $aux;
-					foreach $aux (keys %{$aux_tables_term}) 
-					{
-						my $auxid = "__auxM$auxcount"."__";
-						if ($clause =~ s/$aux/$auxid/g)
-						{
-							$aux_tables{$auxid} = ${$aux_tables_term}{$aux};
-							$auxcount++;
-						}
-					}
-						
-					$parts[$clausecount].=" OR " unless( $fieldcount == 0 );
-					$parts[$clausecount].=$clause;
-					++$clausecount;
-				}
-			}
-			else
-			{
-				my $aux;
-				foreach $aux (keys %{$aux_tables_term}) 
-				{
-					my $auxid = "__auxM$auxcount"."__";
-					if ($sql_term =~ s/$aux/$auxid/g)
-					{
-						$aux_tables{$auxid} = ${$aux_tables_term}{$aux};
-						$auxcount++;
-					}
-				}
-				push @parts,$sql_term;
-			}
-			++$fieldcount;
-
-		}
-		if ($self->{value} =~ m/^ALL:/i) 
-		{
-			$sql = "(".join( ") AND (" , @parts ).")";
-		} 
-		else 
-		{
-			$sql = "(".join( ") OR (" , @parts ).")";
-		}
-		return ( $sql , \%aux_tables );
-	}
-
-#EPrints::Log::debug( "SearchField", "Value is $self->{value}" );
-
-	# Get the SQL for a single term
-
-	my $type = $self->{type};
-	my $value = $self->{value};
-	
-	# boolean
-	#
-	# TRUE 
-	# FALSE
-
-	if( $type eq "boolean" )
-	{
-		return $self->_get_sql_aux( 
-			"ANY",
-			"__FIELDNAME__ = '$value'" );
-	}
-
-	# date
-	#
-	# YYYY-MM-DD 
-	# YYYY-MM-DD-
-	# -YYYY-MM-DD
-	# YYYY-MM-DD-YYYY-MM-DD
-
-	if( $type eq "date" )
-	{
-		my $sql;
-		if( $value =~ /^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
-		{
-			# Range of dates
-			if( defined $1 && $1 ne "" )
-			{
-				if( defined $2 && $2 ne "" )
-				{
-					# YYYY-MM-DD-YYYY-MM-DD
-					$sql = "__FIELDNAME__ BETWEEN \"$1\" AND \"$2\"";
-				}
-				else
-				{
-					# YYYY-MM-DD-
-					$sql = "__FIELDNAME__ >= \"$1\"";
-				}
-			}
-			elsif( defined $2 && $2 ne "" )
-			{
-				# -YYYY-MM-DD
-				$sql = "__FIELDNAME__ <= \"$2\"";
-			}
-			# Otherwise, must be invalid
-		}
-		else
-		{
-			$sql = "__FIELDNAME__ = \"$value\"";
-		}
-		if ( defined $sql )
-		{
-			# An empty value is passed to force the
-			# routine to generate one clause.
-			return $self->_get_sql_aux( "ANY" , $sql );
-		}	
-		return ( "BAD_DATE_SEARCH" , undef );
-	}
-
-	# email, url, multiurl
-	# text, multitext
-	#
-	# SEP|ANY|ALL|PHR:IN|EQ:foo bar...
-
-	if( $type eq "email" || $type eq "multiurl" || $type eq "url" ||
-		$type eq "text" || $type eq "multitext"	)
-	{
-		unless ($value =~ m/^(SEP|ANY|ALL|PHR):(IN|EQ):(.*)$/i)
-		{
-			return ( "BAD_"."\U$type"."_SEARCH" , undef );
-		}
-		my $mode = uc $1;
-		my $match = uc $2;
-		my @vals;
-		if ( $mode eq "PHR" ) 
-		{
-			$vals[0] = $3;
-			$mode = "ANY";
-		}
-		else
-		{
-			@vals = split /\s+/ , $3 ;
-		}
-
-		my @sql;
-		foreach( @vals )
-		{
-			if ( $match eq "IN" ) 
-			{
-				push @sql,"__FIELDNAME__ LIKE '\%$_\%'";
-			}
-			else
-			{
-				push @sql,"__FIELDNAME__ = '$_'";
-			}
-		}
-		# mode is ALL or ANY
-		return $self->_get_sql_aux( $mode , @sql );
-	}
-
-	# set, subjects, username
-	# enum, eprinttype
-	#
-	# SEP|ANY|ALL:foo:bar:...
-	
-	if( $type eq "set" || $type eq "subjects" || $type eq "username" ||
-		$type eq "enum" || $type eq "eprinttype" ) 
-	{
-		my @sql;
-		my @vals = split /:/, $value;
-		my $mode = uc shift @vals;
-		foreach( @vals )
-		{
-			push @sql , "__FIELDNAME__ = '$_'";
-		}
-
-		return $self->_get_sql_aux( $mode , @sql );
-
-	}
-
-	# year, int
-	#
-	# N
-	# N-
-	# -N
-	# N-N
-
-	if( $type eq "year" || $type eq "int" )
-	{
-		my $sql;
-		if( $value =~ /^(\d+)?\-(\d+)?$/ )
-		{
-			# Range of numbers
-			if( defined $1 && $1 ne "" )
-			{
-				if( defined $2 && $2 ne "" )
-				{
-					# N-N
-					$sql = "__FIELDNAME__ BETWEEN $1 AND $2";
-				}
-				else
-				{
-					# N-
-					$sql = "__FIELDNAME__ >= $1";
-				}
-			}
-			elsif( defined $2 && $2 ne "" )
-			{
-				# -N
-				$sql = "__FIELDNAME__ <= $2";
-			}
-
-			# Otherwise, must be invalid
-		}
-		else
-		{
-			$sql = "__FIELDNAME__ = \"$value\"";
-		}
-		if ( defined $sql )
-		{
-			# An empty value is passed to force the
-			# routine to generate one clause.
-			return $self->_get_sql_aux( "ANY" , $sql );
-		}	
-		return ( "BAD_"."\U$type"."_SEARCH" , undef );
-	}
-
-	# name
-	#
-	# SEP|ANY|ALL:EQ|IN:smith jones,bob ...
-
-	if( $type eq "name" )
-	{
-		unless ($value =~ m/^(SEP|ANY|ALL|PHR):(IN|EQ):(.*)$/i)
-		{
-			return ( "BAD_"."\U$type"."_SEARCH" , undef );
-		}
-		my $mode = uc $1;
-		my $match = uc $2;
-		my @vals = split /\s+/ , $3;
-		my @sql;
-		foreach( @vals )
-		{
-			m/^([^,]+)(,(.*))?$/;
-			my ( $family , $given ) = ( $1 , $3 );
-			if ( $match eq "IN" )
-			{
-				$family .= "\%";
-				if ( defined $given )
-				{
-					$given .= "\%";
-				}
-			}
-			my $s = "__FIELDNAME___family LIKE '$family'";
-			if ( defined $given )
-			{
-				$s = "($s AND __FIELDNAME___given LIKE '$given')";
-			}
-			push @sql , $s;
-		}	
-		return $self->_get_sql_aux( $mode , @sql );
-		
-	}
-
-#EPrints::Log::debug( "SearchField", "SQL = $all_sql" );
-
-	return( "UNKNOWN_TYPE" , undef );
-}
-
-sub _get_sql_aux
-{
-	my ( $self , $mode , @sqlbits ) = @_;
-
-	my $sql;
-	if ( $mode eq "SEP" ) 
-	{
-		$sql = [];
-	}
-	else
-	{
-		$sql = "";
-	}
-	my %auxtables = ();
-
-	my $count = 0;
-
-	# Put the values together into a WHERE clause. 
-	my $auxtable;
-	if ($self->{field}->{multiple}) 
-	{	
-		$auxtable = $self->{table}.$EPrints::Database::seperator.$self->{field}->{name};
-	}	
-	my $bit;
-	foreach $bit (@sqlbits)
-	{
-		my $auxalias;
-		if ( $mode eq "ANY" ) 
-		{
-			$sql .= " OR " if ( $count > 0);
-			$auxalias = "__aux__";
-		} 
-		elsif ( $mode eq "SEP" )
-		{
-			$auxalias = "__aux".$count."__";
-		}
-		else
-		{	
-			$sql .= " AND " if ( $count > 0);
-			$auxalias = "__aux".$count."__";
-		}
-		if ($self->{field}->{multiple}) 
-		{
-			$auxtables{$auxalias} = $auxtable;
-		}
-		else
-		{
-			$auxalias = $self->{table};
-		}
-		$bit =~ s/__FIELDNAME__/$auxalias.$self->{field}->{name}/g;
-		if ( $mode eq "SEP" )
-		{
-			push @{$sql},$bit;
-		}
-		else
-		{
-			$sql .= $bit;
-		}
-
-		$count++;
-	}
-	return( $sql , \%auxtables );
-}
-
 
 ######################################################################
 #
@@ -556,7 +188,7 @@ sub render_html
 		$html = $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname},
 			-values=>\@tags,
-			-default=>( defined $self->{value} ? $self->{value} : $tags[0] ),
+			-default=>( defined $self->{string} ? $self->{string} : $tags[0] ),
 			-labels=>\%labels );
 	}
 	elsif( $type eq "email" || $type eq "url" )
@@ -564,7 +196,7 @@ sub render_html
 		# simple text types
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
-			-default=>$self->{value},
+			-default=>$self->{string},
 			-size=>$EPrints::HTMLRender::search_form_width,
 			-maxlength=>$EPrints::HTMLRender::field_max );
 	}
@@ -588,20 +220,9 @@ sub render_html
 		my @defaults;
 		my $anyall = "ANY";
 		
-		# Do we have any values already?
-		if( defined $self->{value} && $self->{value} ne "" )
-		{
-			@defaults = split /:/, $self->{value};
-			$anyall = pop @defaults;
-		}
-		else
-		{
-			@defaults = ();
-		}
-		
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
-			-default=>join( " " , @defaults ),
+			-default=>$self->{string},
 			-size=>$EPrints::HTMLRender::search_form_width,
 			-maxlength=>$EPrints::HTMLRender::field_max );
 
@@ -611,7 +232,7 @@ sub render_html
 		$html .= $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname}."_anyall",
 			-values=>\@anyall_tags,
-			-default=>$anyall,
+			-default=>$self->{anyall},
 			-labels=>\%anyall_labels );
 	}
 	elsif( $type eq "eprinttype" )
@@ -619,9 +240,9 @@ sub render_html
 		my @defaults;
 		
 		# Do we have any values already?
-		if( defined $self->{value} && $self->{value} ne "" )
+		if( defined $self->{string} && $self->{string} ne "" )
 		{
-			@defaults = split /:/, $self->{value};
+			@defaults = split /\s/, $self->{string};
 		}
 		else
 		{
@@ -661,9 +282,9 @@ sub render_html
 		my $anyall = "ANY";
 		
 		# Do we have any values already?
-		if( defined $self->{value} && $self->{value} ne "" )
+		if( defined $self->{string} && $self->{string} ne "" )
 		{
-			@defaults = split /:/, $self->{value};
+			@defaults = split /\s/, $self->{string};
 			$anyall = pop @defaults;
 		}
 		else
@@ -706,14 +327,22 @@ sub render_html
 		$html .= $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname}."_anyall",
 			-values=>\@anyall_tags,
-			-default=>$anyall,
+			-default=>$self->{anyall},
 			-labels=>\%anyall_labels );
+	}
+	elsif( $type eq "int" )
+	{
+		$html = $self->{session}->{render}->{query}->textfield(
+			-name=>$self->{formname},
+			-default=>$self->{string},
+			-size=>9,
+			-maxlength=>100 );
 	}
 	elsif( $type eq "year" )
 	{
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
-			-default=>$self->{value},
+			-default=>$self->{string},
 			-size=>9,
 			-maxlength=>9 );
 	}
@@ -779,16 +408,15 @@ sub from_form
 	if( $type eq "boolean" )
 	{
 		my $val = $self->{session}->{render}->param( $self->{formname} );
-		$self->{value} = $val if( $val ne "EITHER" );;
+		$self->{value} = "ALL:EQ:$val" if( $val ne "EITHER" );;
 	}
 	elsif( $type eq "email" || $type eq "url" )
 	{
 		# simple text types
 		my $val = $self->{session}->{render}->param( $self->{formname} );
-		
 		if( defined $val && $val ne "" )
 		{
-			$self->{value} = "ANY:EQ:$val";
+			$self->{value} = "ANY:IN:$val";
 		}
 	}
 	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
@@ -822,7 +450,7 @@ sub from_form
 		my @vals = split /\s+/ , $self->{session}->{render}->param( $self->{formname} );
 		if( scalar @vals > 0)
 		{
-			$self->{value} = "$anyall:$exact:".join( ":" , @vals );
+			$self->{value} = "$anyall:$exact:".join( " " , @vals );
 		}
 	}		
 	elsif( $type eq "eprinttype" )
@@ -832,7 +460,7 @@ sub from_form
 		if( scalar @vals > 0 )
 		{
 			# We have some values. Join them together.
-			my $val = join ':', @vals;
+			my $val = join ' ', @vals;
 
 			# But if one of them was the "any" option, we don't want a value.
 			foreach (@vals)
@@ -840,7 +468,7 @@ sub from_form
 				undef $val if( $_ eq "NONE" );
 			}
 
-			$self->{value} = "ANY:$val";
+			$self->{value} = "ANY:EQ:$val";
 		}
 	}
 	elsif( $type eq "set" || $type eq "subject" )
@@ -851,7 +479,7 @@ sub from_form
 		if( scalar @vals > 0 )
 		{
 			# We have some values. Join them together.
-			$val = join ':', @vals;
+			$val = join ' ', @vals;
 
 			#EPrints::Log::debug( "SearchField", "Joined values: $val" );
 
@@ -870,10 +498,11 @@ sub from_form
 			my $anyall = $self->{session}->{render}->param(
 				$self->{formname}."_anyall" );
 				
-			$val = (defined $anyall? "$anyall" : "ANY" ).":$val";
+			$val = (defined $anyall? "$anyall" : "ANY" ).":EQ:$val";
+
+			$self->{value} = $val;
 		}
 
-		$self->{value} = $val;
 	}
 	elsif( $type eq "year" )
 	{
@@ -902,49 +531,6 @@ sub from_form
 	return( $problem );
 }
 	
-
-######################################################################
-#
-# ( $search_type, $search_terms) =  _get_search_type( $value )
-#
-#  Extract the type and terms of a text search from the internal string
-#  representation of the search field.
-#
-######################################################################
-
-sub _get_search_type
-{
-# cjg WHAT IS THIS FOR?
-	my( $value ) = @_;
-	
-	my( $search_type, $search_terms );
-
-	if( !defined $value || $value eq "" )
-	{
-		# Default is "match all", and no terms entered
-		$search_type = "all";
-		$search_terms = "";
-	}
-	elsif( $value =~ /(\w\w\w):(.*)/ )
-	{
-		# Have the terms + the type in the string
-		$search_type = $1;
-		$search_terms = $2;
-		
-		# Ensure that we have a valid search type
-		$search_type = "all"
-			unless( defined(
-				$EPrints::SearchField::text_search_type_labels{$search_type} ) );
-	}
-	else
-	{
-		# No type, just the terms
-		$search_type = "all";
-		$search_terms = $value;
-	}
-	
-	return( $search_type, $search_terms );
-}
 
 ##########################################################
 # 
@@ -1045,15 +631,73 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 	
 				# Otherwise, must be invalid
 			}
-			else
+			elsif( m/^\d+$/ )
 			{
 				$sql = "__FIELDNAME__ = \"$_\"";
 			}
+			if( !defined $sql )
+			{
+				my $error = "Bad ".$self->{field}->{type};
+				$error.=" search parameter: \"$_\"";
+				return( undef,undef,undef,$error);
+			}
 			push @where, $sql;
 		}
-		return( $self->_get_conditions_aux( \@where , 0) );
+		return( $self->_get_conditions_aux( \@where , 0) , [] );
 	}
 
+	# date
+	#
+	# YYYY-MM-DD 
+	# YYYY-MM-DD-
+	# -YYYY-MM-DD
+	# YYYY-MM-DD-YYYY-MM-DD
+
+	if( $self->{field}->{type} eq "date" )
+	{
+		my @where = ();
+		foreach( split /\s+/ , $self->{string} )
+		{
+			my $sql;
+			if( m/^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
+			{
+				# Range of dates
+				if( defined $1 && $1 ne "" )
+				{
+					if( defined $2 && $2 ne "" )
+					{
+						# YYYY-MM-DD-YYYY-MM-DD
+						$sql = "__FIELDNAME__ BETWEEN \"$1\" AND \"$2\"";
+					}
+					else
+					{
+						# YYYY-MM-DD-
+						$sql = "__FIELDNAME__ >= \"$1\"";
+					}
+				}
+				elsif( defined $2 && $2 ne "" )
+				{
+					# -YYYY-MM-DD
+					$sql = "__FIELDNAME__ <= \"$2\"";
+				}
+				# Otherwise, must be invalid
+			}
+			elsif( m/^(\d\d\d\d\-\d\d\-\d\d)$/ )
+			{
+				$sql = "__FIELDNAME__ = \"$1\"";
+			}
+			if( !defined $sql )
+			{
+				my $error = "Bad ".$self->{field}->{type};
+				$error.=" search parameter: \"$_\"";
+				return( undef,undef,undef,$error);
+			}
+			push @where, $sql;
+		}
+		return( $self->_get_conditions_aux( \@where , 0) , []);
+	}
+
+	# text, multitext, url, email:
 	#
 	#  word word "a phrase" word
 	#
