@@ -89,6 +89,8 @@ $EPrintSite::SiteInfo::allow_user_removal = 1;
 
 $EPrintSite::SiteInfo::eprint_default_order = "by author's name";
 
+$EPrintSite::SiteInfo::subject_view_order = "authors, year DESC, title";
+
 @EPrintSite::SiteInfo::user_search_fields =
 (
 	"name",
@@ -107,6 +109,7 @@ $EPrintSite::SiteInfo::eprint_default_order = "by author's name";
 );
 
 $EPrintSite::SiteInfo::default_user_order = "by surname";	
+
 
 
 #
@@ -264,7 +267,7 @@ $EPrintSite::SiteInfo::html_banner = "
           <td align=center valign=top bgcolor=#dddddd fgcolor=white>
 		      <BR>
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT\">Browse</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/search\">Search</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/reader/subscribe\">Subscribe</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/author/home\">Author\&nbsp;Area</A>

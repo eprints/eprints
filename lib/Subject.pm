@@ -504,7 +504,8 @@ sub posted_eprints
 	return( EPrints::EPrint->retrieve_eprints(
 		$self->{session},
 		(defined $table ? $table : $EPrints::Database::table_archive ),
-		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ] ) );
+		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ],
+		[ $EPrintSite::SiteInfo::subject_view_order ] ) );
 }
 
 
