@@ -5,7 +5,7 @@
 #   Responds to incoming OAI requests
 #
 # Conforming to:
-# http://www.openarchives.org/OAI/1.0b/openarchivesprotocol.htm
+# http://www.openarchives.org/OAI/openarchivesprotocol.htm
 #
 ######################################################################
 #
@@ -571,7 +571,7 @@ sub start_response
 	$r->send_http_header;
 
 	# Namespaces for each of the verb's responses
-	my %verb_namespaces =
+	my %verb_schemas =
 	(
 		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord.xsd",
 		"Identify"  => "http://www.openarchives.org/OAI/1.0/OAI_Identify.xsd",
@@ -583,36 +583,22 @@ sub start_response
 			"http://www.openarchives.org/OAI/1.0/OAI_ListRecords.xsd",
 		"ListSets" => "http://www.openarchives.org/OAI/1.0/OAI_ListSets.xsd"
 	);
-
-	# The prefix map for the XML writer.
-	my %prefix_map;
-	foreach (values %verb_namespaces)
-	{
-		$prefix_map{$_} = "oai";
-	}
-
-	# and we need oai-identifier.xsd and eprints.xsd, although these are not
-	# verbs.
-
-	$prefix_map{"http://www.openarchives.org/OAI/eprints.xsd"} = "oai";
-	$prefix_map{"http://www.openarchives.org/OAI/oai-identifier.xsd"} = "oai";
-
-	# The prefix map also needs to contain the metadata format prefixes.
-	foreach (keys %EPrintSite::SiteInfo::oai_metadata_formats)
-	{
-		$prefix_map{$EPrintSite::SiteInfo::oai_metadata_formats{$_}} = $_;
-	}
-
+	my %verb_namespaces =
+	(
+		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord",
+		"Identify"  => "http://www.openarchives.org/OAI/1.0/OAI_Identify",
+		"ListIdentifiers" =>
+			"http://www.openarchives.org/OAI/1.0/OAI_ListIdentifiers",
+		"ListMetadataFormats" =>
+			"http://www.openarchives.org/OAI/1.0/OAI_ListMetadataFormats",
+		"ListRecords" =>
+			"http://www.openarchives.org/OAI/1.0/OAI_ListRecords",
+		"ListSets" => "http://www.openarchives.org/OAI/1.0/OAI_ListSets"
+	);
 
 	$session->{oai_output} = POSIX::tmpnam();
 	$session->{oai_output_fh} = new IO::File( ">$session->{oai_output}" );
 
-	#my $writer = new XML::Writer(
-		#OUTPUT => $session->{oai_output_fh},
-		#NEWLINES => 1,
-		#NAMESPACES => 1,
-		#PREFIX_MAP =>\%prefix_map );
-	#cjg
 	my $writer = new XML::Writer(
 		OUTPUT => $session->{oai_output_fh},
 		DATA_MODE => 1,
@@ -620,9 +606,10 @@ sub start_response
 
 	$writer->xmlDecl("UTF-8");
 
-	#$writer->startTag( [ $verb_namespaces{$verb}, $verb ] );
-	#cjg
-	$writer->startTag( $verb, "xmlns"=>$verb_namespaces{$verb} );
+	$writer->startTag( $verb, 
+	                   "xmlns"=>$verb_namespaces{$verb} 
+	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance"
+	                   "xsi:schemaLocation"=>$verb_schemas{$verb} );
 	
 	$writer->dataElement( "responseDate",
 	                      EPrints::OpenArchives::full_timestamp() );

@@ -439,11 +439,16 @@ $EPrintSite::SiteInfo::password = "eprints";
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
 $EPrintSite::SiteInfo::archive_identifier = "MUST CHANGE";
 
-# Exported metadata formats. The hash should map format ids to namespaces.
+# Exported metadata formats. The hash should map format ids to schemas.
 %EPrintSite::SiteInfo::oai_metadata_formats =
 (
-	"dc"   => "http://www.openarchives.org/OAI/dc.xsd",
-	"oams" => "http://www.openarchives.org/sfc/sfc_oams.htm"
+	"dc"   => "http://www.openarchives.org/OAI/dc.xsd"
+);
+
+# Exported metadata formats. The hash should map format ids to namespaces.
+%EPrintSite::SiteInfo::oai_metadata_namespaces =
+(
+	"dc"   => "http://purl.org/dc/elements/1.1"
 );
 
 # Base URL of OAI
