@@ -470,7 +470,7 @@ sub retrieve
 
 	$sql .= ";";
 
-#EPrints::Log->debug( "Database", "SQL:$sql" );
+EPrints::Log->debug( "Database", "SQL:$sql" );
 	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return( $ret_rows );

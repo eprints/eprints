@@ -418,11 +418,61 @@ sub remove
 		$success = 0;
 	}
 
+	my @related;
+
+EPrints::Log->debug( "EPrint", "Table is $self->{table}" );
+
+	if( $self->{table} eq $EPrints::Database::table_archive )
+	{
+		# It's in the main archive, so we have to extract ourself
+		# from any threads we're in
+		@related = $self->get_all_related();
+
+EPrints::Log->debug( "EPrint", scalar @related." related eprints to update" );
+
+		if( scalar @related > 0 )
+		{
+			# We were in at least one thread
+			my $succeeds_field =
+				EPrints::MetaInfo->find_eprint_field( "succeeds" );
+			my $commentary_field =
+				EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+			# Remove all references to ourself
+			my @later = $self->later_in_thread( $succeeds_field );
+			foreach (@later)
+			{
+				$_->{succeeds} = undef;
+				$_->commit();
+			}
+
+			@later = $self->later_in_thread( $commentary_field );
+			foreach (@later)
+			{
+				$_->{commentary} = undef;
+				$_->commit();
+			}
+		}
+	}
+
+
+	# Remove our entry from the DB
 	$success = $success && $self->{session}->{database}->remove(
 		$self->{table},
 		"eprintid",
 		$self->{eprintid} );
 	
+	# Update static pages in same thread
+	foreach (@related)
+	{
+		# Update the objects if they refer to us (the objects were retrieved
+		# before we unlinked ourself)
+		$_->{succeeds} = undef if( $_->{succeeds} = $self->{eprintid} );
+		$_->{commentary} = undef if( $_->{commentary} = $self->{eprintid} );
+
+		$_->generate_static();
+	}
+
 	return( $success );
 }
 
@@ -465,6 +515,13 @@ sub clone
 			}
 		}
 
+		# We assume the new eprint will be a later version of this one,
+		# so we'll fill in the succeeds field, provided this one is
+		# already in the main archive.
+		$new_eprint->{succeeds} = $self->{eprintid}
+			if( $self->{table} eq $EPrints::Database::table_archive );
+
+		# Attempt to copy the documents, if appropriate
 		my $ok = 1;
 
 		if( $copy_documents )
@@ -745,6 +802,20 @@ sub validate_linking
 		push @problems,
 			"EPrint ID in $succeeds_field->{displayname} field is invalid"
 				unless( defined( $test_eprint ) );
+
+		if( defined $test_eprint )
+		{
+			# Ensure that the user is authorised to post to this
+			if( $test_eprint->{username} ne $self->{username} )
+			{
+				# Not the same user. Must be certified to do this.
+#				my $user = new EPrints::User( $self->{session},
+#				                              $self->{username} );
+#				if( !defined $user && $user->{
+				push @problems,
+					"You cannot succeed an EPrint that someone else has posted";
+			}
+		}
 	}
 	
 	if( defined $self->{commentary} && $self->{commentary} ne "" )
@@ -1090,10 +1161,24 @@ sub archive
 		EPrintSite::SiteRoutines->update_archived_eprint( $self );
 		$self->commit();
 		$self->generate_static();
+
+		# Generate static pages for everything in threads, if appropriate
+		my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+		my $commentary_field =
+			EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+		my @to_update = $self->get_all_related();
+		
+		# Do the actual updates
+		foreach (@to_update)
+		{
+			$_->generate_static();
+		}
 	}
 	
 	return( $success );
 }
+
 
 
 ######################################################################
@@ -1163,7 +1248,6 @@ sub static_page_url
 }
 
 
-
 ######################################################################
 #
 # $success = generate_static()
@@ -1198,5 +1282,151 @@ sub generate_static
 	
 	return( 1 );
 }
+
+
+######################################################################
+#
+# @eprints = get_all_related()
+#
+#  Gets the eprints that are related in some way to this in a succession
+#  or commentary thread. The returned list does NOT include this EPrint.
+#
+######################################################################
+
+sub get_all_related
+{
+	my( $self ) = @_;
+	
+	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+	my @related = $self->all_in_thread( $succeeds_field )
+		if( $self->in_thread( $succeeds_field ) );
+	push @related, $self->all_in_thread( $commentary_field )
+		if( $self->in_thread( $commentary_field ) );
+		
+	# Remove duplicates, just in case
+	my %related_uniq;
+		
+	foreach (@related)
+	{
+		# We also don't want to re-update ourself
+		$related_uniq{$_->{eprintid}} = $_
+			unless( $_->{eprintid} eq $self->{eprintid} );
+	}
+
+	return( values %related_uniq );
+}
+
+
+######################################################################
+#
+# $is_first = in_thread( $field )
+#
+#  Returns non-zero if this paper is part of a thread
+#
+######################################################################
+
+sub in_thread
+{
+	my( $self, $field ) = @_;
+	
+	return( 1 )
+		if( defined $self->{$field->{name}} && $self->{$field->{name}} ne "" );
+
+	my @later = $self->later_in_thread( $field );
+
+	return( 1 ) if( scalar @later > 0 );
+	
+	return( 0 );
+}
+
+
+######################################################################
+#
+# $eprint = first_in_thread( $field )
+#
+#  Returns the first (earliest) version or first paper in the thread
+#  of commentaries of this paper in the archive.
+#
+######################################################################
+
+sub first_in_thread
+{
+	my( $self, $field ) = @_;
+	
+EPrints::Log->debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
+
+	my $first = $self;
+	
+	while( defined $first->{$field->{name}} && $first->{$field->{name}} ne "" )
+	{
+		my $prev = new EPrints::EPrint( $self->{session},
+		                                $EPrint::Database::table_archive,
+		                                $first->{$field->{name}} );
+
+		return( $first ) unless( defined $prev );
+		$first = $prev;
+	}
+		       
+	return( $first );
+}
+
+
+######################################################################
+#
+# @eprints = later_in_thread( $field )
+#
+#  Returns a list of the later items in the thread
+#
+######################################################################
+
+sub later_in_thread
+{
+	my( $self, $field ) = @_;
+	
+	return( EPrints::EPrint->retrieve_eprints(
+		$self->{session},
+		$EPrints::Database::table_archive,
+		[ "$field->{name} LIKE \"$self->{eprintid}\"" ],
+		[ "datestamp DESC" ] ) );
+}
+
+
+######################################################################
+#
+# @eprints = all_in_thread( $field )
+#
+#  Returns all of the EPrints in the given thread
+#
+######################################################################
+
+sub all_in_thread
+{
+	my( $self, $field ) = @_;
+
+	my @eprints;
+	
+	my $first = $self->first_in_thread( $field );
+	
+	$self->_collect_thread( $field, $first, \@eprints );
+
+	return( @eprints );
+}
+
+
+sub _collect_thread
+{
+	my( $self, $field, $current, $eprints ) = @_;
+	
+	push @$eprints, $current;
+	
+	my @later = $current->later_in_thread( $field );
+	foreach (@later)
+	{
+		$self->_collect_thread( $field, $_, $eprints );
+	}
+}
+
 
 1;

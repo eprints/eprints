@@ -1146,6 +1146,22 @@ sub render_eprint_full
 
 	my $html = EPrintSite::SiteRoutines->eprint_render_full( $eprint );
 
+	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+	# Threads
+	if( $eprint->in_thread( $succeeds_field ) )
+	{
+		$html .= "<h3>Version Information</h3>\n";
+		$html .= $self->write_version_thread( $eprint, $succeeds_field );
+	}
+	
+	if( $eprint->in_thread( $commentary_field ) )
+	{
+		$html .= "<h3>Commentary/Response Threads</h3>\n";
+		$html .= $self->write_version_thread( $eprint, $commentary_field );
+	}
+
 	# Available formats
 	my @documents = $eprint->get_all_documents();
 	my $doc;
@@ -1399,5 +1415,75 @@ sub subject_desc
 	
 	return( $html );
 }
+
+
+######################################################################
+#
+#  $html = write_version_thread( $eprint, $field )
+#
+#   Returns HTML that writes a nice threaded display of previous versions
+#   and future ones.
+#
+######################################################################
+
+sub write_version_thread
+{
+	my( $self, $eprint, $field ) = @_;
+
+	my $html;
+
+	my $first_version = $eprint->first_in_thread( $field );
+	
+	$html .= "<UL>\n";
+	$html .= $self->_write_version_thread_aux( $first_version, $field, $eprint );
+	$html .= "</UL>\n";
+	
+	return( $html );
+}
+
+sub _write_version_thread_aux
+{
+	my( $self, $eprint, $field, $eprint_shown ) = @_;
+	
+	my $html = "<LI>";
+
+	# Only write a link if this isn't the current
+	$html .= "<A HREF=\"".$eprint->static_page_url()."\">"
+		if( $eprint->{eprintid} ne $eprint_shown->{eprintid} );
+	
+	# Write the citation
+	$html .= EPrints::Citation->render_citation(
+		$self->{session},
+		$EPrintSite::SiteInfo::thread_citation_specs{$field->{name}},
+		$eprint,
+		1 );
+	
+	# End of the link if appropriate
+	$html .= "</A>" if( $eprint->{eprintid} ne $eprint_shown->{eprintid} );
+
+	# Show the current
+	$html .= " <strong>[This]</strong>"
+		if( $eprint->{eprintid} eq $eprint_shown->{eprintid} );
+	
+	# Are there any later versions in the thread?
+	my @later = $eprint->later_in_thread( $field );
+	if( scalar @later > 0 )
+	{
+		# if there are, start a new list
+		$html .= "\n<UL>\n";
+		foreach (@later)
+		{
+			$html .= $self->_write_version_thread_aux(
+				$_,
+				$field,
+				$eprint_shown );
+		}
+		$html .= "</UL>\n";
+	}
+	$html .= "</LI>\n";
+	
+	return( $html );
+}
+
 
 1; # For use/require success

@@ -110,6 +110,12 @@ $EPrintSite::SiteInfo::subject_view_order = "authors, year DESC, title";
 
 $EPrintSite::SiteInfo::default_user_order = "by surname";	
 
+%EPrintSite::SiteInfo::thread_citation_specs =
+(
+	"succeeds"   => "{title} ({datestamp})",
+	"commentary" => "{authors}. {title}. ({datestamp})"
+);
+
 
 
 #
