@@ -147,7 +147,7 @@ sub _phrase_aux
 		}
 		return $response;
 	}
-	return "[-$file:$phraseid not defined for lang ".$self->{id}."-]";
+	return "[-$file:$phraseid not defined for lang (".join(")(",$self->{id},@inserts).")-]";
 }
 
 ######################################################################

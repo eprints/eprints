@@ -19,6 +19,7 @@ F:any = any
 F:all = all
 H:mustfulfill = Retrieved records must fulfill $(1) of these conditions.
 H:orderresults = Order the results: $(1)
+L:not_cached 	= error: Search has not been performed yet
 </file>
 
 <file Citation.pm>
@@ -62,6 +63,7 @@ L:failsend = Failed to send subscription to user $(1): $(2)
 
 <file Database.pm>
 L:created_table = Create table: $(1)
+L:bad_cache = Not a legal cache table: $(1)
 </file>
 
 <file SubmissionForm.pm>

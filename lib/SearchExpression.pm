@@ -109,7 +109,7 @@ sub new
 	$self->{searchfieldmap} = {};
 
 	# tmptable represents cached results table.	
-	$self->{tmptable} = 0;
+	$self->{tmptable} = undef;
 	
 	foreach (@$fields)
 	{
@@ -545,35 +545,26 @@ sub make_meta_fields
 # NEW DB DEVEL CODE!!
 
 	
-sub ookitup
+sub cache
 {
 	my ( $self ) = @_;
 
-	my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
-	my $keyfield = $fields[0];
-		
-	print "-------------<OOOK>\n";
-	print "SQL TERMS:\n";
-	my $from = $self->{table};
 	my $first = 1;
 	my $auxcount = 0;
+	my %aux_tables = ();
 	my $where = "";
 	foreach (@{$self->{searchfields}})
 	{
-		my ( $sql_term , $aux_table ) = $_->get_sql();
+		my ( $sql_term , $aux_tables_term ) = $_->get_sql();
 	
-		print "SQL: $sql_term\nAUX: ";
-		foreach(keys %{$aux_table}) {
+		foreach(keys %{$aux_tables_term}) 
+		{
 			my $auxid = "aux$auxcount";
-			$from .= " LEFT JOIN ${$aux_table}{$_} AS $auxid ";
-			$from .= "USING ($keyfield->{name})";
 			$sql_term =~ s/$_/$auxid/g;
-			print "$_ = ${$aux_table}{$_} : $auxid\n     ";
+			$aux_tables{$auxid} = ${$aux_tables_term}{$_};
 			$auxcount++;
 		}
-		print "\n--\n";
-	
-		print "NEW: $sql_term\n";
+
 		if( defined $sql_term )
 		{
 			$where .= ( $self->{satisfy_all} ? " AND " : " OR " ) unless( $first );
@@ -581,12 +572,38 @@ sub ookitup
 			$where .= "($sql_term)";
 		}
 	}
-	my $sql = "SELECT $self->{table}.$keyfield->{name} ";	
-	$sql .=   "FROM $from ";
-	$sql .=   "WHERE $where ";
-	print "----sql coming!!\n$sql\n";
-	print "-------------</OOOK>\n";
 
+	$self->{tmptable} = $self->{session}->{database}->cache(
+				$self->{table},
+				\%aux_tables,
+				$where );
+
+}
+
+sub drop_cache
+{
+	my ( $self ) = @_;
+
+	if ( $self->{tmptable} )
+	{
+		$self->{session}->{database}->drop_cache( $self->{tmptable} );
+	}	
+}
+
+sub count 
+{
+	my ( $self ) = @_;
+
+	if ( $self->{tmptable} )
+	{
+		return $self->{session}->{database}->count_cache( 
+			$self->{tmptable} );
+	}	
+
+	EPrints::Log::log_entry(
+		EPrints::Language::logphrase( "L:not_cached" ) );
+		
+	
 }
 
 

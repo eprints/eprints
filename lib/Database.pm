@@ -666,5 +666,82 @@ sub counter_next
 	return( $row[0] );
 }
 
+######################################################################
+#
+# $cacheid = cache( $table, $auxtables{}, $conditions)
+#
+######################################################################
+
+sub cache
+{
+	my( $self, $table, $aux_tables, $conditions ) = @_;
+
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my $keyfield = $fields[0];
+
+        my $sql = "SELECT $table.$keyfield->{name} FROM $table";
+	foreach ( keys %{$aux_tables} )
+	{
+		$sql .= " LEFT JOIN ${$aux_tables}{$_} AS $_";
+		$sql .= " USING ($keyfield->{name})";
+	}
+	$sql .= " WHERE $conditions";
+
+	my $tmptable = "tmp$$";
+
+        my $tmp_sql = "CREATE TABLE $tmptable ( $keyfield->{name} VARCHAR(127) NOT NULL)";
+
+EPrints::Log::debug( "Database", "SQL:$tmp_sql" );
+
+	$self->{dbh}->do( $tmp_sql );
+
+EPrints::Log::debug( "Database", "SQL:$sql" );
+
+	$self->{dbh}->do( $sql );
+
+
+	return( $tmptable );
+}
+
+sub drop_cache
+{
+	my ( $self , $tmptable ) = @_;
+	# sanity check! Dropping the wrong table could be
+	# VERY bad.	
+	if ( $tmptable =~ m/^tmp\d+$/ )
+	{
+        	my $tmp_sql = "DROP TABLE $tmptable";
+
+EPrints::Log::debug( "Database", "SQL:$tmp_sql" );
+
+		$self->{dbh}->do( $tmp_sql );
+	}
+	else
+	{
+		EPrints::Log::log_entry( 
+			"Database",
+			EPrints::Language::logphrase( 
+				"L:bad_cache",
+				$tmptable ) );
+	}
+
+}
+
+sub count_cache
+{
+	my ( $self , $cache ) = @_;
+
+	my $sql = "SELECT COUNT(*) FROM $cache";
+
+EPrints::Log::debug( "Database", "SQL:$sql" );
+
+	my $sth = $self->{dbh}->prepare( $sql );
+	$sth->execute();
+	my ( $count ) = $sth->fetchrow_array;
+
+	return $count;
+}
+	
+	
 
 1; # For use/require success

@@ -581,7 +581,9 @@ sub count_eprints
 		"arts-msc:arts-fnar:ANY" );
 
 
-	$searchexp->ookitup();
+	my $searchid = $searchexp->cache();
+	print "(".$self->{session}->{database}->count_cache( $searchid ).")\n";
+	$self->{session}->{database}->drop_cache( $searchid );
 
 	$searchexp->add_field(
 		EPrints::MetaInfo::find_table_field(
