@@ -668,6 +668,7 @@ before next release. (metadata types & fields)
  - generate_views now treats a SystemSettings->virtualhost of "" as
    undefined.
  - Subjects now sort into correct order(yay!)
+ - Bug in scoping for DF_AVAILABLE in Utils.pm - fixed.
 
 ======================================================================
 ??/07/2002 - EPRINTS-2.1
