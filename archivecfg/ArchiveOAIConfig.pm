@@ -327,7 +327,7 @@ sub eprint_to_unqualified_dc
 		my $author;
 		foreach $author ( @{$authors} )
 		{
-			push @dcdata, [ "creator", EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ];
+			push @dcdata, [ "creator", EPrints::Utils::make_name_string( $author ) ];
 		}
 	}
 

@@ -287,15 +287,6 @@ terms.</p>
 
 <ep:pin ref="confirmurl" />
 
-<!--
-Not actually written yet!
-<p>Once you have confirmed your identity you may also subscribe to the E-Mail subscription service, to be automatically informed of new deposits in the archive in your chosen subject areas in a daily, weekly or monthly digest.</p>
-
-<p>You can create a subscription by visiting the following page:</p>
-
-<p>&perl_url;/users/subscribe</p>
--->
-
 <p>Before you can start uploading items, you need to fill out some personal
 details into the form at the following web site:</p>
 
@@ -305,6 +296,12 @@ details into the form at the following web site:</p>
 the following Web address:</p>
 
 &userhome;
+
+<p>Once you have confirmed your identity you may also subscribe to the E-Mail subscription service, to be automatically informed of new deposits in the archive in your chosen subject areas in a daily, weekly or monthly digest.</p>
+
+<p>You can create a subscription by visiting the following page:</p>
+
+<p>&perl_url;/users/subscribe</p>
 
 <p>Have your username and password ready when visiting any of the above pages.</p> <p>This message was generated automatically by software. If you have any questions, then please feel free to E-mail a real person at:</p>
 

@@ -367,10 +367,9 @@ sub send_out_subscription
 
 		my $p = $session->make_element( "p" );
 		$p->appendChild( $item->render_citation );
-		$p->appendChild( $session->make_element( "br" ) );
-		$p->appendChild( $session->make_text( $item->get_url ) );
-		
-		$info->{mail}->appendChild( $p );
+		$info->{matches}->appendChild( $p );
+		$info->{matches}->appendChild( $session->make_text( $item->get_url ) );
+		$info->{matches}->appendChild( $session->make_element( "br" ) );
 	};
 
 
@@ -378,22 +377,20 @@ sub send_out_subscription
 	if( $searchexp->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
 	{
 		my $info = {};
-		$info->{mail} = $self->{session}->make_doc_fragment;
-		$info->{mail}->appendChild( 
-			$self->{session}->html_phrase( 
-				"lib/subscription:blurb",
-				howoften => $freqphrase,
-				search => $searchdesc,
-				url => $self->{session}->make_text( $url ) ) );
-		$info->{mail}->appendChild( $self->{session}->make_element( "hr" ) );
-		$info->{mail}->appendChild( $self->{session}->html_phrase(
-			"lib/subscription:matches",
-			n => $self->{session}->make_text( $searchexp->count ) ) );
+		$info->{matches} = $self->{session}->make_doc_fragment;
 		$searchexp->map( $fn, $info );
+
+		my $mail = $self->{session}->html_phrase( 
+				"lib/subscription:mail",
+				howoften => $freqphrase,
+				n => $self->{session}->make_text( $searchexp->count ),
+				search => $searchdesc,
+				matches => $info->{matches},
+				url => $self->{session}->make_text( $url ) );
 		$user->mail( 
 			"lib/subscription:sub_subj",
-			$info->{mail} );
-		EPrints::XML::dispose( $info->{mail} );
+			$mail );
+		EPrints::XML::dispose( $mail );
 	}
 	$searchexp->dispose;
 

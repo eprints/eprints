@@ -235,6 +235,7 @@ sub _render_user_form
 
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 	my $form = $self->{session}->render_input_form( 
+					staff=>$self->{staff},
 					dataset=>$user_ds,
 					type=>$self->{user}->get_value( "usertype" ),
 					fields=>\@fields,

@@ -121,6 +121,8 @@ my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
 EPrints::Subscription::process_set( $session, $ARGV[1] );
+EPrints::User::process_editor_alerts( $session, $ARGV[1] );
+
 
 $session->terminate();
 exit;

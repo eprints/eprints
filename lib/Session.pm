@@ -734,6 +734,24 @@ sub render_link
 		target=>$target );
 }
 
+######################################################################
+=pod
+
+=item $thing->render_name( $name, [$familylast] )
+
+undocumented
+
+=cut
+######################################################################
+
+sub render_name
+{
+	my( $self, $name, $familylast ) = @_;
+
+	my $namestr = EPrints::Utils::make_name_string( $name, $familylast );
+		
+	return $self->make_text( $namestr );
+}
 
 ######################################################################
 =pod
@@ -1239,6 +1257,7 @@ my %INPUT_FORM_DEFAULTS = (
 	values => {},
 	show_names => 0,
 	show_help => 0,
+	staff => 0,
 	buttons => {},
 	hidden_fields => {},
 	comments => {},
@@ -1311,7 +1330,8 @@ sub render_input_form
 			$p{show_help},
 			$p{comments}->{$field->get_name()},
 			$p{dataset},
-			$p{type} ) );
+			$p{type},
+			$p{staff} ) );
 	}
 
 	# Hidden field, so caller can tell whether or not anything's
@@ -1333,7 +1353,7 @@ sub render_input_form
 
 ######################################################################
 # 
-# $foo = $thing->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type )
+# $foo = $thing->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff )
 #
 # undocumented
 #
@@ -1342,7 +1362,7 @@ sub render_input_form
 sub _render_input_form_field
 {
 	my( $self, $field, $value, $show_names, $show_help, $comment,
-			$dataset, $type ) = @_;
+			$dataset, $type, $staff ) = @_;
 	
 	my( $div, $html, $span );
 
@@ -1392,7 +1412,7 @@ sub _render_input_form_field
 		class => "formfieldinput",
 		id => "inputfield_".$field->get_name );
 	$div->appendChild( $field->render_input_field( 
-		$self, $value, $dataset, $type ) );
+		$self, $value, $dataset, $type, $staff ) );
 	$html->appendChild( $div );
 
 	if( substr( $self->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 

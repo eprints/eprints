@@ -343,11 +343,11 @@ $c->{vlit}->{context_size} = 1024;
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
 $c->{browse_views} = [
-	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" },
-	{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
-{ id=>"name",  allow_null=>1, fields=>"authors/editors", order=>"title/authors" }
-	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 },
-	#{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+#{ id=>"name",  allow_null=>1, fields=>"authors", order=>"-year" }
+	{ id=>"subjects", fields=>"subjects", order=>"title/authors", hideempty=>1 },
+	#{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
+
+	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 }
 ];
 
 # Number of results to display on a single search results page
@@ -386,6 +386,13 @@ $c->{subscription_fields} =
 	"subjects",
 	"refereed",
 	"ispublished"
+];
+
+# Fields used for limiting the scope of editors
+$c->{editor_limit_fields} =
+[
+	"subjects",
+	"type"
 ];
 
 # Ways of ordering search results

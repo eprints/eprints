@@ -101,7 +101,7 @@ sub parse_xml
 {
 	my( $file, $basepath, $no_expand ) = @_;
 
-	print "Loading XML: $file\n";
+#	print "Loading XML: $file\n";
 
 	my $doc;
 	if( $gdome )
@@ -162,9 +162,10 @@ sub parse_xml
 ######################################################################
 =pod
 
-=item $boolean = is_dom( $node, [$nodestring] )
+=item $boolean = is_dom( $node, @nodestrings )
 
  return true if node is an object of type XML::DOM/GDOME::$nodestring
+ where $nodestring is any value in @nodestrings.
 
  if $nodestring is not defined then return true if $node is any 
  XML::DOM/GDOME object.
@@ -174,7 +175,7 @@ sub parse_xml
 
 sub is_dom
 {
-	my( $node, $nodestring ) = @_;
+	my( $node, @nodestrings ) = @_;
 
 	my $s;
 	if( $gdome )
@@ -186,12 +187,15 @@ sub is_dom
 		$s ="XML::DOM::";
 	}
 
-	if( defined $nodestring )
+	return 1 if( scalar @nodestrings == 0 );
+
+	foreach( @nodestrings )
 	{
-		$s .= $nodestring;
+		my $v = $s.$_;
+		return 1 if( substr( ref($node), 0, length( $v ) ) eq $v );
 	}
 
-	return substr( ref($node), 0, length( $s ) ) eq $s;
+	return 0;
 }
 
 
@@ -209,6 +213,11 @@ disposed as they have cyclic references. XML::GDOME nodes are C structs.
 sub dispose
 {
 	my( $node ) = @_;
+
+	if( !defined $node )
+	{
+		confess "attempt to dispose an undefined dom node";
+	}
 
 	if( !$gdome )
 	{
@@ -343,7 +352,9 @@ sub clone_and_own
 Return the given node (and its children) as a UTF8 encoded string.
 
 Papers over some cracks, specifically that XML::GDOME does not 
-support toString on a DocumentFragment.
+support toString on a DocumentFragment, and that XML::GDOME does
+not insert a space before the / in tags with no children, which
+confuses some browsers. Eg. <br/> vs <br />
 
 =cut
 ######################################################################
@@ -352,26 +363,64 @@ sub to_string
 {
 	my( $node ) = @_;
 
-	# XML::DOM is easy
-	if( !$gdome )
+	my @n = ();
+	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		return $node->toString;
-	}
+		push @n, '<', $node->getTagName, ' ';
+		#foreach my $attr ( $node->getChildNodes )
 
-
-	if( is_dom( $node, "DocumentFragment" ) )
-	{
-		my $str = latin1("");
-		
-		foreach my $c ( $node->getChildNodes )
+		my $nnm = $node->getAttributes;
+		my $done = {};
+		foreach my $i ( 0..$nnm->getLength-1 )
 		{
-			$str .= to_string( $c );
+			my $attr = $nnm->item($i);
+			next if $done->{$attr->getName};
+			$done->{$attr->getName} = 1;
+			push @n, " ",$attr->toString;
 		}
-		return $str;
 
+		if( $node->hasChildNodes )
+		{
+			push @n,">";
+			foreach my $kid ( $node->getChildNodes )
+			{
+				push @n, to_string( $kid );
+			}
+			push @n,"</",$node->getTagName,">";
+		}
+		else
+		{
+			push @n," />";
+		}
 	}
-	my $str =  $node->toString;
-	return $str;
+	elsif( is_dom( $node, "DocumentFragment" ) )
+	{
+		foreach my $kid ( $node->getChildNodes )
+		{
+			push @n, to_string( $kid );
+		}
+	}
+	elsif( EPrints::XML::is_dom( $node, "Document" ) )
+	{
+   		my $docType  = $node->getDoctype();
+	 	my $elem     = $node->getDocumentElement();
+		push @n, $docType->toString, "\n", to_string( $elem );
+	}
+	elsif( EPrints::XML::is_dom( 
+			$node, 
+			"Text", 
+			"CDATASection", 
+			"EntityReference", 
+			"Comment" ) )
+	{
+		push @n, $node->toString;
+	}
+	else
+	{
+		print STDERR "EPrints::XML: Not sure how to turn node type ".$node->getNodeType."\ninto a string.\n";
+	}
+
+	return join '', @n;
 }
 
 ######################################################################
@@ -470,7 +519,7 @@ Can't open to write to XML file: $filename
 END
 		}
 #		print XMLFILE $node->toStringEnc("utf8",0);
-		print XMLFILE $node->toString();
+		print XMLFILE EPrints::XML::to_string( $node );
 		close XMLFILE;
 	}
 	else
@@ -544,7 +593,7 @@ sub debug_xml
 #push @{$x}, $node;
 print STDERR ">"."  "x$depth;
 print STDERR "DEBUG(".ref($node).")\n";
-	if( is_dom( $node, "Document" ) ||   is_dom( $node, "Element" )  )
+	if( is_dom( $node, "Document", "Element" ) )
 	{
 		foreach my $c ( $node->getChildNodes )
 		{

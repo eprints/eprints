@@ -83,6 +83,7 @@ my @monthkeys = (
 
 my $PROPERTIES = 
 {
+	allow_set_order => 1,
 	browse_link => 1,
 	can_clone => 1,
 	confid => -1,
@@ -103,6 +104,7 @@ my $PROPERTIES =
 	toform => 1,
 	maxlength => 1,
 	hasid => 1,
+	id_editors_only => 1,
 	multilang => 1,
 	multiple => 1,
 	name => -1,
@@ -482,6 +484,10 @@ sub set_property
 
 Return the value of the given property.
 
+Special note about "required" property: It only indicates if the
+field is always required. You must query the dataset to check if
+it is required for a specific type.
+
 =cut
 ######################################################################
 
@@ -778,7 +784,7 @@ sub _render_value3
 
 	if( $self->is_type( "name" ) )
 	{
-		return EPrints::Utils::render_name( $session,  $value );
+		return $session->render_name( $value );
 	}
 
 	if( $self->is_type( "date" ) )
@@ -852,7 +858,7 @@ sub _render_value3
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field( $session, $value, [$dataset, $type] )
+=item $xhtml = $field->render_input_field( $session, $value, [$dataset, $type], [$staff] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -863,7 +869,7 @@ this field.
 
 sub render_input_field
 {
-	my( $self, $session, $value, $dataset, $type ) = @_;
+	my( $self, $session, $value, $dataset, $type, $staff ) = @_;
 
 	if( defined $self->{toform} )
 	{
@@ -1015,7 +1021,8 @@ sub render_input_field
 				$self->_render_input_field_aux( 
 					$session, 
 					$value->[$i-1], 
-					$i ) );
+					$i,
+					$staff ) );
 			$html->appendChild( $div );
 		}
 		$html->appendChild( $session->make_element(
@@ -1034,7 +1041,9 @@ sub render_input_field
 		$html->appendChild( 
 			$self->_render_input_field_aux( 
 				$session, 
-				$value ) );
+				$value,
+				undef,
+				$staff ) );
 	}
 
 	return $html;
@@ -1042,7 +1051,7 @@ sub render_input_field
 
 ######################################################################
 # 
-# $xhtml = $field->_render_input_field_aux( $session, $value, $n )
+# $xhtml = $field->_render_input_field_aux( $session, $value, $n, $staff )
 #
 # undocumented
 #
@@ -1050,7 +1059,7 @@ sub render_input_field
 
 sub _render_input_field_aux
 {
-	my( $self, $session, $value, $n ) = @_;
+	my( $self, $session, $value, $n, $staff ) = @_;
 
 	my $suffix = (defined $n ? "_$n" : "" );	
 
@@ -1257,25 +1266,38 @@ sub _render_input_field_aux
 
 	if( $self->get_property( "hasid" ) )
 	{
-		my $div;
-		$div = $session->make_element( 
-					"div", 
-					class => "formfieldidname" );
-		$div->appendChild( $session->make_text( 
-			$self->get_id_field()->display_name( $session ).":" ) );
-		$block->appendChild( $div );
-		$div = $session->make_element( 
-					"div",
-			 		class=>"formfieldidinput" );
-		$block->appendChild( $div );
+		if( !$self->get_property( "id_editors_only" ) || $staff  )
+		{
+			my $div;
+			$div = $session->make_element( 
+						"div", 
+						class => "formfieldidname" );
+			$div->appendChild( $session->make_text( 
+				$self->get_id_field()->display_name( $session ).":" ) );
+			$block->appendChild( $div );
+			$div = $session->make_element( 
+						"div",
+			 			class=>"formfieldidinput" );
+			$block->appendChild( $div );
+	
+			$div->appendChild( $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				name => $self->{name}.$suffix."_id",
+				value => $idvalue,
+				size => $self->{input_id_cols} ) );
+			$block->appendChild( $div );
+		}
+		else
+		{
+			$block->appendChild( $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				type => "hidden",
+				name => $self->{name}.$suffix."_id",
+				value => $idvalue ) );
+		}
 
-		$div->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
-			name => $self->{name}.$suffix."_id",
-			value => $idvalue,
-			size => $self->{input_id_cols} ) );
-		$block->appendChild( $div );
 	}
 	
 	return $block;
@@ -1537,7 +1559,10 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			$value,
 			$self->{name}.$suffix."_" );
 		$div->appendChild( $searchexp->render_search_fields( 0 ) );
-		$div->appendChild( $searchexp->render_order_menu );
+		if( $self->get_property( "allow_set_order" ) )
+		{
+			$div->appendChild( $searchexp->render_order_menu );
+		}
 		$searchexp->dispose();
 
 		return $div;
@@ -1552,7 +1577,10 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 # 
 # $searchexp = $field->make_searchexp( $session, $value, [$prefix] )
 #
-# undocumented
+# This method should only be called on fields of type "search". 
+# Return a search expression from the serialised expression in value.
+# $prefix is passed to the SearchExpression to prefix all HTML form
+# field ids when more than one search will exist in the same form. 
 #
 ######################################################################
 
@@ -2012,10 +2040,11 @@ sub is_browsable
 	# pagerange , secret , longtext
 
         # Can't yet browse:
-        # boolean , text,  langid ,name 
+        # boolean , langid 
 
 	return $self->is_type( "set", "subject", "datatype", "date", "int", 
-				"year", "id", "email", "url", "text" );
+				"year", "id", "email", "url", "text",
+				"name" );
 
 }
 
@@ -2048,8 +2077,7 @@ sub get_values
 	{
 		return @{$self->get_property( "options" )};
 	}
-
-	if( $self->is_type( "subject" ) )
+	elsif( $self->is_type( "subject" ) )
 	{
 		my $topsubj = $self->get_top_subject( $session );
 		my ( $pairs ) = $topsubj->get_subjects( 
@@ -2062,18 +2090,21 @@ sub get_values
 			push @outvalues, $pair->[0];
 		}
 	}
-
-	if( $self->is_type( "datatype" ) )
+	elsif( $self->is_type( "datatype" ) )
 	{
 		my $ds = $session->get_archive()->get_dataset( 
 				$self->{datasetid} );	
 		@outvalues = @{$ds->get_types()};
 	}
-
-	if( $self->is_type( 
-		"date", "int", "year", "id", "email", "url" , "text" ) )
+	elsif( $self->is_type( 
+		"date", "int", "year", "id", "email", "url" , "text",
+		"name" ) )
 	{
 		@outvalues = $session->get_db()->get_values( $self, $dataset );
+	}
+	else
+	{
+		$session->get_archive->log( "WARNING: Attempt to call get_values on a field of type ".$self->get_type );
 	}
 
 	foreach( @outvalues )
@@ -2164,6 +2195,11 @@ sub get_value_label
 			$self, 
 			$session, 
 			$value );
+	}
+
+	if( $self->is_type( "name" ) )
+	{
+		return $session->render_name( $value );
 	}
 
 	return $session->make_text( "???".$value."???" );
@@ -2383,9 +2419,11 @@ sub get_property_default
 	return 0 if( $property eq "showtop" );
 	return 0 if( $property eq "idpart" );
 	return 0 if( $property eq "mainpart" );
+	return 0 if( $property eq "id_editors_only" );
 	return 1 if( $property eq "export_as_xml" );
 	return 1 if( $property eq "can_clone" );
 	return 1 if( $property eq "sql_index" );
+	return 1 if( $property eq "allow_set_order" );
 
 	return "subjects" if( $property eq "top" );
 

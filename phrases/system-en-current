@@ -79,7 +79,17 @@ EPrints Modules
     <ep:phrase ref="lib/searchexpression:results">Displaying results <span class="numeral"><ep:pin ref="from" /></span> to <span class="numeral"><ep:pin ref="to" /></span> of <span class="numeral"><ep:pin ref="n" /></span>.</ep:phrase>
     <ep:phrase ref="lib/searchexpression:search_time">Search time: <ep:pin ref="searchtime" />s.</ep:phrase>
     <ep:phrase ref="lib/searchexpression:noresults">No matches.</ep:phrase>
-    <ep:phrase ref="lib/searchexpression:results_blurb"><p class="resultsinfo"><ep:pin ref="searchdesc" /><br /><ep:pin ref="matches" /> <ep:pin ref="time" /></p></ep:phrase>
+    <ep:phrase ref="lib/searchexpression:results_page">
+
+<ep:pin ref="controls" />
+<p class="resultsinfo">
+   <ep:pin ref="searchdesc" /><br />
+   <ep:pin ref="matches" /> <ep:pin ref="time" />
+</p>
+<ep:pin ref="results" />
+<ep:pin ref="controls_if_matches" />
+
+</ep:phrase>
     <ep:phrase ref="lib/searchexpression:next">Next <ep:pin ref="n" /></ep:phrase>
     <ep:phrase ref="lib/searchexpression:prev">Previous <ep:pin ref="n" /></ep:phrase>
     <ep:phrase ref="lib/searchexpression:new">New search</ep:phrase>
@@ -218,21 +228,31 @@ EPrints Modules
 
 <!-- Subscription -->
 
-    <ep:phrase ref="lib/subscription:blurb">
+    <ep:phrase ref="lib/subscription:mail">
 <p>This mail contains your <ep:pin ref="howoften" /> subscription to &archivename;.</p>
+<p>Number of new (or changed) submissions: <ep:pin ref="n" />.</p>
 <p>Your subscription is: <ep:pin ref="search" /></p>
 <p>To cancel, temporarily disable or alter your subscription, visit the following Web page:<br /><ep:pin ref="url" /></p>
+&ruler;
+<ep:pin ref="matches" />
 </ep:phrase>
     <ep:phrase ref="lib/subscription:weekly">weekly</ep:phrase>
     <ep:phrase ref="lib/subscription:daily">daily</ep:phrase>
     <ep:phrase ref="lib/subscription:monthly">monthly</ep:phrase>
-    <ep:phrase ref="lib/subscription:new_subs"><ep:pin ref="n" /> new submissions were received.</ep:phrase>
-    <ep:phrase ref="lib/subscription:matches"><p>Number of new (or changed) submissions: <ep:pin ref="n" />.</p></ep:phrase>
     <ep:phrase ref="lib/subscription:sub_subj">Subscription</ep:phrase>
 
 <!-- User -->
 
     <ep:phrase ref="lib/user:missed_field">You haven't filled out the required <ep:pin ref="field" /> field.</ep:phrase>
+    <ep:phrase ref="lib/user:editor_update_subject">Edit Buffer Summary</ep:phrase>
+    <ep:phrase ref="lib/user:editor_update_mail">
+<p>This mail is your <ep:pin ref="howoften" /> summary of records awaiting approval for addition to &archivename;.</p>
+<p>Number of records: <ep:pin ref="n" />.</p>
+<p>Only records matching your editorial scope are listed. Your scope is: <ep:pin ref="search" /></p>
+<p>To cancel or temporarily disable this email update, visit the following Web page:<br /><ep:pin ref="url" /></p>
+&ruler;
+<ep:pin ref="matches" />
+</ep:phrase>
 
 <!-- UserForm -->
 
@@ -435,8 +455,8 @@ Staff CGI Scripts
 <!-- buffer -->
 
     <ep:phrase ref="cgi/users/buffer:overview_title">Submission Buffer Overview</ep:phrase>
-    <ep:phrase ref="cgi/users/buffer:no_entries"><p>There are no entries for you to review in the submission buffer at the moment.</p></ep:phrase>
-    <ep:phrase ref="cgi/users/buffer:buffer_blurb"><p>Click on the title of an entry to view, edit, accept or reject it.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/buffer:no_entries"><p>There are currently no entries matching your editorial scope, which is: <ep:pin ref="scope" /></p></ep:phrase>
+    <ep:phrase ref="cgi/users/buffer:buffer_blurb"><p>The following records match your editorial scope, which is: <ep:pin ref="scope" /></p><p>Click on the title of an entry to view, edit, accept or reject it.</p></ep:phrase>
     <ep:phrase ref="cgi/users/buffer:title">Title</ep:phrase>
     <ep:phrase ref="cgi/users/buffer:sub_by">Submitted by</ep:phrase>
     <ep:phrase ref="cgi/users/buffer:sub_date">Submission Date</ep:phrase>
@@ -481,6 +501,7 @@ Staff CGI Scripts
 
     <ep:phrase ref="cgi/users/edit_eprint:status"><p>Current status of this EPrint: in <ep:pin ref="dataset" />.</p></ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_find_it">Can't retrieve EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:cant_edit">This eprint (id <ep:pin ref="id" />) does not match the scope of the eprints you are allowed to edit. If you need assistance please contact the archive administrator.</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_remove">Problem removing EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_move">Problem moving EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:cant_clone">Problem cloning EPrint with the ID "<ep:pin ref="id" />"</ep:phrase>
@@ -684,6 +705,20 @@ Titles and Help for the System Fields
     <ep:phrase ref="user_fieldhelp_email">The email address for this user</ep:phrase>
     <ep:phrase ref="user_fieldname_lang">Preferred Language</ep:phrase>
     <ep:phrase ref="user_fieldhelp_lang">Your prefered language. Where possible information will be mailed in this language.</ep:phrase>
+
+    <!-- These fields are only used by users with "editor" privs -->
+    <ep:phrase ref="user_fieldname_editperms">Editorial Rights Restriction</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_editperms">The user will only be able to approve and modify eprints which match the following rules. If there are no restriction conditions the user will be able to edit any record.</ep:phrase>
+    <ep:phrase ref="user_fieldname_frequency">Frequency of Editorial Buffer Mailings</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_frequency">How often do you want to be sent a list of all the items in the editorial buffer matching your editorial rights.</ep:phrase>
+    <ep:phrase ref="user_fieldopt_frequency_never">Never</ep:phrase>
+    <ep:phrase ref="user_fieldopt_frequency_daily">Once per Day</ep:phrase>
+    <ep:phrase ref="user_fieldopt_frequency_weekly">Once per Week</ep:phrase>
+    <ep:phrase ref="user_fieldopt_frequency_monthly">Once per Month</ep:phrase>
+    <ep:phrase ref="user_fieldname_mailempty">Mail Empty Results</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_mailempty">If there are items in the buffer, within your editorial rights, should eprints still send you an empty email?</ep:phrase>
+    <ep:phrase ref="user_radio_mailempty"><ep:pin ref="true" />Yes, mail me when the buffer is empty.<br /><ep:pin ref="false" />No. Only mail me when there is something I can edit and approve.</ep:phrase>
+
 
     <ep:phrase ref="document_fieldname_eprintid">ID of the owning EPrint</ep:phrase>
     <ep:phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</ep:phrase>

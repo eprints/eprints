@@ -205,16 +205,16 @@ sub get_month_label
 ######################################################################
 =pod
 
-=item EPrints::Utils::render_name( $session, $name, $familylast )
+=item $string = EPrints::Utils::make_name_string( $name, [$familylast] )
 
 undocumented
 
 =cut
 ######################################################################
 
-sub render_name
+sub make_name_string
 {
-	my( $session, $name, $familylast ) = @_;
+	my( $name, $familylast ) = @_;
 
 	my $firstbit = "";
 	if( defined $name->{honourific} && $name->{honourific} ne "" )
@@ -238,12 +238,12 @@ sub render_name
 	}
 
 	
-	if( $familylast )
+	if( defined $familylast && $familylast )
 	{
-		return $session->make_text( $firstbit." ".$secondbit );
+		return $firstbit." ".$secondbit;
 	}
 	
-	return $session->make_text( $secondbit.", ".$firstbit );
+	return $secondbit.", ".$firstbit;
 }
 
 ######################################################################
@@ -425,11 +425,10 @@ sub send_mail
 	my $utf8all	= $utf8body.$utf8sig;
 	my $type	= get_encoding($utf8all);
 	my $content_type_q = "text/plain";
-
 	my $msg = $utf8all;
 	if ($type eq "iso-latin-1")
 	{
-		$content_type_q = "text/plain; charset=iso-latin-1"; 
+		$content_type_q = 'text/plain; charset="iso-8859-1"'; 
 		$msg = $utf8all->latin1; 
 	}
 	#precedence bulk to avoid automail replies?  cjg
@@ -445,6 +444,7 @@ END
 From: "$arcname_q" <$adminemail>
 To: "$name_q" <$address>
 Subject: $arcname_q: $subject_q
+Precedence: bulk
 Content-Type: $content_type_q
 Content-Transfer-Encoding: 8bit
 END

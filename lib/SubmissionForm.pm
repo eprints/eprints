@@ -1167,6 +1167,7 @@ sub _do_stage_type
 				"lib/submissionform:action_next" ) };
 
 	$page->appendChild( $self->{session}->render_input_form( 
+		staff=>$self->{staff},
 		fields=>[ $self->{dataset}->get_field( "type" ) ],
 	        values=>$self->{eprint}->get_data(),
 	        show_names=>1,
@@ -1260,6 +1261,7 @@ sub _do_stage_linking
 				"lib/submissionform:action_next" ) };
 
 	$page->appendChild( $self->{session}->render_input_form( 
+		staff=>$self->{staff},
 		fields=>[ 
 			$self->{dataset}->get_field( "succeeds" ),
 			$self->{dataset}->get_field( "commentary" ) 
@@ -1334,6 +1336,7 @@ sub _do_stage_meta
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			dataset=>$self->{dataset},
 			type=>$self->{eprint}->get_value( "type" ),
 			fields=>\@edit_fields,
@@ -1556,6 +1559,7 @@ sub _do_stage_docmeta
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			fields=>$fields,
 			values=>$self->{document}->get_data(),
 			show_help=>1,
@@ -1661,6 +1665,7 @@ sub _do_stage_fileview
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			fields=>$fields,
 			values=>{
 				num_files => 1,	
@@ -1819,6 +1824,7 @@ sub _do_stage_fileview
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			buttons=>$submit_buttons,
 			hidden_fields=>$hidden_fields,
 			default_action=>"prev",
@@ -1994,6 +2000,7 @@ sub _do_stage_verify
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			show_help=>1,
 			buttons=>$submit_buttons,
 			hidden_fields=>$hidden_fields,
@@ -2081,6 +2088,7 @@ sub _do_stage_confirmdel
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			staff=>$self->{staff},
 			show_help=>1,
 			buttons=>$submit_buttons,
 			hidden_fields=>$hidden_fields,

@@ -71,6 +71,24 @@ sub process
 		return;
 	}
 
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
+
+	my $permsearch = $user_ds->get_field( 
+                        'editperms' )->make_searchexp(
+                                $session,
+                                $session->current_user->get_value( 'editperms' ) );
+	my $can_edit = $permsearch->item_matches( $eprint );
+	$permsearch->dispose;
+
+	unless( $can_edit )
+	{
+		$session->render_error( $session->html_phrase(
+			"cgi/users/edit_eprint:cant_edit",
+			id=>$session->make_text( $eprintid ) ) );
+		return;
+	}
+
+
 	if( !defined $action )
 	{
 		&view_page( $session, $eprint );

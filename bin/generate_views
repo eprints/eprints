@@ -216,7 +216,7 @@ sub make_view_pages
 		}
 		@values = sort keys %v;	
 	}
-	if( !$info->{allow_null} )
+	unless( $info->{allow_null} )
 	{
 		my @ov = @values;
 		@values = ();
@@ -253,19 +253,13 @@ sub make_view_pages
 
 
 
-	$info->{dom} = 1 if( $info->{include} || !$info->{nohtml} );
 
 	foreach $value ( @values )
 	{
-		$fileid = $value;
-		if( $fileid eq "" ) { $fileid = "NULL"; }
-                $fileid =~ s/[\s\/]/_/g; 
+		$fileid = &mk_file_id( $value, $fields[0]->get_type );
 		print "[".$info->{id}."] = \"$fileid\"\n" if( $noise > 1 );
 
-		if( $info->{dom} )
-		{
-			$page = $session->make_doc_fragment();
-		}
+		$page = $session->make_doc_fragment();
 
 		if( $fields[0]->is_type( "subject" ) && !$info->{nohtml} )
 		{
@@ -283,11 +277,12 @@ sub make_view_pages
 			}
 
 			my $subjects_to_show = \@ids;
-			if( 1 )
+			if( $info->{hideempty} )
 			{
 				$subjects_to_show = [];
 				foreach( @ids )
 				{
+					next if( $_ eq "ROOT" );
 					next unless( $size{$_} > 0 );
 					push @{$subjects_to_show}, $_;
 				}
@@ -364,7 +359,7 @@ sub make_view_pages
 			{
 				$size{$value} = $count;
 			}
-			if( $info->{dom} && !$info->{nocount} )
+			unless( $info->{nocount} )
 			{
 				$links->appendChild( $session->html_phrase( 
 					"bin/generate_views:blurb",
@@ -376,14 +371,11 @@ sub make_view_pages
 			{
 				$mapinfo{layout} = "paragraph";
 			}
-			if( $mapinfo{dom} )
-			{
-				$searchexp->map( $fn, \%mapinfo );
-			}
+			$searchexp->map( $fn, \%mapinfo );
 			$searchexp->dispose();
 		}
 
-		if( 1 )
+		unless( $info->{notimestamp} )
 		{
 			$links->appendChild( $session->html_phrase(
 				"bin/generate_views:timestamp",
@@ -445,7 +437,7 @@ sub make_view_pages
 #        }
 	
 	my $subjects_to_show = \@values;
-	if( 1 )
+	if( $info->{hideempty} )
 	{
 		$subjects_to_show = [];
 		foreach( @values )
@@ -470,9 +462,8 @@ sub make_view_pages
 		$ul = $session->make_element( "ul" );
 		foreach $value ( @values )
 		{
-			$fileid = $value;
-			if( $fileid eq "" ) { $fileid = "NULL"; }
-                	$fileid =~ s/[\s\/]/_/g; 
+			$fileid = &mk_file_id( $value, $fields[0]->get_type );
+
 			$li = $session->make_element( "li" );
 			$a = $session->render_link( $fileid.".html" );
 			$a->appendChild( 
@@ -499,5 +490,19 @@ sub make_view_pages
 }
 
 
+sub mk_file_id
+{
+	my( $value, $type ) = @_;
+
+	my $fileid = $value;
+	if( $type eq "name" )
+	{
+		$fileid = EPrints::Utils::make_name_string( $value );
+	}
+	if( $fileid eq "" ) { $fileid = "NULL"; }
+	$fileid =~ s/[\s\/]/_/g; 
+
+	return $fileid;
+}
 
 

@@ -2,6 +2,15 @@ This is the rough and ready list of stuff that needs doing on
 eprints 2. It's really for my benefit, I include it here in
 case it might be helpful.
 
+PRE Release Checks for 2.2
+
+*	Make a list of phrase file changes. (Scripted?)
+
+*	Check Garbage collection in OAI code.
+
+*	Check ArchiveConfig.pm is sane and normal. Double check diff from
+          2.1.1. Clean up default views config.
+
 SQL Tables
 
 -	Add time:lastwrite & time:lastindex to each dataset  - either in 
@@ -9,13 +18,8 @@ SQL Tables
 
 Subscriptions/subject-editors
 
-*	Subject-editors (editors can only edit within certain subjects/search)
-
-*	Alerts for editors about things they can edit (flag in User fields?)
 
 Metadata Fields
-
-*	Hide ID for non-staff option for has-id fields
 
 +	New field type "time" for datetime SQL fields.
 
@@ -61,17 +65,10 @@ Database
 
 Browse Views
 
-* 	Time stamp views [optionally] - done but not an option
-
 +	Second level views - eg. /group/year/ - /view/iam/2001.html
-
-* 	Browse on "name" fields
 
 
 Searches
-
-*	Make entire search page a phrase so that it can be configured. eg.
-	&buttons; &results; etc.
 
 *	Deprecate temporary tables and just make oneshot_cache the 
 	 default?
@@ -85,6 +82,8 @@ Searches
 
 *	Add search-by-id
 
+*	Fix email searches
+
 - 	max time for caches eg. 30 for latest?
 
 -	Improve name search syntax (?)
@@ -95,7 +94,7 @@ Searches
 
 -	Improved steming.
 
--	Merge int/name/text searches 
+*	Merge int/name/text searches 
 
 -	Add a get_problems method to searchexp which returns a list
 	of problems. This should run by default when verifying "search"
@@ -135,15 +134,14 @@ Submission Page
 
 *	Change the text of the user home page to explain the above.
 
+- 	Extra pages which are user defined.
+
 
 Other Stuff
 
 -	Various "form letters" from the editor.
 
-*	Need a "Last Changed" datestamp. Always set in commit. (On ALL
-        dataobj types?)
-
-*	Make a permission for users to be able to edit their OWN record.
+*	Make a permission for users to be able to edit their OWN records.
 
 *       Make a way of .css working in both https and http - possibly
         a new entity which does something different on the https server.
@@ -182,17 +180,11 @@ Other Stuff
 +	Bad Things(tm) will happen if a session has a langid which is not a 
 	supported langid - can this happen?
 
-* 	Add option to supress empty subjects in browse views.
-
 + 	robots.txt file
-
-- 	XML GDOME readyness
 
 + 	Lose all die statements
 
 + 	Check Referer on LatexCache.?
-
-*	testing to see if "dom" is set in generate_views seems kinda pointless.
 
 ? 	setlang - show all langs, flag supported.
 
@@ -226,9 +218,9 @@ FORMALLY COMMENT CODE
 -	ImportXML.pm
 -	Language.pm
 -	Latex.pm
-*	MetaField.pm
--	OpenArchives.pm
-*	RequestWrapper.pm
+-	MetaField.pm
+*	OpenArchives.pm
+-	RequestWrapper.pm
 *	SearchExpression.pm
 *	SearchField.pm
 *	Session.pm
@@ -324,6 +316,25 @@ DONE ====================================================================
 *	Show all items in a subject view count, not just those in the
 	current subject.
 - 	Way to reload config without offlining server.
+* 	Browse on "name" fields
+*	testing to see if "dom" is set in generate_views seems kinda pointless.
+*	Make entire search page a phrase so that it can be configured. eg.
+	&buttons; &results; etc.
+*	Subject-editors (editors can only edit within certain subjects/search)
+*	Alerts for editors about things they can edit (flag in User fields?)
+*	GDOME nice tostring
+* 	Add option to supress empty subjects in browse views.
+*	Need a "Last Changed" datestamp. Always set in commit. (On ALL
+        dataobj types?)
+*	Hide ID for non-staff option for has-id fields
+* 	Time stamp views [optionally] - done but not an option
+
+
+
+
+
+
+
 
 
 

@@ -1870,16 +1870,30 @@ sub get_values
 	{
 		$table = $dataset->get_sql_table_name();
 	}
-	my $sqlfn = $field->get_sql_name();
-
-	my $sql = "SELECT DISTINCT $sqlfn FROM $table";
+	my $fn = $field->get_sql_name();
+	if( $field->is_type( "name" ) )
+	{
+		$fn = "$fn\_honourific,$fn\_given,$fn\_family,$fn\_lineage";
+	}
+	my $sql = "SELECT DISTINCT $fn FROM $table";
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
-	my @values = ();
-	my $value;
-	while( ( $value ) = $sth->fetchrow_array ) 
+	my @row = ();
+	while( @row = $sth->fetchrow_array ) 
 	{
-		push @values, $value;
+		if( $field->is_type( "name" ) )
+		{
+			my $value = {};
+			$value->{honourific} = shift @row;
+			$value->{given} = shift @row;
+			$value->{family} = shift @row;
+			$value->{lineage} = shift @row;
+			push @values, $value;
+		}
+		else
+		{
+			push @values, $row[0];
+		}
 	}
 	$sth->finish;
 	return @values;

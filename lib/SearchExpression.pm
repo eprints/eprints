@@ -131,6 +131,12 @@ sub new
 		$self->{fieldnames} = $self->{session}->get_archive->get_conf(
 			"subscription_fields" );
 	}
+	if( $self->{fieldnames} eq "editpermfields" )
+	{
+		$self->{fieldnames} = $self->{session}->get_archive->get_conf(
+			"editor_limit_fields" );
+#cjg
+	}
 
 	my $fieldname;
 	foreach $fieldname (@{$self->{fieldnames}})
@@ -1125,8 +1131,6 @@ sub process_webpage
 		$t3 = EPrints::Session::microtime();
 		$self->dispose();
 
-		my $page = $self->{session}->make_doc_fragment();
-
 		my $plast = $offset + $pagesize;
 		$plast = $n_results if $n_results< $plast;
 
@@ -1155,13 +1159,8 @@ sub process_webpage
 
 		$bits{searchdesc} = $self->render_description;
 
-		$page->appendChild( $self->{session}->html_phrase(
-			"lib/searchexpression:results_blurb",
-			%bits ) );
-		
-
 		my $links = $self->{session}->make_doc_fragment();
-		my $controls = $self->{session}->make_element( "p", class=>"searchcontrols" );
+		$bits{controls} = $self->{session}->make_element( "p", class=>"searchcontrols" );
 		my $url = $self->{session}->get_url();
 		#cjg escape URL'ify urls in this bit... (4 of them?)
 		my $escexp = $self->serialise();	
@@ -1173,10 +1172,12 @@ sub process_webpage
 			my $fullurl = "$url?_exp=$escexp&_offset=".($bk<0?0:$bk);
 			$a = $self->{session}->render_link( $fullurl );
 			my $pn = $pagesize>$offset?$offset:$pagesize;
-			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:prev",
-						n=>$self->{session}->make_text( $pn ) ) );
-			$controls->appendChild( $a );
-			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+			$a->appendChild( 
+				$self->{session}->html_phrase( 
+					"lib/searchexpression:prev",
+					n=>$self->{session}->make_text( $pn ) ) );
+			$bits{controls}->appendChild( $a );
+			$bits{controls}->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Prev",
 							href=>EPrints::Utils::url_escape( $fullurl ) ) );
@@ -1184,12 +1185,12 @@ sub process_webpage
 
 		$a = $self->{session}->render_link( "$url?_exp=$escexp&_action_update=1" );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:refine" ) );
-		$controls->appendChild( $a );
-		$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+		$bits{controls}->appendChild( $a );
+		$bits{controls}->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
 
 		$a = $self->{session}->render_link( $url );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:new" ) );
-		$controls->appendChild( $a );
+		$bits{controls}->appendChild( $a );
 
 		if( $offset + $pagesize < $n_results )
 		{
@@ -1199,32 +1200,41 @@ sub process_webpage
 			$nn = $pagesize if( $pagesize < $nn);
 			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
 						n=>$self->{session}->make_text( $nn ) ) );
-			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
-			$controls->appendChild( $a );
+			$bits{controls}->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+			$bits{controls}->appendChild( $a );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Next",
 							href=>EPrints::Utils::url_escape( $fullurl ) ) );
 		}
 
-		$page->appendChild( $controls );
-
-		my $result;
-		foreach $result (@results)
+		$bits{results} = $self->{session}->make_doc_fragment;
+		foreach my $result ( @results )
 		{
 			my $p = $self->{session}->make_element( "p" );
-			$p->appendChild( $result->render_citation_link( undef, $self->{staff} ) );
-			$page->appendChild( $p );
+			$p->appendChild( 
+				$result->render_citation_link( 
+					undef, 
+					$self->{staff} ) );
+			$bits{results}->appendChild( $p );
 		}
 		
 
 		if( scalar $n_results > 0 )
 		{
-			# Only print a second set of controls if there are matches.
-			$page->appendChild( EPrints::XML::clone_node(
-				$controls, 1 ) );
+			# Only print a second set of controls if 
+			# there are matches.
+			$bits{controls_if_matches} = 
+				EPrints::XML::clone_node( $bits{controls}, 1 );
+		}
+		else
+		{
+			$bits{controls_if_matches} = 
+				$self->{session}->make_doc_fragment;
 		}
 
-
+		my $page = $self->{session}->html_phrase(
+			"lib/searchexpression:results_page",
+			%bits );
 	
 		$self->{session}->build_page( 
 			$self->{session}->html_phrase( 
@@ -1393,7 +1403,7 @@ sub render_description
 			"lib/searchexpression:desc_no_conditions" ) );
 	}
 
-	if( defined $self->{order} )
+	if( EPrints::Utils::is_set( $self->{order} ) )
 	{
 		$frag->appendChild( $self->{session}->make_text( " " ) );
 		$frag->appendChild( $self->{session}->html_phrase(

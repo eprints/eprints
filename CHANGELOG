@@ -875,3 +875,38 @@ before next release. (metadata types & fields)
  - [api] Please use EPrints::XML::to_string( $node ) rather than 
      $node->toString as in GDOME this does not work properly on 
      DocumentFragments
+
+2002-09-20 cjg
+ - Added EPrints::Utils::make_name_string to return a utf-8 string from a 
+    name structure. Replaced render_name with it in some places.
+ - [conf] Added editperms and related fields to metadata-types.xml
+ - generate_views can now do "name" fields. Name fields are "browse-able"
+ - [doc] notimestamp & hideempty are new paramaters to views.
+ - Editor alerts: mailed out at same time as subscription to tell what
+    editors have in the "buffer".
+ - Subject editors: editors may now be properly limited to a search set.
+ - phrases generation now is more careful about garbage collection. Esp.
+    unused pin values.
+ - [api] render_input_field has new optional param: $staff which is used
+    to render id fields with the id_editors_only condtional. Also in
+    render_input_form to pass through.
+ - SubmissionForm and UserForm tell render_input_form if they are in 
+    staff mode.
+ - [doc] New metadata fields:
+    - id_editors_only for has_id fields to show the "id" input bit to
+       editors only or everyone?
+    - allow_set_order for search fields to show the "order" selector?
+ - fixed bug in OpenArchives that only looked for oai 1 identifiers in
+    from_oai_identifier.
+ - [api] Removed set_value from SearchField (not used)
+ - Changed the phrase for mailing subscriptions to be one big phrase so
+    layout change is possible.
+ - added to User.pm: $thing->send_out_editor_alert and 
+    EPrints::User::process_editor_alerts( $session, $frequency );
+ - changed email encoding for latin from iso-latin-1 to iso-8859-1
+    probably make no difference.
+ - EPrints::XML::dom can now take a list of types, not just one.
+ - Improved EPrints::XML::to_string to make <br/> into <br />
+
+
+

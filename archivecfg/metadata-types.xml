@@ -336,7 +336,9 @@
       <field name="country" />
       <field name="os" />
       <field name="url" />
- <!--     <field name="editorsubjects" staffonly="yes" /> -->
+      <field name="editperms" staffonly="yes" />
+      <field name="frequency" required="yes" />
+      <field name="mailempty" required="yes" />
     </type>
     <type name="admin" >
       <field name="password" />
@@ -352,7 +354,9 @@
       <field name="country" />
       <field name="os" />
       <field name="url" />
- <!--     <field name="editorsubjects" /> -->
+      <field name="editperms" />
+      <field name="frequency" required="yes" />
+      <field name="mailempty" required="yes" />
     </type>
   </dataset>
 

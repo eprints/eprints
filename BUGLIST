@@ -94,6 +94,8 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
+- Does not properly insist on required subject fields.
+
 - If no required doc formats then message is silly. [fixed] BUT now
    buttons all appear on one line.
 
@@ -110,6 +112,8 @@ EPrints "Staff" Edit
 
 - staff edit eprint page: says this is how the abstract will look, and
    if it's in "archive" that's already how it looks!
+
+- CANCEL button changes stuff in submission buffer edit.
 
 ----------------------------------------------------------------------
 Installation & Archive Setup Script

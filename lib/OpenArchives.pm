@@ -380,17 +380,19 @@ undocumented
 
 sub from_oai_identifier
 {
-	my( $session , $oai_identifier ) = @_;
-	my $arcid = $session->get_archive()->get_conf( "oai", "archive_id" );
-	if( $oai_identifier =~ /^oai:$arcid:(\d+)$/ )
-	{
-		return( $1 );
-	}
-	else
-	{
-		return( undef );
-	}
+        my( $session , $oai_identifier ) = @_;
+        my $arcid = $session->get_archive()->get_conf( "oai", "archive_id" );
+        my $arcid2 = $session->get_archive()->get_conf( "oai", "v2", "archive_id" );
+        if( $oai_identifier =~ /^oai:($arcid|$arcid2):(\d+)$/ )
+        {
+                return( $2 );
+        }
+        else
+        {
+                return( undef );
+        }
 }
+
 
 
 

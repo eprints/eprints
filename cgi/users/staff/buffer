@@ -36,20 +36,21 @@ my( $page, $p, $table, $tr, $td, $th, $a );
 
 $page = $session->make_doc_fragment();
 
-# What can they edit?
-# $page->appendChild( $user->render_value( "editorsubjects" ) );
-
 # Get EPrints in the submission buffer
 my @eprints = $user->get_editable_eprints();
 
 if( scalar @eprints == 0 )
 {
 	# No EPrints
-	$page->appendChild( $session->html_phrase( "cgi/users/buffer:no_entries" ) );
+	$page->appendChild( $session->html_phrase( 
+		"cgi/users/buffer:no_entries",
+		scope=>$user->render_value( "editperms" ) ) );
 }
 else
 {
-	$page->appendChild( $session->html_phrase( "cgi/users/buffer:buffer_blurb" ) );
+	$page->appendChild( $session->html_phrase( 
+		"cgi/users/buffer:buffer_blurb",
+		scope=>$user->render_value( "editperms" ) ) );
 
 	$table = $session->make_element( "table", border=>1, cellpadding=>5 );
 	$page->appendChild( $table );

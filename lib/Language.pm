@@ -163,7 +163,17 @@ sub phrase
 	{
 		$inserts = {} if( !defined $inserts );
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
-		$response = _insert_pins( $phrase, $session, $inserts );
+		my $used = {};
+		$response = _insert_pins( $phrase, $session, $inserts, $used, $phraseid );
+		foreach( keys %{$inserts} )
+		{
+			if( !$used->{$_} )
+			{
+				$session->get_archive->log(
+"Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
+				EPrints::XML::dispose( $inserts->{$_} );
+			}
+		}
 	}
 
 
@@ -181,13 +191,11 @@ sub phrase
 	return $result;
 }
 
-# need to doc (cjg)
 sub _insert_pins
 {
-	my( $node, $session, $inserts ) = @_;
+	my( $node, $session, $inserts, $used, $phraseid ) = @_;
 
 	my $retnode;
-
 
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
@@ -199,12 +207,23 @@ sub _insert_pins
 			my $repl;
 			if( defined $inserts->{$ref} )
 			{
-				$retnode = $inserts->{$ref};
+				if( $used->{$ref} )
+				{
+					$retnode = EPrints::XML::clone_node( 
+						$inserts->{$ref}, 1 );
+				}
+				else
+				{
+					$retnode = $inserts->{$ref};
+					$used->{$ref} = 1;
+				}
 			}
 			else
 			{
 				$retnode = $session->make_text( 
 						"[ref missing: $ref]" );
+				$session->get_archive->log(
+"missing parameter \"$ref\" when making phrase \"$phraseid\"" );
 			}
 		}
 
@@ -223,7 +242,7 @@ sub _insert_pins
 	foreach my $kid ( $node->getChildNodes() )
 	{
 		$retnode->appendChild(
-			_insert_pins( $kid, $session, $inserts ) );
+			_insert_pins( $kid, $session, $inserts, $used, $phraseid ) );
 	}
 
 	return $retnode;

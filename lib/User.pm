@@ -107,7 +107,8 @@ sub get_system_field_info
 
 		{ name => "editperms", type => "search", 
 			datasetid => "buffer",
-			fieldnames => "editpermfields" },
+			fieldnames => "editpermfields",
+			allow_set_order => 0 },
 
 		{ name=>"frequency", type=>"set", 
 			options=>["never","daily","weekly","monthly"] },
@@ -492,6 +493,7 @@ sub get_eprints
 		$self->get_value( "userid" ) );
 
 #cjg set order (it's in the site config)
+# or order by deposit date?
 
 	my $searchid = $searchexp->perform_search;
 
@@ -518,21 +520,28 @@ sub get_editable_eprints
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_archive()->get_dataset( "buffer" );
+       	my $searchexp;
+	if( $self->is_set( 'editperms' ) )
+	{
+		my $editperms = $self->{dataset}->get_field( "editperms" );
+		$searchexp = $editperms->make_searchexp(
+				$self->{session},
+				$self->get_value( 'editperms' ) );
+	}
+	else
+	{
+		my $ds = $self->{session}->get_archive->get_dataset( 
+			"buffer" );
+		$searchexp = EPrints::SearchExpression->new(
+			allow_blank => 1,
+			use_oneshot_cache => 1,
+			dataset => $ds,
+			session => $self->{session} );
+	}
 
-	my $searchexp = new EPrints::SearchExpression(
-		session=>$self->{session},
-		allow_blank=>1,
-		custom_order=>"-datestamp",
-		dataset=>$ds );
-
-#	$searchexp->add_field(
-#		$ds->get_field( "userid" ),
-#		$self->get_value( "userid" ) );
-
-#cjg set order (it's in the site config)
-
-	my $searchid = $searchexp->perform_search;
+	$searchexp->perform_search;
+	
+	#cjg set order? (it's in the site config)
 
 	my @records =  $searchexp->get_records;
 	$searchexp->dispose();
@@ -630,7 +639,9 @@ sub mail
 	return EPrints::Utils::send_mail(
 		$self->{session}->get_archive(),
 		$langid,
-		EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $self->{session}, $self->get_value( "name" ), 1 ) ),
+		EPrints::Utils::make_name_string(
+			$self->get_value( "name" ), 
+			1 ),
 		$email,
 		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
 		$message,
@@ -671,16 +682,16 @@ undocumented
 
 sub render
 {
-        my( $self ) = @_;
+	my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session} );
+	my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session} );
 
 	if( !defined $title )
 	{
 		$title = $self->render_description;
 	}
 
-        return( $dom, $title );
+	return( $dom, $title );
 }
 
 # This should include all the info, not just that presented to the public.
@@ -697,17 +708,16 @@ undocumented
 
 sub render_full
 {
-        my( $self ) = @_;
+	my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render_full", $self, $self->{session} );
+	my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render_full", $self, $self->{session} );
 
 	if( !defined $title )
 	{
 		$title = $self->render_description;
 	}
 
-print STDERR "\nRF($dom)($title)\n";	
-        return( $dom, $title );
+	return( $dom, $title );
 }
 
 
@@ -785,6 +795,134 @@ sub get_subscriptions
 	$searchexp->dispose();
 
 	return( @subs );
+}
+
+
+######################################################################
+=pod
+
+=item $thing->send_out_editor_alert
+
+undocumented
+
+=cut
+######################################################################
+
+sub send_out_editor_alert
+{
+	my( $self ) = @_;
+
+	my $freq = $self->get_value( "frequency" );
+
+
+	if( $freq eq "never" )
+	{
+		$self->{session}->get_archive->log( 
+			"Attempt to send out an editor alert for a user\n".
+			"which has frequency 'never'\n" );
+		return;
+	}
+
+	unless( $self->has_priv( "editor" ) )
+	{
+		$self->{session}->get_archive->log( 
+			"Attempt to send out an editor alert for a user\n".
+			"which does not have editor priv (".
+			$self->get_value("username").")\n" );
+		return;
+	}
+		
+	my $origlangid = $self->{session}->get_langid;
+	
+	$self->{session}->change_lang( $self->get_value( "lang" ) );
+
+	my @r = $self->get_editable_eprints;
+
+	if( scalar @r > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
+	{
+		my $url = $self->{session}->get_archive->get_conf( "perl_url" ).
+			"/users/record";
+		my $freqphrase = $self->{session}->html_phrase(
+			"lib/subscription:".$freq ); # nb. reusing the subscription.pm phrase
+		my $searchdesc = $self->render_value( "editperms" );
+
+		my $matches = $self->{session}->make_doc_fragment;
+		foreach my $item ( @r )
+		{
+			my $p = $self->{session}->make_element( "p" );
+			$p->appendChild( $item->render_citation );
+			$matches->appendChild( $p );
+			$matches->appendChild( $self->{session}->make_text( $item->get_url( 1 ) ) );
+			$matches->appendChild( $self->{session}->make_element( "br" ) );
+		}
+
+		my $mail = $self->{session}->html_phrase( 
+				"lib/user:editor_update_mail",
+				howoften => $freqphrase,
+				n => $self->{session}->make_text( scalar @r ),
+				search => $searchdesc,
+				matches => $matches,
+				url => $self->{session}->make_text( $url ) );
+		$self->mail( 
+			"lib/user:editor_update_subject",
+			$mail );
+		EPrints::XML::dispose( $mail );
+	}
+
+	$self->{session}->change_lang( $origlangid );
+}
+
+
+######################################################################
+=pod
+
+=item EPrints::User::process_editor_alerts( $session, $frequency );
+
+undocumented
+
+=cut
+######################################################################
+
+sub process_editor_alerts
+{
+	my( $session, $frequency ) = @_;
+
+	if( $frequency ne "daily" && 
+		$frequency ne "weekly" && 
+		$frequency ne "monthly" )
+	{
+		$session->get_archive->log( "EPrints::User::process_editor_alerts called with unknown frequency: ".$frequency );
+		return;
+	}
+
+	my $subs_ds = $session->get_archive->get_dataset( "user" );
+
+	my $searchexp = EPrints::SearchExpression->new(
+		session => $session,
+		use_oneshot_cache => 1,
+		dataset => $subs_ds );
+
+	$searchexp->add_field(
+		$subs_ds->get_field( "frequency" ),
+		$frequency );
+
+	my $fn = sub {
+		my( $session, $dataset, $item, $info ) = @_;
+
+		return unless( $item->has_priv( "editor" ) );
+
+		$item->send_out_editor_alert;
+		if( $session->get_noise >= 2 )
+		{
+			print "Sending out editor alert for ".$item->get_value( "username" )."\n";
+		}
+	};
+
+	$searchexp->perform_search;
+	$searchexp->map( $fn, {} );
+	$searchexp->dispose;
+
+	# currently no timestamp for editor alerts 
 }
 
 

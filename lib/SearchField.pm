@@ -72,6 +72,9 @@ use strict;
 
 undocumented
 
+Special case - if match is "EX" and field type is name then value must
+be a name hash.
+
 =cut
 ######################################################################
 
@@ -120,38 +123,6 @@ sub new
 	}
 
 	return( $self );
-}
-
-
-######################################################################
-=pod
-
-=item $foo = $sf->set_value( $newvalue )
-
-undocumented
-
-=cut
-######################################################################
-
-sub set_value
-{
-	my ( $self , $newvalue ) = @_;
-#cjg ?? why this confess?
-confess( "ooops: searchfield: set_value" );
-
-	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
-	{
-		$self->{merge} = uc $1;
-		$self->{match} = uc $2;
-		$self->{value} = $3;
-	}
-	else
-	{
-		$self->{merge} = undef;
-		$self->{match} = undef;
-		$self->{value} = undef;
-	}
-
 }
 
 
@@ -341,16 +312,33 @@ sub get_conditions
 	return if( $self->{match} eq "NO" );
 
 	my $match = $self->{match};
+
+	# Special handling for exact matches, as it can handle NULL
+	# fields, although this will not work on most multiple tables.
 	if( $match eq "EX" )
 	{
-		# Special handling for exact matches, as it can handle NULL
-		# fields, although this will not work on most multiple tables.
 		my @where;
-		my $sql = "__FIELDNAME__ = \"".EPrints::Database::prep_value($self->{value})."\"";
-		push @where, $sql;
-		if( $self->{value} eq "" )
-		{	
-			push @where, "__FIELDNAME__ IS NULL";
+
+		# Special Special handling for exact matches on names
+		if ( $self->is_type( "name" ) )
+		{
+			my @s = ();
+			foreach( "honourific", "given", "family", "lineage" )
+			{
+				my $v = $self->{value}->{$_};
+				push @s,"__FIELDNAME___".$_." = ".
+		"\"".EPrints::Database::prep_value($v)."\"";
+			}
+			push @where , "(".join( " AND ",@s ).")";
+		}
+		else
+		{
+			my $sql = "__FIELDNAME__ = \"".EPrints::Database::prep_value($self->{value})."\"";
+			push @where, $sql;
+			if( $self->{value} eq "" )
+			{	
+				push @where, "__FIELDNAME__ IS NULL";
+			}
 		}
 		return( $self->_get_conditions_aux( \@where , 0) );
 	}
