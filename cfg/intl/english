@@ -197,7 +197,7 @@ H:invalid_succ	= EPrint ID in $(1) field is invalid
 H:cant_succ	= You cannot succeed an EPrint that someone else has posted
 H:invalid_id	= EPrint ID in $(1) field is invalid
 H:need_a_format = You need to upload at least one of the following formats:
-L:error_gen_st	= Error generating static page for $(1): $(2)
+L:error_gen_st	= Error generating static page "$(1)" for $(2): $(3)
 </file>
 
 <file HTMLRender.pm>

@@ -74,7 +74,14 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-	
+
+	# only session & table are required.
+	# setup defaults for the others:
+	$allow_blank = 0 if ( !defined $allow_blank );
+	$satisfy_all = 1 if ( !defined $satisfy_all );
+	$fields = [] if ( !defined $fields );
+	$orderby = {} if ( !defined $orderby );
+
 	$self->{session} = $session;
 	$self->{table} = $table;
 	$self->{allow_blank} = $allow_blank;
@@ -133,7 +140,7 @@ sub new
 sub add_field
 {
 	my( $self, $field, $value ) = @_;
-	
+
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
 	                                            $self->{table},					
@@ -620,23 +627,6 @@ sub get_records
 		EPrints::Language::logphrase( "L:not_cached" ) );
 		
 }
-
-sub get_eprints
-{
-	my ( $self ) = @_;
-	
-	my @data = $self->get_records();
-
-	foreach ( @data ) {
-		$_ = new EPrints::EPrint( 
-			$self->{session}, 
-			$self->{table},
-			$_->{eprintid},
-			$_  );
-	}
-	return @data;
-}
-
 
 
 1;

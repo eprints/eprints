@@ -67,7 +67,7 @@ sub new
 	$self->{render} = EPrints::HTMLRender->new( $self, $offline );
 
 	# Create a database connection
-	$self->{database} = EPrints::Database->new();
+	$self->{database} = EPrints::Database->new( $self );
 	
 	if( !defined $self->{database} )
 	{

@@ -64,40 +64,19 @@ use strict;
 
 sub new
 {
-	my( $class, $session, $username, $dbrow ) = @_;
+	my( $class, $session, $username, $known ) = @_;
 	
-	my $self = {};
-	bless $self, $class;
-	
-	$self->{session} = $session;
 
-	if( !defined $dbrow )
+	if( !defined $known )
 	{
-		# Get the relevant row...
-		my @row = $self->{session}->{database}->retrieve_single(
+		return $session->{database}->get_single(
 			$EPrints::Database::table_user,
-			"username",
 			$username );
+	} 
 
-		if( $#row == -1 )
-		{
-			# No such user! Eek!
-			return( undef );
-		}
-
-		$dbrow = \@row;
-	}
-
-	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_fields( "users" );
-
-	my $i=0;
-	
-	foreach (@fields)
-	{
-		$self->{$_->{name}} = $dbrow->[$i];
-		$i++;
-	}
+	my $self = $known;
+	bless $self, $class;
+	$self->{session} = $session;
 
 	return( $self );
 }

@@ -42,33 +42,12 @@ use strict;
 
 sub new
 {
-	my( $class, $string_representation ) = @_;
+	my( $class, $subjects ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 
-	my @subjects = ();
-	$self->{subjects} = \@subjects;
-	
-#EPrints::Log::debug( "SubjectList", "Creating subject list from ".(defined $string_representation ? $string_representation : "undef" ));
-
-	if( defined $string_representation )
-	{
-		# Parse string rep
-		my @tags = split /:/, $string_representation;
-		my $tag;
-
-		foreach $tag (@tags)
-		{
-			# Ignore empty, since list starts and ends with : giving an empty
-			# tag at the start and end
-			if( $tag ne "" )
-			{
-				push @subjects, $tag;
-#EPrints::Log::debug( "SubjectList", "Added tag $tag" );
-			}
-		}
-	}
+	$self->{subjects} = $subjects;
 	
 	return( $self );
 }

@@ -46,8 +46,8 @@ $EPrints::EPrint::id_code_digits = 8;
 	"reasons:multitext:6:Reason for Additional Heading:0:0:0",
 	                                         # Chance for user to explain why
 	"type:eprinttype::EPrint Type:1:0:0",    # EPrint types, special case again
-	"succeeds:text::Later Version Of:0:0:0", # Later version of....
-	"commentary:text::Commentary On:0:0:0"   # Commentary on/response to...
+	"succeeds:text::Later Version Of:0:0:0:1", # Later version of....
+	"commentary:text::Commentary On:0:0:0:1"   # Commentary on/response to...
 );
 
 
@@ -103,15 +103,9 @@ sub new
 {
 	my( $class, $session, $table, $id, $known ) = @_;
 
-	my $self = {};
+	my $self;
 
-	if( defined $known )
-	{
-		## Rows are already known
-		$self = $known;
-		$self->{table} = $table;
-	} 
-	elsif ( !defined $known )	
+	if ( !defined $known )	
 	{
 		if( !defined $table )
 		{
@@ -129,26 +123,22 @@ sub new
 					$id );
 				if ( defined $self ) 
 				{
-					$self->{table} = $_;
-					last;
+					return $self;
 				}
 			}
+			return undef;
 		}
-		else
-		{
-			$self = $session->{database}->get_single(
-				$_,
-				$id );
-			$self->{table} = $table;
-		}		
-
-		if( !defined $self )
-		{
-			## We still don't have any data, so the EPrint obviously doesn't exist.
-			return( undef );
-		}		
+		return $session->{database}->get_single( $_ , $id );
 	}
 
+	if( defined $known )
+	{
+		## Rows are already known
+		$self = $known;
+	} else {
+		$self = {};
+	}
+	$self->{table} = $table;
 	$self->{session} = $session;
 
 	bless $self, $class;
@@ -928,22 +918,19 @@ sub get_all_documents
 {
 	my( $self ) = @_;
 
-	my @documents;	
-	my @fields = EPrints::MetaInfo::get_fields( "documents" );
+	my $searchexp = new EPrints::SearchExpression(
+		$self->{session},
+		$EPrints::Database::table_document );
 
-	# Grab relevant rows from the database.
-	my $rows = $self->{session}->{database}->retrieve_fields(
-		$EPrints::Database::table_document,
-		\@fields,
-		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field( 
+			$EPrints::Database::table_document,
+			"eprintid" ),
+		"ALL:EQ:$self->{eprintid}" );
 
-	foreach( @$rows )
-	{
-		my $document = EPrints::Document->new( $self->{session},
-		                                       undef,
-		                                       $_ );
-		push @documents, $document if( defined $document );
-	}
+	my $searchid = $searchexp->cache();
+	my @documents = $searchexp->get_records();
+	$searchexp->drop_cache();
 
 	return( @documents );
 }
@@ -1316,7 +1303,8 @@ sub generate_static
 		EPrints::Log::log_entry(
 			"EPrint",
 			$self->{session}->{lang}->phrase(
-				"L:error_get_st",
+				"L:error_gen_st",
+				$self->static_page_local(),
 				$self->{eprintid},
 				$! ) );
 		return( 0 );
@@ -1434,12 +1422,21 @@ sub first_in_thread
 sub later_in_thread
 {
 	my( $self, $field ) = @_;
-	
-	return( EPrints::EPrint::retrieve_eprints(
+#cjg	
+	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$EPrints::Database::table_archive,
-		[ "$field->{name} LIKE \"$self->{eprintid}\"" ],
-		[ "datestamp DESC" ] ) );
+		$EPrints::Database::table_archive );
+
+	$searchexp->add_field( $field, "ALL:EQ:$self->{eprintid}" );
+
+#cjg		[ "datestamp DESC" ] ) );
+
+	my $searchid = $searchexp->cache();
+	my @eprints = $searchexp->get_records();
+	$searchexp->drop_cache();
+
+	return @eprints;
+
 }
 
 

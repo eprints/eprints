@@ -68,7 +68,6 @@ sub new
 	elsif( !defined $id || $id eq $EPrints::Subject::root_subject )
 	{
 		# Create a root subject object
-	
 		$self->{subjectid} = $EPrints::Subject::root_subject;
 		$self->{depositable} = "FALSE";
 		$self->{name} = $EPrints::Subject::root_subject_name;
@@ -76,11 +75,10 @@ sub new
 	else
 	{
 		# Got ID, need to read stuff in from database
-		$self = $session->{database}->get_single(
+		return $session->{database}->get_single(
 			$EPrints::Database::table_subject,
 			$id );
 
-		return( undef ) if( !defined $self ); # DB err
 	}
 
 	if (! defined $self->{parent} ) {
@@ -88,7 +86,6 @@ sub new
 	}
 	$self->{session} = $session;
 	bless $self, $class;
-
 	return( $self );
 }
 	
@@ -174,20 +171,16 @@ sub children
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		"subjects",
-		0,
-		1,
-		[],
-		{},
-		undef );
+		"subjects" );
 
 	$searchexp->add_field(
 		EPrints::MetaInfo::find_table_field(
 			"subjects",
 			"parent" ),
 		"ALL:EQ:$self->{subjectid}" );
+
 	my $searchid = $searchexp->cache();
-	my @rows = $searchexp->get_eprints();
+	my @rows = $searchexp->get_records();
 	$searchexp->drop_cache();
 
 	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
@@ -500,13 +493,13 @@ sub get_all
 	return( undef ) if( scalar @rows == 0 );
 
 	my( @subjects, %subjectmap );
-	
+
+		
 	foreach (@rows)
 	{
-		my $s = new EPrints::Subject( $session, undef, $_ );
-		push @subjects, $s;
+		push @subjects, $_;
 
-		$subjectmap{$s->{subjectid}} = $s;
+		$subjectmap{$_->{subjectid}} = $_;
 
 #		my $p = "get_all:";
 #		foreach (@$r)
@@ -535,21 +528,14 @@ sub posted_eprints
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$table,
-		0,
-		1,
-		[],
-		{},
-		undef );
+		$table );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
-			"archive",
-			"subjects" ),
+		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->cache();
-	my @data = $searchexp->get_eprints();
+	my @data = $searchexp->get_records();
 	$searchexp->drop_cache();
 
 	return @data;
@@ -573,17 +559,10 @@ sub count_eprints
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$table,
-		0,
-		1,
-		[],
-		{},
-		undef );
+		$table );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
-			"archive",
-			"subjects" ),
+		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->cache();

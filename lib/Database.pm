@@ -44,6 +44,17 @@ $EPrints::Database::table_subject = "subjects";
 $EPrints::Database::table_subscription = "subscriptions";
 $EPrints::Database::table_deletion = "deletions";
 
+%EPrints::Database::table_class = (
+	$EPrints::Database::table_user => "EPrints::Users",
+	$EPrints::Database::table_inbox => "EPrints::EPrint",
+	$EPrints::Database::table_buffer => "EPrints::EPrint",
+	$EPrints::Database::table_archive => "EPrints::EPrint",
+	$EPrints::Database::table_document => "EPrints::Document",
+	$EPrints::Database::table_subject => "EPrints::Subject",
+	$EPrints::Database::table_subscription => "EPrints::Users",
+	$EPrints::Database::table_deletion => "EPrints::Deletion"
+);
+
 #
 # Counters
 #
@@ -137,10 +148,11 @@ sub build_connection_string
 
 sub new
 {
-	my( $class ) = @_;
+	my( $class , $session) = @_;
 
 	my $self = {};
 	bless $self, $class;
+	$self->{session} = $session;
 
 	# Connect to the database
 	$self->{dbh} = DBI->connect( &EPrints::Database::build_connection_string,
@@ -866,8 +878,6 @@ sub _get
 	# mode 1 = many entries from a cache table
 	# mode 2 = return the whole table (careful now)
 
-
-	print "GET:($table)($mode)\n";	
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
@@ -889,7 +899,12 @@ sub _get
 			{
 				$cols .= ", ";
 			}
-			$cols .= "M.".$_->{name};
+			my $col = "M.".$_->{name};
+			if ( $_->{type} eq "name" ) 
+			{
+				$col = "M.$_->{name}_given,M.$_->{name}_family";
+			}
+			$cols .= $col;
 		}
 	}
 	my $sql;
@@ -988,6 +1003,33 @@ sub _get
 			$data[$n]->{$multifield->{name}}->[$pos] = $value;
 		}
 	}	
+
+	# If this table represents a class then actually
+	# construct the class from the data.
+
+	my $class = $EPrints::Database::table_class{$table};
+	if ( defined $class ) {
+		foreach (@data)
+		{	
+			## EPrints have a slightly different
+			## constructor.
+			if ( $class eq "EPrints::EPrint" ) 
+			{
+				$_ = EPrints::EPrint->new( 
+					$self->{session},
+					$table,
+					undef,
+					$_ );
+			}
+			else
+			{
+				$_ = $EPrints::Database::table_class{$table}->new( 
+					$self->{session},
+					undef,
+					$_ );
+			}
+		}
+	}
 	return @data;
 }
 
@@ -996,7 +1038,7 @@ sub do
 	my ( $self , $sql ) = @_;
 
 #EPrints::Log::debug( "Database", "$sql" );
-print "$sql\n";
+#print "$sql\n";
 
 	return $self->{dbh}->do( $sql );
 }
@@ -1006,7 +1048,7 @@ sub prepare
 	my ( $self , $sql ) = @_;
 
 #EPrints::Log::debug( "Database", "$sql" );
-print "$sql\n";
+#print "$sql\n";
 
 	return $self->{dbh}->prepare( $sql );
 }
