@@ -200,9 +200,9 @@ $EPrintSite::SiteInfo::allow_arbitrary_formats = 1;
 
 %EPrintSite::SiteInfo::supported_format_names = 
 (
-	"HTML"                     => "Hypertext Markup Language (HTML)",
-	"PDF"                      => "Adobe Portable Document Format",
-	"PS"                       => "Adobe Postscript",
+	"HTML"                     => "HTML",
+	"PDF"                      => "Adobe PDF",
+	"PS"                       => "Postscript",
 	"ASCII"                    => "Plain ASCII Text"
 );
 
