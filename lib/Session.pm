@@ -55,7 +55,7 @@ use strict;
 ## WP1: BAD
 sub new
 {
-	my( $class, $mode, $param, $noise ) = @_;
+	my( $class, $mode, $param, $noise, $nocheckdb ) = @_;
 	# mode = 0    - We are online (CGI script)
 	# mode = 1    - We are offline (bin script) param is archiveid
 	# mode = 2    - We are offline (auth) param is host and path.	
@@ -121,19 +121,6 @@ sub new
 
 	if( $self->{noise} >= 2 ) { print "Starting EPrints Session.\n"; }
 
-	# Create a database connection
-	if( $self->{noise} >= 2 ) { print "Connecting to DB ... "; }
-	$self->{database} = EPrints::Database->new( $self );
-	if( !defined $self->{database} )
-	{
-		# Database connection failure - noooo!
-		# cjg diff err if offline?
-		$self->render_error( $self->html_phrase( "lib/session:fail_db_connect" ) );
-		return undef;
-	}
-	if( $self->{noise} >= 2 ) { print "done.\n"; }
-	
-
 	# What language is this session in?
 
 	my $langcookie = $self->{query}->cookie( $self->{archive}->get_conf( "lang_cookie_name") );
@@ -146,21 +133,38 @@ sub new
 	#really only (cjg) ONLINE mode should have
 	#a language set automatically.
 	
+
 	$self->new_page();
 
-#$self->{starttime} = gmtime( time );
+	# Create a database connection
+	if( $self->{noise} >= 2 ) { print "Connecting to DB ... \n"; }
+	$self->{database} = EPrints::Database->new( $self );
+	if( !defined $self->{database} )
+	{
+		# Database connection failure - noooo!
+		$self->render_error( $self->html_phrase( "lib/session:fail_db_connect" ) );
+		return undef;
+	}
 
+	unless( $nocheckdb )
+	{
+		# Check there is some tables.
+		my $sql = "SHOW TABLES";
+		my $sth = $self->{database}->prepare( $sql );
+		$self->{database}->execute( $sth , $sql );
+		if( !$sth->fetchrow_array )
+		{ 
+			$self->get_archive()->log( "No tables in the MySQL database! Did you run create_tables?" );
+			$self->{database}->disconnect();
+			return undef;
+		}
+		$sth->finish;
+	}
+
+
+	if( $self->{noise} >= 2 ) { print "...done.\n"; }
 	
 	$self->{archive}->call( "session_init", $self, $self->{offline} );
-
-#
-#	my @params = $self->{render}->{query}->param();
-#	
-#	foreach (@params)
-#	{
-#		my @vals = $self->{render}->{query}->param($_);
-#	}
-	
 
 	return( $self );
 }
@@ -775,11 +779,9 @@ sub render_error
 
 	if ( $self->{offline} )
 	{
-		#cjg This should do some word wrap stuff-> similar 
-		# to what the mailer should do
 		print $self->phrase( "lib/session:some_error" );
-		print "\n\n";
-		print "$error_text\n\n"; # now DOM!
+		print EPrints::Utils::tree_to_utf8( $error_text, 76 );
+		print "\n";
 		return;
 	} 
 

@@ -59,7 +59,7 @@ sub new_archive_by_id
 		return $ARCHIVE_CACHE{$id};
 	}
 	
-	print STDERR "Loading: $id\n";
+#	print STDERR "Loading: $id\n";
 
 	my $self = {};
 	bless $self, $class;
@@ -85,7 +85,7 @@ sub new_archive_by_id
 
 	$ARCHIVE_CACHE{$id} = $self;
 
-	$self->log("done: new($id)");
+	#$self->log("done: new($id)");
 	return $self;
 }
 

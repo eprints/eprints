@@ -1473,5 +1473,65 @@ sub get_id
 
 	return $self->{data}->{eprintid};
 }
+
+sub render_version_thread
+{
+	my( $self, $field ) = @_;
+
+	my $html;
+
+	my $first_version = $self->first_in_thread( $field );
+
+	my $ul = $self->{session}->make_element( "ul" );
+	
+	$ul->appendChild( $first_version->_render_version_thread_aux( $field, $self ) );
+	
+	return( $ul );
+}
+
+sub _render_version_thread_aux
+{
+	my( $self, $field, $eprint_shown ) = @_;
+	
+	my $li = $self->{session}->make_element( "li" );
+
+	my $cstyle = $self->{session}->get_citation_spec(
+					$self->{dataset},
+					"thread_".$field->get_name() );
+
+	if( $self->get_value( "eprintid" ) != $eprint_shown->get_value( "eprintid" ) )
+	{
+		$li->appendChild( $self->render_citation_link( $cstyle ) );
+	}
+	else
+	{
+		$li->appendChild( $self->render_citation( $cstyle ) );
+		$li->appendChild( $self->{session}->make_text( " " ) );
+		$li->appendChild( $self->{session}->html_phrase( "lib/eprint:curr_disp" ) );
+	}
+
+	my @later = $self->later_in_thread( $field );
+
+	# Are there any later versions in the thread?
+	if( scalar @later > 0 )
+	{
+		# if there are, start a new list
+		my $ul = $self->{session}->make_element( "ul" );
+		my $version;
+		foreach $version (@later)
+		{
+			$ul->appendChild( $version->_render_version_thread_aux(
+				$field, $eprint_shown ) );
+		}
+		$li->appendChild( $ul );
+	}
+	
+	return( $li );
+}
+
+
+
+
+1; # For use/require success
 	
 1;

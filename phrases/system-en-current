@@ -42,6 +42,7 @@ EPrints Modules
     <phrase ref="lib/eprint:eprint_gone_title">EPrint Removed</phrase>
     <phrase ref="lib/eprint:eprint_gone"><p>You seem to be attempting to access an eprint that has been removed from the archive.</p></phrase>
     <phrase ref="lib/eprint:later_version"><p>There is a later version of the eprint you are trying to access:<br /><pin ref="citation" /></p></phrase>
+    <phrase ref="lib/eprint:curr_disp"><strong>[Currently Displayed]</strong></phrase>
 
 
 <!-- MetaField -->
@@ -111,7 +112,6 @@ EPrints Modules
     <phrase ref="lib/session:contact"><p>Feel free to contact <a href="mailto:&adminemail;">&archivename; administration</a> with details.</p></phrase>
     <phrase ref="lib/session:cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
     <phrase ref="lib/session:username_title">Usernames</phrase>
-    <phrase ref="lib/session:curr_disp">Currently Displayed</phrase>
     <phrase ref="lib/session:error_title">Error</phrase>
     <phrase ref="lib/session:no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
     <phrase ref="lib/session:no_priv">Your account does not have the required privilege to use this function.</phrase>

@@ -34,6 +34,10 @@
 
     <citation type="eprint_thesis">&authors; <ifset name="year">(&year;) </ifset><i>&title;</i>. &thesistype;,<ifset name="department"> &department;,</ifset><ifset name="institution"> &institution;</ifset>.</citation>
 
+    <citation type="eprint_thread_succeeds">&title; (deposited &datestamp;)</citation>
+
+    <citation type="eprint_thread_commentary">&authors;. &title;. (deposited &datestamp;)</citation>
+
     <citation type="user_admin"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
 
     <citation type="user_editor"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>

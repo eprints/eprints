@@ -91,7 +91,7 @@ my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 2 if( $verbose );
 
-my $session = new EPrints::Session( 1, $ARGV[0], $noise );
+my $session = new EPrints::Session( 1, $ARGV[0], $noise, 1 );
 exit( 1 ) unless defined $session;
 
 if( $noise>=1 ) { print "Creating database tables...\n"; }

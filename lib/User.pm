@@ -444,7 +444,7 @@ sub get_editable_eprints
 # on which they are an author. Although this is a problem for
 # the site admin, not the core code.
 
-# cjg not done
+# cjg not done- where is it needed?
 sub get_owned_eprints
 {
 	my( $self ) = @_;
@@ -457,6 +457,7 @@ sub get_owned_eprints
 # Is the given eprint in the set of eprints which would be returned by 
 # get_owned_eprints?
 # cjg not done
+#cjg means can this user request removal, and submit later versions of this item?
 # cjg could be ICK and just use get_owned_eprints...
 sub is_owner
 {

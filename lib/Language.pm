@@ -47,7 +47,7 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-print STDERR "------LOADINGLANG:$langid-------\n";
+#print STDERR "------LOADINGLANG:$langid-------\n";
 
 	$self->{id} = $langid;
 	

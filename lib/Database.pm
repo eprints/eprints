@@ -109,6 +109,7 @@ sub new
 		return( undef );
 	}
 
+
 	#$self->{dbh}->trace( 2 );
 
 	return( $self );

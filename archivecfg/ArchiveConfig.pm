@@ -486,20 +486,6 @@ $c->{order_methods}->{user} =
 $c->{default_order}->{user} = "byname";
 
 
-#####
-##### This is the point from which chaos reigns
-##### but it will be made better. Later...
-#####
-
-
-# How to display articles in "version of" and "commentary" threads.
-#  See lib/Citation.pm for information on how to specify this.
-$c->{thread_citation_specs} =
-{
-	"succeeds"    =>  "{title} (deposited {datestamp})",
-	"commentary"  =>  "{authors}. {title}. (deposited {datestamp})"
-};
-
 ######################################################################
 #
 # User Types
@@ -1140,18 +1126,16 @@ sub eprint_render
 	{
 		$page->appendChild( 
 			$session->html_phrase( "page:available_versions" ) );
-		#$html .= $eprint->{session}->{render}->write_version_thread(
-			#$eprint,
-			#$succeeds_field );
+		$page->appendChild( 
+			$eprint->render_version_thread( $succeeds_field ) );
 	}
 	
 	if( $eprint->in_thread( $commentary_field ) )
 	{
 		$page->appendChild( 
 			$session->html_phrase( "page:commentary_threads" ) );
-		#$html .= $eprint->{session}->{render}->write_version_thread(
-			#$eprint,
-			#$commentary_field );
+		$page->appendChild( 
+			$eprint->render_version_thread( $commentary_field ) );
 	}
 
 	# If being viewed by a staff member, we want to show any suggestions for

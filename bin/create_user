@@ -111,7 +111,7 @@ GetOptions(
 ) || pod2usage( 2 );
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 3 && scalar @ARGV != 4 ); 
+pod2usage( 2 ) if( scalar @ARGV != 4 && scalar @ARGV != 5 ); 
 
 my $noise = 1;
 $noise = 0 if( $quiet );

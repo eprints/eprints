@@ -54,7 +54,6 @@
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 
-
 0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 0	Paged Metadata in submission form.
 0	Browse Multiple Fields at once (eg. authors.id/editors.id)
@@ -80,7 +79,7 @@
 0	patch for config files when upgrading.(?)
 0	different looks for boolean/opts eg. check/radio boxes.
 -	Allow users to request a username when registering.
-0	Bulk XML Dumper
+3	Bulk XML Dumper
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
@@ -162,8 +161,10 @@
 #	directory listing on perl dir is showing and should be hidden.
 
 #Clean UP
+#	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
 #	print STDERR's should be log()
 #	Eliminate HTMLRenderer
+#	Default config should have a "comments" subject
 #	Make SearchFields have a better call method.
 #	Put System field titles in system phrase file.
 #	Not everything should be no-cache! (HTTP header)
@@ -180,27 +181,21 @@
 # import_subjects does not check for errors very well.
 
 #TODO
+#	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
+#	Call backs for LEAVING archive and buffer=>inbox
+#	change order tables to one per langid
+#	Call backs to handle Latex processing.
+#	"Squash" reverse indexes?
+
+#LESS URGENT TODO...
 #	langid's -> validate they is correct (in multilang)
 #	Make all possible field-types browseable.
-#	Threads rendering code.
-#	"Squash" reverse indexes?
-#	allow configure_archive to specify archive name on command line.
-#	verbose mode for bin scripts? proper switch handling|?
 #	sort subject input fields
 #	text area without CR's (config flag) eg. for title.
 #	Magic search fields - eg. Must have HTML format document/public document...
 #	no new eprints when disk fullish
-#	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
-#	 Call backs for LEAVING archive and buffer=>inbox
-#	subject importer to use XML
-#	rename views to browse/ (?)
-#	rename rebuild_sets to something betterer?
-#	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
-#	change order tables to one per langid
 #	New search exp style which makes a one shot cache for dumping etc.
-#	Default config should have a "comments" subject
-#	make bin scripts flush ...'s before "done"'s
 #	browse fields should each have their own seperate order .
 #	Add POD manuals to ALL lib and CGI files.
 # 	Make man pages from /bin etc build into docs.
-
+#	import_xml becomes import_foo etc. eprint/user/whatever.

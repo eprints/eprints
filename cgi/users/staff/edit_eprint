@@ -130,7 +130,7 @@ sub process
 	if( defined $action && $action eq "cancel" )
 	{
 		$session->redirect(
-			$session->get_archive()->get_conf( "userhome" );
+			$session->get_archive()->get_conf( "userhome" ) );
 		return;
 	}
 

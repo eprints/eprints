@@ -67,6 +67,7 @@ sub deal
 
 	$eprint->set_value( "subjects" , ["blgc-bchm"] );
 	$eprint->set_value( "eprinttype" , "other" );
+	$eprint->datestamp();
 	if( $session->get_db()->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";
@@ -78,7 +79,10 @@ sub deal
 		#cjg needs a userid
 		$eprint = EPrints::EPrint::create( $session, $info->{ds}, undef, $eprint->get_data() );
 	}
-	push @{$info->{update_abstracts}}, $eprint->get_all_related();
+	foreach( $eprint->get_all_related() )
+	{
+		push @{$info->{update_abstracts}}, $_->get_value( "eprintid" );
+	}
 	push @{$info->{update_abstracts}}, $eprint->get_value( "eprintid" );
 }
 
