@@ -864,7 +864,7 @@ sub eprint_render_full
 	
 	#foreach (@documents)
 	#{
-		#my $description = EPrints::Document::format_name( $eprint->{session}, $_->{format} );
+		#my $description = EPrints::Document::format_name( $eprint->{session}, $_->{format} ); ##cjg Is a type name now
 		#$description = $_->{formatdesc}
 			#if( $_->{format} eq $EPrints::Document::OTHER );
 #

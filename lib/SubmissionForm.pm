@@ -22,6 +22,7 @@ use EPrints::Document;
 use Unicode::String qw(utf8 latin1);
 use strict;
 
+#cjg CLONE still does not work.
 
 # Stages of upload
 
@@ -298,9 +299,9 @@ sub _from_stage_home
 	}
 
 
-#cjg NOT DONE REST OF THIS FUNCTION
 	if( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
 	{
+		die;
 		if( !defined $self->{eprint} )
 		{
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
@@ -321,27 +322,33 @@ sub _from_stage_home
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_delete") )
+
+	if( $self->{action} eq "delete" )
 	{
 		if( !defined $self->{eprint} )
 		{
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
-		$self->{new_stage} = $EPrints::SubmissionForm::stage_confirmdel;
+		$self->{new_stage} = "confirmdel";
+		return( 1 );
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_submit") )
+
+	if( $self->{action} eq "submit" )
 	{
 		if( !defined $self->{eprint} )
 		{
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
-		$self->{new_stage} = $EPrints::SubmissionForm::stage_quickverify;
+		$self->{new_stage} = "quickverify";
+		return( 1 );
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
+
+	if( $self->{action} eq "cancel" )
 	{
 		$self->_set_stage_prev;
+		return( 1 );
 	}
 
 	# Don't have a valid action!
@@ -588,20 +595,20 @@ sub _from_stage_format
 		return( 1 );
 	}
 
-#	if( $self->{action} eq "finished" )
-#	{
-#		$self->{problems} = $self->{eprint}->validate_documents();
-#
-#		if( $#{$self->{problems}} >= 0 )
-#		{
-#			# Problems, don't advance a stage
-#			$self->_set_stage_this;
-#			return( 1 )
-#		}
-#
-#		$self->_set_stage_next;
-#		return( 1 );
-#	}
+	if( $self->{action} eq "finished" )
+	{
+		$self->{problems} = $self->{eprint}->validate_documents();
+
+		if( $#{$self->{problems}} >= 0 )
+		{
+			# Problems, don't advance a stage
+			$self->_set_stage_this;
+			return( 1 )
+		}
+
+		$self->_set_stage_next;
+		return( 1 );
+	}
 
 	#### The other actions ( edit & remove ) have a doc
 	#### Attached to their action id.
@@ -616,8 +623,6 @@ print STDERR $self->{action}."!";
 	}
 	my( $doc_action, $docid ) = ( $1, $2 );
 		
-print STDERR "($doc_action)($docid)\n";
-
 	# Find relevant document object
 	$self->{document} = EPrints::Document->new( $self->{session}, $docid );
 
@@ -674,7 +679,6 @@ sub _from_stage_fileview
 		$self->_corrupt_err;
 		return( 0 );
 	}
-print STDERR "_-----------------------------\n";
 
 	my %files_unsorted = $self->{document}->files();
 	my @files = sort keys %files_unsorted;
@@ -752,7 +756,6 @@ print STDERR "_-----------------------------\n";
 		# Set up info for next stage
 		$self->{arc_format} = $self->{session}->param( "arc_format" );
 		$self->{num_files} = $self->{session}->param( "num_files" );
-print STDERR "arc(".$self->{arc_format}.")(".$self->{num_files}.")\n";
 		$self->{new_stage} = "upload";
 		return( 1 );
 	}
@@ -832,7 +835,6 @@ sub _from_stage_upload
 			my $i;
 			for( $i=0; $i<$num_files; $i++ )
 			{
-print STDERR "---$i---\n";
 				$file = $self->{session}->param( "file_$i" );
 				
 				$success = $self->{document}->upload( $file, $file );
@@ -898,7 +900,7 @@ sub _from_stage_verify
 		# Do the commit to the archive thang. One last check...
 		my $problems = $self->{eprint}->validate_full();
 		
-		if( $#{$problems} ==-1 )
+		if( scalar @{$problems} == 0 )
 		{
 			# OK, no problems, submit it to the archive
 			if( $self->{eprint}->submit() )
@@ -937,8 +939,8 @@ sub _from_stage_confirmdel
 	{
 		if( !$self->{eprint}->remove() )
 		{
-			my $db_error = $self->{session}->{database}->error();
-			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );#cjg!!
+			my $db_error = $self->{session}->get_db()->error();
+			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->get_value( "eprintid" ).": $db_error" );
 			$self->_database_err;
 			return( 0 );
 		}
@@ -1676,56 +1678,61 @@ sub _do_stage_verify
 	# Validate again, in case we came from home
 	$self->{problems} = $self->{eprint}->validate_full();
 
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_verify} ) );
+	my( $page, $p );
+	$page = $self->{session}->make_doc_fragment();
 
-	print $self->{session}->{render}->start_form();
+	# stage could be either verify or quickverify
+	my $hidden_fields = {
+		stage => $self->{new_stage},
+		eprintid => $self->{eprint}->get_value( "eprintid" )
+	};
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" )
+	};
 	
-	print $self->{session}->{render}->hidden_field(
-		"stage",
-		$EPrints::SubmissionForm::stage_verify );
-	print $self->{session}->{render}->hidden_field(
-		"eprintid",
-		$self->{eprint}->{eprintid} );#cjg!!
 
-	if( $#{$self->{problems}} >= 0 )
+	if( scalar @{$self->{problems}} > 0 )
 	{
 		# Null doc fragment past because 'undef' would cause the
 		# default to appear.
-		$self->_render_problems(
+		$page->appendChild( $self->_render_problems(
 			$self->{session}->html_phrase("lib/submissionform:fix_probs"),
-			$self->{session}->make_doc_fragment() );
-
-		print "<P><CENTER>";
-		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->phrase("lib/submissionform:action_prev") ] );
-		print "</CENTER></P>\n";
+			$self->{session}->make_doc_fragment() ) );
 	}
 	else
 	{
-		print "<P><CENTER>";
-		print $self->{session}->phrase("lib/submissionform:please_verify");
-		print "</CENTER></P>\n";
-		print "<HR>\n";
-		
-		print $self->{session}->{render}->_render_eprint_full( $self->{eprint} );
-	
-		print "<HR>\n";
+		$p = $self->{session}->make_element( "p" );
+		$page->appendChild( $p );
+		$p->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
 
-		print $self->{session}->get_archive()->get_conf ("deposit_agreement_text" )."\n"
-			if( defined $self->{session}->get_archive()->get_conf( "deposit_agreement_text" ) );
+		$page->appendChild( $self->{session}->render_ruler() );	
+		$page->appendChild(
+			$self->{session}->get_archive()->call( "eprint_render_full", $self->{eprint} ) );
+		$page->appendChild( $self->{session}->render_ruler() );	
 
-		print "<P><CENTER>";
-		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->phrase("lib/submissionform:action_prev"),
-			  $self->{session}->phrase("lib/submissionform:action_submit") ] );
-		print "</CENTER></P>\n";
+		# cjg Should be from an XML-lang file NOT the main config.
+		$page->appendChild( $self->{session}->make_text( 
+			$self->{session}->get_archive()->get_conf( "deposit_agreement_text" ) ) );
+
+		$submit_buttons->{submit} = $self->{session}->phrase( "lib/submissionform:action_submit" );
 	}
-	
-	print $self->{session}->{render}->end_form();
-	print $self->{session}->{render}->end_html();
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			[],
+			{},
+			0,
+			1,
+			$submit_buttons,
+			$hidden_fields,
+			{},
+			"submit#t" ) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_verify" ),
+		$page );
+	$self->{session}->send_page();
 }		
 		
 
@@ -1740,24 +1747,27 @@ sub _do_stage_done
 {
 	my( $self ) = @_;
 	
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_done} ) );
-	
-	print "<P><CENTER><STRONG>";
-	print $self->{session}->phrase("lib/submissionform:thanks");
-	print "</STRONG><CENTER></P>\n";
-	
-	print "<P><CENTER>";
-	print $self->{session}->phrase("lib/submissionform:in_buffer");
-	print "</CENTER></P>\n";
-	
-	print "<P><CENTER><A HREF=\"home\">";
-	print $self->{session}->phrase("lib/submissionform:ret_dep_page");
-	print "</A></CENTER></P>\n";
+	my( $page, $p, $a );
+	$page = $self->{session}->make_doc_fragment();
 
-	print $self->{session}->{render}->end_html();
+	$p = $self->{session}->make_element( "p" );
+	$page->appendChild( $p );
+	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:thanks") );
+	
+	$p = $self->{session}->make_element( "p" );
+	$page->appendChild( $p );
+	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:in_buffer") );
+
+	$p = $self->{session}->make_element( "p" );
+	$page->appendChild( $p );
+	$a = $self->{session}->make_element( "a", href=>"home" );
+	$page->appendChild( $a );
+	$a->appendChild( $self->{session}->html_phrase("lib/submissionform:ret_dep_page") );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_done" ),
+		$page );
+	$self->{session}->send_page();
 }
 
 
@@ -1771,35 +1781,42 @@ sub _do_stage_done
 sub _do_stage_confirmdel
 {
 	my( $self ) = @_;
-
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_confirmdel} ) );
-
-	print "<P><CENTER><strong>";
-	print $self->{session}->phrase("lib/submissionform:sure_delete");
-	print "</strong></CENTER></P>\n<P><CENTER>";
 	
-	print $self->{eprint}->short_title();
-	
-	print "</CENTER></P>\n<P><CENTER>\n";
+	my( $page, $p );
+	$page = $self->{session}->make_doc_fragment();
 
-	print $self->{session}->{render}->start_form();
-	print $self->{session}->{render}->hidden_field(
-		"eprintid",
-		$self->{eprint}->{eprintid} );#cjg!!
-	print $self->{session}->{render}->hidden_field(
-		"stage",
-		$EPrints::SubmissionForm::stage_confirmdel );
-	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("lib/submissionform:action_confirm"),
-		  $self->{session}->phrase("lib/submissionform:action_cancel") ] );
-	print $self->{session}->{render}->end_form();
+	$p = $self->{session}->make_element( "p" );
+	$page->appendChild( $p );
+	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete") );
+	$p->appendChild( $self->{session}->make_text( " ".$self->{eprint}->short_title() ) );
 
-	print "</CENTER></P>\n";
+	my $hidden_fields = {
+		stage => "confirmdel",
+		eprintid => $self->{eprint}->get_value( "eprintid" )
+	};
 
-	print $self->{session}->{render}->end_html();
+	my $submit_buttons = {
+		cancel => $self->{session}->phrase(
+				"lib/submissionform:action_cancel" ),
+		confirm => $self->{session}->phrase(
+				"lib/submissionform:action_confirm" )
+	};
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			[],
+			{},
+			0,
+			1,
+			$submit_buttons,
+			$hidden_fields,
+			{},
+			"submit#t" ) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_confirmdel" ),
+		$page );
+	$self->{session}->send_page();
 }	
 
 

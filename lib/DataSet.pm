@@ -146,10 +146,12 @@ sub new
 		{
 			$self->{types}->{$typeid} = [];
 
-			#cjg What did this do???? WHy???
+			# System fields are now not part of the "type" fields
+			# unless expicitly set.
+
 			# foreach( @{$self->{system_fields}} )
 			# {
-			# push @{$self->{types}->{$typeid}}, $_;
+			#	 push @{$self->{types}->{$typeid}}, $_;
 			# }
 			
 			my $f;
@@ -366,18 +368,15 @@ sub get_type_names
 	return( \%names );
 }
 
-# string get_type_name( $session, $type )
-#                     |         string
-#                     EPrints::Session
-# 
-#  returns the printable name of the $type belonging to this
-#  dataset, in the language of the $session.
-
-## WP1: BAD
 sub get_type_name
 {
 	my( $self, $session, $type ) = @_;
         return $session->phrase( $self->confid()."_typename_".$type );
+}
+sub render_type_name
+{
+	my( $self, $session, $type ) = @_;
+        return $session->html_phrase( $self->confid()."_typename_".$type );
 }
 
 sub get_type_fields

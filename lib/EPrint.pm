@@ -328,8 +328,9 @@ sub remove
 	
 	# Create a deletion record if we're removing the record from the main
 	# archive
-	if( $self->{dataset} eq "archive" )
+	if( $self->{dataset}->to_string() eq "archive" )
 	{
+		#cjg Test this!
 		$success = $success && EPrints::Deletion::add_deletion_record( $self );
 	}
 
@@ -341,7 +342,7 @@ sub remove
 		$success = $success && $doc->remove();
 		if( !$success )
 		{
-			$self->{session}->get_archive()->log( "Error removing doc ".$doc->{docid}.": $!" );
+			$self->{session}->get_archive()->log( "Error removing doc ".$doc->get_value( "docid" ).": $!" );
 		}
 	}
 
@@ -350,7 +351,7 @@ sub remove
 	
 	if( $num_deleted <= 0 )
 	{
-		$self->{session}->get_archive()->log( "Error removing files for ".$self->{eprint}.", path ".$self->local_path().": $!" );
+		$self->{session}->get_archive()->log( "Error removing files for ".$self->get_value( "eprintid" ).", path ".$self->local_path().": $!" );
 		$success = 0;
 	}
 
@@ -358,10 +359,9 @@ sub remove
 	$self->remove_from_threads();
 
 	# Remove our entry from the DB
-	$success = $success && $self->{session}->{database}->remove(
+	$success = $success && $self->{session}->get_db()->remove(
 		$self->{dataset},
-		"eprintid",
-		$self->{eprintid} );
+		$self->get_value( "eprintid" ) );
 	
 	return( $success );
 }
@@ -381,6 +381,9 @@ sub remove
 sub remove_from_threads
 {
 	my( $self ) = @_;
+
+	#cjg This really should do something!
+	return;
 	
 	if( $self->{dataset} eq  "archive" )
 	{
@@ -508,19 +511,18 @@ sub transfer
 	$self->{dataset} = $dataset;
 
 	# Create an entry in the new table
-# cjg add_record call
-	my $success = $self->{session}->{database}->add_record(
+
+	my $success = $self->{session}->get_db()->add_record(
 		$dataset,
-		{ "eprintid"=>$self->{eprintid} } );
+		{ "eprintid"=>$self->get_value( "eprintid" ) } );
 
 	# Write self to new table
 	$success =  $success && $self->commit();
 
 	# If OK, remove the old copy
-	$success = $success && $self->{session}->{database}->remove(
+	$success = $success && $self->{session}->get_db()->remove(
 		$old_dataset,
-		"eprintid",
-		$self->{eprintid} );
+		$self->get_value( "eprintid" ) );
 	
 	return( $success );
 }
@@ -794,36 +796,6 @@ sub get_all_documents
 
 ######################################################################
 #
-# @formats = get_formats()
-#
-#  Get the document file formats that are available for this EPrint
-#
-######################################################################
-
-## WP1: BAD
-sub get_formats
-{
-	my( $self ) = @_;
-	
-	# Grab relevant rows from the database.
-	my $rows = $self->{session}->{database}->retrieve(
-		"document",
-		[ "format" ],
-		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
-	
-	my @formats;
-
-	foreach (@$rows)
-	{
-		push @formats, $_->[0];
-	}
-
-	return( @formats );
-}
-
-
-######################################################################
-#
 # $problems = validate_documents()
 #  array_ref
 #
@@ -837,37 +809,52 @@ sub validate_documents
 	my( $self ) = @_;
 	my @problems;
 	
+        my @req_formats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};
+	my @docs = $self->get_all_documents();
 
-	#cjg Needs to do stuff.
+	my $ok = 0;
+	$ok = 1 if( scalar @req_formats == 0 );
 
-#	# Ensure we have at least one required format
-#	my @formats = $self->get_formats();
-#	my $f;
-#	my $ok = 0;
-#
-#	foreach $f (@formats)
-#	{
-#		$ok = 1 if( EPrints::Document::required_format(
-#				$self->{session},
-#				$f ) );
-#	
-#	}
-#
-#	if( !$ok )
-#	{
-#		my $prob = $self->{session}->phrase( "lib/eprint:need_a_format" );
-#		$prob .= "<UL>\n";
-#		foreach (@{$self->{session}->{required_formats}})
-#		{
-#			$prob .= "<LI>".EPrints::Document::format_name( 
-#						$self->{session},
-#					 	$_ )."</LI>\n";
-#		}
-#		$prob .= "</UL>\n";
-#
-#		push @problems, $prob;
-#
-#	}
+	my $doc;
+	foreach $doc ( @docs )
+        {
+		my $docformat = $doc->get_value( "format" );
+		foreach( @req_formats )
+		{
+                	$ok = 1 if( $docformat eq $_ );
+		}
+        }
+
+	if( !$ok )
+	{
+		my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
+		my $prob = $self->{session}->make_doc_fragment();
+		$prob->appendChild( $self->{session}->html_phrase( "lib/eprint:need_a_format" ) );
+		my $ul = $self->{session}->make_element( "ul" );
+		$prob->appendChild( $ul );
+		
+		foreach( @req_formats )
+		{
+			my $li = $self->{session}->make_element( "li" );
+			$ul->appendChild( $li );
+			$li->appendChild( $doc_ds->render_type_name( $self->{session}, $_ ) );
+		}
+			
+		push @problems, $prob;
+
+	}
+
+	foreach $doc (@docs)
+	{
+		my $probs = $doc->validate();
+		foreach (@$probs)
+		{
+			my $prob = $self->{session}->make_doc_fragment();
+			$prob->appendChild( $doc->render_desc() );
+			$prob->appendChild( $self->{session}->make_text( ": " ) );
+			$prob->appendChild( $_ );
+		}
+	}
 
 	return( \@problems );
 }
@@ -907,23 +894,8 @@ sub validate_full
 	$probs = $self->validate_documents();
 	push @problems, @$probs;
 
-	my @docs = $self->get_all_documents();
-	my $doc;
-	foreach $doc (@docs)
-	{
-		$probs = $doc->validate();
-		foreach (@$probs)
-		{
-			push @problems,
-				EPrints::Document::format_name( 
-					$self->{session}, 
-					$doc->{format} ).
-				": ".$_;
-		}
-	}
-
 	# Now give the site specific stuff one last chance to have a gander.
-	$self->{session}->get_archive()->validate_eprint( $self, \@problems );
+	$self->{session}->get_archive()->call( "validate_eprint", $self, \@problems );
 
 	return( \@problems );
 }
@@ -959,29 +931,38 @@ sub prune_documents
 #
 # prune()
 #
-#  Remove pointless fields and document entries
+#  Remove fields not allowed for this records type and prune document 
+#  entries.
 #
 ######################################################################
 
-## WP1: BAD
 sub prune
 {
 	my( $self ) = @_;
-die "cjg";	
 
 	$self->prune_documents();
-	
-	my @fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "archive" );
-	my $f;
 
-	foreach $f (@all_fields)
-	{
-		if( !defined $self->{session}->{metainfo}->find_table_field( \@fields, $f->{name} ) )
-		{
-			$self->{$f->{name}} = undef;
-		}
-	}
+	# This part chops out fields which don't belong to 
+	# this type. But that's not really what we want.
+	# as some may have been hidden on purpose (eg. subjects)
+	# or a composite field. 
+
+	# Commenting out this code means that if you edit an
+	# eprint, then change it's type to a type which can't
+	# have field "foo" then field "foo" may remain set.
+	# This probably won't matter much.
+
+	#  my @fields = $self->{dataset}->get_type_fields();
+	#  my @all_fields = $self->{dataset}->get_fields();
+	#
+	#  my $f;
+	#  foreach $f (@all_fields)
+	#  {
+	#	unless( grep( /^$f$/, @fields ) )
+	#	{
+	#		$self->set_value( $f->{name}, undef );
+	#	}
+	#  }
 
 }
 
@@ -994,16 +975,15 @@ die "cjg";
 #
 ######################################################################
 
-## WP1: BAD
 sub submit
 {
 	my( $self ) = @_;
 	
-	my $success = $self->transfer( "buffer" );
+	my $success = $self->transfer( $self->{session}->get_archive()->get_dataset( "buffer" ) );
 	
 	if( $success )
 	{
-		$self->{session}->get_archive()->update_submitted_eprint( $self );
+		$self->{session}->get_archive()->call( "update_submitted_eprint", $self );
 		$self->datestamp();
 		$self->commit();
 	}
@@ -1025,7 +1005,7 @@ sub datestamp
 {
 	my( $self ) = @_;
 
-	$self->{datestamp} = EPrints::MetaField::get_datestamp( time );
+	$self->set_value( "datestamp" , EPrints::MetaField::get_datestamp( time ) );
 }
 
 
@@ -1052,6 +1032,7 @@ sub archive
 	if( $success )
 	{
 		$self->{session}->get_archive()->update_archived_eprint( $self );
+		$self->datestamp(); # Reset the datestamp.
 		$self->commit();
 		$self->generate_static();
 

@@ -168,6 +168,7 @@ EPrints Modules
     <phrase ref="lib/submissionform:action_upload">Upload</phrase>
     <phrase ref="lib/submissionform:action_verify">Verify ID's</phrase>
     <phrase ref="lib/submissionform:action_remove">Remove</phrase>
+    <phrase ref="lib/submissionform:action_submit">Submit EPrint</phrase>
     <phrase ref="lib/submissionform:title_type">Deposit Type</phrase>
     <phrase ref="lib/submissionform:title_meta">Bibliographic Information</phrase>
     <phrase ref="lib/submissionform:title_subject">Subject Categories</phrase>

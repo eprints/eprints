@@ -19,7 +19,7 @@
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
-3	Get the Deposit Item form working
+-	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
 0	Security -> config,edit,authz
 0	"ID" fields for ISBN/userid etc.

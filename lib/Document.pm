@@ -756,96 +756,33 @@ sub commit
 	
 
 
-
-######################################################################
-#
-# @formats = get_supported_formats()
-#
-#  [STATIC] - return list of tags of supported document storage
-#  formats (e.g. HTML, PDF etc.)
-#
-######################################################################
-
-# cjg not in use?
-#sub get_supported_formats
-#{
-	##my( $class ) = @_;
-	#
-	#my @formats = @EPrintSite::SiteInfo::supported_formats;
-#
-	#push @formats, $EPrints::Document::other
-		#if $EPrintSite::SiteInfo::allow_arbitrary_formats;
-	#
-	#return( @formats );
-#}
-
-
-######################################################################
-#
-# $required = required_format( $session , $format )
-#  [STATIC]
-#
-#  Return 1 if the given format is one of the list of required formats,
-#  0 if not. Always returns 1 if no formats are required.
-#
-######################################################################
-
-## WP1: BAD
-sub required_format
+sub render_desc
 {
-	my( $session , $format ) = @_;
-	
-	return( 1 ) unless( @{$session->get_archive()->get_conf ("required_formats" )} );
+	my( $self ) = @_;
 
-	my $req = 0;
+	my $dataset = $self->{session}->get_archive()->get_dataset( "document" );
 
-	foreach (@{$session->get_archive()->get_conf( "required_formats" )})
+	my $desc = $self->{session}->make_doc_fragment();
+
+	my $format = $self->get_value( "format" );
+	if( !defined $format )
 	{
-		$req = 1 if( $format eq $_ );
+		$desc->appendChild( $self->{session}->make_text( "??" ) );
 	}
-
-	return( $req );
+	else
+	{
+		$desc->appendChild( $dataset->render_type_name( $self->{session}, $format ) ); 
+	}
+	my $formatdesc = $self->get_value( "formatdesc" );
+	if( defined $formatdesc )
+	{
+		$desc->appendChild( $self->{session}->make_text( " (".$formatdesc.")" ) );
+	}
+	return $desc;
 }
 
-## WP1: BAD
-sub format_name
-{
-	my( $session , $format ) = @_;
-
-        #"HTML"                     => "HTML",
-        #"PDF"                      => "Adobe PDF",
-        #"PS"                       => "Postscript",
-        #"ASCII"                    => "Plain ASCII Text"
-
-	return( "LANG SUPPORT PENDING( $format )" );
-} 
-
-## WP1: BAD
-sub archive_name
-{
-	my( $sesion, $archivetype ) = @_;
-
-	  #"ZIP"   => "ZIP Archive [.zip]",
-        #"TARGZ" => "Compressed TAR archive [.tar.Z, .tar.gz]"
-
-	return( "LANG SUPPORT PENDING( $archivetype )" );
-}
-
-######################################################################
-#
-# $problems = validate()
-# array_ref
-#
-#  Make sure everything is OK with this document, i.e. that files
-#  have been uploaded, 
-#
-######################################################################
-
-## WP1: BAD
 sub validate
 {
-
-#cjg ALL BAD!
 	my( $self ) = @_;
 
 	my @problems;

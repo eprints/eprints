@@ -117,11 +117,7 @@ sub new
 
 	#if( $_[1] =~ m/[01]:[01]:[01]/ ) { print STDERR "---\n".join("\n",caller())."\n"; die "WRONG KIND OF CALL TO NEW METAFIELD: $_[1]"; } #cjg to debug
 
-	foreach( "name" , "type" )
-	{
-		$self->set_property( $_, $properties{$_} );
-	}
-	foreach( "required" , "multiple" )
+	foreach( "name", "type", "required", "multiple" )
 	{
 		$self->set_property( $_, $properties{$_} );
 	}

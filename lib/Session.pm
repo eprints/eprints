@@ -1165,9 +1165,12 @@ sub get_citation_spec
 {
 	my( $self, $ctype ) = @_;
 
-	my $cite = $self->{archive}->get_citation_spec( 
-			$self->{lang}->get_id(),
-			$ctype )->cloneNode( 1 );
+	my $citespec = $self->{archive}->get_citation_spec( $self->{lang}->get_id(), $ctype );
+	if( !defined $citespec )
+	{
+		return $self->make_text( "Error: Unknown Citation Style \"$ctype\"" );
+	}
+	my $cite = $citespec->cloneNode( 1 );
 	$self->take_ownership( $cite );
 
 	return $cite;
