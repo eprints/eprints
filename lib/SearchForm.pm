@@ -110,7 +110,13 @@ sub process
 		$self->{order_methods},
 		$self->{default_order} );
 
-	if( defined $submit_button && $submit_button eq $action_search )
+	# Check if we need to do a search. We do if:
+	#  a) if the Search button was pressed.
+	#  b) if there are search parameters but we have no value for "submit"
+	#     (i.e. the search is a direct GET from somewhere else)
+	if( ( defined $submit_button && $submit_button eq $action_search ) || 
+	    ( !defined $submit_button &&
+	      $self->{session}->{render}->have_parameters() ) )
 	{
 		# We need to do a search
 		my $problems = $searchexp->from_form();

@@ -945,6 +945,24 @@ sub seen_form
 
 ######################################################################
 #
+# $bool = have_parameters()
+#
+#  Return true if the current script had any parameters (POST or GET)
+#
+######################################################################
+
+sub have_parameters
+{
+	my( $self ) = @_;
+	
+	my @names = $self->{query}->param();
+
+	return( scalar @names > 0 );
+}
+
+
+######################################################################
+#
 # redirect( $url )
 #
 #  Redirects the browser to $url.
