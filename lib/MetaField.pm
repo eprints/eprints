@@ -530,6 +530,9 @@ sub render_input_field
 {
 	my( $self, $session, $value ) = @_;
 
+use Data::Dumper;
+print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
+
 	my( $html, $frag );
 
 	$html = $session->make_doc_fragment();
@@ -663,18 +666,103 @@ print STDERR "HEIGHT: $height\n";
 	return $html;
 }
 
-
 sub _render_input_field_aux
 {
 	my( $self, $session, $value, $n ) = @_;
-print STDERR "$n... val($value)\n";
 
-	my $id_suffix = "";
-	$id_suffix = "_$n" if( defined $n );
+	my $id_suffix = (defined $n ? "_$n" : "" );	
+
+	my $frag;
+
+	if( $self->get_property( "multilang" ) )
+	{
+		my $boxcount = 1;
+		my $spacesid = $self->{name}.$id_suffix."_langs";
+		my $buttonid = $self->{name}.$id_suffix."_morelangspaces";
+
+		$frag = $session->make_doc_fragment();
+		if( $session->internal_button_pressed() )
+		{
+			if( defined $session->param( $spacesid ) )
+			{
+				$boxcount = $session->param( $spacesid );
+			}
+			if( $session->internal_button_pressed( $buttonid ) )
+			{
+				$boxcount += 2;
+			}
+		}
+		
+		my( @force ) = ("en","fr");
+		
+		my %langstodo = ();
+		foreach( keys %{$value} ) { $langstodo{$_}=1; }
+		my %langopts = ();
+		foreach( EPrints::Config::get_languages() ) { $langopts{$_}=1; }
+		
+	
+		my $i=1;
+		my $langid;
+		while( scalar(@force)>0 || $i<$boxcount || scalar(keys %langstodo)>0)
+		{
+			my $langid = undef;
+			my $forced = 0;
+			if( scalar @force )
+			{
+				$langid = shift @force;
+				$forced = 1;
+			}
+			elsif( scalar keys %langstodo )
+			{
+				$langid = ( keys %langstodo )[0];
+				delete( $langstodo{$langid} );
+			}
+			
+			my $div = $session->make_element( "div" );# cjg style?
+			$div->appendChild( $self->_render_input_field_aux2( $session, $value->{$langid}, $id_suffix."_".$i ) );
+			$div->appendChild( $session->make_text( " - " ) );
+			if( !$forced )
+			{
+				$div->appendChild( $session->make_text( " opt " ) );
+			}
+			else
+			{
+				my $span = $session->make_element( "span", class=>"requiredlang" );
+				$span->appendChild( $session->make_text( EPrints::Config::lang_title( $langid ) ) );
+				$div->appendChild( $span );
+			}
+			$frag->appendChild( $div );
+			++$i;
+		}
+				
+		$boxcount = $i-1;
+
+		$frag->appendChild( $session->make_element(
+			"input",
+			"accept-charset" => "utf-8",
+			type => "hidden",
+			name => $spacesid,
+			value => $boxcount ) );
+		$frag->appendChild( $session->render_internal_buttons(
+			$buttonid => $session->phrase( "lib/metafield:more_langs" ) ) );
+		return $frag;
+	}
+	else
+	{
+		$frag = $self->_render_input_field_aux2( $session, $value, $id_suffix );
+	}
+	return $frag;
+}
+
+sub _render_input_field_aux2
+{
+	my( $self, $session, $value, $id_suffix ) = @_;
+print STDERR "$id_suffix ... val($value)\n";
+
 
 	# These DO NOT belong here. cjg.
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
-
+# not return DIVs? cjg (currently some types do some don't)
 	my $frag = $session->make_doc_fragment();
 	if( $self->is_type( "text", "username", "url", "int", "email", "year" ) )
 	{
@@ -704,16 +792,13 @@ print STDERR "$n... val($value)\n";
 					$FORM_WIDTH : 
 					$maxlength );
 
-		$div = $session->make_element( "div" );	
-		$div->appendChild( $session->make_element(
+		$frag->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			name => $id,
 			value => $value,
 			size => $size,
 			maxlength => $maxlength ) );
-
-		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "longtext" ) )
 	{
@@ -760,8 +845,6 @@ print STDERR "$n... val($value)\n";
 	elsif( $self->is_type( "name" ) )
 	{
 		my( $givenid, $familyid );
-		my( $div ) = $session->make_element( "div" );
-		my( $nobr ) = $session->make_element( "nobr" );
  		$givenid = $self->{name}.$id_suffix."_given";
  		$familyid = $self->{name}.$id_suffix."_family";
 		if( $session->internal_button_pressed() )#cjg???
@@ -769,27 +852,25 @@ print STDERR "$n... val($value)\n";
 			$value->{family} = $session->param( $familyid );
 			$value->{given} = $session->param( $givenid );
 		}
-		$nobr->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
-		$nobr->appendChild( $session->make_text( " " ) );
-		$nobr->appendChild( $session->make_element(
+		$frag->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			name => $familyid,
 			value => $value->{family},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
-		$nobr->appendChild( $session->make_text( " " ) );
-		$nobr->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
-		$nobr->appendChild( $session->make_text( " " ) );
-		$nobr->appendChild( $session->make_element(
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			name => $givenid,
 			value => $value->{given},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
-		$div->appendChild( $nobr );
-		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "pagerange" ) )
 	{

@@ -1058,6 +1058,10 @@ sub _get
 			{
 				$record->{$field->{name}} = [];
 			}
+			elsif( $field->get_property( "multilang" ) )
+			{
+				$record->{$field->{name}} = {};
+			}
 			else 
 			{
 				my $value;

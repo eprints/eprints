@@ -224,7 +224,7 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-	return $self->tree_to_utf8( $r );
+	return EPrints::Config::tree_to_utf8( $r );
 }
 
 sub get_order_names
@@ -325,29 +325,6 @@ sub make_doc_fragment
 	return $self->{page}->createDocumentFragment;
 }
 
-sub tree_to_utf8
-{
-	my( $self, $node ) = @_;
-
-	my $name = $node->getNodeName;
-	if( $name eq "#text" || $name eq "#cdata-section")
-	{
-		return utf8($node->getNodeValue);
-	}
-
-	my $string = utf8("");
-	foreach( $node->getChildNodes )
-	{
-		$string .= $self->tree_to_utf8( $_ );
-	}
-
-	if( $name eq "fallback" )
-	{
-		$string = latin1("*").$string.latin1("*");
-	}
-
-	return $string;
-}
 
 
 #############################################################
@@ -725,6 +702,10 @@ sub render_input_form
 	my $query = $self->{query};
 
 	my( $form );
+
+print STDERR "_________RENDER_FORM____________\n";
+use Data::Dumper;
+print STDERR Dumper($values);
 
 	$form =	$self->render_form( "post", $dest );
 

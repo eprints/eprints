@@ -8,6 +8,7 @@ print "EPRINTS: ".$ENV{EPRINTS_PATH}."\n";
 package EPrints::Config;
 
 use EPrints::DOM;
+use Unicode::String qw(utf8 latin1);
 
 BEGIN {
 	if( !defined $ENV{EPRINTS_PATH} )
@@ -72,8 +73,7 @@ my $land_tag;
 foreach $lang_tag ( $top_tag->getElementsByTagName( "lang" ) )
 {
 	my $id = $lang_tag->getAttribute( "id" );
-	my $val = "";
-	foreach( $lang_tag->getChildNodes ) { $val.=$_->toString; }
+	my $val = tree_to_utf8( $lang_tag );
 	push @LANGLIST,$id;
 	$LANGNAMES{$id} = $val;
 }
@@ -230,5 +230,28 @@ sub lang_title
 	return $LANGNAMES{$id};
 }
 	
+sub tree_to_utf8
+{
+	my( $node ) = @_;
+
+	my $name = $node->getNodeName;
+	if( $name eq "#text" || $name eq "#cdata-section")
+	{
+		return utf8($node->getNodeValue);
+	}
+
+	my $string = utf8("");
+	foreach( $node->getChildNodes )
+	{
+		$string .= tree_to_utf8( $_ );
+	}
+
+	if( $name eq "fallback" )
+	{
+		$string = latin1("*").$string.latin1("*");
+	}
+
+	return $string;
+}
 
 1;

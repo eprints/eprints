@@ -9,7 +9,7 @@
 -	XML config files to tell eprints where to find each archive
 1	Get the Deposit Item form working
 -	Multi-Lang fields in DB
-0	Multi-Lang fields in HTML
+3	Multi-Lang fields in HTML
 0	"ID" fields for ISBN/userid etc.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 

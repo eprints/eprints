@@ -74,9 +74,10 @@ P {
         padding-bottom: 3pt;
 }
 
-.requiredstar {
+.requiredstar,.requiredlang {
 	color: #ff0000;
 }
+
 
 .alert {
 	color: #ff0000;
