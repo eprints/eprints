@@ -15,6 +15,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class confpaper "Conference Paper">
@@ -37,6 +38,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class confposter "Conference Poster">
@@ -59,6 +61,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class techreport "Departmental Technical Report">
@@ -77,6 +80,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class journale "Journal (On-line/Unpaginated)">
@@ -97,6 +101,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class journalp "Journal (Paginated)">
@@ -118,6 +123,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class newsarticle "Newspaper/Magazine Article">
@@ -139,6 +145,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class other "Other">
@@ -154,6 +161,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class preprint "Preprint">
@@ -168,6 +176,7 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
 
 <class thesis "Thesis">
@@ -186,4 +195,5 @@ comments
 commref
 altloc
 keywords
+referencetext
 </class>
