@@ -17,7 +17,6 @@ use EPrints::HTMLRender;
 use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
-use EPrints::Constants;
 
 use strict;
 my $session = new EPrints::Session;
@@ -27,8 +26,8 @@ my $searchexp = new EPrints::SearchExpression(
 	dataset => $session->getSite()->getDataSet( "archive" ),
 	fieldnames => $session->getSite()->getConf( "simple_search_fields" ) );
 
-my $preamble = $session->make_element( "P" );
-my $a = $session->make_element( "A", href=>"advsearch" );
+my $preamble = $session->make_element( "p" );
+my $a = $session->make_element( "a", href=>"advsearch" );
 $a->appendChild( $session->html_phrase( "adv_search" ) );
 $preamble->appendChild( $a );
 

@@ -363,6 +363,7 @@ sub isTextIndexable
 sub getHTML
 {
 	my( $self, $session, $value ) = @_;
+#cjg not DOM
 
 	if( !defined $value || $value eq "" )
 	{
@@ -379,6 +380,8 @@ sub getHTML
 
 	if( $self->isType( "name" ) )
 	{
+	print STDERR EPrints::Log::render_struct( $value )."\n";
+	print STDERR "!!!".EPrints::Name::format_names( $value )."\n";
 		return $session->makeText(
 			EPrints::Name::format_names( $value ) );
 	}
@@ -386,11 +389,11 @@ sub getHTML
 	if( $self->isType( "eprinttype" ) )
 	{
 		$html = $self->{labels}->{$value} if( defined $value );
-		$html = "UNSPECIFIED" unless( defined $value );
+		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
 	}
 	elsif( $self->isType( "boolean" ) )
 	{
-		$html = "UNSPECIFIED" unless( defined $value );
+		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
 	elsif( $self->isType( "longtext" ) )

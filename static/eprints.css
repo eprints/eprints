@@ -12,29 +12,46 @@ H3 {
         font: 14pt Helvetica,Arial,Sans-serif;
         color: #606060;
 }
-
-.searchfieldname {
-	font-weight: bold;
-	text-align: right;
-	margin-bottom: 1em;
-	margin-right: 1em;
+A.menulink {
+        font-weight: bold;
+        font-family: sans-serif;
+        color: #ccccff;
+}
+.menu {
+        font-weight: bold;
+        color: white;
+        text-align: right;
+        margin-right: 1em;
+}
+.pagetitle {
+        font: bold x-large Helvetica,Arial,Sans-serif;
+	color: #000000;
+}
+.sitetitle {
+        font: large Helvetica,Arial,Sans-serif;
+	color: #000000;
 }
 
 .searchfieldhelp {
-        font-style: italic;	
-	text-align: center;
+        font-size: normal;
+}
+.searchfieldname {
+        padding-top: 1em;
+        padding-bottom: 0.25em;
+        font: x-large serif;
 }
 
-.searchfieldinput {
-	margin-left: 1em;
-	margin-bottom: 1em;
+.searchorder {
+        padding-top: 1em;
 }
-
-.submitbutton {
-	border: 1em;
+.searchbuttons {
+        padding-top: 1em;
 }
-
+.searchmustfulfill {
+        padding-top: 1em;
+}
 .main {
-	padding-left: 2em;
-	background-color: red;
+        margin-left: 1em;
+        margin-right: 1em;
 }
+

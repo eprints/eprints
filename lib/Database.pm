@@ -496,17 +496,17 @@ print STDERR "*".$multifield->getName()."\n";
 		foreach( @{$data->{$multifield->getName()}} )
 		{
 			$sql = "INSERT INTO $auxtable (".$keyfield->getName().",pos,";
-			if( $multifield->isType( "name ") )
+			if( $multifield->isType( "name" ) )
 			{
-				$sql.=$multifield->getName()."_given, ";
-				$sql.=$multifield->getName()."_family";
+				$sql.=$multifield->getName."_given, ";
+				$sql.=$multifield->getName."_family";
 			}
 			else
 			{
-				$sql.=$multifield->getName();
+				$sql.=$multifield->getName;
 			}
 			$sql .= ") VALUES (\"$keyvalue\",\"$i\",";
-			if( $multifield->isType( "name ") )
+			if( $multifield->isType( "name" ) )
 			{
 				$sql .= "\"".prep_value($_->{given})."\",";
 				$sql .= "\"".prep_value($_->{family})."\"";
@@ -1020,7 +1020,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( "   ".$sql );
+#EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }
@@ -1054,7 +1054,7 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( "   ".$sql );
+#EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }

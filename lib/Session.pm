@@ -100,6 +100,15 @@ sub new
 	#### Got Site Config Module ###
 
 	$self->{page} = new XML::DOM::Document;
+
+	my $doctype = XML::DOM::DocumentType->new(
+			"foo",
+			"html",
+			"DTD/xhtml1-transitional.dtd",
+			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
+	$self->takeOwnership( $doctype );
+	$self->{page}->setDoctype( $doctype );
+
 	my $newpage = $self->{site}->getConf( "htmlpage" )->cloneNode( 1 );
 	$self->takeOwnership( $newpage );
 	$self->{page}->appendChild( $newpage );
@@ -290,18 +299,7 @@ sub start_html
 
 	$self->sendHTTPHeader();
 
-	my $html = "";
-
-	my %opts = %{$self->{site}->getConf("start_html_params")};
-	$opts{-title} = $self->{site}->getConf("sitename").": $title";
-
-
-	$html .= $self->{query}->start_html( %opts );
-	# Logo
-	my $banner = $self->{site}->getConf("html_banner");
-	$banner =~ s/TITLE_PLACEHOLDER/$title/g;
-
-	$html .= "$banner\n";
+	my $html = "<BODY> begin here ";
 
 	return( $html );
 }
@@ -355,7 +353,8 @@ sub start_get_form
 {
 	my( $self, $dest ) = @_;
 die "NOPE";
-	
+
+		
 	if( defined $dest )
 	{
 		return( $self->{query}->start_form( -method=>"GET",
@@ -487,7 +486,7 @@ sub make_option_list
 		$defaults{$self->{default}}++;
 	}
 
-	my $element = $self->make_element( "SELECT" , name => $params{name} );
+	my $element = $self->make_element( "select" , name => $params{name} );
 	if( defined $params{size} )
 	{
 		$element->setAttribute( "size" , $params{size} );
@@ -498,13 +497,13 @@ sub make_option_list
 	}
 	foreach( @{$params{values}} )
 	{
-		my $opt = $self->make_element( "OPTION", name => $_ );
+		my $opt = $self->make_element( "option", value => $_ );
 		$opt->appendChild( 
 			$self->{page}->createTextNode( 
 				$params{labels}->{$_} ) );
 		if( defined $defaults{$_} )
 		{
-			$opt->setAttribute( "SELECTED" , undef );
+			$opt->setAttribute( "selected" , undef );
 		}
 		$element->appendChild( $opt );
 	}
@@ -532,7 +531,7 @@ sub make_hidden_field
 		$value = $self->param( $name );
 	}
 
-	return $self->make_element( "INPUT",
+	return $self->make_element( "input",
 		name => $name,
 		value => $value,
 		type => "hidden" );
@@ -550,24 +549,21 @@ sub make_submit_buttons
 		@submit_buttons = ( "Submit" );
 	}
 
-	my $table = $self->{page}->createElement( "TABLE", class=>"submitbuttons" );
-	my $tr = $self->{page}->createElement( "TR" );
+	my $frag = $self->makeDocFragment;
 
 	foreach( @submit_buttons )
 	{
-		my $td = $self->{page}->createElement( "TD" );
 		# Some space between them
-		$td->appendChild(
-			$self->make_element( "INPUT",
+		$frag->appendChild(
+			$self->make_element( "input",
 				class => "submitbutton",
 				type => "submit",
 				name => "submit",
 				value => $_ ) );
-		$tr->appendChild( $td );
+		$frag->appendChild( $self->makeText(" ") );
 	}
-	$table->appendChild( $tr );
 
-	return( $table );
+	return( $frag );
 }
 
 sub makeText
@@ -577,16 +573,21 @@ sub makeText
 	return $self->{page}->createTextNode( $text );
 }
 
+sub makeDocFragment
+{
+	my( $self ) = @_;
+
+	return $self->{page}->createDocumentFragment;
+}
+
 sub makeGetForm
 {
 	my( $self, $dest ) = @_;
 	
-	my $form = $self->{page}->createElement( "FORM" );
-	$form->setAttribute( "method", "GET" );
-	if( defined $dest )
-	{
-		$form->setAttribute( "action", $dest );
-	}
+	my $form = $self->{page}->createElement( "form" );
+	$form->setAttribute( "method", "get" );
+	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
+	$form->setAttribute( "action", $dest );
 	return $form;
 }
 
@@ -616,19 +617,14 @@ sub printPage
 {
 	my( $self, $title, $mainbit, %httpopts ) = @_;
 
-	foreach( $self->{page}->getElementsByTagName( "TITLEHERE" , 1 ) )
+	foreach( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
 		my $element = $self->{page}->createTextNode( $title );
 		$_->getParentNode()->replaceChild( $element, $_ );
 	}
-	foreach( $self->{page}->getElementsByTagName( "PAGEHERE" , 1 ) )
+	foreach( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
 	{
-		my $node;
-		foreach $node ( $mainbit->getChildNodes )
-		{
-			$_->getParentNode()->insertBefore( $node, $_ );
-		}
-		$_->getParentNode()->removeChild( $_ );
+		$_->getParentNode()->replaceChild( $mainbit, $_ );
 	}
 	$self->sendHTTPHeader( %httpopts );
 	print $self->{page}->toString;

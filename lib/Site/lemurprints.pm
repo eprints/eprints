@@ -823,59 +823,50 @@ $c->{types}->{user} = {
 #  so shouldn't include a <BODY> tag.
 
 $c->{htmlpage} = parseHTML( <<END );
-<HTML>
-<HEAD>
-  <TITLE><TITLEHERE/></TITLE>
-  <LINK rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
-</HEAD>
+<html>
+<head>
+  <title><titlehere/></title>
+  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
+</head>
 
-<BODY bgcolor="#ffffff" fgcolor="#000000" topmargin="0" leftmargin="0" marginwidth="0"
-        marginheight="0">
-<table border="0" cellpadding="0" cellspacing="0">
-  <tr>
-    <td align="center" valign="top" bgcolor="#dddddd" fgcolor="white">
-      <BR/>
-      <a href="$c->{frontpage}"><IMG border="0" width="100" height="100" src="$c->{server_static}/images/logo_sidebar.gif" ALT="$c->{sitename}"/></a>
-    </td>
-    <td>
-      <DIV class="main">
-      <BR/>
-      <H1><TITLEHERE/></H1>
-      </DIV>
-    </td>
-  </tr>
-  <tr>
-    <td bgcolor="#dddddd" align="center" valign="top">
-      <table border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align="center" valign="top">
-            <P><A HREF="$c->{frontpage}">Home</A></P>
-            <P><A HREF="$c->{server_static}/information.html">About</A></P>
-            <P><A HREF="$c->{server_subject_view_stem}ROOT.html">Browse</A></P>
-            <P><A HREF="$c->{server_perl}/search">Search</A></P>
-            <P><A HREF="$c->{server_static}/register.html">Register</A></P>
-            <P><A HREF="$c->{server_perl}/users/subscribe">Subscriptions</A></P>
-            <P><A HREF="$c->{server_perl}/users/home">Deposit Items</A></P>
-            <P><A HREF="$c->{server_static}/help">Help</A></P>
-            <P><I><A HREF="$c->{server_perl}/setlang?langid=english">English</A></I></P>
-            <P><I><A HREF="$c->{server_perl}/setlang?langid=french">Français</A></I></P>
-            <P><I><A HREF="$c->{server_perl}/setlang?langid=dummy">Test Lang</A></I></P>
-          </td>
-        </tr>
-      </table>
-      <BR/>
-    </td>
-    <td valign="top" width="95%">
-      <PAGEHERE/>
-      <HR noshade="yes" size="2"/>
-      <DIV class="main">
-      <P>Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a></P>
-      </DIV>
-    </td>
-  </tr>
-</table>
-</BODY>
-</HTML>
+<body bgcolor="#ffffff" text="#000000">
+
+<div class="header">
+<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
+"#cccccc">
+      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
+="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
+</td><td align="left" width="100%" bgcolor="#cccccc">
+<h1 class="sitetitle">$c->{sitename}</h1>
+<h2 class="pagetitle"><titlehere /></h2>
+</td></tr>
+<tr><td colspan="2" bgcolor="#333333">
+<div class="menu">
+
+            <a class="menulink" href="$c->{frontpage}">Home</a> ||
+            <a class="menulink" href="$c->{server_static}/information.html">About</a> ||
+            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">Browse</a> ||
+            <a class="menulink" href="$c->{server_perl}/search">Search</a> ||
+            <a class="menulink" href="$c->{server_static}/register.html">Register</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/subscribe">Subscriptions</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/home">Deposit Items</a> ||
+            <a class="menulink" href="$c->{server_static}/help">Help</a>
+</div>
+</td></tr></table>
+</div>
+<div class="main">
+<pagehere />
+ <hr noshade="noshade" size="2"/>
+      <p>Contact site administrator at: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
+ <p>
+    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10"
+        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+  </p>
+</div></body>
+
+</html>
+
 END
 
 
@@ -1348,7 +1339,7 @@ sub eprint_render_full
 		$description = $_->{formatdesc}
 			if( $_->{format} eq $EPrints::Document::OTHER );
 
-		$html .= "<A HREF=\"".$_->url()."\">$description</A><BR>";
+		$html .= "<A href=\"".$_->url()."\">$description</A><BR>";
 	}
 
 	$html .= "</TD></TR></TABLE>\n";
@@ -1367,7 +1358,7 @@ sub eprint_render_full
 		else
 		{
 			$html .= "<P ALIGN=CENTER><EM>There is a later version of this ".
-				"eprint available: <A HREF=\"" . $latest->static_page_url() . 
+				"eprint available: <A href=\"" . $latest->static_page_url() . 
 				"\">Click here to view it.</A></EM></P>\n";
 		}
 	}		
@@ -1420,7 +1411,7 @@ sub eprint_render_full
 	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	if( defined $user )
 	{
-		$html .= "<A HREF=\"$eprint->{session}->{site}->{server_perl}/user?username=".
+		$html .= "<A href=\"$eprint->{session}->{site}->{server_perl}/user?username=".
 			$user->{username}."\">".$user->full_name()."</A>";
 	}
 	else
@@ -1567,7 +1558,7 @@ my %CITATION_SPEC_DOMTREE;
 foreach( keys %CITATION_SPECS )
 {
 	$CITATION_SPEC_DOMTREE{$_} = parseHTML(
-		"<SPAN class=\"citation\">".$CITATION_SPECS{$_}."</SPAN>" );
+		"<span class=\"citation\">".$CITATION_SPECS{$_}."</span>" );
 
 }
 

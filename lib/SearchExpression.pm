@@ -188,42 +188,32 @@ sub render_search_form
 	my( $self, $help, $show_anyall ) = @_;
 
 	my $form = $self->{session}->makeGetForm();
+	my $div;
 
-	my $p = $self->{session}->make_element( "P" );
-
-	$form->appendChild( $p );
-
-	my $table = $self->{session}->make_element( "TABLE", border=>0 );
-
-	$p->appendChild( $table );
-	
 	my %shown_help;
 	my $sf;
 	foreach $sf (@{$self->{searchfields}})
 	{
+		$div = $self->{session}->make_element( 
+				"div" , 
+				class => "searchfieldname" );
+		$div->appendChild( $self->{session}->makeText( $sf->getDisplayName ) );
+		$form->appendChild( $div );
 		my $shelp = $sf->getHelp();
 		if( $help && !defined $shown_help{$shelp} )
 		{
-			my $tr = $self->{session}->make_element( "TR" );
-			my $td = $self->{session}->make_element( "TD", colspan=>2 , class=>"searchfieldhelp" );
-			$tr->appendChild( $td );
-			$td->appendChild( $self->{session}->makeText( $shelp ) );
+			$div = $self->{session}->make_element( 
+				"div" , 
+				class => "searchfieldhelp" );
+			$div->appendChild( $self->{session}->makeText( $shelp ) );
+			$form->appendChild( $div );
 			#$shown_help{$shelp}=1;
-			$table->appendChild( $tr );
 		}
 
-		my $tr = $self->{session}->make_element( "TR" );
-		my $td = $self->{session}->make_element( "TD" , class=>"searchfieldname");
-		my $span = $self->{session}->make_element( "SPAN" , class=>"searchfieldname" );
-		$span->appendChild( $self->{session}->makeText( $sf->getDisplayName ) );
-		$td->appendChild( $span );
-		$tr->appendChild( $td );
-		$td = $self->{session}->make_element( "TD" );
-		$span = $self->{session}->make_element( "SPAN" , class=>"searchfieldinput" );
-		$span->appendChild( $sf->toHTML );
-		$td->appendChild( $span );
-		$tr->appendChild( $td );
-		$table->appendChild( $tr );
+		$div = $self->{session}->make_element( 
+			"div" , 
+			class => "searchfieldinput" );
+		$form->appendChild( $sf->toHTML );
 	}
 
 	my $menu;
@@ -238,10 +228,14 @@ sub render_search_form
 			labels=>{ "ALL" => $self->{session}->phrase("all"),
 				  "ANY" => $self->{session}->phrase("any") } );
 
-		my $p = $self->{session}->make_element( "P" );
-		$p->appendChild( 
-			$self->{session}->html_phrase( "must_fulfill",  anyall=>$menu ) );
-		$form->appendChild( $p );	
+		$div = $self->{session}->make_element( 
+			"div" , 
+			class => "searchanyall" );
+		$div->appendChild( 
+			$self->{session}->html_phrase( 
+				"must_fulfill",  
+				anyall=>$menu ) );
+		$form->appendChild( $div );	
 	}
 
 	my @tags = keys %{$self->{session}->getSite()->getConf(
@@ -254,16 +248,24 @@ sub render_search_form
 		labels=>$self->{session}->get_order_names( 
 						$self->{dataset} ) );
 
-	$p = $self->{session}->make_element( "P" );
-	$p->appendChild( 
-		$self->{session}->html_phrase( "order_results", ordermenu=>$menu  ) );
-	$form->appendChild( $p );	
+	$div = $self->{session}->make_element( 
+		"div" , 
+		class => "searchorder" );
 
-	$p = $self->{session}->make_element( "P" );	
-	$p->appendChild( $self->{session}->make_submit_buttons( 
+	$div->appendChild( 
+		$self->{session}->html_phrase( 
+			"order_results", 
+			ordermenu => $menu  ) );
+
+	$form->appendChild( $div );	
+
+	$div = $self->{session}->make_element( 
+		"div" , 
+		class => "searchbuttons" );
+	$div->appendChild( $self->{session}->make_submit_buttons( 
 		$self->{session}->phrase("action_search"), 
 		$self->{session}->phrase("action_reset") ) );
-	$form->appendChild( $p );	
+	$form->appendChild( $div );	
 
 	return( $form );
 }
@@ -434,6 +436,7 @@ sub perform_search
 	foreach( @searchon )
 	{
 		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
+		EPrints::Log::debug( $buffer."!\n" );
 		my $error;
 		( $buffer , $badwords , $error) = 
 			$_->do($buffer , $self->{satisfy_all} );
@@ -526,7 +529,7 @@ sub process_webpage
 		
 		if( defined $problems && scalar (@$problems) > 0 )
 		{
-			$self->_render_problems( @$problems );
+			$self->_render_problems( $title, $preamble, @$problems );
 			return;
 		}
 
@@ -544,7 +547,7 @@ sub process_webpage
 		if( defined $self->{error} ) 
 		{	
 			# Error with search.
-			$self->_render_problems( $self->{error} );
+			$self->_render_problems( $title, $preamble, $self->{error} );
 			return;
 		}
 
@@ -555,16 +558,13 @@ sub process_webpage
 		@results = $self->get_records( $MAX );
 		$t3 = EPrints::Log::microtime();
 
-		print $self->{session}->start_html(
-			$self->{session}->phrase( "results_for",
-			                                  { title=>$title } ) );
+		my $page = $self->{session}->makeDocFragment;
 
 		if( $n_results > $MAX) 
 		{
-			print "<P>";
-	                print $self->{session}->phrase( "too_many", 
-	{ n=>"<SPAN class=\"highlight\">$MAX</SPAN>" } )."\n";
-			print "</P>";
+			my $p = $self->{session}->make_element( "p" );
+			$page->appendChild( $p );
+			$p->appendChild( $self->{session}->html_phrase( "too_many", n=>$MAX ) );
 		}
 	
 		my $code;
@@ -580,53 +580,62 @@ sub process_webpage
 		{
 			$code = "n_hits";
 		}
-		print "<P>";
-       		print $self->{session}->phrase( $code, { n=>"<SPAN class=\"highlight\">$n_results</SPAN>" } )."\n";
+		my $p = $self->{session}->make_element( "p" );
+		$page->appendChild( $p );
+       		$p->appendChild(  $self->{session}->html_phrase( 
+			$code,  
+			n=>$self->{session}->makeText( $n_results ) ) );
 
 		if( @{ $self->{ignoredwords} } )
 		{
 			my %words = ();
+			$p->appendChild( $self->{session}->makeText( " " ) );
 			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
-       			print $self->{session}->phrase( 
-				"ignored",
-				{ words=>"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" } );
+			$p->appendChild(
+       				$self->{session}->html_phrase( 
+					"ignored",
+					words=>$self->{session}->makeText( 
+						join( ", ", sort keys %words ) ) ) );
+		
 		}
-		print "</P>\n";
 
-       		print $self->{session}->phrase( 
-			"search_time", 
-			{ searchtime=>"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
-			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
+		$p->appendChild( $self->{session}->makeText( " " ) );
+		$p->appendChild(
+       			$self->{session}->html_phrase( 
+				"search_time", 
+				searchtime=>$self->{session}->makeText($t2-$t1),
+				gettime=>$self->{session}->makeText($t3-$t2) ) );
 
-			
+		
 		foreach (@results)
 		{
-			print "<P>\n";
-			print $_->toHTML->toString;
-			print "</P>\n";
+			$p = $self->{session}->make_element( "p" );
+			$p->appendChild( $_->toHTML );
+			$page->appendChild( $p );
 		}
 			
 		# Print out state stuff for a further invocation
 		
-		print $self->{session}->start_get_form();
+		my $form = $self->{session}->makeGetForm();
+		$page->appendChild( $form );
 
-		my @params = $self->{session}->param();
-
-print "---------<BR>\n";
-		foreach (@params)
+		foreach( $self->{session}->param() )
 		{
-			print $self->{session}->make_hidden_field( $_ )->toString() if( $_ ne "submit" );
+			next if( $_ eq "submit" );
+			$form->appendChild(
+				$self->{session}->make_hidden_field( $_ ) );
 		}
 
-print "---------<BR>\n";
-		print $self->{session}->make_submit_buttons( 
+		$form->appendChild( $self->{session}->make_submit_buttons( 
 			$self->{session}->phrase("action_update"), 
-			$self->{session}->phrase("action_newsearch") )->toString();
+			$self->{session}->phrase("action_newsearch") ) );
 
-print "---------<BR>\n";
-		print $self->{session}->end_form();
-	
-		print $self->{session}->end_html();
+		#print $self->{session}->start_html(
+			#$self->{session}->phrase( "results_for",
+			                                  #{ title=>$title } ) );
+		$self->{session}->printPage( 
+			$self->{session}->phrase( "results_for", {title=>$title} ),
+			$page );
 		return;
 	}
 
@@ -649,37 +658,42 @@ print "---------<BR>\n";
 
 	# Just print the form...
 
-	my $page = $self->{session}->make_element( "PAGE" );
+	my $page = $self->{session}->makeDocFragment;
 	$page->appendChild( $preamble );
-	$page->appendChild( $self->render_search_form( 1 ) );
+	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 
 	$self->{session}->printPage( $title, $page );
 }
 
 sub _render_problems
 {
-	my( $self , @problems ) = @_;	
+	my( $self , $title, $preamble, @problems ) = @_;	
 	# Problem with search expression. Report an error, and redraw the form
-			
-	print $self->{session}->start_html( $self->{title} );
-	print $self->{preamble};
+		
+	my $page = $self->{session}->makeDocFragment;
+	$page->appendChild( $preamble );
 
-	print "<P>";
-	print $self->{session}->phrase( "form_problem" );
-	print "</P>";
-	print "<UL>\n";
-	
+	my $p = $self->{session}->make_element( "p" );
+	$p->appendChild( $self->{session}->html_phrase( "form_problem" ) );
+	$page->appendChild( $p );
+	my $ul = $self->{session}->make_element( "ul" );
+	$page->appendChild( $ul );
 	foreach (@problems)
 	{
-		print "<LI>$_</LI>\n";
+		my $li = $self->{session}->make_element( 
+			"li",
+			class=>"problem" );
+		$ul->appendChild( $li );
+		$li->appendChild( $self->{session}->makeText( $_ ) );
 	}
-	
-	print "</UL>\n";
-	print "<HR noshade>";
-	print $self->render_search_form();
+	my $hr = $self->{session}->make_element( 
+			"hr", 
+			noshade=>"noshade",  
+			size=>2 );
+	$page->appendChild( $hr );
+	$page->appendChild( $self->render_search_form );
 			
-	print $self->{session}->end_html();
-	return;
+	$self->{session}->printPage( $title, $page );
 }
 
 

@@ -114,12 +114,23 @@ sub set_value
 {
 	my ( $self , $newvalue ) = @_;
 
-	$self->{value} = $newvalue;
 
-	$self->{value} =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i;
-	$self->{anyall} = uc $1;
-	$self->{match} = uc $2;
-	$self->{string} = $3;
+print STDERR "set_value( $newvalue )\n";
+
+	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
+	{
+		$self->{value} = $newvalue;
+		$self->{anyall} = uc $1;
+		$self->{match} = uc $2;
+		$self->{string} = $3;
+	}
+	else
+	{
+		$self->{value} = undef;
+		$self->{anyall} = undef;
+		$self->{match} = undef;
+		$self->{string} = undef;
+	}
 
 	# Value has changed. Previous benchmarks no longer apply.
 	$self->{benchcache} = {};
@@ -145,7 +156,10 @@ sub from_form
 
 	# Remove any default we have
 	$self->set_value( "" );
-	
+print STDERR "------llll\n";	
+print STDERR  $self->{formname} ."\n";
+print STDERR  $self->{field}->{type}."\n";
+print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	if( $self->isType( "boolean" ) )
 	{
 		my $val = $self->{session}->param( $self->{formname} );
@@ -248,10 +262,10 @@ sub from_form
 	elsif( $self->isType( "year" ) )
 	{
 		my $val = $self->{session}->param( $self->{formname} );
-		
+print STDERR "zz($val))\n";	
 		if( defined $val && $val ne "" )
 		{
-			if( $val =~ /^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
+			if( $val =~ m/^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
 			{
 				$self->set_value( "ANY:EQ:$val" );
 			}
@@ -260,6 +274,10 @@ sub from_form
 				$problem = $self->{session}->phrase( "H:year_err" );
 			}
 		}
+	}
+	else
+	{
+		$self->{session}->getSite->log( "Unknown search type." );
 	}
 
 #EPrints::Log::debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
@@ -282,7 +300,7 @@ sub get_conditions
 		return undef;
 	}
 
-	if ( $self->{field}->isType( "set","subject","eprinttype","boolean","username" ) )
+	if ( $self->isType( "set","subject","eprinttype","boolean","username" ) )
 	{
 		my @fields = ();
 		my $text = $self->{string};
@@ -297,7 +315,7 @@ sub get_conditions
 		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
-	if ( $self->{field}->isType( "name" ) )
+	if ( $self->isType( "name" ) )
 	{
 		my @where = ();
 		my @names = ();
@@ -345,7 +363,7 @@ sub get_conditions
 	# N-N
 
 
-	if ( $self->{field}->isType( "year","int" ) )
+	if ( $self->isType( "year","int" ) )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -397,7 +415,7 @@ sub get_conditions
 	# -YYYY-MM-DD
 	# YYYY-MM-DD-YYYY-MM-DD
 
-	if ( $self->{field}->isType( "date" ) )
+	if ( $self->isType( "date" ) )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -446,7 +464,7 @@ sub get_conditions
 	#  word word "a phrase" word
 	#
 
-	if ( $self->{field}->isType( "text","longtext","email","url" ) )
+	if ( $self->isType( "text","longtext","email","url" ) )
 	{
 		my @where = ();
 		my @phrases = ();
@@ -866,15 +884,13 @@ sub toHTML
 
 #EPrints::Log::debug( "SearchField", "rendering field $self->{self->{formname}} of type $self->{type}" );
 
-	my $div = $self->{session}->make_element( "DIV" );
+	my $frag = $self->{session}->makeDocFragment;
 	
 	if( $self->isType( "boolean" ) )
 	{
 		# Boolean: Popup menu
 	
-		my $default = ( defined $self->{value} ? "EITHER" : $self->{value} );
-
-		$div->appendChild( 
+		$frag->appendChild( 
 			$self->{session}->make_option_list(
 				name => $self->{formname},
 				values => \@bool_tags,
@@ -884,17 +900,19 @@ sub toHTML
 	elsif( $self->isType( "boolean","longtext","text","name","url","username" ) )
 	{
 		# complex text types
-		$div->appendChild(
-			$self->{session}->make_element( "INPUT",
+		$frag->appendChild(
+			$self->{session}->make_element( "input",
 				type => "text",
 				name => $self->{formname},
+				value => $self->{string},
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
-		$div->appendChild( 
+		$frag->appendChild( $self->{session}->makeText(" ") );
+		$frag->appendChild( 
 			$self->{session}->make_option_list(
 				name=>$self->{formname}."_srchtype",
 				values=>\@text_tags,
-				default=>$self->{anyall},
+				value=>$self->{anyall},
 				labels=>\%text_labels ) );
 	}
 	elsif( $self->isType( "eprinttype" , "set" , "subject" ) )
@@ -942,41 +960,42 @@ sub toHTML
 		push @{$tags}, @{$old_tags};
 		$labels->{NONE} = "(Any)";
 
-		$div->appendChild( $self->{session}->make_option_list(
+		$frag->appendChild( $self->{session}->make_option_list(
 			name => $self->{formname},
 			values => $tags,
 			default => \@defaults,
 			size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
 				$EPrints::HTMLRender::list_height_max :
 				scalar @$tags ),
-			multiple => "true",
+			multiple => "multiple",
 			labels => $labels ) );
 
 		if( $self->{multiple} )
 		{
-			$div->appendChild( 
+			$frag->appendChild( $self->{session}->makeText(" ") );
+			$frag->appendChild( 
 				$self->{session}->make_option_list(
 					name=>$self->{formname}."_self->{anyall}",
 					values=>\@set_tags,
-					default=>$self->{anyall},
+					value=>$self->{anyall},
 					labels=>\%set_labels ) );
 		}
 	}
 	elsif( $self->isType( "int" ) )
 	{
-		$div->appendChild(
-			$self->{session}->make_element( "INPUT",
+		$frag->appendChild(
+			$self->{session}->make_element( "input",
 				name=>$self->{formname},
-				default=>$self->{string},
+				value=>$self->{string},
 				size=>9,
 				maxlength=>100 ) );
 	}
 	elsif( $self->isType( "year" ) )
 	{
-		$div->appendChild(
-			$self->{session}->make_element( "INPUT",
+		$frag->appendChild(
+			$self->{session}->make_element( "input",
 				name=>$self->{formname},
-				default=>$self->{string},
+				value=>$self->{string},
 				size=>9,
 				maxlength=>9 ) );
 	}
@@ -985,7 +1004,7 @@ sub toHTML
 		$self->{session}->getSite()->log( "Can't Render: ".$self->getType() );
 	}
 
-	return $div;
+	return $frag;
 }
 
 sub getHelp

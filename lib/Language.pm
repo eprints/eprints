@@ -142,14 +142,14 @@ sub html_file_phrase
 	$inserts = {} if( !defined $inserts );
 
 	print STDERR "BEGIN\n";
-	my $span;
+	my $result;
 	if( $fb )
 	{
-		$span = $session->make_element( "SPAN" , class=>"fallbacklanguage" );
+		$result = $session->make_element( "SPAN" , class=>"fallbacklanguage" );
 	}
 	else
 	{
-		$span = $session->make_element( "SPAN" );
+		$result = $session->makeDocFragment;
 	}
 	while($response=~s/^(\$\([a-z_]+\)|[^\$]+|\$)//)
 	{	
@@ -167,9 +167,9 @@ sub html_file_phrase
 		{
 			$element = $session->makeText( $part );
 		}
-		$span->appendChild( $element );
+		$result->appendChild( $element );
 	}
-	return $span;
+	return $result;
 }
 
 
