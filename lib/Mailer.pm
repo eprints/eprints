@@ -10,6 +10,14 @@
 #  $Id$
 #
 ######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 
 package EPrints::Mailer;
 
@@ -98,6 +106,7 @@ sub fill_template
 #   __frontpage__   URL of site front page
 #   __usermail__    user's email address
 #   __subjectroot__ where on the server the "browse by subject" views are
+#   __version__     EPrints software version
 #
 ######################################################################
 
@@ -122,6 +131,7 @@ sub update_template_line
 	$new_line =~ s/__frontpage__/$EPrintSite::SiteInfo::frontpage/g;
 	$new_line =~
 		s/__subjectroot__/$EPrintSite::SiteInfo::server_subject_view_stem/g;
+	$new_line =~ s/__version__/$EPrints::Session::eprints_software_version/g;
 	
 	return( $new_line );
 }

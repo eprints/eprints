@@ -1,4 +1,26 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Process weekly subscriptions.
+#
+#   This script should be run once a week. Running it twice in one week
+#   will result in the weekly subscriptions being sent out twice.
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
 
 use EPrints::Database;
 use EPrints::Session;

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# Subject List class.
+#  Subject List class.
 #
 #  SubjectList objects represent lists of subject categories, and
 #  provide some useful methods for manipulating them, displaying 
@@ -16,7 +16,16 @@
 #
 ######################################################################
 #
-# 12/01/2000 - Created by Robert Tansley
+#  12/01/2000 - Created by Robert Tansley
+#  $Id$
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
 #
 ######################################################################
 

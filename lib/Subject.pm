@@ -9,6 +9,14 @@
 # 07/01/2000 - Created by Robert Tansley
 #
 ######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 
 package EPrints::Subject;
 

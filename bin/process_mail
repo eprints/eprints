@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 ######################################################################
 #
@@ -16,6 +16,14 @@
 #  $Id$
 #
 ######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 
 use EPrints::Log;
 use EPrints::Mailer;
@@ -24,6 +32,7 @@ use EPrints::User;
 
 use EPrintSite::SiteInfo;
 
+use strict;
 
 my $session = new EPrints::Session( 1 );
 

@@ -1,14 +1,23 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 ######################################################################
 #
-# Command line program for creating yables from the meta-metadata
+#  Command line program for creating tables from the meta-metadata
 #  files. NOTE! It doesn't actually create the database itself - a
 #  database called "eprints" must already exist (without any tables).
 #
 ######################################################################
 # 
 #  11/10/99 - Created by Robert Tansley
+#  $Id$
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
 #
 ######################################################################
 
@@ -27,18 +36,16 @@ use strict;
 #
 ######################################################################
 
-my $session = EPrints::Session->new( 1 );
+my $session = new EPrints::Session( 1 );
 
-my $success = $session->{database}->create_archive_tables();
-
-if( $success )
+if( $session->{database}->create_archive_tables() )
 {
 	print "Created database tables\n";
 }
 else
 {
 	my $error = $session->{database}->error();
-	print "DB Error: $error\n";
+	print STDERR "DB Error: $error\n";
 }
 
 
@@ -48,16 +55,14 @@ else
 #
 ######################################################################
 
-$success = EPrints::Subject::create_subject_table( $session );
-
-if( $success )
+if( EPrints::Subject::create_subject_table( $session ) )
 {
 	print "Inserted subject categories\n";
 }
 else
 {
 	my $error = $session->{database}->error();
-	print "DB Error: $error\n";
+	print STDERR "DB Error: $error\n";
 }
 
 $session->terminate();
