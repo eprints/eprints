@@ -1,0 +1,57 @@
+H1 {
+        font: bold 24pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+
+H2 {
+        font: bold 18pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+
+H3 {
+        font: 14pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+A.menulink {
+        font-weight: bold;
+        font-family: sans-serif;
+        color: #ccccff;
+}
+.menu {
+        font-weight: bold;
+        color: white;
+        text-align: right;
+        margin-right: 1em;
+}
+.pagetitle {
+        font: bold x-large Helvetica,Arial,Sans-serif;
+	color: #000000;
+}
+.sitetitle {
+        font: large Helvetica,Arial,Sans-serif;
+	color: #000000;
+}
+
+.searchfieldhelp {
+        font-size: normal;
+}
+.searchfieldname {
+        padding-top: 1em;
+        padding-bottom: 0.25em;
+        font: x-large serif;
+}
+
+.searchorder {
+        padding-top: 1em;
+}
+.searchbuttons {
+        padding-top: 1em;
+}
+.searchmustfulfill {
+        padding-top: 1em;
+}
+.main {
+        margin-left: 1em;
+        margin-right: 1em;
+}
+
