@@ -410,34 +410,18 @@ sub send_introduction
 {
 	my( $self ) = @_;
 
-	my $body;
-
+	# Which template for the mail body?
 	my $file = ( $self->{groups} eq $EPrints::User::access_levels[0] ?
 		$EPrintSite::SiteInfo::template_reader_intro :
 		$EPrintSite::SiteInfo::template_author_intro );
 
-	open( INTROFILE, $file ) or return( 0 );
-	
-	while( <INTROFILE> )
-	{
-		s/__username__/$self->{username}/g;
-		s/__password__/$self->{passwd}/g;
-		s/__sitename__/$EPrintSite::SiteInfo::sitename/;
-		s/__admin__/$EPrintSite::SiteInfo::admin/;
-		s/__perlroot__/$EPrintSite::SiteInfo::server_perl/;
-
-		$body .= $_;
-	}
-	
-	close( INTROFILE );
-
-	my $success = EPrints::Mailer->send_mail(
+	# Try and send the mail
+	return( EPrints::Mailer->prepare_send_mail(
 		"New $EPrintSite::SiteInfo::sitename $self->{groups}",
 		$self->{email},
 		"Welcome to $EPrintSite::SiteInfo::sitename!",
-		$body );
-
-	return( $success );
+		$file,
+		$self ) );
 }
 
 
