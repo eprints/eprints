@@ -188,9 +188,10 @@
 # current urgent 2.0 todo
 # ***********************
 # MIKE: doc perl modules we need (and bundle)
-# HARRIS.XML!!!
 # SearchField widths?
-# Disk full - what does df do?
+# Howtos, 
+# doc upgrade stuff.
+# VLit link
 # Xhtml docs: [gui]
 # ===Document backing up!!!
 
@@ -198,13 +199,13 @@
 # HOW-TOS
 #================
 # produce DOM.
-# add a field
+# add a field [DONE}
 # add a type
-# remove a field
+# remove a field [DONE}
 # remove a type
 # add an OAI format
 # add a usertype
 # make latexy magic happen
 # adding a document type
-# adding a complex browse view.
+# adding a complex browse view. [DONE}
 # adding a search on another page

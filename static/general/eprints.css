@@ -143,3 +143,15 @@ dt {
 	text-decoration: none;
 }
 
+body.vlit {
+	margin: 8pt;
+}
+
+.vlit-charrange {
+	color: #0000c0;
+}
+
+.vlit-highlight {
+	color: #c00000;
+}
+

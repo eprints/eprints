@@ -372,7 +372,7 @@ print CONF <<END;
 
 END
 
-if( $archive->get_conf( "enable_vlit_support" ) )
+if( $archive->get_conf( "vlit" )->{enable} )
 {
 	foreach $langid ( @langs )
 	{

@@ -379,3 +379,8 @@ types.xml file.
 - buffer page items are now sorted by datestamp (newest first)
 - made a note in the h2ph warning that you should be root when running it.
 
+12/02/2002
+[c] - Changed vlit config options. Now you can configure where the URL goes.
+- added "context" mode to vlit which highlights around the quote. 
+- vlit human mode now uses CSS.
+

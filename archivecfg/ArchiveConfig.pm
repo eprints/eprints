@@ -23,10 +23,6 @@ require "cfg/ArchiveValidateConfig.pm";
 require "cfg/ArchiveTextIndexingConfig.pm";
 require "cfg/ArchiveMetadataFieldsConfig.pm";
 
-#cjg NO UNICODE IN PASSWORDS!!!!!!!!!
-# remove additional + suggestion fields from eprint static and add
-# them to the normal roster. cjg non-public comments field?
-
 use EPrints::Utils;
 
 use XML::DOM;
@@ -60,10 +56,6 @@ foreach( keys %{$archiveinfo} ) {
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
-# Experimental VLit support.
-# VLit support will allow character ranges to be served as well as 
-# whole documents. 
-$c->{enable_vlit_support} = 1;
 
 ######################################################################
 #
@@ -312,6 +304,25 @@ $c->{multi_language_options} = 0;
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
+
+######################################################################
+#
+# Experimental VLit support.
+#
+#  VLit support will allow character ranges to be served as well as 
+#  whole documents. 
+#
+######################################################################
+
+# set this to 0 to disable vlit (and run generate_apacheconf)
+$c->{vlit}->{enable} = 1;
+
+# The URL which the (C) points to.
+$c->{vlit}->{copyright_url} = $c->{base_url}."/vlit.html";
+
+# The number of characters above & below to
+# show when displaying context.
+$c->{vlit}->{context_size} = 1024;
 
 ######################################################################
 #

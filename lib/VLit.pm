@@ -42,6 +42,8 @@ sub handler
 		return DECLINED;
 	}
 
+	my $session = EPrints::Session->new();
+
 	if( !defined $locspec )
 	{
 		$locspec = "charrange:";
@@ -68,7 +70,7 @@ sub handler
 		return;
 	}
 
-	&$fn( $filename, $lsparam, $locspec );
+	&$fn( $filename, $lsparam, $locspec, $session );
 
 	return OK;
 }
@@ -111,7 +113,7 @@ sub send_http_header
 
 sub ls_charrange
 {
-	my( $filename, $param, $locspec ) = @_;
+	my( $filename, $param, $locspec, $session ) = @_;
 
 	my $r = Apache->request;
 	
@@ -136,25 +138,50 @@ sub ls_charrange
 		}
 		( $offset, $length ) = ( $1, $2 );
 	}
-	
-	my $fh = new FileHandle( $filename, "r" );
-	binmode( $fh );
-	my $data = "";
-	$fh->seek( $offset, 0 );
-	$fh->read( $data, $length );
-	$fh->close();
 
 	my $q = new CGI;
 	my $mode = $q->param( "mode" );
 
+
+	my $readoffset = $offset;
+	my $readlength = $length;
+	my $constart = -1;
+	my $conend = -1;
+	if( $mode eq "context" )
+	{
+		my $contextsize = $session->get_archive()->get_conf( "vlit" )->{context_size};
+		$readoffset-=$contextsize;
+		$readlength+=$contextsize+$contextsize;
+		$constart = $contextsize;
+		if( $readoffset<0 )
+		{
+			$constart += $readoffset;
+			$readlength += $readoffset;
+			$readoffset=0;
+		}
+		$conend = $readlength-$contextsize;
+	}
+	
+	my $fh = new FileHandle( $filename, "r" );
+	binmode( $fh );
+	my $data = "";
+	$fh->seek( $readoffset, 0 );
+	$fh->read( $data, $readlength );
+	$fh->close();
+
 	my $baseurl = "http://".$r->hostname.$r->uri;
 
-	if( $mode eq "human" || $mode eq 'spanSelect' || $mode eq 'endSelect' || $mode eq 'link' )
+	if( $mode eq "human" || $mode eq "context" || $mode eq 'spanSelect' || $mode eq 'endSelect' || $mode eq 'link' )
 	{
 		my $html = "";
 		my $o;
-		for $o (0..$length-1)
+		$html.='<span class="vlit-charrange">';
+		for $o (0..$readlength-1)
 		{
+			if( $o == $constart)
+			{
+				$html.='<span class="vlit-highlight">';
+			}
 			my $c=substr($data,$o,1);
 			$c = '&amp;' if( $c eq "&" );
 			$c = '&gt;' if( $c eq ">" );
@@ -171,13 +198,24 @@ sub ls_charrange
 				$c ='<a href="'.$url.'">'.$c.'</a>';
 			}
 			$html.=$c;
+			if( $o == $conend-1 )
+			{
+				$html.='</span>';
+			}
 		}
+		$html.='</span>';
 		my $front = '';
 		unless( $param eq "" )
 		{
-			$front = '<big><sup><a href="'.$baseurl.'">trans</a></sup></big> ';
+			my $url = $baseurl;
+			if( $mode eq "human" )
+			{
+				$url .= "?locspec=charrange:$param&mode=context";
+			}
+			$front = '<big><sup><a href="'.$url.'">trans</a></sup></big> ';
 		}
-		$front .= '<big><sup><a href="http://xanadu.com">&copy;</a></sup></big>';
+		my $copyurl = $session->get_archive()->get_conf( "vlit" )->{copyright_url};
+		$front .= '<big><sup><a href="'.$copyurl.'">&copy;</a></sup></big>';
 		my $msg='';
 		if( $mode eq "endSelect" )
 		{ 
@@ -204,8 +242,11 @@ END
 		}
 		$r->print( <<END );
 <html>
-<head><title>$title</title></head>
-<body>
+<head>
+  <title>$title</title>
+  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen" />
+</head>
+<body class="vlit">
 $msg
  <p>$front $html</p>
 </body>
@@ -243,7 +284,7 @@ sub ls_area
 	
 	unless( $param=~m/^(\d+),(\d+)\/(\d+),(\d+)$/ )
 	{
-		send_http_error( $session, 400, "Malformed area param: $param" );
+		send_http_error( 400, "Malformed area param: $param" );
 		return;
 	}
 	
@@ -258,7 +299,7 @@ sub ls_area
 
 		if( !-e $cache )
 		{
-			send_http_error( $session, 500, "Error making image" );
+			send_http_error( 500, "Error making image" );
 			return;
 		}
 	}

@@ -9,8 +9,6 @@
     <type name="ascii" />
     <type name="other" />
     <type name="coverimage" />
-<!-- arbitary formats? -->
-<!-- required?? -->
   </dataset>
 
   <dataset name="security">
