@@ -30,6 +30,7 @@ use strict;
 (
 	"eprintid:text::EPrint ID:1:0:0",
 	"replacement:text::ID of Replacement:1:0:0",
+	"subjects:subjects:1:Subject Categories:0:0:0",
 	"deletiondate:date::Date Removed:1:0:0"
 );
 
@@ -130,6 +131,7 @@ sub add_deletion_record
 		$EPrints::Database::table_deletion,
 		[ [ "eprintid", $eprint->{eprintid} ],
 		  [ "replacement", $replacement ],
+		  [ "subjects", $eprint->{subjects} ],
 		  [ "deletiondate", $deletion_date ] ] ) );
 
 	return( new EPrints::Deletion(
@@ -137,61 +139,5 @@ sub add_deletion_record
 		$eprint->{eprintid},
 		[ $eprint->{eprintid}, $replacement, $deletion_date ] ) );
 }
-
-
-######################################################################
-#
-# @deletion_records = deletions_between( $session, $start_date, $end_date )
-#
-#  Return the deletion records for eprints deleted between $start_date
-#  and $end_date inclusively.  $start_date or $end_date can be undef,
-#  meaning the start of time or the end of time, respectively.
-#
-######################################################################
-
-sub deletions_between
-{
-	my( $session, $start_date, $end_date ) = @_;
-
-	# Get the MetaField object for the deletiondate field
-	my @deletion_fields = EPrints::MetaInfo::get_deletion_fields();
-	
-	my $deletion_date_field = EPrints::MetaInfo::find_field(
-		\@deletion_fields,
-		"deletiondate" );
-	
-	# Get the searchspec for the SearchField class
-	my $date_search_spec = undef;
-	
-	if( defined $start_date || defined $end_date )
-	{
-		$date_search_spec = ( defined $start_date ? $start_date : "" ) . "-" .
-		( defined $end_date ? $end_date : "" );
-	}
-
-	# Make the SearchField
-	my $date_search = new EPrints::SearchField( $session,
-	                                            $deletion_date_field,
-	                                            $date_search_spec );
-	
-	# Get the relevant SQL from the SearchField
-	my $sql = $date_search->get_sql();
-
-	# Get the rows from the database
-	my $rows = $session->{database}->retrieve_fields(
-		$EPrints::Database::table_deletion,
-		\@deletion_fields,
-		( defined $sql ? [ $sql ] : undef ) );
-
-	# Make and return the deletion records
-	my @deletion_records;
-
-	foreach (@$rows)
-	{
-		push @deletion_records, new EPrints::Deletion( $session, undef, $_ );
-	}
-	
-	return( @deletion_records );
-}	
 
 1;

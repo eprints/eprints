@@ -420,7 +420,7 @@ sub get_date
 {
 	my( $time ) = @_;
 
-	my @date = gmtime( $time );
+	my @date = localtime( $time );
 	my $day = $date[3];
 	my $month = $date[4]+1;
 	my $year = $date[5]+1900;

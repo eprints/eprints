@@ -31,6 +31,9 @@ use strict;
 # Name for the site
 $EPrintSite::SiteInfo::sitename = "CogPrints";
 
+# Short text description
+$EPrintSite::SiteInfo::description = "Cognitive Sciences Eprint Archive";
+
 # E-mail address for automatic administration account
 $EPrintSite::SiteInfo::automail = "auto\@eprints.org";
 
@@ -415,6 +418,12 @@ $EPrintSite::SiteInfo::archive_identifier = "cogprints";
 (
 	"oams" => "http://www.openarchives.org/sfc/sfc_oams.htm"
 );
+
+# Base URL of OAI
+$EPrintSite::SiteInfo::oai_base_url =
+	$EPrintSite::SiteInfo::server_perl."/oai-0.2";
+
+
 
 
 # Parameters for Dienst software: Required for now, but will not be required

@@ -320,6 +320,28 @@ sub do_user_search
 
 ######################################################################
 #
+# $rows = do_raw_search( $columns )
+#
+#  Performs the search, just returning the raw row data from the database.
+#
+######################################################################
+
+sub do_raw_search
+{
+	my( $self, $columns ) = @_;
+	
+	my( $sql, $order ) = $self->get_sql_order();
+	
+	return( $self->{session}->{database}->retrieve(
+		$self->{table},
+		$columns,
+		( defined $sql ? [ $sql ] : undef ),
+		$order ) );
+}
+
+
+######################################################################
+#
 # ( $sql, $order ) = get_sql_order()
 #
 #  Returns the SQL for the search ($sql) and the ordering ($order).
