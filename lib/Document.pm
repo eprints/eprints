@@ -48,7 +48,7 @@ my $digits = 2;
 (
 	"docid:text::Document ID:1:0:1",                # Unique identifier
 	"eprintid:text::EPrint ID:1:0:0:1",             # Corresponding EPrint ID
-	"format:enum::Document Format:1:1:1",           # Format (e.g. HTML)
+	"format:set::Document Format:1:1:1",           # Format (e.g. HTML)
 	"formatdesc:text::Additional Format Description:1:1:1",
 	                                                # Format description for
 	                                                #  other formats

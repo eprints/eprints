@@ -321,7 +321,7 @@ sub format_field
 		# Render text
 		$html = ( defined $value ? $value : "" );
 	}
-	elsif( $type eq "enum" || $type eq "eprinttype" )
+	elsif( $type eq "eprinttype" )
 	{
 		$html = $field->{labels}->{$value} if( defined $value );
 		$html = "UNSPECIFIED" unless( defined $value );
@@ -370,7 +370,7 @@ sub format_field
 		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
 		$html = "" unless( defined $value );
 	}
-	elsif( $type eq "subjects" )
+	elsif( $type eq "subject" )
 	{
 		$html = "";
 
@@ -436,19 +436,6 @@ sub format_field
 	elsif( $type eq "year" )
 	{
 		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $type eq "multiurl" )
-	{
-		$html = "";
-
-		my @urls;
-		@urls = split /[\,\s]+/, $value if( defined $value );
-		my $url;
-		
-		foreach $url (@urls)
-		{
-			$html .= "<A HREF=\"$url\">$url</A> ";
-		}
 	}
 	elsif( $type eq "name" )
 	{
@@ -527,16 +514,6 @@ sub input_field
 		                                   -size=>$field->{displaydigits},
 		                                   -maxlength=>$field->{displaydigits} );
 	}
-	elsif( $type eq "enum" )
-	{
-		my $def_val = ( !defined $value || $value eq "" ?
-			${$field->{tags}}[0] : $value );
-	
-		$html = $self->{query}->popup_menu( -name=>$field->{name},
-		                                    -values=>$field->{tags},
-		                                    -default=>$def_val,
-		                                    -labels=>$field->{labels} );
-	}
 	elsif( $type eq "boolean" )
 	{
 		$html = $self->{query}->checkbox(
@@ -596,14 +573,6 @@ sub input_field
 		                                   -size=>4,
 		                                   -maxlength=>4 );
 	}
-	elsif( $type eq "multiurl" )
-	{
-		$html = $self->{query}->textarea(
-			-name=>$field->{name},
-			-default=>$value,
-			-rows=>$field->{displaylines},
-			-columns=>$EPrints::HTMLRender::form_width );
-	}
 	elsif( $type eq "eprinttype" )
 	{
 		my @eprint_types = EPrints::MetaInfo::get_eprint_types();
@@ -621,7 +590,7 @@ sub input_field
 			-size=>$height,
 			-labels=>$labels );
 	}
-	elsif( $type eq "subjects" )
+	elsif( $type eq "subject" )
 	{
 		my $subject_list = EPrints::SubjectList->new( $value );
 
@@ -1210,7 +1179,7 @@ sub form_value
 			$value = ":$value:";
 		}
 	}
-	elsif( $field->{type} eq "subjects" )
+	elsif( $field->{type} eq "subject" )
 	{
 		my $subject_list = EPrints::SubjectList->new();
 

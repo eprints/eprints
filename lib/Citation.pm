@@ -62,7 +62,7 @@ sub render_citation
 
 		my $field = EPrints::MetaInfo::find_eprint_field( $fieldname );
 
-		# Check we ahve it
+		# Check we have it
 		if( defined $field )
 		{
 			# Get the value out of thehash

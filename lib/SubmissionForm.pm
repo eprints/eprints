@@ -1909,7 +1909,7 @@ sub update_from_subject_form
 
 		foreach $field (@all_fields)
 		{
-			if( $field->{type} eq "subjects")
+			if( $field->{type} eq "subject")
 			{
 				my $param =
 					$self->{eprint}->{session}->{render}->form_value( $field );

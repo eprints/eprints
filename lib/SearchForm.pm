@@ -123,125 +123,120 @@ sub process
 		
 		if( defined $problems && scalar (@$problems) > 0 )
 		{
-			# Problem with search expression. Report an error, and redraw the form
-			
-			print $self->{session}->{render}->start_html( $self->{title} );
-			print $self->{preamble};
-
-			print "<P>";
-			print $self->{session}->{lang}->phrase( "H:form_problem" );
-			print "</P>";
-			print "<UL>\n";
-			
-			foreach (@$problems)
-			{
-				print "<LI>$_</LI>\n";
-			}
-			
-			print "</UL>\n";
-
-			$self->render_search_form( $searchexp );
-			
-			print $self->{session}->{render}->end_html();
+			$self->_render_problems( $searchexp , @$problems );
+			return;
 		}
-		else
-		{
-			# Everything OK.
+
+
+		# Everything OK with form.
 			
 #EPrints::Log::debug( "SearchForm", $searchexp->to_string() );
 
-			print $self->{session}->{render}->start_html(
-				$self->{session}->{lang}->phrase( "H:results_for",
-				                                  $self->{title} ) );
+		my( $t1 , $t2 , $t3 , @results );
 
-			my $t1 = EPrints::Log::microtime();
-			my $searchid = $searchexp->perform_search();
-			my $t2 = EPrints::Log::microtime();
-			my @results = $searchexp->get_records();
-			my $t3 = EPrints::Log::microtime();
+		$t1 = EPrints::Log::microtime();
+		$searchexp->perform_search();
+		$t2 = EPrints::Log::microtime();
 
-			my $code;
-			if( scalar @results==0 )
-			{
-				$code = "H:no_hits";
-			}
-			elsif( scalar @results==1 )
-			{
-				$code = "H:one_hit";
-			}
-			else
-			{
-				$code = "H:n_hits";
-			}
-			print "<P>";
-	       		print $self->{session}->{lang}->phrase( $code, "<STRONG>".(scalar @results)."</STRONG>" );
-			print "</P>";
-
-printf("<P>cachetime: <B>%.4f</B></P>",($t2-$t1));
-printf("<P>gettime: <B>%.4f</B></P>",($t3-$t2));
-if( @{ $searchexp->{ignoredwords} } )
-{
-	print "<P>Ignored words: <B>".join(", ",@{$searchexp->{ignoredwords}})."</B>.</P>";
-}
-			# Print results
-
-			if( $self->{what} eq "eprints" )
-			{
-				
-				foreach (@results)
-				{
-					if( $self->{staff} )
-					{
-						print "<P><A HREF=\"$EPrintSite::SiteInfo::server_perl/".
-							"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
-							$self->{session}->{render}->render_eprint_citation(
-								$_,
-								1,
-								0 )."</A></P>\n";
-					}
-					else
-					{
-						print "<P>".
-							$self->{session}->{render}->render_eprint_citation(
-								$_,
-								1,
-								1 )."</P>\n";
-					}
-				}
-			}
-			elsif( $self->{what} eq "users" )
-			{
-				
-				foreach (@results)
-				{
-					print "<P>";
-					print $self->{session}->{render}->render_user_name( $_, 1 );
-					print "</P>\n";
-				}
-			}
-			else
-			{
-				die "dammit";
-				#cjg
-			}
-			
-			# Print out state stuff for a further invocation
-			print "<CENTER><P>";
-			print $self->{session}->{render}->start_get_form();
-
-			$self->write_hidden_state();
-
-			print $self->{session}->{render}->submit_buttons(
-				[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
-			print "</P></CENTER>\n";
-
-			print $self->{session}->{render}->end_form();
-
-
-			print $self->{session}->{render}->end_html();
+		if( defined $searchexp->{error} ) 
+		{	
+			# Error with search.
+			$self->_render_problems( $searchexp , $searchexp->{error} );
+			return;
 		}
+
+		@results = $searchexp->get_records();
+		$t3 = EPrints::Log::microtime();
+
+		print $self->{session}->{render}->start_html(
+			$self->{session}->{lang}->phrase( "H:results_for",
+			                                  $self->{title} ) );
+		my $code;
+		if( scalar @results==0 )
+		{
+			$code = "H:no_hits";
+		}
+		elsif( scalar @results==1 )
+		{
+			$code = "H:one_hit";
+		}
+		else
+		{
+			$code = "H:n_hits";
+		}
+		print "<P>";
+       		print $self->{session}->{lang}->phrase( $code, "<STRONG>".(scalar @results)."</STRONG>" );
+		print "</P>";
+
+printf("<P>cachetime: <B>%.4f</B> seconds.</P>",($t2-$t1));
+printf("<P>gettime: <B>%.4f</B> seconds.</P>",($t3-$t2));
+
+		if( @{ $searchexp->{ignoredwords} } )
+		{
+			my %words = ();
+			foreach( @{$searchexp->{ignoredwords}} ) { $words{$_}++; }
+			print "<P>Ignored words: <B>".join("</B>, <B>",sort keys %words)."</B>.</P>";
+		}
+		# Print results
+
+		if( $self->{what} eq "eprints" )
+		{
+			
+			foreach (@results)
+			{
+				if( $self->{staff} )
+				{
+					print "<P><A HREF=\"$EPrintSite::SiteInfo::server_perl/".
+						"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
+						$self->{session}->{render}->render_eprint_citation(
+							$_,
+							1,
+							0 )."</A></P>\n";
+				}
+				else
+				{
+					print "<P>".
+						$self->{session}->{render}->render_eprint_citation(
+							$_,
+							1,
+							1 )."</P>\n";
+				}
+			}
+		}
+		elsif( $self->{what} eq "users" )
+		{
+			
+			foreach (@results)
+			{
+				print "<P>";
+				print $self->{session}->{render}->render_user_name( $_, 1 );
+				print "</P>\n";
+			}
+		}
+		else
+		{
+			die "dammit";
+			#cjg
+		}
+			
+		# Print out state stuff for a further invocation
+		print "<CENTER><P>";
+		print $self->{session}->{render}->start_get_form();
+
+		$self->write_hidden_state();
+
+		print $self->{session}->{render}->submit_buttons(
+			[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
+		print "</P></CENTER>\n";
+
+		print $self->{session}->{render}->end_form();
+
+
+		print $self->{session}->{render}->end_html();
+		return
 	}
-	elsif( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
+
+	if( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
 		$submit_button eq $self->{session}->{lang}->phrase("F:action_newsearch") ) )
 	{
 		# To reset the form, just reset the URL.
@@ -249,8 +244,10 @@ if( @{ $searchexp->{ignoredwords} } )
 		# Remove everything that's part of the query string.
 		$url =~ s/\?.*//;
 		$self->{session}->{render}->redirect( $url );
+		return;
 	}
-	elsif( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_update") )
+	
+	if( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_update") )
 	{
 		$searchexp->from_form();
 
@@ -260,19 +257,44 @@ if( @{ $searchexp->{ignoredwords} } )
 		$self->render_search_form( $searchexp );
 
 		print $self->{session}->{render}->end_html();
+		return;
 	}
-	else
-	{
-		# Just print the form...
-		print $self->{session}->{render}->start_html( $self->{title} );
-		print $self->{preamble};
 
-		$self->render_search_form( $searchexp );
+	# Just print the form...
+	print $self->{session}->{render}->start_html( $self->{title} );
+	print $self->{preamble};
 
-		print $self->{session}->{render}->end_html();
-	}		
+	$self->render_search_form( $searchexp );
+
+	print $self->{session}->{render}->end_html();
 }
+
+sub _render_problems
+{
+	my( $self , $searchexp , @problems ) = @_;	
+	# Problem with search expression. Report an error, and redraw the form
+			
+	print $self->{session}->{render}->start_html( $self->{title} );
+	print $self->{preamble};
+
+	print "<P>";
+	print $self->{session}->{lang}->phrase( "H:form_problem" );
+	print "</P>";
+	print "<UL>\n";
 	
+	foreach (@problems)
+	{
+		print "<LI>$_</LI>\n";
+	}
+	
+	print "</UL>\n";
+	print "<HR noshade>";
+	$self->render_search_form( $searchexp );
+			
+	print $self->{session}->{render}->end_html();
+	return;
+}
+
 
 ######################################################################
 #

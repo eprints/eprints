@@ -17,7 +17,7 @@ displayname = "User's Name"
 
 <field os>
 required = NO
-type = "enum"
+type = "set"
 displayname = "Operating System"
 editable = YES
 visible = NO

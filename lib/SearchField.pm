@@ -14,6 +14,8 @@
 #
 ######################################################################
 
+#cjg =- None of the SQL values are ESCAPED - do it at one go later!
+
 package EPrints::SearchField;
 
 use EPrints::Session;
@@ -35,8 +37,8 @@ use strict;
 #                           "-YYYY-MM-DD" = any date up until and including
 #                           "YYYY-MM-DD-YYYY-MM-DD" = between those dates (incl)
 #                           "YYYY-MM-DD" = just on that day
-#  email, multiurl & url    "searchvalue" (simple)
-#  enum & eprinttype        "poss1:poss2:poss3"
+#  email, XXXXXXXXXXXurl    "searchvalue" (simple)
+#  XXXX & eprinttype        "poss1:poss2:poss3"
 #  multitext, text & name   "[all][any][phr]:terms"
 #  username, set & subject  "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
@@ -54,15 +56,13 @@ my $texthelp = "Enter a term or terms to search for.";
 (
 	"boolean"    => "Select a value.",
 	"email"      => "Enter some text to search for",
-	"enum"       => "Select one or more values from the list. Default is (Any).",
 	"eprinttype" => "Select one or more values from the list. Default is (Any).",
 	"multitext"  => $texthelp,
-	"multiurl"   => "Enter some text to search for",
 	"name"       => $texthelp,
 	"set"        => "Select one or more values from the list, and whether you ".
 	                "want to search for records with any one or all of those ".
 	                "values. Default is (Any).",
-	"subjects"   => "Select one or more values from the list, and whether you ".
+	"subject"    => "Select one or more values from the list, and whether you ".
 	                "want to search for records with any one or all of those ".
 	                "values. Default is (Any).",
 	"username"   => "Enter one or more usernames (space seperated) and whether you ".
@@ -74,13 +74,12 @@ my $texthelp = "Enter a term or terms to search for.";
 	                "e.g. `1990-2000', `1990-' or -2000'."
 );
 
-@EPrints::SearchField::text_search_types = ( "all", "any", "phr" );
+@EPrints::SearchField::text_search_types = ( "ALL", "ANY" );
 
 %EPrints::SearchField::text_search_type_labels =
 (
-	"all" => "Match all, in any order",
-	"any" => "Match any",
-	"phr" => "Match as a phrase"
+	"ALL" => "Match all, in any order",
+	"ANY" => "Match any"
 );
 
 
@@ -154,7 +153,7 @@ sub process_value
 	# Value has changed. Previous benchmarks no longer apply.
 	$self->{benchcache} = {};
 
-	print STDERR "NEW SE ($1)($2)($3) [$self->{value}]\n";
+	print STDERR "NEW SE ($1)($2)($3) [$self->{value}] \n";
 }
 
 ######################################################################
@@ -560,7 +559,7 @@ sub render_html
 			-default=>( defined $self->{value} ? $self->{value} : $tags[0] ),
 			-labels=>\%labels );
 	}
-	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" )
+	elsif( $type eq "email" || $type eq "url" )
 	{
 		# simple text types
 		$html = $self->{session}->{render}->{query}->textfield(
@@ -572,18 +571,16 @@ sub render_html
 	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
 	{
 		# complex text types
-		my( $search_type, $search_phrases ) = _get_search_type( $self->{value} );
-		
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
-			-default=>$search_phrases,
+			-default=>$self->{string},
 			-size=>$EPrints::HTMLRender::search_form_width,
 			-maxlength=>$EPrints::HTMLRender::field_max );
 
 		$html .= $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname}."_srchtype",
 			-values=>\@EPrints::SearchField::text_search_types,
-			-default=>$search_type,
+			-default=>$self->{anyall},
 			-labels=>\%EPrints::SearchField::text_search_type_labels );
 	}
 	elsif( $type eq "username" )
@@ -617,7 +614,7 @@ sub render_html
 			-default=>$anyall,
 			-labels=>\%anyall_labels );
 	}
-	elsif( $type eq "enum" || $type eq "eprinttype" )
+	elsif( $type eq "eprinttype" )
 	{
 		my @defaults;
 		
@@ -658,7 +655,7 @@ sub render_html
 			-multiple=>"true",
 			-labels=>$labels );
 	}
-	elsif( $type eq "set" || $type eq "subjects" )
+	elsif( $type eq "set" || $type eq "subject" )
 	{
 		my @defaults;
 		my $anyall = "ANY";
@@ -677,7 +674,7 @@ sub render_html
 		# Make a list of possible values
 		my( $values, $labels );
 		
-		if( $type eq "subjects" )
+		if( $type eq "subject" )
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info.
@@ -784,7 +781,7 @@ sub from_form
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		$self->{value} = $val if( $val ne "EITHER" );;
 	}
-	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" )
+	elsif( $type eq "email" || $type eq "url" )
 	{
 		# simple text types
 		my $val = $self->{session}->{render}->param( $self->{formname} );
@@ -828,7 +825,7 @@ sub from_form
 			$self->{value} = "$anyall:$exact:".join( ":" , @vals );
 		}
 	}		
-	elsif( $type eq "enum" || $type eq "eprinttype" )
+	elsif( $type eq "eprinttype" )
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		
@@ -846,7 +843,7 @@ sub from_form
 			$self->{value} = "ANY:$val";
 		}
 	}
-	elsif( $type eq "set" || $type eq "subjects" )
+	elsif( $type eq "set" || $type eq "subject" )
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		my $val;
@@ -917,6 +914,7 @@ sub from_form
 
 sub _get_search_type
 {
+# cjg WHAT IS THIS FOR?
 	my( $value ) = @_;
 	
 	my( $search_type, $search_terms );
@@ -956,15 +954,38 @@ sub get_conditions
 {
 	my ( $self ) = @_;
 
+print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\n";
+
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
 		return undef;
 	}
 
+	if ( $self->{field}->{type} eq "set" || $self->{field}->{type} eq "subject" || 
+		$self->{field}->{type} eq "eprinttype" || $self->{field}->{type} eq "boolean" ||
+		$self->{field}->{type} eq "username" )
+	{
+		my @fields = ();
+		my $text = $self->{string};
+		while( $text=~s/"([^"]+)"// ) { push @fields, $1; }
+		while( $text=~s/([^\s]+)// ) { push @fields, $1; }
+		my @where;
+		foreach( @fields )
+		{
+			my $s = "__FIELDNAME__ = '$_'";
+			push @where , $s;
+		}	
+		return( $self->_get_conditions_aux( \@where , 0) );
+	}
+
 	if ( $self->{field}->{type} eq "name" )
 	{
 		my @where = ();
-		foreach( split /\s+/ , $self->{string} )
+		my @names = ();
+		my $text = $self->{string};
+		while( $text=~s/"([^"]+)"// ) { push @names, $1; }
+		while( $text=~s/([^\s]+)// ) { push @names, $1; }
+		foreach( @names )
 		{
 			m/^([^,]+)(,(.*))?$/;
 			my ( $family , $given ) = ( $1 , $3 );
@@ -1037,26 +1058,65 @@ sub get_conditions
 	#  word word "a phrase" word
 	#
 
-	if ( $self->{field}->{type} eq "text" )
+	if ( $self->{field}->{type} eq "text" ||  $self->{field}->{type} eq "multitext" ||
+		$self->{field}->{type} eq "url" ||  $self->{field}->{type} eq "email")
 	{
 		my @where = ();
 		my @phrases = ();
 		my $text = $self->{string};
-		if ( $self->{anyall} ne "PHR" ) 
+		if ( $self->{anyall} eq "PHR" ) 
 		{
-### Phase code still needs work.
-			while ($text =~ s/"([^"]+)"//g)
+			# PHRASES HAVE SPECIAL HANDLING!
+
+			# If we want an exact match just return records which exactly
+			# match this phrase.
+
+			if( $self->{match} eq "EQ" )
 			{
-				push @phrases,$1;
+				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
+			my( $good , $bad ) = 
+				EPrintSite::SiteRoutines::extract_words( $text );
+
+			# If there are no useful words in the phrase, abort!
+			if( scalar @{$good} == 0) {
+				return(undef,undef,undef,"No indexable words in phrase \"$text\".");
+			}
+			foreach( @{$good} )
+			{
+				push @where, "__FIELDNAME__ = '$_'";
+			}
+			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
+
+		}
+		my $hasphrase = 0;
+		while ($text =~ s/"([^"]+)"//g)
+		{
+			my $sfield = new EPrints::SearchField( 
+				$self->{session},
+				$self->{table},
+				$self->{field},
+				"PHR:IN:$1" );
+			my ($buffer,$bad,$error) = $sfield->do( undef , undef );
+			if( defined $error )
+			{
+				return( undef, undef, undef, $error );
+			}
+			push @where,"!$buffer"; 
+			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
 			EPrintSite::SiteRoutines::extract_words( $text );
+
+		if( scalar @{$good} == 0 && !$hasphrase )
+		{
+			return(undef,undef,undef,"Search field contains no indexable words: \"$text\".");
+		}
+
 		foreach( @{$good} )
 		{
 			push @where, "__FIELDNAME__ = '$_'";
 		}
-
 		return ( $self->_get_conditions_aux( 
 				\@where ,  
 				$self->{match} eq "IN" ) , $bad );
@@ -1067,7 +1127,7 @@ sub get_conditions
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
-
+print STDERR "_GCA($self->{field}->{name})\n";
 	my $searchtable = $self->{table};
 	my $freetextcond;
 	if ($self->{field}->{multiple}) 
@@ -1082,24 +1142,43 @@ sub _get_conditions_aux
 
 	my $fieldname = "M.".($freetext ? "word" : $self->{field}->{name} );
 
+	my @nwheres; # normal
+	my @pwheres; # pre-done
 	foreach( @{$wheres} )
 	{
-		s/__FIELDNAME__/$fieldname/g;
+		if( $_ =~ m/^!/ )
+		{
+			print STDERR ">>> $_\n";
+			push @pwheres, $_;
+		}
+		else
+		{
+			s/__FIELDNAME__/$fieldname/g;
+			push @nwheres, $_;
+		}
 	}
 
 	if ( $self->{anyall} eq "ANY" ) 
 	{
-		$wheres = [ join( " OR " , @{$wheres} ) ];
+		if( scalar @nwheres == 0 )
+		{
+			@nwheres = ();
+		}
+		else
+		{
+			@nwheres = ( join( " OR " , @nwheres ) );
+		}
 	}
 	if( $freetext )
 	{
-		foreach( @{$wheres} )
+		foreach( @nwheres )
 		{
 			$_="($_) AND $freetextcond"; 
 		}
 	}
+	push @nwheres , @pwheres;
 
-	return $searchtable , $wheres;
+	return "$searchtable:$self->{field}->{name}" , \@nwheres;
 
 }
 
@@ -1107,7 +1186,9 @@ sub _get_conditions_aux
 
 sub benchmark
 {
-	my ( $self , $table , $where ) = @_;
+	my ( $self , $tablefield , $where ) = @_;
+
+	my( $table , $field ) = split /:/ , $tablefield;
 
         my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
         my $keyfield = $fields[0];
@@ -1145,19 +1226,34 @@ sub _get_tables_searches
 				$self->{table},
 				$_,
 				$self->{value} );
-			my ($table,$where,$bad) = 
+			my ($table,$where,$bad,$error) = 
 				$sfield->get_conditions();
-			push @tables,$table;
-			$searches{$table}=$where;
-			push @badwords, @{$bad};
+			if( defined $error )
+			{
+				return( undef, undef, undef, $error );
+			}
+print STDERR "_GTS($table)\n";
+			if( !defined $searches{$table} )
+			{
+				push @tables,$table;
+				$searches{$table}=[];
+			}
+			push @{$searches{$table}},@{$where};
+print STDERR "WHERE\n";
+print STDERR join(" | ",@{$where})."\n";
+			if( defined $bad ) { push @badwords, @{$bad}; }
 		}
 	}
 	else 
 	{
-		my ($table,$where,$bad) = $self->get_conditions();
+		my ($table,$where,$bad,$error) = $self->get_conditions();
+		if( defined $error )
+		{
+			return( undef, undef, undef, $error );
+		}
 		push @tables, $table;
 		$searches{$table} = $where;
-		push @badwords, @{$bad};
+		if( defined $bad ) { push @badwords, @{$bad}; }
 	}
 	return (\@tables, \%searches, \@badwords);
 }
@@ -1169,11 +1265,16 @@ sub do
         my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
         my $keyfield = $fields[0];
 
-	my ($tables, $searches, $badwords) = $self->_get_tables_searches();
-	my $n = scalar @{$searches->{$tables->[0]}};
+	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
+	if( defined $error ) 
+	{
+		return ( undef , undef , $error );
+	}
+	my $n = scalar @{$searches->{$sfields->[0]}};
 	
 	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
-EPrints::Log::debug("n: [$n]");
+EPrints::Log::debug("n: [$n] ");
+EPrints::Log::debug("sfields: [".join("][",@{$sfields})."] ");
 
 	my $buffer = undef;
 	if( !$satisfy_all && $self->{anyall} eq "ANY" )
@@ -1183,12 +1284,26 @@ EPrints::Log::debug("n: [$n]");
 		$buffer = $searchbuffer;
 	}
 	my $i;
+	
+	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
+	# (phrases subsearches are always AND'd)
+
+print STDERR "<SEARCH : $self->{value}   IN   $self->{field}->{name}\n";
 	for( $i=0 ; $i<$n ; ++$i )
 	{
 		my $nextbuffer = undef;
-		foreach( @{$tables} )
+print STDERR "<SEARCH ITEM: $i\n";
+		foreach( @{$sfields} )
 		{
-			my $tlist = { "M"=>$_ };
+print STDERR "<TABLE : $_\n";
+			my $tablename = $_;
+			# Tables have a colon and fieldname after them
+			# to make sure references to different fields are
+			# still kept seperate. But we don't want to pass
+			# this to the SQL.
+			$tablename =~ s/:.*//;
+
+			my $tlist = { "M"=>$tablename };
 			my $orbuf = undef;
 			if( $self->{anyall} eq "ANY" && defined $buffer )
 			{
@@ -1202,21 +1317,53 @@ EPrints::Log::debug("n: [$n]");
 			{
 				$tlist->{T} = $searchbuffer;
 			}
-			if( $self->{anyall} eq "ALL" && defined $buffer )
+			if( $self->{anyall} ne "ANY" && defined $buffer )
 			{
 				$tlist->{T} = $buffer;
+			}
+
+			my $where = $searches->{$_}->[$i];
+
+			# Starting with a pling! means that this is a pre
+			# done search and we should just link against the
+			# results buffer table.
+			if( $where =~ s/^!// )
+			{
+				$tlist->{M} = $where;
+				$where = undef;
 			}
 
 			$nextbuffer = $self->{session}->{database}->buffer( 
 				$keyfield,
 				$tlist, 
-				$searches->{$_}->[$i],
+				$where,
 				$orbuf );
+print STDERR "</TABLE : $_\n";
 		}
 		$buffer = $nextbuffer;
+print STDERR "</SEARCH ITEM: $i\n";
 	}
+	if( $self->{anyall} eq "PHR" )
+	{
+		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
+		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
+						["__FIELDNAME__ LIKE \"%$self->{string}%\""] , 
+						0 );
+		my $table = $tablefield;
+		$table=~s/:.*//;
+print STDERR "($table)(".join(")(",@{$wheres}).")\n";
+print STDERR "HMMMM: ".$self->{table}."\n";
+print STDERR "HMMMM: ".$self->{field}->{name}."\n";
+		my $tlist = { "M"=>$table };
+		$buffer = $self->{session}->{database}->buffer( 
+			$keyfield,
+			$tlist, 
+			${$wheres}[0],
+			undef );
+	}
+print STDERR "</SEARCH : $self->{value}   IN   $self->{field}->{name}\n";
 
-	if( $self->{anyall} eq "ALL" && !$satisfy_all )
+	if( $self->{anyall} ne "ANY" && !$satisfy_all )
 	{
 		$buffer = $self->{session}->{database}->buffer( 
 			$keyfield,
@@ -1236,7 +1383,11 @@ sub approx_rows
 
 EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
 
-	my ($tables, $searches) = $self->_get_tables_searches();
+	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches();
+	if( defined $error )
+	{
+		return 0;
+	}
 	my $n = scalar @{$searches->{$tables->[0]}};
 
 	my $result = undef;

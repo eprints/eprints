@@ -13,7 +13,8 @@ help = "<em>&lt;EM&gt;</em> or <strong>&lt;strong&gt;</strong>."
 <field altloc>
 displaylines = "3"
 editable = YES
-type = "multiurl"
+type = "url"
+multiple = YES
 visible = YES
 displayname = "Alternative Locations"
 help = "If your deposit is available from other sites, please enter the "
@@ -113,7 +114,7 @@ help = "Please enter the institution from which the deposit originated."
 
 <field ispublished>
 editable = YES
-type = "enum"
+type = "set"
 visible = YES
 displayname = "Status"
 value unpub = "Unpublished"
@@ -137,7 +138,7 @@ help = "your deposit, and don't be too general."
 
 <field month>
 editable = YES
-type = "enum"
+type = "set"
 visible = YES
 displayname = "Month"
 value unspec = "Unspecified"

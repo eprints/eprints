@@ -42,7 +42,7 @@ use strict;
 (
 	"username:text::User ID:1:0:0",
 	"passwd:text::Password:1:0:0",
-	"groups:enum:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1]:Access Level:1:0:0",
+	"groups:set:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1]:Access Level:1:0:0",
 	"joined:date::Date Joined:1:0:0",
 	"email:email::E-Mail Address:1:0:1"
 );

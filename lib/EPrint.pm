@@ -37,7 +37,7 @@ $EPrints::EPrint::id_code_digits = 8;
 	"username:text::Submitted by:1:0:1:1",   # User ID of submitter
 	"dir:text::Local Directory:0:0:0",       # Directory it's in
 	"datestamp:date::Submission Date:0:0:1", # The submission date stamp
-	"subjects:subjects:1:Subject Categories:0:0:0",
+	"subjects:subject:1:Subject Categories:0:0:0",
 	                                         # Subject categories. Tagged as
 	                                         # "not visible" since it's a special
 	                                         # case.
@@ -775,7 +775,7 @@ sub validate_subject
 	{
 		my $problem;
 	
-		if( $field->{type} eq "subjects")
+		if( $field->{type} eq "subject")
 		{
 			# Make sure at least one subject is selected
 			if( !defined $self->{$field->{name}} ||

@@ -74,15 +74,13 @@ $EPrints::Database::seperator = "_";
 (
 	"int"        => "\$(name) INT UNSIGNED \$(param)",
 	"date"       => "\$(name) DATE \$(param)",
-	"enum"       => "\$(name) VARCHAR(255) \$(param)",
 	"boolean"    => "\$(name) SET('TRUE','FALSE') \$(param)",
 	"set"        => "\$(name) VARCHAR(255) \$(param)",
 	"text"       => "\$(name) VARCHAR(255) \$(param)",
 	"multitext"  => "\$(name) TEXT \$(param)",
 	"url"        => "\$(name) VARCHAR(255) \$(param)",
-	"multiurl"   => "\$(name) TEXT \$(param)",
 	"email"      => "\$(name) VARCHAR(255) \$(param)",
-	"subjects"   => "\$(name) VARCHAR(255) \$(param)",
+	"subject"    => "\$(name) VARCHAR(255) \$(param)",
 	"username"   => "\$(name) VARCHAR(255) \$(param)",
 	"pagerange"  => "\$(name) VARCHAR(255) \$(param)",
 	"year"       => "\$(name) INT UNSIGNED \$(param)",
@@ -95,16 +93,14 @@ $EPrints::Database::seperator = "_";
 (
 	"int"        => "INDEX(\$(name))",
 	"date"       => "INDEX(\$(name))",
-	"enum"       => "INDEX(\$(name))",
 	"boolean"    => "INDEX(\$(name))",
 	"set"        => "INDEX(\$(name))",
 	"text"       => "INDEX(\$(name))",
 	"multitext"  => "INDEX(\$(name))",
 	"url"        => "INDEX(\$(name))",
-	"multiurl"   => "INDEX(\$(name))",
 	"email"      => "INDEX(\$(name))",
 
-	"subjects"   => "INDEX(\$(name))",
+	"subject"    => "INDEX(\$(name))",
 	"username"   => "INDEX(\$(name))",
 	"pagerange"  => "INDEX(\$(name))",
 	"year"       => "INDEX(\$(name))",
@@ -538,7 +534,8 @@ sub update
 				$values{"$_->{name}"} = 
 					_prep_value( $data->{$_->{name}} );
 			}
-			if( $_->{type} eq "text" || $_->{type} eq "multitext" )
+			if( $_->{type} eq "text" || $_->{type} eq "multitext" ||
+				$_->{type} eq "url" || $_->{type} eq "email" )
 			{
 				$self->_freetext_index( $table, $keyvalue, $_, $data->{$_->{name}} );
 			}
@@ -919,54 +916,48 @@ sub _make_select
 	return $sql;
 }
 
-sub any_buffer
-{
-	my( $self, $keyfield, $tables , $keep ) = @_;
-
-	my $tmptable;
-	if( $keep )
-	{
-		$tmptable = $self->create_cache( $keyfield->{name} );
-	}
-	else
-	{
-		$tmptable = $self->create_buffer( $keyfield->{name} );
-	}
-
-EPrints::Log::debug("$keyfield->{name} :".join(",",@{$tables}));
-
-	foreach( @{$tables} )
-	{
-		my $sql = $self->_make_select( $keyfield, {"T"=>$_}, "" );
-		$self->do( "INSERT INTO $tmptable $sql" );
-	}
-
-	return( $tmptable );
-}
-
 sub buffer
 {
 	my( $self, $keyfield, $tables, $conditions , $orbuffer , $keep ) = @_;
 
+	# can we be REALLY lazy here?
+	if( !defined $orbuffer && !$keep && !defined $conditions && scalar(keys %{$tables})==1 ) {
+		# We're just going to copy from one table into a brand new one.
+		# Might as well just return the ID of the previous table.
+		
+		return (values %{$tables})[0];
+		
+	}
+
 	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
 
-	my $tmptable;
+	my $targetbuffer;
+
 	if( defined $orbuffer )
 	{
-		$tmptable = $orbuffer;
+		$targetbuffer = $orbuffer;
 	} 
 	elsif( $keep )
 	{
-		$tmptable = $self->create_cache( $keyfield->{name} );
+		$targetbuffer = $self->create_cache( $keyfield->{name} );
 	}
 	else
 	{
-		$tmptable = $self->create_buffer( $keyfield->{name} );
+		$targetbuffer = $self->create_buffer( $keyfield->{name} );
 	}
 
-	$self->do( "INSERT INTO $tmptable $sql" );
+	$self->do( "INSERT INTO $targetbuffer $sql" );
 
-	return( $tmptable );
+	return( $targetbuffer );
+}
+
+# remove this later - it will be replaced by ORDER code.
+sub tidy_hack
+{
+	my( $self, $buffer, $keyfield ) = @_;
+	my $tmptable = $self->create_buffer( $keyfield->{name} );
+	$self->do( "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer LIMIT 1000" );
+	return $tmptable;
 }
 
 sub drop_cache
@@ -1219,7 +1210,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( $sql );
+EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }
@@ -1236,7 +1227,7 @@ sub prepare
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( $sql );
+#EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }
@@ -1253,7 +1244,7 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( $sql );
+EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }

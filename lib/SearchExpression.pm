@@ -467,11 +467,26 @@ sub perform_search
 	foreach( @searchon )
 	{
 		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
-		( $buffer , $badwords ) = 
+		my $error;
+		( $buffer , $badwords , $error) = 
 			$_->do($buffer , $self->{satisfy_all} );
+
+EPrints::Log::debug("buffer:".$buffer."  error:$error");
+		if( defined $error )
+		{
+			$self->{tmptable} = undef;
+			$self->{error} = $error;
+			return;
+		}
 		push @{$self->{ignoredwords}},@{$badwords};
 EPrints::Log::debug("buffer:".$buffer);
 	}
+	
+        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my $keyfield = $fields[0];
+	$buffer = $self->{session}->{database}->tidy_hack( $buffer , $keyfield );
+
+	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
 }
 	

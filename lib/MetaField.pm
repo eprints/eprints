@@ -81,25 +81,7 @@ sub new
 		$i++;
 	}
 
-	# Work out extra information
-	if( $self->{type} eq "enum" )
-	{
-		# Work out the tags, and the tag labels. From the arguments field,
-		# in the form tag,label;tag,label;...
-		$self->{tags} = [];
-		$self->{labels} = {};
-	
-		my @possibles = split /;/, $self->{arguments};
-		my $p;
-		
-		foreach $p (@possibles)
-		{
-			my( $tag, $label ) = split /,/, $p;
-			push @{$self->{tags}}, $tag;
-			$self->{labels}->{$tag} = $label;
-		}
-	}
-	elsif( $self->{type} eq "set" )
+	if( $self->{type} eq "set" )
 	{
 		$self->{tags} = [];
 		$self->{labels} = {};
@@ -128,12 +110,12 @@ sub new
 		# display digits is simply the whole argument
 		$self->{displaydigits} = $self->{arguments};
 	}
-	elsif( $self->{type} eq "multitext" || $self->{type} eq "multiurl" )
+	elsif( $self->{type} eq "multitext" )
 	{
 		# display digits is simply the whole argument
 		$self->{displaylines} = $self->{arguments};
 	}
-	elsif( $self->{type} eq "subjects" )
+	elsif( $self->{type} eq "subject" )
 	{
 		# A set, but one that need to read in the subject fields.
 		$self->{multiple} = $self->{arguments};
@@ -176,35 +158,6 @@ sub make_set
 	$self->{multiple} = $multiple;
 	$self->{displaylines} = $lines;
 	$self->{type} = "set";
-
-	return( $self );
-}
-
-
-######################################################################
-#
-# $metafield = make_enum( $name, $display_name, $tags, $labels )
-#                                             array_ref  hash_ref
-#
-#  Function for making a MetaField with the given tags and values.
-#  Tags are given in $tags so that order can be maintained. $labels
-#  should map the tags to more useful text. If $multiple is non-zero,
-#  more than one item in the set may be selected.
-#
-######################################################################
-
-sub make_enum
-{
-	my( $class, $name, $display_name, $tags, $labels ) = @_;
-	
-	my $self = {};
-	bless $self, $class;
-	
-	$self->{name} = $name;
-	$self->{displayname} = $display_name;
-	$self->{tags} = $tags;
-	$self->{labels} = $labels;
-	$self->{type} = "enum";
 
 	return( $self );
 }
@@ -358,8 +311,7 @@ sub make_field
 	# Over-ride index settings [cjg]
 
 	if( $self->{type} ne "pagerange" && 
-	    $self->{type} ne "multitext" &&
-	    $self->{type} ne "multiurl" )
+	    $self->{type} ne "multitext" )
 	{
 		$self->{indexed} = 1;
 	}
