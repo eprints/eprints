@@ -493,3 +493,5 @@ archive records always did)
 metadata field - needed by OAI2 to list SetSpec's of an article.
 - added oai2 protocol talkin' script /cgi/oai2 and modified some bits of
 OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)
+- replaced subject file with lib of Congress.
+
