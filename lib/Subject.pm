@@ -530,11 +530,10 @@ sub get_all
 #		{
 #			$p .= " $_";
 #		}
-print STDERR "Subject: ".$_->getValue("subjectid")."\n";
 	}
 	
 	return( \@subjects, \%subjectmap );
-}	
+}
 
 
 ######################################################################

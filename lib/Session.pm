@@ -19,6 +19,8 @@
 #
 ######################################################################
 
+# CGI scripts must be no-cache. Hmmm.
+
 package EPrints::Session;
 
 use EPrints::Database;
@@ -264,7 +266,7 @@ sub html_phrase
 					$phraseid , 
 					\%inserts , 
 					$self );
-	print STDERR ">>>".$result->toString."\n";
+
 	return $self->tree_to_xhtml( $result );
 }
 
@@ -1147,7 +1149,6 @@ print STDERR EPrints::Session::render_struct( $values );
 	my $field;	
 	foreach $field (@$fields)
 	{
-print STDERR "==>".$field->get_name()." = ".$values->{$field->get_name()}."\n";
 		$form->appendChild( $self->render_form_field( 
 					     $field,
 		                             $values->{$field->get_name()},

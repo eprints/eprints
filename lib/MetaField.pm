@@ -649,7 +649,7 @@ sub render_input_field
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 
 					$session, 
-					$value->[$i], 
+					$value->[$i-1], 
 					$i,
 					$more ) );
 		}
@@ -669,7 +669,7 @@ sub render_input_field
 sub _render_input_field_aux
 {
 	my( $self, $session, $value, $n, $morebutton ) = @_;
-print STDERR "val($value)\n";
+print STDERR "$n... val($value)\n";
 
 	my $id_suffix = "";
 	$id_suffix = "_$n" if( defined $n );
@@ -984,7 +984,7 @@ sub _form_value_aux
 
 	if( $self->is_type( "text", "username", "url", "int", "email", "longtext" ) )
 	{
-		my $value = $session->param( $self->{name} );
+		my $value = $session->param( $self->{name}.$id_suffix );
 		return undef if( $value eq "" );
 		return $value;
 	}

@@ -34,7 +34,7 @@ if( !$session->auth_check )
 	Apache::exit( 0 );
 }
 
-my $userform = new EPrints::UserForm( $session, "home", 1);
+my $userform = new EPrints::UserForm( $session, "home", 0);
 
 $userform->process();
 

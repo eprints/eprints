@@ -2098,12 +2098,12 @@ sub validate_user_field
 	# CHECKS IN HERE
 
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
-	if( $field->is_type( "url" ) && defined $value && $value ne "" )
-	{
-		$problem = "The URL given for ".$field->display_name( $session )." is invalid.  ".
-			"Have you included the initial <STRONG>http://</STRONG>?"
-			if( $value !~ /^\w+:/ );
-	}
+#	if( $field->is_type( "url" ) && defined $value && $value ne "" )
+#	{
+#		$problem = "The URL given for ".$field->display_name( $session )." is invalid.  ".
+#			"Have you included the initial <STRONG>http://</STRONG>?"
+#			if( $value !~ /^\w+:/ );
+#	}
 
 	return( (!defined $problem || $problem eq "" ) ? undef : $problem );
 }

@@ -45,6 +45,8 @@ my $fullname = $user->full_name();
 my $probs = $user->validate();
 my $valid_user = ( $#{$probs} == -1 );
 
+foreach( @{$probs} ) { print STDERR "[prob:$_]\n"; }
+
 ######################################################################
 #
 # Render page

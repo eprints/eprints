@@ -108,11 +108,7 @@ sub process
 		# Validate the changes
 		my $problems = $self->{user}->validate();
 
-$self->{session}->get_site()->log( "PROBLEMS: ".join(",",@{$problems}) );
-
-
-		# cjg NOT YET.
-		if( $#{$problems} == -1 )
+		if( scalar @{$problems} == 0 )
 		{
 			# User has entered everything OK
 			$self->{user}->commit();
@@ -237,7 +233,7 @@ sub _update_from_form
 		my $param = $field->form_value( $self->{session} );
 
 		# Only update if a value for the field was entered in the form.
-		if( $self->{staff} || $field->{editable} )
+		if( $self->{staff} || $field->get_property( "editable" ) )
 		{
 			$self->{user}->setValue( $field->{name} , $param );
 		}

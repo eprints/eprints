@@ -288,7 +288,7 @@ sub validate
 		get_site()->getDataSet( "user" )->get_fields();
 
 	my $field;
-	foreach $field (@all_fields)
+	foreach $field ( @all_fields )
 	{
 		# Check that the field is filled in if it is required
 		if( $field->get_property( "required" ) && 
@@ -314,10 +314,6 @@ sub validate
 			}
 		}
 	}
-
-#	foreach (@all_problems)
-#	{
-#	}
 
 	return( \@all_problems );
 }
