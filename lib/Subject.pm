@@ -551,7 +551,7 @@ sub posted_eprints
 sub count_eprints
 {
 	my( $self, $table ) = @_;
-	
+
 	return( EPrints::EPrint::count_eprints(
 		$self->{session},
 		(defined $table ? $table : $EPrints::Database::table_archive ),

@@ -31,6 +31,7 @@ use strict;
 # not allow remote admin log in anyway.
 
 if ( defined $EPrintSite::SiteInfo::db_host ||
+     defined $EPrintSite::SiteInfo::db_socket ||
      defined $EPrintSite::SiteInfo::db_port ) 
 {
 	print "\n";
@@ -52,46 +53,27 @@ chomp( $input );
 # We'll only work if they type "yes" exactly, otherwise we just abort.
 if( $input eq "yes" )
 {
-	# First erase the database tables.  We'll need to use the mysql monitor
-	# tool and have the root password.
-	print "Erasing database tables (you will need to enter the database\n";
-	print "root password)\n";
-	
-	# Make the SQL necessary for dropping all of the tables
-	my @tables = (
-		$EPrints::Database::table_counter,
-		$EPrints::Database::table_user,
-		$EPrints::Database::table_inbox,
-		$EPrints::Database::table_buffer,
-		$EPrints::Database::table_archive,
-		$EPrints::Database::table_document,
-		$EPrints::Database::table_subject,
-		$EPrints::Database::table_subscription,
-		$EPrints::Database::table_deletion );
-
-	my $drop_table_sql = "";
-
-	foreach (@tables)
-	{
-		$drop_table_sql .= "drop table $_ ; ";
-	}
+	# First erase the database tables. We now do this the dramatic way
+	# of dropping and recreating the database.
+	# This makes it possible to erase a really broken setup.
 
 	# Get the path of the mysql monitor tool
-	print "Path of mysql tool (the default is fine if it's in your standard shell path)\n";
-	print "[mysql]: ";
-
-	my $mysql_path = <STDIN>;
-	chomp( $mysql_path );
-	$mysql_path = "mysql" if( $mysql_path eq "" );
+	print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
+	print "[mysqladmin]: ";
 
 
-	# Execute it
+	my $mysqladmin_path = <STDIN>;
+	chomp( $mysqladmin_path );
+	$mysqladmin_path = "mysqladmin" if( $mysqladmin_path eq "" );
+
+	print "Dropping and recreating database (requires database root password)\n";
 	print "You will need to enter the MySQL root user password.\n";
-	my $rc = 0xffff & system( "$mysql_path -u root -p $EPrintSite::SiteInfo::database -e '$drop_table_sql'" );
 
-	# Abort unless it all went OK.
-	die "Error removing database tables; aborting\n" unless( $rc==0 );
+	my $cmds = "drop $EPrintSite::SiteInfo::database";
+	$cmds.= " create $EPrintSite::SiteInfo::database";
 
+	# We use the force -f option as we've already checked user meant to do this.
+	my $rc = 0xffff & system( "$mysqladmin_path -u root -f $cmds" );
 
 	print "Erasing eprint files...\n";
 	

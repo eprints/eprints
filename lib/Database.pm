@@ -249,11 +249,21 @@ sub create_archive_tables
 #  Create a database table with the given name, and columns specified
 #  in @fields, which is an array of MetaField types.
 #
+#  The aux. function has an extra parameter which means the table
+#  has no primary key, this is for purposes of recursive table 
+#  creation (aux. tables have no primary key)
+#
 ######################################################################
 
 sub _create_table
 {
 	my( $self, $name, @fields ) = @_;
+	return $self->_create_table_aux( $name, 1, @fields);
+}
+
+sub _create_table_aux
+{
+	my( $self, $name, $setkey, @fields ) = @_;
 	
 	my $field;
 
@@ -261,6 +271,7 @@ sub _create_table
 	my $sql = "CREATE TABLE $name (";
 	my $key = undef;
 	my @indices;
+	my $first = 1;
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
@@ -270,11 +281,19 @@ sub _create_table
 			# which will contain the same type as the
 			# key of this table paired with the non-
 			# multiple version of this field.
+			# auxfield and keyfield must be indexed or 
+			# there's not much point. 
 			my $auxfield = $field->clone();
 			$auxfield->{multiple} = 0;
-			my @auxfields = ( $key, $auxfield );
-			my $auxresult = $self->_create_table(	
+			$auxfield->{indexed} = 1;
+			my $keyfield = $key->clone();
+			$keyfield->{indexed} = 1;
+			my $pos = EPrints::MetaField->new(
+				"pos:int:0:Postion:1:0:0:0" );
+			my @auxfields = ( $keyfield, $pos, $auxfield );
+			my $auxresult = $self->_create_table_aux(	
 				$name."aux".$field->{name},
+				0, # no primary key
 				@auxfields );
 			unless ( $auxresult )
 			{
@@ -282,9 +301,17 @@ sub _create_table
 			}
 			next;
 		}
-		$sql .= " $field->{name} $EPrints::Database::datatypes{$field->{type}}";
+		if ( $first )
+		{
+			$first = 0;
+		} 
+		else 
+		{
+			$sql .= ", ";
+		}
+		$sql .= "$field->{name} $EPrints::Database::datatypes{$field->{type}}";
 		# First field is primary key.
-		if( !defined $key )
+		if( !defined $key && $setkey)
 		{
 			$key = $field;
 			$sql .= " NOT NULL";
@@ -295,10 +322,11 @@ sub _create_table
 			push @indices, $field->{name};
 		}
 
-		$sql .= ",";
 	}
-	
-	$sql .= " PRIMARY KEY ($key->{name})";
+	if ( $setkey )	
+	{
+		$sql .= ", PRIMARY KEY ($key->{name})";
+	}
 	
 	foreach (@indices)
 	{
@@ -512,7 +540,7 @@ sub retrieve
 
 	$sql .= ";";
 
-#EPrints::Log::debug( "Database", "SQL:$sql" );
+EPrints::Log::debug( "Database", "SQL:$sql" );
 	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return( $ret_rows );

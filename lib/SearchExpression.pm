@@ -107,6 +107,9 @@ sub new
 	$self->{searchfields} = [];
 	# Map for MetaField names -> corresponding SearchField objects
 	$self->{searchfieldmap} = {};
+
+	# tmptable represents cached results table.	
+	$self->{tmptable} = 0;
 	
 	foreach (@$fields)
 	{
