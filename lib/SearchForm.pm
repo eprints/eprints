@@ -292,7 +292,7 @@ sub render_search_form
 
 	print $self->{session}->{render}->start_get_form();
 
-	print $searchexp->render_search_form( 1 );
+	print $searchexp->render_search_form( 1, 1 );
 	print "<CENTER><P>";
 	print $self->{session}->{render}->submit_buttons( [ $action_search,
 		                                                 $action_reset ] );

@@ -173,16 +173,17 @@ sub clear
 
 ######################################################################
 #
-# $html = render_search_form( $help )
+# $html = render_search_form( $help, $show_anyall )
 #
 #  Render the search form. If $help is 1, then help is written with
-#  the search fields.
+#  the search fields. If $show_anyall is 1, then the "must satisfy any/
+#  all" field is shown at the bottom of the form.
 #
 ######################################################################
 
 sub render_search_form
 {
-	my( $self, $help ) = @_;
+	my( $self, $help, $show_anyall ) = @_;
 	
 	my %shown_help;
 
@@ -212,15 +213,18 @@ sub render_search_form
 	
 	$html .= "</TABLE></P></CENTER>\n";
 
-	$html .= "<CENTER><P>Retrieved records must fulfill ";
-	$html .= $self->{session}->{render}->{query}->popup_menu(
-		-name=>"_satisfyall",
-		-values=>[ "ALL", "ANY" ],
-		-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
-			"ANY" : "ALL" ),
-		-labels=>{ "ALL" => "all", "ANY" => "any" } );
-	$html .= " of these conditions.</P></CENTER>\n";
-
+	if( $show_anyall )
+	{
+		$html .= "<CENTER><P>Retrieved records must fulfill ";
+		$html .= $self->{session}->{render}->{query}->popup_menu(
+			-name=>"_satisfyall",
+			-values=>[ "ALL", "ANY" ],
+			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
+				"ANY" : "ALL" ),
+			-labels=>{ "ALL" => "all", "ANY" => "any" } );
+		$html .= " of these conditions.</P></CENTER>\n";
+	}
+	
 	$html .= "<CENTER><P>Order the results: ";
 
 	$html .= $self->{session}->{render}->{query}->popup_menu(
@@ -263,8 +267,12 @@ sub from_form
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->{render}->param( "_satisfyall" );
+
+	if( defined $anyall )
+	{
+		$self->{satisfy_all} = ( $anyall eq "ALL" );
+	}
 	
-	$self->{satisfy_all} = !( defined $anyall && $anyall eq "ANY" );
 	$self->{order} = $self->{session}->{render}->param( "_order" );
 	
 	return( scalar @problems > 0 ? \@problems : undef );

@@ -209,7 +209,7 @@ sub render_subscription_form
 {
 	my( $self ) = @_;
 	
-	my $html = $self->{searchexpression}->render_search_form( 1 );
+	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
 	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
 	
 	$html .= "<CENTER><P>Send updates: ";
