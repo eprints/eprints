@@ -294,6 +294,26 @@ $EPrintSite::SiteInfo::default_delete_reason =
 "could not be accepted into $EPrintSite::SiteInfo::sitename.\n\n\n\n".
 "The eprint has been deleted.\n";
 
+#  Agreemnt text, for when user completes the depositing process.
+#  Set to "undef" if you don't want it to appear.
+$EPrintSite::SiteInfo::deposit_agreement_text =
+	"<P><EM><STRONG>If the work is being deposited by an author:</STRONG>".
+	"I hereby grant $EPrintSite::SiteInfo::sitename the right to store this ".
+	"collection of files and associated bibiliographic metadata and to make ".
+	"them permanently available publicly on-line. I declare that this material ".
+	"is my own intellectual property and I understand that ".
+	"$EPrintSite::SiteInfo::sitename does not assume any responsibility if ".
+	"there is any breach of copyright in distributing these files or ".
+	"metadata.</EM></P>\n".
+	"<P><EM><STRONG>If the work is a public domain work being deposited by a ".
+	"second party:</STRONG> I hereby declare that the collection of files and ".
+	"associated bibiliographic metadata that I am archiving at ".
+	"$EPrintSite::SiteInfo::sitename is in the public domain. I accept full ".
+	"responsibility for any breach of copyright that distributing these files ".
+	"or metadata may entail.</EM></P><P>Clicking on the <STRONG>deposit".
+	"</STRONG> button below indicates your agreement of these terms.</STRONG>".
+	"</P>";
+
 
 ######################################################################
 #
