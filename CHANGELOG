@@ -171,3 +171,18 @@ email as the editor who did it.
  - fixed a couple of typos from where I added  _order to button lists.
  - added "quotes" around the names in the Utils::send_mail routine to stop
 problems with names containing commas.
+
+29/01/2002
+[C] - !!!! split parts of ArchiveConfig.pm into
+ArchiveOAIConfig.pm
+ArchiveRenderConfig.pm
+ArchiveValidateConfig.pm
+ArchiveTextIndexingConfig.pm
+ArchiveMetadataFieldConfig.pm
+ and "require" them all from ArchiveConfig.pm. The resulting effect is exactly
+the same. EXCEPT. {oai_foo} conf items are all renamed to {oai}->{foo}
+[C] - TO upgrade alpha-2 to use OAI! just remove all oai conf items and 
+methods from ArchiveConfig.pm, copy ArchiveOAIConfig.pm into the archives 
+/cfg/ dir, and then add to ArchiveConfig.pm:
+require "cfg/ArchiveOAIConfig.pm";
+$c->{oai} = get_oai_conf();

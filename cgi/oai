@@ -112,7 +112,7 @@ sub get_record
 		return;
 	}
 
-	if( !defined $session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$metadata_format} )
+	if( !defined $session->get_archive()->get_conf( "oai", "metadata_namespaces" )->{$metadata_format} )
 	{
 		send_http_error( $session, 400, "\"$metadata_format\" is not a supported metadata format" );
 		return;
@@ -133,7 +133,7 @@ sub get_record
 	if( defined $eprint )
 	{
 		my $fn = $session->get_archive()->get_conf( 
-			"oai_metadata_functions" )->{$metadata_format};
+			"oai","metadata_functions" )->{$metadata_format};
 
 		# The eprint exists, so write the record
 		# if the metadataFormat isn't available for
@@ -179,7 +179,7 @@ sub identify
 	$response->appendChild( $session->render_data_element(
 		2,
 		"baseURL",
-		$session->get_archive()->get_conf( "oai_base_url" ) ) );
+		$session->get_archive()->get_conf( "oai","base_url" ) ) );
 
 	$response->appendChild( $session->render_data_element(
 		2,
@@ -210,7 +210,7 @@ sub identify
 	$oaiid->appendChild( $session->render_data_element(
 		6,
 		"repositoryIdentifier",
-		$session->get_archive()->get_conf( "oai_archive_id" ) ) );
+		$session->get_archive()->get_conf( "oai","archive_id" ) ) );
 
 	$oaiid->appendChild( $session->render_data_element(
 		6,
@@ -220,7 +220,7 @@ sub identify
 	$oaiid->appendChild( $session->render_data_element(
 		6,
 		"sampleIdentifier",
-		$session->get_archive()->get_conf( "oai_sample_identifier" ) ) );
+		$session->get_archive()->get_conf( "oai","sample_identifier" ) ) );
 
 	my $d2 = $session->make_element( "description" );
 	my $eprints = $session->make_element( 	
@@ -236,24 +236,24 @@ sub identify
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"content", 
-		$session->get_archive()->get_conf( "oai_content" ) ) );
+		$session->get_archive()->get_conf( "oai","content" ) ) );
                           
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"metadataPolicy", 
-		$session->get_archive()->get_conf( "oai_metadata_policy" ) ) );
+		$session->get_archive()->get_conf( "oai","metadata_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"dataPolicy", 
-		$session->get_archive()->get_conf( "oai_data_policy" ) ) );
+		$session->get_archive()->get_conf( "oai","data_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"submissionPolicy", 
-		$session->get_archive()->get_conf( "oai_submission_policy" ) ) );
+		$session->get_archive()->get_conf( "oai","submission_policy" ) ) );
 
-	foreach( @{$session->get_archive()->get_conf( "oai_comments" )} ) 
+	foreach( @{$session->get_archive()->get_conf( "oai","comments" )} ) 
 	{
 		$eprints->appendChild( $session->render_data_element(
 			6,
@@ -356,7 +356,7 @@ sub get_searchexp_from_params
 		{
 			$value = pop @tail;
 		}
-		my $views = $session->get_archive()->get_conf( "oai_sets" ); #cjg
+		my $views = $session->get_archive()->get_conf( "oai","sets" ); #cjg
 		my $info;
 		foreach( @{$views} )
 		{
@@ -469,7 +469,7 @@ sub _list
 			return;
 		}
 
-		if( !defined $session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$metadata_format} )
+		if( !defined $session->get_archive()->get_conf( "oai","metadata_namespaces" )->{$metadata_format} )
 		{
 			send_http_error( $session, 400, "\"$metadata_format\" is not a supported metadata format" );
 			return;
@@ -498,7 +498,7 @@ sub _list
 				2,
 				"identifier",
 				EPrints::OpenArchives::to_oai_identifier( 
-					$session->get_archive()->get_conf( "oai_archive_id" ),
+					$session->get_archive()->get_conf( "oai","archive_id" ),
 					$_ ),
 				%opts ) );
 		}
@@ -509,7 +509,7 @@ sub _list
 		$response = make_basic_oai_response( $session, "ListRecords" );
 
 		my $fn = $session->get_archive()->get_conf( 
-			"oai_metadata_functions" )->{$metadata_format};
+			"oai","metadata_functions" )->{$metadata_format};
 
 		my @records = $searchexp->get_records( $offset, $PAGESIZE );
                 my $eprint;
@@ -573,7 +573,7 @@ sub list_metadata_formats
 	
 	my $identifier = $session->param( "identifier" );
 
-	my @all_formats = keys %{$session->get_archive()->get_conf( "oai_metadata_namespaces" )};
+	my @all_formats = keys %{$session->get_archive()->get_conf( "oai","metadata_namespaces" )};
 	my @metadata_formats;
 
 	if( defined $identifier )
@@ -590,7 +590,7 @@ sub list_metadata_formats
 			foreach( @all_formats )
 			{
 				my $fn = $session->get_archive()->get_conf(
-					"oai_metadata_functions" )->{$_};
+					"oai","metadata_functions" )->{$_};
 				my $md = &{$fn}( $eprint, $session );
 				if( defined $md )
 				{
@@ -618,11 +618,11 @@ sub list_metadata_formats
 		$mdf->appendChild( $session->render_data_element(
 			4,
 			"schema",
-			$session->get_archive()->get_conf( "oai_metadata_schemas" )->{$_} ) );
+			$session->get_archive()->get_conf( "oai","metadata_schemas" )->{$_} ) );
 		$mdf->appendChild( $session->render_data_element(
 			4,
 			"metadataNamespace",
-			$session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$_} ) );
+			$session->get_archive()->get_conf( "oai","metadata_namespaces" )->{$_} ) );
 		$response->appendChild( $session->make_indent( 2 ) );
 		$response->appendChild( $mdf );
 	}
@@ -652,7 +652,7 @@ sub list_sets
 	my $ds = $session->get_archive()->get_dataset( "archive" );
 	my $ds_del = $session->get_archive()->get_dataset( "deletion" );
 
-	my $viewconf = $session->get_archive()->get_conf( "oai_sets" );
+	my $viewconf = $session->get_archive()->get_conf( "oai","sets" );
 	my $info;
 	foreach $info ( @{$viewconf} )
 	{

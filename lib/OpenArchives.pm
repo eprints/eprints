@@ -113,7 +113,7 @@ sub make_record
 		6,
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier(
-			$session->get_archive()->get_conf( "oai_archive_id" ),
+			$session->get_archive()->get_conf( "oai", "archive_id" ),
 			$eprint->get_value( "eprintid" ) ) ) );
 	$header->appendChild( $session->render_data_element(
 		6,
@@ -171,7 +171,7 @@ sub to_oai_identifier
 sub from_oai_identifier
 {
 	my( $session , $oai_identifier ) = @_;
-	my $arcid = $session->get_archive()->get_conf( "oai_archive_id" );
+	my $arcid = $session->get_archive()->get_conf( "oai", "archive_id" );
 	if( $oai_identifier =~ /^oai:$arcid:(\d+)$/ )
 	{
 		return( $1 );

@@ -260,7 +260,10 @@ sub load_archive_config_module
 	$info = $ARCHIVES{$id};
 	return unless( defined $info );
 	
-	eval{ require $info->{configmodule} };	
+	eval { 
+		chdir $info->{archiveroot};
+		require $info->{configmodule};
+	};
 
 	if( $@ )
 	{
