@@ -285,7 +285,7 @@ terms.</p>
 
 <p>You now need to activate your new password, using the following URL:</p>
 
-<p><ep:pin ref="confirmurl" /></p>
+<ep:pin ref="confirmurl" />
 
 <!--
 Not actually written yet!
@@ -299,12 +299,12 @@ Not actually written yet!
 <p>Before you can start uploading items, you need to fill out some personal
 details into the form at the following web site:</p>
 
-<p>&perl_url;/users/record</p>
+&perl_url;/users/record
 
 <p>After you've successfully filled out that form, you can deposit items at
 the following Web address:</p>
 
-<p>&userhome;</p>
+&userhome;
 
 <p>Have your username and password ready when visiting any of the above pages.</p> <p>This message was generated automatically by software. If you have any questions, then please feel free to E-mail a real person at:</p>
 
@@ -319,7 +319,7 @@ the following Web address:</p>
 
 <p>To activate this new address please visit the following URL:</p>
 
-<p><ep:pin ref="confirmurl" /></p>
+<ep:pin ref="confirmurl" />
 
     </ep:phrase>
 

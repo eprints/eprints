@@ -413,6 +413,7 @@ Due to change in functionality of uri_escape in URI 1.18
 - cleaned up the default front page to look nicer under Netscape 4
 - made the vlit icon on the about page point to the vlit permission page.
 - tidied up vlit permission page.
+- removed <p> tag around URL's in emails - don't want them word wrapped!
 ======================================================================
 14/02/2002 - EPRINTS-2.0
 ======================================================================
