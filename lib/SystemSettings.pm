@@ -44,7 +44,8 @@ $EPrints::SystemSettings::conf =
 	version_id => "CVS",
 	version => "EPrints 2.? CVS Version",
 	user => "eprints",
-	group => "eprints"
+	group => "eprints",
+	disable_df => 1
 };
 
 1;

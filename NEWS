@@ -1,0 +1,42 @@
+See CHANGELOG for the gory details.
+
+
+eprints-2.0.1                                                  2002-04-16
+-------------------------------------------------------------------------
+
+Mostly a bugfix release. Does not change any functionality. (except the 
+staff EPrint search)
+
+*       Fixed lots of typos and minor bugs.
+
+*       Changed the default subjects config file to Library of Congress
+
+*       Staff EPrint search can now search all buffers: archive, inbox, 
+        buffer and deletion.
+
+*       edit_eprint can now edit eprints in any buffer, and move eprints 
+        between buffer, and clone any eprint into the submission buffer.
+
+*       view_submission & edit_submission are now deprecated. All their 
+        functions have been taken over by edit_eprint.
+
+*       Added a oai2 script which is experimental and more-or-less speaks
+        OAI-PMH v2.0a3
+
+
+eprints-2.0                                                    2002-02-14
+-------------------------------------------------------------------------
+
+First official release.
+
+*        Too many changes to mention.
+
+
+eprints-2-alpha-2                                              2002-01-09
+-------------------------------------------------------------------------
+
+This is the origional release of eprints 2. It did not actually do 
+anything very useful, it just let people see how the project was
+progressing.
+
+

@@ -22,7 +22,6 @@ use EPrints::Database;
 use EPrints::Document;
 
 use File::Path;
-use Filesys::DiskSpace;
 use strict;
 
 #cjg doc validation lets through docs with no type (??)
@@ -210,48 +209,60 @@ sub _create_directory
 	my( $session, $eprintid ) = @_;
 	
 	# Get available directories
-	my @dirs = $session->get_archive()->get_store_dirs();
-	my $warnsize = $session->get_archive()->get_conf("diskspace_warn_threshold");
-	my $errorsize = $session->get_archive()->get_conf("diskspace_error_threshold");
-
-	# Check amount of space free on each device. We'll use the first one 
-	# we find (alphabetically) that has enough space on it.
+	my @dirs = sort $session->get_archive()->get_store_dirs();
 	my $storedir;
-	my $best_free_space = 0;
-	my $dir;	
-	foreach $dir (sort @dirs)
-	{
-		my $free_space = $session->get_archive()->get_store_dir_size( $dir );
-		$best_free_space = $free_space if( $free_space > $best_free_space );
 
-		unless( defined $storedir )
+	if( $EPrints::SystemSettings::conf->{disable_df} )
+	{
+		# df not available, use the LAST available directory, 
+		# sorting alphabetically.
+
+		$storedir = pop @dirs;
+	}
+	else
+	{
+		# Check amount of space free on each device. We'll use the 
+		# first one we find (alphabetically) that has enough space on 
+		# it.
+		my $warnsize = $session->get_archive()->get_conf("diskspace_warn_threshold");
+		my $errorsize = $session->get_archive()->get_conf("diskspace_error_threshold");
+
+		my $best_free_space = 0;
+		my $dir;	
+		foreach $dir (sort @dirs)
 		{
-			if( $free_space >= $errorsize )
+			my $free_space = $session->get_archive()->get_store_dir_size( $dir );
+			$best_free_space = $free_space if( $free_space > $best_free_space );
+	
+			unless( defined $storedir )
 			{
-				# Enough space on this drive.
-				$storedir = $dir;
+				if( $free_space >= $errorsize )
+				{
+					# Enough space on this drive.
+					$storedir = $dir;
+				}
 			}
 		}
-	}
 
-	# Check that we do have a place for the new directory
-	if( !defined $storedir )
-	{
-		# Argh! Running low on disk space overall.
-		$session->get_archive()->log("*** URGENT ERROR\n*** Out of disk space.\n*** All available drives have under ".$errorsize."k remaining.\n*** No new eprints may be added until this is rectified." );
-		$session->mail_administrator(
-			"lib/eprint:diskout_sub" ,
-			"lib/eprint:diskout" );
-		return( undef );
-	}
+		# Check that we do have a place for the new directory
+		if( !defined $storedir )
+		{
+			# Argh! Running low on disk space overall.
+			$session->get_archive()->log("*** URGENT ERROR\n*** Out of disk space.\n*** All available drives have under ".$errorsize."k remaining.\n*** No new eprints may be added until this is rectified." );
+			$session->mail_administrator(
+				"lib/eprint:diskout_sub" ,
+				"lib/eprint:diskout" );
+			return( undef );
+		}
 
-	# Warn the administrator if we're low on space
-	if( $best_free_space < $warnsize )
-	{
-		$session->get_archive()->log("Running low on diskspace.\nAll available drives have under ".$warnsize."k remaining." );
-		$session->mail_administrator(
-			"lib/eprint:disklow_sub" ,
-			"lib/eprint:disklow" );
+		# Warn the administrator if we're low on space
+		if( $best_free_space < $warnsize )
+		{
+			$session->get_archive()->log("Running low on diskspace.\nAll available drives have under ".$warnsize."k remaining." );
+			$session->mail_administrator(
+				"lib/eprint:disklow_sub" ,
+				"lib/eprint:disklow" );
+		}
 	}
 
 	# Work out the directory path. It's worked out using the ID of the 

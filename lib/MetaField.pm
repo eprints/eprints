@@ -1597,7 +1597,7 @@ sub get_value_label
 	# itself. Which is weird, but I doubt anyone will browse by URL
 	# anyway...
 
-	if( $self->is_type( "int", "year", "email", "url" ) )
+	if( $self->is_type( "int", "year", "email", "url", "text" ) )
 	{
 		return $session->make_text( $value );
 	}

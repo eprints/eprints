@@ -42,7 +42,7 @@
       <table cellpadding="5" border="0" cellspacing="0" width="100%">
         <tr>
           <td bgcolor="#cccccc">
-            Contact the site administrator at: <a href="mailto:&adminemail;">&adminemail;</a>
+            Site Administrator: <a href="mailto:&adminemail;">&adminemail;</a>
           </td>
         </tr>
       </table>

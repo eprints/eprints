@@ -22,13 +22,14 @@ use File::Path;
 use XML::DOM;
 use URI;
 
-my $DF_AVAILABLE;
+use EPrints::SystemSettings;
+
+my $DF_AVAILABLE = 0;
 
 BEGIN {
 
 	sub detect_df 
 	{
-	
 		my $dir = "/";
 		my ($fmt, $res);
 	
@@ -55,16 +56,26 @@ BEGIN {
 			$res == 0;
 		}
 	}
-	$DF_AVAILABLE = detect_df();
-	if (!$DF_AVAILABLE)
+	unless( $EPrints::SystemSettings::conf->{disable_df} )
 	{
-		print STDERR <<END;
+		$DF_AVAILABLE = detect_df();
+		if( !$DF_AVAILABLE )
+		{
+			print STDERR <<END;
 ---------------------------------------------------------------------------
-df appears to be unavailable on your server. To enable it, you should
-run 'h2ph * */*' (as root) in your /usr/include directory. See the EPrints 
-manual for more information.
+df ("Disk Free" system call) appears to be unavailable on your server. To 
+enable it, you should run 'h2ph * */*' (as root) in your /usr/include 
+directory. See the EPrints manual for more information.
+
+If you can't get df working on your system, you can work around it by
+adding 
+  disable_df => 1
+to .../eprints2/perl_lib/EPrints/SystemSettings.pm
+but you should read the manual about the implications of doing this.
 ---------------------------------------------------------------------------
 END
+			exit;
+		}
 	}
 }
 
@@ -82,7 +93,7 @@ sub df_dir
 	my( $dir ) = @_;
 
 	return df $dir if ($DF_AVAILABLE);
-	warn("df appears to be unavailable on your server. To enable it, you should run 'h2ph * */*' (as root) in your /usr/include directory. See the manual for more information.");	
+	die( "Attempt to call df when df function is not available." );
 }
 
 
@@ -771,9 +782,26 @@ sub url_escape
 	return $uri->as_string;
 }
 
+# Command Version: Prints the GNU style --version comment for a command
+# line script. Then exits.
+sub cmd_version
+{
+	my( $progname ) = @_;
 
+	my $version_id = $EPrints::SystemSettings::conf->{version_id};
+	my $version = $EPrints::SystemSettings::conf->{version};
+	
+	print <<END;
+$progname (GNU EPrints $version_id)
+$version
 
-#
+Copyright (C) 2001-2002 University of Southampton
+
+__LICENSE__
+END
+	exit;
+}
+
 # This code is for debugging memory leaks in objects.
 # It is not used by EPrints except when developing. 
 #

@@ -15,7 +15,6 @@ use EPrints::Utils;
 use EPrints::DataSet;
 use EPrints::Language;
 
-use Filesys::DiskSpace;
 use File::Copy;
 
 my %ARCHIVE_CACHE = ();

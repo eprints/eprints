@@ -70,6 +70,7 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 =item B<--verbose>
 
 Explain in detail what is going on.
+May be repeated for greater effect.
 
 =item B<--force>
 
@@ -93,6 +94,7 @@ use EPrints::Subject;
 use EPrints::ImportXML;
 
 my $xml = 0;
+my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
 my $force = 0;
@@ -104,9 +106,12 @@ GetOptions(
 	'help|?' => => \$help,
 	'man' => => \$man,
 	'force' => \$force , 
+	'version' => \$version,
 	'verbose+' => \$verbose,
+	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "reindex" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 );

@@ -18,6 +18,15 @@ General
 - Does not give validation error when multilang with required lang
 does NOT have all required langs filled in.
 
+- URLS like http://eprints.ecs.soton.ac.uk/archive/00000001 fail
+   for lack of a trailing / -=- make 404 page spot them?
+
+----------------------------------------------------------------------
+Documentation
+----------------------------------------------------------------------
+
+ - no documentation on how to add &entities; to phrases & templates.
+ 
 ----------------------------------------------------------------------
 Default Configuration
 ----------------------------------------------------------------------
@@ -36,9 +45,21 @@ Rendering
 
 - cant use &nbsp; in pages.
 
+- does not update abstract page when eprint in main archive is modified
+   directly by an editor.
+
+- browseviews don't expect spaces - causes a fatal error. Can't make the 
+ filenames.
+
+- broken link in "record_for_user" goes to "set_email" not "change_email"
+  ?? did I fix this absent mindedly?
+
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
+
+- some virtual host setups would prefer x.x.x.x:80 rather than * for
+   virtual hosts - add it to SystemSettings?
 
 ----------------------------------------------------------------------
 Searching
@@ -51,17 +72,31 @@ Searching
 - Staff search dataset field allows selection of more than one dataset
    but will ignore all but one.
 
+- SearchExpression::get_ids does not always return just ids! maybe
+   needs one-shot cache mode?
+
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
-EPrints Editorial Buffer
+EPrints "Staff" Edit
 ----------------------------------------------------------------------
 
+- Does not allow file upload for "archive" and possibly all non-"inbox"
+   buffers.
+
+- Does not update abstracts when a live record is modified.
+
 ----------------------------------------------------------------------
-Installation
+Installation & Archive Setup Script
 ----------------------------------------------------------------------
+
+- only allows [a-z]+ as passwords for mysql
+
+- Maximum of 32 Indexes on a MySQL table can cause problems.
+
+- Docs don't tell people how to do the main part of the upgrade!
 
 ----------------------------------------------------------------------
 Email
@@ -193,5 +228,16 @@ would be more appropriate. [ In fact all occurancies of
 - Can't delete or bounce an item belonging to a deleted user. [new
  combined edit_eprint handles this ok]
 - Default subjects - replace with Library of Congress.
+
+======================================================================
+Fixed in CVS
+======================================================================
+
+- df - still has problems [but a configuration option to work around
+it has been added]
+- sub _generate_doc_id in EPrints::Document does not dispose of its
+   search. [fixed]
+- browseviews for text fields develop ??? around values. - [fixed]
+
 
 

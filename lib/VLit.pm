@@ -55,7 +55,6 @@ sub handler
 
 	my $LSMAP = {
 "area" => \&ls_area,
-"pagearea" => \&ls_pagearea,
 "charrange" => \&ls_charrange
 };
 
@@ -286,84 +285,107 @@ END
 sub ls_area
 {
 	my( $file, $param, $resspec, $session ) = @_;
-	
-	unless( $param=~m/^(\d+),(\d+)\/(\d+),(\d+)$/ )
+
+	my $page = 1;
+	my $opts = {
+		page => 1,
+		hrange => { start=>0 },
+		vrange => { start=>0 }
+	};
+
+	foreach( split( "/", $param ) )
 	{
-		send_http_error( 400, "Malformed area param: $param" );
-		return;
+		my( $key, $value ) = split( "=", $_ );
+		if( $key eq "page" )
+		{
+			unless( $value =~ m/^\d+$/ )
+			{
+				send_http_error( 400, "Bad page id in area locspec" );
+				return;
+			}
+			$opts->{page} = $value;
+		}
+		if( $key eq "hrange" || $key eq "vrange" )
+		{
+			unless( $value =~ m/^(\d+)?,(\d+)?$/ )
+			{
+				send_http_error( 400, "Bad $key in area locspec" );
+				return;
+			}
+			$opts->{$key}->{start} = $1 if( defined $1 );
+			$opts->{$key}->{end} = $2 if( defined $2 );
+		}
 	}
 	
 	my $cache = cache_file( "area", $param );
-	
-	unless( -e $cache )
-	{
-		my( $x, $y, $w, $h ) = ( $1, $2, $3, $4 );
 
-		my $cmd = "convert -crop ".$w."x".$h."+$x+$y '$file' 'gif:$cache'";
-		`$cmd`;
-
-		if( !-e $cache )
-		{
-			send_http_error( 500, "Error making image" );
-			return;
-		}
-	}
-
-	send_http_header( "image/gif" );
-	print `cat $cache`;
-}
-
-sub ls_pagearea
-{
-	my( $file, $param, $resspec, $session ) = @_;
-	
-	unless( $param=~m/^(\d+)\/(\d+),(\d+)\/(\d+),(\d+)$/ )
-	{
-		send_http_error( 400, "Malformed pagearea param: $param" );
-		return;
-	}
-	
-	my $cache = cache_file( "pagearea", $param );
+	my $dir = $TMPDIR."/area/".Digest::MD5::md5_hex( $file );
 
 	unless( -e $cache )
 	{
 		my( $p, $x, $y, $w, $h ) = ( $1, $2, $3, $4, $5 );
 
 		# pagearea/ exists cus of cache_file called above.
-		my $dir = $TMPDIR."/pagearea/".Digest::MD5::md5_hex( $file );
 print STDERR "dir=$dir\n";	
 		if( !-d $dir )
 		{
 print STDERR "mkdir=$dir\n";	
 			mkdir( $dir );
-			my $cmd = "convert '$file' '$dir/%d'";
+			my $cmd = "convert '$file' 'tif:$dir/%d'";
 print STDERR "c1=$cmd\n";
 			`$cmd`;
 		}
-
-		my $cmd = "convert -crop ".$w."x".$h."+$x+$y '$dir/$p' 'gif:$cache'";
-print STDERR "c2=$cmd\n";
-		`$cmd`;
-
-		if( !-e $cache )
-		{
-			send_http_error( 500, "Error making image" );
-			return;
-		}
 	}
 
-	send_http_header( "image/gif" );
+	my $pageindex = $opts->{page} - 1;
+
+	my $crop = "";
+
+	# Don't crop if we is wanting the full page
+	unless( $opts->{hrange}->{start} == 0 && !defined $opts->{hrange}->{end}
+	 && $opts->{vrange}->{start} == 0 && !defined $opts->{vrange}->{end} )
+	{
+		$crop = "-crop ";
+		if( defined $opts->{hrange}->{end} )
+		{
+			$crop .= ($opts->{hrange}->{end} - $opts->{hrange}->{start} + 1);
+		}
+		else
+		{
+			$crop .= '999999';
+		}
+		$crop .= "x";
+		if( defined $opts->{vrange}->{end} )
+		{
+			$crop .= ($opts->{vrange}->{end} - $opts->{vrange}->{start} + 1);
+		}
+		else
+		{
+			$crop .= '999999';
+		}
+		$crop .= "+".$opts->{hrange}->{start};
+		$crop .= "+".$opts->{vrange}->{start};
+	}
+
+	my $cmd = "convert $crop '$dir/$pageindex' 'png:$cache'";
+	print STDERR $cmd."\n";
+	`$cmd`;
+	
+
+	send_http_header( "image/png" );
 	print `cat $cache`;
 }
+
 
 
 sub cache_file
 {
 	my( $resspec, $param ) = @_;
 
+	$param = "null" if( $param eq "" );
+
 	$resspec =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
 	$param =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
-
 
 	mkdir( $TMPDIR ) if( !-d $TMPDIR );
 

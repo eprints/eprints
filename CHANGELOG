@@ -493,3 +493,17 @@ OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)
 16/04/2002 - EPRINTS-2.0.1
 ======================================================================
 
+20/05/2002 
+- [config] changed "Contact site admin" text at bottom of page template
+to look less like an order (people thought it indicated an error)
+- added --silent as a synonym for --quiet - part of GNU regs.
+- added --version option to all command line options to print command
+name, EPrints release version and license.
+- fixed bug in cgi/oai - from and until were ignored!
+- added an option to SystemSettings; disable_df. This makes cgi/status 
+and the create EPrints subroutine skip looking at disk-free.
+- metafield now returns the text of a text field as its value label. It 
+returned an error before!
+- added EPrints::Utils::cmd_version($progname) to automate generation of
+   --version outputs.
+- changed syntax of image quoting locspecs in VLit module.

@@ -12,8 +12,6 @@
 #
 ######################################################################
 
-#cjg NOT LANG
-
 use EPrints::Session;
 use EPrints::Database;
 use EPrints::EPrint;
@@ -112,37 +110,47 @@ foreach( @esets )
 
 $table->appendChild( render_empty_row( $session ) );
 
-my $best_size = 0;
-
-my @dirs = $session->get_archive()->get_store_dirs();
-my $dir;
-foreach $dir ( @dirs )
+unless( $EPrints::SystemSettings::conf->{disable_df} )
 {
-	my $size = $session->get_archive()->get_store_dir_size( $dir );
-	$table->appendChild(
-		render_row( 
-			$session,
-			$session->html_phrase( "cgi/users/status:diskfree",
-				dir=>$session->make_text( $dir ) ),
-			$session->html_phrase( "cgi/users/status:mbfree",
-				mb=>$session->make_text( int($size/1024) ) ) ) );
+	my $best_size = 0;
 
-	$best_size = $size if( $size > $best_size );
-}
-
-if( $best_size < $session->get_archive()->get_conf( "diskspace_error_threshold" ) )
-{
-	$p = $session->make_element( "p" );
-	$html->appendChild( $p );
-	$p->appendChild( 
-		$session->html_phrase( "cgi/users/status:out_of_space" ) );
-}
-elsif( $best_size < $session->get_archive()->get_conf( "diskspace_warn_threshold" ) )
-{
-	$p = $session->make_element( "p" );
-	$html->appendChild( $p );
-	$p->appendChild( 
-		$session->html_phrase( "cgi/users/status:nearly_out_of_space" ) );
+	my @dirs = $session->get_archive()->get_store_dirs();
+	my $dir;
+	foreach $dir ( @dirs )
+	{
+		my $size = $session->get_archive()->get_store_dir_size( $dir );
+		$table->appendChild(
+			render_row( 
+				$session,
+				$session->html_phrase( 
+					"cgi/users/status:diskfree",
+					dir=>$session->make_text( $dir ) ),
+				$session->html_phrase( 
+					"cgi/users/status:mbfree",
+					mb=>$session->make_text( 
+						int($size/1024) ) ) ) );
+	
+		$best_size = $size if( $size > $best_size );
+	}
+	
+	if( $best_size < $session->get_archive()->get_conf( 
+					"diskspace_error_threshold" ) )
+	{
+		$p = $session->make_element( "p" );
+		$html->appendChild( $p );
+		$p->appendChild( 
+			$session->html_phrase( 
+				"cgi/users/status:out_of_space" ) );
+	}
+	elsif( $best_size < $session->get_archive()->get_conf( 
+						"diskspace_warn_threshold" ) )
+	{
+		$p = $session->make_element( "p" );
+		$html->appendChild( $p );
+		$p->appendChild( 
+			$session->html_phrase( 
+				"cgi/users/status:nearly_out_of_space" ) );
+	}
 }
 
 $session->build_page( 

@@ -266,13 +266,12 @@ sub _generate_doc_id
 	my $searchexp = EPrints::SearchExpression->new(
 				session=>$session,
 				dataset=>$dataset );
-
 	$searchexp->add_field(
 		$dataset->get_field( "eprintid" ),
 		$eprint->get_value( "eprintid" ) );
 	$searchexp->perform_search();
-
 	my( @docs ) = $searchexp->get_records();
+	$searchexp->dispose();
 
 	my $n = 0;
 	foreach( @docs )

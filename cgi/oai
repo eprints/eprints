@@ -19,6 +19,7 @@
 
 #cjg need to recomment all subs
 
+
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::OpenArchives;
@@ -39,7 +40,6 @@ my $session = new EPrints::Session();
 Apache::exit( 0 ) unless( defined $session );
 # What are we begin asked?
 my $verb = $session->param( "verb" );
-
 
 if( !defined $verb ) 
 {
@@ -406,7 +406,7 @@ END
 			send_http_error( $session, 400, "Invalid until parameter" );
 			return;
 		}
-		$date_range.= "-" if( !defined $date_range );
+		$date_range = "-" if( !defined $date_range );
 		$date_range.= $end_date;
 	}
 	
@@ -414,8 +414,7 @@ END
 	{
 		$searchexp->add_field( 
 				$ds->get_field( "datestamp" ), 
-				$value,
-				"EX" );
+				$date_range );
 	}
 
 	return( $searchexp, 0, $metadata_format );

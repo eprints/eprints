@@ -58,6 +58,7 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 =item B<--verbose>
 
 Explain in detail what is going on.
+May be repeated for greater effect.
 
 =back   
 
@@ -102,6 +103,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
+my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
 my $help = 0;
@@ -110,9 +112,12 @@ my $man = 0;
 GetOptions( 
 	'help|?' => => \$help,
 	'man' => => \$man,
+	'version' => \$version,
 	'verbose+' => \$verbose,
+	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "generate_apacheconf" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 1 && scalar @ARGV != 0 ); 
