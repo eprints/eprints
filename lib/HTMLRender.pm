@@ -15,11 +15,10 @@ package EPrints::HTMLRender;
 
 use EPrints::SubjectList;
 use EPrints::Name;
-
 use EPrintSite::SiteInfo;
 
 use strict;
-use CGI::Apache;
+
 use CGI;
 
 # Width of text fields
@@ -96,6 +95,10 @@ sub new
 	}
 	else
 	{
+		# Use CGI::Apache. Has to be required and imported here, as it dies
+		# if it's required elsewhere.
+		require CGI::Apache;
+		import CGI::Apache;
 		$self->{query} = new CGI::Apache();
 	}
 	
