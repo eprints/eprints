@@ -123,6 +123,9 @@ elsif( $best_size < $EPrintSite::SiteInfo::diskspace_warn_threshold )
 		"Available space for new EPrints running low</P></CENTER>\n";
 }
 
+print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
+	"Click here to return to the Staff Area</A></CENTER></P>\n";
+
 print $session->{render}->end_html();
 
 $session->terminate();
