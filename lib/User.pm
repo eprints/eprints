@@ -350,11 +350,11 @@ sub send_introduction
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
-		$self->{session}->phrase( $subj , sitename=>$self->{session}->{site}->{sitename} ),
+		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_site()->{sitename} ),
 		$self->{email},
 		$self->{session}->phrase( "lib/user:welcome", 
-		                          sitename=>$self->{session}->{site}->{sitename} ),
-		$self->{session}->{site}->{template_user_intro},
+		                          sitename=>$self->{session}->get_site()->{sitename} ),
+		$self->{session}->get_site()->{template_user_intro},
 		$self ) );
 }
 
@@ -376,11 +376,11 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->phrase(
 	     	"lib/user:reminder",
-		 sitename=>$self->{session}->{site}->{sitename},
+		 sitename=>$self->{session}->get_site()->{sitename},
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},
-		 adminemail=>$self->{session}->{site}->{admin}  );
+		 adminemail=>$self->{session}->get_site()->{admin}  );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},

@@ -538,7 +538,7 @@ sub short_title
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->{site}->eprint_short_title( $self ) );
+	return( $self->{session}->get_site()->eprint_short_title( $self ) );
 }
 
 
@@ -636,7 +636,7 @@ sub validate_meta
 		else
 		{
 			# Give the site validation module a go
-			$problem = $self->{session}->{site}->validate_eprint_field(
+			$problem = $self->{session}->get_site()->validate_eprint_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -672,7 +672,7 @@ sub validate_meta
 	}
 
 	# Site validation routine for eprint metadata as a whole:
-	$self->{session}->{site}->validate_eprint_meta( $self, \@all_problems );
+	$self->{session}->get_site()->validate_eprint_meta( $self, \@all_problems );
 
 	return( \@all_problems );
 }
@@ -713,7 +713,7 @@ sub validate_subject
 		else
 		{
 			# Give the validation module a go
-			$problem = $self->{session}->{site}->validate_subject_field(
+			$problem = $self->{session}->get_site()->validate_subject_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -991,7 +991,7 @@ sub validate_full
 	}
 
 	# Now give the site specific stuff one last chance to have a gander.
-	$self->{session}->{site}->validate_eprint( $self, \@problems );
+	$self->{session}->get_site()->validate_eprint( $self, \@problems );
 
 	return( \@problems );
 }
@@ -1080,7 +1080,7 @@ sub submit
 	
 	if( $success )
 	{
-		$self->{session}->{site}->update_submitted_eprint( $self );
+		$self->{session}->get_site()->update_submitted_eprint( $self );
 		$self->datestamp();
 		$self->commit();
 	}
@@ -1128,7 +1128,7 @@ sub archive
 	
 	if( $success )
 	{
-		$self->{session}->{site}->update_archived_eprint( $self );
+		$self->{session}->get_site()->update_archived_eprint( $self );
 		$self->commit();
 		$self->generate_static();
 
@@ -1165,7 +1165,7 @@ sub local_path
 {
 	my( $self ) = @_;
 	
-	return( "$self->{session}->{site}->{local_document_root}/$self->{dir}" );
+	return( "$self->{session}->get_site()->{local_document_root}/$self->{dir}" );
 }
 
 

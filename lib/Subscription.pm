@@ -98,7 +98,7 @@ sub new
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
 		$self->{session},
 		"eprint",
-		$self->{session}->{site}->{subscription_fields} );
+		$self->{session}->get_site()->{subscription_fields} );
 
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
@@ -499,8 +499,8 @@ sub process
 		my $body = $self->{session}->phrase( 
 			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
-			     sitename=>$self->{session}->{site}->{sitename},
-			     url=>"$self->{session}->{site}->{server_perl}/users/subscribe" );
+			     sitename=>$self->{session}->get_site()->{sitename},
+			     url=>"$self->{session}->get_site()->{server_perl}/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";

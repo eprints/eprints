@@ -67,7 +67,7 @@ if( defined $userid )
 	{
 		print $session->{render}->render_error(
 			$session->{lang}->phrase( "cgi/user:unknown_user" ),
-			$session->{site}->{frontpage},
+			$session->get_site()->{frontpage},
 			$session->{lang}->phrase( "cgi/user:return_front" ) );
 	}
 }
@@ -75,7 +75,7 @@ else
 {
 	print $session->{render}->render_error(
 		$session->{lang}->phrase( "cgi/user:no_user" ),
-		$session->{site}->{frontpage},
+		$session->get_site()->{frontpage},
 		$session->{lang}->phrase( "cgi/user:return_front" ) );
 }
 

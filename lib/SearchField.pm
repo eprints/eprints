@@ -785,8 +785,6 @@ sub approx_rows
 
 	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches( 1 );
 
-print STDERR ">>>>>$tables,$searches,$badwords,$error\n";
-
 	if( defined $error )
 	{
 		return 0;

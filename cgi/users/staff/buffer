@@ -94,7 +94,7 @@ else
 	print "</TABLE></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"$session->{site}->{server_static}/staff/\">";
+print "<P><CENTER><A HREF=\"$session->get_site()->{server_static}/staff/\">";
 print $session->{lang}->phrase( "cgi/users/buffer:return_staff" );
 print "</A></CENTER></P>\n";
 

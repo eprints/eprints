@@ -677,7 +677,7 @@ sub upload_archive
 
 	# Make the extraction command line
 	my $extract_command =
-		$self->{session}->{site}->{archive_extraction_commands}->{ $archive_format };
+		$self->{session}->get_site()->{archive_extraction_commands}->{ $archive_format };
 
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
@@ -748,7 +748,7 @@ sub upload_url
 	$cut_dirs = 0 if( $cut_dirs < 0 );
 	
 	# Construct wget command line.
-	my $command = $self->{session}->{site}->{wget_command};
+	my $command = $self->{session}->get_site()->{wget_command};
 	#my $escaped_url = uri_escape( $url );
 	
 	$command =~ s/_CUTDIRS_/$cut_dirs/g;
@@ -855,11 +855,11 @@ sub required_format
 {
 	my( $session , $format ) = @_;
 	
-	return( 1 ) unless( @{$session->{site}->{required_formats}} );
+	return( 1 ) unless( @{$session->get_site()->{required_formats}} );
 
 	my $req = 0;
 
-	foreach (@{$session->{site}->{required_formats}})
+	foreach (@{$session->get_site()->{required_formats}})
 	{
 		$req = 1 if( $format eq $_ );
 	}
@@ -929,7 +929,7 @@ sub validate
 	}
 		
 	# Site-specific checks
-	$self->{session}->{site}->validate_document( $self, \@problems );
+	$self->{session}->get_site()->validate_document( $self, \@problems );
 
 	return( \@problems );
 }

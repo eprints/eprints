@@ -5,28 +5,27 @@ As the changes get more atomic we can start doing a changelog and stuff.
 
 Things to do (Mike)
 
-	* rename all things in intl/english to have the suffix in  the file eg
-				lib_username_foo
-				bin_generate_abstracts_bar
-				cgi_users_home_baz
-		also add in "_" where I didn't bother and even rename badly chosen names.
-		and spot any unused ones... BE CAREFUL of ones which have their ID
-		constructed. 	
-		(once this is done I can simplify the Language module)
-	* 'phrasify' remaining english text.
+
 	* spot all naughty regexps (ones which opperate(sp?) on UTF8),
 		and similar things like split which can't be trusted
 		either.
 	* lose all $_ and give sensible named variables instead
 	* make MetaField->to_html render_value
 	* make SearchField->to_html render_input_field
-	* tidy up lemurprints.pm "big type lists"
-	# tidy up XML lemurprints citations. <IF></IF>
 	* make ALL DOM methods render_foo_bar
+	* tidy up lemurprints.pm "big type lists"
+	* tidy up XML lemurprints citations. <IF></IF>
 	* rearrange large modules like Session.pm to be in sets, eg.
 		all CGI/param stuff together, all DOM stuff together
+	* "sort out" static dir, although don't worry about "help" too much.
+		
+
+"BIGGIES"
+	* 'phrasify' remaining english text.
 	* comment by all "my" saying what type(?)
+	* make a DOM lib in C. :-)
 	* comment making script
+	* installation script for alpha release.
 
 
 move done things to here :
@@ -35,3 +34,4 @@ DONE:
 ===================================
 	* nothing yet
 	* finish turning fooBar to foo_bar
+	* rename all things in intl/english to have the suffix in  the file eg

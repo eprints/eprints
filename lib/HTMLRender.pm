@@ -270,7 +270,7 @@ sub render_user
 {
 	my( $self, $user, $public ) = @_;
 
-	return( $self->{session}->{site}->user_render_full( $user, $public ) );
+	return( $self->{session}->get_site()->user_render_full( $user, $public ) );
 }
 
 
@@ -313,7 +313,7 @@ sub _write_version_thread_aux
 	
 	# Write the citation
 	my $citation_spec =
-		$self->{session}->{site}->{thread_citation_specs}->{$field->{name}};
+		$self->{session}->get_site()->{thread_citation_specs}->{$field->{name}};
 
 	$html .= EPrints::Citation::render_citation( $eprint->{session},
 	                                             $citation_spec,

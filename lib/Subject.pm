@@ -177,7 +177,6 @@ sub children
 {
 	my( $self ) = @_;
 
-print "ack\n";
 	my $ds = $self->{session}->get_site()->get_data_set( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
@@ -190,9 +189,8 @@ print "ack\n";
 
 #cjg set order (it's in the site config)
 
-	my $searchid = $searchexp->perform_search;
-	my @children = $searchexp->get_records;
-
+	my $searchid = $searchexp->perform_search();
+	my @children = $searchexp->get_records();
 
 	my $child;
 print "gin' loop:\n";

@@ -46,15 +46,15 @@ if( $session->{render}->seen_form() )
 	print "<CENTER><P>";
 	print $session->{lang}->phrase( 
 		"cgi/remind:sent_blurb",
-		"<A HREF=\"$session->{site}->{admin}\">.
+		"<A HREF=\"$session->get_site()->{admin}\">.
 		  $session->{lang}->phrase( "cgi/remind:site_admin" )."</A>" );
 
 	print "</P></CENTER>\n";
 		
-	print "<P><A HREF=\"$session->{site}->{frontpage}\">";
+	print "<P><A HREF=\"$session->get_site()->{frontpage}\">";
 	print $session->{lang}->phrase( 
 		"cgi/remind:return_home",
-		{sitename=>"$session->{site}->{siteinfo}} );
+		{sitename=>"$session->get_site()->{siteinfo}} );
 	print "</A></P>\n";
 
 	print $session->{render}->end_html();

@@ -25,24 +25,23 @@ use strict;
 
 my $session = new EPrints::Session;
 
-print $session->{render}->start_html( "Server Status" );
+my( $html );
 
-# Total number of users
-my $rows = $session->{database}->retrieve( EPrints::Database::table_name( "user" ),
-                                           [ "username" ] );
+my $rows;
 
 # Number of users in each group
-my $num_users = scalar @$rows;
-my @num_users_cat;
+my $num_users = count( "user" );
+print STDERR "NUMUSERS...... $num_users\n";
+my %num_users;
 
-foreach (@EPrints::User::access_levels)
+my $usertype;
+foreach $usertype (@EPrints::User::access_levels)
 {
-	$rows = $session->{database}->retrieve( EPrints::Database::table_name( "user" ),
-	                                        [ "username" ],
-	                                        [ "groups LIKE \"$_\"" ] );
-	push @num_users_cat, scalar @$rows;
+	my $count = count( "username", groups => $usertype );
+	$num_users{ $usertype } = $count;
+	print STDERR "($usertype)=$count\n";
 }
-
+exit;
 # Number of submissions in workspace
 $rows = $session->{database}->retrieve( EPrints::Database::table_name( "inbox" ),
                                         [ "eprintid" ] );
@@ -79,7 +78,7 @@ my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
 
 # Get available directories
-opendir DOCSTORE, $session->{site}->{local_document_root}
+opendir DOCSTORE, $session->get_site()->{local_document_root}
 	or return( undef );
 # The grep here just removes the "." and ".." directories
 my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -95,8 +94,11 @@ print "<CENTER><TABLE BORDER=0>\n";
 
 &print_row( "", "" );
 
-&print_row( "Users:", $num_users_cat[0] );
-&print_row( "Staff:", $num_users_cat[1] );
+foreach $usertype ( keys %num_users )
+{
+	#lang cjg
+	&print_row( $usertype, $num_users{$usertype} );
+}
 &print_row( "Total Users:", $num_users );
 
 &print_row( "", "" );
@@ -116,7 +118,7 @@ my $best_size = 0;
 
 foreach( @avail )
 {
-	my $size = ( df "$session->{site}->{local_document_root}/$_" )[3];
+	my $size = ( df "$session->get_site()->{local_document_root}/$_" )[3];
 	&print_row( "Document partition $_:", int($size/1024)."Mb free" );
 
 	$best_size = $size if( $size > $best_size );
@@ -124,20 +126,21 @@ foreach( @avail )
 
 print "</TABLE></CENTER>\n";
 
-if( $best_size < $session->{site}->{diskspace_error_threshold} )
+if( $best_size < $session->get_site()->{diskspace_error_threshold} )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>NO SPACE LEFT FOR EPRINTS!".
 		"</FONT></STRONG></P></CENTER>\n";
 }
-elsif( $best_size < $session->{site}->{diskspace_warn_threshold} )
+elsif( $best_size < $session->get_site()->{diskspace_warn_threshold} )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>WARNING:</FONT></STRONG> ".
 		"Available space for new EPrints running low</P></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"$session->{site}->{server_static}/staff/\">".
+print "<P><CENTER><A HREF=\"$session->get_site()->{server_static}/staff/\">".
 	"Click here to return to the Staff Area</A></CENTER></P>\n";
 
+print $session->{render}->start_html( "Server Status" );
 print $session->{render}->end_html();
 
 $session->terminate();
@@ -148,4 +151,26 @@ sub print_row
 	my( $key, $val ) = @_;
 	
 	print "<TR><TD><STRONG>$key</STRONG></TD><TD ALIGN=right>$val</TD></TR>\n";
+}
+
+sub count
+{
+	my( $datasetid, %searchfields ) = @_;
+
+	my $searchexp = new EPrints::SearchExpression(
+		session => $session,
+		dataset => $session->get_site()->get_data_set( $datasetid ),
+		fieldnames => [] );
+
+	my $searchfield;
+	foreach $searchfield ( keys %searchfields )
+	{
+		$searchexp->add_field(
+			$datasetid->get_field( $searchfield ),
+			"PHR:EQ:".$searchfields{ $searchfield } );
+	}
+
+	$searchexp->perform_search();
+
+	return $searchexp->count();
 }

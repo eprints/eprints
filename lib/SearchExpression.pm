@@ -141,7 +141,8 @@ sub add_field
 	                                            $self->{dataset},
 	                                            $field,
 	                                            $value );
-	my $formname = $searchfield->get_form_name;
+
+	my $formname = $searchfield->get_form_name();
 	if( defined $self->{searchfieldmap}->{$formname} )
 	{
 		# Already got a seachfield, just update the value
@@ -733,25 +734,5 @@ sub _render_problems
 	$self->{session}->send_page();
 }
 
-
-######################################################################
-#
-# _render_matchcount( $count )
-#
-#  Renders the number of hits the search resulted in, handling singular/
-#  plural properly into HTML.
-#
-######################################################################
-
-## WP1: BAD
-sub _render_matchcount
-{
-	my( $session, $count ) = @_;
-
-}
-
-
-
-	
 
 1;

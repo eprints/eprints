@@ -40,7 +40,6 @@ sub new_site_by_host_and_path
 
 	foreach( keys %EPrints::Site::General::sites )
 	{
-print STDERR "++".substr( $hostpath, 0, length($_) )."++$_++\n";
 		if( substr( $hostpath, 0, length($_) ) eq $_ )
 		{
 			return new_site_by_id( $class, $EPrints::Site::General::sites{$_} );

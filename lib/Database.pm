@@ -71,7 +71,6 @@ sub build_connection_string
         {
                 $dsn.= ";socket=".$params{db_sock};
         }
-print STDERR ">>$dsn\n";
         return $dsn;
 }
 
@@ -98,12 +97,12 @@ sub new
 	# Connect to the database
 	$self->{dbh} = DBI->connect( 
 		build_connection_string( 
-			db_host => $session->{site}->get_conf("db_host"),
-			db_sock => $session->{site}->get_conf("db_sock"),
-			db_port => $session->{site}->get_conf("db_port"),
-			db_name => $session->{site}->get_conf("db_name") ),
-	        $session->{site}->get_conf("db_user"),
-	        $session->{site}->get_conf("db_pass") );
+			db_host => $session->get_site()->get_conf("db_host"),
+			db_sock => $session->get_site()->get_conf("db_sock"),
+			db_port => $session->get_site()->get_conf("db_port"),
+			db_name => $session->get_site()->get_conf("db_name") ),
+	        $session->get_site()->get_conf("db_user"),
+	        $session->get_site()->get_conf("db_pass") );
 
 #	        { PrintError => 0, AutoCommit => 1 } );
 
@@ -497,8 +496,6 @@ sub update
 		{
 			next;
 		}
-print STDERR "*".$data->{$multifield->get_name()}."\n";
-print STDERR "*".$multifield->get_name()."\n";
 		my $position=0;
 		foreach( @{$data->{$multifield->get_name()}} )
 		{
