@@ -1329,7 +1329,7 @@ sub _render_row
 
 ######################################################################
 #
-# $xhtmlfragment = user_render( $user, $session, $show_all )
+# $xhtmlfragment = user_render( $user, $session )
 #
 ######################################################################
 # $user
@@ -1454,9 +1454,7 @@ sub user_render_full
 			$session,
 			$session->make_text( 
 				$field->display_name( $session ) ),	
-			$user->render_value( 
-				$field->get_name(), 
-				$show_all ) ) );
+			$user->render_value( $field->get_name(), 1 ) ) );
 
 	}
 	$info->appendChild( $table );

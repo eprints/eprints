@@ -26,13 +26,8 @@ due to filename limit of 255 chars.
 Rendering
 ----------------------------------------------------------------------
 
-- Rendering values does not currently link them to the relevant view 
-   page if one exists. New config option?
-
 - /views/ pages do not correctly sort the list of fields (it's done 
    by ID not the rendered phrase). 
-
-- "bounce" email has DOM reference rather than the actual email!
 
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
@@ -70,9 +65,6 @@ EPrints Submission Form
 - capturing a website with a ~ in the URL set the wrong filename in the 
    documents data. (didn't handle %'s right?)
 
-- the final page of submission should indicate that the first block is
-   the "abstract page" and the second block is a dump of all fields.
-
 - weird bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
 
@@ -104,5 +96,12 @@ FIXED: 26/01
 - default action is always first button in form. (Which if I fix the button 
    ordering problem will mean that the default button will be "Prev" thus
    losing all the changes.
+
+FIXED: 28/01
+- Rendering values does not currently link them to the relevant view 
+   page if one exists. New config option? [ yup: browse_link ]
+- "bounce" email has DOM reference rather than the actual email!
+- the final page of submission should indicate that the first block is
+   the "abstract page" and the second block is a dump of all fields.
 
 
