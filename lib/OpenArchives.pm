@@ -57,8 +57,65 @@ sub disseminate
 }
 
 
+######################################################################
+#
+# @partitions = partitions()
+#
+#  Return the subject hierarchy as partitions for the OA List Partitions
+#  verb. Format is:
+#
+#  partition = { name => partition_id, display => "partition display name" }
+#
+#  partitionnode = [ partition, partitionnode, ... ]
+#
+#  @partitions = ( partitionnode, partitionnode, ... ) for top-level partitions
+#
+######################################################################
+
+sub partitions
+{
+	my( $class ) = @_;
+	
+	# Create non-script session
+	my $session = new EPrints::Session( 1 );
+
+	my $toplevel_subject = new EPrints::Subject( $session, undef );
+	
+	return( _partitionise_subjects( $toplevel_subject ) );
+}
 
 
+######################################################################
+#
+# @partitions = partitionise_subjects( $subject )
+#
+#  Gets the child subjects of $subject, and puts them together with their
+#  children in a list. i.e. returns them as partitionnodes (from partitions()
+#  definition.)
+#
+######################################################################
+
+sub _partitionise_subjects
+{
+	my( $subject ) = @_;
+
+	my @partitions = ();
+
+	my @children = $subject->children();
+	
+	# Cycle through each of the child subjects, adding the partitionnode to
+	# the list of partitions to return
+	foreach (@children)
+	{
+		my %partitionnode = ( name    => $_->{subjectid},
+		                      display => $_->{name} );
+		my @child_partitions = _partitionise_subjects( $_ );
+		
+		push @partitions, [ \%partitionnode, \@child_partitions ];
+	}
+
+	return( @partitions );
+}
 
 
 ######################################################################

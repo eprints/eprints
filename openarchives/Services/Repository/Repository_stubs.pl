@@ -71,7 +71,7 @@ use IO::File;
 # Search for the string "MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY" 
 # to find the subroutine that must be modified.
 
-# Disseminate Verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
+# Disseminate Verb
 sub mr_disseminate {
     my ($fullID, $metaFormat, $contentType, $kwArgs, $Context) = @_;
 
@@ -179,7 +179,7 @@ sub mr_dump_contents {
     unlink $XMLOutputTempFile;
 }
 
-# List-Meta-Formats Verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
+# List-Meta-Formats Verb
 sub mr_list_meta_formats {
     my ($kwArgs, $Context) = @_;
 
@@ -193,11 +193,9 @@ sub mr_list_meta_formats {
 		       "version" => $Context->{'version'});
 
 
-    # Dummy list of meta-formats for testing
+    # Only OAMS supported
     my @mFormats = ({name => 'oams', 
-		     namespace => 'http://www.OpenArchives.org'},
-		    {name => 'rfc1807', 
-                     namespace => 'ftp://nic.merit.edu/document/rfc/rfc1807.txt'});
+		     namespace => 'http://www.OpenArchives.org'});
 
     # output the metaformats
     my $f;
@@ -229,42 +227,8 @@ sub mr_list_partitions {
     $writer->startTag ("$Context->{'verb'}", 
 		       "version" => $Context->{'version'});
 
-    # dummy list of nested partitions for testing
-    my @partitions =
-	(
-          [
-            {name => 'Oceanside',
-             display => "Oceanside University of Nebraska"},
-            [
-              [
-                {name => 'CompEnt',
-                 display => 'Department of Computational Entomology'},
-                []
-              ],
-              [
-                {name => 'MetPhen',
-                 display => 'Department of Metaphysical Phenomenology Entomology'},
-                []
-              ],
-            ],
-          ],
-          [
-            {name => 'ValleyView',
-             display => "Valley University of Florida"},
-            [
-              [
-                {name => 'Fren',
-                 display => 'Department of Frenetics'},
-                []
-              ],
-              [
-                {name => 'Hist',
-                 display => 'Department of Histrionics'},
-                []
-              ],
-            ],
-          ]
-	 );    
+    # get nested partitions
+    my @partitions = EPrints::OpenArchives->partitions();
 
     # loop through the partitions and recursively dump them out.
     my $p;
