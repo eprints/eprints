@@ -473,14 +473,14 @@ sub render_value
 		my @setvalues;
 		@setvalues = split /:/, $value if( defined $value );
 		my $first = 0;
-
-		foreach (@setvalues)
+		my $value;
+		foreach $value (@setvalues)
 		{
-			if( $_ ne "" )
+			if( $value ne "" )
 			{
 				$html .=  ", " unless( $first );
 				$first=1 if( $first );
-				$html .= $self->{labels}->{$_};
+				$html .= $self->{labels}->{$value};
 			}
 		}
 	}
@@ -488,16 +488,17 @@ sub render_value
 	{
 		$html = "";
 		my @usernames;
+		my $username;
 		@usernames = split /:/, $value if( defined $value );
 		my $first = 0;
 
-		foreach (@usernames)
+		foreach $username (@usernames)
 		{
-			if( $_ ne "" )
+			if( $username ne "" )
 			{
 				$html .=  ", " unless( $first );
 				$first=1 if( $first );
-				$html .= $_;
+				$html .= $username;
 				# This could be much prettier
 			}
 		}

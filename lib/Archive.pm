@@ -37,14 +37,14 @@ sub new_site_by_url
 sub new_site_by_host_and_path
 {
 	my( $class, $hostpath ) = @_;
-
+	my $site;
 	print STDERR "($hostpath)\n";
 
-	foreach( keys %EPrints::Archives::General::sites )
+	foreach $site ( keys %EPrints::Archives::General::sites )
 	{
-		if( substr( $hostpath, 0, length($_) ) eq $_ )
+		if( substr( $hostpath, 0, length($site) ) eq $site )
 		{
-			return new_site_by_id( $class, $EPrints::Archives::General::sites{$_} );
+			return new_site_by_id( $class, $EPrints::Archives::General::sites{$site} );
 		}
 	}
 	return undef;

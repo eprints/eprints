@@ -320,20 +320,20 @@ sub get_postable
 	# Maps full label (with "path", e.g. "Psychology: Behavioural") for
 	# easy sorting
 	my %labelmap;
-	
+	my $subject;
 	# Go through all of the subjects
-	foreach (@$subjects)
+	foreach $subject (@$subjects)
 	{
 		# If the user can post to it...
-		if( !defined $user || $_->can_post( $user ) )
+		if( !defined $user || $subject->can_post( $user ) )
 		{
 			# Lob it in the list!
 			my $lab = EPrints::Subject::subject_label_cache(
 				$session,
-				$_->{subjectid},
+				$subject->{subjectid},
 				$subjectmap );
-			$labels{$_->get_value("subjectid")} = $lab;
-			$labelmap{$lab} = $_;
+			$labels{$subject->get_value("subjectid")} = $lab;
+			$labelmap{$lab} = $subject;
 		}
 	}
 	
@@ -502,12 +502,12 @@ sub get_all
 	return( undef ) if( scalar @rows == 0 );
 
 	my( @subjects, %subjectmap );
-		
-	foreach (@rows)
+	my $row;
+	foreach $row (@rows)
 	{
-		push @subjects, $_;
+		push @subjects, $row;
 
-		$subjectmap{$_->get_value("subjectid")} = $_;
+		$subjectmap{$row->get_value("subjectid")} = $row;
 
 #		my $p = "get_all:";
 #		foreach (@$r)

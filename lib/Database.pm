@@ -431,36 +431,36 @@ sub update
 
 	my @aux;
 	my %values = ();
-
+	my $field;
 	foreach( @fields ) 
 	{
-		if( $_->get_property( "multiple" ) ) 
+		if( $field->get_property( "multiple" ) ) 
 		{ 
-			push @aux,$_;
+			push @aux,$field;
 		}
 		else 
 		{
 			# clearout the freetext search index table for this field.
 
-			if( $_->is_type( "name" ) )
+			if( $field->is_type( "name" ) )
 			{
 				$values{$_->get_name()."_given"} = 
-					$data->{$_->get_name()}->{given};
+					$data->{$field->get_name()}->{given};
 				$values{$_->get_name()."_family"} = 
-					$data->{$_->get_name()}->{family};
+					$data->{$field->get_name()}->{family};
 			}
 			else
 			{
-				$values{$_->get_name()} =
-					$data->{$_->get_name()};
+				$values{$field->get_name()} =
+					$data->{$field->get_name()};
 			}
-			if( $_->is_text_indexable )
+			if( $field->is_text_indexable )
 			{ 
 				$self->_freetext_index( 
 					$dataset, 
 					$keyvalue, 
-					$_, 
-					$data->{$_->get_name()} );
+					$field, 
+					$data->{$field->get_name()} );
 			}
 		}
 	}
@@ -497,7 +497,8 @@ sub update
 			next;
 		}
 		my $position=0;
-		foreach( @{$data->{$multifield->get_name()}} )
+		my $namefield;
+		foreach $namefield ( @{$data->{$multifield->get_name()}} )
 		{
 			$sql = "INSERT INTO $auxtable (".
 			       $keyfield->get_name().", pos, ";
@@ -513,12 +514,12 @@ sub update
 			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= "\"".prep_value( $_->{given} )."\", ";
-				$sql .= "\"".prep_value( $_->{family} )."\"";
+				$sql .= "\"".prep_value( $namefield->{given} )."\", ";
+				$sql .= "\"".prep_value( $namefield->{family} )."\"";
 			}
 			else
 			{
-				$sql .= "\"".prep_value( $_ )."\"";
+				$sql .= "\"".prep_value( $namefield )."\"";
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
@@ -529,7 +530,7 @@ sub update
 					$dataset, 
 					$keyvalue, 
 					$multifield, 
-					$_ );
+					$namefield );
 			}
 
 			++$position;
@@ -592,11 +593,12 @@ sub _create_counter_table
 	# Return with an error if unsuccessful
 	return( 0 ) unless defined( $sth );
 
+	my $counter;
 	# Create the counters 
-	foreach (@EPrints::Database::counters)
+	foreach $counter (@EPrints::Database::counters)
 	{
 		$sql = "INSERT INTO ".$counter_ds->get_sql_table_name()." VALUES ".
-			"(\"$_\", 0);";
+			"(\"$counter\", 0);";
 
 		$sth = $self->do( $sql );
 		
@@ -898,16 +900,17 @@ sub _get
 
 	my @fields = $dataset->get_fields();
 
+	my $field = undef;
 	my $keyfield = $fields[0];
 	my $kn = $keyfield->get_name();
 
 	my $cols = "";
 	my @aux = ();
 	my $first = 1;
-	foreach (@fields) {
-		if ( $_->get_property( "multiple" ) )
+	foreach $field (@fields) {
+		if ( $field->get_property( "multiple" ) )
 		{ 
-			push @aux,$_;
+			push @aux,$field;
 		}
 		else 
 		{
@@ -919,14 +922,14 @@ sub _get
 			{
 				$cols .= ", ";
 			}
-			if ( $_->is_type( "name" ) )
+			if ( $field->is_type( "name" ) )
 			{
-				$cols .= "M.".$_->get_name()."_given, ".
-				         "M.".$_->get_name()."_family";
+				$cols .= "M.".$field->get_name()."_given, ".
+				         "M.".$field->get_name()."_family";
 			}
 			else 
 			{
-				$cols .= "M.".$_->get_name();
+				$cols .= "M.".$field->get_name();
 			}
 		}
 	}
@@ -955,15 +958,15 @@ sub _get
 	{
 		my $record = {};
 		$lookup{$row[0]} = $count;
-		foreach( @fields ) { 
-			if( $_->get_property( "multiple" ) )
+		foreach $field ( @fields ) { 
+			if( $field->get_property( "multiple" ) )
 			{
-				$record->{$_->{name}} = [];
+				$record->{$field->{name}} = [];
 			}
 			else 
 			{
 				my $value;
-				if( $_->is_type( "name" ) )
+				if( $field->is_type( "name" ) )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -973,7 +976,7 @@ sub _get
 				{
 					$value = shift @row;
 				}
-				$record->{$_->get_name()} = $value;
+				$record->{$field->get_name()} = $value;
 			}
 		}
 		$data[$count] = $record;

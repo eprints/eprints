@@ -289,9 +289,10 @@ sub get_conditions
 		while( $text=~s/"([^"]+)"// ) { push @fields, $1; }
 		while( $text=~s/([^\s]+)// ) { push @fields, $1; }
 		my @where;
-		foreach( @fields )
+		my $field;
+		foreach $field ( @fields )
 		{
-			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($_)."'";
+			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($field)."'";
 			push @where , $s;
 		}	
 		return( $self->_get_conditions_aux( \@where , 0) );
@@ -313,10 +314,10 @@ sub get_conditions
 
 		# Extact other names
 		while( $text=~s/([^\s]+)// ) { push @names, $1; }
-
-		foreach( @names )
+		my $name;
+		foreach $name ( @names )
 		{
-			m/^([^,]+)(,(.*))?$/;
+			$name =~ m/^([^,]+)(,(.*))?$/;
 			my $family = EPrints::Database::prep_value( $1 );
 			my $given = EPrints::Database::prep_value( $3 );
 			if ( $self->{match} eq "IN" )
@@ -623,12 +624,13 @@ sub _get_tables_searches
 	my @badwords = ();
 	if( defined $self->{multifields} )
 	{
-		foreach( @{$self->{multifields}} ) 
+		my $multifield;
+		foreach $multifield ( @{$self->{multifields}} ) 
 		{
 			my $sfield = new EPrints::SearchField( 
 				$self->{session},
 				$self->{dataset},
-				$_,
+				$multifield,
 				$self->{value} );
 			my ($table,$where,$bad,$error) = 
 				$sfield->get_conditions( $benchmarking );
@@ -700,10 +702,10 @@ sub do
 
 	for( $i=0 ; $i<$n ; ++$i )
 	{
-		my $nextbuffer = undef;
-		foreach( @{$sfields} )
+		my $nextbuffer 	= undef;
+		my $tablename 	= undef;
+		foreach $tablename ( @{$sfields} )
 		{
-			my $tablename = $_;
 			# Tables have a colon and fieldname after them
 			# to make sure references to different fields are
 			# still kept seperate. But we don't want to pass
@@ -800,9 +802,10 @@ sub approx_rows
 	for( $i=0 ; $i<$n ; ++$i )
 	{
 		my $i_result = undef;
-		foreach( @{$tables} )
+		my $table;
+		foreach $table ( @{$tables} )
 		{
-			my $rows = $self->benchmark( $_ , $searches->{$_}->[$i] ); 
+			my $rows = $self->benchmark( $table , $searches->{$table}->[$i] ); 
 			if( !defined $i_result )
 			{
 				$i_result = $rows;

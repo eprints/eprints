@@ -1227,13 +1227,13 @@ sub _do_stage_fileview
 		"plain"   => $self->{session}->phrase("lib/submissionform:plain"),
 		"graburl" => $self->{session}->phrase("lib/submissionform:grab_url")
 	);
-
-	foreach (@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )})
+	my $format;
+	foreach $format (@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )})
 	{
-		push @arc_formats, $_;
-		$arc_labels{$_} = EPrints::Document::archive_name( 
+		push @arc_formats, $format;
+		$arc_labels{$format} = EPrints::Document::archive_name( 
 					$self->{session},
-					$_ );
+					$format );
 	}
 
 	my $arc_format_field = EPrints::MetaField->make_enum(

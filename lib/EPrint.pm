@@ -218,13 +218,13 @@ print STDERR $session->get_archive()->get_conf( "local_document_root" )."\n";
 	# (alphabetically) that has enough space on it.
 	my $storedir;
 	my $best_free_space = 0;
-	
-	foreach (sort @avail)
+	my $device;	
+	foreach $device (sort @avail)
 	{
 #cjg use the lib!
 		my $free_space = 
-			(df $session->get_archive()->get_conf( "local_document_root" )."/$_" )[3];
-print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$_)($free_space)\n";
+			(df $session->get_archive()->get_conf( "local_document_root" )."/$device" )[3];
+print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$device)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -232,7 +232,7 @@ print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$_
 			if( $free_space >= $session->get_archive()->get_conf("diskspace_error_threshold") )
 			{
 				# Enough space on this drive.
-				$storedir = $_;
+				$storedir = $device;
 			}
 		}
 	}
@@ -334,13 +334,13 @@ sub remove
 
 	# Remove the associated documents
 	my @docs = $self->get_all_documents();
-	
-	foreach (@docs)
+	my $doc;
+	foreach $doc (@docs)
 	{
-		$success = $success && $_->remove();
+		$success = $success && $doc->remove();
 		if( !$success )
 		{
-			$self->{session}->get_archive()->log( "Error removing doc ".$_->{docid}.": $!" );
+			$self->{session}->get_archive()->log( "Error removing doc ".$doc->{docid}.": $!" );
 		}
 	}
 
@@ -389,22 +389,22 @@ sub remove_from_threads
 		$self->commit();
 
 		my @related = $self->get_all_related();
-
+		my $eprint;
 		# Remove all references to this eprint
-		foreach (@related)
+		foreach $eprint (@related)
 		{
 			# Update the objects if they refer to us (the objects were retrieved
 			# before we unlinked ourself)
-			$_->{succeeds} = undef if( $_->{succeeds} eq $self->{eprintid} );
-			$_->{commentary} = undef if( $_->{commentary} eq $self->{eprintid} );
+			$eprint->{succeeds} = undef if( $eprint->{succeeds} eq $self->{eprintid} );
+			$eprint->{commentary} = undef if( $eprint->{commentary} eq $self->{eprintid} );
 
-			$_->commit();
+			$eprint->commit();
 		}
 
 		# Update static pages for each eprint
-		foreach (@related)
+		foreach $eprint (@related)
 		{
-			$_->generate_static() unless( $_->{eprintid} eq $self->{eprintid} );
+			$eprint->generate_static() unless( $eprint->{eprintid} eq $self->{eprintid} );
 		}
 	}
 }
@@ -647,13 +647,14 @@ sub validate_meta
 			my @usernames;
 			@usernames = split( ":", $self->{$field->{name}} );
 			my @invalid;
-			foreach ( @usernames )
+			my $username;
+			foreach $username ( @usernames )
 			{
-				next if( $_ eq "" );
-				my $user = new EPrints::User( $self->{session} , $_ );
+				next if( $username eq "" );
+				my $user = new EPrints::User( $self->{session} , $username );
 				if ( !defined $user ) 
 				{
-					push @invalid, $_;
+					push @invalid, $username;
 				}
 			}
 			if ( scalar @invalid > 0 )
@@ -1020,9 +1021,10 @@ sub prune_documents
 		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
 
 	# Check each one
-	foreach (@$rows)
+	my $row;
+	foreach $row (@$rows)
 	{
-		my $doc = EPrints::Document->new( $self->{session}, $_->[0], $_ );
+		my $doc = EPrints::Document->new( $self->{session}, $_->[0], $row );
 		my %files = $doc->files();
 		if( scalar keys %files == 0 )
 		{
@@ -1310,12 +1312,12 @@ sub get_all_related
 		
 	# Remove duplicates, just in case
 	my %related_uniq;
-		
-	foreach (@related)
+	my $eprint;	
+	foreach $eprint (@related)
 	{
 		# We also don't want to re-update ourself
-		$related_uniq{$_->{eprintid}} = $_
-			unless( $_->{eprintid} eq $self->{eprintid} );
+		$related_uniq{$eprint->{eprintid}} = $eprint
+			unless( $eprint->{eprintid} eq $self->{eprintid} );
 	}
 
 	return( values %related_uniq );

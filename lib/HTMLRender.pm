@@ -337,10 +337,11 @@ sub _write_version_thread_aux
 	{
 		# if there are, start a new list
 		$html .= "\n<UL>\n";
-		foreach (@later)
+		my $version;
+		foreach $version (@later)
 		{
 			$html .= $self->_write_version_thread_aux(
-				$_,
+				$version,
 				$field,
 				$eprint_shown );
 		}

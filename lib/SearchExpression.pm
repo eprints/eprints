@@ -89,21 +89,22 @@ print STDERR "SE2:[".$data{dataset}->to_string()."]\n";
 	# tmptable represents cached results table.	
 	$self->{tmptable} = undef;
 print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
-	foreach (@{$self->{fieldnames}})
+	my $fieldname;
+	foreach $fieldname (@{$self->{fieldnames}})
 	{
 		# If the fieldname contains a /, it's a 
 		# "search >1 at once" entry
-		if( /\// )
+		if( $fieldname =~ /\// )
 		{
 			# Split up the fieldnames
-			my @multiple_names = split /\//, $_;
+			my @multiple_names = split /\//, $fieldname;
 			my @multiple_fields;
 			
 			# Put the MetaFields in a list
 			foreach (@multiple_names)
 			{
 				push @multiple_fields, 
-					$self->{dataset}->get_field( $_ );
+					$self->{dataset}->get_field( $fieldname );
 			}
 			
 			# Add a reference to the list
@@ -112,7 +113,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 		else
 		{
 			# Single field
-			$self->add_field( $self->{dataset}->get_field( $_ ) );
+			$self->add_field( $self->{dataset}->get_field( $fieldname ) );
 		}
 	}
 	
@@ -296,11 +297,11 @@ sub from_form
 
 	my @problems;
 	my $onedefined = 0;
-	
-	foreach( @{$self->{searchfields}} )
+	my $search_field;
+	foreach $search_field ( @{$self->{searchfields}} )
 	{
-		my $prob = $_->from_form;
-		$onedefined = 1 if( defined $_->{value} );
+		my $prob = $search_field->from_form;
+		$onedefined = 1 if( defined $search_field->{value} );
 		
 		push @problems, $prob if( defined $prob );
 	}
@@ -345,11 +346,11 @@ sub to_string
 	$text_rep .= "\[";
 	$text_rep .= _escape_search_string( $self->{order} ) if( defined $self->{order} );
 	$text_rep .= "\]";
-	
-	foreach (@{$self->{searchfields}})
+	my $search_field;	
+	foreach $search_field (@{$self->{searchfields}})
 	{
-		$text_rep .= "\["._escape_search_string( $_->get_form_name() )."\]\[".
-			( defined $_->get_value() ? _escape_search_string( $_->get_value() ) : "" )."\]";
+		$text_rep .= "\["._escape_search_string( $search_field->get_form_name() )."\]\[".
+			( defined $search_field->get_value() ? _escape_search_string( $search_field->get_value() ) : "" )."\]";
 	}
 	
 
@@ -429,11 +430,12 @@ sub perform_search
 	my ( $self ) = @_;
 
 	my @searchon = ();
-	foreach( @{$self->{searchfields}} )
+	my $search_field;
+	foreach $search_field ( @{$self->{searchfields}} )
 	{
-		if ( defined $_->get_value() )
+		if ( defined $search_field->get_value() )
 		{
-			push @searchon , $_;
+			push @searchon , $search_field;
 		}
 	}
 	@searchon = sort { return $a->approx_rows <=> $b->approx_rows } 
@@ -443,20 +445,20 @@ sub perform_search
 	{
 		$self->{error} = undef;
 		$self->{tmptable} = $self->{dataset}->get_sql_table_name();
-		print STDERR "FUCK!\n";
+		print STDERR "FUCK!\n"; 
 	}
 	else 
 	{
 		my $buffer = undef;
 		$self->{ignoredwords} = [];
 		my $badwords;
-		foreach( @searchon )
+		foreach $search_field( @searchon )
 		{
-			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
+			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--".$search_field->{value});
 			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
 			my $error;
 			( $buffer , $badwords , $error) = 
-				$_->do( $buffer , $self->{satisfy_all} );
+				$search_field->do( $buffer , $self->{satisfy_all} );
 	
 			if( defined $error )
 			{
@@ -665,11 +667,12 @@ sub process_webpage
 			update => $self->{session}->phrase("lib/searchexpression:action_update"), 
 			newsearch => $self->{session}->phrase("lib/searchexpression:action_newsearch") ) );
 		$page->appendChild( $form );
-		
-		foreach (@results)
+
+		my $result;
+		foreach $result (@results)
 		{
 			$p = $self->{session}->make_element( "p" );
-			$p->appendChild( $_->to_html_link() );
+			$p->appendChild( $result->to_html_link() );
 			$page->appendChild( $p );
 		}
 
@@ -725,13 +728,14 @@ sub _render_problems
 	$page->appendChild( $p );
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );
-	foreach (@problems)
+	my $problem;
+	foreach $problem (@problems)
 	{
 		my $li = $self->{session}->make_element( 
 			"li",
 			class=>"problem" );
 		$ul->appendChild( $li );
-		$li->appendChild( $self->{session}->make_text( $_ ) );
+		$li->appendChild( $self->{session}->make_text( $problem ) );
 	}
 	my $hr = $self->{session}->make_element( 
 			"hr", 

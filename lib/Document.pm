@@ -453,20 +453,21 @@ sub _get_files
 	closedir CDIR;
 
 	# Iterate through files
-	foreach (@filesread)
+	my $name;
+	foreach $name (@filesread)
 	{
-		if( $_ ne "." && $_ ne ".." )
+		if( $name ne "." && $name ne ".." )
 		{
 			# If it's a directory, recurse
-			if( -d $root . "/" . $fixed_dir . $_ )
+			if( -d $root . "/" . $fixed_dir . $name )
 			{
-				_get_files( $files, $root, $fixed_dir . $_ );
+				_get_files( $files, $root, $fixed_dir . $name );
 			}
 			else
 			{
-				#my @stats = stat( $root . "/" . $fixed_dir . $_ );
-				$files->{$fixed_dir.$_} = -s $root . "/" . $fixed_dir . $_;
-				#push @files, $fixed_dir . $_;
+				#my @stats = stat( $root . "/" . $fixed_dir . $name );
+				$files->{$fixed_dir.$name} = -s $root . "/" . $fixed_dir . $name;
+				#push @files, $fixed_dir . $name;
 			}
 		}
 	}

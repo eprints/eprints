@@ -374,13 +374,14 @@ sub render_option_list
 	{
 		$element->setAttribute( "multiple" , $params{multiple} );
 	}
-	foreach( @{$params{values}} )
+	my $option_value;
+	foreach $option_value( @{$params{values}} )
 	{
-		my $opt = $self->make_element( "option", value => $_ );
+		my $opt = $self->make_element( "option", value => $option_value );
 		$opt->appendChild( 
 			$self->{page}->createTextNode( 
-				$params{labels}->{$_} ) );
-		if( defined $defaults{$_} )
+				$params{labels}->{$option_value} ) );
+		if( defined $defaults{$option_value} )
 		{
 			$opt->setAttribute( "selected" , "selected" );
 		}
@@ -538,13 +539,13 @@ sub _render_subject_children
 	{
 		my $ul = $self->make_element( "ul" );
 		$frag->appendChild( $ul );
-	
-		foreach (@children)
+		my $child;	
+		foreach $child (@children)
 		{
 			my $li = $self->make_element( "li" );
 			
-			$li->appendChild( $self->render_subject_desc( $_, 1, 0, 1 ) );
-			$li->appendChild( $self->_render_subject_children( $_ ) );
+			$li->appendChild( $self->render_subject_desc( $child, 1, 0, 1 ) );
+			$li->appendChild( $self->_render_subject_children( $child ) );
 			$ul->appendChild( $li );
 		}
 		
@@ -1216,16 +1217,16 @@ sub get_subjects
 	my( $self, $session ) = @_;
 	
 	my @subjects;
-
-	foreach (@{$self->{subjects}})
+	my $subject;
+	foreach $subject (@{$self->{subjects}})
 	{
-		my $sub = new EPrints::Subject( $session, $_ );
+		my $sub = new EPrints::Subject( $session, $subject );
 		
 		push @subjects, $sub if( defined $sub );
 		
 		unless( defined $sub ) 
 		{
-			$session->get_archive()->log( "List contain invalid tag $_" );
+			$session->get_archive()->log( "List contain invalid tag $subject" );
 		}
 	}
 	

@@ -1183,13 +1183,14 @@ sub extract_words
 	# sure we only get each word once, not once for each occurance.
 	my %good = ();
 	my %bad = ();
-	foreach( @words )
+	my $word;
+	foreach $word ( @words )
 	{	
 		# skip if this is nothing but whitespace;
-		next if /^\s*$/;
+		next if ($word =~ /^\s*$/);
 
 		# calculate the length of this word
-		my $wordlen = length $_;
+		my $wordlen = length $word;
 
 		# $ok indicates if we should index this word or not
 
@@ -1199,7 +1200,7 @@ sub extract_words
 	
 		# If this word is at least 2 chars long and all capitals
 		# it is assumed to be an acronym and thus should be indexed.
-		if( m/^[A-Z][A-Z0-9]+$/ )
+		if( $word =~ m/^[A-Z][A-Z0-9]+$/ )
 		{
 			$ok=1;
 		}
@@ -1230,21 +1231,21 @@ sub extract_words
 			# This isn't perfect "mose" will match "moses" and
 			# "nappy" still won't match "nappies" but it's a
 			# reasonable attempt.
-			s/s$//;
+			word =~ s/s$//;
 
 			# If any of the characters are lowercase then lower
 			# case the entire word so "Mesh" becomes "mesh" but
 			# "HTTP" remains "HTTP".
-			if( m/[a-z]/ )
+			if( $word =~ m/[a-z]/ )
 			{
-				$_ = lc $_;
+				$word = lc $word;
 			}
 	
-			$good{$_}++;
+			$good{$word}++;
 		}
 		else 
 		{
-			$bad{$_}++;
+			$bad{$word}++;
 		}
 	}
 	# convert hash keys to arrays and return references
@@ -1850,10 +1851,10 @@ sub oai_get_eprint_metadata
 
 		my @authors = EPrints::Name::extract( $eprint->{authors} );
 		$tags{creator} = [];
-
-		foreach (@authors)
+		my $author;
+		foreach $author (@authors)
 		{
-			my( $surname, $firstnames ) = @$_;
+			my( $surname, $firstnames ) = @$author;
 			push @{$tags{creator}},"$surname, $firstnames";
 		}
 
@@ -1863,10 +1864,11 @@ sub oai_get_eprint_metadata
 		#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
 		my @subjects    ;#   = $subject_list->get_subjects( $eprint->{session} );
 		$tags{subject} = [];
-
-		foreach (@subjects)
+		my $subject;
+		foreach $subject (@subjects)
 		{
 			push @{$tags{subject}},
+		   	  $eprint->{session}->{render}->render_subject_desc( $subject, 0, 1, 0 );
 		   	  $eprint->{session}->{render}->render_subject_desc( $_, 0, 1, 0 );
 		}
 

@@ -88,10 +88,10 @@ sub new
 	my @fields = $self->{session}->{metainfo}->get_fields( "subscription" );
 
 	my $i=0;
-	
-	foreach (@fields)
+	my $field;
+	foreach $field (@fields)
 	{
-		$self->{$_->{name}} = $dbrow->[$i];
+		$self->{$field->{name}} = $dbrow->[$i];
 		$i++;
 	}
 
@@ -515,13 +515,13 @@ sub process
 			                                   n=>scalar @eprints ); 
 		}
 		$body .= "\n\n\n";
-		
+		my $eprint;
 		# Then citations, with links to appropriate pages.
-		foreach (@eprints)
+		foreach $eprint (@eprints)
 		{
 			$body .= $self->{session}->{render}->render_eprint_citation(
-				$_, 0, 0 );
-			$body .= "\n\n".$_->static_page_url()."\n\n\n";
+				$eprint, 0, 0 );
+			$body .= "\n\n".$eprint->static_page_url()."\n\n\n";
 		}
 		
 		# Send the mail.

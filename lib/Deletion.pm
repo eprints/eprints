@@ -83,9 +83,10 @@ sub new
 	# Lob row data into relevant field
 	my @fields = $self->{session}->{metainfo}->get_fields( "deletions" );
 	my $i=0;
-	foreach (@fields)
+	my $field;
+	foreach $field (@fields)
 	{
-		my $field_name = $_->get("name");
+		my $field_name = $field->get("name");
 
 		$self->{$field_name} = $row[$i];
 		$i++;
