@@ -149,27 +149,33 @@ sub new
 
 ######################################################################
 #
-# $eprint = create( $session, $table, $username )
+# $eprint = create( $session, $table, $username, $data )
 #
 #  Create a new EPrint entry in the given table, from the given user.
+#
+#  If data is defined, then this is used as the base for the
+#  new record.
 #
 ######################################################################
 
 sub create
 {
-	my( $session, $table, $username ) = @_;
+	my( $session, $table, $username, $data ) = @_;
+
+	my $new_eprint = ( defined $data ? $data : {} );
 
 	my $new_id = _create_id( $session );
-
 	my $dir = _create_directory( $session, $new_id );
 
 	return( undef ) if( !defined $dir );
+
+	$new_eprint->{eprintid} = $new_id;
+	$new_eprint->{username} = $username;
+	$new_eprint->{dir} = $dir;
 	
 	my $success = $session->{database}->add_record(
 		$table,
-		{ "eprintid"=>$new_id,
-		  "username"=>$username,
-		  "dir"=>$dir } );
+		$new_eprint );
 
 	if( $success )
 	{

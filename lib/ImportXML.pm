@@ -53,11 +53,13 @@ sub _handle_start
 		{
 			$parser->xpcroak( "TABLE inside TABLE" );
 		}
-		$parser->{eprints}->{table} = $params{id};
-		my @fields = EPrints::MetaInfo::get_fields( $params{id} );
+		$parser->{eprints}->{table} = $params{name};
+print "P:".join(",",keys %params).":\n";
+print "T:".$params{name}."\n";
+		my @fields = EPrints::MetaInfo::get_fields( $params{name} );
 		unless( @fields )
 		{
-			$parser->xpcroak( "unknown table: $params{id}" );
+			$parser->xpcroak( "unknown table: $params{name}" );
 		}
 		$parser->{eprints}->{fields} = {};
 		foreach( @fields )
@@ -77,37 +79,29 @@ sub _handle_start
 		return;
 	}	
 
-	if( $tag =~ m/^TEXT|YEAR|SUBJECTS|MULTITEXT|EPRINTTYPE$/)
+	if( $tag eq "FIELD" )
 	{
 		if( defined $parser->{eprints}->{currentfield} )
 		{
 			$parser->xpcroak( "$tag inside other field" );
 		}
-		$parser->{eprints}->{currentfield} = $params{field};
-		$parser->{eprints}->{currentdata} = "";
+		else
+		{
+			$parser->{eprints}->{currentfield} = $params{field};
+			$parser->{eprints}->{currentdata} = "";
+		}
 		return;
 	}
 
-	if( $tag eq "NAME" )
-	{
-		if( defined $parser->{eprints}->{currentfield} )
-		{
-			$parser->xpcroak( "$tag inside other field" );
-		}
-		$parser->{eprints}->{currentfield} = $params{field};
-		$parser->{eprints}->{currentdata} = {};
-		$parser->{eprints}->{currentspecial} = 1;
-		return;
-	}
-	
-	if( $tag =~ m/^GIVEN|FAMILY$/ )
+	if( $tag eq "PART" )
 	{
 		if( !$parser->{eprints}->{currentspecial} )
 		{
-			$parser->xpcroak( "$tag inside wrong kind of field" );
+			$parser->{eprints}->{currentdata} = {};
+			$parser->{eprints}->{currentspecial} = 1;
 		}
-		$parser->{eprints}->{currentspecialpart} = lc $tag;
-		$parser->{eprints}->{currentdata}->{lc $tag} = "";
+		$parser->{eprints}->{currentspecialpart} = lc $params{name};
+		$parser->{eprints}->{currentdata}->{lc $params{name}} = "";
 		return;
 	}
 
@@ -146,8 +140,7 @@ sub _handle_end
 		return;
 	}
 
-	if( $tag =~ m/^TEXT|YEAR|SUBJECTS|MULTITEXT|EPRINTTYPE$/
-		|| $tag =~ m/^NAME$/ )
+	if( $tag eq "FIELD" )
 	{
 		if( $parser->{eprints}->{fields}->
 			{$parser->{eprints}->{currentfield}}->{multiple} )
@@ -167,7 +160,7 @@ sub _handle_end
 		return;
 	}
 
-	if( $tag =~ m/^GIVEN|FAMILY$/ )
+	if( $tag eq "PART" )
 	{
 		delete $parser->{eprints}->{currentspecialpart};
 		return;

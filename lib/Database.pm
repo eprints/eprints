@@ -435,6 +435,12 @@ sub add_record
 {
 	my( $self, $table, $data ) = @_;
 	
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my $keyfield = $fields[0];
+
+	print "$keyfield->{name} = $data->{$keyfield->{name}}\n";
+print "DIIIIIIIIIIIIIE\n";
+exit;
 	my $sql = "INSERT INTO $table (";
 	my $first = 1;
 	my $f;
@@ -1203,6 +1209,11 @@ sub benchmark
 sub exists
 {
 	my( $self, $table, $id ) = @_;
+
+	if( !defined $id )
+	{
+		return undef;
+	}
 	
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0]->{name};
