@@ -8,71 +8,32 @@
 #
 ######################################################################
 
-use EPrints::Database;
-use EPrints::Log;
-use EPrints::EPrint;
 use EPrints::Session;
+
+use EPrintSite::CogOld;
+use EPrintSite::SiteInfo;
 
 use strict;
 
-my $idmap = "/opt/eprints/old-ids.map";
 my $session = new EPrints::Session();
-my %idmap;
 
+# Get the old ID
+my $old_id = $session->{render}->{query}->path_info();
 
-my $ok = open IDMAP, $idmap;
+# Remove initial /
+$old_id =~ s/^\///;
 
-unless( $ok )
+# Get the old EPrint
+my $eprint = &EPrintSite::CogOld::find_eprint( $session, $old_id );
+
+if( defined $eprint )
 {
-	$session->failure( "Failed to open list of old CogPrints IDs" );
+	$session->{render}->redirect( $eprint->static_page_url() );
 }
 else
 {
-	while( <IDMAP> )
-	{
-		chomp();
-		my( $old_id, $new_id ) = split /:/, $_;
-		$idmap{$old_id} = $new_id;
-	}
-	
-	close IDMAP;
-	
-	# Get the old ID
-	my $num_ids = scalar keys %idmap;
-
-	my $old_id = $session->{render}->{query}->path_info();
-
-	# Remove initial /
-	$old_id =~ s/^\///;
-
-	# Find new ID
-	if( defined $idmap{$old_id} )
-	{
-		# Redirect to new abstract page
-		my $new_eprint = new EPrints::EPrint(
-			$session,
-			$EPrints::Database::table_archive,
-			$idmap{$old_id} );
-
-		if( defined $new_eprint )
-		{
-			$session->{render}->redirect( $new_eprint->static_page_url() );
-		}
-		else
-		{
-			$session->failure( "For some reason, the record pertaining to the old ".
-				"CogPrints record ID specified in the URL can't be retrieved. Please ".
-				"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">mail the ".
-				"administrator</A> giving the URL you typed in." );
-		}
-	}
-	else
-	{
-		$session->failure( "The old CogPrints ID specified in the URL is not valid ".
-			"or does not pertain to an existing record in the archive." );
-	}
-
+	$session->failure( "The old CogPrints ID specified in the URL is not valid ".
+		"or does not pertain to an existing record in the archive." );
 }
 
 $session->terminate();
-

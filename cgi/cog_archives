@@ -1,0 +1,92 @@
+######################################################################
+#
+#  CogPrints full text URL redirector
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::Document;
+use EPrints::Log;
+use EPrints::EPrint;
+use EPrints::Session;
+
+use EPrintSite::CogOld;
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session();
+
+# Get the old ID
+my $path = $session->{render}->{query}->path_info();
+
+EPrints::Log::debug( "cog_archives", "Got path: $path" );
+
+$path =~ /\/(\w+)\/papers\/\d+\/(\d\d\d\d\d\d\d\d\d)/i;
+
+my $old_id = $1 . "/" . $2;
+
+EPrints::Log::debug( "cog_archives", "Got old ID: $old_id" );
+
+# Get the old EPrint
+my $eprint = &EPrintSite::CogOld::find_eprint( $session, $old_id );
+
+EPrints::Log::debug( "cog_archives", "Go EPrint with ID: $eprint->{eprintid}" );
+
+my $document_url;
+
+if( defined $eprint )
+{
+	my @docs = $eprint->get_all_documents();
+	
+	if( scalar @docs == 1 )
+	{
+		# There's only one document format, so I guess it's this one...
+		$document_url = $docs[0]->url();
+	}
+	elsif( scalar @docs > 1 )
+	{
+		# There's >1 document, guess the document format
+		my $format;
+
+		if( /\.htm/i )
+		{
+			$format = "HTML";
+		}
+		elsif( /\.pdf/i )
+		{
+			$format = "PDF";
+		}
+		elsif( /\.ps/i )
+		{
+			$format = "PS";
+		}
+		else
+		{
+			$format = "ASCII";
+		}
+		
+		# Check that we have that format
+		foreach (@docs)
+		{
+			$document_url = $_->url() if( $_->format() eq $format );
+		}
+	}
+
+	# If we can't work out what format it is, give them the abstract page.
+	$document_url = $eprint->static_page_url() unless( defined $document_url );
+	
+	$session->{render}->redirect( $document_url );
+}
+else
+{
+	$session->failure( "The old CogPrints document specified in the URL is ".
+		"not valid or does not pertain to an existing record in the archive." );
+}
+
+
+$session->terminate();
