@@ -625,10 +625,17 @@ sub start_response
 	$writer->dataElement( "responseDate",
 	                      EPrints::OpenArchives::full_timestamp() );
 	
+	my @bits = ();
+	my $q =  $session->{render}->{query};
+	foreach( $q->param ) 
+	{
+        	push @bits , "$_=".$q->param($_);
+	}
+
 	$writer->dataElement(
 		"requestURL",
-		$session->{render}->url() . "?" .
-			$session->{render}->{query}->query_string() );
+		EPrints::OpenArchives::to_utf8( $session->{render}->url() . "?" .
+			join( '&' , @bits ) ) );
 
 	return( $writer );
 }
