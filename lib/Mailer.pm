@@ -37,7 +37,7 @@ sub send_mail
 
 	print SENDMAIL <<"EOF";
 X-Loop: $EPrintSite::SiteInfo::automail
-From: $EPrintSite::SiteInfo::sitename<$EPrintSite::SiteInfo::admin>
+From: $EPrintSite::SiteInfo::sitename <$EPrintSite::SiteInfo::admin>
 To: $name <$address>
 Subject: $EPrintSite::SiteInfo::sitename: $subject
 

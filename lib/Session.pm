@@ -122,4 +122,29 @@ sub terminate
 }
 
 
+######################################################################
+#
+# mail_administrator( $subject, $message )
+#
+#  Sends a mail to the site administrator with the given subject and
+#  message body.
+#
+######################################################################
+
+sub mail_administrator
+{
+	my( $self, $subject, $message ) = @_;
+	
+	my $message_body = "Site maintenance message generated at ".gmtime( time );
+	$message_body .= "\n\n$message\n";
+
+	EPrints::Mailer->send_mail(
+		"Site Administrator",
+		$EPrintSite::SiteInfo::admin,
+		$subject,
+		$message_body );
+}
+
+
+
 1;
