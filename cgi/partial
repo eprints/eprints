@@ -1,0 +1,142 @@
+
+use EPrints::Session;
+
+use strict;
+
+# New session
+my $session = new EPrints::Session();
+Apache::exit( 0 ) unless( defined $session );
+
+process( $session );
+
+$session->terminate();
+
+sub process
+{
+	my( $session ) = @_;
+
+	my $LSMAP = {
+"byterange" => \&ls_byterange
+};
+
+	# What are we begin asked?
+	my $resspec = $session->param( "resSpec" );
+	my $locspec = $session->param( "locSpec" );
+
+	unless( $resspec =~ m#^(\d+)/(\d+)/(.*)$# )
+	{
+		send_http_error( $session, 404, "Malformed resSpec" );
+		return;
+	}
+	my( $eprintid, $docid, $file ) = ( $1, $2, $3 );
+
+	my $eprint = new EPrints::EPrint( 
+		$session,
+		$session->get_archive()->get_dataset( "archive" ),
+		$eprintid );
+
+	unless( defined $eprint )
+	{
+		send_http_error( $session, 404, "No such eprint ($eprintid)" );
+		return;
+	}
+
+	my $doc = new EPrints::Document( $session, "$eprintid-$docid" );
+
+	unless( defined $doc )
+	{
+		send_http_error( $session, 404, "No such document ($eprintid-$docid)" );
+		return;
+	}
+
+	my $path = $doc->local_path();
+	my $filepath = "$path/$file";
+
+	unless( -e $filepath )
+	{
+		send_http_error( $session, 404, "No such resource" );
+		return;
+	}
+
+	unless( $locspec =~ m/^([a-z]+):(.*)$/ )
+	{
+		send_http_error( $session, 404, "Bad LocSpec" );
+		return;
+	}
+
+	my( $lstype, $lsparam ) = ( $1, $2 );
+
+	my $fn = $LSMAP->{$lstype};
+
+	if( !defined $fn )
+	{
+		send_http_error( $session, 404, "Unsupported LocSpec" );
+		return;
+	}
+
+	my $value = &$fn( $filepath, $lsparam );
+
+	if( defined $value )
+	{
+		send_header( $session );
+
+		print $value;
+	}
+
+}
+
+sub send_http_error
+{
+	my( $session, $code, $message ) = @_;
+
+	my $r = Apache->request;
+	$r->content_type( 'text/html' );
+	$r->status_line( "$code $message" );
+	$r->send_http_header;
+	my $title = "Error $code in OAI request";
+	$r->print( <<END );
+<html>
+<head><title>$title</title></head>
+<body>
+  <h1>$title</h1>
+  <p>$message</p>
+</body>
+END
+}
+
+sub send_header
+{
+	my( $session ) = @_;
+
+	my $r = Apache->request;
+	$r->content_type( 'text/plain' );
+	$r->status_line( "200 YAY" );
+	$r->send_http_header;
+}
+
+####################
+
+sub ls_byterange
+{
+	my( $file, $param ) = @_;
+	
+	unless( $param=~m/^(\d+)\/(\d+)$/ )
+	{
+		send_http_error( $session, 404, "Malformed byterange param: $param" );
+		return;
+	}
+	
+	my( $offset, $length ) = ( $1, $2 );
+
+	unless( open( FILE, $file ) )
+	{
+		send_http_error( $session, 404, "Can't actually open the darn file, how about that?" );
+		return;
+	}
+	my $data;
+	seek FILE, $offset, 0;
+	read FILE, $data, $length;
+	close FILE;
+
+	return $data;
+}
