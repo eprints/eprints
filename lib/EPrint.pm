@@ -17,11 +17,13 @@
 package EPrints::EPrint;
 
 use EPrints::Database;
+use EPrints::DOM;
+use EPrints::Document;
 
 use File::Path;
 use Filesys::DiskSpace;
 use strict;
-use EPrints::DOM;
+
 
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
@@ -222,8 +224,8 @@ print STDERR $session->get_archive()->get_conf( "local_document_root" )."\n";
 	foreach $device (sort @avail)
 	{
 #cjg use the lib!
-		my $free_space = 
-			(df $session->get_archive()->get_conf( "local_document_root" )."/$device" )[3];
+		my $free_space = 1000000000;
+#cjg OH GOD			(df $session->get_archive()->get_conf( "local_document_root" )."/$device" )[3];
 print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$device)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 

@@ -44,6 +44,7 @@ my %TYPE_SQL =
  	pagerange  => "\$(name) VARCHAR(255) \$(param)",
  	year       => "\$(name) INT UNSIGNED \$(param)",
  	datatype   => "\$(name) VARCHAR(255) \$(param)",
+ 	langid	   => "\$(name) CHAR(16) \$(param)",
  	name       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
  );
  
@@ -63,6 +64,7 @@ my %TYPE_INDEX =
  	pagerange  => "INDEX(\$(name))",
  	year       => "INDEX(\$(name))",
  	datatype   => "INDEX(\$(name))",
+ 	langid	   => "INDEX(\$(name))",
  	name       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
@@ -79,6 +81,7 @@ my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	displaylines => 0,
 	digits => 20,
+	multilang => 0,
 	options => "NO_DEFAULT",
 	maxlength => 255,
 	showall => 0 };
@@ -128,6 +131,10 @@ sub new
 		$self->set_property( "displaylines", $properties->{displaylines} );
 	}
 
+	if( $self->is_type( "text","longtext","name" ) )
+	{
+		$self->set_property( "multilang", $properties->{multilang} );
+	}
 	if( $self->is_type( "int" ) )
 	{
 		$self->set_property( "digits", $properties->{digits} );
@@ -285,8 +292,12 @@ sub get_sql_index
         my( $self ) = @_;
 
 	my $index = $TYPE_INDEX{$self->{type}};
-	$index =~ s/\$\(name\)/$self->{name}/g;
-print STDERR "gsind: $self->{type}...($index)\n";
+	
+	if( defined $index )
+	{
+		$index =~ s/\$\(name\)/$self->{name}/g;
+	}
+
 	return $index;
 }
 

@@ -1,25 +1,12 @@
 use strict;
 
-BEGIN {
-	if( !defined $ENV{EPRINTS_PATH} )
-	{
-		EPrints::Config::abort( <<END );
-EPRINTS_PATH Environment variable not set.
-Try adding something like this to the apache conf:
-PerlSetEnv EPRINTSPATH /opt/eprints
-END
-	}
 
-	# Make sure we are in a sane environment.
-	$ENV{MOD_PERL} or die "not running under mod_perl!";
-            
+$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
 
-	print STDERR "EPRINTS: Loading Modules\n";
-}
+print STDERR "EPRINTS: Loading Modules\n";
 
 # Extend @INC if needed
 use lib ( $ENV{EPRINTS_PATH}."/perl_lib" );
-
 
 ## Apache::DBI MUST come before other modules using DBI or
 ## you won't get constant connections and everything

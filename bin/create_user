@@ -1,5 +1,8 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+BEGIN{ $ENV{EPRINTS_PATH} = "/opt/eprints"; }
 
+#cjg SOME /bin scripts should skip LANG loading...
+#
 ######################################################################
 #
 #  Create a new EPrints user

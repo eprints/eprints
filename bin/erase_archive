@@ -1,4 +1,5 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+BEGIN{ $ENV{EPRINTS_PATH} = "/opt/eprints"; }
 
 ######################################################################
 #
@@ -28,14 +29,13 @@ use EPrints::Database;
 
 use strict;
 
-my $session = new EPrints::Session( 1 , $ARGV[0] );
-exit( 1 ) unless( defined $session );
+my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
+exit( 1 ) unless( defined $archive );
 
-my $local_document_root = $session->get_archive()->get_conf( "local_document_root" );
-my $database = $session->get_archive()->get_conf( "db_name" );
+my $local_document_root = $archive->get_conf( "local_document_root" );
+my $database = $archive->get_conf( "db_name" );
 
-$session->terminate();
-
+my $force = ( $ARGV[1] eq "FORCE" );
 
 # This script dosn't currently work on remote machines, which may well
 # not allow remote admin log in anyway.
@@ -53,30 +53,37 @@ $session->terminate();
 	#exit;
 #}
 
-
-# Write the confirmation prompt
-print "This script completely erases the archive, including all metadata,\n";
-print "database tables and eprint files.\n\n";
-print "Are you sure you want this to happen? (yes/no)\n";
-
-my $input = <STDIN>;
-chomp( $input );
+my $input;
+unless( $force )
+{
+	# Write the confirmation prompt
+	print "This script completely erases the archive, including all metadata,\n";
+	print "database tables and eprint files.\n\n";
+	print "Are you sure you want this to happen? (yes/no)\n";
+	
+	$input = <STDIN>;
+	chomp( $input );
+}
 
 # We'll only work if they type "yes" exactly, otherwise we just abort.
-if( $input eq "yes" )
+if( $force || $input eq "yes" )
 {
 	# First erase the database tables. We now do this the dramatic way
 	# of dropping and recreating the database.
 	# This makes it possible to erase a really broken setup.
 
-	# Get the path of the mysql monitor tool
-	print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
-	print "[mysqladmin]: ";
+	my $mysqladmin_path = "mysqladmin";
 
-
-	my $mysqladmin_path = <STDIN>;
-	chomp( $mysqladmin_path );
-	$mysqladmin_path = "mysqladmin" if( $mysqladmin_path eq "" );
+	unless( $force )
+	{
+		# Get the path of the mysql monitor tool
+		print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
+		print "[$mysqladmin_path]: ";
+	
+		$input = <STDIN>;
+		chomp( $input );
+		$mysqladmin_path = $input if( $input ne "" );
+	}
 
 	print "Dropping and recreating database (requires database root password)\n";
 	print "You will need to enter the MySQL root user password.\n";

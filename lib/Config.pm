@@ -9,6 +9,47 @@ package EPrints::Config;
 
 use EPrints::DOM;
 
+BEGIN {
+	if( !defined $ENV{EPRINTS_PATH} )
+	{
+		if( $ENV{MOD_PERL} )
+		{
+			EPrints::Config::abort( <<END );
+EPRINTS_PATH Environment variable not set.
+Try adding something like this to the apache conf:
+PerlSetEnv EPRINTSPATH /opt/eprints
+END
+		}
+		else
+		{
+			EPrints::Config::abort( <<END );
+EPRINTS_PATH Environment variable not set.
+cjg need advice!
+END
+		}
+	}
+
+	# abort($err) Defined here so modules can abort even at startup
+
+	sub abort
+	{
+		my( $errmsg ) = @_;
+		
+		print STDERR <<END;
+	
+------------------------------------------------------------------
+---------------- EPrints System Error ----------------------------
+------------------------------------------------------------------
+$errmsg
+------------------------------------------------------------------
+END
+		$@="";
+		die;
+	}
+
+
+}
+
 my $eprints_path = $ENV{EPRINTS_PATH};
 
 $EPrints::Config::base_path = $eprints_path;
@@ -101,8 +142,6 @@ while( $file = readdir( CFG ) )
 closedir( CFG );
 
 ###############################################
-use Data::Dumper;
-print STDERR Dumper( \%ARCHIVEMAP );
 
 sub get_languages
 {
@@ -180,21 +219,5 @@ print "FUNCTION: $function\n";
 	return $config;
 }
 	
-sub abort
-{
-	my( $errmsg ) = @_;
-	
-	print STDERR <<END;
-
-------------------------------------------------------------------
----------------- EPrints System Error ----------------------------
-------------------------------------------------------------------
-$errmsg
-------------------------------------------------------------------
-END
-	$@="";
-	die;
-}
-
 
 1;

@@ -16,6 +16,7 @@
 #cjg why not make loads of accessors instead of get_dataset?
 package EPrints::Archive;
 
+use EPrints::Config;
 use EPrints::DataSet;
 use EPrints::Language;
 

@@ -23,9 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-#
-# Table names
-#
+my $DEBUG_SQL = 1;
 
 
 #
@@ -256,7 +254,8 @@ sub _create_table_aux
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
-		if ( $field->get_property( "multiple" ) )
+		if ( $field->get_property( "multiple" ) ||
+		     $field->get_property( "multilang" ) )
 		{ 	
 			# make an aux. table for a multiple field
 			# which will contain the same type as the
@@ -267,14 +266,39 @@ sub _create_table_aux
 
 			my $auxfield = $field->clone;
 			$auxfield->set_property( "multiple", 0 );
+			$auxfield->set_property( "multilang", 0 );
 			my $keyfield = $dataset->get_key_field()->clone;
-			my $pos = EPrints::MetaField->new( 
-				undef,
-				{ 
-					name => "pos", 
-					type => "int",
-				} );
-			my @auxfields = ( $keyfield, $pos, $auxfield );
+
+			# cjg Hmmmm
+			#  Multiple ->
+			# [key] [cnt] [field]
+			#  Lang ->
+			# [key] [lang] [field]
+			#  Multiple + Lang ->
+			# [key] [pos] [lang] [field]
+
+			my @auxfields = ( $keyfield );
+			if ( $field->get_property( "multiple" ) )
+			{
+				my $pos = EPrints::MetaField->new( 
+					undef,
+					{ 
+						name => "pos", 
+						type => "int",
+					} );
+				push @auxfields,$pos;
+			}
+			if ( $field->get_property( "multilang" ) )
+			{
+				my $lang = EPrints::MetaField->new( 
+					undef,
+					{ 
+						name => "lang", 
+						type => "langid",
+					} );
+				push @auxfields,$lang;
+			}
+			push @auxfields,$auxfield;
 			my $rv = $rv && $self->_create_table_aux(	
 				$dataset->get_sql_sub_table_name( $field ),
 				$dataset,
@@ -433,7 +457,7 @@ sub update
 	my $field;
 	foreach $field ( @fields ) 
 	{
-		if( $field->get_property( "multiple" ) ) 
+		if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) ) 
 		{ 
 			push @aux,$field;
 		}
@@ -495,12 +519,82 @@ sub update
 		{
 			next;
 		}
-		my $position=0;
-		my $namefield;
-		foreach $namefield ( @{$data->{$multifield->get_name()}} )
+		my @values;
+		my $fieldvalue = $data->{$multifield->get_name()};
+
+		if( $multifield->get_property( "multiple" ) )
 		{
-			$sql = "INSERT INTO $auxtable (".
-			       $keyfield->get_name().", pos, ";
+			my $position=0;
+			my $pos;
+			foreach $pos (0..(scalar @{$fieldvalue}-1) )
+			{
+				my $incp = 0;
+				if( $multifield->get_property( "multilang" ) )
+				{
+					my $langid;
+					foreach $langid ( keys %{$fieldvalue->[$pos]} )
+					{
+						my $val = $fieldvalue->[$pos]->{$langid};
+						if( defined $val )
+						{
+							push @values, {
+								v => $val,
+								p => $position,
+								l => $langid
+							};
+							push @values,$v;
+							$incp=1;
+						}
+					}
+				}
+				else
+				{
+					my $val = $fieldvalue->[$pos];
+					if( defined $val )
+					{
+						push @values, {
+							v => $val,
+							p => $position
+						};
+						$incp=1;
+					}
+				}
+				$position++ if $incp;
+				print STDERR "xxxx($incp)\n";
+			}
+		}
+		else
+		{
+			if( $multifield->get_property( "multilang" ) )
+			{
+				my $langid;
+				foreach $langid ( keys %{$fieldvalue} )
+				{
+					my $val = $fieldvalue->{$langid};
+					if( defined $val )
+					{
+						push @values, { 
+							v => $val,
+							l => $langid
+						};
+					}
+				}
+			}
+			else
+			{
+				die "This can't happen in update!"; #cjg!
+			}
+		}
+		print STDERR "---(".$multifield->get_name().")---\n";
+use Data::Dumper;
+print STDERR Dumper(@values);
+					
+		my $v;
+		foreach $v ( @values )
+		{
+			$sql = "INSERT INTO $auxtable (".$keyfield->get_name().", ";
+			$sql.= "pos, " if( $multifield->get_property( "multiple" ) );
+			$sql.= "lang, " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= $multifield->get_name()."_given, ";
@@ -510,15 +604,17 @@ sub update
 			{
 				$sql .= $multifield->get_name();
 			}
-			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
+			$sql .= ") VALUES (\"$keyvalue\", ";
+			$sql .=	"\"".$v->{p}."\", " if( $multifield->get_property( "multiple" ) );
+			$sql .=	"\"".prep_value( $v->{l} )."\", " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= "\"".prep_value( $namefield->{given} )."\", ";
-				$sql .= "\"".prep_value( $namefield->{family} )."\"";
+				$sql .= "\"".prep_value( $v->{v}->{given} )."\", ";
+				$sql .= "\"".prep_value( $v->{v}->{family} )."\"";
 			}
 			else
 			{
-				$sql .= "\"".prep_value( $namefield )."\"";
+				$sql .= "\"".prep_value( $v->{v} )."\"";
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
@@ -529,7 +625,7 @@ sub update
 					$dataset, 
 					$keyvalue, 
 					$multifield, 
-					$namefield );
+					$v->{v} );
 			}
 
 			++$position;
@@ -907,7 +1003,7 @@ sub _get
 	my @aux = ();
 	my $first = 1;
 	foreach $field (@fields) {
-		if ( $field->get_property( "multiple" ) )
+		if ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
 		{ 
 			push @aux,$field;
 		}
@@ -991,30 +1087,37 @@ sub _get
 		{
 			$col = "M.$mn\_given,M.$mn\_family";
 		}
-		
+		my $fields_sql = "M.$kn, ";
+		$fields_sql .= "M.pos, " if( $multifield->get_property( "multiple" ) );
+		$fields_sql .= "M.lang, " if( $multifield->get_property( "multilang" ) );
+		$fields_sql .= $col;		
 		if( $mode == 0 )	
 		{
-			$sql = "SELECT M.$kn, M.pos, $col FROM ";
+			$sql = "SELECT $fields_sql FROM ";
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
 			$sql.= "WHERE M.$kn=\"".prep_value( $param )."\"";
 		}
 		elsif( $mode == 1)
 		{
-			$sql = "SELECT M.$kn,M.pos,$col FROM ";
+			$sql = "SELECT $fields_sql FROM ";
 			$sql.= "$param AS C, ";
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
 			$sql.= "WHERE M.$kn=C.$kn";
 		}	
 		elsif( $mode == 2)
 		{
-			$sql = "SELECT M.$kn,M.pos,$col FROM ";
+			$sql = "SELECT $fields_sql FROM ";
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
-		my ( $id , $pos , @values);
-		while( ($id , $pos , @values) = $sth->fetchrow_array ) 
+		while( @values = $sth->fetchrow_array ) 
 		{
+print STDERR "V:".join(",",@values)."\n";
+			my $id = shift( @values );
+			my( $pos, $lang );
+			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
+			$lang = shift( @values ) if( $multifield->get_property( "multilang" ) );
 			my $n = $lookup{ $id };
 			my $value;
 			if( $multifield->is_type( "name" ) )
@@ -1027,12 +1130,38 @@ sub _get
 			{
 				$value = shift @values;
 			}
-			$data[$n]->{$mn}->[$pos] = $value;
+			if( $multifield->get_property( "multiple" ) )
+			{
+				if( $multifield->get_property( "multilang" ) )
+				{
+					$data[$n]->{$mn}->[$pos]->{$lang} = $value;
+				}
+				else
+				{
+print STDERR 	"data[".$n."]->{".$mn."}->[".$pos."] = ".$value."\n";
+					$data[$n]->{$mn}->[$pos] = $value;
+				}
+			}
+			else
+			{
+				if( $multifield->get_property( "multilang" ) )
+				{
+					$data[$n]->{$mn}->{$lang} = $value;
+				}
+				else
+				{
+					print STDERR "This cannot happen!\n";#cjg!
+				}
+			}
 		}
 	}	
 
 	foreach( @data )
 	{
+use Data::Dumper;
+print STDERR "-----------------FROM DB------------------\n";
+print STDERR Dumper($_);
+print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
@@ -1052,7 +1181,10 @@ sub do
 		print "$sql\n";
 		print "----------</pre>\n";
 	}
-	#$self->{session}->get_archive()->log( "Database do debug: $sql" );
+	if( $DEBUG_SQL )
+	{
+		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	}
 
 	return $result;
 }
@@ -1087,7 +1219,10 @@ sub execute
 		print "$sql\n";
 		print "----------</pre>\n";
 	}
-	#$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	if( $DEBUG_SQL )
+	{
+		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	}
 
 	return $result;
 }

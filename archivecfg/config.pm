@@ -407,7 +407,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "department", type => "text" },
 
-	{ name => "editors", type => "name", multiple => 1 },
+	{ name => "editors", type => "name", multiple => 1, multilang => 1 },
 
 	{ name => "institution", type => "text" },
 
@@ -441,7 +441,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text" },
+	{ name => "title", type => "text", multilang => 1 },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
