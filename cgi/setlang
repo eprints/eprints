@@ -28,13 +28,15 @@ if( !defined $newlang )
 	{	
 	
 		my $p = $session->make_element( "p" );
-		my $a = $session->make_element( "a", href=>"setlang?langid=$_" );
+		my $a = $session->make_element( "a", 
+				href => "setlang?langid=$_" );
 		$a->appendChild( $session->makeText( 
 			$EPrints::Site::General::languages{$_} ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
-	$session->printPage( "Change Language" , $page );
+	$session->buildPage( "Change Language", $page );
+        $session->sendPage();
 }
 elsif( defined $EPrints::Site::General::languages{$newlang} )
 {
@@ -53,7 +55,9 @@ elsif( defined $EPrints::Site::General::languages{$newlang} )
 		$EPrints::Site::General::languages{ 
 			$session->getSite()->getConf( "default_language" )} ) );
 	$page->appendChild( $p );
-	$session->printPage( "Language Changed" , $page , lang=>$newlang );
+	$session->newPage( $newlang );
+	$session->buildPage( "Language Changed", $page );
+        $session->sendPage( lang=>$newlang );
 }
 else 
 {
@@ -62,7 +66,8 @@ else
 	$p->appendChild( $session->makeText(
 		"Unknown language identifier: \"$newlang\"" ) );
 	$page->appendChild( $p );
-	$session->printPage( "Language Change Failed" , $page );
+	$session->buildPage( "Language Change Failed", $page );
+        $session->sendPage();
 }
 
 $session->terminate();

@@ -820,7 +820,7 @@ $c->{types}->{user} = {
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
 
-$c->{htmlpage} = parseHTML( <<END );
+$c->{htmlpage}->{english} = parseHTML( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -830,15 +830,16 @@ $c->{htmlpage} = parseHTML( <<END );
 <body bgcolor="#ffffff" text="#000000">
 
 <div class="header">
-<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
-"#cccccc">
+<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor="#cccccc">
       <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
 ="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
 </td><td align="left" width="100%" bgcolor="#cccccc">
 <h1 class="sitetitle">$c->{sitename}</h1>
 <h2 class="pagetitle"><titlehere /></h2>
+</td><td align="right" bgcolor="#cccccc">
+<a href="$c->{server_perl}/setlang"><img border="0" src="/images/english.png" width="60" height="40" alt="english mode" /></a>
 </td></tr>
-<tr><td colspan="2" bgcolor="#333333">
+<tr><td colspan="3" bgcolor="#333333">
 <div class="menu">
 
             <a class="menulink" href="$c->{frontpage}">Home</a> ||
@@ -856,6 +857,119 @@ $c->{htmlpage} = parseHTML( <<END );
 <pagehere />
  <hr noshade="noshade" size="2"/>
       <p>Contact site administrator at: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
+ <p>
+    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10"
+        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+  </p>
+</div></body>
+
+</html>
+
+END
+
+#########################################################################################
+
+
+$c->{htmlpage}->{french} = parseHTML( <<END );
+<html>
+<head>
+  <title><titlehere/></title>
+  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+
+<div class="header">
+<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
+"#cccccc">
+      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
+="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
+</td><td align="left" width="100%" bgcolor="#cccccc">
+<h1 class="sitetitle">$c->{sitename}</h1>
+<h2 class="pagetitle"><titlehere /></h2>
+</td><td align="right" bgcolor="#cccccc">
+<a href="$c->{server_perl}/setlang"><img border="0" src="/images/french.png" width="60" height="40" alt="l'mode francais" /></a>
+</td></tr>
+<tr><td colspan="3" bgcolor="#333333">
+<div class="menu">
+
+            <a class="menulink" href="$c->{frontpage}">l'Home</a> ||
+            <a class="menulink" href="$c->{server_static}/information.html">l'About</a> ||
+            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">l'Browse</a> ||
+            <a class="menulink" href="$c->{server_perl}/search">l'Search</a> ||
+            <a class="menulink" href="$c->{server_static}/register.html">l'Register</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/subscribe">l'Subscriptions</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/home">l'Deposit Items</a> ||
+            <a class="menulink" href="$c->{server_static}/help">l'Help</a>
+</div>
+</td></tr></table>
+</div>
+<div class="main">
+<pagehere />
+ <hr noshade="noshade" size="2"/>
+      <p>Contact site administrator at: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
+ <p>
+    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10"
+        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+  </p>
+</div></body>
+
+</html>
+
+END
+
+
+#  E-mail signature, appended to every email sent by the software
+$c->{signature} = <<END;
+--
+ $c->{sitename}
+ $c->{frontpage}
+ $c->{admin}
+
+END
+#########################################################################################
+
+
+$c->{htmlpage}->{dummy} = parseHTML( <<END );
+<html>
+<head>
+  <title><titlehere/></title>
+  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+
+<div class="header">
+<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
+"#cccccc">
+      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
+="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
+</td><td align="left" width="100%" bgcolor="#cccccc">
+<h1 class="sitetitle">$c->{sitename}</h1>
+<h2 class="pagetitle"><titlehere /></h2>
+</td><td align="right" bgcolor="#cccccc">
+<a href="$c->{server_perl}/setlang"><img border="0" src="/images/dummy.png" width="60" height="40" alt="DUMMY MODE" /></a>
+</td></tr>
+<tr><td colspan="3" bgcolor="#333333">
+<div class="menu">
+
+            <a class="menulink" href="$c->{frontpage}">HOME</a> ||
+            <a class="menulink" href="$c->{server_static}/information.html">ABOUT</a> ||
+            <a class="menulink" href="$c->{server_subject_view_stem}ROOT.html">BROWSE</a> ||
+            <a class="menulink" href="$c->{server_perl}/search">SEARCH</a> ||
+            <a class="menulink" href="$c->{server_static}/register.html">REGISTER</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/subscribe">SUBSCRIPTIONS</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/home">DEPOSIT ITEMS</a> ||
+            <a class="menulink" href="$c->{server_static}/help">HELP</a>
+</div>
+</td></tr></table>
+</div>
+<div class="main">
+<pagehere />
+ <hr noshade="noshade" size="2"/>
+      <p>CONTACT SITE ADMINISTRATOR AT: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
  <p>
     <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
         src="http://www.w3.org/Icons/valid-xhtml10"

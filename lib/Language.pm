@@ -274,4 +274,10 @@ print STDERR "Loaded: $file\n";
 	return $data;
 }
 
+sub getID
+{
+	my( $self ) = @_;
+	return $self->{id};
+}
+
 1;

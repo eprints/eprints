@@ -1,4 +1,4 @@
-<template>
+<page>
 <title>About the Archive</title>
 <body>
 
@@ -20,4 +20,4 @@
 <p>For more information see <a href="http://eprints.org/">eprints.org</a></p>
 
 </body>
-</template>
+</page>

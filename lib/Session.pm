@@ -25,6 +25,8 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Language;
 use EPrints::Site;
+use Unicode::String qw(utf8 latin1);
+
 
 use XML::DOM;
 use XML::Parser;
@@ -95,26 +97,16 @@ sub new
 
 	#### Got Site Config Module ###
 
-	$self->{page} = new XML::DOM::Document;
+	# What language is this session in?
 
-	my $doctype = XML::DOM::DocumentType->new(
-			"foo", #cjg what's this bit?
-			"html",
-			"DTD/xhtml1-transitional.dtd",
-			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
-	$self->takeOwnership( $doctype );
-	$self->{page}->setDoctype( $doctype );
-
-	my $newpage = $self->{site}->getConf( "htmlpage" )->cloneNode( 1 );
-	$self->takeOwnership( $newpage );
-	$self->{page}->appendChild( $newpage );
-	
 	my $langcookie = $self->{query}->cookie( $self->{site}->getConf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
 	}
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
+	
+	$self->newPage;
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -142,6 +134,33 @@ sub new
 	
 
 	return( $self );
+}
+
+sub newPage
+{
+	my( $self , $langid ) = @_;
+
+	if( !defined $langid )
+	{
+		$langid = $self->{lang}->getID;
+	}
+
+	$self->{page} = new XML::DOM::Document;
+
+	my $doctype = XML::DOM::DocumentType->new(
+			"foo", #cjg what's this bit?
+			"html",
+			"DTD/xhtml1-transitional.dtd",
+			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
+	$self->takeOwnership( $doctype );
+	$self->{page}->setDoctype( $doctype );
+
+	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
+	$self->{page}->setXMLDecl( $xmldecl );
+
+	my $newpage = $self->{site}->getConf( "htmlpage" , $langid )->cloneNode( 1 );
+	$self->takeOwnership( $newpage );
+	$self->{page}->appendChild( $newpage );
 }
 
 sub change_lang
@@ -568,7 +587,9 @@ sub makeText
 {
 	my( $self , $text ) = @_;
 
-	return $self->{page}->createTextNode( $text );
+	my $u = latin1( $text );
+
+	return $self->{page}->createTextNode( $u->utf8 );
 }
 
 sub makeDocFragment
@@ -611,10 +632,11 @@ sub takeOwnership
 	$domnode->setOwnerDocument( $self->{page} );
 }
 
-sub printPage
+sub buildPage
 {
-	my( $self, $title, $mainbit, %httpopts ) = @_;
-
+	my( $self, $title, $mainbit ) = @_;
+	
+	$self->takeOwnership( $mainbit );
 	foreach( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
 		my $element = $self->{page}->createTextNode( $title );
@@ -624,9 +646,34 @@ sub printPage
 	{
 		$_->getParentNode()->replaceChild( $mainbit, $_ );
 	}
+}
+
+sub sendPage
+{
+	my( $self, %httpopts ) = @_;
 	$self->sendHTTPHeader( %httpopts );
 	print $self->{page}->toString;
 }
 
+sub pageToFile
+{
+	my( $self , $filename ) = @_;
+
+	$self->{page}->printToFile( $filename );
+
+}
+
+sub setPage
+{
+	my( $self, $newhtml ) = @_;
+	
+	my $html = ($self->{page}->getElementsByTagName( "html" ))[0];
+	$self->{page}->removeChild( $html );
+	$self->{page}->appendChild( $newhtml );
+}
+
+	
+	
+		
 
 1;

@@ -657,12 +657,12 @@ sub process_webpage
 		$page->appendChild( $form->cloneNode( 1 ) );
 			
 		# Print out state stuff for a further invocation
-		
-		$self->{session}->printPage( 
+		$self->{session}->buildPage( 
 			$self->{session}->phrase( 
 					"results_for", 
 					title => $title ),
 			$page );
+		$self->{session}->sendPage();
 		return;
 	}
 
@@ -694,7 +694,8 @@ print STDERR "URLURL URL URL: $url\n";
 	$page->appendChild( $preamble );
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 
-	$self->{session}->printPage( $title, $page );
+	$self->{session}->buildPage( $title, $page );
+	$self->{session}->sendPage();
 }
 
 sub _render_problems
@@ -725,7 +726,8 @@ sub _render_problems
 	$page->appendChild( $hr );
 	$page->appendChild( $self->render_search_form );
 			
-	$self->{session}->printPage( $title, $page );
+	$self->{session}->buildPage( $title, $page );
+	$self->{session}->sendPage();
 }
 
 
