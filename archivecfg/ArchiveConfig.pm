@@ -399,6 +399,8 @@ $c->{default_order}->{eprint} = "byname";
 $c->{user_search_fields} =
 [
 	"name",
+	"username",
+	"userid",
 	"dept/org",
 	"address/country",
 	"usertype",

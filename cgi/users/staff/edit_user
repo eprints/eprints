@@ -54,7 +54,7 @@ sub process
 		$page->appendChild( $session->render_input_form(
 			default_action=>"confirm",
 			buttons=>{
-				_order = [ "confirm", "cancel" ],
+				_order => [ "confirm", "cancel" ],
 				confirm=>$session->phrase( "cgi/users/edit_user:action_confirm" ),
 				cancel=>$session->phrase( "cgi/users/edit_user:action_cancel" ) 
 			},
@@ -64,7 +64,7 @@ sub process
 		) );			
 
 		$session->build_page(
-			$session->phrase( "cgi/users/edit_user:delete_title" ),
+			$session->html_phrase( "cgi/users/edit_user:delete_title" ),
 			$page );
 		$session->send_page();
 
@@ -73,26 +73,30 @@ sub process
 
 	if( $action eq "confirm" )
 	{
-		#cjg NOT DONE
+		my $userid = $user->get_value( "userid" );
+		my $username = $user->get_value( "username" );
+
 		my $success = $user->remove();
 
 		if( !$success )
 		{
 			$session->render_error(
-				"Couldn't remove user! Check logs for details.",
-				$session->get_archive()->get_conf( "base_url" )."/staff",
-				"Return to staff area" );
+				$session->html_phrase( "cgi/users/edit_user:could_not_remove" ) );
 			return;
 		}
 		
-		print $session->{render}->start_html( "Delete User" );
+		$page->appendChild( $session->html_phrase( 
+			"cgi/users/edit_user:deleted",
+			username=>$session->make_text( $username ), 
+			userid=>$session->make_text( $userid ) ) );
 
-		print "<CENTER><P>User has been deleted.</P></CENTER>\n";
-		print "<CENTER><P><A HREF=\"".
-		$session->get_archive()->get_conf( "base_url ")."/staff\">".
-			"Click here to return to staff area</A></P></CENTER>\n";
+		$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 
-		print $session->{render}->end_html();
+		$session->build_page(
+			$session->html_phrase( "cgi/users/edit_user:delete_title" ),
+			$page );
+		$session->send_page();
+
 		return;
 	}
 

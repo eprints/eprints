@@ -33,6 +33,7 @@ push @search_fields, @{$session->get_archive()->get_conf( "advanced_search_field
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	staff => 1,
+	use_oneshot_cache => 1,
 	dataset => $session->get_archive()->get_dataset( "archive" ),
 	fieldnames => \@search_fields );
 

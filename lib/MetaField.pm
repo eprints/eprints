@@ -236,7 +236,7 @@ sub tags_and_labels
 	my %labels = ();
 	foreach( @{$self->{options}} )
 	{
-		$labels{$_} = EPrint::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
+		$labels{$_} = EPrints::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
 	}
 	return ($self->{options}, \%labels);
 }

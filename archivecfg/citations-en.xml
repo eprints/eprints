@@ -65,6 +65,8 @@
     <ep:citation type="document_ascii"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
     <ep:citation type="document_ps"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset> - Requires a viewer, such as GhostView</ep:citation>
     <ep:citation type="document_pdf"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset> - Requires <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a> or other PDF viewer.</ep:citation>
+    <ep:citation type="document_other"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
+    <ep:citation type="document_coverimage"><ep:linkhere><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:linkhere><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
 
 <!-- subject citations -->
     <ep:citation type="subject"><ep:linkhere><span class="subject"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">(&subjectid;)</ep:ifnotset></span></ep:linkhere></ep:citation>

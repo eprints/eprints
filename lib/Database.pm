@@ -706,9 +706,8 @@ sub update
 	# remove the key field
 	splice( @fields, 0, 1 ); 
 	my @orderfields = ( $keyfield );
+
 	my $langid;
-
-
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		my @fnames = ( $keyfield->get_sql_name() );
@@ -723,10 +722,6 @@ sub update
 			push @fnames, $_->get_sql_name();
 			push @fvals, prep_value( $ov );
 		}
-
-		my $ovt = $dataset->get_ordervalues_table_name( $langid );
-		$sql = "DELETE FROM ".$ovt." WHERE ".$where;
-		$self->do( $sql );
 
 		$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".join( "\",\"", @fvals )."\")";
 		$self->do( $sql );
@@ -1736,6 +1731,18 @@ sub _deindex
 	}
 	$sql = "DELETE FROM $rindextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
+
+	# Remove "order" table entries.
+
+	my $langid;
+	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
+	{
+		my $ovt = $dataset->get_ordervalues_table_name( $langid );
+		$sql = "DELETE FROM ".$ovt." WHERE ".$where;
+		$rv = $rv && $self->do( $sql );
+	}
+
+	# Return with an error if unsuccessful
 
 	return $rv;
 }

@@ -143,13 +143,6 @@
     <ep:phrase ref="eprint_typename_preprint">Preprint</ep:phrase>
     <ep:phrase ref="eprint_typename_thesis">Thesis</ep:phrase>
 
-<!-- Upload Format Option Names -->
-
-    <ep:phrase ref="format_fieldopt_arc_format_plain">File Upload</ep:phrase>
-    <ep:phrase ref="format_fieldopt_arc_format_graburl">Capture from URL</ep:phrase>
-    <ep:phrase ref="format_fieldopt_arc_format_zip">.ZIP Archive Upload</ep:phrase>
-    <ep:phrase ref="format_fieldopt_arc_format_targz">.tar.gz Archive Upload</ep:phrase>
-
 <!-- Sort Order names -->
 
     <ep:phrase ref="ordername_eprint_byyear">by year (most recent first)</ep:phrase>
@@ -202,6 +195,13 @@
     <ep:phrase ref="user_typename_user">User</ep:phrase>
     <ep:phrase ref="user_typename_editor">Editor</ep:phrase>
     <ep:phrase ref="user_typename_admin">EPrints Administrator</ep:phrase>
+
+<!-- User Sort Order names -->
+
+    <ep:phrase ref="ordername_user_byjoin">By account age (oldest first)</ep:phrase>
+    <ep:phrase ref="ordername_user_bytype">By user type</ep:phrase>
+    <ep:phrase ref="ordername_user_byname">By name</ep:phrase>
+    <ep:phrase ref="ordername_user_byrevjoin">By account age (newest first)</ep:phrase>
 
     <ep:phrase ref="mail_sig">
 <hr /><p>

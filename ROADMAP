@@ -184,18 +184,18 @@
 # check CGI scripts use DOM in title NR
 # Check out Subscription dataset: sensible values even if not used yet.
 # better initial INDEX page.
+# render suggestions in a box? 
+# comment top of every file
 
 # HARD
-#edit_user !!! bits not done NR
 #	Make SearchFields have a better call method. NR
 #  Qualified Dublin Core NR
-# NR: remove user function.
 # NR: Email Change
 # clean up comments
-# Make create() functions clone the data, not modify it.
+# clean up metadata (inc. boolean rendering):q
+
 
 # Xhtml docs: [gui]
 
-
-# todo: TTTTTTttttbbbbbbbbbbmmmmmmmmg
+# todo: TTTTTttttttbbbbbbbbmmmmmmmmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

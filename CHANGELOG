@@ -123,7 +123,7 @@ it is lynx (as lynx ALWAYS displays it, we want it hidden).
  - new metafield property: browse_link - which is the id of the browse view
 it should link to when rendering.
  - added "generic" citations handling, via DataObj render_description which
-replaces User::full_name and EPrint::short_title and Document::render_desc
+replaces User::full_name and EPrints::short_title and Document::render_desc
  - added new param to template title field: textonly="yes" to squash down
 the XHTML in the <title> into text only.
  - moved render_citation and render_citation_link from Document, EPrint and
@@ -243,7 +243,7 @@ call it.
 when we might not.
  - order values now correctly sort year and int (int not tested yet!)
 
-01/01/2002
+01/02/2002
  [C] - ArchiveRenderConfig::id_value now returns XHTML-DOM not UTF-8
  - Fixed "clone" bug.
  - Fixed bug which escaped % when it didn't have to.
@@ -264,4 +264,20 @@ may be a perlmod which already does this, but what the hell.
  - GET forms now do not set multi-part which reduces the annoyance of 
 hitting the back button.
 [C] - moved system variable phrases into system file from archive file.
+
+02/02/2002
+ - now removes un-needed ordervalue rows.
+[C] - added username and userid to user search fields.
+[C] - added document types: other and cover image to citations file.
+ - fixed typo "=" instead of "=>" in edit user. And a utf8 which should
+have been DOM.
+ - remove_user feature now works, and so does the cgi script which calls
+it.
+ - added in some missing fieldnames in the phrase file for system fields.
+ - fixed the title of the user search page.
+ - changed staff user edit to have a different blurb.
+ - added oneshot_cache to staff searches (user & eprint) so that
+ordering works.
+ - undefined phrases now get mentioned in the log.
+ - fixed typo in MetaField EPrint:: should have been EPrints::
 

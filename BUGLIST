@@ -9,9 +9,6 @@ General
 - No subjects at all causes a HTTP error. Possibly due to the top 
    subject for a field not existing.
 
-- does not appear to remove eprint from ordervalues table if it is
-   removed.
-
 - passwords set via the web are not crypted until they are accepted.
 (No loss of security from eprints-1 but annoying)
 
@@ -113,6 +110,10 @@ FIXED: 02/02
 create method was corrupting the data of the eprint it was cloned from,
 now it dup's the data first]
 - ANY ID is invalid in the "later version of" field. 
+- does not appear to remove eprint from ordervalues table if it is
+   removed. [fixed]
+- chris is still sober on his birthday [fixed]
+
 
 
 

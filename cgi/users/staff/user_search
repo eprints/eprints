@@ -22,12 +22,13 @@ Apache::exit( 0 ) unless( defined $session );
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	dataset => $session->get_archive()->get_dataset( "user" ),
+	use_oneshot_cache => 1,
 	staff => 1,
 	fieldnames => $session->get_archive()->get_conf( "user_search_fields" ) );
 
-my $preamble = $session->html_phrase( "cgi/search:preamble" );
+my $preamble = $session->html_phrase( "cgi/users/user_search:preamble" );
 
-my $title = $session->html_phrase( "cgi/search:simple_search" );
+my $title = $session->html_phrase( "cgi/users/user_search:simple_search" );
 
 $searchexp->process_webpage( $title, $preamble );
 

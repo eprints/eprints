@@ -71,7 +71,14 @@ sub process
 
 		$page = $self->{session}->make_doc_fragment();
 
-		$page->appendChild( $self->{session}->html_phrase( "lib/userform:blurb" ) );
+		if( $self->{staff} )
+		{
+			$page->appendChild( $self->{session}->html_phrase( "lib/userform:staff_blurb" ) );
+		}
+		else
+		{
+			$page->appendChild( $self->{session}->html_phrase( "lib/userform:blurb" ) );
+		}
 
 		$page->appendChild( $self->_render_user_form() );
 

@@ -102,6 +102,7 @@ EPrints Modules
     <ep:phrase ref="lib/searchfield:help_text">Enter a term or terms to search for.</ep:phrase>
     <ep:phrase ref="lib/searchfield:help_url">Enter some text to search for.</ep:phrase>
     <ep:phrase ref="lib/searchfield:help_year">Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.</ep:phrase>
+    <ep:phrase ref="lib/searchfield:help_int">Enter a single number (e.g. 93), or a range of numbers, e.g. `17-23', `17-' or -23'.</ep:phrase>
     <ep:phrase ref="lib/searchfield:bool_nopref">No Preference</ep:phrase>
     <ep:phrase ref="lib/searchfield:bool_yes">Yes</ep:phrase>
     <ep:phrase ref="lib/searchfield:bool_no">No</ep:phrase>
@@ -191,6 +192,11 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:remove">Remove</ep:phrase>
     <ep:phrase ref="format_fieldhelp_arc_format">Please select an upload method.</ep:phrase>
     <ep:phrase ref="format_fieldhelp_num_files">If uploading plain files, please indicate how many.</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_plain">File Upload</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_graburl">Capture from URL</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_zip">.ZIP Archive Upload</ep:phrase>
+    <ep:phrase ref="format_fieldopt_arc_format_targz">.tar.gz Archive Upload</ep:phrase>
+
 
 <!-- Subscription -->
 
@@ -212,6 +218,7 @@ EPrints Modules
     <ep:phrase ref="lib/userform:dont_know">I don't know who you are</ep:phrase>
     <ep:phrase ref="lib/userform:record_for">Record for <ep:pin ref="name" /></ep:phrase>
     <ep:phrase ref="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <span class="requiredstar">*</span> to start using the archive.</p><p>For instructions on how to change your e-mail address, <a href="&perl_url;/users/set_email">click here</a>.</p></ep:phrase>
+    <ep:phrase ref="lib/userform:staff_blurb"><p>You may update the users record.</p></ep:phrase>
     <ep:phrase ref="lib/userform:form_incorrect"><p>The form doesn't seem to be filled out correctly:</p></ep:phrase>
     <ep:phrase ref="lib/userform:complete_form"><p>Please complete the form before continuing.</p></ep:phrase>
     <ep:phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</ep:phrase>
@@ -462,6 +469,13 @@ Staff CGI Scripts
     <ep:phrase ref="cgi/users/edit_user:action_confirm">Confirm Deletion</ep:phrase>
     <ep:phrase ref="cgi/users/edit_user:action_cancel">Cancel</ep:phrase>
     <ep:phrase ref="cgi/users/edit_user:delete_title">Delete User</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_user:could_not_remove">Could not remove user. Check the logs for more information.</ep:phrase>
+    <ep:phrase ref="cgi/users/edit_user:deleted"><p>The user &quot;<ep:pin ref="username" />&quot; has been deleted.</p><p>Any records associated with that user have <em>not</em> been removed. They are still associated with userid #<ep:pin ref="userid" />.</p></ep:phrase>
+
+<!-- user_search -->
+
+    <ep:phrase ref="cgi/users/user_search:simple_search">Staff User Search</ep:phrase>
+    <ep:phrase ref="cgi/users/user_search:preamble"><p>This form allows staff to search the records of all registered users.</p></ep:phrase>
 
 <!--********************************************************************** 
 Public CGI Scripts
@@ -583,6 +597,7 @@ Titles and Help for the System Fields
     <ep:phrase ref="eprint_fieldhelp_commentary">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</ep:phrase>
     <ep:phrase ref="eprint_fieldname_replacedby">Replaced by</ep:phrase>
 
+    <ep:phrase ref="user_fieldname_userid">User ID Number</ep:phrase>
     <ep:phrase ref="user_fieldname_username">Username</ep:phrase>
     <ep:phrase ref="user_fieldhelp_username"></ep:phrase>
     <ep:phrase ref="user_fieldname_password">Password</ep:phrase>
@@ -592,12 +607,14 @@ Titles and Help for the System Fields
     <ep:phrase ref="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</ep:phrase>
     <ep:phrase ref="user_fieldname_editorsubjects">Editor Subjects</ep:phrase>
     <ep:phrase ref="user_fieldhelp_editorsubjects">The subjects within which this user may "edit" eprints. That is they may review and approve/bounce them etc.</ep:phrase>
-    <ep:phrase ref="user_fieldname_joined">Date User Account was Created</ep:phrase>
+    <ep:phrase ref="user_fieldname_joined">Account Creation Date</ep:phrase>
     <ep:phrase ref="user_fieldhelp_joined"></ep:phrase>
+    <ep:phrase ref="user_fieldname_email">Email address</ep:phrase>
     <ep:phrase ref="user_fieldhelp_email">The email address for this user</ep:phrase>
     <ep:phrase ref="user_fieldname_lang">Preferred Language</ep:phrase>
     <ep:phrase ref="user_fieldhelp_lang">Your prefered language. Where possible information will be mailed in this language.</ep:phrase>
 
+    <ep:phrase ref="document_fieldname_eprintid">ID of the owning EPrint</ep:phrase>
     <ep:phrase ref="document_fieldhelp_language">Please indicate the primary language of this document.</ep:phrase>
     <ep:phrase ref="document_fieldhelp_format">Please select the storage format of this document.</ep:phrase>
     <ep:phrase ref="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</ep:phrase>
@@ -605,7 +622,6 @@ Titles and Help for the System Fields
 
     <ep:phrase ref="subject_fieldname_name">Subject Name</ep:phrase>
     <ep:phrase ref="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</ep:phrase>
-
 
 
 </ep:phrases>

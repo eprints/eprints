@@ -53,7 +53,6 @@ sub get_system_field_info
 
 		{ name=>"editorsubjects", type=>"subject", multiple=>1, showall=>1, showtop=>1, top=>"ROOT" },
 
-		#cjg created would be a better name than joined??
 		{ name=>"joined", type=>"date", required=>1 },
 
 		{ name=>"email", type=>"email", required=>1 },
@@ -284,33 +283,13 @@ sub remove
 	
 	my $success = 1;
 
-	# First, remove their EPrints
-	my @eprints = EPrints::EPrint::retrieve_eprints(
-		$self->{session},
-		EPrints::Database::table_name( "archive" ),
-		[ "userid LIKE \"$self->{userid}\"" ] );
+	# later we should remove subscriptions and stuff.
 
-	foreach (@eprints)
-	{
-		$success = $success && $_->remove();
-	}
-
-	# And subscriptions
-	my @subs = EPrints::Subscription::subscriptions_for(
-		$self->{session},
-		$self );
-	
-	foreach (@subs)
-	{
-		$success = $success && $_->remove();
-	}
-
-	# Now remove user record
+	# remove user record
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
-	$success = $success && $self->{session}->{database}->remove(
+	$success = $success && $self->{session}->get_db()->remove(
 		$user_ds,
-		"userid",
-		$self->{userid} );
+		$self->get_value( "userid" ) );
 	
 	return( $success );
 }
