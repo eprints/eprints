@@ -185,7 +185,7 @@ sub _create_id
 }
 
 
-######################################################################
+#####################################################################
 #
 # $directory = _create_directory( $eprint_id )
 #
@@ -336,6 +336,8 @@ sub remove
 	{
 		#cjg Test this!
 		$success = $success && EPrints::Deletion::add_deletion_record( $self );
+		#cjg REMOVE ABSTRACTS!
+	
 	}
 
 	# Remove the associated documents
@@ -352,7 +354,7 @@ sub remove
 
 	# Now remove the directory
 	my $num_deleted = rmtree( $self->local_path() );
-	
+
 	if( $num_deleted <= 0 )
 	{
 		$self->{session}->get_archive()->log( "Error removing files for ".$self->get_value( "eprintid" ).", path ".$self->local_path().": $!" );
@@ -1027,24 +1029,18 @@ sub archive
 {
 	my( $self ) = @_;
 
-	# Remove pointless fields
-	undef $self->{additional};
-	undef $self->{reasons};
-	
-	my $success = $self->transfer( "archive" );
+	my $arcds = $self->{session}->get_archive()->get_dataset( "archive" );
+	my $success = $self->transfer( $arcds );
 	
 	if( $success )
 	{
-		$self->{session}->get_archive()->update_archived_eprint( $self );
+		$self->{session}->get_archive()->call( "update_archived_eprint", $self );
 		$self->datestamp(); # Reset the datestamp.
 		$self->commit();
 		$self->generate_static();
 
-		# Generate static pages for everything in threads, if appropriate
-		my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-		my $commentary_field =
-			$self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-
+		# Generate static pages for everything in threads, if 
+		# appropriate
 		my @to_update = $self->get_all_related();
 		
 		# Do the actual updates
@@ -1203,6 +1199,10 @@ sub render_full_details
 sub get_all_related
 {
 	my( $self ) = @_;
+
+	#cjg
+	# bad bad bad
+	return ();
 	
 	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
 	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );

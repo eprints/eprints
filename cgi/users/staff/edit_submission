@@ -124,11 +124,11 @@ sub accepted
 	if( $eprint->archive() )
 	{
 		# Successfully archived, redirect
-		$session->{render}->redirect( "buffer" );
+		$session->redirect( "buffer" );
 	}
 	else
 	{
-			#not DOM not LANG
+			#not DOM not LANG cjg!!!
 		$session->render_error(
 			"Problem committing submission to archive. Please check the ".
 				"logs.",

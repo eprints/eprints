@@ -280,6 +280,7 @@ sub can_post
 	return( $self->{data}->{depositable} eq "TRUE" ? 1 : 0 );
 }
 
+#cjg LINK(optional) to "view"
 sub render
 {
 	my( $self ) = @_;

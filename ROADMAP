@@ -37,18 +37,18 @@
 0	Skippable Stages in SubmissionForm, and multiple page metadata form.
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 0	Phrasify Option Fields
-2	Editor Pages -approve,bounce,edit etc.
-0	Staff EPrint Edit
+-	Editor Pages -approve,bounce,edit etc.
+1	Staff EPrint Edit
 0	Staff User Edit/Create
 -	Mailer (Unicode friendly?)
-0	Autodetect optional system features: microtime, df etc. (Is this possible?)
+2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
-0	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
+-	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
-0	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm 
+4	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm 
 0	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 0	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
