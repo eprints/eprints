@@ -28,7 +28,15 @@ containing a hash of each file. This script creates a hash of each of these
 
 If no filename is given this script outputs to standard out.
 
-This is an experimental feature.
+The XML file produced may then be archived safely. You can then create an MD5 of that file and do something to prove you had it on the date you created it.
+
+For example, publish it in an small-ad in a national paper.
+
+Now you can prove you had that MD5 on that day, which proves you had the file output by export_hashes that day. The MD5's in that file prove that you had the .xsh file of a given document. Those files should prove that you had a given file.
+
+This all assumes that nobody works out a way to do MD5's in reverse. And there's no legal precident yet. 
+
+That's why this is an experimental feature.
 
 =head1 ARGUMENTS
 

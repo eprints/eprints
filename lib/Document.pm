@@ -615,8 +615,13 @@ sub local_path
 	my( $self ) = @_;
 
 	my $eprint = $self->get_eprint();
-	
-	return( undef ) if( !defined $eprint );
+
+	if( !defined $eprint )
+	{
+		$self->{session}->get_archive->log(
+			"Document ".$self->get_id." has no eprint!" );
+		return( undef );
+	}	
 	
 	return( $eprint->local_path()."/".docid_to_path( $self->{session}->get_archive(), $self->get_value( "docid" ) ) );
 }
@@ -639,10 +644,12 @@ sub files
 	my( $self ) = @_;
 	
 	my %files;
-	_get_files(
-		\%files,
-		$self->local_path(),
-		"" );
+
+	my $root = $self->local_path();
+	if( defined $root )
+	{
+		_get_files( \%files, $root, "" );
+	}
 
 	return( %files );
 }
@@ -1194,6 +1201,14 @@ sub rehash
 	foreach my $file ( keys %f )
 	{
 		push @filelist, $self->local_path."/".$file;
+	}
+
+	my $eprint = $self->get_eprint;
+	unless( defined $eprint )
+	{
+		$self->{session}->get_archive->log(
+"rehash: skipped document with no associated eprint (".$self->get_id.")." );
+		return;
 	}
 
 	my $hashfile = $self->get_eprint->local_path."/".

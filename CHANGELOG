@@ -724,7 +724,7 @@ before next release. (metadata types & fields)
 
 2002-08-08 [cjg]
  - [c] Increased default results page size to 100 from 10.
- - [c] Increased default witdth of abstract input to 90 cols.
+ - [c] Increased default width of abstract input to 90 cols.
  - [c] Increased default number of author input fields to 6.
  - [c] Some tweaks to default citations.
  - [c] Made "publication" field optional in all types.
@@ -1006,4 +1006,10 @@ before next release. (metadata types & fields)
  - corrected some spelling
  - changed links on default pages to go to software.eprints.org and
     call the software GNU EPrints not eprints.org software.
+
+2002-10-30-cjg
+ - [c] Cleaned up the default config files. Added examples of all the 
+    new options.
+ - Fixed some issues with documents which have been orphened (have no
+    eprints)
 

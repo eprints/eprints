@@ -1,6 +1,6 @@
 See CHANGELOG for the gory details.
 
-EPRINTS 2.2.0                                                  2002-10-31???
+EPRINTS 2.2.0                                                  2002-10-31
 -------------------------------------------------------------------------
 
 *       Fixed several minor issues in OAI2 support.
@@ -51,12 +51,11 @@ EPRINTS 2.2.0                                                  2002-10-31???
         configuration without restarting apache. This is NOT very efficient 
         and will waste memory, but is handy for development.
 
-*       ### Nearly Done ### citations now use @year@ instead of &year; to 
-        make XML parsing easier. Also there is a new feature <ep:ifmatch>  
-        which gives access to the eprints search syntax to make citation 
-        elements conditional. Also improvements have been made to the citation 
-        rendering code so that elements may now be safely nested. 
-        (eg. <ep:isset>.
+*       Citations now use @year@ instead of &year; to make XML parsing easier. 
+        Also there is a new feature <ep:ifmatch> which gives access to the 
+        eprints search syntax to make citation elements conditional. Also 
+        improvements have been made to the citation rendering code so that 
+        elements may now be safely nested.  (eg. <ep:isset>.
 
 *       No GIFs (Due to patent issues, and EPrints being part of GNU),
         PNGs used instead.
@@ -70,7 +69,8 @@ EPRINTS 2.2.0                                                  2002-10-31???
 *       Added experimental support for the secure part of the site to
         be served via https.
 
-
+*       Experimental paracite support. This will link a list of references 
+        (in the metadata) to the paracite.eprints.org service.
 
 
 EPRINTS 2.1.1                                                  2002-07-04

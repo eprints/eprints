@@ -158,6 +158,12 @@ $c->{diskspace_warn_threshold} = 512*1024;
 $c->{hide_honourific} = 0;
 $c->{hide_lineage} = 0;
 
+# If you are setting up a very simple system or 
+# are starting with lots of data entry you can
+# make user submissions bypass the editor buffer
+# by setting this option:
+$c->{skip_buffer} = 0;
+
 ######################################################################
 #
 # Web Sign-up customisation
@@ -368,6 +374,13 @@ $c->{simple_search_fields} =
 	"year"
 ];
 
+# You may specify defaults for the search page. 
+# $c->{simple_search_defaults} =
+# {
+#	"authors/editors" => "Gutteridge",
+# 	"year" => 2002
+# }
+
 
 # Fields for an advanced user search
 $c->{advanced_search_fields} =
@@ -386,6 +399,15 @@ $c->{advanced_search_fields} =
 	"publication",
 	"year"
 ];
+
+# You may specify defaults for the advanced search page. 
+# $c->{advanced_search_defaults} =
+# {
+#	"title" => "stuff",
+#	"refereed" => "TRUE"
+# }
+
+
 
 # Fields used for specifying a subscription
 $c->{subscription_fields} =
@@ -541,13 +563,21 @@ $c->{cache_maxlife} = 12;
 # $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
 
 
-# Setting this to 1 will make eprints submitted from the user work
-# area appear in the archive, bypassing the submission buffer section.
-# Possibly handy in early stages of setting up a system, but not 
-# recommended for general use.
-# NOTE: It will not change any of the text, so the instructions will
-# be incorrect.
-$c->{skip_buffer} = 0;
+# 404 override. This is handy if you want to catch some urls from an
+# old system, or want to make some kind of weird dynamic urls work.
+# It should be handled before it becomes a 404, but hey.
+# If the function returns a string then the browser is redirected to
+# that url. If it returns undef then then the normal error page is shown.
+# $c->{catch404} = sub {
+#	my( $session, $url ) = @_;
+#	
+#	if( $url =~ m#/subject-(\d+).html$# )
+#	{
+#		return "/views/subjects/$1.html";
+#	}
+#	
+#	return undef;
+# }
 
 
 ######################################################################

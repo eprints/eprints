@@ -34,7 +34,7 @@ The ID of the eprint archive to use.
 
 =item B<eprintid> 
 
-An optional integer indicating that only the abstract page for record I<eprintid> should be updated.
+An optional integer indicating that only the abstract page for record I<eprintid> should be updated. Handy for testing new configurations.
 
 
 =back
