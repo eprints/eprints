@@ -301,31 +301,29 @@ sub _generate_doc_id
 #
 ######################################################################
 
-## WP1: BAD #cjg NOT DONE
 sub clone
 {
 	my( $self, $eprint ) = @_;
 	
 	# First create a new doc object
-	my $new_doc = EPrints::Document::create( $self->{session},
-	                                         $eprint,
-	                                         $self->{data}->{format} );
+	my $new_doc = EPrints::Document::create( $self->{session}, $eprint );
+
 	return( 0 ) if( !defined $new_doc );
 	
 	# Copy fields across
-	$new_doc->set_value( "format" ) = $self->get_value( "format" );
-	$new_doc->set_value( "formatdesc" ) = $self->get_value( "formatdesc" );
-	$new_doc->set_value( "main" ) = $self->get_main();
+	foreach( "format", "formatdesc", "language", "security", "main" )
+	{
+		$new_doc->set_value( $_, $self->get_value( $_ ) );
+	}
 	
 	# Copy files
-	my $rc = 0xffff & system
-		"cp -a ".$self->local_path()."/* ".$new_doc->local_path();
+	my $rc = system( "cp -a ".$self->local_path()."/* ".$new_doc->local_path() ) & 0xffff;
 
 	# If something's gone wrong...
 	if ( $rc!=0 )
 	{
 		$self->{session}->get_archive()->log( "Error copying from ".$self->local_path()." to ".$new_doc->local_path().": $!" );
-		return( 0 );
+		return( undef );
 	}
 
 	if( $new_doc->commit() )

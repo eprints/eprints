@@ -20,6 +20,9 @@ package EPrints::Config::lemurprints;
 #cjg NO UNICODE IN PASSWORDS!!!!!!!!!
 #cjg Hide Passwords when editing.
 
+# remove additional + suggestion fields from eprint static and add
+# them to the normal roster.
+
 use EPrints::Utils;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
@@ -29,7 +32,6 @@ use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
-## Skip Stages
 ## no 'commentary'
 ## no 'laterversionof'
 

@@ -19,6 +19,8 @@
 # - Make sure user is ePrints for sessions
 # - Check for df on startup
 
+# cjg: Can INT be indexed but NULL'able???
+
 package EPrints::Session;
 
 use EPrints::Database;

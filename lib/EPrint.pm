@@ -133,9 +133,11 @@ sub create
 {
 	my( $session, $dataset, $userid, $data ) = @_;
 
+	my $setdefaults = 0;
 	if( !defined $data )
 	{
 		$data = {};
+		$setdefaults = 1;
 	}
 
 	my $new_id = _create_id( $session );
@@ -150,16 +152,16 @@ sub create
 	$data->{eprintid} = $new_id;
 	$data->{userid} = $userid;
 	$data->{dir} = $dir;
-	
-	$session->get_archive()->call(
-		"set_eprint_defaults",
-		$data,
-		$session );
 
-# cjg add_record call
-	my $success = $session->get_db()->add_record(
-		$dataset,
-		$data );
+	if( $setdefaults )
+	{	
+		$session->get_archive()->call(
+			"set_eprint_defaults",
+			$data,
+			$session );
+	}
+
+	my $success = $session->get_db()->add_record( $dataset, $data );
 
 	if( $success )
 	{
@@ -355,53 +357,6 @@ sub remove
 
 ######################################################################
 #
-# remove_from_threads()
-#
-#  Extracts the eprint from any threads it's in. i.e., if any other
-#  paper is a later version of or commentary on this paper, the link
-#  from that paper to this will be removed.
-#
-######################################################################
-
-## WP1: BAD
-sub remove_from_threads
-{
-	my( $self ) = @_;
-
-	#cjg This really should do something!
-	return;
-	
-	if( $self->{dataset} eq  "archive" )
-	{
-		# Remove thread info in this eprint
-		$self->{succeeds} = undef;
-		$self->{commentary} = undef;
-		$self->commit();
-
-		my @related = $self->get_all_related();
-		my $eprint;
-		# Remove all references to this eprint
-		foreach $eprint (@related)
-		{
-			# Update the objects if they refer to us (the objects were retrieved
-			# before we unlinked ourself)
-			$eprint->{succeeds} = undef if( $eprint->{succeeds} eq $self->{eprintid} );
-			$eprint->{commentary} = undef if( $eprint->{commentary} eq $self->{eprintid} );
-
-			$eprint->commit();
-		}
-
-		# Update static pages for each eprint
-		foreach $eprint (@related)
-		{
-			$eprint->generate_static() unless( $eprint->{eprintid} eq $self->{eprintid} );
-		}
-	}
-}
-
-
-######################################################################
-#
 # $new_eprint = clone( $dest_table, $copy_documents )
 #
 #  Writes a clone of this EPrint to the given table, with a new ID.
@@ -411,67 +366,55 @@ sub remove_from_threads
 #
 ######################################################################
 
-## WP1: BAD
 sub clone
 {
 	my( $self, $dest_dataset, $copy_documents ) = @_;
-die "clone NOT DONE"; #cjg	
+
 	# Create the new EPrint record
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
 		$dest_dataset,
-		$self->{userid} );
+		$self->get_value( "userid" ),
+		$self->{data} );
 	
-	if( defined $new_eprint )
+	unless( defined $new_eprint )
 	{
-		my $field;
+		return undef;
+	}
 
-		# Copy all the data across, except the ID and the datestamp
-		foreach $field ($self->{session}->{metainfo}->get_fields( "eprint", $self->{type} ))
+	$new_eprint->datestamp();
+
+	# We assume the new eprint will be a later version of this one,
+	# so we'll fill in the succeeds field, provided this one is
+	# already in the main archive.
+	if( $self->{dataset}->id() eq  "archive"  )
+	{
+		$new_eprint->set_value( "succeeds" , 
+			$self->get_value( "eprintid" ) );
+	}
+
+	# Attempt to copy the documents, if appropriate
+	my $ok = 1;
+
+	if( $copy_documents )
+	{
+		my @docs = $self->get_all_documents();
+
+		foreach (@docs)
 		{
-			my $field_name = $field->{name};
-
-			if( $field_name ne "eprintid" &&
-			    $field_name ne "datestamp" &&
-			    $field_name ne "dir" )
-			{
-				$new_eprint->{$field_name} = $self->{$field_name};
-			}
+			$ok = 0 if( !defined $_->clone( $new_eprint ) );
 		}
+	}
 
-		# We assume the new eprint will be a later version of this one,
-		# so we'll fill in the succeeds field, provided this one is
-		# already in the main archive.
-		$new_eprint->{succeeds} = $self->{eprintid}
-			if( $self->{dataset} eq  "archive"  );
-
-		# Attempt to copy the documents, if appropriate
-		my $ok = 1;
-
-		if( $copy_documents )
-		{
-			my @docs = $self->get_all_documents();
-
-			foreach (@docs)
-			{
-				$ok = 0 if( !defined $_->clone( $new_eprint ) );
-			}
-		}
-
-		# Now write the new EPrint to the database
-		if( $ok && $new_eprint->commit() )
-		{
-			return( $new_eprint )
-		}
-		else
-		{
-			# Attempt to remove half-copied version
-			$new_eprint->remove();
-			return( undef );
-		}
+	# Now write the new EPrint to the database
+	if( $ok && $new_eprint->commit() )
+	{
+		return( $new_eprint )
 	}
 	else
 	{
+		# Attempt to remove half-copied version
+		$new_eprint->remove();
 		return( undef );
 	}
 }
@@ -1198,187 +1141,6 @@ sub render_full_details
 }
 
 
-######################################################################
-#
-# @eprints = get_all_related()
-#
-#  Gets the eprints that are related in some way to this in a succession
-#  or commentary thread. The returned list does NOT include this EPrint.
-#
-######################################################################
-
-## WP1: BAD
-sub get_all_related
-{
-	my( $self ) = @_;
-
-	#cjg
-	# bad bad bad
-	return ();
-	
-	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-
-	my @related = $self->all_in_thread( $succeeds_field )
-		if( $self->in_thread( $succeeds_field ) );
-
-	push @related, $self->all_in_thread( $commentary_field )
-		if( $self->in_thread( $commentary_field ) );
-##############		
-	# Remove duplicates, just in case
-	my %related_uniq;
-	my $eprint;	
-	foreach $eprint (@related)
-	{
-		# We also don't want to re-update ourself
-		$related_uniq{$eprint->{eprintid}} = $eprint
-			unless( $eprint->{eprintid} eq $self->{eprintid} );
-	}
-
-	return( values %related_uniq );
-}
-
-
-######################################################################
-#
-# $is_first = in_thread( $field )
-#
-#  Returns non-zero if this paper is part of a thread
-#
-######################################################################
-
-## WP1: BAD
-sub in_thread
-{
-	my( $self, $field ) = @_;
-	
-	return( 1 )
-		if( defined $self->{$field->{name}} && $self->{$field->{name}} ne "" );
-
-	my @later = $self->later_in_thread( $field );
-
-	return( 1 ) if( scalar @later > 0 );
-	
-	return( 0 );
-}
-
-
-######################################################################
-#
-# $eprint = first_in_thread( $field )
-#
-#  Returns the first (earliest) version or first paper in the thread
-#  of commentaries of this paper in the archive.
-#
-######################################################################
-
-## WP1: BAD
-sub first_in_thread
-{
-	my( $self, $field ) = @_;
-	
-
-	my $first = $self;
-	
-	while( defined $first->{$field->{name}} && $first->{$field->{name}} ne "" )
-	{
-		my $prev = new EPrints::EPrint( $self->{session},
-		                                "archive",
-		                                $first->{$field->{name}} );
-
-		return( $first ) unless( defined $prev );
-		$first = $prev;
-	}
-		       
-	return( $first );
-}
-
-
-######################################################################
-#
-# @eprints = later_in_thread( $field )
-#
-#  Returns a list of the later items in the thread
-#
-######################################################################
-
-## WP1: BAD
-sub later_in_thread
-{
-	my( $self, $field ) = @_;
-#cjg	
-	my $searchexp = new EPrints::SearchExpression(
-		$self->{session},
-		"archive" );
-
-	$searchexp->add_field( $field, "PHR:EQ:$self->{eprintid}" );
-
-#cjg		[ "datestamp DESC" ] ) );
-
-	my $searchid = $searchexp->perform_search();
-	my @eprints = $searchexp->get_records();
-	$searchexp->dispose();
-
-	return @eprints;
-
-}
-
-
-######################################################################
-#
-# @eprints = all_in_thread( $field )
-#
-#  Returns all of the EPrints in the given thread
-#
-######################################################################
-
-## WP1: BAD
-sub all_in_thread
-{
-	my( $self, $field ) = @_;
-
-	my @eprints;
-	
-	my $first = $self->first_in_thread( $field );
-	
-	$self->_collect_thread( $field, $first, \@eprints );
-
-	return( @eprints );
-}
-
-
-## WP1: BAD
-sub _collect_thread
-{
-	my( $self, $field, $current, $eprints ) = @_;
-	
-	push @$eprints, $current;
-	
-	my @later = $current->later_in_thread( $field );
-	foreach (@later)
-	{
-		$self->_collect_thread( $field, $_, $eprints );
-	}
-}
-
-
-
-## WP1: BAD
-sub last_in_thread
-{
-	my( $self, $field ) = @_;
-	
-	my $latest = $self;
-	my @later = ( $self );
-
-	while( scalar @later > 0 )
-	{
-		$latest = $later[0];
-		@later = $latest->later_in_thread( $field );
-	}
-
-	return( $latest );
-}
 
 ################################################################################
 
@@ -1532,5 +1294,244 @@ sub eprintid_to_path
 	
 	return sprintf( "%02d/%02d/%02d/%02d", $a, $b, $c, $d );
 }
+
+######################################################################
+#
+# Thread related code
+#
+######################################################################
+
+
+######################################################################
+#
+# @eprints = get_all_related()
+#
+#  Gets the eprints that are related in some way to this in a succession
+#  or commentary thread. The returned list does NOT include this EPrint.
+#
+
+sub get_all_related
+{
+	my( $self ) = @_;
+
+	my $succeeds_field = $self->{dataset}->get_field( "succeeds" );
+	my $commentary_field = $self->{dataset}->get_field( "commentary" );
+
+	my @related = ();
+
+	if( $self->in_thread( $succeeds_field ) )
+	{
+		push @related, $self->all_in_thread( $succeeds_field );
+	}
+	
+	if( $self->in_thread( $commentary_field ) )
+	{
+		push @related, $self->all_in_thread( $commentary_field );
+	}
+	
+	# Remove duplicates, just in case
+	my %related_uniq;
+	my $eprint;	
+	my $ownid = $self->get_value( "eprintid" );
+	foreach $eprint (@related)
+	{
+		# We don't want to re-update ourself
+		next if( $ownid eq $eprint->get_value( "eprintid" ) );
+		
+		$related_uniq{$eprint->get_value("eprintid")} = $eprint;
+	}
+
+	return( values %related_uniq );
+}
+
+
+
+######################################################################
+#
+# $is_first = in_thread( $field )
+#
+#  Returns non-zero if this paper is part of a thread
+#
+
+sub in_thread
+{
+	my( $self, $field ) = @_;
+	
+	if( defined $self->get_value( $field->get_name() ) )
+	{
+		return( 1 );
+	}
+
+	my @later = $self->later_in_thread( $field );
+
+	return( 1 ) if( scalar @later > 0 );
+	
+	return( 0 );
+}
+
+
+######################################################################
+#
+# $eprint = first_in_thread( $field )
+#
+#  Returns the first (earliest) version or first paper in the thread
+#  of commentaries of this paper in the archive.
+#
+
+sub first_in_thread
+{
+	my( $self, $field ) = @_;
+	
+	my $first = $self;
+	my $ds = $self->{session}->get_archive()->get_dataset( "archive" );
+	
+	while( defined $first->get_value( $field->get_name() ) )
+	{
+		my $prev = EPrints::EPrint->new( 
+				$self->{session},
+				$ds,
+				$first->get_value( $field->get_name() ) );
+
+		return( $first ) unless( defined $prev );
+		$first = $prev;
+	}
+		       
+	return( $first );
+}
+
+
+#
+# @eprints = later_in_thread( $field )
+#
+#  Returns a list of the later items in the thread
+#
+
+sub later_in_thread
+{
+	my( $self, $field ) = @_;
+
+	my $searchexp = new EPrints::SearchExpression(
+		session => $self->{session},
+		dataset => $self->{session}->get_archive()->get_dataset( "archive" ) );
+#cjg		[ "datestamp DESC" ] ) ); sort by date!
+
+	$searchexp->add_field( 
+		$field, 
+		"PHR:EQ:".$self->get_value( "eprintid" ) );
+
+	my $searchid = $searchexp->perform_search();
+	my @eprints = $searchexp->get_records();
+	$searchexp->dispose();
+
+	return @eprints;
+
+}
+
+
+#
+# @eprints = all_in_thread( $field )
+#
+#  Returns all of the EPrints in the given thread
+#
+
+sub all_in_thread
+{
+	my( $self, $field ) = @_;
+
+	my @eprints;
+	
+	my $first = $self->first_in_thread( $field );
+	
+	$self->_collect_thread( $field, $first, \@eprints );
+
+	return( @eprints );
+}
+
+sub _collect_thread
+{
+	my( $self, $field, $current, $eprints ) = @_;
+	
+	push @$eprints, $current;
+	
+	my @later = $current->later_in_thread( $field );
+	foreach (@later)
+	{
+		$self->_collect_thread( $field, $_, $eprints );
+	}
+}
+
+
+sub last_in_thread
+{
+	my( $self, $field ) = @_;
+	
+	my $latest = $self;
+	my @later = ( $self );
+
+	while( scalar @later > 0 )
+	{
+		$latest = $later[0];
+		@later = $latest->later_in_thread( $field );
+	}
+
+	return( $latest );
+}
+
+#
+# remove_from_threads()
+#
+#  Extracts the eprint from any threads it's in. i.e., if any other
+#  paper is a later version of or commentary on this paper, the link
+#  from that paper to this will be removed.
+#
+
+sub remove_from_threads
+{
+	my( $self ) = @_;
+
+	if( $self->{dataset}->id() ne "archive" )
+	{
+		return;
+	}
+
+	# Remove thread info in this eprint
+	$self->set_value( "succeeds", undef );
+	$self->set_value( "commentary", undef );
+	$self->commit();
+
+	my @related = $self->get_all_related();
+	my $eprint;
+	# Remove all references to this eprint
+	my $this_id = $self->get_value( "eprintid" );
+
+	foreach $eprint ( @related )
+	{
+		# Update the objects if they refer to us (the objects were 
+		# retrieved before we unlinked ourself)
+		my $changed = 0;
+		if( $eprint->get_value( "succeeds" ) eq $this_id )
+		{
+			$self->set_value( "succeeds", undef );
+			$changed = 1;
+		}
+		if( $eprint->get_value( "commentary" ) eq $this_id )
+		{
+			$self->set_value( "commentary", undef );
+			$changed = 1;
+		}
+		if( $changed )
+		{
+			$eprint->commit();
+		}
+	}
+
+	# Update static pages for each eprint
+	foreach $eprint (@related)
+	{
+		next if( $eprint->get_value( "eprint_id" ) eq $this_id );
+		$eprint->generate_static(); 
+	}
+}
+
 	
 1;

@@ -59,6 +59,9 @@ use strict;
 #
 ######################################################################
 
+#cjg non user defined sort methods => pass comparator method my reference
+# eg. for later_in_thread
+
 ## WP1: BAD
 sub new
 {

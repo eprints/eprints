@@ -38,8 +38,6 @@
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 -	Phrasify Option Fields
 -	Editor Pages -approve,bounce,edit etc.
-1	Staff EPrint Edit
-0	Staff User Edit/Create
 -	Mailer (Unicode friendly?)
 2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
@@ -55,6 +53,8 @@
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
+1	Staff EPrint Edit
+0	Staff User Edit/Create
 0	ROADMAP item which disappears when done?
 0	PDF Mollycoddler
 0	Make all possible field-types browseable.

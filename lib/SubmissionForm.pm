@@ -26,6 +26,8 @@ use strict;
 
 # Stages of upload
 
+#cjg bug pruning very new doc?
+
 my $STAGES = {
 	home => {
 		next => "type"
@@ -64,10 +66,7 @@ my $STAGES = {
 	}
 };
 
-#cjg SKIP STAGES???
-#cjg "NEW" sets defaults?
 
-## WP1: BAD
 sub new
 {
 	my( $class, $session, $redirect, $staff, $dataset, $formtarget ) = @_;
@@ -190,19 +189,15 @@ sub process
 		$ok = $self->$function_name();
 	}
 
-print STDERR "------------------FROM done $function_name\n";
-
 	if( $ok )
 	{
 		# Render stuff for next stage
 
 		my $function_name = "_do_stage_".$self->{new_stage};
 		{
-print STDERR "CALLING $function_name\n";
 			no strict 'refs';
 			$self->$function_name();
 		}
-print STDERR "------------------DO done $function_name\n";
 	}
 	
 	return( 1 );
@@ -300,12 +295,13 @@ sub _from_stage_home
 	}
 
 
-	if( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
+	if( $self->{action} eq "clone" )
 	{
-		die;
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -314,11 +310,12 @@ sub _from_stage_home
 		if( defined $new_eprint )
 		{
 			$self->{new_stage} = "return";
+			return( 1 );
 		}
 		else
 		{
-			my $error = $self->{session}->{database}->error();
-			$self->{session}->log( "SubmissionForm error: Error cloning EPrint ".$self->{eprint}->{eprintid}.": $error" );	#cjg!!
+			my $error = $self->{session}->get_db()->error();
+			$self->{session}->get_archive()->log( "SubmissionForm error: Error cloning EPrint ".$self->{eprint}->get_value( "eprintid" ).": ".$error );
 			$self->_database_err;
 			return( 0 );
 		}
