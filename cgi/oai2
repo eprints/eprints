@@ -529,14 +529,14 @@ sub _list
 		$errors = [];
 		if( defined $args->{from} )
 		{
-			( $date , $g1 , $e ) = munge_date( $args->{from}, 0 );
+			( $date , $g1 , $e ) = munge_date( $session, $args->{from}, 0 );
 			push @{$errors}, @{$e};
 			$date_range = $date."-";
 		}
 		return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 		if( defined $args->{until} )
 		{
-			( $date , $g2 , $e ) = munge_date( $args->{until}, 1 );
+			( $date , $g2 , $e ) = munge_date( $session, $args->{until}, 1 );
 			push @{$errors}, @{$e};
 			$date_range.= "-" if( !defined $date_range );
 			$date_range.= $date;
@@ -1019,7 +1019,7 @@ sub join_errors
 
 sub munge_date
 {
-	my( $string, $roundup ) = @_;
+	my( $session, $string, $roundup ) = @_;
 	if( $string !~ m/^(\d\d\d\d)-(\d\d)-(\d\d)(T(\d\d):(\d\d):(\d\d(\.\d+)?)Z)?$/ )
 	{
 		return( "", "", [render_oai_error(

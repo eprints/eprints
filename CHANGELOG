@@ -769,4 +769,64 @@ before next release. (metadata types & fields)
  - fixed render_citation so that it should now not crash on nested <isset> 
     elements.
 
+2002-08-20 cjg
+ - [c] some mess ups to the default views (need to fix before release)
+ - new method: EPrints::DataSet::get_sql_dataset_ids which returns an array
+    of all the datasets which map directly into sets of SQL tables. This is
+    used by create tables to get the list.
+ - Added check to bin/create_tables to check if there are more than 32 fields
+    requiring SQL Indexes in the main table.
+ - Added a --force option to bin/create_tables to override warnings.
+ - Added option to bin/generate_abstract to generate a single abstract. 
+ - Added PerlFreshRestart to apache conf from generate_apacheconf to make 
+    apache reload the perlmodules and eprints config on apache reload.
+ - "options" to timestamp subject views and to only show subjects which have
+    1 or more things in them. Although they are not yet options, they soon will
+    be.
+ - added new system metadata field to document: "hash" which contains the MD5
+    of the files in the document. bin/upgrade will now add it to v2.1 
+    databases.
+ - [c] added default values for searches. New config options 
+    advanced_search_defaults & simple_search_defaults which are references
+    to hashes. Does not handle things like "ANY/ALL" just the text.
+ - Tidied up bin/status to look nicer and also have report on subscriptions
+    how many of each frequency and when the last mailing for that frequency
+    was.
+ - Archive config now remebers when it was last changed and if 
+    /archvies/FOO/cfg/.changed has changed since then it reloads the archive.
+ - Now does "do" rather than "require" on ArchiveConfig.pm so that it can be
+    repeated to reload the module.
+ - Some code in Config.pm tries to change UID to "eprints" (or whatever) if 
+    running as root. But it does not work properly as the code gets "tainted".
+ - Added a much clearer warning when errors in the config modules are 
+    encountered.
+ - Added count_indexes to DataSet which returns how many SQL indexes are
+    required for the main table of that dataset.
+ - Added rehash function to Document, which recalculates the hash of the
+    files in the document (the will later be overridable with a config 
+    opion). All functions which add or remove files to the document now
+    call rehash.
+ - [c] Added new metadata field property (sql_index). Which defaults to
+    true but if set to zero will supress the field having an SQL index.
+ - Fixed bugs in OpenArchives code which used OAI v1.1 id for part of OAI2.0
+ - Fixed display bug: Buttons are now rendered in their own little <div>.
+ - Cleaned up submission form for the case where there are NO required formats.
+ - Subscriptions now obey "MailEmpty"? or not field.
+ - Fixed bug in subscriptions which made them mail out multiple times.
+ - Sucessful sending of subscriptions for a frequency cause a file called
+    /opt/eprints2/archive/FOO/cfg/subscription-FREQUENCY.timestamp the
+    timestamp of which is used in the archive "status" page.
+ - Added $subscription->get_last_timestamp($session,$frequency) which gives
+    a neat interface to that value.
+ - Fixed a view in User.pm where the URL for a given user was wrong (eprint 1
+    URL)
+ - Added code which won't get documented just yet to citation renderer which 
+    processes @year@ in an ATTRIBUTE of a citation like it would &year; eg.
+    <a href="http://www.google.com/search?v=@year@+papers+from">&year;</a>
+ - Added Utils::get_timestamp which returns a neat time stamp string, similar
+    to that from UNIX date command.
 
+
+2002-08-28 cjg
+ - Fixed a bug in oai2 which meant it occasionally used the wrong session in
+    munge_date.

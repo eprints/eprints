@@ -68,6 +68,9 @@ Browse Views
 
 Searches
 
+*	Make entire search page a phrase so that it can be configured. eg.
+	&buttons; &results; etc.
+
 *	Deprecate temporary tables and just make oneshot_cache the 
 	 default?
 
