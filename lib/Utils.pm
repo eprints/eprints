@@ -295,7 +295,7 @@ sub is_set
 	{
 		foreach( @$r )
 		{
-			return( 1 );
+			return( 1 ) if( is_set( $_ ) );
 		}
 		return( 0 );
 	}
@@ -303,7 +303,7 @@ sub is_set
 	{
 		foreach( keys %$r )
 		{
-			return( 1 );
+			return( 1 ) if( is_set( $r->{$_} ) );
 		}
 		return( 0 );
 	}

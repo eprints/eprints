@@ -47,6 +47,9 @@
 - 	Super all-singing/dancing etc. Subject Editor
 0	From Form needs to do some trimming.
 0	Render Date Form in ArchiveConfig ( multilang'd )
+0	ROADMAP item which disappears when done?
+0	Don't accept validate bad langids
+0	More opts for fields: freetext/idrequired etc.
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.

@@ -1296,30 +1296,37 @@ sub _form_value_aux
 		{
 			my $subvalue = $self->_form_value_aux2( $session, $suffix."_".$i );
 			my $langid = $session->param( $self->{name}.$suffix."_".$i."_lang" );
-			if( defined $subvalue && $langid ne "" )
+			if( $langid eq "" ) { $langid = "_".$i; }
+			if( defined $subvalue )
 			{
 				$value->{$langid} = $subvalue;
 #cjg -- does not check that this is a valid langid...
 			}
-	#print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
+	print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
 		}
+#print STDERR "!!".Dumper( $value ) if( $self->{name} =~ m/editor/ );
 		$value = undef if( scalar keys %{$value} == 0 );
 	}
 	else
 	{
 		$value = $self->_form_value_aux2( $session, $suffix );
 	}
+#print STDERR ">>".Dumper( $value ) if( $self->{name} =~ m/editor/ );
 	if( $self->get_property( "hasid" ) )
 	{
 		my $id = $session->param( $self->{name}.$suffix."_id" );
-		return { id=>$id, main=>$value };
+		$value = { id=>$id, main=>$value };
 	}
+	return undef unless( EPrints::Utils::is_set( $value ) );
+
 	return $value;
 }
 
 sub _form_value_aux2
 {
 	my( $self, $session, $suffix ) = @_;
+	
+print STDERR "Hmmm: ".$self->{name}." / ".$suffix."\n";
 
 	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret", "id" ) )
 	{
@@ -1364,11 +1371,14 @@ sub _form_value_aux2
 		{
 			$data->{$_} = $session->param( $self->{name}.$suffix."_".$_ );
 		}
-
+use Data::Dumper;
+print STDERR "A".Dumper( $data );
 		if( EPrints::Utils::is_set( $data ) )
 		{
+print STDERR "B\n";
 			return $data;
 		}
+print STDERR "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
 		return undef;
 	}
 	else

@@ -1091,7 +1091,11 @@ sub param
 {
 	my( $self, $name ) = @_;
 
-	return( $self->{query}->param( $name ) ) unless wantarray;
+	if( !wantarray )
+	{
+		my $value = ( $self->{query}->param( $name ) );
+		return $value;
+	}
 	
 	# Called in an array context
 	my @result;
