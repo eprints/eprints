@@ -240,10 +240,7 @@ sub can_post
 {
 	my( $self, $user ) = @_;
 
-	# Can post to anything if staff
-	return( 1 ) if( $user->{groups} eq $EPrints::User::access_levels[2] );
-
-	# Otherwise depends on the subject	
+	# Depends on the subject	
 	return( $self->{depositable} eq "TRUE" ? 1 : 0 );
 }
 

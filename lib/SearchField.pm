@@ -557,8 +557,10 @@ sub render_html
 		
 		if( $type eq "subjects" )
 		{
+			# WARNING: passes in {} as a dummy user. May need to change this
+			# if the "postability" algorithm checks user info.
 			( $values, $labels ) = _add_any_option(
-				EPrints::Subject->all_subject_labels( $self->{session} ) );
+				EPrints::Subject->get_postable( $self->{session}, {} ) );
 		}
 		else
 		{
