@@ -22,18 +22,13 @@ use EPrints::SearchExpression;
 
 use strict;
 
-my $action_search    = "Search";
-my $action_reset     = "Reset the form";
-my $action_newsearch = "Start new search";
-my $action_update    = "Update the search";
-
 
 ######################################################################
 #
 # $searchform = new( $session,
 #                    $what,
-#                    $table,
 #                    $allow_blank,
+#                    $table,
 #                    $default_fields,
 #                    $title,
 #                    $preamble,
@@ -45,9 +40,9 @@ my $action_update    = "Update the search";
 #
 #  $what           - if "eprints", the search form will search for eprints.
 #                    if "user",  will search for users.
-#  $table          - the database table to search
 #  $allow_blank    - if the searcher is allowed to leave everything
 #                  - blank and retrieve everything
+#  $table          - the database table to search
 #  $default_fields - which fields to display (MetaField objects)
 #  $title          - title for the form
 #  $preamble       - put at the top of the page.
@@ -118,7 +113,7 @@ sub process
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"
 	#     (i.e. the search is a direct GET from somewhere else)
-	if( ( defined $submit_button && $submit_button eq $action_search ) || 
+	if( ( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_search") ) || 
 	    ( !defined $submit_button &&
 	      $self->{session}->{render}->have_parameters() ) )
 	{
@@ -132,7 +127,9 @@ sub process
 			print $self->{session}->{render}->start_html( $self->{title} );
 			print $self->{preamble};
 
-			print "<p>There's a problem with the form:</p>\n";
+			print "<P>";
+			print $self->{session}->{lang}->phrase( "H:form_problem" );
+			print "</P>";
 			print "<UL>\n";
 			
 			foreach (@$problems)
@@ -153,7 +150,8 @@ sub process
 #EPrints::Log::debug( "SearchForm", $searchexp->to_string() );
 
 			print $self->{session}->{render}->start_html(
-				"Results for ".$self->{title} );
+				$self->{session}->{lang}->phrase( "H:results_for",
+				                                  $self->{title} ) );
 			
 			# Print results
 
@@ -161,7 +159,7 @@ sub process
 			{
 				my @eprints = $searchexp->do_eprint_search();
 				
-				_print_matchcount( scalar @eprints );
+				print _render_matchcount( $self->{session} , scalar @eprints );
 
 
 				foreach (@eprints)
@@ -189,7 +187,7 @@ sub process
 			{
 				my @users = $searchexp->do_user_search();
 				
-				_print_matchcount( scalar @users );
+				print _render_matchcount( $self->{session} , scalar @users );
 
 				foreach (@users)
 				{
@@ -206,7 +204,7 @@ sub process
 			$self->write_hidden_state();
 
 			print $self->{session}->{render}->submit_buttons(
-				[ $action_update, $action_newsearch ] );
+				[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
 			print "</P></CENTER>\n";
 
 			print $self->{session}->{render}->end_form();
@@ -215,8 +213,8 @@ sub process
 			print $self->{session}->{render}->end_html();
 		}
 	}
-	elsif( defined $submit_button && ( $submit_button eq $action_reset || 
-		$submit_button eq $action_newsearch ) )
+	elsif( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
+		$submit_button eq $self->{session}->{lang}->phrase("F:action_newsearch") ) )
 	{
 		# To reset the form, just reset the URL.
 		my $url = $self->{session}->{render}->url();
@@ -224,7 +222,7 @@ sub process
 		$url =~ s/\?.*//;
 		$self->{session}->{render}->redirect( $url );
 	}
-	elsif( defined $submit_button && $submit_button eq $action_update )
+	elsif( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_update") )
 	{
 		$searchexp->from_form();
 
@@ -250,31 +248,33 @@ sub process
 
 ######################################################################
 #
-# _print_matchcount( $count )
+# _render_matchcount( $count )
 #
-#  Prints the number of hits the search resulted in, handling singular/
-#  plural properly.
+#  Renders the number of hits the search resulted in, handling singular/
+#  plural properly into HTML.
 #
 ######################################################################
 
-sub _print_matchcount
+sub _render_matchcount
 {
-	my( $count ) = @_;
-	
-	print "<CENTER><P>Retrieved ";
+	my( $session, $count ) = @_;
+
+	my $code;
 	if( $count==0 )
 	{
-		print "no hits.";
+		$code = "H:no_hits";
 	}
 	elsif( $count==1 )
 	{
-		print "<STRONG>1</STRONG> hit.";
+		$code = "H:one_hit";
 	}
 	else
 	{
-		print "<STRONG>".$count."</STRONG> hits";
+		$code = "H:n_hits";
 	}
-	print "</P></CENTER>\n";
+	return "<CENTER><P>".
+	       $session->{lang}->phrase( $code, "<STRONG>".$count."</STRONG>" ).
+	       "</P></CENTER>";
 }
 
 
@@ -294,8 +294,8 @@ sub render_search_form
 
 	print $searchexp->render_search_form( 1, 1 );
 	print "<CENTER><P>";
-	print $self->{session}->{render}->submit_buttons( [ $action_search,
-		                                                 $action_reset ] );
+	print $self->{session}->{render}->submit_buttons( [ $self->{session}->{lang}->phrase("F:action_search"),
+		                                                 $self->{session}->{lang}->phrase("F:action_reset") ] );
 	print "</P></CENTER>\n";
 
 	print $self->{session}->{render}->end_form();

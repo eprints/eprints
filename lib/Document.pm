@@ -153,8 +153,10 @@ sub create
 		# Some error while making it
 		EPrints::Log::log_entry(
 			"Document",
-			"Error creating directory for EPrint $eprint->{eprintid} format ".
-				"$format: $!" );
+			EPrints::Language::logphrase( "L:error_mkdir",
+			                              $eprint->{eprintid},
+			                              $format,
+			                              $! ) );
 		return( undef );
 	}
 
@@ -283,8 +285,10 @@ sub clone
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			"Error copying from $self->local_path() to ".
-				"$new_doc->local_path(): $!" );
+			EPrints::Language::logphrase( "L:error_cp",
+			                              $self->local_path(),
+				                      $new_doc->local_path(),
+			                              $! ) );
 		return( 0 );
 	}
 
@@ -323,7 +327,10 @@ sub remove
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
 			"Document",
-			"Error removing document $self->{docid} from database: $db_error" );
+			EPrints::Language::logphrase( "L:error_rm",
+			                              $self->{docid},
+			                              $db_error ) );
+		return( 0 );
 	}
 
 	# Remove directory and contents
@@ -334,7 +341,10 @@ sub remove
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			"Error removing document files for $self->{docid}, path $full_path: $!" );
+			EPrints::Language::logphrase( "L:error_rmfiles",
+			                              $self->{docid},
+			                              $full_path,
+			                              $! ) );
 		$success = 0;
 	}
 
@@ -494,7 +504,10 @@ sub remove_file
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			"Error removing file $filename for doc $self->{docid}: $!" );
+			EPrints::Language::logphrase( "L:error_rmfile",
+			                              $filename,
+			                              $self->{docid},
+			                              $! ) );
 	}
 
 	return( $count==1 );
@@ -525,7 +538,10 @@ sub remove_all_files
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			"Error removing doc. files for $self->{docid}, path $full_path: $!" );
+			EPrints::Language::logphrase( "L:error_rmfiles",
+			                              $self->{docid},
+			                              $full_path,
+			                              $! ) );
 		return( 0 );
 	}
 
@@ -808,8 +824,10 @@ sub commit
 	{
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
-			"EPrint",
-			"Error committing Document $self->{docid}: $db_error" );
+			"Document",
+			EPrint::Language::logphrase( "L:error_commit",
+			                             $self->{docid},
+			                             $db_error ) );
 	}
 
 	return( $success );
@@ -889,19 +907,20 @@ sub validate
 
 	if( scalar keys %files ==0 )
 	{
-		push @problems, "You haven't uploaded any files!";
+		push @problems, $self->{session}->{lang}->phrase( "H:no_files" );
 	}
 	elsif( !defined $self->{main} || $self->{main} eq "" )
 	{
 		# No file selected as main!
-		push @problems, "You need to select a file to be shown first.";
+		push @problems, $self->{session}->{lang}->phrase( "H:no_first" );
 	}
 	elsif( $self->{format} eq $EPrints::Document::other &&
 		( !defined $self->{formatdesc} || $self->{formatdesc} eq "" ) )
 	{
 		# No description for an alternative format
-		push @problems, "You need to supply a description of the document ".
-			"format you've updated, e.g. <em>Microsoft Word version 6.0</em>";
+		push @problems, $self->{session}->{lang}->phrase( 
+			"H:no_desc" ,
+			"<EM>".$self->{session}->{lang}->phrase( "H:desc_example" )."</EM>" );
 	}
 		
 	# Site-specific checks

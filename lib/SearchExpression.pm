@@ -223,8 +223,8 @@ sub render_search_form
 			-values=>[ "ALL", "ANY" ],
 			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("H:all"),
-				   "ANY" => $self->{session}->{lang}->phrase("H:any") } );
+			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("F:all"),
+				   "ANY" => $self->{session}->{lang}->phrase("F:any") } );
 		$html .= "<CENTER><P>";
 		$html .= $self->{session}->{lang}->phrase( "H:mustfulfill",
 							   $menu );

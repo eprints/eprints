@@ -138,3 +138,59 @@ F:uploadedit	= Upload/Edit
 F:remove	= Remove
 </file>
 
+
+<file SubjectList.pm>
+L:invalid_tag	= List contains invalid tag $(1)
+</file>
+
+<file Session.pm>
+H:fail_db_connect	= Failed to connect to database
+M:msg_at	= Site maintenance message generated at $(1)
+S:site_admin	= Site Administrator
+</file>
+
+<file SearchForm.pm>
+F:action_search    = Search
+F:action_reset     = Reset the form
+F:action_newsearch = Start new search
+F:action_update    = Update the search
+H:form_problem	= There is a problem with the form:
+H:results_for	= Results for $(1)
+H:no_hits	= Received no hits.
+H:one_hit	= Received $(1) hit.
+H:n_hits	= Received $(1) hits.
+</file>
+
+<file Document.pm>
+L:error_mkdir	= Error creating directory for EPrint $(1) format $(2): $(3)
+L:error_cp	= Error copying from $(1) to $(2): $(3)
+L:error_rm	= Error removing document $(1) from database: $(2)
+L:error_rmfiles	= Error removing document files for $(1), path $(2): $(3)
+L:error_rmfile	= Error removing file $(1) for doc $(2): $(3)
+L:error_commit	= Error committing Document $(1): $(2)
+H:no_files	= You haven't uploaded any files!
+H:no_first	= You need to select a file to be shown first.
+H:no_desc	= You need to supply a description of the document format you've updated, e.g. $(1)
+H:desc_example = Microsoft Word version 6.0
+</file>
+
+<file EPrint.pm>
+S:disklow_sub 	= Warning: Low on disk space
+M:disklow	= The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.
+S:diskout_sub 	= ERROR: Out of Disk Space
+M:diskout	= There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.
+L:mkdir_err	= Failed to create directory $(1): $(2)
+L:doc_rm_err	= Error removing doc $(1): $(2)
+L:file_rm_err	= Error removing files for $(1), path $(2): $(3)
+L:error_commit	= Error committing EPrint $(1): $(2)
+H:no_type	= You haven't selected a type for this EPrint.
+H:invalid_type	= This EPrint doesn't seem to have a valid type.
+H:not_done_field= You haven't filled out the required $(1) field.
+H:invalid_users = The following usernames are not valid: $(1).
+H:least_one_sub	= You need to select at least one subject from the list!
+H:invalid_succ	= EPrint ID in $(1) field is invalid
+H:cant_succ	= You cannot succeed an EPrint that someone else has posted
+H:invalid_id	= EPrint ID in $(1) field is invalid
+H:need_a_format = You need to upload at least one of the following formats:
+L:error_gen_st	= Error generating static page for $(1): $(2)
+</file>

@@ -72,7 +72,7 @@ sub new
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
-		$self->failure( "Failed to connect to database" );
+		$self->failure( $self->{lang}->phrase( "H:fail_db_connect" ) );
 	}
 
 #$self->{starttime} = gmtime( time );
@@ -146,11 +146,12 @@ sub mail_administrator
 {
 	my( $self, $subject, $message ) = @_;
 	
-	my $message_body = "Site maintenance message generated at ".gmtime( time );
+	my $message_body = EPrints::Language::logphrase( "msg_at" ,
+	                                                 gmtime( time ) );
 	$message_body .= "\n\n$message\n";
 
 	EPrints::Mailer::send_mail(
-		"Site Administrator",
+		EPrints::Language::logphrase( "site_admin" ),
 		$EPrintSite::SiteInfo::admin,
 		$subject,
 		$message_body );

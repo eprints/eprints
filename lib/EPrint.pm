@@ -294,9 +294,8 @@ sub _create_directory
 	{
 		# Argh! Running low on disk space overall.
 		$session->mail_administrator(
-			"ERROR: Out of Disk Space",
-			"There are no available partitions with enough disk space to create ".
-				"new EPrints. This needs sorting out urgently." );
+			EPrints::Language::logphrase( "S:diskout_sub" ),
+			EPrints::Language::logphrase( "M:diskout" ) );
 		return( undef );
 	}
 
@@ -304,9 +303,8 @@ sub _create_directory
 	if( $best_free_space < $EPrintSite::SiteInfo::diskspace_warn_threshold )
 	{
 		$session->mail_administrator(
-			"Warning: Low on disk space",
-			"The amount of disk space available for new EPrints has dropped ".
-				"below the site threshold. New disk space will be needed soon." );
+			EPrints::Language::logphrase( "S:disklow_sub" ),
+			EPrints::Language::logphrase( "M:disklow" ) );
 	}
 
 	# For now, just choose first
@@ -340,8 +338,9 @@ sub _create_directory
 	# Error if we couldn't even create one
 	if( $#created == -1 )
 	{
-		EPrints::Log::log_entry( "EPrint",
-		                         "Failed to create directory $full_path: $@" );
+		EPrints::Log::log_entry( 
+			"EPrint",
+			EPrints::Language::logphrase( "L:mkdir_err" , $full_path , $@ ) );
 		return( undef );
 	}
 
@@ -440,8 +439,15 @@ sub remove
 	foreach (@docs)
 	{
 		$success = $success && $_->remove();
-		EPrints::Log::log_entry( "EPrint", "Error removing doc $_->{docid}: $!" )
-			if( !$success );
+		if( !$success )
+		{
+			EPrints::Log::log_entry( 
+				"EPrint", 
+				EPrints::Language::logphrase( 
+					"L:doc_rm_err",
+					$_->{docid},
+					$! ) );
+		}
 	}
 
 	# Now remove the directory
@@ -451,8 +457,11 @@ sub remove
 	{
 		EPrints::Log::log_entry(
 			"EPrint",
-			"Error removing files for $self->{eprint}, path ".$self->local_path().
-				": $!" );
+			EPrints::Language::logphrase( 
+				"L:file_rm_err",
+				$self->{eprint},
+				$self->local_path(),
+				$! ) );
 		$success = 0;
 	}
 
@@ -676,7 +685,10 @@ sub commit
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
 			"EPrint",
-			"Error committing EPrint $self->{eprintid}: $db_error" );
+			EPrints::Language::logphrase( 
+				"error_commit",
+				$self->{eprintid}
+				$db_error" ) );
 	}
 
 	return( $success );
@@ -703,11 +715,11 @@ sub validate_type
 	# configured EPrint types
 	if( !defined $self->{type} || $self->{type} eq "" )
 	{
-		push @problems, "You haven't selected a type for this EPrint.";
+		push @problems, $self->{session}->{lang}->phrase( "H:no_type" );
 	}
 	elsif( !defined EPrints::MetaInfo::get_eprint_type_name( $self->{type} ) )
 	{
-		push @problems, "This EPrint doesn't seem to have a valid type.";
+		push @problems, $self->{session}->{lang}->phrase( "H:invalid_type" );
 	}
 	
 	return( \@problems );
@@ -741,8 +753,9 @@ sub validate_meta
 		if( $field->{required} && ( !defined $self->{$field->{name}} ||
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
-			$problem = 
-				"You haven't filled out the required $field->{displayname} field.";
+			$problem = $self->{session}->{lang}->phrase( 
+				"H:not_done_field" ,
+				$field->{displayname} );
 		}
 		else
 		{
@@ -768,8 +781,9 @@ sub validate_meta
 			}
 			if ( scalar @invalid > 0 )
 			{
-				$problem = "The following usernames are not valid: ".
-				            join(", ",@invalid).".";
+				$problem = $self->{session}->{lang}->phrase(
+						"H:invalid_users",
+				            	join(", ",@invalid) );
 			}
 		}
 
@@ -815,7 +829,8 @@ sub validate_subject
 			if( !defined $self->{$field->{name}} ||
 			    $self->{$field->{name}} eq ":" )
 			{
-				$problem = "You need to select at least one subject from the list!";
+				$problem = $self->{session}->{lang}->phrase(
+						"H:least_one_sub" );
 			}
 		}
 		else
@@ -859,21 +874,28 @@ sub validate_linking
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
 		                                       $EPrints::Database::table_archive,
 		                                       $self->{succeeds} );
-		push @problems,
-			"EPrint ID in $succeeds_field->{displayname} field is invalid"
-				unless( defined( $test_eprint ) );
+		unless( defined( $test_eprint ) )
+		{
+			push @problems, $self->{session}->{lang}->phrase(
+				"H:invalid_succ",	
+				$succeeds_field->{displayname} );
+		}
 
 		if( defined $test_eprint )
 		{
 			# Ensure that the user is authorised to post to this
 			if( $test_eprint->{username} ne $self->{username} )
 			{
-				# Not the same user. Must be certified to do this.
+
+ 				# Not the same user. 
+
+#Must be certified to do this. cjg: Should this be staff only or something???
 #				my $user = new EPrints::User( $self->{session},
 #				                              $self->{username} );
 #				if( !defined $user && $user->{
-				push @problems,
-					"You cannot succeed an EPrint that someone else has posted";
+
+				push @problems, $self->{session}->{lang}->phrase(
+					"H:cant_succ" );
 			}
 		}
 	}
@@ -883,9 +905,12 @@ sub validate_linking
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
 		                                       $EPrints::Database::table_archive,
 		                                       $self->{commentary} );
-		push @problems,
-			"EPrint ID in $commentary_field->{displayname} field is invalid"
-				unless( defined( $test_eprint ) );
+		
+		unless( defined( $test_eprint ) ) { 
+			push @problems, $self->{session}->{lang}->phrase(
+				"H:invalid_id",
+				$commentary_field->{displayname} );
+		}
 
 	}
 	
@@ -1020,8 +1045,8 @@ sub validate_documents
 
 	if( !$ok )
 	{
-		my $prob = 
-			"You need to upload at least one of the following formats:\n<UL>\n";
+		my $prob = $self->{session}->{lang}->phrase( "H:need_a_format" );
+		$prob .= "<UL>\n";
 		foreach (@EPrintSite::SiteInfo::required_formats)
 		{
 			$prob .=
@@ -1328,7 +1353,10 @@ sub generate_static
 	{
 		EPrints::Log::log_entry(
 			"EPrint",
-			"Error generating static page for $self->{eprintid}: $!" );
+			$self->{session}->{lang}->phrase(
+				"L:error_get_st",
+				$self->{eprintid},
+				$! ) );
 		return( 0 );
 	}
 

@@ -126,8 +126,13 @@ sub get_subjects
 		
 		push @subjects, $sub if( defined $sub );
 		
-		EPrints::Log::log_entry( "SubjectList", "List contains invalid tag $_" )
-			unless( defined $sub );
+		unless( defined $sub ) 
+		{
+			EPrints::Log::log_entry( 
+				"SubjectList", 
+		        	EPrints::Language::logphrase( "L:invalid_tag",
+					                       	$_ ) );
+		}
 	}
 	
 	return( @subjects );
