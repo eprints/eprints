@@ -442,59 +442,45 @@ sub make_meta_fields
 #
 # NEW DB DEVEL CODE!!
 
-	
-sub cache
+sub _approx_fastest
+{
+	my ( $a , $b ) = @_;
+}
+
+sub perform_search 
 {
 	my ( $self ) = @_;
 
-	my $first = 1;
-	my $auxcount = 0;
-	my %aux_tables = ();
-	my $where = "";
-	foreach (@{$self->{searchfields}})
+	my @searchon = ();
+	foreach( @{$self->{searchfields}} )
 	{
-		my ( $sql_term , $aux_tables_term ) = $_->get_sql();
-		foreach(keys %{$aux_tables_term}) 
+		if ( defined $_->{value} )
 		{
-			my $auxid = "aux$auxcount";
-			$sql_term =~ s/$_/$auxid/g;
-			$aux_tables{$auxid} = ${$aux_tables_term}{$_};
-			$auxcount++;
-		}
-print STDERR "<TERMS>\n";
-		if( defined $sql_term )
-		{
-print STDERR "* $sql_term\n";
-			$where .= ( $self->{satisfy_all} ? " AND " : " OR " ) unless( $first );
-			$first = 0 if( $first );
-			$where .= "($sql_term)";
+			push @searchon , $_;
 		}
 	}
-print STDERR "</TERMS>\n";
-	$self->{tmptable} = $self->{session}->{database}->cache(
-				$self->{table},
-				\%aux_tables,
-				$where );
+	@searchon = sort { return $a->approx_rows() <=> $b->approx_rows() } 
+		         @searchon;
 
-}
+#EPrints::Log::debug("optimised order:");
 
-sub drop_cache
-{
-	my ( $self ) = @_;
-
-	if ( $self->{tmptable} )
+	my $buffer = undef;
+	foreach( @searchon )
 	{
-		$self->{session}->{database}->drop_cache( $self->{tmptable} );
-	}	
+		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
+		$buffer = $_->do($buffer);
+EPrints::Log::debug("buffer:".$buffer);
+	}
+	$self->{tmptable} = $buffer;
 }
-
+	
 sub count 
 {
 	my ( $self ) = @_;
 
 	if ( $self->{tmptable} )
 	{
-		return $self->{session}->{database}->count_cache( 
+		return $self->{session}->{database}->count_buffer( 
 			$self->{tmptable} );
 	}	
 
@@ -510,7 +496,7 @@ sub get_records
 
 	if ( $self->{tmptable} )
 	{
-		return $self->{session}->{database}->from_cache( 
+		return $self->{session}->{database}->from_buffer( 
 			$self->{table},
 			$self->{tmptable} );
 	}	

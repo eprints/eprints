@@ -16,6 +16,7 @@
 
 package EPrints::Log;
 
+require 'sys/syscall.ph';
 
 ######################################################################
 #
@@ -72,17 +73,18 @@ sub log_entry
 
 sub debug
 {
-	my( $name, $msg ) = @_;
+	my( $msg ) = @_;
 
 	if( $debug )
 	{
+		my @call = caller(1);
 #		if( $name eq "submit" )
 #		{
 #			print "$name - $msg\n";
 #		}
 #		else
 #		{
-		print STDERR "$name: $msg\n";
+		print STDERR ">$call[3]($call[2]):\n$msg\n";
 #		}
 
 #		my $log_filename = "$EPrintSite::SiteInfo::log_path/$name.log";
@@ -160,5 +162,19 @@ sub render_struct
 	return $text;
 }
 
+sub microtime
+{
+	my $TIMEVAL_T = "LL";
+
+	$t = pack($TIMEVAL_T, ());
+
+	syscall( &SYS_gettimeofday, $t, 0) != -1
+		or die "gettimeofday: $!";
+
+	@t = unpack($TIMEVAL_T, $t);
+	$t[1] /= 1_000_000;
+
+	return $t[0]+$t[1];
+}
 		
 1;

@@ -354,6 +354,16 @@ sub make_field
 			}
 		}
 	}
+	
+	# Over-ride index settings [cjg]
+
+	if( $self->{type} ne "pagerange" && 
+	    $self->{type} ne "multitext" &&
+	    $self->{type} ne "multiurl" )
+	{
+		$self->{indexed} = 1;
+	}
+	
 
 	# Sanity checks
 	if( !defined $self->{type} ||

@@ -111,6 +111,9 @@ sub new
 	$self->{table} = $table;
 	$self->{value} = $value;
 
+	$self->process_value();
+
+		
 	if( ref( $field ) eq "ARRAY" )
 	{
 		# Search >1 field
@@ -139,6 +142,20 @@ sub new
 	return( $self );
 }
 
+sub process_value
+{
+	my ( $self ) = @_;
+
+	$self->{value} =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i;
+	$self->{anyall} = uc $1;
+	$self->{match} = uc $2;
+	$self->{string} = $3;
+
+	# Value has changed. Previous benchmarks no longer apply.
+	$self->{benchcache} = {};
+
+	print STDERR "NEW SE ($1)($2)($3) [$self->{value}]\n";
+}
 
 ######################################################################
 #
@@ -465,7 +482,7 @@ sub _get_sql_aux
 	my $auxtable;
 	if ($self->{field}->{multiple}) 
 	{	
-		$auxtable = $self->{table}."aux".$self->{field}->{name};
+		$auxtable = $self->{table}.$EPrints::Database::seperator.$self->{field}->{name};
 	}	
 	my $bit;
 	foreach $bit (@sqlbits)
@@ -869,7 +886,7 @@ sub from_form
 		{
 			if( $val =~ /^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
 			{
-				$self->{value} = $val;
+				$self->{value} = "ANY:EQ:$val";
 			}
 			else
 			{
@@ -882,6 +899,8 @@ sub from_form
 
 #EPrints::Log::debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
 #EPrints::Log::debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
+
+	$self->process_value();
 
 	return( $problem );
 }
@@ -928,5 +947,263 @@ sub _get_search_type
 	
 	return( $search_type, $search_terms );
 }
+
+##########################################################
+# 
+# cjg commentme (all below)
+
+sub get_conditions 
+{
+	my ( $self ) = @_;
+
+	if ( !defined $self->{value} || $self->{value} eq "" )
+	{
+		return undef;
+	}
+
+	if ( $self->{field}->{type} eq "name" )
+	{
+		my @where = ();
+		foreach( split /\s+/ , $self->{string} )
+		{
+			m/^([^,]+)(,(.*))?$/;
+			my ( $family , $given ) = ( $1 , $3 );
+			if ( $self->{match} eq "IN" )
+			{
+				$family .= "\%";
+				if ( defined $given )
+				{
+					$given .= "\%";
+				}
+			}
+			my $s = "__FIELDNAME___family LIKE '$family'";
+			if ( defined $given )
+			{
+				$s = "($s AND __FIELDNAME___given LIKE '$given')";
+			}
+			push @where , $s;
+		}	
+		return( $self->_get_conditions_aux( \@where ) );
+	}
+
+	# year, int
+	#
+	# N
+	# N-
+	# -N
+	# N-N
+
+	if ( $self->{field}->{type} eq "year"
+	  || $self->{field}->{type} eq "int" )
+	{
+		my @where = ();
+		foreach( split /\s+/ , $self->{string} )
+		{
+			my $sql;
+			if( m/^(\d+)?\-(\d+)?$/ )
+			{
+				# Range of numbers
+				if( defined $1 && $1 ne "" )
+				{
+					if( defined $2 && $2 ne "" )
+					{
+						# N-N
+						$sql = "__FIELDNAME__ BETWEEN $1 AND $2";
+					}
+					else
+					{
+						# N-
+						$sql = "__FIELDNAME__ >= $1";
+					}
+				}
+				elsif( defined $2 && $2 ne "" )
+				{
+					# -N
+					$sql = "__FIELDNAME__ <= $2";
+				}
+	
+				# Otherwise, must be invalid
+			}
+			else
+			{
+				$sql = "__FIELDNAME__ = \"$_\"";
+			}
+			push @where, $sql;
+		}
+		return( $self->_get_conditions_aux( \@where ) );
+	}
+
+	#
+	# not exactly done yet...
+	#
+
+	if ( $self->{field}->{type} eq "text" )
+	{
+		my @where = ();
+		foreach( split /\s+/ , $self->{string} )
+		{
+			push @where, "__FIELDNAME__ = '$_'";
+
+		}
+		return( $self->_get_conditions_aux( \@where ) );
+	}
+
+}
+
+sub _get_conditions_aux
+{
+	my ( $self , $wheres ) = @_;
+
+	my $searchtable = $self->{table};
+	if ($self->{field}->{multiple}) 
+	{	
+		$searchtable.= $EPrints::Database::seperator.$self->{field}->{name};
+	}	
+	foreach( @{$wheres} )
+	{
+		s/__FIELDNAME__/M.$self->{field}->{name}/g;
+	}
+
+	if ( $self->{anyall} eq "ANY" ) 
+	{
+		return $searchtable , [ join( " OR " , @{$wheres} ) ];
+	}
+	else
+	{
+		return $searchtable , $wheres;
+	}
+
+}
+
+# cjg comments
+
+sub benchmark
+{
+	my ( $self , $table , $where ) = @_;
+
+        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my $keyfield = $fields[0];
+
+	if ( !defined $self->{benchcache}->{"$table:$where"} )
+	{
+		$self->{benchcache}->{"$table:$where"} = 
+			$self->{session}->{database}->benchmark( 
+				$keyfield,
+				{ "M"=>$table }, 
+				$where );
+		EPrints::Log::debug("cache: $table:$where");
+	}
+	else
+	{
+		EPrints::Log::debug("used cache: $table:$where");
+	}
+	return $self->{benchcache}->{"$table:$where"};
+
+}
+
+sub do
+{
+	my ( $self , $searchbuffer) = @_;
+	
+        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my $keyfield = $fields[0];
+
+	my %minisearches = ();
+	my @tables = ();
+	my $n;
+	if ( defined $self->{multifields} )
+	{
+		foreach( @{$self->{multifields}} ) 
+		{
+			my $sfield = new EPrints::SearchField( 
+				$self->{session},
+				$self->{table},
+				$_,
+				$self->{value} );
+			my ($table,$where) = $sfield->get_conditions();
+			push @tables,$table;
+			$minisearches{$table}=$where;
+		}
+		$n = scalar @{$minisearches{$tables[0]}};
+	}
+	else
+	{
+		my ($table,$where) = $self->get_conditions();
+		$tables[0] = $table;
+		$minisearches{$table} = $where;
+		$n = 1;
+	}
+	print STDERR "($n)\n";
+	my $buffer = $searchbuffer;
+	my $i;
+	for( $i=0 ; $i<$n ; ++$i )
+	{
+		my $first = 1;
+		my @or;
+		foreach( @tables )
+		{
+			print STDERR "$_:$minisearches{$_}->[$i]\n";
+			my $tlist = { "M"=>$_ };
+			if( defined $buffer && $self->{anyall} eq "AND" )
+			{
+				$tlist->{T} = $buffer;
+			}
+			my $newbuffer = $self->{session}->{database}->buffer( 
+				$keyfield,
+				$tlist, 
+				$minisearches{$_}->[$i] );
+			if( $self->{anyall} eq "AND" )
+			{
+				$buffer = $newbuffer;
+			}
+			else
+			{
+				push @or,$newbuffer;
+			}
+			print STDERR "[$newbuffer]\n";
+		}
+		if( $self->{anyall} eq "ANY" )
+		{
+			$buffer = $self->{session}->{database}->any_buffer( 
+				$keyfield,
+				\@or );
+		}
+		print STDERR "-------\n";
+	}
+	return $buffer;
+
+	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
+
+}
+
+sub approx_rows 
+{
+	my ( $self ) = @_;
+
+	my ($table,$where) = $self->get_conditions();
+
+	my $result = undef;
+
+	# Multiple results means AND'ing together
+	
+	foreach( @{$where} )
+	{
+		next if (!defined $_);
+
+		my $rows = $self->benchmark( $table , $_ ); 
+
+EPrints::Log::debug("rows: $rows");
+		if ( !defined $result )
+		{
+			$result = $rows;
+			next;
+		}
+		$result = $rows if ( $rows < $result ) ;
+			
+	}
+EPrints::Log::debug("approx_rows: $result");
+	return $result;
+}
+
 
 1;

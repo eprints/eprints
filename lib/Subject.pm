@@ -179,9 +179,8 @@ sub children
 			"parent" ),
 		"ALL:EQ:$self->{subjectid}" );
 
-	my $searchid = $searchexp->cache();
+	my $searchid = $searchexp->perform_search();
 	my @rows = $searchexp->get_records();
-	$searchexp->drop_cache();
 
 	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 
@@ -534,9 +533,8 @@ sub posted_eprints
 		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
-	my $searchid = $searchexp->cache();
+	my $searchid = $searchexp->perform_search();
 	my @data = $searchexp->get_records();
-	$searchexp->drop_cache();
 
 	return @data;
 }
@@ -565,9 +563,8 @@ sub count_eprints
 		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
-	my $searchid = $searchexp->cache();
+	my $searchid = $searchexp->perform_search();
 	my $count = $searchexp->count();
-	$searchexp->drop_cache();
 
 	return $count;
 

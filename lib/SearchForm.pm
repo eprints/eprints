@@ -20,6 +20,7 @@ use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
 
+
 use strict;
 
 
@@ -157,14 +158,17 @@ sub process
 
 			if( $self->{what} eq "eprints" )
 			{
-
-				my $searchid = $searchexp->cache();
+				my $t1 = EPrints::Log::microtime();
+				my $searchid = $searchexp->perform_search();
+				my $t2 = EPrints::Log::microtime();
 				my @eprints = $searchexp->get_records();
-				$searchexp->drop_cache();
+				my $t3 = EPrints::Log::microtime();
 
 				print _render_matchcount( $self->{session} , scalar @eprints );
+printf("<P>cachetime: <B>%.4f</B></P>",($t2-$t1));
+printf("<P>gettime: <B>%.4f</B></P>",($t3-$t2));
 
-
+				
 				foreach (@eprints)
 				{
 					if( $self->{staff} )

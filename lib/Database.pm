@@ -61,6 +61,12 @@ $EPrints::Database::table_deletion = "deletions";
 @EPrints::Database::counters = ( "eprintid" );
 
 #
+# Seperator - used to join parts of the name of a table
+#
+$EPrints::Database::seperator = "_";
+
+
+#
 # Map of EPrints data types to MySQL types. keys %datatypes will give
 #  a list of the types supported by the system.
 #
@@ -112,8 +118,8 @@ $EPrints::Database::table_deletion = "deletions";
 	"name"       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
-# set, subjects, name and username can all be multiple which requires
-# a seperate table.
+
+$EPrints::Database::nextbuffer = 0;
 
 ######################################################################
 #
@@ -168,6 +174,8 @@ sub new
 	                             { PrintError => 1, AutoCommit => 1 } );
 
 #	                             { PrintError => 0, AutoCommit => 1 } );
+
+print STDERR "($self->{dbh})\n";
 
 	if( !defined $self->{dbh} )
 	{
@@ -335,7 +343,8 @@ sub _create_table_aux
 				"pos:int:0:Postion:1:0:0:0" );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $auxresult = $self->_create_table_aux(	
-				$name."aux".$field->{name},
+				$name.$EPrints::Database::seperator.
+					$field->{name},
 				0, # no primary key
 				@auxfields );
 			unless ( $auxresult )
@@ -746,9 +755,6 @@ sub counter_next
 #
 # $cacheid = create_cache( $keyname )
 #
-#  perform a search and store the keys of the results in
-#  a cache tmp table.
-#
 ######################################################################
 
 sub create_cache
@@ -778,38 +784,95 @@ sub create_cache
 	$self->do( $sql );
 	
 	return $tmptable;
+}
 
+
+
+sub create_buffer
+{
+	my ( $self , $keyname ) = @_;
+
+#EPrints::Log::debug( "Database", "SQL:$sql" );
+
+	my $tmptable = "searchbuffer".
+		($EPrints::Database::nextbuffer++);
+
+        my $sql = "CREATE TEMPORARY TABLE $tmptable ".
+	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
+
+	$self->do( $sql );
+	
+	return $tmptable;
 }
 
 
 ######################################################################
 #
-# $cacheid = cache( $table, $auxtables{}, $conditions)
+# $buffer = buffer( $table, $auxtables{}, $conditions)
 #
 #  perform a search and store the keys of the results in
-#  a cache tmp table.
+#  a buffer tmp table.
 #
 ######################################################################
 
-sub cache
+sub _make_select
 {
-	my( $self, $table, $aux_tables, $conditions ) = @_;
-
-	my @fields = EPrints::MetaInfo::get_fields( $table );
-	my $keyfield = $fields[0];
-
-	my $sql= "SELECT DISTINCT $table.$keyfield->{name} FROM $table";
-	foreach ( keys %{$aux_tables} )
+	my( $self, $keyfield, $tables, $conditions ) = @_;
+	
+	my $sql= "SELECT ".((keys %{$tables})[0]).".$keyfield->{name} FROM ";
+	my $first = 1;
+	foreach( keys %{$tables} )
 	{
-		$sql .= " INNER JOIN ${$aux_tables}{$_} AS $_";
-		$sql .= " USING ($keyfield->{name})";
+		$sql .= " INNER JOIN " unless( $first );
+		$sql .= "${$tables}{$_} AS $_";
+		$sql .= " USING ($keyfield->{name})" unless( $first );
+		$first = 0;
 	}
 	$sql .= " WHERE $conditions";
 
-	my $tmptable = $self->create_cache( $keyfield->{name} );
+	return $sql;
+}
+
+sub any_buffer
+{
+	my( $self, $keyfield, $tables , $keep ) = @_;
+
+	my $tmptable;
+	if( $keep )
+	{
+		$tmptable = $self->create_cache( $keyfield->{name} );
+	}
+	else
+	{
+		$tmptable = $self->create_buffer( $keyfield->{name} );
+	}
+
+	foreach( @{$tables} )
+	{
+		my $sql = $self->_make_select( $keyfield, {"T"=>$_}, "" );
+		$self->do( "INSERT INTO $tmptable $sql" );
+	}
+
+	return( $tmptable );
+}
+
+sub buffer
+{
+	my( $self, $keyfield, $tables, $conditions , $keep ) = @_;
+
+	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
+
+	my $tmptable;
+	if( $keep )
+	{
+		$tmptable = $self->create_cache( $keyfield->{name} );
+	}
+	else
+	{
+		$tmptable = $self->create_buffer( $keyfield->{name} );
+	}
 
 	$self->do( "INSERT INTO $tmptable $sql" );
-
 
 	return( $tmptable );
 }
@@ -844,11 +907,11 @@ sub drop_cache
 
 }
 
-sub count_cache
+sub count_buffer
 {
-	my ( $self , $cache ) = @_;
+	my ( $self , $buffer ) = @_;
 
-	my $sql = "SELECT COUNT(*) FROM $cache";
+	my $sql = "SELECT COUNT(*) FROM $buffer";
 
 #EPrints::Log::debug( "Database", "SQL:$sql" );
 
@@ -859,10 +922,10 @@ sub count_cache
 	return $count;
 }
 
-sub from_cache 
+sub from_buffer 
 {
-	my ( $self , $table , $cache ) = @_;
-	return $self->_get( $table, 1 , $cache );
+	my ( $self , $table , $buffer ) = @_;
+	return $self->_get( $table, 1 , $buffer );
 }
 
 sub get_single
@@ -882,7 +945,7 @@ sub _get
 	my ( $self , $table , $mode , $param ) = @_;
 
 	# mode 0 = one or none entries from a given primary key
-	# mode 1 = many entries from a cache table
+	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
 	my @fields = EPrints::MetaInfo::get_fields( $table );
@@ -975,20 +1038,20 @@ sub _get
 		if ( $mode == 0 )	
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table."aux$multifield->{name} AS M ";
+			$sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=\"$param\"";
 		}
 		elsif ( $mode == 1)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
-		        $sql.= $table."aux$multifield->{name} AS M ";
+		        $sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
 		}	
 		elsif ( $mode == 2)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table."aux$multifield->{name} AS M";
+			$sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -1052,7 +1115,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-EPrints::Log::debug( "Database", "$sql" );
+EPrints::Log::debug( $sql );
 
 	return $result;
 }
@@ -1069,7 +1132,7 @@ sub prepare
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "Database", "$sql" );
+#EPrints::Log::debug( $sql );
 
 	return $result;
 }
@@ -1086,9 +1149,25 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "Database", "$sql" );
+EPrints::Log::debug( $sql );
 
 	return $result;
 }
+
+sub benchmark
+{
+	my ( $self , $keyfield , $tables , $where ) = @_;
+
+	my $sql = $self->_make_select( $keyfield, $tables, $where );
+
+	$sql= "EXPLAIN $sql";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my @info = $sth->fetchrow_array;
+
+	return $info[6];
+
+}	
 
 1; # For use/require success

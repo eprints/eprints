@@ -928,9 +928,8 @@ sub get_all_documents
 			"eprintid" ),
 		"ALL:EQ:$self->{eprintid}" );
 
-	my $searchid = $searchexp->cache();
+	my $searchid = $searchexp->perform_search();
 	my @documents = $searchexp->get_records();
-	$searchexp->drop_cache();
 
 	return( @documents );
 }
@@ -1431,9 +1430,8 @@ sub later_in_thread
 
 #cjg		[ "datestamp DESC" ] ) );
 
-	my $searchid = $searchexp->cache();
+	my $searchid = $searchexp->perform_search();
 	my @eprints = $searchexp->get_records();
-	$searchexp->drop_cache();
 
 	return @eprints;
 
