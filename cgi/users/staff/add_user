@@ -22,6 +22,9 @@ use strict;
 
 my $session = new EPrints::Session;
 
+# Check the permissions
+
+
 my $username_field = new EPrints::MetaField( "username:text::User ID:0:1:1" );
 
 

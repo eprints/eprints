@@ -17,17 +17,36 @@ use EPrints::HTMLRender;
 
 my $session = new EPrints::Session;
 
-my $userid = $session->{render}->param( "username" );
+process( $session );
 
-if( defined $userid )
+$session->terminate();
+
+sub process
 {
-	my $user = new EPrints::User( $session, $userid );
+	my( $session ) = @_;
 
-	if( defined $user )
+	my $username = $session->param( "username" );
+
+	if( defined $username )
 	{
-		print $session->{render}->start_html( "User record for ".$user->full_name() );
+		$session->render_error( $session->html_phrase( 
+				"cgi/users/view_user:no_user" ) );
+		return;
+	}
 
-		print $session->{render}->render_user( $user, 0 );
+	my $user = EPrints::User::user_with_username( $session, $username );
+
+	if( !defined $user )
+	{
+		$session->render_error( $session->html_phrase( 
+				"cgi/users/view_user:unknown_user" ) );
+		return;
+	}
+
+
+
+######
+	print $session->{render}->render_user( $user, 0 );
 
 		print "<HR>\n";
 
@@ -49,27 +68,100 @@ if( defined $userid )
 		print $session->{render}->submit_buttons( [ "Edit User",
 		                                            "Delete User" ] );
 		print "</P></CENTER>\n";
-		print $session->{render}->end_form();
+
+######
+
+	$session->build_page(
+		$session->phrase( "cgi/users/view_user:title",
+				name=>$user->full_name() ), 
+		$page );
+	$session->send_page();
 
 
-		print $session->{render}->end_html();
-	}
-	else
-	{
-#cjg not dom not lang
-		print $session->render_error(
-			"Unknown user",
-			$session->get_archive()->get_conf( "server_static ")."/staff/",
-			"Return to staff home" );
-	}
-}
-else
-{
-#cjg not dom not lang
-	print $session->render_error(
-		"No user specified!",
-		$session->get_archive()->get_conf( "server_static" )."/staff/",
-		"Return to staff home" );
-}
 
-$session->terminate();
+#######################################################################
+##
+##  EPrints Submission Staff Control Page
+##
+#######################################################################
+##
+##  __LICENSE__
+##
+#######################################################################
+#
+#use EPrints::EPrint;
+#use EPrints::HTMLRender;
+#use EPrints::Database;
+#use EPrints::Session;
+#use EPrints::User;
+#
+#use strict;
+#
+#
+#my $session = EPrints::Session->new();
+#
+## Check we have privs
+#if( !$session->auth_check( "editor" ) )
+#{
+#	$session->terminate();
+#	Apache::exit( 0 );
+#}
+#
+#my $eprintid = $session->param( "eprintid" );
+#
+#if( !defined $eprintid || $eprintid eq "" )
+#{
+#	$session->render_error( 
+#		$session->html_phrase( "cgi/users/view_submission:not_directly" ),
+#		"buffer" );
+#	$session->terminate();
+#	exit;
+#}
+#
+#
+#my $eprint = new EPrints::EPrint( 
+#		$session,
+#		$session->get_archive()->get_dataset( "buffer" ),
+#		$eprintid );
+#
+#if( !defined $eprint )
+#{
+#	$session->render_error( 
+#		$session->html_phrase( "cgi/users/view_submission:no_eprint",
+#			eprintid => $session->make_text( $eprintid ) ) );
+#	$session->terminate();
+#	exit;
+#}
+#
+#my( $page, $form );
+#
+#$page = $session->make_doc_fragment();
+#
+#$page->appendChild( $eprint->render_full_details() );
+#
+#$page->appendChild( $session->render_ruler() );
+#
+#$form = $session->render_form( "post", "edit_submission" );
+#$page->appendChild( $form );
+#
+#$form->appendChild( $session->render_hidden_field(
+#			"eprintid",
+#			$eprint->get_value( "eprintid" ) ) );
+#	
+#$form->appendChild( $session->render_action_buttons(
+#	"accept" => $session->phrase( 
+#			"cgi/users/view_submission:action_accept" ),
+#	"edit" => $session->phrase( 
+#			"cgi/users/view_submission:action_edit" ),
+#	"bounce" => $session->phrase( 
+#			"cgi/users/view_submission:action_bounce" ),
+#	"delete" => $session->phrase( 
+#			"cgi/users/view_submission:action_delete" ) ) );
+#
+#$page->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
+#
+#$session->build_page(
+#	$session->phrase( "cgi/users/view_submission:title" ), 
+#	$page );
+#$session->send_page();
+#

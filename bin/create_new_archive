@@ -32,6 +32,7 @@ my $MYSQL = "/usr/local/bin/mysql";
 
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
+my $REGEXP_EMAIL = '^[^@]+@'.$REGEXP_HOSTNAME_MIDDLE.'$';
 my $REGEXP_HOSTNAME_FULL = '^[a-z0-9]+(\.[a-z0-9]+)+$';
 my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
@@ -89,6 +90,8 @@ else
 	$config{dbsock} = undef;
 	$config{dbuser} = "eprints";
 	$config{dbpass} = undef;
+	$config{adminemail} = undef;
+	$config{archivename} = {};
 }
 
 
@@ -213,27 +216,40 @@ for(;;)
 #
 #Language Configuration
 #
-#Please enter the primary language and other supported languages for the archive. 
-#Supporting other languages represents a serious commitment to translate all the phrases
-#and templates etc. into each of these other languages.
+#Please enter the primary language and other supported languages for the 
+#archive. Supporting other languages represents a serious commitment to 
+#translate all the phrases and templates etc. into each of these other 
+#languages.
 #
 #Available languages: (please use the ID to refer to them)
 #END
 #my @langs = EPrints::Config::get_supported_languages();
 #foreach( @langs )
 #{
-	#my $title = utf8("");
-	#$title->utf8( "".EPrints::Config::lang_title( $_ ) );
-	#print $_." - ".($title->latin1)."\n";
+#	my $title = utf8("");
+#	$title->utf8( "".EPrints::Config::lang_title( $_ ) );
+#	print $_." - ".($title->latin1)."\n";
 #}
 #print <<END;
 #
-#If you plan to add support for another language, you will need to edit the languages.xml 
-#file to indicate that this language is supported, and create the relevant phrase and
-#template files. 
+#If you plan to add support for another language, you will need to edit the 
+#languages.xml file to indicate that this language is supported, and create 
+#the relevant phrase and template files. 
 #
 #END
 
+print "\n";
+
+$config{adminemail} = get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
+print <<END;
+
+Enter the name of the archive in the default language. If you wish to enter 
+other titles for other languages or enter non ascii characters then you may
+enter something as a placeholder and edit the XML config file which this
+script generates.
+
+END
+$config{archivename}->{$config{defaultlanguage}} = get_input( '^.+$', 'Archive Name',  $config{archivename}->{$config{defaultlanguage}} );
 
 print <<END;
 
@@ -335,7 +351,7 @@ my $doc = new EPrints::DOM::Document();
 my $doctype = $doc->createDocumentType( "archive" );
 $doc->setDoctype( $doctype );
 
-my $xmldecl = $doc->createXMLDecl( "1.0", "iso-8859-1", "yes" );
+my $xmldecl = $doc->createXMLDecl( "1.0", "utf-8", "yes" );
 $doc->setXMLDecl( $xmldecl );
 
 my $t_archive = $doc->createElement( "archive" );
@@ -352,11 +368,15 @@ foreach( @{$config{languages}} )
 	$t_archive->appendChild( info_tag( $doc, "language", $_) );
 }
 foreach( "port", "urlpath", "archiveroot", "configmodule",
-	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass", "defaultlanguage" )
+	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass", 
+	"defaultlanguage", "adminemail" )
 {
 	$config{$_}='' if( !defined $config{$_} );
-print $_.": $config{$_}\n";
 	$t_archive->appendChild( info_tag( $doc, $_, $config{$_} ) );
+}
+foreach( keys %{$config{archivename}} )
+{
+	$t_archive->appendChild( info_tag( $doc, "archivename", $config{archivename}->{$_}, language=>$_ ) );
 }
 $t_archive->appendChild( $doc->createTextNode( "\n" ) );
 

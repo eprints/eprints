@@ -119,8 +119,10 @@ while( $file = readdir( CFG ) )
 	foreach( keys %SYSTEMCONF ) { $ainfo->{$_} = $SYSTEMCONF{$_}; }
 	my $tagname;
 	foreach $tagname ( 
-			"host", "urlpath", "configmodule", "port", "archiveroot",
-	 		"dbname","dbhost","dbport","dbsock","dbuser","dbpass","defaultlanguage" )
+			"host", "urlpath", "configmodule", "port", 
+			"archiveroot", "dbname", "dbhost", "dbport",
+			"dbsock", "dbuser", "dbpass", "defaultlanguage",
+			"adminemail" )
 	{
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
 		if( !defined $tag )
@@ -149,6 +151,7 @@ while( $file = readdir( CFG ) )
 		$alias->{name} = $val; 
 		$alias->{redirect} = ( $tag->getAttribute( "redirect" ) eq "yes" );
 		push @{$ainfo->{aliases}},$alias;
+		$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 	}
 	$ainfo->{languages} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "language" ) )
@@ -157,7 +160,13 @@ while( $file = readdir( CFG ) )
 		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
 		push @{$ainfo->{languages}},$val;
 	}
-	$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
+	foreach $tag ( $conf_tag->getElementsByTagName( "archivename" ) )
+	{
+		my $val = "";
+		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		my $langid = $tag->getAttribute( "language" );
+		$ainfo->{archivename}->{$langid} = $val;
+	}
 	$ARCHIVES{$id} = $ainfo;
 }
 closedir( CFG );

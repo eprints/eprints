@@ -32,9 +32,6 @@ use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
-## no 'commentary'
-## no 'laterversionof'
-
 
 ## WP1: BAD
 sub get_conf
@@ -55,15 +52,8 @@ sub get_conf
 #
 ######################################################################
 
-$c->{archivename}->{en} = latin1( "Lêmur Prints" );
-$c->{archivename}->{fr} = latin1( "l'eprints" );
- 
-# E-mail address for human-read administration mail
-$c->{adminemail} = "cjg";
-
 # Stem for local ID codes. This gets prepended to all eprint ids.
 $c->{eprint_id_stem} = "zook";
-
 
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
@@ -181,7 +171,6 @@ $c->{diskspace_warn_threshold} = 512000;
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
 
 $c->{oai_archive_id} = "GenericEPrints";
-
 
 # Exported metadata formats. The hash should map format ids to namespaces.
 $c->{oai_metadata_formats} =
@@ -327,7 +316,7 @@ my $ENCRYPTED_DBI = {
 #
 # If you change this, you should probably change the user
 # automatic field generator (lower down this file) too.
-$c->{default_user_type} = "admin";
+$c->{default_user_type} = "user";
 
 #cjg = no default user type = no web signup???
 
@@ -336,6 +325,7 @@ $c->{default_user_type} = "admin";
 #view-status
 #editor
 #set-password
+#staff-view -> view & search users & eprints in staff mode.
  
  
 $c->{userauth} = {
@@ -344,10 +334,10 @@ $c->{userauth} = {
 		priv  =>  [ "user", "subscription", "set-password" ] },
 	editor => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password" ] },
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "staff-view" ] },
 	admin => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject" ] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject", "staff-view" ] }
 };
 
 
@@ -361,7 +351,7 @@ $c->{userauth} = {
 $c->{archivefields}->{document} = [
 	{ name => "citeinfo", type => "longtext", multiple => 1 }
 ];
-#cjg what does required actually do??
+
 $c->{archivefields}->{user} = [
 
 	{ name => "name", type => "name" },
@@ -436,7 +426,8 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", multilang => 1, requiredlangs=>["fr"], hasid=>1 },
+	{ name => "title", type => "text", multilang => 1, 
+		requiredlangs=>["fr"], hasid=>1 },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
@@ -498,8 +489,6 @@ $c->{subscription_fields} =
 	"ispublished"
 ];
 
-
-
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
@@ -514,7 +503,11 @@ $c->{order_methods}->{eprint} =
 $c->{default_order}->{eprint} = "byname";
 
 # How to order the articles in a "browse by subject" view.
-$c->{subject_view_order} = \&eprint_cmp_by_author;
+$c->{view_order} = \&eprint_cmp_by_author;
+
+#####
+##### This is the point from which chaos reigns
+##### but it will be made better. Later...
 
 # Fields for a staff user search.
 $c->{user_search_fields} =

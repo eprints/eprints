@@ -35,43 +35,47 @@
 4	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 -	Skippable Stages in SubmissionForm, and multiple page metadata form.
-2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
+3	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 -	Phrasify Option Fields
 -	Editor Pages -approve,bounce,edit etc.
 -	Mailer (Unicode friendly?)
-2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
-0	Password Encryption. (Via callback)
 - 	Super all-singing/dancing etc. Subject Editor
-3	From Form needs to do some trimming.
-0	Don't validate records with fields which have bad langids
 -	Numeric fields (not prefix'd)
-0	Move as much as possible of config into XML conf file.
+-	Move as much as possible of config into XML conf file.
 -	Views (and searches?) with JUST results - no wrapper. For including in other pages.
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
-1	Staff EPrint Edit
-0	Staff User Edit/Create
-0	ROADMAP item which disappears when done?
-0	PDF Mollycoddler
-0	Make all possible field-types browseable.
-0	More opts for fields: freetext/idrequired etc.
+#	Fix "upload then back" bug
+#	Default Action when buttons pushed
+#	Fix Buttons on search results page.
+#	Clean up validators - Don't validate records with fields which have bad langids
+#	Staff EPrint Edit
+#	Threads rendering code.
+#	Staff User Edit/Create
+#	Delete records function.
+#	home needs 'items in archive' link.
+#	Make all possible field-types browseable.
+
+0	Password Encryption. (Via callback)
+2	Autodetect optional system features: microtime, df etc.
+0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
+0	Field property: freetext (or not-freetext) to stop indexing)
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 0	Option to hide Honourific and/or Lineage.
 0	Commentary summary page (Psycoloquy style)
-0	Multiple Skins (So we can make a subset of papers appear on a different site). Maybe this is just a clever script.
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 4	Create a Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
-0	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
+#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 -	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0 	Metadata approve page in Submission Form for Admin Conf'd comments
 1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
-2	Default Values for metadata
+-	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
 0	"secret" field should never have a default set, but no value should not erase previous value.
 0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
@@ -89,7 +93,6 @@
 0	Search of User DB
 0	Staff Eprint & User searches
 0	XML 1.1 Support(?)
-0	Staff Eprint & User edit
 1	OAI support working.
 1	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
 0	Taint all code to force sanity checking of all data
@@ -100,7 +103,7 @@
 0	remove all #cjg comments which denote issues.
 0	Multipage search (cache code)
 0	Multipage views
-0	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
+-	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 0	Other output charsets than UTF-8?
 1	XML Importer
 0	Improve name search syntax (?)
@@ -132,8 +135,65 @@
 1	Beer
 0	Peer Review
 0	Mirroring
-0	OAI Sets for users/sets etc as well as subjects
 0	Citation Scanning
 0	"People who read this eprint also read..."
 0	OpenURL support (?)
 
+
+
+# Files what do something: 
+# . = not touched
+# * = getting there
+# - = "perfect"
+# 46 files.
+
+# bin/create_databases			*
+# bin/create_user			*
+# bin/erase_archive			*
+# bin/generate_abstracts		*
+# bin/generate_static			*
+# bin/generate_views			*
+# bin/list_user_emails			.
+# bin/generate_dtd			*
+# bin/rebuild_sets			.
+# bin/subs_daily			.
+# bin/subs_monthly			.
+# bin/subs_weekly			.
+# bin/update_htaccess			*
+# bin/update_laf			 ?
+# bin/import_xml			*
+# bin/startup.pl			*
+# bin/generate_apacheconf		*
+# bin/create_new_archive		*
+
+# cgi/set_password			*
+# cgi/advsearch				*
+# cgi/handle_404			.
+# NEED: cgi/handle_403
+# cgi/oai				.
+# cgi/remind				 ?
+# cgi/search				*
+# cgi/user				.
+# cgi/user_eprints			.
+# cgi/view_eprint			.
+# cgi/confirm				*
+# cgi/setlang				*
+
+# cgi/users/tester			 ?
+# cgi/users/home			*
+# cgi/users/record			*
+# cgi/users/review			.
+# cgi/users/submit			*
+# cgi/users/subscribe			.
+# cgi/users/status			*
+
+# cgi/users/staff/add_user		.
+# cgi/users/staff/buffer		*
+# cgi/users/staff/edit_eprint		*
+# cgi/users/staff/edit_submission	*
+# cgi/users/staff/edit_user		.
+# cgi/users/staff/eprint_search		*
+# cgi/users/staff/user_search		.
+# cgi/users/staff/view_submission	*
+# cgi/users/staff/view_user		.
+# cgi/users/staff/edit_subject		*

@@ -125,14 +125,17 @@ my $tools = [
 		page=>"staff/buffer",
 		priv=>"editor"
 	},
+	### Staff EPrints Search
+	{
+		page=>"staff/eprint_search",
+		priv=>"staff-view"
+	},
 	### Use the Subject Edit Tool
 	{
 		page=>"staff/edit_subject",
 		priv=>"edit-subject"
 	}
 ];
-# Staff Eprint Search
-# Subject Editor
 # Add a User Record
 # Search User Records
 
@@ -151,7 +154,6 @@ foreach	$tool (@{$tools})
 	$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
 	$dl->appendChild( $dd );
 }
-
 
 $page->appendChild( $dl );
 
@@ -269,7 +271,6 @@ sub render_workspace
 #
 ######################################################################
 
-#cjg NOT DONE
 sub render_pending
 {
 	my( $session, $user ) = @_;

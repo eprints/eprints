@@ -756,7 +756,6 @@ sub render_subject_desc
 #  which should take the user somewhere sensible.
 #
 
-## WP1: GOOD
 sub render_error
 {
 	my( $self, $error_text, $back_to, $back_to_text ) = @_;

@@ -278,7 +278,7 @@ sub tags_and_labels
 	my %labels = ();
 	foreach( @{$self->{options}} )
 	{
-		$labels{$_} = $self->display_option( $_ );
+		$labels{$_} = $self->display_option( $session, $_ );
 	}
 	return ($self->{options}, \%labels);
 }

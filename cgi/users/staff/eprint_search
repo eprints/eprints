@@ -13,37 +13,32 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
-use EPrints::EPrint;
-use EPrints::SearchField;
 use EPrints::SearchExpression;
-use EPrints::SearchForm;
-use EPrints::MetaInfo;
 
 use strict;
 
 my $session = new EPrints::Session;
 
-my @search_fields = ( "eprintid", "username", "dir" );
+# Check we have privs
+if( !$session->auth_check( "staff-view" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my $user = $session->current_user();
+my @search_fields = ( "eprintid", "userid", "dir" );
 push @search_fields, @{$session->get_archive()->get_conf( "advanced_search_fields" )};
 
-my @metafields = EPrints::SearchExpression::make_meta_fields(
-	$session,
-	"eprint",
-	\@search_fields );
+my $searchexp = new EPrints::SearchExpression(
+	session => $session,
+	dataset => $session->get_archive()->get_dataset( "archive" ),
+	fieldnames => \@search_fields );
 
-my $searchform = new EPrints::SearchForm(
-	$session,
-	"eprint",
-	1,
-	"archive",
-	\@metafields,
-	"Staff EPrint Search",
-	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
-		" blank. <A HREF=\"".$session->get_archive()->get_conf( "server_static ")."/staff/\">".
-		"Click here to return to the staff page.</A></P></CENTER>",
-	1 );
+my $preamble = $session->html_phrase( "cgi/users/eprint_search:preamble" );
 
-$searchform->process();
+my $title = $session->phrase( "cgi/users/eprint_search:title" );
+
+$searchexp->process_webpage( $title, $preamble );
 
 $session->terminate();

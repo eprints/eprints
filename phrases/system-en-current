@@ -376,6 +376,22 @@ User Area CGI Scripts
     <phrase ref="cgi/users/edit_subject:problems"><h2>Problems</h2></phrase>
     <phrase ref="cgi/users/edit_subject:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</phrase>
 
+<!--********************************************************************** 
+Staff CGI Scripts
+***********************************************************************-->
+
+<!-- eprint_search -->
+
+    <phrase ref="cgi/users/eprint_search:title">Staff EPrint Search</phrase>
+    <phrase ref="cgi/users/eprint_search:preamble"><p>Don't panic! Just leave the fields you don't want to search blank.</p></phrase>
+
+<!-- view_user -->
+
+    <phrase ref="cgi/users/view_user:no_user">No user specified!</phrase>
+    <phrase ref="cgi/users/view_user:unknown_user">Unknown user.</phrase>
+    <phrase ref="cgi/users/view_user:title">User record for <pin ref="name" /></phrase>
+
+
 
 <!--********************************************************************** 
 Public CGI Scripts
