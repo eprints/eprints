@@ -21,8 +21,6 @@ use EPrints::Session;
 use EPrints::EPrint;
 use EPrints::Database;
 use EPrints::Language;
-#cjg Clear cache, for before perform for searches which must be NOW
-#AND cached.:w
 
 use strict;
 # order method not presercved.
@@ -73,9 +71,6 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-#print STDERR "k:[".join(",",keys %data)."]\n";
-#print STDERR "SE1:[".$data{dataset}."]\n";
-#print STDERR "SE2:[".$data{dataset}->confid()."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
@@ -152,6 +147,8 @@ sub add_field
 {
 	my( $self, $field, $value ) = @_;
 
+	#field may be a field OR a ref to an array of fields
+
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
 	                                            $self->{dataset},
@@ -173,6 +170,12 @@ sub add_field
 	}
 }
 
+sub get_searchfield
+{
+	my( $self, $formname ) = @_;
+	
+	return $self->{searchfieldmap}->{$formname};
+}
 
 ######################################################################
 #
@@ -222,8 +225,6 @@ sub render_search_form
 		$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
-		# cjg HMMM. This needs some sortings out 
-		# It's not rendered from phrases so not INTL
 		$div->appendChild( $self->{session}->make_text( 
 					$sf->get_display_name ) );
 		$form->appendChild( $div );
@@ -241,7 +242,7 @@ sub render_search_form
 		$div = $self->{session}->make_element( 
 			"div" , 
 			class => "searchfieldinput" );
-		$form->appendChild( $sf->to_html() );
+		$form->appendChild( $sf->render() );
 	}
 
 	my $menu;
@@ -310,6 +311,18 @@ sub render_search_form
 #
 ######################################################################
 
+sub get_order
+{
+	my( $self ) = @_;
+	return $self->{order};
+}
+
+sub get_satisfy_all
+{
+	my( $self ) = @_;
+	return $self->{satisfy_all};
+}
+
 ## WP1: BAD
 sub from_form
 {
@@ -318,7 +331,19 @@ sub from_form
 	my $exp = $self->{session}->param( "_exp" );
 	if( defined $exp )
 	{
-		$self->_unserialise_aux( $exp );
+		my $fromexp = EPrints::SearchExpression->unserialise( $self->{session}, $exp );
+		$self->{order} = $fromexp->get_order();
+		$self->{satisfy_all} = $fromexp->get_satisfy_all();
+		my $search_field;
+		foreach $search_field ( @{$self->{searchfields}} )
+		{
+			my $formname = $search_field->get_form_name();
+			my $sf = $fromexp->get_searchfield( $formname );
+			if( defined $sf )
+			{
+				$self->add_field( $sf->get_fields() , $sf->get_value() );
+			}
+		}
 		return;
 	}
 
@@ -410,14 +435,15 @@ sub _unserialise_aux
 	my( $self, $string ) = @_;
 
 	my( $pstring , $fstring ) = split /\|-\|/ , $string ;
-	
+
 	my @parts = split( /\|/ , $pstring );
 	$self->{allow_blank} = $parts[0];
 	$self->{satisfy_all} = $parts[1];
 	$self->{order} = $parts[2];
 	$self->{dataset} = $self->{session}->get_archive()->get_dataset( $parts[3] );
+	$self->{searchfields} = [];
+	$self->{searchfieldmap} = {};
 #######
-	print STDERR "Dataset: $parts[3]\n";
 	foreach( split /\|/ , $fstring )
 	{
 		my $searchfield = EPrints::SearchField->unserialise(
@@ -517,9 +543,6 @@ sub dispose
 	my( $self ) = @_;
 
 	#my $sstring = $self->serialise();
-	#print STDERR "Disposing:\n$sstring\n";
-	#my $newsearch = EPrints::SearchExpression->unserialise( $self->{session}, $sstring );
-	#print STDERR $newsearch->serialise()."\n";
 
 
 	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
@@ -793,12 +816,10 @@ sub process_webpage
 				gettime=>$self->{session}->make_text($t3-$t2) ) );
 
 		my $form = $self->{session}->render_form( "get" );
-		foreach( $self->{session}->param() )
-		{
-			next if( $_ =~ m/^_/ );
-			$form->appendChild(
-				$self->{session}->render_hidden_field( $_ ) );
-		}
+		$form->appendChild(
+			$self->{session}->render_hidden_field( 
+				"_exp", $self->serialise() ) );
+
 		$form->appendChild( $self->{session}->render_action_buttons( 
 			update => $self->{session}->phrase("lib/searchexpression:action_update"), 
 			newsearch => $self->{session}->phrase("lib/searchexpression:action_newsearch") ) );
@@ -838,9 +859,9 @@ sub process_webpage
 		}
 		my $plast = $offset + $PAGESIZE;
 		$plast = $n_results if $n_results< $plast;
+#cjg bad for 0 results
 		$page->appendChild( $self->{session}->make_text( "showing results ".($offset+1)." to ".$plast." of ".$n_results." results" ) );
 			
-		# Print out state stuff for a further invocation
 		$self->{session}->build_page( 
 			$self->{session}->phrase( 
 					"lib/searchexpression:results_for", 
@@ -855,7 +876,6 @@ sub process_webpage
 		# To reset the form, just reset the URL.
 		my $url = $self->{session}->get_url();
 		# Remove everything that's part of the query string.
-#print STDERR "URLURL URL URL: $url\n";
 		$url =~ s/\?.*//;
 		$self->{session}->redirect( $url );
 		return;
@@ -902,7 +922,7 @@ sub _render_problems
 			noshade=>"noshade",  
 			size=>2 );
 	$page->appendChild( $hr );
-	$page->appendChild( $self->render_search_form );
+	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 			
 	$self->{session}->build_page( $title, $page );
 	$self->{session}->send_page();

@@ -35,8 +35,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="bookchapter">
       <field name="ispublished" required="yes" />
@@ -55,30 +56,31 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="proceedings">
       <field name="ispublished" required="yes" />
       <field name="pubdom" required="yes" />
-      <field name="authors" />
+      <field name="editors" />
       <field name="title" required="yes" />
       <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" />
       <field name="conference" required="yes" />
-      <field name="pages" />
+      <field name="series" />
       <field name="confdates" />
       <field name="confloc" />
       <field name="volume" />
       <field name="number" />
-      <field name="editors" />
       <field name="publisher" />
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="confpaper">
       <field name="ispublished" required="yes" />
@@ -100,8 +102,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="incollection">
       <field name="ispublished" required="yes" />
@@ -123,8 +126,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="confposter">
       <field name="ispublished" required="yes" />
@@ -146,8 +150,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="techreport">
       <field name="ispublished" required="yes" />
@@ -165,8 +170,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="journale">
       <field name="ispublished" required="yes" />
@@ -186,8 +192,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="journalp">
       <field name="ispublished" required="yes" />
@@ -208,8 +215,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="newsarticle">
       <field name="ispublished" required="yes" />
@@ -230,8 +238,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="other">
       <field name="ispublished" required="yes" />
@@ -246,8 +255,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="preprint">
       <field name="refereed" required="yes" />
@@ -261,8 +271,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
     <type name="thesis">
       <field name="ispublished" required="yes" />
@@ -280,8 +291,9 @@
       <field name="commref" />
       <field name="altloc" />
       <field name="keywords" />
-      <field name="comments" />
+      <field name="note" />
       <field name="referencetext" />
+      <field name="suggestions" />
     </type>
   </dataset>
 
@@ -295,11 +307,13 @@
       <field name="usertype" staffonly="yes"/>
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
+      <field name="hideemail" />
       <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
       <field name="country" />
+      <field name="os" />
       <field name="url" />
     </type>
     <type name="editor" >
@@ -308,11 +322,13 @@
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
+      <field name="hideemail" />
       <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
       <field name="country" />
+      <field name="os" />
       <field name="url" />
       <field name="editorsubjects" staffonly="yes" />
     </type>
@@ -322,11 +338,13 @@
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes" />
       <field name="email" staffonly="yes" />
+      <field name="hideemail" />
       <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
       <field name="country" />
+      <field name="os" />
       <field name="url" />
       <field name="editorsubjects" />
     </type>

@@ -234,12 +234,10 @@ sub validate
 	my @rfields = $user_ds->get_required_type_fields( $self->get_value( "usertype" ) );
 	my @all_fields = $user_ds->get_fields();
 
-	print STDERR "+".$self->get_value( "usertype" )."\n";
 	my $field;
 	foreach $field ( @rfields )
 	{
 		# Check that the field is filled in if it is required
-	print STDERR "-".$field->get_name() ."\n";
 		if( !$self->is_set( $field->get_name() ) )
 		{
 			push @all_problems, 

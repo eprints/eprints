@@ -128,7 +128,7 @@ EPrints Modules
     <phrase ref="lib/submissionform:verify">Verify: <pin ref="citation" /></phrase>
     <phrase ref="lib/submissionform:invalid_eprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
     <phrase ref="lib/submissionform:valid_formats"><p>Here are the available upload formats, and how many files you have uploaded for each.</p></phrase>
-    <phrase ref="lib/submissionform:least_one"><p>You must upload at least one of the formats listed in bold(cjg this message is wrong!).</p></phrase>
+    <phrase ref="lib/submissionform:least_one"><p>You must upload at least one of the following formats:</p><pin ref="list" /></phrase>
     <phrase ref="lib/submissionform:plain">Plain Files</phrase>
     <phrase ref="lib/submissionform:grab_url">From an Existing Web Site</phrase>
     <phrase ref="lib/submissionform:fix_upload">The document upload can't be completed because:</phrase>
@@ -203,7 +203,7 @@ EPrints Modules
 
     <phrase ref="lib/userform:dont_know">I don't know who you are</phrase>
     <phrase ref="lib/userform:record_for">Record for <pin ref="name" /></phrase>
-    <phrase ref="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <span class="requiredstar">*</span> to start using the archive.</p><p>For instructions &#36103; on how to change your e-mail address, <a href="&perl_url;/users/set_email">click here</a>.</p></phrase>
+    <phrase ref="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <span class="requiredstar">*</span> to start using the archive.</p><p>For instructions on how to change your e-mail address, <a href="&perl_url;/users/set_email">click here</a>.</p></phrase>
     <phrase ref="lib/userform:form_incorrect"><p>The form doesn't seem to be filled out correctly:</p></phrase>
     <phrase ref="lib/userform:complete_form"><p>Please complete the form before continuing.</p></phrase>
     <phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</phrase>

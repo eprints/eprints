@@ -26,8 +26,6 @@ sub authen
 {
 	my( $r ) = @_;
 
-print STDERR "Authen\n";
-
 	my($res, $passwd_sent) = $r->get_basic_auth_pw;
 
 	my ($user_sent) = $r->connection->user;
@@ -57,7 +55,6 @@ print STDERR "Authen\n";
 		{
 			return OK;
 		}
-print STDERR "2:".($r->uri)."!\n";
 		
 		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
@@ -91,7 +88,6 @@ print STDERR "2:".($r->uri)."!\n";
 	my $rwrapper = EPrints::RequestWrapper->new( $r , $authconfig );
 	my $result = &{$handler}( $rwrapper );
 	$session->terminate();
-print STDERR "***END OF AUTH***($result)\n\n";
 	return $result;
 }
 

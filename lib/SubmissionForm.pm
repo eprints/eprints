@@ -78,6 +78,10 @@ sub new
 	$self->{formtarget} = $formtarget;
 	$self->{for_archive} = $staff;
 
+	# Will be overrideable in conf. cjg
+	$self->{stages} = $STAGES;
+	
+
 	return( $self );
 }
 
@@ -169,7 +173,7 @@ sub process
 		}
 	}
 
-	if( !defined $STAGES->{$self->{stage}} )
+	if( !defined $self->{stages}->{$self->{stage}} )
 	{
 		# It's not a valid stage. 
 		if( !defined $self->{eprint} )
@@ -1124,13 +1128,6 @@ sub _do_stage_files
 	$self->{eprint}->prune_documents(); 
 	my $probs = $self->{eprint}->validate_documents( $self->{for_archive} );
 
-	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
-	{
-		$page->appendChild(
-			$self->{session}->html_phrase(
-				"lib/submissionform:least_one") );
-	}
-
 	$page->appendChild(
 		$self->{session}->html_phrase(
 			"lib/submissionform:valid_formats") );
@@ -1138,43 +1135,49 @@ sub _do_stage_files
 	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
 
-	$table = $self->{session}->make_element( "table", border=>1 );
-	$form->appendChild( $table );
-	$tr = $self->{session}->make_element( "tr" );
-	$table->appendChild( $tr );
-	$th = $self->{session}->make_element( "th" );
-	$tr->appendChild( $th );
-	$th->appendChild( 
-		$self->{session}->html_phrase("lib/submissionform:format") );
-	$th = $self->{session}->make_element( "th" );
-	$tr->appendChild( $th );
-	$th->appendChild( 
-		$self->{session}->html_phrase("lib/submissionform:files_uploaded") );
-	
-	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
-	my $doc;
-	foreach $doc ( $self->{eprint}->get_all_documents() )
+	my @docs = $self->{eprint}->get_all_documents();
+
+	if( scalar @docs > 0 )
 	{
+		$table = $self->{session}->make_element( "table", border=>1 );
+		$form->appendChild( $table );
 		$tr = $self->{session}->make_element( "tr" );
 		$table->appendChild( $tr );
-		$td = $self->{session}->make_element( "td" );
-		$tr->appendChild( $td );
-		$td->appendChild( $doc->render_desc() );
-		$td = $self->{session}->make_element( "td" );
-		$tr->appendChild( $td );
-		my %files = $doc->files();
-		my $nfiles = scalar(keys %files);
-		$td->appendChild( $self->{session}->make_text( $nfiles ) );
-		$td = $self->{session}->make_element( "td" );
-		$tr->appendChild( $td );
-		$td->appendChild( $self->{session}->render_action_buttons(
-			"edit_".$doc->get_value( "docid" ) => 
-				$self->{session}->phrase( 
-					"lib/submissionform:action_edit" ) ,
-			"remove_".$doc->get_value( "docid" ) => 
-				$self->{session}->phrase( 
-					"lib/submissionform:action_remove" ) 
-		) );
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild( 
+			$self->{session}->html_phrase("lib/submissionform:format") );
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild( 
+			$self->{session}->html_phrase("lib/submissionform:files_uploaded") );
+		
+		my $docds = $self->{session}->get_archive()->get_dataset( "document" );
+		my $doc;
+		foreach $doc ( @docs )
+		{
+			$tr = $self->{session}->make_element( "tr" );
+			$table->appendChild( $tr );
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $doc->render_desc() );
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			my %files = $doc->files();
+			my $nfiles = scalar(keys %files);
+			$td->appendChild( $self->{session}->make_text( $nfiles ) );
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $self->{session}->render_action_buttons(
+				"edit_".$doc->get_value( "docid" ) => 
+					$self->{session}->phrase( 
+						"lib/submissionform:action_edit" ) ,
+				"remove_".$doc->get_value( "docid" ) => 
+					$self->{session}->phrase( 
+						"lib/submissionform:action_remove" ) 
+			) );
+		}
+		$form->appendChild( $self->{session}->make_element( "br " ) );
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons(
@@ -1195,7 +1198,25 @@ sub _do_stage_files
 		# docs validated ok
 		$buttons{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" ); 
 	}
-	
+
+	my @reqformats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};	
+	if( scalar @reqformats >= 0 )
+	{
+ 		my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
+
+		my $ul = $self->{session}->make_element( "ul" );
+		foreach( @reqformats )
+		{
+			my $li = $self->{session}->make_element( "li" );
+                	$li->appendChild( $doc_ds->render_type_name( $self->{session}, $_ ) );
+			$ul->appendChild( $li );
+		}
+		$form->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:least_one",
+				list=>$ul ) );
+	}
+
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
 	$self->{session}->build_page(
@@ -1781,12 +1802,12 @@ sub _set_stage_next
 {
 	my( $self ) = @_;
 
-	$self->{new_stage} = $STAGES->{$self->{stage}}->{next};
+	$self->{new_stage} = $self->{stages}->{$self->{stage}}->{next};
 
 	# Skip stage?
 	while( $self->{session}->get_archive()->get_conf( "submission_stage_skip", $self->{new_stage} ) )
 	{
-		$self->{new_stage} = $STAGES->{$self->{new_stage}}->{next};
+		$self->{new_stage} = $self->{stages}->{$self->{new_stage}}->{next};
 	}
 }
 
@@ -1794,12 +1815,12 @@ sub _set_stage_prev
 {
 	my( $self ) = @_;
 
-	$self->{new_stage} = $STAGES->{$self->{stage}}->{prev};
+	$self->{new_stage} = $self->{stages}->{$self->{stage}}->{prev};
 
 	# Skip stage?
 	while( $self->{session}->get_archive()->get_conf( "submission_stage_skip", $self->{new_stage} ) )
 	{
-		$self->{new_stage} = $STAGES->{$self->{new_stage}}->{prev};
+		$self->{new_stage} = $self->{stages}->{$self->{new_stage}}->{prev};
 	}
 }
 

@@ -62,7 +62,7 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-	$self->{query} = ( $mode!=1 ? new CGI() : new CGI( {} ) );
+	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 	
 	$noise = 0 unless defined( $noise );
 	$self->{noise} = $noise;
@@ -445,9 +445,13 @@ sub render_option_list
 						
 		}
 	}
+
 	if( defined $params{height} )
 	{
-		$size = $params{height} if( $params{height} < $size );
+		if( $params{height} ne "ALL" )
+		{
+			$size = $params{height} if( $params{height} < $size );
+		}
 		$element->setAttribute( "size" , $size );
 	}
 	return $element;
@@ -471,8 +475,10 @@ sub render_hidden_field
 {
 	my( $self , $name , $value ) = @_;
 
-# used to grab values from param() if it exists
-# but dosn't now. Is that bad? cjg
+	if( !defined $value ) 
+	{
+		$value = $self->param( $name );
+	}
 
 	return $self->make_element( "input",
 		"accept-charset" => "utf-8",
@@ -941,11 +947,9 @@ sub build_page
 sub send_page
 {
 	my( $self, %httpopts ) = @_;
-	print STDERR "SENDPAGE go!\n";	
 	$self->send_http_header( %httpopts );
 	print $self->{page}->toString();
 	$self->{page}->dispose();
-	print STDERR "SENDPAGE stop!\n";	
 }
 
 sub page_to_file
@@ -1175,10 +1179,8 @@ sub get_action_button
 
 	my $p;
 	# $p = string
-		print STDERR "(z)\n";
 	foreach $p ( $self->param() )
 	{
-		print STDERR "($p)->(".$self->param( $p ).")\n";
 		if( $p =~ m/^_action_/ )
 		{
 			return substr($p,8);

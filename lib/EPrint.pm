@@ -412,6 +412,27 @@ sub _transfer
 }
 
 
+# remove EPrint - should really only be called on eprints
+# in the buffer or inbox.
+sub remove
+{
+	my( $self ) = @_;
+
+	my $doc;
+	foreach $doc ( $self->get_all_documents() )
+	{
+		$doc->remove();
+	}
+
+	my $success = $self->{session}->get_db()->remove(
+		$self->{dataset},
+		$self->get_value( "eprintid" ) );
+
+	return $success;
+}
+
+
+
 ######################################################################
 #
 # $title = short_title()

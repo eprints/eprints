@@ -82,7 +82,6 @@ sub new
 	
 	$self->{session} = $session;
 	$self->{dataset} = $dataset;
-#print STDERR "TID: $dataset\n";
 	$self->set_value( $value );
 
 	#cjg Hmmm.
@@ -122,9 +121,6 @@ sub set_value
 {
 	my ( $self , $newvalue ) = @_;
 
-
-#print STDERR "set_value( $newvalue )\n";
-
 	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
 	{
 		$self->{value} = $newvalue;
@@ -162,10 +158,6 @@ sub from_form
 
 	# Remove any default we have
 	$self->set_value( "" );
-#print STDERR "------llll\n";	
-#print STDERR  $self->{form_name_prefix} ."\n";
-#print STDERR  $self->{field}->{type}."\n";
-#print STDERR  $self->{session}->param( $self->{form_name_prefix} )."\n";
 	my $val = $self->{session}->param( $self->{form_name_prefix} );
 	$val =~ s/^\s+//;
 	$val =~ s/\s+$//;
@@ -574,8 +566,6 @@ sub _get_conditions_aux
 	}
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_sql_name() );
 
-#print STDERR "__$fieldname\n".Dumper( $self->{field}->{data} );
-
 	my @nwheres; # normal
 	my @pwheres; # pre-done
 	foreach( @{$wheres} )
@@ -712,25 +702,36 @@ sub do
 }
 
 
-## WP1: BAD
+sub get_value
+{
+	my( $self ) = @_;
+	return $self->{value};
+}
+
+#returns the FIRST field which should indicate type and stuff.
 sub get_field
 {
 	my( $self ) = @_;
 	return $self->{field};
 }
+sub get_fields
+{
+	my( $self ) = @_;
+	return $self->{fieldlist};
+}
+
 
 ######################################################################
 #
-# $html = to_html()
+# $html = render()
 #
 #
 ######################################################################
 
 ## WP1: BAD
-sub to_html
+sub render
 {
 	my( $self ) = @_;
-
 
 	my $query = $self->{session}->get_query();
 	
@@ -833,17 +834,6 @@ sub to_html
 				( $tags, $labels ) = $self->{field}->tags_and_labels( $self->{session} );
 			}
 		
-			my( $old_tags, $old_labels ) = ( $tags, $labels );
-	
-			# If I don't have NONE this becomes much simpler...
-			# cjg I think I can remove a load of stuff here soon.		
-			#$tags = [ "NONE" ];
-	
-			# we have to copy the tags and labels as they are currently
-			# references to the origionals. 
-		
-			push @{$tags}, @{$old_tags};
-			#$labels->{NONE} = "(Any)"; #cjg lang
 			$settings{labels} = $labels;
 			$settings{values} = $tags;
 			$settings{size} = ( 
@@ -890,7 +880,6 @@ sub to_html
 	{
 		$self->{session}->get_archive()->log( "Can't Render: ".$self->{field}->get_type() );
 	}
-
 	return $frag;
 }
 

@@ -723,7 +723,7 @@ sub render_input_field
 
 		$settings{height} = $self->{displaylines};
 #print STDERR "HEIGHT: $settings{height}\n";
-		if( $settings{height} == 0 )
+		if( $settings{height} ne "ALL" && $settings{height} == 0 )
 		{
 			$settings{height} = undef;
 		}
@@ -737,10 +737,6 @@ sub render_input_field
 				!($self->{showall}), 
 				$self->{showtop} );
 			$settings{pairs} = $pairs;
-			if( $settings{height} eq "ALL")
-			{
-				$settings{height} = scalar @{$pairs};
-			}
 		} else {
 			my($tags,$labels);
 			if( $self->is_type( "set" ) )
@@ -760,10 +756,6 @@ sub render_input_field
 			}
 			$settings{values} = $tags;
 			$settings{labels} = $labels;
-			if( $settings{height} eq "ALL")
-			{
-				$settings{height} = scalar @{$tags};
-			}
 
 		}
 		$html->appendChild( $session->render_option_list( %settings ) );

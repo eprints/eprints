@@ -302,6 +302,11 @@ $c->{archivefields}->{user} = [
 
 	{ name => "country", type => "text" },
 
+	{ name => "hideemail", type => "boolean" },
+
+	{ name => "os", type => "set",
+		options => [ "unspec", "win9x", "unix", "vms", "mac", "other" ] },
+
 	{ name => "url", type => "url" }
 
 ];
@@ -314,8 +319,6 @@ $c->{archivefields}->{eprint} = [
 	{ name => "authors", type => "name", multiple => 1, hasid => 1 },
 
 	{ name => "chapter", type => "text", maxlength => 5 },
-
-	{ name => "comments", type => "longtext", displaylines => 3 },
 
 	{ name => "commref", type => "text" },
 
@@ -339,6 +342,8 @@ $c->{archivefields}->{eprint} = [
 	{ name => "month", type => "set",
 		options => [ "jan","feb","mar","apr","may","jun",
 			"jul","aug","sep","oct","nov","dec" ] },
+
+	{ name => "note", type => "longtext", displaylines => 3 },
 
 	{ name => "number", type => "text", maxlength => 6 },
 
@@ -1148,7 +1153,6 @@ sub eprint_render
 		foreach $field ( $eprint->get_dataset()->get_type_fields(
 			  $eprint->get_value( "type" ) ) )
 		{
-			print STDERR "ST:".$field->get_name()."\n";
 			$table->appendChild( _render_row(
 				$session,
 				$session->make_text( 
@@ -1251,12 +1255,16 @@ sub user_render
 		
 	
 		## E-mail and URL last, if available.
-		if( defined $user->get_value( "email" ) )
+		if( $user->get_value( "hideemail" ) ne "TRUE" )
 		{
-			$p = $session->make_element( "p" );
-			$p->appendChild( $user->render_value( "email" ) );
-			$info->appendChild( $p );
+			if( defined $user->get_value( "email" ) )
+			{
+				$p = $session->make_element( "p" );
+				$p->appendChild( $user->render_value( "email" ) );
+				$info->appendChild( $p );
+			}
 		}
+
 		if( defined $user->get_value( "url" ) )
 		{
 			$p = $session->make_element( "p" );
@@ -1955,6 +1963,7 @@ sub set_eprint_defaults
 sub set_user_defaults
 {
 	my( $data, $session ) = @_;
+	$data->{os} = "unspec";
 }
 
 sub set_document_defaults
