@@ -13,6 +13,7 @@
 -	Multi-Lang fields in DB
 4	Multi-Lang fields in HTML
 2	Alpha Install Docs.
+0	Executable files should check they are running as the correct user.
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
 

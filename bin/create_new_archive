@@ -1,3 +1,5 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+
 ######################################################################
 #
 # COMMENTME
@@ -11,7 +13,6 @@
 #  __LICENSE__
 #
 ######################################################################
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
 #cjg LIB
 
@@ -48,8 +49,8 @@ END
 my $archiveid = get_input( $REGEXP_VARNAME, 'Archive ID' );
 print "$archiveid\n";
 
-my( $configfile ) = $EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
-my( $archivedir ) = $EPrints::Config::get( "base_path" )."/archives/".$archiveid;
+my( $configfile ) = EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
+my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
 if( -e $configfile )
 {
 	print "Config file detected:\n";
@@ -309,9 +310,7 @@ $t_archive->appendChild( $doc->createTextNode( "\n" ) );
 
 print "Writing Config File to:\n$configfile...\n";
 $doc->printToFile( $configfile );
-# chmod !!! cjg
-print "...done\n\n";
-
+chmod( 0600, $configfile );
 
 # Make filesystem
 
@@ -319,9 +318,33 @@ print "...done\n\n";
 
 # Register with website!
 
-# Run make_apache_conf
+print <<END;
 
-# give advice.
+That seemed to more or less work...
+
+Now run:
+bin/make_apacheconf $archiveid
+
+Make any changes to the cfg files. As this is just an alpha install
+you might as well except the defaults for now...
+
+Then run:
+
+bin/generate_dtd $archiveid
+bin/generate_static $archiveid
+bin/generate_views $archiveid
+( Views will be very dull as this version does not have any subjects by
+default )
+
+
+bin/create_user $archiveid <userid> <email> staff <password>
+
+Then restart your webserver: 
+/etc/rc.d/init.d/httpd stop
+/etc/rc.d/init.d/httpd start
+
+Now connect to the archive, see everything work perfectly first time...(!)
+END
 
 exit;
 
@@ -373,4 +396,37 @@ sub get_input
 	}
 }
 
-
+sub install
+{
+	my($dir, $perms, $user, $group, $dest) = @_;
+	opendir(INDIR, $dir) or die("Unable to install directory: $dir");
+	my @dirs = ();
+	my @files = ();
+	my $currdir = getcwd();
+	mkdir("$dest/$dir", 0755);
+	while(my $item = readdir(INDIR))
+	{
+		if ($item =~ /^\./ && $item ne ".htaccess" ) { next; }
+		if (-d "$currdir/$dir/$item") { push(@dirs, $item); }
+		else { push(@files, $item); }
+	}
+	closedir(INDIR);
+	foreach(@files)
+	{
+		open(INFILE, "$currdir/$dir/$_");
+		open(OUTFILE, ">$dest/$dir/$_") or die "Can't write to $dest/$dir/$_";
+		while(my $line=<INFILE>)
+		{
+			print OUTFILE $line;
+		}		
+		close(OUTFILE);
+		close(INFILE);
+		chmod($perms, "$dest/$dir/$_");
+		chown($user, $group, "$dest/$dir/$_");
+	}
+	foreach(@dirs)
+	{
+		print "|";
+		install("$dir/".$_, $perms, $user, $group, $dest);
+	}
+}

@@ -25,6 +25,12 @@ use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);
 
 BEGIN {
+	# Paranoia: This may annoy people, or help them... cjg
+	if( (getpwuid($<))[0] ne $EPrints::SystemSettings::conf->{user})
+	{
+		abort( "We appear to be running as user: ".(getpwuid($<))[0]."\n"."We expect to be running as user: ".$EPrints::SystemSettings::conf->{user} );
+	}
+
 	# abort($err) Defined here so modules can abort even at startup
 
 	sub abort

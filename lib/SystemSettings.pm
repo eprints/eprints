@@ -42,7 +42,9 @@ $EPrints::SystemSettings::conf =
 	version => "2.0.a.2001-09-04",
 	version_desc => "EPrints 2.0 Alpha (Nightly Build 2001-09-04)",
 	orig_version => "2.0.a",
-	orig_version_desc => "EPrints 2.0 Alpha (Anchovy)"
+	orig_version_desc => "EPrints 2.0 Alpha (Anchovy)",
+	user => "eprints",
+	group => "eprints"
 };
 
 1;
