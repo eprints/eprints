@@ -26,18 +26,9 @@ Rendering
 - /views/ pages do not correctly sort the list of fields (it's done 
    by ID not the rendered phrase). 
 
-- tree_to_utf8 for emails does not appear to be wrapping on 80 chars
-like it's supposed to.
-
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
-
-- cgi directories can be viewed. The list directory contents option 
-   should be off.
-
-- CGI scripts are ALL set to be no cache. Would be nice if some were
-   not but this may cause other problems...
 
 ----------------------------------------------------------------------
 Searching
@@ -46,18 +37,11 @@ Searching
 - Web based search failing to use the cache.
 
 - Web based Searches sometimes displays ALL results when it should 
-   be paged.
+   be paged. (not seen this for a while, may have "gone away")
 
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
-
-- doc upload page does not give a sensible message when there are no 
-   documents.
-
-- If you select a file to upload (in submission form) but click back then
-   it still uploads the file then discards it (which can be annoying if it's
-   big) Back buttons should be in a seperate form.
 
 - .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
    install mode failing to preserve the "executables" field.
@@ -108,4 +92,17 @@ FIXED: 28/01
 FIXED: 30/01
 - Latex image cache will break if image tex has more than 127 chars
 due to filename limit of 255 chars. [now MD5's it instead]
+- cgi directories can be viewed. The list directory contents option 
+   should be off.
+- tree_to_utf8 for emails does not appear to be wrapping on 80 chars
+like it's supposed to.
+- CGI scripts are ALL set to be no cache. Would be nice if some were
+   not but this may cause other problems... [now set to 
+   must-revalidate]
+- doc upload page does not give a sensible message when there are no 
+   documents.
+- If you select a file to upload (in submission form) but click back then
+   it still uploads the file then discards it (which can be annoying if it's
+   big) Back buttons should be in a seperate form.
+
 

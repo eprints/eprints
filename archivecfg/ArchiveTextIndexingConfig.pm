@@ -34,7 +34,7 @@ my $FREETEXT_STOP_WORDS = {
 	"that"=>1,	"can"=>1,	"from"=>1,	"these"=>1,
 	"those"=>1,	"the"=>1,	"you"=>1,	"for"=>1,
 	"been"=>1,	"have"=>1,	"were"=>1,	"what"=>1,
-	"where"=>1,	"is"=>1,	"and"=>1 
+	"where"=>1,	"is"=>1,	"and"=>1, 	"fnord"=>1
 };
 
 # Words to always index, despite their length.

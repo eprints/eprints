@@ -24,6 +24,7 @@ EPrints Modules
 <!-- Document -->
 
     <ep:phrase ref="lib/document:no_files">You haven't uploaded any files!</ep:phrase>
+    <ep:phrase ref="lib/document:no_type">You haven't specified a document type!</ep:phrase>
     <ep:phrase ref="lib/document:no_first">You need to select a file to be shown first.</ep:phrase>
 
 <!-- EPrint -->
@@ -133,19 +134,16 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:bib_info"><p>Please enter the bibliographic data about your deposit. Fields marked with a <span class="requiredstar">*</span> are fields that must be filled out before your deposit will be accepted.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:verify">Verify: <ep:pin ref="citation" /></ep:phrase>
     <ep:phrase ref="lib/submissionform:invalid_eprint">ID <ep:pin ref="eprintid" /> is not a valid EPrint ID!</ep:phrase>
-    <ep:phrase ref="lib/submissionform:valid_formats"><p>Here are the available upload formats, and how many files you have uploaded for each.</p></ep:phrase>
-    <ep:phrase ref="lib/submissionform:least_one"><p>You must upload at least one of the following formats:</p><ep:pin ref="list" /></ep:phrase>
+    <ep:phrase ref="lib/submissionform:current_docs"><p>Here are the documents currently attached to this EPrint, and how many files you have uploaded for each.</p></ep:phrase>
+    <ep:phrase ref="lib/submissionform:least_one"><p>You must upload at least one of the following formats: <ep:pin ref="list" />.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:plain">Plain Files</ep:phrase>
     <ep:phrase ref="lib/submissionform:grab_url">From an Existing Web Site</ep:phrase>
     <ep:phrase ref="lib/submissionform:fix_upload">The document upload can't be completed because:</ep:phrase>
     <ep:phrase ref="lib/submissionform:please_fix">Please fix this before continuing.</ep:phrase>
     <ep:phrase ref="lib/submissionform:no_files"><p>No files have been uploaded for this format.</p></ep:phrase>
-    <ep:phrase ref="lib/submissionform:here_to_view"><p><ep:pin ref="link">Click here to view and verify the uploaded files</ep:pin></p></ep:phrase>
+    <ep:phrase ref="lib/submissionform:here_to_view"><p><ep:pin ref="link">Click here to view and verify the uploaded files</ep:pin> (in a new browser window)</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:sel_first">You need to select the file that should be shown first when a reader wishes to view your deposit.</ep:phrase>
     <ep:phrase ref="lib/submissionform:files_for_format">These are the files you have uploaded for this format.</ep:phrase>
-    <ep:phrase ref="lib/submissionform:file_up_method">File upload method:</ep:phrase>
-    <ep:phrase ref="lib/submissionform:plain_only">(Plain files only)</ep:phrase>
-    <ep:phrase ref="lib/submissionform:num_files">Number of files to upload:</ep:phrase>
     <ep:phrase ref="lib/submissionform:enter_url"><p>Please enter the URL of the document you wish to upload to the archive in the box below.</p><p>Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:enter_compfile"><p>Enter the filename (with full path) of the compressed file in the box below.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:enter_file"><p>Please enter the filename (with full path) of the document file in the box below.</p></ep:phrase>
@@ -167,6 +165,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:action_edit">Edit</ep:phrase>
     <ep:phrase ref="lib/submissionform:action_finished">Finished &gt;</ep:phrase>
     <ep:phrase ref="lib/submissionform:action_upload">Upload</ep:phrase>
+    <ep:phrase ref="lib/submissionform:action_newdoc">Add Document</ep:phrase>
     <ep:phrase ref="lib/submissionform:action_verify">Verify ID's</ep:phrase>
     <ep:phrase ref="lib/submissionform:action_remove">Remove</ep:phrase>
     <ep:phrase ref="lib/submissionform:action_submit">Submit EPrint</ep:phrase>
@@ -174,6 +173,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:title_meta">Bibliographic Information</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_linking">Succession/Commentary</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_format">Document Storage Formats</ep:phrase>
+    <ep:phrase ref="lib/submissionform:title_docmeta">Document Information</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_fileview">Document File Upload</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_upload">Document File Upload</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_verify">Deposit Verification</ep:phrase>
@@ -470,14 +470,11 @@ Public CGI Scripts
     <ep:phrase ref="cgi/advsearch:adv_search">Advanced Search</ep:phrase>
     <ep:phrase ref="cgi/advsearch:preamble"><p>Don't panic! Just leave the fields you don't want to search blank. <a href="search">Click here for a simple search.</a></p></ep:phrase>
 
-<!-- handle_404 -->
+<!-- handle_http_error -->
 
-    <ep:phrase ref="cgi/handle_404:doc_not_found">Document Not Found</ep:phrase>
-    <ep:phrase ref="cgi/handle_404:file_not_found">File not found:</ep:phrase>
-    <ep:phrase ref="cgi/handle_404:looking_for">Perhaps you're looking for the following eprint:</ep:phrase>
-    <ep:phrase ref="cgi/handle_404:blurb">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <ep:pin ref="archiveadmin" />.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</ep:phrase>
-    <ep:phrase ref="cgi/handle_404:archive_admin">Archive Administrator</ep:phrase>
-
+    <ep:phrase ref="cgi/handle_http_error:404_title">404 File not Found</ep:phrase>
+    <ep:phrase ref="cgi/handle_http_error:404_blurb"><p>Could not find the file: <code><pin ref="url" /></code></p><p>The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <a href="mailto:&adminemail;">&archivename; administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p></ep:phrase>
+    
 <!-- remind -->
 
     <ep:phrase ref="cgi/remind:rem_sent_title">Reminder Sent</ep:phrase>

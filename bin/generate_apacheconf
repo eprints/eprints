@@ -299,8 +299,7 @@ $aliases
   Alias /perl $cgidir
 
   ErrorDocument 401 /error401.html
-  #ErrorDocument 404 /error401.html
-#cjg Do these even work?
+  ErrorDocument 404 /perl/handle_404
 
   RewriteEngine on
 
@@ -346,7 +345,7 @@ print CONF <<END;
     SetHandler perl-script
     PerlHandler Apache::Registry
     PerlSendHeader Off
-    Options +ExecCGI
+    Options ExecCGI
   </Directory>
   <Directory "$cgidir/users">
     AuthName "User Area"

@@ -193,5 +193,31 @@ $c->{oai} = get_oai_conf();
 30/01/2002
 [C] - !removed varchar_size again!
 [C] - changed the default title from a "text" to a "longtext"
-- removed varchar size setting support - the max size is 255. You want more
+ - removed varchar size setting support - the max size is 255. You want more
 use a longtext metafield.
+ - improved export_xml so it now does ID and NAME parts correctly. And now does
+any dataset.
+ - Fixed a bug in generate_static which didn't remove the <title> from around
+the title name of an xpage.
+ 
+ - the 404 error page now works (although does not spot urls which may have 
+expired, yet).
+ - can no longer view dir. index in the CGI directories
+ - added a <mail> element which is only used to make tree_to_utf8 word wrap 
+emails with no <p> elements: it works like a <p> except that \n\r etc are
+not turned into generic whitespace.
+ - cache settings on cgi pages are now just:
+Cache-Control: must-revalidate
+  which seems to be what they should have been all along.
+ - added a get_status method to session which returns the HTTP status (usually
+200!)
+ - Subject->children now sorts by Subject name (not id!)
+ - cleaned up the error401 page
+ - split the document upload page into 2 parts: files and metadata. Cleaned
+ up the phrases in that section.
+ - the upload a file page now has a seperate form for the cancel button , so 
+ that it does not upload the file if you hit "cancel"
+[C] - added validate_document_meta to ArchiveValidateConfig.pm - this checks
+just the meta data of a document. 
+ 
+

@@ -235,13 +235,13 @@ sub bounce
 			"buffer" );
 		return;
 	}
-	my $pre = $session->make_element( "pre" );
-	$pre->appendChild( $session->make_text( $session->param( "reason" ) ) );
+	my $mail = $session->make_element( "mail" );
+	$mail->appendChild( $session->make_text( $session->param( "reason" ) ) );
 
 	# Successfully transferred, mail the user with the reason
 	if( $user->mail(
 		"cgi/users/edit_submission:subject_bounce",
-		$pre,
+		$mail,
 		$session->current_user() ) )
 	{	
 		# Successfully bounced, redirect

@@ -414,18 +414,19 @@ sub tree_to_utf8
 		$width = $width - 2;
         }
 
-        my $name = $node->getNodeName;
-        if( $name eq "#text" || $name eq "#cdata-section")
+	if( $node->getNodeType == TEXT_NODE || $node->getNodeType == CDATA_SECTION_NODE )
         {
-                my $text = utf8( $node->getNodeValue );
-                $text =~ s/[\s\r\n\t]+/ /g unless( $pre );
-                return $text;
+        	my $v = $node->getNodeValue();
+                $v =~ s/[\s\r\n\t]+/ /g unless( $pre );
+                return $v;
         }
+
+        my $name = $node->getNodeName();
 
         my $string = utf8("");
         foreach( $node->getChildNodes )
         {
-                $string .= tree_to_utf8( $_, $width, ( $pre || $name eq "pre" )
+                $string .= tree_to_utf8( $_, $width, ( $pre || $name eq "pre" || $name eq "mail" )
 );
         }
 
@@ -441,7 +442,7 @@ sub tree_to_utf8
         }
 
         # Handle wrapping block elements if a width was set.
-        if( $name eq "p" && defined $width)
+        if( ( $name eq "p" || $name eq "mail" ) && defined $width)
         {
                 my @chars = $string->unpack;
                 my @donechars = ();

@@ -149,7 +149,6 @@
 #Clean UP
 #	Make SearchFields have a better call method. NR
 #	Put System field titles in system phrase file. NR
-#	Not everything should be no-cache! (HTTP header) NR
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR
 #	Named values in Constructors all round?
 #	cmp methods : is they still needed?
@@ -170,31 +169,28 @@
 #	Magic search fields - eg. Must have HTML format document/public document...
 #	no new eprints when disk fullish
 #	Add POD manuals to ALL lib and CGI files.
-# 	Make man pages from /bin etc build into docs. NR [mike]
-#	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value? NR
 
-# searchexp/file upload : idea: don't allow finished from doc page until a NR
-# valid format is selected.
 
-# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
 
 # robots.txt file
 # metadata in LINKS for title, creator etc?
 
-# nice 401 / 403 / 404 pages. NR
+#---- MIKE----
+# Post Upgrading people should re-run generate_apacheconf and restart the server.
+# Comment out the line in XML::DOM which calls deb() from ExternEnt [mike] NR
+# bibtex, whatsnew, importer
+#	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
+# 	Make man pages from /bin etc build into docs. NR [mike]
+# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
+# -------------
 
 # lose all die statements
 
-# MD5 LatexCache
 # Check Referer on LatexCache.?
 
 # OAI - cache timeouts. NR
-
-# Document form in 2 bits is confusing if bit 2 is off page. NR
-
-# sub form: should say "new window" on "view files" NR
 
 # Search -= cachecode not searchexp. NR
 
@@ -202,7 +198,7 @@
 
 # namespace static files NR
 
-# fix static - puts <title> in where it should not! NR
+# check CGI scripts use DOM in title
 
-# todo: TTTTTTTTTTTTTTTTTTbbbbbbbbbbbbbbbbmmm
+# todo: TTTTTTTTTTTTTbbbbbbbbbbbbmmm
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

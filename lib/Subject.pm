@@ -248,13 +248,12 @@ sub children #cjg should be get_children()
 
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
-		dataset=>$self->{dataset} );
+		dataset=>$self->{dataset},
+		custom_order=>"name" );
 
 	$searchexp->add_field(
 		$self->{dataset}->get_field( "parents" ),
 		"PHR:EQ:".$self->get_value( "subjectid" ) );
-
-#cjg set order (it's in the site config)
 
 	my $searchid = $searchexp->perform_search();
 	my @children = $searchexp->get_records();

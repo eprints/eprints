@@ -170,7 +170,7 @@ sub validate_eprint
 
 ######################################################################
 #
-# validate_document( $document, $session, $for_archive ) 
+# validate_document_meta( $document, $session, $for_archive ) 
 #
 ######################################################################
 # $document 
@@ -184,12 +184,12 @@ sub validate_eprint
 # - ARRAY of DOM objects (may be null)
 #
 ######################################################################
-# Validate a document.
+# Validate a documents metadata.
 #
 ######################################################################
 
 
-sub validate_document
+sub validate_document_meta
 {
 	my( $document, $session, $for_archive ) = @_;
 
@@ -205,6 +205,39 @@ sub validate_document
 					"validate:need_description" ,
 					type=>$document->render_description() );
 	}
+
+	return( @problems );
+}
+
+######################################################################
+#
+# validate_document( $document, $session, $for_archive ) 
+#
+######################################################################
+# $document 
+# - Document object
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
+#
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
+#
+######################################################################
+# Validate a document. validate_document_meta will be called auto-
+# matically, so you don't need to duplicate any checks.
+#
+######################################################################
+
+
+sub validate_document
+{
+	my( $document, $session, $for_archive ) = @_;
+
+	my @problems = ();
+
+	# CHECKS IN HERE
 
 	return( @problems );
 }

@@ -45,6 +45,7 @@ my $STAGES = {
 		prev => "meta",
 		next => "verify"
 	},
+	docmeta => {},
 	fileview => {},
 	upload => {},
 	verify => {
@@ -535,7 +536,7 @@ sub _from_stage_files
 		return( 1 );
 	}
 		
-	if( $self->{action} eq "upload" )
+	if( $self->{action} eq "newdoc" )
 	{
 		$self->{document} = EPrints::Document::create( 
 			$self->{session},
@@ -546,11 +547,11 @@ sub _from_stage_files
 			return( 0 );
 		}
 
-		$self->{new_stage} = "fileview";
+		$self->{new_stage} = "docmeta";
 		return( 1 );
 	}
 
-	if( $self->{action} eq "finished" )
+	if( $self->{action} eq "next" )
 	{
 		$self->{problems} = $self->{eprint}->validate_documents( $self->{for_archive} );
 
@@ -599,7 +600,7 @@ sub _from_stage_files
 
 	if( $doc_action eq "edit" )
 	{
-		$self->{new_stage} = "fileview";
+		$self->{new_stage} = "docmeta";
 		return( 1 );
 	}
 
@@ -607,6 +608,63 @@ sub _from_stage_files
 	return( 0 );
 }
 
+######################################################################
+#
+#  From docmeta page
+#
+######################################################################
+
+sub _from_stage_docmeta
+{
+	my( $self ) = @_;
+
+	# Check the document is OK, and that it is associated with the current
+	# eprint
+	$self->{document} = EPrints::Document->new(
+		$self->{session},
+		$self->{session}->param( "docid" ) );
+
+	if( !defined $self->{document} ||
+	    $self->{document}->get_value( "eprintid" ) ne $self->{eprint}->get_value( "eprintid" ) )
+	{
+		$self->_corrupt_err;
+		return( 0 );
+	}
+
+	if( $self->{action} eq "cancel" )
+	{
+		$self->{new_stage} = "files";
+		return( 1 );
+	}
+
+	if( $self->{action} eq "next" )
+	{
+		# Update the description if appropriate
+		foreach( "formatdesc", "format", "language", "security" )
+		{
+			next if( $self->{session}->get_archive()->get_conf(
+				"submission_hide_".$_ ) );
+			$self->{document}->set_value( $_,
+				$self->{session}->param( $_ ) );
+		}
+		$self->{document}->commit();
+
+		$self->{problems} = $self->{document}->validate_meta( $self->{for_archive} );
+			
+		if( $#{$self->{problems}} >= 0 )
+		{
+			$self->{new_stage} = "docmeta";
+			return( 1 );
+		}
+
+		$self->{new_stage} = "fileview";
+		return( 1 );
+	}
+	
+	# Erk! Unknown action.
+	$self->_corrupt_err;
+	return( 0 );
+}
 
 ######################################################################
 #
@@ -687,7 +745,7 @@ sub _from_stage_fileview
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{new_stage} = "files";
+		$self->{new_stage} = "docmeta";
 		return( 1 );
 	}
 
@@ -699,18 +757,6 @@ sub _from_stage_fileview
 		$self->{new_stage} = "upload";
 		return( 1 );
 	}
-
-	# Fileview button wasn't pressed, and neiter was "prev" or "upload"
-	# so it must (should) be "finished" -
-	# Update the description if appropriate
-	foreach( "formatdesc", "format", "language", "security" )
-	{
-		next if( $self->{session}->get_archive()->get_conf(
-			"submission_hide_".$_ ) );
-		$self->{document}->set_value( $_,
-			$self->{session}->param( $_ ) );
-	}
-	$self->{document}->commit();
 
 	if( $self->{action} eq "finished" )
 	{
@@ -739,7 +785,6 @@ sub _from_stage_fileview
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_upload
 {
 	my( $self ) = @_;
@@ -766,7 +811,7 @@ sub _from_stage_upload
 
 	$self->{action} = "upload" unless( defined $self->{action} );
 
-	if( $self->{action} eq "prev" )
+	if( $self->{action} eq "cancel" )
 	{
 		$self->{new_stage} = "fileview";
 		return( 1 );
@@ -1112,7 +1157,6 @@ sub _do_stage_meta
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_files
 {
 	my( $self ) = @_;
@@ -1128,10 +1172,6 @@ sub _do_stage_files
 	$self->{eprint}->prune_documents(); 
 	my $probs = $self->{eprint}->validate_documents( $self->{for_archive} );
 
-	$page->appendChild(
-		$self->{session}->html_phrase(
-			"lib/submissionform:valid_formats") );
-
 	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
 
@@ -1139,6 +1179,10 @@ sub _do_stage_files
 
 	if( scalar @docs > 0 )
 	{
+		$form->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:current_docs") );
+
 		$table = $self->{session}->make_element( "table", border=>1 );
 		$form->appendChild( $table );
 		$tr = $self->{session}->make_element( "tr" );
@@ -1161,7 +1205,7 @@ sub _do_stage_files
 			$td = $self->{session}->make_element( "td" );
 			$tr->appendChild( $td );
 			$td->appendChild( $doc->render_description() );
-			$td = $self->{session}->make_element( "td" );
+			$td = $self->{session}->make_element( "td", align=>"center" );
 			$tr->appendChild( $td );
 			my %files = $doc->files();
 			my $nfiles = scalar(keys %files);
@@ -1181,8 +1225,8 @@ sub _do_stage_files
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons(
-		upload => $self->{session}->phrase( 
-				"lib/submissionform:action_upload" ) ) );
+		newdoc => $self->{session}->phrase( 
+				"lib/submissionform:action_newdoc" ) ) );
 		
 	$form->appendChild( $self->{session}->render_hidden_field(
 		"stage",
@@ -1196,7 +1240,8 @@ sub _do_stage_files
 	if( scalar @{$probs} == 0 )
 	{
 		# docs validated ok
-		$buttons{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" ); 
+		$buttons{next} = $self->{session}->phrase( "lib/submissionform:action_next" ); 
+		$buttons{_order} = [ "prev", "next" ];
 	}
 
 	my @reqformats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};	
@@ -1204,17 +1249,21 @@ sub _do_stage_files
 	{
  		my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
 
-		my $ul = $self->{session}->make_element( "ul" );
+		my $list = $self->{session}->make_doc_fragment();
+		my $c = scalar @reqformats;
 		foreach( @reqformats )
 		{
-			my $li = $self->{session}->make_element( "li" );
-                	$li->appendChild( $doc_ds->render_type_name( $self->{session}, $_ ) );
-			$ul->appendChild( $li );
+			--$c;
+                	$list->appendChild( $doc_ds->render_type_name( $self->{session}, $_ ) );
+			if( $c > 0 )
+			{
+                		$list->appendChild( $self->{session}->make_text( ", " ) );
+			}
 		}
 		$form->appendChild(
 			$self->{session}->html_phrase(
 				"lib/submissionform:least_one",
-				list=>$ul ) );
+				list=>$list ) );
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
@@ -1228,11 +1277,68 @@ sub _do_stage_files
 
 ######################################################################
 #
+#  Document metadata
+#
+######################################################################
+
+sub _do_stage_docmeta
+{
+	my( $self ) = @_;
+
+	my $page = $self->{session}->make_doc_fragment();
+
+	$page->appendChild( $self->_render_problems(
+		$self->{session}->html_phrase("lib/submissionform:fix_upload"),
+		$self->{session}->html_phrase("lib/submissionform:please_fix") ) );
+
+	# The hidden fields, used by all forms.
+	my $hidden_fields = {	
+		docid => $self->{document}->get_value( "docid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
+		stage => "docmeta" };
+
+	my $archive = $self->{session}->get_archive();
+
+	my $docds = $archive->get_dataset( "document" );
+
+	my $submit_buttons = 
+	{	
+		next => $self->{session}->phrase( "lib/submissionform:action_next" ),
+		cancel => $self->{session}->phrase( "lib/submissionform:action_cancel" ),
+		_order => [ "cancel", "next" ] 
+	};
+
+	my $fields = [];
+	foreach( "format", "formatdesc", "language", "security" )
+	{
+		unless( $archive->get_conf( "submission_hide_".$_ ) )
+		{
+			push @{$fields}, $docds->get_field( $_ );
+		}
+	}
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			fields=>$fields,
+			values=>$self->{document}->get_data(),
+			show_help=>1,
+			buttons=>$submit_buttons,
+			default_action=>"next",
+			hidden_fields=>$hidden_fields,
+			dest=>$self->{formtarget}."#t" ) );
+
+	$self->{session}->build_page(
+		$self->{session}->html_phrase( "lib/submissionform:title_docmeta" ),
+		$page );
+	$self->{session}->send_page();
+}
+
+######################################################################
+#
 #  View / Delete files
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_fileview
 {
 	my( $self ) = @_;
@@ -1430,56 +1536,24 @@ sub _do_stage_fileview
 
 	}
 
-	##################################
-
-	$page->appendChild( $self->{session}->render_ruler() );	
 	$submit_buttons = {
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" ) };
 
 	if( scalar keys %files > 0 ) {
-		my $archive = $self->{session}->get_archive();
-
-		my $docds = $archive->get_dataset( "document" );
 
 		$submit_buttons->{finished} = $self->{session}->phrase( 
 			"lib/submissionform:action_finished" );
 		$submit_buttons->{_order} = [ "prev" , "finished" ];
-
-		my $fields = [];
-		foreach( "format", "formatdesc", "language", "security" )
-		{
-			unless( $archive->get_conf( "submission_hide_".$_ ) )
-			{
-				push @{$fields}, $docds->get_field( $_ );
-			}
-		}
-
-		$page->appendChild( 
-			$self->{session}->render_input_form( 
-				fields=>$fields,
-				values=>$self->{document}->get_data(),
-				show_help=>1,
-				buttons=>$submit_buttons,
-				default_action=>"finished",
-				hidden_fields=>$hidden_fields,
-				dest=>$self->{formtarget}."#t" ) );
 	}
-	else
-	{
-		$page->appendChild( 
-			$self->{session}->render_input_form( 
-				buttons=>$submit_buttons,
-				hidden_fields=>$hidden_fields,
-				default_action=>"prev",
-				dest=>$self->{formtarget}."#t" ) );
-	}	
 
-# cjg Deprecate/rename these.
-#	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
-#	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
-#	print $self->{session}->phrase("lib/submissionform:num_files")." ";
-#
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			buttons=>$submit_buttons,
+			hidden_fields=>$hidden_fields,
+			default_action=>"prev",
+			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->html_phrase( "lib/submissionform:title_fileview" ),
@@ -1488,22 +1562,24 @@ sub _do_stage_fileview
 }
 	
 
+
 ######################################################################
 #
 #  Actual file upload form
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_upload
 {
 	my( $self ) = @_;
 
-	my( $page, $form );
+	my( $page, $form, $form2 );
 
 	$page = $self->{session}->make_doc_fragment();
 	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
+	$form2 = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
+	$page->appendChild( $form2 );
 
 	if( $self->{arc_format} eq "graburl" )
 	{
@@ -1551,15 +1627,17 @@ sub _do_stage_upload
 	);
 	foreach( keys %hidden_fields )
 	{
-		$form->appendChild( $self->{session}->render_hidden_field(
-			$_, $hidden_fields{$_} ) );
+		$form->appendChild( $self->{session}->render_hidden_field( $_, $hidden_fields{$_} ) );
+		$form2->appendChild( $self->{session}->render_hidden_field( $_, $hidden_fields{$_} ) );
 	}	
 
 	$form->appendChild( $self->{session}->render_action_buttons(
-		#prev => $self->{session}->phrase(
-				#"lib/submissionform:action_prev" ),
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) ) );
+
+	$form2->appendChild( $self->{session}->render_action_buttons(
+		cancel => $self->{session}->phrase(
+				"lib/submissionform:action_cancel" ) ) );
 
 
 	$self->{session}->build_page(
@@ -1713,7 +1791,6 @@ sub _do_stage_confirmdel
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_return
 {
 	my( $self ) = @_;

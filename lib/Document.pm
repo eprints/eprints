@@ -866,13 +866,34 @@ sub commit
 	return( $success );
 }
 	
+sub validate_meta
+{
+	my( $self, $for_archive ) = @_;
 
+	my @problems;
+
+	unless( EPrints::Utils::is_set( $self->get_type() ) )
+	{
+		# No type specified
+		push @problems, $self->{session}->html_phrase( "lib/document:no_type" );
+	}
+	
+	push @problems, $self->{session}->get_archive()->call( 
+		"validate_document_meta", 
+		$self, 
+		$self->{session},
+		$for_archive );
+
+	return( \@problems );
+}
 
 sub validate
 {
 	my( $self, $for_archive ) = @_;
 
 	my @problems;
+
+	push @problems,@{$self->validate_meta( $for_archive )};
 	
 	# System default checks:
 	# Make sure there's at least one file!!

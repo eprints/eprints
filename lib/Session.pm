@@ -1502,8 +1502,10 @@ sub send_http_header
 	}
 	$self->{request}->content_type( $opts{content_type} );
 
-	$self->{request}->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
-	$self->{request}->header_out( "Pragma"=>"no-cache" );
+	$self->{request}->header_out( "Cache-Control"=>"must-revalidate" );
+
+	#$self->{request}->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
+	# $self->{request}->header_out( "Pragma"=>"no-cache" );
 
 	if( defined $opts{lang} )
 	{
@@ -1540,3 +1542,10 @@ sub client
 	return "?";
 }
 
+# return the HTTP status.
+sub get_http_status
+{
+	my( $self ) = @_;
+
+	return $self->{request}->status();
+}
