@@ -39,6 +39,7 @@ my @user_meta_fields;
 my @document_meta_fields;
 my @subscription_meta_fields;
 my @subject_fields;
+my @deletion_meta_fields;
 my @eprint_meta_types;         # Metadata EPrint types (id's.) This is only
                                #  really here so that the order can be retained
                                #  from the cfg file.
@@ -138,7 +139,17 @@ sub read_meta_fields
 		push @eprint_meta_fieldnames, $_->{name};
 	}
 
+
+	#
+	# DELETION TABLE fields
+	# (none from config file yet)
+	#
+	foreach (@EPrints::Deletion::system_meta_fields)
+	{
+		push @deletion_meta_fields, EPrints::MetaField->new( $_ );
+	}
 	
+
 	#
 	# EPrint types
 	#
@@ -312,6 +323,23 @@ sub get_subscription_fields
 	read_meta_fields if( $#subscription_meta_fields == -1 );
 
 	return( @subscription_meta_fields );
+}
+
+
+######################################################################
+#
+# @meta_fields = get_deletion_fields()
+#
+#  Get deletion metadata fields
+#
+######################################################################
+
+sub get_deletion_fields
+{
+	# Ensure we've read in the metadata fields
+	read_meta_fields if( $#deletion_meta_fields == -1 );
+
+	return( @deletion_meta_fields );
 }
 
 

@@ -423,7 +423,14 @@ sub remove
 
 	my $success = 1;
 	
-	# First remove the associated documents
+	# Create a deletion record if we're removing the record from the main
+	# archive
+	if( $self->{table} eq $EPrints::Database::table_archive )
+	{
+		$success = $success && EPrints::Deletion::add_deletion_record( $self );
+	}
+
+	# Remove the associated documents
 	my @docs = $self->get_all_documents();
 	
 	foreach (@docs)

@@ -1,0 +1,167 @@
+######################################################################
+#
+#  EPrints 404 "Document Not Found" Error Handler
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Deletion;
+use EPrints::Session;
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session();
+
+# Try and work out if the user is trying to access a deleted document
+my $url = $session->{render}->absolute_url();
+
+my $was_deleted = 0;
+
+# Look for digits in the path
+if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
+{
+	# There's a match, looks like we have an ID
+	my $guessed_id = $EPrintSite::SiteInfo::eprint_id_stem.$1.$2.$3.$4;
+
+	# Was the eprint deleted?
+	my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
+	
+	if( defined $deletion_record )
+	{
+		# The user seems to be trying to get to a deleted eprint. 
+		record_deleted( $session, $deletion_record->{replacement} );
+	}
+	else
+	{
+		# See if the eprint exists.
+		my $eprint = new EPrints::EPrint(
+			$session,
+			$EPrints::Database::table_archive,
+			$guessed_id );
+		
+		if( defined $eprint )
+		{
+			# Seems to be a slightly malformed access to an existing eprint.
+			existing_record( $session, $eprint );
+		}
+		else
+		{
+			# Not a deleted or existing eprint: a plain old Document Not Found
+			plain_404( $session );
+		}
+	}
+}
+else
+{
+	# No match, can't find any ID. Just a plain old 404.
+	plain_404( $session );
+}
+
+$session->terminate();
+
+
+
+######################################################################
+#
+# record_deleted( $session, $replacement )
+#
+#  Render an appropriate error saying that the eprint the user is
+#  trying to access has been removed, and to point to the replacement
+#  if one exists.
+#
+######################################################################
+
+sub record_deleted
+{
+	my( $session, $replacement ) = @_;
+	
+	my $replacement_eprint;
+	
+	$replacement_eprint = new EPrints::EPrint(
+		$session,
+		$EPrints::Database::table_archive,
+		$replacement ) if( defined $replacement );
+	
+	print $session->{render}->start_html( "Eprint Removed" );
+	
+	print "<P>You seem to be attempting to access an eprint that has been ".
+		"removed from the archive.</P>\n";
+	
+	if( defined $replacement_eprint )
+	{
+		print "<P>There is a later version of the eprint you are trying to ".
+			"access:</P>\n<P ALIGN=CENTER>";
+
+		print $session->{render}->render_eprint_citation(
+			$replacement_eprint,
+			1,
+			1 );
+		
+		print "</P>\n";
+	}
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# existing_record( $session, $eprint )
+#
+#  Render an appropriate erro saying that the user seems to be trying
+#  to get to a particular eprint, but may have just entered the URL
+#  incorrectly.
+#
+######################################################################
+
+sub existing_record
+{
+	my( $session, $eprint ) = @_;
+	
+	print $session->{render}->start_html( "Document Not Found" );
+	
+	print "<P>File not found: <CODE>$url</CODE></P>\n";
+	print "<P>Perhaps you're looking for the following eprint:</P>\n";
+	print "<P ALIGN=CENTER>";
+	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
+	print "</P>\n";
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# plain_404( $session )
+#
+#  Render a standard Document Not Found error message.
+#
+######################################################################
+
+sub plain_404
+{
+	my( $session ) = @_;
+
+	print $session->{render}->start_html( "File not found" );
+	
+	my $url = $session->{render}->absolute_url();
+	print "<P>File not found: <CODE>$url</CODE></P>\n";
+	
+	print "<P>The specified file could not be found on this server.  If you ".
+		"reached this page by following a link within the archive, please ".
+		"<a href=\"mailto:$EPrintSite::SiteInfo::admin\">contact the site ".
+		"administrator</a>.  Otherwise, please check that you have typed the ".
+		"URL in correctly, or contact the person or site that supplied you with ".
+		"this URL.</P>\n";
+	
+	print $session->{render}->end_html();
+}
+

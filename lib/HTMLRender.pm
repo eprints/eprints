@@ -206,6 +206,23 @@ sub url
 
 ######################################################################
 #
+# $url = absolute url()
+#
+#  Returns the absolute URL of the current script (no http:// or
+#  query string)
+#
+######################################################################
+
+sub absolute_url
+{
+	my( $self ) = @_;
+	
+	return( $self->{query}->url( -absolute=>1 ) );
+}
+
+
+######################################################################
+#
 # $consumed = internal_button_pressed()
 #
 #  Important function: if this returns true, then the button pressed on

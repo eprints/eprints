@@ -20,8 +20,11 @@ package EPrints::Database;
 
 use DBI;
 use EPrintSite::SiteInfo;
-use EPrints::MetaInfo;
+use EPrints::Deletion;
+use EPrints::EPrint;
 use EPrints::Log;
+use EPrints::MetaInfo;
+use EPrints::Subscription;
 
 use strict;
 
@@ -39,6 +42,7 @@ $EPrints::Database::table_archive = "archive";
 $EPrints::Database::table_document = "documents";
 $EPrints::Database::table_subject = "subjects";
 $EPrints::Database::table_subscription = "subscriptions";
+$EPrints::Database::table_deletion = "deletions";
 
 #
 # Counters
@@ -199,6 +203,11 @@ sub create_archive_tables
 		$EPrints::Database::table_subject,
 		EPrints::MetaInfo::get_subject_fields() );
 
+	# Deletion table
+	$success = $success && $self->_create_table(
+		$EPrints::Database::table_deletion,
+		EPrints::MetaInfo::get_deletion_fields() );
+
 	return( $success );
 }
 		
@@ -307,7 +316,14 @@ sub add_record
 			$first=0;
 		}
 
-		$sql .= "\"$i->[1]\"";
+		if( defined $i->[1] && $i->[1] ne "" )
+		{
+			$sql .= "\"$i->[1]\"" ;
+		}
+		else
+		{
+			$sql .= "NULL";
+		}
 	}
 
 	$sql .= ");";	
