@@ -281,9 +281,9 @@ sub from_home
 			}
 			else
 			{
-				EPrints::Log->debug(
-					"SubmissionForm",
-					"Created new EPrint with ID $self->{eprint}->{eprintid}" );
+#				EPrints::Log->debug(
+#					"SubmissionForm",
+#					"Created new EPrint with ID $self->{eprint}->{eprintid}" );
 
 				$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 			}

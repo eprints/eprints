@@ -441,7 +441,7 @@ sub remove
 
 	my @related;
 
-EPrints::Log->debug( "EPrint", "Table is $self->{table}" );
+#EPrints::Log->debug( "EPrint", "Table is $self->{table}" );
 
 	if( $self->{table} eq $EPrints::Database::table_archive )
 	{
@@ -449,7 +449,7 @@ EPrints::Log->debug( "EPrint", "Table is $self->{table}" );
 		# from any threads we're in
 		@related = $self->get_all_related();
 
-EPrints::Log->debug( "EPrint", scalar @related." related eprints to update" );
+#EPrints::Log->debug( "EPrint", scalar @related." related eprints to update" );
 
 		if( scalar @related > 0 )
 		{
@@ -1103,7 +1103,7 @@ sub prune
 {
 	my( $self ) = @_;
 	
-EPrints::Log->debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
+#EPrints::Log->debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
 
 	$self->prune_documents();
 	
@@ -1119,7 +1119,7 @@ EPrints::Log->debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
 		}
 	}
 
-EPrints::Log->debug( "EPrint", "prune: end EPrint ID: $self->{eprintid}" );
+#EPrints::Log->debug( "EPrint", "prune: end EPrint ID: $self->{eprintid}" );
 }
 
 
@@ -1382,7 +1382,7 @@ sub first_in_thread
 {
 	my( $self, $field ) = @_;
 	
-EPrints::Log->debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
+#EPrints::Log->debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
 
 	my $first = $self;
 	

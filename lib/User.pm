@@ -341,10 +341,10 @@ sub validate
 		}
 	}
 
-	foreach (@all_problems)
-	{
-		EPrints::Log->debug( "User", "validate: got problem $_" );
-	}
+#	foreach (@all_problems)
+#	{
+#		EPrints::Log->debug( "User", "validate: got problem $_" );
+#	}
 
 	return( \@all_problems );
 }
@@ -477,7 +477,7 @@ sub retrieve_users
 		$conditions,
 		$order );
 
-EPrints::Log->debug( "EPrint", "Making User objects" );
+#EPrints::Log->debug( "EPrint", "Making User objects" );
 
 	my $r;
 	my @users;

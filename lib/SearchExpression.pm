@@ -330,7 +330,7 @@ sub get_sql_order
 	my $first = 1;
 	my $sql = "";
 
-EPrints::Log->debug( "SearchExpression", "Number of search fields: ".scalar( @{$self->{searchfields}} ) );
+#EPrints::Log->debug( "SearchExpression", "Number of search fields: ".scalar( @{$self->{searchfields}} ) );
 
 	# Make the SQL condition
 	foreach (@{$self->{searchfields}})
@@ -405,7 +405,7 @@ sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
 	
-EPrints::Log->debug( "SearchExpression", "state_from_string ($text_rep)" );
+#EPrints::Log->debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 	# Split everything up
 	my @elements = ( $text_rep =~ m/\[([^\]]*)\]/g );
@@ -427,12 +427,12 @@ EPrints::Log->debug( "SearchExpression", "state_from_string ($text_rep)" );
 		my $value = shift @elements;
 	
 		my $sf = $self->{searchfieldmap}->{$formname};
-EPrints::Log->debug( "SearchExpression", "Eep! $formname not in searchmap!" )
-	if( !defined $sf );
+#EPrints::Log->debug( "SearchExpression", "Eep! $formname not in searchmap!" )
+#	if( !defined $sf );
 		$sf->{value} = $value if( defined $sf && defined $value && $value ne "" );
 	}
 
-EPrints::Log->debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
+#EPrints::Log->debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
 }
 
 

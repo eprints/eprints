@@ -7,6 +7,7 @@
 ######################################################################
 #
 #  14/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -697,7 +698,7 @@ sub from_form
 			# We have some values. Join them together.
 			$val = join ':', @vals;
 
-			EPrints::Log->debug( "SearchField", "Joined values: $val" );
+			#EPrints::Log->debug( "SearchField", "Joined values: $val" );
 
 			# But if one of them was the "any" option, we don't want a value.
 			foreach (@vals)
@@ -705,7 +706,7 @@ sub from_form
 				undef $val if( $_ eq "NONE" );
 			}
 
-			EPrints::Log->debug( "SearchField", "Joined values post NONE check: $val" );
+			#EPrints::Log->debug( "SearchField", "Joined values post NONE check: $val" );
 		}
 
 		if( defined $val )
@@ -738,8 +739,8 @@ sub from_form
 		}
 	}
 
-EPrints::Log->debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
-EPrints::Log->debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
+#EPrints::Log->debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
+#EPrints::Log->debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
 
 	return( $problem );
 }
