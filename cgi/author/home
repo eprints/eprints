@@ -195,7 +195,7 @@ sub render_workspace
 
 sub show_pending
 {
-	my( $session ) = @_;
+	my( $session, $user ) = @_;
 
 	### Get the papers in the buffer
 	my @eprints = EPrints::EPrint->retrieve_eprints(
