@@ -330,6 +330,13 @@ sub from_form
 {
 	my( $self ) = @_;
 
+	my $exp = $self->{session}->param( "_exp" );
+	if( defined $exp )
+	{
+		$self->_unserialise_aux( $exp );
+		return;
+	}
+
 	my @problems;
 	my $onedefined = 0;
 	my $search_field;
@@ -340,10 +347,6 @@ sub from_form
 		
 		push @problems, $prob if( defined $prob );
 	}
-
-	push @problems, $self->{session}->phrase( "lib/searchexpression:least_one" )
-		unless( $self->{allow_blank} || $onedefined );
-
 	my $anyall = $self->{session}->param( "_satisfyall" );
 
 	if( defined $anyall )
@@ -352,6 +355,10 @@ sub from_form
 	}
 	
 	$self->{order} = $self->{session}->param( "_order" );
+
+	push @problems, $self->{session}->phrase( "lib/searchexpression:least_one" )
+		unless( $self->{allow_blank} || $onedefined );
+
 	
 	return( scalar @problems > 0 ? \@problems : undef );
 }
@@ -408,29 +415,36 @@ sub unserialise
 {
 	my( $class, $session, $string ) = @_;
 
+	my $searchexp = $class->new( session=>$session );
+	$searchexp->_unserialise_aux( $string );
+	return $searchexp;
+}
+
+sub _unserialise_aux
+{
+	my( $self, $string ) = @_;
+
 	my( $pstring , $fstring ) = split /\|-\|/ , $string ;
-	my %properties = ();
-	$properties{session} = $session;
+	
 	my @parts = split( /\|/ , $pstring );
-	$properties{allow_blank} = $parts[0];
-	$properties{satisfy_all} = $parts[1];
-	$properties{order} = $parts[2];
-	$properties{dataset} = $session->get_archive()->get_dataset( $parts[3] );
+	$self->{allow_blank} = $parts[0];
+	$self->{satisfy_all} = $parts[1];
+	$self->{order} = $parts[2];
+	$self->{dataset} = $self->{session}->get_archive()->get_dataset( $parts[3] );
+#######
 	print STDERR "Dataset: $parts[3]\n";
-	my $searchexp = $class->new( %properties );
 	foreach( split /\|/ , $fstring )
 	{
 		my $searchfield = EPrints::SearchField->unserialise(
-			$session, $properties{dataset}, $_ );
+			$self->{session}, $self->{dataset}, $_ );
 
 		# Add it to our list
-		push @{$searchexp->{searchfields}}, $searchfield;
+		push @{$self->{searchfields}}, $searchfield;
 		# Put it in the name -> searchfield map
 		my $formname = $searchfield->get_form_name();
-		$searchexp->{searchfieldmap}->{$formname} = $searchfield;
+		$self->{searchfieldmap}->{$formname} = $searchfield;
 		
 	}
-	return $searchexp;	
 }
 
 sub perform_search
@@ -565,7 +579,7 @@ sub count
 ## WP1: BAD
 sub get_records 
 {
-	my ( $self , $from , $count ) = @_;
+	my ( $self , $offset , $count ) = @_;
 
 	if( $self->{use_cache} && 
 		$self->{session}->get_db()->is_cached( $self->serialise() ) )
@@ -574,7 +588,7 @@ sub get_records
 		my @records = $self->{session}->get_db()->from_cache( 
 							$self->{dataset}, 
 							$self->serialise(),
-							$from,
+							$offset,
 							$count );
 		return @records;
 	}
@@ -645,6 +659,9 @@ sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
 
+	my $PAGESIZE = 10;
+	#cjg put this in the curry^H^H^H^H^Hconfig
+
 	my $action_button = $self->{session}->get_action_button();
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
@@ -692,7 +709,9 @@ sub process_webpage
 
 		my $n_results = $self->count();
 
-		@results = $self->get_records();
+		my $offset = $self->{session}->param( "_offset" ) + 0;
+
+		@results = $self->get_records( $offset , $PAGESIZE );
 		$t3 = EPrints::Session::microtime();
 		$self->dispose();
 
@@ -757,6 +776,32 @@ sub process_webpage
 		}
 
 		$page->appendChild( $form->cloneNode( 1 ) );
+
+
+		if( $offset + $PAGESIZE < $n_results )
+		{
+			#cjg |NOT DOM
+
+			#cjg find right url
+			#cjg escape URL'ify exp
+			my $a = $self->{session}->make_element( "a", href=>"search?_exp=".$self->serialise()."&_offset=".($offset+$PAGESIZE) );
+			my $nn = $n_results-$offset;
+			$nn = $PAGESIZE if $PAGESIZE< $nn;
+			$a->appendChild( $self->{session}->make_text( "Next ".$nn." results" ) );
+			$page->appendChild( $a );
+		}
+		if( $offset > 0 ) 
+		{
+			#cjg |NOT DOM
+			my $bk = $offset-$PAGESIZE;
+			my $a = $self->{session}->make_element( "a", href=>"search?_exp=".$self->serialise()."&_offset=".($bk<0?0:$bk) );
+			my $pn = $PAGESIZE>$offset?$offset:$PAGESIZE;
+			$a->appendChild( $self->{session}->make_text( "Prev ".$pn." results" ) );
+			$page->appendChild( $a );
+		}
+		my $plast = $offset + $PAGESIZE;
+		$plast = $n_results if $n_results< $plast;
+		$page->appendChild( $self->{session}->make_text( "showing results ".($offset+1)." to ".$plast." of ".$n_results." results" ) );
 			
 		# Print out state stuff for a further invocation
 		$self->{session}->build_page( 

@@ -786,6 +786,7 @@ sub _create_tempmap_table
 	my $sql = <<END;
 CREATE TABLE $table_name ( 
 	tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	created DATETIME NOT NULL, 
 	lastused DATETIME NOT NULL, 
 	searchexp TEXT )
 END
@@ -838,11 +839,16 @@ sub counter_next
 
 sub cache_id
 {
-	my( $self , $code ) = @_;
+	my( $self , $code , $include_expired) = @_;
 
 	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
 	#cjg NOT escaped!!!
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code'";
+	if( !$include_expired )
+	{
+		#cjg
+	#	$sql.= "AND created+a day< now() and lastused+ a bit < now()
+	}
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -861,7 +867,7 @@ sub count_cache
 {
 	my( $self , $code ) = @_;
 
-	my $id = $self->cache_id( $code );
+	my $id = $self->cache_id( $code , 1 );
 	return undef if( !defined $id );
 
 	return $self->count_table( "cache".$id );
@@ -875,7 +881,7 @@ sub cache
 	my $sth;
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW()  , '$code' )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , '$code' )";
 	
 	$self->do( $sql );
 
@@ -915,6 +921,7 @@ sub create_buffer
 	my $tmptable = "searchbuffer".($NEXTBUFFER++);
 	$TEMPTABLES{$tmptable} = 1;
 	#print STDERR "Pushed $tmptable onto temporary table list\n";
+#cjg VARCHAR!! Should this not be whatever type is bestest?
         my $sql = "CREATE TEMPORARY TABLE $tmptable ".
 	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
 
@@ -1074,6 +1081,24 @@ sub from_buffer
 	return $self->_get( $dataset, 1 , $buffer );
 }
 
+sub from_cache
+{
+	my( $self , $dataset , $code , $offset , $count ) = @_;
+
+	print STDERR "[$offset][$count]\n";
+
+	$offset+=0;
+	$count+=0;
+
+	my $id = $self->cache_id( $code , 1 );
+	my @results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
+	#cjg clean up cache
+
+#cjg is_cached must return no if result is too old.
+	return @results;
+}
+
+
 ## WP1: BAD
 sub get_single
 {
@@ -1091,12 +1116,13 @@ sub get_all
 ## WP1: BAD
 sub _get 
 {
-	my ( $self , $dataset , $mode , $param ) = @_;
+	my ( $self , $dataset , $mode , $param, $offset, $ntoreturn ) = @_;
 
 # print STDERR "========================================BEGIN _get($mode,$param)\n";
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
+	# mode 3 = some entries from a cache table
 use Carp;
 if( ref($dataset) eq "" ) { confess(); }
 
@@ -1161,6 +1187,18 @@ if( ref($dataset) eq "" ) { confess(); }
 	elsif ( $mode == 2 )	
 	{
 		$sql = "SELECT $cols FROM $table AS M";
+	}
+	elsif ( $mode == 3 )	
+	{
+print STDERR "From cache $param\n";
+		$sql = "SELECT $cols, C.pos FROM $param AS C, $table AS M ";
+		$sql.= "WHERE M.$kn = C.$kn AND C.pos>=$offset ";
+		if( $ntoreturn > 0 )
+		{
+			$sql.="AND C.pos<".($offset+$ntoreturn)." ";
+		}
+		$sql .= "ORDER BY C.pos";
+		print STDERR "$sql\n";
 	}
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
@@ -1262,6 +1300,19 @@ if( ref($dataset) eq "" ) { confess(); }
 		{
 			$sql = "SELECT $fields_sql FROM ";
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
+		}
+		elsif ( $mode == 3 )	
+		{
+	print STDERR "From cache $param\n";
+			$sql = "SELECT $fields_sql, C.pos FROM $param AS C, "; 
+			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
+			$sql.= "WHERE M.$kn = C.$kn AND C.pos>=$offset ";
+			if( $ntoreturn > 0 )
+			{
+				$sql.="AND C.pos<".($offset+$ntoreturn)." ";
+			}
+			$sql .= "ORDER BY C.pos";
+			print STDERR "$sql\n";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );

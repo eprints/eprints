@@ -139,6 +139,11 @@ my $tools = [
 		page=>"staff/user_search",
 		priv=>"staff-view"
 	},
+	### Add New User
+	{
+		page=>"staff/add_user",
+		priv=>"edit-user"
+	},
 	### Use the Subject Edit Tool
 	{
 		page=>"staff/edit_subject",

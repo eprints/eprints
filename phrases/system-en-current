@@ -328,15 +328,14 @@ User Area CGI Scripts
 Staff CGI Scripts
 ***********************************************************************-->
 
-<!-- add_user ??cjg-->
+<!-- add_user -->
 
-    <phrase ref="cgi/users/add_user:mk_acc_err">Error creating user's account.</phrase>
-    <phrase ref="cgi/users/add_user:staff_area">Staff Area</phrase>
-    <phrase ref="cgi/users/add_user:no_username">No username entered!</phrase>
-    <phrase ref="cgi/users/add_user:try_again">Try Again</phrase>
+    <phrase ref="cgi/users/add_user:enter_username"><p>Enter a username for the new user below.</p></phrase>
     <phrase ref="cgi/users/add_user:create_user_title">Create a User</phrase>
-    <phrase ref="cgi/users/add_user:enter_username">Enter a username for the new user below.</phrase>
     <phrase ref="cgi/users/add_user:create_user">Create User</phrase>
+    <phrase ref="cgi/users/add_user:no_username"><p><em>No username entered!</em></p></phrase>
+    <phrase ref="cgi/users/add_user:user_exists"><p><em>A user with the username "<pin ref="username" />" already exists!</em></p></phrase>
+    <phrase ref="cgi/users/add_user:mk_acc_err">Error creating user's account.</phrase>
 
 <!-- buffer -->
 

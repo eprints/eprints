@@ -239,4 +239,5 @@
 	# this 'un prunes it too.
 #- count_cache( $searchexp )
 #
-# check Database.pm for any sql without escaping.
+# check Database.pm for any sql without escaping. and SearchExpression.pm and
+# SearchField.pm
