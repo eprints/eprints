@@ -151,8 +151,10 @@ sub get_sql
 
 	if( $type eq "boolean" )
 	{
-		$sql = "__FIELDNAME__ LIKE \"TRUE\"" if( $value eq "TRUE" );
-		$sql = "__FIELDNAME__ LIKE \"FALSE\"" if( $value eq "FALSE" );
+		$sql = "__FIELDNAME__ LIKE \"TRUE\""
+			if( defined $value && $value eq "TRUE" );
+		$sql = "__FIELDNAME__ LIKE \"FALSE\""
+			if( defined $value && $value eq "FALSE" );
 		# Otherwise, leave it alone, no preference
 	}
 	elsif( $type eq "date" )
