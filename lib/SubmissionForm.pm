@@ -74,12 +74,12 @@ $EPrints::SubmissionForm::corruption_error =
 	"buttons. Always access the submission mechanism via your author area ".
 	"and use the buttons on the form.</P><P>If this has happened in the normal ".
 	"course of operation please tell the " .
-	"<A HREF=\"mailto:$EPrintSite::SiteInfo::author\">site administrator</A>";
+	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site administrator</A>";
 
 $EPrints::SubmissionForm::database_error =
 	"There's been a problem accessing the site database. ".
 	"Please try again later, and contact the ".
-	"<A HREF=\"mailto:$EPrintSite::SiteInfo::author\">site ".
+	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 	"administrator</A> if the problem persists.";
 
 $EPrints::SubmissionForm::noselection_error =

@@ -160,7 +160,7 @@ sub start_html
 
 	# Now the HTML itself.
 	$html .= $self->{query}->start_html(
-		-AUTHOR=>"$EPrintSite::SiteInfo::author",
+		-AUTHOR=>"$EPrintSite::SiteInfo::admin",
 		-BGCOLOR=>"$EPrintSite::SiteInfo::html_bgcolor",
 		-FGCOLOR=>"$EPrintSite::SiteInfo::html_fgcolor",
 		-TITLE=>"$EPrintSite::SiteInfo::sitename\: $title" );
