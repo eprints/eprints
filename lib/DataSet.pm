@@ -63,6 +63,8 @@ sub newStub
 
 	if( !defined $INFO->{$datasetname} )
 	{
+		# no site info, so can't log.
+		print STDERR "Unknown dataset name: $datasetname\n";	
 		&EPrints::Session::bomb;
 		die( "Unknown dataset name: $datasetname" );
 	}
@@ -92,8 +94,6 @@ sub new
 	
 	my $self = EPrints::DataSet->newStub( $datasetname );
 
-	$site->log( "New DataSet: ($datasetname)" );
-
 	$self->{site} = $site;
 
 	$self->{fields} = [];
@@ -115,7 +115,6 @@ sub new
 	my $sitefields = $site->getConf( "sitefields", $self->{confid} );
 	if( $sitefields )
 	{
-		$site->log( "$datasetname has EXTRA FIELDS!" );
 		foreach $fielddata ( @{$sitefields} )
 		{
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
@@ -257,12 +256,12 @@ sub getSQLSubTableName
 	return $self->getSQLTableName()."_".$field->getName();
 }
 
-# (Array of EPrints::MetaField) getFields()
+# (Array of EPrints::MetaField) get_fields()
 #
 #  returns all the fields of this DataSet, in order.
 
 ## WP1: BAD
-sub getFields
+sub get_fields
 {
 	my( $self ) = @_;
 	return @{ $self->{fields} };

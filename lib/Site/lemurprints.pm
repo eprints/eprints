@@ -367,7 +367,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
 			Auth_DBI_encrypted  =>  "off" }, 
-		priv  =>  [ "tester" ] }
+		priv  =>  [ "tester", "subscription" ] }
 };
 
 ######################################################################
@@ -857,6 +857,7 @@ $c->{htmlpage}->{english} = parseHTML( <<END );
  <p>
     <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
         src="http://www.w3.org/Icons/valid-xhtml10"
+	border="0"
         alt="Valid XHTML 1.0!" height="31" width="88" /></a>
   </p>
 </div></body>
@@ -909,6 +910,7 @@ $c->{htmlpage}->{french} = parseHTML( <<END );
  <p>
     <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
         src="http://www.w3.org/Icons/valid-xhtml10"
+	border="0"
         alt="Valid XHTML 1.0!" height="31" width="88" /></a>
   </p>
 </div></body>
@@ -970,6 +972,7 @@ $c->{htmlpage}->{dummy} = parseHTML( <<END );
  <p>
     <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
         src="http://www.w3.org/Icons/valid-xhtml10"
+	border="0"
         alt="Valid XHTML 1.0!" height="31" width="88" /></a>
   </p>
 </div></body>
@@ -1728,10 +1731,14 @@ sub user_display_name
 	my( $user ) = @_;
 
 	# If no surname, just return the username
-	return( "User $user->{username}" ) if( !defined $user->{name} ||
-	                                       $user->{name}->{family} eq "" );
+	my $name = $user->getValue( "name" );
 
-	return( EPrints::Name::format_name( $user->{name}, 1 ) );
+	if( !defined $name || $name->{family} eq "" ) 
+	{
+		return( "User ".$user->getValue( "username" ) );
+	} 
+
+	return( EPrints::Name::format_name( $name, 1 ) );
 }
 
 

@@ -240,7 +240,7 @@ sub render_search_form
 			"div" , 
 			class => "searchanyall" );
 		$div->appendChild( 
-			$self->{session}->HTMLPhrase( 
+			$self->{session}->html_phrase( 
 				"must_fulfill",  
 				anyall=>$menu ) );
 		$form->appendChild( $div );	
@@ -261,7 +261,7 @@ sub render_search_form
 		class => "searchorder" );
 
 	$div->appendChild( 
-		$self->{session}->HTMLPhrase( 
+		$self->{session}->html_phrase( 
 			"order_results", 
 			ordermenu => $menu  ) );
 
@@ -604,7 +604,7 @@ sub process_webpage
 			my $p = $self->{session}->make_element( "p" );
 			$page->appendChild( $p );
 			$p->appendChild( 
-				$self->{session}->HTMLPhrase( 
+				$self->{session}->html_phrase( 
 							"too_many", 
 							n=>$MAX ) );
 		}
@@ -625,7 +625,7 @@ sub process_webpage
 		my $p = $self->{session}->make_element( "p" );
 		$page->appendChild( $p );
        		$p->appendChild(  
-			$self->{session}->HTMLPhrase( 
+			$self->{session}->html_phrase( 
 				$code,  
 				n => $self->{session}->makeText( 
 							$n_results ) ) );
@@ -638,7 +638,7 @@ sub process_webpage
 			my $words = $self->{session}->makeText( 
 					join( ", ", sort keys %words ) );
 			$p->appendChild(
-       				$self->{session}->HTMLPhrase( 
+       				$self->{session}->html_phrase( 
 					"ignored",
 					words => $words ) );
 		
@@ -646,7 +646,7 @@ sub process_webpage
 
 		$p->appendChild( $self->{session}->makeText( " " ) );
 		$p->appendChild(
-       			$self->{session}->HTMLPhrase( 
+       			$self->{session}->html_phrase( 
 				"search_time", 
 				searchtime=>$self->{session}->makeText($t2-$t1),
 				gettime=>$self->{session}->makeText($t3-$t2) ) );
@@ -724,7 +724,7 @@ sub _render_problems
 	$page->appendChild( $preamble );
 
 	my $p = $self->{session}->make_element( "p" );
-	$p->appendChild( $self->{session}->HTMLPhrase( "form_problem" ) );
+	$p->appendChild( $self->{session}->html_phrase( "form_problem" ) );
 	$page->appendChild( $p );
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );

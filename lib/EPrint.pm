@@ -1594,6 +1594,11 @@ sub getValue
 {
 	my( $self , $fieldname ) = @_;
 
+	if( $self->{data}->{$fieldname} eq "")
+	{
+		return undef;
+	}
+
 	return $self->{data}->{$fieldname};
 }
 

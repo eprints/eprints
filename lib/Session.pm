@@ -225,7 +225,7 @@ sub mail_administrator
 }
 
 ## WP1: BAD
-sub HTMLPhrase
+sub html_phrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
 
@@ -278,7 +278,7 @@ sub treeToUTF8
 
 	if( $name eq "fallback" )
 	{
-		$string = latin1("*").$string.latin("*");
+		$string = latin1("*").$string.latin1("*");
 	}
 
 	return $string;
@@ -922,7 +922,10 @@ sub render_error
 	if( !defined $back_to )
 	{
 		$back_to = $self->getSite->getConf( "frontpage" );
-		$back_to_text = $self->getSite->getConf( "sitename" );
+	}
+	if( !defined $back_to_text )
+	{
+		$back_to_text = "Continue"; #XXX INTL cjg
 	}
 
 	if ( $self->{offline} )
@@ -939,7 +942,7 @@ sub render_error
 		$page = $self->makeDocFragment;
 
 		$p = $self->make_element( "p" );
-		$p->appendChild( $self->HTMLPhrase( 
+		$p->appendChild( $self->html_phrase( 
 			"some_error",
 			sitename => $self->makeText( 
 				$self->getSite->getConf( "sitename" ) ) ) );
@@ -950,7 +953,7 @@ sub render_error
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
-		$p->appendChild( $self->HTMLPhrase( 
+		$p->appendChild( $self->html_phrase( 
 			"contact",
 			adminemail => $self->make_element( 
 				"a",
@@ -986,21 +989,22 @@ sub auth_check
 	if( !defined $user )
 	{
 		$self->render_error( $self->phrase( "no_login" ) );
-		return;
+		return 0;
 	}
 
 	# Don't need to do any more if we aren't checking for a specific
 	# resource.
 	if( !defined $resource )
 	{
-		return;
+		return 1;
 	}
 
 	unless( $user->has_priv( $resource ) )
 	{
 		$self->render_error( $self->phrase( "no_priv" ) );
-		return;
+		return 0;
 	}
+	return 1;
 }
 
 
@@ -1028,6 +1032,25 @@ sub current_user
 }
 
 
-		
+## WP1: BAD
+sub seen_form
+{
+	my( $self ) = @_;
+	
+	my $result = 0;
+
+	$result = 1 if( defined $self->{query}->param( 'seen' ) &&
+	                $self->{query}->param( 'seen' ) eq 'true' );
+
+	return( $result );
+}
+
+## WP1: BAD cjg BOY IS THIS SOOO NOT FINISHED.
+sub internal_button_pressed
+{
+	my( $self ) = @_;
+	
+	return( $self->{internalbuttonpressed} );
+}
 
 1;

@@ -28,7 +28,7 @@ my $session = new EPrints::Session;
 print $session->{render}->start_html( "Server Status" );
 
 # Total number of users
-my $rows = $session->{database}->retrieve( EPrints::Database::table_name( "users" ),
+my $rows = $session->{database}->retrieve( EPrints::Database::table_name( "user" ),
                                            [ "username" ] );
 
 # Number of users in each group
@@ -37,7 +37,7 @@ my @num_users_cat;
 
 foreach (@EPrints::User::access_levels)
 {
-	$rows = $session->{database}->retrieve( EPrints::Database::table_name( "users" ),
+	$rows = $session->{database}->retrieve( EPrints::Database::table_name( "user" ),
 	                                        [ "username" ],
 	                                        [ "groups LIKE \"$_\"" ] );
 	push @num_users_cat, scalar @$rows;

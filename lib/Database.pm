@@ -234,7 +234,7 @@ sub _create_table
 				$dataset->getSQLTableName, 
 				$dataset, 
 				1, 
-				$dataset->getFields );
+				$dataset->get_fields() );
 
 	return $rv;
 }
@@ -414,7 +414,7 @@ sub update
 	my $rv = 1;
 	my $sql;
 
-	my @fields = $dataset->getFields();
+	my @fields = $dataset->get_fields();
 
 	my $keyfield = $dataset->getKeyField();
 
@@ -441,7 +441,7 @@ sub update
 		{
 			# clearout the freetext search index table for this field.
 
-			if( $_->isType( "name" ) )
+			if( $_->is_type( "name" ) )
 			{
 				$values{$_->getName."_given"} = 
 					$data->{$_->getName}->{given};
@@ -502,7 +502,7 @@ print STDERR "*".$multifield->getName()."\n";
 		{
 			$sql = "INSERT INTO $auxtable (".
 			       $keyfield->getName.", pos, ";
-			if( $multifield->isType( "name" ) )
+			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= $multifield->getName."_given, ";
 				$sql .= $multifield->getName."_family";
@@ -512,7 +512,7 @@ print STDERR "*".$multifield->getName()."\n";
 				$sql .= $multifield->getName;
 			}
 			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
-			if( $multifield->isType( "name" ) )
+			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= "\"".prepValue( $_->{given} )."\", ";
 				$sql .= "\"".prepValue( $_->{family} )."\"";
@@ -900,7 +900,7 @@ sub _get
 
 	my $table = $dataset->getSQLTableName;
 
-	my @fields = $dataset->getFields;
+	my @fields = $dataset->get_fields();
 
 	my $keyfield = $fields[0];
 	my $kn = $keyfield->getName;
@@ -923,7 +923,7 @@ sub _get
 			{
 				$cols .= ", ";
 			}
-			if ( $_->isType( "name" ) )
+			if ( $_->is_type( "name" ) )
 			{
 				$cols .= "M.".$_->getName."_given, ".
 				         "M.".$_->getName."_family";
@@ -967,7 +967,7 @@ sub _get
 			else 
 			{
 				my $value;
-				if( $_->isType( "name" ) )
+				if( $_->is_type( "name" ) )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -989,7 +989,7 @@ sub _get
 	{
 		my $mn = $multifield->getName;
 		my $col = "M.$mn";
-		if( $multifield->isType( "name" ) )
+		if( $multifield->is_type( "name" ) )
 		{
 			$col = "M.$mn\_given,M.$mn\_family";
 		}
@@ -1019,7 +1019,7 @@ sub _get
 		{
 			my $n = $lookup{ $id };
 			my $value;
-			if( $multifield->isType( "name" ) )
+			if( $multifield->is_type( "name" ) )
 			{
 				$value = {};
 				$value->{given} = shift @values;

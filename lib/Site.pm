@@ -77,18 +77,20 @@ print STDERR "FAILED TO LOAD: $id\n";
 	$ID2SITE{$id} = $self;
 
 	$self->{class} = "EPrints::Site::$id";
-my $f= $self->{class}."::get_conf";
-print STDERR "($f)\n";
-print STDERR "($f)\n";
-	$self->{config} = &{$f}();
+	my $function= $self->{class}."::get_conf";
+	$self->{config} = &{$function}();
 
 	$self->{id} = $id;
-$self->log("ID: $id");
 	$self->{datasets} = {};
-	foreach( "user", "document", "subscription", "subject", "eprint", "deletion" )
+	foreach( 
+		"user", 
+		"document", 
+		"subscription", 
+		"subject", 
+		"eprint", 
+		"deletion" )
         {
-$self->log("DS: $_");
-		$self->{datasets} = EPrints::DataSet->new( $self, $_ );
+		$self->{datasets}->{$_} = EPrints::DataSet->new( $self, $_ );
 	}
 
 $self->log("done: $id");
@@ -124,12 +126,20 @@ sub call
 	return &{$self->{class}."::".$cmd}( @params );
 }
 
-## WP1: BAD
+## WP1: GOOD
 sub getDataSet
 {
 	my( $self , $setname ) = @_;
 
-	return EPrints::DataSet->new( $self, $setname );
+	if( !defined $self->{datasets}->{$setname} ) 
+	{
+		$self->{datasets}->{$setname} = 
+		EPrints::DataSet->new( $self, $setname );
+		$self->log( "Had to create DS:$setname, should have been".
+			    " in the cache." );
+	}
+	
+	return $self->{datasets}->{$setname};
 }
 
 1;

@@ -338,6 +338,33 @@ sub get_type
 	return $self->{type};
 }
 
+## WP1: GOOD
+sub isEditable
+{
+	my( $self ) = @_;
+	return $self->{editable};
+}
+
+## WP1: GOOD
+sub setEditable
+{
+	my( $self , $val ) = @_;
+	$self->{editable} = $val;
+}
+## WP1: GOOD
+sub isRequired
+{
+	my( $self ) = @_;
+	return $self->{required};
+}
+
+## WP1: GOOD
+sub setRequired
+{
+	my( $self , $val ) = @_;
+	$self->{required} = $val;
+}
+
 ## WP1: BAD
 sub isMultiple
 {
@@ -364,7 +391,7 @@ sub setIndexed
 	$self->{indexed} = $val;
 }
 ## WP1: BAD
-sub isType
+sub is_type
 {
 	my( $self , @typenames ) = @_;
 
@@ -379,7 +406,7 @@ sub isType
 sub isTextIndexable
 {
 	my( $self ) = @_;
-	return $self->isType( "text","longtext","url","email" );
+	return $self->is_type( "text","longtext","url","email" );
 }
 
 ######################################################################
@@ -405,34 +432,34 @@ sub getHTML
 
 	my $html;
 
-	if( $self->isType( "text" , "int" , "pagerange" , "year" ) )
+	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
 	{
 		# Render text
 		return $session->makeText( $value );
 	}
 
-	if( $self->isType( "name" ) )
+	if( $self->is_type( "name" ) )
 	{
 		return $session->makeText(
 			EPrints::Name::format_names( $value ) );
 	}
 
-	if( $self->isType( "eprinttype" ) )
+	if( $self->is_type( "eprinttype" ) )
 	{
 		$html = $self->{labels}->{$value} if( defined $value );
 		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
 	}
-	elsif( $self->isType( "boolean" ) )
+	elsif( $self->is_type( "boolean" ) )
 	{
 		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
-	elsif( $self->isType( "longtext" ) )
+	elsif( $self->is_type( "longtext" ) )
 	{
 		$html = ( defined $value ? $value : "" );
 		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
 	}
-	elsif( $self->isType( "date" ) )
+	elsif( $self->is_type( "date" ) )
 	{
 		if( defined $value )
 		{
@@ -456,17 +483,17 @@ sub getHTML
 			$html = "UNSPECIFIED";
 		}
 	}
-	elsif( $self->isType( "url" ) )
+	elsif( $self->is_type( "url" ) )
 	{
 		$html = "<A HREF=\"$value\">$value</A>" if( defined $value );
 		$html = "" unless( defined $value );
 	}
-	elsif( $self->isType( "email" ) )
+	elsif( $self->is_type( "email" ) )
 	{
 		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
 		$html = "" unless( defined $value );
 	}
-	elsif( $self->isType( "subject" ) )
+	elsif( $self->is_type( "subject" ) )
 	{
 		$html = "";
 
@@ -490,7 +517,7 @@ sub getHTML
 			$html .= EPrints::Subject::subject_label( $self->{session}, $sub );
 		}
 	}
-	elsif( $self->isType( "set" ) )
+	elsif( $self->is_type( "set" ) )
 	{
 		$html = "";
 		my @setvalues;
@@ -507,7 +534,7 @@ sub getHTML
 			}
 		}
 	}
-	elsif( $self->isType( "username" ) )
+	elsif( $self->is_type( "username" ) )
 	{
 		$html = "";
 		my @usernames;

@@ -609,8 +609,14 @@ sub count_eprints
 ## WP1: BAD
 sub getValue 
 {
-	my( $self, $key ) = @_;
-	return $self->{$key};
+	my( $self, $fieldname ) = @_;
+
+	if( $self->{data}->{$fieldname} eq "")
+	{
+		return undef;
+	}
+
+	return $self->{$fieldname};
 }
 
 

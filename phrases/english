@@ -121,6 +121,10 @@
     <phrase ref="fieldname_eprint_year">Year</phrase>
     <phrase ref="fieldhelp_eprint_year">Please enter the year in which your deposit was published or produced.</phrase>
 
+<!-- User Field Names -->
+
+    <phrase ref="fieldname_user_name">Name</phrase>
+<!--many missing...cjg-->
 
 <!-- Eprint Type Names -->
 

@@ -64,7 +64,7 @@ print "T:".$params{name}."\n";
 			$parser->xpcroak( "unknown table: $params{name}" );
 		}
 		$parser->{eprints}->{fields} = {};
-		foreach( $ds->getFields() )
+		foreach( $ds->get_fields() )
 		{
 			$parser->{eprints}->{fields}->{$_->{name}}=$_;
 		}

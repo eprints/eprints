@@ -28,24 +28,21 @@ use strict;
 #
 ######################################################################
 
-my $session = new EPrints::Session();
+my $session = new EPrints::Session;
 
-# cjg not right...
-my $user = $session->current_user;
-
-if( !defined $user )
+# Any user can view this page, but most BE a user.
+if( !$session->auth_check )
 {
-	# Can't find the user
-	$session->{render}->render_error( 
-		$session->{lang}->phrase( "H:dont_know_you" ) );
 	$session->terminate();
 	Apache::exit( 0 );
 }
 
+my $user = $session->current_user;
+
 my $fullname = $user->full_name();
+
 my $probs = $user->validate();
 my $valid_user = ( $#{$probs} == -1 );
-
 
 ######################################################################
 #
@@ -53,17 +50,22 @@ my $valid_user = ( $#{$probs} == -1 );
 #
 ######################################################################
 
-print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:deposit_items" )." ($fullname)" );
+my( $p, $page, $dl, $dt, $dd, $a );
 
+$page = $session->makeDocFragment;
 
 ### Welcome author blurb
-print "<P>";
-$session->{lang}->phrase( "H:welcome" , { sitename=>$session->{site}->{siteinfo} } );
-print "</P>\n";
+$p = $session->make_element( "p" );
+$p->appendChild( 
+	$session->html_phrase( 
+		"welcome",
+		sitename => $session->makeText( 
+			$session->getSite()->getConf( "sitename" ) ) ) );
+$page->appendChild( $p );
+
 
 if( $valid_user )
-{
+{ #cjg THIS IS NOT DONE
 	### Workspace
 	&render_workspace( $session, $user );
 
@@ -71,7 +73,12 @@ if( $valid_user )
 	&show_pending( $session, $user );
 
 	print "<HR>\n";
+}
 
+$dl = $session->make_element( "dl" );
+
+if( $valid_user )
+{ #cjg THIS IS NOT DONE
 	### View items in archive
 	print "<DL><DT><STRONG><A HREF=\"review\">";
 	$session->{lang}->phrase( "H:review" );
@@ -83,36 +90,52 @@ if( $valid_user )
 	}
 	print "</P></DD>\n";
 }
-else
-{
-	print "<DL>";
-}
 
 ### Change author record
-print "<DT><STRONG><A HREF=\"record\">";
-print $session->{lang}->phrase( "H:change" );
-print "</A></STRONG></DT>\n<DD><P>";
 
+$dt = $session->make_element( "dt" );
+$a = $session->make_element( "a", href => "record" );
+$a->appendChild( $session->html_phrase( "change" ) );
+$dt->appendChild( $a );
+$dl->appendChild( $dt );
+
+$dd = $session->make_element( "dd" );
+$p = $session->make_element( "p" );
 if( $valid_user )
 {
-	print $session->{lang}->phrase( "H:change_info" );
+	$p->appendChild( $session->html_phrase( "change_info" ) );
 }
 else
 {
 	### User needs to update their record
-	print $session->{lang}->phrase( "H:before" );
+	$p->appendChild( $session->html_phrase( "before" ) );
 }
-print "</P></DD>\n";
+$dd->appendChild( $p );
+$dl->appendChild( $dd );
 	
 ### Change subscription options
-print "<DT><STRONG><A HREF=\"subscribe\">";
-print $session->{lang}->phrase( "H:sub_opts" );
-print "</A></STRONG></DT>\n";
-print "<DD><P>";
-print $session->{lang}->phrase( "H:sub_opts_info" );
-print "</P></DD></DL>\n";
+if( $user->has_priv( "subscription" ) )
+{
+	$dt = $session->make_element( "dt" );
+	$a = $session->make_element( "a", href => "subscribe" );
+	$a->appendChild( $session->html_phrase( "sub_opts" ) );
+	$dt->appendChild( $a );
+	$dl->appendChild( $dt );
 
-print $session->{render}->end_html();
+	$dd = $session->make_element( "dd" );
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->html_phrase( "sub_opts_info" ) );
+	$dd->appendChild( $p );
+	$dl->appendChild( $dd );
+}
+
+
+$page->appendChild( $dl );
+
+$session->buildPage( 
+		$session->phrase( "user_home", name => $fullname ),
+		$page );
+$session->sendPage();
 
 $session->terminate();
 

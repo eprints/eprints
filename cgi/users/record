@@ -24,10 +24,17 @@ use EPrints::UserForm;
 
 use strict;
 
-
 my $session = new EPrints::Session;
 
-my $userform = new EPrints::UserForm( $session, "home", 0 );
+# Any user can view this page, but most BE a user.
+if( !$session->auth_check )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my $userform = new EPrints::UserForm( $session, "home", 0);
+
 $userform->process();
 
 $session->terminate();

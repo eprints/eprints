@@ -107,34 +107,26 @@ sub new
 
 	$self->{session} = $session;
 
-	# Get name boxcount stuff
+	# Get name & username boxcount stuff
 
-	$self->{namebuttonpressed} = 0;
+	$self->{internalbuttonpressed} = 0;
 
 	$self->{nameinfo} = {};
-	my @names = $self->{query}->param();
+	$self->{usernameinfo} = {};
+
+	my @params = $self->{query}->param();
 	my $n;
 
-	foreach $n (@names)
+	foreach $n (@params)
 	{
 		$self->{nameinfo}->{$n} = $self->{query}->param( $n )
 			if( substr($n, 0, 5) eq "name_" );
 		
-		$self->{namebuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
-	}
-	# Get username boxcount stuff
-
-	$self->{usernamebuttonpressed} = 0;
-
-	$self->{usernameinfo} = {};
-	my @usernames = $self->{query}->param();
-
-	foreach $n (@usernames)
-	{
+		$self->{internalbuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
 		$self->{usernameinfo}->{$n} = $self->{query}->param( $n )
 			if( substr($n, 0, 9) eq "username_" );
 		
-		$self->{usernamebuttonpressed} = 1 if( substr($n, 0, 14) eq "username_more_" );
+		$self->{internalbuttonpressed} = 1 if( substr($n, 0, 14) eq "username_more_" );
 	}
 	
 	
@@ -172,13 +164,6 @@ sub absolute_url
 #
 ######################################################################
 
-## WP1: BAD
-sub internal_button_pressed
-{
-	my( $self ) = @_;
-	
-	return( $self->{namebuttonpressed} ||  $self->{usernamebuttonpressed} );
-}
 
 
 
@@ -679,20 +664,6 @@ sub upload_field
 #  been called and the user has entered data and clicked "submit."
 #
 ######################################################################
-
-## WP1: BAD
-sub seen_form
-{
-	my( $self ) = @_;
-	
-	my $result = 0;
-
-	$result = 1 if( defined $self->{query}->param( 'seen' ) &&
-	                $self->{query}->param( 'seen' ) eq 'true' );
-
-	return( $result );
-}
-
 
 
 

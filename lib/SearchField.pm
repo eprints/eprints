@@ -164,12 +164,12 @@ print STDERR "------llll\n";
 print STDERR  $self->{formname} ."\n";
 print STDERR  $self->{field}->{type}."\n";
 print STDERR  $self->{session}->param( $self->{formname} )."\n";
-	if( $self->isType( "boolean" ) )
+	if( $self->is_type( "boolean" ) )
 	{
 		my $val = $self->{session}->param( $self->{formname} );
 		$self->set_value( "PHR:EQ:$val" ) if( $val ne "EITHER" );
 	}
-	elsif( $self->isType( "email","url" ) )
+	elsif( $self->is_type( "email","url" ) )
 	{
 		# simple text types
 		my $val = $self->{session}->param( $self->{formname} );
@@ -178,7 +178,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			$self->set_value( "ANY:IN:$val" );
 		}
 	}
-	elsif( $self->isType( "longtext","text","name" ) )
+	elsif( $self->is_type( "longtext","text","name" ) )
 	{
 		# complex text types
 		my $search_terms = $self->{session}->param( $self->{formname} );
@@ -195,7 +195,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			$self->set_value( "$search_type:$exact:$search_terms" );
 		}
 	}		
-	elsif( $self->isType( "username" ) )
+	elsif( $self->is_type( "username" ) )
 	{
 		# usernames
 		my $anyall = $self->{session}->param( 
@@ -212,7 +212,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
 		}
 	}		
-	elsif( $self->isType( "eprinttype" ) )
+	elsif( $self->is_type( "eprinttype" ) )
 	{
 		my @vals = $self->{session}->param( $self->{formname} );
 		
@@ -230,7 +230,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			$self->set_value( "ANY:EQ:$val" );
 		}
 	}
-	elsif( $self->isType( "subject" , "set" ) )
+	elsif( $self->is_type( "subject" , "set" ) )
 	{
 		my @vals = $self->{session}->param( $self->{formname} );
 		my $val;
@@ -263,7 +263,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 		}
 
 	}
-	elsif( $self->isType( "year" ) )
+	elsif( $self->is_type( "year" ) )
 	{
 		my $val = $self->{session}->param( $self->{formname} );
 print STDERR "zz($val))\n";	
@@ -305,7 +305,7 @@ sub get_conditions
 		return undef;
 	}
 
-	if ( $self->isType( "set","subject","eprinttype","boolean","username" ) )
+	if ( $self->is_type( "set","subject","eprinttype","boolean","username" ) )
 	{
 		my @fields = ();
 		my $text = $self->{string};
@@ -320,7 +320,7 @@ sub get_conditions
 		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
-	if ( $self->isType( "name" ) )
+	if ( $self->is_type( "name" ) )
 	{
 		my @where = ();
 		my @names = ();
@@ -368,7 +368,7 @@ sub get_conditions
 	# N-N
 
 
-	if ( $self->isType( "year","int" ) )
+	if ( $self->is_type( "year","int" ) )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -420,7 +420,7 @@ sub get_conditions
 	# -YYYY-MM-DD
 	# YYYY-MM-DD-YYYY-MM-DD
 
-	if ( $self->isType( "date" ) )
+	if ( $self->is_type( "date" ) )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -469,7 +469,7 @@ sub get_conditions
 	#  word word "a phrase" word
 	#
 
-	if ( $self->isType( "text","longtext","email","url" ) )
+	if ( $self->is_type( "text","longtext","email","url" ) )
 	{
 		my @where = ();
 		my @phrases = ();
@@ -900,7 +900,7 @@ sub toHTML
 
 	my $frag = $self->{session}->makeDocFragment;
 	
-	if( $self->isType( "boolean" ) )
+	if( $self->is_type( "boolean" ) )
 	{
 		# Boolean: Popup menu
 	
@@ -911,7 +911,7 @@ sub toHTML
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
 	}
-	elsif( $self->isType( "boolean","longtext","text","name","url","username" ) )
+	elsif( $self->is_type( "boolean","longtext","text","name","url","username" ) )
 	{
 		# complex text types
 		$frag->appendChild(
@@ -929,7 +929,7 @@ sub toHTML
 				value=>$self->{anyall},
 				labels=>\%text_labels ) );
 	}
-	elsif( $self->isType( "eprinttype" , "set" , "subject" ) )
+	elsif( $self->is_type( "eprinttype" , "set" , "subject" ) )
 	{
 		my @defaults;
 		
@@ -946,13 +946,13 @@ sub toHTML
 		# Make a list of possible values
 		my( $tags, $labels );
 		
-		if( $self->isType( "subject" ) )
+		if( $self->is_type( "subject" ) )
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info.
 			( $tags, $labels ) = EPrints::Subject::get_postable( $self->{session}, {} );
 		}
-		elsif( $self->isType( "eprinttype" ) )
+		elsif( $self->is_type( "eprinttype" ) )
 		{
 			my $ds = $self->{session}->getSite()->getDataSet( "eprint" );
 			$tags = $ds->getTypes();
@@ -995,7 +995,7 @@ sub toHTML
 					labels=>\%set_labels ) );
 		}
 	}
-	elsif( $self->isType( "int" ) )
+	elsif( $self->is_type( "int" ) )
 	{
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
@@ -1004,7 +1004,7 @@ sub toHTML
 				size=>9,
 				maxlength=>100 ) );
 	}
-	elsif( $self->isType( "year" ) )
+	elsif( $self->is_type( "year" ) )
 	{
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
@@ -1030,10 +1030,10 @@ sub getHelp
 }
 
 ## WP1: BAD
-sub isType
+sub is_type
 {
 	my( $self, @types ) = @_;
-	return $self->{field}->isType( @types );
+	return $self->{field}->is_type( @types );
 }
 
 ## WP1: BAD
@@ -1054,6 +1054,12 @@ sub getFormName
 sub getValue
 {
 	my( $self ) = @_;
+
+	if( $self->{value} eq "")
+	{
+		return undef;
+	}
+
 	return $self->{value};
 }
 

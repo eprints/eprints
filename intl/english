@@ -225,8 +225,7 @@
     <phrase ref="dontknow">I don't know who you are</phrase>
     <phrase ref="recfor">Record for <pin ref="name" /></phrase>
     <phrase ref="blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.</phrase>
-    <phrase ref="changeemail">For instructions on how to change your e-mail address, <pin ref="clickhere" />.</phrase>
-    <phrase ref="clickhere">click here</phrase>
+    <phrase ref="changeemail">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
     <phrase ref="formincorrect">The form doesn't seem to be filled out correctly:</phrase>
     <phrase ref="completeform">Please complete the form before continuing.</phrase>
     <phrase ref="problemupdating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
@@ -237,7 +236,7 @@
 
 <file name="home">
     <phrase ref="dont_know_you">I don't know who you are</phrase>
-    <phrase ref="deposit_items">Deposit Items</phrase>
+    <phrase ref="user_home">User Area Homepage - <pin ref="name" /></phrase>
     <phrase ref="welcome">Welcome to the item depositing area at <pin ref="sitename" />. Please select one of the options below.</phrase>
     <phrase ref="review">Review your documents in the archive</phrase>
     <phrase ref="review_info">This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.</phrase>

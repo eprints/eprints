@@ -269,7 +269,9 @@ sub full_name
 	my( $self ) = @_;
 
 	# Delegate to site-specific routine
-	return( $self->{session}->{site}->user_display_name( $self ) );
+	return( $self->{session}->getSite()->call(
+			"user_display_name",
+			$self ) );
 }
 
 
@@ -284,31 +286,34 @@ sub full_name
 #
 ######################################################################
 
-## WP1: BAD
+## WP1: GOOD
 sub validate
 {
 	my( $self ) = @_;
 
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "users" );
+	my @all_fields = $self->{session}->
+		getSite()->getDataSet( "user" )->get_fields();
+
 	my $field;
-	
 	foreach $field (@all_fields)
 	{
 		# Check that the field is filled in if it is required
-		if( $field->{required} && ( !defined $self->{$field->{name}} ||
-		                        	 $self->{$field->{name}} eq "" ) )
+		if( $field->isRequired() && 
+		    !$self->is_set( $field->getName() ) )
 		{
 			push @all_problems, 
-			   $self->{session}->phrase( "H:missedfield", 
-			                             field=>$field->display_name( $self->{session} ) );
+			  $self->{session}->phrase( 
+			   "missedfield", 
+			   field => $field->display_name( $self->{session} ) );
 		}
 		else
 		{
 			# Give the validation module a go
-			my $problem = $self->{session}->{site}->validate_user_field(
+			my $problem = $self->{session}->getSite()->call(
+				"validate_user_field",
 				$field,
-				$self->{$field->{name}} );
+				$self->getValue( $field->getName() ) );
 
 			if( defined $problem && $problem ne "" )
 			{
@@ -429,7 +434,7 @@ sub retrieve_users
 {
 	my( $session, $conditions, $order ) = @_;
 	
-	my @fields = $session->{metainfo}->get_fields( "users" );
+	my @fields = $session->{metainfo}->get_fields( "user" );
 
 	my $user_ds = $session->getSite->getDataSet( "user" );
 	my $rows = $session->{database}->retrieve_fields(
@@ -540,6 +545,11 @@ sub getValue
 {
 	my( $self , $fieldname ) = @_;
 
+	if( $self->{data}->{$fieldname} eq "")
+	{
+		return undef;
+	}
+
 	return $self->{data}->{$fieldname};
 }
 
@@ -549,6 +559,24 @@ sub setValue
 	my( $self , $fieldname, $newvalue ) = @_;
 
 	$self->{data}->{$fieldname} = $newvalue;
+}
+
+## WP1: GOOD
+sub is_set
+{
+	my( $self ,  $fieldname ) = @_;
+
+	if( !defined $self->{data}->{$fieldname} )
+	{
+		return 0;
+	}
+
+	if( $self->{data}->{$fieldname} eq "" )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 ## WP1: GOOD
