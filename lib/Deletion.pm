@@ -74,7 +74,7 @@ sub new
 	return( undef ) if( scalar @row == 0 );
 
 	# Lob row data into relevant field
-	my @fields = EPrints::MetaInfo::get_deletion_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "deletions" );
 	my $i=0;
 	foreach (@fields)
 	{
@@ -129,10 +129,10 @@ sub add_deletion_record
 	# Now add the deletion record to the database
 	return( undef ) unless ( $session->{database}->add_record(
 		$EPrints::Database::table_deletion,
-		[ [ "eprintid", $eprint->{eprintid} ],
-		  [ "replacement", $replacement ],
-		  [ "subjects", $eprint->{subjects} ],
-		  [ "deletiondate", $deletion_date ] ] ) );
+		{ "eprintid"=>$eprint->{eprintid},
+		  "replacement"=>$replacement,
+		  "subjects"=>$eprint->{subjects},
+		  "deletiondate"=>$deletion_date } ) );
 
 	return( new EPrints::Deletion(
 		$session,

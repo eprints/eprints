@@ -209,9 +209,9 @@ sub create
 	
 	my $success = $session->{database}->add_record(
 		$table,
-		[ [ "eprintid", $new_id ],
-		  [ "username", $username ],
-		  [ "dir", $dir ] ] );
+		{ "eprintid"=>$new_id,
+		  "username"=>$username,
+		  "dir"=>$dir } );
 
 	if( $success )
 	{
@@ -364,7 +364,7 @@ sub retrieve_eprints
 {
 	my( $session, $table, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_all_eprint_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "archive" );
 
 	my $rows = $session->{database}->retrieve_fields( $table,
                                                      \@fields,
@@ -618,7 +618,7 @@ sub transfer
 	# Create an entry in the new table
 	my $success = $self->{session}->{database}->add_record(
 		$table,
-		[ [ "eprintid", $self->{eprintid} ] ] );
+		{ "eprintid"=>$self->{eprintid} } );
 
 	# Write self to new table
 	$success =  $success && $self->commit();
@@ -664,21 +664,15 @@ sub commit
 	my( $self ) = @_;
 
 	# Put data into columns
-	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
-	my @data;
+	my @all_fields = EPrints::MetaInfo::get_fields( "archive" );
 	my $key_field = shift @all_fields;
 	my $key_value = $self->{$key_field->{name}};
-
-	foreach (@all_fields)
-	{
-		push @data, [ $_->{name}, $self->{$_->{name}} ];
-	}
 
 	my $success = $self->{session}->{database}->update(
 		$self->{table},
 		$key_field->{name},
 		$key_value,
-		\@data );
+		$self );
 
 	if( !$success )
 	{
@@ -930,7 +924,7 @@ sub get_document
 {
 	my( $self, $format ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_document_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "documents" );
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
@@ -967,7 +961,7 @@ sub get_all_documents
 	my( $self ) = @_;
 
 	my @documents;	
-	my @fields = EPrints::MetaInfo::get_document_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "documents" );
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
@@ -1128,7 +1122,7 @@ sub prune_documents
 	my( $self ) = @_;
 	
 	# Get the documents from the database
-	my @fields = EPrints::MetaInfo::get_document_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "documents" );
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
 		$EPrints::Database::table_document,
@@ -1166,7 +1160,7 @@ sub prune
 	$self->prune_documents();
 	
 	my @fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
-	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "archive" );
 	my $f;
 
 	foreach $f (@all_fields)

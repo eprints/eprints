@@ -63,14 +63,16 @@ $EPrints::Database::table_deletion = "deletions";
 	"multitext"  => "TEXT",
 	"url"        => "VARCHAR(255)",
 	"email"      => "VARCHAR(255)",
-	"subjects"   => "TEXT",
-	"username"   => "TEXT",
+	"subjects"   => "VARCHAR(255)",
+	"username"   => "VARCHAR(255)",
 	"pagerange"  => "VARCHAR(255)",
 	"year"       => "INT UNSIGNED",
-	"multiurl"   => "TEXT",
 	"eprinttype" => "VARCHAR(255)",
 	"name"       => "VARCHAR(255)"
 );
+
+# set, subjects, name and username can all be multiple which requires
+# a seperate table.
 
 ######################################################################
 #
@@ -194,17 +196,17 @@ sub create_archive_tables
 	# Create the user table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_user,
-		EPrints::MetaInfo::get_user_fields() );
+		EPrints::MetaInfo::get_fields( "users" ) );
 	
 
 	# Document table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_document,
-		EPrints::MetaInfo::get_document_fields() );
+		EPrints::MetaInfo::get_fields( "documents" ) );
 
 
 	# EPrint tables
-	my @eprint_metadata = EPrints::MetaInfo::get_all_eprint_fields();
+	my @eprint_metadata = EPrints::MetaInfo::get_fields( "eprints" );
 
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_inbox,
@@ -222,18 +224,18 @@ sub create_archive_tables
 	# Subscription table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subscription,
-		EPrints::MetaInfo::get_subscription_fields() );
+		EPrints::MetaInfo::get_fields( "subscriptions" ) );
 
 
 	# Subject category table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subject,
-		EPrints::MetaInfo::get_subject_fields() );
+		EPrints::MetaInfo::get_fields( "subjects" ) );
 
 	# Deletion table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_deletion,
-		EPrints::MetaInfo::get_deletion_fields() );
+		EPrints::MetaInfo::get_fields( "deletions" ) );
 
 	return( $success );
 }
@@ -259,15 +261,32 @@ sub _create_table
 	my $sql = "CREATE TABLE $name (";
 	my $key = undef;
 	my @indices;
-
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
+		if ( $field->{multiple} )
+		{ 	
+			# make an aux. table for a multiple field
+			# which will contain the same type as the
+			# key of this table paired with the non-
+			# multiple version of this field.
+			my $auxfield = $field->clone();
+			$auxfield->{multiple} = 0;
+			my @auxfields = ( $key, $auxfield );
+			my $auxresult = $self->_create_table(	
+				$name."aux".$field->{name},
+				@auxfields );
+			unless ( $auxresult )
+			{
+				return undef; 
+			}
+			next;
+		}
 		$sql .= " $field->{name} $EPrints::Database::datatypes{$field->{type}}";
-
+		# First field is primary key.
 		if( !defined $key )
 		{
-			$key = $field->{name};
+			$key = $field;
 			$sql .= " NOT NULL";
 		}
 		elsif( $field->{indexed} )
@@ -279,7 +298,7 @@ sub _create_table
 		$sql .= ",";
 	}
 	
-	$sql .= " PRIMARY KEY ($key)";
+	$sql .= " PRIMARY KEY ($key->{name})";
 	
 	foreach (@indices)
 	{
@@ -290,6 +309,11 @@ sub _create_table
 	
 #EPrints::Log::debug( "Database", "SQL: $sql" );
 
+	print EPrints::Language::logphrase( 
+		"L:created_table" ,
+		$name )."\n";
+		
+
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );
 	
@@ -300,9 +324,10 @@ sub _create_table
 
 ######################################################################
 #
-# $success = add_record( $table, $data[][] )
+# $success = add_record( $table, $data )
 #
-#  Add data to the given table.
+#  Add data to the given table. Does not handle aux. tables yet.
+#
 #
 ######################################################################
 
@@ -312,50 +337,34 @@ sub add_record
 	
 	my $sql = "INSERT INTO $table (";
 	my $first = 1;
-	my $i;
-	
-	foreach $i (@$data)
-	{
+	my $f;
+
+	my $vsql = "";
+
+	foreach $f ( keys %$data ) {
 		if( $first == 0 )
 		{
 			$sql .= ",";
+			$vsql .= ",";
 		}
 		else
 		{
 			$first=0;
 		}
-
-		$sql .= $i->[0];
-	}
-
-	$sql .= ") VALUES(";
-	
-	$first = 1;
-
-	foreach $i (@$data)
-	{
-		if( $first == 0 )
+		$sql .= $f;
+		if( defined $$data{$f} && $$data{$f} ne "")
 		{
-			$sql .= ",";
+			$vsql .= "\""._escape_chars( $$data{$f} )."\"";
 		}
 		else
 		{
-			$first=0;
-		}
-
-		if( defined $i->[1] && $i->[1] ne "" )
-		{
-			$sql .= "\"$i->[1]\"" ;
-		}
-		else
-		{
-			$sql .= "NULL";
+			$vsql .= "NULL";
 		}
 	}
 
-	$sql .= ");";	
+	$sql .= ") VALUES ($vsql);";	
 
-#EPrints::Log::debug( "Database", "SQL: $sql" );
+EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );
@@ -364,13 +373,29 @@ sub add_record
 	return( defined $rv );
 }
 
+######################################################################
+#
+# $munged = _escape_chars( $value )
+#
+#  Modify value such that " becomes \" and \ becomes \\ [STATIC]
+#
+######################################################################
+
+sub _escape_chars
+{
+	my( $value ) = @_; 
+	$value =~ s/\\/\\\\/g;
+	$value =~ s/"/\\"/g;
+	return $value;
+}
 
 ######################################################################
 #
-# $success = update( $table, $key_field, $key_value, $data[][] )
+# $success = update( $table, $key_field, $key_value, $data )
 #
 #  Update the row where $key_field is $key_value, in $table, with
-#  the given values.
+#  the given values. Dosn't handle aux fields (yet).
+#  key_field MUST NOT be a multiple type.
 #
 ######################################################################
 
@@ -379,40 +404,44 @@ sub update
 	my( $self, $table, $key_field, $key_value, $data ) = @_;
 	
 	my $sql = "UPDATE $table SET ";
-	my $column;
+	my $f;
 	my $first = 1;
+
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+
+	# Remove key (first field) - don't want to update that
+	shift @fields;
 	
 	# Put the column data into the SQL statement
-	foreach $column (@$data)
+	foreach $f ( @fields )
 	{
-		my @column_array = @$column;
-		
+		if ( !defined $$data{$f->{name}} ) {
+			next;
+		}
 		$sql .= "," unless $first;
+
+EPrints::Log::debug( "Database", "$f->{name} type $f->{type}!!" );
 
 		my $value;
 		
-		if( defined $column_array[1] )
+		if( defined $$data{$f->{name}} && $$data{$f->{name}} ne "")
 		{
-			$value = $column_array[1];
-			# Convert \ to \\
-			$value =~ s/\\/\\\\/g;
-			# Convert " to \"
-			$value =~ s/"/\\"/g;
-			$value = "\"".$value."\"";
+			$value = "\""._escape_chars( $$data{$f->{name}} )."\"";
 		}
 		else
 		{
 			$value = "NULL";
 		}
 
-		$sql .= "$column_array[0]=$value";
+
+		$sql .= "$f->{name}=$value";
 		
 		$first = 0;
 	}
 
 	$sql .= " WHERE $key_field LIKE \"$key_value\";";
 	
-#EPrints::Log::debug( "Database", "SQL: $sql" );
+EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );

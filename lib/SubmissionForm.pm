@@ -1273,7 +1273,7 @@ sub do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::other )
 	{
-		my @doc_fields = EPrints::MetaInfo::get_document_fields();
+		my @doc_fields = EPrints::MetaInfo::get_fields( "documents" );
 		my $desc_field = EPrints::MetaInfo::find_field( \@doc_fields,
 	                                                	"formatdesc" );
 
@@ -1783,7 +1783,7 @@ sub update_from_meta_form
 {
 	my( $self ) = @_;
 
-	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "eprints" );
 	my $field;
 	
 	if( $self->{session}->{render}->param( "eprint_id" ) ne

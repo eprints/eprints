@@ -335,7 +335,7 @@ sub user_render_full
 		$html .= $user->{country} if( defined $user->{country} );
 		
 		# E-mail and URL last, if available.
-		my @user_fields = EPrints::MetaInfo::get_user_fields();
+		my @user_fields = EPrints::MetaInfo::get_fields( "users" );
 		my $email_field = EPrints::MetaInfo::find_field( \@user_fields, "email" );
 		my $url_field = EPrints::MetaInfo::find_field( \@user_fields, "url" );
 
@@ -357,7 +357,7 @@ sub user_render_full
 		$html= "<p><table border=0 cellpadding=3>\n";
 
 		# Lob the row data into the relevant fields
-		my @fields = EPrints::MetaInfo::get_user_fields();
+		my @fields = EPrints::MetaInfo::get_fields( "users" );
 		my $field;
 
 		foreach $field (@fields)

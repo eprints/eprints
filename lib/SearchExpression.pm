@@ -504,11 +504,7 @@ sub make_meta_fields
 	# We want to search the relevant MetaFields
 	my @all_fields;
 
-	@all_fields = EPrints::MetaInfo::get_all_eprint_fields()
-		if( $what eq "eprints" );
-
-	@all_fields = EPrints::MetaInfo::get_user_fields()
-		if( $what eq "users" );
+	@all_fields = EPrints::MetaInfo::get_fields( $what );
 
 	foreach (@$fieldnames)
 	{

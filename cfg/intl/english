@@ -60,6 +60,10 @@ S:subsubj = Subscription
 L:failsend = Failed to send subscription to user $(1): $(2)
 </file>
 
+<file Database.pm>
+L:created_table = Create table: $(1)
+</file>
+
 <file SubmissionForm.pm>
 L:dberr 	= Database Error: $(1)
 H:useautharea	= Use your author area to deposit new documents
@@ -226,6 +230,7 @@ L:cant_open_file= Can't open metadata config file: $(1): $(2)
 L:type_file_err = Can't open eprint types file: $(1): $(2)
 L:unknown_field = Unknown EPrint field $(1) in class $(2)
 L:no_fields	= No fields for EPrint type $(1)
+L:unknown_table = Can't return fields for nonexistant table: $(1)
 </file>
 
 

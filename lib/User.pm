@@ -89,7 +89,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_user_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "users" );
 
 	my $i=0;
 	
@@ -183,11 +183,11 @@ sub create_user
 
 	# Add the user to the database... e-mail add. is lowercased
 	$session->{database}->add_record( $EPrints::Database::table_user,
-	                                  [ [ "username", $candidate ],
-	                                    [ "passwd", $passwd ],
-	                                    [ "groups", $access_level ],
-	                                    [ "joined", $date_joined ],
-	                                    [ "email", lc $email ] ] );
+	                                  { "username"=>$candidate,
+	                                    "passwd"=>$passwd,
+	                                    "groups"=>$access_level,
+	                                    "joined"=>$date_joined,
+	                                    "email"=>lc $email } );
 	
 	# And return the new user as User object.
 	return( EPrints::User->new( $session, $candidate ) );
@@ -317,7 +317,7 @@ sub validate
 	my( $self ) = @_;
 
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo::get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -366,33 +366,18 @@ sub commit
 	my( $self ) = @_;
 	
 	# Put data into columns
-	my @all_fields = EPrints::MetaInfo::get_user_fields();
-	my @data;
-	my $first = 1;
+	my @fields = EPrints::MetaInfo::get_fields( "users" );
 	my $key_field;
 	my $key_value;
-	my $field;
 
-	foreach $field (@all_fields)
-	{
-		# Skip the very first field, it's the key.
-		if( $first==0 )
-		{
-			push @data, [ $field->{name}, $self->{$field->{name}} ];
-		}
-		else
-		{
-			$key_field = $field->{name};
-			$key_value = $self->{$field->{name}};
-			$first = 0;
-		}
-	}
+	$key_field = $fields[0]->{name};
+	$key_value = $self->{$fields[0]->{name}};
 
 	my $success = $self->{session}->{database}->update(
 		$EPrints::Database::table_user,
 		$key_field,
 		$key_value,
-		\@data );
+		$self );
 
 	return( $success );
 }
@@ -474,7 +459,7 @@ sub retrieve_users
 {
 	my( $session, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_user_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "users" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_user,

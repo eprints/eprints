@@ -269,91 +269,6 @@ sub make_type
 
 ######################################################################
 #
-# @meta_fields = get_user_fields()
-#
-#  Get the user metadata fields
-#
-######################################################################
-
-sub get_user_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#user_meta_fields == -1 );
-	
-	return( @user_meta_fields );
-}
-
-
-######################################################################
-#
-# @meta_fields = get_document_fields()
-#
-#  Get document file metadata fields
-#
-######################################################################
-
-sub get_document_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#document_meta_fields == -1 );
-
-	return( @document_meta_fields );
-}
-
-
-######################################################################
-#
-# @meta_fields = get_subject_fields()
-#
-#  Get subject category metadata fields
-#
-######################################################################
-
-sub get_subject_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#subject_fields == -1 );
-
-	return( @subject_fields );
-}
-
-
-######################################################################
-#
-# @meta_fields = get_subscription_fields()
-#
-#  Get subscription metadata fields
-#
-######################################################################
-
-sub get_subscription_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#subscription_meta_fields == -1 );
-
-	return( @subscription_meta_fields );
-}
-
-
-######################################################################
-#
-# @meta_fields = get_deletion_fields()
-#
-#  Get deletion metadata fields
-#
-######################################################################
-
-sub get_deletion_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#deletion_meta_fields == -1 );
-
-	return( @deletion_meta_fields );
-}
-
-
-######################################################################
-#
 # @eprint_types = get_eprint_types()
 #
 #  Return the EPrint types supported by the system, in the order that
@@ -385,24 +300,6 @@ sub get_eprint_type_names
 	read_meta_fields if( $#eprint_meta_types == -1 );
 
 	return( \%eprint_type_names );
-}
-
-
-
-######################################################################
-#
-# @meta_fields = get_all_eprint_fields()
-#
-#  Get ALL EPrint fields
-#
-######################################################################
-
-sub get_all_eprint_fields
-{
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
-
-	return( @eprint_meta_fields );
 }
 
 
@@ -518,5 +415,63 @@ sub find_eprint_field
 	return( EPrints::MetaInfo::find_field( \@eprint_meta_fields,
 	                                       $field_name ) );
 }
+
+
+######################################################################
+#
+# $field = get_fields( $table )
+#
+#  Get table metadata fields by tablename
+#
+######################################################################
+
+sub get_fields
+{
+	my ( $table ) = @_;
+
+	# Ensure we've read in the metadata fields
+	read_meta_fields if( $#eprint_meta_fields == -1 );
+
+	if ( $table eq "users") 
+	{
+		return( @user_meta_fields );
+	}
+	if ( $table eq "documents") 
+	{
+		return( @document_meta_fields );
+	}
+	if ( $table eq "subjects") 
+	{
+		return( @subject_fields );
+	}
+	if ( $table eq "subscriptions") 
+	{
+		return( @subscription_meta_fields );
+	}
+	if ( $table eq "deletions") 
+	{
+		return( @deletion_meta_fields );
+	}
+	if ( $table eq "inbox" ||
+	     $table eq "buffer" ||
+	     $table eq "archive" ) 
+	{
+		return( @eprint_meta_fields );
+	}
+	# eprints isn't a table per se but it makes life easier
+	# to be able to identify this as a type too.
+	if ( $table eq "eprints" )
+	{
+		return( @eprint_meta_fields );
+	}
+
+	EPrints::Log::log_entry( 
+		"MetaInfo",
+		EPrints::Language::logphrase(
+			"L:unknown_table",
+			$table ) );
+	return undef;
+}
+
 
 1;

@@ -376,7 +376,7 @@ sub harvest_deleted
 {
 	my( $session, $start_date, $end_date, $setspec ) = @_;
 	
-	my @deletion_fields = EPrints::MetaInfo::get_deletion_fields();
+	my @deletion_fields = EPrints::MetaInfo::get_fields( "deletions" );
 
 	my $searchexp = make_harvest_search(
 		$session,

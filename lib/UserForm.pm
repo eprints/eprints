@@ -152,7 +152,7 @@ sub render_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = EPrints::MetaInfo::get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
 	
 	# Get the appropriate fields
 	foreach $field (@all_fields)
@@ -183,7 +183,7 @@ sub update_from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = EPrints::MetaInfo::get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
 	my $field;
 
 	# Ensure correct user

@@ -105,7 +105,11 @@ sub logphrase
 		return "Can't fetch log language: ".
 		       $EPrintSite::SiteInfo::log_language;
 	}
-	return $lang->phrase( $phraseid, @inserts );
+
+	my @callinfo = caller();
+	$callinfo[1] =~ m#[^/]+$#;
+
+	return $lang->_phrase_aux( $& , $phraseid , @inserts );
 }
 
 ######################################################################
@@ -121,10 +125,16 @@ sub logphrase
 sub phrase 
 {
 	my( $self , $phraseid , @inserts ) = @_;
-	my @callinfo;
-	@callinfo = caller();
+
+	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
-	my $file = $&;
+
+	return $self->_phrase_aux( $& , $phraseid , @inserts );
+}
+
+sub _phrase_aux
+{
+	my( $self , $file , $phraseid , @inserts ) = @_;
 	
 	my $response = $self->{data}->{$file}->{$phraseid};
 	if (defined $response)

@@ -111,7 +111,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_document_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "documents" );
 
 	my $i=0;
 	my $field;
@@ -163,9 +163,9 @@ sub create
 	# Make database entry
 	my $success = $session->{database}->add_record(
 		$EPrints::Database::table_document,
-		[ [ "docid", $doc_id ],
-		  [ "eprintid", $eprint->{eprintid} ],
-		  [ "format", $format ] ] );
+		{ "docid"=>$doc_id,
+		  "eprintid"=>$eprint->{eprintid},
+		  "format"=>$format } );
 		  
 	if( $success )
 	{
@@ -803,22 +803,16 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_document_fields();
-	my @data;
+	my @fields = EPrints::MetaInfo::get_fields( "documents" );
 
 	my $key_field = shift @fields;
 	my $key_value = $self->{$key_field->{name}};
 
-	foreach (@fields)
-	{
-		push @data, [ $_->{name}, $self->{$_->{name}} ];
-	}
-	
 	my $success = $self->{session}->{database}->update(
 		$EPrints::Database::table_document,
 		$key_field->{name},
 		$key_value,
-		\@data );
+		$self );
 
 	if( !$success )
 	{

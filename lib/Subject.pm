@@ -128,10 +128,10 @@ sub create_subject
 
 	return( undef ) unless( $session->{database}->add_record(
 		$EPrints::Database::table_subject,
-		[ [ "subjectid", $id ],
-		  [ "name", $name ],
-		  [ "parent", $actual_parent ],
-		  [ "depositable", ($depositable ? "TRUE" : "FALSE" ) ] ] ) );
+		{ "subjectid"=>$id,
+		  "name"=>$name,
+		  "parent"=>$actual_parent,
+		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) } ) );
 
 	return( new EPrints::Subject( $session,
 	                              undef,
@@ -174,7 +174,7 @@ sub children
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_subject_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
 		$EPrints::Database::table_subject,
@@ -487,7 +487,7 @@ sub get_all
 {
 	my( $session ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_subject_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
 	
 	# Retrieve all of the subjects
 	my $rows = $session->{database}->retrieve_fields(

@@ -75,7 +75,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_subscription_fields();
+	my @fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 
 	my $i=0;
 	
@@ -210,7 +210,7 @@ sub render_subscription_form
 	my( $self ) = @_;
 	
 	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
-	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 	
 	$html .= "<CENTER><P>";
 	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
@@ -236,7 +236,7 @@ sub from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 	$self->{frequency} = $self->{session}->{render}->form_value(
 		 EPrints::MetaInfo::find_field( \@all_fields, "frequency" ) );
 
@@ -259,21 +259,15 @@ sub commit
 	# Get the text rep of the search expression
 	$self->{spec} = $self->{searchexpression}->to_string();
 
-	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
+	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 	
 	my $key_field = shift @all_fields;
-	my @data;
-	
-	foreach (@all_fields)
-	{
-		push @data, [ $_->{name}, $self->{$_->{name}} ];
-	}
 	
 	return( $self->{session}->{database}->update(
 		$EPrints::Database::table_subscription,
 		$key_field->{name},
 		$self->{$key_field->{name}},
-		\@data ) );
+		$self ) );
 }
 	
 
@@ -291,7 +285,7 @@ sub subscriptions_for
 	
 	my @subscriptions;
 	
-	my @sub_fields = EPrints::MetaInfo::get_subscription_fields();
+	my @sub_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_subscription,
@@ -322,7 +316,7 @@ sub subscriptions_for_frequency
 	
 	my @subscriptions;
 	
-	my @sub_fields = EPrints::MetaInfo::get_subscription_fields();
+	my @sub_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_subscription,
