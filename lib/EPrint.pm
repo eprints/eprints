@@ -1561,28 +1561,34 @@ sub toHTML
 		$cstyle = $self->{session}->getSite->call( "getEPrintCitationStyle", $self );
 	}
 
-	foreach( $cstyle->getElementsByTagName( "IF" , 1 ) )
+	my $ifnode;
+	foreach $ifnode ( $cstyle->getElementsByTagName( "IF" , 1 ) )
 	{
-		my $fieldname = $_->getAttribute( "name" );
-		my $val = $self->{$fieldname};
-		if( defined $val && $val ne "" ) 
+		my $fieldname = $ifnode->getAttribute( "name" );
+		my $val = $self->getValue( "$fieldname" );
+		if( defined $val )
 		{       
 			my $sn; 
-			foreach $sn ( $_->getChildNodes )
+			foreach $sn ( $ifnode->getChildNodes )
 			{       
-				$_->getParentNode->insertBefore( $sn, $_ );
+				$ifnode->getParentNode->insertBefore( 
+								$sn, 
+								$ifnode );
 			}       
 		}
-		$_->getParentNode->removeChild( $_ );
+		$ifnode->getParentNode->removeChild( $ifnode );
+		$ifnode->dispose();
 	}
 
-	foreach( $cstyle->getElementsByTagName( "FIELD" , 1 ) ) 
+	my $fieldnode;
+	foreach $fieldnode ( $cstyle->getElementsByTagName( "FIELD" , 1 ) ) 
 	{
-		my $fieldname = $_->getAttribute( "name" );
+		my $fieldname = $fieldnode->getAttribute( "name" );
 		my $el = $self->{dataset}->getField( $fieldname )->getHTML( 
 			$self->{session},
 			$self->getValue( $fieldname ) );
-		$_->getParentNode()->replaceChild( $el, $_ );
+		$fieldnode->getParentNode()->replaceChild( $el, $fieldnode );
+		$fieldnode->dispose();
 	}
 
 	return $cstyle;

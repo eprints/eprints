@@ -48,6 +48,25 @@
     <phrase ref="bad_type">Unknown field type <pin ref="option" /> for field <pin ref="field" /></phrase>
     <phrase ref="not_all_info">Not all necessary information specified for field <pin ref="field" /></phrase>
     <phrase ref="cant_open_file">Can't open metadata config file: <pin ref="file" />: <pin ref="errmsg" /></phrase>
+    <phrase ref="year">Year:</phrase>
+    <phrase ref="month">Month:</phrase>
+    <phrase ref="day">Day:</phrase>
+    <phrase ref="family_name">Family Name</phrase>
+    <phrase ref="first_names">First Names</phrase>
+    <phrase ref="more_spaces">More Spaces</phrase>
+    <phrase ref="month_00">Unspecified</phrase>
+    <phrase ref="month_01">January</phrase>
+    <phrase ref="month_02">Febuary</phrase>
+    <phrase ref="month_03">March</phrase>
+    <phrase ref="month_04">April</phrase>
+    <phrase ref="month_05">May</phrase>
+    <phrase ref="month_06">June</phrase>
+    <phrase ref="month_07">July</phrase>
+    <phrase ref="month_08">August</phrase>
+    <phrase ref="month_09">September</phrase>
+    <phrase ref="month_10">October</phrase>
+    <phrase ref="month_11">November</phrase>
+    <phrase ref="month_12">December</phrase>
 </file>
 
 <file name="SearchExpression.pm">
@@ -101,18 +120,13 @@
     <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
     <phrase ref="contact">Feel free to contact <pin ref="adminemail"><pin ref="sitename" /> administration</pin> with details.</phrase>
     <phrase ref="cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
-    <phrase ref="year">Year:</phrase>
-    <phrase ref="month">Month:</phrase>
-    <phrase ref="day">Day:</phrase>
-    <phrase ref="surname">Surname</phrase>
-    <phrase ref="first_names">First Names</phrase>
-    <phrase ref="more_spaces">More Spaces</phrase>
     <phrase ref="username_title">Usernames</phrase>
     <phrase ref="curr_disp">Currently Displayed</phrase>
     <phrase ref="error_title">Error</phrase>
     <phrase ref="eprint_gone_title">EPrint Removed</phrase>
     <phrase ref="eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
     <phrase ref="later_version">There is a later version of the eprint you are trying to access:</phrase>
+
     <phrase ref="no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
     <phrase ref="no_priv">Your account does not have the required privilege to use this function.</phrase>
 </file>
@@ -128,7 +142,7 @@
     <phrase ref="uploadprob">There was a problem uploading your file(s). Please try again.</phrase>
     <phrase ref="removeerror">DB Error removing EPrint <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
     <phrase ref="seltype">Please select the most appropriate type for your deposit.</phrase>
-    <phrase ref="bibinfo">Please enter the bibliographic data about your deposit. Fields marked with a * are fields that must be filled out before your deposit will be accepted.</phrase>
+    <phrase ref="bibinfo">Please enter the bibliographic data about your deposit. Fields marked with a <pin ref="star">*</pin> are fields that must be filled out before your deposit will be accepted.</phrase>
     <phrase ref="verify">Verify:</phrase>
     <phrase ref="invaleprint">ID <pin ref="eprintid" /> is not a valid EPrint ID!</phrase>
     <phrase ref="validformats">Here are the available upload formats, and how many files you have uploaded for each.</phrase>
@@ -223,7 +237,7 @@
 <file name="UserForm.pm">
     <phrase ref="dontknow">I don't know who you are</phrase>
     <phrase ref="recfor">Record for <pin ref="name" /></phrase>
-    <phrase ref="blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.</phrase>
+    <phrase ref="blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <pin ref="star">*</pin> to start using the archive.</phrase>
     <phrase ref="changeemail">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
     <phrase ref="formincorrect">The form doesn't seem to be filled out correctly:</phrase>
     <phrase ref="completeform">Please complete the form before continuing.</phrase>

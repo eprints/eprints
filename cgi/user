@@ -16,6 +16,8 @@ use EPrints::Session;
 use EPrints::HTMLRender;
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
 
 my $userid = $session->{render}->param( "username" );
 

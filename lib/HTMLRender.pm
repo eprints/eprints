@@ -42,20 +42,6 @@ $EPrints::HTMLRender::list_height_max = 20;
 # Number of extra spaces for names to add when user clicks on "More Spaces"
 $EPrints::HTMLRender::add_boxes = 3;
 
-# Months
-my @months = ( "00",
-               "01",
-               "02",
-               "03",
-               "04",
-               "05",
-               "06",
-               "07",
-               "08",
-               "09",
-               "10",
-               "11",
-               "12" );
 
 # Month names
 my %monthnames =

@@ -37,14 +37,20 @@ print STDERR "Authen\n";
 
 	return OK unless $r->is_initial_req; # only the first internal request
 
+	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
+	
+	if( !defined $session )
+	{
+		return FORBIDDEN;
+	}
+
 	if( !defined $user_sent )
 	{
 print STDERR "no user name\n";
+		$session->terminate();
 		return AUTH_REQUIRED;
 	}
 print STDERR "URL: ".$r->the_request()."\n";
-
-	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 
 print STDERR "THE USER IS: $user_sent\n";
 
@@ -55,6 +61,7 @@ print STDERR "THE USER IS: $user_sent\n";
 	{
 print STDERR "zong\n";
 		$r->note_basic_auth_failure;
+		$session->terminate();
 		return AUTH_REQUIRED;
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
@@ -65,6 +72,7 @@ print STDERR "GRP:".$user->{usertype}."\n";
 #cjg this is an error
 		$session->getSite->log(
 			"Unknown user type: $user->{usertype}" );
+		$session->terminate();
 		return AUTH_REQUIRED;
 	}
 print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";

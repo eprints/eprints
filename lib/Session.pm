@@ -66,20 +66,31 @@ sub new
 		$self->{site} = EPrints::Site->new_site_by_url( $self->{query}->url() );
 		if( !defined $self->{site} )
 		{
-			die "Can't load site module for URL: ".$self->{query}->url();
+			#cjg icky error handler...
+			my $r = Apache->request;
+			$r->content_type( 'text/html' );
+			$r->send_http_header;
+			print "<p>EPRINTS SERVER: Can't load site module for URL: ".$self->{query}->url()."</p>\n";
+			
+			print STDERR "xCan't load site module for URL: ".$self->{query}->url()."\n";
+
+			return undef;
+			
 		}
 	}
 	elsif( $mode == 1 )
 	{
+		$offline = 1;
 		if( !defined $param || $param eq "" )
 		{
-			die "No site id specified.";
+			print STDERR "No site id specified.\n";
+			return undef;
 		}
-		$offline = 1;
 		$self->{site} = EPrints::Site->new_site_by_id( $param );
 		if( !defined $self->{site} )
 		{
-			die "Can't load site module for: $param";
+			print STDERR "Can't load site module for: $param\n";
+			return undef;
 		}
 	}
 	elsif( $mode == 2 )
@@ -88,12 +99,14 @@ sub new
 		$self->{site} = EPrints::Site->new_site_by_host_and_path( $param );
 		if( !defined $self->{site} )
 		{
-			die "Can't load site module for URL: $param";
+			print STDERR "Can't load site module for URL: $param\n";			return undef;
+			return undef;
 		}
 	}
 	else
 	{
-		die "Unknown session mode: $mode";
+		print STDERR "Unknown session mode: $mode\n";
+		return undef;
 	}
 
 	#### Got Site Config Module ###
@@ -149,7 +162,7 @@ sub newPage
 
 	$self->{page} = new XML::DOM::Document;
 
-	XML::DOM::setTagCompression( sub { return 2; } ); 
+	XML::DOM::setTagCompression( \&_tag_compression );
 
 	my $doctype = XML::DOM::DocumentType->new(
 			"foo", #cjg what's this bit?
@@ -166,6 +179,19 @@ sub newPage
 	$self->takeOwnership( $newpage );
 	$self->{page}->appendChild( $newpage );
 }
+
+#WP1 GOOD
+sub _tag_compression
+{
+	my ($tag, $elem) = @_;
+
+	# Print empty br, hr and img tags like this: <br />
+	return 2 if $tag =~ /^(br|hr|img)$/;
+	
+	# Print other empty tags like this: <empty></empty>
+	return 1;
+}
+
 
 ## WP1: BAD
 sub change_lang
@@ -339,8 +365,7 @@ sub sendHTTPHeader
 	}
 
 	my $r = Apache->request;
-
-	$r->content_type( 'text/html' );
+	$r->content_type( 'text/html; charset=UTF8' );
 
 	if( defined $opts{lang} )
 	{
@@ -547,17 +572,18 @@ sub make_option_list
 {
 	my( $self , %params ) = @_;
 
+	#cjg What IS this shit?
 	my %defaults = ();
-	if( ref( $self->{default} ) eq "ARRAY" )
+	if( ref( $params{default} ) eq "ARRAY" )
 	{
-		foreach( @{$self->{default}} )
+		foreach( @{$params{default}} )
 		{
 			$defaults{$_}++;
 		}
 	}
 	else
 	{
-		$defaults{$self->{default}}++;
+		$defaults{$params{default}}++;
 	}
 
 	my $element = $self->make_element( "select" , name => $params{name} );
@@ -577,7 +603,7 @@ sub make_option_list
 				$params{labels}->{$_} ) );
 		if( defined $defaults{$_} )
 		{
-			$opt->setAttribute( "selected" , undef );
+			$opt->setAttribute( "selected" , "selected" );
 		}
 		$element->appendChild( $opt );
 	}
@@ -703,14 +729,17 @@ sub buildPage
 	my( $self, $title, $mainbit ) = @_;
 	
 	$self->takeOwnership( $mainbit );
-	foreach( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
+	my $node;
+	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
 		my $element = $self->{page}->createTextNode( $title );
-		$_->getParentNode()->replaceChild( $element, $_ );
+		$node->getParentNode()->replaceChild( $element, $node );
+		$node->dispose();
 	}
-	foreach( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
+	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
 	{
-		$_->getParentNode()->replaceChild( $mainbit, $_ );
+		$node->getParentNode()->replaceChild( $mainbit, $node );
+		$node->dispose();
 	}
 }
 
@@ -720,6 +749,7 @@ sub sendPage
 	my( $self, %httpopts ) = @_;
 	$self->sendHTTPHeader( %httpopts );
 	print $self->{page}->toString;
+	$self->{page}->dispose();
 }
 
 ## WP1: BAD
@@ -739,6 +769,7 @@ sub setPage
 	my $html = ($self->{page}->getElementsByTagName( "html" ))[0];
 	$self->{page}->removeChild( $html );
 	$self->{page}->appendChild( $newhtml );
+	$html->dispose();
 }
 
 	
@@ -1084,17 +1115,21 @@ sub render_form
 	my( $self, $fields, $values, $show_names, $show_help, $submit_buttons,
 	    $hidden_fields, $dest ) = @_;
 
+print STDERR EPrints::Log::render_struct( $values );
+
 	my $query = $self->{query};
 
 	my( $form );
 
 	$form =	$self->make_form( "post", $dest );
-	
-	foreach (@$fields)
+
+	my $field;	
+	foreach $field (@$fields)
 	{
-		$form->appendChild( $self->makeText("[".$_->getName."]"));
-		$form->appendChild( $self->render_form_field( $_,
-		                             $values->{$_->{name}},
+print STDERR "==>".$field->getName()." = ".$values->{$field->getName()}."\n";
+		$form->appendChild( $self->render_form_field( 
+					     $field,
+		                             $values->{$field->getName()},
 		                             $show_names,
 		                             $show_help ) );
 	}
@@ -1132,7 +1167,7 @@ sub render_form_field
 {
 	my( $self, $field, $value, $show_names, $show_help ) = @_;
 	
-	my( $div, $html );
+	my( $div, $html, $span );
 
 	$html = $self->makeDocFragment();
 
@@ -1144,12 +1179,17 @@ sub render_form_field
 		# special case for booleans - even if they're required it
 		# dosn't make much sense to highlight them.	
 
-		if( $field->isRequired() && !$field->is_type( "boolean" ) )
-		{
-			$div->appendChild( $self->makeText( "* " ) );	
-		}
 		$div->appendChild( 
 			$self->makeText( $field->display_name( $self ) ) );
+		if( $field->isRequired() && !$field->is_type( "boolean" ) )
+		{
+			$span = $self->make_element( 
+					"span", 
+					class => "requiredstar" );	
+			$span->appendChild( $self->makeText( "*" ) );	
+			$div->appendChild( $self->makeText( " " ) );	
+			$div->appendChild( $span );
+		}
 		$html->appendChild( $div );
 	}
 
@@ -1165,9 +1205,7 @@ sub render_form_field
 	}
 
 	$div = $self->make_element( "div", class => "formfieldinput" );
-
 	$div->appendChild( $field->render_input_field( $self, $value ) );
-
 	$html->appendChild( $div );
 
 	return( $html );

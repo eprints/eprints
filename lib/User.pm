@@ -313,7 +313,8 @@ sub validate
 			my $problem = $self->{session}->getSite()->call(
 				"validate_user_field",
 				$field,
-				$self->getValue( $field->getName() ) );
+				$self->getValue( $field->getName() ),
+				$self->{session} );
 
 			if( defined $problem && $problem ne "" )
 			{
@@ -551,6 +552,13 @@ sub getValue
 	}
 
 	return $self->{data}->{$fieldname};
+}
+
+sub getValues
+{
+	my( $self ) = @_;
+
+	return $self->{data};
 }
 
 ## WP1: GOOD

@@ -29,6 +29,7 @@ use strict;
 ######################################################################
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
 
 # Any user can view this page, but most BE a user.
 if( !$session->auth_check )

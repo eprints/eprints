@@ -121,11 +121,6 @@
     <phrase ref="fieldname_eprint_year">Year</phrase>
     <phrase ref="fieldhelp_eprint_year">Please enter the year in which your deposit was published or produced.</phrase>
 
-<!-- User Field Names -->
-
-    <phrase ref="fieldname_user_name">Name</phrase>
-<!--many missing...cjg-->
-
 <!-- Eprint Type Names -->
 
     <phrase ref="typename_eprint_bookchapter">Book Chapter</phrase>
@@ -146,4 +141,61 @@
     <phrase ref="ordername_archive_byname">by author's name</phrase>
     <phrase ref="ordername_archive_bytitle">by title</phrase>
 
+
+<!-- User Field Names -->
+
+    <phrase ref="fieldname_user_title">Title</phrase>
+    <phrase ref="fieldhelp_user_title"></phrase>
+
+    <phrase ref="fieldname_user_name">User's Name</phrase>
+    <phrase ref="fieldhelp_user_name"></phrase>
+
+    <phrase ref="fieldname_user_os">Operating System</phrase>
+    <phrase ref="fieldhelp_user_os"></phrase>
+
+#VALUE unspec = "Unspecified"
+#VALUE win9x = "Windows/DOS"
+#VALUE unix = "UNIX"
+#VALUE vms = "VMS"
+#VALUE mac = "Macintosh"
+#VALUE other = "Other"
+
+    <phrase ref="fieldname_user_dept">Department</phrase>
+    <phrase ref="fieldhelp_user_dept"></phrase>
+
+    <phrase ref="fieldname_user_org">Organisation</phrase>
+    <phrase ref="fieldhelp_user_org">Where you work, or something.</phrase>
+
+    <phrase ref="fieldname_user_address">Address</phrase>
+    <phrase ref="fieldhelp_user_address"></phrase>
+
+    <phrase ref="fieldname_user_country">Country</phrase>
+    <phrase ref="fieldhelp_user_country"></phrase>
+
+    <phrase ref="fieldname_user_url">Homepage URL</phrase>
+    <phrase ref="fieldhelp_user_url">URL's about you!</phrase>
+
+    <phrase ref="fieldname_user_expertise">Expertise</phrase>
+    <phrase ref="fieldhelp_user_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</phrase>
+
+   <phrase ref="fieldname_user_username">User's Username</phrase>
+   <phrase ref="fieldhelp_user_username"></phrase>
+
+   <phrase ref="fieldname_user_passwd">User's Password</phrase>
+   <phrase ref="fieldhelp_user_passwd">This may be ignored if this user is authenticated by a different method.</phrase>
+
+   <phrase ref="fieldname_user_usertype">User Type</phrase>
+   <phrase ref="fieldhelp_user_usertype"></phrase>
+
+   <phrase ref="fieldname_user_joined">Date User Account was Created</phrase>
+   <phrase ref="fieldhelp_user_joined"></phrase>
+
+   <phrase ref="fieldname_user_email">User's Email</phrase>
+   <phrase ref="fieldhelp_user_email"></phrase>
+
+   <phrase ref="fieldname_user_filter">User's Editor "Filter"</phrase>
+   <phrase ref="fieldhelp_user_filter"></phrase>
+
+
 </phrases>
+

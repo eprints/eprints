@@ -25,6 +25,7 @@ use EPrints::UserForm;
 use strict;
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
 
 # Any user can view this page, but most BE a user.
 if( !$session->auth_check )
@@ -33,7 +34,7 @@ if( !$session->auth_check )
 	Apache::exit( 0 );
 }
 
-my $userform = new EPrints::UserForm( $session, "home", 0);
+my $userform = new EPrints::UserForm( $session, "home", 1);
 
 $userform->process();
 

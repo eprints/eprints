@@ -22,6 +22,7 @@ use strict;
 use vars qw($action_subscribe $action_create $action_remove);
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
 
 my $user = EPrints::User::current_user( $session );
 

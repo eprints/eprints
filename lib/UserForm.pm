@@ -40,7 +40,7 @@ sub new
 
 	$self->{session} = $session;
 	$self->{redirect} = $redirect;
-	$self->{staff} = $user;
+	$self->{staff} = $staff;
 	$self->{user} = $user;
 	
 	return( $self );
@@ -74,7 +74,11 @@ sub process
 		$page = $self->{session}->makeDocFragment;
 
 		$p = $self->{session}->make_element( "p" );		
-		$p->appendChild( $self->{session}->html_phrase( "blurb" ) );	
+		$p->appendChild( $self->{session}->html_phrase( 
+			"blurb", 
+			star => $self->{session}->make_element(
+					"span",
+					class => "requiredstar" ) ) );	
 		$page->appendChild( $p );
 
 		$a = $self->{session}->make_element( 
@@ -172,7 +176,7 @@ sub _render_form
 	my $buttons = [ $self->{session}->phrase( "update_record" ) ];
 
 	return $self->{session}->render_form( \@edit_fields,
-	                                      $self->{user},
+	                                      $self->{user}->getValues(),
 	                                      1,
 	                                      1,
 	                                      $buttons,

@@ -124,9 +124,10 @@ sub file_phrase
 	$session->takeOwnership( $response );
 	$result->appendChild( $response );
 
-	foreach( $result->getElementsByTagName( "pin", 1 ) )
+	my $pin;
+	foreach $pin ( $result->getElementsByTagName( "pin", 1 ) )
 	{
-		my $ref = $_->getAttribute( "ref" );
+		my $ref = $pin->getAttribute( "ref" );
 		print STDERR "^*^ $ref\n";
 		my $repl;
 		if( $inserts->{$ref} )
@@ -141,12 +142,13 @@ sub file_phrase
 
 		# All children remain untouched, only the PIN is
 		# changed.
-		for my $kid ($_->getChildNodes)
+		for my $kid ($pin->getChildNodes)
 		{
-			$_->removeChild( $kid );
+			$pin->removeChild( $kid );
 			$repl->appendChild( $kid );
 		}
-		$_->getParentNode->replaceChild( $repl, $_ );	
+		$pin->getParentNode->replaceChild( $repl, $pin );	
+		$pin->dispose();
 	}
 
 	return $result;
@@ -243,10 +245,11 @@ sub read_phrases
 		{
 			my $key = $element->getAttribute( "ref" );
 			my $val = $doc->createDocumentFragment;
-			foreach( $element->getChildNodes )
+			my $kid;
+			foreach $kid ( $element->getChildNodes )
 			{
-				$element->removeChild( $_ );
-				$val->appendChild( $_ ); 
+				$element->removeChild( $kid );
+				$val->appendChild( $kid ); 
 			}
 			$data->{MAIN}->{$key} = $val;
 		}
@@ -271,7 +274,7 @@ sub read_phrases
 			}
 		}
 	}
-
+	$doc->dispose();
 	return $data;
 }
 

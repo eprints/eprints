@@ -36,6 +36,8 @@ use strict;
 
 # New session
 my $session = new EPrints::Session();
+Apache::exit( 0 ) unless( defined $session );
+
 
 # What are we begin asked?
 my $verb = $session->param( "verb" );

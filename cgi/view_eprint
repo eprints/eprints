@@ -22,6 +22,7 @@ use EPrints::Session;
 use strict;
 
 my $session = new EPrints::Session();
+Apache::exit( 0 ) unless( defined $session );
 
 # First work out what the ID is
 my $eprintid_in = $session->{render}->param( "eprintid" );

@@ -1,57 +1,86 @@
 H1 {
-        font: bold 24pt Helvetica,Arial,Sans-serif;
+        font: bold x-large Helvetica,Arial,Sans-serif;
         color: #606060;
 }
 
 H2 {
-        font: bold 18pt Helvetica,Arial,Sans-serif;
+        font: bold large Helvetica,Arial,Sans-serif;
         color: #606060;
 }
 
 H3 {
-        font: 14pt Helvetica,Arial,Sans-serif;
+        font: large Helvetica,Arial,Sans-serif;
         color: #606060;
 }
+
 A.menulink {
-        font-weight: bold;
-        font-family: sans-serif;
+        font: bold small sans-serif;
         color: #ccccff;
 }
+
+P {
+	font: medium serif;
+}
+
 .menu {
-        font-weight: bold;
+        font: bold small sans-serif;
         color: white;
         text-align: right;
-        margin-right: 1em;
+        margin-right: 12pt;
 }
+
 .pagetitle {
         font: bold x-large Helvetica,Arial,Sans-serif;
 	color: #000000;
 }
+
 .sitetitle {
         font: large Helvetica,Arial,Sans-serif;
 	color: #000000;
 }
 
-.searchfieldhelp {
-        font-size: normal;
+.searchfieldhelp,.formfieldhelp {
+        font: small serif;
 }
+
 .searchfieldname {
-        padding-top: 1em;
-        padding-bottom: 0.25em;
-        font: large serif;
+        padding-top: 12pt;
+        padding-bottom: 3pt;
+        font: bold medium serif;
+}
+
+.formfieldname {
+        padding-top: 3pt;
+        font: bold medium serif;
+}
+
+.formfieldinput {
+        padding-bottom: 3pt;
+}
+
+.requiredstar {
+	color: #ff0000;
+}
+
+.namefieldheading {
+	text-align: left;
+	font: small serif;
 }
 
 .searchorder {
-        padding-top: 1em;
+        padding-top: 12pt;
 }
+
 .searchbuttons {
-        padding-top: 1em;
+        padding-top: 12pt;
 }
+
 .searchmustfulfill {
-        padding-top: 1em;
+        padding-top: 12pt;
 }
+
 .main {
-        margin-left: 1em;
-        margin-right: 1em;
+        margin-left: 12pt;
+        margin-right: 12pt;
 }
 

@@ -23,6 +23,8 @@ use strict;
 
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
 
 if( $session->{render}->seen_form() )
 {

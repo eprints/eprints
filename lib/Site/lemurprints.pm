@@ -1591,9 +1591,9 @@ sub eprint_render_full
 		#if( defined $eprint->{additional} )
 		#{
 			#$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
-			#$html .= "<TR><TD><STRONG>".$additional_field->display_name().":</STRONG>".
+			#$html .= "<TR><TD><STRONG>".$additional_field->display_name( $session ).":</STRONG>".
 				#"</TD><TD>$eprint->{additional}</TD></TR>\n";
-			#$html .= "<TR><TD><STRONG>".$reason_field->display_name().":</STRONG>".
+			#$html .= "<TR><TD><STRONG>".$reason_field->display_name( $session ).":</STRONG>".
 				#"</TD><TD>$eprint->{reasons}</TD></TR>\n";
 #
 			#$html .= "</TABLE>\n";
@@ -1811,7 +1811,7 @@ sub user_render_full
 		{
 			if( !$public || $field->{visible} )
 			{
-				$html .= "<TR><TD VALIGN=TOP><STRONG>".$field->display_name().
+				$html .= "<TR><TD VALIGN=TOP><STRONG>".$field->display_name( $user->{session} ).
 					"</STRONG></TD><TD>";
 
 				if( defined $user->{$field->{name}} )
@@ -2109,7 +2109,7 @@ sub oai_write_eprint_metadata
 ## WP1: BAD
 sub validate_user_field
 {
-	my( $field, $value ) = @_;
+	my( $field, $value, $session ) = @_;
 
 	my $problem;
 
@@ -2118,7 +2118,7 @@ sub validate_user_field
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
 	if( $field->is_type( "url" ) && defined $value && $value ne "" )
 	{
-		$problem = "The URL given for ".$field->display_name()." is invalid.  ".
+		$problem = "The URL given for ".$field->display_name( $session )." is invalid.  ".
 			"Have you included the initial <STRONG>http://</STRONG>?"
 			if( $value !~ /^\w+:/ );
 	}
@@ -2291,9 +2291,10 @@ sub parseHTML
 {
 	my( $html ) = @_;
 	my $parser = new XML::DOM::Parser();
-	my $dom = $parser->parse( $html );
-	my $element = $dom->getFirstChild;	
-	$dom->removeChild( $element );
+	my $doc = $parser->parse( $html );
+	my $element = $doc->getFirstChild;	
+	$doc->removeChild( $element );
+	$doc->dispose();
 	return $element;
 }
 

@@ -21,23 +21,21 @@ use EPrints::Database;
 
 use strict;
 
-# Month names #cjg SHOULD BE INTL
-my %monthnames =
-(
-	"00"     => "Unspecified",
-	"01"     => "January",
-	"02"     => "February",
-	"03"     => "March",
-	"04"     => "April",
-	"05"     => "May",
-	"06"     => "June",
-	"07"     => "July",
-	"08"     => "August",
-	"09"     => "September",
-	"10"     => "October",
-	"11"     => "November",
-	"12"     => "December"
-);
+# Months
+my @monthkeys = ( "00",
+               "01",
+               "02",
+               "03",
+               "04",
+               "05",
+               "06",
+               "07",
+               "08",
+               "09",
+               "10",
+               "11",
+               "12" );
+
 #
 # The following is the information about the metadata field. This is the
 # format of the terse in-line code version, which should be colon-separated.
@@ -475,7 +473,7 @@ sub getHTML
 			}
 			else
 			{
-				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
+#				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
 			}
 		}
 		else
@@ -567,7 +565,6 @@ sub render_input_field
 	my( $html, $frag );
 
 	$html = $session->makeDocFragment();
-	$html->appendChild( $session->makeText( $self->get_type() ) );
 
 	$frag = $html;
 
@@ -575,14 +572,22 @@ sub render_input_field
 
 	if( $self->is_type( "name" ) )
 	{
-		my( $table, $tr, $th );
-		$table = $session->make_element( "table", border=>0 );
+		my( $table, $tr, $th, $div );
+		$table = $session->make_element( 
+					"table", 
+					cellpadding=>0,
+					cellspacing=>2,
+					border=>0 );
 		$tr = $session->make_element( "tr" );
 		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "surname" ) );
+		$div = $session->make_element( "div", class => "namefieldheading" );
+		$div->appendChild( $session->html_phrase( "family_name" ) );
+		$th->appendChild( $div );
 		$tr->appendChild( $th );
 		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "first_names" ) );
+		$div = $session->make_element( "div", class => "namefieldheading" );
+		$div->appendChild( $session->html_phrase( "first_names" ) );
+		$th->appendChild( $div );
 		$tr->appendChild( $th );
 		$table->appendChild( $tr );
 	
@@ -593,13 +598,19 @@ sub render_input_field
 	if( $self->isMultiple() )
 	{
 		my $i;
-		for( $i=1 ; $i<$boxcount ; ++$i )
+		for( $i=1 ; $i<=$boxcount ; ++$i )
 		{
+			my $morebutton = undef;
+			if( $i == $boxcount )
+			{
+				$morebutton = $session->makeText( "MORE" );
+			}
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 
 					$session, 
 					$value->[$i], 
-					$i ) );
+					$i,
+					$morebutton ) );
 		}
 	}
 	else
@@ -616,13 +627,14 @@ sub render_input_field
 
 sub _render_input_field_aux
 {
-	my( $self, $session, $value, $n ) = @_;
+	my( $self, $session, $value, $n, $morebutton ) = @_;
+print STDERR "val($value)\n";
 
 	my $id_suffix = "";
 	$id_suffix = "_$n" if( defined $n );
 
 	# These DO NOT belong here. cjg.
-	my( $FORM_WIDTH, $INPUT_MAX ) = ( 22, 255 );
+	my( $FORM_WIDTH, $INPUT_MAX ) = ( 60, 255 );
 
 	my $html = $session->makeDocFragment();
 	if( 
@@ -636,13 +648,34 @@ sub _render_input_field_aux
 		my $size = ( $maxlength > $FORM_WIDTH ?
 				$FORM_WIDTH : 
 				$maxlength );
-	
-		$html->appendChild( $session->make_element(
+		my( $div );
+		$div = $session->make_element( "div" );	
+		$div->appendChild( $session->make_element(
 			"input",
 			name => $self->{name}.$id_suffix,
-			default => $value,
+			value => $value,
 			size => $size,
 			maxlength => $maxlength ) );
+		if( defined $morebutton )
+		{
+			$div->appendChild( $morebutton );
+		}
+		$html->appendChild( $div );
+	}
+	elsif( $self->is_type( "longtext" ) )
+	{
+		my( $div , $textarea );
+		$div = $session->make_element( "div" );	
+		$textarea = $session->make_element(
+			"textarea",
+			name => $self->{name}.$id_suffix,
+			rows => $self->{displaylines},
+			cols => $FORM_WIDTH,
+			wrap => "virtual" );
+		$textarea->appendChild( $session->makeText( $value ) );
+		$div->appendChild( $textarea );
+		
+		$html->appendChild( $div );
 	}
 	elsif( $self->is_type( "name" ) )
 	{
@@ -651,20 +684,69 @@ sub _render_input_field_aux
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}."_familyname".$id_suffix,
-			default => $value->{familyname},
-			size => $FORM_WIDTH,
+			name => $self->{name}.$id_suffix."_familyname",
+			value => $value->{familyname},
+			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
 		$tr->appendChild( $td );
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
-			name => $self->{name}."_givenname".$id_suffix,
-			default => $value->{givenname},
-			size => $FORM_WIDTH,
+			name => $self->{name}.$id_suffix."_givenname",
+			value => $value->{givenname},
+			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
 		$tr->appendChild( $td );
+		if( defined $morebutton )
+		{
+			$td = $session->make_element( "td" );
+			$td->appendChild( $morebutton );
+			$tr->appendChild( $td );
+		}
 		$html->appendChild( $tr );
+	}
+	elsif( $self->is_type( "date" ) )
+	{
+		my( $year, $month, $day ) = ("", "", "");
+		if( defined $value && $value ne "" )
+		{
+			($year, $month, $day) = split /-/, $value;
+			if( $month == 0 )
+			{
+				($year, $month, $day) = ("", "00", "");
+			}
+		}
+
+		$html->appendChild( $session->html_phrase( "year" ) );
+		$html->appendChild( $session->makeText(" ") );
+
+		$html->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}.$id_suffix."_year",
+			value => $year,
+			size => 4,
+			maxlength => 4 ) );
+
+		$html->appendChild( $session->makeText(" ") );
+		$html->appendChild( $session->html_phrase( "month" ) );
+		$html->appendChild( $session->makeText(" ") );
+
+		$html->appendChild( $session->make_option_list(
+			name => $self->{name}.$id_suffix."_month",
+			values => \@monthkeys,
+			default => $month,
+			labels => $self->_month_names( $session ) ) );
+print STDERR "(MONTH=$month)\n";
+		$html->appendChild( $session->makeText(" ") );
+		$html->appendChild( $session->html_phrase( "day" ) );
+		$html->appendChild( $session->makeText(" ") );
+
+		$html->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}.$id_suffix."_day",
+			value => $day,
+			size => 2,
+			maxlength => 2 ) );
 	}
 	else
 	{
@@ -675,37 +757,11 @@ sub _render_input_field_aux
 	return $html;
 
 my $field = 1;
-my @months = qw/ a b c d e f g h i j k l m n /;
 	
 	my $type = $field->{type};
 
 	if( $type eq "text" || $type eq "url" || $type eq "email" )
 	{
-	}
-	elsif( $type eq "date" )
-	{
-		my( $year, $month, $day ) = ("", "", "");
-		if( defined $value && $value ne "" )
-		{
-			($year, $month, $day) = split /-/, $value;
-			($year, $month, $day) = ("", "00", "") if( $month == 0 );
-		}
-
-		$html = $self->{session}->phrase( "H:year" );
-		$html .= $self->{query}->textfield( -name=>"$field->{name}_year",
-		                                    -default=>$year,
-		                                    -size=>4,
-		                                    -maxlength=>4 );
-		$html .= " ".$self->{session}->phrase( "H:month" );
-		$html .= $self->{query}->popup_menu( -name=>"$field->{name}_month",
-		                                     -values=>\@months,
-		                                     -default=>$month,
-		                                     -labels=>\%monthnames );
-		$html .= " ".$self->{session}->phrase( "H:day" );
-		$html .= $self->{query}->textfield( -name=>"$field->{name}_day",
-		                                    -default=>$day,
-		                                    -size=>2,
-		                                    -maxlength=>2 );
 	}
 	elsif( $type eq "int" )
 	{
@@ -724,12 +780,6 @@ my @months = qw/ a b c d e f g h i j k l m n /;
 	}
 	elsif( $type eq "longtext" )
 	{
-		$html = $self->{query}->textarea(
-			-name=>$field->{name},
-			-default=>$value,
-			-rows=>$field->{displaylines},
-			-columns=>$EPrints::HTMLRender::form_width,
-			-wrap=>"soft" );
 	}
 	elsif( $type eq "set" )
 	{
@@ -843,11 +893,11 @@ my @months = qw/ a b c d e f g h i j k l m n /;
 		# Render the boxes
 		for( $i = 0; $i < $boxcount; $i++ )
 		{
-			my( $surname, $firstnames );
+			my( $familyname, $firstnames );
 			
 			if( $i <= $#names )
 			{
-				( $surname, $firstnames ) = @{$names[$i]};
+				( $familyname, $firstnames ) = @{$names[$i]};
 			}
 					
 			$html .= "</tr>\n<tr><td>";
@@ -925,5 +975,19 @@ my @months = qw/ a b c d e f g h i j k l m n /;
 	return( $html );
 }
 
+#WP1: BAD
+sub _month_names
+{
+	my( $self , $session ) = @_;
+	
+	my $months = {};
 
+	my $month;
+	foreach $month ( @monthkeys )
+	{
+		$months->{$month} = $session->phrase( "month_".$month );
+	}
+
+	return $months;
+}
 

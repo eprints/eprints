@@ -17,6 +17,8 @@ use EPrints::Session;
 use strict;
 
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
 
 my $newlang = $session->param( "langid" );
 

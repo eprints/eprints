@@ -144,6 +144,8 @@ print "$xhtml\n\n";
 			$doc->removeChild( $page );
 			$session->newPage( $langid );
 			$session->takeOwnership( $page );
+			$doc->dispose();
+
 			if( $mode eq "page" )
 			{
 				my $title = 
@@ -169,6 +171,7 @@ print "$xhtml\n\n";
 				}
 				$page->removeChild( $main );
 				$session->buildPage( $titletext, $main );
+				$page->dispose();
 			}
 			else 	# $mode is "html"
 			{
