@@ -7,10 +7,6 @@
 # This file will be scrapped or changed to handle multilang subjects.
 # dunno how yet...
 #
-group:Research Groups:ROOT:0
-group-isis:ISIS Research Groups:group:1
-group-iam:IAM Research Groups:group:1
-group-esd:ESD Research Groups:group:1
 subjects:Subject Areas:ROOT:0
 phys:Physical Sciences & Mathematics:subjects:0
 phys-astr:Astronomy:phys:1

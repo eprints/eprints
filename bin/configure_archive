@@ -520,6 +520,7 @@ Then run:
 bin/generate_dtd $archiveid
 bin/create_tables $archiveid
 bin/generate_static $archiveid
+bin/generate_apacheconf $archiveid
 
 bin/create_user $archiveid <username> <email> staff <password>
 

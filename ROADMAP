@@ -51,8 +51,7 @@
 -	Views (and searches?) with JUST results - no wrapper. For including in other pages.
 
 
-*	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
-
+*	Milestone "Pepperoni" : ALPHA-2: Database code stable. Module functions and configuration not yet 100% stable. 
 
 -	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 0	Paged Metadata in submission form.
@@ -149,8 +148,6 @@
 #BUGS
 #	clone eprint cocks up later version id
 #	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
-#	Bug: 500 error when search for only ignored words.
-#	Fix Buttons on search results page.
 #	Order buttons somehow using extra param to render input form...    ....done but now need to go and use it everywhere (_order=>[foo,bar]
 #	Default Action when buttons pushed (set in render input form?)...    .....Appears to just push first button!
 #	Fix "upload then back" bug in submission form
@@ -169,7 +166,6 @@
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
 #	Named values in Constructors all round?
 #	cmp methods : is they still needed?
-#	search buttons at top and bottom of search & (some) submission forms.
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 #	What type for ordervalues? Something which keeps memory use down...
 #	Standardise some functions between Subject, EPrint and User.(and Subsc?)
@@ -178,11 +174,9 @@
 
 #TODO
 #	Call backs for LEAVING archive and buffer=>inbox
-#	paged searches are not very neat(understatement!)Q
 
 #LESS URGENT TODO...
 #	Call backs to handle Latex processing... Do with a value in the metafield config.
-
 #	langid's -> validate they is correct (in multilang)
 #	sort subject input fields
 #	text area without CR's (config flag) eg. for title.
