@@ -24,7 +24,7 @@ use strict;
 #
 
 $EPrintSite::SiteInfo::sitename = "RobPrints";
-$EPrintSite::SiteInfo::automail = "rob\@soton.ac.uk";
+$EPrintSite::SiteInfo::automail = "auto\@eprints.org";
 $EPrintSite::SiteInfo::admin = "rob\@soton.ac.uk";
 $EPrintSite::SiteInfo::local_root = "/opt/eprints";
 
@@ -126,6 +126,9 @@ $EPrintSite::SiteInfo::default_user_order = "by surname";
 $EPrintSite::SiteInfo::user_meta_config = "$EPrintSite::SiteInfo::local_root/cfg/metadata.user";
 $EPrintSite::SiteInfo::template_author_intro = "$EPrintSite::SiteInfo::local_root/cfg/template.author-intro";
 $EPrintSite::SiteInfo::template_reader_intro = "$EPrintSite::SiteInfo::local_root/cfg/template.reader-intro";
+$EPrintSite::SiteInfo::template_fail_reply = "$EPrintSite::SiteInfo::local_root/cfg/template.fail-reply";
+$EPrintSite::SiteInfo::template_fail_user = "$EPrintSite::SiteInfo::local_root/cfg/template.fail-user";
+$EPrintSite::SiteInfo::template_change_email = "$EPrintSite::SiteInfo::local_root/cfg/template.change-email";
 $EPrintSite::SiteInfo::site_eprint_fields = "$EPrintSite::SiteInfo::local_root/cfg/metadata.eprint-fields";
 $EPrintSite::SiteInfo::site_eprint_types = "$EPrintSite::SiteInfo::local_root/cfg/metadata.eprint-types";
 $EPrintSite::SiteInfo::eprint_field_help = "$EPrintSite::SiteInfo::local_root/cfg/help.eprint-fields.en";
@@ -323,6 +326,17 @@ $EPrintSite::SiteInfo::html_tail = "<BR>
   </tr>
 </table>
 ";
+
+
+#
+#  E-mail signature
+#
+
+$EPrintSite::SiteInfo::signature =
+"--
+ $EPrintSite::SiteInfo::sitename EPrint Archive
+ $EPrintSite::SiteInfo::frontpage
+ $EPrintSite::SiteInfo::admin\n";
 
 
 
