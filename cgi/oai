@@ -173,7 +173,7 @@ sub identify
 	                   "xmlns"=>"http://www.openarchives.org/OAI/oai-identifier",
 	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
 	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/oai-identifier ".
-	                                      http://www.openarchives.org/OAI/oai-identifier.xsd");
+	                                      "http://www.openarchives.org/OAI/oai-identifier.xsd");
 
 	$writer->dataElement( "scheme", "oai" );
 	$writer->dataElement( "repositoryIdentifier",
@@ -189,7 +189,7 @@ sub identify
 	                   "xmlns"=>"http://www.openarchives.org/OAI/eprints",
 	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
 	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/eprints ".
-	                                      http://www.openarchives.org/OAI/eprints.xsd");
+	                                      "http://www.openarchives.org/OAI/eprints.xsd");
 
 	write_TextURL( $writer, 
                           "content", 
