@@ -68,6 +68,7 @@ use strict;
 ######################################################################
 
 ## WP1: BAD
+#cjg MAKE $field $fields and _require_ a [] 
 sub new
 {
 	my( $class, $session, $dataset, $field, $value ) = @_;
@@ -85,28 +86,35 @@ sub new
 	{
 		# Search >1 field
 		$self->{multifields} = $field;
-		my( @fieldnames, @displaynames );
+		my( @fieldnames, @display_names );
 		foreach (@{$field})
 		{
-if( !defined $_ )
-{
-	EPrints::Session::bomb();
-}
+			if( !defined $_ )
+			{
+				#cjg an aktual error.
+				exit;
+			}
 			push @fieldnames, $_->get_sql_name();
-			push @displaynames, $_->display_name( $self->{session} );
+			push @display_names, $_->display_name( $self->{session} );
 		}
 	
-		$self->{displayname} = join '/', @displaynames;
-		$self->{formname} = join '_', @fieldnames;
+		$self->{display_name} = join '/', @display_names;
+		# we sort the fieldnames so that form_name is the same
+		# no matter what order the fieldnames are in 
+		# (for serialisation)
+		$self->{form_name} = join '/', sort @fieldnames;
 		$self->{field} = $field->[0];
 	}
 	else
 	{
 		$self->{field} = $field;
-if( !defined $field ) { &EPrints::Session::bomb; }
+		if( !defined $field ) { 
+			#cjg print error
+			exit;
+		}
 
-		$self->{displayname} = $field->display_name( $self->{session} );
-		$self->{formname} = $field->get_name();
+		$self->{display_name} = $field->display_name( $self->{session} );
+		$self->{form_name} = $field->get_name();
 	}
 	if( $self->{field}->get_property( "hasid" ) )
 	{
@@ -140,9 +148,6 @@ sub set_value
 		$self->{string} = undef;
 	}
 
-	# Value has changed. Previous benchmarks no longer apply.
-	$self->{benchcache} = {};
-
 }
 
 
@@ -166,10 +171,10 @@ sub from_form
 	# Remove any default we have
 	$self->set_value( "" );
 #print STDERR "------llll\n";	
-#print STDERR  $self->{formname} ."\n";
+#print STDERR  $self->{form_name} ."\n";
 #print STDERR  $self->{field}->{type}."\n";
-#print STDERR  $self->{session}->param( $self->{formname} )."\n";
-	my $val = $self->{session}->param( $self->{formname} );
+#print STDERR  $self->{session}->param( $self->{form_name} )."\n";
+	my $val = $self->{session}->param( $self->{form_name} );
 	$val =~ s/^\s+//;
 	$val =~ s/\s+$//;
 	$val = undef if( $val eq "" );
@@ -191,7 +196,7 @@ sub from_form
 	{
 		# complex text types
 		my $search_type = $self->{session}->param( 
-			$self->{formname}."_srchtype" );
+			$self->{form_name}."_srchtype" );
 		my $exact = "IN";
 		
 		# Default search type if none supplied (to allow searches using simple
@@ -206,7 +211,7 @@ sub from_form
 	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
 	{
 		my @vals = ();
-		foreach( $self->{session}->param( $self->{formname} ) )
+		foreach( $self->{session}->param( $self->{form_name} ) )
 		{
 			next if m/^\s*$/;
 			push @vals,$_;
@@ -230,7 +235,7 @@ sub from_form
 		{
 			# ANY or ALL?
 			my $anyall = $self->{session}->param(
-				$self->{formname}."_anyall" );
+				$self->{form_name}."_anyall" );
 				
 			$val = (defined $anyall? "$anyall" : "ANY" ).":EQ:$val";
 
@@ -287,7 +292,7 @@ sub from_form
 ## WP1: BAD
 sub get_conditions 
 {
-	my ( $self , $benchmarking ) = @_;
+	my ( $self ) = @_;
 
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
@@ -489,7 +494,7 @@ sub get_conditions
 			{
 				if( $self->{match} eq "IN" )
 				{
-					$_ = "$self->{field}->{name}:$_";
+					$_ = $self->{field}->get_name().":$_";
 				}
 				$_ = EPrints::Database::prep_value( $_ );
 				push @where, "__FIELDNAME__ = '$_'";
@@ -500,29 +505,18 @@ sub get_conditions
 		my $hasphrase = 0;
 		while ($text =~ s/"([^"]+)"//g)
 		{
-			if( !$benchmarking )
+			my $sfield = new EPrints::SearchField( 
+				$self->{session},
+				$self->{dataset},
+				$self->{field},
+				"PHR:IN:$1" );
+			#cjg IFFY!!!!
+			my ($buffer,$bad,$error) = $sfield->do( undef , undef );
+			if( defined $error )
 			{
-				my $sfield = new EPrints::SearchField( 
-					$self->{session},
-					$self->{dataset},
-					$self->{field},
-					"PHR:IN:$1" );
-				#cjg IFFY!!!!
-				my ($buffer,$bad,$error) = $sfield->do( undef , undef );
-				if( defined $error )
-				{
-					return( undef, undef, undef, $error );
-				}
-				push @where,"!$buffer"; 
+				return( undef, undef, undef, $error );
 			}
-			else
-			{
-				# Just benchmarking - we'll return a search condition of "1=0"
-				# Which is always false so will be optimisted out and this will
-				# evaluate as 0 meaning it will go first. Which makes sense as
-				# this cannot (is not) optimised.	
-				push @where, "1=0";
-			}
+			push @where,$buffer; 
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
@@ -596,40 +590,14 @@ sub _get_conditions_aux
 	}
 	push @nwheres , @pwheres;
 
-	return "$searchtable:$self->{field}->{name}" , \@nwheres;
+	return $searchtable.":".$self->{field}->get_name() , \@nwheres;
 
 }
-
-# cjg comments
-
-## WP1: BAD
-sub benchmark
-{
-	my ( $self , $tablefield , $where ) = @_;
-
-	my( $table , $field ) = split /:/ , $tablefield;
-
-        my $keyfield = $self->{dataset}->get_key_field();
-
-	if ( !defined $self->{benchcache}->{"$table:$where"} )
-	{
-		$self->{benchcache}->{"$table:$where"} = 
-			$self->{session}->{database}->benchmark( 
-				$keyfield,
-				{ "M"=>$table }, 
-				$where );
-	}
-	return $self->{benchcache}->{"$table:$where"};
-
-}
-
-# benchmarking means that we only need to get approx 
-# results from this...
 
 ## WP1: BAD
 sub _get_tables_searches
 {
-	my ( $self , $benchmarking) = @_;
+	my ( $self ) = @_;
 
 	my %searches = ();
 	my @tables = ();
@@ -645,7 +613,7 @@ sub _get_tables_searches
 				$multifield,
 				$self->{value} );
 			my ($table,$where,$bad,$error) = 
-				$sfield->get_conditions( $benchmarking );
+				$sfield->get_conditions();
 			if( defined $error )
 			{
 				return( undef, undef, undef, $error );
@@ -668,7 +636,7 @@ sub _get_tables_searches
 	}
 	else 
 	{
-		my ($table,$where,$bad,$error) = $self->get_conditions( $benchmarking );
+		my ($table,$where,$bad,$error) = $self->get_conditions();
 		if( defined $error )
 		{
 			return( undef, undef, undef, $error );
@@ -685,7 +653,6 @@ sub do
 	my ( $self ) = @_;
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
-
 	my $n = scalar @{$searches->{$sfields->[0]}};
 	
 	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
@@ -714,7 +681,14 @@ sub do
 			my $tlist = { "M"=>$tname };
 	
 			my $r;
-			if( $tname=~s/^!// )
+#phrases: a pre done set, than a LOIKE? cjg
+			if( ref( $where ) eq "ARRAY" )
+			{
+				# search has already been done, just pass
+				# resulys along
+				$r = $where;
+			}
+			elsif( $tname=~s/^!// )
 			{
 				# Free text search
 				$r = $self->{session}->get_db()->get_index_ids( $tname, $where );
@@ -737,62 +711,6 @@ sub do
 		$firstpass = 0;
 	}
 	return $results;
-}
-
-## WP1: BAD
-sub approx_rows 
-{
-	my ( $self ) = @_;
-
-	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches( 1 );
-
-	if( defined $error )
-	{
-		return 0;
-	}
-	if( !defined $tables || !defined $tables->[0] )
-	{
-		return 0;
-	}
-	my $n = scalar @{$searches->{$tables->[0]}};
-
-	my $result = undef;
-	my $i;
-	for( $i=0 ; $i<$n ; ++$i )
-	{
-		my $i_result = undef;
-		my $table;
-		foreach $table ( @{$tables} )
-		{
-			my $rows = $self->benchmark( $table , $searches->{$table}->[$i] ); 
-			if( !defined $i_result )
-			{
-				$i_result = $rows;
-			}
-			else
-			{
-				$i_result+= $rows;
-			}
-		}
-		if( !defined $result )
-		{
-			$result = $i_result;
-		}
-		elsif( $self->{anyall} eq "ANY" )
-		{
-			$result+= $i_result;
-		}
-		else
-		{
-			if( $i_result < $result )
-			{
-				$result = $i_result;
-			}
-		}
-		
-	}
-
-	return $result;
 }
 
 
@@ -842,7 +760,7 @@ sub to_html
 	
 		$frag->appendChild( 
 			$self->{session}->render_option_list(
-				name => $self->{formname},
+				name => $self->{form_name},
 				values => \@bool_tags,
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
@@ -854,14 +772,14 @@ sub to_html
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
 				type => "text",
-				name => $self->{formname},
+				name => $self->{form_name},
 				value => $self->{string},
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
 		$frag->appendChild( $self->{session}->make_text(" ") );
 		$frag->appendChild( 
 			$self->{session}->render_option_list(
-				name=>$self->{formname}."_srchtype",
+				name=>$self->{form_name}."_srchtype",
 				values=>\@text_tags,
 				value=>$self->{anyall},
 				labels=>\%text_labels ) );
@@ -881,7 +799,7 @@ sub to_html
 		}
 
 		my %settings = (
-			name => $self->{formname},
+			name => $self->{form_name},
 			default => \@defaults,
 			multiple => "multiple" );
 		
@@ -940,7 +858,7 @@ sub to_html
 			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 
 				$self->{session}->render_option_list(
-					name=>$self->{formname}."_self->{anyall}",
+					name=>$self->{form_name}."_self->{anyall}",
 					values=>\@set_tags,
 					value=>$self->{anyall},
 					labels=>\%set_labels ) );
@@ -951,7 +869,7 @@ sub to_html
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
-				name=>$self->{formname},
+				name=>$self->{form_name},
 				value=>$self->{string},
 				size=>9,
 				maxlength=>100 ) );
@@ -961,7 +879,7 @@ sub to_html
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
-				name=>$self->{formname},
+				name=>$self->{form_name},
 				value=>$self->{string},
 				size=>9,
 				maxlength=>9 ) );
@@ -993,27 +911,62 @@ sub is_type
 sub get_display_name
 {
 	my( $self ) = @_;
-	return $self->{displayname};
+	return $self->{display_name};
 }
 
-## WP1: BAD
 sub get_form_name
 {
 	my( $self ) = @_;
-	return $self->{formname};
+	return $self->{form_name};
 }
 
-## WP1: BAD
-sub get_value
+sub is_set
 {
 	my( $self ) = @_;
 
-	if( $self->{value} eq "")
-	{
-		return undef;
-	}
+	return EPrints::Utils::is_set( $self->{string} );
+}
 
-	return $self->{value};
+sub serialise
+{
+	my( $self ) = @_;
+
+	return undef if( $self->{string} eq "" );
+
+	# cjg. Might make an teeny improvement if
+	# we sorted the {string} so that equiv. searches
+	# have the same serialisation string.
+	
+	my @escapedparts;
+	foreach($self->{form_name},
+		$self->{anyall}, 	
+		$self->{match}, 
+		$self->{string} )
+	{
+		my $item = $_;
+		$item =~ s/[\\\:]/\\$&/g;
+		push @escapedparts, $item;
+	}
+	return join( ":" , @escapedparts );
+}
+
+sub unserialise
+{
+	my( $class, $session, $dataset, $string ) = @_;
+
+	my @parts = split( ":", $string );
+	# Un-escape
+	foreach( @parts ) { s/\\(.)/$1/g; }
+
+	#cjg sick lose this dreadful "value"
+	my $value = "$parts[1]:$parts[2]:$parts[3]";
+	my @fields = ();
+	foreach( split( "/" , $part[0] ) )
+	{
+		push @fields, $dataset->get_field( $_ );
+	}
+	
+	return $class->new( $session, $dataset, \@fields, $value );
 }
 
 1;

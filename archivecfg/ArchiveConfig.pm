@@ -513,7 +513,8 @@ $c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
-	"authors.id",
+	"abstract/keywords",
+	#"authors.id",
 	"publication",
 	"year"
 ];

@@ -46,7 +46,6 @@
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 #	always use encrypted passwords
-#	erase_archives needs to spot lack of mysqladmin
 #	Fix "upload then back" bug
 #	Bug in render_citation - emails are links!
 #	Default Action when buttons pushed
@@ -71,6 +70,7 @@
 #	Eliminate HTMLRenderer
 
 0	Paged Metadata in submission form.
+0	Alerts for editors about things they can edit (flag in User fields?)
 2	Subject-editors (editors can only edit within certain subjects)
 2	Web-based Email Change
 0	Password Encryption. (Via callback)
@@ -86,7 +86,7 @@
 -	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
-1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
+3	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
