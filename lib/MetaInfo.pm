@@ -180,6 +180,7 @@ sub read_types
 	while( <CFG_FILE> )
 	{
 		chomp();
+		next if /^\s*#/;
 		push @inbuffer, $_;
 
 		if( /<\/class>/i )

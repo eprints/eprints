@@ -223,10 +223,10 @@ sub render_search_form
 			-values=>[ "ALL", "ANY" ],
 			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("all"),
-				   "ANY" => $self->{session}->{lang}->phrase("any") } );
+			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("H:all"),
+				   "ANY" => $self->{session}->{lang}->phrase("H:any") } );
 		$html .= "<CENTER><P>";
-		$html .= $self->{session}->{lang}->phrase( "mustfulfill",
+		$html .= $self->{session}->{lang}->phrase( "H:mustfulfill",
 							   $menu );
 		$html .= "</P></CENTER>\n";
 	}
@@ -239,7 +239,7 @@ sub render_search_form
 		-labels=>$self->{order_desc} );
 		
 	$html .= "<CENTER><P>";
-	$html .= $self->{session}->{lang}->phrase( "orderresults", $menu );
+	$html .= $self->{session}->{lang}->phrase( "H:orderresults", $menu );
 	$html .= "</P></CENTER>\n";
 
 	return( $html );
@@ -270,7 +270,7 @@ sub from_form
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, $self->{session}->{lang}->phrase("leastone")
+	push @problems, $self->{session}->{lang}->phrase("H:leastone")
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->{render}->param( "_satisfyall" );

@@ -213,7 +213,7 @@ sub render_subscription_form
 	my @all_fields = EPrints::MetaInfo::get_subscription_fields();
 	
 	$html .= "<CENTER><P>";
-	$html .= $self->{session}->{lang}->phrase( "sendupdates",
+	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
 	           $self->{session}->{render}->input_field( 
 		        EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
 		        $self->{frequency} ) );
@@ -417,7 +417,7 @@ sub process
 	{
 		EPrints::Log::log_entry(
 			"Subscription",
-			EPrints::Language::logphrase( "notopenrec",
+			EPrints::Language::logphrase( "L:notopenrec",
 		                                 $self->{username},
 				                           $self->{subid} ) );
 		return( 0 );
@@ -482,25 +482,25 @@ sub process
 		# Don't send a mail if we've retrieved nothing
 		return( 1 ) if( scalar @eprints == 0 );
 
-		my $freqphrase = $self->{session}->{lang}->phrase($freq);
+		my $freqphrase = $self->{session}->{lang}->phrase("M:$freq");
 
 		# Put together the body of the message. First some blurb:
 		my $body = $self->{session}->{lang}->phrase( 
-			   "blurb",
-				$freqphrase,
+			   "M:blurb",
+			   $freqphrase,
 			   $EPrintSite::SiteInfo::sitename,
-				"$EPrintSite::SiteInfo::server_perl/users/subscribe" );
+			   "$EPrintSite::SiteInfo::server_perl/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
 		$body .= "   ";
 		if ( scalar @eprints==1 )
 		{
-			$body .= $self->{session}->{lang}->phrase( "newsub" ); 
+			$body .= $self->{session}->{lang}->phrase( "M:newsub" ); 
 		}
 		else
 		{
-			$body .= $self->{session}->{lang}->phrase( "newsubs", 
+			$body .= $self->{session}->{lang}->phrase( "M:newsubs", 
 			                                           scalar @eprints ); 
 		}
 		$body .= "\n\n\n";
@@ -517,14 +517,14 @@ sub process
 		$success = EPrints::Mailer::send_mail( 
 		             $user->full_name(),
 		             $user->{email},
-			          $self->{session}->{lang}->phrase( "subsubj" ),
+			          $self->{session}->{lang}->phrase( "S:subsubj" ),
 		             $body );
 
 		unless( $success )
 		{
 			EPrints::Log::log_entry(
 				"Subscription",
-				EPrints::Language::logphrase( "failsend", $user->{username}, $! ) );
+				EPrints::Language::logphrase( "L:failsend", $user->{username}, $! ) );
 		}
 	}
 		

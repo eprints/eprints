@@ -107,6 +107,7 @@ sub new
 	$self->{query} = new CGI unless( $offline );
 	$self->{query} = new CGI( {} ) if( $offline );
 
+
 	$self->{session} = $session;
 
 	# Get name boxcount stuff
@@ -886,7 +887,7 @@ sub submit_buttons
 
 	my $html = "";
 	my $first = 1;
-	
+
 	if( defined $submit_buttons )
 	{
 		my $button;

@@ -1,51 +1,140 @@
+# English Language Phrases
+
+# First letter donates use:
+#
+# H = HTML
+# A = ASCII
+# L = Log
+# S = Mail Subject (or From) Line
+# M = Mail Message
+# F = HTML Form (Some characters maybe illegal! Don't use &eacute; escaping) 
+
 <file SearchExpression.pm>
-leastone = You need to specify something for at least one field!
-any = any
-all = all
-mustfulfill = Retrieved records must fulfill $(1) of these conditions.
-orderresults = Order the results: $(1)
+H:leastone = You need to specify something for at least one field!
+F:any = any
+F:all = all
+H:mustfulfill = Retrieved records must fulfill $(1) of these conditions.
+H:orderresults = Order the results: $(1)
 </file>
 
 <file update_ecs_users>
-dude = Internationalisation Rocks.
+A:dude = Internationalisation Rocks.
 </file>
 
 <file Citation.pm>
-unknowneprint = Unknown EPrint field $(1) in "$(2)"
-na = N/A
+H:unknowneprint = Unknown EPrint field $(1) in "$(2)"
+H:na = N/A
 </file>
 
 <file UserForm.pm>
-dontknow = I don't know who you are
-recfor = Record for $(1)
-blurb = Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
-changeemail = For instructions on how to change your e-mail address, $(1).
-clickhere = click here
-formincorrect = The form doesn't seem to be filled out correctly:
-completeform = Please complete the form before continuing.
-problemupdating = There was a problem reading the posted data and updating the database. Please try again later
-usernotmatch = Username in form $(1) doesn't match object username $(2)
+H:dontknow 	= I don't know who you are
+H:recfor 	= Record for $(1)
+H:blurb 	= Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
+H:changeemail 	= For instructions on how to change your e-mail address, $(1).
+H:clickhere 	= click here
+H:formincorrect = The form doesn't seem to be filled out correctly:
+H:completeform 	= Please complete the form before continuing.
+H:problemupdating = There was a problem reading the posted data and updating the database. Please try again later
+H:usernotmatch 	= Username in form $(1) doesn't match object username $(2)
 </file>
 
 <file User.pm>
-missedfield = You haven't filled out the required $(1) field.
-weclome = Welcome to $(1)!
-reminder = Dear $(1) User,\n\n$(2)Your username and password for the site are:\n\nUser name: $(3)\nPassword:  $(4)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(5)\n
-remindersub = Your username and password
-newuser = New $(1) User
-newstaff = New $(1) Staff
+H:missedfield = You haven't filled out the required $(1) field.
+S:weclome = Welcome to $(1)!
+M:reminder = Dear $(1) User,\n\n$(2)Your username and password for the site are:\n\nUser name: $(3)\nPassword:  $(4)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(5)\n
+S:remindersub = Your username and password
+S:newuser = New $(1) User
+S:newstaff = New $(1) Staff
 </file>
 
 <file Subscription.pm>
-sendupdates = Send updates: $(1)
-weekly = weekly
-daily = daily
-monthly = monthly
-never = never
-notopenrec = Couldn't open user record for user $(1) (sub ID $(2))
-blurb = This mail contains your $(1) subscription to $(2).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(3)\n\n
-newsub = One new submission was received.
-newsubs = $(1) new submissions were received.
-subsubj = Subscription
-failsend = Failed to send subscription to user $(1): $(2)
+H:sendupdates = Send updates: $(1)
+M:weekly = weekly
+M:daily = daily
+M:monthly = monthly
+L:notopenrec = Couldn't open user record for user $(1) (sub ID $(2))
+M:blurb = This mail contains your $(1) subscription to $(2).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(3)\n\n
+M:newsub = One new submission was received.
+M:newsubs = $(1) new submissions were received.
+S:subsubj = Subscription
+L:failsend = Failed to send subscription to user $(1): $(2)
 </file>
+
+<file SubmissionForm.pm>
+L:dberr 	= Database Error: $(1)
+H:useautharea	= Use your author area to deposit new documents
+L:errclone	= Error cloning EPrint $(1): $(2)
+H:uploadprob	= There was a problem uploading your file(s). Please try again.
+L:removeerror	= DB Error removing EPrint $(1): $(2)
+H:seltype	= Please select the most appropriate type for your deposit.
+H:bibinfo	= Please enter the bibliographic data about your deposit. Fields marked with a * are fields that must be filled out before your deposit will be accepted.
+H:verify	= Verify:
+H:invaleprint	= ID $(1) is not a valid EPrint ID!
+H:validformats	= Here are the available upload formats, and how many files you have uploaded for each.
+H:leastone	= You must upload at least one of the formats listed in bold.
+F:plain		= Plain Files
+F:graburl	= From an Existing Web Site
+H:fixupload	= The document upload can't be completed because:
+H:pleasefix	= Please fix this before continuing.
+H:nofiles	= No files have been uploaded for this format.
+H:heretoview	= Click here to view and verify the uploaded files
+H:selfirst	= You need to select the file that should be shown first when a reader wishes to view your deposit.
+H:filesforformat= These are the files you have uploaded for this format.
+H:fileupmethod	= File upload method:
+H:plainonly	= (Plain files only)
+H:numfiles	= Number of files to upload:
+H:enterurl	= Please enter the URL of the document you wish to upload to the archive in the box below.
+H:urlwarning	= Occasionally, uploading this way may not produce a totally accurate copy. This is because some assumptions about the structure of the HTML must be made, to stop the software from trying to upload the whole World-Wide Web!
+H:entercompfile = Enter the filename (with full path) of the compressed file in the box below.
+H:enterfile	= Please enter the filename (with full path) of the document file in the box below.
+H:enterfiles	= Please enter the filenames (with full paths) of the document files in the boxes below.
+H:fixprobs	= Before you deposit this entry to the archive, the following problems need to be corrected:
+H:pleaseverify	= Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.  
+H:thanks	= Thank you.
+H:inbuffer	= Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.
+H:retdeppage	= Click here to return to your deposit papers page 
+H:suredelete	= Are you absolutely sure you want to delete this entry?
+H:filledwrong	= The form doesn't seem to be filled out correctly:
+H:pleasecomplete= Please complete the form before continuing.
+L:idnotmatch	= EPrint ID in form >$(1)< doesn't match object id $(2)
+H:filename	= Filename
+H:sizebytes	= Size (Bytes)
+H:shownfirst	= Shown First
+F:showfirst	= Show first
+F:action_new    = Nouvou
+F:action_delete = Delete
+F:action_edit   = Edit
+F:action_next   = Néxt >
+F:action_prev   = < Back
+F:action_submit = Deposit
+F:action_cancel = Cancel
+F:action_confirm= Confirm
+F:action_clone  = Clone
+F:action_uploadedit = Upload/Edit >
+F:action_finished   = Finished
+F:action_upload = Upload >
+F:action_verify = Verify ID's
+H:title_type       = Deposit Type
+H:title_meta       = Bibliographic Information
+H:title_subject    = Subject Categories
+H:title_linking    = Succession/Commentary
+H:title_format     = Document Storage Formats
+H:title_fileview   = Document File Upload
+H:title_upload     = Document File Upload
+H:title_verify     = Deposit Verification
+H:title_done       = Completed Deposit
+H:title_error      = Error
+H:title_return     = Return to Author's Home
+H:title_confirmdel = Confirm Deletion
+H:corupt_err	= An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form.</P><P>If this has happened in the normal course of operation please tell the $(1).
+H:database_err 	= There's been a problem accessing the site database. Please try again later, and contact the $(1) if the problem persists.
+H:siteadmin	= site administrator 
+H:nosel_err	= You hadn't selected a paper to edit, clone, delete or deposit!
+F:delete	= Delete
+F:delete_all	= Delete All Files
+H:format	= Format
+H:files_uploaded= Files Uploaded
+F:uploadedit	= Upload/Edit
+F:remove	= Remove
+</file>
+

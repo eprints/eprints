@@ -23,20 +23,6 @@ use EPrints::Document;
 use strict;
 
 
-$EPrints::SubmissionForm::action_new        = "New";
-$EPrints::SubmissionForm::action_delete     = "Delete";
-$EPrints::SubmissionForm::action_edit       = "Edit";
-$EPrints::SubmissionForm::action_next       = "Next >";
-$EPrints::SubmissionForm::action_prev       = "< Back";
-$EPrints::SubmissionForm::action_submit     = "Deposit";
-$EPrints::SubmissionForm::action_cancel     = "Cancel";
-$EPrints::SubmissionForm::action_confirm    = "Confirm";
-$EPrints::SubmissionForm::action_clone      = "Clone";
-$EPrints::SubmissionForm::action_uploadedit = "Upload/Edit >";
-$EPrints::SubmissionForm::action_finished   = "Finished";
-$EPrints::SubmissionForm::action_upload     = "Upload >";
-$EPrints::SubmissionForm::action_verify     = "Verify ID's";
-
 
 # Stages of upload
 
@@ -55,38 +41,19 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 
 %EPrints::SubmissionForm::stage_titles =
 (
-	$EPrints::SubmissionForm::stage_type       => "Deposit Type",
-	$EPrints::SubmissionForm::stage_meta       => "Bibliographic Information",
-	$EPrints::SubmissionForm::stage_subject    => "Subject Categories",
-	$EPrints::SubmissionForm::stage_linking    => "Succession/Commentary",
-	$EPrints::SubmissionForm::stage_format     => "Document Storage Formats",
-	$EPrints::SubmissionForm::stage_fileview   => "Document File Upload",
-	$EPrints::SubmissionForm::stage_upload     => "Document File Upload",
-	$EPrints::SubmissionForm::stage_verify     => "Deposit Verification",
-	$EPrints::SubmissionForm::stage_done       => "Completed Deposit",
-	$EPrints::SubmissionForm::stage_error      => "Error",
-	$EPrints::SubmissionForm::stage_return     => "Return to Author's Home",
-	$EPrints::SubmissionForm::stage_confirmdel => "Confirm Deletion"
+	$EPrints::SubmissionForm::stage_type       => "H:title_type",
+	$EPrints::SubmissionForm::stage_meta       => "H:title_meta",
+	$EPrints::SubmissionForm::stage_subject    => "H:title_subject",
+	$EPrints::SubmissionForm::stage_linking    => "H:title_linking",
+	$EPrints::SubmissionForm::stage_format     => "H:title_format",
+	$EPrints::SubmissionForm::stage_fileview   => "H:title_fileview",
+	$EPrints::SubmissionForm::stage_upload     => "H:title_upload",
+	$EPrints::SubmissionForm::stage_verify     => "H:title_verify",
+	$EPrints::SubmissionForm::stage_done       => "H:title_done",
+	$EPrints::SubmissionForm::stage_error      => "H:title_error",
+	$EPrints::SubmissionForm::stage_return     => "H:title_return",
+	$EPrints::SubmissionForm::stage_confirmdel => "H:title_confirmdel",
 );
-
-
-$EPrints::SubmissionForm::corruption_error =
-	"An inconsistency in the posted data was detected. Usually this is caused ".
-	"by arriving directly to this page from a bookmark and not from your ".
-	"paper depositing page, or through using the browser's back/forwards or ".
-	"reload buttons. Always access the depositing mechanism via your author ".
-	"area and use the buttons on the form.</P><P>If this has happened in the ".
-	"normal course of operation please tell the ".
-	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site administrator</A>";
-
-$EPrints::SubmissionForm::database_error =
-	"There's been a problem accessing the site database. ".
-	"Please try again later, and contact the ".
-	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
-	"administrator</A> if the problem persists.";
-
-$EPrints::SubmissionForm::noselection_error =
-	"You hadn't selected a paper to edit, clone, delete or deposit!";
 
 
 ######################################################################
@@ -159,9 +126,12 @@ sub process
 		if( !defined $self->{eprint} )
 		{
 			my $db_error = $self->{session}->{database}->error();
-			EPrints::Log::log_entry( "SubmissionForm", "DB Error: $db_error" );
+			EPrints::Log::log_entry( 
+			        "SubmissionForm", 
+			        EPrints::Language::logphrase( "L:dberr",
+				                              $db_error ) );
 
-			$self->exit_error( $EPrints::SubmissionForm::database_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return;
 		}
 
@@ -169,7 +139,7 @@ sub process
 		if( !$self->{staff} &&
 			$self->{eprint}->{username} ne $self->{user}->{username} )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return;
 		}
 	}
@@ -194,7 +164,7 @@ sub process
 	}
 	else
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return;
 	}
 
@@ -264,7 +234,7 @@ sub from_home
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $EPrints::SubmissionForm::action_new )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_new") )
 	{
 		if( !$self->{staff} )
 		{
@@ -276,10 +246,12 @@ sub from_home
 			if( !defined $self->{eprint} )
 			{
 				my $db_error = $self->{session}->{database}->error();
-				EPrints::Log::log_entry( "SubmissionForm",
-					                      "DB Error: $db_error" );
+				EPrints::Log::log_entry( 
+			        	"SubmissionForm", 
+			        	EPrints::Language::logphrase( "L:dberr",
+				                              	$db_error ) );
 
-				$self->exit_error( $EPrints::SubmissionForm::database_error );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 				return( 0 );
 			}
 			else
@@ -293,15 +265,16 @@ sub from_home
 		}
 		else
 		{
-			$self->exit_error( "Use your author area to deposit new documents" );
+			$self->exit_error( $self->{session}->{lang}->phrase(
+			        "H:useautharea" ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_edit )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_edit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::noselection_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -309,11 +282,11 @@ sub from_home
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_clone )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_clone") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::noselection_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -329,38 +302,41 @@ sub from_home
 		
 			EPrints::Log::log_entry(
 				"SubmissionForm",
-				"Error cloning EPrint $self->{eprint}->{eprintid}: $error" );
+				$self->{session}->{lang}->phrase(
+					"L:errclone",
+					$self->{eprint}->{eprintid},
+					$error ) );
 
-			$self->exit_error( $EPrints::SubmissionForm::database_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_delete )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_delete") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::noselection_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_submit )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_submit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::noselection_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_cancel )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 	
@@ -380,7 +356,7 @@ sub from_stage_type
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -388,7 +364,7 @@ sub from_stage_type
 	$self->update_from_type_form();
 	$self->{eprint}->commit();
 
-	if( $self->{action} eq $EPrints::SubmissionForm::action_next )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_type();
 		if( $#{$self->{problems}} >= 0 )
@@ -402,7 +378,7 @@ sub from_stage_type
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_cancel )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
 	{
 		# Cancelled, go back to author area.
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
@@ -410,7 +386,7 @@ sub from_stage_type
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -430,7 +406,7 @@ sub from_stage_meta
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -443,7 +419,7 @@ sub from_stage_meta
 		# Leave the form as is
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_next )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
 	{
 		# validation checks
 		$self->{problems} = $self->{eprint}->validate_meta();
@@ -459,14 +435,14 @@ sub from_stage_meta
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -486,7 +462,7 @@ sub from_stage_subject
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -494,7 +470,7 @@ sub from_stage_subject
 	$self->update_from_subject_form();
 	$self->{eprint}->commit();
 	
-	if( $self->{action} eq $EPrints::SubmissionForm::action_next )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_subject();
 		if( $#{$self->{problems}} >= 0 )
@@ -508,14 +484,14 @@ sub from_stage_subject
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -535,7 +511,7 @@ sub from_stage_linking
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -551,7 +527,7 @@ sub from_stage_linking
 	$self->{eprint}->commit();
 	
 	# What's the next stage?
-	if( $self->{action} eq $EPrints::SubmissionForm::action_next )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_linking();
 
@@ -566,11 +542,11 @@ sub from_stage_linking
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_verify )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_verify") )
 	{
 		# Just stick with this... want to verify ID's
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
@@ -578,7 +554,7 @@ sub from_stage_linking
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 }	
@@ -596,7 +572,7 @@ sub from_stage_format
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -612,7 +588,7 @@ sub from_stage_format
 			# Remove the offending document
 			if( !defined $self->{document} || !$self->{document}->remove() )
 			{
-				$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 				return( 0 );
 			}
 
@@ -630,7 +606,7 @@ sub from_stage_format
 
 				if( !defined $self->{document} )
 				{
-					$self->exit_error( $EPrints::SubmissionForm::database_error );
+					$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 					return( 0 );
 				}
 			}
@@ -639,16 +615,16 @@ sub from_stage_format
 		}
 		else
 		{
-			$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		# prev stage depends if we're linking users or not
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_finished )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_finished") )
 	{
 		$self->{problems} = $self->{eprint}->validate_documents();
 
@@ -666,7 +642,7 @@ sub from_stage_format
 	}
 	else
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}		
 
@@ -686,7 +662,7 @@ sub from_stage_fileview
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 	
@@ -699,7 +675,7 @@ sub from_stage_fileview
 	if( !defined $self->{document} ||
 	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 	}
 	
 	# Check to see if a fileview button was pressed, process it if necessary
@@ -708,7 +684,7 @@ sub from_stage_fileview
 		# Doc object will have updated as appropriate, commit changes
 		unless( $self->{document}->commit() )
 		{
-			$self->exit_error( $EPrints::SubmissionForm::database_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 		
@@ -725,11 +701,11 @@ sub from_stage_fileview
 			$self->{document}->commit();
 		}
 
-		if( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+		if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 		{
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
-		elsif( $self->{action} eq $EPrints::SubmissionForm::action_upload )
+		elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_upload") )
 		{
 			# Set up info for next stage
 			$self->{arc_format} =
@@ -737,7 +713,7 @@ sub from_stage_fileview
 			$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_upload;
 		}
-		elsif( $self->{action} eq $EPrints::SubmissionForm::action_finished )
+		elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_finished") )
 		{
 			# Finished uploading apparently. Validate.
 			$self->{problems} = $self->{document}->validate();
@@ -754,7 +730,7 @@ sub from_stage_fileview
 		else
 		{
 			# Erk! Unknown action.
-			$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 	}
@@ -775,7 +751,7 @@ sub from_stage_upload
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -788,7 +764,7 @@ sub from_stage_upload
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 	
@@ -798,15 +774,15 @@ sub from_stage_upload
 	# button, so we can't tell whether the "Back" or "Upload" button is
 	# appropriate. We have to assume that if the user's pressed return they
 	# want to go ahead with the upload, so we default to the upload button:
-	$self->{action} = $EPrints::SubmissionForm::action_upload
+	$self->{action} = $self->{session}->{lang}->phrase("F:action_upload")
 		unless( defined $self->{action} );
 
 
-	if( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_upload )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_upload") )
 	{
 		my $arc_format = $self->{session}->{render}->param( "arc_format" );
 		my $numfiles   = $self->{session}->{render}->param( "numfiles" );
@@ -836,7 +812,7 @@ sub from_stage_upload
 		if( !$success )
 		{
 			$self->{problems} = [
-				"There was a problem uploading your file(s). Please try again." ];
+				$self->{session}->{lang}->phrase( "H:uploadprob" ) ];
 		}
 		elsif( !defined $doc->get_main() )
 		{
@@ -854,7 +830,7 @@ sub from_stage_upload
 	}
 	else
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -873,7 +849,7 @@ sub from_stage_verify
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
@@ -881,7 +857,7 @@ sub from_stage_verify
 	# behaves sensibly. It's in a hidden field.
 	my $prev_stage = $self->{session}->{render}->param( "prev_stage" );
 
-	if( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_prev") )
 	{
 		# Go back to the relevant page
 		if( $prev_stage eq "home" )
@@ -895,11 +871,11 @@ sub from_stage_verify
 		else
 		{
 			# No relevant page! erk!
-			$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_submit )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_submit") )
 	{
 		# Do the commit to the archive thang. One last check...
 		my $problems = $self->{eprint}->validate_full();
@@ -914,7 +890,7 @@ sub from_stage_verify
 			}
 			else
 			{
-				$self->exit_error( $EPrints::SubmissionForm::database_error );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 				return( 0 );
 			}
 		}
@@ -927,7 +903,7 @@ sub from_stage_verify
 	}
 	else
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 	
@@ -948,11 +924,11 @@ sub from_stage_confirmdel
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 );
 	}
 
-	if( $self->{action} eq $EPrints::SubmissionForm::action_confirm )
+	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_confirm") )
 	{
 		if( $self->{eprint}->remove() )
 		{
@@ -964,20 +940,22 @@ sub from_stage_confirmdel
 
 			EPrints::Log::log_entry(
 				"SubmissionForm",
-				"DB Error removing EPrint $self->{eprint}->{eprintid}: $db_error" );
+				EPrints::Language::logphrase( "L:removeerror",
+				                              $self->{eprint}->{eprintid},
+				                              $db_error ) );
 
-			$self->exit_error( $EPrints::SubmissionForm::database_error );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_cancel )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
 		return( 0 )
 	}
 
@@ -1004,19 +982,18 @@ sub from_stage_confirmdel
 sub do_stage_type
 {
 	my( $self ) = @_;
-	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_type} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_type} ) );
 
 	$self->list_problems();
 	
-	print "<P>Please select the most appropriate type for your ".
-		"deposit.</P>\n";
+	print "<P>".$self->{session}->{lang}->phrase( "H:seltype" )."</P>\n";
 
 	$self->render_type_form(
-		[ $EPrints::SubmissionForm::action_cancel,
-			$EPrints::SubmissionForm::action_next ],
+		[ $self->{session}->{lang}->phrase("F:action_cancel"),
+			$self->{session}->{lang}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_type } );
 
 	print $self->{session}->{render}->end_html();
@@ -1034,16 +1011,16 @@ sub do_stage_meta
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_meta} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_meta} ) );
 	$self->list_problems();
 
-	print "<P>Please enter the bibliographic data about your deposit. ".
-		"Fields marked with a * are fields that must be filled out ".
-		"before your deposit will be accepted.</P>\n";
+	print "<P>".$self->{session}->{lang}->phrase( "H:bibinfo" )."</P>\n";
+
 	$self->render_meta_form(
-		[ $EPrints::SubmissionForm::action_prev,
-		  $EPrints::SubmissionForm::action_next ],
+		[ $self->{session}->{lang}->phrase("F:action_prev"),
+		  $self->{session}->{lang}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_meta }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1060,13 +1037,14 @@ sub do_stage_subject
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_subject} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_subject} ) );
 	$self->list_problems();
 
 	$self->render_subject_form(
-		[ $EPrints::SubmissionForm::action_prev,
-		  $EPrints::SubmissionForm::action_next ],
+		[ $self->{session}->{lang}->phrase("F:action_prev"),
+		  $self->{session}->{lang}->phrase("F:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_subject }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1085,8 +1063,9 @@ sub do_stage_linking
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_linking} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_linking} ) );
 	
 	$self->list_problems();
 
@@ -1114,15 +1093,20 @@ sub do_stage_linking
 		
 		if( defined $older_eprint )
 		{
-			print "<TR><TD><STRONG>Verify:</STRONG></TD><TD>";
+			print "<TR><TD><STRONG>";
+			print $self->{session}->{lang}->phrase( "H:verify" );
+			print "</STRONG></TD><TD>";
 			print $self->{session}->{render}->render_eprint_citation(
 				$older_eprint );
 			print "</TD></TR>\n";
 		}
 		else
 		{
-			print "<TR><TD COLSPAN=2><STRONG>ID $self->{eprint}->{succeeds} is ".
-				"not a valid EPrint ID!</STRONG></TD></TR>\n";
+			print "<TR><TD COLSPAN=2><STRONG>";
+			print $self->{session}->{lang}->phrase( 
+				"H:invaleprint",
+				$self->{eprint}->{succeeds} );
+			print "</STRONG></TD></TR>\n";
 		}
 	}
 			
@@ -1150,8 +1134,11 @@ sub do_stage_linking
 		}
 		else
 		{
-			print "<TR><TD COLSPAN=2><STRONG>ID $self->{eprint}->{commentary} is ".
-				"not a valid EPrint ID!</STRONG></TD></TR>\n";
+			print "<TR><TD COLSPAN=2><STRONG>";
+			print $self->{session}->{lang}->phrase( 
+				"H:invaleprint",
+				$self->{eprint}->{commentary} );
+			print "</STRONG></TD></TR>\n";
 		}
 	}
 
@@ -1167,9 +1154,9 @@ sub do_stage_linking
 
 	print "<CENTER><P>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $EPrints::SubmissionForm::action_prev,
-		  $EPrints::SubmissionForm::action_verify,
-		  $EPrints::SubmissionForm::action_next ] );
+		[ $self->{session}->{lang}->phrase("F:action_prev"),
+		  $self->{session}->{lang}->phrase("F:action_verify"),
+		  $self->{session}->{lang}->phrase("F:action_next") ] );
 	print "</P></CENTER>";
 
 	print $self->{session}->{render}->end_form();
@@ -1190,20 +1177,21 @@ sub do_stage_format
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_format} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_format} ) );
 	$self->list_problems();
 
 	# Validate again, so we know what buttons to put up and how to state stuff
 	$self->{eprint}->prune_documents();
 	my $probs = $self->{eprint}->validate_documents();
 
-	print "<P><CENTER>Here are the available upload formats, and how many ".
-		"files you have uploaded for each.";
+	print "<P><CENTER>";
+	print $self->{session}->{lang}->phrase("H:validformats");
 
 	if( $#EPrintSite::SiteInfo::required_formats >= 0 )
 	{
-		print " You must upload at least one of the formats listed in bold.";
+		print $self->{session}->{lang}->phrase("H:leastone");
 	}
 
 	print "</CENTER></P>\n";
@@ -1214,8 +1202,8 @@ sub do_stage_format
 	$self->render_format_form();
 
 	# Write a back button, and a finished button, if the docs are OK
-	my @buttons = ( $EPrints::SubmissionForm::action_prev );
-	push @buttons, $EPrints::SubmissionForm::action_finished
+	my @buttons = ( $self->{session}->{lang}->phrase("F:action_prev") );
+	push @buttons, $self->{session}->{lang}->phrase("F:action_finished")
 		if( $#{$probs} == -1 );
 	
 	print "<P><CENTER>";
@@ -1249,8 +1237,8 @@ sub do_stage_fileview
 	# Make some metadata fields
 	my @arc_formats = ( "plain", "graburl" );
 	my %arc_labels = (
-		"plain"   => "Plain Files",
-		"graburl" => "From an Existing Web Site"
+		"plain"   => $self->{session}->{lang}->phrase("F:plain"),
+		"graburl" => $self->{session}->{lang}->phrase("F:graburl")
 	);
 
 	foreach (@EPrintSite::SiteInfo::supported_archive_formats)
@@ -1271,12 +1259,13 @@ sub do_stage_fileview
 	# Render the form
 
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_fileview} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_fileview} ) );
 
 	$self->list_problems(
-		"The document upload can't be completed because:",
-		"Please fix this before continuing." );
+		$self->{session}->{lang}->phrase("H:fixupload"),
+		$self->{session}->{lang}->phrase("H:pleasefix") );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1301,42 +1290,45 @@ sub do_stage_fileview
 	
 	if( scalar keys %files == 0 )
 	{
-		print "<P><CENTER><EM>No files have been uploaded for this format.".
-			"</EM></CENTER></P>\n";
+		print "<P><CENTER><EM>";
+		print $self->{session}->{lang}->phrase("H:nofiles");
+		print "</EM></CENTER></P>\n";
 	}
 	else
 	{
-		print "<P><CENTER>These are the files you have uploaded for this".
-			" format.";
+		print "<P><CENTER>";
+		print $self->{session}->{lang}->phrase("H:filesforformat");
 
 		if( !defined $doc->get_main() )
 		{
-			print " You need to select the file that should be shown first when ".
-				"a reader wishes to view your deposit.";
+			print $self->{session}->{lang}->phrase("H:selfirst");
 		}
 
 		print "</CENTER></P>\n";
 		print $self->render_file_view( $doc );
 
-		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>".
-			"Click here to view and verify the uploaded files</A></P>\n";
+		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
+		print $self->{session}->{lang}->phrase("H:heretoview");
+		print "</A></P>\n";
 	}
 
 	# Render upload file options
-
-	print "<P><CENTER>File upload method: ";
+	print "<P><CENTER>";
+	print $self->{session}->{lang}->phrase("H:fileupmethod")." ";
 	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
 
-	print "</CENTER></P>\n<P><CENTER><em>(Plain files only)</em> Number of ".
-		"files to upload: ";
+	print "</CENTER></P>\n<P><CENTER><em>";
+	print $self->{session}->{lang}->phrase("H:plainonly")." ";
+	print "</em> ";
+	print $self->{session}->{lang}->phrase("H:numfiles")." ";
 	print $self->{session}->{render}->input_field( $num_files_field, 1 );
 	print "</CENTER></P>\n";
 
 	# Action buttons
 	my @buttons = (
-		$EPrints::SubmissionForm::action_prev,
-		$EPrints::SubmissionForm::action_upload );
-	push @buttons, $EPrints::SubmissionForm::action_finished
+		$self->{session}->{lang}->phrase("F:action_prev"),
+		$self->{session}->{lang}->phrase("F:action_upload") );
+	push @buttons, $self->{session}->{lang}->phrase("F:action_finished")
 		if( scalar keys %files > 0 );
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons( \@buttons );
@@ -1367,21 +1359,21 @@ sub do_stage_upload
 	my( $self ) = @_;
 
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_upload} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_upload} ) );
 	print $self->{session}->{render}->start_form();
 
 	my $num_files;
 
 	if( $self->{arc_format} eq "graburl" )
 	{
-		print "<P><CENTER>Please enter the URL of the document you wish to ".
-			"upload to the archive in the box below.</CENTER></P>\n";
-		print "<P><CENTER><EM>Occasionally, uploading this way may ".
-			"not produce a totally accurate copy. This is because some ".
-			"assumptions about the structure of the HTML must be made, to stop ".
-			"the software from trying to upload the whole World-Wide Web!</EM>".
-			"</CENTER></P>\n";
+		print "<P><CENTER>";
+		print $self->{session}->{lang}->phrase("H:enterurl");
+		print "</CENTER></P>\n";
+		print "<P><CENTER><EM>";
+		print $self->{session}->{lang}->phrase("H:urlwarning");
+		print "</EM></CENTER></P>\n";
 		my $url_field = EPrints::MetaField->new( "url:text:::::" );
 		print "<P><CENTER>";
 		print $self->{session}->{render}->input_field( $url_field, "" );
@@ -1392,8 +1384,9 @@ sub do_stage_upload
 		if( $self->{arc_format} ne "plain" )
 		{
 			$num_files = 1;
-			print "<P><CENTER>Enter the filename (with full path) of the ".
-				"compressed file in the box below.</CENTER></P>\n";
+			print "<P><CENTER>";
+			print $self->{session}->{lang}->phrase("H:entercompfile");
+			print "</CENTER></P>\n";
 		}
 		else
 		{
@@ -1401,13 +1394,15 @@ sub do_stage_upload
 
 			if( $self->{numfiles} > 1 )
 			{
-				print "<P><CENTER>Please enter the filenames (with full paths) of ".
-					"the document files in the boxes below.</CENTER></P>\n";
+				print "<P><CENTER>";
+				print $self->{session}->{lang}->phrase("H:enterfiles");
+				print "</CENTER></P>\n";
 			}
 			else
 			{
-				print "<P><CENTER>Please enter the filename (with full path) of ".
-					"the document file in the box below.</CENTER></P>\n";
+				print "<P><CENTER>";
+				print $self->{session}->{lang}->phrase("H:enterfile");
+				print "</CENTER></P>\n";
 			}
 		}
 
@@ -1422,8 +1417,8 @@ sub do_stage_upload
 	
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $EPrints::SubmissionForm::action_prev,
-		  $EPrints::SubmissionForm::action_upload ] );
+		[ $self->{session}->{lang}->phrase("F:action_prev"),
+		  $self->{session}->{lang}->phrase("F:action_upload") ] );
 	print "</CENTER></P>\n";
 	print $self->{session}->{render}->hidden_field(
 		"stage",
@@ -1459,8 +1454,9 @@ sub do_stage_verify
 	$self->{problems} = $self->{eprint}->validate_full();
 
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_verify} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_verify} ) );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1481,20 +1477,19 @@ sub do_stage_verify
 	if( $#{$self->{problems}} >= 0 )
 	{
 		$self->list_problems(
-			"Before you deposit this entry to the archive, the following ".
-				"problems need to be corrected:",
+			$self->{session}->{lang}->phrase("H:fixprobs"),
 			"" );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $EPrints::SubmissionForm::action_prev ] );
+			[ $self->{session}->{lang}->phrase("F:action_prev") ] );
 		print "</CENTER></P>\n";
 	}
 	else
 	{
-		print "<P><CENTER>Please verify that all of the details about your ".
-			"deposit are correct, and that all necessary document files ".
-			"have been correctly uploaded including any figures.</CENTER></P>\n";
+		print "<P><CENTER>";
+		print $self->{session}->{lang}->phrase("H:pleaseverify");
+		print "</CENTER></P>\n";
 		print "<HR>\n";
 		
 		print $self->{session}->{render}->render_eprint_full( $self->{eprint} );
@@ -1506,8 +1501,8 @@ sub do_stage_verify
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $EPrints::SubmissionForm::action_prev,
-			  $EPrints::SubmissionForm::action_submit ] );
+			[ $self->{session}->{lang}->phrase("F:action_prev"),
+			  $self->{session}->{lang}->phrase("F:action_submit") ] );
 		print "</CENTER></P>\n";
 	}
 	
@@ -1527,17 +1522,21 @@ sub do_stage_done
 	my( $self ) = @_;
 	
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_done} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_done} ) );
 	
-	print "<P><CENTER><STRONG>Thank you.</STRONG><CENTER></P>\n";
+	print "<P><CENTER><STRONG>";
+	print $self->{session}->{lang}->phrase("H:thanks");
+	print "</STRONG><CENTER></P>\n";
 	
-	print "<P><CENTER>Your document is now held in the deposit buffer. ".
-		"Provided there are no problems it should appear in the main archive ".
-		"within the next few days.</CENTER></P>\n";
+	print "<P><CENTER>";
+	print $self->{session}->{lang}->phrase("H:inbuffer");
+	print "</CENTER></P>\n";
 	
-	print "<P><CENTER><A HREF=\"home\">Click here to return to your deposit ".
-		"papers page</A></CENTER></P>\n";
+	print "<P><CENTER><A HREF=\"home\">";
+	print $self->{session}->{lang}->phrase("H:retdeppage");
+	print "</A></CENTER></P>\n";
 
 	print $self->{session}->{render}->end_html();
 }
@@ -1554,11 +1553,13 @@ sub do_stage_confirmdel
 	my( $self ) = @_;
 
 	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_confirmdel} );
+		$self->{session}->{lang}->phrase(
+			$EPrints::SubmissionForm::stage_titles{
+				$EPrints::SubmissionForm::stage_confirmdel} ) );
 
-	print "<P><CENTER><strong>Are you absolutely sure you want to delete this ".
-		"entry?</strong></CENTER></P>\n<P><CENTER>";
+	print "<P><CENTER><strong>";
+	print $self->{session}->{lang}->phrase("H:suredelete");
+	print "</strong></CENTER></P>\n<P><CENTER>";
 	
 	print $self->{eprint}->short_title();
 	
@@ -1572,8 +1573,8 @@ sub do_stage_confirmdel
 		"stage",
 		$EPrints::SubmissionForm::stage_confirmdel );
 	print $self->{session}->{render}->submit_buttons(
-		[ $EPrints::SubmissionForm::action_confirm,
-		  $EPrints::SubmissionForm::action_cancel ] );
+		[ $self->{session}->{lang}->phrase("F:action_confirm"),
+		  $self->{session}->{lang}->phrase("F:action_cancel") ] );
 	print $self->{session}->{render}->end_form();
 
 	print "</CENTER></P>\n";
@@ -1634,7 +1635,9 @@ sub list_problems
 		}
 		else
 		{
-			print "<P>The form doesn\'t seem to be filled out correctly:</P>\n";
+			print "<P>";
+			print $self->{session}->{lang}->phrase("H:filledwrong");
+			print "</P>";
 		}
 		
 		print "<UL>\n";
@@ -1650,7 +1653,9 @@ sub list_problems
 		}
 		else
 		{
-			print "<P>Please complete the form before continuing.</P>\n";
+			print "<P>";
+			print $self->{session}->{lang}->phrase("H:pleasecomplete");
+			print "</P>";
 		}
 	}
 }
@@ -1788,8 +1793,10 @@ sub update_from_meta_form
 
 		EPrints::Log::log_entry(
 			"Forms",
-			"EPrint ID in form >$form_id< doesn't match object id ".
-				">$self->{eprint}->{eprintid}<" );
+			EPrints::Language::logphrase( 
+				"idnotmatch",
+				$form_id,
+				$self->{eprint}->{eprintid} ) );
 
 		return( 0 );
 	}
@@ -1887,8 +1894,10 @@ sub update_from_subject_form
 
 		EPrints::Log::log_entry(
 			"Forms",
-			"EPrint ID in form >$form_id< doesn't match object id ".
-				">$self->{eprint}->{eprintid}<" );
+			EPrints::Language::logphrase( 
+				"idnotmatch",
+				$form_id,
+				$self->{eprint}->{eprintid} ) );
 
 		return( 0 );
 	}
@@ -1941,8 +1950,10 @@ sub update_from_users_form
 
 		EPrints::Log::log_entry(
 			"Forms",
-			"EPrint ID in form >$form_id< doesn't match object id ".
-				">$self->{eprint}->{eprintid}<" );
+			EPrints::Language::logphrase( 
+				"idnotmatch",
+				$form_id,
+				$self->{eprint}->{eprintid} ) );
 
 		return( 0 );
 	}
@@ -1998,8 +2009,9 @@ sub render_file_view
 	my $html;
 	
 	$html = "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH></TH>".
-		"<TH>Filename</TH><TH>Size (Bytes)</TH><TH></TH>".
-		"<TH></TH></TR>\n";
+		"<TH>".$self->{session}->{lang}->phrase("H:filename")."</TH>".
+		"<TH>".$self->{session}->{lang}->phrase("H:sizebytes")."</TH>".
+		"<TH></TH><TH></TH></TR>\n";
 	
 	my %files = $document->files();
 	my $main = $document->{main};
@@ -2009,8 +2021,12 @@ sub render_file_view
 	foreach $filename (sort keys %files)
 	{
 		$html .= "<TR><TD>";
-		$html .= "<STRONG>Shown First -\&gt;</STRONG>"
-			if( defined $main && $main eq $filename );
+		if( defined $main && $main eq $filename )
+		{
+			$html .= "<STRONG>";
+			$html .= $self->{session}->{lang}->phrase("H:shownfirst");
+			$html .= " -\&gt;</STRONG>"
+		}
 		
 		$html .= "</TD><TD>$filename</TD><TD ALIGN=RIGHT>$files{$filename}</TD>".
 			"<TD>";
@@ -2018,12 +2034,12 @@ sub render_file_view
 		{
 			$html .= $self->{session}->{render}->named_submit_button(
 				"main_$filecount",
-				"Show first" );
+				$self->{session}->{lang}->phrase("F:showfirst") );
 		}
 		$html .= "</TD><TD>";
 		$html .= $self->{session}->{render}->named_submit_button(
 			"delete_$filecount",
-			"Delete" );
+			$self->{session}->{lang}->phrase("F:delete") );
 		$html .= "</TD></TR>\n";
 		$filecount++;
 	}
@@ -2033,7 +2049,7 @@ sub render_file_view
 	$html .= "<P><CENTER>";
 	$html .= $self->{session}->{render}->named_submit_button(
 		"deleteall",
-		"Delete All Files" );
+		$self->{session}->{lang}->phrase("F:delete_all") );
 	$html .= "</CENTER></P>\n";
 
 	return( $html );
@@ -2104,8 +2120,12 @@ sub render_format_form
 {
 	my( $self ) = @_;
 
-	print "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH><STRONG>Format</STRONG></TH>".
-		"<TH><STRONG>Files Uploaded</STRONG></TH></TR>\n";
+	print "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH><STRONG>".
+		$self->{session}->{lang}->phrase("H:format").
+		"</STRONG></TH>".
+		"<TH><STRONG>".
+		$self->{session}->{lang}->phrase("H:files_uploaded").
+		"</STRONG></TH></TR>\n";
 	
 	my $f;
 	foreach $f (@EPrintSite::SiteInfo::supported_formats)
@@ -2126,11 +2146,14 @@ sub render_format_form
 		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$f",
-			"Upload/Edit" );
+			$self->{session}->{lang}->phrase("F:uploadedit") );
 		print "</TD><TD>";
-		print $self->{session}->{render}->named_submit_button(
-			"remove_$f",
-			"Remove" ) if( $numfiles > 0 );
+		if( $numfiles > 0 )
+		{
+			print $self->{session}->{render}->named_submit_button(
+				"remove_$f",
+				$self->{session}->{lang}->phrase("F:remove") );
+		}
 		print "</TD></TR>\n";
 	}
 
@@ -2150,11 +2173,14 @@ sub render_format_form
 		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$EPrints::Document::other",
-			"Upload/Edit" );
+			$self->{session}->{lang}->phrase("F:uploadedit") );
 		print "</TD><TD>";
-		print $self->{session}->{render}->named_submit_button(
-			"remove_$EPrints::Document::other",
-			"Remove" ) if( $numfiles > 0 );
+		if( $numfiles > 0 )
+		{
+			print $self->{session}->{render}->named_submit_button(
+				"remove_$EPrints::Document::other",
+				$self->{session}->{lang}->phrase("F:remove") );
+		}
 		print "</TD></TR>\n";
 	}		
 
@@ -2197,5 +2223,23 @@ sub update_from_format_form
 	return( undef, undef );
 }
 
+######################################################################
+#
+# initial_actions()
+#
+#  Returns an array of the names of the buttons of the actions 
+#  which may start a submission.
+#
+######################################################################
+
+sub initial_actions 
+{
+	my ( $session ) = @_;
+	return [ $session->{lang}->phrase("F:action_new"),
+		 $session->{lang}->phrase("F:action_edit"),
+		 $session->{lang}->phrase("F:action_clone"),
+		 $session->{lang}->phrase("F:action_delete"),
+		 $session->{lang}->phrase("F:action_submit") ];
+}
 
 1;

@@ -17,6 +17,7 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::EPrint;
+use EPrints::SubmissionForm;
 
 use strict;
 
@@ -175,7 +176,7 @@ sub render_workspace
 			\%default_values,
 			0,
 			0,
-			[ "New", "Edit", "Clone", "Delete", "Deposit" ],
+			EPrints::SubmissionForm::initial_actions($session),
 			undef,
 			"submit" );
 

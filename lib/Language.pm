@@ -166,6 +166,7 @@ sub read_phrases
 	while( <LANG_FILE> )
 	{
 		chomp();
+		next if /^\s*#/;
 		push @inbuffer, $_;
 
 		if( /<\/file>/i )
@@ -207,7 +208,7 @@ sub make_file_phrases
 			return;
 		}
 		# Get the phrase out of a line "id = phrase";
-		elsif( /^\s*([a-z0-9_]+)\s*=\s*(.*)$/i )
+		elsif( /^\s*([A-Z]:[A-Za-z0-9_]+)\s*=\s*(.*)$/ )
 		{
 			my ( $key , $val ) = ( $1 , $2 );
 			# convert \n to actual CR's

@@ -327,7 +327,7 @@ sub validate
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
 			push @all_problems, 
-			   $self->{session}->{lang}->phrase( "missedfield", 
+			   $self->{session}->{lang}->phrase( "H:missedfield", 
 			                                     $field->{displayname} );
 		}
 		else
@@ -416,17 +416,17 @@ sub send_introduction
 	my $subj;
 	if ( $self->{groups} eq "Staff" )
 	{
-		$subj = "newstaff";
+		$subj = "S:newstaff";
    }
 	else
 	{
-		$subj = "newuser";
+		$subj = "S:newuser";
    }
 	# Try and send the mail
 	return( EPrints::Mailer->prepare_send_mail(
-		$self->{lang}->parse( $subj , $EPrintSite::SiteInfo::sitename ),
+		$self->{session}->{lang}->parse( $subj , $EPrintSite::SiteInfo::sitename ),
 		$self->{email},
-		$self->{session}->{lang}->parse( "welcome", 
+		$self->{session}->{lang}->parse( "S:welcome", 
 		                                 $EPrintSite::SiteInfo::sitename ),
 		$EPrintSite::SiteInfo::template_user_intro,
 		$self ) );
@@ -448,7 +448,7 @@ sub send_reminder
 	my( $self, $message ) = @_;
 	
 	my $full_message = $self->{session}->{lang}->phrase(
-	     "reminder",
+	     "M:reminder",
 		  $EPrintSite::SiteInfo::sitename,
 	     ( defined $message ? "$message\n\n" : "" ),
 		  $self->{username},
@@ -458,7 +458,7 @@ sub send_reminder
 	return( EPrints::Mailer::send_mail( $self->full_name(),
 	                                    $self->{email},
 	                                    $self->{session}->{lang}->phrase( 
-                                          "remindersub" ),
+                                          "S:remindersub" ),
 	                                    $full_message ) );
 }
 

@@ -271,6 +271,7 @@ sub create_subject_table
 	{
 #		print "Line: $_\n";
 		chomp();
+		next if /^\s*#/;
 		my @vals = split /:/;
 		
 		#EPrints::Log::debug( "Subject", "ID: $vals[0]  Name: $vals[1]  Parent: $vals[2]  Depositable: $vals[3]" );

@@ -390,6 +390,7 @@ sub read_fields
 	while( <CFG_FILE> )
 	{
 		chomp();
+		next if /^\s*#/;
 		push @inbuffer, $_;
 
 		if( /<\/field>/i )
