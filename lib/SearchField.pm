@@ -528,7 +528,9 @@ sub get_conditions
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
-			$self->{session}->{site}->extract_words( $text );
+			$self->{session}->getSite->call( 
+				"extract_words",
+				$text );
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
