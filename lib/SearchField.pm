@@ -274,8 +274,6 @@ sub get_conditions
 {
 	my ( $self , $benchmarking ) = @_;
 
-print STDERR "Hi*************\n";
-
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
 		return undef;
@@ -554,7 +552,7 @@ print STDERR "ack\n";
 	}
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_sql_name() );
 
-print STDERR "__$fieldname\n".Dumper( $self->{field}->{data} );
+#print STDERR "__$fieldname\n".Dumper( $self->{field}->{data} );
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done
@@ -673,9 +671,9 @@ sub do2
 	my ( $self ) = @_;
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
-	print STDERR "-----------\n";
-use Data::Dumper;
-	print STDERR Dumper( $sfields, $searches, $badwords, $error )."\n";
+#print STDERR "-----------\n";
+#use Data::Dumper;
+#print STDERR Dumper( $sfields, $searches, $badwords, $error )."\n";
 
 	my $n = scalar @{$searches->{$sfields->[0]}};
 	

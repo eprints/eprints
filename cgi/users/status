@@ -224,8 +224,8 @@ sub count
 	}
 
 	$searchexp->perform_search();
-
 	my $count = $searchexp->count();
+	$searchexp->dispose();
 
 print STDERR "count:$datasetid:$count\n";
 	

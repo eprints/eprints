@@ -26,116 +26,205 @@ use EPrints::Session;
 use EPrints::HTMLRender;
 use EPrints::Subject;
 
+
+use File::Copy;
+use File::Path;
+
 use strict;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my $fieldids = [ "year","subjects","groups","title","ispublished","type" ,"datestamp"];
+#my $fieldids = [ "subjects","groups","title","ispublished","type" ,"datestamp"];
+my $fieldids = [ "subjects", "year", "type" ];
 
 my $ds = $session->get_archive()->get_dataset( "archive" );
-foreach( @{$fieldids} )
-{
-	my $field = $ds->get_field( $_ );
-	print "\n-----------------------------------------\n\n";
-	print ": $_ ".($field->is_browsable())."\n";
-	unless( $field->is_browsable() )
-	{
-		print STDERR "Cannot generate browse pages for field \"".$_."\"\nType \"".$field->get_type()."\" cannot be browsed.\n";
-		next;
-	}
-	make_field_browse_pages( $field );
-}
-exit;
-
-sub make_field_browse_pages
-{
-	my( $field ) = @_;
-
-	my( @values ) = $field->get_values( $session );
-	my $value;
-	foreach $value ( @values )
-	{
-		print "$value: ".$field->get_value_label( $session, $value )."\n";
-	}
-}
-
-
-
-
-# cjg redo with new subject system!
-
-# Get all of the available subjects
-my( $map, $rmap ) = EPrints::Subject::get_all( $session );#cjg change
 
 my $langid;
 foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
-	my $dir =  $session->get_archive()->get_conf( "local_html_root" ).
-		"/".$langid."/view";
-	unless( -d $dir )
+	$session->change_lang( $langid );
+	my $dir =  $session->get_archive()->get_conf( "local_html_root" )."/".$langid."/view";
+	my $tmpdir = $dir."_tmp";
+	my $doomdir = $dir."_toerase";
+
+	if( -e $tmpdir )
 	{
-		print "mkdir $dir\n";
-		mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
+		rmtree( $tmpdir );
 	}
-	# Start with the root
-	&write_subject_view( 
-		$session, 
-		$langid, 
-		$dir."/index.html",
-		new EPrints::Subject( $session ) );
 
+	EPrints::Utils::mkdir( $tmpdir );
 
-	# Now do each of the subjects
-
-	foreach( keys %{$map} )
+	foreach( @{$fieldids} )
 	{
-		&write_subject_view( 
-			$session, 
-			$langid, 
-			$dir."/$_.html",
-			$map->{$_} );
+		my $field = $ds->get_field( $_ );
+		unless( $field->is_browsable() )
+		{
+			print STDERR "Cannot generate browse pages for field \"".$_."\"\n";
+			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
+			next;
+		}
+		make_field_pages( $field, $tmpdir, $ds );
 	}
+
+	# Make Browse Contents Page
+	
+
+	my( $ul, $li, $page, $a, $file, $title );
+	$session->new_page();
+	$page = $session->make_doc_fragment();
+	$page->appendChild( $session->html_phrase( "bin/generate_views:browseintro" ) );
+	$ul = $session->make_element( "ul" );
+	foreach( @{$fieldids} )
+	{
+		my $field = $ds->get_field( $_ );
+		$li = $session->make_element( "li" );
+		$a = $session->make_element( "a", href=>$field->get_name()."/" );
+		$a->appendChild( $session->make_text( $field->display_name( $session ) ) );
+		$li->appendChild( $a );
+		$ul->appendChild( $li );
+	}
+	$page->appendChild( $ul );
+	
+	$title = $session->phrase( "bin/generate_views:browsetitle" );
+	$file = $tmpdir."/index.html";
+	$session->build_page( $title, $page );
+print STDERR "Writing: $file\n";
+	$session->page_to_file( $file );
+
+	move( $dir, $doomdir );
+	move( $tmpdir, $dir );
+	rmtree( $doomdir );
 }
 
 $session->terminate();
+exit;
 
-
-
-sub write_subject_view
+sub make_field_pages
 {
-	my( $session, $langid, $file, $subject ) = @_;
-	
-	$session->new_page( $langid );
-	my $page = $session->make_doc_fragment();
-	
-	# Title (cjg NOT INTL)
-	my $title = "Browse by Subject: ".$subject->{name};
-	
-	# Tree at the top
-	$page->appendChild( $session->render_subjects( undef, $subject->get_value( "subjectid" ) ) );
-	$page->appendChild( $session->render_ruler() );
-	# The entries themselves
-	my @eprints = $subject->posted_eprints( 
-		$session->get_archive()->get_dataset( "archive" ) );
+	my( $field, $viewdir, $ds ) = @_;
 
-	# not INTL!cjg
-	my $p = $session->make_element( "p" );
-	my $n = $session->make_element( "span", class=>"number" );
-	$p->appendChild( $session->make_text("This subject category contains "));
-	$n->appendChild( $session->make_text(scalar @eprints) );
-	$p->appendChild( $n );
-	$p->appendChild( $session->make_text(" entries"));
-	$page->appendChild( $p );		
-	
-	my $eprint;
-	foreach $eprint (@eprints)
+	my $dir = $viewdir."/".$field->get_name();
+	mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
+	my( @values ) = $field->get_values( $session );
+
+	print $field->display_name( $session )."\n";
+
+	my( $value, $title, $file );
+	my( $ul, $li, $a, $page );
+
+	#################################################
+	##
+	## Make Browse Pages
+
+	my %size = {};
+
+	foreach $value ( @values )
 	{
-		$p = $session->make_element( "p" );
-		$p->appendChild( $eprint->render_citation_link() );
-		$page->appendChild( $p );
+		$session->new_page();
+		$page = $session->make_doc_fragment();
+
+		if( $field->is_type( "subject" ) )
+		{
+
+			# Note, this only shows ancestors and children. You might want
+			# Ancestors and decendents (children of children of ... )
+			# No support yet, but easy to add.
+
+			my $subject = EPrints::Subject->new( $session, $value );
+			my @ids= @{$subject->get_value( "ancestors" )};
+			foreach( $subject->children() )
+			{
+				push @ids,$_->get_value( "subjectid" );
+			}
+
+        		$page->appendChild( $session->render_subjects( 
+					\@ids, $field->get_property( "top" ), $value, 2 ) );
+			$page->appendChild( $session->render_ruler() );
+		}
+
+		my $searchexp = new EPrints::SearchExpression(
+				session=>$session,
+				dataset=>$ds );
+
+        	$searchexp->add_field(
+                	$field,
+                	"PHR:EQ:".$value );
+
+		#cjg set order (it's in the site config)
+
+        	$searchexp->perform_search();
+		my $count = $searchexp->count();
+		$size{$value} = $count;
+
+		my $MAX = 5000;#cjg MAKE ME A CONFIG OPTION!
+
+		if( $count > $MAX ) {
+			$page->appendChild( $session->html_phrase( "bin/generate_views:toobig",
+				n=>$session->make_text( $count ),
+				max=>$session->make_text( $MAX ) ) );
+		}
+		else
+		{
+        		my @eprints = $searchexp->get_records();
+
+			$page->appendChild( $session->html_phrase( "bin/generate_views:blurb",
+					n=>$session->make_text( $count ) ) );
+
+			my $eprint;
+			foreach $eprint (@eprints)
+			{
+				my $p = $session->make_element( "p" );
+				$p->appendChild( $eprint->render_citation_link() );
+				$page->appendChild( $p );
+			}
+		}
+		$searchexp->dispose();
+
+		$title = $session->phrase( "bin/generate_views:title", 
+					fieldname=>$field->display_name( $session ),
+					fieldvalue=>$field->get_value_label( $session, $value ) );
+		$file = $dir."/$value.html";
+		$session->build_page( $title, $page );
+	print STDERR "Writing: $file\n";
+		$session->page_to_file( $file );
 	}
+
+	#################################################
+	##
+	## Make Index Page
+
+	$session->new_page();
+	$page = $session->make_doc_fragment();
+	$page->appendChild( $session->html_phrase( "bin/generate_views:intro" ) );
+
+	if( $field->is_type( "subject" ) )
+	{
+        	$page->appendChild( $session->render_subjects( \@values, $field->get_property( "top" ), undef, 2 ) );
+	}
+	else
+	{
+		$ul = $session->make_element( "ul" );
+		foreach $value ( @values )
+		{
+			$li = $session->make_element( "li" );
+			$a = $session->make_element( "a", href=>$value.".html" );
+			$a->appendChild( $session->make_text( $field->get_value_label( $session, $value ) ) );
+			$a->appendChild( $session->make_text( " (".$size{$value}.")" ) );
+			$li->appendChild( $a );
+			$ul->appendChild( $li );
+		}
+		$page->appendChild( $ul );
+	}
+
+	$title = $session->phrase( "bin/generate_views:indextitle", 
+				fieldname=>$field->display_name( $session ) );
+	$file = $dir."/index.html";
 	$session->build_page( $title, $page );
 print STDERR "Writing: $file\n";
 	$session->page_to_file( $file );
 }
+
+
+
+

@@ -27,6 +27,9 @@ use EPrints::OpenArchives;
 
 use strict;
 
+## Config to add: MAX browse items, MAX search results to display sorted
+## Fields to make browseable.
+
 
 ## WP1: BAD
 sub get_conf
@@ -553,37 +556,40 @@ $c->{thread_citation_specs} =
 #
 ######################################################################
 
+
+#cjg These give lots of warnings due to the cmp method.
+
 ## WP1: BAD
 sub eprint_cmp_by_year
 {
-	return ( $_[1]->{year} <=> $_[0]->{year} ) ||
+	return(	EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) ||
 		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		( $_[0]->{title} cmp $_[1]->{title} ) ;
+		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
 }
 
 ## WP1: BAD
 sub eprint_cmp_by_year_oldest_first
 {
-	return ( $_[0]->{year} <=> $_[1]->{year} ) ||
+	return( EPrints::Utils::cmp_ints( $_[0]->{year} , $_[1]->{year} ) ||
 		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		( $_[0]->{title} cmp $_[1]->{title} ) ;
+		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
 }
 
 ## WP1: BAD
 sub eprint_cmp_by_author
 {
 	
-	return EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		( $_[1]->{year} <=> $_[0]->{year} ) || # largest year first
-		( $_[0]->{title} cmp $_[1]->{title} ) ;
+	return( EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
+		EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) || # largest year first
+		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
 }
 
 ## WP1: BAD
 sub eprint_cmp_by_title
 {
-	return ( $_[0]->{title} cmp $_[1]->{title} ) ||
+	return( EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} ) ||
 		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		( $_[1]->{year} <=> $_[0]->{year} ) ; # largest year first
+		EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) ) ; # largest year first
 }
 
 ######################################################################
@@ -605,11 +611,27 @@ my $FREETEXT_MIN_WORD_SIZE = 3;
 # them or not. If we used arrays and we had lots of words
 # it might slow things down.
 
+#cjg STOP WORDS APPEAR TO BE BUGGY.
+
 # Words to never index, despite their length.
-my $FREETEXT_NEVER_WORDS = {
+my $FREETEXT_STOP_WORDS = {
+		"this"=> 1,
+		"are" => 1,
+		"which"=>1,
+		"with"=>1,
+		"that"=>1,
+		"can"=>1,
+		"from"=>1,
+		"these"=>1,
+		"those"=>1,
 		"the" => 1,
 		"you" => 1,
 		"for" => 1,
+		"been" => 1,
+		"have" => 1,
+		"were" => 1,
+		"where" => 1,
+		"is" => 1,
 		"and" => 1 
 };
 
@@ -797,7 +819,7 @@ sub extract_words
 
 		# Consult list of "never words". Words which should never
 		# be indexed.	
-		if( $FREETEXT_NEVER_WORDS->{lc $_} )
+		if( $FREETEXT_STOP_WORDS->{lc $_} )
 		{
 			$ok = 0;
 		}

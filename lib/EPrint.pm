@@ -788,6 +788,7 @@ sub get_all_documents
 
 	my $searchid = $searchexp->perform_search();
 	my @documents = $searchexp->get_records();
+	$searchexp->dispose();
 
 	return( @documents );
 }
@@ -1297,6 +1298,7 @@ sub later_in_thread
 
 	my $searchid = $searchexp->perform_search();
 	my @eprints = $searchexp->get_records();
+	$searchexp->dispose();
 
 	return @eprints;
 

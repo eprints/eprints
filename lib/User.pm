@@ -151,8 +151,8 @@ sub user_with_email
 		"PHR:EQ:".$email );
 
 	my $searchid = $searchexp->perform_search;
-
 	my @records = $searchexp->get_records;
+	$searchexp->dispose();
 	
 	return $records[0];
 }
@@ -174,6 +174,7 @@ sub user_with_username
 	my $searchid = $searchexp->perform_search;
 
 	my @records = $searchexp->get_records;
+	$searchexp->dispose();
 	
 	return $records[0];
 }
@@ -516,7 +517,9 @@ sub get_eprints
 
 	my $searchid = $searchexp->perform_search;
 
-	return  $searchexp->get_records;
+	my @records =   $searchexp->get_records;
+	$searchexp->dispose();
+	return @records;
 }
 
 sub get_editable_eprints
@@ -537,7 +540,9 @@ sub get_editable_eprints
 
 	my $searchid = $searchexp->perform_search;
 
-	return  $searchexp->get_records;
+	my @records =   $searchexp->get_records;
+	$searchexp->dispose();
+	return @records;
 }
 
 sub mail

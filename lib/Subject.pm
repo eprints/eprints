@@ -240,6 +240,7 @@ sub children #cjg should be get_children()
 
 	my $searchid = $searchexp->perform_search();
 	my @children = $searchexp->get_records();
+	$searchexp->dispose();
 
 	return( @children );
 }
@@ -500,6 +501,7 @@ sub posted_eprints
 
 	my $searchid = $searchexp->perform_search;
 	my @data = $searchexp->get_records;
+	$searchexp->dispose();
 
 	return @data;
 }
@@ -546,6 +548,7 @@ sub count_eprints
 
 	my $searchid = $searchexp->perform_search;
 	my $count = $searchexp->count;
+	$searchexp->dispose();
 
 	return $count;
 

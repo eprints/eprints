@@ -939,14 +939,24 @@ sub garbage_collect
 	my $dropped = 0;
 	foreach( keys %TEMPTABLES )
 	{
-##print STDERR "Dropping $_\n";
-		my $sql = "DROP TABLE $_";
-		$self->do( $sql );
-		delete $TEMPTABLES{$_};
+		$self->dispose_buffer( $_ );
 		$dropped++;
 	}
 #print STDERR "Done. Dropped $dropped tables.\n";
 }
+
+sub dispose_buffer
+{
+	my( $self, $id ) = @_;
+print STDERR "Dropping $id\n";
+	
+	return unless( defined $TEMPTABLES{$id} );
+	my $sql = "DROP TABLE $id";
+	$self->do( $sql );
+	delete $TEMPTABLES{$id};
+
+}
+	
 
 
 ## WP1: BAD
@@ -1562,7 +1572,7 @@ sub _freetext_index
 			my( $ids ) = $sth->fetchrow_array;
 			my( @list ) = split( ":",$ids );
 			# don't forget the first and last are empty!
-			if( (scalar @list)-2 < 1024 )
+			if( (scalar @list)-2 < 128 )
 			{
 				$sql = "UPDATE $indextable SET ids='$ids$id:' WHERE fieldword='$code' AND pos=$n";	
 				$rv = $rv && $self->do( $sql );

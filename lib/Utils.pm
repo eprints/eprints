@@ -149,6 +149,22 @@ sub cmp_names
 	return( $texta cmp $textb );
 }
 
+sub cmp_ints
+{
+	my( $a , $b ) = @_;
+	$a = 0 if( !defined $a );
+	$b = 0 if( !defined $b );
+	return $a <=> $b;
+}
+
+sub cmp_strings
+{
+	my( $a , $b ) = @_;
+	$a = "" if( !defined $a );
+	$b = "" if( !defined $b );
+	return $a cmp $b;
+}
+
 
 sub send_mail
 {

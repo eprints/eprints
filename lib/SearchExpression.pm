@@ -467,7 +467,6 @@ sub perform_search2
 	}
 	foreach $search_field ( @searchon )
 	{
-		print STDERR "(PASS)\n";
 		my ( $results , $badwords , $error) = $search_field->do2();
 	
 		if( defined $error )
@@ -492,7 +491,7 @@ sub perform_search2
 
 		$firstpass = 0;
 	}
-print STDERR "MATCHES = (".join(",",@{$matches}).")\n";
+#print STDERR "MATCHES = (".join(",",@{$matches}).")\n";
 	$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
 }
 
@@ -513,6 +512,13 @@ sub _merge
 		@c = keys %MARK;
 	}
 	return \@c;
+}
+
+sub dispose
+{
+	my( $self ) = @_;
+	
+	$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
 }
 
 ## WP1: BAD
@@ -621,7 +627,11 @@ sub get_records
 
 			@records = sort { &{$cmpmethod}($a,$b); } @records;
 		}
+		#cjg Don't erase this buffer if we need it later...
+		# in fact it should not be temporary!
+		$self->{session}->get_db()->dispose_buffer( $buffer );
 		return @records;
+
 	}	
 
 #ERROR TO USER cjg
@@ -694,6 +704,7 @@ sub process_webpage
 
 		@results = $self->get_records( $MAX );
 		$t3 = EPrints::Session::microtime();
+		$self->dispose();
 
 		my $page = $self->{session}->make_doc_fragment();
 

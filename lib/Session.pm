@@ -540,7 +540,7 @@ sub render_form
 
 sub render_subjects
 {
-	my( $self, $subject_list, $baseid, $current, $edit ) = @_;
+	my( $self, $subject_list, $baseid, $current, $linkmode ) = @_;
 
 #cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
 	if( !defined $baseid )
@@ -554,12 +554,12 @@ sub render_subjects
 		$subs{$_} = EPrints::Subject->new( $self, $_ );
 	}
 
-	return $self->_render_subjects_aux( \%subs, $baseid, $current, $edit );
+	return $self->_render_subjects_aux( \%subs, $baseid, $current, $linkmode );
 }
 
 sub _render_subjects_aux
 {
-	my( $self, $subjects, $id, $current, $edit ) = @_;
+	my( $self, $subjects, $id, $current, $linkmode ) = @_;
 
 	my( $ul, $li, $elementx );
 	$ul = $self->make_element( "ul" );
@@ -572,8 +572,18 @@ sub _render_subjects_aux
 	}
 	else
 	{
-		#cjg NEED VIEW later dep on $edit
-		$elementx = $self->make_element( "a", href=>"edit_subject?subjectid=".$id ); 
+		if( $linkmode == 1 )
+		{
+			$elementx = $self->make_element( "a", href=>"edit_subject?subjectid=".$id ); 
+		}
+		elsif( $linkmode == 2 )
+		{
+			$elementx = $self->make_element( "a", href=>"$id.html" ); 
+		}
+		else
+		{
+			$elementx = $self->make_element( "span" );
+		}
 	}
 	$li->appendChild( $elementx );
 	$elementx->appendChild( $subjects->{$id}->render() );
@@ -581,7 +591,7 @@ sub _render_subjects_aux
 	{
 		my $thisid = $_->get_value( "subjectid" );
 		next unless( defined $subjects->{$thisid} );
-		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $edit ) );
+		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $linkmode ) );
 	}
 	
 	return $ul;
