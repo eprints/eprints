@@ -399,3 +399,5 @@ on pointless undef checking.
 - added user help page.
 - configure_archive now lets archive hostnames have "-" in!
 
+- VLit No longer checks for text mimetype.
+
