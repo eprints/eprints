@@ -548,11 +548,13 @@ sub mail
 	# Mail the admin in the default language
 	my $langid = $self->get_value( "lang" );
 	my $lang = $self->{session}->get_archive()->get_language( $langid );
-
+print STDERR "REF: ".ref($messageid)."\n";
 	my $message;
-	if( ref($message eq "") )
+	if( ref($message) eq "" )
 	{
+		print STDERR "BoNG\n";
 		$message = $lang->phrase( $messageid, \%inserts, $self->{session} );
+		print STDERR "BING\n";
 	}
 	else
 	{
@@ -590,4 +592,29 @@ sub render_value
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
 
+sub unused_username
+{
+	my( $session, $candidate ) = @_;
+	
+	my $user = user_with_username( $session, $candidate );
+	
+	return $candidate unless( defined $user );
+
+	my $suffix = 0;
+	
+	while( defined $user )
+	{
+		$suffix++;
+		$user = user_with_username( $session, $candidate.$suffix );
+	}
+	
+	return $candidate.$suffix;
+}	
+	
+sub get_session
+{
+	my( $self ) = @_;
+
+	return $self->{session};
+}
 1;

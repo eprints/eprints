@@ -43,11 +43,11 @@ foreach $type (@{ $user_ds->get_types() })
 
 if( $valid_access_level )
 {
-	my $new_user = EPrints::User::create_user( $session,
-	                                           $ARGV[1],
-	                                           $ARGV[2],
-	                                           $ARGV[3] );
+	my $new_user = EPrints::User::create_user( $session, $ARGV[3] );
 
+	my $username = EPrints::User::unused_username( $session, $ARGV[1] );
+	$new_user->set_value( "username" , $username );
+	$new_user->set_value( "email" , $ARGV[2] );
 	if( $#ARGV == 4 )
 	{
 		$new_user->set_value( "passwd" , $ARGV[4] );

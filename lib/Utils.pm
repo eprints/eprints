@@ -57,7 +57,13 @@ BEGIN {
 	$DF_AVAILABLE = detect_df();
 	if (!$DF_AVAILABLE)
 	{
-		warn("df appears to be unavailable on your server. To enable it, you should run 'h2ph * */*' in your /usr/include directory. See the manual for more information.");
+		print STDERR <<END;
+---------------------------------------------------------------------------
+df appears to be unavailable on your server. To enable it, you should
+run 'h2ph * */*' in your /usr/include directory. See the EPrints manual for
+more information.
+---------------------------------------------------------------------------
+END
 	}
 }
 

@@ -530,6 +530,12 @@ sub _render_value2
 		return $ds->render_type_name( $session, $value ); 
 	}
 
+	if( $self->is_type( "subject" ) )
+	{
+		my $subject = EPrints::Subject->new( $session, $value );
+		return $subject->render();
+	}
+
 return $session->make_text( "<<".$value.">>" );#cjg!!!!!
 my $html;
 

@@ -1656,32 +1656,24 @@ sub set_user_defaults
 sub set_user_automatic_fields
 {
 	my( $user ) = @_;
+	# This must set username
 
-	if( $user->get_value( "usertype" ) eq "user" )
+	if( $user->get_value( "usertype" ) eq "user" && 
+		!defined $user->get_value( "username" ) )
 	{
-		# This is the user type which is created by signing up over the web
-		# This kind of user has their username as their email.
-		$user->set_value( "username" , $user->get_value( "email" ) );
+		# This is the user type which is created by signing up over 
+		# the web.
 
-		# You could make this their email address with everything after the '@'
-		# removed, but then you would have to start checking for duplicates.
-		#
-		# This defaults to using the email if a duplicate exists. Or you could
-		# try webmaster1 webmaster2 etc. until one worked.
-		# 
-		# my $username = $user->get_value( "email" );
-		# $username =~ s/\@.*$//;
-		# my $thatuser = EPrints::User::user_with_username( $session, $username );
-		# if( !defined $user || ($user->get_value( "userid" ) eq $thatuser->get_value( "userid" )) )
-		# {
-		#	$user->set_value( "username" , $username );
-		# }
-		# else
-		# {
-		#	# A account already exists with that username, and not us!
-		#	# We'll just use the email address then.
-		#	$user->set_value( "username" , $user->get_value( "email" ) );
-		# }
+		# This code takes their username as everything before the
+		# @ in their email address. Then adds a numerical suffix if
+		# that username is in use.
+		 
+		my $candidate = $user->get_value( "email" );
+		$candidate =~ s/\@.*$//;
+		my $username = EPrints::User::unused_username( 
+			$user->get_session(),
+			$candidate );
+		$user->set_value( "username" , $username );
 	}
 }
 
