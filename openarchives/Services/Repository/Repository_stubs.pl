@@ -61,6 +61,7 @@ use strict;
 use XML::Writer;
 use POSIX;
 use IO::File;
+use Unicode::String qw(utf8 latin1);
 
 my $oamsns = "http://www.openarchives.org/sfc/sfc_oams.htm";
 my $oamsns_prefix = "oams";
@@ -311,7 +312,8 @@ sub write_OAMS {
 	# scalar value, non repeatable tag
 	if (ref($e) eq '') {
 	    $writer->startTag( [ $oamsns, $k ] );
-	    $writer->characters($e);
+
+	    $writer->characters( to_utf8($e) );
 	    $writer->endTag([ $oamsns, $k ]);
 	}	    
 	
@@ -322,7 +324,7 @@ sub write_OAMS {
 	    $writer->startTag([ $oamsns, $k ]);
 	    foreach $kk (keys(%$e)) {
 		$writer->startTag([ $oamsns, $kk ]);
-		$writer->characters($$e->{$kk});
+		$writer->characters( to_utf8($$e->{$kk}) );
 		$writer->endTag([ $oamsns, $kk ]);
 	    }
 	    $writer->endTag([ $oamsns, $k ]);
@@ -336,7 +338,7 @@ sub write_OAMS {
 
 		# simple scalar values within repeatable element.
 		if (ref($a) eq '') {
-		    $writer->characters($a);
+		    $writer->characters(to_utf8($a));
 		}
 
 		# hash reference, structured values within repeatable element.
@@ -344,7 +346,7 @@ sub write_OAMS {
 		    my $kk;
 		    foreach $kk (keys(%$a)) {
 			$writer->startTag([ $oamsns, $kk ]);
-			$writer->characters($a->{$kk});
+			$writer->characters(to_utf8($a->{$kk}));
 			$writer->endTag([ $oamsns, $kk ]);
 		    }
 		}
@@ -360,5 +362,15 @@ sub write_OAMS {
 
 }
     
+
+# Convert latin1 to UTF-8
+sub to_utf8
+{
+	my( $in ) = @_;
+	my $u = latin1( $in );
+	
+	return( $u->utf8() );
+}
+
 
 1;
