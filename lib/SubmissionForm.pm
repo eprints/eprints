@@ -78,10 +78,10 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 $EPrints::SubmissionForm::corruption_error =
 	"An inconsistency in the posted data was detected. Usually this is caused ".
 	"by arriving directly to this page from a bookmark and not from your ".
-	"author area, or through using the browser's back/forwards or reload ".
-	"buttons. Always access the depositing mechanism via your author area ".
-	"and use the buttons on the form.</P><P>If this has happened in the normal ".
-	"course of operation please tell the " .
+	"paper depositing page, or through using the browser's back/forwards or ".
+	"reload buttons. Always access the depositing mechanism via your author ".
+	"area and use the buttons on the form.</P><P>If this has happened in the ".
+	"normal course of operation please tell the ".
 	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site administrator</A>";
 
 $EPrints::SubmissionForm::database_error =
@@ -1532,8 +1532,8 @@ sub do_stage_done
 		"Provided there are no problems it should appear in the main archive ".
 		"within the next few days.</CENTER></P>\n";
 	
-	print "<P><CENTER><A HREF=\"home\">Click here to return to your author ".
-		"area</A></CENTER></P>\n";
+	print "<P><CENTER><A HREF=\"home\">Click here to return to your deposit ".
+		"papers page</A></CENTER></P>\n";
 
 	print $self->{session}->{render}->end_html();
 }

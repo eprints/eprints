@@ -91,7 +91,7 @@ elsif( defined $action && $action eq $action_create )
 			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 			"administrator</a>.",
 			"$EPrintSite::SiteInfo::server_perl/users/home",
-			"Return to your user area" );
+			"Return to your deposit papers page" );
 	}
 	else
 	{
@@ -117,7 +117,7 @@ elsif( defined $action && $action eq $action_remove )
 				"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 				"administrator</a>.",
 				"$EPrintSite::SiteInfo::server_perl/users/home",
-				"Return to your user area" );
+				"Return to your deposit papers page" );
 		}
 	}
 }
@@ -239,7 +239,8 @@ sub update_subscription
 		print "<CENTER><P><STRONG>Your subscription has been accepted.</STRONG>".
 			"</P></CENTER>";
 		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::server_perl/users/".
-			"home\">Click here to return to your user area.</P></CENTER>\n";
+			"home\">Click here to return to your deposit papers page.</P>".
+			"</CENTER>\n";
 		print $session->{render}->end_html();
 	}
 	else
@@ -250,6 +251,6 @@ sub update_subscription
 			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 			"administrator</a>.",
 			"$EPrintSite::SiteInfo::server_perl/users/home",
-			"Return to your user area" );
+			"Return to your deposit papers page" );
 	}
 }

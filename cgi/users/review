@@ -82,7 +82,7 @@ if( $session->{render}->seen_form() )
 					$session->{render}->render_error(
 						"Unable to clone that record. Please try again later.",
 						"home",
-						"User Area" );
+						"Deposit Papers Page" );
 				}
 
 				$page_written = 1;				
@@ -111,7 +111,7 @@ unless( $page_written )
 			"</STRONG></P></CENTER>\n";
 		
 		print "<CENTER><P><A HREF=\"home\">Click here to return to your ".
-			"User Area</A></P></CENTER>\n";
+			"deposit papers page</A></P></CENTER>\n";
 	}
 	else
 	{
@@ -229,7 +229,7 @@ sub handle_removal_request
 			"Couldn't find the EPrint! There's probably a problem with the ".
 				"database. Try again later.",
 			"home",
-			"User Area" );
+			"Deposit papers page" );
 		return( 1 );
 	}
 	

@@ -283,8 +283,8 @@ $EPrintSite::SiteInfo::default_bounce_reason =
 "  _SUBMISSION_TITLE_\n\n".
 "could not be accepted into $EPrintSite::SiteInfo::sitename as-is.\n\n\n\n".
 "The eprint has been returned to your workspace. If you\n".
-"visit your author area you will be able to edit your\n".
-"eprint, fix the problem and redeposit.\n";
+"visit your paper depositing page you will be able to\n".
+"edit your eprint, fix the problem and redeposit.\n";
 
 #  Default text to send a user when rejecting a submission outright.
 $EPrintSite::SiteInfo::default_delete_reason =
