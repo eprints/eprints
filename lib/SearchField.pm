@@ -20,7 +20,6 @@ package EPrints::SearchField;
 
 use EPrints::Session;
 use EPrints::Database;
-use EPrints::HTMLRender;
 use EPrints::Subject;
 
 use strict;
@@ -748,6 +747,7 @@ sub to_html
 				type => "text",
 				name => $self->{form_name_prefix},
 				value => $self->{string},
+#cjg Number for form width1
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
 		$frag->appendChild( $self->{session}->make_text(" ") );
@@ -788,6 +788,7 @@ sub to_html
 			splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
 			$settings{pairs} = $pairs;
 			$settings{size} = ( 
+#cjg Number for form dfefaults
 				scalar @$pairs > $EPrints::HTMLRender::list_height_max ?
 				$EPrints::HTMLRender::list_height_max :
 				scalar @$pairs );
@@ -819,6 +820,7 @@ sub to_html
 			$settings{labels} = $labels;
 			$settings{values} = $tags;
 			$settings{size} = ( 
+#form defaults
 				scalar @$tags > $EPrints::HTMLRender::list_height_max ?
 				$EPrints::HTMLRender::list_height_max :
 				scalar @$tags );

@@ -23,7 +23,6 @@
 
 use EPrints::EPrint;
 use EPrints::Session;
-use EPrints::HTMLRender;
 use EPrints::Subject;
 
 

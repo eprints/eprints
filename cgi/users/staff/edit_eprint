@@ -16,121 +16,148 @@
 ######################################################################
 
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::Session;
 
 use strict;
 
-my $session = new EPrints::Session;
+#cjg check item is editable by this user.
 
-my $eprint_id = $session->{render}->param( "eprint_id" );
+#cjg remove does not work
+#cjg cancel does not work
 
-if( !defined $eprint_id || $eprint_id eq "" )
+my $session = EPrints::Session->new();
+
+# Check we have privs
+if( !$session->auth_check( "editor" ) )
 {
-	print $session->{render}->start_html( "View/Withdraw EPrint" );
-
-	my $id_field = new EPrints::MetaField(
-		"eprint_id:text::ID of EPrint to View:1:1:1" );
-	
-	$session->{render}->render_input_form(
-		[ $id_field ],
-		{},
-		1,
-		0,
-		[ "Check" ] );
-
-	print $session->{render}->end_html();
+	$session->terminate();
+	Apache::exit( 0 );
 }
-else
+
+my( $title, $page ) = &process( $session );
+if( defined $title )
 {
-	my $eprint = new EPrints::EPrint( $session,
-	                                  EPrints::Database::table_name( "archive" ),
-	                                  $eprint_id );
+	$session->build_page( $title, $page );
+	$session->send_page();
+}
+$session->terminate();
+
+
+
+sub process
+{
+	my( $session ) = @_;
+
+	my( $page );
+
+	my $eprintid = $session->param( "eprintid" );
+
+	$page = $session->make_doc_fragment();
+
+	if( !EPrints::Utils::is_set( $eprintid ) )
+	{
+
+		my $id_field = EPrints::MetaField->new(
+			confid=>"editeprint",
+			name=>"eprintid",
+			type=>"text" );
+		#"eprintid:text::ID of EPrint to View:1:1:1" );
+	
+		$page->appendChild( $session->render_input_form(
+			[ $id_field ],
+			{},
+			1,
+			0,
+			{
+				check=>$session->phrase( 
+					"cgi/users/edit_eprint:action_check" )
+			}
+		) ),
+
+		return( $session->phrase( "cgi/users/edit_eprint:form_title" ),
+			$page );
+	}
+
+	my $arc_ds = $session->get_archive->get_dataset( "archive" );
+
+	my $eprint = new EPrints::EPrint( $session, $arc_ds, $eprintid );
+	my $action = $session->get_action_button();
 
 	if( !defined $eprint )
 	{
-		#cjg not DOM
-		$session->render_error( "Problem retrieving the EPrint ".
-			"with ID=\"$eprint_id\". May be a problem with the database - ".
-			"check the logs.\n" );
+		$session->render_error( $session->html_phrase(
+			"cgi/users/edit_eprint:cant_find_it",
+			id=>$session->make_text( $eprintid ) ) );
+		return;
 	}
-	else
+
+	if( defined $action && $action eq "remove" )
 	{
-		if( defined $session->{render}->param( "submit" ) &&
-		    $session->{render}->param( "submit" ) eq "Remove" )
-		{
-			if( $eprint->remove() )
-			{
-				print $session->{render}->start_html( "Removal Successful" );
-
-				print "<CENTER><P>EPrint successfully removed.</P></CENTER>\n";
-				print "<P><CENTER><A HREF=\"".$session->get_archive()->get_conf( "server_static" )."/".
-					"staff/\">Click here to return to the Staff Area</A></CENTER>".
-					"</P>\n";
-
-				print $session->{render}->end_html();
-			}
-			else
-			{
-				#cjg not DOM
-				$session->render_error( "Problem removing the EPrint ".
-					"with ID=\"$eprint_id\". May be a problem with the database - ".
-					"check the logs.\n" );
-			}
-		}
-		elsif( defined $session->{render}->param( "submit" ) &&
-		    $session->{render}->param( "submit" ) eq "Move to Buffer" )
-		{
-			$eprint->remove_from_threads();
+		$eprint->remove_from_threads();
 		
-			#cjg uh-oh - transfer must be done via a different
-			# mehtod - one which lets me keep an eye on things.	
-			if( $eprint->transfer( EPrints::Database::table_name( "buffer" ) ) )
-			{
-				print $session->{render}->start_html( "Move Successful" );
-
-				print "<CENTER><P>EPrint successfully moved.</P></CENTER>\n";
-				print "<P><CENTER><A HREF=\"".$session->get_archive()->get_conf( "server_static" )."/".
-					"staff/\">Click here to return to the Staff Area</A></CENTER>".
-					"</P>\n";
-
-				print $session->{render}->end_html();
-			}
-			else
-			{
-				#cjg not DOM
-				$session->render_error( "Problem moving the EPrint ".
-					"with ID=\"$eprint_id\". May be a problem with the database - ".
-					"check the logs.\n" );
-			}
-		}
-		elsif( defined $session->{render}->param( "submit" ) &&
-		       $session->{render}->param( "submit" ) eq "Cancel" )
+		if( $eprint->remove() )
 		{
-			$session->{render}->redirect(
-				$session->get_archive()->get_conf( "server_static ")."/staff/" );
+			$page->appendChild( $session->html_phrase( 
+				"cgi/users/edit_eprint:removed" ) );
+			# back to home (cjg)
+			return( $session->phrase( 
+					"cgi/users/edit_eprint:remove_title" ),
+	 			$page );
 		}
-		else
-		{
-			print $session->{render}->start_html( "View/Withdraw EPrint" );
-
-			print $session->{render}->render_eprint_full( $eprint, 1 );
-			
-			print "<HR>\n";
-			
-			print $session->{render}->start_form();
-			print $session->{render}->hidden_field( "eprint_id", $eprint_id );
-			print "<CENTER>";
-			print $session->{render}->submit_buttons( [ "Remove",
-			                                            "Move to Buffer",
-			                                            "Cancel" ] );
-			print "</CENTER>\n";
-			print $session->{render}->end_form();
-			
-			print $session->{render}->end_html();
-		}
+		
+		$session->render_error( $session->html_phrase(
+			"cgi/users/edit_eprint:cant_remove",
+			id=>$session->make_text( $eprintid ) ) );
+		return;
 	}
+
+	if( defined $action && $action eq "move" )
+	{
+		
+		if( $eprint->move_to_buffer() )
+		{
+			$page->appendChild( $session->html_phrase( 
+				"cgi/users/edit_eprint:moved" ) );
+			# back to home (cjg)
+			return( $session->phrase( 
+					"cgi/users/edit_eprint:move_title" ),
+	 			$page );
+		}
+
+		$session->render_error( $session->html_phrase(
+			"cgi/users/edit_eprint:cant_move",
+			id=>$session->make_text( $eprintid ) ) );
+		return;
+	}
+
+	if( defined $action && $action eq "cancel" )
+	{
+		$session->redirect(
+			$session->get_archive()->get_conf( "server_perl_root ")."/users/staff/" );
+		return;
+	}
+
+	$page->appendChild( $eprint->render_full() );
+			
+	$page->appendChild( $session->render_ruler() );
+
+	$page->appendChild( $session->render_input_form(
+		[],
+		{},
+		0,
+		0,
+		{
+			remove=>$session->phrase( 
+				"cgi/users/edit_eprint:action_remove" ),
+			move=>$session->phrase( 
+				"cgi/users/edit_eprint:action_move" ),
+			cancel=>$session->phrase( 
+				"cgi/users/edit_eprint:action_cancel" )
+		},
+		{ eprintid=>$eprintid }
+	) );
+		
+	return( $session->phrase( "cgi/users/edit_eprint:form_title" ), $page );
 }
 
 
-$session->terminate();

@@ -61,6 +61,7 @@
 #	Make SearchFields have a better call method.
 #	Get install upgrader working properly.
 #	"Squash" reverse indexes?
+#	rationalise names of cgi and bin scripts ?
 #	clone cocks up later version id
 #	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 #	"secret" field should never have a default set in forms, but no value should not erase previous value.
@@ -68,7 +69,6 @@
 #	Put System field titles in system phrase file.
 #	Bug: 500 error when search for only ignored words.
 # 	"Bad archive ID" on bin scripts rather than weird crash.
-#	Bull on through if a single archiveconfig.pm won't load.
 #	print STDERR's should be log()
 
 #	Eliminate HTMLRenderer
@@ -100,6 +100,7 @@
 0	Translate Initial phrases and templates into French
 #!!!!!!!!!!!VVVVVV
 0	Indexing on name fields(?)
+0	patch for config files when upgrading.
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
@@ -128,6 +129,7 @@
 0	Improve name search syntax (?)
 0	Remove (Hide) Lanuage related options if only one language supported.
 0	Xanadu interface(!)
+0	"Special search" which redirects to the abstract if only one match.
 
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
@@ -135,7 +137,7 @@
 1	Comment Code
 0	Bugfixing
 0	Documentation!
-0	How-Too Documentation
+0	How-To Documentation
 0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
 
 *	Milestone "Double Cheese" : EPrints 2.0
@@ -193,7 +195,7 @@
 # cgi/remind				 ?
 # cgi/search				*
 # cgi/user				*
-# cgi/user_eprints			.
+# cgi/user_eprints			*
 # cgi/view_eprint			.
 # cgi/confirm				*
 # cgi/setlang				*
@@ -208,7 +210,7 @@
 
 # cgi/users/staff/add_user		.
 # cgi/users/staff/buffer		*
-# cgi/users/staff/edit_eprint		*
+# cgi/users/staff/edit_eprint		.
 # cgi/users/staff/edit_submission	*
 # cgi/users/staff/edit_user		.
 # cgi/users/staff/eprint_search		*
@@ -216,3 +218,6 @@
 # cgi/users/staff/view_submission	*
 # cgi/users/staff/view_user		*
 # cgi/users/staff/edit_subject		*
+
+# lose cgi/remind
+# render_input_form to use HASH params

@@ -189,7 +189,7 @@ sub _create_id
 
 #####################################################################
 #
-# $directory = _create_directory( $eprint_id )
+# $directory = _create_directory( $eprintid )
 #
 #  Create a directory on the local filesystem for the new document
 #  with the given ID. undef is returned if it couldn't be created
@@ -200,7 +200,7 @@ sub _create_id
 ## WP1: BAD
 sub _create_directory
 {
-	my( $session, $eprint_id ) = @_;
+	my( $session, $eprintid ) = @_;
 	
 	# Get available directories
 	my $docpath = $session->get_archive()->get_conf( "local_document_root" );
@@ -265,11 +265,11 @@ sub _create_directory
 
 	# Work out the directory path. It's worked out using the ID of the 
 	# EPrint.
-	my $idpath = eprintid_to_path( $eprint_id );
+	my $idpath = eprintid_to_path( $eprintid );
 
 	if( !defined $idpath )
 	{
-		$session->get_archive()->log( "Failed to turn eprintid: \"$eprint_id\" into a path." );
+		$session->get_archive()->log( "Failed to turn eprintid: \"$eprintid\" into a path." );
 		return( undef ) ;
 	}
 
@@ -301,6 +301,7 @@ sub _create_directory
 #
 ######################################################################
 
+#cjg DELETE THE LAD< do it like move_to_buffer
 ## WP1: BAD
 sub remove
 {
@@ -1037,7 +1038,7 @@ sub generate_static
 {
 	my( $self ) = @_;
 
-	my $eprint_id = $self->get_value( "eprintid" );
+	my $eprintid = $self->get_value( "eprintid" );
 
 	# We is going to temporarily change the language of our session to
 	# render the abstracts in each language.
@@ -1047,7 +1048,7 @@ sub generate_static
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		$self->{session}->change_lang( $langid );
-		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprint_id );
+		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprintid );
 
 		my @created = eval
 		{
@@ -1435,7 +1436,7 @@ sub remove_from_threads
 	# Update static pages for each eprint
 	foreach $eprint (@related)
 	{
-		next if( $eprint->get_value( "eprint_id" ) eq $this_id );
+		next if( $eprint->get_value( "eprintid" ) eq $this_id );
 		$eprint->generate_static(); 
 	}
 }

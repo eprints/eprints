@@ -196,11 +196,6 @@ EPrints Modules
 <!-- User -->
 
     <phrase ref="lib/user:missed_field">You haven't filled out the required <pin ref="field" /> field.</phrase>
-    <phrase ref="lib/user:weclome">Welcome to &archivename; !</phrase>
-    <phrase ref="lib/user:reminder">Dear &archivename; User,\n\n<pin ref="message" />Your username and password for the archive are:\n\nUser name: <pin ref="username" />\nPassword:  <pin ref="password" />\n\nIf you didn't expect this e-mail, please contact the archive nadministrator at:\n\n<pin ref="adminemail" />\n</phrase>
-    <phrase ref="lib/user:reminder_sub">Your username and password</phrase>
-    <phrase ref="lib/user:new_user">New &archivename; /> User</phrase>
-    <phrase ref="lib/user:new_staff">New &archivename; /> Staff</phrase>
 
 <!-- UserForm -->
 
@@ -313,8 +308,6 @@ User Area CGI Scripts
     <phrase ref="cgi/users/review:done"><p>Your request has been sent the the adminstrator.</p></phrase>
     <phrase ref="cgi/users/review:cant_remove">You may not request the removal of this eprint</phrase>
 
-
-
 <!-- subscribe -->
 
     <phrase ref="cgi/users/subscribe:dont_know_you">I don't know who you are</phrase>
@@ -331,7 +324,11 @@ User Area CGI Scripts
     <phrase ref="cgi/users/subscribe:ret_deposit">Click here to return to your deposit items page.</phrase>
     <phrase ref="cgi/users/subscribe:ud_sub_error">Unable to update your subscription. The database may be busy. Please try again later.</phrase>
 
-<!-- add_user -->
+<!--********************************************************************** 
+Staff CGI Scripts
+***********************************************************************-->
+
+<!-- add_user ??cjg-->
 
     <phrase ref="cgi/users/add_user:mk_acc_err">Error creating user's account.</phrase>
     <phrase ref="cgi/users/add_user:staff_area">Staff Area</phrase>
@@ -344,7 +341,7 @@ User Area CGI Scripts
 <!-- buffer -->
 
     <phrase ref="cgi/users/buffer:overview_title">Submission Buffer Overview</phrase>
-    <phrase ref="cgi/users/buffer:no_entries"><p>There are no entries in the submission buffer at the moment.</p></phrase>
+    <phrase ref="cgi/users/buffer:no_entries"><p>There are no entries for you to review in the submission buffer at the moment.</p></phrase>
     <phrase ref="cgi/users/buffer:buffer_blurb"><p>Click on the title of an entry to view, edit, accept or reject it.</p></phrase>
     <phrase ref="cgi/users/buffer:title">Title</phrase>
     <phrase ref="cgi/users/buffer:sub_by">Submitted by</phrase>
@@ -399,16 +396,25 @@ User Area CGI Scripts
     <phrase ref="cgi/users/edit_subject:problems"><h2>Problems</h2></phrase>
     <phrase ref="cgi/users/edit_subject:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</phrase>
 
-<!--********************************************************************** 
-Staff CGI Scripts
-***********************************************************************-->
-
 <!-- eprint_search -->
 
     <phrase ref="cgi/users/eprint_search:title">Staff EPrint Search</phrase>
     <phrase ref="cgi/users/eprint_search:preamble"><p>Don't panic! Just leave the fields you don't want to search blank.</p></phrase>
 
+<!-- edit_eprint -->
 
+    <phrase ref="cgi/users/edit_eprint:cant_find_it">Can't retrieve EPrint with the ID "<pin ref="id" />"</phrase>
+    <phrase ref="cgi/users/edit_eprint:cant_remove">Problem removing EPrint with the ID "<pin ref="id" />"</phrase>
+    <phrase ref="cgi/users/edit_eprint:cant_remove">Problem moving EPrint with the ID "<pin ref="id" />"</phrase>
+    <phrase ref="cgi/users/edit_eprint:form_title">View/Withdraw EPrint</phrase>
+    <phrase ref="cgi/users/edit_eprint:remove_title">Removal Successful</phrase>
+    <phrase ref="cgi/users/edit_eprint:removed"><p>EPrint Successfully Removed</p></phrase>
+    <phrase ref="cgi/users/edit_eprint:move_title">Move Successful</phrase>
+    <phrase ref="cgi/users/edit_eprint:moved"><p>EPrint Successfully Moved to Buffer</p></phrase>
+    <phrase ref="cgi/users/edit_eprint:action_check">Check</phrase>
+    <phrase ref="cgi/users/edit_eprint:action_cancel">Cancel</phrase>
+    <phrase ref="cgi/users/edit_eprint:action_move">Move to Buffer</phrase>
+    <phrase ref="cgi/users/edit_eprint:action_remove">Remove</phrase>
 
 
 <!--********************************************************************** 
@@ -444,24 +450,11 @@ Public CGI Scripts
 
 <!-- user -->
 
-    <phrase ref="cgi/user:user_title">User record for <pin ref="name" /></phrase>
-    <phrase ref="cgi/user:one_record">User has 1 EPrint in the archive.</phrase>
-    <phrase ref="cgi/user:n_records">User has <pin ref="n" /> EPrints in the archive.</phrase>
-    <phrase ref="cgi/user:view_link">Click here to view this author's EPrints.</phrase>
-    <phrase ref="cgi/user:unknown_user">Unknown User</phrase>
-    <phrase ref="cgi/user:return_front">Return to front page</phrase>
-    <phrase ref="cgi/user:no_user">No user specified!</phrase>
-
 <!-- user_eprints -->
 
-    <phrase ref="cgi/user_eprints:eprints_title">EPrints submitted by <pin ref="name" /></phrase>
-    <phrase ref="cgi/user_eprints:record_link">Click here to see user's record.</phrase>
-    <phrase ref="cgi/user_eprints:no_eprints">User has submitted no EPrints.</phrase>
-    <phrase ref="cgi/user_eprints:one_eprint">User has submitted <pin ref="n" /> EPrint.</phrase>
-    <phrase ref="cgi/user_eprints:n_eprints">User has submitted <pin ref="n" /> EPrints.</phrase>
-    <phrase ref="cgi/user_eprints:unknown_user">Unknown User</phrase>
-    <phrase ref="cgi/user_eprints:return_front">Return to front page</phrase>
-    <phrase ref="cgi/user_eprints:no_user">No user specified!</phrase>
+    <phrase ref="cgi/user_eprints:record_link"><p><pin ref="userlink">Click here to see user's record.</pin></p></phrase>
+    <phrase ref="cgi/user_eprints:n_eprints"><p>Number of EPrints submitted by this user: <pin ref="n" /></p></phrase>
+    <phrase ref="cgi/user_eprints:title">EPrints submitted by <pin ref="name" /></phrase>
 
 <!-- view_eprint -->
 

@@ -15,7 +15,6 @@
 package EPrints::SearchForm;
 
 use EPrints::Session;
-use EPrints::HTMLRender;
 use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;

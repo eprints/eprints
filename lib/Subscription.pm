@@ -17,7 +17,6 @@
 package EPrints::Subscription;
 
 use EPrints::Database;
-use EPrints::HTMLRender;
 use EPrints::Utils;
 use EPrints::MetaField;
 use EPrints::SearchExpression;

@@ -17,7 +17,6 @@
 ######################################################################
 
 use EPrints::User;
-use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::UserForm;

@@ -15,7 +15,6 @@
 package EPrints::UserForm;
 
 use EPrints::User;
-use EPrints::HTMLRender;
 use EPrints::Session;
 use EPrints::Database;
 

@@ -30,51 +30,36 @@ sub process
 
 	my $user = EPrints::UserPage::user_from_param( $session );
 	return unless defined( $user );
-	
+
+	my $arc_ds = $session->get_archive()->get_dataset( "archive" );
+	my @eprints = $user->get_eprints( $arc_ds );
 	my $userid = $user->get_value( "userid" );
 
-	my @eprints = EPrints::EPrint::retrieve_eprints(
-		$session,
-		EPrints::Database::table_name( "archive" ),
-		[ "username LIKE \"$userid\"" ],
-		[ "datestamp DESC" ] );
+	my $page = $session->make_doc_fragment();
 
-	print "<CENTER><P><A HREF=\"user?username=$userid\">";
-	print $session->{lang}->phrase( "cgi/user_eprints:record_link" );
-	print "</A></P></CENTER>\n";
+	my $a = $session->make_element( "a", href=>"user?userid=$userid" );
+	$page->appendChild( $session->html_phrase( 
+		"cgi/user_eprints:record_link",
+		userlink=>$a ) );
 
-	print "<P>";
-	if ( scalar @eprints == 0 )
-	{
-		print $session->{lang}->phrase( "cgi/user_eprints:no_eprints" );
-	}
-	else if ( scalar @eprints == 1 )
-	{
-		print $session->{lang}->phrase( 
-			"cgi/user_eprints:one_eprint",
-			{n=>"<STRONG>1</STRONG>"} );
-	}
-	else
-	{
-		print $session->{lang}->phrase( 
-			"cgi/user_eprints:n_eprints",
-			{n=>"<STRONG>".scalar @eprints."</STRONG>"} );
-	}
-	print "</P>\n";
+	$page->appendChild( $session->html_phrase(
+		"cgi/user_eprints:n_eprints",
+		n=>$session->make_text( scalar @eprints ) ) );
 
-	foreach (@eprints)
+	foreach( @eprints )
 	{
-		print "<P>".$session->{render}->render_eprint_citation(
-			$_,
-			1,
-			1 )."</P>\n";
+		my $p = $session->make_element( "p" );
+		$p->appendChild( $_->render_citation_link() );
+		$page->appendChild( $p ); 
 	}
 
-#	print $session->{render}->start_html(
-#		$session->{lang}->phrase( 
-#			"cgi/user_eprints:eprints_title",
-#			{ name=>$user->full_name() } ) );
-#	print $session->{render}->end_html();
+	$session->build_page(
+		$session->phrase( 
+			"cgi/user_eprints:title",
+			name=>$user->full_name() ),
+		$page );
+	$session->send_page();
+
 }
 
 

@@ -24,13 +24,13 @@
 package EPrints::Session;
 
 use EPrints::Database;
-use EPrints::HTMLRender;
 use EPrints::Language;
 use EPrints::Archive;
-use Unicode::String qw(utf8 latin1);
-
 use EPrints::DOM;
+
+use Unicode::String qw(utf8 latin1);
 use Apache;
+use CGI;
 
 
 EPrints::DOM::setTagCompression( \&_tag_compression );
@@ -65,7 +65,6 @@ sub new
 print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
-
 
 	if( $mode == 0 || !defined $mode )
 	{

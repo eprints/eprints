@@ -14,7 +14,6 @@
 
 use EPrints::Utils;
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::User;

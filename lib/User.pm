@@ -293,75 +293,6 @@ sub commit
 
 ######################################################################
 #
-# $success = send_introduction()
-#  bool
-#
-#  Send an email to the user, introducing them to the archive and
-#  giving them their userid and password.
-#
-######################################################################
-
-## WP1: BAD
-sub send_introduction
-{
-	my( $self ) = @_;
-#cjg oH, this so needs rewriting.
-
-	my $subj;
-	if ( $self->{usertype} eq "staff" )
-	{
-		$subj = "lib/user:new_staff";
-	}
-	else
-	{
-		$subj = "lib/user:new_user";
-	}
-	# Try and send the mail
-
-	return( EPrints::Utils::prepare_send_mail(
-		$self->{session},
-		$self->{session}->phrase( $subj ),
-		$self->{email},
-		$self->{session}->phrase( "lib/user:welcome" ),
-		$self->{session}->get_archive()->get_conf( "template_user_intro" ),
-		$self ) );
-}
-
-
-######################################################################
-#
-# $success = send_reminder( $message )
-#
-#  Sends the user a reminder of their userid and password, with the
-#  given message. The message passed in should just be a line or two
-#  of explanation, or can be left blank.
-#
-######################################################################
-
-## WP1: BAD
-#cjg is this used?
-sub send_reminder
-{
-	my( $self, $message ) = @_;
-	
-	my $full_message = $self->{session}->phrase(
-	     	"lib/user:reminder",
-	     	 message=>( defined $message ? "$message\n\n" : "" ),
-		 userid=>$self->{userid},
-		 password=>$self->{password},
-		 adminemail=>$self->{session}->get_archive()->get_conf( "adminemail" )  );
-
-	return( EPrints::Utils::send_mail( 
-			$self->{session},
-			$self->full_name(),
-	                $self->{email},
-	                $self->{session}->phrase( "lib/user:reminder_sub" ),
-	                $full_message ) );
-}
-
-
-######################################################################
-#
 # $success = remove()
 #
 #  Removes the user from the archive, together with their EPrints
@@ -408,15 +339,6 @@ sub remove
 }
 
 
-## WP1: BAD
-sub to_string
-{
-	my( $self ) = @_;
-
-	return( $self->{session}->get_archive()->call( "user_display_name" , $self  ) );
-}
-
-## WP1: GOOD
 sub get_value
 {
 	my( $self , $fieldname ) = @_;
@@ -436,7 +358,6 @@ sub get_values
 	return $self->{data};
 }
 
-## WP1: GOOD
 sub set_value
 {
 	my( $self , $fieldname, $newvalue ) = @_;
@@ -444,7 +365,6 @@ sub set_value
 	$self->{data}->{$fieldname} = $newvalue;
 }
 
-## WP1: GOOD
 sub is_set
 {
 	my( $self ,  $fieldname ) = @_;
@@ -462,7 +382,6 @@ sub is_set
 	return 1;
 }
 
-## WP1: GOOD
 sub has_priv
 {
 	my( $self, $resource ) = @_;
@@ -499,8 +418,9 @@ sub get_eprints
 	return @records;
 }
 
-# return eprints for which this user is a valid editor.
-
+# return eprints currently in the submission buffer for which this user is a 
+# valid editor.
+#cjg not done yet.
 sub get_editable_eprints
 {
 	my( $self ) = @_;
@@ -530,6 +450,8 @@ sub get_editable_eprints
 # to edit, request removal etc. of others, for example ones
 # on which they are an author. Although this is a problem for
 # the site admin, not the core code.
+
+# cjg not done
 sub get_owned_eprints
 {
 	my( $self ) = @_;
@@ -539,6 +461,10 @@ sub get_owned_eprints
 	return $self->get_eprints( $ds );
 }
 
+# Is the given eprint in the set of eprints which would be returned by 
+# get_owned_eprints?
+# cjg not done
+# cjg could be ICK and just use get_owned_eprints...
 sub is_owner
 {
 	my( $self, $eprint ) = @_;

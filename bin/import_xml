@@ -15,7 +15,6 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
 use EPrints::ImportXML;
 use EPrints::EPrint;
 use strict;

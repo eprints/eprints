@@ -154,7 +154,7 @@ sub write_record
 
 ######################################################################
 #
-# write_record_header( $writer, $eprint_id, $datestamp )
+# write_record_header( $writer, $eprintid, $datestamp )
 #
 #  Writes the OAI record header for the given eprint ID, with the
 #  given datestamp.
@@ -164,7 +164,7 @@ sub write_record
 ## WP1: BAD
 sub write_record_header
 {
-	my( $session, $writer, $eprint_id, $datestamp ) = @_;
+	my( $session, $writer, $eprintid, $datestamp ) = @_;
 	
 	$writer->startTag( "header" );
 
@@ -172,7 +172,7 @@ sub write_record_header
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier( 
 			$session->get_archive()->get_conf( "oai_archive_id" ),
-			$eprint_id ) );
+			$eprintid ) );
 	
 	$writer->dataElement( "datestamp",
 	                      $datestamp );
@@ -183,7 +183,7 @@ sub write_record_header
 
 ######################################################################
 #
-# $oai_identifier = to_oai_identifier( $archive_id , $eprint_id )
+# $oai_identifier = to_oai_identifier( $archive_id , $eprintid )
 #
 #  Give the full OAI identifier of an eprint, given the local eprint id.
 #
@@ -192,9 +192,9 @@ sub write_record_header
 ## WP1: BAD
 sub to_oai_identifier
 {
-	my( $archive_id , $eprint_id ) = @_;
+	my( $archive_id , $eprintid ) = @_;
 	
-	return( "oai:$archive_id:$eprint_id" );
+	return( "oai:$archive_id:$eprintid" );
 }
 
 
@@ -298,7 +298,7 @@ sub harvest
 
 ######################################################################
 #
-# @eprint_ids = harvest_deleted( $session, $start_date, $end_date, $setspec )
+# @eprintids = harvest_deleted( $session, $start_date, $end_date, $setspec )
 #
 #  Retrieve id's of deleted records matching the given spec.
 #
@@ -326,14 +326,14 @@ sub harvest_deleted
 			"subjects" ) );
 
 	my $rows = $searchexp->do_raw_search( [ "eprintid" ] );
-	my @eprint_ids;
+	my @eprintids;
 	
 	foreach (@$rows)
 	{
-		push @eprint_ids, $_->[0];
+		push @eprintids, $_->[0];
 	}
 
-	return( @eprint_ids );
+	return( @eprintids );
 }
 
 

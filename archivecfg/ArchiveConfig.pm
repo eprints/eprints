@@ -66,7 +66,7 @@ $c->{pin_timeout} = 3;
 my $realid = `hostname`;
 chomp $realid;
 if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
-$CJGDEBUG = 1 if( $realid eq "destiny.totl.net" || $realid eq "lemur" );
+$CJGDEBUG = 1 if( $realid eq "estiny.totl.net" || $realid eq "lemur" );
 ##############################
 
 

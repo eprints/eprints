@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::User;
-use EPrints::HTMLRender;
 use EPrints::Session;
 use EPrints::MetaField;
 use EPrints::Database;
@@ -23,61 +22,3 @@ use strict;
 #cjg PROBABLY GOING TO BE REMOVED
 
 
-my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
-
-
-if( $session->{render}->seen_form() )
-{
-	# Send an e-mail to the relevant user, if they exist
-	my $user = EPrints::User::user_with_email(
-		$session,
-		$session->{render}->param( "email" ) );
-
-	if( defined $user )
-	{
-		$user->send_reminder();
-	}
-
-	# If the user doesn't exist, we don't tell the page visitor for security
-	# reasons.
-
-	print $session->{render}->start_html(
-		$session->{lang}->phrase( "cgi/remind:rem_sent_title" ) );
-	print "<CENTER><P>";
-	print $session->{lang}->phrase( 
-		"cgi/remind:sent_blurb",
-		"<A HREF=\"".$session->get_archive()->get_conf( "adminemail" )."\">".
-		 $session->{lang}->phrase( "cgi/remind:site_admin" )."</A>" );
-
-	print "</P></CENTER>\n";
-		
-	print "<P><A HREF=\"".$session->get_archive()->get_conf( "frontpage" )."\">";
-	print $session->{lang}->phrase( "cgi/remind:return_home" );
-	print "</A></P>\n";
-
-	print $session->{render}->end_html();
-}
-else
-{
-	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "cgi/remind:form_title ) );
-	
-	print "<CENTER><P>";
-	print $session->{lang}->phrase( "cgi/remind:form_blurb );
-	print "</CENTER></P>\n";
-	
-	my $field = new EPrints::MetaField( "email:email::E-Mail Address:0:1:1" );
-	
-	$session->{render}->render_input_form( [ $field ],
-	                                 {},
-	                                 1,
-	                                 0,
-	                                 [ $session->{lang}->phrase( "cgi/remind:send" ) ] );
-
-	print $session->{render}->end_html();
-}
-
-$session->terminate();
-
-1;

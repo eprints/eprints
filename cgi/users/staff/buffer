@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::User;
@@ -29,6 +28,7 @@ if( !$session->auth_check( "editor" ) )
 	$session->terminate();
 	Apache::exit( 0 );
 }
+#cjg does not check that item is editable...
 
 my $user = $session->current_user();
 

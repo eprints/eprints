@@ -22,7 +22,6 @@
 use EPrints::Database;
 use EPrints::Deletion;
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::OpenArchives;
 use EPrints::Session;
 use EPrints::Subject;
@@ -314,7 +313,7 @@ sub list_identifiers
 	                                              $set );
 
 	# Harvest the deleted ones
-	my @deleted_eprint_ids = EPrints::OpenArchives::harvest_deleted(
+	my @deleted_eprintids = EPrints::OpenArchives::harvest_deleted(
 		$session,
 		$start_date,
 		$end_date,
@@ -334,7 +333,7 @@ sub list_identifiers
 	}
 	
 	# Write the deleted eprints
-	foreach (@deleted_eprint_ids)
+	foreach (@deleted_eprintids)
 	{
 		$writer->dataElement( "identifier", $_, status=>"deleted" );
 	}
@@ -461,7 +460,7 @@ sub list_records
 	                                              $set );
 
 	# Harvest the deleted ones
-	my @deleted_eprint_ids = EPrints::OpenArchives::harvest_deleted(
+	my @deleted_eprintids = EPrints::OpenArchives::harvest_deleted(
 		$session,
 		$start_date,
 		$end_date,
@@ -480,7 +479,7 @@ sub list_records
 	}
 	
 	# Write the deleted eprints
-	foreach (@deleted_eprint_ids)
+	foreach (@deleted_eprintids)
 	{
 		my $deletion = new EPrints::Deletion( $session, $_ );
 

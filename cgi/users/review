@@ -14,7 +14,6 @@
 
 use EPrints::Database;
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::MetaField;
 use EPrints::Session;
 use EPrints::User;
@@ -279,7 +278,7 @@ sub handle_removal_request
 
 	my $reason = $session->param( "reason" );
 	my $url = $session->get_archive()->get_conf( "server_perl_root" ).
-		"/users/staff/edit_eprint?eprint_id=".$eprint->get_value( "eprintid" );
+		"/users/staff/edit_eprint?eprintid=".$eprint->get_value( "eprintid" );
 	
 	$session->mail_administrator( 	
 		"cgi/users/review:remove_mail_subject",

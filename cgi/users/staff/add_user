@@ -14,7 +14,6 @@
 
 use EPrints::Database;
 use EPrints::MetaField;
-use EPrints::HTMLRender;
 use EPrints::Session;
 use EPrints::User;
 

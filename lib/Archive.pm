@@ -43,9 +43,15 @@ sub new_archive_by_id
 {
 	my( $class, $id, $noxml ) = @_;
 
+	if( !defined $id )
+	{
+		print STDERR "No Archive ID specified.\n\n";
+		return;
+	}
 	if( $id !~ m/[a-z_]+/ )
 	{
-		die "Archive ID illegal: $id\n";
+		print STDERR "Archive ID illegal: $id\n\n";
+		return;
 	}
 	
 	if( defined $ARCHIVE_CACHE{$id} )
