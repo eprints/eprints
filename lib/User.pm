@@ -161,6 +161,7 @@ sub create_user
 	my $date_joined = EPrints::MetaField::get_datestamp( time );
 
 	# Add the user to the database... e-mail add. is lowercased
+# cjg add_record call
 	$session->{database}->add_record( $EPrints::Database::table_user,
 	                                  { "username"=>$candidate,
 	                                    "passwd"=>$passwd,
@@ -344,18 +345,8 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	# Put data into columns
-	my @fields = EPrints::MetaInfo::get_fields( "users" );
-	my $key_field;
-	my $key_value;
-
-	$key_field = $fields[0]->{name};
-	$key_value = $self->{$fields[0]->{name}};
-
 	my $success = $self->{session}->{database}->update(
 		$EPrints::Database::table_user,
-		$key_field,
-		$key_value,
 		$self );
 
 	return( $success );

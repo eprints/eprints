@@ -85,9 +85,13 @@ print "T:".$params{name}."\n";
 		{
 			$parser->xpcroak( "$tag inside other field" );
 		}
+		elsif( !defined $parser->{eprints}->{fields}->{$params{name}} )
+		{
+			$parser->xpcroak( "unknown field: $params{name}" );
+		}
 		else
 		{
-			$parser->{eprints}->{currentfield} = $params{field};
+			$parser->{eprints}->{currentfield} = $params{name};
 			$parser->{eprints}->{currentdata} = "";
 		}
 		return;

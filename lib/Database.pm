@@ -310,8 +310,7 @@ sub _create_table
 	my $word = EPrints::MetaField->new( "word:text:0:Word:1:0:0:1" );
 	
 	$success = $self->_create_table_aux(
-		$name.$EPrints::Database::seperator.
-		$EPrints::Database::seperator."index",
+		_index_name( $name ),
 		0,
 		( $keyfield , $field, $word ) );
 
@@ -438,40 +437,13 @@ sub add_record
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
-	print "$keyfield->{name} = $data->{$keyfield->{name}}\n";
-print "DIIIIIIIIIIIIIE\n";
-exit;
-	my $sql = "INSERT INTO $table (";
-	my $first = 1;
-	my $f;
-
-	my $vsql = "";
-
-	foreach $f ( keys %$data ) {
-		if( $first == 0 )
-		{
-			$sql .= ",";
-			$vsql .= ",";
-		}
-		else
-		{
-			$first=0;
-		}
-		$sql .= $f;
-		if( defined $$data{$f} && $$data{$f} ne "")
-		{
-			$vsql .= "\""._escape_chars( $$data{$f} )."\"";
-		}
-		else
-		{
-			$vsql .= "NULL";
-		}
-	}
-
-	$sql .= ") VALUES ($vsql);";	
+	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\""._prep_value($data->{$keyfield->{name}})."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
+
+	# Now add the ACTUAL data:
+	$self->update( $table , $data );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -495,6 +467,27 @@ sub _escape_chars
 
 ######################################################################
 #
+# $munged = _prep_value( $value )
+#
+#  Call _escape_chars on value. If value is not defined return
+#  an empty string instead. [STATIC]
+#
+######################################################################
+
+sub _prep_value
+{
+	my( $value ) = @_; 
+	
+	if( !defined $value )
+	{
+		return "";
+	}
+	
+	return _escape_chars( $value );
+}
+
+######################################################################
+#
 # $success = update( $table, $key_field, $key_value, $data )
 #
 #  Update the row where $key_field is $key_value, in $table, with
@@ -505,48 +498,119 @@ sub _escape_chars
 
 sub update
 {
-	my( $self, $table, $key_field, $key_value, $data ) = @_;
-	
-	my $sql = "UPDATE $table SET ";
-	my $f;
-	my $first = 1;
+	my( $self, $table, $data ) = @_;
 
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 
-	# Remove key (first field) - don't want to update that
-	shift @fields;
-	
-	# Put the column data into the SQL statement
-	foreach $f ( @fields )
+	# skip the keyfield;
+	my $keyfield = shift @fields;
+
+	my $keyvalue = _prep_value($data->{$keyfield->{name}});
+
+	# The same WHERE clause will be used a few times, so lets define
+	# it now:
+	my $where = "$keyfield->{name} = \"$keyvalue\"";
+
+	# clearout the freetext search index table for this record.
+	my $sql = "DELETE FROM "._index_name( $table )." WHERE $where";
+	my $rv = $self->do( $sql );
+
+	my @aux;
+	my %values = ();
+
+	foreach( @fields ) 
 	{
-		if ( !defined $$data{$f->{name}} ) {
-			next;
+		if( $_->{multiple} ) 
+		{ 
+			push @aux,$_;
 		}
-		$sql .= "," unless $first;
-
-#EPrints::Log::debug( "Database", "$f->{name} type $f->{type}!!" );
-
-		my $value;
-		
-		if( defined $$data{$f->{name}} && $$data{$f->{name}} ne "")
+		else 
 		{
-			$value = "\""._escape_chars( $$data{$f->{name}} )."\"";
+			if( $_->{type} eq "name" )
+			{
+				$values{"$_->{name}_given"} = 
+					_prep_value( $data->{$_->{name}}->{given} );
+				$values{"$_->{name}_family"} = 
+					_prep_value( $data->{$_->{name}}->{family} );
+			}
+			else
+			{
+				$values{"$_->{name}"} = 
+					_prep_value( $data->{$_->{name}} );
+			}
+			if( $_->{type} eq "text" || $_->{type} eq "multitext" )
+			{
+				$self->_freetext_index( $table, $keyvalue, $_, $data->{$_->{name}} );
+			}
+		}
+	}
+
+	$sql = "UPDATE $table SET ";
+	my $first=1;
+	foreach( keys %values ) {
+		if( $first )
+		{
+			$first = 0;
 		}
 		else
 		{
-			$value = "NULL";
+			$sql.= ", ";
+		}
+		$sql.= "$_ = \"$values{$_}\"";
+	}
+	$sql.=" WHERE $where";
+	$rv = $rv && $self->do( $sql );
+
+
+
+
+	# Erase old, and insert new, values into aux-tables.
+	my $multifield;
+	foreach $multifield ( @aux )
+	{
+		my $auxtable = $table.$EPrints::Database::seperator.$multifield->{name};
+		$sql = "DELETE FROM $auxtable WHERE $where";
+		$rv = $rv && $self->do( $sql );
+
+		# skip to next table if there are no values at all for this
+		# one.
+		if( !defined $data->{$multifield->{name}} )
+		{
+			next;
 		}
 
+		my $i=0;
+		foreach( @{$data->{$multifield->{name}}} )
+		{
+			$sql = "INSERT INTO $auxtable ($keyfield->{name},pos,";
+			if( $multifield->{type} eq "name" )
+			{
+				$sql.="$multifield->{name}_given,$multifield->{name}_family";
+			}
+			else
+			{
+				$sql.=$multifield->{name};
+			}
+			$sql .= ") VALUES (\"$keyvalue\",\"$i\",";
+			if( $multifield->{type} eq "name" )
+			{
+				$sql .= "\""._prep_value($_->{given})."\",";
+				$sql .= "\""._prep_value($_->{family})."\"";
+			}
+			else
+			{
+				$sql .= "\""._prep_value($_)."\"";
+			}
+			$sql.=")";
+	                $rv = $rv && $self->do( $sql );
+			if( $multifield->{type} eq "text" || $multifield->{type} eq "multitext" )
+			{
+				$self->_freetext_index( $table, $keyvalue, $multifield, $_ );
+			}
 
-		$sql .= "$f->{name}=$value";
-		
-		$first = 0;
+			++$i;
+		}
 	}
-
-	$sql .= " WHERE $key_field LIKE \"$key_value\";";
-	
-	# Send to the database
-	my $rv = $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -565,6 +629,7 @@ sub update
 
 sub retrieve_single
 {
+die "retrieve_single deprecated_cjg";
 	my( $self, $table, $key_field, $value ) = @_;
 	
 	my $sql = "SELECT * FROM $table WHERE $key_field LIKE \"$value\";";
@@ -593,6 +658,7 @@ sub retrieve_single
 
 sub retrieve
 {
+die "retrieve deprecate_cjgd";
 	my( $self, $table, $cols, $conditions, $order ) = @_;
 
 	my $sql = "SELECT ";
@@ -632,6 +698,7 @@ sub retrieve
 
 sub retrieve_fields
 {
+die "retrieve_fields deprecate_cjgd";
 	my( $self, $table, $fields, $conditions, $order ) = @_;
 	
 	my @field_names;
@@ -659,6 +726,7 @@ sub retrieve_fields
 
 sub remove
 {
+die "remove not fini_cjgshed";
 	my( $self, $table, $field, $value ) = @_;
 	
 	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
@@ -1229,5 +1297,41 @@ sub exists
 	}
 	return 0;
 }
+
+sub _index_name
+{
+	my( $table ) = @_;
+
+	return $table.$EPrints::Database::seperator.$EPrints::Database::seperator."index";
+}
+	
+sub _freetext_index
+{
+	my( $self , $table , $id , $field , $value ) = @_;
+	
+	if( !defined $value || $value eq "" )
+	{
+		return;
+	}
+	
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my $keyfield = $fields[0];
+
+	my( $good , $bad ) = EPrintSite::SiteRoutines::extract_words( $value );
+
+	my $indextable = _index_name( $table );
+
+	print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
+	my $sql;
+	my $rv = 1;
+	foreach( @{$good} )
+	{
+		$sql = "INSERT INTO $indextable ( $keyfield->{name} , field , word ) VALUES ";
+		$sql.= "( \"$id\" , \"$field->{name}\" , \""._prep_value($_)."\")";
+		$rv = $rv && $self->do( $sql );
+	} 
+	return $rv;
+}
+	
 
 1; # For use/require success

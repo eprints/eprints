@@ -122,6 +122,7 @@ sub create_subject
 		  "parent"=>$actual_parent,
 		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
 
+# cjg add_record call
 	return( undef ) unless( $session->{database}->add_record(
 		$EPrints::Database::table_subject,
 		$newsub ) );

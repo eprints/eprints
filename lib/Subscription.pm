@@ -128,6 +128,7 @@ sub create
 	$self->{subid} = $id;
 	$self->{username} = $username;
 	
+# cjg add_record call
 	$session->{database}->add_record( $EPrints::Database::table_subscription,
 	                                  [ [ "subid", $self->{subid} ],
 	                                    [ "username", $username ] ] );
@@ -259,14 +260,8 @@ sub commit
 	# Get the text rep of the search expression
 	$self->{spec} = $self->{searchexpression}->to_string();
 
-	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
-	
-	my $key_field = shift @all_fields;
-	
 	return( $self->{session}->{database}->update(
 		$EPrints::Database::table_subscription,
-		$key_field->{name},
-		$self->{$key_field->{name}},
 		$self ) );
 }
 	

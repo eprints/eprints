@@ -127,6 +127,7 @@ sub add_deletion_record
 	#$replacement = "NULL" unless( defined $replacement && $replacement ne "" );
 	
 	# Now add the deletion record to the database
+#cjg add_record call
 	return( undef ) unless ( $session->{database}->add_record(
 		$EPrints::Database::table_deletion,
 		{ "eprintid"=>$eprint->{eprintid},

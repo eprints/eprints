@@ -16,7 +16,7 @@
 
 package EPrints::Log;
 
-require 'sys/syscall.ph';
+#require 'sys/syscall.ph';
 
 ######################################################################
 #
@@ -191,6 +191,8 @@ sub render_struct
 
 sub microtime
 {
+	return 0;
+
 	my $TIMEVAL_T = "LL";
 
 	$t = pack($TIMEVAL_T, ());

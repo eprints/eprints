@@ -17,6 +17,7 @@
 use EPrints::Session;
 use EPrints::HTMLRender;
 use EPrints::ImportXML;
+use EPrints::EPrint;
 use strict;
 
 if( !defined $ARGV[0] ) 
@@ -24,7 +25,6 @@ if( !defined $ARGV[0] )
 	print STDERR "Filename not specifiedi\n\n";
 	exit 1;
 }
-
 
 my $session = new EPrints::Session( 1 );
 

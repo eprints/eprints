@@ -107,28 +107,27 @@ sub new
 
 	if ( !defined $known )	
 	{
-		if( !defined $table )
+		if( defined $table )
 		{
-			## Work out in which table the EPrint resides.
-
-			# Try the archive table first
-			# Get the relevant row...
-			foreach( 
-				$EPrints::Database::table_archive,
-				$EPrints::Database::table_inbox,
-				$EPrints::Database::table_buffer )
-			{
-				$self = $session->{database}->get_single(
-					$_,
-					$id );
-				if ( defined $self ) 
-				{
-					return $self;
-				}
-			}
-			return undef;
+			return $session->{database}->get_single( $table , $id );
 		}
-		return $session->{database}->get_single( $_ , $id );
+
+		## Work out in which table the EPrint resides.
+		## and return the eprint.
+		foreach( 
+			$EPrints::Database::table_archive,
+			$EPrints::Database::table_inbox,
+			$EPrints::Database::table_buffer )
+		{
+			$self = $session->{database}->get_single(
+				$_,
+				$id );
+			if ( defined $self ) 
+			{
+				return $self;
+			}
+		}
+		return undef;
 	}
 
 	if( defined $known )
@@ -173,6 +172,7 @@ sub create
 	$new_eprint->{username} = $username;
 	$new_eprint->{dir} = $dir;
 	
+# cjg add_record call
 	my $success = $session->{database}->add_record(
 		$table,
 		$new_eprint );
@@ -580,6 +580,7 @@ sub transfer
 	$self->{table} = $table;
 
 	# Create an entry in the new table
+# cjg add_record call
 	my $success = $self->{session}->{database}->add_record(
 		$table,
 		{ "eprintid"=>$self->{eprintid} } );
@@ -627,15 +628,8 @@ sub commit
 {
 	my( $self ) = @_;
 
-	# Put data into columns
-	my @all_fields = EPrints::MetaInfo::get_fields( "archive" );
-	my $key_field = shift @all_fields;
-	my $key_value = $self->{$key_field->{name}};
-
 	my $success = $self->{session}->{database}->update(
 		$self->{table},
-		$key_field->{name},
-		$key_value,
 		$self );
 
 	if( !$success )

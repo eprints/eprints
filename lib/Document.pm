@@ -161,6 +161,7 @@ sub create
 	}
 
 	# Make database entry
+# cjg add_record call
 	my $success = $session->{database}->add_record(
 		$EPrints::Database::table_document,
 		{ "docid"=>$doc_id,
