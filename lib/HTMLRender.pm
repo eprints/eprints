@@ -1093,7 +1093,7 @@ sub form_value
 	{
 		my @tags = $self->{query}->param( $field->{name} );
 
-		if( defined @tags )
+		if( scalar @tags > 0 )
 		{
 			$value = join ",", @tags;
 			$value = ":$value:";
@@ -1105,7 +1105,7 @@ sub form_value
 
 		my @tags = $self->{query}->param( $field->{name} );
 		
-		if( defined @tags )
+		if( scalar @tags > 0 )
 		{
 			$subject_list->set_tags( \@tags );
 

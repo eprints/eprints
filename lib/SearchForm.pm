@@ -161,7 +161,7 @@ sub process
 			{
 				my @eprints = $searchexp->do_eprint_search();
 				
-				_print_matchcount( defined @eprints ? scalar @eprints : 0 );
+				_print_matchcount( scalar @eprints );
 
 
 				foreach (@eprints)
@@ -189,7 +189,7 @@ sub process
 			{
 				my @users = $searchexp->do_user_search();
 				
-				_print_matchcount( defined @users ? scalar @users : 0 );
+				_print_matchcount( scalar @users );
 
 				foreach (@users)
 				{

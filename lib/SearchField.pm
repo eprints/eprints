@@ -644,7 +644,7 @@ sub from_form
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		
-		if( defined @vals & scalar @vals > 0 )
+		if( scalar @vals > 0 )
 		{
 			# We have some values. Join them together.
 			my $val = join ':', @vals;
@@ -663,7 +663,7 @@ sub from_form
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		my $val;
 		
-		if( defined @vals && scalar @vals > 0 )
+		if( scalar @vals > 0 )
 		{
 			# We have some values. Join them together.
 			$val = join ':', @vals;
