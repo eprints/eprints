@@ -1588,4 +1588,88 @@ sub get_dataset
 	return $self->{dataset};
 }		
 
+sub ordervalue
+{
+	my( $self , $value , $archive , $langid ) = @_;
+
+	return "" if( !defined $value );
+
+	if( !$self->get_property( "multiple" ) )
+	{
+		return $self->ordervalue_aux1( $value , $archive , $langid );
+	}
+
+	my @r = ();	
+	foreach( @$value )
+	{
+		push @r, $self->ordervalue_aux1( $_ , $archive , $langid );
+	}
+	return join( ":", @r );
+}
+
+sub ordervalue_aux1
+{
+	my( $self , $value , $archive , $langid ) = @_;
+
+	return "" if( !defined $value );
+
+	if( !$self->get_property( "multilang" ) )
+	{
+		return $self->ordervalue_aux2( $value );
+	}
+	return $self->ordervalue_aux2( 
+		EPrints::Session::best_language( 
+			$archive,
+			$langid,
+			%{$value} ) );
+}
+
+sub ordervalue_aux2
+{
+	my( $self , $value ) = @_;
+
+	return "" if( !defined $value );
+
+	my $v = $value;
+	if( $self->get_property( "idpart" ) )
+	{
+		$v = $value->{id};
+	}
+	if( $self->get_property( "mainpart" ) )
+	{
+		$v = $value->{main};
+	}
+	return $self->ordervalue_aux3( $v );
+}
+
+sub ordervalue_aux3
+{
+	my( $self , $value ) = @_;
+
+	return "" if( !defined $value );
+
+	## cjg
+	# Subject & set should probably be expanded out into their cosmetic
+	# names.
+
+	if( $self->is_type( "name" ) )
+	{
+		my @a;
+		foreach( "family", "lineage", "given", "honourific" )
+		{
+			if( defined $value->{$_} )
+			{
+				push @a, $value->{$_};
+			}
+			else
+			{
+				push @a, "";
+			}
+		}
+		return join( "," , @a );
+	}
+	return $value;
+}
+
+		
 1;

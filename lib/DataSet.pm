@@ -312,6 +312,11 @@ sub get_sql_rindex_table_name
 	my( $self ) = @_;
 	return $self->get_sql_table_name()."__"."rindex";
 }
+sub get_ordervalues_table_name
+{
+	my( $self ) = @_;
+	return $self->get_sql_table_name()."__"."ordervalues";
+}
 
 # string get_sql_sub_table_name( $field )
 #                            EPrints::MetaField

@@ -18,8 +18,6 @@
 package EPrints::Config::lemurprints;
 
 #cjg NO UNICODE IN PASSWORDS!!!!!!!!!
-#cjg Hide Passwords when editing.
-
 # remove additional + suggestion fields from eprint static and add
 # them to the normal roster.
 
@@ -65,16 +63,6 @@ $c->{pin_timeout} = 3;
 $c->{cache_timeout} = 10;
 # Maximum lifespan of a cache, in use or not. In hours.
 $c->{cache_maxlife} = 12;
-
-#############################
-###cjg Development hack, This should not affect you unless your
-### machine happens to have the same ID as my home linux box
-my $realid = `hostname`;
-chomp $realid;
-if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
-$CJGDEBUG = 1 if( $realid eq "estiny.totl.net" || $realid eq "lemur" );
-##############################
-
 
 ######################################################################
 #
@@ -288,7 +276,6 @@ $c->{allow_web_signup} = 1;
 # and/or passwords via the web, see the 
 # user permissions section elsewhere in this
 # file.
-
 
 ###########################################
 #  Submission Form Customisation
@@ -519,11 +506,6 @@ $c->{archivefields}->{eprint} = [
 ];
 	
 
-if( $CJGDEBUG ) {
-	$c->{archivefields}->{eprint}->[2]->{fromform}=\&authors_fromform;
-	$c->{archivefields}->{eprint}->[2]->{toform}=\&authors_toform;
-}
-
 ######################################################################
 #
 #  Search and subscription information
@@ -540,7 +522,11 @@ if( $CJGDEBUG ) {
 #
 ######################################################################
 
-$c->{browse_fields} = [ "year", "subjects" ];
+$c->{browse_fields} = 
+[ 
+	"year", 
+	"subjects" 
+];
 
 
 # Fields for a simple user search
@@ -585,11 +571,12 @@ $c->{subscription_fields} =
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
-	"byyear" 	 =>  \&eprint_cmp_by_year,
-	"byyearoldest"	 =>  \&eprint_cmp_by_year_oldest_first,
-	"byname"  	 =>  \&eprint_cmp_by_author,
-	"bytitle" 	 =>  \&eprint_cmp_by_title 
+	"byyear" 	 => "-year/authors_main/title",
+	"byyearoldest"	 => "year/authors_main/title",
+	"byname"  	 => "authors_main/-year/title",
+	"bytitle" 	 => "title/authors_main/-year"
 };
+
 
 # The default way of ordering a search result
 #   (must be key to %eprint_order_methods)
@@ -693,8 +680,6 @@ sub eprint_cmp_by_title
 	EPrints::Utils::cmp_ints( $b, $a, "year" );
 }
 
-
-
 sub user_cmp_by_name
 {
 	my( $a, $b ) = @_;
@@ -743,25 +728,11 @@ my $FREETEXT_MIN_WORD_SIZE = 3;
 
 # Words to never index, despite their length.
 my $FREETEXT_STOP_WORDS = {
-		"this"=> 1,
-		"are" => 1,
-		"which"=>1,
-		"with"=>1,
-		"that"=>1,
-		"can"=>1,
-		"from"=>1,
-		"these"=>1,
-		"those"=>1,
-		"the" => 1,
-		"you" => 1,
-		"for" => 1,
-		"been" => 1,
-		"have" => 1,
-		"were" => 1,
-		"what" => 1,
-		"where" => 1,
-		"is" => 1,
-		"and" => 1 
+	"this"=>1,	"are"=>1,	"which"=>1,	"with"=>1,
+	"that"=>1,	"can"=>1,	"from"=>1,	"these"=>1,
+	"those"=>1,	"the"=>1,	"you"=>1,	"for"=>1,
+	"been"=>1,	"have"=>1,	"were"=>1,	"what"=>1,
+	"where"=>1,	"is"=>1,	"and"=>1 
 };
 
 # Words to always index, despite their length.
@@ -1425,7 +1396,6 @@ sub user_render
 ######################################################################
 #
 # session_init( $session, $offline )
-#        EPrints::Session  boolean
 #
 #  Invoked each time a new session is needed (generally one per
 #  script invocation.) $session is a session object that can be used
@@ -1685,13 +1655,20 @@ sub oai_write_eprint_metadata
 
 
 
+######################################################################
+#
+# VALIDATION 
+#
+######################################################################
 
 ######################################################################
 #
-# $problem = validate_user_field( $field, $value )
-#   str                         MetaField  str
+# $problem = validate_field( $field, $value, $session, $for_archive )
 #
-#  Validate a particular field of a user's metadata. Should return
+######################################################################
+#
+# Validate a particular field of metadata, currently used on
+#  
 #  undef if the field is OK, otherwise should return a textual
 #  description of the problem. This description should make sense on
 #  its own (i.e. should include the name of the field.)
@@ -1828,19 +1805,38 @@ sub validate_eprint_meta
 
 	# We check that if a journal article is published, then it 
 	# has the volume number and page numbers.
-	if( $eprint->{type} eq "journalp" && $eprint->{ispublished} eq "pub" )
-	{
-		push @$problems, "You haven't specified any page numbers"
-			unless( defined $eprint->{pages} && $eprint->{pages} ne "" );
-	}
-	
-	if( ( $eprint->{type} eq "journalp" || $eprint->{type} eq "journale" )
-		&& $eprint->{ispublished} eq "pub" )
-	{	
-		push @$problems, "You haven't specified the volume number"
-			unless( defined $eprint->{volume} && $eprint->{volume} ne "" );
-	}
+	#if( $eprint->{type} eq "journalp" && $eprint->{ispublished} eq "pub" )
+	#{
+		#push @$problems, "You haven't specified any page numbers"
+			#unless( defined $eprint->{pages} && $eprint->{pages} ne "" );
+	#}
+	#
+	#if( ( $eprint->{type} eq "journalp" || $eprint->{type} eq "journale" )
+		#&& $eprint->{ispublished} eq "pub" )
+	#{	
+		#push @$problems, "You haven't specified the volume number"
+			#unless( defined $eprint->{volume} && $eprint->{volume} ne "" );
+	#}
 }
+
+######################################################################
+#
+# log( $archive, $message )
+#
+######################################################################
+# $archive 
+# - archive object
+# $message 
+# - log message string
+#
+######################################################################
+# This method is called to log something important. By default it 
+# sends everything to STDERR which means it ends up in the apache
+# error log ( or just stderr for the command line scripts in bin/ )
+# If you want to write to a file instead, or add extra information 
+# such as the name of the archive, this is the place to do it.
+#
+######################################################################
 
 sub log
 {
@@ -1853,6 +1849,44 @@ sub log
 	#print STDERR "[".$archive->get_id()."] ".$message."\n";
 }
 
+######################################################################
+#
+# set_eprint_defaults( $data , $session )
+# set_user_defaults( $data , $session )
+# set_document_defaults( $data , $session )
+# set_subscription_defaults( $data , $session )
+#
+######################################################################
+# $data 
+# - reference to HASH mapping 
+#      fieldname string
+#   to
+#      metadata value structure (see docs)
+# $session 
+# - the session object
+# $eprint 
+# - (only for set_document_defaults) this is the
+#   eprint to which this document will belong.
+#
+# returns: nothing (Modify $data instead)
+#
+######################################################################
+# These methods allow you to set some default values when things
+# are created. This is useful if you skip stages in the submission 
+# form or just want to set a default.
+#
+######################################################################
+
+sub set_eprint_defaults
+{
+	my( $data, $session ) = @_;
+}
+
+sub set_user_defaults
+{
+	my( $data, $session ) = @_;
+}
+
 sub set_document_defaults
 {
 	my( $data, $session, $eprint ) = @_;
@@ -1861,15 +1895,40 @@ sub set_document_defaults
 	$data->{language} = $session->get_langid();
 }
 
-sub set_document_automatic_fields
+sub set_subscription_defaults
 {
-	my( $doc ) = @_;
+	my( $data, $session ) = @_;
 }
 
 
-sub set_user_defaults
+######################################################################
+#
+# set_eprint_automatic_fields( $eprint )
+# set_user_automatic_fields( $user )
+# set_document_automatic_fields( $doc )
+# set_subscription_automatic_fields( $subscription )
+#
+######################################################################
+# $eprint/$user/$doc/$subscription 
+# - the object to be modified
+#
+# returns: nothing (Modify the object instead).
+#
+######################################################################
+# These methods are called every time commit is called on an object
+# (commit writes it back into the database)
+# These methods allow you to read and modify fields just before this
+# happens. There are a number of uses for this. One is to encrypt 
+# passwords as "secret" fields are only set if they are being changed
+# otherwise they are empty. Another is to create fields which the
+# submitter can't edit directly but you want to be searchable. eg.
+# Number of authors.
+#
+######################################################################
+
+sub set_eprint_automatic_fields
 {
-	my( $data, $session ) = @_;
+	my( $eprint ) = @_;
 }
 
 sub set_user_automatic_fields
@@ -1892,19 +1951,9 @@ sub set_user_automatic_fields
 	}
 }
 
-sub set_eprint_defaults
+sub set_document_automatic_fields
 {
-	my( $data, $session ) = @_;
-}
-
-sub set_eprint_automatic_fields
-{
-	my( $eprint ) = @_;
-}
-
-sub set_subscription_defaults
-{
-	my( $data, $session ) = @_;
+	my( $doc ) = @_;
 }
 
 sub set_subscription_automatic_fields
@@ -1912,12 +1961,32 @@ sub set_subscription_automatic_fields
 	my( $subscription ) = @_;
 }
 
+######################################################################
 #
+# %entities = get_entities( $archive , $langid );
+#
+######################################################################
+# $archive 
+# - the archive object
+# $langid 
+# - the 2 digit language ID string
+#
+# returns %entities 
+# - a HASH which maps 
+#      entity name string
+#   to 
+#      entity value string
+#
+######################################################################
 # get_entities is used by the generate_dtd script to get the entities
-# for the phrase files and config files.
+# for the phrase files and config files. It is called once for each
+# supported language, although that probably only affects the archive
+# name.
 #
-# It should not need editing.
+# It should not need editing, unless you want to add entities to the
+# DTD file. You might want to do that to help automate a large system.
 #
+######################################################################
 
 sub get_entities
 {
@@ -1935,64 +2004,9 @@ sub get_entities
 	return %entities;
 }
 
-#########################################################
-# Experimental Code:
-#########################################################
 
-sub authors_fromform
-{
-	my( $value, $session ) = @_;
 
-	# convert usernames to ecsid's
-	foreach( @{$value} )
-	{
-		next unless( defined $_->{id} );
-		my $user = EPrints::User::user_with_username( $session, $_->{id} );
-		next unless( defined $user );
-		$_->{id} = $user->get_value( "ecsid" );
-	}
-
-	return $value;
-}
-
-sub authors_toform
-{
-	my( $value , $session ) = @_;
-
-	# convert ecsid's to usernames
-	foreach( @{$value} )
-	{
-		next unless( defined $_->{id} );
-		my $user = _user_with_ecsid( $session, $_->{id} );
-		next unless( defined $user );
-		$_->{id} = $user->get_value( "username" );
-	}
-
-	return $value;
-}
-
-sub _user_with_ecsid
-{
-	my( $session, $ecsid ) = @_;
-	
-	my $user_ds = $session->get_archive()->get_dataset( "user" );
-
-	my $searchexp = new EPrints::SearchExpression(
-		session=>$session,
-		dataset=>$user_ds );
-
-	$searchexp->add_field(
-		$user_ds->get_field( "ecsid" ),
-		"PHR:EQ:".$ecsid );
-
-	my $searchid = $searchexp->perform_search;
-
-	my @records = $searchexp->get_records;
-	$searchexp->dispose();
-	
-	return $records[0];
-}
-
+# Return true to indicate the module loaded OK.
 1;
 
 

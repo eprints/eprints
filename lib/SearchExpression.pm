@@ -598,56 +598,65 @@ sub get_records
 		
 
 	
-	if( $self->{tmptable} )
+	if( !defined $self->{tmptable} )
 	{
-		if( $self->{tmptable} eq "NONE" )
-		{
-			return ();
-		}
-		my $srctable;
-		if( $self->{tmptable} eq "ALL" )
-		{
-			$srctable = $self->{dataset}->get_sql_table_name();
-		}
-		else
-		{
-			$srctable = $self->{tmptable};
-		}
-		
-		my @records = $self->{session}->get_db()->from_buffer( 
+		#ERROR TO USER cjg
+		$self->{session}->get_archive()->log( "Search not yet performed" );
+		return ();
+	}
+
+	if( $self->{tmptable} eq "NONE" )
+	{
+		return ();
+	}
+
+	my $srctable;
+	if( $self->{tmptable} eq "ALL" )
+	{
+		$srctable = $self->{dataset}->get_sql_table_name();
+	}
+	else
+	{
+		$srctable = $self->{tmptable};
+	}
+
+	my @records;
+
+	# We don't bother sorting if we got too many results.	
+	# or no order method was specified.
+	if( $self->{use_cache} || defined $self->{order} )
+	{
+		my $order = $self->{session}->get_archive()->get_conf( 
+					"order_methods" , 
+					$self->{dataset}->confid() ,
+					$self->{order} );
+
+		my $srctable = $self->{session}->get_db()->cache( 
+			$self->serialise(), 
+			$self->{dataset},
+			$srctable,
+			$order );
+
+		@records = $self->{session}->get_db()->from_cache( 
+						$self->{dataset}, 
+						$self->serialise(),
+						$offset,
+						$count );
+	}
+	else
+	{
+		@records = $self->{session}->get_db()->from_buffer( 
 							$self->{dataset}, 
 							$srctable );
+	}
 
-		# We don't bother sorting if we got too many results.	
-		# or no order method was specified.
-		if( !$self->{overlimit} && defined $self->{order})
-		{
- #print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
-#print STDERR "ORDER BY: $self->{order}\n";
 
-			my $cmpmethod = $self->{session}->get_archive()->get_conf( 
-						"order_methods" , 
-						$self->{dataset}->confid, 
-						$self->{order} );
+	if( $self->{tmptable} ne "ALL" )
+	{
+		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+	}
 
-			@records = sort { &{$cmpmethod}($a,$b); } @records;
-		}
-		if( $self->{tmptable} ne "ALL" )
-		{
-			$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
-		}
-		if( $self->{use_cache} )
-		{
-			$self->{session}->get_db()->cache( 
-				$self->serialise(), 
-				$self->{dataset},
-				\@records );
-		}
-		return @records;
-	}	
-
-#ERROR TO USER cjg
-	$self->{session}->get_archive()->log( "Search not yet performed" );
+	return @records;
 }
 
 

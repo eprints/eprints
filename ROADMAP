@@ -119,6 +119,7 @@
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
 
+0	Alternate config files for simple english only archives.
 1	Formally Comment Code
 0	Bugfixing
 0	Documentation! - Howto's, Datatypes, Installation
@@ -160,6 +161,7 @@
 #	Status search field buggered
 #	 FIX installer - phrases don't work! some dirs are wrong # 	what about a default disk0 dir?
 #	directory listing on perl dir is showing and should be hidden.
+#	Paged results are out by one (only 9 on page 1!)
 
 #Clean UP
 #	print STDERR's should be log()
@@ -175,21 +177,23 @@
 #	subject label cache - scrap it?
 #	search buttons at top and bottom of search & (some) submission forms.
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
+#	paged searches are not very neat(understatement!)
 
 #TODO
 #	Clean up validators - Don't validate records with fields which have bad langids including user validate.
 #	Make all possible field-types browseable.
 #	Threads rendering code.
 #	"Squash" reverse indexes?
-#	 allow configure_archive to specify archive name on command line.
+#	allow configure_archive to specify archive name on command line.
 #	verbose mode for bin scripts? proper switch handling|?
-#	 sort subject input fields
-#	 text area without CR's (config flag) eg. for title.
-#	 Magic search fields - eg. Must have HTML format document/public document...
-#	 no new eprints when disk fullish
+#	sort subject input fields
+#	text area without CR's (config flag) eg. for title.
+#	Magic search fields - eg. Must have HTML format document/public document...
+#	no new eprints when disk fullish
 #	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
 #	 Call backs for LEAVING archive and buffer=>inbox
 #	subject importer to use XML
 #	rename views to browse/ (?)
 #	rename rebuild_sets to something betterer?
 #	Edit abstract renderer to add comments on how to view PS and PDF etc.
+

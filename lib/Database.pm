@@ -222,7 +222,7 @@ sub _create_table
 		name => "ids", 
 		type => "longtext");
 
-	# Create the index table
+	# Create the index tables
 	$rv = $rv & $self->_create_table_aux(
 			$dataset->get_sql_index_table_name,
 			$dataset,
@@ -233,6 +233,31 @@ sub _create_table
 			$dataset,
 			0, # no primary key
 			( $keyfield, $fieldword ) );
+	return 0 unless $rv;
+
+	# Create sort values table. These will be used when ordering search
+	# results.
+	my @fields = $dataset->get_fields( 1 );
+	# remove the key field
+	splice( @fields, 0, 1 ); 
+	my @orderfields = ( $keyfield );
+	my $langid;
+	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
+	{
+		foreach( @fields )
+		{
+			my $fname = $_->get_sql_name()."_".$langid;
+			push @orderfields, EPrints::MetaField->new( 
+						name => $fname,
+						type => "longtext" );
+		}
+	}
+	$rv = $rv && $self->_create_table_aux( 
+				$dataset->get_ordervalues_table_name(), 
+				$dataset, 
+				1, 
+				@orderfields );
+	return 0 unless $rv;
 
 
 	# Create the other tables
@@ -667,7 +692,37 @@ sub update
 			++$position;
 		}
 	}
-	
+
+	# remove the key field
+	splice( @fields, 0, 1 ); 
+	my @orderfields = ( $keyfield );
+	my $langid;
+
+
+	my @fnames = ( $keyfield->get_sql_name() );
+	my @fvals = ( $keyvalue );
+	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
+	{
+		foreach( @fields )
+		{
+			my $ov = $_->ordervalue( 
+					$data->{$_->get_name()},
+					$self->{session}->get_archive(), 
+					$langid );
+			
+			push @fnames, $_->get_sql_name()."_".$langid;
+			push @fvals, prep_value( $ov );
+		}
+	}
+
+	my $ovt = $dataset->get_ordervalues_table_name();
+	$sql = "DELETE FROM ".$ovt." WHERE ".$where;
+	$self->do( $sql );
+
+	$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".
+		join( "\",\"", @fvals )."\")";
+	$self->do( $sql );
+
 	# Return with an error if unsuccessful
 	return( defined $rv );
 }
@@ -877,7 +932,7 @@ sub count_cache
 
 sub cache
 {
-	my( $self , $code , $dataset , $records ) = @_;
+	my( $self , $code , $dataset , $srctable , $order ) = @_;
 
 	my $sql;
 	my $sth;
@@ -898,17 +953,28 @@ sub cache
 	my $tmptable  = "cache".$id;
 
         $sql = "CREATE TABLE $tmptable ".
-	       "( pos INTEGER NOT NULL, ".
+		"( pos INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		$keyfield->get_sql_type( 1 )." )";
 	$self->do( $sql );
 
-	$sql = "INSERT INTO $tmptable VALUES ( ? , ? )";
-	$sth = $self->prepare( $sql );
-	my $c = 0;
-	foreach( @{$records} )
+	my $keyname = $keyfield->get_name();
+	$sql = "INSERT INTO $tmptable SELECT NULL , B.$keyname from ".$srctable." as B";
+	if( defined $order )
 	{
-		$sth->execute( $c++ , $_->get_id() );
+		$sql .= ", ".$dataset->get_ordervalues_table_name()." AS O";
+		$sql .= " WHERE B.$keyname = O.$keyname ORDER BY ";
+		my $first = 1;
+		foreach( split( "/", $order ) )
+		{
+			$sql .= ", " if( !$first );
+			my $desc = 0;
+			if( s/^-// ) { $desc = 1; }
+			$sql .= "O.$_"."_".$self->{session}->get_langid();
+			$sql .= " DESC" if $desc;
+			$first = 0;
+		}
 	}
+	$sth = $self->do( $sql );
 
 	return $tmptable;
 }
@@ -1552,6 +1618,7 @@ sub _freetext_index
 		$sql = "SELECT max(pos) FROM $indextable where fieldword='$code'"; 
 		$sth=$self->prepare( $sql );
 		$rv = $rv && $self->execute( $sth, $sql );
+		return 0 unless $rv;
 		my ( $n ) = $sth->fetchrow_array;
 		my $insert = 0;
 		if( !defined $n )
@@ -1571,6 +1638,7 @@ sub _freetext_index
 			{
 				$sql = "UPDATE $indextable SET ids='$ids$id:' WHERE fieldword='$code' AND pos=$n";	
 				$rv = $rv && $self->do( $sql );
+				return 0 unless $rv;
 			}
 			else
 			{
@@ -1582,9 +1650,11 @@ sub _freetext_index
 		{
 			$sql = "INSERT INTO $indextable (fieldword,pos,ids ) VALUES ('$code',$n,':$id:')";
 			$rv = $rv && $self->do( $sql );
+			return 0 unless $rv;
 		}
 		$sql = "INSERT INTO $rindextable (fieldword,".$keyfield->get_sql_name()." ) VALUES ('$code','$id')";
 		$rv = $rv && $self->do( $sql );
+		return 0 unless $rv;
 
 	} 
 	return $rv;
