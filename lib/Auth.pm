@@ -57,12 +57,12 @@ print STDERR "therequest: ".$r->the_request()."\n";
 
 print STDERR "THE USER IS: $user_sent\n";
 
-	my $ds = $session->get_archive()->get_dataset( "user" );
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
 
-	my $user = $session->get_db()->get_single( $ds , $user_sent );
+	my $user = EPrints::User::user_with_username( $session, $user_sent );
 	if( !defined $user )
 	{
-print STDERR "zong\n";
+print STDERR "NO SUCH USER\n";
 		$r->note_basic_auth_failure;
 		$session->terminate();
 		return AUTH_REQUIRED;
@@ -70,11 +70,11 @@ print STDERR "zong\n";
 print STDERR "GRP:".$user->{usertype}."\n";
 	my $userauthdata = $session->get_archive()->get_conf( 
 		"userauth", $user->get_value( "usertype" ) );
+
 	if( !defined $userauthdata )
 	{
-#cjg this is an error
 		$session->get_archive()->log(
-			"Unknown user type: $user->{usertype}" );
+			"Unknown user type: ".$user->get_value( "usertype" ) );
 		$session->terminate();
 		return AUTH_REQUIRED;
 	}
@@ -86,7 +86,7 @@ print STDERR "X2:".join(",",keys %{$userauthdata->{auth}})."\n";
 	my $rwrapper = EPrints::RequestWrapper->new( $r , $authconfig );
 	my $result = &{$handler}( $rwrapper );
 	$session->terminate();
-print STDERR "***END OF AUTH***\n\n";
+print STDERR "***END OF AUTH***($result)\n\n";
 	return $result;
 }
 

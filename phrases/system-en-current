@@ -391,11 +391,30 @@ Public CGI Scripts
     <phrase ref="cgi/view_eprint:enter_code">Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.</phrase>
     <phrase ref="cgi:view_eprint:view_eprint">View EPrint</phrase>
 
-<!-- password -->
+<!-- set_password -->
 
-    <phrase ref="cgi/password:password_title">Create Account / Change Password</phrase>
-    <phrase ref="cgi/password:intro"><p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p><p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
-    <phrase ref="cgi/password:action_submit">Submit</phrase>
-    <phrase ref="cgi/password:account">Account</phrase>
+    <phrase ref="cgi/set_password:password_title">Create Account / Change Password</phrase>
+    <phrase ref="cgi/set_password:intro"><p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p><p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
+    <phrase ref="cgi/set_password:action_submit">Submit</phrase>
+    <phrase ref="cgi/set_password:account">Account</phrase>
+    <phrase ref="cgi/set_password:mail_sent"><p>An email has been sent to <pin ref="email" /> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></phrase>
+    <phrase ref="cgi/set_password:return"><p><a href="&frontpage;">Return to the front page</a></p></phrase>
+    <phrase ref="cgi/set_password:no_priv"><p>The user with the email address <pin ref="email" /> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></phrase>
+    <phrase ref="cgi/set_password:no_password"><p>You did not actually specify a password.</p></phrase>
+
+<!-- confirm -->
+
+    <phrase ref="cgi/confirm:title">Confirm Account Change</phrase>
+    <phrase ref="cgi/confirm:err_title">Error: Account Change Failed</phrase>
+    <phrase ref="cgi/confirm:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></phrase> 
+    <phrase ref="cgi/confirm:bad_user"><p>User not found. It is possible that indicates a database problem, but please check the parameters in the URL carefully.</p></phrase> 
+    <phrase ref="cgi/confirm:pin_mismatch"><p>The confirmation pin is incorrect. Please try and request the change again to generate an email with a new pin.</p></phrase> 
+    <phrase ref="cgi/confirm:return"><p><a href="&frontpage;">Return to &archivename; front page</a></p></phrase>
+    <phrase ref="cgi/confirm:pin_timeout"><p>The confirmation pin has timed out. Please repeat the request, and confirm it as soon as you get the mail.</p></phrase>
+    <phrase ref="cgi/confirm:no_pin"><p>There are currently no changes for this user which await confirmation.</p></phrase>
+    <phrase ref="cgi/confirm:set_email"><p>Your email address has been changed to the new one you requested.</p></phrase>
+    <phrase ref="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></phrase>
+    <phrase ref="cgi/confirm:username"><p>Your username on this system is: <strong><pin ref="username" /></strong></p></phrase>
+    <phrase ref="cgi/confirm:userhome_link"><p><a href="&cgiroot;/users/home">Go to the &archivename; user area homepage</a></p></phrase>
 
 </phrases>

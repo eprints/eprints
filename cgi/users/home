@@ -44,7 +44,7 @@ my $fullname = $user->full_name();
 
 #cjg user is validating when it shouldn't.
 my $probs = $user->validate();
-my $valid_user = ( $#{$probs} == -1 );
+my $valid_user = ( scalar @{$probs} == 0 );
 
 foreach( @{$probs} ) { print STDERR "[prob:$_]\n"; }
 

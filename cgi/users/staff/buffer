@@ -21,6 +21,7 @@ use EPrints::User;
 use strict;
 
 my $session = EPrints::Session->new();
+Apache::exit( 0 ) unless( defined $session );
 
 # Check we have privs
 if( !$session->auth_check( "editor" ) )
@@ -29,15 +30,14 @@ if( !$session->auth_check( "editor" ) )
 	Apache::exit( 0 );
 }
 
+my $user = $session->current_user();
+
 my( $page, $p, $table, $tr, $td, $th, $a );
 
 $page = $session->make_doc_fragment();
 
 # Get EPrints in the submission buffer
-my $buffds = $session->get_archive()->get_dataset( "buffer" );
-
-#cjg later should be only ones which match filter.
-my @eprints = $session->get_db()->get_all( $buffds );
+my @eprints = $user->get_editable_eprints();
 
 if( scalar @eprints == 0 )
 {
@@ -84,14 +84,14 @@ else
 		$td->appendChild( $a );
 		
 		# Link to user
-		my $user = new EPrints::User( $session, $e->get_value( "username" ) );
+		my $user = new EPrints::User( $session, $e->get_value( "userid" ) );
 		
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		if( defined $user )
 		{
 			$a = $session->make_element( "a", 
-				href=>"view_user?username=".$e->get_value("username") );
+				href=>"view_user?userid=".$e->get_value("userid") );
 			$a->appendChild( $session->make_text( $user->full_name() ) );
 			$td->appendChild( $a );
 		}
@@ -99,7 +99,8 @@ else
 		{
 			$td->appendChild( $session->html_phrase( "cgi/users/buffer:invalid" ) );
 		}
-		
+	
+		my $buffds = $session->get_archive()->get_dataset( "buffer" );	
 		
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );

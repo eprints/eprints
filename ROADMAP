@@ -46,15 +46,18 @@
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
+0	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 0	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm 
 0	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 0	multiple views for things like people/groups etc.
+0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0 	Metadata approve page in Submission Form for Admin Conf'd comments
 1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 2	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
+0	"secret" field should never have a default set, but no value should not erase previous value.
 0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
 0	Translate Initial phrases and templates into French
 0	Indexing on name fields
@@ -62,6 +65,7 @@
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
 0	Search by ID field (in search exp)
+0	What's new? page(s) (just a fixed search)
 0	Subscriptions - editing
 0	Subscriptions - sending
 0	MathML support
@@ -85,6 +89,8 @@
 0	Other output charsets than UTF-8?
 1	XML Importer
 0	Improve name search syntax (?)
+0	Remove Lanuage related options if only one language supported.
+
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
 

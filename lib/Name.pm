@@ -46,11 +46,11 @@ sub format_name
 	my $secondbit;
 	if( defined $name->{lineage} && $name->{lineage} ne "" )
 	{
-		$secondbit = $name->{given}." ".$name->{lineage};
+		$secondbit = $name->{family}." ".$name->{lineage};
 	}
 	else
 	{
-		$secondbit = $name->{lineage};
+		$secondbit = $name->{family};
 	}
 	
 	if( $familylast )

@@ -57,8 +57,13 @@ $c->{adminemail} = "cjg";
 # Stem for local ID codes. This gets prepended to all eprint ids.
 $c->{eprint_id_stem} = "zook";
 
+
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
+
+# Time (in hours) to allow a email/password change "pin" to be active.
+# Set a time of zero ("0") to make pins never time out.
+$c->{pin_timeout} = 3;
 
 #############################
 ###cjg Development hack, This should not affect you unless your
@@ -79,12 +84,12 @@ if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
 ######################################################################
 # paths
 
-$c->{config_path} = "$c->{archiveroot}/cfg";
-$c->{system_files_path} = "$c->{archiveroot}/sys";
-$c->{static_html_root} = "$c->{archiveroot}/cfg/static";
-$c->{local_html_root} = "$c->{archiveroot}/html";
-$c->{local_document_root} = "$c->{archiveroot}/documents";
-$c->{local_secure_root} = "$c->{static_html_root}/secure";
+$c->{config_path} = $c->{archiveroot}."/cfg";
+$c->{system_files_path} = $c->{archiveroot}."/sys";
+$c->{static_html_root} = $c->{archiveroot}."/cfg/static";
+$c->{local_html_root} = $c->{archiveroot}."/html";
+$c->{local_document_root} = $c->{archiveroot}."/documents";
+$c->{local_secure_root} = $c->{local_html_root}."/secure";
 
 ######################################################################
 # URLS
@@ -301,18 +306,24 @@ my $ENCRYPTED_DBI = {
 # The type of user that gets created when someone signs up
 # over the web. This can be modified after they sign up by
 # staff with the right priv. set. 
+#
+# If you change this, you should probably change the user
+# automatic field generator (lower down this file) too.
 $c->{default_user_type} = "user";
+
+#cjg = no default user type = no web signup???
 
 #user
 #subscription
 #view-status
 #editor
+#set-password
  
  
 $c->{userauth} = {
 	user => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "user", "subscription" ] },
+		priv  =>  [ "user", "subscription", "set-password" ] },
 	editor => { 
 		auth  => $UNENCRYPTED_DBI,
 		priv  =>  [ "tester", "subscription", "view-status", "editor" ] },
@@ -974,12 +985,12 @@ sub eprint_render_full
 
 	my $user = new EPrints::User( 
 			$eprint->{session},
- 			$eprint->get_value( "username" ) );
+ 			$eprint->get_value( "userid" ) );
 	my $usersname;
 	if( defined $user )
 	{
 		$usersname = $session->make_element( "a", 
-				href=>$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?username=".$user->get_value( "username" ) );
+				href=>$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?userid=".$user->get_value( "userid" ) );
 		$usersname->appendChild( 
 			$session->make_text( $user->full_name() ) );
 	}
@@ -1631,9 +1642,47 @@ sub set_document_defaults
 }
 
 #cjg not used yet
+sub set_document_automatic_fields
+{
+	my( $doc ) = @_;
+}
+
+#cjg not used yet
 sub set_user_defaults
 {
 	my( $data, $session ) = @_;
+}
+
+sub set_user_automatic_fields
+{
+	my( $user ) = @_;
+
+	if( $user->get_value( "usertype" ) eq "user" )
+	{
+		# This is the user type which is created by signing up over the web
+		# This kind of user has their username as their email.
+		$user->set_value( "username" , $user->get_value( "email" ) );
+
+		# You could make this their email address with everything after the '@'
+		# removed, but then you would have to start checking for duplicates.
+		#
+		# This defaults to using the email if a duplicate exists. Or you could
+		# try webmaster1 webmaster2 etc. until one worked.
+		# 
+		# my $username = $user->get_value( "email" );
+		# $username =~ s/\@.*$//;
+		# my $thatuser = EPrints::User::user_with_username( $session, $username );
+		# if( !defined $user || ($user->get_value( "userid" ) eq $thatuser->get_value( "userid" )) )
+		# {
+		#	$user->set_value( "username" , $username );
+		# }
+		# else
+		# {
+		#	# A account already exists with that username, and not us!
+		#	# We'll just use the email address then.
+		#	$user->set_value( "username" , $user->get_value( "email" ) );
+		# }
+	}
 }
 
 #cjg not used yet
@@ -1643,10 +1692,22 @@ sub set_eprint_defaults
 }
 
 #cjg not used yet
+sub set_eprint_automatic_fields
+{
+	my( $eprint ) = @_;
+}
+
+#cjg not used yet
 sub set_subscription_defaults
 {
 	#cjg(?)do we need this one?
 	my( $data, $session, $user ) = @_;
+}
+
+#cjg not used yet
+sub set_subscription_automatic_fields
+{
+	my( $subscription ) = @_;
 }
 
 sub get_entities

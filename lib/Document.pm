@@ -412,6 +412,10 @@ sub url
 
 	my $eprint = $self->get_eprint();
 
+print STDERR "sEPID: ".$self->get_value( "eprintid" )."\n";
+print STDERR "eEPID: ".$eprint->get_value( "eprintid" )."\n";
+use Data::Dumper;
+print STDERR Dumper( $eprint->{data} );
 	return( undef ) if( !defined $eprint );
 
 	my $archive = $self->{session}->get_archive();
@@ -930,4 +934,12 @@ sub get_data
 	return $self->{data};
 }
 
+sub render_value
+{
+	my( $self, $fieldname, $showall ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );	
+	
+	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
 1;

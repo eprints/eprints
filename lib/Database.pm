@@ -23,7 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-my $DEBUG_SQL = 0;
+my $DEBUG_SQL = 1;
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -652,16 +652,18 @@ sub remove
 
 	my $where = $keyfield->get_name()." = \"$keyvalue\"";
 
+
 	# Delete Index
 	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
 	$rv = $rv && $self->do( $sql );
 
 	# Delete Subtables
+	my @fields = $dataset->get_fields();
 	my $field;
 	foreach $field ( @fields ) 
 	{
 		next unless( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) );
-		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
+		my $auxtable = $dataset->get_sql_sub_table_name( $field );
 		$sql = "DELETE FROM $auxtable WHERE $where";
 		$rv = $rv && $self->do( $sql );
 	}
@@ -669,6 +671,11 @@ sub remove
 	# Delete main table
 	$sql = "DELETE FROM ".$dataset->get_sql_table_name()." WHERE ".$where;
 	$rv = $rv && $self->do( $sql );
+
+	if( !$rv )
+	{
+		$self->{session}->get_archive()->log( "Error removing item id: $id" );
+	}
 
 	# Return with an error if unsuccessful
 	return( defined $rv )
@@ -999,6 +1006,7 @@ sub _get
 {
 	my ( $self , $dataset , $mode , $param ) = @_;
 
+# print STDERR "========================================BEGIN _get($mode,$param)\n";
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
@@ -1068,11 +1076,11 @@ sub _get
 		foreach $field ( @fields ) { 
 			if( $field->get_property( "multiple" ) )
 			{
-				$record->{$field->{name}} = [];
+				$record->{$field->get_name()} = [];
 			}
 			elsif( $field->get_property( "multilang" ) )
 			{
-				$record->{$field->{name}} = {};
+				$record->{$field->get_name()} = {};
 			}
 			else 
 			{
@@ -1088,16 +1096,26 @@ sub _get
 					$value = shift @row;
 				}
 				$record->{$field->get_name()} = $value;
+# print STDERR "Set: ".$field->get_name()." to '".$value."'\n";
 			}
 		}
 		$data[$count] = $record;
 		$count++;
 	}
 
+	foreach( @data )
+	{
+# use Data::Dumper;
+# print STDERR "--------xxxx-----FROM DB------------------\n";
+# print STDERR Dumper($_);
+# print STDERR "--------xxxx-----////FROM DB------------------\n";
+	}
+
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
 		my $mn = $multifield->get_name();
+print STDERR "MULTIFIELD: ".$mn."\n";
 		my $col = "M.$mn";
 		if( $multifield->is_type( "name" ) )
 		{
@@ -1174,13 +1192,14 @@ sub _get
 
 	foreach( @data )
 	{
-#use Data::Dumper;
-#print STDERR "-----------------FROM DB------------------\n";
-#print STDERR Dumper($_);
-#print STDERR "-----------------////FROM DB------------------\n";
+# use Data::Dumper;
+# print STDERR "-----------------FROM DB------------------\n";
+# print STDERR Dumper($_);
+# print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
+# print STDERR "========================================END _get\n";
 	return @data;
 }
 

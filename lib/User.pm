@@ -52,6 +52,8 @@ sub get_system_field_info
 
 		{ name=>"pinsettime", type=>"int" },
 
+		{ name=>"editorsubjects", type=>"subject", multiple=>1 },
+
 		#cjg created would be a better name than joined??
 		{ name=>"joined", type=>"date", required=>1 },
 
@@ -89,6 +91,7 @@ sub new
 	my $self = {};
 	bless $self, $class;
 	$self->{data} = $known;
+	$self->{dataset} = $session->get_archive()->get_dataset( "user" );
 	$self->{session} = $session;
 
 	return( $self );
@@ -262,6 +265,8 @@ sub validate
 sub commit
 {
 	my( $self ) = @_;
+
+	$self->{session}->get_archive()->call( "set_user_automatic_fields", $self );
 	
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 	my $success = $self->{session}->get_db()->update(
@@ -425,6 +430,14 @@ sub remove
 }
 
 
+## WP1: BAD
+sub to_string
+{
+	my( $self ) = @_;
+
+	return( $self->{session}->get_archive()->call( "user_display_name" , $self  ) );
+}
+
 ## WP1: GOOD
 sub get_value
 {
@@ -506,6 +519,27 @@ sub get_eprints
 	return  $searchexp->get_records;
 }
 
+sub get_editable_eprints
+{
+	my( $self ) = @_;
+
+	my $ds = $self->{session}->get_archive()->get_dataset( "buffer" );
+
+	my $searchexp = new EPrints::SearchExpression(
+		session=>$self->{session},
+		dataset=>$ds );
+
+	$searchexp->add_field(
+		$ds->get_field( "userid" ),
+		"PHR:EQ:".$self->get_value( "userid" ) );
+
+#cjg set order (it's in the site config)
+
+	my $searchid = $searchexp->perform_search;
+
+	return  $searchexp->get_records;
+}
+
 sub mail
 {
 	my( $self, $subject, $message ) = @_;
@@ -530,5 +564,13 @@ sub _create_userid
 	return( $new_id );
 }
 
+sub render_value
+{
+	my( $self, $fieldname, $showall ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );	
+	
+	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
 
 1;

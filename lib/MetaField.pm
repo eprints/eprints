@@ -77,7 +77,7 @@ my %TYPE_INDEX =
 my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	digits => 20,
-	displaylines => 12,
+	displaylines => 0,
 	maxlength => 255,
 	multilang => 0,
 	multiple => 0,
@@ -440,7 +440,7 @@ sub _render_value1
 	}
 	if( !$alllangs )
 	{
-		my $v = EPrints::Session::best_language( $self->{session}->get_archvie(), $self->{session}->get_langid(), %$value );
+		my $v = EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %$value );
 		return $self->_render_value2( $session, $v );
 	}
 	my( $table, $tr, $td, $th );

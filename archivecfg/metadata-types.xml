@@ -244,6 +244,7 @@
   <dataset name="user">
     <type name="user" >
       <field name="password" />
+      <field name="usertype" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
@@ -255,6 +256,7 @@
     </type>
     <type name="editor" >
       <field name="password" />
+      <field name="usertype" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
@@ -266,6 +268,7 @@
     </type>
     <type name="admin" >
       <field name="password" />
+      <field name="usertype" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />
@@ -277,6 +280,8 @@
     </type>
     <type name="staff" >
       <field name="password" />
+      <field name="usertype" />
+      <field name="editorsubjects" />
       <field name="name" />
       <field name="dept" />
       <field name="org" />

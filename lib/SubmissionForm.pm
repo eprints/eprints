@@ -137,14 +137,14 @@ sub process
 
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
-			( $self->{eprint}->get_value( "username" ) ne 
-			  $self->{user}->get_value( "username" ) ) )
+			( $self->{eprint}->get_value( "userid" ) ne 
+			  $self->{user}->get_value( "userid" ) ) )
 		{
 			$self->{session}->get_archive()->log( 
 				"Illegal attempt to edit record ".
 				$self->{eprint}->get_value( "eprintid" ).
 				" by user with id ".
-				$self->{user}->get_value( "username" ) );
+				$self->{user}->get_value( "userid" ) );
 			$self->_corrupt_err;
 			return( 0 );
 		}
@@ -269,7 +269,7 @@ sub _from_stage_home
 		$self->{eprint} = EPrints::EPrint::create(
 			$self->{session},
 			$self->{dataset},
-			$self->{user}->get_value( "username" ) );
+			$self->{user}->get_value( "userid" ) );
 
 		if( !defined $self->{eprint} )
 		{
@@ -1609,8 +1609,7 @@ sub _do_stage_verify
 		$p->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
 
 		$page->appendChild( $self->{session}->render_ruler() );	
-		$page->appendChild(
-			$self->{session}->get_archive()->call( "eprint_render_full", $self->{eprint} ) );
+		$page->appendChild( $self->{eprint}->render_full_details() );
 		$page->appendChild( $self->{session}->render_ruler() );	
 
 		# cjg Should be from an XML-lang file NOT the main config.

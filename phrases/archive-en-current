@@ -276,7 +276,7 @@ terms.</p>
     <phrase ref="page_deposited_by">Deposited By</phrase>
     <phrase ref="page_deposited_on">Deposited On</phrase>
     <phrase ref="page_id_code">ID Code</phrase>
-    <phrase ref="page_id_invalid_user">INVALID USER</phrase>
+    <phrase ref="page_invalid_user">INVALID USER</phrase>
 
     <phrase ref="mail_password_pin">
 

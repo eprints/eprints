@@ -143,7 +143,6 @@ sub create
 print STDERR "($new_id)($dir)\n";
 	if( !defined $dir )
 	{
-		$session->get_archive()->log( "Failed to make dir." );
 		return( undef );
 	}
 
@@ -180,7 +179,7 @@ sub _create_id
 {
 	my( $session ) = @_;
 	
-	my $new_id = sprintf( "%08", $session->get_db()->counter_next( "eprintid" ) );
+	my $new_id = sprintf( "%08d", $session->get_db()->counter_next( "eprintid" ) );
 
 	return( $session->get_archive()->get_conf( "eprint_id_stem" ) . $new_id );
 }
@@ -202,13 +201,17 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-print STDERR $session->get_archive()->get_conf( "local_document_root" )."\n";
-	opendir DOCSTORE, $session->get_archive()->get_conf( "local_document_root" )
-		or return( undef );
+	my $docpath = $session->get_archive()->get_conf( "local_document_root" );
+print STDERR "DOCPATH: $docpath\n";
+	unless( opendir DOCSTORE, $docpath )
+	{
+		$session->get_archive()->log( "Failed to open docpath: ".$docpath );
+		return undef;
+	}
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
 	closedir DOCSTORE;
-	
+
 	# Check amount of space free on each device. We'll use the first one we find
 	# (alphabetically) that has enough space on it.
 	my $storedir;
@@ -244,6 +247,7 @@ print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$d
 			"lib/eprint:diskout_sub" ,
 			"lib/eprint:diskout"  );
 print STDERR "oraok\n";
+#cjg LOG WHY!
 		return( undef );
 	}
 
@@ -257,13 +261,15 @@ print STDERR "oraok\n";
 #			EPrints::Language::logphrase( "lib/eprint:disklow" ) );
 	}
 
-	# For now, just choose first
-	return( undef ) if( !defined $avail[0] );
-	
 	# Work out the directory path. It's worked out using the ID of the 
 	# EPrint.
 	my $idpath = eprintid_to_path( $session->get_archive(), $eprint_id );
-	return( undef ) if( !defined $idpath );
+
+	if( !defined $idpath )
+	{
+		$session->get_archive()->log( "Failed to turn eprintid: \"$eprint_id\" until a path." );
+		return( undef ) ;
+	}
 
 	my $dir = $storedir."/".$idpath;
 
