@@ -14,12 +14,12 @@ Metadata Fields
 
 *	field property to stop SQL indexing. - will disable EX searching
 
-*	Field Property: 'id required' - If main bit is set then ID *must* 
++	Field Property: 'id required' - If main bit is set then ID *must* 
 	be set. Otherwise lax.
 
-* 	Make Hide Lineage/Honourific a field property.
++ 	Make Hide Lineage/Honourific a field property.
 
-*	Add XHTML field renderer with list of legal tags.
++	Add XHTML field renderer with list of legal tags.
 
 *	Add a no_clone property to flag fields which should not be copied
 	when a record is cloned.
@@ -30,23 +30,20 @@ XML, Bibtex and Misc formats in & out
 *	Some kind of BibTeX support (fill in metadata form from bibtex) 
 	- library function plus cgi + bin tools? 
 
-*	Some kind of RIS format import (similar to bibtex). 
++	Some kind of RIS format import (similar to bibtex). 
 
 * 	Bibtex import/export
 
-*	XML Importer
++	XML Importer
 
 OAI
 
-*	Extra sets in OAI: By ID field, or by configurable serialised search. 
++	Extra sets in OAI: By ID field, or by configurable serialised search. 
 	Even "subject" should be configured. so "subject:blgy:biophys" 
 	or "username_id:cjg" or "stuffjackwants" which is a search of 
 	it's own. Searches can of course be modified with from and to 
 	dates from OAI.
 
-*       OAI2.0 support
-
-* 	Filters for OAI. eg. files with full text only!
 
 
 Browse Views
@@ -250,5 +247,7 @@ DONE ====================================================================
 *	Subscriptions - editing
 *	Subscriptions - sending
 *	Subscriptions - not correctly ordered!
+*       OAI2.0 support
+
 
 

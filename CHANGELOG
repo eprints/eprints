@@ -615,5 +615,7 @@ before next release. (metadata types & fields)
 - added set_property to SearchExpression so that you can change properties
    of an existing searchexpression. Useful to set use_oneshot_cache on a 
    searchexp created from de-serialising.
-
+- Now oai 2.0 Compliant.
+- [conf] Added an oai2 oai_dc XML render function to ArchiveOAIConfig.pm AND
+ added oai2 config section for keeping namespaces etc seperate.
 

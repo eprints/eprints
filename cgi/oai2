@@ -39,7 +39,6 @@ use strict;
 my $session = new EPrints::Session();
 Apache::exit( 0 ) unless( defined $session );
 # What are we begin asked?
-
 my $verb = $session->param( "verb" );
 
 my $NS = "http://www.openarchives.org/OAI/2.0/";
@@ -55,16 +54,58 @@ $response->appendChild(
 		"responseDate", 
 		EPrints::OpenArchives::utc_timestamp() ) );
 
+
 my @bits = ();
-foreach( $session->param ) 
+my $request_desc = $session->make_element( "request" );
+
+foreach( 
+	"verb",
+	"identifier",
+	"metadataPrefix",
+	"from",
+	"until",
+	"set",
+	"resumptionToken" )
 {
-	push @bits , "$_=".EPrints::Utils::url_escape( $session->param($_) );
+	my $value = $session->param( $_ );
+
+	# check it matches schema
+	if( $_ eq "verb" )
+	{
+		next unless( 
+			$value eq "Identify" ||
+			$value eq "GetRecord" ||
+			$value eq "ListRecords" ||
+			$value eq "ListIdentifiers" ||
+			$value eq "ListMetadataFormats" ||
+			$value eq "ListSets" );
+	}
+	if( $_ eq "identifier" )
+	{
+		next unless( $value =~ m/^[a-z]+:.*$/ );
+	}
+	if( $_ eq "metadataPrefix" )
+	{
+		next unless( $value =~ m/^[A-Za-z0-9_!'$\(\)\+\-\.\*]+$/ );
+	}
+	if( $_ eq "from" || $_ eq "until")
+	{
+		next unless( $value =~ m/^\d\d\d\d-\d\d-\d\dT(\d\d:\d\d:\d\dZ)?$/ );
+	}
+	if( $_ eq "set" )
+	{
+		next unless( $value =~ m/^([A-Za-z0-9_!'$\(\)\+\-\.\*])+(:[A-Za-z0-9_!'$\(\)\+\-\.\*]+)*$/ );
+	}
+	# if( $_ eq "resumptionToken" ) { } # just any string
+
+	# may be setting it to undef - but that won't matter as that
+	# unsets it.
+	$request_desc->setAttribute( $_, $value );
 }
-$response->appendChild( 
-	$session->render_data_element( 
-		2, 
-		"requestURL", 
-		$session->get_url()."?".join( '&', @bits ) ) );
+$request_desc->appendChild( $session->make_text( $session->get_url() ) );
+
+$response->appendChild( $session->make_indent( 2 ) );
+$response->appendChild( $request_desc );
 
 $response->appendChild(
 	render_verb( $session, $session->param( "verb" ) ) );
@@ -92,12 +133,11 @@ exit;
 # OAI 2 Error conditions:
 #
 # badArgument
-# badGranularity
 # badResumptionToken
 # badVerb
 # caonnot DisseminateFormat
 # idDoesNotExist
-# noItemsMatch
+# noRecordsMatch
 # noSetHierachy
  
 
@@ -177,17 +217,12 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"protocolVersion",
-		"2.0a3" ) );
+		"2.0" ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
 		"adminEmail",
 		"mailto:".$session->get_archive()->get_conf( "adminemail" ) ) );
-
-	$response->appendChild( $session->render_data_element(
-		4,
-		"deletedItem",
-		"persistent" ) );
 
 	# Later this may be either calcualted from the
 	# database, or configurable.
@@ -195,6 +230,11 @@ sub Identify
 		4,
 		"earliestDatestamp",
 		"0001-01-01" ) );
+
+	$response->appendChild( $session->render_data_element(
+		4,
+		"deletedRecord",
+		"persistent" ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -339,7 +379,7 @@ sub GetRecord
 
 	return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 		
-	if( !defined $session->get_archive()->get_conf( "oai", "metadata_namespaces" )->{$args->{metadataPrefix}} )
+	if( !defined $session->get_archive()->get_conf( "oai", "v2", "metadata_namespaces" )->{$args->{metadataPrefix}} )
 	{
 		return render_oai_error(
 				$session,
@@ -382,7 +422,7 @@ sub GetRecord
 	# this record, only the header will be output.
 
 	my $fn = $session->get_archive()->get_conf( 
-		"oai","metadata_functions" )->{$args->{metadataPrefix}};
+		"oai","v2","metadata_functions" )->{$args->{metadataPrefix}};
 
 	$response->appendChild( $session->make_indent( 2 ) );
 	$response->appendChild( 
@@ -469,23 +509,16 @@ sub _list
 	else
 	{
 		my $optf = [ "until", "from", "set"];
-		my $reqf = [];
-		if( $mode == 1 ) 
-		{
-			# mode 1 [ ListIdentifiers ]
-			push @{$optf}, "metadataPrefix";
-		}
-		else
-		{
-			# mode 2 [ ListRecords ]
-			push @{$reqf}, "metadataPrefix";
-		}
+		my $reqf = [ "metadataPrefix" ];
+
+		# We ignore metadataPrefix if doing ListIdentifiers
+		# which is not quite the Right Thing, but saves much CPU.
 
 		my( $args, $errors ) = get_oai_args( $session, $reqf, $optf );
 
 		return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 
-		if( defined $args->{metadataPrefix} && !defined $session->get_archive()->get_conf( "oai", "metadata_namespaces" )->{$args->{metadataPrefix}} )
+		if( defined $args->{metadataPrefix} && !defined $session->get_archive()->get_conf( "oai", "v2", "metadata_namespaces" )->{$args->{metadataPrefix}} )
 		{
 			return render_oai_error(
 				$session,
@@ -518,7 +551,7 @@ sub _list
 		{
 			return render_oai_error(
 				$session,
-				"badGranularity",
+				"badArgument",
 				"from and until dates have different granularity ($g1 and $g2)" );
 		}
 
@@ -570,8 +603,7 @@ END
 		{
 			$searchexp->add_field( 
 					$ds->get_field( "datestamp" ), 
-					$date_range,
-					"EX" );
+					$date_range );
 		}
 
 		$offset = 0;
@@ -614,7 +646,7 @@ END
 
 		return render_oai_error(
 			$session,
-			"noItemsMatch",
+			"noRecordsMatch",
 			"No items match. None. None at all. Not even deleted ones." );
 	}	
 
@@ -651,7 +683,7 @@ END
 		$response = $session->make_element( "ListRecords" );
 
 		my $fn = $session->get_archive()->get_conf( 
-			"oai","metadata_functions" )->{$metadata_format};
+			"oai","v2","metadata_functions" )->{$metadata_format};
 
 		my @records = $searchexp->get_records( $offset, $PAGESIZE );
                	my $eprint;
@@ -725,7 +757,7 @@ sub ListMetadataFormats
 
 	return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 
-	my @all_formats = keys %{$session->get_archive()->get_conf( "oai","metadata_namespaces" )};
+	my @all_formats = keys %{$session->get_archive()->get_conf( "oai", "v2","metadata_namespaces" )};
 	my @metadata_formats;
 
 	if( defined $args->{identifier} )
@@ -776,11 +808,11 @@ sub ListMetadataFormats
 		$mdf->appendChild( $session->render_data_element(
 			4,
 			"schema",
-			$session->get_archive()->get_conf( "oai","metadata_schemas" )->{$_} ) );
+			$session->get_archive()->get_conf( "oai", "v2", "metadata_schemas" )->{$_} ) );
 		$mdf->appendChild( $session->render_data_element(
 			4,
 			"metadataNamespace",
-			$session->get_archive()->get_conf( "oai","metadata_namespaces" )->{$_} ) );
+			$session->get_archive()->get_conf( "oai", "v2","metadata_namespaces" )->{$_} ) );
 		$response->appendChild( $session->make_indent( 2 ) );
 		$response->appendChild( $mdf );
 	}
@@ -993,48 +1025,52 @@ sub join_errors
 sub munge_date
 {
 	my( $string, $roundup ) = @_;
-	if( $string !~ m/^(\d\d\d\d)(-(\d\d)(-(\d\d)(T(\d\d):(\d\d)(:(\d\d(\.\d)?))?Z)?)?)?$/ )
+	if( $string !~ m/^(\d\d\d\d)-(\d\d)-(\d\d)(T(\d\d):(\d\d):(\d\d(\.\d+)?)Z)?$/ )
 	{
 		return( "", "", [render_oai_error(
 				$session,
-				"badGranularity",
+				"badArgument",
 				"not valid datetime: $string" )] );
 	}
-	my( $year, $month, $day, $hour, $min, $sec ) = ( $1 , $3 , $5 , $7, $8 , $10 );
+	my( $year, $month, $day, $hour, $min, $sec ) = ( $1 , $2 , $3 , $5, $6 , $7 );
 
 	if( defined $hour )
 	{
 		return( "", "", [render_oai_error(
 				$session,
-				"badGranularity",
+				"badArgument",
 				"Max granularity is YYYY-MM-DD: $string" )] );
 	}
 
 	my $granularity = "YYYY-MM-DD";
-	$granularity = "YYYY-MM" unless( defined $day );
-	$granularity = "YYYY" unless( defined $month );
 
-	if( !defined $month )
-	{
-		$month = ( $roundup ? 12 : 1 );
-	}
-	if( !defined $day )
-	{
-		$day = 1;
-		if( $roundup )
-		{
-			$month+=1;
-			if( $month == 13 ) { $month = 1; $year+=1; }
-			my $gt = timegm(0,0,0,$day,$month-1,$year);
-			# $gt is one month too far so we want one day less.
-			my @bits = gmtime( $gt - 24*60*60 );
-			$day = $bits[3];
-			$month = $bits[4]+1;
-			$year = $bits[5]+1900;
-		}
-	}
+	# $granularity = "YYYY-MM" unless( defined $day );
+	# $granularity = "YYYY" unless( defined $month );
+
+	# YYYY and YYYY-MM granularities disappeard between OAI2.0alpha3
+	# and OAI2.0 but I'll keep the code around just in case.
+
+#	if( !defined $month )
+#	{
+#		$month = ( $roundup ? 12 : 1 );
+#	}
+#	if( !defined $day )
+#	{
+#		$day = 1;
+#		if( $roundup )
+#		{
+#			$month+=1;
+#			if( $month == 13 ) { $month = 1; $year+=1; }
+#			my $gt = timegm(0,0,0,$day,$month-1,$year);
+#			# $gt is one month too far so we want one day less.
+#			my @bits = gmtime( $gt - 24*60*60 );
+#			$day = $bits[3];
+#			$month = $bits[4]+1;
+#			$year = $bits[5]+1900;
+#		}
+#	}
 
 	my $date = sprintf( "%04d-%02d-%02d",$year,$month,$day );
-	
+
 	return( $date, $granularity, []);
 }

@@ -225,7 +225,6 @@ sub make_header
 
 			foreach my $v ( @values )
 			{
-				print STDERR "$info->{id} a($v)\n";
 				if( $v eq "" && !$info->{allow_null} ) { next;  }
 
 				my @l;
