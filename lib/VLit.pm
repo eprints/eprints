@@ -117,11 +117,11 @@ sub ls_charrange
 
 	my $r = Apache->request;
 	
-	if( $r->content_type !~ m#^text/# )
-	{
-		send_http_error( 400, "Can't return a charrange of mimetype: ".$r->content_type );
-		return;
-	}
+#	if( $r->content_type !~ m#^text/# )
+#	{
+#		send_http_error( 400, "Can't return a charrange of mimetype: ".$r->content_type );
+#		return;
+#	}
 		
 	my( $offset, $length );
 	if( $param eq "" )
