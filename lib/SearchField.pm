@@ -53,17 +53,17 @@ my $texthelp = "Enter a term or terms to search for.  You can insist that ".
 (
 	"boolean"    => "Select a value.",
 	"email"      => "Enter some text to search for",
-	"enum"       => "Select one or more values from the list.",
-	"eprinttype" => "Select one or more values from the list.",
+	"enum"       => "Select one or more values from the list. Default is (Any).",
+	"eprinttype" => "Select one or more values from the list. Default is (Any).",
 	"multitext"  => $texthelp,
 	"multiurl"   => "Enter some text to search for",
 	"name"       => $texthelp,
 	"set"        => "Select one or more values from the list, and whether you ".
 	                "want to search for records with any one or all of those ".
-	                "values.",
+	                "values. Default is (Any).",
 	"subjects"   => "Select one or more values from the list, and whether you ".
 	                "want to search for records with any one or all of those ".
-	                "values.",
+	                "values. Default is (Any).",
 	"text"       => $texthelp,
 	"url"        => "Enter some text to search for",
 	"year"       => "Enter a single year (e.g. 1999), or a range of years, ".
@@ -453,9 +453,9 @@ sub terms_to_sql
 
 ######################################################################
 #
-# $html = render_field()
+# $html = render_html()
 #
-#  Return HTML suitable for rendering this field.
+#  Return HTML suitable for rendering an input component for this field.
 #
 ######################################################################
 
@@ -506,7 +506,7 @@ sub render_html
 		}
 		else
 		{
-			@defaults = ( "NONE" );
+			@defaults = ();
 		}
 		
 		# Make a list of possible values
@@ -549,7 +549,7 @@ sub render_html
 		}
 		else
 		{
-			@defaults = ( "NONE" );
+			@defaults = ();
 		}
 		
 		# Make a list of possible values
