@@ -1,0 +1,21 @@
+GNU EPrints README
+
+The documentation for EPrints can be found in the docs/ directory. 
+
+Documentation is available in the following formats:
+  * Plain Text
+  * PDF (Adobe Portable Document Format)
+  * Postscript - formatted with 2 manual pages per side to save paper when 
+           printing.
+  * HTML
+  * INFO 
+  * TEXINFO
+
+If you want to install without reading the documentation (are you nuts?) you
+can run:
+
+ ./configure
+ ./install.pl
+
+
+
