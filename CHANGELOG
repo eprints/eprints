@@ -995,3 +995,6 @@ before next release. (metadata types & fields)
     Citation/Parser to bundled libraries. Added a "seek" image for links
     to paracite.
 
+2002-10-29 cjg
+ - export_xml was using XML::DOM (now uses EPrints::XML)
+

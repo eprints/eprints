@@ -15,6 +15,7 @@
 ######################################################################
 
 use EPrints::Session;
+use EPrints::XML;
 #cjg Nice Command Options
 #cjg man page
 
@@ -42,7 +43,7 @@ my $sexp = EPrints::SearchExpression->new(
 		dataset => $ds , 
 		session => $session );
 $sexp->perform_search();
-my $info = { doc => XML::DOM::Document->new() };
+my $info = { doc => EPrints::XML::make_document() };
 print '<eprintsdata>'."\n";
 $sexp->map( \&deal, $info );
 print '</eprintsdata>'."\n";
