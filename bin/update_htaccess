@@ -55,7 +55,8 @@ sub update_htaccess
 		elsif( /Auth_DBI_data_source/ )
 		{
 			push @htaccess_lines, "PerlSetVar Auth_DBI_data_source   ".
-				$EPrints::Database::driver.$EPrintSite::SiteInfo::database;
+				&EPrints::Database::build_connection_string();
+
 		}
 		else
 		{

@@ -27,6 +27,20 @@ use EPrintSite::SiteInfo;
 
 use strict;
 
+# This script dosn't currently work on remote machines, which may well
+# not allow remote admin log in anyway.
+
+if ( defined $EPrintSite::SiteInfo::db_host ||
+     defined $EPrintSite::SiteInfo::db_port ) 
+{
+	print "\n";
+	print "This script currently does not work with databases\n";
+	print "not running on the default port of localhost.\n";
+	print "\n";
+	exit;
+}
+
+
 # Write the confirmation prompt
 print "This script completely erases the archive, including all metadata,\n";
 print "database tables and eprint files.\n\n";

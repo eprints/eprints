@@ -71,6 +71,31 @@ $EPrints::Database::table_deletion = "deletions";
 	"name"       => "VARCHAR(255)"
 );
 
+######################################################################
+#
+# build_connection_string()
+#
+#  Build the string to use to connect via DBI
+#
+######################################################################
+
+sub build_connection_string
+{
+        # build the connection string
+        my $dsn = $EPrints::Database::driver.
+                "database=".$EPrintSite::SiteInfo::database;
+        if (defined $EPrintSite::SiteInfo::db_host)
+        {
+                $dsn.= ";host=".$EPrintSite::SiteInfo::db_host;
+        }
+        if (defined $EPrintSite::SiteInfo::db_port)
+        {
+                $dsn.= ";port=".$EPrintSite::SiteInfo::db_port;
+        }
+        return $dsn;
+}
+
+
 
 ######################################################################
 #
@@ -87,25 +112,11 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-
-	# build the connection string
-	my $dsn = $EPrints::Database::driver.
-		"database=".$EPrintSite::SiteInfo::database;
-	if (defined $EPrintSite::SiteInfo::db_host)
-	{
-		$dsn.= ";host=".$EPrintSite::SiteInfo::db_host;
-	}
-	if (defined $EPrintSite::SiteInfo::db_port)
-	{
-		$dsn.= ";port=".$EPrintSite::SiteInfo::db_port;
-	}
-
 	# Connect to the database
-	$self->{dbh} = DBI->connect( $dsn,
+	$self->{dbh} = DBI->connect( &EPrints::Database::build_connection_string,
 	                             $EPrintSite::SiteInfo::username,
 	                             $EPrintSite::SiteInfo::password,
 	                             { PrintError => 1, AutoCommit => 1 } );
-
 
 #	                             { PrintError => 0, AutoCommit => 1 } );
 
