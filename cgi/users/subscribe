@@ -32,7 +32,7 @@ if( !defined $user )
 	# Can't find the user
 	$session->{render}->render_error( 
 		$session->{lang}->phrase( "cgi/users/subscribe:dont_know_you" ),
-	        $session->get_archive()->{frontpage} );
+	        $session->get_archive()->get_conf( "frontpage" ) );
 	$session->terminate();
 	Apache::exit( 0 );
 }
@@ -82,7 +82,7 @@ elsif( defined $action && $action eq $action_create )
 	{		
 		$session->{render}->render_error(
 			$session->{lang}->phrase( "cgi/users/subscribe:mk_sub_error" ),
-			"$session->get_archive()->{server_perl}/users/home",
+			$session->get_archive()->get_conf( "server_perl" )."/users/home",
 			$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
 	}
 	else
@@ -105,7 +105,7 @@ elsif( defined $action && $action eq $action_remove )
 		{
 			$session->{render}->render_error(
 				$session->{lang}->phrase( "cgi/users/subscribe:rm_sub_error" ),
-				"$session->get_archive()->{server_perl}/users/home",
+				$session->get_archive()->get_conf( "server_perl" )."/users/home",
 				$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
 		}
 	}
@@ -232,7 +232,7 @@ sub update_subscription
 		print "<CENTER><P><STRONG>";
 		print $session->{lang}->phrase( "cgi/users/subscribe:sub_accept" );
 		print "</STRONG></P></CENTER>";
-		print "<CENTER><P><A HREF=\"$session->get_archive()->{server_perl}/users/home\">";
+		print "<CENTER><P><A HREF=\"".$session->get_archive()->get_conf( "server_perl" )."/users/home\">";
 		print $session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" );
 		print "</A></P></CENTER>\n";
 		print $session->{render}->end_html();
@@ -241,7 +241,7 @@ sub update_subscription
 	{
 		$session->{render}->render_error(
 			$session->{lang}->phrase( "cgi/users/subscribe:ud_sub_error" ),
-			"$session->get_archive()->{server_perl}/users/home",
+			$session->get_archive()->get_conf( "server_perl ")."/users/home",
 			$session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" ) );
 	}
 }

@@ -313,7 +313,7 @@ sub _write_version_thread_aux
 	
 	# Write the citation
 	my $citation_spec =
-		$self->{session}->get_archive()->{thread_citation_specs}->{$field->{name}};
+		$self->{session}->get_archive()->get_conf( "thread_citation_specs" )->{$field->{name}};
 
 	$html .= EPrints::Citation::render_citation( $eprint->{session},
 	                                             $citation_spec,

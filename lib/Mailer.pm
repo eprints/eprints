@@ -37,17 +37,17 @@ sub send_mail
 {
 	my( $session, $name, $address, $subject, $body ) = @_;
 
-	open( SENDMAIL, "|$session->get_archive()->{sendmail}" )
+	open( SENDMAIL, "|".$session->get_archive()->get_conf( "sendmail" ) )
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";
-From: $session->get_archive()->get_conf( "sitename" ) <$session->get_archive()->{admin}>
+From: $session->get_archive()->get_conf( "sitename" ) <$session->get_archive()->get_conf( "admin" )>
 To: $name <$address>
-Subject: $session->get_archive()->( "sitename" ): $subject
+Subject: $session->get_archive()->get_conf( "sitename" ): $subject
 
 $body
 
-$session->get_archive()->{signature}
+$session->get_archive()->get_conf( "signature" )
 EOF
 
 	close(SENDMAIL) or return( 0 );

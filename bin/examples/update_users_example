@@ -36,24 +36,24 @@ open( PASSWD, "/etc/password" ) ||
 	die( "Couldn't open password file" );
 
 my %passfile = ();
-while( <PASSWD> ) 
+while( $currline = <PASSWD> ) 
 {
-	my @data = split( ":" );
+	my @data = split( ":" , $currline );
 	$passfile{$data[0]} = $_;
 }
 close PASSWD;
 
-my @foo = EPrints::User::retrieve_users( $session , undef , undef );
-foreach( @foo ) 
+my @users = EPrints::User::retrieve_users( $session , undef , undef );
+foreach $user ( @users ) 
 {
-	if ( defined $passfile{$_->{username}} )
+	if ( defined $passfile{$user->{username}} )
 	{
-		my @data = split( ":" , $passfile{$_->{username}} );
-		$_->{passwd} = $data[1];
+		my @data = split( ":" , $passfile{$user->{username}} );
+		$user->{passwd} = $data[1];
 		my $name = $data[4];
 		$name =~ s/^(.*) ([^ ]+)$/$2,$1/;
-		$_->{name} = ":$name:";
-		delete $passfile{$_->{username}};
+		$user->{name} = ":$name:";
+		delete $passfile{$user->{username}};
 	}
 	else
 	{
@@ -63,15 +63,15 @@ foreach( @foo )
 
 		# We'll remove their password but leave their info
 		# in the system.
-		$_->{passwd} = "-CLAMPED-";
+		$user->{passwd} = "-CLAMPED-";
 	}
-	if ( $_->commit ) 
+	if ( $user->commit ) 
 	{
-		print "MODIFIED USER: $_->{username}\n";
+		print "MODIFIED USER: $user->{username}\n";
 	} 
 	else
 	{
-		print "MODIFIED TO ADD USER: $_->{username}\n";
+		print "MODIFIED TO ADD USER: $user->{username}\n";
 	} 
 	print "\n";
 }

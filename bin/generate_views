@@ -53,13 +53,13 @@ foreach $langid ( keys %EPrints::Site::General::languages )
 
 	# Now do each of the subjects
 
-	foreach (@$subjects)
+	foreach $subject (@$subjects)
 	{
 		&write_subject_view( 
 			$session, 
 			$langid, 
-			$dir."/".$_->{subjectid}.".html",
-			$_ );
+			$dir."/".$subject->{subjectid}.".html",
+			$subject );
 	}
 }
 

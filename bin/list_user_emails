@@ -26,9 +26,9 @@ exit unless( defined $session );
 
 my @users = EPrints::User::retrieve_users( $session );
 
-foreach (@users)
+foreach $user (@users)
 {
-	print $_->{email} . "\n";
+	print $user->{email} . "\n";
 }
 
 $session->terminate();

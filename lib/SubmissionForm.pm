@@ -1175,7 +1175,7 @@ sub _do_stage_format
 	print "<P><CENTER>";
 	print $self->{session}->phrase("lib/submissionform:valid_formats");
 
-	if( @{$self->{session}->get_archive()->{required_formats}} >= 0 )
+	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
 	{
 		print $self->{session}->phrase("lib/submissionform:least_one");
 	}
@@ -1228,7 +1228,7 @@ sub _do_stage_fileview
 		"graburl" => $self->{session}->phrase("lib/submissionform:grab_url")
 	);
 
-	foreach (@{$self->{session}->get_archive()->{supported_archive_formats}})
+	foreach (@{$self->{session}->get_archive()->get_conf( "supported_archive_formats" )})
 	{
 		push @arc_formats, $_;
 		$arc_labels{$_} = EPrints::Document::archive_name( 
@@ -1486,8 +1486,8 @@ sub _do_stage_verify
 	
 		print "<HR>\n";
 
-		print $self->{session}->get_archive()->{deposit_agreement_text}."\n"
-			if( defined $self->{session}->get_archive()->{deposit_agreement_text} );
+		print $self->{session}->get_archive()->get_conf ("deposit_agreement_text" )."\n"
+			if( defined $self->{session}->get_archive()->get_conf( "deposit_agreement_text" ) );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
@@ -2110,7 +2110,7 @@ sub _render_format_form
 		"</STRONG></TH></TR>\n";
 	
 	my $f;
-	foreach $f (@{$self->{session}->get_archive()->{supported_formats}})
+	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
 	{
 		my $req = EPrints::Document::required_format( $self->{session} , $f );
 		my $doc = $self->{eprint}->get_document( $f );
@@ -2139,7 +2139,7 @@ sub _render_format_form
 		print "</TD></TR>\n";
 	}
 
-	if( $self->{session}->get_archive()->{allow_arbitrary_formats} )
+	if( $self->{session}->get_archive()->get_conf( "allow_arbitrary_formats" ) )
 	{
 		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
 		my $othername = "Other";
@@ -2189,7 +2189,7 @@ sub _update_from_format_form
 	my $f;
 
 # what about arbitary formats?
-	foreach $f (@{$self->{session}->get_archive()->{supported_formats}})
+	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
 	{
 		return( $f, "edit" )
 			if( defined $self->{session}->{render}->param( "edit_$f" ) );

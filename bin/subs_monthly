@@ -32,7 +32,7 @@ exit unless( defined $session );
 
 my @subs = EPrints::Subscription::get_monthly( $session );
 
-foreach (@subs)
+foreach $sub (@subs)
 {
-	$_->process();
+	$sub->process();
 }

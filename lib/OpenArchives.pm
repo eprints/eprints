@@ -171,7 +171,7 @@ sub write_record_header
 	$writer->dataElement(
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier( 
-			$session->get_archive()->{oai_archive_id},
+			$session->get_archive()->get_conf( "oai_archive_id" ),
 			$eprint_id ) );
 	
 	$writer->dataElement( "datestamp",
@@ -213,7 +213,7 @@ sub from_oai_identifier
 	my( $session , $oai_identifier ) = @_;
 	
 	if( $oai_identifier =~
-		/^oai:$session->get_archive()->{oai_archive_id}:($session->get_archive()->{eprint_id_stem}\d+)$/ )
+		/^oai:$session->get_archive()->get_conf( "oai_archive_id" ):($session->get_archive()->get_conf( "eprint_id_stem" )\d+)$/ )
 	{
 		return( $1 );
 	}
@@ -239,7 +239,7 @@ sub get_eprint_metadata
 {
 	my( $eprint, $metadataFormat ) = @_;
 	
-	if( defined $eprint->{session}->get_archive()->{oai_metadata_formats}->{$metadataFormat} )
+	if( defined $eprint->{session}->get_archive()->get_conf( "oai_metadata_formats" )->{$metadataFormat} )
 	{
 		my %md = $eprint->{session}->get_archive()->oai_get_eprint_metadata(
 			$eprint,

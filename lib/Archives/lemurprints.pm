@@ -1407,7 +1407,7 @@ sub eprint_render_full
 	#my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	#if( defined $user )
 	#{
-		#$html .= "<A href=\"$eprint->{session}->get_archive()->{server_perl}/user?username=".
+		#$html .= "<A href=\"".$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?username=".
 			#$user->{username}."\">".$user->full_name()."</A>";
 	#}
 	#else
@@ -1798,7 +1798,7 @@ sub oai_list_metadata_formats
 	
 	# This returns the list of all metadata formats, suitable if we
 	# can export any of those metadata format for any record.
-	return( keys %{$eprint->{session}->get_archive()->{oai_metadata_formats}} );
+	return( keys %{$eprint->{session}->get_archive()->get_conf( "oai_metadata_formats" )} );
 }
 
 

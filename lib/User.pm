@@ -354,7 +354,7 @@ sub send_introduction
 		$self->{email},
 		$self->{session}->phrase( "lib/user:welcome", 
 		                          sitename=>$self->{session}->get_archive()->get_conf( "sitename" ) ),
-		$self->{session}->get_archive()->{template_user_intro},
+		$self->{session}->get_archive()->get_conf( "template_user_intro" ),
 		$self ) );
 }
 
@@ -380,7 +380,7 @@ sub send_reminder
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},
-		 adminemail=>$self->{session}->get_archive()->{admin}  );
+		 adminemail=>$self->{session}->get_archive()->get_conf( "admin" )  );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},

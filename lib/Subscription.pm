@@ -98,7 +98,7 @@ sub new
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
 		$self->{session},
 		"eprint",
-		$self->{session}->get_archive()->{subscription_fields} );
+		$self->{session}->get_archive()->get_conf( "subscription_fields" ) );
 
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(

@@ -78,7 +78,7 @@ if( defined $userid )
 	{
 		print $session->{render}->render_error(
 			$session->{lang}->phrase( "cgi/user_eprints:unknown_user" ),
-			$session->get_archive()->{frontpage},
+			$session->get_archive()->get_conf( "frontpage" ),
 			$session->{lang}->phrase( "cgi/user_eprints:return_front" ) );
 	}
 }
@@ -86,7 +86,7 @@ else
 {
 	print $session->{render}->render_error(
 		$session->{lang}->phrase( "cgi/user_eprints:no_user" ),
-		$session->get_archive()->{frontpage},
+		$session->get_archive()->get_conf( "frontpage" ),
 		$session->{lang}->phrase( "cgi/user_eprints:return_front" ) );
 }
 

@@ -120,9 +120,9 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				generate_dtd( $session, $langid )." ] >\n";
 print "$xhtml\n\n";
 			open( XML , $File::Find::name );
-			while( <XML> )
+			while( $xmlline = <XML> )
 			{
-				$xhtml .= $_;
+				$xhtml .= $xmlline;
 			}	
 			close XML;
 			my $doc = eval { 

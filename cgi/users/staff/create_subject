@@ -92,7 +92,7 @@ if( $created_ok )
 {
 	print "<CENTER><P>Subject successfully added!</P></CENTER>\n";
 	
-	print "<CENTER><P><A HREF=\"$session->get_archive()->{server_static}/staff\">".
+	print "<CENTER><P><A HREF=\"".$session->get_archive()->get_conf( "server_static" )."/staff\">".
 		"Click here to return to the staff area</A></P></CENTER>";
 }
 else

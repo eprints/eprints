@@ -25,7 +25,7 @@ use strict;
 my $session = new EPrints::Session;
 
 my @search_fields = ( "eprintid", "username", "dir" );
-push @search_fields, @{$session->get_archive()->{advanced_search_fields}};
+push @search_fields, @{$session->get_archive()->get_conf( "advanced_search_fields" )};
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
@@ -40,7 +40,7 @@ my $searchform = new EPrints::SearchForm(
 	\@metafields,
 	"Staff EPrint Search",
 	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
-		" blank. <A HREF=\"$session->get_archive()->{server_static}/staff/\">".
+		" blank. <A HREF=\"".$session->get_archive()->get_conf( "server_static ")."/staff/\">".
 		"Click here to return to the staff page.</A></P></CENTER>",
 	1 );
 

@@ -89,7 +89,7 @@ if( $valid_user )
 	#print "</A></STRONG></DT>\n";
 	#print "<DD><P>";
 	#$session->{lang}->phrase( "cgi/users/home:review_info" );
-	#if( $session->get_archive()->{allow_user_removal} ) {
+	#if( $session->get_archive()->get_conf( "allow_user_removal" ) ) {
 		#$session->{lang}->phrase( "cgi/users/home:remove_info" );
 	#}
 	#print "</P></DD>\n";

@@ -1166,7 +1166,7 @@ sub local_path
 {
 	my( $self ) = @_;
 	
-	return( "$self->{session}->get_archive()->{local_document_root}/$self->{dir}" );
+	return( $self->{session}->get_archive()->get_conf( "local_document_root" )."/$self->{dir}" );
 }
 
 

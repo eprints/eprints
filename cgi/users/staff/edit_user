@@ -61,7 +61,7 @@ if( defined $user )
 
 			print "<CENTER><P>User has been deleted.</P></CENTER>\n";
 			print "<CENTER><P><A HREF=\"".
-				"$session->get_archive()->{server_static}/staff\">".
+				$session->get_archive()->get_conf( "server_static ")."/staff\">".
 				"Click here to return to staff area</A></P></CENTER>\n";
 
 			print $session->{render}->end_html();
@@ -70,20 +70,20 @@ if( defined $user )
 		{
 			$session->{render}->render_error(
 				"Couldn't remove user! Check logs for details.",
-				"$session->get_archive()->{server_static}/staff",
+				$session->get_archive()->get_conf( "server_static" )."/staff",
 				"Return to staff area" );
 		}
 	}
 	elsif( $submit eq "Cancel" )
 	{
 		$session->{render}->redirect(
-			"$session->get_archive()->{server_static}/staff" );
+			$session->get_archive()->get_conf( "server_static" )."/staff" );
 	}
 	else
 	{
 		my $userform = new EPrints::UserForm(
 			$session,
-			"$session->get_archive()->{server_static}/staff",
+			$session->get_archive()->get_conf( "server_static" )."/staff",
 			1,
 			$user );
 
@@ -94,7 +94,7 @@ else
 {
 	$session->{render}->render_error( 
 		"Error accessing user record or user not specified",
-		"$session->get_archive()->{server_static}/staff",
+		$session->get_archive()->get_conf( "server_static" )."/staff",
 		"Return to staff area" );
 }
 

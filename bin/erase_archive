@@ -98,11 +98,11 @@ if( $input eq "yes" )
 	closedir DOCSTORE;
 
 	# Remove the contents of each of the directories.
-	foreach (@avail)
+	foreach $dir (@avail)
 	{
 		$rc = 0xffff & system(
-			"rm -rf $local_document_root/$_/*" );
-		print STDERR "Warning: Cleaning $local_document_root/$_ didn't go smoothly\n"
+			"rm -rf $local_document_root/$dir/*" );
+		print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n"
 			unless( $rc==0 );
 	}
 
