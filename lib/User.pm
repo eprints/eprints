@@ -38,14 +38,14 @@ sub get_system_field_info
 
 		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"password", type=>"secret" },
+		{ name=>"password", type=>"secret", fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"usertype", type=>"datatype", required=>1, 
 			datasetid=>"user" },
 	
 		{ name=>"newemail", type=>"email" },
 	
-		{ name=>"newpassword", type=>"text" },
+		{ name=>"newpassword", type=>"secret", fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"pin", type=>"text" },
 
@@ -58,7 +58,7 @@ sub get_system_field_info
 		{ name=>"email", type=>"email", required=>1 },
 
 		{ name=>"lang", type=>"datatype", required=>0, 
-			datasetid=>"arclanguage" }
+			datasetid=>"arclanguage", input_rows=>1 }
 	)
 };
 

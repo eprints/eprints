@@ -9,9 +9,6 @@ General
 - No subjects at all causes a HTTP error. Possibly due to the top 
    subject for a field not existing.
 
-- passwords set via the web are not crypted until they are accepted.
-(No loss of security from eprints-1 but annoying)
-
 ----------------------------------------------------------------------
 Rendering
 ----------------------------------------------------------------------
@@ -27,8 +24,6 @@ Apache Configuration & Page Serving
 Searching
 ----------------------------------------------------------------------
 
-- Web based search failing to use the cache.
-
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
@@ -38,9 +33,6 @@ EPrints Submission Form
 
 - weird bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
-
-- no way to unselect a month (set) when it's not multiple. OK for required
-   fields but bad otherwise.
 
 ----------------------------------------------------------------------
 Installation
@@ -113,6 +105,17 @@ now it dup's the data first]
 - does not appear to remove eprint from ordervalues table if it is
    removed. [fixed]
 - chris is still sober on his birthday [fixed]
+
+FIXED: 04/02
+- Web based search failing to use the cache.
+- did not see "all" fields on system view on some eprints. [not actually
+a bug, it had an invalid "type" so had no fields!]
+- no way to unselect a month (set) when it's not multiple. OK for required
+   fields but bad otherwise.
+- passwords set via the web are not crypted until they are accepted.
+(No loss of security from eprints-1 but annoying). [Now they are crypted
+straight away.]
+
 
 
 

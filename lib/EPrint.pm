@@ -1026,9 +1026,9 @@ sub generate_static
 		};
 
 		$self->{session}->new_page();
-		my( $page, $title ) = $self->render();
+		my( $page, $title, $links ) = $self->render();
 
-		$self->{session}->build_page( $title, $page ); #cjg title?
+		$self->{session}->build_page( $title, $page, $links );
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
 
@@ -1054,7 +1054,7 @@ sub render
 {
         my( $self ) = @_;
 
-        my( $dom, $title );
+        my( $dom, $title, $links );
 	my $ds_id = $self->{dataset}->id();
 	if( $ds_id eq "deletion" )
 	{
@@ -1073,10 +1073,14 @@ sub render
 	}
 	else
 	{
-		($dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session} );
+		($dom, $title, $links ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session} );
+	}
+	if( !defined $links )
+	{
+		$links = $self->{session}->make_doc_fragment();
 	}
 	
-        return( $dom, $title );
+        return( $dom, $title, $links );
 }
 
 # This should include all the info, not just that presented to the public.

@@ -1,9 +1,5 @@
 ######################################################################
 #
-# cjg: NO INTERNATIONAL GUBBINS YET
-#
-######################################################################
-#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.

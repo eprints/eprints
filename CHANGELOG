@@ -281,3 +281,25 @@ ordering works.
  - undefined phrases now get mentioned in the log.
  - fixed typo in MetaField EPrint:: should have been EPrints::
 
+04/02/2002
+ - passwords are now encrypted as they come from the form not as they go
+into the DB! subtle but important change. They are also crypted when they
+come from bin/create_user. Web based signup always crypts now.
+ - icky SQL in cgi/confirm to swap around values from newpassword/newemail to
+password/email. 
+ - added an "unspecified" option to sets and subjects which are not multiple
+or required so you can unselect them again if needed.
+ - web based searches now use the cache again.
+[C] - moved the eprints to unqualified DC code in OAIConfig to its own
+function so that it can also be used to make metadata on abstract pages.
+[C] - render_eprint can now optionally return a 3rd values, a list of 
+links and metadata which it uses the DC maker in OAIConfig to make DC.foo
+meta fields in the page header.
+[C] - the suggestions field now renders in its own box to make it clear what
+it is.
+[C] - input_rows on the month field set to 1 so it becomes a pull-down.
+[C] - ruler.xml now uses the entities.dtd file, not that it'll ever matter!
+- added "-" to escaped values in LIKE params.
+- moved "next" on search page to the right end of the list so it does
+not get as confusing when you goto page 2.
+

@@ -94,12 +94,15 @@ sub process
 		# Update the user values
 
 		# Validate the changes
+		$self->{user}->commit();
+		$self->{user} = EPrints::User->new( 
+			$self->{session}, 
+			$self->{user}->get_value( "userid" ) );
 		my $problems = $self->{user}->validate();
 
 		if( scalar @{$problems} == 0 )
 		{
 			# User has entered everything OK
-			$self->{user}->commit();
 			$self->{session}->redirect( $self->{redirect} );
 			return;
 		}
@@ -128,9 +131,7 @@ sub process
 		$page->appendChild( $self->_render_user_form() );
 
 		$self->{session}->build_page(
-			$self->{session}->
-				phrase( "lib/userform:record_for", name => $full_name ),
-			$page );
+			$self->{session}->html_phrase( "lib/userform:record_for", name => $full_name ), $page );
 		$self->{session}->send_page();
 	}
 	else 

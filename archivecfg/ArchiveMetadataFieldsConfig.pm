@@ -91,7 +91,7 @@ $fields->{eprint} = [
 
 	{ name => "keywords", type => "longtext", input_rows => 2 },
 
-	{ name => "month", type => "set",
+	{ name => "month", type => "set", input_rows => 1,
 		options => [ "jan","feb","mar","apr","may","jun",
 			"jul","aug","sep","oct","nov","dec" ] },
 
@@ -228,20 +228,6 @@ sub set_user_automatic_fields
 {
 	my( $user ) = @_;
 
-	# Because password is a "secret" field, it is only set if it
-	# is being changed - therefor if it's set we need to crypt
-	# it. This could do something different like MD5 it (if you have
-	# the appropriate authentication module.)
-	# It could even access an external system to set the password
-	# there and then set the value inside this system to undef.
-	if( $user->get_value( "password" ) )
-	{
-		my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
-		my $pass = $user->get_value( "password" );
-		my $salt = $saltset[time % 64] . $saltset[(time/64)%64];
-		my $cryptpass = crypt($pass,$salt);
-		$user->set_value( "password", $cryptpass );
-	}
 }
 
 sub set_document_automatic_fields

@@ -679,7 +679,16 @@ sub render_input_field
 			my ( $pairs ) = $topsubj->get_subjects( 
 				!($self->{showall}), 
 				$self->{showtop} );
-			$settings{pairs} = $pairs;
+			if( !$self->get_property( "multiple" ) && !$self->get_property( "required" ) )
+			{
+				# If it's not multiple and not required there must be a
+				# way to unselect it.
+				$settings{pairs} = [ [ "", $session->phrase( "lib/metafield:unspecified" ) ], @{$pairs} ];
+			}
+			else
+			{
+				$settings{pairs} = $pairs;
+			}
 		} else {
 			my($tags,$labels);
 			if( $self->is_type( "set" ) )
@@ -697,9 +706,18 @@ sub render_input_field
 				$tags = $ds->get_types();
 				$labels = $ds->get_type_names( $session );
 			}
-			$settings{values} = $tags;
-			$settings{labels} = $labels;
-
+			if( !$self->get_property( "multiple" ) && !$self->get_property( "required" ) )
+			{
+				# If it's not multiple and not required there must be a
+				# way to unselect it.
+				$settings{values} = [ "", @{$tags} ];
+				$settings{labels} = { ""=>$session->phrase( "lib/metafield:unspecified" ), %{$labels} };
+			}
+			else
+			{
+				$settings{values} = $tags;
+				$settings{labels} = $labels;
+			}
 		}
 		$html->appendChild( $session->render_option_list( %settings ) );
 

@@ -466,10 +466,16 @@ sub get_cache_id
 	return $self->{cache_id};
 }
 
-# is max still used? cjg
 sub perform_search
 {
-	my( $self, $max ) = @_;
+	my( $self ) = @_;
+	$self->{ignoredwords} = [];
+	$self->{error} = undef;
+
+	if( $self->{use_cache} && !defined $self->{cache_id} )
+	{
+		$self->{cache_id} = $self->{session}->get_db()->cache_id( $self->serialise() );
+	}
 
 	if( defined $self->{cache_id} )
 	{
@@ -479,8 +485,6 @@ sub perform_search
 
 	my $matches = [];
 	my $firstpass = 1;
-	$self->{ignoredwords} = [];
-	$self->{error} = undef;
 	my @searchon = ();
 	my $search_field;
 	foreach $search_field ( @{$self->{searchfields}} )
@@ -522,14 +526,6 @@ sub perform_search
 	}
 	else
 	{
-		if( $max && scalar @{$matches} > $max )
-		{
-			$self->{realmatches} = scalar @{$matches};
-			$self->{overlimit} = 1;
-			# remove anything 
-			splice( @{$matches}, $max );
-		}
-
 		$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
 	}
 
@@ -568,7 +564,6 @@ sub perform_search
 			$order,
 			!$self->{use_cache} ); # only public if use_cache
 	}
-	
 }
 
 sub _merge
@@ -866,20 +861,6 @@ sub process_webpage
 							rel=>"Prev",
 							href=>$href ) );
 		}
-		if( $offset + $pagesize < $n_results )
-		{
-			my $href="$url?_exp=$escexp&_offset=".($offset+$pagesize);
-			$a = $self->{session}->make_element( "a", href=>$href );
-			my $nn = $n_results - $offset - $pagesize;
-			$nn = $pagesize if( $pagesize < $nn);
-			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
-						n=>$self->{session}->make_text( $nn ) ) );
-			$controls->appendChild( $a );
-			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
-			$links->appendChild( $self->{session}->make_element( "link",
-							rel=>"Next",
-							href=>$href ) );
-		}
 
 		$a = $self->{session}->make_element( "a", href=>"$url?_exp=$escexp&_action_update=1" );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:refine" ) );
@@ -889,6 +870,21 @@ sub process_webpage
 		$a = $self->{session}->make_element( "a", href=>$url );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:new" ) );
 		$controls->appendChild( $a );
+
+		if( $offset + $pagesize < $n_results )
+		{
+			my $href="$url?_exp=$escexp&_offset=".($offset+$pagesize);
+			$a = $self->{session}->make_element( "a", href=>$href );
+			my $nn = $n_results - $offset - $pagesize;
+			$nn = $pagesize if( $pagesize < $nn);
+			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
+						n=>$self->{session}->make_text( $nn ) ) );
+			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+			$controls->appendChild( $a );
+			$links->appendChild( $self->{session}->make_element( "link",
+							rel=>"Next",
+							href=>$href ) );
+		}
 
 		$page->appendChild( $controls );
 

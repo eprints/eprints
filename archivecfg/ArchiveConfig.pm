@@ -309,7 +309,7 @@ $c->{submission_hide_security} = 0;
 # operate in a single language. 
 # It will disable the following:
 # -cjg Stuff...
-$c->{multi_language_options} = 1;
+$c->{multi_language_options} = 0;
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
@@ -443,9 +443,14 @@ my $connect_string = EPrints::Database::build_connection_string(
 	dbhost  =>  $c->{dbhost}  );
 
 # By default all users authenticate with the AuthDBI module,
-# using passwords encoded with crypt. $CRYPTED_DBI contains
+# using passwords in UNIX crypt format. $AUTH_DBI contains
 # the info EPrints needs to call AuthDBI and is used below
 # to set userauth.
+#
+# Parameters other than "handler" are seen by AuthDBI 
+# as if they came from the .htaccess file. You can use any
+# mod_perl authentication module in this manner, or write
+# your own.
 
 my $userdata = EPrints::DataSet->new_stub( "user" );
 my $CRYPTED_DBI = {

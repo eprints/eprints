@@ -2,12 +2,6 @@
 
 ######################################################################
 #
-#  List the emails of all archive users
-#
-#  Usage: list_user_emails
-#
-######################################################################
-#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
@@ -15,6 +9,7 @@
 # __LICENSE__
 #
 ######################################################################
+# cjg not supported yet.
 
 use EPrints::Session;
 use EPrints::User;

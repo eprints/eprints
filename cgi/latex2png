@@ -1,4 +1,16 @@
-# cjg comment me
+######################################################################
+#
+#  Turn a latex string into a PNG
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 
 use EPrints::Session;
 

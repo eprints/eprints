@@ -740,5 +740,19 @@ sub clone
 	return $data;			
 }
 
+sub crypt_password
+{
+	my( $value, $session ) = @_;
+
+	return unless EPrints::Utils::is_set( $value );
+
+	my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
+	my $salt = $saltset[time % 64] . $saltset[(time/64)%64];
+	my $cryptpass = crypt($value ,$salt);
+
+	return $cryptpass;
+}
+
+
 
 1;

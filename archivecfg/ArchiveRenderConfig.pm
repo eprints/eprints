@@ -40,8 +40,9 @@
 # $session
 # - the current EPrints::Session
 #
-# returns: ( $xhtmlfragment, $title )
-# - a pair of XHTML DOM fragments - the page and the title.
+# returns: ( $xhtmlfragment, $title, $links )
+# - 3 XHTML DOM fragments - the page, the title and (optionally) the
+# metadata links to place in the webpage header.
 ######################################################################
 # This subroutine takes an eprint object and renders the XHTML view
 # of this eprint for public viewing.
@@ -229,7 +230,23 @@ sub eprint_render
 
 	my $title = $eprint->render_description();
 
-	return( $page, $title );
+	my $links = $session->make_doc_fragment();
+	# This function is in ArchiveOAIConfig.pm, but using it here
+	# saves duplicating code.
+	$links->appendChild( $session->make_element( 
+		"link",
+		rel => "schema.DC",
+		href => "http://purl.org/DC/elements/1.0/" ) );
+	my @dc = eprint_to_unqualified_dc( $eprint, $session );
+	foreach( @dc )
+	{
+		$links->appendChild( $session->make_element( 
+			"meta",
+			name => "DC.".$_->[0],
+			content => $_->[1] ) );
+	}
+
+	return( $page, $title, $links );
 }
 
 ######################################################################
@@ -274,6 +291,22 @@ sub eprint_render_full
 	$table->appendChild( $tr );
 	$tr->appendChild( $td );
 	$td->appendChild( $abstractpage );
+
+
+	if( $eprint->is_set( "suggestions" ) )
+	{
+		$table = $session->make_element( "table", border=>1, cellpadding=>20 );
+		$page->appendChild( $session->html_phrase( "page:suggestions_intro" ) );
+		$page->appendChild( $table );
+	
+		$tr = $session->make_element( "tr" );
+		$td = $session->make_element( "td" );
+		$table->appendChild( $tr );
+		$tr->appendChild( $td );
+		$td->appendChild( $eprint->render_value( "suggestions" ) );
+	}
+
+
 
 	# Show all the other fields
 	$page->appendChild( $session->html_phrase( 

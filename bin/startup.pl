@@ -2,10 +2,6 @@ use lib '/opt/eprints/perl_lib';
 
 ######################################################################
 #
-# COMMENTME
-#
-######################################################################
-#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.

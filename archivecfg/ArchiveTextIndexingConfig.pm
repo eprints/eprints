@@ -79,7 +79,7 @@ my $FREETEXT_CHAR_MAPPING = {
 	latin1("×") => "x",	latin1("Ø") => "O",	
 	latin1("Ù") => "U",	latin1("Ú") => "U",	
 	latin1("Û") => "U",	latin1("Ü") => "U",	
-	latin1("Ý") => "Y",	latin1("Þ") => "b",	
+	latin1("Ý") => "Y",	latin1("Þ") => "th",	
 	latin1("ß") => "B",	latin1("à") => "a",	
 	latin1("á") => "a",	latin1("â") => "a",	
 	latin1("ã") => "a",	latin1("ä") => "a",	
@@ -95,7 +95,7 @@ my $FREETEXT_CHAR_MAPPING = {
 	latin1("÷") => "/",	latin1("ø") => "o",	
 	latin1("ù") => "u",	latin1("ú") => "u",	
 	latin1("û") => "u",	latin1("ü") => "u",	
-	latin1("ý") => "y",	latin1("þ") => "B",	
+	latin1("ý") => "y",	latin1("þ") => "TH",	
 	latin1("ÿ") => "y",	latin1("'") => "" };
 
 

@@ -153,11 +153,18 @@ return $oai; }
 # If supporting other metadata formats, it's probably best to start
 # by copying this method, and modifying it.
 #
+# It uses a seperate function to actually map to the DC, this is
+# so it can be called by the metadata_links function in the 
+# ArchiveRenderConfig.pm - saves having to map it to unqualified
+# DC in two places.
+#
 ######################################################################
 
 sub make_metadata_oai_dc
 {
 	my( $eprint, $session ) = @_;
+
+	my @dcdata = &eprint_to_unqualified_dc( $eprint, $session );
 
 	my $archive = $session->get_archive();
 
@@ -178,17 +185,58 @@ sub make_metadata_oai_dc
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation" => $namespace." ".$schema );
 
-	my @dcdata = [];
+	# turn the list of pairs into XML blocks (indented by 8) and add them
+	# them to the DC element.
+	foreach( @dcdata )
+	{
+		$dc->appendChild(  $session->render_data_element( 8, $_->[0], $_->[1] ) );
+		# produces <key>value</key>
+	}
+
+	return $dc;
+}
+
+######################################################################
+#
+# $dc = eprint_to_unqualified_dc( $eprint, $session )
+#
+######################################################################
+# $eprint
+# - the EPrints::EPrint to be converted
+# $session
+# - the current EPrints::Session
+#
+# returns: array of array refs. 
+# - the array refs are 2 item arrays containing dc fieldname and value
+# eg. [ "title", "Bacon and Toast Experiments" ]
+######################################################################
+# This function is called by make_metadata_oai_dc and metadata_links.
+#
+# It maps an EPrint object into unqualified dublincore. 
+#
+# It is not called directly from the EPrints system.
+#
+######################################################################
+
+sub eprint_to_unqualified_dc
+{
+	my( $eprint, $session ) = @_;
+
+	my @dcdata = ();
 	push @dcdata, [ "title", $eprint->get_value( "title" ) ]; 
 	
 	# grab the authors without the ID parts so if the site admin
 	# sets or unsets authors to having and ID part it will make
 	# no difference to this bit.
 
-	my $author;
-	foreach $author ( @{$eprint->get_value( "authors", 1 )} )
+	my $authors = $eprint->get_value( "authors", 1 );
+	if( defined $authors )
 	{
-		push @dcdata, [ "creator", EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ];
+		my $author;
+		foreach $author ( @{$authors} )
+		{
+			push @dcdata, [ "creator", EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ];
+		}
 	}
 
 	my $subjectid;
@@ -202,37 +250,34 @@ sub make_metadata_oai_dc
 
 	## Date for discovery. For a month/day we don't have, assume 01.
 	my $year = $eprint->get_value( "year" );
-	my $month = "01";
 
-	if( $eprint->is_set( "month" ) )
+	if( defined $year )
 	{
-		my %month_numbers = (
-			jan  =>  "01", feb  =>  "02", mar  =>  "03",
-			apr  =>  "04", may  =>  "05", jun  =>  "06",
-			jul  =>  "07", aug  =>  "08", sep  =>  "09",
-			oct  =>  "10", nov  =>  "11", dec  =>  "12" );
+		# no point mentioning the date without a year.
 
-		$month = $month_numbers{$eprint->get_value( "month" )};
+		my $month = "01";
+
+		if( $eprint->is_set( "month" ) )
+		{
+			my %month_numbers = (
+				jan  =>  "01", feb  =>  "02", mar  =>  "03",
+				apr  =>  "04", may  =>  "05", jun  =>  "06",
+				jul  =>  "07", aug  =>  "08", sep  =>  "09",
+				oct  =>  "10", nov  =>  "11", dec  =>  "12" );
+	
+			$month = $month_numbers{$eprint->get_value( "month" )};
+		}
+		
+		push @dcdata, [ "date", "$year-$month-01" ];
 	}
-
-	push @dcdata, [ "date", "$year-$month-01" ];
 
 	my $ds = $eprint->get_dataset();
 	push @dcdata, [ "type", $ds->get_type_name( $session, $eprint->get_value( "type" ) ) ];
 	
 	push @dcdata, [ "identifier", $eprint->get_url() ];
 
-	# turn the list of pairs into XML blocks (indented by 8) and add them
-	# them to the DC element.
-	foreach( @dcdata )
-	{
-		$dc->appendChild(  $session->render_data_element( 8, $_->[0], $_->[1] ) );
-		# produces <key>value</key>
-	}
-
-	return $dc;
+	return @dcdata;
 }
-
 
 
 

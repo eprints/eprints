@@ -12,6 +12,8 @@
 #
 ######################################################################
 
+# utterly broken.
+
 use EPrints::Database;
 use EPrints::MetaField;
 use EPrints::OpenArchives;

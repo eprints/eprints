@@ -1,5 +1,15 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
 =pod
 
 =head1 NAME
@@ -54,7 +64,9 @@ Administrators may do everything. That's probably what for yourself if you are t
 
 =item I<password>
 
-The initial password for this user. You don't have to specify it here if you don't want to.
+The initial password for this user. You don't have to specify it here if you don't want to. It will be
+encrypted, by EPrints, using UNIX crypt. This should not be a problem unless you are using a different
+method to authenticate users.
 
 =item I<archiveid> 
 
@@ -144,7 +156,7 @@ elsif( $valid_access_level )
 	$new_user->set_value( "email" , $ARGV[2] );
 	if( $#ARGV == 4 )
 	{
-		$new_user->set_value( "password" , $ARGV[4] );
+		$new_user->set_value( "password" , EPrints::Utils::crypt_password( $ARGV[4], $session ) );
 		$new_user->commit;
 	}
 

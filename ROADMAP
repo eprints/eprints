@@ -98,7 +98,7 @@
 0	Probity (see www.probity.org for more info)
 0	Content Negotiation with Browser
 0	Paged Metadata in submission form.
-0	Keywords field appears in META keywords for search engines
+-	Keywords field appears in META keywords for search engines. Actually done with DC in META elements.
 0	remove all #cjg comments which denote issues.
 -	Multipage search (cache code)
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
@@ -159,7 +159,6 @@
 
 
 # robots.txt file
-# metadata in LINKS for title, creator etc?
 
 #---- MIKE----
 # Post Upgrading people should re-run generate_apacheconf and restart the server.
@@ -181,11 +180,8 @@
 
 # EASY
 # OAI - cache timeouts. NR
-# check CGI scripts use DOM in title NR
 # Check out Subscription dataset: sensible values even if not used yet.
 # better initial INDEX page.
-# render suggestions in a box? 
-# comment top of every file
 
 # HARD
 #	Make SearchFields have a better call method. NR
@@ -193,9 +189,9 @@
 # NR: Email Change
 # clean up comments
 # clean up metadata (inc. boolean rendering):q
-
+# clean up setlang
 
 # Xhtml docs: [gui]
 
-# todo: TTTTTttttttbbbbbbbbmmmmmmmmg
+# todo: TTTTTTtttbbbbbbbmmmmmmmmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

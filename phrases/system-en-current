@@ -538,9 +538,10 @@ Public CGI Scripts
     <ep:phrase ref="lib/session:no_signup"><p>New users may not register for this archive via the web.</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:no_password"><p>You did not actually specify a password.</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:created_new_user"><p>A new user account has been registered.</p></ep:phrase>
-    <ep:phrase ref="cgi/set_password:no_username"><p>You did not specify a username.</p></ep:phrase>
+    <ep:phrase ref="cgi/set_password:no_username"><p>You did not specify a username or the email address of an existing account.</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:no_email"><p>You did not specify an email address.</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:username_in_use"><p>The username "<ep:pin ref="username" />" has already been taken.</p></ep:phrase>
+    <ep:phrase ref="cgi/set_password:error_title">Error</ep:phrase>
 
     <ep:phrase ref="setpass_fieldhelp_email">Enter your email address</ep:phrase>
     <ep:phrase ref="setpass_fieldhelp_newpassword">Enter a password. If you forget it you can set a new one using this form.</ep:phrase>

@@ -461,7 +461,7 @@ sub prep_like_value
 	my( $value ) = @_; 
 	
 	return "" unless( defined $value );
-	$value =~ s/["\\.'%]/\\$&/g;
+	$value =~ s/["\\.'%_]/\\$&/g;
 	return $value;
 }
 
@@ -723,6 +723,7 @@ sub update
 			push @fvals, prep_value( $ov );
 		}
 
+		my $ovt = $dataset->get_ordervalues_table_name( $langid );
 		$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".join( "\",\"", @fvals )."\")";
 		$self->do( $sql );
 	}

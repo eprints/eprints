@@ -41,7 +41,7 @@ sub make_confirm_page
 	}
 
 	# Process the form.
-	my $userid = $session->param( "userid" );
+	my $userid = $session->param( "userid" )+0;
 	my $pin = $session->param( "pin" );
 
 	my $user = new EPrints::User( $session, $userid );
@@ -54,8 +54,6 @@ sub make_confirm_page
 
 	my $userpin = $user->get_value( "pin" );
 	my $pinsettime = $user->get_value( "pinsettime" );
-	my $newemail = $user->get_value( "newemail" );
-	my $newpassword = $user->get_value( "newpassword" );
 	my $delta = (time - $pinsettime);
 
 	if( !defined $userpin )
@@ -78,23 +76,23 @@ sub make_confirm_page
 	# Only ONE of these should be set, as the two set_* scripts should zero the
 	# other value when they set theirs.
 
-	if( defined $newemail )
+	# This script hacks the SQL directly, as normally "secret" fields are not
+	# accessable to eprints. 
+	
+	if( defined $user->get_value( "newemail" ) )
 	{
 		# check no one else has this email! cjg
-		$user->set_value( "email", $newemail );
+		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET email=newemail, newemail=NULL, pin=NULL where userid=".$userid; 
+		$session->get_db()->do( $sql );
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_email" ) );
-	}
-
-	if( defined $newpassword )
+	} 
+	else
 	{
-		$user->set_value( "password", $newpassword );
+		# Must be password then. Can't see it 'cus it's a "secret".
+		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET password=newpassword, newpassword=NULL, pin=NULL where userid=".$userid; 
+		$session->get_db()->do( $sql );
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
 	}
-	$user->set_value( "pin", undef );
-	$user->set_value( "pinsettime", undef );
-	$user->set_value( "newemail", undef );
-	$user->set_value( "newpassword", undef );
-	$user->commit();		
 
 	$page->appendChild( $session->html_phrase( "cgi/confirm:username",
 		username => $user->render_value( "username" ) ) );

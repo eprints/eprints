@@ -2,7 +2,6 @@
 #
 # EPrint Session
 #
-#
 ######################################################################
 #
 #  __COPYRIGHT__
@@ -1069,7 +1068,7 @@ sub _tag_compression
 	my ($tag, $elem) = @_;
 
 	# Print empty br, hr and img tags like this: <br />
-	return 2 if $tag =~ /^(br|hr|img|link|input)$/;
+	return 2 if $tag =~ /^(br|hr|img|link|input|meta)$/;
 	
 	# Print other empty tags like this: <empty></empty>
 	return 1;
