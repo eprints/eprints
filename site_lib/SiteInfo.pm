@@ -307,8 +307,8 @@ $EPrintSite::SiteInfo::deposit_agreement_text =
 	"$EPrintSite::SiteInfo::sitename) is in the public domain. If this is ".
 	"not the case, I accept full responsibility for any breach of copyright ".
 	"that distributing these files or metadata may entail.</EM></P>\n".
-	"<P>Clicking on the corresponding deposit button indicates your ".
-	"agreement to these terms.</P>\n";
+	"<P>Clicking on the deposit button indicates your agreement to these ".
+	"terms.</P>\n";
 
 
 ######################################################################
