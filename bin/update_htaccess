@@ -23,7 +23,7 @@ use File::Find;
 use strict;
 
 find( \&update_htaccess,
-      $EPrintSite::SiteInfo::local_html_root,
+      $EPrintSite::SiteInfo::static_html_root,
       $EPrintSite::SiteInfo::local_perl_root );
 
 
