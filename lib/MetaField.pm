@@ -46,7 +46,7 @@ my %TYPE_SQL =
  	year       => "\$(name) INT UNSIGNED \$(param)",
  	datatype   => "\$(name) VARCHAR(255) \$(param)",
  	langid	   => "\$(name) CHAR(16) \$(param)",
- 	name       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
+ 	name       => "\$(name)_honourific VARCHAR(255) \$(param), \$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param), \$(name)_lineage VARCHAR(255) \$(param)"
  );
  
 # Map of INDEXs required if a user wishes a field indexed.
@@ -66,7 +66,7 @@ my %TYPE_INDEX =
  	year       => "INDEX(\$(name))",
  	datatype   => "INDEX(\$(name))",
  	langid	   => "INDEX(\$(name))",
- 	name       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
+ 	name       => "INDEX(\$(name)_honourific), INDEX(\$(name)_given), INDEX(\$(name)_family), INDEX(\$(name)_lineage)"
 );
 
 # list of legal properties used to check
@@ -744,15 +744,15 @@ sub _render_input_field_aux
 
 	my $id_suffix = (defined $n ? "_$n" : "" );	
 
-	my $frag;
+	my( $boxcount, $spacesid, $buttonid, $rows );
 
 	if( $self->get_property( "multilang" ) )
 	{
-		my $boxcount = 1;
-		my $spacesid = $self->{name}.$id_suffix."_langspaces";
-		my $buttonid = $self->{name}.$id_suffix."_morelangspaces";
+		$boxcount = 1;
+		$spacesid = $self->{name}.$id_suffix."_langspaces";
+		$buttonid = $self->{name}.$id_suffix."_morelangspaces";
 
-		$frag = $session->make_doc_fragment();
+		$rows = $session->make_doc_fragment();
 		if( $session->internal_button_pressed() )
 		{
 			if( defined $session->param( $spacesid ) )
@@ -797,32 +797,50 @@ print STDERR "****************".$id_suffix."_".$i."\n";
 use Data::Dumper;
 print STDERR Dumper( $langid, $value, $value->{$langid} );
 print STDERR "************\n";
-			my $div = $session->make_element( "div" );# cjg style?
-			$div->appendChild( $self->_render_input_field_aux2( $session, $value->{$langid}, $id_suffix."_".$i ) );
+
 			my $langparamid = $self->{name}.$id_suffix."_".$i."_lang";
-			$div->appendChild( $session->make_text( " - "."($langparamid)" ) );
+			my $langbit;
 			if( $forced )
 			{
-				$div->appendChild( $session->make_element(
+				$langbit = $session->make_element( "span", class=>"requiredlang" );
+				$langbit->appendChild( $session->make_element(
 					"input",
 					"accept-charset" => "utf-8",
 					type => "hidden",
 					name => $langparamid,
 					value => $langid ) );
-				my $span = $session->make_element( "span", class=>"requiredlang" );
-				$span->appendChild( $session->make_text( EPrints::Config::lang_title( $langid ) ) );
-				$div->appendChild( $span );
+				$langbit->appendChild( $session->make_text( EPrints::Config::lang_title( $langid ) ) );
 			}
 			else
 			{
-				$div->appendChild( $session->render_option_list(
+				$langbit = $session->render_option_list(
 					name => $langparamid,
 					values => \@langopts,
 					default => $langid,
-					labels => \%langlabels ) );
+					labels => \%langlabels );
 			}
-			$div->appendChild( $session->make_text( "LANGID:($langid)") );
-			$frag->appendChild( $div );
+			$langbit->appendChild( $session->make_text( " (LANGID:$langid)") );
+			
+			my $aux2 = $self->_render_input_field_aux2( $session, $value->{$langid}, $id_suffix."_".$i );
+
+			if( $self->is_type( "name" ) )
+			{
+				my $tr = $session->make_element( "tr" );
+				$rows->appendChild( $tr );
+				$tr->appendChild( $aux2 );
+				my $td = $session->make_element( "td" );
+				$td->appendChild( $langbit );
+				$tr->appendChild( $td );
+			}
+			else
+			{
+				my $div = $session->make_element( "div" );# cjg style?
+				$div->appendChild( $aux2 );
+				#space? cjg
+				$div->appendChild( $langbit );
+				$rows->appendChild( $div );
+			}
+			
 print STDERR "****************".$id_suffix."_".$i."\n";
 use Data::Dumper;
 print STDERR Dumper( $langid, $value, $value->{$langid} );
@@ -832,21 +850,66 @@ print STDERR "************\n\n";
 				
 		$boxcount = $i-1;
 
-		$frag->appendChild( $session->make_element(
+	}
+	else
+	{
+		if( $self->is_type( "name" ) )
+		{
+			$rows = $session->make_element( "tr" );
+		} 
+		else
+		{
+			$rows = $session->make_doc_fragment();
+		}
+		my $aux2 = $self->_render_input_field_aux2( $session, $value, $id_suffix );
+		$rows->appendChild( $aux2 );
+	}
+
+	my $block = $session->make_doc_fragment();
+	if( $self->is_type( "name" ) )
+	{
+		my( $table, $tr, $td, $th );
+		$table = $session->make_element( "table" );
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "lib/metafield:honourific" ) );
+		$tr->appendChild( $th );
+
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "lib/metafield:given_names" ) );
+		$tr->appendChild( $th );
+
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "lib/metafield:family_names" ) );
+		$tr->appendChild( $th );
+
+		$th = $session->make_element( "th" );
+		$th->appendChild( $session->html_phrase( "lib/metafield:lineage" ) );
+		$tr->appendChild( $th );
+
+		$table->appendChild( $rows );
+		$block->appendChild( $table );
+	}
+	else
+	{
+		$block->appendChild( $rows );
+	}
+
+	if( $self->get_property( "multilang" ) )
+	{
+		$block->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			type => "hidden",
 			name => $spacesid,
 			value => $boxcount ) );
-		$frag->appendChild( $session->render_internal_buttons(
+		$block->appendChild( $session->render_internal_buttons(
 			$buttonid => $session->phrase( "lib/metafield:more_langs" ) ) );
-		return $frag;
 	}
-	else
-	{
-		$frag = $self->_render_input_field_aux2( $session, $value, $id_suffix );
-	}
-	return $frag;
+	
+	return $block;
 }
 
 sub _render_input_field_aux2
@@ -932,28 +995,28 @@ print STDERR "$id_suffix ... val($value)\n";
 	}
 	elsif( $self->is_type( "name" ) )
 	{
-		my( $givenid, $familyid );
- 		$givenid = $self->{name}.$id_suffix."_given";
- 		$familyid = $self->{name}.$id_suffix."_family";
-		$frag->appendChild( $session->html_phrase( "lib/metafield:given_names" ) );
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
-			name => $givenid,
-			value => $value->{given},
-			size => int( $FORM_WIDTH / 2 ),
-			maxlength => $INPUT_MAX ) );
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $session->html_phrase( "lib/metafield:family_names" ) );
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
-			name => $familyid,
-			value => $value->{family},
-			size => int( $FORM_WIDTH / 2 ),
-			maxlength => $INPUT_MAX ) );
+		my( $td );
+		foreach( "honourific", "given", "family", "lineage" )
+		{
+			my $size;
+			if( $_ eq "given" || $_ eq "family" )
+			{
+				$size = int( $FORM_WIDTH / 2 );
+			}
+			else
+			{
+				$size = int( $FORM_WIDTH / 4 );
+			}
+			$td = $session->make_element( "td" );
+			$frag->appendChild( $td );
+			$td->appendChild( $session->make_element(
+				"input",
+				"accept-charset" => "utf-8",
+				name => $self->{name}.$id_suffix."_".$_,
+				value => $value->{$_},
+				size => $size,
+				maxlength => $INPUT_MAX ) );
+		}
 
 	}
 	elsif( $self->is_type( "pagerange" ) )
@@ -1198,13 +1261,15 @@ sub _form_value_aux2
 	}
 	elsif( $self->is_type( "name" ) )
 	{
-		my( $family, $given );
-		$family = $session->param( $self->{name}.$id_suffix."_family" );
-		$given = $session->param( $self->{name}.$id_suffix."_given" );
-
-		if( defined $family && $family ne "" )
+		my $data = {};
+		foreach( "honourific", "given", "family", "lineage" )
 		{
-			return { family => $family, given => $given };
+			$data->{$_} = $session->param( $self->{name}.$id_suffix."_".$_ );
+		}
+
+		if( EPrints::EPrint::_isset( $data ) )
+		{
+			return $data;
 		}
 		return undef;
 	}

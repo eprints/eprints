@@ -19,12 +19,12 @@
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
-1	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
+-	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
 1	Multilangify Subject Fields and Subject DB
 0	"ID" fields for ISBN/userid etc.
 2	Subject editors (editors can only edit within certain subjects)
-0	Web-based Registration/password change
-1	Web-based Email Change
+-	Web-based Registration/password change
+2	Web-based Email Change
 -	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
 1	Generate abstract page routine will create symlinks to actual docs (if appropriate)
@@ -32,7 +32,7 @@
 -	Multilang. Config for mails and submission agreement.
 -	"Magic" Next & Prev in SubmissionForm
 4	Multi-Lang fields in HTML
-2	Field Value Renderer 
+3	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 0	Skippable Stages in SubmissionForm, and multiple page metadata form.
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"

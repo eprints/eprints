@@ -76,8 +76,8 @@ sub cmp_names
 	my( $lista , $listb ) = @_;	
 
 	my( $texta , $textb ) = ( "" , "" );
-	foreach( @{$lista} ) { $texta.=":$_->{family},$_->{given}"; } 
-	foreach( @{$listb} ) { $textb.=":$_->{family},$_->{given}"; } 
+	foreach( @{$lista} ) { $texta.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
+	foreach( @{$listb} ) { $textb.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
 	return( $texta cmp $textb );
 }
 

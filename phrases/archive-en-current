@@ -224,6 +224,7 @@
 
    <phrase ref="user_fieldhelp_email">The email address for this user</phrase>
    <phrase ref="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</phrase>
+   <phrase ref="user_fieldhelp_lang">Your prefered language. Where possible information will be mailed in this language.</phrase>
 
    <phrase ref="mail_sig">
 <hr /><p>

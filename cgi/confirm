@@ -1,0 +1,115 @@
+######################################################################
+#
+#  Confirm Password or Email Change
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+use strict;
+
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my( $title, $page ) = make_confirm_page( $session );
+$page->appendChild( $session->html_phrase( "cgi/confirm:return" ) );
+
+$session->build_page( $title, $page );
+$session->send_page();
+$session->terminate();
+
+
+sub make_confirm_page
+{
+	my( $session ) = @_;
+
+	my $page = $session->make_doc_fragment;
+
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
+
+	if( !$session->have_parameters() )
+	{
+		$page->appendChild( $session->html_phrase( "cgi/confirm:bad_param" ) );
+		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
+	}
+
+	# Process the form.
+	my $userid = $session->param( "userid" );
+	my $pin = $session->param( "pin" );
+
+	my $user = new EPrints::User( $session, $userid );
+
+	if( !defined $user )
+	{
+		$page->appendChild( $session->html_phrase( "cgi/confirm:bad_user" ) );
+		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
+	}
+
+	my $userpin = $user->get_value( "pin" );
+	my $pinsettime = $user->get_value( "pinsettime" );
+	my $newemail = $user->get_value( "newemail" );
+	my $newpassword = $user->get_value( "newpassword" );
+	my $delta = (time - $pinsettime);
+
+print STDERR "userid: $userid\n";	
+print STDERR "pin: $pin\n";	
+print STDERR "pinsettime: $pinsettime\n";	
+print STDERR "newemail: $newemail\n";	
+print STDERR "newpassword: $newpassword\n";	
+print STDERR "delta: $delta\n";	
+
+
+	if( !defined $userpin )
+	{
+		$page->appendChild( $session->html_phrase( "cgi/confirm:no_pin" ) );
+		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
+	}
+	if( $userpin ne $pin)
+	{
+		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_mismatch" ) );
+		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
+	}
+	my $maxdelta = $session->get_archive()->get_conf( "pin_timeout" );
+	if( ( $maxdelta != 0 ) && ( $maxdelta * 60 * 60 < $delta ) )
+	{
+		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_timepout" ) );
+		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
+	}
+
+	# Only ONE of these should be set, as the two set_* scripts should zero the
+	# other value when they set theirs.
+
+	if( defined $newemail )
+	{
+		# check no one else has this email! cjg
+
+		$user->set_value( "email", $newemail );
+		$page->appendChild( $session->html_phrase( "cgi/confirm:set_email" ) );
+	}
+
+	if( defined $newpassword )
+	{
+		$user->set_value( "password", $newpassword );
+		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
+	}
+	$user->set_value( "pin", undef );
+	$user->set_value( "pintimeout", undef );
+	$user->set_value( "newemail", undef );
+	$user->set_value( "newpassword", undef );
+	$user->commit();		
+
+	$page->appendChild( $session->html_phrase( "cgi/confirm:username",
+		username => $user->render_value( "username" ) ) );
+
+	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
+
+	return( $session->phrase( "cgi/confirm:title" ) , $page );
+}
+

@@ -47,8 +47,10 @@ EPrints Modules
     <phrase ref="lib/metafield:month">Month:</phrase>
     <phrase ref="lib/metafield:day">Day:</phrase>
     <phrase ref="lib/metafield:to">to</phrase>
-    <phrase ref="lib/metafield:family_names">Family Name(s):</phrase>
-    <phrase ref="lib/metafield:given_names">Given Name(s):</phrase>
+    <phrase ref="lib/metafield:family_names">Family Name(s)</phrase>
+    <phrase ref="lib/metafield:given_names">Given Name(s)</phrase>
+    <phrase ref="lib/metafield:lineage">Lineage</phrase>
+    <phrase ref="lib/metafield:honourific">Honourific</phrase>
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>
     <phrase ref="lib/metafield:more_langs">More Languages</phrase>
     <phrase ref="lib/metafield:month_00">Unspecified</phrase>
@@ -313,8 +315,8 @@ User Area CGI Scripts
 <!-- buffer -->
 
     <phrase ref="cgi/users/buffer:overview_title">Submission Buffer Overview</phrase>
-    <phrase ref="cgi/users/buffer:no_entries">There are no entries in the submission buffer at the moment.</phrase>
-    <phrase ref="cgi/users/buffer:buffer_blurb">Click on the title of an entry to view, edit, accept or reject it.</phrase>
+    <phrase ref="cgi/users/buffer:no_entries"><p>There are no entries in the submission buffer at the moment.</p></phrase>
+    <phrase ref="cgi/users/buffer:buffer_blurb"><p>Click on the title of an entry to view, edit, accept or reject it.</p></phrase>
     <phrase ref="cgi/users/buffer:title">Title</phrase>
     <phrase ref="cgi/users/buffer:sub_by">Submitted by</phrase>
     <phrase ref="cgi/users/buffer:sub_date">Submission Date</phrase>
@@ -394,13 +396,17 @@ Public CGI Scripts
 <!-- set_password -->
 
     <phrase ref="cgi/set_password:password_title">Create Account / Change Password</phrase>
-    <phrase ref="cgi/set_password:intro"><p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p><p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
+    <phrase ref="cgi/set_password:intro">
+<p>In order to access some areas of the archive, you'll need a <em>user registration</em>. No charge is made for registering with us or using any of our services.</p>
+<p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p>
+<p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
     <phrase ref="cgi/set_password:action_submit">Submit</phrase>
     <phrase ref="cgi/set_password:account">Account</phrase>
     <phrase ref="cgi/set_password:mail_sent"><p>An email has been sent to <pin ref="email" /> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></phrase>
     <phrase ref="cgi/set_password:return"><p><a href="&frontpage;">Return to the front page</a></p></phrase>
     <phrase ref="cgi/set_password:no_priv"><p>The user with the email address <pin ref="email" /> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></phrase>
     <phrase ref="cgi/set_password:no_password"><p>You did not actually specify a password.</p></phrase>
+    <phrase ref="cgi/set_password:created_new_user"><p>A new user account has been registered.</p></phrase>
 
 <!-- confirm -->
 
@@ -415,6 +421,6 @@ Public CGI Scripts
     <phrase ref="cgi/confirm:set_email"><p>Your email address has been changed to the new one you requested.</p></phrase>
     <phrase ref="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></phrase>
     <phrase ref="cgi/confirm:username"><p>Your username on this system is: <strong><pin ref="username" /></strong></p></phrase>
-    <phrase ref="cgi/confirm:userhome_link"><p><a href="&cgiroot;/users/home">Go to the &archivename; user area homepage</a></p></phrase>
 
+    <phrase ref="general:userhome_link"><p><a href="&cgiroot;/users/home">Go to the &archivename; User Area Homepage</a></p></phrase>
 </phrases>

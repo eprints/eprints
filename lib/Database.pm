@@ -459,10 +459,14 @@ sub update
 
 			if( $field->is_type( "name" ) )
 			{
+				$values{$field->get_name()."_honourific"} = 
+					$data->{$field->get_name()}->{honourific};
 				$values{$field->get_name()."_given"} = 
 					$data->{$field->get_name()}->{given};
 				$values{$field->get_name()."_family"} = 
 					$data->{$field->get_name()}->{family};
+				$values{$field->get_name()."_lineage"} = 
+					$data->{$field->get_name()}->{lineage};
 			}
 			else
 			{
@@ -589,8 +593,10 @@ sub update
 			$sql.= "lang, " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
+				$sql .= $multifield->get_name()."_honourific, ";
 				$sql .= $multifield->get_name()."_given, ";
-				$sql .= $multifield->get_name()."_family";
+				$sql .= $multifield->get_name()."_family, ";
+				$sql .= $multifield->get_name()."_lineage ";
 			}
 			else
 			{
@@ -601,8 +607,10 @@ sub update
 			$sql .=	"\"".prep_value( $v->{l} )."\", " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
+				$sql .= "\"".prep_value( $v->{v}->{honourific} )."\", ";
 				$sql .= "\"".prep_value( $v->{v}->{given} )."\", ";
-				$sql .= "\"".prep_value( $v->{v}->{family} )."\"";
+				$sql .= "\"".prep_value( $v->{v}->{family} )."\", ";
+				$sql .= "\"".prep_value( $v->{v}->{lineage} )."\"";
 			}
 			else
 			{
@@ -1039,8 +1047,10 @@ sub _get
 			}
 			if ( $field->is_type( "name" ) )
 			{
-				$cols .= "M.".$field->get_name()."_given, ".
-				         "M.".$field->get_name()."_family";
+				$cols .= "M.".$field->get_name()."_honourific, ".
+				         "M.".$field->get_name()."_given, ".
+				         "M.".$field->get_name()."_family, ".
+				         "M.".$field->get_name()."_lineage";
 			}
 			else 
 			{
@@ -1088,8 +1098,10 @@ sub _get
 				if( $field->is_type( "name" ) )
 				{
 					$value = {};
+					$value->{honourific} = shift @row;
 					$value->{given} = shift @row;
 					$value->{family} = shift @row;
+					$value->{lineage} = shift @row;
 				} 
 				else
 				{
@@ -1119,7 +1131,7 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 		my $col = "M.$mn";
 		if( $multifield->is_type( "name" ) )
 		{
-			$col = "M.$mn\_given,M.$mn\_family";
+			$col = "M.$mn\_honourific,M.$mn\_given,M.$mn\_family,M.$mn\_lineage";
 		}
 		my $fields_sql = "M.$kn, ";
 		$fields_sql .= "M.pos, " if( $multifield->get_property( "multiple" ) );
@@ -1157,8 +1169,10 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 			if( $multifield->is_type( "name" ) )
 			{
 				$value = {};
+				$value->{honourific} = shift @values;
 				$value->{given} = shift @values;
 				$value->{family} = shift @values;
+				$value->{lineage} = shift @values;
 			} 
 			else
 			{

@@ -42,15 +42,11 @@ my @eprints = $user->get_editable_eprints();
 if( scalar @eprints == 0 )
 {
 	# No EPrints
-	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "cgi/users/buffer:no_entries" ) );
-	$page->appendChild( $p );
+	$page->appendChild( $session->html_phrase( "cgi/users/buffer:no_entries" ) );
 }
 else
 {
-	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "cgi/users/buffer:buffer_blurb" ) );
-	$page->appendChild( $p );
+	$page->appendChild( $session->html_phrase( "cgi/users/buffer:buffer_blurb" ) );
 
 	$table = $session->make_element( "table", border=>1, cellpadding=>5 );
 	$page->appendChild( $table );
@@ -108,11 +104,7 @@ else
 	}
 }
 
-$p = $session->make_element( "p" );
-$a = $session->make_element( "a", href=>"????????cjg" );
-$p->appendChild( $a );
-$a->appendChild( $session->html_phrase( "cgi/users/buffer:return_staff" ) );
-$page->appendChild( $p );
+$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 
 $session->build_page(
 	$session->phrase( "cgi/users/buffer:overview_title" ), 
