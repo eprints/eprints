@@ -207,6 +207,9 @@ $EPrintSite::SiteInfo::default_user_order = "by surname";
 $EPrintSite::SiteInfo::html_fgcolor = "black";
 $EPrintSite::SiteInfo::html_bgcolor = "white";
 
+# Elements to put in the <HEAD> 
+@EPrintSite::SiteInfo::html_head_elements = ();
+
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
 $EPrintSite::SiteInfo::html_banner = "
