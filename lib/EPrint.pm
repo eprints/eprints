@@ -29,8 +29,6 @@ use strict;
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
 
-
-
 $EPrints::EPrint::static_page = "index.html";
 
 ## WP1: BAD
@@ -519,7 +517,6 @@ sub commit
 #
 ######################################################################
 
-## WP1: BAD
 sub validate_type
 {
 	my( $self ) = @_;
@@ -601,41 +598,6 @@ sub validate_meta
 }
 	
 
-######################################################################
-#
-# $problems = validate_subject()
-#  array_ref
-#
-#  Validate the subject(s) entered
-#
-######################################################################
-
-## WP1: BAD
-sub validate_subject
-{
-	my( $self ) = @_;
-
-	my @all_problems;
-	# cjg IS THIS METHOD EVER USED
-	my $subjects = $self->get_value( "subjects" );
-	if( !defined $subjects )
-	{
-		push @all_problems, 
-			$self->{session}->html_phrase( "lib/eprint:least_one_sub" );
-	} 
-	else
-	{
-		my $field = $self->{dataset}->get_field( "subjects" );
-		my $problem = $self->{session}->get_archive()->call( 
-			"validate_eprint_field",
-			$field,
-			$subjects );
-		push @all_problems, $problem if( defined $problem );
-	}
-
-	return( \@all_problems );
-}
-		
 	
 
 
@@ -817,13 +779,10 @@ sub validate_full
 	my $probs = $self->validate_type();
 	push @problems, @$probs;
 
-	$probs = $self->validate_meta();
-	push @problems, @$probs;
-
-	$probs = $self->validate_subject();
-	push @problems, @$probs;
-
 	$probs = $self->validate_linking();
+	push @problems, @$probs;
+
+	$probs = $self->validate_meta();
 	push @problems, @$probs;
 
 	$probs = $self->validate_documents();
@@ -1042,9 +1001,8 @@ sub url_stem
 	my( $self ) = @_;
 
 	return( sprintf( 
-			"%s/%s%08d/", 
+			"%s/%0".$EPrints::EPrint::id_code_digits."d/", 
 			$self->{session}->get_archive()->get_conf( "server_document_root" ), 
-			$self->{session}->get_archive()->get_conf( "eprint_id_stem" ), 
 			$self->{data}->{eprintid} ) );
 }
 

@@ -106,9 +106,7 @@ sub authz
 		return OK;
 	}	
 
-	my $idstem = $archive->get_conf( "eprint_id_stem" );
-
-	if( $uri !~ m#^$secpath/$idstem(\d+)/(\d+)/# )
+	if( $uri !~ m#^$secpath/(\d+)/(\d+)/# )
 	{
 		print STDERR "URL in secure area fails to match pattern\n";
 		print STDERR "$uri\n";

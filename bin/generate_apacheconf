@@ -142,7 +142,6 @@ my $adminemail = $archive->get_conf( "adminemail" );
 my $local_html_root = $archive->get_conf( "local_html_root" );
 my $local_secure_root = $archive->get_conf( "local_secure_root" );
 my $host = $archive->get_conf( "host" );
-my $idstem = $archive->get_conf( "eprint_id_stem" );
 
 open( CONF, ">$sysfile" ) || die "Can't write to $sysfile";
 print CONF <<END;
@@ -199,9 +198,9 @@ $aliases
   # Protect /perl/ from other rewrite rules
   RewriteRule ^/perl/      -   [L]
 #cjg all this can come from config
-  RewriteRule ^/secure/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /secure/\$1/\$2/\$3/\$4/\$5 [L]
+  RewriteRule ^/secure/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /secure/\$1/\$2/\$3/\$4/\$5 [L]
 
-  RewriteRule ^/archive/$idstem([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5
+  RewriteRule ^/archive/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5
 
 END
 

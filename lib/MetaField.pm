@@ -934,10 +934,13 @@ print SDTERR "ZOOKl\n";
 		$table = $session->make_element( "table" );
 		$tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );
-
-		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "lib/metafield:honourific" ) );
-		$tr->appendChild( $th );
+		
+		unless( $session->get_archive()->get_conf( "hide_honourific" ) )
+		{
+			$th = $session->make_element( "th" );
+			$th->appendChild( $session->html_phrase( "lib/metafield:honourific" ) );
+			$tr->appendChild( $th );
+		}
 
 		$th = $session->make_element( "th" );
 		$th->appendChild( $session->html_phrase( "lib/metafield:given_names" ) );
@@ -947,9 +950,12 @@ print SDTERR "ZOOKl\n";
 		$th->appendChild( $session->html_phrase( "lib/metafield:family_names" ) );
 		$tr->appendChild( $th );
 
-		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "lib/metafield:lineage" ) );
-		$tr->appendChild( $th );
+		unless( $session->get_archive()->get_conf( "hide_lineage" ) )
+		{
+			$th = $session->make_element( "th" );
+			$th->appendChild( $session->html_phrase( "lib/metafield:lineage" ) );
+			$tr->appendChild( $th );
+		}
 
 		$table->appendChild( $rows );
 		$block->appendChild( $table );
@@ -1075,7 +1081,18 @@ sub _render_input_field_aux2
 	elsif( $self->is_type( "name" ) )
 	{
 		my( $td );
-		foreach( "honourific", "given", "family", "lineage" )
+		my @namebits;
+		unless( $session->get_archive()->get_conf( "hide_honourific" ) )
+		{
+			push @namebits, "honourific";
+		}
+		push @namebits, "given", "family";
+		unless( $session->get_archive()->get_conf( "hide_lineage" ) )
+		{
+			push @namebits, "lineage";
+		}
+	
+		foreach( @namebits )
 		{
 			my $size;
 			if( $_ eq "given" || $_ eq "family" )
@@ -1312,8 +1329,6 @@ sub _form_value_aux2
 {
 	my( $self, $session, $suffix ) = @_;
 	
-print STDERR "Hmmm: ".$self->{name}." / ".$suffix."\n";
-
 	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret", "id" ) )
 	{
 		my $value = $session->param( $self->{name}.$suffix );
@@ -1357,14 +1372,10 @@ print STDERR "Hmmm: ".$self->{name}." / ".$suffix."\n";
 		{
 			$data->{$_} = $session->param( $self->{name}.$suffix."_".$_ );
 		}
-use Data::Dumper;
-print STDERR "A".Dumper( $data );
 		if( EPrints::Utils::is_set( $data ) )
 		{
-print STDERR "B\n";
 			return $data;
 		}
-print STDERR "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
 		return undef;
 	}
 	else

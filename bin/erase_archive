@@ -35,7 +35,7 @@ my $local_document_root = $archive->get_conf( "local_document_root" );
 my $local_html_root = $archive->get_conf( "local_html_root" );
 my $database = $archive->get_conf( "dbname" );
 
-my $force = ( $ARGV[1] eq "FORCE" );
+my $force = ( defined $ARGV[1] && $ARGV[1] eq "FORCE" );
 
 # This script dosn't currently work on remote machines, which may well
 # not allow remote admin log in anyway.
@@ -64,6 +64,7 @@ unless( $force )
 unless( $force || $input eq "yes" )
 {
 	print STDERR "Aborting.\n";
+	exit( 1 );
 }
 ####################################################
 
@@ -71,29 +72,43 @@ unless( $force || $input eq "yes" )
 # of dropping and recreating the database.
 # This makes it possible to erase a really broken setup.
 
-my $mysqladmin_path = "mysqladmin";
-
-unless( $force )
-{
-	# Get the path of the mysql monitor tool
-	print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
-	print "[$mysqladmin_path]: ";
-
-	$input = <STDIN>;
-	chomp( $input );
-	$mysqladmin_path = $input if( $input ne "" );
-}
-
 print "Dropping and recreating database (requires database root password)\n";
 print "You will need to enter the MySQL root user password.\n";
 
-my $cmds = "drop $database";
-$cmds.= " create $database";
+# force shold skip this? cjg
+
+my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+
+print "\nConnecting to the database...\n";
+my $dbh = DBI->connect(
+	EPrints::Database::build_connection_string(
+		dbname=>"mysql",
+		dbsock=>$archive->get_conf( "dbsock" ),
+		dbport=>$archive->get_conf( "dbport" ),
+		dbhost=>$archive->get_conf( "dbhost" ) ),
+	"root",
+	$mysqlrootpass );
 
 
-my $rc = CORE::system( "$mysqladmin_path -u root -f $cmds" ) & 0xffff;
-print "Ok.\n";
-# We use the force -f option as we've already checked user meant to do this.
+if( !defined $dbh )
+{
+	print <<END;
+
+Hmmm. Problem connecting to database as root. Aborting.
+
+END
+	exit( 1 );
+}
+else
+{
+	print "Dropping database \"$database\"\n";
+	$dbh->do( "drop database $database" );
+	print "Re-creating database \"$database\"\n";
+	$dbh->do( "create database $database" );
+}
+$dbh->disconnect;
+print "\n";
+
 
 print "Erasing eprint files...\n";
 
@@ -110,8 +125,8 @@ my $dir;
 push @doomeddirs, $local_html_root;
 foreach $dir (@doomeddirs)
 {
-	print STDERR "Removing: $dir\n";
-	$rc = CORE::system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
+	print STDERR "Removing stuff in: $dir\n";
+	my $rc = CORE::system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
 	print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n" unless( $rc==0 );
 }
 mkdir( $local_html_root, 0755 );

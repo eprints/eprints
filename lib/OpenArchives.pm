@@ -213,7 +213,7 @@ sub from_oai_identifier
 	my( $session , $oai_identifier ) = @_;
 	
 	if( $oai_identifier =~
-		/^oai:$session->get_archive()->get_conf( "oai_archive_id" ):($session->get_archive()->get_conf( "eprint_id_stem" )\d+)$/ )
+		/^oai:$session->get_archive()->get_conf( "oai_archive_id" ):(\d+)$/ )
 	{
 		return( $1 );
 	}

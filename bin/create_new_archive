@@ -15,12 +15,14 @@
 ######################################################################
 
 #cjg LIB
+#cjg Make disk0? cjg
 
 use Sys::Hostname;
 use Cwd;
 use EPrints::Config;
 use EPrints::DOM;
 use EPrints::Database;
+use EPrints::Utils;
 use DBI;
 use Unicode::String qw(utf8 latin1);
 
@@ -57,7 +59,7 @@ if( scalar EPrints::Config::get_archive_ids() )
 	print join( ", ", EPrints::Config::get_archive_ids() )."\n\n";
 }
 
-my $archiveid = get_input( $REGEXP_VARNAME, 'Archive ID' );
+my $archiveid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
 
 my( $configfile ) = EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
 my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
@@ -127,7 +129,7 @@ Example: $archiveid.footle.ac.uk
 
 END
 
-$config{host} = get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
+$config{host} = EPrints::Utils::get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
 
 print <<END;
 
@@ -136,7 +138,7 @@ to run apache on a different port if you are experimenting.
 
 END
 
-$config{port} = get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
+$config{port} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
 
 
 # calculate example aliases
@@ -198,13 +200,13 @@ $config{aliases} = [];
 for(;;)
 {
 	my $default = shift @aliases;
-	my $alias = get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
+	my $alias = EPrints::Utils::get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
 		(defined $default ? $default->{name} : '#' ) );
 	last if( $alias eq "#" );
 	my $aliasrecord = {};
 	$aliasrecord->{name} = $alias;
 	$aliasrecord->{redirect} = 
-		get_input( 
+		EPrints::Utils::get_input( 
 			$REGEXP_YESNO,
 			"Redirect $alias to $config{host}",
 			(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
@@ -240,7 +242,7 @@ for(;;)
 
 print "\n";
 
-$config{adminemail} = get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
+$config{adminemail} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
 print <<END;
 
 Enter the name of the archive in the default language. If you wish to enter 
@@ -249,28 +251,28 @@ enter something as a placeholder and edit the XML config file which this
 script generates.
 
 END
-$config{archivename}->{$config{defaultlanguage}} = get_input( '^.+$', 'Archive Name',  $config{archivename}->{$config{defaultlanguage}} );
+$config{archivename}->{$config{defaultlanguage}} = EPrints::Utils::get_input( '^.+$', 'Archive Name',  $config{archivename}->{$config{defaultlanguage}} );
 
 print <<END;
 
 MySQL Configuration 
 
 END
-$config{dbname} = get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
-$config{dbhost} = get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
+$config{dbname} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
+$config{dbhost} = EPrints::Utils::get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
 
 print "\nYou probably don't need to set socket and port (unless you do!?).\n";
 $config{dbport} = "#" if( !defined $config{dbport} );
-$config{dbport} = get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
+$config{dbport} = EPrints::Utils::get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
 $config{dbport} = undef if( $config{dbport} eq "#" );
 
 $config{dbsock} = "#" if( !defined $config{dbsock} );
 # can't remember what is a legal mysql socket... cjg
-$config{dbsock} = get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
+$config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
 $config{dbsock} = undef if( $config{dbsock} eq "#" );
 
-$config{dbuser} = get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
-$config{dbpass} = get_input( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
+$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
+$config{dbpass} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
 
 print <<END;
 
@@ -278,7 +280,7 @@ EPrints can create the database, and grant the correct permissions.
 
 END
 
-my $makedb = get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", $exists?"no":"yes" );
+my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", $exists?"no":"yes" );
 if( $makedb eq "yes" )
 {
 	print <<END;
@@ -287,7 +289,7 @@ Ok, I'll need to connect to the mysql database as root. What is the root
 password? #cjg hide password from display?
 	
 END
-	my $mysqlrootpass = get_input( '^.*$', "MySQL Root Password" );
+	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
 
 	print "Connecting to the database...\n";
 	my $dbh = DBI->connect(
@@ -390,7 +392,7 @@ Copy across initial config files? You have to do this for a new archive but
 probably don't want to if you're editing an archive configuration.
 
 END
-my $mkfiles = get_input( $REGEXP_YESNO, "Create config files", $exists?"no":"yes" );
+my $mkfiles = EPrints::Utils::get_input( $REGEXP_YESNO, "Create config files", $exists?"no":"yes" );
 if( $mkfiles eq "yes" )
 {
 	my(undef,undef,$uid,$gid) = getpwnam( EPrints::Config::get( "user" ) );
@@ -421,9 +423,9 @@ if( $mkfiles eq "yes" )
 
 print <<END;
 
-====================================================
+==========================================================================
 That seemed to more or less work...
-====================================================
+==========================================================================
 Now run:
 bin/generate_apacheconf $archiveid
 
@@ -443,7 +445,7 @@ Then restart your webserver:
 /etc/rc.d/init.d/httpd start
 
 Now connect to the archive, see everything work perfectly first time...(!)
-====================================================
+==========================================================================
 END
 
 exit;
@@ -464,36 +466,6 @@ sub info_tag
 	}
 	$frag->appendChild( $tag );
 	return $frag;
-}
-
-sub get_input
-{
-	my( $regexp, $prompt, $default ) = @_;
-
-	$prompt = "" if( !defined $prompt);
-	for(;;)
-	{
-		print $prompt;
-		if( defined $default )
-		{
-			print " [$default] ";
-		}
-		print "? ";
-		my $in = <STDIN>;
-		chomp $in;
-		if( $in eq "" && defined $default )
-		{
-			return $default;
-		}
-		if( $in=~m/^$regexp$/ )
-		{
-			return $in;
-		}
-		else
-		{
-			print "Bad Input, try again.\n";
-		}
-	}
 }
 
 # don't be fooled. This isn't the same as the install() in

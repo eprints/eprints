@@ -20,7 +20,6 @@ use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use EPrints::DOM;
 use File::Path;
-print "Utility module loaded...\n";
 
 my $DF_AVAILABLE;
 
@@ -600,5 +599,34 @@ sub render_value
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
 
+sub get_input
+{
+	my( $regexp, $prompt, $default ) = @_;
+
+	$prompt = "" if( !defined $prompt);
+	for(;;)
+	{
+		print $prompt;
+		if( defined $default )
+		{
+			print " [$default] ";
+		}
+		print "? ";
+		my $in = <STDIN>;
+		chomp $in;
+		if( $in eq "" && defined $default )
+		{
+			return $default;
+		}
+		if( $in=~m/^$regexp$/ )
+		{
+			return $in;
+		}
+		else
+		{
+			print "Bad Input, try again.\n";
+		}
+	}
+}
 
 1;

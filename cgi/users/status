@@ -24,34 +24,43 @@ use strict;
 
 my $session = new EPrints::Session;
 
-
 my $rows;
 
 # Number of users in each group
-my $num_users = count( "user" );
+my $num_users = $session->get_archive()->get_dataset( "user" )->count( $session );
 
 my( %num_users, $usertypes, $usertype, $userds );
 $userds = $session->get_archive()->get_dataset( "user" );
 $usertypes = $userds->get_types();
 foreach $usertype ( @{$usertypes} )
 {
-	$num_users{ $usertype } = count( "user", usertype => $usertype );
+	my $searchexp = new EPrints::SearchExpression(
+		session => $session,
+		dataset => $userds );
+
+	$searchexp->add_field(
+		$dataset->get_field( "usertype" ),
+		"PHR:EQ:".$usertype );
+
+	$searchexp->perform_search();
+	$num_users{ $usertype } = $searchexp->count();
+	$searchexp->dispose();
 }
 
 # Number of submissions in workspace
-my $num_inbox = count( "inbox" );
+my $num_inbox = $session->get_archive()->get_dataset( "inbox" )->count( $session );
 
 # Number of submissions in buffer
-my $num_buffer = count( "buffer" );
+my $num_buffer = $session->get_archive()->get_dataset( "buffer" )->count( $session );
 
 # Number of submissions in archive
-my $num_archive = count( "archive" );
+my $num_archive = $session->get_archive()->get_dataset( "archive" )->count( $session );
 
 # Number of deleted eprints
-my $num_deleted = count( "deletion" );
+my $num_deleted = $session->get_archive()->get_dataset( "deletion" )->count( $session );
 
 # Number of subscriptions
-my $num_subs = count( "subscription" );
+my $num_subs = $session->get_archive()->get_dataset( "subscription" )->count( $session );
 
 my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
@@ -201,33 +210,4 @@ sub render_row
 	$td->appendChild( $val );
 
 	return $tr;
-}
-
-# maybe this could be utility? cjg
-sub count
-{
-	my( $datasetid, %searchfields ) = @_;
-		
-	my $dataset = $session->get_archive()->get_dataset( $datasetid );
-
-	my $searchexp = new EPrints::SearchExpression(
-		session => $session,
-		dataset => $dataset,
-		allowblank => 1 );
-
-	my $searchfield;
-	foreach $searchfield ( keys %searchfields )
-	{
-		$searchexp->add_field(
-			$dataset->get_field( $searchfield ),
-			"PHR:EQ:".$searchfields{ $searchfield } );
-	}
-
-	$searchexp->perform_search();
-	my $count = $searchexp->count();
-	$searchexp->dispose();
-
-print STDERR "count:$datasetid:$count\n";
-	
-	return( $count );
 }

@@ -33,7 +33,7 @@ my $was_deleted = 0;
 if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
 {
 	# There's a match, looks like we have an ID
-	my $guessed_id = $session->get_archive()->get_conf( "eprint_id_stem" }.$1.$2.$3.$4;
+	my $guessed_id = $1.$2.$3.$4;
 
 	# Was the eprint deleted?
 	my $deletion_record = new EPrints::Deletion( $session, $guessed_id );

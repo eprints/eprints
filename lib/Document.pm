@@ -182,12 +182,7 @@ sub create_symlink
 
 	my $dir = $eprint->local_path()."/".docid_to_path( $archive, $id );
 
-	print STDERR "\nLINKDIR=($linkdir)\n\n";
-	if( -d $linkdir )
-	{
-		$eprint->get_session()->get_archive()->log( "Link Dir $dir already exists!" );
-	}
-	else
+	unless(-d $linkdir )
 	{
 		my @created = mkpath( $linkdir, 0, 0775 );
 
@@ -199,7 +194,10 @@ sub create_symlink
 	}
 
 	my $symlink = $linkdir."/".docid_to_path( $archive, $id );
-
+	if(-e $symlink )
+	{
+		unlink( $symlink );
+	}
 	unless( symlink( $dir, $symlink ) )
 	{
 		$archive->log( "Error creating symlink for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." symlink($dir to $symlink): ".$! );
@@ -443,7 +441,7 @@ sub url
 	{
 		$basepath = $archive->get_conf( "server_secure_root" );
 	}
-	return $basepath . "/" . $archive->get_conf( "eprint_id_stem" ) .
+	return $basepath . "/" . 
 		sprintf( "%08d", $eprint->get_value( "eprintid" )) . "/" .
 		docid_to_path( $archive, $self->get_value( "docid" ) ) . "/" . 
 		$self->get_main();

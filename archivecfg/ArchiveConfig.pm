@@ -52,9 +52,6 @@ sub get_conf
 #
 ######################################################################
 
-# Stem for local ID codes. This gets prepended to all eprint ids.
-$c->{eprint_id_stem} = "zook";
-
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
@@ -189,7 +186,7 @@ $c->{oai_base_url} = $c->{server_perl_root}."/oai";
 
 $c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 	$c->{oai_archive_id},
-	$c->{eprint_id_stem}."00000023" );
+	"23" );
 
 # Information for "Identify" responses.
 
@@ -253,19 +250,66 @@ $c->{oai_comments} = [
 	EPrints::Config::get( "version_desc" ).
 	" (http://www.eprints.org)" ];
 
+###########################################
+# Complexity Customisation
+#
+# aka. things you might not want to bother
+# the users with, or might consider really 
+# useful.
+###########################################
+
+# You may hide the "lineage" and "honourific"
+# fields in the "name" type field input, if you
+# feel that they will confuse your users. This
+# makes no difference to the actual database,
+# the fields will just be unused.
+$c->{hide_honourific} = 1;
+$c->{hide_lineage} = 0;
 
 ###########################################
 #  Submission Form Customisation
 ###########################################
 
+# These items let you skip the various stages
+# of the submission form if they are not relevant.
+
+# If you skip "type" then your eprint-defaults
+# sub (far below in this file) should set a 
+# default type.
 $c->{submission_stage_skip}->{type} = 0;
+
+# You can skip "linking" with no ill effects.
 $c->{submission_stage_skip}->{linking} = 0;
+
+# If you skip the main metadata input you must
+# set all the required fields in the default.
 $c->{submission_stage_skip}->{meta} = 0;
+
+# If you really must skip the file upload then
+# you must make it valid to submit no files.
 $c->{submission_stage_skip}->{files} = 0;
 
-#cjg:
-# More things for simplifying submission form
+# The following options deal with the information 
+# the user is asked for when submitting a document
+# associated with a record. 
 
+# Hide the format option, if you do this you must
+# set a default.
+$c->{submission_hide_format} = 0;
+
+# Hide the optional format description field, no
+# big whup if you do this.
+$c->{submission_hide_formatdesc} = 0;
+
+# Hide the language field. This field does not do
+# anything useful anyway, but it might provide 
+# useful data in a multilingual archive.
+$c->{submission_hide_language} = 1;
+
+# Hide the security field, you might want to do
+# this if you don't plan to have any secret or
+# confidential contents.
+$c->{submission_hide_security} = 0;
 
 ###########################################
 #  Language
@@ -335,10 +379,13 @@ $c->{userauth} = {
 		priv  =>  [ "user", "subscription", "set-password", "deposit" ] },
 	editor => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "staff-view", "deposit"] },
+		priv  =>  [ "tester", "subscription", "view-status", "editor", 
+				"set-password", "staff-view", "deposit"] },
 	admin => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject", "staff-view", "deposit"] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor", 
+				"set-password", "edit-subject", "staff-view", 
+				"deposit"] }
 };
 
 
@@ -531,6 +578,7 @@ $c->{default_order}->{user} = "byname";
 #####
 ##### This is the point from which chaos reigns
 ##### but it will be made better. Later...
+#####
 
 
 # How to display articles in "version of" and "commentary" threads.
@@ -997,9 +1045,9 @@ sub eprint_render
 {
 	my( $eprint, $session, $show_all ) = @_;
 
-#my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-#my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-#my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
+	my $succeeds_field = $session->get_archive()->get_dataset( "eprint" )->get_field( "succeeds" );
+	my $commentary_field = $session->get_archive()->get_dataset( "eprint" )->get_field( "commentary" );
+	my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
 
 	my( $page, $p, $a );
 
@@ -1009,6 +1057,28 @@ sub eprint_render
 	$p = $session->make_element( "p" );
 	$p->appendChild( $eprint->render_citation() );
 	$page->appendChild( $p );
+
+	# Put in a message describing how this document has other versions
+	# in the archive if appropriate
+	if( $has_multiple_versions )
+	{
+		my $latest = $eprint->last_in_thread( $succeeds_field );
+#
+		if( $latest->get_value( "eprintid" ) == $eprint->get_value( "eprintid" ) )
+		{
+			$page->appendChild( $session->html_phrase( 
+						"page_latest_version" ) );
+		}
+		else
+		{
+			$page->appendChild( $session->html_phrase( 
+				"page_not_latest_version",
+				link => $session->make_element(
+					"a",
+					href => $latest->static_page_url() 
+								) ) );
+		}
+	}		
 
 	# Available documents
 	my @documents = $eprint->get_all_documents();
@@ -1022,24 +1092,6 @@ sub eprint_render
 	}
 	$page->appendChild( $p );
 
-	# Put in a message describing how this document has other versions
-	# in the archive if appropriate
-	#if( $has_multiple_versions)
-	#{
-		#my $latest = $eprint->last_in_thread( $succeeds_field );
-#
-		#if( $latest->{eprintid} eq $eprint->{eprintid} )
-		#{
-			#$html .= "<P ALIGN=CENTER><EM>This is the latest version of this ".
-				#"eprint.</EM></P>\n";
-		#}
-		#else
-		#{
-			#$html .= "<P ALIGN=CENTER><EM>There is a later version of this ".
-				#"eprint available: <A href=\"" . $latest->static_page_url() . 
-				#"\">Click here to view it.</A></EM></P>\n";
-		#}
-	#}		
 
 	# Then the abstract
 
@@ -1057,12 +1109,21 @@ sub eprint_render
 					cellpadding=>"3" );
 	$page->appendChild( $table );
 
-	#commentary	
-	#if( defined $eprint->{commref} && $eprint->{commref} ne "" )
-	#{
-	#	$html .= "<TR><TD VALIGN=TOP><STRONG>Commentary on:</STRONG></TD><TD>".
-	#		$eprint->{commref}."</TD></TR>\n";
-	#}
+	# Commentary
+	if( defined $eprint->get_value( "commentary" ) )
+	{
+		my $target = EPrints::EPrint->new( $session,
+			$session->get_archive()->get_dataset( "archive" ), 
+			$eprint->get_value( "commentary" ) );
+		if( defined $target )
+		{
+			$table->appendChild( _render_row(
+				$session,
+				$session->html_phrase( 
+					"eprint_fieldname_commentary" ),
+				$target->render_citation_link() ) );
+		}
+	}
 
 	# Keywords
 	if( defined $eprint->get_value( "keywords" ) )
@@ -1072,13 +1133,6 @@ sub eprint_render
 			$session->html_phrase( "eprint_fieldname_keywords" ),
 			$eprint->render_value( "keywords", $show_all ) ) );
 	}
-
-	# Comments:
-	#if( defined $eprint->{comments} && $eprint->{comments} ne "" )
-	#{
-		#$html .= "<TR><TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
-			#$eprint->{comments}."</TD></TR>\n";
-	#}
 
 	# Subjects...
 	$table->appendChild( _render_row(
@@ -1117,27 +1171,16 @@ sub eprint_render
 		$session->html_phrase( "page_deposited_on" ),
 		$eprint->render_value( "datestamp", $show_all ) ) );
 
-######################## for debug.
-	$table->appendChild( _render_row(
-		$session,
-		$session->html_phrase( "eprint_fieldname_title" ),
-		$eprint->render_value( "title", $show_all ) ) );
-########################
-
 	# Alternative locations
-	#if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
-	#{
-		#$html .= "<TR><TD VALIGN=TOP><STRONG>Alternative Locations:".
-			#"</STRONG></TD><TD>";
-		#my $altloc_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "altloc" );
-		#$html .= $eprint->{session}->{render}->format_field(
-			#$altloc_field,
-			#$eprint->{altloc} );
-		#$html .= "</TD></TR>\n";
-	#}
-#
-	#$html .= "</TABLE></P>\n";
-#
+	if( defined $eprint->get_value( "altloc" ) )
+	{
+		$table->appendChild( _render_row(
+			$session,
+			$session->html_phrase( "eprint_fieldname_altloc" ),
+			$eprint->render_value( "altloc", $show_all ) ) );
+	}
+
+
 	# If being viewed by a staff member, we want to show any suggestions for
 	# additional subject categories
 	if( $show_all )
@@ -1161,22 +1204,24 @@ sub eprint_render
 	}
 			
 	# Now show the version and commentary response threads
-	#if( $has_multiple_versions )
-	#{
-		#$html .= "<h3>Available Versions of This Item</h3>\n";
+	if( $has_multiple_versions )
+	{
+		$page->appendChild( 
+			$session->html_phrase( "page_available_versions" ) );
 		#$html .= $eprint->{session}->{render}->write_version_thread(
 			#$eprint,
 			#$succeeds_field );
-	#}
-	#
-	#if( $eprint->in_thread( $commentary_field ) )
-	#{
-		#$html .= "<h3>Commentary/Response Threads</h3>\n";
+	}
+	
+	if( $eprint->in_thread( $commentary_field ) )
+	{
+		$page->appendChild( 
+			$session->html_phrase( "page_commentary_threads" ) );
 		#$html .= $eprint->{session}->{render}->write_version_thread(
 			#$eprint,
 			#$commentary_field );
-	#}
-#
+	}
+
 	my $title = eprint_render_short_title( $eprint );
 
 	return( $page, EPrints::Utils::tree_to_utf8( $title ) );
@@ -1221,7 +1266,7 @@ sub user_display_name
 	# If no surname, just return the username
 	my $name = $user->get_value( "name" );
 
-	if( !defined $name || $name->{family} eq "" ) 
+	if( !defined $name || !EPrints::Utils::is_set( $name->{family} ) )
 	{
 		#langify cjg
 		return( "User ".$user->get_value( "username" ) );

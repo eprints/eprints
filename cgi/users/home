@@ -120,6 +120,11 @@ my $tools = [
 		page=>"status",
 		priv=>"view-status"
 	},
+	### Review items we've got in archive
+	{
+		page=>"review",
+		priv=>"deposit"
+	},
 	### View the Editor submission buffer
 	{
 		page=>"staff/buffer",

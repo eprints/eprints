@@ -635,7 +635,7 @@ sub _from_stage_fileview
 	my $i;
 	my $consumed = 0;
 	
-	print STDERR "ACTION=".$self->{action}."\n";
+	print STDERR "ACTION=".$self->{action}."\n";#cjg
 
 	# Determine which button was pressed
 	if( $self->{action} eq "deleteall" )
@@ -704,14 +704,13 @@ sub _from_stage_fileview
 	# Fileview button wasn't pressed, and neiter was "prev" or "upload"
 	# so it must (should) be "finished" -
 	# Update the description if appropriate
-	$self->{document}->set_value( "formatdesc",
-		$self->{session}->param( "formatdesc" ) );
-	$self->{document}->set_value( "format",
-		$self->{session}->param( "format" ) );
-	$self->{document}->set_value( "language",
-		$self->{session}->param( "language" ) );
-	$self->{document}->set_value( "security",
-		$self->{session}->param( "security" ) );
+	foreach( "formatdesc", "format", "language", "security" )
+	{
+		next if( $self->{session}->get_archive()->get_conf(
+			"submission_hide_".$_ ) );
+		$self->{document}->set_value( $_,
+			$self->{session}->param( $_ ) );
+	}
 	$self->{document}->commit();
 
 	if( $self->{action} eq "finished" )
@@ -1418,19 +1417,25 @@ sub _do_stage_fileview
 				"lib/submissionform:action_prev" ) };
 
 	if( scalar keys %files > 0 ) {
+		my $archive = $self->{session}->get_archive();
 
-		my $docds = $self->{session}->get_archive()->get_dataset( "document" );
+		my $docds = $archive->get_dataset( "document" );
 
-		$submit_buttons->{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" );
+		$submit_buttons->{finished} = $self->{session}->phrase( 
+			"lib/submissionform:action_finished" );
+
+		my $fields = [];
+		foreach( "format", "formatdesc", "language", "security" )
+		{
+			unless( $archive->get_conf( "submission_hide_".$_ ) )
+			{
+				push @{$fields}, $docds->get_field( $_ );
+			}
+		}
 
 		$page->appendChild( 
 			$self->{session}->render_input_form( 
-				[ 
-					$docds->get_field( "format" ),
-					$docds->get_field( "formatdesc" ),
-					$docds->get_field( "language" ),
-					$docds->get_field( "security" )
-				],
+				$fields,
 				$self->{document}->get_data(),
 				0,
 				1,

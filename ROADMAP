@@ -52,23 +52,25 @@
 #	Bug in render_citation - emails are links!
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
+#	Bug: Why does 'help' disappear when there is a problem with a search?
 #	Clean up validators - Don't validate records with fields which have bad langids
-#	Order buttons
+#	Order buttons somehow
 #	Staff EPrint Edit
 #	Threads rendering code.
 #	Staff User Edit/Create
 #	Delete records function.
-#	home needs 'items in archive' link.
 #	Make all possible field-types browseable.
 #	Make SearchFields have a better call method.
-#	Bug: Why does 'help' disappear when there is a problem with a search?
+#	Get install upgrader working properly.
+#	"Squash" reverse indexes?
+#	clone cocks up later version id
 
 0	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
 0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Field property: freetext (or not-freetext) to stop indexing)
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
-0	Option to hide Honourific and/or Lineage.
+-	Option to hide Honourific and/or Lineage.
 0	Commentary summary page (Psycoloquy style)
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
