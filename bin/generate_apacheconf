@@ -21,9 +21,9 @@ use strict;
 #cjg Write a more simple conf if only one language involved?
 
 my $archiveid = $ARGV[0];
-my $site_sysfile = $EPrints::Config::get( "sys_path" )."/auto-apache.conf";
-my $site_incfile = $EPrints::Config::get( "sys_path" )."/auto-apache-includes.conf";
-my $site_userfile = $EPrints::Config::get( "cfg_path" )."/apache.conf";
+my $site_sysfile = EPrints::Config::get( "sys_path" )."/auto-apache.conf";
+my $site_incfile = EPrints::Config::get( "sys_path" )."/auto-apache-includes.conf";
+my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
 unless( -e $site_userfile )
 {
 	open( CONF, ">$site_userfile" ) || die "Can't write to $site_userfile";
@@ -53,7 +53,7 @@ END
 }
 
 
-my $startupfile = $EPrints::Config::get( "bin_path" )."/startup.pl";
+my $startupfile = EPrints::Config::get( "bin_path" )."/startup.pl";
 open( CONF, ">$site_sysfile" ) || die "Can't write to $site_sysfile";
 print CONF <<END;
 #
@@ -137,7 +137,7 @@ END
 	print "no userfile\n";
 }
 
-my $cgidir = $EPrints::Config::get( "cgi_path" );
+my $cgidir = EPrints::Config::get( "cgi_path" );
 my $adminemail = $archive->get_conf( "adminemail" );
 my $local_html_root = $archive->get_conf( "local_html_root" );
 my $host = $archive->get_conf( "host" );
