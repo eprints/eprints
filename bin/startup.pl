@@ -1,5 +1,5 @@
 use lib '/opt/eprints/perl_lib';
-######################################
+use strict;
 
 ######################################################################
 #
@@ -14,8 +14,6 @@ use lib '/opt/eprints/perl_lib';
 #  __LICENSE__
 #
 ######################################################################
-#cjg headers?
-use strict;
 
 print STDERR "EPRINTS: Loading Modules\n";
 
