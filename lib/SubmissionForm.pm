@@ -1594,7 +1594,7 @@ sub _do_stage_verify
 		$page->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
 
 		$page->appendChild( $self->{session}->render_ruler() );	
-		$page->appendChild( $self->{eprint}->render_full_details() );
+		$page->appendChild( $self->{eprint}->render_full() );
 		$page->appendChild( $self->{session}->render_ruler() );	
 
 		# cjg Should be from an XML-lang file NOT the main config.

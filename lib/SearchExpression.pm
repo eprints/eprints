@@ -494,7 +494,6 @@ sub perform_search2
 
 		$firstpass = 0;
 	}
-#print STDERR "MATCHES = (".join(",",@{$matches}).")\n";
 	$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
 }
 

@@ -160,6 +160,13 @@
     <phrase ref="eprint_typename_preprint">Preprint</phrase>
     <phrase ref="eprint_typename_thesis">Thesis&#25606;</phrase>
 
+<!-- Upload Format Option Names -->
+
+    <phrase ref="format_fieldopt_arc_format_plain">File Upload</phrase>
+    <phrase ref="format_fieldopt_arc_format_graburl">Capture from URL</phrase>
+    <phrase ref="format_fieldopt_arc_format_zip">.ZIP Archive Upload</phrase>
+    <phrase ref="format_fieldopt_arc_format_targz">.tar.gz Archive Upload</phrase>
+
 <!-- Sort Order names -->
 
     <phrase ref="ordername_eprint_byyear">by year (most recent first)</phrase>

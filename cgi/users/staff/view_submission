@@ -60,7 +60,7 @@ my( $page, $form );
 
 $page = $session->make_doc_fragment();
 
-$page->appendChild( $eprint->render_full_details() );
+$page->appendChild( $eprint->render_full() );
 
 $page->appendChild( $session->render_ruler() );
 

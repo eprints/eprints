@@ -58,6 +58,7 @@
 #	Delete records function.
 #	home needs 'items in archive' link.
 #	Make all possible field-types browseable.
+#	Make SearchFields have a better call method.
 
 0	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
@@ -121,14 +122,14 @@
 
 *	Milestone "Double Cheese" : EPrints 2.0
 
--	EPrints 1 : Make it do OAI 1.1
--	Improve name search to handle ","s
+# -	EPrints 1 : Make it do OAI 1.1
+# -	Improve name search to handle ","s
 
-*	EPrints 1.1.2 OAI1.1 Compliance patch (August 28th 2001)
+# *	EPrints 1.1.2 OAI1.1 Compliance patch (August 28th 2001)
 
-0	EPrints 1 : Make an exporter to dump database for import by ep2
+# 0	EPrints 1 : Make an exporter to dump database for import by ep2
 
-*	EPrints 1.2 Final Planned EPrints 1.* release.
+# *	EPrints 1.2 Final Planned EPrints 1.* release.
 
 
 1	Sleep

@@ -570,7 +570,7 @@ sub _render_value3
 
 	if( $self->is_type( "longtext" ) )
 	{
-		my @paras = split( /\r?\n\r?\n/ , $value );
+		my @paras = split( /\r\n|\r|\n/ , $value );
 		my $frag = $session->make_doc_fragment();
 		my $first = 1;
 		foreach( @paras )

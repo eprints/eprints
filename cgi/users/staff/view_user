@@ -1,6 +1,6 @@
 ######################################################################
 #
-#  View User Record
+#  View User Record (Staff View)
 #
 ######################################################################
 #
@@ -13,155 +13,18 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
+use EPrints::UserPage;
 
 my $session = new EPrints::Session;
 
-process( $session );
+# Check we have privs
+if( !$session->auth_check( "staff-view" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+EPrints::UserPage::process( $session, 1 );
 
 $session->terminate();
 
-sub process
-{
-	my( $session ) = @_;
-
-	my $username = $session->param( "username" );
-
-	if( defined $username )
-	{
-		$session->render_error( $session->html_phrase( 
-				"cgi/users/view_user:no_user" ) );
-		return;
-	}
-
-	my $user = EPrints::User::user_with_username( $session, $username );
-
-	if( !defined $user )
-	{
-		$session->render_error( $session->html_phrase( 
-				"cgi/users/view_user:unknown_user" ) );
-		return;
-	}
-
-
-
-######
-	print $session->{render}->render_user( $user, 0 );
-
-		print "<HR>\n";
-
-		my $rows = $session->{database}->retrieve(
-			EPrints::Database::table_name( "archive" ),
-			[ "eprintid" ],
-			[ "username LIKE \"$userid\"" ] );
-
-		print "<CENTER><P><A ".
-			"HREF=\"eprint_search?username=$userid\&submit=Search\">".
-			"User has ".scalar @$rows;
-		print ( scalar @$rows==1 ? " EPrint" : " EPrints" );
-		print " in the archive.</A></P></CENTER>\n";
-		
-
-		print $session->{render}->start_form( "edit_user" );
-		print "<CENTER><P>";
-		print $session->{render}->hidden_field( "username", $userid );
-		print $session->{render}->submit_buttons( [ "Edit User",
-		                                            "Delete User" ] );
-		print "</P></CENTER>\n";
-
-######
-
-	$session->build_page(
-		$session->phrase( "cgi/users/view_user:title",
-				name=>$user->full_name() ), 
-		$page );
-	$session->send_page();
-
-
-
-#######################################################################
-##
-##  EPrints Submission Staff Control Page
-##
-#######################################################################
-##
-##  __LICENSE__
-##
-#######################################################################
-#
-#use EPrints::EPrint;
-#use EPrints::HTMLRender;
-#use EPrints::Database;
-#use EPrints::Session;
-#use EPrints::User;
-#
-#use strict;
-#
-#
-#my $session = EPrints::Session->new();
-#
-## Check we have privs
-#if( !$session->auth_check( "editor" ) )
-#{
-#	$session->terminate();
-#	Apache::exit( 0 );
-#}
-#
-#my $eprintid = $session->param( "eprintid" );
-#
-#if( !defined $eprintid || $eprintid eq "" )
-#{
-#	$session->render_error( 
-#		$session->html_phrase( "cgi/users/view_submission:not_directly" ),
-#		"buffer" );
-#	$session->terminate();
-#	exit;
-#}
-#
-#
-#my $eprint = new EPrints::EPrint( 
-#		$session,
-#		$session->get_archive()->get_dataset( "buffer" ),
-#		$eprintid );
-#
-#if( !defined $eprint )
-#{
-#	$session->render_error( 
-#		$session->html_phrase( "cgi/users/view_submission:no_eprint",
-#			eprintid => $session->make_text( $eprintid ) ) );
-#	$session->terminate();
-#	exit;
-#}
-#
-#my( $page, $form );
-#
-#$page = $session->make_doc_fragment();
-#
-#$page->appendChild( $eprint->render_full_details() );
-#
-#$page->appendChild( $session->render_ruler() );
-#
-#$form = $session->render_form( "post", "edit_submission" );
-#$page->appendChild( $form );
-#
-#$form->appendChild( $session->render_hidden_field(
-#			"eprintid",
-#			$eprint->get_value( "eprintid" ) ) );
-#	
-#$form->appendChild( $session->render_action_buttons(
-#	"accept" => $session->phrase( 
-#			"cgi/users/view_submission:action_accept" ),
-#	"edit" => $session->phrase( 
-#			"cgi/users/view_submission:action_edit" ),
-#	"bounce" => $session->phrase( 
-#			"cgi/users/view_submission:action_bounce" ),
-#	"delete" => $session->phrase( 
-#			"cgi/users/view_submission:action_delete" ) ) );
-#
-#$page->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
-#
-#$session->build_page(
-#	$session->phrase( "cgi/users/view_submission:title" ), 
-#	$page );
-#$session->send_page();
-#

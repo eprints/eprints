@@ -13,70 +13,11 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
+use EPrints::UserPage;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
 
-
-my $userid = $session->{render}->param( "username" );
-
-if( defined $userid )
-{
-	my $user = new EPrints::User( $session, $userid );
-
-	if( defined $user )
-	{
-		print $session->{render}->start_html( 
-			$session->{lang}->phrase( 
-				"cgi/user:user_title", 
-				{name=>$user->full_name()} ) );
-
-		print $session->{render}->render_user( $user, 1 );
-
-		print "<HR>\n";
-
-		my $rows = $session->{database}->retrieve(
-			EPrints::Database::table_name( "archive" ),
-			[ "eprintid" ],
-			[ "username LIKE \"$userid\"" ] );
-
-		print "<P>";
-		if ( scalar @$rows==1 )
-		{
-			print $session->{lang}->phrase( "cgi/user:one_record" );
-		} 
-		else 
-		{
-			print $session->{lang}->phrase( 
-				"cgi/user:n_records", 
-				{n=>scalar @$rows} );
-		} 
-		print "</P>\n";
-		
-		if( scalar @$rows > 0 )
-		{
-			print "<P><A HREF=\"user_eprints?username=$userid\">";
-			print $session->{lang}->phrase( "cgi/user:view_link" );
-			print "</A></P>\n"; 
-		}
-		
-		print $session->{render}->end_html();
-	}
-	else
-	{
-		print $session->render_error(
-			$session->html_phrase( "cgi/user:unknown_user" ),
-			$session->get_archive()->get_conf( "frontpage" ),
-			$session->html_phrase( "cgi/user:return_front" ) );
-	}
-}
-else
-{
-	print $session->render_error(
-		$session->html_phrase( "cgi/user:no_user" ),
-		$session->get_archive()->get_conf( "frontpage" ),
-		$session->html_phrase( "cgi/user:return_front" ) );
-}
+EPrints::UserPage::process( $session, 0 );
 
 $session->terminate();
+

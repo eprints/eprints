@@ -611,6 +611,29 @@ sub render_value
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
 
+
+
+sub render
+{
+        my( $self ) = @_;
+
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session}, 0 );
+	
+        return( $dom, $title );
+}
+
+# This should include all the info, not just that presented to the public.
+sub render_full
+{
+        my( $self ) = @_;
+
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session}, 1 );
+
+        return( $dom, $title );
+}
+
+
+
 sub unused_username
 {
 	my( $session, $candidate ) = @_;
@@ -630,6 +653,12 @@ sub unused_username
 	return $candidate.$suffix;
 }	
 	
+sub get_dataset
+{
+	my( $self ) = @_;
+	
+	return $self->{dataset};
+}
 sub get_session
 {
 	my( $self ) = @_;

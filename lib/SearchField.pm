@@ -176,7 +176,8 @@ sub from_form
 
 	if( $self->is_type( "boolean" ) )
 	{
-		$self->set_value( "PHR:EQ:$val" ) if( $val ne "EITHER" );
+		$self->set_value( "PHR:EQ:TRUE" ) if( $val eq "TRUE" );
+		$self->set_value( "PHR:EQ:FALSE" ) if( $val eq "FALSE" );
 	}
 	elsif( $self->is_type( "email","url" ) )
 	{
@@ -251,13 +252,27 @@ sub from_form
 			}
 		}
 	}
+	elsif( $self->is_type( "int" ) )
+	{
+		if( defined $val )
+		{
+			if( $val =~ m/^(\d+)?\-?(\d+)?/ )
+			{
+				$self->set_value( "ANY:EQ:$val" );
+			}
+			else
+			{
+				$problem = $self->{session}->phrase( "lib/searchfield:int_err" );
+			}
+		}
+	}
 	elsif( $self->is_type( "secret" ) )
 	{
 		$self->{session}->get_archive()->log( "Attempt to search a \"secret\" type field." );
 	}
 	else
 	{
-		$self->{session}->get_archive()->log( "Unknown search type." );
+		$self->{session}->get_archive()->log( "Unknown search type: ".$self->{field}->get_type() );
 	}
 
 
@@ -703,16 +718,17 @@ sub do2
 			my $r;
 			if( $tname=~s/^!// )
 			{
+				# Free text search
 				$r = $self->{session}->get_db()->get_index_ids( $tname, $where );
 			}	
 			else
 			{ 
+				# Normal Search
 				$r = $self->{session}->get_db()->search( $keyfield, $tlist, $where );
 			}
-			
-
-
+			print STDERR "r: ".join(",",@{$r})."\n";	
 			$bitresults = EPrints::SearchExpression::_merge( $r , $bitresults, 0 );
+			print STDERR "bit: ".join(",",@{$bitresults})."\n";	
 		}
 		if( $firstpass )
 		{
@@ -722,9 +738,11 @@ sub do2
 		{
 			$results = EPrints::SearchExpression::_merge( $bitresults, $results, ( $self->{anyall} ne "ANY" ) );
 		}
+		print STDERR "res: ".join(",",@{$results})."\n";	
 		$firstpass = 0;
 	}
-
+	print STDERR "res: ".join(",",@{$results})."\n";	
+	print STDERR "done\n";
 	return $results;
 }
 

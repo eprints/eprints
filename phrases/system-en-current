@@ -76,6 +76,7 @@ EPrints Modules
 <!-- SearchField -->
 
     <phrase ref="lib/searchfield:year_err">A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</phrase>
+    <phrase ref="lib/searchfield:int_err">A numerical field must be specified as a single integer number, e.g. `23', or a range of numbers, e.g. `9-21', `17-' or `-93'</phrase>
     <phrase ref="lib/searchfield:no_words">Search field contains no indexable words: "<pin ref="words" />".</phrase>
     <phrase ref="lib/searchfield:help_boolean">Select a value.</phrase>
     <phrase ref="lib/searchfield:help_email">Enter some text to search for.</phrase>
@@ -210,6 +211,13 @@ EPrints Modules
     <phrase ref="lib/userform:complete_form"><p>Please complete the form before continuing.</p></phrase>
     <phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
     <phrase ref="lib/userform:update_record">Update Record</phrase>
+
+<!-- UserPage -->
+
+    <phrase ref="lib/userpage:no_user">No user specified!</phrase>
+    <phrase ref="lib/userpage:unknown_user">Unknown user.</phrase>
+    <phrase ref="lib/userpage:title">User record for <pin ref="name" /></phrase>
+    <phrase ref="lib/userpage:number_of_records"><p><pin ref="link">Number of records user has in archive: <strong><pin ref="n" /></strong></pin></p></phrase>
 
 <!-- Utils -->
 
@@ -385,11 +393,6 @@ Staff CGI Scripts
     <phrase ref="cgi/users/eprint_search:title">Staff EPrint Search</phrase>
     <phrase ref="cgi/users/eprint_search:preamble"><p>Don't panic! Just leave the fields you don't want to search blank.</p></phrase>
 
-<!-- view_user -->
-
-    <phrase ref="cgi/users/view_user:no_user">No user specified!</phrase>
-    <phrase ref="cgi/users/view_user:unknown_user">Unknown user.</phrase>
-    <phrase ref="cgi/users/view_user:title">User record for <pin ref="name" /></phrase>
 
 
 

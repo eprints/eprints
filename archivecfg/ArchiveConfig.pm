@@ -967,15 +967,13 @@ sub eprint_render_short_title
 ######################################################################
 
 ## WP1: BAD
-sub eprint_render_full
+sub eprint_render
 {
-	my( $eprint, $show_all ) = @_;
+	my( $eprint, $session, $show_all ) = @_;
 
 #my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
 #my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 #my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
-
-	my $session = $eprint->get_session();
 
 	my( $page, $p, $a );
 
@@ -1207,88 +1205,88 @@ sub user_display_name
 }
 
 
-######################################################################
 #
-# $html = user_render_full( $user, $public )
+# $DOM = user_render( $user, $session, $show_all )
 #
-#  Render the full record for $user. If $public, only public fields
-#  should be shown.
-#
-######################################################################
 
-## WP1: BAD
-sub user_render_full
+sub user_render
 {
-	my( $user, $public ) = @_;
+	my( $user, $session, $show_all ) = @_;
 
 	my $html;	
 
-	if( $public )
-	{
-		# Title + name
-		$html = "<P>";
-		$html .= $user->{title} if( defined $user->{title} );
-		$html .= " ".$user->full_name()."</P>\n<P>";
+	my( $info, $p, $a );
+	$info = $session->make_doc_fragment;
 
+	if( !$show_all )
+	{
+		# Render the public information about this user.
+		$p = $session->make_element( "p" );
+		$p->appendChild( $session->make_text( $user->full_name() ) );
 		# Address, Starting with dept. and organisation...
-		$html .= "$user->{dept}<BR>" if( defined $user->{dept} );
-		$html .= "$user->{org}<BR>" if( defined $user->{org} );
-		
-		# Then the snail-mail address...
-		my $address = $user->{address};
-		if( defined $address )
+		if( defined $user->get_value( "dept" ) )
 		{
-			$address =~ s/\r?\n/<BR>\n/s;
-			$html .= "$address<BR>\n";
+			$p->appendChild( $session->make_element( "br" ) );
+			$p->appendChild( $user->render_value( "dept" ) );
+		}
+		if( defined $user->get_value( "org" ) )
+		{
+			$p->appendChild( $session->make_element( "br" ) );
+			$p->appendChild( $user->render_value( "org" ) );
+		}
+		if( defined $user->get_value( "address" ) )
+		{
+			$p->appendChild( $session->make_element( "br" ) );
+			$p->appendChild( $user->render_value( "address" ) );
+		}
+		if( defined $user->get_value( "country" ) )
+		{
+			$p->appendChild( $session->make_element( "br" ) );
+			$p->appendChild( $user->render_value( "country" ) );
+		}
+		$info->appendChild( $p );
+		
+	
+		## E-mail and URL last, if available.
+		if( defined $user->get_value( "email" ) )
+		{
+			$p = $session->make_element( "p" );
+			$p->appendChild( $user->render_value( "email" ) );
+			$info->appendChild( $p );
+		}
+		if( defined $user->get_value( "url" ) )
+		{
+			$p = $session->make_element( "p" );
+			$p->appendChild( $user->render_value( "url" ) );
+			$info->appendChild( $p );
 		}
 		
-		# Finally the country.
-		$html .= $user->{country} if( defined $user->{country} );
-		
-		# E-mail and URL last, if available.
-		my @user_fields = $user->{session}->{metainfo}->get_user_fields();
-		my $email_field = EPrints::MetaInfo::find_field( \@user_fields, "email" );
-		my $url_field = EPrints::MetaInfo::find_field( \@user_fields, "url" );
-
-		$html .= "</P>\n";
-		
-		$html .= "<P>".$user->{session}->{render}->format_field(
-			$email_field,
-			$user->{email} )."</P>\n" if( defined $user->{email} );
-
-		$html .= "<P>".$user->{session}->{render}->format_field(
-			$url_field,
-			$user->{url} )."</P>\n" if( defined $user->{url} );
 	}
 	else
 	{
-		# Render the more comprehensive staff version, that just prints all
-		# of the fields out in a table.
+		# Show all the fields
+		my( $table );
+		$table = $session->make_element( "table",
+					border=>"0",
+					cellpadding=>"3" );
 
-		$html= "<p><table border=0 cellpadding=3>\n";
-
-		# Lob the row data into the relevant fields
-		my @fields = $user->{session}->{metainfo}->get_user_fields();
 		my $field;
-
-		foreach $field (@fields)
+		foreach $field ( $user->get_dataset()->get_type_fields( $user->get_value( "usertype" ) ) )
 		{
-			$html .= "<TR><TD VALIGN=TOP><STRONG>".$field->display_name( $user->{session} ).
-				"</STRONG></TD><TD>";
+			$table->appendChild( _render_row(
+				$session,
+				$session->make_text( 
+					$field->display_name( $session ) ),	
+				$user->render_value( 
+					$field->get_name(), 
+					$show_all ) ) );
 
-			if( defined $user->{$field->{name}} )
-			{
-				$html .= $user->{session}->{render}->format_field(
-					$field,
-					$user->{$field->{name}} );
-			}
-			$html .= "</TD></TR>\n";
 		}
-
-		$html .= "</table></p>\n";
+		$info->appendChild( $table );
+			
 	}	
 
-	return( $html );
+	return( $info );
 }
 
 

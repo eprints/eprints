@@ -1098,7 +1098,7 @@ sub generate_static
 		};
 
 		$self->{session}->new_page();
-		my( $page, $title ) = $self->render_abstract_page();
+		my( $page, $title ) = $self->render();
 
 		$self->{session}->build_page( $title, $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
@@ -1118,21 +1118,21 @@ sub generate_static
 }
 
 
-sub render_abstract_page
+sub render
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render_full", $self, 0 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 0 );
 	
         return( $dom, $title );
 }
 
 # This should include all the info, not just that presented to the public.
-sub render_full_details
+sub render_full
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render_full", $self, 1 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 1 );
 
         return( $dom );
 }
