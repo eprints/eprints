@@ -69,17 +69,17 @@ my %TYPE_INDEX =
 #cjg MAYBE this could be the defaults? not just =>1
 
 my $PROPERTIES = {
-	name => 1,
-	type => 1,
-	required => 1,
+	name => "NO_DEFAULT",
+	type => "NO_DEFAULT",
+	required => 0,
 	editable => 1,
-	multiple => 1,
-	datasetid => 1,
-	displaylines => 1,
-	digits => 1,
-	options => 1,
-	maxlength => 1,
-	showall => 1 };
+	multiple => 0,
+	datasetid => "NO_DEFAULT",
+	displaylines => 5,
+	digits => 20,
+	options => "NO_DEFAULT",
+	maxlength => 255,
+	showall => 0 };
 
 ######################################################################
 #
@@ -89,7 +89,7 @@ my $PROPERTIES = {
 # name   **required**
 # type   **required**
 # required # default = no
-# editable # default = no
+# editable # default = yes
 # multiple # default = no
 # 
 # displaylines   # for longtext and set (int)   # default = 5
@@ -113,45 +113,32 @@ sub new
 
 	foreach( "name" , "type" )
 	{
-		if( !defined $properties->{$_} )
-		{
-	print STDERR EPrints::Session::render_struct( $properties );
-			die "No $_ defined for field. (".join(",",caller()).")";	
-		}
 		$self->set_property( $_, $properties->{$_} );
 	}
 	foreach( "required" , "editable" , "multiple" )
 	{
-		$self->set_property( $_, $properties->{$_}, 0 );
+		$self->set_property( $_, $properties->{$_} );
 	}
 
 	$self->{dataset} = $dataset;
 
 	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
-		$self->set_property( 
-			"displaylines", 
-			$properties->{displaylines}, 
-			5 );
+		$self->set_property( "displaylines", $properties->{displaylines} );
 	}
 
 	if( $self->is_type( "int" ) )
 	{
-		$self->set_property( "digits", $properties->{digits} , 20 );
+		$self->set_property( "digits", $properties->{digits} );
 	}
 
 	if( $self->is_type( "subject" ) )
 	{
-		$self->set_property( "showall" , $properties->{showall} , 0 );
+		$self->set_property( "showall" , $properties->{showall} );
 	}
 
 	if( $self->is_type( "datatype" ) )
 	{
-		if( !defined $properties->{datasetid} )
-		{
-			#cjg NOT a good way to quit
-			die "NO DATASETID for FIELD: $properties->{name}\n";
-		}
 		$self->set_property( "datasetid" , $properties->{datasetid} );
 	}
 
@@ -162,11 +149,6 @@ sub new
 
 	if( $self->is_type( "set" ) )
 	{
-		if( !defined $properties->{options} )
-		{
-			#cjg NOT a good way to quit
-			die "NO OPTIONS for FIELD: $properties->{name}\n";
-		}
 		$self->set_property( "options" , $properties->{options} );
 	}
 
@@ -329,14 +311,24 @@ sub get_type
 
 sub set_property
 {
-	my( $self , $property , $value , $default ) = @_;
+	my( $self , $property , $value ) = @_;
 
 	if( !defined $PROPERTIES->{$property})
 	{
-		die "BAD METAFIELD get_property NAME: \"$property\"";
+		die "BAD METAFIELD set_property NAME: \"$property\"";
 	}
-	
-	$self->{$property} = ( defined $value ? $value : $default );
+	if( !defined $value )
+	{
+		if( $PROPERTIES->{$property} eq "NO_DEFAULT" )
+		{
+			die $PROPERTIES->{$property}." on a metafield can't be undef";
+		}
+		$self->{$property} = $PROPERTIES->{$property};
+	}
+	else
+	{
+		$self->{$property} = $value;
+	}
 }
 
 sub get_property
@@ -345,7 +337,7 @@ sub get_property
 
 	if( !defined $PROPERTIES->{$property})
 	{
-		die "BAD METAFIELD set_property NAME: \"$property\"";
+		die "BAD METAFIELD get_property NAME: \"$property\"";
 	}
 
 	return( $self->{$property} ); 

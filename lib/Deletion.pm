@@ -30,31 +30,14 @@ sub get_system_field_info
 	my( $class , $site ) = @_;
 
 	return ( 
-	{
-		name=>"eprintid",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"replacement",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"subjects",
-		type=>"subject",
-		multiple=>1,
-		required=>0,
-		editable=>0
-	},
-	{
-		name=>"deletiondate",
-		type=>"date",
-		required=>1,
-		editable=>0
-	} );
+		{ name=>"eprintid", type=>"text", required=>1, editable=>0 },
+
+		{ name=>"replacement", type=>"text", required=>1, editable=>0 },
+
+		{ name=>"subjects", type=>"subject", multiple=>1, required=>0, editable=>0 },
+
+		{ name=>"deletiondate", type=>"date", required=>1, editable=>0 } 
+	);
 }
 
 

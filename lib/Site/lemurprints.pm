@@ -386,189 +386,81 @@ $c->{userauth} = {
 
 $c->{sitefields}->{user} = [
 
-	{ name => "name", type => "name", required => 1, editable => 1 },
+	{ name => "name", type => "name", required => 1 },
 
-	{ name => "dept", type => "text", required => 0, editable => 1 },
+	{ name => "dept", type => "text", required => 0 },
 
-	{ name => "org", type => "text", required => 0, editable => 1 },
+	{ name => "org", type => "text", required => 0 },
 
 	{ name => "address", type => "longtext", displaylines => 5,
-		required => 0, editable => 1 },
+		required => 0 },
 
-	{ name => "oook", type => "text", editable => 1, multiple => 1 },
+	{ name => "oook", type => "text", multiple => 1 },
 
-	{
-		name => "country",
-		type => "text",
-		required => 0,
-		editable => 1
-	},
-	{
-		name => "url",
-		type => "url",
-		required => 0,
-		editable => 1,
-		multiple => 1 # TEMP cjg
-	},
-	{
-		name => "filter",
-		type => "subject",
-		required => 0,
-		editable => 1,
-		showall => 1,
-		multiple => 1
-	}
+	{ name => "country", type => "text", required => 0 },
+
+	{ name => "url", type => "url", required => 0, multiple => 1 },
+
+	{ name => "filter", type => "subject", required => 0, showall => 1, multiple => 1 }
 ];
 
 $c->{sitefields}->{eprint} = [
-	{
-		name => "abstract",
-		displaylines => 10,
-		type => "longtext",
-		editable => 1
-	},
-	{
-		name => "altloc",
-		displaylines => 3,
-		type => "url",
-		editable => 1,
-		multiple => 1
-	},
-	{
-		name => "authors",
-		type => "name",
-		editable => 1,
-		multiple => 1
-	},
-	{
-		name => "chapter",
-		type => "text",
-		editable => 1,
-		maxlength => 5
-	},
-	{
-		name => "comments",
-		type => "longtext",
-		editable => 1,
-		displaylines => 3
-	},
-	{
-		name => "commref",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "confdates",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "conference",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "confloc",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "department",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "editors",
-		type => "name",
-		editable => 1,
-		multiple => 1
-	},
-	{
-		name => "institution",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "ispublished",
-		type => "set",
-		editable => 1,
-		options => [ "unpub","inpress","pub" ]
-	},
-	{
-		name => "keywords",
-		type => "longtext",
-		editable => 1,
-		displaylines => 2
-	},
-	{
-		name => "month",
-		type => "set",
-		editable => 1,
-		options => [ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
-	},
-	{
-		name => "number",
-		type => "text",
-		maxlength => 6,
-		editable => 1
-	},
-	{
-		name => "pages",
-		type => "pagerange",
-		editable => 1
-	},
-	{
-		name => "pubdom",
-		type => "boolean",
-		editable => 1
-	},
-	{
-		name => "publication",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "publisher",
-		type => "text",
-		editable => 1
-	},
-	{
-		name => "refereed",
-		type => "boolean",
-		editable => 1
-	},
-	{
-		name => "referencetext",
-		type => "longtext",
-		editable => 1,
-		displaylines => 3
-	},
-	{
-		name => "reportno",
-		type => "text",
-		editable => 1,
-	},
-	{
-		name => "thesistype",
-		type => "text",
-		editable => 1,
-	},
-	{
-		name => "title",
-		type => "text",
-		editable => 1,
-	},
-	{
-		name => "volume",
-		type => "text",
-		maxlength => 6,
-		editable => 1,
-	},
-	{
-		name => "year",
-		type => "year",
-		editable => 1,
-	}
+	{ name => "abstract", displaylines => 10, type => "longtext" },
+
+	{ name => "altloc", displaylines => 3, type => "url", multiple => 1 },
+
+	{ name => "authors", type => "name", multiple => 1 },
+
+	{ name => "chapter", type => "text", maxlength => 5 },
+
+	{ name => "comments", type => "longtext", displaylines => 3 },
+
+	{ name => "commref", type => "text" },
+
+	{ name => "confdates", type => "text" },
+
+	{ name => "conference", type => "text" },
+
+	{ name => "confloc", type => "text" },
+
+	{ name => "department", type => "text" },
+
+	{ name => "editors", type => "name", multiple => 1 },
+
+	{ name => "institution", type => "text" },
+
+	{ name => "ispublished", type => "set", 
+			options => [ "unpub","inpress","pub" ] },
+
+	{ name => "keywords", type => "longtext", displaylines => 2 },
+
+	{ name => "month", type => "set",
+		options => [ "unspec","jan","feb","mar","apr","may","jun",
+			"jul","aug","sep","oct","nov","dec" ] },
+
+	{ name => "number", type => "text", maxlength => 6 },
+
+	{ name => "pages", type => "pagerange" },
+
+	{ name => "pubdom", type => "boolean" },
+
+	{ name => "publication", type => "text" },
+
+	{ name => "publisher", type => "text" },
+
+	{ name => "refereed", type => "boolean" },
+
+	{ name => "referencetext", type => "longtext", displaylines => 3 },
+
+	{ name => "reportno", type => "text" },
+
+	{ name => "thesistype", type => "text" },
+
+	{ name => "title", type => "text" },
+
+	{ name => "volume", type => "text", maxlength => 6 },
+
+	{ name => "year", type => "year" }
 ];
 	
 $c->{types}->{eprint} = {

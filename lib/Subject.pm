@@ -33,31 +33,16 @@ sub get_system_field_info
 {
 	my( $class , $site ) = @_;
 
-	return ( 
-	{
-		name=>"subjectid",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"name",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"parent",
-		type=>"text",
-		required=>0,
-		editable=>0
-	},
-	{
-		name=>"depositable",
-		type=>"boolean",
-		required=>1,
-		editable=>0
-	} );
+	return 
+	( 
+		{ name=>"subjectid", type=>"text", required=>1, editable=>0 },
+
+		{ name=>"name", type=>"text", required=>1, editable=>0 },
+
+		{ name=>"parent", type=>"text", required=>0, editable=>0 },
+
+		{ name=>"depositable", type=>"boolean", required=>1, editable=>0 } 
+	);
 }
 
 #cjg NEED TO {data} OO it.

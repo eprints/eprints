@@ -873,7 +873,7 @@ sub to_html
 		            "TRUE"   => $self->{session}->phrase( "lib/searchfield:bool_yes" ),
 		            "FALSE"  => $self->{session}->phrase( "lib/searchfield:bool_no" ) );
 
-
+#cjg NO DATE SEARCH!!!
 	my $frag = $self->{session}->make_doc_fragment();
 	
 	if( $self->is_type( "boolean" ) )

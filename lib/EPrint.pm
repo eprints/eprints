@@ -36,72 +36,26 @@ sub get_system_field_info
 	my( $class ) = @_;
 
 	return ( 
-	{
-		name=>"eprintid",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"username",
-		type=>"text",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"dir",
-		type=>"text",
-		required=>0,
-		editable=>0
-	},
-	{
-		name=>"datestamp",
-		type=>"date",
-		required=>0,
-		editable=>0
-	},
-                          # Subject categories. Tagged as
-                          # "not editable" since it's a special
-                          # case.
-	{
-		name=>"subjects",
-		type=>"subject",
-		required=>0,
-		editable=>0,
-		multiple=>1
-	},
-	{
-		name=>"additional",
-		type=>"text",
-		required=>0,
-		editable=>0
-	},
-	{
-		name=>"reasons",
-		type=>"longtext",
-		required=>0,
-		editable=>0,
-		displaylines=>6
-	},
-	{
-		name=>"type",
-		type=>"datatype",
-		datasetid=>"eprint",
-		required=>1,
-		editable=>0
-	},
-	{
-		name=>"succeeds",
-		type=>"text",
-		required=>0,
-		editable=>0
-	},
-	{
-		name=>"commentary",
-		type=>"text",
-		required=>0,
-		editable=>0
-	} );
+	{ name=>"eprintid", type=>"text", required=>1, editable=>0 },
+
+	{ name=>"username", type=>"text", required=>1, editable=>0 },
+
+	{ name=>"dir", type=>"text", required=>0, editable=>0 },
+
+	{ name=>"datestamp", type=>"date", required=>0, editable=>0 },
+
+        # Subject categories. "not editable" since it's a special case.
+	{ name=>"subjects", type=>"subject", required=>0, editable=>0, multiple=>1 },
+
+	{ name=>"additional", type=>"text", required=>0, editable=>0 },
+
+	{ name=>"reasons", type=>"longtext", required=>0, editable=>0, displaylines=>6 },
+
+	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, editable=>0 },
+
+	{ name=>"succeeds", type=>"text", required=>0, editable=>0 },
+
+	{ name=>"commentary", type=>"text", required=>0, editable=>0 } );
 }
 
 ######################################################################
