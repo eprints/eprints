@@ -867,7 +867,7 @@ sub process_webpage
 			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Prev",
-							href=>uri_escape( $fullurl ) ) );
+							href=>EPrints::Utils::url_escape( $fullurl ) ) );
 		}
 
 		$a = $self->{session}->render_link( "$url?_exp=$escexp&_action_update=1" );
@@ -891,7 +891,7 @@ sub process_webpage
 			$controls->appendChild( $a );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Next",
-							href=>uri_escape( $fullurl ) ) );
+							href=>EPrints::Utils::url_escape( $fullurl ) ) );
 		}
 
 		$page->appendChild( $controls );

@@ -32,7 +32,7 @@
 <a href="http://jigsaw.w3.org/css-validator/"><img border="0" align="middle" src="&base_url;/images/vcss.gif" alt="Valid CSS!" /></a>
 <a href="http://perl.apache.org/"><img border="0" align="middle" src="&base_url;/images/mod_perl.gif" alt="Powered by mod_perl!" /></a>
 <a href="http://www.apache.org/"><img src="&base_url;/images/apache_pb.gif" border="0" alt="Powered by Apache" align="middle" /></a>
-<a href="http://www.xanadu.net/"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
+<a href="vlit.html"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
 <br />
 <a href="http://www.w3c.org/XML/">XML</a> &amp; 
 <a href="http://www.w3c.org/DOM/">DOM</a> 

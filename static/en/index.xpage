@@ -12,14 +12,16 @@
 
 &ruler;
 
+<div align="center">
 <form method="get" accept-charset="utf-8" action="/perl/search">
-<p align="center"><b>Search the Titles, Abstracts and Keywords</b><br />
+<b>Search the Titles, Abstracts and Keywords</b><br />
 <input accept-charset="utf-8" size="40" type="text" name="abstract/keywords/title" /> 
 <input type="hidden" name="_order" value="bytitle" />
 <input type="hidden" name="abstract/keywords/title_srchtype" value="ALL" />
 <input type="hidden" name="_satisfyall" value="ALL" />
-<input class="actionbutton" value="Search" type="submit" name="_action_search" /> </p>
+<input class="actionbutton" value="Search" type="submit" name="_action_search" /> 
 </form>
+</div>
 
 &ruler;
 

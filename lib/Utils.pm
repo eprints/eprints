@@ -20,7 +20,7 @@ use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
 use XML::DOM;
-use URI::Escape;
+use URI;
 
 my $DF_AVAILABLE;
 
@@ -591,7 +591,7 @@ sub render_citation
 		# all across.
 
 		$node->setTagName( "a" );
-		$node->setAttribute( "href", uri_escape( $url ) );
+		$node->setAttribute( "href", EPrints::Utils::url_escape( $url ) );
 	}
 	foreach $node ( @{$nodes->{keep}} )
 	{
@@ -751,6 +751,15 @@ sub crypt_password
 	my $cryptpass = crypt($value ,$salt);
 
 	return $cryptpass;
+}
+
+# Escape everything AFTER the last /
+sub url_escape
+{
+	my( $url ) = @_;
+
+	my $uri = URI->new( $url );
+	return $uri->as_string;
 }
 
 

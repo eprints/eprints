@@ -784,7 +784,7 @@ sub make_basic_oai_response
 	my @bits = ();
 	foreach( $session->param ) 
 	{
-		push @bits , "$_=".uri_escape( $session->param($_) );
+		push @bits , "$_=".EPrints::Utils::url_escape( $session->param($_) );
 	}
 	$requestURL->appendChild( $session->make_text( $session->get_url().  "?" . join( '&', @bits ) ) );
 	$response->appendChild( $session->make_indent( 2 ) );
