@@ -1,8 +1,0 @@
-#WP1: BAD
-AuthName "User Area"
-AuthType Basic
-
-PerlAuthenHandler EPrints::Auth::authen
-PerlAuthzHandler  EPrints::Auth::authz
-
-require valid-user
