@@ -86,6 +86,21 @@ visible = YES
 displayname = "Homepage URL"
 </field>
 
+<field expertise>
+required = NO
+editable = YES
+type = "multitext"
+visible = YES
+displayname = "Expertise"
+displaylines = 3
+help = "Please list keyword/phrases describing your areas of specialisation "
+help = "using the terms likely to be used by someone searching for work in "
+help = "those areas. Avoid over-general terms (`chemistry') and "
+help = "over-particular terms (`my non-quantal theory of chemical reactions') "
+help = "that no one is likely to search on. Enter as many keyword/phrases "
+help = "as you wish."
+</field>
+
 <field official>
 required = NO
 editable = NO
