@@ -837,34 +837,37 @@ sub validate_documents
 	my( $self ) = @_;
 	my @problems;
 	
-	# Ensure we have at least one required format
-	my @formats = $self->get_formats();
-	my $f;
-	my $ok = 0;
 
-	foreach $f (@formats)
-	{
-		$ok = 1 if( EPrints::Document::required_format(
-				$self->{session},
-				$f ) );
-	
-	}
+	#cjg Needs to do stuff.
 
-	if( !$ok )
-	{
-		my $prob = $self->{session}->phrase( "lib/eprint:need_a_format" );
-		$prob .= "<UL>\n";
-		foreach (@{$self->{session}->{required_formats}})
-		{
-			$prob .= "<LI>".EPrints::Document::format_name( 
-						$self->{session},
-					 	$_ )."</LI>\n";
-		}
-		$prob .= "</UL>\n";
-
-		push @problems, $prob;
-
-	}
+#	# Ensure we have at least one required format
+#	my @formats = $self->get_formats();
+#	my $f;
+#	my $ok = 0;
+#
+#	foreach $f (@formats)
+#	{
+#		$ok = 1 if( EPrints::Document::required_format(
+#				$self->{session},
+#				$f ) );
+#	
+#	}
+#
+#	if( !$ok )
+#	{
+#		my $prob = $self->{session}->phrase( "lib/eprint:need_a_format" );
+#		$prob .= "<UL>\n";
+#		foreach (@{$self->{session}->{required_formats}})
+#		{
+#			$prob .= "<LI>".EPrints::Document::format_name( 
+#						$self->{session},
+#					 	$_ )."</LI>\n";
+#		}
+#		$prob .= "</UL>\n";
+#
+#		push @problems, $prob;
+#
+#	}
 
 	return( \@problems );
 }
@@ -934,28 +937,13 @@ sub validate_full
 #
 ######################################################################
 
-## WP1: BAD
 sub prune_documents
 {
 	my( $self ) = @_;
-	
-	# Get the documents from the database
-	my $docs_ds = $self->{session}->get_archive()->get_dataset( "document" );
-
-	my $searchexp = new EPrints::SearchExpression(
-		session => $self->{session},
-		dataset => $docs_ds );
-
-	$searchexp->add_field(
-		$docs_ds->get_field( "eprintid" ),
-		"PHR:EQ:".$self->get_value( "eprintid" ) );
-	
-	my $searchid = $searchexp->perform_search;
-	my @docs = $searchexp->get_records;
 
 	# Check each one
 	my $doc;
-	foreach $doc (@docs)
+	foreach $doc ( $self->get_all_documents() )
 	{
 		my %files = $doc->files();
 		if( scalar keys %files == 0 )
@@ -979,7 +967,7 @@ sub prune_documents
 sub prune
 {
 	my( $self ) = @_;
-	
+die "cjg";	
 
 	$self->prune_documents();
 	

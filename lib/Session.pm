@@ -466,6 +466,7 @@ sub render_form
 	$form->setAttribute( "accept-charset", "utf-8" );
 	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
 	$form->setAttribute( "action", $dest );
+	$form->setAttribute( "enctype", "multipart/form-data" );
 	return $form;
 }
 

@@ -225,12 +225,13 @@ sub clone
 	# First create a new doc object
 	my $new_doc = EPrints::Document::create( $self->{session},
 	                                         $eprint,
-	                                         $self->{format} );
+	                                         $self->{data}->{format} );
 	return( 0 ) if( !defined $new_doc );
 	
 	# Copy fields across
-	$new_doc->{formatdesc} = $self->{formatdesc};
-	$new_doc->{main} = $self->{main};
+	$new_doc->set_value( "format" ) = $self->get_value( "format" );
+	$new_doc->set_value( "formatdesc" ) = $self->get_value( "formatdesc" );
+	$new_doc->set_value( "main" ) = $self->get_main();
 	
 	# Copy files
 	my $rc = 0xffff & system
@@ -336,7 +337,7 @@ sub url
 	return( undef ) if( !defined $eprint );
 	
 	return( URI::Escape::uri_escape(
-		$eprint->url_stem() . $self->{docid} . "/" . $self->{main} ) );
+		$eprint->url_stem() . $self->get_value( "docid" ) . "/" . $self->get_main() ) );
 }
 
 
@@ -444,13 +445,13 @@ sub remove_file
 	my( $self, $filename ) = @_;
 	
 	# If it's the main file, unset it
-	undef $self->{main} if( $filename eq $self->{main} );
+	$self->set_value( "main" , undef ) if( $filename eq $self->get_main() );
 
 	my $count = unlink $self->local_path()."/".$filename;
 	
 	if( $count != 1 )
 	{
-		$self->{session}->get_archive()->log( "Error removing file $filename for doc ".$self->{docid}.": $!" );
+		$self->{session}->get_archive()->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
 	}
 	return( $count==1 );
 }
@@ -479,7 +480,7 @@ sub remove_all_files
 
 	if( $num_deleted < scalar @to_delete )
 	{
-		$self->{session}->get_archive()->log( "Error removing document files for ".$self->{docid}.", path ".$full_path.": $!" );
+		$self->{session}->get_archive()->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
 		return( 0 );
 	}
 
@@ -506,12 +507,12 @@ sub set_main
 		my %all_files = $self->files();
 
 		# Set the main file if it does
-		$self->{main} = $main_file if( defined $all_files{$main_file} );
+		$self->set_value( "main", $main_file ) if( defined $all_files{$main_file} );
 	}
 	else
 	{
 		# The caller passed in undef, so we unset the main file
-		undef $self->{main};
+		$self->set_value( "main", undef );
 	}
 }
 
@@ -529,7 +530,7 @@ sub get_main
 {
 	my( $self ) = @_;
 	
-	return( $self->{main} );
+	return( $self->{data}->{main} );
 }
 
 
@@ -546,7 +547,7 @@ sub set_format
 {
 	my( $self, $format ) = @_;
 	
-	$self->{format} = $format;
+	$self->set_value( "format" , $format );
 }
 
 
@@ -563,7 +564,7 @@ sub set_format_desc
 {
 	my( $self, $format_desc ) = @_;
 	
-	$self->{format_desc} = $format_desc;
+	$self->set_value( "format_desc" , $format_desc );
 }
 
 
@@ -588,7 +589,7 @@ sub upload
 	$file =~ s/.*\://;     # Remove everything before a ":" (MSDOS or Win)
 	$file =~ s/.*\///;     # Remove everything before a "/" (UNIX)
 
-	$file =~ s/ /_/g;      # Change spaces into underscores
+	$file =~ s/[ \.]/_/g;      # Change spaces and dots into underscores
 
 	my( $bytes, $buffer );
 
@@ -715,15 +716,15 @@ sub upload_url
 	return( 0 ) if ( $rc!=0 );
 
 	# Otherwise set the main file if appropriate
-	if( !defined $self->{main} || $self->{main} eq "" )
+	if( !defined $self->get_main() || $self->get_main() eq "" )
 	{
 		my $endfile = $url;
 		$endfile =~ s/.*\///;
 		$self->set_main( $endfile );
 
 		# If it's still undefined, try setting it to index.html or index.htm
-		$self->set_main( "index.html" ) unless( defined $self->{main} );
-		$self->set_main( "index.htm" ) unless( defined $self->{main} );
+		$self->set_main( "index.html" ) unless( defined $self->get_main() );
+		$self->set_main( "index.htm" ) unless( defined $self->get_main() );
 
 		# Those are our best guesses, best leave it to the user if still don't
 		# have a main file.
@@ -853,6 +854,8 @@ sub archive_name
 ## WP1: BAD
 sub validate
 {
+
+#cjg ALL BAD!
 	my( $self ) = @_;
 
 	my @problems;
@@ -865,7 +868,7 @@ sub validate
 	{
 		push @problems, $self->{session}->{lang}->phrase( "lib/document:no_files" );
 	}
-	elsif( !defined $self->{main} || $self->{main} eq "" )
+	elsif( !defined $self->get_main() || $self->get_main() eq "" )
 	{
 		# No file selected as main!
 		push @problems, $self->{session}->{lang}->phrase( "lib/document:no_first" );

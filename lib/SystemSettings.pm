@@ -29,10 +29,10 @@ $EPrints::SystemSettings::conf =
 		tar 	=> "/bin/tar"
 	},
 	invocation => {
-		zip 	=> '$(EXE_ZIP) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)',
-	        targz  	=> '$(EXE_GUNZIP) -c < $(ARC) 2>/dev/null | $(EXE_TAR) xf - -C $(DIR) >/dev/null 2>\&1',
-		wget 	=> '$(EXE_WGET)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)',
-		sendmail => '$(EXE_SENDMAIL) -oi -t -odb --'
+		zip 	=> '$(zip) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)',
+	        targz  	=> '$(gunzip) -c < $(ARC) 2>/dev/null | $(tar) xf - -C $(DIR) >/dev/null 2>\&1',
+		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)',
+		sendmail => '$(sendmail) -oi -t -odb --'
 	},
 	archive_extensions => {
 		"zip"    =>  ".zip",

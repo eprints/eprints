@@ -19,6 +19,7 @@ use EPrints::HTMLRender;
 use EPrints::Session;
 use EPrints::Document;
 
+use Unicode::String qw(utf8 latin1);
 use strict;
 
 
@@ -674,51 +675,62 @@ sub _from_stage_fileview
 		return( 0 );
 	}
 print STDERR "_-----------------------------\n";
-print STDERR $self->{action}."\n";
 
-#	my %files_unsorted = $self->{document}->files();
-#	my @files = sort keys %files_unsorted;
-#	my $i;
-#	my $consumed = 0;
-#	
-#	# Determine which button was pressed
-#	if( defined $self->{session}->{render}->param( "deleteall" ) )
-#	{
-#		# Delete all button
-#		$self->{document}->remove_all_files();
-#		$consumed = 1;
-#	}
-#
-#	for( $i=0; $i <= $#files; $i++ )
-#	{
-#		if( defined $self->{session}->{render}->param( "main_$i" ) )
-#		{
-#			# Pressed "Show First" button for this file
-#			$self->{document}->set_main( $files[$i] );
-#			$consumed = 1;
-#		}
-#		elsif( defined $self->{session}->{render}->param( "delete_$i" ) )
-#		{
-#			# Pressed "delete" button for this file
-#			$self->{document}->remove_file( $files[$i] );
-#			$self->{document}->set_main( undef ) if( $files[$i] eq $self->{document}->{main} );
-#			$consumed = 1;
-#		}
-#	}
-#	
-#	# Check to see if a fileview button was pressed, process it if necessary
-#	if( $consumed )
-#	{
-#		# Doc object will have updated as appropriate, commit changes
-#		unless( $self->{document}->commit() )
-#		{
-#			$self->_database_err;
-#			return( 0 );
-#		}
-#		
-#		$self->{new_stage} = "fileview";
-#		return( 1 );
-#	}
+	my %files_unsorted = $self->{document}->files();
+	my @files = sort keys %files_unsorted;
+	my $i;
+	my $consumed = 0;
+	
+	print STDERR "ACTION=".$self->{action}."\n";
+
+	# Determine which button was pressed
+	if( $self->{action} eq "deleteall" )
+	{
+		# Delete all button
+		$self->{document}->remove_all_files();
+		$consumed = 1;
+	}
+
+	if( $self->{action} =~ m/^main_(\d+)/ )
+	{
+		if( !defined $files[$1] )
+		{
+			# Not a valid filenumber
+			$self->_corrupt_err;
+			return( 0 );
+		}
+		# Pressed "Show First" button for this file
+		$self->{document}->set_main( $files[$1] );
+		$consumed = 1;
+	}
+
+	if( $self->{action} =~ m/^delete_(\d+)/ )
+	{
+		if( !defined $files[$1] )
+		{
+			# Not a valid filenumber
+			$self->_corrupt_err;
+			return( 0 );
+		}
+		# Pressed "Delete" button for this file
+		$self->{document}->remove_file( $files[$1] );
+		$consumed = 1;
+	}
+
+	
+	# Check to see if a fileview button was pressed, process it if necessary
+	if( $consumed )
+	{
+		# Doc object will have updated as appropriate, commit changes
+		unless( $self->{document}->commit() )
+		{
+			$self->_database_err;
+			return( 0 );
+		}
+		
+		$self->{new_stage} = "fileview";
+		return( 1 );
+	}
 
 	if( $self->{action} eq "prev" )
 	{
@@ -1214,11 +1226,10 @@ sub _do_stage_format
 
 	$page->appendChild( $self->_render_problems() );
 
-	##########################
 	# Validate again, so we know what buttons to put up and how 
 	# to state stuff
-	# $self->{eprint}->prune_documents(); cjg
-	# my $probs = $self->{eprint}->validate_documents();
+	$self->{eprint}->prune_documents(); 
+	my $probs = $self->{eprint}->validate_documents();
 
 	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
 	{
@@ -1271,7 +1282,7 @@ sub _do_stage_format
 		}
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
-		my %files = $self->{document}->files();
+		my %files = $doc->files();
 		my $nfiles = scalar(keys %files);
 		$td->appendChild( $self->{session}->make_text( $nfiles ) );
 		$td = $self->{session}->make_element( "td" );
@@ -1299,7 +1310,11 @@ sub _do_stage_format
 
 	my %buttons;
 	$buttons{prev} = $self->{session}->phrase( "lib/submissionform:action_prev" );
-	$buttons{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" ) ; #cjg IF NO PROBS...
+	if( scalar @{$probs} == 0 )
+	{
+		# docs validated ok
+		$buttons{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" ); 
+	}
 	
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
@@ -1320,6 +1335,8 @@ sub _do_stage_format
 sub _do_stage_fileview
 {
 	my( $self ) = @_;
+
+	my %files = $self->{document}->files();
 
 	my $page = $self->{session}->make_doc_fragment();
 
@@ -1353,10 +1370,10 @@ sub _do_stage_fileview
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) };
 
-	#cjg
-	#if( scalar keys %files > 0 ) {
-		$submit_buttons->{finished} = $self->{session}->phrase("lib/submissionform:action_finished");
-	#}
+	if( scalar keys %files > 0 ) {
+		$submit_buttons->{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" );
+	}
+
 	$page->appendChild( $self->_render_problems(
 		$self->{session}->html_phrase("lib/submissionform:fix_upload"),
 		$self->{session}->html_phrase("lib/submissionform:please_fix") ) );
@@ -1381,68 +1398,146 @@ sub _do_stage_fileview
 			{},
 			"submit#t" ) );
 
-#######
-
+	##################################
+	#
 	# Render info about uploaded files
 
 	my %files = $self->{document}->files();
 
-	foreach( keys %files )
-	{
-		print STDERR "<$_> $files{$_}\n";
-	}
-	
-#	if( scalar keys %files == 0 )
-#	{
-#		print "<P><CENTER><EM>";
-#		print $self->{session}->phrase("lib/submissionform:no_files");
-#		print "</EM></CENTER></P>\n";
-#	}
-#	else
-#	{
-#		print "<P><CENTER>";
-#		print $self->{session}->phrase("lib/submissionform:files_for_format");
-#
-#		if( !defined $self->{document}->get_main() )
-#		{
-#			print $self->{session}->phrase("lib/submissionform:sel_first");
-#		}
-#
-#		print "</CENTER></P>\n";
-#		print $self->_render_file_view( $self->{document} );
-#
-#		print "<P ALIGN=CENTER><A HREF=\"".$self->{document}->url()."\" TARGET=_blank>";
-#		print $self->{session}->phrase("lib/submissionform:here_to_view");
-#		print "</A></P>\n";
-#	}
-#
-#	# Render upload file options
-#	print "<P><CENTER>";
-#	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
-#	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
-#
-#	print "</CENTER></P>\n<P><CENTER><em>";
-#	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
-#	print "</em> ";
-#	print $self->{session}->phrase("lib/submissionform:num_files")." ";
-#	print $self->{session}->{render}->input_field( $num_files_field, 1 );
-#	print "</CENTER></P>\n";
-#
-#	# Action buttons
-#	print "<P><CENTER>";
-#	print $self->{session}->{render}->submit_buttons( \@buttons );
-#	print "</CENTER></P>\n";
-#		
-#	print $self->{session}->{render}->hidden_field(
-#		"stage",
-#		$EPrints::SubmissionForm::stage_fileview );
-#	print $self->{session}->{render}->hidden_field(
-#		"eprintid",
-#		$self->{eprint}->{eprintid} );
-#	print $self->{session}->{render}->hidden_field( "docid", $self->{document}->{docid} );
-#
-#	$self->{session}->{render}->end_form();
+	my( $p, $table, $tr, $th, $td, $form );
 
+	
+	if( scalar keys %files == 0 )
+	{
+		$p = $self->{session}->make_element( "p" );
+		$page->appendChild( $p );
+		$p->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:no_files") );
+	}
+	else
+	{
+		$form = $self->{session}->render_form( "post", "submit#t" );
+		$page->appendChild( $form );
+
+		foreach( keys %{$hidden_fields} )
+		{
+			$form->appendChild( $self->{session}->render_hidden_field(
+				$_, $hidden_fields->{$_} ) );
+		}	
+
+		$p = $self->{session}->make_element( "p" );
+		$form->appendChild( $p );
+		$p->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:files_for_format") );
+
+		if( !defined $self->{document}->get_main() )
+		{
+			$p->appendChild(
+				$self->{session}->html_phrase(
+					"lib/submissionform:sel_first") );
+		}
+
+		$table = $self->{session}->make_element( 
+				"table",
+				border=>"1" );
+		$form->appendChild( $table );
+		$tr = $self->{session}->make_element( "tr" );
+		$table->appendChild( $tr );
+
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:filename") );
+
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:size_bytes") );
+	
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+	
+		$th = $self->{session}->make_element( "th" );
+		$tr->appendChild( $th );
+		
+		my $main = $self->{document}->get_main();
+		my $filename;
+		my $filecount = 0;
+		
+		foreach $filename (sort keys %files)
+		{
+			$tr = $self->{session}->make_element( "tr" );
+			$table->appendChild( $tr );
+
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			if( defined $main && $main eq $filename )
+			{
+				#cjg Style Mee
+				$td->appendChild( $self->{session}->html_phrase(
+					"lib/submissionform:shown_first" ) );
+				$td->appendChild( $self->{session}->make_text( latin1(" ->") ) );
+			}
+
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			# Iffy. Non 8bit filenames could cause a render bug. cjg
+			$td->appendChild( $self->{session}->make_text( $filename ) );
+
+			$td = $self->{session}->make_element( "td", align=>"right" );
+			$tr->appendChild( $td );
+			$td->appendChild( $self->{session}->make_text( $files{$filename} ) );
+
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			if( !defined $main || $main ne $filename )
+			{
+				$td->appendChild( $self->{session}->render_action_buttons(
+					"main_".$filecount => 
+						$self->{session}->phrase( 
+							"lib/submissionform:show_first" ) ) );
+			}
+
+			$td = $self->{session}->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $self->{session}->render_action_buttons(
+				"delete_".$filecount => 
+					$self->{session}->phrase( 
+						"lib/submissionform:delete" ) ) );
+
+			$filecount++;
+		}
+
+		$form->appendChild( $self->{session}->render_action_buttons(
+			deleteall =>
+				$self->{session}->phrase( 
+					"lib/submissionform:delete_all" ) ) );
+
+		$p = $self->{session}->make_element( "p" );
+		$form->appendChild( $p );
+		$a = $self->{session}->make_element( 
+			"a", 
+			href => $self->{document}->url(),
+			target => "_blank" );
+		$p->appendChild( $a );
+		$a->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:here_to_view") );
+
+	}
+
+# cjg Deprecate/rename these.
+#	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
+#	print $self->{session}->phrase("lib/submissionform:plain_only")." ";
+#	print $self->{session}->phrase("lib/submissionform:num_files")." ";
+#
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_fileview" ),
@@ -1783,82 +1878,7 @@ sub _render_problems
 
 
 
-######################################################################
-#
-#  DOCUMENT forms
-#
-######################################################################
 
-
-######################################################################
-#
-# $html = _render_file_view()
-#
-#  Renders an HTML table showing the files in this document, together
-#  with buttons allowing deletion and setting which one gets shown first.
-#
-#  The delete buttons are called delete_n
-#
-#  where n is a number counting up from 0. To get the file this refers to:
-#
-#  my %files = $doc->get_files();
-#  my @sorted_files = sort keys %files;
-#  my $filename = $sorted_files[n];
-#
-######################################################################
-
-## WP1: BAD
-sub _render_file_view
-{
-	my( $self, $document ) = @_;
-	my $html;
-	
-	$html = "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH></TH>".
-		"<TH>".$self->{session}->phrase("lib/submissionform:filename")."</TH>".
-		"<TH>".$self->{session}->phrase("lib/submissionform:size_bytes")."</TH>".
-		"<TH></TH><TH></TH></TR>\n";
-	
-	my %files = $document->files();
-	my $main = $document->{main};
-	my $filename;
-	my $filecount = 0;
-	
-	foreach $filename (sort keys %files)
-	{
-		$html .= "<TR><TD>";
-		if( defined $main && $main eq $filename )
-		{
-			$html .= "<STRONG>";
-			$html .= $self->{session}->phrase("lib/submissionform:shown_first");
-			$html .= " -\&gt;</STRONG>"
-		}
-		
-		$html .= "</TD><TD>$filename</TD><TD ALIGN=RIGHT>$files{$filename}</TD>".
-			"<TD>";
-		if( !defined $main || $main ne $filename )
-		{
-			$html .= $self->{session}->{render}->named_submit_button(
-				"main_$filecount",
-				$self->{session}->phrase("lib/submissionform:show_first") );
-		}
-		$html .= "</TD><TD>";
-		$html .= $self->{session}->{render}->named_submit_button(
-			"delete_$filecount",
-			$self->{session}->phrase("lib/submissionform:delete") );
-		$html .= "</TD></TR>\n";
-		$filecount++;
-	}
-
-	$html .= "</TABLE></CENTER>\n";
-	
-	$html .= "<P><CENTER>";
-	$html .= $self->{session}->{render}->named_submit_button(
-		"deleteall",
-		$self->{session}->phrase("lib/submissionform:delete_all") );
-	$html .= "</CENTER></P>\n";
-
-	return( $html );
-}
 
 sub _set_stage_next
 {
