@@ -1,3 +1,12 @@
+# Some initial subjects for an archive.
+# 
+# This file is only used by bin/create_databases 
+#
+# Format is KEY:TITLE:PARENTS_KEY:CANADD?
+#
+# This file will be scrapped or changed when subjects
+# are multilang.
+#
 phys:Physical Sciences & Mathematics::0
 phys-astr:Astronomy:phys:1
 phys-astrp:Astrophysics:phys:1

@@ -31,17 +31,15 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-if( $session->{database}->create_archive_tables() )
+if( $session->get_db()->create_archive_tables() )
 {
 	print "Created database tables\n";
 }
 else
 {
-	my $error = $session->{database}->error();
+	my $error = $session->get_db()->error();
 	print STDERR "DB Error: $error\n";
 }
-
-print STDERR "NNG___________________________\n";
 
 ######################################################################
 #
@@ -49,14 +47,16 @@ print STDERR "NNG___________________________\n";
 #
 ######################################################################
 
-#if( EPrints::Subject::create_subject_table( $session ) )
-#{
-	#print "Inserted subject categories\n";
-#}
-#else
-#{
-	#my $error = $session->{database}->error();
-	#print STDERR "DB Error: $error\n";
-#}
+my $filename = $session->get_archive()->get_conf( "config_path" )."/subjects";
+
+if( EPrints::Subject::create_subject_table( $session , $filename ) )
+{
+	print "Inserted subject categories\n";
+}
+else
+{
+	my $error = $session->get_db()->error();
+	print STDERR "DB Error: $error\n";
+}
 
 $session->terminate();

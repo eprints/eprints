@@ -268,10 +268,11 @@ sub can_post
 ## WP1: BAD
 sub create_subject_table
 {
-	my( $session ) = @_;
+	my( $session, $filename ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $session->get_archive()->get_conf( "subject_config" ) or return( 0 );
+print STDERR "subjectfile=($filename)\n";
+	open( SUBJECTS, $filename ) or return( 0 );
 
 	my $success = 1;
 	
@@ -279,7 +280,7 @@ sub create_subject_table
 	{
 #		print "Line: $_\n";
 		chomp();
-		next if /^\s*#/;
+		next if /^\s*(#|$)/;
 		my @vals = split /:/;
 		
 		$success = $success &&

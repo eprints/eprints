@@ -684,7 +684,7 @@ sub validate_subject
 	if( !defined $subjects )
 	{
 		push @all_problems, 
-			$self->{session}->phrase( "lib/eprint:least_one_sub" );
+			$self->{session}->html_phrase( "lib/eprint:least_one_sub" );
 	} 
 	else
 	{
