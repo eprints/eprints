@@ -451,13 +451,10 @@ sub getHTML
 	{
 		$html = "";
 
-		my $subject_list = EPrints::SubjectList->new( $value );
-		my @subjects = $subject_list->get_tags();
-		
 		my $sub;
 		my $first = 0;
 
-		foreach $sub (@subjects)
+		foreach $sub (@{$value})
 		{
 			if( $first==0 )
 			{

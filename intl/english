@@ -122,9 +122,6 @@
     <phrase ref="no_priv">Your account does not have the required privilege to use this function.</phrase>
 </file>
 
-<file name="SubjectList.pm">
-</file>
-
 <file name="SubmissionForm.pm">
     <phrase ref="useautharea">Use your author area to deposit new documents</phrase>
     <phrase ref="uploadprob">There was a problem uploading your file(s). Please try again.</phrase>

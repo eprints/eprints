@@ -46,7 +46,6 @@ use EPrints::Site::General;
 use EPrints::SearchExpression;
 use EPrints::SearchField;
 use EPrints::Session;
-use EPrints::SubjectList;
 use EPrints::Subject;
 use EPrints::SubmissionForm;
 use EPrints::Subscription;

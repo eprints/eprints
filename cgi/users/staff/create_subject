@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::SubjectList;
 use EPrints::Subject;
 
 

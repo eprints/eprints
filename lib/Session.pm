@@ -1341,5 +1341,32 @@ sub microtime
         return $t[0]+$t[1];
 }
 
+######################################################################
+
+# NEEDS REWRITE IF TO BE USED
+# PROBABLY BELONGS HERE, THOUGH.
+## WP1: BAD
+sub get_subjects
+{
+	my( $self, $session ) = @_;
+	
+	my @subjects;
+
+	foreach (@{$self->{subjects}})
+	{
+		my $sub = new EPrints::Subject( $session, $_ );
+		
+		push @subjects, $sub if( defined $sub );
+		
+		unless( defined $sub ) 
+		{
+			$session->get_site()->log( "List contain invalid tag $_" );
+		}
+	}
+	
+	return( @subjects );
+}
+
+
 1;
 

@@ -24,7 +24,6 @@ use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Session;
 use EPrints::Subject;
-use EPrints::SubjectList;
 use EPrints::Name;
 
 use strict;
@@ -1514,6 +1513,7 @@ sub eprint_render_full
 	# Subjects...
 	#$html .= "<TR><TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
 
+	# NO MORE SUBJECT LIST!!!
 	#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
 	#my @subjects = $subject_list->get_subjects( $eprint->{session} );
 
@@ -1980,8 +1980,10 @@ sub oai_get_eprint_metadata
 		}
 
 		# Subject field will just be the subject descriptions
-		my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-		my @subjects = $subject_list->get_subjects( $eprint->{session} );
+
+		#cjg SubjectList deprecated do it another way?
+		#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+		#my @subjects = $subject_list->get_subjects( $eprint->{session} );
 		$tags{subject} = [];
 
 		foreach (@subjects)
@@ -2147,12 +2149,6 @@ sub validate_eprint_field
 #
 #  The "required" field is checked elsewhere, no need to check that
 #  here.
-#
-#  If you want to do anything here, you'll probably want to use the
-#  EPrints::SubjectList class. Do something like:
-#
-#   my $list = EPrints::SubjectList->new( $value );
-#   my @subject_tags = $list->get_tags();
 #
 ######################################################################
 

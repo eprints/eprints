@@ -16,7 +16,6 @@
 
 package EPrints::HTMLRender;
 
-use EPrints::SubjectList;
 use EPrints::Name;
 
 use strict;
