@@ -178,22 +178,25 @@ sub make_field_pages
 			}
 		}
 		$searchexp->dispose();
+
+		$file = $dir."/$value.include";
+		print STDERR "Writing: $file\n";
+		open( FILE, ">$file" );
+		print FILE $links->toString;
+		close FILE;
+
 		$page->appendChild( $links );
 
 		$title = $session->phrase( "bin/generate_views:title", 
 					fieldname=>$field->display_name( $session ),
 					fieldvalue=>$field->get_value_label( $session, $value ) );
 
+
 		$file = $dir."/$value.html";
 		$session->build_page( $title, $page );
 		print STDERR "Writing: $file\n";
 		$session->page_to_file( $file );
 	
-		$file = $dir."/$value.include";
-		print STDERR "Writing: $file\n";
-		open( FILE, ">$file" );
-		print FILE $links->toString;
-		close FILE;
 	}
 
 	#################################################
