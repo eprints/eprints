@@ -20,28 +20,49 @@ my $session = new EPrints::Session;
 
 my $newlang = $session->param( "langid" );
 
+
 if( !defined $newlang )
 {
-	print $session->start_html( "Change Language" );
+	my $page = $session->makeDocFragment;
 	foreach( keys %EPrints::Site::General::languages )
-	{
-		print "<LI><A href=\"setlang?langid=$_\">".$EPrints::Site::General::languages{$_}."</A>";
+	{	
+	
+		my $p = $session->make_element( "p" );
+		my $a = $session->make_element( "a", href=>"setlang?langid=$_" );
+		$a->appendChild( $session->makeText( 
+			$EPrints::Site::General::languages{$_} ) );
+		$p->appendChild( $a );
+		$page->appendChild( $p );
 	}
-	print $session->end_html();
+	$session->printPage( "Change Language" , $page );
 }
 elsif( defined $EPrints::Site::General::languages{$newlang} )
 {
+	my $page = $session->makeDocFragment;
 	$session->change_lang( $newlang );
-	print $session->start_html( "Language Changed" , $newlang );
-	print "<P>Language changed to: ".$EPrints::Site::General::languages{$newlang}."</P>";
-	print "<P>Default language of this archive is: ".$EPrints::Site::General::languages{ $session->getSite()->getConf( "default_language" )}."</P>";
-	print $session->end_html();
+	#print $session->start_html( "Language Changed" , $newlang );
+	my $p;
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->makeText(
+		"Language changed to: ".
+		$EPrints::Site::General::languages{$newlang} ) );
+	$page->appendChild( $p );
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->makeText(
+		"Default language of this archive is: ".
+		$EPrints::Site::General::languages{ 
+			$session->getSite()->getConf( "default_language" )} ) );
+	$page->appendChild( $p );
+	$session->printPage( "Language Changed" , $page , lang=>$newlang );
 }
 else 
 {
-	print $session->start_html( "Language Changed Failed" );
-	print "<P>Unknown language identifier: \"$newlang\"</P>";
-	print $session->end_html();
+	my $page = $session->makeDocFragment;
+	my $p = $session->make_element( "p" );
+	$p->appendChild( $session->makeText(
+		"Unknown language identifier: \"$newlang\"" ) );
+	$page->appendChild( $p );
+	$session->printPage( "Language Change Failed" , $page );
 }
 
 $session->terminate();

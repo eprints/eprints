@@ -326,7 +326,7 @@ $c->{oai_comments} = [
 $c->{default_language} = "english";
 
 $c->{lang_cookie_domain} = $c->{host};
-$c->{lang_cookie_name} = $c->{siteid}."_lang";
+$c->{lang_cookie_name} = "lang";
 
 ###########################################
 #  User Types
