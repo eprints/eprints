@@ -116,8 +116,6 @@ sub new
 	{
 		my $field_name = $field->get("name");
 
-		#EPrints::Log->debug( "User", "$field_name: $row[$i]" );
-	
 		$self->{$field_name} = $row[$i];
 		$i++;
 	}
@@ -242,8 +240,6 @@ sub _generate_doc_id
 		# No documents for this EPrint
 		$id = "00";
 	}
-
-EPrints::Log->debug( "Document", "Generated ID:" .$eprint->{eprintid} . "-" . $id );
 
 	return( $eprint->{eprintid} . "-" . $id );
 }
@@ -613,8 +609,6 @@ sub upload
 
 	my $out_path = $self->local_path() . "/" . $file;
 		
-	EPrints::Log->debug( "Document", "Write path: $out_path" );
-
 	open OUT, ">$out_path" or return( 0 );
 	
 	while( $bytes = read( $filehandle, $buffer, 1024 ) )
@@ -656,7 +650,7 @@ sub upload_archive
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
 	
-EPrints::Log->debug( "Document", "EXEC:$extract_command" );
+#EPrints::Log->debug( "Document", "EXEC:$extract_command" );
 
 	# Do the extraction
 	my $rc = 0xffff & system $extract_command;
