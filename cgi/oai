@@ -385,6 +385,8 @@ sub list_metadata_formats
 		$writer->dataElement( "metadataPrefix",
 		                      $_ );
 		$writer->dataElement( "schema",
+		                      $EPrintSite::SiteInfo::oai_metadata_schemas{$_} );
+		$writer->dataElement( "metadataNamespace",
 		                      $EPrintSite::SiteInfo::oai_metadata_formats{$_} );
 		$writer->endTag( "metadataFormat" );
 	}
