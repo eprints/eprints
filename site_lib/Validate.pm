@@ -36,11 +36,19 @@ use strict;
 
 sub validate_user_field
 {
-	my( $field, $value );
+	my( $field, $value ) = @_;
 
 	my $problem;
 
 	# CHECKS IN HERE
+
+	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
+	if( $field->{type} eq "url" && defined $value && $value ne "" )
+	{
+		$problem = "The URL given for $field->{displayname} is invalid.  ".
+			"Have you included the initial <STRONG>http://</STRONG>?"
+			if( $value !~ /^\w+:/ );
+	}
 
 	return( (!defined $problem || $problem eq "" ) ? undef : $problem );
 }
@@ -96,7 +104,7 @@ sub validate_eprint_field
 
 sub validate_subject_field
 {
-	my( $field, $value );
+	my( $field, $value ) = @_;
 
 	my $problem;
 
