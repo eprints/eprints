@@ -117,48 +117,75 @@ sub debug
 
 sub render_struct
 {
-	my ( $ref , $depth ) = @_;
+	my ( $ref , $depth , %done) = @_;
 
 	$depth = 0 if ( !defined $depth );
 	my $text = "";
 
-	if ( !defined $ref ) 
+	if( !defined $ref ) 
 	{
 		$text = "  "x$depth;
 		$text.= "[undef]\n";
 		return $text;
 	} 
 
+	if( defined $done{$ref} )
+	{
+		$text = "  "x$depth;
+		$text.= "[LOOP]\n";
+		return $text;
+	}
+
+	$done{$ref} = 1;
+
 	$type = ref( $ref );
 
-	if( $type eq "HASH" )
+	if( $type eq "" )
 	{
-		my %bits = %{$ref};
 		$text.= "  "x$depth;
-		$text.= "HASH\n";
-		foreach( keys %bits ) 
-		{
-			$text.= "  "x$depth;
-			$text.= " $_=>\n";
-			$text.= render_struct( $bits{$_} , $depth+1 );
-		}
-	} 
-	elsif( $type eq "ARRAY" )
+		$text.= "\"$ref\"\n";
+		return $text;
+	}
+
+	if( $type eq "SCALAR" )
+	{
+		$text.= "  "x$depth;
+		$text.= "SCALAR: \"$ref\"\n";
+		return $text;
+	}
+
+	if( $type eq "ARRAY" )
 	{
 		my @bits = @{$ref};
 		$text.= "  "x$depth;
 		$text.= "ARRAY (".(scalar @bits).")\n";
 		foreach( @bits ) 
 		{
-			$text.= render_struct( $_ , $depth+1 );
+			$text.= render_struct( $_ , $depth+1 , %done );
 		}
-	}
-	else
+		return $text;
+	} 
+
+	# HASH or CLASS
+
+	# Hack: I really don't want to see the whole session
+
+	if( $type eq "EPrints::Session" )
 	{
 		$text.= "  "x$depth;
-		$text.= "\"$ref\"\n";
+		$text.= "$type\n";
+		return $text;
 	}
-			
+
+	my %bits = %{$ref};
+	$text.= "  "x$depth;
+	$text.= "$type\n";
+	foreach( keys %bits ) 
+	{
+		$text.= "  "x$depth;
+		$text.= " $_=>\n";
+		$text.= render_struct( $bits{$_} , $depth+1 , %done );
+	}
 	return $text;
 }
 

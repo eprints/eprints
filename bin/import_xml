@@ -14,188 +14,23 @@
 #
 ######################################################################
 
-use DBI;
 use EPrints::Session;
-use EPrints::Log;
-use EPrints::MetaInfo;
 use EPrints::HTMLRender;
-use XML::Parser;
+use EPrints::ImportXML;
 use strict;
 
 my $session = new EPrints::Session( 1 );
 
-my $p = new XML::Parser(
-	Style => "Subs", 
-	Handlers => { 
-		Start => \&handle_start, 
-		End => \&handle_end,
-		Char => \&handle_char 
-	} );
-$p->{eprints} = {};
-$p->{eprints}->{session} = $session;
-$p->parsefile( "/tmp/data.xml" );
-
+EPrints::ImportXML::import_file( $session , "/tmp/data.xml" , \&deal );
 
 $session->terminate();
 
 exit;
 
-sub handle_start
+sub deal 
 {
-	my ( $parser , $tag , %params ) = @_;
-
-	if ( $tag eq "TABLE" )
-	{
-		if( defined $parser->{eprints}->{table} )
-		{
-			$parser->xpcroak( "TABLE inside TABLE" );
-		}
-		$parser->{eprints}->{table} = $params{name};
-		my @fields = EPrints::MetaInfo::get_fields( $params{name} );
-		if( !defined @fields )
-		{
-			$parser->xpcroak( "unknown table: $params{name}" );
-		}
-		$parser->{eprints}->{fields} = {};
-		foreach( @fields )
-		{
-			$parser->{eprints}->{fields}->{$_->{name}}=$_;
-		}
-print "bing: new table\n";
-		return;
-	}
-
-	if( $tag eq "RECORD" )
-	{
-		if( defined $parser->{eprints}->{data} )
-		{
-			$parser->xpcroak( "RECORD inside RECORD" );
-		}
-		$parser->{eprints}->{data} = {};
-print "bing: new record\n";
-		return;
-	}	
-
-	if( $tag =~ m/^TEXT|YEAR|SUBJECTS|MULTITEXT|EPRINTTYPE$/)
-	{
-		if( defined $parser->{eprints}->{currentfield} )
-		{
-			$parser->xpcroak( "$tag inside other field" );
-		}
-		$parser->{eprints}->{currentfield} = $params{field};
-		$parser->{eprints}->{currentdata} = "";
-		return;
-	}
-
-	if( $tag eq "NAME" )
-	{
-		if( defined $parser->{eprints}->{currentfield} )
-		{
-			$parser->xpcroak( "$tag inside other field" );
-		}
-		$parser->{eprints}->{currentfield} = $params{field};
-		$parser->{eprints}->{currentdata} = {};
-		$parser->{eprints}->{currentspecial} = 1;
-		return;
-	}
-	
-	if( $tag =~ m/^GIVEN|FAMILY$/ )
-	{
-		if( !$parser->{eprints}->{currentspecial} )
-		{
-			$parser->xpcroak( "$tag inside wrong kind of field" );
-		}
-		$parser->{eprints}->{currentspecialpart} = lc $tag;
-		$parser->{eprints}->{currentdata}->{lc $tag} = "";
-		return;
-	}
-
-	$parser->xpcroak( "Unknown tag: $tag" );
-}
-
-
-
-sub handle_end
-{
-	my ( $parser , $tag ) = @_;
-
-	if ( $tag eq "TABLE" )
-	{
-print "bing: done table: $parser->{eprints}->{table}\n";
-		delete $parser->{eprints}->{table};
-		delete $parser->{eprints}->{fields};
-		return;
-	}
-
-	if ( $tag eq "RECORD" )
-	{
-print "bing: done record:\n";
-print EPrints::Log::render_struct($parser->{eprints}->{data});
-print "-----------------------\n";
-my $eprint = new EPrints::EPrint( 
-	$parser->{eprints}->{session},
-	$parser->{eprints}->{table},
-	undef,
-	$parser->{eprints}->{data} );
-
-print $parser->{eprints}->{session}."x\n";
-print $parser->{eprints}->{session}->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
-
-		delete $parser->{eprints}->{data};
-		return;
-	}
-
-	if( $tag =~ m/^TEXT|YEAR|SUBJECTS|MULTITEXT|EPRINTTYPE$/
-		|| $tag =~ m/^NAME$/ )
-	{
-		if( $parser->{eprints}->{fields}->
-			{$parser->{eprints}->{currentfield}}->{multiple} )
-		{
-			push @{ $parser->{eprints}->{data}->
-				{$parser->{eprints}->{currentfield}} },
-				$parser->{eprints}->{currentdata};
-		} 
-		else
-		{
-			$parser->{eprints}->{data}->{$parser->{eprints}->{currentfield}}=$parser->{eprints}->{currentdata};
-		}
-		delete $parser->{eprints}->{currentfield};
-		delete $parser->{eprints}->{currentdata};
-		delete $parser->{eprints}->{currentspecial};
-		delete $parser->{eprints}->{currentspecialpart};
-		return;
-	}
-
-	if( $tag =~ m/^GIVEN|FAMILY$/ )
-	{
-		delete $parser->{eprints}->{currentspecialpart};
-		return;
-	}
-	$parser->xpcroak( "Unknown end tag: $tag" );
-}
-
-sub handle_char
-{
-	my( $parser , $text ) = @_;
-
-	if( !defined $parser->{eprints}->{currentdata} )
-	{
-		return;
-	}
-
-	if( $parser->{eprints}->{currentspecial} )
-	{
-		if( !defined $parser->{eprints}->{currentspecialpart} )
-		{
-			return;
-		}
-		$parser->{eprints}->{currentdata}->
-			{$parser->{eprints}->{currentspecialpart}} .= $text;
-	}
-	else
-	{	
-		$parser->{eprints}->{currentdata}.= $text;
-	}
-	
+	my( $session , $eprint ) = @_;
+	print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
+	print "------------\n";
 }
 

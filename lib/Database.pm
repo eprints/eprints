@@ -175,8 +175,6 @@ sub new
 
 #	                             { PrintError => 0, AutoCommit => 1 } );
 
-print STDERR "($self->{dbh})\n";
-
 	if( !defined $self->{dbh} )
 	{
 		return( undef );
@@ -1100,33 +1098,45 @@ sub _get
 		}
 	}	
 
-	# If this table represents a class then actually
-	# construct the class from the data.
+	foreach( @data )
+	{
+		$_ = make_object( $self->{session} , $table , $_);
+	}
+
+	return @data;
+}
+
+sub make_object
+{
+	my( $session , $table , $item ) = @_;
 
 	my $class = $EPrints::Database::table_class{$table};
-	if ( defined $class ) {
-		foreach (@data)
-		{	
-			## EPrints have a slightly different
-			## constructor.
-			if ( $class eq "EPrints::EPrint" ) 
-			{
-				$_ = EPrints::EPrint->new( 
-					$self->{session},
-					$table,
-					undef,
-					$_ );
-			}
-			else
-			{
-				$_ = $EPrints::Database::table_class{$table}->new( 
-					$self->{session},
-					undef,
-					$_ );
-			}
-		}
+
+	# If this table dosn't have an associated class, just
+	# return the item.	
+
+	if( !defined $class ) 
+	{
+		return $item;
 	}
-	return @data;
+
+	## EPrints have a slightly different
+	## constructor.
+
+	if ( $class eq "EPrints::EPrint" ) 
+	{
+		return EPrints::EPrint->new( 
+			$session,
+			$table,
+			undef,
+			$item );
+	}
+
+	return $EPrints::Database::table_class{$table}->new( 
+		$session,
+		undef,
+		$item );
+
 }
 
 sub do 
