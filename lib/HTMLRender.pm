@@ -563,9 +563,19 @@ sub input_field
 
 		# If in the future more user-specific subject tuning is needed,
 		# will need to put the current user in the place of undef.
-		my( $sub_tags, $sub_labels ) = EPrints::Subject->get_postable( 
+		my( $sub_tags, $sub_labels );
+		
+		if( $field->{showall} )
+		{
+			( $sub_tags, $sub_labels ) = EPrints::Subject->all_subject_labels( 
+				$self->{session} ); 
+		}
+		else
+		{			
+			( $sub_tags, $sub_labels ) = EPrints::Subject->get_postable( 
 				$self->{session}, 
 				EPrints::User->current_user( $self->{session} ) );
+		}
 
 		my $height = ( $EPrints::HTMLRender::list_height_max < $#{$sub_tags}+1 ?
 		               $EPrints::HTMLRender::list_height_max : $#{$sub_tags}+1 );

@@ -20,6 +20,7 @@ my $subject_field = new EPrints::MetaField( "parent:subjects:0:Parent:1:1:1" );
 $subject_field->{help} =
 	"Select the subject that the new subject is to be a specialisation of. ".
 	"Leave blank if the subject is to be a top-level subject.";
+$subject_field->{showall} = 1;
 
 my $id_field = new EPrints::MetaField( "id:text::ID:1:1:1" );
 $id_field->{help} =
