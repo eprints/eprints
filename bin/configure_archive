@@ -109,10 +109,10 @@ $noise = 1+$verbose if( $verbose );
 
 my $archiveid = $ARGV[0];
 
-my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
+my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
 my $REGEXP_EMAIL = '^[^@]+@'.$REGEXP_HOSTNAME_MIDDLE.'$';
-my $REGEXP_HOSTNAME_FULL = '^[a-z0-9]+(\.[a-z0-9]+)+$';
+my $REGEXP_HOSTNAME_FULL = '^[a-z0-9-]+(\.[a-z0-9-]+)+$';
 my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
 my $REGEXP_YESNO = '^(yes|no)$';

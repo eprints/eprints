@@ -397,4 +397,5 @@ on pointless undef checking.
 - Fixed bug that booleans shown as menu/radio always came back TRUE.
 - added Vlit copyright page.
 - added user help page.
+- configure_archive now lets archive hostnames have "-" in!
 

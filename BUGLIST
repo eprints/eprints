@@ -1,6 +1,8 @@
 ======================================================================
-Known Bugs & Issues in latest EPrints-2 release
+ Known Bugs & Issues in current EPrints-2 release
 ======================================================================
+ See the docs for how to submit a bug/issue.
+
 
 ----------------------------------------------------------------------
 General
@@ -44,33 +46,29 @@ Installation
 
 
 
-FIXED: 15/01
+
+======================================================================
+Fixed in Release 2.0 (major bugs in alpha-2)
+======================================================================
+
 - SearchExpression appears to be running SQL from searchfields even 
    on a cached result. [this was due to the fact that caching was
    done in the get method not the perform_search method]
 - multiple languages support broken: can't make "ordervalues" tables
    [this was due to swapping from one ordervalues table for all langs
    to one PER lang without testing fully]
-
-FIXED: 20/01
 - freetext searches were dropping the last result for each word.
-
-FIXED: 26/01
 - form buttons are not all displayed in a sensible order, eg "Next","Prev"
 - Back button should not be the default button on file upload pages. 
 - default action is always first button in form. (Which if I fix the button 
    ordering problem will mean that the default button will be "Prev" thus
    losing all the changes.
-
-FIXED: 28/01
 - Rendering values does not currently link them to the relevant view 
    page if one exists. New config option? [ yup: browse_link ]
 - "bounce" email has DOM reference rather than the actual email!
 - the final page of submission should indicate that the first block is
    the "abstract page" and the second block is a dump of all fields.
 - OAI fails to flag deleted records as deleted!
-
-FIXED: 30/01
 - Latex image cache will break if image tex has more than 127 chars
 due to filename limit of 255 chars. [now MD5's it instead]
 - cgi directories can be viewed. The list directory contents option 
@@ -85,8 +83,6 @@ like it's supposed to.
 - If you select a file to upload (in submission form) but click back then
    it still uploads the file then discards it (which can be annoying if it's
    big) Back buttons should be in a seperate form.
-
-FIXED: 31/01
 - Problem with more than 3 authors(or whatever) - edit form only EVER
    starts with 3 spaces (and loses other values)
 - reindexing adds a '\' to '\': over escaping? [due to ALWAYS backslash
@@ -98,8 +94,6 @@ FIXED: 31/01
    bug above - it screwed up % by escaping it!
 - wget just plain not working! [The invocation had ' quotes and the 
  code added " quotes to the URL so we actually had '"http://totl.net/"'
-
-FIXED: 02/02
 - "clone eprint" function appears to break later version field [the
 create method was corrupting the data of the eprint it was cloned from,
 now it dup's the data first]
@@ -107,8 +101,6 @@ now it dup's the data first]
 - does not appear to remove eprint from ordervalues table if it is
    removed. [fixed]
 - chris is still sober on his birthday [fixed]
-
-FIXED: 04/02
 - Web based search failing to use the cache.
 - did not see "all" fields on system view on some eprints. [not actually
 a bug, it had an invalid "type" so had no fields!]
@@ -117,14 +109,9 @@ a bug, it had an invalid "type" so had no fields!]
 - passwords set via the web are not crypted until they are accepted.
 (No loss of security from eprints-1 but annoying). [Now they are crypted
 straight away.]
-
-FIXED: 11/02
 - .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
    install mode failing to preserve the "executables" field.
 - Regexp for hostnames does not allow "-" signs
-
-
-FIXED: 13/02
 -  Bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
    [ turns out to be the a bug in the renderer! ]
