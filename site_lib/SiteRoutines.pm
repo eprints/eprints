@@ -526,98 +526,12 @@ sub oai_list_metadata_formats
 #  for the given eprint.
 #
 ######################################################################
-#
-#  For Santa-Fe complaint OAMS, the tags are:
-#
-#  title [M]      =>  "document title"
-#  author [M][R}  =>  [ { name => "author's name",
-#                     organization = "author's org." },
-#                   { name => "author's name",
-#                     organization = "author's org." },
-#                   .... ]
-#  abstract       =>  "document abstract"
-#  subject [R]    =>  [ "topic1", "topic2" ]  e.g. subjects, keywords (how this
-#                       should be filled out is not specified in OAMS)
-#  comment [R]    =>  [ "any extra info" ]
-#  discovery      =>  date for discovery, in the format YYYY-MM-DD. This can be
-#                     the date of original publication, for example.
-#
-#  [M] - mandatory tag, must give a value for this
-#  [R] - repeatable tag, pass in a reference to an array of values
-#
-#  If for some reason an error is encountered, or for some other
-#  reason the record shouldn't be disseminated, you can empty $tags.
-#
-######################################################################
 
 sub oai_get_eprint_metadata
 {
 	my( $eprint, $format ) = @_;
 
-	if( $format eq "dc_oams" )
-	{
-		my %tags;
-
-		# Title
-		$tags{title} = $eprint->{title};
-
-		# Authors
-		my @authors = EPrints::Name::extract( $eprint->{authors} );
-		$tags{author} = [];
-
-		foreach (@authors)
-		{
-			my( $surname, $firstnames ) = @$_;
-			push @{$tags{author}}, { "name" => "$firstnames $surname",
-			                         "organization" => "" };
-		}
-
-		# Subject field will just be the subject descriptions
-		my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-		my @subjects = $subject_list->get_subjects( $eprint->{session} );
-		$tags{subject} = [];
-
-		foreach (@subjects)
-		{
-			push @{$tags{subject}},
-		   	  $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
-		}
-
-		# Abstract
-		$tags{abstract} = $eprint->{abstract};
-
-		# Comment
-		$tags{comment} = $eprint->{comment} if( defined $eprint->{comment} );
-
-		# Date for discovery. For a month/day we don't have, assume 01.
-		my $year = $eprint->{year};
-		my $month = "01";
-
-		if( defined $eprint->{month} )
-		{
-			my %month_numbers = (
-				unspec => "01",
-				jan => "01",
-				feb => "02",
-				mar => "03",
-				apr => "04",
-				may => "05",
-				jun => "06",
-				jul => "07",
-				aug => "08",
-				sep => "09",
-				oct => "10",
-				nov => "11",
-				dec => "12" );
-
-			$month = $month_numbers{$eprint->{month}};
-		}
-
-		$tags{discovery} = "$year-$month-01";
-
-		return( %tags );
-	}
-	elsif( $format eq "oai_dc" )
+	if( $format eq "oai_dc" )
 	{
 		my %tags;
 		
@@ -682,6 +596,47 @@ sub oai_get_eprint_metadata
 	}
 }
 
+######################################################################
+#
+# oai_write_eprint_metadata( $eprint, $format, $writer )
+#
+# This routine is only called if oai_get_eprint_metadata returns 
+# %EPrints::OpenArchives::use_advanced_writer
+#
+# This routine receives a handle to an XML::Writer it should
+# write the entire XML output for the format; Everything between
+# <metadata> and </metadata>.
+#
+# Ensure that all tags are closed in the order you open them.
+#
+# This routine is more low-level that oai_get_eprint_metadata
+# and as such gives you more control, but is more work too.
+#
+# See the XML::Writer manual page for more useful information.
+#
+# You should use the EPrints::OpenArchives::to_utf8() function
+# on your data to convert latin1 to UTF-8.
+#
+######################################################################
+
+
+sub oai_write_eprint_metadata
+{
+	my( $eprint, $format, $writer ) = @_;
+
+	# This block of code is a minimal example
+	# to get you started
+	if ($format eq "not-a-real-format") {
+		$writer->startTag("notaformat");
+		$writer->dataElement(
+			"title",
+			EPrints::OpenArchives::to_utf8($eprint->{title}));
+		$writer->dataElement(
+			"description",
+			EPrints::OpenArchives::to_utf8($eprint->{abstract}));
+		$writer->endTag("notaformat");
+	}
+}
 
 
 

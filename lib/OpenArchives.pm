@@ -32,6 +32,13 @@ use strict;
 # Supported version of OAI
 $EPrints::OpenArchives::oai_version = "1.0";
 
+# Constant for SiteRoutines::oai_get_eprint_metadata
+# to return to indicate we should use the advanced
+# writer routine.
+
+%EPrints::OpenArchives::use_advanced_writer = (
+	"use advanced writer" => "YES" );
+
 ######################################################################
 #
 # $stamp = $full_timestamp()
@@ -139,19 +146,31 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		my $tag = $metadataFormat;
-		$tag =~ s/^oai_//;
-
-		$writer->startTag( $tag, 
-			"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
-			"xmlns:xsi" => "http://www.w3.org/2000/10/XMLSchema-instance",
-			"xsi:schemaLocation" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat}.
-			                        " ".
+		if (defined ${$metadata}{"use advanced writer"}) 
+		{
+			# the get_eprint_metadata routine indicated 
+			# to use the site metadata writer routine.
+			EPrintSite::SiteRoutines::oai_write_eprint_metadata(
+				$eprint,
+				$metadataFormat,
+				$writer);
+		}
+		else
+		{
+			my $tag = $metadataFormat;
+			$tag =~ s/^oai_//;
+	
+			$writer->startTag( $tag, 
+				"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
+				"xmlns:xsi" => "http://www.w3.org/2000/10/XMLSchema-instance",
+				"xsi:schemaLocation" => 
+					$EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat}." ".
 			                        $EPrintSite::SiteInfo::oai_metadata_schemas{$metadataFormat} );
-		
-		_write_record_aux( $writer, $metadata );
+			_write_record_aux( $writer, $metadata );
 
-		$writer->endTag( $tag );
+			$writer->endTag( $tag );
+		}
+
 		
 		$writer->endTag( "metadata" );
 	}
