@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+
+######################################################################
+#
+# cjg Not doc'd yet, too flakey
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+#cjg Nice Command Options
+#cjg man page
+
+if( scalar @ARGV != 2 )
+{
+	print STDERR "export_xml <siteid> <dataset>\n";
+	exit( 1 );
+}
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit( 1 ) unless( defined $session );
+
+my $ds = $session->get_archive()->get_dataset( "subject" ) ;
+	
+my $sexp = EPrints::SearchExpression->new( 
+		use_cache => 1,
+		allow_blank => 1 , 
+		dataset => $ds , 
+		session => $session );
+$sexp->perform_search();
+my $info = { doc => new EPrints::DOM::Document() };
+print '<table name="subject">'."\n";
+$sexp->map( \&deal, $info );
+print '</table>'."\n";
+$session->terminate();
+
+exit;
+
+sub deal
+{
+	my( $session, $dataset, $item, $info ) = @_;
+
+	my $frag = $info->{doc}->createDocumentFragment();
+	$frag->addText( "  " );
+	my $r = $info->{doc}->createElement( "record" );
+	$r->addText( "\n" );
+	#use Data::Dumper;
+	#print Dumper $item->{data};
+	foreach( $dataset->get_fields() )
+	{
+		# We don't want to export the ancestors field of subject
+		# as it's only ever used internally.
+		if( $dataset->id() eq "subject" 
+		    && $_->get_name() eq "ancestors" ) { next; }
+
+		$r->appendChild( &mk_xml( 
+			$session, 
+			$info->{doc},
+			$_,
+			$item->get_value( $_->get_name() ) ) );
+	}
+	$r->addText( "  " );
+	$frag->appendChild( $r );
+	$frag->addText( "\n" );
+
+	print $frag->toString()."\n";
+	$frag->dispose();
+
+}
+
+sub mk_xml
+{
+	my( $session, $doc, $field, $v ) = @_;
+
+	my $r = $doc->createDocumentFragment();
+	if( $field->get_property( "multiple" ) )
+	{
+		foreach( @{$v} )
+		{
+			$r->addText( "    " );
+			$r->appendChild( &mk_xml2( $session, $doc, $field, $_ ) );
+			$r->addText( "\n" );
+		}
+	}
+	else
+	{
+		$r->addText( "    " );
+		$r->appendChild( &mk_xml2( $session, $doc, $field, $v ) );
+		$r->addText( "\n" );
+	}
+	return $r;
+}
+
+sub mk_xml2
+{
+	my( $session, $doc, $field, $v ) = @_;
+
+	my $r = $doc->createElement( "field" );
+	$r->setAttribute( "name", $field->get_name() );
+	if( $field->get_property( "multilang" ) )
+	{
+		foreach( keys %{$v} )
+		{
+			my $l = $doc->createElement( "lang" );
+			$r->setAttribute( "id", $_ );
+			$l->addText( $v->{$_} );
+			$r->appendChild( $l );
+		}
+	}
+	else
+	{
+		$r->addText( $v );
+		
+	}
+
+	return $r;
+}
