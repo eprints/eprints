@@ -40,16 +40,16 @@ my $STAGES = {
 	},
 	meta => {
 		prev => "linking",
-		next => "format"
+		next => "files"
 	},
-	format => {
+	files => {
 		prev => "meta",
 		next => "verify"
 	},
 	fileview => {},
 	upload => {},
 	verify => {
-		prev => "format",
+		prev => "files",
 		next => "done"
 	},
 	quickverify => {
@@ -521,12 +521,12 @@ print STDERR "FACTS-----------\n".Dumper( $self->{eprint}->{data} )."\n////////\
 
 ######################################################################
 #
-#  From "select doc format" page
+#  From "select files" page
 #
 ######################################################################
 
 ## WP1: BAD
-sub _from_stage_format
+sub _from_stage_files
 {
 	my( $self ) = @_;
 
@@ -597,7 +597,7 @@ print STDERR $self->{action}."!";
 			return( 0 );
 		}
 
-		$self->{new_stage} = "format";
+		$self->{new_stage} = "files";
 		return( 1 );
 	}
 
@@ -694,7 +694,7 @@ sub _from_stage_fileview
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{new_stage} = "format";
+		$self->{new_stage} = "files";
 		return( 1 );
 	}
 
@@ -734,7 +734,7 @@ print STDERR Dumper($self->{document}->{data});
 			return( 1 );
 		}
 
-		$self->{new_stage} = "format";
+		$self->{new_stage} = "files";
 		return( 1 );
 	}
 	
@@ -1120,7 +1120,7 @@ sub _do_stage_meta
 ######################################################################
 
 ## WP1: BAD
-sub _do_stage_format
+sub _do_stage_files
 {
 	my( $self ) = @_;
 
@@ -1194,7 +1194,7 @@ sub _do_stage_format
 		
 	$form->appendChild( $self->{session}->render_hidden_field(
 		"stage",
-		"format" ) );
+		"files" ) );
 	$form->appendChild( $self->{session}->render_hidden_field(
 		"eprintid",
 		$self->{eprint}->get_value( "eprintid" ) ) );
@@ -1273,7 +1273,8 @@ sub _do_stage_fileview
 				$num_files_field 
 			],
 			{
-				num_files => 1 
+				num_files => 1,	
+				arc_format => "plain"
 			},
 			0,
 			1,
@@ -1291,6 +1292,11 @@ sub _do_stage_fileview
 
 	my( $p, $table, $tr, $th, $td, $form );
 
+	if( scalar keys %files == 1 )
+	{
+		$self->{document}->set_main( (keys %files)[0] );
+		$self->{document}->commit();
+	}
 	
 	if( scalar keys %files == 0 )
 	{

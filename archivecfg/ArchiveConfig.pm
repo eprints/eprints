@@ -268,7 +268,7 @@ $c->{oai_comments} = [
 $c->{submission_stage_skip}->{type} = 0;
 $c->{submission_stage_skip}->{linking} = 0;
 $c->{submission_stage_skip}->{meta} = 0;
-$c->{submission_stage_skip}->{format} = 0;
+$c->{submission_stage_skip}->{files} = 0;
 
 #cjg:
 # More things for simplifying submission form
@@ -383,7 +383,7 @@ $c->{archivefields}->{user} = [
 $c->{archivefields}->{eprint} = [
 	{ name => "abstract", displaylines => 10, type => "longtext" },
 
-	{ name => "altloc", displaylines => 3, type => "url", multiple => 1 },
+	{ name => "altloc", type => "url", multiple => 1 },
 
 	{ name => "authors", type => "name", multiple => 1, hasid => 1 },
 
@@ -1686,27 +1686,26 @@ sub validate_eprint_meta
 	}
 }
 
-## WP1: BAD
 sub log
 {
 	my( $archive, $message ) = @_;
-	print STDERR "EPlog(".$archive->get_id().") ".$message."\n";
+	print STDERR "EPRINTS(".$archive->get_id().") ".$message."\n";
 }
 
 sub set_document_defaults
 {
 	my( $data, $session, $eprint ) = @_;
 
+	$data->{security} = "public";
 	$data->{language} = $session->get_langid();
 }
 
-#cjg not used yet
 sub set_document_automatic_fields
 {
 	my( $doc ) = @_;
 }
 
-#cjg not used yet
+
 sub set_user_defaults
 {
 	my( $data, $session ) = @_;
@@ -1736,26 +1735,21 @@ sub set_user_automatic_fields
 	}
 }
 
-#cjg not used yet
 sub set_eprint_defaults
 {
-	my( $data, $session, $user ) = @_;
+	my( $data, $session ) = @_;
 }
 
-#cjg not used yet
 sub set_eprint_automatic_fields
 {
 	my( $eprint ) = @_;
 }
 
-#cjg not used yet
 sub set_subscription_defaults
 {
-	#cjg(?)do we need this one?
-	my( $data, $session, $user ) = @_;
+	my( $data, $session ) = @_;
 }
 
-#cjg not used yet
 sub set_subscription_automatic_fields
 {
 	my( $subscription ) = @_;

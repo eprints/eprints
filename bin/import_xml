@@ -28,31 +28,54 @@ if( scalar @ARGV != 2 )
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
+# Using a local so it appears in subroutines. Normally I would
+# try and avoid doing this.
+my $info =  { 
+	update_abstracts => [],
+	ds => $session->get_archive()->get_dataset( "archive" ) 
+};
 
-EPrints::ImportXML::import_file( $session , $ARGV[1] , \&deal );
+EPrints::ImportXML::import_file( $session , $ARGV[1] , \&deal, $info );
 
+
+# Update all the abstract pages of these records and any which
+# they impact (later versions etc)
+my %done = ();
+foreach( @{$info->{update_abstracts}} )
+{
+	next if( $done{$_} );
+	my $eprint = EPrints::EPrint->new( $session, $info->{ds}, $_ );
+	$eprint->generate_static();
+	$done{$_} = 1;
+}
+	
 $session->terminate();
 
 exit;
 
 sub deal 
 {
-	my( $session , $table , $eprint ) = @_;
-	print EPrints::Session::render_struct( $eprint );
+	my( $session , $table , $eprint, $info ) = @_;
 
-
+	#print EPrints::Session::render_struct( $eprint );
+	#print "___________________\n";
+	#print EPrints::Session::render_struct( $info );
+	#print "end\n";
 	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
-	print "------------\n";
-	my $ds = $session->get_archive()->get_dataset( "archive" );
+	#print "------------\n";
+
 	$eprint->set_value( "subjects" , ["blgc-bchm"] );
-	if( $session->get_db()->exists( $ds , $eprint->get_value( "eprintid" ) ) )
+	if( $session->get_db()->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";
 		$eprint->commit;
-		return;
 	}
-	print  "NOT EXISTS!\n";
-	EPrints::EPrint::create( $session, $ds, undef, $eprint->get_data() );
-
+	else 
+	{
+		print  "NOT EXISTS!\n";
+		$eprint = EPrints::EPrint::create( $session, $info->{ds}, undef, $eprint->get_data() );
+	}
+	push @{$info->{update_abstracts}}, $eprint->get_all_related();
+	push @{$info->{update_abstracts}}, $eprint->get_value( "eprintid" );
 }
 

@@ -514,7 +514,15 @@ sub update
 		{
 			$sql.= ", ";
 		}
-		$sql.= "$_ = \"".prep_value( $values{$_} )."\"";
+		$sql.= "$_ = ";
+#		if( defined $values{$_} ) 
+#		{
+			$sql.= "\"".prep_value( $values{$_} )."\"";
+#		}
+#		else
+#		{
+#			$sql .= "NULL";
+#		}
 	}
 	$sql.=" WHERE $where";
 	
@@ -1111,6 +1119,8 @@ sub _get
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
+use Carp;
+if( ref($dataset) eq "" ) { confess(); }
 
 	my $table = $dataset->get_sql_table_name();
 

@@ -184,15 +184,21 @@ print STDERR "******* END SESSION ******\n\n";
 #
 #############################################################
 
+sub default_lang_id
+{
+	my( $self ) = @_;
+
+	return ${$self->{archive}->get_conf( "languages" )}[0];
+}
+
 sub change_lang
 {
 	my( $self, $newlangid ) = @_;
 
 	if( !defined $newlangid )
 	{
-		$newlangid = ${$self->{archive}->get_conf( "languages" )}[0];
+		$newlangid = $self->default_lang_id();
 	}
-print STDERR "Hi\n";
 	$self->{lang} = $self->{archive}->get_language( $newlangid );
 
 	if( !defined $self->{lang} )
@@ -1415,27 +1421,28 @@ sub microtime
 
 # NEEDS REWRITE IF TO BE USED
 # PROBABLY BELONGS HERE, THOUGH.
+# cjg Nah, ask the subject class - remove this
 ## WP1: BAD
-sub get_subjects
-{
-	my( $self, $session ) = @_;
-	
-	my @subjects;
-	my $subject;
-	foreach $subject (@{$self->{subjects}})
-	{
-		my $sub = new EPrints::Subject( $session, $subject );
-		
-		push @subjects, $sub if( defined $sub );
-		
-		unless( defined $sub ) 
-		{
-			$session->get_archive()->log( "List contain invalid tag $subject" );
-		}
-	}
-	
-	return( @subjects );
-}
+# sub get_subjects
+# {
+	# my( $self, $session ) = @_;
+	# 
+	# my @subjects;
+	# my $subject;
+	# foreach $subject (@{$self->{subjects}})
+	# {
+		# my $sub = new EPrints::Subject( $session, $subject );
+		# 
+		# push @subjects, $sub if( defined $sub );
+		# 
+		# unless( defined $sub ) 
+		# {
+			# $session->get_archive()->log( "List contain invalid tag $subject" );
+		# }
+	# }
+	# 
+	# return( @subjects );
+# }
 
 #
 # redirect( $url )

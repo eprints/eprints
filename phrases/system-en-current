@@ -48,7 +48,7 @@ EPrints Modules
     <phrase ref="lib/metafield:day">Day:</phrase>
     <phrase ref="lib/metafield:to">to</phrase>
     <phrase ref="lib/metafield:family_names">Family Name(s)</phrase>
-    <phrase ref="lib/metafield:given_names">Given Name(s)</phrase>
+    <phrase ref="lib/metafield:given_names">Given Name(s)/Initials</phrase>
     <phrase ref="lib/metafield:lineage">Lineage</phrase>
     <phrase ref="lib/metafield:honourific">Honourific</phrase>
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>

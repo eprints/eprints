@@ -32,7 +32,7 @@ use XML::Parser;
 ## WP1: BAD
 sub import_file
 {
-	my( $session , $filename , $function ) = @_;
+	my( $session , $filename , $function, $theirinfo ) = @_;
 	my $parser = new XML::Parser(
 		Style => "Subs", 
 		Handlers => { 
@@ -42,6 +42,7 @@ sub import_file
 		} );
 	$parser->{eprints} = {};
 	$parser->{eprints}->{session} = $session;
+	$parser->{eprints}->{theirinfo} = $theirinfo;
 	$parser->{eprints}->{function} = $function;
 	$parser->parsefile( $filename );
 }
@@ -150,7 +151,8 @@ sub _handle_end
 		&{$parser->{eprints}->{function}}( 
 			$parser->{eprints}->{session}, 
 			$parser->{eprints}->{dataset},
-			$item);
+			$item,
+			$parser->{eprints}->{theirinfo});
 
 		delete $parser->{eprints}->{data};
 		return;

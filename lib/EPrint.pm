@@ -151,6 +151,11 @@ sub create
 	$data->{userid} = $userid;
 	$data->{dir} = $dir;
 	
+	$session->get_archive()->call(
+		"set_eprint_defaults",
+		$data,
+		$session );
+
 # cjg add_record call
 	my $success = $session->get_db()->add_record(
 		$dataset,
@@ -518,14 +523,11 @@ sub transfer
 #
 ######################################################################
 
-## WP1: BAD
 sub render_short_title
 {
 	my( $self ) = @_;
 
-	return( $self->{session}->get_archive()->call(
-			"eprint_render_short_title",
-			$self ) );
+	return( $self->{session}->get_archive()->call( "eprint_render_short_title", $self ) );
 }
 
 
@@ -538,10 +540,11 @@ sub render_short_title
 #
 ######################################################################
 
-## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
+
+	$self->{session}->get_archive()->call( "set_eprint_automatic_fields", $self );
 
 	my $success = $self->{session}->get_db()->update(
 		$self->{dataset},
@@ -1041,7 +1044,6 @@ sub archive
 #
 ######################################################################
 
-## WP1: BAD
 sub local_path
 {
 	my( $self ) = @_;
@@ -1111,7 +1113,6 @@ sub generate_static
 	{
 		print "LANG: $langid\n";	
 
-
 		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprint_id );
 
 		my @created = eval
@@ -1127,7 +1128,8 @@ sub generate_static
 		$self->{session}->build_page( $title, $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
-		# SYMLINK's to DOCS...
+
+		# SYMLINK's to DOCS...cjg
 	}
 	
 	return;	
@@ -1143,6 +1145,7 @@ sub render_abstract_page
         return( $dom, $title );
 }
 
+# This should include all the info, not just that presented to the public.
 sub render_full_details
 {
         my( $self ) = @_;
@@ -1176,9 +1179,10 @@ sub get_all_related
 
 	my @related = $self->all_in_thread( $succeeds_field )
 		if( $self->in_thread( $succeeds_field ) );
+
 	push @related, $self->all_in_thread( $commentary_field )
 		if( $self->in_thread( $commentary_field ) );
-		
+##############		
 	# Remove duplicates, just in case
 	my %related_uniq;
 	my $eprint;	
@@ -1316,14 +1320,6 @@ sub _collect_thread
 }
 
 
-######################################################################
-#
-# $eprint = last_in_thread( $field )
-#
-#  Return the eprint that is the most recent deposit in the given
-#  thread.  This eprint is returned if it is the latest.
-#
-######################################################################
 
 ## WP1: BAD
 sub last_in_thread
@@ -1341,6 +1337,9 @@ sub last_in_thread
 
 	return( $latest );
 }
+
+################################################################################
+
 
 ## WP1: BAD
 sub render_citation_link

@@ -32,6 +32,7 @@ my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
 exit( 1 ) unless( defined $archive );
 
 my $local_document_root = $archive->get_conf( "local_document_root" );
+my $local_html_root = $archive->get_conf( "local_html_root" );
 my $database = $archive->get_conf( "dbname" );
 
 my $force = ( $ARGV[1] eq "FORCE" );
@@ -40,11 +41,6 @@ my $force = ( $ARGV[1] eq "FORCE" );
 # not allow remote admin log in anyway.
 
 
-# make this work dammit cjg
-#if ( defined $dbhost ||
-     #defined $EPrintSite::SiteInfo::dbsock ||
-     #defined $EPrintSite::SiteInfo::dbport ) 
-#{
 	#print "\n";
 	#print "This script currently does not work with databases\n";
 	#print "not running on the default port of localhost.\n";
@@ -65,53 +61,58 @@ unless( $force )
 }
 
 # We'll only work if they type "yes" exactly, otherwise we just abort.
-if( $force || $input eq "yes" )
+unless( $force || $input eq "yes" )
 {
-	# First erase the database tables. We now do this the dramatic way
-	# of dropping and recreating the database.
-	# This makes it possible to erase a really broken setup.
-
-	my $mysqladmin_path = "mysqladmin";
-
-	unless( $force )
-	{
-		# Get the path of the mysql monitor tool
-		print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
-		print "[$mysqladmin_path]: ";
-	
-		$input = <STDIN>;
-		chomp( $input );
-		$mysqladmin_path = $input if( $input ne "" );
-	}
-
-	print "Dropping and recreating database (requires database root password)\n";
-	print "You will need to enter the MySQL root user password.\n";
-
-	my $cmds = "drop $database";
-	$cmds.= " create $database";
-
-	# We use the force -f option as we've already checked user meant to do this.
-	my $rc = 0xffff & system( "$mysqladmin_path -u root -f $cmds" );
-
-	print "Erasing eprint files...\n";
-	
-	# Get available directories
-	opendir DOCSTORE, $local_document_root
-		or print STDERR "Can't open DOCSTORE";
-
-	# The grep here just removes the "." and ".." directories
-	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
-	closedir DOCSTORE;
-
-	# Remove the contents of each of the directories.
-	my $dir;
-	foreach $dir (@avail)
-	{
-		$rc = 0xffff & system(
-			"rm -rf $local_document_root/$dir/*" );
-		print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n"
-			unless( $rc==0 );
-	}
-
-	print "Done.\n";
+	print STDERR "Aborting.\n";
 }
+####################################################
+
+# First erase the database tables. We now do this the dramatic way
+# of dropping and recreating the database.
+# This makes it possible to erase a really broken setup.
+
+my $mysqladmin_path = "mysqladmin";
+
+unless( $force )
+{
+	# Get the path of the mysql monitor tool
+	print "Path of mysqladmin tool (the default is fine if it's in your standard shell path)\n";
+	print "[$mysqladmin_path]: ";
+
+	$input = <STDIN>;
+	chomp( $input );
+	$mysqladmin_path = $input if( $input ne "" );
+}
+
+print "Dropping and recreating database (requires database root password)\n";
+print "You will need to enter the MySQL root user password.\n";
+
+my $cmds = "drop $database";
+$cmds.= " create $database";
+
+
+my $rc = system( "$mysqladmin_path -u root -f $cmds" ) & 0xffff;
+print "Ok.\n";
+# We use the force -f option as we've already checked user meant to do this.
+
+print "Erasing eprint files...\n";
+
+# Get available directories
+opendir DOCSTORE, $local_document_root
+	or print STDERR "Can't open DOCSTORE";
+
+# The grep here just removes the "." and ".." directories
+my @doomeddirs = grep !/^\.\.?$/, readdir DOCSTORE;
+closedir DOCSTORE;
+
+# Remove the contents of each of the directories.
+my $dir;
+push @doomeddirs, $local_html_root;
+foreach $dir (@doomeddirs)
+{
+	print STDERR "Removing: $dir\n";
+	$rc = system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
+	print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n" unless( $rc==0 );
+}
+mkdir( $local_html_root, 0755 );
+print "Done.\n";

@@ -116,11 +116,20 @@ sub create_user
 	# And work out the date joined.
 	my $date_joined = EPrints::MetaField::get_datestamp( time );
 
+	my $data = { 
+		"userid"=>$userid,
+		"usertype"=>$access_level,
+		"joined"=>$date_joined 
+	};
+
+	$session->get_archive()->call(
+		"set_user_defaults",
+		$data,
+		$session );
+
+	
 	# Add the user to the database...
-	$session->get_db()->add_record( $user_ds,
-	                                { "userid"=>$userid,
-	                                  "usertype"=>$access_level,
-	                                  "joined"=>$date_joined } );
+	$session->get_db()->add_record( $user_ds, $data );
 	
 	# And return the new user as User object.
 	return( EPrints::User->new( $session, $userid ) );

@@ -128,20 +128,20 @@ sub create
 {
 	my( $class, $session, $username ) = @_;
 	
-	my $self = {};
-	bless $self, $class;
-
-	$self->{session} = $session;
+	my $data = {};
 
 	my $id = _generate_subid( $session, $username );
 	
-	$self->{subid} = $id;
-	$self->{username} = $username;
+	$data->{subid} = $id;
+	$data->{username} = $username;
 	
+	$session->get_archive()->call(
+		"set_subscription_defaults",
+		$data,
+		$session );
+
 # cjg add_record call
-	$session->{database}->add_record( EPrints::Database::table_name( "subscription" ),
-	                                  [ [ "subid", $self->{subid} ],
-	                                    [ "username", $username ] ] );
+	$session->{database}->add_record( EPrints::Database::table_name( "subscription" ), $data );
 	
 	return( new EPrints::Subscription( $session, $id ) );
 }
@@ -274,6 +274,8 @@ sub commit
 {
 	my( $self ) = @_;
 	
+	$self->{session}->get_archive()->call( "set_subscription_automatic_fields", $self );
+
 	# Get the text rep of the search expression
 	$self->{spec} = $self->{searchexpression}->to_string();
 

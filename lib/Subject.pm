@@ -37,7 +37,7 @@ sub get_system_field_info
 	( 
 		{ name=>"subjectid", type=>"text", required=>1 },
 
-		{ name=>"name", type=>"text", required=>1 },
+		{ name=>"name", type=>"text", required=>1, multilang=>1 },
 
 		{ name=>"parents", type=>"text", required=>1, multiple=>1 },
 
@@ -319,6 +319,7 @@ sub create_subject_table
 	open( SUBJECTS, $filename ) or return( 0 );
 
 	my $success = 1;
+	my $lang = $session->default_lang_id();
 	
 	while( <SUBJECTS> )
 	{
@@ -333,7 +334,7 @@ sub create_subject_table
 			( defined EPrints::Subject->create_subject( 
 				$session,
 			        $vals[0],
-			        $vals[1],
+			        {$lang=>$vals[1]},
 				\@parents,					
 			        $vals[3] ) );
 	}

@@ -840,6 +840,8 @@ sub commit
 
 	my $dataset = $self->{session}->get_archive()->get_dataset( "document" );
 
+	$self->{session}->get_archive()->call( "set_document_automatic_fields", $self );
+
 	my $success = $self->{session}->get_db()->update(
 		$dataset,
 		$self->{data} );

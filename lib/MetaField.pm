@@ -29,6 +29,7 @@ my @monthkeys = (
 	"07", "08", "09", "10", "11", "12" );
 
 my $VARCHAR_SIZE = 255;
+my $INT_SIZE = 32;
 
 # These '255'... Maybe make them bigger due to UTF-8
 # UTF-8 chars max 3 times normal (for unicode)
@@ -37,7 +38,7 @@ my $VARCHAR_SIZE = 255;
 
 my %TYPE_SQL =
 (
- 	int        => "\$(name) INT UNSIGNED \$(param)",
+ 	int        => "\$(name) CHAR($INT_SIZE) \$(param)",
  	date       => "\$(name) DATE \$(param)",
  	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
  	set        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
@@ -48,7 +49,7 @@ my %TYPE_SQL =
  	email      => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	subject    => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	pagerange  => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	year       => "\$(name) INT UNSIGNED \$(param)",
+ 	year       => "\$(name) CHAR($INT_SIZE) \$(param)",
  	datatype   => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	langid	   => "\$(name) CHAR(16) \$(param)",
 	id         => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
@@ -1387,8 +1388,8 @@ sub most_local
 {
 	#cjg not done yet
 	my( $self, $session, $value ) = @_;
-
-	return $value;
+	my $bestvalue =  EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %{$value} );
+	return $bestvalue;
 }
 
 sub get_id_field
