@@ -1,3 +1,41 @@
+######################################################################
+#
+# EPrints::SearchField
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::SearchField> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
 #####################################################################
 #
 #  Search Field
@@ -6,10 +44,6 @@
 #
 ######################################################################
 #
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
 #  __LICENSE__
 #
 ######################################################################
@@ -72,9 +106,20 @@ use strict;
 ######################################################################
 
 #cjg MAKE $field $fields and _require_ a [] 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::SearchField->new( $session, $dataset, $fields, $value, $match, $merge, $prefix )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
-	my( $class, $session, $dataset, $fields, $value, $match, $merge ) = @_;
+	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -103,9 +148,12 @@ sub new
 		push @fieldnames, $_->get_sql_name();
 		push @display_names, $_->display_name( $self->{session} );
 	}
-	
+
+	$prefix = "" unless defined $prefix;
+		
 	$self->{display_name} = join '/', @display_names;
-	$self->{form_name_prefix} = join '/', sort @fieldnames;
+	$self->{id} = join '/', sort @fieldnames;
+	$self->{form_name_prefix} = $prefix.$self->{id};
 	$self->{field} = $fields->[0];
 
 	if( $self->{field}->get_property( "hasid" ) )
@@ -116,11 +164,22 @@ sub new
 	return( $self );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->set_value( $newvalue )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_value
 {
+	my ( $self , $newvalue ) = @_;
 #cjg ?? why this confess?
 confess( "ooops: searchfield: set_value" );
-	my ( $self , $newvalue ) = @_;
 
 	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
 	{
@@ -137,6 +196,17 @@ confess( "ooops: searchfield: set_value" );
 
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->clear
+
+undocumented
+
+=cut
+######################################################################
+
 sub clear
 {
 	my( $self ) = @_;
@@ -151,6 +221,17 @@ sub clear
 #  Update the value of the field from the form. Returns any problem
 #  that might have happened, or undef if everything was OK.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->from_form
+
+undocumented
+
+=cut
 ######################################################################
 
 sub from_form
@@ -283,6 +364,17 @@ sub from_form
 ##########################################################
 # 
 # cjg commentme (all below)
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_conditions 
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_conditions 
 {
@@ -560,6 +652,14 @@ sub get_conditions
 
 }
 
+######################################################################
+# 
+# $foo = $sf->_get_conditions_aux( $wheres, $freetext )
+#
+# undocumented
+#
+######################################################################
+
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
@@ -605,6 +705,17 @@ sub _get_conditions_aux
 	return $searchtable.":".$self->{field}->get_name() , \@nwheres;
 
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->do
+
+undocumented
+
+=cut
+######################################################################
 
 sub do
 {
@@ -711,6 +822,17 @@ sub do
 	return( $results, \@badwords );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_value
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_value
 {
 	my( $self ) = @_;
@@ -718,12 +840,34 @@ sub get_value
 	return $self->{value};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_match
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_match
 {
 	my( $self ) = @_;
 
 	return $self->{match};
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_merge
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_merge
 {
@@ -735,11 +879,33 @@ sub get_merge
 
 
 #returns the FIRST field which should indicate type and stuff.
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_field
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_field
 {
 	my( $self ) = @_;
 	return $self->{field};
 }
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_fields
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_fields
 {
 	my( $self ) = @_;
@@ -747,16 +913,22 @@ sub get_fields
 }
 
 
+
+
 ######################################################################
-#
-# $html = render()
-#
-#
+=pod
+
+=item $xhtml = $sf->render
+
+Returns an XHTML tree of this search field which contains all the 
+input boxes required to search this field. 
+
+=cut
 ######################################################################
 
 sub render
 {
-	my( $self ) = @_;
+	my( $self, $prefix ) = @_;
 
 	my $query = $self->{session}->get_query();
 	
@@ -907,6 +1079,17 @@ sub render
 	return $frag;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_help
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_help
 {
         my( $self ) = @_;
@@ -914,11 +1097,33 @@ sub get_help
         return $self->{session}->phrase( "lib/searchfield:help_".$self->{field}->get_type() );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $sf->is_type( @types )
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_type
 {
 	my( $self, @types ) = @_;
 	return $self->{field}->is_type( @types );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_display_name
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_display_name
 {
@@ -926,11 +1131,33 @@ sub get_display_name
 	return $self->{display_name};
 }
 
-sub get_form_name
+
+######################################################################
+=pod
+
+=item $foo = $sf->get_id
+
+undocumented
+
+=cut
+######################################################################
+
+sub get_id
 {
 	my( $self ) = @_;
-	return $self->{form_name_prefix};
+	return $self->{id};
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->is_set
+
+undocumented
+
+=cut
+######################################################################
 
 sub is_set
 {
@@ -938,6 +1165,17 @@ sub is_set
 
 	return EPrints::Utils::is_set( $self->{value} ) || $self->{match} eq "EX";
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->serialise
+
+undocumented
+
+=cut
+######################################################################
 
 sub serialise
 {
@@ -968,6 +1206,17 @@ sub serialise
 	return join( ":" , @escapedparts );
 }
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::SearchField->unserialise( $session, $dataset, $string )
+
+undocumented
+
+=cut
+######################################################################
+
 sub unserialise
 {
 	my( $class, $session, $dataset, $string ) = @_;
@@ -989,12 +1238,34 @@ sub unserialise
 # only really meaningful to move between eprint datasets
 # could be dangerous later with complex datasets.
 # currently only used by the OAI code.
+
+######################################################################
+=pod
+
+=item $foo = $sf->set_dataset( $dataset )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_dataset
 {
 	my( $self, $dataset ) = @_;
 
 	$self->{dataset} = $dataset;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $sf->DESTROY
+
+undocumented
+
+=cut
+######################################################################
 
 sub DESTROY
 {
@@ -1004,3 +1275,11 @@ sub DESTROY
 }
 	
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

@@ -13,8 +13,6 @@ Subscriptions/subject-editors
 
 Metadata Fields
 
-*	Make a field type which IS a serialised search.
-
 *	Field property: freetext (or not-freetext) to stop indexing) - will 
 	disable non-ex searching. (?)
 
@@ -83,10 +81,19 @@ Searches
 
 *	Add "does record match search" function.
 
+*	Add a get_problems method to searchexp which returns a list
+	of problems. This should run by default when verifying "search"
+	type fields?
+
 
 Other Stuff
 
+*	Turn Multiple input fields into <ol>'s. maybe?
+
 *	Commentary summary page (Psycoloquy style)
+
+*	Stop refering directly to System::Settings - allow archive specific
+	tweaks.
 
 *	Remove all #cjg comments which denote issues.
 
@@ -133,9 +140,34 @@ Other Stuff
 
 DOCUMENTATION ============================================================
 
-*	Add POD manuals to ALL lib and CGI files.
 
-*	Formally Comment Code
+FORMALLY COMMENT CODE
+-	Archive.pm
+-	Auth.pm
+-	Config.pm
+-	DataObj.pm
+-	DataSet.pm
+*	Database.pm
+*	Document.pm
+*	EPrint.pm
+*	ImportXML.pm
+*	Language.pm
+*	Latex.pm
+*	MetaField.pm
+*	OpenArchives.pm
+*	RequestWrapper.pm
+*	SearchExpression.pm
+*	SearchField.pm
+*	Session.pm
+*	Subject.pm
+*	SubmissionForm.pm
+*	Subscription.pm
+*	SystemSettings.pm
+*	User.pm
+*	UserForm.pm
+*	UserPage.pm
+*	Utils.pm
+*	VLit.pm
 
 HOW-TOS
 *	produce DOM.

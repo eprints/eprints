@@ -1,5 +1,9 @@
 ######################################################################
 #
+# EPrints::Config
+#
+######################################################################
+#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
@@ -8,12 +12,27 @@
 #
 ######################################################################
 
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Config> - software configuration handler
+
+=head1 DESCRIPTION
+
+This module handles loading the main configuration for an instance
+of the eprints software - such as the list of language id's and 
+the top level configurations for archives - the XML files in /archives/
+
+=over 4
+
+=cut
+
+######################################################################
+
 #cjg SHOULD BE a way to configure an archive NOT to load the
 # module except on demand (for buggy / testing ones )
-
-
-# This module loads and sets information for eprints not
-# specific to any archive.
 
 package EPrints::Config;
 use EPrints::Utils;
@@ -37,6 +56,19 @@ BEGIN {
 	}
 
 	# abort($err) Defined here so modules can abort even at startup
+######################################################################
+=pod
+
+=item EPrints::Config::abort( $msg )
+
+Print an error message and exit. If running under mod_perl then
+print the error as a webpage and exit.
+
+This subroutine is loaded before other modules so that it may be
+used to report errors when initialising modules.
+
+=cut
+######################################################################
 
 	sub abort
 	{
@@ -204,7 +236,18 @@ while( $file = readdir( CFG ) )
 }
 closedir( CFG );
 
-###############################################
+
+
+######################################################################
+=pod
+
+=item $archive = EPrints::Config::get_archive_config( $id )
+
+Returns a hash of the basic configuration for the archive with the
+given id. This hash will include the properties from SystemSettings. 
+
+=cut
+######################################################################
 
 sub get_archive_config
 {
@@ -213,15 +256,53 @@ sub get_archive_config
 	return $ARCHIVES{$id};
 }
 
+
+######################################################################
+=pod
+
+=item @languages = EPrints::Config::get_languages
+
+Return a list of all known languages ids (from languages.xml).
+
+=cut
+######################################################################
+
 sub get_languages
 {
 	return @LANGLIST;
 }
 
+
+######################################################################
+=pod
+
+=item @languages = EPrints::Config::get_supported_languages
+
+Return a list of ids of all supported languages. 
+
+EPrints does not yet formally support languages other then "en". You
+have to configure others yourself. This will be fixed in a later 
+version.
+
+=cut
+######################################################################
+
 sub get_supported_languages
 {
 	return @SUPPORTEDLANGLIST;
 }
+
+
+######################################################################
+=pod
+
+=item $archiveid = EPrints::Config::get_id_from_host_and_path( $hostpath )
+
+Return the archiveid (if any) of the archive which belongs on the 
+virutal host specified by $hostpath. eg. "www.fishprints.com/perl/search"
+
+=cut
+######################################################################
 
 sub get_id_from_host_and_path
 {
@@ -238,10 +319,38 @@ sub get_id_from_host_and_path
 	return undef;
 }
 
+
+######################################################################
+=pod
+
+=item @ids = EPrints::Config::get_archive_ids( get_archive_ids )
+
+Return a list of ids of all archives belonging to this instance of
+the eprints software.
+
+=cut
+######################################################################
+
 sub get_archive_ids
 {
 	return keys %ARCHIVES;
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Config::parse_xml( $file, [%config] )
+
+Return a DOM document describing Parse the XML file specified by $file 
+with the optional additional config to XML::DOM::Parser specified 
+in %config. 
+
+In the event of an error in the XML file, report to STDERR and
+return undef.
+
+=cut
+######################################################################
 
 sub parse_xml
 {
@@ -274,6 +383,20 @@ sub parse_xml
 	return $doc;
 }
 
+
+######################################################################
+=pod
+
+=item $arc_conf = EPrints::Config::load_archive_config_module( $id )
+
+Load the full configuration for the specified archive unless the 
+it has already been loaded.
+
+Return a reference to a hash containing the full archive configuration. 
+
+=cut
+######################################################################
+
 sub load_archive_config_module
 {
 	my( $id ) = @_;
@@ -303,6 +426,19 @@ sub load_archive_config_module
 	return $config;
 }
 
+
+######################################################################
+=pod
+
+=item $title = EPrints::Config::lang_title( $id )
+
+Return the title of a given language as a UTF-8 encoded string. 
+
+For example: "en" would return "English".
+
+=cut
+######################################################################
+
 sub lang_title
 {
 	my( $id ) = @_;
@@ -310,11 +446,32 @@ sub lang_title
 	return $LANGNAMES{$id};
 }
 
+
+######################################################################
+=pod
+
+=item $value = EPrints::Config::get( $confitem )
+
+Return the value of a given eprints configuration item. These
+values are obtained from SystemSettings plus a few extras for
+paths.
+
+=cut
+######################################################################
+
 sub get
 {
-	my( $id ) = @_;
+	my( $confitem ) = @_;
 
-	return $SYSTEMCONF{$id};
+	return $SYSTEMCONF{$confitem};
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

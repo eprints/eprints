@@ -1,3 +1,41 @@
+######################################################################
+#
+# EPrints::User
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::User> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
 #####################################################################j
 #
 # EPrints User class module
@@ -7,10 +45,6 @@
 #
 ######################################################################
 #
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
 #  __LICENSE__
 #
 ######################################################################
@@ -27,6 +61,17 @@ use EPrints::Utils;
 use EPrints::Subscription;
 
 use strict;
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::User->get_system_field_info
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_system_field_info
 {
@@ -74,6 +119,17 @@ sub get_system_field_info
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::User->new( $session, $userid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, $session, $userid ) = @_;
@@ -82,6 +138,17 @@ sub new
 		$session->get_archive()->get_dataset( "user" ),
 		$userid );
 }
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::User->new_from_data( $session, $known )
+
+undocumented
+
+=cut
+######################################################################
 
 sub new_from_data
 {
@@ -106,6 +173,17 @@ sub new_from_data
 #  Creates a new user with given access priviledges and a randomly
 #  generated password.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::User::create_user( $session, $access_level )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub create_user
@@ -147,6 +225,17 @@ sub create_user
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::User::user_with_email( $session, $email )
+
+undocumented
+
+=cut
+######################################################################
+
 sub user_with_email
 {
 	my( $session, $email ) = @_;
@@ -167,6 +256,17 @@ sub user_with_email
 	
 	return $records[0];
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::User::user_with_username( $session, $username )
+
+undocumented
+
+=cut
+######################################################################
 
 sub user_with_username
 {
@@ -200,6 +300,17 @@ sub user_with_username
 #  out, and that what's been filled in is OK. Returns an array of
 #  problem descriptions.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate
+
+undocumented
+
+=cut
 ######################################################################
 
 sub validate
@@ -252,6 +363,17 @@ sub validate
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->commit
+
+undocumented
+
+=cut
+######################################################################
+
 sub commit
 {
 	my( $self ) = @_;
@@ -277,6 +399,17 @@ sub commit
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove
 {
 	my( $self ) = @_;
@@ -294,6 +427,17 @@ sub remove
 	return( $success );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->has_priv( $resource )
+
+undocumented
+
+=cut
+######################################################################
+
 sub has_priv
 {
 	my( $self, $resource ) = @_;
@@ -308,6 +452,17 @@ sub has_priv
 
 	return 0;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_eprints( $ds )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_eprints
 {
@@ -333,6 +488,17 @@ sub get_eprints
 # return eprints currently in the submission buffer for which this user is a 
 # valid editor.
 #cjg not done yet.
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_editable_eprints
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_editable_eprints
 {
 	my( $self ) = @_;
@@ -365,6 +531,17 @@ sub get_editable_eprints
 # the site admin, not the core code.
 
 # cjg not done- where is it needed?
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_owned_eprints
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_owned_eprints
 {
 	my( $self ) = @_;
@@ -379,6 +556,17 @@ sub get_owned_eprints
 # cjg not done
 #cjg means can this user request removal, and submit later versions of this item?
 # cjg could be ICK and just use get_owned_eprints...
+
+######################################################################
+=pod
+
+=item $foo = $thing->is_owner( $eprint )
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_owner
 {
 	my( $self, $eprint ) = @_;
@@ -391,6 +579,17 @@ sub is_owner
 	return 0;
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->mail( $subjectid, $message, $replyto, $email )
+
+undocumented
+
+=cut
+######################################################################
 
 sub mail
 {
@@ -427,6 +626,14 @@ sub mail
 
 
 
+######################################################################
+# 
+# EPrints::User::_create_userid( $session )
+#
+# undocumented
+#
+######################################################################
+
 sub _create_userid
 {
 	my( $session ) = @_;
@@ -435,6 +642,17 @@ sub _create_userid
 
 	return( $new_id );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render
+
+undocumented
+
+=cut
+######################################################################
 
 sub render
 {
@@ -446,6 +664,17 @@ sub render
 }
 
 # This should include all the info, not just that presented to the public.
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_full
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_full
 {
         my( $self ) = @_;
@@ -454,6 +683,17 @@ sub render_full
 
         return( $dom, $title );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_url( $staff )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_url
 {
@@ -468,6 +708,17 @@ sub get_url
 	return $self->{session}->get_archive()->get_conf( "perl_url" )."/view_user?userid=".$self->get_value( "userid" );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_type
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_type
 {
 	my( $self ) = @_;
@@ -476,3 +727,11 @@ sub get_type
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

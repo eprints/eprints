@@ -1,8 +1,6 @@
 ######################################################################
 #
-# EPrints EPrint class
-#
-#  Class representing an actual EPrint
+# EPrints::EPrint
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::EPrint> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+# EPrints EPrint class
+#
+#  Class representing an actual EPrint
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -30,6 +64,17 @@ use strict;
 $EPrints::EPrint::id_code_digits = 8;
 
 $EPrints::EPrint::static_page = "index.html";
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::EPrint->get_system_field_info
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_system_field_info
 {
@@ -76,6 +121,17 @@ sub get_system_field_info
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::EPrint->new( $session, $dataset, $id )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, $session, $dataset, $id ) = @_;
@@ -99,6 +155,17 @@ sub new
 	}
 	return undef;
 }
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::EPrint->new_from_data( $session, $dataset, $known )
+
+undocumented
+
+=cut
+######################################################################
 
 sub new_from_data
 {
@@ -127,6 +194,17 @@ sub new_from_data
 #  If data is defined, then this is used as the base for the
 #  new record.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::EPrint::create( $session, $dataset, $userid, $data )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub create
@@ -185,6 +263,14 @@ sub create
 #
 ######################################################################
 
+######################################################################
+# 
+# EPrints::EPrint::_create_id( $session )
+#
+# undocumented
+#
+######################################################################
+
 sub _create_id
 {
 	my( $session ) = @_;
@@ -201,6 +287,14 @@ sub _create_id
 #  Create a directory on the local filesystem for the new document
 #  with the given ID. undef is returned if it couldn't be created
 #  for some reason.
+#
+######################################################################
+
+######################################################################
+# 
+# EPrints::EPrint::_create_directory( $session, $eprintid )
+#
+# undocumented
 #
 ######################################################################
 
@@ -306,6 +400,17 @@ sub _create_directory
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->clone( $dest_dataset, $copy_documents )
+
+undocumented
+
+=cut
+######################################################################
+
 sub clone
 {
 	my( $self, $dest_dataset, $copy_documents ) = @_;
@@ -369,6 +474,14 @@ sub clone
 #
 ######################################################################
 
+######################################################################
+# 
+# $foo = $thing->_transfer( $dataset )
+#
+# undocumented
+#
+######################################################################
+
 sub _transfer
 {
 	my( $self, $dataset ) = @_;
@@ -409,6 +522,17 @@ sub _transfer
 
 # remove EPrint - should really only be called on eprints
 # in the buffer or inbox.
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove
 {
 	my( $self ) = @_;
@@ -436,6 +560,17 @@ sub remove
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->commit
+
+undocumented
+
+=cut
+######################################################################
+
 sub commit
 {
 	my( $self ) = @_;
@@ -458,6 +593,17 @@ sub commit
 
 
 ######################################################################
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_type( $for_archive )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub validate_type
@@ -497,6 +643,17 @@ sub validate_type
 # $problems = validate_linking()
 #  array_ref
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_linking( $for_archive )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub validate_linking
@@ -567,6 +724,17 @@ sub validate_linking
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_meta( $for_archive )
+
+undocumented
+
+=cut
+######################################################################
+
 sub validate_meta
 {
 	my( $self, $for_archive ) = @_;
@@ -619,6 +787,17 @@ sub validate_meta
 #
 #  Ensure this EPrint has appropriate uploaded files.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_documents( $for_archive )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub validate_documents
@@ -686,6 +865,17 @@ sub validate_documents
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_full( $for_archive )
+
+undocumented
+
+=cut
+######################################################################
+
 sub validate_full
 {
 	my( $self , $for_archive ) = @_;
@@ -726,6 +916,17 @@ sub validate_full
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->prune_documents
+
+undocumented
+
+=cut
+######################################################################
+
 sub prune_documents
 {
 	my( $self ) = @_;
@@ -750,6 +951,17 @@ sub prune_documents
 #
 #  Return all documents associated with the EPrint.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_all_documents
+
+undocumented
+
+=cut
 ######################################################################
 
 sub get_all_documents
@@ -783,6 +995,17 @@ sub get_all_documents
 ######################################################################
 
 #loseit? cjg
+
+######################################################################
+=pod
+
+=item $foo = $thing->prune
+
+undocumented
+
+=cut
+######################################################################
+
 sub prune
 {
 	my( $self ) = @_;
@@ -822,6 +1045,17 @@ sub prune
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->datestamp
+
+undocumented
+
+=cut
+######################################################################
+
 sub datestamp
 {
 	my( $self ) = @_;
@@ -837,6 +1071,17 @@ sub datestamp
 #  This transfers the EPrint to the main archive table - i.e. it
 #  actually _archives_ it.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->move_to_deletion
+
+undocumented
+
+=cut
 ######################################################################
 
 sub move_to_deletion
@@ -862,6 +1107,17 @@ sub move_to_deletion
 	return $success;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->move_to_inbox
+
+undocumented
+
+=cut
+######################################################################
+
 sub move_to_inbox
 {
 	my( $self ) = @_;
@@ -874,6 +1130,17 @@ sub move_to_inbox
 	
 	return $success;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->move_to_buffer
+
+undocumented
+
+=cut
+######################################################################
 
 sub move_to_buffer
 {
@@ -893,6 +1160,14 @@ sub move_to_buffer
 }
 
 
+######################################################################
+# 
+# $foo = $thing->_move_from_archive
+#
+# undocumented
+#
+######################################################################
+
 sub _move_from_archive
 {
 	my( $self ) = @_;
@@ -909,6 +1184,17 @@ sub _move_from_archive
 		$_->generate_static();
 	}
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->move_to_archive
+
+undocumented
+
+=cut
+######################################################################
 
 sub move_to_archive
 {
@@ -948,6 +1234,17 @@ sub move_to_archive
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->local_path
+
+undocumented
+
+=cut
+######################################################################
+
 sub local_path
 {
 	my( $self ) = @_;
@@ -963,6 +1260,17 @@ sub local_path
 #  Returns the URL to this EPrint's directory. Note, this INCLUDES the
 #  trailing slash, unlike the local_path() method.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->url_stem
+
+undocumented
+
+=cut
 ######################################################################
 
 sub url_stem
@@ -983,6 +1291,17 @@ sub url_stem
 #
 #  Generate the static version of the abstract page.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->generate_static
+
+undocumented
+
+=cut
 ######################################################################
 
 sub generate_static
@@ -1040,6 +1359,17 @@ sub generate_static
 	$self->{session}->change_lang( $real_langid );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove_static
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove_static
 {
 	my( $self ) = @_;
@@ -1051,12 +1381,31 @@ sub remove_static
 	}
 }
 
+######################################################################
+# 
+# $foo = $thing->_htmlpath( $langid )
+#
+# undocumented
+#
+######################################################################
+
 sub _htmlpath
 {
 	my( $self, $langid ) = @_;
 	return $self->{session}->get_archive()->get_conf( "htdocs_path" ).
 		"/".$langid."/archive/".eprintid_to_path( $self->get_value( "eprintid" ) );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render
+
+undocumented
+
+=cut
+######################################################################
 
 sub render
 {
@@ -1092,6 +1441,17 @@ sub render
 }
 
 # This should include all the info, not just that presented to the public.
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_full
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_full
 {
         my( $self ) = @_;
@@ -1106,6 +1466,17 @@ sub render_full
 ################################################################################
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_url( $staff )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_url
 {
 	my( $self , $staff ) = @_;
@@ -1119,6 +1490,17 @@ sub get_url
 	return( $self->url_stem() );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_user
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_user
 {
 	my( $self ) = @_;
@@ -1127,6 +1509,17 @@ sub get_user
 
 	return $user;
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::EPrint::eprintid_to_path( $eprintid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub eprintid_to_path
 {
@@ -1160,6 +1553,17 @@ sub eprintid_to_path
 #  Gets the eprints that are related in some way to this in a succession
 #  or commentary thread. The returned list does NOT include this EPrint.
 #
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_all_related
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_all_related
 {
@@ -1204,6 +1608,17 @@ sub get_all_related
 #  Returns non-zero if this paper is part of a thread
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->in_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
+
 sub in_thread
 {
 	my( $self, $field ) = @_;
@@ -1228,6 +1643,17 @@ sub in_thread
 #  Returns the first (earliest) version or first paper in the thread
 #  of commentaries of this paper in the archive.
 #
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->first_in_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
 
 sub first_in_thread
 {
@@ -1257,6 +1683,17 @@ sub first_in_thread
 #  Returns a list of the later items in the thread
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->later_in_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
+
 sub later_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1285,6 +1722,17 @@ sub later_in_thread
 #  Returns all of the EPrints in the given thread
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->all_in_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
+
 sub all_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1297,6 +1745,14 @@ sub all_in_thread
 
 	return( @eprints );
 }
+
+######################################################################
+# 
+# $foo = $thing->_collect_thread( $field, $current, $eprints )
+#
+# undocumented
+#
+######################################################################
 
 sub _collect_thread
 {
@@ -1311,6 +1767,17 @@ sub _collect_thread
 	}
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->last_in_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
 
 sub last_in_thread
 {
@@ -1335,6 +1802,17 @@ sub last_in_thread
 #  paper is a later version of or commentary on this paper, the link
 #  from that paper to this will be removed.
 #
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove_from_threads
+
+undocumented
+
+=cut
+######################################################################
 
 sub remove_from_threads
 {
@@ -1384,6 +1862,17 @@ sub remove_from_threads
 	}
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_version_thread( $field )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_version_thread
 {
 	my( $self, $field ) = @_;
@@ -1398,6 +1887,14 @@ sub render_version_thread
 	
 	return( $ul );
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_version_thread_aux( $field, $eprint_shown )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_version_thread_aux
 {
@@ -1437,6 +1934,17 @@ sub _render_version_thread_aux
 	return( $li );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_type
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_type
 {
 	my( $self ) = @_;
@@ -1449,3 +1957,11 @@ sub get_type
 1; # For use/require success
 
 	
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

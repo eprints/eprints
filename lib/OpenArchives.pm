@@ -1,8 +1,6 @@
 ######################################################################
 #
-#  EPrints OpenArchives Support Module
-#
-#   Methods for open archives support in EPrints.
+# EPrints::OpenArchives
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::OpenArchives> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+#  EPrints OpenArchives Support Module
+#
+#   Methods for open archives support in EPrints.
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -37,6 +71,17 @@ use strict;
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::utc_timestamp( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst )
+
+undocumented
+
+=cut
+######################################################################
+
 sub utc_timestamp
 {
 	my( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) 
@@ -59,6 +104,17 @@ sub utc_timestamp
 #
 #  e.g. 2000-05-01T15:32:23+01:00
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::full_timestamp( full_timestamp )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub full_timestamp
@@ -123,6 +179,17 @@ sub full_timestamp
 	return( "$year-$month-$day"."T$hour:$min:$sec".
 		( $offset < 0 ? "-" : "+" ) . "$hours_offset:$minutes_offset" );
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::make_header( $session, $eprint, $oai2 )
+
+undocumented
+
+=cut
+######################################################################
 
 sub make_header
 {
@@ -200,6 +267,17 @@ sub make_header
 	return $header;
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::make_record( $session, $eprint, $fn, $oai2 )
+
+undocumented
+
+=cut
+######################################################################
+
 sub make_record
 {
 	my( $session, $eprint, $fn, $oai2 ) = @_;
@@ -240,6 +318,17 @@ sub make_record
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::to_oai_identifier( $archive_id, $eprintid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub to_oai_identifier
 {
 	my( $archive_id , $eprintid ) = @_;
@@ -255,6 +344,17 @@ sub to_oai_identifier
 #  Return the local eprint id of an oai eprint identifier. undef is
 #  returned if the full id is garbled.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::from_oai_identifier( $session, $oai_identifier )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub from_oai_identifier
@@ -277,12 +377,34 @@ sub from_oai_identifier
 
 ##
 
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::encode_setspec( @bits )
+
+undocumented
+
+=cut
+######################################################################
+
 sub encode_setspec
 {
 	my( @bits ) = @_;
 	foreach( @bits ) { $_ = text2bytestring( $_ ); }
 	return join(":",@bits);
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::decode_setspec( $encoded )
+
+undocumented
+
+=cut
+######################################################################
 
 sub decode_setspec
 {
@@ -291,6 +413,17 @@ sub decode_setspec
 	foreach( @bits ) { $_ = bytestring2text( $_ ); }
 	return @bits;
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::text2bytestring( $string )
+
+undocumented
+
+=cut
+######################################################################
 
 sub text2bytestring
 {
@@ -302,6 +435,17 @@ sub text2bytestring
 	}
 	return $encstring;
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::OpenArchives::bytestring2text( $encstring )
+
+undocumented
+
+=cut
+######################################################################
 
 sub bytestring2text
 {
@@ -317,4 +461,12 @@ sub bytestring2text
 
 
 1;
+
+
+######################################################################
+=pod
+
+=back
+
+=cut
 

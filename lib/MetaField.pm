@@ -1,8 +1,6 @@
 ######################################################################
 #
-# EPrints Metadata Field class
-#
-#  Holds information about a metadata field
+# EPrints::MetaField
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::MetaField> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+# EPrints Metadata Field class
+#
+#  Holds information about a metadata field
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -118,6 +152,17 @@ my $VARCHAR_SIZE = 255;
 # note: display name, help and labels for options are not
 # defined here as they are lang specific.
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::MetaField->new( %properties )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, %properties ) = @_;
@@ -177,6 +222,17 @@ sub new
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->clone
+
+undocumented
+
+=cut
+######################################################################
+
 sub clone
 {
 	my( $self ) = @_;
@@ -192,6 +248,17 @@ sub clone
 #  Static method that returns the given time (in UNIX time, seconds 
 #  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
 #
+
+
+######################################################################
+=pod
+
+=item EPrints::MetaField::get_date( $time )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_date
 {
@@ -227,6 +294,17 @@ sub get_date
 ######################################################################
 
 
+
+######################################################################
+=pod
+
+=item EPrints::MetaField::get_datestamp( $time )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_datestamp
 {
 	my( $time ) = @_;
@@ -235,6 +313,17 @@ sub get_datestamp
 
 	return( $year."-".$month."-".$day );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->tags_and_labels( $session )
+
+undocumented
+
+=cut
+######################################################################
 
 sub tags_and_labels
 {
@@ -247,6 +336,17 @@ sub tags_and_labels
 	return ($self->{options}, \%labels);
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->display_name( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub display_name
 {
 	my( $self, $session ) = @_;
@@ -256,6 +356,17 @@ sub display_name
 
 	return $session->phrase( $phrasename );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->display_help( $session )
+
+undocumented
+
+=cut
+######################################################################
 
 sub display_help
 {
@@ -267,6 +378,17 @@ sub display_help
 	return $session->phrase( $phrasename );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_option( $session, $option )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_option
 {
 	my( $self, $session, $option ) = @_;
@@ -275,6 +397,17 @@ sub render_option
 
 	return $session->html_phrase( $phrasename );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_sql_type( $notnull )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_sql_type
 {
@@ -324,6 +457,17 @@ sub get_sql_type
 	return $sqlname." VARCHAR($VARCHAR_SIZE) ".$param;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_sql_index
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_sql_index
 {
         my( $self ) = @_;
@@ -343,17 +487,50 @@ sub get_sql_index
 	return "INDEX( ".$sqlname.")";
 }
 	
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_name
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_name
 {
 	my( $self ) = @_;
 	return $self->{name};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_type
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_type
 {
 	my( $self ) = @_;
 	return $self->{type};
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_property( $property, $value )
+
+undocumented
+
+=cut
+######################################################################
 
 sub set_property
 {
@@ -377,6 +554,17 @@ sub set_property
 	}
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_property( $property )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_property
 {
 	my( $self, $property ) = @_;
@@ -389,6 +577,17 @@ sub get_property
 	return( $self->{$property} ); 
 } 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->is_type( @typenames )
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_type
 {
 	my( $self , @typenames ) = @_;
@@ -400,12 +599,34 @@ sub is_type
 	return 0;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->is_text_indexable
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_text_indexable
 {
 	my( $self ) = @_;
 	return $self->is_type( "text","longtext","url","email" );
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_value( $session, $value, $alllangs, $nolink )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_value
 {
@@ -458,6 +679,14 @@ sub render_value
 }
 
 
+######################################################################
+# 
+# $foo = $thing->_render_value1( $session, $value, $alllangs, $nolink )
+#
+# undocumented
+#
+######################################################################
+
 sub _render_value1
 {
 	my( $self, $session, $value, $alllangs, $nolink ) = @_;
@@ -491,6 +720,14 @@ sub _render_value1
 	}
 
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_value2( $session, $value, $alllangs, $nolink )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_value2
 {
@@ -529,6 +766,14 @@ sub _render_value2
 	}
 	return $table;
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_value3( $session, $value, $nolink )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_value3
 {
@@ -638,6 +883,17 @@ sub _render_value3
 	return $session->make_text( "?? $value ??" );
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_input_field( $session, $value )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_input_field
 {
@@ -790,6 +1046,14 @@ sub render_input_field
 
 	return $html;
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_input_field_aux( $session, $value, $n )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_input_field_aux
 {
@@ -1013,6 +1277,14 @@ sub _render_input_field_aux
 	
 	return $block;
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_input_field_aux2( $session, $value, $suffix )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_input_field_aux2
 {
@@ -1246,26 +1518,22 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 
 	if( $self->is_type( "search" ) )
 	{
-#cjg NOT INTL
+#cjg NOT CSS
 		my $div = $session->make_element( "div", 
-			style=>"background-color: #eef;" );
-		$div->appendChild( $session->make_text( "SEARCH: " ) );
-		my $string = $value;
-		if( !defined $value )
-		{
-			$string = "undefined";
-		}
-		$div->appendChild( $session->make_text( $string ) );
+			style=>"background-color: #eef; padding: 6pt;" );
 
 		my $ds = $session->get_archive()->get_dataset( 
 				$self->{datasetid} );	
+
 		my $searchexp = EPrints::SearchExpression->new(
 			session => $session,
 			dataset => $ds,
+			prefix => $self->{name}.$suffix."_",
 			fieldnames => $self->get_property( "fieldnames" ) );
+		$searchexp->from_string( $value );
+		
 		# cjg - make help an option?
 		$div->appendChild( $searchexp->render_search_fields( 0 ) );
-	$div->appendChild( $session->make_text( "XXX" ) );
 		$searchexp->dispose();
 		return $div;
 	}
@@ -1274,6 +1542,14 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 				  "field of type: ".$self->get_type() );
 	return $session->make_text( "?? Unknown type: ".$self->get_type." ??" );
 }
+
+######################################################################
+# 
+# $foo = $thing->_month_names( $session )
+#
+# undocumented
+#
+######################################################################
 
 sub _month_names
 {
@@ -1299,6 +1575,17 @@ sub _month_names
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->form_value( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub form_value
 {
 	my( $self, $session ) = @_;
@@ -1312,6 +1599,14 @@ sub form_value
 
 	return $value;
 }
+
+######################################################################
+# 
+# $foo = $thing->_form_value_aux0( $session )
+#
+# undocumented
+#
+######################################################################
 
 sub _form_value_aux0
 {
@@ -1363,6 +1658,14 @@ sub _form_value_aux0
 	return $self->_form_value_aux1( $session );
 }
 
+######################################################################
+# 
+# $foo = $thing->_form_value_aux1( $session, $n )
+#
+# undocumented
+#
+######################################################################
+
 sub _form_value_aux1
 {
 	my( $self, $session, $n ) = @_;
@@ -1406,6 +1709,14 @@ sub _form_value_aux1
 
 	return $value;
 }
+
+######################################################################
+# 
+# $foo = $thing->_form_value_aux2( $session, $suffix )
+#
+# undocumented
+#
+######################################################################
 
 sub _form_value_aux2
 {
@@ -1473,6 +1784,25 @@ sub _form_value_aux2
 		}
 		return undef;
 	}
+	elsif( $self->is_type( "search" ) )
+	{
+		my $ds = $session->get_archive()->get_dataset( 
+				$self->{datasetid} );	
+		my $searchexp = EPrints::SearchExpression->new(
+			session => $session,
+			dataset => $ds,
+			prefix => $self->{name}.$suffix."_",
+			fieldnames => $self->get_property( "fieldnames" ) );
+		$searchexp->from_form;
+		my $value = undef;
+		unless( $searchexp->is_blank )
+		{
+			$value = $searchexp->serialise;	
+		}
+		$searchexp->dispose();
+
+		return $value;
+	}
 	else
 	{
 		$session->get_archive()->log( 
@@ -1487,13 +1817,35 @@ sub _form_value_aux2
 # language of 'session'
 # default language
 # any language
+
+######################################################################
+=pod
+
+=item $foo = $thing->most_local( $session, $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub most_local
 {
-	#cjg not done yet
 	my( $self, $session, $value ) = @_;
+	#cjg not done yet
 	my $bestvalue =  EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %{$value} );
 	return $bestvalue;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_id_field
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_id_field
 {
@@ -1510,6 +1862,17 @@ sub get_id_field
 	return $idfield;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_main_field
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_main_field
 {
 	my( $self ) = @_;
@@ -1523,6 +1886,17 @@ sub get_main_field
 }
 
 # Which bit do we care about in an eprints value (the id, main, or all of it?)
+
+######################################################################
+=pod
+
+=item $foo = $thing->which_bit( $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub which_bit
 {
 	my( $self, $value ) = @_;
@@ -1537,6 +1911,17 @@ sub which_bit
 	}
 	return $value;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_sql_name
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_sql_name
 {
@@ -1557,6 +1942,17 @@ sub get_sql_name
 	return $self->{name};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->is_browsable
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_browsable
 {
 	my( $self ) = @_;
@@ -1571,6 +1967,17 @@ sub is_browsable
 				"year", "id", "email", "url", "text" );
 
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_values( $session, %opts )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_values
 {
@@ -1611,6 +2018,17 @@ sub get_values
 }
 
 #returns DOM
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_value_label( $session, $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
@@ -1661,6 +2079,17 @@ sub get_value_label
 	return $session->make_text( "???".$value."???" );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_dataset
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_dataset
 {
 	my( $self ) = @_;
@@ -1668,12 +2097,34 @@ sub get_dataset
 	return $self->{dataset};
 }		
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_dataset( $dataset )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_dataset
 {
 	my( $self , $dataset ) = @_;
 
 	return $self->{dataset} = $dataset;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->ordervalue( $value, $archive, $langid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub ordervalue
 {
@@ -1694,6 +2145,17 @@ sub ordervalue
 	return join( ":", @r );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->ordervalue_aux1( $value, $archive, $langid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub ordervalue_aux1
 {
 	my( $self , $value , $archive , $langid ) = @_;
@@ -1712,6 +2174,17 @@ sub ordervalue_aux1
 			%{$value} ) );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->ordervalue_aux2( $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub ordervalue_aux2
 {
 	my( $self , $value ) = @_;
@@ -1729,6 +2202,17 @@ sub ordervalue_aux2
 	}
 	return $self->ordervalue_aux3( $v );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->ordervalue_aux3( $value )
+
+undocumented
+
+=cut
+######################################################################
 
 sub ordervalue_aux3
 {
@@ -1770,6 +2254,17 @@ sub ordervalue_aux3
 	return $value;
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_property_default( $property )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_property_default
 {
@@ -1823,6 +2318,17 @@ sub get_property_default
 	EPrints::Config::abort( "Unknown property in get_property_default: $property" );
 };
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_top_subject( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_top_subject
 {
 	my( $self, $session ) = @_;
@@ -1852,6 +2358,17 @@ sub get_top_subject
 	return $topsubject;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->DESTROY
+
+undocumented
+
+=cut
+######################################################################
+
 sub DESTROY
 {
 	my( $self ) = @_;
@@ -1860,3 +2377,11 @@ sub DESTROY
 }
 
 1;		
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

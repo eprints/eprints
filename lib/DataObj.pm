@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints Dataset Object Root Class
+# EPrints::Dataset 
 #
 ######################################################################
 #
@@ -23,18 +23,15 @@ B<EPrints::DataObj> - Base class for records in EPrints.
 This module is a base class which is inherited by EPrints::EPrint, 
 EPrints::User, EPrints::Subject and EPrints::Document.
 
-=head1 METHODS
-
 =over 4
 
 =cut
 
-package EPrints::DataObj;
-use strict;
-
-# Properties which we assume that all subclasses will set:
+######################################################################
 #
-#  $self->{data} 
+# INSTANCE VARIABLES:
+#
+#  $self->{data}
 #     A reference to a hash containing the metadata of this
 #     record.
 #
@@ -43,7 +40,14 @@ use strict;
 #
 #  $self->{dataset}
 #     The EPrints::DataSet to which this record belongs.
+#
+######################################################################
 
+package EPrints::DataObj;
+use strict;
+
+
+######################################################################
 =pod
 
 =item $value = $dataobj->get_value( $fieldname, [$no_id] )
@@ -56,6 +60,7 @@ If $no_id is true and the field has an ID part then only the main part is
 returned.
 
 =cut
+######################################################################
 
 sub get_value
 {
@@ -97,6 +102,7 @@ sub get_value
 }
 
 
+######################################################################
 =pod
 
 =item $dataobj->set_value( $fieldname, $value )
@@ -104,6 +110,7 @@ sub get_value
 Set the value of the named metadata field in this record.
 
 =cut 
+######################################################################
 
 sub set_value
 {
@@ -113,6 +120,7 @@ sub set_value
 }
 
 
+######################################################################
 =pod
 
 =item @values = $dataobj->get_values( $fieldnames )
@@ -126,6 +134,7 @@ For example "author.id/editor.id" would return a list of all author and editor
 ids from this record.
 
 =cut 
+######################################################################
 
 sub get_values
 {
@@ -154,6 +163,7 @@ sub get_values
 }
 
 
+######################################################################
 =pod
 
 =item $session = $dataobj->get_session
@@ -161,6 +171,7 @@ sub get_values
 Returns the EPrints::Session object to which this record belongs.
 
 =cut
+######################################################################
 
 sub get_session
 {
@@ -170,6 +181,7 @@ sub get_session
 }
 
 
+######################################################################
 =pod
 
 =item $data = $dataobj->get_data
@@ -178,6 +190,7 @@ Returns a reference to the hash table of all the metadata for this record keyed
 by fieldname.
 
 =cut
+######################################################################
 
 sub get_data
 {
@@ -187,6 +200,7 @@ sub get_data
 }
 
 
+######################################################################
 =pod
 
 =item $dataset = $dataobj->get_dataset
@@ -194,6 +208,7 @@ sub get_data
 Returns the EPrints::DataSet object to which this record belongs.
 
 =cut
+######################################################################
 
 sub get_dataset
 {
@@ -203,6 +218,7 @@ sub get_dataset
 }
 
 
+######################################################################
 =pod 
 
 =item $bool = $dataobj->is_set( $fieldname )
@@ -210,6 +226,7 @@ sub get_dataset
 Returns true if the named field is set in this record, otherwise false.
 
 =cut
+######################################################################
 
 sub is_set
 {
@@ -219,6 +236,7 @@ sub is_set
 }
 
 
+######################################################################
 =pod
 
 =item $id = $dataobj->get_id
@@ -226,6 +244,7 @@ sub is_set
 Returns the value of the primary key of this record.
 
 =cut
+######################################################################
 
 sub get_id
 {
@@ -236,6 +255,7 @@ sub get_id
 	return $self->{data}->{$keyfield->get_name()};
 }
 
+######################################################################
 =pod
 
 
@@ -246,6 +266,7 @@ for the current session. If $showall is true then all values are rendered -
 this is usually used for staff viewing data.
 
 =cut
+######################################################################
 
 sub render_value
 {
@@ -257,6 +278,7 @@ sub render_value
 }
 
 
+######################################################################
 =pod
 
 =item $xhtml = $dataobj->render_citation( [$style], [$url] )
@@ -267,6 +289,7 @@ of this record. If $url is set then the citiation will link to the specified
 URL.
 
 =cut
+######################################################################
 
 sub render_citation
 {
@@ -285,6 +308,7 @@ sub render_citation
 }
 
 
+######################################################################
 =pod
 
 =item $xhtml = $dataobj->render_citation_link( [$style], [$staff] )
@@ -295,6 +319,7 @@ citation links to the staff URL - which will provide more a full staff view
 of this record.
 
 =cut
+######################################################################
 
 sub render_citation_link
 {
@@ -308,6 +333,7 @@ sub render_citation_link
 }
 
 
+######################################################################
 =pod
 
 =item $xhtml = $dataobj->render_description
@@ -316,6 +342,7 @@ Returns a short description of this object using the default citation style
 for this dataset.
 
 =cut
+######################################################################
 
 sub render_description
 {
@@ -329,6 +356,7 @@ sub render_description
 }
 
 
+######################################################################
 =pod
 
 =item $url = $dataobj->get_url( [$staff] )
@@ -339,6 +367,7 @@ page for this item, which will show the full record and offer staff edit
 options.
 
 =cut
+######################################################################
 
 sub get_url
 {
@@ -348,6 +377,7 @@ sub get_url
 }
 
 
+######################################################################
 =pod
 
 =item $type = $dataobj->get_type
@@ -355,6 +385,7 @@ sub get_url
 Returns the type of this record - type of user, type of eprint etc.
 
 =cut
+######################################################################
 
 sub get_type
 {
@@ -363,11 +394,13 @@ sub get_type
 	return "EPrints::DataObj::get_type should have been over-ridden.";
 }
 
+######################################################################
 =pod
 
 =back
 
 =cut
+######################################################################
 
 # Things what could maybe go here maybe...
 
@@ -382,13 +415,5 @@ sub get_type
 # validate
 
 # render
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
-
 
 1; # for use success

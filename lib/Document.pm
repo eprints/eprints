@@ -1,9 +1,6 @@
 ######################################################################
 #
-# EPrints Document File class
-#
-#  Represents the electronic version of the actual document data
-#  (not the metadata.)
+# EPrints::Document
 #
 ######################################################################
 #
@@ -11,6 +8,43 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Document> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+# EPrints Document File class
+#
+#  Represents the electronic version of the actual document data
+#  (not the metadata.)
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -36,6 +70,17 @@ $EPrints::Document::OTHER = "OTHER";
 # Digits in generated ID codes (added to EPrints IDs)
 my $DIGITS = 2;
 
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Document->get_system_field_info
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_system_field_info
 {
@@ -74,6 +119,17 @@ sub get_system_field_info
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Document->new( $session, $docid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, $session, $docid ) = @_;
@@ -82,6 +138,17 @@ sub new
 		$session->get_archive()->get_dataset( "document" ),
 		$docid );
 }
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Document->new_from_data( $session, $known )
+
+undocumented
+
+=cut
+######################################################################
 
 sub new_from_data
 {
@@ -96,6 +163,17 @@ sub new_from_data
 	return( $self );
 }
 
+
+
+######################################################################
+=pod
+
+=item EPrints::Document::create( $session, $eprint )
+
+undocumented
+
+=cut
+######################################################################
 
 sub create
 {
@@ -146,6 +224,14 @@ sub create
 #
 ######################################################################
 
+######################################################################
+# 
+# EPrints::Document::_create_directory( $id, $eprint )
+#
+# undocumented
+#
+######################################################################
+
 sub _create_directory
 {
 	my( $id, $eprint ) = @_;
@@ -169,6 +255,17 @@ sub _create_directory
 		return 1;
 	}
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->create_symlink( $eprint, $linkdir )
+
+undocumented
+
+=cut
+######################################################################
 
 sub create_symlink
 {
@@ -205,6 +302,17 @@ sub create_symlink
 	return( 1 );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove_symlink( $eprint, $linkdir )
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove_symlink
 {
 	my( $self, $eprint, $linkdir ) = @_;
@@ -224,6 +332,14 @@ sub remove_symlink
 }
 
 #cjg: should this belong to eprint?
+######################################################################
+# 
+# EPrints::Document::_secure_symlink_path( $eprint )
+#
+# undocumented
+#
+######################################################################
+
 sub _secure_symlink_path
 {
 	my( $eprint ) = @_;
@@ -232,6 +348,17 @@ sub _secure_symlink_path
 		
 	return( $archive->get_conf( "htdocs_secure_path" )."/".EPrints::EPrint::eprintid_to_path( $eprint->get_value( "eprintid" ) ) );
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Document::docid_to_path( $archive, $docid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub docid_to_path
 {
@@ -254,6 +381,14 @@ sub docid_to_path
 # $new_id = _generate_doc_id( $session, $eprint )
 #
 #  Generate an ID for a new document associated with $eprint
+#
+######################################################################
+
+######################################################################
+# 
+# EPrints::Document::_generate_doc_id( $session, $eprint )
+#
+# undocumented
 #
 ######################################################################
 
@@ -293,6 +428,17 @@ sub _generate_doc_id
 #  Attempt to clone this document. The clone will be associated with
 #  the given EPrint.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->clone( $eprint )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub clone
@@ -338,6 +484,17 @@ sub clone
 #
 #  Attempt to completely delete this document
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove
+
+undocumented
+
+=cut
 ######################################################################
 
 sub remove
@@ -388,6 +545,17 @@ sub remove
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_eprint
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_eprint
 {
 	my( $self ) = @_;
@@ -410,6 +578,17 @@ sub get_eprint
 #
 #  Return the full URL of the document.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_url( $staff )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub get_url
@@ -451,6 +630,17 @@ sub get_url
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->local_path
+
+undocumented
+
+=cut
+######################################################################
+
 sub local_path
 {
 	my( $self ) = @_;
@@ -469,6 +659,17 @@ sub local_path
 #
 #  Returns a list of the files associated with this document.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->files
+
+undocumented
+
+=cut
 ######################################################################
 
 sub files
@@ -496,6 +697,14 @@ sub files
 
 # cjg should this function be in some kind of utils module and
 # used by generate_static too?
+######################################################################
+# 
+# EPrints::Document::_get_files( $files, $root, $dir )
+#
+# undocumented
+#
+######################################################################
+
 sub _get_files
 {
 	my( $files, $root, $dir ) = @_;
@@ -539,6 +748,17 @@ sub _get_files
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove_file( $filename )
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove_file
 {
 	my( $self, $filename ) = @_;
@@ -562,6 +782,17 @@ sub remove_file
 #
 #  Attempt to remove all files associated with this document.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove_all_files
+
+undocumented
+
+=cut
 ######################################################################
 
 sub remove_all_files
@@ -594,6 +825,17 @@ sub remove_all_files
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_main( $main_file )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_main
 {
 	my( $self, $main_file ) = @_;
@@ -622,6 +864,17 @@ sub set_main
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_main
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_main
 {
 	my( $self ) = @_;
@@ -636,6 +889,17 @@ sub get_main
 #
 #  Sets format. Won't affect the database until a commit().
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_format( $format )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub set_format
@@ -654,6 +918,17 @@ sub set_format
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_format_desc( $format_desc )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_format_desc
 {
 	my( $self, $format_desc ) = @_;
@@ -668,6 +943,17 @@ sub set_format_desc
 #
 #  uploads the given file into this document
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->upload( $filehandle, $filename )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub upload
@@ -709,6 +995,17 @@ sub upload
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->upload_archive( $filehandle, $filename, $archive_format )
+
+undocumented
+
+=cut
+######################################################################
+
 sub upload_archive
 {
 	my( $self, $filehandle, $filename, $archive_format ) = @_;
@@ -746,6 +1043,17 @@ sub upload_archive
 #  - Only links to files in the same directory or subdirectory will
 #    be followed
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->upload_url( $url_in )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub upload_url
@@ -828,6 +1136,17 @@ sub upload_url
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->commit
+
+undocumented
+
+=cut
+######################################################################
+
 sub commit
 {
 	my( $self ) = @_;
@@ -849,6 +1168,17 @@ sub commit
 	return( $success );
 }
 	
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate_meta( $for_archive )
+
+undocumented
+
+=cut
+######################################################################
+
 sub validate_meta
 {
 	my( $self, $for_archive ) = @_;
@@ -869,6 +1199,17 @@ sub validate_meta
 
 	return( \@problems );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->validate( $for_archive )
+
+undocumented
+
+=cut
+######################################################################
 
 sub validate
 {
@@ -902,6 +1243,17 @@ sub validate
 	return( \@problems );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->can_view( $user )
+
+undocumented
+
+=cut
+######################################################################
+
 sub can_view
 {
 	my( $self, $user ) = @_;
@@ -912,6 +1264,17 @@ sub can_view
 		$user );	
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_value( $fieldname, $showall )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_value
 {
 	my( $self, $fieldname, $showall ) = @_;
@@ -920,6 +1283,17 @@ sub render_value
 	
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_type
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_type
 {
@@ -930,3 +1304,11 @@ sub get_type
 
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

@@ -1,9 +1,43 @@
 ######################################################################
 #
+# EPrints::RequestWrapper
+#
+######################################################################
+#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::RequestWrapper> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -15,6 +49,17 @@ package EPrints::RequestWrapper;
 use strict;
 use Apache;
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::RequestWrapper->new( $real_request, $conf )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class , $real_request , $conf ) = @_;
@@ -25,8 +70,19 @@ sub new
 	return $self;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->dir_config ( $key )
+
+undocumented
+
+=cut
+######################################################################
+
 sub dir_config 
-{ 
+{
 	my( $self, $key ) = @_; 
 	if( defined $self->{conf}->{$key} )
 	{
@@ -50,6 +106,17 @@ foreach $thing ( keys %Apache:: )
 	eval $sub;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->DESTROY
+
+undocumented
+
+=cut
+######################################################################
+
 sub DESTROY
 {
 	my( $self ) = @_;
@@ -57,4 +124,12 @@ sub DESTROY
 	EPrints::Utils::destroy( $self );
 }
 1;
+
+
+######################################################################
+=pod
+
+=back
+
+=cut
 

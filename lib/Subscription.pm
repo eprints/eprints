@@ -1,8 +1,6 @@
 ######################################################################
 #
-#  EPrints Subscription Class
-#
-#   Holds information about a user subscription.
+# EPrints::Subscription
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Subscription> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+#  EPrints Subscription Class
+#
+#   Holds information about a user subscription.
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -27,6 +61,17 @@ use EPrints::User;
 
 use strict;
 #"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Subscription->get_system_field_info
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_system_field_info
 {
@@ -53,6 +98,17 @@ sub get_system_field_info
 #  Retrieve a subscription from the database. $row can be the row
 #  for the subscription if it's been retrieved already.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::new( new )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub new
@@ -121,6 +177,17 @@ sub new
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Subscription->create( $session, $username )
+
+undocumented
+
+=cut
+######################################################################
+
 sub create
 {
 	my( $class, $session, $username ) = @_;
@@ -149,6 +216,14 @@ sub create
 # $id = _generate_subid( $session, $username )
 #
 #  Generate an ID for a new subscription
+#
+######################################################################
+
+######################################################################
+# 
+# EPrints::Subscription::_generate_subid( $session, $username )
+#
+# undocumented
 #
 ######################################################################
 
@@ -194,6 +269,17 @@ sub _generate_subid
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove
 {
 	my( $self ) = @_;
@@ -211,6 +297,17 @@ sub remove
 #
 #  Render a form for this subscription. Doesn't render any buttons.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_subscription_form
+
+undocumented
+
+=cut
 ######################################################################
 
 sub render_subscription_form
@@ -241,6 +338,17 @@ sub render_subscription_form
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->from_form
+
+undocumented
+
+=cut
+######################################################################
+
 sub from_form
 {
 	my( $self ) = @_;
@@ -260,6 +368,17 @@ sub from_form
 #
 #  Commit the changes from any web form etc. to the database.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->commit
+
+undocumented
+
+=cut
 ######################################################################
 
 sub commit
@@ -283,6 +402,17 @@ sub commit
 #
 #  Find subscriptions for the given user
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::subscriptions_for( $session, $user )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub subscriptions_for
@@ -316,6 +446,17 @@ sub subscriptions_for
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::subscriptions_for_frequency( $session, $frequency )
+
+undocumented
+
+=cut
+######################################################################
+
 sub subscriptions_for_frequency
 {
 	my( $session, $frequency ) = @_;
@@ -346,6 +487,17 @@ sub subscriptions_for_frequency
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::get_daily( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_daily
 {
 	my( $session ) = @_;
@@ -363,6 +515,17 @@ sub get_daily
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::get_weekly( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_weekly
 {
 	my( $session ) = @_;
@@ -378,6 +541,17 @@ sub get_weekly
 #
 #  Returns monthly subscriptions.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item EPrints::Subscription::get_monthly( $session )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub get_monthly
@@ -404,6 +578,17 @@ sub get_monthly
 #  received in the same day, so in the next processing, we won't know
 #  which have been sent to the user and which haven't.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->process
+
+undocumented
+
+=cut
 ######################################################################
 
 sub process
@@ -528,6 +713,17 @@ sub process
 	return( $success );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_value( $fieldname, $showall )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_value
 {
 	my( $self, $fieldname, $showall ) = @_;
@@ -538,3 +734,11 @@ sub render_value
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

@@ -1,5 +1,43 @@
 ######################################################################
 #
+# EPrints::Database
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Database> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
 # EPrints Database Access Module
 #
 #  Provides access to the backend database. All database access done
@@ -8,10 +46,6 @@
 #
 ######################################################################
 #
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
 #  __LICENSE__
 #
 ######################################################################
@@ -51,6 +85,17 @@ my %TEMPTABLES = ();
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Database::build_connection_string( %params )
+
+undocumented
+
+=cut
+######################################################################
+
 sub build_connection_string
 {
 	my( %params ) = @_;
@@ -81,6 +126,17 @@ sub build_connection_string
 #                          
 #  Connect to the database.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Database->new( $session )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub new
@@ -133,6 +189,17 @@ sub new
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->disconnect
+
+undocumented
+
+=cut
+######################################################################
+
 sub disconnect
 {
 	my( $self ) = @_;
@@ -155,6 +222,17 @@ sub disconnect
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->error
+
+undocumented
+
+=cut
+######################################################################
+
 sub error
 {
 	my( $self ) = @_;
@@ -171,6 +249,17 @@ sub error
 #  Creates the archive tables (user, archive and buffer) from the
 #  metadata tables.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->create_archive_tables
+
+undocumented
+
+=cut
 ######################################################################
 
 sub create_archive_tables
@@ -205,6 +294,14 @@ sub create_archive_tables
 #  The aux. function has an extra parameter which means the table
 #  has no primary key, this is for purposes of recursive table 
 #  creation (aux. tables have no primary key)
+#
+######################################################################
+
+######################################################################
+# 
+# $foo = $thing->_create_table( $dataset )
+#
+# undocumented
 #
 ######################################################################
 
@@ -281,6 +378,14 @@ sub _create_table
 # $rv = _create_table_aux( $tablename, $dataset, $setkey, @fields )
 # boolean                  string      |         boolean  array of
 #                                      EPrints::DataSet   EPrint::MetaField
+
+######################################################################
+# 
+# $foo = $thing->_create_table_aux( $tablename, $dataset, $setkey, @fields )
+#
+# undocumented
+#
+######################################################################
 
 sub _create_table_aux
 {
@@ -408,6 +513,17 @@ sub _create_table_aux
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->add_record( $dataset, $data )
+
+undocumented
+
+=cut
+######################################################################
+
 sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
@@ -447,6 +563,17 @@ sub add_record
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Database::prep_value( $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub prep_value
 {
 	my( $value ) = @_; 
@@ -456,6 +583,17 @@ sub prep_value
 	return $value;
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Database::prep_like_value( $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub prep_like_value
 {
 	my( $value ) = @_; 
@@ -464,6 +602,17 @@ sub prep_like_value
 	$value =~ s/["\\.'%_]/\\$&/g;
 	return $value;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->update( $dataset, $data )
+
+undocumented
+
+=cut
+######################################################################
 
 sub update
 {
@@ -742,6 +891,17 @@ sub update
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove( $dataset, $id )
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove
 {
 	my( $self, $dataset, $id ) = @_;
@@ -791,6 +951,14 @@ sub remove
 #
 ######################################################################
 
+######################################################################
+# 
+# $foo = $thing->_create_counter_table
+#
+# undocumented
+#
+######################################################################
+
 sub _create_counter_table
 {
 	my( $self ) = @_;
@@ -832,6 +1000,14 @@ sub _create_counter_table
 #
 ######################################################################
 
+######################################################################
+# 
+# $foo = $thing->_create_cachemap_table
+#
+# undocumented
+#
+######################################################################
+
 sub _create_cachemap_table
 {
 	my( $self ) = @_;
@@ -869,6 +1045,17 @@ END
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Database::counter_next( prep values too? )
+
+undocumented
+
+=cut
+######################################################################
+
 sub counter_next
 {
 	# still not appy with this #cjg (prep values too?)
@@ -893,6 +1080,17 @@ sub counter_next
 	return( $row[0] );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->cache_exp( $id )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cache_exp
 {
 	my( $self , $id ) = @_;
@@ -912,6 +1110,17 @@ sub cache_exp
 	return $sth->fetchrow_array;
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->cache_id( $code, $include_expired )
+
+undocumented
+
+=cut
+######################################################################
 
 sub cache_id
 {
@@ -936,12 +1145,34 @@ sub cache_id
 	return $sth->fetchrow_array;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->is_cached( $code )
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_cached
 {
 	my( $self , $code ) = @_;
 
 	return defined $self->cache_id( $code );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->count_cache( $code )
+
+undocumented
+
+=cut
+######################################################################
 
 sub count_cache
 {
@@ -952,6 +1183,17 @@ sub count_cache
 
 	return $self->count_table( "cache".$id );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->cache( $code, $dataset, $srctable, $order, $oneshot )
+
+undocumented
+
+=cut
+######################################################################
 
 sub cache
 {
@@ -1011,6 +1253,17 @@ sub cache
 
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->create_buffer( $keyname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub create_buffer
 {
 	my ( $self , $keyname ) = @_;
@@ -1026,6 +1279,17 @@ sub create_buffer
 		
 	return $tmptable;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->make_buffer( $keyname, $data )
+
+undocumented
+
+=cut
+######################################################################
 
 sub make_buffer
 {
@@ -1043,6 +1307,17 @@ sub make_buffer
 }
 
 # Loop through known temporary tables, and remove them.
+
+######################################################################
+=pod
+
+=item $foo = $thing->garbage_collect
+
+undocumented
+
+=cut
+######################################################################
+
 sub garbage_collect
 {
 	my( $self ) = @_;
@@ -1055,6 +1330,17 @@ sub garbage_collect
 	}
 
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->dispose_buffer( $id )
+
+undocumented
+
+=cut
+######################################################################
 
 sub dispose_buffer
 {
@@ -1069,10 +1355,21 @@ sub dispose_buffer
 	
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_index_ids( $table, $condition )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_index_ids
 {
-#cjg iffy params
 	my( $self, $table, $condition ) = @_;
+#cjg iffy params
 
 	my $sql = "SELECT M.ids FROM $table as M where $condition";	
 	my $results;
@@ -1086,6 +1383,17 @@ sub get_index_ids
 	}
 	return( $results );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->search( $keyfield, $tables, $conditions )
+
+undocumented
+
+=cut
+######################################################################
 
 sub search
 {
@@ -1115,6 +1423,17 @@ sub search
 
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->drop_cache( $id )
+
+undocumented
+
+=cut
+######################################################################
+
 sub drop_cache
 {
 	my ( $self , $id ) = @_;
@@ -1135,6 +1454,17 @@ sub drop_cache
 	$self->do( $sql );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->count_table( $tablename )
+
+undocumented
+
+=cut
+######################################################################
+
 sub count_table
 {
 	my ( $self , $tablename ) = @_;
@@ -1148,11 +1478,33 @@ sub count_table
 	return $count;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->from_buffer ( $dataset, $buffer )
+
+undocumented
+
+=cut
+######################################################################
+
 sub from_buffer 
 {
 	my ( $self , $dataset , $buffer ) = @_;
 	return $self->_get( $dataset, 1 , $buffer );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->from_cache( $dataset, $code, $id, $offset, $count, $justids )
+
+undocumented
+
+=cut
+######################################################################
 
 sub from_cache
 {
@@ -1199,6 +1551,17 @@ sub from_cache
 	return @results;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->drop_old_caches
+
+undocumented
+
+=cut
+######################################################################
+
 sub drop_old_caches
 {
 	my( $self ) = @_;
@@ -1218,17 +1581,47 @@ sub drop_old_caches
 }
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_single( $dataset, $value )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_single
 {
 	my ( $self , $dataset , $value ) = @_;
 	return ($self->_get( $dataset, 0 , $value ))[0];
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_all( $dataset )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_all
 {
 	my ( $self , $dataset ) = @_;
 	return $self->_get( $dataset, 2 );
 }
+
+######################################################################
+# 
+# $foo = $thing->_get ( $dataset, $mode, $param, $offset, $ntoreturn )
+#
+# undocumented
+#
+######################################################################
 
 sub _get 
 {
@@ -1511,6 +1904,17 @@ if( ref($dataset) eq "" ) { confess(); }
 	return @data;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_values( $field )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_values
 {
 	my( $self, $field ) = @_;
@@ -1542,6 +1946,17 @@ sub get_values
 }
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->do ( $sql )
+
+undocumented
+
+=cut
+######################################################################
+
 sub do 
 {
 	my ( $self , $sql ) = @_;
@@ -1559,6 +1974,17 @@ sub do
 
 	return $result;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->prepare ( $sql )
+
+undocumented
+
+=cut
+######################################################################
 
 sub prepare 
 {
@@ -1579,6 +2005,17 @@ sub prepare
 	return $result;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->execute ( $sth, $sql )
+
+undocumented
+
+=cut
+######################################################################
+
 sub execute 
 {
 	my ( $self , $sth , $sql ) = @_;
@@ -1598,6 +2035,17 @@ sub execute
 	return $result;
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->exists( $dataset, $id )
+
+undocumented
+
+=cut
+######################################################################
 
 sub exists
 {
@@ -1623,6 +2071,14 @@ sub exists
 	}
 	return 0;
 }
+
+######################################################################
+# 
+# $foo = $thing->_freetext_index( $dataset, $id, $field, $value )
+#
+# undocumented
+#
+######################################################################
 
 sub _freetext_index
 {
@@ -1695,6 +2151,14 @@ sub _freetext_index
 
 
 
+######################################################################
+# 
+# $foo = $thing->_deindex( $dataset, $keyvalue )
+#
+# undocumented
+#
+######################################################################
+
 sub _deindex
 {
 	my( $self, $dataset, $keyvalue ) = @_;
@@ -1747,12 +2211,34 @@ sub _deindex
 	return $rv;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_debug( $debug )
+
+undocumented
+
+=cut
+######################################################################
+
 sub set_debug
 {
 	my( $self, $debug ) = @_;
 
 	$self->{debug} = $debug;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->DESTROY
+
+undocumented
+
+=cut
+######################################################################
 
 sub DESTROY
 {
@@ -1762,3 +2248,11 @@ sub DESTROY
 }
 
 1; # For use/require success
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

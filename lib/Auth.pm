@@ -1,11 +1,33 @@
 ######################################################################
 #
+# EPrints::Auth
+#
+######################################################################
+#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
 #  __LICENSE__
 #
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Auth> - Password authentication & authorisation checking 
+for EPrints.
+
+=head1 DESCRIPTION
+
+This module handles the authentication and authorisation of users
+viewing private sections of an EPrints website.
+
+=over 4
+
+=cut
 ######################################################################
 
 package EPrints::Auth;
@@ -17,6 +39,35 @@ use Apache::Constants qw( OK AUTH_REQUIRED FORBIDDEN DECLINED SERVER_ERROR );
 
 use EPrints::Session;
 use EPrints::RequestWrapper;
+
+
+######################################################################
+=pod
+
+=item $result = EPrints::Auth::authen( $r )
+
+Authenticate a request. This works in a slightly whacky way.
+
+If the username isn't a valid user in the current archive then it
+fails right away.
+
+Otherwise it looks up the type of the given user. Then it looks up
+in the archive configuration to find how to authenticate that user
+type (a reference to another authen function, probably a normal
+3rd party mod_perl library like AuthDBI.) and then makes a mock
+request and attempts to authenticate it using the authen function for
+that usertype.
+
+This is a bit odd, but allows, for example, you to have local users 
+being authenticated via LDAP and remote users authenticated by the
+normal eprints AuthDBI method.
+
+If the authentication area is "ChangeUser" then it returns true unless
+the current user is the user specified in the URL. This will allow a
+user to log in as someone else.
+
+=cut
+######################################################################
 
 sub authen
 {
@@ -86,6 +137,45 @@ sub authen
 	$session->terminate();
 	return $result;
 }
+
+
+######################################################################
+=pod
+
+=item $results = EPrints::Auth::authz( $r )
+
+Tests to see if the user making the current request is authorised to
+see this URL.
+
+There are three kinds of security area in the system:
+
+=over 4
+
+=item User
+
+The main user area. Noramally /perl/users/. This just returns true -
+any valid user can access it. Individual scripts worry about who is 
+running them.
+
+=item Documents
+
+This is the secure documents area - for documents of records which
+are either not in the public archive, or have a non-public security
+option.
+
+In which case it works out which document is being viewed and calls
+$doc->can_view( $user ) to decide if it should allow them to view it
+or not.
+
+=item ChangeUser
+
+This area is just a way to de-validate the current user, so the user
+can log in as some other user. 
+
+=back
+
+=cut
+######################################################################
 
 sub authz
 {
@@ -162,3 +252,11 @@ sub authz
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

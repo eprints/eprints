@@ -1,8 +1,6 @@
 ######################################################################
 #
-#  EPrints Utility module
-#
-#   Provides various useful functions
+# EPrints::Utils
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Utils> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+#  EPrints Utility module
+#
+#   Provides various useful functions
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -88,6 +122,17 @@ END
 # 
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::df_dir( $dir )
+
+undocumented
+
+=cut
+######################################################################
+
 sub df_dir
 {
 	my( $dir ) = @_;
@@ -98,8 +143,19 @@ sub df_dir
 
 
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::render_date( $session, $datevalue )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_date
-{	
+{
 	my( $session, $datevalue ) = @_;
 
 	if( !defined $datevalue )
@@ -122,6 +178,17 @@ sub render_date
 	return $session->make_text( $elements[2]." ".EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0] );
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::get_month_label( $session, $monthid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_month_label
 {
 	my( $session, $monthid ) = @_;
@@ -131,6 +198,17 @@ sub get_month_label
 	return $session->phrase( $code );
 }
 
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::render_name( $session, $name, $familylast )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_name
 {
@@ -174,6 +252,17 @@ sub render_name
 ######################################################################
 
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmp_namelists( $a, $b, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cmp_namelists
 {
 	my( $a , $b , $fieldname ) = @_;
@@ -183,6 +272,17 @@ sub cmp_namelists
 	return _cmp_names_aux( $val_a, $val_b );
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmp_names( $a, $b, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cmp_names
 {
 	my( $a , $b , $fieldname ) = @_;
@@ -191,6 +291,14 @@ sub cmp_names
 	my $val_b = $b->get_value( $fieldname );
 	return _cmp_names_aux( [$val_a] , [$val_b] );
 }
+
+######################################################################
+# 
+# EPrints::Utils::_cmp_names_aux( $val_a, $val_b )
+#
+# undocumented
+#
+######################################################################
 
 sub _cmp_names_aux
 {
@@ -210,6 +318,17 @@ sub _cmp_names_aux
 }
 
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmp_ints( $a, $b, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cmp_ints
 {
 	my( $a , $b , $fieldname ) = @_;
@@ -219,6 +338,17 @@ sub cmp_ints
 	$val_b= 0 if( !defined $val_b);
 	return $val_a <=> $val_b
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmp_strings( $a, $b, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
 
 sub cmp_strings
 {
@@ -230,6 +360,17 @@ sub cmp_strings
 	return $val_a cmp $val_b
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmp_dates( $a, $b, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cmp_dates
 {
 	my( $a , $b , $fieldname ) = @_;
@@ -238,6 +379,17 @@ sub cmp_dates
 
 # replyto / replytoname are optional (both or neither), they set
 # the reply-to header.
+
+######################################################################
+=pod
+
+=item EPrints::Utils::send_mail( $archive, $langid, $name, $address, $subject, $body, $sig, $replyto, $replytoname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub send_mail
 {
 	my( $archive, $langid, $name, $address, $subject, $body, $sig, $replyto, $replytoname ) = @_;
@@ -312,6 +464,17 @@ END
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::get_encoding( $string )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_encoding
 {
 	my( $string ) = @_;
@@ -339,6 +502,17 @@ sub get_encoding
 }
 
 # Encode a utf8 string for a MIME header.
+
+######################################################################
+=pod
+
+=item EPrints::Utils::mime_encode_q( $string )
+
+undocumented
+
+=cut
+######################################################################
+
 sub mime_encode_q
 {
 	my( $string ) = @_;
@@ -374,6 +548,17 @@ sub mime_encode_q
 }
 
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::encode_str( $string )
+
+undocumented
+
+=cut
+######################################################################
+
 sub encode_str
 {
 	my( $string ) = @_;
@@ -396,6 +581,17 @@ sub encode_str
 }
 
 # ALL cjg get_value should use this.
+
+######################################################################
+=pod
+
+=item EPrints::Utils::is_set( $r )
+
+undocumented
+
+=cut
+######################################################################
+
 sub is_set
 {
 	my( $r ) = @_;
@@ -429,6 +625,17 @@ sub is_set
 
 # widths smaller than about 3 may totally break, but that's
 # a stupid thing to do, anyway.
+
+######################################################################
+=pod
+
+=item EPrints::Utils::tree_to_utf8( $node, $width, $pre )
+
+undocumented
+
+=cut
+######################################################################
+
 sub tree_to_utf8
 {
         my( $node, $width, $pre ) = @_;
@@ -561,6 +768,17 @@ sub tree_to_utf8
         return $string;
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::mkdir( $full_path )
+
+undocumented
+
+=cut
+######################################################################
+
 sub mkdir
 {
 	my( $full_path ) = @_;
@@ -573,6 +791,17 @@ sub mkdir
 
 # cjg - Potential bug if: <ifset a><ifset b></></> and ifset a is disposed
 # then ifset: b is processed it will crash.
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::render_citation( $obj, $cstyle, $url )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_citation
 {
@@ -644,6 +873,14 @@ sub render_citation
 	return $cstyle;
 }      
 
+######################################################################
+# 
+# EPrints::Utils::_expand_references( $obj, $node )
+#
+# undocumented
+#
+######################################################################
+
 sub _expand_references
 {
 	my( $obj, $node ) = @_;
@@ -668,6 +905,17 @@ sub _expand_references
 		}
 	}
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::field_from_config_string( $dataset, $fieldname )
+
+undocumented
+
+=cut
+######################################################################
 
 sub field_from_config_string
 {
@@ -698,6 +946,17 @@ sub field_from_config_string
 }
 
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::get_input( $regexp, $prompt, $default )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_input
 {
 	my( $regexp, $prompt, $default ) = @_;
@@ -727,6 +986,17 @@ sub get_input
 		}
 	}
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::clone( $data )
+
+undocumented
+
+=cut
+######################################################################
 
 sub clone
 {
@@ -760,6 +1030,17 @@ sub clone
 	return $data;			
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::crypt_password( $value, $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub crypt_password
 {
 	my( $value, $session ) = @_;
@@ -774,6 +1055,17 @@ sub crypt_password
 }
 
 # Escape everything AFTER the last /
+
+######################################################################
+=pod
+
+=item EPrints::Utils::url_escape( $url )
+
+undocumented
+
+=cut
+######################################################################
+
 sub url_escape
 {
 	my( $url ) = @_;
@@ -784,6 +1076,17 @@ sub url_escape
 
 # Command Version: Prints the GNU style --version comment for a command
 # line script. Then exits.
+
+######################################################################
+=pod
+
+=item EPrints::Utils::cmd_version( $progname )
+
+undocumented
+
+=cut
+######################################################################
+
 sub cmd_version
 {
 	my( $progname ) = @_;
@@ -812,10 +1115,20 @@ END
 # my %OBJPOSR = ();
 # my $c = 0;
 
+
+######################################################################
+=pod
+
+=item EPrints::Utils::destroy( $ref )
+
+undocumented
+
+=cut
+######################################################################
+
 sub destroy
 {
-
-#	my( $ref ) = @_;
+	my( $ref ) = @_;
 #
 #	my $class = delete $OBJARRAY{"$ref"};
 #	my $n = delete $OBJPOS{"$ref"};
@@ -875,3 +1188,11 @@ sub destroy
 
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

@@ -1,8 +1,6 @@
 ######################################################################
 #
-# Subject class.
-#
-#  Handles the subject hierarchy.
+# EPrints::Subject
 #
 ######################################################################
 #
@@ -10,6 +8,42 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Subject> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+# Subject class.
+#
+#  Handles the subject hierarchy.
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -26,6 +60,17 @@ use strict;
 
 # Root subject specifier
 $EPrints::Subject::root_subject = "ROOT";
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Subject->get_system_field_info
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_system_field_info
 {
@@ -62,6 +107,17 @@ sub get_system_field_info
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Subject->new( $session, $subjectid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, $session, $subjectid ) = @_;
@@ -91,6 +147,17 @@ sub new
 }
 
 
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Subject->new_from_data( $session, $known )
+
+undocumented
+
+=cut
+######################################################################
+
 sub new_from_data
 {
 	my( $class, $session, $known ) = @_;
@@ -105,6 +172,17 @@ sub new_from_data
 	return( $self );
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->commit 
+
+undocumented
+
+=cut
+######################################################################
 
 sub commit 
 {
@@ -128,6 +206,17 @@ sub commit
 	return $rv;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->remove
+
+undocumented
+
+=cut
+######################################################################
+
 sub remove
 {
 	my( $self ) = @_;
@@ -144,6 +233,17 @@ sub remove
 		$self->{dataset},
 		$self->{data}->{subjectid} );
 }
+
+
+######################################################################
+=pod
+
+=item EPrints::Subject::remove_all( $session )
+
+undocumented
+
+=cut
+######################################################################
 
 sub remove_all
 {
@@ -172,6 +272,17 @@ sub remove_all
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Subject::create( $session, $id, $name, $parents, $depositable )
+
+undocumented
+
+=cut
+######################################################################
+
 sub create
 {
 	my( $session, $id, $name, $parents, $depositable ) = @_;
@@ -196,6 +307,14 @@ sub create
 
 	return $newsub;
 }
+
+######################################################################
+# 
+# $foo = $thing->_get_ancestors
+#
+# undocumented
+#
+######################################################################
 
 sub _get_ancestors
 {
@@ -227,6 +346,17 @@ sub _get_ancestors
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->create_child( $id, $name, $depositable )
+
+undocumented
+
+=cut
+######################################################################
+
 sub create_child
 {
 	my( $self, $id, $name, $depositable ) = @_;
@@ -239,6 +369,17 @@ sub create_child
 }
 
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->children #cjg should be get_children()
+
+undocumented
+
+=cut
+######################################################################
 
 sub children #cjg should be get_children()
 {
@@ -261,6 +402,17 @@ sub children #cjg should be get_children()
 }
 
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_parents
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_parents
 {
@@ -285,6 +437,17 @@ sub get_parents
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->can_post( $user )
+
+undocumented
+
+=cut
+######################################################################
+
 sub can_post
 {
 	my( $self, $user ) = @_;
@@ -293,6 +456,17 @@ sub can_post
 	return( $self->{data}->{depositable} eq "TRUE" ? 1 : 0 );
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_with_path( $session, $topsubjid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_with_path
 {
@@ -323,6 +497,17 @@ sub render_with_path
 
 # This function returns all the paths from this subject back up to the
 # specified top subject.
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_paths( $session, $topsubjid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_paths
 {
 	my( $self, $session, $topsubjid ) = @_;
@@ -361,6 +546,17 @@ sub get_paths
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_subjects ( $postableonly, $showtoplevel, $nestids )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_subjects 
 {
 	my( $self, $postableonly, $showtoplevel, $nestids ) = @_; 
@@ -375,6 +571,14 @@ confess;
 	return $self->_get_subjects2( $postableonly, !$showtoplevel, $nestids, $subjectmap, $rmap, "" );
 	
 }
+
+######################################################################
+# 
+# $foo = $thing->_get_subjects2( $postableonly, $hidenode, $nestids, $subjectmap, $rmap, $prefix )
+#
+# undocumented
+#
+######################################################################
 
 sub _get_subjects2
 {
@@ -421,6 +625,17 @@ sub _get_subjects2
 #
 ######################################################################
 
+
+######################################################################
+=pod
+
+=item EPrints::Subject::subject_label( $session, $subject_tag )
+
+undocumented
+
+=cut
+######################################################################
+
 sub subject_label
 {
 	my( $session, $subject_tag ) = @_;
@@ -458,6 +673,17 @@ sub subject_label
 
 # cjg CACHE this per, er, session?
 # commiting a subject should erase the cache
+
+######################################################################
+=pod
+
+=item EPrints::Subject::get_all( $session )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_all
 {
 	my( $session ) = @_;
@@ -487,6 +713,17 @@ sub get_all
 	return( \%subjectmap, \%rmap );
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->posted_eprints( $dataset )
+
+undocumented
+
+=cut
+######################################################################
 
 sub posted_eprints
 {
@@ -534,6 +771,17 @@ sub posted_eprints
 
 #cjg Should be a recursive method that does all things for which self is
 # an ancestor
+
+######################################################################
+=pod
+
+=item $foo = $thing->count_eprints( $dataset )
+
+undocumented
+
+=cut
+######################################################################
+
 sub count_eprints
 {
 	my( $self, $dataset ) = @_;
@@ -584,9 +832,28 @@ sub count_eprints
 # }
 
 #deprecated
+
+######################################################################
+=pod
+
+=item EPrints::Subject::render( "oooops" )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render
 {
 	confess( "oooops" ); # use render citation
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

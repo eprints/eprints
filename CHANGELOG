@@ -517,3 +517,21 @@ before next release. (metadata types & fields)
 - in search expression, split the part which renders the actual search
    fields from the search page renderer. This allows it to be called
    by the search field type input form renderer.
+
+2002-05-23
+- Added pod templates for comments to all subroutines!
+- Added pod docs to Archive.pm Auth.pm Config.pm Dataset.pm
+- "search" metadata fields now work - rendering form and from the form.
+- removed {datasetname} from DataSet - replaced it with {id}
+- also in DataSet renamed {typeorder} to {type_order} and {stafftypes} to
+   {staff_types}
+- added an optional prefix to searchexpression cgi field ids, so that more
+   than one can appear in a single form.
+- changed $searchfield->get_form_name to ->get_id which returns an id for
+   that searchfield in the expression (without the CGI prefix)
+- added is_blank method to searchexpression and searchfield which returns
+   true if there is no conditions for searchexp or for searchfield if it
+   does not have a condition.
+- added from_string method to searchexp which unserialises the string and
+   applies the "safe" parts. Does not add any new searchfields or change
+   the dataset.

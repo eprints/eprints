@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrint Session
+# EPrints::Session
 #
 ######################################################################
 #
@@ -8,6 +8,40 @@
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Session> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
+# EPrint Session
+#
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -50,6 +84,17 @@ use strict;
 #  Command line scripts should pass in true for $offline.
 #  Apache-invoked scripts can omit it or pass in 0.
 #
+######################################################################
+
+
+######################################################################
+=pod
+
+=item $thing = EPrints::Session->new( $mode, $param, $noise, $nocheckdb )
+
+undocumented
+
+=cut
 ######################################################################
 
 sub new
@@ -166,6 +211,17 @@ sub new
 #  Perform any cleaning up necessary
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->terminate
+
+undocumented
+
+=cut
+######################################################################
+
 sub terminate
 {
 	my( $self ) = @_;
@@ -187,6 +243,17 @@ sub terminate
 #
 #############################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->change_lang( $newlangid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub change_lang
 {
 	my( $self, $newlangid ) = @_;
@@ -204,6 +271,17 @@ sub change_lang
 	}
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->html_phrase( $phraseid, %inserts )
+
+undocumented
+
+=cut
+######################################################################
+
 sub html_phrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
@@ -216,6 +294,17 @@ sub html_phrase
 
 	return $r;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->phrase( $phraseid, %inserts )
+
+undocumented
+
+=cut
+######################################################################
 
 sub phrase
 {
@@ -231,6 +320,17 @@ sub phrase
 	return $string;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_langid
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_langid
 {
 	my( $self ) = @_;
@@ -239,6 +339,17 @@ sub get_langid
 }
 
 #cjg: should be a util? or even a property of archive?
+
+######################################################################
+=pod
+
+=item EPrints::Session::best_language( $archive, $lang, %values )
+
+undocumented
+
+=cut
+######################################################################
+
 sub best_language
 {
 	my( $archive, $lang, %values ) = @_;
@@ -262,6 +373,17 @@ sub best_language
 	return $values{$akey};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_order_names( $dataset )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_order_names
 {
 	my( $self, $dataset ) = @_;
@@ -276,6 +398,17 @@ sub get_order_names
 	return( \%names );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_order_name( $dataset, $orderid )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_order_name
 {
 	my( $self, $dataset, $orderid ) = @_;
@@ -283,6 +416,17 @@ sub get_order_name
         return $self->phrase( 
 		"ordername_".$dataset->confid()."_".$orderid );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_view_name( $dataset, $viewid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_view_name
 {
@@ -300,17 +444,50 @@ sub get_view_name
 #
 #############################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_db
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_db
 {
 	my( $self ) = @_;
 	return $self->{database};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_query
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_query
 {
 	my( $self ) = @_;
 	return $self->{query};
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_archive
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_archive
 {
@@ -324,6 +501,17 @@ sub get_archive
 #  Returns the URL of the current script
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_url
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_url
 {
 	my( $self ) = @_;
@@ -331,12 +519,34 @@ sub get_url
 	return( $self->{query}->url() );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_noise
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_noise
 {
 	my( $self ) = @_;
 	
 	return( $self->{noise} );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_online
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_online
 {
@@ -353,6 +563,17 @@ sub get_online
 #
 #############################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->make_element( $ename, %params )
+
+undocumented
+
+=cut
+######################################################################
+
 sub make_element
 {
 	my( $self , $ename , %params ) = @_;
@@ -366,6 +587,17 @@ sub make_element
 	return $element;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->make_indent( $width )
+
+undocumented
+
+=cut
+######################################################################
+
 sub make_indent
 {
 	my( $self, $width ) = @_;
@@ -376,6 +608,17 @@ sub make_indent
 	
 
 # $text is a UTF8 String!
+
+######################################################################
+=pod
+
+=item $foo = $thing->make_text( $text )
+
+undocumented
+
+=cut
+######################################################################
+
 sub make_text
 {
 	my( $self , $text ) = @_;
@@ -384,6 +627,17 @@ sub make_text
 
 	return $textnode;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->make_doc_fragment
+
+undocumented
+
+=cut
+######################################################################
 
 sub make_doc_fragment
 {
@@ -400,12 +654,34 @@ sub make_doc_fragment
 #
 #############################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_ruler
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_ruler
 {
 	my( $self ) = @_;
 
 	return $self->{archive}->get_ruler();
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_data_element( $indent, $elementname, $value, %opts )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_data_element
 {
@@ -420,6 +696,17 @@ sub render_data_element
 	return $f;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_link( $uri, $target )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_link
 {
 	my( $self, $uri, $target ) = @_;
@@ -429,6 +716,17 @@ sub render_link
 		href=>EPrints::Utils::url_escape( $uri ),
 		target=>$target );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_option_list( %params )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_option_list
 {
@@ -501,6 +799,17 @@ sub render_option_list
 	return $element;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_single_option( $key, $desc, $selected )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_single_option
 {
 	my( $self, $key, $desc, $selected ) = @_;
@@ -514,6 +823,17 @@ sub render_single_option
 	}
 	return $opt;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_hidden_field( $name, $value )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_hidden_field
 {
@@ -531,6 +851,17 @@ sub render_hidden_field
 		type => "hidden" );
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_upload_field( $name )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_upload_field
 {
 	my( $self, $name ) = @_;
@@ -543,12 +874,34 @@ sub render_upload_field
 	return $div;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_action_buttons( %buttons )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_action_buttons
 {
 	my( $self, %buttons ) = @_;
 
 	return $self->_render_buttons_aux( "action" , %buttons );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_internal_buttons( %buttons )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_internal_buttons
 {
@@ -559,6 +912,14 @@ sub render_internal_buttons
 
 
 # cjg buttons nead an order... They are done by a hash
+######################################################################
+# 
+# $foo = $thing->_render_buttons_aux( $btype, %buttons )
+#
+# undocumented
+#
+######################################################################
+
 sub _render_buttons_aux
 {
 	my( $self, $btype, %buttons ) = @_;
@@ -590,6 +951,17 @@ sub _render_buttons_aux
 
 ## (dest is optional)
 #cjg "POST" forms must be utf8 and multipart
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_form( $method, $dest )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_form
 {
 	my( $self, $method, $dest ) = @_;
@@ -605,6 +977,17 @@ sub render_form
 	}
 	return $form;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_subjects( $subject_list, $baseid, $current, $linkmode, $sizes )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_subjects
 {
@@ -627,6 +1010,14 @@ sub render_subjects
 
 	return $self->_render_subjects_aux( \%subs, $baseid, $current, $linkmode, $sizes );
 }
+
+######################################################################
+# 
+# $foo = $thing->_render_subjects_aux( $subjects, $id, $current, $linkmode, $sizes )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_subjects_aux
 {
@@ -684,6 +1075,17 @@ sub _render_subjects_aux
 #
 
 # cjg icky call!
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_subject_desc( $subject, $link, $full, $count )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_subject_desc
 {
 	my( $self, $subject, $link, $full, $count ) = @_;
@@ -731,6 +1133,17 @@ sub render_subject_desc
 #  text $back_to_text, is offered, the destination of this is $back_to,
 #  which should take the user somewhere sensible.
 #
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_error( $error_text, $back_to, $back_to_text )
+
+undocumented
+
+=cut
+######################################################################
 
 sub render_error
 {
@@ -812,6 +1225,17 @@ my %INPUT_FORM_DEFAULTS = (
 	default_action => undef
 );
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_input_form( %p )
+
+undocumented
+
+=cut
+######################################################################
+
 sub render_input_form
 {
 	my( $self, %p ) = @_;
@@ -879,6 +1303,14 @@ sub render_input_form
 	return $form;
 }
 
+
+######################################################################
+# 
+# $foo = $thing->_render_input_form_field( $field, $value, $show_names, $show_help, $comment )
+#
+# undocumented
+#
+######################################################################
 
 sub _render_input_form_field
 {
@@ -963,11 +1395,33 @@ sub _render_input_form_field
 #
 #############################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->take_ownership( $domnode )
+
+undocumented
+
+=cut
+######################################################################
+
 sub take_ownership
 {
 	my( $self , $domnode ) = @_;
 	$domnode->setOwnerDocument( $self->{page} );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->build_page( $title, $mainbit, $links )
+
+undocumented
+
+=cut
+######################################################################
 
 sub build_page
 {
@@ -1033,6 +1487,17 @@ sub build_page
 	}
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->send_page( %httpopts )
+
+undocumented
+
+=cut
+######################################################################
+
 sub send_page
 {
 	my( $self, %httpopts ) = @_;
@@ -1040,6 +1505,17 @@ sub send_page
 	print $self->{page}->toString();
 	$self->{page}->dispose();
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->page_to_file( $filename )
+
+undocumented
+
+=cut
+######################################################################
 
 sub page_to_file
 {
@@ -1049,6 +1525,17 @@ sub page_to_file
 	$self->{page}->dispose();
 	$self->{pagemade} = 0;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->set_page( $newhtml )
+
+undocumented
+
+=cut
+######################################################################
 
 sub set_page
 {
@@ -1060,6 +1547,17 @@ sub set_page
 	$html->dispose();
 	$self->{pagemade} = 0;
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->new_page
+
+undocumented
+
+=cut
+######################################################################
 
 sub new_page
 {
@@ -1083,6 +1581,14 @@ sub new_page
 	$self->{pagemade} = 1;
 }
 
+
+######################################################################
+# 
+# EPrints::Session::_tag_compression( $tag, $elem )
+#
+# undocumented
+#
+######################################################################
 
 sub _tag_compression
 {
@@ -1122,6 +1628,17 @@ sub _tag_compression
 #  Return a query parameter.
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->param( $name )
+
+undocumented
+
+=cut
+######################################################################
+
 sub param
 {
 	my( $self, $name ) = @_;
@@ -1153,6 +1670,17 @@ sub param
 #  Return true if the current script had any parameters (POST or GET)
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->have_parameters
+
+undocumented
+
+=cut
+######################################################################
+
 sub have_parameters
 {
 	my( $self ) = @_;
@@ -1165,6 +1693,17 @@ sub have_parameters
 
 
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->auth_check( $resource )
+
+undocumented
+
+=cut
+######################################################################
 
 sub auth_check
 {
@@ -1194,6 +1733,17 @@ sub auth_check
 }
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->current_user
+
+undocumented
+
+=cut
+######################################################################
+
 sub current_user
 {
 	my( $self ) = @_;
@@ -1217,6 +1767,17 @@ sub current_user
 }
 
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->seen_form
+
+undocumented
+
+=cut
+######################################################################
+
 sub seen_form
 {
 	my( $self ) = @_;
@@ -1228,6 +1789,17 @@ sub seen_form
 
 	return( $result );
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->internal_button_pressed( $buttonid )
+
+undocumented
+
+=cut
+######################################################################
 
 sub internal_button_pressed
 {
@@ -1260,6 +1832,17 @@ sub internal_button_pressed
 	return $self->{internalbuttonpressed};
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_action_button
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_action_button
 {
 	my( $self ) = @_;
@@ -1278,6 +1861,17 @@ sub get_action_button
 	return $self->param("_default_action");
 }
 
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_internal_button
+
+undocumented
+
+=cut
+######################################################################
 
 sub get_internal_button
 {
@@ -1309,6 +1903,17 @@ sub get_internal_button
 #
 ###########################################################
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_citation_spec( $dataset, $ctype )
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_citation_spec
 {
 	my( $self, $dataset, $ctype ) = @_;
@@ -1329,6 +1934,17 @@ sub get_citation_spec
 	return $cite;
 }
 
+
+######################################################################
+=pod
+
+=item EPrints::Session::microtime( microtime )
+
+undocumented
+
+=cut
+######################################################################
+
 sub microtime
 {
         # disabled due to bug.
@@ -1340,7 +1956,7 @@ sub microtime
 
         $t = pack($TIMEVAL_T, ());
 
-        syscall( &SYS_gettimeofday, $t, 0) != -1
+      syscall( &SYS_gettimeofday, $t, 0) != -1
                 or die "gettimeofday: $!";
 
         @t = unpack($TIMEVAL_T, $t);
@@ -1355,6 +1971,17 @@ sub microtime
 #
 #  Redirects the browser to $url.
 #
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->redirect( $url )
+
+undocumented
+
+=cut
+######################################################################
 
 sub redirect
 {
@@ -1377,6 +2004,17 @@ sub redirect
 #  message body.
 #
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->mail_administrator( $subjectid, $messageid, %inserts )
+
+undocumented
+
+=cut
+######################################################################
+
 sub mail_administrator
 {
 	my( $self,   $subjectid, $messageid, %inserts ) = @_;
@@ -1397,6 +2035,17 @@ sub mail_administrator
 		$lang->phrase( $messageid, \%inserts, $self ), 
 		$lang->phrase( "mail_sig", {}, $self ) ); 
 }
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->send_http_header( %opts )
+
+undocumented
+
+=cut
+######################################################################
 
 sub send_http_header
 {
@@ -1433,6 +2082,17 @@ sub send_http_header
 	$self->{request}->send_http_header;
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->client
+
+undocumented
+
+=cut
+######################################################################
+
 sub client
 {
 	my( $self ) = @_;
@@ -1456,6 +2116,17 @@ sub client
 }
 
 # return the HTTP status.
+
+######################################################################
+=pod
+
+=item $foo = $thing->get_http_status
+
+undocumented
+
+=cut
+######################################################################
+
 sub get_http_status
 {
 	my( $self ) = @_;
@@ -1463,9 +2134,28 @@ sub get_http_status
 	return $self->{request}->status();
 }
 
+
+######################################################################
+=pod
+
+=item $foo = $thing->DESTROY
+
+undocumented
+
+=cut
+######################################################################
+
 sub DESTROY
 {
 	my( $self ) = @_;
 
 	EPrints::Utils::destroy( $self );
 }
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

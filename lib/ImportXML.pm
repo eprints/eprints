@@ -1,9 +1,43 @@
 ######################################################################
 #
+# EPrints::ImportXML
+#
+######################################################################
+#
 #  __COPYRIGHT__
 #
 # Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints::ImportXML> - undocumented
+
+=head1 DESCRIPTION
+
+undocumented
+
+=over 4
+
+=cut
+
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{foo}
+#     undefined
+#
+######################################################################
+
+######################################################################
+#
 #  __LICENSE__
 #
 ######################################################################
@@ -24,6 +58,17 @@ use XML::Parser;
 
 #cjg Needs to be able to specify default language (to stop it doing 
 # "?" )
+
+
+######################################################################
+=pod
+
+=item EPrints::ImportXML::import_file( $session, $filename, $function, $dataset, $theirinfo )
+
+undocumented
+
+=cut
+######################################################################
 
 sub import_file
 {
@@ -48,6 +93,14 @@ sub import_file
 	$parser->{eprints}->{dataset} = $dataset;
 	$parser->parsefile( $filename );
 }
+
+######################################################################
+# 
+# EPrints::ImportXML::_handle_start( $parser, $tag, %params )
+#
+# undocumented
+#
+######################################################################
 
 sub _handle_start
 {
@@ -126,6 +179,14 @@ sub _handle_start
 }
 
 
+
+######################################################################
+# 
+# EPrints::ImportXML::_handle_end( $parser, $tag )
+#
+# undocumented
+#
+######################################################################
 
 sub _handle_end
 {
@@ -212,6 +273,14 @@ sub _handle_end
 	$parser->xpcroak( "Unknown end tag: $tag" );
 }
 
+######################################################################
+# 
+# EPrints::ImportXML::_handle_char( $parser, $text )
+#
+# undocumented
+#
+######################################################################
+
 sub _handle_char
 {
 	my( $parser , $text ) = @_;
@@ -238,3 +307,11 @@ sub _handle_char
 }
 
 1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+
