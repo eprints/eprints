@@ -43,8 +43,8 @@ EPrints Modules
     <phrase ref="lib/metafield:month">Month:</phrase>
     <phrase ref="lib/metafield:day">Day:</phrase>
     <phrase ref="lib/metafield:to">to</phrase>
-    <phrase ref="lib/metafield:family_name">Family Name</phrase>
-    <phrase ref="lib/metafield:first_names">Given Names</phrase>
+    <phrase ref="lib/metafield:family_name">Family Name:</phrase>
+    <phrase ref="lib/metafield:first_names">Given Names:</phrase>
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>
     <phrase ref="lib/metafield:month_00">Unspecified</phrase>
     <phrase ref="lib/metafield:month_01">January</phrase>
