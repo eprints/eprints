@@ -33,9 +33,9 @@ use strict;
 
 %EPrints::SiteRoutines::citation_specs =
 (
-	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>[, in <i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
-	"confpaper"   => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
-	"confposter"  => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>, in [{editors}, Eds. ][<i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
+	"confpaper"   => "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"confposter"  => "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
 	"techreport"  => "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
 	"journale"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})].",
 	"journalp"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})][:{pages}].",
