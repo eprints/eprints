@@ -95,7 +95,7 @@ help = "Please enter the department from which the submission originated."
 
 <field editors>
 editable = YES
-type = "text"
+type = "name"
 visible = YES
 displayname = "Editors"
 help = "Please enter the names of the editors."
