@@ -573,8 +573,12 @@ sub start_response
 	
 	# Send HTTP header
 	my $r = Apache->request;
-	#cjg $r->content_type( 'text/xml' );
-	$r->content_type( 'text/plain' );
+
+	if ( $session->{render}->param( "debug" ) eq "yes" ) {
+		$r->content_type( 'text/plain' );
+	} else {
+		$r->content_type( 'text/xml' );
+	}
 	$r->send_http_header;
 
 	# Namespaces for each of the verb's responses
