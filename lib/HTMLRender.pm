@@ -651,7 +651,7 @@ sub input_field
 ######################################################################
 #
 # render_form( $fields,              #array_ref
-#              $values,              #array_ref
+#              $values,              #hash_ref
 #              $show_names,
 #              $show_help,
 #              $submit_buttons,      #array_ref
