@@ -1004,3 +1004,126 @@ sub _month_names
 	return $months;
 }
 
+######################################################################
+#
+# $value = form_value( $field )
+#
+#  A complement to param(). This reads in values from the form,
+#  and puts them back into a value appropriate for the field type.
+#
+######################################################################
+
+## WP1: BAD
+sub form_value
+{
+	my( $self, $session ) = @_;
+	
+	my $value = undef;
+
+#
+
+
+#	if( $session->param( $self->{name} ) )
+#		my @tags = $session->{query}->param( $self->{name} );
+	
+	if( $self->is_type( "pagerange" ) )
+	{
+		my $from = $session->param( "$self->{name}_from" );
+		my $to = $session->param( "$self->{name}_to" );
+
+		if( !defined $to || $to eq "" )
+		{
+			$value = $from;
+		}
+		else
+		{
+			$value = $from . "-" . $to;
+		}
+	}
+	elsif( $self->is_type( "boolean" ) )
+	{
+		my $form_val = $session->param( $self->{name} );
+		$value = ( defined $form_val ? "TRUE" : "FALSE" );
+	}
+	elsif( $self->is_type( "date" ) )
+	{
+		my $day = $session->param( "$self->{name}_day" );
+		my $month = $session->param( "$self->{name}_month" );
+		my $year = $session->param( "$self->{name}_year" );
+
+		if( defined $day && $month ne "00" && defined $year )
+		{
+			$value = $year."-".$month."-".$day;
+		}
+	}
+	elsif( $self->is_type( "set" ) )
+	{
+		my @tags = $session->{query}->param( $self->{name} );
+
+		if( scalar @tags > 0 )
+		{
+			$value = join ",", @tags;
+			$value = ":$value:";
+		}
+	}
+	elsif( $self->is_type( "subject" ) )
+	{
+		my $subject_list = EPrints::SubjectList->new();
+
+		my @tags = $session->{query}->param( $self->{name} );
+		
+		if( scalar @tags > 0 )
+		{
+			$subject_list->set_tags( \@tags );
+
+			$value = $subject_list->toString();
+		}
+		else
+		{
+			$value = undef;
+		}
+	}
+	elsif( $self->is_type( "name" ) )
+	{
+		my $i = 0;
+		my $total = ( $self->{multiple} ? 
+			$session->param( "name_boxes_$self->{name}" ) : 1 );
+		
+		for( $i=0; $i<$total; $i++ )
+		{
+			my $surname = $session->param( "name_surname_$i"."_$self->{name}" );
+			if( defined $surname && $surname ne "" )
+			{
+				$value = EPrints::Name::add_name( $value,
+					$surname,
+					$session->param( "name_firstname_$i"."_$self->{name}" ) );
+			}
+		}
+	}
+	elsif( $self->is_type( "username" ) )
+	{
+		my $i = 0;
+		my $total = ( $self->{multiple} ? 
+			$session->param( "username_boxes_$self->{name}" ) : 1 );
+		$value = "";	
+		for( $i=0; $i<$total; $i++ )
+		{
+			my $username = $session->param( "username_$i"."_$self->{name}" );
+			if( defined $username && $username ne "" )
+			{
+				$value.= ":$username";
+			}
+		}
+		$value .= ":" if ( $value ne "" );
+	}
+	else
+	{
+		$value = $session->param( $self->{name} );
+		$value = undef if( defined $value && $value eq "" );
+	}
+	
+	return( $value );
+}
+
+
+

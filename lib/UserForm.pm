@@ -108,7 +108,7 @@ sub process
 	{
 		# Validate the changes
 		my $problems = $self->{user}->validate();
-
+exit;
 		if( $#{$problems} == -1 )
 		{
 			# User has entered everything OK
@@ -196,14 +196,16 @@ sub _render_form
 sub _update_from_form
 {
 	my( $self ) = @_;
-	
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "user" );
-	my $field;
 
 	# Ensure correct user
-	if( $self->{session}->{render}->param( "username" ) eq
-		$self->{user}->{username} )
+	if( $self->{session}->param( "username" ) eq
+		$self->{user}->getValue( "username" ) )
 	{
+		my $user_ds = $self->{session}->getSite()->
+					getDataSet( "user" );
+		my @all_fields = $user_ds->get_fields;
+
+		my $field;
 		foreach $field (@all_fields)
 		{
 			my $param = $self->{session}->{render}->form_value( $field );
