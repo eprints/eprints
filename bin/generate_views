@@ -268,7 +268,7 @@ sub make_view_pages
 		{
 			$links = $session->make_doc_fragment();
 		}
-		if( $info->{layout} eq "orderedlist" )
+		elsif( $info->{layout} eq "orderedlist" )
 		{
 			$links = $session->make_element( "ol" );
 		}

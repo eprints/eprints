@@ -12,16 +12,17 @@
 #
 ######################################################################
 
-
 =pod
 
 =head1 NAME
 
-B<EPrints::Language> - undocumented
+B<EPrints::Language> - A Single Language supported by an Archive.
 
 =head1 DESCRIPTION
 
-undocumented
+The language class handles loading the "phrase" files for a single
+language. See the mail documentation for a full explanation of the
+format of phrase files.
 
 =over 4
 
@@ -31,55 +32,38 @@ undocumented
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{foo}
-#     undefined
+#  $self->{id}
+#     The ISO id of this language.
+#
+#  $self->{fallback}
+#     If $self is the primary language in its archive then this is
+#     undef, otherwise it is a reference to the primary language
+#     object.
+#
+#  $self->{archivedata}
+#  $self->{data}
+#     A reference to a hash. Keys are ids for phrases, values are
+#     DOM fragments containing the phases.
+#     archivedata contains archive specific phrases, data contains
+#     generic eprints phrases. 
 #
 ######################################################################
-
-######################################################################
-#
-# EPrints Language class module
-#
-#  This module represents a language, and provides methods for 
-#  retrieving phrases in that language (from a config file)
-#
-#  All errors in the Language file are in english, otherwise we could
-#  get into a loop!
-#
-######################################################################
-#
-#  __LICENSE__
-#
-######################################################################
-
 
 package EPrints::Language;
 
 use strict;
 
-# Cache for language objects NOT attached to a config.
-
-
-
-######################################################################
-#
-# $language = new( $langid, $archive )
-#
-# Create a new language object representing the language to use, 
-# loading it from a config file.
-#
-# $archive is optional. If it exists then the language object
-# will query the site specific override files.
-#
-######################################################################
-
-
 ######################################################################
 =pod
 
-=item $thing = EPrints::Language->new( $langid, $archive, $fallback )
+=item $language = EPrints::Language->new( $langid, $archive, [$fallback] )
 
-undocumented
+Create a new language object representing the phases eprints will
+use in a given language, loading them from the phrase config XML files.
+
+$langid is the ISO language ID of the language, $archive is the 
+archive to which this language object belongs. $fallback is either
+undef or a reference to the main language object for the archive.
 
 =cut
 ######################################################################
@@ -91,22 +75,25 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-#print STDERR "------LOADINGLANG:$langid-------\n";
-
 	$self->{id} = $langid;
 	
 	$self->{fallback} = $fallback;
 
-	$self->{archivedata} =
-		read_phrases( $archive->get_conf( "config_path" )."/phrases-".$self->{id}.".xml", $archive );
+	$self->{archivedata} = read_phrases( 
+		$archive->get_conf( "config_path" ).
+			"/phrases-".$self->{id}.".xml", 
+		$archive );
 	
 	if( !defined  $self->{archivedata} )
 	{
 		return( undef );
 	}
 
-	$self->{data} =
-		read_phrases( EPrints::Config::get( "phr_path" )."/system-phrases-".$self->{id}.".xml", $archive );
+	$self->{data} = read_phrases( 
+		EPrints::Config::get( "phr_path" ).
+			"/system-phrases-".$self->{id}.".xml", 
+		$archive );
+
 	if( !defined  $self->{data} )
 	{
 		return( undef );
@@ -120,9 +107,31 @@ sub new
 ######################################################################
 =pod
 
-=item $foo = $thing->phrase( $phraseid, $inserts, $session )
+=item $xhtml = $language->phrase( $phraseid, $inserts, $session )
 
-undocumented
+Return an XHTML DOM structure for the phrase with the given phraseid.
+
+The phraseid is looked for in the following order, if it's not in
+one phrase file the system checks the next.
+
+=over 4
+
+=item This languages archive specific phrases.
+
+=item The fallback languages archives specific phrases (if there is a fallback).
+
+=item This languages general phrases.
+
+=item The fallback languages general phrases (if there is a fallback).
+
+=item Failing that it returns an XHTML DOM encoded error.
+
+=back
+
+If the phrase contains "pin" elements then $inserts must be a reference
+to a hash. Each "pin" has a "ref" attribute. For each pin there must be
+a key in $inserts of the "ref". The value is a XHTML DOM object which
+will replace the "pin" when returing this phrase.
 
 =cut
 ######################################################################
@@ -136,8 +145,9 @@ sub phrase
 	if( !defined $response )
 	{
 		$response = $session->make_text(  
-				"[\"$phraseid\" not defined]" );
-		$session->get_archive()->log( "Undefined phrase: \"$phraseid\" (".$self->{id}.")" );
+			'["'.$phraseid.'" not defined]' );
+		$session->get_archive()->log( 
+			'Undefined phrase: "'.$phraseid.'" ('.$self->{id}.')' );
 	}
 	$inserts = {} if( !defined $inserts );
 
@@ -157,7 +167,6 @@ sub phrase
 	foreach $pin ( $result->getElementsByTagName( "pin", 1 ) )
 	{
 		my $ref = $pin->getAttribute( "ref" );
-		#print STDERR "^*^ $ref\n";
 		my $repl;
 		if( defined $inserts->{$ref} )
 		{
@@ -185,7 +194,7 @@ sub phrase
 
 ######################################################################
 # 
-# $foo = $thing->_phrase_aux( $phraseid )
+# $foo = $language->_phrase_aux( $phraseid )
 #
 # undocumented
 #
@@ -218,7 +227,7 @@ sub _phrase_aux
 
 ######################################################################
 # 
-# $foo = $thing->_get_data
+# $foo = $language->_get_data
 #
 # undocumented
 #
@@ -232,7 +241,7 @@ sub _get_data
 
 ######################################################################
 # 
-# $foo = $thing->_get_archivedata
+# $foo = $language->_get_archivedata
 #
 # undocumented
 #
@@ -256,9 +265,10 @@ sub _get_archivedata
 ######################################################################
 =pod
 
-=item EPrints::Language::read_phrases( $file, $archive )
+=item $phrases = EPrints::Language::read_phrases( $file, $archive )
 
-undocumented
+Return a reference to a hash of DOM objects describing the phrases
+from the XML phrase file $file.
 
 =cut
 ######################################################################
@@ -308,9 +318,9 @@ sub read_phrases
 ######################################################################
 =pod
 
-=item $foo = $thing->get_id
+=item $langid = $language->get_id
 
-undocumented
+Return the ISO language ID of this language object.
 
 =cut
 ######################################################################
@@ -322,22 +332,6 @@ sub get_id
 }
 
 
-######################################################################
-=pod
-
-=item $foo = $thing->DESTROY
-
-undocumented
-
-=cut
-######################################################################
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
 
 1;
 

@@ -12,16 +12,24 @@
 #
 ######################################################################
 
-
 =pod
 
 =head1 NAME
 
-B<EPrints::MetaField> - undocumented
+B<EPrints::MetaField> - A single metadata field.
 
 =head1 DESCRIPTION
 
-undocumented
+Theis object represents a single metadata field, not the value of
+that field. A field belongs (usually) to a dataset and has a large
+number of properties. Optional and required properties vary between 
+types.
+
+"type" is the most important property, it is the type of the metadata
+field. For example: "text", "name" or "date".
+
+A full description of metadata types and properties is in the eprints
+documentation and will not be duplicated here.
 
 =over 4
 
@@ -31,44 +39,28 @@ undocumented
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{foo}
-#     undefined
+#  $self->{dataset}
+#     The DataSet to which this field belongs, if any.
+#
+#  $self->{confid}
+#     The conf-id of the dataset to which this field belongs. If this
+#     field is not part of a dataset then this is just a string used 
+#     to find config info about this field. Most importantly the name
+#     and other information from the phrase file.
+#
+#  $self->{archive}
+#     The archive to which this field belongs.
+#
+# The rest of the instance variables are the properties of the field.
+# The most important properties (which are always required) are:
+#
+#  $self->{name}
+#     The name of this field.
+#
+#  $self->{type}
+#     The type of this field.
 #
 ######################################################################
-
-######################################################################
-#
-# EPrints Metadata Field class
-#
-#  Holds information about a metadata field
-#
-######################################################################
-#
-#  __LICENSE__
-#
-######################################################################
-
-=pod
-
-=head1 NAME
-
-EPrints::MetaField - Class representing an information field in an eprint dataset
-
-=head1 SYNOPSIS
-
- use EPrints::Metafield;
-
- my $field = EPrints::Metafield->new(
-	dataset => $session->get_archive()->get_dataset( "archive" ),
-	name => "authors",
-	type => "name",
-	multiple => 1 );
-	
- my $dom_fragment = $field->render_value( $session, $value );
-
-
-=cut 
-
 
 package EPrints::MetaField;
 
@@ -131,34 +123,16 @@ my $PROPERTIES =
 my $VARCHAR_SIZE = 255;
 
 ######################################################################
-#
-##
-# cjg comment?
-######################################################################
-# name   **required**
-# type   **required**
-# required # default = no
-# multiple # default = no
-# 
-# input_rows   # for longtext and set (int)   # default = 5
-# digits  # for int  (int)   # default = 20
-# options # for set (array)   **required if type**
-# maxlength # for text (maybe url & email?)
-# showtop, showall # for subjects
-
-# hasid # for all - has an ID value(s)
-# idpart, mainpart # internal use only by the "ID" fields sub-fields.
-
-# note: display name, help and labels for options are not
-# defined here as they are lang specific.
-
-
-######################################################################
 =pod
 
-=item $thing = EPrints::MetaField->new( %properties )
+=item $field = EPrints::MetaField->new( %properties )
 
-undocumented
+Create a new metafield. %properties is a hash of the properties of the 
+field, with the addition of "dataset", or if "dataset" is not set then
+"confid" and "archive" must be provided instead.
+
+Some field types require certain properties to be explicitly set. See
+the main documentation.
 
 =cut
 ######################################################################
@@ -181,7 +155,9 @@ sub new
 	{
 		if( !defined $properties{archive} )
 		{
-			EPrints::config::abort( "Tried to create a metafield without a dataset or an archive" );
+			EPrints::config::abort( 
+				"Tried to create a metafield without a ".
+				"dataset or an archive." );
 		}
 		$self->{archive} = $properties{archive};
 	}
@@ -212,23 +188,16 @@ sub new
 	return( $self );
 }
 
-######################################################################
-#
-# $clone = clone()
-#
-#  Clone the field, so the clone can be edited without affecting the
-#  original. (Exception: the tag and label fields - only the references
-#  are copied, not the full array/hash.)
-#
-######################################################################
-
 
 ######################################################################
 =pod
 
-=item $foo = $thing->clone
+=item $newfield = $field->clone
 
-undocumented
+Clone the field, so the clone can be edited without affecting the
+original. Does not deep copy properties which are references - these
+should be set to new values, rather than the contents altered. Eg.
+don't push to a cloned options list, replace it.
 
 =cut
 ######################################################################
@@ -241,86 +210,14 @@ sub clone
 }
 
 
-
-#
-# ( $year, $month, $day ) = get_date( $time )
-#
-#  Static method that returns the given time (in UNIX time, seconds 
-#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
-#
-
-
 ######################################################################
 =pod
 
-=item EPrints::MetaField::get_date( $time )
+=item ( $options , $labels ) = $field->tags_and_labels( $session )
 
-undocumented
-
-=cut
-######################################################################
-
-sub get_date
-{
-	my( $time ) = @_;
-
-	my @date = localtime( $time );
-	my $day = $date[3];
-	my $month = $date[4]+1;
-	my $year = $date[5]+1900;
-	
-	# Ensure number of digits
-	while( length $day < 2 )
-	{
-		$day = "0".$day;
-	}
-
-	while( length $month < 2 )
-	{
-		$month = "0".$month;
-	}
-
-	return( $year, $month, $day );
-}
-
-
-######################################################################
-#
-# $datestamp = get_datestamp( $time )
-#
-#  Static method that returns the given time (in UNIX time, seconds 
-#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
-#
-######################################################################
-
-
-
-######################################################################
-=pod
-
-=item EPrints::MetaField::get_datestamp( $time )
-
-undocumented
-
-=cut
-######################################################################
-
-sub get_datestamp
-{
-	my( $time ) = @_;
-
-	my( $year, $month, $day ) = EPrints::MetaField::get_date( $time );
-
-	return( $year."-".$month."-".$day );
-}
-
-
-######################################################################
-=pod
-
-=item $foo = $thing->tags_and_labels( $session )
-
-undocumented
+Return a reference to an array of options for this ("options" type)
+field, plus an array of UTF-8 encoded labels for these options in the 
+current language.
 
 =cut
 ######################################################################
@@ -331,7 +228,8 @@ sub tags_and_labels
 	my %labels = ();
 	foreach( @{$self->{options}} )
 	{
-		$labels{$_} = EPrints::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
+		$labels{$_} = EPrints::Utils::tree_to_utf8( 
+			$self->render_option( $session, $_ ) );
 	}
 	return ($self->{options}, \%labels);
 }
@@ -340,9 +238,10 @@ sub tags_and_labels
 ######################################################################
 =pod
 
-=item $foo = $thing->display_name( $session )
+=item $label = $field->display_name( $session )
 
-undocumented
+Return the UTF-8 encoded name of this field, in the language of
+the $session.
 
 =cut
 ######################################################################
@@ -361,9 +260,10 @@ sub display_name
 ######################################################################
 =pod
 
-=item $foo = $thing->display_help( $session )
+=item $helpstring = $field->display_help( $session )
 
-undocumented
+Return the help information for a user inputing some data for this
+field as a UTF-8 encoded string in the language of the $session.
 
 =cut
 ######################################################################
@@ -382,9 +282,10 @@ sub display_help
 ######################################################################
 =pod
 
-=item $foo = $thing->render_option( $session, $option )
+=item $xhtml = $field->render_option( $session, $option )
 
-undocumented
+Return the title of option $option in the language of $session as an 
+XHTML DOM object.
 
 =cut
 ######################################################################
@@ -402,9 +303,13 @@ sub render_option
 ######################################################################
 =pod
 
-=item $foo = $thing->get_sql_type( $notnull )
+=item $sql = $field->get_sql_type( [$notnull] )
 
-undocumented
+Return the SQL type for this field used when constructing a MySQL 
+table. If $notnull is true then add "NOT NULL" to the specification.
+
+Type "name" fields return four field definitions. One for each part
+of the name.
 
 =cut
 ######################################################################
@@ -444,14 +349,18 @@ sub get_sql_type
 
 	if( $self->is_type( "name" ) )
 	{
-		return $sqlname."_honourific VARCHAR($VARCHAR_SIZE) ".$param.", ".
-			$sqlname."_given VARCHAR($VARCHAR_SIZE) ".$param.", ".
-			$sqlname."_family VARCHAR($VARCHAR_SIZE) ".$param.", ".
-			$sqlname."_lineage VARCHAR($VARCHAR_SIZE) ".$param;
+		my $vc = 'VARCHAR('.$VARCHAR_SIZE.')';
+		return 
+			$sqlname.'_honourific '.$vc.' '.$param.', '.
+			$sqlname.'_given '.$vc.' '.$param.', '.
+			$sqlname.'_family '.$vc.' '.$param.', '.
+			$sqlname.'_lineage '.$vc.' '.$param;
 	}
 
-	# all others: set, text, secret, url, email, subject, pagerange, datatype, id
-
+	# all others: 
+	#   set, text, secret, url, email, subject, pagerange, 
+	#   datatype, id
+	# become a VARCHAR.
 	# This is not very effecient, but diskspace is cheap, right?
 
 	return $sqlname." VARCHAR($VARCHAR_SIZE) ".$param;
@@ -461,9 +370,10 @@ sub get_sql_type
 ######################################################################
 =pod
 
-=item $foo = $thing->get_sql_index
+=item $sql = $field->get_sql_index
 
-undocumented
+Return the SQL definition of the index/indexes required for this field 
+or an empty string if no index is required.
 
 =cut
 ######################################################################
@@ -481,7 +391,8 @@ sub get_sql_index
 	
 	if( $self->is_type( "name" ) )
 	{
-		return "INDEX( ".$sqlname."_given), INDEX( ".$sqlname."_family)";
+		return 'INDEX( '.$sqlname.'_given), '.
+			'INDEX( '.$sqlname.'_family)';
 	}
 
 	return "INDEX( ".$sqlname.")";
@@ -491,9 +402,9 @@ sub get_sql_index
 ######################################################################
 =pod
 
-=item $foo = $thing->get_name
+=item $name = $field->get_name
 
-undocumented
+Return the name of this field.
 
 =cut
 ######################################################################
@@ -508,9 +419,9 @@ sub get_name
 ######################################################################
 =pod
 
-=item $foo = $thing->get_type
+=item $type = $field->get_type
 
-undocumented
+Return the type of this field.
 
 =cut
 ######################################################################
@@ -525,9 +436,9 @@ sub get_type
 ######################################################################
 =pod
 
-=item $foo = $thing->set_property( $property, $value )
+=item $field->set_property( $property, $value )
 
-undocumented
+Set the named property to the given value.
 
 =cut
 ######################################################################
@@ -544,7 +455,8 @@ sub set_property
 	{
 		if( $PROPERTIES->{$property} == -1 )
 		{
-			EPrints::Config::abort( $property." on a metafield can't be undef" );
+			EPrints::Config::abort( 
+				$property." on a metafield can't be undef" );
 		}
 		$self->{$property} = $self->get_property_default( $property );
 	}
@@ -558,9 +470,9 @@ sub set_property
 ######################################################################
 =pod
 
-=item $foo = $thing->get_property( $property )
+=item $value = $field->get_property( $property )
 
-undocumented
+Return the value of the given property.
 
 =cut
 ######################################################################
@@ -581,9 +493,9 @@ sub get_property
 ######################################################################
 =pod
 
-=item $foo = $thing->is_type( @typenames )
+=item $boolean = $field->is_type( @typenames )
 
-undocumented
+Return true if the type of this field is one of @typenames.
 
 =cut
 ######################################################################
@@ -603,9 +515,10 @@ sub is_type
 ######################################################################
 =pod
 
-=item $foo = $thing->is_text_indexable
+=item $boolean = $field->is_text_indexable
 
-undocumented
+Return true if this field can be searched by "free text" searching - 
+indexing all the individual words in it.
 
 =cut
 ######################################################################
@@ -621,9 +534,16 @@ sub is_text_indexable
 ######################################################################
 =pod
 
-=item $foo = $thing->render_value( $session, $value, $alllangs, $nolink )
+=item $xhtml = $field->render_value( $session, $value, [$alllangs], [$nolink] )
 
-undocumented
+Render the given value of this given string as XHTML DOM. If $alllangs 
+is true and this is a multilang field then render all language versions,
+not just the current language (for editorial checking). If $nolink is
+true then don't make this field a link, for example subject fields 
+might otherwise link to the subject view page.
+
+If render_value or render_single_value properties are set then these
+control the rendering instead.
 
 =cut
 ######################################################################
@@ -634,12 +554,21 @@ sub render_value
 
 	if( defined $self->{render_value} )
 	{
-		return &{$self->{render_value}}( $session, $self, $value, $alllangs, $nolink );
+		return &{$self->{render_value}}( 
+			$session, 
+			$self, 
+			$value, 
+			$alllangs, 
+			$nolink );
 	}
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->_render_value1( $session, $value, $alllangs, $nolink );
+		return $self->_render_value1( 
+			$session, 
+			$value, 
+			$alllangs, 
+			$nolink );
 	}
 
 	if(! EPrints::Utils::is_set( $value ) )
@@ -672,7 +601,12 @@ sub render_value
 		{
 			$html->appendChild( $session->make_text( ", " ) );
 		}
-		$html->appendChild( $self->_render_value1( $session, $_, $alllangs, $nolink ) );
+		$html->appendChild( 
+			$self->_render_value1( 
+				$session, 
+				$_, 
+				$alllangs, 
+				$nolink ) );
 	}
 	return $html;
 
@@ -681,7 +615,7 @@ sub render_value
 
 ######################################################################
 # 
-# $foo = $thing->_render_value1( $session, $value, $alllangs, $nolink )
+# $xhtml = $field->_render_value1( $session, $value, $alllangs, $nolink )
 #
 # undocumented
 #
@@ -700,15 +634,23 @@ sub _render_value1
 		# It will either just pass it through, redo it from scratch
 		# or wrap it in a link.
 		
-		return $session->get_archive()->call( "render_value_with_id",  
-			$self, $session, $value, $alllangs, $rendered, $nolink );
+		return $session->get_archive()->call( 
+			"render_value_with_id",  
+			$self, 
+			$session, 
+			$value, 
+			$alllangs, 
+			$rendered, 
+			$nolink );
 	}
 	else
 	{
 		if( defined $self->{browse_link} && !$nolink)
 		{
-			my $url = $session->get_archive()->get_conf( "base_url" ).
-					"/view/".$self->{browse_link}."/".$value.".html";
+			my $url = $session->get_archive()->get_conf( 
+					"base_url" );
+			$url .= "/view/".$self->{browse_link}."/";
+			$url .= $value.".html";
 			my $a = $session->render_link( $url );
 			$a->appendChild( $rendered );
 			return $a;
@@ -723,7 +665,7 @@ sub _render_value1
 
 ######################################################################
 # 
-# $foo = $thing->_render_value2( $session, $value, $alllangs, $nolink )
+# $xhtml = $field->_render_value2( $session, $value, $alllangs, $nolink )
 #
 # undocumented
 #
@@ -746,7 +688,10 @@ sub _render_value2
 
 	if( !$alllangs )
 	{
-		my $v = EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %$value );
+		my $v = EPrints::Session::best_language( 
+			$session->get_archive(), 
+			$session->get_langid(), 
+			%$value );
 		return $self->_render_value3( $session, $v, $nolink );
 	}
 	my( $table, $tr, $td, $th );
@@ -769,7 +714,7 @@ sub _render_value2
 
 ######################################################################
 # 
-# $foo = $thing->_render_value3( $session, $value, $nolink )
+# $xhtml = $field->_render_value3( $session, $value, $nolink )
 #
 # undocumented
 #
@@ -786,7 +731,10 @@ sub _render_value3
 
 	if( defined $self->{render_single_value} )
 	{
-		return &{$self->{render_single_value}}( $session, $self, $value );
+		return &{$self->{render_single_value}}( 
+			$session, $
+			self, $
+			value );
 	}
 
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
@@ -844,7 +792,8 @@ sub _render_value3
 		{
 			unless( $first )
 			{
-				$frag->appendChild( $session->make_element( "br" ) );
+				$frag->appendChild( 
+					$session->make_element( "br" ) );
 			}
 			$frag->appendChild( $session->make_text( $_ ) );
 			$first = 0;
@@ -854,7 +803,9 @@ sub _render_value3
 
 	if( $self->is_type( "datatype" ) )
 	{
-		my $ds = $session->get_archive()->get_dataset( $self->get_property( "datasetid" ) );
+		my $ds = $session->get_archive()->get_dataset( 
+			$self->get_property( "datasetid" ) );
+
 		return $ds->render_type_name( $session, $value ); 
 	}
 
@@ -865,7 +816,8 @@ sub _render_value3
 
 	if( $self->is_type( "boolean" ) )
 	{
-		return $session->html_phrase( "lib/metafield:".($value eq "TRUE"?"true":"false") );
+		return $session->html_phrase( 
+			"lib/metafield:".($value eq "TRUE"?"true":"false") );
 	}
 
 	
@@ -876,7 +828,9 @@ sub _render_value3
 		{
 			return $session->make_text( "?? $value ??" );
 		}
-		return $subject->render_with_path( $session, $self->get_property( "top" ) );
+		return $subject->render_with_path( 
+			$session, 
+			$self->get_property( "top" ) );
 	}
 	
 	$session->get_archive()->log( "Unknown field type: ".$self->{type} );
@@ -884,13 +838,14 @@ sub _render_value3
 }
 
 
-
 ######################################################################
 =pod
 
-=item $foo = $thing->render_input_field( $session, $value )
+=item $xhtml = $field->render_input_field( $session, $value )
 
-undocumented
+Return the XHTML of the fields for an form which will allow a user
+to input metadata to this field. $value is the default value for
+this field.
 
 =cut
 ######################################################################
@@ -944,24 +899,37 @@ sub render_input_field
 			my ( $pairs ) = $topsubj->get_subjects( 
 				!($self->{showall}), 
 				$self->{showtop} );
-			if( !$self->get_property( "multiple" ) && !$self->get_property( "required" ) )
+			if( !
+				$self->get_property( "multiple" ) && 
+				!$self->get_property( "required" ) )
 			{
-				# If it's not multiple and not required there must be a
-				# way to unselect it.
-				$settings{pairs} = [ [ "", $session->phrase( "lib/metafield:unspecified" ) ], @{$pairs} ];
+				# If it's not multiple and not required there 
+				# must be a way to unselect it.
+				my $unspec = $session->phrase( 
+					"lib/metafield:unspecified" ) ;
+				$settings{pairs} = [ 
+					[ "", $unspec ], 
+					@{$pairs} ];
 			}
 			else
 			{
 				$settings{pairs} = $pairs;
 			}
-		} else {
+		} 
+		else 
+		{
 			my($tags,$labels);
 			if( $self->is_type( "set" ) )
 			{
 				$tags = $self->{options};
 				$labels = {};
-				foreach( @{$tags} ) { 
-					$labels->{$_} = EPrints::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
+				foreach( @{$tags} ) 
+				{ 
+					$labels->{$_} = 
+						EPrints::Utils::tree_to_utf8( 
+							$self->render_option( 
+								$session, 
+								$_ ) );
 				}
 			}
 			else # is "datatype"
@@ -971,12 +939,16 @@ sub render_input_field
 				$tags = $ds->get_types();
 				$labels = $ds->get_type_names( $session );
 			}
-			if( !$self->get_property( "multiple" ) && !$self->get_property( "required" ) )
+			if( 
+				!$self->get_property( "multiple" ) && 
+				!$self->get_property( "required" ) )
 			{
-				# If it's not multiple and not required there must be a
-				# way to unselect it.
+				# If it's not multiple and not required there 
+				# must be a way to unselect it.
 				$settings{values} = [ "", @{$tags} ];
-				$settings{labels} = { ""=>$session->phrase( "lib/metafield:unspecified" ), %{$labels} };
+				my $unspec = $session->phrase( 
+					"lib/metafield:unspecified" );
+				$settings{labels} = { ""=>$unspec, %{$labels} };
 			}
 			else
 			{
@@ -1005,7 +977,8 @@ sub render_input_field
 		if( $session->internal_button_pressed() )
 		{
 			$boxcount = $session->param( $spacesid );
-			if( $session->internal_button_pressed( $self->{name}."_morespaces" ) )
+			if( $session->internal_button_pressed( 
+				$self->{name}."_morespaces" ) )
 			{
 				$boxcount += $self->{input_add_boxes};
 			}
@@ -1018,7 +991,9 @@ sub render_input_field
 			$div = $session->make_element( "div" );
 			$div->appendChild( $session->make_text( $i.". " ) );
 			$html->appendChild( $div );
-			$div = $session->make_element( "div", style=>"margin-left: 20px" ); #cjg NOT CSS
+			$div = $session->make_element( 
+				"div", 
+				style=>"margin-left: 20px" ); #cjg NOT CSS
 			$div->appendChild( 
 				$self->_render_input_field_aux( 
 					$session, 
@@ -1034,7 +1009,8 @@ sub render_input_field
 			value => $boxcount ) );
 		$html->appendChild( $session->render_internal_buttons(
 			$self->{name}."_morespaces" => 
-				$session->phrase( "lib/metafield:more_spaces" ) ) );
+				$session->phrase( 
+					"lib/metafield:more_spaces" ) ) );
 	}
 	else
 	{
@@ -1049,7 +1025,7 @@ sub render_input_field
 
 ######################################################################
 # 
-# $foo = $thing->_render_input_field_aux( $session, $value, $n )
+# $xhtml = $field->_render_input_field_aux( $session, $value, $n )
 #
 # undocumented
 #
@@ -1093,14 +1069,21 @@ sub _render_input_field_aux
 		my %langstodo = ();
 		foreach( keys %{$value} ) { $langstodo{$_}=1; }
 		my %langlabels = ();
-		foreach( EPrints::Config::get_languages() ) { $langlabels{$_}=EPrints::Config::lang_title($_); }
+		foreach( EPrints::Config::get_languages() ) 
+		{ 
+			$langlabels{$_}=EPrints::Config::lang_title($_); 
+		}
 		foreach( @force ) { delete $langlabels{$_}; }
 		my @langopts = ("", keys %langlabels );
+		# cjg NOT LANG'd
 		$langlabels{""} = "** Select Language **";
 	
 		my $i=1;
 		my $langid;
-		while( scalar(@force)>0 || $i<=$boxcount || scalar(keys %langstodo)>0)
+		while( 
+			scalar( @force ) > 0 || 
+			$i <= $boxcount || 
+			scalar( keys %langstodo ) > 0 )
 		{
 			my $langid = undef;
 			my $forced = 0;
@@ -1120,14 +1103,19 @@ sub _render_input_field_aux
 			my $langbit;
 			if( $forced )
 			{
-				$langbit = $session->make_element( "span", class=>"requiredlang" );
+				$langbit = $session->make_element( 
+					"span", 
+					class => "requiredlang" );
 				$langbit->appendChild( $session->make_element(
 					"input",
 					"accept-charset" => "utf-8",
 					type => "hidden",
 					name => $langparamid,
 					value => $langid ) );
-				$langbit->appendChild( $session->make_text( EPrints::Config::lang_title( $langid ) ) );
+				$langbit->appendChild( 
+					$session->make_text( 
+						EPrints::Config::lang_title( 
+							$langid ) ) );
 			}
 			else
 			{
@@ -1138,8 +1126,6 @@ sub _render_input_field_aux
 					labels => \%langlabels );
 			}
 			
-			## $langbit->appendChild( $session->make_text( " (LANGID:$langid)") );
-
 			my $aux2;
 			if( $self->get_property( "hasid" ) )	
 			{
@@ -1280,7 +1266,7 @@ sub _render_input_field_aux
 
 ######################################################################
 # 
-# $foo = $thing->_render_input_field_aux2( $session, $value, $suffix )
+# $xhtml = $field->_render_input_field_aux2( $session, $value, $suffix )
 #
 # undocumented
 #
@@ -1451,7 +1437,8 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			maxlength => 10 ) );
 
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "lib/metafield:to" ) );
+		$div->appendChild( $session->html_phrase( 
+			"lib/metafield:to" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -1481,7 +1468,8 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
  		$monthid = $self->{name}.$suffix."_month";
  		$yearid = $self->{name}.$suffix."_year";
 
-		$div->appendChild( $session->html_phrase( "lib/metafield:year" ) );
+		$div->appendChild( 
+			$session->html_phrase( "lib/metafield:year" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -1493,7 +1481,8 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			maxlength => 4 ) );
 
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "lib/metafield:month" ) );
+		$div->appendChild( 
+			$session->html_phrase( "lib/metafield:month" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->render_option_list(
@@ -1502,7 +1491,8 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "lib/metafield:day" ) );
+		$div->appendChild( 
+			$session->html_phrase( "lib/metafield:day" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -1545,7 +1535,7 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 
 ######################################################################
 # 
-# $foo = $thing->_month_names( $session )
+# $months = $field->_month_names( $session )
 #
 # undocumented
 #
@@ -1560,28 +1550,22 @@ sub _month_names
 	my $month;
 	foreach $month ( @monthkeys )
 	{
-		$months->{$month} = EPrints::Utils::get_month_label( $session, $month );
+		$months->{$month} = EPrints::Utils::get_month_label( 
+			$session, 
+			$month );
 	}
 
 	return $months;
 }
 
-######################################################################
-#
-# $value = form_value( $field )
-#
-#  A complement to param(). This reads in values from the form,
-#  and puts them back into a value appropriate for the field type.
-#
-######################################################################
-
 
 ######################################################################
 =pod
 
-=item $foo = $thing->form_value( $session )
+=item $value = $field->form_value( $session )
 
-undocumented
+Get a value for this field from the CGI parameters, assuming that
+the form contained the input fields for this metadata field.
 
 =cut
 ######################################################################
@@ -1602,7 +1586,7 @@ sub form_value
 
 ######################################################################
 # 
-# $foo = $thing->_form_value_aux0( $session )
+# $foo = $field->_form_value_aux0( $session )
 #
 # undocumented
 #
@@ -1660,7 +1644,7 @@ sub _form_value_aux0
 
 ######################################################################
 # 
-# $foo = $thing->_form_value_aux1( $session, $n )
+# $foo = $field->_form_value_aux1( $session, $n )
 #
 # undocumented
 #
@@ -1677,13 +1661,17 @@ sub _form_value_aux1
 	if( $self->get_property( "multilang" ) )
 	{
 		$value = {};
-		my $boxcount = $session->param( $self->{name}.$suffix."_langspaces" );
+		my $boxcount = $session->param( 
+			$self->{name}.$suffix."_langspaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		my $i;
 		for( $i=1; $i<=$boxcount; ++$i )
 		{
-			my $subvalue = $self->_form_value_aux2( $session, $suffix."_".$i );
-			my $langid = $session->param( $self->{name}.$suffix."_".$i."_lang" );
+			my $subvalue = $self->_form_value_aux2( 
+				$session, 
+				$suffix."_".$i );
+			my $langid = $session->param( 
+				$self->{name}.$suffix."_".$i."_lang" );
 			if( $langid eq "" ) 
 			{ 
 				$langid = "_".$i; 
@@ -1712,7 +1700,7 @@ sub _form_value_aux1
 
 ######################################################################
 # 
-# $foo = $thing->_form_value_aux2( $session, $suffix )
+# $foo = $field->_form_value_aux2( $session, $suffix )
 #
 # undocumented
 #
@@ -1722,11 +1710,15 @@ sub _form_value_aux2
 {
 	my( $self, $session, $suffix ) = @_;
 	
-	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret", "id" ) )
+	if( $self->is_type( 
+		"text", "url", "int", "email", "longtext", "year", 
+		"secret", "id" ) )
 	{
 		my $value = $session->param( $self->{name}.$suffix );
 		return undef if( $value eq "" );
-		if( !$self->is_type( "longtext" ) && $self->{input_style} eq "textarea" )
+		if( 
+			!$self->is_type( "longtext" ) && 
+			$self->{input_style} eq "textarea" )
 		{
 			$value=~s/[\n\r]+/ /gs;
 		}
@@ -1748,7 +1740,9 @@ sub _form_value_aux2
 	{
 		my $form_val = $session->param( $self->{name}.$suffix );
 		my $true = 0;
-		if( $self->{input_style} eq "radio" || $self->{input_style} eq "menu" )
+		if( 
+			$self->{input_style} eq "radio" || 
+			$self->{input_style} eq "menu" )
 		{
 			$true = $form_val eq "TRUE";
 		}
@@ -1776,7 +1770,8 @@ sub _form_value_aux2
 		my $data = {};
 		foreach( "honourific", "given", "family", "lineage" )
 		{
-			$data->{$_} = $session->param( $self->{name}.$suffix."_".$_ );
+			$data->{$_} = 
+				$session->param( $self->{name}.$suffix."_".$_ );
 		}
 		if( EPrints::Utils::is_set( $data ) )
 		{
@@ -1812,18 +1807,17 @@ sub _form_value_aux2
 	}	
 }
 
-# cjg this function should return the most useful version of a field if it
-# is a multilang field. Initially the search order will be:
-# language of 'session'
-# default language
-# any language
 
 ######################################################################
 =pod
 
-=item $foo = $thing->most_local( $session, $value )
+=item $value = $field->most_local( $session, $value )
 
-undocumented
+If this field is a multilang field then return the version of the 
+value most useful for the language of the session. In order of
+preference: The language of the session, the default language for
+the archive, any language at all. If it is not a multilang field
+then just return $value.
 
 =cut
 ######################################################################
@@ -1832,7 +1826,8 @@ sub most_local
 {
 	my( $self, $session, $value ) = @_;
 	#cjg not done yet
-	my $bestvalue =  EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %{$value} );
+	my $bestvalue =  EPrints::Session::best_language( 
+		$session->get_archive(), $session->get_langid(), %{$value} );
 	return $bestvalue;
 }
 
@@ -1840,9 +1835,10 @@ sub most_local
 ######################################################################
 =pod
 
-=item $foo = $thing->get_id_field
+=item $idfield = $field->get_id_field
 
-undocumented
+Only meaningful on fields with "hasid" property. Return a field 
+representing just the id part of this field.
 
 =cut
 ######################################################################
@@ -1866,9 +1862,10 @@ sub get_id_field
 ######################################################################
 =pod
 
-=item $foo = $thing->get_main_field
+=item $mainfield = $field->get_main_field
 
-undocumented
+Only meaningful on fields with "hasid" property. Return a field 
+representing just the main part of this field.
 
 =cut
 ######################################################################
@@ -1890,9 +1887,15 @@ sub get_main_field
 ######################################################################
 =pod
 
-=item $foo = $thing->which_bit( $value )
+=item $value2 = $field->which_bit( $value )
 
-undocumented
+If this field represents the id part of a field only, then return the
+id part of $value.
+
+If this field represents the main part of a field only, then return the
+id part of $value.
+
+Otherwise return $value.
 
 =cut
 ######################################################################
@@ -1916,9 +1919,9 @@ sub which_bit
 ######################################################################
 =pod
 
-=item $foo = $thing->get_sql_name
+=item $sqlname = $field->get_sql_name
 
-undocumented
+Return the name of this field as it appears in an SQL table.
 
 =cut
 ######################################################################
@@ -1946,9 +1949,9 @@ sub get_sql_name
 ######################################################################
 =pod
 
-=item $foo = $thing->is_browsable
+=item $boolean = $field->is_browsable
 
-undocumented
+Return true if this field can be "browsed". ie. Used as a view.
 
 =cut
 ######################################################################
@@ -1972,9 +1975,11 @@ sub is_browsable
 ######################################################################
 =pod
 
-=item $foo = $thing->get_values( $session, %opts )
+=item @values = $field->get_values( $session, %opts )
 
-undocumented
+Return all the values of this field. For fields like "subject" or "set"
+it returns all the variations. For fields like "text" return all 
+the distinct values from the database.
 
 =cut
 ######################################################################
@@ -1991,7 +1996,10 @@ sub get_values
 	if( $self->is_type( "subject" ) )
 	{
 		my $topsubj = $self->get_top_subject( $session );
-		my ( $pairs ) = $topsubj->get_subjects( 0 , !$opts{hidetoplevel} , $opts{nestids} );
+		my ( $pairs ) = $topsubj->get_subjects( 
+			0 , 
+			!$opts{hidetoplevel} , 
+			$opts{nestids} );
 		my @values = ();
 		my $pair;
 		foreach $pair ( @{$pairs} )
@@ -2008,7 +2016,8 @@ sub get_values
 		return @{$ds->get_types()};
 	}
 
-	if( $self->is_type( "date", "int", "year", "id", "email", "url" , "text" ) )
+	if( $self->is_type( 
+		"date", "int", "year", "id", "email", "url" , "text" ) )
 	{
 		return $session->get_db()->get_values( $self );
 	}
@@ -2017,14 +2026,15 @@ sub get_values
 	return ();
 }
 
-#returns DOM
 
 ######################################################################
 =pod
 
-=item $foo = $thing->get_value_label( $session, $value )
+=item $xhtml = $field->get_value_label( $session, $value )
 
-undocumented
+Return an XHTML DOM object describing the given value. Normally this
+is just the value, but in the case of something like a "set" field 
+this returns the name of the option in the current language.
 
 =cut
 ######################################################################
@@ -2073,7 +2083,11 @@ sub get_value_label
 
 	if( $self->is_type( "id" ) )
 	{
-		return $session->get_archive()->call( "id_label", $self, $session, $value );
+		return $session->get_archive()->call( 
+			"id_label", 
+			$self, 
+			$session, 
+			$value );
 	}
 
 	return $session->make_text( "???".$value."???" );
@@ -2083,9 +2097,9 @@ sub get_value_label
 ######################################################################
 =pod
 
-=item $foo = $thing->get_dataset
+=item $dataset = $field->get_dataset
 
-undocumented
+Return the dataset to which this field belongs, if any.
 
 =cut
 ######################################################################
@@ -2101,9 +2115,9 @@ sub get_dataset
 ######################################################################
 =pod
 
-=item $foo = $thing->set_dataset( $dataset )
+=item $field->set_dataset( $dataset )
 
-undocumented
+Set this field to belong to the specified DataSet.
 
 =cut
 ######################################################################
@@ -2119,9 +2133,10 @@ sub set_dataset
 ######################################################################
 =pod
 
-=item $foo = $thing->ordervalue( $value, $archive, $langid )
+=item $ov = $field->ordervalue( $value, $archive, $langid )
 
-undocumented
+Return a string representing this value which can be used to sort
+it into order by comparing it alphabetically.
 
 =cut
 ######################################################################
@@ -2134,29 +2149,27 @@ sub ordervalue
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->ordervalue_aux1( $value , $archive , $langid );
+		return $self->_ordervalue_aux1( $value , $archive , $langid );
 	}
 
 	my @r = ();	
 	foreach( @$value )
 	{
-		push @r, $self->ordervalue_aux1( $_ , $archive , $langid );
+		push @r, $self->_ordervalue_aux1( $_ , $archive , $langid );
 	}
 	return join( ":", @r );
 }
 
 
 ######################################################################
-=pod
-
-=item $foo = $thing->ordervalue_aux1( $value, $archive, $langid )
-
-undocumented
-
-=cut
+# 
+# $ov = $field->_ordervalue_aux1( $value, $archive, $langid )
+# 
+# undocumented
+# 
 ######################################################################
 
-sub ordervalue_aux1
+sub _ordervalue_aux1
 {
 	my( $self , $value , $archive , $langid ) = @_;
 
@@ -2164,10 +2177,10 @@ sub ordervalue_aux1
 
 	if( !$self->get_property( "multilang" ) )
 	{
-		return $self->ordervalue_aux2( $value );
+		return $self->_ordervalue_aux2( $value );
 	}
 
-	return $self->ordervalue_aux2( 
+	return $self->_ordervalue_aux2( 
 		EPrints::Session::best_language( 
 			$archive,
 			$langid,
@@ -2176,16 +2189,14 @@ sub ordervalue_aux1
 
 
 ######################################################################
-=pod
-
-=item $foo = $thing->ordervalue_aux2( $value )
-
-undocumented
-
-=cut
+# 
+# $ov = $field->_ordervalue_aux2( $value )
+# 
+# undocumented
+# 
 ######################################################################
 
-sub ordervalue_aux2
+sub _ordervalue_aux2
 {
 	my( $self , $value ) = @_;
 
@@ -2200,21 +2211,19 @@ sub ordervalue_aux2
 	{
 		$v = $value->{main};
 	}
-	return $self->ordervalue_aux3( $v );
+	return $self->_ordervalue_aux3( $v );
 }
 
 
 ######################################################################
-=pod
-
-=item $foo = $thing->ordervalue_aux3( $value )
-
-undocumented
-
-=cut
+#
+# $ov = $field->_ordervalue_aux3( $value )
+#
+# undocumented
+#
 ######################################################################
 
-sub ordervalue_aux3
+sub _ordervalue_aux3
 {
 	my( $self , $value ) = @_;
 
@@ -2259,9 +2268,9 @@ sub ordervalue_aux3
 ######################################################################
 =pod
 
-=item $foo = $thing->get_property_default( $property )
+=item $setting = $field->get_property_default( $property )
 
-undocumented
+Return the default setting for the given field property.
 
 =cut
 ######################################################################
@@ -2315,16 +2324,18 @@ sub get_property_default
 	return undef if( $property eq "render_single_value" );
 	return undef if( $property eq "render_value" );
 
-	EPrints::Config::abort( "Unknown property in get_property_default: $property" );
+	EPrints::Config::abort( 
+		"Unknown property in get_property_default: $property" );
 };
 
 
 ######################################################################
 =pod
 
-=item $foo = $thing->get_top_subject( $session )
+=item $subject = $field->get_top_subject( $session )
 
-undocumented
+Return the top EPrints::Subject object for this field. Only meaningful
+for "subject" type fields.
 
 =cut
 ######################################################################
@@ -2335,14 +2346,19 @@ sub get_top_subject
 
 	unless( $self->is_type( "subject" ) )
 	{
-		$session->render_error( $session->make_text( "Attempt to call get_top_subject on a field not of type subject. Field name \"".$self->get_name()."\"." ) );
+		$session->render_error( $session->make_text( 
+			'Attempt to call get_top_subject on a field not '.
+			'of type subject. Field name '.
+			'"'.$self->get_name().'".' ) );
 		exit;
 	}
 
 	my $topid = $self->get_property( "top" );
 	if( !defined $topid )
 	{
-		$session->render_error( $session->make_text( "Subject field name \"".$self->get_name()."\" has no \"top\" property." ) );
+		$session->render_error( $session->make_text( 
+			'Subject field name "'.$self->get_name().'" has '.
+			'no "top" property.' ) );
 		exit;
 	}
 		
@@ -2350,33 +2366,16 @@ sub get_top_subject
 
 	if( !defined $topsubject )
 	{
-		
-		$session->render_error( $session->make_text( "Top level subject (id=$topid) for field \"".$self->get_name()."\"\ndoes not exist.\nThe site admin probably has not run generate_subjects. See the documentation for more information." ) );
+		$session->render_error( $session->make_text( 
+			'The top level subject (id=$topid) for field '.
+			'"'.$self->get_name().'" does not exist. The '.
+			'site admin probably has not run generate_subjects. '.
+			'See the documentation for more information.' ) );
 		exit;
 	}
 	
 	return $topsubject;
 }
-
-
-######################################################################
-=pod
-
-=item $foo = $thing->DESTROY
-
-undocumented
-
-=cut
-######################################################################
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
-
-1;		
 
 ######################################################################
 =pod

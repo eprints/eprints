@@ -33,7 +33,7 @@ for( my $d=0; $d<7; ++$d )
 		dataset => $ds );
 	
 
-	my $date = EPrints::MetaField::get_datestamp( $t );
+	my $date = EPrints::Utils::get_datestamp( $t );
 	$searchexp->add_field( $ds->get_field( "datestamp" ), $date );
 		
 	$searchexp->perform_search();

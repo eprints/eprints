@@ -220,7 +220,10 @@ sub _load_languages
 	my( $self ) = @_;
 	
 	my $defaultid = $self->get_conf( "defaultlanguage" );
-	$self->{langs}->{$defaultid} = EPrints::Language->new( $defaultid , $self );
+	$self->{langs}->{$defaultid} = EPrints::Language->new( 
+		$defaultid, 
+		$self );
+
 	if( !defined $self->{langs}->{$defaultid} )
 	{
 		return 0;

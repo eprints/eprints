@@ -194,7 +194,7 @@ sub create_user
 	my $userid = _create_userid( $session );
 		
 	# And work out the date joined.
-	my $date_joined = EPrints::MetaField::get_datestamp( time );
+	my $date_joined = EPrints::Utils::get_datestamp( time );
 
 	my $data = { 
 		"userid"=>$userid,

@@ -964,7 +964,7 @@ sub datestamp
 
 	$self->set_value( 
 		"datestamp" , 
-		EPrints::MetaField::get_datestamp( time ) );
+		EPrints::Utils::get_datestamp( time ) );
 }
 
 

@@ -168,9 +168,9 @@ FORMALLY COMMENT CODE
 -	Document.pm
 -	EPrint.pm
 -	ImportXML.pm
-*	Language.pm
-*	Latex.pm
-*	MetaField.pm
+-	Language.pm
+-	Latex.pm
+-	MetaField.pm
 *	OpenArchives.pm
 -	RequestWrapper.pm
 *	SearchExpression.pm

@@ -560,7 +560,8 @@ before next release. (metadata types & fields)
 - Added POD documentation to Document.pm , EPrint.pm , ImportXML.pm and
    RequestWrapper.pm
 - Removed DIGITS from Document and hardwired occurances to 2.
+- Added render_xhtml_field to Utils.pm - this acts as a special field 
+   renderer like the one in Latex.pm (but renders as XML).
 
-
-
-   
+2002-05-29
+- Added POD Documentation for Language.pm, Latex.pm, MetaField.pm

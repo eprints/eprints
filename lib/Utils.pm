@@ -1255,6 +1255,80 @@ sub render_xhtml_field
 }
 	
 
+#
+# ( $year, $month, $day ) = get_date( $time )
+#
+#  Static method that returns the given time (in UNIX time, seconds 
+#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
+#
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::get_date( $time )
+
+undocumented
+
+=cut
+######################################################################
+
+sub get_date
+{
+	my( $time ) = @_;
+
+	my @date = localtime( $time );
+	my $day = $date[3];
+	my $month = $date[4]+1;
+	my $year = $date[5]+1900;
+	
+	# Ensure number of digits
+	while( length $day < 2 )
+	{
+		$day = "0".$day;
+	}
+
+	while( length $month < 2 )
+	{
+		$month = "0".$month;
+	}
+
+	return( $year, $month, $day );
+}
+
+
+######################################################################
+#
+# $datestamp = get_datestamp( $time )
+#
+#  Static method that returns the given time (in UNIX time, seconds 
+#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
+#
+######################################################################
+
+
+
+######################################################################
+=pod
+
+=item EPrints::Utils::get_datestamp( $time )
+
+undocumented
+
+=cut
+######################################################################
+
+sub get_datestamp
+{
+	my( $time ) = @_;
+
+	my( $year, $month, $day ) = EPrints::Utils::get_date( $time );
+
+	return( $year."-".$month."-".$day );
+}
+
+
+
 1;
 
 ######################################################################

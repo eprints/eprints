@@ -613,7 +613,7 @@ sub process
 	my $ds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "datestamp" );
 
 	# Get the date for yesterday
-	my $yesterday = EPrints::MetaField::get_datestamp( time - (24*60*60) );
+	my $yesterday = EPrints::Utils::get_datestamp( time - (24*60*60) );
 
 	# Update the search expression to search the relevant time period
 	if( $freq eq "daily" )
@@ -625,7 +625,7 @@ sub process
 	elsif( $freq eq "weekly" )
 	{
 		# Work out date a week ago
-		my $last_week = EPrints::MetaField::get_datestamp( time - (7*24*60*60) );
+		my $last_week = EPrints::Utils::get_datestamp( time - (7*24*60*60) );
 
 		# Get from the last week
 		$se->add_field( $ds_field, "$last_week-$yesterday" );
@@ -634,7 +634,7 @@ sub process
 	elsif( $freq eq "monthly" )
 	{
 		# Get today's date
-		my( $year, $month, $day ) = EPrints::MetaField::get_date( time );
+		my( $year, $month, $day ) = EPrints::Utils::get_date( time );
 		# Substract a month		
 		$month--;
 

@@ -17,31 +17,20 @@
 
 =head1 NAME
 
-B<EPrints::Latex> - undocumented
+B<EPrints::Latex> - Module for handling rendering latex equations in 
+metadata as images.
 
 =head1 DESCRIPTION
 
-undocumented
+Some archives may want to spot latex style equations in titles and
+abstracts and render these as images instead. This module provides
+that functionality.
 
 =over 4
 
 =cut
 
 ######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
-
-######################################################################
-#
-#  __LICENSE__
-#
-######################################################################
-
 
 package EPrints::Latex;
 
@@ -51,14 +40,25 @@ use Digest::MD5;
 use Cwd;
 use strict;
 
-
-
 ######################################################################
 =pod
 
-=item EPrints::Latex::render_string( $session, $field, $value )
+=item $xhtml = EPrints::Latex::render_string( $session, $field, $value )
 
-undocumented
+This function is intended to be passed by reference to the 
+render_single_value property of a metadata field. It returns just
+an XHTML DOM string unless it spots anything which looks like a 
+latex style equation, if so the equation is replaced with and img
+element, the URL of which is a CGI script which will render the equation
+as an image. 
+
+For example the equation 
+
+ $x = \frac{-b_+_^-^\root{b^2^-4ac}}{2a}$ 
+
+is the quadratic equation. If you're not a physics academic then that 
+probably dosn't mean much to you, but that's how the physics community 
+like to write their equations!
 
 =cut
 ######################################################################
@@ -126,8 +126,12 @@ sub render_string
 		{
 			my $param = $buffer;
 			$param =~ s/[^a-z0-9]/sprintf('%%%02X',ord($&))/ieg;
-			$param =~ s/^\$(.*)\$$/$1/; # strip $ from begining and end.
-			my $perlurl = $session->get_archive()->get_conf( "perl_url" );
+
+			# strip $ from begining and end.
+			$param =~ s/^\$(.*)\$$/$1/; 
+
+			my $perlurl = $session->get_archive()->get_conf( 
+				"perl_url" );
 			my $img = $session->make_element( 
 				"img",
 				align=>"absbottom",
@@ -192,9 +196,25 @@ sub render_string
 ######################################################################
 =pod
 
-=item EPrints::Latex::texstring_to_png( $session, $texstring )
+=item $imgfile = EPrints::Latex::texstring_to_png( $session, $texstring )
 
-undocumented
+Return the location of a PNG image file containing the latex fragment
+$texstring. 
+
+This uses a directory to generate and cache the images. So the system
+only has to go to the effort of rendering any equation once. The 
+directory is "latexcache" in the htdocs directory of the archive.
+
+The filename of the cached png is the md5 of the latex equation as
+a string of hex characters. 
+
+The images always have a white background. 
+
+This uses the rather obvious system of creating a latex file with
+$texstring in, running latex on it, running dvips on the resulting 
+dvi file to get a postscript file of a page with the equation in the
+corner. Then uses GNU convert crop the postscript and turn it into
+a PNG.
 
 =cut
 ######################################################################
@@ -216,7 +236,6 @@ sub texstring_to_png
 	}
 
 	# Make sure latex .aux & .log files go in this dir.
-
 
 	$ofile = $cachedir."/".$ofile;
 
@@ -241,8 +260,16 @@ END
 
 	$archive->exec( "latex", SOURCE=>"$fbase.tex" );
 	$archive->exec( "dvips", SOURCE=>"$fbase.dvi", TARGET=>"$fbase.ps" );
-	$archive->exec( "convert_crop_white", SOURCE=>"$fbase.ps", TARGET=>$ofile );
-	unlink( "$fbase.aux", "$fbase.dvi", "$fbase.tex", "$fbase.ps", "$fbase.log" );
+	$archive->exec( 
+		"convert_crop_white", 
+		SOURCE => "$fbase.ps", 
+		TARGET => $ofile );
+	unlink( 
+		"$fbase.aux", 
+		"$fbase.dvi", 
+		"$fbase.tex", 
+		"$fbase.ps", 
+		"$fbase.log" );
 
 	chdir( $prev_dir );
 	return $ofile;
