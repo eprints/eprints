@@ -461,7 +461,7 @@ sub send_reminder
 
 sub retrieve_users
 {
-	my( $class, $session, $conditions, $order ) = @_;
+	my( $session, $conditions, $order ) = @_;
 	
 	my @fields = EPrints::MetaInfo::get_user_fields();
 
