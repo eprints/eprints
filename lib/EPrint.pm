@@ -1492,5 +1492,11 @@ sub toHTML
 	return $self->{session}->getSite()->call( "eprint_render_citation", $self, 1 );
 }
 
+sub getValue
+{
+	my( $self , $fieldname ) = @_;
+
+	return $self->{$fieldname};
+}
 
 1;

@@ -99,9 +99,9 @@ sub new
 
 	#### Got Site Config Module ###
 
-	#print $self->{site}->getConf( "htmlpage" );
-	#my $parser = XML::DOM::Parser->new();
-	#$self->{domtree} = $parser->parse( $self->{site}->getConf( "htmlpage" ) );
+	print $self->{site}->getConf( "htmlpage" );
+	my $parser = XML::DOM::Parser->new();
+	$self->{domtree} = $parser->parse( $self->{site}->getConf( "htmlpage" ) );
 	#my @foo = $self->{domtree}->getElementsByTagName( "TITLEHERE" , 1 );
 	#print join(",",@foo)."\n";
 #
@@ -570,5 +570,13 @@ sub bomb
 	}
 	exit;
 }
+
+sub getPage
+{
+	my( $self ) = @_;
+
+	return $self->{domtree};
+}
+
 
 1;

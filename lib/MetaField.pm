@@ -353,25 +353,37 @@ sub isTextIndexable
 
 ######################################################################
 #
-# $html = format_field( $field, $value )
+# $html = getHTML( $field, $value )
 #
 #  format a field. Returns the formatted HTML as a string (doesn't
 #  actually print it.)
 #
 ######################################################################
 
-sub format_field
+sub getHTML
 {
-	my( $self, $value ) = @_;
+	my( $self, $session, $value ) = @_;
+
+	if( !defined $value || $value eq "" )
+	{
+		return $session->getPage()->createTextNode("");
+	}
 
 	my $html;
-	
-	if( $self->isType( "text" , "int" ) )
+
+	if( $self->isType( "text" , "int" , "pagerange" , "year" ) )
 	{
 		# Render text
-		$html = ( defined $value ? $value : "" );
+		return $session->getPage()->createTextNode( $value );
 	}
-	elsif( $self->isType( "eprinttype" ) )
+
+	if( $self->isType( "name" ) )
+	{
+		return $session->getPage()->createTextNode( 
+			EPrints::Name::format_names( $value ) );
+	}
+
+	if( $self->isType( "eprinttype" ) )
 	{
 		$html = $self->{labels}->{$value} if( defined $value );
 		$html = "UNSPECIFIED" unless( defined $value );
@@ -479,25 +491,9 @@ sub format_field
 			}
 		}
 	}
-	elsif( $self->isType( "pagerange" ) )
-	{
-		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $self->isType( "year" ) )
-	{
-		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $self->isType( "name" ) )
-	{
-		$html = EPrints::Name::format_names( $value );
-	}
-	else
-	{
-		EPrints::Log::log_entry(
-			"L:cant_do_field" , 
-				{ type=>$self->{type} } );
-	}
+	
+	$session->getSite()->log( "Unknown field type: ".$self->{type} );
+	return undef;
 
-	return( $html );
 }
 

@@ -542,4 +542,11 @@ sub toString
 	return( $self->{session}->getSite()->call( "user_display_name" , $self  ) );
 }
 
+sub getValue
+{
+	my( $self , $fieldname ) = @_;
+
+	return $self->{$fieldname};
+}
+
 1;

@@ -23,11 +23,13 @@ print "--- loaded ---\n";
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 
 my $ds = $session->getSite()->getDataSet( "archive" );
-
-my $eprint = new EPrints::EPrint( $session, $ds, "zook00000250" );
+my $i;
+for($i=10;$i<100;++$i) {
+my $eprint = new EPrints::EPrint( $session, $ds, "zook000000$i" );
 print "--- begin ---\n";
 print $eprint->{title}."\n";
 print $eprint->toHTML()."\n";
 print "Yay\n";
+}
 
 $session->terminate();

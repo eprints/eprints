@@ -1600,42 +1600,42 @@ my %OLD_CITATION_SPECS =
 my %CITATION_SPECS =
 (
 	"bookchapter"  =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<i><DIV class="field_title" /></i>, in [<DIV class="field_editors" />, Eds. ][<i><DIV class="field_publication" /></i>][, chapter <DIV class="field_chapter" />][, pages <DIV class="field_pages" />]. [<DIV class="field_publisher" />.]
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<i><FIELD name="title" /></i>, in [<FIELD name="editors" />, Eds. ][<i><FIELD name="publication" /></i>][, chapter <FIELD name="chapter" />][, pages <FIELD name="pages" />]. [<FIELD name="publisher" />.]
 END
 	"confpaper"    =>  <<END,
-<DIV class="field_authors"/> <DIV class="if_year">(<DIV class="field_year"/>) </DIV><DIV class="field_title"/>. In [<DIV class="field_editors" />, Eds. ][<i>Proceedings <DIV class="field_conference" /></i>][ <B><DIV class="field_volume" /></B>][(<DIV class="field_number" />)][, pages <DIV class="field_pages" />][, <DIV class="field_confloc" />].
+<FIELD name="authors"/> <IF name="year">(<FIELD name="year"/>) </IF><FIELD name="title"/>. In <IF name="editors"><FIELD name="editors"/>, Eds. </IF><IF name="conference"><I>Proceedings <FIELD name="conference" /></I></IF><IF name="volume"> <B><FIELD name="volume" /></B></IF><IF name="number">(<FIELD name="number" />)</IF><IF name="pages">, pages <FIELD name="pages" /></IF><IF name="confloc">, <FIELD name="confloc" /></IF>.
 END
 
 	"confposter"   =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. In [<DIV class="field_editors" />, Eds. ][<i>Proceedings <DIV class="field_conference" /></i>][ <B><DIV class="field_volume" /></B>][(<DIV class="field_number" />)][, pages <DIV class="field_pages" />][, <DIV class="field_confloc" />].
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. In [<FIELD name="editors" />, Eds. ][<i>Proceedings <FIELD name="conference" /></i>][ <B><FIELD name="volume" /></B>][(<FIELD name="number" />)][, pages <FIELD name="pages" />][, <FIELD name="confloc" />].
 END
 
 	"techreport"   =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. Technical Report[ <DIV class="field_reportno" />][, <DIV class="field_department" />][, <DIV class="field_institution" />].
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. Technical Report[ <FIELD name="reportno" />][, <FIELD name="department" />][, <FIELD name="institution" />].
 END
 
 	"journale"     =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. <i><DIV class="field_publication" /></i>[ <DIV class="field_volume" />][(<DIV class="field_number" />)].
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. <i><FIELD name="publication" /></i>[ <FIELD name="volume" />][(<FIELD name="number" />)].
 END
 
 	"journalp"     =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. <i><DIV class="field_publication" /></i>[ <DIV class="field_volume" />][(<DIV class="field_number" />)][:<DIV class="field_pages" />].
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. <i><FIELD name="publication" /></i>[ <FIELD name="volume" />][(<FIELD name="number" />)][:<FIELD name="pages" />].
 END
 
 	"newsarticle"  =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. In <i><DIV class="field_publication" /></i>[, <DIV class="field_volume" />][(<DIV class="field_number" />)][ pages <DIV class="field_pages" />][, <DIV class="field_publisher" />].
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. In <i><FIELD name="publication" /></i>[, <FIELD name="volume" />][(<FIELD name="number" />)][ pages <FIELD name="pages" />][, <FIELD name="publisher" />].
 END
 
 	"other"        =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />.
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />.
 END
 
 	"preprint"     =>  <<END,
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />.
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />.
 END
 
 	"thesis"       =>  <<END
-<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<i><DIV class="field_title" /></i>. <DIV class="field_thesistype" />,[ <DIV class="field_department" />,][ <DIV class="field_institution" />]."
+<FIELD name="authors" /> [(<FIELD name="year" />) ]<i><FIELD name="title" /></i>. <FIELD name="thesistype" />,[ <FIELD name="department" />,][ <FIELD name="institution" />]."
 )" />
 END
 
@@ -1647,16 +1647,60 @@ sub eprint_render_citation
 	my( $eprint, $html ) = @_;
 	
 	my $citation_spec = $CITATION_SPECS{$eprint->{type}};
-	$citation_spec = "<P>$citation_spec</P>";
+	$citation_spec = "<SPAN class=\"citation\">$citation_spec</SPAN>";
 
 	my $parser = XML::DOM::Parser->new();
 	my $dom = $parser->parse( $citation_spec );
+	my $div = $dom->getFirstChild;	
+	$dom->removeChild( $div );
+	$div->setOwnerDocument( $eprint->{session}->getPage() );
 
-	print $dom->toString()."\n";
+	print $div->toString()."\n";
 
+	delete $eprint->{year};
 
+	foreach( $div->getElementsByTagName( "IF" , 1 ) )
+	{
+		my $fieldname = $_->getAttribute( "name" );
+		print "($fieldname)\n";
+		my $val = $eprint->getValue( $fieldname );
+		if( defined $val && $val ne "" )
+		{
+			my $sn;
+			foreach $sn ( $_->getChildNodes )
+			{
+				$_->getParentNode->insertBefore( $sn, $_ );
+			}
+			print "ack\n";
+		}
+		$_->getParentNode->removeChild( $_ );
+	}
+		
+	print "_------_\n";	
+	print $div->toString()."\n";
+	print "_------_\n";	
 
-die;
+	my $ds = $eprint->{session}->getSite()->getDataSet( "eprint" );
+	foreach( $div->getElementsByTagName( "FIELD" , 1 ) )
+	{
+		my $fieldname = $_->getAttribute( "name" );
+		print "($fieldname)\n";
+		print "($eprint->{session})\n";
+		my $el = $ds->getField( $fieldname )->getHTML( 
+				$eprint->{session},
+				$eprint->getValue( $fieldname ) );
+		print "(ook)\n";
+		print "$el\n";
+		$_->getParentNode()->replaceChild( $el, $_ );
+		print "(oqok)\n";
+	}
+		
+	print "_------_\n";	
+	print $div->toString()."\n";
+	print "_------_\n";	
+
+	
+	return $div->toString()."\n";
 	#return( EPrints::Citation::render_citation( $eprint->{session},
 	                                            #$citation_spec,
 	                                            #$eprint,
