@@ -47,7 +47,7 @@ editable = YES
 type = "multitext"
 displaylines = "3"
 visible = YES
-displayname = "Comments"
+displayname = "Additional Information"
 help = "If you think you can specify some useful information about your "
 help = "submission that can't be entered anywhere else, please enter it here."
 </field>

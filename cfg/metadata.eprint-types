@@ -11,10 +11,10 @@ chapter
 pages
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -34,10 +34,10 @@ volume
 number
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -57,10 +57,10 @@ volume
 number
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -76,10 +76,10 @@ REQUIRE abstract
 REQUIRE department
 REQUIRE institution
 reportno
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -97,10 +97,10 @@ volume
 number
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -119,10 +119,10 @@ number
 pages
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -141,10 +141,10 @@ number
 pages
 editors
 publisher
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -157,10 +157,10 @@ REQUIRE title
 REQUIRE year
 month
 REQUIRE abstract
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -172,10 +172,10 @@ REQUIRE title
 REQUIRE year
 month
 REQUIRE abstract
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
 
@@ -191,9 +191,9 @@ REQUIRE abstract
 REQUIRE thesistype
 REQUIRE department
 REQUIRE institution
-comments
 commref
 altloc
 keywords
+comments
 referencetext
 </class>
