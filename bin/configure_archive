@@ -522,7 +522,7 @@ bin/create_tables $archiveid
 bin/generate_static $archiveid
 bin/generate_apacheconf $archiveid
 
-bin/create_user $archiveid <username> <email> staff <password>
+bin/create_user $archiveid <username> <email> admin <password>
 
 Then restart your webserver: 
 /etc/rc.d/init.d/httpd stop
