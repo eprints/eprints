@@ -63,7 +63,7 @@ sub process
 {
 	my( $self ) = @_;
 	
-	my $full_name = $self->{user}->full_name();
+	my $full_name = $self->{user}->render_description();
 
 	if( $self->{session}->seen_form() == 0 ||
 	    $self->{session}->internal_button_pressed() ||
@@ -79,7 +79,7 @@ sub process
 
 		$self->{session}->build_page(
 			$self->{session}->
-				phrase( "lib/userform:record_for", name => $full_name ),
+				html_phrase( "lib/userform:record_for", name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 
@@ -161,7 +161,7 @@ sub _render_user_form
 
 	return $self->{session}->render_input_form( 
 					fields=>\@fields,
-					values=>$self->{user}->get_values(),
+					values=>$self->{user}->get_data(),
 					show_names=>1,
 					show_help=>1,
 					buttons=>$buttons,

@@ -754,7 +754,7 @@ sub render_error
 	$page->appendChild( $p );
 
 	$self->build_page(	
-		$self->phrase( "lib/session:error_title" ),
+		$self->html_phrase( "lib/session:error_title" ),
 		$page );
 
 	$self->send_page();
@@ -955,15 +955,20 @@ sub build_page
 {
 	my( $self, $title, $mainbit, $links ) = @_;
 	
-#cjg Could be different eg. <EPRINTSHOOK type="title" />	
-#cjg Could be different eg. <EPRINTSHOOK type="page" />	
-#cjg Could be different eg. <EPRINTSHOOK type="topofpage" />	
-#cjg would only require one recursive run through, not lots.
 	$self->take_ownership( $mainbit );
 	my $node;
 	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
-		my $element = $self->{page}->createTextNode( $title );
+		my $element;
+		if( $node->getAttribute( "textonly" ) eq "yes" )
+		{
+			$element = $self->{page}->createTextNode( 
+				EPrints::Utils::tree_to_utf8( $title ) );
+		}
+		else
+		{
+			$element = $title->cloneNode( 1 );
+		}
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
@@ -1279,7 +1284,8 @@ sub get_citation_spec
 {
 	my( $self, $dataset, $ctype ) = @_;
 
-	my $citation_id = $dataset->confid()."_".$ctype;
+	my $citation_id = $dataset->confid();
+	$citation_id.="_".$ctype if( defined $ctype );
 
 	my $citespec = $self->{archive}->get_citation_spec( 
 					$self->{lang}->get_id(), 
@@ -1535,42 +1541,3 @@ sub client
 	return "?";
 }
 
-########################################################################
-# DEPRECATED AND DOOMED
-########################################################################
-
-## WP1: BAD
-sub start_html
-{
-	my( $self, $title, $langid ) = @_;
-die "NOPE";
-
-	$self->send_http_header();
-
-	my $html = "<BODY> begin here ";
-
-	return( $html );
-}
-
-## WP1: BAD
-sub end_html
-{
-	my( $self ) = @_;
-die "NOPE";
-	
-	# End of HTML gubbins
-	my $html = $self->{archive}->get_conf("html_tail")."\n";
-	$html .= $self->{query}->end_html;
-
-	return( $html );
-}
-
-## WP1: BAD
-sub end_form
-{
-die "NOPE";
-	my( $self ) = @_;
-	return( $self->{query}->endform );
-}
-
-1;

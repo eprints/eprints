@@ -79,7 +79,7 @@ else
 		$tr->appendChild( $td );
 		$a = $session->make_element( "a", 
 			href=>"view_submission?eprintid=".$e->get_value("eprintid") );
-		$a->appendChild( $e->render_short_title() );
+		$a->appendChild( $e->render_description() );
 		$td->appendChild( $a );
 		
 		# Link to user
@@ -108,7 +108,7 @@ else
 $page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 
 $session->build_page(
-	$session->phrase( "cgi/users/buffer:overview_title" ), 
+	$session->html_phrase( "cgi/users/buffer:overview_title" ), 
 	$page );
 $session->send_page();
 

@@ -58,7 +58,7 @@ sub make_form
 	my @eprints = $user->get_eprints( $ds );
 
 	my $page = $session->make_doc_fragment();
-	my $title = $session->phrase( "cgi/users/review:title" );
+	my $title = $session->html_phrase( "cgi/users/review:title" );
 
 	if( scalar @eprints == 0 )
 	{
@@ -154,7 +154,7 @@ sub process_form
 				# Copied OK, redirect to workspace
 				$session->redirect( "home" );
 				my $page = $session->make_doc_fragment();
-				my $title = $session->phrase( "cgi/users/review:title" );
+				my $title = $session->html_phrase( "cgi/users/review:title" );
 				$session->build_page( $title, $page );
 				$session->send_page();
 				return;
@@ -210,7 +210,7 @@ sub removal_request_form
 {
 	my( $session, $eprint ) = @_;
 
-	my $title = $session->phrase( "cgi/users/review:remove_title" );
+	my $title = $session->html_phrase( "cgi/users/review:remove_title" );
 	my $page = $session->make_doc_fragment();
 
 	$page->appendChild( $session->html_phrase( "cgi/users/review:remove_blurb",
@@ -282,14 +282,14 @@ sub handle_removal_request
 		"cgi/users/review:remove_mail_subject",
 		"cgi/users/review:remove_mail",
 		citation=>$eprint->render_citation(),
-		user=>$session->make_text($user->full_name()),
+		user=>$user->render_description(),
 		email=>$user->render_value( "email" ),
 		reason=>( EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason ) 
 			 : $session->html_phrase( "cgi/users/review:no_reason" ) ),
 		url=>$session->make_text( $url ) );
 	#cjg err sending mail check?
 
-	my $title = $session->phrase( "cgi/users/review:remove_title" );
+	my $title = $session->html_phrase( "cgi/users/review:remove_title" );
 	my $page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "cgi/users/review:done" ) );
 	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );

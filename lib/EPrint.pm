@@ -436,24 +436,6 @@ sub remove
 
 ######################################################################
 #
-# $title = short_title()
-#
-#  Return a short title for the EPrint. Delegates to the site-specific
-#  routine.
-#
-######################################################################
-
-sub render_short_title
-{
-	my( $self ) = @_;
-
-	return( $self->{session}->get_archive()->call( "eprint_render_short_title", $self ) );
-}
-
-
-
-######################################################################
-#
 # $success = commit()
 #
 #  Commit any changes that might have been made to the database
@@ -691,7 +673,7 @@ sub validate_documents
 		foreach (@$probs)
 		{
 			my $prob = $self->{session}->make_doc_fragment();
-			$prob->appendChild( $doc->render_desc() );
+			$prob->appendChild( $doc->render_description() );
 			$prob->appendChild( $self->{session}->make_text( ": " ) );
 			$prob->appendChild( $_ );
 		}
@@ -1013,22 +995,6 @@ sub url_stem
 }
 
 
-######################################################################
-#
-# my $url = static_page_url()
-#
-#  Give the full URL of the static HTML abstract
-#
-######################################################################
-
-## WP1: BAD
-sub static_page_url
-{
-	my( $self ) = @_;
-	
-	return( $self->url_stem );
-}
-
 
 ######################################################################
 #
@@ -1103,7 +1069,7 @@ sub render
 	my $ds_id = $self->{dataset}->id();
 	if( $ds_id eq "deletion" )
 	{
-		$title = $self->{session}->phrase( "lib/eprint:eprint_gone_title" );
+		$title = $self->{session}->html_phrase( "lib/eprint:eprint_gone_title" );
 		$dom = $self->{session}->make_doc_fragment();
 		$dom->appendChild( $self->{session}->html_phrase( "lib/eprint:eprint_gone" ) );
 		my $replacement = new EPrints::EPrint(
@@ -1118,7 +1084,7 @@ sub render
 	}
 	else
 	{
-		($dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 0 );
+		($dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session} );
 	}
 	
         return( $dom, $title );
@@ -1129,7 +1095,7 @@ sub render_full
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render", $self, $self->{session}, 1 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render_full", $self, $self->{session} );
 
         return( $dom );
 }
@@ -1139,36 +1105,17 @@ sub render_full
 ################################################################################
 
 
-sub render_citation_link
+sub get_url
 {
-	my( $self , $cstyle , $staff ) = @_;
-	my $url;
+	my( $self , $staff ) = @_;
 	if( defined $staff && $staff )
 	{
-		$url = $self->{session}->get_archive()->get_conf( "perl_url" ).
+		return $self->{session}->get_archive()->get_conf( "perl_url" ).
 			"/users/staff/edit_eprint?eprintid=".$self->get_value( "eprintid" );
 	}
-	else
-	{
-		$url = $self->static_page_url();
-	}
 	
-	my $citation = $self->render_citation( $cstyle, $url );
-
-	return $citation;
+	return( $self->url_stem() );
 }
-
-sub render_citation
-{
-	my( $self , $cstyle , $url ) = @_;
-
-	my $stylespec = $self->{session}->get_citation_spec(
-					$self->{dataset},
-					(defined $cstyle?$cstyle:$self->get_value( "type" ) ) );
-
-	EPrints::Utils::render_citation( $self , $stylespec , $url );
-}
-
 
 sub get_user
 {
@@ -1486,6 +1433,13 @@ sub _render_version_thread_aux
 	}
 	
 	return( $li );
+}
+
+sub get_type
+{
+	my( $self ) = @_;
+
+	return $self->get_value( "type" );
 }
 
 

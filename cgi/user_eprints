@@ -54,9 +54,9 @@ sub process
 	}
 
 	$session->build_page(
-		$session->phrase( 
+		$session->html_phrase( 
 			"cgi/user_eprints:title",
-			name=>$user->full_name() ),
+			name=>$user->render_description() ),
 		$page );
 	$session->send_page();
 

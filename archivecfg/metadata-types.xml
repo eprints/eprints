@@ -13,7 +13,7 @@
   </dataset>
 
   <dataset name="security">
-    <type name="public" />
+    <type name="" />
     <type name="validuser" />
     <type name="staffonly" />
   </dataset>

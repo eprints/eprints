@@ -221,12 +221,6 @@ sub generate_static
 					$$errcnt++;
 					return;
 				}
-				my $titletext = "";
-				my $kid;
-				foreach $kid ( $title->getChildNodes )
-				{
-					$titletext .= $kid->toString();	
-				}
 				
 				my $main = 
 				   ($page->getElementsByTagName( "body" ))[0];
@@ -238,7 +232,7 @@ sub generate_static
 					return;
 				}
 				$page->removeChild( $main );
-				$session->build_page( $titletext, $main );
+				$session->build_page( $title, $main );
 				$page->dispose();
 			}
 			else 	# $mode is "html"

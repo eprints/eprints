@@ -72,7 +72,7 @@ sub process
 			}
 		) ),
 
-		return( $session->phrase( "cgi/users/edit_eprint:form_title" ),
+		return( $session->html_phrase( "cgi/users/edit_eprint:form_title" ),
 			$page );
 	}
 
@@ -97,7 +97,7 @@ sub process
 				"cgi/users/edit_eprint:removed" ) );
 			$page->appendChild( $session->html_phrase( 
 				"general:userhome_link" ) );
-			return( $session->phrase( 
+			return( $session->html_phrase( 
 					"cgi/users/edit_eprint:remove_title" ),
 	 			$page );
 		}
@@ -117,7 +117,7 @@ sub process
 				"cgi/users/edit_eprint:moved" ) );
 			$page->appendChild( $session->html_phrase( 
 				"general:userhome_link" ) );
-			return( $session->phrase( 
+			return( $session->html_phrase( 
 					"cgi/users/edit_eprint:move_title" ),
 	 			$page );
 		}
@@ -142,7 +142,7 @@ sub process
 	$page->appendChild( $session->render_input_form(
 		# no input fields; no need for a default action.
 		buttons=>{
-			_order = [ "remove", "move", "cancel" ],
+			_order => [ "remove", "move", "cancel" ],
 			remove=>$session->phrase( 
 				"cgi/users/edit_eprint:action_remove" ),
 			move=>$session->phrase( 
@@ -153,7 +153,7 @@ sub process
 		hidden_fields=>{ eprintid=>$eprintid }
 	) );
 		
-	return( $session->phrase( "cgi/users/edit_eprint:form_title" ), $page );
+	return( $session->html_phrase( "cgi/users/edit_eprint:form_title" ), $page );
 }
 
 

@@ -586,7 +586,6 @@ sub count_eprints
 
 }
 
-
 sub get_name
 {
 	my( $self ) = @_;
@@ -594,6 +593,19 @@ sub get_name
 	my $html = $self->render();
 	return EPrints::Utils::tree_to_utf8( $html );
 }
+
+
+# Subjects don't have a URL.
+#
+# sub get_url
+# {
+# }
+
+# Subjects don't have a type.
+#
+# sub get_type
+# {
+# }
 
 
 1;

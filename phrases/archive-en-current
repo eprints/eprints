@@ -17,7 +17,7 @@
     <ep:phrase ref="format_fieldhelp_arc_format">Please select an upload method.</ep:phrase>
     <ep:phrase ref="format_fieldhelp_num_files">If uploading plain files, please indicate how many.</ep:phrase>
 
-    <ep:phrase ref="security_typename_public">Anyone</ep:phrase>
+    <ep:phrase ref="security_typename_">Anyone</ep:phrase>
     <ep:phrase ref="security_typename_validuser">Registered users only</ep:phrase>
     <ep:phrase ref="security_typename_staffonly">Archive staff only</ep:phrase>
 
@@ -319,6 +319,9 @@ terms.</p>
     <ep:phrase ref="page:available_versions"><h3>Available Versions of this Item</h3></ep:phrase>
     <ep:phrase ref="page:commentary_threads"><h3>Commentary/Response Threads</h3></ep:phrase>
 
+    <ep:phrase ref="page:abstract_intro"><h3>This is how the metadata summary page will look:</h3></ep:phrase>
+    <ep:phrase ref="page:allfields_intro"><h3>This is complete contents of all the fields in this eprint:</h3></ep:phrase>
+
     <ep:phrase ref="validate:missing_http">The URL given for <ep:pin ref="fieldname" /> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
     <ep:phrase ref="validate:need_description">Documents of type <em><ep:pin ref="type" /></em> need a description.</ep:phrase>
 
@@ -332,11 +335,14 @@ terms.</p>
 
 <p><ep:pin ref="confirmurl" /></p>
 
+<!--
+Not actually written yet!
 <p>Once you have confirmed your identity you may also subscribe to the E-Mail subscription service, to be automatically informed of new deposits in the archive in your chosen subject areas in a daily, weekly or monthly digest.</p>
 
 <p>You can create a subscription by visiting the following page:</p>
 
 <p>&perl_url;/users/subscribe</p>
+-->
 
 <p>Before you can start uploading papers, you need to fill out some personal
 details into the form at the following web site:</p>

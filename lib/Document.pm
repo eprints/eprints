@@ -413,16 +413,17 @@ sub get_eprint
 
 ######################################################################
 #
-# $url = url()
+# $get_url = get_url()
 #
 #  Return the full URL of the document.
 #
 ######################################################################
 
-## WP1: BAD
-sub url
+sub get_url
 {
-	my( $self ) = @_;
+	my( $self, $staff ) = @_;
+
+	# The $staff param is ignored.
 
 	my $eprint = $self->get_eprint();
 
@@ -865,54 +866,7 @@ sub commit
 	return( $success );
 }
 	
-sub render_link
-{
-	my( $self ) = @_;
 
-	my $a = $self->{session}->make_element( "a", href=>$self->url() );
-
-	$a->appendChild( $self->render_desc() );
-
-	my $security = $self->get_value( "security" );
-	if( $security eq "public" )
-	{
-		return $a;
-	}
-
-	my $frag = $self->{session}->make_doc_fragment();
-	my $secfield = $self->{dataset}->get_field( "security" );
-	$frag->appendChild( $a );
-	$frag->appendChild( $self->{session}->make_text( " (" ) );
-	$frag->appendChild( 
-		$secfield->render_value( $self->{session}, $security ) );
-	$frag->appendChild( $self->{session}->make_text( ")" ) );
-	return $frag;
-}
-
-sub render_desc
-{
-	my( $self ) = @_;
-
-	my $dataset = $self->{session}->get_archive()->get_dataset( "document" );
-
-	my $desc = $self->{session}->make_doc_fragment();
-
-	my $format = $self->get_value( "format" );
-	if( !defined $format )
-	{
-		$desc->appendChild( $self->{session}->make_text( "??" ) );
-	}
-	else
-	{
-		$desc->appendChild( $dataset->render_type_name( $self->{session}, $format ) ); 
-	}
-	my $formatdesc = $self->get_value( "formatdesc" );
-	if( defined $formatdesc )
-	{
-		$desc->appendChild( $self->{session}->make_text( " (".$formatdesc.")" ) );
-	}
-	return $desc;
-}
 
 sub validate
 {
@@ -962,5 +916,13 @@ sub render_value
 	
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
+
+sub get_type
+{
+	my( $self ) = @_;
+
+	return $self->get_value( "format" );
+}
+
 
 1;

@@ -28,6 +28,8 @@ use XML::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
 use strict;
 
+use EPrints::Latex;
+
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
 
@@ -417,7 +419,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "series", type => "text" },
 
-	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1 },
+	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1, browse_link => "subjects" },
 
 	{ name => "thesistype", type => "text" },
 
@@ -463,8 +465,8 @@ $c->{archivefields}->{document} = [
 # subject or allowing null in this case.
 $c->{browse_views} = [
 	{ id=>"year", allow_null=>1, fields=>"year", order=>"title/authors" },
-	{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1, nowrapper=>1 }
-	#{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1, nowrapper=>1 }
+	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
 # Number of results to display on a single search results page
@@ -1044,29 +1046,25 @@ sub extract_words
 
 ######################################################################
 #
-# $xhtmlfragment = eprint_render( $eprint, $session, $show_all )
+# $xhtmlfragment = eprint_render( $eprint, $session )
 #
 ######################################################################
 # $eprint
 # - the EPrints::User to be rendered
 # $session
 # - the current EPrints::Session
-# $show_all
-# - a boolean (1 or 0) which if set to 1 indicates we should render
-# ALL the fields, not just the publicly visible ones (ie. the staff
-# view)
 #
-# returns: $xhtmlfragment
-# - a XHTML DOM fragment 
+# returns: ( $xhtmlfragment, $title )
+# - a pair of XHTML DOM fragments - the page and the title.
 ######################################################################
 # This subroutine takes an eprint object and renders the XHTML view
-# of this user for either public or private viewing.
+# of this eprint for public viewing.
 #
 ######################################################################
 
 sub eprint_render
 {
-	my( $eprint, $session, $show_all ) = @_;
+	my( $eprint, $session ) = @_;
 
 	my $succeeds_field = $session->get_archive()->get_dataset( "eprint" )->get_field( "succeeds" );
 	my $commentary_field = $session->get_archive()->get_dataset( "eprint" )->get_field( "commentary" );
@@ -1098,7 +1096,7 @@ sub eprint_render
 				"page:not_latest_version",
 				link => $session->make_element(
 					"a",
-					href => $latest->static_page_url() 
+					href => $latest->get_url() 
 								) ) );
 		}
 	}		
@@ -1111,7 +1109,7 @@ sub eprint_render
 	foreach( @documents )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
-		$p->appendChild( $_->render_link() );
+		$p->appendChild( $_->render_citation_link() );
 	}
 	$page->appendChild( $p );
 
@@ -1124,7 +1122,7 @@ sub eprint_render
 			$session->html_phrase( "eprint_fieldname_abstract" ) );
 	
 		$p = $session->make_element( "p" );
-		$p->appendChild( $eprint->render_value( "abstract", $show_all ) );
+		$p->appendChild( $eprint->render_value( "abstract" ) );
 		$page->appendChild( $p );
 	}
 	
@@ -1156,19 +1154,19 @@ sub eprint_render
 		$table->appendChild( _render_row(
 			$session,
 			$session->html_phrase( "eprint_fieldname_keywords" ),
-			$eprint->render_value( "keywords", $show_all ) ) );
+			$eprint->render_value( "keywords" ) ) );
 	}
 
 	# Subjects...
 	$table->appendChild( _render_row(
 		$session,
 		$session->html_phrase( "eprint_fieldname_subjects" ),
-		$eprint->render_value( "subjects", $show_all ) ) );
+		$eprint->render_value( "subjects" ) ) );
 
 	$table->appendChild( _render_row(
 		$session,
 		$session->html_phrase( "page:id_code" ),
-		$eprint->render_value( "eprintid", $show_all ) ) );
+		$eprint->render_value( "eprintid" ) ) );
 
 	my $user = new EPrints::User( 
 			$eprint->{session},
@@ -1179,7 +1177,7 @@ sub eprint_render
 		$usersname = $session->make_element( "a", 
 				href=>$eprint->{session}->get_archive()->get_conf( "perl_url" )."/user?userid=".$user->get_value( "userid" ) );
 		$usersname->appendChild( 
-			$session->make_text( $user->full_name() ) );
+			$user->render_description() );
 	}
 	else
 	{
@@ -1194,7 +1192,7 @@ sub eprint_render
 	$table->appendChild( _render_row(
 		$session,
 		$session->html_phrase( "page:deposited_on" ),
-		$eprint->render_value( "datestamp", $show_all ) ) );
+		$eprint->render_value( "datestamp" ) ) );
 
 	# Alternative locations
 	if( defined $eprint->get_value( "altloc" ) )
@@ -1202,7 +1200,7 @@ sub eprint_render
 		$table->appendChild( _render_row(
 			$session,
 			$session->html_phrase( "eprint_fieldname_altloc" ),
-			$eprint->render_value( "altloc", $show_all ) ) );
+			$eprint->render_value( "altloc" ) ) );
 	}
 
 	# Now show the version and commentary response threads
@@ -1222,37 +1220,90 @@ sub eprint_render
 			$eprint->render_version_thread( $commentary_field ) );
 	}
 
-	# If being viewed by a staff member, we want to show any suggestions for
-	# additional subject categories
-	if( $show_all )
-	{
-		# Show all the other fields
-		$page->appendChild( $session->render_ruler() );
-		$table = $session->make_element( "table",
-					border=>"0",
-					cellpadding=>"3" );
-		$page->appendChild( $table );
-		my $field;
-		foreach $field ( $eprint->get_dataset()->get_type_fields(
-			  $eprint->get_value( "type" ) ) )
-		{
-			$table->appendChild( _render_row(
-				$session,
-				$session->make_text( 
-					$field->display_name( $session ) ),	
-				$eprint->render_value( 
-					$field->get_name(), 
-					$show_all ) ) );
+	my $title = $eprint->render_description();
 
-		}
-	}
-			
-
-	my $title = eprint_render_short_title( $eprint );
-
-	return( $page, EPrints::Utils::tree_to_utf8( $title ) );
+	return( $page, $title );
 }
 
+######################################################################
+#
+# $xhtmlfragment = eprint_render_full( $eprint, $session )
+#
+######################################################################
+# $eprint
+# - the EPrints::User to be rendered
+# $session
+# - the current EPrints::Session
+#
+# returns: $xhtmlfragment
+# - a pair of XHTML DOM fragments - the page and the title.
+######################################################################
+# This subroutine takes an eprint object and renders the XHTML view
+# of this eprint for viewing by editors and the person depositing
+# it. It should show all fields so they can be approved/checked.
+# 
+# By default it uses eprint_render to generate a view of the normal
+# abstract page.
+#
+######################################################################
+
+sub eprint_render_full
+{
+	my( $eprint, $session ) = @_;
+
+	my( $page, $p, $a );
+	$page = $session->make_doc_fragment;
+
+	$page->appendChild( $session->html_phrase( 
+		"page:abstract_intro" ) );
+
+	my( $table, $tr, $td );
+	$table = $session->make_element( "table", border=>1, cellpadding=>20 );
+	$page->appendChild( $table );
+	my( $abstractpage, $title ) = eprint_render( $eprint, $session );
+
+	$tr = $session->make_element( "tr" );
+	$td = $session->make_element( "td", bgcolor=>"#e0e0e0" );
+	$table->appendChild( $tr );
+	$tr->appendChild( $td );
+	$td->appendChild( $abstractpage );
+
+	# Show all the other fields
+	$page->appendChild( $session->html_phrase( 
+		"page:allfields_intro" ) );
+	$table = $session->make_element( "table",
+				border=>"0",
+				cellpadding=>"3" );
+	$page->appendChild( $table );
+	my $field;
+	foreach $field ( $eprint->get_dataset()->get_type_fields(
+		  $eprint->get_value( "type" ) ) )
+	{
+		$table->appendChild( _render_row(
+			$session,
+			$session->make_text( 
+				$field->display_name( $session ) ),	
+			$eprint->render_value( 
+				$field->get_name(), 
+				1 ) ) );
+
+	}
+
+	return( $page, $title );			
+}
+
+######################################################################
+#
+# $dom_tr = _render_row( $session, $key, $value )
+#
+######################################################################
+# Used by eprint_render, user_render_full and eprint_render_full to 
+# turn a key and value into an html table row. 
+#
+# Returns DOM representing:
+# <tr><th>$key:</th><td>$value</td></tr>
+#
+######################################################################
 
 sub _render_row
 {
@@ -1285,178 +1336,133 @@ sub _render_row
 # - the EPrints::User to be rendered
 # $session
 # - the current EPrints::Session
-# $show_all
-# - a boolean (1 or 0) which if set to 1 indicates we should render
-# ALL the fields, not just the publicly visible ones (ie. the staff
-# view)
 #
 # returns: $xhtmlfragment
 # - a XHTML DOM fragment 
 ######################################################################
 # This subroutine takes a user object and renders the XHTML view
-# of this user for either public or private viewing.
+# of this user for public viewing.
 #
 ######################################################################
 
 
 sub user_render
 {
-	my( $user, $session, $show_all ) = @_;
+	my( $user, $session ) = @_;
 
 	my $html;	
 
 	my( $info, $p, $a );
 	$info = $session->make_doc_fragment;
 
-	if( !$show_all )
+	# Render the public information about this user.
+	$p = $session->make_element( "p" );
+	$p->appendChild( $user->render_description() );
+	# Address, Starting with dept. and organisation...
+	if( defined $user->get_value( "dept" ) )
 	{
-		# Render the public information about this user.
-		$p = $session->make_element( "p" );
-		$p->appendChild( $session->make_text( $user->full_name() ) );
-		# Address, Starting with dept. and organisation...
-		if( defined $user->get_value( "dept" ) )
-		{
-			$p->appendChild( $session->make_element( "br" ) );
-			$p->appendChild( $user->render_value( "dept" ) );
-		}
-		if( defined $user->get_value( "org" ) )
-		{
-			$p->appendChild( $session->make_element( "br" ) );
-			$p->appendChild( $user->render_value( "org" ) );
-		}
-		if( defined $user->get_value( "address" ) )
-		{
-			$p->appendChild( $session->make_element( "br" ) );
-			$p->appendChild( $user->render_value( "address" ) );
-		}
-		if( defined $user->get_value( "country" ) )
-		{
-			$p->appendChild( $session->make_element( "br" ) );
-			$p->appendChild( $user->render_value( "country" ) );
-		}
-		$info->appendChild( $p );
-		
+		$p->appendChild( $session->make_element( "br" ) );
+		$p->appendChild( $user->render_value( "dept" ) );
+	}
+	if( defined $user->get_value( "org" ) )
+	{
+		$p->appendChild( $session->make_element( "br" ) );
+		$p->appendChild( $user->render_value( "org" ) );
+	}
+	if( defined $user->get_value( "address" ) )
+	{
+		$p->appendChild( $session->make_element( "br" ) );
+		$p->appendChild( $user->render_value( "address" ) );
+	}
+	if( defined $user->get_value( "country" ) )
+	{
+		$p->appendChild( $session->make_element( "br" ) );
+		$p->appendChild( $user->render_value( "country" ) );
+	}
+	$info->appendChild( $p );
 	
-		## E-mail and URL last, if available.
-		if( $user->get_value( "hideemail" ) ne "TRUE" )
-		{
-			if( defined $user->get_value( "email" ) )
-			{
-				$p = $session->make_element( "p" );
-				$p->appendChild( $user->render_value( "email" ) );
-				$info->appendChild( $p );
-			}
-		}
 
-		if( defined $user->get_value( "url" ) )
+	## E-mail and URL last, if available.
+	if( $user->get_value( "hideemail" ) ne "TRUE" )
+	{
+		if( defined $user->get_value( "email" ) )
 		{
 			$p = $session->make_element( "p" );
-			$p->appendChild( $user->render_value( "url" ) );
+			$p->appendChild( $user->render_value( "email" ) );
 			$info->appendChild( $p );
 		}
-		
 	}
-	else
+
+	if( defined $user->get_value( "url" ) )
 	{
-		# Show all the fields
-		my( $table );
-		$table = $session->make_element( "table",
-					border=>"0",
-					cellpadding=>"3" );
-
-		my @fields = $user->get_dataset()->get_fields( $user->get_value( "usertype" ) );
-		my $field;
-		foreach $field ( @fields )
-		{
-			my $name = $field->get_name();
-			# Skip fields which are only used by eprints internals
-			# and would just confuse the issue to print
-			next if( $name eq "newemail" );
-			next if( $name eq "newpassword" );
-			next if( $name eq "pin" );
-			next if( $name eq "pinsettime" );
-			$table->appendChild( _render_row(
-				$session,
-				$session->make_text( 
-					$field->display_name( $session ) ),	
-				$user->render_value( 
-					$field->get_name(), 
-					$show_all ) ) );
-
-		}
-		$info->appendChild( $table );
-			
-	}	
+		$p = $session->make_element( "p" );
+		$p->appendChild( $user->render_value( "url" ) );
+		$info->appendChild( $p );
+	}
+		
 
 	return( $info );
 }
 
-
 ######################################################################
 #
-# $title = eprint_render_short_title( $eprint )
+# $xhtmlfragment = user_render_full( $user, $session )
 #
 ######################################################################
 # $user
-# - the EPrints::EPrint in question
+# - the EPrints::User to be rendered
+# $session
+# - the current EPrints::Session
 #
-# returns: $title
-# - a UTF-8 encoded string
-#
+# returns: $xhtmlfragment
+# - a XHTML DOM fragment 
 ######################################################################
-#  Return a short title to describe this eprint. Used to list eprints
-#  in the submission process. 
+# This subroutine takes a user object and renders the XHTML view
+# of this user for viewing by system admins. It should show all
+# the information.
 #
 ######################################################################
 
-sub eprint_render_short_title
+
+sub user_render_full
 {
-	my( $eprint ) = @_;
-	
-	if( !defined $eprint->get_value( "title" ) )
+	my( $user, $session ) = @_;
+
+	my $html;	
+
+	my( $info, $p, $a );
+	$info = $session->make_doc_fragment;
+
+	# Show all the fields
+	my( $table );
+	$table = $session->make_element( "table",
+					border=>"0",
+					cellpadding=>"3" );
+
+	my @fields = $user->get_dataset()->get_fields( $user->get_value( "usertype" ) );
+	my $field;
+	foreach $field ( @fields )
 	{
-		# EPrint has no title field? Return it's ID then.
-		#cjg LANGIT!
-		return $eprint->get_session()->make_text( 
-			"Untitled ".$eprint->get_value( "eprintid" ) );
+		my $name = $field->get_name();
+		# Skip fields which are only used by eprints internals
+		# and would just confuse the issue to print
+		next if( $name eq "newemail" );
+		next if( $name eq "newpassword" );
+		next if( $name eq "pin" );
+		next if( $name eq "pinsettime" );
+		$table->appendChild( _render_row(
+			$session,
+			$session->make_text( 
+				$field->display_name( $session ) ),	
+			$user->render_value( 
+				$field->get_name(), 
+				$show_all ) ) );
+
 	}
-
-	return( $eprint->render_value( "title" ) );
+	$info->appendChild( $table );
+	
+	return $info;
 }
-
-
-######################################################################
-#
-# $name = user_display_name( $user )
-#
-######################################################################
-# $user
-# - the EPrints::User in question
-#
-# returns: $name
-# - a UTF-8 encoded string
-#
-######################################################################
-#  Return the user's name in a form appropriate for display.
-#
-######################################################################
-
-sub user_display_name
-{
-	my( $user ) = @_;
-
-	my $name = $user->get_value( "name" );
-
-	if( !defined $name || !EPrints::Utils::is_set( $name->{family} ) )
-	{
-		# No family name, or no name at all? Just return the username.
-		return( "User ".$user->get_value( "username" ) );
-		#langify cjg
-	} 
-
-	return( EPrints::Utils::format_name( $user->get_session(), $name, 1 ) );
-}
-
 
 ######################################################################
 #
@@ -1648,7 +1654,7 @@ sub make_metadata_oai_dc
 	$dc->appendChild(  $session->render_data_element( 
 		8,
 		"identifier",
-		$eprint->static_page_url() ) );
+		$eprint->get_url() ) );
 
 	return $dc;
 }
@@ -1856,7 +1862,7 @@ sub validate_document
 	{
 		push @problems, $session->html_phrase( 
 					"validate:need_description" ,
-					type=>$document->render_desc() );
+					type=>$document->render_description() );
 	}
 
 	return( @problems );
@@ -1978,7 +1984,7 @@ sub set_document_defaults
 {
 	my( $data, $session, $eprint ) = @_;
 
-	$data->{security} = "public";
+	$data->{security} = "";
 	$data->{language} = $session->get_langid();
 }
 
@@ -2112,7 +2118,7 @@ sub can_user_view_document
 	# Add/remove types of security in metadata-types.xml
 
 	# Trivial cases:
-	return( 1 ) if( $security eq "public" );
+	return( 1 ) if( $security eq "" );
 	return( 1 ) if( $security eq "validuser" );
 	
 	if( $security eq "staffonly" )

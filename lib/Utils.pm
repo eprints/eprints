@@ -120,9 +120,7 @@ sub get_month_label
 }
 
 
-#cjg some kind of callback affair?
-#cjg need session?
-sub format_name
+sub render_name
 {
 	my( $session, $name, $familylast ) = @_;
 
@@ -148,10 +146,10 @@ sub format_name
 	
 	if( $familylast )
 	{
-		return $firstbit." ".$secondbit;
+		return $session->make_text( $firstbit." ".$secondbit );
 	}
 	
-	return $secondbit.", ".$firstbit;
+	return $session->make_text( $secondbit.", ".$firstbit );
 }
 
 ######################################################################
@@ -393,10 +391,16 @@ sub tree_to_utf8
 {
         my( $node, $width, $pre ) = @_;
 
+	if( substr(ref($node) , 0, 8 ) ne "XML::DOM" )
+	{
+		print STDERR "Oops. tree_to_utf8 got as a node: $node\n";
+	}
+
         if( defined $width )
         {
                 # If we are supposed to be doing an 80 character wide display
-                # then only do 78, so the last char does not force a line break.                $width = $width - 2;
+                # then only do 78, so the last char does not force a line break.                
+		$width = $width - 2;
         }
 
         my $name = $node->getNodeName;

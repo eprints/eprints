@@ -5,7 +5,7 @@
         xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ep="http://eprints.org/ep2/template">
   <head>
-    <title><ep:titlehere/></title>
+    <title><ep:titlehere textonly="yes" /></title>
     <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
     <link rel="Top" href="&frontpage;" />
     <link rel="Search" href="&perl_url;/search" />

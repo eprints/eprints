@@ -103,3 +103,53 @@ URL fields.
 [C] - displaylines renamed to input_rows
 
 
+26/01/2002
+
+ - added default_action to the render_input_form method and code to
+support it.
+ - added button order and default_action to all render_input_form calls
+where appropriate.
+ - fixed braino in new metafield properites handling. All metafields need
+a handle on the archive object, so those without a dataset must now have
+an archive set. Added archive values to all calls to MetaField->new
+ - added a client() method to Session which returns a code for the client,
+currently: GECKO, LYNX, MSIE4, MSIE5, MSIE6 and "?". Used this to test
+for lynx in the default action handler and not print the image button if 
+it is lynx (as lynx ALWAYS displays it, we want it hidden).
+
+28/01/2002
+
+ - new metafield property: browse_link - which is the id of the browse view
+it should link to when rendering.
+ - added "generic" citations handling, via DataObj render_description which
+replaces User::full_name and EPrint::short_title and Document::render_desc
+ - added new param to template title field: textonly="yes" to squash down
+the XHTML in the <title> into text only.
+ - moved render_citation and render_citation_link from Document, EPrint and
+User into DataObj. 
+ - added get_url to Document, EPrint and User - (renamed the functions
+static_url and url)
+ - buildpage now takes a title as DOM not UTF8 (so markup is preserved) -
+all calls have been changed.
+ - fixed a bug in the user mailer. Sent the DOM ref, not the text
+ - fixed a typo in edit_eprint which caused a 500 error
+ - added a get_type() method to  Document, EPrint and User, returns the
+type (as in which citation to use).
+ - removed start_html end_html and end_form from Session.
+[C] - split user_render and eprint_render into user_render, eprint_render,
+user_render_full, and eprint_render_full. eprint_render_full now looks alot
+better and puts the abstract page in a slightly darker box.
+[C] - removed ArchiveConfig.pm : eprint_render_short_title and 
+[C] - added "generic" citations to citations file: these have no type and
+are used to render a short (one-line) description.
+user_display_name. Now these are done as generic citations for those objects.
+[C] - added  textonly="yes" to the titlehere element in the <title> in the
+template.
+[C] - changed the ID of the public security setting from "public" to "" 
+this WILL cause some problems upgrading but
+UPDATE document SET security='' WHERE security='public';
+will fix it. It means in the document citations we can do ifset on "security".
+[C] - added document citations to the citations file - with advice on how
+to view PDF and PS.
+
+

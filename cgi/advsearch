@@ -31,7 +31,7 @@ my $searchexp = new EPrints::SearchExpression(
 my $preamble = $session->html_phrase( "cgi/advsearch:preamble" );
 
 $searchexp->process_webpage(
-	$session->phrase( "cgi/advsearch:adv_search" ),
+	$session->html_phrase( "cgi/advsearch:adv_search" ),
 	$preamble );
 
 $session->terminate; 

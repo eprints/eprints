@@ -76,7 +76,7 @@ if( defined $eprintid )
 	if( defined $eprint )
 	{
 		# ID is OK, so we can redirect to the abstract page
-		$session->{render}->redirect( $eprint->static_page_url() );
+		$session->{render}->redirect( $eprint->get_url() );
 	}
 	else
 	{

@@ -141,7 +141,7 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	}
 	$page->appendChild( $ul );
 	
-	$title = $session->phrase( "bin/generate_views:browsetitle" );
+	$title = $session->html_phrase( "bin/generate_views:browsetitle" );
 	$file = $tmpdir."/index.html";
 	$session->build_page( $title, $page );
 	$session->page_to_file( $file );
@@ -291,9 +291,9 @@ sub make_view_pages
 		{
 			$page->appendChild( $links );
 
-			$title = $session->phrase( "bin/generate_views:title", 
-					viewname=>$session->get_view_name( $ds, $info->{id} ),
-					value=>$fields[0]->get_value_label( $session, $value ) );
+			$title = $session->html_phrase( "bin/generate_views:title", 
+					viewname=>$session->make_text( $session->get_view_name( $ds, $info->{id} ) ),
+					value=>$session->make_text( $fields[0]->get_value_label( $session, $value ) ) );
 
 			$file = $dir."/".$fileid.".html";
 			$session->build_page( $title, $page );
@@ -334,8 +334,8 @@ sub make_view_pages
 		$page->appendChild( $ul );
 	}
 
-	$title = $session->phrase( "bin/generate_views:indextitle", 
-				viewname=>$session->get_view_name( $ds, $info->{id} ) ),
+	$title = $session->html_phrase( "bin/generate_views:indextitle", 
+				viewname=>$session->make_text( $session->get_view_name( $ds, $info->{id} ) ) ),
 
 	$file = $dir."/index.html";
 	$session->build_page( $title, $page );

@@ -124,7 +124,7 @@ sub process
 	
 
 	$session->build_page(
-		$session->phrase( "lib/userpage:title",
+		$session->html_phrase( "lib/userpage:title",
 				name=>$user->full_name() ), 
 		$page );
 	$session->send_page();

@@ -147,7 +147,6 @@
 
 
 #Clean UP
-#	Edit abstract renderer to add comments on how to view PS and PDF etc.#  NR
 #	print STDERR's should be log() NR
 #	Make SearchFields have a better call method. NR
 #	Put System field titles in system phrase file. NR
@@ -189,12 +188,26 @@
 # robots.txt file
 # metadata in LINKS for title, creator etc?
 
-# nice 404 / 401 pages.
+# nice 404 / 401 pages. NR
 
 # lose all die statements
 
 # MD5 LatexCache
 # Check Referer on LatexCache.?
 
-# OAI - cache timeouts.
-# OAI - pagesize.
+# OAI - cache timeouts. NR
+# OAI - pagesize. NR
+
+# Document form in 2 bits is confusing if bit 2 is off page. NR
+
+# Bounce and accept messages need to say which editor. NR
+
+# sub form: should say "new window" on "view files" NR
+
+# DOM: Status NR
+
+# Search -= cachecode not searchexp.
+
+# mail "From" to correct editor!
+
+#edit_user !!! bits not done

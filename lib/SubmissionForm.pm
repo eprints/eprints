@@ -968,7 +968,7 @@ sub _do_stage_type
 	) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_type" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_type" ),
 		$page );
 	$self->{session}->send_page();
 }
@@ -1052,7 +1052,7 @@ sub _do_stage_linking
 	) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_linking" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_linking" ),
 		$page );
 	$self->{session}->send_page();
 
@@ -1105,7 +1105,7 @@ sub _do_stage_meta
 			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_meta" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_meta" ),
 		$page );
 	$self->{session}->send_page();
 }
@@ -1166,7 +1166,7 @@ sub _do_stage_files
 			$table->appendChild( $tr );
 			$td = $self->{session}->make_element( "td" );
 			$tr->appendChild( $td );
-			$td->appendChild( $doc->render_desc() );
+			$td->appendChild( $doc->render_description() );
 			$td = $self->{session}->make_element( "td" );
 			$tr->appendChild( $td );
 			my %files = $doc->files();
@@ -1226,7 +1226,7 @@ sub _do_stage_files
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_format" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_format" ),
 		$page );
 	$self->{session}->send_page();
 
@@ -1428,7 +1428,7 @@ sub _do_stage_fileview
 
 		$a = $self->{session}->make_element( 
 			"a", 
-			href => $self->{document}->url(),
+			href => $self->{document}->get_url(),
 			target => "_blank" );
 		$form->appendChild(
 			$self->{session}->html_phrase(
@@ -1488,7 +1488,7 @@ sub _do_stage_fileview
 #
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_fileview" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_fileview" ),
 		$page );
 	$self->{session}->send_page();
 }
@@ -1569,7 +1569,7 @@ sub _do_stage_upload
 
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_upload" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_upload" ),
 		$page );
 	$self->{session}->send_page();
 }
@@ -1640,7 +1640,7 @@ sub _do_stage_verify
 			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_verify" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_verify" ),
 		$page );
 	$self->{session}->send_page();
 }		
@@ -1663,7 +1663,7 @@ sub _do_stage_done
 	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:thanks") );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_done" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_done" ),
 		$page );
 	$self->{session}->send_page();
 }
@@ -1684,7 +1684,7 @@ sub _do_stage_confirmdel
 	$page = $self->{session}->make_doc_fragment();
 
 	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete",
-		title=>$self->{eprint}->render_short_title() ) );
+		title=>$self->{eprint}->render_description() ) );
 
 	my $hidden_fields = {
 		stage => "confirmdel",
@@ -1707,7 +1707,7 @@ sub _do_stage_confirmdel
 			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
-		$self->{session}->phrase( "lib/submissionform:title_confirmdel" ),
+		$self->{session}->html_phrase( "lib/submissionform:title_confirmdel" ),
 		$page );
 	$self->{session}->send_page();
 }	

@@ -174,7 +174,7 @@ elsif( $best_size < $session->get_archive()->get_conf( "diskspace_warn_threshold
 			" Available space for new EPrints running low" ) );
 }
 
-$session->build_page( "Server Status", $html );
+$session->build_page( $session->make_text( "Server Status" ), $html );
 
 $session->send_page(); 
 

@@ -38,7 +38,7 @@ else
 {
 	#cjg How About Whole Lot on this page - all subjects?
 	$session->build_page( 
-		$session->phrase( "cgi/users/edit_subject:intro_title" ),
+		$session->html_phrase( "cgi/users/edit_subject:intro_title" ),
 		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
 			continuelink=>$session->make_element( "a", href=>"edit_subject?subjectid=".$EPrints::Subject::root_subject ) ) ); 
 	$session->send_page();
@@ -288,7 +288,7 @@ print STDERR "dEStROY\n";
 	$form->appendChild( $session->render_action_buttons( 
 		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
 
-	$title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subject->get_name() ), 
+	$title = $session->html_phrase( "cgi/users/edit_subject:title", subjectname=>$subject->get_name() ), 
 
 	$session->build_page( $title, $page );
 	$session->send_page();

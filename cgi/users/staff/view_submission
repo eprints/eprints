@@ -83,7 +83,7 @@ $form->appendChild( $session->render_action_buttons(
 $page->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
 
 $session->build_page(
-	$session->phrase( "cgi/users/view_submission:title" ), 
+	$session->html_phrase( "cgi/users/view_submission:title" ), 
 	$page );
 $session->send_page();
 

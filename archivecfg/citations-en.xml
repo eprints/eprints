@@ -9,10 +9,13 @@
 <ep:citations
         xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ep="http://eprints.org/ep2/citations">
+
 <!-- test citations -->
     <ep:citation type="eprint_misc"><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.<ep:iflink> [<ep:a>view</ep:a>]</ep:iflink></span></ep:citation>
     <ep:citation type="eprint_title_only"><tr><td>&title; [<ep:a>view</ep:a>]</td></tr></ep:citation>
 
+<!-- eprint citations -->
+    <ep:citation type="eprint"><ep:ifset name="title">&title;</ep:ifset><ep:ifnotset name="title">Untitled &eprintid;</ep:ifnotset></ep:citation>
 
     <ep:citation type="eprint_book"><ep:a><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:a></ep:citation>
 
@@ -46,10 +49,22 @@
 
     <ep:citation type="eprint_thread_commentary"><ep:a><span class="citation">&authors;. &title;. (deposited &datestamp;)</span></ep:a></ep:citation>
 
+<!-- user citations -->
+    <ep:citation type="user"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">User &username;</ep:ifnotset></ep:citation>
+
     <ep:citation type="user_admin"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
 
     <ep:citation type="user_editor"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
 
     <ep:citation type="user_user"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
+
+<!-- document citations -->
+    <ep:citation type="document"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifnotset name="format">??</ep:ifnotset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a></ep:citation>
+
+    <ep:citation type="document_html"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
+    <ep:citation type="document_ascii"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset></ep:citation>
+    <ep:citation type="document_ps"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset> - Requires a viewer, such as GhostView</ep:citation>
+
+    <ep:citation type="document_pdf"><ep:a><span class="documentcitation"><ep:ifset name="format">&format;</ep:ifset><ep:ifset name="formatdesc"> (&formatdesc;)</ep:ifset></span></ep:a><ep:ifset name="security"> - &security;</ep:ifset> - Requires <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a> or other PDF viewer.</ep:citation>
 
 </ep:citations>

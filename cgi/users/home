@@ -48,7 +48,7 @@ if( $ENV{PATH_INFO} ne "" )
 	
 my $user = $session->current_user;
 
-my $fullname = $user->full_name();
+my $fullname = $user->render_description();
 
 my $probs = $user->validate();
 my $valid_user = ( scalar @{$probs} == 0 );
@@ -192,7 +192,7 @@ if( $valid_user )
 $page->appendChild( $dl );
 
 $session->build_page( 
-		$session->phrase( "cgi/users/home:user_home", name => $fullname ),
+		$session->html_phrase( "cgi/users/home:user_home", name => $fullname ),
 		$page );
 $session->send_page();
 
@@ -259,7 +259,7 @@ sub render_workspace
 		my $id = $e->get_value( "eprintid" );
 		push @eprintids, $id;
 		$eprint_titles{$id} = EPrints::Utils::tree_to_utf8(
-					$e->render_short_title() );
+					$e->render_description() );
 	}
 
 	### Now put them in a form
@@ -334,7 +334,7 @@ sub render_pending
 		$table->appendChild( $tr );	
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );
-		$td->appendChild( $e->render_short_title() );
+		$td->appendChild( $e->render_description() );
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( $session->html_phrase( 

@@ -196,27 +196,6 @@ sub user_with_username
 
 ######################################################################
 #
-# $fullname = full_name()
-#   str
-#
-#  Returns the user's full name
-#
-######################################################################
-
-## WP1: BAD
-sub full_name
-{
-	my( $self ) = @_;
-
-	# Delegate to site-specific routine
-	return( $self->{session}->get_archive()->call(
-			"user_display_name",
-			$self ) );
-}
-
-
-######################################################################
-#
 # $problems = validate()
 #  array_ref
 #
@@ -440,30 +419,17 @@ sub is_owner
 
 sub mail
 {
-	my( $self,   $subjectid, $messageid,    %inserts ) = @_;
-	#   Session, string,     string OR DOM, string->DOM
+	my( $self,   $subjectid, $message ) = @_;
+	#   Session, string,     DOM,      
 
 	# Mail the admin in the default language
 	my $langid = $self->get_value( "lang" );
 	my $lang = $self->{session}->get_archive()->get_language( $langid );
-print STDERR "REF: ".ref($messageid)."\n";
-	my $message;
-	if( ref($message) eq "" )
-	{
-		print STDERR "BoNG\n";
-		$message = $lang->phrase( $messageid, \%inserts, $self->{session} );
-		print STDERR "BING\n";
-	}
-	else
-	{
-		$message = $messageid;
-	}
-
 
 	return EPrints::Utils::send_mail(
 		$self->{session}->get_archive(),
 		$langid,
-		$self->full_name(),
+		EPrints::Utils::tree_to_utf8( $self->render_description() ),
 		$self->get_value( "email" ),
 		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
 		$message,
@@ -485,7 +451,7 @@ sub render
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session}, 0 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session} );
 	
         return( $dom, $title );
 }
@@ -495,45 +461,29 @@ sub render_full
 {
         my( $self ) = @_;
 
-        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session}, 1 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render_full", $self, $self->{session} );
 
         return( $dom, $title );
 }
 
-sub render_citation_link
+sub get_url
 {
-	my( $self , $cstyle , $staff ) = @_;
-	my $url;
+	my( $self , $staff ) = @_;
 
-#cjg finish me!
 	if( defined $staff && $staff )
 	{
-		$url = $self->{session}->get_archive()->get_conf( "perl_url" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
+		return $self->{session}->get_archive()->get_conf( "perl_url" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
 
 	}
-	else
-	{
-		$url = $self->{session}->get_archive()->get_conf( "perl_url" )."/view_user?userid=".$self->get_value( "userid" );
-		$url = "???";
-	}
 
-	my $a = $self->{session}->make_element( "a", href=>$url );
-	$a->appendChild( $self->render_citation( $cstyle ) );
-
-	return $a;
+	return $self->{session}->get_archive()->get_conf( "perl_url" )."/view_user?userid=".$self->get_value( "userid" );
 }
 
-sub render_citation
+sub get_type
 {
-	my( $self , $cstyle ) = @_;
+	my( $self ) = @_;
 
-	my $stylespec = $self->{session}->get_citation_spec(
-					$self->{dataset},
-					(defined $cstyle?$cstyle:$self->get_value( "usertype" ) ) );
-
-	EPrints::Utils::render_citation( $self , $stylespec );
+	return $self->get_value( "usertype" );
 }
-
-	
 
 1;

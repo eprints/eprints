@@ -173,9 +173,13 @@ sub bounce_form
 		rows => 20,
 		cols => 60,
 		wrap => "virtual" );
+
+	# remove any markup:
+	my $title = $session->make_text( EPrints::Utils::tree_to_utf8( $eprint->render_description() ) );
+
 	$textarea->appendChild( $session->html_phrase(
 		( $delete ? "mail_delete_reason" : "mail_bounce_reason" ),
-		title => $eprint->render_short_title() ) );
+		title => $title ) );
 	$div->appendChild( $textarea );
 	$form->appendChild( $div );
 
@@ -188,7 +192,7 @@ sub bounce_form
 	$page->appendChild( $form );
 
 	$session->build_page(
-		$session->phrase( "cgi/users/edit_submission:title_".( $delete ? "delete" : "bounce" )."_form" ),
+		$session->html_phrase( "cgi/users/edit_submission:title_".( $delete ? "delete" : "bounce" )."_form" ),
 		$page );
 	$session->send_page();
 }

@@ -27,7 +27,7 @@ my $searchexp = new EPrints::SearchExpression(
 
 my $preamble = $session->html_phrase( "cgi/search:preamble" );
 
-my $title = $session->phrase( "cgi/search:simple_search" );
+my $title = $session->html_phrase( "cgi/search:simple_search" );
 
 $searchexp->process_webpage( $title, $preamble );
 

@@ -38,7 +38,7 @@ my $searchexp = new EPrints::SearchExpression(
 
 my $preamble = $session->html_phrase( "cgi/users/eprint_search:preamble" );
 
-my $title = $session->phrase( "cgi/users/eprint_search:title" );
+my $title = $session->html_phrase( "cgi/users/eprint_search:title" );
 
 $searchexp->process_webpage( $title, $preamble );
 

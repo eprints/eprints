@@ -913,7 +913,7 @@ sub process_webpage
 
 			
 		$self->{session}->build_page( 
-			$self->{session}->phrase( 
+			$self->{session}->html_phrase( 
 					"lib/searchexpression:results_for", 
 					title => $title ),
 			$page,

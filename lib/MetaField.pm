@@ -63,6 +63,8 @@ my @monthkeys = (
 
 my $PROPERTIES = 
 {
+	browse_link => 1,
+	confid => -1,
 	datasetid => -1,
 	digits => 1,
 	input_rows => 1,
@@ -471,12 +473,10 @@ sub _render_value1
 	}
 	else
 	{
-#print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
-#cjg fix links to views!
-		if( $self->{browse} && !$nolink)
+		if( defined $self->{browse_link} && !$nolink)
 		{
 			my $url = $session->get_archive()->get_conf( "base_url" ).
-					"/view/".$self->get_name()."/".$value.".html";
+					"/view/".$self->{browse_link}."/".$value.".html";
 			my $a = $session->make_element( "a", href=>$url );
 			$a->appendChild( $rendered );
 			return $a;
@@ -574,8 +574,7 @@ sub _render_value3
 
 	if( $self->is_type( "name" ) )
 	{
-		return $session->make_text(
-			EPrints::Utils::format_name( $session,  $value ) );
+		return EPrints::Utils::render_name( $session,  $value );
 	}
 
 	if( $self->is_type( "date" ) )
@@ -1722,6 +1721,7 @@ sub get_property_default
 
 	return "subjects" if( $property eq "top" );
 
+	return undef if( $property eq "browse_link" );
 	return undef if( $property eq "confid" );
 	return undef if( $property eq "fromform" );
 	return undef if( $property eq "toform" );

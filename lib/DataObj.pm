@@ -86,14 +86,63 @@ sub render_value
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
 
+sub render_citation
+{
+	my( $self , $cstyle , $url ) = @_;
+
+	unless( defined $cstyle )
+	{
+		$cstyle=$self->get_type();
+	}
+
+	my $stylespec = $self->{session}->get_citation_spec(
+					$self->{dataset},
+					$cstyle );
+
+	EPrints::Utils::render_citation( $self , $stylespec , $url );
+}
+
+sub render_citation_link
+{
+	my( $self , $cstyle , $staff ) = @_;
+
+	my $url = $self->get_url( $staff );
+	
+	my $citation = $self->render_citation( $cstyle, $url );
+
+	return $citation;
+}
 
 
+sub render_description
+{
+	my( $self ) = @_;
 
-# Things what could go here maybe...
+
+	my $stylespec = $self->{session}->get_citation_spec(
+					$self->{dataset} );
+				
+	return EPrints::Utils::render_citation( $self , $stylespec );
+}
+
+sub get_url
+{
+	my( $self , $staff ) = @_;
+
+	return "EPrints::DataObj::get_url should have been over-ridden.";
+}
+
+sub get_type
+{
+	my( $self , $staff ) = @_;
+
+	return "EPrints::DataObj::get_type should have been over-ridden.";
+}
+
+
+# Things what could maybe go here maybe...
 
 # commit 
-
-# render_citation (_link)
 
 # remove
 
