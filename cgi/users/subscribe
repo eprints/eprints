@@ -31,7 +31,7 @@ if( !defined $user )
 {
 	# Can't find the user
 	$session->{render}->render_error( 
-		$session->{lang}->phrase( "dont_know_you" ),
+		$session->{lang}->phrase( "cgi/users/subscribe:dont_know_you" ),
 	        $session->{site}->{frontpage} );
 	$session->terminate();
 	Apache::exit( 0 );
@@ -44,9 +44,9 @@ my $subscription = undef;
 
 $subscription = $all_subs[0] if( scalar @all_subs > 0 );
 
-$action_subscribe = $session->{lang}->phrase( "F:subscribe" );
-$action_create    = $session->{lang}->phrase( "F:create" );
-$action_remove    = $session->{lang}->phrase( "F:remove" );
+$action_subscribe = $session->{lang}->phrase( "cgi/users/subscribe:subscribe" );
+$action_create    = $session->{lang}->phrase( "cgi/users/subscribe:create" );
+$action_remove    = $session->{lang}->phrase( "cgi/users/subscribe:remove" );
 
 # Do we have an action?
 my $action = $session->{render}->param( "submit" );
@@ -81,9 +81,9 @@ elsif( defined $action && $action eq $action_create )
 	if( !defined $subscription )
 	{		
 		$session->{render}->render_error(
-			$session->{lang}->phrase( "H:mk_sub_error" ),
+			$session->{lang}->phrase( "cgi/users/subscribe:mk_sub_error" ),
 			"$session->{site}->{server_perl}/users/home",
-			$session->{lang}->phrase( "H:return_dep" ) );
+			$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
 	}
 	else
 	{
@@ -104,9 +104,9 @@ elsif( defined $action && $action eq $action_remove )
 		else
 		{
 			$session->{render}->render_error(
-				$session->{lang}->phrase( "H:rm_sub_error" ),
+				$session->{lang}->phrase( "cgi/users/subscribe:rm_sub_error" ),
 				"$session->{site}->{server_perl}/users/home",
-				$session->{lang}->phrase( "H:return_dep" ) );
+				$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
 		}
 	}
 }
@@ -146,10 +146,10 @@ sub no_subscription
 
 
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:subscribe" ) );
+		$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
 	
 	print "<CENTER><P>";
-	print $session->{lang}->phrase( "H:no_sub" );
+	print $session->{lang}->phrase( "cgi/users/subscribe:no_sub" );
 	print "</P></CENTER>\n";
 	
 	print $session->{render}->start_form();
@@ -178,12 +178,12 @@ sub edit_subscription
 
 
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:subscribe" ) );
+		$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
 	
 	if( defined $problems )
 	{
 		print "<P>";
-		print $session->{lang}->phrase( "H:cant_accept" );
+		print $session->{lang}->phrase( "cgi/users/subscribe:cant_accept" );
 		print "</P>\n<UL>\n";
 		foreach (@$problems)
 		{
@@ -193,7 +193,7 @@ sub edit_subscription
 	}
 
 	print "<CENTER><P>";
-	print $session->{lang}->phrase( "H:please_enter" );
+	print $session->{lang}->phrase( "cgi/users/subscribe:please_enter" );
 	print "</P></CENTER>\n";
 	
 	print $session->{render}->start_form();
@@ -228,20 +228,20 @@ sub update_subscription
 	if( $success )
 	{
 		print $session->{render}->start_html( 
-			$session->{lang}->phrase( "H:subscribe" ) );
+			$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
 		print "<CENTER><P><STRONG>";
-		print $session->{lang}->phrase( "H:sub_accept" );
+		print $session->{lang}->phrase( "cgi/users/subscribe:sub_accept" );
 		print "</STRONG></P></CENTER>";
 		print "<CENTER><P><A HREF=\"$session->{site}->{server_perl}/users/home\">";
-		print $session->{lang}->phrase( "H:ret_deposit" );
+		print $session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" );
 		print "</A></P></CENTER>\n";
 		print $session->{render}->end_html();
 	}
 	else
 	{
 		$session->{render}->render_error(
-			$session->{lang}->phrase( "H:ud_sub_error" ),
+			$session->{lang}->phrase( "cgi/users/subscribe:ud_sub_error" ),
 			"$session->{site}->{server_perl}/users/home",
-			$session->{lang}->phrase( "H:ret_deposit" ) );
+			$session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" ) );
 	}
 }

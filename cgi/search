@@ -29,10 +29,10 @@ my $searchexp = new EPrints::SearchExpression(
 
 my $preamble = $session->make_element( "p" );
 my $a = $session->make_element( "a", href=>"advsearch" );
-$a->appendChild( $session->html_phrase( "adv_search" ) );
+$a->appendChild( $session->html_phrase( "cgi/search:adv_search" ) );
 $preamble->appendChild( $a );
 
-my $title = $session->phrase( "simple_search" );
+my $title = $session->phrase( "cgi/search:simple_search" );
 
 $searchexp->process_webpage( $title, $preamble );
 

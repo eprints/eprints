@@ -935,18 +935,18 @@ sub validate
 
 	if( scalar keys %files ==0 )
 	{
-		push @problems, $self->{session}->{lang}->phrase( "H:no_files" );
+		push @problems, $self->{session}->{lang}->phrase( "lib/document:no_files" );
 	}
 	elsif( !defined $self->{main} || $self->{main} eq "" )
 	{
 		# No file selected as main!
-		push @problems, $self->{session}->{lang}->phrase( "H:no_first" );
+		push @problems, $self->{session}->{lang}->phrase( "lib/document:no_first" );
 	}
 	elsif( $self->{format} eq $EPrints::Document::other &&
 		( !defined $self->{formatdesc} || $self->{formatdesc} eq "" ) )
 	{
 		# No description for an alternative format
-		push @problems, $self->{session}->{lang}->phrase( "H:no_desc" );
+		push @problems, $self->{session}->{lang}->phrase( "lib/document:no_desc" );
 	}
 		
 	# Site-specific checks

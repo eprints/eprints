@@ -42,18 +42,18 @@ if( $session->{render}->seen_form() )
 	# reasons.
 
 	print $session->{render}->start_html(
-		$session->{lang}->phrase( "H:rem_sent_title" ) );
+		$session->{lang}->phrase( "cgi/remind:rem_sent_title" ) );
 	print "<CENTER><P>";
 	print $session->{lang}->phrase( 
-		"H:sent_blurb",
+		"cgi/remind:sent_blurb",
 		"<A HREF=\"$session->{site}->{admin}\">.
-		  $session->{lang}->phrase( "H:site_admin" )."</A>" );
+		  $session->{lang}->phrase( "cgi/remind:site_admin" )."</A>" );
 
 	print "</P></CENTER>\n";
 		
 	print "<P><A HREF=\"$session->{site}->{frontpage}\">";
 	print $session->{lang}->phrase( 
-		"H:return_home",
+		"cgi/remind:return_home",
 		{sitename=>"$session->{site}->{siteinfo}} );
 	print "</A></P>\n";
 
@@ -62,10 +62,10 @@ if( $session->{render}->seen_form() )
 else
 {
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:form_title ) );
+		$session->{lang}->phrase( "cgi/remind:form_title ) );
 	
 	print "<CENTER><P>";
-	print $session->{lang}->phrase( "H:form_blurb );
+	print $session->{lang}->phrase( "cgi/remind:form_blurb );
 	print "</CENTER></P>\n";
 	
 	my $field = new EPrints::MetaField( "email:email::E-Mail Address:0:1:1" );
@@ -74,7 +74,7 @@ else
 	                                 {},
 	                                 1,
 	                                 0,
-	                                 [ $session->{lang}->phrase( "F:send" ) ] );
+	                                 [ $session->{lang}->phrase( "cgi/remind:send" ) ] );
 
 	print $session->{render}->end_html();
 }

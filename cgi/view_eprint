@@ -97,18 +97,18 @@ unless( defined $eprint || defined $deletion_record )
 	# one
 	$session->{render}->clear();
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:code_title" ) );
+		$session->{lang}->phrase( "cgi/view_eprint:code_title" ) );
 	
 	if( defined $eprintid_in && $eprintid_in ne "" )
 	{
 		# Write an error message if we got an invalid ID code in
 		print "<P ALIGN=\"CENTER\"><STRONG>";
-		print $session->{lang}->phrase( "H:invalid_code" );
+		print $session->{lang}->phrase( "cgi/view_eprint:invalid_code" );
 		print "</STRONG></P>\n";
 	}
 	
 	print "<P ALIGN=\"CENTER\">";
-	print $session->{lang}->phrase( "H:enter_code" );
+	print $session->{lang}->phrase( "cgi/view_eprint:enter_code" );
 	print "</P>\n";
 	
 	my $id_field = new EPrints::MetaField( "eprintid:text::EPrint ID Code::::" );
@@ -117,7 +117,7 @@ unless( defined $eprint || defined $deletion_record )
 	                                 {},
 	                                 1,
 	                                 0,
-	                                 [ $session->{lang}->phrase( "F:view_eprint" ) ] );
+	                                 [ $session->{lang}->phrase( "cgi/view_eprint:view_eprint" ) ] );
 
 	print $session->{render}->end_html();
 }

@@ -385,37 +385,18 @@ $c->{userauth} = {
 
 
 $c->{sitefields}->{user} = [
-	{
-		name => "name",
-		type => "name",
-		required => 1,
-		editable => 1
-	},
-	{
-		name => "dept",
-		type => "text",
-		required => 0,
-		editable => 1
-	},
-	{
-		name => "org",
-		type => "text",
-		required => 0,
-		editable => 1
-	},
-	{
-		name => "address",
-		type => "longtext",
-		displaylines => 5,
-		required => 0,
-		editable => 1
-	},
-	{
-		name => "oook",
-		type => "text",
-		editable => 1,
-		multiple => 1
-	},
+
+	{ name => "name", type => "name", required => 1, editable => 1 },
+
+	{ name => "dept", type => "text", required => 0, editable => 1 },
+
+	{ name => "org", type => "text", required => 0, editable => 1 },
+
+	{ name => "address", type => "longtext", displaylines => 5,
+		required => 0, editable => 1 },
+
+	{ name => "oook", type => "text", editable => 1, multiple => 1 },
+
 	{
 		name => "country",
 		type => "text",

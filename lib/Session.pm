@@ -131,7 +131,7 @@ sub new
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
-		$self->render_error( $self->phrase( "fail_db_connect" ) );
+		$self->render_error( $self->phrase( "lib/session:fail_db_connect" ) );
 	}
 
 #$self->{starttime} = gmtime( time );
@@ -239,12 +239,12 @@ sub mail_administrator
 
 	# cjg logphrase here will NOT do it no longer exists.
 	
-	my $message_body = "msg_at".gmtime( time );
+	my $message_body = "lib/session:msg_at".gmtime( time );
 	$message_body .= "\n\n$message\n";
 
 	EPrints::Mailer::send_mail(
 		$self,
-		 "site_admin" ,
+		 "lib/session:site_admin" ,
 		$self->{site}->{admin},
 		$subject,
 		$message_body );
@@ -978,7 +978,7 @@ sub render_error
 	if ( $self->{offline} )
 	{
 		print $self->phrase( 
-			"some_error",
+			"lib/session:some_error",
 			sitename=>$self->{session}->{site}->{sitename} );
 		print "\n\n";
 		print "$error_text\n\n";
@@ -1001,7 +1001,7 @@ sub render_error
 
 		$p = $self->make_element( "p" );
 		$p->appendChild( $self->html_phrase( 
-			"contact",
+			"lib/session:contact",
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
@@ -1019,7 +1019,7 @@ sub render_error
 		$page->appendChild( $p );
 
 		$self->build_page(	
-			$self->phrase( "error_title" ),
+			$self->phrase( "lib/session:error_title" ),
 			$page );
 
 		$self->send_page();
@@ -1035,7 +1035,7 @@ sub auth_check
 
 	if( !defined $user )
 	{
-		$self->render_error( $self->phrase( "no_login" ) );
+		$self->render_error( $self->phrase( "lib/session:no_login" ) );
 		return 0;
 	}
 
@@ -1048,7 +1048,7 @@ sub auth_check
 
 	unless( $user->has_priv( $resource ) )
 	{
-		$self->render_error( $self->phrase( "no_priv" ) );
+		$self->render_error( $self->phrase( "lib/session:no_priv" ) );
 		return 0;
 	}
 	return 1;

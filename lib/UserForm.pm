@@ -75,7 +75,7 @@ sub process
 
 		$p = $self->{session}->make_element( "p" );		
 		$p->appendChild( $self->{session}->html_phrase( 
-			"blurb", 
+			"lib/userform:blurb", 
 			star => $self->{session}->make_element(
 					"span",
 					class => "requiredstar" ) ) );	
@@ -88,7 +88,7 @@ sub process
 				"/register.html"  );
 		$p = $self->{session}->make_element( "p" );		
 		$p->appendChild( $self->{session}->html_phrase( 
-				"changeemail",
+				"lib/userform:changeemail",
 				registerlink => $a ) );	
 		$page->appendChild( $p );
 
@@ -96,7 +96,7 @@ sub process
 
 		$self->{session}->build_page(
 			$self->{session}->
-				phrase( "recfor", name => $full_name ),
+				phrase( "lib/userform:recfor", name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 
@@ -122,7 +122,7 @@ sub process
 
 		$p = $self->{session}->make_element( "p" );
 		$p->appendChild( 
-			$self->{session}->html_phrase( "formincorrect" ) );
+			$self->{session}->html_phrase( "lib/userform:formincorrect" ) );
 		$page->appendChild( $p );
 
 		$ul = $self->{session}->make_element( "ul" );
@@ -138,21 +138,21 @@ sub process
 
 		$p = $self->{session}->make_element( "p" );
 		$p->appendChild( 
-			$self->{session}->html_phrase( "completeform" ) );
+			$self->{session}->html_phrase( "lib/userform:completeform" ) );
 		$page->appendChild( $p );
 	
 		$page->appendChild( $self->_render_form() );
 
 		$self->{session}->build_page(
 			$self->{session}->
-				phrase( "recfor", name => $full_name ),
+				phrase( "lib/userform:recfor", name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 	}
 	else 
 	{
 		$self->{session}->render_error(
-			$self->{session}->phrase( "problemupdating" ),
+			$self->{session}->phrase( "lib/userform:problemupdating" ),
 			$self->{redirect} );
 	}
 }
@@ -188,7 +188,7 @@ sub _render_form
 	
 	my %hidden = ( "username"=>$self->{user}->get_value( "username" ) );
 
-	my $buttons = { update => $self->{session}->phrase( "update_record" ) };
+	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 
 	return $self->{session}->render_form( \@edit_fields,
 	                                      $self->{user}->getValues(),

@@ -244,7 +244,7 @@ sub render_subscription_form
 	
 	$html .= "<P>";
 #cjg
-	#$html .= $self->{session}}->phrase( "H:sendupdates",
+	#$html .= $self->{session}}->phrase( "lib/subscription:sendupdates",
 	           #{ howoften=>$self->{session}->{render}->input_field( 
 		        #EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
 		        #$self->{frequency} ) } );
@@ -509,11 +509,11 @@ sub process
 		# Don't send a mail if we've retrieved nothing
 		return( 1 ) if( scalar @eprints == 0 );
 
-		my $freqphrase = $self->{session}->phrase("M:$freq");
+		my $freqphrase = $self->{session}->phrase("lib/subscription:$freq");
 
 		# Put together the body of the message. First some blurb:
 		my $body = $self->{session}->phrase( 
-			   "M:blurb",
+			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
 			     sitename=>$self->{session}->{site}->{sitename},
 			     url=>"$self->{session}->{site}->{server_perl}/users/subscribe" );
@@ -523,11 +523,11 @@ sub process
 		$body .= "   ";
 		if ( scalar @eprints==1 )
 		{
-			$body .= $self->{session}->phrase( "M:newsub" ); 
+			$body .= $self->{session}->phrase( "lib/subscription:newsub" ); 
 		}
 		else
 		{
-			$body .= $self->{session}->phrase( "M:newsubs", 
+			$body .= $self->{session}->phrase( "lib/subscription:newsubs", 
 			                                   n=>scalar @eprints ); 
 		}
 		$body .= "\n\n\n";
@@ -545,7 +545,7 @@ sub process
 			$self->{session},
 		             $user->full_name(),
 		             $user->{email},
-			     $self->{session}->phrase( "S:subsubj" ),
+			     $self->{session}->phrase( "lib/subscription:subsubj" ),
 		             $body );
 
 		unless( $success )

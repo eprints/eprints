@@ -327,7 +327,7 @@ sub _write_version_thread_aux
 	if( $eprint->{eprintid} eq $eprint_shown->{eprintid} ) 
 	{
 		$html .= " <strong>[";
-		$html .= $self->{session}->phrase( "H:curr_disp" );
+		$html .= $self->{session}->phrase( "lib/session:curr_disp" );
 		$html .= "]</strong>";
 	}
 	
@@ -376,16 +376,16 @@ sub render_deleted_eprint
 		if( defined $deletion_record->{replacement} );
 	
 	my $html = $self->start_html( 
-		$self->{session}->phrase( "H:eprint_gone_title" ) );
+		$self->{session}->phrase( "lib/session:eprint_gone_title" ) );
 	
 	$html .= "<P>";
-	$html .= $self->{session}->phrase( "H:eprint_gone" );
+	$html .= $self->{session}->phrase( "lib/session:eprint_gone" );
 	$html .= "</P>\n";
 	
 	if( defined $replacement_eprint )
 	{
 		$html .= "<P>";
-		$html .= $self->{session}->phrase( "H:later_version" );
+		$html .= $self->{session}->phrase( "lib/session:later_version" );
 		$html .= "</P>\n";
 		$html .= "<P ALIGN=CENTER>";
 

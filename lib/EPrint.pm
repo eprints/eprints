@@ -291,8 +291,8 @@ print STDERR "(".$session->get_site()->get_conf( "local_document_root" )."/$_)($
 
 		# Argh! Running low on disk space overall.
 		$session->mail_administrator(
-			"S:diskout_sub" ,
-			"M:diskout"  );
+			"lib/eprint:diskout_sub" ,
+			"lib/eprint:diskout"  );
 print STDERR "oraok\n";
 		return( undef );
 	}
@@ -303,8 +303,8 @@ print STDERR "oraok\n";
 # cjg - not done this bit yet...
 #
 #		$session->mail_administrator(
-#			EPrints::Language::logphrase( "S:disklow_sub" ),
-#			EPrints::Language::logphrase( "M:disklow" ) );
+#			EPrints::Language::logphrase( "lib/eprint:disklow_sub" ),
+#			EPrints::Language::logphrase( "lib/eprint:disklow" ) );
 	}
 
 	# For now, just choose first
@@ -636,11 +636,11 @@ sub validate_type
 	# configured EPrint types
 	if( !defined $self->{type} || $self->{type} eq "" )
 	{
-		push @problems, $self->{session}->phrase( "H:no_type" );
+		push @problems, $self->{session}->phrase( "lib/eprint:no_type" );
 	}
 	elsif( !defined $self->{session}->{metainfo}->get_type_name( $self->{session} , "eprintid", $self->{type} ) )
 	{
-		push @problems, $self->{session}->phrase( "H:invalid_type" );
+		push @problems, $self->{session}->phrase( "lib/eprint:invalid_type" );
 	}
 	
 	return( \@problems );
@@ -676,7 +676,7 @@ sub validate_meta
 		                        	 $self->{$field->{name}} eq "" ) )
 		{
 			$problem = $self->{session}->phrase( 
-				"H:not_done_field" ,
+				"lib/eprint:not_done_field" ,
 				fieldname=>$field->displayname( $self->{session} ) );
 		}
 		else
@@ -704,7 +704,7 @@ sub validate_meta
 			if ( scalar @invalid > 0 )
 			{
 				$problem = $self->{session}->phrase(
-						"H:invalid_users",
+						"lib/eprint:invalid_users",
 				            	usernames=>join(", ",@invalid) );
 			}
 		}
@@ -753,7 +753,7 @@ sub validate_subject
 			    $self->{$field->{name}} eq ":" )
 			{
 				$problem = $self->{session}->phrase(
-						"H:least_one_sub" );
+						"lib/eprint:least_one_sub" );
 			}
 		}
 		else
@@ -801,7 +801,7 @@ sub validate_linking
 		unless( defined( $test_eprint ) )
 		{
 			push @problems, $self->{session}->phrase(
-				"H:invalid_succ",	
+				"lib/eprint:invalid_succ",	
 				field=>$succeeds_field->displayname( $self->{session} ) );
 		}
 
@@ -819,7 +819,7 @@ sub validate_linking
 #				if( !defined $user && $user->{
 
 				push @problems, $self->{session}->phrase(
-					"H:cant_succ" );
+					"lib/eprint:cant_succ" );
 			}
 		}
 	}
@@ -832,7 +832,7 @@ sub validate_linking
 		
 		unless( defined( $test_eprint ) ) { 
 			push @problems, $self->{session}->phrase(
-				"H:invalid_id",
+				"lib/eprint:invalid_id",
 				field=>$commentary_field->displayname( $self->{session} ) );
 		}
 
@@ -969,7 +969,7 @@ sub validate_documents
 
 	if( !$ok )
 	{
-		my $prob = $self->{session}->phrase( "H:need_a_format" );
+		my $prob = $self->{session}->phrase( "lib/eprint:need_a_format" );
 		$prob .= "<UL>\n";
 		foreach (@{$self->{session}->{required_formats}})
 		{

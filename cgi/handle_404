@@ -85,13 +85,13 @@ sub existing_record
 	my( $session, $eprint ) = @_;
 	
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:doc_not_found" ) );
+		$session->{lang}->phrase( "cgi/handle_404:doc_not_found" ) );
 
 	print "<P>";
-	print $session->{lang}->phrase( "H:file_not_found" );
+	print $session->{lang}->phrase( "cgi/handle_404:file_not_found" );
 	print "<CODE>$url</CODE></P>\n";
 	print "<P>";
-	print $session->{lang}->phrase( "H:looking_for" );
+	print $session->{lang}->phrase( "cgi/handle_404:looking_for" );
 	print "</P>\n";
 	print "<P ALIGN=CENTER>";
 	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
@@ -114,18 +114,18 @@ sub plain_404
 	my( $session ) = @_;
 
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:file_not_found" ) );
+		$session->{lang}->phrase( "cgi/handle_404:file_not_found" ) );
 	
 	my $url = $ENV{REDIRECT_URL};
 	print "<P>";
-	print $session->{lang}->phrase( "H:file_not_found" );
+	print $session->{lang}->phrase( "cgi/handle_404:file_not_found" );
 	print "<CODE>$url</CODE></P>\n";
 
 	print "<P>";	
 	print $session->{lang}->phrase( 
-		"H:blurb",
+		"cgi/handle_404:blurb",
 		"<a href=\"mailto:$session->{site}->{admin}\">".
-		  $session->{lang}->phrase( "H:site_admin" ).
+		  $session->{lang}->phrase( "cgi/handle_404:site_admin" ).
 		  "</a>" );
 	print "</P>\n";
 	

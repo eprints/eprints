@@ -5,7 +5,6 @@ As the changes get more atomic we can start doing a changelog and stuff.
 
 Things to do (Mike)
 
-	* finish turning fooBar to foo_bar
 	* rename all things in intl/english to have the suffix in  the file eg
 				lib_username_foo
 				bin_generate_abstracts_bar
@@ -21,6 +20,8 @@ Things to do (Mike)
 	* lose all $_ and give sensible named variables instead
 	* make MetaField->to_html render_value
 	* make SearchField->to_html render_input_field
+	* tidy up lemurprints.pm "big type lists"
+	# tidy up XML lemurprints citations. <IF></IF>
 	* make ALL DOM methods render_foo_bar
 	* rearrange large modules like Session.pm to be in sets, eg.
 		all CGI/param stuff together, all DOM stuff together
@@ -33,3 +34,4 @@ move done things to here :
 DONE:
 ===================================
 	* nothing yet
+	* finish turning fooBar to foo_bar

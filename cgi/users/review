@@ -32,7 +32,7 @@ if( !defined $user )
 {
 	# Can't find the user
 	$session->{render}->render_error( 
-		$session->{lang}->phrase( "H:dont_know_you" ),
+		$session->{lang}->phrase( "cgi/users/review:dont_know_you" ),
 	      	$session->{site}->{frontpage},
 	$session->terminate();
 	Apache::exit( 0 );
@@ -77,9 +77,9 @@ if( $session->{render}->seen_form() )
 				else
 				{
 					$session->{render}->render_error(
-						$session->{lang}->phrase( "H:cant_clone" ),
+						$session->{lang}->phrase( "cgi/users/review:cant_clone" ),
 						"home",
-						$session->{lang}->phrase( "H:deposit_page" ) );
+						$session->{lang}->phrase( "cgi/users/review:deposit_page" ) );
 				}
 
 				$page_written = 1;				
@@ -101,26 +101,26 @@ if( $session->{render}->seen_form() )
 unless( $page_written )
 {
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:review_title" ) );
+		$session->{lang}->phrase( "cgi/users/review:review_title" ) );
 	
 	if( $#eprints == -1 )
 	{
 		print "<CENTER><P><STRONG>";
-		print $session->{lang}->phrase( "H:no_docs" );
+		print $session->{lang}->phrase( "cgi/users/review:no_docs" );
 		print "</STRONG></P></CENTER>\n";
 		
 		print "<CENTER><P><A HREF=\"home\">";
-		print $session->{lang}->phrase( "H:ret_deposit" );
+		print $session->{lang}->phrase( "cgi/users/review:ret_deposit" );
 		print "</A></P></CENTER>\n";
 	}
 	else
 	{
 		print "<CENTER><P>";
-		print $session->{lang}->phrase( "H:blurb_below" );
+		print $session->{lang}->phrase( "cgi/users/review:blurb_below" );
 		print "</P></CENTER>\n";		
 
 		print "<CENTER><P>";
-		print $session->{lang}->phrase( "H:remove_info" );
+		print $session->{lang}->phrase( "cgi/users/review:remove_info" );
 		print "</P></CENTER>\n";		
 		
 		print $session->{render}->start_form();
@@ -128,7 +128,7 @@ unless( $page_written )
 
 		print "<CENTER><TABLE BORDER=1 CELLPADDING=3>\n";
 		print "<TR><TH><STRONG>";
-		print $session->{lang}->phrase( "H:document" );
+		print $session->{lang}->phrase( "cgi/users/review:document" );
 		print "</STRONG><TH></TH>";
 		if( $session->{site}->{allow_user_removal_request} ) 
 		{
@@ -143,14 +143,14 @@ unless( $page_written )
 				"</TD><TD>";
 			print $session->{render}->named_submit_button(
 				"clone_$_->{eprintid}",
-				$session->{lang}->phrase( "F:clone" ) );
+				$session->{lang}->phrase( "cgi/users/review:clone" ) );
 
 			if( $session->{site}->{allow_user_removal_request} )
 			{
 				print "</TD><TD>";
 				print $session->{render}->named_submit_button(
 					"remove_$_->{eprintid}", 
-					$session->{lang}->phrase( "F:req_remove" ) );
+					$session->{lang}->phrase( "cgi/users/review:req_remove" ) );
 			}
 
 			print "</TD></TR>\n";
@@ -180,14 +180,14 @@ sub removal_request_form
 	my( $session, $eprint ) = @_;
 	
 	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "H:remove_title" ) );
+		$session->{lang}->phrase( "cgi/users/review:remove_title" ) );
 	
 	print "<P><EM>";
-	print $session->{lang}->phrase( "H:remove_blurb" ) );
+	print $session->{lang}->phrase( "cgi/users/review:remove_blurb" ) );
 	print "</EM></P>\n";
 	
 	print "<P>";
-	print $session->{lang}->phrase( "H:removing" ) );
+	print $session->{lang}->phrase( "cgi/users/review:removing" ) );
 	print "</P>\n<P>";
 	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
 	print "</P>\n";
@@ -204,8 +204,8 @@ sub removal_request_form
 		0,
 		1,
 		[ 
-			$session->{lang}->phrase( "F:send_req" ),
-			$session->{lang}->phrase( "F:cancel" )
+			$session->{lang}->phrase( "cgi/users/review:send_req" ),
+			$session->{lang}->phrase( "cgi/users/review:cancel" )
 		],
 		{ "eprint_id" => $eprint->{eprintid} } );
 	
@@ -237,17 +237,17 @@ sub handle_removal_request
 	        $eprint->{username} eq $user->{username} )
 	{
 		$session->{render}->render_error(
-			$session->{lang}->phrase( "H:cant_find_it" ),
+			$session->{lang}->phrase( "cgi/users/review:cant_find_it" ),
 			"home",
-			$session->{lang}->phrase( "H:deposit_page" ) );
+			$session->{lang}->phrase( "cgi/users/review:deposit_page" ) );
 		return( 1 );
 	}
 	
 	if( $session->{render}->param( "submit") eq 
-		$session->{lang}->phrase( "F:send_req" ) 
+		$session->{lang}->phrase( "cgi/users/review:send_req" ) 
 	{
 		my $msg = $session->{lang}->phrase( 
-			"M:remove_mail",
+			"cgi/users/review:remove_mail",
 			{ user=>$user->full_name(),
 			email=>$user->{email} } )."\n\n";
 		$msg .= $session->{render}->render_eprint_citation( $eprint, 0, 0 );
@@ -257,21 +257,21 @@ sub handle_removal_request
 
 		if( defined $reason && $reason ne "" )
 		{
-			$msg .= $session->{lang}->phrase( "M:reason" );
+			$msg .= $session->{lang}->phrase( "cgi/users/review:reason" );
 			$msg .= "\n\n$reason\n\n";
 		}
 		else
 		{
-			$msg .= $session->{lang}->phrase( "M:no_reason" );
+			$msg .= $session->{lang}->phrase( "cgi/users/review:no_reason" );
 		}
 		
-		$msg .= $session->{lang}->phrase( "M:visit_url" )."\n\n";
+		$msg .= $session->{lang}->phrase( "cgi/users/review:visit_url" )."\n\n";
 			
 		$msg .= $session->{site}->{server_perl}."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
 		$session->mail_administrator(
-			$session->{lang}->phrase( "S:remove_sub" ),
+			$session->{lang}->phrase( "cgi/users/review:remove_sub" ),
 			$msg );
 	}
 	return( 0 );

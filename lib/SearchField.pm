@@ -254,7 +254,7 @@ print STDERR "zz($val))\n";
 			}
 			else
 			{
-				$problem = $self->{session}->phrase( "H:year_err" );
+				$problem = $self->{session}->phrase( "lib/searchfield:year_err" );
 			}
 		}
 	}
@@ -518,7 +518,7 @@ sub get_conditions
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
-			return(undef,undef,undef,$self->{session}->phrase( "H:no_words" , { words=>$text } ) );
+			return(undef,undef,undef,$self->{session}->phrase( "lib/searchfield:no_words" , { words=>$text } ) );
 		}
 
 		foreach( @{$good} )
@@ -860,18 +860,18 @@ sub to_html
 	
 	my @set_tags = ( "ANY", "ALL" );
 	my %set_labels = ( 
-		"ANY" => $self->{session}->phrase( "set_any" ),
-		"ALL" => $self->{session}->phrase( "set_all" ) );
+		"ANY" => $self->{session}->phrase( "lib/searchfield:set_any" ),
+		"ALL" => $self->{session}->phrase( "lib/searchfield:set_all" ) );
 
 	my @text_tags = ( "ALL", "ANY" );
 	my %text_labels = ( 
-		"ANY" => $self->{session}->phrase( "text_any" ),
-		"ALL" => $self->{session}->phrase( "text_all" ) );
+		"ANY" => $self->{session}->phrase( "lib/searchfield:text_any" ),
+		"ALL" => $self->{session}->phrase( "lib/searchfield:text_all" ) );
 
 	my @bool_tags = ( "EITHER", "TRUE", "FALSE" );
-	my %bool_labels = ( "EITHER" => $self->{session}->phrase( "bool_nopref" ),
-		            "TRUE"   => $self->{session}->phrase( "bool_yes" ),
-		            "FALSE"  => $self->{session}->phrase( "bool_no" ) );
+	my %bool_labels = ( "EITHER" => $self->{session}->phrase( "lib/searchfield:bool_nopref" ),
+		            "TRUE"   => $self->{session}->phrase( "lib/searchfield:bool_yes" ),
+		            "FALSE"  => $self->{session}->phrase( "lib/searchfield:bool_no" ) );
 
 
 	my $frag = $self->{session}->make_doc_fragment();
@@ -1003,7 +1003,7 @@ sub get_help
 {
         my( $self ) = @_;
 
-        return $self->{session}->phrase( "help_".$self->{field}->get_type() );
+        return $self->{session}->phrase( "lib/searchfield:help_".$self->{field}->get_type() );
 }
 
 ## WP1: BAD

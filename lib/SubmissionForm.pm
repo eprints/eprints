@@ -40,18 +40,18 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 
 %EPrints::SubmissionForm::stage_titles =
 (
-	$EPrints::SubmissionForm::stage_type       => "H:title_type",
-	$EPrints::SubmissionForm::stage_meta       => "H:title_meta",
-	$EPrints::SubmissionForm::stage_subject    => "H:title_subject",
-	$EPrints::SubmissionForm::stage_linking    => "H:title_linking",
-	$EPrints::SubmissionForm::stage_format     => "H:title_format",
-	$EPrints::SubmissionForm::stage_fileview   => "H:title_fileview",
-	$EPrints::SubmissionForm::stage_upload     => "H:title_upload",
-	$EPrints::SubmissionForm::stage_verify     => "H:title_verify",
-	$EPrints::SubmissionForm::stage_done       => "H:title_done",
-	$EPrints::SubmissionForm::stage_error      => "H:title_error",
-	$EPrints::SubmissionForm::stage_return     => "H:title_return",
-	$EPrints::SubmissionForm::stage_confirmdel => "H:title_confirmdel",
+	$EPrints::SubmissionForm::stage_type       => "lib/submissionform:title_type",
+	$EPrints::SubmissionForm::stage_meta       => "lib/submissionform:title_meta",
+	$EPrints::SubmissionForm::stage_subject    => "lib/submissionform:title_subject",
+	$EPrints::SubmissionForm::stage_linking    => "lib/submissionform:title_linking",
+	$EPrints::SubmissionForm::stage_format     => "lib/submissionform:title_format",
+	$EPrints::SubmissionForm::stage_fileview   => "lib/submissionform:title_fileview",
+	$EPrints::SubmissionForm::stage_upload     => "lib/submissionform:title_upload",
+	$EPrints::SubmissionForm::stage_verify     => "lib/submissionform:title_verify",
+	$EPrints::SubmissionForm::stage_done       => "lib/submissionform:title_done",
+	$EPrints::SubmissionForm::stage_error      => "lib/submissionform:title_error",
+	$EPrints::SubmissionForm::stage_return     => "lib/submissionform:title_return",
+	$EPrints::SubmissionForm::stage_confirmdel => "lib/submissionform:title_confirmdel",
 );
 
 
@@ -182,7 +182,7 @@ sub _corrupt_err
 
 	$self->{session}->_render_error( 
 		$self->{session}->phrase( 
-			"corrupt_err",
+			"lib/submissionform:corrupt_err",
 			line_no => (caller())[2] ) );
 
 }
@@ -194,7 +194,7 @@ sub _database_err
 
 	$self->{session}->_render_error( 
 		$self->{session}->phrase( 
-			"database_err",
+			"lib/submissionform:database_err",
 			line_no => (caller())[2] ) );
 
 }
@@ -225,7 +225,7 @@ sub _from_home
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $self->{session}->phrase( "action_new" ) )
+	if( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_new" ) )
 	{
 		if( !$self->{staff} )
 		{
@@ -250,15 +250,15 @@ sub _from_home
 		else
 		{
 			$self->{session}->_render_error( $self->{session}->phrase(
-			        "H:useautharea" ) );
+			        "lib/submissionform:useautharea" ) );
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_edit") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_edit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -266,11 +266,11 @@ sub _from_home
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase( "F:action_clone" ) )
+	elsif( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -288,25 +288,25 @@ sub _from_home
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_delete") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_delete") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_submit") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_submit") )
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
@@ -342,7 +342,7 @@ sub _from_stage_type
 	$self->_update_from_type_form();
 	$self->{eprint}->commit();
 
-	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_type();
 		if( $#{$self->{problems}} >= 0 )
@@ -356,7 +356,7 @@ sub _from_stage_type
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
 	{
 		# Cancelled, go back to author area.
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
@@ -398,7 +398,7 @@ sub _from_stage_meta
 		# Leave the form as is
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_next") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
 	{
 		# validation checks
 		$self->{problems} = $self->{eprint}->validate_meta();
@@ -414,7 +414,7 @@ sub _from_stage_meta
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 	}
@@ -450,7 +450,7 @@ sub _from_stage_subject
 	$self->_update_from_subject_form();
 	$self->{eprint}->commit();
 	
-	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_subject();
 		if( $#{$self->{problems}} >= 0 )
@@ -464,7 +464,7 @@ sub _from_stage_subject
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 	}
@@ -508,7 +508,7 @@ sub _from_stage_linking
 	$self->{eprint}->commit();
 	
 	# What's the next stage?
-	if( $self->{action} eq $self->{session}->phrase("F:action_next") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
 	{
 		$self->{problems} = $self->{eprint}->validate_linking();
 
@@ -523,11 +523,11 @@ sub _from_stage_linking
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_verify") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_verify") )
 	{
 		# Just stick with this... want to verify ID's
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
@@ -601,12 +601,12 @@ sub _from_stage_format
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		# prev stage depends if we're linking users or not
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_finished") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
 	{
 		$self->{problems} = $self->{eprint}->validate_documents();
 
@@ -685,11 +685,11 @@ sub _from_stage_fileview
 			$self->{document}->commit();
 		}
 
-		if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+		if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 		{
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
-		elsif( $self->{action} eq $self->{session}->phrase("F:action_upload") )
+		elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_upload") )
 		{
 			# Set up info for next stage
 			$self->{arc_format} =
@@ -697,7 +697,7 @@ sub _from_stage_fileview
 			$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_upload;
 		}
-		elsif( $self->{action} eq $self->{session}->phrase("F:action_finished") )
+		elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
 		{
 			# Finished uploading apparently. Validate.
 			$self->{problems} = $self->{document}->validate();
@@ -759,15 +759,15 @@ sub _from_stage_upload
 	# button, so we can't tell whether the "Back" or "Upload" button is
 	# appropriate. We have to assume that if the user's pressed return they
 	# want to go ahead with the upload, so we default to the upload button:
-	$self->{action} = $self->{session}->phrase("F:action_upload")
+	$self->{action} = $self->{session}->phrase("lib/submissionform:action_upload")
 		unless( defined $self->{action} );
 
 
-	if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_upload") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_upload") )
 	{
 		my $arc_format = $self->{session}->{render}->param( "arc_format" );
 		my $numfiles   = $self->{session}->{render}->param( "numfiles" );
@@ -797,7 +797,7 @@ sub _from_stage_upload
 		if( !$success )
 		{
 			$self->{problems} = [
-				$self->{session}->phrase( "H:uploadprob" ) ];
+				$self->{session}->phrase( "lib/submissionform:uploadprob" ) ];
 		}
 		elsif( !defined $doc->get_main() )
 		{
@@ -843,7 +843,7 @@ sub _from_stage_verify
 	# behaves sensibly. It's in a hidden field.
 	my $prev_stage = $self->{session}->{render}->param( "prev_stage" );
 
-	if( $self->{action} eq $self->{session}->phrase("F:action_prev") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
 	{
 		# Go back to the relevant page
 		if( $prev_stage eq "home" )
@@ -861,7 +861,7 @@ sub _from_stage_verify
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_submit") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_submit") )
 	{
 		# Do the commit to the archive thang. One last check...
 		my $problems = $self->{eprint}->validate_full();
@@ -915,7 +915,7 @@ sub _from_stage_confirmdel
 		return( 0 );
 	}
 
-	if( $self->{action} eq $self->{session}->phrase("F:action_confirm") )
+	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_confirm") )
 	{
 		if( $self->{eprint}->remove() )
 		{
@@ -929,7 +929,7 @@ sub _from_stage_confirmdel
 			return( 0 );
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("F:action_cancel") )
+	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
 	{
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
 	}
@@ -971,11 +971,11 @@ sub _do_stage_type
 
 	$self->_list_problems();
 	
-	print "<P>".$self->{session}->phrase( "H:seltype" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "lib/submissionform:seltype" )."</P>\n";
 
 	$self->_render_type_form(
-		[ $self->{session}->phrase("F:action_cancel"),
-			$self->{session}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("lib/submissionform:action_cancel"),
+			$self->{session}->phrase("lib/submissionform:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_type } );
 
 	print $self->{session}->{render}->end_html();
@@ -999,11 +999,11 @@ sub _do_stage_meta
 				$EPrints::SubmissionForm::stage_meta} ) );
 	$self->_list_problems();
 
-	print "<P>".$self->{session}->phrase( "H:bibinfo" )."</P>\n";
+	print "<P>".$self->{session}->phrase( "lib/submissionform:bibinfo" )."</P>\n";
 
 	$self->_render_meta_form(
-		[ $self->{session}->phrase("F:action_prev"),
-		  $self->{session}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("lib/submissionform:action_prev"),
+		  $self->{session}->phrase("lib/submissionform:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_meta }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1027,8 +1027,8 @@ sub _do_stage_subject
 	$self->_list_problems();
 
 	$self->_render_subject_form(
-		[ $self->{session}->phrase("F:action_prev"),
-		  $self->{session}->phrase("F:action_next") ],
+		[ $self->{session}->phrase("lib/submissionform:action_prev"),
+		  $self->{session}->phrase("lib/submissionform:action_next") ],
 		{ stage=>$EPrints::SubmissionForm::stage_subject }  );
 
 	print $self->{session}->{render}->end_html();
@@ -1079,7 +1079,7 @@ sub _do_stage_linking
 		if( defined $older_eprint )
 		{
 			print "<TR><TD><STRONG>";
-			print $self->{session}->phrase( "H:verify" );
+			print $self->{session}->phrase( "lib/submissionform:verify" );
 			print "</STRONG></TD><TD>";
 			print $self->{session}->{render}->_render_eprint_citation(
 				$older_eprint );
@@ -1089,7 +1089,7 @@ sub _do_stage_linking
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->phrase( 
-				"H:invaleprint",
+				"lib/submissionform:invaleprint",
 				eprintid=>$self->{eprint}->{succeeds} );
 			print "</STRONG></TD></TR>\n";
 		}
@@ -1121,7 +1121,7 @@ sub _do_stage_linking
 		{
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->phrase( 
-				"H:invaleprint",
+				"lib/submissionform:invaleprint",
 				eprintid=>$self->{eprint}->{commentary} );
 			print "</STRONG></TD></TR>\n";
 		}
@@ -1139,9 +1139,9 @@ sub _do_stage_linking
 
 	print "<CENTER><P>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("F:action_prev"),
-		  $self->{session}->phrase("F:action_verify"),
-		  $self->{session}->phrase("F:action_next") ] );
+		[ $self->{session}->phrase("lib/submissionform:action_prev"),
+		  $self->{session}->phrase("lib/submissionform:action_verify"),
+		  $self->{session}->phrase("lib/submissionform:action_next") ] );
 	print "</P></CENTER>";
 
 	print $self->{session}->{render}->end_form();
@@ -1173,11 +1173,11 @@ sub _do_stage_format
 	my $probs = $self->{eprint}->validate_documents();
 
 	print "<P><CENTER>";
-	print $self->{session}->phrase("H:validformats");
+	print $self->{session}->phrase("lib/submissionform:validformats");
 
 	if( @{$self->{session}->{site}->{required_formats}} >= 0 )
 	{
-		print $self->{session}->phrase("H:leastone");
+		print $self->{session}->phrase("lib/submissionform:leastone");
 	}
 
 	print "</CENTER></P>\n";
@@ -1188,8 +1188,8 @@ sub _do_stage_format
 	$self->_render_format_form();
 
 	# Write a back button, and a finished button, if the docs are OK
-	my @buttons = ( $self->{session}->phrase("F:action_prev") );
-	push @buttons, $self->{session}->phrase("F:action_finished")
+	my @buttons = ( $self->{session}->phrase("lib/submissionform:action_prev") );
+	push @buttons, $self->{session}->phrase("lib/submissionform:action_finished")
 		if( $#{$probs} == -1 );
 	
 	print "<P><CENTER>";
@@ -1224,8 +1224,8 @@ sub _do_stage_fileview
 	# Make some metadata fields
 	my @arc_formats = ( "plain", "graburl" );
 	my %arc_labels = (
-		"plain"   => $self->{session}->phrase("F:plain"),
-		"graburl" => $self->{session}->phrase("F:graburl")
+		"plain"   => $self->{session}->phrase("lib/submissionform:plain"),
+		"graburl" => $self->{session}->phrase("lib/submissionform:graburl")
 	);
 
 	foreach (@{$self->{session}->{site}->{supported_archive_formats}})
@@ -1253,8 +1253,8 @@ sub _do_stage_fileview
 				$EPrints::SubmissionForm::stage_fileview} ) );
 
 	$self->_list_problems(
-		$self->{session}->phrase("H:fixupload"),
-		$self->{session}->phrase("H:pleasefix") );
+		$self->{session}->phrase("lib/submissionform:fixupload"),
+		$self->{session}->phrase("lib/submissionform:pleasefix") );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1279,44 +1279,44 @@ sub _do_stage_fileview
 	if( scalar keys %files == 0 )
 	{
 		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("H:nofiles");
+		print $self->{session}->phrase("lib/submissionform:nofiles");
 		print "</EM></CENTER></P>\n";
 	}
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("H:filesforformat");
+		print $self->{session}->phrase("lib/submissionform:filesforformat");
 
 		if( !defined $doc->get_main() )
 		{
-			print $self->{session}->phrase("H:selfirst");
+			print $self->{session}->phrase("lib/submissionform:selfirst");
 		}
 
 		print "</CENTER></P>\n";
 		print $self->_render_file_view( $doc );
 
 		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
-		print $self->{session}->phrase("H:heretoview");
+		print $self->{session}->phrase("lib/submissionform:heretoview");
 		print "</A></P>\n";
 	}
 
 	# Render upload file options
 	print "<P><CENTER>";
-	print $self->{session}->phrase("H:fileupmethod")." ";
+	print $self->{session}->phrase("lib/submissionform:fileupmethod")." ";
 	print $self->{session}->{render}->input_field( $arc_format_field, "plain" );
 
 	print "</CENTER></P>\n<P><CENTER><em>";
-	print $self->{session}->phrase("H:plainonly")." ";
+	print $self->{session}->phrase("lib/submissionform:plainonly")." ";
 	print "</em> ";
-	print $self->{session}->phrase("H:numfiles")." ";
+	print $self->{session}->phrase("lib/submissionform:numfiles")." ";
 	print $self->{session}->{render}->input_field( $num_files_field, 1 );
 	print "</CENTER></P>\n";
 
 	# Action buttons
 	my @buttons = (
-		$self->{session}->phrase("F:action_prev"),
-		$self->{session}->phrase("F:action_upload") );
-	push @buttons, $self->{session}->phrase("F:action_finished")
+		$self->{session}->phrase("lib/submissionform:action_prev"),
+		$self->{session}->phrase("lib/submissionform:action_upload") );
+	push @buttons, $self->{session}->phrase("lib/submissionform:action_finished")
 		if( scalar keys %files > 0 );
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons( \@buttons );
@@ -1358,10 +1358,10 @@ sub _do_stage_upload
 	if( $self->{arc_format} eq "graburl" )
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("H:enterurl");
+		print $self->{session}->phrase("lib/submissionform:enterurl");
 		print "</CENTER></P>\n";
 		print "<P><CENTER><EM>";
-		print $self->{session}->phrase("H:urlwarning");
+		print $self->{session}->phrase("lib/submissionform:urlwarning");
 		print "</EM></CENTER></P>\n";
 		my $url_field = EPrints::MetaField->new( "url:text:::::" );
 		print "<P><CENTER>";
@@ -1374,7 +1374,7 @@ sub _do_stage_upload
 		{
 			$num_files = 1;
 			print "<P><CENTER>";
-			print $self->{session}->phrase("H:entercompfile");
+			print $self->{session}->phrase("lib/submissionform:entercompfile");
 			print "</CENTER></P>\n";
 		}
 		else
@@ -1384,13 +1384,13 @@ sub _do_stage_upload
 			if( $self->{numfiles} > 1 )
 			{
 				print "<P><CENTER>";
-				print $self->{session}->phrase("H:enterfiles");
+				print $self->{session}->phrase("lib/submissionform:enterfiles");
 				print "</CENTER></P>\n";
 			}
 			else
 			{
 				print "<P><CENTER>";
-				print $self->{session}->phrase("H:enterfile");
+				print $self->{session}->phrase("lib/submissionform:enterfile");
 				print "</CENTER></P>\n";
 			}
 		}
@@ -1406,8 +1406,8 @@ sub _do_stage_upload
 	
 	print "<P><CENTER>";
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("F:action_prev"),
-		  $self->{session}->phrase("F:action_upload") ] );
+		[ $self->{session}->phrase("lib/submissionform:action_prev"),
+		  $self->{session}->phrase("lib/submissionform:action_upload") ] );
 	print "</CENTER></P>\n";
 	print $self->{session}->{render}->hidden_field(
 		"stage",
@@ -1467,18 +1467,18 @@ sub _do_stage_verify
 	if( $#{$self->{problems}} >= 0 )
 	{
 		$self->_list_problems(
-			$self->{session}->phrase("H:fixprobs"),
+			$self->{session}->phrase("lib/submissionform:fixprobs"),
 			"" );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->phrase("F:action_prev") ] );
+			[ $self->{session}->phrase("lib/submissionform:action_prev") ] );
 		print "</CENTER></P>\n";
 	}
 	else
 	{
 		print "<P><CENTER>";
-		print $self->{session}->phrase("H:pleaseverify");
+		print $self->{session}->phrase("lib/submissionform:pleaseverify");
 		print "</CENTER></P>\n";
 		print "<HR>\n";
 		
@@ -1491,8 +1491,8 @@ sub _do_stage_verify
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->phrase("F:action_prev"),
-			  $self->{session}->phrase("F:action_submit") ] );
+			[ $self->{session}->phrase("lib/submissionform:action_prev"),
+			  $self->{session}->phrase("lib/submissionform:action_submit") ] );
 		print "</CENTER></P>\n";
 	}
 	
@@ -1518,15 +1518,15 @@ sub _do_stage_done
 				$EPrints::SubmissionForm::stage_done} ) );
 	
 	print "<P><CENTER><STRONG>";
-	print $self->{session}->phrase("H:thanks");
+	print $self->{session}->phrase("lib/submissionform:thanks");
 	print "</STRONG><CENTER></P>\n";
 	
 	print "<P><CENTER>";
-	print $self->{session}->phrase("H:inbuffer");
+	print $self->{session}->phrase("lib/submissionform:inbuffer");
 	print "</CENTER></P>\n";
 	
 	print "<P><CENTER><A HREF=\"home\">";
-	print $self->{session}->phrase("H:retdeppage");
+	print $self->{session}->phrase("lib/submissionform:retdeppage");
 	print "</A></CENTER></P>\n";
 
 	print $self->{session}->{render}->end_html();
@@ -1550,7 +1550,7 @@ sub _do_stage_confirmdel
 				$EPrints::SubmissionForm::stage_confirmdel} ) );
 
 	print "<P><CENTER><strong>";
-	print $self->{session}->phrase("H:suredelete");
+	print $self->{session}->phrase("lib/submissionform:suredelete");
 	print "</strong></CENTER></P>\n<P><CENTER>";
 	
 	print $self->{eprint}->short_title();
@@ -1565,8 +1565,8 @@ sub _do_stage_confirmdel
 		"stage",
 		$EPrints::SubmissionForm::stage_confirmdel );
 	print $self->{session}->{render}->submit_buttons(
-		[ $self->{session}->phrase("F:action_confirm"),
-		  $self->{session}->phrase("F:action_cancel") ] );
+		[ $self->{session}->phrase("lib/submissionform:action_confirm"),
+		  $self->{session}->phrase("lib/submissionform:action_cancel") ] );
 	print $self->{session}->{render}->end_form();
 
 	print "</CENTER></P>\n";
@@ -1628,7 +1628,7 @@ sub _list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->phrase("H:filledwrong");
+			print $self->{session}->phrase("lib/submissionform:filledwrong");
 			print "</P>";
 		}
 		
@@ -1646,7 +1646,7 @@ sub _list_problems
 		else
 		{
 			print "<P>";
-			print $self->{session}->phrase("H:pleasecomplete");
+			print $self->{session}->phrase("lib/submissionform:pleasecomplete");
 			print "</P>";
 		}
 	}
@@ -1989,8 +1989,8 @@ sub _render_file_view
 	my $html;
 	
 	$html = "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH></TH>".
-		"<TH>".$self->{session}->phrase("H:filename")."</TH>".
-		"<TH>".$self->{session}->phrase("H:sizebytes")."</TH>".
+		"<TH>".$self->{session}->phrase("lib/submissionform:filename")."</TH>".
+		"<TH>".$self->{session}->phrase("lib/submissionform:sizebytes")."</TH>".
 		"<TH></TH><TH></TH></TR>\n";
 	
 	my %files = $document->files();
@@ -2004,7 +2004,7 @@ sub _render_file_view
 		if( defined $main && $main eq $filename )
 		{
 			$html .= "<STRONG>";
-			$html .= $self->{session}->phrase("H:shownfirst");
+			$html .= $self->{session}->phrase("lib/submissionform:shownfirst");
 			$html .= " -\&gt;</STRONG>"
 		}
 		
@@ -2014,12 +2014,12 @@ sub _render_file_view
 		{
 			$html .= $self->{session}->{render}->named_submit_button(
 				"main_$filecount",
-				$self->{session}->phrase("F:showfirst") );
+				$self->{session}->phrase("lib/submissionform:showfirst") );
 		}
 		$html .= "</TD><TD>";
 		$html .= $self->{session}->{render}->named_submit_button(
 			"delete_$filecount",
-			$self->{session}->phrase("F:delete") );
+			$self->{session}->phrase("lib/submissionform:delete") );
 		$html .= "</TD></TR>\n";
 		$filecount++;
 	}
@@ -2029,7 +2029,7 @@ sub _render_file_view
 	$html .= "<P><CENTER>";
 	$html .= $self->{session}->{render}->named_submit_button(
 		"deleteall",
-		$self->{session}->phrase("F:delete_all") );
+		$self->{session}->phrase("lib/submissionform:delete_all") );
 	$html .= "</CENTER></P>\n";
 
 	return( $html );
@@ -2103,10 +2103,10 @@ sub _render_format_form
 	my( $self ) = @_;
 
 	print "<CENTER><TABLE BORDER=1 CELLPADDING=3><TR><TH><STRONG>".
-		$self->{session}->phrase("H:format").
+		$self->{session}->phrase("lib/submissionform:format").
 		"</STRONG></TH>".
 		"<TH><STRONG>".
-		$self->{session}->phrase("H:files_uploaded").
+		$self->{session}->phrase("lib/submissionform:files_uploaded").
 		"</STRONG></TH></TR>\n";
 	
 	my $f;
@@ -2128,13 +2128,13 @@ sub _render_format_form
 		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$f",
-			$self->{session}->phrase("F:uploadedit") );
+			$self->{session}->phrase("lib/submissionform:action_uploadedit") );
 		print "</TD><TD>";
 		if( $numfiles > 0 )
 		{
 			print $self->{session}->{render}->named_submit_button(
 				"remove_$f",
-				$self->{session}->phrase("F:remove") );
+				$self->{session}->phrase("lib/submissionform:remove") );
 		}
 		print "</TD></TR>\n";
 	}
@@ -2155,13 +2155,13 @@ sub _render_format_form
 		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
 			"edit_$EPrints::Document::OTHER",
-			$self->{session}->phrase("F:uploadedit") );
+			$self->{session}->phrase("lib/submissionform:uploadedit") );
 		print "</TD><TD>";
 		if( $numfiles > 0 )
 		{
 			print $self->{session}->{render}->named_submit_button(
 				"remove_$EPrints::Document::OTHER",
-				$self->{session}->phrase("F:remove") );
+				$self->{session}->phrase("lib/submissionform:remove") );
 		}
 		print "</TD></TR>\n";
 	}		
@@ -2220,11 +2220,11 @@ sub _update_from_format_form
 sub initial_actions 
 {
 	my ( $session ) = @_;
-	return [ $session->phrase("F:action_new"),
-		 $session->phrase("F:action_edit"),
-		 $session->phrase("F:action_clone"),
-		 $session->phrase("F:action_delete"),
-		 $session->phrase("F:action_submit") ];
+	return [ $session->phrase("lib/submissionform:action_new"),
+		 $session->phrase("lib/submissionform:action_edit"),
+		 $session->phrase("lib/submissionform:action_clone"),
+		 $session->phrase("lib/submissionform:action_delete"),
+		 $session->phrase("lib/submissionform:action_submit") ];
 }
 
 1;

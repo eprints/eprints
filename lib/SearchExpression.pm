@@ -233,15 +233,15 @@ sub render_search_form
 			values=>[ "ALL", "ANY" ],
 			default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			labels=>{ "ALL" => $self->{session}->phrase( "all" ),
-				  "ANY" => $self->{session}->phrase( "any" )} );
+			labels=>{ "ALL" => $self->{session}->phrase( "lib/searchexpression:all" ),
+				  "ANY" => $self->{session}->phrase( "lib/searchexpression:any" )} );
 
 		$div = $self->{session}->make_element( 
 			"div" , 
 			class => "searchanyall" );
 		$div->appendChild( 
 			$self->{session}->html_phrase( 
-				"must_fulfill",  
+				"lib/searchexpression:must_fulfill",  
 				anyall=>$menu ) );
 		$form->appendChild( $div );	
 	}
@@ -262,7 +262,7 @@ sub render_search_form
 
 	$div->appendChild( 
 		$self->{session}->html_phrase( 
-			"order_results", 
+			"lib/searchexpression:order_results", 
 			ordermenu => $menu  ) );
 
 	$form->appendChild( $div );	
@@ -271,8 +271,8 @@ sub render_search_form
 		"div" , 
 		class => "searchbuttons" );
 	$div->appendChild( $self->{session}->make_action_buttons( 
-		search => $self->{session}->phrase( "action_search" ), 
-		newsearch => $self->{session}->phrase( "action_reset" ) ) );
+		search => $self->{session}->phrase( "lib/searchexpression:action_search" ), 
+		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ) ) );
 	$form->appendChild( $div );	
 
 	return( $form );
@@ -304,7 +304,7 @@ sub from_form
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, $self->{session}->phrase( "leastone" )
+	push @problems, $self->{session}->phrase( "lib/searchexpression:leastone" )
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->param( "_satisfyall" );
@@ -477,7 +477,7 @@ sub count
 		return $self->{session}->get_db()->count_buffer( 
 			$self->{tmptable} );
 	}	
-
+	#cjg ERROR to user?
 	$self->{session}->get_site()->log( "Search has not been performed" );
 		
 }
@@ -518,6 +518,7 @@ print STDERR "ORDER BY: $self->{order}\n";
 		return @records;
 	}	
 
+#ERROR TO USER cjg
 	$self->{session}->get_site()->log( "Search not yet performed" );
 		
 }
@@ -596,7 +597,7 @@ sub process_webpage
 			$page->appendChild( $p );
 			$p->appendChild( 
 				$self->{session}->html_phrase( 
-							"too_many", 
+							"lib/searchexpression:too_many", 
 							n=>$MAX ) );
 		}
 	
@@ -617,7 +618,7 @@ sub process_webpage
 		$page->appendChild( $p );
        		$p->appendChild(  
 			$self->{session}->html_phrase( 
-				$code,  
+				"lib/searchexpression:".$code,  
 				n => $self->{session}->make_text( 
 							$n_results ) ) );
 
@@ -630,7 +631,7 @@ sub process_webpage
 					join( ", ", sort keys %words ) );
 			$p->appendChild(
        				$self->{session}->html_phrase( 
-					"ignored",
+					"lib/searchexpression:ignored",
 					words => $words ) );
 		
 		}
@@ -638,7 +639,7 @@ sub process_webpage
 		$p->appendChild( $self->{session}->make_text( " " ) );
 		$p->appendChild(
        			$self->{session}->html_phrase( 
-				"search_time", 
+				"lib/searchexpression:search_time", 
 				searchtime=>$self->{session}->make_text($t2-$t1),
 				gettime=>$self->{session}->make_text($t3-$t2) ) );
 
@@ -650,8 +651,8 @@ sub process_webpage
 				$self->{session}->make_hidden_field( $_ ) );
 		}
 		$form->appendChild( $self->{session}->make_action_buttons( 
-			update => $self->{session}->phrase("action_update"), 
-			newsearch => $self->{session}->phrase("action_newsearch") ) );
+			update => $self->{session}->phrase("lib/searchexpression:action_update"), 
+			newsearch => $self->{session}->phrase("lib/searchexpression:action_newsearch") ) );
 		$page->appendChild( $form );
 		
 		foreach (@results)
@@ -666,7 +667,7 @@ sub process_webpage
 		# Print out state stuff for a further invocation
 		$self->{session}->build_page( 
 			$self->{session}->phrase( 
-					"results_for", 
+					"lib/searchexpression:results_for", 
 					title => $title ),
 			$page );
 		$self->{session}->send_page();
@@ -709,7 +710,7 @@ sub _render_problems
 	$page->appendChild( $preamble );
 
 	my $p = $self->{session}->make_element( "p" );
-	$p->appendChild( $self->{session}->html_phrase( "form_problem" ) );
+	$p->appendChild( $self->{session}->html_phrase( "lib/searchexpression:form_problem" ) );
 	$page->appendChild( $p );
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );

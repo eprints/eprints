@@ -599,12 +599,12 @@ sub render_input_field
 		$tr = $session->make_element( "tr" );
 		$th = $session->make_element( "th" );
 		$div = $session->make_element( "div", class => "namefieldheading" );
-		$div->appendChild( $session->html_phrase( "family_name" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
 		$th->appendChild( $div );
 		$tr->appendChild( $th );
 		$th = $session->make_element( "th" );
 		$div = $session->make_element( "div", class => "namefieldheading" );
-		$div->appendChild( $session->html_phrase( "first_names" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
 		$th->appendChild( $div );
 		$tr->appendChild( $th );
 		$table->appendChild( $tr );
@@ -641,7 +641,7 @@ sub render_input_field
 					value => $boxcount ) );
 				$more->appendChild( $session->make_internal_buttons(
 					$self->{name}."_morespaces" => 
-						$session->phrase( "more_spaces" ) ) );
+						$session->phrase( "lib/metafield:more_spaces" ) ) );
 			}
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 
@@ -819,7 +819,7 @@ print STDERR "$n... val($value)\n";
 			maxlength => 10 ) );
 
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "to" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:to" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -858,7 +858,7 @@ print STDERR "$n... val($value)\n";
 			$year = $session->param( $yearid );
 		}
 
-		$div->appendChild( $session->html_phrase( "year" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:year" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -869,7 +869,7 @@ print STDERR "$n... val($value)\n";
 			maxlength => 4 ) );
 
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "month" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:month" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_option_list(
@@ -878,7 +878,7 @@ print STDERR "$n... val($value)\n";
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
 		$div->appendChild( $session->make_text(" ") );
-		$div->appendChild( $session->html_phrase( "day" ) );
+		$div->appendChild( $session->html_phrase( "lib/metafield:day" ) );
 		$div->appendChild( $session->make_text(" ") );
 
 		$div->appendChild( $session->make_element(
@@ -912,7 +912,7 @@ sub _month_names
 	my $month;
 	foreach $month ( @monthkeys )
 	{
-		$months->{$month} = $session->phrase( "month_".$month );
+		$months->{$month} = $session->phrase( "lib/metafield:month_".$month );
 	}
 
 	return $months;

@@ -30,10 +30,13 @@ my $searchexp = new EPrints::SearchExpression(
 	fieldnames=>$session->get_site()->get_conf( "advanced_search_fields" ) );
 
 my $preamble = $session->make_element( "p" );
-$preamble->appendChild( $session->html_phrase( "dont_panic" ) );
+$preamble->appendChild( 
+	$session->html_phrase( 
+		"cgi/advsearch:dont_panic"
+		simplesearch => $session->make_element( "a", href=>"search" ) ) );
 
 $searchexp->process_webpage(
-	$session->phrase( "adv_search" ),
+	$session->phrase( "cgi/advsearch:adv_search" ),
 	$preamble );
 
 $session->terminate; 

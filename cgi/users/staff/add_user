@@ -48,26 +48,26 @@ if( $session->{render}->seen_form() )
 		else
 		{
 			$session->{render}->render_error(
-				$session->{lang}->phrase( "H:mk_acc_err" ),
+				$session->{lang}->phrase( "cgi/users/add_user:mk_acc_err" ),
 				"$session->{site}->{server_static}/staff",
-				$session->{lang}->phrase( "H:staff_area" ) );
+				$session->{lang}->phrase( "cgi/users/add_user:staff_area" ) );
 		}
 	}
 	else
 	{
 		$session->{render}->render_error(
-			$session->{lang}->phrase( "H:no_username" ),
+			$session->{lang}->phrase( "cgi/users/add_user:no_username" ),
 			"add_user",
-			$session->{lang}->phrase( "H:try_again" ) );
+			$session->{lang}->phrase( "cgi/users/add_user:try_again" ) );
 	}
 }
 else
 {
 	print $session->{render}->start_html(
-		$session->{lang}->phrase( "H:create_title" ) );
+		$session->{lang}->phrase( "cgi/users/add_user:create_user_title" ) );
 
 	print "<CENTER><P>";
-	print $session->{lang}->phrase( "H:enter_username" );
+	print $session->{lang}->phrase( "cgi/users/add_user:enter_username" );
 	print "</P></CENTER>\n";
 	
 	$session->{render}->render_form(
@@ -75,7 +75,7 @@ else
 		{},
 		1,
 		0,
-		[ $session->{lang}->phrase( "F:create_user" ) ] );
+		[ $session->{lang}->phrase( "cgi/users/add_user:create_user" ) ] );
 	
 	print $session->{render}->end_html();
 }

@@ -29,7 +29,7 @@ if( defined $userid )
 	{
 		print $session->{render}->start_html( 
 			$session->{lang}->phrase( 
-				"H:user_title", 
+				"cgi/user:user_title", 
 				{name=>$user->full_name()} ) );
 
 		print $session->{render}->render_user( $user, 1 );
@@ -44,12 +44,12 @@ if( defined $userid )
 		print "<P>";
 		if ( scalar @$rows==1 )
 		{
-			print $session->{lang}->phrase( "H:one_record" );
+			print $session->{lang}->phrase( "cgi/user:one_record" );
 		} 
 		else 
 		{
 			print $session->{lang}->phrase( 
-				"H:n_records", 
+				"cgi/user:n_records", 
 				{n=>scalar @$rows} );
 		} 
 		print "</P>\n";
@@ -57,7 +57,7 @@ if( defined $userid )
 		if( scalar @$rows > 0 )
 		{
 			print "<P><A HREF=\"user_eprints?username=$userid\">";
-			print $session->{lang}->phrase( "H:view_link" );
+			print $session->{lang}->phrase( "cgi/user:view_link" );
 			print "</A></P>\n"; 
 		}
 		
@@ -66,17 +66,17 @@ if( defined $userid )
 	else
 	{
 		print $session->{render}->render_error(
-			$session->{lang}->phrase( "H:unknown_user" ),
+			$session->{lang}->phrase( "cgi/user:unknown_user" ),
 			$session->{site}->{frontpage},
-			$session->{lang}->phrase( "H:return_front" ) );
+			$session->{lang}->phrase( "cgi/user:return_front" ) );
 	}
 }
 else
 {
 	print $session->{render}->render_error(
-		$session->{lang}->phrase( "H:no_user" ),
+		$session->{lang}->phrase( "cgi/user:no_user" ),
 		$session->{site}->{frontpage},
-		$session->{lang}->phrase( "H:return_front" ) );
+		$session->{lang}->phrase( "cgi/user:return_front" ) );
 }
 
 $session->terminate();

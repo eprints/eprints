@@ -24,7 +24,7 @@ use strict;
 my $session = EPrints::Session->new();
 
 print $session->{render}->start_html( 
-	$session->{lang}->phrase( "H:ov_title" ) );
+	$session->{lang}->phrase( "cgi/users/buffer:overview_title" ) );
 
 # Get EPrints in the submission buffer
 my @eprints = EPrints::EPrint::retrieve_eprints(
@@ -36,22 +36,22 @@ if( $#eprints == -1 )
 {
 	# No EPrints
 	print "<P><CENTER><STRONG>";
-	print $session->{lang}->phrase( "H:no_entries" ) );
+	print $session->{lang}->phrase( "cgi/users/buffer:no_entries" ) );
 	print "</STRONG></CENTER></P>\n";
 }
 else
 {
 	print "<P><CENTER>";
-	print $session->{lang}->phrase( "H:buffer_blurb" ) );
+	print $session->{lang}->phrase( "cgi/users/buffer:buffer_blurb" ) );
 	print "</CENTER></P>\n";
 
 	print "<CENTER><TABLE BORDER=1 CELLPADDING=5>\n";
 	print "<TR><TH><STRONG>";
-	print $session->{lang}->phrase( "H:title" ) );
+	print $session->{lang}->phrase( "cgi/users/buffer:title" ) );
 	print "</STRONG></TH><TH><STRONG>";
-	print $session->{lang}->phrase( "H:sub_by" ) );
+	print $session->{lang}->phrase( "cgi/users/buffer:sub_by" ) );
 	print "</STRONG></TH><TH><STRONG>";
-	print $session->{lang}->phrase( "H:sub_date" ) );
+	print $session->{lang}->phrase( "cgi/users/buffer:sub_date" ) );
 	print "</STRONG></TH></TR>\n";
 
 	my $e;
@@ -76,7 +76,7 @@ else
 		else
 		{
 			print "<STRONG>";
-			print $session->{lang}->phrase( "H:invalid" ) );
+			print $session->{lang}->phrase( "cgi/users/buffer:invalid" ) );
 			print "</STRONG>";
 		}
 		
@@ -95,7 +95,7 @@ else
 }
 
 print "<P><CENTER><A HREF=\"$session->{site}->{server_static}/staff/\">";
-print $session->{lang}->phrase( "H:return_staff" );
+print $session->{lang}->phrase( "cgi/users/buffer:return_staff" );
 print "</A></CENTER></P>\n";
 
 print $session->{render}->end_html();

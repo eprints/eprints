@@ -296,7 +296,7 @@ sub validate
 		{
 			push @all_problems, 
 			  $self->{session}->phrase( 
-			   "missedfield", 
+			   "lib/user:missedfield", 
 			   field => $field->display_name( $self->{session} ) );
 		}
 		else
@@ -360,18 +360,18 @@ sub send_introduction
 	my $subj;
 	if ( $self->{usertype} eq "staff" )
 	{
-		$subj = "S:newstaff";
+		$subj = "lib/user:newstaff";
 	}
 	else
 	{
-		$subj = "S:newuser";
+		$subj = "lib/user:newuser";
 	}
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
 		$self->{session}->phrase( $subj , sitename=>$self->{session}->{site}->{sitename} ),
 		$self->{email},
-		$self->{session}->phrase( "S:welcome", 
+		$self->{session}->phrase( "lib/user:welcome", 
 		                          sitename=>$self->{session}->{site}->{sitename} ),
 		$self->{session}->{site}->{template_user_intro},
 		$self ) );
@@ -394,7 +394,7 @@ sub send_reminder
 	my( $self, $message ) = @_;
 	
 	my $full_message = $self->{session}->phrase(
-	     	"M:reminder",
+	     	"lib/user:reminder",
 		 sitename=>$self->{session}->{site}->{sitename},
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
@@ -405,7 +405,7 @@ sub send_reminder
 			$self->{session},
 			$self->full_name(),
 	                $self->{email},
-	                $self->{session}->phrase( "S:remindersub" ),
+	                $self->{session}->phrase( "lib/user:remindersub" ),
 	                $full_message ) );
 }
 
