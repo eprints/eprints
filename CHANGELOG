@@ -647,26 +647,26 @@ before next release. (metadata types & fields)
 
 2002-06-28
 - Added new config options:
-   submission_hide_howmanyfiles
-   submission_hide_upload_archive
-   submission_hide_upload_graburl
-   submission_hide_upload_plain
-  to allow the admin to supress various parts of the submission file upload
-  form.
+    submission_hide_howmanyfiles
+    submission_hide_upload_archive
+    submission_hide_upload_graburl
+    submission_hide_upload_plain
+   to allow the admin to supress various parts of the submission file upload
+   form.
 
 2002-07-01
  - Fixed bug in render_ruler : it failed to take ownership of the
-   new fuler.
+    new fuler.
  - Added more details into "information" page in default config. And a
-   GNU linking to gnu.org.
+    GNU linking to gnu.org.
 
 2002-07-03
  - Fixed typo in MetaField.pm - had "searchfield" not "search" which
-   meant search fields were ending up as VARCHAR not TEXT.
+    meant search fields were ending up as VARCHAR not TEXT.
  - Missing subject titles now display as [Subjectid=footle]
  - Fixed some typos in installer
  - generate_views now treats a SystemSettings->virtualhost of "" as
-   undefined.
+    undefined.
  - Subjects now sort into correct order(yay!)
  - Bug in scoping for DF_AVAILABLE in Utils.pm - fixed.
 
@@ -677,10 +677,32 @@ before next release. (metadata types & fields)
 2002-07-04
  - Fixed bug in OAI 2.0 (Still using OAI 1.1 namespace in one place)
  - [c] Changed ArchiveOAIConfig.pm so that now archiveid, sample
-   identifier and base_url are now all seperately configured for 
-   OAI 2.0 (and changed cgi/oai2 and OpenArchives.pm to honour this)
+    identifier and base_url are now all seperately configured for 
+    OAI 2.0 (and changed cgi/oai2 and OpenArchives.pm to honour this)
 
 ======================================================================
 04/07/2002 - EPRINTS 2.1.1
 ======================================================================
+
+2002-07-07
+ - Fixed ANOTHER minor issue in OAI2 code. At the end of a List there
+    should have been (and now is) an empty resumptionToken.
+ - New method added to MetaField: list_values. This takes flattens out
+    multilang, multiple and non-multiple fields so that a list of 
+    values of that field is returned. 
+ - To avoid an error in oai, if datestamp is not set, datestamp now
+    defaults to 0001-01-01.
+ - SearchExpresion->dispose now does not try and dispose an undefined
+    tmptable.
+ - new method in SearchExpression: item_matches. This takes an item of
+    the type appropriate for the search and returns true if the search
+    expression matches on that item. Also a item_matches method on 
+    SearchField used by the one in SearchExpression.
+ - [c] removed all the darn GIF's. Set a CSS "style" on the 1x1 image 
+    in searchforms to "display: none". Also it now links to a PNG 
+    instead. Also updated the "information" page a bit more. Removed 
+    GIF's from default homepage too.
+ - new function is Utils.pm: is_in which takes searches in a list for
+    items in a second list. Two modes: success if one found or success
+    if all found.
 

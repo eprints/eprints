@@ -699,12 +699,10 @@ END
 
 	$searchexp->dispose();
 
+	my $tokenvalue = "";
 	if( $count > $offset+$PAGESIZE )
 	{
-		$response->appendChild( $session->render_data_element(
-			2,
-			"resumptionToken",
-			($offset+$PAGESIZE)."/".$cache.$mdtoken ) );
+		$tokenvalue = ($offset+$PAGESIZE)."/".$cache.$mdtoken;
 	}
 	elsif( $searchdsid eq "archive" )
 	{
@@ -725,12 +723,13 @@ END
 		# deleted items.
 		if( $count > 0 )
 		{
-			$response->appendChild( $session->render_data_element(
-				2,
-				"resumptionToken",
-				"0/$cache".$mdtoken ) );
+			$tokenvalue = "0/$cache".$mdtoken;
 		}
 	}
+	$response->appendChild( $session->render_data_element(
+		2,
+		"resumptionToken",
+		$tokenvalue ) );
 	
 	my $f = $session->make_doc_fragment();
 	$f->appendChild( $session->make_indent( 2 ) );

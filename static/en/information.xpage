@@ -19,6 +19,43 @@
 <p>EPrints is free software developed by the University of Southampton, England.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a></p>
 
+
+<h2>Technologies employed and supported:</h2>
+
+<p><strong>Powered by:</strong>
+<a href="http://www.mysql.com/">MySQL</a>,
+<a href="http://www.apache.org/">Apache Webserver</a>,
+<a href="http://www.perl.org/">PERL</a>,
+<a href="http://perl.apache.org/">mod_perl</a>,
+<a href="http://www.w3c.org/XML/">XML</a>,
+<a href="http://www.w3c.org/DOM/">DOM</a>,
+<a href="http://software.eprints.org/">GNU EPrints</a>.
+</p>
+
+
+<p><strong>Supports:</strong>
+<a href="http://www.openarchives.org/">Open Archives Initiative Protocol for Metadata Harvesting</a>,
+<a href="vlit.html">VLit Transclusions</a>,
+<a href="http://www.w3.org/MarkUp/">Valid XHTML</a>,
+<a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a>.
+</p>
+
+<p><strong>Part of:</strong>
+<a href="http://www.gnu.org/">The GNU Project</a>.
+</p>
+
+<div align="center">
+<table bgcolor="#ffffff" border="0" cellpadding="8" cellspacing="0"><tr><td>
+<a href="http://www.mysql.com/"><img src="&base_url;/images/poweredbymysql-167.png" border="0" alt="Powered by MySQL" align="middle" /></a>
+<a href="http://www.openarchives.org/"><img src="&base_url;/images/OA100.png" border="0" alt="The Open Archives Initiative" align="middle" /></a>
+<a href="vlit.html"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
+<a href="http://www.gnu.org/"><img src="&base_url;/images/gnu-head-sm.jpg" border="0" alt="Part of the GNU Project" align="middle" width="129" height="122" /></a>
+<a href="http://software.eprints.org/"><img src="&base_url;/images/logo_small.png" border="0" alt="GNU EPrints" align="middle" /></a>
+</td></tr></table>
+</div>
+
+&ruler;
+
 <h2>Credits</h2>
 <p><a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a> - Designer and coder of <em>EPrints version 2</em>.</p>
 <p>Mike Jewell - Pre-release testing. The initial versions of scripts for creating and installing an <em>EPrints v2</em> package. Some coding assistance.</p>
@@ -27,32 +64,15 @@
 <p>Gui Power - Adapting the <a href="&base_url;/help/">online help</a> for version 2.</p>
 
 &ruler;
-
-<h2>Technologies employed and supported:</h2>
-
 <p align="center">
-<a href="http://www.mysql.com/"><img src="&base_url;/images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
-<a href="http://www.openarchives.org/"><img src="&base_url;/images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a>
-<a href="http://www.w3.org/MarkUp/"><img src="&base_url;/images/vxhtml10.gif" border="0" alt="Powered by XHTML" align="middle" /></a>
-<a href="http://jigsaw.w3.org/css-validator/"><img border="0" align="middle" src="&base_url;/images/vcss.gif" alt="Valid CSS!" /></a>
-<a href="http://perl.apache.org/"><img border="0" align="middle" src="&base_url;/images/mod_perl.gif" alt="Powered by mod_perl!" /></a>
-<a href="http://www.apache.org/"><img src="&base_url;/images/apache_pb.gif" border="0" alt="Powered by Apache" align="middle" /></a>
-<a href="vlit.html"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
-<a href="http://www.gnu.org/"><img src="&base_url;/images/gnu-head-sm.jpg" border="0" alt="Part of the GNU Project" align="middle" width="129" height="122" /></a>
-<br />
-<a href="http://www.w3c.org/XML/">XML</a> &amp; 
-<a href="http://www.w3c.org/DOM/">DOM</a> 
-</p>
+Developed at the <a href="http://www.ecs.soton.ac.uk/">Department of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
 
-&ruler;
-
-<p align="center">
-Developed at the <a href="http://www.ecs.soton.ac.uk/">Department of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.
-<br />
-<a href="http://www.soton.ac.uk/"><img src="&base_url;/images/uoslogo.gif" border="0" alt="University of Southampton" align="top" /></a>
-<a href="http://www.ecs.soton.ac.uk/"><img src="&base_url;/images/ecslogo.gif" border="0" alt="Department of Electronics and Computer Science" align="top" /></a>
-</p>
-
+<div align="center">
+<table bgcolor="#ffffff" border="0" cellpadding="8" cellspacing="0"><tr><td>
+<a href="http://www.soton.ac.uk/"><img src="&base_url;/images/uoslogo.png" border="0" alt="University of Southampton" align="top" /></a>
+<a href="http://www.ecs.soton.ac.uk/"><img src="&base_url;/images/ecslogo.png" border="0" alt="Department of Electronics and Computer Science" align="top" /></a>
+</td></tr></table>
+</div>
 
 </ep:body>
 </ep:page>

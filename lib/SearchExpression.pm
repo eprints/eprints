@@ -862,7 +862,10 @@ sub dispose
 
 	#my $sstring = $self->serialise();
 
-	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
+	if( 
+		defined $self->{tmptable} && 
+		$self->{tmptable} ne "ALL" && 
+		$self->{tmptable} ne "NONE" )
 	{
 		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
 	}
@@ -1414,6 +1417,57 @@ sub set_property
 
 	$self->{$property} = $value;
 }
+
+
+######################################################################
+=pod
+
+=item $boolean = $thing->item_matches( $item );
+
+undocumented
+
+=cut
+######################################################################
+
+sub item_matches
+{
+	my( $self, $item ) = @_;
+
+	my @searchon = ();
+	foreach my $searchfieldname ( @{$self->{searchfields}} )
+	{
+		my $search_field = $self->get_searchfield( $searchfieldname );
+		if( $search_field->is_set() )
+		{
+			push @searchon , $search_field;
+		}
+	}
+
+	if( $self->{satisfy_all} )
+	{
+		foreach my $searchfield ( @searchon )
+		{
+			unless( $searchfield->item_matches( $item ) )
+			{
+				return 0;
+			}
+		}
+		return 1;
+	}
+
+	# satisfy any
+	foreach my $searchfield ( @searchon )
+	{
+		if( $searchfield->item_matches( $item ) )
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
+
 
 1;
 

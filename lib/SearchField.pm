@@ -1377,21 +1377,241 @@ sub set_dataset
 }
 
 
+
+
 ######################################################################
 =pod
 
-=item $foo = $sf->DESTROY
+=item $boolean = $thing->item_matches( $item );
 
 undocumented
 
 =cut
 ######################################################################
 
-sub DESTROY
+sub item_matches
 {
-	my( $self ) = @_;
+	my( $self, $item ) = @_;
 
-	EPrints::Utils::destroy( $self );
+	return( 0 ) if( $self->{match} eq "NO" );
+
+	my @list = ();
+	foreach my $field ( @{$self->{fieldlist}} ) 
+	{
+		push @list, $field->list_values( 
+			$item->get_value( $field->get_name ) );
+	}
+
+	if( $self->{match} eq "EX" )
+	{
+		# Special handling for exact matches, as it can handle NULL
+		# fields.
+
+		foreach( @list )
+		{
+			if( !EPrints::Utils::is_set( $self->{value} ) )
+			{
+				return 1 if( !EPrints::Utils::is_set( $_ ) );
+			}
+			else
+			{
+				return 1 if( $_ eq $self->{value} );
+			}
+		}
+		return 0;
+	}
+
+	if ( $self->is_type( "name" ) )
+	{
+		my @names = ();
+		my $text = $self->{value};
+
+		# Remove spaces before and  after commas. So Jones , C
+		# is searched as Jones,C 
+		$text =~ s/,\s+/,/g;
+		$text =~ s/\s+,/,/g;
+
+		# Extact names in quotes 
+		while( $text=~s/"([^"]+)"// ) { push @names, $1; }
+
+		# Extact other names
+		while( $text=~s/([^\s]+)// ) { push @names, $1; }
+
+		foreach my $name ( @names )
+		{
+			$name =~ m/^([^,]+)(,(.*))?$/;
+			my( $family, $given ) = ( $1, $3 );
+			$family = "" if( !defined $family );
+			$given = "" if( !defined $given );
+
+			my $match = 0;
+			foreach( @list )
+			{
+				if( _name_cmp( 
+					$family, 
+					$given, 
+					$self->{match} eq "IN", 
+					$_ ) )
+				{
+					$match = 1;
+					last;
+				}
+			}
+			return 1 if( $match && $self->{merge} eq "ANY" );
+			return 0 if( !$match && $self->{merge} ne "ANY" );
+		}
+		if( $self->{merge} eq "ANY" )
+		{
+			return 0;
+		}
+		else 
+		{
+			return 1;
+		}
+	}
+
+
+	if( $self->is_type( "set", "subject", "datatype", "boolean" ) )
+	{
+		my @ids = ();
+		my $text = $self->{value};
+		while( $text=~s/"([^"]+)"// ) { push @ids, $1; }
+		while( $text=~s/([^\s]+)// ) { push @ids, $1; }
+
+		my $haystack = \@list;
+
+		if( $self->is_type( "subject" ) )
+		{
+			$haystack = [];
+			foreach( @list )
+			{
+				my $s = EPrints::Subject->new( 
+					$item->get_session,
+					$_ );
+				push @{$haystack}, 
+					@{$s->get_value( "ancestors" )};
+			}
+		}
+
+		return EPrints::Utils::is_in( 
+			\@ids, 
+			$haystack,
+			$self->{merge} ne "ANY" );
+	}
+
+	if( $self->is_type( "year", "int" ) )
+	{
+		my( $from, $to );
+		if( $self->{value} =~ m/^(\d+)$/ )
+		{
+			# Simple single number
+			return EPrints::Utils::is_in( 
+				[ $1 ],
+				\@list,
+				1 );
+		}
+		unless( $self->{value} =~ m/^(\d+)?\-(\d+)?$/ )
+		{
+			return 0;
+		}
+		my( $min, $max ) = ( $1, $2 );
+		
+		foreach( @list )
+		{
+			my $ok = 1;
+			$ok = 0 unless( defined $_ );
+			$ok = 0 if( defined $min && $_ < $min );
+			$ok = 0 if( defined $max && $_ > $max );
+			return 1 if $ok;
+		}
+		return 0;
+	}		
+
+	if( $self->is_type( "date" ) )
+	{
+		my( $from, $to );
+		if( $self->{value} =~ m/^\d\d\d\d-\d\d-\d\d$/ )
+		{
+			# Simple single date
+			return EPrints::Utils::is_in( 
+				[ $self->{value} ],
+				\@list,
+				1 );
+		}
+		unless( $self->{value} =~ 
+			m/^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
+		{
+			return 0;
+		}
+		my( $min, $max ) = ( $1, $2 );
+		
+		foreach( @list )
+		{
+			my $ok = 1;
+			$ok = 0 unless( defined $_ );
+			$ok = 0 if( defined $min && $_ lt $min );
+			$ok = 0 if( defined $max && $_ gt $max );
+			return 1 if $ok;
+		}
+		return 0;
+	}		
+
+	# text, longtext, url, email:
+
+	if( $self->is_type( "text", "longtext", "email", "url", "id" ) )
+	{
+		if( $self->{match} eq "EQ" )
+		{
+			my @ids = ();
+			my $text = $self->{value};
+			while( $text=~s/([^\s]+)// ) { push @ids, $1; }
+			return EPrints::Utils::is_in( 
+				\@ids,
+				\@list,
+				$self->{merge} ne "ANY" );
+		}
+			
+		my( $needles , $bad ) = 
+			$self->{session}->get_archive()->call(
+				"extract_words",
+				$self->{value} );
+
+		my $haystack = [];
+		foreach( @list )
+		{
+			my( $a , $b ) = 
+				$self->{session}->get_archive()->call(
+					"extract_words",
+					$_ );
+			push @{$haystack}, @{$a};
+		}
+		
+		return EPrints::Utils::is_in( 
+			$needles,
+			$haystack,
+			$self->{merge} ne "ANY" );
+
+	}
+
+	return 0;
+}
+
+
+sub _name_cmp
+{
+	my( $family, $given, $in, $name ) = @_;
+
+	my $nfamily = lc $name->{family};
+	my $ngiven = substr( lc $name->{given}, 0, length( $given ) );
+
+	if( $in )
+	{
+		$nfamily = substr( $nfamily, 0, length( $family ) );
+	}
+
+	return( 0 ) unless( lc $family eq $nfamily );
+	return( 0 ) unless( lc $given eq $ngiven );
+	return( 1 );
 }
 	
 1;

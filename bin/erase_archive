@@ -37,10 +37,6 @@ After this script you will need to run B<create_tables> before you can use the a
 
 The ID of the eprint archive to use.
 
-=item B<--rootpass> I<password>
-
-This option allows you to specify the MySQL root password, which will skip the bit where you get asked for it. It's not very secure to put a root password on the command line. Consider yourself warned...
-
 =back
 
 =head1 OPTIONS
@@ -79,6 +75,10 @@ Don't delete the database tables.
 =item B<--noerasefiles>
 
 Don't erase the document and website files. 
+
+=item B<--rootpass> I<password>
+
+This option allows you to specify the MySQL root password, which will skip the bit where you get asked for it. It's not very secure to put a root password on the command line. Consider yourself warned...
 
 =back   
 
@@ -139,7 +139,12 @@ $noise = 1+$verbose if( $verbose );
 $|=1;
 
 my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
-exit( 1 ) unless( defined $archive );
+unless( defined $archive )
+{
+	print STDERR "Unknown archive id: $ARGV[0]\n";
+	exit 1;
+}
+
 
 my $documents_path = $archive->get_conf( "documents_path" );
 my $htdocs_path = $archive->get_conf( "htdocs_path" );
@@ -152,6 +157,7 @@ unless( $force )
 	print "You are about to erase:\n";
 	if( $erasedb ) { print "- all database tables\n"; }
 	if( $erasefiles ) { print "- all eprint files\n"; }
+	print "From archive: ".$archive->get_id."\n";
 	print "Are you sure you want this to happen? (yes/no)\n";
 	
 	$input = <STDIN>;

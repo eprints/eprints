@@ -27,6 +27,10 @@ does NOT have all required langs filled in.
 Documentation
 ----------------------------------------------------------------------
 
+- Texinfo generator still has issues.
+
+- pod2html screws up some " escaping in the HOWTO:d3e section.
+
 ----------------------------------------------------------------------
 Default Configuration
 ----------------------------------------------------------------------

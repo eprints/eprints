@@ -2468,6 +2468,58 @@ sub get_top_subject
 	return $topsubject;
 }
 
+
+######################################################################
+=pod
+
+=item @values = $field->list_values( $value )
+
+Return a list of every distinct value in this field. 
+
+ - for simple fields: return ( $value )
+ - for multiple fields: return @{$value}
+ - for multilang fields: return all the variations in a list.
+
+This function is used by the item_matches method in SearchExpression.
+
+=cut
+######################################################################
+
+sub list_values
+{
+	my( $self, $value ) = @_;
+
+	if( !EPrints::Utils::is_set( $value ) )
+	{
+		return ();
+	}
+
+	if( $self->get_property( "multiple" ) )
+	{
+		my @list = ();
+		foreach( @{$value} )
+		{
+			push @list, $self->_list_values2( $_ );
+		}
+		return @list;
+	}
+
+	return $self->_list_values2( $value );
+}
+
+sub _list_values2
+{
+	my( $self, $value ) = @_;
+
+	my $v2 = $self->which_bit( $value );
+
+	if( $self->get_property( "multilang" ) )
+	{
+		return values %{$value};
+	}
+
+	return $value;
+}
 ######################################################################
 =pod
 

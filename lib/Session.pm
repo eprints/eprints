@@ -1275,7 +1275,10 @@ sub render_input_form
 		# submits then it will be this image button, not
 		# the action buttons we look for.
 
-		# It should be a 1x1 transparent gif, but
+		# It should be a small white on pixel PNG.
+		# (a transparent GIF would be slightly better, but
+		# GNU has a problem with GIF).
+		# The style stops it rendering on modern broswers.
 		# under lynx it looks bad. Lynx does not
 		# submit when a user hits return so it's 
 		# not needed anyway.
@@ -1285,7 +1288,8 @@ sub render_input_form
 			width => 1, 
 			height => 1, 
 			border => 0,
-			src => $self->{archive}->get_conf( "base_url" )."/images/1x1trans.gif",
+			style => "display: none",
+			src => $self->{archive}->get_conf( "base_url" )."/images/whitedot.png",
 			name => "_default", 
 			alt => $p{buttons}->{$p{default_action}} ) );
 		$form->appendChild( $self->render_hidden_field(

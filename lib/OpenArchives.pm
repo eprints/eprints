@@ -202,10 +202,17 @@ sub make_header
 		EPrints::OpenArchives::to_oai_identifier(
 			$session->get_archive()->get_conf( "oai", "archive_id" ),
 			$eprint->get_value( "eprintid" ) ) ) );
+
+	my $datestamp = $eprint->get_value( "datestamp" );
+	unless( EPrints::Utils::is_set( $datestamp ) )
+	{
+		# is this a good default?
+		$datestamp = '0001-01-01';
+	}
 	$header->appendChild( $session->render_data_element(
 		6,
 		"datestamp",
-		$eprint->get_value( "datestamp" ) ) );
+		$datestamp ) );
 
 	if( EPrints::Utils::is_set( $oai2 ) )
 	{

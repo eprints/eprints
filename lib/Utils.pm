@@ -1329,6 +1329,44 @@ sub get_datestamp
 }
 
 
+######################################################################
+=pod
+
+=item $boolean = EPrints::Utils::is_in( $needles, $haystack, $matchall )
+
+undocumented
+
+=cut
+######################################################################
+
+sub is_in
+{
+	my( $needles, $haystack, $matchall ) = @_;
+	
+	if( $matchall )
+	{
+		foreach my $n ( @{$needles} )
+		{
+			my $found = 0;
+			foreach my $h ( @{$haystack} )
+			{
+				$found = 1 if( $n eq $h );
+			}
+			return 0 unless( $found );
+		}
+		return 1;
+	}
+
+	foreach my $n ( @{$needles} )
+	{
+		foreach my $h ( @{$haystack} )
+		{
+			return 1 if( $n eq $h );
+		}
+	}
+	return 0;
+}
+
 
 1;
 
