@@ -693,7 +693,7 @@ sub _render_input_field_aux
 			}
 		}
 		
-		my( @force ) = ("en","fr");
+		my( @force ) = ("en");
 		
 		my %langstodo = ();
 		foreach( keys %{$value} ) { $langstodo{$_}=1; }
@@ -711,6 +711,7 @@ sub _render_input_field_aux
 			{
 				$langid = shift @force;
 				$forced = 1;
+				delete( $langstodo{$langid} );
 			}
 			elsif( scalar keys %langstodo )
 			{
@@ -723,7 +724,7 @@ sub _render_input_field_aux
 			$div->appendChild( $session->make_text( " - " ) );
 			if( !$forced )
 			{
-				$div->appendChild( $session->make_text( " opt " ) );
+				$div->appendChild( $session->make_text( " opt (".$langid.")" ) );
 			}
 			else
 			{
