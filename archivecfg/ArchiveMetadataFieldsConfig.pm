@@ -107,7 +107,7 @@ $fields->{eprint} = [
 
 	{ name => "publisher", type => "text" },
 
-	{ name => "refereed", type => "boolean", input_style=>"menu" },
+	{ name => "refereed", type => "boolean", input_style=>"radio" },
 
 	{ name => "referencetext", type => "longtext", input_rows => 3 },
 
@@ -119,7 +119,7 @@ $fields->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "longtext", render_single_value=>\&EPrints::Latex::render_string },
+	{ name => "title", type => "longtext" },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 

@@ -360,3 +360,22 @@ meaningful. Defaults are now ""
 - added "latest" cgi script which lists the last weeks additions.
 
 - CGI param mainonly now supresses the template and just serves the body.
+
+11/02/2002
+[c] - Rewrote warn and error thresholds to be 1024*foo to make a easier to work
+out in megs. makes no functional difference.
+[c] - cleaned up the refereed field and removed the Latex stuff from the default
+configuration.
+[c] - validation routines now check names have a family & a given part.
+[c] - removed some unused citations.
+[c] - commented out editorsubjects - not needed until we start using them.
+- stopped mentioning editorsubjects on the "buffer" page, until they are used.
+- now uses 'df' properly to decide which dir to use. Also cleaned up error log
+message and emails caused by low disk space.
+- DataSet totally ignored system fields required setting now a field is 
+required if it is required in the system field conf function OR the metadata-
+types.xml file.
+- mainonly param was causing a warning, now checks it's defined first.
+- buffer page items are now sorted by datestamp (newest first)
+- made a note in the h2ph warning that you should be root when running it.
+

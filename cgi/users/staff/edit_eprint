@@ -114,7 +114,8 @@ sub process
 		if( $eprint->move_to_buffer() )
 		{
 			$page->appendChild( $session->html_phrase( 
-				"cgi/users/edit_eprint:moved" ) );
+				"cgi/users/edit_eprint:moved",
+				link=>$session->render_link( "view_submission?eprintid=".$eprintid ) ) );
 			$page->appendChild( $session->html_phrase( 
 				"general:userhome_link" ) );
 			return( $session->html_phrase( 

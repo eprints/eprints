@@ -82,6 +82,40 @@ sub validate_field
 		}
 	}
 
+	# Ensure that a "name" has a family AND given part. You might wish to have names with
+	# only "given" if you have limited information.
+	if( $field->is_type( "name" ) && defined $value && $value ne "" )
+	{
+		$value = [$value] unless( $field->get_property( "multiple" ) );
+		foreach( @{$value} )
+		{
+			# If a name field has an ID part then we are looking at a hash
+			# with "main" and "id" parts rather than the name.
+			my $name;
+			if( $field->get_property( "hasid" ) )
+			{
+				$name = $_->{main};
+			}
+			else
+			{
+				$name = $_;
+			}
+
+			if( !defined $name->{family} || $name->{family} eq "" )
+			{
+				push @problems,
+					$session->html_phrase( "validate:missing_family",
+					fieldname=>$session->make_text( $field->display_name( $session ) ) );
+			}
+			if( !defined $name->{given} || $name->{given} eq "" )
+			{
+				push @problems,
+					$session->html_phrase( "validate:missing_given",
+					fieldname=>$session->make_text( $field->display_name( $session ) ) );
+			}
+		}
+	}
+
 	return( @problems );
 }
 

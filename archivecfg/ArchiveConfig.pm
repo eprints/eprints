@@ -148,12 +148,11 @@ $c->{required_formats} =
 
 # This sets the minimum amount of free space allowed on a disk before EPrints
 # starts using the next available disk to store EPrints. Specified in kilobytes.
-$c->{diskspace_error_threshold} = 20480;
+$c->{diskspace_error_threshold} = 64*1024;
 
 # If ever the amount of free space drops below this threshold, the
 # archive administrator is sent a warning email. In kilobytes.
-$c->{diskspace_warn_threshold} = 512000;
-
+$c->{diskspace_warn_threshold} = 512*1024;
 
 ### Where put this info, cjg?
 # Command lines to execute to extract files from each type of archive.

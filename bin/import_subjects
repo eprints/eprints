@@ -101,6 +101,8 @@ blgc-bphy:Biophysics:blgc,phys:1
 
 Please see the main documentation for the meaning of these fields.
 
+=over 8
+
 =item B<subjectid> 
 
 An ASCII string which is a unique ID for this subject.
@@ -119,6 +121,8 @@ loops. The top level subject id is ROOT and should not be imported as it always 
 A boolean value ( 1 or 0 ) which indicates if this subject may have eprints
 associated with it. 
 
+=back
+
 =head2 The XML File Format
 
 This is the standard eprints export format. It looks like this:
@@ -136,15 +140,6 @@ This is the standard eprints export format. It looks like this:
   </eprintsdata>
 
 The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the archive. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
-
-=head1 AUTHOR
-
-Written by Christopher Gutteridge
-based on code by Rob Tansley
-
-=head1 SEE ALSO
-
-(cjg) the exporter program I've not done yet, create_tables
 
 
 =cut

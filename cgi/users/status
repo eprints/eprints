@@ -118,7 +118,7 @@ my @dirs = $session->get_archive()->get_store_dirs();
 my $dir;
 foreach $dir ( @dirs )
 {
-	my $size = $session->get_archive()->get_store_dir_size();
+	my $size = $session->get_archive()->get_store_dir_size( $dir );
 	$table->appendChild(
 		render_row( 
 			$session,

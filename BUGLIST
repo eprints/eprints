@@ -32,10 +32,7 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
-- .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
-   install mode failing to preserve the "executables" field.
-
-- weird bug with multiple languages that they move the values around when
+-  Bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
 
 ----------------------------------------------------------------------
@@ -47,8 +44,6 @@ EPrints Editorial Buffer
 ----------------------------------------------------------------------
 Installation
 ----------------------------------------------------------------------
-
-- Regexp for hostnames does not allow "-" signs
 
 
 
@@ -126,6 +121,10 @@ a bug, it had an invalid "type" so had no fields!]
 (No loss of security from eprints-1 but annoying). [Now they are crypted
 straight away.]
 
+FIXED: 11/02
+- .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
+   install mode failing to preserve the "executables" field.
+- Regexp for hostnames does not allow "-" signs
 
 
 

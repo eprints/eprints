@@ -342,6 +342,7 @@ sub get_editable_eprints
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
 		allow_blank=>1,
+		custom_order=>"-datestamp",
 		dataset=>$ds );
 
 #	$searchexp->add_field(

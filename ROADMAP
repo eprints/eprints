@@ -55,8 +55,7 @@
 
 -	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 -	Browse Multiple Fields at once (eg. authors.id/editors.id)
-4	Subject-editors (editors can only edit within certain subjects)
-2	Web-based Email Change
+-	Web-based Email Change
 -	Password Encryption. (Via callback)
 -	Autodetect optional system features: microtime, df etc.
 -	Option to hide Honourific and/or Lineage.
@@ -77,6 +76,7 @@
 
 #	OAI support working.
 
+4	Subject-editors (editors can only edit within certain subjects)
 0	Field property: freetext (or not-freetext) to stop indexing)
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 0	Commentary summary page (Psycoloquy style)
@@ -103,7 +103,7 @@
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 2	XML Importer [mike]
 0	Improve name search syntax (?)
-4	Remove (Hide) Lanuage related options if only one language supported.
+-	Remove (Hide) Lanuage related options if only one language supported.
 4	VLit/Xanadu interface(!)
 
 
@@ -141,7 +141,6 @@
 
 
 #Clean UP
-#	Named values in Constructors all round?
 #	cmp methods : is they still needed?
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 
@@ -158,13 +157,12 @@
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value? NR
 
-
+==
 
 # robots.txt file
 
 #---- MIKE----
 # bibtex, 
-# whatsnew, 
 # importer
 # XML GDOME readyness [screw this for now]
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR [mike]
@@ -184,16 +182,18 @@
 # clean up metadata (inc. boolean rendering):q
 # clean up later-in-thread
 # subject editors (maybe)
-
-# HARRIS.XML!!!
-# MIKE: doc perl modules we need (and bundle)
-# SearchField widths?
-
-# Xhtml docs: [gui]
 # setlang - show all langs, flag supported.
 
-# todo: TTTttttbbbbbmg
-#      10  9  8  7  6  5  4  3  2  1  31  30  29 
+# **********************
+# current urgent 2.0 todo
+# ***********************
+# MIKE: doc perl modules we need (and bundle)
+# HARRIS.XML!!!
+# SearchField widths?
+# Disk full - what does df do?
+# Xhtml docs: [gui]
+# ===Document backing up!!!
+
 
 # HOW-TOS
 #================

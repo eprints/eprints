@@ -30,9 +30,9 @@ EPrints Modules
 <!-- EPrint -->
 
     <ep:phrase ref="lib/eprint:disklow_sub">Warning: Low on disk space</ep:phrase>
-    <ep:phrase ref="lib/eprint:disklow">The amount of disk space available for new EPrints has dropped below the archive threshold. New disk space will be needed soon.</ep:phrase>
+    <ep:phrase ref="lib/eprint:disklow"><p>The amount of disk space available for new EPrints has dropped below the archive threshold. New disk space will be needed soon.</p><p>If you get sick of this message, lower the "diskspace_warn_threshold" in the config file. If you do this then don't forget to put it back after you add more disk space.</p><p>The usual way to add disk space is to symlink a directory on a new drive into the archive "documents" directory.</p></ep:phrase>
     <ep:phrase ref="lib/eprint:diskout_sub">ERROR: Out of Disk Space</ep:phrase>
-    <ep:phrase ref="lib/eprint:diskout">There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</ep:phrase>
+    <ep:phrase ref="lib/eprint:diskout"><p>There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</p><p>NO NEW EPRINTS WILL BE ADDED UNTIL YOU FIX THIS.</p><p>To add more capacity, symlink a directory on a new drive into the archive "documents" directory.</p></ep:phrase>
     <ep:phrase ref="lib/eprint:no_type">You haven't selected a type for this EPrint.</ep:phrase>
     <ep:phrase ref="lib/eprint:invalid_type">This EPrint doesn't seem to have a valid type.</ep:phrase>
     <ep:phrase ref="lib/eprint:not_done_field">You haven't filled out the required <ep:pin ref="fieldname" /> field.</ep:phrase>
@@ -90,7 +90,7 @@ EPrints Modules
 
     <ep:phrase ref="lib/searchfield:year_err">A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</ep:phrase>
     <ep:phrase ref="lib/searchfield:int_err">A numerical field must be specified as a single integer number, e.g. `23', or a range of numbers, e.g. `9-21', `17-' or `-93'</ep:phrase>
-    <ep:phrase ref="lib/searchfield:no_words">Search field contains no indexable words: "<ep:pin ref="words" />".</ep:phrase>
+    <ep:phrase ref="lib/searchfield:no_words">Search field contains no indexable words: "<ep:pin ref="words" />". The system ignores very small or common words.</ep:phrase>
     <ep:phrase ref="lib/searchfield:help_boolean">Select a value.</ep:phrase>
     <ep:phrase ref="lib/searchfield:help_email">Enter some text to search for.</ep:phrase>
     <ep:phrase ref="lib/searchfield:help_datatype">Select one or more values from the list. Default is (Any).</ep:phrase>
@@ -183,7 +183,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:title_return">Return to Author's Home</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_confirmdel">Confirm Deletion</ep:phrase>
     <ep:phrase ref="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your user page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin ref="line_no" />)</ep:phrase>
-    <ep:phrase ref="lib/submissionform:database_err">There's been a problem accessing the archive database. Please try again later. #cjg# could be old no disk0 problem... (Code <ep:pin ref="line_no" /></ep:phrase>
+    <ep:phrase ref="lib/submissionform:database_err">There's been a problem accessing the archive database. Please try again later. (Code <ep:pin ref="line_no" />)</ep:phrase>
     <ep:phrase ref="lib/submissionform:nosel_err">You hadn't selected an item to edit, clone, delete or deposit!</ep:phrase>
     <ep:phrase ref="lib/submissionform:delete">Delete</ep:phrase>
     <ep:phrase ref="lib/submissionform:delete_all">Delete All Files</ep:phrase>
@@ -470,7 +470,7 @@ Staff CGI Scripts
     <ep:phrase ref="cgi/users/edit_eprint:remove_title">Removal Successful</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:removed"><p>EPrint Successfully Removed</p></ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:move_title">Move Successful</ep:phrase>
-    <ep:phrase ref="cgi/users/edit_eprint:moved"><p>EPrint Successfully Moved to Buffer</p></ep:phrase>
+    <ep:phrase ref="cgi/users/edit_eprint:moved"><p>EPrint Successfully moved back into the buffer.</p><p>You may now <ep:pin ref="link">edit it</ep:pin> if you wish.</p></ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:action_check">Check</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:action_cancel">Cancel</ep:phrase>
     <ep:phrase ref="cgi/users/edit_eprint:action_move">Move to Buffer</ep:phrase>
@@ -615,7 +615,7 @@ General phrases, used alot
 ***********************************************************************-->
 
     <ep:phrase ref="general:userhome_link"><p><a href="&userhome;">Go to the &archivename; User Area Homepage</a></p></ep:phrase>
-    <ep:phrase ref="general:frontpage_link"><p><a href="&frontpage;">Return the &archivename; Homepage</a></p></ep:phrase>
+    <ep:phrase ref="general:frontpage_link"><p><a href="&frontpage;">Return to the &archivename; Homepage</a></p></ep:phrase>
     <ep:phrase ref="general:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></ep:phrase> 
 
 <!--********************************************************************** 

@@ -98,6 +98,7 @@
 
     <ep:phrase ref="eprint_fieldname_refereed">Refereed</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</ep:phrase>
+    <ep:phrase ref="eprint_radio_refereed"><ep:pin ref="true" />Yes, this version has been refereed.<br /><ep:pin ref="false" />No, this version has not been refereed.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_referencetext">References</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It will be used to link your item to those it cites and to those that cite it.</ep:phrase>
@@ -270,7 +271,9 @@ terms.</p>
     <ep:phrase ref="page:allfields_intro"><h3>This is complete contents of all the fields in this eprint:</h3></ep:phrase>
     <ep:phrase ref="page:suggestions_intro"><h3>The depositing user made the following comments and suggestions:</h3></ep:phrase>
 
-    <ep:phrase ref="validate:missing_http">The URL given for <ep:pin ref="fieldname" /> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
+    <ep:phrase ref="validate:missing_http">The URL given for <b><ep:pin ref="fieldname" /></b> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
+    <ep:phrase ref="validate:missing_family">Name in field <b><ep:pin ref="fieldname" /></b> is missing the "family" part.</ep:phrase>
+    <ep:phrase ref="validate:missing_given">Name in field <b><ep:pin ref="fieldname" /></b> is missing the "given names/initials" part.</ep:phrase>
     <ep:phrase ref="validate:need_description">Documents of type <em><ep:pin ref="type" /></em> need a description.</ep:phrase>
 
     <ep:phrase ref="mail_password_pin">

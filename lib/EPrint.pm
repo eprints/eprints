@@ -210,36 +210,26 @@ sub _create_directory
 	my( $session, $eprintid ) = @_;
 	
 	# Get available directories
-	my $docpath = $session->get_archive()->get_conf( "documents_path" );
-#print STDERR "DOCPATH: $docpath\n";
-	unless( opendir DOCSTORE, $docpath )
-	{
-		$session->get_archive()->log( "Failed to open docpath: ".$docpath );
-		return undef;
-	}
-	# The grep here just removes the "." and ".." directories
-	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
-	closedir DOCSTORE;
+	my @dirs = $session->get_archive()->get_store_dirs();
+	my $warnsize = $session->get_archive()->get_conf("diskspace_warn_threshold");
+	my $errorsize = $session->get_archive()->get_conf("diskspace_error_threshold");
 
-	# Check amount of space free on each device. We'll use the first one we find
-	# (alphabetically) that has enough space on it.
+	# Check amount of space free on each device. We'll use the first one 
+	# we find (alphabetically) that has enough space on it.
 	my $storedir;
 	my $best_free_space = 0;
-	my $device;	
-	foreach $device (sort @avail)
+	my $dir;	
+	foreach $dir (sort @dirs)
 	{
-#cjg use the lib!
-		my $free_space = 1000000000;
-#cjg OH GOD			(df $session->get_archive()->get_conf( "documents_path" )."/$device" )[3];
-#print STDERR "(".$session->get_archive()->get_conf( "documents_path" )."/$device)($free_space)\n";
+		my $free_space = $session->get_archive()->get_store_dir_size( $dir );
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $session->get_archive()->get_conf("diskspace_error_threshold") )
+			if( $free_space >= $errorsize )
 			{
 				# Enough space on this drive.
-				$storedir = $device;
+				$storedir = $dir;
 			}
 		}
 	}
@@ -247,27 +237,21 @@ sub _create_directory
 	# Check that we do have a place for the new directory
 	if( !defined $storedir )
 	{
-
-# cjg Need to sort out these warnings - logphrase don't work
-# no more.
-
 		# Argh! Running low on disk space overall.
+		$session->get_archive()->log("*** URGENT ERROR\n*** Out of disk space.\n*** All available drives have under ".$errorsize."k remaining.\n*** No new eprints may be added until this is rectified." );
 		$session->mail_administrator(
 			"lib/eprint:diskout_sub" ,
 			"lib/eprint:diskout" );
-#print STDERR "oraok\n";
-#cjg LOG WHY!
 		return( undef );
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $session->get_archive()->get_conf("diskspace_warn_threshold") )
+	if( $best_free_space < $warnsize )
 	{
-# cjg - not done this bit yet...
-#
-#		$session->mail_administrator(
-#			EPrints::Language::logphrase( "lib/eprint:disklow_sub" ),
-#			EPrints::Language::logphrase( "lib/eprint:disklow" ) );
+		$session->get_archive()->log("Running low on diskspace.\nAll available drives have under ".$warnsize."k remaining." );
+		$session->mail_administrator(
+			"lib/eprint:disklow_sub" ,
+			"lib/eprint:disklow" );
 	}
 
 	# Work out the directory path. It's worked out using the ID of the 
@@ -280,10 +264,10 @@ sub _create_directory
 		return( undef ) ;
 	}
 
-	my $dir = $storedir."/".$idpath;
+	my $docdir = $storedir."/".$idpath;
 
 	# Full path including doc store root
-	my $full_path = $session->get_archive()->get_conf("documents_path")."/".$dir;
+	my $full_path = $session->get_archive()->get_conf("documents_path")."/".$docdir;
 	
 	if (!EPrints::Utils::mkdir( $full_path ))
 	{
@@ -293,7 +277,7 @@ sub _create_directory
 	else
 	{
 		# Return the path relative to the document store root
-		return( $dir );
+		return( $docdir );
 	}
 }
 

@@ -331,7 +331,7 @@
       <field name="country" />
       <field name="os" />
       <field name="url" />
-      <field name="editorsubjects" staffonly="yes" />
+ <!--     <field name="editorsubjects" staffonly="yes" /> -->
     </type>
     <type name="admin" >
       <field name="password" />
@@ -347,7 +347,7 @@
       <field name="country" />
       <field name="os" />
       <field name="url" />
-      <field name="editorsubjects" />
+ <!--     <field name="editorsubjects" /> -->
     </type>
   </dataset>
 

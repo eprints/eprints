@@ -61,8 +61,8 @@ BEGIN {
 		print STDERR <<END;
 ---------------------------------------------------------------------------
 df appears to be unavailable on your server. To enable it, you should
-run 'h2ph * */*' in your /usr/include directory. See the EPrints manual for
-more information.
+run 'h2ph * */*' (as root) in your /usr/include directory. See the EPrints 
+manual for more information.
 ---------------------------------------------------------------------------
 END
 	}
@@ -80,9 +80,9 @@ END
 sub df_dir
 {
 	my( $dir ) = @_;
+
 	return df $dir if ($DF_AVAILABLE);
-	warn("df appears to be unavailable on your server. To enable it, you should run 'h2ph * */*' in your /usr/include directory. See the manual for
-more information.");	
+	warn("df appears to be unavailable on your server. To enable it, you should run 'h2ph * */*' (as root) in your /usr/include directory. See the manual for more information.");	
 }
 
 

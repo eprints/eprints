@@ -202,7 +202,13 @@ sub new
 					$archive->log( "Unknown field: $_ in ".
 						$self->{confid}."($typeid)" );
 				}
-				$field->set_property( "required" , $f->{required} );
+
+				# set the required flag, but don't override a system level
+				# required.
+				unless( $field->get_property( "required" ) )
+				{
+					$field->set_property( "required" , $f->{required} );
+				}
 				unless( $f->{staffonly} ) 
 				{
 					push @{$self->{types}->{$typeid}}, $field;

@@ -37,7 +37,7 @@ my( $page, $p, $table, $tr, $td, $th, $a );
 $page = $session->make_doc_fragment();
 
 # What can they edit?
-$page->appendChild( $user->render_value( "editorsubjects" ) );
+# $page->appendChild( $user->render_value( "editorsubjects" ) );
 
 # Get EPrints in the submission buffer
 my @eprints = $user->get_editable_eprints();

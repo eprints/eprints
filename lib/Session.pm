@@ -844,7 +844,6 @@ sub render_input_form
 			width => 1, 
 			height => 1, 
 			border => 0,
-			style => "display: none",
 			src => $self->{archive}->get_conf( "base_url" )."/images/1x1trans.gif",
 			name => "_default", 
 			alt => $p{buttons}->{$p{default_action}} ) );
@@ -974,7 +973,7 @@ sub build_page
 {
 	my( $self, $title, $mainbit, $links ) = @_;
 
-	if( $self->param( "mainonly" ) eq "yes" )
+	if( defined $self->param( "mainonly" ) && $self->param( "mainonly" ) eq "yes" )
 	{
 		$self->{page} = $mainbit;
 		return;
