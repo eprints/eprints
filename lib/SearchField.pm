@@ -23,7 +23,6 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Subject;
 
-use Text::ParseWords;
 use strict;
 
 ######################################################################
@@ -881,7 +880,7 @@ sub to_html
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
 	}
-	elsif( $self->is_type( "boolean","longtext","text","name","url" ) )
+	elsif( $self->is_type( "boolean","longtext","text","name","url","id" ) )
 	{
 		# complex text types
 		$frag->appendChild(

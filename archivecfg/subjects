@@ -21,127 +21,127 @@ phys-mtrl:Materials Science:phys:1
 phys-mthm:Mathematics:phys:1
 phys-phys:Physics:phys:1
 phys-stts:Statistics:phys:1
-scls:Social Sciences:subjects:0
-scls-accn:Accounting:scls:1
-scls-anth:Anthropology:scls:1
-scls-arch:Archaeology:scls:1
-scls-bhvr:Behavioral Sciences:scls:1
-scls-bsns:Business:scls:1
-scls-cgnt:Cognitive Science:scls:1
-scls-cmmn:Communication:scls:1
-scls-crmn:Criminology:scls:1
-scls-ecnm:Economics:scls:1
-scls-edct:Education:scls:1
-scls-ggrp:Geography:scls:1
-scls-glgy:Geology:scls:1
-scls-gphy:Geophysics:scls:1
-scls-gvrn:Government:scls:1
-scls-intr:International Relations:scls:1
-scls-lw:Law:scls:1
-scls-mngm:Management:scls:1
-scls-pltc:Political Science:scls:1
-scls-psyc:Psychology:scls:1
-scls-sclw:Social Work:scls:1
-scls-sclg:Sociology:scls:1
-scls-urbn:Urban Planning:scls:1
-blgc:Biological Sciences:subjects:0
-blgc-antm:Anatomy:blgc:1
-blgc-bchm:Biochemistry:blgc:1
-blgc-blgy:Biology:blgc:1
-blgc-bphy:Biophysics:blgc,phys:1
-blgc-bstt:Biostatistics:blgc:1
-blgc-btny:Botany:blgc:1
-blgc-cllb:Cell Biology:blgc:1
-blgc-cgnt:Cognitive Neuroscience:blgc:1
-blgc-dvlp:Developmental Biology:blgc:1
-blgc-eclg:Ecology:blgc:1
-blgc-frst:Forestry:blgc:1
-blgc-gntc:Genetics:blgc:1
-blgc-mlcl:Molecular Biology:blgc:1
-blgc-nrsc:Neuroscience:blgc:1
-blgc-phys:Physiology:blgc:1
-blgc-plnt:Plant Sciences:blgc:1
-blgc-zlgy:Zoology:blgc:1
-mdcn:Medicine:subjects:0
-mdcn-anst:Anesthesiology:mdcn:1
-mdcn-dnts:Dentistry:mdcn:1
-mdcn-drmt:Dermatology:mdcn:1
-mdcn-endc:Endocrinology:mdcn:1
-mdcn-epdm:Epidemiology:mdcn:1
-mdcn-gstr:Gastroenterology:mdcn:1
-mdcn-gync:Gynecology:mdcn:1
-mdcn-hlth:Health:mdcn:1
-mdcn-hmtl:Hematology:mdcn:1
-mdcn-immn:Immunology:mdcn:1
-mdcn-mdcn:Medicine:mdcn:1
-mdcn-mcrb:Microbiology:mdcn:1
-mdcn-nrlg:Neurology:mdcn:1
-mdcn-nrsr:Neurosurgery:mdcn:1
-mdcn-nrsn:Nursing:mdcn:1
-mdcn-obst:Obstetrics:mdcn:1
-mdcn-opht:Ophthalmology:mdcn:1
-mdcn-orth:Orthodontics:mdcn:1
-mdcn-orthp:Orthopaedics:mdcn:1
-mdcn-otlr:Otolaryngology:mdcn:1
-mdcn-pthl:Pathology:mdcn:1
-mdcn-pdtr:Pediatrics:mdcn:1
-mdcn-prdn:Periodontology:mdcn:1
-mdcn-phrm:Pharmacology:mdcn:1
-mdcn-psyc:Psychiatry:mdcn:1
-mdcn-pblc:Public Health:mdcn:1
-mdcn-rdlg:Radiology:mdcn:1
-mdcn-srgr:Surgery:mdcn:1
-mdcn-txcl:Toxicology:mdcn:1
-mdcn-urlg:Urology:mdcn:1
-mdcn-vtrn:Veterinary Services:mdcn:1
-engn:Engineering:subjects:0
-engn-arnt:Aeronautics:engn:1
-engn-astr:Astronautics:engn:1
-engn-appl:Applied Mathematics:engn:1
-engn-appld:Applied Physics:engn:1
-engn-bmdc:Biomedical Engineering:engn:1
-engn-chmc:Chemical Engineering:engn:1
-engn-cvle:Civil Engineering:engn:1
-engn-cmpt:Computer Science:engn:1
-engn-elct:Electrical Engineering:engn:1
-engn-envr:Environment:engn:1
-engn-inds:Industrial Engineering:engn:1
-engn-infr:Information Studies:engn:1
-engn-mchn:Mechanical Engineering:engn:1
-engn-tchn:Technology:engn:1
-engn-tlcm:Telecommunications:engn:1
-hmnt:Humanities:subjects:0
-hmnt-arch:Architecture:hmnt:1
-hmnt-clss:Classics:hmnt:1
-hmnt-cmpr:Comparative Literature:hmnt:1
-hmnt-engl:English:hmnt:1
-hmnt-frnc:French:hmnt:1
-hmnt-grmn:German:hmnt:1
-hmnt-grk:Greek:hmnt:1
-hmnt-hstr:History:hmnt:1
-hmnt-hstry:History of Science:hmnt:1
-hmnt-islm:Islamic Studies:hmnt:1
-hmnt-itln:Italian:hmnt:1
-hmnt-jdcs:Judaic Studies:hmnt:1
-hmnt-lngg:Language:hmnt:1
-hmnt-lbrr:Library Science:hmnt:1
-hmnt-lngs:Linguistics:hmnt:1
-hmnt-ltrt:Literature:hmnt:1
-hmnt-mdvl:Medieval Studies:hmnt:1
-hmnt-mdrn:Modern Languages:hmnt:1
-hmnt-ornt:Oriental Studies:hmnt:1
-hmnt-phls:Philosophy:hmnt:1
-hmnt-rlgn:Religion:hmnt:1
-hmnt-rssn:Russian:hmnt:1
-hmnt-slvc:Slavic Languages:hmnt:1
-hmnt-spns:Spanish:hmnt:1
-hmnt-spch:Speech:hmnt:1
-hmnt-wmns:Women's Studies:hmnt:1
-arts:Arts:subjects:0
-arts-art:Art:arts:1
-arts-arth:Art History:arts:1
-arts-dsgn:Design:arts:1
-arts-drm:Drama:arts:1
-arts-flms:Film Studies:arts:1
-arts-fnar:Fine Art:arts:1
-arts-msc:Music:arts:1
+#scls:Social Sciences:subjects:0
+#scls-accn:Accounting:scls:1
+#scls-anth:Anthropology:scls:1
+#scls-arch:Archaeology:scls:1
+#scls-bhvr:Behavioral Sciences:scls:1
+#scls-bsns:Business:scls:1
+#scls-cgnt:Cognitive Science:scls:1
+#scls-cmmn:Communication:scls:1
+#scls-crmn:Criminology:scls:1
+#scls-ecnm:Economics:scls:1
+#scls-edct:Education:scls:1
+#scls-ggrp:Geography:scls:1
+#scls-glgy:Geology:scls:1
+#scls-gphy:Geophysics:scls:1
+#scls-gvrn:Government:scls:1
+#scls-intr:International Relations:scls:1
+#scls-lw:Law:scls:1
+#scls-mngm:Management:scls:1
+#scls-pltc:Political Science:scls:1
+#scls-psyc:Psychology:scls:1
+#scls-sclw:Social Work:scls:1
+#scls-sclg:Sociology:scls:1
+#scls-urbn:Urban Planning:scls:1
+#blgc:Biological Sciences:subjects:0
+#blgc-antm:Anatomy:blgc:1
+#blgc-bchm:Biochemistry:blgc:1
+#blgc-blgy:Biology:blgc:1
+#blgc-bphy:Biophysics:blgc,phys:1
+#blgc-bstt:Biostatistics:blgc:1
+#blgc-btny:Botany:blgc:1
+#blgc-cllb:Cell Biology:blgc:1
+#blgc-cgnt:Cognitive Neuroscience:blgc:1
+#blgc-dvlp:Developmental Biology:blgc:1
+#blgc-eclg:Ecology:blgc:1
+#blgc-frst:Forestry:blgc:1
+#blgc-gntc:Genetics:blgc:1
+#blgc-mlcl:Molecular Biology:blgc:1
+#blgc-nrsc:Neuroscience:blgc:1
+#blgc-phys:Physiology:blgc:1
+#blgc-plnt:Plant Sciences:blgc:1
+#blgc-zlgy:Zoology:blgc:1
+#mdcn:Medicine:subjects:0
+#mdcn-anst:Anesthesiology:mdcn:1
+#mdcn-dnts:Dentistry:mdcn:1
+#mdcn-drmt:Dermatology:mdcn:1
+#mdcn-endc:Endocrinology:mdcn:1
+#mdcn-epdm:Epidemiology:mdcn:1
+#mdcn-gstr:Gastroenterology:mdcn:1
+#mdcn-gync:Gynecology:mdcn:1
+#mdcn-hlth:Health:mdcn:1
+#mdcn-hmtl:Hematology:mdcn:1
+#mdcn-immn:Immunology:mdcn:1
+#mdcn-mdcn:Medicine:mdcn:1
+#mdcn-mcrb:Microbiology:mdcn:1
+#mdcn-nrlg:Neurology:mdcn:1
+#mdcn-nrsr:Neurosurgery:mdcn:1
+#mdcn-nrsn:Nursing:mdcn:1
+#mdcn-obst:Obstetrics:mdcn:1
+#mdcn-opht:Ophthalmology:mdcn:1
+#mdcn-orth:Orthodontics:mdcn:1
+#mdcn-orthp:Orthopaedics:mdcn:1
+#mdcn-otlr:Otolaryngology:mdcn:1
+#mdcn-pthl:Pathology:mdcn:1
+#mdcn-pdtr:Pediatrics:mdcn:1
+#mdcn-prdn:Periodontology:mdcn:1
+#mdcn-phrm:Pharmacology:mdcn:1
+#mdcn-psyc:Psychiatry:mdcn:1
+#mdcn-pblc:Public Health:mdcn:1
+#mdcn-rdlg:Radiology:mdcn:1
+#mdcn-srgr:Surgery:mdcn:1
+#mdcn-txcl:Toxicology:mdcn:1
+#mdcn-urlg:Urology:mdcn:1
+#mdcn-vtrn:Veterinary Services:mdcn:1
+#engn:Engineering:subjects:0
+#engn-arnt:Aeronautics:engn:1
+#engn-astr:Astronautics:engn:1
+#engn-appl:Applied Mathematics:engn:1
+#engn-appld:Applied Physics:engn:1
+#engn-bmdc:Biomedical Engineering:engn:1
+#engn-chmc:Chemical Engineering:engn:1
+#engn-cvle:Civil Engineering:engn:1
+#engn-cmpt:Computer Science:engn:1
+#engn-elct:Electrical Engineering:engn:1
+#engn-envr:Environment:engn:1
+#engn-inds:Industrial Engineering:engn:1
+#engn-infr:Information Studies:engn:1
+#engn-mchn:Mechanical Engineering:engn:1
+#engn-tchn:Technology:engn:1
+#engn-tlcm:Telecommunications:engn:1
+#hmnt:Humanities:subjects:0
+#hmnt-arch:Architecture:hmnt:1
+#hmnt-clss:Classics:hmnt:1
+#hmnt-cmpr:Comparative Literature:hmnt:1
+#hmnt-engl:English:hmnt:1
+#hmnt-frnc:French:hmnt:1
+#hmnt-grmn:German:hmnt:1
+#hmnt-grk:Greek:hmnt:1
+#hmnt-hstr:History:hmnt:1
+#hmnt-hstry:History of Science:hmnt:1
+#hmnt-islm:Islamic Studies:hmnt:1
+#hmnt-itln:Italian:hmnt:1
+#hmnt-jdcs:Judaic Studies:hmnt:1
+#hmnt-lngg:Language:hmnt:1
+#hmnt-lbrr:Library Science:hmnt:1
+#hmnt-lngs:Linguistics:hmnt:1
+#hmnt-ltrt:Literature:hmnt:1
+#hmnt-mdvl:Medieval Studies:hmnt:1
+#hmnt-mdrn:Modern Languages:hmnt:1
+#hmnt-ornt:Oriental Studies:hmnt:1
+#hmnt-phls:Philosophy:hmnt:1
+#hmnt-rlgn:Religion:hmnt:1
+#hmnt-rssn:Russian:hmnt:1
+#hmnt-slvc:Slavic Languages:hmnt:1
+#hmnt-spns:Spanish:hmnt:1
+#hmnt-spch:Speech:hmnt:1
+#hmnt-wmns:Women's Studies:hmnt:1
+#arts:Arts:subjects:0
+#arts-art:Art:arts:1
+#arts-arth:Art History:arts:1
+#arts-dsgn:Design:arts:1
+#arts-drm:Drama:arts:1
+#arts-flms:Film Studies:arts:1
+#arts-fnar:Fine Art:arts:1
+#arts-msc:Music:arts:1

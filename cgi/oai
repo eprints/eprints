@@ -158,7 +158,7 @@ sub identify
 	
 	$writer->dataElement( 
 		"repositoryName",
-		EPrints::OpenArchives::to_utf8( $session->get_archive()->get_conf( "archivename" ) ) );
+		$session->get_archive()->get_conf( "archivename" ) );
 	
 	$writer->dataElement( "baseURL",
 	                      $session->get_archive()->get_conf( "oai_base_url" ) );
@@ -168,7 +168,7 @@ sub identify
 
 	$writer->dataElement(
 		"adminEmail",
-		EPrints::OpenArchives::to_utf8( "mailto:".$session->get_archive()->get_conf( "adminemail" ) ) );
+		"mailto:".$session->get_archive()->get_conf( "adminemail" ) );
 
 	$writer->startTag( "description");
 	$writer->startTag( "oai-identifier", 
@@ -196,7 +196,7 @@ sub identify
 	write_text_url( $writer, 
                           "content", 
                           $session->get_archive()->get_conf( "oai_content" ) );
-	write_text_urlL( $writer, 
+	write_text_url( $writer, 
                           "metadataPolicy", 
                           $session->get_archive()->get_conf( "oai_metadataPolicy" ) );
 	write_text_url( $writer, 
@@ -210,7 +210,7 @@ sub identify
 
 	foreach( @{$session->get_archive()->get_conf( "oai_comments" )} ) 
 	{
-		$writer->dataElement( "comment", EPrints::OpenArchives::to_utf8( $_ ) );
+		$writer->dataElement( "comment", $_ );
 	}
 		
 	$writer->endTag();
@@ -248,14 +248,14 @@ sub write_text_url
 	{
 		$writer->dataElement(
 		"text",
-		EPrints::OpenArchives::to_utf8( $texturl->{"text"} ) );
+		$texturl->{"text"} );
 	}
 
 	if ( defined $texturl->{"url"} ) 
 	{
 		$writer->dataElement(
 		"URL",
-		EPrints::OpenArchives::to_utf8( $texturl->{"url"} ) );
+		$texturl->{"url"} );
 	}
 
 	$writer->endTag( $name );
@@ -648,8 +648,7 @@ sub start_response
 	
 	$writer->dataElement(
 		"requestURL",
-		EPrints::OpenArchives::to_utf8( $session->get_url().
-		  "?" . join( '&', @bits ) ) );
+		$session->get_url().  "?" . join( '&', @bits ) );
 
 	return( $writer );
 }

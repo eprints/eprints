@@ -103,8 +103,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 			# Put the MetaFields in a list
 			foreach (@multiple_names)
 			{
-				push @multiple_fields, 
-					$self->{dataset}->get_field( $_ );
+				push @multiple_fields, _searching_field( $self->{dataset}, $_ ); 
 			}
 			
 			# Add a reference to the list
@@ -113,12 +112,37 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 		else
 		{
 			# Single field
-			$self->add_field( $self->{dataset}->get_field( $fieldname ) );
+			$self->add_field( _searching_field( $self->{dataset}, $fieldname ) );
 		}
 	}
 	
 	
 	return( $self );
+}
+
+sub _searching_field
+{
+	my( $dataset, $fieldname ) = @_;
+
+	my $useid = ( $fieldname=~s/\.id$// );
+	# use id side of a field if the fieldname
+	# ends in .id (and strip the .id)
+print STDERR "FN: ($fieldname)\n";
+	my $field = $dataset->get_field( $fieldname );
+	if( $field->get_property( "hasid" ) )
+	{
+		if( $useid )
+		{
+			$field = $field->get_id_field();
+		}
+		else
+		{
+			$field = $field->get_main_field();
+		
+		}
+	}
+	
+	return $field;
 }
 
 
@@ -206,6 +230,8 @@ sub render_search_form
 		$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
+		# cjg HMMM. This needs some sortings out 
+		# It's not rendered from phrases so not INTL
 		$div->appendChild( $self->{session}->make_text( 
 					$sf->get_display_name ) );
 		$form->appendChild( $div );

@@ -24,6 +24,11 @@ use XML::Parser;
 # "eprints". This is used to pass around state information including
 # the session handle and the current object.
 
+#cjg NEEDS to spot MULTILANG and ID!
+
+#cjg Needs to be able to specify default language (to stop it doing 
+# "?" )
+
 ## WP1: BAD
 sub import_file
 {
@@ -149,17 +154,32 @@ sub _handle_end
 
 	if( $tag eq "FIELD" )
 	{
-		if( $parser->{eprints}->{fields}->
-			{$parser->{eprints}->{currentfield}}->{multiple} )
+#cjg What non OO it has... (call the damn methods, chris!)
+		my $fielddata = $parser->{eprints}->{currentdata};
+		my $currfield = $parser->{eprints}->{currentfield};
+		if( $parser->{eprints}->{fields}->{$currfield}->{multilang} )
 		{
-			push @{ $parser->{eprints}->{data}->
-				{$parser->{eprints}->{currentfield}} },
-				$parser->{eprints}->{currentdata};
+			$fielddata = {
+				"?" => $fielddata
+			};
+		}
+		if( $parser->{eprints}->{fields}->{$currfield}->{hasid} )
+		{
+			$fielddata = {
+				main => $fielddata,
+				id => $parser->{eprints}->{currentid}
+			};
+		}
+			
+		if( $parser->{eprints}->{fields}->{$currfield}->{multiple} )
+		{
+			push @{ $parser->{eprints}->{data}->{$currfield} }, $fielddata;
 		} 
 		else
 		{
-			$parser->{eprints}->{data}->{$parser->{eprints}->{currentfield}}=$parser->{eprints}->{currentdata};
+			$parser->{eprints}->{data}->{$currfield}=$fielddata;
 		}
+		delete $parser->{eprints}->{currentid};
 		delete $parser->{eprints}->{currentfield};
 		delete $parser->{eprints}->{currentdata};
 		delete $parser->{eprints}->{currentspecial};

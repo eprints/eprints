@@ -218,17 +218,19 @@ sub _create_table
 		name => "fieldword", 
 		type => "text");
 
+	# Create the index table
 	$rv = $rv & $self->_create_table_aux(
 			$dataset->get_sql_index_table_name,
 			$dataset,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
+	# Create the other tables
 	$rv = $rv && $self->_create_table_aux( 
 				$dataset->get_sql_table_name, 
 				$dataset, 
 				1, 
-				$dataset->get_fields() );
+				$dataset->get_fields( 1 ) );
 
 	return $rv;
 }
@@ -250,7 +252,8 @@ sub _create_table_aux
 	my $key = undef;
 	my @indices;
 	my $first = 1;
-	# Iterate through the columns
+
+	# Iterate through the fields
 	foreach $field (@fields)
 	{
 		if ( $field->get_property( "multiple" ) ||
@@ -267,6 +270,9 @@ sub _create_table_aux
 			$auxfield->set_property( "multiple", 0 );
 			$auxfield->set_property( "multilang", 0 );
 			my $keyfield = $dataset->get_key_field()->clone;
+print $field->get_name()."\n";
+foreach( keys %{$auxfield} ) { print "* $_ => ".$auxfield->{$_}."\n"; }
+print "\n\n";
 
 			# cjg Hmmmm
 			#  Multiple ->
@@ -329,7 +335,7 @@ sub _create_table_aux
 	}
 	if ( $setkey )	
 	{
-		$sql .= ", PRIMARY KEY (".$key->get_name().")";
+		$sql .= ", PRIMARY KEY (".$key->get_sql_name().")";
 	}
 
 	
@@ -364,6 +370,10 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
+ use Data::Dumper;
+ print STDERR "-----------------ADD RECORD------------------\n";
+ print STDERR Dumper($data);
+ print STDERR "-----------------////ADD RECORD ------------------\n";
 	my $table = $dataset->get_sql_table_name();
 	
 	my $keyfield = $dataset->get_key_field();
@@ -373,9 +383,9 @@ sub add_record
 	# work.
 
 	my $sql = "INSERT INTO ".$dataset->get_sql_table_name()." ";
-	$sql   .= " (".$dataset->get_key_field()->get_name().") ";
+	$sql   .= " (".$dataset->get_key_field()->get_sql_name().") ";
 	$sql   .= "VALUES (\"".
-	          prep_value( $data->{$dataset->get_key_field()->get_name()} )."\")";
+	          prep_value( $data->{$dataset->get_key_field()->get_sql_name()} )."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -431,15 +441,15 @@ sub update
 	my $rv = 1;
 	my $sql;
 
-	my @fields = $dataset->get_fields();
+	my @fields = $dataset->get_fields( 1 );
 
 	my $keyfield = $dataset->get_key_field();
 
-	my $keyvalue = prep_value( $data->{$keyfield->get_name()} );
+	my $keyvalue = prep_value( $data->{$keyfield->get_sql_name()} );
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
-	my $where = $keyfield->get_name()." = \"$keyvalue\"";
+	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
 	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
 	$rv = $rv && $self->do( $sql );
@@ -455,23 +465,28 @@ sub update
 		}
 		else 
 		{
+			my $value = $field->which_bit( $data->{$field->get_name()} );
+			my $colname = $field->get_sql_name();
+			if( $field->get_property( "idpart" ) )
+			{
+				$value = $value->{id};
+			}
+			if( $field->get_property( "mainpart" ) )
+			{
+				$value = $value->{main};
+			}
 			# clearout the freetext search index table for this field.
 
 			if( $field->is_type( "name" ) )
 			{
-				$values{$field->get_name()."_honourific"} = 
-					$data->{$field->get_name()}->{honourific};
-				$values{$field->get_name()."_given"} = 
-					$data->{$field->get_name()}->{given};
-				$values{$field->get_name()."_family"} = 
-					$data->{$field->get_name()}->{family};
-				$values{$field->get_name()."_lineage"} = 
-					$data->{$field->get_name()}->{lineage};
+				$values{$colname."_honourific"} = $value->{honourific};
+				$values{$colname."_given"} = $value->{given};
+				$values{$colname."_family"} = $value->{family};
+				$values{$colname."_lineage"} = $value->{lineage};
 			}
 			else
 			{
-				$values{$field->get_name()} =
-					$data->{$field->get_name()};
+				$values{$colname} = $value;
 			}
 			if( $field->is_text_indexable )
 			{ 
@@ -479,7 +494,7 @@ sub update
 					$dataset, 
 					$keyvalue, 
 					$field, 
-					$data->{$field->get_name()} );
+					$value );
 			}
 		}
 	}
@@ -511,7 +526,7 @@ sub update
 
 		# skip to next table if there are no values at all for this
 		# one.
-		if( !defined $data->{$multifield->get_name()} )
+		if( !EPrints::Utils::is_set( $data->{$multifield->get_name()} ) )
 		{
 			next;
 		}
@@ -524,13 +539,14 @@ sub update
 			my $pos;
 			foreach $pos (0..(scalar @{$fieldvalue}-1) )
 			{
+				my $value = $multifield->which_bit( $fieldvalue->[$pos] );
 				my $incp = 0;
 				if( $multifield->get_property( "multilang" ) )
 				{
 					my $langid;
-					foreach $langid ( keys %{$fieldvalue->[$pos]} )
+					foreach $langid ( keys %{$value} )
 					{
-						my $val = $fieldvalue->[$pos]->{$langid};
+						my $val = $value->{$langid};
 						if( defined $val )
 						{
 							push @values, {
@@ -545,11 +561,10 @@ sub update
 				}
 				else
 				{
-					my $val = $fieldvalue->[$pos];
-					if( defined $val )
+					if( defined $value )
 					{
 						push @values, {
-							v => $val,
+							v => $value,
 							p => $position
 						};
 						$incp=1;
@@ -561,12 +576,16 @@ sub update
 		}
 		else
 		{
+			my $value = $multifield->which_bit( $fieldvalue );
+print STDERR "ML".$multifield->get_name()." ".Dumper($value,$value)."\n-----------\n";
 			if( $multifield->get_property( "multilang" ) )
 			{
+print STDERR "1 ".$multifield->get_name()." ".Dumper($value)."\n";
 				my $langid;
-				foreach $langid ( keys %{$fieldvalue} )
+				foreach $langid ( keys %{$value} )
 				{
-					my $val = $fieldvalue->{$langid};
+					my $val = $value->{$langid};
+print STDERR "2 ".$multifield->get_name()." $langid=> ".Dumper($val)."\n";
 					if( defined $val )
 					{
 						push @values, { 
@@ -588,19 +607,20 @@ sub update
 		my $v;
 		foreach $v ( @values )
 		{
-			$sql = "INSERT INTO $auxtable (".$keyfield->get_name().", ";
+			$fname = $multifield->get_sql_name();	
+			$sql = "INSERT INTO $auxtable (".$keyfield->get_sql_name().", ";
 			$sql.= "pos, " if( $multifield->get_property( "multiple" ) );
 			$sql.= "lang, " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= $multifield->get_name()."_honourific, ";
-				$sql .= $multifield->get_name()."_given, ";
-				$sql .= $multifield->get_name()."_family, ";
-				$sql .= $multifield->get_name()."_lineage ";
+				$sql .= $fname."_honourific, ";
+				$sql .= $fname."_given, ";
+				$sql .= $fname."_family, ";
+				$sql .= $fname."_lineage ";
 			}
 			else
 			{
-				$sql .= $multifield->get_name();
+				$sql .= $fname;
 			}
 			$sql .= ") VALUES (\"$keyvalue\", ";
 			$sql .=	"\"".$v->{p}."\", " if( $multifield->get_property( "multiple" ) );
@@ -658,7 +678,7 @@ sub remove
 
 	my $keyvalue = prep_value( $id );
 
-	my $where = $keyfield->get_name()." = \"$keyvalue\"";
+	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
 
 	# Delete Index
@@ -666,7 +686,7 @@ sub remove
 	$rv = $rv && $self->do( $sql );
 
 	# Delete Subtables
-	my @fields = $dataset->get_fields();
+	my @fields = $dataset->get_fields( 1 );
 	my $field;
 	foreach $field ( @fields ) 
 	{
@@ -867,14 +887,6 @@ print STDERR "Dropping $_\n";
 print STDERR "Done. Dropped $dropped tables.\n";
 }
 
-######################################################################
-#
-# $buffer = buffer( $table, $auxtables{}, $conditions)
-#
-#  perform a search and store the keys of the results in
-#  a buffer tmp table.
-#
-######################################################################
 
 ## WP1: BAD
 sub _make_select
@@ -882,13 +894,13 @@ sub _make_select
 	my( $self, $keyfield, $tables, $conditions ) = @_;
 	
 	my $sql = "SELECT ".((keys %{$tables})[0]).".".
-	          $keyfield->get_name()." FROM ";
+	          $keyfield->get_sql_name()." FROM ";
 	my $first = 1;
 	foreach( keys %{$tables} )
 	{
 		$sql .= " INNER JOIN" unless( $first );
 		$sql .= " ${$tables}{$_} AS $_";
-		$sql .= " USING (".$keyfield->get_name().")" unless( $first );
+		$sql .= " USING (".$keyfield->get_sql_name().")" unless( $first );
 		$first = 0;
 	}
 	if( defined $conditions )
@@ -923,11 +935,11 @@ sub buffer
 	} 
 	elsif( $keep )
 	{
-		$targetbuffer = $self->create_cache( $keyfield->get_name() );
+		$targetbuffer = $self->create_cache( $keyfield->get_sql_name() );
 	}
 	else
 	{
-		$targetbuffer = $self->create_buffer( $keyfield->get_name() );
+		$targetbuffer = $self->create_buffer( $keyfield->get_sql_name() );
 	}
 
 	$self->do( "INSERT INTO $targetbuffer $sql" );
@@ -940,9 +952,9 @@ sub distinct_and_limit
 {
 	my( $self, $buffer, $keyfield, $max ) = @_;
 
-	my $tmptable = $self->create_buffer( $keyfield->get_name() );
+	my $tmptable = $self->create_buffer( $keyfield->get_sql_name() );
 
-	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->get_name().
+	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->get_sql_name().
 	          " FROM $buffer";
 
 	if( defined $max )
@@ -1038,11 +1050,11 @@ sub _get
 
 	my $table = $dataset->get_sql_table_name();
 
-	my @fields = $dataset->get_fields();
+	my @fields = $dataset->get_fields( 1 );
 
 	my $field = undef;
 	my $keyfield = $fields[0];
-	my $kn = $keyfield->get_name();
+	my $kn = $keyfield->get_sql_name();
 
 	my $cols = "";
 	my @aux = ();
@@ -1062,16 +1074,17 @@ sub _get
 			{
 				$cols .= ", ";
 			}
+			my $fname = $field->get_sql_name();
 			if ( $field->is_type( "name" ) )
 			{
-				$cols .= "M.".$field->get_name()."_honourific, ".
-				         "M.".$field->get_name()."_given, ".
-				         "M.".$field->get_name()."_family, ".
-				         "M.".$field->get_name()."_lineage";
+				$cols .= "M.".$fname."_honourific, ".
+				         "M.".$fname."_given, ".
+				         "M.".$fname."_family, ".
+				         "M.".$fname."_lineage";
 			}
 			else 
 			{
-				$cols .= "M.".$field->get_name();
+				$cols .= "M.".$fname;
 			}
 		}
 	}
@@ -1124,8 +1137,18 @@ sub _get
 				{
 					$value = shift @row;
 				}
-				$record->{$field->get_name()} = $value;
-# print STDERR "Set: ".$field->get_name()." to '".$value."'\n";
+				if( $field->get_property( "mainpart" ) )
+				{
+					$record->{$field->get_name()}->{main} = $value;
+				}
+				elsif( $field->get_property( "idpart" ) )
+				{
+					$record->{$field->get_name()}->{id} = $value;
+				}
+				else
+				{
+					$record->{$field->get_name()} = $value;
+				}
 			}
 		}
 		$data[$count] = $record;
@@ -1143,7 +1166,8 @@ sub _get
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $mn = $multifield->get_name();
+		my $mn = $multifield->get_sql_name();
+		my $fn = $multifield->get_name();
 print STDERR "MULTIFIELD: ".$mn."\n";
 		my $col = "M.$mn";
 		if( $multifield->is_type( "name" ) )
@@ -1195,23 +1219,48 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 			{
 				$value = shift @values;
 			}
+			my $subbit;
+			$subbit = "id" if( $multifield->get_property( "idpart" ) );
+			$subbit = "main" if( $multifield->get_property( "mainpart" ) );
 			if( $multifield->get_property( "multiple" ) )
 			{
 				if( $multifield->get_property( "multilang" ) )
 				{
-					$data[$n]->{$mn}->[$pos]->{$lang} = $value;
+					if( defined $subbit )
+					{
+						$data[$n]->{$fn}->[$pos]->{$subbit}->{$lang} = $value;
+					}
+					else
+					{
+						$data[$n]->{$fn}->[$pos]->{$lang} = $value;
+					}
 				}
 				else
 				{
-#print STDERR 	"data[".$n."]->{".$mn."}->[".$pos."] = ".$value."\n";
-					$data[$n]->{$mn}->[$pos] = $value;
+#print STDERR 	"data[".$n."]->{".$fn."}->[".$pos."] = ".$value."\n";
+					if( defined $subbit )
+					{
+						$data[$n]->{$fn}->[$pos]->{$subbit} = $value;
+					}
+					else
+					{
+						$data[$n]->{$fn}->[$pos] = $value;
+					}
 				}
 			}
 			else
 			{
 				if( $multifield->get_property( "multilang" ) )
 				{
-					$data[$n]->{$mn}->{$lang} = $value;
+					if( defined $subbit )
+					{
+						$data[$n]->{$fn}->{$subbit}->{$lang} = $value;
+					}
+					else
+					{
+
+						$data[$n]->{$fn}->{$lang} = $value;
+					}
 				}
 				else
 				{
@@ -1223,10 +1272,10 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 
 	foreach( @data )
 	{
-# use Data::Dumper;
-# print STDERR "-----------------FROM DB------------------\n";
-# print STDERR Dumper($_);
-# print STDERR "-----------------////FROM DB------------------\n";
+ #use Data::Dumper;
+ #print STDERR "-----------------FROM DB------------------\n";
+ #print STDERR Dumper($_);
+ #print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
@@ -1239,6 +1288,10 @@ sub do
 {
 	my ( $self , $sql ) = @_;
 
+	if( $DEBUG_SQL )
+	{
+		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	}
 	my $result = $self->{dbh}->do( $sql );
 
 	if ( !$result ) {
@@ -1246,10 +1299,6 @@ sub do
 		print "dpDBErr:\n";
 		print "$sql\n";
 		print "----------</pre>\n";
-	}
-	if( $DEBUG_SQL )
-	{
-		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 	}
 
 	return $result;
@@ -1277,6 +1326,10 @@ sub execute
 {
 	my ( $self , $sth , $sql ) = @_;
 
+	if( $DEBUG_SQL )
+	{
+		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	}
 	my $result = $sth->execute;
 
 	if ( !$result ) {
@@ -1284,10 +1337,6 @@ sub execute
 		print "execDBErr:\n";
 		print "$sql\n";
 		print "----------</pre>\n";
-	}
-	if( $DEBUG_SQL )
-	{
-		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 	}
 
 	return $result;
@@ -1322,9 +1371,9 @@ sub exists
 	
 	my $keyfield = $dataset->get_key_field();
 
-	my $sql = "SELECT ".$keyfield->get_name().
+	my $sql = "SELECT ".$keyfield->get_sql_name().
 		" FROM ".$dataset->get_sql_table_name()." WHERE ".
-		$keyfield->get_name()." = \"".prep_value( $id )."\";";
+		$keyfield->get_sql_name()." = \"".prep_value( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1357,8 +1406,8 @@ sub _freetext_index
 	my $sql;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( ".$keyfield->get_name()." , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prep_value($field->get_name().":$_")."\")";
+		$sql = "INSERT INTO $indextable ( ".$keyfield->get_sql_name()." , fieldword ) VALUES ";
+		$sql.= "( \"$id\" , \"".prep_value($field->get_sql_name().":$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;

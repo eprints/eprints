@@ -21,7 +21,7 @@
 
 -	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
 1	Multilangify Subject Fields and Subject DB
-0	"ID" fields for ISBN/userid etc.
+3	"ID" fields for ISBN/userid etc.
 2	Subject editors (editors can only edit within certain subjects)
 -	Web-based Registration/password change
 2	Web-based Email Change
@@ -43,9 +43,14 @@
 -	Mailer (Unicode friendly?)
 2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
+0	Password Encryption. (Via callback)
+
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
+0	Option to hide Honourific and/or Lineage.
+0	Special rendering for multilang fields on single language sites. 
+0	Multiple Skins (So we can make a subset of papers appear on a different site). Maybe this is just a clever script.
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 4	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm 

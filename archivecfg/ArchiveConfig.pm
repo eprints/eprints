@@ -309,7 +309,7 @@ my $ENCRYPTED_DBI = {
 #
 # If you change this, you should probably change the user
 # automatic field generator (lower down this file) too.
-$c->{default_user_type} = "user";
+$c->{default_user_type} = "admin";
 
 #cjg = no default user type = no web signup???
 
@@ -356,7 +356,7 @@ $c->{archivefields}->{user} = [
 
 	{ name => "oook", type => "text", multiple => 1 },
 
-	{ name => "country", type => "text" },
+	{ name => "country", type => "text", hasid => 1 },
 
 	{ name => "url", type => "url", multiple => 1 },
 
@@ -368,7 +368,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "altloc", displaylines => 3, type => "url", multiple => 1 },
 
-	{ name => "authors", type => "name", multiple => 1 },
+	{ name => "authors", type => "name", multiple => 1, hasid => 1 },
 
 	{ name => "chapter", type => "text", maxlength => 5 },
 
@@ -382,9 +382,9 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "confloc", type => "text" },
 
-	{ name => "department", type => "text" },
+	{ name => "department", type => "text", hasid=>1 },
 
-	{ name => "editors", type => "name", multiple => 1, multilang => 1 },
+	{ name => "editors", type => "name", multiple => 1, multilang => 1, hasid=>1 },
 
 	{ name => "institution", type => "text" },
 
@@ -421,7 +421,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", multilang => 1, requiredlangs=>["fr"] },
+	{ name => "title", type => "text", multilang => 1, requiredlangs=>["fr"], hasid=>1 },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
@@ -450,6 +450,7 @@ $c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
+	"authors.id",
 	"publication",
 	"year"
 ];
@@ -845,7 +846,27 @@ sub extract_words
 }
 
 
+sub render_value_with_id
+{
+	my( $field, $session, $value, $alllangs, $rendered ) = @_;
 
+	# You might want to wrap the rendered value in an anchor, 
+	# eg if the ID is a staff username
+	# you may wish to link to their homepage. 
+
+# Simple Example:
+#
+#	if( $field->get_name() eq "SOMENAME" ) 
+#	{	
+#		my $fragment = $session->make_doc_fragment();
+#		$fragment->appendChild( $rendered );
+#		$fragment->appendChild( 
+#			$session->make_text( " (".$value->{id}.")" ) );
+#		return( $fragment );
+#	}
+
+	return( $rendered );
+}
 
 
 ######################################################################
@@ -1069,8 +1090,9 @@ sub eprint_render_full
 			#$commentary_field );
 	#}
 #
+	my $title = eprint_render_short_title( $eprint );
 
-	return( $page, $eprint->get_value( "title" ) );
+	return( $page, EPrints::Utils::tree_to_utf8( $title ) );
 }
 
 

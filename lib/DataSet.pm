@@ -21,44 +21,44 @@ use EPrints::Document;
 
 my $INFO = {
 	tempmap => {
-		sqlname => "Xtempmap"
+		sqlname => "tempmap"
 	},
 	counter => {
-		sqlname => "Xcounters"
+		sqlname => "counters"
 	},
 	user => {
-		sqlname => "Xusers",
+		sqlname => "users",
 		class => "EPrints::User"
 	},
 	archive => {
-		sqlname => "Xarchive",
+		sqlname => "archive",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	buffer => {
-		sqlname => "Xbuffer",
+		sqlname => "buffer",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	inbox => {
-		sqlname => "Xinbox",
+		sqlname => "inbox",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	document => {
-		sqlname => "Xdocument",
+		sqlname => "document",
 		class => "EPrints::Document"
 	},
 	subject => {
-		sqlname => "Xsubject",
+		sqlname => "subject",
 		class => "EPrints::Subject"
 	},
 	subscription => {
-		sqlname => "Xsubscription",
+		sqlname => "subscription",
 		class => "EPrints::Subscription"
 	},
 	deletion => {
-		sqlname => "Xdeletion",
+		sqlname => "deletion",
 		class => "EPrints::Deletion"
 	},
 	eprint => {
@@ -294,11 +294,10 @@ sub get_sql_index_table_name
 #  Returns the name of the SQL Table which contains the information
 #  on the "multiple" field.
 
-## WP1: BAD
 sub get_sql_sub_table_name
 {
 	my( $self , $field ) = @_;
-	return $self->get_sql_table_name()."_".$field->get_name();
+	return $self->get_sql_table_name()."_".$field->get_sql_name();
 }
 
 # (Array of EPrints::MetaField) get_fields()
@@ -308,8 +307,31 @@ sub get_sql_sub_table_name
 ## WP1: BAD
 sub get_fields
 {
-	my( $self ) = @_;
-	return @{ $self->{fields} };
+	my( $self, $split_id ) = @_;
+
+	my @fields = ();
+	if( $split_id )
+	{
+		# Split "id" fields into component parts
+		my $field;
+		foreach $field ( @{ $self->{fields} } )
+		{
+			if( $field->get_property( "hasid" ) )
+			{
+				push @fields,$field->get_id_field();
+				push @fields,$field->get_main_field();
+			}
+			else
+			{
+				push @fields,$field;
+			}
+		}
+	}
+	else
+	{
+		@fields = @{ $self->{fields} };
+	}
+	return @fields;
 }
 
 # EPrints::MetaField get_key_field()

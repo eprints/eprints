@@ -31,6 +31,8 @@ my @monthkeys = (
 # These '255'... Maybe make them bigger due to UTF-8
 # UTF-8 chars max 3 times normal (for unicode)
 
+# ID and LANGID are for internal use only!
+
 my %TYPE_SQL =
 (
  	int        => "\$(name) INT UNSIGNED \$(param)",
@@ -47,6 +49,7 @@ my %TYPE_SQL =
  	year       => "\$(name) INT UNSIGNED \$(param)",
  	datatype   => "\$(name) VARCHAR(255) \$(param)",
  	langid	   => "\$(name) CHAR(16) \$(param)",
+	id         => "\$(name) VARCHAR(255) \$(param)",
  	name       => "\$(name)_honourific VARCHAR(255) \$(param), \$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param), \$(name)_lineage VARCHAR(255) \$(param)"
  );
  
@@ -67,6 +70,7 @@ my %TYPE_INDEX =
  	year       => "INDEX(\$(name))",
  	datatype   => "INDEX(\$(name))",
  	langid	   => "INDEX(\$(name))",
+ 	id	   => "INDEX(\$(name))",
  	name       => "INDEX(\$(name)_honourific), INDEX(\$(name)_given), INDEX(\$(name)_family), INDEX(\$(name)_lineage)"
 );
 
@@ -80,6 +84,7 @@ my $PROPERTIES = {
 	digits => 20,
 	displaylines => 0,
 	maxlength => 255,
+	hasid => 0,
 	multilang => 0,
 	multiple => 0,
 	name => "NO_DEFAULT",
@@ -87,6 +92,8 @@ my $PROPERTIES = {
 	required => 0,
 	requiredlangs => [],
 	showall => 0, 
+	idpart => 0,
+	mainpart => 0,
 	top => "subjects",
 	type => "NO_DEFAULT"
 };
@@ -107,6 +114,9 @@ my $PROPERTIES = {
 # maxlength # for text (maybe url & email?)
 # showall # for subjects
 
+# hasid # for all - has an ID value(s)
+# idpart, mainpart # internal use only by the "ID" fields sub-fields.
+
 # note: display name, help and labels for options are not
 # defined here as they are lang specific.
 
@@ -120,7 +130,7 @@ sub new
 
 	#if( $_[1] =~ m/[01]:[01]:[01]/ ) { print STDERR "---\n".join("\n",caller())."\n"; die "WRONG KIND OF CALL TO NEW METAFIELD: $_[1]"; } #cjg to debug
 
-	foreach( "name", "type", "required", "multiple" )
+	foreach( "name", "type", "required", "multiple", "hasid", "mainpart", "idpart" )
 	{
 		$self->set_property( $_, $properties{$_} );
 	}
@@ -264,7 +274,11 @@ sub display_name
 {
 	my( $self, $session ) = @_;
 
-	return $session->phrase( $self->{confid}."_fieldname_".$self->{name} );
+	my $dname = $session->phrase( $self->{confid}."_fieldname_".$self->{name} );
+
+	$dname.= "_id" if( $self->get_property( "idpart" ) );
+
+	return $dname;
 }
 
 ## WP1: BAD
@@ -272,7 +286,11 @@ sub display_help
 {
 	my( $self, $session ) = @_;
 
-	return $session->phrase( $self->{confid}."_fieldhelp_".$self->{name} );
+	my $dhelp = $session->phrase( $self->{confid}."_fieldhelp_".$self->{name} );
+
+	$dhelp.= "_id" if( $self->get_property( "idpart" ) );
+
+	return $dhelp;
 }
 
 ## WP1: BAD
@@ -281,8 +299,8 @@ sub get_sql_type
         my( $self , $notnull ) = @_;
 
 	my $type = $TYPE_SQL{$self->{type}};
-
-	$type =~ s/\$\(name\)/$self->{name}/g;
+	my $sqlname = $self->get_sql_name();
+	$type =~ s/\$\(name\)/$sqlname/g;
 	if( $notnull )
 	{
 		$type =~ s/\$\(param\)/NOT NULL/g;
@@ -304,7 +322,8 @@ sub get_sql_index
 	
 	if( defined $index )
 	{
-		$index =~ s/\$\(name\)/$self->{name}/g;
+		my $sqlname = $self->get_sql_name();
+		$index =~ s/\$\(name\)/$sqlname/g;
 	}
 
 	return $index;
@@ -381,21 +400,18 @@ sub is_text_indexable
 
 sub render_value
 {
-	my( $self, $session, $value, $alllangs ) = @_;
+	my( $self, $session, $value, $alllangs, $ignoreid ) = @_;
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->_render_value1( $session, $value, $alllangs );
+		return $self->_render_value1( $session, $value, $alllangs, $ignoreid );
 	}
 
-	if(! defined $value )
+	if(! EPrints::Utils::is_set( $value ) )
 	{
-		return $session->make_text( "[undef#0]" );#cjg!??!? null or text?		
+		return $session->make_text( "[undef-$self->{name}]" );#cjg!??!? null or text?		
 	}
-	if( scalar( @$value ) == 0 )
-	{
-		return $session->make_text( "[undef#1]" );#cjg!??!? null or text?		
-	}
+
 	my @rendered_values = ();
 	my $sep; #cjg NOT LANG'D
 	if( $self->is_type( "name" ) )
@@ -418,7 +434,7 @@ sub render_value
 		{
 			$html->appendChild( $session->make_text( $sep ) );
 		}
-		$html->appendChild( $self->_render_value1( $session, $_, $alllangs ) );
+		$html->appendChild( $self->_render_value1( $session, $_, $alllangs, $ignoreid ) );
 	}
 	return $html;
 
@@ -429,24 +445,44 @@ sub _render_value1
 {
 	my( $self, $session, $value, $alllangs ) = @_;
 
-	if( !defined $value )
+	my $rendered = $self->_render_value2( $session, $value, $alllangs );
+
+	if( $self->get_property( "hasid" ) )
 	{
-		return $session->make_text( "[undef#2]" );#cjg!??!? null or text?
+		# Ask the usercode to fiddle with this bit of HTML
+		# based on the value of it's ID. 
+		# It will either just pass it through, redo it from scratch
+		# or wrap it in a link.
+		
+		return $session->get_archive()->call( "render_value_with_id",  
+			$self, $session, $value, $alllangs, $rendered );
+	}
+	else
+	{
+		return $rendered;
+	}
+
+}
+
+sub _render_value2
+{
+	my( $self, $session, $value, $alllangs ) = @_;
+
+	# We don't care about the ID
+	if( $self->get_property( "hasid" ) )
+	{
+		$value = $value->{main};
 	}
 
 	if( !$self->get_property( "multilang" ) )
 	{
-		return $self->_render_value2( $session, $value );
+		return $self->_render_value3( $session, $value );
 	}
 
-	if( scalar( keys %$value ) == 0 )
-	{
-		return $session->make_text( "[undef#3]" );#cjg!??!? null or text?		
-	}
 	if( !$alllangs )
 	{
 		my $v = EPrints::Session::best_language( $session->get_archive(), $session->get_langid(), %$value );
-		return $self->_render_value2( $session, $v );
+		return $self->_render_value3( $session, $v );
 	}
 	my( $table, $tr, $td, $th );
 	$table = $session->make_element( "table" );
@@ -457,7 +493,7 @@ sub _render_value1
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( 
-			$self->_render_value2( $session, $value->{$_} ) );
+			$self->_render_value3( $session, $value->{$_} ) );
 		$th = $session->make_element( "th" );
 		$tr->appendChild( $th );
 		$th->appendChild( $session->make_text(
@@ -466,7 +502,7 @@ sub _render_value1
 	return $table;
 }
 
-sub _render_value2
+sub _render_value3
 {
 	my( $self, $session, $value ) = @_;
 
@@ -1234,7 +1270,7 @@ sub _form_value_aux2
 {
 	my( $self, $session, $id_suffix ) = @_;
 
-	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret" ) )
+	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret", "id" ) )
 	{
 		my $value = $session->param( $self->{name}.$id_suffix );
 		return undef if( $value eq "" );
@@ -1304,6 +1340,63 @@ sub most_local
 	my( $self, $session, $value ) = @_;
 
 	return $value;
+}
+
+sub get_id_field
+{
+	my( $self ) = @_;
+	# only meaningful to call this on "hasid" fields
+	#cjg SHould log an issue if otherwise?
+	return unless( $self->get_property( "hasid" ) );
+	my $idfield = $self->clone();
+	$idfield->set_property( "multilang", 0 );
+	$idfield->set_property( "hasid", 0 );
+	$idfield->set_property( "type", "id" );
+	$idfield->set_property( "idpart", 1 );
+	return $idfield;
+}
+
+sub get_main_field
+{
+	my( $self ) = @_;
+	# only meaningful to call this on "hasid" fields
+	#cjg SHould log an issue if otherwise?
+	return unless( $self->get_property( "hasid" ) );
+	my $idfield = $self->clone();
+	$idfield->set_property( "hasid", 0 );
+	$idfield->set_property( "mainpart", 1 );
+	return $idfield;
+}
+
+# Which bit do we care about in an eprints value (the id, main, or all of it?)
+sub which_bit
+{
+	my( $self, $value ) = @_;
+
+	if( $self->get_property( "idpart" ) )
+	{
+		return $value->{id};
+	}
+	if( $self->get_property( "mainpart" ) )
+	{
+		return $value->{main};
+	}
+	return $value;
+}
+
+sub get_sql_name
+{
+	my( $self ) = @_;
+
+	if( $self->get_property( "idpart" ) )
+	{
+		return $self->{name}."_id";
+	}
+	if( $self->get_property( "mainpart" ) )
+	{
+		return $self->{name}."_main";
+	}
+	return $self->{name};
 }
 
 
