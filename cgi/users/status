@@ -17,7 +17,6 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::User;
-use EPrints::Version;
 #crashy cjg
 use strict;
 
@@ -68,7 +67,7 @@ $table->appendChild( render_row(
 		$session,
 		$session->make_text( "EPrints Release:" ), 
 		$session->make_text( 
-			$EPrints::Version::eprints_software_version ) ) );
+			$EPrints::Config::get( "version_desc" ) ) ) );
 
 $table->appendChild(
 	render_row( 

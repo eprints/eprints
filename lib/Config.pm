@@ -10,7 +10,6 @@
 #  __LICENSE__
 #
 ######################################################################
-# HEADERS cjg
 
 #cjg SHOULD BE a way to configure an archive NOT to load the
 # module except on demand (for buggy / testing ones )
@@ -45,19 +44,22 @@ END
 	}
 }
 
-my $eprints_path = $EPrints::SystemSettings::base_path;
-$EPrints::Config::base_path = $eprints_path;
-$EPrints::Config::cgi_path = $eprints_path."/cgi";
-$EPrints::Config::cfg_path = $eprints_path."/cfg";
-$EPrints::Config::phr_path = $eprints_path."/sys";
-$EPrints::Config::sys_path = $eprints_path."/sys";
-$EPrints::Config::bin_path = $eprints_path."/bin";
+my %SYSTEMCONF;
+foreach( keys %{$EPrints::SystemSettings::conf} )
+{
+	$SYSTEMCONF{$_} = $EPrints::SystemSettings::conf->{$_};
+}
+$SYSTEMCONF{cgi_path} = $SYSTEMCONF{base_path}."/cgi";
+$SYSTEMCONF{cfg_path} = $SYSTEMCONF{base_path}."/cfg";
+$SYSTEMCONF{phr_path} = $SYSTEMCONF{base_path}."/sys";
+$SYSTEMCONF{sys_path} = $SYSTEMCONF{base_path}."/sys";
+$SYSTEMCONF{bin_path} = $SYSTEMCONF{base_path}."/bin";
 
 ###############################################
 
 my @LANGLIST;
 my %LANGNAMES;
-my $file = $EPrints::Config::cfg_path."/languages.xml";
+my $file = $SYSTEMCONF{cfg_path}."/languages.xml";
 my $lang_doc = parse_xml( $file );
 my $top_tag = ($lang_doc->getElementsByTagName( "languages" ))[0];
 if( !defined $top_tag )
@@ -78,11 +80,11 @@ $lang_doc->dispose();
 
 my %ARCHIVES;
 my %ARCHIVEMAP;
-opendir( CFG, $EPrints::Config::cfg_path );
+opendir( CFG, $SYSTEMCONF{cfg_path} );
 while( $file = readdir( CFG ) )
 {
 	next unless( $file=~m/^conf-(.*)\.xml/ );
-	my $fpath = $EPrints::Config::cfg_path."/".$file;
+	my $fpath = $SYSTEMCONF{cfg_path}."/".$file;
 	my $id = $1;
 	my $conf_doc = parse_xml( $fpath );
 	my $conf_tag = ($conf_doc->getElementsByTagName( "archive" ))[0];
@@ -95,6 +97,7 @@ while( $file = readdir( CFG ) )
 		EPrints::Config::abort( "In file: $fpath id is not $id" );
 	}
 	my $ainfo = {};
+#	foreach( keys %SYSTEMCONF ) { $ainfo->{$_} = $SYSTEMCONF{$_}; }
 	my $tagname;
 	foreach $tagname ( 
 			"host", "urlpath", "configmodule", "port", "archiveroot",
@@ -111,7 +114,7 @@ while( $file = readdir( CFG ) )
 	}
 	unless( $ainfo->{archiveroot}=~m#^/# )
 	{
-		$ainfo->{archiveroot}= $eprints_path."/".$ainfo->{archiveroot};
+		$ainfo->{archiveroot}= $SYSTEMCONF{base_path}."/".$ainfo->{archiveroot};
 	}
 	unless( $ainfo->{configmodule}=~m#^/# )
 	{
@@ -247,6 +250,13 @@ sub tree_to_utf8
 	}
 
 	return $string;
+}
+
+sub get
+{
+	my( $id ) = @_;
+
+	return $SYSTEMCONF{$id};
 }
 
 1;

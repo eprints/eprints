@@ -16,8 +16,6 @@
 
 package EPrints::Mailer;
 
-use EPrints::Version;
-
 use strict;
 ##what's with automail in this file? Lose it.
 
@@ -126,7 +124,6 @@ sub update_template_line
 	$new_line =~ s/__perlroot__/$session->get_archive()->get_conf( "server_perl" )/g;
 	$new_line =~ s/__staticroot__/$session->get_archive()->get_conf( "server_static" )/g;
 	$new_line =~ s/__frontpage__/$session->get_archive()->get_conf( "frontpage" )/g;
-	$new_line =~ s/__version__/$EPrints::Version::eprints_software_version/g;
 	
 	return( $new_line );
 }

@@ -54,7 +54,6 @@ use EPrints::SubmissionForm;
 use EPrints::Subscription;
 use EPrints::UserForm;
 use EPrints::User;
-use EPrints::Version;
 
 print STDERR "EPRINTS: Modules Loaded\n";
 

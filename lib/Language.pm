@@ -58,7 +58,7 @@ print STDERR "------LOADINGLANG:$langid-------\n";
 		read_phrases( $archive->get_conf( "config_path" )."/phrases-".$self->{id}.".xml", $archive );
 
 	$self->{data} =
-		read_phrases( $EPrints::Config::phr_path."/system-phrases-".$self->{id}.".xml", $archive );
+		read_phrases( EPrints::Config::get( "phr_path" )."/system-phrases-".$self->{id}.".xml", $archive );
 	
 	return( $self );
 }

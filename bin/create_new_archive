@@ -48,8 +48,8 @@ END
 my $archiveid = get_input( $REGEXP_VARNAME, 'Archive ID' );
 print "$archiveid\n";
 
-my( $configfile ) = $EPrints::Config::cfg_path."/conf-".$archiveid.".xml";
-my( $archivedir ) = $EPrints::Config::base_path."/archives/".$archiveid;
+my( $configfile ) = $EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
+my( $archivedir ) = $EPrints::Config::get( "base_path" )."/archives/".$archiveid;
 if( -e $configfile )
 {
 	print "Config file detected:\n";

@@ -118,7 +118,6 @@ EPRINTSBASE/
 		Subscription.pm
 		UserForm.pm
 		User.pm
-		Version.pm
 		Archives/
 			<SYMLINKS> -> Config.pm's
 			General.pm <DOOMED>

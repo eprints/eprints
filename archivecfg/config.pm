@@ -278,7 +278,7 @@ $c->{oai_submission_policy}->{"url"} = undef;
 
 $c->{oai_comments} = [
 	latin1( "System is EPrints ").
-	$EPrints::Version::eprints_software_version.
+	EPrints::Config::get( "version_desc" ).
 	" (http://www.eprints.org)" ];
 
 
@@ -1655,7 +1655,7 @@ sub get_entities
 	$entities{cgiroot} = $archive->get_conf( "server_perl" );
 	$entities{htmlroot} = $archive->get_conf( "server_static" );
 	$entities{frontpage} = $archive->get_conf( "frontpage" );
-	$entities{version} = $EPrints::Version::eprints_software_version;
+	$entities{version} = EPrints::Config::get( "version_desc" );
 
 	return %entities;
 }

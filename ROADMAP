@@ -1,7 +1,7 @@
 *	Pre-Alpha - ie. You can't install it without a telepathic connection to Chris. [YOU ARE HERE]
 
-3	Distribution Installer
-3	Distribution Creator
+4	Distribution Installer
+4	Distribution Creator
 3	"Create New Archive" Script
 -	Tool to manage XML Phrase files and spot missing bits.
 -	Tool to manage XML Template files
@@ -12,7 +12,7 @@
 -	XML config files to tell eprints where to find each archive
 -	Multi-Lang fields in DB
 4	Multi-Lang fields in HTML
-0	Alpha Install Docs.
+2	Alpha Install Docs.
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
 
