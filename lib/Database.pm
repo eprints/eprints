@@ -91,13 +91,13 @@ sub new
 	# build the connection string
 	my $dsn = $EPrints::Database::driver.
 		"database=".$EPrintSite::SiteInfo::database;
-	if (defined $EPrintSite::SiteInfo::database_host)
+	if (defined $EPrintSite::SiteInfo::db_host)
 	{
-		$dsn.= ";host=".$EPrintSite::SiteInfo::database_host;
+		$dsn.= ";host=".$EPrintSite::SiteInfo::db_host;
 	}
-	if (defined $EPrintSite::SiteInfo::database_port)
+	if (defined $EPrintSite::SiteInfo::db_port)
 	{
-		$dsn.= ";port=".$EPrintSite::SiteInfo::database_port;
+		$dsn.= ";port=".$EPrintSite::SiteInfo::db_port;
 	}
 
 	# Connect to the database

@@ -423,8 +423,8 @@ $EPrintSite::SiteInfo::sendmail =
 # Database information: Since we hold the password here unencrypted, this
 # file should have suitable strict read permissions
 $EPrintSite::SiteInfo::database = "eprints";
-$EPrintSite::SiteInfo::database_host = undef;
-$EPrintSite::SiteInfo::database_port = undef;;
+$EPrintSite::SiteInfo::db_host = undef;
+$EPrintSite::SiteInfo::db_port = undef;
 $EPrintSite::SiteInfo::username = "eprints";
 $EPrintSite::SiteInfo::password = "eprints";
 
