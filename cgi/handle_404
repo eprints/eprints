@@ -109,7 +109,7 @@ sub plain_404
 
 	print $session->{render}->start_html( "File not found" );
 	
-	my $url = $session->{render}->absolute_url();
+	my $url = $ENV{REDIRECT_URL};
 	print "<P>File not found: <CODE>$url</CODE></P>\n";
 	
 	print "<P>The specified file could not be found on this server.  If you ".
