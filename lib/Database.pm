@@ -64,6 +64,7 @@ $EPrints::Database::table_deletion = "deletions";
 	"url"        => "VARCHAR(255)",
 	"email"      => "VARCHAR(255)",
 	"subjects"   => "TEXT",
+	"username"   => "TEXT",
 	"pagerange"  => "VARCHAR(255)",
 	"year"       => "INT UNSIGNED",
 	"multiurl"   => "TEXT",

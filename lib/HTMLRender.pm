@@ -32,6 +32,9 @@ $EPrints::HTMLRender::search_form_width = 40;
 # Width of name fields
 $EPrints::HTMLRender::form_name_width = 20;
 
+# Width of username fields
+$EPrints::HTMLRender::form_name_width = 10;
+
 # Max number of chars in (single-line) text fields
 $EPrints::HTMLRender::field_max = 255;
 
@@ -107,6 +110,7 @@ sub new
 	$self->{session} = $session;
 
 	# Get name boxcount stuff
+
 	$self->{namebuttonpressed} = 0;
 
 	$self->{nameinfo} = {};
@@ -120,6 +124,23 @@ sub new
 		
 		$self->{namebuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
 	}
+
+	# Get username boxcount stuff
+
+	$self->{usernamebuttonpressed} = 0;
+
+	$self->{usernameinfo} = {};
+	my @usernames = $self->{query}->param();
+	my $n;
+
+	foreach $n (@usernames)
+	{
+		$self->{usernameinfo}->{$n} = $self->{query}->param( $n )
+			if( substr($n, 0, 9) eq "username_" );
+		
+		$self->{usernamebuttonpressed} = 1 if( substr($n, 0, 14) eq "username_more_" );
+	}
+	
 	
 
 	return( $self );
@@ -235,7 +256,7 @@ sub internal_button_pressed
 {
 	my( $self ) = @_;
 	
-	return( $self->{namebuttonpressed} );
+	return( $self->{namebuttonpressed} ||  $self->{usernamebuttonpressed} );
 }
 
 
@@ -379,6 +400,24 @@ sub format_field
 				$html .=  ", " unless( $first );
 				$first=1 if( $first );
 				$html .= $field->{labels}->{$_};
+			}
+		}
+	}
+	elsif( $type eq "username" )
+	{
+		$html = "";
+		my @usernames;
+		@usernames = split /:/, $value if( defined $value );
+		my $first = 0;
+
+		foreach (@usernames)
+		{
+			if( $_ ne "" )
+			{
+				$html .=  ", " unless( $first );
+				$first=1 if( $first );
+				$html .= $_;
+				# This could be much prettier
 			}
 		}
 	}
@@ -659,6 +698,51 @@ sub input_field
 			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
 		}
+		
+		$html .= "</tr>\n</table>\n";
+	}
+	elsif( $type eq "username" )
+	{
+		# Get the usernames out
+		my @usernames = EPrints::User::extract( $value );
+
+		my $boxcount = $self->{usernameinfo}->{"username_boxes_$field->{name}"};
+
+		if( defined $self->{usernameinfo}->{"username_more_$field->{name}"} )
+		{
+			$boxcount += $EPrints::HTMLRender::add_boxes;
+		}
+
+		# Ensure at least 1...
+		$boxcount = 1 if( !defined $boxcount );
+		# And that there's enough to fit all the usernames in
+		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
+
+		# Render the boxes
+		$html = "<table border=0><tr><th>Username</th>";
+		
+		my $i;
+		for( $i = 0; $i < $boxcount; $i++ )
+		{
+			my $username;	
+			if( $i <= $#usernames )
+			{
+				( $username ) = $usernames[$i];
+			}
+					
+			$html .= "</tr>\n<tr><td>";
+			$html .= $self->{query}->textfield(
+				-name=>"username_$i"."_$field->{name}",
+				-default=>$username,
+				-size=>$EPrints::HTMLRender::form_username_width,
+				-maxlength=>$EPrints::HTMLRender::field_max );
+			$html .= "</td>";
+		}
+		
+		$html .= "<td>".$self->named_submit_button( "username_more_$field->{name}",
+	                                          	  "More Spaces" );
+		$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
+		$html .= "</td>";
 		
 		$html .= "</tr>\n</table>\n";
 	}
@@ -1139,6 +1223,23 @@ sub form_value
 					$surname,
 					$self->param( "name_firstname_$i"."_$field->{name}" ) );
 			}
+		}
+	}
+	elsif( $field->{type} eq "username" )
+	{
+		my $i = 0;
+		#my $total = ( $field->{multiple} ? 
+			#$self->param( "username_boxes_$field->{name}" ) : 1 );
+		my $total = $self->param( "username_boxes_$field->{name}" );
+		
+		for( $i=0; $i<$total; $i++ )
+		{
+			my $username = $self->param( "username_$i"."_$field->{name}" );
+			if( defined $username && $username ne "" )
+			{
+				$value.= ":$username";
+			}
+			$value .= ":" if ( $value ne "" );
 		}
 	}
 	else

@@ -19,6 +19,7 @@ package EPrints::EPrint;
 use EPrints::Database;
 use EPrints::MetaInfo;
 use EPrintSite::SiteRoutines;
+use EPrintSite::SiteInfo;
 
 use File::Path;
 use Filesys::DiskSpace;
@@ -49,6 +50,13 @@ $EPrints::EPrint::id_code_digits = 8;
 	"commentary:text::Commentary On:0:0:0"   # Commentary on/response to...
 );
 
+# These are only used if link-users mode is on (set in SiteInfo)
+
+@EPrints::EPrint::system_meta_fields_link_users =
+(
+	"usernames:username::User IDs of Local Authors:0:0:1"
+);
+
 # Additional fields in this class:
 #
 #   table   - the table the EPrint appears in
@@ -72,8 +80,12 @@ $EPrints::EPrint::id_code_digits = 8;
 	"subjects" => "Please select at least one main subject category, and ".
 		"optionally up to two other subject categories you think are ".
 		"appropriate for your submisson, in the list below. In some browsers ".
-		"you may have to hold CTRL or SHIFT to select more than one subject."
+		"you may have to hold CTRL or SHIFT to select more than one subject.",
+	"usernames" => "Please enter the usernames of any local authors or editors of ".
+		"this item."
 );
+
+	
 
 $EPrints::EPrint::static_page = "index.html";
 
@@ -187,7 +199,7 @@ sub new
 
 ######################################################################
 #
-# $eprint = create( $session, $table, $userid )
+# $eprint = create( $session, $table, $username )
 #
 #  Create a new EPrint entry in the given table, from the given user.
 #
@@ -195,7 +207,7 @@ sub new
 
 sub create
 {
-	my( $session, $table, $userid ) = @_;
+	my( $session, $table, $username ) = @_;
 
 	my $new_id = _create_id( $session );
 
@@ -206,7 +218,7 @@ sub create
 	my $success = $session->{database}->add_record(
 		$table,
 		[ [ "eprintid", $new_id ],
-		  [ "username", $userid ],
+		  [ "username", $username ],
 		  [ "dir", $dir ] ] );
 
 	if( $success )
@@ -808,6 +820,64 @@ sub validate_subject
 	return( \@all_problems );
 }
 		
+######################################################################
+#
+# $problems = validate_username()
+#  array_ref
+#
+#  Validate the username(s) entered
+#
+######################################################################
+
+sub validate_username
+{
+	my( $self ) = @_;
+	
+	my @all_problems;
+	my @all_fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
+	my $field;
+
+	foreach $field (@all_fields)
+	{
+		my $problem;
+	
+		if( $field->{type} eq "username")
+		{
+			my @usernames;
+			@usernames = split( ":", $self->{$field->{name}} );
+			my @invalid;
+			foreach ( @usernames )
+			{
+				next if( $_ eq "" );
+				my $user = new EPrints::User( $self->{session} , $_ );
+				if ( !defined $user ) 
+				{
+					push @invalid, $_;
+				}
+			}
+			if ( scalar @invalid > 0 )
+			{
+				$problem = "The following usernames are not valid: ".
+				            join(", ",@invalid).".";
+			}
+		}
+		else
+		{
+			# Give the validation module a go
+			$problem = EPrintSite::Validate::validate_username_field(
+				$field,
+				$self->{$field->{name}} );
+		}
+
+		if( defined $problem && $problem ne "" )
+		{
+			push @all_problems, $problem;
+		}
+	}
+
+	return( \@all_problems );
+}
+		
 
 ######################################################################
 #
@@ -1033,6 +1103,9 @@ sub validate_full
 	push @problems, @$probs;
 
 	$probs = $self->validate_subject();
+	push @problems, @$probs;
+
+	$probs = $self->validate_username();
 	push @problems, @$probs;
 
 	$probs = $self->validate_linking();

@@ -535,4 +535,31 @@ sub remove
 	return( $success );
 }
 
+######################################################################
+#
+# @username = $extract( $names )
+#
+#  Gets the usernames out of a username list. Returns an array of username's
+#
+######################################################################
+
+sub extract
+{
+	my( $usernames ) = @_;
+	
+	my( @usernamelist, $i, @usernamesplit );
+	
+	@usernamesplit = split /:/, $usernames if( defined $usernames );
+	
+	for( $i = 1; $i<=$#usernamesplit; $i++ )
+	{
+		push @usernamelist, $usernamesplit[$i]
+			if( $usernamesplit[$i] ne "" );
+	}
+	
+	return( @usernamelist );
+}
+
+
+
 1;
