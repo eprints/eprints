@@ -477,21 +477,30 @@ sub render_with_path
 
 	my $v = $session->make_doc_fragment();
 
+	my $first = 1;
 	foreach( @paths )
 	{
-		my $div = $session->make_element( "div" );
+		if( $first )
+		{
+			$first = 0;	
+		}	
+		else
+		{
+			$v->appendChild( $session->html_phrase( 
+				"lib/metafield:join_subject" ) );
+			# nb. using one from metafield!
+		}
 		my $first = 1;
 		foreach( @{$_} )
 		{
 			if( !$first )
 			{
 				# lang ": "cjg
-				$div->appendChild( $session->make_text( ": ") );
+				$v->appendChild( $session->make_text( ": ") );
 			}
 			$first = 0;
-			$div->appendChild( $_->render_description() );
+			$v->appendChild( $_->render_description() );
 		}
-		$v->appendChild( $div );
 	}
 	return $v;
 }

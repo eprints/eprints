@@ -309,7 +309,7 @@ END
 	$sql = "CREATE TABLE users_editperms ( userid INT NOT NULL, pos INT, editperms TEXT default NULL, KEY userid (userid), KEY pos (pos) )  ";
 	$ok = $ok && $rootdbh->do( $sql );
 
-	$sql = "ALTER TABLE users ADD frequency varchar(255) default NULL AFTER editperms";
+	$sql = "ALTER TABLE users ADD frequency varchar(255) default NULL AFTER lang";
 	$ok = $ok && $rootdbh->do( $sql );
 	$sql = "ALTER TABLE users ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
 	$ok = $ok && $rootdbh->do( $sql );

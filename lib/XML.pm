@@ -40,8 +40,8 @@ use Carp;
 
 
 my $gdome = ( 
-	 defined $EPrints::SystemSettings::conf->{use_gdome} &&
-	 $EPrints::SystemSettings::conf->{use_gdome} );
+	 defined $EPrints::SystemSettings::conf->{enable_gdome} &&
+	 $EPrints::SystemSettings::conf->{enable_gdome} );
 
 if( $gdome )
 {

@@ -222,6 +222,11 @@ while( $file = readdir( CFG ) )
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
 		if( !defined $tag )
 		{
+			if(  $tagname eq "securehost" || $tagname eq "securepath" )
+			{
+				next;
+			}
+
 			EPrints::Config::abort( "In file: $fpath the $tagname tag is missing." );
 		}
 		my $val = "";

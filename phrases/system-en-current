@@ -75,7 +75,7 @@ EPrints Modules
     <ep:phrase ref="lib/metafield:join_secret">, </ep:phrase>
     <ep:phrase ref="lib/metafield:join_url">, </ep:phrase>
     <ep:phrase ref="lib/metafield:join_email">, </ep:phrase>
-    <ep:phrase ref="lib/metafield:join_subject">, </ep:phrase>
+    <ep:phrase ref="lib/metafield:join_subject"><br /></ep:phrase>
     <ep:phrase ref="lib/metafield:join_pagerange">, </ep:phrase>
     <ep:phrase ref="lib/metafield:join_datatype">, </ep:phrase>
     <ep:phrase ref="lib/metafield:join_search"> <strong>OR</strong> </ep:phrase>

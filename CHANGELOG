@@ -968,3 +968,9 @@ before next release. (metadata types & fields)
  - Fixed the VLit non-port-80 bug. Added some new functionality, including
     a "scale" factor, and a "fax" detector.
 
+2002-10-24 cjg
+ - Fixed a bug in subjects multiple render join. Subject "join" is now <br/>
+ - Renamed use_gdome to be enable_gdome for configure-like goodness.
+ - <securehost> and <securepath> are now optional (in archive.xml)
+ - Fixed a bug in the 2.1->2.2 SQL in bin/upgrade 
+

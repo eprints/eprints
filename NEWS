@@ -1,5 +1,77 @@
 See CHANGELOG for the gory details.
 
+EPRINTS 2.2.0                                                  2002-10-31???
+-------------------------------------------------------------------------
+
+*       Fixed several minor issues in OAI2 support.
+
+*       Several changes to defaul configuration (eg. default results
+        page number of records now 100, not 10).
+
+*       New field for subscriptions: mailempty? which makes mailing
+        empty subscriptions optional.
+
+*       Added option to have "subject editors" who may only edit certain
+        eprints, ie. all in one subject, or only books & posters.
+
+*       Added editor alerts to mail editors, similar to subscriptions.
+ 
+*       Added a hook for doing something "clever" with certain 404's. This
+        is useful if you are migrating from a different system, eg. eprints 
+        v1 and want the old links to be forwarded to relevant new locations.
+
+*       New metadata parameters
+             - can_clone
+             - sql_index
+             - id_editors_only 
+             - allow_set_order 
+        See the relevant documentation for more information.
+
+*       Added support for XML::GDOME which is a faster XML module, but does
+        require some more software. This is strongly recommended for non-demo
+        systems as it's faster and uses less memory.
+
+*       Improvemnts to generate_views including
+              - optional timestamps (when they were generated)
+              - option to hide subjects with no eprints in yet
+
+*       Automatic hash checksum logging. Every time a document file is 
+        changed, a MD5 hash value is stored. See the documentation for why
+        this is useful. A command "rehash" will generate and log hashes for
+        all documents (handy to do initially). The command line tool 
+        export_hashes will create a hash of each hash file for logging away
+        safely.
+
+*       Searches may now have default values.
+
+*       Improved layout and information of "status" page. Now mentions last
+        time subscriptions were mailed.
+
+*       New command line tool which causes archives to reload their 
+        configuration without restarting apache. This is NOT very efficient 
+        and will waste memory, but is handy for development.
+
+*       ### Nearly Done ### citations now use @year@ instead of &year; to 
+        make XML parsing easier. Also there is a new feature <ep:ifmatch>  
+        which gives access to the eprints search syntax to make citation 
+        elements conditional. Also improvements have been made to the citation 
+        rendering code so that elements may now be safely nested. (eg. <ep:isset>.
+
+*       No GIFs (Due to patent issues, and EPrints being part of GNU),
+        PNGs used instead.
+
+*       Improved configurability of subscription mails layout.
+
+*       Improved configurability of search result pages layout.
+ 
+*       There is now a "Submit Later" button on the deposit page.
+
+*       Added experimental support for the secure part of the site to
+        be served via https.
+
+
+
+
 EPRINTS 2.1.1                                                  2002-07-04
 -------------------------------------------------------------------------
 
@@ -123,5 +195,7 @@ eprints-2-alpha-2                                              2002-01-09
 This is the origional release of eprints 2. It did not actually do 
 anything very useful, it just let people see how the project was
 progressing.
+
+
 
 

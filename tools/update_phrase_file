@@ -1,0 +1,151 @@
+#!/usr/bin/perl -w -I/opt/eprints2/perl_lib
+
+######################################################################
+#
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<update_phrase_file> - Not DOCd
+
+=head1 SYNOPSIS
+
+B<update_phrase_file> I<archiveid> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script renders static "browse views" for an EPrint Archive.
+
+What this does is generate browse pages for each field configured as browsable in B<ArchiveConfig.pm>. It creates a static web page for each value of that field, and index pages to navigate to them. 
+
+For example, if we make "year" browseable then this script will generate one page for each unique value of the year field. So a user can then view the 1995 page and see links to all the 1995 eprints.
+
+Advantages of this are that this puts less load on the database than user searches. Assuming you pick two or three sensible fields to make browsable. 
+
+This script should be run every hour or so, but that should once a day or even once a week on large archives, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+use EPrints::XML;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "update_phrase_file" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 4 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $old_phr_en = EPrints::XML::parse_xml( $ARGV[1], $ARGV[0], 1);
+my $new_phr_en = EPrints::XML::parse_xml( $ARGV[2], $ARGV[0], 1);
+my $old_phr_other = EPrints::XML::parse_xml( $ARGV[3], $ARGV[0], 1);
+
+my $phrases;
+
+my $old_phr_en_phrases = {};
+$phrases = ( $old_phr_en->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	$old_phr_en_phrases->{$ref} = $node;
+}
+
+my $old_phr_other_phrases = {};
+$phrases = ( $old_phr_other->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	$old_phr_other_phrases->{$ref} = $node;
+}
+
+$phrases = ( $new_phr_en->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	print $ref."   ";
+	if( !defined $old_phr_en_phrases->{$ref} )
+	{
+		print "NEW";
+	}
+	elsif( $node->toString eq $old_phr_en_phrases->{$ref}->toString )
+	{
+		print "same";
+	}
+	else
+	{
+		print "DIFF";
+	}
+	print "\n";
+}
+
+
+
+exit;

@@ -46,7 +46,7 @@ $EPrints::SystemSettings::conf =
 	user => "eprints",
 	group => "eprints",
 	disable_df => 0,
-	use_gdome => 1
+	enable_gdome => 1
 
 };
 
