@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+
+######################################################################
+#
+#  Generate static pages using site template.
+#
+#   This trawls through local_root/static. Every HTML file is given
+#   the site frame and written to local_html_root. HTML files that
+#   already have the full <HTML> .. </HTML> gubbins are left as-is.
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+
+use EPrints::Session;
+use EPrintSite::SiteInfo;
+
+use File::Find;
+use strict;
+
+
+my $session = new EPrints::Session( 1 );
+
+find( \&generate_static, $EPrintSite::SiteInfo::static_html_root );
+
+$session->terminate();
+
+
+sub generate_static
+{
+	# Only do anything if this is an HTML file.
+	return unless( /.+\.html/i );
+
+	# Work out the output filename
+	my $out_file = $File::Find::name;
+	$out_file =~ s#$EPrintSite::SiteInfo::static_html_root#$EPrintSite::SiteInfo::local_html_root#;
+
+	my $must_add_frame = 0;
+
+
+EPrints::Log->debug( "generate_static", "Generating static page for $File::Find::name: Dest $out_file" );
+
+	# Open up the files
+	open IN, $File::Find::name or die "Error opening $File::Find::name: $!";
+	open OUT, ">$out_file" or die "Error opening $out_file for writing: $!";
+
+	my $first_line = <IN>;
+	chomp();
+	
+	if( $first_line =~ s/^title:\s+//i )
+	{
+		# We need to add the site frame
+		$must_add_frame = 1;
+
+		print OUT $session->{render}->start_html( $_ );
+	}
+	else
+	{
+		# We're just copying verbatim
+		print OUT "$first_line\n";
+	}
+	
+	# Copy the file across
+	while( <IN> )
+	{
+		print OUT;
+	}
+	
+	# Write the site frame terminator if appropriate
+	print OUT $session->{render}->end_html() if( $must_add_frame );
+	
+	# Close the files
+	close( IN );
+	close( OUT );
+}

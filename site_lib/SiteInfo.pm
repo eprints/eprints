@@ -23,7 +23,7 @@ use strict;
 # General site information
 #
 
-$EPrintSite::SiteInfo::sitename = "RobPrints";
+$EPrintSite::SiteInfo::sitename = "CogPrints";
 $EPrintSite::SiteInfo::automail = "auto\@eprints.org";
 $EPrintSite::SiteInfo::admin = "rob\@soton.ac.uk";
 $EPrintSite::SiteInfo::local_root = "/opt/eprints";
@@ -33,13 +33,14 @@ $EPrintSite::SiteInfo::server_perl = "http://dibble.ecs.soton.ac.uk/cgi";
 $EPrintSite::SiteInfo::frontpage = "http://dibble.ecs.soton.ac.uk";
 
 $EPrintSite::SiteInfo::local_html_root = "$EPrintSite::SiteInfo::local_root/html";
+$EPrintSite::SiteInfo::static_html_root = "$EPrintSite::SiteInfo::local_root/static";
 $EPrintSite::SiteInfo::local_document_root = "$EPrintSite::SiteInfo::local_html_root/documents";
 $EPrintSite::SiteInfo::server_document_root = "$EPrintSite::SiteInfo::server_static/documents";
 
 $EPrintSite::SiteInfo::local_subject_view_stem = "$EPrintSite::SiteInfo::local_html_root/view-";
 $EPrintSite::SiteInfo::server_subject_view_stem = "$EPrintSite::SiteInfo::server_static/view-";
 
-$EPrintSite::SiteInfo::eprint_id_stem = "rp";
+$EPrintSite::SiteInfo::eprint_id_stem = "cog";
 
 # If 1, users can remove their own submissions from the archive.
 $EPrintSite::SiteInfo::allow_user_removal = 1;
@@ -269,7 +270,7 @@ $EPrintSite::SiteInfo::html_banner = "
 <table border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td align=\"center\" valign=\"top\" bgcolor=\"#dddddd\" fgcolor=\"white\">
-      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=0 src=$EPrintSite::SiteInfo::server_static/images/logo_small.jpg ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
+      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=0 src=$EPrintSite::SiteInfo::server_static/images/logo_small.gif ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
     </td>
     <td width=\"100\%\" colspan=2 align=center valign=\"middle\" bgcolor=\"white\" fgcolor=\"black\">
       <H1>TITLE_PLACEHOLDER</H1>
@@ -285,8 +286,10 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/reader/subscribe\">Subscribe</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">Author\&nbsp;Area</A>
+            <A HREF=\"$EPrintSite::SiteInfo::server_static/accounts.html\">Join&nbsp;up</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/reader/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">Author\&nbsp;Area</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
           </td>
         </tr>
       </table>
@@ -324,8 +327,13 @@ $EPrintSite::SiteInfo::html_banner = "
 
 $EPrintSite::SiteInfo::html_tail = "<BR>
 <HR>
+
+<img src=\"$EPrintSite::SiteInfo::server_static/images/logo_elib.gif\" alt=\"Elib logo\" border=0 hspace=5 vspace=5 align=\"left\">
+<p>The <strong>CogPrints</strong> project is funded by the <a href=\"http://www.jisc.ac.uk/\">Joint Information Systems Committee (JISC)</a> of the Higher Education Funding Councils, as part of its <a href=\"http://www.ukoln.ac.uk/services/elib/\">Electronic Libraries (eLib) Programme</a>.<br clear=\"left\"></p>
+
+<HR>
 <address>
-<a href=\"mailto:rob\@soton.ac.uk\">Robert Tansley</a>
+Contact site administrator at: <a href=\"mailto:rob\@soton.ac.uk\">rob\@soton.ac.uk</a>
 </address>
 
     </td>

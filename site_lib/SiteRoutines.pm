@@ -21,6 +21,8 @@ use EPrints::Subject;
 use EPrints::SubjectList;
 use EPrints::Name;
 
+use EPrintSite::SiteInfo;
+
 use strict;
 
 
@@ -125,7 +127,7 @@ sub eprint_render_full
 	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	if( defined $user )
 	{
-		$html .= "<A HREF=\"$EPrints::SiteInfo::server_perl/user?username=".
+		$html .= "<A HREF=\"$EPrintSite::SiteInfo::server_perl/user?username=".
 			$user->{username}."\">".$user->full_name()."</A>";
 	}
 	else
