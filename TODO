@@ -21,6 +21,9 @@ PRE Release Checks for 2.2
 
 *	Linkbatton renderer?
 
+* 	Docs: 
+		- We need lots of RAM!
+
 
 SQL Tables
 
@@ -133,17 +136,7 @@ Command Line Tools
 	-Forces "Taint" checking which certain eprints bits just can't darn
  	handle.
 
-*	MD5 digest all documents.
-
 Submission Page
-
-*	Deposit now/Deposit Later page as last part of normal 
-	sumbission.
-
-*	Change it so it goes back to the front page after submission
-	or even a page explaining how to deposit.
-
-*	Change the text of the user home page to explain the above.
 
 - 	Extra pages which are user defined.
 
@@ -161,10 +154,6 @@ Other Stuff
 
 +	Option for "subjects" to not appear with heirarchy when presented
 	in input forms.
-
-*	Make "Submit Later" option on submit form final page.
-
-*	Make EPrint->new_from_data work the same as document, eprint etc.
 
 -	Turn Multiple input fields into <ol>'s. maybe?
 
@@ -339,6 +328,20 @@ DONE ====================================================================
         dataobj types?)
 *	Hide ID for non-staff option for has-id fields
 * 	Time stamp views [optionally] - done but not an option
+*	Make EPrint->new_from_data work the same as document, eprint etc.
+	 [well, it does need the dataset]
+*	Deposit now/Deposit Later page as last part of normal 
+	sumbission.
+*	Staff User info to show user subscriptions (maybe edit?)
+*	Make "Submit Later" option on submit form final page.
+*	No Submission Buffer option.
+*	<ep:ifequal> and <ep:ifnotequal> tools for citations.
+*	MD5 digest all documents.
+
+
+
+
+
 
 
 

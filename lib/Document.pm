@@ -1190,17 +1190,37 @@ sub rehash
 {
 	my( $self ) = @_;
 
-
-	
-        my $ctx = Digest::MD5->new;
-	my( %files ) = $self->files;
-	foreach( sort keys %files ) 
+	my $fn = $self->{session}->get_archive()->get_conf( 
+		"hash_document_routine" );
+	my $hash;
+	if( defined $fn )
 	{
-		open( FILE, $_ );
-        	$ctx->addfile(*FILE);
-		close FILE;
+		$hash = &{$fn}( $self );
 	}
-	$self->set_value( "hash", $ctx->hexdigest );
+	else
+	{
+
+        	my $md5 = Digest::MD5->new;
+		my( %files ) = $self->files;
+		foreach my $filename ( sort keys %files ) 
+		{
+			my $file = $self->local_path."/".$filename;	
+			if( open( FILE, $file ) )
+			{
+				binmode FILE;
+        			$md5->add( *FILE );
+				close FILE;
+			}
+			else
+			{
+				$self->{session}->get_archive->log( 
+"Error opening $file to create MD5 hash, hash should be re-generated." ); 
+			}
+		}
+		$hash = $md5->hexdigest;
+	}
+
+	$self->set_value( "hash", $hash );
 	$self->commit;
 }
 

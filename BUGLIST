@@ -89,6 +89,8 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
+- Moving to deletion buffer causes error!
+
 - Does not properly insist on required subject fields.
 
 - If no required doc formats then message is silly. [fixed] BUT now

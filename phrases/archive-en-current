@@ -270,6 +270,7 @@ terms.</p>
     <ep:phrase ref="page:abstract_intro"><h3>This is how the metadata summary page will look:</h3></ep:phrase>
     <ep:phrase ref="page:allfields_intro"><h3>This is complete contents of all the fields in this eprint:</h3></ep:phrase>
     <ep:phrase ref="page:suggestions_intro"><h3>The depositing user made the following comments and suggestions:</h3></ep:phrase>
+    <ep:phrase ref="page:subscription">Subscription</ep:phrase>
 
     <ep:phrase ref="validate:missing_http">The URL given for <b><ep:pin ref="fieldname" /></b> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
     <ep:phrase ref="validate:bad_email">The email given for <b><ep:pin ref="fieldname" /></b> is invalid.</ep:phrase>

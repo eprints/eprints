@@ -533,6 +533,15 @@ $c->{cache_maxlife} = 12;
 # $c->{pagehooks}->{submission_meta}->{head} = $link;
 # $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
 
+
+# Setting this to 1 will make eprints submitted from the user work
+# area appear in the archive, bypassing the submission buffer section.
+# Possibly handy in early stages of setting up a system, but not 
+# recommended for general use.
+# NOTE: It will not change any of the text, so the instructions will
+# be incorrect.
+$c->{skip_buffer} = 0;
+
 ######################################################################
 
 # Stuff from other config files which are require'd above:

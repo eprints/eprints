@@ -158,6 +158,11 @@ sub eprint_render
 		}
 	}
 
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "eprint_fieldname_type" ),
+		$eprint->render_value( "type"  ) ) );
+
 	# Keywords
 	if( $eprint->is_set( "keywords" ) )
 	{
@@ -166,6 +171,8 @@ sub eprint_render
 			$session->html_phrase( "eprint_fieldname_keywords" ),
 			$eprint->render_value( "keywords" ) ) );
 	}
+
+
 
 	# Subjects...
 	$table->appendChild( _render_row(
@@ -499,8 +506,33 @@ sub user_render_full
 			$user->render_value( $field->get_name(), 1 ) ) );
 
 	}
+
+
+	my @subs = $user->get_subscriptions;
+	my $subs_ds = $session->get_archive->get_dataset( "subscription" );
+	foreach my $subscr ( @subs )
+	{
+		my $rowright = $session->make_doc_fragment;
+		foreach( "frequency","spec","mailempty" )
+		{
+			my $strong;
+			$strong = $session->make_element( "strong" );
+			$strong->appendChild( $session->make_text( $subs_ds->get_field( $_ )->display_name( $session ) ) );
+			$strong->appendChild( $session->make_text( ": " ) );
+			$rowright->appendChild( $strong );
+			$rowright->appendChild( $subscr->render_value( $_ ) );
+			$rowright->appendChild( $session->make_element( "br" ) );
+		}
+		$table->appendChild( _render_row(
+			$session,
+			$session->html_phrase(
+				"page:subscription" ),
+			$rowright ) );
+				
+	}
+
 	$info->appendChild( $table );
-	
+
 	return $info;
 }
 

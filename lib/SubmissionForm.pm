@@ -1047,10 +1047,23 @@ sub _from_stage_verify
 		if( scalar @{$problems} == 0 )
 		{
 			# OK, no problems, submit it to the archive
-			if( $self->{eprint}->move_to_buffer() )
+
+			my $sb = $self->{session}->get_archive()->get_conf( "skip_buffer" );	
+			if( defined $sb && $sb == 1 )
 			{
-				$self->_set_stage_next;
-				return( 1 );
+				if( $self->{eprint}->move_to_archive() )
+				{
+					$self->_set_stage_next;
+					return( 1 );
+				}
+			}	
+			else
+			{
+				if( $self->{eprint}->move_to_buffer() )
+				{
+					$self->_set_stage_next;
+					return( 1 );
+				}
 			}
 	
 			$self->_database_err;

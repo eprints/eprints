@@ -1,0 +1,170 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<export_hashes> - export the hash values for all documents in an archive.
+
+=head1 SYNOPSIS
+
+B<export_hashes> I<archiveid> [B<options>] [I<filename>]
+
+=head1 DESCRIPTION
+
+This script outputs to a file, or stdout, a list of all the documents in
+the system and their current hash values. This list can then be archived
+and a hash of the list can be registered with a trustworthy 3rd party, or
+even published in a short newspaper advert.
+
+In theory you can use this to prove you had that hash on the date of
+publication of the newspaper. That prooves that the log file you archived 
+existed on or before that date. The hashes in the log prove that each document
+existed on or before that date. (unless they have been subsequently changed).
+
+This is an experimental feature.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<archiveid> 
+
+The ID of the EPrint archive to use.
+
+=item I<filename>
+
+A filename to write to. If omited this will write to stdout.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=item B<--force>
+
+Don't ask before running. If you want to automate this script, eg. run it once
+every 6 months, you don't want it interactively checking if you want to continue!
+
+=back   
+
+
+__GENERICPOD__
+
+=cut
+
+
+use Getopt::Long;
+use Pod::Usage;
+use strict;
+
+use EPrints::Session;
+use EPrints::Subject;
+use EPrints::ImportXML;
+
+my $xml = 0;
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $force = 0;
+my $purge = 1;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'force' => \$force , 
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "reindex" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 2 && @ARGV != 1 );
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $session = new EPrints::Session( 1, $ARGV[0], $noise );
+exit( 1 ) unless defined $session;
+my $filename = $ARGV[1];
+if( defined $filename )
+{
+	unless( open( OUTPUT , ">".$filename ) )
+	{
+		$session->get_archive->log( "Can't open $filename for writing" );
+		$session->terminate();
+		exit 1;
+	}
+}
+else
+{
+	*OUTPUT = *STDOUT;
+}
+
+
+print OUTPUT "Archive: ".$ARGV[0]."\n";
+print OUTPUT "Datestamp: ".EPrints::Utils::get_timestamp()."\n";
+print OUTPUT "\n";
+print OUTPUT "Hash                             Doc ID\n";
+print OUTPUT "\n";
+
+my $ds = $session->get_archive()->get_dataset( "document" );
+$ds->map( $session, \&show_hash );
+
+if( defined $filename )
+{
+	close OUTPUT;
+}
+$session->terminate();
+exit;
+
+sub show_hash
+{
+	my( $session, $dataset, $user ) = @_;
+
+	print OUTPUT $user->get_value( "hash" );
+	print OUTPUT " ";
+	print OUTPUT $user->get_value( "docid" );
+	print OUTPUT "\n";
+
+}

@@ -69,7 +69,7 @@ sub make_confirm_page
 	my $maxdelta = $session->get_archive()->get_conf( "pin_timeout" );
 	if( ( $maxdelta != 0 ) && ( $maxdelta * 60 * 60 < $delta ) )
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_timepout" ) );
+		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_timeout" ) );
 		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
 

@@ -876,6 +876,38 @@ sub _render_citation_aux
 			$rendered = $session->make_doc_fragment;
 			$addkids = !$obj->is_set( $node->getAttribute( "name" ) );
 		}
+		elsif( $name eq "ifmatch" || $name eq "ifnotmatch" )
+		{
+			my $dataset = $obj->get_dataset;
+
+			my $fieldname = $node->getAttribute( "name" );
+			my $merge = $node->getAttribute( "merge" );
+			my $value = $node->getAttribute( "value" );
+			my $match = $node->getAttribute( "match" );
+
+			my @multiple_names = split /\//, $fieldname;
+			my @multiple_fields;
+			
+			# Put the MetaFields in a list
+			foreach (@multiple_names)
+			{
+				push @multiple_fields, EPrints::Utils::field_from_config_string( $dataset, $_ );
+			}
+	
+			my $sf = EPrints::SearchField->new( 
+				$session, 
+				$dataset, 
+				\@multiple_fields,
+				$value,	
+				$match,
+				$merge );
+
+			$addkids = $sf->item_matches( $obj );
+			if( $name eq "ifnotmatch" )
+			{
+				$addkids = !$addkids;
+			}
+		}
 		elsif( $name eq "iflink" )
 		{
 			$rendered = $session->make_doc_fragment;

@@ -927,3 +927,16 @@ before next release. (metadata types & fields)
  - Added google_site which appends "site:whatever.com" to a search param
     and redirects that search to google.
 
+2002-10-09 cjg
+ - [c] Added skip_buffer config option which makes articles go from the
+    work area directly to the archive.
+ - [c] Default abstract page now lists eprint type.
+ - [c] Default render_user_full now lists subscriptions too.
+ - fixed typo in cgi/confirm s/timepout/timeout/
+ - fixed bug in MD5 hash code and added hook to use different hash if
+    required.
+ - [c] override default hash method. 
+ - added <ep:ifmatch> and <ep:ifnotmatch> to citations. These implement
+    conditionals using some of the eprints search semantics.
+ - new script - export_hashes - which dumps all the hash values of documents
+    in an archive.
