@@ -179,13 +179,14 @@ sub validate_eprint_meta
 
 	# We check that if a journal article is published, then it has the volume
 	# number and page numbers.
-	if( $eprint->{type} eq "journalp" )
+	if( $eprint->{type} eq "journalp" && $eprint->{ispublished} eq "pub" )
 	{
 		push @$problems, "You haven't specified any page numbers"
 			unless( defined $eprint->{pages} && $eprint->{pages} ne "" );
 	}
 	
-	if( $eprint->{type} eq "journalp" || $eprint->{type} eq "journale" )
+	if( ( $eprint->{type} eq "journalp" || $eprint->{type} eq "journale" )
+		&& $eprint->{ispublished} eq "pub" )
 	{	
 		push @$problems, "You haven't specified the volume number"
 			unless( defined $eprint->{volume} && $eprint->{volume} ne "" );
