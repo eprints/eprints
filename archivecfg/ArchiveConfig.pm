@@ -292,6 +292,10 @@ $c->{submission_hide_upload_archive} = 0;
 $c->{submission_hide_upload_graburl} = 0;
 $c->{submission_hide_upload_plain} = 0;
 
+# If you want the long form of the eprint type selection
+# page set this to 1. A value of 0 will generate a simple
+# pick-list.
+$c->{submission_long_types} = 1;
 
 ######################################################################
 #
@@ -532,7 +536,7 @@ $c->{userauth} = {
 
 # Time (in hours) to allow a email/password change "pin" to be active.
 # Set a time of zero ("0") to make pins never time out.
-$c->{pin_timeout} = 3;
+$c->{pin_timeout} = 24*7; # a week
 
 # Search cache.
 #

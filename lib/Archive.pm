@@ -499,26 +499,60 @@ sub _load_datasets
 		foreach $type_tag ( $ds_tag->getElementsByTagName( "type" ) )
 		{
 			my $type_id = $type_tag->getAttribute( "name" );
-			my $field_tag;
-			$dsconf->{$ds_id}->{$type_id} = [];
+			$dsconf->{$ds_id}->{$type_id} = {};
 			push @{$dsconf->{$ds_id}->{_order}}, $type_id;
-			foreach $field_tag ( $type_tag->getElementsByTagName( "field" ) )
+
+			my $pageid = undef;
+			my $typedata = $dsconf->{$ds_id}->{$type_id}; #ref
+			$typedata->{pages} = {};
+			$typedata->{page_order} = [];
+			$typedata->{fields} = {};
+			foreach my $node ( $type_tag->getChildNodes )
 			{
-				my $finfo = {};
-				$finfo->{id} = $field_tag->getAttribute( "name" );
-				if( $field_tag->getAttribute( "required" ) eq "yes" )
+				next unless( EPrints::XML::is_dom( $node, "Element" ) );
+				my $el = $node->getTagName;
+				if( $el eq "field" )
 				{
-					$finfo->{required} = 1;
+					if( !defined $pageid )
+					{
+						# we have a "default" page then
+						$pageid = "default";
+						push @{$typedata->{page_order}}, $pageid;
+					}
+					my $finfo = {};
+					$finfo->{id} = $node->getAttribute( "name" );
+					if( $node->getAttribute( "required" ) eq "yes" )
+					{
+						$finfo->{required} = 1;
+					}
+					if( $node->getAttribute( "staffonly" ) eq "yes" )
+					{
+						$finfo->{staffonly} = 1;
+					}
+					$typedata->{fields}->{$finfo->{id}} = $finfo;
+					push @{$typedata->{pages}->{$pageid}}, 
+						$finfo->{id};
 				}
-				if( $field_tag->getAttribute( "staffonly" ) eq "yes" )
+				elsif( $el eq "page" )
 				{
-					$finfo->{staffonly} = 1;
+					my $n = $node->getAttribute( "name" );
+					unless( defined  $n )
+					{
+						print STDERR "No name attribute in <page> tag in $type_tag\n";
+					}
+					else
+					{
+						$pageid = $n;
+						push @{$typedata->{page_order}}, $pageid;
+					}
 				}
-				push @{$dsconf->{$ds_id}->{$type_id}},$finfo;
+				else
+				{
+					print STDERR "Unknown element <$el> in No name attribute in <page> tag in $type_tag\n";
+				}
 			}
 		}
 	}
-	
 	$self->{datasets} = {};
 	my $ds_id;
 	my $cache = {};

@@ -19,8 +19,10 @@
   
   <dataset name="eprint">
     <type name="book">
+<page name="info1" />
       <field name="ispublished" required="yes" />
       <field name="pubdom" required="yes" />
+<page name="info2" />
       <field name="authors" />
       <field name="editors" />
       <field name="title" required="yes" />

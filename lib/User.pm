@@ -481,6 +481,8 @@ sub has_priv
 
 undocumented
 
+You probably want to use get_owned_eprints instead.
+
 =cut
 ######################################################################
 
@@ -564,7 +566,7 @@ sub get_editable_eprints
 ######################################################################
 =pod
 
-=item $foo = $thing->get_owned_eprints
+=item $foo = $thing->get_owned_eprints( $dataset );
 
 undocumented
 
@@ -573,11 +575,16 @@ undocumented
 
 sub get_owned_eprints
 {
-	my( $self ) = @_;
+	my( $self, $ds ) = @_;
 
-	#cheap hack for now#cjg
-	my $ds = $self->{session}->get_archive()->get_dataset( "archive" );	
-	return $self->get_eprints( $ds );
+	my $fn = $self->{session}->get_archive->get_conf( "get_users_owned_eprints" );
+
+	if( !defined $fn )
+	{
+		return $self->get_eprints( $ds );
+	}
+
+	return &$fn( $self->{session}, $self, $ds );
 }
 
 # Is the given eprint in the set of eprints which would be returned by 
@@ -600,13 +607,20 @@ sub is_owner
 {
 	my( $self, $eprint ) = @_;
 
-	#cjg hack
-	if( $eprint->get_value( "userid" ) eq $self->get_value( "userid" ) )
+	my $fn = $self->{session}->get_archive->get_conf( "does_user_own_eprint" );
+
+	if( !defined $fn )
 	{
-		return 1;
+		if( $eprint->get_value( "userid" ) == $self->get_value( "userid" ) )
+		{
+			return 1;
+		}
+		return 0;
 	}
-	return 0;
+
+	return &$fn( $self->{session}, $self, $eprint );
 }
+
 
 
 

@@ -55,7 +55,7 @@ sub make_form
 	# not just stuff you deposited.
 
 	my $ds = $session->get_archive()->get_dataset( "archive" );	
-	my @eprints = $user->get_eprints( $ds );
+	my @eprints = $user->get_owned_eprints( $ds );
 
 	my $page = $session->make_doc_fragment();
 	my $title = $session->html_phrase( "cgi/users/review:title" );
@@ -74,9 +74,16 @@ sub make_form
 	}
 	my $r_req = $session->get_archive()->get_conf( 
 			"allow_user_removal_request" ); 
+	my $checkout = $session->get_archive()->get_conf( 
+			"allow_user_checkout_eprint" ); 
 
 	$page->appendChild( $session->html_phrase( "cgi/users/review:blurb" ) );
 
+	if( $checkout )
+	{
+		$page->appendChild( $session->html_phrase( 
+			"cgi/users/review:checkout_info" ) );
+	}
 	if( $r_req )
 	{
 		$page->appendChild( $session->html_phrase( 
@@ -97,6 +104,11 @@ sub make_form
 	$th->appendChild( $session->html_phrase( "cgi/users/review:document" ) );
 	$th = $session->make_element( "th" );
 	$tr->appendChild( $th );
+	if( $checkout )
+	{
+		$th = $session->make_element( "th" );
+		$tr->appendChild( $th );
+	}
 	if( $r_req )
 	{
 		$th = $session->make_element( "th" );
@@ -119,6 +131,15 @@ sub make_form
 			"clone_".$eprint->get_value( "eprintid" )=>
 				$session->phrase( "cgi/users/review:clone" ) ) );
 
+		if( $checkout )
+		{
+			$td = $session->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $session->render_action_buttons(
+				"checkout_".$eprint->get_value( "eprintid" )=>
+				$session->phrase( "cgi/users/review:req_checkout" ) ) );
+
+		}
 		if( $r_req )
 		{
 			$td = $session->make_element( "td" );
@@ -184,6 +205,29 @@ sub process_form
 		}
 		$session->render_error(
 			$session->html_phrase( "cgi/users/review:cant_remove" ) );
+		return;
+	}
+
+	my $checkout = $session->get_archive()->get_conf( 
+			"allow_user_checkout_eprint" ); 
+
+	if( $action=~ m/^checkout_(.+)$/ && $checkout)
+	{
+		my $eprint = EPrints::EPrint->new( $session, $1, $ds );
+		if( !defined $eprint )
+		{
+			$session->render_error(
+				$session->html_phrase( "cgi/users/review:cant_find_it" ) );
+			return;
+		}		
+		if( $user->is_owner( $eprint ) )
+		{
+			$eprint->move_to_inbox;
+			$session->redirect( $session->get_archive()->get_conf( "userhome" ) );
+			return;
+		}
+		$session->render_error(
+			$session->html_phrase( "cgi/users/review:cant_checkout" ) );
 		return;
 	}
 
@@ -302,3 +346,4 @@ sub handle_removal_request
 	
 	return;
 }
+

@@ -1,6 +1,17 @@
 
 EPrints 2 changelog.
 
+This starts at January 2002 with the changes after the release of
+alpha-2 and is in chronological order. The following little symbols
+are used for my benefit, but you may want to know what they mean:
+
+ [api] a change to the way a function works or is called which could
+        effect 3rd party code.
+ [db]  a change to the actual structure of the SQL database tables.
+ [c]   a change to the default configuration files, which may need
+        to be applied to already installed versions configs too.
+ [doc] a change which should be added to the documentation
+
 ======================================================================
 2002-01-09 - EPRINTS-2-ALPHA-2
 ======================================================================
@@ -1044,4 +1055,103 @@ before next release. (metadata types & fields)
 ======================================================================
 14/11/2002 - EPRINTS-2.2.1
 ======================================================================
+
+2003-02-06 cjg
+ - [c] Added submission_long_types config option and made the default
+    true.
+ - [doc] New config options allow_user_checkout_eprint and
+    submission_long_types.
+ - [c] Changed default pin timeout number from 3 hours to a week!
+*- [c] Messed around with the citations file. Will need to be cleaned
+    up before next release.
+*- [c] Messed around with the metadata-types file. Will need cleanup.
+ - Changed latex2png so that it no longer spawns a cat command using
+    backticks, but does it all in Perl instead.
+ - [api] Changed occurances of $user->get_eprints to be 
+    $user->get_owned_eprints in "user_eprints" & "home" so that 
+    eprints related, but not directly submitted by someone appear
+    as theres too.
+ - Started work on "checkout" option to allow people to remove their
+    items from the archive and edit them. Not 100% sure of the 
+    interface & rules yet.
+ - [doc] New config option "submission_stage_last_for_staff_edit" 
+    which indicates if the last page of the submission format is
+    different to normal (files) so that people swapping the order
+    of fields won't break the staff edit mode.
+*- [doc] Added support for "paged" input of metadata, indicated by a
+    <page /> tag in metadata-types. Still needs to be made to look
+    nicer.
+ - [doc] When getting fields from citations or $obj->get_value, 
+    qualifiers such as .id or .res=D are now allowed.
+ - [doc] Added support for data resolutions. min_resolution and
+    max_resolution. min_resolution is the resolution Y/M/D which
+    must be entered. max_resolution is the resolution which 
+    is returned from get_value(s) etc. (This can be set "on the
+    fly" with submission.res=Y style qualifiers.
+ - Date search improved to handle YYYY-YYYY, YYYY-MM-, -YYYY-MM-DD
+    etc. not just (YYYY-MM-DD)?|(-(YYYY-MM-DD)?)? but
+    (YYYY(-MM(-DD)?)?)?|(-(YYYY(-MM(-DD)?)?)?)? (sheesh)
+ - added page_order, staff_pages and pages instance variables to
+    dataset.
+ - [doc] Added new input_style for sets and datatype fields: "long"
+    which renders them as a <dl> list with radio buttons.
+ - Fixed a '\n' to be "\n" instead in an error in Archive.pm
+ - New function: @fields = $ds->get_page_fields( $type, $page, 
+    $staff )
+ - New function: @pages = $ds->get_type_pages( $type );
+ - [db] Database now stores date 2000 as 2000-00-00 (which is the
+    mysql way. This is not super portable, but hey.
+ - New function:  EPrints::Database::trim_date( $mysql_date )
+ - New function:  EPrints::Database::pad_date( $mysql_date, [$inc] )
+ - These functions convert from eprints date format to mysql
+    and back (strip/add -00's). 
+ - in Document.pm, changed "cp" to "/bin/cp" which is still a touch
+    flakey as it's shelling out, but is an absolute path and avoids
+    some problems on securer systems.
+ - in EPrints.pm changed an "if defined $obj->get_value(x)" to 
+    "if $obj->is_set(x)"
+*- New function: $eprint->validate_meta_page( $page, [$for_archive] )
+    for validating each page of the meta data entry (so you don't
+    have to wait until the end). * does not have a callback yet *
+ - Now the render_latex function removes trailing whitespace if any
+    is left over after it's shenanigens (it was adding a single space
+    on the end which screwed up citations.)
+*- [api] New function: $xhtml = $field->render_help( $session )
+    now used in preference to display_help. ** maybe display_help can
+    be removed? **
+ - Improved rendering of date type so that it renders at it's 
+    max_resolution.
+*- Added a really odd hack to editperms so that it only shows extra
+    input boxes if explicitly clicked. That can't be right!
+ - Added a charset = utf-8 to textarea input fields.
+ - Made it so that a field of type search with a "null" search is now
+    considered unset, lots of empty searches were getting stored.
+ - Made the "EX" search flag mean nothing for date fields. This might
+    be changed later, but for now means that 1999 = 1999-09-01
+    even in "EX" mode.
+*- Fiddled with "height" code for pick lists. It's still not right.
+*- hacked "DOCTYPES" into the top of pages. Gotta be a better way.
+ - [api] new option to submission forms: $autosend. This causes the
+    form to store the resultant XHTML for the next page of the form
+    in a way that can be requested, rather then render it right away
+    as a page.
+ - submission form now uses $user->is_owner($eprint) to establish 
+    ownership, rather than checking that user submitted it.
+ - Added a couple of lines to Subscription.pm to deal with the
+    fact that mailempty might not be defined (gets rid of a warning)
+ - [api][doc] Changed  $user->get_owned_eprints() to be 
+     $thing->get_owned_eprints( $dataset ). Now returns all the
+     eprints created by that user, in that dataset. UNLESS the
+     config option "get_users_owned_eprints" is set in which case
+     it calls that as a function and returns the result of that
+     instead.
+ - Improved field_from_config_string so that it can now have any
+    number of qualifications after a fieldname, if desired. eg.
+    foo.main.res=Y (not sure why you'd want to, but let's keep
+    it rebust eh?)
+*- New function:  EPrints::XML::write_xhtml_file( $node, $filename )
+    this outputs the node just like write_xml_file but prints a
+    DOCTYPE at the top. Bit of a hack really.
+ - (in tools/update_phrase_file) improved the layout of the 
+    translation flagging and the flags now include the reference code.
 

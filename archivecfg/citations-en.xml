@@ -11,7 +11,7 @@
 	xmlns:ep="http://eprints.org/ep2/citations">
 
 <!-- eprint citations -->
-    <ep:citation type="eprint"><ep:linkhere><ep:ifset name="title">@title@</ep:ifset><ep:ifnotset name="title">Untitled @eprintid@</ep:ifnotset></ep:linkhere></ep:citation>
+    <ep:citation type="eprint"><ep:linkhere><ep:ifset name="title">@title@</ep:ifset><ep:ifnotset name="title"><ep:ifset name="type">@type@</ep:ifset><ep:ifnotset name="type">Untitled</ep:ifnotset> @eprintid@</ep:ifnotset></ep:linkhere></ep:citation>
 
     <ep:citation type="eprint_book"><ep:linkhere><span class="citation"><ep:ifset name="authors">@authors@ </ep:ifset>(@year@) <i>@title@</i><ep:ifset name="editors">, @editors@, Eds. </ep:ifset>.<ep:ifset name="publisher"> @publisher@.</ep:ifset></span></ep:linkhere></ep:citation>
 
@@ -31,7 +31,7 @@
 
     <ep:citation type="eprint_journale"><ep:linkhere><span class="citation">@authors@ <ep:ifset name="year">(@year@) </ep:ifset>@title@.<ep:ifset name="publication"> <i>@publication@</i></ep:ifset><ep:ifset name="volume"> @volume@</ep:ifset><ep:ifset name="number">(@number@)</ep:ifset>.</span></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_journalp"><ep:linkhere><span class="citation">@authors@ <ep:ifset name="year">(@year@) </ep:ifset>@title@.<ep:ifset name="publication"> <i>@publication@</i></ep:ifset><ep:ifset name="volume"> @volume@</ep:ifset><ep:ifset name="number">(@number@)</ep:ifset><ep:ifset name="pages">:@pages@</ep:ifset>.</span></ep:linkhere></ep:citation>
+    <ep:citation type="eprint_journalp">(@datestamp@)(@datestamp.res=Y@)(@datestamp.res=M@)<ep:linkhere><span class="citation">@authors@ <ep:ifset name="year">(@year@) </ep:ifset>@title@.<ep:ifset name="publication"> <i>@publication@</i></ep:ifset><ep:ifset name="volume"> @volume@</ep:ifset><ep:ifset name="number">(@number@)</ep:ifset><ep:ifset name="pages">:@pages@</ep:ifset>.</span></ep:linkhere></ep:citation>
 
     <ep:citation type="eprint_newsarticle"><ep:linkhere><span class="citation">@authors@ <ep:ifset name="year">(@year@) </ep:ifset>@title@.<ep:ifset name="publication"> In <i>@publication@</i></ep:ifset><ep:ifset name="volume">, @volume@</ep:ifset><ep:ifset name="number">(@number@)</ep:ifset><ep:ifset name="pages"> pages @pages@</ep:ifset><ep:ifset name="publisher">, @publisher@</ep:ifset>.</span></ep:linkhere></ep:citation>
 

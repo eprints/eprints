@@ -86,6 +86,9 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
+- Need a way to have input forms not automatically add additional
+   blank spaces. (esp editor field rights)
+
 - Moving to deletion buffer causes error!
 
 - Does not properly insist on required subject fields.

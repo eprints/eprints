@@ -845,8 +845,7 @@ sub render_option_list
 	{
 		if( $params{height} ne "ALL" )
 		{
-			$size = $params{height} if( $params{height} < $size );
-			$size = 2 if( $params{height} > 1 && $size==1 );
+			$size = $params{height};
 		}
 		$element->setAttribute( "size" , $size );
 	}
@@ -1359,11 +1358,9 @@ sub _render_input_form_field
 
 	if( $show_help )
 	{
-		my $help = $field->display_help( $self );
-
 		$div = $self->make_element( "div", class => "formfieldhelp" );
 
-		$div->appendChild( $self->make_text( $help ) );
+		$div->appendChild( $field->render_help( $self ) );
 		$html->appendChild( $div );
 	}
 
@@ -1559,6 +1556,10 @@ sub send_page
 {
 	my( $self, %httpopts ) = @_;
 	$self->send_http_header( %httpopts );
+	print <<END;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+END
 	print EPrints::XML::to_string( $self->{page} );
 	EPrints::XML::dispose( $self->{page} );
 	delete $self->{page};
@@ -1579,7 +1580,7 @@ sub page_to_file
 {
 	my( $self , $filename ) = @_;
 	
-	EPrints::XML::write_xml_file( $self->{page}, $filename );
+	EPrints::XML::write_xhtml_file( $self->{page}, $filename );
 	EPrints::XML::dispose( $self->{page} );
 	delete $self->{page};
 }

@@ -225,6 +225,8 @@ sub process
 		$laststage = pop @stages;
 		last if( $laststage eq "type" );
 	}
+	my $ls = $session->get_archive()->get_conf( "submission_stage_last_for_staff_edit" );
+	$laststage = $ls if( defined $ls );
 
 	if( defined $stage && $laststage eq $stage && defined $action && ($action eq "finished" || $action eq "next") )
         {

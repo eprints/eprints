@@ -172,11 +172,24 @@ sub render_date
 		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
-	if( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
+	# 1999
+	if( scalar @elements == 1 )
 	{
-		return $session->html_phrase( "lib/utils:date_invalid" );
+		return $session->make_text( $elements[0] );
 	}
 
+	# 1999-02
+	if( scalar @elements == 2 )
+	{
+		return $session->make_text( EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0] );
+	}
+
+#	if( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
+#	{
+#		return $session->html_phrase( "lib/utils:date_invalid" );
+#	}
+
+	# 1999-02-02
 	return $session->make_text( $elements[2]." ".EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0] );
 }
 
@@ -858,12 +871,13 @@ sub _render_citation_aux
 						$session->make_text( '@' ) );
 					next;
 				}
-				my $field = $obj->get_dataset()->get_field( 
-						$_ );
+                                my $field = EPrints::Utils::field_from_config_string( 
+					$obj->get_dataset(), 
+					$_ );
 				$rendered->appendChild( 
 					$field->render_value( 
 						$obj->get_session(),
-						$obj->get_value( $_ ),
+						$obj->get_value( $field->get_name ),
 						0,
  						1 ) );
 				next;
@@ -1013,9 +1027,15 @@ sub field_from_config_string
 {
 	my( $dataset, $fieldname ) = @_;
 
-	my $useid = ( $fieldname=~s/\.id$// );
-	# use id side of a field if the fieldname
-	# ends in .id (and strip the .id)
+	my %q = ();
+	if( $fieldname =~ s/^([^\.]*)\.(.*)$/$1/ )
+	{
+		foreach( split( /\./, $2 ) )
+		{
+			$q{$_}=1;
+		}
+	}
+
 	my $field = $dataset->get_field( $fieldname );
 	if( !defined $field )
 	{
@@ -1023,7 +1043,7 @@ sub field_from_config_string
 	}
 	if( $field->get_property( "hasid" ) )
 	{
-		if( $useid )
+		if( $q{id} )
 		{
 			$field = $field->get_id_field();
 		}
@@ -1031,6 +1051,15 @@ sub field_from_config_string
 		{
 			$field = $field->get_main_field();
 		
+		}
+	}
+
+	foreach( "D", "M", "Y" )
+	{
+		if( $q{"res=".$_} )
+		{
+			$field = $field->clone;
+			$field->set_property( "max_resolution", $_ );
 		}
 	}
 	

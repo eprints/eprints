@@ -619,6 +619,11 @@ sub update
 			}
 			# clearout the freetext search index table for this field.
 
+			if( $field->is_type( "date" ) )	
+			{
+				$value = pad_date( $value );
+			}
+			
 			if( $field->is_type( "name" ) )
 			{
 				$values{$colname."_honourific"} = $value->{honourific};
@@ -1701,6 +1706,12 @@ confess();
 				{
 					$value = shift @row;
 				}
+
+				if( $field->is_type( "date" ) )
+				{
+					$value = trim_date( $value );
+				}
+
 				if( $field->get_property( "mainpart" ) )
 				{
 					$record->{$field->get_name()}->{main} = $value;
@@ -1785,6 +1796,12 @@ confess();
 			{
 				$value = shift @values;
 			}
+
+			if( $multifield->is_type( "date" ) )
+			{
+				$value = trim_date( $value );
+			}
+
 			my $subbit;
 			$subbit = "id" if( $multifield->get_property( "idpart" ) );
 			$subbit = "main" if( $multifield->get_property( "mainpart" ) );
@@ -2341,6 +2358,84 @@ sub is_latest_version
 	return 0 unless( defined $version );
 
 	return $version eq $EPrints::Database::DBVersion;
+}
+
+######################################################################
+=pod
+
+=item $ep_date = EPrints::Database::trim_date( $mysql_date )
+
+Take a mysql date which may have 00 for day or month and trim it to
+an iso date (2000 or 2000-06)
+
+=cut
+######################################################################
+
+sub trim_date
+{
+	my( $date ) = @_;
+
+	if( !EPrints::Utils::is_set( $date ) )
+	{
+		return undef;
+	}
+
+	$date =~ s/-00?-00$//;
+
+        return $date;
+}
+
+######################################################################
+=pod
+
+=item $mysql_date = EPrints::Database::pad_date( $date, [$inc] )
+
+Inverse of trim date. Pads a date string with 00's if it only
+has a year, or a year and month.
+
+If $inc is true then increment the date by the resolution of the date
+so 2000 becomes 2001-00-00 and 2002-04-00 becomes 2002-05-00 etc.
+
+(does not increment day-res fields)
+
+=cut
+######################################################################
+
+sub pad_date
+{
+	my( $date, $inc ) = @_;
+
+	if( !EPrints::Utils::is_set( $date ) )
+	{
+		return undef;
+	}
+
+	my( $y, $m, $d ) = split( /-/, $date );
+
+	if( $inc )
+	{
+		if( !defined $d )
+		{
+			if( !defined $m )
+			{
+				$y++;
+			}
+			else
+			{
+				$m++;	
+				if( $m == 13 )
+				{
+					$m = 1;
+					$y ++;
+				}
+			}
+		}
+	}
+	$m = 0 if( !defined $m );
+	$d = 0 if( !defined $d );
+	
+
+	return sprintf("%04d-%02d-%02d",$y,$m,$d);
 }
 
 1; # For use/require success

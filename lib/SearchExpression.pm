@@ -184,7 +184,7 @@ sub new
 
 ######################################################################
 #
-# add_field( $field, $value )
+# add_field( $field, $value, $match, $merge, $extra )
 #
 #  Adds a new search field for the MetaField $field, or list of fields
 #  if $field is an array ref, with default $value. If a search field
@@ -545,7 +545,10 @@ sub is_blank
 	foreach( @{$self->{searchfields}} )
 	{
 		my $search_field = $self->get_searchfield( $_ );
-		return 0 if( defined $search_field->get_value() );
+		if( EPrints::Utils::is_set( $search_field->get_value() ) )
+		{
+			return 0;
+		}
 	}
 	return 1;
 }

@@ -32,7 +32,7 @@ sub process
 	return unless defined( $user );
 
 	my $arc_ds = $session->get_archive()->get_dataset( "archive" );
-	my @eprints = $user->get_eprints( $arc_ds );
+	my @eprints = $user->get_owned_eprints( $arc_ds );
 	my $userid = $user->get_value( "userid" );
 
 	my $page = $session->make_doc_fragment();

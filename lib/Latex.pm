@@ -187,6 +187,7 @@ sub render_string
 	{
 		$buffer.=" [math mode missing closing \$]";
 	}
+	$buffer =~ s/\s*$//;
 	$html->appendChild( $session->make_text( $buffer ) );
 
 	return $html;

@@ -374,7 +374,9 @@ sub send_out_subscription
 
 
 	$searchexp->perform_search;
-	if( $searchexp->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
+	my $mempty = $self->get_value( "mailempty" );
+	$mempty = 0 unless defined $mempty;
+	if( $searchexp->count > 0 || $mempty eq 'TRUE' )
 	{
 		my $info = {};
 		$info->{matches} = $self->{session}->make_doc_fragment;

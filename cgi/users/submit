@@ -20,7 +20,6 @@ use EPrints::Document;
 use EPrints::SubmissionForm;
 
 use strict;
-
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 

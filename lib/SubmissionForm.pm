@@ -88,10 +88,11 @@ undocumented
 
 sub new
 {
-	my( $class, $session, $redirect, $staff, $dataset, $formtarget ) = @_;
+	my( $class, $session, $redirect, $staff, $dataset, $formtarget, $autosend ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
+
 
 	$self->{session} = $session;
 	$self->{redirect} = $redirect;
@@ -99,7 +100,9 @@ sub new
 	$self->{dataset} = $dataset;
 	$self->{formtarget} = $formtarget;
 	$self->{for_archive} = $staff;
-
+	$self->{autosend} = $autosend;
+	unless( defined $self->{autosend} ) { $self->{autosend} = 1; }
+	
 	# Use user configured order for stages or...
 	$self->{stages} = $session->get_archive->get_conf( 
 		"submission_stages" );
@@ -145,8 +148,9 @@ sub process
 		{
 			if( defined $self->{session}->param( "dataset" ) )
 			{
-				$self->{dataset} = $self->{session}->get_archive()->
-					get_dataset( $self->{session}->param( "dataset" ) );
+				my $arc = $self->{session}->get_archive;
+				$self->{dataset} = $arc->get_dataset( 
+					$self->{session}->param( "dataset" ) );
 			}
 		}
 		$self->{eprint} = EPrints::EPrint->new( 
@@ -182,9 +186,7 @@ sub process
 		}
 
 		# Check it's owned by the current user
-		if( !$self->{staff} &&
-			( $self->{eprint}->get_value( "userid" ) ne 
-			  $self->{user}->get_value( "userid" ) ) )
+		if( !$self->{staff} && !$self->{user}->is_owner( $self->{eprint} ) )
 		{
 			$self->{session}->get_archive()->log( 
 				"Illegal attempt to edit record ".
@@ -238,16 +240,47 @@ sub process
 	{
 		# Render stuff for next stage
 
-		my $function_name = "_do_stage_".$self->{new_stage};
+		my $stage = $self->{new_stage};
+
+		my $page;
+		my $function_name = "_do_stage_".$stage;
 		{
 			no strict 'refs';
-			$self->$function_name();
+			$page = $self->$function_name();
+		}
+
+		if( $self->{autosend} )
+		{	
+			$self->{session}->build_page(
+				$self->{session}->html_phrase( 
+					"lib/submissionform:title_".$stage ),
+				$page,
+				"submission_".$stage );
+			$self->{session}->send_page();
+		}
+		else
+		{
+			$self->{page} = $page;
 		}
 	}
 	
 	return( 1 );
 }
 
+#cjg notdoc
+sub get_page
+{
+	my( $self ) = @_;
+
+	return $self->{page};
+}
+#cjg notdoc
+sub get_stage
+{
+	my( $self ) = @_;
+
+	return $self->{new_stage};
+}
 
 ######################################################################
 # 
@@ -575,7 +608,37 @@ sub _from_stage_meta
 
 	# Process uploaded data
 
-	my @fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ), $self->{staff} );
+	my @pages = $self->{dataset}->get_type_pages(
+                                        $self->{eprint}->get_value( "type" ) );
+
+	$self->{pageid} = $self->{session}->param( "pageid" );
+	my $ok = 0;
+	my $nextpage;
+	my $prevpage;
+	foreach( @pages )
+	{
+		if( $ok )
+		{
+			$nextpage = $_;
+			last;
+		}
+		$ok = 1 if( $_ eq $self->{pageid} );
+		if( !$ok ) 
+		{
+			$prevpage = $_;
+		}
+	}
+
+	if( !$ok )
+	{
+		$self->_corrupt_err;
+		return( 0 );
+	}
+
+	my @fields = $self->{dataset}->get_page_fields( 
+		$self->{eprint}->get_value( "type" ), 
+		$self->{pageid},
+		$self->{staff} );
 
 	my $field;
 	foreach $field (@fields)
@@ -595,12 +658,34 @@ sub _from_stage_meta
 
 	if( $self->{action} eq "next" )
 	{
+		if( defined $nextpage )
+		{
+			# check for problems in this page only
+			$self->{problems} = 
+				$self->{eprint}->validate_meta_page( 
+					$self->{pageid},
+					$self->{for_archive} );
+			if( scalar @{$self->{problems}} > 0 )
+			{
+				$self->_set_stage_this;
+				return( 1 );
+			}
+
+			$self->_set_stage_this;
+			$self->{pageid} = $nextpage;
+			return( 1 );
+		} 
+	
 		# validation checks
-		$self->{problems} = $self->{eprint}->validate_meta( $self->{for_archive} );
+		$self->{problems} = 
+			$self->{eprint}->validate_meta( $self->{for_archive} );
 
 		if( scalar @{$self->{problems}} > 0 )
 		{
-			# There were problems with the uploaded type, don't move further
+			# There were problems with the uploaded type, 
+			# don't move further
+
+			$self->{pageid} = $pages[0];
 			$self->_set_stage_this;
 			return( 1 );
 		}
@@ -612,6 +697,12 @@ sub _from_stage_meta
 
 	if( $self->{action} eq "prev" )
 	{
+		if( defined $prevpage )
+		{
+			$self->_set_stage_this;
+			$self->{pageid} = $prevpage;
+			return( 1 );
+		}
 		$self->_set_stage_prev;
 		return( 1 );
 	}
@@ -1185,12 +1276,7 @@ sub _do_stage_type
 		dest=>$self->{formtarget}."#t"
 	) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_type" ),
-		$page,
-		"submission_type" );
-	$self->{session}->send_page();
+	return( $page );
 }
 
 ######################################################################
@@ -1283,12 +1369,7 @@ sub _do_stage_linking
 		dest=>$self->{formtarget}."#t"
 	) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_linking" ),
-		$page,
-		"submission_linking" );
-	$self->{session}->send_page();
+	return( $page );
 
 }
 	
@@ -1319,14 +1400,25 @@ sub _do_stage_meta
 
 	$page->appendChild( $self->_render_problems() );
 
-	$page->appendChild( $self->{session}->html_phrase( "lib/submissionform:bib_info" ) );
+	if( !defined $self->{pageid} ) 
+	{ 
+		$self->{pageid} = ($self->{dataset}->get_type_pages( 
+					$self->{eprint}->get_value( "type" ) ))[0];
+	}
+
+	$page->appendChild( $self->{session}->html_phrase( 
+		"lib/submissionform:bib_info" ) );
 	
-	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ), $self->{staff} );
+	my @edit_fields = $self->{dataset}->get_page_fields( 
+		$self->{eprint}->get_value( "type" ), 
+		$self->{pageid}, 
+		$self->{staff} );
 
 	my $hidden_fields = {	
 			stage => "meta", 
 			dataset => $self->{dataset}->id(),
-			eprintid => $self->{eprint}->get_value( "eprintid" ) 
+			eprintid => $self->{eprint}->get_value( "eprintid" ),
+			pageid => $self->{pageid} 
 		};
 
 	my $submit_buttons = {
@@ -1350,12 +1442,7 @@ sub _do_stage_meta
 			hidden_fields=>$hidden_fields,
 			dest=>$self->{formtarget}."#t" ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_meta" ),
-		$page,
-		"submission_meta" );
-	$self->{session}->send_page();
+	return( $page );
 }
 
 
@@ -1499,13 +1586,7 @@ sub _do_stage_files
 	$form->appendChild( $self->{session}->make_element( "br" ) );
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_format" ),
-		$page,
-		"submission_format" );
-	$self->{session}->send_page();
-
+	return( $page );
 }
 
 ######################################################################
@@ -1570,12 +1651,7 @@ sub _do_stage_docmeta
 			hidden_fields=>$hidden_fields,
 			dest=>$self->{formtarget}."#t" ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_docmeta" ),
-		$page,
-		"submission_docmeta" );
-	$self->{session}->send_page();
+	return( $page );
 }
 
 ######################################################################
@@ -1832,12 +1908,7 @@ sub _do_stage_fileview
 			default_action=>"prev",
 			dest=>$self->{formtarget}."#t" ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_fileview" ),
-		$page,
-		"submission_fileview" );
-	$self->{session}->send_page();
+	return( $page );
 }
 	
 
@@ -1928,12 +1999,7 @@ sub _do_stage_upload
 				"lib/submissionform:action_cancel" ) ) );
 
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_upload" ),
-		$page,
-		"submission_upload" );
-	$self->{session}->send_page();
+	return( $page );
 }
 
 
@@ -2015,12 +2081,7 @@ sub _do_stage_verify
 			default_action=>$default_action,
 			dest=>$self->{formtarget}."#t" ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_verify" ),
-		$page,
-		"submission_verify" );
-	$self->{session}->send_page();
+	return( $page );
 }		
 		
 
@@ -2047,12 +2108,7 @@ sub _do_stage_done
 
 	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:thanks") );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_done" ),
-		$page,
-		"submission_done" );
-	$self->{session}->send_page();
+	return( $page );
 }
 
 
@@ -2102,12 +2158,7 @@ sub _do_stage_confirmdel
 			hidden_fields=>$hidden_fields,
 			dest=>$self->{formtarget}."#t" ) );
 
-	$self->{session}->build_page(
-		$self->{session}->html_phrase( 
-			"lib/submissionform:title_confirmdel" ),
-		$page,
-		"submission_confirmdel" );
-	$self->{session}->send_page();
+	return( $page );
 }	
 
 

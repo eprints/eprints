@@ -231,7 +231,7 @@ sub render_workspace
 
 	### Get the actual items in the workspace
 	my $ds = $session->get_archive()->get_dataset( "inbox" );
-	my @eprints = $user->get_eprints( $ds );
+	my @eprints = $user->get_owned_eprints( $ds );
 
 
 	if( scalar @eprints == 0)
@@ -316,7 +316,7 @@ sub render_pending
 
 	### Get the items in the buffer
 	my $ds = $session->get_archive()->get_dataset( "buffer" );
-	my @eprints =  $user->get_eprints( $ds );
+	my @eprints =  $user->get_owned_eprints( $ds );
 
 	my $html = $session->make_doc_fragment();
 

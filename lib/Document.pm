@@ -460,7 +460,7 @@ sub clone
 	}
 	
 	# Copy files
-	my $rc = system( "cp -a ".$self->local_path()."/* ".$new_doc->local_path() ) & 0xffff;
+	my $rc = system( "/bin/cp -a ".$self->local_path()."/* ".$new_doc->local_path() ) & 0xffff;
 
 	# If something's gone wrong...
 	if ( $rc!=0 )

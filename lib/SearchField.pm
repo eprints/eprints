@@ -317,7 +317,7 @@ sub get_conditions
 
 	# Special handling for exact matches, as it can handle NULL
 	# fields, although this will not work on most multiple tables.
-	if( $match eq "EX" )
+	if( $match eq "EX" && !$self->is_type( "date" ) )
 	{
 		my @where;
 
@@ -471,42 +471,57 @@ sub get_conditions
 	if ( $self->is_type( "date" ) )
 	{
 		my @where = ();
-		foreach( split /\s+/ , $self->{value} )
+		foreach my $drange ( split /\s+/ , $self->{value} )
 		{
-			my $sql;
-			if( m/^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
-			{
-				# Range of dates
-				if( defined $1 && $1 ne "" )
-				{
-					if( defined $2 && $2 ne "" )
-					{
-						# YYYY-MM-DD-YYYY-MM-DD
-						$sql = "__FIELDNAME__ BETWEEN \"$1\" AND \"$2\"";
-					}
-					else
-					{
-						# YYYY-MM-DD-
-						$sql = "__FIELDNAME__ >= \"$1\"";
-					}
-				}
-				elsif( defined $2 && $2 ne "" )
-				{
-					# -YYYY-MM-DD
-					$sql = "__FIELDNAME__ <= \"$2\"";
-				}
-				# Otherwise, must be invalid
+			my $orig = $drange;
+			my $lastdate;
+			my $firstdate;
+			if( $drange =~ s/-(\d\d\d\d(-\d\d(-\d\d)?)?)$/-/ )
+			{	
+				$lastdate = $1;
 			}
-			elsif( m/^(\d\d\d\d\-\d\d\-\d\d)$/ )
+			if( $drange =~ s/^(\d\d\d\d(-\d\d(-\d\d)?)?)(-?)$/$4/ )
 			{
-				$sql = "__FIELDNAME__ = \"$1\"";
+				$firstdate = $1;
 			}
-			if( !defined $sql )
+
+			if( !defined $firstdate && !defined $lastdate )
 			{
 				my $error = "Bad ".$self->{field}->{type};
-				$error.=" search parameter: \"$_\"";
+				$error.=" search parameter: \"$orig\"";
 				return( undef,undef,$error);
 			}
+	
+			if( $drange ne "-" )
+			{
+				$lastdate = $firstdate;
+			}		
+	
+			my $sql = "";
+
+			if( defined $firstdate )
+			{
+				$firstdate = EPrints::Database::pad_date( $firstdate );
+				$sql .= "__FIELDNAME__ >= \"$firstdate\"";
+			}
+
+			if( defined $lastdate )
+			{
+				if( defined $firstdate )
+				{
+					$sql .= " AND ";
+				}
+				if( length( $lastdate ) == 10 )
+				{
+					$sql .= "__FIELDNAME__ <= \"$lastdate\"";
+				}
+				else
+				{
+					$lastdate = EPrints::Database::pad_date( $lastdate, 1 );
+					$sql .= "__FIELDNAME__ < \"$lastdate\"";
+				}
+			}
+
 			push @where, $sql;
 		}
 		return( $self->_get_conditions_aux( \@where , 0) );

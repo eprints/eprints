@@ -605,6 +605,44 @@ END
 ######################################################################
 =pod
 
+=item EPrints::XML::write_xhtml_file( $node, $filename )
+
+Write the given XML node $node to file $filename with an XHTML doctype.
+
+=cut
+######################################################################
+
+sub write_xhtml_file
+{
+	my( $node, $filename ) = @_;
+
+	unless( open( XMLFILE, ">$filename" ) )
+	{
+		EPrints::Config::abort( <<END );
+Can't open to write to XHTML file: $filename
+END
+		return;
+	}
+	print XMLFILE <<END;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+END
+
+	if( $gdome )
+	{
+#		print XMLFILE $node->toStringEnc("utf8",0);
+		print XMLFILE EPrints::XML::to_string( $node, "utf-8" );
+	}
+	else
+	{
+        	print XMLFILE $node->toString;
+	}
+	close XMLFILE;
+}
+
+######################################################################
+=pod
+
 =item $elements = EPrints::XML::find_elements( $node, @list )
 
 Return the first occurence of each of the elemnts named in the @list

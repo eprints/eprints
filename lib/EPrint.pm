@@ -743,7 +743,7 @@ sub validate_meta
 	foreach $field (@req_fields)
 	{
 		# Check that the field is filled 
-		next if ( defined $self->get_value( $field->get_name() ) );
+		next if ( $self->is_set( $field->get_name() ) );
 
 		my $problem = $self->{session}->html_phrase( 
 			"lib/eprint:not_done_field" ,
@@ -774,6 +774,63 @@ sub validate_meta
 	return( \@all_problems );
 }
 	
+######################################################################
+=pod
+
+=item $problems = $eprint->validate_meta_page( $page, [$for_archive] )
+
+Return a reference to an array of XHTML DOM objects describing
+validation problems with the results of the "meta" stage of eprint
+submission. This just validates a single page rather than all metadata
+fields.
+
+A reference to an empty array indicates no problems.
+
+=cut
+######################################################################
+
+sub validate_meta_page
+{
+	my( $self, $page, $for_archive ) = @_;
+	
+	my @problems;
+
+	my @check_fields = $self->{dataset}->get_page_fields( 
+		$self->get_value( "type" ),
+		$page );
+
+	# For all fields we need to check
+	foreach my $field ( @check_fields )
+	{
+		if( $self->{dataset}->field_required_in_type(
+			$field,
+			$self->get_value("type") ) 
+			&&
+			(!  $self->is_set( $field->get_name ) ) )
+		{
+			# field	is required but not set!
+
+			my $problem = $self->{session}->html_phrase( 
+				"lib/eprint:not_done_field" ,
+				fieldname=> $self->{session}->make_text( 
+			   		$field->display_name( 
+						$self->{session} ) ) );
+			push @problems,$problem;
+		}
+
+		push @problems, $self->{session}->get_archive->call(
+			"validate_field",
+			$field,
+			$self->get_value( $field->{name} ),
+			$self->{session},
+			$for_archive );
+	}
+
+	return( \@problems );
+}
+
+
+
 
 ######################################################################
 =pod

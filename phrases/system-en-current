@@ -63,6 +63,10 @@ EPrints Modules
     <ep:phrase ref="lib/metafield:true">Yes</ep:phrase>
     <ep:phrase ref="lib/metafield:false">No</ep:phrase>
 
+    <ep:phrase ref="lib/metafield:date_res_d"></ep:phrase>
+    <ep:phrase ref="lib/metafield:date_res_m">"Day" may be ommited if appropriate.<br /></ep:phrase>
+    <ep:phrase ref="lib/metafield:date_res_y">"Day" or both "Month" and "Day" may be ommited if appropriate.<br /></ep:phrase>
+
     <!-- phrases used to seperate multiple values in a field -->
     <ep:phrase ref="lib/metafield:join_int">, </ep:phrase>
     <ep:phrase ref="lib/metafield:join_year">, </ep:phrase>

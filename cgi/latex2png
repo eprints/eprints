@@ -25,6 +25,8 @@ $latex = "???" if( !defined $latex );
 my $pngfile = EPrints::Latex::texstring_to_png( $session, $latex );
 
 $session->send_http_header( content_type=>'image/png' );
-print `cat -- $pngfile`;
+open( PNG, $pngfile ) || die "can't open $pngfile";
+while(<PNG>) { print; }
+close PNG;
 
 $session->terminate();

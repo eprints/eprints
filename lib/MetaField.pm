@@ -118,6 +118,8 @@ my $PROPERTIES =
 	mainpart => 1,
 	make_value_orderkey => 1,
 	make_single_value_orderkey => 1,
+	min_resolution => 1,
+	max_resolution => 1,
 	render_single_value => 1,
 	render_value => 1,
 	top => 1,
@@ -266,6 +268,8 @@ sub display_name
 
 =item $helpstring = $field->display_help( $session )
 
+Use of this method is not recommended. Use render_help instead.
+
 Return the help information for a user inputing some data for this
 field as a UTF-8 encoded string in the language of the $session.
 
@@ -282,6 +286,26 @@ sub display_help
 	return $session->phrase( $phrasename );
 }
 
+######################################################################
+=pod
+
+=item $xhtml = $field->render_help( $session )
+
+Return the help information for a user inputing some data for this
+field as an XHTML chunk.
+
+=cut
+######################################################################
+
+sub render_help
+{
+	my( $self, $session ) = @_;
+
+	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
+	$phrasename.= "_id" if( $self->get_property( "idpart" ) );
+
+	return $session->html_phrase( $phrasename );
+}
 
 ######################################################################
 =pod
@@ -739,9 +763,9 @@ sub _render_value3
 	if( defined $self->{render_single_value} )
 	{
 		return &{$self->{render_single_value}}( 
-			$session, $
-			self, $
-			value );
+			$session, 
+			$self, 
+			$value );
 	}
 
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
@@ -782,7 +806,10 @@ sub _render_value3
 
 	if( $self->is_type( "date" ) )
 	{
-		return EPrints::Utils::render_date( $session, $value );
+		my $l = 10;
+		$l = 7 if( $self->get_property( "max_resolution" ) eq "M" );
+		$l = 4 if( $self->get_property( "max_resolution" ) eq "Y" );
+		return EPrints::Utils::render_date( $session, substr( $value,0,$l ) );
 	}
 
 	if( $self->is_type( "search" ) )
@@ -972,8 +999,33 @@ sub render_input_field
 				$settings{labels} = $labels;
 			}
 		}
-		$html->appendChild( $session->render_option_list( %settings ) );
-
+		if( $self->get_property( "input_style" ) eq "long" )
+		{
+			my( $dl, $dt, $dd );
+			$dl = $session->make_element( "dl", class="longset" );
+			foreach my $opt ( @{$settings{values}} )
+			{
+				$dt = $session->make_element( "dt" );
+				$dt->appendChild( $session->make_element(
+					"input",
+					"accept-charset" => "utf-8",
+					type => "radio",
+					name => $settings{name},
+					value => $opt,
+					checked => ( $settings{default}->[0] eq $opt ?"checked":undef) ));
+				$dt->appendChild( $session->make_text( " ".$settings{labels}->{$opt} ));
+				$dl->appendChild( $dt );
+				$dd = $session->make_element( "dd" );
+				my $phrasename = $self->{confid}."_optdetails_".$self->{name}."_".$opt;
+				$dd->appendChild( $session->html_phrase( $phrasename ));
+				$dl->appendChild( $dd );
+			}
+			$html->appendChild( $dl );
+		}
+		else
+		{
+			$html->appendChild( $session->render_option_list( %settings ) );
+		}
 		return $html;
 	}
 	# The other types require a loop if they are multiple.
@@ -983,9 +1035,17 @@ sub render_input_field
 		my $boxcount = $self->{input_boxes};
 		$value = [] if( !defined $value );
 		my $cnt = scalar @{$value};
+#cjg hack hack hack
 		if( $boxcount<=$cnt )
 		{
-			$boxcount = $cnt+$self->{input_add_boxes};
+			if( $self->{name} eq "editperms" )
+			{
+				$boxcount = $cnt;
+			}	
+			else
+			{
+				$boxcount = $cnt+$self->{input_add_boxes};
+			}
 		}
 		my $spacesid = $self->{name}."_spaces";
 
@@ -1317,6 +1377,7 @@ sub _render_input_field_aux2
 		$div = $session->make_element( "div" );	
 		$textarea = $session->make_element(
 			"textarea",
+			"accept-charset" => "utf-8",
 			name => $id,
 			rows => $self->{input_rows},
 			cols => $self->{input_cols},
@@ -1487,14 +1548,17 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 	{
 		my( $div, $yearid, $monthid, $dayid );
 		$div = $session->make_element( "div" );	
+		my( %r ) = ( D=>"d", M=>"m", Y=>"y" );
+		$div->appendChild( $session->html_phrase( 
+			"lib/metafield:date_res_".
+			 $r{$self->get_property( "min_resolution" )} ) );
 		my( $year, $month, $day ) = ("", "", "");
 		if( defined $value && $value ne "" )
 		{
 			($year, $month, $day) = split /-/, $value;
-			if( $month == 0 )
-			{
-				($year, $month, $day) = ("", "00", "");
-			}
+			$month = "00" if( !defined $month || $month == 0 );
+			$day = "00" if( !defined $day || $day == 0 );
+			$year = "" if( !defined $year || $year == 0 );
 		}
  		$dayid = $self->{name}.$suffix."_day";
  		$monthid = $self->{name}.$suffix."_month";
@@ -1513,27 +1577,41 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			maxlength => 4 ) );
 
 		$div->appendChild( $session->make_text(" ") );
+
 		$div->appendChild( 
 			$session->html_phrase( "lib/metafield:month" ) );
 		$div->appendChild( $session->make_text(" ") );
-
 		$div->appendChild( $session->render_option_list(
 			name => $monthid,
 			values => \@monthkeys,
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
+
 		$div->appendChild( $session->make_text(" ") );
+
 		$div->appendChild( 
 			$session->html_phrase( "lib/metafield:day" ) );
 		$div->appendChild( $session->make_text(" ") );
-
-		$div->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
+#		$div->appendChild( $session->make_element(
+#			"input",
+#			"accept-charset" => "utf-8",
+#			name => $dayid,
+#			value => $day,
+#			size => 2,
+#			maxlength => 2 ) );
+		my @daykeys = ();
+		my %daylabels = ();
+		for( 0..31 )
+		{
+			my $key = sprintf( "%02d", $_ );
+			push @daykeys, $key;
+			$daylabels{$key} = ($_==0?"?":$key);
+		}
+		$div->appendChild( $session->render_option_list(
 			name => $dayid,
-			value => $day,
-			size => 2,
-			maxlength => 2 ) );
+			values => \@daykeys,
+			default => $day,
+			labels => \%daylabels ) );
 
 		return $div;
 	}
@@ -1827,11 +1905,34 @@ sub _form_value_aux2
 		my $month = $session->param( 
 					$self->{name}.$suffix."_month" );
 		my $year = $session->param( $self->{name}.$suffix."_year" );
+		$month = undef if( !defined $month || $month == 0 );
+		$year = undef if( !defined $year || $year == 0 );
+		$day = undef if( !defined $day || $day == 0 );
+		my $res = $self->get_property( "min_resolution" );
 
-		if( defined $day && $month ne "00" && defined $year )
+		if( defined $year && !defined $month && !defined $day )
 		{
-			return $year."-".$month."-".$day;
+			if( $res eq "Y" )
+			{
+				return sprintf( "%04d", $year );
+			}
+			return undef;
 		}
+
+		if( defined $year && defined $month && !defined $day )
+		{
+			if( $res eq "Y" || $res eq "M" )
+			{
+				return sprintf( "%04d-%02d", $year, $month );
+			}
+			return undef;
+		}
+
+		if( defined $year && defined $month && defined $day )
+		{
+			return sprintf( "%04d-%02d-%02d", $year, $month, $day );
+		}
+		
 		return undef;
 	}
 	elsif( $self->is_type( "name" ) )
@@ -2107,6 +2208,20 @@ sub get_values
 	foreach( @outvalues )
 	{
 		$_ = "" if( !defined $_ );
+	}
+
+	if( $self->is_type( "date" ) && $self->get_property( "max_resolution" ) ne "D" )
+	{
+		my $l = 10;
+		if( $self->get_property( "max_resolution" ) eq "M" ) { $l = 7; }
+		if( $self->get_property( "max_resolution" ) eq "Y" ) { $l = 4; }
+		
+		my %ov = ();
+		foreach( @outvalues )
+		{
+			$ov{substr($_,0,$l)}=1;
+		}
+		@outvalues = keys %ov;
 	}
 
 	my %orderkeys = ();
@@ -2406,6 +2521,9 @@ sub get_property_default
 	}
 
 	return [] if( $property eq "requiredlangs" );
+
+	return "D" if( $property eq "min_resolution" );
+	return "D" if( $property eq "max_resolution" );
 
 	return 0 if( $property eq "input_style" );
 	return 0 if( $property eq "hasid" );

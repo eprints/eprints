@@ -127,6 +127,20 @@ $ds = $archive->get_dataset( "inbox" );
 #     As for {types} but for fields which may be edited by an editor or
 #     administrator.
 #
+#  $self->{pages} 
+#     A reference to a hash indexed by typeid, the value of which is
+#     another hash. That hash is indexed by pageid and it's values are
+#     references to arrays of fields in the order they appear on that 
+#     page.
+#
+#  $self->{staff_pages} 
+#     Identical to {pages} except includes "staffonly" fields.
+#
+#  $self->{page_order} 
+#     A reference to a hash indexed by typeid. The value of which is
+#     a ref. to an array containing the order of the pages of fields
+#     in that type.
+# 
 #  $self->{type_order}
 #     A list of type-ids in the order they should be displayed.
 #
@@ -301,7 +315,8 @@ sub new
 	if( defined $cache->{$self->{confid}} )
 	{
 		foreach( "fields", "system_fields", "field_index",
-			"types", "typesreq", "staff_types", "type_order" )
+			"types", "typesreq", "staff_types", "type_order",
+			"pages", "staff_pages", "page_order" )
 		{
 			$self->{$_} = $cache->{$self->{confid}}->{$_};
 		}
@@ -320,6 +335,15 @@ sub new
 			push @{$self->{fields}}	, $field;
 			push @{$self->{system_fields}} , $field;
 			$self->{field_index}->{$field->get_name()} = $field;
+		}
+
+		if( $self->{confid} eq "eprint" )
+		{
+			if( $self->{archive}->get_conf( "submission_long_types" ) )
+			{
+				$self->{field_index}->{type}->set_property( 
+					"input_style", "long" );
+			}
 		}
 	}
 
@@ -353,15 +377,18 @@ sub new
 			# {
 			#	 push @{$self->{types}->{$typeid}}, $_;
 			# }
-			
-			my $f;
-			foreach $f ( @{$typesconf->{$self->{confid}}->{$typeid}} )
+		
+			my $typedata = $typesconf->{$self->{confid}}->{$typeid};
+		
+#cjg the "sort" is to avoid it accidently looking right.
+			foreach my $fname ( sort keys %{$typedata->{fields}} )
 			{
+				my $f = $typedata->{fields}->{$fname};
 				if( !defined $self->{field_index}->{$f->{id}} )
 				{
 					EPrints::Config::abort( 
 'Could not find field "'.$f->{id}.'" in dataset "'.$id.'", '.
-'although it is\npart of type: "'.$typeid.'"' );
+'although it is'."\n".'part of type: "'.$typeid.'"' );
 				}
 
 				my $field = $self->{field_index}->{$f->{id}};
@@ -379,12 +406,37 @@ sub new
 					push @{$self->{typesreq}->{$typeid}},
 						$field;
 				}
+
 				unless( $f->{staffonly} ) 
 				{
 					push @{$self->{types}->{$typeid}}, 
 						$field;
 				}
 				push @{$self->{staff_types}->{$typeid}}, $field;
+			}
+
+			$self->{pages}->{$typeid} = {};
+			$self->{staff_pages}->{$typeid} = {};
+			$self->{page_order}->{$typeid} = $typedata->{page_order};
+			foreach my $page ( sort keys %{$typedata->{pages}} )
+			{
+				my @pagefields = @{$typedata->{pages}->{$page}};
+				$self->{pages}->{$typeid}->{$page} = [];
+				$self->{staff_pages}->{$typeid}->{$page} = [];
+
+				foreach my $pagefield ( @pagefields )
+				{
+					my $f = $typedata->{fields}->{$pagefield};
+					my $field = $self->{field_index}->{$f->{id}};
+
+					unless( $f->{staffonly} ) 
+					{
+						push @{$self->{pages}->{$typeid}->{$page}}, 
+							$field;
+					}
+					push @{$self->{staff_pages}->{$typeid}->{$page}}, 
+							$field;
+				}
 			}
 		}
 	} 
@@ -804,7 +856,7 @@ sub get_type_fields
 {
 	my( $self, $type, $staff ) = @_;
 
-	return @{$self->{($staff?"staff_types":"types")}->{$type}};
+	return @{$self->{($staff?"staff_":"")."types"}->{$type}};
 }
 
 
@@ -1012,6 +1064,44 @@ sub field_required_in_type
 
 	return 0;
 }
+
+######################################################################
+=pod
+
+=item @fields = $ds->get_page_fields( $type, $page, $staff )
+
+Return an array of fields in the order they appear on page id $page
+of type $type.
+
+=cut
+######################################################################
+
+sub get_page_fields
+{
+	my( $self, $type, $page, $staff ) = @_;
+
+	return @{$self->{($staff?"staff_":"")."pages"}->{$type}->{$page}};
+}
+
+######################################################################
+=pod
+
+=item @pages = $ds->get_type_pages( $type );
+
+Return an array of page ids in the order they should be displayed.
+
+=cut
+######################################################################
+
+sub get_type_pages
+{
+	my( $self, $type ) = @_;
+
+	return @{$self->{page_order}->{$type}};
+}
+
+
+
 
 
 ######################################################################

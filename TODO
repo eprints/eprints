@@ -2,6 +2,14 @@ This is the rough and ready list of stuff that needs doing on
 eprints 2. It's really for my benefit, I include it here in
 case it might be helpful.
 
+* document how to register OAI
+
+* skip "doc_info" submission page
+* allow XHTML in "help" on forms. (no make_text)
+
+
+!! export_xml broken for GDOME
+
 !! can't change username?
 
 !! bug in refine search on defaulted booleans?
