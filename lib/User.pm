@@ -308,7 +308,7 @@ sub validate
 		{
 			push @all_problems, 
 			   $self->{session}->{lang}->phrase( "H:missedfield", 
-			                                     $field->{displayname} );
+			                                     { field=>$field->{displayname} } );
 		}
 		else
 		{
@@ -379,10 +379,10 @@ sub send_introduction
    }
 	# Try and send the mail
 	return( EPrints::Mailer->prepare_send_mail(
-		$self->{session}->{lang}->parse( $subj , $EPrintSite::SiteInfo::sitename ),
+		$self->{session}->{lang}->phrase( $subj , { sitename=>$EPrintSite::SiteInfo::sitename } ),
 		$self->{email},
-		$self->{session}->{lang}->parse( "S:welcome", 
-		                                 $EPrintSite::SiteInfo::sitename ),
+		$self->{session}->{lang}->phrase( "S:welcome", 
+		                                 { sitename=>$EPrintSite::SiteInfo::sitename } ),
 		$EPrintSite::SiteInfo::template_user_intro,
 		$self ) );
 }
@@ -404,11 +404,11 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->{lang}->phrase(
 	     "M:reminder",
-		  $EPrintSite::SiteInfo::sitename,
-	     ( defined $message ? "$message\n\n" : "" ),
-		  $self->{username},
-		  $self->{passwd},
-		  $EPrintSite::SiteInfo::admin );
+		  { sitename=>$EPrintSite::SiteInfo::sitename,
+	     	  message=>( defined $message ? "$message\n\n" : "" ),
+		  username=>$self->{username},
+		  password=>$self->{passwd},
+		  adminemail=>$EPrintSite::SiteInfo::admin } );
 
 	return( EPrints::Mailer::send_mail( $self->full_name(),
 	                                    $self->{email},

@@ -13,69 +13,153 @@
 # Library Files
 ######################################################################
 
-<file SearchExpression.pm>
-H:leastone = You need to specify something for at least one field!
-F:any = any
-F:all = all
-H:mustfulfill = Retrieved records must fulfill $(1) of these conditions.
-H:orderresults = Order the results: $(1)
-L:not_cached 	= error: Search has not been performed yet
-</file>
 
 <file Citation.pm>
-L:unknowneprint = Unknown EPrint field $(1) in "$(2)"
+L:unknowneprint = Unknown EPrint field $(fieldname) in "$(citation_spec)"
 H:na = N/A
 </file>
 
-<file UserForm.pm>
-H:dontknow 	= I don't know who you are
-H:recfor 	= Record for $(1)
-H:blurb 	= Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
-H:changeemail 	= For instructions on how to change your e-mail address, $(1).
-H:clickhere 	= click here
-H:formincorrect = The form doesn't seem to be filled out correctly:
-H:completeform 	= Please complete the form before continuing.
-H:problemupdating = There was a problem reading the posted data and updating the database. Please try again later
-H:usernotmatch 	= Username in form $(1) doesn't match object username $(2)
-</file>
-
-<file User.pm>
-H:missedfield = You haven't filled out the required $(1) field.
-S:weclome = Welcome to $(1)!
-M:reminder = Dear $(1) User,\n\n$(2)Your username and password for the site are:\n\nUser name: $(3)\nPassword:  $(4)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(5)\n
-S:remindersub = Your username and password
-S:newuser = New $(1) User
-S:newstaff = New $(1) Staff
-</file>
-
-<file Subscription.pm>
-H:sendupdates = Send updates: $(1)
-M:weekly = weekly
-M:daily = daily
-M:monthly = monthly
-L:notopenrec = Couldn't open user record for user $(1) (sub ID $(2))
-M:blurb = This mail contains your $(1) subscription to $(2).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(3)\n\n
-M:newsub = One new submission was received.
-M:newsubs = $(1) new submissions were received.
-S:subsubj = Subscription
-L:failsend = Failed to send subscription to user $(1): $(2)
-</file>
-
 <file Database.pm>
-L:created_table = Create table: $(1)
-L:bad_cache = Not a legal cache table: $(1)
+L:created_table	= Created table: $(tablename)
+L:bad_cache 	= Not a legal cache table: $(tableid)
+</file>
+
+<file Document.pm>
+L:error_mkdir	= Error creating directory for EPrint $(eprintid) format $(format): $(errmsg)
+L:error_cp	= Error copying from $(frompath) to $(topath): $(errmsg)
+L:error_rm	= Error removing document $(docid) from database: $(errmsg)
+L:error_rmfiles	= Error removing document files for $(docid), path $(path): $(errmsg)
+L:error_rmfile	= Error removing file $(filename) for doc $(docid): $(errmsg)
+L:error_commit	= Error committing Document $(docid): $(errmsg)
+H:no_files	= You haven't uploaded any files!
+H:no_first	= You need to select a file to be shown first.
+H:no_desc	= You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0
+</file>
+
+<file EPrint.pm>
+S:disklow_sub 	= Warning: Low on disk space
+M:disklow	= The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.
+S:diskout_sub 	= ERROR: Out of Disk Space
+M:diskout	= There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.
+L:mkdir_err	= Failed to create directory $(path): $(errmsg)
+L:doc_rm_err	= Error removing doc $(docid): $(errmsg)
+L:file_rm_err	= Error removing files for $(eprintid), path $(path): $(errmsg)
+L:error_commit	= Error committing EPrint $(eprintid): $(errmsg)
+H:no_type	= You haven't selected a type for this EPrint.
+H:invalid_type	= This EPrint doesn't seem to have a valid type.
+H:not_done_field= You haven't filled out the required $(fieldname) field.
+H:invalid_users = The following usernames are not valid: $(usernames).
+H:least_one_sub	= You need to select at least one subject from the list!
+H:invalid_succ	= EPrint ID in $(field) field is invalid
+H:cant_succ	= You cannot succeed an EPrint that someone else has posted
+H:invalid_id	= EPrint ID in $(field) field is invalid
+H:need_a_format = You need to upload at least one of the following formats:
+L:error_gen_st	= Error generating static page "$(path)" for $(eprintid): $(errmsg)
+</file>
+
+<file HTMLRender.pm>
+A:some_error	= $(sitename) has encountered an error:
+H:some_error	= $(sitename) has encountered an error:
+H:contact	= Feel free to contact $(adminemail) with details.
+H:sitename_admin= $(sitename) administration
+L:cant_do_field= Error: Don't know how to render field of type $(type)
+H:year		= Year:
+H:month		= Month:
+H:day		= Day:
+H:surname	= Surname
+H:first_names	= First Names
+F:more_spaces	= More Spaces
+H:username_title= Usernames
+L:input_field_err= Don't know how to render input field for type $(type)
+H:curr_disp	= Currently Displayed
+H:error_title	= Error
+H:eprint_gone_title = EPrint Removed
+H:eprint_gone	= You seem to be attempting to access an eprint that has been removed from the archive.
+H:later_version = There is a later version of the eprint you are trying to access:
+</file>
+
+<file MetaField.pm>
+L:bad_value	= Garbled value for $(option) in field $(field)
+L:bad_type	= Unknown field type $(option) for field $(field)
+L:not_all_info	= Not all necessary information specified for field $(field)
+L:cant_open_file= Can't open metadata config file: $(file): $(errmsg)
+</file>
+
+<file MetaInfo.pm>
+L:type_file_err = Can't open eprint types file: $(file): $(errmsg)
+L:unknown_field = Unknown EPrint field $(field) in class $(class)
+L:no_fields	= No fields for EPrint type $(type)
+L:unknown_table = Can't return fields for nonexistant table: $(table)
+</file>
+
+<file SearchExpression.pm>
+H:leastone	= You need to specify something for at least one field!
+F:any		= any
+F:all		= all
+H:mustfulfill	= Retrieved records must fulfill $(anyall) of these conditions.
+H:orderresults	= Order the results: $(ordermenu)
+L:not_cached	= error: Search has not been performed yet
+</file>
+
+<file SearchField.pm>
+F:bool_nopref	= No Preference
+F:bool_yes	= Yes
+F:bool_no	= No
+F:set_any	= Any of these
+F:set_all	= All of these
+F:text_any	= Match any
+F:text_all	= Match all, in any order
+H:help_boolean	= Select a value.
+H:help_email    = Enter some text to search for.
+H:help_eprinttype= Select one or more values from the list. Default is (Any).
+H:help_longtext	= Enter a term or terms to search for.
+H:help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. &quot;van Damme, J&quot;.
+H:help_set 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_subject 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_text	= Enter a term or terms to search for.
+H:help_url 	= Enter some text to search for.
+H:help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
+H:year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
+H:no_words	= Search field contains no indexable words: &quot;$(words)&quot;.
+L:cant_render	= Don't know how to render search field for type $(type).
+</file>
+
+<file SearchForm.pm>
+F:action_search    = Search
+F:action_reset     = Reset the form
+F:action_newsearch = Start new search
+F:action_update    = Update the search
+H:form_problem	= There is a problem with the form:
+H:too_many	= Warning - too many results. Unsorted sample of $(n) shown.
+H:search_time	= Search time: $(searchtime) sec. Retrieval and sort time: $(gettime) sec.
+H:ignored	= Ignored words: $(words).
+H:results_for	= Results for $(title)
+H:no_hits	= Search returned no results.
+H:one_hit	= Search returned $(n) result.
+H:n_hits	= Search returned $(n) results.
+</file>
+
+<file Session.pm>
+H:fail_db_connect	= Failed to connect to database
+M:msg_at	= Site maintenance message generated at $(time)
+S:site_admin	= Site Administrator
+</file>
+
+<file SubjectList.pm>
+L:invalid_tag	= List contains invalid tag $(tag)
 </file>
 
 <file SubmissionForm.pm>
-L:dberr 	= Database Error: $(1)
+L:dberr 	= Database Error: $(errmsg)
 H:useautharea	= Use your author area to deposit new documents
-L:errclone	= Error cloning EPrint $(1): $(2)
+L:errclone	= Error cloning EPrint $(eprintid): $(errmsg)
 H:uploadprob	= There was a problem uploading your file(s). Please try again.
-L:removeerror	= DB Error removing EPrint $(1): $(2)
+L:removeerror	= DB Error removing EPrint $(eprintid): $(errmsg)
 H:seltype	= Please select the most appropriate type for your deposit.
 H:bibinfo	= Please enter the bibliographic data about your deposit. Fields marked with a * are fields that must be filled out before your deposit will be accepted.
 H:verify	= Verify:
-H:invaleprint	= ID $(1) is not a valid EPrint ID!
+H:invaleprint	= ID $(eprintid) is not a valid EPrint ID!
 H:validformats	= Here are the available upload formats, and how many files you have uploaded for each.
 H:leastone	= You must upload at least one of the formats listed in bold.
 F:plain		= Plain Files
@@ -102,12 +186,12 @@ H:retdeppage	= Click here to return to your deposit papers page
 H:suredelete	= Are you absolutely sure you want to delete this entry?
 H:filledwrong	= The form doesn't seem to be filled out correctly:
 H:pleasecomplete= Please complete the form before continuing.
-L:idnotmatch	= EPrint ID in form >$(1)< doesn't match object id $(2)
+L:idnotmatch	= EPrint ID in form >$(form)< doesn't match object id $(eprintid)
 H:filename	= Filename
 H:sizebytes	= Size (Bytes)
 H:shownfirst	= Shown First
 F:showfirst	= Show first
-F:action_new    = Nouvou
+F:action_new    = New
 F:action_delete = Delete
 F:action_edit   = Edit
 F:action_next   = Néxt >
@@ -132,8 +216,8 @@ H:title_done       = Completed Deposit
 H:title_error      = Error
 H:title_return     = Return to Author's Home
 H:title_confirmdel = Confirm Deletion
-H:corrupt_err	= An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form.</P><P>If this has happened in the normal course of operation please tell the $(1).
-H:database_err 	= There's been a problem accessing the site database. Please try again later, and contact the $(1) if the problem persists.
+H:corrupt_err	= An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form.</P><P>If this has happened in the normal course of operation please tell the $(siteadmin).
+H:database_err 	= There's been a problem accessing the site database. Please try again later, and contact the $(siteadmin) if the problem persists.
 H:siteadmin	= site administrator 
 H:nosel_err	= You hadn't selected a paper to edit, clone, delete or deposit!
 F:delete	= Delete
@@ -144,124 +228,39 @@ F:uploadedit	= Upload/Edit
 F:remove	= Remove
 </file>
 
-<file SubjectList.pm>
-L:invalid_tag	= List contains invalid tag $(1)
+<file Subscription.pm>
+H:sendupdates 	= Send updates: $(howoften)
+M:weekly 	= weekly
+M:daily 	= daily
+M:monthly 	= monthly
+L:notopenrec 	= Couldn't open user record for user $(user) (sub ID $(subid))
+M:blurb 	= This mail contains your $(howoften) subscription to $(sitename).\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n $(url)\n\n
+M:newsub 	= One new submission was received.
+M:newsubs 	= $(n) new submissions were received.
+S:subsubj 	= Subscription
+L:failsend 	= Failed to send subscription to user $(user): $(errmsg)
 </file>
 
-<file Session.pm>
-H:fail_db_connect	= Failed to connect to database
-M:msg_at	= Site maintenance message generated at $(1)
-S:site_admin	= Site Administrator
+<file User.pm>
+H:missedfield = You haven't filled out the required $(field) field.
+S:weclome = Welcome to $(sitename)!
+M:reminder = Dear $(sitename) User,\n\n$(message)Your username and password for the site are:\n\nUser name: $(username)\nPassword:  $(password)\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n$(adminemail)\n
+S:remindersub = Your username and password
+S:newuser = New $(sitename) User
+S:newstaff = New $(sitename) Staff
 </file>
 
-<file SearchForm.pm>
-F:action_search    = Search
-F:action_reset     = Reset the form
-F:action_newsearch = Start new search
-F:action_update    = Update the search
-H:form_problem	= There is a problem with the form:
-H:too_many	= Warning - too many results. Unsorted sample of $(1) shown.
-H:search_time	= Search time: $(1) sec. Retrieval and sort time: $(2) sec.
-H:ignored	= Ignored words: $(1).
-H:results_for	= Results for $(1)
-H:no_hits	= Search returned no results.
-H:one_hit	= Search returned $(1) result.
-H:n_hits	= Search returned $(1) results.
+<file UserForm.pm>
+H:dontknow 	= I don't know who you are
+H:recfor 	= Record for $(name)
+H:blurb 	= Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a * to start using the archive.
+H:changeemail 	= For instructions on how to change your e-mail address, $(clickhere).
+H:clickhere 	= click here
+H:formincorrect = The form doesn't seem to be filled out correctly:
+H:completeform 	= Please complete the form before continuing.
+H:problemupdating = There was a problem reading the posted data and updating the database. Please try again later
+H:usernotmatch 	= Username in form $(formid) doesn't match object username $(username)
 </file>
-
-<file SearchField.pm>
-F:bool_nopref	= No Preference
-F:bool_yes	= Yes
-F:bool_no	= No
-F:set_any	= Any of these
-F:set_all	= All of these
-F:text_any	= Match any
-F:text_all	= Match all, in any order
-H:help_boolean	= Select a value.
-H:help_email    = Enter some text to search for.
-H:help_eprinttype= Select one or more values from the list. Default is (Any).
-H:help_longtext	= Enter a term or terms to search for.
-H:help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. &quot;van Damme, J&quot;.
-H:help_set 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
-H:help_subject 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
-H:help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
-H:help_text	= Enter a term or terms to search for.
-H:help_url 	= Enter some text to search for.
-H:help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
-H:year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
-H:no_words	= Search field contains no indexable words: &quot;$(1)&quot;.
-L:cant_render	= Don't know how to render search field for type $(1).
-</file>
-
-<file Document.pm>
-L:error_mkdir	= Error creating directory for EPrint $(1) format $(2): $(3)
-L:error_cp	= Error copying from $(1) to $(2): $(3)
-L:error_rm	= Error removing document $(1) from database: $(2)
-L:error_rmfiles	= Error removing document files for $(1), path $(2): $(3)
-L:error_rmfile	= Error removing file $(1) for doc $(2): $(3)
-L:error_commit	= Error committing Document $(1): $(2)
-H:no_files	= You haven't uploaded any files!
-H:no_first	= You need to select a file to be shown first.
-H:no_desc	= You need to supply a description of the document format you've updated, e.g. $(1)
-H:desc_example = Microsoft Word version 6.0
-</file>
-
-<file EPrint.pm>
-S:disklow_sub 	= Warning: Low on disk space
-M:disklow	= The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.
-S:diskout_sub 	= ERROR: Out of Disk Space
-M:diskout	= There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.
-L:mkdir_err	= Failed to create directory $(1): $(2)
-L:doc_rm_err	= Error removing doc $(1): $(2)
-L:file_rm_err	= Error removing files for $(1), path $(2): $(3)
-L:error_commit	= Error committing EPrint $(1): $(2)
-H:no_type	= You haven't selected a type for this EPrint.
-H:invalid_type	= This EPrint doesn't seem to have a valid type.
-H:not_done_field= You haven't filled out the required $(1) field.
-H:invalid_users = The following usernames are not valid: $(1).
-H:least_one_sub	= You need to select at least one subject from the list!
-H:invalid_succ	= EPrint ID in $(1) field is invalid
-H:cant_succ	= You cannot succeed an EPrint that someone else has posted
-H:invalid_id	= EPrint ID in $(1) field is invalid
-H:need_a_format = You need to upload at least one of the following formats:
-L:error_gen_st	= Error generating static page "$(1)" for $(2): $(3)
-</file>
-
-<file HTMLRender.pm>
-A:some_error	= $(1) has encountered an error:
-H:some_error	= $(1) has encountered an error:
-H:contact	= Feel free to contact $(1) with details.
-H:sitename_admin= $(1) administration
-L:cant_do_field= Error: Don't know how to render field of type $(1)
-H:year		= Year:
-H:month		= Month:
-H:day		= Day:
-H:surname	= Surname
-H:first_names	= First Names
-F:more_spaces	= More Spaces
-H:username_title= Usernames
-L:input_field_err= Don't know how to render input field for type $(1)
-H:curr_disp	= Currently Displayed
-H:error_title	= Error
-H:eprint_gone_title = EPrint Removed
-H:eprint_gone	= You seem to be attempting to access an eprint that has been removed from the archive.
-H:later_version = There is a later version of the eprint you are trying to access:
-</file>
-
-<file MetaField.pm>
-L:bad_value	= Garbled value for $(1) in field $(2)
-L:bad_type	= Unknown field type $(1) for field $(2)
-L:not_all_info	= Not all necessary information specified for field $(1)
-L:cant_open_file= Can't open metadata config file: $(1): $(2)
-</file>
-
-<file MetaInfo.pm>
-L:type_file_err = Can't open eprint types file: $(1): $(2)
-L:unknown_field = Unknown EPrint field $(1) in class $(2)
-L:no_fields	= No fields for EPrint type $(1)
-L:unknown_table = Can't return fields for nonexistant table: $(1)
-</file>
-
 
 ######################################################################
 # cgi/users 
@@ -270,7 +269,7 @@ L:unknown_table = Can't return fields for nonexistant table: $(1)
 <file home>
 H:dont_know_you	= I don't know who you are
 H:deposit_items = Deposit Items
-H:welcome	= Welcome to the item depositing area at $(1). Please select one of the options below.
+H:welcome	= Welcome to the item depositing area at $(sitename). Please select one of the options below.
 H:review	= Review your documents in the archive
 H:review_info	= This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.
 H:remove_info	= You can also remove documents from the archive.
@@ -283,7 +282,7 @@ H:docs		= Documents in your Workspace
 H:depositing	= These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.
 F:start_upload	= Click here to start uploading a document
 H:pending_title = Pending Items
-H:deposited_at	= Deposited $(1)
+H:deposited_at	= Deposited $(time)
 </file>
 
 <file record>
@@ -307,11 +306,11 @@ H:removing	= You are requesting the removal of:
 F:send_req	= Send Request
 F:cancel	= Cancel
 H:cant_find_it	= Couldn't find the EPrint! There's probably a problem with the database. Try again later.
-M:remove_mail	= User $(1) (E-Mail: $(2))\nrequests the removal of the following EPrint:
+M:remove_mail	= User $(user) (E-Mail: $(email))\nrequests the removal of the following EPrint:
 M:reason	= The following reason was given:
 M:no_reason	= No reason was given.
 M:visit_url	= Visit the following URL to view the EPrint and have the option to remove it:
-S:remove_sub	= EPrint Removal Request from $(1)
+S:remove_sub	= EPrint Removal Request 
 </file>
 
 <file subscribe>
@@ -372,8 +371,8 @@ H:simple_search = Click here for a simple search.
 H:doc_not_found	= Document Not Found
 H:file_not_found= File not found:
 H:looking_for	= Perhaps you're looking for the following eprint:
-H:blurb		= The specified file could not be found on this server.  If you reached this page by following a link within the archive, please $(1).  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.
-H:blurb_link	= contact the site administrator
+H:blurb		= The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the $(siteadmin).  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.
+H:site_admin	= Site Administrator
 </file>
 
 <file oai>
@@ -383,9 +382,9 @@ H:blurb_link	= contact the site administrator
 
 <file remind>
 H:rem_sent_title= Reminder Sent
-H:sent_blurb	= A reminder of your username and password has been sent to you in an E-mail. If you still have problems, please mail the $(1).
-H:admin_link	= site administrator
-H:return_home 	= Return to $(1) Home
+H:sent_blurb	= A reminder of your username and password has been sent to you in an E-mail. If you still have problems, please mail the $(siteadmin).
+H:site_admin	= Site Administrator
+H:return_home 	= Return to $(sitename) Home
 H:form_title	= Username and Password Reminder Form
 H:form_blurb	= If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.
 F:send		= Send
@@ -397,9 +396,9 @@ H:adv_search	= Click here for an advanced search
 </file>
 
 <file user>
-H:user_title	= User record for $(1)
+H:user_title	= User record for $(name)
 H:one_record	= User has 1 EPrint in the archive.
-H:n_records	= User has $(1) EPrints in the archive.
+H:n_records	= User has $(n) EPrints in the archive.
 H:view_link	= Click here to view this author's EPrints.
 H:unknown_user	= Unknown User
 H:return_front	= Return to front page
@@ -407,11 +406,11 @@ H:no_user	= No user specified!
 </file>
 
 <file user_eprints>
-H:eprints_title	= EPrints submitted by $(1)
+H:eprints_title	= EPrints submitted by $(name)
 H:record_link	= Click here to see user's record.
 H:no_eprints	= User has submitted no EPrints.
-H:one_eprint	= User has submitted $(1) EPrint.
-H:n_eprints	= User has submitted $(1) EPrints.
+H:one_eprint	= User has submitted $(n) EPrint.
+H:n_eprints	= User has submitted $(n) EPrints.
 H:unknown_user	= Unknown User
 H:return_front	= Return to front page
 H:no_user	= No user specified!
@@ -426,8 +425,6 @@ F:view_eprint	= View EPrint
 
 
 ######################################################################
-
-
 
 
 <file update_ecs_users>

@@ -247,8 +247,8 @@ sub handle_removal_request
 	{
 		my $msg = $session->{lang}->phrase( 
 			"M:remove_mail",
-			$user->full_name(),
-			$user->{email} )."\n\n";
+			{ user=>$user->full_name(),
+			email=>$user->{email} } )."\n\n";
 		$msg .= $session->{render}->render_eprint_citation( $eprint, 0, 0 );
 		$msg .= "\n\n";
 		

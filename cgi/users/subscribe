@@ -151,7 +151,7 @@ sub no_subscription
 		$session->{lang}->phrase( "H:subscribe" ) );
 	
 	print "<CENTER><P>";
-	print $session->{lang}->phrase("H:no_sub");
+	print $session->{lang}->phrase( "H:no_sub" );
 	print "</P></CENTER>\n";
 	
 	print $session->{render}->start_form();

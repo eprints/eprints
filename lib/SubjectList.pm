@@ -110,7 +110,7 @@ sub get_subjects
 			EPrints::Log::log_entry( 
 				"SubjectList", 
 		        	EPrints::Language::logphrase( "L:invalid_tag",
-					                       	$_ ) );
+					                      { tag=>$_ } ) );
 		}
 	}
 	

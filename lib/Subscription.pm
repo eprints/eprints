@@ -213,12 +213,12 @@ sub render_subscription_form
 	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
 	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
 	
-	$html .= "<CENTER><P>";
+	$html .= "<P>";
 	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
-	           $self->{session}->{render}->input_field( 
+	           { howoften=>$self->{session}->{render}->input_field( 
 		        EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
-		        $self->{frequency} ) );
-	$html .= "</P></CENTER>\n";
+		        $self->{frequency} ) } );
+	$html .= "</P>\n";
 	
 	return( $html );
 }
@@ -407,8 +407,8 @@ sub process
 		EPrints::Log::log_entry(
 			"Subscription",
 			EPrints::Language::logphrase( "L:notopenrec",
-		                                 $self->{username},
-				                           $self->{subid} ) );
+		                                 { user=>$self->{username},
+				                   subid=>$self->{subid} } ) );
 		return( 0 );
 	}
 
@@ -476,9 +476,9 @@ sub process
 		# Put together the body of the message. First some blurb:
 		my $body = $self->{session}->{lang}->phrase( 
 			   "M:blurb",
-			   $freqphrase,
-			   $EPrintSite::SiteInfo::sitename,
-			   "$EPrintSite::SiteInfo::server_perl/users/subscribe" );
+			   { howoften=>$freqphrase,
+			     sitename=>$EPrintSite::SiteInfo::sitename,
+			     url=>"$EPrintSite::SiteInfo::server_perl/users/subscribe" } );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
@@ -490,7 +490,7 @@ sub process
 		else
 		{
 			$body .= $self->{session}->{lang}->phrase( "M:newsubs", 
-			                                           scalar @eprints ); 
+			                                           { n=>scalar @eprints } ); 
 		}
 		$body .= "\n\n\n";
 		
@@ -513,7 +513,9 @@ sub process
 		{
 			EPrints::Log::log_entry(
 				"Subscription",
-				EPrints::Language::logphrase( "L:failsend", $user->{username}, $! ) );
+				EPrints::Language::logphrase( "L:failsend", 
+					{ user=>$user->{username}, 
+					errmsg=>$! } ) );
 		}
 	}
 		

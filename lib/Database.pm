@@ -401,7 +401,7 @@ sub _create_table_aux
 
 	print EPrints::Language::logphrase( 
 		"L:created_table" ,
-		$tablename )."\n";
+		{ tablename=>$tablename } )."\n";
 		
 	# Send to the database
 	$rv = $rv && $self->do( $sql );
@@ -885,7 +885,7 @@ sub drop_cache
 			"Database",
 			EPrints::Language::logphrase( 
 				"L:bad_cache",
-				$tmptable ) );
+				{ tableid=>$tmptable } ) );
 	}
 
 }

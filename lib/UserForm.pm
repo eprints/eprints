@@ -65,7 +65,7 @@ sub process
 	{
 		# Can't find the user
 		$self->{session}->{render}->render_error(
-		            $self->{session}->{lang}->phrase( "dontknow" ),
+		            $self->{session}->{lang}->phrase( "H:dontknow" ),
 		            $self->{redirect} );
 		return;
 	}
@@ -76,14 +76,15 @@ sub process
 	    $self->{session}->{render}->internal_button_pressed() )
 	{
 		print $self->{session}->{render}->start_html( 
-			$self->{session}->{lang}->phrase( "recfor", $full_name ) );
+			$self->{session}->{lang}->phrase( 
+				"H:recfor", [ name=>$full_name ] ) );
 
-		print "<P>".$self->{session}->{lang}->phrase( "blurb" )."</P>\n"; 
+		print "<P>".$self->{session}->{lang}->phrase( "H:blurb" )."</P>\n"; 
 
 		print "<P>".$self->{session}->{lang}->phrase( 
-		        "changeemail",
-			"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
-			$self->{session}->{lang}->phrase( "clickhere" )."</A>" )."</P>";
+		        "H:changeemail",
+			[ clickhere=>"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
+			$self->{session}->{lang}->phrase( "H:clickhere" )."</A>" ] )."</P>";
 
 		$self->render_form();
 
@@ -106,10 +107,9 @@ sub process
 			else
 			{
 				print $self->{session}->{render}->start_html( 
-					$self->{session}->{lang}->phrase( "recfor", $full_name ) );
+					$self->{session}->{lang}->phrase( "H:recfor", [ name=>$full_name ] ) );
 
-				print "<P>".$self->{session}->{lang}->phrase( "formincorrect" ).
-				      "</P>\n";
+				print "<P>".$self->{session}->{lang}->phrase( "H:formincorrect" )."</P>\n";
 				print "<UL>\n";
 
 				foreach (@$problems)
@@ -118,8 +118,7 @@ sub process
 				}
 
 				print "</UL>\n";
-				print "<P>".$self->{session}->{lang}->phrase( "completeform" ).
-				      "</P>\n";
+				print "<P>".$self->{session}->{lang}->phrase( "H:completeform" )."</P>\n";
 
 				$self->render_form();
 
@@ -129,7 +128,7 @@ sub process
 		else
 		{
 			$self->{session}->{render}->render_error(
-				$self->{session}->{lang}->phrase( "problemupdating" ),
+				$self->{session}->{lang}->phrase( "H:problemupdating" ),
 				$self->{redirect} );
 		}
 	}
@@ -209,8 +208,8 @@ sub update_from_form
 		EPrints::Log::log_entry(
 			"User",
 			EPrints::Language::logphrase( "usernotmatch",
-			                              $form_id,
-			                              $self->{username} ) );
+			                              [formid=>$form_id,
+			                               username=>$self->{username}] ) );
 
 		return( 0 );
 	}

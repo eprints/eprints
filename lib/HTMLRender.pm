@@ -275,7 +275,7 @@ sub render_error
 	{
 		print $self->{session}->{lang}->phrase( 
 			"A:some_error",
-			$EPrintSite::SiteInfo::sitename );
+			{ sitename=>$EPrintSite::SiteInfo::sitename } );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
@@ -286,15 +286,13 @@ sub render_error
 
 		print "<P>".$self->{session}->{lang}->phrase( 
 			"H:some_error",
-			$EPrintSite::SiteInfo::sitename )."</P>\n";
+			{ sitename=>$EPrintSite::SiteInfo::sitename } )."</P>\n";
 		print "<P>$error_text</P>\n";
 		print "<P>".$self->{session}->{lang}->phrase( 
 			"H:contact",
-			"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".
-			  $self->{session}->{lang}->phrase( "H:sitename_admin" ).
-			  "</A>" )."</P>\n";
+			{ adminemail=>"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$EPrintSite::SiteInfo::sitename } )."</A>" } )."</P>\n";
 				
-		print "<P><CENTER><A HREF=\"$back_to\">$back_to_text</A></CENTER></P>\n";
+		print "<P><A HREF=\"$back_to\">$back_to_text</A></P>\n";
 	
 		print $self->end_html();
 	}
@@ -445,7 +443,8 @@ sub format_field
 	{
 		EPrints::Log::log_entry(
 			"HTMLRender",
-			EPrints::Language::logphrase( "L:cant_do_field" , $type ) );
+			EPrints::Language::logphrase( "L:cant_do_field" , 
+						{ type=>$type } ) );
 	}
 
 	return( $html );
@@ -740,7 +739,8 @@ sub input_field
 
 		EPrints::Log::log_entry(
 			"HTMLRender",
-			EPrints::Language::logphrase( "L:input_field_err" , $type ) );
+			EPrints::Language::logphrase( "L:input_field_err" , 
+						{ type=>$type } ) );
 	}
 	
 	return( $html );

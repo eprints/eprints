@@ -252,8 +252,8 @@ sub make_field
 						"MetaField",
 						EPrints::Language::logphrase(
 							"L:bad_value",
-							$key,
-							$self->{name} ) );
+							{ option=>$key,
+							field=>$self->{name} } ) );
 				}
 			}
 			# type
@@ -266,8 +266,8 @@ sub make_field
 						"MetaField",
 						EPrints::Language::logphrase(
 							"L:bad_type",
-							$key,
-							$self->{name} ) );
+							{ option=>$key,
+							field=>$self->{name} } ) );
 					return( undef );
 				}
 				else
@@ -326,7 +326,7 @@ sub make_field
 			"MetaField",
 			EPrints::Language::logphrase(
 				"L:not_all_info",
-				$self->{name} ) );
+				{ field=>$self->{name} } ) );
 
 #EPrints::Log::debug( "MetaField", "TYPE $self->{type} NAME $self->{name} DISPLAYNAME $self->{displayname}" );
 	}
@@ -356,8 +356,8 @@ sub read_fields
 			"MetaInfo",
 			EPrints::Language::logphrase(
 				"L:cant_open_file",
-				$file,
-				$! ) );
+				{ file=>$file,
+				errmsg=>$! } ) );
 		return;
 	}
 	

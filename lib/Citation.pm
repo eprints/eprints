@@ -94,10 +94,10 @@ sub render_citation
 		{
 			EPrints::Log::log_entry(
 				"Citation",
-				EPrints::Language::logphrase( "L:unknowneprint",
-						              $fieldname,
-						     	      $citation_spec ) 
-                                					 );
+				EPrints::Language::logphrase( 
+					"L:unknowneprint",
+					{ fieldname=>$fieldname,
+					  citation_spec=>$citation_spec } ) );
 			return( $session->{lang}->phrase( "A:na" ) );
 		}
 	}
@@ -135,8 +135,8 @@ sub render_citation
 			EPrints::Log::log_entry(
 				"Citation",
 				EPrints::Language::logphrase( "L:unknowneprint",
-						              $entry,
-						     	      $citation_spec ) 
+						              { fieldname=>$entry,
+						     	      citation_spec=>$citation_spec } ) 
                                 					 );
 		}
 	}

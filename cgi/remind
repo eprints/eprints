@@ -46,15 +46,15 @@ if( $session->{render}->seen_form() )
 	print $session->{lang}->phrase( 
 		"H:sent_blurb",
 		"<A HREF=\"$EPrintSite::SiteInfo::admin\">.
-		  $session->{lang}->phrase( "H:admin_link" )."</A>" );
+		  $session->{lang}->phrase( "H:site_admin" )."</A>" );
 
 	print "</P></CENTER>\n";
 		
-	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::frontpage\">";
+	print "<P><A HREF=\"$EPrintSite::SiteInfo::frontpage\">";
 	print $session->{lang}->phrase( 
 		"H:return_home",
-		"$EPrintSite::SiteInfo::sitename );
-	print "</A></CENTER></P>\n";
+		{sitename=>"$EPrintSite::SiteInfo::sitename} );
+	print "</A></P>\n";
 
 	print $session->{render}->end_html();
 }

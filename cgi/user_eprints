@@ -31,7 +31,7 @@ if( defined $userid )
 		print $session->{render}->start_html(
 			$session->{lang}->phrase( 
 				"H:eprints_title",
-				$user->full_name() ) );
+				{ name=>$user->full_name() } ) );
 
 		my @eprints = EPrints::EPrint::retrieve_eprints(
 			$session,
@@ -43,7 +43,7 @@ if( defined $userid )
 		print $session->{lang}->phrase( "H:record_link" );
 		print "</A></P></CENTER>\n";
 
-		print "<CENTER><P>";
+		print "<P>";
 		if ( scalar @eprints == 0 )
 		{
 			print $session->{lang}->phrase( "H:no_eprints" );
@@ -52,15 +52,15 @@ if( defined $userid )
 		{
 			print $session->{lang}->phrase( 
 				"H:one_eprint",
-				"<STRONG>1</STRONG>" );
+				{n=>"<STRONG>1</STRONG>"} );
 		}
 		else
 		{
 			print $session->{lang}->phrase( 
 				"H:n_eprints",
-				"<STRONG>".scalar @eprints."</STRONG>" );
+				{n=>"<STRONG>".scalar @eprints."</STRONG>"} );
 		}
-		print "</P></CENTER>\n";
+		print "</P>\n";
 
 		foreach (@eprints)
 		{

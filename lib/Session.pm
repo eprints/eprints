@@ -143,7 +143,7 @@ sub mail_administrator
 	my( $self, $subject, $message ) = @_;
 	
 	my $message_body = EPrints::Language::logphrase( "msg_at" ,
-	                                                 gmtime( time ) );
+	                                             { time=>gmtime( time ) } );
 	$message_body .= "\n\n$message\n";
 
 	EPrints::Mailer::send_mail(

@@ -97,7 +97,7 @@ sub new
 
 sub logphrase
 {
-	my( $phraseid, @inserts ) = @_;
+	my( $phraseid, $inserts ) = @_;
 	my $lang = EPrints::Language::fetch( 
 		$EPrintSite::SiteInfo::log_language );
 	if ( !defined $lang ) 
@@ -109,7 +109,7 @@ sub logphrase
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
 
-	return $lang->_phrase_aux( $& , $phraseid , @inserts );
+	return $lang->_phrase_aux( $& , $phraseid , $inserts );
 }
 
 ######################################################################
@@ -124,30 +124,30 @@ sub logphrase
 
 sub phrase 
 {
-	my( $self , $phraseid , @inserts ) = @_;
+	my( $self , $phraseid , $inserts ) = @_;
 
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
-
-	return $self->_phrase_aux( $& , $phraseid , @inserts );
+print STDERR "[$phraseid][$inserts]\n";
+	return $self->_phrase_aux( $& , $phraseid , $inserts );
 }
 
 sub _phrase_aux
 {
-	my( $self , $file , $phraseid , @inserts ) = @_;
+	my( $self , $file , $phraseid , $inserts ) = @_;
+
+	if( !defined $inserts )
+	{
+		$inserts = {};
+	}
 	
 	my $response = $self->{data}->{$file}->{$phraseid};
-	if (defined $response)
+	if( defined $response )
 	{
-		my $i;
-		for($i=0; $i<scalar @inserts; ++$i)
-		{
-			my $p = $i+1;
-			$response =~ s/\$\($p\)/$inserts[$i]/g;
-		}
+		$response =~ s/\$\(([a-z_]+)\)/$inserts->{$1}/ieg;
 		return $response;
 	}
-	return "[-$file:$phraseid not defined for lang (".join(")(",$self->{id},@inserts).")-]";
+	return "[- \"$file:$phraseid\" not defined for lang (".join(")(",$self->{id},values %{$inserts}).")-]";
 }
 
 ######################################################################

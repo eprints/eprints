@@ -129,9 +129,11 @@ sub process
 			EPrints::Log::log_entry( 
 			        "SubmissionForm", 
 			        EPrints::Language::logphrase( "L:dberr",
-				                              $db_error ) );
+				                          { errmsg=>$db_error } ) );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( 
+				"H:database_err" , 
+				{ siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return;
 		}
 
@@ -139,7 +141,7 @@ sub process
 		if( !$self->{staff} &&
 			$self->{eprint}->{username} ne $self->{user}->{username} )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return;
 		}
 	}
@@ -164,7 +166,7 @@ sub process
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return;
 	}
 
@@ -234,7 +236,7 @@ sub from_home
 	my( $self ) = @_;
 
 	# Create a new EPrint
-	if( $self->{action} eq $self->{session}->{lang}->phrase("F:action_new") )
+	if( $self->{action} eq $self->{session}->{lang}->phrase( "F:action_new" ) )
 	{
 		if( !$self->{staff} )
 		{
@@ -249,9 +251,9 @@ sub from_home
 				EPrints::Log::log_entry( 
 			        	"SubmissionForm", 
 			        	EPrints::Language::logphrase( "L:dberr",
-				                              	$db_error ) );
+				                              { errmsg=>$db_error } ) );
 
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 				return( 0 );
 			}
 			else
@@ -282,7 +284,7 @@ sub from_home
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->{lang}->phrase("F:action_clone") )
+	elsif( $self->{action} eq $self->{session}->{lang}->phrase( "F:action_clone" ) )
 	{
 		if( !defined $self->{eprint} )
 		{
@@ -304,10 +306,10 @@ sub from_home
 				"SubmissionForm",
 				$self->{session}->{lang}->phrase(
 					"L:errclone",
-					$self->{eprint}->{eprintid},
-					$error ) );
+					{ eprintid=>$self->{eprint}->{eprintid},
+					errmsg=>$error } ) );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 	}
@@ -336,7 +338,7 @@ sub from_home
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 	
@@ -356,7 +358,7 @@ sub from_stage_type
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -386,7 +388,7 @@ sub from_stage_type
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -406,7 +408,7 @@ sub from_stage_meta
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -442,7 +444,7 @@ sub from_stage_meta
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -462,7 +464,7 @@ sub from_stage_subject
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -491,7 +493,7 @@ sub from_stage_subject
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -511,7 +513,7 @@ sub from_stage_linking
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -554,7 +556,7 @@ sub from_stage_linking
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 }	
@@ -572,7 +574,7 @@ sub from_stage_format
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -588,7 +590,7 @@ sub from_stage_format
 			# Remove the offending document
 			if( !defined $self->{document} || !$self->{document}->remove() )
 			{
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 				return( 0 );
 			}
 
@@ -606,7 +608,7 @@ sub from_stage_format
 
 				if( !defined $self->{document} )
 				{
-					$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+					$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 					return( 0 );
 				}
 			}
@@ -615,7 +617,7 @@ sub from_stage_format
 		}
 		else
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 	}
@@ -642,7 +644,7 @@ sub from_stage_format
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}		
 
@@ -662,7 +664,7 @@ sub from_stage_fileview
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 	
@@ -675,7 +677,7 @@ sub from_stage_fileview
 	if( !defined $self->{document} ||
 	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 	}
 	
 	# Check to see if a fileview button was pressed, process it if necessary
@@ -684,7 +686,7 @@ sub from_stage_fileview
 		# Doc object will have updated as appropriate, commit changes
 		unless( $self->{document}->commit() )
 		{
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 		
@@ -730,7 +732,7 @@ sub from_stage_fileview
 		else
 		{
 			# Erk! Unknown action.
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 	}
@@ -751,7 +753,7 @@ sub from_stage_upload
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -764,7 +766,7 @@ sub from_stage_upload
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 	
@@ -830,7 +832,7 @@ sub from_stage_upload
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -849,7 +851,7 @@ sub from_stage_verify
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -871,7 +873,7 @@ sub from_stage_verify
 		else
 		{
 			# No relevant page! erk!
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 	}
@@ -890,7 +892,7 @@ sub from_stage_verify
 			}
 			else
 			{
-				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 				return( 0 );
 			}
 		}
@@ -903,7 +905,7 @@ sub from_stage_verify
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 	
@@ -924,7 +926,7 @@ sub from_stage_confirmdel
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 );
 	}
 
@@ -941,10 +943,10 @@ sub from_stage_confirmdel
 			EPrints::Log::log_entry(
 				"SubmissionForm",
 				EPrints::Language::logphrase( "L:removeerror",
-				                              $self->{eprint}->{eprintid},
-				                              $db_error ) );
+				                             { eprintid=> $self->{eprint}->{eprintid},
+				                              errmsg=>$db_error } ) );
 
-			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=> $self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
 		}
 	}
@@ -955,7 +957,7 @@ sub from_stage_confirmdel
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , $self->{session}->{lang}->phrase( "H:siteadmin" )) );
+		$self->exit_error( $self->{session}->{lang}->phrase( "H:corrupt_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 		return( 0 )
 	}
 
@@ -1105,7 +1107,7 @@ sub do_stage_linking
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->{lang}->phrase( 
 				"H:invaleprint",
-				$self->{eprint}->{succeeds} );
+				{ eprintid=>$self->{eprint}->{succeeds} } );
 			print "</STRONG></TD></TR>\n";
 		}
 	}
@@ -1137,7 +1139,7 @@ sub do_stage_linking
 			print "<TR><TD COLSPAN=2><STRONG>";
 			print $self->{session}->{lang}->phrase( 
 				"H:invaleprint",
-				$self->{eprint}->{commentary} );
+				{ eprintid=>$self->{eprint}->{commentary} } );
 			print "</STRONG></TD></TR>\n";
 		}
 	}
@@ -1795,8 +1797,8 @@ sub update_from_meta_form
 			"Forms",
 			EPrints::Language::logphrase( 
 				"idnotmatch",
-				$form_id,
-				$self->{eprint}->{eprintid} ) );
+				{ form=>$form_id,
+				eprintid=>$self->{eprint}->{eprintid} ) );
 
 		return( 0 );
 	}
@@ -1896,8 +1898,8 @@ sub update_from_subject_form
 			"Forms",
 			EPrints::Language::logphrase( 
 				"idnotmatch",
-				$form_id,
-				$self->{eprint}->{eprintid} ) );
+				{ form=>$form_id,
+				eprintid=>$self->{eprint}->{eprintid} } ) );
 
 		return( 0 );
 	}
@@ -1952,8 +1954,8 @@ sub update_from_users_form
 			"Forms",
 			EPrints::Language::logphrase( 
 				"idnotmatch",
-				$form_id,
-				$self->{eprint}->{eprintid} ) );
+				{ form=>$form_id,
+				eprintid=>$self->{eprint}->{eprintid} } ) );
 
 		return( 0 );
 	}

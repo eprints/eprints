@@ -154,12 +154,13 @@ sub process
 
 		print $self->{session}->{render}->start_html(
 			$self->{session}->{lang}->phrase( "H:results_for",
-			                                  $self->{title} ) );
+			                                  { title=>$self->{title} } ) );
 
 		if( $n_results > $MAX) 
 		{
 			print "<P>";
-	                print $self->{session}->{lang}->phrase( "H:too_many", "<SPAN class=\"highlight\">$MAX</SPAN>" )."\n";
+	                print $self->{session}->{lang}->phrase( "H:too_many", 
+	{ n=>"<SPAN class=\"highlight\">$MAX</SPAN>" } )."\n";
 			print "</P>";
 		}
 	
@@ -177,7 +178,7 @@ sub process
 			$code = "H:n_hits";
 		}
 		print "<P>";
-       		print $self->{session}->{lang}->phrase( $code, "<SPAN class=\"highlight\">$n_results</SPAN>" )."\n";
+       		print $self->{session}->{lang}->phrase( $code, { n=>"<SPAN class=\"highlight\">$n_results</SPAN>" } )."\n";
 
 		if( @{ $searchexp->{ignoredwords} } )
 		{
@@ -185,14 +186,14 @@ sub process
 			foreach( @{$searchexp->{ignoredwords}} ) { $words{$_}++; }
        			print $self->{session}->{lang}->phrase( 
 				"H:ignored",
-				"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" );
+				{ words=>"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" } );
 		}
 		print "</P>\n";
 
        		print $self->{session}->{lang}->phrase( 
 			"H:search_time", 
-			"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
-			"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" ) ."\n";
+			{ searchtime=>"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
+			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
 
 		# Print results
 

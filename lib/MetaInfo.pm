@@ -176,8 +176,8 @@ sub read_types
 			"MetaInfo",
 			EPrints::Language::logphrase(
 				"L:type_file_err",
-				$file,
-				$! ) );
+				{ file=>$file,
+				errmsg=>$! } ) );
 
 		return;
 	}
@@ -251,8 +251,8 @@ sub make_type
 				EPrints::Log::log_entry( 
 					EPrints::Language::logphrase(
 						"L:unknown_field",
-						$2,
-						$type ) );
+						{ field => $2,
+						class => $type } ) );
 				return;
 			}
 			
@@ -345,7 +345,7 @@ sub get_eprint_fields
 			"MetaInfo",
 			EPrints::Language::logphrase(
 				"L:no_fields",
-				$type ) );
+				{ type=>$type } ) );
 		return( undef );
 	}
 
@@ -488,7 +488,7 @@ sub get_fields
 		"MetaInfo",
 		EPrints::Language::logphrase(
 			"L:unknown_table",
-			$table ) );
+			{ table=>$table } ) );
 	return undef;
 }
 

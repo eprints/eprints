@@ -238,7 +238,7 @@ sub render_search_form
 				   "ANY" => $self->{session}->{lang}->phrase("F:any") } );
 		$html .= "<P>";
 		$html .= $self->{session}->{lang}->phrase( "H:mustfulfill",
-							   $menu );
+							   { anyall=>$menu } );
 		$html .= "</P>\n";
 	}
 
@@ -250,7 +250,8 @@ sub render_search_form
 		-labels=>$self->{order_desc} );
 		
 	$html .= "<P>";
-	$html .= $self->{session}->{lang}->phrase( "H:orderresults", $menu );
+	$html .= $self->{session}->{lang}->phrase( "H:orderresults", 
+						   { ordermenu=>$menu } );
 	$html .= "</P>\n";
 
 	return( $html );

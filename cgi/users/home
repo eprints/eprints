@@ -36,9 +36,7 @@ if( !defined $user )
 {
 	# Can't find the user
 	$session->{render}->render_error( 
-		$session->{lang}->phrase( 
-			"H:dont_know_you",
-			$EPrintSite::SiteInfo::frontpage ) );
+		$session->{lang}->phrase( "H:dont_know_you" ) );
 	$session->terminate();
 	Apache::exit( 0 );
 }
@@ -59,9 +57,9 @@ print $session->{render}->start_html(
 
 
 ### Welcome author blurb
-print "<P><CENTER>";
-$session->{lang}->phrase( "H:welcome" , $EPrintSite::SiteInfo::sitename );
-print "</CENTER></P>\n";
+print "<P>";
+$session->{lang}->phrase( "H:welcome" , { sitename=>$EPrintSite::SiteInfo::sitename } );
+print "</P>\n";
 
 if( $valid_user )
 {
@@ -235,9 +233,9 @@ sub show_pending
 			print "</EM></TD><TD>";
 			print $session->{lang}->phrase( 
 				"H:deposited_at",
-				$session->{render}->format_field(
+				{ time=>$session->{render}->format_field(
 					EPrints::MetaInfo::find_eprint_field( "datestamp" ),
-					$e->{datestamp} ) );
+					$e->{datestamp} ) } );
 			print "</TD></TR>\n";
 		}
 		print "</TABLE></CENTER>\n";

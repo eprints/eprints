@@ -304,7 +304,8 @@ sub _create_directory
 	{
 		EPrints::Log::log_entry( 
 			"EPrint",
-			EPrints::Language::logphrase( "L:mkdir_err" , $full_path , $@ ) );
+			EPrints::Language::logphrase( "L:mkdir_err" ,
+				{ path=>$full_path , errmsg=>$@ } ) );
 		return( undef );
 	}
 
@@ -409,8 +410,8 @@ sub remove
 				"EPrint", 
 				EPrints::Language::logphrase( 
 					"L:doc_rm_err",
-					$_->{docid},
-					$! ) );
+					{ docid=>$_->{docid},
+					errmsg=>$! } ) );
 		}
 	}
 
@@ -422,10 +423,10 @@ sub remove
 		EPrints::Log::log_entry(
 			"EPrint",
 			EPrints::Language::logphrase( 
-				"L:file_rm_err",
-				$self->{eprint},
-				$self->local_path(),
-				$! ) );
+				"L:file_rm_err", 
+				{ eprintid=>$self->{eprint},
+				path=>$self->local_path(),
+				errmsg=>$! } ) );
 		$success = 0;
 	}
 
@@ -639,8 +640,8 @@ sub commit
 			"EPrint",
 			EPrints::Language::logphrase( 
 				"error_commit",
-				$self->{eprintid},
-				$db_error ) );
+				{ eprintid=>$self->{eprintid},
+				errmsg=>$db_error } ) );
 	}
 
 	return( $success );
@@ -707,7 +708,7 @@ sub validate_meta
 		{
 			$problem = $self->{session}->{lang}->phrase( 
 				"H:not_done_field" ,
-				$field->{displayname} );
+				{ fieldname=>$field->{displayname} } );
 		}
 		else
 		{
@@ -735,7 +736,7 @@ sub validate_meta
 			{
 				$problem = $self->{session}->{lang}->phrase(
 						"H:invalid_users",
-				            	join(", ",@invalid) );
+				            	{ usernames=>join(", ",@invalid) } );
 			}
 		}
 
@@ -830,7 +831,7 @@ sub validate_linking
 		{
 			push @problems, $self->{session}->{lang}->phrase(
 				"H:invalid_succ",	
-				$succeeds_field->{displayname} );
+				{ field=>$succeeds_field->{displayname} } );
 		}
 
 		if( defined $test_eprint )
@@ -861,7 +862,7 @@ sub validate_linking
 		unless( defined( $test_eprint ) ) { 
 			push @problems, $self->{session}->{lang}->phrase(
 				"H:invalid_id",
-				$commentary_field->{displayname} );
+				{ field=>$commentary_field->{displayname} } );
 		}
 
 	}
@@ -1303,9 +1304,9 @@ sub generate_static
 			"EPrint",
 			$self->{session}->{lang}->phrase(
 				"L:error_gen_st",
-				$self->static_page_local(),
-				$self->{eprintid},
-				$! ) );
+				{ path=>$self->static_page_local(),
+				eprintid=>$self->{eprintid},
+				errmsg=>$! } ) );
 		return( 0 );
 	}
 

@@ -124,7 +124,7 @@ sub plain_404
 	print $session->{lang}->phrase( 
 		"H:blurb",
 		"<a href=\"mailto:$EPrintSite::SiteInfo::admin\">".
-		  $session->{lang}->phrase( "H:blurb_link" ).
+		  $session->{lang}->phrase( "H:site_admin" ).
 		  "</a>" );
 	print "</P>\n";
 	

@@ -153,10 +153,10 @@ sub create
 		# Some error while making it
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_mkdir",
-			                              $eprint->{eprintid},
-			                              $format,
-			                              $! ) );
+			EPrints::Language::logphrase( "L:error_mkdir",{
+			                              eprintid=>$eprint->{eprintid},
+			                              format=>$format,
+			                              errmsg=>$! } ) );
 		return( undef );
 	}
 
@@ -286,10 +286,10 @@ sub clone
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_cp",
-			                              $self->local_path(),
-				                      $new_doc->local_path(),
-			                              $! ) );
+			EPrints::Language::logphrase( "L:error_cp",{
+			                              frompath=>$self->local_path(),
+				                      topath=>$new_doc->local_path(),
+			                              errmsg=>$! } ) );
 		return( 0 );
 	}
 
@@ -328,9 +328,9 @@ sub remove
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_rm",
-			                              $self->{docid},
-			                              $db_error ) );
+			EPrints::Language::logphrase( "L:error_rm",{
+			                              docid=>$self->{docid},
+			                              errmsg=>$db_error } ) );
 		return( 0 );
 	}
 
@@ -342,10 +342,10 @@ sub remove
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_rmfiles",
-			                              $self->{docid},
-			                              $full_path,
-			                              $! ) );
+			EPrints::Language::logphrase( "L:error_rmfiles",{
+			                              docid=>$self->{docid},
+			                              path=>$full_path,
+			                              errmsg=>$! } ) );
 		$success = 0;
 	}
 
@@ -505,10 +505,10 @@ sub remove_file
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_rmfile",
-			                              $filename,
-			                              $self->{docid},
-			                              $! ) );
+			EPrints::Language::logphrase( "L:error_rmfile",{
+			                              filename=>$filename,
+			                              docid=>$self->{docid},
+			                              errmsg=>$! } ) );
 	}
 
 	return( $count==1 );
@@ -539,10 +539,10 @@ sub remove_all_files
 	{
 		EPrints::Log::log_entry(
 			"Document",
-			EPrints::Language::logphrase( "L:error_rmfiles",
-			                              $self->{docid},
-			                              $full_path,
-			                              $! ) );
+			EPrints::Language::logphrase( "L:error_rmfiles",{
+			                              docid=>$self->{docid},
+			                              path=>$full_path,
+			                              errmsg=>$! } ) );
 		return( 0 );
 	}
 
@@ -820,9 +820,9 @@ sub commit
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
 			"Document",
-			EPrint::Language::logphrase( "L:error_commit",
-			                             $self->{docid},
-			                             $db_error ) );
+			EPrint::Language::logphrase( "L:error_commit", {
+			                             docid=>$self->{docid},
+			                             errmsg=>$db_error } ) );
 	}
 
 	return( $success );
@@ -913,9 +913,7 @@ sub validate
 		( !defined $self->{formatdesc} || $self->{formatdesc} eq "" ) )
 	{
 		# No description for an alternative format
-		push @problems, $self->{session}->{lang}->phrase( 
-			"H:no_desc" ,
-			"<EM>".$self->{session}->{lang}->phrase( "H:desc_example" )."</EM>" );
+		push @problems, $self->{session}->{lang}->phrase( "H:no_desc" );
 	}
 		
 	# Site-specific checks

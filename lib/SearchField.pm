@@ -291,7 +291,8 @@ sub render_html
 	{
 		EPrints::Log::log_entry(
 			"SearchField",
-			EPrints::Language::log_phrase( "L:cant_render", $type ) )
+			EPrints::Language::log_phrase( "L:cant_render", 
+						{ type=>$type } ) )
 	}
 
 	return( $html );
@@ -688,7 +689,7 @@ sub get_conditions
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
-			return(undef,undef,undef,$self->{session}->{lang}->phrase( "H:no_words" , $text ) );
+			return(undef,undef,undef,$self->{session}->{lang}->phrase( "H:no_words" , { words=>$text } ) );
 		}
 
 		foreach( @{$good} )
