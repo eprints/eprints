@@ -1,0 +1,233 @@
+<?xml version="1.0" ?>
+
+<metadata>
+
+  <dataset name="document">
+    <type name="html" />
+    <type name="pdf" />
+    <type name="ps" />
+    <type name="ascii" />
+<!-- arbitary formats? -->
+<!-- required?? -->
+  </dataset>
+  
+  <dataset name="eprint">
+    <type name="bookchapter">
+      <field name="ispublished" required="yes" />
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="abstract" required="yes" />
+      <field name="publication" required="yes" />
+      <field name="chapter" />
+      <field name="pages" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="confpaper">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="abstract" required="yes" />
+      <field name="conference" required="yes" />
+      <field name="pages" />
+      <field name="confdates" />
+      <field name="confloc" />
+      <field name="volume" />
+      <field name="number" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="confposter">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="abstract" required="yes" />
+      <field name="conference" required="yes" />
+      <field name="pages" />
+      <field name="confdates" />
+      <field name="confloc" />
+      <field name="volume" />
+      <field name="number" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="techreport">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="department" required="yes" />
+      <field name="institution" required="yes" />
+      <field name="reportno" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="journale">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="publication" required="yes" />
+      <field name="volume" />
+      <field name="number" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="journalp">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="publication" required="yes" />
+      <field name="volume" />
+      <field name="number" />
+      <field name="pages" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="newsarticle">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="publication" required="yes" />
+      <field name="volume" />
+      <field name="number" />
+      <field name="pages" />
+      <field name="editors" />
+      <field name="publisher" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="other">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="preprint">
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+    <type name="thesis">
+      <field name="ispublished" required="yes" />
+      <field name="refereed" required="yes" />
+      <field name="pubdom" required="yes" />
+      <field name="authors" required="yes" />
+      <field name="title" required="yes" />
+      <field name="year" required="yes" />
+      <field name="month" />
+      <field name="abstract" required="yes" />
+      <field name="thesistype" required="yes" />
+      <field name="department" required="yes" />
+      <field name="institution" required="yes" />
+      <field name="commref" />
+      <field name="altloc" />
+      <field name="keywords" />
+      <field name="comments" />
+      <field name="referencetext" />
+    </type>
+  </dataset>
+
+  <dataset name="user">
+    <type name="user" >
+      <field name="passwd" />
+      <field name="name" />
+      <field name="dept" />
+      <field name="org" />
+      <field name="address" />
+      <field name="oook" />
+      <field name="country" />
+      <field name="url" />
+      <field name="filter" />
+    </type>
+    <type name="staff" >
+      <field name="passwd" />
+      <field name="name" />
+      <field name="dept" />
+      <field name="org" />
+      <field name="address" />
+      <field name="oook" />
+      <field name="country" />
+      <field name="url" />
+      <field name="filter" />
+    </type>
+  </dataset>
+
+</metadata>

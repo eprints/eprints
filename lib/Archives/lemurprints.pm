@@ -85,7 +85,6 @@ $c->{allow_user_removal_request} = 1;
 # paths
 
 $c->{archive_root} = "$EPrints::Archives::General::base_path/archives/$c->{archiveid}";
-$c->{phrases_path} = "$c->{archive_root}/phrases";
 $c->{config_path} = "$c->{archive_root}/cfg";
 $c->{system_files_path} = "$c->{archive_root}/sys";
 $c->{static_html_root} = "$c->{archive_root}/static";

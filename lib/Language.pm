@@ -57,7 +57,7 @@ print STDERR "------LOADINGLANG:$langid-------\n";
 	$self->{fallback} = $fallback;
 
 	$self->{archivedata} =
-		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id}.".xml", $archive );
+		read_phrases( $archive->get_conf( "config_path" )."/phrases-".$self->{id}.".xml", $archive );
 
 	$self->{data} =
 		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml", $archive );

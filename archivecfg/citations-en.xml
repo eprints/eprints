@@ -28,11 +28,3 @@
     <citation type="thesis">&authors; <if name="year">(&year;) </if><i>&title;</i>. &thesistype;,<if name="department"> &department;,</if><if name="institution"> &institution;</if>.</citation>
 
 </citations>
-
-
-<!-- my %citation_SPEC_DOMTREE; foreach( keys %citation_SPECS ) { $citation_SPEC_DOMTREE{$_} = parse_html( "<span class=\"citation\">".$citation_SPECS{$_}."</span>" ); } ## WP1: BAD sub get_eprint_citation_style { my( $eprint ) = @_; ## Crash if unknown style... cjg my $style = $citation_SPEC_DOMTREE{$eprint->get_value( "type" )}->cloneNode( 1 ); $eprint->{session}->take_ownership( $style ); return $style; }
--->
-
-
-
-
