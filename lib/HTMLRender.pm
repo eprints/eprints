@@ -479,7 +479,8 @@ sub input_field
 			-name=>$field->{name},
 			-default=>$value,
 			-rows=>$field->{displaylines},
-			-columns=>$EPrints::HTMLRender::form_width );
+			-columns=>$EPrints::HTMLRender::form_width,
+			-wrap=>"soft" );
 	}
 	elsif( $type eq "set" )
 	{
