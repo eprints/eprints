@@ -131,7 +131,6 @@ sub new
 
 	$self->{usernameinfo} = {};
 	my @usernames = $self->{query}->param();
-	my $n;
 
 	foreach $n (@usernames)
 	{
@@ -380,10 +379,10 @@ sub format_field
 			}
 			else
 			{
-				$html .= ",";
+				$html .= "<BR>";
 			}
 			
-			$html .= EPrints::Subject->subject_name( $self->{session}, $sub );
+			$html .= EPrints::Subject::subject_label( $self->{session}, $sub );
 		}
 	}
 	elsif( $type eq "set" )

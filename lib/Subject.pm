@@ -355,6 +355,33 @@ sub all_subject_labels
 	return( EPrints::Subject::get_postable( $session, undef ) );
 }
 
+######################################################################
+#
+# $name = subject_name( $session, $subject_tag )
+#
+#  Return just the subjects name. Returns
+#  undef if the subject tag is invalid. [STATIC]
+#
+######################################################################
+
+sub subject_name
+{
+	my( $session, $subject_tag ) = @_;
+
+	my @row = $session->{database}->retrieve_single(
+		$EPrints::Database::table_subject,
+		"subjectid",
+		$subject_tag );
+
+	# If we can't find it, the tag must be invalid.
+	if( $#row == -1 )
+	{
+		return( undef );
+	}
+
+	# return the name
+	return $row[1];
+}
 
 ######################################################################
 #
