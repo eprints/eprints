@@ -30,7 +30,7 @@ my $session = new EPrints::Session;
 print $session->{render}->start_html( "Server Status" );
 
 # Total number of users
-my $rows = $session->{database}->retrieve( $EPrints::Database::table_user,
+my $rows = $session->{database}->retrieve( EPrints::Database::table_name( "users" ),
                                            [ "username" ] );
 
 # Number of users in each group
@@ -39,39 +39,39 @@ my @num_users_cat;
 
 foreach (@EPrints::User::access_levels)
 {
-	$rows = $session->{database}->retrieve( $EPrints::Database::table_user,
+	$rows = $session->{database}->retrieve( EPrints::Database::table_name( "users" ),
 	                                        [ "username" ],
 	                                        [ "groups LIKE \"$_\"" ] );
 	push @num_users_cat, scalar @$rows;
 }
 
 # Number of submissions in workspace
-$rows = $session->{database}->retrieve( $EPrints::Database::table_inbox,
+$rows = $session->{database}->retrieve( EPrints::Database::table_name( "inbox" ),
                                         [ "eprintid" ] );
 
 my $num_inbox = scalar @$rows;
 
 # Number of submissions in buffer
-$rows = $session->{database}->retrieve( $EPrints::Database::table_buffer,
+$rows = $session->{database}->retrieve( EPrints::Database::table_name( "buffer" ),
                                         [ "eprintid" ] );
 
 my $num_buffer = scalar @$rows;
 
 # Number of submissions in archive
-$rows = $session->{database}->retrieve( $EPrints::Database::table_archive,
+$rows = $session->{database}->retrieve( EPrints::Database::table_name( "archive" ),
                                         [ "eprintid" ] );
 
 my $num_archive = scalar @$rows;
 
 # Number of deleted eprints
 
-$rows = $session->{database}->retrieve( $EPrints::Database::table_deletion,
+$rows = $session->{database}->retrieve( EPrints::Database::table_name( "deletion" ),
                                         [ "eprintid" ] );
 
 my $num_deleted = scalar @$rows;
 
 # Number of subscriptions
-$rows = $session->{database}->retrieve( $EPrints::Database::table_subscription,
+$rows = $session->{database}->retrieve( EPrints::Database::table_name( "subscription" ),
                                         [ "subid" ] );
 
 my $num_subs = scalar @$rows;

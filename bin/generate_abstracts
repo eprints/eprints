@@ -30,8 +30,7 @@ use strict;
 my $session = new EPrints::Session( 1 );
 
 print "start\n";
-my @eprints = $session->{database}->get_all(
-	$EPrints::Database::table_archive );
+my @eprints = $session->{database}->get_all( "archive" );
 print "gotall\n";
 
 foreach (@eprints)

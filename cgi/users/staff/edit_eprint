@@ -44,7 +44,7 @@ if( !defined $eprint_id || $eprint_id eq "" )
 else
 {
 	my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_archive,
+	                                  EPrints::Database::table_name( "archive" ),
 	                                  $eprint_id );
 
 	if( !defined $eprint )
@@ -81,7 +81,7 @@ else
 		{
 			$eprint->remove_from_threads();
 			
-			if( $eprint->transfer( $EPrints::Database::table_buffer ) )
+			if( $eprint->transfer( EPrints::Database::table_name( "buffer" ) ) )
 			{
 				print $session->{render}->start_html( "Move Successful" );
 

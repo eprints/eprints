@@ -35,7 +35,7 @@ if( defined $userid )
 
 		my @eprints = EPrints::EPrint::retrieve_eprints(
 			$session,
-			$EPrints::Database::table_archive,
+			EPrints::Database::table_name( "archive" ),
 			[ "username LIKE \"$userid\"" ],
 			[ "datestamp DESC" ] );
 

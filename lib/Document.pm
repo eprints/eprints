@@ -44,18 +44,6 @@ my $formats = ( $EPrintSite::SiteInfo::allow_arbitrary_formats ?
 my $digits = 2;
 
 
-@EPrints::Document::meta_fields =
-(
-	"docid:text::Document ID:1:0:1",                # Unique identifier
-	"eprintid:text::EPrint ID:1:0:0",             # Corresponding EPrint ID
-	"format:set::Document Format:1:1:1",           # Format (e.g. HTML)
-	"formatdesc:text::Additional Format Description:1:1:1",
-	                                                # Format description for
-	                                                #  other formats
-	"main:text::Main File:1:1:1"                    # Main file (e.g. index.html)
-);
-
-
 %EPrints::Document::help =
 (
 	"format"     => "Please select the storage format you wish to upload.",
@@ -64,6 +52,50 @@ my $digits = 2;
 	                "version information."
 );
 
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
+
+	return ( 
+	{
+		name=>"docid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>1
+	},
+	{
+		name=>"eprintid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"format",
+		type=>"set",
+		required=>1,
+		editable=>1,
+		visable=>1,
+		options=>[] #cjg
+	},
+	{
+		name=>"formatdesc",
+		type=>"text",
+		required=>1,
+		editable=>1,
+		visable=>1
+	},
+	{
+		name=>"main",
+		type=>"text",
+		required=>1,
+		editable=>1,
+		visable=>1
+	}
+);
+
+}
 
 ######################################################################
 #
@@ -95,7 +127,7 @@ sub new
 	{
 		# Need to read data from the database
 		@row = $self->{session}->{database}->retrieve_single(
-			$EPrints::Database::table_document,
+			EPrints::Database::table_name( "document" ),
 			"docid",
 			$doc_id );
 	}
@@ -162,7 +194,7 @@ sub create
 	# Make database entry
 # cjg add_record call
 	my $success = $session->{database}->add_record(
-		$EPrints::Database::table_document,
+		EPrints::Database::table_name( "document" ),
 		{ "docid"=>$doc_id,
 		  "eprintid"=>$eprint->{eprintid},
 		  "format"=>$format } );
@@ -218,7 +250,7 @@ sub _generate_doc_id
 	
 	# Get document IDs associated with this EPrint
 	my $rows = $session->{database}->retrieve(
-		$EPrints::Database::table_document,
+		EPrints::Database::table_name( "document" ),
 		[ "docid" ],
 		[ "eprintid LIKE \"$eprint->{eprintid}\"" ],
 		[ "docid" ] );
@@ -316,7 +348,7 @@ sub remove
 
 	# Remove database entry
 	my $success = $self->{session}->{database}->remove(
-		$EPrints::Database::table_document,
+		EPrints::Database::table_name( "document" ),
 		"docid",
 		$self->{docid} );
 	
@@ -803,7 +835,7 @@ sub commit
 	my $key_value = $self->{$key_field->{name}};
 
 	my $success = $self->{session}->{database}->update(
-		$EPrints::Database::table_document,
+		EPrints::Database::table_name( "document" ),
 		$key_field->{name},
 		$key_value,
 		$self );

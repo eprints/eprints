@@ -23,8 +23,6 @@ use EPrints::Session;
 use EPrints::Subject;
 use strict;
 
-
-
 ######################################################################
 #
 #  Create tables
@@ -43,6 +41,7 @@ else
 	print STDERR "DB Error: $error\n";
 }
 
+print STDERR "NNG___________________________\n";
 
 ######################################################################
 #

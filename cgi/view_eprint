@@ -71,7 +71,7 @@ my $deletion_record = undef;
 if( defined $eprintid )
 {
 	my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_archive,
+	                                  EPrints::Database::table_name( "archive" ),
 	                                  $eprintid );
 	
 	if( defined $eprint )

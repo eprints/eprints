@@ -29,7 +29,7 @@ my $session = new EPrints::Session;
 my $subform = new EPrints::SubmissionForm( $session,
                                            "home",
                                            0,
-                                           $EPrints::Database::table_inbox );
+                                           EPrints::Database::table_name( "inbox" ) );
 $subform->process();
 
 $session->terminate();

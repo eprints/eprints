@@ -118,7 +118,7 @@ sub get_record
 
 	my $eprint = new EPrints::EPrint(
 		$session,
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		EPrints::OpenArchives::from_oai_identifier(
 			$session->{render}->param( "identifier" ) ) );
 
@@ -353,7 +353,7 @@ sub list_metadata_formats
 	{
 		my $eprint = new EPrints::EPrint(
 			$session,
-			$EPrints::Database::table_archive,
+			EPrints::Database::table_name( "archive" ),
 			EPrints::OpenArchives::from_oai_identifier(
 				$session->{render}->param( "identifier" ) ) );
 

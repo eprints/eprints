@@ -77,7 +77,7 @@ sub write_subject_view
 	print OUT "<HR noshade size=\"2\">\n";	
 
 	# The entries themselves
-	my @eprints = $subject->posted_eprints( $EPrints::Database::table_archive );
+	my @eprints = $subject->posted_eprints( EPrints::Database::table_name( "archive" ) );
 
 	print OUT "<P>This subject category contains <STRONG>".($#eprints+1).
 		"</STRONG> entries</P>\n";

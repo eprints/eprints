@@ -23,22 +23,47 @@ use EPrints::SearchExpression;
 
 use strict;
 
-#
-# Fields in subject database table
-#
-@EPrints::Subject::system_meta_fields =
-(
-	"subjectid:text::Subject ID:1:0:0",
-	"name:text::Subject Name:1:0:0",
-	"parent:text::Parent Subject:0:0:0",
-	"depositable:boolean::Depositable:1:0:0"
-);
 
 # Root subject specifier
 $EPrints::Subject::root_subject = "ROOT";
 
 # Root subject name
 $EPrints::Subject::root_subject_name = "(Top Level)";
+
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
+
+	return ( 
+	{
+		name=>"subjectid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"name",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"parent",
+		type=>"text",
+		required=>0,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"depositable",
+		type=>"boolean",
+		required=>1,
+		editable=>0,
+		visable=>0
+	} );
+}
 
 ######################################################################
 #
@@ -75,9 +100,7 @@ sub new
 	else
 	{
 		# Got ID, need to read stuff in from database
-		return $session->{database}->get_single(
-			$EPrints::Database::table_subject,
-			$id );
+		return $session->{database}->get_single( "subject" , $id );
 
 	}
 
@@ -123,13 +146,9 @@ sub create_subject
 		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
 
 # cjg add_record call
-	return( undef ) unless( $session->{database}->add_record(
-		$EPrints::Database::table_subject,
-		$newsub ) );
+	return( undef ) unless( $session->{database}->add_record( "subject", $newsub ) );
 
-	return( new EPrints::Subject( $session,
-	                              undef,
-	                              $newsub ) );
+	return( new EPrints::Subject( $session, undef, $newsub ) );
 }
 
 
@@ -168,15 +187,15 @@ sub children
 {
 	my( $self ) = @_;
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( "subjects" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		"subjects" );
+		"subject" );
 
 	$searchexp->add_field(
 		$self->{session}->{metainfo}->find_table_field(
-			"subjects",
+			"subject",
 			"parent" ),
 		"ALL:EQ:$self->{subjectid}" );
 
@@ -371,9 +390,7 @@ sub subject_name
 {
 	my( $session, $subject_tag ) = @_;
 
-	my $data = $session->{database}->get_single(
-		$EPrints::Database::table_subject,
-		$subject_tag );
+	my $data = $session->{database}->get_single( "subject" , $subject_tag );
 
 	# If we can't find it, the tag must be invalid.
 	if( !defined $data )
@@ -403,9 +420,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $data = $session->{database}->get_single(
-			$EPrints::Database::table_subject,
-			$tag );
+		my $data = $session->{database}->get_single( "subject", $tag );
 		
 		# If we can't find it, the tag must be invalid.
 		if( !defined $data )
@@ -487,11 +502,11 @@ sub get_all
 {
 	my( $session ) = @_;
 	
-	my @fields = $session->{metainfo}->get_fields( "subjects" );
+	my @fields = $session->{metainfo}->get_fields( "subject" );
 	
 	# Retrieve all of the subjects
-	my @rows = $session->{database}->get_all(
-		$EPrints::Database::table_subject );
+	my @rows = $session->{database}->get_all( "subject" );
+
 	return( undef ) if( scalar @rows == 0 );
 
 	my( @subjects, %subjectmap );
@@ -533,7 +548,7 @@ sub posted_eprints
 		$table );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
+		$self->{session}->{metainfo}->find_table_field( "archive", "subject" ),
 		"ALL:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();
@@ -563,7 +578,7 @@ sub count_eprints
 		$table );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
+		$self->{session}->{metainfo}->find_table_field( "archive", "subject" ),
 		"ALL:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();

@@ -44,7 +44,7 @@ if( $input eq "yes" )
 
 	# Hose all entries in subject table:
 
-	if( $session->{database}->remove( $EPrints::Database::table_subject,
+	if( $session->{database}->remove( EPrints::Database::table_name( "subject" ),
 	                                  "subjectid",
 	                                  '%' ) )
 	{

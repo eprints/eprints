@@ -37,7 +37,7 @@ if( !defined $eprint_id || $eprint_id eq "" )
 else
 {
 	my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_buffer,
+	                                  EPrints::Database::table_name( "buffer" ),
 	                                  $eprint_id );
 	
 	if( !defined $eprint )

@@ -45,27 +45,27 @@ print STDERR ref($r)."!!\n";
 	print STDERR "URL: ".$r->the_request()."\n";
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( "users" , $user_sent );
+	my $user = $session->{database}->get_single( "user" , $user_sent );
 	if( !defined $user )
 	{
 	print STDERR "zong\n";
 		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
 	}
-print STDERR $user->{groups}."\n";
-	my $usertypedata = $session->{site}->{usertypes}->{$user->{groups}};
+print STDERR "GRP:".$user->{usertype}."\n";
+	my $usertypedata = $session->{site}->{userauth}->{$user->{usertype}};
 	if( !defined $usertypedata )
 	{
 #cjg this is an error
-	print STDERR "Y\n";
+		print STDERR "Unknown user type: $user->{usertype}\n";
 		return AUTH_REQUIRED;
 	}
-	print STDERR "X2:".join(",",keys %{$usertypedata->{auth_conf}})."\n";
+	print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
 	my $rwrapper = EPrints::RequestWrapper->new( 
 			$r , 
-			$usertypedata->{auth_conf} );
+			$usertypedata->{conf} );
 	my $result;
-	$result = Apache::AuthDBI::authen( $rwrapper );
+	$result = &{$usertypedata->{routine}}( $rwrapper );
 	$session->terminate();
 	return $result;
 }
@@ -99,10 +99,10 @@ sub authz
 	my ($user_sent) = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 	print STDERR "THE USER IS: $user_sent\n";
-	my $user = $session->{database}->get_single( "users" , $user_sent );
+	my $user = $session->{database}->get_single( "user" , $user_sent );
 	if( defined $user )
 	{
-		foreach( @{$session->{site}->{usertypes}->{$user->{groups}}->{auth_priv}} )
+		foreach( @{$session->{site}->{userauth}->{$user->{usertype}}->{priv}} )
 		{
 			$authz = 1 if( defined $okgroups{$_} );
 		}

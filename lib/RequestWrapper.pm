@@ -47,7 +47,6 @@ foreach $thing ( keys %Apache:: )
 	$sub.= '   my( $self , @args ) = @_; ';
 	$sub.= '   return $self->{real_request}->'.$thing.'( @args ); ';
 	$sub.= '}';
-	print "$sub\n";
 	eval $sub;
 }
 

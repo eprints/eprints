@@ -26,14 +26,14 @@ my $session = new EPrints::Session;
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
-	"eprints",
+	"eprint",
 	$session->{site}->{simple_search_fields} );
 
 my $searchform = new EPrints::SearchForm(
 	$session,
-	"eprints",
+	"eprint",
 	0,
-	$EPrints::Database::table_archive,
+	EPrints::Database::table_name( "archive" ),
 	\@metafields,
 	$session->{lang}->phrase( "H:simple_search" ),
 	"<P><A HREF=\"advsearch\">".

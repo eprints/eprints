@@ -65,7 +65,7 @@ sub new
 {
 	my( $class,
 	    $session,
-	    $table,
+	    $tableid,
 	    $allow_blank,
 	    $satisfy_all,
 	    $fields,
@@ -83,7 +83,7 @@ sub new
 	$orderby = {} if ( !defined $orderby );
 
 	$self->{session} = $session;
-	$self->{table} = $table;
+	$self->{tableid} = $tableid;
 	$self->{allow_blank} = $allow_blank;
 	$self->{satisfy_all} = $satisfy_all;
 
@@ -143,7 +143,7 @@ sub add_field
 
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
-	                                            $self->{table},					
+	                                            $self->{tableid},					
 	                                            $field,
 	                                            $value );
 
@@ -407,7 +407,7 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 #  metafields. You can pass @metafields to the SearchForm and 
 #  SearchExpression constructors.
 #
-#  $what must be "eprints" or "users", depending on what metafields
+#  $what must be "eprint" or "user", depending on what metafields
 #  you want.
 #
 #  If a field name is given as e.g. "title/keywords/abstract", they'll
@@ -497,7 +497,7 @@ sub perform_search
 		}
 	}
 	
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
         my $keyfield = $fields[0];
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
@@ -525,7 +525,7 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
-        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
+        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
         	my $keyfield = $fields[0];
 
 		my ( $buffer, $overlimit ) = $self->{session}->{database}->distinct_and_limit( 
@@ -533,7 +533,7 @@ sub get_records
 							$keyfield, 
 							$max );
 
-		my @records = $self->{session}->{database}->from_buffer( $self->{table}, $buffer );
+		my @records = $self->{session}->{database}->from_buffer( $self->{tableid}, $buffer );
 		if( !$overlimit )
 		{
 			@records = sort 

@@ -28,27 +28,6 @@ use strict;
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
 
-#
-# System fields, common to all EPrint types
-#
-@EPrints::EPrint::system_meta_fields =
-(
-	"eprintid:text::EPrint ID:1:0:1",        # The EPrint ID
-	"username:text::Submitted by:1:0:1",   # User ID of submitter
-	"dir:text::Local Directory:0:0:0",       # Directory it's in
-	"datestamp:date::Submission Date:0:0:1", # The submission date stamp
-	"subjects:subject::Subject Categories:0:0:0:1",
-	                                         # Subject categories. Tagged as
-	                                         # "not visible" since it's a special
-	                                         # case.
-	"additional:text::Suggested Additional Subject Heading:0:0:0",
-	                                         # Suggested extra subject...
-	"reasons:longtext:6:Reason for Additional Heading:0:0:0",
-	                                         # Chance for user to explain why
-	"type:eprinttype::EPrint Type:1:0:0",    # EPrint types, special case again
-	"succeeds:text::Later Version Of:0:0:0", # Later version of....
-	"commentary:text::Commentary On:0:0:0"   # Commentary on/response to...
-);
 
 
 # Additional fields in this class:
@@ -81,7 +60,87 @@ $EPrints::EPrint::id_code_digits = 8;
 
 $EPrints::EPrint::static_page = "index.html";
 
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
 
+	return ( 
+	{
+		name=>"eprintid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>1
+	},
+	{
+		name=>"username",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>1
+	},
+	{
+		name=>"dir",
+		type=>"text",
+		required=>0,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"datestamp",
+		type=>"date",
+		required=>0,
+		editable=>0,
+		visable=>1
+	},
+	                                         # Subject categories. Tagged as
+	                                         # "not visible" since it's a special
+	                                         # case.
+	{
+		name=>"subjects",
+		type=>"subject",
+		required=>0,
+		editable=>0,
+		visable=>0,
+		multiple=>1
+	},
+	{
+		name=>"additional",
+		type=>"text",
+		required=>0,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"reasons",
+		type=>"longtext",
+		required=>0,
+		editable=>0,
+		visable=>0,
+		displaylines=>6
+	},
+	{
+		name=>"type",
+		type=>"eprinttype",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"succeeds",
+		type=>"text",
+		required=>0,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"commentary",
+		type=>"text",
+		required=>0,
+		editable=>0,
+		visable=>0
+	} );
+}
 
 ######################################################################
 #
@@ -101,27 +160,22 @@ $EPrints::EPrint::static_page = "index.html";
 
 sub new
 {
-	my( $class, $session, $table, $id, $known ) = @_;
+	my( $class, $session, $tableid, $id, $known ) = @_;
 
 	my $self;
 
 	if ( !defined $known )	
 	{
-		if( defined $table )
+		if( defined $tableid )
 		{
-			return $session->{database}->get_single( $table , $id );
+			return $session->{database}->get_single( $tableid , $id );
 		}
 
 		## Work out in which table the EPrint resides.
 		## and return the eprint.
-		foreach( 
-			$EPrints::Database::table_archive,
-			$EPrints::Database::table_inbox,
-			$EPrints::Database::table_buffer )
+		foreach( "archive" , "inbox" , "buffer" )
 		{
-			$self = $session->{database}->get_single(
-				$_,
-				$id );
+			$self = $session->{database}->get_single( $_, $id );
 			if ( defined $self ) 
 			{
 				return $self;
@@ -137,7 +191,7 @@ sub new
 	} else {
 		$self = {};
 	}
-	$self->{table} = $table;
+	$self->{tableid} = $tableid;
 	$self->{session} = $session;
 
 	bless $self, $class;
@@ -148,7 +202,7 @@ sub new
 
 ######################################################################
 #
-# $eprint = create( $session, $table, $username, $data )
+# $eprint = create( $session, $tableid, $username, $data )
 #
 #  Create a new EPrint entry in the given table, from the given user.
 #
@@ -159,7 +213,7 @@ sub new
 
 sub create
 {
-	my( $session, $table, $username, $data ) = @_;
+	my( $session, $tableid, $username, $data ) = @_;
 
 	my $new_eprint = ( defined $data ? $data : {} );
 
@@ -174,12 +228,12 @@ print STDERR "($new_id)($dir)\n";
 	
 # cjg add_record call
 	my $success = $session->{database}->add_record(
-		$table,
+		$tableid,
 		$new_eprint );
 
 	if( $success )
 	{
-		return( EPrints::EPrint->new( $session, $table, $new_id ) );
+		return( EPrints::EPrint->new( $session, $tableid, $new_id ) );
 	}
 	else
 	{
@@ -321,66 +375,6 @@ print "($full_path)\n";
 
 
 
-######################################################################
-#
-# @eprints = retrieve_eprints( $session, $table, $conditions, $order )
-#                                               array_ref   array_ref
-#
-#  Retrieves EPrints from the given database table, returning full
-#  EPrint objects. [STATIC method.]
-#
-######################################################################
-
-sub retrieve_eprints
-{
-	my( $session, $table, $conditions, $order ) = @_;
-	
-	my @fields = $session->{metainfo}->get_fields( "archive" );
-
-	my $rows = $session->{database}->retrieve_fields( $table,
-                                                     \@fields,
-                                                     $conditions,
-                                                     $order );
-
-#EPrints::Log::debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
-
-	my $r;
-	my @eprints;
-
-	foreach $r (@$rows)
-	{
-		push @eprints, EPrints::EPrint->new( $session,
-		                                     $table,
-		                                     $r->[0],
-		                                     $r );
-	}
-	
-	return( @eprints );		                                        
-}
-
-
-######################################################################
-#
-# my $num = count_eprints( $session, $table, $conditions )
-#                                            array_ref
-#
-#  Simpler version of retrieve_eprints() that just counts the number
-#  of EPrints satisfying the conditions.[STATIC method.]
-#
-######################################################################
-
-sub count_eprints
-{
-	my( $session, $table, $conditions ) = @_;
-	
-	my $field = $session->{metainfo}->find_eprint_field( "eprintid");
-
-	my $rows = $session->{database}->retrieve_fields( $table,
-                                                     [ $field ],
-                                                     $conditions );
-
-	return( $#{$rows} + 1 );		                                        
-}
 
 
 ######################################################################
@@ -399,7 +393,7 @@ sub remove
 	
 	# Create a deletion record if we're removing the record from the main
 	# archive
-	if( $self->{table} eq $EPrints::Database::table_archive )
+	if( $self->{tableid} eq "archive" )
 	{
 		$success = $success && EPrints::Deletion::add_deletion_record( $self );
 	}
@@ -437,7 +431,7 @@ sub remove
 
 	# Remove our entry from the DB
 	$success = $success && $self->{session}->{database}->remove(
-		$self->{table},
+		$self->{tableid},
 		"eprintid",
 		$self->{eprintid} );
 	
@@ -459,7 +453,7 @@ sub remove_from_threads
 {
 	my( $self ) = @_;
 	
-	if( $self->{table} eq $EPrints::Database::table_archive )
+	if( $self->{tableid} eq  "archive" )
 	{
 		# Remove thread info in this eprint
 		$self->{succeeds} = undef;
@@ -501,12 +495,12 @@ sub remove_from_threads
 
 sub clone
 {
-	my( $self, $dest_table, $copy_documents ) = @_;
+	my( $self, $dest_tableid, $copy_documents ) = @_;
 	
 	# Create the new EPrint record
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
-		$dest_table,
+		$dest_tableid,
 		$self->{username} );
 	
 	if( defined $new_eprint )
@@ -530,7 +524,7 @@ sub clone
 		# so we'll fill in the succeeds field, provided this one is
 		# already in the main archive.
 		$new_eprint->{succeeds} = $self->{eprintid}
-			if( $self->{table} eq $EPrints::Database::table_archive );
+			if( $self->{tableid} eq  "archive"  );
 
 		# Attempt to copy the documents, if appropriate
 		my $ok = 1;
@@ -566,7 +560,7 @@ sub clone
 
 ######################################################################
 #
-# $success = transfer( $table )
+# $success = transfer( $tableid )
 #
 #  Move the EPrint to the given table
 #
@@ -574,18 +568,18 @@ sub clone
 
 sub transfer
 {
-	my( $self, $table ) = @_;
+	my( $self, $tableid ) = @_;
 
 	# Keep the old table
-	my $old_table = $self->{table};
+	my $old_tableid = $self->{tableid};
 
 	# Copy to the new table
-	$self->{table} = $table;
+	$self->{tableid} = $tableid;
 
 	# Create an entry in the new table
 # cjg add_record call
 	my $success = $self->{session}->{database}->add_record(
-		$table,
+		$tableid,
 		{ "eprintid"=>$self->{eprintid} } );
 
 	# Write self to new table
@@ -593,7 +587,7 @@ sub transfer
 
 	# If OK, remove the old copy
 	$success = $success && $self->{session}->{database}->remove(
-		$old_table,
+		$old_tableid,
 		"eprintid",
 		$self->{eprintid} );
 	
@@ -631,7 +625,7 @@ sub commit
 {
 	my( $self ) = @_;
 	my $success = $self->{session}->{database}->update(
-		$self->{table},
+		$self->{tableid},
 		$self );
 
 	if( !$success )
@@ -707,7 +701,7 @@ sub validate_meta
 		{
 			$problem = $self->{session}->{lang}->phrase( 
 				"H:not_done_field" ,
-				{ fieldname=>$field->{displayname} } );
+				{ fieldname=>$field->displayname( $self->{session} ) } );
 		}
 		else
 		{
@@ -824,13 +818,13 @@ sub validate_linking
 	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
 	{
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
-		                                       $EPrints::Database::table_archive,
+		                                       "archive",
 		                                       $self->{succeeds} );
 		unless( defined( $test_eprint ) )
 		{
 			push @problems, $self->{session}->{lang}->phrase(
 				"H:invalid_succ",	
-				{ field=>$succeeds_field->{displayname} } );
+				{ field=>$succeeds_field->displayname( $self->{session} ) } );
 		}
 
 		if( defined $test_eprint )
@@ -855,13 +849,13 @@ sub validate_linking
 	if( defined $self->{commentary} && $self->{commentary} ne "" )
 	{
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
-		                                       $EPrints::Database::table_archive,
+		                                       "archive",
 		                                       $self->{commentary} );
 		
 		unless( defined( $test_eprint ) ) { 
 			push @problems, $self->{session}->{lang}->phrase(
 				"H:invalid_id",
-				{ field=>$commentary_field->{displayname} } );
+				{ field=>$commentary_field->displayname( $self->{session} ) } );
 		}
 
 	}
@@ -886,7 +880,7 @@ sub get_document
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
-		$EPrints::Database::table_document,
+		"document",
 		\@fields,
 		[ "eprintid LIKE \"$self->{eprintid}\"", "format LIKE \"$format\"" ] );
 
@@ -920,11 +914,11 @@ sub get_all_documents
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$EPrints::Database::table_document );
+		"document" );
 
 	$searchexp->add_field(
 		$self->{session}->{metainfo}->find_table_field( 
-			$EPrints::Database::table_document,
+			"document",
 			"eprintid" ),
 		"ALL:EQ:$self->{eprintid}" );
 
@@ -949,7 +943,7 @@ sub get_formats
 	
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve(
-		$EPrints::Database::table_document,
+		"document",
 		[ "format" ],
 		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
 	
@@ -1079,7 +1073,7 @@ sub prune_documents
 	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
-		$EPrints::Database::table_document,
+		"document",
 		\@fields,
 		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
 
@@ -1141,7 +1135,7 @@ sub submit
 {
 	my( $self ) = @_;
 	
-	my $success = $self->transfer( $EPrints::Database::table_buffer );
+	my $success = $self->transfer( "buffer" );
 	
 	if( $success )
 	{
@@ -1187,7 +1181,7 @@ sub archive
 	undef $self->{additional};
 	undef $self->{reasons};
 	
-	my $success = $self->transfer( $EPrints::Database::table_archive );
+	my $success = $self->transfer( "archive" );
 	
 	if( $success )
 	{
@@ -1399,7 +1393,7 @@ sub first_in_thread
 	while( defined $first->{$field->{name}} && $first->{$field->{name}} ne "" )
 	{
 		my $prev = new EPrints::EPrint( $self->{session},
-		                                $EPrint::Database::table_archive,
+		                                "archive",
 		                                $first->{$field->{name}} );
 
 		return( $first ) unless( defined $prev );
@@ -1424,7 +1418,7 @@ sub later_in_thread
 #cjg	
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$EPrints::Database::table_archive );
+		"archive" );
 
 	$searchexp->add_field( $field, "ALL:EQ:$self->{eprintid}" );
 

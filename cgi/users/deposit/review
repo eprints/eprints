@@ -40,7 +40,7 @@ if( !defined $user )
 # Retrieve the user's eprints in the main archive
 my @eprints = EPrints::EPrint::retrieve_eprints(
 	$session,
-	$EPrints::Database::table_archive,
+	EPrints::Database::table_name( "archive" ),
 	[ "username LIKE \"$user->{username}\"" ] );
 
 
@@ -66,7 +66,7 @@ if( $session->{render}->seen_form() )
 			if( defined $session->{render}->param( "clone_$ep->{eprintid}" ) &&
 		   	 $ep->{username} eq $user->{username} )
 			{
-				my $copy = $ep->clone( $EPrints::Database::table_inbox,
+				my $copy = $ep->clone( EPrints::Database::table_name( "inbox" ),
 			                        	 1 );
 				if( defined $copy )
 				{
@@ -228,7 +228,7 @@ sub handle_removal_request
 	my $eprintid = $session->{render}->param( "eprint_id" );
 
 	my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_archive,
+	                                  EPrints::Database::table_name( "archive" ),
 	                                  $eprintid ) if( defined $eprintid );
 
 	# Make sure it's valid, and the user's own EPrint

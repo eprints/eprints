@@ -55,7 +55,7 @@ elsif( defined $action && ( $action eq "Accept" || $action eq "Bounce" ||
 	else
 	{
 		my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_buffer,
+	                                  EPrints::Database::table_name( "buffer" ),
 	                                  $eprint_id );
 		if( !defined $eprint )
 		{
@@ -92,7 +92,7 @@ else
 		$session,
 		"view_submission?eprintid=$eprint_id",
 		1,
-		$EPrints::Database::table_buffer );
+		EPrints::Database::table_name( "buffer" ) );
 
 	$subform->process();
 }
@@ -192,7 +192,7 @@ sub bounce
 	else
 	{
 		# Transfer the EPrint back to the user's inbox
-		$success = $eprint->transfer( $EPrints::Database::table_inbox );
+		$success = $eprint->transfer( EPrints::Database::table_name( "inbox" ) );
 	}
 	
 	if( $success )

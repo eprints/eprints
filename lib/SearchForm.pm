@@ -39,7 +39,7 @@ use strict;
 #
 #  Create a new search form handler object.
 #
-#  $what           - if "eprints", the search form will search for eprints.
+#  $what           - if "eprint", the search form will search for eprint.
 #                    if "user",  will search for users.
 #  $allow_blank    - if the searcher is allowed to leave everything
 #                  - blank and retrieve everything
@@ -81,7 +81,7 @@ sub new
 	$self->{default_order} = $default_order;
 	$self->{staff} = $staff;
 
-	return( undef ) unless( $what eq "users" || $what eq "eprints" );
+	return( undef ) unless( $what eq "users" || $what eq "eprint" );
 	
 	return( $self );
 }
@@ -197,7 +197,7 @@ sub process
 
 		# Print results
 
-		if( $self->{what} eq "eprints" )
+		if( $self->{what} eq "eprint" )
 		{
 			
 			foreach (@results)

@@ -1083,7 +1083,7 @@ sub do_stage_linking
 		$self->{eprint}->{succeeds} ne "" )
 	{
 		my $older_eprint = new EPrints::EPrint( $self->{session}, 
-		                                        $EPrints::Database::table_archive,
+		                                        EPrints::Database::table_name( "archive" ),
 		                                        $self->{eprint}->{succeeds} );
 		
 		if( defined $older_eprint )
@@ -1117,7 +1117,7 @@ sub do_stage_linking
 		$self->{eprint}->{commentary} ne "" )
 	{
 		my $older_eprint = new EPrints::EPrint( $self->{session}, 
-		                                        $EPrints::Database::table_archive,
+		                                        EPrints::Database::table_name( "archive" ),
 		                                        $self->{eprint}->{commentary} );
 		
 		if( defined $older_eprint )
@@ -1778,7 +1778,7 @@ sub update_from_meta_form
 {
 	my( $self ) = @_;
 
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprints" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint" );
 	my $field;
 	
 	if( $self->{session}->{render}->param( "eprint_id" ) ne

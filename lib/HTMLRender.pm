@@ -571,8 +571,8 @@ sub input_field
 	}
 	elsif( $type eq "eprinttype" )
 	{
-		my @eprint_types = $self->{session}->{metainfo}->get_eprint_types();
-		my $labels = $self->{session}->{metainfo}->get_eprint_type_names();
+		my @eprint_types = $self->{session}->{metainfo}->get_types( "eprint" );
+		my $labels = $self->{session}->{metainfo}->get_type_names( "eprint" );
 
 		my $actual = [ ( !defined $value || $value eq "" ?
 			$eprint_types[0] : $value ) ];
@@ -838,8 +838,7 @@ sub input_field_tr
 
 	$html .= "<TR><TD$align>";
 
-	$html .= "<STRONG>$field->{displayname}$required_string</STRONG></TD><TD>"
-		if( $show_names );
+	$html .= "<STRONG>".$field->displayname( $self->{session} )."$required_string</STRONG></TD><TD>" if( $show_names );
 
 	$html .= $self->input_field( $field, $value );
 
@@ -1470,7 +1469,7 @@ sub subject_desc
 	if( $count && $subject->{depositable} eq "TRUE" )
 	{
 		$html .= " (" .
-			$subject->count_eprints( $EPrints::Database::table_archive ) . ")";
+			$subject->count_eprints( EPrints::Database::table_name( "archive" ) ) . ")";
 	}
 	
 	return( $html );
@@ -1570,7 +1569,7 @@ sub render_deleted_eprint
 	
 	$replacement_eprint = new EPrints::EPrint(
 		$self->{session},
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		$deletion_record->{replacement} )
 		if( defined $deletion_record->{replacement} );
 	

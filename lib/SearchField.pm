@@ -90,7 +90,7 @@ sub new
 		foreach (@$field)
 		{
 			push @fieldnames, $_->{name};
-			push @displaynames, $_->{displayname};
+			push @displaynames, $_->displayname();
 		}
 	
 		$self->{displayname} = join '/', @displaynames;
@@ -100,7 +100,7 @@ sub new
 	else
 	{
 		$self->{field} = $field;
-		$self->{displayname} = $field->{displayname};
+		$self->{displayname} = $field->displayname();
 		$self->{formname} = $field->{name};
 		$self->{type} = $field->{type};
 	}
@@ -228,13 +228,13 @@ sub render_html
 		}
 		elsif( $type eq "eprinttype" )
 		{
-			my @eprint_types = $self->{session}->{metainfo}->get_eprint_types();
-			( $tags, $labels ) = ( \@eprint_types, $self->{session}->{metainfo}->get_eprint_type_names() );
+			$tags = $self->{session}->{metainfo}->get_types( "eprint" );
+			$labels = $self->{session}->{metainfo}->get_type_names( "eprint" );
 		}
 		else
 		{
 			# set
-			( $tags, $labels ) = ( $self->{field}->{tags}, $self->{field}->{labels} );
+			( $tags, $labels ) = $self->{field}->tags_and_labels( $self->{session} );
 		}
 	
 		my( $old_tags, $old_labels ) = ( $tags, $labels );

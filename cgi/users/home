@@ -144,7 +144,7 @@ sub render_workspace
 	### Get the actual items in the workspace
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$session,
-		$EPrints::Database::table_inbox,
+		EPrints::Database::table_name( "inbox" ),
 		[ "username LIKE \"$user->{username}\"" ] );
 
 	if( $#eprints >= 0 )
@@ -216,7 +216,7 @@ sub show_pending
 	### Get the items in the buffer
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$session,
-		$EPrints::Database::table_buffer,
+		EPrints::Database::table_name( "buffer" ),
 		[ "username LIKE \"$user->{username}\"" ] );
 
 	if( $#eprints >= 0 )

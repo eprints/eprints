@@ -32,7 +32,7 @@ print $session->{render}->start_html(
 # Get EPrints in the submission buffer
 my @eprints = EPrints::EPrint::retrieve_eprints(
 	$session,
-	$EPrints::Database::table_buffer,
+	EPrints::Database::table_name( "buffer" ),
 	undef );
 
 if( $#eprints == -1 )

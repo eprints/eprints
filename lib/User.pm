@@ -29,27 +29,49 @@ use EPrintSite::Validate;
 
 use strict;
 
-#
-# System user metadata
-#
-@EPrints::User::access_levels =
-(
-	"User",      # Can subscribe and submit papers
-	"Staff"      # Can access staff maintanence area
-);
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
 
-@EPrints::User::system_meta_fields =
-(
-	"username:text::User ID:1:0:0",
-	"passwd:text::Password:1:0:0",
-# cjg groups should be read from config thing AND NOT CALLED groups.
-	"groups:set:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1]:Access Level:1:0:0",
-	"joined:date::Date Joined:1:0:0",
-	"email:email::E-Mail Address:1:0:1"
-);
+	my @usertypes = keys %{$site->{usertypes}};
 
-# No help for any fields, since none are user-editable
-%EPrints::User::help = ();
+	return ( 
+	{
+		name=>"username",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"passwd",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"usertype",
+		type=>"set",
+		required=>1,
+		editable=>0,
+		visable=>0,
+		options=>\@usertypes
+	},
+	{
+		name=>"joined",
+		type=>"date",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"email",
+		type=>"email",
+		required=>1,
+		visable=>1
+	} );
+};
 
 
 ######################################################################
@@ -70,9 +92,7 @@ sub new
 
 	if( !defined $known )
 	{
-		return $session->{database}->get_single(
-			$EPrints::Database::table_user,
-			$username );
+		return $session->{database}->get_single( "user", $username );
 	} 
 
 	my $self = $known;
@@ -134,7 +154,7 @@ sub create_user
 	{
 		#print "Trying $candidate\n";
 	
-		if( $session->{database}->exists( $EPrints::Database::table_user, $candidate ) )
+		if( $session->{database}->exists( "user", $candidate ) )
 		{
 			# Already exists. Try again...
 			$used_count++;
@@ -155,10 +175,10 @@ sub create_user
 
 	# Add the user to the database... e-mail add. is lowercased
 # cjg add_record call
-	$session->{database}->add_record( $EPrints::Database::table_user,
+	$session->{database}->add_record( "user",
 	                                  { "username"=>$candidate,
 	                                    "passwd"=>$passwd,
-	                                    "groups"=>$access_level,
+	                                    "usertype"=>$access_level,
 	                                    "joined"=>$date_joined,
 	                                    "email"=>lc $email } );
 	
@@ -240,7 +260,7 @@ sub user_with_email
 	
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
-		$EPrints::Database::table_user,
+		"user",
 		"email",
 		lc $email );
 
@@ -301,7 +321,7 @@ sub validate
 		{
 			push @all_problems, 
 			   $self->{session}->{lang}->phrase( "H:missedfield", 
-			                                     { field=>$field->{displayname} } );
+			                                     { field=>$field->displayname( $self->{session} ) } );
 		}
 		else
 		{
@@ -339,7 +359,7 @@ sub commit
 	my( $self ) = @_;
 	
 	my $success = $self->{session}->{database}->update(
-		$EPrints::Database::table_user,
+		"user",
 		$self );
 
 	return( $success );
@@ -362,7 +382,7 @@ sub send_introduction
 	my( $self ) = @_;
 
 	my $subj;
-	if ( $self->{groups} eq "Staff" )
+	if ( $self->{usertype} eq "Staff" )
 	{
 		$subj = "S:newstaff";
    }
@@ -425,7 +445,7 @@ sub retrieve_users
 	my @fields = $session->{metainfo}->get_fields( "users" );
 
 	my $rows = $session->{database}->retrieve_fields(
-		$EPrints::Database::table_user,
+		"user",
 		\@fields,
 		$conditions,
 		$order );
@@ -464,7 +484,7 @@ sub remove
 	# First, remove their EPrints
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$self->{session},
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		[ "username LIKE \"$self->{username}\"" ] );
 
 	foreach (@eprints)
@@ -484,7 +504,7 @@ sub remove
 
 	# Now remove user record
 	$success = $success && $self->{session}->{database}->remove(
-		$EPrints::Database::table_user,
+		"user",
 		"username",
 		$self->{username} );
 	

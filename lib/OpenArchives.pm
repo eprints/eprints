@@ -356,7 +356,7 @@ sub harvest
 		$start_date,
 		$end_date,
 		$setspec,
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		$session->{metainfo}->find_eprint_field( "datestamp" ),
 		$session->{metainfo}->find_eprint_field( "subjects" ) );
 
@@ -383,7 +383,7 @@ sub harvest_deleted
 		$start_date,
 		$end_date,
 		$setspec,
-		$EPrints::Database::table_deletion,
+		EPrints::Database::table_name( "deletion" ),
 		EPrints::MetaInfo::find_field(
 			\@deletion_fields,
 			"deletiondate" ),
@@ -611,7 +611,7 @@ sub disseminate
 	
 	# Try and get the EPrint
 	my $eprint = new EPrints::EPrint( $session,
-	                                  $EPrints::Database::table_archive,
+	                                  EPrints::Database::table_name( "archive" ),
 	                                  $record_id );
 
 	# Get the tags (get_oams_tags returns empty hash if $eprint is undefined)
@@ -775,7 +775,7 @@ sub list_contents
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
 		$session,
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		0,
 		1,
 		[],

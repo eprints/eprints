@@ -32,7 +32,7 @@ if( defined $userid )
 		print "<HR>\n";
 
 		my $rows = $session->{database}->retrieve(
-			$EPrints::Database::table_archive,
+			EPrints::Database::table_name( "archive" ),
 			[ "eprintid" ],
 			[ "username LIKE \"$userid\"" ] );
 

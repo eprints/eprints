@@ -23,27 +23,34 @@
 
 
 ## NEEDS A SESSION, eh?
-$session XXX
+
 use EPrints::Database;
-use EPrintSite::SiteInfo;
 
 use strict;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+
+my $local_document_root = $session->{site}->{local_document_root};
+my $database = $session->{site}->{db_name};
+
+$session->terminate();
+
 
 # This script dosn't currently work on remote machines, which may well
 # not allow remote admin log in anyway.
 
 
 # make this work dammit cjg
-if ( defined $db_host ||
-     defined $EPrintSite::SiteInfo::db_socket ||
-     defined $EPrintSite::SiteInfo::db_port ) 
-{
-	print "\n";
-	print "This script currently does not work with databases\n";
-	print "not running on the default port of localhost.\n";
-	print "\n";
-	exit;
-}
+#if ( defined $db_host ||
+     #defined $EPrintSite::SiteInfo::db_socket ||
+     #defined $EPrintSite::SiteInfo::db_port ) 
+#{
+	#print "\n";
+	#print "This script currently does not work with databases\n";
+	#print "not running on the default port of localhost.\n";
+	#print "\n";
+	#exit;
+#}
 
 
 # Write the confirmation prompt
@@ -73,8 +80,8 @@ if( $input eq "yes" )
 	print "Dropping and recreating database (requires database root password)\n";
 	print "You will need to enter the MySQL root user password.\n";
 
-	my $cmds = "drop $EPrintSite::SiteInfo::database";
-	$cmds.= " create $EPrintSite::SiteInfo::database";
+	my $cmds = "drop $database";
+	$cmds.= " create $database";
 
 	# We use the force -f option as we've already checked user meant to do this.
 	my $rc = 0xffff & system( "$mysqladmin_path -u root -f $cmds" );
@@ -82,7 +89,7 @@ if( $input eq "yes" )
 	print "Erasing eprint files...\n";
 	
 	# Get available directories
-	opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
+	opendir DOCSTORE, $local_document_root
 		or print STDERR "Can't open DOCSTORE";
 
 	# The grep here just removes the "." and ".." directories
@@ -93,8 +100,8 @@ if( $input eq "yes" )
 	foreach (@avail)
 	{
 		$rc = 0xffff & system(
-			"rm -rf $EPrintSite::SiteInfo::local_document_root/$_/*" );
-		print STDERR "Warning: Cleaning $EPrintSite::SiteInfo::local_document_root/$_ didn't go smoothly\n"
+			"rm -rf $local_document_root/$_/*" );
+		print STDERR "Warning: Cleaning $local_document_root/$_ didn't go smoothly\n"
 			unless( $rc==0 );
 	}
 

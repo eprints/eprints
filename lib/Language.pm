@@ -26,7 +26,7 @@ use EPrintSite;
 use strict;
 
 # Cache for language objects NOT attached to a config.
-%EPrints::Language::lang_cache = ();
+my %LANG_CACHE = ();
 
 ######################################################################
 #
@@ -62,9 +62,9 @@ sub fetch
 	}
 	else
 	{
-		if ( defined $EPrints::Language::lang_cache{ $langid } )
+		if ( defined $LANG_CACHE{ $langid } )
 		{
-			return $EPrints::Language::lang_cache{ $langid };
+			return $LANG_CACHE{ $langid };
 		}
 	}
 
@@ -129,6 +129,8 @@ sub phrase
 
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
+if (defined $inserts && ref($inserts) ne "HASH"){die "AGRH: $phraseid : ".join(" | ",@callinfo); }
+print STDERR "LANG: $&; $phraseid; ".(defined $inserts ? join(",",%{$inserts}): "NO INSERTS")."\n";
 	return $self->file_phase( $& , $phraseid , $inserts );
 }
 
@@ -167,16 +169,17 @@ sub read_phrases
 
 	my $file = $EPrintSite::languages{$self->{id}};
 
-	unless( open LANG_FILE, $file )
+	unless( open(LANG, $file) )
 	{
 		# can't translate yet...
-		print STDERR "Can't open eprint language file: $file: $!";
+		print STDERR "Can't open eprint language file: $file: $!\n";
 		return;
 	}
+	print STDERR "opened eprint language file: $file: $!\n\n";
 
-	while( <LANG_FILE> )
+	while( <LANG> )
 	{
-		chomp();
+		chomp;
 		next if /^\s*#/;
 		push @inbuffer, $_;
 
@@ -186,8 +189,9 @@ sub read_phrases
 			@inbuffer = ();
 		}
 	}
+print STDERR "Loaded: $file\n";
 
-	close( LANG_FILE );
+	close( LANG );
 }
 
 

@@ -31,44 +31,52 @@ use strict;
 #
 # Table names
 #
-$EPrints::Database::table_tempmap = "tempmap";
-$EPrints::Database::table_counter = "counters";
-$EPrints::Database::table_user = "users";
-$EPrints::Database::table_inbox = "inbox";
-$EPrints::Database::table_buffer = "buffer";
-$EPrints::Database::table_archive = "archive";
-$EPrints::Database::table_document = "documents";
-$EPrints::Database::table_subject = "subjects";
-$EPrints::Database::table_subscription = "subscriptions";
-$EPrints::Database::table_deletion = "deletions";
 
-%EPrints::Database::table_class = (
-	$EPrints::Database::table_user => "EPrints::User",
-	$EPrints::Database::table_inbox => "EPrints::EPrint",
-	$EPrints::Database::table_buffer => "EPrints::EPrint",
-	$EPrints::Database::table_archive => "EPrints::EPrint",
-	$EPrints::Database::table_document => "EPrints::Document",
-	$EPrints::Database::table_subject => "EPrints::Subject",
-	$EPrints::Database::table_subscription => "EPrints::Subscription",
-	$EPrints::Database::table_deletion => "EPrints::Deletion"
+# the X is to make sure I'm not using table
+# names directly in the code...
+my %TABLE_NAMES = (
+	tempmap =>	"Xtempmap",
+	counter =>	"Xcounters",
+	user =>		"Xusers",
+	inbox =>	"Xinbox",
+	buffer =>	"Xbuffer",
+	archive =>	"Xarchive",
+	document =>	"Xdocuments",
+	subject =>	"Xsubjects",
+	subscription =>	"Xsubscriptions",
+	deletion =>	"Xdeletions"
 );
+
+
+# 'eprint' isn't really a table, but it's a generic handle for all three.
+my %TABLE_CLASS = (
+	eprint => 	"EPrints::EPrint",
+	user => 	"EPrints::User",
+	inbox => 	"EPrints::EPrint",
+	buffer => 	"EPrints::EPrint",
+	archive => 	"EPrints::EPrint",
+	document => 	"EPrints::Document",
+	subject => 	"EPrints::Subject",
+	subscription =>	"EPrints::Subscription",
+	deletion => 	"EPrints::Deletion"
+);
+
+#
+# Seperator - used to join parts of the name of a table
+#
+my $SEPERATOR = "_";
 
 #
 # Counters
 #
 @EPrints::Database::counters = ( "eprintid" );
 
-#
-# Seperator - used to join parts of the name of a table
-#
-$EPrints::Database::seperator = "_";
-
 
 #
 # Map of EPrints data types to MySQL types. keys %datatypes will give
 #  a list of the types supported by the system.
 #
-%EPrints::Database::datatypes =
+my %DATATYPES =
 (
 	"int"        => "\$(name) INT UNSIGNED \$(param)",
 	"date"       => "\$(name) DATE \$(param)",
@@ -87,7 +95,7 @@ $EPrints::Database::seperator = "_";
 );
 
 # Map of INDEXs required if a user wishes a field indexed.
-%EPrints::Database::dataindexes =
+my %DATAINDEXES =
 (
 	"int"        => "INDEX(\$(name))",
 	"date"       => "INDEX(\$(name))",
@@ -105,8 +113,11 @@ $EPrints::Database::seperator = "_";
 	"name"       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
-
-$EPrints::Database::nextbuffer = 0;
+#
+# ID of next buffer table. This can safely reset to zero each time
+# The module restarts as it is only used for temporary tables.
+#
+my $NEXTBUFFER = 0;
 
 ######################################################################
 #
@@ -227,54 +238,17 @@ sub create_archive_tables
 {
 	my( $self ) = @_;
 	
-	# Create the ID counter table
-	my $success = $self->_create_counter_table();
+	my $success = 1;
+
+	foreach( "user", "inbox", "buffer", "archive", 
+		 "document", "subject", "subscription", "deletion" )
+	{
+		$success = $success && $self->_create_table( $_ );
+	}
 
 	$success = $success && $self->_create_tempmap_table();
-
-	# Create the user table
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_user,
-		$self->{session}->{metainfo}->get_fields( "users" ) );
+	$success = $success && $self->_create_counter_table();
 	
-
-	# Document table
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_document,
-		$self->{session}->{metainfo}->get_fields( "documents" ) );
-
-	# EPrint tables
-	my @eprint_metadata = $self->{session}->{metainfo}->get_fields( "eprints" );
-
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_inbox,
-		@eprint_metadata );
-
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_buffer,
-		@eprint_metadata );
-
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_archive,
-		@eprint_metadata );
-
-
-	# Subscription table
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_subscription,
-		$self->{session}->{metainfo}->get_fields( "subscriptions" ) );
-
-
-	# Subject category table
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_subject,
-		$self->{session}->{metainfo}->get_fields( "subjects" ) );
-
-	# Deletion table
-	$success = $success && $self->_create_table(
-		$EPrints::Database::table_deletion,
-		$self->{session}->{metainfo}->get_fields( "deletions" ) );
-
 	return( $success );
 }
 		
@@ -295,28 +269,30 @@ sub create_archive_tables
 
 sub _create_table
 {
-	my( $self, $tablename, @fields ) = @_;
+	my( $self, $tableid ) = @_;
 	
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
+
 	my $rv = 1;
 
 	my $keyfield = $fields[0]->clone();
 	$keyfield->{indexed} = 1;
-	my $fieldword = EPrints::MetaField->new( "fieldword:text::Word:1:0:0" );
+	my $fieldword = EPrints::MetaField->new( { name=>"fieldword", type=>"text" } );
 
 	$rv = $rv & $self->_create_table_aux(
-			index_name( $tablename ),
-			$tablename,
+			index_name( $tableid ),
+			$tableid,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
-	$rv = $rv && $self->_create_table_aux( $tablename, $tablename, 1, @fields);
+	$rv = $rv && $self->_create_table_aux( table_name( $tableid ), $tableid, 1, @fields);
 
 	return $rv;
 }
 
 sub _create_table_aux
 {
-	my( $self, $tablename, $primarytable, $setkey, @fields ) = @_;
+	my( $self, $tablename, $tableid, $setkey, @fields ) = @_;
 	
 	my $field;
 	my $rv = 1;
@@ -339,15 +315,14 @@ sub _create_table_aux
 			# there's not much point. 
 			my $auxfield = $field->clone();
 			$auxfield->{multiple} = 0;
-			my @fields = $self->{session}->{metainfo}->get_fields( $primarytable );
+			my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 			my $keyfield = $fields[0]->clone();
 			$keyfield->{indexed} = 1;
-			my $pos = EPrints::MetaField->new(
-				"pos:int:0:Postion:1:0:0" );
+			my $pos = EPrints::MetaField->new( { name=>"pos", type=>"int" } );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
-				$tablename.$EPrints::Database::seperator.$field->{name},
-				$primarytable,
+				$tablename.$SEPERATOR.$field->{name},
+				$tableid,
 				0, # no primary key
 				@auxfields );
 			next;
@@ -360,7 +335,7 @@ sub _create_table_aux
 		{
 			$sql .= ", ";
 		}
-		my $part = $EPrints::Database::datatypes{$field->{type}};
+		my $part = $DATATYPES{$field->{type}};
 		my %bits = (
 			 "name"=>$field->{name},
 			 "param"=>"" );
@@ -375,7 +350,7 @@ sub _create_table_aux
 		elsif( $field->{indexed} )
 		{
 			$bits{"param"} = "NOT NULL";
-			my $index = $EPrints::Database::dataindexes{$field->{type}};
+			my $index = $DATAINDEXES{$field->{type}};
 	
 			while( $index =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
 			push @indices, $index;
@@ -418,9 +393,11 @@ sub _create_table_aux
 
 sub add_record
 {
-	my( $self, $table, $data ) = @_;
+	my( $self, $tableid, $data ) = @_;
+
+	my $table = table_name( $tableid );
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 	my $keyfield = $fields[0];
 
 	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\"".prep_value($data->{$keyfield->{name}})."\")";
@@ -429,7 +406,7 @@ sub add_record
 	my $rv = $self->do( $sql );
 
 	# Now add the ACTUAL data:
-	$self->update( $table , $data );
+	$self->update( $tableid , $data );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -483,13 +460,14 @@ sub prep_value
 
 sub update
 {
-	my( $self, $table, $data ) = @_;
+	my( $self, $tableid, $data ) = @_;
+
+	my $table = table_name( $tableid );
 
 	my $rv = 1;
 	my $sql;
 
-
-	my @fields = $self->{session}->{metainfo}->get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 
 	# skip the keyfield;
 	my $keyfield = shift @fields;
@@ -500,7 +478,7 @@ sub update
 	# it now:
 	my $where = "$keyfield->{name} = \"$keyvalue\"";
 
-	my $indextable = index_name( $table );
+	my $indextable = index_name( $tableid );
 	$sql = "DELETE FROM $indextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
 
@@ -531,7 +509,7 @@ sub update
 			}
 			if( _freetext_type( $_ ) )
 			{ 
-				$self->_freetext_index( $table, $keyvalue, $_, $data->{$_->{name}} );
+				$self->_freetext_index( $tableid, $keyvalue, $_, $data->{$_->{name}} );
 			}
 		}
 	}
@@ -557,7 +535,7 @@ sub update
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $auxtable = $table.$EPrints::Database::seperator.$multifield->{name};
+		my $auxtable = $table.$SEPERATOR.$multifield->{name};
 		$sql = "DELETE FROM $auxtable WHERE $where";
 		$rv = $rv && $self->do( $sql );
 
@@ -595,7 +573,7 @@ print STDERR "*".$multifield->{name}."\n";
 	                $rv = $rv && $self->do( $sql );
 			if( $multifield->{type} eq "text" || $multifield->{type} eq "longtext" )
 			{
-				$self->_freetext_index( $table, $keyvalue, $multifield, $_ );
+				$self->_freetext_index( $tableid, $keyvalue, $multifield, $_ );
 			}
 
 			++$i;
@@ -619,7 +597,9 @@ print STDERR "*".$multifield->{name}."\n";
 sub remove
 {
 die "remove not fini_cjgshed";# don't forget to prep values
-	my( $self, $table, $field, $value ) = @_;
+	my( $self, $tableid, $field, $value ) = @_;
+
+	my $table = table_name( $tableid );
 	
 	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
 
@@ -643,7 +623,7 @@ sub _create_counter_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE $EPrints::Database::table_counter ".
+	my $sql = "CREATE TABLE ".EPrints::Database::table_name( "counter" ).
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
@@ -655,7 +635,7 @@ sub _create_counter_table
 	# Create the counters
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO $EPrints::Database::table_counter VALUES ".
+		$sql = "INSERT INTO ".EPrints::Database::table_name( "counter" )." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );
@@ -681,7 +661,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE $EPrints::Database::table_tempmap ".
+	my $sql = "CREATE TABLE ".EPrints::Database::table_name( "tempmap" ).
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
 	
@@ -711,7 +691,7 @@ sub counter_next
 	my( $self, $counter ) = @_;
 
 	# Update the counter	
-	my $sql = "UPDATE $EPrints::Database::table_counter SET counter=".
+	my $sql = "UPDATE ".EPrints::Database::table_name( "counter" )." SET counter=".
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
 	
 	# Send to the database
@@ -739,7 +719,7 @@ sub create_cache
 
 	my $sql;
 
-	$sql = "INSERT INTO $EPrints::Database::table_tempmap ".
+	$sql = "INSERT INTO ".EPrints::Database::table_name( "tempmap" ).
 	       "VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
@@ -770,8 +750,7 @@ sub create_buffer
 
 #EPrints::Log::debug( "Database", "SQL:$sql" );
 
-	my $tmptable = "searchbuffer".
-		($EPrints::Database::nextbuffer++);
+	my $tmptable = "searchbuffer".($NEXTBUFFER++);
 
         my $sql = "CREATE TEMPORARY TABLE $tmptable ".
 	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
@@ -866,7 +845,7 @@ sub drop_cache
 	{
 		my $sql;
 
-		$sql = "DELETE FROM $EPrints::Database::table_tempmap ".
+		$sql = "DELETE FROM ".EPrints::Database::table_name( "tempmap" ).
 	               "WHERE tableid = $1";
 
 		$self->do( $sql );
@@ -902,31 +881,33 @@ sub count_buffer
 
 sub from_buffer 
 {
-	my ( $self , $table , $buffer ) = @_;
-	return $self->_get( $table, 1 , $buffer );
+	my ( $self , $tableid , $buffer ) = @_;
+	return $self->_get( $tableid, 1 , $buffer );
 }
 
 sub get_single
 {
-	my ( $self , $table , $value ) = @_;
-	return ($self->_get( $table, 0 , $value ))[0];
+	my ( $self , $tableid , $value ) = @_;
+	return ($self->_get( $tableid, 0 , $value ))[0];
 }
 
 sub get_all
 {
-	my ( $self , $table ) = @_;
-	return $self->_get( $table, 2 );
+	my ( $self , $tableid ) = @_;
+	return $self->_get( $tableid, 2 );
 }
 
 sub _get 
 {
-	my ( $self , $table , $mode , $param ) = @_;
+	my ( $self , $tableid , $mode , $param ) = @_;
 
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
-	my @fields = $self->{session}->{metainfo}->get_fields( $table );
+	my $table = table_name( $tableid ); 
+
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 	my $keyfield = $fields[0];
 
 	my $cols = "";
@@ -1016,20 +997,20 @@ sub _get
 		if ( $mode == 0 )	
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M ";
+			$sql.= $table.$SEPERATOR."$multifield->{name} AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=\"".prep_value( $param )."\"";
 		}
 		elsif ( $mode == 1)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
-		        $sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M ";
+		        $sql.= $table.$SEPERATOR."$multifield->{name} AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
 		}	
 		elsif ( $mode == 2)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M";
+			$sql.= $table.$SEPERATOR."$multifield->{name} AS M";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -1054,7 +1035,7 @@ sub _get
 
 	foreach( @data )
 	{
-		$_ = make_object( $self->{session} , $table , $_);
+		$_ = make_object( $self->{session} , $tableid , $_);
 	}
 
 	return @data;
@@ -1062,9 +1043,9 @@ sub _get
 
 sub make_object
 {
-	my( $session , $table , $item ) = @_;
+	my( $session , $tableid , $item ) = @_;
 
-	my $class = $EPrints::Database::table_class{$table};
+	my $class = table_class( $tableid );
 
 	# If this table dosn't have an associated class, just
 	# return the item.	
@@ -1081,12 +1062,12 @@ sub make_object
 	{
 		return EPrints::EPrint->new( 
 			$session,
-			$table,
+			$tableid,
 			undef,
 			$item );
 	}
 
-	return $EPrints::Database::table_class{$table}->new( 
+	return $class->new( 
 		$session,
 		undef,
 		$item );
@@ -1162,14 +1143,15 @@ sub benchmark
 
 sub exists
 {
-	my( $self, $table, $id ) = @_;
+	my( $self, $tableid, $id ) = @_;
 
 	if( !defined $id )
 	{
 		return undef;
 	}
+	my $table = table_name( $tableid );
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 	my $keyfield = $fields[0]->{name};
 
 	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"".prep_value( $id )."\";";
@@ -1186,14 +1168,18 @@ sub exists
 
 sub index_name
 {
-	my( $table ) = @_;
+	my( $tableid ) = @_;
 
-	return $table.$EPrints::Database::seperator.$EPrints::Database::seperator."index";
+	my $table = table_name( $tableid );
+
+	return $table.$SEPERATOR.$SEPERATOR."index";
 }
 	
 sub _freetext_index
 {
-	my( $self , $table , $id , $field , $value ) = @_;
+	my( $self , $tableid , $id , $field , $value ) = @_;
+
+	my $table = table_name( $tableid );
 
 	my $rv = 1;
 	if( !defined $value || $value eq "" )
@@ -1201,10 +1187,10 @@ sub _freetext_index
 		return $rv;
 	}
 
-	my @fields = $self->{session}->{metainfo}->get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
 	my $keyfield = $fields[0];
 
-	my $indextable = index_name( $table );
+	my $indextable = index_name( $tableid );
 	
 	my( $good , $bad ) = EPrintSite::SiteRoutines::extract_words( $value );
 
@@ -1226,5 +1212,20 @@ sub _freetext_type
 	return ( $field->{type} eq "text" || $field->{type} eq "longtext" ||
 		$field->{type} eq "url" || $field->{type} eq "email" );
 }
+
+sub table_name
+{
+	my( $tableid ) = @_;
+
+	return $TABLE_NAMES{ $tableid };
+}
+
+sub table_class
+{
+	my( $tableid ) = @_;
+
+	return $TABLE_CLASS{ $tableid };
+}
+	
 
 1; # For use/require success

@@ -34,6 +34,42 @@ use strict;
 	"deletiondate:date::Date Removed:1:0:0"
 );
 
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
+
+	return ( 
+	{
+		name=>"eprintid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"replacement",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"subjects",
+		type=>"subject",
+		multiple=>1,
+		required=>0,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"deletiondate",
+		type=>"date",
+		required=>1,
+		editable=>0,
+		visable=>0
+	} );
+}
+
 
 ######################################################################
 #
@@ -61,7 +97,7 @@ sub new
 	{
 		# Need to read data from the database
 		@row = $self->{session}->{database}->retrieve_single(
-			$EPrints::Database::table_deletion,
+			EPrints::Database::table_name( "deletion" ),
 			"eprintid",
 			$self->{eprintid} );
 	}
@@ -129,7 +165,7 @@ sub add_deletion_record
 	# Now add the deletion record to the database
 #cjg add_record call
 	return( undef ) unless ( $session->{database}->add_record(
-		$EPrints::Database::table_deletion,
+		EPrints::Database::table_name( "deletion" ),
 		{ "eprintid"=>$eprint->{eprintid},
 		  "replacement"=>$replacement,
 		  "subjects"=>$eprint->{subjects},

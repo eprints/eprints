@@ -28,15 +28,44 @@ use EPrints::User;
 use EPrintSite::SiteInfo;
 
 use strict;
+#"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
 
-@EPrints::Subscription::system_meta_fields =
-(
-	"subid:text::Subscription ID:1:0:0",
-	"username:text::User:1:0:0",
-	"spec:longtext:3:Specification:1:0:0",
-	"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
-);
+sub get_system_field_info
+{
+	my( $class , $site ) = @_;
 
+	return ( 
+	{
+		name=>"subid",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"username",
+		type=>"text",
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"spec",
+		type=>"longtext",
+		displaylines=>3,
+		required=>1,
+		editable=>0,
+		visable=>0
+	},
+	{
+		name=>"frequency",
+		type=>"set",
+		options=>["never","daily","weekly","monthly"],
+		required=>1,
+		editable=>1,
+		visable=>1
+	} );
+}
 
 
 ######################################################################
@@ -61,7 +90,7 @@ sub new
 	{
 		# Get the relevant row...
 		my @row = $self->{session}->{database}->retrieve_single(
-			$EPrints::Database::table_subscription,
+			EPrints::Database::table_name( "subscription" ),
 			"subid",
 			$subid );
 
@@ -75,7 +104,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "subscription" );
 
 	my $i=0;
 	
@@ -87,13 +116,13 @@ sub new
 
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
 		$self->{session},
-		"eprints",
+		"eprint",
 		$self->{session}->{site}->{subscription_fields} );
 
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
 		$self->{session},
-		$EPrints::Database::table_archive,
+		EPrints::Database::table_name( "archive" ),
 		1,
 		1,
 		\@metafields,
@@ -130,7 +159,7 @@ sub create
 	$self->{username} = $username;
 	
 # cjg add_record call
-	$session->{database}->add_record( $EPrints::Database::table_subscription,
+	$session->{database}->add_record( EPrints::Database::table_name( "subscription" ),
 	                                  [ [ "subid", $self->{subid} ],
 	                                    [ "username", $username ] ] );
 	
@@ -162,7 +191,7 @@ sub _generate_subid
 		
 		# First find out if the candidate is taken
 		my $rows = $session->{database}->retrieve(
-			$EPrints::Database::table_subscription,
+			EPrints::Database::table_name( "subscription" ),
 			[ "subid" ],
 			[ "subid LIKE \"$id\"" ] );
 		
@@ -193,7 +222,7 @@ sub remove
 	my( $self ) = @_;
 	
 	return( $self->{session}->{database}->remove(
-		$EPrints::Database::table_subscription,
+		EPrints::Database::table_name( "subscription" ),
 		"subid",
 		$self->{subid} ) );
 }
@@ -212,7 +241,7 @@ sub render_subscription_form
 	my( $self ) = @_;
 	
 	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscription" );
 	
 	$html .= "<P>";
 	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
@@ -238,7 +267,7 @@ sub from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscription" );
 	$self->{frequency} = $self->{session}->{render}->form_value(
 		 EPrints::MetaInfo::find_field( \@all_fields, "frequency" ) );
 
@@ -262,7 +291,7 @@ sub commit
 	$self->{spec} = $self->{searchexpression}->to_string();
 
 	return( $self->{session}->{database}->update(
-		$EPrints::Database::table_subscription,
+		EPrints::Database::table_name( "subscription" ),
 		$self ) );
 }
 	
@@ -281,10 +310,10 @@ sub subscriptions_for
 	
 	my @subscriptions;
 	
-	my @sub_fields = $session->{metainfo}->get_fields( "subscriptions" );
+	my @sub_fields = $session->{metainfo}->get_fields( "subscription" );
 
 	my $rows = $session->{database}->retrieve_fields(
-		$EPrints::Database::table_subscription,
+		EPrints::Database::table_name( "subscription" ),
 		\@sub_fields,
 		[ "username LIKE \"$user->{username}\"" ] );
 	
@@ -312,10 +341,10 @@ sub subscriptions_for_frequency
 	
 	my @subscriptions;
 	
-	my @sub_fields = $session->{metainfo}->get_fields( "subscriptions" );
+	my @sub_fields = $session->{metainfo}->get_fields( "subscription" );
 
 	my $rows = $session->{database}->retrieve_fields(
-		$EPrints::Database::table_subscription,
+		EPrints::Database::table_name( "subscription" ),
 		\@sub_fields,
 		[ "frequency LIKE \"$frequency\"" ] );
 	

@@ -44,7 +44,7 @@ if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
 		# See if the eprint exists.
 		my $eprint = new EPrints::EPrint(
 			$session,
-			$EPrints::Database::table_archive,
+			EPrints::Database::table_name( "archive" ),
 			$guessed_id );
 		
 		if( defined $eprint )
