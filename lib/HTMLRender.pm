@@ -954,8 +954,7 @@ sub redirect
 	{
 		# For some reason, redirection doesn't work with CGI::Apache.
 		# We have to use CGI.
-		my $q = new CGI;
-		print $q->redirect( -uri=>$url );
+		print $self->{query}->redirect( -uri=>$url );
 	}
 
 }
