@@ -57,8 +57,6 @@ Searching
 EPrints Submission Form
 ----------------------------------------------------------------------
 
-- form buttons are not all displayed in a sensible order, eg "Next","Prev"
-
 - doc upload page does not give a sensible message when there are no 
    documents.
 
@@ -66,17 +64,11 @@ EPrints Submission Form
    it still uploads the file then discards it (which can be annoying if it's
    big) Back buttons should be in a seperate form.
 
-- Back button should not be the default button on file upload pages.
-
 - .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
    install mode failing to preserve the "executables" field.
 
 - capturing a website with a ~ in the URL set the wrong filename in the 
    documents data. (didn't handle %'s right?)
-
-- default action is always first button in form. (Which if I fix the button 
-   ordering problem will mean that the default button will be "Prev" thus
-   losing all the changes.
 
 - the final page of submission should indicate that the first block is
    the "abstract page" and the second block is a dump of all fields.
@@ -105,4 +97,12 @@ FIXED: 15/01
 
 FIXED: 20/01
 - freetext searches were dropping the last result for each word.
+
+FIXED: 26/01
+- form buttons are not all displayed in a sensible order, eg "Next","Prev"
+- Back button should not be the default button on file upload pages. 
+- default action is always first button in form. (Which if I fix the button 
+   ordering problem will mean that the default button will be "Prev" thus
+   losing all the changes.
+
 

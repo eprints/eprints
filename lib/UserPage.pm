@@ -109,7 +109,9 @@ sub process
 	if( $staff && $session->current_user()->has_priv( "edit-user" ) )
 	{
 		$page->appendChild( $session->render_input_form(
+			# no input fields so no need for a default
 			buttons=>{
+				_order = [ "edit", "delete" ],
 				edit=>$session->phrase( "lib/userpage:action_edit" ),
 				delete=>$session->phrase( "lib/userpage:action_delete" )
 			},

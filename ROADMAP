@@ -89,10 +89,10 @@
 0	Alerts for editors about things they can edit (flag in User fields?)
 - 	Change User - allows you to log in as a different user (handy for admin users)
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
-1	Some kind of BibTeX support (fill in metadata form from bibtex) - library function plus cgi + bin tools?
-0	Some kind of RIS format import (similar to bibtex).
+1	Some kind of BibTeX support (fill in metadata form from bibtex) - library function plus cgi + bin tools? [mike]
+0	Some kind of RIS format import (similar to bibtex). [mike]
 -	Search by ID field (in search exp)
-0	What's new? page(s) (just a fixed search)
+0	What's new? page(s) (just a fixed search) [mike]
 0	Subscriptions - editing
 0	Subscriptions - sending
 2	MathML support
@@ -109,7 +109,7 @@
 0	Multipage views(?)
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 0	Other output charsets than UTF-8 (?)
-2	XML Importer
+2	XML Importer [mike]
 0	Improve name search syntax (?)
 2	Remove (Hide) Lanuage related options if only one language supported.
 4	VLit/Xanadu interface(!)
@@ -170,8 +170,8 @@
 #	Magic search fields - eg. Must have HTML format document/public document...
 #	no new eprints when disk fullish
 #	Add POD manuals to ALL lib and CGI files.
-# 	Make man pages from /bin etc build into docs. NR
-#	import_xml becomes import_foo etc. eprint/user/whatever. NR
+# 	Make man pages from /bin etc build into docs. NR [mike]
+#	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value? NR
 
@@ -184,16 +184,17 @@
 # searchexp/file upload : idea: don't allow finished from doc page until a NR
 # valid format is selected.
 
-# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR
+# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
 
 # robots.txt file
 # metadata in LINKS for title, creator etc?
 
 # nice 404 / 401 pages.
 
-# get RIGHT XHTML namespace
-
 # lose all die statements
 
 # MD5 LatexCache
-# Check Referer on LatexCache.
+# Check Referer on LatexCache.?
+
+# OAI - cache timeouts.
+# OAI - pagesize.

@@ -215,12 +215,15 @@ sub _create_table
 	my $keyfield = $dataset->get_key_field()->clone;
 
 	my $fieldpos = EPrints::MetaField->new( 
+		archive=> $self->{session}->get_archive(),
 		name => "pos", 
 		type => "int" );
 	my $fieldword = EPrints::MetaField->new( 
+		archive=> $self->{session}->get_archive(),
 		name => "fieldword", 
 		type => "text");
 	my $fieldids = EPrints::MetaField->new( 
+		archive=> $self->{session}->get_archive(),
 		name => "ids", 
 		type => "longtext");
 
@@ -248,6 +251,7 @@ sub _create_table
 	{
 		my $fname = $_->get_sql_name();
 		push @orderfields, EPrints::MetaField->new( 
+					archive=> $self->{session}->get_archive(),
 					name => $fname,
 					type => "longtext" );
 	}
@@ -323,6 +327,7 @@ sub _create_table_aux
 			if ( $field->get_property( "multiple" ) )
 			{
 				my $pos = EPrints::MetaField->new( 
+					archive=> $self->{session}->get_archive(),
 					name => "pos", 
 					type => "int" );
 				push @auxfields,$pos;
@@ -330,6 +335,7 @@ sub _create_table_aux
 			if ( $field->get_property( "multilang" ) )
 			{
 				my $lang = EPrints::MetaField->new( 
+					archive=> $self->{session}->get_archive(),
 					name => "lang", 
 					type => "langid" );
 				push @auxfields,$lang;

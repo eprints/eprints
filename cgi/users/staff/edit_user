@@ -52,7 +52,9 @@ sub process
 		$page->appendChild( $session->render_ruler() );
 		$page->appendChild( $session->html_phrase( "cgi/users/edit_user:really_remove" ) );
 		$page->appendChild( $session->render_input_form(
+			default_action=>"confirm",
 			buttons=>{
+				_order = [ "confirm", "cancel" ],
 				confirm=>$session->phrase( "cgi/users/edit_user:action_confirm" ),
 				cancel=>$session->phrase( "cgi/users/edit_user:action_cancel" ) 
 			},

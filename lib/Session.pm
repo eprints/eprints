@@ -790,7 +790,8 @@ my %INPUT_FORM_DEFAULTS = (
 	buttons => {},
 	hidden_fields => {},
 	comments => {},
-	dest => undef
+	dest => undef,
+	default_action => undef
 );
 
 sub render_input_form
@@ -802,16 +803,36 @@ sub render_input_form
 		next if( defined $p{$_} );
 		$p{$_} = $INPUT_FORM_DEFAULTS{$_};
 	}
-	
+
 	my $query = $self->{query};
 
 	my( $form );
 
-#print STDERR "_________RENDER_FORM____________\n";
-#use Data::Dumper;
-#print STDERR Dumper($p{values});
-
 	$form =	$self->render_form( "post", $p{dest} );
+	if( defined $p{default_action} && $self->client() ne "LYNX" )
+	{
+		# This button will be the first on the page, so
+		# if a user hits return and the browser auto-
+		# submits then it will be this image button, not
+		# the action buttons we look for.
+
+		# It should be a 1x1 transparent gif, but
+		# under lynx it looks bad. Lynx does not
+		# submit when a user hits return so it's 
+		# not needed anyway.
+		$form->appendChild( $self->make_element( 
+			"input", 
+			type => "image", 
+			width => 1, 
+			height => 1, 
+			border => 0,
+			src => $self->{archive}->get_conf( "base_url" )."/images/1x1trans.gif",
+			name => "_default", 
+			alt => $p{buttons}->{$p{default_action}} ) );
+		$form->appendChild( $self->render_hidden_field(
+			"_default_action",
+			$p{default_action} ) );
+	}
 
 	my $field;	
 	foreach $field (@{$p{fields}})
@@ -1219,7 +1240,8 @@ sub get_action_button
 		}
 	}
 
-	return undef;
+	# undef if _default is not set.
+	return $self->param("_default_action");
 }
 
 
@@ -1491,9 +1513,27 @@ sub send_http_header
 	$self->{request}->send_http_header;
 }
 
+sub client
+{
+	my( $self ) = @_;
 
+	my $client = $ENV{HTTP_USER_AGENT};
 
+	# we return gecko, rather than mozilla, as
+	# other browsers may use gecko renderer and
+	# that's what why tailor output, on how it gets
+	# rendered.
 
+	# This isn't very rich in it's responses!
+
+	return "GECKO" if( $client=~m/Gecko/i );
+	return "LYNX" if( $client=~m/Lynx/i );
+	return "MSIE4" if( $client=~m/MSIE 4/i );
+	return "MSIE5" if( $client=~m/MSIE 5/i );
+	return "MSIE6" if( $client=~m/MSIE 6/i );
+
+	return "?";
+}
 
 ########################################################################
 # DEPRECATED AND DOOMED

@@ -165,6 +165,7 @@ sub _render_user_form
 					show_names=>1,
 					show_help=>1,
 					buttons=>$buttons,
+					default_action => "update",
 					hidden_fields=>\%hidden );
 }
 

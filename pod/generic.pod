@@ -14,7 +14,7 @@ Chris Gutteridge may be contacted at B<support@eprints.org>
 
 Should you need a real world address for some reason, EPrints can be contacted in the real world at
 
- EPrints c/o Chris Gutteridge
+ EPrints c/o Christopher Gutteridge
  Department of Electronics and Computer Science
  University of Southampton
  SO17 1BJ

@@ -57,6 +57,7 @@ sub process
 	{
 
 		my $id_field = EPrints::MetaField->new(
+			archive=> $session->get_archive(),
 			confid=>"editeprint",
 			name=>"eprintid",
 			type=>"text" );
@@ -139,7 +140,9 @@ sub process
 	$page->appendChild( $session->render_ruler() );
 
 	$page->appendChild( $session->render_input_form(
+		# no input fields; no need for a default action.
 		buttons=>{
+			_order = [ "remove", "move", "cancel" ],
 			remove=>$session->phrase( 
 				"cgi/users/edit_eprint:action_remove" ),
 			move=>$session->phrase( 

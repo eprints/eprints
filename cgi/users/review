@@ -220,6 +220,7 @@ sub removal_request_form
 
 
 	my $reason_field = EPrints::MetaField->new(
+		archive=> $session->get_archive(),
 		confid=>'remove_request',
 		name=>'reason',
 		type=>'longtext',
@@ -229,7 +230,9 @@ sub removal_request_form
 		$session->render_input_form(
 			fields=>[ $reason_field ],
 			show_help=>1,
+			default_action=>"send",
 			buttons=>{
+				_order=> [ "send","cancel" ],
 				send => $session->phrase( "cgi/users/review:send" ),
 				cancel => $session->phrase( "cgi/users/review:cancel" )
 			},

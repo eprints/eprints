@@ -949,6 +949,7 @@ sub _do_stage_type
 	# should this be done with "help?" cjg
 
 	my $submit_buttons = {
+		_order => [ "cancel","next" ],
 		cancel => $self->{session}->phrase(
 				"lib/submissionform:action_cancel" ),
 		next => $self->{session}->phrase( 
@@ -959,6 +960,7 @@ sub _do_stage_type
 	        values=>$self->{eprint}->get_data(),
 	        show_names=>1,
 	        show_help=>1,
+		default_action=>"next",
 	        buttons=>$submit_buttons,
 	        hidden_fields=>{ stage => "type", 
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
@@ -1025,6 +1027,7 @@ sub _do_stage_linking
 			
 
 	my $submit_buttons = {
+		_order => [ "prev", "verify", "next" ],
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" ),
 		verify => $self->{session}->phrase(
@@ -1041,6 +1044,7 @@ sub _do_stage_linking
 	        show_names=>1,
 	        show_help=>1,
 	        buttons=>$submit_buttons,
+		default_action=>"next",
 	        hidden_fields=>{ stage => "linking",
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
 		comments=>$comment,
@@ -1083,6 +1087,7 @@ sub _do_stage_meta
 		stage => "meta" };
 
 	my $submit_buttons = {
+		_order => [ "prev", "next" ],
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" ),
 		next => $self->{session}->phrase( 
@@ -1095,6 +1100,7 @@ sub _do_stage_meta
 			show_names=>1,
 			show_help=>1,
 			buttons=>$submit_buttons,
+			default_action=>"next",
 			hidden_fields=>$hidden_fields,
 			dest=>$self->{formtarget}."#t" ) );
 
@@ -1256,6 +1262,7 @@ sub _do_stage_fileview
 
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
+		archive=> $self->{session}->get_archive(),
 		name=>'arc_format',
 		type=>'set',
 		options => [ 
@@ -1267,6 +1274,7 @@ sub _do_stage_fileview
 
 	my $num_files_field = EPrints::MetaField->new(
 		confid=>'format',
+		archive=> $self->{session}->get_archive(),
 		name=>'num_files',
 		type=>'int',
 		digits=>2 );
@@ -1286,6 +1294,7 @@ sub _do_stage_fileview
 				num_files => 1,	
 				arc_format => "plain"
 			},
+			default_action=>"upload",
 			show_help=>1,
 			buttons=>$submit_buttons,
 			hidden_fields=>$hidden_fields,
@@ -1441,6 +1450,7 @@ sub _do_stage_fileview
 
 		$submit_buttons->{finished} = $self->{session}->phrase( 
 			"lib/submissionform:action_finished" );
+		$submit_buttons->{_order} = [ "prev" , "finished" ];
 
 		my $fields = [];
 		foreach( "format", "formatdesc", "language", "security" )
@@ -1457,6 +1467,7 @@ sub _do_stage_fileview
 				values=>$self->{document}->get_data(),
 				show_help=>1,
 				buttons=>$submit_buttons,
+				default_action=>"finished",
 				hidden_fields=>$hidden_fields,
 				dest=>$self->{formtarget}."#t" ) );
 	}
@@ -1464,8 +1475,9 @@ sub _do_stage_fileview
 	{
 		$page->appendChild( 
 			$self->{session}->render_input_form( 
-				buttons=>{ prev => $self->{session}->phrase( "lib/submissionform:action_prev" ) },
+				buttons=>$submit_buttons,
 				hidden_fields=>$hidden_fields,
+				default_action=>"prev",
 				dest=>$self->{formtarget}."#t" ) );
 	}	
 
@@ -1503,6 +1515,7 @@ sub _do_stage_upload
 	{
 		$form->appendChild( $self->{session}->html_phrase( "lib/submissionform:enter_url" ) );
 		my $field = EPrints::MetaField->new( 
+			archive=> $self->{session}->get_archive(),
 			name => "url",
 			type => "text" );
 		$form->appendChild( $field->render_input_field( $self->{session} ) );
@@ -1592,7 +1605,7 @@ sub _do_stage_verify
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" )
 	};
-	
+	my $default_action = "prev";
 
 	if( scalar @{$self->{problems}} > 0 )
 	{
@@ -1614,6 +1627,8 @@ sub _do_stage_verify
 		$page->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 
 		$submit_buttons->{submit} = $self->{session}->phrase( "lib/submissionform:action_submit" );
+		$default_action = "submit";
+		$submit_buttons->{_order} = [ "prev","submit" ];
 	}
 
 	$page->appendChild( 
@@ -1621,6 +1636,7 @@ sub _do_stage_verify
 			show_help=>1,
 			buttons=>$submit_buttons,
 			hidden_fields=>$hidden_fields,
+			default_action=>$default_action,
 			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
@@ -1679,7 +1695,8 @@ sub _do_stage_confirmdel
 		cancel => $self->{session}->phrase(
 				"lib/submissionform:action_cancel" ),
 		confirm => $self->{session}->phrase(
-				"lib/submissionform:action_confirm" )
+				"lib/submissionform:action_confirm" ),
+		_order => [ "cancel" , "confirm" ]
 	};
 
 	$page->appendChild( 

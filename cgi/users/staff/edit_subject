@@ -197,6 +197,7 @@ print STDERR "dEStROY\n";
 				},
                         	show_names=>1,
                         	show_help=>1,
+				default_action => "submit",
                         	buttons=>{ submit => $session->phrase( "cgi/users/edit_subject:action_submit" ) },
                         	hidden_fields=>{ subjectid => $subid },
                         	dest=>"edit_subject" ) );

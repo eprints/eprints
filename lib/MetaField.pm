@@ -127,6 +127,15 @@ sub new
 	if( defined $properties{dataset} ) { 
 		$self->{confid} = $properties{dataset}->confid(); 
 		$self->{dataset} = $properties{dataset};
+		$self->{archive} = $properties{dataset}->get_archive();
+	}
+	else
+	{
+		if( !defined $properties{archive} )
+		{
+			EPrints::config::abort( "Tried to create a metafield without a dataset or an archive" );
+		}
+		$self->{archive} = $properties{archive};
 	}
 	$self->set_property( "name", $properties{name} );
 	$self->set_property( "type", $properties{type} );
@@ -1677,7 +1686,7 @@ sub get_property_default
 {
 	my( $self, $property ) = @_;
 
-	my $archive = $self->get_dataset()->get_archive();
+	my $archive = $self->{archive};
 
 	foreach( 
 		"digits", 
