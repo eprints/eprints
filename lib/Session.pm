@@ -244,7 +244,7 @@ sub best_language
 	# The language of the current session is best
 	return $values{$lang} if( defined $values{$lang} );
 
-	# The default lanuage of the archive is second best	
+	# The default language of the archive is second best	
 	my $defaultlangid = $archive->get_conf( "defaultlanguage" );
 	return $values{$defaultlangid} if( defined $values{$defaultlangid} );
 
@@ -367,9 +367,7 @@ sub render_ruler
 {
 	my( $self ) = @_;
 
-	return $self->make_element( "hr",
-		size => 2,
-		noshade => "noshade" );
+	return $self->{archive}->get_ruler();
 }
 
 sub render_option_list
@@ -483,8 +481,6 @@ sub render_action_buttons
 {
 	my( $self, %buttons ) = @_;
 
-	# cjg default button if none set?
-	
 	return $self->_render_buttons_aux( "action" , %buttons );
 }
 
@@ -492,8 +488,6 @@ sub render_internal_buttons
 {
 	my( $self, %buttons ) = @_;
 
-	# cjg default button if none set?
-	
 	return $self->_render_buttons_aux( "internal" , %buttons );
 }
 
@@ -505,8 +499,14 @@ sub _render_buttons_aux
 
 	my $frag = $self->make_doc_fragment();
 
+	my @order = keys %buttons;
+	if( defined $buttons{_order} )
+	{
+		@order = @{$buttons{_order}};
+	}
+
 	my $button_id;
-	foreach $button_id ( keys %buttons )
+	foreach $button_id ( @order )
 	{
 		$frag->appendChild(
 			$self->make_element( "input",
@@ -1248,8 +1248,10 @@ sub get_action_button
 
 	my $p;
 	# $p = string
+		print STDERR "(z)\n";
 	foreach $p ( $self->param() )
 	{
+		print STDERR "($p)->(".$self->param( $p ).")\n";
 		if( $p =~ m/^_action_/ )
 		{
 			return substr($p,8);

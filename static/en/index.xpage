@@ -1,16 +1,12 @@
 <?xml version="1.0" standalone="no" ?>
-<!DOCTYPE html SYSTEM "entities-en.dtd" >
-<html>
-<head>
-<title>&archivename;: Front Page</title>
-</head>
-<body bgcolor="#ffffff">
-
-<center><img width="196" height="175" src="images/logo_large.gif" alt="&archivename;: Generic EPrint Archive"/></center>
+<!DOCTYPE page SYSTEM "entities-en.dtd" >
+<page>
+<title>Welcome to &archivename;</title>
+<body>
 
 <p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/">eprints.org archive software</a>. <a href="information.html">More information</a> is available about the archive.</p>
 
-<hr />
+&ruler;
 
 <p>This version ( &version; ) is still alpha code. It is not a production system.</p>
 <p>Things which currently work(ish):</p>
@@ -50,7 +46,7 @@ University of Southampton.<br />
 <!--
 
 
-<hr />
+&ruler;
 
 <h2>Archive Viewing Services</h2>
 
@@ -68,7 +64,7 @@ University of Southampton.<br />
         </form>
       </p>
 
-<hr/>
+&ruler;
 
 <h2>Registration-based Services</h2>
 
@@ -83,7 +79,7 @@ University of Southampton.<br />
       <p><a href="&cgiroot;/users/home">Deposit Items</a></p>
       <p>Select this option to access the archive author area. From this area you can update your personal details, deposit new items, and remove and update existing items from the archive. <em>Requires user registration.</em></p>
     
-<hr />
+&ruler;
 
 <h2>Help</h2>
 
@@ -97,12 +93,11 @@ University of Southampton.<br />
 
 -->
 
-<hr />
-<!--
+&ruler;
 
-      <p>This site is running <strong>eprints.org</strong> software, and complies with the <a href="http://www.openarchives.org/OAI/openarchivesprotocol.htm">The Open Archives Initiative Protocol for Metadata Harvesting</a> (OAI1.0)  for <a href="http://www.openarchives.org/">open archive</a> interoperability. The <strong>eprints.org</strong> software is available at <a href="http://www.eprints.org/">http://www.eprints.org/</a>.</p>
--->
-
+   <table width="100%"><tr><td width="100%">
+      <p>This site is running <strong>eprints.org</strong> software, and complies with the <a href="http://www.openarchives.org/OAI/openarchivesprotocol.htm">The Open Archives Initiative Protocol for Metadata Harvesting</a> (OAI1.1)  for <a href="http://www.openarchives.org/">open archive</a> interoperability. The <strong>eprints.org</strong> software is available at <a href="http://www.eprints.org/">http://www.eprints.org/</a>.</p>
+    </td><td align="right">
       <table>
         <tr>
           <td>
@@ -113,8 +108,7 @@ University of Southampton.<br />
           </td>
         </tr>
       </table>
-
-
+    </td></tr></table>
 
 </body>
-</html>
+</page>

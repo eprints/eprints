@@ -1,4 +1,4 @@
-######################################################################
+####################################################################
 #
 #  EPrints User Record Forms
 #
@@ -181,10 +181,10 @@ sub _render_user_form
 sub _update_from_form
 {
 	my( $self ) = @_;
-#cjg xxxxxxxxx
+
 	# Ensure correct user
-	if( $self->{session}->param( "username" ) ne
-		$self->{user}->get_value( "username" ) )
+	if( $self->{session}->param( "userid" ) ne
+		$self->{user}->get_value( "userid" ) )
 	{
 		my $form_id = $self->{session}->param( "username" );
 		$self->{session}->get_archive()->log( 

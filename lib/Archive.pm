@@ -76,6 +76,7 @@ sub new_archive_by_id
 	# abort loading the config for this archive.
 	unless( $noxml )
 	{
+		$self->get_ruler() || return;
 		$self->_load_datasets() || return;
 		$self->_load_languages() || return;
 		$self->_load_templates() || return;
@@ -87,6 +88,34 @@ sub new_archive_by_id
 	$self->log("done: new($id)");
 	return $self;
 }
+
+sub get_ruler
+{
+	my( $self ) = @_;
+
+	if( defined $self->{ruler} )
+	{
+		return $self->{ruler}->cloneNode( 1 );
+	}
+	my $file = $self->get_conf( "config_path" )."/ruler.xml";
+	
+	my $doc = $self->parse_xml( $file , ParseParamEnt=>0 );
+	if( !defined $doc )
+	{
+		$self->log( "Error loading: $file\n" );
+		return undef;
+	}
+	my $ruler = ($doc->getElementsByTagName( "ruler" ))[0];
+	my( $frag ) = $doc->createDocumentFragment();
+	foreach( $ruler->getChildNodes )
+	{
+		$ruler->removeChild( $_ );
+		$frag->appendChild( $_ );
+	}
+	$self->{ruler} = $frag;
+	return $self->{ruler}->cloneNode( 1 );
+}	
+	
 
 sub _load_languages
 {

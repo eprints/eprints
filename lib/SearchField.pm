@@ -581,13 +581,12 @@ sub _get_conditions_aux
 
 }
 
-## WP1: BAD
-sub _get_tables_searches
+sub do
 {
 	my ( $self ) = @_;
 
 	my %searches = ();
-	my @tables = ();
+	my @sfields = ();
 	my @badwords = ();
 
 	my $field;
@@ -601,13 +600,13 @@ sub _get_tables_searches
 		my ($table,$where,$bad,$error) = $sfield->get_conditions();
 		if( defined $error )
 		{
-			return( undef, undef, undef, $error );
+			return( undef, undef, $error );
 		}
 		if( defined $where )
 		{
 			if( !defined $searches{$table} )
 			{
-				push @tables,$table;
+				push @sfields,$table;
 				$searches{$table}=[];
 			}
 	##print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
@@ -618,15 +617,8 @@ sub _get_tables_searches
 			push @badwords, @{$bad}; 
 		}
 	}
-	return (\@tables, \%searches, \@badwords);
-}
 
-sub do
-{
-	my ( $self ) = @_;
-
-	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
-	my $n = scalar @{$searches->{$sfields->[0]}};
+	my $n = scalar @{$searches{$sfields[0]}};
 	
 	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
 	# (phrases subsearches are always AND'd)
@@ -640,10 +632,10 @@ sub do
 	{
 		my $bitresults = [];
 		my $tablename;
-		foreach $tablename ( @{$sfields} )
+		foreach $tablename ( @sfields )
 		{
 			my $tname = $tablename;
-			my $where = $searches->{$tablename}->[$i];
+			my $where = $searches{$tablename}->[$i];
 
 			# Tables have a colon and fieldname after them
 			# to make sure references to different fields are
@@ -683,7 +675,7 @@ sub do
 		}
 		$firstpass = 0;
 	}
-	return $results;
+	return( $results, \@badwords );
 }
 
 

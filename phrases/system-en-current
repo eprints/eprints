@@ -242,12 +242,15 @@ User Area CGI Scripts
 
     <phrase ref="cgi/users/home:user_home">User Area Homepage - <pin ref="name" /></phrase>
     <phrase ref="cgi/users/home:intro"><p>Welcome to the item depositing area at &archivename;. Please select one of the options below.</p></phrase>
-    <phrase ref="cgi/users/home:review">Review your documents in the archive</phrase>
-    <phrase ref="cgi/users/home:review_info">This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.</phrase>
-    <phrase ref="cgi/users/home:remove_info">You can also remove documents from the archive.</phrase>
-    <phrase ref="cgi/users/home:change">View/change your user record</phrase>
-    <phrase ref="cgi/users/home:change_info"><p>Select this option to see your user record, and to correct or update your user information.</p></phrase>
     <phrase ref="cgi/users/home:before"><p>Before you upload any documents, please fill out your user record.</p></phrase>
+
+    <phrase ref="cgi/users/home:remove_info">You can also remove documents from the archive.!?cjg</phrase>
+
+    <phrase ref="cgi/users/home:change_link">View/change your user record</phrase>
+    <phrase ref="cgi/users/home:change_info"><p>Select this option to see your user record, and to correct or update your user information.</p></phrase>
+
+    <phrase ref="cgi/users/home:review_link">Review your documents in the archive</phrase>
+    <phrase ref="cgi/users/home:review_info"><p>This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.</p></phrase>
 
     <phrase ref="cgi/users/home:subscribe_link">Change your subscription options</phrase>
     <phrase ref="cgi/users/home:subscribe_info"><p>Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.</p></phrase>
@@ -257,6 +260,15 @@ User Area CGI Scripts
     
     <phrase ref="cgi/users/home:staff/buffer_link">View the Submission Buffer</phrase>
     <phrase ref="cgi/users/home:staff/buffer_info"><p>This option allows you to view, edit and approve records which users have submitted but have not yet been approved for the archive. You may only edit records within your subject area.</p></phrase>
+
+    <phrase ref="cgi/users/home:staff/eprint_search_link">Staff EPrint Search</phrase>
+    <phrase ref="cgi/users/home:staff/eprint_search_info"><p>This search gives you more power than the public search. It also gives you the option to edit or delete records.</p></phrase>
+
+    <phrase ref="cgi/users/home:staff/user_search_link">User Search</phrase>
+    <phrase ref="cgi/users/home:staff/user_search_info"><p>Search the list of users, view ALL their details and edit their records.</p></phrase>
+
+    <phrase ref="cgi/users/home:staff/add_user_link">Add New User</phrase>
+    <phrase ref="cgi/users/home:staff/add_user_info"><p>Create a new user.</p></phrase>
 
     <phrase ref="cgi/users/home:staff/edit_subject_link">Use the Subject Editing Tool</phrase>
     <phrase ref="cgi/users/home:staff/edit_subject_info"><p>This option allows you to create, delete unlink, and link items in the subject tree.</p></phrase>

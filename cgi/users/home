@@ -88,24 +88,22 @@ if( $valid_user )
 	#print "</P></DD>\n";
 }
 
+if( !$valid_user )
+{
+	### User needs to update their record
+	$page->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
+}
+
 ### Change author record
 
 $dt = $session->make_element( "dt" );
 $a = $session->make_element( "a", href => "record" );
-$a->appendChild( $session->html_phrase( "cgi/users/home:change" ) );
+$a->appendChild( $session->html_phrase( "cgi/users/home:change_link" ) );
 $dt->appendChild( $a );
 $dl->appendChild( $dt );
-
 $dd = $session->make_element( "dd" );
-if( $valid_user )
-{
-	$dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
-}
-else
-{
-	### User needs to update their record
-	$dd->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
-}
+$dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
+
 $dl->appendChild( $dd );
 
 my $tools = [
@@ -150,23 +148,24 @@ my $tools = [
 		priv=>"edit-subject"
 	}
 ];
-# Add a User Record
-# Search User Records
 
-my $tool;
-foreach	$tool (@{$tools})
+if( $valid_user )
 {
-	next unless $user->has_priv( $tool->{priv} );
-
-	$dt = $session->make_element( "dt" );
-	$a = $session->make_element( "a", href => $tool->{page} );
-	$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_link" ) );
-	$dt->appendChild( $a );
-	$dl->appendChild( $dt );
-
-	$dd = $session->make_element( "dd" );
-	$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
-	$dl->appendChild( $dd );
+	my $tool;
+	foreach	$tool (@{$tools})
+	{
+		next unless $user->has_priv( $tool->{priv} );
+	
+		$dt = $session->make_element( "dt" );
+		$a = $session->make_element( "a", href => $tool->{page} );
+		$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_link" ) );
+		$dt->appendChild( $a );
+		$dl->appendChild( $dt );
+	
+		$dd = $session->make_element( "dd" );
+		$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
+		$dl->appendChild( $dd );
+	}
 }
 
 $page->appendChild( $dl );

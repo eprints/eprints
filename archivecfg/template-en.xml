@@ -6,33 +6,15 @@
     <title><titlehere/></title>
     <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
   </head>
-  <body bgcolor="#ffffff" text="#000000">
+  <body bgcolor="#ffffff" text="#000000" topmargin="0" rightmargin="0" leftmargin="0" marginwidth="0" marginheight="0" >
     <topofpage />
     <div class="header">
-      <table  cellpadding="5" border="0" cellspacing="0" width="100%">
+      <table cellpadding="5" border="0" cellspacing="0" width="100%">
         <tr>
           <td bgcolor="#cccccc">
             <div class="archivetitle">&archivename;</div>
           </td>
-        </tr>
-        <tr>
           <td bgcolor="#cccccc">
-            <div class="langmenu">
-              English ||
-              <a class="langlink" href="&cgiroot;/setlang?langid=du">Dummy</a> ||
-              <a class="langlink" href="&cgiroot;/setlang?langid=fr">Francais</a>
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td bgcolor="#333333">
-            <div class="pagetitle"><titlehere /></div>
-          </td>
-        </tr>
-
-        <tr>
-          <td bgcolor="#333333">
             <div class="menu">
               <a class="menulink" href="&frontpage;">Home</a> ||
               <a class="menulink" href="&htmlroot;/information.html">About</a> ||
@@ -47,9 +29,17 @@
       </table>
     </div>
     <div class="main">
+      <h1 class="pagetitle"><titlehere /></h1>
       <pagehere />
-      <hr noshade="noshade" size="2"/>
-      <p>Contact site administrator at: <a href="mailto:&adminemail;">&adminemail;</a></p>
+    </div>
+    <div class="footer">
+      <table cellpadding="5" border="0" cellspacing="0" width="100%">
+        <tr>
+          <td bgcolor="#cccccc">
+            Contact the site administrator at: <a href="mailto:&adminemail;">&adminemail;</a>
+          </td>
+        </tr>
+      </table>
     </div>
   </body>
 </html>

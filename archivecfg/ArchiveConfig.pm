@@ -515,9 +515,9 @@ $c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
-	"abstract/keywords",
+	#"abstract/keywords",
 	#"authors.id",
-	"publication",
+	#"publication",
 	"year"
 ];
 
@@ -1912,6 +1912,7 @@ sub get_entities
 	$entities{htmlroot} = $archive->get_conf( "server_static" );
 	$entities{frontpage} = $archive->get_conf( "frontpage" );
 	$entities{version} = EPrints::Config::get( "version_desc" );
+	$entities{ruler} = $archive->get_ruler()->toString;
 
 	return %entities;
 }

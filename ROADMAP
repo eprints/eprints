@@ -54,18 +54,19 @@
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 #	Fix "upload then back" bug
-#	Default Action when buttons pushed
+#	Default Action when buttons pushed (set in render input form?)... 
+#         .....Appears to just push first button!
+#	Order buttons somehow using extra param to render input form... 
+#	   ....done but now need to go and use it everywhere (_order=>[foo,bar]
+
 #	Fix Buttons on search results page.
 #	Bug: Why does 'help' disappear when there is a problem with a search?
 #	Clean up validators - Don't validate records with fields which have bad langids including user validate.
-#	Order buttons somehow
 #	Threads rendering code.
-#	Staff User Edit/Create
 #	Delete records function.
 #	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
 #	Make all possible field-types browseable.
 #	Make SearchFields have a better call method.
-#	Get install upgrader working properly.
 #	"Squash" reverse indexes?
 #	rationalise names of cgi and bin scripts ? 
 #	clone cocks up later version id
@@ -105,7 +106,7 @@
 0	Indexing on name fields(?)
 0	patch for config files when upgrading.
 0	different looks for boolean/opts eg. check/radio boxes.
-0	allow users to request a username
+0	Allow users to request a username when registering.
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
@@ -127,13 +128,13 @@
 0	Keywords field appears in META keywords for search engines
 0 	Clean up phrase file - nice and non-ambiguous.
 0	remove all #cjg comments which denote issues.
-0	Multipage search (cache code)
+3	Multipage search (cache code)
 0	Multipage views
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 0	Other output charsets than UTF-8?
 1	XML Importer
 0	Improve name search syntax (?)
-0	Remove (Hide) Lanuage related options if only one language supported.
+1	Remove (Hide) Lanuage related options if only one language supported.
 0	Xanadu interface(!)
 0	"Special search" which redirects to the abstract if only one match.
 
@@ -214,7 +215,7 @@
 # cgi/users/subscribe			.
 # cgi/users/status			*
 
-# cgi/users/staff/add_user		.
+# cgi/users/staff/add_user		*
 # cgi/users/staff/buffer		*
 # cgi/users/staff/edit_eprint		*
 # cgi/users/staff/edit_submission	*
@@ -229,17 +230,15 @@
 # allow configure_archive to specify archive name on command line.
 # sort out "deletion"
 # abstract page for deleted records?
-# set all rel. search exp's to cache
+# set all relevant. search exp's to cache
 
-# newmethods for BD: c
-#- cache( searchexp, \@records )#!:
-#- is_cached( searchexp )
-#- from_cache( dataset, searchexp , from , count )
-	# from, count optional
-	# this 'un prunes it too.
-#- count_cache( $searchexp )
-#
+# make cache clean up code.
+
 # check Database.pm for any sql without escaping. and SearchExpression.pm and
 # SearchField.pm
 
-#cjg Named Constructors all round?
+#cjg Named values in Constructors all round?
+
+#verbose mode for bin scripts?
+
+# text area without CR's (config flag) eg. for title.

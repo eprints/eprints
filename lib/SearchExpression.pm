@@ -230,6 +230,7 @@ sub render_search_form
 	my( $self, $help, $show_anyall ) = @_;
 
 	my $form = $self->{session}->render_form( "get" );
+
 	my $div;
 
 	my %shown_help;
@@ -308,8 +309,10 @@ sub render_search_form
 		"div" , 
 		class => "searchbuttons" );
 	$div->appendChild( $self->{session}->render_action_buttons( 
-		search => $self->{session}->phrase( "lib/searchexpression:action_search" ), 
-		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ) ) );
+		_order => [ "search", "newsearch" ],
+		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ),
+		search => $self->{session}->phrase( "lib/searchexpression:action_search" ) )
+ 	);
 	$form->appendChild( $div );	
 
 	return( $form );
@@ -663,6 +666,8 @@ sub process_webpage
 	#cjg put this in the curry^H^H^H^H^Hconfig
 
 	my $action_button = $self->{session}->get_action_button();
+
+print STDERR ">$action_button<\n";
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"

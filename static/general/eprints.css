@@ -1,48 +1,56 @@
-H1 {
+body {
+	margin: 0pt;
+}
+
+.header TABLE
+{
+	border: 0px; 
+	border-bottom: 1px; 
+	border-style: solid; 
+	border-color: #000000 ;
+}
+.footer 
+{
+	padding-above: 1em;
+}
+
+.footer TABLE
+{
+	border: 0px; 
+	border-bottom: 1px; 
+	border-top: 1px; 
+	border-style: solid; 
+	border-color: #b0b0b0 #000 #000 #000;
+}
+
+h1 {
         font: bold x-large Helvetica,Arial,Sans-serif;
         color: #606060;
+	margin-left: -4pt;
 }
 
-H2 {
+h2 {
         font: bold large Helvetica,Arial,Sans-serif;
         color: #606060;
+	margin-left: -4pt;
 }
 
-H3 {
+h3 {
         font: large Helvetica,Arial,Sans-serif;
         color: #606060;
 }
 
-A.menulink {
-        font: bold small sans-serif;
-        color: #ccccff;
-}
-A.langlink {
-        font: bold small sans-serif;
-        color: #000080;
+a.menulink {
 }
 
-P {
+p {
 	font: medium serif;
 }
 
 .menu {
         font: bold small sans-serif;
-        color: white;
         text-align: right;
         margin-right: 12pt;
-}
-.langmenu {
-        font: bold small sans-serif;
-        color: black;
-        text-align: right;
-        margin-right: 12pt;
-}
-
-
-.pagetitle {
-        font: bold x-large Helvetica,Arial,Sans-serif;
-	color: #ffffff;
 }
 
 .archivetitle {
@@ -110,7 +118,10 @@ P {
 }
 
 .main {
-        margin-left: 12pt;
+        margin-left: 16pt;
         margin-right: 12pt;
 }
 
+dt {
+	font-weight: bold;
+}

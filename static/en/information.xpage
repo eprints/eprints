@@ -8,18 +8,19 @@
 
 <p>Other institutions are invited (and encouraged) to set up their own open archives for author self-archiving, using the freely-distributable <a href="http://www.eprints.org/">eprints.org software</a> used at this site.</p>
 
-<h2 align="center">Contact Information</h2>
+<h2>Contact Information</h2>
 
 <p>Any correspondence concerning this specific archive should be sent to <a href="mailto:&adminemail;">&adminemail;</a>.</p>
 
-<p align="center"><a href="http://www.mysql.com/"><img src="images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
-<a href="http://www.openarchives.org/"><img src="images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a></p>
-
-<p>eprints.org software revision: &version;</p>
-
+<h2>About this software</h2>
+<p>This site is running software from eprints.org / revision: &version;</p>
+<p>EPrints is free software developed by the University of Southampton, England.</p>
 <p>EPrints-2 by Christopher Gutteridge, assisted by Mike Jewell.</p>
 <p>Origional version 1.0 software design and implemention by Robert Tansley.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a></p>
+
+<p><a href="http://www.mysql.com/"><img src="images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
+<a href="http://www.openarchives.org/"><img src="images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a></p>
 
 </body>
 </page>

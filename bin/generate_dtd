@@ -40,10 +40,15 @@ foreach $langid ( @{$archive->get_conf( "languages" )} )
 	To add entities modify the config module then re-run
 	generate_dtd 
 -->
+
 END
 	foreach( keys %entities )
 	{
-		print DTD "<!ENTITY $_ \"$entities{$_}\" >\n";
+		my $value = $entities{$_};
+		$value=~s/&/&#x26;/g;
+		$value=~s/"/&#x22;/g;
+		$value=~s/%/&#x25;/g;
+		print DTD "<!ENTITY $_ \"$value\" >\n";
 	}
 	close DTD;
 }
