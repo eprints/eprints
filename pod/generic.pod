@@ -2,6 +2,25 @@
 
 This file is part of __VERSION__. EPrints-2 is written by Christopher Gutteridge. EPrints-1 was written by Robert Tansley.
 
+=head1 VERSION
+
+__VERSION__
+
+=head1 CONTACT
+
+For more information goto B<http://www.eprints.org/> which give information on mailing lists and the like.
+
+Chris Gutteridge may be contacted at B<support@eprints.org>
+
+Should you need a real world address for some reason, EPrints can be contacted in the real world at
+
+ EPrints c/o Chris Gutteridge
+ Department of Electronics and Computer Science
+ University of Southampton
+ SO17 1BJ
+ United Kingdom
+
 =head1 LICENSE
 
 __LICENSE__
+
