@@ -554,68 +554,132 @@ sub oai_get_eprint_metadata
 {
 	my( $eprint, $format ) = @_;
 
-	return( undef ) unless( $format eq "oams" );
-	
-	my %tags;
-
-	# Title
-	$tags{title} = $eprint->{title};
-	
-	# Authors
-	my @authors = EPrints::Name::extract( $eprint->{authors} );
-	$tags{author} = [];
-	
-	foreach (@authors)
+	if( $format eq "oams" )
 	{
-		my( $surname, $firstnames ) = @$_;
-		push @{$tags{author}}, { "name" => "$firstnames $surname",
-		                           "organization" => "" };
+		my %tags;
+
+		# Title
+		$tags{title} = $eprint->{title};
+
+		# Authors
+		my @authors = EPrints::Name::extract( $eprint->{authors} );
+		$tags{author} = [];
+
+		foreach (@authors)
+		{
+			my( $surname, $firstnames ) = @$_;
+			push @{$tags{author}}, { "name" => "$firstnames $surname",
+			                         "organization" => "" };
+		}
+
+		# Subject field will just be the subject descriptions
+		my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+		my @subjects = $subject_list->get_subjects( $eprint->{session} );
+		$tags{subject} = [];
+
+		foreach (@subjects)
+		{
+			push @{$tags{subject}},
+		   	  $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
+		}
+
+		# Abstract
+		$tags{abstract} = $eprint->{abstract};
+
+		# Comment
+		$tags{comment} = $eprint->{comment} if( defined $eprint->{comment} );
+
+		# Date for discovery. For a month/day we don't have, assume 01.
+		my $year = $eprint->{year};
+		my $month = "01";
+
+		if( defined $eprint->{month} )
+		{
+			my %month_numbers = (
+				unspec => "01",
+				jan => "01",
+				feb => "02",
+				mar => "03",
+				apr => "04",
+				may => "05",
+				jun => "06",
+				jul => "07",
+				aug => "08",
+				sep => "09",
+				oct => "10",
+				nov => "11",
+				dec => "12" );
+
+			$month = $month_numbers{$eprint->{month}};
+		}
+
+		$tags{discovery} = "$year-$month-01";
+
+		return( %tags );
 	}
-
-	# Subject field will just be the subject descriptions
-	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-	my @subjects = $subject_list->get_subjects( $eprint->{session} );
-	$tags{subject} = [];
-
-	foreach (@subjects)
+	elsif( $format eq "dc" )
 	{
-		push @{$tags{subject}},
-		     $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
+		my %tags;
+		
+		$tags{title} = $eprint->{title};
+
+		my @authors = EPrints::Name::extract( $eprint->{authors} );
+		$tags{creator} = [];
+
+		foreach (@authors)
+		{
+			my( $surname, $firstnames ) = @$_;
+			push @{$tags{creator}},"$surname, $firstnames";
+		}
+
+		# Subject field will just be the subject descriptions
+		my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+		my @subjects = $subject_list->get_subjects( $eprint->{session} );
+		$tags{subject} = [];
+
+		foreach (@subjects)
+		{
+			push @{$tags{subject}},
+		   	  $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
+		}
+
+		$tags{description} = $eprint->{abstract};
+		
+		# Date for discovery. For a month/day we don't have, assume 01.
+		my $year = $eprint->{year};
+		my $month = "01";
+
+		if( defined $eprint->{month} )
+		{
+			my %month_numbers = (
+				unspec => "01",
+				jan => "01",
+				feb => "02",
+				mar => "03",
+				apr => "04",
+				may => "05",
+				jun => "06",
+				jul => "07",
+				aug => "08",
+				sep => "09",
+				oct => "10",
+				nov => "11",
+				dec => "12" );
+
+			$month = $month_numbers{$eprint->{month}};
+		}
+
+		$tags{date} = "$year-$month-01";
+		$tags{type} = EPrints::MetaInfo::get_eprint_type_name(
+			$eprint->{type} );
+		$tags{identifier} = $eprint->static_page_url();
+
+		return( %tags );
 	}
-	
-	# Abstract
-	$tags{abstract} = $eprint->{abstract};
-
-	# Comment
-	$tags{comment} = $eprint->{comment} if( defined $eprint->{comment} );
-	
-	# Date for discovery. For a month/day we don't have, assume 01.
-	my $year = $eprint->{year};
-	my $month = "01";
-
-	if( defined $eprint->{month} )
+	else
 	{
-		my %month_numbers = (
-			unspec => "01",
-			jan => "01",
-			feb => "02",
-			mar => "03",
-			apr => "04",
-			may => "05",
-			jun => "06",
-			jul => "07",
-			aug => "08",
-			sep => "09",
-			oct => "10",
-			nov => "11",
-			dec => "12" );
-	
-		$month = $month_numbers{$eprint->{month}};
+		return( undef );
 	}
-	
-	$tags{discovery} = "$year-$month-01";
-
-	return( %tags );
 }
 
 

@@ -416,6 +416,7 @@ $EPrintSite::SiteInfo::archive_identifier = "cogprints";
 # Exported metadata formats. The hash should map format ids to namespaces.
 %EPrintSite::SiteInfo::oai_metadata_formats =
 (
+	"dc"   => "http://www.openarchives.org/OAI/dc.xsd",
 	"oams" => "http://www.openarchives.org/sfc/sfc_oams.htm"
 );
 
