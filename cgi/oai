@@ -1,8 +1,11 @@
 ######################################################################
 #
-#  EPrints OAI 0.9e Handler
+#  EPrints OAI 1.0b Handler
 #
 #   Responds to incoming OAI requests
+#
+# Conforming to:
+# http://www.openarchives.org/OAI/1.0b/openarchivesprotocol.htm
 #
 ######################################################################
 #
@@ -38,37 +41,42 @@ my $session = new EPrints::Session();
 # What are we begin asked?
 my $verb = $session->{render}->param( "verb" );
 
-if( defined $verb && $verb eq "GetRecord" )
+if( !defined $verb ) 
 {
-	get_record( $session );
-}
-elsif( defined $verb && $verb eq "Identify" )
+	# no verb
+	send_http_error( $session, 400, "No OAI verb received" );
+} 
+else 
 {
-	identify( $session );
-}
-elsif( defined $verb && $verb eq "ListIdentifiers" )
-{
-	list_identifiers( $session );
-}
-elsif( defined $verb && $verb eq "ListMetadataFormats" )
-{
-	list_metadata_formats( $session );
-}
-elsif( defined $verb && $verb eq "ListRecords" )
-{
-	list_records( $session );
-}
-elsif( defined $verb && $verb eq "ListSets" )
-{
-	list_sets( $session );
-}
-else
-{
-	# Unknown verb
-	send_http_error( $session,
-	                  400,
-	                  ( defined $verb ? "Unknown OAI verb: $verb"
-	                                  : "No OAI verb received" ) );
+	if( $verb eq "GetRecord" )
+	{
+		get_record( $session );
+	}
+	elsif( $verb eq "Identify" )
+	{
+		identify( $session );
+	}
+	elsif( $verb eq "ListIdentifiers" )
+	{
+		list_identifiers( $session );
+	}
+	elsif( $verb eq "ListMetadataFormats" )
+	{
+		list_metadata_formats( $session );
+	}
+	elsif( $verb eq "ListRecords" )
+	{
+		list_records( $session );
+	}
+	elsif( $verb eq "ListSets" )
+	{
+		list_sets( $session );
+	}
+	else
+	{
+		# Unknown verb
+		send_http_error( $session, 400, "Unknown OAI verb: $verb" );
+	}
 }
 
 $session->terminate();
@@ -102,42 +110,30 @@ sub get_record
 		                  "No metadata format specified in GetRecord verb" );
 		return;
 	}
+
+	# OK, we've got an ID & a format, even if we get no data we can now send
+	# a response
+
+	my $writer = start_response( $session, "GetRecord" );
+
 	my $eprint = new EPrints::EPrint(
 		$session,
 		$EPrints::Database::table_archive,
 		EPrints::OpenArchives::from_oai_identifier(
 			$session->{render}->param( "identifier" ) ) );
 
-	if( !defined $eprint )
+	if( defined $eprint )
 	{
-		send_http_error( $session,
-		                  404,
-		                  "Unknown record specified in GetRecord verb" );
-		return;
-	}
+		# The eprint exists, so write the record
+		# if the metadataFormat isn't available for
+		# this record, only the header will be output.
 
-	# We have the eprint in question.
-	my $metadata = EPrints::OpenArchives::get_eprint_metadata(
-		$eprint,
-		$metadataFormat );
-	
-	if( !defined $metadata )
-	{
-		send_http_error(
+		EPrints::OpenArchives::write_record(
 			$session,
-			400,
-			"No metadata in format $metadataFormat available for ".
-				"record $identifier" );
-		return;
+			$writer,
+			$eprint,
+			$metadataFormat );
 	}
-	# OK, we have the metadata, ready to send
-	my $writer = start_response( $session, "GetRecord" );
-		
-	EPrints::OpenArchives::write_record(
-		$session,
-		$writer,
-		$eprint,
-		$metadataFormat );
 
 	close_response( $session, $writer );
 }
@@ -352,16 +348,9 @@ sub list_metadata_formats
 			EPrints::OpenArchives::from_oai_identifier(
 				$session->{render}->param( "identifier" ) ) );
 
-		if( !defined $eprint )
+		if( defined $eprint )
 		{
-			send_http_error(
-				$session,
-				404,
-				"Unknown record specified in ListMetadataFormats verb" );
-			return;
-		}
-		else
-		{
+		
 			# We have the eprint in question.  Find out how many metadata
 			# formats we can get for it.
 			foreach (keys %EPrintSite::SiteInfo::oai_metadata_formats)
@@ -584,15 +573,15 @@ sub start_response
 	# Namespaces for each of the verb's responses
 	my %verb_namespaces =
 	(
-		"GetRecord" => "http://www.openarchives.org/OAI/0.9/OAI_GetRecord.xsd",
-		"Identify"  => "http://www.openarchives.org/OAI/0.9/OAI_Identify.xsd",
+		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord.xsd",
+		"Identify"  => "http://www.openarchives.org/OAI/1.0/OAI_Identify.xsd",
 		"ListIdentifiers" =>
-			"http://www.openarchives.org/OAI/0.9/OAI_ListIdentifiers.xsd",
+			"http://www.openarchives.org/OAI/1.0/OAI_ListIdentifiers.xsd",
 		"ListMetadataFormats" =>
-			"http://www.openarchives.org/OAI/0.9/OAI_ListMetadataFormats.xsd",
+			"http://www.openarchives.org/OAI/1.0/OAI_ListMetadataFormats.xsd",
 		"ListRecords" =>
-			"http://www.openarchives.org/OAI/0.9/OAI_ListRecords.xsd",
-		"ListSets" => "http://www.openarchives.org/OAI/0.9/OAI_ListSets.xsd"
+			"http://www.openarchives.org/OAI/1.0/OAI_ListRecords.xsd",
+		"ListSets" => "http://www.openarchives.org/OAI/1.0/OAI_ListSets.xsd"
 	);
 
 	# The prefix map for the XML writer.
