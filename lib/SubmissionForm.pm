@@ -1374,7 +1374,7 @@ sub do_stage_upload
 		print "<P><CENTER>Please enter the URL of the document you wish to ".
 			"upload to the archive in the box below. Please be sure to include ".
 			"the initial <STRONG>http://</STRONG>.</CENTER></P>\n";
-		print "<P><CENTER><EM>Occasionally, when upload HTML, this process may ".
+		print "<P><CENTER><EM>Occasionally, uploading this way may ".
 			"not produce a totally accurate copy. This is because some ".
 			"assumptions about the structure of the HTML must be made, to stop ".
 			"the software trying to upload the whole World-Wide Web!</EM>".
@@ -1491,7 +1491,7 @@ sub do_stage_verify
 	{
 		print "<P><CENTER>Please verify that all of the details about your ".
 			"submission are correct, and that all necessary document files ".
-			"have been correctly upload including any figures</CENTER></P>\n";
+			"have been correctly upload including any figures.</CENTER></P>\n";
 		print "<HR>\n";
 		
 		print $self->{session}->{render}->render_eprint_full( $self->{eprint} );

@@ -863,7 +863,7 @@ sub validate
 	{
 		push @problems, "You haven't uploaded any files!";
 	}
-	elsif( !defined $self->{main} )
+	elsif( !defined $self->{main} || $self->{main} eq "" )
 	{
 		# No file selected as main!
 		push @problems, "You need to select a file to be shown first.";
