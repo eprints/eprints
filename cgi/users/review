@@ -21,7 +21,7 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my $user = EPrints::User->current_user( $session );
+my $user = EPrints::User::current_user( $session );
 
 # Check user
 if( !defined $user )
@@ -34,7 +34,7 @@ if( !defined $user )
 }
 	
 # Retrieve the user's eprints in the main archive
-my @eprints = EPrints::EPrint->retrieve_eprints(
+my @eprints = EPrints::EPrint::retrieve_eprints(
 	$session,
 	$EPrints::Database::table_archive,
 	[ "username LIKE \"$user->{username}\"" ] );

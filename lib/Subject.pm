@@ -170,7 +170,7 @@ sub children
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_subject_fields();
+	my @fields = EPrints::MetaInfo::get_subject_fields();
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
 		$EPrints::Database::table_subject,
@@ -178,7 +178,7 @@ sub children
 		[ "parent LIKE \"$self->{subjectid}\"" ],
 		[ "name" ] );
 
-	#EPrints::Log->debug( "Subject", "Children: $#{$rows}" );
+	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 
 	my @children;
 	my $r;
@@ -197,7 +197,7 @@ sub children
 			$child->{label} = $child->{name};
 		}
 
-		#EPrints::Log->debug( "Subject", "Child: $child->{subjectid}" );
+		#EPrints::Log::debug( "Subject", "Child: $child->{subjectid}" );
 		push @children, $child;
 	}
 	
@@ -256,7 +256,7 @@ sub can_post
 
 sub create_subject_table
 {
-	my( $class, $session ) = @_;
+	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
 	open SUBJECTS, $EPrintSite::SiteInfo::subject_config or return( 0 );
@@ -269,7 +269,7 @@ sub create_subject_table
 		chomp();
 		my @vals = split /:/;
 		
-		#EPrints::Log->debug( "Subject", "ID: $vals[0]  Name: $vals[1]  Parent: $vals[2]  Depositable: $vals[3]" );
+		#EPrints::Log::debug( "Subject", "ID: $vals[0]  Name: $vals[1]  Parent: $vals[2]  Depositable: $vals[3]" );
 		$success = $success &&
 			( defined EPrints::Subject->create_subject( $session,
 			                                            $vals[0],
@@ -295,10 +295,10 @@ sub create_subject_table
 
 sub get_postable
 {
-	my( $class, $session, $user ) = @_;
+	my( $session, $user ) = @_;
 
 	# Get all of the subjects
-	my( $subjects, $subjectmap ) = EPrints::Subject->get_all( $session );
+	my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 
 	# For the results
 	my @tags;
@@ -315,7 +315,7 @@ sub get_postable
 		if( !defined $user || $_->can_post( $user ) )
 		{
 			# Lob it in the list!
-			my $lab = EPrints::Subject->subject_label_cache(
+			my $lab = EPrints::Subject::subject_label_cache(
 				$session,
 				$_->{subjectid},
 				$subjectmap );
@@ -346,9 +346,9 @@ sub get_postable
 
 sub all_subject_labels
 {
-	my( $class, $session ) = @_;
+	my( $session ) = @_;
 	
-	return( EPrints::Subject->get_postable( $session, undef ) );
+	return( EPrints::Subject::get_postable( $session, undef ) );
 }
 
 
@@ -363,7 +363,7 @@ sub all_subject_labels
 
 sub subject_label
 {
-	my( $class, $session, $subject_tag ) = @_;
+	my( $session, $subject_tag ) = @_;
 	
 	my $label = "";
 	my $tag = $subject_tag;
@@ -410,7 +410,7 @@ sub subject_label
 
 sub subject_label_cache
 {
-	my( $class, $session, $subject_tag, $subject_cache ) = @_;
+	my( $session, $subject_tag, $subject_cache ) = @_;
 	
 	my $label = "";
 	my $tag = $subject_tag;
@@ -453,9 +453,9 @@ sub subject_label_cache
 
 sub get_all
 {
-	my( $class, $session ) = @_;
+	my( $session ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_subject_fields();
+	my @fields = EPrints::MetaInfo::get_subject_fields();
 	
 	# Retrieve all of the subjects
 	my $rows = $session->{database}->retrieve_fields(
@@ -478,7 +478,7 @@ sub get_all
 #		{
 #			$p .= " $_";
 #		}
-#		EPrints::Log->debug( "Subject", $p );
+#		EPrints::Log::debug( "Subject", $p );
 	}
 	
 	return( \@subjects, \%subjectmap );
@@ -498,7 +498,7 @@ sub posted_eprints
 {
 	my( $self, $table ) = @_;
 	
-	return( EPrints::EPrint->retrieve_eprints(
+	return( EPrints::EPrint::retrieve_eprints(
 		$self->{session},
 		(defined $table ? $table : $EPrints::Database::table_archive ),
 		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ],
@@ -520,7 +520,7 @@ sub count_eprints
 {
 	my( $self, $table ) = @_;
 	
-	return( EPrints::EPrint->count_eprints(
+	return( EPrints::EPrint::count_eprints(
 		$self->{session},
 		(defined $table ? $table : $EPrints::Database::table_archive ),
 		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ] ) );

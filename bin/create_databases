@@ -48,7 +48,7 @@ else
 #
 ######################################################################
 
-$success = EPrints::Subject->create_subject_table( $session );
+$success = EPrints::Subject::create_subject_table( $session );
 
 if( $success )
 {

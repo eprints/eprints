@@ -64,9 +64,9 @@ sub new
 
 #$self->{starttime} = gmtime( time );
 
-#EPrints::Log->debug( "Session", "Started session at $self->{starttime}" );
+#EPrints::Log::debug( "Session", "Started session at $self->{starttime}" );
 	
-	EPrintSite::SiteRoutines->session_init( $self, $offline );
+	EPrintSite::SiteRoutines::session_init( $self, $offline );
 
 #
 #	my @params = $self->{render}->{query}->param();
@@ -74,7 +74,7 @@ sub new
 #	foreach (@params)
 #	{
 #		my @vals = $self->{render}->{query}->param($_);
-#		EPrints::Log->debug( "Session", "Param <$_> Values:<".@vals.">" );
+#		EPrints::Log::debug( "Session", "Param <$_> Values:<".@vals.">" );
 #	}
 	
 
@@ -114,8 +114,8 @@ sub terminate
 {
 	my( $self ) = @_;
 	
-#EPrints::Log->debug( "Session", "Closing session started at $self->{starttime}" );
-	EPrintSite::SiteRoutines->session_close( $self );
+#EPrints::Log::debug( "Session", "Closing session started at $self->{starttime}" );
+	EPrintSite::SiteRoutines::session_close( $self );
 
 	$self->{database}->disconnect();
 
@@ -138,7 +138,7 @@ sub mail_administrator
 	my $message_body = "Site maintenance message generated at ".gmtime( time );
 	$message_body .= "\n\n$message\n";
 
-	EPrints::Mailer->send_mail(
+	EPrints::Mailer::send_mail(
 		"Site Administrator",
 		$EPrintSite::SiteInfo::admin,
 		$subject,

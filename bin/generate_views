@@ -25,7 +25,7 @@ my $session = new EPrints::Session( 1 );
 
 
 # Get all of the available subjects
-my( $subjects, $subjectmap ) = EPrints::Subject->get_all( $session );
+my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 
 # Start with the root
 &write_subject_view( $session, new EPrints::Subject( $session ) );
@@ -33,7 +33,7 @@ my( $subjects, $subjectmap ) = EPrints::Subject->get_all( $session );
 # Now do each of the subjects
 foreach (@$subjects)
 {
-	EPrints::Log->debug( "generate_views", "Generating view for $_->{name}" );
+	EPrints::Log::debug( "generate_views", "Generating view for $_->{name}" );
 	&write_subject_view( $session, $_ );
 }
 
@@ -53,7 +53,7 @@ sub write_subject_view
 	
 	unless( $ok )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"generate_views",
 			"Error writing subject view for $subject->{subjectid} to $output:".
 				" $!" );

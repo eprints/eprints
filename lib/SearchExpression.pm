@@ -92,7 +92,7 @@ sub new
 		my $id = "order$idcount";
 		$idcount++;
 		$self->{order_desc}->{$id} = $_;
-#EPrints::Log->debug( "SearchExpression", "Desc: $id -> $_" );
+#EPrints::Log::debug( "SearchExpression", "Desc: $id -> $_" );
 		$self->{order_sql}->{$id} = $orderby->{$_};
 		push @{$self->{order_ids}}, $id;
 	
@@ -284,7 +284,7 @@ sub do_eprint_search
 	
 	my( $sql, $order ) = $self->get_sql_order();
 	
-	return( EPrints::EPrint->retrieve_eprints(
+	return( EPrints::EPrint::retrieve_eprints(
 		$self->{session},
 		$self->{table},
 		( defined $sql ? [ $sql ] : undef ),
@@ -308,7 +308,7 @@ sub do_user_search
 	
 	my( $sql, $order ) = $self->get_sql_order();
 	
-	return( EPrints::User->retrieve_users(
+	return( EPrints::User::retrieve_users(
 		$self->{session},
 		( defined $sql ? [ $sql ] : undef ),
 		$order ) );
@@ -330,7 +330,7 @@ sub get_sql_order
 	my $first = 1;
 	my $sql = "";
 
-#EPrints::Log->debug( "SearchExpression", "Number of search fields: ".scalar( @{$self->{searchfields}} ) );
+#EPrints::Log::debug( "SearchExpression", "Number of search fields: ".scalar( @{$self->{searchfields}} ) );
 
 	# Make the SQL condition
 	foreach (@{$self->{searchfields}})
@@ -385,7 +385,7 @@ sub to_string
 			( defined $_->{value} ? $_->{value} : "" )."\]";
 	}
 	
-#EPrints::Log->debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
+#EPrints::Log::debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
 
 	return( $text_rep );
 }
@@ -405,7 +405,7 @@ sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
 	
-#EPrints::Log->debug( "SearchExpression", "state_from_string ($text_rep)" );
+#EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 	# Split everything up
 	my @elements = ( $text_rep =~ m/\[([^\]]*)\]/g );
@@ -427,12 +427,12 @@ sub state_from_string
 		my $value = shift @elements;
 	
 		my $sf = $self->{searchfieldmap}->{$formname};
-#EPrints::Log->debug( "SearchExpression", "Eep! $formname not in searchmap!" )
+#EPrints::Log::debug( "SearchExpression", "Eep! $formname not in searchmap!" )
 #	if( !defined $sf );
 		$sf->{value} = $value if( defined $sf && defined $value && $value ne "" );
 	}
 
-#EPrints::Log->debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
+#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
 }
 
 
@@ -457,17 +457,17 @@ sub state_from_string
 
 sub make_meta_fields
 {
-	my( $class, $what, $fieldnames ) = @_;
+	my( $what, $fieldnames ) = @_;
 
 	my @metafields;
 
 	# We want to search the relevant MetaFields
 	my @all_fields;
 
-	@all_fields = EPrints::MetaInfo->get_all_eprint_fields()
+	@all_fields = EPrints::MetaInfo::get_all_eprint_fields()
 		if( $what eq "eprints" );
 
-	@all_fields = EPrints::MetaInfo->get_user_fields()
+	@all_fields = EPrints::MetaInfo::get_user_fields()
 		if( $what eq "users" );
 
 	foreach (@$fieldnames)
@@ -482,7 +482,7 @@ sub make_meta_fields
 			# Put the MetaFields in a list
 			foreach (@multiple_names)
 			{
-				push @multiple_fields, EPrints::MetaInfo->find_field( \@all_fields,
+				push @multiple_fields, EPrints::MetaInfo::find_field( \@all_fields,
 				                                                      $_ );
 			}
 			
@@ -492,7 +492,7 @@ sub make_meta_fields
 		else
 		{
 			# Single field
-			push @metafields, EPrints::MetaInfo->find_field( \@all_fields,
+			push @metafields, EPrints::MetaInfo::find_field( \@all_fields,
 			                                                  $_ );
 		}
 	}

@@ -72,7 +72,7 @@ sub read_meta_fields
 		push @user_meta_fields, $field;
 	}
 
-	push @user_meta_fields, EPrints::MetaField->read_fields(
+	push @user_meta_fields, EPrints::MetaField::read_fields(
 		 $EPrintSite::SiteInfo::user_meta_config );
 
 
@@ -115,7 +115,7 @@ sub read_meta_fields
 	# Read in the system fields, common to all EPrint types
 	foreach (@EPrints::EPrint::system_meta_fields)
 	{
-		my $field = EPrints::MetaField->new( $_ );
+		my $field = new EPrints::MetaField( $_ );
 		$field->{help} = $EPrints::EPrint::help{$field->{name}};
 		push @eprint_meta_fields, $field;
 		push @eprint_meta_fieldnames, $field->{name};
@@ -123,7 +123,7 @@ sub read_meta_fields
 	}
 
 	# Read in all the possible site fields
-	my @fields = EPrints::MetaField->read_fields(
+	my @fields = EPrints::MetaField::read_fields(
 		 $EPrintSite::SiteInfo::site_eprint_fields );
 	my %field_index;
 	
@@ -138,7 +138,7 @@ sub read_meta_fields
 	#
 	# EPrint types
 	#
-	EPrints::MetaInfo->read_types( $EPrintSite::SiteInfo::site_eprint_types );
+	EPrints::MetaInfo::read_types( $EPrintSite::SiteInfo::site_eprint_types );
 }
 
 
@@ -152,13 +152,13 @@ sub read_meta_fields
 
 sub read_types
 {
-	my( $class, $file ) = @_;
+	my( $file ) = @_;
 	
 	my @inbuffer;
 
 	unless( open CFG_FILE, $file )
 	{
-		EPrints::Log->log_entry( "MetaInfo",
+		EPrints::Log::log_entry( "MetaInfo",
 		                         "Can't open eprint types file: $file: $!" );
 		return;
 	}
@@ -170,7 +170,7 @@ sub read_types
 
 		if( /<\/class>/i )
 		{
-			EPrints::MetaInfo->make_type( @inbuffer );
+			EPrints::MetaInfo::make_type( @inbuffer );
 
 			@inbuffer = ();
 		}
@@ -190,7 +190,7 @@ sub read_types
 
 sub make_type
 {
-	my( $class, @lines ) = @_;
+	my( @lines ) = @_;
 	
 	my $type;
 
@@ -214,7 +214,7 @@ sub make_type
 		elsif( /<\/class>/i )
 		{
 			# End of the class
-#EPrints::Log->debug( "MetaInfo", "Read class $type with $#{$eprint_meta_type_fields{$type}} fields" );
+#EPrints::Log::debug( "MetaInfo", "Read class $type with $#{$eprint_meta_type_fields{$type}} fields" );
 			return;
 		}
 		# Get the field out of a line "[REQUIRE] field_name"
@@ -228,7 +228,7 @@ sub make_type
 			
 			if( !defined $field )
 			{
-				EPrints::Log->log_entry( "Unknown EPrint field $2 in class $type" );
+				EPrints::Log::log_entry( "Unknown EPrint field $2 in class $type" );
 				return;
 			}
 			
@@ -394,7 +394,7 @@ sub get_all_eprint_fieldnames
 
 sub get_eprint_fields
 {
-	my( $class, $type ) = @_;
+	my( $type ) = @_;
 	
 	# Ensure we've read in the metadata fields
 	read_meta_fields if( $#eprint_meta_fields == -1 );
@@ -403,7 +403,7 @@ sub get_eprint_fields
 
 	if( !defined $fields )
 	{
-		EPrints::Log->log_entry( "MetaInfo", "No fields for EPrint type $type" );
+		EPrints::Log::log_entry( "MetaInfo", "No fields for EPrint type $type" );
 		return( undef );
 	}
 
@@ -421,7 +421,7 @@ sub get_eprint_fields
 
 sub get_eprint_type_name
 {
-	my( $class, $type ) = @_;
+	my( $type ) = @_;
 	
 	# Ensure we've read in the metadata fields
 	read_meta_fields if( $#eprint_meta_fields == -1 );
@@ -442,7 +442,7 @@ sub get_eprint_type_name
 
 sub find_field
 {
-	my( $class, $fields, $field_name ) = @_;
+	my( $fields, $field_name ) = @_;
 	
 	my $f;
 	
@@ -465,12 +465,12 @@ sub find_field
 
 sub find_eprint_field
 {
-	my( $class, $field_name ) = @_;
+	my( $field_name ) = @_;
 	
 	# Ensure we've read in the metadata fields
 	read_meta_fields if( $#eprint_meta_fields == -1 );
 
-	return( EPrints::MetaInfo->find_field( \@eprint_meta_fields,
+	return( EPrints::MetaInfo::find_field( \@eprint_meta_fields,
 	                                       $field_name ) );
 }
 

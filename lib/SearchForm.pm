@@ -137,7 +137,7 @@ sub process
 		{
 			# Everything OK.
 			
-#EPrints::Log->debug( "SearchForm", $searchexp->to_string() );
+#EPrints::Log::debug( "SearchForm", $searchexp->to_string() );
 
 			print $self->{session}->{render}->start_html(
 				"Results for ".$self->{title} );

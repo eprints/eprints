@@ -27,13 +27,13 @@ use strict;
 
 sub format_name
 {
-	my( $class, $namespec, $surnamelast ) = @_;
+	my( $namespec, $surnamelast ) = @_;
 
 	my $html = "";
 	my $i;
 
 	# Get the names out of the list
-	my @names = EPrints::Name->extract( $namespec );
+	my @names = EPrints::Name::extract( $namespec );
 	
 	for( $i=0; $i<=$#names; $i++ )
 	{
@@ -80,22 +80,22 @@ sub format_name
 
 sub extract
 {
-	my( $class, $names ) = @_;
+	my( $names ) = @_;
 	
-#EPrints::Log->debug( "Name", "in: $names" );
+#EPrints::Log::debug( "Name", "in: $names" );
 
 	my( @nameslist, $i, @namesplit );
 	
 	@namesplit = split /:/, $names if( defined $names );
 
-#EPrints::Log->debug( "Name", "Split into $#namesplit (+1)" );
+#EPrints::Log::debug( "Name", "Split into $#namesplit (+1)" );
 
 	
 	for( $i = 1; $i<=$#namesplit; $i++ )
 	{
 		my( $surname, $firstnames ) = split /,/, $namesplit[$i];
 
-#EPrints::Log->debug( "Name", "added: $surname, $firstnames" );
+#EPrints::Log::debug( "Name", "added: $surname, $firstnames" );
 
 		push @nameslist, [ $surname, $firstnames ]
 			if( defined $surname && $surname ne "" );
@@ -115,7 +115,7 @@ sub extract
 
 sub add_name
 {
-	my( $class, $oldvalue, $surname, $firstname ) = @_;
+	my( $oldvalue, $surname, $firstname ) = @_;
 	
 	my $new_value = ( defined $oldvalue ? $oldvalue : ":" );
 
@@ -136,7 +136,7 @@ sub add_name
 
 sub import_names
 {
-	my( $calss, $list, $join_char ) = @_;
+	my( $list, $join_char ) = @_;
 	
 	my @oldnames = split /\s*$join_char\s*/, $list;
 	my $n;	
@@ -149,15 +149,15 @@ sub import_names
 		{
 			# It's in the form surname, first names (we hope)
 			my( $surname, $firstnames ) = split /\,\s*/, $n;
-			$namelist = EPrints::Name->add_name( $namelist,
+			$namelist = EPrints::Name::add_name( $namelist,
 			                                     $surname,
 			                                     $firstnames );
 		}
 		else
 		{
 			# Form firstname surname
-			my( $surname, $firstnames ) = EPrints::Name->split_name( $n );
-			$namelist = EPrints::Name->add_name( $namelist, $surname, $firstnames )
+			my( $surname, $firstnames ) = EPrints::Name::split_name( $n );
+			$namelist = EPrints::Name::add_name( $namelist, $surname, $firstnames )
 				if( defined $surname );
 		}
 	}
@@ -179,7 +179,7 @@ sub import_names
 
 sub split_name
 {
-	my( $class, $name ) = @_;
+	my( $name ) = @_;
 	
 	# If the name is empty, return undef
 	return( undef ) if( !defined $name || $name eq "" );

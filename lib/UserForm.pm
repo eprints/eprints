@@ -55,7 +55,7 @@ sub process
 {
 	my( $self ) = @_;
 	
-	$self->{user} = EPrints::User->current_user( $self->{session} )
+	$self->{user} = EPrints::User::current_user( $self->{session} )
 		unless( defined $self->{user} );
 
 	if( !defined $self->{user} )
@@ -149,7 +149,7 @@ sub render_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = EPrints::MetaInfo->get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_user_fields();
 	
 	# Get the appropriate fields
 	foreach $field (@all_fields)
@@ -180,7 +180,7 @@ sub update_from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = EPrints::MetaInfo->get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_user_fields();
 	my $field;
 
 	# Ensure correct user
@@ -203,7 +203,7 @@ sub update_from_form
 	else
 	{
 		my $form_id = $self->{session}->{render}->param( "username" );
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"User",
 			"Username in form $form_id doesn't match object username ".
 				"$self->{username}" );

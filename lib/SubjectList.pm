@@ -46,7 +46,7 @@ sub new
 	my @subjects = ();
 	$self->{subjects} = \@subjects;
 	
-#EPrints::Log->debug( "SubjectList", "Creating subject list from ".(defined $string_representation ? $string_representation : "undef" ));
+#EPrints::Log::debug( "SubjectList", "Creating subject list from ".(defined $string_representation ? $string_representation : "undef" ));
 
 	if( defined $string_representation )
 	{
@@ -61,7 +61,7 @@ sub new
 			if( $tag ne "" )
 			{
 				push @subjects, $tag;
-#EPrints::Log->debug( "SubjectList", "Added tag $tag" );
+#EPrints::Log::debug( "SubjectList", "Added tag $tag" );
 			}
 		}
 	}
@@ -122,7 +122,7 @@ sub get_subjects
 		
 		push @subjects, $sub if( defined $sub );
 		
-		EPrints::Log->log_entry( "SubjectList", "List contains invalid tag $_" )
+		EPrints::Log::log_entry( "SubjectList", "List contains invalid tag $_" )
 			unless( defined $sub );
 	}
 	

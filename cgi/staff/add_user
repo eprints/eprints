@@ -30,7 +30,7 @@ if( $session->{render}->seen_form() )
 	if( defined $candidate_username && $candidate_username ne "" )
 	{
 		# Attempt to create a new account
-		my $new_user = EPrints::User->create_user(
+		my $new_user = EPrints::User::create_user(
 			$session,
 			$candidate_username,
 			"",

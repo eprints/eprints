@@ -28,7 +28,7 @@ if( defined $userid )
 		print $session->{render}->start_html(
 			"EPrints submitted by ".$user->full_name() );
 
-		my @eprints = EPrints::EPrint->retrieve_eprints(
+		my @eprints = EPrints::EPrint::retrieve_eprints(
 			$session,
 			$EPrints::Database::table_archive,
 			[ "username LIKE \"$userid\"" ],

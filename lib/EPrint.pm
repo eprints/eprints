@@ -167,7 +167,7 @@ sub new
 	}
 
 	# Read in the EPrint data from the rows.
-	my @fields = EPrints::MetaInfo->get_all_eprint_fieldnames();
+	my @fields = EPrints::MetaInfo::get_all_eprint_fieldnames();
 	my $i=0;
 
 	foreach $_ (@fields)
@@ -190,7 +190,7 @@ sub new
 
 sub create
 {
-	my( $class, $session, $table, $userid ) = @_;
+	my( $session, $table, $userid ) = @_;
 
 	my $new_id = _create_id( $session );
 
@@ -213,7 +213,7 @@ sub create
 		return( undef );
 	}
 }
-	
+
 
 ######################################################################
 #
@@ -324,13 +324,13 @@ sub _create_directory
 
 #	foreach (@created)
 #	{
-#		EPrints::Log->debug( "EPrint", "Created directory $_" );
+#		EPrints::Log::debug( "EPrint", "Created directory $_" );
 #	}
 
 	# Error if we couldn't even create one
 	if( $#created == -1 )
 	{
-		EPrints::Log->log_entry( "EPrint",
+		EPrints::Log::log_entry( "EPrint",
 		                         "Failed to create directory $full_path: $@" );
 		return( undef );
 	}
@@ -353,16 +353,16 @@ sub _create_directory
 
 sub retrieve_eprints
 {
-	my( $class, $session, $table, $conditions, $order ) = @_;
+	my( $session, $table, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_all_eprint_fields();
+	my @fields = EPrints::MetaInfo::get_all_eprint_fields();
 
 	my $rows = $session->{database}->retrieve_fields( $table,
                                                      \@fields,
                                                      $conditions,
                                                      $order );
 
-#EPrints::Log->debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
+#EPrints::Log::debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
 
 	my $r;
 	my @eprints;
@@ -391,9 +391,9 @@ sub retrieve_eprints
 
 sub count_eprints
 {
-	my( $class, $session, $table, $conditions ) = @_;
+	my( $session, $table, $conditions ) = @_;
 	
-	my $field = EPrints::MetaInfo->find_eprint_field( "eprintid");
+	my $field = EPrints::MetaInfo::find_eprint_field( "eprintid");
 
 	my $rows = $session->{database}->retrieve_fields( $table,
                                                      [ $field ],
@@ -423,7 +423,7 @@ sub remove
 	foreach (@docs)
 	{
 		$success = $success && $_->remove();
-		EPrints::Log->log_entry( "EPrint", "Error removing doc $_->{docid}: $!" )
+		EPrints::Log::log_entry( "EPrint", "Error removing doc $_->{docid}: $!" )
 			if( !$success );
 	}
 
@@ -432,7 +432,7 @@ sub remove
 	
 	if( $num_deleted <= 0 )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"EPrint",
 			"Error removing files for $self->{eprint}, path ".$self->local_path().
 				": $!" );
@@ -441,7 +441,7 @@ sub remove
 
 	my @related;
 
-#EPrints::Log->debug( "EPrint", "Table is $self->{table}" );
+#EPrints::Log::debug( "EPrint", "Table is $self->{table}" );
 
 	if( $self->{table} eq $EPrints::Database::table_archive )
 	{
@@ -449,15 +449,15 @@ sub remove
 		# from any threads we're in
 		@related = $self->get_all_related();
 
-#EPrints::Log->debug( "EPrint", scalar @related." related eprints to update" );
+#EPrints::Log::debug( "EPrint", scalar @related." related eprints to update" );
 
 		if( scalar @related > 0 )
 		{
 			# We were in at least one thread
 			my $succeeds_field =
-				EPrints::MetaInfo->find_eprint_field( "succeeds" );
+				EPrints::MetaInfo::find_eprint_field( "succeeds" );
 			my $commentary_field =
-				EPrints::MetaInfo->find_eprint_field( "commentary" );
+				EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 			# Remove all references to ourself
 			my @later = $self->later_in_thread( $succeeds_field );
@@ -514,7 +514,7 @@ sub clone
 	my( $self, $dest_table, $copy_documents ) = @_;
 	
 	# Create the new EPrint record
-	my $new_eprint = EPrints::EPrint->create(
+	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
 		$dest_table,
 		$self->{username} );
@@ -524,7 +524,7 @@ sub clone
 		my $field;
 
 		# Copy all the data across, except the ID and the datestamp
-		foreach $field (EPrints::MetaInfo->get_eprint_fields( $self->{type} ))
+		foreach $field (EPrints::MetaInfo::get_eprint_fields( $self->{type} ))
 		{
 			my $field_name = $field->{name};
 
@@ -629,7 +629,7 @@ sub short_title
 {
 	my( $self ) = @_;
 
-	return( EPrintSite::SiteRoutines->eprint_short_title( $self ) );
+	return( EPrintSite::SiteRoutines::eprint_short_title( $self ) );
 }
 
 
@@ -647,7 +647,7 @@ sub commit
 	my( $self ) = @_;
 
 	# Put data into columns
-	my @all_fields = EPrints::MetaInfo->get_all_eprint_fields();
+	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
 	my @data;
 	my $key_field = shift @all_fields;
 	my $key_value = $self->{$key_field->{name}};
@@ -666,7 +666,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"EPrint",
 			"Error committing EPrint $self->{eprintid}: $db_error" );
 	}
@@ -697,7 +697,7 @@ sub validate_type
 	{
 		push @problems, "You haven't selected a type for this EPrint.";
 	}
-	elsif( !defined EPrints::MetaInfo->get_eprint_type_name( $self->{type} ) )
+	elsif( !defined EPrints::MetaInfo::get_eprint_type_name( $self->{type} ) )
 	{
 		push @problems, "This EPrint doesn't seem to have a valid type.";
 	}
@@ -722,7 +722,7 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo->get_eprint_fields( $self->{type} );
+	my @all_fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -739,7 +739,7 @@ sub validate_meta
 		else
 		{
 			# Give the site validation module a go
-			$problem = EPrintSite::Validate->validate_eprint_field(
+			$problem = EPrintSite::Validate::validate_eprint_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -751,7 +751,7 @@ sub validate_meta
 	}
 
 	# Site validation routine for eprint metadata as a whole:
-	EPrintSite::Validate->validate_eprint_meta( $self, \@all_problems );
+	EPrintSite::Validate::validate_eprint_meta( $self, \@all_problems );
 
 	return( \@all_problems );
 }
@@ -771,7 +771,7 @@ sub validate_subject
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo->get_eprint_fields( $self->{type} );
+	my @all_fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
 	my $field;
 
 	foreach $field (@all_fields)
@@ -790,7 +790,7 @@ sub validate_subject
 		else
 		{
 			# Give the validation module a go
-			$problem = EPrintSite::Validate->validate_subject_field(
+			$problem = EPrintSite::Validate::validate_subject_field(
 				$field,
 				$self->{$field->{name}} );
 		}
@@ -818,8 +818,8 @@ sub validate_linking
 
 	my @problems;
 	
-	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
 	{
@@ -872,7 +872,7 @@ sub get_document
 {
 	my( $self, $format ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_document_fields();
+	my @fields = EPrints::MetaInfo::get_document_fields();
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
@@ -909,7 +909,7 @@ sub get_all_documents
 	my( $self ) = @_;
 
 	my @documents;	
-	my @fields = EPrints::MetaInfo->get_document_fields();
+	my @fields = EPrints::MetaInfo::get_document_fields();
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
@@ -1051,7 +1051,7 @@ sub validate_full
 	}
 
 	# Now give the site specific stuff one last chance to have a gander.
-	EPrintSite::Validate->validate_eprint( $self, \@problems );
+	EPrintSite::Validate::validate_eprint( $self, \@problems );
 
 	return( \@problems );
 }
@@ -1070,7 +1070,7 @@ sub prune_documents
 	my( $self ) = @_;
 	
 	# Get the documents from the database
-	my @fields = EPrints::MetaInfo->get_document_fields();
+	my @fields = EPrints::MetaInfo::get_document_fields();
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
 		$EPrints::Database::table_document,
@@ -1103,23 +1103,23 @@ sub prune
 {
 	my( $self ) = @_;
 	
-#EPrints::Log->debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
+#EPrints::Log::debug( "EPrint", "prune: EPrint ID: $self->{eprintid}" );
 
 	$self->prune_documents();
 	
-	my @fields = EPrints::MetaInfo->get_eprint_fields( $self->{type} );
-	my @all_fields = EPrints::MetaInfo->get_all_eprint_fields();
+	my @fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
+	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
 	my $f;
 
 	foreach $f (@all_fields)
 	{
-		if( !defined EPrints::MetaInfo->find_field( \@fields, $f->{name} ) )
+		if( !defined EPrints::MetaInfo::find_field( \@fields, $f->{name} ) )
 		{
 			$self->{$f->{name}} = undef;
 		}
 	}
 
-#EPrints::Log->debug( "EPrint", "prune: end EPrint ID: $self->{eprintid}" );
+#EPrints::Log::debug( "EPrint", "prune: end EPrint ID: $self->{eprintid}" );
 }
 
 
@@ -1139,7 +1139,7 @@ sub submit
 	
 	if( $success )
 	{
-		EPrintSite::SiteRoutines->update_submitted_eprint( $self );
+		EPrintSite::SiteRoutines::update_submitted_eprint( $self );
 		$self->datestamp();
 		$self->commit();
 	}
@@ -1160,7 +1160,7 @@ sub datestamp
 {
 	my( $self ) = @_;
 
-	$self->{datestamp} = EPrints::MetaField->get_datestamp( time );
+	$self->{datestamp} = EPrints::MetaField::get_datestamp( time );
 }
 
 
@@ -1185,14 +1185,14 @@ sub archive
 	
 	if( $success )
 	{
-		EPrintSite::SiteRoutines->update_archived_eprint( $self );
+		EPrintSite::SiteRoutines::update_archived_eprint( $self );
 		$self->commit();
 		$self->generate_static();
 
 		# Generate static pages for everything in threads, if appropriate
-		my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+		my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
 		my $commentary_field =
-			EPrints::MetaInfo->find_eprint_field( "commentary" );
+			EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 		my @to_update = $self->get_all_related();
 		
@@ -1293,7 +1293,7 @@ sub generate_static
 
 	unless( $ok )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"EPrint",
 			"Error generating static page for $self->{eprintid}: $!" );
 		return( 0 );
@@ -1324,8 +1324,8 @@ sub get_all_related
 {
 	my( $self ) = @_;
 	
-	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 	my @related = $self->all_in_thread( $succeeds_field )
 		if( $self->in_thread( $succeeds_field ) );
@@ -1382,7 +1382,7 @@ sub first_in_thread
 {
 	my( $self, $field ) = @_;
 	
-#EPrints::Log->debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
+#EPrints::Log::debug( "EPrint", "first_in_thread( $self->{eprintid}, $field->{name} )" );
 
 	my $first = $self;
 	
@@ -1412,7 +1412,7 @@ sub later_in_thread
 {
 	my( $self, $field ) = @_;
 	
-	return( EPrints::EPrint->retrieve_eprints(
+	return( EPrints::EPrint::retrieve_eprints(
 		$self->{session},
 		$EPrints::Database::table_archive,
 		[ "$field->{name} LIKE \"$self->{eprintid}\"" ],

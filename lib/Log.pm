@@ -7,6 +7,7 @@
 ######################################################################
 #
 # 21/10/99 - Created by Robert Tansley
+# $Id$
 #
 ######################################################################
 
@@ -37,7 +38,7 @@ my $debug = 1;
 
 sub log_entry
 {
-	my( $class, $name, $msg ) = @_;
+	my( $name, $msg ) = @_;
 	
 	print STDERR "$name: $msg\n";
 
@@ -68,7 +69,7 @@ sub log_entry
 
 sub debug
 {
-	my( $class, $name, $msg ) = @_;
+	my( $name, $msg ) = @_;
 
 	if( $debug )
 	{

@@ -32,7 +32,7 @@ use strict;
 
 sub validate_user_field
 {
-	my( $class, $field, $value );
+	my( $field, $value );
 
 	my $problem;
 
@@ -59,7 +59,7 @@ sub validate_user_field
 
 sub validate_eprint_field
 {
-	my( $class, $field, $value );
+	my( $field, $value );
 
 	my $problem;
 
@@ -92,7 +92,7 @@ sub validate_eprint_field
 
 sub validate_subject_field
 {
-	my( $class, $field, $value );
+	my( $field, $value );
 
 	my $problem;
 
@@ -122,7 +122,7 @@ sub validate_subject_field
 
 sub validate_document
 {
-	my( $class, $document, $problems ) = @_;
+	my( $document, $problems ) = @_;
 
 	# CHECKS IN HERE
 }
@@ -145,7 +145,7 @@ sub validate_document
 
 sub validate_eprint
 {
-	my( $class, $eprint, $problems ) = @_;
+	my( $eprint, $problems ) = @_;
 
 	# CHECKS IN HERE
 }
@@ -169,7 +169,7 @@ sub validate_eprint
 
 sub validate_eprint_meta
 {
-	my( $class, $eprint, $problems ) = @_;
+	my( $eprint, $problems ) = @_;
 
 	# CHECKS IN HERE
 

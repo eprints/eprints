@@ -11,7 +11,7 @@ use strict;
 # Create offline session
 my $session = new EPrints::Session( 1 );
 
-my @subs = EPrints::Subscription->get_monthly( $session );
+my @subs = EPrints::Subscription::get_monthly( $session );
 
 foreach (@subs)
 {

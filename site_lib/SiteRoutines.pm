@@ -53,7 +53,7 @@ use strict;
 
 sub eprint_short_title
 {
-	my( $class, $eprint ) = @_;
+	my( $eprint ) = @_;
 	
 	if( !defined $eprint->{title} || $eprint->{title} eq "" )
 	{
@@ -77,7 +77,7 @@ sub eprint_short_title
 
 sub eprint_render_full
 {
-	my( $class, $eprint ) = @_;
+	my( $eprint ) = @_;
 
 	# Start with a citation
 	my $html = "<P>";
@@ -161,7 +161,7 @@ sub eprint_render_full
 		$html .= "INVALID USER";
 	}
 
-	my $date_field = EPrints::MetaInfo->find_eprint_field( "datestamp" );
+	my $date_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
 	$html .= " on ".$eprint->{session}->{render}->format_field(
 		$date_field,
 		$eprint->{datestamp} );
@@ -172,7 +172,7 @@ sub eprint_render_full
 	{
 		$html .= "<TR><TD VALIGN=TOP><STRONG>Alternative Locations:".
 			"</STRONG></TD><TD>";
-		my $altloc_field = EPrints::MetaInfo->find_eprint_field( "altloc" );
+		my $altloc_field = EPrints::MetaInfo::find_eprint_field( "altloc" );
 		$html .= $eprint->{session}->{render}->format_field(
 			$altloc_field,
 			$eprint->{altloc} );
@@ -197,11 +197,11 @@ sub eprint_render_full
 
 sub eprint_render_citation
 {
-	my( $class, $eprint, $html ) = @_;
+	my( $eprint, $html ) = @_;
 	
 	my $citation_spec = $EPrints::SiteRoutines::citation_specs{$eprint->{type}};
 
-	return( EPrints::Citation->render_citation( $eprint->{session},
+	return( EPrints::Citation::render_citation( $eprint->{session},
 	                                            $citation_spec,
 	                                            $eprint,
 	                                            $html ) );
@@ -218,13 +218,13 @@ sub eprint_render_citation
 
 sub user_display_name
 {
-	my( $class, $user ) = @_;
+	my( $user ) = @_;
 
 	# If no surname, just return the username
 	return( "User $user->{username}" ) if( !defined $user->{name} ||
 	                                       $user->{name} eq "" );
 
-	return( EPrints::Name->format_name( $user->{name}, 1 ) );
+	return( EPrints::Name::format_name( $user->{name}, 1 ) );
 }
 
 
@@ -239,7 +239,7 @@ sub user_display_name
 
 sub user_render_full
 {
-	my( $class, $user, $public ) = @_;
+	my( $user, $public ) = @_;
 
 	my $html;	
 
@@ -266,9 +266,9 @@ sub user_render_full
 		$html .= $user->{country} if( defined $user->{country} );
 		
 		# E-mail and URL last, if available.
-		my @user_fields = EPrints::MetaInfo->get_user_fields();
-		my $email_field = EPrints::MetaInfo->find_field( \@user_fields, "email" );
-		my $url_field = EPrints::MetaInfo->find_field( \@user_fields, "url" );
+		my @user_fields = EPrints::MetaInfo::get_user_fields();
+		my $email_field = EPrints::MetaInfo::find_field( \@user_fields, "email" );
+		my $url_field = EPrints::MetaInfo::find_field( \@user_fields, "url" );
 
 		$html .= "</P>\n";
 		
@@ -288,7 +288,7 @@ sub user_render_full
 		$html= "<p><table border=0 cellpadding=3>\n";
 
 		# Lob the row data into the relevant fields
-		my @fields = EPrints::MetaInfo->get_user_fields();
+		my @fields = EPrints::MetaInfo::get_user_fields();
 		my $field;
 
 		foreach $field (@fields)
@@ -369,7 +369,7 @@ sub session_close
 
 sub update_submitted_eprint
 {
-	my( $class, $eprint ) = @_;
+	my( $eprint ) = @_;
 }
 
 
@@ -392,7 +392,7 @@ sub update_submitted_eprint
 
 sub update_archived_eprint
 {
-	my( $class, $eprint ) = @_;
+	my( $eprint ) = @_;
 }
 
 
@@ -434,13 +434,13 @@ sub update_archived_eprint
 
 sub eprint_get_oams
 {
-	my( $class, $eprint, $tags ) = @_;
+	my( $eprint, $tags ) = @_;
 	
 	# Title
 	$tags->{title} = $eprint->{title};
 	
 	# Authors
-	my @authors = EPrints::Name->extract( $eprint->{authors} );
+	my @authors = EPrints::Name::extract( $eprint->{authors} );
 	$tags->{author} = [];
 	
 	foreach (@authors)

@@ -106,7 +106,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo->get_document_fields();
+	my @fields = EPrints::MetaInfo::get_document_fields();
 
 	my $i=0;
 	my $field;
@@ -135,7 +135,7 @@ sub new
 
 sub create
 {
-	my( $class, $session, $eprint, $format ) = @_;
+	my( $session, $eprint, $format ) = @_;
 	
 	# Generate new doc id
 	my $doc_id = _generate_doc_id( $session, $eprint );
@@ -146,7 +146,7 @@ sub create
 	unless( defined $dir )
 	{
 		# Some error while making it
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error creating directory for EPrint $eprint->{eprintid} format ".
 				"$format: $!" );
@@ -260,7 +260,7 @@ sub clone
 	my( $self, $eprint ) = @_;
 	
 	# First create a new doc object
-	my $new_doc = EPrints::Document->create( $self->{session},
+	my $new_doc = EPrints::Document::create( $self->{session},
 	                                         $eprint,
 	                                         $self->{format} );
 	return( 0 ) if( !defined $new_doc );
@@ -276,7 +276,7 @@ sub clone
 	# If something's gone wrong...
 	if ( $rc!=0 )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error copying from $self->local_path() to ".
 				"$new_doc->local_path(): $!" );
@@ -316,7 +316,7 @@ sub remove
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error removing document $self->{docid} from database: $db_error" );
 	}
@@ -327,7 +327,7 @@ sub remove
 
 	if( $num_deleted <= 0 )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error removing document files for $self->{docid}, path $full_path: $!" );
 		$success = 0;
@@ -486,7 +486,7 @@ sub remove_file
 	
 	if( $count != 1 )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error removing file $filename for doc $self->{docid}: $!" );
 	}
@@ -517,7 +517,7 @@ sub remove_all_files
 
 	if( $num_deleted < scalar @to_delete )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Document",
 			"Error removing doc. files for $self->{docid}, path $full_path: $!" );
 		return( 0 );
@@ -658,7 +658,7 @@ sub upload_archive
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
 	
-#EPrints::Log->debug( "Document", "EXEC:$extract_command" );
+#EPrints::Log::debug( "Document", "EXEC:$extract_command" );
 
 	# Do the extraction
 	my $rc = 0xffff & system $extract_command;
@@ -762,7 +762,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_document_fields();
+	my @fields = EPrints::MetaInfo::get_document_fields();
 	my @data;
 
 	my $key_field = shift @fields;
@@ -782,7 +782,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->{database}->error();
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"EPrint",
 			"Error committing Document $self->{docid}: $db_error" );
 	}
@@ -817,7 +817,8 @@ sub get_supported_formats
 
 ######################################################################
 #
-# $required = format_req( $format )
+# $required = required_format( $format )
+#  [STATIC]
 #
 #  Return 1 if the given format is one of the list of required formats,
 #  0 if not. Always returns 1 if no formats are required.
@@ -826,7 +827,7 @@ sub get_supported_formats
 
 sub required_format
 {
-	my( $class, $format ) = @_;
+	my( $format ) = @_;
 	
 	return( 1 ) if $#EPrintSite::SiteInfo::required_formats == -1;
 
@@ -879,7 +880,7 @@ sub validate
 	}
 		
 	# Site-specific checks
-	EPrintSite::Validate->validate_document( $self, \@problems );
+	EPrintSite::Validate::validate_document( $self, \@problems );
 
 	return( \@problems );
 }

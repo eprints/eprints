@@ -103,15 +103,15 @@ sub new
 
 	foreach $n (@names)
 	{
-#EPrints::Log->debug( "HTMLRender", "Checking: $n" );
+#EPrints::Log::debug( "HTMLRender", "Checking: $n" );
 		if( substr($n, 0, 5) eq "name_" )
 		{
-#EPrints::Log->debug( "HTMLRender", "In it goes" );
+#EPrints::Log::debug( "HTMLRender", "In it goes" );
 			$self->{nameinfo}->{$n} = $self->{query}->param( $n );
 		}
 		if( substr($n, 0, 10) eq "name_more_" )
 		{
-#EPrints::Log->debug( "HTMLRender", "Name Button Pressed" );
+#EPrints::Log::debug( "HTMLRender", "Name Button Pressed" );
 			$self->{namebuttonpressed} = 1;
 		}
 	}
@@ -376,11 +376,11 @@ sub format_field
 	}
 	elsif( $type eq "name" )
 	{
-		$html = EPrints::Name->format_name( $value );
+		$html = EPrints::Name::format_name( $value );
 	}
 	else
 	{
-		$EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"HTMLRender",
 			"Error: Don't know how to render field of type $type" );
 	}
@@ -404,9 +404,9 @@ sub input_field
 	
 	my $type = $field->{type};
 
-#	EPrints::Log->debug( "HTMLRender", "Rendering form for $field->{name} type $field->{type}" );
-#	EPrints::Log->debug( "HTMLRender", "type is $type" );
-#	EPrints::Log->debug( "HTMLRender", "Value I have is $value" );
+#	EPrints::Log::debug( "HTMLRender", "Rendering form for $field->{name} type $field->{type}" );
+#	EPrints::Log::debug( "HTMLRender", "type is $type" );
+#	EPrints::Log::debug( "HTMLRender", "Value I have is $value" );
 
 	my $html;
 
@@ -533,8 +533,8 @@ sub input_field
 	}
 	elsif( $type eq "eprinttype" )
 	{
-		my @eprint_types = EPrints::MetaInfo->get_eprint_types();
-		my $labels = EPrints::MetaInfo->get_eprint_type_names();
+		my @eprint_types = EPrints::MetaInfo::get_eprint_types();
+		my $labels = EPrints::MetaInfo::get_eprint_type_names();
 
 		my $actual = [ ( !defined $value || $value eq "" ?
 			$eprint_types[0] : $value ) ];
@@ -558,14 +558,14 @@ sub input_field
 		
 		if( $field->{showall} )
 		{
-			( $sub_tags, $sub_labels ) = EPrints::Subject->all_subject_labels( 
+			( $sub_tags, $sub_labels ) = EPrints::Subject::all_subject_labels( 
 				$self->{session} ); 
 		}
 		else
 		{			
-			( $sub_tags, $sub_labels ) = EPrints::Subject->get_postable( 
+			( $sub_tags, $sub_labels ) = EPrints::Subject::get_postable( 
 				$self->{session}, 
-				EPrints::User->current_user( $self->{session} ) );
+				EPrints::User::current_user( $self->{session} ) );
 		}
 
 		my $height = ( $EPrints::HTMLRender::list_height_max < $#{$sub_tags}+1 ?
@@ -584,9 +584,9 @@ sub input_field
 	elsif( $type eq "name" )
 	{
 		# Get the names out
-		my @names = EPrints::Name->extract( $value );
+		my @names = EPrints::Name::extract( $value );
 
-#EPrints::Log->debug( "HTMLRender", "input_field got $#names from $value" );
+#EPrints::Log::debug( "HTMLRender", "input_field got $#names from $value" );
 
 		my $boxcount = $self->{nameinfo}->{"name_boxes_$field->{name}"};
 
@@ -645,7 +645,7 @@ sub input_field
 	{
 		$html = "N/A";
 
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"HTMLRender",
 			"Don't know how to render input field for type $type" );
 	}
@@ -1030,7 +1030,7 @@ sub form_value
 		my $from = $self->param( "$field->{name}_from" );
 		my $to = $self->param( "$field->{name}_to" );
 
-#EPrints::Log->debug ( "HTMLRender", "from: $from  to: $to" );
+#EPrints::Log::debug ( "HTMLRender", "from: $from  to: $to" );
 
 		if( !defined $to || $to eq "" )
 		{
@@ -1095,7 +1095,7 @@ sub form_value
 			my $surname = $self->param( "name_surname_$i"."_$field->{name}" );
 			if( defined $surname && $surname ne "" )
 			{
-				$value = EPrints::Name->add_name( $value,
+				$value = EPrints::Name::add_name( $value,
 					$surname,
 					$self->param( "name_firstname_$i"."_$field->{name}" ) );
 			}
@@ -1143,14 +1143,14 @@ sub render_eprint_full
 {
 	my( $self, $eprint, $for_staff ) = @_;
 
-	my $html = EPrintSite::SiteRoutines->eprint_render_full( $eprint,
+	my $html = EPrintSite::SiteRoutines::eprint_render_full( $eprint,
 	                                                         $for_staff );
 
 	if( $for_staff )
 	{
 		my $additional_field = 
-			EPrints::MetaInfo->find_eprint_field( "additional" );
-		my $reason_field = EPrints::MetaInfo->find_eprint_field( "reasons" );
+			EPrints::MetaInfo::find_eprint_field( "additional" );
+		my $reason_field = EPrints::MetaInfo::find_eprint_field( "reasons" );
 
 		# Write suggested extra subject category
 		if( defined $eprint->{additional} )
@@ -1166,8 +1166,8 @@ sub render_eprint_full
 	}
 			
 
-	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 	# Threads
 	if( $eprint->in_thread( $succeeds_field ) )
@@ -1201,7 +1201,7 @@ sub render_eprint_citation
 {
 	my( $self, $eprint, $html, $linked ) = @_;
 	
-	my $citation = EPrintSite::SiteRoutines->eprint_render_citation( $eprint,
+	my $citation = EPrintSite::SiteRoutines::eprint_render_citation( $eprint,
 	                                                                 $html );
 	
 	if( $html && $linked )
@@ -1226,7 +1226,7 @@ sub render_user
 {
 	my( $self, $user, $public ) = @_;
 
-	return( EPrintSite::SiteRoutines->user_render_full( $user, $public ) );
+	return( EPrintSite::SiteRoutines::user_render_full( $user, $public ) );
 }
 
 
@@ -1248,7 +1248,7 @@ sub render_user_name
 	$html = "<A HREF=\"$EPrintSite::SiteInfo::server_perl/staff/".
 		"view_user?username=$user->{username}\">" if( $linked );
 
-	$html .= EPrintSite::SiteRoutines->user_display_name( $user );
+	$html .= EPrintSite::SiteRoutines::user_display_name( $user );
 
 	$html .= "</A>" if( $linked );
 	
@@ -1272,7 +1272,7 @@ sub subject_tree
 {
 	my( $self, $subject ) = @_;
 
-#EPrints::Log->debug( "HTMLRender", "Called with subject $subject->{subjectid}" );
+#EPrints::Log::debug( "HTMLRender", "Called with subject $subject->{subjectid}" );
 	
 	my $opened_lists = 0;
 	my $html = "";
@@ -1292,7 +1292,7 @@ sub subject_tree
 	{
 		$parent = pop @parents;
 		
-#EPrints::Log->debug( "HTMLRender", "Parent: $parent->{subjectid}" );
+#EPrints::Log::debug( "HTMLRender", "Parent: $parent->{subjectid}" );
 
 		$html .= "<UL>\n<LI>".$self->subject_desc( $parent, 1, 0, 1 )."</LI>\n";
 		$opened_lists++;
@@ -1331,7 +1331,7 @@ sub _render_children
 {
 	my( $self, $subject ) = @_;
 
-#EPrints::Log->debug( "HTMLRender", "_render_children: $subject->{subjectid}" );
+#EPrints::Log::debug( "HTMLRender", "_render_children: $subject->{subjectid}" );
 
 	my $html = "";
 	my @children = $subject->children();
@@ -1370,7 +1370,7 @@ sub subject_desc
 {
 	my( $self, $subject, $link, $full, $count ) = @_;
 	
-#EPrints::Log->debug( "HTMLRender", "subject_desc: $subject->{subjectid}" );
+#EPrints::Log::debug( "HTMLRender", "subject_desc: $subject->{subjectid}" );
 
 	my $html = "";
 	
@@ -1379,7 +1379,7 @@ sub subject_desc
 
 	if( defined $full && $full )
 	{
-		$html .= EPrints::Subject->subject_label( $subject->{session},
+		$html .= EPrints::Subject::subject_label( $subject->{session},
 		                                          $subject->{subjectid} );
 	}
 	else
@@ -1434,9 +1434,7 @@ sub _write_version_thread_aux
 		if( $eprint->{eprintid} ne $eprint_shown->{eprintid} );
 	
 	# Write the citation
-	$html .= EPrints::Citation->render_citation(
-		$self->{session},
-		$EPrintSite::SiteInfo::thread_citation_specs{$field->{name}},
+	$html .= EPrintSite::SiteRoutines::eprint_render_citation(
 		$eprint,
 		1 );
 	

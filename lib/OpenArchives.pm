@@ -37,7 +37,7 @@ $EPrints::OpenArchives::id_separator = ":";
 
 sub disseminate
 {
-	my( $class, $fullID ) = @_;
+	my( $fullID ) = @_;
 	
 	my( $arc_id, $record_id ) = split /$EPrints::OpenArchives::id_separator/,
 	                            $fullID;
@@ -56,7 +56,7 @@ sub disseminate
 	                                  $record_id );
 
 	# Get the tags (get_oams_tags returns empty hash if $eprint is undefined)
-	my %tags = EPrints::OpenArchives->get_oams_tags( $eprint );
+	my %tags = EPrints::OpenArchives::get_oams_tags( $eprint );
 	
 	$session->terminate();
 	
@@ -81,8 +81,6 @@ sub disseminate
 
 sub partitions
 {
-	my( $class ) = @_;
-	
 	# Create non-script session
 	my $session = new EPrints::Session( 1 );
 
@@ -135,7 +133,7 @@ sub _partitionise_subjects
 
 sub fullID
 {
-	my( $class, $eprint ) = @_;
+	my( $eprint ) = @_;
 	
 	return( $EPrintSite::SiteInfo::archive_identifier .
 	        $EPrints::OpenArchives::id_separator .
@@ -153,7 +151,7 @@ sub fullID
 
 sub valid_fullID
 {
-	my( $class, $fullID ) = @_;
+	my( $fullID ) = @_;
 	
 	my( $arc_id, $record_id ) = split /$EPrints::OpenArchives::id_separator/,
 	                            $fullID;
@@ -175,7 +173,7 @@ sub valid_fullID
 
 sub get_oams_tags
 {
-	my( $class, $eprint) = @_;
+	my( $eprint) = @_;
 
 	# If the EPrint doesn't exist, we will return the empty hash
 	return( () ) unless( defined $eprint );
@@ -194,7 +192,7 @@ sub get_oams_tags
 	$tags{fullID} = $fullID;
 
 	# Other tags are site-specific. Delegate to site routine.
-	EPrintSite::SiteRoutines->eprint_get_oams( $eprint, \%tags );
+	EPrintSite::SiteRoutines::eprint_get_oams( $eprint, \%tags );
 
 	return( %tags );
 }
@@ -211,7 +209,7 @@ sub get_oams_tags
 
 sub list_contents
 {
-	my( $class, $partitionspec, $fileafter ) = @_;
+	my( $partitionspec, $fileafter ) = @_;
 	
 	# First, need a non-script session
 	my $session = new EPrints::Session( 1 );
@@ -231,7 +229,7 @@ sub list_contents
 	if( defined $partitionspec && $partitionspec ne "" )
 	{
 		# Get the subject field
-		my $subject_field = EPrints::MetaInfo->find_eprint_field( "subjects" );
+		my $subject_field = EPrints::MetaInfo::find_eprint_field( "subjects" );
 
 		# Get the relevant subject ID. Since all subjects have unique ID's, we
 		# can just remove everything specifying the ancestry.
@@ -243,7 +241,7 @@ sub list_contents
 	if( defined $fileafter && $fileafter ne "" )
 	{
 		# Get the datestamp field
-		my $datestamp_field = EPrints::MetaInfo->find_eprint_field( "datestamp" );
+		my $datestamp_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
 		
 		$searchexp->add_field( $datestamp_field, "$fileafter-" );
 	}

@@ -30,7 +30,7 @@ use strict;
 
 sub send_mail
 {
-	my( $class, $name, $address, $subject, $body ) = @_;
+	my( $name, $address, $subject, $body ) = @_;
 
 	open( SENDMAIL, "|$EPrintSite::SiteInfo::sendmail" )
 		or return( 0 );
@@ -63,7 +63,7 @@ EOF
 
 sub fill_template
 {
-	my( $class, $template_filename, $user ) = @_;
+	my( $template_filename, $user ) = @_;
 	
 	my $body = "";
 
@@ -71,7 +71,7 @@ sub fill_template
 	
 	while( <INTROFILE> )
 	{
-		$body .= EPrints::Mailer->update_template_line( $_, $user );
+		$body .= EPrints::Mailer::update_template_line( $_, $user );
 	}
 	
 	close( INTROFILE );
@@ -103,7 +103,7 @@ sub fill_template
 
 sub update_template_line
 {
-	my( $class, $template_line, $user ) = @_;
+	my( $template_line, $user ) = @_;
 	
 	my $new_line = $template_line;
 
@@ -142,13 +142,13 @@ sub prepare_send_mail
 {
 	my( $class, $name, $address, $subject, $templatefile, $user ) = @_;
 	
-	my $body = EPrints::Mailer->fill_template(
+	my $body = EPrints::Mailer::fill_template(
 		$templatefile,
 		$user );
 
 	return( 0 ) unless( defined $body );
 
-	return( EPrints::Mailer->send_mail(
+	return( EPrints::Mailer::send_mail(
 		$name,
 		$address,
 		$subject,

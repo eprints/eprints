@@ -40,7 +40,7 @@ sub generate_static
 	my $must_add_frame = 0;
 
 
-EPrints::Log->debug( "generate_static", "Generating static page for $File::Find::name: Dest $out_file" );
+EPrints::Log::debug( "generate_static", "Generating static page for $File::Find::name: Dest $out_file" );
 
 	# Open up the files
 	open IN, $File::Find::name or die "Error opening $File::Find::name: $!";
@@ -66,7 +66,7 @@ EPrints::Log->debug( "generate_static", "Generating static page for $File::Find:
 	while( <IN> )
 	{
 		chomp();
-		print OUT EPrints::Mailer->update_template_line( $_, undef );
+		print OUT EPrints::Mailer::update_template_line( $_, undef );
 		print OUT "\n";
 	}
 	

@@ -30,7 +30,7 @@ foreach (@EPrints::User::access_levels)
 
 if( $valid_access_level )
 {
-	my $new_user = EPrints::User->create_user( $session,
+	my $new_user = EPrints::User::create_user( $session,
 	                                           $ARGV[0],
 	                                           $ARGV[1],
 	                                           $ARGV[2] );

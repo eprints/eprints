@@ -83,7 +83,7 @@ sub mr_disseminate {
     if ($metaFormat eq "#oams") {
 
 	# Get the record from EPrints....
-	my %oamsTags = EPrints::OpenArchives->disseminate( $fullID );
+	my %oamsTags = EPrints::OpenArchives::disseminate( $fullID );
 
 	# If the record doesn't exist, we will get an empty hash back
 	if( scalar keys %oamsTags == 0 )
@@ -127,7 +127,7 @@ sub mr_dump_contents {
     my ($fileAfter) = $kwArgs->{'file-after'};
     my ($metaFormat) = $kwArgs->{'meta-format'};
 
-    my @eprints = EPrints::OpenArchives->list_contents( $partitionSpec,
+    my @eprints = EPrints::OpenArchives::list_contents( $partitionSpec,
                                                         $fileAfter );
 
     # start the XML output
@@ -144,14 +144,14 @@ sub mr_dump_contents {
     foreach $ep (@eprints)
     {
 	$writer->startTag("record");
-	$writer->characters( EPrints::OpenArchives->fullID( $ep ) );
+	$writer->characters( EPrints::OpenArchives::fullID( $ep ) );
 
 	# Only know how to list OAMS
 	if ($metaFormat eq 'oams') {
 	    $writer->startTag('oams');
 
 	    # dummy OAMS metadata for demo.
-	    my %oamsTags = EPrints::OpenArchives->get_oams_tags( $ep );
+	    my %oamsTags = EPrints::OpenArchives::get_oams_tags( $ep );
 
 	    &write_OAMS(\%oamsTags, $writer, $Context);
 	    $writer->endTag('oams');
@@ -216,7 +216,7 @@ sub mr_list_partitions {
 		       "version" => $Context->{'version'});
 
     # get nested partitions
-    my @partitions = EPrints::OpenArchives->partitions();
+    my @partitions = EPrints::OpenArchives::partitions();
 
     # loop through the partitions and recursively dump them out.
     my $p;
@@ -258,7 +258,7 @@ sub mr_structure {
 	exit;
     }
 
-    unless( EPrints::OpenArchives->valid_fullID( $fullID ) )
+    unless( EPrints::OpenArchives::valid_fullID( $fullID ) )
     {
 	&dienst::complaint( 404, "Unknown record specified" );
 	exit;

@@ -86,7 +86,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo->get_user_fields();
+	my @fields = EPrints::MetaInfo::get_user_fields();
 
 	my $i=0;
 	
@@ -110,7 +110,7 @@ sub new
 
 sub create_user_email
 {
-	my( $class, $session, $email, $access_level ) = @_;
+	my( $session, $email, $access_level ) = @_;
 	
 	# Work out the username by removing the domain. Hopefully this will
 	# give the user their home system's username that they're used to.
@@ -123,7 +123,7 @@ sub create_user_email
 		return( undef );
 	}
 	
-	return( EPrints::User->create_user( $session,
+	return( EPrints::User::create_user( $session,
 	                                    $username,
 	                                    $email,
 	                                    $access_level ) );
@@ -141,7 +141,7 @@ sub create_user_email
 
 sub create_user
 {
-	my( $class, $session, $username_candidate, $email, $access_level ) = @_;
+	my( $session, $username_candidate, $email, $access_level ) = @_;
 	
 	my $found = 0;
 	my $used_count = 0;
@@ -176,7 +176,7 @@ sub create_user
 	my $passwd = _generate_password( 6 );
 
 	# And work out the date joined.
-	my $date_joined = EPrints::MetaField->get_datestamp( time );
+	my $date_joined = EPrints::MetaField::get_datestamp( time );
 
 	# Add the user to the database... e-mail add. is lowercased
 	$session->{database}->add_record( $EPrints::Database::table_user,
@@ -202,18 +202,18 @@ sub create_user
 
 sub current_user
 {
-	my( $class, $session ) = @_;
+	my( $session ) = @_;
 
 	my $user = undef;
 	
 	my $username = $ENV{'REMOTE_USER'};
 	#$session->{request}->user;
 
-#EPrints::Log->debug( "User", "current_user: $username" );
+#EPrints::Log::debug( "User", "current_user: $username" );
 
 	if( defined $username && $username ne "" )
 	{
-		$user = EPrints::User->new( $session, $username );
+		$user = new EPrints::User( $session, $username );
 	}
 
 	return( $user );
@@ -260,7 +260,7 @@ sub _generate_password
 
 sub user_with_email
 {
-	my( $class, $session, $email ) = @_;
+	my( $session, $email ) = @_;
 	
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
@@ -294,7 +294,7 @@ sub full_name
 	my( $self ) = @_;
 
 	# Delegate to site-specific routine
-	return( EPrintSite::SiteRoutines->user_display_name( $self ) );
+	return( EPrintSite::SiteRoutines::user_display_name( $self ) );
 }
 
 
@@ -314,7 +314,7 @@ sub validate
 	my( $self ) = @_;
 
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo->get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_user_fields();
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -329,7 +329,7 @@ sub validate
 		else
 		{
 			# Give the validation module a go
-			my $problem = EPrintSite::Validate->validate_user_field(
+			my $problem = EPrintSite::Validate::validate_user_field(
 				$field,
 				$self->{$field->{name}} );
 
@@ -342,7 +342,7 @@ sub validate
 
 #	foreach (@all_problems)
 #	{
-#		EPrints::Log->debug( "User", "validate: got problem $_" );
+#		EPrints::Log::debug( "User", "validate: got problem $_" );
 #	}
 
 	return( \@all_problems );
@@ -362,7 +362,7 @@ sub commit
 	my( $self ) = @_;
 	
 	# Put data into columns
-	my @all_fields = EPrints::MetaInfo->get_user_fields();
+	my @all_fields = EPrints::MetaInfo::get_user_fields();
 	my @data;
 	my $first = 1;
 	my $key_field;
@@ -445,7 +445,7 @@ sub send_reminder
 		"administrator at:\n\n".
 		"$EPrintSite::SiteInfo::admin\n";
 
-	return( EPrints::Mailer->send_mail( $self->full_name(),
+	return( EPrints::Mailer::send_mail( $self->full_name(),
 	                                    $self->{email},
 	                                    "Your username and password",
 	                                    $full_message ) );
@@ -463,7 +463,7 @@ sub retrieve_users
 {
 	my( $class, $session, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo->get_user_fields();
+	my @fields = EPrints::MetaInfo::get_user_fields();
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_user,
@@ -471,7 +471,7 @@ sub retrieve_users
 		$conditions,
 		$order );
 
-#EPrints::Log->debug( "EPrint", "Making User objects" );
+#EPrints::Log::debug( "EPrint", "Making User objects" );
 
 	my $r;
 	my @users;
@@ -503,7 +503,7 @@ sub remove
 	my $success = 1;
 
 	# First, remove their EPrints
-	my @eprints = EPrints::EPrint->retrieve_eprints(
+	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$self->{session},
 		$EPrints::Database::table_archive,
 		[ "username LIKE \"$self->{username}\"" ] );
@@ -514,7 +514,7 @@ sub remove
 	}
 
 	# And subscriptions
-	my @subs = EPrints::Subscription->subscriptions_for(
+	my @subs = EPrints::Subscription::subscriptions_for(
 		$self->{session},
 		$self );
 	

@@ -25,7 +25,7 @@ my $session = new EPrints::Session;
 if( $session->{render}->seen_form() )
 {
 	# Send an e-mail to the relevant user, if they exist
-	my $user = EPrints::User->user_with_email(
+	my $user = EPrints::User::user_with_email(
 		$session,
 		$session->{render}->param( "email" ) );
 

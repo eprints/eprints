@@ -23,6 +23,7 @@ use strict;
 #
 # $html = render_citation( $session, $citation_spec, $value_hash, $html )
 #
+#  [STATIC]
 #  Renders a citation using the values in $value_hash. HTML formatting
 #  will be removed if $html is zero.
 #
@@ -39,7 +40,7 @@ use strict;
 
 sub render_citation
 {
-	my( $class, $session, $citation_spec, $value_hash, $html ) = @_;
+	my( $session, $citation_spec, $value_hash, $html ) = @_;
 	
 	my $citation = $citation_spec;
 
@@ -54,7 +55,7 @@ sub render_citation
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-		my $field = EPrints::MetaInfo->find_eprint_field( $fieldname );
+		my $field = EPrints::MetaInfo::find_eprint_field( $fieldname );
 
 		# Check we ahve it
 		if( defined $field )
@@ -86,7 +87,7 @@ sub render_citation
 		}
 		else
 		{
-			EPrints::Log->log_entry(
+			EPrints::Log::log_entry(
 				"Citation",
 				"Unknown EPrint field $fieldname in \"$citation_spec\"" );
 			return( "N/A" );
@@ -100,7 +101,7 @@ sub render_citation
 	{
 		my $entry = $1;
 
-		my $field = EPrints::MetaInfo->find_eprint_field( $entry );
+		my $field = EPrints::MetaInfo::find_eprint_field( $entry );
 
 		# Check we have it
 		if( defined $field )
@@ -124,7 +125,7 @@ sub render_citation
 		}
 		else
 		{
-			EPrints::Log->log_entry(
+			EPrints::Log::log_entry(
 				"Citation",
 				"Unknown EPrint field $entry in \"$citation_spec\"" );
 		}

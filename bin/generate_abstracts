@@ -21,13 +21,13 @@ use strict;
 
 my $session = new EPrints::Session( 1 );
 
-my @eprints = EPrints::EPrint->retrieve_eprints(
+my @eprints = EPrints::EPrint::retrieve_eprints(
 	$session,
 	$EPrints::Database::table_archive );
 
 foreach (@eprints)
 {
-	EPrints::Log->debug( "generate_abstracts",
+	EPrints::Log::debug( "generate_abstracts",
 	                     "Generating abstract for $_->{eprintid}" );
 	$_->generate_static();
 }

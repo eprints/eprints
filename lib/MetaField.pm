@@ -137,7 +137,7 @@ sub new
 	}
 	elsif( $self->{type} eq "eprinttype" )
 	{
-		# Tricky one this... would ideally call MetaInfo->get_eprint_types(),
+		# Tricky one this... would ideally call MetaInfo::get_eprint_types(),
 		# but this could cause a nasty infinite loop. So, we'll leave this one
 		# for MetaInfo->read_meta_fields() to sort out.
 	}
@@ -269,7 +269,7 @@ sub make_field
 		if( /<field "*(\w+)"*>/i )
 		{
 			$self->{name} = lc $1;
-#EPrints::Log->debug( "MetaField", "Got field named $self->{name}" );
+#EPrints::Log::debug( "MetaField", "Got field named $self->{name}" );
 		}
 		# Match KEY = VALUE
 		elsif( /^(\w+)\s*=\s*"*([^"]+)"*$/i )
@@ -292,7 +292,7 @@ sub make_field
 				}
 				else
 				{
-					EPrints::Log->log_entry(
+					EPrints::Log::log_entry(
 						"MetaField",
 						"Garbled value for $key in field $self->{name}" );
 				}
@@ -303,7 +303,7 @@ sub make_field
 				# Check it's a valid type
 				if( !defined $EPrints::Database::datatypes{lc $val} )
 				{
-					EPrints::Log->log_entry(
+					EPrints::Log::log_entry(
 						"MetaField",
 						"Unknown field type $key for field $self->{name}" );
 					return( undef );
@@ -351,11 +351,11 @@ sub make_field
 		!defined $self->{name} ||
 		!defined $self->{displayname} )
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"MetaField",
 			"Not all necessary information specified for field $self->{name}" );
 
-#EPrints::Log->debug( "MetaField", "TYPE $self->{type} NAME $self->{name} DISPLAYNAME $self->{displayname}" );
+#EPrints::Log::debug( "MetaField", "TYPE $self->{type} NAME $self->{name} DISPLAYNAME $self->{displayname}" );
 	}
 	
 	return( $self );
@@ -372,14 +372,14 @@ sub make_field
 
 sub read_fields
 {
-	my( $class, $file ) = @_;
+	my( $file ) = @_;
 	
 	my @fields;
 	my @inbuffer;
 	
 	unless( open CFG_FILE, $file )
 	{
-		EPrints::Log->log_entry( "MetaInfo",
+		EPrints::Log::log_entry( "MetaInfo",
 		                         "Can't open metadata config file: $file: $!" );
 		return;
 	}
@@ -415,7 +415,7 @@ sub read_fields
 
 sub get_date
 {
-	my( $class, $time ) = @_;
+	my( $time ) = @_;
 
 	my @date = gmtime( $time );
 	my $day = $date[3];
@@ -448,9 +448,9 @@ sub get_date
 
 sub get_datestamp
 {
-	my( $class, $time ) = @_;
+	my( $time ) = @_;
 
-	my( $year, $month, $day ) = EPrints::MetaField->get_date( $time );
+	my( $year, $month, $day ) = EPrints::MetaField::get_date( $time );
 
 	return( $year."-".$month."-".$day );
 }

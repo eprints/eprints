@@ -120,7 +120,7 @@ sub disconnect
 	if( defined $self->{dbh} )
 	{
 		$self->{dbh}->disconnect() ||
-			EPrints::Log->log_entry( "Database", $self->{dbh}->errstr );
+			EPrints::Log::log_entry( "Database", $self->{dbh}->errstr );
 	}
 }
 
@@ -160,17 +160,17 @@ sub create_archive_tables
 	# Create the user table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_user,
-		EPrints::MetaInfo->get_user_fields() );
+		EPrints::MetaInfo::get_user_fields() );
 	
 
 	# Document table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_document,
-		EPrints::MetaInfo->get_document_fields() );
+		EPrints::MetaInfo::get_document_fields() );
 
 
 	# EPrint tables
-	my @eprint_metadata = EPrints::MetaInfo->get_all_eprint_fields();
+	my @eprint_metadata = EPrints::MetaInfo::get_all_eprint_fields();
 
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_inbox,
@@ -188,13 +188,13 @@ sub create_archive_tables
 	# Subscription table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subscription,
-		EPrints::MetaInfo->get_subscription_fields() );
+		EPrints::MetaInfo::get_subscription_fields() );
 
 
 	# Subject category table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subject,
-		EPrints::MetaInfo->get_subject_fields() );
+		EPrints::MetaInfo::get_subject_fields() );
 
 	return( $success );
 }
@@ -249,7 +249,7 @@ sub _create_table
 	
 	$sql .= ");";
 	
-#EPrints::Log->debug( "Database", "SQL: $sql" );
+#EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );
@@ -309,7 +309,7 @@ sub add_record
 
 	$sql .= ");";	
 
-#EPrints::Log->debug( "Database", "SQL: $sql" );
+#EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );
@@ -366,7 +366,7 @@ sub update
 
 	$sql .= " WHERE $key_field LIKE \"$key_value\";";
 	
-#EPrints::Log->debug( "Database", "SQL: $sql" );
+#EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	# Send to the database
 	my $rv = $self->{dbh}->do( $sql );
@@ -459,7 +459,7 @@ sub retrieve
 
 	$sql .= ";";
 
-#EPrints::Log->debug( "Database", "SQL:$sql" );
+#EPrints::Log::debug( "Database", "SQL:$sql" );
 	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return( $ret_rows );

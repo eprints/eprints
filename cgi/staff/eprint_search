@@ -24,7 +24,7 @@ my $session = new EPrints::Session;
 my @search_fields = ( "eprintid", "username", "dir" );
 push @search_fields, @EPrintSite::SiteInfo::advanced_search_fields;
 
-my @metafields = EPrints::SearchExpression->make_meta_fields(
+my @metafields = EPrints::SearchExpression::make_meta_fields(
 	"eprints",
 	\@search_fields );
 

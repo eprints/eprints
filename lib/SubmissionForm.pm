@@ -132,7 +132,7 @@ sub process
 	{
 		# Is user authorised?
 		
-		$self->{user} = EPrints::User->current_user( $self->{session} );
+		$self->{user} = EPrints::User::current_user( $self->{session} );
 		if( !defined $self->{user} )
 		{
 			$self->exit_error( "I don't know who you are" );
@@ -156,7 +156,7 @@ sub process
 		if( !defined $self->{eprint} )
 		{
 			my $db_error = $self->{session}->{database}->error();
-			EPrints::Log->log_entry( "SubmissionForm", "DB Error: $db_error" );
+			EPrints::Log::log_entry( "SubmissionForm", "DB Error: $db_error" );
 
 			$self->exit_error( $EPrints::SubmissionForm::database_error );
 			return;
@@ -202,7 +202,7 @@ sub process
 		# Clear the form, so there are no residual values
 		$self->{session}->{render}->clear();
 
-#EPrints::Log->debug( "SubmissionForm", "To stage: $self->{next_stage}" );
+#EPrints::Log::debug( "SubmissionForm", "To stage: $self->{next_stage}" );
 
 		my $function_name = "do_$self->{next_stage}";
 
@@ -265,7 +265,7 @@ sub from_home
 	{
 		if( !$self->{staff} )
 		{
-			$self->{eprint} = EPrints::EPrint->create(
+			$self->{eprint} = EPrints::EPrint::create(
 				$self->{session},
 				$self->{table},
 				$self->{user}->{username} );
@@ -273,7 +273,7 @@ sub from_home
 			if( !defined $self->{eprint} )
 			{
 				my $db_error = $self->{session}->{database}->error();
-				EPrints::Log->log_entry( "SubmissionForm",
+				EPrints::Log::log_entry( "SubmissionForm",
 					                      "DB Error: $db_error" );
 
 				$self->exit_error( $EPrints::SubmissionForm::database_error );
@@ -281,7 +281,7 @@ sub from_home
 			}
 			else
 			{
-#				EPrints::Log->debug(
+#				EPrints::Log::debug(
 #					"SubmissionForm",
 #					"Created new EPrint with ID $self->{eprint}->{eprintid}" );
 
@@ -324,7 +324,7 @@ sub from_home
 		{
 			my $error = $self->{session}->{database}->error();
 		
-			EPrints::Log->log_entry(
+			EPrints::Log::log_entry(
 				"SubmissionForm",
 				"Error cloning EPrint $self->{eprint}->{eprintid}: $error" );
 
@@ -537,8 +537,8 @@ sub from_stage_linking
 	}
 
 	# Update the values
-	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 	$self->{eprint}->{succeeds} =
 		$self->{session}->{render}->form_value( $succeeds_field );
@@ -621,9 +621,9 @@ sub from_stage_format
 			if( !defined $self->{document} )
 			{
 				# Need to create a new doc object
-				$self->{document} = EPrints::Document->create( $self->{session},
-				                                  $self->{eprint},
-				                                  $format );
+				$self->{document} = EPrints::Document::create( $self->{session},
+				                                               $self->{eprint},
+				                                               $format );
 
 				if( !defined $self->{document} )
 				{
@@ -836,7 +836,7 @@ sub from_stage_upload
 		elsif( !defined $doc->get_main() )
 		{
 			my %files = $doc->files();
-			if( scalar(%files) == 1 )
+			if( scalar keys %files == 1 )
 			{
 				# There's a single uploaded file, make it the main one.
 				my @filenames = keys %files;
@@ -957,7 +957,7 @@ sub from_stage_confirmdel
 		{
 			my $db_error = $self->{session}->{database}->error();
 
-			EPrints::Log->log_entry(
+			EPrints::Log::log_entry(
 				"SubmissionForm",
 				"DB Error removing EPrint $self->{eprint}->{eprintid}: $db_error" );
 
@@ -1085,8 +1085,8 @@ sub do_stage_linking
 	
 	$self->list_problems();
 
-	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1279,8 +1279,8 @@ sub do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::other )
 	{
-		my @doc_fields = EPrints::MetaInfo->get_document_fields();
-		my $desc_field = EPrints::MetaInfo->find_field( \@doc_fields,
+		my @doc_fields = EPrints::MetaInfo::get_document_fields();
+		my $desc_field = EPrints::MetaInfo::find_field( \@doc_fields,
 	                                                	"formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
@@ -1606,10 +1606,10 @@ sub list_problems
 {
 	my( $self, $before, $after ) = @_;
 	
-#EPrints::Log->debug( "SubmissionForm", "problems is ".(defined $self->{problems} ? $self->{problems} : "undef" ) );
+#EPrints::Log::debug( "SubmissionForm", "problems is ".(defined $self->{problems} ? $self->{problems} : "undef" ) );
 #	foreach( @{$self->{problems}} )
 #	{
-#EPrints::Log->debug( "SubmissionForm", "problem: $_" );
+#EPrints::Log::debug( "SubmissionForm", "problem: $_" );
 #	}
 
 	if( defined $self->{problems} && $#{$self->{problems}} >= 0 )
@@ -1670,7 +1670,7 @@ sub render_type_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 	
-	my $field = EPrints::MetaInfo->find_eprint_field( "type" );
+	my $field = EPrints::MetaInfo::find_eprint_field( "type" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 	
@@ -1701,7 +1701,7 @@ sub update_from_type_form
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Forms",
 			"EPrint ID in form >$form_id< doesn't match object id ".
 				">$self->{eprint}->{eprintid}<" );
@@ -1710,7 +1710,7 @@ sub update_from_type_form
 	}
 	else
 	{
-		my $field = EPrints::MetaInfo->find_eprint_field( "type" );
+		my $field = EPrints::MetaInfo::find_eprint_field( "type" );
 
 		$self->{eprint}->{type} =
 			$self->{session}->{render}->form_value( $field );
@@ -1734,7 +1734,7 @@ sub render_meta_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = EPrints::MetaInfo->get_eprint_fields(
+	my @all_fields = EPrints::MetaInfo::get_eprint_fields(
 		$self->{eprint}->{type} );
 	
 	# Get the appropriate fields
@@ -1766,7 +1766,7 @@ sub update_from_meta_form
 {
 	my( $self ) = @_;
 
-	my @all_fields = EPrints::MetaInfo->get_all_eprint_fields();
+	my @all_fields = EPrints::MetaInfo::get_all_eprint_fields();
 	my $field;
 	
 	if( $self->{session}->{render}->param( "eprint_id" ) ne
@@ -1774,7 +1774,7 @@ sub update_from_meta_form
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Forms",
 			"EPrint ID in form >$form_id< doesn't match object id ".
 				">$self->{eprint}->{eprintid}<" );
@@ -1813,9 +1813,9 @@ sub render_subject_form
 
 	my @edit_fields;
 
-	push @edit_fields, EPrints::MetaInfo->find_eprint_field( "subjects" );
-	push @edit_fields, EPrints::MetaInfo->find_eprint_field( "additional" );
-	push @edit_fields, EPrints::MetaInfo->find_eprint_field( "reasons" );
+	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "subjects" );
+	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "additional" );
+	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "reasons" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
@@ -1845,7 +1845,7 @@ sub update_from_subject_form
 	{
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"Forms",
 			"EPrint ID in form >$form_id< doesn't match object id ".
 				">$self->{eprint}->{eprintid}<" );
@@ -1854,7 +1854,7 @@ sub update_from_subject_form
 	}
 	else
 	{
-		my @all_fields = EPrints::MetaInfo->get_eprint_fields(
+		my @all_fields = EPrints::MetaInfo::get_eprint_fields(
 			$self->{eprint}->{type} );
 		my $field;
 
@@ -1869,8 +1869,8 @@ sub update_from_subject_form
 		}
 
 		my $additional_field = 
-			EPrints::MetaInfo->find_eprint_field( "additional" );
-		my $reason_field = EPrints::MetaInfo->find_eprint_field( "reasons" );
+			EPrints::MetaInfo::find_eprint_field( "additional" );
+		my $reason_field = EPrints::MetaInfo::find_eprint_field( "reasons" );
 
 		$self->{eprint}->{$additional_field->{name}} =
 			$self->{session}->{render}->form_value( $additional_field );
@@ -2024,7 +2024,7 @@ sub render_format_form
 	my $f;
 	foreach $f (@EPrintSite::SiteInfo::supported_formats)
 	{
-		my $req = EPrints::Document->required_format( $f );
+		my $req = EPrints::Document::required_format( $f );
 		my $doc = $self->{eprint}->get_document( $f );
 		my $numfiles = 0;
 		if( defined $doc )

@@ -145,8 +145,8 @@ sub get_sql
 {
 	my( $self ) = @_;
 	
-#EPrints::Log->debug( "SearchField", "making SQL for $self->{formname} of type $self->{type}" );
-#EPrints::Log->debug( "SearchField", "Value is $self->{value}" );
+#EPrints::Log::debug( "SearchField", "making SQL for $self->{formname} of type $self->{type}" );
+#EPrints::Log::debug( "SearchField", "Value is $self->{value}" );
 
 	# Get the SQL for a single term
 
@@ -318,7 +318,7 @@ sub get_sql
 		}
 	}
 
-#EPrints::Log->debug( "SearchField", "SQL = $all_sql" );
+#EPrints::Log::debug( "SearchField", "SQL = $all_sql" );
 
 	return( $all_sql );
 }
@@ -402,7 +402,7 @@ sub render_html
 {
 	my( $self ) = @_;
 	
-#EPrints::Log->debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
+#EPrints::Log::debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
 
 	my $html;
 	my $type = $self->{type};
@@ -469,10 +469,10 @@ sub render_html
 		
 		if( $type eq "eprinttype" )
 		{
-			my @eprint_types = EPrints::MetaInfo->get_eprint_types();
+			my @eprint_types = EPrints::MetaInfo::get_eprint_types();
 			( $values, $labels ) = _add_any_option(
 				\@eprint_types,
-				EPrints::MetaInfo->get_eprint_type_names() );
+				EPrints::MetaInfo::get_eprint_type_names() );
 		}
 		else
 		{
@@ -515,7 +515,7 @@ sub render_html
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info.
 			( $values, $labels ) = _add_any_option(
-				EPrints::Subject->get_postable( $self->{session}, {} ) );
+				EPrints::Subject::get_postable( $self->{session}, {} ) );
 		}
 		else
 		{
@@ -555,7 +555,7 @@ sub render_html
 	}
 	else
 	{
-		EPrints::Log->log_entry(
+		EPrints::Log::log_entry(
 			"SearchField",
 			"Don't know how to render search field for type $type" );
 	}
@@ -577,7 +577,7 @@ sub _add_any_option
 {
 	my( $old_tags, $old_labels ) = @_;
 
-#EPrints::Log->debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
+#EPrints::Log::debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
 	
 	my @tags = ( "NONE" );
 	my %labels = ( "NONE" => "(Any)" );
@@ -660,7 +660,7 @@ sub from_form
 			# We have some values. Join them together.
 			$val = join ':', @vals;
 
-			#EPrints::Log->debug( "SearchField", "Joined values: $val" );
+			#EPrints::Log::debug( "SearchField", "Joined values: $val" );
 
 			# But if one of them was the "any" option, we don't want a value.
 			foreach (@vals)
@@ -668,7 +668,7 @@ sub from_form
 				undef $val if( $_ eq "NONE" );
 			}
 
-			#EPrints::Log->debug( "SearchField", "Joined values post NONE check: $val" );
+			#EPrints::Log::debug( "SearchField", "Joined values post NONE check: $val" );
 		}
 
 		if( defined $val )
@@ -701,8 +701,8 @@ sub from_form
 		}
 	}
 
-#EPrints::Log->debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
-#EPrints::Log->debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
+#EPrints::Log::debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
+#EPrints::Log::debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
 
 	return( $problem );
 }

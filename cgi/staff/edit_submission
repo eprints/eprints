@@ -195,7 +195,7 @@ sub bounce
 	if( $success )
 	{
 		# Successfully transferred, mail the user with the reason
-		if( EPrints::Mailer->send_mail(
+		if( EPrints::Mailer::send_mail(
 			$user->full_name(),
 			$user->{email},
 			"Problem with submission",

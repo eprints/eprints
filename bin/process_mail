@@ -60,7 +60,7 @@ while( <> )
 
 if( !defined $subject || !defined $from )
 {
-	EPrints::Log->log_entry( "process_mail",
+	EPrints::Log::log_entry( "process_mail",
 	                         "Error in mail: From or Subject line missing" );
 }
 elsif( $subject =~ /new\s?user/i )
@@ -96,7 +96,7 @@ sub add_user
 	my( $session, $email, $is_author ) = @_;
 	
 	# Find user by email
-	my $user = EPrints::User->user_with_email( $session, $email );
+	my $user = EPrints::User::user_with_email( $session, $email );
 
 	if( defined $user )
 	{
@@ -106,7 +106,7 @@ sub add_user
 	else
 	{
 		# Not one already, create one
-		$user = EPrints::User->create_user_email(
+		$user = EPrints::User::create_user_email(
 			$session,
 			$email,
 			$EPrints::User::access_levels[0] );
