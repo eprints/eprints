@@ -22,25 +22,26 @@ Apache::exit( 0 ) unless( defined $session );
 
 my $newlang = $session->param( "langid" );
 
+my @langids = @{$session->get_archive()->get_conf( "languages" )};
 
 if( !defined $newlang )
 {
 	my $page = $session->make_doc_fragment;
-	foreach( keys %EPrints::Archives::General::languages )
+	my $langid;
+	foreach $langid ( @langids )
 	{	
-	
 		my $p = $session->make_element( "p" );
 		my $a = $session->make_element( "a", 
-				href => "setlang?langid=$_" );
+				href => "setlang?langid=$langid" );
 		$a->appendChild( $session->make_text( 
-			$EPrints::Archives::General::languages{$_} ) );
+			$EPrints::Archives::General::languages{$langid} ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
-	$session->build_page( "Change Language", $page );
+	$session->build_page( "Change Language", $page );#cjg INTL
         $session->send_page();
 }
-elsif( defined $EPrints::Archives::General::languages{$newlang} )
+elsif( grep(/^$newlang$/,@langs) )
 {
 	my $page = $session->make_doc_fragment;
 	$session->change_lang( $newlang );
@@ -65,6 +66,7 @@ else
 {
 	my $page = $session->make_doc_fragment;
 	my $p = $session->make_element( "p" );
+# NOT AVAILABLE/UNKNOWN  -> report if not supported by archive?cjg
 	$p->appendChild( $session->make_text(
 		"Unknown language identifier: \"$newlang\"" ) );
 	$page->appendChild( $p );

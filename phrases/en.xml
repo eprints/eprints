@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
 <phrases>
     <phrase ref="fieldname_eprint_eprintid">EPrint ID</phrase>
 

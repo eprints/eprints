@@ -21,7 +21,7 @@ use EPrints::Database;
 use File::Path;
 use Filesys::DiskSpace;
 use strict;
-use XML::DOM;
+use EPrints::DOM;
 
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
@@ -1218,7 +1218,7 @@ sub generate_static
 		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
 	
 	my $langid;
-	foreach $langid ( keys %EPrints::Archives::General::languages )
+	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		print "LANG: $langid\n";	
 

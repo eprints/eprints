@@ -14,7 +14,6 @@ EPRINTSBASE/
 		<myarchive>/
 			cfg/
 				Config.pm
-				system-apache.conf
 				user-apache.conf
 				<?>.xml
 			documents/
@@ -39,6 +38,9 @@ EPRINTSBASE/
 					.
 					.
 					.
+			sys/
+				system-apache.conf
+				DTD's
 	bin/
 		create_databases
 		create_user

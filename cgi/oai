@@ -168,7 +168,7 @@ sub identify
 
 	$writer->dataElement(
 		"adminEmail",
-		EPrints::OpenArchives::to_utf8( "mailto:".$session->get_archive()->get_conf( "admin" ) ) );
+		EPrints::OpenArchives::to_utf8( "mailto:".$session->get_archive()->get_conf( "adminemail" ) ) );
 
 	$writer->startTag( "description");
 	$writer->startTag( "oai-identifier", 

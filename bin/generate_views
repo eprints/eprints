@@ -34,7 +34,7 @@ exit unless( defined $session );
 my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 
 my $langid;
-foreach $langid ( keys %EPrints::Site::General::languages )
+foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
 	my $dir =  $session->get_archive()->get_conf( "local_html_root" ).
 		"/".$langid."/view";

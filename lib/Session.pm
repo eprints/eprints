@@ -19,7 +19,6 @@
 # - Make sure user is ePrints for sessions
 # - Check for df on startup
 
-
 package EPrints::Session;
 
 use EPrints::Database;
@@ -28,10 +27,12 @@ use EPrints::Language;
 use EPrints::Archive;
 use Unicode::String qw(utf8 latin1);
 
-
-
-use XML::DOM;
+use EPrints::DOM;
 use XML::Parser;
+
+
+EPrints::DOM::setTagCompression( \&_tag_compression );
+
 
 use strict;
 #require 'sys/syscall.ph';
@@ -118,13 +119,15 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	# What language is this session in?
 
 	my $langcookie = $self->{query}->cookie( $self->{archive}->get_conf( "lang_cookie_name") );
-	if( defined $langcookie && !defined $EPrints::Archives::General::languages{ $langcookie } )
+	if( defined $langcookie && grep( /^$langcookie$/, @{$self->{archive}->get_conf( "languages" )} ) )
 	{
 		$langcookie = undef;
 	}
 	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $langcookie );
+	#lang should cache, really only (cjg) ONLINE mode should have
+	#a language set automatically.
 	
-	$self->new_page;
+	$self->new_page();
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -132,6 +135,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
+		# cjg diff err if offline?
 		$self->render_error( $self->phrase( "lib/session:fail_db_connect" ) );
 	}
 
@@ -205,14 +209,12 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-print STDERR $r->toString()." eep!\n";
 	return $self->tree_to_utf8( $r );
 }
 
 sub get_order_names
 {
 	my( $self, $dataset ) = @_;
-print STDERR "SELF:".join(",",keys %{$self} )."\n";
 		
 	my %names = ();
 	foreach( keys %{$self->{archive}->get_conf(
@@ -315,17 +317,14 @@ sub tree_to_utf8
 	my $name = $node->getNodeName;
 	if( $name eq "#text" || $name eq "#cdata-section")
 	{
-print STDERR "#text/cdata: ".$node->getNodeValue."\n";
 		return utf8($node->getNodeValue);
 	}
 
 	my $string = utf8("");
 	foreach( $node->getChildNodes )
 	{
-print STDERR ".string: $string\n";
 		$string .= $self->tree_to_utf8( $_ );
 	}
-print STDERR "#string: $string\n";
 
 	if( $name eq "fallback" )
 	{
@@ -666,7 +665,7 @@ sub render_error
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
-					$self->get_archive()->get_conf( "admin" ) ),
+					$self->get_archive()->get_conf( "adminemail" ) ),
 			sitename => $self->make_text(
 				$self->get_archive()->get_conf( "archivename" ) ) ) );
 		$page->appendChild( $p );
@@ -714,8 +713,6 @@ sub render_input_form
 {
 	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
 	    $hidden_fields, $comments, $dest ) = @_;
-
-print STDERR EPrints::Session::render_struct( $values );
 
 	my $query = $self->{query};
 
@@ -839,7 +836,6 @@ sub take_ownership
 sub build_page
 {
 	my( $self, $title, $mainbit ) = @_;
-print STDERR $title."\n";
 	
 	print STDERR "BUILDPAGE go!\n";	
 	
@@ -848,7 +844,6 @@ print STDERR $title."\n";
 	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
 		my $element = $self->{page}->createTextNode( $title );
-print STDERR $element->toString()."\n\n";
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
@@ -894,27 +889,24 @@ sub new_page
 
 	if( !defined $langid )
 	{
-		$langid = $self->{lang}->get_id;
+		$langid = $self->{lang}->get_id();
 	}
 
-	$self->{page} = new XML::DOM::Document;
+	$self->{page} = new EPrints::DOM::Document();
 
-	XML::DOM::setTagCompression( \&_tag_compression );
-
-	my $doctype = XML::DOM::DocumentType->new(
-			"foo", #cjg what's this bit?
+	my $doctype = $self->{page}->createDocumentType(
 			"html",
 			"DTD/xhtml1-transitional.dtd",
 			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
-	$self->take_ownership( $doctype );
 	$self->{page}->setDoctype( $doctype );
 
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
 
-	my $newpage = $self->{archive}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
-	$self->take_ownership( $newpage );
-	$self->{page}->appendChild( $newpage );
+	my $html = $self->{archive}->get_template( $langid )->cloneNode( 1 );
+	$self->take_ownership( $html );
+	$self->{page}->appendChild( $html );
+
 }
 
 
@@ -1194,7 +1186,6 @@ sub render_struct
 		$text.= "$type\n";
 		return $text;
 	}
-print STDERR "=$type=\n";
 
 	my %bits = %{$ref};
 	$text.= "  "x$depth;
@@ -1295,7 +1286,7 @@ sub mail_administrator
 	EPrints::Mailer::send_mail(
 		$self,
 		 "lib/session:site_admin" ,
-		$self->{archive}->{admin},
+		$self->{archive}->{adminemail},
 		$subject,
 		$message_body );
 }

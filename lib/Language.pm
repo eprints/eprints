@@ -23,11 +23,9 @@ package EPrints::Language;
 
 use EPrints::Archives::General;
 
-use XML::DOM;
 use strict;
 
 # Cache for language objects NOT attached to a config.
-my %LANG_CACHE = ();
 
 ######################################################################
 #
@@ -79,13 +77,15 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
+print STDERR "------LOADINGLANG:$langid-------\n";
+
 	$self->{id} = $langid;
 
 	$self->{archivedata} =
-		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id}.".xml" );
+		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id}.".xml", $archive );
 
 	$self->{data} =
-		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml" );
+		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml", $archive );
 	
 	if( $archive->get_conf("default_language") ne $self->{id})
 	{
@@ -207,13 +207,15 @@ sub _get_archivedata
 ## WP1: BAD
 sub read_phrases
 {
-	my( $file ) = @_;
+	my( $file, $archive ) = @_;
 	
+	my $parser = $archive->new_parser();
 
-	my $parser = new XML::DOM::Parser;
+	open( LANGXML, $file ) || die( "Language.pm: Can't open $file" );
 	my $doc = eval {
-		$parser->parsefile( $file );
+		$parser->parse( *LANGXML );
 	};
+	close LANGXML;
 	if( $@ )
 	{
 		my $err = $@;

@@ -13,7 +13,7 @@
 package EPrints::Archives::lemurprints;
 
 
-use XML::DOM;
+use EPrints::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
 
 use EPrints::Archives::General;
@@ -42,15 +42,18 @@ print STDERR "LEMURPRINTS:getconf\n";
 #
 ######################################################################
 
-$c->{archivename} = latin1( "Lemur Prints Archive" );
+$c->{archivename}->{en} = latin1( "Lemur Prints Archive" );
+$c->{archivename}->{fr} = latin1( "l'eprints" );
  
 $c->{archiveid} = "lemurprints";
 
-# Short text description
+# Short text description cjg <doomed to phrases>
 $c->{description} = latin1( "Your Site Description Here" );
 
 # E-mail address for human-read administration mail
-$c->{admin} = "admin\@lemur.ecs.soton.ac.uk";
+$c->{adminemail} = "admin\@lemur.ecs.soton.ac.uk";
+
+$c->{languages} = [ "en", "fr" ];
 
 # Host the machine is running on
 $c->{host} = "HOSTNAME";
@@ -84,8 +87,9 @@ $c->{allow_user_removal_request} = 1;
 # paths
 
 $c->{archive_root} = "$EPrints::Archives::General::base_path/archives/$c->{archiveid}";
-$c->{bin_root} = "$EPrints::Archives::General::base_path/bin";
 $c->{phrases_path} = "$c->{archive_root}/phrases";
+$c->{config_path} = "$c->{archive_root}/cfg";
+$c->{system_files_path} = "$c->{archive_root}/sys";
 $c->{static_html_root} = "$c->{archive_root}/static";
 $c->{local_html_root} = "$c->{archive_root}/html";
 $c->{local_document_root} = "$c->{archive_root}/documents";
@@ -665,205 +669,18 @@ $c->{types}->{user} = {
 	user  =>  []
 };
 
-######################################################################
-#
-#  Site Look and Feel
-#
-######################################################################
-
-# parameters to generate the HTML header with.
-# TITLE will be set by the system as appropriate.
-# See the CGI.pm manpage for more info ( man CGI ).
-
-# This is the HTML put at the top of every page. It will be put in the <BODY>,
-#  so shouldn't include a <BODY> tag.
-
-my $fr = latin1("Français");#cjg!!!
-
-$c->{htmlpage}->{en} = parse_html( <<END );
-<html>
-<head>
-  <title><titlehere/></title>
-  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
-</head>
-
-<body bgcolor="#ffffff" text="#000000">
-
-<div class="header">
-<table  cellpadding="5" border="0" cellspacing="0" width="100%">
-
-<tr><td bgcolor="#cccccc">
-<div class="archivetitle">$c->{archivename}</div>
-</td>
-</tr>
-
-<tr>
-<td bgcolor="#cccccc">
-<div class="langmenu">
-English
-||
-<a class="langlink" href="$c->{server_perl}/setlang?langid=du">Dummy</a>
-||
-<a class="langlink" href="$c->{server_perl}/setlang?langid=fr">$fr</a>
-</div>
-</td></tr>
-
-<tr>
-<td bgcolor="#333333">
-<div class="pagetitle"><titlehere /></div>
-</td></tr>
-
-<tr><td bgcolor="#333333">
-<div class="menu">
-            <a class="menulink" href="$c->{frontpage}">Home</a> ||
-            <a class="menulink" href="$c->{server_static}/information.html">About</a> ||
-            <a class="menulink" href="$c->{server_static}/view/">Browse</a> ||
-            <a class="menulink" href="$c->{server_perl}/search">Search</a> ||
-            <a class="menulink" href="$c->{server_static}/register.html">Register</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/home">User Area</a> ||
-            <a class="menulink" href="$c->{server_static}/help">Help</a>
-</div>
-</td></tr></table>
-</div>
-<div class="main">
-<pagehere />
- <hr noshade="noshade" size="2"/>
-      <p>Contact site administrator at: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
- <p>
-    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
-        src="http://www.w3.org/Icons/valid-xhtml10"
-	border="0"
-        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
-  </p>
-</div></body>
-
-</html>
-
-END
-
-#########################################################################################
-
-
-$c->{htmlpage}->{fr} = parse_html( <<END );
-<html>
-<head>
-  <title><titlehere/></title>
-  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
-</head>
-
-<body bgcolor="#ffffff" text="#000000">
-
-<div class="header">
-<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
-"#cccccc">
-      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
-="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
-</td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="archivetitle">$c->{archivename}</h1>
-<h2 class="pagetitle"><titlehere /></h2>
-</td><td align="right" bgcolor="#cccccc">
-<a href="$c->{server_perl}/setlang"><img border="0" src="/images/french.png" width="60" height="40" alt="l'mode francais" /></a>
-</td></tr>
-<tr><td colspan="3" bgcolor="#333333">
-<div class="menu">
-
-            <a class="menulink" href="$c->{frontpage}">l'Home</a> ||
-            <a class="menulink" href="$c->{server_static}/information.html">l'About</a> ||
-            <a class="menulink" href="$c->{server_static}/view/">l'Browse</a> ||
-            <a class="menulink" href="$c->{server_perl}/search">l'Search</a> ||
-            <a class="menulink" href="$c->{server_static}/register.html">l'Register</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/subscribe">l'Subscriptions</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/home">l'Deposit Items</a> ||
-            <a class="menulink" href="$c->{server_static}/help">l'Help</a>
-</div>
-</td></tr></table>
-</div>
-<div class="main">
-<pagehere />
- <hr noshade="noshade" size="2"/>
-      <p>Contact site administrator at: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
- <p>
-    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
-        src="http://www.w3.org/Icons/valid-xhtml10"
-	border="0"
-        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
-  </p>
-</div></body>
-
-</html>
-
-END
-
+##################
 
 #  E-mail signature, appended to every email sent by the software
 $c->{signature} = <<END;
 --
  $c->{archivename}
  $c->{frontpage}
- $c->{admin}
+ $c->{adminemail}
 
 END
 #########################################################################################
 
-
-$c->{htmlpage}->{du} = parse_html( <<END );
-<html>
-<head>
-  <title><titlehere/></title>
-  <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
-</head>
-
-<body bgcolor="#ffffff" text="#000000">
-
-<div class="header">
-<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor=
-"#cccccc">
-      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
-="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
-</td><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="archivetitle">$c->{archivename}</h1>
-<h2 class="pagetitle"><titlehere /></h2>
-</td><td align="right" bgcolor="#cccccc">
-<a href="$c->{server_perl}/setlang"><img border="0" src="/images/dummy.png" width="60" height="40" alt="DUMMY MODE" /></a>
-</td></tr>
-<tr><td colspan="3" bgcolor="#333333">
-<div class="menu">
-
-            <a class="menulink" href="$c->{frontpage}">HOME</a> ||
-            <a class="menulink" href="$c->{server_static}/information.html">ABOUT</a> ||
-            <a class="menulink" href="$c->{server_subject}/view/">BROWSE</a> ||
-            <a class="menulink" href="$c->{server_perl}/search">SEARCH</a> ||
-            <a class="menulink" href="$c->{server_static}/register.html">REGISTER</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/subscribe">SUBSCRIPTIONS</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/home">DEPOSIT ITEMS</a> ||
-            <a class="menulink" href="$c->{server_static}/help">HELP</a>
-</div>
-</td></tr></table>
-</div>
-<div class="main">
-<pagehere />
- <hr noshade="noshade" size="2"/>
-      <p>CONTACT SITE ADMINISTRATOR AT: <a href="mailto:$c->{admin}">$c->{admin}</a></p>
- <p>
-    <a href="http://validator.ecs.soton.ac.uk/check/referer"><img
-        src="http://www.w3.org/Icons/valid-xhtml10"
-	border="0"
-        alt="Valid XHTML 1.0!" height="31" width="88" /></a>
-  </p>
-</div></body>
-
-</html>
-
-END
-
-#########cjg latin etc not done from here...
-
-#  E-mail signature, appended to every email sent by the software
-$c->{signature} = <<END;
---
- $c->{archivename}
- $c->{frontpage}
- $c->{admin}
 
 END
 
@@ -2160,13 +1977,29 @@ sub log
 ## WP1: BAD
 sub parse_html
 {
-	my( $html ) = @_;
-	my $parser = new XML::DOM::Parser();
+	my( $html , $dtd) = @_;
+	my $parser = new EPrints::DOM::Parser( NoExpand=>0, ParseParamEnt=>1, NoLWP=>1 , DTD=>$dtd);
 	my $doc = $parser->parse( $html );
-	my $element = $doc->getFirstChild;	
+	my $element = $doc->getLastChild();
 	$doc->removeChild( $element );
 	$doc->dispose();
 	return $element;
 }
+
+sub get_entities
+{
+	my( $archive, $langid ) = @_;
+
+	my %entities = ();
+	$entities{archivename} = $archive->get_conf( "archivename", $langid );
+	$entities{adminemail} = $archive->get_conf( "adminemail" );
+	$entities{cgiroot} = $archive->get_conf( "server_perl" );
+	$entities{htmlroot} = $archive->get_conf( "server_static" );
+	$entities{frontpage} = $archive->get_conf( "frontpage" );
+	$entities{version} = $EPrints::Version::eprints_software_version;
+
+	return %entities;
+}
+	
 
 1;

@@ -389,7 +389,7 @@ sub send_reminder
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},
-		 adminemail=>$self->{session}->get_archive()->get_conf( "admin" )  );
+		 adminemail=>$self->{session}->get_archive()->get_conf( "adminemail" )  );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},

@@ -52,11 +52,10 @@ sub new_site_by_host_and_path
 	return undef;
 }
 
-
 ## WP1: BAD
 sub new_site_by_id
 {
-	my( $class, $id ) = @_;
+	my( $class, $id, $noxml ) = @_;
 
 	print STDERR "Loading: $id\n";
 
@@ -75,9 +74,10 @@ sub new_site_by_id
 	my $self = {};
 	bless $self, $class;
 
-	unless( require "EPrints/Archives/$id.pm" )
+
+	unless( eval{ require "EPrints/Archives/$id.pm" } )
 	{
-print STDERR "FAILED TO LOAD: $id\n";
+		print STDERR "EPRINTS: FAILED TO LOAD CONFIG MODULE: $id\n";
 		return undef;
 	}
 	$ID2SITE{$id} = $self;
@@ -99,8 +99,49 @@ print STDERR "FAILED TO LOAD: $id\n";
 		$self->{datasets}->{$_} = EPrints::DataSet->new( $self, $_ );
 	}
 
+	###########
+	# cjg LOAD LANGUAGES!!!!! unless noxml
+
+
+	# Load Templates
+	
+	my $langid;
+	foreach $langid ( @{$self->get_conf( "languages" )} )
+	{
+		my $file = $self->get_conf( "config_path" ).
+				"/template-$langid.xml";
+		my $parser = $self->new_parser();
+		open( TEMPLATEXML, $file ) || die "Can't open $file";
+		my $doc = eval {
+			$parser->parse( *TEMPLATEXML );
+		};
+		close TEMPLATEXML;
+		if( $@ )
+		{
+			die "Error parsing $file\n$@";
+		}
+
+		my @list = $doc->getElementsByTagName( "html" );
+		my $html = $list[0];
+		if( !defined $html )
+		{
+			die "Missing <html> tag in $file";
+		}
+		$doc->removeChild( $html );
+		$doc->dispose();
+		$self->{html_templates}->{$langid} = $html;
+	}
+
 $self->log("done: $id");
 	return $self;
+}
+
+
+sub get_template
+{
+	my( $self, $langid ) = @_;
+
+	return $self->{html_templates}->{$langid};
 }
 
 ## WP1: GOOD
@@ -182,5 +223,17 @@ sub get_store_dir_size
 
 	return( ( df $filepath)[3] );
 } 
+
+sub new_parser
+{
+	my( $self ) = @_;
+
+	my $parser = EPrints::DOM::Parser->new(
+		Base => $self->get_conf( "system_files_path" )."/",
+		ParseParamEnt => 1,
+		ErrorContext => 2,
+		NoLWP => 1 );
+	return $parser;
+}
 
 1;

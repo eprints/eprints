@@ -46,7 +46,7 @@ if( $session->{render}->seen_form() )
 	print "<CENTER><P>";
 	print $session->{lang}->phrase( 
 		"cgi/remind:sent_blurb",
-		"<A HREF=\"".$session->get_archive()->get_conf( "admin" )."\">".
+		"<A HREF=\"".$session->get_archive()->get_conf( "adminemail" )."\">".
 		 $session->{lang}->phrase( "cgi/remind:site_admin" )."</A>" );
 
 	print "</P></CENTER>\n";

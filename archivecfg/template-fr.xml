@@ -1,0 +1,57 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE html SYSTEM "entities-fr.dtd" > 
+
+<html>
+  <head>
+    <title><titlehere/></title>
+    <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
+  </head>
+  <body bgcolor="#ffffff" text="#000000">
+    <div class="header">
+      <table  cellpadding="5" border="0" cellspacing="0" width="100%">
+        <tr>
+          <td bgcolor="#cccccc">
+            <div class="archivetitle">&archivename;</div>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#cccccc">
+            <div class="langmenu">
+              English ||
+              <a class="langlink" href="&cgiroot;/setlang?langid=du">Dummy</a> ||
+              <a class="langlink" href="&cgiroot;/setlang?langid=fr">Francais</a>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td bgcolor="#333333">
+            <div class="pagetitle"><titlehere /></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td bgcolor="#333333">
+            <div class="menu">
+              <a class="menulink" href="&htmlroot;">Home</a> ||
+              <a class="menulink" href="&htmlroot;information.html">About</a> ||
+              <a class="menulink" href="&htmlroot;view/">Browse</a> ||
+              <a class="menulink" href="&cgiroot;search">Search</a> ||
+              <a class="menulink" href="&htmlroot;register.html">Register</a> ||
+              <a class="menulink" href="&cgiroot;users/home">User Area</a> ||
+              <a class="menulink" href="&htmlroot;help">Help</a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="main">
+<hr />
+FRENCH
+<hr />
+      <pagehere />
+      <hr noshade="noshade" size="2"/>
+      <p>Contact site administrator at: <a href="mailto:&adminemail;">&adminemail;</a></p>
+    </div>
+  </body>
+</html>

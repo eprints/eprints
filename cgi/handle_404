@@ -124,7 +124,7 @@ sub plain_404
 	print "<P>";	
 	print $session->{lang}->phrase( 
 		"cgi/handle_404:blurb",
-		"<a href=\"mailto:".$session->get_archive()->get_conf( "admin ")."\">".
+		"<a href=\"mailto:".$session->get_archive()->get_conf( "adminemail ")."\">".
 		  $session->{lang}->phrase( "cgi/handle_404:site_admin" ).
 		  "</a>" );
 	print "</P>\n";

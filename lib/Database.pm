@@ -18,8 +18,6 @@
 
 package EPrints::Database;
 
-# Nb, Apache::DBI must come before DBI if it is to work. 
-use Apache::DBI;
 use DBI;
 use EPrints::Deletion;
 use EPrints::EPrint;

@@ -24,8 +24,6 @@ use File::Copy;
 use File::Find;
 use strict;
 
-#cjg generate DTD's???
-
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
@@ -35,7 +33,7 @@ chdir( $session->get_archive()->get_conf( "archive_root" ) );
 print "____________________________\n";
 my $langid;
 my $generalpath = $session->get_archive()->get_conf( "static_html_root" )."/general";
-foreach $langid ( keys %EPrints::Archives::General::languages )
+foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
 	print $langid."\n";
 	my $basepath = $session->get_archive()->get_conf( "static_html_root" ).
@@ -50,35 +48,6 @@ exit;
 
 
 $session->terminate();
-
-sub generate_dtd
-{
-	my( $session, $langid ) = @_;
-
-	my $dtd = "";
-	$dtd.= "<!ENTITY sitename \"".
-		$session->get_archive()->get_conf( "archivename" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY description \"".
-		$session->get_archive()->get_conf( "description" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY admin \"".
-		$session->get_archive()->get_conf( "admin" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY perlroot \"".
-		$session->get_archive()->get_conf( "server_perl" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY staticroot \"".
-		$session->get_archive()->get_conf( "server_static" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY frontpage \"".
-		$session->get_archive()->get_conf( "frontpage" ).
-		"\" >\n";
-	$dtd.= "<!ENTITY version \"".
-		$EPrints::Version::eprints_software_version.
-		"\" >\n";
-	return $dtd;
-}
 	
 
 sub generate_static
@@ -112,22 +81,11 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 		{
 			my $mode = $1;
 			$destination_filename =~ s/\.x(html|page)$/.html/;
-			my $parser = new XML::DOM::Parser( 
-					ParseParamEnt => 1,
-					NoLWP => 1,
-					ProtocolEncoding => "ISO-8859-1" );
+			my $parser = $session->get_archive()->new_parser();
 
-			my $xhtml = "<!DOCTYPE $mode [\n".
-				generate_dtd( $session, $langid )." ] >\n";
-print "$xhtml\n\n";
-			open( XML , $File::Find::name );
-			while( <XML> )
-			{
-				$xhtml .= $_;
-			}	
-			close XML;
+			open( XPAGE , $File::Find::name );
 			my $doc = eval { 
-				$parser->parse( $xhtml );
+				$parser->parse( *XPAGE );
 			};
 			if( $@ )
 			{
@@ -135,6 +93,7 @@ print "$xhtml\n\n";
 				$err =~ s# at /.*##;
 				die "Error parsing $File::Find::name\n$err";
 			}
+			close XPAGE;
 
 			my $page = ($doc->getElementsByTagName( $mode ))[0];
 			if( !defined $page )

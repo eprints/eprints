@@ -16,21 +16,12 @@
 #
 ######################################################################
 
-use EPrints::Database;
 use strict;
+use EPrints::Session;
 
-print "--- loaded ---\n";
 my $session = new EPrints::Session( 1 , $ARGV[0] );
-exit unless( defined $session );
+exit( 1 ) unless( defined $session );
 
-my $ds = $session->get_archive()->get_data_set( "archive" );
-my $i;
-for($i=10;$i<100;++$i) {
-my $eprint = new EPrints::EPrint( $session, $ds, "zook000000$i" );
-print "--- begin ---\n";
-print $eprint->{title}."\n";
-print $eprint->render_citation()->to_string()."\n";
-print "Yay\n";
-}
+print "in the session.\n";
 
 $session->terminate();
