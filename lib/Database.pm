@@ -18,6 +18,8 @@
 
 package EPrints::Database;
 
+# Nb, Apache::DBI must come before DBI if it is to work. 
+use Apache::DBI;
 use DBI;
 use EPrints::Deletion;
 use EPrints::EPrint;
@@ -131,7 +133,6 @@ sub new
 sub disconnect
 {
 	my( $self ) = @_;
-	
 	# Make sure that we don't disconnect twice, or inappropriately
 	if( defined $self->{dbh} )
 	{

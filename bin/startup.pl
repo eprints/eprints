@@ -9,7 +9,6 @@ print STDERR    $p1->parse('<foo id="me">Hello World</foo>');
 print STDERR "ok.\n";
 
 
-
            
 # Extend @INC if needed
            
@@ -18,7 +17,12 @@ use lib qw( /opt/eprints/perl_lib );
 # Make sure we are in a sane environment.
 $ENV{MOD_PERL} or die "not running under mod_perl!";
             
-# For things in the "/perl" URL
+
+## Apache::DBI MUST come before other modules using DBI or
+## you won't get constant connections and everything
+## will go horribly wrong...
+
+use Apache::DBI;
 
 use Apache::Registry;          
  
@@ -27,6 +31,7 @@ use Apache::Registry;
 
 
 
+$Apache::DBI::DEBUG = 3;
 
 
 use EPrints::Auth;

@@ -990,18 +990,23 @@ sub prune_documents
 	my( $self ) = @_;
 	
 	# Get the documents from the database
-	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
+	my $docs_ds = $self->{session}->get_archive()->get_data_set( "document" );
 
-	my $rows = $self->{session}->{database}->retrieve_fields(
-		"document",
-		\@fields,
-		[ "eprintid LIKE \"$self->{eprintid}\"" ] );
+	my $searchexp = new EPrints::SearchExpression(
+		session => $self->{session},
+		dataset => $docs_ds );
+
+	$searchexp->add_field(
+		$docs_ds->get_field( "eprintid" ),
+		"PHR:EQ:".$self->get_value( "eprintid" ) );
+	
+	my $searchid = $searchexp->perform_search;
+	my @docs = $searchexp->get_records;
 
 	# Check each one
-	my $row;
-	foreach $row (@$rows)
+	my $doc;
+	foreach $doc (@docs)
 	{
-		my $doc = EPrints::Document->new( $self->{session}, $_->[0], $row );
 		my %files = $doc->files();
 		if( scalar keys %files == 0 )
 		{
@@ -1230,8 +1235,9 @@ sub generate_static
 		print "yo:".join(",",@created)."\n";
 
 		$self->{session}->new_page( $langid );
-		my $page = $self->render_abstract_page();
-		$self->{session}->build_page( "TITLE?????", $page ); #cjg title?
+		my( $page, $title ) = $self->render_abstract_page();
+
+		$self->{session}->build_page( $title, $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
 		# SYMLINK's to DOCS...
@@ -1249,9 +1255,9 @@ sub render_abstract_page
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->get_archive()->call( "eprint_render_full", $self, 0 );
-
-        return( $dom );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render_full", $self, 0 );
+	
+        return( $dom, $title );
 }
 
 ## WP1: BAD
@@ -1453,7 +1459,7 @@ sub last_in_thread
 sub render_citation_link
 {
 	my( $self , $cstyle ) = @_;
-	my $a = $self->{session}->make_element( "A",
+	my $a = $self->{session}->make_element( "a",
 			href => $self->static_page_url() );
 	$a->appendChild( $self->render_citation( $cstyle ) );
 

@@ -128,7 +128,6 @@ sub new
 	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
 		$self->set_property( "displaylines", $properties->{displaylines} );
-print STDERR "DISPLINES-".$self->{name}."-".$properties->{displaylines} ."\n";
 	}
 
 	if( $self->is_type( "int" ) )

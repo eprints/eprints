@@ -18,7 +18,7 @@ use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Version;
-
+#crashy cjg
 use strict;
 
 my $session = new EPrints::Session;
@@ -170,6 +170,9 @@ $session->build_page( "Server Status", $html );
 $session->send_page(); 
 
 $session->terminate();
+
+
+
 
 sub render_empty_row
 {

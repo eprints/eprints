@@ -300,7 +300,7 @@ sub from_form
 	my $search_field;
 	foreach $search_field ( @{$self->{searchfields}} )
 	{
-		my $prob = $search_field->from_form;
+		my $prob = $search_field->from_form();
 		$onedefined = 1 if( defined $search_field->{value} );
 		
 		push @problems, $prob if( defined $prob );
@@ -445,7 +445,6 @@ sub perform_search
 	{
 		$self->{error} = undef;
 		$self->{tmptable} = $self->{dataset}->get_sql_table_name();
-		print STDERR "FUCK!\n"; 
 	}
 	else 
 	{
@@ -454,7 +453,7 @@ sub perform_search
 		my $badwords;
 		foreach $search_field( @searchon )
 		{
-			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--".$search_field->{value});
+			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--(".$search_field->{value}.")");
 			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
 			my $error;
 			( $buffer , $badwords , $error) = 

@@ -86,7 +86,6 @@ sub process
 {
 	my( $self ) = @_;
 	
-#cjg NOT VERY FAR YET...	
 	$self->{action}    = $self->{session}->get_action_button();
 	$self->{stage}     = $self->{session}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
@@ -166,6 +165,7 @@ sub process
 			no strict 'refs';
 			$ok = $self->$function_name();
 		}
+	print STDERR "SUBMISSION done $function_name\n";
 	}
 	else
 	{
@@ -173,7 +173,6 @@ sub process
 		return;
 	}
 
-print STDERR "SUBMISSION YAY\n";
 	if( $ok )
 	{
 		# Render stuff for next stage
@@ -1187,12 +1186,14 @@ sub _do_stage_subject
 sub _do_stage_format
 {
 	my( $self ) = @_;
-	
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_format} ) );
-	$self->_render_problems();
+
+	my( $page );
+
+	$page = $self->{session}->make_doc_fragment();
+
+	$page->appendChild( $self->_render_problems() );
+
+	###	######################
 
 	# Validate again, so we know what buttons to put up and how to state stuff
 	$self->{eprint}->prune_documents();
@@ -1231,7 +1232,13 @@ sub _do_stage_format
 	
 	print $self->{session}->{render}->end_form();
 
-	print $self->{session}->{render}->end_html();
+	###	######################
+
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_format" ),
+		$page );
+	$self->{session}->send_page();
 }
 
 ######################################################################

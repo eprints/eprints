@@ -308,7 +308,7 @@ sub clone
 #
 ######################################################################
 
-## WP1: BAD
+## WP1: BAD NEEEEEEEEEEEEED
 sub remove
 {
 	my( $self ) = @_;
@@ -416,7 +416,7 @@ sub local_path
 #
 ######################################################################
 
-## WP1: BAD
+## WP1: BAD NEEEEEEEEEEEEEEEEED
 sub files
 {
 	my( $self ) = @_;
@@ -440,7 +440,7 @@ sub files
 #
 ######################################################################
 
-## WP1: BAD
+## WP1: BAD#### NEEEEEEEEEEEEEED
 sub _get_files
 {
 	my( $files, $root, $dir ) = @_;

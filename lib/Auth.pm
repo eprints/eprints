@@ -78,6 +78,7 @@ print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
 			$usertypedata->{conf} );
 	my $result = &{$usertypedata->{routine}}( $rwrapper );
 	$session->terminate();
+print STDERR "***END OF AUTH***\n\n";
 	return $result;
 }
 
@@ -85,6 +86,11 @@ print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
 sub authz
 {
 	my( $r ) = @_;
+
+	return 1;
+#          |
+#### JUNK \|/ 
+
 print STDERR "Authz\n";
 print STDERR "XX:".$r->requires()."\n";
 print STDERR EPrints::Session::render_struct( $r->requires() );

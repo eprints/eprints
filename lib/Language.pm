@@ -82,10 +82,10 @@ sub new
 	$self->{id} = $langid;
 
 	$self->{archivedata} =
-		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id} );
+		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id}.".xml" );
 
 	$self->{data} =
-		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id} );
+		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml" );
 	
 	if( $archive->get_conf("default_language") ne $self->{id})
 	{

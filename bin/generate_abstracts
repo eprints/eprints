@@ -34,9 +34,12 @@ print "start\n";
 my @eprints = $session->{database}->get_all( $dataset );
 print "gotall\n";
 
+my $i=0;
 my $eprint;
 foreach $eprint (@eprints)
 {
 	$eprint->generate_static();
+	++$i;
+	last if($i==20);
 }
 print "done\n";

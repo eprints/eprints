@@ -166,16 +166,19 @@ print STDERR "------llll\n";
 print STDERR  $self->{formname} ."\n";
 print STDERR  $self->{field}->{type}."\n";
 print STDERR  $self->{session}->param( $self->{formname} )."\n";
+	my $val = $self->{session}->param( $self->{formname} );
+	$val =~ s/^\s+//;
+	$val =~ s/\s+$//;
+	$val = undef if( $val eq "" );
+
 	if( $self->is_type( "boolean" ) )
 	{
-		my $val = $self->{session}->param( $self->{formname} );
 		$self->set_value( "PHR:EQ:$val" ) if( $val ne "EITHER" );
 	}
 	elsif( $self->is_type( "email","url" ) )
 	{
 		# simple text types
-		my $val = $self->{session}->param( $self->{formname} );
-		if( defined $val && $val ne "" )
+		if( defined $val )
 		{
 			$self->set_value( "ANY:IN:$val" );
 		}
@@ -183,7 +186,6 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	elsif( $self->is_type( "longtext","text","name" ) )
 	{
 		# complex text types
-		my $search_terms = $self->{session}->param( $self->{formname} );
 		my $search_type = $self->{session}->param( 
 			$self->{formname}."_srchtype" );
 		my $exact = "IN";
@@ -192,9 +194,9 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 		# HTTP GETs)
 		$search_type = "ALL" unless defined( $search_type );		
 		
-		if( defined $search_terms && $search_terms ne "" ) 
+		if( defined $val )
 		{
-			$self->set_value( "$search_type:$exact:$search_terms" );
+			$self->set_value( "$search_type:$exact:$val" );
 		}
 	}		
 	elsif( $self->is_type( "username" ) )
@@ -208,7 +210,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 		$anyall = "ALL" unless defined( $anyall );		
 		my $exact = "IN";
 	
-		my @vals = split /\s+/ , $self->{session}->param( $self->{formname} );
+		my @vals = split /\s+/ , $val;
 		if( scalar @vals > 0)
 		{
 			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
@@ -216,14 +218,18 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	}		
 	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
 	{
-		my @vals = $self->{session}->param( $self->{formname} );
+		my @vals = ();
+		foreach( $self->{session}->param( $self->{formname} ) )
+		{
+			next if m/^\s*$/;
+			push @vals,$_;
+		}
 		my $val;
 		
 		if( scalar @vals > 0 )
 		{
 			# We have some values. Join them together.
 			$val = join ' ', @vals;
-
 
 			# But if one of them was the "any" option, we don't want a value.
 			foreach (@vals)
@@ -247,9 +253,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	}
 	elsif( $self->is_type( "year" ) )
 	{
-		my $val = $self->{session}->param( $self->{formname} );
-print STDERR "zz($val))\n";	
-		if( defined $val && $val ne "" )
+		if( defined $val )
 		{
 			if( $val =~ m/^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
 			{
@@ -709,6 +713,8 @@ sub do
 		my $tablename 	= undef;
 		foreach $tablename ( @{$sfields} )
 		{
+			my $where = $searches->{$tablename}->[$i];
+
 			# Tables have a colon and fieldname after them
 			# to make sure references to different fields are
 			# still kept seperate. But we don't want to pass
@@ -734,8 +740,6 @@ sub do
 				$tlist->{T} = $buffer;
 			}
 
-			my $where = $searches->{$_}->[$i];
-
 			# Starting with a pling! means that this is a pre
 			# done search and we should just link against the
 			# results buffer table.
@@ -744,7 +748,6 @@ sub do
 				$tlist->{M} = $where;
 				$where = undef;
 			}
-
 			$nextbuffer = $self->{session}->{database}->buffer( 
 				$keyfield,
 				$tlist, 

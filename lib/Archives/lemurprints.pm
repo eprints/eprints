@@ -83,7 +83,7 @@ $c->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$c->{archive_root} = "$EPrints::Archives::General::base_path/sites/$c->{archiveid}";
+$c->{archive_root} = "$EPrints::Archives::General::base_path/archives/$c->{archiveid}";
 $c->{bin_root} = "$EPrints::Archives::General::base_path/bin";
 $c->{phrases_path} = "$c->{archive_root}/phrases";
 $c->{static_html_root} = "$c->{archive_root}/static";
@@ -324,7 +324,7 @@ $c->{oai_comments} = [
 
 # List of supported languages is in EPrints::Archives::General.pm
 # Default Language for this archive
-$c->{default_language} = "english";
+$c->{default_language} = "en";
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
@@ -680,7 +680,7 @@ $c->{types}->{user} = {
 
 my $fr = latin1("Français");#cjg!!!
 
-$c->{htmlpage}->{english} = parse_html( <<END );
+$c->{htmlpage}->{en} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -702,9 +702,9 @@ $c->{htmlpage}->{english} = parse_html( <<END );
 <div class="langmenu">
 English
 ||
-<a class="langlink" href="$c->{server_perl}/setlang?langid=dummy">Dummy</a>
+<a class="langlink" href="$c->{server_perl}/setlang?langid=du">Dummy</a>
 ||
-<a class="langlink" href="$c->{server_perl}/setlang?langid=french">$fr</a>
+<a class="langlink" href="$c->{server_perl}/setlang?langid=fr">$fr</a>
 </div>
 </td></tr>
 
@@ -744,7 +744,7 @@ END
 #########################################################################################
 
 
-$c->{htmlpage}->{french} = parse_html( <<END );
+$c->{htmlpage}->{fr} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -806,7 +806,7 @@ END
 #########################################################################################
 
 
-$c->{htmlpage}->{dummy} = parse_html( <<END );
+$c->{htmlpage}->{du} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -1493,7 +1493,7 @@ sub eprint_render_full
 			#$commentary_field );
 	#}
 #
-	return( $page );
+	return( $page, $eprint->get_value( "title" ) );
 }
 
 

@@ -12,6 +12,8 @@
 #
 ######################################################################
 
+#cjg NOT data_set !!!
+#cjg why not make loads of accessors instead of get_data_set?
 package EPrints::Archive;
 
 use EPrints::Archives::General;

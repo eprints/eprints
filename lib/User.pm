@@ -15,6 +15,10 @@
 #
 ######################################################################
 
+##cjg _ verify password is NOT non-ascii!
+
+##cjg - emails should be UNIQUE
+
 package EPrints::User;
 
 use EPrints::Database;
@@ -40,6 +44,11 @@ sub get_system_field_info
 		{ name=>"joined", type=>"date", required=>1, editable=>0 },
 
 		{ name=>"email", type=>"email", required=>1, editable=>1 } 
+
+# cjg NEWFIELDS
+# New Email Pin
+# New Email
+
 	);
 };
 

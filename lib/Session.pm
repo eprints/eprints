@@ -59,6 +59,8 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
+print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
+
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 
 	my $offline;
@@ -73,7 +75,6 @@ sub new
 			my $r = Apache->request;
 			$r->content_type( 'text/html' );
 			$r->send_http_header;
-			print "<p>EPRINTS SERVER: Can't load archive module for URL: ".$self->{query}->url()."</p>\n";
 			
 			print STDERR "xCan't load archive module for URL: ".$self->{query}->url()."\n";
 
@@ -165,6 +166,7 @@ sub terminate
 	$self->{archive}->call( "session_close", $self );
 
 	$self->{database}->disconnect();
+print STDERR "******* END SESSION ******\n\n";
 
 }
 
@@ -293,11 +295,8 @@ sub make_element
 sub make_text
 {
 	my( $self , $text ) = @_;
-print STDERR ">>>>>>>>>>>>MAKE_TEXT::: $text\n";
 
 	my $textnode = $self->{page}->createTextNode( $text );
-
-print STDERR ">>>>>>>>>".$textnode->toString()."\n";
 
 	return $textnode;
 }
@@ -834,7 +833,6 @@ sub _render_input_form_field
 sub take_ownership
 {
 	my( $self , $domnode ) = @_;
-
 	$domnode->setOwnerDocument( $self->{page} );
 }
 
@@ -1177,7 +1175,7 @@ sub render_struct
 	{
 		my @bits = @{$ref};
 		$text.= "  "x$depth;
-		$text.= "ARRAY (".(scalar @bits).")\n";
+		$text.= "ARRAY (length=".(scalar @bits).")\n";
 		foreach( @bits )
 		{
 			$text.= render_struct( $_ , $depth+1 , %done );
@@ -1374,6 +1372,7 @@ die "NOPE";
 ## WP1: BAD
 sub bomb
 {	
+	my( $notabort ) = @_;
 	my @info;
 	print STDERR "=======================================\n";
 	print STDERR "=      EPRINTS BOMB                   =\n";
@@ -1384,7 +1383,7 @@ sub bomb
 		print STDERR $info[3]." ($info[2])\n";
 	}
 	print STDERR "=======================================\n";
-	exit;
+	exit unless $notabort;
 }
 
 1;

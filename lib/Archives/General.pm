@@ -12,13 +12,12 @@ use Unicode::String qw(utf8 latin1 utf16);
 
 $EPrints::Archives::General::base_path = "/opt/eprints";
 
-$EPrints::Archives::General::lang_path = 
-	$EPrints::Archives::General::base_path."/intl";
+$EPrints::Archives::General::lang_path = $EPrints::Archives::General::base_path."/system-phrases";
 
 %EPrints::Archives::General::languages = (
-	"dummy" => latin1( "Demonstration Other Language" ),
-	"french" => latin1( "Français" ),
-	"english" => latin1( "English" )
+	"du" => latin1( "Demonstration Other Language" ),
+	"fr" => latin1( "Français" ),
+	"en" => latin1( "English" )
 );
 
 
