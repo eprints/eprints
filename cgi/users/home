@@ -192,7 +192,7 @@ sub render_workspace
 
 	### Get the actual items in the workspace
 	my $ds = $session->get_archive()->get_dataset( "inbox" );
-	my @eprints =  $user->get_eprints( $ds );
+	my @eprints = $user->get_eprints( $ds );
 
 
 	if( scalar @eprints == 0)

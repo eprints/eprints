@@ -15,14 +15,11 @@
 package EPrints::SubmissionForm;
 
 use EPrints::EPrint;
-use EPrints::HTMLRender;
 use EPrints::Session;
 use EPrints::Document;
 
 use Unicode::String qw(utf8 latin1);
 use strict;
-
-#cjg CLONE still does not work.
 
 # Stages of upload
 

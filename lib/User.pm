@@ -531,10 +531,12 @@ sub get_eprints
 
 	my $searchid = $searchexp->perform_search;
 
-	my @records =   $searchexp->get_records;
+	my @records = $searchexp->get_records;
 	$searchexp->dispose();
 	return @records;
 }
+
+# return eprints for which this user is a valid editor.
 
 sub get_editable_eprints
 {
@@ -546,15 +548,15 @@ sub get_editable_eprints
 		session=>$self->{session},
 		dataset=>$ds );
 
-	$searchexp->add_field(
-		$ds->get_field( "userid" ),
-		"PHR:EQ:".$self->get_value( "userid" ) );
+#	$searchexp->add_field(
+#		$ds->get_field( "userid" ),
+#		"PHR:EQ:".$self->get_value( "userid" ) );
 
 #cjg set order (it's in the site config)
 
 	my $searchid = $searchexp->perform_search;
 
-	my @records =   $searchexp->get_records;
+	my @records =  $searchexp->get_records;
 	$searchexp->dispose();
 	return @records;
 }

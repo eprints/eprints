@@ -726,9 +726,7 @@ sub do2
 				# Normal Search
 				$r = $self->{session}->get_db()->search( $keyfield, $tlist, $where );
 			}
-			print STDERR "r: ".join(",",@{$r})."\n";	
 			$bitresults = EPrints::SearchExpression::_merge( $r , $bitresults, 0 );
-			print STDERR "bit: ".join(",",@{$bitresults})."\n";	
 		}
 		if( $firstpass )
 		{
@@ -738,11 +736,8 @@ sub do2
 		{
 			$results = EPrints::SearchExpression::_merge( $bitresults, $results, ( $self->{anyall} ne "ANY" ) );
 		}
-		print STDERR "res: ".join(",",@{$results})."\n";	
 		$firstpass = 0;
 	}
-	print STDERR "res: ".join(",",@{$results})."\n";	
-	print STDERR "done\n";
 	return $results;
 }
 

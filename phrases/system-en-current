@@ -277,17 +277,15 @@ User Area CGI Scripts
 
 <!-- review -->
 
-    <phrase ref="cgi/users/review:dont_know_you">I don't know who you are</phrase>
-    <phrase ref="cgi/users/review:cant_clone">Unable to clone that record. Please try again later.</phrase>
-    <phrase ref="cgi/users/review:deposit_page">Deposit Items Page</phrase>
-    <phrase ref="cgi/users/review:review_title">Review Documents</phrase>
-    <phrase ref="cgi/users/review:no_docs">You have no documents in the main archive.</phrase>
-    <phrase ref="cgi/users/review:ret_deposit">Click here to return to your deposit items page</phrase>
-    <phrase ref="cgi/users/review:blurb_below">Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.</phrase>
-    <phrase ref="cgi/users/review:remove_info">You can also request the removal of a document, but this is strongly discouraged, since different versions of a document can all be linked in the archive.</phrase>
+    <phrase ref="cgi/users/review:title">Review Documents</phrase>
+    <phrase ref="cgi/users/review:no_docs"><p><strong>You have no documents in the main archive.</strong></p></phrase>
+    <phrase ref="cgi/users/review:blurb"><p>Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.</p></phrase>
+    <phrase ref="cgi/users/review:remove_info"><p>You can also request the removal of a document, but this is strongly discouraged, since different versions of a document can all be linked in the archive.</p></phrase>
     <phrase ref="cgi/users/review:document">Document</phrase>
     <phrase ref="cgi/users/review:clone">Clone</phrase>
     <phrase ref="cgi/users/review:req_remove">Request Removal</phrase>
+    <phrase ref="cgi/users/review:cant_clone">Unable to clone that record. Please try again later.</phrase>
+
     <phrase ref="cgi/users/review:remove_title">Request EPrint Removal</phrase>
     <phrase ref="cgi/users/review:remove_blurb">Please note that we strongly discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</phrase>
     <phrase ref="cgi/users/review:removing">You are requesting the removal of:</phrase>

@@ -82,9 +82,6 @@ sub process
 	my $count = $searchexp->count();
 	$searchexp->dispose();
 
-	
-	#print "<P><A HREF=\"user_eprints?username=$userid\">";
-	#<                       "HREF=\"eprint_search?username=$userid\&submit=Search\">".
 	my $url;
 	if( $staff )
 	{

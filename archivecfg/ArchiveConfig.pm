@@ -326,18 +326,19 @@ $c->{default_user_type} = "user";
 #editor
 #set-password
 #staff-view -> view & search users & eprints in staff mode.
+#deposit
  
  
 $c->{userauth} = {
 	user => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "user", "subscription", "set-password" ] },
+		priv  =>  [ "user", "subscription", "set-password", "deposit" ] },
 	editor => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "staff-view" ] },
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "staff-view", "deposit"] },
 	admin => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject", "staff-view" ] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject", "staff-view", "deposit"] }
 };
 
 

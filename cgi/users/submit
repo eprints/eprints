@@ -25,6 +25,15 @@ use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
+# Check we have privs
+if( !$session->auth_check( "deposit" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my $user = $session->current_user();
+
 my $subform = new EPrints::SubmissionForm(
 	$session,
 	"home",
