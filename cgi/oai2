@@ -212,7 +212,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"baseURL",
-		$session->get_archive()->get_conf( "oai","base_url" ) ) );
+		$session->get_archive()->get_conf( "oai","v2","base_url" ) ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -241,10 +241,9 @@ sub Identify
 		"granularity",
 		"YYYY-MM-DD" ) );
 
-	
 	my $d1 = $session->make_element( "description" );
-	my $NS = "http://www.openarchives.org/OAI/1.1/oai-identifier";
-	my $XSD = "http://www.openarchives.org/OAI/1.1/oai-identifier.xsd";
+	my $NS = "http://www.openarchives.org/OAI/2.0/oai-identifier";
+	my $XSD = "http://www.openarchives.org/OAI/2.0/oai-identifier.xsd";
 	my $oaiid = $session->make_element( 	
 		"oai-identifier",
 		"xmlns"=>$NS,
@@ -264,7 +263,7 @@ sub Identify
 	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"repositoryIdentifier",
-		$session->get_archive()->get_conf( "oai","archive_id" ) ) );
+		$session->get_archive()->get_conf( "oai","v2","archive_id" ) ) );
 
 	$oaiid->appendChild( $session->render_data_element(
 		8,
@@ -274,7 +273,7 @@ sub Identify
 	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"sampleIdentifier",
-		$session->get_archive()->get_conf( "oai","sample_identifier" ) ) );
+		$session->get_archive()->get_conf( "oai","v2","sample_identifier" ) ) );
 
 	my $d2 = $session->make_element( "description" );
 	my $eprints = $session->make_element( 	

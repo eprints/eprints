@@ -31,7 +31,7 @@ OAI-PMH v2.0 support and a few new configuration options.
         search expression. Not very useful for normal metadata - the primary
         use is for subscriptions.
 
-*       You can now use XHTML entites in the phrase files, static pages
+*       You can now use XHTML entities in the phrase files, static pages
         and the page template eg. &nbsp; &pound; &eacute; etc. These are
         not available in the citations config file.
 

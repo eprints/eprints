@@ -674,3 +674,9 @@ before next release. (metadata types & fields)
 04/07/2002 - EPRINTS-2.1
 ======================================================================
 
+2002-07-04
+ - Fixed bug in OAI 2.0 (Still using OAI 1.1 namespace in one place)
+ - [c] Changed ArchiveOAIConfig.pm so that now archiveid, sample
+   identifier and base_url are now all seperately configured for 
+   OAI 2.0 (and changed cgi/oai2 and OpenArchives.pm to honour this)
+

@@ -16,10 +16,6 @@ use EPrints::OpenArchives;
 
 sub get_oai_conf { my( $perlurl ) = @_; my $oai={};
 
-# Site specific **UNIQUE** archive identifier.
-# See http://www.openarchives.org/ for existing identifiers.
-
-$oai->{archive_id} = "GenericEPrints";
 
 # All three of the following configuration elements should have the same
 # keys. To support OAI you must offer basic dublic core as "oai_dc".
@@ -32,6 +28,10 @@ $oai->{archive_id} = "GenericEPrints";
 ##########################################################################
 # OAI 1.1 
 ##########################################################################
+
+# Site specific **UNIQUE** archive identifier.
+# See http://www.openarchives.org/ for existing identifiers.
+$oai->{archive_id} = "GenericEPrints";
 
 # Exported metadata formats. The hash should map format ids to namespaces.
 $oai->{metadata_namespaces} =
@@ -53,11 +53,25 @@ $oai->{metadata_functions} =
 	"oai_dc"    =>  \&make_metadata_oai_dc
 };
 
+# Base URL of OAI 1.1
+$oai->{base_url} = $perlurl."/oai";
+
+$oai->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
+	$oai->{archive_id},
+	"23" );
+
 ##########################################################################
 # OAI-PMH 2.0 
 #
 # 2.0 requires slightly different schemas and XML to v1.1
 ##########################################################################
+
+# Site specific **UNIQUE** archive identifier.
+# See http://www.openarchives.org/ for existing identifiers.
+# This may be different for OAI v2.0
+# It can have dots (.) in which v1.1 can't. This means you can use your
+# sites domain as (part of) the base ID - which is pretty darn unique.
+$oai->{v2}->{archive_id} = "GenericEPrints.OAI2";
 
 # Exported metadata formats. The hash should map format ids to namespaces.
 $oai->{v2}->{metadata_namespaces} =
@@ -79,6 +93,13 @@ $oai->{v2}->{metadata_functions} =
 	"oai_dc"    =>  \&make_metadata_oai_dc_oai2
 };
 
+# Base URL of OAI 2.0
+$oai->{v2}->{base_url} = $perlurl."/oai2";
+
+$oai->{v2}->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
+	$oai->{v2}->{archive_id},
+	"23" );
+
 ##########################################################################
 # GENERAL OAI CONFIGURATION
 # 
@@ -86,12 +107,6 @@ $oai->{v2}->{metadata_functions} =
 ##########################################################################
 
 
-# Base URL of OAI
-$oai->{base_url} = $perlurl."/oai";
-
-$oai->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
-	$oai->{archive_id},
-	"23" );
 
 # Set Configuration
 # Rather than harvest the entire archive, a harvester may harvest only

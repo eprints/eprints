@@ -10,6 +10,7 @@ Subscriptions/subject-editors
 
 -	Subscriptions - importing from eprints v1.
 
++	Option: Mail empty subscriptions - yes/no.
 
 Metadata Fields
 
@@ -102,6 +103,8 @@ Submission Page
 
 Other Stuff
 
++	Remove gif's
+
 -	CSS searchfield input.
 
 +	Option for "subjects" to not appear with heirarchy when presented
@@ -151,8 +154,6 @@ Other Stuff
 *	testing to see if "dom" is set in generate_views seems kinda pointless.
 
 ? 	setlang - show all langs, flag supported.
-
-+ 	Join GNU.
 
 - 	Way to reload config without offlining server.
 
@@ -258,6 +259,8 @@ DONE ====================================================================
 	[done in pm but needs to be done by "upgrade"]
 *	Make "stages" in sub form over-ridable.
 ** 	Do not put SystemSettings in the distribution!
++ 	Join GNU.
+
 
 
 
