@@ -31,7 +31,7 @@ use strict;
 # Name for the site
 $EPrintSite::SiteInfo::sitename = "CogPrints";
 
-# E-mail address for automatically processed mail
+# E-mail address for automatic administration account
 $EPrintSite::SiteInfo::automail = "auto\@eprints.org";
 
 # E-mail address for human-read administration mail
