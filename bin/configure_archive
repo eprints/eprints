@@ -83,7 +83,7 @@ my $man = 0;
 GetOptions( 
 	'help|?' => => \$help,
 	'man' => => \$man,
-	'verbose' => \$verbose,
+	'verbose+' => \$verbose,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
 pod2usage( 1 ) if $help;
@@ -95,7 +95,7 @@ $|=1;
 
 my $noise = 1;
 $noise = 0 if( $quiet );
-$noise = 2 if( $verbose );
+$noise = 1+$verbose if( $verbose );
 
 my $archiveid = $ARGV[0];
 

@@ -118,7 +118,6 @@ my $VARCHAR_SIZE = 255;
 # note: display name, help and labels for options are not
 # defined here as they are lang specific.
 
-## WP1: BAD
 sub new
 {
 	my( $class, %properties ) = @_;
@@ -188,7 +187,6 @@ sub clone
 #  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
 #
 
-## WP1: BAD
 sub get_date
 {
 	my( $time ) = @_;
@@ -223,7 +221,6 @@ sub get_date
 ######################################################################
 
 
-## WP1: BAD
 sub get_datestamp
 {
 	my( $time ) = @_;
@@ -239,7 +236,7 @@ sub tags_and_labels
 	my %labels = ();
 	foreach( @{$self->{options}} )
 	{
-		$labels{$_} = $self->display_option( $session, $_ );
+		$labels{$_} = EPrint::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
 	}
 	return ($self->{options}, \%labels);
 }
@@ -264,13 +261,13 @@ sub display_help
 	return $session->phrase( $phrasename );
 }
 
-sub display_option
+sub render_option
 {
 	my( $self, $session, $option ) = @_;
 
 	my $phrasename = $self->{confid}."_fieldopt_".$self->{name}."_".$option;
 
-	return $session->phrase( $phrasename );
+	return $session->html_phrase( $phrasename );
 }
 
 sub get_sql_type
@@ -579,8 +576,7 @@ sub _render_value3
 
 	if( $self->is_type( "date" ) )
 	{
-		return $session->make_text(
-			EPrints::Utils::format_date( $session, $value ) );
+		return EPrints::Utils::render_date( $session, $value );
 	}
 
 
@@ -609,8 +605,7 @@ sub _render_value3
 
 	if( $self->is_type( "set" ) )
 	{
-		return $session->make_text( 
-			$self->display_option( $session , $value ) );
+		return $self->render_option( $session , $value );
 	}
 
 	if( $self->is_type( "boolean" ) )
@@ -692,7 +687,7 @@ sub render_input_field
 				$tags = $self->{options};
 				$labels = {};
 				foreach( @{$tags} ) { 
-					$labels->{$_} = $self->display_option( $session, $_ );
+					$labels->{$_} = EPrints::Utils::tree_to_utf8( $self->render_option( $session, $_ ) );
 				}
 			}
 			else # is "datatype"
@@ -1218,7 +1213,6 @@ sub _render_input_field_aux2
 	return $frag;
 }
 
-#WP1: BAD
 sub _month_names
 {
 	my( $self , $session ) = @_;
@@ -1545,18 +1539,19 @@ sub get_values
 	return ();
 }
 
+#returns DOM
 sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
 
 	if( !EPrints::Utils::is_set( $value ) )
 	{
-		return $session->phrase( "lib/metafield:unspecified" );
+		return $session->html_phrase( "lib/metafield:unspecified" );
 	}
 
 	if( $self->is_type( "set" ) )
 	{
-		return $self->display_option( $session, $value );
+		return $self->render_option( $session, $value );
 	}
 
 	if( $self->is_type( "subject" ) )
@@ -1584,7 +1579,7 @@ sub get_value_label
 
 	if( $self->is_type( "int", "year", "email", "url" ) )
 	{
-		return $value;
+		return $session->make_text( $value );
 	}
 
 	if( $self->is_type( "id" ) )
@@ -1592,7 +1587,7 @@ sub get_value_label
 		return $session->get_archive()->call( "id_label", $self, $session, $value );
 	}
 
-	return "???".$value."???";
+	return $session->make_text( "???".$value."???" );
 }
 
 sub get_dataset

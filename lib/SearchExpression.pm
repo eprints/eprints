@@ -64,7 +64,6 @@ $EPrints::SearchExpression::CustomOrder = "_CUSTOM_";
 #cjg non user defined sort methods => pass comparator method my reference
 # eg. for later_in_thread
 
-## WP1: BAD
 sub new
 {
 	my( $class, %data ) = @_;
@@ -148,7 +147,6 @@ sub new
 #
 ######################################################################
 
-## WP1: BAD
 sub add_field
 {
 	my( $self, $field, $value ) = @_;
@@ -191,7 +189,6 @@ sub get_searchfield
 #
 ######################################################################
 
-## WP1: BAD
 sub clear
 {
 	my( $self ) = @_;
@@ -215,7 +212,6 @@ sub clear
 #
 ######################################################################
 
-## WP1: BAD
 sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
@@ -329,7 +325,6 @@ sub get_satisfy_all
 	return $self->{satisfy_all};
 }
 
-## WP1: BAD
 sub from_form
 {
 	my( $self ) = @_;
@@ -734,7 +729,6 @@ sub map
 #
 ######################################################################
 
-## WP1: BAD
 sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
@@ -950,7 +944,6 @@ sub process_webpage
 	$self->{session}->send_page();
 }
 
-## WP1: BAD
 sub _render_problems
 {
 	my( $self , $title, $preamble, @problems ) = @_;	

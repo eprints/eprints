@@ -28,7 +28,6 @@ use EPrints::Subscription;
 
 use strict;
 
-## WP1: BAD
 sub get_system_field_info
 {
 	my( $class ) = @_;
@@ -76,7 +75,6 @@ sub get_system_field_info
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class, $session, $userid ) = @_;
@@ -205,7 +203,6 @@ sub user_with_username
 #
 ######################################################################
 
-## WP1: GOOD
 sub validate
 {
 	my( $self ) = @_;
@@ -256,7 +253,6 @@ sub validate
 #
 ######################################################################
 
-## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
@@ -282,7 +278,6 @@ sub commit
 #
 ######################################################################
 
-## WP1: BAD
 sub remove
 {
 	my( $self ) = @_;

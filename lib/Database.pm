@@ -83,7 +83,6 @@ sub build_connection_string
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class , $session) = @_;
@@ -110,8 +109,15 @@ sub new
 	}
 
 	$self->{debug} = $DEBUG_SQL;
+	if( $session->{noise} == 3 )
+	{
+		$self->{debug} = 1;
+	}
+	if( $session->{noise} >= 4 )
+	{
+		$self->{dbh}->trace( 2 );
+	}
 
-	#$self->{dbh}->trace( 2 );
 
 	return( $self );
 }
@@ -127,7 +133,6 @@ sub new
 #
 ######################################################################
 
-## WP1: BAD
 sub disconnect
 {
 	my( $self ) = @_;
@@ -150,7 +155,6 @@ sub disconnect
 #
 ######################################################################
 
-## WP1: BAD
 sub error
 {
 	my( $self ) = @_;
@@ -169,7 +173,6 @@ sub error
 #
 ######################################################################
 
-## WP1: BAD
 sub create_archive_tables
 {
 	my( $self ) = @_;
@@ -205,7 +208,6 @@ sub create_archive_tables
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_table
 {
 	my( $self, $dataset ) = @_;
@@ -280,7 +282,6 @@ sub _create_table
 # boolean                  string      |         boolean  array of
 #                                      EPrints::DataSet   EPrint::MetaField
 
-## WP1: BAD
 sub _create_table_aux
 {
 	my( $self, $tablename, $dataset, $setkey, @fields ) = @_;
@@ -407,7 +408,6 @@ sub _create_table_aux
 #
 ######################################################################
 
-## WP1: BAD
 sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
@@ -447,22 +447,24 @@ sub add_record
 #
 ######################################################################
 
-## WP1: BAD
 sub prep_value
 {
 	my( $value ) = @_; 
 	
-	if( !defined $value )
-	{
-		return "";
-	}
+	return "" unless( defined $value );
+	$value =~ s/["\\.']/\\$&/g;
+	return $value;
+}
+
+sub prep_like_value
+{
+	my( $value ) = @_; 
 	
+	return "" unless( defined $value );
 	$value =~ s/["\\.'%]/\\$&/g;
 	return $value;
 }
 
-
-## WP1: BAD
 sub update
 {
 	my( $self, $dataset, $data ) = @_;
@@ -793,7 +795,6 @@ sub remove
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_counter_table
 {
 	my( $self ) = @_;
@@ -835,7 +836,6 @@ sub _create_counter_table
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_cachemap_table
 {
 	my( $self ) = @_;
@@ -873,7 +873,6 @@ END
 #
 ######################################################################
 
-## WP1: BAD
 sub counter_next
 {
 	# still not appy with this #cjg (prep values too?)
@@ -883,7 +882,7 @@ sub counter_next
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
-		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
+		"LAST_INSERT_ID(counter+1) WHERE countername = \"$counter\";";
 	
 	# Send to the database
 	my $rows_affected = $self->do( $sql );
@@ -987,6 +986,8 @@ sub cache
 		$keyfield->get_sql_type( 1 )." )";
 	$self->do( $sql );
 
+	return $id if( $srctable eq "NONE" ); 
+
 	my $keyname = $keyfield->get_name();
 	$sql = "INSERT INTO $tmptable SELECT NULL , B.$keyname from ".$srctable." as B";
 	if( defined $order )
@@ -1014,7 +1015,6 @@ sub cache
 
 
 
-## WP1: BAD
 sub create_buffer
 {
 	my ( $self , $keyname ) = @_;
@@ -1139,7 +1139,6 @@ sub drop_cache
 	$self->do( $sql );
 }
 
-## WP1: BAD
 sub count_table
 {
 	my ( $self , $tablename ) = @_;
@@ -1153,7 +1152,6 @@ sub count_table
 	return $count;
 }
 
-## WP1: BAD
 sub from_buffer 
 {
 	my ( $self , $dataset , $buffer ) = @_;
@@ -1225,21 +1223,18 @@ sub drop_old_caches
 }
 
 
-## WP1: BAD
 sub get_single
 {
 	my ( $self , $dataset , $value ) = @_;
 	return ($self->_get( $dataset, 0 , $value ))[0];
 }
 
-## WP1: BAD
 sub get_all
 {
 	my ( $self , $dataset ) = @_;
 	return $self->_get( $dataset, 2 );
 }
 
-## WP1: BAD
 sub _get 
 {
 	my ( $self , $dataset , $mode , $param, $offset, $ntoreturn ) = @_;
@@ -1552,7 +1547,6 @@ sub get_values
 }
 
 
-## WP1: BAD
 sub do 
 {
 	my ( $self , $sql ) = @_;
@@ -1563,17 +1557,14 @@ sub do
 	}
 	my $result = $self->{dbh}->do( $sql );
 
-	if ( !$result ) {
-		print "<pre>--------\n";
-		print "dpDBErr:\n";
-		print "$sql\n";
-		print "----------</pre>\n";
+	if ( !$result ) 
+	{
+		$self->{session}->get_archive()->log( "SQL ERROR (do): $sql" );
 	}
 
 	return $result;
 }
 
-## WP1: BAD
 sub prepare 
 {
 	my ( $self , $sql ) = @_;
@@ -1585,17 +1576,14 @@ sub prepare
 
 	my $result = $self->{dbh}->prepare( $sql );
 
-	if ( !$result ) {
-		print "<pre>--------\n";
-		print "prepDBErr:\n";
-		print "$sql\n";
-		print "----------</pre>\n";
+	if ( !$result ) 
+	{
+		$self->{session}->get_archive()->log( "SQL ERROR (prepare): $sql" );
 	}
 
 	return $result;
 }
 
-## WP1: BAD
 sub execute 
 {
 	my ( $self , $sth , $sql ) = @_;
@@ -1607,11 +1595,9 @@ sub execute
 
 	my $result = $sth->execute;
 
-	if ( !$result ) {
-		print "<pre>--------\n";
-		print "execDBErr:\n";
-		print "$sql\n";
-		print "----------</pre>\n";
+	if ( !$result ) 
+	{
+		$self->{session}->get_archive()->log( "SQL ERROR (execute): $sql" );
 	}
 
 	return $result;
@@ -1643,7 +1629,6 @@ sub exists
 	return 0;
 }
 
-## WP1: BAD
 sub _freetext_index
 {
 	my( $self , $dataset , $id , $field , $value ) = @_;

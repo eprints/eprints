@@ -95,7 +95,6 @@ sub new
 #
 ######################################################################
 
-## WP1: BAD
 sub process
 {
 	my( $self ) = @_;
@@ -207,7 +206,6 @@ sub process
 }
 
 
-## WP1: BAD
 sub _corrupt_err
 {
 	my( $self ) = @_;
@@ -219,7 +217,6 @@ sub _corrupt_err
 
 }
 
-## WP1: BAD
 sub _database_err
 {
 	my( $self ) = @_;
@@ -251,7 +248,6 @@ sub _database_err
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_home
 {
 	my( $self ) = @_;
@@ -273,7 +269,7 @@ sub _from_stage_home
 
 		if( !defined $self->{eprint} )
 		{
-			my $db_error = $self->{session}->{database}->error();
+			my $db_error = $self->{session}->get_db()->error();
 			$self->{session}->get_archive()->log( "Database Error: $db_error" );
 			$self->_database_err;
 			return( 0 );
@@ -364,7 +360,6 @@ sub _from_stage_home
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_type
 {
 	my( $self ) = @_;
@@ -410,7 +405,6 @@ sub _from_stage_type
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_linking
 {
 	my( $self ) = @_;
@@ -465,7 +459,6 @@ sub _from_stage_linking
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_meta
 {
 	my( $self ) = @_;
@@ -525,7 +518,6 @@ sub _from_stage_meta
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_files
 {
 	my( $self ) = @_;
@@ -879,7 +871,6 @@ sub _from_stage_upload
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_quickverify { return $_[0]->_from_stage_verify; }
 
 sub _from_stage_verify
@@ -927,7 +918,6 @@ sub _from_stage_verify
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_confirmdel
 {
 	my( $self ) = @_;
@@ -974,7 +964,6 @@ sub _from_stage_confirmdel
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_type
 {
 	my( $self ) = @_;
@@ -1018,7 +1007,6 @@ sub _do_stage_type
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_linking
 {
 	my( $self ) = @_;
@@ -1106,7 +1094,6 @@ sub _do_stage_linking
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_meta
 {
 	my( $self ) = @_;
@@ -1653,7 +1640,6 @@ sub _do_stage_upload
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_quickverify { return $_[0]->_do_stage_verify; }
 
 sub _do_stage_verify
@@ -1724,7 +1710,6 @@ sub _do_stage_verify
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_done
 {
 	my( $self ) = @_;
@@ -1747,7 +1732,6 @@ sub _do_stage_done
 #
 ######################################################################
 
-## WP1: BAD
 sub _do_stage_confirmdel
 {
 	my( $self ) = @_;
@@ -1828,7 +1812,6 @@ sub _update_from_form
 ######################################################################
 
 
-## WP1: BAD
 sub _render_problems
 {
 	my( $self, $before, $after ) = @_;

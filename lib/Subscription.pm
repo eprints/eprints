@@ -28,7 +28,6 @@ use EPrints::User;
 use strict;
 #"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
 
-## WP1: BAD
 sub get_system_field_info
 {
 	my( $class ) = @_;
@@ -56,7 +55,6 @@ sub get_system_field_info
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 #cjg whatever...clean me up later
@@ -123,7 +121,6 @@ sub new
 #
 ######################################################################
 
-## WP1: BAD
 sub create
 {
 	my( $class, $session, $username ) = @_;
@@ -155,7 +152,6 @@ sub create
 #
 ######################################################################
 
-## WP1: BAD
 sub _generate_subid
 {
 	my( $session, $username ) = @_;
@@ -198,7 +194,6 @@ sub _generate_subid
 #
 ######################################################################
 
-## WP1: BAD
 sub remove
 {
 	my( $self ) = @_;
@@ -218,7 +213,6 @@ sub remove
 #
 ######################################################################
 
-## WP1: BAD
 sub render_subscription_form
 {
 	my( $self ) = @_;
@@ -247,7 +241,6 @@ sub render_subscription_form
 #
 ######################################################################
 
-## WP1: BAD
 sub from_form
 {
 	my( $self ) = @_;
@@ -269,7 +262,6 @@ sub from_form
 #
 ######################################################################
 
-## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
@@ -293,7 +285,6 @@ sub commit
 #
 ######################################################################
 
-## WP1: BAD
 sub subscriptions_for
 {
 	my( $session, $user ) = @_;
@@ -325,7 +316,6 @@ sub subscriptions_for
 #
 ######################################################################
 
-## WP1: BAD
 sub subscriptions_for_frequency
 {
 	my( $session, $frequency ) = @_;
@@ -356,7 +346,6 @@ sub subscriptions_for_frequency
 #
 ######################################################################
 
-## WP1: BAD
 sub get_daily
 {
 	my( $session ) = @_;
@@ -374,7 +363,6 @@ sub get_daily
 #
 ######################################################################
 
-## WP1: BAD
 sub get_weekly
 {
 	my( $session ) = @_;
@@ -392,7 +380,6 @@ sub get_weekly
 #
 ######################################################################
 
-## WP1: BAD
 sub get_monthly
 {
 	my( $session ) = @_;
@@ -419,7 +406,6 @@ sub get_monthly
 #
 ######################################################################
 
-## WP1: BAD
 sub process
 {
 	my( $self ) = @_;

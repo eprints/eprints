@@ -100,7 +100,7 @@ my $man = 0;
 GetOptions( 
 	'help|?' => => \$help,
 	'man' => => \$man,
-	'verbose' => \$verbose,
+	'verbose+' => \$verbose,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
 pod2usage( 1 ) if $help;
@@ -109,7 +109,7 @@ pod2usage( 2 ) if( scalar @ARGV != 1 && scalar @ARGV != 0 );
 
 our $noise = 1;
 $noise = 0 if( $quiet );
-$noise = 2 if( $verbose );
+$noise = 1+$verbose if( $verbose );
 
 #cjg Write a more simple conf if only one language involved?
 

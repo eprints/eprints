@@ -54,31 +54,28 @@
 *	Milestone "Pepperoni" : ALPHA-2: Database code stable. Module functions and configuration not yet 100% stable.  (January 9th 2002) [YOU ARE HERE]
 
 -	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
-0	Paged Metadata in submission form.
 -	Browse Multiple Fields at once (eg. authors.id/editors.id)
 4	Subject-editors (editors can only edit within certain subjects)
 2	Web-based Email Change
 -	Password Encryption. (Via callback)
-2	Autodetect optional system features: microtime, df etc.
+-	Autodetect optional system features: microtime, df etc.
 0	Field property: freetext (or not-freetext) to stop indexing)
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 -	Option to hide Honourific and/or Lineage.
 0	Commentary summary page (Psycoloquy style)
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 -	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
-4	Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
+-	Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
 -	multiple views for things like people/groups etc.
-0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
 -	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 -	Multiple Citation formats (generally, and for browse/abstract/search) 
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
 -	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology. But make it optional.
 1	Indexing on name fields(?)
-0	patch for config files when upgrading.(?)
 -	different looks for boolean/opts eg. check/radio boxes.
 -	Allow users to request a username when registering.
-4	Bulk XML Dumper
+-	Bulk XML Dumper
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
@@ -97,23 +94,18 @@
 0	Subscriptions - sending
 2	MathML support
 -	TeX mathmode support.
-#0	XML 1.1 Support(?)
 1	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
-0	Taint all code to force sanity checking of all data
 0	Probity (see www.probity.org for more info)
 0	Content Negotiation with Browser
+0	Paged Metadata in submission form.
 0	Keywords field appears in META keywords for search engines
-0 	Clean up phrase file - nice and non-ambiguous.
 0	remove all #cjg comments which denote issues.
 -	Multipage search (cache code)
-0	Multipage views(?)
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
-0	Other output charsets than UTF-8 (?)
 2	XML Importer [mike]
 0	Improve name search syntax (?)
 2	Remove (Hide) Lanuage related options if only one language supported.
 4	VLit/Xanadu interface(!)
-0	"Special search" which redirects to the abstract if only one match.
 
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
@@ -147,17 +139,11 @@
 
 
 #Clean UP
-#	Make SearchFields have a better call method. NR
-#	Put System field titles in system phrase file. NR
-# 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR
 #	Named values in Constructors all round?
 #	cmp methods : is they still needed?
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 
-# import_subjects does not check for errors very well.
-
 #TODO
-#	Call backs for LEAVING archive and buffer=>inbox
 # list of editors?
 
 
@@ -184,25 +170,32 @@
 #	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
 # 	Make man pages from /bin etc build into docs. NR [mike]
 # SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
+# XML GDOME readyness NR
+# 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR [mike]
+# URI escape ALL href calls NR. [mike]
 # -------------
 
 # lose all die statements
 
 # Check Referer on LatexCache.?
 
+# EASY
 # OAI - cache timeouts. NR
-
-# Search -= cachecode not searchexp. NR
-
-#edit_user !!! bits not done NR
-
-# namespace static files NR
-
 # check CGI scripts use DOM in title NR
+# Check out Subscription dataset: sensible values even if not used yet.
+# better initial INDEX page.
+
+# HARD
+#edit_user !!! bits not done NR
+#	Make SearchFields have a better call method. NR
+#  Qualified Dublin Core NR
+# NR: remove user function.
+# NR: Email Change
+# clean up comments
+# Make create() functions clone the data, not modify it.
 
 # Xhtml docs: [gui]
 
-# browse by subject: title is screwed.
 
-# todo: TTTTTTTTTTTbbbbbbbbbbbbmmmmg
+# todo: TTTTTTttttbbbbbbbbbbmmmmmmmmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

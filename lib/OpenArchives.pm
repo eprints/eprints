@@ -38,7 +38,6 @@ $EPrints::OpenArchives::OAI_VERSION = "1.1";
 #
 ######################################################################
 
-## WP1: BAD
 sub full_timestamp
 {
 	my $time = time;
@@ -149,7 +148,6 @@ sub make_record
 #
 ######################################################################
 
-## WP1: BAD
 sub to_oai_identifier
 {
 	my( $archive_id , $eprintid ) = @_;
@@ -167,7 +165,6 @@ sub to_oai_identifier
 #
 ######################################################################
 
-## WP1: BAD
 sub from_oai_identifier
 {
 	my( $session , $oai_identifier ) = @_;

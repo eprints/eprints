@@ -26,7 +26,6 @@ use File::Basename;
 use File::Path;
 use File::Copy;
 use Cwd;
-use URI::Escape;
 use URI::Heuristic;
 
 use strict;
@@ -38,7 +37,6 @@ $EPrints::Document::OTHER = "OTHER";
 my $DIGITS = 2;
 
 
-## WP1: BAD
 sub get_system_field_info
 {
 	my( $class ) = @_;
@@ -76,7 +74,6 @@ sub get_system_field_info
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class, $session, $docid ) = @_;
@@ -149,7 +146,6 @@ sub create
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_directory
 {
 	my( $id, $eprint ) = @_;
@@ -261,7 +257,6 @@ sub docid_to_path
 #
 ######################################################################
 
-## WP1: BAD
 sub _generate_doc_id
 {
 	my( $session, $eprint ) = @_;
@@ -394,7 +389,6 @@ sub remove
 #
 ######################################################################
 
-## WP1: BAD
 sub get_eprint
 {
 	my( $self ) = @_;
@@ -458,7 +452,6 @@ sub get_url
 #
 ######################################################################
 
-## WP1: BAD
 sub local_path
 {
 	my( $self ) = @_;
@@ -479,7 +472,6 @@ sub local_path
 #
 ######################################################################
 
-## WP1: BAD NEEEEEEEEEEEEEEEEED
 sub files
 {
 	my( $self ) = @_;
@@ -548,7 +540,6 @@ sub _get_files
 #
 ######################################################################
 
-## WP1: BAD
 sub remove_file
 {
 	my( $self, $filename ) = @_;
@@ -574,7 +565,6 @@ sub remove_file
 #
 ######################################################################
 
-## WP1: BAD
 sub remove_all_files
 {
 	my( $self ) = @_;
@@ -605,7 +595,6 @@ sub remove_all_files
 #
 ######################################################################
 
-## WP1: BAD
 sub set_main
 {
 	my( $self, $main_file ) = @_;
@@ -634,7 +623,6 @@ sub set_main
 #
 ######################################################################
 
-## WP1: BAD
 sub get_main
 {
 	my( $self ) = @_;
@@ -651,7 +639,6 @@ sub get_main
 #
 ######################################################################
 
-## WP1: BAD
 sub set_format
 {
 	my( $self, $format ) = @_;
@@ -668,7 +655,6 @@ sub set_format
 #
 ######################################################################
 
-## WP1: BAD
 sub set_format_desc
 {
 	my( $self, $format_desc ) = @_;
@@ -685,7 +671,6 @@ sub set_format_desc
 #
 ######################################################################
 
-## WP1: BAD
 sub upload
 {
 	my( $self, $filehandle, $filename ) = @_;
@@ -725,7 +710,6 @@ sub upload
 #
 ######################################################################
 
-## WP1: BAD
 sub upload_archive
 {
 	my( $self, $filehandle, $filename, $archive_format ) = @_;
@@ -765,7 +749,6 @@ sub upload_archive
 #
 ######################################################################
 
-## WP1: BAD
 sub upload_url
 {
 	my( $self, $url_in ) = @_;
@@ -809,7 +792,7 @@ sub upload_url
 	my $rc = $self->{session}->get_archive()->exec( 
 			"wget",
 			CUTDIRS => $cut_dirs,
-			URL => '"'.$url.'"' );
+			URL => $url );
 	
 	# If something's gone wrong...
 	return( 0 ) if ( $rc!=0 );

@@ -174,7 +174,7 @@ GetOptions(
 	'man' => => \$man,
 	'xml' => \$xml , 
 	'force' => \$force , 
-	'verbose' => \$verbose,
+	'verbose+' => \$verbose,
 	'quiet' => \$quiet,
 	'purge!' => \$purge
 ) || pod2usage( 2 );
@@ -184,7 +184,7 @@ pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV != 1 );
 
 my $noise = 1;
 $noise = 0 if( $quiet );
-$noise = 2 if( $verbose );
+$noise = 1+$verbose if( $verbose );
 
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;

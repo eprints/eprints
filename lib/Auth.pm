@@ -21,7 +21,6 @@ use Apache::Constants qw( OK AUTH_REQUIRED FORBIDDEN DECLINED SERVER_ERROR );
 use EPrints::Session;
 use EPrints::RequestWrapper;
 
-## WP1: BAD
 sub authen
 {
 	my( $r ) = @_;
@@ -91,7 +90,6 @@ sub authen
 	return $result;
 }
 
-## WP1: BAD
 sub authz
 {
 	my( $r ) = @_;

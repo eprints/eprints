@@ -14,7 +14,7 @@
 
 use EPrints::OpenArchives;
 
-sub get_oai_conf { my $oai={};
+sub get_oai_conf { my( $perlurl ) = @_; my $oai={};
 
 # Site specific **UNIQUE** archive identifier.
 # See http://www.openarchives.org/ for existing identifiers.
@@ -27,13 +27,15 @@ $oai->{archive_id} = "GenericEPrints";
 # Exported metadata formats. The hash should map format ids to namespaces.
 $oai->{metadata_namespaces} =
 {
-	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
+	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/",
+	"dc"    =>  "http://purl.org/dc/elements/1.1/"
 };
 
 # Exported metadata formats. The hash should map format ids to schemas.
 $oai->{metadata_schemas} =
 {
-	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
+	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd",
+	"dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
 };
 
 # Each supported metadata format will need a function to turn
@@ -41,11 +43,12 @@ $oai->{metadata_schemas} =
 # are defined later in this file.
 $oai->{metadata_functions} = 
 {
-	"oai_dc"    =>  \&make_metadata_oai_dc
+	"oai_dc"    =>  \&make_metadata_oai_dc,
+	"dc"    =>  \&make_metadata_oai_dc
 };
 
 # Base URL of OAI
-$oai->{base_url} = $oai->{perl_url}."/oai";
+$oai->{base_url} = $perlurl."/oai";
 
 $oai->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 	$oai->{archive_id},
@@ -165,21 +168,19 @@ sub make_metadata_oai_dc
 	# We could hard code them here, but getting the values from our
 	# own configuration should avoid getting our knickers in a twist.
 	
-	my $namespace = $archive->get_conf( "metadata_namespaces" )->{oai_dc};
-	my $schema = $archive->get_conf( "metadata_schemas" )->{oai_dc};
+	my $oai_conf = $archive->get_conf( "oai" );
+	my $namespace = $oai_conf->{metadata_namespaces}->{oai_dc};
+	my $schema = $oai_conf->{metadata_schemas}->{oai_dc};
 
 	my $dc = $session->make_element(
 		"dc",
 		"xmlns" => $namespace,
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation" => $namespace." ".$schema );
+
+	my @dcdata = [];
+	push @dcdata, [ "title", $eprint->get_value( "title" ) ]; 
 	
-	$dc->appendChild(  $session->render_data_element( 
-		8,
-		"title",
-		$eprint->get_value( "title" ) ) );
-
-
 	# grab the authors without the ID parts so if the site admin
 	# sets or unsets authors to having and ID part it will make
 	# no difference to this bit.
@@ -187,26 +188,17 @@ sub make_metadata_oai_dc
 	my $author;
 	foreach $author ( @{$eprint->get_value( "authors", 1 )} )
 	{
-		$dc->appendChild(  $session->render_data_element( 
-			8,
-			"creator",
-			EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ) );
+		push @dcdata, [ "creator", EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $session, $author, 0 ) ) ];
 	}
 
 	my $subjectid;
 	foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
 	{
 		my $subject = EPrints::Subject->new( $session, $subjectid );
-		$dc->appendChild(  $session->render_data_element( 
-			8,
-			"subject",
-			EPrints::Utils::tree_to_utf8( $subject->render_description() ) ) );
+		push @dcdata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ) ];
 	}
 
-	$dc->appendChild(  $session->render_data_element( 
-		8,
-		"description",
-		$eprint->get_value( "abstract" ) ) );
+	push @dcdata, [ "description", $eprint->get_value( "abstract" ) ]; 
 
 	## Date for discovery. For a month/day we don't have, assume 01.
 	my $year = $eprint->get_value( "year" );
@@ -223,23 +215,25 @@ sub make_metadata_oai_dc
 		$month = $month_numbers{$eprint->get_value( "month" )};
 	}
 
-	$dc->appendChild(  $session->render_data_element( 
-		8,
-		"date",
-		"$year-$month-01" ) );
+	push @dcdata, [ "date", "$year-$month-01" ];
 
 	my $ds = $eprint->get_dataset();
-	$dc->appendChild(  $session->render_data_element( 
-		8,
-		"type",
-		$ds->get_type_name( $session, $eprint->get_value( "type" ) ) ) );
+	push @dcdata, [ "type", $ds->get_type_name( $session, $eprint->get_value( "type" ) ) ];
+	
+	push @dcdata, [ "identifier", $eprint->get_url() ];
 
-	$dc->appendChild(  $session->render_data_element( 
-		8,
-		"identifier",
-		$eprint->get_url() ) );
+	# turn the list of pairs into XML blocks (indented by 8) and add them
+	# them to the DC element.
+	foreach( @dcdata )
+	{
+		$dc->appendChild(  $session->render_data_element( 8, $_->[0], $_->[1] ) );
+		# produces <key>value</key>
+	}
 
 	return $dc;
 }
+
+
+
 
 1;

@@ -333,18 +333,16 @@ sub get_conf
 	return $val;
 }
 
-## WP1: BAD
 sub log
 {
 	my( $self , @params) = @_;
 	&{$self->{class}."::log"}( $self, @params );
 }
 
-## WP1: BAD
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
-#$self->log( "Calling $cmd with (".join(",",@params).")" );
+
 	return &{$self->{class}."::".$cmd}( @params );
 }
 
@@ -417,6 +415,8 @@ sub exec
 	my( $self, $cmd_id, %map ) = @_;
 
 	my $command = $self->invocation( $cmd_id, %map );
+
+	$self->log( "executing: $command" );	
 
 	my $rc = 0xffff & system $command;
 

@@ -105,7 +105,7 @@ GetOptions(
 	'erasedb!' => \$erasedb , 
 	'erasefiles!' => \$erasefiles , 
 	'rootpass=s', \$rootpass,
-	'verbose' => \$verbose,
+	'verbose+' => \$verbose,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
 pod2usage( 1 ) if $help;
@@ -114,7 +114,7 @@ pod2usage( 2 ) if( scalar @ARGV != 1 );
 
 my $noise = 1;
 $noise = 0 if( $quiet );
-$noise = 2 if( $verbose );
+$noise = 1+$verbose if( $verbose );
 
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;

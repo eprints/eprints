@@ -539,7 +539,7 @@ sub render_value_with_id
 # - ID part of a single metadata value 
 #
 # returns: $label
-# - UTF8 string describing human readable version of the ID.
+# - XHTML DOM fragment describing human readable version of the ID.
 #
 ######################################################################
 # Used when browsing by an ID field, this is used to convert the ID
@@ -550,13 +550,17 @@ sub render_value_with_id
 # this, if at all, depends very much on your data. By default it
 # just returns the value of the ID it was passed.
 #
+# It will almost always just contain text. It could in theory contain
+# an image. It will usually be wrapped in an anchor <a> </a> so it
+# should not have any links in.
+#
 ######################################################################
 
 sub id_label
 {
 	my( $field, $session, $id ) = @_;
 
-	return $id;
+	return $session->make_text( $id );
 }
 
 # Return true to indicate the module loaded OK.

@@ -688,7 +688,7 @@ sub list_sets
 				{
 					my $key = EPrints::OpenArchives::encode_setspec( $_ );
 					if( !defined $key ) { $key=""; }
-					$v{$key} = $field->get_value_label( $session, $_ );
+					$v{$key} = EPrints::Utils::tree_to_utf8( $field->get_value_label( $session, $_ ) );
 				}
 			}
 		}

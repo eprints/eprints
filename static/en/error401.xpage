@@ -1,12 +1,14 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<page>
-<title>Authorisation Required</title>
-<body>
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>Authorisation Required</ep:title>
+<ep:body>
 
 <p>In order to access some areas of the archive you require a username and password.</p>
 
 <p><a href="&perl_url;/set_password">Register / Reset my password</a></p>
 
-</body>
-</page>
+</ep:body>
+</ep:page>

@@ -56,9 +56,6 @@ sub get_conf
 foreach( keys %{$archiveinfo} ) { 
 	$c->{$_} = $archiveinfo->{$_} 
 };
-# Stuff from other config files which are require'd above:
-$c->{oai} = get_oai_conf();
-$c->{archivefields} = get_metadata_conf();
 
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
@@ -504,6 +501,12 @@ $c->{pin_timeout} = 3;
 $c->{cache_timeout} = 10;
 #   Maximum lifespan of a cache, in use or not. In hours.
 $c->{cache_maxlife} = 12;
+
+######################################################################
+
+# Stuff from other config files which are require'd above:
+$c->{oai} = get_oai_conf( $c->{perl_url} );
+$c->{archivefields} = get_metadata_conf();
 
 return $c;
 }

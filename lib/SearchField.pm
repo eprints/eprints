@@ -71,7 +71,6 @@ use strict;
 #
 ######################################################################
 
-## WP1: BAD
 #cjg MAKE $field $fields and _require_ a [] 
 sub new
 {
@@ -116,7 +115,6 @@ sub new
 	return( $self );
 }
 
-## WP1: BAD
 sub set_value
 {
 	my ( $self , $newvalue ) = @_;
@@ -149,7 +147,6 @@ sub set_value
 #
 ######################################################################
 
-## WP1: BAD
 sub from_form
 {
 	my( $self ) = @_;
@@ -273,7 +270,6 @@ sub from_form
 # 
 # cjg commentme (all below)
 
-## WP1: BAD
 sub get_conditions 
 {
 	my ( $self ) = @_;
@@ -342,8 +338,8 @@ sub get_conditions
 		foreach $name ( @names )
 		{
 			$name =~ m/^([^,]+)(,(.*))?$/;
-			my $family = EPrints::Database::prep_value( $1 );
-			my $given = EPrints::Database::prep_value( $3 );
+			my $family = EPrints::Database::prep_like_value( $1 );
+			my $given = EPrints::Database::prep_like_value( $3 );
 			if ( $self->{match} eq "IN" )
 			{
 				$family .= "\%";
@@ -551,7 +547,6 @@ sub get_conditions
 
 }
 
-## WP1: BAD
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
@@ -728,7 +723,6 @@ sub get_fields
 #
 ######################################################################
 
-## WP1: BAD
 sub render
 {
 	my( $self ) = @_;
@@ -883,7 +877,6 @@ sub render
 	return $frag;
 }
 
-## WP1: BAD
 sub get_help
 {
         my( $self ) = @_;
@@ -891,14 +884,12 @@ sub get_help
         return $self->{session}->phrase( "lib/searchfield:help_".$self->{field}->get_type() );
 }
 
-## WP1: BAD
 sub is_type
 {
 	my( $self, @types ) = @_;
 	return $self->{field}->is_type( @types );
 }
 
-## WP1: BAD
 sub get_display_name
 {
 	my( $self ) = @_;

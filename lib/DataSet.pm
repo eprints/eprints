@@ -82,7 +82,6 @@ my $INFO = {
 #  get_sql_table_name can be called, but which dosn't know anything
 #  about it's fields. 
 
-## WP1: BAD
 sub new_stub
 {
 	my( $class , $datasetname ) = @_;
@@ -111,7 +110,6 @@ sub new_stub
 #  on types, system fields, and user fields from the various
 #  sources - the packages and the archive config module.
 
-## WP1: BAD
 # note that dataset know $archive and vice versa - bad for GCollection.
 sub new
 {
@@ -228,7 +226,6 @@ sub new
 #  returns a MetaField object describing the asked for field
 #  in this dataset, or undef if there is no such field.
 
-## WP1: BAD
 sub get_field
 {
 	my( $self, $fieldname ) = @_;
@@ -248,7 +245,6 @@ sub get_field
 #
 #  returns the id of the default order type.  
 
-## WP1: BAD
 sub default_order
 {
 	my( $self ) = @_;
@@ -263,7 +259,6 @@ sub default_order
 #  config and phrases ( in a nutshell "Archive", "Buffer" and "Inbox"
 #  all return "eprint" because they all (must) have identical structure.
 
-## WP1: BAD
 sub confid
 {
 	my( $self ) = @_;
@@ -288,7 +283,6 @@ sub count
 #  This returns the name of the main SQL Table containing this dataset.
 #  the other SQL tables names are based on this name.
  
-## WP1: BAD
 sub get_sql_table_name
 {
 	my( $self ) = @_;
@@ -332,7 +326,6 @@ sub get_sql_sub_table_name
 #
 #  returns all the fields of this DataSet, in order.
 
-## WP1: BAD
 sub get_fields
 {
 	my( $self, $split_id ) = @_;
@@ -380,7 +373,6 @@ sub get_key_field
 #  This rather strange method turns the hash array in item into 
 #  an object of the type belonging to this dataset.
 
-## WP1: BAD
 sub make_object
 {
 	my( $self , $session , $item ) = @_;
@@ -417,7 +409,6 @@ sub make_object
 #  returns a reference to a list of all types of this dataset (eg. 
 #  eprint record types or types of user)
 
-## WP1: BAD
 sub get_types
 {
 	my( $self ) = @_;
@@ -431,7 +422,6 @@ sub get_types
 #  returns a reference to a hash table which maps the id's of types given
 #  by get_types to printable names in the language of the session. 
 
-## WP1: BAD
 sub get_type_names
 {
 	my( $self, $session ) = @_;

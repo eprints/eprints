@@ -139,8 +139,10 @@ type (as in which citation to use).
  - removed start_html end_html and end_form from Session.
 [C] - split user_render and eprint_render into user_render, eprint_render,
 user_render_full, and eprint_render_full. eprint_render_full now looks alot
-better and puts the abstract page in a slightly darker box.
-[C] - removed ArchiveConfig.pm : eprint_render_short_title and 
+better and puts the abstract page in a slightly darker box. - best to lose 
+old render section and require the new one.
+[C] - removed ArchiveConfig.pm : eprint_render_short_title and the sub which
+returned a user name or "User 44489" - now down with citations.
 [C] - added "generic" citations to citations file: these have no type and
 are used to render a short (one-line) description.
 user_display_name. Now these are done as generic citations for those objects.
@@ -219,7 +221,8 @@ Cache-Control: must-revalidate
  that it does not upload the file if you hit "cancel"
 [C] - added validate_document_meta to ArchiveValidateConfig.pm - this checks
 just the meta data of a document. 
- 
+
+31/01/2002 
  - fixed bug when you have more than 3 items in a list. The form renderer was
 chopping off the rest!
  - added a new doc-type: coverimage, which renders as an image on the abstract
@@ -239,4 +242,26 @@ call it.
  - fixed something in searchexp::perform which assumed we had an order set
 when we might not.
  - order values now correctly sort year and int (int not tested yet!)
+
+01/01/2002
+ [C] - ArchiveRenderConfig::id_value now returns XHTML-DOM not UTF-8
+ - Fixed "clone" bug.
+ - Fixed bug which escaped % when it didn't have to.
+ - Fixed bug in ArchiveOAIConfig.pm - didn't know what the perl dir was
+for making the Identify response.
+ - rewrote the DC renderer to be neater.
+ - made --verbose in scripts repeatable. 2 gives the SQL, 3 gives the whole
+DBI trace.
+ - fixed get_value_label to always return DOM. Fixed things that call it.
+ - added Database::prep_like_value which escapes SQL value including "%"
+ - if for some reason an attempt is made to cache "NONE" from a search it
+ now just returns an empty cache.
+ - SQL errors now go to the log not the webpage.
+ - fixed 'wget' invocation
+ - Added Utils::clone which clones a (non recursive) data structure. There
+may be a perlmod which already does this, but what the hell.
+ - turned MetaField::display_option into render_option
+ - GET forms now do not set multi-part which reduces the annoyance of 
+hitting the back button.
+[C] - moved system variable phrases into system file from archive file.
 

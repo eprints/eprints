@@ -39,7 +39,6 @@ use strict;
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class , $langid , $archive , $fallback ) = @_;
@@ -72,7 +71,6 @@ sub new
 }
 
 
-## WP1: BAD
 sub phrase
 {
 	my( $self, $phraseid, $inserts, $session ) = @_;
@@ -128,7 +126,6 @@ sub phrase
 }
 
 
-## WP1: BAD
 sub _phrase_aux
 {
 	my( $self, $phraseid ) = @_;
@@ -154,18 +151,18 @@ sub _phrase_aux
 	return undef;
 }
 
-## WP1: BAD
 sub _get_data
 {
 	my( $self ) = @_;
 	return $self->{data};
 }
-## WP1: BAD
+
 sub _get_archivedata
 {
 	my( $self ) = @_;
 	return $self->{archivedata};
 }
+
 ######################################################################
 #
 # read_phrases( $file )
@@ -174,7 +171,6 @@ sub _get_archivedata
 #
 ######################################################################
 
-## WP1: BAD
 sub read_phrases
 {
 	my( $file, $archive ) = @_;
@@ -216,7 +212,6 @@ sub read_phrases
 	return $data;
 }
 
-## WP1: BAD
 sub get_id
 {
 	my( $self ) = @_;

@@ -81,7 +81,7 @@ my $man = 0;
 GetOptions( 
 	'help|?' => => \$help,
 	'man' => => \$man,
-	'verbose' => \$verbose,
+	'verbose+' => \$verbose,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
 pod2usage( 1 ) if $help;
@@ -90,7 +90,7 @@ pod2usage( 2 ) if( scalar @ARGV != 1 );
 
 my $noise = 1;
 $noise = 0 if( $quiet );
-$noise = 2 if( $verbose );
+$noise = 1+$verbose if( $verbose );
 
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
@@ -168,7 +168,7 @@ sub make_view_pages
 		my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
 		unless( $field->is_browsable() )
 		{
-#cjg should abort here.
+#cjg should abort here. Or maybe just log.
 			print STDERR "Cannot generate browse pages for field \"".$_."\"\n";
 			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
 			next;
@@ -293,7 +293,7 @@ sub make_view_pages
 
 			$title = $session->html_phrase( "bin/generate_views:title", 
 					viewname=>$session->make_text( $session->get_view_name( $ds, $info->{id} ) ),
-					value=>$session->make_text( $fields[0]->get_value_label( $session, $value ) ) );
+					value=>$fields[0]->get_value_label( $session, $value ) );
 
 			$file = $dir."/".$fileid.".html";
 			$session->build_page( $title, $page );
@@ -326,7 +326,7 @@ sub make_view_pages
 			if( $fileid eq "" ) { $fileid = "NULL"; }
 			$li = $session->make_element( "li" );
 			$a = $session->make_element( "a", href=>$fileid.".html" );
-			$a->appendChild( $session->make_text( $fields[0]->get_value_label( $session, $value ) ) );
+			$a->appendChild( $fields[0]->get_value_label( $session, $value ) );
 			$a->appendChild( $session->make_text( " (".$size{$value}.")" ) );
 			$li->appendChild( $a );
 			$ul->appendChild( $li );

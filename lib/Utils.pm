@@ -20,6 +20,7 @@ use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
 use XML::DOM;
+use URI::Escape;
 
 my $DF_AVAILABLE;
 
@@ -86,28 +87,28 @@ more information.");
 
 
 
-sub format_date
+sub render_date
 {	
 	my( $session, $datevalue ) = @_;
 
 	if( !defined $datevalue )
 	{
-		return $session->phrase( "lib/utils:date_unspecified" );
+		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	my @elements = split /\-/, $datevalue;
 
 	if( $elements[0]==0 )
 	{
-		return $session->phrase( "lib/utils:date_unspecified" );
+		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	if( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
 	{
-		return $session->phrase( "lib/utils:date_invalid" );
+		return $session->html_phrase( "lib/utils:date_invalid" );
 	}
 
-	return $elements[2]." ".EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0];
+	return $session->make_text( $elements[2]." ".EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0] );
 }
 
 sub get_month_label
@@ -590,7 +591,7 @@ sub render_citation
 		# all across.
 
 		$node->setTagName( "a" );
-		$node->setAttribute( "href", $url );
+		$node->setAttribute( "href", uri_escape( $url ) );
 	}
 	foreach $node ( @{$nodes->{keep}} )
 	{
@@ -705,6 +706,38 @@ sub get_input
 			print "Bad Input, try again.\n";
 		}
 	}
+}
+
+sub clone
+{
+	my( $data ) = @_;
+
+	if( ref($data) eq "" )
+	{
+		return $data;
+	}
+	if( ref($data) eq "ARRAY" )
+	{
+		my $r = [];
+		foreach( @{$data} )
+		{
+			push @{$r}, clone( $_ );
+		}
+		return $r;
+	}
+	if( ref($data) eq "HASH" )
+	{
+		my $r = {};
+		foreach( keys %{$data} )
+		{
+			$r->{$_} = clone( $data->{$_} );
+		}
+		return $r;
+	}
+
+
+	# dunno
+	return $data;			
 }
 
 

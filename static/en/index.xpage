@@ -1,6 +1,8 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<ep:page>
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
 <ep:title>Welcome to &archivename;</ep:title>
 <ep:body>
 

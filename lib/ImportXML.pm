@@ -29,7 +29,6 @@ use XML::Parser;
 #cjg Needs to be able to specify default language (to stop it doing 
 # "?" )
 
-## WP1: BAD
 sub import_file
 {
 	my( $session , $filename , $function, $theirinfo ) = @_;
@@ -47,7 +46,6 @@ sub import_file
 	$parser->parsefile( $filename );
 }
 
-## WP1: BAD
 sub _handle_start
 {
 	my( $parser , $tag , %params ) = @_;
@@ -138,7 +136,6 @@ print "T:".$params{name}."\n";
 
 
 
-## WP1: BAD
 sub _handle_end
 {
 	my ( $parser , $tag ) = @_;

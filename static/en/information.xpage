@@ -1,8 +1,10 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<page>
-<title>About the Archive</title>
-<body>
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>About the Archive</ep:title>
+<ep:body>
 
 <p>This archive is running on eprints.org open archive software, a freely distributable archive system available from <a href="http://www.eprints.org/">eprints.org</a>. </p>
 
@@ -22,5 +24,5 @@
 <p><a href="http://www.mysql.com/"><img src="images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
 <a href="http://www.openarchives.org/"><img src="images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a></p>
 
-</body>
-</page>
+</ep:body>
+</ep:page>

@@ -61,7 +61,6 @@ sub get_system_field_info
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class, $session, $subjectid ) = @_;
@@ -227,7 +226,6 @@ sub _get_ancestors
 #
 ######################################################################
 
-## WP1: BAD
 sub create_child
 {
 	my( $self, $id, $name, $depositable ) = @_;
@@ -241,7 +239,6 @@ sub create_child
 
 
 
-## WP1: BAD
 sub children #cjg should be get_children()
 {
 	my( $self ) = @_;
@@ -423,7 +420,6 @@ sub _get_subjects2
 #
 ######################################################################
 
-## WP1: BAD
 sub subject_label
 {
 	my( $session, $subject_tag ) = @_;
@@ -535,7 +531,6 @@ sub posted_eprints
 #
 ######################################################################
 
-## WP1: BAD
 #cjg Should be a recursive method that does all things for which self is
 # an ancestor
 sub count_eprints

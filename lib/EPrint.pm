@@ -32,7 +32,6 @@ $EPrints::EPrint::id_code_digits = 8;
 
 $EPrints::EPrint::static_page = "index.html";
 
-## WP1: BAD
 sub get_system_field_info
 {
 	my( $class ) = @_;
@@ -78,7 +77,6 @@ sub get_system_field_info
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class, $session, $dataset, $id ) = @_;
@@ -132,11 +130,13 @@ sub new_from_data
 #
 ######################################################################
 
-## WP1: BAD
 sub create
 {
 	my( $session, $dataset, $userid, $data ) = @_;
 
+	# don't want to mangle the origional data.
+	$data = EPrints::Utils::clone( $data );
+	
 	my $setdefaults = 0;
 	if( !defined $data )
 	{
@@ -186,7 +186,6 @@ sub create
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_id
 {
 	my( $session ) = @_;
@@ -206,7 +205,6 @@ sub _create_id
 #
 ######################################################################
 
-## WP1: BAD
 sub _create_directory
 {
 	my( $session, $eprintid ) = @_;
@@ -547,11 +545,6 @@ sub validate_linking
 			{
  				# Not the same user. 
 
-#Must be certified to do this. cjg: Should this be staff only or something???
-#				my $user = new EPrints::User( $self->{session},
-#				                              $self->{userid} );
-#				if( !defined $user && $user->{
-
 				push @problems, $self->{session}->html_phrase( "lib/eprint:cant_succ" );
 			}
 		}
@@ -758,7 +751,6 @@ sub prune_documents
 #
 ######################################################################
 
-## WP1: BAD
 sub get_all_documents
 {
 	my( $self ) = @_;
@@ -829,7 +821,6 @@ sub prune
 #
 ######################################################################
 
-## WP1: BAD
 sub datestamp
 {
 	my( $self ) = @_;
@@ -983,7 +974,6 @@ sub local_path
 #
 ######################################################################
 
-## WP1: BAD
 sub url_stem
 {
 	my( $self ) = @_;
@@ -1004,7 +994,6 @@ sub url_stem
 #
 ######################################################################
 
-## WP1: BAD
 sub generate_static
 {
 	my( $self ) = @_;

@@ -1,11 +1,13 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<page>
-<title>&archivename; Help</title>
-<body>
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>&archivename; Help</ep:title>
+<ep:body>
 
 <p>User documentation not included yet. This is still alpha code.</p>
 
 
-</body>
-</page>
+</ep:body>
+</ep:page>

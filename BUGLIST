@@ -6,8 +6,6 @@ Known Bugs & Issues in latest EPrints-2 release
 General
 ----------------------------------------------------------------------
 
-- "clone eprint" function appears to break later version field
-
 - No subjects at all causes a HTTP error. Possibly due to the top 
    subject for a field not existing.
 
@@ -16,8 +14,6 @@ General
 
 - passwords set via the web are not crypted until they are accepted.
 (No loss of security from eprints-1 but annoying)
-
-
 
 ----------------------------------------------------------------------
 Rendering
@@ -36,19 +32,12 @@ Searching
 
 - Web based search failing to use the cache.
 
-- Web based Searches sometimes displays ALL results when it should 
-   be paged. (not seen this for a while, may have "gone away")
-
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
-- ANY ID is invalid in the "later version of" field.
 
 - .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
    install mode failing to preserve the "executables" field.
-
-- capturing a website with a ~ in the URL set the wrong filename in the 
-   documents data. (didn't handle %'s right?)
 
 - weird bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
@@ -109,5 +98,21 @@ like it's supposed to.
 FIXED: 31/01
 - Problem with more than 3 authors(or whatever) - edit form only EVER
    starts with 3 spaces (and loses other values)
+- reindexing adds a '\' to '\': over escaping? [due to ALWAYS backslash
+  escaping "%" symbols. Should only be done for LIKE values.
+- Web based Searches sometimes displays ALL results when it should 
+   be paged. [not seen this for a while, seems to have "gone away"]
+- capturing a website with a ~ in the URL set the wrong filename in the 
+   documents data. (didn't handle %'s right?) - actually due to the
+   bug above - it screwed up % by escaping it!
+- wget just plain not working! [The invocation had ' quotes and the 
+ code added " quotes to the URL so we actually had '"http://totl.net/"'
+
+FIXED: 02/02
+- "clone eprint" function appears to break later version field [the
+create method was corrupting the data of the eprint it was cloned from,
+now it dup's the data first]
+- ANY ID is invalid in the "later version of" field. 
+
 
 

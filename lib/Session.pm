@@ -52,7 +52,6 @@ use strict;
 #
 ######################################################################
 
-## WP1: BAD
 sub new
 {
 	my( $class, $mode, $param, $noise, $nocheckdb ) = @_;
@@ -173,7 +172,6 @@ sub new
 #  Perform any cleaning up necessary
 #
 
-## WP1: BAD
 sub terminate
 {
 	my( $self ) = @_;
@@ -340,7 +338,12 @@ sub get_noise
 	return( $self->{noise} );
 }
 
-
+sub get_online
+{
+	my( $self ) = @_;
+	
+	return( $self->{online} );
+}
 
 
 
@@ -586,7 +589,10 @@ sub render_form
 	$form->setAttribute( "accept-charset", "utf-8" );
 	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
 	$form->setAttribute( "action", $dest );
-	$form->setAttribute( "enctype", "multipart/form-data" );
+	if( "\L$method" eq "post" )
+	{
+		$form->setAttribute( "enctype", "multipart/form-data" );
+	}
 	return $form;
 }
 
@@ -1096,7 +1102,6 @@ sub _tag_compression
 #  Return a query parameter.
 #
 
-## WP1: BAD
 sub param
 {
 	my( $self, $name ) = @_;
@@ -1128,7 +1133,6 @@ sub param
 #  Return true if the current script had any parameters (POST or GET)
 #
 
-## WP1: BAD
 sub have_parameters
 {
 	my( $self ) = @_;
@@ -1142,7 +1146,6 @@ sub have_parameters
 
 
 
-## WP1: GOOD
 sub auth_check
 {
 	my( $self , $resource ) = @_;
@@ -1194,7 +1197,6 @@ sub current_user
 }
 
 
-## WP1: BAD
 sub seen_form
 {
 	my( $self ) = @_;
@@ -1315,7 +1317,6 @@ sub get_citation_spec
 #
 
 
-## WP1: BAD
 sub render_struct
 {
 	my( $ref , $depth , %done) = @_;
@@ -1396,7 +1397,6 @@ sub render_struct
 	return $text;
 }
 
-## WP1: BAD
 sub microtime
 {
         # disabled due to bug.
@@ -1418,38 +1418,12 @@ sub microtime
 }
 
 
-# NEEDS REWRITE IF TO BE USED
-# PROBABLY BELONGS HERE, THOUGH.
-# cjg Nah, ask the subject class - remove this
-## WP1: BAD
-# sub get_subjects
-# {
-	# my( $self, $session ) = @_;
-	# 
-	# my @subjects;
-	# my $subject;
-	# foreach $subject (@{$self->{subjects}})
-	# {
-		# my $sub = new EPrints::Subject( $session, $subject );
-		# 
-		# push @subjects, $sub if( defined $sub );
-		# 
-		# unless( defined $sub ) 
-		# {
-			# $session->get_archive()->log( "List contain invalid tag $subject" );
-		# }
-	# }
-	# 
-	# return( @subjects );
-# }
-
 #
 # redirect( $url )
 #
 #  Redirects the browser to $url.
 #
 
-## WP1: BAD
 sub redirect
 {
 	my( $self, $url ) = @_;
@@ -1471,7 +1445,6 @@ sub redirect
 #  message body.
 #
 
-## WP1: BAD
 sub mail_administrator
 {
 	my( $self,   $subjectid, $messageid, %inserts ) = @_;
