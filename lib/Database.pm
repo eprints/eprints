@@ -760,7 +760,7 @@ sub create_cache
 #EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
-	$sth->execute();
+	$self->execute( $sth, $sql );
 	my ( $id ) = $sth->fetchrow_array;
 
 	my $tmptable  = "cache".$id;
@@ -791,7 +791,7 @@ sub cache
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
-	my $sql= "SELECT $table.$keyfield->{name} FROM $table";
+	my $sql= "SELECT DISTINCT $table.$keyfield->{name} FROM $table";
 	foreach ( keys %{$aux_tables} )
 	{
 		$sql .= " LEFT JOIN ${$aux_tables}{$_} AS $_";
@@ -846,7 +846,7 @@ sub count_cache
 #EPrints::Log::debug( "Database", "SQL:$sql" );
 
 	my $sth = $self->prepare( $sql );
-	$sth->execute();
+	$self->execute( $sth, $sql );
 	my ( $count ) = $sth->fetchrow_array;
 
 	return $count;
@@ -921,7 +921,7 @@ sub _get
 		$sql = "SELECT $cols FROM $table AS M";
 	}
 	my $sth = $self->prepare( $sql );
-	$sth->execute();
+	$self->execute( $sth, $sql );
 	my @data = ();
 	my @row;
 	my %lookup = ();
@@ -969,7 +969,7 @@ sub _get
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= $table."aux$multifield->{name} AS M ";
-			$sql.= "WHERE M.$keyfield->{name}=$param";
+			$sql.= "WHERE M.$keyfield->{name}=\"$param\"";
 		}
 		elsif ( $mode == 1)
 		{
@@ -984,7 +984,7 @@ sub _get
 			$sql.= $table."aux$multifield->{name} AS M";
 		}
 		$sth = $self->prepare( $sql );
-		$sth->execute();
+		$self->execute( $sth, $sql );
 		my ( $id , $pos , @values);
 		while( ($id , $pos , @values) = $sth->fetchrow_array ) 
 		{
@@ -1037,20 +1037,52 @@ sub do
 {
 	my ( $self , $sql ) = @_;
 
-#EPrints::Log::debug( "Database", "$sql" );
-#print "$sql\n";
+	my $result = $self->{dbh}->do( $sql );
 
-	return $self->{dbh}->do( $sql );
+	if ( !$result ) {
+		print "--------\n";
+		print "DBErr:\n";
+		print "$sql\n";
+		print "----------\n";
+	}
+#EPrints::Log::debug( "Database", "$sql" );
+
+	return $result;
 }
 
 sub prepare 
 {
 	my ( $self , $sql ) = @_;
 
-#EPrints::Log::debug( "Database", "$sql" );
-#print "$sql\n";
+	my $result = $self->{dbh}->prepare( $sql );
 
-	return $self->{dbh}->prepare( $sql );
+	if ( !$result ) {
+		print "--------\n";
+		print "DBErr:\n";
+		print "$sql\n";
+		print "----------\n";
+	}
+#EPrints::Log::debug( "Database", "$sql" );
+
+	return $result;
 }
+sub execute 
+{
+	my ( $self , $sth , $sql ) = @_;
+
+	my $result = $sth->execute();
+
+	if ( !$result ) {
+		print "--------\n";
+		print "DBErr:\n";
+		print "$sql\n";
+		print "----------\n";
+	}
+#EPrints::Log::debug( "Database", "$sql" );
+
+	return $result;
+}
+
+1; # For use/require success
 
 1; # For use/require success

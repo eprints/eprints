@@ -170,13 +170,10 @@ sub start_html
 		$r->send_http_header;
 	}
 
-	# Now the HTML itself.
-	$html .= $self->{query}->start_html(
-		-AUTHOR=>"$EPrintSite::SiteInfo::admin",
-		-BGCOLOR=>"$EPrintSite::SiteInfo::html_bgcolor",
-		-FGCOLOR=>"$EPrintSite::SiteInfo::html_fgcolor",
-		-TITLE=>"$EPrintSite::SiteInfo::sitename\: $title",
-		-HEAD=>\@EPrintSite::SiteInfo::html_head_elements );
+	my %opts = %EPrintSite::SiteInfo::body_params;
+	$opts{-TITLE} = "$EPrintSite::SiteInfo::sitename\: $title";
+
+	$html .= $self->{query}->start_html( %opts );
 
 	# Logo
 	my $banner = $EPrintSite::SiteInfo::html_banner;

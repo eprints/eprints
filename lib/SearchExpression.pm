@@ -297,115 +297,6 @@ sub from_form
 }
 
 
-######################################################################
-#
-# @eprints = do_eprint_search()
-#
-#  Performs the actual search, and returns the results as EPrint objects.
-#  If undef is returned, it means that something went wrong during the
-#  search. An empty list indicates there were no matches.
-#
-######################################################################
-
-sub do_eprint_search
-{
-	my( $self ) = @_;
-	
-	my( $sql, $order ) = $self->get_sql_order();
-	
-	return( EPrints::EPrint::retrieve_eprints(
-		$self->{session},
-		$self->{table},
-		( defined $sql ? [ $sql ] : undef ),
-		$order ) );
-}
-
-
-######################################################################
-#
-# @users = do_user_search()
-#
-#  Performs an actual search, returing EPrints::User objects.
-#  If undef is returned, it means that something went wrong during the
-#  search. An empty list indicates there were no matches.
-#
-######################################################################
-
-sub do_user_search
-{
-	my( $self ) = @_;
-	
-	my( $sql, $order ) = $self->get_sql_order();
-	
-	return( EPrints::User::retrieve_users(
-		$self->{session},
-		( defined $sql ? [ $sql ] : undef ),
-		$order ) );
-}
-
-
-######################################################################
-#
-# $rows = do_raw_search( $columns )
-#
-#  Performs the search, just returning the raw row data from the database.
-#
-######################################################################
-
-sub do_raw_search
-{
-	my( $self, $columns ) = @_;
-	
-	my( $sql, $order ) = $self->get_sql_order();
-	
-	return( $self->{session}->{database}->retrieve(
-		$self->{table},
-		$columns,
-		( defined $sql ? [ $sql ] : undef ),
-		$order ) );
-}
-
-
-######################################################################
-#
-# ( $sql, $order ) = get_sql_order()
-#
-#  Returns the SQL for the search ($sql) and the ordering ($order).
-#
-######################################################################
-
-sub get_sql_order
-{
-	my( $self ) = @_;
-
-	my $first = 1;
-	my $sql = "";
-
-#EPrints::Log::debug( "SearchExpression", "Number of search fields: ".scalar( @{$self->{searchfields}} ) );
-
-	# Make the SQL condition
-	foreach (@{$self->{searchfields}})
-	{
-		my ( $sql_term ) = $_->get_sql();
-
-		if( defined $sql_term )
-		{
-			$sql .= ( $self->{satisfy_all} ? " AND " : " OR " ) unless( $first );
-			$first = 0 if( $first );
-			
-			$sql .= "($sql_term)";
-		}
-	}
-
-	my $order = (defined $self->{order} ?
-		[ $self->{order_sql}->{$self->{order}} ] :
-		undef );
-
-	undef $sql if( $sql eq "" );
-
-	return( $sql, $order );
-}
-
 
 ######################################################################
 #
@@ -563,7 +454,6 @@ sub cache
 	foreach (@{$self->{searchfields}})
 	{
 		my ( $sql_term , $aux_tables_term ) = $_->get_sql();
-	
 		foreach(keys %{$aux_tables_term}) 
 		{
 			my $auxid = "aux$auxcount";

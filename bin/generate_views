@@ -74,13 +74,13 @@ sub write_subject_view
 	
 	# Tree at the top
 	print OUT $session->{render}->subject_tree( $subject );
-	print OUT "<HR>\n";	
+	print OUT "<HR noshade size=\"2\">\n";	
 
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( $EPrints::Database::table_archive );
 
-	print OUT "<P><CENTER>This subject category contains <STRONG>".($#eprints+1).
-		"</STRONG> entries</CENTER></P>\n";
+	print OUT "<P>This subject category contains <STRONG>".($#eprints+1).
+		"</STRONG> entries</P>\n";
 	
 	foreach (@eprints)
 	{
