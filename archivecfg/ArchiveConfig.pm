@@ -377,22 +377,19 @@ $c->{default_user_type} = "user";
  
 $c->{userauth} = {
 	user => { 
-		auth  => $UNENCRYPTED_DBI,
+		auth  => $ENCRYPTED_DBI,
 		priv  =>  [ "user", "subscription", "set-password", "deposit" ] },
 	editor => { 
-		auth  => $UNENCRYPTED_DBI,
+		auth  => $ENCRYPTED_DBI,
 		priv  =>  [ "tester", "subscription", "view-status", "editor", 
 				"set-password", "staff-view", "deposit"] },
 	admin => { 
-		auth  => $UNENCRYPTED_DBI,
+		auth  => $ENCRYPTED_DBI,
 		priv  =>  [ "tester", "subscription", "view-status", "editor", 
 				"set-password", "edit-subject", "staff-view", 
 				"deposit"] }
 };
 
-$c->{userauth}->{user}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
-$c->{userauth}->{editor}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
-$c->{userauth}->{admin}->{auth} = $ENCRYPTED_DBI if( $CJGDEBUG );
 
 ######################################################################
 # METADATA CONFIGURATION
@@ -1847,6 +1844,21 @@ sub set_user_automatic_fields
 			$candidate );
 		$user->set_value( "username" , $username );
 	}
+
+	# Because password is a "secret" field, it is only set if it
+	# is being changed - therefor if it's set we need to crypt
+	# it. This could do something different like MD5 it (if you have
+	# the appropriate authentication module.)
+	# It could even access an external system to set the password
+	# there and then set the value inside this system to undef.
+	if( $user->get_value( "password" ) )
+	{
+		my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
+		my $pass = $user->get_value( "password" );
+		my $salt = $saltset[time % 64] . $saltset[(time/64)%64];
+		my $cryptpass = crypt($pass,$salt);
+		$user->set_value( "password", $cryptpass );
+	}
 }
 
 sub set_eprint_defaults
@@ -1868,6 +1880,13 @@ sub set_subscription_automatic_fields
 {
 	my( $subscription ) = @_;
 }
+
+#
+# get_entities is used by the generate_dtd script to get the entities
+# for the phrase files and config files.
+#
+# It should not need editing.
+#
 
 sub get_entities
 {
@@ -1943,5 +1962,6 @@ sub _user_with_ecsid
 }
 
 1;
+
 
 

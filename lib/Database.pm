@@ -437,10 +437,10 @@ sub update
 	my( $self, $dataset, $data ) = @_;
 	#my( $database_self, $dataset_ds, $struct_md_data ) = @_;
 
- #use Data::Dumper;
- #print STDERR "-----------------UPDATE RECORD------------------\n";
- #print STDERR Dumper($data);
- #print STDERR "-----------------////UPDATE RECORD ------------------\n";
+#use Data::Dumper;
+#print STDERR "-----------------UPDATE RECORD------------------\n";
+#print STDERR Dumper($data);
+#print STDERR "-----------------////UPDATE RECORD ------------------\n";
 
 	my $rv = 1;
 	my $sql;
@@ -462,6 +462,13 @@ sub update
 	my $field;
 	foreach $field ( @fields ) 
 	{
+		if( $field->is_type( "secret" ) &&
+			!EPrints::Utils::is_set( $data->{$field->get_name()} ) )
+		{
+			# No way to blank a secret field, as a null value
+			# is totally skipped when updating.
+			next;
+		}
 		if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) ) 
 		{ 
 			push @aux,$field;
@@ -1128,8 +1135,15 @@ if( ref($dataset) eq "" ) { confess(); }
 	my $cols = "";
 	my @aux = ();
 	my $first = 1;
-	foreach $field (@fields) {
-		if ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
+	foreach $field ( @fields ) {
+		if( $field->is_type( "secret" ) )
+		{
+			# We don't return the values of secret fields - 
+			# much more secure that way. The password field is
+			# accessed direct via SQL.
+			next;
+		}
+		if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
 		{ 
 			push @aux,$field;
 		}
@@ -1183,6 +1197,10 @@ if( ref($dataset) eq "" ) { confess(); }
 		my $record = {};
 		$lookup{$row[0]} = $count;
 		foreach $field ( @fields ) { 
+			if( $field->is_type( "secret" ) )
+			{
+				next;
+			}
 			if( $field->get_property( "multiple" ) )
 			{
 				#cjg Maybe should do nothing.

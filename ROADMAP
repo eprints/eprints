@@ -45,7 +45,6 @@
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
-#	always use encrypted passwords
 #	Fix "upload then back" bug
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
@@ -56,7 +55,7 @@
 #	Threads rendering code.
 #	Staff User Edit/Create
 #	Delete records function.
-#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
+#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
 #	Make all possible field-types browseable.
 #	Make SearchFields have a better call method.
 #	Get install upgrader working properly.
@@ -210,7 +209,7 @@
 
 # cgi/users/staff/add_user		.
 # cgi/users/staff/buffer		*
-# cgi/users/staff/edit_eprint		.
+# cgi/users/staff/edit_eprint		*
 # cgi/users/staff/edit_submission	*
 # cgi/users/staff/edit_user		.
 # cgi/users/staff/eprint_search		*
@@ -220,4 +219,3 @@
 # cgi/users/staff/edit_subject		*
 
 # lose cgi/remind
-# render_input_form to use HASH params

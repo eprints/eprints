@@ -826,48 +826,60 @@ sub render_error
 #  $dest should contain the URL of the destination
 #
 
-## WP1: BAD
+my %INPUT_FORM_DEFAULTS = (
+	fields => [],
+	values => {},
+	show_names => 0,
+	show_help => 0,
+	buttons => {},
+	hidden_fields => {},
+	comments => {},
+	dest => undef
+);
+
 sub render_input_form
 {
-	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
-	    $hidden_fields, $comments, $dest ) = @_;
+	my( $self, %p ) = @_;
 
+	foreach( %INPUT_FORM_DEFAULTS )
+	{
+		next if( defined $p{$_} );
+		$p{$_} = $INPUT_FORM_DEFAULTS{$_};
+	}
+	
 	my $query = $self->{query};
 
 	my( $form );
 
 #print STDERR "_________RENDER_FORM____________\n";
 #use Data::Dumper;
-#print STDERR Dumper($values);
+#print STDERR Dumper($p{values});
 
-	$form =	$self->render_form( "post", $dest );
+	$form =	$self->render_form( "post", $p{dest} );
 
 	my $field;	
-	foreach $field (@$fields)
+	foreach $field (@{$p{fields}})
 	{
 		$form->appendChild( $self->_render_input_form_field( 
 					     $field,
-		                             $values->{$field->get_name()},
-		                             $show_names,
-		                             $show_help,
-		                             $comments->{$field->get_name()} ) );
+		                             $p{values}->{$field->get_name()},
+		                             $p{show_names},
+		                             $p{show_help},
+		                             $p{comments}->{$field->get_name()} ) );
 	}
 
 	# Hidden field, so caller can tell whether or not anything's
 	# been POSTed
 	$form->appendChild( $self->render_hidden_field( "_seen", "true" ) );
 
-	if( defined $hidden_fields )
+	foreach (keys %{$p{hidden_fields}})
 	{
-		foreach (keys %{$hidden_fields})
-		{
-			$form->appendChild( $self->render_hidden_field( 
-						$_, 
-						$hidden_fields->{$_} ) );
-		}
+		$form->appendChild( $self->render_hidden_field( 
+					$_, 
+					$p{hidden_fields}->{$_} ) );
 	}
 
-	$form->appendChild( $self->render_action_buttons( %{$action_buttons} ) );
+	$form->appendChild( $self->render_action_buttons( %{$p{buttons}} ) );
 
 	return $form;
 }

@@ -185,22 +185,21 @@ print STDERR "dEStROY\n";
 
         	$page->appendChild(
                 	$session->render_input_form(
-                        	[ 
+                        	fields=>[ 
 					$subject_ds->get_field( "name" ),
 					$subject_ds->get_field( "depositable" )
 				],
-                        	{ 
+                        	values=>{ 
 					name=>
 					  $subject->get_value( "name" ),
 					depositable=>
 					  $subject->get_value( "depositable" )
 				},
-                        	1,
-                        	1,
-                        	{ submit => $session->phrase( "cgi/users/edit_subject:action_submit" ) },
-                        	{ subjectid => $subid },
-                        	{},
-                        	"edit_subject" ) );
+                        	show_names=>1,
+                        	show_help=>1,
+                        	buttons=>{ submit => $session->phrase( "cgi/users/edit_subject:action_submit" ) },
+                        	hidden_fields=>{ subjectid => $subid },
+                        	dest=>"edit_subject" ) );
 
 		$page->appendChild( $session->render_ruler() );
 	}

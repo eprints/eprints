@@ -37,7 +37,7 @@ sub get_system_field_info
 
 		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"password", type=>"secret", required=>1 },
+		{ name=>"password", type=>"secret" },
 
 		{ name=>"usertype", type=>"datatype", required=>1, 
 			datasetid=>"user" },

@@ -168,12 +168,12 @@ sub _render_user_form
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 
 	return $self->{session}->render_input_form( 
-					\@fields,
-					$self->{user}->get_values(),
-					1,
-					1,
-					$buttons,
-					\%hidden );
+					fields=>\@fields,
+					values=>$self->{user}->get_values(),
+					show_names=>1,
+					show_help=>1,
+					buttons=>$buttons,
+					hidden_fields=>\%hidden );
 }
 
 ######################################################################

@@ -64,11 +64,9 @@ sub process
 		#"eprintid:text::ID of EPrint to View:1:1:1" );
 	
 		$page->appendChild( $session->render_input_form(
-			[ $id_field ],
-			{},
-			1,
-			0,
-			{
+			fields=>[ $id_field ],
+			show_names=>1,
+			buttons=>{
 				check=>$session->phrase( 
 					"cgi/users/edit_eprint:action_check" )
 			}
@@ -142,11 +140,7 @@ sub process
 	$page->appendChild( $session->render_ruler() );
 
 	$page->appendChild( $session->render_input_form(
-		[],
-		{},
-		0,
-		0,
-		{
+		buttons=>{
 			remove=>$session->phrase( 
 				"cgi/users/edit_eprint:action_remove" ),
 			move=>$session->phrase( 
@@ -154,7 +148,7 @@ sub process
 			cancel=>$session->phrase( 
 				"cgi/users/edit_eprint:action_cancel" )
 		},
-		{ eprintid=>$eprintid }
+		hidden_fields=>{ eprintid=>$eprintid }
 	) );
 		
 	return( $session->phrase( "cgi/users/edit_eprint:form_title" ), $page );

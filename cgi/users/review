@@ -227,21 +227,16 @@ sub removal_request_form
 
 	$page->appendChild(
 		$session->render_input_form(
-			[
-				$reason_field
-			],
-			{},
-			0,
-			1,
-			{
+			fields=>[ $reason_field ],
+			show_help=>1,
+			buttons=>{
 				send => $session->phrase( "cgi/users/review:send" ),
 				cancel => $session->phrase( "cgi/users/review:cancel" )
 			},
-			{
+			hidden_fields=>{
 				eprintid => $eprint->get_value( "eprintid" )
 			},
-			{},
-			"review" ) );
+			dest=>"review" ) );
 
 	$session->build_page( $title, $page );
 	$session->send_page();

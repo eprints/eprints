@@ -950,15 +950,14 @@ sub _do_stage_type
 				"lib/submissionform:action_next" ) };
 
 	$page->appendChild( $self->{session}->render_input_form( 
-		[ $self->{dataset}->get_field( "type" ) ],
-	        $self->{eprint}->get_data(),
-	        1,
-	        1,
-	        $submit_buttons,
-	        { stage => "type", 
+		fields=>[ $self->{dataset}->get_field( "type" ) ],
+	        values=>$self->{eprint}->get_data(),
+	        show_names=>1,
+	        show_help=>1,
+	        buttons=>$submit_buttons,
+	        hidden_fields=>{ stage => "type", 
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
-		{},
-		$self->{formtarget}."#t"
+		dest=>$self->{formtarget}."#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1029,18 +1028,18 @@ sub _do_stage_linking
 				"lib/submissionform:action_next" ) };
 
 	$page->appendChild( $self->{session}->render_input_form( 
-		[ 
+		fields=>[ 
 			$self->{dataset}->get_field( "succeeds" ),
 			$self->{dataset}->get_field( "commentary" ) 
 		],
-	        $self->{eprint}->get_data(),
-	        1,
-	        1,
-	        $submit_buttons,
-	        { stage => "linking",
+	        values=>$self->{eprint}->get_data(),
+	        show_names=>1,
+	        show_help=>1,
+	        buttons=>$submit_buttons,
+	        hidden_fields=>{ stage => "linking",
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
-		$comment,
-		$self->{formtarget}."#t"
+		comments=>$comment,
+		dest=>$self->{formtarget}."#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1086,14 +1085,13 @@ sub _do_stage_meta
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			\@edit_fields,
-			$self->{eprint}->get_data(),
-			1,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			$self->{formtarget}."#t" ) );
+			fields=>\@edit_fields,
+			values=>$self->{eprint}->get_data(),
+			show_names=>1,
+			show_help=>1,
+			buttons=>$submit_buttons,
+			hidden_fields=>$hidden_fields,
+			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_meta" ),
@@ -1258,20 +1256,18 @@ sub _do_stage_fileview
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			[ 
+			fields=>[ 
 				$arc_format_field, 
 				$num_files_field 
 			],
-			{
+			values=>{
 				num_files => 1,	
 				arc_format => "plain"
 			},
-			0,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			$self->{formtarget}."#t" ) );
+			show_help=>1,
+			buttons=>$submit_buttons,
+			hidden_fields=>$hidden_fields,
+			dest=>$self->{formtarget}."#t" ) );
 
 
 	##################################
@@ -1435,27 +1431,20 @@ sub _do_stage_fileview
 
 		$page->appendChild( 
 			$self->{session}->render_input_form( 
-				$fields,
-				$self->{document}->get_data(),
-				0,
-				1,
-				$submit_buttons,
-				$hidden_fields,
-				{},
-				$self->{formtarget}."#t" ) );
+				fields=>$fields,
+				values=>$self->{document}->get_data(),
+				show_help=>1,
+				buttons=>$submit_buttons,
+				hidden_fields=>$hidden_fields,
+				dest=>$self->{formtarget}."#t" ) );
 	}
 	else
 	{
 		$page->appendChild( 
 			$self->{session}->render_input_form( 
-				[],
-				{},
-				0,
-				0,
-				{ prev => $self->{session}->phrase( "lib/submissionform:action_prev" ) },
-				$hidden_fields,
-				{},
-				$self->{formtarget}."#t" ) );
+				buttons=>{ prev => $self->{session}->phrase( "lib/submissionform:action_prev" ) },
+				hidden_fields=>$hidden_fields,
+				dest=>$self->{formtarget}."#t" ) );
 	}	
 
 # cjg Deprecate/rename these.
@@ -1607,14 +1596,10 @@ sub _do_stage_verify
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			[],
-			{},
-			0,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			$self->{formtarget}."#t" ) );
+			show_help=>1,
+			buttons=>$submit_buttons,
+			hidden_fields=>$hidden_fields,
+			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_verify" ),
@@ -1677,14 +1662,10 @@ sub _do_stage_confirmdel
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
-			[],
-			{},
-			0,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			$self->{formtarget}."#t" ) );
+			show_help=>1,
+			buttons=>$submit_buttons,
+			hidden_fields=>$hidden_fields,
+			dest=>$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_confirmdel" ),

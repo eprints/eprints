@@ -360,9 +360,9 @@ sub parse_xml
 	}
 	
 	my $doc = EPrints::Config::parse_xml( $file, %config );
-	if( defined $doc )
+	if( !defined $doc )
 	{
-		$self->log( "Loaded&Parsed: $file" );
+		$self->log( "Failed to parse XML file: $file" );
 	}
 	return $doc;
 }

@@ -73,11 +73,10 @@ else
 	print "</P></CENTER>\n";
 	
 	$session->{render}->render_input_form(
-		[ $username_field ],
-		{},
-		1,
-		0,
-		[ $session->{lang}->phrase( "cgi/users/add_user:create_user" ) ] );
+		fields=>[ $username_field ],
+		show_names=>1,
+		buttons=>[ $session->{lang}->phrase( "cgi/users/add_user:create_user" ) ] );
+		#cjg buttons is wrong!
 	
 	print $session->{render}->end_html();
 }

@@ -113,11 +113,11 @@ unless( defined $eprint || defined $deletion_record )
 	
 	my $id_field = new EPrints::MetaField( "eprintid:text::EPrint ID Code::::" );
 	
-	$session->{render}->render_input_form( [ $id_field ],
-	                                 {},
-	                                 1,
-	                                 0,
-	                                 [ $session->{lang}->phrase( "cgi/view_eprint:view_eprint" ) ] );
+	$session->{render}->render_input_form( 
+		fields=>[ $id_field ],
+		show_names=>1,
+		buttons=> [ $session->{lang}->phrase( "cgi/view_eprint:view_eprint" ) ] );
+#cjg BUTTONS IS WRONG!
 
 	print $session->{render}->end_html();
 }
