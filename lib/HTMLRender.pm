@@ -75,6 +75,15 @@ my %monthnames =
 );
 
 
+# These are the types of input for which adding a * for "required" fields
+# is inappropriate.  E.g. it looks silly on a checkbox.
+
+my %no_asterisk =
+(
+	"boolean" => 1
+);
+
+
 ######################################################################
 #
 # new( $session, $offline)
@@ -722,7 +731,10 @@ sub input_field_tr
 	my $html;
 
 	# Field name should have a star next to it if it is required
-	my $required_string = ( $field->{required} ? "*" : "" );
+	my $required_string = "";
+	$required_string = "*"
+		if( $field->{required} && !defined $no_asterisk{$field->{type}} );
+
 	my $colspan = ($show_names ? " COLSPAN=2" : "" );
 	my $align = ($show_names ? "" : " ALIGN=CENTER" );
 	
