@@ -339,3 +339,7 @@ only needed for multilingual archives.
 front page.
 - VLit now returns 401 or 501 where appropriate.
 [c] - table on the default frontpage is no longer 100%: looked bad in IE.
+- SearchField definitions now use 3 values rather than the icky
+PHR:EQ:fred format. Still serialise OK. Also ANY/ALL/PHR is not needed if 
+match mode is not "IN" and if match mode is not specified it defaults to
+"EQ" - which is usually used internally.
