@@ -49,18 +49,18 @@ $EPrintSite::SiteInfo::eprint_id_stem = "cog";
 # If 1, users can request the removal of their submissions from the archive
 $EPrintSite::SiteInfo::allow_user_removal_request = 1;
 
+# Server of static HTML + images, including port
+$EPrintSite::SiteInfo::server_static = "http://$EPrintSite::SiteInfo::host";
+
+# Mod_perl script server, including port
+$EPrintSite::SiteInfo::server_perl = "http://$EPrintSite::SiteInfo::host/perl";
+
 
 ######################################################################
 #
 #  Site information that shouldn't need changing
 #
 ######################################################################
-
-# Server of static HTML + images
-$EPrintSite::SiteInfo::server_static = "http://$EPrintSite::SiteInfo::host";
-
-# Mod_perl script server
-$EPrintSite::SiteInfo::server_perl = "http://$EPrintSite::SiteInfo::host/perl";
 
 # Site "home page" address
 $EPrintSite::SiteInfo::frontpage = "$EPrintSite::SiteInfo::server_static/";
