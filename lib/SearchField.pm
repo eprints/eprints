@@ -91,7 +91,7 @@ print STDERR "TID: $dataset\n";
 		my( @fieldnames, @displaynames );
 		foreach (@$field)
 		{
-			push @fieldnames, $_->getName();
+			push @fieldnames, $_->get_name();
 			push @displaynames, $_->display_name( $self->{session} );
 		}
 	
@@ -105,7 +105,7 @@ print STDERR "TID: $dataset\n";
 if( !defined $field ) { &EPrints::Session::bomb; }
 
 		$self->{displayname} = $field->display_name( $self->{session} );
-		$self->{formname} = $field->getName();
+		$self->{formname} = $field->get_name();
 	}
 	
 
@@ -558,7 +558,7 @@ print STDERR "ack\n";
 print STDERR "ock\n";
 	}
 
-	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->getName() );
+	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_name() );
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done

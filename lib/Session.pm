@@ -1130,10 +1130,10 @@ print STDERR EPrints::Log::render_struct( $values );
 	my $field;	
 	foreach $field (@$fields)
 	{
-print STDERR "==>".$field->getName()." = ".$values->{$field->getName()}."\n";
+print STDERR "==>".$field->get_name()." = ".$values->{$field->get_name()}."\n";
 		$form->appendChild( $self->render_form_field( 
 					     $field,
-		                             $values->{$field->getName()},
+		                             $values->{$field->get_name()},
 		                             $show_names,
 		                             $show_help ) );
 	}
@@ -1186,7 +1186,7 @@ sub render_form_field
 		$div->appendChild( 
 			$self->makeText( $field->display_name( $self ) ) );
 
-		if( $field->isRequired() && !$field->is_type( "boolean" ) )
+		if( $field->get_property( "required ") && !$field->is_type( "boolean" ) )
 		{
 			$span = $self->make_element( 
 					"span", 

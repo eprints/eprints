@@ -110,7 +110,7 @@ sub new
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
 			push @{$self->{system_fields}} , $field;
-			$self->{field_index}->{$field->getName()} = $field;
+			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
 	my $sitefields = $site->getConf( "sitefields", $self->{confid} );
@@ -120,7 +120,7 @@ sub new
 		{
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
-			$self->{field_index}->{$field->getName} = $field;
+			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
 
@@ -254,7 +254,7 @@ sub getSQLIndexTableName
 sub getSQLSubTableName
 {
 	my( $self , $field ) = @_;
-	return $self->getSQLTableName()."_".$field->getName();
+	return $self->getSQLTableName()."_".$field->get_name();
 }
 
 # (Array of EPrints::MetaField) get_fields()

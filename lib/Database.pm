@@ -259,7 +259,7 @@ sub _create_table_aux
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
-		if ( $field->isMultiple )
+		if ( $field->get_property( "multiple ") )
 		{ 	
 			# make an aux. table for a multiple field
 			# which will contain the same type as the
@@ -269,9 +269,9 @@ sub _create_table_aux
 			# there's not much point. 
 
 			my $auxfield = $field->clone;
-			$auxfield->setMultiple( 0 );
+			$auxfield->set_property( "multiple", 0 );
 			my $keyfield = $dataset->getKeyField->clone;
-			$keyfield->setIndexed( 1 );
+			$keyfield->set_property( "indexed", 1 );
 			my $pos = EPrints::MetaField->new( 
 				undef,
 				{ 
@@ -302,7 +302,7 @@ sub _create_table_aux
 			$key = $field;
 			$notnull = 1;
 		}
-		elsif( $field->isIndexed )
+		elsif( $field->get_property( "indexed" ) )
 		{
 			$notnull = 1;
 			push @indices, $field->getSQLIndex;
@@ -312,7 +312,7 @@ sub _create_table_aux
 	}
 	if ( $setkey )	
 	{
-		$sql .= ", PRIMARY KEY (".$key->getName.")";
+		$sql .= ", PRIMARY KEY (".$key->get_name().")";
 	}
 
 	
@@ -357,9 +357,9 @@ sub add_record
 	# work.
 
 	my $sql = "INSERT INTO ".$dataset->getSQLTableName." ";
-	$sql   .= " (".$dataset->getKeyField->getName.") ";
+	$sql   .= " (".$dataset->getKeyField->get_name().") ";
 	$sql   .= "VALUES (\"".
-	          prepValue( $data->{$dataset->getKeyField->getName} )."\")";
+	          prepValue( $data->{$dataset->getKeyField->get_name()} )."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -418,11 +418,11 @@ sub update
 
 	my $keyfield = $dataset->getKeyField();
 
-	my $keyvalue = prepValue( $data->{$keyfield->getName} );
+	my $keyvalue = prepValue( $data->{$keyfield->get_name()} );
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
-	my $where = $keyfield->getName." = \"$keyvalue\"";
+	my $where = $keyfield->get_name()." = \"$keyvalue\"";
 
 	my $indextable = $dataset->getSQLIndexTableName;
 	$sql = "DELETE FROM $indextable WHERE $where";
@@ -433,7 +433,7 @@ sub update
 
 	foreach( @fields ) 
 	{
-		if( $_->isMultiple ) 
+		if( $_->get_property( "multiple" ) ) 
 		{ 
 			push @aux,$_;
 		}
@@ -443,23 +443,23 @@ sub update
 
 			if( $_->is_type( "name" ) )
 			{
-				$values{$_->getName."_given"} = 
-					$data->{$_->getName}->{given};
-				$values{$_->getName."_family"} = 
-					$data->{$_->getName}->{family};
+				$values{$_->get_name()."_given"} = 
+					$data->{$_->get_name()}->{given};
+				$values{$_->get_name()."_family"} = 
+					$data->{$_->get_name()}->{family};
 			}
 			else
 			{
-				$values{$_->getName} =
-					$data->{$_->getName};
+				$values{$_->get_name()} =
+					$data->{$_->get_name()};
 			}
-			if( $_->isTextIndexable )
+			if( $_->is_text_indexable )
 			{ 
 				$self->_freetext_index( 
 					$dataset, 
 					$keyvalue, 
 					$_, 
-					$data->{$_->getName} );
+					$data->{$_->get_name()} );
 			}
 		}
 	}
@@ -491,25 +491,25 @@ sub update
 
 		# skip to next table if there are no values at all for this
 		# one.
-		if( !defined $data->{$multifield->getName} )
+		if( !defined $data->{$multifield->get_name()} )
 		{
 			next;
 		}
-print STDERR "*".$data->{$multifield->getName()}."\n";
-print STDERR "*".$multifield->getName()."\n";
+print STDERR "*".$data->{$multifield->get_name()}."\n";
+print STDERR "*".$multifield->get_name()."\n";
 		my $position=0;
-		foreach( @{$data->{$multifield->getName}} )
+		foreach( @{$data->{$multifield->get_name()}} )
 		{
 			$sql = "INSERT INTO $auxtable (".
-			       $keyfield->getName.", pos, ";
+			       $keyfield->get_name().", pos, ";
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= $multifield->getName."_given, ";
-				$sql .= $multifield->getName."_family";
+				$sql .= $multifield->get_name()."_given, ";
+				$sql .= $multifield->get_name()."_family";
 			}
 			else
 			{
-				$sql .= $multifield->getName;
+				$sql .= $multifield->get_name();
 			}
 			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
 			if( $multifield->is_type( "name" ) )
@@ -524,7 +524,7 @@ print STDERR "*".$multifield->getName()."\n";
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
 
-			if( $multifield->isTextIndexable )
+			if( $multifield->is_text_indexable )
 			{
 				$self->_freetext_index( 
 					$dataset, 
@@ -744,13 +744,13 @@ sub _make_select
 	my( $self, $keyfield, $tables, $conditions ) = @_;
 	
 	my $sql = "SELECT ".((keys %{$tables})[0]).".".
-	          $keyfield->getName." FROM ";
+	          $keyfield->get_name()." FROM ";
 	my $first = 1;
 	foreach( keys %{$tables} )
 	{
 		$sql .= " INNER JOIN" unless( $first );
 		$sql .= " ${$tables}{$_} AS $_";
-		$sql .= " USING (".$keyfield->getName.")" unless( $first );
+		$sql .= " USING (".$keyfield->get_name().")" unless( $first );
 		$first = 0;
 	}
 	if( defined $conditions )
@@ -785,11 +785,11 @@ sub buffer
 	} 
 	elsif( $keep )
 	{
-		$targetbuffer = $self->create_cache( $keyfield->getName );
+		$targetbuffer = $self->create_cache( $keyfield->get_name() );
 	}
 	else
 	{
-		$targetbuffer = $self->create_buffer( $keyfield->getName );
+		$targetbuffer = $self->create_buffer( $keyfield->get_name() );
 	}
 
 	$self->do( "INSERT INTO $targetbuffer $sql" );
@@ -802,9 +802,9 @@ sub distinct_and_limit
 {
 	my( $self, $buffer, $keyfield, $max ) = @_;
 
-	my $tmptable = $self->create_buffer( $keyfield->getName );
+	my $tmptable = $self->create_buffer( $keyfield->get_name() );
 
-	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->getName.
+	my $sql = "INSERT INTO $tmptable SELECT DISTINCT ".$keyfield->get_name().
 	          " FROM $buffer";
 
 	if( defined $max )
@@ -903,13 +903,13 @@ sub _get
 	my @fields = $dataset->get_fields();
 
 	my $keyfield = $fields[0];
-	my $kn = $keyfield->getName;
+	my $kn = $keyfield->get_name();
 
 	my $cols = "";
 	my @aux = ();
 	my $first = 1;
 	foreach (@fields) {
-		if ( $_->isMultiple )
+		if ( $_->get_property( "multiple" ) )
 		{ 
 			push @aux,$_;
 		}
@@ -925,12 +925,12 @@ sub _get
 			}
 			if ( $_->is_type( "name" ) )
 			{
-				$cols .= "M.".$_->getName."_given, ".
-				         "M.".$_->getName."_family";
+				$cols .= "M.".$_->get_name()."_given, ".
+				         "M.".$_->get_name()."_family";
 			}
 			else 
 			{
-				$cols .= "M.".$_->getName;
+				$cols .= "M.".$_->get_name();
 			}
 		}
 	}
@@ -960,7 +960,7 @@ sub _get
 		my $record = {};
 		$lookup{$row[0]} = $count;
 		foreach( @fields ) { 
-			if( $_->isMultiple )
+			if( $_->get_property( "multiple" ) )
 			{
 				$record->{$_->{name}} = [];
 			}
@@ -977,7 +977,7 @@ sub _get
 				{
 					$value = shift @row;
 				}
-				$record->{$_->getName} = $value;
+				$record->{$_->get_name()} = $value;
 			}
 		}
 		$data[$count] = $record;
@@ -987,7 +987,7 @@ sub _get
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $mn = $multifield->getName;
+		my $mn = $multifield->get_name();
 		my $col = "M.$mn";
 		if( $multifield->is_type( "name" ) )
 		{
@@ -1124,9 +1124,9 @@ sub exists
 	
 	my $keyfield = $dataset->getKeyField;
 
-	my $sql = "SELECT ".$keyfield->getName.
+	my $sql = "SELECT ".$keyfield->get_name().
 		" FROM ".$dataset->getSQLTableName." WHERE ".
-		$keyfield->getName()." = \"".prepValue( $id )."\";";
+		$keyfield->get_name()." = \"".prepValue( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1159,8 +1159,8 @@ sub _freetext_index
 	my $sql;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( ".$keyfield->getName." , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prepValue($field->getName.":$_")."\")";
+		$sql = "INSERT INTO $indextable ( ".$keyfield->get_name()." , fieldword ) VALUES ";
+		$sql.= "( \"$id\" , \"".prepValue($field->get_name().":$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;

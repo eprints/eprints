@@ -166,7 +166,7 @@ sub _render_form
 	# Get the appropriate fields
 	foreach $field (@all_fields)
 	{
-		if( $self->{staff} || $field->isEditable() ) {
+		if( $self->{staff} || $field->get_property( "editable" ) ) {
 			push @edit_fields, $field;
 		}
 	}

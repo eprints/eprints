@@ -292,8 +292,8 @@ sub validate
 	foreach $field (@all_fields)
 	{
 		# Check that the field is filled in if it is required
-		if( $field->isRequired() && 
-		    !$self->is_set( $field->getName() ) )
+		if( $field->get_property( "required" ) && 
+		    !$self->is_set( $field->get_name() ) )
 		{
 			push @all_problems, 
 			  $self->{session}->phrase( 
@@ -306,7 +306,7 @@ sub validate
 			my $problem = $self->{session}->getSite()->call(
 				"validate_user_field",
 				$field,
-				$self->getValue( $field->getName() ),
+				$self->getValue( $field->get_name() ),
 				$self->{session} );
 
 			if( defined $problem && $problem ne "" )

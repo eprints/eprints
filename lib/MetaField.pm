@@ -102,18 +102,18 @@ sub new
 	print STDERR EPrints::Log::render_struct( $properties );
 			die "No $_ defined for field. (".join(",",caller()).")";	
 		}
-		$self->setProperty( $_, $properties->{$_} );
+		$self->set_property( $_, $properties->{$_} );
 	}
 	foreach( "required" , "editable" , "multiple" )
 	{
-		$self->setProperty( $_, $properties->{$_}, 0 );
+		$self->set_property( $_, $properties->{$_}, 0 );
 	}
 
 	$self->{dataset} = $dataset;
 
 	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
-		$self->setProperty( 
+		$self->set_property( 
 			"displaylines", 
 			$properties->{displaylines}, 
 			5 );
@@ -121,12 +121,12 @@ sub new
 
 	if( $self->is_type( "int" ) )
 	{
-		$self->setProperty( "digits", $properties->{digits} , 20 );
+		$self->set_property( "digits", $properties->{digits} , 20 );
 	}
 
 	if( $self->is_type( "subject" ) )
 	{
-		$self->setProperty( "showall" , $properties->{showall} , 0 );
+		$self->set_property( "showall" , $properties->{showall} , 0 );
 	}
 
 	if( $self->is_type( "datatype" ) )
@@ -136,12 +136,12 @@ sub new
 			#cjg NOT a good way to quit
 			die "NO DATASETID for FIELD: $properties->{name}\n";
 		}
-		$self->setProperty( "datasetid" , $properties->{datasetid} );
+		$self->set_property( "datasetid" , $properties->{datasetid} );
 	}
 
 	if( $self->is_type( "text" ) )
 	{
-		$self->setProperty( "maxlength" , $properties->{maxlength} );
+		$self->set_property( "maxlength" , $properties->{maxlength} );
 	}
 
 	if( $self->is_type( "set" ) )
@@ -151,7 +151,7 @@ sub new
 			#cjg NOT a good way to quit
 			die "NO OPTIONS for FIELD: $properties->{name}\n";
 		}
-		$self->setProperty( "options" , $properties->{options} );
+		$self->set_property( "options" , $properties->{options} );
 	}
 
 	return( $self );
@@ -322,73 +322,18 @@ sub get_type
 	return $self->{type};
 }
 
-sub setProperty
+sub set_property
 {
 	my( $self , $property , $value , $default ) = @_;
 	
 	$self->{$property} = ( defined $value ? $value : $default );
 }
 
-## WP1: GOOD
-sub isShowAll
+sub get_property
 {
-	my( $self ) = @_;
-	return $self->{showall};
-}
-
-## WP1: GOOD
-sub isEditable
-{
-	my( $self ) = @_;
-	return $self->{editable};
-}
-
-## WP1: GOOD
-sub setEditable
-{
-	my( $self , $val ) = @_;
-	$self->{editable} = $val;
-}
-
-## WP1: GOOD
-sub isRequired
-{
-	my( $self ) = @_;
-	return $self->{required};
-}
-
-## WP1: GOOD
-sub setRequired
-{
-	my( $self , $val ) = @_;
-	$self->{required} = $val;
-}
-
-## WP1: BAD
-sub isMultiple
-{
-	my( $self ) = @_;
-	return $self->{multiple};
-}
-## WP1: BAD
-sub setMultiple
-{
-	my( $self , $val ) = @_;
-	$self->{multiple} = $val;
-}
-
-## WP1: BAD
-sub isIndexed
-{
-	my( $self ) = @_;
-	return $self->{indexed};
-}
-## WP1: BAD
-sub setIndexed
-{
-	my( $self , $val ) = @_;
-	$self->{indexed} = $val;
-}
+	my( $self, $property ) = @_;
+	return( $self->{$property} ); 
+} 
 
 ## WP1: BAD
 sub is_type
@@ -403,7 +348,7 @@ sub is_type
 }
 
 ## WP1: BAD
-sub isTextIndexable
+sub is_text_indexable
 {
 	my( $self ) = @_;
 	return $self->is_type( "text","longtext","url","email" );
@@ -616,7 +561,7 @@ sub render_input_field
 		{
 			$value = [];
 		}
-		elsif( !$self->isMultiple() )
+		elsif( !$self->get_property( "multiple" ) )
 		{
 			$value = [ $value ];
 		}
@@ -662,7 +607,7 @@ sub render_input_field
 		$frag = $table;
 	}
 
-	if( $self->isMultiple() )
+	if( $self->get_property( "multiple" ) )
 	{
 		my $boxcount = 3;
 		my $spacesid = $self->{name}."_spaces";
@@ -993,7 +938,7 @@ sub form_value
 		{
 			return undef;
 		}
-		if( $self->isMultiple() )
+		if( $self->get_property( "multiple" ) )
 		{
 			return \@values;
 		}
@@ -1003,7 +948,7 @@ sub form_value
 		}
 	}
 
-	if( $self->isMultiple() )
+	if( $self->get_property( "multiple" ) )
 	{
 		my @values = ();
 		my $boxcount = $session->param( $self->{name}."_spaces" );
