@@ -38,6 +38,7 @@ sub new_site_by_host_and_path
 
 	foreach( keys %EPrints::Site::General::sites )
 	{
+print STDERR "++".substr( $hostpath, 0, length($_) )."++$_++\n";
 		if( substr( $hostpath, 0, length($_) ) eq $_ )
 		{
 			return new_site_by_id( $class, $EPrints::Site::General::sites{$_} );
@@ -65,13 +66,18 @@ sub new_site_by_id
 	my $self = {};
 	bless $self, $class;
 
-	require "EPrints/Site/$id.pm";
-	$self->{config} = "EPrints::Site::$id"->new();
-	if( !defined $self->{config} )
+	unless( require "EPrints/Site/$id.pm" )
 	{
+print STDERR "FAILED TO LOAD: $id\n";
 		return undef;
 	}
 	$ID2SITE{$id} = $self;
+
+	$self->{class} = "EPrints::Site::$id";
+my $f= $self->{class}."::get_conf";
+print STDERR "($f)\n";
+print STDERR "($f)\n";
+	$self->{config} = &{$f}();
 
 	$self->{id} = $id;
 $self->log("ID: $id");
@@ -86,18 +92,35 @@ $self->log("done: $id");
 	return $self;
 }
 
-sub conf
+sub getConf
 {
-	my( $self, $key ) = @_;
-	my $val= $self->{config}->get_val($key);
-	$self->log( "GETPARAM: $key = $val\n" );
+	my( $self, $key, @subkeys ) = @_;
+	my $val = $self->{config}->{$key};
+	foreach( @subkeys )
+	{
+		$val = $val->{$_};
+	} 
 	return $val;
 }
 
 sub log
 {
-	$self = shift;
-	$self->{config}->log( @_ );
+	my( $self , @params) = @_;
+	&{$self->{class}."::log"}( $self, @params );
+}
+
+sub call
+{
+	my( $self, $cmd, @params ) = @_;
+
+	return &{$self->{class}."::".$cmd}( @params );
+}
+
+sub getDataSet
+{
+	my( $self , $setname ) = @_;
+
+	return EPrints::DataSet->new( $self, $setname );
 }
 
 1;

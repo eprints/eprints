@@ -23,7 +23,7 @@ use EPrints::SearchExpression;
 
 use strict;
 
-
+die;
 ######################################################################
 #
 # $searchform = new( $session,
@@ -113,7 +113,7 @@ sub process
 
 		# Everything OK with form.
 			
-#EPrints::Log::debug( "SearchForm", $searchexp->to_string() );
+#EPrints::Log::debug( "SearchForm", $searchexp->toString() );
 
 		my( $t1 , $t2 , $t3 , @results );
 

@@ -17,29 +17,23 @@ use EPrints::HTMLRender;
 use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
-use EPrints::SearchForm;
 use EPrints::Constants;
 
 use strict;
 
 my $session = new EPrints::Session;
 
-my @metafields = EPrints::SearchExpression::make_meta_fields(
-	$session,
-	$TID_EPRINT,
-	$session->{site}->{simple_search_fields} );
+my $lang = $session->get_lang();
 
-my $searchform = new EPrints::SearchForm(
-	$session,
-	0,
-	$TID_ARCHIVE,
-	\@metafields,
-	$session->{lang}->phrase( "H:simple_search" ),
-	"<P><A HREF=\"advsearch\">".
-	  $session->{lang}->phrase( "H:adv_search" ).
-	  "</A></P>",
-	0 );
+my $searchexp = new EPrints::SearchExpression(
+	session => $session,
+	dataset => $session->getSite()->getDataSet( "archive" ),
+	fieldnames => $session->getSite()->getConf( "simple_search_fields" ) );
 
-$searchform->process();
+
+$searchexp->process_webpage(
+	$lang->phrase( "H:simple_search" ),
+	"<P><A HREF=\"advsearch\">".$lang->phrase( "H:adv_search" )."</A></P>"
+);
 
 $session->terminate();

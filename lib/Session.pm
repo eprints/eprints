@@ -26,6 +26,8 @@ use EPrints::HTMLRender;
 use EPrints::Language;
 use EPrints::Site;
 
+use XML::DOM;
+
 use strict;
 
 ######################################################################
@@ -66,6 +68,7 @@ sub new
 		{
 			die "Can't load site module for URL: ".$self->{query}->url();
 		}
+		$self->{page} = new XML::DOM::Document;
 	}
 	elsif( $mode == 1 )
 	{
@@ -91,21 +94,18 @@ sub new
 	}
 	else
 	{
-		die "Unknown session mode: $offline";
+		die "Unknown session mode: $mode";
 	}
 
 	#### Got Site Config Module ###
 
-	my $langcookie = $self->{query}->cookie( $self->{site}->{lang_cookie_name} );
+	my $langcookie = $self->{query}->cookie( $self->{site}->getConf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
 	}
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
 	print STDERR "LANG IS: $langcookie\n;";
-
-	# Create an HTML renderer object
-	$self->{render} = EPrints::HTMLRender->new( $self, $offline, $self->{query} );
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -120,7 +120,7 @@ sub new
 
 #EPrints::Log::debug( "Session", "Started session at $self->{starttime}" );
 	
-	$self->{site}->session_init( $self, $offline );
+	$self->{site}->call( "session_init", $self, $offline );
 
 #
 #	my @params = $self->{render}->{query}->param();
@@ -156,8 +156,8 @@ sub failure
 	my( $self, $problem ) = @_;
 	
 	$self->{render}->render_error( $problem,
-	                               $self->{site}->{frontpage},
-	                               $self->{site}->{sitename} );
+	                               $self->{site}->getConf( "frontpage" ),
+	                               $self->{site}->getConf( "sitename" ) );
 }
 
 
@@ -174,7 +174,7 @@ sub terminate
 	my( $self ) = @_;
 	
 #EPrints::Log::debug( "Session", "Closing session started at $self->{starttime}" );
-	$self->{site}->session_close( $self );
+	$self->{site}->call( "session_close", $self );
 
 	$self->{database}->disconnect();
 
@@ -215,16 +215,315 @@ sub get_lang
 	return $self->{lang};
 }
 
+sub getDB
+{
+	my( $self ) = @_;
+	return $self->{database};
+}
+
 sub get_query
 {
 	my( $self ) = @_;
 	return $self->{query};
 }
 
-sub get_site
+sub getSite
 {
 	my( $self ) = @_;
 	return $self->{site};
+}
+
+######################################################################
+#
+# $html = start_html( $title )
+#
+#  Return a standard HTML header, with any title or logo we might
+#   want
+#
+######################################################################
+
+sub start_html
+{
+	my( $self, $title, $langid ) = @_;
+
+	my $html = "";
+	
+	# Write HTTP headers if appropriate
+	unless( $self->{offline} )
+	{
+		my $r = Apache->request;
+		$r->content_type( 'text/html' );
+		if( defined $langid )
+		{
+			my $cookie = $self->{query}->cookie(
+				-name    => $self->{site}->getConf("lang_cookie_name"),
+				-path    => "/",
+				-value   => $langid,
+				-expires => "+10y", # really long time
+				-domain  => $self->{site}->getConf("lang_cookie_domain") );
+			$r->header_out( "Set-Cookie"=>$cookie ); 
+print STDERR "COOK".$cookie."\n";
+		}
+		$r->send_http_header;
+	}
+	else
+	{
+		print STDERR "Header when offline\n";
+	}
+
+	my %opts = %{$self->{site}->getConf("start_html_params")};
+	$opts{-title} = $self->{site}->getConf("sitename").": $title";
+
+
+	$html .= $self->{query}->start_html( %opts );
+	# Logo
+	my $banner = $self->{site}->getConf("html_banner");
+	$banner =~ s/TITLE_PLACEHOLDER/$title/g;
+
+	$html .= "$banner\n";
+
+	return( $html );
+}
+
+
+######################################################################
+#
+# end_html()
+#
+#  Write out stuff at the bottom of the page. Any standard navigational
+#  stuff might go in here.
+#
+######################################################################
+
+sub end_html
+{
+	my( $self ) = @_;
+	
+	# End of HTML gubbins
+	my $html = $self->{site}->getConf("html_tail")."\n";
+	$html .= $self->{query}->end_html;
+
+	return( $html );
+}
+
+
+######################################################################
+#
+# $url = url()
+#
+#  Returns the URL of the current script
+#
+######################################################################
+
+sub url
+{
+	my( $self ) = @_;
+	
+	return( $self->{query}->url() );
+}
+
+######################################################################
+#
+# $html = start_get_form( $dest )
+#
+#  Return form preamble, using GET method. 
+#
+######################################################################
+
+sub start_get_form
+{
+	my( $self, $dest ) = @_;
+	
+	if( defined $dest )
+	{
+		return( $self->{query}->start_form( -method=>"GET",
+		                                    -action=>$dest ) );
+	}
+	else
+	{
+		return( $self->{query}->start_form( -method=>"GET" ) );
+	}
+}
+
+
+######################################################################
+#
+# $html = end_form()
+#
+#  Return end of form HTML stuff.
+#
+######################################################################
+
+sub end_form
+{
+	my( $self ) = @_;
+	return( $self->{query}->endform );
+}
+
+######################################################################
+#
+# $html = render_submit_buttons( $submit_buttons )
+#                           array_ref
+#
+#  Returns HTML for buttons all with the name "submit" but with the
+#  values given in the array. A single "Submit" button is printed
+#  if the buttons aren't specified.
+#
+######################################################################
+
+sub render_submit_buttons
+{
+	my( $self, $submit_buttons ) = @_;
+
+	my $html = "";
+	my $first = 1;
+
+	if( defined $submit_buttons )
+	{
+		my $button;
+		foreach $button (@$submit_buttons)
+		{
+			# Some space between them
+			$html .= "&nbsp;&nbsp;" if( $first==0 );
+
+			$html .=  $self->{query}->submit( -name=>"submit", -value=>$button );
+			$first = 0 if( $first );
+		}
+	}
+	else
+	{
+		$html = $self->{query}->submit( -name=>"submit", -value=>"Submit" );
+	}
+
+	return( $html );
+}
+
+sub get_order_names
+{
+	my( $self, $dataset ) = @_;
+print STDERR "SELF:".join(",",keys %{$self} )."\n";
+		
+	my %names = ();
+	foreach( keys %{$self->{site}->getConf(
+			"order_methods",
+			$dataset->toString() )} )
+	{
+		$names{$_}=$self->get_order_name( $dataset, $_ );
+	}
+	return( \%names );
+}
+
+sub get_order_name
+{
+	my( $self, $dataset, $orderid ) = @_;
+	
+        return $self->{lang}->phrase( 
+		"A:ordername_".$dataset->toString()."_".$orderid );
+}
+
+
+######################################################################
+#
+# $param = param( $name )
+#
+#  Return a query parameter.
+#
+######################################################################
+
+sub param
+{
+	my( $self, $name ) = @_;
+
+	return( $self->{query}->param( $name ) ) unless wantarray;
+	
+	# Called in an array context
+	my @result;
+
+	if( defined $name )
+	{
+		@result = $self->{query}->param( $name );
+	}
+	else
+	{
+		@result = $self->{query}->param();
+	}
+
+	return( @result );
+
+}
+
+######################################################################
+#
+# $bool = have_parameters()
+#
+#  Return true if the current script had any parameters (POST or GET)
+#
+######################################################################
+
+sub have_parameters
+{
+	my( $self ) = @_;
+	
+	my @names = $self->{query}->param();
+
+	return( scalar @names > 0 );
+}
+
+
+#############################################################
+
+
+sub make_option_list
+{
+	my( $self , %params ) = @_;
+
+	my %defaults = ();
+	if( ref( $self->{default} ) eq "ARRAY" )
+	{
+		foreach( @{$self->{default}} )
+		{
+			$defaults{$_}++;
+		}
+	}
+	else
+	{
+		$defaults{$self->{default}}++;
+	}
+
+	my $element = $self->make_element( "SELECT" , name => $params{name} );
+	if( defined $params{size} )
+	{
+		$element->setAttribute( "size" , $params{size} );
+	}
+	if( defined $params{multiple} )
+	{
+		$element->setAttribute( "multiple" , $params{multiple} );
+	}
+	foreach( @{$params{values}} )
+	{
+		my $opt = $self->make_element( "OPTION", name => $_ );
+		$opt->appendChild( 
+			$self->{page}->createTextNode( 
+				$params{labels}->{$_} ) );
+		if( defined $defaults{$_} )
+		{
+			$opt->setAttribute( "SELECTED" , undef );
+		}
+		$element->appendChild( $opt );
+	}
+	return $element;
+}
+
+sub make_element
+{
+	my( $self , $ename , %params ) = @_;
+
+	my $element = $self->{page}->createElement( $ename );
+	foreach( keys %params )
+	{
+		$element->setAttribute( $_ , $params{$_} );
+	}
+	return $element;
 }
 
 1;

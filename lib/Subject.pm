@@ -501,21 +501,19 @@ sub get_all
 {
 	my( $session ) = @_;
 	
-	my @fields = $session->{metainfo}->get_fields( "subject" );
-	
 	# Retrieve all of the subjects
-	my @rows = $session->{database}->get_all( "subject" );
+	my @rows = $session->getDB()->get_all( 
+		$session->getSite()->getDataSet( "subject" ) );
 
 	return( undef ) if( scalar @rows == 0 );
 
 	my( @subjects, %subjectmap );
-
 		
 	foreach (@rows)
 	{
 		push @subjects, $_;
 
-		$subjectmap{$_->{subjectid}} = $_;
+		$subjectmap{$_->getValue("subjectid")} = $_;
 
 #		my $p = "get_all:";
 #		foreach (@$r)

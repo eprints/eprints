@@ -28,12 +28,9 @@ use EPrints::Name;
 use EPrints::Constants;
 
 
-sub new
+sub get_conf
 {
-	my( $class ) = @_;
-
-	my $self = {};
-	bless $self, $class;
+	my $c = {};
 
 
 ######################################################################
@@ -42,35 +39,35 @@ sub new
 #
 ######################################################################
 
-$self->{sitename} = "Lemur Prints Archive";
+$c->{sitename} = "Lemur Prints Archive";
 
-$self->{siteid} = "lemurprints";
+$c->{siteid} = "lemurprints";
 
 # Short text description
-$self->{description} = "Your Site Description Here";
+$c->{description} = "Your Site Description Here";
 
 # E-mail address for human-read administration mail
-$self->{admin} = "admin\@lemur.ecs.soton.ac.uk";
+$c->{admin} = "admin\@lemur.ecs.soton.ac.uk";
 
 # Host the machine is running on
-$self->{host} = "HOSTNAME";
+$c->{host} = "HOSTNAME";
 
 # hack cus of CVS. This makes the same config file more or less
 # work for me at home and work...
 my $host = `hostname`;
 chomp $host;
 if( $host eq "lemur" ) {
-	$self->{host} = "lemur.ecs.soton.ac.uk";
+	$c->{host} = "lemur.ecs.soton.ac.uk";
 } else {
-	$self->{host} = "localhost";
+	$c->{host} = "destiny.totl.net";
 }
 
 
 # Stem for local ID codes
-$self->{eprint_id_stem} = "zook";
+$c->{eprint_id_stem} = "zook";
 
 # If 1, users can request the removal of their submissions from the archive
-$self->{allow_user_removal_request} = 1;
+$c->{allow_user_removal_request} = 1;
 
 
 ######################################################################
@@ -83,37 +80,37 @@ $self->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$self->{site_root} = "$EPrints::Site::General::base_path/sites/$self->{siteid}";
-$self->{bin_root} = "$EPrints::Site::General::base_path/bin";
-$self->{phrases_path} = "$self->{site_root}/phrases";
-$self->{static_html_root} = "$self->{site_root}/static";
-$self->{local_html_root} = "$self->{site_root}/html";
-$self->{local_document_root} = "$self->{local_html_root}/documents";
+$c->{site_root} = "$EPrints::Site::General::base_path/sites/$c->{siteid}";
+$c->{bin_root} = "$EPrints::Site::General::base_path/bin";
+$c->{phrases_path} = "$c->{site_root}/phrases";
+$c->{static_html_root} = "$c->{site_root}/static";
+$c->{local_html_root} = "$c->{site_root}/html";
+$c->{local_document_root} = "$c->{local_html_root}/documents";
 
 ######################################################################
 # URLS
 
 # Mod_perl script server, including port
-$self->{server_perl} = "http://$self->{host}/perl";
+$c->{server_perl} = "http://$c->{host}/perl";
 
 # Server of static HTML + images, including port
-$self->{server_static} = "http://$self->{host}";
+$c->{server_static} = "http://$c->{host}";
 
 # Site "home page" address
-$self->{frontpage} = "$self->{server_static}/";
+$c->{frontpage} = "$c->{server_static}/";
 
 # Corresponding URL of document file hierarchy
-$self->{server_document_root} = "$self->{server_static}/documents"; 
+$c->{server_document_root} = "$c->{server_static}/documents"; 
 
 # Corresponding URL stem for "browse by subject" HTML files
-$self->{server_subject_view_stem} = "$self->{server_static}/view-";
+$c->{server_subject_view_stem} = "$c->{server_static}/view-";
 
 #################################################################
 #  Files
 #################################################################
 
-$self->{template_user_intro} 	= "$self->{site_root}/cfg/template.user-intro";
-$self->{subject_config} 	= "$self->{site_root}/cfg/subjects";
+$c->{template_user_intro} 	= "$c->{site_root}/cfg/template.user-intro";
+$c->{subject_config} 	= "$c->{site_root}/cfg/subjects";
 
 ######################################################################
 #
@@ -125,7 +122,7 @@ $self->{subject_config} 	= "$self->{site_root}/cfg/subjects";
 # nameusername fields. Set to undef to use normal username.
 # The named field should be of type "text".
 
-$self->{useridfield} = "ecsid";
+$c->{useridfield} = "ecsid";
 
 
 ######################################################################
@@ -136,7 +133,7 @@ $self->{useridfield} = "ecsid";
 
 # Supported document storage formats, given as an array and a hash value,
 #  so that some order of preference can be imposed.
-$self->{supported_formats} =
+$c->{supported_formats} =
 [
 	"HTML",
 	"PDF",
@@ -148,7 +145,7 @@ $self->{supported_formats} =
 # $EPrints::Document::OTHER as well as those in your list if you want to
 # allow any format. Leave this list empty if you don't want to require that
 # full text is deposited.
-$self->{required_formats} =
+$c->{required_formats} =
 [
 	"HTML",
 	"PDF",
@@ -157,18 +154,18 @@ $self->{required_formats} =
 ];
 
 #  If 1, will allow non-listed formats to be uploaded.
-$self->{allow_arbitrary_formats} = 1;
+$c->{allow_arbitrary_formats} = 1;
 
 # This sets the minimum amount of free space allowed on a disk before EPrints
 # starts using the next available disk to store EPrints. Specified in kilobytes.
-$self->{diskspace_error_threshold} = 20480;
+$c->{diskspace_error_threshold} = 20480;
 
 # If ever the amount of free space drops below this threshold, the
 # archive administrator is sent a warning email. In kilobytes.
-$self->{diskspace_warn_threshold} = 512000;
+$c->{diskspace_warn_threshold} = 512000;
 
 # A list of compressed/archive formats that are accepted
-$self->{supported_archive_formats} =
+$c->{supported_archive_formats} =
 [
 	"ZIP",
 	"TARGZ"
@@ -176,8 +173,8 @@ $self->{supported_archive_formats} =
 
 
 # Executables for unzip and wget
-$self->{unzip_executable} = "/usr/bin/unzip";
-$self->{wget_executable} = "/usr/bin/wget";
+$c->{unzip_executable} = "/usr/bin/unzip";
+$c->{wget_executable} = "/usr/bin/wget";
 
 # Command lines to execute to extract files from each type of archive.
 # Note that archive extraction programs should not ever do any prompting,
@@ -186,14 +183,14 @@ $self->{wget_executable} = "/usr/bin/wget";
 # occurence will be replaced if more than one of each.) Make NO assumptions
 # about which dir the command will be run in. Exit code is assumed to be zero
 # if everything went OK, non-zero in the case of any error.
-$self->{archive_extraction_commands} =
+$c->{archive_extraction_commands} =
 {
-	"ZIP"    =>  "$self->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
+	"ZIP"    =>  "$c->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
 	"TARGZ"  =>  "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
 };
 
 # The extensions to give the temporary uploaded file for each format.
-$self->{archive_extensions} =
+$c->{archive_extensions} =
 {
 	"ZIP"    =>  ".zip",
 	"TARGZ"  =>  ".tar.gz"
@@ -206,8 +203,8 @@ $self->{archive_extensions} =
 #    deep directories aren't created
 #  - start grabbing at _URL_
 #
-$self->{wget_command} =
-	"$self->{wget_executable} -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=_CUTDIRS_ _URL_";
+$c->{wget_command} =
+	"$c->{wget_executable} -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=_CUTDIRS_ _URL_";
 
 
 ######################################################################
@@ -217,18 +214,18 @@ $self->{wget_command} =
 ######################################################################
 
 # Command for sending mail
-$self->{sendmail_executable} = "/usr/sbin/sendmail";
-$self->{sendmail} =
-	"$self->{sendmail_executable} -oi -t -odb";
+$c->{sendmail_executable} = "/usr/sbin/sendmail";
+$c->{sendmail} =
+	"$c->{sendmail_executable} -oi -t -odb";
 
 # Database information: Since we hold the password here unencrypted, this
 # file should have suitable strict read permissions
-$self->{db_name} = "eprints";
-$self->{db_host} = "localhost";
-$self->{db_port} = undef;
-$self->{db_sock} = undef;
-$self->{db_user} = "eprints";
-$self->{db_pass} = "fnord";
+$c->{db_name} = "eprints";
+$c->{db_host} = "localhost";
+$c->{db_port} = undef;
+$c->{db_sock} = undef;
+$c->{db_user} = "eprints";
+$c->{db_pass} = "fnord";
 
 
 ######################################################################
@@ -240,27 +237,27 @@ $self->{db_pass} = "fnord";
 # Site specific **UNIQUE** archive identifier.
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
 
-$self->{oai_archive_id} = "lemurid";
+$c->{oai_archive_id} = "lemurid";
 
 
 # Exported metadata formats. The hash should map format ids to namespaces.
-$self->{oai_metadata_formats} =
+$c->{oai_metadata_formats} =
 {
 	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
 };
 
 # Exported metadata formats. The hash should map format ids to schemas.
-$self->{oai_metadata_schemas} =
+$c->{oai_metadata_schemas} =
 {
 	"oai_dc"    =>  "http://www.openarchives.org/OAI/dc.xsd"
 };
 
 # Base URL of OAI
-$self->{oai_base_url} = $self->{server_perl}."/oai";
+$c->{oai_base_url} = $c->{server_perl}."/oai";
 
-$self->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
-	$self->{oai_archive_id},
-	$self->{eprint_id_stem}."00000023" );
+$c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
+	$c->{oai_archive_id},
+	$c->{eprint_id_stem}."00000023" );
 
 # Information for "Identify" responses.
 
@@ -268,8 +265,8 @@ $self->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 # of the repository.  It would be appropriate to indicate the language(s)
 # of the metadata/data in the repository.
 
-$self->{oai_content}->{"text"} = $self->{description};
-$self->{oai_content}->{"url"} = undef;
+$c->{oai_content}->{"text"} = $c->{description};
+$c->{oai_content}->{"url"} = undef;
 
 # "metadataPolicy" : Text and/or a URL linking to text describing policies
 # relating to the use of metadata harvested through the OAI interface.
@@ -277,11 +274,11 @@ $self->{oai_content}->{"url"} = undef;
 # oai_metadataPolicy{"text"} and/or oai_metadataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$self->{oai_metadata_policy}->{"text"} = <<END;
+$c->{oai_metadata_policy}->{"text"} = <<END;
 No metadata policy defined. 
 This server has not yet been fully configured.
 END
-$self->{oai_metadata_policy}->{"url"} = undef;
+$c->{oai_metadata_policy}->{"url"} = undef;
 
 # "dataPolicy" : Text and/or a URL linking to text describing policies
 # relating to the data held in the repository.  This may also describe
@@ -290,21 +287,21 @@ $self->{oai_metadata_policy}->{"url"} = undef;
 # oai_dataPolicy{"text"} and/or oai_dataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$self->{oai_data_policy}->{"text"} = <<END;
+$c->{oai_data_policy}->{"text"} = <<END;
 No data policy defined. 
 This server has not yet been fully configured.
 END
-$self->{oai_data_policy}->{"url"} = undef;
+$c->{oai_data_policy}->{"url"} = undef;
 
 # "submissionPolicy" : Text and/or a URL linking to text describing
 # policies relating to the submission of content to the repository (or
 # other accession mechanisms).
 
-$self->{oai_submission_policy}->{"text"} = <<END;
+$c->{oai_submission_policy}->{"text"} = <<END;
 No submission-data policy defined. 
 This server has not yet been fully configured.
 END
-$self->{oai_submission_policy}->{"url"} = undef;
+$c->{oai_submission_policy}->{"url"} = undef;
 
 # "comment" : Text and/or a URL linking to text describing anything else
 # that is not covered by the fields above. It would be appropriate to
@@ -313,7 +310,7 @@ $self->{oai_submission_policy}->{"url"} = undef;
 
 # An array of comments to be returned. May be empty.
 
-$self->{oai_comments} = [
+$c->{oai_comments} = [
 	"System is EPrints ".
 	$EPrints::Version::eprints_software_version.
 	" (http://www.eprints.org)" ];
@@ -326,10 +323,10 @@ $self->{oai_comments} = [
 
 # List of supported languages is in EPrints::Site::General.pm
 # Default Language for this archive
-$self->{default_language} = "english";
+$c->{default_language} = "english";
 
-$self->{lang_cookie_domain} = $self->{host};
-$self->{lang_cookie_name} = $self->{siteid}."_lang";
+$c->{lang_cookie_domain} = $c->{host};
+$c->{lang_cookie_name} = $c->{siteid}."_lang";
 
 ###########################################
 #  User Types
@@ -338,19 +335,21 @@ $self->{lang_cookie_name} = $self->{siteid}."_lang";
 # We need to calculate the connection string, so we can pass it
 # into the AuthDBI config. 
 my $connect_string = EPrints::Database::build_connection_string(
-	db_name  =>  $self->{db_name}, 
-	db_port  =>  $self->{db_port},
-	db_sock  =>  $self->{db_sock}, 
-	db_host  =>  $self->{db_host}  );
+	db_name  =>  $c->{db_name}, 
+	db_port  =>  $c->{db_port},
+	db_sock  =>  $c->{db_sock}, 
+	db_host  =>  $c->{db_host}  );
+
+my $userdata = EPrints::DataSet->newStub( "user" );
  
-$self->{userauth} = {
+$c->{userauth} = {
 	User => { 
 		routine  =>  \&Apache::AuthDBI::authen,
 		conf  =>  {
 			Auth_DBI_data_source  =>  $connect_string,
-			Auth_DBI_username  =>  $self->{db_user},
-			Auth_DBI_password  =>  $self->{db_pass},
-			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( $TID_USER ),
+			Auth_DBI_username  =>  $c->{db_user},
+			Auth_DBI_password  =>  $c->{db_pass},
+			Auth_DBI_pwd_table  =>  $userdata->getSQLTableName(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -360,9 +359,9 @@ $self->{userauth} = {
 		routine  =>  \&Apache::AuthDBI::authen,
 		conf  =>  {
 			Auth_DBI_data_source  =>  $connect_string,
-			Auth_DBI_username  =>  $self->{db_user},
-			Auth_DBI_password  =>  $self->{db_pass},
-			Auth_DBI_pwd_table  =>  EPrints::Database::table_name( $TID_USER ),
+			Auth_DBI_username  =>  $c->{db_user},
+			Auth_DBI_password  =>  $c->{db_pass},
+			Auth_DBI_pwd_table  =>  $userdata->getSQLTableName(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -374,7 +373,7 @@ $self->{userauth} = {
 # USER FIELDS
 ######################################################################
 
-$self->{sitefields}->{user} = [
+$c->{sitefields}->{user} = [
 	{
 		name => "name",
 		type => "text",
@@ -428,7 +427,7 @@ $self->{sitefields}->{user} = [
 	}
 ];
 
-$self->{sitefields}->{eprint} = [
+$c->{sitefields}->{eprint} = [
 	{
 		name => "abstract",
 		displaylines => 10,
@@ -606,7 +605,7 @@ $self->{sitefields}->{eprint} = [
 	}
 ];
 	
-$self->{types}->{eprint} = {
+$c->{types}->{eprint} = {
 	"bookchapter" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
@@ -799,7 +798,7 @@ $self->{types}->{eprint} = {
 	]
 };
 
-$self->{types}->{user} = { 
+$c->{types}->{user} = { 
 	Staff  =>  [],
 	User  =>  []
 };
@@ -818,7 +817,7 @@ $self->{types}->{user} = {
 # TITLE will be set by the system as appropriate.
 # See the CGI.pm manpage for more info ( man CGI ).
 
-$self->{start_html_params}  = {
+$c->{start_html_params}  = {
 	-BGCOLOR => "#ffffff",
 	-FGCOLOR => "#000000",
 	-HEAD => [ Link( {-rel => 'stylesheet',
@@ -826,7 +825,7 @@ $self->{start_html_params}  = {
 			-href => '/eprints.css',
 			-title => 'screen stylesheet',
 			-media => 'screen'} ) ],
-	-AUTHOR => $self->{admin},
+	-AUTHOR => $c->{admin},
 	-TOPMARGIN => "0",
 	-LEFTMARGIN => "0",
 	-MARGINWIDTH => "0",
@@ -834,12 +833,12 @@ $self->{start_html_params}  = {
 
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
-$self->{html_banner} = <<END;
+$c->{html_banner} = <<END;
 <table border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td align="center" valign="top" bgcolor="#dddddd" fgcolor="white">
       <br>
-      <a href="$self->{frontpage}"><IMG border="0" width="100" height="100" src="$self->{server_static}/images/logo_sidebar.gif" ALT="$self->{sitename}"></a>
+      <a href="$c->{frontpage}"><IMG border="0" width="100" height="100" src="$c->{server_static}/images/logo_sidebar.gif" ALT="$c->{sitename}"></a>
     </td>
     <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderr.gif"></td>
     <td>
@@ -855,17 +854,17 @@ $self->{html_banner} = <<END;
       <table border="0" cellpadding="0" cellspacing="0">
         <tr>
           <td align=center valign=top>
-            <A HREF="$self->{frontpage}">Home</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_static}/information.html">About</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_subject_view_stem}"."ROOT.html">Browse</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_perl}/search">Search</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_static}/register.html">Register</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_perl}/users/subscribe">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_perl}/users/home">Deposit\&nbsp;Items</A>\&nbsp;<BR><BR>
-            <A HREF="$self->{server_static}/help">Help</A><BR><BR><BR><BR>
-            <I><A HREF="$self->{server_perl}/setlang?langid=english">English</A></I><BR><BR>
-            <I><A HREF="$self->{server_perl}/setlang?langid=french">Français</A></I><BR><BR>
-            <I><A HREF="$self->{server_perl}/setlang?langid=dummy">Test Lang</A></I><BR><BR>
+            <A HREF="$c->{frontpage}">Home</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_static}/information.html">About</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_subject_view_stem}"."ROOT.html">Browse</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_perl}/search">Search</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_static}/register.html">Register</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_perl}/users/subscribe">Subscriptions</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_perl}/users/home">Deposit\&nbsp;Items</A>\&nbsp;<BR><BR>
+            <A HREF="$c->{server_static}/help">Help</A><BR><BR><BR><BR>
+            <I><A HREF="$c->{server_perl}/setlang?langid=english">English</A></I><BR><BR>
+            <I><A HREF="$c->{server_perl}/setlang?langid=french">Français</A></I><BR><BR>
+            <I><A HREF="$c->{server_perl}/setlang?langid=dummy">Test Lang</A></I><BR><BR>
           </td>
         </tr>
       </table>
@@ -881,11 +880,11 @@ END
 
 # This is the HTML put at the bottom of every page. Obviously, it should close
 #  up any tags left open in html_banner.
-$self->{html_tail} = <<END;
+$c->{html_tail} = <<END;
 <BR>
 <HR noshade size="2">
 <address>
-Contact site administrator at: <a href=\"mailto:$self->{admin}\">$self->{admin}</a>
+Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a>
 </address>
 <BR><BR>
     </td>
@@ -898,22 +897,22 @@ Contact site administrator at: <a href=\"mailto:$self->{admin}\">$self->{admin}<
 END
 
 #  E-mail signature, appended to every email sent by the software
-$self->{signature} = <<END;
+$c->{signature} = <<END;
 --
- $self->{sitename}
- $self->{frontpage}
- $self->{admin}
+ $c->{sitename}
+ $c->{frontpage}
+ $c->{admin}
 
 END
 
 #  Default text to send a user when "bouncing" a submission back to their
 #  workspace. It should leave some space for staff to give a reason.
-$self->{default_bounce_reason} = <<END;
+$c->{default_bounce_reason} = <<END;
 Unfortunately your eprint:
 
   _SUBMISSION_TITLE_
 
-could not be accepted into $self->{sitename} as-is.
+could not be accepted into $c->{sitename} as-is.
 
 
 The eprint has been returned to your workspace. If you
@@ -923,12 +922,12 @@ edit your eprint, fix the problem and redeposit.
 END
 
 #  Default text to send a user when rejecting a submission outright.
-$self->{default_delete_reason} = <<END;
+$c->{default_delete_reason} = <<END;
 Unfortunately your eprint:
 
   _SUBMISSION_TITLE_
 
-could not be accepted into $self->{sitename}.
+could not be accepted into $c->{sitename}.
 
 
 
@@ -938,14 +937,14 @@ END
 
 #  Agreement text, for when user completes the depositing process.
 #  Set to "undef" if you don't want it to appear.
-$self->{deposit_agreement_text} = <<END;
+$c->{deposit_agreement_text} = <<END;
 
 <P><EM><STRONG>For work being deposited by its own author:</STRONG> 
 In self-archiving this collection of files and associated bibliographic 
-metadata, I grant $self->{sitename} the right to store 
+metadata, I grant $c->{sitename} the right to store 
 them and to make them permanently available publicly for free on-line. 
 I declare that this material is my own intellectual property and I 
-understand that $self->{sitename} does not assume any 
+understand that $c->{sitename} does not assume any 
 responsibility if there is any breach of copyright in distributing these 
 files or metadata. (All authors are urged to prominently assert their 
 copyright on the title page of their work.)</EM></P>
@@ -953,7 +952,7 @@ copyright on the title page of their work.)</EM></P>
 <P><EM><STRONG>For work being deposited by someone other than its 
 author:</STRONG> I hereby declare that the collection of files and 
 associated bibliographic metadata that I am archiving at 
-$self->{sitename}) is in the public domain. If this is 
+$c->{sitename}) is in the public domain. If this is 
 not the case, I accept full responsibility for any breach of copyright 
 that distributing these files or metadata may entail.</EM></P>
 
@@ -979,7 +978,7 @@ END
 ######################################################################
 
 # Fields for a simple user search
-$self->{simple_search_fields} =
+$c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
@@ -988,7 +987,7 @@ $self->{simple_search_fields} =
 ];
 
 # Fields for an advanced user search
-$self->{advanced_search_fields} =
+$c->{advanced_search_fields} =
 [
 	"title",
 	"authors",
@@ -1006,7 +1005,7 @@ $self->{advanced_search_fields} =
 ];
 
 # Fields used for specifying a subscription
-$self->{subscription_fields} =
+$c->{subscription_fields} =
 [
 	"subjects",
 	"refereed",
@@ -1016,7 +1015,7 @@ $self->{subscription_fields} =
 
 
 # Ways of ordering search results
-$self->{order_methods}->{archive} =
+$c->{order_methods}->{archive} =
 {
 	"byyear" 	 =>  \&eprint_cmp_by_year,
 	"byyearoldest"	 =>  \&eprint_cmp_by_year_oldest_first,
@@ -1026,13 +1025,13 @@ $self->{order_methods}->{archive} =
 
 # The default way of ordering a search result
 #   (must be key to %eprint_order_methods)
-$self->{default_order}->{archive} = "byname";
+$c->{default_order}->{archive} = "byname";
 
 # How to order the articles in a "browse by subject" view.
-$self->{subject_view_order} = \&eprint_cmp_by_author;
+$c->{subject_view_order} = \&eprint_cmp_by_author;
 
 # Fields for a staff user search.
-$self->{user_search_fields} =
+$c->{user_search_fields} =
 [
 	"name",
 	"dept/org",
@@ -1043,7 +1042,7 @@ $self->{user_search_fields} =
 
 # Ways to order the results of a staff user search.
 # cjg needs doing....
-$self->{user_order_methods} =
+$c->{user_order_methods} =
 {
 	"by surname"                           =>  "name",
 	"by joining date (most recent first)"  =>  "joined DESC, name",
@@ -1052,17 +1051,17 @@ $self->{user_order_methods} =
 };
 
 # Default order for a staff user search (must be key to user_order_methods)
-$self->{default_user_order} = "by surname";	
+$c->{default_user_order} = "by surname";	
 
 # How to display articles in "version of" and "commentary" threads.
 #  See lib/Citation.pm for information on how to specify this.
-$self->{thread_citation_specs} =
+$c->{thread_citation_specs} =
 {
 	"succeeds"    =>  "{title} (deposited {datestamp})",
 	"commentary"  =>  "{authors}. {title}. (deposited {datestamp})"
 };
 
-	return $self;
+	return $c;
 }
 
 ######################################################################
@@ -2092,14 +2091,8 @@ sub validate_eprint_meta
 
 sub log
 {
-	my( $self , $message ) = @_;
-	print STDERR "EPRINTS:".$self->{siteid}.": ".$message."\n";
-}
-
-sub get_val
-{
-	my( $self , $id ) = @_;
-	return $self->{$id};
+	my( $site, $message ) = @_;
+	print STDERR "EPRINTS:".$site->getConf("siteid").": ".$message."\n";
 }
 
 1;

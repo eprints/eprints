@@ -96,8 +96,8 @@ H:help_subject 	= Select one or more values from the list, and whether you want 
 H:help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
 H:help_text	= Enter a term or terms to search for.
 H:help_url 	= Enter some text to search for.
-
 H:help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
+
 
 FILE = MetaInfo.pm
 L:type_file_err = Can't open eprint types file: $(file): $(errmsg)

@@ -31,7 +31,6 @@ use EPrints::Site;
 use EPrints::Site::General;
 use EPrints::SearchExpression;
 use EPrints::SearchField;
-use EPrints::SearchForm;
 use EPrints::Session;
 use EPrints::SubjectList;
 use EPrints::Subject;

@@ -98,12 +98,12 @@ sub new
 
 	# Connect to the database
 	$self->{dbh} = DBI->connect( build_connection_string( 
-					db_host => $session->{site}->conf("db_host"),
-					db_sock => $session->{site}->conf("db_sock"),
-					db_port => $session->{site}->conf("db_port"),
-					db_name => $session->{site}->conf("db_name") ),
-	                             $session->{site}->conf("db_user"),
-	                             $session->{site}->conf("db_pass"),
+					db_host => $session->{site}->getConf("db_host"),
+					db_sock => $session->{site}->getConf("db_sock"),
+					db_port => $session->{site}->getConf("db_port"),
+					db_name => $session->{site}->getConf("db_name") ),
+	                             $session->{site}->getConf("db_user"),
+	                             $session->{site}->getConf("db_pass"),
 	                             { PrintError => 1, AutoCommit => 1 } );
 
 #	                             { PrintError => 0, AutoCommit => 1 } );
@@ -173,14 +173,15 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( $TID_USER, $TID_INBOX, $TID_BUFFER, $TID_ARCHIVE, 
-		$TID_DOCUMENT, $TID_SUBJECT, $TID_SUBSCRIPTION, $TID_DELETION )
+	foreach( "user" , "inbox" , "buffer" , "archive" ,
+		 "document" , "subject" , "subscription" , "deletion" )
 	{
-		$success = $success && $self->_create_table( $_ );
+		$success = $success && $self->_create_table( 
+			$self->{session}->getSite()->getDataSet( $_ ) );
 	}
 
-	$success = $success && $self->_create_tempmap_table();
-	$success = $success && $self->_create_counter_table();
+	#$success = $success && $self->_create_tempmap_table();
+	#$success = $success && $self->_create_counter_table();
 	
 	return( $success );
 }
@@ -202,27 +203,28 @@ sub create_archive_tables
 
 sub _create_table
 {
-	my( $self, $tableid ) = @_;
+	my( $self, $dataset ) = @_;
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
+	my @fields = $dataset->getFields();
 
 	my $rv = 1;
 
 	my $keyfield = $fields[0]->clone();
+
 	$keyfield->{indexed} = 1;
 	my $fieldword = EPrints::MetaField->new( 
 		{ 
 			name => "fieldword", 
-			type => $FT_TEXT 
+			type => "text"
 		} );
 
 	$rv = $rv & $self->_create_table_aux(
-			index_name( $tableid ),
+			index_name( $dataset ),
 			$tableid,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
-	$rv = $rv && $self->_create_table_aux( table_name( $tableid ), $tableid, 1, @fields);
+	$rv = $rv && $self->_create_table_aux( table_name( $dataset ), $dataset, 1, @fields);
 
 	return $rv;
 }
@@ -853,15 +855,16 @@ sub get_all
 
 sub _get 
 {
-	my ( $self , $tableid , $mode , $param ) = @_;
+	my ( $self , $dataset , $mode , $param ) = @_;
 
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
-	my $table = table_name( $tableid ); 
+	my $table = $dataset->getSQLTableName();
 
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
+	my @fields = $dataset->getFields();
+
 	my $keyfield = $fields[0];
 
 	my $cols = "";
@@ -921,7 +924,7 @@ sub _get
 			else 
 			{
 				my $value;
-				if ($_->{type} == $FT_NAME )
+				if ($_->get_type() eq "name" )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -942,7 +945,7 @@ sub _get
 	foreach $multifield ( @aux )
 	{
 		my $col = "M.$multifield->{name}";
-		if ( $multifield->{type} == $FT_NAME )
+		if ( $multifield->get_type() eq "name" )
 		{
 			$col = "M.$multifield->{name}_given,M.$multifield->{name}_family";
 		}
@@ -951,20 +954,20 @@ sub _get
 		if ( $mode == 0 )	
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= sub_table_name($tableid,$multifield)." AS M ";
+			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=\"".prep_value( $param )."\"";
 		}
 		elsif ( $mode == 1)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
-			$sql.= sub_table_name($tableid,$multifield)." AS M ";
+			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
 			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
 		}	
 		elsif ( $mode == 2)
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
-			$sql.= sub_table_name($tableid,$multifield)." AS M ";
+			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -973,7 +976,7 @@ sub _get
 		{
 			my $n = $lookup{ $id };
 			my $value;
-			if ($multifield->{type} == $FT_NAME )
+			if ( $multifield->get_type() eq "name" )
 			{
 				$value = {};
 				$value->{given} = shift @values;
@@ -989,43 +992,10 @@ sub _get
 
 	foreach( @data )
 	{
-		$_ = make_object( $self->{session} , $tableid , $_);
+		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
 	return @data;
-}
-
-sub make_object
-{
-	my( $session , $tableid , $item ) = @_;
-
-	my $class = table_class( $tableid );
-
-	# If this table dosn't have an associated class, just
-	# return the item.	
-
-	if( !defined $class ) 
-	{
-		return $item;
-	}
-
-	## EPrints have a slightly different
-	## constructor.
-
-	if ( $class eq "EPrints::EPrint" ) 
-	{
-		return EPrints::EPrint->new( 
-			$session,
-			$tableid,
-			undef,
-			$item );
-	}
-
-	return $class->new( 
-		$session,
-		undef,
-		$item );
-
 }
 
 sub do 
@@ -1164,13 +1134,14 @@ sub _freetext_type
 sub table_name
 {
 	my( $tableid ) = @_;
-
+die "kill me".join(",",caller());
 	return $TABLE_NAMES{ $tableid };
 }
 
 sub sub_table_name
 {
 	my( $tableid, $field ) = @_;
+die "kill me sub";
 	
 	return table_name( $tableid ).$SEPERATOR.$field->{name};
 }

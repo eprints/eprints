@@ -117,14 +117,14 @@ sub get_subjects
 
 ######################################################################
 #
-# $string_representation = to_string()
+# $string_representation = toString()
 #
 #  Return a string representation of the list for storing in the
 #  database, optimised for searching and parsing.
 #
 ######################################################################
 
-sub to_string
+sub toString
 {
 	my( $self ) = @_;
 	

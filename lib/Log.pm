@@ -183,13 +183,15 @@ sub render_struct
 
 	# Hack: I really don't want to see the whole session
 
-	if( $type eq "EPrints::Session" || $type eq "Apache" )
+	if( $type eq "EPrints::Session" || $type eq "Apache"
+		|| $type eq "CODE" )
 	{
 		$text.= "  "x$depth;
 		$text.= "$type\n";
 		return $text;
 	}
 print STDERR "=$type=\n";
+
 	my %bits = %{$ref};
 	$text.= "  "x$depth;
 	$text.= "$type\n";

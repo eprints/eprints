@@ -45,43 +45,13 @@ sub fetch
 {
 	my( $site , $langid ) = @_;
 
-	if( defined $site )
+	if( !defined $langid )
 	{
-		if( !defined $site->{lang_cache} )
-		{
-			$site->{lang_cache} = {};
-		}
-		if( !defined $langid )
-		{
-			$langid = $site->{default_language};
-		}
-		if ( defined $site->{lang_cache}->{ $langid } )
-		{
-			return $site->{lang_cache}->{ $langid };
-		}
-	}
-	else
-	{
-		if ( defined $LANG_CACHE{ $langid } )
-		{
-			return $LANG_CACHE{ $langid };
-		}
+		$langid = $site->getConf( "default_language" );
 	}
 
 	my $lang = EPrints::Language->new( $langid , $site );
 
-	if ( !defined $lang )
-	{
-		return undef;
-	}
-	if( defined $site )
-	{
-		$site->{lang_cache}->{ $langid } = $lang;
-	}
-	else
-	{
-		$EPrints::Language::LANG_CACHE{ $langid } = $lang;
-	}
 	return $lang;
 
 }
@@ -109,28 +79,16 @@ sub new
 	$self->{id} = $langid;
 
 	$self->{sitedata} =
-		read_phrases( $site->{phrases_path}."/".$self->{id} );
+		read_phrases( $site->getConf( "phrases_path" )."/".$self->{id} );
 
 	$self->{data} =
 		read_phrases( $EPrints::Site::General::lang_path."/".$self->{id} );
 	
-	if( $site->{default_language} ne $self->{id})
+	if( $site->getConf("default_language") ne $self->{id})
 	{
 		$self->{fallback} = EPrints::Language::fetch( 
 					$site,  
-					$site->{default_language} );
-	}
-
-	$self->{tryorder} = [];
-	push @{$self->{tryorder}}, $self->{sitedata};
-	if( defined $self->{fallback} )
-	{
-		push @{$self->{tryorder}}, $self->{fallback}->{sitedata};
-	}
-	push @{$self->{tryorder}}, $self->{data};
-	if( defined $self->{fallback} )
-	{
-		push @{$self->{tryorder}}, $self->{fallback}->{data};
+					$site->getConf("default_language") );
 	}
 
 	return( $self );
@@ -165,13 +123,18 @@ sub file_phase
 		$inserts = {};
 	}
 
-	my $response = undef;
-	foreach( @{$self->{tryorder}} )
+	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
+
+	if( $fb )
 	{
-		$response = $_->{MAIN}->{$phraseid};
-		last if( defined $response );
-		$response = $_->{$file}->{$phraseid};
-		last if( defined $response );
+		if( $phraseid =~ m/^H:/ )
+		{
+			$response = "<FONT color=\"#00ff00\">$response</FONT>";
+		}
+		else
+		{
+			$response = "*".$response."*";
+		}
 	}
 
 	if( defined $response )
@@ -182,6 +145,50 @@ sub file_phase
 	return "[- \"$file:$phraseid\" not defined for lang (".join(")(",$self->{id},values %{$inserts}).")-]";
 }
 
+sub _file_phrase
+{
+	my( $self, $file, $phraseid ) = @_;
+
+	my $res = undef;
+
+	$res = $self->{sitedata}->{MAIN}->{$phraseid};
+	return $res if ( defined $res );
+	$res = $self->{sitedata}->{$file}->{$phraseid};
+	return $res if ( defined $res );
+	if( defined $self->{fallback} )
+	{
+		$res = $self->{fallback}->_get_sitedata()->{MAIN}->{$phraseid};
+		return ( $res , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_sitedata()->{$file}->{$phraseid};
+		return ( $res , 1 ) if ( defined $res );
+	}
+
+	$res = $self->{data}->{MAIN}->{$phraseid};
+	return $res if ( defined $res );
+	$res = $self->{data}->{$file}->{$phraseid};
+	return $res if ( defined $res );
+	if( defined $self->{fallback} )
+	{
+		$res = $self->{fallback}->_get_data()->{MAIN}->{$phraseid};
+		return ( $res , 1 ) if ( defined $res );
+		$res = $self->{fallback}->_get_data()->{$file}->{$phraseid};
+		return ( $res , 1 ) if ( defined $res );
+	}
+
+
+	return undef;
+}
+
+sub _get_data
+{
+	my( $self ) = @_;
+	return $self->{data};
+}
+sub _get_sitedata
+{
+	my( $self ) = @_;
+	return $self->{sitedata};
+}
 ######################################################################
 #
 # read_phrases( $file )

@@ -28,7 +28,7 @@ use strict;
 ######################################################################
 #
 # $exp = new( $session,
-#             $tableid,
+#             $dataset,
 #             $allow_blank,
 #             $satisfy_all,
 #             $fields )
@@ -61,27 +61,22 @@ use strict;
 
 sub new
 {
-	my( $class,
-	    $session,
-	    $tableid,
-	    $allow_blank,
-	    $satisfy_all,
-	    $fields ) = @_;
+	my( $class, %data ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
-print STDERR "SE:[$tableid]\n";
+print STDERR "SE:[".$data{dataset}->toString()."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
-	$allow_blank = 0 if ( !defined $allow_blank );
-	$satisfy_all = 1 if ( !defined $satisfy_all );
-	$fields = [] if ( !defined $fields );
+	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
+	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
+	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
-	$self->{session} = $session;
-	$self->{tableid} = $tableid;
-	$self->{allow_blank} = $allow_blank;
-	$self->{satisfy_all} = $satisfy_all;
-	$self->{order} = $session->{site}->{default_order}->{$tableid};
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames / )
+	{
+		$self->{$_} = $data{$_};
+	}
+	$self->{order} = $self->{dataset}->default_order(); 
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -90,11 +85,34 @@ print STDERR "SE:[$tableid]\n";
 
 	# tmptable represents cached results table.	
 	$self->{tmptable} = undef;
-	
-	foreach (@$fields)
+print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
+	foreach (@{$self->{fieldnames}})
 	{
-		$self->add_field( $_, undef );
+		# If the fieldname contains a /, it's a 
+		# "search >1 at once" entry
+		if( /\// )
+		{
+			# Split up the fieldnames
+			my @multiple_names = split /\//, $_;
+			my @multiple_fields;
+			
+			# Put the MetaFields in a list
+			foreach (@multiple_names)
+			{
+				push @multiple_fields, 
+					$self->{dataset}->get_field( $_ );
+			}
+			
+			# Add a reference to the list
+			$self->add_field( \@multiple_fields );
+		}
+		else
+		{
+			# Single field
+			$self->add_field( $self->{dataset}->get_field( $_ ) );
+		}
 	}
+	
 	
 	return( $self );
 }
@@ -116,10 +134,9 @@ sub add_field
 
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
-	                                            $self->{tableid},
+	                                            $self->{dataset},
 	                                            $field,
 	                                            $value );
-
 	if( defined $self->{searchfieldmap}->{$searchfield->{formname}} )
 	{
 		# Already got a seachfield, just update the value
@@ -169,17 +186,21 @@ sub clear
 sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
+
+	my $query = $self->{session}->get_query();
+	my $lang = $self->{session}->get_lang();
 	
 	my %shown_help;
 
-	my $html;
+	my $html ="" ;
 
 	my $menu;
 
-	$html = "<P><TABLE BORDER=\"0\">\n";
+	$html = $self->{session}->start_get_form();
+
+	$html .= "<P><TABLE BORDER=\"0\">\n";
 	
 	my $sf;
-
 	foreach $sf (@{$self->{searchfields}})
 	{
 		my $shelp = $sf->get_field()->search_help( $self->{session}->get_lang() );
@@ -202,34 +223,47 @@ sub render_search_form
 
 	if( $show_anyall )
 	{
-		$menu = $self->{session}->{render}->{query}->popup_menu(
+		$menu = $query->popup_menu(
 			-name=>"_satisfyall",
 			-values=>[ "ALL", "ANY" ],
 			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("F:all"),
-				   "ANY" => $self->{session}->{lang}->phrase("F:any") } );
+			-labels=>{ "ALL" => $lang->phrase("F:all"),
+				   "ANY" => $lang->phrase("F:any") } );
 		$html .= "<P>";
-		$html .= $self->{session}->{lang}->phrase( "H:mustfulfill",
-							   { anyall=>$menu } );
+		$html .= $lang->phrase( "H:mustfulfill", { anyall=>$menu } );
 		$html .= "</P>\n";
 	}
 
 
-print STDERR EPrints::Log::render_struct($self->{session}->{site}->{order_methods}->{$self->{tabletype}});
-print STDERR $self->{tableid}."!!\n";
-	my @tags = keys %{$self->{session}->{site}->{order_methods}->{$self->{tableid}}};
-	$menu = $self->{session}->{render}->{query}->popup_menu(
+			print STDERR "zz".$self->{dataset}->toString() ;
+print STDERR $self->{session}->getSite()."!!\n";
+	print STDERR ">>>".$self->{session}->getSite()->getConf(
+			"order_methods",
+			$self->{dataset}->toString() )."\n";
+	my @tags = keys %{$self->{session}->getSite()->getConf(
+			"order_methods",
+			$self->{dataset}->toString() )};
+print STDERR "foo\n";
+	$menu = $query->popup_menu(
 		-name=>"_order",
 		-values=>\@tags,
 		-default=>$self->{order},
-		-labels=>$self->{session}->{metainfo}->get_order_names( 
-							$self->{session},
-							$self->{tableid} ) );
+		-labels=>$self->{session}->get_order_names( 
+						$self->{dataset} ) );
 	$html .= "<P>";
-	$html .= $self->{session}->{lang}->phrase( "H:orderresults", 
-						   { ordermenu=>$menu } );
+	$html .= $lang->phrase( 
+			"H:orderresults", 
+			{ ordermenu=>$menu } );
 	$html .= "</P>\n";
+	$html .= "<P>";
+	$html .= $self->{session}->render_submit_buttons( 
+			[ $lang->phrase("F:action_search"),
+		          $lang->phrase("F:action_reset") ] );
+	$html .= "</P>\n";
+
+	$html .= $self->{session}->end_form();
+
 
 	return( $html );
 }
@@ -262,14 +296,14 @@ sub from_form
 	push @problems, $self->{session}->{lang}->phrase("H:leastone")
 		unless( $self->{allow_blank} || $onedefined );
 
-	my $anyall = $self->{session}->{render}->param( "_satisfyall" );
+	my $anyall = $self->{session}->param( "_satisfyall" );
 
 	if( defined $anyall )
 	{
 		$self->{satisfy_all} = ( $anyall eq "ALL" );
 	}
 	
-	$self->{order} = $self->{session}->{render}->param( "_order" );
+	$self->{order} = $self->{session}->param( "_order" );
 	
 	return( scalar @problems > 0 ? \@problems : undef );
 }
@@ -278,7 +312,7 @@ sub from_form
 
 ######################################################################
 #
-# $text_rep = to_string()
+# $text_rep = toString()
 #
 #  Return a text representation of the search expression, for persistent
 #  storage. Doesn't store table or the order by fields, just the field
@@ -286,7 +320,7 @@ sub from_form
 #
 ######################################################################
 
-sub to_string
+sub toString
 {
 	my( $self ) = @_;
 
@@ -329,7 +363,7 @@ sub _unescape_search_string
 # state_from_string( $text_rep )
 #
 #  reinstate the search expression's values from the given text
-#  representation, previously generated by to_string(). Note that the
+#  representation, previously generated by toString(). Note that the
 #  fields used must have been passed into the constructor.
 #
 ######################################################################
@@ -371,66 +405,10 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 		$sf->set_value( $value ) if( defined $sf && defined $value && $value ne "" );
 	}
 
-#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
+#EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->toString().")" );
 }
 
 
-
-######################################################################
-#
-# @metafields = make_meta_fields( $session, $tableid, $fieldnames )
-#
-#  A static method, that finds MetaField objects for the given named
-#  metafields. You can pass @metafields to the SearchForm and 
-#  SearchExpression constructors.
-#
-#  If a field name is given as e.g. "title/keywords/abstract", they'll
-#  be put in an array ref in the returned array. When @metafields is
-#  passed into the SearchForm constructor, a SearchField that will search
-#  the title, keywords and abstracts fields together will be created.
-#
-######################################################################
-
-sub make_meta_fields
-{
-	my( $session, $tableid, $fieldnames ) = @_;
-
-	my @metafields;
-print STDERR "S($session)\n";
-print STDERR "M($session->{matainfo})\n";
-	# We want to search the relevant MetaFields
-	my @all_fields;
-	@all_fields = $session->{metainfo}->get_fields( $tableid );
-
-	foreach (@$fieldnames)
-	{
-		# If the fieldname contains a /, it's a "search >1 at once" entry
-		if( /\// )
-		{
-			# Split up the fieldnames
-			my @multiple_names = split /\//, $_;
-			my @multiple_fields;
-			
-			# Put the MetaFields in a list
-			foreach (@multiple_names)
-			{
-				push @multiple_fields, EPrints::MetaInfo::find_field( \@all_fields,
-				                                                      $_ );
-			}
-			
-			# Add a reference to the list
-			push @metafields, \@multiple_fields;
-		}
-		else
-		{
-			# Single field
-			push @metafields, EPrints::MetaInfo::find_field( \@all_fields,
-			                                                  $_ );
-		}
-	}
-	
-	return( @metafields );
-}
 
 
 sub perform_search 
@@ -472,7 +450,7 @@ sub perform_search
 		}
 	}
 	
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{dataset} );
         my $keyfield = $fields[0];
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
@@ -500,7 +478,7 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
-        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{tableid} );
+        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{dataset} );
         	my $keyfield = $fields[0];
 
 		my ( $buffer, $overlimit ) = $self->{session}->{database}->distinct_and_limit( 
@@ -508,12 +486,12 @@ sub get_records
 							$keyfield, 
 							$max );
 
-		my @records = $self->{session}->{database}->from_buffer( $self->{tableid}, $buffer );
+		my @records = $self->{session}->{database}->from_buffer( $self->{dataset}, $buffer );
 		if( !$overlimit )
 		{
 print STDERR "ORDER BY: $self->{order}\n";
 			@records = sort 
-				{ &{$self->{session}->{site}->{order_methods}->{$self->{tableid}}->{$self->{order}}}($a,$b); }
+				{ &{$self->{session}->{site}->{order_methods}->{$self->{dataset}}->{$self->{order}}}($a,$b); }
 				@records;
 		}
 		return @records;
@@ -521,6 +499,259 @@ print STDERR "ORDER BY: $self->{order}\n";
 
 	EPrints::Log::log_entry( "L:not_cached" );
 		
+}
+
+
+######################################################################
+#
+# process_webpage()
+#
+#  Process the search form, writing out the form and/or results.
+#
+######################################################################
+
+sub process_webpage
+{
+	my( $self, $title, $preamble ) = @_;
+	
+	my $submit_button = $self->{session}->param( "submit" );
+
+	# Check if we need to do a search. We do if:
+	#  a) if the Search button was pressed.
+	#  b) if there are search parameters but we have no value for "submit"
+	#     (i.e. the search is a direct GET from somewhere else)
+	if( ( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_search") ) || 
+	    ( !defined $submit_button &&
+	      $self->{session}->have_parameters() ) )
+	{
+		# We need to do a search
+		my $problems = $self->from_form();
+		
+		if( defined $problems && scalar (@$problems) > 0 )
+		{
+			$self->_render_problems( @$problems );
+			return;
+		}
+
+
+		# Everything OK with form.
+			
+#EPrints::Log::debug( "SearchForm", $self->toString() );
+
+		my( $t1 , $t2 , $t3 , @results );
+
+		$t1 = EPrints::Log::microtime();
+		$self->perform_search();
+		$t2 = EPrints::Log::microtime();
+
+		if( defined $self->{error} ) 
+		{	
+			# Error with search.
+			$self->_render_problems( $self->{error} );
+			return;
+		}
+
+		my $n_results = $self->count();
+
+		my $MAX=1000;
+
+		@results = $self->get_records( $MAX );
+		$t3 = EPrints::Log::microtime();
+
+		print $self->{session}->start_html(
+			$self->{session}->{lang}->phrase( "H:results_for",
+			                                  { title=>$title } ) );
+
+		if( $n_results > $MAX) 
+		{
+			print "<P>";
+	                print $self->{session}->{lang}->phrase( "H:too_many", 
+	{ n=>"<SPAN class=\"highlight\">$MAX</SPAN>" } )."\n";
+			print "</P>";
+		}
+	
+		my $code;
+		if( $n_results == 0 )
+		{
+			$code = "H:no_hits";
+		}
+		elsif( $n_results == 1 )
+		{
+			$code = "H:one_hit";
+		}
+		else
+		{
+			$code = "H:n_hits";
+		}
+		print "<P>";
+       		print $self->{session}->{lang}->phrase( $code, { n=>"<SPAN class=\"highlight\">$n_results</SPAN>" } )."\n";
+
+		if( @{ $self->{ignoredwords} } )
+		{
+			my %words = ();
+			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
+       			print $self->{session}->{lang}->phrase( 
+				"H:ignored",
+				{ words=>"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" } );
+		}
+		print "</P>\n";
+
+       		print $self->{session}->{lang}->phrase( 
+			"H:search_time", 
+			{ searchtime=>"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
+			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
+
+		# Print results
+		if( $self->{what} eq "eprint" )
+		{
+			
+			foreach (@results)
+			{
+				if( $self->{staff} )
+				{
+					print "<P><A HREF=\"$self->{session}->{site}->{server_perl}/".
+						"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
+						$self->{session}->{render}->render_eprint_citation(
+							$_,
+							1,
+							0 )."</A></P>\n";
+				}
+				else
+				{
+					print "<P>".
+						$self->{session}->{render}->render_eprint_citation(
+							$_,
+							1,
+							1 )."</P>\n";
+				}
+			}
+		}
+		elsif( $self->{what} eq "user" )
+		{
+			
+			foreach (@results)
+			{
+				print "<P>";
+				print $self->{session}->{render}->render_user_name( $_, 1 );
+				print "</P>\n";
+			}
+		}
+		else
+		{
+			die "dammit";
+			#cjg
+		}
+			
+		# Print out state stuff for a further invocation
+		
+		print $self->{session}->start_get_form();
+
+		$self->write_hidden_state();
+
+		print $self->{session}->{render}->submit_buttons(
+			[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
+		print $self->{session}->{render}->end_form();
+	
+		print $self->{session}->end_html();
+		return;
+	}
+
+	if( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
+		$submit_button eq $self->{session}->{lang}->phrase("F:action_newsearch") ) )
+	{
+		# To reset the form, just reset the URL.
+		my $url = $self->{session}->{render}->url();
+		# Remove everything that's part of the query string.
+		$url =~ s/\?.*//;
+		$self->{session}->{render}->redirect( $url );
+		return;
+	}
+	
+	if( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_update") )
+	{
+		$self->from_form();
+
+		print $self->{session}->start_html( $title );
+		print $preamble;
+
+		print $self->render_search_form( $self );
+
+		print $self->{session}->end_html();
+		return;
+	}
+
+	# Just print the form...
+	print $self->{session}->start_html( $title );
+	print $preamble;
+
+	print $self->render_search_form( $self );
+
+	print $self->{session}->end_html();
+}
+
+sub _render_problems
+{
+	my( $self , @problems ) = @_;	
+	# Problem with search expression. Report an error, and redraw the form
+			
+	print $self->{session}->start_html( $self->{title} );
+	print $self->{preamble};
+
+	print "<P>";
+	print $self->{session}->{lang}->phrase( "H:form_problem" );
+	print "</P>";
+	print "<UL>\n";
+	
+	foreach (@problems)
+	{
+		print "<LI>$_</LI>\n";
+	}
+	
+	print "</UL>\n";
+	print "<HR noshade>";
+	print $self->render_search_form();
+			
+	print $self->{session}->end_html();
+	return;
+}
+
+
+######################################################################
+#
+# _render_matchcount( $count )
+#
+#  Renders the number of hits the search resulted in, handling singular/
+#  plural properly into HTML.
+#
+######################################################################
+
+sub _render_matchcount
+{
+	my( $session, $count ) = @_;
+
+}
+
+
+
+######################################################################
+#
+# write_hidden_state()
+#
+#  Write out the state of the form in hidden HTML fields.
+#
+######################################################################
+
+sub write_hidden_state
+{
+	my( $self ) = @_;
+	
+	# Call CGI directly, we want an array
+	my @params = $self->{session}->param();
+
+	foreach (@params)
+	{
+		print $self->{session}->{render}->hidden_field( $_ ) if( $_ ne "submit" );
+	}
 }
 
 1;

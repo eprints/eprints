@@ -169,29 +169,6 @@ print STDERR join(",",caller())."\n";
 
 ###
 
-sub get_order_names
-{
-	my( $self, $session, $tableid ) = @_;
-print STDERR "SELF:".join(",",keys %{$self} )."\n";
-		
-	my %names = ();
-	foreach( keys %{$session->{site}->{order_methods}->{$tableid}} )
-	{
-		$names{$_}=$self->get_order_name( $session, $tableid, $_ );
-	}
-	return( \%names );
-}
-
-sub get_order_name
-{
-	my( $self, $session, $tableid, $orderid ) = @_;
-	
-        return $session->{lang}->phrase( 
-		"A:ordername_".
-		EPrints::Database::table_string( $tableid ).
-		"_".$orderid );
-}
-
 
 
 

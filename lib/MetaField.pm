@@ -42,57 +42,39 @@ use strict;
 
 my %TYPE_SQL =
 (
- 	$FT_INT        => "\$(name) INT UNSIGNED \$(param)",
- 	$FT_DATE       => "\$(name) DATE \$(param)",
- 	$FT_BOOLEAN    => "\$(name) SET('TRUE','FALSE') \$(param)",
- 	$FT_SET        => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_TEXT       => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_LONGTEXT   => "\$(name) TEXT \$(param)",
- 	$FT_URL        => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_EMAIL      => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_SUBJECT    => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_USERNAME   => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_PAGERANGE  => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_YEAR       => "\$(name) INT UNSIGNED \$(param)",
- 	$FT_EPRINTTYPE => "\$(name) VARCHAR(255) \$(param)",
- 	$FT_NAME       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
+ 	int        => "\$(name) INT UNSIGNED \$(param)",
+ 	date       => "\$(name) DATE \$(param)",
+ 	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
+ 	set        => "\$(name) VARCHAR(255) \$(param)",
+ 	text       => "\$(name) VARCHAR(255) \$(param)",
+ 	longtext   => "\$(name) TEXT \$(param)",
+ 	url        => "\$(name) VARCHAR(255) \$(param)",
+ 	email      => "\$(name) VARCHAR(255) \$(param)",
+ 	subject    => "\$(name) VARCHAR(255) \$(param)",
+ 	username   => "\$(name) VARCHAR(255) \$(param)",
+ 	pagerange  => "\$(name) VARCHAR(255) \$(param)",
+ 	year       => "\$(name) INT UNSIGNED \$(param)",
+ 	eprinttype => "\$(name) VARCHAR(255) \$(param)",
+ 	name       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
  );
  
 # Map of INDEXs required if a user wishes a field indexed.
 my %TYPE_INDEX =
 (
- 	$FT_INT        => "INDEX(\$(name))",
- 	$FT_DATE       => "INDEX(\$(name))",
-	$FT_BOOLEAN    => "INDEX(\$(name))",
- 	$FT_SET        => "INDEX(\$(name))",
- 	$FT_TEXT       => "INDEX(\$(name))",
- 	$FT_LONGTEXT   => "INDEX(\$(name))",
- 	$FT_URL        => "INDEX(\$(name))",
- 	$FT_EMAIL      => "INDEX(\$(name))",
- 	$FT_SUBJECT    => "INDEX(\$(name))",
- 	$FT_USERNAME   => "INDEX(\$(name))",
- 	$FT_PAGERANGE  => "INDEX(\$(name))",
- 	$FT_YEAR       => "INDEX(\$(name))",
- 	$FT_EPRINTTYPE => "INDEX(\$(name))",
- 	$FT_NAME       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
-);
-
-my %TYPE_NAME =
-(
- 	$FT_INT        => "int",
- 	$FT_DATE       => "date",
-	$FT_BOOLEAN    => "boolean",
- 	$FT_SET        => "set",
- 	$FT_TEXT       => "text",
- 	$FT_LONGTEXT   => "longtext",
- 	$FT_URL        => "url",
- 	$FT_EMAIL      => "email",
- 	$FT_SUBJECT    => "subject",
- 	$FT_USERNAME   => "username",
- 	$FT_PAGERANGE  => "pagerange",
- 	$FT_YEAR       => "year",
- 	$FT_EPRINTTYPE => "eprinttype",
- 	$FT_NAME       => "name" 
+ 	INT        => "INDEX(\$(name))",
+ 	DATE       => "INDEX(\$(name))",
+	BOOLEAN    => "INDEX(\$(name))",
+ 	SET        => "INDEX(\$(name))",
+ 	TEXT       => "INDEX(\$(name))",
+ 	LONGTEXT   => "INDEX(\$(name))",
+ 	URL        => "INDEX(\$(name))",
+ 	EMAIL      => "INDEX(\$(name))",
+ 	SUBJECT    => "INDEX(\$(name))",
+ 	USERNAME   => "INDEX(\$(name))",
+ 	PAGERANGE  => "INDEX(\$(name))",
+ 	YEAR       => "INDEX(\$(name))",
+ 	EPRINTTYPE => "INDEX(\$(name))",
+ 	NAME       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
 
@@ -151,19 +133,19 @@ print STDERR "NEW FIELD: $data->{name}\n";
 	}
 	$self->{dataset} = $dataset;
 
-	if( $self->{type} == $FT_LONGTEXT || $self->{type} == $FT_SET )
+	if( $self->{type} eq "longtext" || $self->{type} eq "set" )
 	{
 		$self->{displaylines} = ( defined $data->{displaylines} ? $data->{displaylines} : 5 );
 	}
-	if( $self->{type} == $FT_INT )
+	if( $self->{type} eq "int" )
 	{
 		$self->{digits} = ( defined $data->{digits} ? $data->{digits} : 20 );
 	}
-	if( $self->{type} == $FT_TEXT )
+	if( $self->{type} eq "text" )
 	{
 		$self->{maxlength} = $data->{maxlength};
 	}
-	if( $self->{type} == $FT_SET )
+	if( $self->{type} eq "set" )
 	{
 		if( !defined $data->{options} )
 		{
@@ -278,14 +260,14 @@ sub display_name
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "A:fieldname_".EPrints::Database::table_string($self->{tableid})."_".$self->{name} );
+	return $session->{lang}->phrase( "A:fieldname_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
 sub display_help
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "H:fieldhelp_".EPrints::Database::table_string($self->{tableid})."_".$self->{name} );
+	return $session->{lang}->phrase( "H:fieldhelp_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
 ######################################################################
@@ -320,56 +302,40 @@ sub render_html
 
 #EPrints::Log::debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
 
-	my $html;
+	my $div = $session->make_element( "DIV" );
 	my $type = $self->{type};
 	
-	if( $type == $FT_BOOLEAN )
+	if( $type eq "boolean" )
 	{
 		# Boolean: Popup menu
 	
 		my $default = ( defined $self->{value} ? "EITHER" : $self->{value} );
 
-		$html = $query->popup_menu(
-			-name=>$formname,
-			-values=>\@bool_tags,
-			-default=>( defined $string ? $string : $bool_tags[0] ),
-			-labels=>\%bool_labels );
+		$div->appendChild( 
+			$session->make_option_list(
+				name => $formname,
+				values => \@bool_tags,
+				default => ( defined $string ? $string : $bool_tags[0] ),
+				labels => \%bool_labels ) );
 	}
-	elsif( $type == $FT_LONGTEXT || $type == $FT_TEXT || $type == $FT_NAME || 
-			$type == $FT_URL ) 
+	elsif( $type eq "longtext" || $type eq "text" || 
+		$type eq "name" || $type eq "url"  || $type eq "username" ) 
 	{
 		# complex text types
-		$html = $query->textfield(
-			-name=>$formname,
-			-default=>$string,
-			-size=>$EPrints::HTMLRender::search_form_width,
-			-maxlength=>$EPrints::HTMLRender::field_max );
-
-		$html .= $query->popup_menu(
-			-name=>$formname."_srchtype",
-			-values=>\@text_tags,
-			-default=>$anyall,
-			-labels=>\%text_labels );
+		$div->appendChild(
+			$session->make_element( "INPUT",
+				type => "text",
+				name => $formname,
+				size => $EPrints::HTMLRender::search_form_width,
+				maxlength => $EPrints::HTMLRender::field_max ) );
+		$div->appendChild( 
+			$session->make_option_list(
+				name=>$formname."_srchtype",
+				values=>\@text_tags,
+				default=>$anyall,
+				labels=>\%text_labels ) );
 	}
-	elsif( $type == $FT_USERNAME )
-	{
-		my @defaults;
-		my $anyall = "ANY";
-	
-		#cjg HMMMM	
-		$html = $query->textfield(
-			-name=>$formname,
-			-default=>$string,
-			-size=>$EPrints::HTMLRender::search_form_width,
-			-maxlength=>$EPrints::HTMLRender::field_max );
-
-		$html .= $query->popup_menu(
-			-name=>$formname."_anyall",
-			-values=>\@set_tags,
-			-default=>$anyall,
-			-labels=>\%set_labels );
-	}
-	elsif( $type == $FT_EPRINTTYPE || $type == $FT_SET || $type == $FT_SUBJECT )
+	elsif( $type eq "eprinttype" || $type eq "set" || $type eq "subject" )
 	{
 		my @defaults;
 		
@@ -386,13 +352,13 @@ sub render_html
 		# Make a list of possible values
 		my( $tags, $labels );
 		
-		if( $type == $FT_SUBJECT )
+		if( $type eq "subject" )
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info.
 			( $tags, $labels ) = EPrints::Subject::get_postable( $session, {} );
 		}
-		elsif( $type == $FT_EPRINTTYPE )
+		elsif( $type eq "eprinttype" )
 		{
 			$tags = $session->{metainfo}->get_types( $TID_EPRINT );
 			$labels = $session->{metainfo}->get_type_names( $session, $TID_EPRINT );
@@ -418,54 +384,57 @@ sub render_html
 		{
 			$labels->{$_} = $old_labels->{$_};
 		}
-
-		$html = $query->scrolling_list(
-			-name=>$formname,
-			-values=>$tags,
-			-default=>\@defaults,
-			-size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
+		$div->appendChild( $session->make_option_list(
+			name => $formname,
+			values => $tags,
+			default => \@defaults,
+			size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
 				$EPrints::HTMLRender::list_height_max :
 				scalar @$tags ),
-			-multiple=>"true",
-			-labels=>$labels );
+			multiple => "true",
+			labels => $labels ) );
+
 		if( $self->{multiple} )
 		{
-			$html .= $query->popup_menu(
-				-name=>$formname."_anyall",
-				-values=>\@set_tags,
-				-default=>$anyall,
-				-labels=>\%set_labels );
+			$div->appendChild( 
+				$session->make_option_list(
+					name=>$formname."_anyall",
+					values=>\@set_tags,
+					default=>$anyall,
+					labels=>\%set_labels ) );
 		}
 	}
-	elsif( $type == $FT_INT )
+	elsif( $type eq "int" )
 	{
-		$html = $query->textfield(
-			-name=>$formname,
-			-default=>$string,
-			-size=>9,
-			-maxlength=>100 );
+		$div->appendChild(
+			$session->make_element( "INPUT",
+				name=>$formname,
+				default=>$string,
+				size=>9,
+				maxlength=>100 ) );
 	}
-	elsif( $type == $FT_YEAR )
+	elsif( $type eq "year" )
 	{
-		$html = $query->textfield(
-			-name=>$formname,
-			-default=>$string,
-			-size=>9,
-			-maxlength=>9 );
+		$div->appendChild(
+			$session->make_element( "INPUT",
+				name=>$formname,
+				default=>$string,
+				size=>9,
+				maxlength=>9 ) );
 	}
 	else
 	{
-		$session->get_site()->log( "Can't Render: $type" );
+		$session->getSite()->log( "Can't Render: $type" );
 	}
 
-	return( $html );
+	return $div->toString();
 }
 
 sub search_help
 {
         my( $self, $lang ) = @_;
 
-        return $lang->phrase( "H:help_".$TYPE_NAME{$self->{type}} );
+        return $lang->phrase( "H:help_".$self->{type} );
 }
 
 sub get_sql_type
@@ -486,5 +455,11 @@ sub get_name
 {
 	my( $self ) = @_;
 	return $self->{name};
+}
+
+sub get_type
+{
+	my( $self ) = @_;
+	return $self->{type};
 }
 

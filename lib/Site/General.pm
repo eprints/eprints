@@ -25,7 +25,8 @@ $EPrints::Site::General::lang_path =
 
 %EPrints::Site::General::sites = (
 	"destiny.totl.net" => "lemurprints",
-	"lemur.ecs.soton.ac.uk" => "lemurprints"
+	"lemur.ecs.soton.ac.uk" => "lemurprints",
+	"localhost" => "lemurprints"
 );
 
 

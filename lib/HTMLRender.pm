@@ -142,90 +142,6 @@ sub new
 }
 
 
-######################################################################
-#
-# $html = start_html( $title )
-#
-#  Return a standard HTML header, with any title or logo we might
-#   want
-#
-######################################################################
-
-sub start_html
-{
-	my( $self, $title, $langid ) = @_;
-
-	my $html = "";
-	
-	# Write HTTP headers if appropriate
-	unless( $self->{offline} )
-	{
-		my $r = Apache->request;
-		$r->content_type( 'text/html' );
-		if( defined $langid )
-		{
-			my $cookie = $self->{query}->cookie(
-				-name    => $self->{session}->{site}->{lang_cookie_name},
-				-path    => "/",
-				-value   => $langid,
-				-expires => "+10y", # really long time
-				-domain  => $self->{session}->{site}->{lang_cookie_domain} );
-			$r->header_out( "Set-Cookie"=>$cookie ); 
-		}
-		$r->send_http_header;
-	}
-
-	my %opts = %{$self->{session}->{site}->{start_html_params}};
-	$opts{-title} = "$self->{session}->{site}->{sitename}\: $title";
-
-
-	$html .= $self->{query}->start_html( %opts );
-	# Logo
-	my $banner = $self->{session}->{site}->{html_banner};
-	$banner =~ s/TITLE_PLACEHOLDER/$title/g;
-
-	$html .= "$banner\n";
-
-	return( $html );
-}
-
-
-######################################################################
-#
-# end_html()
-#
-#  Write out stuff at the bottom of the page. Any standard navigational
-#  stuff might go in here.
-#
-######################################################################
-
-sub end_html
-{
-	my( $self ) = @_;
-	
-	# End of HTML gubbins
-	my $html = "$self->{session}->{site}->{html_tail}\n";
-	$html .= $self->{query}->end_html;
-
-	return( $html );
-}
-
-
-######################################################################
-#
-# $url = url()
-#
-#  Returns the URL of the current script
-#
-######################################################################
-
-sub url
-{
-	my( $self ) = @_;
-	
-	return( $self->{query}->url() );
-}
-
 
 ######################################################################
 #
@@ -854,46 +770,6 @@ sub input_field_tr
 	return( $html );
 }	
 
-
-######################################################################
-#
-# $html = submit_buttons( $submit_buttons )
-#                           array_ref
-#
-#  Returns HTML for buttons all with the name "submit" but with the
-#  values given in the array. A single "Submit" button is printed
-#  if the buttons aren't specified.
-#
-######################################################################
-
-sub submit_buttons
-{
-	my( $self, $submit_buttons ) = @_;
-
-	my $html = "";
-	my $first = 1;
-
-	if( defined $submit_buttons )
-	{
-		my $button;
-		foreach $button (@$submit_buttons)
-		{
-			# Some space between them
-			$html .= "&nbsp;&nbsp;" if( $first==0 );
-
-			$html .=  $self->{query}->submit( -name=>"submit", -value=>$button );
-			$first = 0 if( $first );
-		}
-	}
-	else
-	{
-		$html = $self->{query}->submit( -name=>"submit", -value=>"Submit" );
-	}
-
-	return( $html );
-}
-
-
 ######################################################################
 #
 # $html = named_submit_button( $name, $value )
@@ -933,43 +809,6 @@ sub start_form
 }
 
 
-######################################################################
-#
-# $html = start_get_form( $dest )
-#
-#  Return form preamble, using GET method. 
-#
-######################################################################
-
-sub start_get_form
-{
-	my( $self, $dest ) = @_;
-	
-	if( defined $dest )
-	{
-		return( $self->{query}->start_form( -method=>"GET",
-		                                    -action=>$dest ) );
-	}
-	else
-	{
-		return( $self->{query}->start_form( -method=>"GET" ) );
-	}
-}
-
-
-######################################################################
-#
-# $html = end_form()
-#
-#  Return end of form HTML stuff.
-#
-######################################################################
-
-sub end_form
-{
-	my( $self ) = @_;
-	return( $self->{query}->endform );
-}
 
 
 ######################################################################
@@ -1035,22 +874,6 @@ sub seen_form
 }
 
 
-######################################################################
-#
-# $bool = have_parameters()
-#
-#  Return true if the current script had any parameters (POST or GET)
-#
-######################################################################
-
-sub have_parameters
-{
-	my( $self ) = @_;
-	
-	my @names = $self->{query}->param();
-
-	return( scalar @names > 0 );
-}
 
 
 ######################################################################
@@ -1076,35 +899,6 @@ sub redirect
 }
 
 
-######################################################################
-#
-# $param = param( $name )
-#
-#  Return a query parameter.
-#
-######################################################################
-
-sub param
-{
-	my( $self, $name ) = @_;
-
-	return( $self->{query}->param( $name ) ) unless wantarray;
-	
-	# Called in an array context
-	my @result;
-
-	if( defined $name )
-	{
-		@result = $self->{query}->param( $name );
-	}
-	else
-	{
-		@result = $self->{query}->param();
-	}
-
-	return( @result );
-
-}
 
 
 ######################################################################
@@ -1189,7 +983,7 @@ sub form_value
 		{
 			$subject_list->set_tags( \@tags );
 
-			$value = $subject_list->to_string();
+			$value = $subject_list->toString();
 		}
 		else
 		{
