@@ -28,34 +28,6 @@ $EPrints::EPrint::id_code_digits = 8;
 
 
 
-# Additional fields in this class:
-#
-#   table   - the table the EPrint appears in
-
-#
-# System field help
-#
-%EPrints::EPrint::help =
-(
-	"additional" => "If you'd like to suggest another subject or subjects for ".
-		"your submission (and the archive) that are not in the above list, ".
-		"then enter them here. Please specify them fully, in a manner similar ".
-		"to those displayed in the above list.",
-	"reasons" => "Here you can offer justification for your suggested new ".
-		"subject(s).",
-	"commentary" => "If your paper is a commentary on another document (or ".
-		"author's response to a commentary) in the archive, please enter its ".
-		"ID in this box.",
-	"succeeds" => "If this document is a revised version of another document ".
-		"in the archive, please enter its ID code in this box.",
-	"subjects" => "Please select at least one main subject category, and ".
-		"optionally up to two other subject categories you think are ".
-		"appropriate for your submisson, in the list below. In some browsers ".
-		"you may have to hold CTRL or SHIFT to select more than one subject.",
-);
-
-	
-
 $EPrints::EPrint::static_page = "index.html";
 
 sub get_system_field_info
@@ -506,7 +478,7 @@ sub clone
 		my $field;
 
 		# Copy all the data across, except the ID and the datestamp
-		foreach $field ($self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} ))
+		foreach $field ($self->{session}->{metainfo}->get_fields( "eprint", $self->{type} ))
 		{
 			my $field_name = $field->{name};
 
@@ -661,7 +633,7 @@ sub validate_type
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:no_type" );
 	}
-	elsif( !defined $self->{session}->{metainfo}->get_table_type_name( "eprintid", $self->{type} ) )
+	elsif( !defined $self->{session}->{metainfo}->get_type_name( $self->{session} , "eprintid", $self->{type} ) )
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:invalid_type" );
 	}
@@ -686,7 +658,7 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -760,7 +732,7 @@ sub validate_subject
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
 	my $field;
 
 	foreach $field (@all_fields)
@@ -1108,13 +1080,13 @@ sub prune
 
 	$self->prune_documents();
 	
-	my @fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
+	my @fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
 	my @all_fields = $self->{session}->{metainfo}->get_fields( "archive" );
 	my $f;
 
 	foreach $f (@all_fields)
 	{
-		if( !defined $self->{session}->{metainfo}->find_field( \@fields, $f->{name} ) )
+		if( !defined $self->{session}->{metainfo}->find_table_field( \@fields, $f->{name} ) )
 		{
 			$self->{$f->{name}} = undef;
 		}

@@ -117,38 +117,6 @@ sub new
 
 ######################################################################
 #
-# $metafield = make_set( $name, $display_name,  $lines,
-#                        $tags,    $labels, $multiple )
-#                       array_ref  hash_ref
-#
-#  Function for making a MetaField with the given tags and values.
-#  Tags are given in $tags so that order can be maintained. $labels
-#  should map the tags to more useful text. If $multiple is non-zero,
-#  more than one item in the set may be selected.
-#
-######################################################################
-
-sub make_set
-{
-	my( $class, $name, $display_name, $lines, $tags, $labels, $multiple ) = @_;
-	
-	my $self = {};
-	bless $self, $class;
-	
-	$self->{name} = $name;
-	$self->{displayname} = $display_name;
-	$self->{tags} = $tags;
-	$self->{labels} = $labels;
-	$self->{multiple} = $multiple;
-	$self->{displaylines} = $lines;
-	$self->{type} = "set";
-
-	return( $self );
-}
-
-
-######################################################################
-#
 # $value = get( $field )
 #
 #  Get information about the metadata field.
@@ -245,9 +213,18 @@ sub tags_and_labels
 	return ($self->{options}, \%labels);
 }
 
-sub displayname
+sub display_name
 {
 	my( $self, $session ) = @_;
-	return "LANG(".$self->{name}.")";
+	
+	return $session->{lang}->phrase( "A:fieldname_".$self->{tableid}."_".$self->{name} );
 }
+
+sub display_help
+{
+	my( $self, $session ) = @_;
+	
+	return $session->{lang}->phrase( "H:fieldhelp_".$self->{tableid}."_".$self->{name} );
+}
+
 1;

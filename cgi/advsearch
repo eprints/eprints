@@ -40,10 +40,7 @@ my $searchform = new EPrints::SearchForm(
 	   " <A HREF=\"search\">".
 	   $session->{lang}->phrase( "H:simple_search" ).
 	   "</A></P>",
-	$session->{site}->{eprint_order_methods},
-	$session->{site}->{eprint_default_order},
 	0 );
 
 $searchform->process();
-
 $session->terminate();

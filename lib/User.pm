@@ -318,7 +318,7 @@ sub validate
 		{
 			push @all_problems, 
 			   $self->{session}->{lang}->phrase( "H:missedfield", 
-			                                     { field=>$field->displayname( $self->{session} ) } );
+			                                     { field=>$field->display_name( $self->{session} ) } );
 		}
 		else
 		{

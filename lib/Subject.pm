@@ -540,14 +540,14 @@ sub get_all
 
 sub posted_eprints
 {
-	my( $self, $table ) = @_;
+	my( $self, $tableid ) = @_;
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$table );
+		$tableid );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( "archive", "subject" ),
+		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
 		"ALL:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();
@@ -569,12 +569,12 @@ sub posted_eprints
 
 sub count_eprints
 {
-	my( $self, $table ) = @_;
+	my( $self, $tableid ) = @_;
 
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		$table );
+		$tableid );
 
 	$searchexp->add_field(
 		$self->{session}->{metainfo}->find_table_field( "archive", "subject" ),

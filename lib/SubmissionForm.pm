@@ -1271,7 +1271,7 @@ sub do_stage_fileview
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
 		my @doc_fields = $self->{session}->{metainfo}->get_fields( "documents" );
-		my $desc_field = EPrints::MetaInfo::find_field( \@doc_fields,
+		my $desc_field = EPrints::MetaInfo::find_table_field( \@doc_fields,
 	                                                	"formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
@@ -1748,7 +1748,7 @@ sub render_meta_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+	my @all_fields = $self->{session}->{metainfo}->get_fields(
 		"eprint",
 		$self->{eprint}->{type} );
 	
@@ -1897,7 +1897,7 @@ sub update_from_subject_form
 	}
 	else
 	{
-		my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_fields(
 			"eprint",
 			$self->{eprint}->{type} );
 		my $field;
@@ -1952,7 +1952,7 @@ sub update_from_users_form
 	}
 	else
 	{
-		my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_fields(
 			"eprint",
 			$self->{eprint}->{type} );
 		my $field;

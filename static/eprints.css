@@ -1,0 +1,19 @@
+H1 {
+        font: bold 24pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+
+H2 {
+        font: bold 18pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+
+H3 {
+        font: 14pt Helvetica,Arial,Sans-serif;
+        color: #606060;
+}
+
+.highlight {
+	font-weight: bold;
+}
+

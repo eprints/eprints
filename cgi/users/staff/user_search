@@ -32,13 +32,11 @@ my @metafields = EPrints::SearchExpression::make_meta_fields(
 my $searchform = new EPrints::SearchForm(
 	$session,
 	"users",
-	EPrints::Database::table_name( "users" ),
+	"user",
 	1,
 	\@metafields,
 	"Staff User Search",
-	"",
-	$session->{site}->{user_order_methods},
-	$session->{site}->{default_user_order} );
+	"" );
 
 $searchform->process();
 

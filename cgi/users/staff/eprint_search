@@ -36,14 +36,12 @@ my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprint",
 	1,
-	EPrints::Database::table_name( "archive" ),
+	"archive",
 	\@metafields,
 	"Staff EPrint Search",
 	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
 		" blank. <A HREF=\"$session->{site}->{server_static}/staff/\">".
 		"Click here to return to the staff page.</A></P></CENTER>",
-	$session->{site}->{eprint_order_methods},
-	$session->{site}->{eprint_default_order},
 	1 );
 
 $searchform->process();

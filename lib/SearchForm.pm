@@ -33,8 +33,6 @@ use strict;
 #                    $default_fields,
 #                    $title,
 #                    $preamble,
-#                    $order_methods,
-#                    $default_order,
 #                    $staff )
 #
 #  Create a new search form handler object.
@@ -47,8 +45,6 @@ use strict;
 #  $default_fields - which fields to display (MetaField objects)
 #  $title          - title for the form
 #  $preamble       - put at the top of the page.
-#  $order_methods  - map description of ordering to SQL clause
-#  $default_order  - default order (key to order_methods)
 #  $staff          - boolean: does user have staff access?
 #
 ######################################################################
@@ -62,9 +58,7 @@ sub new
 	    $tableid,
 	    $default_fields,
 	    $title,
-		 $preamble,
-	    $order_methods,
-	    $default_order,
+	    $preamble,
 	    $staff ) = @_;
 	
 	my $self = {};
@@ -77,8 +71,6 @@ sub new
 	$self->{default_fields} = $default_fields;
 	$self->{title} = $title;
 	$self->{preamble} = $preamble;
-	$self->{order_methods} = $order_methods;
-	$self->{default_order} = $default_order;
 	$self->{staff} = $staff;
 
 	return( undef ) unless( $what eq "users" || $what eq "eprint" );
@@ -106,9 +98,7 @@ sub process
 		$self->{tableid},
 		$self->{allow_blank},
 		1,
-		$self->{default_fields},
-		$self->{order_methods},
-		$self->{default_order} );
+		$self->{default_fields} );
 
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.

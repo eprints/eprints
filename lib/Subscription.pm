@@ -121,12 +121,10 @@ sub new
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
 		$self->{session},
-		EPrints::Database::table_name( "archive" ),
+		"archive",
 		1,
 		1,
-		\@metafields,
-		$self->{session}->{eprint_order_methods},
-		$self->{session}->{site}->{default_eprint_order} );
+		\@metafields );
 
 	$self->{searchexpression}->state_from_string( $self->{spec} )
 		if( defined $self->{spec} && $self->{spec} ne "" );

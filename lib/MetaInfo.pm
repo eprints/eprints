@@ -144,12 +144,12 @@ sub get_types
   
 sub get_type_names
 {
-	my( $self, $tableid ) = @_;
+	my( $self, $session, $tableid ) = @_;
 		
 	my %names = ();
 	foreach( keys %{$self->{$tableid}->{types}} ) 
 	{
-		$names{$_}="$_ (lang support pending)";
+		$names{$_}=$self->get_type_name( $session, $tableid, $_ );
 	}
 	return( \%names );
 }
@@ -158,15 +158,15 @@ sub get_type_names
 ######################################################################
 #
 #
-#  Returns the displayable name of the given EPrint type,
+#  Returns the displayable name of the given type,
 #
 ######################################################################
 
-sub get_table_type_name
+sub get_type_name
 {
-	my( $self, $tableid, $type ) = @_;
+	my( $self, $session, $tableid, $type ) = @_;
 	
-	return( $self->{eprint_type_names}->{$type} );
+        return $session->{lang}->phrase( "A:typename_".$tableid."_".$type );
 }
 
 
@@ -231,6 +231,29 @@ print STDERR join(",",caller())."\n";
 	}
 	return @{$self->{$tableid}->{fields}};
 }
+
+###
+
+sub get_order_names
+{
+	my( $self, $session, $tableid ) = @_;
+		
+	my %names = ();
+	foreach( keys %{$session->{site}->{order_methods}->{$tableid}} )
+	{
+		$names{$_}=$self->get_order_name( $session, $tableid, $_ );
+	}
+	return( \%names );
+}
+
+sub get_order_name
+{
+	my( $self, $session, $tableid, $orderid ) = @_;
+	
+        return $session->{lang}->phrase( "A:ordername_".$tableid."_".$orderid );
+}
+
+
 
 
 1;

@@ -21,7 +21,7 @@
 
 package EPrints::Language;
 
-use EPrintSite;
+use EPrints::Site::General;
 
 use strict;
 
@@ -80,7 +80,7 @@ sub fetch
 	}
 	else
 	{
-		$EPrints::Language::languages{ $langid } = $lang;
+		$EPrints::Language::LANG_CACHE{ $langid } = $lang;
 	}
 	return $lang;
 
@@ -107,8 +107,31 @@ sub new
 	bless $self, $class;
 
 	$self->{id} = $langid;
-	$self->{data} = {};
-	$self->read_phrases();
+
+	$self->{sitedata} =
+		read_phrases( $site->{phrases_path}."/".$self->{id} );
+
+	$self->{data} =
+		read_phrases( $EPrints::Site::General::lang_path."/".$self->{id} );
+	
+	if( $site->{default_language} ne $self->{id})
+	{
+		$self->{fallback} = EPrints::Language::fetch( 
+					$site,  
+					$site->{default_language} );
+	}
+
+	$self->{tryorder} = [];
+	push @{$self->{tryorder}}, $self->{sitedata};
+	if( defined $self->{fallback} )
+	{
+		push @{$self->{tryorder}}, $self->{fallback}->{sitedata};
+	}
+	push @{$self->{tryorder}}, $self->{data};
+	if( defined $self->{fallback} )
+	{
+		push @{$self->{tryorder}}, $self->{fallback}->{data};
+	}
 
 	return( $self );
 }
@@ -141,8 +164,16 @@ sub file_phase
 	{
 		$inserts = {};
 	}
-	
-	my $response = $self->{data}->{$file}->{$phraseid};
+
+	my $response = undef;
+	foreach( @{$self->{tryorder}} )
+	{
+		$response = $_->{MAIN}->{$phraseid};
+		last if( defined $response );
+		$response = $_->{$file}->{$phraseid};
+		last if( defined $response );
+	}
+
 	if( defined $response )
 	{
 		$response =~ s/\$\(([a-z_]+)\)/$inserts->{$1}/ieg;
@@ -161,75 +192,51 @@ sub file_phase
 
 sub read_phrases
 {
-	my( $self ) = @_;
+	my( $file ) = @_;
 	
-	my @inbuffer;
-
-	my $file = $EPrintSite::languages{$self->{id}};
-
 	unless( open(LANG, $file) )
 	{
 		# can't translate yet...
 		print STDERR "Can't open eprint language file: $file: $!\n";
-		return;
+		return {};
 	}
-	print STDERR "opened eprint language file: $file: $!\n\n";
+	
+	my $data = {};	
 
+	print STDERR "opened eprint language file: $file\n";
+
+	my $CURRENTFILE = 'MAIN';
 	while( <LANG> )
 	{
 		chomp;
 		next if /^\s*#/;
-		push @inbuffer, $_;
-
-		if( /<\/file>/i )
+		next if /^\s*$/;
+		
+		if( /FILE\s*=\s*([^\s]+)/ )
 		{
-			$self->make_file_phrases( @inbuffer );
-			@inbuffer = ();
+			$CURRENTFILE=$1;
+			if( !defined $data->{$CURRENTFILE} )
+			{
+				$data->{$CURRENTFILE} = {};
+			}
 		}
-	}
-print STDERR "Loaded: $file\n";
-
-	close( LANG );
-}
-
-
-######################################################################
-#
-#  make_file_phrases( @lines )
-#
-#  Read and store all phrases in given config file lines. 
-#
-######################################################################
-
-sub make_file_phrases
-{
-	my( $self, @lines ) = @_;
-
-	my $filename;
-
-	foreach (@lines)
-	{
-		# Get the filename out of <file filename>
-		if( /<file\s+([^>\s]+)>/ )
-		{
-			$filename = $1;
-			$self->{data}->{$filename} = {};
-		}
-		elsif( /<\/file>/i )
-		{
-			# End of the class
-			return;
-		}
-		# Get the phrase out of a line "id = phrase";
 		elsif( /^\s*([A-Z]:[A-Za-z0-9_]+)\s*=\s*(.*)$/ )
 		{
 			my ( $key , $val ) = ( $1 , $2 );
 			# convert \n to actual CR's
 			$val =~ s/\\n/\n/g;
-			$self->{data}->{$filename}->{$key}=$val;
+			$data->{$CURRENTFILE}->{$key}=$val;
 		}
-		# Can ignore everything else
+		else
+		{
+			print STDERR "ERROR in language file: $file near:\n$_\n";
+		}
 	}
+print STDERR "Loaded: $file\n";
+
+	close( LANG );
+
+	return $data;
 }
 
 1;

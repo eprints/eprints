@@ -16,7 +16,7 @@
 
 package EPrints::Log;
 
-use EPrintSite;
+use EPrints::Site::General;
 #require 'sys/syscall.ph';
 
 ######################################################################
@@ -48,7 +48,7 @@ sub log_entry
 
 print STDERR "$phraseid : ".join(",",values %{$inserts})."\n";
 
-	my $loglang = EPrints::Language::fetch( undef, $EPrintSite::log_language );
+	my $loglang = EPrints::Language::fetch( undef, $EPrints::Site::General::log_language );
 
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
@@ -59,7 +59,7 @@ print STDERR "$phraseid : ".join(",",values %{$inserts})."\n";
 
 	print STDERR "EPRINTS LOG ($name): $msg\n";
 
-#	my $log_filename = "$EPrintSite::SiteInfo::log_path/$name.log";
+#	my $log_filename = "$EPrintSite::SiteInfo::General::log_path/$name.log";
 #
 #	if( -e $log_filename )
 #	{

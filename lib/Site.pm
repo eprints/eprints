@@ -12,50 +12,50 @@
 #
 ######################################################################
 
-package EPrints::ConfigLoader;
+package EPrints::Site;
 
-use EPrintSite;
+use EPrints::Site::General;
 
-my %id2config = ();
+my %ID2SITE = ();
 
-sub get_config_by_url
+sub get_site_by_url
 {
 	my( $url ) = @_;
 	$hostpath = $url;
 	$hostpath =~ s#^[a-z]+://##;
-	return get_config_by_host_and_path( $hostpath );
+	return get_site_by_host_and_path( $hostpath );
 }
 
-sub get_config_by_host_and_path
+sub get_site_by_host_and_path
 {
 	my( $hostpath ) = @_;
 
-	foreach( keys %EPrintSite::sites )
+	foreach( keys %EPrints::Site::General::sites )
 	{
 		if( substr( $hostpath, 0, length($_) ) eq $_ )
 		{
-			return get_config_by_id( $EPrintSite::sites{$_} );
+			return get_site_by_id( $EPrints::Site::General::sites{$_} );
 		}
 	}
 	return undef;
 }
 
 
-sub get_config_by_id
+sub get_site_by_id
 {
 	my( $id ) = @_;
 
 	print STDERR "Loading: $id\n";
 	
-	if( defined $id2config{$id} )
+	if( defined $ID2SITE{$id} )
 	{
-		return $id2config{$id};
+		return $ID2SITE{$id};
 	}
-	require "EPrintSite/$id.pm";
-	my $site = "EPrintSite::$id"->new();
+	require "EPrints/Site/$id.pm";
+	my $site = "EPrints::Site::$id"->new();
 	if( defined $site )
 	{
-		$id2config{$id} = $site;
+		$ID2SITE{$id} = $site;
 		return $site;
 	}
 	return undef;

@@ -163,12 +163,11 @@ sub render_workspace
 			$eprint_titles{$e->{eprintid}} = $e->short_title();
 		}
 
-		my $set_field = EPrints::MetaField->make_set( "eprint_id",
-                                             		 "",
-                                             		 6,
-                                             		 \@eprint_ids,
-                                             		 \%eprint_titles,
-                                             		 0 );
+		my $set_field = EPrints::MetaField->new({
+					name=>"eprint_id",
+					type=>"set",
+                                        displaylines=>6,
+					options=>\@eprint_ids } );
 
 		# If there is only one eprint in the workspace, select it by default
 		my %default_values;

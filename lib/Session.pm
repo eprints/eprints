@@ -24,7 +24,7 @@ package EPrints::Session;
 use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Language;
-use EPrints::ConfigLoader;
+use EPrints::Site;
 
 use strict;
 
@@ -52,9 +52,6 @@ sub new
 
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 
-	# This should be set at installation.	
-	$self->{basepath} = "/opt/eprints";
-
 	# Errors in english - no configuration yet.
 	# These are pretty fatal - nothing will work if
 	# this bit dosn't.
@@ -64,11 +61,11 @@ sub new
 	if( $mode == 0 )
 	{
 		$offline = 0;
-		$self->{site} = EPrints::ConfigLoader::get_config_by_url(
+		$self->{site} = EPrints::Site::get_site_by_url(
 					$self->{query}->url() );
 		if( !defined $self->{site} )
 		{
-			die "Can't load config for URL: ".$self->{query}->url();
+			die "Can't load site module for URL: ".$self->{query}->url();
 		}
 	}
 	elsif( $mode == 1 )
@@ -78,19 +75,19 @@ sub new
 			die "No site id specified.";
 		}
 		$offline = 1;
-		$self->{site} = EPrints::ConfigLoader::get_config_by_id( $param );
+		$self->{site} = EPrints::Site::get_site_by_id( $param );
 		if( !defined $self->{site} )
 		{
-			die "Can't load config for: $param";
+			die "Can't load site module for: $param";
 		}
 	}
 	elsif( $mode == 2 )
 	{
 		$offline = 1;
-		$self->{site} = EPrints::ConfigLoader::get_config_by_host_and_path( $param );
+		$self->{site} = EPrints::Site::get_site_by_host_and_path( $param );
 		if( !defined $self->{site} )
 		{
-			die "Can't load config for URL: $param";
+			die "Can't load site module for URL: $param";
 		}
 	}
 	else
@@ -98,14 +95,22 @@ sub new
 		die "Unknown session mode: $offline";
 	}
 
-	# Create a database connection
-	$self->{lang} = EPrints::Language::fetch( $self->{site} );
+	#### Got Site Config Module ###
+
+	my $langcookie = $self->{query}->cookie( $self->{site}->{lang_cookie_name} );
+	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
+	{
+		$langcookie = undef;
+	}
+	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
+	print STDERR "LANG IS: $langcookie\n;";
 
 	# Load the config files
 	$self->{metainfo} = EPrints::MetaInfo->new( $self->{site} );
 	
 	# Create an HTML renderer object
 	$self->{render} = EPrints::HTMLRender->new( $self, $offline, $self->{query} );
+
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
 	
@@ -132,6 +137,13 @@ sub new
 	
 
 	return( $self );
+}
+
+sub change_lang
+{
+	my( $self, $newlangid ) = @_;
+
+	$self->{lang} = EPrints::Language::fetch( $self->{site} , $newlangid );
 }
 
 

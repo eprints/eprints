@@ -281,7 +281,7 @@ sub harvest
 		$start_date,
 		$end_date,
 		$setspec,
-		EPrints::Database::table_name( "archive" ),
+		"archive",
 		$session->{metainfo}->find_table_field( "eprint", "datestamp" ),
 		$session->{metainfo}->find_table_field( "eprint", "subjects" ) );
 
@@ -308,7 +308,7 @@ sub harvest_deleted
 		$start_date,
 		$end_date,
 		$setspec,
-		EPrints::Database::table_name( "deletion" ),
+		"deletion",
 		EPrints::MetaInfo::find_field(
 			\@deletion_fields,
 			"deletiondate" ),
@@ -349,18 +349,13 @@ sub harvest_deleted
 
 sub make_harvest_search
 {
-	my( $session, $start_date, $end_date, $setspec, $table, $date_field,
+	my( $session, $start_date, $end_date, $setspec, $tableid, $date_field,
 		$subject_field ) = @_;
 
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
 		$session,
-		$table,
-		0,
-		1,
-		[],
-		{},
-		undef );
+		$tableid );
 
 	# Add date component for 
 	if( defined $start_date || defined $end_date )

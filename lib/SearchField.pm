@@ -91,7 +91,7 @@ print STDERR "TID: $tableid\n";
 		foreach (@$field)
 		{
 			push @fieldnames, $_->{name};
-			push @displaynames, $_->displayname();
+			push @displaynames, $_->display_name( $self->{session} );
 		}
 	
 		$self->{displayname} = join '/', @displaynames;
@@ -101,7 +101,7 @@ print STDERR "TID: $tableid\n";
 	else
 	{
 		$self->{field} = $field;
-		$self->{displayname} = $field->displayname();
+		$self->{displayname} = $field->display_name( $self->{session} );
 		$self->{formname} = $field->{name};
 		$self->{type} = $field->{type};
 	}
@@ -230,7 +230,7 @@ sub render_html
 		elsif( $type eq "eprinttype" )
 		{
 			$tags = $self->{session}->{metainfo}->get_types( "eprint" );
-			$labels = $self->{session}->{metainfo}->get_type_names( "eprint" );
+			$labels = $self->{session}->{metainfo}->get_type_names( $self->{session}, "eprint" );
 		}
 		else
 		{

@@ -153,7 +153,7 @@ sub new
 
 sub start_html
 {
-	my( $self, $title ) = @_;
+	my( $self, $title, $langid ) = @_;
 
 	my $html = "";
 	
@@ -162,14 +162,24 @@ sub start_html
 	{
 		my $r = Apache->request;
 		$r->content_type( 'text/html' );
+		if( defined $langid )
+		{
+			my $cookie = $self->{query}->cookie(
+				-name    => $self->{session}->{site}->{lang_cookie_name},
+				-path    => "/",
+				-value   => $langid,
+				-expires => "+10y", # really long time
+				-domain  => $self->{session}->{site}->{lang_cookie_domain} );
+			$r->header_out( "Set-Cookie"=>$cookie ); 
+		}
 		$r->send_http_header;
 	}
 
 	my %opts = %{$self->{session}->{site}->{start_html_params}};
-	$opts{-TITLE} = "$self->{session}->{site}->{sitename}\: $title";
+	$opts{-title} = "$self->{session}->{site}->{sitename}\: $title";
+
 
 	$html .= $self->{query}->start_html( %opts );
-
 	# Logo
 	my $banner = $self->{session}->{site}->{html_banner};
 	$banner =~ s/TITLE_PLACEHOLDER/$title/g;
@@ -569,7 +579,7 @@ sub input_field
 	elsif( $type eq "eprinttype" )
 	{
 		my @eprint_types = $self->{session}->{metainfo}->get_types( "eprint" );
-		my $labels = $self->{session}->{metainfo}->get_type_names( "eprint" );
+		my $labels = $self->{session}->{metainfo}->get_type_names( $self->{session}, "eprint" );
 
 		my $actual = [ ( !defined $value || $value eq "" ?
 			$eprint_types[0] : $value ) ];

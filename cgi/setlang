@@ -1,0 +1,52 @@
+######################################################################
+#
+#  EPrints Advanced Search Form
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::EPrint;
+use EPrints::SearchField;
+use EPrints::SearchExpression;
+use EPrints::SearchForm;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $newlang = $session->{render}->param( "langid" );
+
+if( !defined $newlang )
+{
+	print $session->{render}->start_html( "Change Language" );
+	foreach( keys %EPrints::Site::General::languages )
+	{
+		print "<LI><A href=\"setlang?langid=$_\">".$EPrints::Site::General::languages{$_}."</A>";
+	}
+	print $session->{render}->end_html();
+}
+elsif( defined $EPrints::Site::General::languages{$newlang} )
+{
+	$session->change_lang( $newlang );
+	print $session->{render}->start_html( "Language Changed" , $newlang );
+	print "<P>Language changed to: ".$EPrints::Site::General::languages{$newlang}."</P>";
+	print "<P>Default language of this archive is: ".$EPrints::Site::General::languages{$session->{site}->{default_language}}."</P>";
+	print $session->{render}->end_html();
+}
+else 
+{
+	print $session->{render}->start_html( "Language Changed Failed" );
+	print "<P>Unknown language identifier: \"$newlang\"</P>";
+	print $session->{render}->end_html();
+}
+
+$session->terminate();

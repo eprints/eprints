@@ -31,9 +31,7 @@ use strict;
 #             $tableid,
 #             $allow_blank,
 #             $satisfy_all,
-#             $fields,
-#             $orderby,
-#             $defaultorder )
+#             $fields )
 #
 #  Create a new search expression, to search $table for the MetaField's
 #  in $fields (an array ref.) Blank SearchExpressions are made for each
@@ -68,9 +66,7 @@ sub new
 	    $tableid,
 	    $allow_blank,
 	    $satisfy_all,
-	    $fields,
-	    $orderby,
-	    $defaultorder ) = @_;
+	    $fields ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -80,35 +76,12 @@ print STDERR "SE:[$tableid]\n";
 	$allow_blank = 0 if ( !defined $allow_blank );
 	$satisfy_all = 1 if ( !defined $satisfy_all );
 	$fields = [] if ( !defined $fields );
-	$orderby = {} if ( !defined $orderby );
 
 	$self->{session} = $session;
 	$self->{tableid} = $tableid;
 	$self->{allow_blank} = $allow_blank;
 	$self->{satisfy_all} = $satisfy_all;
-
-	# We're going to change the orderby stuff, so that we get
-	#   $self->{order_ids}  array of ids
-	#   $self->{order_desc} maps ids -> descriptions
-	#   $self->{order_func}  maps ids -> func
-	#   $self->{order}      id of default
-	my $idcount = 0;
-	$self->{order_ids} = [];
-	$self->{order_desc} = {};
-	$self->{order_func} = {};
-	
-	foreach (sort keys %{$orderby})
-	{
-		# IDs will be order0, order1, ...
-		my $id = "order$idcount";
-		$idcount++;
-		$self->{order_desc}->{$id} = $_;
-#EPrints::Log::debug( "SearchExpression", "Desc: $id -> $_" );
-		$self->{order_func}->{$id} = $orderby->{$_};
-		push @{$self->{order_ids}}, $id;
-	
-		$self->{order} = $id if( defined $defaultorder && $defaultorder eq $_ );
-	}
+	$self->{order} = $session->{site}->{default_order}->{$tableid};
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -243,12 +216,16 @@ sub render_search_form
 	}
 
 
+print STDERR EPrints::Log::render_struct($self->{session}->{site}->{order_methods}->{$self->{tabletype}});
+print STDERR $self->{tableid}."!!\n";
+	my @tags = keys %{$self->{session}->{site}->{order_methods}->{$self->{tableid}}};
 	$menu = $self->{session}->{render}->{query}->popup_menu(
 		-name=>"_order",
-		-values=>$self->{order_ids},
+		-values=>\@tags,
 		-default=>$self->{order},
-		-labels=>$self->{order_desc} );
-		
+		-labels=>$self->{session}->{metainfo}->get_order_names( 
+							$self->{session},
+							$self->{tableid} ) );
 	$html .= "<P>";
 	$html .= $self->{session}->{lang}->phrase( "H:orderresults", 
 						   { ordermenu=>$menu } );
@@ -536,8 +513,9 @@ sub get_records
 		my @records = $self->{session}->{database}->from_buffer( $self->{tableid}, $buffer );
 		if( !$overlimit )
 		{
+print STDERR "ORDER BY: $self->{order}\n";
 			@records = sort 
-				{ &{$self->{order_func}->{$self->{order}}}($a,$b); }
+				{ &{$self->{session}->{site}->{order_methods}->{$self->{tableid}}->{$self->{order}}}($a,$b); }
 				@records;
 		}
 		return @records;
