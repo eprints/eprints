@@ -1,6 +1,6 @@
 ######################################################################
 #
-#  View User Record
+#  View User Record (Public)
 #
 ######################################################################
 #
@@ -24,7 +24,7 @@ if( defined $userid )
 	{
 		print $session->{render}->start_html( "User record for ".$user->full_name() );
 
-		print $session->{render}->render_user( $user, 0 );
+		print $session->{render}->render_user( $user, 1 );
 
 		print "<HR>\n";
 
@@ -33,22 +33,16 @@ if( defined $userid )
 			[ "eprintid" ],
 			[ "username LIKE \"$userid\"" ] );
 
-		print "<CENTER><P><A ".
-			"HREF=\"eprint_search?username=$userid\&submit=Search\">".
-			"User has ".scalar @$rows;
+		print "<CENTER><P>User has ".scalar @$rows;
 		print ( scalar @$rows==1 ? " EPrint" : " EPrints" );
-		print " in the archive.</A></P></CENTER>\n";
+		print " in the archive.</P></CENTER>\n";
 		
-
-		print $session->{render}->start_form( "edit_user" );
-		print "<CENTER><P>";
-		print $session->{render}->hidden_field( "username", $userid );
-		print $session->{render}->submit_buttons( [ "Edit User",
-		                                            "Delete User" ] );
-		print "</P></CENTER>\n";
-		print $session->{render}->end_form();
-
-
+		if( scalar @$rows > 0 )
+		{
+			print "<CENTER><P><A HREF=\"user_eprints?username=$userid\">Click here ".
+				"to view this author's EPrints.</A></P></CENTER>\n"; 
+		}
+		
 		print $session->{render}->end_html();
 	}
 	else

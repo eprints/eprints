@@ -16,6 +16,7 @@ package EPrints::HTMLRender;
 use EPrints::SubjectList;
 use EPrints::Name;
 use EPrintSite::SiteInfo;
+use EPrintSite::SiteRoutines;
 
 use strict;
 
@@ -287,6 +288,7 @@ sub format_field
 	elsif( $type eq "multitext" )
 	{
 		$html = ( defined $value ? $value : "" );
+		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
 	}
 	elsif( $type eq "date" )
 	{
@@ -1205,29 +1207,7 @@ sub render_user
 {
 	my( $self, $user, $public ) = @_;
 
-	my $html= "<p><table border=0>\n";
-
-	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo->get_user_fields();
-	my $field;
-	
-	foreach $field (@fields)
-	{
-		if( !$public || $field->{visible} )
-		{
-			$html .= "<TR><TD>$field->{displayname}</TD><TD>";
-			
-			$html .= $self->format_field(
-				$field,
-				$user->{$field->{name}} );
-
-			$html .= "</TD></TR>\n";
-		}
-	}
-	
-	$html .= "</table></p>\n";
-	
-	return( $html );
+	return( EPrintSite::SiteRoutines->user_render_full( $user, $public ) );
 }
 
 

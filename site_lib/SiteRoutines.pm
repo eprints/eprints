@@ -138,16 +138,21 @@ sub eprint_render_full
 	$html .= " on ".$eprint->{session}->{render}->format_field(
 		$date_field,
 		$eprint->{datestamp} );
-	
-	# Alternative locations
-	$html .= "</TD></TR>\n<TD VALIGN=TOP><STRONG>Alternative Locations:".
-		"</STRONG></TD><TD>";
-	my $altloc_field = EPrints::MetaInfo->find_eprint_field( "altloc" );
-	$html .= $eprint->{session}->{render}->format_field(
-		$altloc_field,
-		$eprint->{altloc} );
+	$html .= "</TD></TR>\n";
 
-	$html .= "</TD></TR>\n</TABLE></P>\n";
+	# Alternative locations
+	if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
+	{
+		$html .= "</TD></TR>\n<TD VALIGN=TOP><STRONG>Alternative Locations:".
+			"</STRONG></TD><TD>";
+		my $altloc_field = EPrints::MetaInfo->find_eprint_field( "altloc" );
+		$html .= $eprint->{session}->{render}->format_field(
+			$altloc_field,
+			$eprint->{altloc} );
+		$html .= "</TD></TR>\n";
+	}
+
+	$html .= "</TABLE></P>\n";
 
 	return( $html );
 }
@@ -193,6 +198,94 @@ sub user_display_name
 	                                       $user->{name} eq "" );
 
 	return( EPrints::Name->format_name( $user->{name}, 1 ) );
+}
+
+
+######################################################################
+#
+# $html = user_render_full( $user, $public )
+#
+#  Render the full record for $user. If $public, only public fields
+#  should be shown.
+#
+######################################################################
+
+sub user_render_full
+{
+	my( $class, $user, $public ) = @_;
+
+	my $html;	
+
+	if( $public )
+	{
+		# Title + name
+		$html = "<P>";
+		$html .= $user->{title} if( defined $user->{title} );
+		$html .= " ".$user->full_name()."</P>\n<P>";
+
+		# Address, Starting with dept. and organisation...
+		$html .= "$user->{dept}<BR>" if( defined $user->{dept} );
+		$html .= "$user->{org}<BR>" if( defined $user->{org} );
+		
+		# Then the snail-mail address...
+		my $address = $user->{address};
+		if( defined $address )
+		{
+			$address =~ s/\r?\n/<BR>\n/s;
+			$html .= "$address<BR>\n";
+		}
+		
+		# Finally the country.
+		$html .= $user->{country} if( defined $user->{country} );
+		
+		# E-mail and URL last, if available.
+		my @user_fields = EPrints::MetaInfo->get_user_fields();
+		my $email_field = EPrints::MetaInfo->find_field( \@user_fields, "email" );
+		my $url_field = EPrints::MetaInfo->find_field( \@user_fields, "url" );
+
+		$html .= "</P>\n";
+		
+		$html .= "<P>".$user->{session}->{render}->format_field(
+			$email_field,
+			$user->{email} )."</P>\n" if( defined $user->{email} );
+
+		$html .= "<P>".$user->{session}->{render}->format_field(
+			$url_field,
+			$user->{url} )."</P>\n" if( defined $user->{url} );
+	}
+	else
+	{
+		# Render the more comprehensive staff version, that just prints all
+		# of the fields out in a table.
+
+		$html= "<p><table border=0 cellpadding=3>\n";
+
+		# Lob the row data into the relevant fields
+		my @fields = EPrints::MetaInfo->get_user_fields();
+		my $field;
+
+		foreach $field (@fields)
+		{
+			if( !$public || $field->{visible} )
+			{
+				$html .= "<TR><TD VALIGN=TOP><STRONG>$field->{displayname}".
+					"</STRONG></TD><TD>";
+
+				if( defined $user->{$field->{name}} )
+				{
+					$html .= $user->{session}->{render}->format_field(
+						$field,
+						$user->{$field->{name}} );
+				}
+
+				$html .= "</TD></TR>\n";
+			}
+		}
+
+		$html .= "</table></p>\n";
+	}	
+
+	return( $html );
 }
 
 
