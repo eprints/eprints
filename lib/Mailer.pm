@@ -94,6 +94,7 @@ sub fill_template
 #   __username__    username of $user
 #   __password__    password of $user
 #   __sitename__    name of the site
+#   __description__ short text description of the site
 #   __admin__       admin email address
 #   __automail__    email address of automatic mail processing account
 #   __perlroot__    URL of perl server
@@ -119,6 +120,7 @@ sub update_template_line
 	}
 	
 	$new_line =~ s/__sitename__/$EPrintSite::SiteInfo::sitename/g;
+	$new_line =~ s/__description__/$EPrintSite::SiteInfo::description/g;
 	$new_line =~ s/__admin__/$EPrintSite::SiteInfo::admin/g;
 	$new_line =~ s/__automail__/$EPrintSite::SiteInfo::automail/g;
 	$new_line =~ s/__perlroot__/$EPrintSite::SiteInfo::server_perl/g;
