@@ -61,7 +61,7 @@ package dienst;
 
 use EPrintSite::SiteInfo;
 
-use CGI qw(:standard -oldstyle_urls);
+use CGI qw(-oldstyle_urls);
 use strict;
 use POSIX;
 
