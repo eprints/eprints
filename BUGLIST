@@ -24,6 +24,9 @@ does NOT have all required langs filled in.
 Documentation
 ----------------------------------------------------------------------
 
+- apache instructions should have a "make install" in the apache dir
+ too.
+
 ----------------------------------------------------------------------
 Documentation
 ----------------------------------------------------------------------
@@ -65,6 +68,8 @@ Apache Configuration & Page Serving
 ----------------------------------------------------------------------
 Searching
 ----------------------------------------------------------------------
+
+- Searching on Email addresses very broken.
 
 - Staff search appears to "lose" the dataset being searched when 
    'next' is clicked. Eg. Start searching inbox and next page is

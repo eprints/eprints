@@ -163,6 +163,7 @@ sub new_archive_by_id
 	$self->{class} = "EPrints::Config::$id";
 
 	$self->{id} = $id;
+	$self->{xmldoc} = EPrints::XML::make_document();
 
 	# If loading any of the XML config files then 
 	# abort loading the config for this archive.
@@ -199,11 +200,12 @@ sub get_ruler
 
 	if( defined $self->{ruler} )
 	{
-		return $self->{ruler}->cloneNode( 1 );
+		return $self->{ruler};
 	}
+
 	my $file = $self->get_conf( "config_path" )."/ruler.xml";
 	
-	my $doc = $self->parse_xml( $file , ParseParamEnt=>0, NoExpand=>1 );
+	my $doc = $self->parse_xml( $file );
 	if( !defined $doc )
 	{
 		$self->log( "Error loading: $file\n" );
@@ -212,14 +214,15 @@ sub get_ruler
 	my $ruler = ($doc->getElementsByTagName( "ruler" ))[0];
 	return undef if( !defined $ruler );
 
-	my( $frag ) = $doc->createDocumentFragment();
+	$self->{ruler} = $self->{xmldoc}->createDocumentFragment();
 	foreach( $ruler->getChildNodes )
 	{
-		$ruler->removeChild( $_ );
-		$frag->appendChild( $_ );
+		$self->{ruler}->appendChild( 
+			EPrints::XML::clone_and_own( $_, $self->{xmldoc} ) );
 	}
-	$self->{ruler} = $frag;
-	return $self->{ruler}->cloneNode( 1 );
+	EPrints::XML::dispose( $doc );
+
+	return $self->{ruler};
 }	
 	
 
@@ -297,13 +300,51 @@ sub _load_citation_specs
 {
 	my( $self ) = @_;
 
+	# Generate a fields.dtd file, even though we are not actually
+	# going to expand the attributes, it may be needed for loading
+	# the XML file.
+
+	my $file = $self->get_conf( "config_path" )."/fields.dtd";
+	my $tmpfile = $file.".".$$;
+	open( DTD, ">$tmpfile" ) || die "Failed to open $tmpfile for writing";
+
+	my $siteid = $self->{id};
+	
+	print DTD <<END;
+<!-- 
+	Field DTD file for $siteid
+	This is only used to make the XML parser accept the attributes
+	used in the citations file.
+
+	*** DO NOT EDIT, This is auto-generated ***
+-->
+
+END
+	my %list = ();
+	foreach my $dsid ( "eprint", "user", "document", "subscription",
+			"subject" )
+	{
+		foreach my $f ( $self->get_dataset( $dsid )->get_fields() )
+		{
+			$list{$f->get_name} = 1;
+		}
+	}
+
+	foreach my $fname ( keys %list )
+	{
+		print DTD "<!ENTITY $fname \"placeholder\" >\n";
+	}
+	close DTD;
+	move( $tmpfile, $file );
+
+	# OK, now try and load the XML...
+
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
 	{
 		my $file = $self->get_conf( "config_path" ).
 				"/citations-$langid.xml";
-	
-		my $doc = $self->parse_xml( $file , ParseParamEnt=>0 );
+		my $doc = $self->parse_xml( $file , 1 );
 		if( !defined $doc )
 		{
 			return 0;
@@ -313,7 +354,7 @@ sub _load_citation_specs
 		if( !defined $citations )
 		{
 			print STDERR  "Missing <citations> tag in $file\n";
-			$doc->dispose();
+			EPrints::XML::dispose( $doc );
 			return 0;
 		}
 
@@ -322,15 +363,18 @@ sub _load_citation_specs
 		{
 			my( $type ) = $citation->getAttribute( "type" );
 			
-			my( $frag ) = $doc->createDocumentFragment();
+			my( $frag ) = $self->{xmldoc}->createDocumentFragment();
 			foreach( $citation->getChildNodes )
 			{
-				$citation->removeChild( $_ );
-				$frag->appendChild( $_ );
+				$frag->appendChild( 
+					EPrints::XML::clone_and_own(
+						$_,
+						$self->{xmldoc},
+						1 ) );
 			}
 			$self->{cstyles}->{$langid}->{$type} = $frag;
 		}
-		$doc->dispose();
+		EPrints::XML::dispose( $doc );
 
 	}
 	return 1;
@@ -381,13 +425,16 @@ sub _load_templates
 		my $html = ($doc->getElementsByTagName( "html" ))[0];
 		if( !defined $html )
 		{
-			$doc->dispose();
+			EPrints::XML::dispose( $doc );
 			print STDERR "Missing <html> tag in $file\n";
 			return 0;
 		}
-		$doc->removeChild( $html );
-		$doc->dispose();
-		$self->{html_templates}->{$langid} = $html;
+		$self->{html_templates}->{$langid} = 
+			EPrints::XML::clone_and_own( 
+				$html, 
+				$self->{xmldoc},
+				1 );
+		EPrints::XML::dispose( $doc );
 	}
 	return 1;
 }
@@ -408,7 +455,8 @@ sub get_template
 {
 	my( $self, $langid ) = @_;
 
-	return $self->{html_templates}->{$langid};
+	my $t = $self->{html_templates}->{$langid};
+	return $t;
 }
 
 ######################################################################
@@ -436,13 +484,12 @@ sub _load_datasets
 	my $types_tag = ($doc->getElementsByTagName( "metadatatypes" ))[0];
 	if( !defined $types_tag )
 	{
-		$doc->dispose();
+		EPrints::XML::dispose( $doc );
 		print STDERR "Missing <metadatatypes> tag in $file\n";
 		return 0;
 	}
 
 	my $dsconf = {};
-
 	my $ds_tag;	
 	foreach $ds_tag ( $types_tag->getElementsByTagName( "dataset" ) )
 	{
@@ -474,13 +521,15 @@ sub _load_datasets
 	
 	$self->{datasets} = {};
 	my $ds_id;
+	my $cache = {};
 	foreach $ds_id ( EPrints::DataSet::get_dataset_ids() )
 	{
 		$self->{datasets}->{$ds_id} = 
-			EPrints::DataSet->new( $self, $ds_id, $dsconf );
+			EPrints::DataSet->new( $self, $ds_id, $dsconf,
+				$cache );
 	}
 
-	$doc->dispose();
+	EPrints::XML::dispose( $doc );
 	return 1;
 }
 
@@ -646,27 +695,26 @@ sub get_store_dir_size
 ######################################################################
 =pod
 
-=item $domdocument = $archive->parse_xml( $file, [%config] )
+=item $domdocument = $archive->parse_xml( $file, $no_expand );
 
-Turns the given $file into a XML DOM document. %config provides
-extra settings for the XML Parser. This function also sets the
-path in which the Parser will look for DTD files to the archives
-config directory.
+Turns the given $file into a XML DOM/GDOME document. If $no_expand
+is true then load &entities; but do not expand them to the values in
+the DTD.
+
+This function also sets the path in which the Parser will look for 
+DTD files to the archives config directory.
 
 =cut
 ######################################################################
 
 sub parse_xml
 {
-	my( $self, $file, %config ) = @_;
+	my( $self, $file, $no_expand ) = @_;
 
-	unless( defined $config{Base} )
-	{
-		$config{Base} = $self->get_conf( "config_path" )."/";
-	}
-	$config{Namespaces} = 1;
-	
-	my $doc = EPrints::Config::parse_xml( $file, %config );
+	my $doc = EPrints::XML::parse_xml( 
+		$file, 
+		$self->get_conf( "config_path" )."/",
+		$no_expand );
 	if( !defined $doc )
 	{
 		$self->log( "Failed to parse XML file: $file" );
@@ -776,7 +824,6 @@ sub generate_dtd
 			"in archive DTD";
 	my $xhtmlentities = join( "", <XHTMLENTITIES> );
 	close XHTMLENTITIES;
-
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
 	{	

@@ -53,11 +53,11 @@ use strict;
 use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
-use XML::DOM;
 use URI;
 use Carp;
 
 use EPrints::SystemSettings;
+use EPrints::XML;
 
 my $DF_AVAILABLE;
 
@@ -644,11 +644,11 @@ sub tree_to_utf8
 {
         my( $node, $width, $pre ) = @_;
 
-	if( substr(ref($node) , 0, 8 ) ne "XML::DOM" )
+	unless( EPrints::XML::is_dom( $node ) )
 	{
 		print STDERR "Oops. tree_to_utf8 got as a node: $node\n";
 	}
-	if( substr(ref($node) , 0, 18 ) eq "XML::DOM::NodeList" )
+	if( EPrints::XML::is_dom( $node, "NodeList" ) )
 	{
 		# Hmm, a node list, not a node.
         	my $string = utf8("");
@@ -669,7 +669,9 @@ sub tree_to_utf8
 		$width = $width - 2;
         }
 
-	if( $node->getNodeType == TEXT_NODE || $node->getNodeType == CDATA_SECTION_NODE )
+	
+	if( EPrints::XML::is_dom( $node, "Text" ) ||
+	    EPrints::XML::is_dom( $node, "CDataSection" ) )
         {
         	my $v = $node->getNodeValue();
                 $v =~ s/[\s\r\n\t]+/ /g unless( $pre );
@@ -827,114 +829,112 @@ sub render_citation
 	# This should belong to the base class of EPrint User Subject and
 	# Subscription, if we were better OO people...
 
-	my $nodes = { keep=>[], lose=>[] };
-	my $node;
+	my $session = $obj->get_session;
 
-	foreach $node ( $cstyle->getElementsByTagName( "ifset" , 1 ) )
-	{
-		my $fieldname = $node->getAttribute( "name" );
-		my $val = $obj->get_value( $fieldname );
-		push @{$nodes->{EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
-	}
-	foreach $node ( $cstyle->getElementsByTagName( "ifnotset" , 1 ) )
-	{
-		my $fieldname = $node->getAttribute( "name" );
-		my $val = $obj->get_value( $fieldname );
-		push @{$nodes->{!EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
-	}
-	foreach $node ( $cstyle->getElementsByTagName( "iflink" , 1 ) )
-	{
-		push @{$nodes->{defined $url?"keep":"lose"}}, $node;
-	}
-	foreach $node ( $cstyle->getElementsByTagName( "ifnotlink" , 1 ) )
-	{
-		push @{$nodes->{!defined $url?"keep":"lose"}}, $node;
-	}
-	foreach $node ( $cstyle->getElementsByTagName( "linkhere" , 1 ) )
-	{
-		if( !defined $url )
-		{
-			# keep the contents (but remove the node itself)
-			push @{$nodes->{keep}}, $node;
-			next;
-		}
+	my $r= _render_citation_aux( $obj, $session, $cstyle, $url );
 
-		# nb. setTagName is not really a proper
-		# DOM command, but it's much quicker than
-		# making a new <a> element and moving it 
-		# all across.
+	return $r;
+}
 
-		$node->setTagName( "a" );
-		$node->setAttribute( "href", EPrints::Utils::url_escape( $url ) );
-	}
-	foreach $node ( @{$nodes->{keep}} )
-	{
-		my $sn; 
-		foreach $sn ( $node->getChildNodes )
-		{       
-			$node->getParentNode->insertBefore( $sn, $node );
-		}
-		$node->getParentNode->removeChild( $node );
-		$node->dispose();
-	}
-	foreach $node ( @{$nodes->{lose}} )
-	{
-		my $parent = $node->getParentNode;
-		if( defined $parent )
-		{
-			$parent->removeChild( $node );
-			$node->dispose();
-		}
-	}
-
-	_expand_references( $obj, $cstyle );
-
-	return $cstyle;
-}      
-
-######################################################################
-# 
-# EPrints::Utils::_expand_references( $obj, $node )
-#
-# undocumented
-#
-######################################################################
-
-sub _expand_references
+sub _render_citation_aux
 {
-	my( $obj, $node ) = @_;
+	my( $obj, $session, $node, $url ) = @_;
+	my $rendered;
 
-	foreach( $node->getChildNodes )
-	{                
-		if( $_->getNodeType == ENTITY_REFERENCE_NODE )
-		{
-			my $fname = $_->getNodeName;
-			my $field = $obj->get_dataset()->get_field( $fname );
-			my $fieldvalue = $field->render_value( 
-						$obj->get_session(),
-						$obj->get_value( $fname ),
-						0,
- 						1 );
-			$node->replaceChild( $fieldvalue, $_ );
-			$_->dispose();
-		}
-		else
-		{
-			_expand_references( $obj, $_ );
-		}
+	if( EPrints::XML::is_dom( $node, "Text" ) ||
+	    EPrints::XML::is_dom( $node, "CDataSection" ) )
+	{
+		return $session->clone_for_me( $node );
+	}
 
-		my $attrs = $node->getAttributes;
-		if( $attrs )
+	if( EPrints::XML::is_dom( $node, "EntityReference" ) )
+	{
+		my $fname = $node->getNodeName;
+		my $field = $obj->get_dataset()->get_field( $fname );
+		return $field->render_value( 
+					$obj->get_session(),
+					$obj->get_value( $fname ),
+					0,
+ 					1 );
+	}
+
+
+	my $addkids = $node->hasChildNodes;
+
+	if( EPrints::XML::is_dom( $node, "Element" ) )
+	{
+		my $name = $node->getTagName;
+		$name =~ s/^ep://;
+
+		if( $name eq "ifset" )
 		{
-			foreach my $attr ( $attrs->getValues )
+			$rendered = $session->make_doc_fragment;
+			$addkids = $obj->is_set( $node->getAttribute( "name" ) );
+		}
+		elsif( $name eq "ifnotset" )
+		{
+			$rendered = $session->make_doc_fragment;
+			$addkids = !$obj->is_set( $node->getAttribute( "name" ) );
+		}
+		elsif( $name eq "iflink" )
+		{
+			$rendered = $session->make_doc_fragment;
+			$addkids = defined $url;
+		}
+		elsif( $name eq "ifnotlink" )
+		{
+			$rendered = $session->make_doc_fragment;
+			$addkids = !defined $url;
+		}
+		elsif( $name eq "linkhere" )
+		{
+			if( defined $url )
 			{
-				my $v = $attr->getValue;
-				$v =~ s/@([a-z0-9_]+)@/$obj->get_value( $1 )/egi;
-				$attr->setValue( $v );
+				$rendered = $session->make_element( 
+					"a",
+					href=>EPrints::Utils::url_escape( 
+						$url ) );
+			}
+			else
+			{
+				$rendered = $session->make_doc_fragment;
 			}
 		}
 	}
+
+	if( !defined $rendered )
+	{
+		$rendered = $session->clone_for_me( $node );
+	}
+
+	# icky code to spot @title@ in node attributes and replace it.
+	my $attrs = $rendered->getAttributes;
+	if( $attrs )
+	{
+		for my $i ( 0..$attrs->getLength-1 )
+		{
+			my $attr = $attrs->item( $i );
+			my $v = $attr->getValue;
+			$v =~ s/@([a-z0-9_]+)@/$obj->get_value( $1 )/egi;
+			$attr->setValue( $v );
+		}
+	}
+
+	if( $addkids )
+	{
+		foreach my $child ( $node->getChildNodes )
+		{
+			$rendered->appendChild(
+				_render_citation_aux( 
+					$obj,
+					$session,
+					$child,
+					$url ) );			
+		}
+	}
+	return $rendered;
 }
+
 
 
 ######################################################################
@@ -1208,7 +1208,7 @@ sub destroy
 #
 #
 #	if( ref( $ref ) =~ /XML::DOM/  )
-#	{
+#	{// to_string
 #		#$OBJPOSR{$c}.= $ref->toString."\n";
 #	}
 #	++$c;
@@ -1247,7 +1247,7 @@ sub render_xhtml_field
                 ErrorContext => 2,
                 NoLWP => 1 );
 
-        my $parser = XML::DOM::Parser->new( %c );
+        my $parser = 0;# XML::DOM::Parser->new( %c );
         my $doc = eval { $parser->parse( "<fragment>".$value."</fragment>" ); };
         if( $@ )
         {
@@ -1261,11 +1261,10 @@ sub render_xhtml_field
 	my $top = ($doc->getElementsByTagName( "fragment" ))[0];
 	foreach my $node ( $top->getChildNodes )
 	{
-		$top->removeChild( $node );
-		$session->take_ownership( $node );
-		$fragment->appendChild( $node );
+		$fragment->appendChild(
+			$session->clone_for_me( $node, 1 ) );
 	}
-	$doc->dispose();
+	EPrints::XML::dispose( $doc );
 		
 	return $fragment;
 }
@@ -1412,4 +1411,3 @@ sub is_in
 =back
 
 =cut
-

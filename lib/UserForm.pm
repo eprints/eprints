@@ -126,7 +126,6 @@ sub process
 		my( $page, $p, $a );
 
 		$page = $self->{session}->make_doc_fragment();
-
 		if( $self->{staff} )
 		{
 			$page->appendChild( $self->{session}->html_phrase( 
@@ -139,7 +138,6 @@ sub process
 		}
 
 		$page->appendChild( $self->_render_user_form() );
-
 		$self->{session}->build_page(
 			$self->{session}->html_phrase( 
 				"lib/userform:record_for", 
@@ -236,8 +234,9 @@ sub _render_user_form
 	my %hidden = ( "userid"=>$self->{user}->get_value( "userid" ) );
 
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
-
-	return $self->{session}->render_input_form( 
+	my $form = $self->{session}->render_input_form( 
+					dataset=>$user_ds,
+					type=>$self->{user}->get_value( "usertype" ),
 					fields=>\@fields,
 					values=>$self->{user}->get_data(),
 					show_names=>1,
@@ -245,6 +244,7 @@ sub _render_user_form
 					buttons=>$buttons,
 					default_action => "update",
 					hidden_fields=>\%hidden );
+	return $form;
 }
 
 ######################################################################

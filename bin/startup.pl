@@ -22,13 +22,13 @@ use Apache::DBI;
 #$Apache::DBI::DEBUG = 3;
 use Apache::Registry;          
 
-use XML::DOM;
 
+use EPrints::XML;
 use EPrints::Utils;
 use EPrints::Config;
 
 $ENV{MOD_PERL} or EPrints::Utils::abort( "not running under mod_perl!" );
- 
+
 # This code is interpreted *once* when the server starts
 use EPrints::Auth;
 use EPrints::Database;
@@ -67,7 +67,6 @@ foreach( EPrints::Config::get_archive_ids() )
 print STDERR "EPRINTS: Config Modules Loaded\n";
 
 # Tell me more about warnings
-use Carp ();
 $SIG{__WARN__} = \&Carp::cluck;
 
 1;

@@ -143,7 +143,6 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 
 	print "Making main browse index for: $langid ... " if( $noise > 1 );
 	my( $ul, $li, $page, $a, $file, $title );
-	$session->new_page();
 	$page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "bin/generate_views:browseintro" ) );
 	$ul = $session->make_element( "ul" );
@@ -201,7 +200,7 @@ sub make_view_pages
 	my @values = ();
 	if( scalar @fields == 1 )
 	{
-		@values = $fields[0]->get_values( $session );
+		@values = $fields[0]->get_values( $session, $ds );
 	}
 	else
 	{
@@ -209,7 +208,7 @@ sub make_view_pages
 		my %v=();
 		foreach $field ( @fields )
 		{
-			foreach( $field->get_values( $session ) ) 
+			foreach( $field->get_values( $session, $ds ) ) 
 			{ 
 				if( !defined $_ ) { $_=""; }
 				$v{$_}=1; 
@@ -265,7 +264,6 @@ sub make_view_pages
 
 		if( $info->{dom} )
 		{
-			$session->new_page();
 			$page = $session->make_doc_fragment();
 		}
 
@@ -398,7 +396,7 @@ sub make_view_pages
 			$file = $dir."/".$fileid.".include";
 			print "Writing: $file\n" if( $noise > 1 );
 			open( FILE, ">$file" );
-			print FILE $links->toString;
+			print FILE EPrints::XML::to_string( $links );
 			close FILE;
 		}
 
@@ -429,7 +427,6 @@ sub make_view_pages
 	##
 	## Make Index Page
 
-	$session->new_page();
 	$page = $session->make_doc_fragment();
 	$page->appendChild( 
 		$session->html_phrase( "bin/generate_views:intro" ) );

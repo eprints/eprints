@@ -37,10 +37,10 @@ the top level configurations for archives - the XML files in /archives/
 package EPrints::Config;
 use EPrints::Utils;
 use EPrints::SystemSettings;
-use Unicode::String qw(utf8 latin1);
+use EPrints::XML;
 
+use Unicode::String qw(utf8 latin1);
 use Data::Dumper;
-use XML::DOM;
 use Cwd;
 
 
@@ -160,7 +160,7 @@ my @LANGLIST;
 my @SUPPORTEDLANGLIST;
 my %LANGNAMES;
 my $file = $SYSTEMCONF{cfg_path}."/languages.xml";
-my $lang_doc = parse_xml( $file );
+my $lang_doc = EPrints::XML::parse_xml( $file );
 my $top_tag = ($lang_doc->getElementsByTagName( "languages" ))[0];
 if( !defined $top_tag )
 {
@@ -179,7 +179,7 @@ foreach $lang_tag ( $top_tag->getElementsByTagName( "lang" ) )
 	}
 	$LANGNAMES{$id} = $val;
 }
-$lang_doc->dispose();
+EPrints::XML::dispose( $lang_doc );
 
 ###############################################
 
@@ -191,7 +191,7 @@ while( $file = readdir( CFG ) )
 	next unless( $file=~m/^(.*)\.xml$/ );
 	my $fpath = $SYSTEMCONF{arc_path}."/".$file;
 	my $id = $1;
-	my $conf_doc = parse_xml( $fpath );
+	my $conf_doc = EPrints::XML::parse_xml( $fpath );
 	if( !defined $conf_doc )
 	{
 		print STDERR "Error parsing file: $fpath\n";
@@ -201,13 +201,13 @@ while( $file = readdir( CFG ) )
 	if( !defined $conf_tag )
 	{
 		print STDERR "In file: $fpath there is no <archive> tag.\n";
-		$conf_doc->dispose();
+		EPrints::XML::dispose( $conf_doc );
 		next;
 	}
 	if( $id ne $conf_tag->getAttribute( "id" ) )
 	{
 		print STDERR "In file: $fpath id is not $id\n";
-		$conf_doc->dispose();
+		EPrints::XML::dispose( $conf_doc );
 		next;
 	}
 	my $ainfo = {};
@@ -225,7 +225,7 @@ while( $file = readdir( CFG ) )
 			EPrints::Config::abort( "In file: $fpath the $tagname tag is missing." );
 		}
 		my $val = "";
-		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		foreach( $tag->getChildNodes ) { $val.=EPrints::XML::to_string( $_ ); }
 		$ainfo->{$tagname} = $val;
 	}
 	unless( $ainfo->{archiveroot}=~m#^/# )
@@ -246,7 +246,7 @@ while( $file = readdir( CFG ) )
 	{
 		my $alias = {};
 		my $val = "";
-		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		foreach( $tag->getChildNodes ) { $val.=EPrints::XML::to_string( $_ ); }
 		$alias->{name} = $val; 
 		$alias->{redirect} = ( $tag->getAttribute( "redirect" ) eq "yes" );
 		push @{$ainfo->{aliases}},$alias;
@@ -256,18 +256,18 @@ while( $file = readdir( CFG ) )
 	foreach $tag ( $conf_tag->getElementsByTagName( "language" ) )
 	{
 		my $val = "";
-		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		foreach( $tag->getChildNodes ) { $val.=EPrints::XML::to_string( $_ ); }
 		push @{$ainfo->{languages}},$val;
 	}
 	foreach $tag ( $conf_tag->getElementsByTagName( "archivename" ) )
 	{
 		my $val = "";
-		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		foreach( $tag->getChildNodes ) { $val.=EPrints::XML::to_string( $_ ); }
 		my $langid = $tag->getAttribute( "language" );
 		$ainfo->{archivename}->{$langid} = $val;
 	}
 	$ARCHIVES{$id} = $ainfo;
-	$conf_doc->dispose();
+	EPrints::XML::dispose( $conf_doc );
 }
 closedir( CFG );
 
@@ -371,52 +371,6 @@ sub get_archive_ids
 	return keys %ARCHIVES;
 }
 
-
-######################################################################
-=pod
-
-=item EPrints::Config::parse_xml( $file, [%config] )
-
-Return a DOM document describing Parse the XML file specified by $file 
-with the optional additional config to XML::DOM::Parser specified 
-in %config. 
-
-In the event of an error in the XML file, report to STDERR and
-return undef.
-
-=cut
-######################################################################
-
-sub parse_xml
-{
-	my( $file, %config ) = @_;
-
-	my( %c ) = (
-		ParseParamEnt => 1,
-		ErrorContext => 2,
-		NoLWP => 1 );
-
-	foreach( keys %config ) { $c{$_}=$config{$_}; }
-
-	my $parser = XML::DOM::Parser->new( %c );
-
-	unless( open( XML, $file ) )
-	{
-		print STDERR "Error opening XML file: $file\n";
-		return;
-	}
-	my $doc = eval { $parser->parse( *XML ); };
-	close XML;
-	if( $@ )
-	{
-		my $err = $@;
-		$err =~ s# at /.*##;
-		print STDERR "Error parsing XML $file ($err)";
-		return;
-	}
-
-	return $doc;
-}
 
 
 ######################################################################

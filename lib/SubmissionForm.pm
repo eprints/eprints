@@ -1334,6 +1334,8 @@ sub _do_stage_meta
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
+			dataset=>$self->{dataset},
+			type=>$self->{eprint}->get_value( "type" ),
 			fields=>\@edit_fields,
 			values=>$self->{eprint}->get_data(),
 			show_names=>1,

@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="no" ?>
-<!DOCTYPE ruler SYSTEM "entities-en.dtd" > 
+<!DOCTYPE ruler >
 
 <ep:ruler
         xmlns="http://www.w3.org/1999/xhtml"

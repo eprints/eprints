@@ -122,14 +122,16 @@ sub process
 
 	$page = $session->make_doc_fragment();
 
+	my( $userdesc, $title );
 	if( $staff )
-	{	
-		$page->appendChild( $user->render_full() );
+	{
+		( $userdesc, $title ) = $user->render_full();	
 	}
 	else
 	{
-		$page->appendChild( $user->render() );
+		( $userdesc, $title ) = $user->render();	
 	}
+	$page->appendChild( $userdesc );
 
 	$page->appendChild( $session->render_ruler() );
 

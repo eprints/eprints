@@ -393,7 +393,7 @@ sub send_out_subscription
 		$user->mail( 
 			"lib/subscription:sub_subj",
 			$info->{mail} );
-		$info->{mail}->dispose;
+		EPrints::XML::dispose( $info->{mail} );
 	}
 	$searchexp->dispose;
 

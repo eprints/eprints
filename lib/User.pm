@@ -674,7 +674,12 @@ sub render
         my( $self ) = @_;
 
         my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session} );
-	
+
+	if( !defined $title )
+	{
+		$title = $self->render_description;
+	}
+
         return( $dom, $title );
 }
 
@@ -696,6 +701,12 @@ sub render_full
 
         my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render_full", $self, $self->{session} );
 
+	if( !defined $title )
+	{
+		$title = $self->render_description;
+	}
+
+print STDERR "\nRF($dom)($title)\n";	
         return( $dom, $title );
 }
 

@@ -1226,7 +1226,6 @@ sub generate_static
 			return( @created );
 		};
 
-		$self->{session}->new_page();
 		my( $page, $title, $links ) = $self->render();
 
 		$self->{session}->build_page( $title, $page, "abstract", $links );

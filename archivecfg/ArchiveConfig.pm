@@ -25,7 +25,7 @@ do "cfg/ArchiveMetadataFieldsConfig.pm";
 
 use EPrints::Utils;
 
-use XML::DOM;
+use EPrints::XML;
 use Unicode::String qw(utf8 latin1 utf16);
 use strict;
 
@@ -343,6 +343,7 @@ $c->{vlit}->{context_size} = 1024;
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
 $c->{browse_views} = [
+	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" },
 	{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
 { id=>"name",  allow_null=>1, fields=>"authors/editors", order=>"title/authors" }
 	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 },
@@ -518,15 +519,12 @@ $c->{cache_maxlife} = 12;
 # Example page hooks to mess around with the metadata
 # submission page.
 
-# my $doc = XML::DOM::Document->new();
-# my $meta = $doc->createElement( "meta" );
-# $meta->setAttribute( "rel", "help" );
-# $meta->setAttribute( "href", "http://totl.net/" );
-# $c->{pagehooks}->{submission_meta} = { head => $meta };
+# my $doc = EPrints::XML::make_document();
+# my $link = $doc->createElement( "link" );
+# $link->setAttribute( "rel", "copyright" );
+# $link->setAttribute( "href", "http://totl.net/" );
+# $c->{pagehooks}->{submission_meta}->{head} = $link;
 # $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
-
-
-
 
 ######################################################################
 
@@ -614,7 +612,7 @@ sub get_entities
 	$entities{frontpage} = $archive->get_conf( "frontpage" );
 	$entities{userhome} = $archive->get_conf( "userhome" );
 	$entities{version} = EPrints::Config::get( "version" );
-	$entities{ruler} = $archive->get_ruler()->toString;
+	$entities{ruler} = EPrints::XML::to_string( $archive->get_ruler() );
 
 	return %entities;
 }

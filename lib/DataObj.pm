@@ -348,11 +348,12 @@ sub render_description
 {
 	my( $self ) = @_;
 
-
 	my $stylespec = $self->{session}->get_citation_spec(
 					$self->{dataset} );
 				
-	return EPrints::Utils::render_citation( $self , $stylespec );
+	my $r =  EPrints::Utils::render_citation( $self , $stylespec );
+
+	return $r;
 }
 
 

@@ -47,9 +47,14 @@ format of phrase files.
 #     archivedata contains archive specific phrases, data contains
 #     generic eprints phrases. 
 #
+#  $self->{xmldoc}
+#     A XML document to hold all the stray DOM elements.
+#
 ######################################################################
 
 package EPrints::Language;
+
+use EPrints::XML;
 
 use strict;
 
@@ -75,11 +80,13 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
+	$self->{xmldoc} = EPrints::XML::make_document();
+
 	$self->{id} = $langid;
 	
 	$self->{fallback} = $fallback;
 
-	$self->{archivedata} = read_phrases( 
+	$self->{archivedata} = $self->_read_phrases( 
 		$archive->get_conf( "config_path" ).
 			"/phrases-".$self->{id}.".xml", 
 		$archive );
@@ -89,7 +96,7 @@ sub new
 		return( undef );
 	}
 
-	$self->{data} = read_phrases( 
+	$self->{data} = $self->_read_phrases( 
 		EPrints::Config::get( "phr_path" ).
 			"/system-phrases-".$self->{id}.".xml", 
 		$archive );
@@ -140,16 +147,25 @@ sub phrase
 {
 	my( $self, $phraseid, $inserts, $session ) = @_;
 
-	my( $response , $fb ) = $self->_phrase_aux( $phraseid , $_ );
+	my( $phrase , $fb ) = $self->_phrase_aux( $phraseid );
 
-	if( !defined $response )
+	my $response;
+	if( !defined $phrase )
 	{
-		$response = $session->make_text(  
-			'["'.$phraseid.'" not defined]' );
+		$response = $session->make_doc_fragment;
+		$response->appendChild( 
+			 $session->make_text(  
+				'["'.$phraseid.'" not defined]' ) );
 		$session->get_archive()->log( 
 			'Undefined phrase: "'.$phraseid.'" ('.$self->{id}.')' );
 	}
-	$inserts = {} if( !defined $inserts );
+	else
+	{
+		$inserts = {} if( !defined $inserts );
+#print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
+		$response = _insert_pins( $phrase, $session, $inserts );
+	}
+
 
 	my $result;
 	if( $fb )
@@ -160,41 +176,63 @@ sub phrase
 	{
 		$result = $session->make_doc_fragment();
 	}
-	$session->take_ownership( $response );
+
 	$result->appendChild( $response );
+	return $result;
+}
 
-	my $pin;
-	foreach $pin ( $result->getElementsByTagName( "pin", 1 ) )
+# need to doc (cjg)
+sub _insert_pins
+{
+	my( $node, $session, $inserts ) = @_;
+
+	my $retnode;
+
+
+	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		my $ref = $pin->getAttribute( "ref" );
-		my $repl;
-		if( defined $inserts->{$ref} )
+		my $name = $node->getTagName;
+		$name =~ s/^ep://;
+		if( $name eq "pin" )
 		{
-			$repl = $inserts->{$ref};
-		}
-		else
-		{
-			$repl = $session->make_text( "[ref missing: $ref]" );
+			my $ref = $node->getAttribute( "ref" );
+			my $repl;
+			if( defined $inserts->{$ref} )
+			{
+				$retnode = $inserts->{$ref};
+			}
+			else
+			{
+				$retnode = $session->make_text( 
+						"[ref missing: $ref]" );
+			}
 		}
 
-		# All children remain untouched, only the PIN is
-		# changed.
-		for my $kid ($pin->getChildNodes)
+		if( $name eq "phrase" )
 		{
-			$pin->removeChild( $kid );
-			$repl->appendChild( $kid );
+			$retnode = $session->make_doc_fragment;
 		}
-		$pin->getParentNode->replaceChild( $repl, $pin );	
-		$pin->dispose();
 	}
 
-	return $result;
+	# If the retnode was not "pin" or "phrase" element...
+	if( !defined $retnode )
+	{
+		$retnode = $session->clone_for_me( $node, 0 );
+	}
+
+	foreach my $kid ( $node->getChildNodes() )
+	{
+		$retnode->appendChild(
+			_insert_pins( $kid, $session, $inserts ) );
+	}
+
+	return $retnode;
 }
 
 
 ######################################################################
 # 
-# $foo = $language->_phrase_aux( $phraseid )
+# $foo = $language->_phrase_aux( $phraseid, $session )
 #
 # undocumented
 #
@@ -207,19 +245,19 @@ sub _phrase_aux
 	my $res = undef;
 
 	$res = $self->{archivedata}->{$phraseid};
-	return $res->cloneNode( 1 ) if ( defined $res );
+	return( $res , 0 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
 		$res = $self->{fallback}->_get_archivedata->{$phraseid};
-		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
+		return ( $res , 1 ) if ( defined $res );
 	}
 
 	$res = $self->{data}->{$phraseid};
-	return $res->cloneNode( 1 ) if ( defined $res );
+	return ( $res , 0 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
 		$res = $self->{fallback}->_get_data->{$phraseid};
-		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
+		return ( $res , 1 ) if ( defined $res );
 	}
 
 	return undef;
@@ -253,42 +291,32 @@ sub _get_archivedata
 	return $self->{archivedata};
 }
 
-######################################################################
-#
-# read_phrases( $file )
-#
-#  read in the phrases.
-#
-######################################################################
-
 
 ######################################################################
-=pod
-
-=item $phrases = EPrints::Language::read_phrases( $file, $archive )
-
-Return a reference to a hash of DOM objects describing the phrases
-from the XML phrase file $file.
-
-=cut
+# 
+#  $phrases = $language->_read_phrases( $file, $archive )
+# 
+# Return a reference to a hash of DOM objects describing the phrases
+# from the XML phrase file $file.
+# 
 ######################################################################
 
-sub read_phrases
+sub _read_phrases
 {
-	my( $file, $archive ) = @_;
+	my( $self, $file, $archive ) = @_;
 
 	my $doc=$archive->parse_xml( $file );	
 	if( !defined $doc )
 	{
+		print STDERR "Error loading $file\n";
 		return;
 	}
-
 	my $phrases = ($doc->getElementsByTagName( "phrases" ))[0];
 
 	if( !defined $phrases ) 
 	{
 		print STDERR "Error parsing $file\nCan't find top level element.";
-		$doc->dispose();
+		EPrints::XML::dispose( $doc );
 		return;
 	}
 	my $data = {};
@@ -297,20 +325,16 @@ sub read_phrases
 	foreach $element ( $phrases->getChildNodes )
 	{
 		my $name = $element->getNodeName;
-		if( $name eq "phrase" )
+		if( $name eq "phrase" || $name eq "ep:phrase" )
 		{
 			my $key = $element->getAttribute( "ref" );
-			my $val = $doc->createDocumentFragment;
-			my $kid;
-			foreach $kid ( $element->getChildNodes )
-			{
-				$element->removeChild( $kid );
-				$val->appendChild( $kid ); 
-			}
-			$data->{$key} = $val;
+			$data->{$key} = $element;
 		}
 	}
-	$doc->dispose();
+
+	# Keep the document in scope...	
+	$self->{docs}->{$file} = $doc;
+
 	return $data;
 }
 

@@ -120,8 +120,8 @@ print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 
 END
-print $response->toString();
-$response->dispose();
+print EPrints::XML::to_string( $response );
+EPrints::XML::dispose( $response );
 print "\n\n";
 
 $session->terminate();
@@ -780,7 +780,7 @@ sub ListMetadataFormats
 			if( defined $md )
 			{
 				push @metadata_formats, $_;
-				$md->dispose();
+				EPrints::XML::dispose( $md );
 			}
 		}
 	}
@@ -880,10 +880,10 @@ sub ListSets
 			}
 			else
 			{
-				my @v = $field->get_values( $session );
+				my @v = $field->get_values( $session, $ds );
 				my $delfield = $field->clone();
 				$delfield->set_dataset( $ds_del );
-				push @v, $delfield->get_values( $session );
+				push @v, $delfield->get_values( $session, $ds_del );
 				foreach( @v )
 				{
 					my $key = EPrints::OpenArchives::encode_setspec( $_ );

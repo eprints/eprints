@@ -680,10 +680,10 @@ sub list_sets
 			}
 			else
 			{
-				my @v = $field->get_values( $session );
+				my @v = $field->get_values( $session, $ds );
 				my $delfield = $field->clone();
 				$delfield->set_dataset( $ds_del );
-				push @v, $delfield->get_values( $session );
+				push @v, $delfield->get_values( $session, $ds_del );
 				foreach( @v )
 				{
 					my $key = EPrints::OpenArchives::encode_setspec( $_ );
@@ -811,9 +811,9 @@ sub send_response
 <?xml version="1.0" encoding="UTF-8" ?>
 
 END
-	print $response->toString();
+	print EPrints::XML::to_string( $response );
 
-	$response->dispose();
+	EPrints::XML::dispose( $response );
 }
 	
 

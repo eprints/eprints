@@ -29,7 +29,6 @@ my $searchexp = new EPrints::SearchExpression(
 	fieldnames=>$session->get_archive()->get_conf( "advanced_search_fields" ) );
 
 my $preamble = $session->html_phrase( "cgi/advsearch:preamble" );
-
 $searchexp->process_webpage(
 	$session->html_phrase( "cgi/advsearch:adv_search" ),
 	$preamble );

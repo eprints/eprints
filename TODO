@@ -15,6 +15,8 @@ Subscriptions/subject-editors
 
 Metadata Fields
 
+*	Hide ID for non-staff option for has-id fields
+
 +	New field type "time" for datetime SQL fields.
 
 +	Field property: freetext (or not-freetext) to stop indexing) - will 
@@ -135,6 +137,8 @@ Submission Page
 
 
 Other Stuff
+
+-	Various "form letters" from the editor.
 
 *	Need a "Last Changed" datestamp. Always set in commit. (On ALL
         dataobj types?)

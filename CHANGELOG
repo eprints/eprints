@@ -830,3 +830,48 @@ before next release. (metadata types & fields)
 2002-08-28 cjg
  - Fixed a bug in oai2 which meant it occasionally used the wrong session in
     munge_date.
+
+2002-09-11 cjg
+ - [api] Added EPrints::XML to handle abstraction of XML::DOM/XML::GDOME
+ - Added new option is SystemSettings to allow users to turn on gdome support.
+ - [c] Changed use XML::DOM to EPrints::XML in ArchiveConfig.pm
+ - [c] removed SYSTEM "entities-en.dtd" from the DOCTYPE of ruler.xml
+ - Improved much of the DOM code to be faster and more stable, using new
+    functions in EPrints::XML where appropriate. Specifically in phrase 
+    pin insertion, page pin insertion and citation rendering.
+ - [api] MetaField objects no longer know what dataset they belong to. 
+ - [api] removed $metafield->get_dataset() and $metafield->set_dataset()
+ - [api] $metafield->get_values( $session ) is now 
+     $metafield->get_values( $session, $dataset )
+ - [api] $archive->parse_xml( $filename, %config ) is now 
+     $archive->parse_xml( $filename, $no_expand ) as %config was XML::DOM
+     specific.
+ - [api] EPrints::Config::parse_xml() removed. Use EPrints::XML functions 
+     instead.
+ - DataSet now caches configurations so that it can share the same configur-
+     ation between inbox,buffer,archive,deletion and eprint which saves a 
+     chunk of RAM.
+ - DataSet now keeps track of which fields are required for a type, rather 
+     than cloning MetaFields and setting their required property. 
+ - [api] To find out if a metafield is required within a specific type of
+     eprint there is a new DataSet method
+     $boolean = $ds->field_required_in_type( $field, $type )
+     the field property now just indicates if it is globally required.
+ - [api] The Database method  $db->get_values( $field ) is now 
+     $db->get_values( $field, $dataset ) 
+ - [api] $field->render_input_field now additionally takes optional parameters
+     of $dataset, $type which if defined will be used to see if the field is
+     required for the specified type when rendering it.
+ - $session now keeps a handle on a document {doc} in addition to the current
+     page {page} which must be owned by {doc}. 
+ - [api] $session->new_page() is removed (and no longer required)
+ - [api] two new options for $session->render_input_form: field & type which
+     if set will be passed to render_input_field (see above).
+ - [api] $session->take_ownership removed. Use clone_for_me instead.
+ - [api] New method for $session: $session->clone_and_own( $node, $deep )
+     which clones the specified node, but owned by the sessions own document
+     (and thus can be part of the output page). If $deep is 0 then only the
+     node is cloned and not it's children too.
+ - [api] Please use EPrints::XML::to_string( $node ) rather than 
+     $node->toString as in GDOME this does not work properly on 
+     DocumentFragments

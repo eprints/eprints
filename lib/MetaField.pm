@@ -39,9 +39,6 @@ documentation and will not be duplicated here.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{dataset}
-#     The DataSet to which this field belongs, if any.
-#
 #  $self->{confid}
 #     The conf-id of the dataset to which this field belongs. If this
 #     field is not part of a dataset then this is just a string used 
@@ -855,7 +852,7 @@ sub _render_value3
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field( $session, $value )
+=item $xhtml = $field->render_input_field( $session, $value, [$dataset, $type] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -866,7 +863,7 @@ this field.
 
 sub render_input_field
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, $dataset, $type ) = @_;
 
 	if( defined $self->{toform} )
 	{
@@ -874,6 +871,13 @@ sub render_input_field
 	}
 
 	my( $html, $frag );
+
+	my $req = $self->get_property( "required" );
+	if( defined $dataset && defined $type )
+	{
+		$req = $dataset->field_required_in_type( $self, $type );
+	}
+
 
 	$html = $session->make_doc_fragment();
 
@@ -913,9 +917,8 @@ sub render_input_field
 			my ( $pairs ) = $topsubj->get_subjects( 
 				!($self->{showall}), 
 				$self->{showtop} );
-			if( !
-				$self->get_property( "multiple" ) && 
-				!$self->get_property( "required" ) )
+			if( !$self->get_property( "multiple" ) && 
+				!$req )
 			{
 				# If it's not multiple and not required there 
 				# must be a way to unselect it.
@@ -955,7 +958,7 @@ sub render_input_field
 			}
 			if( 
 				!$self->get_property( "multiple" ) && 
-				!$self->get_property( "required" ) )
+				!$req ) 
 			{
 				# If it's not multiple and not required there 
 				# must be a way to unselect it.
@@ -974,7 +977,6 @@ sub render_input_field
 
 		return $html;
 	}
-
 	# The other types require a loop if they are multiple.
 
 	if( $self->get_property( "multiple" ) )
@@ -2021,7 +2023,7 @@ sub is_browsable
 ######################################################################
 =pod
 
-=item @values = $field->get_values( $session, %opts )
+=item @values = $field->get_values( $session, $dataset, %opts )
 
 Return all the values of this field. For fields like "subject" or "set"
 it returns all the variations. For fields like "text" return all 
@@ -2032,7 +2034,7 @@ the distinct values from the database.
 
 sub get_values
 {
-	my( $self, $session, %opts ) = @_;
+	my( $self, $session, $dataset, %opts ) = @_;
 
 	my $langid = $opts{langid};
 	if (!defined $langid)
@@ -2071,7 +2073,7 @@ sub get_values
 	if( $self->is_type( 
 		"date", "int", "year", "id", "email", "url" , "text" ) )
 	{
-		@outvalues = $session->get_db()->get_values( $self );
+		@outvalues = $session->get_db()->get_values( $self, $dataset );
 	}
 
 	foreach( @outvalues )
@@ -2116,7 +2118,6 @@ sub get_value_label
 	{
 		return $session->html_phrase( "lib/metafield:unspecified" );
 	}
-
 	if( $self->is_type( "set" ) )
 	{
 		return $self->render_option( $session, $value );
@@ -2168,41 +2169,6 @@ sub get_value_label
 	return $session->make_text( "???".$value."???" );
 }
 
-
-######################################################################
-=pod
-
-=item $dataset = $field->get_dataset
-
-Return the dataset to which this field belongs, if any.
-
-=cut
-######################################################################
-
-sub get_dataset
-{
-	my( $self ) = @_;
-
-	return $self->{dataset};
-}		
-
-
-######################################################################
-=pod
-
-=item $field->set_dataset( $dataset )
-
-Set this field to belong to the specified DataSet.
-
-=cut
-######################################################################
-
-sub set_dataset
-{
-	my( $self , $dataset ) = @_;
-
-	return $self->{dataset} = $dataset;
-}
 
 
 ######################################################################
@@ -2294,19 +2260,21 @@ sub _ordervalue_aux2
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
-	# cjg: this is acutally to supress an occasional error
+	# cjg: this test is acutally to supress an occasional error
 	# from somewhere "upstream" in the code. Must figure it
 	# out properly. Something to do with idpart ordervalues.
-	return $value if( ref($value) eq "" );
 
 	my $v = $value;
-	if( $self->get_property( "idpart" ) )
+	unless( ref($value) eq "" )
 	{
-		$v = $value->{id};
-	}
-	if( $self->get_property( "mainpart" ) )
-	{
-		$v = $value->{main};
+		if( $self->get_property( "idpart" ) )
+		{
+			$v = $value->{id};
+		}
+		if( $self->get_property( "mainpart" ) )
+		{
+			$v = $value->{main};
+		}
 	}
 	return $self->_ordervalue_aux3( $v );
 }
@@ -2536,6 +2504,9 @@ sub _list_values2
 	return $value;
 }
 ######################################################################
+
+1;
+
 =pod
 
 =back

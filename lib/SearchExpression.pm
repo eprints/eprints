@@ -1220,11 +1220,12 @@ sub process_webpage
 		if( scalar $n_results > 0 )
 		{
 			# Only print a second set of controls if there are matches.
-			$page->appendChild( $controls->cloneNode( 1 ) );
+			$page->appendChild( EPrints::XML::clone_node(
+				$controls, 1 ) );
 		}
 
 
-			
+	
 		$self->{session}->build_page( 
 			$self->{session}->html_phrase( 
 					"lib/searchexpression:results_for", 

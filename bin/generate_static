@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib 
 
 ######################################################################
 #
@@ -212,66 +212,51 @@ sub generate_static
 				$$errcnt++;
 				return;
 			}
-			my $page = ($doc->getElementsByTagName( $mode ))[0];
-			if( !defined $page )
-			{
-				print STDERR "Error: no $mode element in ".$File::Find::name."\n";
-				$$errcnt++;
-				return;
-			}
 
-			$doc->removeChild( $page );
-			$session->new_page();
-			$session->take_ownership( $page );
-			$doc->dispose();
+			if( $mode eq "html" )
+			{
+				my( $elements ) = EPrints::XML::find_elements( $doc, "html" );
+				if( !defined $elements->{html} )
+				{
+					print STDERR "Error: no html element in ".$File::Find::name."\n";
+					EPrints::XML::dispose( $doc );
+					$$errcnt++;
+					return;
+				}
+				$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
+			}
 
 			if( $mode eq "page" )
 			{
 				my $kid;
+				my( $elements ) = EPrints::XML::find_elements( $doc, "title", "body" );
 
-				my $title = 
-				   ($page->getElementsByTagName( "title" ))[0];
-				if( !$title )
+				my $parts;
+				foreach( "title", "body" )
 				{
-					print STDERR "Error: no title element in ".$File::Find::name."\n";
-					$page->dispose();
-					$$errcnt++;
-					return;
-				}
-				my $titlefrag = $doc->createDocumentFragment;
-				foreach $kid ( $title->getChildNodes )
-				{
-					$title->removeChild( $kid );
-					$titlefrag->appendChild( $kid );
-				}
-
-				
-				my $main = 
-				   ($page->getElementsByTagName( "body" ))[0];
-				if( !defined $main )
-				{
-					print STDERR "Error: no main element in ".$File::Find::name."\n";
-					$page->dispose();
-					$$errcnt++;
-					return;
-				}
-				my $mainfrag = $doc->createDocumentFragment;
-				foreach $kid ( $main->getChildNodes )
-				{
-					$main->removeChild( $kid );
-					$mainfrag->appendChild( $kid );
+					if( !defined $elements->{$_} )
+					{
+						print STDERR "Error: no $_ element in ".$File::Find::name."\n";
+						EPrints::XML::dispose( $doc );
+						$$errcnt++;
+						return;
+					}
+					$parts->{$_} = $session->make_doc_fragment;
+					
+					foreach $kid ( $elements->{$_}->getChildNodes )
+					{
+						$parts->{$_}->appendChild( 
+							$session->clone_for_me( $kid, 1 ) );
+					}
 				}
 
 				$session->build_page( 
-					$titlefrag, 
-					$mainfrag,
+					$parts->{title}, 
+					$parts->{body},
 					"static" );
-				$page->dispose();
 			}
-			else 	# $mode is "html"
-			{
-				$session->set_page( $page );	
-			}	
+			EPrints::XML::dispose( $doc );
+print "$destination_filename\n";
 			$session->page_to_file( $destination_filename );
 
 		}

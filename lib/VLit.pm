@@ -337,7 +337,7 @@ END
 	}
 	elsif( $mode eq "xml-entity" )
 	{
-		my $page = new XML::DOM::Document();
+		my $page = 0;# new XML::DOM::Document();
 		$page->setXMLDecl(
 			$page->createXMLDecl( "1.0", "UTF-8", "yes" ) );
 		my $transclusion = $page->createElement( "transclusion" );
@@ -351,7 +351,7 @@ END
 		$page->appendChild( $transclusion );	
 
 		send_http_header( "text/xml" );
-		$r->print( $page->toString );
+		$r->print( EPrints::XML::to_string( $page ) );
 	}
 	else
 	{

@@ -640,7 +640,7 @@ Command Line Scripts
     <ep:phrase ref="bin/generate_views:blurb"><p>Number of records: <strong><ep:pin ref="n" /></strong>.</p></ep:phrase>
     <ep:phrase ref="bin/generate_views:browsetitle">Browse Records</ep:phrase>
     <ep:phrase ref="bin/generate_views:browseintro"><p>Records may be browsed by the following:</p></ep:phrase>
-    <ep:phrase ref="bin/generate_views:timestamp"><p>This page was generated on <strong><ep:pin ref="time" /></strong>.</p></ep:phrase>
+    <ep:phrase ref="bin/generate_views:timestamp"><p>This list was generated on <strong><ep:pin ref="time" /></strong>.</p></ep:phrase>
 
 
 <!--********************************************************************** 

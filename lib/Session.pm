@@ -59,16 +59,12 @@ package EPrints::Session;
 use EPrints::Database;
 use EPrints::Language;
 use EPrints::Archive;
+use EPrints::XML;
 
 use Unicode::String qw(utf8 latin1);
 use Apache;
 use CGI;
 use URI::Escape;
-# DOM runs really slowly if it checks all it's data is
-# valid...
-use XML::DOM;
-$XML::DOM::SafeMode = 0;
-XML::DOM::setTagCompression( \&_tag_compression );
 
 use strict;
 #require 'sys/syscall.ph';
@@ -171,8 +167,7 @@ sub new
 	#really only (cjg) ONLINE mode should have
 	#a language set automatically.
 	
-
-	$self->new_page();
+	$self->{doc} = EPrints::XML::make_document;
 
 	# Create a database connection
 	if( $self->{noise} >= 2 ) { print "Connecting to DB ... "; }
@@ -242,7 +237,7 @@ sub terminate
 
 	# If we've not printed the XML page, we need to dispose of
 	# it now.
-	if( $self->{pagemade} ) { $self->{page}->dispose(); }
+	EPrints::XML::dispose( $self->{doc} );
 
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Session.\n\n"; }
 }
@@ -326,7 +321,7 @@ sub phrase
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
 	my $string =  EPrints::Utils::tree_to_utf8( $r, 40 );
-	$r->dispose();
+	EPrints::XML::dispose( $r );
 	return $string;
 }
 
@@ -588,9 +583,10 @@ sub make_element
 {
 	my( $self , $ename , %params ) = @_;
 
-	my $element = $self->{page}->createElement( $ename );
+	my $element = $self->{doc}->createElement( $ename );
 	foreach( keys %params )
 	{
+		next unless( defined $params{$_} );
 		$element->setAttribute( $_ , $params{$_} );
 	}
 
@@ -612,7 +608,7 @@ sub make_indent
 {
 	my( $self, $width ) = @_;
 
-	return $self->{page}->createTextNode( "\n"." "x$width );
+	return $self->{doc}->createTextNode( "\n"." "x$width );
 }
 
 	
@@ -633,7 +629,14 @@ sub make_text
 {
 	my( $self , $text ) = @_;
 
-	my $textnode = $self->{page}->createTextNode( $text );
+	# patch up an issue with Unicode::String containing
+	# an empty string -> seems to upset XML::GDOME
+	if( !defined $text || $text eq "" )
+	{
+		$text = "";
+	}
+
+	my $textnode = $self->{doc}->createTextNode( $text );
 
 	return $textnode;
 }
@@ -653,7 +656,7 @@ sub make_doc_fragment
 {
 	my( $self ) = @_;
 
-	return $self->{page}->createDocumentFragment;
+	return $self->{doc}->createDocumentFragment;
 }
 
 
@@ -681,7 +684,7 @@ sub render_ruler
 
 	my $ruler = $self->{archive}->get_ruler();
 	
-	$self->take_ownership( $ruler );
+	return $self->clone_for_me( $ruler, 1 );
 
 	return $ruler;
 }
@@ -703,7 +706,7 @@ sub render_data_element
 
 	my $f = $self->make_doc_fragment();
 	my $el = $self->make_element( $elementname, %opts );
-	$el->appendChild( $self->{page}->createTextNode( $value ) );
+	$el->appendChild( $self->{doc}->createTextNode( $value ) );
 	$f->appendChild( $self->make_indent( $indent ) );
 	$f->appendChild( $el );
 
@@ -829,7 +832,7 @@ sub render_single_option
 	my( $self, $key, $desc, $selected ) = @_;
 
 	my $opt = $self->make_element( "option", value => $key );
-	$opt->appendChild( $self->{page}->createTextNode( $desc ) );
+	$opt->appendChild( $self->{doc}->createTextNode( $desc ) );
 
 	if( $selected )
 	{
@@ -981,7 +984,7 @@ sub render_form
 {
 	my( $self, $method, $dest ) = @_;
 	
-	my $form = $self->{page}->createElement( "form" );
+	my $form = $self->{doc}->createElement( "form" );
 	$form->setAttribute( "method", $method );
 	$form->setAttribute( "accept-charset", "utf-8" );
 	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
@@ -1230,6 +1233,8 @@ sub render_error
 #
 
 my %INPUT_FORM_DEFAULTS = (
+	dataset => undef,
+	type	=> undef,
 	fields => [],
 	values => {},
 	show_names => 0,
@@ -1300,11 +1305,13 @@ sub render_input_form
 	foreach $field (@{$p{fields}})
 	{
 		$form->appendChild( $self->_render_input_form_field( 
-					     $field,
-		                             $p{values}->{$field->get_name()},
-		                             $p{show_names},
-		                             $p{show_help},
-		                             $p{comments}->{$field->get_name()} ) );
+			$field,
+			$p{values}->{$field->get_name()},
+			$p{show_names},
+			$p{show_help},
+			$p{comments}->{$field->get_name()},
+			$p{dataset},
+			$p{type} ) );
 	}
 
 	# Hidden field, so caller can tell whether or not anything's
@@ -1326,7 +1333,7 @@ sub render_input_form
 
 ######################################################################
 # 
-# $foo = $thing->_render_input_form_field( $field, $value, $show_names, $show_help, $comment )
+# $foo = $thing->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type )
 #
 # undocumented
 #
@@ -1334,11 +1341,18 @@ sub render_input_form
 
 sub _render_input_form_field
 {
-	my( $self, $field, $value, $show_names, $show_help, $comment ) = @_;
+	my( $self, $field, $value, $show_names, $show_help, $comment,
+			$dataset, $type ) = @_;
 	
 	my( $div, $html, $span );
 
 	$html = $self->make_doc_fragment();
+
+	my $req = $field->get_property( "required" );
+	if( defined $dataset && defined $type )
+	{
+		$req = $dataset->field_required_in_type( $field, $type );
+	}
 
 	if( $show_names )
 	{
@@ -1351,7 +1365,7 @@ sub _render_input_form_field
 		$div->appendChild( 
 			$self->make_text( $field->display_name( $self ) ) );
 
-		if( $field->get_property( "required" ) && !$field->is_type( "boolean" ) )
+		if( $req && !$field->is_type( "boolean" ) )
 		{
 			$span = $self->make_element( 
 					"span", 
@@ -1369,8 +1383,7 @@ sub _render_input_form_field
 
 		$div = $self->make_element( "div", class => "formfieldhelp" );
 
-		$div->appendChild( 
-			$self->make_text( $field->display_help( $self ) ) );
+		$div->appendChild( $self->make_text( $help ) );
 		$html->appendChild( $div );
 	}
 
@@ -1378,17 +1391,9 @@ sub _render_input_form_field
 		"div", 
 		class => "formfieldinput",
 		id => "inputfield_".$field->get_name );
-	$div->appendChild( $field->render_input_field( $self, $value ) );
+	$div->appendChild( $field->render_input_field( 
+		$self, $value, $dataset, $type ) );
 	$html->appendChild( $div );
-
-	if( defined $comment )
-	{
-		$div = $self->make_element( 
-			"div", 
-			class => "formfieldcomment" );
-		$div->appendChild( $comment );
-		$html->appendChild( $div );
-	}
 
 	if( substr( $self->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 
 	{
@@ -1422,23 +1427,6 @@ sub _render_input_form_field
 ######################################################################
 =pod
 
-=item $foo = $thing->take_ownership( $domnode )
-
-undocumented
-
-=cut
-######################################################################
-
-sub take_ownership
-{
-	my( $self , $domnode ) = @_;
-	$domnode->setOwnerDocument( $self->{page} );
-}
-
-
-######################################################################
-=pod
-
 =item $foo = $thing->build_page( $title, $mainbit, [$pageid], [$links] )
 
 undocumented
@@ -1455,10 +1443,7 @@ sub build_page
 		$self->{page} = $mainbit;
 		return;
 	}
-	
 	my $topofpage;
-
-	$self->take_ownership( $mainbit );
 
 	my $map = {
 		title => $title,
@@ -1473,85 +1458,110 @@ sub build_page
 		{
 			$map->{$_} = $self->make_doc_fragment();
 		}
-		$self->take_ownership( $map->{$_} );
 	}
-
-	# Page hooks are for people REALLY hacking - eg. adding
-	# javascript to certain pages.
 
 	my $pagehooks = $self->get_archive->get_conf( "pagehooks" );
-	if( 
-		defined $pageid && 
-		defined $pagehooks && 
-		defined $pagehooks->{$pageid} )
-	{
-		my $ph = $pagehooks->{$pageid};
-		
-		if( defined $ph->{bodyattr} )
-		{
-			# should only be one body tag, but what the hey?
-			my $body;
-			foreach $body ( 
-				$self->{page}->getElementsByTagName( 
-					"body" , 
-					1 ) )
-			{
-				my $bodyattr = 
-					$pagehooks->{$pageid}->{bodyattr};
+	$pagehooks = {} if !defined $pagehooks;
+	my $ph = $pagehooks->{$pageid} if defined $pageid;
+	$ph = {} if !defined $ph;
 
-				foreach( keys %{$bodyattr} )
-				{
-					$body->setAttribute( 
-						$_, 
-						$bodyattr->{$_} );	
-				}
-			}
-		}
-
-		foreach( "pagetop", "head" )
-		{
-			if( defined $ph->{$_} )
-			{
-				my $pt = $self->make_doc_fragment;
-				$pt->appendChild( $map->{$_} );
-				my $ptnew = $ph->{$_}->cloneNode( 1 );
-				$self->take_ownership( $ptnew );
-				$pt->appendChild( $ptnew );
-				$map->{$_} = $pt;
-			}
-		}
-	}
-			
-	my $node;
-	foreach $node ( $self->{page}->getElementsByTagName( "pin" , 1 ) )
-	{
-		my $ref = $node->getAttribute( "ref" );
-		my $insert = $map->{$ref};
-		my $element;
-		if( $node->getAttribute( "textonly" ) eq "yes" )
-		{
-			$element = $self->{page}->createTextNode( 
-				EPrints::Utils::tree_to_utf8( $insert ) );
-		}
-		elsif( $ref eq "page" )
-		{
-			# Cloning the page is kind a waste of CPU.
-			$element = $insert;
-		}
-		else
-		{
-			$element = $insert->cloneNode( 1 );
-		}
-		$node->getParentNode()->replaceChild( $element, $node );
-		$node->dispose();
-	}
-
+	# only really useful for head & pagetop, but it might as
+	# well support the others
 
 	foreach( keys %{$map} )
 	{
-		next if( $_ eq "page" );
-		$map->{$_}->dispose();
+		if( defined $ph->{$_} )
+		{
+			my $pt = $self->make_doc_fragment;
+			$pt->appendChild( $map->{$_} );
+			my $ptnew = $self->clone_for_me(
+				$ph->{$_},
+				1 );
+			$pt->appendChild( $ptnew );
+			$map->{$_} = $pt;
+		}
 	}
+
+	my $used = {};
+	$self->{page} = $self->_process_page( 
+		$self->{archive}->get_template( $self->get_langid ),
+		$map,
+		$used,
+		$ph );
+
+	foreach( keys %{$used} )
+	{
+		next if $used->{$_};
+		EPrints::XML::dispose( $map->{$_} );
+	}
+	return;
+}
+
+sub _process_page
+{
+	my( $self, $node, $map, $used, $ph ) = @_;
+
+
+	if( EPrints::XML::is_dom( $node, "Element" ) )
+	{
+		my $name = $node->getTagName;
+		$name =~ s/^ep://;
+		if( $name eq "pin" )
+		{
+			my $ref = $node->getAttribute( "ref" );
+			my $insert = $map->{$ref};
+
+			if( !defined $insert )
+			{
+				return $self->make_text(
+					"[Missing pin: $ref]" );
+			}
+
+			if( $node->getAttribute( "textonly" ) eq "yes" )
+			{
+				return $self->make_text(
+					EPrints::Utils::tree_to_utf8( 
+						$insert ) );
+			}
+
+			if( !$used->{$ref} )
+			{
+				$used->{$ref} = 1;
+				return $insert;
+			}
+
+			return EPrints::XML::clone_node( $insert );
+		}
+	}
+
+	my $element = $self->clone_for_me( $node, 0 );
+
+
+	# Handle extra attributes for <body> tag page hook.
+
+	if( 	EPrints::XML::is_dom( $node, "Element" ) && 
+		$node->getTagName eq "body" &&
+		defined $ph->{bodyattr} )
+	{
+		foreach( keys %{$ph->{bodyattr}} )
+		{
+			$element->setAttribute( 
+				$_, 
+				$ph->{bodyattr}->{$_} );	
+		}
+	}
+
+	
+	foreach my $c ( $node->getChildNodes )
+	{
+		$element->appendChild(
+			$self->_process_page(
+				$c, 
+				$map, 
+				$used, 
+				$ph ) );
+	}
+	return $element;
 }
 
 
@@ -1569,8 +1579,9 @@ sub send_page
 {
 	my( $self, %httpopts ) = @_;
 	$self->send_http_header( %httpopts );
-	print $self->{page}->toString();
-	$self->{page}->dispose();
+	print EPrints::XML::to_string( $self->{page} );
+	EPrints::XML::dispose( $self->{page} );
+	delete $self->{page};
 }
 
 
@@ -1587,10 +1598,10 @@ undocumented
 sub page_to_file
 {
 	my( $self , $filename ) = @_;
-
-	$self->{page}->printToFile( $filename );
-	$self->{page}->dispose();
-	$self->{pagemade} = 0;
+	
+	EPrints::XML::write_xml_file( $self->{page}, $filename );
+	EPrints::XML::dispose( $self->{page} );
+	delete $self->{page};
 }
 
 
@@ -1608,73 +1619,30 @@ sub set_page
 {
 	my( $self, $newhtml ) = @_;
 	
-	my $html = ($self->{page}->getElementsByTagName( "html" ))[0];
-	$self->{page}->removeChild( $html );
-	$self->{page}->appendChild( $newhtml );
-	$html->dispose();
-	$self->{pagemade} = 0;
+	if( defined $self->{page} )
+	{
+		EPrints::XML::dispose( $self->{page} );
+	}
+	$self->{page} = $newhtml;
 }
 
 
 ######################################################################
 =pod
 
-=item $foo = $thing->new_page
+=item $foo = $thing->clone_for_me( $node, $deep )
 
 undocumented
 
 =cut
 ######################################################################
 
-sub new_page
+sub clone_for_me
 {
-	my( $self ) = @_;
+	my( $self, $node, $deep ) = @_;
 
-
-	$self->{page} = new XML::DOM::Document();
-
-	my $doctype = $self->{page}->createDocumentType(
-			"html",
-			"DTD/xhtml1-transitional.dtd",
-			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
-	$self->{page}->setDoctype( $doctype );
-
-	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
-	$self->{page}->setXMLDecl( $xmldecl );
-	my $html = $self->{archive}->get_template( $self->get_langid() )->cloneNode( 1 );
-	$self->take_ownership( $html );
-	$self->{page}->appendChild( $html );
-
-	$self->{pagemade} = 1;
+	return EPrints::XML::clone_and_own( $node, $self->{doc}, $deep );
 }
-
-
-######################################################################
-# 
-# EPrints::Session::_tag_compression( $tag, $elem )
-#
-# undocumented
-#
-######################################################################
-
-sub _tag_compression
-{
-	my ($tag, $elem) = @_;
-
-	# Print empty br, hr and img tags like this: <br />
-	return 2 if $tag =~ /^(br|hr|img|link|input|meta)$/;
-	
-	# Print other empty tags like this: <empty></empty>
-	return 1;
-}
-
-
-
-
-
-
-
-
 
 
 
@@ -1991,14 +1959,15 @@ sub get_citation_spec
 	my $citespec = $self->{archive}->get_citation_spec( 
 					$self->{lang}->get_id(), 
 					$citation_id );
+
 	if( !defined $citespec )
 	{
 		return $self->make_text( "Error: Unknown Citation Style \"$citation_id\"" );
 	}
-	my $cite = $citespec->cloneNode( 1 );
-	$self->take_ownership( $cite );
+	
+	my $r = $self->clone_for_me( $citespec, 1 );
 
-	return $cite;
+	return $r;
 }
 
 

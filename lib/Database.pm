@@ -1849,7 +1849,7 @@ confess();
 ######################################################################
 =pod
 
-=item $foo = $db->get_values( $field )
+=item $foo = $db->get_values( $field, $dataset )
 
 Return an array of all the distinct values of the EPrints::MetaField
 specified.
@@ -1859,9 +1859,7 @@ specified.
 
 sub get_values
 {
-	my( $self, $field ) = @_;
-
-	my $dataset = $field->get_dataset();
+	my( $self, $field, $dataset ) = @_;
 
 	my $table;
 	if ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )

@@ -135,7 +135,7 @@ sub new
 		my $langid;
 		foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 		{
-			$data->{name}->{$langid} = $session->get_archive()->get_language( $langid )->phrase( "lib/subject:top_level", {}, $session )->toString;	
+			$data->{name}->{$langid} = EPrints::XML::to_string( $session->get_archive()->get_language( $langid )->phrase( "lib/subject:top_level", {}, $session ) );
 		}
 
 		return EPrints::Subject->new_from_data( $session, $data );
@@ -586,7 +586,7 @@ sub _get_subjects2
 
 	my $desc = $self->render_description;
 	my $label = EPrints::Utils::tree_to_utf8( $desc );
-	$desc->dispose();
+	EPrints::XML::dispose( $desc );
 
 	my $subpairs = [];
 	if( (!$postableonly || $postable) && (!$hidenode) )

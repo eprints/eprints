@@ -119,6 +119,10 @@ $ds = $archive->get_dataset( "inbox" );
 #     list of EPrints::MetaFields that may be edited by a user in the
 #     order they should be presented with 'required' set as needed.
 #
+#  $self->{typesreq}
+#     Reference to a hash indexed by typeid. Values are references to arrays
+#     containing references to all requrired metafields for the type.
+#
 #  $self->{staff_types}
 #     As for {types} but for fields which may be edited by an editor or
 #     administrator.
@@ -251,7 +255,7 @@ will not get garbage collected.
 
 sub new
 {
-	my( $class , $archive , $id , $typesconf ) = @_;
+	my( $class , $archive , $id , $typesconf, $cache ) = @_;
 	
 	my $self = EPrints::DataSet->new_stub( $id );
 
@@ -261,6 +265,7 @@ sub new
 	$self->{system_fields} = [];
 	$self->{field_index} = {};
 	$self->{types} = {};
+	$self->{typesreq} = {};
 	# staff types is the same list, but includes fields
 	# which are only shown during staff mode editing. 
 	# eg. The "Editor" filter.
@@ -288,6 +293,23 @@ sub new
 	}
 
 
+
+	$self->{default_order} = $self->{archive}->
+			get_conf( "default_order" , $self->{confid} );
+
+
+	if( defined $cache->{$self->{confid}} )
+	{
+		foreach( "fields", "system_fields", "field_index",
+			"types", "typesreq", "staff_types", "type_order" )
+		{
+			$self->{$_} = $cache->{$self->{confid}}->{$_};
+		}
+		return $self;
+	}
+			
+
+
 	if( defined $INFO->{$self->{confid}}->{class} )
 	{
 		my $class = $INFO->{$id}->{class};
@@ -300,6 +322,7 @@ sub new
 			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
+
 	my $archivefields = $archive->get_conf( "archivefields", $self->{confid} );
 	if( $archivefields )
 	{
@@ -320,6 +343,7 @@ sub new
 			next if( $typeid eq "_order" );
 
 			$self->{types}->{$typeid} = [];
+			$self->{typesreq}->{$typeid} = [];
 			$self->{staff_types}->{$typeid} = [];
 
 			# System fields are now not part of the "type" fields
@@ -335,31 +359,36 @@ sub new
 			{
 				if( !defined $self->{field_index}->{$f->{id}} )
 				{
-					EPrints::Config::abort( "Could not find field \"".$f->{id}."\" in dataset \"".$id."\", although it is\nrequired for type: \"".$typeid."\"" );
+					EPrints::Config::abort( 
+'Could not find field "'.$f->{id}.'" in dataset "'.$id.'", '.
+'although it is\npart of type: "'.$typeid.'"' );
 				}
-				my $field = $self->{field_index}->{$f->{id}}->clone();
+
+				my $field = $self->{field_index}->{$f->{id}};
 				if( !defined $field )
 				{
 					$archive->log( "Unknown field: $_ in ".
 						$self->{confid}."($typeid)" );
 				}
 
-				# set the required flag, but don't override a system level
-				# required.
-				unless( $field->get_property( "required" ) )
+				# set the required flag, but don't override a 
+				# system level required.
+				if( $field->get_property( "required" ) 
+					|| $f->{required} )
 				{
-					$field->set_property( "required" , $f->{required} );
+					push @{$self->{typesreq}->{$typeid}},
+						$field;
 				}
 				unless( $f->{staffonly} ) 
 				{
-					push @{$self->{types}->{$typeid}}, $field;
+					push @{$self->{types}->{$typeid}}, 
+						$field;
 				}
 				push @{$self->{staff_types}->{$typeid}}, $field;
 			}
 		}
-	}
-	$self->{default_order} = $self->{archive}->
-			get_conf( "default_order" , $self->{confid} );
+	} 
+	$cache->{$self->{confid}} = $self;
 
 	return $self;
 }
@@ -793,21 +822,8 @@ the given type.
 sub get_required_type_fields
 {
 	my( $self, $type ) = @_;
-	
-	my %req = ();
-	my $field;
 
-	# Looks iffy, shouldn't get_fields be get_system_fields?
-	# needs to handle staff only required fiedls. cjg
-	foreach $field ( $self->get_fields(), $self->get_type_fields( $type ) )
-	{
-		if( $field->get_property( "required" ) )
-		{	
-			$req{$field->get_name()}=$field;
-		}
-	}
-
-	return values %req;
+	return @{$self->{typesreq}->{$type}};	
 }
 
 
@@ -965,9 +981,41 @@ sub count_indexes
 }
 		
 
+######################################################################
+=pod
 
+=item $boolean = $ds->field_required_in_type( $field, $type )
+
+Return true if the field is required by in the specified type. Nb.
+If the field is required generally but not specicially for this field
+then this function returns TRUE.
+
+=cut
+######################################################################
+
+sub field_required_in_type
+{
+	my( $self, $field, $type ) = @_;
+
+	if( $field->get_property( "required" ) eq "yes" )
+	{
+		return 1;
+	}
+
+	foreach( @{$self->{typesreq}->{$type}} )
+	{
+		if( $_->get_name eq $field->get_name )
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+######################################################################
 1;
-
 ######################################################################
 =pod
 

@@ -72,8 +72,8 @@ sub deal
 	$frag->appendChild( $r );
 	$frag->addText( "\n" );
 
-	print $frag->toString()."\n";
-	$frag->dispose();
+	EPrints::XML::to_string( $frag )."\n";
+	EPrints::XML::dispose( $frag );
 
 }
 

@@ -58,7 +58,6 @@ elsif( grep(/^$newlang$/,@langids) )
 				$session->get_archive()->get_conf( "defaultlanguage" ) ) ) ) );
 	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
-	$session->new_page();
 	$session->build_page( $session->html_phrase( "cgi/set_lang:lang_changed" ), $page, "setlang_done" );
         $session->send_page( lang=>$newlang );
 }
