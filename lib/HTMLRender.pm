@@ -7,6 +7,7 @@
 ######################################################################
 #
 # 01/10/99 - Created by Robert Tansley
+# $Id$
 #
 ######################################################################
 
@@ -19,7 +20,7 @@ use EPrintSite::SiteInfo;
 
 use strict;
 use CGI::Apache;
-
+use CGI;
 
 # Width of text fields
 $EPrints::HTMLRender::form_width = 60;
@@ -89,8 +90,9 @@ sub new
 	
 	if( $offline )
 	{
+		# Offline session. Don't use CGI::Apache.
 		$self->{offline} = 1;
-		$self->{query} = new CGI::Apache( {} );
+		$self->{query} = new CGI( {} );
 	}
 	else
 	{
