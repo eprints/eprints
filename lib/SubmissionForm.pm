@@ -778,19 +778,20 @@ sub _from_stage_upload
 
 	# Check the document is OK, and that it is associated with the current
 	# eprint
-	my $doc = EPrints::Document->new(
+	$self->{document} = EPrints::Document->new(
 		$self->{session},
-		$self->{session}->{render}->param( "docid" ) );
-	$self->{document} = $doc;
+		$self->{session}->param( "docid" ) );
 
-	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )#cjg!!
+	if( !defined $self->{document} ||
+	    $self->{document}->get_value( "eprintid" ) ne $self->{eprint}->get_value( "eprintid" ) )
 	{
 		$self->_corrupt_err;
 		return( 0 );
 	}
 	
 	# We need to address a common "feature" of browsers here. If a form has
-	# only one text field in it, and the user types things into it and presses
+	# only one text field in it, and the user types things into it and 
+	# presses "return" it submits the form without setting the submit
 	# button, so we can't tell whether the "Back" or "Upload" button is
 	# appropriate. We have to assume that if the user's pressed return they
 	# want to go ahead with the upload, so we default to the upload button:
@@ -799,54 +800,58 @@ sub _from_stage_upload
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{new_stage} = "fielview";
+		$self->{new_stage} = "fileview";
 		return( 1 );
 	}
 
 	if( $self->{action} eq "upload" )
 	{
-		my $arc_format = $self->{session}->{render}->param( "arc_format" );
-		my $num_files   = $self->{session}->{render}->param( "num_files" );
+		my $arc_format = $self->{session}->param( "arc_format" );
+		my $num_files = $self->{session}->param( "num_files" );
+		# Establish a sensible max and minimum number of files.
+		# (The same ones as we used to render the upload form)
+		$num_files = 1 if( $self->{num_files} < 1 );
+		$num_files = 1 if( $self->{num_files} > 99 ); 
 		my( $success, $file );
 
 		if( $arc_format eq "plain" )
 		{
 			my $i;
-			
 			for( $i=0; $i<$num_files; $i++ )
 			{
-				$file = $self->{session}->{render}->param( "file_$i" );
+				$file = $self->{session}->param( "file_$i" );
 				
-				$success = $doc->upload( $file, $file );
+				$success = $self->{document}->upload( $file, $file );
 			}
 		}
 		elsif( $arc_format eq "graburl" )
 		{
-			$success = $doc->upload_url( $self->{session}->{render}->param( "url" ) );
+			my $url = $self->{session}->param( "url" );
+			$success = $self->{document}->upload_url( $url );
 		}
 		else
 		{
-			$file = $self->{session}->{render}->param( "file_0" );
-			$success = $doc->upload_archive( $file, $file, $arc_format );
+			$file = $self->{session}->param( "file_0" );
+			$success = $self->{document}->upload_archive( $file, $file, $arc_format );
 		}
 		
 		if( !$success )
 		{
 			$self->{problems} = [
-				$self->{session}->phrase( "lib/submissionform:upload_prob" ) ];
+				$self->{session}->html_phrase( "lib/submissionform:upload_prob" ) ];
 		}
-		elsif( !defined $doc->get_main() )
+		elsif( !defined $self->{document}->get_main() )
 		{
-			my %files = $doc->files();
+			my %files = $self->{document}->files();
 			if( scalar keys %files == 1 )
 			{
 				# There's a single uploaded file, make it the main one.
 				my @filenames = keys %files;
-				$doc->set_main( $filenames[0] );
+				$self->{document}->set_main( $filenames[0] );
 			}
 		}
 
-		$doc->commit();
+		$self->{document}->commit();
 		$self->{new_stage} = "fileview";
 		return( 1 );
 	}
@@ -1245,6 +1250,7 @@ sub _do_stage_format
 	$th->appendChild( 
 		$self->{session}->html_phrase("lib/submissionform:files_uploaded") );
 	
+	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
 	my $doc;
 	foreach $doc ( $self->{eprint}->get_all_documents() )
 	{
@@ -1253,7 +1259,10 @@ sub _do_stage_format
 		my $nfiles = "???";
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
-		$td->appendChild( $self->{session}->make_text("cjg:format(".$doc->get_value( "format" ).")") );
+		if( defined $doc->get_value( "format" ) )
+		{
+			$td->appendChild( $self->{session}->make_text( $docds->get_type_name( $self->{session}, $doc->get_value( "format" ) ) ) );
+		}
 		my $desc = $doc->get_value( "formatdesc" ); 
 		# not calling proper render function here. cjg
 		if( defined $desc )
@@ -1410,8 +1419,8 @@ sub _do_stage_fileview
 		$submit_buttons->{finished} = $self->{session}->phrase("lib/submissionform:action_finished");
 	#}
 	$page->appendChild( $self->_render_problems(
-		$self->{session}->phrase("lib/submissionform:fix_upload"),
-		$self->{session}->phrase("lib/submissionform:please_fix") ) );
+		$self->{session}->html_phrase("lib/submissionform:fix_upload"),
+		$self->{session}->html_phrase("lib/submissionform:please_fix") ) );
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
@@ -1421,7 +1430,11 @@ sub _do_stage_fileview
 				$arc_format_field, 
 				$num_files_field 
 			],
-			$doc->get_data(),
+			{
+				format => $doc->get_value( "format" ),
+				formatdesc => $doc->get_value( "formatdesc" ),
+				num_files => 1 
+			},
 			0,
 			1,
 			$submit_buttons,
@@ -1567,17 +1580,18 @@ sub _do_stage_upload
 			$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_compfile") );
 		}
 		my $i;
+		# Establish a sensible max and minimum number of files.
+		$self->{num_files} = 1 if( $self->{num_files} < 1 );
+		$self->{num_files} = 1 if( $self->{num_files} > 99 ); 
 		for( $i=0; $i < $self->{num_files}; $i++ )
 		{
 			$form->appendChild( $self->{session}->render_upload_field( "file_$i" ) );
 		}
 	}
 	
-##############
-
 	my %hidden_fields = (
 		stage => "upload",
-		eprintd => $self->{eprint}->get_value( "eprintid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		docid => $self->{document}->get_value( "docid" ),
 		num_files => $self->{num_files},
 		arc_format => $self->{arc_format} 
@@ -1636,9 +1650,11 @@ sub _do_stage_verify
 
 	if( $#{$self->{problems}} >= 0 )
 	{
+		# Null doc fragment past because 'undef' would cause the
+		# default to appear.
 		$self->_render_problems(
-			$self->{session}->phrase("lib/submissionform:fix_probs"),
-			"" );
+			$self->{session}->html_phrase("lib/submissionform:fix_probs"),
+			$self->{session}->make_doc_fragment() );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(

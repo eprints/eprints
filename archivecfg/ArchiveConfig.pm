@@ -143,8 +143,8 @@ $c->{diskspace_warn_threshold} = 512000;
 # A list of compressed/archive formats that are accepted
 $c->{supported_archive_formats} =
 [
-	"ZIP",
-	"TARGZ"
+	"zip",
+	"targz"
 ];
 
 
@@ -161,15 +161,15 @@ $c->{wget_executable} = "/usr/bin/wget";
 # if everything went OK, non-zero in the case of any error.
 $c->{archive_extraction_commands} =
 {
-	"ZIP"    =>  "$c->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
-	"TARGZ"  =>  "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
+	"zip"    =>  "$c->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
+	"targz"  =>  "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
 };
 
 # The extensions to give the temporary uploaded file for each format.
 $c->{archive_extensions} =
 {
-	"ZIP"    =>  ".zip",
-	"TARGZ"  =>  ".tar.gz"
+	"zip"    =>  ".zip",
+	"targz"  =>  ".tar.gz"
 };
 
 #  Command to run to grab URLs. Should:

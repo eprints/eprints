@@ -403,11 +403,13 @@ sub render_hidden_field
 sub render_upload_field
 {
 	my( $self, $name ) = @_;
-	
-	return( $self->make_element(
+
+	my $div = $self->make_element( "div" ); #no class cjg	
+	$div->appendChild( $self->make_element(
 		"input", 
 		name => $name,
 		type => "file" ) );
+	return $div;
 }
 
 sub render_action_buttons

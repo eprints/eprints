@@ -2,6 +2,11 @@
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
 <phrases>
+    <phrase ref="document_typename_ascii">ASCII</phrase>
+    <phrase ref="document_typename_html">HTML</phrase>
+    <phrase ref="document_typename_pdf">PDF</phrase>
+    <phrase ref="document_typename_ps">Postscript</phrase>
+
     <phrase ref="eprint_fieldname_eprintid">EPrint ID</phrase>
 
     <phrase ref="eprint_fieldname_username">Depositing User</phrase>
