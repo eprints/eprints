@@ -80,6 +80,10 @@ sub process
 			"want to; you need only fill out those	fields marked with a * to ".
 			"start using the archive.</P>\n";
 
+		print "<P>For instructions on how to change your e-mail address, ".
+			"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
+			"click here</A>.</P>\n";
+
 		$self->render_form();
 
 		print $self->{session}->{render}->end_html();

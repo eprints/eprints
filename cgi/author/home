@@ -67,10 +67,10 @@ if( !$valid_user )
 else
 {
 	### Workspace
-	&render_workspace( $session );
+	&render_workspace( $session, $user );
 
 	### Pending
-	&show_pending( $session );
+	&show_pending( $session, $user );
 
 	print "<HR>\n";
 
@@ -90,12 +90,6 @@ else
 	print "<DD><P>Select this option to see your user record, and to correct ".
 		"or update your user information.</P></DD>\n";
 	
-	### Update e-mail
-	print "<DT><STRONG><A HREF=\"email\">Change your e-mail address</A>".
-		"</STRONG></DT>\n";
-	print "<DD><P>Select this option if you want to change your e-mail address,".
-		"rather than the user record option above.</P></DD>\n";
-
 	### Change subscription options
 	print "<DT><STRONG><A HREF=\"../reader/subscribe\">Change your ".
 		"subscription options</A></STRONG></DT>\n";
@@ -113,7 +107,7 @@ $session->terminate();
 
 ######################################################################
 #
-# render_workspace()
+# render_workspace( $session, $user )
 #
 #  This puts all of the user's papers in the inbox table in a form.
 #  The buttons will POST stuff to the submit script, with the possible
@@ -133,7 +127,7 @@ $session->terminate();
 
 sub render_workspace
 {
-	my( $session ) = @_;
+	my( $session, $user ) = @_;
 
 	### Get the actual papers in the workspace
 	my @eprints = EPrints::EPrint->retrieve_eprints(
@@ -193,7 +187,7 @@ sub render_workspace
 
 ######################################################################
 #
-# show_pending()
+# show_pending( $session, $user)
 #
 #  Show any papers that are in the submissions buffer, if any
 #
