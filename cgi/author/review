@@ -112,7 +112,7 @@ else
 		foreach (@eprints)
 		{
 			print "<TR><TD>".
-				$session->{render}->render_eprint_citation( $_, 1, 0 ).
+				$session->{render}->render_eprint_citation( $_, 1, 1 ).
 				"</TD><TD>";
 			print $session->{render}->named_submit_button(
 				"clone_$_->{eprintid}", "Clone" );
