@@ -1,4 +1,4 @@
-######################################################################
+#####################################################################j
 #
 # EPrints User class module
 #
@@ -42,6 +42,7 @@ use strict;
 (
 	"username:text::User ID:1:0:0",
 	"passwd:text::Password:1:0:0",
+# cjg groups should be read from config thing AND NOT CALLED groups.
 	"groups:set:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1]:Access Level:1:0:0",
 	"joined:date::Date Joined:1:0:0",
 	"email:email::E-Mail Address:1:0:1"
@@ -133,15 +134,7 @@ sub create_user
 	{
 		#print "Trying $candidate\n";
 	
-		# First find out if the candidate is taken
-		my $rows = $session->{database}->retrieve(
-			$EPrints::Database::table_user,
-			[ "username" ],
-			[ "username LIKE \"$candidate\"" ] );
-	
-		my @rows_array = @$rows;
-
-		if( $#rows_array >= 0 )
+		if( $session->{database}->exists( $EPrints::Database::table_user, $candidate ) )
 		{
 			# Already exists. Try again...
 			$used_count++;

@@ -47,7 +47,7 @@ my $digits = 2;
 @EPrints::Document::meta_fields =
 (
 	"docid:text::Document ID:1:0:1",                # Unique identifier
-	"eprintid:text::EPrint ID:1:0:0:1",             # Corresponding EPrint ID
+	"eprintid:text::EPrint ID:1:0:0",             # Corresponding EPrint ID
 	"format:set::Document Format:1:1:1",           # Format (e.g. HTML)
 	"formatdesc:text::Additional Format Description:1:1:1",
 	                                                # Format description for

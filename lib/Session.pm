@@ -46,32 +46,59 @@ use strict;
 
 sub new
 {
-	my( $class, $offline ) = @_;
-	
+	my( $class, $mode, $param) = @_;
+	# mode = 0    - We are online (CGI script)
+	# mode = 1    - We are offline (bin script) param is siteid
+	# mode = 2    - We are offline (auth) param is host and path.	
 	my $self = {};
 	bless $self, $class;
 
-	$self->{query} = ( $offline ? new CGI( {} ) : new CGI );
+	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 
 	# This should be set at installation.	
 	$self->{basepath} = "/opt/eprints";
 
-	if( $offline )
-	{
-		die "fucked";
-	}
-	else
-	{
-		# Errors in english - no configuration yet.
-		# These are pretty fatal - nothing will work if
-		# this bit dosn't.
+	# Errors in english - no configuration yet.
+	# These are pretty fatal - nothing will work if
+	# this bit dosn't.
 
+	my $offline;
+
+	if( $mode == 0 )
+	{
+		$offline = 0;
 		$self->{site} = EPrints::ConfigLoader::get_config_by_url(
 					$self->{query}->url() );
 		if( !defined $self->{site} )
 		{
 			die "Can't load config for URL: $self->{query}->url()";
 		}
+	}
+	elsif( $mode == 1 )
+	{
+		if( !defined $param || $param eq "" )
+		{
+			die "No site id specified.";
+		}
+		$offline = 1;
+		$self->{site} = EPrints::ConfigLoader::get_config_by_id( $param );
+		if( !defined $self->{site} )
+		{
+			die "Can't load config for: $param";
+		}
+	}
+	elsif( $mode == 2 )
+	{
+		$offline = 1;
+		$self->{site} = EPrints::ConfigLoader::get_config_by_host_and_path( $param );
+		if( !defined $self->{site} )
+		{
+			die "Can't load config for URL: $param";
+		}
+	}
+	else
+	{
+		die "Unknown session mode: $offline";
 	}
 
 	# Create a database connection

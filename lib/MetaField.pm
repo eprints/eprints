@@ -35,7 +35,7 @@ use strict;
 	"required",        # 0 if the field is optional, 1 if required
 	"editable",        # 1 if the field is user-editable
 	"visible",         # 1 if the field is publically visible
-	"indexed"          # Make an index in the database
+	"multiple"         # Is a multiple field
 );
 
 
@@ -92,9 +92,6 @@ sub new
 		# list.
 		$self->{displaylines} = shift @possibles;
 
-		# Multiple?
-		$self->{multiple} = shift @possibles;
-
 		# Work out the tags, and the tag labels. From the arguments field,
 		# in the form tag,label;tag,label;...
 		my $p;
@@ -118,7 +115,6 @@ sub new
 	elsif( $self->{type} eq "subject" )
 	{
 		# A set, but one that need to read in the subject fields.
-		$self->{multiple} = $self->{arguments};
 	}
 	elsif( $self->{type} eq "eprinttype" )
 	{

@@ -23,29 +23,29 @@ use EPrints::Session;
 use strict;
 
 
-if( $#ARGV < 2 || $#ARGV > 3 )
+if( $#ARGV < 3 || $#ARGV > 4 )
 {
-	die "Usage: create_user <username> <email> <access-level> [<password>]\n";
+	die "Usage: create_user <siteid> <username> <email> <access-level> [<password>]\n";
 }
 
-my $session = EPrints::Session->new( 1 );
+my $session = EPrints::Session->new( 1 , $ARGV[0] );
 
 my $valid_access_level = 0;
 foreach (@EPrints::User::access_levels)
 {
-	$valid_access_level = 1 if( $ARGV[2] eq $_ );
+	$valid_access_level = 1 if( $ARGV[3] eq $_ );
 }
 
 if( $valid_access_level )
 {
 	my $new_user = EPrints::User::create_user( $session,
-	                                           $ARGV[0],
 	                                           $ARGV[1],
-	                                           $ARGV[2] );
+	                                           $ARGV[2],
+	                                           $ARGV[3] );
 
 	if( $#ARGV == 3 )
 	{
-		$new_user->{passwd} = $ARGV[3];
+		$new_user->{passwd} = $ARGV[4];
 		$new_user->commit();
 	}
 

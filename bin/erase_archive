@@ -79,7 +79,7 @@ if( $input eq "yes" )
 	
 	# Get available directories
 	opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
-		or return( undef );
+		or print STDERR "Can't open DOCSTORE";
 
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;

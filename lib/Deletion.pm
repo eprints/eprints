@@ -30,7 +30,7 @@ use strict;
 (
 	"eprintid:text::EPrint ID:1:0:0",
 	"replacement:text::ID of Replacement:1:0:0",
-	"subjects:subject:1:Subject Categories:0:0:0",
+	"subjects:subject::Subject Categories:0:0:0:1",
 	"deletiondate:date::Date Removed:1:0:0"
 );
 

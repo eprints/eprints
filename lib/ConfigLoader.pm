@@ -16,16 +16,25 @@ package EPrints::ConfigLoader;
 
 use EPrintSite;
 
-%EPrints::ConfigLoader::id2baseurl = ();
+%EPrints::ConfigLoader::id2hostpath = ();
 
 %EPrints::ConfigLoader::id2config = ();
+
 
 
 sub get_config_by_url
 {
 	my( $url ) = @_;
+	$hostpath = $url;
+	$hostpath =~ s#^[a-z]+://##;
+	return get_config_by_host_and_path( $hostpath );
+}
 
-	if( scalar %EPrints::ConfigLoader::id2baseurl == 0 )
+sub get_config_by_host_and_path
+{
+	my( $hostpath ) = @_;
+
+	if( scalar %EPrints::ConfigLoader::id2hostpath == 0 )
 	{
 		my $config_file = $EPrintSite::base_path."/etc/sites.cfg";
 		%EPrints::ConfigLoader::id2baseurl = ();
@@ -33,16 +42,17 @@ sub get_config_by_url
                         die "Can't open $config_file";
                 while(<SITES>)
                 {
+			next if( m/^\s*#/ );
                         chomp;
-                        next unless( m/^([a-z][a-z0-9_]*)\s+([^\s]+)\s*$/ );
-			$EPrints::ConfigLoader::id2baseurl{$1} = $2;
+                        next unless( m/^([a-z][a-z0-9_]*)\s+([^\s]+)(\s+([^\s]+))?\s*$/ );
+			$EPrints::ConfigLoader::id2hostpath{$1} = $2.( defined $4 ? $4 : "" );
 		}
 		close SITES;
 	}
-	foreach( keys %EPrints::ConfigLoader::id2baseurl )
+	foreach( keys %EPrints::ConfigLoader::id2hostpath )
 	{
-		my $baseurl = $EPrints::ConfigLoader::id2baseurl{$_};
-		if( substr( $url, 0, length($baseurl) ) eq $baseurl )
+		my $thishostpath = $EPrints::ConfigLoader::id2hostpath{$_};
+		if( substr( $hostpath, 0, length($thishostpath) ) eq $thishostpath )
 		{
 			return get_config_by_id( $_ );
 		}
@@ -54,6 +64,8 @@ sub get_config_by_url
 sub get_config_by_id
 {
 	my( $id ) = @_;
+
+	print STDERR "Loading: $id\n";
 	
 	if( defined $EPrints::ConfigLoader::id2config{$id} )
 	{

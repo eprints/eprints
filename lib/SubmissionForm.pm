@@ -1789,7 +1789,7 @@ sub update_from_meta_form
 		EPrints::Log::log_entry(
 				"L:idnotmatch",
 				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} );
+				eprintid=>$self->{eprint}->{eprintid} } );
 
 		return( 0 );
 	}

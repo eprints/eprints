@@ -45,13 +45,13 @@ $EPrints::Database::table_subscription = "subscriptions";
 $EPrints::Database::table_deletion = "deletions";
 
 %EPrints::Database::table_class = (
-	$EPrints::Database::table_user => "EPrints::Users",
+	$EPrints::Database::table_user => "EPrints::User",
 	$EPrints::Database::table_inbox => "EPrints::EPrint",
 	$EPrints::Database::table_buffer => "EPrints::EPrint",
 	$EPrints::Database::table_archive => "EPrints::EPrint",
 	$EPrints::Database::table_document => "EPrints::Document",
 	$EPrints::Database::table_subject => "EPrints::Subject",
-	$EPrints::Database::table_subscription => "EPrints::Users",
+	$EPrints::Database::table_subscription => "EPrints::Subscription",
 	$EPrints::Database::table_deletion => "EPrints::Deletion"
 );
 
@@ -301,7 +301,7 @@ sub _create_table
 
 	my $keyfield = $fields[0]->clone();
 	$keyfield->{indexed} = 1;
-	my $fieldword = EPrints::MetaField->new( "fieldword:text:0:Word:1:0:0:1" );
+	my $fieldword = EPrints::MetaField->new( "fieldword:text::Word:1:0:0" );
 
 	$rv = $rv & $self->_create_table_aux(
 			index_name( $tablename ),
@@ -343,7 +343,7 @@ sub _create_table_aux
 			my $keyfield = $fields[0]->clone();
 			$keyfield->{indexed} = 1;
 			my $pos = EPrints::MetaField->new(
-				"pos:int:0:Postion:1:0:0:0" );
+				"pos:int:0:Postion:1:0:0" );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
 				$tablename.$EPrints::Database::seperator.$field->{name},
@@ -411,7 +411,7 @@ sub _create_table_aux
 #
 # $success = add_record( $table, $data )
 #
-#  Add data to the given table. Does not handle aux. tables yet.
+#  Add data to the given table. 
 #
 #
 ######################################################################
@@ -567,7 +567,8 @@ sub update
 		{
 			next;
 		}
-
+print STDERR "*".$data->{$multifield->{name}}."\n";
+print STDERR "*".$multifield->{name}."\n";
 		my $i=0;
 		foreach( @{$data->{$multifield->{name}}} )
 		{

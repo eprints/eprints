@@ -30,7 +30,7 @@ use strict;
 (
 	"subjectid:text::Subject ID:1:0:0",
 	"name:text::Subject Name:1:0:0",
-	"parent:text::Parent Subject:0:0:0:1",
+	"parent:text::Parent Subject:0:0:0",
 	"depositable:boolean::Depositable:1:0:0"
 );
 

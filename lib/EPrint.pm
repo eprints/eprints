@@ -34,10 +34,10 @@ $EPrints::EPrint::id_code_digits = 8;
 @EPrints::EPrint::system_meta_fields =
 (
 	"eprintid:text::EPrint ID:1:0:1",        # The EPrint ID
-	"username:text::Submitted by:1:0:1:1",   # User ID of submitter
+	"username:text::Submitted by:1:0:1",   # User ID of submitter
 	"dir:text::Local Directory:0:0:0",       # Directory it's in
 	"datestamp:date::Submission Date:0:0:1", # The submission date stamp
-	"subjects:subject:1:Subject Categories:0:0:0",
+	"subjects:subject::Subject Categories:0:0:0:1",
 	                                         # Subject categories. Tagged as
 	                                         # "not visible" since it's a special
 	                                         # case.
@@ -46,8 +46,8 @@ $EPrints::EPrint::id_code_digits = 8;
 	"reasons:longtext:6:Reason for Additional Heading:0:0:0",
 	                                         # Chance for user to explain why
 	"type:eprinttype::EPrint Type:1:0:0",    # EPrint types, special case again
-	"succeeds:text::Later Version Of:0:0:0:1", # Later version of....
-	"commentary:text::Commentary On:0:0:0:1"   # Commentary on/response to...
+	"succeeds:text::Later Version Of:0:0:0", # Later version of....
+	"commentary:text::Commentary On:0:0:0"   # Commentary on/response to...
 );
 
 
@@ -165,7 +165,7 @@ sub create
 
 	my $new_id = _create_id( $session );
 	my $dir = _create_directory( $session, $new_id );
-
+print STDERR "($new_id)($dir)\n";
 	return( undef ) if( !defined $dir );
 
 	$new_eprint->{eprintid} = $new_id;
@@ -292,6 +292,7 @@ sub _create_directory
 	my $full_path = $EPrintSite::SiteInfo::local_document_root . "/" . $dir;
 
 	# Ensure the path is there. Dir. is made group writable.
+print "($full_path)\n";
 	my @created = eval
 	{
 		my @created = mkpath( $full_path, 0, 0775 );
@@ -627,7 +628,6 @@ sub short_title
 sub commit
 {
 	my( $self ) = @_;
-
 	my $success = $self->{session}->{database}->update(
 		$self->{table},
 		$self );
