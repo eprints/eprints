@@ -21,7 +21,7 @@
 
 package EPrints::Language;
 
-use EPrints::Site::General;
+use EPrints::Archives::General;
 
 use XML::DOM;
 use strict;
@@ -85,7 +85,7 @@ sub new
 		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id} );
 
 	$self->{data} =
-		read_phrases( $EPrints::Site::General::lang_path."/".$self->{id} );
+		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id} );
 	
 	if( $archive->get_conf("default_language") ne $self->{id})
 	{

@@ -1234,7 +1234,7 @@ sub generate_static
 		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
 	
 	my $langid;
-	foreach $langid ( keys %EPrints::Site::General::languages )
+	foreach $langid ( keys %EPrints::Archives::General::languages )
 	{
 		print "LANG: $langid\n";	
 

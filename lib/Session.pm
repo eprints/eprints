@@ -117,7 +117,7 @@ sub new
 	# What language is this session in?
 
 	my $langcookie = $self->{query}->cookie( $self->{archive}->get_conf( "lang_cookie_name") );
-	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
+	if( defined $langcookie && !defined $EPrints::Archives::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
 	}

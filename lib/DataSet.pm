@@ -63,7 +63,7 @@ sub new_stub
 
 	if( !defined $INFO->{$datasetname} )
 	{
-		# no site info, so can't log.
+		# no archive info, so can't log.
 		print STDERR "Unknown dataset name: $datasetname\n";	
 		&EPrints::Session::bomb;
 		die( "Unknown dataset name: $datasetname" );
@@ -85,7 +85,7 @@ sub new_stub
 #
 #  Create a new dataset object and get all the information
 #  on types, system fields, and user fields from the various
-#  sources - the packages and the site config module.
+#  sources - the packages and the archive config module.
 
 ## WP1: BAD
 # note that dataset know $archive and vice versa - bad for GCollection.
@@ -113,7 +113,7 @@ sub new
 			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
-	my $archivefields = $archive->get_conf( "sitefields", $self->{confid} );
+	my $archivefields = $archive->get_conf( "archivefields", $self->{confid} );
 	if( $archivefields )
 	{
 		foreach $fielddata ( @{$archivefields} )

@@ -10,13 +10,13 @@
 #
 ######################################################################
 
-package EPrints::Site::lemurprints;
+package EPrints::Archives::lemurprints;
 
 
 use XML::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
 
-use EPrints::Site::General;
+use EPrints::Archives::General;
 use EPrints::Version;
 use EPrints::Document;
 use EPrints::OpenArchives;
@@ -32,6 +32,7 @@ use strict;
 ## WP1: BAD
 sub get_conf
 {
+print STDERR "LEMURPRINTS:getconf\n";
 	my $c = {};
 
 
@@ -82,8 +83,8 @@ $c->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$c->{archive_root} = "$EPrints::Site::General::base_path/sites/$c->{archiveid}";
-$c->{bin_root} = "$EPrints::Site::General::base_path/bin";
+$c->{archive_root} = "$EPrints::Archives::General::base_path/sites/$c->{archiveid}";
+$c->{bin_root} = "$EPrints::Archives::General::base_path/bin";
 $c->{phrases_path} = "$c->{archive_root}/phrases";
 $c->{static_html_root} = "$c->{archive_root}/static";
 $c->{local_html_root} = "$c->{archive_root}/html";
@@ -321,7 +322,7 @@ $c->{oai_comments} = [
 ###########################################
 #  Language
 
-# List of supported languages is in EPrints::Site::General.pm
+# List of supported languages is in EPrints::Archives::General.pm
 # Default Language for this archive
 $c->{default_language} = "english";
 

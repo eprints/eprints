@@ -34,7 +34,7 @@ chdir( $session->get_archive()->get_conf( "archive_root" ) );
 print "____________________________\n";
 my $langid;
 my $generalpath = $session->get_archive()->get_conf( "static_html_root" )."/general";
-foreach $langid ( keys %EPrints::Site::General::languages )
+foreach $langid ( keys %EPrints::Archives::General::languages )
 {
 	print $langid."\n";
 	my $basepath = $session->get_archive()->get_conf( "static_html_root" ).

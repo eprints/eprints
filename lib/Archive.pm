@@ -14,7 +14,7 @@
 
 package EPrints::Archive;
 
-use EPrints::Site::General;
+use EPrints::Archives::General;
 use EPrints::DataSet;
 
 use Filesys::DiskSpace;
@@ -40,11 +40,11 @@ sub new_site_by_host_and_path
 
 	print STDERR "($hostpath)\n";
 
-	foreach( keys %EPrints::Site::General::sites )
+	foreach( keys %EPrints::Archives::General::sites )
 	{
 		if( substr( $hostpath, 0, length($_) ) eq $_ )
 		{
-			return new_site_by_id( $class, $EPrints::Site::General::sites{$_} );
+			return new_site_by_id( $class, $EPrints::Archives::General::sites{$_} );
 		}
 	}
 	return undef;
@@ -70,16 +70,16 @@ sub new_site_by_id
 	my $self = {};
 	bless $self, $class;
 
-	unless( require "EPrints/Site/$id.pm" )
+	unless( require "EPrints/Archives/$id.pm" )
 	{
 print STDERR "FAILED TO LOAD: $id\n";
 		return undef;
 	}
 	$ID2SITE{$id} = $self;
 
-	$self->{class} = "EPrints::Site::$id";
+	$self->{class} = "EPrints::Archives::$id";
 	my $function= $self->{class}."::get_conf";
-	$self->{config} = &{$function}();
+	$self->{config} = &{$function}(); #????cjg
 
 	$self->{id} = $id;
 	$self->{datasets} = {};

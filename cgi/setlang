@@ -26,21 +26,21 @@ my $newlang = $session->param( "langid" );
 if( !defined $newlang )
 {
 	my $page = $session->make_doc_fragment;
-	foreach( keys %EPrints::Site::General::languages )
+	foreach( keys %EPrints::Archives::General::languages )
 	{	
 	
 		my $p = $session->make_element( "p" );
 		my $a = $session->make_element( "a", 
 				href => "setlang?langid=$_" );
 		$a->appendChild( $session->make_text( 
-			$EPrints::Site::General::languages{$_} ) );
+			$EPrints::Archives::General::languages{$_} ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
 	$session->build_page( "Change Language", $page );
         $session->send_page();
 }
-elsif( defined $EPrints::Site::General::languages{$newlang} )
+elsif( defined $EPrints::Archives::General::languages{$newlang} )
 {
 	my $page = $session->make_doc_fragment;
 	$session->change_lang( $newlang );
@@ -49,12 +49,12 @@ elsif( defined $EPrints::Site::General::languages{$newlang} )
 	$p = $session->make_element( "p" );
 	$p->appendChild( $session->make_text(
 		"Language changed to: ".
-		$EPrints::Site::General::languages{$newlang} ) );
+		$EPrints::Archives::General::languages{$newlang} ) );
 	$page->appendChild( $p );
 	$p = $session->make_element( "p" );
 	$p->appendChild( $session->make_text(
 		"Default language of this archive is: ".
-		$EPrints::Site::General::languages{ 
+		$EPrints::Archives::General::languages{ 
 			$session->get_archive()->get_conf( "default_language" )} ) );
 	$page->appendChild( $p );
 	$session->newPage( $newlang );

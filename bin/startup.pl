@@ -42,7 +42,7 @@ use EPrints::MetaField;
 use EPrints::Name;
 use EPrints::OpenArchives;
 use EPrints::Archive;
-use EPrints::Site::General;
+use EPrints::Archives::General;
 use EPrints::SearchExpression;
 use EPrints::SearchField;
 use EPrints::Session;
