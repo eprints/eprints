@@ -19,6 +19,7 @@ use EPrints::MetaField;
 use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Mailer;
+use EPrints::Subscription;
 use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 use EPrintSite::Validate;
@@ -535,7 +536,7 @@ sub remove
 	}
 
 	# And subscriptions
-	my @subs = EPrints::Subscriptions->subscriptions_for(
+	my @subs = EPrints::Subscription->subscriptions_for(
 		$self->{session},
 		$self );
 	
