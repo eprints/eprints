@@ -88,7 +88,6 @@ $c->{phrases_path} = "$c->{site_root}/phrases";
 $c->{static_html_root} = "$c->{site_root}/static";
 $c->{local_html_root} = "$c->{site_root}/html";
 $c->{local_document_root} = "$c->{site_root}/documents";
-$c->{local_abstract_root} = "$c->{local_html_root}/abstracts/";
 
 ######################################################################
 # URLS
@@ -103,7 +102,7 @@ $c->{server_static} = "http://$c->{host}";
 $c->{frontpage} = "$c->{server_static}/";
 
 # Corresponding URL of document file hierarchy
-$c->{server_document_root} = "$c->{server_static}/documents"; 
+$c->{server_document_root} = "$c->{server_static}/archive"; 
 
 #################################################################
 #  Files

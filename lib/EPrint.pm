@@ -1226,24 +1226,8 @@ sub url_stem
 {
 	my( $self ) = @_;
 	
-	return( $self->{site}->{session}->{server_document_root}."/".$self->{dir}."/" );
-}
-
-
-######################################################################
-#
-# my $path = static_page_local()
-#
-#  Give the path on the local file system of the static HTML abstract
-#  page.
-#
-######################################################################
-
-sub static_page_local
-{
-	my( $self ) = @_;
-	
-	return( $self->local_path . "/" . $EPrints::EPrint::static_page );
+	return( $self->{session}->getSite->getConf( "server_document_root" ).
+		"/".$self->{data}->{eprintid}."/" );
 }
 
 
@@ -1259,7 +1243,7 @@ sub static_page_url
 {
 	my( $self ) = @_;
 	
-	return( $self->url_stem . $EPrints::EPrint::static_page );
+	return( $self->url_stem );
 }
 
 
@@ -1289,31 +1273,32 @@ sub generate_static
 	return( undef ) unless( $eprint_id =~
 		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
 	
-	my $aroot = $self->{session}->getSite->getConf( "local_abstract_root" );
-
-print STDERR "soak\n";
-	my $full_path = $aroot . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
-
-	my @created = eval
-	{
-		my @created = mkpath( $full_path, 0, 0775 );
-		return( @created );
-	};
-	print "yo:".join(",",@created)."\n";
-
 	my $langid;
 	foreach $langid ( keys %EPrints::Site::General::languages )
 	{
 		print "LANG: $langid\n";	
+
+
+		my $full_path = 
+			$self->{session}->getSite->getConf( "local_html_root" ).
+			"/$langid/archive/$1/$2/$3/$3";
+
+		my @created = eval
+		{
+			my @created = mkpath( $full_path, 0, 0775 );
+			return( @created );
+		};
+		print "yo:".join(",",@created)."\n";
+
 		$self->{session}->newPage( $langid );
 		my $page = $self->toHTMLPage;
 		$self->{session}->buildPage( "TITLE?????", $page ); #cjg title?
-		$self->{session}->pageToFile( $full_path."/".$langid.".html" );
-		
+		$self->{session}->pageToFile( $full_path .
+			  "/" . $EPrints::EPrint::static_page );
+		# SYMLINK's to DOCS...
 	}
 
 
-	# SYMLINK's to DOCS...
 
 	
 	return;	
@@ -1520,7 +1505,6 @@ sub last_in_thread
 sub toHTMLLink
 {
 	my( $self , $cstyle ) = @_;
-
 	my $a = $self->{session}->make_element( "A",
 			href => $self->static_page_url() );
 	$a->appendChild( $self->toHTML( $cstyle ) );

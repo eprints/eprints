@@ -653,7 +653,7 @@ sub process_webpage
 		foreach (@results)
 		{
 			$p = $self->{session}->make_element( "p" );
-			$p->appendChild( $_->toHTML );
+			$p->appendChild( $_->toHTMLLink );
 			$page->appendChild( $p );
 		}
 

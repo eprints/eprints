@@ -379,7 +379,6 @@ sub getHTML
 #cjg not DOM
 
 
-print "ARGH: $self->{name}, $self->{type}, $value\n ";
 	if( !defined $value || $value eq "" )
 	{
 		return $session->makeText( "" );
@@ -395,8 +394,6 @@ print "ARGH: $self->{name}, $self->{type}, $value\n ";
 
 	if( $self->isType( "name" ) )
 	{
-	print STDERR EPrints::Log::render_struct( $value )."\n";
-	print STDERR "!!!".EPrints::Name::format_names( $value )."\n";
 		return $session->makeText(
 			EPrints::Name::format_names( $value ) );
 	}

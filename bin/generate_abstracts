@@ -37,12 +37,8 @@ print "gotall\n";
 my $eprint;
 foreach $eprint (@eprints)
 {
-	print "-----ON--------\n";
-	print EPrints::Log::render_struct( $eprint );
-	print "-----OFF--------\n";
 #	EPrints::Log::debug( "generate_abstracts",
 #	                     "Generating abstract for $eprint->{eprintid}" );
-print $eprint->getValue( "eprintid" )."\n";
 	$eprint->generate_static();
 }
 print "done\n";
