@@ -29,7 +29,7 @@ for( my $d=0; $d<7; ++$d )
 	my $t = time-60*60*24*$d;
 	my $searchexp = new EPrints::SearchExpression(
 		session => $session,
-		use_cache => 1,
+		use_cache => 0,
 		dataset => $ds );
 	
 

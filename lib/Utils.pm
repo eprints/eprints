@@ -258,30 +258,33 @@ sub send_mail
 	my $utf8all	= $utf8body.$utf8sig;
 	my $type	= get_encoding($utf8all);
 	my $content_type_q = "text/plain";
+
+	my $msg = $utf8all;
 	if ($type eq "iso-latin-1")
 	{
-		$content_type_q = "text/plain; charset=iso-8859-1"; 
-		$utf8all = $utf8all->latin1; 
+		$content_type_q = "text/plain; charset=iso-latin-1"; 
+		$msg = $utf8all->latin1; 
 	}
 	#precedence bulk to avoid automail replies?  cjg
-	my $sendmailtext = "";
+	my $mailheader = "";
 	if( defined $replyto )
 	{
 		my $replytoname_q = mime_encode_q( $replytoname );
-		$sendmailtext.= <<END;
+		$mailheader.= <<END;
 Reply-To: "$replytoname_q" <$replyto>
 END
 	}
-	$sendmailtext.= <<END;
+	$mailheader.= <<END;
 From: "$arcname_q" <$adminemail>
 To: "$name_q" <$address>
 Subject: $arcname_q: $subject_q
 Content-Type: $content_type_q
 Content-Transfer-Encoding: 8bit
-
-$utf8all
 END
-	print SENDMAIL $sendmailtext;
+
+	print SENDMAIL $mailheader;
+	print SENDMAIL "\n";
+	print SENDMAIL $msg;
 	close(SENDMAIL) or return( 0 );
 	return( 1 );
 }
@@ -335,12 +338,28 @@ sub mime_encode_q
 	my $encoding = get_encoding($stringobj);
 
 	return $stringobj
-		if $encoding eq "7-bit";
-	return "=?utf-8?Q?".encode_str($stringobj)."?=" 
-		if $encoding eq "utf-8";
-	return "=?iso-latin-1?Q?".encode_str($stringobj->latin1)."?=" 
-		if $encoding eq "iso-latin-1";
-	return $stringobj;	# Not sure what to do, so just return string.
+		if( $encoding eq "7-bit" );
+
+	return $stringobj
+		if( $encoding ne "utf-8" && $encoding ne "iso-latin-1" );
+
+	my @words = split( " ", $stringobj->utf8 );
+
+	foreach( @words )
+	{
+		my $wordobj = Unicode::String->new();
+		$wordobj->utf8( $_ );	
+		# don't do words which are 7bit clean
+		next if( get_encoding($wordobj) eq "7-bit" );
+
+		my $estr = ( $encoding eq "iso-latin-1" ?
+		             $wordobj->latin1 :
+			     $wordobj );
+		
+		$_ = "=?".$encoding."?Q?".encode_str($estr)."?=";
+	}
+
+	return join( " ", @words );
 }
 
 

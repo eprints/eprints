@@ -183,6 +183,7 @@
 # clean up later-in-thread
 # subject editors (maybe)
 # setlang - show all langs, flag supported.
+# 
 
 # **********************
 # current urgent 2.0 todo
@@ -191,6 +192,16 @@
 # VLit link & page
 
 # time stamp views
+# Workspace/deletion viewer.
+# max time for caches eg. 30 for latest.
+# add --version to all bins. 
+# remove => => from all bins (man line)
+# `quiet' Used in many programs to inhibit the usual output. Note: every program accepting `--quiet' should accept `--silent' as a synonym.
+# way to reload config without offlining server.
+# Make Hide Lineage a field property.
+# sometimes exits without terminating 
+
+
 
 # HOW-TOS
 #================

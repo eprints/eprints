@@ -45,7 +45,6 @@ sub import_file
 		$parser->{eprints}->{fields}->{$_->{name}}=$_;
 	}
 	$parser->{eprints}->{dataset} = $dataset;
-print `pwd`;
 	$parser->parsefile( $filename );
 }
 
@@ -113,6 +112,7 @@ sub _handle_start
 			$parser->{eprints}->{currentmultilang} = {};
 		}
 		$parser->{eprints}->{currentlang} = lc $params{id};
+		$parser->{eprints}->{currentdata} = "";
 		return;
 	}
 	
@@ -145,7 +145,7 @@ sub _handle_end
 			$parser->{eprints}->{session},
 			$parser->{eprints}->{data} );
 
-		
+	
 		&{$parser->{eprints}->{function}}( 
 			$parser->{eprints}->{session}, 
 			$parser->{eprints}->{dataset},
@@ -167,7 +167,7 @@ sub _handle_end
 			my $ml = $parser->{eprints}->{currentmultilang};
 			if( !defined $ml ) { $ml = {}; }
 
-			if( defined $fielddata ) { $ml->{"?"} = $fielddata; }
+			if( defined $fielddata && $fielddata !~ m/^\s*$/ ) { $ml->{"?"} = $fielddata; }
 			
 			$fielddata = $ml;
 		}
@@ -204,9 +204,7 @@ sub _handle_end
 	}
 	if( $tag eq "LANG" )
 	{
-		$parser->{eprints}->{currentmultilang}->{
-			$parser->{eprints}->{currentlang} } = 
-				$parser->{eprints}->{currentdata};
+		$parser->{eprints}->{currentmultilang}->{ $parser->{eprints}->{currentlang} } = $parser->{eprints}->{currentdata};
 		$parser->{eprints}->{currentdata} = "";
 		return;
 	}

@@ -8,8 +8,10 @@
 General
 ----------------------------------------------------------------------
 
-- No subjects at all causes a HTTP error. Possibly due to the top 
-   subject for a field not existing.
+- If a user area function is broken, the system does not notice.
+
+- VLit code does not understand that server may not be running on
+   port 80.
 
 ----------------------------------------------------------------------
 Rendering
@@ -18,9 +20,24 @@ Rendering
 - /views/ pages do not correctly sort the list of fields (it's done 
    by ID not the rendered phrase). 
 
+- Mozilla puts whitespace under imgs for no good reason if there
+  is an <?xml ?> header or XHTML DOCTYPE 
+
+- cant use &nbsp; in pages.
+
+- Default template: html page title does not include site name
+
+- does not remove abstracts of deleted papers!
+
+
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
+
+- user "deposit" priv is ignored.
+
+- Bad &foo; and <ifset> items in citations should give a clean error
+if they use non-existant fields. 
 
 ----------------------------------------------------------------------
 Searching
@@ -29,6 +46,8 @@ Searching
 - No way to search date fields, via the forms interface.
 
 - Does not show "ignored words" if results are cached.
+
+- Does not index words after a \n
 
 ----------------------------------------------------------------------
 EPrints Submission Form
@@ -43,6 +62,43 @@ EPrints Editorial Buffer
 ----------------------------------------------------------------------
 Installation
 ----------------------------------------------------------------------
+
+- Refers to apache.conf which is sometimes called httpd.conf and
+  is ambiguous which file to edit.
+
+----------------------------------------------------------------------
+Email
+----------------------------------------------------------------------
+
+----------------------------------------------------------------------
+OAI
+----------------------------------------------------------------------
+
+- Tim Brody's reports of some incorrect responses in obscure cases.
+   [more info later]
+
+- http://eprints.aktors.org/perl/oai?verb=GetRecord&identifier=oai:akt:00000017&metadataPrefix=oai_dc
+causes a 500 error.
+ [Thu Feb 21 12:15:02 2002] [error] Bizarre copy of HASH in aassign at /usr/lib/perl5/5.6.0/Carp/Heavy.pm line 79.
+
+
+
+======================================================================
+Fixed in CVS
+======================================================================
+
+- No subjects at all causes a HTTP error. Possibly due to the top 
+   subject for a field not existing.
+- importer treats whitespace in a multilang field between the <lang>
+   tags as a value of unknown language. 
+- eprint_confposter had "years" not "year" - caused 500 error on
+   deposit page. 
+- "help" page refers to "lemur1.ecs.soton.ac.uk" not the local URL.
+- The OAIRender method which makes DC breaks on a bad subject. [now
+   just skips bad subjects]
+- Screws up Reply-to (DOM fragment instead of name) [fixed]
+- non-ASCII escaping in MIME appears broken [fixed]
+- non-ascii char (latin1 one) in message body not sent at all.
 
 
 
@@ -116,3 +172,26 @@ straight away.]
    you hit "more languages". Possily due to bad "squash up" code.
    [ turns out to be the a bug in the renderer! ]
 
+
+===
+notes
+===
+
+Chris,
+
+this looks like a simple typo in your scripts.
+
+When running generate apacheconf I get the error Can't locate
+EPrints/Archive.pm in @INC
+The @INC includes
+
+opt/eprints/perl_lib
+
+but the real directory created was
+
+opt/eprints2/perl_lib
+
+since this is version 2.
+
+Looks like you need to modify one of the scripts to add the "2" - sorry.
+====

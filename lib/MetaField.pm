@@ -671,9 +671,8 @@ sub render_input_field
 
 		if( $self->is_type( "subject" ) )
 		{
-			my $topsubj = EPrints::Subject->new(
-				$session,
-				$self->get_property( "top" ) );
+			my $topsubj = $self->get_top_subject( $session );
+
 			my ( $pairs ) = $topsubj->get_subjects( 
 				!($self->{showall}), 
 				$self->{showtop} );
@@ -1533,9 +1532,7 @@ sub get_values
 
 	if( $self->is_type( "subject" ) )
 	{
-		my $topsubj = EPrints::Subject->new(
-			$session,
-			$self->get_property( "top" ) );
+		my $topsubj = $self->get_top_subject( $session );
 		my ( $pairs ) = $topsubj->get_subjects( 0 , !$opts{hidetoplevel} , $opts{nestids} );
 		my @values = ();
 		my $pair;
@@ -1775,5 +1772,33 @@ sub get_property_default
 	EPrints::Config::abort( "Unknown property in get_property_default: $property" );
 };
 
+sub get_top_subject
+{
+	my( $self, $session ) = @_;
+
+	unless( $self->is_type( "subject" ) )
+	{
+		$session->render_error( $session->make_text( "Attempt to call get_top_subject on a field not of type subject. Field name \"".$self->get_name()."\"." ) );
+		exit;
+	}
+
+	my $topid = $self->get_property( "top" );
+	if( !defined $topid )
+	{
+		$session->render_error( $session->make_text( "Subject field name \"".$self->get_name()."\" has no \"top\" property." ) );
+		exit;
+	}
 		
-1;
+	my $topsubject = EPrints::Subject->new( $session, $topid );
+
+	if( !defined $topsubject )
+	{
+		
+		$session->render_error( $session->make_text( "Top level subject (id=$topid) for field \"".$self->get_name()."\"\ndoes not exist.\nThe site admin probably has not run generate_subjects. See the documentation for more information." ) );
+		exit;
+	}
+	
+	return $topsubject;
+}
+
+1;		

@@ -89,10 +89,12 @@ my $verbose = 0;
 my $quiet = 0;
 my $help = 0;
 my $man = 0;
+my $version = 0;
 
 GetOptions( 
-	'help|?' => => \$help,
-	'man' => => \$man,
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
 	'verbose+' => \$verbose,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );

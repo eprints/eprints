@@ -832,9 +832,9 @@ sub render
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info. cjg
-			my $topsubj = EPrints::Subject->new(
-				$self->{session},
-				$self->{field}->get_property( "top" ) );
+			
+			my $topsubj = $self->{field}->get_top_subject(
+				$self->{session} );
 			my ( $pairs ) = $topsubj->get_subjects( 0, 0 );
 			#splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
 			$settings{pairs} = $pairs;

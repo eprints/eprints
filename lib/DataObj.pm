@@ -29,6 +29,11 @@ sub get_value
 
 	my $field = $self->{dataset}->get_field( $fieldname );
 
+	if( !defined $field )
+	{
+		EPrints::Config::abort( "Attempt to get value from not existant field: ".$self->{dataset}->id()."/$fieldname" );
+	}
+
 	unless( EPrints::Utils::is_set( $r ) )
 	{
 		if( $field->get_property( "multiple" ) )

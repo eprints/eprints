@@ -13,7 +13,7 @@
 ######################################################################
 
 
-#cjg NOT DONE.
+#cjg Not fully finnished. Should detect missing items.
 
 use EPrints::Session;
 
@@ -22,7 +22,16 @@ use strict;
 my $session = new EPrints::Session();
 Apache::exit( 0 ) unless( defined $session );
 
-&plain_404( $session );
+my $url = $ENV{REDIRECT_URL};
+
+if( $url =~ m#^/view/# )
+{
+	&noview_404( $session );
+}
+else
+{
+	&plain_404( $session );
+}
 
 $session->terminate();
 
@@ -126,4 +135,20 @@ sub plain_404
 
         $session->send_page();
 }
+
+
+sub noview_404
+{
+	my( $session ) = @_;
+
+	my $error = "The browse views section is missing. The site admin needs to run generate_views. This should be automated with cron. See the documentation for more details.";
+
+	$session->build_page( 
+		$session->html_phrase( "cgi/handle_http_error:404_title" ),
+		$session->make_text( $error ) );
+	$session->get_archive()->log( $error );
+
+        $session->send_page();
+}
+
 

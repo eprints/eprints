@@ -406,7 +406,7 @@ sub mail
 	if( defined $replyto )
 	{
 		$remail = $replyto->get_value( "email" );
-		$rname = $replyto->render_description();
+		$rname = EPrints::Utils::tree_to_utf8( $replyto->render_description() );
 	}
 	if( !defined $email )
 	{

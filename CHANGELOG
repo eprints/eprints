@@ -417,3 +417,30 @@ Due to change in functionality of uri_escape in URI 1.18
 ======================================================================
 14/02/2002 - EPRINTS-2.0
 ======================================================================
+
+
+
+
+======================================================================
+CHANGES BELOW ARE CURRENTLY IN CVS ONLY
+======================================================================
+
+
+03/03/2002
+- Fixed typo in citations "years" instead of "year"
+- 404 page now spots /view/ and suggests you need to run generate_views
+- "latest" cgi script no longer uses cached results.
+- get_value on a non existant field now gives a clear error rather than
+  a perl !defined error.
+- importXML - treated whitespace inbetween <lang> tags as a lang'less 
+  version of the value. Now ignores it. Still does that with non-white
+  space.
+- added get_top_subject to metafield - which returns the top subject for
+  that field, or a helpful error if there isn't one. Used it where 
+  possible in code: generate_views, SearchField.
+- Fixed bugs in mailer with latin-1 text in MIME and body of mail.
+- Fixed mistake in /help/ which refers to lemur1 rather than the current
+  archive.
+
+
+
