@@ -11,8 +11,11 @@ package EPrints::Archives::General;
 use Unicode::String qw(utf8 latin1 utf16);
 
 $EPrints::Archives::General::base_path = "/opt/eprints";
+$EPrints::Archives::General::cgi_path = 
+		$EPrints::Archives::General::base_path."/cgi";
 
-$EPrints::Archives::General::lang_path = $EPrints::Archives::General::base_path."/system-phrases";
+$EPrints::Archives::General::lang_path = 
+		$EPrints::Archives::General::base_path."/system-phrases";
 
 %EPrints::Archives::General::languages = (
 	"du" => latin1( "Demonstration Other Language" ),

@@ -18,16 +18,7 @@ package EPrints::Archives::lemurprints;
 
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
-
-use EPrints::Archives::General;
-use EPrints::Version;
-use EPrints::Document;
 use EPrints::OpenArchives;
-use EPrints::EPrint;
-use EPrints::User;
-use EPrints::Session;
-use EPrints::Subject;
-use EPrints::Name;
 
 use strict;
 
