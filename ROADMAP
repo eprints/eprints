@@ -1,0 +1,70 @@
+*	Pre-Alpha - ie. You can't install it without a telepathic connection to Chris. [YOU ARE HERE]
+
+1	Distribution Installer
+0	"Create New Archive" Script
+0	Tool to manage XML Phrase files and spot missing bits.
+0	Translate Initial phrases into French
+0	System Apache Config Maker
+-	languages.xml file to configure what languages EPrints has heard of
+-	XML config files to tell eprints where to find each archive
+1	Get the Deposit Item form working
+-	Multi-Lang fields in DB
+0	Multi-Lang fields in HTML
+0	"ID" fields for ISBN/userid etc.
+0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
+
+*	ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
+
+0	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
+0	Phrasify Option Fields
+0	Multilangify Subject Fields and Subject DB
+0 	Super all-singing/dancing etc. Subject Editor
+0	Content Negotiation with Browser
+0	XML 1.1 Support
+0	Security -> config,edit,authz
+0	Keywords field appears in META keywords for search engines
+0	UserSearch needs to work and stuff.
+0	Staff Eprint & User searches
+0	Staff Eprint & User edit
+1	OAI support
+0	Search by ID field (in search exp)
+0	subject editors
+0	Probity
+0	multiple views for things like people/groups etc.
+0	Subject field root is not always ROOT - can come into different places in the subject tree
+0 	Metadata approve page in Submission Form for Admin Conf'd comments
+0	Magic Next & Prev in SubmissionForm
+0	Skippable Stages in SubmissionForm
+0	Default Values for metadata
+1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
+0	indexcode generator in ArchiveConfig.pm needs to be UTF-8 clean
+0	Web-based registration and Email Change
+1	XML Importer
+0	Indexing on name fields
+0	Improve name search syntax (?)
+0	Mailer
+0	Subscriptions - editing
+0	Subscriptions - sending
+0	Other output charsets than UTF-8?
+0	Editor Pages -approve,bounce,filter etc.
+0	Multipage search (cache code)
+0	Multipage views
+
+*	BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
+
+0	Bugfixing
+0	Documentation!
+0	How-Too Documentation
+0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
+
+*	EPrints 2.0
+
+0	Sleep
+0	Beer
+0	Peer Review
+0	Mirroring
+0	OAI Sets for users/sets etc as well as subjects
+0	Citation Scanning
+0	"People who read this eprint also read..."
+0	OpenURL support (?)
+
