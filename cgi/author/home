@@ -139,7 +139,7 @@ sub render_workspace
 	my @eprints = EPrints::EPrint->retrieve_eprints(
 		$session,
 		$EPrints::Database::table_inbox,
-		[ "user LIKE \"$user->{username}\"" ] );
+		[ "username LIKE \"$user->{username}\"" ] );
 
 	if( $#eprints >= 0 )
 	{
@@ -207,7 +207,7 @@ sub show_pending
 	my @eprints = EPrints::EPrint->retrieve_eprints(
 		$session,
 		$EPrints::Database::table_buffer,
-		[ "user LIKE \"$user->{username}\"" ] );
+		[ "username LIKE \"$user->{username}\"" ] );
 
 	if( $#eprints >= 0 )
 	{

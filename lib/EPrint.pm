@@ -29,7 +29,7 @@ my $digits = 8;
 @EPrints::EPrint::system_meta_fields =
 (
 	"eprintid:text::EPrint ID:1:0:1",        # The EPrint ID
-	"user:text::Submitted by:1:0:1:1",       # User ID of submitter
+	"username:text::Submitted by:1:0:1:1",   # User ID of submitter
 	"dir:text::Local Directory:0:0:0",       # Directory it's in
 	"datestamp:date::Submission Date:0:0:1", # The submission date stamp
 	"subjects:subjects:1:Subject Categories:0:0:0",
@@ -196,7 +196,7 @@ sub create
 	my $success = $session->{database}->add_record(
 		$table,
 		[ [ "eprintid", $new_id ],
-		  [ "user", $userid ],
+		  [ "username", $userid ],
 		  [ "dir", $dir ] ] );
 
 	if( $success )
@@ -446,7 +446,7 @@ sub clone
 	my $new_eprint = EPrints::EPrint->create(
 		$self->{session},
 		$dest_table,
-		$self->{user} );
+		$self->{username} );
 	
 	if( defined $new_eprint )
 	{

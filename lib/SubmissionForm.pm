@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  14/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -158,7 +159,7 @@ sub process
 
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
-			$self->{eprint}->{user} ne $self->{user}->{username} )
+			$self->{eprint}->{username} ne $self->{user}->{username} )
 		{
 			$self->exit_error( $EPrints::SubmissionForm::corruption_error );
 			return;

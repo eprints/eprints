@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  29/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -35,7 +36,7 @@ if( !defined $user )
 my @eprints = EPrints::EPrint->retrieve_eprints(
 	$session,
 	$EPrints::Database::table_archive,
-	[ "user LIKE \"$user->{username}\"" ] );
+	[ "username LIKE \"$user->{username}\"" ] );
 
 
 if( $session->{render}->seen_form() )
@@ -48,7 +49,7 @@ if( $session->{render}->seen_form() )
 		if( defined $session->{render}->param( "clone_$_->{eprintid}" ) )
 		{
 			# Sanity check: Make sure it's this user's paper
-			if( $_->{user} eq $user->{username} )
+			if( $_->{username} eq $user->{username} )
 			{
 				my $copy = $_->clone( $EPrints::Database::table_inbox,
 			                         1 );
@@ -60,7 +61,7 @@ if( $session->{render}->seen_form() )
 		    defined $session->{render}->param( "remove_$_->{eprintid}" ) )
 		{
 			# Sanity check: Make sure it's this user's paper
-			if( $_->{user} eq $user->{username} )
+			if( $_->{username} eq $user->{username} )
 			{
 				$ok = $_->remove();
 			}

@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  16/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -183,7 +184,7 @@ sub bounce
 	my( $session, $eprint ) = @_;
 
 	# Get the user's details
-	my $user = EPrints::User->new( $session, $eprint->{user} );
+	my $user = EPrints::User->new( $session, $eprint->{username} );
 
 	if( !defined $user )
 	{

@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  11/02/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -58,11 +59,11 @@ else
 		# Link to user
 		print "<TD>";
 		
-		my $user = new EPrints::User( $session, $e->{user} );
+		my $user = new EPrints::User( $session, $e->{username} );
 		
 		if( defined $user )
 		{
-			print "<A HREF=\"view_author?userid=$e->{user}\">";
+			print "<A HREF=\"view_user?username=$e->{username}\">";
 			print $user->full_name();
 			print "</A>";
 		}

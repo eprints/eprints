@@ -263,44 +263,55 @@ sub format_field
 	if( $type eq "text" || $type eq "int" )
 	{
 		# Render text
-		$html = "$value";
+		$html = ( defined $value ? $value : "" );
 	}
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
-		$html = $field->{labels}->{$value};
+		$html = $field->{labels}->{$value} if( defined $value );
+		$html = "UNSPECIFIED" unless( defined $value );
 	}
 	elsif( $type eq "boolean" )
 	{
-		$html = ( $value eq "TRUE" ? "Yes" : "No" );
+		$html = "UNSPECIFIED" unless( defined $value );
+		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
 	elsif( $type eq "multitext" )
 	{
-		$html = "$value";
+		$html = ( defined $value ? $value : "" );
 	}
 	elsif( $type eq "date" )
 	{
-		my @elements = split /\-/, $value;
+		if( defined $value )
+		{
+			my @elements = split /\-/, $value;
 
-		if( $elements[0]==0 )
-		{
-			$html = "UNSPECIFIED";
-		}
-		elsif( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
-		{
-			$html = "INVALID";
+			if( $elements[0]==0 )
+			{
+				$html = "UNSPECIFIED";
+			}
+			elsif( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
+			{
+				$html = "INVALID";
+			}
+			else
+			{
+				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
+			}
 		}
 		else
 		{
-			$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
+			$html = "UNSPECIFIED";
 		}
 	}
 	elsif( $type eq "url" )
 	{
-		$html = "<A HREF=\"$value\">$value</A>";
+		$html = "<A HREF=\"$value\">$value</A>" if( defined $value );
+		$html = "" unless( defined $value );
 	}
 	elsif( $type eq "email" )
 	{
-		$html = "<A HREF=\"mailto:$value\">$value</A>";
+		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
+		$html = "" unless( defined $value );
 	}
 	elsif( $type eq "subjects" )
 	{
@@ -329,7 +340,8 @@ sub format_field
 	elsif( $type eq "set" )
 	{
 		$html = "";
-		my @setvalues = split /:/, $value;
+		my @setvalues;
+		@setvalues = split /:/, $value if( defined $value );
 		my $first = 0;
 
 		foreach (@setvalues)
@@ -344,20 +356,23 @@ sub format_field
 	}
 	elsif( $type eq "pagerange" )
 	{
-		$html = $value;
+		$html = ( defined $value ? $value : "" );
 	}
 	elsif( $type eq "year" )
 	{
-		$html = $value;
+		$html = ( defined $value ? $value : "" );
 	}
 	elsif( $type eq "multiurl" )
 	{
-		my @urls = split /[\,\s]+/, $value;
+		$html = "";
+
+		my @urls;
+		@urls = split /[\,\s]+/, $value if( defined $value );
 		my $url;
 		
 		foreach $url (@urls)
 		{
-			print "<A HREF=\"$url\">$url</A> ";
+			$html .= "<A HREF=\"$url\">$url</A> ";
 		}
 	}
 	elsif( $type eq "name" )

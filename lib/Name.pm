@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  1/3/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -31,7 +32,8 @@ sub format_name
 	my $html = "";
 	my $i;
 
-	my @names = split /:/, $namespec;
+	my @names;
+	@names = split /:/, $namespec if( defined $namespec );
 	
 	for( $i = 1; $i<=$#names; $i++ )
 	{
