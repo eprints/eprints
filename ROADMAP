@@ -66,6 +66,9 @@
 #	"secret" field should never have a default set in forms, but no value should not erase previous value.
 #	lose "bomb"
 #	Put System field titles in system phrase file.
+#	Bug: 500 error when search for only ignored words.
+# 	"Bad archive ID" on bin scripts rather than weird crash.
+#	Bull on through if a single archiveconfig.pm won't load.
 
 #	Eliminate HTMLRenderer
 
