@@ -470,7 +470,14 @@ sub to_string
    		#my $docType  = $node->getDoctype();
 	 	#my $elem     = $node->getDocumentElement();
 		#push @n, $docType->toString, "\n";, to_string( $elem );
-		push @n, $node->toStringEnc( $enc );
+		if( $gdome )
+		{
+			push @n, $node->toStringEnc( $enc );
+		}
+		else
+		{
+			push @n, $node->toString;
+		}
 	}
 	elsif( EPrints::XML::is_dom( 
 			$node, 

@@ -1038,6 +1038,8 @@ before next release. (metadata types & fields)
     the target exp to null if they were not mentioned in the serial-
     ised version. This caused defaults to appear again when you 
     select "refine search".
+ - fixed bug in EPrints::XML which used toStringEnc even if we were
+    using XML::DOM (and broke configure_archive)
 
 ======================================================================
 14/11/2002 - EPRINTS-2.2.1
