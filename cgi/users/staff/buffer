@@ -80,7 +80,7 @@ else
 		$tr->appendChild( $td );
 		$a = $session->make_element( "a", 
 			href=>"view_submission?eprintid=".$e->get_value("eprintid") );
-		$a->appendChild( $session->make_text( $e->short_title() ) );
+		$a->appendChild( $e->render_short_title() );
 		$td->appendChild( $a );
 		
 		# Link to user

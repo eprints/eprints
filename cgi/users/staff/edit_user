@@ -68,7 +68,8 @@ if( defined $user )
 		}
 		else
 		{
-			$session->{render}->render_error(
+#cjg NOT DOM NOT LANG
+			$session->render_error(
 				"Couldn't remove user! Check logs for details.",
 				$session->get_archive()->get_conf( "server_static" )."/staff",
 				"Return to staff area" );
@@ -92,7 +93,8 @@ if( defined $user )
 }
 else
 {
-	$session->{render}->render_error( 
+#cjg NOT DOM NOT LANG
+	$session->render_error( 
 		"Error accessing user record or user not specified",
 		$session->get_archive()->get_conf( "server_static" )."/staff",
 		"Return to staff area" );

@@ -56,7 +56,8 @@ if( defined $userid )
 	}
 	else
 	{
-		print $session->{render}->render_error(
+#cjg not dom not lang
+		print $session->render_error(
 			"Unknown user",
 			$session->get_archive()->get_conf( "server_static ")."/staff/",
 			"Return to staff home" );
@@ -64,7 +65,8 @@ if( defined $userid )
 }
 else
 {
-	print $session->{render}->render_error(
+#cjg not dom not lang
+	print $session->render_error(
 		"No user specified!",
 		$session->get_archive()->get_conf( "server_static" )."/staff/",
 		"Return to staff home" );

@@ -42,7 +42,8 @@ my $STAGES = {
 		prev => "linking",
 		next => "subject"
 	},
-	subject => {
+#cjg subject field should be turned into something like "comments"
+	subject => { 
 		prev => "meta",
 		next => "format"
 	},
@@ -217,7 +218,7 @@ sub _corrupt_err
 	my( $self ) = @_;
 
 	$self->{session}->render_error( 
-		$self->{session}->phrase( 
+		$self->{session}->html_phrase( 
 			"lib/submissionform:corrupt_err",
 			line_no => (caller())[2] ) );
 
@@ -229,7 +230,7 @@ sub _database_err
 	my( $self ) = @_;
 
 	$self->{session}->render_error( 
-		$self->{session}->phrase( 
+		$self->{session}->html_phrase( 
 			"lib/submissionform:database_err",
 			line_no => (caller())[2] ) );
 
@@ -265,8 +266,9 @@ sub _from_stage_home
 	{
 		if( $self->{staff} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase(
-		        	"lib/submissionform:use_auth_area" ) );
+			$self->{session}->render_error( 
+				$self->{session}->html_phrase(
+		        		"lib/submissionform:use_auth_area" ) );
 			return( 0 );
 		}
 		$self->{eprint} = EPrints::EPrint::create(
@@ -290,7 +292,9 @@ sub _from_stage_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 
@@ -304,7 +308,7 @@ sub _from_stage_home
 		die;
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -327,7 +331,7 @@ sub _from_stage_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{new_stage} = "confirmdel";
@@ -338,7 +342,7 @@ sub _from_stage_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{new_stage} = "quickverify";
@@ -1273,16 +1277,7 @@ sub _do_stage_format
 		$table->appendChild( $tr );
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
-		if( defined $doc->get_value( "format" ) )
-		{
-			$td->appendChild( $self->{session}->make_text( $docds->get_type_name( $self->{session}, $doc->get_value( "format" ) ) ) );
-		}
-		my $desc = $doc->get_value( "formatdesc" ); 
-		# not calling proper render function here. cjg
-		if( defined $desc )
-		{
-			$td->appendChild( $self->{session}->make_text( " ( $desc )" ) );
-		}
+		$td->appendChild( $doc->render_desc() );
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
 		my %files = $doc->files();
@@ -1339,8 +1334,6 @@ sub _do_stage_fileview
 {
 	my( $self ) = @_;
 
-	my %files = $self->{document}->files();
-
 	my $page = $self->{session}->make_doc_fragment();
 
 	$page->appendChild( $self->_render_problems(
@@ -1373,7 +1366,8 @@ sub _do_stage_fileview
 		type=>'int',
 		digits=>2 );
 
-	my $submit_buttons = {
+	my $submit_buttons;
+	$submit_buttons = {
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) };
 
@@ -1534,7 +1528,7 @@ sub _do_stage_fileview
 	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
 
 
-	my $submit_buttons = {
+	$submit_buttons = {
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" ) };
 
@@ -1712,8 +1706,7 @@ sub _do_stage_verify
 		$page->appendChild( $self->{session}->render_ruler() );	
 
 		# cjg Should be from an XML-lang file NOT the main config.
-		$page->appendChild( $self->{session}->make_text( 
-			$self->{session}->get_archive()->get_conf( "deposit_agreement_text" ) ) );
+		$page->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 
 		$submit_buttons->{submit} = $self->{session}->phrase( "lib/submissionform:action_submit" );
 	}
@@ -1788,7 +1781,9 @@ sub _do_stage_confirmdel
 	$p = $self->{session}->make_element( "p" );
 	$page->appendChild( $p );
 	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete") );
-	$p->appendChild( $self->{session}->make_text( " ".$self->{eprint}->short_title() ) );
+	$p->appendChild( $self->{session}->make_text( " " ) );
+	$p->appendChild( $self->{eprint}->render_short_title() );
+	# should the title be in a 'pin' ? cjg
 
 	my $hidden_fields = {
 		stage => "confirmdel",

@@ -31,8 +31,8 @@ Apache::exit( 0 ) unless( defined $session );
 if( !defined $user )
 {
 	# Can't find the user
-	$session->{render}->render_error( 
-		$session->{lang}->phrase( "cgi/users/review:dont_know_you" ),
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/review:dont_know_you" ),
 	      	$session->get_archive()->get_conf( "frontpage" ),
 	$session->terminate();
 	Apache::exit( 0 );
@@ -76,10 +76,10 @@ if( $session->{render}->seen_form() )
 				}
 				else
 				{
-					$session->{render}->render_error(
-						$session->{lang}->phrase( "cgi/users/review:cant_clone" ),
+					$session->render_error(
+						$session->html_phrase( "cgi/users/review:cant_clone" ),
 						"home",
-						$session->{lang}->phrase( "cgi/users/review:deposit_page" ) );
+						$session->html_phrase( "cgi/users/review:deposit_page" ) );
 				}
 
 				$page_written = 1;				
@@ -236,10 +236,10 @@ sub handle_removal_request
 	unless( defined $eprintid && defined $eprint &&
 	        $eprint->{username} eq $user->{username} )
 	{
-		$session->{render}->render_error(
-			$session->{lang}->phrase( "cgi/users/review:cant_find_it" ),
+		$session->render_error(
+			$session->html_phrase( "cgi/users/review:cant_find_it" ),
 			"home",
-			$session->{lang}->phrase( "cgi/users/review:deposit_page" ) );
+			$session->html_phrase( "cgi/users/review:deposit_page" ) );
 		return( 1 );
 	}
 	

@@ -41,7 +41,6 @@ my %TYPE_SQL =
  	url        => "\$(name) VARCHAR(255) \$(param)",
  	email      => "\$(name) VARCHAR(255) \$(param)",
  	subject    => "\$(name) VARCHAR(255) \$(param)",
- 	username   => "\$(name) VARCHAR(255) \$(param)",
  	pagerange  => "\$(name) VARCHAR(255) \$(param)",
  	year       => "\$(name) INT UNSIGNED \$(param)",
  	datatype   => "\$(name) VARCHAR(255) \$(param)",
@@ -61,7 +60,6 @@ my %TYPE_INDEX =
  	url        => "INDEX(\$(name))",
  	email      => "INDEX(\$(name))",
  	subject    => "INDEX(\$(name))",
- 	username   => "INDEX(\$(name))",
  	pagerange  => "INDEX(\$(name))",
  	year       => "INDEX(\$(name))",
  	datatype   => "INDEX(\$(name))",
@@ -377,28 +375,98 @@ sub is_text_indexable
 	return $self->is_type( "text","longtext","url","email" );
 }
 
-######################################################################
-#
-# $html = render_value( $field, $value )
-#
-#  format a field. Returns the formatted HTML as a string (doesn't
-#  actually print it.)
-#
-######################################################################
 
-## WP1: BAD
 sub render_value
 {
-	my( $self, $session, $value ) = @_;
-#cjg not DOM
-#cjg needs to handle multilang and multiple fields.
+	my( $self, $session, $value, $alllangs ) = @_;
 
-	if( !defined $value || $value eq "" )
+	if( !$self->get_property( "multiple" ) )
 	{
-		return $session->make_text( "" );
+		return $self->_render_value1( $session, $value, $alllangs );
 	}
 
-	my $html;
+	if( scalar( @$value ) == 0 )
+	{
+		return $session->make_text( "[undef#1]" );#cjg!??!? null or text?		
+	}
+	my @rendered_values = ();
+	my $sep; #cjg NOT LANG'D
+	if( $self->is_type( "name" ) )
+	{
+		$sep = " and ";
+	}
+	else
+	{
+		$sep = ", ";
+	}
+	my $first = 1;
+	my $html = $session->make_doc_fragment();
+	foreach( @$value )
+	{
+		if( $first )
+		{
+			$first = 0;	
+		}	
+		else
+		{
+			$html->appendChild( $session->make_text( $sep ) );
+		}
+		$html->appendChild( $self->_render_value1( $session, $_, $alllangs ) );
+	}
+	return $html;
+
+}
+
+
+sub _render_value1
+{
+	my( $self, $session, $value, $alllangs ) = @_;
+
+	if( !defined $value )
+	{
+		return $session->make_text( "[undef#2]" );#cjg!??!? null or text?
+	}
+
+	if( !$self->get_property( "multilang" ) )
+	{
+		return $self->_render_value2( $session, $value );
+	}
+
+	if( scalar( keys %$value ) == 0 )
+	{
+		return $session->make_text( "[undef#3]" );#cjg!??!? null or text?		
+	}
+	if( !$alllangs )
+	{
+		my $v = $session->best_language( %$value );
+		return $self->_render_value2( $session, $v );
+	}
+	my( $table, $tr, $td, $th );
+	$table = $session->make_element( "table" );
+	foreach( keys %$value )
+	{
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( 
+			$self->_render_value2( $session, $value->{$_} ) );
+		$th = $session->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild( $session->make_text(
+			"(".EPrints::Config::lang_title( $_ ).")" ) );
+	}
+	return $table;
+}
+
+sub _render_value2
+{
+	my( $self, $session, $value ) = @_;
+
+	if( !defined $value )
+	{
+		return $session->make_text( "[undef#5]" );#cjg!??!? null or text?
+	}
 
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
 	{
@@ -406,13 +474,45 @@ sub render_value
 		return $session->make_text( $value );
 	}
 
-return $session->make_text( $value ); #cjg!!!!!!!!!!!!!!!!
+	if( $self->is_type( "url" ) )
+	{
+		my $a = $session->make_element( "a", href=>$value );
+		$a->appendChild( $session->make_text( $value ) );
+		return $a;
+	}
+
+	if( $self->is_type( "email" ) )
+	{
+		my $a = $session->make_element( "a", href=>"mailto:".$value );
+		$a->appendChild( $session->make_text( $value ) );
+		return $a;
+	}
 
 	if( $self->is_type( "name" ) )
 	{
 		return $session->make_text(
-			EPrints::Name::format_names( $value ) );
+			EPrints::Name::format_name( $value ) );
 	}
+
+	if( $self->is_type( "longtext" ) )
+	{
+		my @paras = split( /\r?\n\r?\n/ , $value );
+		my $frag = $session->make_doc_fragment();
+		my $first = 1;
+		foreach( @paras )
+		{
+			unless( $first )
+			{
+				$frag->appendChild( $session->make_element( "br" ) );
+			}
+			$frag->appendChild( $session->make_text( $_ ) );
+			$first = 0;
+		}
+		return $frag;
+	}
+
+return $session->make_text( "<<".$value.">>" );#cjg!!!!!
+my $html;
 
 	if( $self->is_type( "datatype" ) )
 	{
@@ -424,11 +524,6 @@ return $session->make_text( $value ); #cjg!!!!!!!!!!!!!!!!
 	{
 		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
-	}
-	elsif( $self->is_type( "longtext" ) )
-	{
-		$html = ( defined $value ? $value : "" );
-		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
 	}
 	elsif( $self->is_type( "date" ) )
 	{
@@ -453,16 +548,6 @@ return $session->make_text( $value ); #cjg!!!!!!!!!!!!!!!!
 		{
 			$html = "UNSPECIFIED";
 		}
-	}
-	elsif( $self->is_type( "url" ) )
-	{
-		$html = "<A HREF=\"$value\">$value</A>" if( defined $value );
-		$html = "" unless( defined $value );
-	}
-	elsif( $self->is_type( "email" ) )
-	{
-		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
-		$html = "" unless( defined $value );
 	}
 	elsif( $self->is_type( "subject" ) )
 	{
@@ -500,25 +585,6 @@ return $session->make_text( $value ); #cjg!!!!!!!!!!!!!!!!
 				$first=1 if( $first );
 	#bad {labels} dep
 				$html .= $self->{labels}->{$value};
-			}
-		}
-	}
-	elsif( $self->is_type( "username" ) )
-	{
-		$html = "";
-		my @usernames;
-		my $username;
-		@usernames = split /:/, $value if( defined $value );
-		my $first = 0;
-
-		foreach $username (@usernames)
-		{
-			if( $username ne "" )
-			{
-				$html .=  ", " unless( $first );
-				$first=1 if( $first );
-				$html .= $username;
-				# This could be much prettier
 			}
 		}
 	}
@@ -785,7 +851,7 @@ print STDERR "$id_suffix ... val($value)\n";
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 # not return DIVs? cjg (currently some types do some don't)
 	my $frag = $session->make_doc_fragment();
-	if( $self->is_type( "text", "username", "url", "int", "email", "year" ) )
+	if( $self->is_type( "text", "url", "int", "email", "year" ) )
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$id_suffix;
@@ -1011,6 +1077,12 @@ sub form_value
 		}
 		if( $self->get_property( "multiple" ) )
 		{
+			# Make sure all fields are unique
+			# There could be two options with the same id,
+			# especially in "subject"
+			my %v;
+			foreach( @values ) { $v{$_}=1; }
+			@values = keys %v;
 			return \@values;
 		}
 	
@@ -1079,7 +1151,7 @@ sub _form_value_aux2
 {
 	my( $self, $session, $id_suffix ) = @_;
 
-	if( $self->is_type( "text", "username", "url", "int", "email", "longtext", "year" ) )
+	if( $self->is_type( "text", "url", "int", "email", "longtext", "year" ) )
 	{
 		my $value = $session->param( $self->{name}.$id_suffix );
 		return undef if( $value eq "" );

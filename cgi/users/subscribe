@@ -30,11 +30,10 @@ my $user = EPrints::User::current_user( $session );
 if( !defined $user )
 {
 	# Can't find the user
-	$session->{render}->render_error( 
-		$session->{lang}->phrase( "cgi/users/subscribe:dont_know_you" ),
-	        $session->get_archive()->get_conf( "frontpage" ) );
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/subscribe:dont_know_you" ) );
 	$session->terminate();
-	Apache::exit( 0 );
+	exit;
 }
 
 my @all_subs = EPrints::Subscription::subscriptions_for( $session, $user );
@@ -80,10 +79,10 @@ elsif( defined $action && $action eq $action_create )
 
 	if( !defined $subscription )
 	{		
-		$session->{render}->render_error(
-			$session->{lang}->phrase( "cgi/users/subscribe:mk_sub_error" ),
+		$session->render_error(
+			$session->html_phrase( "cgi/users/subscribe:mk_sub_error" ),
 			$session->get_archive()->get_conf( "server_perl" )."/users/home",
-			$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
+			$session->html_phrase( "cgi/users/subscribe:return_dep" ) );
 	}
 	else
 	{
@@ -103,10 +102,10 @@ elsif( defined $action && $action eq $action_remove )
 		}
 		else
 		{
-			$session->{render}->render_error(
-				$session->{lang}->phrase( "cgi/users/subscribe:rm_sub_error" ),
+			$session->render_error(
+				$session->html_phrase( "cgi/users/subscribe:rm_sub_error" ),
 				$session->get_archive()->get_conf( "server_perl" )."/users/home",
-				$session->{lang}->phrase( "cgi/users/subscribe:return_dep" ) );
+				$session->html_phrase( "cgi/users/subscribe:return_dep" ) );
 		}
 	}
 }
@@ -239,9 +238,9 @@ sub update_subscription
 	}
 	else
 	{
-		$session->{render}->render_error(
-			$session->{lang}->phrase( "cgi/users/subscribe:ud_sub_error" ),
+		$session->render_error(
+			$session->html_phrase( "cgi/users/subscribe:ud_sub_error" ),
 			$session->get_archive()->get_conf( "server_perl ")."/users/home",
-			$session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" ) );
+			$session->html_phrase( "cgi/users/subscribe:ret_deposit" ) );
 	}
 }

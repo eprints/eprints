@@ -33,51 +33,14 @@ sub format_name
 {
 	my( $name, $familylast ) = @_;
 
-
 	if( $familylast )
 	{
 		return "$$name{given} $$name{family}";
 	}
-print "<sigh>\n" if (!defined $$name{given}); #cjg!!!
+print STDERR "!sigh!\n" if (!defined $$name{given}); #cjg!!!
 		
 	return "$$name{family}, $$name{given}";
 }
-
-######################################################################
-#
-# $html = format_names( $namelist, $familylast )
-#
-#  Takes a list of names and formats them 
-#  for screen display.
-#
-######################################################################
-
-## WP1: BAD
-sub format_names
-{
-	my ( $namelist , $familylast ) = @_;
-	my $html = "";
-	my $i;
-	my @names = @{$namelist};
-
-	for( $i=0; $i<=$#names; $i++ )
-	{
-		if( $i==$#names && $#names > 0 )
-		{
-			# If it's the last name and there's >1 name, add " and "
-			$html .= " and ";
-		}
-		elsif( $i > 0 )
-		{
-			$html .= ", ";
-		}
-		$html .= format_name( $names[$i] , $familylast );
-		
-	}
-
-	return( $html );
-}
-
 
 ######################################################################
 #

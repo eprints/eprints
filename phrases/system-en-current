@@ -241,6 +241,9 @@ User Area CGI Scripts
 
     <phrase ref="cgi/users/home:status_link">View the archive status</phrase>
     <phrase ref="cgi/users/home:status_info">This option allows you to view the current status of the system, including the number of items in each dataset.</phrase>
+    
+    <phrase ref="cgi/users/home:staff/buffer_link">View the Submission Buffer</phrase>
+    <phrase ref="cgi/users/home:staff/buffer_info">This option allows you to view, edit and approve records which users have submitted but have not yet been approved for the archive. You may only edit records within your subject area.</phrase>
 
     <phrase ref="cgi/users/home:docs">Documents in your Workspace</phrase>
     <phrase ref="cgi/users/home:depositing">These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.</phrase>
@@ -314,6 +317,17 @@ User Area CGI Scripts
     <phrase ref="cgi/users/buffer:sub_date">Submission Date</phrase>
     <phrase ref="cgi/users/buffer:invalid">INVALID</phrase>
     <phrase ref="cgi/users/buffer:return_staff">Click here to return to the Staff Area</phrase>
+
+<!-- view_submission -->
+
+    <phrase ref="cgi/users/view_submission:not_directly">Do not access this page directly, come to it from the submission buffer page.</phrase>
+    <phrase ref="cgi/users/view_submission:no_eprint">Problem retrieving the submission with ID=<pin ref="eprintid" />. May be a problem with the database, check the logs.</phrase>
+    <phrase ref="cgi/users/view_submission:title">Viewing Submission</phrase>
+    <phrase ref="cgi/users/view_submission:action_accept">Accept</phrase>
+    <phrase ref="cgi/users/view_submission:action_edit">Edit</phrase>
+    <phrase ref="cgi/users/view_submission:action_bounce">Bounce</phrase>
+    <phrase ref="cgi/users/view_submission:action_delete">Delete</phrase>
+    <phrase ref="cgi/users/view_submission:back">Back to buffer overview</phrase>
 
 <!--********************************************************************** 
 Public CGI Scripts

@@ -39,7 +39,7 @@ use strict;
 #  email, XXXXXXXXXXXurl    "searchvalue" (simple)
 #  XXXX & datatype        "poss1:poss2:poss3"
 #  longtext, text & name   "[all][any][phr]:terms"
-#  username, set & subject  "val1:val2:val3:[ANY|ALL]"
+#  set & subject  "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
 #                           "-YYYY" = any year up to YYYY
 #                           "YYYY-ZZZZ" = any year from YYYY to ZZZZ (incl.)
@@ -199,23 +199,6 @@ sub from_form
 			$self->set_value( "$search_type:$exact:$val" );
 		}
 	}		
-	elsif( $self->is_type( "username" ) )
-	{
-		# usernames
-		my $anyall = $self->{session}->param( 
-			$self->{formname}."_anyall" );
-		
-		# Default search type if none supplied (to allow searches using simple
-		# HTTP GETs)
-		$anyall = "ALL" unless defined( $anyall );		
-		my $exact = "IN";
-	
-		my @vals = split /\s+/ , $val;
-		if( scalar @vals > 0)
-		{
-			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
-		}
-	}		
 	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
 	{
 		my @vals = ();
@@ -289,7 +272,7 @@ sub get_conditions
 		return undef;
 	}
 
-	if ( $self->is_type( "set","subject","datatype","boolean","username" ) )
+	if ( $self->is_type( "set","subject","datatype","boolean" ) )
 	{
 		my @fields = ();
 		my $text = $self->{string};
@@ -894,7 +877,7 @@ sub to_html
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
 	}
-	elsif( $self->is_type( "boolean","longtext","text","name","url","username" ) )
+	elsif( $self->is_type( "boolean","longtext","text","name","url" ) )
 	{
 		# complex text types
 		$frag->appendChild(

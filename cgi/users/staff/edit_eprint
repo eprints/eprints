@@ -49,7 +49,8 @@ else
 
 	if( !defined $eprint )
 	{
-		$session->{render}->render_error( "Problem retrieving the EPrint ".
+		#cjg not DOM
+		$session->render_error( "Problem retrieving the EPrint ".
 			"with ID=\"$eprint_id\". May be a problem with the database - ".
 			"check the logs.\n" );
 	}
@@ -71,7 +72,8 @@ else
 			}
 			else
 			{
-				$session->{render}->render_error( "Problem removing the EPrint ".
+				#cjg not DOM
+				$session->render_error( "Problem removing the EPrint ".
 					"with ID=\"$eprint_id\". May be a problem with the database - ".
 					"check the logs.\n" );
 			}
@@ -94,7 +96,8 @@ else
 			}
 			else
 			{
-				$session->{render}->render_error( "Problem moving the EPrint ".
+				#cjg not DOM
+				$session->render_error( "Problem moving the EPrint ".
 					"with ID=\"$eprint_id\". May be a problem with the database - ".
 					"check the logs.\n" );
 			}

@@ -24,56 +24,73 @@ use strict;
 
 my $session = EPrints::Session->new();
 
+# Check we have privs
+if( !$session->auth_check( "editor" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
 
-my $eprint_id = $session->{render}->param( "eprintid" );
+my $eprint_id = $session->param( "eprintid" );
 
 if( !defined $eprint_id || $eprint_id eq "" )
 {
-	$session->{render}->render_error( "Come to this page from the ".
-		"<A HREF=\"buffer\">Submission Buffer Overview</A>, not directly" );
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/view_submission:not_directly" ),
+		"buffer" );
+	$session->terminate();
+	exit;
 }
-else
+
+
+my $eprint = new EPrints::EPrint( 
+		$session,
+		$session->get_archive()->get_dataset( "buffer" ),
+		$eprint_id );
+
+if( !defined $eprint )
 {
-	my $eprint = new EPrints::EPrint( $session,
-	                                  EPrints::Database::table_name( "buffer" ),
-	                                  $eprint_id );
-	
-	if( !defined $eprint )
-	{
-		$session->{render}->render_error( "Problem retrieving the submission ".
-			"with ID=\"$eprint_id\". May be a problem with the database - ".
-			"check the logs.\n" );
-	}
-	else
-	{	
-		print $session->{render}->start_html( "Viewing Submission" );
-
-		print $session->{render}->render_eprint_full( $eprint, 1 );
-
-		print "<HR>\n";		
-
-		print $session->{render}->start_form( "edit_submission" );
-		
-		print $session->{render}->hidden_field( "eprint_id",
-		                                         $eprint->{eprintid} );
-
-		print "<P><CENTER>";
-
-		print $session->{render}->submit_buttons(
-			[ "Accept",
-			  $EPrints::SubmissionForm::action_edit,
-			  "Bounce",
-			  $EPrints::SubmissionForm::action_delete ] );
-
-		print "</CENTER></P>\n";
-		
-		print $session->{render}->end_form();
-
-		print "<P><CENTER><A HREF=\"buffer\">".
-			"Back to Buffer Overview</A></CENTER></P>\n";
-		
-		print $session->{render}->end_html();
-	}
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/view_submission:no_eprint",
+			eprintid => $session->make_text( $eprint_id ) ) );
+	$session->terminate();
+	exit;
 }
+
+my( $page, $form, $p, $a );
+
+$page = $session->make_doc_fragment();
+
+$page->appendChild( $eprint->render_full_details() );
+
+$page->appendChild( $session->render_ruler() );
+
+$form = $session->render_form( "post", "edit_submission" );
+$page->appendChild( $form );
+
+$form->appendChild( $session->render_hidden_field(
+			"eprint_id",
+			$eprint->get_value( "eprintid" ) ) );
+	
+$form->appendChild( $session->render_action_buttons(
+	"accept" => $session->phrase( 
+			"cgi/users/view_submission:action_accept" ),
+	"edit" => $session->phrase( 
+			"cgi/users/view_submission:action_edit" ),
+	"bounce" => $session->phrase( 
+			"cgi/users/view_submission:action_bounce" ),
+	"delete" => $session->phrase( 
+			"cgi/users/view_submission:action_delete" ) ) );
+
+$p = $session->make_element( "p" );
+$page->appendChild( $p );
+$a = $session->make_element( "a", href=>"buffer" );
+$p->appendChild( $a );
+$a->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
+
+$session->build_page(
+	$session->phrase( "cgi/users/view_submission:title" ), 
+	$page );
+$session->send_page();
 
 $session->terminate();

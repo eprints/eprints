@@ -928,7 +928,18 @@ sub appendChild
 					  "node is ReadOnly")
 	    if $self->isReadOnly;
     }
+#cjg#######################
 
+# for debugging the odd bad call.
+ my $ref = ref($node);
+ if( substr($ref,0,12) ne "EPrints::DOM"  )
+ {
+print STDERR "($ref)\n";
+ use Carp;
+ confess;
+ }
+
+############################
     my $isFrag = $node->isDocumentFragmentNode;
     my $doc = $self->{Doc};
 

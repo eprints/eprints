@@ -389,75 +389,6 @@ $c->{archivefields}->{eprint} = [
 ];
 	
 
-##################
-
-#  E-mail signature, appended to every email sent by the software
-$c->{signature} = <<END;
---
- $c->{archivename}
- $c->{frontpage}
- $c->{adminemail}
-
-END
-#########################################################################################
-
-
-#  Default text to send a user when "bouncing" a submission back to their
-#  workspace. It should leave some space for staff to give a reason.
-$c->{default_bounce_reason} = <<END;
-Unfortunately your eprint:
-
-  _SUBMISSION_TITLE_
-
-could not be accepted into $c->{archivename} as-is.
-
-
-The eprint has been returned to your workspace. If you
-visit your item depositing page you will be able to
-edit your eprint, fix the problem and redeposit.
-
-END
-
-#  Default text to send a user when rejecting a submission outright.
-$c->{default_delete_reason} = <<END;
-Unfortunately your eprint:
-
-  _SUBMISSION_TITLE_
-
-could not be accepted into $c->{archivename}.
-
-
-
-The eprint has been deleted.
-
-END
-
-#  Agreement text, for when user completes the depositing process.
-#  Set to "undef" if you don't want it to appear.
-$c->{deposit_agreement_text} = <<END;
-
-<P><EM><STRONG>For work being deposited by its own author:</STRONG> 
-In self-archiving this collection of files and associated bibliographic 
-metadata, I grant $c->{archivename} the right to store 
-them and to make them permanently available publicly for free on-line. 
-I declare that this material is my own intellectual property and I 
-understand that $c->{archivename} does not assume any 
-responsibility if there is any breach of copyright in distributing these 
-files or metadata. (All authors are urged to prominently assert their 
-copyright on the title page of their work.)</EM></P>
-
-<P><EM><STRONG>For work being deposited by someone other than its 
-author:</STRONG> I hereby declare that the collection of files and 
-associated bibliographic metadata that I am archiving at 
-$c->{archivename}) is in the public domain. If this is 
-not the case, I accept full responsibility for any breach of copyright 
-that distributing these files or metadata may entail.</EM></P>
-
-<P>Clicking on the deposit button indicates your agreement to these 
-terms.</P>
-END
-
-	
 ######################################################################
 #
 #  Search and subscription information
@@ -653,32 +584,81 @@ my $FREETEXT_ALWAYS_WORDS = {
 # There's no reason mappings have to be a single character.
 
 my $FREETEXT_CHAR_MAPPING = {
-"¡" => "!",	"¢" => "c",	"£" => "L",	"¤" => "o",	
-"¥" => "Y",	"¦" => "|",	"§" => "S",	"¨" => "\"",	
-"©" => "(c)",	"ª" => "a",	"«" => "<<",	"¬" => "-",	
-"­" => "-",	"®" => "(R)",	"¯" => "-",	"°" => "o",	
-"±" => "+-",	"²" => "2",	"³" => "3",	"´" => "'",	
-"µ" => "u",	"¶" => "q",	"·" => ".",	"¸" => ",",	
-"¹" => "1",	"º" => "o",	"»" => ">>",	"¼" => "1/4",	
-"½" => "1/2",	"¾" => "3/4",	"¿" => "?",	"À" => "A",	
-"Á" => "A",	"Â" => "A",	"Ã" => "A",	"Ä" => "A",	
-"Å" => "A",	"Æ" => "AE",	"Ç" => "C",	"È" => "E",	
-"É" => "E",	"Ê" => "E",	"Ë" => "E",	"Ì" => "I",	
-"Í" => "I",	"Î" => "I",	"Ï" => "I",	"Ð" => "D",	
-"Ñ" => "N",	"Ò" => "O",	"Ó" => "O",	"Ô" => "O",	
-"Õ" => "O",	"Ö" => "O",	"×" => "x",	"Ø" => "O",	
-"Ù" => "U",	"Ú" => "U",	"Û" => "U",	"Ü" => "U",	
-"Ý" => "Y",	"Þ" => "b",	"ß" => "B",	"à" => "a",	
-"á" => "a",	"â" => "a",	"ã" => "a",	"ä" => "a",	
-"å" => "a",	"æ" => "ae",	"ç" => "c",	"è" => "e",	
-"é" => "e",	"ê" => "e",	"ë" => "e",	"ì" => "i",	
-"í" => "i",	"î" => "i",	"ï" => "i",	"ð" => "d",	
-"ñ" => "n",	"ò" => "o",	"ó" => "o",	"ô" => "o",	
-"õ" => "o",	"ö" => "o",	"÷" => "/",	"ø" => "o",	
-"ù" => "u",	"ú" => "u",	"û" => "u",	"ü" => "u",	
-"ý" => "y",	"þ" => "B",	"ÿ" => "y" };
+	latin1("¡") => "!",	latin1("¢") => "c",	
+	latin1("£") => "L",	latin1("¤") => "o",	
+	latin1("¥") => "Y",	latin1("¦") => "|",	
+	latin1("§") => "S",	latin1("¨") => "\"",	
+	latin1("©") => "(c)",	latin1("ª") => "a",	
+	latin1("«") => "<<",	latin1("¬") => "-",	
+	latin1("­") => "-",	latin1("®") => "(R)",	
+	latin1("¯") => "-",	latin1("°") => "o",	
+	latin1("±") => "+-",	latin1("²") => "2",	
+	latin1("³") => "3",	latin1("´") => "'",	
+	latin1("µ") => "u",	latin1("¶") => "q",	
+	latin1("·") => ".",	latin1("¸") => ",",	
+	latin1("¹") => "1",	latin1("º") => "o",	
+	latin1("»") => ">>",	latin1("¼") => "1/4",	
+	latin1("½") => "1/2",	latin1("¾") => "3/4",	
+	latin1("¿") => "?",	latin1("À") => "A",	
+	latin1("Á") => "A",	latin1("Â") => "A",	
+	latin1("Ã") => "A",	latin1("Ä") => "A",	
+	latin1("Å") => "A",	latin1("Æ") => "AE",	
+	latin1("Ç") => "C",	latin1("È") => "E",	
+	latin1("É") => "E",	latin1("Ê") => "E",	
+	latin1("Ë") => "E",	latin1("Ì") => "I",	
+	latin1("Í") => "I",	latin1("Î") => "I",	
+	latin1("Ï") => "I",	latin1("Ð") => "D",	
+	latin1("Ñ") => "N",	latin1("Ò") => "O",	
+	latin1("Ó") => "O",	latin1("Ô") => "O",	
+	latin1("Õ") => "O",	latin1("Ö") => "O",	
+	latin1("×") => "x",	latin1("Ø") => "O",	
+	latin1("Ù") => "U",	latin1("Ú") => "U",	
+	latin1("Û") => "U",	latin1("Ü") => "U",	
+	latin1("Ý") => "Y",	latin1("Þ") => "b",	
+	latin1("ß") => "B",	latin1("à") => "a",	
+	latin1("á") => "a",	latin1("â") => "a",	
+	latin1("ã") => "a",	latin1("ä") => "a",	
+	latin1("å") => "a",	latin1("æ") => "ae",	
+	latin1("ç") => "c",	latin1("è") => "e",	
+	latin1("é") => "e",	latin1("ê") => "e",	
+	latin1("ë") => "e",	latin1("ì") => "i",	
+	latin1("í") => "i",	latin1("î") => "i",	
+	latin1("ï") => "i",	latin1("ð") => "d",	
+	latin1("ñ") => "n",	latin1("ò") => "o",	
+	latin1("ó") => "o",	latin1("ô") => "o",	
+	latin1("õ") => "o",	latin1("ö") => "o",	
+	latin1("÷") => "/",	latin1("ø") => "o",	
+	latin1("ù") => "u",	latin1("ú") => "u",	
+	latin1("û") => "u",	latin1("ü") => "u",	
+	latin1("ý") => "y",	latin1("þ") => "B",	
+	latin1("ÿ") => "y",	latin1("'") => "" };
 
 
+# Chars which seperate words. Pretty much anything except
+# A-Z a-z 0-9 and single quote '
+
+# If you want to add other seperator characters then they
+# should be encoded in utf8. The Unicode::String man page
+# details some useful methods.
+
+my $FREETEXT_SEPERATOR_CHARS = {
+	'@' => 1, 	'[' => 1,
+	'\\' => 1, 	']' => 1,
+	'^' => 1, 	'_' => 1,
+	' ' => 1, 	'`' => 1,
+	'!' => 1, 	'"' => 1,
+	'#' => 1, 	'$' => 1,
+	'%' => 1, 	'&' => 1,
+	'(' => 1, 	')' => 1,
+	'*' => 1, 	'+' => 1,
+	',' => 1, 	'-' => 1,
+	'.' => 1, 	'/' => 1,
+	':' => 1, 	';' => 1,
+	'{' => 1, 	'<' => 1,
+	'|' => 1, 	'=' => 1,
+	'}' => 1, 	'>' => 1,
+	'~' => 1, 	'?' => 1
+};
 
 ######################################################################
 #
@@ -694,23 +674,13 @@ my $FREETEXT_CHAR_MAPPING = {
 #
 ######################################################################
 
-#cjg NOT UTF-8
-## WP1: BAD
 sub extract_words
 {
 	my( $text ) = @_;
 
-	# convert acute's etc to their simple version using the map
-	# from SiteInfo.
-	my $mapped_chars = join( "", keys %{$FREETEXT_CHAR_MAPPING} );
-	# escape [, ], \ and ^ because these mean something in a 
-	# regexp charlist.
-	$mapped_chars =~ s/\[\]\^\\/\\$&/g;
-	# apply the map to $text
-	$text =~ s/[$mapped_chars]/$FREETEXT_CHAR_MAPPING->{$&}/g;
-	
-	# Remove single quotes so "don't" becomes "dont"
-	$text =~ s/'//g;
+	# Acronym processing only works on uppercase non accented
+	# latin letters. If you don't want this processing comment
+	# out the next few lines.
 
 	# Normalise acronyms eg.
 	# The F.B.I. is like M.I.5.
@@ -718,15 +688,46 @@ sub extract_words
 	# The FBI  is like MI5
 	my $a;
 	$text =~ s#[A-Z0-9]\.([A-Z0-9]\.)+#$a=$&;$a=~s/\.//g;$a#ge;
-
 	# Remove hyphens from acronyms
 	$text=~ s#[A-Z]-[A-Z](-[A-Z])*#$a=$&;$a=~s/-//g;$a#ge;
 
-	# Replace any non alphanumeric characters with a space instead
-	$text =~ s/[^a-zA-Z0-9]/ /g;
+	# Process string. 
+	# First we apply the char_mappings.
+	my( $i, $len ),
+	my $utext = utf8( "$text" ); # just in case it wasn't already.
+	$len = $utext->length;
+	my $buffer = utf8( "" );
+	for($i = 0; $i<$len; ++$i )
+	{
+		my $s = $utext->substr( $i, 1 );
+		# $s is now char number $i
+		if( defined $FREETEXT_CHAR_MAPPING->{$s} )
+		{
+			$s = $FREETEXT_CHAR_MAPPING->{$s};
+		} 
+		$buffer.=$s;
+	}
 
-	# Iterate over every word (space seperated values) 
-	my @words = split  /\s+/ , $text;
+	$len = $buffer->length;
+	my @words = ();
+	my $cword = utf8( "" );
+	for($i = 0; $i<$len; ++$i )
+	{
+		my $s = $buffer->substr( $i, 1 );
+		# $s is now char number $i
+		if( defined $FREETEXT_SEPERATOR_CHARS->{$s} )
+		{
+			push @words, $cword; # even if it's empty	
+			$cword = utf8( "" );
+		}
+		else
+		{
+			$cword .= $s;
+		}
+	}
+	push @words,$cword;
+	
+	# Iterate over every word (bits divided by seperator chars)
 	# We use hashes rather than arrays at this point to make
 	# sure we only get each word once, not once for each occurance.
 	my %good = ();
@@ -809,7 +810,7 @@ sub extract_words
 
 ######################################################################
 #
-# $title = eprint_short_title( $eprint )
+# $title = eprint_render_short_title( $eprint )
 #
 #  Return a single line concise title for an EPrint, for rendering
 #  lists
@@ -817,26 +818,25 @@ sub extract_words
 ######################################################################
 
 ## WP1: BAD
-sub eprint_short_title
+sub eprint_render_short_title
 {
 	my( $eprint ) = @_;
 	
 	if( !defined $eprint->get_value( "title" ) )
 	{
-		return( "Untitled (ID: ".$eprint->get_value( "eprintid" ).")");
+		return $eprint->get_session()->make_text( 
+			"Untitled (ID: ".$eprint->get_value( "eprintid" ).")" );
 	}
-	else
-	{
-		return( $eprint->get_value( "title" ) );
-	}
+
+	return( $eprint->render_value( "title" ) );
 }
 
 
 ######################################################################
 #
-# $title = eprint_render_full( $eprint, $for_staff )
+# $title = eprint_render_full( $eprint, $show_all )
 #
-#  Return HTML for rendering an EPrint. If $for_staff is non-zero,
+#  Return HTML for rendering an EPrint. If $show_all is non-zero,
 #  extra information appropriate for only staff may be shown.
 #
 ######################################################################
@@ -844,37 +844,34 @@ sub eprint_short_title
 ## WP1: BAD
 sub eprint_render_full
 {
-	my( $eprint, $for_staff ) = @_;
+	my( $eprint, $show_all ) = @_;
 
-	#my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	#my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-	#my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
+#my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+#my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
+#my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
 
 	my $session = $eprint->get_session();
 
-	my $page = $session->make_doc_fragment;
+	my( $page, $p, $a );
+
+	$page = $session->make_doc_fragment;
 
 	# Citation
-	my $p = $session->make_element( "p" );
+	$p = $session->make_element( "p" );
 	$p->appendChild( $eprint->render_citation() );
 	$page->appendChild( $p );
 
 	# Available formats
-	#my @documents = $eprint->get_all_documents();
-	
-	#$html .= "<TABLE BORDER=0 CELLPADDING=5><TR><TD VALIGN=TOP><STRONG>Full ".
-		#"text available as:</STRONG></TD><TD>";
-	
-	#foreach (@documents)
-	#{
-		#my $description = EPrints::Document::format_name( $eprint->{session}, $_->{format} ); ##cjg Is a type name now
-		#$description = $_->{formatdesc}
-			#if( $_->{format} eq $EPrints::Document::OTHER );
-#
-		#$html .= "<A href=\"".$_->url."\">$description</A><BR>";
-	#}
-#
-	#$html .= "</TD></TR></TABLE>\n";
+	my @documents = $eprint->get_all_documents();
+
+	$p = $session->make_element( "p" );
+	$p->appendChild( $session->html_phrase( "page_fulltext" ) );
+	foreach( @documents )
+	{
+		$p->appendChild( $session->make_element( "br" ) );
+		$p->appendChild( $_->render_link() );
+	}
+	$page->appendChild( $p );
 
 	# Put in a message describing how this document has other versions
 	# in the archive if appropriate
@@ -894,20 +891,22 @@ sub eprint_render_full
 				#"\">Click here to view it.</A></EM></P>\n";
 		#}
 	#}		
-#
+
 	# Then the abstract
 
 	my $h2 = $session->make_element( "h2" );
-	$h2->appendChild( $session->make_text( "Abstract" ) ); # not langed #cjg
+	$h2->appendChild( 
+		$session->html_phrase( "eprint_fieldname_abstract" ) );
 
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->make_text( $eprint->get_value( "abstract" ) ) );
+	$p->appendChild( $eprint->render_value( "abstract", $show_all ) );
 	$page->appendChild( $p );
 	
-	my( $table, $tr, $td );	# this table needs more class cjg
+	my( $table, $tr, $td, $th );	# this table needs more class cjg
 	$table = $session->make_element( "table",
 					border=>"0",
 					cellpadding=>"3" );
+	$page->appendChild( $table );
 
 	#commentary	
 	#if( defined $eprint->{commref} && $eprint->{commref} ne "" )
@@ -917,17 +916,12 @@ sub eprint_render_full
 	#}
 
 	# Keywords
-	my $keywords = $eprint->get_value( "keywords ");
-	if( defined $keywords && $keywords ne "" )
+	if( defined $eprint->get_value( "keywords" ) )
 	{
-		$tr = $session->make_element( "tr" );
-		$td = $session->make_element( "td" ); 
-		$td->appendChild( $session->make_text( "Keywords:" ) ); #cjg i18l
-		$tr->appendChild( $td );
-		$td = $session->make_element( "td" ); 
-		$td->appendChild( $session->make_text( $keywords ) );
-		$tr->appendChild( $td );
-		$table->appendChild( $tr );	
+		$table->appendChild( _render_row(
+			$session,
+			$session->html_phrase( "eprint_fieldname_keywords" ),
+			$eprint->render_value( "keywords", $show_all ) ) );
 	}
 
 	# Comments:
@@ -938,44 +932,49 @@ sub eprint_render_full
 	#}
 
 	# Subjects...
-	#$html .= "<TR><TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "eprint_fieldname_subjects" ),
+		$eprint->render_value( "subjects", $show_all ) ) );
 
-	# NO MORE SUBJECT LIST!!!
-	#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-	#my @subjects = $subject_list->get_subjects( $eprint->{session} );
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "page_id_code" ),
+		$eprint->render_value( "eprintid", $show_all ) ) );
 
-	#foreach (@subjects)
-	#{
-		#$html .= $eprint->{session}->render_subject_desc( $_, 1, 1, 0 );
-		#$html .= "<BR>\n";
-	#}
+	my $user = new EPrints::User( 
+			$eprint->{session},
+ 			$eprint->get_value( "username" ) );
+	my $usersname;
+	if( defined $user )
+	{
+		$usersname = $session->make_element( "a", 
+				href=>$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?username=".$user->get_value( "username" ) );
+		$usersname->appendChild( 
+			$session->make_text( $user->full_name() ) );
+	}
+	else
+	{
+		$usersname = $session->html_phrase( "page_invalid_user" );
+	}
 
-	# ID code...
-	#$html .= "</TD><TR>\n<TD VALIGN=TOP><STRONG>ID code:</STRONG></TD><TD>".
-		#$eprint->{eprintid}."</TD></TR>\n";
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "page_deposited_by" ),
+		$usersname ) );
 
-	# And who submitted it, and when.
-	#$html .= "<TR><TD VALIGN=TOP><STRONG>Deposited by:</STRONG></TD><TD>";
-	#my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
-	#if( defined $user )
-	#{
-		#$html .= "<A href=\"".$eprint->{session}->get_archive()->get_conf( "server_perl" )."/user?username=".
-			#$user->{username}."\">".$user->full_name()."</A>";
-	#}
-	#else
-	#{
-		#$html .= "INVALID USER";
-	#}
-#
-	#if( $eprint->{table} eq $EPrints::Database::table_archive )
-	#{
-		#my $date_field = $eprint->{session}->{metainfo}->find_table_field( "eprint","datestamp" );
-		#$html .= " on ".$eprint->{session}->{render}->format_field(
-			#$date_field,
-			#$eprint->{datestamp} );
-	#}
-	#$html .= "</TD></TR>\n";
-#
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "page_deposited_on" ),
+		$eprint->render_value( "datestamp", $show_all ) ) );
+
+######################## for debug.
+	$table->appendChild( _render_row(
+		$session,
+		$session->html_phrase( "eprint_fieldname_title" ),
+		$eprint->render_value( "title", $show_all ) ) );
+########################
+
 	# Alternative locations
 	#if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
 	#{
@@ -992,8 +991,9 @@ sub eprint_render_full
 #
 	# If being viewed by a staff member, we want to show any suggestions for
 	# additional subject categories
-	if( $for_staff )
+	if( $show_all )
 	{
+		$page->appendChild( $session->make_text( "SHOW ALL FIELDS" ) );
 		#my $additional_field = 
 			#$eprint->{session}->{metainfo}->find_table_field( "eprint", "additional" );
 		#my $reason_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
@@ -1028,11 +1028,30 @@ sub eprint_render_full
 			#$commentary_field );
 	#}
 #
+
 	return( $page, $eprint->get_value( "title" ) );
 }
 
 
+sub _render_row
+{
+	my( $session, $key, $value ) = @_;
 
+	my( $tr, $th, $td );
+
+	$tr = $session->make_element( "tr" );
+
+	$th = $session->make_element( "th" ); 
+	$th->appendChild( $key );
+	$th->appendChild( $session->make_text( ":" ) );
+	$tr->appendChild( $th );
+
+	$td = $session->make_element( "td" ); 
+	$td->appendChild( $value );
+	$tr->appendChild( $td );
+
+	return $tr;
+}
 
 
 

@@ -152,7 +152,7 @@ sub process
 	else 
 	{
 		$self->{session}->render_error(
-			$self->{session}->phrase( "lib/userform:problem_updating" ),
+			$self->{session}->html_phrase( "lib/userform:problem_updating" ),
 			$self->{redirect} );
 	}
 }

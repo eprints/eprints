@@ -754,7 +754,16 @@ sub commit
 	return( $success );
 }
 	
+sub render_link
+{
+	my( $self ) = @_;
 
+	my $a = $self->{session}->make_element( "a", href=>$self->url() );
+
+	$a->appendChild( $self->render_desc() );
+
+	return $a;
+}
 
 sub render_desc
 {

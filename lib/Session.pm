@@ -125,7 +125,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	{
 		# Database connection failure - noooo!
 		# cjg diff err if offline?
-		$self->render_error( $self->phrase( "lib/session:fail_db_connect" ) );
+		$self->render_error( $self->html_phrase( "lib/session:fail_db_connect" ) );
 		return undef;
 	}
 
@@ -225,6 +225,34 @@ sub phrase
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
 	return EPrints::Config::tree_to_utf8( $r );
+}
+
+sub best_language
+{
+	my( $self, %values ) = @_;
+
+	# no options?
+	if( scalar keys %values == 0 )
+	{
+		return undef;
+	}
+
+	# The language of the current session is best
+	if( defined $values{ $self->{lang}->get_id() } )
+	{
+		return $values{ $self->{lang}->get_id() };
+	} 
+
+	# The default lanuage of the archive is second best	
+	my $defaultlangid = $self->get_archive()->get_conf( "languages" )->[0];
+	if( defined $values{ $defaultlangid } )
+	{
+		return $values{ $defaultlangid };
+	} 
+
+	# Anything is better than nothing.
+	my $akey = (keys %values)[0];
+	return $values{$akey};
 }
 
 sub get_order_names
@@ -663,51 +691,53 @@ sub render_error
 	}
 	if( !defined $back_to_text )
 	{
-		$back_to_text = "Continue"; #XXX INTL cjg
+ #XXX INTL cjg not DOM
+		$back_to_text = $self->make_text( "Continue" );
 	}
 
 	if ( $self->{offline} )
 	{
+		#cjg This should do some word wrap stuff-> similar 
+		# to what the mailer should do
 		print $self->phrase( "lib/session:some_error" );
 		print "\n\n";
-		print "$error_text\n\n";
+		print "$error_text\n\n"; # now DOM!
+		return;
 	} 
-	else
-	{
-		my( $p, $page, $a );
-		$page = $self->make_doc_fragment();
 
-		$p = $self->make_element( "p" );
-		$p->appendChild( $self->html_phrase( "lib/session:some_error"));
-		$page->appendChild( $p );
+	my( $p, $page, $a );
+	$page = $self->make_doc_fragment();
 
-		$p = $self->make_element( "p" );
-		$p->appendChild( $self->make_text( $error_text ) );
-		$page->appendChild( $p );
+	$p = $self->make_element( "p" );
+	$p->appendChild( $self->html_phrase( "lib/session:some_error"));
+	$page->appendChild( $p );
 
-		$p = $self->make_element( "p" );
-		$p->appendChild( $self->html_phrase( 
-			"lib/session:contact",
-			adminemail => $self->make_element( 
-				"a",
-				href => "mailto:".
-					$self->get_archive()->get_conf( "adminemail" ) ) ) );
-		$page->appendChild( $p );
+	$p = $self->make_element( "p" );
+	$p->appendChild( $error_text );
+	$page->appendChild( $p );
+
+	$p = $self->make_element( "p" );
+	$p->appendChild( $self->html_phrase( 
+		"lib/session:contact",
+		adminemail => $self->make_element( 
+			"a",
+			href => "mailto:".
+				$self->get_archive()->get_conf( "adminemail" ) ) ) );
+	$page->appendChild( $p );
 				
-		$p = $self->make_element( "p" );
-		$a = $self->make_element( 
-				"a",
-				href => $back_to );
-		$a->appendChild( $self->make_text( $back_to_text ) );
-		$p->appendChild( $a );
-		$page->appendChild( $p );
+	$p = $self->make_element( "p" );
+	$a = $self->make_element( 
+			"a",
+			href => $back_to );
+	$a->appendChild( $back_to_text );
+	$p->appendChild( $a );
+	$page->appendChild( $p );
 
-		$self->build_page(	
-			$self->phrase( "lib/session:error_title" ),
-			$page );
+	$self->build_page(	
+		$self->phrase( "lib/session:error_title" ),
+		$page );
 
-		$self->send_page();
-	}
+	$self->send_page();
 }
 
 #
@@ -1051,7 +1081,7 @@ sub auth_check
 
 	if( !defined $user )
 	{
-		$self->render_error( $self->phrase( "lib/session:no_login" ) );
+		$self->render_error( $self->html_phrase( "lib/session:no_login" ) );
 		return 0;
 	}
 
@@ -1064,7 +1094,7 @@ sub auth_check
 
 	unless( $user->has_priv( $resource ) )
 	{
-		$self->render_error( $self->phrase( "lib/session:no_priv" ) );
+		$self->render_error( $self->html_phrase( "lib/session:no_priv" ) );
 		return 0;
 	}
 	return 1;

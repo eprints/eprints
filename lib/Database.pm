@@ -23,7 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-my $DEBUG_SQL = 1;
+my $DEBUG_SQL = 0;
 
 
 #

@@ -65,18 +65,18 @@ if( defined $userid )
 	}
 	else
 	{
-		print $session->{render}->render_error(
-			$session->{lang}->phrase( "cgi/user:unknown_user" ),
+		print $session->render_error(
+			$session->html_phrase( "cgi/user:unknown_user" ),
 			$session->get_archive()->get_conf( "frontpage" ),
-			$session->{lang}->phrase( "cgi/user:return_front" ) );
+			$session->html_phrase( "cgi/user:return_front" ) );
 	}
 }
 else
 {
-	print $session->{render}->render_error(
-		$session->{lang}->phrase( "cgi/user:no_user" ),
+	print $session->render_error(
+		$session->html_phrase( "cgi/user:no_user" ),
 		$session->get_archive()->get_conf( "frontpage" ),
-		$session->{lang}->phrase( "cgi/user:return_front" ) );
+		$session->html_phrase( "cgi/user:return_front" ) );
 }
 
 $session->terminate();

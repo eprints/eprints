@@ -536,12 +536,12 @@ sub transfer
 ######################################################################
 
 ## WP1: BAD
-sub short_title
+sub render_short_title
 {
 	my( $self ) = @_;
 
 	return( $self->{session}->get_archive()->call(
-			"eprint_short_title",
+			"eprint_render_short_title",
 			$self ) );
 }
 
@@ -1167,7 +1167,6 @@ sub generate_static
 }
 
 
-## WP1: BAD
 sub render_abstract_page
 {
         my( $self ) = @_;
@@ -1177,12 +1176,11 @@ sub render_abstract_page
         return( $dom, $title );
 }
 
-## WP1: BAD
-sub render_staff_page
+sub render_full_details
 {
         my( $self ) = @_;
 
-        my $dom = $self->{session}->get_archive()->call( "eprint_render_full", $self, 1 );
+        my( $dom, $title ) = $self->{session}->get_archive()->call( "eprint_render_full", $self, 1 );
 
         return( $dom );
 }
@@ -1419,7 +1417,7 @@ sub render_citation
 	$span->appendChild( $cstyle );
 	
 	return $span;
-}                                   
+}      
 
 sub _expand_references
 {
@@ -1444,6 +1442,15 @@ sub _expand_references
 	}
 }
 
+sub render_value
+{
+	my( $self, $fieldname, $showall ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );	
+	
+	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
+
 ## WP1: BAD
 sub get_value
 {
@@ -1451,9 +1458,42 @@ sub get_value
 	
 	my $r = $self->{data}->{$fieldname};
 
-	$r = undef if( defined $r && $r eq "" );
+	$r = undef unless( _isset( $r ) );
 
 	return $r;
+}
+
+# should be a generic function in, er, Config? or even Utils.pm
+sub _isset
+{
+	my( $r ) = @_;
+
+	return 0 if( !defined $r );
+		
+	if( ref($r) eq "" )
+	{
+		return ($r ne "");
+	}
+	if( ref($r) eq "ARRAY" )
+	{
+		my $ok=0;
+		foreach( @$r )
+		{
+			$ok = 1 if( _isset($_));
+		}
+		return $ok;
+	}
+	if( ref($r) eq "HASH" )
+	{
+		my $ok=0;
+		foreach( keys %$r )
+		{
+			$ok = 1 if( _isset($r->{$_}));
+		}
+		return $ok;
+	}
+	# Hmm not a scalar, or a hash or array ref.
+	return 1;
 }
 
 ## WP1: BAD

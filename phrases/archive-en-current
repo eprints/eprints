@@ -207,5 +207,58 @@
    <phrase ref="user_typename_user">User</phrase>
    <phrase ref="user_typename_staff">Staff</phrase>
 
+   <phrase ref="mail_sig">
+--<br />
+&archivename;<br />
+&frontpage;<br />
+&adminemail;<br />
+<br />
+    </phrase>
+
+    <phrase ref="mail_bounce_reason">
+<p>Unfortunately your eprint:</p>
+<p><pin name="title" /></p>
+<p>could not be accepted into &archivename; as-is.</p>
+<p>The eprint has been returned to your workspace. If you
+visit your item depositing page you will be able to
+edit your eprint, fix the problem and redeposit.</p>
+    </phrase>
+
+    <phrase ref="mail_delete_reason">
+<p>Unfortunately your eprint:</p>
+<p><pin name="title" /></p>
+<p>could not be accepted into &archivename;.</p>
+<p>The eprint has been deleted.</p>
+    </phrase>
+
+    <phrase ref="deposit_agreement_text">
+<p><strong>For work being deposited by its own author:</strong> 
+In self-archiving this collection of files and associated bibliographic 
+metadata, I grant &archivename; the right to store 
+them and to make them permanently available publicly for free on-line. 
+I declare that this material is my own intellectual property and I 
+understand that &archivename; does not assume any 
+responsibility if there is any breach of copyright in distributing these 
+files or metadata. (All authors are urged to prominently assert their 
+copyright on the title page of their work.)</p>
+
+<p><strong>For work being deposited by someone other than its 
+author:</strong> I hereby declare that the collection of files and 
+associated bibliographic metadata that I am archiving at 
+&archivename;) is in the public domain. If this is 
+not the case, I accept full responsibility for any breach of copyright 
+that distributing these files or metadata may entail.</p>
+
+<p>Clicking on the deposit button indicates your agreement to these 
+terms.</p>
+    </phrase>
+
+    <phrase ref="page_fulltext">Full text available as:</phrase>
+    <phrase ref="page_abstract">Abstract</phrase>
+    <phrase ref="page_deposited_by">Deposited By</phrase>
+    <phrase ref="page_deposited_on">Deposited On</phrase>
+    <phrase ref="page_id_code">ID Code</phrase>
+    <phrase ref="page_id_invalid_user">INVALID USER</phrase>
+
 </phrases>
 

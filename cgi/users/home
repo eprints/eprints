@@ -42,6 +42,7 @@ my $user = $session->current_user;
 
 my $fullname = $user->full_name();
 
+#cjg user is validating when it shouldn't.
 my $probs = $user->validate();
 my $valid_user = ( $#{$probs} == -1 );
 
@@ -70,7 +71,8 @@ if( $valid_user )
 		&render_workspace( $session, $user ) );
 
 	### Pending
-	#&show_pending( $session, $user );
+	$page->appendChild(
+		&render_pending( $session, $user ) );
 
 	$page->appendChild( $session->render_ruler() );
 }
@@ -119,11 +121,21 @@ my $tools = [
 		page=>"subscribe",
 		priv=>"subscription"
 	},
+	### View the archive status page
 	{ 
 		page=>"status",
 		priv=>"view-status"
+	},
+	### View the Editor submission buffer
+	{
+		page=>"staff/buffer",
+		priv=>"editor"
 	}
 ];
+# Staff Eprint Search
+# Subject Editor
+# Add a User Record
+# Search User Records
 
 my $tool;
 foreach	$tool (@{$tools})
@@ -179,93 +191,92 @@ sub render_workspace
 {
 	my( $session, $user ) = @_;
 
-	my $ds = $session->get_archive()->get_dataset( "inbox" );
-
-	my @eprints =  $user->get_eprints( $ds );
-print STDERR "FOO: ###".scalar(@eprints)."\n";
-	my $html = $session->make_doc_fragment();
-
 	### Get the actual items in the workspace
+	my $ds = $session->get_archive()->get_dataset( "inbox" );
+	my @eprints =  $user->get_eprints( $ds );
 
-	if( scalar @eprints > 0)
+
+	if( scalar @eprints == 0)
 	{
-		my( $h3, $p, $form );
-	
-		$h3 = $session->make_element( "h3" );
-		$h3->appendChild( 
-			$session->html_phrase( "cgi/users/home:docs" ));
-		$html->appendChild( $h3 );
-
-		my @eprintids;
-		my %eprint_titles;
-		my $e;
-
-		foreach $e (@eprints)
-		{
-			my $id = $e->get_value( "eprintid" );
-			push @eprintids, $id;
-			$eprint_titles{$id} = $e->short_title();
-		}
-
-		my $set_field = EPrints::MetaField->new(
-					dataset => $ds,
-					name=>"eprintid",
-					type=>"set",
-                                       	displaylines=>6,
-					options=>\@eprintids );
-		# If there is only one eprint in the workspace, 
-		# select it by default
-		my %default_values;
-		if( scalar @eprints==1 )
-		{
-			$default_values{"eprintid"} = $eprintids[0] 
-		}
-
-		my $buttons = {
-			new => 
-			  $session->phrase("cgi/users/home:action_new"),
-			edit => 
-			  $session->phrase("cgi/users/home:action_edit"),
-			clone => 
-			  $session->phrase("cgi/users/home:action_clone"),
-			delete => 
-			  $session->phrase("cgi/users/home:action_delete"),
-			submit => 
-			  $session->phrase("cgi/users/home:action_submit") 
-		};
-
-		### Now put them in a form
-		$form = $session->render_form( "post", "submit#t" );	
-		$form->appendChild( $session->render_input_form(
-			[ $set_field ],
-			\%default_values,
-			0,
-			0,
-			$buttons,
-			undef,
-			undef,
-			"submit" ) );
-# cjg MULTILANG LABELS... callback?
-		$html->appendChild( $form );
-
-		$p = $session->make_element( "p" );
-		$p->appendChild( 
-			$session->html_phrase( "cgi/users/home:depositing" ) );
-		$html->appendChild( $p );
-
-	}
-	else
-	{
-#cjg iffy
+		# No items, oh well.
 		my( $form );
 		$form = $session->render_form( "post", "submit" );	
 
 		$form->appendChild(
 			$session->render_action_buttons( 	
 				new => $session->phrase( "cgi/users/home:start_upload" ) ) );
-
-		$html->appendChild( $form );
+		return $form;
 	}
+
+	# One or more items in workspace.
+	# Render a form to let the user fiddle with them.
+
+	my( $html, $h3, $p, $form );
+
+	$html = $session->make_doc_fragment();
+
+	$h3 = $session->make_element( "h3" );
+	$h3->appendChild( 
+		$session->html_phrase( "cgi/users/home:docs" ));
+	$html->appendChild( $h3 );
+
+	my @eprintids;
+	my %eprint_titles;
+	my $e;
+
+	foreach $e (@eprints)
+	{
+		my $id = $e->get_value( "eprintid" );
+		push @eprintids, $id;
+		$eprint_titles{$id} = EPrints::Config::tree_to_utf8(
+					$e->render_short_title() );
+	}
+
+	my $set_field = EPrints::MetaField->new(
+				dataset => $ds,
+				name=>"eprintid",
+				type=>"set",
+				displaylines=>6,
+				options=>\@eprintids );
+	# If there is only one eprint in the workspace, 
+	# select it by default
+	my %default_values;
+	if( scalar @eprints==1 )
+	{
+		$default_values{"eprintid"} = $eprintids[0] 
+	}
+
+	my $buttons = {
+		new => 
+		  $session->phrase("cgi/users/home:action_new"),
+		edit => 
+		  $session->phrase("cgi/users/home:action_edit"),
+		clone => 
+		  $session->phrase("cgi/users/home:action_clone"),
+		delete => 
+		  $session->phrase("cgi/users/home:action_delete"),
+		submit => 
+		  $session->phrase("cgi/users/home:action_submit") 
+	};
+
+	### Now put them in a form
+	$form = $session->render_form( "post", "submit#t" );	
+	$form->appendChild( $session->render_input_form(
+		[ $set_field ],
+		\%default_values,
+		0,
+		0,
+		$buttons,
+		undef,
+		undef,
+		"submit" ) );
+
+	$html->appendChild( $form );
+
+	$p = $session->make_element( "p" );
+	$p->appendChild( 
+		$session->html_phrase( "cgi/users/home:depositing" ) );
+	$html->appendChild( $p );
 
 	return $html;
 }
@@ -274,43 +285,53 @@ print STDERR "FOO: ###".scalar(@eprints)."\n";
 
 ######################################################################
 #
-# show_pending( $session, $user)
+# render_pending( $session, $user)
 #
-#  Show any items that are in the submissions buffer, if any
+#  Render any items that are in the submissions buffer, if any
 #
 ######################################################################
 
 #cjg NOT DONE
-sub show_pending
+sub render_pending
 {
 	my( $session, $user ) = @_;
 
 	### Get the items in the buffer
-	my @eprints = EPrints::EPrint::retrieve_eprints(
-		$session,
-		EPrints::Database::table_name( "buffer" ),
-		[ "username LIKE \"$user->{username}\"" ] );
+	my $ds = $session->get_archive()->get_dataset( "buffer" );
+	my @eprints =  $user->get_eprints( $ds );
 
-	if( $#eprints >= 0 )
+	my $html = $session->make_doc_fragment();
+
+	if( scalar @eprints == 0 )
 	{
-		print "<CENTER><H3>";
-		print $session->phrase( "cgi/users/home:pending_title" );
-		print "</H3></CENTER>\n";
-		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
-		my $e;
-		foreach $e (@eprints)
-		{
-			print "<TR><TD><EM>";
-			print $e->short_title();
-			print "</EM></TD><TD>";
-			print $session->phrase( 
-				"cgi/users/home:deposited_at",
-				{ time=>$session->{render}->format_field(
-					$session->{metainfo}->find_table_field( "eprint", "datestamp" ),
-					$e->{datestamp} ) } );
-			print "</TD></TR>\n";
-		}
-		print "</TABLE></CENTER>\n";
+		return $html;
 	}
+	my( $h3, $table, $tr, $td );
+
+	my $h3 = $session->make_element( "h3" );
+	$h3->appendChild(
+		$session->html_phrase( "cgi/users/home:pending_title" ) );
+	$html->appendChild( $h3 );
+
+
+	$table = $session->make_element( "table",
+			cellpadding=>3,
+			border=>0 );
+	$html->appendChild( $table );
+	my $e;
+	foreach $e (@eprints)
+	{
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );	
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $e->render_short_title() );
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $session->html_phrase( 
+			"cgi/users/home:deposited_at",
+			time=>$e->render_value( "datestamp" ) ) );
+	}
+	return $html;
 }
 

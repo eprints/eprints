@@ -47,18 +47,18 @@ if( $session->{render}->seen_form() )
 		}
 		else
 		{
-			$session->{render}->render_error(
-				$session->{lang}->phrase( "cgi/users/add_user:mk_acc_err" ),
+			$session->render_error(
+				$session->html_phrase( "cgi/users/add_user:mk_acc_err" ),
 				$session->get_archive()->get_conf( "server_static ")/staff,
-				$session->{lang}->phrase( "cgi/users/add_user:staff_area" ) );
+				$session->html_phrase( "cgi/users/add_user:staff_area" ) );
 		}
 	}
 	else
 	{
-		$session->{render}->render_error(
-			$session->{lang}->phrase( "cgi/users/add_user:no_username" ),
+		$session->render_error(
+			$session->html_phrase( "cgi/users/add_user:no_username" ),
 			"add_user",
-			$session->{lang}->phrase( "cgi/users/add_user:try_again" ) );
+			$session->html_phrase( "cgi/users/add_user:try_again" ) );
 	}
 }
 else
