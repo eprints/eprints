@@ -17,6 +17,7 @@
 #cjg LIB
 
 use Sys::Hostname;
+use Cwd;
 use EPrints::Config;
 use EPrints::DOM;
 use EPrints::Database;
@@ -38,24 +39,33 @@ my %config = ();
 
 print <<END;
 
-Create new EPrint Archive
+Create or Edit an EPrint Archive
 
 Please select an ID for the archive, which will be used to create a directory
 and identify the archive. Lower case letters and numbers, may not start with
 a number) eg. "lemurprints" or "test3"
 
+Enter an already existing archive ID to edit the settings.
+
 END
+if( scalar EPrints::Config::get_archive_ids() )
+{
+	print "Existing archives:\n";
+	print join( ", ", EPrints::Config::get_archive_ids() )."\n\n";
+}
 
 my $archiveid = get_input( $REGEXP_VARNAME, 'Archive ID' );
-print "$archiveid\n";
 
 my( $configfile ) = EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
 my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
-if( -e $configfile )
+
+my $loaded_config = EPrints::Config::get_archive_config( $archiveid );		
+my $exists = ( defined $loaded_config );
+
+if( $exists )
 {
 	print "Config file detected:\n";
 	print "Loading from: $configfile\n";
-	my $loaded_config = EPrints::Config::get_archive_config( $archiveid );		
 	if( !defined $loaded_config )
 	{
 		print "Can't read config file.\n\n";
@@ -216,7 +226,7 @@ EPrints can create the database, and grant the correct permissions.
 
 END
 
-my $makedb = get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
+my $makedb = get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", $exists?"no":"yes" );
 if( $makedb eq "yes" )
 {
 	print <<END;
@@ -304,18 +314,45 @@ foreach( @{$config{aliases}} )
 foreach( "port", "urlpath", "archiveroot", "configmodule",
 	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass" )
 {
+	$config{$_}='' if( !defined $config{$_} );
 	$t_archive->appendChild( info_tag( $doc, $_, $config{$_} ) );
 }
 $t_archive->appendChild( $doc->createTextNode( "\n" ) );
 
-print "Writing Config File to:\n$configfile...\n";
+print "\nWriting Config File to:\n$configfile...\n";
 $doc->printToFile( $configfile );
+# It's got a password in so 600 to be safe!
 chmod( 0600, $configfile );
+print <<END;
 
-# Make filesystem
-# copy defaultcfg to PATH/cfg/
+Copy across initial config files? You have to do this for a new archive but
+probably don't want to if you're editing an archive configuration.
+
+END
+my $mkfiles = get_input( $REGEXP_YESNO, "Create config files", $exists?"no":"yes" );
+if( $mkfiles eq "yes" )
+{
+	my(undef,undef,$uid,$gid) = getpwnam( EPrints::Config::get( "user" ) );
+	print "\nCreating initial files:\n";
+	&install( 
+		EPrints::Config::get( "base_path" )."/defaultcfg",
+		0644,
+		$uid,
+		$gid,
+		$archivedir."/cfg",
+		$archiveid );
+
+	foreach( "html", "documents", "sys" )
+	{
+		my $dir = $archivedir."/".$_;
+		mkdir( $dir, 0755 );
+		chown( $uid, $gid, $dir );
+	}
+}
+	
+	
+
 # replace package line in PATH/cfg/ArchiveConfig.pm
-# mkdir html, sys, archive
 
 # Link in initial disk0  (?)
 
@@ -334,8 +371,8 @@ you might as well except the defaults for now...
 
 Then run:
 
-bin/create_databases $archiveid
 bin/generate_dtd $archiveid
+bin/create_databases $archiveid
 bin/generate_static $archiveid
 
 bin/create_user $archiveid <userid> <email> staff <password>
@@ -398,37 +435,45 @@ sub get_input
 	}
 }
 
+# don't be fooled. This isn't the same as the install() in
+# eprints-install
 sub install
 {
-	my($dir, $perms, $user, $group, $dest) = @_;
+	my($dir, $perms, $user, $group, $dest, $archiveid) = @_;
+
+	print "Installing: $dest\n";
 	opendir(INDIR, $dir) or die("Unable to install directory: $dir");
 	my @dirs = ();
 	my @files = ();
-	my $currdir = getcwd();
-	mkdir("$dest/$dir", 0755);
+	mkdir( $dest, 0755 );
+	chown($user, $group, $dest);
 	while(my $item = readdir(INDIR))
 	{
-		if ($item =~ /^\./ && $item ne ".htaccess" ) { next; }
-		if (-d "$currdir/$dir/$item") { push(@dirs, $item); }
+		next if $item=~m/^\./;
+		if (-d "$dir/$item") { push(@dirs, $item); }
 		else { push(@files, $item); }
 	}
 	closedir(INDIR);
 	foreach(@files)
 	{
-		open(INFILE, "$currdir/$dir/$_");
-		open(OUTFILE, ">$dest/$dir/$_") or die "Can't write to $dest/$dir/$_";
+		open(INFILE, "$dir/$_");
+		open(OUTFILE, ">$dest/$_") or die "Can't write to $dest/$_";
 		while(my $line=<INFILE>)
 		{
+			if( $_ eq "ArchiveConfig.pm" && $line=~m/^package/ )
+			{
+				#hack about with the config module
+				$line = "package EPrints::Config::$archiveid;\n";
+			}	
 			print OUTFILE $line;
 		}		
 		close(OUTFILE);
 		close(INFILE);
-		chmod($perms, "$dest/$dir/$_");
-		chown($user, $group, "$dest/$dir/$_");
+		chmod($perms, "$dest/$_");
+		chown($user, $group, "$dest/$_");
 	}
 	foreach(@dirs)
 	{
-		print "|";
-		install("$dir/".$_, $perms, $user, $group, $dest);
+		install("$dir/".$_, $perms, $user, $group, "$dest/$_", $archiveid );
 	}
 }
