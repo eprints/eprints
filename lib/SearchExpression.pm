@@ -698,7 +698,7 @@ print STDERR "URLURL URL URL: $url\n";
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 
 	$self->{session}->buildPage( $title, $page );
-	$self->{session}->sendPage();
+	$self->{session}->sendPage;
 }
 
 sub _render_problems

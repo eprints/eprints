@@ -42,26 +42,6 @@
     <phrase ref="error_gen_st">Error generating static page "<pin ref="path" />" for <pin ref="eprintid" />: <pin ref="errmsg" /></phrase>
 </file>
 
-<file name="HTMLRender.pm">
-    <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
-    <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
-    <phrase ref="contact">Feel free to contact <pin ref="adminemail" /> with details.</phrase>
-    <phrase ref="sitename_admin"><pin ref="sitename" /> administration</phrase>
-    <phrase ref="cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
-    <phrase ref="year">Year:</phrase>
-    <phrase ref="month">Month:</phrase>
-    <phrase ref="day">Day:</phrase>
-    <phrase ref="surname">Surname</phrase>
-    <phrase ref="first_names">First Names</phrase>
-    <phrase ref="more_spaces">More Spaces</phrase>
-    <phrase ref="username_title">Usernames</phrase>
-    <phrase ref="input_field_err">Don't know how to render input field for type <pin ref="type" /></phrase>
-    <phrase ref="curr_disp">Currently Displayed</phrase>
-    <phrase ref="error_title">Error</phrase>
-    <phrase ref="eprint_gone_title">EPrint Removed</phrase>
-    <phrase ref="eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
-    <phrase ref="later_version">There is a later version of the eprint you are trying to access:</phrase>
-</file>
 
 <file name="MetaField.pm">
     <phrase ref="bad_value">Garbled value for <pin ref="option" /> in field <pin ref="field" /></phrase>
@@ -118,6 +98,22 @@
     <phrase ref="fail_db_connect">Failed to connect to database</phrase>
     <phrase ref="msg_at">Site maintenance message generated at <pin ref="time" /></phrase>
     <phrase ref="site_admin">Site Administrator</phrase>
+    <phrase ref="some_error"><pin ref="sitename" /> has encountered an error:</phrase>
+    <phrase ref="contact">Feel free to contact <pin ref="adminemail"><pin ref="sitename" /> administration</pin> with details.</phrase>
+    <phrase ref="cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
+    <phrase ref="year">Year:</phrase>
+    <phrase ref="month">Month:</phrase>
+    <phrase ref="day">Day:</phrase>
+    <phrase ref="surname">Surname</phrase>
+    <phrase ref="first_names">First Names</phrase>
+    <phrase ref="more_spaces">More Spaces</phrase>
+    <phrase ref="username_title">Usernames</phrase>
+    <phrase ref="input_field_err">Don't know how to render input field for type <pin ref="type" /></phrase>
+    <phrase ref="curr_disp">Currently Displayed</phrase>
+    <phrase ref="error_title">Error</phrase>
+    <phrase ref="eprint_gone_title">EPrint Removed</phrase>
+    <phrase ref="eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
+    <phrase ref="later_version">There is a later version of the eprint you are trying to access:</phrase>
 </file>
 
 <file name="SubjectList.pm">

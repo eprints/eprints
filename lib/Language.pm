@@ -134,6 +134,14 @@ sub file_phrase
 		{
 			$repl = $session->makeText( "[ref missing: $ref]" );
 		}
+
+		# All children remain untouched, only the PIN is
+		# changed.
+		for my $kid ($_->getChildNodes)
+		{
+			$_->removeChild( $kid );
+			$repl->appendChild( $kid );
+		}
 		$_->getParentNode->replaceChild( $repl, $_ );	
 	}
 

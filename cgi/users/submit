@@ -24,10 +24,11 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my $subform = new EPrints::SubmissionForm( $session,
-                                           "home",
-                                           0,
-                                           EPrints::Database::table_name( "inbox" ) );
-$subform->process();
+my $subform = new EPrints::SubmissionForm(
+	$session,
+	"home",
+	0,
+       	$session->getSite->getDataSet( "inbox" ) );
+$subform->process;
 
-$session->terminate();
+$session->terminate;

@@ -84,11 +84,12 @@ sub get_system_field_info
 sub new
 {
 	my( $class, $session, $username, $known ) = @_;
-	
 
 	if( !defined $known )
 	{
-		return $session->{database}->get_single( "user", $username );
+		return $session->getDB->get_single( 
+			$session->getSite->getDataSet( "user" ),
+			$username );
 	} 
 
 	my $self = {};
@@ -193,6 +194,7 @@ sub create_user
 #
 ######################################################################
 
+#cjg should this be a method of session?
 sub current_user
 {
 	my( $session ) = @_;
@@ -200,6 +202,9 @@ sub current_user
 	my $user = undef;
 	
 	my $username = $ENV{'REMOTE_USER'};
+# cjg HACK
+$username = "cjg";
+
 	#$session->{request}->user;
 
 #EPrints::Log::debug( "User", "current_user: $username" );

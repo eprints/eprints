@@ -104,15 +104,17 @@ sub process
 		$self->{user} = EPrints::User::current_user( $self->{session} );
 		if( !defined $self->{user} )
 		{
+			#cjg NOT INTL
 			$self->exit_error( "I don't know who you are" );
 			return;
 		}
 	}
-	
-	$self->{action}    = $self->{session}->{render}->param( "submit" );
 
-	$self->{stage}     = $self->{session}->{render}->param( "stage" );
-	$self->{eprint_id} = $self->{session}->{render}->param( "eprint_id" );
+#cjg NOT VERY FAR YET...	
+	$self->{action}    = $self->{session}->param( "submit" );
+
+	$self->{stage}     = $self->{session}->param( "stage" );
+	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
 
 	# If we have an EPrint ID, retrieve its entry from the database
 	if( defined $self->{eprint_id} )
@@ -124,27 +126,28 @@ sub process
 		# Check it was retrieved OK
 		if( !defined $self->{eprint} )
 		{
-			my $db_error = $self->{session}->{database}->error();
+			my $db_error = $self->{session}->getDB->error;
+			#cjg LOG...
 			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
 			$self->exit_error( $self->{session}->phrase( 
-				"H:database_err" , 
-				siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				"database_err" , 
+				siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
 			return;
 		}
 
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
-			$self->{eprint}->{username} ne $self->{user}->{username} )
+			$self->{eprint}->getValue( "username" ) ne $self->{user}->getValue( "username" ) )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->exit_error( $self->{session}->phrase( "corrupt_err" , siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
 			return;
 		}
 	}
 
 	$self->{problems} = [];
 	my $ok = 1;
-
+print STDERR "YAY\n";
 	# Process data from previous stage
 	if( !defined $self->{stage} )
 	{
@@ -199,7 +202,11 @@ sub exit_error
 {
 	my( $self, $text ) = @_;
 
-	$self->{session}->{render}->render_error( $text, $self->{redirect} );
+	#cjg LANGME
+	$self->{session}->render_error( 
+			$text, 
+			$self->{redirect}, 
+			"Continue" );
 
 	return;
 }	

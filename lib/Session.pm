@@ -114,7 +114,7 @@ sub new
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
-		$self->failure( $self->phrase( "H:fail_db_connect" ) );
+		$self->render_error( $self->phrase( "fail_db_connect" ) );
 	}
 
 #$self->{starttime} = gmtime( time );
@@ -147,6 +147,8 @@ sub newPage
 
 	$self->{page} = new XML::DOM::Document;
 
+	XML::DOM::setTagCompression( sub { return 2; } ); 
+
 	my $doctype = XML::DOM::DocumentType->new(
 			"foo", #cjg what's this bit?
 			"html",
@@ -168,24 +170,6 @@ sub change_lang
 	my( $self, $newlangid ) = @_;
 
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $newlangid );
-}
-
-
-######################################################################
-#
-# failure()
-#
-#  Print an error messages describing why an operation has failed.
-#
-######################################################################
-
-sub failure
-{
-	my( $self, $problem ) = @_;
-	
-	$self->{render}->render_error( $problem,
-	                               $self->{site}->getConf( "frontpage" ),
-	                               $self->{site}->getConf( "sitename" ) );
 }
 
 
@@ -878,6 +862,78 @@ sub subject_desc
 	}
 	
 	return( $frag );
+}
+
+
+######################################################################
+#
+# render_error( $error_text, $back_to, $back_to_text )
+#
+#  Renders an error page with the given error text. A link, with the
+#  text $back_to_text, is offered, the destination of this is $back_to,
+#  which should take the user somewhere sensible.
+#
+######################################################################
+
+sub render_error
+{
+	my( $self, $error_text, $back_to, $back_to_text ) = @_;
+
+	if( !defined $back_to )
+	{
+		$back_to = $self->getSite->getConf( "frontpage" );
+		$back_to_text = $self->getSite->getConf( "sitename" );
+	}
+
+	if ( $self->{offline} )
+	{
+		print $self->phrase( 
+			"some_error",
+			sitename=>$self->{session}->{site}->{sitename} );
+		print "\n\n";
+		print "$error_text\n\n";
+	} 
+	else
+	{
+		my( $p, $page, $a );
+		$page = $self->makeDocFragment;
+
+		$p = $self->make_element( "p" );
+		$p->appendChild( $self->HTMLPhrase( 
+			"some_error",
+			sitename => $self->makeText( 
+				$self->getSite->getConf( "sitename" ) ) ) );
+		$page->appendChild( $p );
+
+		$p = $self->make_element( "p" );
+		$p->appendChild( $self->makeText( $error_text ) );
+		$page->appendChild( $p );
+
+		$p = $self->make_element( "p" );
+		$p->appendChild( $self->HTMLPhrase( 
+			"contact",
+			adminemail => $self->make_element( 
+				"a",
+				href => "mailto:".
+					$self->getSite->getConf( "admin" ) ),
+			sitename => $self->makeText(
+				$self->getSite->getConf( "sitename" ) ) ) );
+		$page->appendChild( $p );
+				
+		$p = $self->make_element( "p" );
+		$a = $self->make_element( 
+				"a",
+				href => $back_to );
+		$a->appendChild( $self->makeText( $back_to_text ) );
+		$p->appendChild( $a );
+		$page->appendChild( $p );
+
+		$self->buildPage(	
+			$self->phrase( "error_title" ),
+			$page );
+
+		$self->sendPage;
+	}
 }
 
 

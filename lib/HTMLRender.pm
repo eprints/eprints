@@ -178,48 +178,6 @@ sub internal_button_pressed
 }
 
 
-######################################################################
-#
-# render_error( $error_text, $back_to, $back_to_text )
-#
-#  Renders an error page with the given error text. A link, with the
-#  text $back_to_text, is offered, the destination of this is $back_to,
-#  which should take the user somewhere sensible.
-#
-######################################################################
-
-sub render_error
-{
-	my( $self, $error_text, $back_to, $back_to_text ) = @_;
-
-	if ( $self->{offline} )
-	{
-		print $self->{session}->phrase( 
-			"A:some_error",
-			sitename=>$self->{session}->{site}->{sitename} );
-		print "\n\n";
-		print "$error_text\n\n";
-	} 
-	else
-	{
-		print $self->start_html( 
-			$self->{session}->phrase( "H:error_title" ) );
-
-		print "<P>".$self->{session}->phrase( 
-			"H:some_error",
-			sitename=>$self->{session}->{site}->{sitename} )."</P>\n";
-		print "<P>$error_text</P>\n";
-		print "<P>".$self->{session}->phrase( 
-			"H:contact",
-			adminemail=>"<A HREF=\"mailto:$self->{session}->{site}->{admin}\">".$self->{session}->phrase( "H:sitename_admin" , sitename=>$self->{session}->{site}->{sitename} )."</A>"  )."</P>\n";
-				
-		print "<P><A HREF=\"$back_to\">$back_to_text</A></P>\n";
-	
-		print $self->end_html();
-	}
-}
-
-
 
 ######################################################################
 #

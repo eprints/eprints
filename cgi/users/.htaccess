@@ -1,8 +1,8 @@
-AuthName "User Area"
-AuthType Basic
+#AuthName "User Area"
+#AuthType Basic
 
-PerlAuthenHandler EPrints::Auth::authen
-PerlAuthzHandler  EPrints::Auth::authz
+#PerlAuthenHandler EPrints::Auth::authen
+#PerlAuthzHandler  EPrints::Auth::authz
 
 #PerlSetVar Auth_DBI_data_source   dbi:mysql:eprints
 
@@ -17,4 +17,4 @@ PerlAuthzHandler  EPrints::Auth::authz
 
 #PerlSetVar Auth_DBI_encrypted     off
 
-require group user sith
+#require group user sith
