@@ -38,7 +38,7 @@ use strict;
 (
 	"subid:text::Subscription ID:1:0:0",
 	"username:text::User:1:0:0:1",
-	"spec:text::Specification:1:0:0",
+	"spec:multitext:3:Specification:1:0:0",
 	"frequency:enum:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
 );
 
@@ -489,7 +489,7 @@ sub process
 		my $body = "This mail contains your $freq subscription to ".
 			"$EPrintSite::SiteInfo::sitename.\n\nTo cancel, temporarily disable ".
 			"or alter your subscription, visit the following Web page:\n\n".
-			"$EPrintSite::SiteInfo::server_perl/reader/subscribe\n\n";
+			"$EPrintSite::SiteInfo::server_perl/users/subscribe\n\n";
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
