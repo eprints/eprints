@@ -46,6 +46,7 @@ my $DIGITS = 2;
 	                "version information."
 );
 
+## WP1: BAD
 sub get_system_field_info
 {
 	my( $class , $site ) = @_;
@@ -105,6 +106,7 @@ sub get_system_field_info
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $doc_id, $known, $eprint ) = @_;
@@ -164,6 +166,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub create
 {
 	my( $session, $eprint, $format ) = @_;
@@ -213,6 +216,7 @@ sub create
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_directory
 {
 	my( $id, $eprint ) = @_;
@@ -238,6 +242,7 @@ sub _create_directory
 #
 ######################################################################
 
+## WP1: BAD
 sub _generate_doc_id
 {
 	my( $session, $eprint ) = @_;
@@ -288,6 +293,7 @@ sub _generate_doc_id
 #
 ######################################################################
 
+## WP1: BAD
 sub clone
 {
 	my( $self, $eprint ) = @_;
@@ -336,6 +342,7 @@ sub clone
 #
 ######################################################################
 
+## WP1: BAD
 sub remove
 {
 	my( $self ) = @_;
@@ -382,6 +389,7 @@ sub remove
 #
 ######################################################################
 
+## WP1: BAD
 sub get_eprint
 {
 	my( $self ) = @_;
@@ -406,6 +414,7 @@ sub get_eprint
 #
 ######################################################################
 
+## WP1: BAD
 sub url
 {
 	my( $self ) = @_;
@@ -427,6 +436,7 @@ sub url
 #
 ######################################################################
 
+## WP1: BAD
 sub local_path
 {
 	my( $self ) = @_;
@@ -447,6 +457,7 @@ sub local_path
 #
 ######################################################################
 
+## WP1: BAD
 sub files
 {
 	my( $self ) = @_;
@@ -470,6 +481,7 @@ sub files
 #
 ######################################################################
 
+## WP1: BAD
 sub _get_files
 {
 	my( $files, $root, $dir ) = @_;
@@ -513,6 +525,7 @@ sub _get_files
 #
 ######################################################################
 
+## WP1: BAD
 sub remove_file
 {
 	my( $self, $filename ) = @_;
@@ -543,6 +556,7 @@ sub remove_file
 #
 ######################################################################
 
+## WP1: BAD
 sub remove_all_files
 {
 	my( $self ) = @_;
@@ -577,6 +591,7 @@ sub remove_all_files
 #
 ######################################################################
 
+## WP1: BAD
 sub set_main
 {
 	my( $self, $main_file ) = @_;
@@ -605,6 +620,7 @@ sub set_main
 #
 ######################################################################
 
+## WP1: BAD
 sub get_main
 {
 	my( $self ) = @_;
@@ -621,6 +637,7 @@ sub get_main
 #
 ######################################################################
 
+## WP1: BAD
 sub set_format
 {
 	my( $self, $format ) = @_;
@@ -637,6 +654,7 @@ sub set_format
 #
 ######################################################################
 
+## WP1: BAD
 sub set_format_desc
 {
 	my( $self, $format_desc ) = @_;
@@ -653,6 +671,7 @@ sub set_format_desc
 #
 ######################################################################
 
+## WP1: BAD
 sub upload
 {
 	my( $self, $filehandle, $filename ) = @_;
@@ -692,6 +711,7 @@ sub upload
 #
 ######################################################################
 
+## WP1: BAD
 sub upload_archive
 {
 	my( $self, $filehandle, $filename, $archive_format ) = @_;
@@ -737,6 +757,7 @@ sub upload_archive
 #
 ######################################################################
 
+## WP1: BAD
 sub upload_url
 {
 	my( $self, $url_in ) = @_;
@@ -819,6 +840,7 @@ sub upload_url
 #
 ######################################################################
 
+## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
@@ -882,6 +904,7 @@ sub commit
 #
 ######################################################################
 
+## WP1: BAD
 sub required_format
 {
 	my( $session , $format ) = @_;
@@ -898,6 +921,7 @@ sub required_format
 	return( $req );
 }
 
+## WP1: BAD
 sub format_name
 {
 	my( $session , $format ) = @_;
@@ -910,6 +934,7 @@ sub format_name
 	return( "LANG SUPPORT PENDING( $format )" );
 } 
 
+## WP1: BAD
 sub archive_name
 {
 	my( $sesion, $archivetype ) = @_;
@@ -930,6 +955,7 @@ sub archive_name
 #
 ######################################################################
 
+## WP1: BAD
 sub validate
 {
 	my( $self ) = @_;

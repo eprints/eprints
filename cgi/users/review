@@ -24,7 +24,7 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my $user = EPrints::User::current_user( $session );
+my $user = $session->current_user;
 
 # Check user
 if( !defined $user )

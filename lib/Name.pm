@@ -29,6 +29,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub format_name
 {
 	my( $name, $familylast ) = @_;
@@ -51,6 +52,7 @@ print "<sigh>\n" if (!defined $$name{given});
 #
 ######################################################################
 
+## WP1: BAD
 sub format_names
 {
 	my ( $namelist , $familylast ) = @_;
@@ -86,6 +88,7 @@ sub format_names
 #
 ######################################################################
 
+## WP1: BAD
 sub add_name
 {
 	my( $oldvalue, $surname, $firstname ) = @_;
@@ -107,6 +110,7 @@ sub add_name
 #
 ######################################################################
 
+## WP1: BAD
 sub import_names
 {
 	my( $list, $join_char ) = @_;
@@ -150,6 +154,7 @@ sub import_names
 #
 ######################################################################
 
+## WP1: BAD
 sub split_name
 {
 	my( $name ) = @_;
@@ -239,6 +244,7 @@ sub split_name
 #
 ######################################################################
 
+## WP1: BAD
 sub cmp_names
 {
 	my( $lista , $listb ) = @_;	

@@ -46,6 +46,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $mode, $param) = @_;
@@ -136,6 +137,7 @@ sub new
 	return( $self );
 }
 
+## WP1: BAD
 sub newPage
 {
 	my( $self , $langid ) = @_;
@@ -165,6 +167,7 @@ sub newPage
 	$self->{page}->appendChild( $newpage );
 }
 
+## WP1: BAD
 sub change_lang
 {
 	my( $self, $newlangid ) = @_;
@@ -181,6 +184,7 @@ sub change_lang
 #
 ######################################################################
 
+## WP1: BAD
 sub terminate
 {
 	my( $self ) = @_;
@@ -202,6 +206,7 @@ sub terminate
 #
 ######################################################################
 
+## WP1: BAD
 sub mail_administrator
 {
 	my( $self, $subject, $message ) = @_;
@@ -219,6 +224,7 @@ sub mail_administrator
 		$message_body );
 }
 
+## WP1: BAD
 sub HTMLPhrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
@@ -234,6 +240,7 @@ sub HTMLPhrase
 	return $self->treeToXHTML( $result );
 }
 
+## WP1: BAD
 sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
@@ -250,6 +257,7 @@ sub phrase
 	return $self->treeToUTF8( $r );
 }
 
+## WP1: BAD
 sub treeToUTF8
 {
 	my( $self, $node ) = @_;
@@ -276,6 +284,7 @@ sub treeToUTF8
 	
 }
 
+## WP1: BAD
 sub treeToXHTML
 {
 	my( $self, $node ) = @_;
@@ -286,18 +295,21 @@ sub treeToXHTML
 
 	
 
+## WP1: BAD
 sub getDB
 {
 	my( $self ) = @_;
 	return $self->{database};
 }
 
+## WP1: BAD
 sub get_query
 {
 	my( $self ) = @_;
 	return $self->{query};
 }
 
+## WP1: BAD
 sub getSite
 {
 	my( $self ) = @_;
@@ -313,6 +325,7 @@ sub getSite
 #
 ######################################################################
 
+## WP1: BAD
 sub sendHTTPHeader
 {
 	my( $self, %opts ) = @_;
@@ -341,6 +354,7 @@ sub sendHTTPHeader
 	$r->send_http_header;
 }
 
+## WP1: BAD
 sub start_html
 {
 	my( $self, $title, $langid ) = @_;
@@ -363,6 +377,7 @@ die "NOPE";
 #
 ######################################################################
 
+## WP1: BAD
 sub end_html
 {
 	my( $self ) = @_;
@@ -384,6 +399,7 @@ die "NOPE";
 #
 ######################################################################
 
+## WP1: BAD
 sub getURL
 {
 	my( $self ) = @_;
@@ -399,6 +415,7 @@ sub getURL
 #
 ######################################################################
 
+## WP1: BAD
 sub start_get_form
 {
 	my( $self, $dest ) = @_;
@@ -425,6 +442,7 @@ die "NOPE";
 #
 ######################################################################
 
+## WP1: BAD
 sub end_form
 {
 die "NOPE";
@@ -444,6 +462,7 @@ die "NOPE";
 ######################################################################
 
 
+## WP1: BAD
 sub get_order_names
 {
 	my( $self, $dataset ) = @_;
@@ -459,6 +478,7 @@ print STDERR "SELF:".join(",",keys %{$self} )."\n";
 	return( \%names );
 }
 
+## WP1: BAD
 sub get_order_name
 {
 	my( $self, $dataset, $orderid ) = @_;
@@ -476,6 +496,7 @@ sub get_order_name
 #
 ######################################################################
 
+## WP1: BAD
 sub param
 {
 	my( $self, $name ) = @_;
@@ -506,6 +527,7 @@ sub param
 #
 ######################################################################
 
+## WP1: BAD
 sub have_parameters
 {
 	my( $self ) = @_;
@@ -519,6 +541,7 @@ sub have_parameters
 #############################################################
 
 
+## WP1: BAD
 sub make_option_list
 {
 	my( $self , %params ) = @_;
@@ -560,6 +583,7 @@ sub make_option_list
 	return $element;
 }
 
+## WP1: BAD
 sub make_element
 {
 	my( $self , $ename , %params ) = @_;
@@ -572,6 +596,7 @@ sub make_element
 	return $element;
 }
 
+## WP1: BAD
 sub make_hidden_field
 {
 	my( $self , $name , $value ) = @_;
@@ -587,6 +612,7 @@ sub make_hidden_field
 		type => "hidden" );
 }
 
+## WP1: BAD
 sub make_submit_buttons
 {
 	my( $self, @submit_buttons ) = @_;
@@ -617,6 +643,7 @@ sub make_submit_buttons
 }
 
 # $text is a UTF8 String!
+## WP1: BAD
 sub makeText
 {
 	my( $self , $text ) = @_;
@@ -624,6 +651,7 @@ sub makeText
 	return $self->{page}->createTextNode( $text );
 }
 
+## WP1: BAD
 sub makeDocFragment
 {
 	my( $self ) = @_;
@@ -631,6 +659,7 @@ sub makeDocFragment
 	return $self->{page}->createDocumentFragment;
 }
 
+## WP1: BAD
 sub makeGetForm
 {
 	my( $self, $dest ) = @_;
@@ -642,6 +671,7 @@ sub makeGetForm
 	return $form;
 }
 
+## WP1: BAD
 sub bomb
 {	
 	my @info;
@@ -657,6 +687,7 @@ sub bomb
 	exit;
 }
 
+## WP1: BAD
 sub takeOwnership
 {
 	my( $self , $domnode ) = @_;
@@ -664,6 +695,7 @@ sub takeOwnership
 	$domnode->setOwnerDocument( $self->{page} );
 }
 
+## WP1: BAD
 sub buildPage
 {
 	my( $self, $title, $mainbit ) = @_;
@@ -680,6 +712,7 @@ sub buildPage
 	}
 }
 
+## WP1: BAD
 sub sendPage
 {
 	my( $self, %httpopts ) = @_;
@@ -687,6 +720,7 @@ sub sendPage
 	print $self->{page}->toString;
 }
 
+## WP1: BAD
 sub pageToFile
 {
 	my( $self , $filename ) = @_;
@@ -695,6 +729,7 @@ sub pageToFile
 
 }
 
+## WP1: BAD
 sub setPage
 {
 	my( $self, $newhtml ) = @_;
@@ -718,6 +753,7 @@ sub setPage
 #
 ######################################################################
 
+## WP1: BAD
 sub subjectTree
 {
 	my( $self, $subject ) = @_;
@@ -777,6 +813,7 @@ sub subjectTree
 #
 ######################################################################
 
+## WP1: BAD
 sub _render_children
 {
 	my( $self, $subject ) = @_;
@@ -821,6 +858,7 @@ print "zoop\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub subject_desc
 {
 	my( $self, $subject, $link, $full, $count ) = @_;
@@ -875,6 +913,7 @@ sub subject_desc
 #
 ######################################################################
 
+## WP1: GOOD
 sub render_error
 {
 	my( $self, $error_text, $back_to, $back_to_text ) = @_;
@@ -934,6 +973,50 @@ sub render_error
 
 		$self->sendPage;
 	}
+}
+
+## WP1: GOOD
+sub auth_check
+{
+	my( $self , $resource ) = @_;
+
+	my $user = $self->current_user;
+
+	if( !defined $user )
+	{
+		$self->render_error( $self->phrase( "no_login" ) );
+		return;
+	}
+
+	unless( $user->has_priv( $resource ) )
+	{
+		$self->render_error( $self->phrase( "no_priv" ) );
+		return;
+	}
+}
+
+
+## WP1: GOOD
+sub current_user
+{
+	my( $self ) = @_;
+
+	my $user = undef;
+
+	# If we've already done this once, no point
+	# in doing it again.
+	unless( defined $self->{currentuser} )
+	{	
+		my $username = $ENV{'REMOTE_USER'};
+
+		if( defined $username && $username ne "" )
+		{
+			$self->{currentuser} = 
+					new EPrints::User( $self, $username );
+		}
+	}
+
+	return $self->{currentuser};
 }
 
 

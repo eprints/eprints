@@ -25,6 +25,7 @@ use XML::Parser;
 # "eprints". This is used to pass around state information including
 # the session handle and the current object.
 
+## WP1: BAD
 sub import_file
 {
 	my( $session , $filename , $function ) = @_;
@@ -42,6 +43,7 @@ sub import_file
 	$parser->parsefile( $filename );
 }
 
+## WP1: BAD
 sub _handle_start
 {
 	my( $parser , $tag , %params ) = @_;
@@ -115,6 +117,7 @@ print "T:".$params{name}."\n";
 
 
 
+## WP1: BAD
 sub _handle_end
 {
 	my ( $parser , $tag ) = @_;
@@ -173,6 +176,7 @@ sub _handle_end
 	$parser->xpcroak( "Unknown end tag: $tag" );
 }
 
+## WP1: BAD
 sub _handle_char
 {
 	my( $parser , $text ) = @_;

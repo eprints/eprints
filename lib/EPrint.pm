@@ -30,6 +30,7 @@ $EPrints::EPrint::id_code_digits = 8;
 
 $EPrints::EPrint::static_page = "index.html";
 
+## WP1: BAD
 sub get_system_field_info
 {
 	my( $class , $site ) = @_;
@@ -128,6 +129,7 @@ sub get_system_field_info
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $dataset, $id, $known ) = @_;
@@ -181,6 +183,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub create
 {
 	my( $session, $dataset, $username, $data ) = @_;
@@ -227,6 +230,7 @@ print STDERR "($new_id)($dir)\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_id
 {
 	my( $session ) = @_;
@@ -252,6 +256,7 @@ sub _create_id
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_directory
 {
 	my( $session, $eprint_id ) = @_;
@@ -370,6 +375,7 @@ print "($full_path)\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub remove
 {
 	my( $self ) = @_;
@@ -434,6 +440,7 @@ sub remove
 #
 ######################################################################
 
+## WP1: BAD
 sub remove_from_threads
 {
 	my( $self ) = @_;
@@ -478,6 +485,7 @@ sub remove_from_threads
 #
 ######################################################################
 
+## WP1: BAD
 sub clone
 {
 	my( $self, $dest_dataset, $copy_documents ) = @_;
@@ -551,6 +559,7 @@ die "clone NOT DONE"; #cjg
 #
 ######################################################################
 
+## WP1: BAD
 sub transfer
 {
 	my( $self, $dataset ) = @_;
@@ -589,6 +598,7 @@ sub transfer
 #
 ######################################################################
 
+## WP1: BAD
 sub short_title
 {
 	my( $self ) = @_;
@@ -606,6 +616,7 @@ sub short_title
 #
 ######################################################################
 
+## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
@@ -636,6 +647,7 @@ sub commit
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_type
 {
 	my( $self ) = @_;
@@ -668,6 +680,7 @@ sub validate_type
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_meta
 {
 	my( $self ) = @_;
@@ -742,6 +755,7 @@ sub validate_meta
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_subject
 {
 	my( $self ) = @_;
@@ -791,6 +805,7 @@ sub validate_subject
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_linking
 {
 	my( $self ) = @_;
@@ -857,6 +872,7 @@ sub validate_linking
 #
 ######################################################################
 
+## WP1: BAD
 sub get_document
 {
 	my( $self, $format ) = @_;
@@ -893,6 +909,7 @@ sub get_document
 #
 ######################################################################
 
+## WP1: BAD
 sub get_all_documents
 {
 	my( $self ) = @_;
@@ -922,6 +939,7 @@ sub get_all_documents
 #
 ######################################################################
 
+## WP1: BAD
 sub get_formats
 {
 	my( $self ) = @_;
@@ -952,6 +970,7 @@ sub get_formats
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_documents
 {
 	my( $self ) = @_;
@@ -999,6 +1018,7 @@ sub validate_documents
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_full
 {
 	my( $self ) = @_;
@@ -1053,6 +1073,7 @@ sub validate_full
 #
 ######################################################################
 
+## WP1: BAD
 sub prune_documents
 {
 	my( $self ) = @_;
@@ -1087,6 +1108,7 @@ sub prune_documents
 #
 ######################################################################
 
+## WP1: BAD
 sub prune
 {
 	my( $self ) = @_;
@@ -1119,6 +1141,7 @@ sub prune
 #
 ######################################################################
 
+## WP1: BAD
 sub submit
 {
 	my( $self ) = @_;
@@ -1144,6 +1167,7 @@ sub submit
 #
 ######################################################################
 
+## WP1: BAD
 sub datestamp
 {
 	my( $self ) = @_;
@@ -1161,6 +1185,7 @@ sub datestamp
 #
 ######################################################################
 
+## WP1: BAD
 sub archive
 {
 	my( $self ) = @_;
@@ -1205,6 +1230,7 @@ sub archive
 #
 ######################################################################
 
+## WP1: BAD
 sub local_path
 {
 	my( $self ) = @_;
@@ -1222,6 +1248,7 @@ sub local_path
 #
 ######################################################################
 
+## WP1: BAD
 sub url_stem
 {
 	my( $self ) = @_;
@@ -1239,6 +1266,7 @@ sub url_stem
 #
 ######################################################################
 
+## WP1: BAD
 sub static_page_url
 {
 	my( $self ) = @_;
@@ -1255,6 +1283,7 @@ sub static_page_url
 #
 ######################################################################
 
+## WP1: BAD
 sub generate_static
 {
 	my( $self ) = @_;
@@ -1305,6 +1334,7 @@ sub generate_static
 }
 
 
+## WP1: BAD
 sub toHTMLPage
 {
         my( $self ) = @_;
@@ -1314,6 +1344,7 @@ sub toHTMLPage
         return( $dom );
 }
 
+## WP1: BAD
 sub toHTMLStaffPage
 {
         my( $self ) = @_;
@@ -1333,6 +1364,7 @@ sub toHTMLStaffPage
 #
 ######################################################################
 
+## WP1: BAD
 sub get_all_related
 {
 	my( $self ) = @_;
@@ -1367,6 +1399,7 @@ sub get_all_related
 #
 ######################################################################
 
+## WP1: BAD
 sub in_thread
 {
 	my( $self, $field ) = @_;
@@ -1391,6 +1424,7 @@ sub in_thread
 #
 ######################################################################
 
+## WP1: BAD
 sub first_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1421,6 +1455,7 @@ sub first_in_thread
 #
 ######################################################################
 
+## WP1: BAD
 sub later_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1449,6 +1484,7 @@ sub later_in_thread
 #
 ######################################################################
 
+## WP1: BAD
 sub all_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1463,6 +1499,7 @@ sub all_in_thread
 }
 
 
+## WP1: BAD
 sub _collect_thread
 {
 	my( $self, $field, $current, $eprints ) = @_;
@@ -1486,6 +1523,7 @@ sub _collect_thread
 #
 ######################################################################
 
+## WP1: BAD
 sub last_in_thread
 {
 	my( $self, $field ) = @_;
@@ -1502,6 +1540,7 @@ sub last_in_thread
 	return( $latest );
 }
 
+## WP1: BAD
 sub toHTMLLink
 {
 	my( $self , $cstyle ) = @_;
@@ -1512,6 +1551,7 @@ sub toHTMLLink
 	return $a;
 }
 
+## WP1: BAD
 sub toHTML
 {
 	my( $self , $cstyle) = @_;
@@ -1549,6 +1589,7 @@ sub toHTML
 }                                                   
 
 
+## WP1: BAD
 sub getValue
 {
 	my( $self , $fieldname ) = @_;
@@ -1556,6 +1597,7 @@ sub getValue
 	return $self->{data}->{$fieldname};
 }
 
+## WP1: BAD
 sub setValue
 {
 	my( $self , $fieldname, $value ) = @_;
@@ -1563,6 +1605,7 @@ sub setValue
 	$self->{data}->{$fieldname} = $value;
 }
 
+## WP1: BAD
 sub getSession
 {
 	my( $self ) = @_;
@@ -1570,6 +1613,7 @@ sub getSession
 	return $self->{session};
 }
 
+## WP1: BAD
 sub getData
 {
 	my( $self ) = @_;

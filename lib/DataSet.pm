@@ -56,6 +56,7 @@ my $INFO = {
 #  getSQLTableName can be called, but which dosn't know anything
 #  about it's fields. 
 
+## WP1: BAD
 sub newStub
 {
 	my( $class , $datasetname ) = @_;
@@ -84,6 +85,7 @@ sub newStub
 #  on types, system fields, and user fields from the various
 #  sources - the packages and the site config module.
 
+## WP1: BAD
 sub new
 {
 	my( $class , $site , $datasetname ) = @_;
@@ -164,6 +166,7 @@ sub new
 #  returns a MetaField object describing the asked for field
 #  in this dataset, or undef if there is no such field.
 
+## WP1: BAD
 sub getField
 {
 	my( $self, $fieldname ) = @_;
@@ -183,6 +186,7 @@ sub getField
 #
 #  returns the id of the default order type.  
 
+## WP1: BAD
 sub defaultOrder
 {
 	my( $self ) = @_;
@@ -197,6 +201,7 @@ sub defaultOrder
 #  config and phrases ( in a nutshell "Archive", "Buffer" and "Inbox"
 #  all return "eprint" because they all (must) have identical structure.
 
+## WP1: BAD
 sub confid
 {
 	my( $self ) = @_;
@@ -208,6 +213,7 @@ sub confid
 #
 #  This returns a printable name of this dataset, for logging and errors.
 
+## WP1: BAD
 sub toString
 {
 	my( $self ) = @_;
@@ -219,6 +225,7 @@ sub toString
 #  This returns the name of the main SQL Table containing this dataset.
 #  the other SQL tables names are based on this name.
  
+## WP1: BAD
 sub getSQLTableName
 {
 	my( $self ) = @_;
@@ -230,6 +237,7 @@ sub getSQLTableName
 #  Gives the name of the SQL table which contains the free text indexing
 #  information.
 
+## WP1: BAD
 sub getSQLIndexTableName
 {
 	my( $self ) = @_;
@@ -242,6 +250,7 @@ sub getSQLIndexTableName
 #  Returns the name of the SQL Table which contains the information
 #  on the "multiple" field.
 
+## WP1: BAD
 sub getSQLSubTableName
 {
 	my( $self , $field ) = @_;
@@ -252,6 +261,7 @@ sub getSQLSubTableName
 #
 #  returns all the fields of this DataSet, in order.
 
+## WP1: BAD
 sub getFields
 {
 	my( $self ) = @_;
@@ -263,6 +273,7 @@ sub getFields
 #  returns the keyfield for this dataset, the unqiue identifier field.
 #  (always the first field).
 
+## WP1: BAD
 sub getKeyField
 {
 	my( $self ) = @_;
@@ -276,6 +287,7 @@ sub getKeyField
 #  This rather strange method turns the hash array in item into 
 #  an object of the type belonging to this dataset.
 
+## WP1: BAD
 sub makeObject
 {
 	my( $self , $session , $item ) = @_;
@@ -314,6 +326,7 @@ sub makeObject
 #  returns a reference to a list of all types of this dataset (eg. 
 #  eprint record types or types of user)
 
+## WP1: BAD
 sub getTypes
 {
 	my( $self ) = @_;
@@ -328,6 +341,7 @@ sub getTypes
 #  returns a reference to a hash table which maps the id's of types given
 #  by getTypes to printable names in the language of the session. 
 
+## WP1: BAD
 sub getTypeNames
 {
 	my( $self, $session ) = @_;
@@ -347,6 +361,7 @@ sub getTypeNames
 #  returns the printable name of the $type belonging to this
 #  dataset, in the language of the $session.
 
+## WP1: BAD
 sub getTypeName
 {
 	my( $self, $session, $type ) = @_;

@@ -123,6 +123,7 @@ my %TYPE_INDEX =
 # note: display name, help and labels for options are not
 # defined here as they are lang specific.
 
+## WP1: BAD
 sub new
 {
 	my( $class, $dataset, $data ) = @_;
@@ -181,6 +182,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub get
 {
 	my( $self, $field ) = @_;
@@ -199,6 +201,7 @@ sub get
 #
 ######################################################################
 
+## WP1: BAD
 sub clone
 {
 	my( $self ) = @_;
@@ -217,6 +220,7 @@ sub clone
 #
 ######################################################################
 
+## WP1: BAD
 sub get_date
 {
 	my( $time ) = @_;
@@ -250,6 +254,7 @@ sub get_date
 #
 ######################################################################
 
+## WP1: BAD
 sub get_datestamp
 {
 	my( $time ) = @_;
@@ -260,6 +265,7 @@ sub get_datestamp
 }
 
 
+## WP1: BAD
 sub tags_and_labels
 {
 	my( $self , $session ) = @_;
@@ -271,6 +277,7 @@ sub tags_and_labels
 	return ($self->{options}, \%labels);
 }
 
+## WP1: BAD
 sub display_name
 {
 	my( $self, $session ) = @_;
@@ -278,6 +285,7 @@ sub display_name
 	return $session->phrase( "fieldname_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
+## WP1: BAD
 sub display_help
 {
 	my( $self, $session ) = @_;
@@ -285,6 +293,7 @@ sub display_help
 	return $session->phrase( "fieldhelp_".$self->{dataset}->confid."_".$self->{name} );
 }
 
+## WP1: BAD
 sub getSQLType
 {
         my( $self , $notnull ) = @_;
@@ -304,6 +313,7 @@ sub getSQLType
 	return $type;
 }
 
+## WP1: BAD
 sub getSQLIndex
 {
         my( $self ) = @_;
@@ -314,39 +324,46 @@ print STDERR "gsind: $self->{type}...($index)\n";
 	return $index;
 }
 
+## WP1: BAD
 sub getName
 {
 	my( $self ) = @_;
 	return $self->{name};
 }
 
+## WP1: BAD
 sub get_type
 {
 	my( $self ) = @_;
 	return $self->{type};
 }
 
+## WP1: BAD
 sub isMultiple
 {
 	my( $self ) = @_;
 	return $self->{multiple};
 }
+## WP1: BAD
 sub setMultiple
 {
 	my( $self , $val ) = @_;
 	$self->{multiple} = $val;
 }
 
+## WP1: BAD
 sub isIndexed
 {
 	my( $self ) = @_;
 	return $self->{indexed};
 }
+## WP1: BAD
 sub setIndexed
 {
 	my( $self , $val ) = @_;
 	$self->{indexed} = $val;
 }
+## WP1: BAD
 sub isType
 {
 	my( $self , @typenames ) = @_;
@@ -358,6 +375,7 @@ sub isType
 	return 0;
 }
 
+## WP1: BAD
 sub isTextIndexable
 {
 	my( $self ) = @_;
@@ -373,6 +391,7 @@ sub isTextIndexable
 #
 ######################################################################
 
+## WP1: BAD
 sub getHTML
 {
 	my( $self, $session, $value ) = @_;

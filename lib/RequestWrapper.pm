@@ -16,6 +16,7 @@ package EPrints::RequestWrapper;
 use strict;
 use Apache;
 
+## WP1: BAD
 sub new
 {
 	my( $class , $real_request , $conf ) = @_;
@@ -26,6 +27,7 @@ sub new
 	return $self;
 }
 
+## WP1: BAD
 sub dir_config 
 { 
 	my( $self, $key ) = @_; 

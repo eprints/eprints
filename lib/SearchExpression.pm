@@ -59,6 +59,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, %data ) = @_;
@@ -130,6 +131,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub add_field
 {
 	my( $self, $field, $value ) = @_;
@@ -163,6 +165,7 @@ sub add_field
 #
 ######################################################################
 
+## WP1: BAD
 sub clear
 {
 	my( $self ) = @_;
@@ -186,6 +189,7 @@ sub clear
 #
 ######################################################################
 
+## WP1: BAD
 sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
@@ -284,6 +288,7 @@ sub render_search_form
 #
 ######################################################################
 
+## WP1: BAD
 sub from_form
 {
 	my( $self ) = @_;
@@ -326,6 +331,7 @@ sub from_form
 #
 ######################################################################
 
+## WP1: BAD
 sub toString
 {
 	my( $self ) = @_;
@@ -350,6 +356,7 @@ sub toString
 	return( $text_rep );
 }
 
+## WP1: BAD
 sub _escape_search_string
 {
 	my( $string ) = @_;
@@ -357,6 +364,7 @@ sub _escape_search_string
 	return $string;
 }
 
+## WP1: BAD
 sub _unescape_search_string
 {
 	my( $string ) = @_;
@@ -374,6 +382,7 @@ sub _unescape_search_string
 #
 ######################################################################
 
+## WP1: BAD
 sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
@@ -417,6 +426,7 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 
 
+## WP1: BAD
 sub perform_search 
 {
 	my ( $self ) = @_;
@@ -462,6 +472,7 @@ EPrints::Log::debug( $buffer."!\n" );
 
 }
 	
+## WP1: BAD
 sub count 
 {
 	my( $self ) = @_;
@@ -477,6 +488,7 @@ sub count
 }
 
 
+## WP1: BAD
 sub get_records 
 {
 	my ( $self , $max ) = @_;
@@ -525,6 +537,7 @@ print STDERR "ORDER BY: $self->{order}\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
@@ -701,6 +714,7 @@ print STDERR "URLURL URL URL: $url\n";
 	$self->{session}->sendPage;
 }
 
+## WP1: BAD
 sub _render_problems
 {
 	my( $self , $title, $preamble, @problems ) = @_;	
@@ -743,6 +757,7 @@ sub _render_problems
 #
 ######################################################################
 
+## WP1: BAD
 sub _render_matchcount
 {
 	my( $session, $count ) = @_;

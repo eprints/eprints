@@ -32,6 +32,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub send_mail
 {
 	my( $session, $name, $address, $subject, $body ) = @_;
@@ -64,6 +65,7 @@ EOF
 #
 ######################################################################
 
+## WP1: BAD
 sub fill_template
 {
 	my( $template_filename, $user ) = @_;
@@ -105,6 +107,7 @@ sub fill_template
 #
 ######################################################################
 
+## WP1: BAD
 sub update_template_line
 {
 	my( $session, $template_line, $user ) = @_;
@@ -141,6 +144,7 @@ sub update_template_line
 #
 ######################################################################
 
+## WP1: BAD
 sub prepare_send_mail
 {
 	my( $session, $name, $address, $subject, $templatefile, $user ) = @_;

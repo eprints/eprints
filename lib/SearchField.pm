@@ -69,6 +69,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $dataset, $field, $value ) = @_;
@@ -111,6 +112,7 @@ if( !defined $field ) { &EPrints::Session::bomb; }
 	return( $self );
 }
 
+## WP1: BAD
 sub set_value
 {
 	my ( $self , $newvalue ) = @_;
@@ -149,6 +151,7 @@ print STDERR "set_value( $newvalue )\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub from_form
 {
 	my( $self ) = @_;
@@ -292,6 +295,7 @@ print STDERR "zz($val))\n";
 # 
 # cjg commentme (all below)
 
+## WP1: BAD
 sub get_conditions 
 {
 	my ( $self , $benchmarking ) = @_;
@@ -556,6 +560,7 @@ sub get_conditions
 
 }
 
+## WP1: BAD
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
@@ -607,6 +612,7 @@ print STDERR "ock\n";
 
 # cjg comments
 
+## WP1: BAD
 sub benchmark
 {
 	my ( $self , $tablefield , $where ) = @_;
@@ -630,6 +636,7 @@ sub benchmark
 # benchmarking means that we only need to get approx 
 # results from this...
 
+## WP1: BAD
 sub _get_tables_searches
 {
 	my ( $self , $benchmarking) = @_;
@@ -682,6 +689,7 @@ sub _get_tables_searches
 	return (\@tables, \%searches, \@badwords);
 }
 
+## WP1: BAD
 sub do
 {
 	my ( $self , $searchbuffer , $satisfy_all) = @_;
@@ -793,6 +801,7 @@ sub do
 
 }
 
+## WP1: BAD
 sub approx_rows 
 {
 	my ( $self ) = @_;
@@ -850,6 +859,7 @@ print STDERR ">>>>>$tables,$searches,$badwords,$error\n";
 }
 
 
+## WP1: BAD
 sub getField
 {
 	my( $self ) = @_;
@@ -863,6 +873,7 @@ sub getField
 #
 ######################################################################
 
+## WP1: BAD
 sub toHTML
 {
 	my( $self ) = @_;
@@ -1010,6 +1021,7 @@ sub toHTML
 	return $frag;
 }
 
+## WP1: BAD
 sub getHelp
 {
         my( $self ) = @_;
@@ -1017,24 +1029,28 @@ sub getHelp
         return $self->{session}->phrase( "help_".$self->{field}->get_type() );
 }
 
+## WP1: BAD
 sub isType
 {
 	my( $self, @types ) = @_;
 	return $self->{field}->isType( @types );
 }
 
+## WP1: BAD
 sub getDisplayName
 {
 	my( $self ) = @_;
 	return $self->{displayname};
 }
 
+## WP1: BAD
 sub getFormName
 {
 	my( $self ) = @_;
 	return $self->{formname};
 }
 
+## WP1: BAD
 sub getValue
 {
 	my( $self ) = @_;

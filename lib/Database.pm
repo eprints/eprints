@@ -53,6 +53,7 @@ my $NEXTBUFFER = 0;
 #
 ######################################################################
 
+## WP1: BAD
 sub build_connection_string
 {
 	my( %params ) = @_;
@@ -86,6 +87,7 @@ print STDERR ">>$dsn\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class , $session) = @_;
@@ -127,6 +129,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub disconnect
 {
 	my( $self ) = @_;
@@ -149,6 +152,7 @@ sub disconnect
 #
 ######################################################################
 
+## WP1: BAD
 sub error
 {
 	my( $self ) = @_;
@@ -167,6 +171,7 @@ sub error
 #
 ######################################################################
 
+## WP1: BAD
 sub create_archive_tables
 {
 	my( $self ) = @_;
@@ -202,6 +207,7 @@ sub create_archive_tables
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_table
 {
 	my( $self, $dataset ) = @_;
@@ -237,6 +243,7 @@ sub _create_table
 # boolean                  string      |         boolean  array of
 #                                      EPrints::DataSet   EPrint::MetaField
 
+## WP1: BAD
 sub _create_table_aux
 {
 	my( $self, $tablename, $dataset, $setkey, @fields ) = @_;
@@ -336,6 +343,7 @@ sub _create_table_aux
 #
 ######################################################################
 
+## WP1: BAD
 sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
@@ -374,6 +382,7 @@ sub add_record
 #
 ######################################################################
 
+## WP1: BAD
 sub prepValue
 {
 	my( $value ) = @_; 
@@ -397,6 +406,7 @@ sub prepValue
 #
 ######################################################################
 
+## WP1: BAD
 sub update
 {
 	my( $self, $dataset, $data ) = @_;
@@ -541,6 +551,7 @@ print STDERR "*".$multifield->getName()."\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub remove
 {
 die "remove not fini_cjgshed";# don't forget to prep values
@@ -565,6 +576,7 @@ die "remove not fini_cjgshed";# don't forget to prep values
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_counter_table
 {
 	my( $self ) = @_;
@@ -605,6 +617,7 @@ sub _create_counter_table
 #
 ######################################################################
 
+## WP1: BAD
 sub _create_tempmap_table
 {
 	my( $self ) = @_;
@@ -635,6 +648,7 @@ sub _create_tempmap_table
 #
 ######################################################################
 
+## WP1: BAD
 sub counter_next
 {
 	# still not appy with this #cjg (prep values too?)
@@ -665,6 +679,7 @@ sub counter_next
 #
 ######################################################################
 
+## WP1: BAD
 sub create_cache
 {
 	my ( $self , $keyname ) = @_;
@@ -696,6 +711,7 @@ sub create_cache
 
 
 
+## WP1: BAD
 sub create_buffer
 {
 	my ( $self , $keyname ) = @_;
@@ -722,6 +738,7 @@ sub create_buffer
 #
 ######################################################################
 
+## WP1: BAD
 sub _make_select
 {
 	my( $self, $keyfield, $tables, $conditions ) = @_;
@@ -744,6 +761,7 @@ sub _make_select
 	return $sql;
 }
 
+## WP1: BAD
 sub buffer
 {
 	my( $self, $keyfield, $tables, $conditions , $orbuffer , $keep ) = @_;
@@ -779,6 +797,7 @@ sub buffer
 	return( $targetbuffer );
 }
 
+## WP1: BAD
 sub distinct_and_limit
 {
 	my( $self, $buffer, $keyfield, $max ) = @_;
@@ -805,6 +824,7 @@ sub distinct_and_limit
 	}
 }
 
+## WP1: BAD
 sub drop_cache
 {
 	my ( $self , $tmptable ) = @_;
@@ -832,6 +852,7 @@ sub drop_cache
 
 }
 
+## WP1: BAD
 sub count_buffer
 {
 	my ( $self , $buffer ) = @_;
@@ -847,24 +868,28 @@ sub count_buffer
 	return $count;
 }
 
+## WP1: BAD
 sub from_buffer 
 {
 	my ( $self , $tableid , $buffer ) = @_;
 	return $self->_get( $tableid, 1 , $buffer );
 }
 
+## WP1: BAD
 sub get_single
 {
 	my ( $self , $tableid , $value ) = @_;
 	return ($self->_get( $tableid, 0 , $value ))[0];
 }
 
+## WP1: BAD
 sub get_all
 {
 	my ( $self , $tableid ) = @_;
 	return $self->_get( $tableid, 2 );
 }
 
+## WP1: BAD
 sub _get 
 {
 	my ( $self , $dataset , $mode , $param ) = @_;
@@ -1016,6 +1041,7 @@ sub _get
 	return @data;
 }
 
+## WP1: BAD
 sub do 
 {
 	my ( $self , $sql ) = @_;
@@ -1033,6 +1059,7 @@ EPrints::Log::debug( "   ".$sql );
 	return $result;
 }
 
+## WP1: BAD
 sub prepare 
 {
 	my ( $self , $sql ) = @_;
@@ -1050,6 +1077,7 @@ sub prepare
 	return $result;
 }
 
+## WP1: BAD
 sub execute 
 {
 	my ( $self , $sth , $sql ) = @_;
@@ -1067,6 +1095,7 @@ EPrints::Log::debug( "   ".$sql );
 	return $result;
 }
 
+## WP1: BAD
 sub benchmark
 {
 	my ( $self , $keyfield , $tables , $where ) = @_;
@@ -1083,6 +1112,7 @@ sub benchmark
 
 }	
 
+## WP1: BAD
 sub exists
 {
 	my( $self, $dataset, $id ) = @_;
@@ -1108,6 +1138,7 @@ sub exists
 	return 0;
 }
 
+## WP1: BAD
 sub _freetext_index
 {
 	my( $self , $dataset , $id , $field , $value ) = @_;
@@ -1136,6 +1167,7 @@ sub _freetext_index
 }
 
 
+## WP1: BAD
 sub table_name
 {
 	my( $tableid ) = @_;

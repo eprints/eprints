@@ -25,6 +25,7 @@ use EPrints::Subscription;
 
 use strict;
 
+## WP1: BAD
 sub get_system_field_info
 {
 	my( $class , $site ) = @_;
@@ -81,6 +82,7 @@ sub get_system_field_info
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $username, $known ) = @_;
@@ -109,6 +111,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub create_user_email
 {
 	my( $session, $email, $access_level ) = @_;
@@ -140,6 +143,7 @@ sub create_user_email
 #
 ######################################################################
 
+## WP1: BAD
 sub create_user
 {
 	my( $session, $username_candidate, $email, $access_level ) = @_;
@@ -187,45 +191,13 @@ sub create_user
 
 ######################################################################
 #
-# $user = current_user( $session )
-#
-#  Convenience function, returning the current user (if any). undef
-#  is returned if there is no current user.
-#
-######################################################################
-
-#cjg should this be a method of session?
-sub current_user
-{
-	my( $session ) = @_;
-
-	my $user = undef;
-	
-	my $username = $ENV{'REMOTE_USER'};
-# cjg HACK
-$username = "cjg";
-
-	#$session->{request}->user;
-
-#EPrints::Log::debug( "User", "current_user: $username" );
-
-	if( defined $username && $username ne "" )
-	{
-		$user = new EPrints::User( $session, $username );
-	}
-
-	return( $user );
-}
-
-
-######################################################################
-#
 #  $password = _generate_password( $length )
 #
 #   Generates a random password $length characters long.
 #
 ######################################################################
 
+## WP1: BAD
 sub _generate_password
 {
 	my( $length ) = @_;
@@ -256,6 +228,7 @@ sub _generate_password
 #
 ######################################################################
 
+## WP1: BAD
 sub user_with_email
 {
 	my( $session, $email ) = @_;
@@ -287,6 +260,7 @@ sub user_with_email
 #
 ######################################################################
 
+## WP1: BAD
 sub full_name
 {
 	my( $self ) = @_;
@@ -307,6 +281,7 @@ sub full_name
 #
 ######################################################################
 
+## WP1: BAD
 sub validate
 {
 	my( $self ) = @_;
@@ -356,6 +331,7 @@ sub validate
 #
 ######################################################################
 
+## WP1: BAD
 sub commit
 {
 	my( $self ) = @_;
@@ -379,6 +355,7 @@ sub commit
 #
 ######################################################################
 
+## WP1: BAD
 sub send_introduction
 {
 	my( $self ) = @_;
@@ -414,6 +391,7 @@ sub send_introduction
 #
 ######################################################################
 
+## WP1: BAD
 sub send_reminder
 {
 	my( $self, $message ) = @_;
@@ -442,6 +420,7 @@ sub send_reminder
 #
 ######################################################################
 
+## WP1: BAD
 sub retrieve_users
 {
 	my( $session, $conditions, $order ) = @_;
@@ -479,6 +458,7 @@ sub retrieve_users
 #
 ######################################################################
 
+## WP1: BAD
 sub remove
 {
 	my( $self ) = @_;
@@ -523,6 +503,7 @@ sub remove
 #
 ######################################################################
 
+## WP1: BAD
 sub extract
 {
 	my( $usernames ) = @_;
@@ -540,6 +521,7 @@ sub extract
 	return( @usernamelist );
 }
 
+## WP1: BAD
 sub toString
 {
 	my( $self ) = @_;
@@ -547,11 +529,22 @@ sub toString
 	return( $self->{session}->getSite()->call( "user_display_name" , $self  ) );
 }
 
+## WP1: BAD
 sub getValue
 {
 	my( $self , $fieldname ) = @_;
 
 	return $self->{data}->{$fieldname};
+}
+
+## WP1: BAD
+sub has_priv
+{
+	my( $self, $resource ) = @_;
+
+	print EPrints::Log::render_struct( $self );
+
+	return 0;
 }
 
 1;

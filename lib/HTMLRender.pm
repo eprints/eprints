@@ -94,6 +94,7 @@ my %no_asterisk =
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $offline, $query ) = @_;
@@ -152,6 +153,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub absolute_url
 {
 	my( $self ) = @_;
@@ -170,6 +172,7 @@ sub absolute_url
 #
 ######################################################################
 
+## WP1: BAD
 sub internal_button_pressed
 {
 	my( $self ) = @_;
@@ -188,6 +191,7 @@ sub internal_button_pressed
 #
 ######################################################################
 
+## WP1: BAD
 sub input_field
 {
 	my( $self, $field, $value ) = @_;
@@ -334,7 +338,7 @@ sub input_field
 		{			
 			( $sub_tags, $sub_labels ) = EPrints::Subject::get_postable( 
 				$self->{session}, 
-				EPrints::User::current_user( $self->{session} ) );
+				$self->{session}->current_user );
 		}
 
 		my $height = ( $EPrints::HTMLRender::list_height_max < $#{$sub_tags}+1 ?
@@ -496,6 +500,7 @@ sub input_field
 #
 ######################################################################
 
+## WP1: BAD
 sub render_form
 {
 	my( $self, $fields, $values, $show_names, $show_help, $submit_buttons,
@@ -546,6 +551,7 @@ sub render_form
 #
 ######################################################################
 
+## WP1: BAD
 sub input_field_tr
 {
 	my( $self, $field, $value, $show_names, $show_help ) = @_;
@@ -586,6 +592,7 @@ sub input_field_tr
 #
 ######################################################################
 
+## WP1: BAD
 sub named_submit_button
 {
 	my( $self, $name, $value ) = @_;
@@ -602,6 +609,7 @@ sub named_submit_button
 #
 ######################################################################
 
+## WP1: BAD
 sub start_form
 {
 	my( $self, $dest ) = @_;
@@ -629,6 +637,7 @@ sub start_form
 #
 ######################################################################
 
+## WP1: BAD
 sub hidden_field
 {
 	my( $self, $name, $value ) = @_;
@@ -650,6 +659,7 @@ die"nope";
 #
 ######################################################################
 
+## WP1: BAD
 sub upload_field
 {
 	my( $self, $name ) = @_;
@@ -670,6 +680,7 @@ sub upload_field
 #
 ######################################################################
 
+## WP1: BAD
 sub seen_form
 {
 	my( $self ) = @_;
@@ -693,6 +704,7 @@ sub seen_form
 #
 ######################################################################
 
+## WP1: BAD
 sub redirect
 {
 	my( $self, $url ) = @_;
@@ -719,6 +731,7 @@ sub redirect
 #
 ######################################################################
 
+## WP1: BAD
 sub set_param
 {
 	my( $self, $name, $value ) = @_;
@@ -736,6 +749,7 @@ sub set_param
 #
 ######################################################################
 
+## WP1: BAD
 sub form_value
 {
 	my( $self, $field ) = @_;
@@ -850,6 +864,7 @@ sub form_value
 #
 ######################################################################
 
+## WP1: BAD
 sub clear
 {
 	my( $self ) = @_;
@@ -882,6 +897,7 @@ sub clear
 #
 ######################################################################
 
+## WP1: BAD
 sub render_user
 {
 	my( $self, $user, $public ) = @_;
@@ -900,6 +916,7 @@ sub render_user
 #
 ######################################################################
 
+## WP1: BAD
 sub write_version_thread
 {
 	my( $self, $eprint, $field ) = @_;
@@ -915,6 +932,7 @@ sub write_version_thread
 	return( $html );
 }
 
+## WP1: BAD
 sub _write_version_thread_aux
 {
 	my( $self, $eprint, $field, $eprint_shown ) = @_;
@@ -976,6 +994,7 @@ sub _write_version_thread_aux
 #
 ######################################################################
 
+## WP1: BAD
 sub render_deleted_eprint
 {
 	my( $self, $deletion_record ) = @_;

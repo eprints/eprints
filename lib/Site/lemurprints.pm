@@ -30,6 +30,7 @@ use EPrints::Name;
 use strict;
 
 
+## WP1: BAD
 sub get_conf
 {
 	my $c = {};
@@ -1167,6 +1168,7 @@ $c->{thread_citation_specs} =
 #
 ######################################################################
 
+## WP1: BAD
 sub eprint_cmp_by_year
 {
 	return ( $_[1]->{year} <=> $_[0]->{year} ) ||
@@ -1174,6 +1176,7 @@ sub eprint_cmp_by_year
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
 
+## WP1: BAD
 sub eprint_cmp_by_year_oldest_first
 {
 	return ( $_[0]->{year} <=> $_[1]->{year} ) ||
@@ -1181,6 +1184,7 @@ sub eprint_cmp_by_year_oldest_first
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
 
+## WP1: BAD
 sub eprint_cmp_by_author
 {
 	
@@ -1189,6 +1193,7 @@ sub eprint_cmp_by_author
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
 
+## WP1: BAD
 sub eprint_cmp_by_title
 {
 	return ( $_[0]->{title} cmp $_[1]->{title} ) ||
@@ -1277,6 +1282,7 @@ my $FREETEXT_CHAR_MAPPING = {
 ######################################################################
 
 #cjg NOT UTF-8
+## WP1: BAD
 sub extract_words
 {
 	my( $text ) = @_;
@@ -1396,6 +1402,7 @@ sub extract_words
 #
 ######################################################################
 
+## WP1: BAD
 sub eprint_short_title
 {
 	my( $eprint ) = @_;
@@ -1420,6 +1427,7 @@ sub eprint_short_title
 #
 ######################################################################
 
+## WP1: BAD
 sub eprint_render_full
 {
 	my( $eprint, $for_staff ) = @_;
@@ -1690,6 +1698,7 @@ foreach( keys %CITATION_SPECS )
 
 
 
+## WP1: BAD
 sub getEPrintCitationStyle 
 {
 	my( $eprint ) = @_;
@@ -1713,6 +1722,7 @@ sub getEPrintCitationStyle
 #
 ######################################################################
 
+## WP1: BAD
 sub user_display_name
 {
 	my( $user ) = @_;
@@ -1734,6 +1744,7 @@ sub user_display_name
 #
 ######################################################################
 
+## WP1: BAD
 sub user_render_full
 {
 	my( $user, $public ) = @_;
@@ -1828,6 +1839,7 @@ sub user_render_full
 #
 ######################################################################
 
+## WP1: BAD
 sub session_init
 {
 	my( $session, $offline ) = @_;
@@ -1843,6 +1855,7 @@ sub session_init
 #
 ######################################################################
 
+## WP1: BAD
 sub session_close
 {
 	my( $session ) = @_;
@@ -1864,6 +1877,7 @@ sub session_close
 #
 ######################################################################
 
+## WP1: BAD
 sub update_submitted_eprint
 {
 	my( $eprint ) = @_;
@@ -1887,6 +1901,7 @@ sub update_submitted_eprint
 #
 ######################################################################
 
+## WP1: BAD
 sub update_archived_eprint
 {
 	my( $eprint ) = @_;
@@ -1913,6 +1928,7 @@ sub update_archived_eprint
 #
 ######################################################################
 
+## WP1: BAD
 sub oai_list_metadata_formats
 {
 	my( $eprint ) = @_;
@@ -1955,6 +1971,7 @@ sub oai_list_metadata_formats
 #
 ######################################################################
 
+## WP1: BAD
 sub oai_get_eprint_metadata
 {
 	my( $eprint, $format ) = @_;
@@ -2044,6 +2061,7 @@ sub oai_get_eprint_metadata
 ######################################################################
 
 
+## WP1: BAD
 sub oai_write_eprint_metadata
 {
 	my( $eprint, $format, $writer ) = @_;
@@ -2080,6 +2098,7 @@ sub oai_write_eprint_metadata
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_user_field
 {
 	my( $field, $value ) = @_;
@@ -2115,6 +2134,7 @@ sub validate_user_field
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_eprint_field
 {
 	my( $field, $value );
@@ -2148,6 +2168,7 @@ sub validate_eprint_field
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_subject_field
 {
 	my( $field, $value ) = @_;
@@ -2178,6 +2199,7 @@ sub validate_subject_field
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_document
 {
 	my( $document, $problems ) = @_;
@@ -2201,6 +2223,7 @@ sub validate_document
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_eprint
 {
 	my( $eprint, $problems ) = @_;
@@ -2225,6 +2248,7 @@ sub validate_eprint
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_eprint_meta
 {
 	my( $eprint, $problems ) = @_;
@@ -2247,12 +2271,14 @@ sub validate_eprint_meta
 	}
 }
 
+## WP1: BAD
 sub log
 {
 	my( $site, $message ) = @_;
 	print STDERR "EPRINTS:".$site->getConf("siteid").": ".$message."\n";
 }
 
+## WP1: BAD
 sub parseHTML
 {
 	my( $html ) = @_;

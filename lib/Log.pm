@@ -42,6 +42,7 @@ my $debug = 1;
 #
 ######################################################################
 
+## WP1: BAD
 sub log_entry
 {
 	my( $phraseid , $inserts ) = @_;
@@ -82,6 +83,7 @@ print STDERR "($name) $phraseid :".join(",",values %{$inserts})."\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub debug
 {
 	my( $msg ) = @_;
@@ -126,6 +128,7 @@ sub debug
 ######################################################################
 
 
+## WP1: BAD
 sub render_struct
 {
 	my ( $ref , $depth , %done) = @_;
@@ -202,6 +205,7 @@ print STDERR "=$type=\n";
 	return $text;
 }
 
+## WP1: BAD
 sub microtime
 {
 	# disabled due to bug.

@@ -42,6 +42,7 @@ my %LANG_CACHE = ();
 #
 ######################################################################
 
+## WP1: BAD
 sub fetch
 {
 	my( $site , $langid ) = @_;
@@ -70,6 +71,7 @@ sub fetch
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class , $langid , $site ) = @_;
@@ -96,6 +98,7 @@ sub new
 }
 
 
+## WP1: BAD
 sub file_phrase
 {
 	my( $self, $file, $phraseid, $inserts, $session ) = @_;
@@ -149,6 +152,7 @@ sub file_phrase
 }
 
 
+## WP1: BAD
 sub _file_phrase
 {
 	my( $self, $file, $phraseid ) = @_;
@@ -183,11 +187,13 @@ sub _file_phrase
 	return undef;
 }
 
+## WP1: BAD
 sub _get_data
 {
 	my( $self ) = @_;
 	return $self->{data};
 }
+## WP1: BAD
 sub _get_sitedata
 {
 	my( $self ) = @_;
@@ -201,6 +207,7 @@ sub _get_sitedata
 #
 ######################################################################
 
+## WP1: BAD
 sub read_phrases
 {
 	my( $file ) = @_;
@@ -267,6 +274,7 @@ sub read_phrases
 	return $data;
 }
 
+## WP1: BAD
 sub getID
 {
 	my( $self ) = @_;

@@ -114,6 +114,8 @@
     <phrase ref="eprint_gone_title">EPrint Removed</phrase>
     <phrase ref="eprint_gone">You seem to be attempting to access an eprint that has been removed from the archive.</phrase>
     <phrase ref="later_version">There is a later version of the eprint you are trying to access:</phrase>
+    <phrase ref="no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
+    <phrase ref="no_priv">Your account does not have the required privilege to use this function.</phrase>
 </file>
 
 <file name="SubjectList.pm">

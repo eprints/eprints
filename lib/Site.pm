@@ -20,6 +20,7 @@ use EPrints::DataSet;
 my %ID2SITE = ();
 
 
+## WP1: BAD
 sub new_site_by_url
 {
 	my( $class, $url ) = @_;
@@ -30,6 +31,7 @@ sub new_site_by_url
 	return new_site_by_host_and_path( $class , $hostpath );
 }
 
+## WP1: BAD
 sub new_site_by_host_and_path
 {
 	my( $class, $hostpath ) = @_;
@@ -48,6 +50,7 @@ print STDERR "++".substr( $hostpath, 0, length($_) )."++$_++\n";
 }
 
 
+## WP1: BAD
 sub new_site_by_id
 {
 	my( $class, $id ) = @_;
@@ -92,6 +95,7 @@ $self->log("done: $id");
 	return $self;
 }
 
+## WP1: BAD
 sub getConf
 {
 	my( $self, $key, @subkeys ) = @_;
@@ -103,12 +107,14 @@ sub getConf
 	return $val;
 }
 
+## WP1: BAD
 sub log
 {
 	my( $self , @params) = @_;
 	&{$self->{class}."::log"}( $self, @params );
 }
 
+## WP1: BAD
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
@@ -116,6 +122,7 @@ sub call
 	return &{$self->{class}."::".$cmd}( @params );
 }
 
+## WP1: BAD
 sub getDataSet
 {
 	my( $self , $setname ) = @_;

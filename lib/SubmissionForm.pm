@@ -69,6 +69,7 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $redirect, $staff, $table ) = @_;
@@ -93,23 +94,11 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub process
 {
 	my( $self ) = @_;
 	
-	if( !$self->{staff} )
-	{
-		# Is user authorised?
-		
-		$self->{user} = EPrints::User::current_user( $self->{session} );
-		if( !defined $self->{user} )
-		{
-			#cjg NOT INTL
-			$self->exit_error( "I don't know who you are" );
-			return;
-		}
-	}
-
 #cjg NOT VERY FAR YET...	
 	$self->{action}    = $self->{session}->param( "submit" );
 
@@ -130,7 +119,7 @@ sub process
 			#cjg LOG...
 			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-			$self->exit_error( $self->{session}->phrase( 
+			$self->{session}->render_error( $self->{session}->phrase( 
 				"database_err" , 
 				siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
 			return;
@@ -140,7 +129,7 @@ sub process
 		if( !$self->{staff} &&
 			$self->{eprint}->getValue( "username" ) ne $self->{user}->getValue( "username" ) )
 		{
-			$self->exit_error( $self->{session}->phrase( "corrupt_err" , siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "corrupt_err" , siteadmin=>$self->{session}->phrase( "siteadmin" ) ) );
 			return;
 		}
 	}
@@ -165,7 +154,7 @@ print STDERR "YAY\n";
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return;
 	}
 
@@ -190,29 +179,6 @@ print STDERR "YAY\n";
 }
 
 
-######################################################################
-#
-# exit_error( $session, $text )
-#
-#  Quit with an error message.
-#
-######################################################################
-
-sub exit_error
-{
-	my( $self, $text ) = @_;
-
-	#cjg LANGME
-	$self->{session}->render_error( 
-			$text, 
-			$self->{redirect}, 
-			"Continue" );
-
-	return;
-}	
-	
-
-
 
 ######################################################################
 #
@@ -234,6 +200,7 @@ sub exit_error
 #
 ######################################################################
 
+## WP1: BAD
 sub from_home
 {
 	my( $self ) = @_;
@@ -253,7 +220,7 @@ sub from_home
 				my $db_error = $self->{session}->{database}->error();
 				EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
-				$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 			else
@@ -267,7 +234,7 @@ sub from_home
 		}
 		else
 		{
-			$self->exit_error( $self->{session}->phrase(
+			$self->{session}->render_error( $self->{session}->phrase(
 			        "H:useautharea" ) );
 			return( 0 );
 		}
@@ -276,7 +243,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -288,7 +255,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -309,7 +276,7 @@ sub from_home
 					eprintid=>$self->{eprint}->{eprintid},
 					errmsg=>$error ) );
 
-			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -317,7 +284,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
@@ -326,7 +293,7 @@ sub from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
@@ -338,7 +305,7 @@ sub from_home
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -352,13 +319,14 @@ sub from_home
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_type
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -388,7 +356,7 @@ sub from_stage_type
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -402,13 +370,14 @@ sub from_stage_type
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_meta
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -444,7 +413,7 @@ sub from_stage_meta
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -458,13 +427,14 @@ sub from_stage_meta
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_subject
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -493,7 +463,7 @@ sub from_stage_subject
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -507,13 +477,14 @@ sub from_stage_subject
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_linking
 {
 	my( $self ) = @_;
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -556,7 +527,7 @@ sub from_stage_linking
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 }	
@@ -568,13 +539,14 @@ sub from_stage_linking
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_format
 {
 	my( $self ) = @_;
 	
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -590,7 +562,7 @@ sub from_stage_format
 			# Remove the offending document
 			if( !defined $self->{document} || !$self->{document}->remove() )
 			{
-				$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 
@@ -608,7 +580,7 @@ sub from_stage_format
 
 				if( !defined $self->{document} )
 				{
-					$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+					$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 					return( 0 );
 				}
 			}
@@ -617,7 +589,7 @@ sub from_stage_format
 		}
 		else
 		{
-			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -644,7 +616,7 @@ sub from_stage_format
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}		
 
@@ -658,13 +630,14 @@ sub from_stage_format
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_fileview
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -677,7 +650,7 @@ sub from_stage_fileview
 	if( !defined $self->{document} ||
 	    $self->{document}->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 	}
 	
 	# Check to see if a fileview button was pressed, process it if necessary
@@ -686,7 +659,7 @@ sub from_stage_fileview
 		# Doc object will have updated as appropriate, commit changes
 		unless( $self->{document}->commit() )
 		{
-			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 		
@@ -732,7 +705,7 @@ sub from_stage_fileview
 		else
 		{
 			# Erk! Unknown action.
-			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -747,13 +720,14 @@ sub from_stage_fileview
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_upload
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -766,7 +740,7 @@ sub from_stage_upload
 
 	if( !defined $doc || $doc->{eprintid} ne $self->{eprint}->{eprintid} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -832,7 +806,7 @@ sub from_stage_upload
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -845,13 +819,14 @@ sub from_stage_upload
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_verify
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -873,7 +848,7 @@ sub from_stage_verify
 		else
 		{
 			# No relevant page! erk!
-			$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -892,7 +867,7 @@ sub from_stage_verify
 			}
 			else
 			{
-				$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+				$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 				return( 0 );
 			}
 		}
@@ -905,7 +880,7 @@ sub from_stage_verify
 	}
 	else
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 	
@@ -920,13 +895,14 @@ sub from_stage_verify
 #
 ######################################################################
 
+## WP1: BAD
 sub from_stage_confirmdel
 {
 	my( $self ) = @_;
 
 	if( !defined $self->{eprint} )
 	{
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 );
 	}
 
@@ -945,7 +921,7 @@ sub from_stage_confirmdel
 				         { eprintid=> $self->{eprint}->{eprintid},
 				          errmsg=>$db_error } );
 
-			$self->exit_error( $self->{session}->phrase( "H:database_err" , siteadmin=> $self->{session}->phrase( "H:siteadmin" ) ) );
+			$self->{session}->render_error( $self->{session}->phrase( "H:database_err" , siteadmin=> $self->{session}->phrase( "H:siteadmin" ) ) );
 			return( 0 );
 		}
 	}
@@ -956,7 +932,7 @@ sub from_stage_confirmdel
 	else
 	{
 		# Don't have a valid action!
-		$self->exit_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
+		$self->{session}->render_error( $self->{session}->phrase( "H:corrupt_err" , siteadmin=>$self->{session}->phrase( "H:siteadmin" ) ) );
 		return( 0 )
 	}
 
@@ -980,6 +956,7 @@ sub from_stage_confirmdel
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_type
 {
 	my( $self ) = @_;
@@ -1007,6 +984,7 @@ sub do_stage_type
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_meta
 {
 	my( $self ) = @_;
@@ -1033,6 +1011,7 @@ sub do_stage_meta
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_subject
 {
 	my( $self ) = @_;
@@ -1059,6 +1038,7 @@ sub do_stage_subject
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_linking
 {
 	my( $self ) = @_;
@@ -1173,6 +1153,7 @@ sub do_stage_linking
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_format
 {
 	my( $self ) = @_;
@@ -1229,6 +1210,7 @@ sub do_stage_format
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_fileview
 {
 	my( $self ) = @_;
@@ -1356,6 +1338,7 @@ sub do_stage_fileview
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_upload
 {
 	my( $self ) = @_;
@@ -1446,6 +1429,7 @@ sub do_stage_upload
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_verify
 {
 	my( $self ) = @_;
@@ -1519,6 +1503,7 @@ sub do_stage_verify
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_done
 {
 	my( $self ) = @_;
@@ -1550,6 +1535,7 @@ sub do_stage_done
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_confirmdel
 {
 	my( $self ) = @_;
@@ -1591,6 +1577,7 @@ sub do_stage_confirmdel
 #
 ######################################################################
 
+## WP1: BAD
 sub do_stage_return
 {
 	my( $self ) = @_;
@@ -1617,6 +1604,7 @@ sub do_stage_return
 ######################################################################
 
 
+## WP1: BAD
 sub list_problems
 {
 	my( $self, $before, $after ) = @_;
@@ -1685,6 +1673,7 @@ sub list_problems
 #
 ######################################################################
 
+## WP1: BAD
 sub render_type_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
@@ -1711,6 +1700,7 @@ sub render_type_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_type_form
 {
 	my( $self ) = @_;
@@ -1747,6 +1737,7 @@ sub update_from_type_form
 #
 ######################################################################
 
+## WP1: BAD
 sub render_meta_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
@@ -1782,6 +1773,7 @@ sub render_meta_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_meta_form
 {
 	my( $self ) = @_;
@@ -1826,6 +1818,7 @@ sub update_from_meta_form
 #
 ######################################################################
 
+## WP1: BAD
 sub render_subject_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
@@ -1857,6 +1850,7 @@ sub render_subject_form
 #
 ######################################################################
 
+## WP1: BAD
 sub render_users_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
@@ -1884,6 +1878,7 @@ sub render_users_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_subject_form
 {
 	my( $self ) = @_;
@@ -1939,6 +1934,7 @@ sub update_from_subject_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_users_form
 {
 	my( $self ) = @_;
@@ -2002,6 +1998,7 @@ sub update_from_users_form
 #
 ######################################################################
 
+## WP1: BAD
 sub render_file_view
 {
 	my( $self, $document ) = @_;
@@ -2065,6 +2062,7 @@ sub render_file_view
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_fileview
 {
 	my( $self, $document ) = @_;
@@ -2115,6 +2113,7 @@ sub update_from_fileview
 #
 ######################################################################
 
+## WP1: BAD
 sub render_format_form
 {
 	my( $self ) = @_;
@@ -2198,6 +2197,7 @@ sub render_format_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_format_form
 {
 	my( $self ) = @_;
@@ -2232,6 +2232,7 @@ sub update_from_format_form
 #
 ######################################################################
 
+## WP1: BAD
 sub initial_actions 
 {
 	my ( $session ) = @_;

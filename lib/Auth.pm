@@ -24,6 +24,7 @@ use EPrints::RequestWrapper;
 #tmp
 use EPrints::Log;
 
+## WP1: BAD
 sub authen
 {
 	my( $r ) = @_;
@@ -75,6 +76,7 @@ print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
 	return $result;
 }
 
+## WP1: BAD
 sub authz
 {
 	my( $r ) = @_;

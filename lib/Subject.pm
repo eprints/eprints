@@ -29,6 +29,7 @@ $EPrints::Subject::root_subject = "ROOT";
 # Root subject name
 $EPrints::Subject::root_subject_name = "(Top Level)";
 
+## WP1: BAD
 sub get_system_field_info
 {
 	my( $class , $site ) = @_;
@@ -79,6 +80,7 @@ sub get_system_field_info
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $id, $known ) = @_;
@@ -127,6 +129,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub create_subject
 {
 	my( $class, $session, $id, $name, $parent, $depositable ) = @_;
@@ -163,6 +166,7 @@ sub create_subject
 #
 ######################################################################
 
+## WP1: BAD
 sub create_child
 {
 	my( $self, $id, $name, $depositable ) = @_;
@@ -186,6 +190,7 @@ sub create_child
 #
 ######################################################################
 
+## WP1: BAD
 sub children
 {
 	my( $self ) = @_;
@@ -242,6 +247,7 @@ print "done\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub parent
 {
 	my( $self ) = @_;
@@ -262,6 +268,7 @@ sub parent
 #
 ######################################################################
 
+## WP1: BAD
 sub can_post
 {
 	my( $self, $user ) = @_;
@@ -280,6 +287,7 @@ sub can_post
 #
 ######################################################################
 
+## WP1: BAD
 sub create_subject_table
 {
 	my( $session ) = @_;
@@ -320,6 +328,7 @@ sub create_subject_table
 #
 ######################################################################
 
+## WP1: BAD
 sub get_postable
 {
 	my( $session, $user ) = @_;
@@ -371,6 +380,7 @@ sub get_postable
 #
 ######################################################################
 
+## WP1: BAD
 sub all_subject_labels
 {
 	my( $session ) = @_;
@@ -387,6 +397,7 @@ sub all_subject_labels
 #
 ######################################################################
 
+## WP1: BAD
 sub subject_name
 {
 	my( $session, $subject_tag ) = @_;
@@ -412,6 +423,7 @@ sub subject_name
 #
 ######################################################################
 
+## WP1: BAD
 sub subject_label
 {
 	my( $session, $subject_tag ) = @_;
@@ -457,6 +469,7 @@ sub subject_label
 #
 ######################################################################
 
+## WP1: BAD
 sub subject_label_cache
 {
 	my( $session, $subject_tag, $subject_cache ) = @_;
@@ -500,6 +513,7 @@ sub subject_label_cache
 #
 ######################################################################
 
+## WP1: BAD
 sub get_all
 {
 	my( $session ) = @_;
@@ -540,6 +554,7 @@ print STDERR "Subject: ".$_->getValue("subjectid")."\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub posted_eprints
 {
 	my( $self, $dataset ) = @_;
@@ -570,6 +585,7 @@ print STDERR "borkl\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub count_eprints
 {
 	my( $self, $dataset ) = @_;
@@ -590,6 +606,7 @@ sub count_eprints
 
 }
 
+## WP1: BAD
 sub getValue 
 {
 	my( $self, $key ) = @_;

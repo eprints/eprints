@@ -41,6 +41,7 @@ use EPrints::Subscription;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class , $site ) = @_;
@@ -73,6 +74,7 @@ die "NEW METAINFO\n";
 #
 ######################################################################
 
+## WP1: BAD
 sub find_field
 {
 	my( $fields, $field_name ) = @_;
@@ -95,6 +97,7 @@ sub find_field
 #
 ######################################################################
 
+## WP1: BAD
 sub find_table_field
 {
 	my( $self , $tableid,  $field_name ) = @_;

@@ -40,6 +40,7 @@ $EPrints::OpenArchives::OAI_VERSION = "1.0";
 #
 ######################################################################
 
+## WP1: BAD
 sub full_timestamp
 {
 	my $time = time;
@@ -115,6 +116,7 @@ sub full_timestamp
 #
 ######################################################################
 
+## WP1: BAD
 sub write_record
 {
 	my( $session, $writer, $eprint, $metadataFormat ) = @_;
@@ -160,6 +162,7 @@ sub write_record
 #
 ######################################################################
 
+## WP1: BAD
 sub write_record_header
 {
 	my( $session, $writer, $eprint_id, $datestamp ) = @_;
@@ -187,6 +190,7 @@ sub write_record_header
 #
 ######################################################################
 
+## WP1: BAD
 sub to_oai_identifier
 {
 	my( $site_id , $eprint_id ) = @_;
@@ -204,6 +208,7 @@ sub to_oai_identifier
 #
 ######################################################################
 
+## WP1: BAD
 sub from_oai_identifier
 {
 	my( $session , $oai_identifier ) = @_;
@@ -230,6 +235,7 @@ sub from_oai_identifier
 #
 ######################################################################
 
+## WP1: BAD
 sub get_eprint_metadata
 {
 	my( $eprint, $metadataFormat ) = @_;
@@ -255,6 +261,7 @@ sub get_eprint_metadata
 #
 ######################################################################
 
+## WP1: BAD
 sub to_utf8
 {
 	my( $in ) = @_;
@@ -271,6 +278,7 @@ sub to_utf8
 #
 ######################################################################
 
+## WP1: BAD
 sub harvest
 {
 	my( $session, $start_date, $end_date, $setspec ) = @_;
@@ -296,6 +304,7 @@ sub harvest
 #
 ######################################################################
 
+## WP1: BAD
 sub harvest_deleted
 {
 	my( $session, $start_date, $end_date, $setspec ) = @_;
@@ -346,6 +355,7 @@ sub harvest_deleted
 #
 ######################################################################
 
+## WP1: BAD
 sub make_harvest_search
 {
 	my( $session, $start_date, $end_date, $setspec, $tableid, $date_field,
@@ -401,6 +411,7 @@ sub make_harvest_search
 #
 ######################################################################
 
+## WP1: BAD
 sub setspec_to_subjects
 {
 	my( $session, $setspec ) = @_;
@@ -432,6 +443,7 @@ sub setspec_to_subjects
 #
 ######################################################################
 
+## WP1: BAD
 sub _collect_subjects
 {
 	my ( $subjects_array, $parent ) = @_;
@@ -454,6 +466,7 @@ sub _collect_subjects
 #
 ######################################################################
 
+## WP1: BAD
 sub validate_set_spec
 {
 	my( $session, $setspec ) = @_;

@@ -30,6 +30,7 @@ use strict;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $redirect, $staff, $user ) = @_;
@@ -54,12 +55,12 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub process
 {
 	my( $self ) = @_;
 	
-	$self->{user} = EPrints::User::current_user( $self->{session} )
-		unless( defined $self->{user} );
+	$self->{user} = $self->{session}->current_user unless( defined $self->{user} );
 
 	if( !defined $self->{user} )
 	{
@@ -145,6 +146,7 @@ sub process
 #
 ######################################################################
 
+## WP1: BAD
 sub render_form
 {
 	my( $self ) = @_;
@@ -178,6 +180,7 @@ sub render_form
 #
 ######################################################################
 
+## WP1: BAD
 sub update_from_form
 {
 	my( $self ) = @_;

@@ -34,6 +34,7 @@ use strict;
 	"deletiondate:date::Date Removed:1:0:0"
 );
 
+## WP1: BAD
 sub get_system_field_info
 {
 	my( $class , $site ) = @_;
@@ -81,6 +82,7 @@ sub get_system_field_info
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class, $session, $eprintid, $known ) = @_;
@@ -135,6 +137,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub add_deletion_record
 {
 	my( $eprint ) = @_;

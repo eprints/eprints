@@ -46,6 +46,7 @@ die;
 #
 ######################################################################
 
+## WP1: BAD
 sub new
 {
 	my( $class,
@@ -80,6 +81,7 @@ sub new
 #
 ######################################################################
 
+## WP1: BAD
 sub process
 {
 	my( $self ) = @_;
@@ -266,6 +268,7 @@ sub process
 	print $self->{session}->{render}->end_html();
 }
 
+## WP1: BAD
 sub _render_problems
 {
 	my( $self , $searchexp , @problems ) = @_;	
@@ -302,6 +305,7 @@ sub _render_problems
 #
 ######################################################################
 
+## WP1: BAD
 sub _render_matchcount
 {
 	my( $session, $count ) = @_;
@@ -316,6 +320,7 @@ sub _render_matchcount
 #
 ######################################################################
 
+## WP1: BAD
 sub render_search_form
 {
 	my( $self, $searchexp ) = @_;
@@ -340,6 +345,7 @@ sub render_search_form
 #
 ######################################################################
 
+## WP1: BAD
 sub write_hidden_state
 {
 	my( $self ) = @_;
