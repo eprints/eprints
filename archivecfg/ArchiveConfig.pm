@@ -52,7 +52,6 @@ foreach( keys %{$archiveinfo} ) {
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
-
 ######################################################################
 #
 # Local Paths 
@@ -489,6 +488,25 @@ $c->{cache_timeout} = 10;
 #   ( This will be the length of time an OAI resumptionToken is 
 #   valid for ).
 $c->{cache_maxlife} = 12;
+
+######################################################################
+#
+# Advanced Options
+#
+# Don't mess with these unless you really know what you are doing.
+#
+######################################################################
+
+# Example page hooks to mess around with the metadata
+# submission page.
+
+# my $doc = XML::DOM::Document->new();
+# my $meta = $doc->createElement( "meta" );
+# $meta->setAttribute( "rel", "help" );
+# $meta->setAttribute( "href", "http://totl.net/" );
+# $c->{pagehooks}->{submission_meta} = { head => $meta };
+# $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
+
 
 ######################################################################
 

@@ -25,9 +25,6 @@ Metadata Fields
 
 *	Add XHTML field renderer with list of legal tags.
 
-*	no_export property to indicate the field should not be exported
-	as XML. (eg. for subject ancestors)
-
 
 XML, Bibtex and Misc formats in & out
 
@@ -60,6 +57,12 @@ Browse Views
 * 	Time stamp views
 
 Searches
+
+*	Don't index words in inbox/buffer? [maybe/maybe not]
+
+*	Reindex via script rather than on the fly?
+
+*	Add search-by-id
 
 *	Show all items in a subject view count, not just those in the
 	current subject.
@@ -94,6 +97,10 @@ Searches
 
 Other Stuff
 
+*	Make "stages" in sub form over-ridable.
+
+*	Make "Submit Later" option on submit form final page.
+
 *	Make EPrint->new_from_data work the same as document, eprint etc.
 
 *	Turn succeeds, replacedby & commentary into "int" rather than "text"
@@ -125,6 +132,8 @@ Other Stuff
 *	Bad Things(tm) will happen if a session has a langid which is not a 
 	supported langid - can this happen?
 
+*	add "pageid"'s to all pages.
+
 * 	Add option to supress empty subjects in browse views.
 
 * 	robots.txt file
@@ -154,6 +163,9 @@ Other Stuff
 
 *	CSS Mollycoddler ( Serve an empty CSS if a 404 is encountered when
 	looking for a .css file - to help out NS4.)
+
+*	Make some eprint types require different/no document types, eg. 
+	books.
 
 DOCUMENTATION ============================================================
 
@@ -224,5 +236,6 @@ DONE ====================================================================
 	seperately)
 *	Make EPrint new have $dataset as the last value so it cat act
 	like other Dataobj new methods.
-
+*	no_export property to indicate the field should not be exported
+	as XML. (eg. for subject ancestors) [ actually called export_as_xml ]
 

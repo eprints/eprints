@@ -64,14 +64,14 @@ $fields->{user} = [
 ];
 
 $fields->{eprint} = [
-	{ name => "searchfield", type => "search",
-		multiple => 1,
-		datasetid=> "eprint",
-		fieldnames => [
-			"title/abstract/keywords",
-			"authors/editors",
-			"year"
-		] },
+#	{ name => "searchfield", type => "search",
+#		multiple => 1,
+#		datasetid=> "eprint",
+#		fieldnames => [
+#			"title/abstract/keywords",
+#			"authors/editors",
+#			"year"
+#		] },
 
 	{ name => "abstract", input_rows => 10, type => "longtext" },
 

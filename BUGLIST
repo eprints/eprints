@@ -8,6 +8,8 @@
 General
 ----------------------------------------------------------------------
 
+- missing phrase: pin_timeout
+
 - If a user area function is broken, the system does not notice.
 
 - VLit code does not understand that server may not be running on
@@ -69,6 +71,8 @@ Apache Configuration & Page Serving
 ----------------------------------------------------------------------
 Searching
 ----------------------------------------------------------------------
+
+- Does not ignore umlauts etc. in NAME searches.
 
 - No way to search date fields, via the forms interface.
 

@@ -90,6 +90,7 @@ my $PROPERTIES =
 	confid => -1,
 	datasetid => -1,
 	digits => 1,
+	export_as_xml => 1,
 	fieldnames => -1,
 	input_rows => 1,
 	input_cols => 1,
@@ -988,7 +989,9 @@ sub render_input_field
 		for( $i=1 ; $i<=$boxcount ; ++$i )
 		{
 			my $div;
-			$div = $session->make_element( "div" );
+			$div = $session->make_element( 
+				"div",
+				id => "inputfield_".$self->get_name."_".$i );
 			$div->appendChild( $session->make_text( $i.". " ) );
 			$html->appendChild( $div );
 			$div = $session->make_element( 
@@ -2314,6 +2317,7 @@ sub get_property_default
 	return 0 if( $property eq "showtop" );
 	return 0 if( $property eq "idpart" );
 	return 0 if( $property eq "mainpart" );
+	return 1 if( $property eq "export_as_xml" );
 
 	return "subjects" if( $property eq "top" );
 

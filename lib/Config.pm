@@ -74,13 +74,18 @@ used to report errors when initialising modules.
 	{
 		my( $errmsg ) = @_;
 
+		my $r;
 		if( $ENV{MOD_PERL} )
 		{
+ 			$r = Apache->request();
+		}
+		if( defined $r )
+		{
 			# If we are running under MOD_PERL
+			# AND this is actually a request, not startup,
 			# then we should print an explanation to the
 			# user in addition to logging to STDERR.
 
-			my $r = Apache->request();
 			$r->content_type( 'text/html' );
 			$r->send_http_header;
 			print <<END;

@@ -58,20 +58,15 @@ sub deal
 	$frag->addText( "  " );
 	my $r = $info->{doc}->createElement( "record" );
 	$r->addText( "\n" );
-	#use Data::Dumper;
-	#print Dumper $item->{data};
-	foreach( $dataset->get_fields() )
+	foreach my $field ( $dataset->get_fields() )
 	{
-		# We don't want to export the ancestors field of subject
-		# as it's only ever used internally.
-		if( $dataset->id() eq "subject" 
-		    && $_->get_name() eq "ancestors" ) { next; }
+		next unless( $field->get_property( "export_as_xml" ) );
 
 		$r->appendChild( &mk_xml( 
 			$session, 
 			$info->{doc},
-			$_,
-			$item->get_value( $_->get_name() ) ) );
+			$field,
+			$item->get_value( $field->get_name() ) ) );
 	}
 	$r->addText( "  " );
 	$frag->appendChild( $r );

@@ -1354,7 +1354,10 @@ sub _render_input_form_field
 		$html->appendChild( $div );
 	}
 
-	$div = $self->make_element( "div", class => "formfieldinput" );
+	$div = $self->make_element( 
+		"div", 
+		class => "formfieldinput",
+		id => "inputfield_".$field->get_name );
 	$div->appendChild( $field->render_input_field( $self, $value ) );
 	$html->appendChild( $div );
 
@@ -1416,7 +1419,7 @@ sub take_ownership
 ######################################################################
 =pod
 
-=item $foo = $thing->build_page( $title, $mainbit, $links )
+=item $foo = $thing->build_page( $title, $mainbit, [$links], [$pageid] )
 
 undocumented
 
@@ -1425,7 +1428,7 @@ undocumented
 
 sub build_page
 {
-	my( $self, $title, $mainbit, $links ) = @_;
+	my( $self, $title, $mainbit, $links, $pageid ) = @_;
 
 	if( defined $self->param( "mainonly" ) && $self->param( "mainonly" ) eq "yes" )
 	{
@@ -1457,6 +1460,52 @@ sub build_page
 		$self->take_ownership( $map->{$_} );
 	}
 
+	# Page hooks are for people REALLY hacking - eg. adding
+	# javascript to certain pages.
+
+	my $pagehooks = $self->get_archive->get_conf( "pagehooks" );
+	if( 
+		defined $pageid && 
+		defined $pagehooks && 
+		defined $pagehooks->{$pageid} )
+	{
+		my $ph = $pagehooks->{$pageid};
+		
+		if( defined $ph->{bodyattr} )
+		{
+			# should only be one body tag, but what the hey?
+			my $body;
+			foreach $body ( 
+				$self->{page}->getElementsByTagName( 
+					"body" , 
+					1 ) )
+			{
+				my $bodyattr = 
+					$pagehooks->{$pageid}->{bodyattr};
+
+				foreach( keys %{$bodyattr} )
+				{
+					$body->setAttribute( 
+						$_, 
+						$bodyattr->{$_} );	
+				}
+			}
+		}
+
+		foreach( "pagetop", "head" )
+		{
+			if( defined $ph->{$_} )
+			{
+				my $pt = $self->make_doc_fragment;
+				$pt->appendChild( $map->{$_} );
+				my $ptnew = $ph->{$_}->cloneNode( 1 );
+				$self->take_ownership( $ptnew );
+				$pt->appendChild( $ptnew );
+				$map->{$_} = $pt;
+			}
+		}
+	}
+			
 	my $node;
 	foreach $node ( $self->{page}->getElementsByTagName( "pin" , 1 ) )
 	{
@@ -1480,6 +1529,8 @@ sub build_page
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
+
+
 	foreach( keys %{$map} )
 	{
 		next if( $_ eq "page" );
