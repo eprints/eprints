@@ -736,7 +736,7 @@ sub input_field
 
 		# Render the boxes
 		$html = "<table border=0><tr><th>";
-		$html.= $self->{session}->{lang}->phrase( "H:username_title" ) );
+		$html.= $self->{session}->{lang}->phrase( "H:username_title" );
 		$html.= "</th>";
 		
 		my $i;
@@ -1618,13 +1618,13 @@ sub render_deleted_eprint
 		$self->{session}->{lang}->phrase( "H:eprint_gone_title" ) );
 	
 	$html .= "<P>";
-	$html .= $self->{session}->{lang}->phrase( "H:eprint_gone" ) );
+	$html .= $self->{session}->{lang}->phrase( "H:eprint_gone" );
 	$html .= "</P>\n";
 	
 	if( defined $replacement_eprint )
 	{
 		$html .= "<P>";
-		$html .= $self->{session}->{lang}->phrase( "H:later_version" ) );
+		$html .= $self->{session}->{lang}->phrase( "H:later_version" );
 		$html .= "</P>\n";
 		$html .= "<P ALIGN=CENTER>";
 

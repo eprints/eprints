@@ -465,42 +465,20 @@ sub retrieve
 	my( $self, $table, $cols, $conditions, $order ) = @_;
 
 	my $sql = "SELECT ";
-	my $first = 1;
-	my $col;
-	
-	foreach $col (@$cols)
-	{
-		$sql .= "," if ($first == 0);
-		$sql .= $col;
-		$first=0 if( $first==1);
-	}
 
+	$sql .= join( "," , @$cols );	
 	$sql .= " FROM $table";
 
 	if( defined $conditions )
 	{
-		$first = 1;
 		$sql .= " WHERE ";
-		
-		foreach $col (@$conditions)
-		{
-			$sql .= " \&\& " if ($first == 0);
-			$sql .= $col;
-			$first=0 if( $first==1);
-		}
+		$sql .= join( " \&\& " , @$conditions );	
 	}
 
 	if( defined $order )
 	{
-		$first = 1;
 		$sql .= " ORDER BY ";
-		
-		foreach $col (@$order)
-		{
-			$sql .= "," if ($first == 0);
-			$sql .= $col;
-			$first=0 if( $first==1);
-		}
+		$sql .= join( "," , @$order );	
 	}		
 
 	$sql .= ";";

@@ -37,7 +37,7 @@ my $searchform = new EPrints::SearchForm(
 	$session->{lang}->phrase( "H:adv_search" ),
 	"<CENTER><P>".
 	   $session->{lang}->phrase( "H:dont_panic" ).
-	   "<A HREF=\"search\">".
+	   " <A HREF=\"search\">".
 	   $session->{lang}->phrase( "H:simple_search" ).
 	   "</A></P></CENTER>",
 	\%EPrintSite::SiteInfo::eprint_order_methods,
