@@ -21,7 +21,6 @@ use EPrints::EPrint;
 use EPrints::MetaField;
 use EPrints::Session;
 
-use Unicode::String qw(utf8 latin1);
 use strict;
 
 
@@ -104,82 +103,37 @@ sub full_timestamp
 }
 
 
-######################################################################
-#
-# write_record( $session, $writer, $eprint, $metadataFormat )
-#
-#  Write XML corresponding to the given eprint and metadata format.
-#  This method doesn't check that the metadata format is available 
-#  for the given eprint; if it isn't, a record with no <metadata>
-#  element will be written.
-#
-######################################################################
-
-## WP1: BAD
-sub write_record
+sub make_record
 {
-	my( $session, $writer, $eprint, $metadataFormat ) = @_;
-	
-	$writer->startTag( "record" );
+	my( $session, $eprint, $fn ) = @_;
 
-	# Write the OAI header
-	EPrints::OpenArchives::write_record_header( $writer,
-	                                            $eprint->{eprintid},
-	                                            $eprint->{datestamp} );
-
-
-	# Get the metadata
-	my $metadata = EPrints::OpenArchives::get_eprint_metadata(
-		$eprint,
-		$metadataFormat );
-
-	if( defined $metadata )
-	{
-		# Write the metadata
-		$writer->startTag( "metadata" );
-
-		$session->get_archive()->oai_write_eprint_metadata(
-			$eprint,
-			$metadataFormat,
-			$writer);
-		
-		$writer->endTag( "metadata" );
-	}
-	
-	$writer->endTag(); # Ends the "record" tag
-}
-
-
-					
-
-######################################################################
-#
-# write_record_header( $writer, $eprintid, $datestamp )
-#
-#  Writes the OAI record header for the given eprint ID, with the
-#  given datestamp.
-#
-######################################################################
-
-## WP1: BAD
-sub write_record_header
-{
-	my( $session, $writer, $eprintid, $datestamp ) = @_;
-	
-	$writer->startTag( "header" );
-
-	$writer->dataElement(
+	my $record = $session->make_element( "record" );
+	my $header = $session->make_element( "header" );
+	$header->appendChild( $session->render_data_element(
+		6,
 		"identifier",
-		EPrints::OpenArchives::to_oai_identifier( 
+		EPrints::OpenArchives::to_oai_identifier(
 			$session->get_archive()->get_conf( "oai_archive_id" ),
-			$eprintid ) );
-	
-	$writer->dataElement( "datestamp",
-	                      $datestamp );
-	
-	$writer->endTag();
-}
+			$eprint->get_value( "eprintid" ) ) ) );
+	$header->appendChild( $session->render_data_element(
+		6,
+		"datestamp",
+		$eprint->get_value( "datestamp" ) ) );
+	$record->appendChild( $session->make_indent( 4 ) );
+	$record->appendChild( $header );
 
+	my $md = &{$fn}( $eprint, $session );
+	if( defined $md )
+	{
+		my $metadata = $session->make_element( "metadata" );
+		$metadata->appendChild( $session->make_indent( 6 ) );
+		$metadata->appendChild( $md );
+		$record->appendChild( $session->make_indent( 4 ) );
+		$record->appendChild( $metadata );
+	}
+
+	return $record;
+}
 
 ######################################################################
 #
@@ -211,9 +165,8 @@ sub to_oai_identifier
 sub from_oai_identifier
 {
 	my( $session , $oai_identifier ) = @_;
-	
-	if( $oai_identifier =~
-		/^oai:$session->get_archive()->get_conf( "oai_archive_id" ):(\d+)$/ )
+	my $arcid = $session->get_archive()->get_conf( "oai_archive_id" );
+	if( $oai_identifier =~ /^oai:$arcid:(\d+)$/ )
 	{
 		return( $1 );
 	}
@@ -224,281 +177,49 @@ sub from_oai_identifier
 }
 
 
-######################################################################
-#
-# $metadata = get_eprint_metadata( $eprint, $metadataFormat )
-#
-#  Return the metadata for the given eprint in the given format.
-#  Returns undef if we cannot produce metadata in the requested
-#  format.
-#
-######################################################################
 
-## WP1: BAD
-sub get_eprint_metadata
+
+
+##
+
+sub encode_setspec
 {
-	my( $eprint, $metadataFormat ) = @_;
-	
-	if( defined $eprint->{session}->get_archive()->get_conf( "oai_metadata_formats" )->{$metadataFormat} )
+	my( @bits ) = @_;
+	foreach( @bits ) { $_ = text2bytestring( $_ ); }
+	return join(":",@bits);
+}
+
+sub decode_setspec
+{
+	my( $encoded ) = @_;
+	my @bits = split( ":", $encoded );
+	foreach( @bits ) { $_ = bytestring2text( $_ ); }
+	return @bits;
+}
+
+sub text2bytestring
+{
+	my( $string ) = @_;
+	my $encstring = "";
+	for(my $i=0; $i<length($string); $i++)
 	{
-		my %md = $eprint->{session}->get_archive()->oai_get_eprint_metadata(
-			$eprint,
-			$metadataFormat );
-
-		return( \%md ) if( scalar keys %md > 0 );
+		$encstring.=sprintf("%02X", ord(substr($string, $i, 1)));
 	}
-
-	return( undef );
+	return $encstring;
 }
 
-
-######################################################################
-#
-# $encoded = to_utf8( $unencoded )
-#
-#  Convert latin1 to UTF-8
-#
-######################################################################
-
-## WP1: BAD
-sub to_utf8
+sub bytestring2text
 {
-	my( $in ) = @_;
-	my $u = latin1( $in );
-	return( $u->utf8() );
-}
+	my( $encstring ) = @_;
 
-
-######################################################################
-#
-# @eprints = harvest( $session, $start_date, $end_date, $setspec )
-#
-#  Retrieve eprint records matching the given spec.
-#
-######################################################################
-
-## WP1: BAD
-sub harvest
-{
-	my( $session, $start_date, $end_date, $setspec ) = @_;
-	
-	my $searchexp = make_harvest_search(
-		$session,
-		$start_date,
-		$end_date,
-		$setspec,
-		"archive",
-		$session->{metainfo}->find_table_field( "eprint", "datestamp" ),
-#cjg "subjects" can't be right
-		$session->{metainfo}->find_table_field( "eprint", "subjects" ) );
-
-	return( $searchexp->do_eprint_search() );
-}
-
-
-######################################################################
-#
-# @eprintids = harvest_deleted( $session, $start_date, $end_date, $setspec )
-#
-#  Retrieve id's of deleted records matching the given spec.
-#
-######################################################################
-
-## WP1: BAD
-sub harvest_deleted
-{
-	my( $session, $start_date, $end_date, $setspec ) = @_;
-	
-	my @deletion_fields = $session->{metainfo}->get_fields( "deletions" );
-
-	my $searchexp = make_harvest_search(
-		$session,
-		$start_date,
-		$end_date,
-		$setspec,
-		"deletion",
-		EPrints::MetaInfo::find_field(
-			\@deletion_fields,
-			"deletiondate" ),
-		EPrints::MetaInfo::find_field(
-			\@deletion_fields,
-#cjg "subjects" can't be right
-			"subjects" ) );
-
-	my $rows = $searchexp->do_raw_search( [ "eprintid" ] );
-	my @eprintids;
-	
-	foreach (@$rows)
+	my $string = "";
+	for(my $i=0; $i<length($encstring); $i+=2)
 	{
-		push @eprintids, $_->[0];
+		$string.=pack("H*",substr($encstring,$i,2));
 	}
-
-	return( @eprintids );
+	return $string;
 }
-
-
-
-######################################################################
-#
-# $searchexpression = make_harvest_search( $session,
-#                                          $start_date,
-#                                          $end_date,
-#                                          $setspec,
-#                                          $table,
-#                                          $date_field,
-#                                          $subject_field
-#
-#  Make a SearchExpression suitable for harvesting between $start_date
-#  and $end_date, with the set specification $setspec.  Any or all of
-#  these three fields may be undef.  $table is the database table to
-#  search, $date_field and $subject_field are the MetaFields to use
-#  for the harvesting.
-#
-######################################################################
-
-## WP1: BAD
-sub make_harvest_search
-{
-	my( $session, $start_date, $end_date, $setspec, $tableid, $date_field,
-		$subject_field ) = @_;
-
-	# Create a search expression
-	my $searchexp = new EPrints::SearchExpression(
-		$session,
-		$tableid );
-
-	# Add date component for 
-	if( defined $start_date || defined $end_date )
-	{
-		my $date_search_spec = ( defined $start_date ? $start_date : "" ) . "-" .
-		( defined $end_date ? $end_date : "" );
-
-#cjg?
-		$searchexp->add_field(
-			$date_field,
-			$date_search_spec );
-	}
-	
-	# set component
-	if( defined $setspec )
-	{
-		# Get the subjects the setspec pertains to
-		my @subjects = setspec_to_subjects( $session, $setspec );
-		
-		# Make our search field
-		my $subject_search_spec;
-		foreach (@subjects)
-		{
-			$subject_search_spec .= ":$_->{subjectid}";
-		}
-		$subject_search_spec .= ":ANY";
-
-#cjg?
-		$searchexp->add_field(
-			$subject_field,
-			$subject_search_spec );
-	}
-
-	return( $searchexp );
-}	
-
-
-######################################################################
-#
-# @subjects = setspec_to_subjects( $session, $setspec )
-#
-#  Return Subject objects representing subjects that are in the scope
-#  of the given setspec.
-#
-######################################################################
-
-## WP1: BAD
-sub setspec_to_subjects
-{
-	my( $session, $setspec ) = @_;
-	
-	# Ignore everything except the last part of the spec.  We don't
-	# need the path.
-	$setspec =~ s/.*://;
-	
-	# Get the corresponding subject.
-	my $subject = new EPrints::Subject( $session, $setspec );
-	
-	# Make sure we actually have one
-	return( undef ) unless( defined $subject );
-	
-	# Now get all descendents of this subject, since they will all fall
-	# in the scope of the setspec
-	my @subjects_in_scope;
-	_collect_subjects( \@subjects_in_scope, $subject );
-	
-	return( @subjects_in_scope );
-}
-
-
-######################################################################
-#
-# _collect_subjects( $subjects_array, $parent )
-#
-#  Put the parent and all of it's children in the array.
-#
-######################################################################
-
-## WP1: BAD
-sub _collect_subjects
-{
-	my ( $subjects_array, $parent ) = @_;
-	
-	push @$subjects_array, $parent;
-	
-	my @children = $parent->children();
-	foreach (@children)
-	{
-		_collect_subjects( $subjects_array, $_ );
-	}
-}
-
-
-######################################################################
-#
-# $valid = $validate_set_spec( $session, $setspec )
-#
-#  Returns nonzero if the setspec is valid.
-#
-######################################################################
-
-## WP1: BAD
-sub validate_set_spec
-{
-	my( $session, $setspec ) = @_;
-
-	# Split the parts of the setspec up
-	my @parts = split /:/, $setspec;
-
-	# Root subject
-	my $subject = new EPrints::Subject( $session, undef );
-
-	# Make sure the path is valid
-	my $part;
-	foreach $part (@parts)
-	{
-		my @children = $subject->children();
-		my $child;
-		
-		# Make sure the child exists
-		foreach (@children)
-		{
-			$child = $_ if( $part eq $_->{subjectid} );
-		}
-		
-		return( 0 ) unless ( defined $child );
-
-		$subject = $child;
-	}
-
-	return( 1 );
-}
-
 
 
 1;
+

@@ -18,6 +18,8 @@
 ##cjg _ verify password is NOT non-ascii!
 
 package EPrints::User;
+@ISA = ( 'EPrints::DataObj' );
+use EPrints::DataObj;
 
 use EPrints::Database;
 use EPrints::MetaField;
@@ -339,40 +341,6 @@ sub remove
 	return( $success );
 }
 
-
-sub get_value
-{
-	my( $self , $fieldname ) = @_;
-
-	unless( EPrints::Utils::is_set( $self->{data}->{$fieldname} ) )
-	{
-		return undef;
-	}
-
-	return $self->{data}->{$fieldname};
-}
-
-sub get_values
-{
-	my( $self ) = @_;
-
-	return $self->{data};
-}
-
-sub set_value
-{
-	my( $self , $fieldname, $newvalue ) = @_;
-
-	$self->{data}->{$fieldname} = $newvalue;
-}
-
-sub is_set
-{
-	my( $self ,  $fieldname ) = @_;
-#cjg Is this sub extraneous? or should EPrint etc have it too?
-	return EPrints::Utils::is_set( $self->{data}->{$fieldname} );
-}
-
 sub has_priv
 {
 	my( $self, $resource ) = @_;
@@ -513,17 +481,6 @@ sub _create_userid
 	return( $new_id );
 }
 
-sub render_value
-{
-	my( $self, $fieldname, $showall ) = @_;
-
-	my $field = $self->{dataset}->get_field( $fieldname );	
-	
-	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
-}
-
-
-
 sub render
 {
         my( $self ) = @_;
@@ -541,20 +498,6 @@ sub render_full
         my( $dom, $title ) = $self->{session}->get_archive()->call( "user_render", $self, $self->{session}, 1 );
 
         return( $dom, $title );
-}
-
-sub get_dataset
-{
-	my( $self ) = @_;
-	
-	return $self->{dataset};
-}
-
-sub get_session
-{
-	my( $self ) = @_;
-
-	return $self->{session};
 }
 
 sub render_citation_link
@@ -584,22 +527,13 @@ sub render_citation
 {
 	my( $self , $cstyle ) = @_;
 
-	if( !defined $cstyle )
-	{
-		$cstyle = $self->{session}->get_citation_spec(
+	my $stylespec = $self->{session}->get_citation_spec(
 					$self->{dataset},
-					$self->get_value( "usertype" ) );
-	}
+					(defined $cstyle?$cstyle:$self->get_value( "usertype" ) ) );
 
-	EPrints::Utils::render_citation( $self , $cstyle );
+	EPrints::Utils::render_citation( $self , $stylespec );
 }
 
-sub get_id
-{
-	my( $self ) = @_;
-
-	return $self->{data}->{userid};
-}
 	
 
 1;

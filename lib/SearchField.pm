@@ -966,4 +966,11 @@ sub unserialise
 	return $class->new( $session, $dataset, \@fields, $value );
 }
 
+# only really meaningful to move between eprint datasets
+sub set_dataset
+{
+	my( $self, $dataset ) = @_;
+
+	$self->{dataset} = $dataset;
+}
 1;

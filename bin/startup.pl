@@ -50,6 +50,7 @@ use EPrints::Subscription;
 use EPrints::UserForm;
 use EPrints::User;
 use EPrints::UserPage;
+use EPrints::Xanadu;
 
 print STDERR "EPRINTS: Core Modules Loaded\n";
 

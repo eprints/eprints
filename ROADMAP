@@ -25,7 +25,7 @@
 -	Alpha Install Docs.
 -	Executable files should check they are running as the correct user.
 
-*	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
+*	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001)
 
 -	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
 -	Multilangify Subject Fields and Subject DB
@@ -51,7 +51,7 @@
 -	Views (and searches?) with JUST results - no wrapper. For including in other pages.
 
 
-*	Milestone "Pepperoni" : ALPHA-2: Database code stable. Module functions and configuration not yet 100% stable. 
+*	Milestone "Pepperoni" : ALPHA-2: Database code stable. Module functions and configuration not yet 100% stable.  (January 9th 2002) [YOU ARE HERE]
 
 -	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 0	Paged Metadata in submission form.
@@ -70,7 +70,7 @@
 -	multiple views for things like people/groups etc.
 0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
 -	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
-0	Multiple Citation formats (generally, and for browse/abstract/search)
+-	Multiple Citation formats (generally, and for browse/abstract/search) 
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
 -	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology. But make it optional.
@@ -85,11 +85,12 @@
 #	OAI support working.
 
 0	Translate Initial phrases and templates into French
-0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
+1	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Alerts for editors about things they can edit (flag in User fields?)
 - 	Change User - allows you to log in as a different user (handy for admin users)
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
-0	Some kind of BibTeX support (fill in metadata form from bibtex)
+1	Some kind of BibTeX support (fill in metadata form from bibtex) - library function plus cgi + bin tools?
+0	Some kind of RIS format import (similar to bibtex).
 -	Search by ID field (in search exp)
 0	What's new? page(s) (just a fixed search)
 0	Subscriptions - editing
@@ -111,7 +112,7 @@
 2	XML Importer
 0	Improve name search syntax (?)
 2	Remove (Hide) Lanuage related options if only one language supported.
-0	Xanadu interface(!)
+3	Xanadu interface(!)
 0	"Special search" which redirects to the abstract if only one match.
 
 
@@ -145,17 +146,6 @@
 2	OpenURL support (?)
 
 
-#BUGS
-#	clone eprint cocks up later version id
-#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
-#	Order buttons somehow using extra param to render input form...    ....done but now need to go and use it everywhere (_order=>[foo,bar]
-#	Default Action when buttons pushed (set in render input form?)...    .....Appears to just push first button!
-#	Fix "upload then back" bug in submission form
-#	directory listing on perl dir is showing and should be hidden.
-#	SearchExp still appears to run do's on searchfields when cached (?)
-#	Linking values to views seems to be broken.
-#	views pages are not sorted (correctly)
-
 #Clean UP
 #	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
 #	print STDERR's should be log()
@@ -187,3 +177,11 @@
 #	import_xml becomes import_foo etc. eprint/user/whatever.
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
 #	ordervalues for sets & subjects being on their NAME not value?
+#	set browse methods to an optional "don't advertise"
+#	.plain like .include but with nothing but the citation. Configure options for generation of html/plain/include and which citation and generation of indexes.ZZ
+
+
+## Need to make OAI get_values get values for deletion & archive so if the only
+## 1853 paper is deleted the set does not disappear.
+
+# Need to make Next FOO records give the right answer.

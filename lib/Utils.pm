@@ -524,7 +524,7 @@ sub mkdir
 
 sub render_citation
 {
-	my( $obj, $cstyle ) = @_;
+	my( $obj, $cstyle, $url ) = @_;
 
 	# This should belong to the base class of EPrint User Subject and
 	# Subscription, if we were better OO people...
@@ -537,14 +537,31 @@ sub render_citation
 	foreach $node ( $cstyle->getElementsByTagName( "ifset" , 1 ) )
 	{
 		my $fieldname = $node->getAttribute( "name" );
-		my $val = $obj->get_value( "$fieldname" );
+		my $val = $obj->get_value( $fieldname );
 		push @{$nodes->{EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
 	}
 	foreach $node ( $cstyle->getElementsByTagName( "ifnotset" , 1 ) )
 	{
 		my $fieldname = $node->getAttribute( "name" );
-		my $val = $obj->get_value( "$fieldname" );
+		my $val = $obj->get_value( $fieldname );
 		push @{$nodes->{!EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
+	}
+	foreach $node ( $cstyle->getElementsByTagName( "iflink" , 1 ) )
+	{
+		push @{$nodes->{defined $url?"keep":"lose"}}, $node;
+	}
+	foreach $node ( $cstyle->getElementsByTagName( "ifnotlink" , 1 ) )
+	{
+		push @{$nodes->{!defined $url?"keep":"lose"}}, $node;
+	}
+	foreach $node ( $cstyle->getElementsByTagName( "a" , 1 ) )
+	{
+		if( !defined $url )
+		{
+			push @{$nodes->{keep}}, $node;
+			next;
+		}
+		$node->setAttribute( "href", $url );
 	}
 	foreach $node ( @{$nodes->{keep}} )
 	{
@@ -564,10 +581,7 @@ sub render_citation
 
 	_expand_references( $obj, $cstyle );
 
-	my $span = $obj->get_session()->make_element( "span", class=>"citation" );
-	$span->appendChild( $cstyle );
-	
-	return $span;
+	return $cstyle;
 }      
 
 sub _expand_references
@@ -613,6 +627,10 @@ sub field_from_config_string
 	# use id side of a field if the fieldname
 	# ends in .id (and strip the .id)
 	my $field = $dataset->get_field( $fieldname );
+	if( !defined $field )
+	{
+		EPrints::Config::abort( "Can't make field from config_string: $fieldname" );
+	}
 	if( $field->get_property( "hasid" ) )
 	{
 		if( $useid )
@@ -659,5 +677,6 @@ sub get_input
 		}
 	}
 }
+
 
 1;

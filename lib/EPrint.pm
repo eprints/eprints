@@ -15,6 +15,8 @@
 ######################################################################
 
 package EPrints::EPrint;
+@ISA = ( 'EPrints::DataObj' );
+use EPrints::DataObj;
 
 use EPrints::Database;
 use EPrints::DOM;
@@ -1151,68 +1153,23 @@ sub render_citation_link
 	{
 		$url = $self->static_page_url();
 	}
+	
+	my $citation = $self->render_citation( $cstyle, $url );
 
-	my $a = $self->{session}->make_element( "a", href=>$url );
-	$a->appendChild( $self->render_citation( $cstyle ) );
-
-	return $a;
+	return $citation;
 }
 
 sub render_citation
 {
-	my( $self , $cstyle) = @_;
-	
-	if( !defined $cstyle )
-	{
-		$cstyle = $self->{session}->get_citation_spec(
+	my( $self , $cstyle , $url ) = @_;
+
+	my $stylespec = $self->{session}->get_citation_spec(
 					$self->{dataset},
-					$self->get_value( "type" ) );
-	}
+					(defined $cstyle?$cstyle:$self->get_value( "type" ) ) );
 
-	EPrints::Utils::render_citation( $self , $cstyle );
+	EPrints::Utils::render_citation( $self , $stylespec , $url );
 }
 
-## WP1: BAD
-sub get_value
-{
-	my( $self , $fieldname ) = @_;
-	
-	my $r = $self->{data}->{$fieldname};
-
-	$r = undef unless( EPrints::Utils::is_set( $r ) );
-
-	return $r;
-}
-
-## WP1: BAD
-sub set_value
-{
-	my( $self , $fieldname, $value ) = @_;
-
-	$self->{data}->{$fieldname} = $value;
-}
-
-## WP1: BAD
-sub get_session
-{
-	my( $self ) = @_;
-
-	return $self->{session};
-}
-
-sub get_data
-{
-	my( $self ) = @_;
-	
-	return $self->{data};
-}
-
-sub get_dataset
-{
-	my( $self ) = @_;
-	
-	return $self->{dataset};
-}
 
 sub get_user
 {
@@ -1479,22 +1436,6 @@ sub remove_from_threads
 	}
 }
 
-sub render_value
-{
-	my( $self, $fieldname, $showall ) = @_;
-
-	my $field = $self->{dataset}->get_field( $fieldname );	
-	
-	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
-}
-
-sub get_id
-{
-	my( $self ) = @_;
-
-	return $self->{data}->{eprintid};
-}
-
 sub render_version_thread
 {
 	my( $self, $field ) = @_;
@@ -1516,9 +1457,7 @@ sub _render_version_thread_aux
 	
 	my $li = $self->{session}->make_element( "li" );
 
-	my $cstyle = $self->{session}->get_citation_spec(
-					$self->{dataset},
-					"thread_".$field->get_name() );
+	my $cstyle = "thread_".$field->get_name();
 
 	if( $self->get_value( "eprintid" ) != $eprint_shown->get_value( "eprintid" ) )
 	{
@@ -1551,8 +1490,5 @@ sub _render_version_thread_aux
 }
 
 
-
-
 1; # For use/require success
 	
-1;

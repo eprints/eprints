@@ -1,0 +1,95 @@
+======================================================================
+Known Bugs & Issues in latest EPrints-2 release
+======================================================================
+
+----------------------------------------------------------------------
+General
+----------------------------------------------------------------------
+
+- "clone eprint" function appears to break later version field
+
+- No subjects at all causes a HTTP error. Possibly due to the top 
+   subject for a field not existing.
+
+- does not appear to remove eprint from ordervalues table if it is
+   removed.
+
+----------------------------------------------------------------------
+Rendering
+----------------------------------------------------------------------
+
+- Rendering values does not currently link them to the relevant view 
+   page if one exists. New config option?
+
+- /views/ pages do not correctly sort the list of fields (it's done 
+   by ID not the rendered phrase). 
+
+- "bounce" email has DOM reference rather than the actual email!
+
+----------------------------------------------------------------------
+Apache Configuration & Page Serving
+----------------------------------------------------------------------
+
+- cgi directories can be viewed. The list directory contents option 
+   should be off.
+
+- CGI scripts are ALL set to be no cache. Would be nice if some were
+   not but this may cause other problems...
+
+----------------------------------------------------------------------
+Searching
+----------------------------------------------------------------------
+
+- Web based search failing to use the cache.
+
+- Web based Searches sometimes displays ALL results when it should 
+   be paged.
+
+----------------------------------------------------------------------
+EPrints Submission Form
+----------------------------------------------------------------------
+
+- form buttons are not all displayed in a sensible order, eg "Next","Prev"
+
+- doc upload page does not give a sensible message when there are no 
+   documents.
+
+- If you select a file to upload (in submission form) but click back then
+   it still uploads the file then discards it (which can be annoying if it's
+   big) Back buttons should be in a seperate form.
+
+- Back button should not be the default button on file upload pages.
+
+- .tar.gz and ZIP don't work in demoprints archive. Due to the "upgrade"
+   install mode failing to preserve the "executables" field.
+
+- capturing a website with a ~ in the URL set the wrong filename in the 
+   documents data. (didn't handle %'s right?)
+
+- default action is always first button in form. (Which if I fix the button 
+   ordering problem will mean that the default button will be "Prev" thus
+   losing all the changes.
+
+- the final page of submission should indicate that the first block is
+   the "abstract page" and the second block is a dump of all fields.
+
+
+----------------------------------------------------------------------
+Installation
+----------------------------------------------------------------------
+
+- Regexp for hostnames does not allow "-" signs
+
+
+
+FIXED: 15/01
+- SearchExpression appears to be running SQL from searchfields even 
+   on a cached result. [this was due to the fact that caching was
+   done in the get method not the perform_search method]
+- multiple languages support broken: can't make "ordervalues" tables
+   [this was due to swapping from one ordervalues table for all langs
+   to one PER lang without testing fully]
+
+FIXED: 20/01
+- freetext searches were dropping the last result for each word.
+

@@ -16,6 +16,8 @@
 ######################################################################
 
 package EPrints::Document;
+@ISA = ( 'EPrints::DataObj' );
+use EPrints::DataObj;
 
 use EPrints::Database;
 use EPrints::EPrint;
@@ -942,32 +944,6 @@ sub validate
 	return( \@problems );
 }
 
-sub get_value
-{
-	my( $self , $fieldname ) = @_;
-
-	if( $self->{data}->{$fieldname} eq "")
-	{
-		return undef;
-	}
-
-	return $self->{data}->{$fieldname};
-}
-
-sub set_value
-{
-	my( $self , $fieldname, $value ) = @_;
-
-	$self->{data}->{$fieldname} = $value;
-}
-
-sub get_data
-{
-	my( $self ) = @_;
-	
-	return $self->{data};
-}
-
 sub can_view
 {
 	my( $self, $user ) = @_;
@@ -986,4 +962,5 @@ sub render_value
 	
 	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
 }
+
 1;

@@ -17,29 +17,29 @@
 #
 ######################################################################
 
+#cjg need to recomment all subs
 
-#cjg NO WHERE NEAR DONE
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::OpenArchives;
 use EPrints::Session;
 use EPrints::Subject;
 
-use FileHandle;
-use IO::File;
-use POSIX;
-use XML::Writer;
+# use FileHandle;
+# use IO::File;
+# use POSIX;
+# use XML::Writer;
+
+use URI::Escape;
+
 use strict;
-
-
 
 # New session
 my $session = new EPrints::Session();
 Apache::exit( 0 ) unless( defined $session );
-
-
 # What are we begin asked?
 my $verb = $session->param( "verb" );
+
 
 if( !defined $verb ) 
 {
@@ -80,7 +80,7 @@ else
 }
 
 $session->terminate();
-
+exit;
 
 
 ######################################################################
@@ -91,19 +91,20 @@ $session->terminate();
 #
 ######################################################################
 
+#???
 sub get_record
 {
 	my( $session ) = @_;
 
 	my $identifier = $session->param( "identifier" );
-	my $metadataFormat = $session->param( "metadataPrefix" );
+	my $metadata_format = $session->param( "metadataPrefix" );
 	
 	if( !defined $identifier )
 	{
 		send_http_error( $session, 400, "No identifier sent in GetRecord verb" );
 		return;
 	}
-	if( !defined $metadataFormat )
+	if( !defined $metadata_format )
 	{
 		send_http_error( $session,
 		                  400,
@@ -111,32 +112,42 @@ sub get_record
 		return;
 	}
 
+	if( !defined $session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$metadata_format} )
+	{
+		send_http_error( $session, 400, "\"$metadata_format\" is not a supported metadata format" );
+		return;
+	}
+
 	# OK, we've got an ID & a format, even if we get no data we can now send
 	# a response
 
-	my $writer = start_response( $session, "GetRecord" );
+	my $response = make_basic_oai_response( $session, "GetRecord" );
 
 	my $eprint = new EPrints::EPrint(
 		$session,
-		EPrints::Database::table_name( "archive" ),
+		$session->get_archive()->get_dataset( "archive" ),
 		EPrints::OpenArchives::from_oai_identifier(
 			$session,
-			$session->param( "identifier" ) ) );
+			$identifier ) );
 
 	if( defined $eprint )
 	{
+		my $fn = $session->get_archive()->get_conf( 
+			"oai_metadata_functions" )->{$metadata_format};
+
 		# The eprint exists, so write the record
 		# if the metadataFormat isn't available for
 		# this record, only the header will be output.
 
-		EPrints::OpenArchives::write_record(
-			$session,
-			$writer,
-			$eprint,
-			$metadataFormat );
+		$response->appendChild( $session->make_indent( 2 ) );
+		$response->appendChild( 
+			EPrints::OpenArchives::make_record(
+				$session,
+				$eprint,
+				$fn ) );
 	}
 
-	close_response( $session, $writer );
+	send_response( $session, $response );
 }
 
 
@@ -149,73 +160,108 @@ sub get_record
 #
 ######################################################################
 
+
+#???
 sub identify
 {
 	my( $session ) = @_;
 
-	my $writer = start_response( $session, "Identify" );
-	
-	$writer->dataElement( 
+	my $response = make_basic_oai_response( $session, "Identify" );
+
+	$response->appendChild( $session->render_data_element(
+		2,
 		"repositoryName",
-		$session->get_archive()->get_conf( "archivename" ) );
-	
-	$writer->dataElement( "baseURL",
-	                      $session->get_archive()->get_conf( "oai_base_url" ) );
+		EPrints::Session::best_language( 
+			$session->get_archive(),
+			$session->get_langid(),
+			%{$session->get_archive()->get_conf( "archivename" )} ) ) );
 
-	$writer->dataElement( "protocolVersion",
-	                      $EPrints::OpenArchives::OAI_VERSION );
+	$response->appendChild( $session->render_data_element(
+		2,
+		"baseURL",
+		$session->get_archive()->get_conf( "oai_base_url" ) ) );
 
-	$writer->dataElement(
+	$response->appendChild( $session->render_data_element(
+		2,
+		"protocolVersion",
+		$EPrints::OpenArchives::OAI_VERSION ) );
+
+	$response->appendChild( $session->render_data_element(
+		2,
 		"adminEmail",
-		"mailto:".$session->get_archive()->get_conf( "adminemail" ) );
+		"mailto:".$session->get_archive()->get_conf( "adminemail" ) ) );
 
-	$writer->startTag( "description");
-	$writer->startTag( "oai-identifier", 
-	                   "xmlns"=>"http://www.openarchives.org/OAI/1.1/oai-identifier",
-	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/oai-identifier ".
-	                                      "http://www.openarchives.org/OAI/1.1/oai-identifier.xsd");
+	my $d1 = $session->make_element( "description" );
+	my $oaiid = $session->make_element( 	
+		"oai-identifier",
+		"xmlns"=>"http://www.openarchives.org/OAI/1.1/oai-identifier",
+		"xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
+		"xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/oai-identifier http://www.openarchives.org/OAI/1.1/oai-identifier.xsd" );
+	$d1->appendChild( $session->make_indent( 4 ) );
+	$d1->appendChild( $oaiid );
+	$response->appendChild( $session->make_indent( 2 ) );
+	$response->appendChild( $d1 );
 
-	$writer->dataElement( "scheme", "oai" );
-	$writer->dataElement( "repositoryIdentifier",
-	                      $session->get_archive()->get_conf( "oai_archive_id" ) );
-	$writer->dataElement( "delimiter", ":" );
-	$writer->dataElement( "sampleIdentifier",
-	                      $session->get_archive()->get_conf( "oai_sample_identifier" ) );
-	$writer->endTag();
-	$writer->endTag( "description");
+	$oaiid->appendChild( $session->render_data_element(
+		6,
+		"scheme",
+		"oai" ) );
 
-	$writer->startTag( "description");
-	$writer->startTag( "eprints", 
-	                   "xmlns"=>"http://www.openarchives.org/OAI/1.1/eprints",
-	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/eprints ".
-	                                      "http://www.openarchives.org/OAI/1.1/eprints.xsd");
+	$oaiid->appendChild( $session->render_data_element(
+		6,
+		"repositoryIdentifier",
+		$session->get_archive()->get_conf( "oai_archive_id" ) ) );
 
-	write_text_url( $writer, 
-                          "content", 
-                          $session->get_archive()->get_conf( "oai_content" ) );
-	write_text_url( $writer, 
-                          "metadataPolicy", 
-                          $session->get_archive()->get_conf( "oai_metadataPolicy" ) );
-	write_text_url( $writer, 
-                          "dataPolicy", 
-                          $session->get_archive()->get_conf( "oai_dataPolicy" ) );
-	write_text_url( $writer, 
-                          "submissionPolicy", 
-                          $session->get_archive()->get_conf( "oai_submissionPolicy" ) );
+	$oaiid->appendChild( $session->render_data_element(
+		6,
+		"delimiter",
+		":" ) );
 
-	# Output all comments, if any.
+	$oaiid->appendChild( $session->render_data_element(
+		6,
+		"sampleIdentifier",
+		$session->get_archive()->get_conf( "oai_sample_identifier" ) ) );
+
+	my $d2 = $session->make_element( "description" );
+	my $eprints = $session->make_element( 	
+		"eprints", 
+		"xmlns"=>"http://www.openarchives.org/OAI/1.1/eprints",
+		"xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
+		"xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/eprints http://www.openarchives.org/OAI/1.1/eprints.xsd" );
+	$d2->appendChild( $session->make_indent( 4 ) );
+	$d2->appendChild( $eprints );
+	$response->appendChild( $session->make_indent( 2 ) );
+	$response->appendChild( $d2 );
+
+	$eprints->appendChild( render_text_url( 
+		$session,
+		"content", 
+		$session->get_archive()->get_conf( "oai_content" ) ) );
+                          
+	$eprints->appendChild( render_text_url( 
+		$session,
+		"metadataPolicy", 
+		$session->get_archive()->get_conf( "oai_metadata_policy" ) ) );
+
+	$eprints->appendChild( render_text_url( 
+		$session,
+		"dataPolicy", 
+		$session->get_archive()->get_conf( "oai_data_policy" ) ) );
+
+	$eprints->appendChild( render_text_url( 
+		$session,
+		"submissionPolicy", 
+		$session->get_archive()->get_conf( "oai_submission_policy" ) ) );
 
 	foreach( @{$session->get_archive()->get_conf( "oai_comments" )} ) 
 	{
-		$writer->dataElement( "comment", $_ );
+		$eprints->appendChild( $session->render_data_element(
+			6,
+			"comment", 
+			$_ ) );
 	}
 		
-	$writer->endTag();
-	$writer->endTag( "description" );
-
-	close_response( $session, $writer );
+	send_response( $session, $response );
 }
 
 
@@ -229,35 +275,149 @@ sub identify
 #
 ######################################################################
 
-sub write_text_url
+sub render_text_url
 {
-	my( $writer, $name, $texturl ) = @_;
+	my( $session, $name, $texturl ) = @_;
 
-	# If neither text or url is defined, don't bother opening
-	# and closing the tag in the first place.
-	
-	if ( !defined $texturl->{"text"} && !defined $texturl->{"url"} ) 
-	{
-		return;
-	}
+	my $f = $session->make_doc_fragment();
 
-	$writer->startTag( $name );
+	$f->appendChild( $session->make_indent( 6 ) );
+	my $e = $session->make_element( $name );
+	$f->appendChild( $e );
 
 	if ( defined $texturl->{"text"} ) 
 	{
-		$writer->dataElement(
-		"text",
-		$texturl->{"text"} );
+		$e->appendChild( $session->render_data_element(
+			8,
+			"text",
+			$texturl->{"text"} ) );
 	}
 
 	if ( defined $texturl->{"url"} ) 
 	{
-		$writer->dataElement(
-		"URL",
-		$texturl->{"url"} );
+		$e->appendChild( $session->render_data_element(
+			8,
+			"URL",
+			$texturl->{"url"} ) );
 	}
 
-	$writer->endTag( $name );
+	return $f;
+}
+
+sub get_searchexp_from_params
+{
+	my( $session, $mode ) = @_;
+
+	my $token = $session->param( "resumptionToken" );
+
+	if( defined $token )
+	{
+		unless( $token =~ m#^(\d+)/(\d+)(/(.*))?$# )
+		{
+			send_http_error( $session, 400, "ResumptionToken invalid" );
+			return;
+		}
+		my( $offset, $cache_id, $metadata_format ) = ( $1, $2, $4 );
+		my $searchexp = EPrints::SearchExpression->new( 
+			session => $session,
+			use_private_cache => 1,
+			cache_id => $cache_id );
+
+		unless( defined $searchexp )
+		{
+			send_http_error( $session, 400, "ResumptionToken expired" );
+			return;
+		}
+		return( $searchexp, $offset, $metadata_format );
+	}
+
+	# Get arguments
+	my $start_date = $session->param( "from" );
+	my $end_date = $session->param( "until" );
+	my $codedset = $session->param( "set" );
+	my $metadata_format = $session->param( "metadataPrefix" );
+	
+
+	my( $key,$value );
+
+	my $ds = $session->get_archive()->get_dataset( "archive" );
+
+	my $searchexp = new EPrints::SearchExpression(
+		session => $session,
+		use_private_cache => 1,
+		allow_blank => 1,
+		dataset => $ds );
+
+	if( defined $codedset )
+	{
+		my( $head , @tail ) = EPrints::OpenArchives::decode_setspec( $codedset );
+		( $key , $value ) = split( /=/ , $head );
+		if( scalar @tail > 0 )
+		{
+			$value = pop @tail;
+		}
+		my $views = $session->get_archive()->get_conf( "oai_sets" ); #cjg
+		my $info;
+		foreach( @{$views} )
+		{
+			$info = $_ if( $_->{id} eq $key );
+		}
+		if( !defined $info )
+		{
+			send_http_error( $session, 400, "Invalid set parameter; unknown key ( $key )" );
+			return;
+		}
+		my @fields;
+ 		foreach( split( "/", $info->{fields} ) )
+		{
+			my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
+			unless( $field->is_browsable() )
+			{
+				my $type = $field->get_type();
+				EPrints::Config::abort( <<END );
+Cannot generate browse pages for field "$_"
+- Type "$type" cannot be browsed.
+END
+				return;
+			}
+			push @fields, $field;
+		}
+		$searchexp->add_field( \@fields, "PHR:EX:".$value );
+	}
+
+
+	# Extract and validate start & end dates, if given.
+	my $date_range;
+
+	if( defined $start_date )
+	{
+		if( $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
+		{
+			send_http_error( $session, 400, "Invalid from parameter" );
+			return;
+		}
+		$date_range = $start_date."-";
+	}
+
+	if( defined $end_date )
+	{
+		if( $end_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
+		{
+			send_http_error( $session, 400, "Invalid until parameter" );
+			return;
+		}
+		$date_range.= "-" if( !defined $date_range );
+		$date_range.= $end_date;
+	}
+	
+	if( defined $date_range )
+	{
+		$searchexp->add_field( 
+				$ds->get_field( "datestamp" ), 
+				"PHR:EQ:".$date_range );
+	}
+
+	return( $searchexp, 0, $metadata_format );
 }
 
 
@@ -272,72 +432,132 @@ sub write_text_url
 sub list_identifiers
 {
 	my( $session ) = @_;
+
+	_list( $session, 1 );
+}
+
+sub list_records
+{
+	my( $session ) = @_;
+
+	_list( $session, 2 );
+}
+
+sub _list
+{
+	my( $session , $mode ) = @_;
+
+	#mode 1 = ID 
+	#mode 2 = full metadata
 	
-	# Get arguments
-	my $start_date = $session->param( "from" );
-	my $end_date = $session->param( "until" );
-	# No support for resumptionToken
-	my $codedset = $session->param( "set" );
-	my $set;
-	if( defined $codedset )
-	{
-		$set = EPrints::Utils::decode_setspec( $codedset );
-	}
+	my $PAGESIZE = 10;
 
 
-	# Do some validation of the arguments
-	if( defined $start_date && $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
+	my( $searchexp, $offset, $metadata_format ) = get_searchexp_from_params( $session, $mode );
+
+	if( !defined $searchexp )
 	{
-		send_http_error( $session, 400, "Invalid from parameter" );
+		# something went wrong
 		return;
 	}
 	
-	if( defined $start_date && $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
+	if( $mode == 2 )
 	{
-		send_http_error( $session, 400, "Invalid until parameter" );
-		return;
+		if( !defined $metadata_format )
+		{
+			send_http_error( $session, 400, "Missing metadataPrefix parameter" );
+			return;
+		}
+
+		if( !defined $session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$metadata_format} )
+		{
+			send_http_error( $session, 400, "\"$metadata_format\" is not a supported metadata format" );
+			return;
+		}
 	}
+
+	$searchexp->perform_search();
+	my $count = $searchexp->count();
+	my $serial = $searchexp->serialise();
+	my $cache = $searchexp->get_cache_id();
+	my $searchdsid = $searchexp->get_dataset()->id();
+	my %opts = ();
+	$opts{status}="deleted" if( $searchdsid eq "deletion" );
+
+	my $response;
+	my $mdtoken = "";
 	
-	if( defined $set && 
-		EPrints::OpenArchives::validate_set_spec( $session, $set )==0 )
+	if( $mode == 1 )
 	{
-		send_http_error( $session, 400, "Invalid set parameter" );
-		return;
+		$response = make_basic_oai_response( $session, "ListIdentifiers" );
+
+		my @ids = $searchexp->get_ids( $offset, $PAGESIZE );
+		foreach( @ids )
+		{
+			$response->appendChild( $session->render_data_element(
+				2,
+				"identifier",
+				EPrints::OpenArchives::to_oai_identifier( 
+					$session->get_archive()->get_conf( "oai_archive_id" ),
+					$_ ),
+				%opts ) );
+		}
 	}
 
-	# Harvest the live eprints
-	my @eprints = EPrints::OpenArchives::harvest( $session,
-	                                              $start_date,
-	                                              $end_date,
-	                                              $set );
-
-	# Harvest the deleted ones
-	my @deleted_eprintids = EPrints::OpenArchives::harvest_deleted(
-		$session,
-		$start_date,
-		$end_date,
-		$set );
-
-	# Start the response
-	my $writer = start_response( $session, "ListIdentifiers" );
-	
-	# Write the live eprints
-	foreach (@eprints)
+	if( $mode == 2 )
 	{
-		$writer->dataElement(
-			"identifier",
-			EPrints::OpenArchives::to_oai_identifier( 
-				$session->get_archive()->get_conf( "oai_archive_id" ),
-				$_->{eprintid} ) );
-	}
-	
-	# Write the deleted eprints
-	foreach (@deleted_eprintids)
-	{
-		$writer->dataElement( "identifier", $_, status=>"deleted" );
+		$response = make_basic_oai_response( $session, "ListRecords" );
+
+		my $fn = $session->get_archive()->get_conf( 
+			"oai_metadata_functions" )->{$metadata_format};
+
+		my @records = $searchexp->get_records( $offset, $PAGESIZE );
+                my $eprint;
+                foreach $eprint ( @records )
+                {
+			$response->appendChild( $session->make_indent( 2 ) );
+			$response->appendChild( 
+				EPrints::OpenArchives::make_record(
+					$session,
+					$eprint,
+					$fn ) );
+		}	
+
+		$mdtoken = "/".$metadata_format;
 	}
 
-	close_response( $session, $writer );
+	$searchexp->dispose();
+
+
+
+	if( $count > $offset+$PAGESIZE )
+	{
+		$response->appendChild( $session->render_data_element(
+			2,
+			"resumptionToken",
+			($offset+$PAGESIZE)."/".$cache.$mdtoken ) );
+	}
+	elsif( $searchdsid eq "archive" )
+	{
+		## End of archive items, time to do deleted ones.
+		my $delsearchexp = EPrints::SearchExpression->unserialise(
+			$session,
+			$serial,
+			use_private_cache => 1,
+			allow_blank => 1 );
+		$delsearchexp->set_dataset(
+			$session->get_archive()->get_dataset( "deletion" ) );
+		$delsearchexp->perform_search();
+		my $cache = $delsearchexp->get_cache_id();
+		$delsearchexp->dispose();
+			
+		$response->appendChild( $session->render_data_element(
+			2,
+			"resumptionToken",
+			"0/$cache".$mdtoken ) );
+	}
+		
+	send_response( $session, $response );
 }
 
 
@@ -353,148 +573,63 @@ sub list_metadata_formats
 	
 	my $identifier = $session->param( "identifier" );
 
+	my @all_formats = keys %{$session->get_archive()->get_conf( "oai_metadata_namespaces" )};
 	my @metadata_formats;
 
 	if( defined $identifier )
 	{
 		my $eprint = new EPrints::EPrint(
 			$session,
-			EPrints::Database::table_name( "archive" ),
+			$session->get_archive()->get_dataset( "archive" ),
 			EPrints::OpenArchives::from_oai_identifier(
 				$session,
-				$session->param( "identifier" ) ) );
+				$identifier ) );
 
 		if( defined $eprint )
 		{
-		
-			# We have the eprint in question.  Find out how many metadata
-			# formats we can get for it.
-			foreach (keys %{$session->get_archive()->get_conf( "oai_metadata_formats" )})
+			foreach( @all_formats )
 			{
-				my $metadata = EPrints::OpenArchives::get_eprint_metadata(
-					$eprint,
-					$_ );
-				
-				push @metadata_formats, $_ if( defined $metadata );
+				my $fn = $session->get_archive()->get_conf(
+					"oai_metadata_functions" )->{$_};
+				my $md = &{$fn}( $eprint, $session );
+				if( defined $md )
+				{
+					push @metadata_formats, $_;
+				}
 			}
 		}
 	}
 	else
 	{
-		@metadata_formats = keys %{$session->get_archive()->get_conf( "oai_metadata_formats" )};
+		@metadata_formats = @all_formats;
 	}
 	
-	my $writer = start_response( $session, "ListMetadataFormats" );
+	my $response = make_basic_oai_response( $session, "ListMetadataFormats" );
 	
-	foreach (@metadata_formats)
+	foreach ( @metadata_formats )
 	{
-		$writer->startTag( "metadataFormat" );
-		$writer->dataElement( "metadataPrefix",
-		                      $_ );
-		$writer->dataElement( "schema",
-		                      $session->get_archive()->get_conf( "oai_metadata_schemas" )->{$_} );
-		$writer->dataElement( "metadataNamespace",
-		                      $session->get_archive()->get_conf( "oai_metadata_formats" )->{$_} );
-		$writer->endTag( "metadataFormat" );
+		my $mdf = $session->make_element( "metadataFormat" );
+
+		$mdf->appendChild( $session->render_data_element(
+			4,
+			"metadataPrefix",
+			$_ ) );
+
+		$mdf->appendChild( $session->render_data_element(
+			4,
+			"schema",
+			$session->get_archive()->get_conf( "oai_metadata_schemas" )->{$_} ) );
+		$mdf->appendChild( $session->render_data_element(
+			4,
+			"metadataNamespace",
+			$session->get_archive()->get_conf( "oai_metadata_namespaces" )->{$_} ) );
+		$response->appendChild( $session->make_indent( 2 ) );
+		$response->appendChild( $mdf );
 	}
 	
-	close_response( $session, $writer );
+	send_response( $session, $response );
 }
 
-
-######################################################################
-#
-# list_records( $session )
-#
-#  Respond to ListRecords verb.
-#
-######################################################################
-
-sub list_records
-{
-	my( $session ) = @_;
-	
-	# Get arguments
-	my $start_date = $session->param( "from" );
-	my $end_date = $session->param( "until" );
-	my $metadata_format = $session->param( "metadataPrefix" );
-	my $codedset = $session->param( "set" );
-	my $set;
-	if( defined $codedset )
-	{
-		$set = EPrints::Utils::decode_setspec( $codedset );
-	}
-	# No support for resumptionToken
-
-	if( !defined $metadata_format )
-	{
-		send_http_error( $session, 400, "Missing metadataPrefix parameter" );
-		return;
-	}
-
-	# Do some validation of the arguments
-	if( defined $start_date && $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
-	{
-		send_http_error( $session, 400, "Invalid from parameter" );
-		return;
-	}
-	
-	if( defined $start_date && $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
-	{
-		send_http_error( $session, 400, "Invalid until parameter" );
-		return;
-	}
-	
-	if( defined $set && 
-		EPrints::OpenArchives::validate_set_spec( $session, $set )==0 )
-	{
-		send_http_error( $session, 400, "Invalid set parameter" );
-		return;
-	}
-
-	# Harvest the live eprints
-	my @eprints = EPrints::OpenArchives::harvest( $session,
-	                                              $start_date,
-	                                              $end_date,
-	                                              $set );
-
-	# Harvest the deleted ones
-	my @deleted_eprintids = EPrints::OpenArchives::harvest_deleted(
-		$session,
-		$start_date,
-		$end_date,
-		$set );
-
-	# Start the response
-	my $writer = start_response( $session, "ListRecords" );
-	
-	# Write the live eprints
-	foreach (@eprints)
-	{
-		EPrints::OpenArchives::write_record( $session,
-		                                     $writer,
-		                                     $_,
-		                                     $metadata_format );
-	}
-	
-	# Write the deleted eprints
-	foreach (@deleted_eprintids)
-	{
-		#cjg!!!!!!!!!!!!1 sort out deleted
-		#my $deletion = new EPrints::Deletion( $session, $_ );
-
-		$writer->startTag( "record", "status"=>"deleted" );
-		EPrints::OpenArchives::write_record_header(
-					$session,
-					$writer,
-		                        $deletion->{eprintid},
-		                        $deletion->{deletiondate} );
-		$writer->endTag( "record" );		
-	}
-
-	# Finish up
-	close_response( $session, $writer );
-}
 
 
 ######################################################################
@@ -508,46 +643,71 @@ sub list_records
 sub list_sets
 {
 	my( $session ) = @_;
-	
-	my $root_subject = new EPrints::Subject( $session, undef );
-	
-	my $writer = start_response( $session, "ListSets" );
 
-	_write_sets( $writer, $root_subject, "" );
+	my @sets = ();
+	my %setnames = ();
 
-	close_response( $session, $writer );
-}
+	my $response = make_basic_oai_response( $session, "ListSets" );
 
+	my $ds = $session->get_archive()->get_dataset( "archive" );
 
-######################################################################
-#
-# _write_sets( $writer, $parent, $parent_spec )
-#
-#  Write the subjects out as setspecs.  $parent is the parent subject
-#  of the subjects to write, and parent_spec is the setSpec of that
-#  parent (with an appended ":")
-#
-######################################################################
-
-sub _write_sets
-{
-	my( $writer, $parent, $parent_spec ) = @_;
-	
-	my @children = $parent->children();
-	
-	foreach (@children)
+	my $viewconf = $session->get_archive()->get_conf( "oai_sets" );
+	my $info;
+	foreach $info ( @{$viewconf} )
 	{
-		my $child_setspec = $parent_spec.$_->{subjectid};
-
-		$writer->startTag( "set" );
-		$writer->dataElement( "setSpec",
-		                      EPrints::Utils::encode_setspec( $child_setspec ) );
-		$writer->dataElement( "setName",
-		                      $_->{name} );
-		$writer->endTag( "set" );
-		
-		_write_sets( $writer, $_, $child_setspec.":" );
+		my $fieldname;
+		my %v = ();
+		foreach $fieldname ( split( "/" , $info->{fields} ) )
+		{
+			my $field = EPrints::Utils::field_from_config_string( $ds, $fieldname );
+			if( $field->is_type( "subject" ) )
+			{
+				my $topsubj = EPrints::Subject->new(
+					$session,
+					$field->get_property( "top" ) );
+				my $i;
+				foreach $i ( @{$topsubj->get_subjects( 0, 0, 1 )} )
+				{
+					my @kb = split( ":", $i->[0] );
+					foreach( @kb )
+					{
+						$_ = EPrints::OpenArchives::encode_setspec( $_ );
+					}
+					my $key = join( ":", @kb );
+					$v{$key} = $i->[1];
+				}
+			}
+			else
+			{
+				foreach( $field->get_values( $session ) )
+				{
+					my $key = EPrints::OpenArchives::encode_setspec( $_ );
+					if( !defined $key ) { $key=""; }
+					$v{$key} = $field->get_value_label( $session, $_ );
+				}
+			}
+		}
+		unless( $info->{allow_null} ) { delete $v{""}; }
+		foreach( keys %v ) 
+		{	
+			my $set = $session->make_element( "set" );
+			$response->appendChild( $session->make_indent( 2 ) );
+			$response->appendChild( $set );
+			my $spec = EPrints::OpenArchives::encode_setspec( $info->{id}."=" ).$_;
+			$set->appendChild( $session->render_data_element( 
+				4,
+				"setSpec",
+				$spec ) );
+			my $name = $session->get_view_name( $ds, $info->{id} )." = ".$v{$_};
+			$set->appendChild( $session->render_data_element( 
+				4,
+				"setName",
+				$name ) );
+		}
 	}
+
+	send_response( $session, $response );
+
 }
 
 
@@ -567,121 +727,89 @@ sub send_http_error
 	$r->content_type( 'text/html' );
 	$r->status_line( "$code $message" );
 	$r->send_http_header;
-	$r->print("<H1>Error $code in OAI request</H1><P>$message</P>");
+	my $title = "Error $code in OAI request";
+	$r->print( <<END );
+<html>
+<head><title>$title</title></head>
+<body>
+  <h1>$title</h1>
+  <p>$message</p>
+</body>
+END
 }
 
 
-######################################################################
-#
-# $writer = start_response( $session, $verb )
-#
-#  Start a valid response to a verb.  This includes the HTTP header,
-#  and the start of the XML document, including the responseDate and
-#  requestURL elements.  Returns the XML::Writer object to write
-#  further XML to.
-#
-######################################################################
-
-sub start_response
+sub make_basic_oai_response
 {
 	my( $session, $verb ) = @_;
-	
-	# Send HTTP header
-	my $r = Apache->request;
-
-	if ( $session->param( "debug" ) eq "yes" ) {
-		$r->content_type( 'text/plain' );
-	} else {
-		$r->content_type( 'text/xml' );
-	}
-	$r->send_http_header;
 
 	# Namespaces and Schemas
 	my %verb_schemas =
 	(
 		"GetRecord" => "http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd",
 		"Identify"  => "http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd",
-		"ListIdentifiers" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd",
-		"ListMetadataFormats" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd",
-		"ListRecords" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd",
+		"ListIdentifiers" => "http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd",
+		"ListMetadataFormats" => "http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd",
+		"ListRecords" => "http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd",
 		"ListSets" => "http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd"
 	);
 	my %verb_namespaces =
 	(
 		"GetRecord" => "http://www.openarchives.org/OAI/1.1/OAI_GetRecord",
 		"Identify"  => "http://www.openarchives.org/OAI/1.1/OAI_Identify",
-		"ListIdentifiers" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers",
-		"ListMetadataFormats" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats",
-		"ListRecords" =>
-			"http://www.openarchives.org/OAI/1.1/OAI_ListRecords",
+		"ListIdentifiers" => "http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers",
+		"ListMetadataFormats" => "http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats",
+		"ListRecords" => "http://www.openarchives.org/OAI/1.1/OAI_ListRecords",
 		"ListSets" => "http://www.openarchives.org/OAI/1.1/OAI_ListSets"
 	);
 
-	$session->{oai_output} = POSIX::tmpnam();
-	$session->{oai_output_fh} = new IO::File( ">$session->{oai_output}" );
+	my $response = $session->make_element( 
+			$verb,
+			"xmlns"=>$verb_namespaces{$verb},
+			"xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
+			"xsi:schemaLocation"=>$verb_namespaces{$verb}." ".$verb_schemas{$verb} );
 
-	my $writer = new XML::Writer(
-		OUTPUT => $session->{oai_output_fh},
-		DATA_MODE => 1,
-		DATA_INDENT => 2 );
+	my $responseDate = $session->make_element( "responseDate" );
+	$responseDate->appendChild( $session->make_text( EPrints::OpenArchives::full_timestamp() ) );
+	$response->appendChild( $session->make_indent( 2 ) );
+	$response->appendChild( $responseDate );
 
-	$writer->xmlDecl("UTF-8");
-
-	$writer->startTag( $verb, 
-	                   "xmlns"=>$verb_namespaces{$verb},
-	                   "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>$verb_namespaces{$verb}." ".$verb_schemas{$verb} );
-	
-	$writer->dataElement( "responseDate",
-	                      EPrints::OpenArchives::full_timestamp() );
-
+	my $requestURL = $session->make_element( "requestURL" );
 	my @bits = ();
 	foreach( $session->param ) 
 	{
-		push @bits , "$_=".$session->param($_);
+		push @bits , "$_=".uri_escape( $session->param($_) );
 	}
+	$requestURL->appendChild( $session->make_text( $session->get_url().  "?" . join( '&', @bits ) ) );
+	$response->appendChild( $session->make_indent( 2 ) );
+	$response->appendChild( $requestURL );
 	
-	$writer->dataElement(
-		"requestURL",
-		$session->get_url().  "?" . join( '&', @bits ) );
-
-	return( $writer );
+	return $response;
 }
 
-
-
-######################################################################
-#
-# close_response( $session, $writer )
-#
-#  Finish up the XML response to a verb.
-#
-######################################################################
-
-sub close_response
+sub send_response
 {
-	my( $session, $writer ) = @_;
-	
-	$writer->endTag();
-	$writer->end();
+	my( $session, $response )  = @_;
 
-	$session->{oai_output_fh}->close();
-
-	# Write the response
-	open XMLFILE, $session->{oai_output};
-	while( <XMLFILE> )
+	my $content = "text/xml";
+	if( $session->param( "debug" ) eq "yes" )
 	{
-		print;
+		$content = "text/plain";
 	}
-	close XMLFILE;
-	
-	unlink $session->{oai_output};
-}
+	$session->send_http_header( content_type=>$content );
 
+	#cjg Need proper XML <?xml line
+
+	$response->appendChild( $session->make_text( "\n\n" ) );
+
+	print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+	print $response->toString();
+
+	$response->dispose();
+}
+	
 
 

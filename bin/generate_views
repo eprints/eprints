@@ -132,6 +132,7 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	$ul = $session->make_element( "ul" );
 	foreach( @{$views} )
 	{
+		next if( $_->{nolink} );
 		$li = $session->make_element( "li" );
 		$a = $session->make_element( "a", href=>$_->{id}."/" );
 		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $_->{id} ) ) );
@@ -167,6 +168,7 @@ sub make_view_pages
 		my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
 		unless( $field->is_browsable() )
 		{
+#cjg should abort here.
 			print STDERR "Cannot generate browse pages for field \"".$_."\"\n";
 			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
 			next;
@@ -202,16 +204,21 @@ sub make_view_pages
 
 	my %size = ();
 
+	$info->{dom} = 1 if( $info->{include} || !$info->{nohtml} );
+
 	foreach $value ( sort @values )
 	{
-		$session->new_page();
-		$page = $session->make_doc_fragment();
-
 		$fileid = $value;
 		if( $fileid eq "" ) { $fileid = "NULL"; }
 		print "[".$info->{id}."] = \"$fileid\"\n" if( $noise > 1 );
 
-		if( $fields[0]->is_type( "subject" ) )
+		if( $info->{dom} )
+		{
+			$session->new_page();
+			$page = $session->make_doc_fragment();
+		}
+
+		if( $fields[0]->is_type( "subject" ) && !$info->{nohtml} )
 		{
 
 			# Note, this only shows ancestors and children. You might want
@@ -225,7 +232,7 @@ sub make_view_pages
 				push @ids,$_->get_value( "subjectid" );
 			}
 
-        		$page->appendChild( $session->render_subjects( 
+       			$page->appendChild( $session->render_subjects( 
 					\@ids, $fields[0]->get_property( "top" ), $value, 2 ) );
 			$page->appendChild( $session->render_ruler() );
 		}
@@ -237,47 +244,65 @@ sub make_view_pages
 				session=>$session,
 				dataset=>$ds );
 
-		foreach $field ( @fields )
-		{
-        		$searchexp->add_field( $field, "PHR:EX:".$value );
-		}	
-
+       		$searchexp->add_field( \@fields, "PHR:EX:".$value );
 
 		my $links = $session->make_doc_fragment();
 
 		my $fn = sub { 
         		my( $session, $dataset, $item, $info ) = @_;
-			my $p = $session->make_element( "p" );
-			$p->appendChild( $item->render_citation_link() );
-			$links->appendChild( $p );
+
+			if( $info->{dom} )
+			{
+				my $cite = $item->render_citation_link( $info->{citation} );
+				unless( $info->{nowrapper} )
+				{
+					my $p = $session->make_element( "p" );
+					$p->appendChild( $cite );
+					$cite = $p;
+				}
+				$links->appendChild( $session->make_indent( 4 ) );
+				$links->appendChild( $cite );
+			}
 		};
 		
         	$searchexp->perform_search();
 		my $count = $searchexp->count();
-		$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
+		if( $info->{dom} && !$info->{nocount} )
+		{
+			$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
 				n=>$session->make_text( $count ) ) );
+		}
 		$size{$value} = $count;
-		$searchexp->map( $fn, { links => $links } );
+		my %mapinfo = %{$info};
+		$mapinfo{links} = $links;
+		$searchexp->map( $fn, \%mapinfo );
 		$searchexp->dispose();
 
-		$file = $dir."/".$fileid.".include";
-		print "Writing: $file\n" if( $noise > 1 );
-		open( FILE, ">$file" );
-		print FILE $links->toString;
-		close FILE;
+		if( $info->{include} )
+		{
+			$file = $dir."/".$fileid.".include";
+			print "Writing: $file\n" if( $noise > 1 );
+			open( FILE, ">$file" );
+			print FILE $links->toString;
+			close FILE;
+		}
 
-		$page->appendChild( $links );
+		unless( $info->{nohtml} )
+		{
+			$page->appendChild( $links );
 
-		$title = $session->phrase( "bin/generate_views:title", 
+			$title = $session->phrase( "bin/generate_views:title", 
 					viewname=>$session->get_view_name( $ds, $info->{id} ),
 					value=>$fields[0]->get_value_label( $session, $value ) );
 
-
-		$file = $dir."/".$fileid.".html";
-		$session->build_page( $title, $page );
-		print "Writing: $file\n" if( $noise > 1 );
-		$session->page_to_file( $file );
+			$file = $dir."/".$fileid.".html";
+			$session->build_page( $title, $page );
+			print "Writing: $file\n" if( $noise > 1 );
+			$session->page_to_file( $file );
+		}
 	}
+
+	return if( $info->{noindex} );
 
 	#################################################
 	##

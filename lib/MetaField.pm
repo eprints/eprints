@@ -1528,7 +1528,7 @@ sub is_browsable
 
 sub get_values
 {
-	my( $self, $session ) = @_;
+	my( $self, $session, %opts ) = @_;
 
 	if( $self->is_type( "set" ) )
 	{
@@ -1540,7 +1540,7 @@ sub get_values
 		my $topsubj = EPrints::Subject->new(
 			$session,
 			$self->get_property( "top" ) );
-		my ( $pairs ) = $topsubj->get_subjects( 0 , 1 );
+		my ( $pairs ) = $topsubj->get_subjects( 0 , !$opts{hidetoplevel} , $opts{nestids} );
 		my @values = ();
 		my $pair;
 		foreach $pair ( @{$pairs} )

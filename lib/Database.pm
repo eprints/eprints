@@ -109,6 +109,7 @@ sub new
 		return( undef );
 	}
 
+	$self->{debug} = $DEBUG_SQL;
 
 	#$self->{dbh}->trace( 2 );
 
@@ -243,15 +244,15 @@ sub _create_table
 	splice( @fields, 0, 1 ); 
 	my @orderfields = ( $keyfield );
 	my $langid;
+	foreach( @fields )
+	{
+		my $fname = $_->get_sql_name();
+		push @orderfields, EPrints::MetaField->new( 
+					name => $fname,
+					type => "longtext" );
+	}
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
-		foreach( @fields )
-		{
-			my $fname = $_->get_sql_name();
-			push @orderfields, EPrints::MetaField->new( 
-						name => $fname,
-						type => "longtext" );
-		}
 		$rv = $rv && $self->_create_table_aux( 
 			$dataset->get_ordervalues_table_name( $langid ), 
 			$dataset, 
@@ -700,10 +701,10 @@ sub update
 	my $langid;
 
 
-	my @fnames = ( $keyfield->get_sql_name() );
-	my @fvals = ( $keyvalue );
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
+		my @fnames = ( $keyfield->get_sql_name() );
+		my @fvals = ( $keyvalue );
 		foreach( @fields )
 		{
 			my $ov = $_->ordervalue( 
@@ -891,6 +892,25 @@ sub counter_next
 	return( $row[0] );
 }
 
+sub cache_exp
+{
+	my( $self , $id ) = @_;
+
+	my $a = $self->{session}->get_archive();
+	$ds = $a->get_dataset( "cachemap" );
+
+	#cjg NOT escaped!!!
+	my $sql = "SELECT searchexp FROM ".$ds->get_sql_table_name() . " WHERE tableid = '$id' ";
+
+	# Never include items past maxlife
+	$sql.= " AND created > now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+
+	return $sth->fetchrow_array;
+}
+
 
 sub cache_id
 {
@@ -1052,7 +1072,6 @@ sub get_index_ids
 #cjg iffy params
 	my( $self, $table, $condition ) = @_;
 
-#print STDERR "GET_INDEX_IDS($table)($condition)\n";
 	my $sql = "SELECT M.ids FROM $table as M where $condition";	
 	my $results;
 	my $sth = $self->prepare( $sql );
@@ -1060,7 +1079,6 @@ sub get_index_ids
 	while( @info = $sth->fetchrow_array ) {
 		my @list = split(":",$info[0]);
 		# Remove first & last.
-		pop @list;
 		shift @list;
 		push @{$results}, @list;
 	}
@@ -1138,8 +1156,7 @@ sub from_buffer
 
 sub from_cache
 {
-	my( $self , $dataset , $code , $id , $offset , $count ) = @_;
-
+	my( $self , $dataset , $code , $id , $offset , $count , $justids) = @_;
 
 	# Force offset and count to be ints
 	$offset+=0;
@@ -1150,7 +1167,28 @@ sub from_cache
 		$id = $self->cache_id( $code , 1 )+0;
 	}
 
-	my @results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
+	my @results;
+	if( $justids )
+	{
+		my $keyfield = $dataset->get_key_field();
+		my $sql = "SELECT ".$keyfield->get_sql_name()." FROM cache".$id." AS C ";
+		$sql.= "WHERE C.pos>$offset ";
+		if( $count > 0 )
+		{
+			$sql.="AND C.pos<=".($offset+$count)." ";
+		}
+		$sql .= "ORDER BY C.pos";
+		$sth = $self->prepare( $sql );
+		$self->execute( $sth, $sql );
+		while( @values = $sth->fetchrow_array ) 
+		{
+			push @results, $values[0];
+		}
+	}
+	else
+	{
+		@results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
+	}
 
 	$ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET lastused = NOW() WHERE tableid = $id";
@@ -1513,7 +1551,7 @@ sub do
 {
 	my ( $self , $sql ) = @_;
 
-	if( $DEBUG_SQL )
+	if( $self->{debug} )
 	{
 		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 	}
@@ -1534,7 +1572,7 @@ sub prepare
 {
 	my ( $self , $sql ) = @_;
 
-#	if( $DEBUG_SQL )
+#	if( $self->{debug} )
 #	{
 #		$self->{session}->get_archive()->log( "Database prepare debug: $sql" );
 #	}
@@ -1556,7 +1594,7 @@ sub execute
 {
 	my ( $self , $sth , $sql ) = @_;
 
-	if( $DEBUG_SQL )
+	if( $self->{debug} )
 	{
 		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 	}
@@ -1711,5 +1749,11 @@ sub _deindex
 	return $rv;
 }
 
+sub set_debug
+{
+	my( $self, $debug ) = @_;
+
+	$self->{debug} = $debug;
+}
 
 1; # For use/require success

@@ -19,8 +19,6 @@ use EPrints::Document;
 
 use Carp;
 
-#cjg Should deletion be just another "eprints" dataset.
-
 
 
 my $INFO = {

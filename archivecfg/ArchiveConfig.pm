@@ -53,6 +53,11 @@ foreach( keys %{$archiveinfo} ) {
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
+# Experimental VLit support.
+# VLit support will allow character ranges to be served as well as 
+# whole documents. 
+$c->{enable_vlit_support} = 1;
+
 ######################################################################
 #
 # Local Paths 
@@ -409,7 +414,8 @@ $c->{archivefields}->{document} = [
 # subject or allowing null in this case.
 $c->{browse_views} = [
 	{ id=>"year", allow_null=>1, fields=>"year", order=>"title/authors" },
-	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+	{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1, nowrapper=>1 }
+	#{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
 # Number of results to display on a single search results page
@@ -567,8 +573,11 @@ $c->{userauth} = {
 
 $c->{oai_archive_id} = "GenericEPrints";
 
+# All three of the following configuration elements should have the same
+# keys. To support OAI you must offer basic dublic core as "oai_dc".
+
 # Exported metadata formats. The hash should map format ids to namespaces.
-$c->{oai_metadata_formats} =
+$c->{oai_metadata_namespaces} =
 {
 	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
 };
@@ -579,12 +588,32 @@ $c->{oai_metadata_schemas} =
 	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
 };
 
+# Each supported metadata format will need a function to turn
+# the eprint record into XML representing that format.
+$c->{oai_metadata_functions} = 
+{
+	"oai_dc"    =>  \&make_metadata_oai_dc
+};
+
 # Base URL of OAI
 $c->{oai_base_url} = $c->{perl_url}."/oai";
 
 $c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 	$c->{oai_archive_id},
 	"23" );
+
+# Set Configuration
+# Rather than harvest the entire archive, a harvester may harvest only
+# one set. Sets are usually subjects, but can be anything you like and are
+# defined in the same manner as "browse_views". Only id, allow_null, fields
+# are used.
+$c->{oai_sets} = [
+#	{ id=>"year", allow_null=>1, fields=>"year" },
+#	{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id" },
+	{ id=>"subjects", allow_null=>0, fields=>"subjects" }
+];
+
+# Number of results to display on a single search results page
 
 # Information for "Identify" responses.
 
@@ -643,10 +672,12 @@ $c->{oai_submission_policy}->{"url"} = undef;
 
 # An array of comments to be returned. May be empty.
 
-$c->{oai_comments} = [
-	latin1( "System is EPrints ").
-	EPrints::Config::get( "version" ).
-	" (http://www.eprints.org)" ];
+$c->{oai_comments} = [ 
+	latin1( "This system is running eprints server software (".
+		EPrints::Config::get( "version" ).") developed at the ".
+		"University of Southampton. For more information see ".
+		"http://www.eprints.org/" ) 
+];
 
 
 ######################################################################
@@ -1481,175 +1512,96 @@ sub id_label
 #
 #---------------------------------------------------------------------
 
+#cjg comment me
 
-######################################################################
-#
-# @formats = oai_list_metadata_formats( $eprint )
-#
-#  This should return the metadata formats we can export for the given
-#  eprint. If $eprint is undefined, just return all the metadata
-#  formats supported by the archive.
-#
-#  The returned values must be keys to
-#  the config element: oai_metadata_formats.
-#
-######################################################################
-
-## WP1: BAD
-sub oai_list_metadata_formats
+sub make_metadata_oai_dc
 {
-	my( $eprint ) = @_;
+	my( $eprint, $session ) = @_;
+
+	my $archive = $session->get_archive();
+
+	# return undef, if you don't support this metadata format for this
+	# eprint.  ( But this is "oai_dc" so we have to support it! )
+
+	# Get the namespace & schema.
+	# We could hard code them here, but getting the values from our
+	# own configuration should avoid getting our knickers in a twist.
 	
-	# This returns the list of all metadata formats, suitable if we
-	# can export any of those metadata format for any record.
-	return( keys %{$eprint->{session}->get_archive()->get_conf( "oai_metadata_formats" )} );
-}
+	my $namespace = $archive->get_conf( "oai_metadata_namespaces" )->{oai_dc};
+	my $schema = $archive->get_conf( "oai_metadata_schemas" )->{oai_dc};
+
+	my $dc = $session->make_element(
+		"dc",
+		"xmlns" => $namespace,
+		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+		"xsi:schemaLocation" => $namespace." ".$schema );
+	
+	$dc->appendChild(  $session->render_data_element( 
+		8,
+		"title",
+		$eprint->get_value( "title" ) ) );
 
 
-######################################################################
-#
-# %metadata = oai_get_eprint_metadata( $eprint, $format )
-#
-#  Return metadata for the given eprint in the given format.
-#  The value of each key should be either a scalar value (string)
-#  indicating the value for that string, e.g:
-#
-#   "title"  =>  "Full Title of the Paper"
-#
-#  or it can be a reference to a list of scalars, indicating multiple
-#  values:
-#
-#   "author"  =>  [ "J. R. Hartley", "J. N. Smith" ]
-#
-#  it can also be nested:
-#
-#   "nested"  =>  [
-#                  {
-#                    "nested_key 1"  =>  "nested value 1",
-#                    "nested_key 2"  =>  "nested value 2"
-#                  },
-#                  {
-#                    "more nested values"
-#                  }
-#               ]
-#
-#  Return undefined if the metadata format requested is not available
-#  for the given eprint.
-#
-######################################################################
+	# grab the authors without the ID parts so if the site admin
+	# sets or unsets authors to having and ID part it will make
+	# no difference to this bit.
 
-## WP1: BAD
-sub oai_get_eprint_metadata
-{
-	my( $eprint, $format ) = @_;
-
-	if( $format eq "oai_dc" )
+	my $author;
+	foreach $author ( @{$eprint->get_value( "authors", 1 )} )
 	{
-		my %tags;
-		
-		$tags{title} = $eprint->{title};
-
-#cjg Name don't live here anymore :-)
-##		my @authors = EPrints::Name::extract( $eprint->{authors} );
-my @authors;
-		$tags{creator} = [];
-		my $author;
-		foreach $author (@authors)
-		{
-			my( $surname, $firstnames ) = @$author;
-			push @{$tags{creator}},"$surname, $firstnames";
-		}
-
-		# Subject field will just be the subject descriptions
-
-		#cjg SubjectList deprecated do it another way?
-		#my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
-		my @subjects    ;#   = $subject_list->get_subjects( $eprint->{session} );
-		$tags{subject} = [];
-		my $subject;
-		foreach $subject (@subjects)
-		{
-			push @{$tags{subject}},
-		   	  $eprint->{session}->{render}->render_subject_desc( $subject, 0, 1, 0 );
-		   	  $eprint->{session}->{render}->render_subject_desc( $_, 0, 1, 0 );
-		}
-
-		$tags{description} = $eprint->{abstract};
-		
-		# Date for discovery. For a month/day we don't have, assume 01.
-		my $year = $eprint->{year};
-		my $month = "01";
-
-		if( defined $eprint->{month} )
-		{
-			my %month_numbers = (
-				unspec  =>  "01",
-				jan  =>  "01",
-				feb  =>  "02",
-				mar  =>  "03",
-				apr  =>  "04",
-				may  =>  "05",
-				jun  =>  "06",
-				jul  =>  "07",
-				aug  =>  "08",
-				sep  =>  "09",
-				oct  =>  "10",
-				nov  =>  "11",
-				dec  =>  "12" );
-
-			$month = $month_numbers{$eprint->{month}};
-		}
-
-		$tags{date} = "$year-$month-01";
-		$tags{type} = $eprint->{session}->{metainfo}->get_type_name( $eprint->{session}, "archive" , $eprint->{type} );
-		$tags{identifier} = $eprint->static_page_url();
-
-		return( %tags );
+		$dc->appendChild(  $session->render_data_element( 
+			8,
+			"creator",
+			EPrints::Utils::format_name( $session, $author, 0 ) ) );
 	}
-	else
+
+	my $subjectid;
+	foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
 	{
-		return( undef );
+		my $subject = EPrints::Subject->new( $session, $subjectid );
+		$dc->appendChild(  $session->render_data_element( 
+			8,
+			"subject",
+			$subject->get_name() ) );
 	}
-}
 
-######################################################################
-#
-# oai_write_eprint_metadata( $eprint, $format, $writer )
-#
-# This routine receives a handle to an XML::Writer it should
-# write the entire XML output for the format; Everything between
-# <metadata> and </metadata>.
-#
-# Ensure that all tags are closed in the order you open them.
-#
-# This routine is more low-level that oai_get_eprint_metadata
-# and as such gives you more control, but is more work too.
-#
-# See the XML::Writer manual page for more useful information.
-#
-# You should use the EPrints::OpenArchives::to_utf8() function
-# on your data to convert latin1 to UTF-8.
-#
-######################################################################
+	$dc->appendChild(  $session->render_data_element( 
+		8,
+		"description",
+		$eprint->get_value( "abstract" ) ) );
 
+	## Date for discovery. For a month/day we don't have, assume 01.
+	my $year = $eprint->get_value( "year" );
+	my $month = "01";
 
-## WP1: BAD
-sub oai_write_eprint_metadata
-{
-	my( $eprint, $format, $writer ) = @_;
+	if( $eprint->is_set( "month" ) )
+	{
+		my %month_numbers = (
+			jan  =>  "01", feb  =>  "02", mar  =>  "03",
+			apr  =>  "04", may  =>  "05", jun  =>  "06",
+			jul  =>  "07", aug  =>  "08", sep  =>  "09",
+			oct  =>  "10", nov  =>  "11", dec  =>  "12" );
 
-	# This block of code is a minimal example
-	# to get you started
-	if ($format eq "not-a-real-format") {
-		$writer->startTag("notaformat");
-		$writer->dataElement(
-			"title",
-			EPrints::OpenArchives::to_utf8($eprint->{title}));
-		$writer->dataElement(
-			"description",
-			EPrints::OpenArchives::to_utf8($eprint->{abstract}));
-		$writer->endTag("notaformat");
+		$month = $month_numbers{$eprint->get_value( "month" )};
 	}
+
+	$dc->appendChild(  $session->render_data_element( 
+		8,
+		"date",
+		"$year-$month-01" ) );
+
+	my $ds = $eprint->get_dataset();
+	$dc->appendChild(  $session->render_data_element( 
+		8,
+		"type",
+		$ds->get_type_name( $session, $eprint->get_value( "type" ) ) ) );
+
+	$dc->appendChild(  $session->render_data_element( 
+		8,
+		"identifier",
+		$eprint->static_page_url() ) );
+
+	return $dc;
 }
 
 #---------------------------------------------------------------------

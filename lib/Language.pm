@@ -193,7 +193,7 @@ sub read_phrases
 		$doc->dispose();
 		return;
 	}
-	my $data;
+	my $data = {};
 
 	my $element;
 	foreach $element ( $phrases->getChildNodes )

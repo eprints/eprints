@@ -1,6 +1,10 @@
 <?xml version="1.0" standalone="yes" ?>
 <!DOCTYPE ruler >
 
-<ruler>
+<ep:ruler
+        xmlns="http://www.w3.org/HTML/1998/html4"
+	xmlns:ep="http://eprints.org/ep2/ruler">
+
   <hr noshade="noshade" size="2" />
-</ruler>
+
+</ep:ruler>

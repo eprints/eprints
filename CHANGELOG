@@ -1,0 +1,53 @@
+
+EPrints 2 changelog.
+
+09/01/2002 - EPRINTS-2-ALPHA-2
+
+10/01/2002
+ - Added CHANGELOG!
+ - Added BUGLIST 
+ - Added BUGGLIST & CHANGELOG to the distribution.
+ - Session::send_http_header can now send content-types other
+    than text/html. Still does text/html by default.
+ - added Session::make_indent( $n ) which makes DOM of a CR +
+    $n spaces (for laying out OAI XML returns)
+
+21/01/2002
+ - fixed bug in get_index_ids - which failed to get the last item from a list
+of free words.
+ - Added DataObj as a base class for EPrint,Document,User & Subject. Moved
+get_value, set_value, get_session,  get_data, get_dataset, is_set, get_id & 
+render_value.
+ - Removed old OAI code from ArchiveConfig.pm  and some deadwood functions
+from OpenArchives.pm
+ - OAI now works. cgi/oai and OpenArchives.pm - uses DOM to generate the
+replies. Only one function in ArchiveConfig.pm (make_metadata_oai_dc) 
+but more metadata formats mean more functions (which is a bit cleaner).
+ - Added experimental vlit support so documents can be retrieved as char-
+ranges. This is for Ted Nelson research stuff. See www.xanadu.com for more
+info. Currently in Xanadu.pm but'll probably get renamed.
+ - removed Deletion.pm once and for all.
+ - added use_private_cache and cache_id to SearchExpression cache_id can
+set the current cache to save searching. use_private_cache: caches and
+does not dispose of the cache after but flags it as unusable by other
+searches.
+ - added a method to session: render data element which returns an indented
+XML element containing some text eg. (4,"key","value") ...
+    <key>value</key>
+ - fixed bug in search expression ( it didn't do the cache checking in the
+right place).
+ - fixed bug in the ordervalues table which only showed when the archive had
+more than one supported language.
+[CONFIG] - added make_metadata_oai_dc
+[CONFIG] - XML config files for citation, ruler and phrases now use namespaces 
+so that EPrints tags can be prefixed with "ep:" but XHTML tags remain the 
+same. Which should make them clearer.
+[CONFIG] - Added oai_metadata_functions to ArchiveConfig.pm 
+[CONFIG] - renamed oai_metadata_formats to oai_metadata_namespaces
+[CONFIG] - added "enable_vlit_support" config option, so you can disable it!
+[CONFIG] - Added new options to browse views: noindex, nohtml, include, plain, 
+citation
+[CONFIG] - changed citations to contain SPAN class="citation" rather than do 
+it in code. and to contain <ep:a> </ep:a> to show where to put the link.
+[CONFIG] - added oai_sets config option, same format as browse views. 
+

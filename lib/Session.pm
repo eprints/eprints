@@ -62,23 +62,21 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
-	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
-	
 	$noise = 0 unless defined( $noise );
 	$self->{noise} = $noise;
 
 	if( $mode == 0 || !defined $mode )
 	{
-		my $r=Apache->request();
+		$self->{request} = Apache->request();
+		$self->{query} = new CGI;
 		$self->{offline} = 0;
-		my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
+		my $hpp=$self->{request}->hostname.":".$self->{request}->get_server_port.$self->{request}->uri;
 		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $hpp );
 		if( !defined $self->{archive} )
 		{
 			#cjg icky error handler...
-			my $r = Apache->request;
-			$r->content_type( 'text/html' );
-			$r->send_http_header;
+			$self->{request}->content_type( 'text/html' );
+			$self->{request}->send_http_header;
 			
 			print STDERR "xCan't load archive module for URL: ".$self->{query}->url()."\n";
 
@@ -88,6 +86,7 @@ sub new
 	}
 	elsif( $mode == 1 )
 	{
+		$self->{query} = new CGI( {} );
 		$self->{offline} = 1;
 		if( !defined $param || $param eq "" )
 		{
@@ -103,6 +102,7 @@ sub new
 	}
 	elsif( $mode == 2 )
 	{
+		$self->{query} = new CGI( {} );
 		$self->{offline} = 1;
 		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $param );
 		if( !defined $self->{archive} )
@@ -240,7 +240,7 @@ sub get_langid
 	return $self->{lang}->get_id();
 }
 
-#cjg: should be a util?
+#cjg: should be a util? or even a property of archive?
 sub best_language
 {
 	my( $archive, $lang, %values ) = @_;
@@ -351,8 +351,18 @@ sub make_element
 	{
 		$element->setAttribute( $_ , $params{$_} );
 	}
+
 	return $element;
 }
+
+sub make_indent
+{
+	my( $self, $width ) = @_;
+
+	return $self->{page}->createTextNode( "\n"." "x$width );
+}
+
+	
 
 # $text is a UTF8 String!
 sub make_text
@@ -384,6 +394,19 @@ sub render_ruler
 	my( $self ) = @_;
 
 	return $self->{archive}->get_ruler();
+}
+
+sub render_data_element
+{
+	my( $self, $indent, $elementname, $value, %opts ) = @_;
+
+	my $f = $self->make_doc_fragment();
+	my $el = $self->make_element( $elementname, %opts );
+	$el->appendChild( $self->{page}->createTextNode( $value ) );
+	$f->appendChild( $self->make_indent( $indent ) );
+	$f->appendChild( $el );
+
+	return $f;
 }
 
 sub render_option_list
@@ -1446,10 +1469,13 @@ sub send_http_header
 		return;
 	}
 
-	my $r = Apache->request;
-	$r->content_type( 'text/html; charset=UTF-8' );
-	$r->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
-	$r->header_out( "Pragma"=>"no-cache" );
+	if( !defined $opts{content_type} )
+	{
+		$opts{content_type} = 'text/html; charset=UTF-8';
+	}
+	$self->{request}->content_type( $opts{content_type} );
+	$self->{request}->header_out( "Cache-Control"=>"no-cache, must-revalidate" );
+	$self->{request}->header_out( "Pragma"=>"no-cache" );
 
 	if( defined $opts{lang} )
 	{
@@ -1459,9 +1485,9 @@ sub send_http_header
 			-value   => $opts{lang},
 			-expires => "+10y", # really long time
 			-domain  => $self->{archive}->get_conf("lang_cookie_domain") );
-		$r->header_out( "Set-Cookie"=>$cookie ); 
+		$self->{request}->header_out( "Set-Cookie"=>$cookie ); 
 	}
-	$r->send_http_header;
+	$self->{request}->send_http_header;
 }
 
 

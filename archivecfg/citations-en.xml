@@ -6,43 +6,50 @@
 
 -->
 
-<citations>
-    <citation type="eprint_book"><ifset name="authors">&authors; </ifset>(&year;) <i>&title;</i>, in <ifset name="editors">&editors;, Eds. </ifset>. <ifset name="publisher">&publisher;.</ifset></citation>
+<ep:citations
+        xmlns="http://www.w3.org/HTML/1998/html4"
+	xmlns:ep="http://eprints.org/ep2/citations">
+<!-- test citations -->
+    <ep:citation type="eprint_misc"><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.<ep:iflink> [<ep:a>view</ep:a>]</ep:iflink></span></ep:citation>
+    <ep:citation type="eprint_title_only"><tr><td>&title; [<ep:a>view</ep:a>]</td></tr></ep:citation>
 
-    <citation type="eprint_bookchapter">&authors; <ifset name="year">(&year;) </ifset><i>&title;</i>, in <ifset name="editors">&editors;, Eds. </ifset><ifset name="publication"><i>&publication;</i></ifset><ifset name="chapter">, chapter &chapter;</ifset><ifset name="pages">, pages &pages;</ifset>. <ifset name="publisher">&publisher;.</ifset></citation>
 
-    <citation type="eprint_proceedings"><ifset name="editors">&editors; </ifset> (&year;) &title;. <I>&conference;</I><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
+    <ep:citation type="eprint_book"><ep:a><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:a></ep:citation>
 
-    <citation type="eprint_confpaper">&authors; <ifset name="year">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><I>Proceedings &conference;</I></ifset><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
+    <ep:citation type="eprint_bookchapter"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="publication"><i>&publication;</i></ep:ifset><ep:ifset name="chapter">, chapter &chapter;</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:a></ep:citation>
 
-    <citation type="eprint_inproceedings">&authors; <ifset name="year">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><I>Proceedings &conference;</I></ifset><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
+    <ep:citation type="eprint_proceedings"><ep:a><span class="citation"><ep:ifset name="editors">&editors; </ep:ifset> (&year;) &title;. <I>&conference;</I><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_confposter">&authors; <ifset name="years">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><i>Proceedings &conference;</i></ifset><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
+    <ep:citation type="eprint_confpaper"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_incollection">&authors; <ifset name="year">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><I>Proceedings &conference;</I></ifset><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
+    <ep:citation type="eprint_inproceedings"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_techreport">&authors; <ifset name="year">(&year;) </ifset>&title;. Technical Report<ifset name="reportno"> &reportno;</ifset><ifset name="department">, &department;</ifset><ifset name="institution">, &institution;</ifset>.</citation>
+    <ep:citation type="eprint_confposter"><ep:a><span class="citation">&authors; <ep:ifset name="years">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><i>Proceedings &conference;</i></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_journale">&authors; <ifset name="year">(&year;) </ifset>&title;. <i>&publication;</i><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset>.</citation>
+    <ep:citation type="eprint_incollection"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <ep:ifset name="editors">&editors;, Eds. </ep:ifset><ep:ifset name="conference"><I>Proceedings &conference;</I></ep:ifset><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset><ep:ifset name="confloc">, &confloc;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_journalp">&authors; <ifset name="year">(&year;) </ifset>&title;. <i>&publication;</i><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">:&pages;</ifset>.</citation>
+    <ep:citation type="eprint_techreport"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. Technical Report<ep:ifset name="reportno"> &reportno;</ep:ifset><ep:ifset name="department">, &department;</ep:ifset><ep:ifset name="institution">, &institution;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_newsarticle">&authors; <ifset name="year">(&year;) </ifset>&title;. In <i>&publication;</i><ifset name="volume">, &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages"> pages &pages;</ifset><ifset name="publisher">, &publisher;</ifset>.</citation>
+    <ep:citation type="eprint_journale"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_other">&authors; <ifset name="year">(&year;) </ifset>&title;.</citation>
+    <ep:citation type="eprint_journalp"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. <i>&publication;</i><ep:ifset name="volume"> &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages">:&pages;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_preprint">&authors; <ifset name="year">(&year;) </ifset>&title;.</citation>
+    <ep:citation type="eprint_newsarticle"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;. In <i>&publication;</i><ep:ifset name="volume">, &volume;</ep:ifset><ep:ifset name="number">(&number;)</ep:ifset><ep:ifset name="pages"> pages &pages;</ep:ifset><ep:ifset name="publisher">, &publisher;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="eprint_thesis">&authors; <ifset name="year">(&year;) </ifset><i>&title;</i>. &thesistype;,<ifset name="department"> &department;,</ifset><ifset name="institution"> &institution;</ifset>.</citation>
+    <ep:citation type="eprint_other"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:a></ep:citation>
 
-    <citation type="eprint_thread_succeeds">&title; (deposited &datestamp;)</citation>
+    <ep:citation type="eprint_preprint"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset>&title;.</span></ep:a></ep:citation>
 
-    <citation type="eprint_thread_commentary">&authors;. &title;. (deposited &datestamp;)</citation>
+    <ep:citation type="eprint_thesis"><ep:a><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>. &thesistype;,<ep:ifset name="department"> &department;,</ep:ifset><ep:ifset name="institution"> &institution;</ep:ifset>.</span></ep:a></ep:citation>
 
-    <citation type="user_admin"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
+    <ep:citation type="eprint_thread_succeeds"><ep:a><span class="citation">&title; (deposited &datestamp;)</span></ep:a></ep:citation>
 
-    <citation type="user_editor"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
+    <ep:citation type="eprint_thread_commentary"><ep:a><span class="citation">&authors;. &title;. (deposited &datestamp;)</span></ep:a></ep:citation>
 
-    <citation type="user_user"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
+    <ep:citation type="user_admin"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
 
-</citations>
+    <ep:citation type="user_editor"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
+
+    <ep:citation type="user_user"><ep:a><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:a></ep:citation>
+
+</ep:citations>

@@ -15,6 +15,8 @@
 ######################################################################
 
 package EPrints::Subject;
+@ISA = ( 'EPrints::DataObj' );
+use EPrints::DataObj;
 
 use EPrints::Database;
 use EPrints::SearchExpression;
@@ -377,21 +379,22 @@ sub _get_paths
 
 sub get_subjects 
 {
-	my( $self, $postableonly, $showtoplevel ) = @_; 
+	my( $self, $postableonly, $showtoplevel, $nestids ) = @_; 
 #cjg some kind of whacky debugging code:
 if( $self eq "0" )
 {
 	use Carp;
 confess;
 }
+#cjg optimisation to not bother getting labels?
 	my( $subjectmap, $rmap ) = EPrints::Subject::get_all( $self->{session} );
-	return $self->_get_subjects2( $postableonly, !$showtoplevel, $subjectmap, $rmap );
+	return $self->_get_subjects2( $postableonly, !$showtoplevel, $nestids, $subjectmap, $rmap, "" );
 	
 }
 
 sub _get_subjects2
 {
-	my( $self, $postableonly, $hidenode, $subjectmap, $rmap ) = @_; 
+	my( $self, $postableonly, $hidenode, $nestids, $subjectmap, $rmap, $prefix ) = @_; 
 	
 	my $namefield = $self->{dataset}->get_field( "name" );
 
@@ -401,17 +404,20 @@ sub _get_subjects2
 	my $subpairs = [];
 	if( (!$postableonly || $postable) && (!$hidenode) )
 	{
-		push @{$subpairs},[ $id, $label ];
+		if( $prefix ne "" ) { $prefix .= ":"; }
+		$prefix.=$id;
+		push @{$subpairs},[ ($nestids?$prefix:$id), $label ];
 	}
+	$prefix = "" if( $hidenode );
 	my $kid;
 	foreach $kid ( @{$rmap->{$id}} )# cjg sort on labels?
 	{
 		my $kidmap = $kid->_get_subjects2( 
-				$postableonly, 0, $subjectmap, $rmap );
+				$postableonly, 0, $nestids, $subjectmap, $rmap, $prefix );
 		my $pair;
 		foreach $pair ( @{$kidmap} )
 		{
-			# lang ": "cjg
+
 			my $pair2 = [ 
 				$pair->[0], 
 				($hidenode?"":$label.": ").$pair->[1] ];
@@ -580,16 +586,6 @@ sub count_eprints
 
 }
 
-sub get_value 
-{
-	my( $self, $fieldname ) = @_;
-
-	my $v = $self->{data}->{$fieldname};
-
-	return undef if( !EPrints::Utils::is_set( $v ) );
-	
-	return $v;
-}
 
 sub get_name
 {
@@ -599,18 +595,5 @@ sub get_name
 	return EPrints::Utils::tree_to_utf8( $html );
 }
 
-sub set_value
-{
-	my( $self , $fieldname, $value ) = @_;
-
-	$self->{data}->{$fieldname} = $value;
-}
-
-sub get_data
-{
-	my( $self ) = @_;
-	
-	return $self->{data};
-}
 
 1;

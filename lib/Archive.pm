@@ -106,6 +106,8 @@ sub get_ruler
 		return undef;
 	}
 	my $ruler = ($doc->getElementsByTagName( "ruler" ))[0];
+	return undef if( !defined $ruler );
+
 	my( $frag ) = $doc->createDocumentFragment();
 	foreach( $ruler->getChildNodes )
 	{
@@ -391,6 +393,7 @@ sub parse_xml
 	{
 		$config{Base} = $self->get_conf( "config_path" )."/";
 	}
+	$config{Namespaces} = 1;
 	
 	my $doc = EPrints::Config::parse_xml( $file, %config );
 	if( !defined $doc )

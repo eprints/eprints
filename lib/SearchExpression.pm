@@ -79,7 +79,7 @@ sub new
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
 	# 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order use_oneshot_cache / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order use_oneshot_cache use_private_cache cache_id / )
 	{
 		$self->{$_} = $data{$_};
 	}
@@ -126,7 +126,13 @@ sub new
 			$self->add_field( EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname ) );
 		}
 	}
-	
+
+	if( defined $self->{cache_id} )
+	{
+		my $string = $self->{session}->get_db()->cache_exp( $self->{cache_id} );
+		return undef if( !defined $string );
+		$self->_unserialise_aux( $string );
+	}
 	
 	return( $self );
 }
@@ -423,9 +429,9 @@ sub serialise
 
 sub unserialise
 {
-	my( $class, $session, $string ) = @_;
+	my( $class, $session, $string, %opts ) = @_;
 
-	my $searchexp = $class->new( session=>$session );
+	my $searchexp = $class->new( session=>$session, %opts );
 	$searchexp->_unserialise_aux( $string );
 	return $searchexp;
 }
@@ -458,9 +464,23 @@ sub _unserialise_aux
 	}
 }
 
+sub get_cache_id
+{
+	my( $self ) = @_;
+	
+	return $self->{cache_id};
+}
+
+
 sub perform_search
 {
 	my( $self, $max ) = @_;
+
+	if( defined $self->{cache_id} )
+	{
+		return;
+	}
+
 
 	my $matches = [];
 	my $firstpass = 1;
@@ -478,7 +498,7 @@ sub perform_search
 	foreach $search_field ( @searchon )
 	{
 		my ( $results , $badwords , $error) = $search_field->do();
-	
+
 		if( defined $error )
 		{
 			$self->{tmptable} = undef;
@@ -517,6 +537,40 @@ sub perform_search
 
 		$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
 	}
+
+	my $srctable;
+	if( $self->{tmptable} eq "ALL" )
+	{
+		$srctable = $self->{dataset}->get_sql_table_name();
+	}
+	else
+	{
+		$srctable = $self->{tmptable};
+	}
+	
+	if( $self->{use_cache} || $self->{use_oneshot_cache} || $self->{use_private_cache} )
+	{
+		my $order;
+		if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+		{
+			$order = $self->{custom_order};
+		}
+		else
+		{
+			$order = $self->{session}->get_archive()->get_conf( 
+						"order_methods" , 
+						$self->{dataset}->confid() ,
+						$self->{order} );
+		}
+
+		$self->{cache_id} = $self->{session}->get_db()->cache( 
+			$self->serialise(), 
+			$self->{dataset},
+			$srctable,
+			$order,
+			!$self->{use_cache} ); # only public if use_cache
+	}
+	
 }
 
 sub _merge
@@ -544,26 +598,30 @@ sub dispose
 
 	#my $sstring = $self->serialise();
 
-
 	if( $self->{tmptable} ne "ALL" && $self->{tmptable} ne "NONE" )
 	{
 		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
 	}
 	#cjg drop_cache/dispose_buffer : should be one or the other.
-	if( defined $self->{cache_table} && !$self->{use_cache} )
+	if( defined $self->{cache_id} && !$self->{use_cache} && !$self->{use_private_cache} )
 	{
-		$self->{session}->get_db()->drop_cache( $self->{cache_table} );
+		$self->{session}->get_db()->drop_cache( $self->{cache_id} );
 	}
 }
 
-# Note, is number returned, not number of matches.
+# Note, is number returned, not number of matches.(!! what does that mean?)
 sub count 
 {
 	my( $self ) = @_;
 
 	#cjg special with cache!
-	if( $self->{use_cache} && 
-		$self->{session}->get_db()->is_cached( $self->serialise() ) )
+	if( defined $self->{cache_id} )
+	{
+		#cjg Hmm. Would rather use func to make cache name.
+		return $self->{session}->get_db()->count_table( "cache".$self->{cache_id} );
+	}
+
+	if( $self->{use_cache} && $self->{session}->get_db()->is_cached( $self->serialise() ) )
 	{
 		return $self->{session}->get_db()->count_cache( $self->serialise() );
 	}
@@ -588,24 +646,33 @@ sub count
 		
 }
 
-
-## WP1: BAD
-sub get_records 
+sub get_records
 {
-	my ( $self , $offset , $count ) = @_;
+	my( $self , $offset , $count ) = @_;
+	
+	return $self->_get_records( $offset , $count, 0 );
+}
 
-	if( $self->{use_cache} )
+sub get_ids
+{
+	my( $self , $offset , $count ) = @_;
+	
+	return $self->_get_records( $offset , $count, 1 );
+}
+
+sub _get_records 
+{
+	my ( $self , $offset , $count, $justids ) = @_;
+
+	if( defined $self->{cache_id} )
 	{
-		my $serialised = $self->serialise();
-		if( $self->{session}->get_db()->is_cached( $serialised ) )
-		{
-			return $self->{session}->get_db()->from_cache( 
-								$self->{dataset}, 
-								$serialised,
-								undef,
-								$offset,
-								$count );
-		}
+		return $self->{session}->get_db()->from_cache( 
+							$self->{dataset}, 
+							undef,
+							$self->{cache_id},
+							$offset,
+							$count,	
+							$justids );
 	}
 		
 	if( !defined $self->{tmptable} )
@@ -630,56 +697,9 @@ sub get_records
 		$srctable = $self->{tmptable};
 	}
 
-	my @records;
-
-	# We don't bother sorting if we got too many results.	
-	# or no order method was specified.
-	if( $self->{use_cache} || defined $self->{use_oneshot_cache} )
-	{
-		if( !defined $self->{cache_table} )
-		{
-			my $order;
-			if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
-			{
-				$order = $self->{custom_order};
-			}
-			else
-			{
-				$order = $self->{session}->get_archive()->get_conf( 
-							"order_methods" , 
-							$self->{dataset}->confid() ,
-							$self->{order} );
-			}
-	
-			$self->{cache_table} = $self->{session}->get_db()->cache( 
-				$self->serialise(), 
-				$self->{dataset},
-				$srctable,
-				$order,
-				!$self->{use_cache} ); # oneshot or not
-		}
-	
-		@records = $self->{session}->get_db()->from_cache( 
-						$self->{dataset}, 
-						undef,
-						$self->{cache_table},
-						$offset,
-						$count );
-	}
-	else
-	{
-		@records = $self->{session}->get_db()->from_buffer( 
-							$self->{dataset}, 
-							$srctable );
-	}
-
-
-	if( $self->{tmptable} ne "ALL" )
-	{
-		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
-	}
-
-	return @records;
+	return $self->{session}->get_db()->from_buffer( 
+					$self->{dataset}, 
+					$srctable );
 }
 
 sub map
@@ -959,5 +979,22 @@ sub _render_problems
 	$self->{session}->send_page();
 }
 
+sub get_dataset
+{
+	my( $self ) = @_;
+
+	return $self->{dataset};
+}
+
+sub set_dataset
+{
+	my( $self, $dataset ) = @_;
+
+	$self->{dataset} = $dataset;
+	foreach (@{$self->{searchfields}})
+	{
+		$_->set_dataset( $dataset );
+	}
+}
 
 1;
