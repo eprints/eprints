@@ -10,7 +10,7 @@
 #
 ######################################################################
 
-package EPrints::Archives::lemurprints;
+package EPrints::Config::lemurprints;
 
 #cjg NO UNICODE IN PASSWORDS!!!!!!!!!
 #cjg Hide Passwords when editing.
@@ -26,8 +26,16 @@ use strict;
 ## WP1: BAD
 sub get_conf
 {
+	my( $archiveinfo ) = @_;
 print STDERR "LEMURPRINTS:getconf\n";
 	my $c = {};
+
+	#cjg Normalise the conf with the XML conf?	
+	$c->{host} = $archiveinfo->{hostname};
+	$c->{archive_root} = $archiveinfo->{archivepath};
+	#urlpath might be important? cjg
+
+	# this SHOULD just dump archiveinfo into c! cjg cjg
 
 
 ######################################################################
@@ -39,27 +47,11 @@ print STDERR "LEMURPRINTS:getconf\n";
 $c->{archivename}->{en} = latin1( "Lemur Prints Archive" );
 $c->{archivename}->{fr} = latin1( "l'eprints" );
  
-$c->{archiveid} = "lemurprints";
-
 # Short text description cjg <doomed to phrases>
 $c->{description} = latin1( "Your Site Description Here" );
 
 # E-mail address for human-read administration mail
 $c->{adminemail} = "admin\@lemur.ecs.soton.ac.uk";
-
-# Host the machine is running on
-$c->{host} = "HOSTNAME";
-
-# hack cus of CVS. This makes the same config file more or less
-# work for me at home and work...
-my $host = `hostname`;
-chomp $host;
-if( $host eq "lemur" ) {
-	$c->{host} = "lemur.ecs.soton.ac.uk";
-} else {
-	$c->{host} = "localhost";
-}
-
 
 # Stem for local ID codes
 $c->{eprint_id_stem} = "zook";
@@ -78,7 +70,6 @@ $c->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$c->{archive_root} = "$EPrints::Archives::General::base_path/archives/$c->{archiveid}";
 $c->{config_path} = "$c->{archive_root}/cfg";
 $c->{system_files_path} = "$c->{archive_root}/sys";
 $c->{static_html_root} = "$c->{archive_root}/static";
@@ -317,8 +308,6 @@ $c->{oai_comments} = [
 ###########################################
 #  Language
 
-# List of supported languages is in EPrints::Archives::General.pm
-# Default Language for this archive
 $c->{languages} = [ "en", "fr" ];
 
 $c->{lang_cookie_domain} = $c->{host};
@@ -1667,20 +1656,10 @@ sub validate_eprint_meta
 sub log
 {
 	my( $archive, $message ) = @_;
-	print STDERR "EP(".$archive->get_conf("archiveid").") ".$message."\n";
+	print STDERR "EP(".$archive->get_id().") ".$message."\n";
 }
 
 ## WP1: BAD
-sub parse_html
-{
-	my( $html , $dtd) = @_;
-	my $parser = new EPrints::DOM::Parser( NoExpand=>0, ParseParamEnt=>1, NoLWP=>1 , DTD=>$dtd);
-	my $doc = $parser->parse( $html );
-	my $element = $doc->getLastChild();
-	$doc->removeChild( $element );
-	$doc->dispose();
-	return $element;
-}
 
 sub get_entities
 {

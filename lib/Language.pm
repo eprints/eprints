@@ -21,8 +21,6 @@
 
 package EPrints::Language;
 
-use EPrints::Archives::General;
-
 use strict;
 
 # Cache for language objects NOT attached to a config.
@@ -60,7 +58,7 @@ print STDERR "------LOADINGLANG:$langid-------\n";
 		read_phrases( $archive->get_conf( "config_path" )."/phrases-".$self->{id}.".xml", $archive );
 
 	$self->{data} =
-		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml", $archive );
+		read_phrases( $EPrints::Config::phr_path."/system-phrases-".$self->{id}.".xml", $archive );
 	
 	return( $self );
 }

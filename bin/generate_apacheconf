@@ -15,7 +15,7 @@
 ######################################################################
 
 use EPrints::Archive;
-use EPrints::Archives::General;
+use EPrints::Config;
 use strict;
 
 my $siteid = $ARGV[0];
@@ -33,7 +33,7 @@ exit( 1 ) unless( defined $archive );
 my $sysfile = $archive->get_conf( "system_files_path" )."/auto-apache.conf";
 my $userfile = $archive->get_conf( "config_path" )."/apache.conf";
 
-my $id = $archive->get_conf( "archiveid" );
+my $id = $archive->get_id();
 
 unless( -e $userfile )
 {
@@ -55,7 +55,7 @@ END
 	print "no userfile\n";
 }
 
-my $cgidir = $EPrints::Archives::General::cgi_path;
+my $cgidir = $EPrints::Config::cgi_path;
 my $adminemail = $archive->get_conf( "adminemail" );
 my $local_html_root = $archive->get_conf( "local_html_root" );
 my $host = $archive->get_conf( "host" );

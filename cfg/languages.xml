@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE languages>
+<languages>
+  <lang id="en">English</lang>
+  <lang id="fr">French</lang>
+  <lang id="du">Dummy test Language</lang>
+  <lang id="x1">Español</lang>
+  <lang id="x2">Deutsch</lang>
+  <lang id="fr">Français</lang>
+  <lang id="it">Italiano</lang>
+</languages>
+

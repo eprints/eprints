@@ -16,7 +16,6 @@
 #cjg why not make loads of accessors instead of get_dataset?
 package EPrints::Archive;
 
-use EPrints::Archives::General;
 use EPrints::DataSet;
 use EPrints::Language;
 
@@ -32,7 +31,7 @@ sub new_archive_by_url
 	print STDERR "($url)\n";
 	$hostpath = $url;
 	$hostpath =~ s#^[a-z]+://##;
-	print STDERR "($hostpath)\n";
+	print STDERR "b($hostpath)\n";
 	return new_archive_by_host_and_path( $class , $hostpath );
 }
 
@@ -41,16 +40,14 @@ sub new_archive_by_host_and_path
 {
 	my( $class, $hostpath ) = @_;
 	my $archive;
-	print STDERR "($hostpath)\n";
+	print STDERR "a($hostpath)\n";
 
-	foreach $archive ( keys %EPrints::Archives::General::archives )
-	{
-		if( substr( $hostpath, 0, length($archive) ) eq $archive )
-		{
-			return new_archive_by_id( $class, $EPrints::Archives::General::archives{$archive} );
-		}
-	}
-	return undef;
+	my $id = EPrints::Config::get_id_from_host_and_path( $hostpath );
+
+print STDERR "id: $id\n";
+	return if( !defined $id );
+
+	return new_archive_by_id( $class, $id );
 }
 
 ## WP1: BAD
@@ -75,20 +72,11 @@ sub new_archive_by_id
 	my $self = {};
 	bless $self, $class;
 
-	eval{ require "EPrints/Archives/$id.pm" };
+	$self->{config} = EPrints::Config::load_archive_config_file( $id );
 
-	if( $@ )
-	{
-		my $err = $@;
-		$err =~ s# at /.*##;
-		print STDERR "EPrints: FAILED TO LOAD CONFIG MODULE \"$id\": $err";
-		return undef;
-	}
+	$self->{class} = "EPrints::Config::$id";
+
 	$ARCHIVE_CACHE{$id} = $self;
-
-	$self->{class} = "EPrints::Archives::$id";
-	my $function= $self->{class}."::get_conf";
-	$self->{config} = &{$function}(); #????cjg
 
 	$self->{id} = $id;
 
@@ -330,37 +318,26 @@ sub get_store_dir_size
 	return( ( df $filepath)[3] );
 } 
 
+
+
 sub parse_xml
 {
 	my( $self, $file, %config ) = @_;
 
-	my( %c ) = (
-		Base => $self->get_conf( "system_files_path" )."/",
-		ParseParamEnt => 1,
-		ErrorContext => 2,
-		NoLWP => 1 );
-
-	foreach( keys %config ) { $c{$_}=$config{$_}; }
-
-	my $parser = EPrints::DOM::Parser->new( %c );
-
-	unless( open( XML, $file ) )
+	unless( defined $config{Base} )
 	{
-		$self->log( "Error opening: $file" );
-		exit( 1 );
+		$config{Base} = $self->get_conf( "system_files_path" )."/";
 	}
-	my $doc = eval { $parser->parse( *XML ); };
-	close XML;
-	if( $@ )
-	{
-		my $err = $@;
-		$err =~ s# at /.*##;
-		$self->log( "Error parsing $file\n$err" );
-		exit( 1 );
-	}
+	
+	my $doc = EPrints::Config::parse_xml( $file, %config );
 	$self->log( "Loaded&Parsed: $file" );
-
 	return $doc;
 }
 
+sub get_id 
+{
+	my( $self ) = @_;
+
+	return $self->{id};
+}
 1;

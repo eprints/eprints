@@ -34,7 +34,7 @@ if( !defined $newlang )
 		my $a = $session->make_element( "a", 
 				href => "setlang?langid=$langid" );
 		$a->appendChild( $session->make_text( 
-			$EPrints::Archives::General::languages{$langid} ) );
+			EPrints::Config::lang_title($langid) ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
@@ -50,13 +50,13 @@ elsif( grep(/^$newlang$/,@langids) )
 	$p = $session->make_element( "p" );
 	$p->appendChild( $session->make_text(
 		"Language changed to: ".
-		$EPrints::Archives::General::languages{$newlang} ) );
+		EPrints::Config::lang_title($newlang) ) );
 	$page->appendChild( $p );
 	$p = $session->make_element( "p" );
 	$p->appendChild( $session->make_text(
 		"Default language of this archive is: ".
-		$EPrints::Archives::General::languages{ 
-			($session->get_archive()->get_conf( "languages" ))[0]}));
+		$EPrints::Config::lang_title( 
+			($session->get_archive()->get_conf( "languages" ))[0])));
 	$page->appendChild( $p );
 	$session->new_page( $newlang );
 	$session->build_page( "Language Changed", $page );

@@ -13,6 +13,8 @@
 
 package EPrints::RequestWrapper;
 
+#cjg Apache::FakeRequest...
+
 use strict;
 use Apache;
 

@@ -125,8 +125,6 @@ sub new
 	}
 
 	$self->{types} = {};
-print join(" / ",keys %{ $typesconf } )."\n";
-print $self->{confid}."\n";
 	if( defined $typesconf->{$self->{confid}} )
 	{
 		my $typeid;

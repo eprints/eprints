@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE archive >
+<archive id="lemurprints">
+   <hostname>lemur1.ecs.soton.ac.uk</hostname>
+   <alias redirect="no">localhost</alias>
+   <alias redirect="yes">lemur1</alias>
+   <alias redirect="yes">lemur1.ecs</alias>
+   <urlpath>/</urlpath>
+   <archivepath>archives/lemurprints</archivepath>
+   <configfile>cfg/config.pm</configfile>
+</archive>
+
