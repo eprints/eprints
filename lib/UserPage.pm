@@ -182,7 +182,8 @@ sub process
 	$session->build_page(
 		$session->html_phrase( "lib/userpage:title",
 				name=>$user->render_description() ), 
-		$page );
+		$page,
+		"userpage" );
 	$session->send_page();
 }
 

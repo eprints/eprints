@@ -135,6 +135,8 @@ if( $noise>=1 )
 	print "Target compatablity is ".$TARGET."\n"; 
 }
 
+my $rootdbh = undef;
+
 if( $dbversion eq "2.0" )
 {
 	my $sql;
@@ -152,6 +154,10 @@ This will:
 
  * Set the subscription ID counter to zero.
 
+ * Alter the columns "commentary", "replacedby" and "succeeds" in the
+   tables "archive","deletion","inbox" and "buffer" from VARCHAR to
+   INTEGER. These fields should have been INT's in the first place.
+
 Are you sure you want to do this? (yes/no)
 END
 	
@@ -164,6 +170,12 @@ END
 		exit( 1 );
 	}
 
+	$rootdbh = &getrootdbh( $session ) unless( defined $rootdbh );
+
+	my $ok = 1;
+	$ok = $ok && defined $rootdbh;
+
+	print "Dropping old subscription tables.\n";
 	# drop all the old subscription tables
 	my @tables = $db->get_tables;
 	foreach my $table ( @tables )
@@ -171,21 +183,59 @@ END
 		if( $table =~ m/^subscription/ )
 		{
 			$sql = "DROP TABLE ".$table;
-			$db->do( $sql );
+			$ok = $ok && $db->do( $sql );
 		}
 	}
+	print "Making new subscription tables.\n";
 	my $subs_ds = $session->get_archive->get_dataset( "subscription" );
-	$db->create_dataset_tables( $subs_ds );
+	$ok = $ok && $db->create_dataset_tables( $subs_ds );
+	print "Creating subscriptionid counter.\n";
 	$sql = "DELETE FROM counters WHERE countername = 'subscriptionid'"; 
-	$db->do( $sql );
+	$ok = $ok && $db->do( $sql );
 	$sql = "INSERT INTO counters (countername,counter) VALUES ".
 		"( 'subscriptionid' , 0 )";
-	$db->do( $sql );
-
-	print "\n2.0 -> 2.1 done!\n";
-
-	$dbversion = "2.1";
-	$db->set_version( $dbversion );
+	$ok = $ok && $db->do( $sql );
+	foreach my $table_id ( "archive","inbox","buffer","deletion" )
+	{
+		$sql = "SELECT eprintid,succeeds,replacedby,commentary FROM ".
+			$table_id;
+		my $sth = $db->prepare( $sql );
+		$ok = $ok && $db->execute( $sth, $sql );
+		my $file = "/tmp/valuedump-".$session->get_archive->get_id."-".
+			$table_id;
+		open( VDUMP, ">$file" );
+		print VDUMP "eprintid,succeeds,replacedby,commentary\n";
+		my @row;
+		while( @row = $sth->fetchrow_array )
+		{
+			foreach( @row ) 
+			{
+				$_ = 'NULL' if( !defined $_ );
+			}
+			print VDUMP join( ",", @row )."\n";
+		}
+		close VDUMP;
+        	$sth->finish;
+		print "Saved backup of affected fileds to $file\n";
+		print "Altering columns of ".$table_id."\n";
+		foreach my $col_id ( "succeeds","replacedby","commentary" )
+		{
+			$sql = "ALTER TABLE ".$table_id." MODIFY ".
+				$col_id." INTEGER";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+	if( !$ok )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.0 -> 2.1 done!\n";
+		$dbversion = "2.1";
+		$db->set_version( $dbversion );
+	}
 }
 
 if( $TARGET eq $dbversion)
@@ -205,5 +255,35 @@ something bad happend.
 END
 }
 
+if( defined $rootdbh )
+{
+	$rootdbh->disconnect;
+}
+
 $session->terminate();
 exit;
+
+
+sub getrootdbh
+{
+	my( $session ) = @_;
+	print <<END;
+
+We will need to do some stuff to the database as root. Please enter
+the MySQL root password. (Warning: It will not be ****'d out when you type it).
+
+END
+	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+
+	print "Connecting to the database [as root]\n";
+        my $dbh = DBI->connect(
+                EPrints::Database::build_connection_string(
+                        dbname=>$session->get_archive->get_conf("dbname"),
+                        dbsock=>$session->get_archive->get_conf("dbsock"),
+                        dbport=>$session->get_archive->get_conf("dbport"),
+                        dbhost=>$session->get_archive->get_conf("dbhost") ),
+                "root",
+                $mysqlrootpass );
+
+	return $dbh;
+}

@@ -21,7 +21,7 @@ Apache::exit( 0 ) unless( defined $session );
 my( $title, $page ) = make_confirm_page( $session );
 $page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
-$session->build_page( $title, $page );
+$session->build_page( $title, $page, "confirm" );
 $session->send_page();
 $session->terminate();
 

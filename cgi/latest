@@ -82,7 +82,7 @@ $page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 	
 my $title = $session->html_phrase( "cgi/latest:title" );
 
-$session->build_page( $title, $page );
+$session->build_page( $title, $page, "latest" );
 $session->send_page();
 
 $session->terminate;

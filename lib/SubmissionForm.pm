@@ -1175,7 +1175,6 @@ sub _do_stage_type
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_type" ),
 		$page,
-		undef,
 		"submission_type" );
 	$self->{session}->send_page();
 }
@@ -1273,7 +1272,6 @@ sub _do_stage_linking
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_linking" ),
 		$page,
-		undef,
 		"submission_linking" );
 	$self->{session}->send_page();
 
@@ -1338,7 +1336,6 @@ sub _do_stage_meta
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_meta" ),
 		$page,
-		undef,
 		"submission_meta" );
 	$self->{session}->send_page();
 }
@@ -1477,7 +1474,6 @@ sub _do_stage_files
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_format" ),
 		$page,
-		undef,
 		"submission_format" );
 	$self->{session}->send_page();
 
@@ -1548,7 +1544,6 @@ sub _do_stage_docmeta
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_docmeta" ),
 		$page,
-		undef,
 		"submission_docmeta" );
 	$self->{session}->send_page();
 }
@@ -1786,7 +1781,6 @@ sub _do_stage_fileview
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_fileview" ),
 		$page,
-		undef,
 		"submission_fileview" );
 	$self->{session}->send_page();
 }
@@ -1883,7 +1877,6 @@ sub _do_stage_upload
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_upload" ),
 		$page,
-		undef,
 		"submission_upload" );
 	$self->{session}->send_page();
 }
@@ -1964,7 +1957,6 @@ sub _do_stage_verify
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_verify" ),
 		$page,
-		undef,
 		"submission_verify" );
 	$self->{session}->send_page();
 }		
@@ -1997,7 +1989,6 @@ sub _do_stage_done
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_done" ),
 		$page,
-		undef,
 		"submission_done" );
 	$self->{session}->send_page();
 }
@@ -2052,7 +2043,6 @@ sub _do_stage_confirmdel
 		$self->{session}->html_phrase( 
 			"lib/submissionform:title_confirmdel" ),
 		$page,
-		undef,
 		"submission_confirmdel" );
 	$self->{session}->send_page();
 }	

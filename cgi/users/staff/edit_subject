@@ -41,7 +41,8 @@ else
 	$session->build_page( 
 		$session->html_phrase( "cgi/users/edit_subject:intro_title" ),
 		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
-			continuelink=>$session->render_link( "edit_subject?subjectid=".$EPrints::Subject::root_subject ) ) ); 
+			continuelink=>$session->render_link( "edit_subject?subjectid=".$EPrints::Subject::root_subject ) ),
+		"edit_subject_intro" ); 
 	$session->send_page();
 }
 
@@ -287,7 +288,7 @@ sub mkpage_editsubject
 
 	$title = $session->html_phrase( "cgi/users/edit_subject:title", subjectname=>$subject->render_description() ), 
 
-	$session->build_page( $title, $page );
+	$session->build_page( $title, $page, "edit_subject" );
 	$session->send_page();
 
 }

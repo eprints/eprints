@@ -1221,6 +1221,7 @@ sub process_webpage
 					"lib/searchexpression:results_for", 
 					title => $title ),
 			$page,
+			"search_results",
 			$links );
 		$self->{session}->send_page();
 		return;
@@ -1247,7 +1248,7 @@ sub process_webpage
 	$page->appendChild( $preamble );
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 
-	$self->{session}->build_page( $title, $page );
+	$self->{session}->build_page( $title, $page, "search_form" );
 	$self->{session}->send_page();
 }
 
@@ -1286,7 +1287,7 @@ sub _render_problems
 	$page->appendChild( $hr );
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 			
-	$self->{session}->build_page( $title, $page );
+	$self->{session}->build_page( $title, $page, "search_problems" );
 	$self->{session}->send_page();
 }
 

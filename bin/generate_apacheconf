@@ -174,6 +174,9 @@ else
 	print "$site_userfile already exists.\n" if( $noise >= 2 );
 }
 
+my $virtualhost = EPrints::Config::get( "virtualhost" );
+$virtualhost = '*' unless( defined $virtualhost );
+
 print "Creating $site_sysfile.\n" if( $noise >= 2 );
 my $startupfile = EPrints::Config::get( "bin_path" )."/startup.pl";
 open( CONF, ">$site_sysfile" ) || die "Can't write to $site_sysfile";
@@ -186,7 +189,7 @@ print CONF <<END;
 # and re-run: bin/generate_apacheconf
 #
 
-NameVirtualHost *
+NameVirtualHost $virtualhost
 PerlRequire $startupfile
 
 END
@@ -295,7 +298,7 @@ foreach $aliasinfo ( @{$archive->get_conf( "aliases" )} )
 		print CONF <<END;
 
 # Redirect to the correct hostname
-<VirtualHost *>
+<VirtualHost $virtualhost>
   ServerName $vname
   Redirect / http://$host/
 </VirtualHost>
@@ -309,7 +312,7 @@ END
 print CONF <<END;
 
 # The main virtual host for this archive
-<VirtualHost *>
+<VirtualHost $virtualhost>
   ServerName $host
 $aliases
   DocumentRoot $htdocs_path

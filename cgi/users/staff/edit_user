@@ -65,7 +65,8 @@ sub process
 
 		$session->build_page(
 			$session->html_phrase( "cgi/users/edit_user:delete_title" ),
-			$page );
+			$page,
+			"delete_user_form" );
 		$session->send_page();
 
 		return;
@@ -94,7 +95,8 @@ sub process
 
 		$session->build_page(
 			$session->html_phrase( "cgi/users/edit_user:delete_title" ),
-			$page );
+			$page,
+			"delete_user_done" );
 		$session->send_page();
 
 		return;

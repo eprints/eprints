@@ -123,13 +123,11 @@ sub get_system_field_info
 	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, 
 		input_rows=>"ALL" },
 
-#cjg commentary, replacedby and succeeds should all be "int" not "text"
+	{ name=>"succeeds", type=>"int", required=>0 },
 
-	{ name=>"succeeds", type=>"text", required=>0 },
+	{ name=>"commentary", type=>"int", required=>0 },
 
-	{ name=>"commentary", type=>"text", required=>0 },
-
-	{ name=>"replacedby", type=>"text", required=>0 }
+	{ name=>"replacedby", type=>"int", required=>0 }
 
 	);
 }
@@ -1220,7 +1218,7 @@ sub generate_static
 		$self->{session}->new_page();
 		my( $page, $title, $links ) = $self->render();
 
-		$self->{session}->build_page( $title, $page, $links );
+		$self->{session}->build_page( $title, $page, "abstract", $links );
 		$self->{session}->page_to_file( $full_path . "/index.html" );
 
 		next if( $ds_id ne "archive" );

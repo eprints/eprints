@@ -144,7 +144,8 @@ sub process
 			$self->{session}->html_phrase( 
 				"lib/userform:record_for", 
 				name => $full_name ),
-			$page );
+			$page,
+			"user_form" );
 		$self->{session}->send_page();
 
 	}
@@ -193,7 +194,8 @@ sub process
 			$self->{session}->html_phrase( 
 				"lib/userform:record_for", 
 				name => $full_name ), 
-			$page );
+			$page,
+			"user_form" );
 		$self->{session}->send_page();
 	}
 	else 

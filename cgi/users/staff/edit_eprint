@@ -141,7 +141,7 @@ sub process
 			link=>$session->render_link( "edit_eprint?dataset=buffer&eprintid=".$eprintid ) ) );
 		$page->appendChild( $session->html_phrase( 
 			"general:userhome_link" ) );
-		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:move_title" ), $page );
+		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:move_title" ), $page, "move_eprint" );
 		$session->send_page();
 		return;
 	}
@@ -160,7 +160,7 @@ sub process
 			"cgi/users/edit_eprint:removed" ) );
 		$page->appendChild( $session->html_phrase( 
 			"general:userhome_link" ) );
-		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:remove_title" ), $page );
+		$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:remove_title" ), $page, "move_removed" );
 		$session->send_page();
 		return;
 	}
@@ -311,7 +311,7 @@ sub view_page
 	$page->appendChild( $form );
 	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 		
-	$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:form_title" ), $page );
+	$session->build_page( $session->html_phrase( "cgi/users/edit_eprint:form_title" ), $page, "move_form" );
 	$session->send_page();
 }
 
@@ -376,7 +376,8 @@ sub bounce_form
 
 	$session->build_page(
 		$session->html_phrase( "cgi/users/edit_eprint:title_".( $delete ? "delete" : "bounce" )."_form" ),
-		$page );
+		$page,
+		"editeprint_form" );
 	$session->send_page();
 }
 

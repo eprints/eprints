@@ -131,7 +131,8 @@ sub plain_404
 	$session->build_page( 
 		$session->html_phrase( "cgi/handle_http_error:404_title" ),
 		$session->html_phrase( "cgi/handle_http_error:404_blurb", 
-			url => $session->make_text( $ENV{REDIRECT_URL} ) ) );
+			url => $session->make_text( $ENV{REDIRECT_URL} ) ),
+		"plain_404" );
 
         $session->send_page();
 }
@@ -145,7 +146,8 @@ sub noview_404
 
 	$session->build_page( 
 		$session->html_phrase( "cgi/handle_http_error:404_title" ),
-		$session->make_text( $error ) );
+		$session->make_text( $error ),
+		"noview_404" );
 	$session->get_archive()->log( $error );
 
         $session->send_page();

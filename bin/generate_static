@@ -262,7 +262,10 @@ sub generate_static
 					$mainfrag->appendChild( $kid );
 				}
 
-				$session->build_page( $titlefrag, $mainfrag );
+				$session->build_page( 
+					$titlefrag, 
+					$mainfrag,
+					"static" );
 				$page->dispose();
 			}
 			else 	# $mode is "html"

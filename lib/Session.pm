@@ -1198,7 +1198,8 @@ sub render_error
 
 	$self->build_page(	
 		$self->html_phrase( "lib/session:error_title" ),
-		$page );
+		$page,
+		"error" );
 
 	$self->send_page();
 }
@@ -1431,7 +1432,7 @@ sub take_ownership
 ######################################################################
 =pod
 
-=item $foo = $thing->build_page( $title, $mainbit, [$links], [$pageid] )
+=item $foo = $thing->build_page( $title, $mainbit, [$pageid], [$links] )
 
 undocumented
 
@@ -1440,7 +1441,7 @@ undocumented
 
 sub build_page
 {
-	my( $self, $title, $mainbit, $links, $pageid ) = @_;
+	my( $self, $title, $mainbit, $pageid, $links ) = @_;
 
 	if( defined $self->param( "mainonly" ) && $self->param( "mainonly" ) eq "yes" )
 	{
@@ -1449,10 +1450,6 @@ sub build_page
 	}
 	
 	my $topofpage;
-	if( $self->internal_button_pressed() )
-	{
-		$topofpage = $self->make_element( "a", name=>"t" );
-	}
 
 	$self->take_ownership( $mainbit );
 

@@ -160,7 +160,7 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	
 	$title = $session->html_phrase( "bin/generate_views:browsetitle" );
 	$file = $tmpdir."/index.html";
-	$session->build_page( $title, $page );
+	$session->build_page( $title, $page, "browsemain" );
 	$session->page_to_file( $file );
 	print "done\n" if( $noise > 1 );
 
@@ -198,20 +198,35 @@ sub make_view_pages
 
 	my $dir = $viewdir."/".$info->{id};
 	mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
-
-	my $field;
-	my %v=();
-	foreach $field ( @fields )
+	my @values = ();
+	if( scalar @fields == 1 )
 	{
-		foreach( $field->get_values( $session ) ) 
-		{ 
-			if( !defined $_ ) { $_=""; }
-			$v{$_}=1; 
+		@values = $fields[0]->get_values( $session );
+	}
+	else
+	{
+		my $field;
+		my %v=();
+		foreach $field ( @fields )
+		{
+			foreach( $field->get_values( $session ) ) 
+			{ 
+				if( !defined $_ ) { $_=""; }
+				$v{$_}=1; 
+			}
 		}
-	}	
-	unless( $info->{allow_null} ) { delete $v{""}; }
-	my @values = keys %v;
-
+		@values = sort keys %v;	
+	}
+	if( !$info->{allow_null} )
+	{
+		my @ov = @values;
+		@values = ();
+		foreach( @ov )
+		{
+			push @values,$_ unless $_ eq "";
+		}
+	}
+	
 	my( $value, $title, $file, $fileid );
 	my( $ul, $li, $a, $page );
 
@@ -223,7 +238,7 @@ sub make_view_pages
 
 	$info->{dom} = 1 if( $info->{include} || !$info->{nohtml} );
 
-	foreach $value ( sort @values )
+	foreach $value ( @values )
 	{
 		$fileid = $value;
 		if( $fileid eq "" ) { $fileid = "NULL"; }
@@ -352,7 +367,7 @@ sub make_view_pages
 					$value ) );
 
 			$file = $dir."/".$fileid.".html";
-			$session->build_page( $title, $page );
+			$session->build_page( $title, $page, "browseview" );
 			print "Writing: $file\n" if( $noise > 1 );
 			$session->page_to_file( $file );
 		}
@@ -382,8 +397,7 @@ sub make_view_pages
 	else
 	{
 		$ul = $session->make_element( "ul" );
-		# sorting the keys is not ideal, but better than nothing.
-		foreach $value ( sort @values )
+		foreach $value ( @values )
 		{
 			$fileid = $value;
 			if( $fileid eq "" ) { $fileid = "NULL"; }
@@ -407,7 +421,7 @@ sub make_view_pages
 			$session->get_view_name( $ds, $info->{id} ) ) ),
 
 	$file = $dir."/index.html";
-	$session->build_page( $title, $page );
+	$session->build_page( $title, $page, "browseindex" );
 	print "Writing: $file\n" if( $noise > 1 );
 	$session->page_to_file( $file );
 }

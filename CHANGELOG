@@ -617,5 +617,45 @@ before next release. (metadata types & fields)
    searchexp created from de-serialising.
 - Now oai 2.0 Compliant.
 - [conf] Added an oai2 oai_dc XML render function to ArchiveOAIConfig.pm AND
- added oai2 config section for keeping namespaces etc seperate.
+   added oai2 config section for keeping namespaces etc seperate.
+
+2002-06-27
+- Loosened regexp for passwords in configure_archive (now allows upper case 
+   too)
+- [c] Added new SystemSettings option: "virtualhost" which is now used by
+   generate_apacheconf as the NameVirtualHost value (or "*" if it's not set)
+- Added page id's to each build_page so that stuff can be hooked onto them.
+- generate_views now orders the index page (using results from get_values)
+   unless it's a view of multiple combined fields in which case it does not.
+- bin/upgrade turns the "commentary", "replacedby" and "succeeds" in the
+   tables "archive","deletion","inbox" and "buffer" from VARCHAR to
+   INTEGER. These fields should have been INT's in the first place. This
+   is done as root. bin/upgrade now makes a root dbh connection if needed.
+   The origional values of the fields are dumped to /tmp first in case of 
+   disaster.
+- [c] Added new metafield configs: make_value_orderkey and 
+   make_single_value_orderkey which can be used to override the normal orderkey
+   generation - eg. could turn field with format "4.9d" into key
+   "00000004.00000009d" that will sort alphabetically correctly.
+- Now correctly generates orderkeys for subjects sets and datatype's fields.
+- year orderkeys now pad 6 not 4 (just in case)
+- removed code which always put <a name="t"></a> at the top of pages when
+   an "internal" button was pushed. This broke the whole idea of the #t jump
+   to where you were before.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

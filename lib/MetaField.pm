@@ -115,6 +115,8 @@ my $PROPERTIES =
 	showtop => 1,
 	idpart => 1,
 	mainpart => 1,
+	make_value_orderkey => 1,
+	make_single_value_orderkey => 1,
 	render_single_value => 1,
 	render_value => 1,
 	top => 1,
@@ -2024,6 +2026,14 @@ sub get_values
 {
 	my( $self, $session, %opts ) = @_;
 
+	my $langid = $opts{langid};
+	if (!defined $langid)
+	{
+		$langid = $session->get_langid();
+	}
+
+	my @outvalues = ();
+
 	if( $self->is_type( "set" ) )
 	{
 		return @{$self->get_property( "options" )};
@@ -2036,30 +2046,45 @@ sub get_values
 			0 , 
 			!$opts{hidetoplevel} , 
 			$opts{nestids} );
-		my @values = ();
 		my $pair;
 		foreach $pair ( @{$pairs} )
 		{
-			push @values, $pair->[0];
+			push @outvalues, $pair->[0];
 		}
-		return @values;
 	}
 
 	if( $self->is_type( "datatype" ) )
 	{
 		my $ds = $session->get_archive()->get_dataset( 
 				$self->{datasetid} );	
-		return @{$ds->get_types()};
+		@outvalues = @{$ds->get_types()};
 	}
 
 	if( $self->is_type( 
 		"date", "int", "year", "id", "email", "url" , "text" ) )
 	{
-		return $session->get_db()->get_values( $self );
+		@outvalues = $session->get_db()->get_values( $self );
 	}
 
-	# should not have called this function without checking is_browsable
-	return ();
+	foreach( @outvalues )
+	{
+		$_ = "" if( !defined $_ );
+	}
+
+	my %orderkeys = ();
+	foreach my $value ( @outvalues )
+	{
+		# uses function aux1 because value will NEVER be multiple
+		my $orderkey = $self->_ordervalue_aux1( 
+			$value, 
+			$session, 
+			$langid );
+		$orderkeys{$value} = $orderkey;
+	}
+
+	@outvalues = sort {$orderkeys{$a} cmp $orderkeys{$b}} @outvalues;
+
+	return @outvalues;
 }
 
 
@@ -2092,6 +2117,11 @@ sub get_value_label
 	if( $self->is_type( "subject" ) )
 	{
 		my $subj = EPrints::Subject->new( $session, $value );
+		if( !defined $subj )
+		{
+			return $session->make_text( 
+				"?? Bad Subject: ".$value." ??" );
+		}
 		return $subj->render_description();
 	}
 
@@ -2179,19 +2209,29 @@ it into order by comparing it alphabetically.
 
 sub ordervalue
 {
-	my( $self , $value , $archive , $langid ) = @_;
+	my( $self , $value , $session , $langid ) = @_;
 
 	return "" if( !defined $value );
 
+	if( defined $self->{make_value_orderkey} )
+	{
+		return &{$self->{make_value_orderkey}}( 
+			$self, 
+			$value, 
+			$session, 
+			$langid );
+	}
+
+
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->_ordervalue_aux1( $value , $archive , $langid );
+		return $self->_ordervalue_aux1( $value , $session , $langid );
 	}
 
 	my @r = ();	
 	foreach( @$value )
 	{
-		push @r, $self->_ordervalue_aux1( $_ , $archive , $langid );
+		push @r, $self->_ordervalue_aux1( $_ , $session , $langid );
 	}
 	return join( ":", @r );
 }
@@ -2199,7 +2239,7 @@ sub ordervalue
 
 ######################################################################
 # 
-# $ov = $field->_ordervalue_aux1( $value, $archive, $langid )
+# $ov = $field->_ordervalue_aux1( $value, $session, $langid )
 # 
 # undocumented
 # 
@@ -2207,9 +2247,15 @@ sub ordervalue
 
 sub _ordervalue_aux1
 {
-	my( $self , $value , $archive , $langid ) = @_;
+	my( $self , $value , $session , $langid ) = @_;
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
+
+	if( $self->is_type( "subject", "dataset", "set" ) )
+	{
+		my $label = $self->get_value_label( $session, $value );
+		return EPrints::Utils::tree_to_utf8( $label );
+	}
 
 	if( !$self->get_property( "multilang" ) )
 	{
@@ -2218,7 +2264,7 @@ sub _ordervalue_aux1
 
 	return $self->_ordervalue_aux2( 
 		EPrints::Session::best_language( 
-			$archive,
+			$session->get_archive,
 			$langid,
 			%{$value} ) );
 }
@@ -2269,6 +2315,13 @@ sub _ordervalue_aux3
 	# Subject & set should probably be expanded out into their cosmetic
 	# names.
 
+	if( defined $self->{make_orderkey_for_single_value} )
+	{
+		return &{$self->{make_orderkey_for_single_value}}( 
+			$self, 
+			$value ); 
+	}
+
 	if( $self->is_type( "name" ) )
 	{
 		my @a;
@@ -2288,7 +2341,8 @@ sub _ordervalue_aux3
 
 	if( $self->is_type( "int", "year" ) )
 	{
-		my $pad = 4;
+		# just in case we still use eprints in year 200k 
+		my $pad = 6; 
 		if( $self->is_type( "int" ) )
 		{
  			$pad = $self->get_property( "digits" ) ;
@@ -2358,6 +2412,8 @@ sub get_property_default
 	return undef if( $property eq "confid" );
 	return undef if( $property eq "fromform" );
 	return undef if( $property eq "toform" );
+	return undef if( $property eq "make_value_orderkey" );
+	return undef if( $property eq "make_single_value_orderkey" );
 	return undef if( $property eq "render_single_value" );
 	return undef if( $property eq "render_value" );
 

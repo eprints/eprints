@@ -209,7 +209,7 @@ sub show_subscriptions
 			new => $session->phrase( 
 				"cgi/users/subscribe:action_new" ) ) );
 	
-	$session->build_page( $title, $page );
+	$session->build_page( $title, $page, "subscribe_list"  );
 	$session->send_page();
 }
 
@@ -245,6 +245,6 @@ sub edit_subscription
 		) );
 			
 	
-	$session->build_page( $title, $page );
+	$session->build_page( $title, $page, "subscribe_edit" );
 	$session->send_page();
 }

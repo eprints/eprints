@@ -121,7 +121,7 @@ my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
 my $REGEXP_EMAIL = '^[^@]+@'.$REGEXP_HOSTNAME_MIDDLE.'$';
 my $REGEXP_HOSTNAME_FULL = '^[a-z0-9-]+(\.[a-z0-9-]+)+$';
-my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
+my $REGEXP_VARNAME = '^[a-zA-Z][_A-Za-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
 my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
@@ -165,7 +165,10 @@ if( $exists )
 		print "Can't read config file.\n\n";
 		exit;
 	}	
-	foreach( keys %{$loaded_config} ) { $config{$_} = $loaded_config->{$_}; }
+	foreach( keys %{$loaded_config} ) 
+	{ 
+		$config{$_} = $loaded_config->{$_}; 
+	}
 }
 else
 {

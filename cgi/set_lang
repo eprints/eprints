@@ -41,7 +41,7 @@ if( !defined $newlang )
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
-	$session->build_page( $session->html_phrase( "cgi/set_lang:title" ), $page );
+	$session->build_page( $session->html_phrase( "cgi/set_lang:title" ), $page, "set_lang_choice" );
         $session->send_page();
 }
 elsif( grep(/^$newlang$/,@langids) )
@@ -59,7 +59,7 @@ elsif( grep(/^$newlang$/,@langids) )
 	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
 	$session->new_page();
-	$session->build_page( $session->html_phrase( "cgi/set_lang:lang_changed" ), $page );
+	$session->build_page( $session->html_phrase( "cgi/set_lang:lang_changed" ), $page, "setlang_done" );
         $session->send_page( lang=>$newlang );
 }
 else 
@@ -69,7 +69,7 @@ else
 		id=>$session->make_text( $newlang ) ) );
 	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
-	$session->build_page( $session->html_phrase( "cgi/set_lang:failed" ), $page );
+	$session->build_page( $session->html_phrase( "cgi/set_lang:failed" ), $page, "setlang_failed" );
         $session->send_page();
 }
 

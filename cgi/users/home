@@ -184,8 +184,11 @@ if( $valid_user )
 $page->appendChild( $dl );
 
 $session->build_page( 
-		$session->html_phrase( "cgi/users/home:user_home", name => $fullname ),
-		$page );
+		$session->html_phrase( 
+			"cgi/users/home:user_home", 
+			name => $fullname ),
+		$page,
+		"user_home" );
 $session->send_page();
 
 $session->terminate();

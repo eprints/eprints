@@ -44,14 +44,8 @@ problems on my abstract pages. All I did was change the div to a span so it
 would stop complaining about a block level element inside of a inline
 element. [Mark Faine]
 
-- /views/ pages do not correctly sort the list of fields (it's done 
-   by ID not the rendered phrase). 
-
 - Mozilla puts whitespace under imgs for no good reason if there
   is an <?xml ?> header or XHTML DOCTYPE 
-
-- does not update abstract page when eprint in main archive is modified
-   directly by an editor.
 
 - browseviews don't expect spaces - causes a fatal error. Can't make the 
  filenames.
@@ -59,14 +53,9 @@ element. [Mark Faine]
 - broken link in "record_for_user" goes to "set_email" not "change_email"
   ?? did I fix this absent mindedly?
 
-- #t does not work. "More Spaces" jumps you to the top of the form.
-
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
-
-- some virtual host setups would prefer x.x.x.x:80 rather than * for
-   virtual hosts - add it to SystemSettings?
 
 ----------------------------------------------------------------------
 Searching
@@ -96,8 +85,6 @@ EPrints "Staff" Edit
 ----------------------------------------------------------------------
 Installation & Archive Setup Script
 ----------------------------------------------------------------------
-
-- only allows [a-z]+ as passwords for mysql
 
 - Maximum of 32 Indexes on a MySQL table can cause problems.
 
@@ -251,6 +238,19 @@ it has been added]
 - Does not show "ignored words" if results are cached.
 - SearchExpression::get_ids does not always return just ids! maybe
    needs one-shot cache mode?
+- /views/ pages do not correctly sort the list of fields (it's done 
+   by ID not the rendered phrase). 
+- does not update abstract page when eprint in main archive is modified
+   directly by an editor.
+- #t does not work. "More Spaces" jumps you to the top of the form. Due to
+   eprints *always* now putting a "t" anchor at the top.
+- some virtual host setups would prefer x.x.x.x:80 rather than * for
+   virtual hosts - add it to SystemSettings?
+- only allows [a-z]+ as passwords for mysql
+
+
+
+
 
 
 

@@ -65,7 +65,8 @@ sub render_form
 	
 	$session->build_page(
 		$session->html_phrase( "cgi/users/add_user:create_user_title" ),
-		$page );
+		$page,
+		"adduser" );
 	$session->send_page();
 }
 

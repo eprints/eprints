@@ -108,7 +108,8 @@ $page->appendChild( $session->html_phrase( "general:userhome_link" ) );
 
 $session->build_page(
 	$session->html_phrase( "cgi/users/buffer:overview_title" ), 
-	$page );
+	$page,
+	"buffer" );
 $session->send_page();
 
 $session->terminate();

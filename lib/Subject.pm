@@ -561,12 +561,7 @@ undocumented
 sub get_subjects 
 {
 	my( $self, $postableonly, $showtoplevel, $nestids ) = @_; 
-#cjg some kind of whacky debugging code:
-if( $self eq "0" )
-{
-	use Carp;
-confess;
-}
+
 #cjg optimisation to not bother getting labels?
 	my( $subjectmap, $rmap ) = EPrints::Subject::get_all( $self->{session} );
 	return $self->_get_subjects2( $postableonly, !$showtoplevel, $nestids, $subjectmap, $rmap, "" );

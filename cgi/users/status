@@ -155,7 +155,8 @@ unless( $EPrints::SystemSettings::conf->{disable_df} )
 
 $session->build_page( 
 	$session->html_phrase( "cgi/users/status:title" ),
-	$html );
+	$html,
+	"status" );
 
 $session->send_page(); 
 

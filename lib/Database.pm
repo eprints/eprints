@@ -817,7 +817,7 @@ sub update
 		{
 			my $ov = $_->ordervalue( 
 					$data->{$_->get_name()},
-					$self->{session}->get_archive(), 
+					$self->{session},
 					$langid );
 			
 			push @fnames, $_->get_sql_name();
