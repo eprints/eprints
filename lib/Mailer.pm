@@ -16,7 +16,6 @@
 
 package EPrints::Mailer;
 
-use EPrintSite::SiteInfo;
 use EPrints::Version;
 
 use strict;
@@ -37,12 +36,11 @@ sub send_mail
 {
 	my( $session, $name, $address, $subject, $body ) = @_;
 
-	open( SENDMAIL, "|$EPrintSite::SiteInfo::sendmail" )
+	open( SENDMAIL, "|$session->{site}->{sendmail}" )
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";
-X-Loop: $EPrintSite::SiteInfo::automail
-From: $session->{site}->{sitename} <$EPrintSite::SiteInfo::admin>
+From: $session->{site}->{sitename} <$session->{site}->{admin}>
 To: $name <$address>
 Subject: $session->{site}->{sitename}: $subject
 
@@ -121,9 +119,9 @@ sub update_template_line
 	}
 	
 	$new_line =~ s/__sitename__/$session->{site}->{sitename}/g;
-	$new_line =~ s/__description__/$EPrintSite::SiteInfo::description/g;
-	$new_line =~ s/__admin__/$EPrintSite::SiteInfo::admin/g;
-	$new_line =~ s/__perlroot__/$EPrintSite::SiteInfo::server_perl/g;
+	$new_line =~ s/__description__/$session->{site}->{descriptio}n/g;
+	$new_line =~ s/__admin__/$session->{site}->{admin}/g;
+	$new_line =~ s/__perlroot__/$session->{site}->{server_perl}/g;
 	$new_line =~ s/__staticroot__/$session->{site}->{server_static}/g;
 	$new_line =~ s/__frontpage__/$session->{site}->{frontpage}/g;
 	$new_line =~

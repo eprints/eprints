@@ -27,7 +27,6 @@ use EPrints::Language;
 use EPrints::ConfigLoader;
 
 use EPrintSite::SiteRoutines;
-use EPrintSite::SiteInfo;
 
 use strict;
 
@@ -198,7 +197,7 @@ sub mail_administrator
 	EPrints::Mailer::send_mail(
 		$self,
 		EPrints::Language::logphrase( "site_admin" ),
-		$EPrintSite::SiteInfo::admin,
+		$self->{site}->{admin},
 		$subject,
 		$message_body );
 }

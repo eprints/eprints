@@ -204,7 +204,7 @@ sub process
 			{
 				if( $self->{staff} )
 				{
-					print "<P><A HREF=\"$EPrintSite::SiteInfo::server_perl/".
+					print "<P><A HREF=\"$self->{session}->{site}->{server_perl}/".
 						"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
 						$self->{session}->{render}->render_eprint_citation(
 							$_,

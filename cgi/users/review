@@ -86,7 +86,7 @@ if( $session->{render}->seen_form() )
 
 			# See if they clicked a request removal button
 			# Sanity check: Make sure it's this user's item
-			if( $EPrintSite::SiteInfo::allow_user_removal_request &&
+			if( $session->{site}->{allow_user_removal_request} &&
 		   	 defined $session->{render}->param( "remove_$ep->{eprintid}" ) &&
 		   	 $ep->{username} eq $user->{username} )
 			{
@@ -129,7 +129,7 @@ unless( $page_written )
 		print "<TR><TH><STRONG>";
 		print $session->{lang}->phrase( "H:document" );
 		print "</STRONG><TH></TH>";
-		if( $EPrintSite::SiteInfo::allow_user_removal_request ) 
+		if( $session->{site}->{allow_user_removal_request} ) 
 		{
 			print "<TH></TH>" 
 		}
@@ -144,7 +144,7 @@ unless( $page_written )
 				"clone_$_->{eprintid}",
 				$session->{lang}->phrase( "F:clone" ) );
 
-			if( $EPrintSite::SiteInfo::allow_user_removal_request )
+			if( $session->{site}->{allow_user_removal_request} )
 			{
 				print "</TD><TD>";
 				print $session->{render}->named_submit_button(
@@ -266,7 +266,7 @@ sub handle_removal_request
 		
 		$msg .= $session->{lang}->phrase( "M:visit_url" )."\n\n";
 			
-		$msg .= $EPrintSite::SiteInfo::server_perl."/staff/edit_eprint?".
+		$msg .= $session->{site}->{server_perl}."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
 		$session->mail_administrator(

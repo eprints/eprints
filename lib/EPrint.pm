@@ -19,7 +19,6 @@ package EPrints::EPrint;
 use EPrints::Database;
 use EPrints::MetaInfo;
 use EPrintSite::SiteRoutines;
-use EPrintSite::SiteInfo;
 
 use File::Path;
 use Filesys::DiskSpace;
@@ -261,7 +260,7 @@ sub _create_id
 		$new_id = "0".$new_id;
 	}
 
-	return( $EPrintSite::SiteInfo::eprint_id_stem . $new_id );
+	return( $session->{site}->{eprint_id_stem} . $new_id );
 }
 
 
@@ -299,7 +298,7 @@ sub _create_directory
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $EPrintSite::SiteInfo::diskspace_error_threshold )
+			if( $free_space >= $session->{site}->{diskspace_error_threshold} )
 			{
 				# Enough space on this drive.
 				$storedir = $_;
@@ -322,7 +321,7 @@ sub _create_directory
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $EPrintSite::SiteInfo::diskspace_warn_threshold )
+	if( $best_free_space < $session->{site}->{diskspace_warn_threshold} )
 	{
 # cjg - not done this bit yet...
 #
@@ -340,7 +339,7 @@ sub _create_directory
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
 	return( undef ) unless( $eprint_id =~
-		/$EPrintSite::SiteInfo::eprint_id_stem(\d+)(\d\d)(\d\d)(\d\d)/ );
+		/$session->{site}->{eprint_id_stem}(\d+)(\d\d)(\d\d)(\d\d)/ );
 
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
@@ -979,20 +978,21 @@ sub validate_documents
 
 	foreach $f (@formats)
 	{
-		foreach (@EPrintSite::SiteInfo::required_formats)
-		{
-			$ok = 1 if( $f eq $_ );
-		}
+		$ok = 1 if( EPrints::Document::required_format(
+				$self->{session},
+				$f ) );
+	
 	}
 
 	if( !$ok )
 	{
 		my $prob = $self->{session}->{lang}->phrase( "H:need_a_format" );
 		$prob .= "<UL>\n";
-		foreach (@EPrintSite::SiteInfo::required_formats)
+		foreach (@{$self->{session}->{required_formats}})
 		{
-			$prob .=
-				"<LI>$EPrintSite::SiteInfo::supported_format_names{$_}</LI>\n";
+			$prob .= "<LI>".EPrints::Document::format_name( 
+						$self->{session},
+					 	$_ )."</LI>\n";
 		}
 		$prob .= "</UL>\n";
 
@@ -1045,7 +1045,9 @@ sub validate_full
 		foreach (@$probs)
 		{
 			push @problems,
-				$EPrintSite::SiteInfo::supported_format_names{$doc->{format}}.
+				EPrints::Document::format_name( 
+					$self->{session}, 
+					$doc->{format} ).
 				": ".$_;
 		}
 	}

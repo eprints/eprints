@@ -19,7 +19,6 @@
 package EPrints::Database;
 
 use DBI;
-use EPrintSite::SiteInfo;
 use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Log;
@@ -1195,7 +1194,7 @@ sub _freetext_index
 
 	my $indextable = index_name( $tableid );
 	
-	my( $good , $bad ) = EPrintSite::SiteRoutines::extract_words( $value );
+	my( $good , $bad ) = &{$self->{session}->{site}->{extract_words}}( $value );
 
 print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 

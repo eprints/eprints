@@ -18,7 +18,6 @@ package EPrints::HTMLRender;
 
 use EPrints::SubjectList;
 use EPrints::Name;
-use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 
 use strict;
@@ -287,7 +286,7 @@ sub render_error
 		print "<P>$error_text</P>\n";
 		print "<P>".$self->{session}->{lang}->phrase( 
 			"H:contact",
-			{ adminemail=>"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$self->{session}->{site}->{sitename} } )."</A>" } )."</P>\n";
+			{ adminemail=>"<A HREF=\"mailto:$self->{session}->{site}->{admin}\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$self->{session}->{site}->{sitename} } )."</A>" } )."</P>\n";
 				
 		print "<P><A HREF=\"$back_to\">$back_to_text</A></P>\n";
 	
@@ -1329,7 +1328,7 @@ sub render_user_name
 
 	my $html = "";
 	
-	$html = "<A HREF=\"$EPrintSite::SiteInfo::server_perl/staff/".
+	$html = "<A HREF=\"$self->{session}->{site}->{server_perl}/staff/".
 		"view_user?username=$user->{username}\">" if( $linked );
 
 	$html .= EPrintSite::SiteRoutines::user_display_name( $user );

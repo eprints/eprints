@@ -19,7 +19,6 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrintSite::SiteInfo;
 
 use File::Copy;
 use File::Find;

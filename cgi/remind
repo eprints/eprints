@@ -18,8 +18,6 @@ use EPrints::Session;
 use EPrints::MetaField;
 use EPrints::Database;
 
-use EPrintSite::SiteInfo;
-
 use strict;
 
 
@@ -46,7 +44,7 @@ if( $session->{render}->seen_form() )
 	print "<CENTER><P>";
 	print $session->{lang}->phrase( 
 		"H:sent_blurb",
-		"<A HREF=\"$EPrintSite::SiteInfo::admin\">.
+		"<A HREF=\"$session->{site}->{admin}\">.
 		  $session->{lang}->phrase( "H:site_admin" )."</A>" );
 
 	print "</P></CENTER>\n";

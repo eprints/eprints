@@ -22,7 +22,6 @@ use EPrints::MetaField;
 use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Session;
-use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 
 use Unicode::String qw(utf8 latin1);
@@ -30,14 +29,8 @@ use strict;
 
 
 # Supported version of OAI
-$EPrints::OpenArchives::oai_version = "1.0";
+$EPrints::OpenArchives::OAI_VERSION = "1.0";
 
-# Constant for SiteRoutines::oai_get_eprint_metadata
-# to return to indicate we should use the advanced
-# writer routine.
-
-%EPrints::OpenArchives::use_advanced_writer = (
-	"use advanced writer" => "YES" );
 
 ######################################################################
 #
@@ -146,31 +139,10 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		if (defined ${$metadata}{"use advanced writer"}) 
-		{
-			# the get_eprint_metadata routine indicated 
-			# to use the site metadata writer routine.
-			EPrintSite::SiteRoutines::oai_write_eprint_metadata(
-				$eprint,
-				$metadataFormat,
-				$writer);
-		}
-		else
-		{
-			my $tag = $metadataFormat;
-			$tag =~ s/^oai_//;
-	
-			$writer->startTag( $tag, 
-				"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
-				"xmlns:xsi" => "http://www.w3.org/2000/10/XMLSchema-instance",
-				"xsi:schemaLocation" => 
-					$EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat}." ".
-			                        $EPrintSite::SiteInfo::oai_metadata_schemas{$metadataFormat} );
-			_write_record_aux( $writer, $metadata );
-
-			$writer->endTag( $tag );
-		}
-
+		EPrintSite::SiteRoutines::oai_write_eprint_metadata(
+			$eprint,
+			$metadataFormat,
+			$writer);
 		
 		$writer->endTag( "metadata" );
 	}
@@ -179,54 +151,6 @@ sub write_record
 }
 
 
-######################################################################
-#
-# _write_record_aux( $writer, $metadata )
-#
-#  Write the XML metadata. $metadata should be a hash of key/value
-#  pairs.  If the values are arrays, the field is repeated.  If the
-#  values are hashes, _write_record_aux is called again recursively.
-#
-######################################################################
-
-sub _write_record_aux
-{
-	my( $writer, $metadata ) = @_;
-
-	my $key;
-	
-	foreach $key (keys %{$metadata})
-	{
-		my $raw_val = $metadata->{$key};
-		my @vals;
-		
-		if( ref( $raw_val ) eq "ARRAY" )
-		{
-			@vals = @$raw_val;
-		}
-		else
-		{
-			@vals = ( $raw_val );
-		}		
-		
-		foreach (@vals)
-		{
-			if( ref( $_ ) eq "HASH" )
-			{
-				# It's a sub-element
-				$writer->startTag( $key );
-				_write_record_aux( $writer, $_ );
-				$writer->endTag();
-			}
-			else
-			{
-				# Single scalar value
-				$writer->dataElement( $key,
-				                      to_utf8( $_ ) );
-			}
-		}
-	}
-}
 					
 
 ######################################################################
@@ -240,13 +164,15 @@ sub _write_record_aux
 
 sub write_record_header
 {
-	my( $writer, $eprint_id, $datestamp ) = @_;
+	my( $session, $writer, $eprint_id, $datestamp ) = @_;
 	
 	$writer->startTag( "header" );
 
 	$writer->dataElement(
 		"identifier",
-		EPrints::OpenArchives::to_oai_identifier( $eprint_id ) );
+		EPrints::OpenArchives::to_oai_identifier( 
+			$session->{site}->{oai_archive_id},
+			$eprint_id ) );
 	
 	$writer->dataElement( "datestamp",
 	                      $datestamp );
@@ -257,7 +183,7 @@ sub write_record_header
 
 ######################################################################
 #
-# $oai_identifier = to_oai_identifier( $eprint_id )
+# $oai_identifier = to_oai_identifier( $site_id , $eprint_id )
 #
 #  Give the full OAI identifier of an eprint, given the local eprint id.
 #
@@ -265,15 +191,15 @@ sub write_record_header
 
 sub to_oai_identifier
 {
-	my( $eprint_id ) = @_;
+	my( $site_id , $eprint_id ) = @_;
 	
-	return( "oai:$EPrintSite::SiteInfo::archive_identifier:$eprint_id" );
+	return( "oai:$site_id:$eprint_id" );
 }
 
 
 ######################################################################
 #
-# $eprint_od = from_oai_identifier( $oai_identifier )
+# $eprint_od = from_oai_identifier( $session , $oai_identifier )
 #
 #  Return the local eprint id of an oai eprint identifier. undef is
 #  returned if the full id is garbled.
@@ -282,10 +208,10 @@ sub to_oai_identifier
 
 sub from_oai_identifier
 {
-	my( $oai_identifier ) = @_;
+	my( $session , $oai_identifier ) = @_;
 	
 	if( $oai_identifier =~
-		/^oai:$EPrintSite::SiteInfo::archive_identifier:($EPrintSite::SiteInfo::eprint_id_stem\d+)$/ )
+		/^oai:$session->{site}->{oai_archive_id}:($session->{site}->{eprint_id_stem}\d+)$/ )
 	{
 		return( $1 );
 	}
@@ -310,7 +236,7 @@ sub get_eprint_metadata
 {
 	my( $eprint, $metadataFormat ) = @_;
 	
-	if( defined $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat} )
+	if( defined $eprint->{session}->{site}->{oai_metadata_formats}->{$metadataFormat} )
 	{
 		my %md = EPrintSite::SiteRoutines::oai_get_eprint_metadata(
 			$eprint,
@@ -566,247 +492,6 @@ sub validate_set_spec
 	return( 1 );
 }
 
-
-######################################################################
-######################################################################
-#
-#  EVERYTHING BELOW HERE PERTAINS TO THE OLD, DIENST-BASED OPEN
-#  ARCHIVES STANDARD
-#
-######################################################################
-######################################################################
-
-
-
-
-# This is the character used to separate the unique archive ID from the
-# record ID in full Dienst record identifiers
-
-$EPrints::OpenArchives::id_separator = ":";
-
-
-######################################################################
-#
-# %tags = disseminate( $fullID )
-#
-#  Return OAMS tags corresponding to the given fullID. If the fullID
-#  can't be resolved to an existing EPrint, and empty hash is returned.
-#
-######################################################################
-
-sub disseminate
-{
-	my( $fullID ) = @_;
-	
-	my( $arc_id, $record_id ) = split /$EPrints::OpenArchives::id_separator/,
-	                            $fullID;
-
-	# Return an error unless we have values for both archive ID and record ID,
-	# and the archive identifier received matches our archive identifier.
-	return( () ) unless( defined $arc_id && defined $record_id &&
-		$arc_id eq $EPrintSite::SiteInfo::archive_identifier );
-	
-	# Create a new non-script session
-	my $session = new EPrints::Session( 1 );
-	
-	# Try and get the EPrint
-	my $eprint = new EPrints::EPrint( $session,
-	                                  EPrints::Database::table_name( "archive" ),
-	                                  $record_id );
-
-	# Get the tags (get_oams_tags returns empty hash if $eprint is undefined)
-	my %tags = EPrints::OpenArchives::get_oams_tags( $eprint );
-	
-	$session->terminate();
-	
-	return( %tags );
-}
-
-
-######################################################################
-#
-# @partitions = partitions()
-#
-#  Return the subject hierarchy as partitions for the OA List Partitions
-#  verb. Format is:
-#
-#  partition = { name => partition_id, display => "partition display name" }
-#
-#  partitionnode = [ partition, partitionnode, ... ]
-#
-#  @partitions = ( partitionnode, partitionnode, ... ) for top-level partitions
-#
-######################################################################
-
-sub partitions
-{
-	# Create non-script session
-	my $session = new EPrints::Session( 1 );
-
-	my $toplevel_subject = new EPrints::Subject( $session, undef );
-	
-	return( _partitionise_subjects( $toplevel_subject ) );
-}
-
-
-######################################################################
-#
-# @partitions = partitionise_subjects( $subject )
-#
-#  Gets the child subjects of $subject, and puts them together with their
-#  children in a list. i.e. returns them as partitionnodes (from partitions()
-#  definition.)
-#
-######################################################################
-
-sub _partitionise_subjects
-{
-	my( $subject ) = @_;
-
-	my @partitions = ();
-
-	my @children = $subject->children();
-	
-	# Cycle through each of the child subjects, adding the partitionnode to
-	# the list of partitions to return
-	foreach (@children)
-	{
-		my %partitionnode = ( name    => $_->{subjectid},
-		                      display => $_->{name} );
-		my @child_partitions = _partitionise_subjects( $_ );
-		
-		push @partitions, [ \%partitionnode, \@child_partitions ];
-	}
-
-	return( @partitions );
-}
-
-
-######################################################################
-#
-# $fullID = fullID( $eprint )
-#
-#  Return a full Dienst ID for the given eprint.
-#
-######################################################################
-
-sub fullID
-{
-	my( $eprint ) = @_;
-	
-	return( $EPrintSite::SiteInfo::archive_identifier .
-	        $EPrints::OpenArchives::id_separator .
-	        $eprint->{eprintid} );
-}
-
-
-######################################################################
-#
-# $valid = valid_fullID( $fullID )
-#
-#  Returns non-zero if $fullID is valid.
-#
-######################################################################
-
-sub valid_fullID
-{
-	my( $fullID ) = @_;
-	
-	my( $arc_id, $record_id ) = split /$EPrints::OpenArchives::id_separator/,
-	                            $fullID;
-
-	# Return true if we have values for both archive ID and record ID,
-	# and the archive identifier received matches our archive identifier.
-	return( defined $arc_id && defined $record_id &&
-		$arc_id eq $EPrintSite::SiteInfo::archive_identifier );
-}
-
-
-######################################################################
-#
-# %tags = get_oams_tags( $eprint )
-#
-#  Get OAMS tags for the given eprint.
-#
-######################################################################
-
-sub get_oams_tags
-{
-	my( $eprint) = @_;
-
-	# If the EPrint doesn't exist, we will return the empty hash
-	return( () ) unless( defined $eprint );
-	
-	my %tags = EPrintSite::SiteRoutines::oai_get_eprint_metadata(
-		$eprint,
-		"oams" );
-
-	# Fill out the system tags
-
-	# Date of accession (submission) - fortunately uses the same format
-	$tags{accession} = $eprint->{datestamp};
-
-	# Display ID (URL)
-	$tags{displayId} = [ $eprint->static_page_url() ];
-
-	# FullID
-	$tags{fullId} = &fullID( $eprint );
-
-	return( %tags );
-}
-
-
-######################################################################
-#
-# @eprints = list_contents( $partitionspec, $fileafter )
-#
-#  Return the eprints corresponding to the given partitionspec and
-#  submitted after the given date
-#
-######################################################################
-
-sub list_contents
-{
-	my( $partitionspec, $fileafter ) = @_;
-	
-	# First, need a non-script session
-	my $session = new EPrints::Session( 1 );
-	
-	# Create a search expression
-	my $searchexp = new EPrints::SearchExpression(
-		$session,
-		EPrints::Database::table_name( "archive" ),
-		0,
-		1,
-		[],
-		$session->{site}->{eprint_order_methods},
-		undef );
-	
-	# Add the relevant fields
-
-	if( defined $partitionspec && $partitionspec ne "" )
-	{
-		# Get the subject field
-		my $subject_field = $session->{metainfo}->find_table_field( "eprint", "subjects" );
-
-		# Get the relevant subject ID. Since all subjects have unique ID's, we
-		# can just remove everything specifying the ancestry.
-		$partitionspec =~ s/.*;//;
-#cjg
-		$searchexp->add_field( $subject_field, "$partitionspec:ANY" );
-	}
-	
-	if( defined $fileafter && $fileafter ne "" )
-	{
-		# Get the datestamp field
-		my $datestamp_field = $session->{metainfo}->find_table_field( "eprint", "datestamp" );
-	
-#cjg	
-		$searchexp->add_field( $datestamp_field, "$fileafter-" );
-	}
-	
-	return( $searchexp->do_eprint_search() );
-}
 
 
 1;

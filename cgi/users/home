@@ -77,7 +77,7 @@ if( $valid_user )
 	print "</A></STRONG></DT>\n";
 	print "<DD><P>";
 	$session->{lang}->phrase( "H:review_info" );
-	if( $EPrintSite::SiteInfo::allow_user_removal ) {
+	if( $session->{site}->{allow_user_removal} ) {
 		$session->{lang}->phrase( "H:remove_info" );
 	}
 	print "</P></DD>\n";

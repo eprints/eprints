@@ -23,7 +23,6 @@ use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::Subscription;
-use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 use EPrintSite::Validate;
 
@@ -422,7 +421,7 @@ sub send_reminder
 	     	  message=>( defined $message ? "$message\n\n" : "" ),
 		  username=>$self->{username},
 		  password=>$self->{passwd},
-		  adminemail=>$EPrintSite::SiteInfo::admin } );
+		  adminemail=>$self->{session}->{site}->{admin} } );
 
 	return( EPrints::Mailer::send_mail( 
 			$self->{session},

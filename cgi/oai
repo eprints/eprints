@@ -25,7 +25,6 @@ use EPrints::HTMLRender;
 use EPrints::OpenArchives;
 use EPrints::Session;
 use EPrints::Subject;
-use EPrintSite::SiteInfo;
 
 use FileHandle;
 use IO::File;
@@ -120,6 +119,7 @@ sub get_record
 		$session,
 		EPrints::Database::table_name( "archive" ),
 		EPrints::OpenArchives::from_oai_identifier(
+			$session,
 			$session->{render}->param( "identifier" ) ) );
 
 	if( defined $eprint )
@@ -159,14 +159,14 @@ sub identify
 		EPrints::OpenArchives::to_utf8( $session->{site}->{sitename} ) );
 	
 	$writer->dataElement( "baseURL",
-	                      $EPrintSite::SiteInfo::oai_base_url );
+	                      $session->{site}->{oai_base_url} );
 
 	$writer->dataElement( "protocolVersion",
-	                      $EPrints::OpenArchives::oai_version );
+	                      $EPrints::OpenArchives::OAI_VERSION );
 
 	$writer->dataElement(
 		"adminEmail",
-		EPrints::OpenArchives::to_utf8( "mailto:$EPrintSite::SiteInfo::admin" ) );
+		EPrints::OpenArchives::to_utf8( "mailto:$session->{site}->{admin}" ) );
 
 	$writer->startTag( "description");
 	$writer->startTag( "oai-identifier", 
@@ -177,10 +177,10 @@ sub identify
 
 	$writer->dataElement( "scheme", "oai" );
 	$writer->dataElement( "repositoryIdentifier",
-	                      $EPrintSite::SiteInfo::archive_identifier );
+	                      $session->{site}->{oai_archive_id} );
 	$writer->dataElement( "delimiter", ":" );
 	$writer->dataElement( "sampleIdentifier",
-	                      $EPrintSite::SiteInfo::oai_sample_identifier );
+	                      $session->{site}->{oai_sample_identifier} );
 	$writer->endTag();
 	$writer->endTag( "description");
 
@@ -193,25 +193,22 @@ sub identify
 
 	write_TextURL( $writer, 
                           "content", 
-                          %EPrintSite::SiteInfo::oai_content );
+                          $session->{site}->{oai_content} );
 	write_TextURL( $writer, 
                           "metadataPolicy", 
-                          %EPrintSite::SiteInfo::oai_metadataPolicy );
+                          $session->{site}->{oai_metadataPolicy} );
 	write_TextURL( $writer, 
                           "dataPolicy", 
-                          %EPrintSite::SiteInfo::oai_dataPolicy );
+                          $session->{site}->{oai_dataPolicy} );
 	write_TextURL( $writer, 
                           "submissionPolicy", 
-                          %EPrintSite::SiteInfo::oai_submissionPolicy );
+                          $session->{site}->{oai_submissionPolicy} );
 
 	# Output all comments, if any.
 
-	if ( scalar @EPrintSite::SiteInfo::oai_comments > 0 ) 
+	foreach( @{$session->{site}->{oai_comments}} ) 
 	{
-		foreach( @EPrintSite::SiteInfo::oai_comments ) 
-		{
-			$writer->dataElement( "comment", EPrints::OpenArchives::to_utf8( $_ ) );
-		}
+		$writer->dataElement( "comment", EPrints::OpenArchives::to_utf8( $_ ) );
 	}
 		
 	$writer->endTag();
@@ -223,8 +220,8 @@ sub identify
 
 ######################################################################
 #
-# write_TextURL( $writer, $name, %texturl )
-#
+# write_TextURL( $writer, $name, $texturl )
+#                                 hashref
 #  Write a TextURL type block to writer, of name $name. Block will 
 #  contain a text and/or url element, defined in %texturl.
 #  If texturl contains neither then this method returns without action.
@@ -233,30 +230,30 @@ sub identify
 
 sub write_TextURL
 {
-	my( $writer, $name, %texturl ) = @_;
+	my( $writer, $name, $texturl ) = @_;
 
 	# If neither text or url is defined, don't bother opening
 	# and closing the tag in the first place.
 	
-	if ( !defined $texturl{"text"} && !defined $texturl{"url"} ) 
+	if ( !defined $texturl->{"text"} && !defined $texturl->{"url"} ) 
 	{
 		return;
 	}
 
 	$writer->startTag( $name );
 
-	if ( defined $texturl{"text"} ) 
+	if ( defined $texturl->{"text"} ) 
 	{
 		$writer->dataElement(
 		"text",
-		EPrints::OpenArchives::to_utf8( $texturl{"text"} ) );
+		EPrints::OpenArchives::to_utf8( $texturl->{"text"} ) );
 	}
 
-	if ( defined $texturl{"url"} ) 
+	if ( defined $texturl->{"url"} ) 
 	{
 		$writer->dataElement(
 		"URL",
-		EPrints::OpenArchives::to_utf8( $texturl{"url"} ) );
+		EPrints::OpenArchives::to_utf8( $texturl->{"url"} ) );
 	}
 
 	$writer->endTag( $name );
@@ -322,7 +319,9 @@ sub list_identifiers
 	{
 		$writer->dataElement(
 			"identifier",
-			EPrints::OpenArchives::to_oai_identifier( $_->{eprintid} ) );
+			EPrints::OpenArchives::to_oai_identifier( 
+				$session->{site}->{oai_archive_id},
+				$_->{eprintid} ) );
 	}
 	
 	# Write the deleted eprints
@@ -355,6 +354,7 @@ sub list_metadata_formats
 			$session,
 			EPrints::Database::table_name( "archive" ),
 			EPrints::OpenArchives::from_oai_identifier(
+				$session,
 				$session->{render}->param( "identifier" ) ) );
 
 		if( defined $eprint )
@@ -362,7 +362,7 @@ sub list_metadata_formats
 		
 			# We have the eprint in question.  Find out how many metadata
 			# formats we can get for it.
-			foreach (keys %EPrintSite::SiteInfo::oai_metadata_formats)
+			foreach (keys %{$session->{site}->{oai_metadata_formats}})
 			{
 				my $metadata = EPrints::OpenArchives::get_eprint_metadata(
 					$eprint,
@@ -374,7 +374,7 @@ sub list_metadata_formats
 	}
 	else
 	{
-		@metadata_formats = keys %EPrintSite::SiteInfo::oai_metadata_formats;
+		@metadata_formats = keys %{$session->{site}->{oai_metadata_formats}};
 	}
 	
 	my $writer = start_response( $session, "ListMetadataFormats" );
@@ -385,9 +385,9 @@ sub list_metadata_formats
 		$writer->dataElement( "metadataPrefix",
 		                      $_ );
 		$writer->dataElement( "schema",
-		                      $EPrintSite::SiteInfo::oai_metadata_schemas{$_} );
+		                      $session->{site}->{oai_metadata_schemas}->{$_} );
 		$writer->dataElement( "metadataNamespace",
-		                      $EPrintSite::SiteInfo::oai_metadata_formats{$_} );
+		                      $session->{site}->{oai_metadata_formats}->{$_} );
 		$writer->endTag( "metadataFormat" );
 	}
 	
@@ -471,9 +471,11 @@ sub list_records
 		my $deletion = new EPrints::Deletion( $session, $_ );
 
 		$writer->startTag( "record", "status"=>"deleted" );
-		EPrints::OpenArchives::write_record_header( $writer,
-		                                            $deletion->{eprintid},
-		                                            $deletion->{deletiondate} );
+		EPrints::OpenArchives::write_record_header(
+					$session,
+					$writer,
+		                        $deletion->{eprintid},
+		                        $deletion->{deletiondate} );
 		$writer->endTag( "record" );		
 	}
 

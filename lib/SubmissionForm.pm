@@ -690,7 +690,7 @@ sub from_stage_fileview
 	{
 		# Fileview button wasn't pressed, so it was an action button
 		# Update the description if appropriate
-		if( $self->{document}->{format} eq $EPrints::Document::other )
+		if( $self->{document}->{format} eq $EPrints::Document::OTHER )
 		{
 			$self->{document}->{formatdesc} =
 				$self->{session}->{render}->param( "formatdesc" );
@@ -1184,7 +1184,7 @@ sub do_stage_format
 	print "<P><CENTER>";
 	print $self->{session}->{lang}->phrase("H:validformats");
 
-	if( $#EPrintSite::SiteInfo::required_formats >= 0 )
+	if( @{$self->{session}->{site}->{required_formats}} >= 0 )
 	{
 		print $self->{session}->{lang}->phrase("H:leastone");
 	}
@@ -1236,10 +1236,12 @@ sub do_stage_fileview
 		"graburl" => $self->{session}->{lang}->phrase("F:graburl")
 	);
 
-	foreach (@EPrintSite::SiteInfo::supported_archive_formats)
+	foreach (@{$self->{session}->{site}->{supported_archive_formats}})
 	{
 		push @arc_formats, $_;
-		$arc_labels{$_} = $EPrintSite::SiteInfo::archive_names{$_};
+		$arc_labels{$_} = EPrints::Document::archive_name( 
+					$self->{session},
+					$_ );
 	}
 
 	my $arc_format_field = EPrints::MetaField->make_enum(
@@ -1266,7 +1268,7 @@ sub do_stage_fileview
 	
 	# Format description, if appropriate
 
-	if( $doc->{format} eq $EPrints::Document::other )
+	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
 		my @doc_fields = $self->{session}->{metainfo}->get_fields( "documents" );
 		my $desc_field = EPrints::MetaInfo::find_field( \@doc_fields,
@@ -2120,9 +2122,9 @@ sub render_format_form
 		"</STRONG></TH></TR>\n";
 	
 	my $f;
-	foreach $f (@EPrintSite::SiteInfo::supported_formats)
+	foreach $f (@{$self->{session}->{site}->{supported_formats}})
 	{
-		my $req = EPrints::Document::required_format( $f );
+		my $req = EPrints::Document::required_format( $self->{session} , $f );
 		my $doc = $self->{eprint}->get_document( $f );
 		my $numfiles = 0;
 		if( defined $doc )
@@ -2133,7 +2135,7 @@ sub render_format_form
 
 		print "<TR><TD>";
 		print "<STRONG>" if $req;
-		print $EPrintSite::SiteInfo::supported_format_names{$f};
+		print EPrints::Document::format_name( $self->{session}, $f );
 		print "</STRONG>" if $req;
 		print "</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
@@ -2149,9 +2151,9 @@ sub render_format_form
 		print "</TD></TR>\n";
 	}
 
-	if( $EPrintSite::SiteInfo::allow_arbitrary_formats )
+	if( $self->{session}->{site}->{allow_arbitrary_formats} )
 	{
-		my $other = $self->{eprint}->get_document( $EPrints::Document::other );
+		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
 		my $othername = "Other";
 		my $numfiles = 0;
 		
@@ -2164,13 +2166,13 @@ sub render_format_form
 
 		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$numfiles</TD><TD>";
 		print $self->{session}->{render}->named_submit_button(
-			"edit_$EPrints::Document::other",
+			"edit_$EPrints::Document::OTHER",
 			$self->{session}->{lang}->phrase("F:uploadedit") );
 		print "</TD><TD>";
 		if( $numfiles > 0 )
 		{
 			print $self->{session}->{render}->named_submit_button(
-				"remove_$EPrints::Document::other",
+				"remove_$EPrints::Document::OTHER",
 				$self->{session}->{lang}->phrase("F:remove") );
 		}
 		print "</TD></TR>\n";
@@ -2197,7 +2199,8 @@ sub update_from_format_form
 	
 	my $f;
 
-	foreach $f (@EPrintSite::SiteInfo::supported_formats)
+# what about arbitary formats?
+	foreach $f (@{$self->{session}->{site}->{supported_formats}})
 	{
 		return( $f, "edit" )
 			if( defined $self->{session}->{render}->param( "edit_$f" ) );
@@ -2205,12 +2208,12 @@ sub update_from_format_form
 			if( defined $self->{session}->{render}->param( "remove_$f" ) );
 	}
 
-	return( $EPrints::Document::other, "edit" )
+	return( $EPrints::Document::OTHER, "edit" )
 		if( defined $self->{eprint}->{session}->{render}->param(
-			"edit_$EPrints::Document::other" ) );
-	return( $EPrints::Document::other, "remove" )
+			"edit_$EPrints::Document::OTHER" ) );
+	return( $EPrints::Document::OTHER, "remove" )
 		if( defined $self->{eprint}->{session}->{render}->param(
-			"remove_$EPrints::Document::other" ) );
+			"remove_$EPrints::DocumentOTHERother" ) );
 	
 	return( undef, undef );
 }

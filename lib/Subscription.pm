@@ -25,7 +25,6 @@ use EPrints::SearchExpression;
 use EPrints::Session;
 use EPrints::User;
 
-use EPrintSite::SiteInfo;
 
 use strict;
 #"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
@@ -127,7 +126,7 @@ sub new
 		1,
 		\@metafields,
 		$self->{session}->{eprint_order_methods},
-		$EPrintSite::SiteInfo::default_eprint_order );
+		$self->{session}->{site}->{default_eprint_order} );
 
 	$self->{searchexpression}->state_from_string( $self->{spec} )
 		if( defined $self->{spec} && $self->{spec} ne "" );
@@ -510,7 +509,7 @@ sub process
 			   "M:blurb",
 			   { howoften=>$freqphrase,
 			     sitename=>$self->{session}->{site}->{sitename},
-			     url=>"$EPrintSite::SiteInfo::server_perl/users/subscribe" } );
+			     url=>"$self->{session}->{site}->{server_perl}/users/subscribe" } );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";

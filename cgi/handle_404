@@ -14,7 +14,6 @@
 
 use EPrints::Deletion;
 use EPrints::Session;
-use EPrintSite::SiteInfo;
 
 use strict;
 
@@ -29,7 +28,7 @@ my $was_deleted = 0;
 if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
 {
 	# There's a match, looks like we have an ID
-	my $guessed_id = $EPrintSite::SiteInfo::eprint_id_stem.$1.$2.$3.$4;
+	my $guessed_id = $session->{site}->{eprint_id_stem}.$1.$2.$3.$4;
 
 	# Was the eprint deleted?
 	my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
@@ -123,7 +122,7 @@ sub plain_404
 	print "<P>";	
 	print $session->{lang}->phrase( 
 		"H:blurb",
-		"<a href=\"mailto:$EPrintSite::SiteInfo::admin\">".
+		"<a href=\"mailto:$session->{site}->{admin}\">".
 		  $session->{lang}->phrase( "H:site_admin" ).
 		  "</a>" );
 	print "</P>\n";

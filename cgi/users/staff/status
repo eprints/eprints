@@ -19,8 +19,6 @@ use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Version;
 
-use EPrintSite::SiteInfo;
-
 use Filesys::DiskSpace;
 
 use strict;
@@ -126,12 +124,12 @@ foreach( @avail )
 
 print "</TABLE></CENTER>\n";
 
-if( $best_size < $EPrintSite::SiteInfo::diskspace_error_threshold )
+if( $best_size < $session->{site}->{diskspace_error_threshold} )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>NO SPACE LEFT FOR EPRINTS!".
 		"</FONT></STRONG></P></CENTER>\n";
 }
-elsif( $best_size < $EPrintSite::SiteInfo::diskspace_warn_threshold )
+elsif( $best_size < $session->{site}->{diskspace_warn_threshold} )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>WARNING:</FONT></STRONG> ".
 		"Available space for new EPrints running low</P></CENTER>\n";

@@ -23,8 +23,6 @@ use EPrints::HTMLRender;
 use EPrints::Subject;
 use EPrints::Log;
 
-use EPrintSite::SiteInfo;
-
 use strict;
 
 

@@ -18,7 +18,6 @@ package EPrints::Subject;
 
 use EPrints::Database;
 use EPrints::Log;
-use EPrintSite::SiteInfo;
 use EPrints::SearchExpression;
 
 use strict;

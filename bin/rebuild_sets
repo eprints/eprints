@@ -21,7 +21,6 @@
 ######################################################################
 
 use DBI;
-use EPrintSite::SiteInfo;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::Subject;

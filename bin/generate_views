@@ -27,8 +27,6 @@ use EPrints::HTMLRender;
 use EPrints::Subject;
 use EPrints::Log;
 
-use EPrintSite::SiteInfo;
-
 my $session = new EPrints::Session( 1 );
 
 
@@ -53,7 +51,7 @@ sub write_subject_view
 {
 	my( $session, $subject ) = @_;
 	
-	my $output = $EPrintSite::SiteInfo::local_subject_view_stem.
+	my $output = $session->{site}->{local_subject_view_stem}.
 		$subject->{subjectid}.".html";
 
 	# Open the subject view file

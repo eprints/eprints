@@ -18,8 +18,6 @@
 ######################################################################
 
 
-use EPrintSite::SiteInfo;
-
-system( $EPrintSite::base_path . "/bin/generate_abstracts" );
-system( $EPrintSite::base_path . "/bin/generate_static" );
-system( $EPrintSite::base_path . "/bin/generate_views" );
+system( $self->{bin_root}."/generate_abstracts" );
+system( $self->{bin_root}."/generate_static" );
+system( $self->{bin_root}."/generate_views" );

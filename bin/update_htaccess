@@ -16,7 +16,6 @@
 ######################################################################
 
 use EPrints::Database;
-use EPrintSite::SiteInfo;
 
 use File::Find;
 

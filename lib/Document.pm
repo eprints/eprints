@@ -20,7 +20,6 @@ package EPrints::Document;
 use EPrints::Database;
 use EPrints::Log;
 use EPrints::EPrint;
-use EPrintSite::SiteInfo;
 
 use File::Basename;
 use File::Path;
@@ -32,18 +31,13 @@ use URI::Heuristic;
 use strict;
 
 # Field to use for unsupported formats (if archive allows their deposit)
-$EPrints::Document::other = "OTHER";
-
-# Fields
-my $formats = ( $EPrintSite::SiteInfo::allow_arbitrary_formats ?
-                join ',', @EPrintSite::SiteInfo::supported_formats,
-                    $EPrints::Document::other :
-                join ',', @EPrintSite::SiteInfo::supported_formats );
+$EPrints::Document::OTHER = "OTHER";
 
 # Digits in generated ID codes (added to EPrints IDs)
-my $digits = 2;
+my $DIGITS = 2;
 
 
+# cjg this belongs elsewhere
 %EPrints::Document::help =
 (
 	"format"     => "Please select the storage format you wish to upload.",
@@ -268,7 +262,7 @@ sub _generate_doc_id
 		$id++;
 
 		# Add any preceding 0's
-		while( length $id < $digits )
+		while( length $id < $DIGITS )
 		{
 			$id = "0".$id;
 		}
@@ -713,7 +707,7 @@ sub upload_archive
 
 	# Make the extraction command line
 	my $extract_command =
-		$EPrintSite::SiteInfo::archive_extraction_commands{ $archive_format };
+		$self->{session}->{site}->{archive_extraction_commands}->{ $archive_format };
 
 	$extract_command =~ s/_DIR_/$dest/g;
 	$extract_command =~ s/_ARC_/$arc_tmp/g;
@@ -784,7 +778,7 @@ sub upload_url
 	$cut_dirs = 0 if( $cut_dirs < 0 );
 	
 	# Construct wget command line.
-	my $command = $EPrintSite::SiteInfo::wget_command;
+	my $command = $self->{session}->{site}->{wget_command};
 	#my $escaped_url = uri_escape( $url );
 	
 	$command =~ s/_CUTDIRS_/$cut_dirs/g;
@@ -864,22 +858,23 @@ sub commit
 #
 ######################################################################
 
-sub get_supported_formats
-{
-	#my( $class ) = @_;
-	
-	my @formats = @EPrintSite::SiteInfo::supported_formats;
-
-	push @formats, $EPrints::Document::other
-		if $EPrintSite::SiteInfo::allow_arbitrary_formats;
-	
-	return( @formats );
-}
+# cjg not in use?
+#sub get_supported_formats
+#{
+	##my( $class ) = @_;
+	#
+	#my @formats = @EPrintSite::SiteInfo::supported_formats;
+#
+	#push @formats, $EPrints::Document::other
+		#if $EPrintSite::SiteInfo::allow_arbitrary_formats;
+	#
+	#return( @formats );
+#}
 
 
 ######################################################################
 #
-# $required = required_format( $format )
+# $required = required_format( $session , $format )
 #  [STATIC]
 #
 #  Return 1 if the given format is one of the list of required formats,
@@ -889,13 +884,13 @@ sub get_supported_formats
 
 sub required_format
 {
-	my( $format ) = @_;
+	my( $session , $format ) = @_;
 	
-	return( 1 ) if $#EPrintSite::SiteInfo::required_formats == -1;
+	return( 1 ) unless( @{$session->{site}->{required_formats}} );
 
 	my $req = 0;
 
-	foreach (@EPrintSite::SiteInfo::required_formats)
+	foreach (@{$session->{site}->{required_formats}})
 	{
 		$req = 1 if( $format eq $_ );
 	}
@@ -903,6 +898,27 @@ sub required_format
 	return( $req );
 }
 
+sub format_name
+{
+	my( $session , $format ) = @_;
+
+        #"HTML"                     => "HTML",
+        #"PDF"                      => "Adobe PDF",
+        #"PS"                       => "Postscript",
+        #"ASCII"                    => "Plain ASCII Text"
+
+	return( "LANG SUPPORT PENDING( $format )" );
+} 
+
+sub archive_name
+{
+	my( $sesion, $archivetype ) = @_;
+
+	  #"ZIP"   => "ZIP Archive [.zip]",
+        #"TARGZ" => "Compressed TAR archive [.tar.Z, .tar.gz]"
+
+	return( "LANG SUPPORT PENDING( $archivetype )" );
+}
 
 ######################################################################
 #

@@ -18,7 +18,6 @@ use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
 use EPrints::SearchForm;
-use EPrintSite::SiteInfo;
 
 use strict;
 
