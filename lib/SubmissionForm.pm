@@ -43,7 +43,6 @@ $EPrints::SubmissionForm::action_verify     = "Verify ID's";
 $EPrints::SubmissionForm::stage_type       = "stage_type";       # EPrint type (e.g. journal article)
 $EPrints::SubmissionForm::stage_meta       = "stage_meta";       # Metadata (authors, title, etc)
 $EPrints::SubmissionForm::stage_subject    = "stage_subject";    # Subject tag form
-$EPrints::SubmissionForm::stage_users      = "stage_users";      # Associate with local users
 $EPrints::SubmissionForm::stage_linking    = "stage_linking";    # Linking to other eprints
 $EPrints::SubmissionForm::stage_format     = "stage_format";     # File format selection form
 $EPrints::SubmissionForm::stage_fileview   = "stage_fileview";   # View/delete files
@@ -59,7 +58,6 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 	$EPrints::SubmissionForm::stage_type       => "Deposit Type",
 	$EPrints::SubmissionForm::stage_meta       => "Bibliographic Information",
 	$EPrints::SubmissionForm::stage_subject    => "Subject Categories",
-	$EPrints::SubmissionForm::stage_users      => "Local Authors/Editors",
 	$EPrints::SubmissionForm::stage_linking    => "Succession/Commentary",
 	$EPrints::SubmissionForm::stage_format     => "Document Storage Formats",
 	$EPrints::SubmissionForm::stage_fileview   => "Document File Upload",
@@ -475,59 +473,6 @@ sub from_stage_meta
 	return( 1 );
 }
 
-######################################################################
-#
-# Come from local users form
-#
-######################################################################
-
-sub from_stage_users
-{
-	my( $self ) = @_;
-
-	if( !defined $self->{eprint} )
-	{
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
-		return( 0 );
-	}
-
-	# Process uploaded data
-	$self->update_from_users_form();
-	$self->{eprint}->commit();
-	
-	if( $self->{session}->{render}->internal_button_pressed() )
-	{
-		# Leave the form as is
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_users;
-	} 
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_next )
-	{
-		$self->{problems} = $self->{eprint}->validate_username();
-		if( $#{$self->{problems}} >= 0 )
-		{
-			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_users;
-		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-		}
-	}
-	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
-	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
-		return( 0 );
-	}
-
-	return( 1 );
-}
-
 
 ######################################################################
 #
@@ -560,15 +505,7 @@ sub from_stage_subject
 		else
 		{
 			# No problems, onto the next stage
-			# which depends if we're linking users or not
-			if( $EPrintSite::SiteInfo::link_papers_with_users )
-			{
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_users;
-			}
-			else
-			{
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-			}
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
@@ -709,14 +646,7 @@ sub from_stage_format
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
 		# prev stage depends if we're linking users or not
-		if( $EPrintSite::SiteInfo::link_papers_with_users )
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_users;
-		}
-		else
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
-		}
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_finished )
 	{
@@ -730,14 +660,7 @@ sub from_stage_format
 		else
 		{
 			# prev stage depends if we're linking users or not
-			if( $EPrintSite::SiteInfo::link_papers_with_users )
-			{
-				$self->{prev_stage} = $EPrints::SubmissionForm::stage_users;
-			}
-			else
-			{
-				$self->{prev_stage} = $EPrints::SubmissionForm::stage_subject;
-			}
+			$self->{prev_stage} = $EPrints::SubmissionForm::stage_subject;
 			$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
 		}
 	}
@@ -1149,30 +1072,6 @@ sub do_stage_subject
 	print $self->{session}->{render}->end_html();
 }	
 
-
-
-######################################################################
-#
-#  Identify local author(s)/editor(s) form
-#
-######################################################################
-
-sub do_stage_users
-{
-	my( $self ) = @_;
-	
-	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_users} );
-	$self->list_problems();
-
-	$self->render_users_form(
-		[ $EPrints::SubmissionForm::action_prev,
-		  $EPrints::SubmissionForm::action_next ],
-		{ stage=>$EPrints::SubmissionForm::stage_users }  );
-
-	print $self->{session}->{render}->end_html();
-}	
 
 
 ######################################################################

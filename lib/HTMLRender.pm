@@ -661,7 +661,7 @@ sub input_field
 		# Ensure at least 1...
 		$boxcount = 1 if( !defined $boxcount );
 		# And that there's enough to fit all the names in
-		$boxcount = $#names+3 if( $boxcount < $#names+3 );
+		$boxcount = $#names+1 if( $boxcount < $#names+1 );
 
 		# Render the boxes
 		$html = "<table border=0><tr><th>Surname</th><th>First names</th>";
@@ -716,7 +716,7 @@ sub input_field
 		# Ensure at least 1...
 		$boxcount = 1 if( !defined $boxcount );
 		# And that there's enough to fit all the usernames in
-		$boxcount = $#usernames+3 if( $boxcount < $#usernames+3 );
+		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
 
 		# Render the boxes
 		$html = "<table border=0><tr><th>Usernames</th>";
@@ -739,10 +739,13 @@ sub input_field
 			$html .= "</td>";
 		}
 		
-		$html .= "<td>".$self->named_submit_button( "username_more_$field->{name}",
-	                                          	  "More Spaces" );
-		$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
-		$html .= "</td>";
+		if( $field->{multiple} )
+		{
+			$html .= "<td>".$self->named_submit_button( "username_more_$field->{name}",
+		                                          	  "More Spaces" );
+			$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
+			$html .= "</td>";
+		}
 		
 		$html .= "</tr>\n</table>\n";
 	}
@@ -1228,10 +1231,8 @@ sub form_value
 	elsif( $field->{type} eq "username" )
 	{
 		my $i = 0;
-		#my $total = ( $field->{multiple} ? 
-			#$self->param( "username_boxes_$field->{name}" ) : 1 );
-		my $total = $self->param( "username_boxes_$field->{name}" );
-	
+		my $total = ( $field->{multiple} ? 
+			$self->param( "username_boxes_$field->{name}" ) : 1 );
 		$value = "";	
 		for( $i=0; $i<$total; $i++ )
 		{

@@ -127,19 +127,6 @@ sub read_meta_fields
 		push @eprint_system_fields, $field;
 	}
 
-	# Add systems fields only used for link-users mode.
-	if( $EPrintSite::SiteInfo::link_papers_with_users ) 
-	{
-		foreach (@EPrints::EPrint::system_meta_fields_link_users)
-		{
-			my $field = new EPrints::MetaField( $_ );
-			$field->{help} = $EPrints::EPrint::help{$field->{name}};
-			push @eprint_meta_fields, $field;
-			push @eprint_meta_fieldnames, $field->{name};
-			push @eprint_system_fields, $field;
-		}
-	}
-
 	# Read in all the possible site fields
 	my @fields = EPrints::MetaField::read_fields(
 		 $EPrintSite::SiteInfo::site_eprint_fields );
