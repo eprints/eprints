@@ -51,7 +51,7 @@ print STDERR "URL: ".$r->the_request()."\n";
 
 print STDERR "THE USER IS: $user_sent\n";
 
-	my $ds = $session->get_archive()->get_data_set( "user" );
+	my $ds = $session->get_archive()->get_dataset( "user" );
 
 	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( !defined $user )
@@ -117,7 +117,7 @@ print STDERR "REQUIRES: $val\n";
 	my $user_sent = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 print STDERR "THE USER IS: $user_sent\n";
-	my $ds = $session->get_archive()->get_data_set( "user" );
+	my $ds = $session->get_archive()->get_dataset( "user" );
 	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( defined $user )
 	{

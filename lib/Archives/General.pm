@@ -23,7 +23,7 @@ $EPrints::Archives::General::lang_path = $EPrints::Archives::General::base_path.
 
 #English Español Deutsch Français Italiano
 
-%EPrints::Archives::General::sites = (
+%EPrints::Archives::General::archives = (
 	"destiny.totl.net" => "lemurprints",
 	"destiny" => "lemurprints",
 	"lemur.ecs.soton.ac.uk" => "lemurprints",

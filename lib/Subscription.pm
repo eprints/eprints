@@ -36,13 +36,13 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"subid", type=>"text", required=>1, editable=>0 },
+		{ name=>"subid", type=>"text", required=>1 },
 
-		{ name=>"username", type=>"text", required=>1, editable=>0 },
+		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"spec", type=>"longtext", displaylines=>3, required=>1, editable=>0 },
+		{ name=>"spec", type=>"longtext", displaylines=>3, required=>1 },
 
-		{ name=>"frequency", type=>"set", required=>1, editable=>1,
+		{ name=>"frequency", type=>"set", required=>1 },
 			options=>["never","daily","weekly","monthly"] } 
 	);
 }

@@ -1,5 +1,7 @@
 use strict;
 
+print STDERR "EPRINTS: Loading Modules\n";
+
 use XML::Parser;
 
 print join("\n",@INC)."\n";
@@ -58,8 +60,21 @@ use EPrints::UserForm;
 use EPrints::User;
 use EPrints::Version;
 
+print STDERR "EPRINTS: Modules Loaded\n";
+
+# cjg SYSTEM CONF SHOULD SAY IF TO PRELOAD OR NOT...
+
+print STDERR join(",",sort values %EPrints::Archives::General::archives)."\n";
+my %done = ();
+foreach( values %EPrints::Archives::General::archives )
+{
+	next if $done{$_};
+	print STDERR "Preloading: ".$_."\n";
+	EPrints::Archive->new_archive_by_id( $_ );
+}
+
 
 # Tell me more about warnings
 use Carp ();
-#$SIG{__WARN__} = \&Carp::cluck;
+$SIG{__WARN__} = \&Carp::cluck;
 

@@ -25,7 +25,7 @@ EPrints Modules
 <!-- EPrint -->
 
     <phrase ref="lib/eprint:disklow_sub">Warning: Low on disk space</phrase>
-    <phrase ref="lib/eprint:disklow">The amount of disk space available for new EPrints has dropped below the site threshold. New disk space will be needed soon.</phrase>
+    <phrase ref="lib/eprint:disklow">The amount of disk space available for new EPrints has dropped below the archive threshold. New disk space will be needed soon.</phrase>
     <phrase ref="lib/eprint:diskout_sub">ERROR: Out of Disk Space</phrase>
     <phrase ref="lib/eprint:diskout">There are no available partitions with enough disk space to create new EPrints. This needs sorting out urgently.</phrase>
     <phrase ref="lib/eprint:no_type">You haven't selected a type for this EPrint.</phrase>
@@ -107,7 +107,7 @@ EPrints Modules
 
     <phrase ref="lib/session:fail_db_connect">Failed to connect to database</phrase>
     <phrase ref="lib/session:msg_at">Archive maintenance message generated at <pin ref="time" /></phrase>
-    <phrase ref="lib/session:site_admin">Archive Administrator</phrase>
+    <phrase ref="lib/session:archive admin">Archive Administrator</phrase>
     <phrase ref="lib/session:some_error">&archivename; has encountered an error:</phrase>
     <phrase ref="lib/session:contact">Feel free to contact <pin ref="adminemail">&archivename; administration</pin> with details.</phrase>
     <phrase ref="lib/session:cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
@@ -179,7 +179,7 @@ EPrints Modules
     <phrase ref="lib/submissionform:title_return">Return to Author's Home</phrase>
     <phrase ref="lib/submissionform:title_confirmdel">Confirm Deletion</phrase>
     <phrase ref="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <pin ref="line_no" />)</phrase>
-    <phrase ref="lib/submissionform:database_err">There's been a problem accessing the site database. Please try again later. #cjg# could be old no disk0 problem... (Code <pin ref="line_no" /></phrase>
+    <phrase ref="lib/submissionform:database_err">There's been a problem accessing the archive database. Please try again later. #cjg# could be old no disk0 problem... (Code <pin ref="line_no" /></phrase>
     <phrase ref="lib/submissionform:nosel_err">You hadn't selected a paper to edit, clone, delete or deposit!</phrase>
     <phrase ref="lib/submissionform:delete">Delete</phrase>
     <phrase ref="lib/submissionform:delete_all">Delete All Files</phrase>
@@ -202,7 +202,7 @@ EPrints Modules
 
     <phrase ref="lib/user:missed_field">You haven't filled out the required <pin ref="field" /> field.</phrase>
     <phrase ref="lib/user:weclome">Welcome to &archivename; !</phrase>
-    <phrase ref="lib/user:reminder">Dear &archivename; User,\n\n<pin ref="message" />Your username and password for the site are:\n\nUser name: <pin ref="username" />\nPassword:  <pin ref="password" />\n\nIf you didn't expect this e-mail, please contact the site\nadministrator at:\n\n<pin ref="adminemail" />\n</phrase>
+    <phrase ref="lib/user:reminder">Dear &archivename; User,\n\n<pin ref="message" />Your username and password for the archive are:\n\nUser name: <pin ref="username" />\nPassword:  <pin ref="password" />\n\nIf you didn't expect this e-mail, please contact the archive nadministrator at:\n\n<pin ref="adminemail" />\n</phrase>
     <phrase ref="lib/user:reminder_sub">Your username and password</phrase>
     <phrase ref="lib/user:new_user">New &archivename; /> User</phrase>
     <phrase ref="lib/user:new_staff">New &archivename; /> Staff</phrase>
@@ -214,7 +214,7 @@ EPrints Modules
     <phrase ref="lib/userform:blurb">Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <pin ref="star">*</pin> to start using the archive.</phrase>
     <phrase ref="lib/userform:change_email">For instructions &#36103; on how to change your e-mail address, <pin ref="registerlink">click here</pin>.</phrase>
     <phrase ref="lib/userform:form_incorrect">The form doesn't seem to be filled out correctly:</phrase>
-    <phrase ref="lib/userform:completeform">Please complete the form before continuing.</phrase>
+    <phrase ref="lib/userform:complete_form">Please complete the form before continuing.</phrase>
     <phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
     <phrase ref="lib/userform:update_record">Update Record</phrase>
 
@@ -232,8 +232,13 @@ User Area CGI Scripts
     <phrase ref="cgi/users/home:change">View/change your user record</phrase>
     <phrase ref="cgi/users/home:change_info">Select this option to see your user record, and to correct or update your user information.</phrase>
     <phrase ref="cgi/users/home:before">Before you upload any documents, please fill out your user record.</phrase>
-    <phrase ref="cgi/users/home:sub_opts">Change your subscription options</phrase>
-    <phrase ref="cgi/users/home:sub_opts_info">Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.</phrase>
+
+    <phrase ref="cgi/users/home:subscribe_link">Change your subscription options</phrase>
+    <phrase ref="cgi/users/home:subscribe_info">Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.</phrase>
+
+    <phrase ref="cgi/users/home:status_link">View the archive status</phrase>
+    <phrase ref="cgi/users/home:status_info">This option allows you to view the current status of the system, including the number of items in each dataset.</phrase>
+
     <phrase ref="cgi/users/home:docs">Documents in your Workspace</phrase>
     <phrase ref="cgi/users/home:depositing">These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.</phrase>
     <phrase ref="cgi/users/home:start_upload">Click here to start uploading a document</phrase>
@@ -321,13 +326,13 @@ Public CGI Scripts
     <phrase ref="cgi/handle_404:doc_not_found">Document Not Found</phrase>
     <phrase ref="cgi/handle_404:file_not_found">File not found:</phrase>
     <phrase ref="cgi/handle_404:looking_for">Perhaps you're looking for the following eprint:</phrase>
-    <phrase ref="cgi/handle_404:blurb">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <pin ref="siteadmin" />.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</phrase>
-    <phrase ref="cgi/handle_404:site_admin">Archive Administrator</phrase>
+    <phrase ref="cgi/handle_404:blurb">The specified file could not be found on this server.  If you reached this page by following a link within the archive, please contact the <pin ref="archiveadmin" />.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</phrase>
+    <phrase ref="cgi/handle_404:archive_admin">Archive Administrator</phrase>
 
 <!-- remind -->
 
     <phrase ref="cgi/remind:rem_sent_title">Reminder Sent</phrase>
-    <phrase ref="cgi/remind:site_admin">Archive Administrator</phrase>
+    <phrase ref="cgi/remind:archive_admin">Archive Administrator</phrase>
     <phrase ref="cgi/remind:return_home">Return to &archivename; Home</phrase>
     <phrase ref="cgi/remind:form_title">Username and Password Reminder Form</phrase>
     <phrase ref="cgi/remind:form_blurb">If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.</phrase>

@@ -55,7 +55,7 @@ sub new
 {
 	my( $class, $mode, $param) = @_;
 	# mode = 0    - We are online (CGI script)
-	# mode = 1    - We are offline (bin script) param is siteid
+	# mode = 1    - We are offline (bin script) param is archiveid
 	# mode = 2    - We are offline (auth) param is host and path.	
 	my $self = {};
 	bless $self, $class;
@@ -69,7 +69,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	if( $mode == 0 || !defined $mode )
 	{
 		$offline = 0;
-		$self->{archive} = EPrints::Archive->new_site_by_url( $self->{query}->url() );
+		$self->{archive} = EPrints::Archive->new_archive_by_url( $self->{query}->url() );
 		if( !defined $self->{archive} )
 		{
 			#cjg icky error handler...
@@ -91,7 +91,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 			print STDERR "No archive id specified.\n";
 			return undef;
 		}
-		$self->{archive} = EPrints::Archive->new_site_by_id( $param );
+		$self->{archive} = EPrints::Archive->new_archive_by_id( $param );
 		if( !defined $self->{archive} )
 		{
 			print STDERR "Can't load archive module for: $param\n";
@@ -101,7 +101,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	elsif( $mode == 2 )
 	{
 		$offline = 1;
-		$self->{archive} = EPrints::Archive->new_site_by_host_and_path( $param );
+		$self->{archive} = EPrints::Archive->new_archive_by_host_and_path( $param );
 		if( !defined $self->{archive} )
 		{
 			print STDERR "Can't load archive module for URL: $param\n";			return undef;
@@ -189,8 +189,14 @@ sub change_lang
 	{
 		$newlangid = ${$self->{archive}->get_conf( "languages" )}[0];
 	}
-
+print STDERR "Hi\n";
 	$self->{lang} = $self->{archive}->get_language( $newlangid );
+
+	if( !defined $self->{lang} )
+	{
+		die "Unknown language: $newlangid, can't go on!";
+		# cjg (maybe should try english first...?)
+	}
 }
 
 sub html_phrase
@@ -610,7 +616,7 @@ sub render_subject_desc
 	{
 		my $text = $self->make_text( 
 			latin1(" (" .$subject->count_eprints( 
-				$self->get_archive()->get_data_set( "archive" ) ).
+				$self->get_archive()->get_dataset( "archive" ) ).
 				")" ) );
 		$frag->appendChild( $text );
 	}
@@ -901,7 +907,7 @@ sub new_page
 
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
-
+print STDERR "new_page:$langid\n";
 	my $html = $self->{archive}->get_template( $langid )->cloneNode( 1 );
 	$self->take_ownership( $html );
 	$self->{page}->appendChild( $html );
@@ -1176,11 +1182,13 @@ sub render_struct
 	{
 		my @bits = @{$ref};
 		$text.= "  "x$depth;
-		$text.= "ARRAY (length=".(scalar @bits).")\n";
+		$text.= "[ (length=".(scalar @bits).")\n";
 		foreach( @bits )
 		{
 			$text.= render_struct( $_ , $depth+1 , %done );
 		}
+		$text.= "  "x$depth;
+		$text.= "]\n";
 		return $text;
 	}
 
@@ -1198,13 +1206,15 @@ sub render_struct
 
 	my %bits = %{$ref};
 	$text.= "  "x$depth;
-	$text.= "$type\n";
+	$text.= "{ $type\n";
 	foreach( keys %bits )
 	{
 		$text.= "  "x$depth;
 		$text.= " $_=>\n";
 		$text.= render_struct( $bits{$_} , $depth+1 , %done );
 	}
+	$text.= "  "x$depth;
+	$text.= "}\n";
 	return $text;
 }
 
@@ -1294,7 +1304,7 @@ sub mail_administrator
 
 	EPrints::Mailer::send_mail(
 		$self,
-		 "lib/session:site_admin" ,
+		 "lib/session:archive_admin" ,
 		$self->{archive}->{adminemail},
 		$subject,
 		$message_body );

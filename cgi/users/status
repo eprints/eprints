@@ -30,7 +30,7 @@ my $rows;
 my $num_users = count( "user" );
 
 my( %num_users, $usertypes, $usertype, $userds );
-$userds = $session->get_archive()->get_data_set( "user" );
+$userds = $session->get_archive()->get_dataset( "user" );
 $usertypes = $userds->get_types();
 foreach $usertype ( @{$usertypes} )
 {
@@ -207,7 +207,7 @@ sub count
 {
 	my( $datasetid, %searchfields ) = @_;
 		
-	my $dataset = $session->get_archive()->get_data_set( $datasetid );
+	my $dataset = $session->get_archive()->get_dataset( $datasetid );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session => $session,

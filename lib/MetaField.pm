@@ -75,7 +75,6 @@ my $PROPERTIES = {
 	name => "NO_DEFAULT",
 	type => "NO_DEFAULT",
 	required => 0,
-	editable => 1,
 	multiple => 0,
 	datasetid => "NO_DEFAULT",
 	displaylines => 0,
@@ -92,7 +91,6 @@ my $PROPERTIES = {
 # name   **required**
 # type   **required**
 # required # default = no
-# editable # default = yes
 # multiple # default = no
 # 
 # displaylines   # for longtext and set (int)   # default = 5
@@ -118,7 +116,7 @@ sub new
 	{
 		$self->set_property( $_, $properties->{$_} );
 	}
-	foreach( "required" , "editable" , "multiple" )
+	foreach( "required" , "multiple" )
 	{
 		$self->set_property( $_, $properties->{$_} );
 	}
@@ -292,7 +290,7 @@ print STDERR "gsind: $self->{type}...($index)\n";
 	return $index;
 }
 
-sub get_data_set
+sub get_dataset
 {
 	my( $self ) = @_;
 	return $self->{dataset};
@@ -546,7 +544,7 @@ sub render_input_field
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $session->get_archive()->get_data_set( 
+			my $ds = $session->get_archive()->get_dataset( 
 					$self->{datasetid} );	
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $session );
@@ -1006,7 +1004,7 @@ sub _form_value_aux
 	my $id_suffix = "";
 	$id_suffix = "_$n" if( defined $n );
 
-	if( $self->is_type( "text", "username", "url", "int", "email", "longtext" ) )
+	if( $self->is_type( "text", "username", "url", "int", "email", "longtext", "year" ) )
 	{
 		my $value = $session->param( $self->{name}.$id_suffix );
 		return undef if( $value eq "" );

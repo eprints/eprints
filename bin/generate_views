@@ -82,7 +82,7 @@ sub write_subject_view
 	$page->appendChild( $session->render_ruler() );
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( 
-		$session->get_archive()->get_data_set( "archive" ) );
+		$session->get_archive()->get_dataset( "archive" ) );
 
 	# not INTL!cjg
 	my $p = $session->make_element( "p" );

@@ -162,10 +162,10 @@ sub from_form
 
 	# Remove any default we have
 	$self->set_value( "" );
-print STDERR "------llll\n";	
-print STDERR  $self->{formname} ."\n";
-print STDERR  $self->{field}->{type}."\n";
-print STDERR  $self->{session}->param( $self->{formname} )."\n";
+#print STDERR "------llll\n";	
+#print STDERR  $self->{formname} ."\n";
+#print STDERR  $self->{field}->{type}."\n";
+#print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	my $val = $self->{session}->param( $self->{formname} );
 	$val =~ s/^\s+//;
 	$val =~ s/\s+$//;
@@ -938,7 +938,7 @@ sub to_html
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $self->{field}->get_data_set();
+			my $ds = $self->{field}->get_dataset();
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $self->{session} );
 		}

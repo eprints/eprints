@@ -36,27 +36,26 @@ sub get_system_field_info
 	my( $class ) = @_;
 
 	return ( 
-	{ name=>"eprintid", type=>"text", required=>1, editable=>0 },
+	{ name=>"eprintid", type=>"text", required=>1 },
 
-	{ name=>"username", type=>"text", required=>1, editable=>0 },
+	{ name=>"username", type=>"text", required=>1 },
 
-	{ name=>"dir", type=>"text", required=>0, editable=>0 },
+	{ name=>"dir", type=>"text", required=>0 },
 
-	{ name=>"datestamp", type=>"date", required=>0, editable=>0 },
+	{ name=>"datestamp", type=>"date", required=>0 },
 
-        # Subject categories. "not editable" since it's a special case.
-	{ name=>"subjects", type=>"subject", required=>0, editable=>0, multiple=>1 },
+	{ name=>"subjects", type=>"subject", required=>0, multiple=>1 },
 
-	{ name=>"additional", type=>"text", required=>0, editable=>0 },
+	{ name=>"additional", type=>"text", required=>0 },
 
-	{ name=>"reasons", type=>"longtext", required=>0, editable=>0, displaylines=>6 },
+	{ name=>"reasons", type=>"longtext", required=>0, displaylines=>6 },
 
-	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, editable=>0,
+	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, 
 		displaylines=>"ALL" },
 
-	{ name=>"succeeds", type=>"text", required=>0, editable=>0 },
+	{ name=>"succeeds", type=>"text", required=>0 },
 
-	{ name=>"commentary", type=>"text", required=>0, editable=>0 } );
+	{ name=>"commentary", type=>"text", required=>0 } );
 }
 
 ######################################################################
@@ -93,7 +92,7 @@ sub new
 		## and return the eprint.
 		foreach( "archive" , "inbox" , "buffer" )
 		{
-			my $ds = $session->get_archive()->get_data_set( $_ );
+			my $ds = $session->get_archive()->get_dataset( $_ );
 			$self = $session->get_db()->get_single( $ds, $id );
 			if ( defined $self ) 
 			{
@@ -623,36 +622,34 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{dataset}->get_type_fields( $self->{type} );
+	my @r_fields = $self->{dataset}->get_required_type_fields( $self->get_value("type") );
+	my @all_fields = $self->{dataset}->get_fields();
 
 	my $field;
+	foreach $field (@r_fields)
+	{
+print STDERR "REQ?: $field->{name}\n";
+print STDERR "====: ".$self->get_value( $field->{name} )."\n";
+		# Check that the field is filled in if it is required
+		next if ( defined $self->get_value( $field->{name} ) );
+
+		my $problem = $self->{session}->html_phrase( 
+			"lib/eprint:not_done_field" ,
+			fieldname=> $self->{session}->make_text( 
+			   $field->display_name( $self->{session} ) ) );
+		push @all_problems,$problem;
+	}
+
+	# Give the site validation module a go
 	foreach $field (@all_fields)
 	{
-		my $problem;
-		
-		# Check that the field is filled in if it is required
-		if( $field->{required} && 
-		    ( !defined $self->get_value( $field->{name} ) ) )
-		{
-			$problem = $self->{session}->html_phrase( 
-				"lib/eprint:not_done_field" ,
-				fieldname=> $self->{session}->make_text( 
-				   $field->display_name( $self->{session} ) ) );
-		}
-		else
-		{
-			# Give the site validation module a go
-			$problem = $self->{session}->get_archive()->call(
-				"validate_eprint_field",
-				$field,
-				$self->get_value( $field->{name} ) );
-		}
-
-		# cjg USERNAME TYPE CHECK?
-		
+		my $problem = $self->{session}->get_archive()->call(
+			"validate_eprint_field",
+			$field,
+			$self->get_value( $field->{name} ) );
 		if( defined $problem )
 		{
-			push @all_problems, $problem;
+			push @all_problems,$problem;
 		}
 	}
 
@@ -679,7 +676,8 @@ sub validate_meta
 sub validate_subject
 {
 	my( $self ) = @_;
-	
+#cjg!!!!
+exit;	
 	my @all_problems;
 	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint", $self->{type} );
 	my $field;
@@ -739,7 +737,7 @@ sub validate_linking
 
 		next unless( defined $self->get_value( $field_id ) );
 
-		my $archive_ds = $self->{session}->get_archive()->get_data_set( "archive" );
+		my $archive_ds = $self->{session}->get_archive()->get_dataset( "archive" );
 
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
 		                                       $archive_ds,
@@ -990,7 +988,7 @@ sub prune_documents
 	my( $self ) = @_;
 	
 	# Get the documents from the database
-	my $docs_ds = $self->{session}->get_archive()->get_data_set( "document" );
+	my $docs_ds = $self->{session}->get_archive()->get_dataset( "document" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session => $self->{session},

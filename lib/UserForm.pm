@@ -173,29 +173,29 @@ sub _render_user_form
 {
 	my( $self ) = @_;
 	
-	my @edit_fields;
-	my $field;
-	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
-	my @all_fields = $user_ds->get_fields;
-	
-	# Get the appropriate fields
-	foreach $field (@all_fields)
+	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
+
+	my @fields;
+	if( $self->{staff} )
 	{
-		if( $self->{staff} || $field->get_property( "editable" ) ) {
-			push @edit_fields, $field;
-		}
+ 		@fields = $user_ds->get_fields;
+	}
+	else
+	{
+		@fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ) );
 	}
 	
 	my %hidden = ( "username"=>$self->{user}->get_value( "username" ) );
 
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 
-	return $self->{session}->render_input_form( \@edit_fields,
-	                                      $self->{user}->getValues(),
-	                                      1,
-	                                      1,
-	                                      $buttons,
-	                                      \%hidden );
+	return $self->{session}->render_input_form( 
+					\@fields,
+					$self->{user}->getValues(),
+					1,
+					1,
+					$buttons,
+					\%hidden );
 }
 
 ######################################################################
@@ -224,19 +224,24 @@ sub _update_from_form
 		return( 0 );
 	}
 	
-	my @all_fields = $self->{session}->get_archive()->
-					get_data_set( "user" )->get_fields();
+	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
+	my @fields;
+	if( $self->{staff} )
+	{
+ 		@fields = $user_ds->get_fields();
+	}
+	else
+	{
+		@fields = $user_ds->get_type_fields( $self->{user}->get_value( "usertype" ) );
+	}
+	
 
 	my $field;
-	foreach $field ( @all_fields )
+	foreach $field ( @fields )
 	{
 		my $param = $field->form_value( $self->{session} );
 
-		# Only update if a value for the field was entered in the form.
-		if( $self->{staff} || $field->get_property( "editable" ) )
-		{
-			$self->{user}->set_value( $field->{name} , $param );
-		}
+		$self->{user}->set_value( $field->{name} , $param );
 	}
 	return( 1 );
 }

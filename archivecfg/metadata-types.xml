@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<metadata>
+<metadatatypes>
 
   <dataset name="document">
     <type name="html" />
@@ -203,7 +203,14 @@
       <field name="comments" />
       <field name="referencetext" />
     </type>
+    <type name="stupid">
+      <field name="comments" />
+      <field name="month" required="yes" />
+    </type>
   </dataset>
+
+<!-- don't make username editable -->
+<!-- don't make usertype editable -->
 
   <dataset name="user">
     <type name="user" >
@@ -230,4 +237,4 @@
     </type>
   </dataset>
 
-</metadata>
+</metadatatypes>

@@ -2,7 +2,7 @@
 #
 #  Site Information
 #
-#   Constants and information about the local EPrints site
+#   Constants and information about the local EPrints archive
 #   *PATHS SHOULD NOT END WITH SLASHES, LEAVE THEM OUT*
 #
 ######################################################################
@@ -11,6 +11,9 @@
 ######################################################################
 
 package EPrints::Archives::lemurprints;
+
+#cjg NO UNICODE IN PASSWORDS!!!!!!!!!
+#cjg Hide Passwords when editing.
 
 
 use EPrints::DOM;
@@ -38,7 +41,7 @@ print STDERR "LEMURPRINTS:getconf\n";
 
 ######################################################################
 #
-#  General site information
+#  General archive information
 #
 ######################################################################
 
@@ -356,7 +359,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "usertype",
 			Auth_DBI_encrypted  =>  "off" },
-		priv  =>  [ "user" ] },
+		priv  =>  [ "user", "subscription" ] },
 	staff => { 
 		routine  =>  \&Apache::AuthDBI::authen,
 		conf  =>  {
@@ -368,7 +371,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "usertype",
 			Auth_DBI_encrypted  =>  "off" }, 
-		priv  =>  [ "tester", "subscription" ] }
+		priv  =>  [ "tester", "subscription", "view-status" ] }
 };
 
 
@@ -377,18 +380,12 @@ $c->{userauth} = {
 # METADATA CONFIGURATION
 ######################################################################
 # The archive specific fields for users and eprints.
-#
-# "editable" is almost always true (1), but there are times you
-# might not want this. For example if you have a system which 
-# imports information about users from another database, you
-# may not wish them to be able to change those fields.
-#
 ######################################################################
 
 $c->{archivefields}->{document} = [
 	{ name => "citeinfo", type => "longtext", multiple => 1 }
 ];
-
+#cjg what does required actually do??
 $c->{archivefields}->{user} = [
 
 	{ name => "name", type => "name", required => 1 },
@@ -440,7 +437,10 @@ $c->{archivefields}->{eprint} = [
 	{ name => "keywords", type => "longtext", displaylines => 2 },
 
 	{ name => "month", type => "set",
-		options => [ "unspec","jan","feb","mar","apr","may","jun",
+#cjg BAD CHRIS NO BISCUIT
+#cjg options should be set with "" so you can 'unset' them.
+#cjg maybe not if they are required AND have a default
+		options => [ "jan","feb","mar","apr","may","jun",
 			"jul","aug","sep","oct","nov","dec" ] },
 
 	{ name => "number", type => "text", maxlength => 6 },
@@ -468,203 +468,6 @@ $c->{archivefields}->{eprint} = [
 	{ name => "year", type => "year" }
 ];
 	
-$c->{types}->{eprint} = {
-	"bookchapter" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"REQUIRED:abstract",
-		"REQUIRED:publication",
-		"chapter",
-		"pages",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"confpaper" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"REQUIRED:abstract",
-		"REQUIRED:conference",
-		"pages",
-		"confdates",
-		"confloc",
-		"volume",
-		"number",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"confposter" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"REQUIRED:abstract",
-		"REQUIRED:conference",
-		"pages",
-		"confdates",
-		"confloc",
-		"volume",
-		"number",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"techreport" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:department",
-		"REQUIRED:institution",
-		"reportno",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"journale" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:publication",
-		"volume",
-		"number",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"journalp" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:publication",
-		"volume",
-		"number",
-		"pages",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"newsarticle" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:publication",
-		"volume",
-		"number",
-		"pages",
-		"editors",
-		"publisher",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"other" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"preprint" => [
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	],
-	"thesis" => [
-		"REQUIRED:ispublished",
-		"REQUIRED:refereed",
-		"REQUIRED:pubdom",
-		"REQUIRED:authors",
-		"REQUIRED:title",
-		"REQUIRED:year",
-		"month",
-		"REQUIRED:abstract",
-		"REQUIRED:thesistype",
-		"REQUIRED:department",
-		"REQUIRED:institution",
-		"commref",
-		"altloc",
-		"keywords",
-		"comments",
-		"referencetext"
-	]
-};
-
-$c->{types}->{user} = { 
-	staff  =>  [],
-	user  =>  []
-};
 
 ##################
 
@@ -739,7 +542,7 @@ END
 #
 #  Search and subscription information
 #
-#   Before the site goes live, ensure that these are correct and work OK.
+#   Before the archive goes live, ensure that these are correct and work OK.
 #
 #   To specify a search field that will search >1 metadata field, enter
 #   all of the fields to be searched separated by slashes "/" as a single
@@ -1431,7 +1234,7 @@ sub user_render_full
 #  Invoked each time a new session is needed (generally one per
 #  script invocation.) $session is a session object that can be used
 #  to store any values you want. To prevent future clashes, prefix
-#  all of the keys you put in the hash with site_.
+#  all of the keys you put in the hash with archive.
 #
 #  If $offline is non-zero, the session is an `off-line' session, i.e.
 #  it has been run as a shell script and not by the web server.
@@ -1835,7 +1638,7 @@ sub validate_eprint
 # validate_eprint_meta( $eprint, $problems )
 #                                 array_ref
 #
-#  Validate the site-specific EPrints metadata. $eprint is an
+#  Validate the archive-specific EPrints metadata. $eprint is an
 #  EPrints::EPrint object.
 #  
 #  Any number of problems can be put in the array but it's probably

@@ -112,19 +112,33 @@ else
 }
 $dd->appendChild( $p );
 $dl->appendChild( $dd );
-	
-### Change subscription options
-if( $user->has_priv( "subscription" ) )
+
+my $tools = [
+	### Change subscription options
+	{ 
+		page=>"subscribe",
+		priv=>"subscription"
+	},
+	{ 
+		page=>"status",
+		priv=>"view-status"
+	}
+];
+
+my $tool;
+foreach	$tool (@{$tools})
 {
+	next unless $user->has_priv( $tool->{priv} );
+
 	$dt = $session->make_element( "dt" );
-	$a = $session->make_element( "a", href => "subscribe" );
-	$a->appendChild( $session->html_phrase( "cgi/users/home:sub_opts" ) );
+	$a = $session->make_element( "a", href => $tool->{page} );
+	$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_link" ) );
 	$dt->appendChild( $a );
 	$dl->appendChild( $dt );
 
 	$dd = $session->make_element( "dd" );
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "cgi/users/home:sub_opts_info" ) );
+	$p->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
 	$dd->appendChild( $p );
 	$dl->appendChild( $dd );
 }
@@ -165,10 +179,10 @@ sub render_workspace
 {
 	my( $session, $user ) = @_;
 
-	my $ds = $session->get_archive()->get_data_set( "inbox" );
+	my $ds = $session->get_archive()->get_dataset( "inbox" );
 
 	my @eprints =  $user->get_eprints( $ds );
-
+print STDERR "FOO: ###".scalar(@eprints)."\n";
 	my $html = $session->make_doc_fragment();
 
 	### Get the actual items in the workspace

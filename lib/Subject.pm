@@ -35,13 +35,13 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"subjectid", type=>"text", required=>1, editable=>0 },
+		{ name=>"subjectid", type=>"text", required=>1 },
 
-		{ name=>"name", type=>"text", required=>1, editable=>0 },
+		{ name=>"name", type=>"text", required=>1 },
 
-		{ name=>"parent", type=>"text", required=>0, editable=>0 },
+		{ name=>"parent", type=>"text", required=>0 },
 
-		{ name=>"depositable", type=>"boolean", required=>1, editable=>0 } 
+		{ name=>"depositable", type=>"boolean", required=>1 },
 	);
 }
 
@@ -84,7 +84,7 @@ sub new
 	{
 		# Got ID, need to read stuff in from database
 		return $session->{database}->get_single( 
-			$session->get_archive()->get_data_set( "subject" ), 
+			$session->get_archive()->get_dataset( "subject" ), 
 			$id );
 
 	}
@@ -133,7 +133,7 @@ sub create_subject
 
 # cjg add_record call
 	return( undef ) unless( $session->get_db()->add_record( 
-		$session->get_archive()->get_data_set( "subject" ), 
+		$session->get_archive()->get_dataset( "subject" ), 
 		$newsub ) );
 
 	return( new EPrints::Subject( $session, undef, $newsub ) );
@@ -177,7 +177,7 @@ sub children
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_archive()->get_data_set( "subject" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
@@ -409,7 +409,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $ds = $session->get_archive()->get_data_set();
+		my $ds = $session->get_archive()->get_dataset();
 		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
@@ -497,7 +497,7 @@ sub get_all
 	
 	# Retrieve all of the subjects
 	my @rows = $session->get_db()->get_all( 
-		$session->get_archive()->get_data_set( "subject" ) );
+		$session->get_archive()->get_dataset( "subject" ) );
 
 	return( undef ) if( scalar @rows == 0 );
 

@@ -35,21 +35,21 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"username", type=>"text", required=>1, editable=>0 },
+		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"passwd", type=>"text", required=>1, editable=>1 },
+		{ name=>"passwd", type=>"text", required=>1 },
 
-		{ name=>"usertype", type=>"datatype", required=>1, editable=>0, datasetid=>"user" },
+		{ name=>"usertype", type=>"datatype", required=>1, datasetid=>"user" },
 
-		{ name=>"joined", type=>"date", required=>1, editable=>0 },
+		{ name=>"joined", type=>"date", required=>1 },
 
-		{ name=>"email", type=>"email", required=>1, editable=>1 } 
+		{ name=>"email", type=>"email", required=>1 }
 
 # cjg NEWFIELDS
 # New Email Pin
 # New Email
 
-	);
+	)
 };
 
 
@@ -72,7 +72,7 @@ sub new
 	if( !defined $known )
 	{
 		return $session->get_db()->get_single( 
-			$session->get_archive()->get_data_set( "user" ),
+			$session->get_archive()->get_dataset( "user" ),
 			$username );
 	} 
 
@@ -134,7 +134,7 @@ sub create_user
 	my $used_count = 0;
 	my $candidate = $username_candidate;
 
-	my $user_ds = $session->get_archive()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
 		
 	while( $found==0 )
 	{
@@ -217,7 +217,7 @@ sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
-	my $user_ds = $session->get_archive()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
 		$user_ds,
@@ -274,34 +274,35 @@ sub validate
 	my( $self ) = @_;
 
 	my @all_problems;
-	my @all_fields = $self->{session}->
-		get_archive()->get_data_set( "user" )->get_fields();
+	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
+	my @rfields = $user_ds->get_required_type_fields();
+	my @all_fields = $user_ds->get_fields();
 
 	my $field;
-	foreach $field ( @all_fields )
+	foreach $field ( @rfields )
 	{
 		# Check that the field is filled in if it is required
-		if( $field->get_property( "required" ) && 
-		    !$self->is_set( $field->get_name() ) )
+		if( !$self->is_set( $field->get_name() ) )
 		{
 			push @all_problems, 
 			  $self->{session}->phrase( 
 			   "lib/user:missed_field", 
 			   field => $field->display_name( $self->{session} ) );
 		}
-		else
-		{
-			# Give the validation module a go
-			my $problem = $self->{session}->get_archive()->call(
-				"validate_user_field",
-				$field,
-				$self->get_value( $field->get_name() ),
-				$self->{session} );
+	}
 
-			if( defined $problem && $problem ne "" )
-			{
-				push @all_problems, $problem;
-			}
+	# Give the validation module a go
+	foreach $field ( @all_fields )
+	{
+		my $problem = $self->{session}->get_archive()->call(
+			"validate_user_field",
+			$field,
+			$self->get_value( $field->get_name() ),
+			$self->{session} );
+
+		if( defined $problem && $problem ne "" )
+		{
+			push @all_problems, $problem;
 		}
 	}
 
@@ -322,7 +323,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
+	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 	my $success = $self->{session}->{database}->update(
 		$user_ds,
 		$self->{data} );
@@ -412,7 +413,7 @@ sub retrieve_users
 	
 	my @fields = $session->{metainfo}->get_fields( "user" );
 
-	my $user_ds = $session->get_archive()->get_data_set( "user" );
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
 	my $rows = $session->{database}->retrieve_fields(
 		$user_ds,
 		\@fields,
@@ -472,7 +473,7 @@ sub remove
 	}
 
 	# Now remove user record
-	my $user_ds = $self->{session}->get_archive()->get_data_set( "user" );
+	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 	$success = $success && $self->{session}->{database}->remove(
 		$user_ds,
 		"username",
@@ -587,7 +588,7 @@ sub get_eprints
 
 	$searchexp->add_field(
 		$ds->get_field( "username" ),
-		"PHR:EQ:$self->{username}" );
+		"PHR:EQ:".$self->get_value( "username" ) );
 
 #cjg set order (it's in the site config)
 

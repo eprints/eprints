@@ -13,7 +13,7 @@
 ######################################################################
 
 #cjg NOT data_set !!!
-#cjg why not make loads of accessors instead of get_data_set?
+#cjg why not make loads of accessors instead of get_dataset?
 package EPrints::Archive;
 
 use EPrints::Archives::General;
@@ -22,39 +22,39 @@ use EPrints::Language;
 
 use Filesys::DiskSpace;
 
-my %ID2SITE = ();
+my %ARCHIVE_CACHE = ();
 
 
 ## WP1: BAD
-sub new_site_by_url
+sub new_archive_by_url
 {
 	my( $class, $url ) = @_;
 	print STDERR "($url)\n";
 	$hostpath = $url;
 	$hostpath =~ s#^[a-z]+://##;
 	print STDERR "($hostpath)\n";
-	return new_site_by_host_and_path( $class , $hostpath );
+	return new_archive_by_host_and_path( $class , $hostpath );
 }
 
 ## WP1: BAD
-sub new_site_by_host_and_path
+sub new_archive_by_host_and_path
 {
 	my( $class, $hostpath ) = @_;
-	my $site;
+	my $archive;
 	print STDERR "($hostpath)\n";
 
-	foreach $site ( keys %EPrints::Archives::General::sites )
+	foreach $archive ( keys %EPrints::Archives::General::archives )
 	{
-		if( substr( $hostpath, 0, length($site) ) eq $site )
+		if( substr( $hostpath, 0, length($archive) ) eq $archive )
 		{
-			return new_site_by_id( $class, $EPrints::Archives::General::sites{$site} );
+			return new_archive_by_id( $class, $EPrints::Archives::General::archives{$archive} );
 		}
 	}
 	return undef;
 }
 
 ## WP1: BAD
-sub new_site_by_id
+sub new_archive_by_id
 {
 	my( $class, $id, $noxml ) = @_;
 
@@ -65,9 +65,9 @@ sub new_site_by_id
 		die "Archive ID illegal: $id\n";
 	}
 	
-	if( defined $ID2SITE{$id} )
+	if( defined $ARCHIVE_CACHE{$id} )
 	{
-		return $ID2SITE{$id};
+		return $ARCHIVE_CACHE{$id};
 	}
 	
 	print STDERR "******** REALLY LOADING $id *********\n";
@@ -84,28 +84,17 @@ sub new_site_by_id
 		print STDERR "EPrints: FAILED TO LOAD CONFIG MODULE \"$id\": $err";
 		return undef;
 	}
-	$ID2SITE{$id} = $self;
+	$ARCHIVE_CACHE{$id} = $self;
 
 	$self->{class} = "EPrints::Archives::$id";
 	my $function= $self->{class}."::get_conf";
 	$self->{config} = &{$function}(); #????cjg
 
 	$self->{id} = $id;
-	$self->{datasets} = {};
-	foreach( 
-		"user", 
-		"document", 
-		"subscription", 
-		"subject", 
-		"eprint", 
-		"deletion" )
-        {
-		$self->{datasets}->{$_} = EPrints::DataSet->new( $self, $_ );
-	}
 
-	
 	unless( $noxml )
 	{
+		$self->_load_datasets();
 		$self->_load_languages();
 		$self->_load_templates();
 		$self->_load_citation_specs();
@@ -217,6 +206,66 @@ sub get_template
 	return $self->{html_templates}->{$langid};
 }
 
+sub _load_datasets
+{
+	my( $self ) = @_;
+
+	my $file = $self->get_conf( "config_path" ).
+			"/metadata-types.xml";
+	my $doc = $self->parse_xml( $file );
+
+	my $types_tag = ($doc->getElementsByTagName( "metadatatypes" ))[0];
+	if( !defined $types_tag )
+	{
+		die "Missing <metadatatypes> tag in $file";
+	}
+
+	my $dsconf = {};
+
+	my $ds_tag;	
+	foreach $ds_tag ( $types_tag->getElementsByTagName( "dataset" ) )
+	{
+		my $ds_id = $ds_tag->getAttribute( "name" );
+		my $type_tag;
+		foreach $type_tag ( $ds_tag->getElementsByTagName( "type" ) )
+		{
+			my $type_id = $type_tag->getAttribute( "name" );
+			my $field_tag;
+			$dsconf->{$ds_id}->{$type_id} = [];
+			foreach $field_tag ( $type_tag->getElementsByTagName( "field" ) )
+			{
+				my $finfo = {};
+				$finfo->{id} = $field_tag->getAttribute( "name" );
+				if( $field_tag->getAttribute( "required" ) eq "yes" )
+				{
+					$finfo->{required} = 1;
+				}
+				push @{$dsconf->{$ds_id}->{$type_id}},$finfo;
+			}
+		}
+	}
+	
+#print EPrints::Session::render_struct( $dsconf );	
+	
+	$self->{datasets} = {};
+	my $ds_id;
+	foreach $ds_id ( EPrints::DataSet::get_dataset_ids() )
+	{
+		$self->{datasets}->{$ds_id} = 
+			EPrints::DataSet->new( $self, $ds_id, $dsconf );
+	}
+
+	$doc->dispose();
+}
+
+sub get_dataset
+{
+	my( $self , $setname ) = @_;
+
+	return $self->{datasets}->{$setname};
+}
+
+
 ## WP1: GOOD
 sub get_conf
 {
@@ -244,22 +293,6 @@ sub call
 	my( $self, $cmd, @params ) = @_;
 	$self->log( "Calling $cmd with (".join(",",@params).")" );
 	return &{$self->{class}."::".$cmd}( @params );
-}
-
-## WP1: GOOD
-sub get_data_set
-{
-	my( $self , $setname ) = @_;
-
-	if( !defined $self->{datasets}->{$setname} ) 
-	{
-		$self->{datasets}->{$setname} = 
-		EPrints::DataSet->new( $self, $setname );
-		$self->log( "Had to create DS:$setname, should have been".
-			    " in the cache." );
-	}
-	
-	return $self->{datasets}->{$setname};
 }
 
 sub get_store_dirs

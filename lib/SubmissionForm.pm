@@ -29,14 +29,14 @@ my $STAGES = {
 	linking => 1,
 	meta => 1,
 	subject => 1,
-	format => 1,
-	fileview => 1,
-	upload => 1,
-	verify => 1,
-	done => 1,
-	error => 1,
+	format => 1,#notyet
+	fileview => 1,#notyet
+	upload => 1,#notyet
+	verify => 1,#notyet
+	done => 1,#notyet
+	error => 1,#notyet
 	return => 1,
-	confirmdel => 1 
+	confirmdel => 1 #notyet
 };
 
 #cjg SKIP STAGES???
@@ -450,16 +450,12 @@ sub _from_stage_meta
 
 	# Process uploaded data
 
-	my @all_fields = $self->{dataset}->get_fields();
+	my @fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
 
 	my $field;
-	foreach $field (@all_fields)
+	foreach $field (@fields)
 	{
-		# Only update if it appeared in the form.
-		if( $field->get_property( "editable" ) )
-		{
-			$self->_update_from_form( $field->get_name() );
-		}
+		$self->_update_from_form( $field->get_name() );
 	}
 
 	$self->{eprint}->commit();
@@ -995,7 +991,7 @@ sub _do_stage_linking
 	$page->appendChild( $self->_render_problems() );
 
 	my $archive_ds =
-		$self->{session}->get_archive()->get_data_set( "archive" );
+		$self->{session}->get_archive()->get_dataset( "archive" );
 	my $comment = {};
 	my $field_id;
 	foreach $field_id ( "succeeds", "commentary" )
@@ -1089,17 +1085,7 @@ sub _do_stage_meta
 					class => "requiredstar" ) ) );	
 	$page->appendChild( $p );
 	
-	my @edit_fields;
-	my @all_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
-	
-
-	# Get the appropriate fields
-	my $field;
-	foreach $field (@all_fields)
-	{
-		push @edit_fields, $field if( $field->get_property( "editable" ) );
-	}
-
+	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
 
 	my $hidden_fields = {	
 		eprint_id => $self->{eprint}->get_value( "eprintid" ),
@@ -1295,7 +1281,7 @@ sub _do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
-		my $ds = $self->{session}->get_archive()->get_data_set( "document" );
+		my $ds = $self->{session}->get_archive()->get_dataset( "document" );
 		my $desc_field = $ds->get_field( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
@@ -1619,7 +1605,7 @@ sub _do_stage_return
 {
 	my( $self ) = @_;
 
-	$self->{session}->{render}->redirect( $self->{redirect} );
+	$self->{session}->redirect( $self->{redirect} );
 }	
 
 

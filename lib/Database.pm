@@ -180,7 +180,7 @@ sub create_archive_tables
 		 "document" , "subject" , "subscription" , "deletion" )
 	{
 		$success = $success && $self->_create_table( 
-			$self->{session}->get_archive()->get_data_set( $_ ) );
+			$self->{session}->get_archive()->get_dataset( $_ ) );
 	}
 
 	#$success = $success && $self->_create_tempmap_table();
@@ -580,7 +580,7 @@ sub _create_counter_table
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->get_archive()->get_data_set( "counter" );
+	my $counter_ds = $self->{session}->get_archive()->get_dataset( "counter" );
 	
 	# The table creation SQL
 	my $sql = "CREATE TABLE ".$counter_ds->get_sql_table_name().
@@ -623,7 +623,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
 	my $sql = "CREATE TABLE ".$ds->get_sql_table_name()." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
@@ -654,7 +654,7 @@ sub counter_next
 	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->get_archive()->get_data_set( "counter" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
@@ -686,7 +686,7 @@ sub create_cache
 
 	my $sql;
 
-	my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
 	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
@@ -831,7 +831,7 @@ sub drop_cache
 	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
 		my $sql;
-		my $ds = $self->{session}->get_archive()->get_data_set( "tempmap" );
+		my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
 
 		$sql = "DELETE FROM ".$ds->get_sql_table_name().
 		       " WHERE tableid = $1";
@@ -1052,7 +1052,7 @@ sub do
 		print "$sql\n";
 		print "----------</pre>\n";
 	}
-	$self->{session}->get_archive()->log( "Database do debug: $sql" );
+	#$self->{session}->get_archive()->log( "Database do debug: $sql" );
 
 	return $result;
 }
@@ -1087,7 +1087,7 @@ sub execute
 		print "$sql\n";
 		print "----------</pre>\n";
 	}
-	$self->{session}->get_archive()->log( "Database execute debug: $sql" );
+	#$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 
 	return $result;
 }

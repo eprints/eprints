@@ -91,7 +91,7 @@ sub new_stub
 # note that dataset know $archive and vice versa - bad for GCollection.
 sub new
 {
-	my( $class , $archive , $datasetname ) = @_;
+	my( $class , $archive , $datasetname , $typesconf ) = @_;
 	
 	my $self = EPrints::DataSet->new_stub( $datasetname );
 
@@ -125,35 +125,35 @@ sub new
 	}
 
 	$self->{types} = {};
-	if( defined $archive->get_conf( "types", $self->{confid} ) )
+print join(" / ",keys %{ $typesconf } )."\n";
+print $self->{confid}."\n";
+	if( defined $typesconf->{$self->{confid}} )
 	{
-		my $type;
-		foreach $type ( keys %{$archive->get_conf( "types", $self->{confid} )} )
+		my $typeid;
+		foreach $typeid ( keys %{$typesconf->{$self->{confid}}} )
 		{
-			$self->{types}->{$type} = [];
-			foreach( @{$self->{system_fields}} )
+			$self->{types}->{$typeid} = [];
+
+			#cjg What did this do???? WHy???
+			# foreach( @{$self->{system_fields}} )
+			# {
+			# push @{$self->{types}->{$typeid}}, $_;
+			# }
+			
+			my $f;
+			foreach $f ( @{$typesconf->{$self->{confid}}->{$typeid}} )
 			{
-				push @{$self->{types}->{$type}}, $_;
-			}
-			foreach ( @{$archive->get_conf( "types", $self->{confid}, $type )} )
-			{
-				my $required = ( s/^REQUIRED:// );
-				my $field = $self->{field_index}->{$_};
+				my $field = $self->{field_index}->{$f->{id}}->clone();
 				if( !defined $field )
 				{
 					$archive->log( "Unknown field: $_ in ".
-						$self->{confid}."($type)" );
+						$self->{confid}."($typeid)" );
 				}
-				if( $required )
-				{
-					$field = $field->clone();
-					$field->{required} = 1;
-				}
-				push @{$self->{types}->{$type}}, $field;
+				$field->set_property( "required" , $f->{required} );
+				push @{$self->{types}->{$typeid}}, $field;
 			}
 		}
 	}
-	
 	$self->{default_order} = $self->{archive}->
 			get_conf( "default_order" , $self->{confid} );
 
@@ -375,10 +375,37 @@ sub get_type_fields
 	return @{$self->{types}->{$type}};
 }
 
+# fields which are required for the given type, or just
+# generally required.
+sub get_required_type_fields
+{
+	my( $self, $type ) = @_;
+	
+	my %req = ();
+	my $field;
+
+	foreach $field ( $self->get_fields(), $self->get_type_fields( $type ) )
+	{
+		if( $field->get_property( "required" ) )
+		{	
+			$req{$field->get_name()}=$field;
+		}
+	}
+
+	return values %req;
+}
+
+
 sub is_valid_type
 {
 	my( $self, $type ) = @_;
 	return( defined $self->{types}->{$type} );
+}
+
+# STATIC
+sub get_dataset_ids
+{
+	return keys %{$INFO};
 }
 
 1;

@@ -56,7 +56,7 @@ sub _handle_start
 print "P:".join(",",keys %params).":\n";
 print "T:".$params{name}."\n";
 	
-		my $ds = $parser->{eprints}->{session}->get_archive()->get_data_set( $params{name} );
+		my $ds = $parser->{eprints}->{session}->get_archive()->get_dataset( $params{name} );
 
 		unless( $ds )
 		{

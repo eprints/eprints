@@ -52,15 +52,15 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"docid", type=>"text", required=>1, editable=>0 },
+		{ name=>"docid", type=>"text", required=>1 },
 
-		{ name=>"eprintid", type=>"text", required=>1, editable=>0 },
+		{ name=>"eprintid", type=>"text", required=>1 },
 
-		{ name=>"format", type=>"datatype", required=>1, editable=>1, datasetid=>"document" },
+		{ name=>"format", type=>"datatype", required=>1, datasetid=>"document" },
 
-		{ name=>"formatdesc", type=>"text", required=>1, editable=>1 },
+		{ name=>"formatdesc", type=>"text", required=>1 },
 #Language?
-		{ name=>"main", type=>"text", required=>1, editable=>1 }
+		{ name=>"main", type=>"text", required=>1 }
 	);
 
 }
