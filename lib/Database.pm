@@ -93,6 +93,10 @@ sub build_connection_string
         {
                 $dsn.= ";port=".$EPrintSite::SiteInfo::db_port;
         }
+        if (defined $EPrintSite::SiteInfo::db_socket)
+        {
+                $dsn.= ";mysql_socket=".$EPrintSite::SiteInfo::db_socket;
+        }
         return $dsn;
 }
 

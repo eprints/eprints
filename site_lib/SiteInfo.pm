@@ -426,6 +426,7 @@ $EPrintSite::SiteInfo::sendmail =
 $EPrintSite::SiteInfo::database = "eprints";
 $EPrintSite::SiteInfo::db_host = undef;
 $EPrintSite::SiteInfo::db_port = undef;
+$EPrintSite::SiteInfo::db_socket = undef;
 $EPrintSite::SiteInfo::username = "eprints";
 $EPrintSite::SiteInfo::password = "eprints";
 
