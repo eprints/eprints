@@ -29,16 +29,16 @@ use diagnostics;
 
 %EPrints::SiteRoutines::citation_specs =
 (
-	"bookchapter" => "{authors}. <i>{title}</i>[, in <i>{publication}</i>][ ,chapter {chapter}][, pages {pages}]. [{publisher}, ]{year}.",
-	"confpaper"   => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
-	"confposter"  => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
-	"techreport"  => "{authors}. {title}. Technical Report[ {reportno}], [{department}, ][{institution}, ][{month}, ]{year}.",
-	"journale"    => "{authors}. {title}. <i>{publication}</i>[ {volume}][({number})], [{month}, ]{year}.",
-	"journalp"    => "{authors}. {title}. <i>{publication}</i>[ {volume}][({number})][:{pages}], [{month}, ]{year}.",
-	"newsarticle" => "{authors}. {title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}], [{publisher} ][{month}, ]{year}.",
-	"other"       => "{authors}. {title}. [{month}, ]{year}.",
-	"preprint"    => "{authors}. {title}. [{month}, ]{year}.",
-	"thesis"      => "{authors}. <i>{title}</i>. {thesistype}, [{department}, ][{institution}, ][{month}, ]{year}."
+	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>[, in <i>{publication}</i>][ ,chapter {chapter}][, pages {pages}]. [{publisher}.]",
+	"confpaper"   => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"confposter"  => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
+	"techreport"  => "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
+	"journale"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})].",
+	"journalp"    => "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})][:{pages}].",
+	"newsarticle" => "{authors} [({year}) ]{title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}][, {publisher}].",
+	"other"       => "{authors} [({year}) ]{title}.",
+	"preprint"    => "{authors} [({year}) ]{title}.",
+	"thesis"      => "{authors} [({year}) ]<i>{title}</i>. {thesistype},[ {department},][ {institution}]."
 );
 
 ######################################################################
