@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  19/10/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -66,10 +67,10 @@ if( !$valid_user )
 else
 {
 	### Workspace
-	&render_workspace();
+	&render_workspace( $session );
 
 	### Pending
-	&show_pending();
+	&show_pending( $session );
 
 	print "<HR>\n";
 
@@ -132,6 +133,8 @@ $session->terminate();
 
 sub render_workspace
 {
+	my( $session ) = @_;
+
 	### Get the actual papers in the workspace
 	my @eprints = EPrints::EPrint->retrieve_eprints(
 		$session,
@@ -198,6 +201,8 @@ sub render_workspace
 
 sub show_pending
 {
+	my( $session ) = @_;
+
 	### Get the papers in the buffer
 	my @eprints = EPrints::EPrint->retrieve_eprints(
 		$session,
