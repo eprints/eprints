@@ -1933,11 +1933,12 @@ sub render_file_view
 	foreach $filename (sort keys %files)
 	{
 		$html .= "<TR><TD>";
-		$html .= "<STRONG>Shown First -\&gt;</STRONG>" if( $main eq $filename );
+		$html .= "<STRONG>Shown First -\&gt;</STRONG>"
+			if( defined $main && $main eq $filename );
 		
 		$html .= "</TD><TD>$filename</TD><TD ALIGN=RIGHT>$files{$filename}</TD>".
 			"<TD>";
-		if( $main ne $filename )
+		if( !defined $main || $main ne $filename )
 		{
 			$html .= $self->{session}->{render}->named_submit_button(
 				"main_$filecount",
