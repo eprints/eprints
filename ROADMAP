@@ -88,7 +88,7 @@
 1	Some kind of BibTeX support (fill in metadata form from bibtex) - library function plus cgi + bin tools? [mike]
 0	Some kind of RIS format import (similar to bibtex). [mike]
 -	Search by ID field (in search exp)
-0	What's new? page(s) (just a fixed search) [mike]
+-	What's new? page(s) (just a fixed search) 
 0	Subscriptions - editing
 0	Subscriptions - sending
 2	MathML support
@@ -103,7 +103,7 @@
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 2	XML Importer [mike]
 0	Improve name search syntax (?)
-2	Remove (Hide) Lanuage related options if only one language supported.
+4	Remove (Hide) Lanuage related options if only one language supported.
 4	VLit/Xanadu interface(!)
 
 
@@ -112,9 +112,12 @@
 0	Alternate config files for simple english only archives.
 1	Formally Comment Code
 0	Bugfixing
-1	Documentation! - Howto's, Datatypes, Installation, man pages
-0	How-To Documentation
-0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
+2	Docs: General 
+4	Docs: Installation
+3	Docs: Configuration
+3	Docs: man pages
+0	Docs: How-To 
+0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc, data archive)
 
 *	Milestone "Double Cheese"
 
@@ -177,21 +180,23 @@
 
 # HARD
 #  Qualified Dublin Core NR
-# NR: Email Change
 # clean up comments
 # clean up metadata (inc. boolean rendering):q
 # clean up later-in-thread
 # subject editors (maybe)
 
 # HARRIS.XML!!!
-# MIKE: doc perl modules
+# MIKE: doc perl modules we need (and bundle)
+# SearchField widths?
 
 # Xhtml docs: [gui]
+# setlang - show all langs, flag supported.
 
 # todo: TTTttttbbbbbmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 
 
 # HOW-TOS
+#================
 # produce DOM.
 # add a field
 # add a type
@@ -202,3 +207,4 @@
 # make latexy magic happen
 # adding a document type
 # adding a complex browse view.
+# adding a search on another page

@@ -287,6 +287,9 @@ User Area CGI Scripts
     <ep:phrase ref="cgi/users/home:staff_add_user_link">Add New User</ep:phrase>
     <ep:phrase ref="cgi/users/home:staff_add_user_info"><p>Create a new user.</p></ep:phrase>
 
+    <ep:phrase ref="cgi/users/home:change_email_link">Change your Email Address</ep:phrase>
+    <ep:phrase ref="cgi/users/home:change_email_info"><p>Change the email address which eprints has for you.</p></ep:phrase>
+
     <ep:phrase ref="cgi/users/home:staff_edit_subject_link">Use the Subject Editing Tool</ep:phrase>
     <ep:phrase ref="cgi/users/home:staff_edit_subject_info"><p>This option allows you to create, delete unlink, and link items in the subject tree.</p></ep:phrase>
 
@@ -341,6 +344,15 @@ User Area CGI Scripts
     <ep:phrase ref="cgi/users/review:no_reason">No reason was given.</ep:phrase>
     <ep:phrase ref="cgi/users/review:done"><p>Your request has been sent the the adminstrator.</p></ep:phrase>
     <ep:phrase ref="cgi/users/review:cant_remove">You may not request the removal of this eprint</ep:phrase>
+
+<!-- change_email -->
+
+    <ep:phrase ref="cgi/users/change_email:title">Change Email Address</ep:phrase>
+    <ep:phrase ref="cgi/users/change_email:intro"><p>To change your email address you should enter the new email below. The system will then mail you a URL to visit to activate this new address.</p><p>This system ensures that we always have a valid email address for you.</p><p>The email address we currently have for you is: <pin ref="email" /></p></ep:phrase>
+    <ep:phrase ref="cgi/users/change_email:action_submit">Submit</ep:phrase>
+    <ep:phrase ref="cgi/users/change_email:no_email"><p>You did not actually supply a new email address.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><ep:pin ref="email" /></b> containing the code required to confirm this new email address.</p><p>This code is only valid for a short time</p></ep:phrase>
+    <ep:phrase ref="cgi/users/change_email:changeemail">Email Change Request</ep:phrase>
 
 <!-- status -->
 
@@ -543,7 +555,7 @@ Public CGI Scripts
 </ep:phrase>
     <ep:phrase ref="cgi/set_password:action_submit">Submit</ep:phrase>
     <ep:phrase ref="cgi/set_password:account">Account</ep:phrase>
-    <ep:phrase ref="cgi/set_password:mail_sent"><p>An email has been sent to <ep:pin ref="email" /> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></ep:phrase>
+    <ep:phrase ref="cgi/set_password:mail_sent"><p>An email has been sent to <b><ep:pin ref="email" /></b> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:no_priv"><p>The user with the email address <ep:pin ref="email" /> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></ep:phrase>
     <ep:phrase ref="lib/session:no_signup"><p>New users may not register for this archive via the web.</p></ep:phrase>
     <ep:phrase ref="cgi/set_password:no_password"><p>You did not actually specify a password.</p></ep:phrase>
@@ -557,6 +569,20 @@ Public CGI Scripts
     <ep:phrase ref="setpass_fieldhelp_newpassword">Enter a password. If you forget it you can set a new one using this form.</ep:phrase>
     <ep:phrase ref="setpass_fieldhelp_username">Requested username (only applicable to new users)</ep:phrase>
     <ep:phrase ref="setpass_fieldhelp_lang">Please select your prefered language.</ep:phrase>
+
+<!-- latest -->
+
+    <ep:phrase ref="cgi/latest:title">Latest Additions to &archivename;</ep:phrase>
+    <ep:phrase ref="cgi/latest:none"><p>Nothing new in the last 7 days.</p></ep:phrase>
+    <ep:phrase ref="cgi/latest:today">Today</ep:phrase>
+    <ep:phrase ref="cgi/latest:yesterday">Yesterday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_0">Sunday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_1">Monday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_2">Tuesday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_3">Wednesday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_4">Thursday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_5">Friday</ep:phrase>
+    <ep:phrase ref="cgi/latest:day_6">Saturday</ep:phrase>
 
 <!-- confirm -->
 
@@ -610,6 +636,7 @@ Titles and Help for the System Fields
 
     <ep:phrase ref="user_fieldname_userid">User ID Number</ep:phrase>
     <ep:phrase ref="user_fieldname_username">Username</ep:phrase>
+    <ep:phrase ref="user_fieldhelp_newemail">Enter your new email address</ep:phrase>
     <ep:phrase ref="user_fieldhelp_username"></ep:phrase>
     <ep:phrase ref="user_fieldname_password">Password</ep:phrase>
     <ep:phrase ref="user_fieldhelp_password">Leaving this field blank will not affect the password.</ep:phrase>

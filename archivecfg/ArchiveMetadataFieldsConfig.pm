@@ -177,14 +177,12 @@ sub set_eprint_defaults
 sub set_user_defaults
 {
 	my( $data, $session ) = @_;
-	$data->{os} = "unspec";
 }
 
 sub set_document_defaults
 {
 	my( $data, $session, $eprint ) = @_;
 
-	$data->{security} = "";
 	$data->{language} = $session->get_langid();
 }
 

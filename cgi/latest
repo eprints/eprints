@@ -1,0 +1,88 @@
+######################################################################
+#
+#  EPrints Simple Search Form
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::EPrint;
+use EPrints::SearchExpression;
+
+use strict;
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my $ds = $session->get_archive()->get_dataset( "archive" );
+my $page=$session->make_doc_fragment();
+
+my $seensome = 0;
+for( my $d=0; $d<7; ++$d )
+{
+	my $t = time-60*60*24*$d;
+	my $searchexp = new EPrints::SearchExpression(
+		session => $session,
+		use_cache => 1,
+		dataset => $ds );
+	
+
+	my $date = EPrints::MetaField::get_datestamp( $t );
+	$searchexp->add_field( $ds->get_field( "datestamp" ), $date );
+		
+	$searchexp->perform_search();
+
+	if( $searchexp->count() )
+	{
+		$seensome = 1;
+
+		my $day;
+		if( $d == 0 )
+		{
+			$day = $session->html_phrase( "cgi/latest:today" );
+		}
+		elsif( $d == 1 )
+		{
+			$day = $session->html_phrase( "cgi/latest:yesterday" );
+		}
+		else
+		{
+			my $dow = (localtime($t))[6];
+			$day = $session->html_phrase( "cgi/latest:day_".$dow );
+		}
+
+		my $h2= $session->make_element( "h2" );
+		$h2->appendChild( $day );
+		$page->appendChild( $h2 );
+	
+		$searchexp->map( sub{ 
+			my( $session, $dataset, $item, $info ) = @_;
+		
+			my $p = $session->make_element( "p" );
+			$p->appendChild( $item->render_citation_link() );
+			$page->appendChild( $p );
+		} );
+	
+		$page->appendChild( $session->render_ruler() );
+	}
+	$searchexp->dispose();
+}
+unless( $seensome )
+{
+	$page->appendChild( $session->html_phrase( "cgi/latest:none" ) );
+}
+
+$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+	
+my $title = $session->html_phrase( "cgi/latest:title" );
+
+$session->build_page( $title, $page );
+$session->send_page();
+
+$session->terminate;

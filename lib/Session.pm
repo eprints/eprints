@@ -974,51 +974,53 @@ sub build_page
 {
 	my( $self, $title, $mainbit, $links ) = @_;
 	
-	$self->take_ownership( $mainbit );
-	my $node;
-	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
+	my $topofpage;
+	if( $self->internal_button_pressed() )
 	{
+		$topofpage = $self->make_element( "a", name=>"t" );
+	}
+
+	$self->take_ownership( $mainbit );
+
+	my $map = {
+		title => $title,
+		page => $mainbit,
+		pagetop => $topofpage,
+		head => $links 
+	};
+
+	foreach( keys %{$map} )
+	{
+		if( !defined $map->{$_} )
+		{
+			$map->{$_} = $self->make_doc_fragment();
+		}
+	}
+
+	my $node;
+	foreach $node ( $self->{page}->getElementsByTagName( "pin" , 1 ) )
+	{
+		my $ref = $node->getAttribute( "ref" );
+		my $insert = $map->{$ref};
 		my $element;
 		if( $node->getAttribute( "textonly" ) eq "yes" )
 		{
 			$element = $self->{page}->createTextNode( 
-				EPrints::Utils::tree_to_utf8( $title ) );
+				EPrints::Utils::tree_to_utf8( $insert ) );
+		}
+		elsif( $ref eq "page" )
+		{
+			# Cloning the page is kind a waste of CPU.
+			$element = $insert;
 		}
 		else
 		{
-			$element = $title->cloneNode( 1 );
+			$element = $insert->cloneNode( 1 );
 		}
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
-	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
-	{
-		$node->getParentNode()->replaceChild( $mainbit, $node );
-		$node->dispose();
-	}
-	if( !defined $links )
-	{
-		$links = $self->make_doc_fragment();
-	}
-	foreach $node ( $self->{page}->getElementsByTagName( "linkshere" , 1 ) )
-	{
-		$node->getParentNode()->replaceChild( $links, $node );
-		$node->dispose();
-	}
-	foreach $node ( $self->{page}->getElementsByTagName( "topofpage" , 1 ) )
-	{
-		my $topofpage;
-		if( $self->internal_button_pressed() )
-		{
-			$topofpage = $self->make_doc_fragment();
-		}
-		else
-		{
-			$topofpage = $self->make_element( "a", name=>"t" );
-		}
-		$node->getParentNode()->replaceChild( $topofpage, $node );
-		$node->dispose();
-	}
+
 }
 
 sub send_page

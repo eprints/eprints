@@ -81,7 +81,7 @@ sub phrase
 	{
 		$response = $session->make_text(  
 				"[\"$phraseid\" not defined]" );
-		$session->get_archive()->log( "Undefined phrase: \"$phraseid\"" );
+		$session->get_archive()->log( "Undefined phrase: \"$phraseid\" (".$self->{id}.")" );
 	}
 	$inserts = {} if( !defined $inserts );
 

@@ -1,19 +1,18 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE html SYSTEM "entities-en.dtd" > 
 
-<html
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep2/template">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ep="http://eprints.org/ep2/template">
   <head>
-    <title><ep:titlehere textonly="yes" /></title>
+    <title><ep:pin ref="title" textonly="yes" /></title>
     <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
     <link rel="Top" href="&frontpage;" />
     <link rel="Search" href="&perl_url;/search" />
     <link rel="Help" href="&base_url;/help" />
-    <ep:linkshere />
+    <ep:pin ref="head" />
   </head>
   <body bgcolor="#ffffff" text="#000000" topmargin="0" rightmargin="0" leftmargin="0" marginwidth="0" marginheight="0" >
-    <ep:topofpage />
+    <ep:pin ref="pagetop" />
     <div class="header">
       <table cellpadding="5" border="0" cellspacing="0" width="100%">
         <tr>
@@ -35,8 +34,8 @@
       </table>
     </div>
     <div class="main">
-      <h1 class="pagetitle"><ep:titlehere /></h1>
-      <ep:pagehere />
+      <h1 class="pagetitle"><ep:pin ref="title" /></h1>
+      <ep:pin ref="page" />
     </div>
     <div class="footer">
       <br />

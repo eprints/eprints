@@ -24,7 +24,7 @@ Apache Configuration & Page Serving
 Searching
 ----------------------------------------------------------------------
 
-- No way to search date fields.
+- No way to search date fields, via the forms interface.
 
 - Does not show "ignored words" if results are cached.
 

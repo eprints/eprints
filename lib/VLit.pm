@@ -212,6 +212,24 @@ $msg
 </html>
 END
 	}
+	elsif( $mode eq "xml-entity" )
+	{
+		my $page = new XML::DOM::Document();
+		$page->setXMLDecl(
+			$page->createXMLDecl( "1.0", "UTF-8", "yes" ) );
+		my $transclusion = $page->createElement( "transclusion" );
+		$transclusion->setAttribute(
+			"xlmns", 
+			"http://xanadu.net/transclusion/xu/1.0" );
+		$transclusion->setAttribute( "href", $baseurl );
+		$transclusion->setAttribute( "offset", $offset );
+		$transclusion->setAttribute( "length", $length );
+		$transclusion->appendChild( $page->createTextNode( $data ) );
+		$page->appendChild( $transclusion );	
+
+		send_http_header( "text/xml" );
+		$r->print( $page->toString );
+	}
 	else
 	{
 		send_http_header();

@@ -156,6 +156,12 @@ my $tools = [
 		page=>"staff/add_user",
 		priv=>"edit-user"
 	},
+	### Change Email
+	{
+		code=>"change_email",
+		page=>"change_email",
+		priv=>"change-email"
+	},
 	### Use the Subject Edit Tool
 	{
 		code=>"staff_edit_subject",

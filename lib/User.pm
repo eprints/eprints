@@ -393,8 +393,8 @@ sub is_owner
 
 sub mail
 {
-	my( $self,   $subjectid, $message, $replyto ) = @_;
-	#   Session, string,     DOM,      User/undef
+	my( $self,   $subjectid, $message, $replyto,  $email ) = @_;
+	#   Session, string,     DOM,      User/undef Other Email
 
 	# Mail the admin in the default language
 	my $langid = $self->get_value( "lang" );
@@ -407,12 +407,16 @@ sub mail
 		$remail = $replyto->get_value( "email" );
 		$rname = $replyto->render_description();
 	}
+	if( !defined $email )
+	{
+		$email = $self->get_value( "email" );
+	}
 
 	return EPrints::Utils::send_mail(
 		$self->{session}->get_archive(),
 		$langid,
 		EPrints::Utils::tree_to_utf8( EPrints::Utils::render_name( $self->{session}, $self->get_value( "name" ), 1 ) ),
-		$self->get_value( "email" ),
+		$email,
 		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
 		$message,
 		$lang->phrase( "mail_sig", {}, $self->{session} ),

@@ -28,6 +28,9 @@
  <dt><a href="&base_url;/view/">Browse</a></dt>
  <dd><p>Browse the archive by <a href="&base_url;/view/subjects/">Subject</a> or <a href="&base_url;/view/year/">Year</a>.</p></dd>
 
+ <dt><a href="&perl_url;/latest">Latest Additions</a></dt>
+ <dd><p>View items added to the archive in the past week.</p></dd>
+
  <dt><a href="&perl_url;/search">Simple Search</a></dt>
  <dd><p>Search the archive using the most common fields.</p></dd>
 

@@ -307,8 +307,16 @@ the following Web address:</p>
 <p>&adminemail;</p>
     </ep:phrase>
 
-    <ep:phrase ref="site_description">
-Your site Description goes here. (edit this text in the archive-phrases file(s).
+    <ep:phrase ref="mail_email_pin">
+
+<p>Dear User,</p>
+
+<p>You have requested your email to be changed to <pin ref="newemail" /></p> 
+
+<p>To activate this new address please visit the following URL:</p>
+
+<p><ep:pin ref="confirmurl" /></p>
+
     </ep:phrase>
 
 </ep:phrases>
