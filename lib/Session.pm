@@ -29,6 +29,7 @@ use Unicode::String qw(utf8 latin1);
 
 use EPrints::DOM;
 use XML::Parser;
+use Apache;
 
 
 EPrints::DOM::setTagCompression( \&_tag_compression );
@@ -64,12 +65,13 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
 
-	my $offline;
 
 	if( $mode == 0 || !defined $mode )
 	{
-		$offline = 0;
-		$self->{archive} = EPrints::Archive->new_archive_by_url( $self->{query}->url() );
+		my $r=Apache->request();
+		$self->{offline} = 0;
+		my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
+		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $hpp );
 		if( !defined $self->{archive} )
 		{
 			#cjg icky error handler...
@@ -85,7 +87,7 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	}
 	elsif( $mode == 1 )
 	{
-		$offline = 1;
+		$self->{offline} = 1;
 		if( !defined $param || $param eq "" )
 		{
 			print STDERR "No archive id specified.\n";
@@ -100,11 +102,11 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	}
 	elsif( $mode == 2 )
 	{
-		$offline = 1;
-		$self->{archive} = EPrints::Archive->new_archive_by_host_and_path( $param );
+		$self->{offline} = 1;
+		$self->{archive} = EPrints::Archive->new_archive_by_host_port_path( $param );
 		if( !defined $self->{archive} )
 		{
-			print STDERR "Can't load archive module for URL: $param\n";			return undef;
+			print STDERR "Can't load archive module for URL: $param\n";
 			return undef;
 		}
 	}
@@ -115,6 +117,17 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	}
 
 	#### Got Archive Config Module ###
+
+	# Create a database connection
+	$self->{database} = EPrints::Database->new( $self );
+	
+	if( !defined $self->{database} )
+	{
+		# Database connection failure - noooo!
+		# cjg diff err if offline?
+		$self->render_error( $self->phrase( "lib/session:fail_db_connect" ) );
+		return undef;
+	}
 
 	# What language is this session in?
 
@@ -130,20 +143,10 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	
 	$self->new_page();
 
-	# Create a database connection
-	$self->{database} = EPrints::Database->new( $self );
-	
-	if( !defined $self->{database} )
-	{
-		# Database connection failure - noooo!
-		# cjg diff err if offline?
-		$self->render_error( $self->phrase( "lib/session:fail_db_connect" ) );
-	}
-
 #$self->{starttime} = gmtime( time );
 
 	
-	$self->{archive}->call( "session_init", $self, $offline );
+	$self->{archive}->call( "session_init", $self, $self->{offline} );
 
 #
 #	my @params = $self->{render}->{query}->param();
@@ -1322,7 +1325,7 @@ sub send_http_header
 	}
 
 	my $r = Apache->request;
-	$r->content_type( 'text/html; charset=UTF8' );
+	$r->content_type( 'text/html; charset=UTF-8' );
 
 	if( defined $opts{lang} )
 	{

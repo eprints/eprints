@@ -17,7 +17,7 @@ BEGIN {
 			EPrints::Config::abort( <<END );
 EPRINTS_PATH Environment variable not set.
 Try adding something like this to the apache conf:
-PerlSetEnv EPRINTSPATH /opt/eprints
+PerlSetEnv EPRINTS_PATH /opt/eprints
 END
 		}
 		else
@@ -106,6 +106,7 @@ while( $file = readdir( CFG ) )
 			"hostname", 
 			"urlpath", 
 			"configfile", 
+			"port", 
 			"archivepath" )
 	{
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
@@ -125,7 +126,7 @@ while( $file = readdir( CFG ) )
 	{
 		$ainfo->{configfile}= $ainfo->{archivepath}."/".$ainfo->{configfile};
 	}
-	$ARCHIVEMAP{$ainfo->{hostname}.$ainfo->{urlpath}} = $id;
+	$ARCHIVEMAP{$ainfo->{hostname}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 	$ainfo->{aliases} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "alias" ) )
 	{
@@ -134,12 +135,15 @@ while( $file = readdir( CFG ) )
 		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
 		$alias->{name} = $val; 
 		$alias->{redirect} = ( $tag->getAttribute( "redirect" ) eq "yes" );
-		$ARCHIVEMAP{$alias->{name}.$ainfo->{urlpath}} = $id;
+		$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 		push @{$ainfo->{aliases}},$alias;
 	}
 	$ARCHIVES{$id} = $ainfo;
 }
 closedir( CFG );
+
+use Data::Dumper;
+print STDERR Dumper( \%ARCHIVEMAP );
 
 ###############################################
 
@@ -148,7 +152,7 @@ sub get_languages
 	return @LANGLIST;
 }
 
-sub get_id_from_host_and_path
+sub get_id_from_host_port_path
 {
 	my( $hostpath ) = @_;
 
@@ -217,6 +221,13 @@ print "FUNCTION: $function\n";
 	my $config = &{$function}( $info );
 
 	return $config;
+}
+
+sub lang_title
+{
+	my( $id ) = @_;
+
+	return $LANGNAMES{$id};
 }
 	
 

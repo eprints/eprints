@@ -26,24 +26,13 @@ my %ARCHIVE_CACHE = ();
 
 
 ## WP1: BAD
-sub new_archive_by_url
-{
-	my( $class, $url ) = @_;
-	print STDERR "($url)\n";
-	$hostpath = $url;
-	$hostpath =~ s#^[a-z]+://##;
-	print STDERR "b($hostpath)\n";
-	return new_archive_by_host_and_path( $class , $hostpath );
-}
-
-## WP1: BAD
-sub new_archive_by_host_and_path
+sub new_archive_by_host_port_path
 {
 	my( $class, $hostpath ) = @_;
 	my $archive;
 	print STDERR "a($hostpath)\n";
 
-	my $id = EPrints::Config::get_id_from_host_and_path( $hostpath );
+	my $id = EPrints::Config::get_id_from_host_port_path( $hostpath );
 
 print STDERR "id: $id\n";
 	return if( !defined $id );

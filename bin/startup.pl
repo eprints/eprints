@@ -1,7 +1,22 @@
 use strict;
 
+BEGIN {
+	if( !defined $ENV{EPRINTS_PATH} )
+	{
+		print STDERR <<END;
+-----------------------------------------------------------------------
+EPRINTS_PATH Environment variable not set.
+Try adding something like this to the apache conf:
+PerlSetEnv EPRINTS_PATH /opt/eprints
+-----------------------------------------------------------------------
+END
+		die;
+	}
+}
+
 
 $ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
+
 
 print STDERR "EPRINTS: Loading Modules\n";
 

@@ -5,6 +5,7 @@
    <alias redirect="no">localhost</alias>
    <alias redirect="yes">lemur1</alias>
    <alias redirect="yes">lemur1.ecs</alias>
+   <port>80</port>
    <urlpath>/</urlpath>
    <archivepath>archives/lemurprints</archivepath>
    <configfile>cfg/config.pm</configfile>

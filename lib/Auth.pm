@@ -34,7 +34,13 @@ print STDERR "Authen\n";
 
 	return OK unless $r->is_initial_req; # only the first internal request
 
-	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
+print STDERR "URI: ".$r->uri()."\n";
+
+
+	my $hpp=$r->hostname.":".$r->get_server_port.$r->uri;
+print STDERR "Rebuilt URL Stub: $hpp\n";
+
+	my $session = new EPrints::Session( 2 , $hpp );
 	
 	if( !defined $session )
 	{
@@ -47,7 +53,7 @@ print STDERR "no user name\n";
 		$session->terminate();
 		return AUTH_REQUIRED;
 	}
-print STDERR "URL: ".$r->the_request()."\n";
+print STDERR "therequest: ".$r->the_request()."\n";
 
 print STDERR "THE USER IS: $user_sent\n";
 

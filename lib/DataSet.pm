@@ -1,6 +1,8 @@
 
 package EPrints::DataSet;
 
+use EPrints::Document;
+
 my $INFO = {
 	tempmap => {
 		sqlname => "Xtempmap"
