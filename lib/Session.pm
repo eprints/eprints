@@ -973,6 +973,12 @@ sub take_ownership
 sub build_page
 {
 	my( $self, $title, $mainbit, $links ) = @_;
+
+	if( $self->param( "mainonly" ) eq "yes" )
+	{
+		$self->{page} = $mainbit;
+		return;
+	}
 	
 	my $topofpage;
 	if( $self->internal_button_pressed() )

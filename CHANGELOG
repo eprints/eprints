@@ -352,7 +352,6 @@ match mode is not "IN" and if match mode is not specified it defaults to
 [c] - removed defaults for "os" and "security" as these are no longer
 meaningful. Defaults are now ""
 [c] - changed template to use <pin> rather than <pagehere>, <titlehere> etc.
-
 - Language now logs which lang a missing phrase was in (not in!)
 - added change_email feature to user area.
 - $user->mail() can now send email to a different address to the one given
@@ -360,4 +359,4 @@ meaningful. Defaults are now ""
 - VLit now has an xml-entity mode
 - added "latest" cgi script which lists the last weeks additions.
 
-
+- CGI param mainonly now supresses the template and just serves the body.
