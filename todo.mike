@@ -14,11 +14,11 @@ Things to do (Mike)
 	* make MetaField->to_html render_value
 	* make SearchField->to_html render_input_field
 	* make ALL DOM methods render_foo_bar
-	* tidy up lemurprints.pm "big type lists"
 	* tidy up XML lemurprints citations. <IF></IF>
 	* rearrange large modules like Session.pm to be in sets, eg.
 		all CGI/param stuff together, all DOM stuff together
 	* "sort out" static dir, although don't worry about "help" too much.
+		(see index for example)
 		
 
 "BIGGIES"
@@ -36,3 +36,4 @@ DONE:
 	* nothing yet
 	* finish turning fooBar to foo_bar
 	* rename all things in intl/english to have the suffix in  the file eg
+	* tidy up lemurprints.pm "big type lists"
