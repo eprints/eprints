@@ -189,28 +189,50 @@ END
 }
 
 # Encode a utf8 string for a MIME header.
-sub mime_encode_q {
+sub mime_encode_q
+{
 	my( $string ) = @_;
 
-	return "" if( length($string) == 0);
-	my $encoded = "";
-	my $i;
-	for $i (0..length($string)-1)
+	return "" if (length($string) == 0);
+	$svnbit = 1;
+	$latin1 = 1;
+	$utf8	= 0;
+
+	foreach($string->unpack())
 	{
-		my $o = ord(substr($string,$i,1));
-		# less than space, higher or equal than 'DEL' or _ or ?
-		if( $o < 0x20 || $o > 0x7E || $o == 0x5F || $o == 0x3F )
+		$svnbit &= !($_ > 0x79);	
+		$latin1 &= !($_ > 0xFF);
+		if ($_ > 0xFF)
 		{
-			$encoded.=sprintf( "=%02X", $o );
-		}
-		else
-		{
-			$encoded.=chr($o);
-		}
+			$utf8 = 1;	
+			last;
+		} 
 	}
-	return "=?utf-8?Q?".$encoded."?=";
+	return $string if $svnbit;
+	return "=?utf-8?Q?".encode_str($string)."?=" if $utf8;
+	return "=?iso-latin1?Q?".encode_str($string)."?=" if $latin1;
 }
 
+sub encode_str
+{
+	my( $string ) = @_;
+	my $encoded = "";
+        my $i;
+        for $i (0..length($string)-1)
+        {
+                my $o = ord(substr($string,$i,1));
+                # less than space, higher or equal than 'DEL' or _ or ?
+                if( $o < 0x20 || $o > 0x7E || $o == 0x5F || $o == 0x3F )
+                {
+                        $encoded.=sprintf( "=%02X", $o );
+                }
+                else
+                {
+                        $encoded.=chr($o);
+                }
+        }
+	return $encoded;
+}
 
 # ALL cjg get_value should use this.
 sub is_set
