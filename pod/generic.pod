@@ -20,7 +20,9 @@ Should you need a real world address for some reason, EPrints can be contacted i
  SO17 1BJ
  United Kingdom
 
-=head1 LICENSE
+=head1 COPYRIGHT
+
+Copyright (c) 2000,2001,2002 University of Southampton, UK. SO17 1BJ.
 
 __LICENSE__
 
