@@ -930,8 +930,7 @@ sub to_html
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $self->{session}->get_site()->get_data_set( 
-					$self->{field}->get_data_set() );
+			my $ds = $self->{field}->get_data_set();
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $self->{session} );
 		}

@@ -32,7 +32,7 @@ my $searchexp = new EPrints::SearchExpression(
 my $preamble = $session->make_element( "p" );
 $preamble->appendChild( 
 	$session->html_phrase( 
-		"cgi/advsearch:dont_panic"
+		"cgi/advsearch:dont_panic",
 		simplesearch => $session->make_element( "a", href=>"search" ) ) );
 
 $searchexp->process_webpage(

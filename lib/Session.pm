@@ -259,15 +259,9 @@ sub html_phrase
 	#
 	# returns [DOM]	
 
-        my @callinfo = caller();
-        $callinfo[1] =~ m#[^/]+$#;
-        my $result = $self->{lang}->file_phrase( 
-					$& , 
-					$phraseid , 
-					\%inserts , 
-					$self );
+        my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
 
-	return $self->tree_to_xhtml( $result );
+	return $self->tree_to_xhtml( $r );
 }
 
 ## WP1: GOOD
@@ -280,10 +274,7 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 		
 	}
-        my @callinfo = caller();
-        $callinfo[1] =~ m#[^/]+$#;
-
-        my $r = $self->{lang}->file_phrase( $&, $phraseid, \%inserts , $self);
+        my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
 
 	return $self->tree_to_utf8( $r );
 }

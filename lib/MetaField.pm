@@ -236,6 +236,7 @@ sub get_date
 #
 ######################################################################
 
+
 ## WP1: BAD
 sub get_datestamp
 {
@@ -306,6 +307,12 @@ print STDERR "gsind: $self->{type}...($index)\n";
 	return $index;
 }
 
+sub get_data_set
+{
+	my( $self ) = @_;
+	return $self->{dataset};
+}
+	
 ## WP1: BAD
 sub get_name
 {

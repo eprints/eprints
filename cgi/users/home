@@ -61,7 +61,7 @@ $page = $session->make_doc_fragment();
 $p = $session->make_element( "p" );
 $p->appendChild( 
 	$session->html_phrase( 
-		"/cgi/users/home:welcome",
+		"cgi/users/home:welcome",
 		sitename => $session->make_text( 
 			$session->get_site()->get_conf( "sitename" ) ) ) );
 $page->appendChild( $p );
@@ -85,12 +85,12 @@ if( $valid_user )
 { #cjg THIS IS NOT DONE
 	### View items in archive
 	#print "<DL><DT><STRONG><A HREF=\"review\">";
-	#$session->{lang}->phrase( "/cgi/users/home:review" );
+	#$session->{lang}->phrase( "cgi/users/home:review" );
 	#print "</A></STRONG></DT>\n";
 	#print "<DD><P>";
-	#$session->{lang}->phrase( "/cgi/users/home:review_info" );
+	#$session->{lang}->phrase( "cgi/users/home:review_info" );
 	#if( $session->{site}->{allow_user_removal} ) {
-		#$session->{lang}->phrase( "/cgi/users/home:remove_info" );
+		#$session->{lang}->phrase( "cgi/users/home:remove_info" );
 	#}
 	#print "</P></DD>\n";
 }
@@ -99,7 +99,7 @@ if( $valid_user )
 
 $dt = $session->make_element( "dt" );
 $a = $session->make_element( "a", href => "record" );
-$a->appendChild( $session->html_phrase( "/cgi/users/home:change" ) );
+$a->appendChild( $session->html_phrase( "cgi/users/home:change" ) );
 $dt->appendChild( $a );
 $dl->appendChild( $dt );
 
@@ -107,12 +107,12 @@ $dd = $session->make_element( "dd" );
 $p = $session->make_element( "p" );
 if( $valid_user )
 {
-	$p->appendChild( $session->html_phrase( "/cgi/users/home:change_info" ) );
+	$p->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
 }
 else
 {
 	### User needs to update their record
-	$p->appendChild( $session->html_phrase( "/cgi/users/home:before" ) );
+	$p->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
 }
 $dd->appendChild( $p );
 $dl->appendChild( $dd );
@@ -122,13 +122,13 @@ if( $user->has_priv( "subscription" ) )
 {
 	$dt = $session->make_element( "dt" );
 	$a = $session->make_element( "a", href => "subscribe" );
-	$a->appendChild( $session->html_phrase( "/cgi/users/home:sub_opts" ) );
+	$a->appendChild( $session->html_phrase( "cgi/users/home:sub_opts" ) );
 	$dt->appendChild( $a );
 	$dl->appendChild( $dt );
 
 	$dd = $session->make_element( "dd" );
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "/cgi/users/home:sub_opts_info" ) );
+	$p->appendChild( $session->html_phrase( "cgi/users/home:sub_opts_info" ) );
 	$dd->appendChild( $p );
 	$dl->appendChild( $dd );
 }
@@ -137,7 +137,7 @@ if( $user->has_priv( "subscription" ) )
 $page->appendChild( $dl );
 
 $session->build_page( 
-		$session->phrase( "/cgi/users/home:user_home", name => $fullname ),
+		$session->phrase( "cgi/users/home:user_home", name => $fullname ),
 		$page );
 $session->send_page();
 
@@ -181,7 +181,7 @@ sub render_workspace
 	{
 #cjg
 		print "<CENTER><H3>";	
-		print $session->{lang}->phrase( "/cgi/users/home:docs" );
+		print $session->{lang}->phrase( "cgi/users/home:docs" );
 		print "</H3></CENTER>\n";
 
 		my @eprint_ids;
@@ -215,7 +215,7 @@ sub render_workspace
 			"submit" );
 
 		print "<P><CENTER><EM>";
-		print $session->{lang}->phrase( "/cgi/users/home:depositing" );
+		print $session->{lang}->phrase( "cgi/users/home:depositing" );
 		print "</EM></CENTER></P>\n";
 	}
 	else
@@ -226,7 +226,7 @@ sub render_workspace
 
 		$form->appendChild(
 			$session->make_action_buttons( 	
-				new => $session->phrase( "/cgi/users/home:start_upload" ) ) );
+				new => $session->phrase( "cgi/users/home:start_upload" ) ) );
 
 		$html->appendChild( $form );
 	}
@@ -257,7 +257,7 @@ sub show_pending
 	if( $#eprints >= 0 )
 	{
 		print "<CENTER><H3>";
-		print $session->{lang}->phrase( "/cgi/users/home:pending_title" );
+		print $session->{lang}->phrase( "cgi/users/home:pending_title" );
 		print "</H3></CENTER>\n";
 		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
 		my $e;
@@ -267,7 +267,7 @@ sub show_pending
 			print $e->short_title();
 			print "</EM></TD><TD>";
 			print $session->{lang}->phrase( 
-				"/cgi/users/home:deposited_at",
+				"cgi/users/home:deposited_at",
 				{ time=>$session->{render}->format_field(
 					$session->{metainfo}->find_table_field( "eprint", "datestamp" ),
 					$e->{datestamp} ) } );

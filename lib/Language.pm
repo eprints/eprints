@@ -99,16 +99,16 @@ sub new
 
 
 ## WP1: BAD
-sub file_phrase
+sub phrase
 {
-	my( $self, $file, $phraseid, $inserts, $session ) = @_;
+	my( $self, $phraseid, $inserts, $session ) = @_;
 
-	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
+	my( $response , $fb ) = $self->_phrase_aux( $phraseid , $_ );
 
 	if( !defined $response )
 	{
 		$response = $session->make_text(  
-				"[\"$file:$phraseid\" not defined]" );
+				"[\"$phraseid\" not defined]" );
 	}
 	$inserts = {} if( !defined $inserts );
 
@@ -156,36 +156,27 @@ sub file_phrase
 
 
 ## WP1: BAD
-sub _file_phrase
+sub _phrase_aux
 {
-	my( $self, $file, $phraseid ) = @_;
+	my( $self, $phraseid ) = @_;
 
 	my $res = undef;
 
-	$res = $self->{sitedata}->{MAIN}->{$phraseid};
-	return $res->cloneNode( 1 ) if ( defined $res );
-	$res = $self->{sitedata}->{$file}->{$phraseid};
+	$res = $self->{sitedata}->{$phraseid};
 	return $res->cloneNode( 1 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_sitedata->{MAIN}->{$phraseid};
-		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
-		$res = $self->{fallback}->_get_sitedata->{$file}->{$phraseid};
+		$res = $self->{fallback}->_get_sitedata->{$phraseid};
 		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
 	}
 
-	$res = $self->{data}->{MAIN}->{$phraseid};
-	return $res->cloneNode( 1 ) if ( defined $res );
-	$res = $self->{data}->{$file}->{$phraseid};
+	$res = $self->{data}->{$phraseid};
 	return $res->cloneNode( 1 ) if ( defined $res );
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_data->{MAIN}->{$phraseid};
-		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
-		$res = $self->{fallback}->_get_data->{$file}->{$phraseid};
+		$res = $self->{fallback}->_get_data->{$phraseid};
 		return ( $res->cloneNode( 1 ) , 1 ) if ( defined $res );
 	}
-
 
 	return undef;
 }
@@ -251,27 +242,7 @@ sub read_phrases
 				$element->removeChild( $kid );
 				$val->appendChild( $kid ); 
 			}
-			$data->{MAIN}->{$key} = $val;
-		}
-		if( $name eq "file" )
-		{
-			my $fname = $element->getAttribute( "name" );
-			my $subelement;
-			foreach $subelement ( $element->getChildNodes )
-			{
-				unless( $subelement->getNodeName eq "phrase" )
-				{
-					next;
-				}
-				my $key = $subelement->getAttribute( "ref" );
-				my $val = $doc->createDocumentFragment;
-				foreach( $subelement->getChildNodes )
-				{
-					$subelement->removeChild( $_ );
-					$val->appendChild( $_ ); 
-				}
-				$data->{$fname}->{$key} = $val;
-			}
+			$data->{$key} = $val;
 		}
 	}
 	$doc->dispose();
