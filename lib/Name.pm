@@ -32,22 +32,20 @@ sub format_name
 	my $html = "";
 	my $i;
 
-	my @names;
-	@names = split /:/, $namespec if( defined $namespec );
+	# Get the names out of the list
+	my @names = EPrints::Name->extract( $namespec );
 	
-	for( $i = 1; $i<=$#names; $i++ )
+	for( $i=0; $i<=$#names; $i++ )
 	{
-		my( $surname, $firstnames ) = split /,/, $names[$i];
+		my( $surname, $firstnames ) = @{$names[$i]};
 		
-		if( ( $i == $#names-1 ) && ( $#names > 1 ) )
+		if( $i==$#names && $#names > 0 )
 		{
-			# " and " if the name is the last in the list, and there was
-			# >1 in the list total
+			# If it's the last name and there's >1 name, add " and "
 			$html .= " and ";
 		}
-		elsif( $i > 1 )
+		elsif( $i > 0 )
 		{
-			# A "," if it's in a list, but not the last
 			$html .= ", ";
 		}
 		
@@ -60,7 +58,7 @@ sub format_name
 			$html .= "$surname, $firstnames";
 		}
 	}
-	
+
 	return( $html );
 }
 
