@@ -247,8 +247,7 @@ sub create_archive_tables
 
 	$self->create_version_table;	
 	
-	$self->set_version( 
-		$self->{session}->get_archive->get_conf( "version_id" ) );
+	$self->set_version( $EPrints::Database::DBVersion );
 	
 	return( $success );
 }
