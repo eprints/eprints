@@ -91,6 +91,7 @@ sub new
 		$self->{session},
 		$EPrints::Database::table_archive,
 		1,
+		1,
 		\@metafields,
 		\%EPrintSite::SiteInfo::eprint_order_methods,
 		$EPrintSite::SiteInfo::default_eprint_order );

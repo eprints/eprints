@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  20/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -29,6 +30,7 @@ my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprints",
 	$EPrints::Database::table_archive,
+	0,
 	\@metafields,
 	"Simple Search",
 	"<CENTER><P><A HREF=\"advsearch\">Click here for an advanced search.</A>".

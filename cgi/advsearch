@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  27/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -30,6 +31,7 @@ my $searchform = new EPrints::SearchForm(
 	$session,
 	"eprints",
 	$EPrints::Database::table_archive,
+	0,
 	\@metafields,
 	"Advanced Search",
 	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".

@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  20/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -29,6 +30,7 @@ my $action_update    = "Update the search";
 # $searchform = new( $session,
 #                    $what,
 #                    $table,
+#                    $allow_blank,
 #                    $default_fields,
 #                    $title,
 #                    $preamble,
@@ -40,6 +42,8 @@ my $action_update    = "Update the search";
 #  $what           - if "eprints", the search form will search for eprints.
 #                    if "user",  will search for users.
 #  $table          - the database table to search
+#  $allow_blank    - if the searcher is allowed to leave everything
+#                  - blank and retrieve everything
 #  $default_fields - which fields to display (MetaField objects)
 #  $title          - title for the form
 #  $preamble       - put at the top of the page.
@@ -53,6 +57,7 @@ sub new
 	my( $class,
 	    $session,
 	    $what,
+	    $allow_blank,
 	    $table,
 	    $default_fields,
 	    $title,
@@ -65,6 +70,7 @@ sub new
 
 	$self->{session} = $session;
 	$self->{what} = $what;
+	$self->{allow_blank} = $allow_blank;
 	$self->{table} = $table;
 	$self->{default_fields} = $default_fields;
 	$self->{title} = $title;
@@ -95,6 +101,7 @@ sub process
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
 		$self->{table},
+		$self->{allow_blank},
 		1,
 		$self->{default_fields},
 		$self->{order_methods},

@@ -25,7 +25,8 @@ use strict;
 #
 # $exp = new( $session,
 #             $table,
-#             $satisfyall,
+#             $allow_blank,
+#             $satisfy_all,
 #             $fields,
 #             $orderby,
 #             $defaultorder )
@@ -33,6 +34,11 @@ use strict;
 #  Create a new search expression, to search $table for the MetaField's
 #  in $fields (an array ref.) Blank SearchExpressions are made for each
 #  of these fields.
+#
+#  If $allowblank is non-zero, the searcher can leave all fields blank
+#  in order to retrieve everything. In some cases this might be a bad
+#  idea, for instance letting someone retrieve every eprint in the
+#  archive might be a bit silly and lead to performance problems...
 #
 #  If $satisfyall is non-zero, then a retrieved eprint must satisy
 #  all of the conditions set out in the search fields. Otherwise it
@@ -56,7 +62,8 @@ sub new
 	my( $class,
 	    $session,
 	    $table,
-	    $satisfyall,
+		 $allow_blank,
+	    $satisfy_all,
 	    $fields,
 	    $orderby,
 	    $defaultorder ) = @_;
@@ -66,7 +73,8 @@ sub new
 	
 	$self->{session} = $session;
 	$self->{table} = $table;
-	$self->{satisfy_all} = $satisfyall;
+	$self->{allow_blank} = $allow_blank;
+	$self->{satisfy_all} = $satisfy_all;
 
 	# We're going to change the orderby stuff, so that we get
 	#   $self->{order_ids}  array of ids
@@ -249,7 +257,7 @@ sub from_form
 	}
 
 	push @problems, "You need to specify something for at least one field!"
-		unless( $onedefined );
+		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->{render}->param( "_satisfyall" );
 	
@@ -279,7 +287,7 @@ sub do_eprint_search
 	return( EPrints::EPrint->retrieve_eprints(
 		$self->{session},
 		$EPrints::Database::table_archive,
-		[ $sql ],
+		( defined $sql ? [ $sql ] : undef ),
 		$order ) );
 }
 
@@ -302,7 +310,7 @@ sub do_user_search
 	
 	return( EPrints::User->retrieve_users(
 		$self->{session},
-		[ $sql ],
+		( defined $sql ? [ $sql ] : undef ),
 		$order ) );
 }
 
@@ -341,6 +349,8 @@ EPrints::Log->debug( "SearchExpression", "Number of search fields: ".scalar( @{$
 	my $order = (defined $self->{order} ?
 		[ $self->{order_sql}->{$self->{order}} ] :
 		undef );
+
+	undef $sql if( $sql eq "" );
 
 	return( $sql, $order );
 }
