@@ -12,12 +12,19 @@
 
 package EPrints::OpenArchives;
 
+use EPrints::Database;
 use EPrints::EPrint;
+use EPrints::MetaField;
+use EPrints::MetaInfo;
 use EPrints::Session;
-
+use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 
+# This is the character used to separate the unique archive ID from the
+# record ID in full Dienst record identifiers
+
 $EPrints::OpenArchives::id_separator = ":";
+
 
 ######################################################################
 #
@@ -120,6 +127,24 @@ sub _partitionise_subjects
 
 ######################################################################
 #
+# $fullID = fullID( $eprint )
+#
+#  Return a full Dienst ID for the given eprint.
+#
+######################################################################
+
+sub fullID
+{
+	my( $class, $eprint ) = @_;
+	
+	return( $EPrintSite::SiteInfo::archive_identifier .
+	        $EPrints::OpenArchives::id_separator .
+	        $eprint->{eprintid} );
+}
+
+
+######################################################################
+#
 # $valid = valid_fullID( $fullID )
 #
 #  Returns non-zero if $fullID is valid.
@@ -174,6 +199,57 @@ sub get_oams_tags
 	return( %tags );
 }
 
+
+######################################################################
+#
+# @eprints = list_contents( $partitionspec, $fileafter )
+#
+#  Return the eprints corresponding to the given partitionspec and
+#  submitted after the given date
+#
+######################################################################
+
+sub list_contents
+{
+	my( $class, $partitionspec, $fileafter ) = @_;
+	
+	# First, need a non-script session
+	my $session = new EPrints::Session( 1 );
+	
+	# Create a search expression
+	my $searchexp = new EPrints::SearchExpression(
+		$session,
+		$EPrints::Database::table_archive,
+		0,
+		1,
+		[],
+		\%EPrintSite::SiteInfo::eprint_order_methods,
+		undef );
+	
+	# Add the relevant fields
+
+	if( defined $partitionspec && $partitionspec ne "" )
+	{
+		# Get the subject field
+		my $subject_field = EPrints::MetaInfo->find_eprint_field( "subjects" );
+
+		# Get the relevant subject ID. Since all subjects have unique ID's, we
+		# can just remove everything specifying the ancestry.
+		$partitionspec =~ s/.*;//;
+
+		$searchexp->add_field( $subject_field, "$partitionspec:ANY" );
+	}
+	
+	if( defined $fileafter && $fileafter ne "" )
+	{
+		# Get the datestamp field
+		my $datestamp_field = EPrints::MetaInfo->find_eprint_field( "datestamp" );
+		
+		$searchexp->add_field( $datestamp_field, "$fileafter-" );
+	}
+	
+	return( $searchexp->do_eprint_search() );
+}
 
 
 1;

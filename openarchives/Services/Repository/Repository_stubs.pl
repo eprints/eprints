@@ -119,15 +119,16 @@ sub mr_disseminate {
 
 }
 
-# List-Contents Verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
+# List-Contents Verb
 sub mr_dump_contents {
     my ($kwArgs, $Context) = @_;
+
     my ($partitionSpec) = $kwArgs->{'partitionspec'};
     my ($fileAfter) = $kwArgs->{'file-after'};
     my ($metaFormat) = $kwArgs->{'meta-format'};
 
-    # dummy list of contents for testing
-    my (@contents) = qw\handlecorp/0001 handlecorp/0002 handlecorp/0002\;
+    my @eprints = EPrints::OpenArchives->list_contents( $partitionSpec,
+                                                        $fileAfter );
 
     # start the XML output
     my $XMLOutputTempFile = POSIX::tmpnam();
@@ -138,33 +139,20 @@ sub mr_dump_contents {
     $writer->startTag ("$Context->{'verb'}", 
 		       "version" => $Context->{'version'});
 
-    # dump the contents
-    my $c;
-    foreach $c (@contents) {
-	$writer->startTag("record");
-	$writer->characters($c);
+    my $ep;
 
-	# in this test version we only know how to dump oams
+    foreach $ep (@eprints)
+    {
+	$writer->startTag("record");
+	$writer->characters( EPrints::OpenArchives->fullID( $ep ) );
+
+	# Only know how to list OAMS
 	if ($metaFormat eq 'oams') {
 	    $writer->startTag('oams');
 
 	    # dummy OAMS metadata for demo.
-	    my %oamsTags = (
-		     title => "Sample Title",
-		     accession => "2000-01-01",
-		     subject => "Any Subject",
-		     fullID => $c,
-		     abstract => "This is about anything",
-		     displayID => ['http://foo.com/handlecorp/0001'],
-		     subject => ['databases', 'ai'],
-		     comment => ['just a comment'],
-		     discovery => ['1900-01-01', '1971-01-01'],
-		     # author is repeatable and has internal structure
-		     author => [{'name' => 'Jane Doe', 
-				 'organization' => "Big Company"},
-				{'name' => 'John Doe',
-                                 'organization' => "Big University"}]
-		     );
+	    my %oamsTags = EPrints::OpenArchives->get_oams_tags( $ep );
+
 	    &write_OAMS(\%oamsTags, $writer, $Context);
 	    $writer->endTag('oams');
 	}
@@ -214,7 +202,7 @@ sub mr_list_meta_formats {
     unlink $XMLOutputTempFile;
 }
 
-# List-Partitions Verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
+# List-Partitions Verb
 sub mr_list_partitions {
     my ($kwArgs, $Context) = @_; 
 
@@ -305,22 +293,6 @@ sub mr_structure {
     unlink $XMLOutputTempFile;
 }
 
-sub dummy_XML_return {
-    my ($Context) = @_;
-
-    my $XMLOutputTempFile = POSIX::tmpnam();
-    my $output = new IO::File(">$XMLOutputTempFile");
-    my $writer = 
-	new XML::Writer (OUTPUT => $output, NEWLINES => 1, NAMESPACES => 1);   
-    $writer->xmlDecl();
-    $writer->startTag ("$Context->{'verb'}", 
-			     "version" => $Context->{'version'});
-    $writer->endTag ($Context->{'verb'});
-    $writer->end ();
-    $output->close();
-    &dienst::xmit_file("$XMLOutputTempFile", "text/xml", 1);
-    unlink $XMLOutputTempFile;
-}
 
 # Create XML output of Open Archives Metadata.  Input is the XML::Writer
 # object in which the OAMS output is to be created and a hash that contains
