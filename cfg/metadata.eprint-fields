@@ -57,8 +57,9 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Commentary on"
-help = "If your submission is a commentary on a paper not in this archive, "
-help = "please enter the full reference of the paper here."
+help = "If your submission is a commentary on a paper <strong> that is not in "
+help = "this archive</strong>, please enter the full reference of the paper "
+help = "here."
 </field>
 
 <field confdates>

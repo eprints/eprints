@@ -396,7 +396,7 @@ sub from_stage_type
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 		}
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_cancel )
@@ -458,7 +458,7 @@ sub from_stage_meta
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 	}
 	else
 	{
@@ -502,7 +502,7 @@ sub from_stage_subject
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
 		}
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
@@ -560,12 +560,12 @@ sub from_stage_linking
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
 		}
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_verify )
 	{
@@ -642,7 +642,7 @@ sub from_stage_format
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_finished )
 	{
