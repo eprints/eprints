@@ -791,7 +791,7 @@ sub from_form
 		
 		if( defined $val && $val ne "" )
 		{
-			$self->{value} = "ANY:EX:$val";
+			$self->{value} = "ANY:EQ:$val";
 		}
 	}
 	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
@@ -800,11 +800,11 @@ sub from_form
 		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
 		my $search_type = $self->{session}->{render}->param( 
 			$self->{formname}."_srchtype" );
-		my $exact = "IN";
+		my $exact = "EQ";
 		
 		# Default search type if none supplied (to allow searches using simple
 		# HTTP GETs)
-		$search_type = "all" unless defined( $search_type );		
+		$search_type = "ALL" unless defined( $search_type );		
 		
 		if( defined $search_terms && $search_terms ne "" ) 
 		{
@@ -1101,17 +1101,13 @@ sub benchmark
 
 }
 
-sub do
+sub _get_tables_searches
 {
-	my ( $self , $searchbuffer) = @_;
-	
-        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
-        my $keyfield = $fields[0];
+	my ( $self ) = @_;
 
-	my %minisearches = ();
+	my %searches = ();
 	my @tables = ();
-	my $n;
-	if ( defined $self->{multifields} )
+	if( defined $self->{multifields} )
 	{
 		foreach( @{$self->{multifields}} ) 
 		{
@@ -1122,57 +1118,83 @@ sub do
 				$self->{value} );
 			my ($table,$where) = $sfield->get_conditions();
 			push @tables,$table;
-			$minisearches{$table}=$where;
+			$searches{$table}=$where;
 		}
-		$n = scalar @{$minisearches{$tables[0]}};
 	}
-	else
+	else 
 	{
 		my ($table,$where) = $self->get_conditions();
-		$tables[0] = $table;
-		$minisearches{$table} = $where;
-		$n = 1;
+		push @tables, $table;
+		$searches{$table} = $where;
 	}
-	print STDERR "($n)\n";
-	my $buffer = $searchbuffer;
+	return (\@tables, \%searches);
+}
+
+sub do
+{
+	my ( $self , $searchbuffer , $satisfy_all) = @_;
+	
+        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my $keyfield = $fields[0];
+
+	my ($tables, $searches) = $self->_get_tables_searches();
+	my $n = scalar @{$searches->{$tables->[0]}};
+	
+	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
+EPrints::Log::debug("n: [$n]");
+
+	my $buffer = undef;
+	if( !$satisfy_all && $self->{anyall} eq "ANY" )
+	{
+		# don't create a new buffer, just dump more 
+		# values into the current one.
+		$buffer = $searchbuffer;
+	}
 	my $i;
 	for( $i=0 ; $i<$n ; ++$i )
 	{
-		my $first = 1;
-		my @or;
-		foreach( @tables )
+		my $nextbuffer = undef;
+		foreach( @{$tables} )
 		{
-			print STDERR "$_:$minisearches{$_}->[$i]\n";
 			my $tlist = { "M"=>$_ };
-			if( defined $buffer && $self->{anyall} eq "AND" )
+			my $orbuf = undef;
+			if( $self->{anyall} eq "ANY" && defined $buffer )
+			{
+				$orbuf = $buffer;
+			}
+			if( defined $nextbuffer )
+			{
+				$orbuf = $nextbuffer;
+			}
+			if( $satisfy_all && defined $searchbuffer )
+			{
+				$tlist->{T} = $searchbuffer;
+			}
+			if( $self->{anyall} eq "ALL" && defined $buffer )
 			{
 				$tlist->{T} = $buffer;
 			}
-			my $newbuffer = $self->{session}->{database}->buffer( 
+
+			$nextbuffer = $self->{session}->{database}->buffer( 
 				$keyfield,
 				$tlist, 
-				$minisearches{$_}->[$i] );
-			if( $self->{anyall} eq "AND" )
-			{
-				$buffer = $newbuffer;
-			}
-			else
-			{
-				push @or,$newbuffer;
-			}
-			print STDERR "[$newbuffer]\n";
+				$searches->{$_}->[$i],
+				$orbuf );
 		}
-		if( $self->{anyall} eq "ANY" )
-		{
-			$buffer = $self->{session}->{database}->any_buffer( 
-				$keyfield,
-				\@or );
-		}
-		print STDERR "-------\n";
+		$buffer = $nextbuffer;
 	}
-	return $buffer;
 
-	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
+	if( $self->{anyall} eq "ALL" && !$satisfy_all )
+	{
+		$buffer = $self->{session}->{database}->buffer( 
+			$keyfield,
+			{ "T"=>$buffer },
+			undef,
+			$searchbuffer );
+	}
+
+EPrints::Log::debug("retbuffer: [$buffer]");
+	return $buffer;
 
 }
 
@@ -1180,28 +1202,48 @@ sub approx_rows
 {
 	my ( $self ) = @_;
 
-	my ($table,$where) = $self->get_conditions();
+EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
+
+	my ($tables, $searches) = $self->_get_tables_searches();
+	my $n = scalar @{$searches->{$tables->[0]}};
 
 	my $result = undef;
-
-	# Multiple results means AND'ing together
-	
-	foreach( @{$where} )
+	my $i;
+	for( $i=0 ; $i<$n ; ++$i )
 	{
-		next if (!defined $_);
-
-		my $rows = $self->benchmark( $table , $_ ); 
-
-EPrints::Log::debug("rows: $rows");
-		if ( !defined $result )
+		my $i_result = undef;
+		foreach( @{$tables} )
 		{
-			$result = $rows;
-			next;
+			my $rows = $self->benchmark( $_ , $searches->{$_}->[$i] ); 
+EPrints::Log::debug("rows: $rows");
+			if( !defined $i_result )
+			{
+				$i_result = $rows;
+			}
+			else
+			{
+				$i_result+= $rows;
+			}
 		}
-		$result = $rows if ( $rows < $result ) ;
-			
+		if( !defined $result )
+		{
+			$result = $i_result;
+		}
+		elsif( $self->{anyall} eq "ANY" )
+		{
+			$result+= $i_result;
+		}
+		else
+		{
+			if( $i_result < $result )
+			{
+				$result = $i_result;
+			}
+		}
+		
 	}
-EPrints::Log::debug("approx_rows: $result");
+
+EPrints::Log::debug("APPROX ROWS END: $self->{displayname}: $result");
 	return $result;
 }
 

@@ -828,7 +828,11 @@ sub _make_select
 		$sql .= " USING ($keyfield->{name})" unless( $first );
 		$first = 0;
 	}
-	$sql .= " WHERE $conditions";
+	if( defined $conditions )
+	{
+		$sql .= " WHERE $conditions";
+	}
+
 
 	return $sql;
 }
@@ -847,6 +851,8 @@ sub any_buffer
 		$tmptable = $self->create_buffer( $keyfield->{name} );
 	}
 
+EPrints::Log::debug("$keyfield->{name} :".join(",",@{$tables}));
+
 	foreach( @{$tables} )
 	{
 		my $sql = $self->_make_select( $keyfield, {"T"=>$_}, "" );
@@ -858,12 +864,16 @@ sub any_buffer
 
 sub buffer
 {
-	my( $self, $keyfield, $tables, $conditions , $keep ) = @_;
+	my( $self, $keyfield, $tables, $conditions , $orbuffer , $keep ) = @_;
 
 	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
 
 	my $tmptable;
-	if( $keep )
+	if( defined $orbuffer )
+	{
+		$tmptable = $orbuffer;
+	} 
+	elsif( $keep )
 	{
 		$tmptable = $self->create_cache( $keyfield->{name} );
 	}

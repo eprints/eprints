@@ -468,7 +468,7 @@ sub perform_search
 	foreach( @searchon )
 	{
 		EPrints::Log::debug($_->{field}->{name}."--".$_->{value});
-		$buffer = $_->do($buffer);
+		$buffer = $_->do($buffer , $self->{satisfy_all} );
 EPrints::Log::debug("buffer:".$buffer);
 	}
 	$self->{tmptable} = $buffer;
