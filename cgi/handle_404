@@ -60,8 +60,8 @@ $session->terminate();
 #		# See if the eprint exists.
 #		my $eprint = new EPrints::EPrint(
 #			$session,
-#			EPrints::Database::table_name( "archive" ),
-#			$guessed_id );
+#			$guessed_id,;
+#			EPrints::Database::table_name( "archive" ) );
 #		
 #		if( defined $eprint )
 #		{

@@ -63,48 +63,6 @@ use strict;
 # EX search on subject only searches for that subject, not things
 # below it.
 
-######################################################################
-#
-#  Format of field values. In all cases, undef or "" means don't bother
-#   doing a search for it.
-#
-#  boolean:                 "TRUE", "FALSE" (or undef for either)
-#  date:                    "YYYY-MM-DD-" = any date from specified onwards
-#                           "-YYYY-MM-DD" = any date up until and including
-#                           "YYYY-MM-DD-YYYY-MM-DD" = between those dates (incl)
-#                           "YYYY-MM-DD" = just on that day
-#  email, XXXXXXXXXXXurl    "searchvalue" (simple)
-#  XXXX & datatype        "poss1:poss2:poss3"
-#  longtext, text & name   "[all][any][phr]:terms"
-#  set & subject  "val1:val2:val3:[ANY|ALL]"
-#  year                     "YYYY-" = any year from YYYY onwards
-#                           "-YYYY" = any year up to YYYY
-#                           "YYYY-ZZZZ" = any year from YYYY to ZZZZ (incl.)
-#                           "YYYY" - just the year YYYY
-#
-#  No support yet for searching pagerange or int values.
-#
-######################################################################
-
-
-
-
-######################################################################
-#
-# $field = new( $session, $dataset, $field, $value )
-#
-#  Create a new search field for the metadata field $field. $value
-#  is a default value, if there's one already. You can pass in a
-#  reference to an array for $field, in which case the fields will
-#  all be searched using the one search value (OR'd). This only works
-#  (and is useful) for fields of types listed together at the top of
-#  the file (e.g. "text" and "longtext", or "email" and "url", but not
-#  "year" and "boolean").
-#  We need to know the name of the table to build the name of aux.
-#  table.
-#
-######################################################################
-
 #cjg MAKE $field $fields and _require_ a [] 
 
 ######################################################################

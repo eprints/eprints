@@ -616,13 +616,6 @@ sub get_key_field
 	return $self->{fields}->[0];
 }
 
-# EPrints::????? make_object( $session, $item )
-#                            |         hash ref
-#                            EPrints::Session
-#
-#  This rather strange method turns the hash array in item into 
-#  an object of the type belonging to this dataset.
-
 
 ######################################################################
 =pod
@@ -656,18 +649,10 @@ sub make_object
 	## EPrints have a slightly different
 	## constructor.
 
-	if ( $class eq "EPrints::EPrint" ) 
-	{
-		return EPrints::EPrint->new_from_data( 
-			$session,
-			$self,
-			$data );
-	}
-
 	return $class->new_from_data( 
 		$session,
-		$data );
-
+		$data,
+		$self );
 }
 
 

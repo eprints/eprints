@@ -37,13 +37,16 @@ Default Configuration
 Rendering
 ----------------------------------------------------------------------
 
+- I modified Subjects.pm, render_with_path because I was getting validation
+problems on my abstract pages. All I did was change the div to a span so it
+would stop complaining about a block level element inside of a inline
+element. [Mark Faine]
+
 - /views/ pages do not correctly sort the list of fields (it's done 
    by ID not the rendered phrase). 
 
 - Mozilla puts whitespace under imgs for no good reason if there
   is an <?xml ?> header or XHTML DOCTYPE 
-
-- cant use &nbsp; in pages.
 
 - does not update abstract page when eprint in main archive is modified
    directly by an editor.
@@ -85,10 +88,8 @@ EPrints Submission Form
 EPrints "Staff" Edit
 ----------------------------------------------------------------------
 
-- Does not allow file upload for "archive" and possibly all non-"inbox"
-   buffers.
-
-- Does not update abstracts when a live record is modified.
+- staff edit eprint page: says this is how the abstract will look, and
+   if it's in "archive" that's already how it looks!
 
 ----------------------------------------------------------------------
 Installation & Archive Setup Script
@@ -240,6 +241,13 @@ it has been added]
 - sub _generate_doc_id in EPrints::Document does not dispose of its
    search. [fixed]
 - browseviews for text fields develop ??? around values. - [fixed]
+- cant use &nbsp; in pages.
+- Does not allow file upload for "archive" and possibly all non-"inbox"
+   buffers.
+- Does not update abstracts when a live record is modified. (possibly
+   the no-upload bug is just a symptom of this)
+
+
 
 
 

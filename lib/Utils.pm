@@ -55,6 +55,7 @@ use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
 use XML::DOM;
 use URI;
+use Carp;
 
 use EPrints::SystemSettings;
 
@@ -644,6 +645,19 @@ sub tree_to_utf8
 	{
 		print STDERR "Oops. tree_to_utf8 got as a node: $node\n";
 	}
+	if( substr(ref($node) , 0, 18 ) eq "XML::DOM::NodeList" )
+	{
+		# Hmm, a node list, not a node.
+        	my $string = utf8("");
+        	for( my $i=0 ; $i<$node->getLength ; ++$i )
+        	{
+                	$string .= tree_to_utf8( 
+				$node->index( $i ), 
+				$width,
+ 				$pre );
+		}
+		return $string;
+	}
 
         if( defined $width )
         {
@@ -1186,6 +1200,60 @@ sub destroy
 #	return $ref;
 #}
 
+
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Utils::render_xhtml_field( $session, $field,
+$value )
+
+Return an XHTML DOM object of the contents of $value. In the case of
+an error parsing the XML in $value return an XHTML DOM object 
+describing the problem.
+
+This is intented to be used by the render_single_value metadata 
+field option, as an alternative to the default text renderer. 
+
+This allows through any XML element, so could cause problems if
+people start using SCRIPT to make pop-up windows. A later version
+may allow a limited set of elements only.
+
+=cut
+######################################################################
+
+sub render_xhtml_field
+{
+	my( $session , $field , $value ) = @_;
+
+	if( !defined $value ) { return $session->make_doc_fragment; }
+        my( %c ) = (
+                ParseParamEnt => 0,
+                ErrorContext => 2,
+                NoLWP => 1 );
+
+        my $parser = XML::DOM::Parser->new( %c );
+        my $doc = eval { $parser->parse( "<fragment>".$value."</fragment>" ); };
+        if( $@ )
+        {
+                my $err = $@;
+                $err =~ s# at /.*##;
+		my $pre = $session->make_element( "pre" );
+		$pre->appendChild( $session->make_text( "Error parsing XML: ".$err ) );
+		return $pre;
+        }
+	my $fragment = $session->make_doc_fragment;
+	my $top = ($doc->getElementsByTagName( "fragment" ))[0];
+	foreach my $node ( $top->getChildNodes )
+	{
+		$top->removeChild( $node );
+		$session->take_ownership( $node );
+		$fragment->appendChild( $node );
+	}
+	$doc->dispose();
+		
+	return $fragment;
+}
+	
 
 1;
 

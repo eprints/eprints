@@ -125,10 +125,10 @@ sub get_record
 
 	my $eprint = new EPrints::EPrint(
 		$session,
-		$session->get_archive()->get_dataset( "archive" ),
 		EPrints::OpenArchives::from_oai_identifier(
 			$session,
-			$identifier ) );
+			$identifier ),
+		$session->get_archive()->get_dataset( "archive" ) );
 
 	if( defined $eprint )
 	{
@@ -580,10 +580,10 @@ sub list_metadata_formats
 	{
 		my $eprint = new EPrints::EPrint(
 			$session,
-			$session->get_archive()->get_dataset( "archive" ),
 			EPrints::OpenArchives::from_oai_identifier(
 				$session,
-				$identifier ) );
+				$identifier ),
+			$session->get_archive()->get_dataset( "archive" ) );
 
 		if( defined $eprint )
 		{

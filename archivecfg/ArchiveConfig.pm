@@ -328,9 +328,9 @@ $c->{vlit}->{context_size} = 1024;
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
 $c->{browse_views} = [
-	{ id=>"year", allow_null=>1, fields=>"year", order=>"title/authors" },
+	{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
 	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 },
-	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+	#{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
 # Number of results to display on a single search results page

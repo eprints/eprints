@@ -144,7 +144,7 @@ sub process_form
 
 	if( $action =~ m/^clone_(.+)$/ )
 	{
-		my $eprint = EPrints::EPrint->new( $session, $ds, $1 );
+		my $eprint = EPrints::EPrint->new( $session, $1, $ds );
 		my $inbox_ds = $session->get_archive()->get_dataset( "inbox" );
 		if( defined $eprint )
 		{
@@ -169,7 +169,7 @@ sub process_form
 
 	if( $action=~ m/^remove_(.+)$/ && $r_req )
 	{
-		my $eprint = EPrints::EPrint->new( $session, $ds, $1 );
+		my $eprint = EPrints::EPrint->new( $session, $1, $ds );
 		if( !defined $eprint )
 		{
 			$session->render_error(
@@ -260,7 +260,10 @@ sub handle_removal_request
 	# Get the EPrint we're dealing with
 	my $ds = $session->get_archive()->get_dataset( "archive" );	
 
-	my $eprint = EPrints::EPrint->new( $session, $ds, $session->param( "eprintid" ) );
+	my $eprint = EPrints::EPrint->new( 
+		$session, 
+		$session->param( "eprintid" ),
+		$ds );
 	if( !defined $eprint )
 	{
 		$session->render_error(

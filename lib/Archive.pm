@@ -750,6 +750,13 @@ sub generate_dtd
 {
 	my( $self ) = @_;
 
+	my $dtdfile = $self->get_conf( "cfg_path")."/xhtml-entities.dtd";
+	open( XHTMLENTITIES, $dtdfile ) ||
+		die "Failed to open system DTD ($dtdfile) to include ".
+			"in archive DTD";
+	my $xhtmlentities = join( "", <XHTMLENTITIES> );
+	close XHTMLENTITIES;
+
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
 	{	
@@ -766,7 +773,6 @@ sub generate_dtd
 	Entities file for $siteid, language ID "$langid"
 
 	*** DO NOT EDIT, This is auto-generated ***
-
 -->
 
 END
@@ -778,6 +784,14 @@ END
 			$value=~s/%/&#x25;/g;
 			print DTD "<!ENTITY $_ \"$value\" >\n";
 		}
+		print DTD <<END;
+
+<!--
+	Generic XHTML entities 
+-->
+
+END
+		print DTD $xhtmlentities;
 		close DTD;
 		move( $tmpfile, $file );
 	}

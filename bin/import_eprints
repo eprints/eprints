@@ -53,7 +53,7 @@ if( $dostatic )
 	foreach( @{$info->{update_abstracts}} )
 	{
 		next if( $done{$_} );
-		my $eprint = EPrints::EPrint->new( $session, $info->{ds}, $_ );
+		my $eprint = EPrints::EPrint->new( $session, $_, $info->{ds} );
 		$eprint->generate_static();
 		$done{$_} = 1;
 	}
@@ -77,7 +77,7 @@ sub deal
 	{
 		print  "NOT EXISTS!\n";
 		#cjg needs a userid
-		$eprint = EPrints::EPrint::create( $session, $info->{ds}, undef, $eprint->get_data() );
+		$eprint = EPrints::EPrint::create( $session, $info->{ds}, $eprint->get_data() );
 	}
 	foreach( $eprint->get_all_related() )
 	{

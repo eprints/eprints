@@ -536,3 +536,31 @@ before next release. (metadata types & fields)
    applies the "safe" parts. Does not add any new searchfields or change
    the dataset.
 - added pod docs to Database.pm
+
+2002-05-29
+- Added xhtml-entities.dtd to system cfg dir - contains all XHTML entites
+   such as &nbsp; - these are now included in the archive dtd files which 
+   means that &nbsp; &euro; etc. now work in phrase files, the template 
+   and the static pages but NOT the citations.
+- staff eprint edit now updates the eprints static page if needed.
+- added "layout" option to views configuration. Allows <p>, <ul> or <ol> 
+   style lists. A custom citation no longer automatically turns off the 
+   <p> wrapper.
+- [api] changed syntax of EPrints::Eprint->new so that the optional param 
+   "dataset" is now the last option. This means that it can be called
+   exactly like any other EPrints::DataObj->new (which is neater). Updated
+   all uses of this call in the code.
+- [conf] changed call to EPrints::EPrint->new in the commenarty bit of
+   ArchiveRenderConfig
+- [api] EPrints::EPrint::create() - removed the "userid" parameter which
+   must now be set seperately. Updated all the code to reflect this change.
+- Removed $EPrints::EPrint::id_code_digits and hardwired it to "8" as I've
+   got no intentions of changing it and other parts of the code already 
+   assume 8. 
+- Added POD documentation to Document.pm , EPrint.pm , ImportXML.pm and
+   RequestWrapper.pm
+- Removed DIGITS from Document and hardwired occurances to 2.
+
+
+
+   

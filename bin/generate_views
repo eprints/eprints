@@ -263,36 +263,69 @@ sub make_view_pages
 
        		$searchexp->add_field( \@fields, $value, "EX" );
 
-		my $links = $session->make_doc_fragment();
+		my $links;
+		if( !defined $info->{layout} )
+		{
+			$links = $session->make_doc_fragment();
+		}
+		if( $info->{layout} eq "orderedlist" )
+		{
+			$links = $session->make_element( "ol" );
+		}
+		elsif( $info->{layout} eq "unorderedlist" )
+		{
+			$links = $session->make_element( "ul" );
+		}
+		else
+		{
+			$links = $session->make_doc_fragment();
+		}
 
 		my $fn = sub { 
         		my( $session, $dataset, $item, $info ) = @_;
 
-			if( $info->{dom} )
+			my $cite = $item->render_citation_link( 
+				$info->{citation} );
+
+			if( $info->{layout} eq "paragraph" )
 			{
-				my $cite = $item->render_citation_link( $info->{citation} );
-				unless( defined $info->{citation} )
-				{
-					my $p = $session->make_element( "p" );
-					$p->appendChild( $cite );
-					$cite = $p;
-				}
-				$links->appendChild( $session->make_indent( 4 ) );
-				$links->appendChild( $cite );
+				my $p = $session->make_element( "p" );
+				$p->appendChild( $cite );
+				$cite = $p;
 			}
+			elsif( 
+				$info->{layout} eq "orderedlist" ||
+				$info->{layout} eq "unorderedlist" )
+			{
+				my $li = $session->make_element( "li" );
+				$li->appendChild( $cite );
+				$cite = $li;
+			}
+			#otherwise layout is "none"
+
+			$links->appendChild( $session->make_indent( 4 ) );
+			$links->appendChild( $cite );
 		};
 		
         	$searchexp->perform_search();
 		my $count = $searchexp->count();
 		if( $info->{dom} && !$info->{nocount} )
 		{
-			$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
+			$links->appendChild( $session->html_phrase( 
+				"bin/generate_views:blurb",
 				n=>$session->make_text( $count ) ) );
 		}
 		$size{$value} = $count;
 		my %mapinfo = %{$info};
 		$mapinfo{links} = $links;
-		$searchexp->map( $fn, \%mapinfo );
+		if( !defined $mapinfo{layout} )
+		{
+			$mapinfo{layout} = "paragraph";
+		}
+		if( $mapinfo{dom} )
+		{
+			$searchexp->map( $fn, \%mapinfo );
+		}
 		$searchexp->dispose();
 
 		if( $info->{include} )
@@ -308,9 +341,15 @@ sub make_view_pages
 		{
 			$page->appendChild( $links );
 
-			$title = $session->html_phrase( "bin/generate_views:title", 
-					viewname=>$session->make_text( $session->get_view_name( $ds, $info->{id} ) ),
-					value=>$fields[0]->get_value_label( $session, $value ) );
+			$title = $session->html_phrase( 
+				"bin/generate_views:title", 
+				viewname=>$session->make_text( 
+					$session->get_view_name( 
+						$ds, 
+						$info->{id} ) ),
+				value=>$fields[0]->get_value_label( 
+					$session, 
+					$value ) );
 
 			$file = $dir."/".$fileid.".html";
 			$session->build_page( $title, $page );
@@ -327,11 +366,18 @@ sub make_view_pages
 
 	$session->new_page();
 	$page = $session->make_doc_fragment();
-	$page->appendChild( $session->html_phrase( "bin/generate_views:intro" ) );
+	$page->appendChild( 
+		$session->html_phrase( "bin/generate_views:intro" ) );
 
 	if( $fields[0]->is_type( "subject" ) )
 	{
-        	$page->appendChild( $session->render_subjects( \@values, $fields[0]->get_property( "top" ), undef, 2, \%size ) );
+        	$page->appendChild( 
+			$session->render_subjects( 
+				\@values, 
+				$fields[0]->get_property( "top" ), 
+				undef, 
+				2, 
+				\%size ) );
 	}
 	else
 	{
@@ -343,16 +389,22 @@ sub make_view_pages
 			if( $fileid eq "" ) { $fileid = "NULL"; }
 			$li = $session->make_element( "li" );
 			$a = $session->render_link( $fileid.".html" );
-			$a->appendChild( $fields[0]->get_value_label( $session, $value ) );
-			$a->appendChild( $session->make_text( " (".$size{$value}.")" ) );
+			$a->appendChild( 
+				$fields[0]->get_value_label( 
+					$session, 
+					$value ) );
+			$a->appendChild( 
+				$session->make_text( " (".$size{$value}.")" ) );
 			$li->appendChild( $a );
 			$ul->appendChild( $li );
 		}
 		$page->appendChild( $ul );
 	}
 
-	$title = $session->html_phrase( "bin/generate_views:indextitle", 
-				viewname=>$session->make_text( $session->get_view_name( $ds, $info->{id} ) ) ),
+	$title = $session->html_phrase( 
+		"bin/generate_views:indextitle", 
+		viewname=>$session->make_text( 
+			$session->get_view_name( $ds, $info->{id} ) ) ),
 
 	$file = $dir."/index.html";
 	$session->build_page( $title, $page );

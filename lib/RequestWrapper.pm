@@ -17,48 +17,29 @@
 
 =head1 NAME
 
-B<EPrints::RequestWrapper> - undocumented
+B<EPrints::RequestWrapper> - Pretends to be an apache request.
 
 =head1 DESCRIPTION
 
-undocumented
+A EPrints::RequestWrapper is created from a real apache request and
+a hash of "dir_config" options. It will pass all methods straight
+through to the origional apache request except for dir_config()
+which it will return its own config instead.
+
+It's a hack used by EPrints::Auth - you really do not want to go
+near it!
 
 =over 4
 
 =cut
 
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
 
-######################################################################
-#
-#  __LICENSE__
-#
-######################################################################
 
 package EPrints::RequestWrapper;
-
-#cjg Apache::FakeRequest...
 
 use strict;
 use Apache;
 
-
-######################################################################
-=pod
-
-=item $thing = EPrints::RequestWrapper->new( $real_request, $conf )
-
-undocumented
-
-=cut
-######################################################################
 
 sub new
 {
@@ -70,16 +51,6 @@ sub new
 	return $self;
 }
 
-
-######################################################################
-=pod
-
-=item $foo = $thing->dir_config ( $key )
-
-undocumented
-
-=cut
-######################################################################
 
 sub dir_config 
 {
@@ -107,25 +78,7 @@ foreach $thing ( keys %Apache:: )
 }
 
 
-######################################################################
-=pod
-
-=item $foo = $thing->DESTROY
-
-undocumented
-
-=cut
-######################################################################
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
 1;
-
-
 ######################################################################
 =pod
 

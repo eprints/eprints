@@ -59,6 +59,8 @@ $db = $session->get_archive
 package EPrints::Database;
 
 use DBI;
+use Carp;
+
 use EPrints::EPrint;
 use EPrints::Subscription;
 
@@ -1558,6 +1560,11 @@ sub _get
 {
 	my ( $self , $dataset , $mode , $param, $offset, $ntoreturn ) = @_;
 
+if( !defined $dataset || ref($dataset) eq "") 
+{
+confess();
+
+}
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)

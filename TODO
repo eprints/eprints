@@ -23,6 +23,11 @@ Metadata Fields
 
 * 	Make Hide Lineage/Honourific a field property.
 
+*	Add XHTML field renderer with list of legal tags.
+
+*	no_export property to indicate the field should not be exported
+	as XML. (eg. for subject ancestors)
+
 
 XML, Bibtex and Misc formats in & out
 
@@ -54,9 +59,6 @@ Browse Views
 
 * 	Time stamp views
 
-* 	Option to make views ordered/unordered lists?
-
-
 Searches
 
 *	Show all items in a subject view count, not just those in the
@@ -65,6 +67,8 @@ Searches
 * 	max time for caches eg. 30 for latest?
 
 *	Set default values for searches
+
+*	Make EPrint commit regen abstract page if in main archive/deletion?
 
 *	Improve name search syntax (?)
 
@@ -89,6 +93,12 @@ Searches
 
 
 Other Stuff
+
+*	Make EPrint->new_from_data work the same as document, eprint etc.
+
+*	Turn succeeds, replacedby & commentary into "int" rather than "text"
+
+*	Turn docid into an int (no minor feat)
 
 *	Turn Multiple input fields into <ol>'s. maybe?
 
@@ -128,6 +138,8 @@ Other Stuff
 
 * 	Check Referer on LatexCache.?
 
+*	testing to see if "dom" is set in generate_views seems kinda pointless.
+
 ? 	setlang - show all langs, flag supported.
 
 * 	Join GNU.
@@ -140,6 +152,9 @@ Other Stuff
 *	PDF Mollycoddler ( Serve PDF in a special way which avoids certain 
 	bugs in the plugin )
 
+*	CSS Mollycoddler ( Serve an empty CSS if a 404 is encountered when
+	looking for a .css file - to help out NS4.)
+
 DOCUMENTATION ============================================================
 
 
@@ -150,14 +165,14 @@ FORMALLY COMMENT CODE
 -	DataObj.pm
 -	DataSet.pm
 -	Database.pm
-*	Document.pm
-*	EPrint.pm
-*	ImportXML.pm
+-	Document.pm
+-	EPrint.pm
+-	ImportXML.pm
 *	Language.pm
 *	Latex.pm
 *	MetaField.pm
 *	OpenArchives.pm
-*	RequestWrapper.pm
+-	RequestWrapper.pm
 *	SearchExpression.pm
 *	SearchField.pm
 *	Session.pm
@@ -181,6 +196,7 @@ HOW-TOS
 *	adding a document type
 *	adding a search on another page
 
+* 	update views changes (citation no longer forces layout->none)
 
 
 WISHLIST =================================================================
@@ -203,3 +219,10 @@ WISHLIST =================================================================
 DONE ====================================================================
 # remove => => from all bins (man line)
 # add --version to all bins. 
+* 	Option to make views ordered/unordered lists?
+*	Stop asking for "userid" as part of EPrint->create (and set it
+	seperately)
+*	Make EPrint new have $dataset as the last value so it cat act
+	like other Dataobj new methods.
+
+

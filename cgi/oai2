@@ -354,16 +354,16 @@ sub GetRecord
 
 	my $eprint = new EPrints::EPrint(
 		$session,
-		$session->get_archive()->get_dataset( "archive" ),
-		$id );
+		$id,
+		$session->get_archive()->get_dataset( "archive" ) );
 
 	if( !defined $eprint )
 	{
 		# try deleted records
 		$eprint = new EPrints::EPrint(
 			$session,
-			$session->get_archive()->get_dataset( "deletion" ),
-			$id );
+			$id,
+			$session->get_archive()->get_dataset( "deletion" ) );
 	}
 
 	if( !defined $eprint )
@@ -732,10 +732,10 @@ sub ListMetadataFormats
 	{
 		my $eprint = new EPrints::EPrint(
 			$session,
-			$session->get_archive()->get_dataset( "archive" ),
 			EPrints::OpenArchives::from_oai_identifier(
 				$session,
-				$args->{identifier} ) );
+				$args->{identifier} ),
+			$session->get_archive()->get_dataset( "archive" ) );
 
 		if( !defined $eprint )
 		{	

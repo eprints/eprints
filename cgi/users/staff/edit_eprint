@@ -60,7 +60,7 @@ sub process
 
 	my $eprintid = $session->param( "eprintid" );
 
-	my $eprint = new EPrints::EPrint( $session, $dataset, $eprintid );
+	my $eprint = new EPrints::EPrint( $session, $eprintid, $dataset );
 	my $action = $session->get_action_button();
 
 	if( !defined $eprint )
@@ -211,6 +211,23 @@ sub process
 		"edit_eprint" );
 
 	$subform->process();
+	
+	if( $dataset->id eq "archive" || $dataset->id eq "deletion" )
+	{
+		# If the eprint is in the main archive or deletion area
+		# then we need to update its webpage. This will make editing
+		# even slower, but editing the main db SHOULD be a rare thing
+		# anyway.
+
+		# get it from the DB again - it's probably changed.
+		my $eprint = new EPrints::EPrint( 
+			$session, 
+			$eprintid,
+			$dataset );
+
+		# update the static pages.
+		$eprint->generate_static;
+	}
 	return;
 
 }

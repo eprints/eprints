@@ -171,9 +171,10 @@ sub process
 					get_dataset( $self->{session}->param( "dataset" ) );
 			}
 		}
-		$self->{eprint} = EPrints::EPrint->new( $self->{session},
-		                                        $self->{dataset},
-		                                        $self->{eprintid} );
+		$self->{eprint} = EPrints::EPrint->new( 
+			$self->{session},
+			$self->{eprintid},
+			$self->{dataset} );
 
 		# Check it was retrieved OK
 		if( !defined $self->{eprint} )
@@ -352,8 +353,11 @@ sub _from_stage_home
 		}
 		$self->{eprint} = EPrints::EPrint::create(
 			$self->{session},
-			$self->{dataset},
+			$self->{dataset} );
+		$self->{eprint}->set_value( 
+			"userid", 
 			$self->{user}->get_value( "userid" ) );
+		$self->commit();
 
 		if( !defined $self->{eprint} )
 		{
@@ -1207,8 +1211,8 @@ sub _do_stage_linking
 
 		my $older_eprint = new EPrints::EPrint( 
 			$self->{session}, 
-		        $archive_ds,
-		        $self->{eprint}->get_value( $field_id ) );
+		        $self->{eprint}->get_value( $field_id ),
+		        $archive_ds );
 	
 		$comment->{$field_id} = $self->{session}->make_doc_fragment();	
 
@@ -1884,7 +1888,6 @@ sub _do_stage_verify
 {
 	my( $self ) = @_;
 
-	$self->{eprint}->prune();
 	$self->{eprint}->commit();
 	# Validate again, in case we came from home
 	$self->{problems} = $self->{eprint}->validate_full( $self->{for_archive} );

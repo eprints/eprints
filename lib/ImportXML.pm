@@ -17,29 +17,19 @@
 
 =head1 NAME
 
-B<EPrints::ImportXML> - undocumented
+B<EPrints::ImportXML> - Module to assist importing data into EPrints 
+from XML files.
 
 =head1 DESCRIPTION
 
-undocumented
+ImportXML parses an XML file in the eprints data format and turns
+each record into an eprint object which is then passed to a function
+for further action.
 
 =over 4
 
 =cut
 
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
-
-######################################################################
-#
-#  __LICENSE__
-#
 ######################################################################
 
 package EPrints::ImportXML;
@@ -63,16 +53,34 @@ use XML::Parser;
 ######################################################################
 =pod
 
-=item EPrints::ImportXML::import_file( $session, $filename, $function, $dataset, $theirinfo )
+=item EPrints::ImportXML::import_file( $session, $filename, $function, 
+$dataset, $info )
 
-undocumented
+Map all the eprints data objects described in the XML file $filename
+onto the function $function. $function is called once for each object
+created from the XML.
+
+Objects are only created. If they should be stored to disk then the
+function they are passed to must handle that. 
+
+$info is a hash of values which will be passed to the function 
+specified in $function (which is safer than global variables).
+
+$function should be a reference to a function. It will be passed the
+following parameters:
+
+ &{$function}( $session, $dataset, $item, $info );
+
+where $session, $dataset and $info are the values passed to import_file
+and $item is an item of the type $dataset which has been created from
+the XML.
 
 =cut
 ######################################################################
 
 sub import_file
 {
-	my( $session , $filename , $function, $dataset, $theirinfo ) = @_;
+	my( $session , $filename , $function, $dataset, $info ) = @_;
 	my $parser = new XML::Parser(
 		Style => "Subs", 
 		ErrorContext => 5,
@@ -83,7 +91,7 @@ sub import_file
 		} );
 	$parser->{eprints} = {};
 	$parser->{eprints}->{session} = $session;
-	$parser->{eprints}->{theirinfo} = $theirinfo;
+	$parser->{eprints}->{theirinfo} = $info;
 	$parser->{eprints}->{function} = $function;
 	$parser->{eprints}->{fields} = {};
 	foreach( $dataset->get_fields() )
@@ -170,11 +178,6 @@ sub _handle_start
 		return;
 	}
 	
-	if( $tag eq "RECORDS")
-	{
-		return;
-	}
-
 	$parser->xpcroak( "Unknown tag: $tag" );
 }
 
@@ -307,11 +310,63 @@ sub _handle_char
 }
 
 1;
-
 ######################################################################
 =pod
-
 =back
 
+=head1 XML File Format
+
+The top level element is "eprintsdata" which contains zero or more "record"
+elements.
+
+A record element represents a single eprints object and contains zero or more
+field elements.
+
+A field element has the attribute "name" which is the name of a field in the 
+dataset. The contents of the field element describes the value of this field
+in this record. Some eprints fields may be I<multiple> in which case multiple
+values can be expressed by having several "field" elements with the same name
+attribute in a single "record". A field element may contain nothing OR some
+text OR "part" elements OR "name" elements. A field element may also have
+an "id" attribute which is the unique id of this value- a user id number, or
+a isbn or some such.
+
+A part element represents part of a value in a name field. It must have the
+attribute "name" which must be set to one of "lineage", "honourific", "family"
+or "given". It may contain text or nothing.
+
+A lang element represents a version of the value of the field in a certain 
+language. It may contain text or nothing. It has the required attribute "id"
+which is the ISO language code.
+
+Example of a file with a single record with a multiple name field (with
+ids) named "authors", a multiple subjects field named "subjects", a multilang 
+text field named "title" and a year field named "year".
+
+ <eprintsdata>
+   <record>
+     <field id="cjg" name="authors">
+       <part name="family">Gutteridge</part>
+       <part name="given">Christopher</part>
+     </field>
+     <field id="mv" name="authors">
+       <part name="honourific">Dr.</part>
+       <part name="given">Marvin</part>
+       <part name="family">Fenderson</part>
+     </field>
+     <field name="year">1993</field>
+     <field name="subjects">foo</field>
+     <field name="subjects">bar</field>
+     <field name="subjects">baz</field>
+     <field name="title">
+       <lang id="en">The Thing</lang>
+       <lang id="de">da Thung</lang>
+       <lang id="fr">l'Thingu</lang>
+     </field>
+   </record>
+ </eprintsdata> 
+
 =cut
+######################################################################
+
 

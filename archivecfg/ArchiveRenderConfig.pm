@@ -141,9 +141,10 @@ sub eprint_render
 	# Commentary
 	if( $eprint->is_set( "commentary" ) )
 	{
-		my $target = EPrints::EPrint->new( $session,
-			$session->get_archive()->get_dataset( "archive" ), 
-			$eprint->get_value( "commentary" ) );
+		my $target = EPrints::EPrint->new( 
+			$session,
+			$eprint->get_value( "commentary" ),
+			$session->get_archive()->get_dataset( "archive" ) );
 		if( defined $target )
 		{
 			$table->appendChild( _render_row(

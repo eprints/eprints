@@ -32,7 +32,7 @@ my $openarchives_id_stem = $session->get_archive()->get_conf( "oai_archive_id" )
 	$session->get_archive()->get_conf( "eprintid_stem" );
 
 
-my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits; #cjg id_code_digits no longer exists
+my $idcode_match = "\\d" x 8;
 my $eprintid = undef;
 
 if( defined $eprintid_in )
@@ -58,8 +58,7 @@ if( defined $eprintid_in )
 	{
 		# Just some digits. Prepend the site stem and any necessary zeroes.
 		$eprintid = $session->get_archive()->get_conf( "eprintid_stem" ) .
-			"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) . #cjg id_code_digits no longer exists
-			$eprintid_in;
+			"0" x ( 8 - length $eprintid_in ) . $eprintid_in;
 	}
 }
 
@@ -71,9 +70,10 @@ my $deletion_record = undef;
 
 if( defined $eprintid )
 {
-	my $eprint = new EPrints::EPrint( $session,
-	                                  EPrints::Database::table_name( "archive" ),
-	                                  $eprintid );
+	my $eprint = new EPrints::EPrint( 
+		$session,
+		$eprintid,
+		EPrints::Database::table_name( "archive" ) );
 	
 	if( defined $eprint )
 	{
