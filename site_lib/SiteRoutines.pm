@@ -29,7 +29,7 @@ use diagnostics;
 
 %EPrints::SiteRoutines::citation_specs =
 (
-	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>[, in <i>{publication}</i>][ ,chapter {chapter}][, pages {pages}]. [{publisher}.]",
+	"bookchapter" => "{authors} [({year}) ]<i>{title}</i>[, in <i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
 	"confpaper"   => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
 	"confposter"  => "{authors} [({year}) ]{title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
 	"techreport"  => "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
