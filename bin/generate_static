@@ -21,6 +21,7 @@
 use EPrints::Session;
 use EPrintSite::SiteInfo;
 
+use File::Copy;
 use File::Find;
 use strict;
 
@@ -34,50 +35,72 @@ $session->terminate();
 
 sub generate_static
 {
-	# Only do anything if this is an HTML file.
-	return unless( /.+\.html/i );
+	# Ignore CVS directories
+	return if( $File::Find::name =~ /\/CVS/ );
 
-	# Work out the output filename
-	my $out_file = $File::Find::name;
-	$out_file =~ s#$EPrintSite::SiteInfo::static_html_root#$EPrintSite::SiteInfo::local_html_root#;
-
-	my $must_add_frame = 0;
-
-
-#EPrints::Log::debug( "generate_static", "Generating static page for $File::Find::name: Dest $out_file" );
-
-	# Open up the files
-	open IN, $File::Find::name or die "Error opening $File::Find::name: $!";
-	open OUT, ">$out_file" or die "Error opening $out_file for writing: $!";
-
-	my $first_line = <IN>;
-	chomp();
+	my $destination_filename = $File::Find::name;
+	$destination_filename =~ s/$EPrintSite::SiteInfo::static_html_root/$EPrintSite::SiteInfo::local_html_root/;
 	
-	if( $first_line =~ s/^title:\s+//i )
+	if( -d $File::Find::name )
 	{
-		# We need to add the site frame
-		$must_add_frame = 1;
-
-		print OUT $session->{render}->start_html( $first_line );
+		# If it's a directory, just make sure it exists in the destination.
+		unless( -e $destination_filename )
+		{
+			mkdir $destination_filename, 0775
+				or die "Can't make directory $destination_filename: $!\n";
+		}
 	}
 	else
 	{
-		# We're just copying verbatim
-		print OUT "$first_line\n";
+		# Is this is an HTML file?
+		if( /.+\.html/i )
+		{
+			# It's an HTML file.  Add the "skin" if necessary
+			my $must_add_skin = 0;
+
+			# Open up the files
+			open IN, $File::Find::name
+				or die "Error opening $File::Find::name: $!\n";
+
+			open OUT, ">$destination_filename"
+				or die "Error opening $destination_filename for writing: $!\n";
+
+			my $first_line = <IN>;
+			chomp();
+
+			if( $first_line =~ s/^title:\s+//i )
+			{
+				# We need to add the site frame
+				$must_add_skin = 1;
+
+				print OUT $session->{render}->start_html( $first_line );
+			}
+			else
+			{
+				# We're just copying verbatim
+				print OUT "$first_line\n";
+			}
+
+			# Copy the file across
+			while( <IN> )
+			{
+				chomp();
+				print OUT EPrints::Mailer::update_template_line( $_, undef );
+				print OUT "\n";
+			}
+
+			# Write the site frame terminator if appropriate
+			print OUT $session->{render}->end_html() if( $must_add_skin );
+
+			# Close the files
+			close( IN );
+			close( OUT );
+		}
+		else
+		{
+			# Just need to copy the file verbatim
+			File::Copy::copy( $File::Find::name, $destination_filename ) or
+				die "Couldn't copy $File::Find::name to $destination_filename: $!\n";
+		}
 	}
-	
-	# Copy the file across
-	while( <IN> )
-	{
-		chomp();
-		print OUT EPrints::Mailer::update_template_line( $_, undef );
-		print OUT "\n";
-	}
-	
-	# Write the site frame terminator if appropriate
-	print OUT $session->{render}->end_html() if( $must_add_frame );
-	
-	# Close the files
-	close( IN );
-	close( OUT );
 }
