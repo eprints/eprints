@@ -27,6 +27,7 @@ $EPrints::Database::driver = "DBI:mysql:";
 #
 # Table names
 #
+$EPrints::Database::table_counter = "counters";
 $EPrints::Database::table_user = "users";
 $EPrints::Database::table_inbox = "inbox";
 $EPrints::Database::table_buffer = "buffer";
@@ -34,6 +35,11 @@ $EPrints::Database::table_archive = "archive";
 $EPrints::Database::table_document = "documents";
 $EPrints::Database::table_subject = "subjects";
 $EPrints::Database::table_subscription = "subscriptions";
+
+#
+# Counters
+#
+@EPrints::Database::counters = ( "eprintid" );
 
 #@EPrints::Database::meta_fields =
 #(
@@ -157,9 +163,13 @@ sub create_archive_tables
 {
 	my( $self ) = @_;
 	
+	# Create the ID counter table
+	my $success = $self->_create_counter_table();
+
 	# Create the user table
-	my $success = $self->_create_table( $EPrints::Database::table_user,
-	                                    EPrints::MetaInfo->get_user_fields() );
+	$success = $success && $self->_create_table(
+		$EPrints::Database::table_user,
+		EPrints::MetaInfo->get_user_fields() );
 	
 
 	# Document table
@@ -251,15 +261,10 @@ sub _create_table
 #EPrints::Log->debug( "Database", "SQL: $sql" );
 
 	# Send to the database
-	my $sth = $self->{dbh}->do( $sql );
+	my $rv = $self->{dbh}->do( $sql );
 	
 	# Return with an error if unsuccessful
-	if( !defined $sth )
-	{
-		return( 0 );
-	}
-	
-	return( 1 ); # Return success
+	return( defined $rv );
 }
 
 
@@ -316,15 +321,10 @@ sub add_record
 #EPrints::Log->debug( "Database", "SQL: $sql" );
 
 	# Send to the database
-	my $sth = $self->{dbh}->do( $sql );
+	my $rv = $self->{dbh}->do( $sql );
 	
 	# Return with an error if unsuccessful
-	if( !defined $sth )
-	{
-		return( 0 );
-	}
-	
-	return( 1 ); # Return success
+	return( defined $rv );
 }
 
 
@@ -375,15 +375,10 @@ sub update
 #EPrints::Log->debug( "Database", "SQL: $sql" );
 
 	# Send to the database
-	my $sth = $self->{dbh}->do( $sql );
+	my $rv = $self->{dbh}->do( $sql );
 	
 	# Return with an error if unsuccessful
-	if( !defined $sth )
-	{
-		return( 0 );
-	}
-	
-	return( 1 ); # Return success
+	return( defined $rv );
 }
 
 
@@ -470,7 +465,7 @@ sub retrieve
 
 	$sql .= ";";
 
-EPrints::Log->debug( "Database", "SQL:$sql" );
+#EPrints::Log->debug( "Database", "SQL:$sql" );
 	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return( $ret_rows );
@@ -519,57 +514,81 @@ sub remove
 	
 	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
 
-	my $sth = $self->{dbh}->do( $sql );
+	my $rv = $self->{dbh}->do( $sql );
 
 	# Return with an error if unsuccessful
-	if( !defined $sth )
-	{
-		return( 0 );
-	}
-	
-	return( 1 ); # Return success
+	return( defined $rv )
 }
 
 
-
 ######################################################################
 #
-# retrieve( $table, $field_values[][] )
+# $success = _create_counter_table()
 #
-#  Retrieve the rows from $table, where field $field_values[n][0] has
-#  value $field_values[n][1]. All fields are returned, or undef if
-#  the operation failed.
+#  Creates the counter table.
 #
 ######################################################################
 
-#sub retrieve
-#{
-#	my( $class, $table, $field_values ) = @_;
-#
-#	my $sql = "SELECT * FROM $table";
-#	my $field_value_pair;
-#	my $first = 1;
-#
-#	foreach $field_value_pair (@$field_values)
-#	{
-#		my( $field, $value ) = @$field_value_pair;
-#		
-#		if( $first==1 )
-#		{
-#			$sql .= " WHERE ";
-#			$first = 0;
-#		}
-#		else
-#		{
-#			$sql .= " AND ";
-#		}
-#		
-#		$sql .= "$field LIKE \"$value\"";
-#	}
-#	
-#	$sql .= ";";
+sub _create_counter_table
+{
+	my( $self ) = @_;
 	
+	# The table creation SQL
+	my $sql = "CREATE TABLE $EPrints::Database::table_counter ".
+		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
+	# Send to the database
+	my $sth = $self->{dbh}->do( $sql );
+	
+	# Return with an error if unsuccessful
+	return( 0 ) unless defined( $sth );
+
+	# Create the counters
+	foreach (@EPrints::Database::counters)
+	{
+		$sql = "INSERT INTO $EPrints::Database::table_counter VALUES ".
+			"(\"$_\", 0);";
+
+		$sth = $self->{dbh}->do( $sql );
+		
+		# Return with an error if unsuccessful
+		return( 0 ) unless defined( $sth );
+	}
+	
+	# Everything OK
+	return( 1 );
+}
+
+
+######################################################################
+#
+# $count = counter_next( $counter )
+#
+#  Return the next value for the named counter. Returns undef if the
+#  counter doesn't exist.
+#
+######################################################################
+
+sub counter_next
+{
+	my( $self, $counter ) = @_;
+
+	# Update the counter	
+	my $sql = "UPDATE $EPrints::Database::table_counter SET counter=".
+		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
+	
+	# Send to the database
+	my $rows_affected = $self->{dbh}->do( $sql );
+
+	# Return with an error if unsuccessful
+	return( undef ) unless( $rows_affected==1 );
+
+	# Get the value of the counter
+	$sql = "SELECT LAST_INSERT_ID();";
+	my @row = $self->{dbh}->selectrow_array( $sql );
+
+	return( $row[0] );
+}
 
 
 1; # For use/require success

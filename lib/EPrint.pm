@@ -187,7 +187,7 @@ sub create
 {
 	my( $class, $session, $table, $userid ) = @_;
 
-	my $new_id = _create_id();
+	my $new_id = _create_id( $session );
 
 	my $dir = _create_directory( $new_id );
 
@@ -212,44 +212,23 @@ sub create
 
 ######################################################################
 #
-# $new_id = _create_id()
+# $new_id = _create_id( $session )
 #
-#  Create a new EPrint ID code. CAUTION: Not robust if two eprints
-#  are created asynchronously. Only a problem on a high-traffic site.
+#  Create a new EPrint ID code.
 #
 ######################################################################
 
 sub _create_id
 {
-	my $count = 0;
-	my $new_id;
-
-	my $r = open( COUNTER, "$EPrintSite::SiteInfo::eprint_id_counter" );
-
-	if( $r )
-	{
-		$count = <COUNTER>;
-		chop $count;
-		close( COUNTER );
-	}
+	my( $session ) = @_;
 	
-	$new_id = $count;
+	my $new_id = $session->{database}->counter_next( "eprintid" );
 
 	while( length $new_id < $digits )
 	{
 		$new_id = "0".$new_id;
 	}
 
-	# Write count to file
-	$count += 1;
-
-#EPrints::Log->debug( "EPrint", "Writing new count $count" );
-
-	open( COUNTER, ">$EPrintSite::SiteInfo::eprint_id_counter" ) or
-		EPrints::Log->log_entry( "EPrint", "Error opening counter: $!" );
-	print COUNTER "$count\n";
-	close( COUNTER );
-	
 	return( $EPrintSite::SiteInfo::eprint_id_stem . $new_id );
 }
 
