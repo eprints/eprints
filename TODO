@@ -4,26 +4,35 @@ case it might be helpful.
 
 PRE Release Checks for 2.2
 
-*	404 hooks
-
-*	Make a list of phrase file changes. (Scripted?)
-
-*	Check Garbage collection in OAI code.
 
 *	Check ArchiveConfig.pm is sane and normal. Double check diff from
           2.1.1. Clean up default views config.
 
-*	ReSync VLit from Giles.
 
-*	All other giles hacks.
+*	Make a list of phrase file changes. (Scripted?)
+
+
+*	Check Garbage collection in OAI code.
 
 *	Investigate: (subjects_self->{merge})(ANY)
 
 *	Linkbatton renderer?
 
+*	Paracite renderer & cgi
+
+*	Configure - make optional stuff that's missing clearly optional.
+
 * 	Docs: 
 		- We need lots of RAM!
 
+*	Override auth option.
+
+* 	lib/searchfield:help_date
+*	Date search
+* 	Probity Stuff
+
+
+-	Upload files: link the individual filenames
 
 SQL Tables
 
@@ -337,6 +346,7 @@ DONE ====================================================================
 *	No Submission Buffer option.
 *	<ep:ifequal> and <ep:ifnotequal> tools for citations.
 *	MD5 digest all documents.
+*	404 hooks
 
 
 

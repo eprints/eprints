@@ -1019,7 +1019,10 @@ sub _get_records
 
 	return $self->{session}->get_db()->from_buffer( 
 					$self->{dataset}, 
-					$srctable );
+					$srctable,
+					$offset,
+					$count,
+					$justids );
 }
 
 

@@ -576,7 +576,7 @@ sub render_value
 			$nolink );
 	}
 
-	if( !$self->get_property( "multiple" ) )
+	unless( $self->get_property( "multiple" ) )
 	{
 		return $self->_render_value1( 
 			$session, 
@@ -585,7 +585,7 @@ sub render_value
 			$nolink );
 	}
 
-	if(! EPrints::Utils::is_set( $value ) )
+	unless( EPrints::Utils::is_set( $value ) )
 	{
 		# maybe should just return nothing
 		return $session->html_phrase( "lib/metafield:unspecified" );
@@ -602,18 +602,10 @@ sub render_value
 		{
 			$first = 0;	
 		}	
-		elsif( $self->is_type( "name" ) )
-		{
-			#cjg LANG ME BABY
-			$html->appendChild( $session->make_text( " and " ) );
-		}
-		elsif( $self->is_type( "subject" ) )
-		{
-			; # do nothing
-		}
 		else
 		{
-			$html->appendChild( $session->make_text( ", " ) );
+			$html->appendChild( $session->html_phrase( 
+				"lib/metafield:join_".$self->get_type ) );
 		}
 		$html->appendChild( 
 			$self->_render_value1( 
@@ -2040,11 +2032,11 @@ sub is_browsable
 	# pagerange , secret , longtext
 
         # Can't yet browse:
-        # boolean , langid 
+        # langid 
 
 	return $self->is_type( "set", "subject", "datatype", "date", "int", 
 				"year", "id", "email", "url", "text",
-				"name" );
+				"name", "boolean" );
 
 }
 
@@ -2095,6 +2087,10 @@ sub get_values
 		my $ds = $session->get_archive()->get_dataset( 
 				$self->{datasetid} );	
 		@outvalues = @{$ds->get_types()};
+	}
+	elsif( $self->is_type( "boolean" ) )
+	{
+		@outvalues = ( "TRUE", "FALSE" );
 	}
 	elsif( $self->is_type( 
 		"date", "int", "year", "id", "email", "url" , "text",

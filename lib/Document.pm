@@ -94,7 +94,7 @@ use File::Path;
 use File::Copy;
 use Cwd;
 use URI::Heuristic;
-use Digest::MD5;
+use EPrints::Probity;
 
 use strict;
 
@@ -132,9 +132,8 @@ sub get_system_field_info
 		{ name=>"security", type=>"datatype", required=>1, 
 			datasetid=>"security" },
 
-		{ name=>"main", type=>"text", required=>1 },
+		{ name=>"main", type=>"text", required=>1 }
 
-		{ name=>"hash", type=>"longtext" }
 	);
 
 }
@@ -1190,38 +1189,21 @@ sub rehash
 {
 	my( $self ) = @_;
 
-	my $fn = $self->{session}->get_archive()->get_conf( 
-		"hash_document_routine" );
-	my $hash;
-	if( defined $fn )
+	my %f = $self->files;
+	my @filelist = ();
+	foreach my $file ( keys %f )
 	{
-		$hash = &{$fn}( $self );
-	}
-	else
-	{
-
-        	my $md5 = Digest::MD5->new;
-		my( %files ) = $self->files;
-		foreach my $filename ( sort keys %files ) 
-		{
-			my $file = $self->local_path."/".$filename;	
-			if( open( FILE, $file ) )
-			{
-				binmode FILE;
-        			$md5->add( *FILE );
-				close FILE;
-			}
-			else
-			{
-				$self->{session}->get_archive->log( 
-"Error opening $file to create MD5 hash, hash should be re-generated." ); 
-			}
-		}
-		$hash = $md5->hexdigest;
+		push @filelist, $self->local_path."/".$file;
 	}
 
-	$self->set_value( "hash", $hash );
-	$self->commit;
+	my $hashfile = $self->get_eprint->local_path."/".
+		$self->get_value( "docid" ).".".
+		EPrints::Utils::get_UTC_timestamp().".xsh";
+
+	EPrints::Probity::create_log( 
+		$self->{session}, 
+		\@filelist,
+		$hashfile );
 }
 
 

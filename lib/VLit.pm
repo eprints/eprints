@@ -17,34 +17,19 @@
 
 =head1 NAME
 
-B<EPrints::VLit> - undocumented
+B<EPrints::VLit> - VLit Transclusion Module
 
 =head1 DESCRIPTION
 
-undocumented
+This module is consulted when any document file is served. It allows
+subsets of the whole to be served.
+
+This is an experimental feature. It may be turned off in the configuration
+if you object to it for some reason.
 
 =over 4
 
 =cut
-
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
-
-######################################################################
-#
-#  __LICENSE__
-#
-######################################################################
-#
-# This package is still experiemental!
-#
-######################################################################
 
 package EPrints::VLit;
 
@@ -52,6 +37,7 @@ use CGI;
 use Apache;
 use Apache::Constants;
 use Digest::MD5;
+use FileHandle;
 
 use strict;
 
@@ -251,7 +237,7 @@ sub ls_charrange
 	$fh->read( $data, $readlength );
 	$fh->close();
 
-	my $baseurl = "http://".$r->hostname.$r->uri;
+	my $baseurl = $session->get_archive->get_conf("base_url").$r->uri;
 
 	if( $mode eq "human" || $mode eq "context" || $mode eq 'spanSelect' || $mode eq 'endSelect' || $mode eq 'link' )
 	{
@@ -294,6 +280,10 @@ sub ls_charrange
 			{
 				$url .= "?locspec=charrange:$param&mode=context";
 			}
+			if( $mode eq "context" )
+			{
+				$url .= "?mode=human&locspec=charrange:";
+			}
 			$front = '<big><sup><a href="'.$url.'">trans</a></sup></big> ';
 		}
 		my $copyurl = $session->get_archive()->get_conf( "vlit" )->{copyright_url};
@@ -313,7 +303,7 @@ sub ls_charrange
 		my $title = "Character Range from $offset, length $length";
 		if( $mode eq 'link' )
 		{
-			my $url = $baseurl.'?locspec=charrange:'.($offset)."/".($length);
+			my $url = $baseurl.'?xuversion=1.0&locspec=charrange:'.($offset)."/".($length);
 			my $urlh = $url.'&mode=human';
 			$msg=<<END;
 <p><b>$title</b></p>
@@ -337,7 +327,7 @@ END
 	}
 	elsif( $mode eq "xml-entity" )
 	{
-		my $page = 0;# new XML::DOM::Document();
+		my $page = new XML::DOM::Document();
 		$page->setXMLDecl(
 			$page->createXMLDecl( "1.0", "UTF-8", "yes" ) );
 		my $transclusion = $page->createElement( "transclusion" );
@@ -351,7 +341,7 @@ END
 		$page->appendChild( $transclusion );	
 
 		send_http_header( "text/xml" );
-		$r->print( EPrints::XML::to_string( $page ) );
+		$r->print( $page->toString );
 	}
 	else
 	{
@@ -382,6 +372,13 @@ sub ls_area
 		vrange => { start=>0 }
 	};
 
+	my $s;
+	if( $session->param( "scale" ) )
+	{
+		$s = $session->param( "scale" );
+		$s = undef if( $s <= 0 || $s>1000 || $s==100 );
+	}
+
 	foreach( split( "/", $param ) )
 	{
 		my( $key, $value ) = split( "=", $_ );
@@ -406,9 +403,10 @@ sub ls_area
 		}
 	}
 	
-	my $cache = cache_file( "area", $param );
+	my $cache = cache_file( "area", $param."/".$s );
 
 	my $dir = $TMPDIR."/area/".Digest::MD5::md5_hex( $file );
+
 
 	unless( -e $cache )
 	{
@@ -420,7 +418,7 @@ print STDERR "dir=$dir\n";
 		{
 print STDERR "mkdir=$dir\n";	
 			mkdir( $dir );
-			my $cmd = "convert '$file' 'tif:$dir/%d'";
+			my $cmd = "/usr/bin/X11/convert '$file' 'tif:$dir/%d'";
 print STDERR "c1=$cmd\n";
 			`$cmd`;
 		}
@@ -456,13 +454,30 @@ print STDERR "c1=$cmd\n";
 		$crop .= "+".$opts->{vrange}->{start};
 	}
 
-	my $cmd = "convert $crop '$dir/$pageindex' 'png:$cache'";
+	my $cmd;
+	$cmd = "tiffinfo $dir/$pageindex";
+	print STDERR $cmd."\n";
+	my $scale = '';
+	my @d = `$cmd`;
+	foreach( @d )
+	{
+		$scale = '-scale 100%x200%' if m/Resolution: 204, 98 pixels\/inch/;
+	}
+	my $scale2 = "";
+	if( defined $s )
+	{
+		$scale2 = '-scale '.$s.'%x'.$s.'%';
+	}
+
+	$cmd = "/usr/bin/X11/convert $scale $crop $scale2 '$dir/$pageindex' 'png:$cache'";
 	print STDERR $cmd."\n";
 	`$cmd`;
 	
 
 	send_http_header( "image/png" );
-	print `cat $cache`;
+	$cmd = "cat $cache";
+	print STDERR $cmd."\n";
+	print `$cmd`;
 }
 
 

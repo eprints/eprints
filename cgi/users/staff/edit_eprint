@@ -73,12 +73,20 @@ sub process
 
 	my $user_ds = $session->get_archive()->get_dataset( "user" );
 
-	my $permsearch = $user_ds->get_field( 
-                        'editperms' )->make_searchexp(
-                                $session,
-                                $session->current_user->get_value( 'editperms' ) );
-	my $can_edit = $permsearch->item_matches( $eprint );
-	$permsearch->dispose;
+	my $can_edit = 0;
+	my $ef_field = $user_ds->get_field( 'editperms' );
+	my $searches = $session->current_user->get_value( 'editperms' );
+	foreach my $s ( @{$searches} )
+	{
+		next if( $can_edit ); # skip the rest if one matches
+
+		my $search = $ef_field->make_searchexp( $session, $s );
+		if( $search->item_matches( $eprint ) )
+		{
+			$can_edit = 1;
+		}
+		$search->dispose;
+	}
 
 	unless( $can_edit )
 	{

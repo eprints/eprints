@@ -395,16 +395,16 @@ sub load_archive_config_module
 
 	my $prev_dir = cwd;
 	
-	eval { 
-		chdir $info->{archiveroot};
-		do $info->{configmodule};
-	};
-	
+	chdir $info->{archiveroot};
+	my $file = $info->{configmodule};
+	my $return = do $file;
 	chdir $prev_dir;
 
-	if( $@ )
+	unless( $return )
 	{
-		$@=~s#\nCompilation failed in require.*##;
+		my $errors = "couldn't run $file";
+		$errors = "couldn't do $file:\n$!" unless defined $return;
+		$errors = "couldn't parse $file:\n$@" if $@;
 		print STDERR <<END;
 ------------------------------------------------------------------
 ---------------- EPrints System Warning --------------------------
@@ -413,11 +413,12 @@ Failed to load config module for $id
 Main Config File: $info->{configmodule}
 Errors follow:
 ------------------------------------------------------------------
-$@
+$errors
 ------------------------------------------------------------------
 END
 		return;
 	}
+	
 
 	my $function = "EPrints::Config::".$id."::get_conf";
 	my $config = &{$function}( $info );

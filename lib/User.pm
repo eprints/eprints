@@ -105,7 +105,11 @@ sub get_system_field_info
 		{ name=>"lang", type=>"datatype", required=>0, 
 			datasetid=>"arclanguage", input_rows=>1 },
 
-		{ name => "editperms", type => "search", 
+		{ name => "editperms", 
+			multiple => 1,
+			input_add_boxes => 1,
+			input_boxes => 1,
+			type => "search", 
 			datasetid => "buffer",
 			fieldnames => "editpermfields",
 			allow_set_order => 0 },
@@ -520,31 +524,32 @@ sub get_editable_eprints
 {
 	my( $self ) = @_;
 
-       	my $searchexp;
-	if( $self->is_set( 'editperms' ) )
-	{
-		my $editperms = $self->{dataset}->get_field( "editperms" );
-		$searchexp = $editperms->make_searchexp(
-				$self->{session},
-				$self->get_value( 'editperms' ) );
-	}
-	else
+	unless( $self->is_set( 'editperms' ) )
 	{
 		my $ds = $self->{session}->get_archive->get_dataset( 
 			"buffer" );
-		$searchexp = EPrints::SearchExpression->new(
+		my $searchexp = EPrints::SearchExpression->new(
 			allow_blank => 1,
 			use_oneshot_cache => 1,
 			dataset => $ds,
 			session => $self->{session} );
+		$searchexp->perform_search;
+		my @records =  $searchexp->get_records;
+		$searchexp->dispose();
+		return @records;
 	}
 
-	$searchexp->perform_search;
-	
-	#cjg set order? (it's in the site config)
-
-	my @records =  $searchexp->get_records;
-	$searchexp->dispose();
+	my $editperms = $self->{dataset}->get_field( "editperms" );
+	my @records = ();
+	foreach my $sv ( @{$self->get_value( 'editperms' )} )
+	{
+		my $searchexp = $editperms->make_searchexp(
+			$self->{session},
+			$sv );
+		$searchexp->perform_search;
+		push @records,  $searchexp->get_records;
+		$searchexp->dispose();
+	}
 	return @records;
 }
 

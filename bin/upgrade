@@ -257,9 +257,6 @@ This will:
        + mailempty (boolean) 
        + frequency (set) 
 
- * in dataset "document"
-    - add a longtext field named "hash"
-    
 Are you sure you want to do this? (yes/no)
 END
 	
@@ -309,8 +306,9 @@ END
 
 	# add "editperms","frequency" & "mailempty" to subscription
 
-	$sql = "ALTER TABLE users ADD editperms TEXT default NULL AFTER lang";
+	$sql = "CREATE TABLE users_editperms ( userid INT NOT NULL, pos INT, editperms TEXT default NULL, KEY userid (userid), KEY pos (pos) )  ";
 	$ok = $ok && $rootdbh->do( $sql );
+
 	$sql = "ALTER TABLE users ADD frequency varchar(255) default NULL AFTER editperms";
 	$ok = $ok && $rootdbh->do( $sql );
 	$sql = "ALTER TABLE users ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
@@ -329,18 +327,18 @@ END
 	}
 
 
-	# add "hash" to document
-
-	$sql = "ALTER TABLE document ADD hash TEXT default NULL AFTER main";
-	$ok = $ok && $rootdbh->do( $sql );
-	foreach my $table ( @tables )
-	{
-		if( $table =~ m/^document__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD hash text AFTER main",
-			$ok = $ok && $rootdbh->do( $sql );
-		}
-	}
+#	# add "hash" to document
+#
+#	$sql = "ALTER TABLE document ADD hash TEXT default NULL AFTER main";
+#	$ok = $ok && $rootdbh->do( $sql );
+#	foreach my $table ( @tables )
+#	{
+#		if( $table =~ m/^document__ordervalues_.*$/ )
+#		{
+#			$sql = "ALTER TABLE $table ADD hash text AFTER main",
+#			$ok = $ok && $rootdbh->do( $sql );
+#		}
+#	}
 
 
 	if( !$ok )

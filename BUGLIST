@@ -10,9 +10,6 @@ General
 
 - If a user area function is broken, the system does not notice.
 
-- VLit code does not understand that server may not be running on
-   port 80. [can't confirm]
-
 - Does not give validation error when multilang with required lang
 does NOT have all required langs filled in.
 
@@ -107,8 +104,6 @@ EPrints "Staff" Edit
 
 - staff edit eprint page: says this is how the abstract will look, and
    if it's in "archive" that's already how it looks!
-
-- CANCEL button changes stuff in submission buffer edit.
 
 ----------------------------------------------------------------------
 Installation & Archive Setup Script
@@ -297,24 +292,8 @@ Fixed in CVS
 - broken link in "record_for_user" goes to "set_email" not "change_email"
   ?? did I fix this absent mindedly?
 - "Cancel" from the "EPrint Type" page still appears to set the type.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- VLit code does not understand that server may not be running on
+   port 80.
+- CANCEL button changes stuff in submission buffer edit.
 
 

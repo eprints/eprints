@@ -1417,11 +1417,10 @@ sub count_table
 	return $count;
 }
 
-
 ######################################################################
 =pod
 
-=item $items = $db->from_buffer( $dataset, $buffer )
+=item $items = $db->from_buffer( $dataset, $buffer, [$offset], [$count], [$justids] )
 
 Return a reference to an array containing all the items from the
 given dataset that have id's in the specified buffer.
@@ -1431,15 +1430,16 @@ given dataset that have id's in the specified buffer.
 
 sub from_buffer 
 {
-	my ( $self , $dataset , $buffer ) = @_;
-	return $self->_get( $dataset, 1 , $buffer );
+	my ( $self , $dataset , $buffer , $offset, $count, $justids ) = @_;
+	return $self->_get( $dataset, 1 , $buffer, $offset, $count );
 }
+
 
 
 ######################################################################
 =pod
 
-=item $foo = $db->from_cache( $dataset, [$searchexp], [$id], [$offset], [$count, $justids] )
+=item $foo = $db->from_cache( $dataset, [$searchexp], [$id], [$offset], [$count], [$justids] )
 
 Return a reference to an array containing all the items from the
 given dataset that have id's in the specified cache. The cache may be 

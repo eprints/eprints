@@ -1394,6 +1394,30 @@ sub get_timestamp
 	return $stamp;
 }
 
+######################################################################
+=pod
+
+=item $timestamp = EPrints::Utils::get_UTC_timestamp()
+
+Return a string discribing the current local date and time. 
+In UTC Format. eg:
+
+ 1957-03-20T20:30:00Z
+
+This the UTC time, not the localtime.
+
+=cut
+######################################################################
+
+sub get_UTC_timestamp
+{
+	my $stamp = "Error in get_UTC_timestamp";
+	eval {
+		use POSIX qw(strftime);
+		$stamp = strftime( "%Y-%m-%dT%H:%M:%SZ", time);
+	};	
+	return $stamp;
+}
 
 
 ######################################################################

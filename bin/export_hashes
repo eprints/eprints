@@ -22,15 +22,11 @@ B<export_hashes> I<archiveid> [B<options>] [I<filename>]
 
 =head1 DESCRIPTION
 
-This script outputs to a file, or stdout, a list of all the documents in
-the system and their current hash values. This list can then be archived
-and a hash of the list can be registered with a trustworthy 3rd party, or
-even published in a short newspaper advert.
+Every time a document in eprints is modified a new .xsh file is generated
+containing a hash of each file. This script creates a hash of each of these
+.xsh files and create a super .xsh file containing each of those hashes.
 
-In theory you can use this to prove you had that hash on the date of
-publication of the newspaper. That prooves that the log file you archived 
-existed on or before that date. The hashes in the log prove that each document
-existed on or before that date. (unless they have been subsequently changed).
+If no filename is given this script outputs to standard out.
 
 This is an experimental feature.
 
@@ -126,45 +122,55 @@ $|=1;
 
 my $session = new EPrints::Session( 1, $ARGV[0], $noise );
 exit( 1 ) unless defined $session;
-my $filename = $ARGV[1];
-if( defined $filename )
-{
-	unless( open( OUTPUT , ">".$filename ) )
-	{
-		$session->get_archive->log( "Can't open $filename for writing" );
-		$session->terminate();
-		exit 1;
-	}
-}
-else
-{
-	*OUTPUT = *STDOUT;
-}
-
-
-print OUTPUT "Archive: ".$ARGV[0]."\n";
-print OUTPUT "Datestamp: ".EPrints::Utils::get_timestamp()."\n";
-print OUTPUT "\n";
-print OUTPUT "Hash                             Doc ID\n";
-print OUTPUT "\n";
 
 my $ds = $session->get_archive()->get_dataset( "document" );
-$ds->map( $session, \&show_hash );
+my $info = { files=>[] };
+$ds->map( $session, \&show_hash, $info );
 
-if( defined $filename )
+my $filename;
+if( EPrints::Utils::is_set( $ARGV[1] ) )
 {
-	close OUTPUT;
+	$filename = $ARGV[1];
 }
+
+EPrints::Probity::create_log(
+		$session,
+		$info->{files}, 
+		$filename );
+
 $session->terminate();
 exit;
 
 sub show_hash
 {
-	my( $session, $dataset, $user ) = @_;
+	my( $session, $dataset, $doc, $info ) = @_;
 
-	print OUTPUT $user->get_value( "hash" );
-	print OUTPUT " ";
-	print OUTPUT $user->get_value( "docid" );
-	print OUTPUT "\n";
+	my $path = $doc->get_eprint->local_path;
+	my $id = $doc->get_id;
+ 	opendir CDIR, $path or return;
+	my @filesread = readdir CDIR;
+	closedir CDIR;
+
+	my $all = 0;
+	my $latest;
+
+	my $file;
+	foreach( sort @filesread )
+	{
+		if( $_ =~ m/^$id\.(.*).xsh$/ )
+		{
+			my $filename = $path."/".$_;
+			if( $all )
+			{
+				push @{$info->{files}}, $filename;
+			}
+			$latest = $filename;
+		}
+	}
+
+	unless( $all )
+	{
+		push @{$info->{files}}, $latest;
+	}
 
 }

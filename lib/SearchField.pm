@@ -1476,8 +1476,17 @@ sub item_matches
 				my $s = EPrints::Subject->new( 
 					$item->get_session,
 					$_ );
-				push @{$haystack}, 
-					@{$s->get_value( "ancestors" )};
+				if( !defined $s )
+				{
+					$item->get_session->get_archive->log(
+"Attempt to call item_matches on a searchfield with non-existant\n".
+"subject id: $_" );
+				}
+				else
+				{
+					push @{$haystack}, 
+						@{$s->get_value( "ancestors" )};
+				}
 			}
 		}
 

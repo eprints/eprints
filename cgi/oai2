@@ -748,7 +748,7 @@ sub ListMetadataFormats
 {
 	my( $session ) = @_;
 	
-	my( $args, $errors ) = get_oai_args( $session, [], [ 'identifier' ] );
+	my( $args, $errors ) = get_oai_args( $session, [], [ "identifier" ] );
 
 	return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 
@@ -1001,6 +1001,16 @@ sub get_oai_args
 				"badArgument",
 				"Missing required argument: $_" );
 	}
+
+	if( defined $args{identifier} && 
+		$args{identifier} !~ m/^oai:[a-zA-Z][a-zA-Z0-9\-]*(\.[a-zA-Z][a-zA-Z0-9\-]+)+:[a-zA-Z0-9\-_\.!~\*'\(\);\/\?:\@\&=\+\$,\%]+$/ )
+	{
+		push @errors, render_oai_error(
+				$session,
+				"badArgument",
+				"identifier does not match regexp: $args{identifier}" );
+	}
+		
 		
 	return( \%args, \@errors );
 }

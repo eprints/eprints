@@ -940,3 +940,31 @@ before next release. (metadata types & fields)
     conditionals using some of the eprints search semantics.
  - new script - export_hashes - which dumps all the hash values of documents
     in an archive.
+
+2002-10-23
+ - changed editperms in User.pm to be a multiple field, and made changes where
+    this is used. Each search is "OR" not "AND". Changed "upgrade" to add the
+    table (rather than just a field).
+ - eprints no longer have a "hash" value after all. It's just stored in the
+    XML files.
+ - Fixed OAI2 bug which meant it did not complain when identifiers did not 
+    match the oai regexp. Should now, finally, be 100% compliant.
+ - Some improvements to the archive loader, should hopefully express more
+    errors in the perl config modules.
+ - the from_buffer method in Database now takes offset, count and justids
+    params as used elsewhere.
+ - Added Probity.pm which hashes files and outputs in the probity XML format.
+ - Document rehash() now uses Probity.pm everytime any document modifying 
+    method is called.
+ - export_hashes now works with the XML probity format. (.xsh)
+ - Added phrases for seperators in multiple value rendering (eg. the " and "
+    in name lists. Searches are seperated by " <strong>OR<strong> "
+ - added "boolean" to the is_browsable list. It acts like a 2 value set.
+ - SearchExpressions now always call from_buffer with the offset, count and
+    justids, if set.
+ - Fixed icky error in SearchField::item_matches which halted if a subject
+    no longer exists for some reason. Now logs an warning and muddles on.
+ - Added a get_UTC_timestamp to Utils
+ - Fixed the VLit non-port-80 bug. Added some new functionality, including
+    a "scale" factor, and a "fax" detector.
+
