@@ -243,7 +243,6 @@
     <phrase ref="formincorrect">The form doesn't seem to be filled out correctly:</phrase>
     <phrase ref="completeform">Please complete the form before continuing.</phrase>
     <phrase ref="problemupdating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
-    <phrase ref="usernotmatch">Username in form <pin ref="formid" /> doesn't match object username <pin ref="username" /></phrase>
     <phrase ref="update_record">Update Record</phrase>
 </file>
 

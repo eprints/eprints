@@ -22,37 +22,9 @@ use EPrints::Database;
 use strict;
 
 # Months
-my @monthkeys = ( "00",
-               "01",
-               "02",
-               "03",
-               "04",
-               "05",
-               "06",
-               "07",
-               "08",
-               "09",
-               "10",
-               "11",
-               "12" );
-
-#
-# The following is the information about the metadata field. This is the
-# format of the terse in-line code version, which should be colon-separated.
-# i.e. name:type:arguments:displayname:...
-#
-#@EPrints::MetaField::FieldInfo =
-#(
-	#"name",            # The field name, as it appears in the database
-	#"type",            # The (EPrints) field type
-	#"arguments",       # Arguments, depends on the field type
-	#"displayname",     # Displayable (English) name
-	#"required",        # 0 if the field is optional, 1 if required
-	#"editable",        # 1 if the field is user-editable
-	#"visible",         # 1 if the field is publically visible
-	#"multiple"         # Is a multiple field
-#);
-
+my @monthkeys = ( 
+	"00", "01", "02", "03", "04", "05", "06",
+	"07", "08", "09", "10", "11", "12" );
 
 my %TYPE_SQL =
 (
@@ -92,14 +64,6 @@ my %TYPE_INDEX =
 );
 
 
-# The following are worked out from appropriate metadata field types:
-#
-# \@tags
-# \%labels
-# $displaylines
-# $multiple
-# $displaydigits
-
 ######################################################################
 #
 ##
@@ -116,7 +80,8 @@ my %TYPE_INDEX =
 # displaylines   # for longtext and set (int)   # default = 5
 # digits  # for int  (int)   # default = 20
 # options # for set (array)   **required if type**
-# maxlength # for something
+# maxlength # for text (maybe url & email?)
+# showall # for subjects
 
 # note: display name, help and labels for options are not
 # defined here as they are lang specific.
@@ -140,29 +105,32 @@ sub new
 		}
 		$self->setProperty( $_, $properties->{$_} );
 	}
-	foreach( "required","editable","visible","multiple" )
+	foreach( "required" , "editable" , "visible" , "multiple" )
 	{
 		$self->setProperty( $_, $properties->{$_}, 0 );
 	}
 
 	$self->{dataset} = $dataset;
 
-	if( $self->{type} eq "longtext" || $self->{type} eq "set" )
+	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
 		$self->setProperty( 
 			"displaylines", 
 			$properties->{displaylines}, 
 			5 );
 	}
-	if( $self->{type} eq "int" )
+
+	if( $self->is_type( "int" ) )
 	{
 		$self->setProperty( "digits", $properties->{digits} , 20 );
 	}
-	if( $self->{type} eq "subject" )
+
+	if( $self->is_type( "subject" ) )
 	{
 		$self->setProperty( "showall" , $properties->{showall} , 0 );
 	}
-	if( $self->{type} eq "datatype" )
+
+	if( $self->is_type( "datatype" ) )
 	{
 		if( !defined $properties->{datasetid} )
 		{
@@ -171,11 +139,13 @@ sub new
 		}
 		$self->setProperty( "datasetid" , $properties->{datasetid} );
 	}
-	if( $self->{type} eq "text" )
+
+	if( $self->is_type( "text" ) )
 	{
 		$self->setProperty( "maxlength" , $properties->{maxlength} );
 	}
-	if( $self->{type} eq "set" )
+
+	if( $self->is_type( "set" ) )
 	{
 		if( !defined $properties->{options} )
 		{
@@ -643,8 +613,6 @@ sub render_input_field
 			}
 		}
 
-		my $height = 7;
-
 		if( !defined $value )
 		{
 			$value = [];
@@ -658,7 +626,7 @@ sub render_input_field
 			name => $id,
 			values => $tags,
 			default => $value,
-			height => $height,
+			height => $self->{displaylines},
 			multiple => ( $self->{multiple} ? 
 					"multiple" : undef ),
 			labels => $labels ) );
@@ -854,15 +822,15 @@ print STDERR "val($value)\n";
  		$familyid = $self->{name}.$id_suffix."_family";
 		if( $session->internal_button_pressed() )
 		{
-			$value->{familyname} = $session->param( $familyid );
-			$value->{givenname} = $session->param( $givenid );
+			$value->{family} = $session->param( $familyid );
+			$value->{given} = $session->param( $givenid );
 		}
 		$tr = $session->make_element( "tr" );
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
 			name => $familyid,
-			value => $value->{familyname},
+			value => $value->{family},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
 		$tr->appendChild( $td );
@@ -870,7 +838,7 @@ print STDERR "val($value)\n";
 		$td->appendChild( $session->make_element(
 			"input",
 			name => $givenid,
-			value => $value->{givenname},
+			value => $value->{given},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
 		$tr->appendChild( $td );
@@ -1018,112 +986,110 @@ sub form_value
 {
 	my( $self, $session ) = @_;
 	
-	my $value = undef;
-
-#
-
-
-#	if( $session->param( $self->{name} ) )
-#		my @tags = $session->{query}->param( $self->{name} );
-	
-	if( $self->is_type( "pagerange" ) )
+	if( $self->is_type( "set", "subject", "datatype" ) ) 
 	{
-		my $from = $session->param( "$self->{name}_from" );
-		my $to = $session->param( "$self->{name}_to" );
+		my @values = $session->param( $self->{name} );
+		
+		if( scalar( @values ) == 0 )
+		{
+			return undef;
+		}
+		if( $self->isMultiple() )
+		{
+			return \@values;
+		}
+		else
+		{
+			$values[0];
+		}
+	}
+
+	if( $self->isMultiple() )
+	{
+		my @values = ();
+		my $boxcount = $session->param( $self->{name}."_spaces" );
+		$boxcount = 1 if( $boxcount < 1 );
+		my $i;
+		for( $i=1; $i<=$boxcount; ++$i )
+		{
+			my $value = $self->_form_value_aux( $session, $i );
+			if( defined $value )
+			{
+				push @values, $value;
+			}
+		}
+		if( scalar @values == 0 )
+		{
+			return undef;
+		}
+		return \@values;
+	}
+
+	return $self->_form_value_aux( $session );
+}
+
+sub _form_value_aux
+{
+	my( $self, $session, $n ) = @_;
+
+	my $id_suffix = "";
+	$id_suffix = "_$n" if( defined $n );
+
+	if( $self->is_type( "text", "username", "url", "int", "email" ) )
+	{
+		my $value = $session->param( $self->{name} );
+		return undef if( $value eq "" );
+		return $value;
+	}
+	elsif( $self->is_type( "pagerange" ) )
+	{
+		my $from = $session->param( $self->{name}.$id_suffix."_from" );
+		my $to = $session->param( $self->{name}.$id_suffix."_to" );
 
 		if( !defined $to || $to eq "" )
 		{
-			$value = $from;
+			return( $from );
 		}
-		else
-		{
-			$value = $from . "-" . $to;
-		}
+		
+		return( $from . "-" . $to );
 	}
 	elsif( $self->is_type( "boolean" ) )
 	{
-		my $form_val = $session->param( $self->{name} );
-		$value = ( defined $form_val ? "TRUE" : "FALSE" );
+		my $form_val = $session->param( $self->{name}.$id_suffix );
+		return ( defined $form_val ? "TRUE" : "FALSE" );
 	}
 	elsif( $self->is_type( "date" ) )
 	{
-		my $day = $session->param( "$self->{name}_day" );
-		my $month = $session->param( "$self->{name}_month" );
-		my $year = $session->param( "$self->{name}_year" );
+		my $day = $session->param( $self->{name}.$id_suffix."_day" );
+		my $month = $session->param( 
+					$self->{name}.$id_suffix."_month" );
+		my $year = $session->param( $self->{name}.$id_suffix."_year" );
 
 		if( defined $day && $month ne "00" && defined $year )
 		{
-			$value = $year."-".$month."-".$day;
+			return $year."-".$month."-".$day;
 		}
-	}
-	elsif( $self->is_type( "set" ) )
-	{
-		my @tags = $session->{query}->param( $self->{name} );
-
-		if( scalar @tags > 0 )
-		{
-			$value = join ",", @tags;
-			$value = ":$value:";
-		}
-	}
-	elsif( $self->is_type( "subject" ) )
-	{
-		my $subject_list = EPrints::SubjectList->new();
-
-		my @tags = $session->{query}->param( $self->{name} );
-		
-		if( scalar @tags > 0 )
-		{
-			$subject_list->set_tags( \@tags );
-
-			$value = $subject_list->toString();
-		}
-		else
-		{
-			$value = undef;
-		}
+		return undef;
 	}
 	elsif( $self->is_type( "name" ) )
 	{
-		my $i = 0;
-		my $total = ( $self->{multiple} ? 
-			$session->param( "name_boxes_$self->{name}" ) : 1 );
-		
-		for( $i=0; $i<$total; $i++ )
+		my( $family, $given );
+		$family = $session->param( $self->{name}.$id_suffix."_family" );
+		$given = $session->param( $self->{name}.$id_suffix."_given" );
+
+		if( defined $family && $family ne "" )
 		{
-			my $surname = $session->param( "name_surname_$i"."_$self->{name}" );
-			if( defined $surname && $surname ne "" )
-			{
-				$value = EPrints::Name::add_name( $value,
-					$surname,
-					$session->param( "name_firstname_$i"."_$self->{name}" ) );
-			}
+			return { family => $family, given => $given };
 		}
-	}
-	elsif( $self->is_type( "username" ) )
-	{
-		my $i = 0;
-		my $total = ( $self->{multiple} ? 
-			$session->param( "username_boxes_$self->{name}" ) : 1 );
-		$value = "";	
-		for( $i=0; $i<$total; $i++ )
-		{
-			my $username = $session->param( "username_$i"."_$self->{name}" );
-			if( defined $username && $username ne "" )
-			{
-				$value.= ":$username";
-			}
-		}
-		$value .= ":" if ( $value ne "" );
+		return undef;
 	}
 	else
 	{
-		$value = $session->param( $self->{name} );
-		$value = undef if( defined $value && $value eq "" );
-	}
-	
-	return( $value );
+		$session->getSite()->log( 
+			"Error: can't do _form_value_aux on type ".
+			"'".$self->{type}."'" );
+		return undef;
+	}	
 }
-
 
 

@@ -1181,6 +1181,7 @@ sub render_form_field
 
 		$div->appendChild( 
 			$self->makeText( $field->display_name( $self ) ) );
+
 		if( $field->isRequired() && !$field->is_type( "boolean" ) )
 		{
 			$span = $self->make_element( 
@@ -1210,6 +1211,7 @@ sub render_form_field
 
 	return( $html );
 }	
+
 
 1;
 

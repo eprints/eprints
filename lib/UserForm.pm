@@ -198,37 +198,32 @@ sub _update_from_form
 	my( $self ) = @_;
 
 	# Ensure correct user
-	if( $self->{session}->param( "username" ) eq
+	if( $self->{session}->param( "username" ) ne
 		$self->{user}->getValue( "username" ) )
 	{
-		my $user_ds = $self->{session}->getSite()->
-					getDataSet( "user" );
-		my @all_fields = $user_ds->get_fields;
-
-		my $field;
-		foreach $field (@all_fields)
-		{
-			my $param = $self->{session}->{render}->form_value( $field );
-			$param = undef if( defined $param && $param eq "" );
-
-			# Only update if a value for the field was entered in the form.
-			if( $self->{staff} || $field->{editable} )
-			{
-				$self->{user}->{$field->{name}} = $param;
-			}
-		}
-		return( 1 );
-	}
-	else
-	{
-		my $form_id = $self->{session}->{render}->param( "username" );
-		EPrints::Log::log_entry(
-			"usernotmatch",
-			      {formid=>$form_id,
-			        username=>$self->{username}} );
-
+		my $form_id = $self->{session}->param( "username" );
+		$self->{session}->getSite()->log( 
+			"Username in $form_id doesn't match object username ".
+			 $self->{username} );
+	
 		return( 0 );
 	}
+	
+	my @all_fields = $self->{session}->getSite()->
+					getDataSet( "user" )->get_fields();
+
+	my $field;
+	foreach $field ( @all_fields )
+	{
+		my $param = $field->form_value( $self->{session} );
+
+		# Only update if a value for the field was entered in the form.
+		if( $self->{staff} || $field->{editable} )
+		{
+			$self->{user}->setValue( $field->{name} , $param );
+		}
+	}
+	return( 1 );
 }
 
 
