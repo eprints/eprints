@@ -1309,6 +1309,11 @@ sub _form_value_aux
 	{
 		$value = $self->_form_value_aux2( $session, $suffix );
 	}
+	if( $self->get_property( "hasid" ) )
+	{
+		my $id = $session->param( $self->{name}.$suffix."_id" );
+		return { id=>$id, main=>$value };
+	}
 	return $value;
 }
 

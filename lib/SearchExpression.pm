@@ -479,8 +479,8 @@ sub perform_search
 		my $badwords;
 		foreach $search_field( @searchon )
 		{
-			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--(".$search_field->{value}.")");
-			$self->{session}->get_archive()->log( "SearchExpression perform_search debug: ".(defined $buffer?$buffer:"[no buffer]")."!\n" );
+print STDERR "SearchExpression perform_search debug: ".$search_field->{field}->{name}."--(".$search_field->{value}.")";
+print STDERR "SearchExpression perform_search debug: ".(defined $buffer?$buffer:"[no buffer]")."!\n" ;
 			my $error;
 			( $buffer , $badwords , $error) = 
 				$search_field->do( $buffer , $self->{satisfy_all} );

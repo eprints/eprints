@@ -103,7 +103,6 @@ sub create
 	
 	# Generate new doc id
 	my $doc_id = _generate_doc_id( $session, $eprint );
-	
 	# Make directory on filesystem
 	return undef unless _create_directory( $doc_id, $eprint ); 
 
@@ -153,6 +152,12 @@ sub _create_directory
 	
 	my $dir = $eprint->local_path()."/".docid_to_path( $eprint->get_session()->get_archive(), $id );
 
+	if( -d $dir )
+	{
+		$eprint->get_session()->get_archive()->log( "Dir $dir already exists!" );
+		return 1;
+	}
+
 	# Return undef if dir creation failed. Should always have created 1 dir.
 	if(!EPrints::Utils::mkdir($dir))
 	{
@@ -175,12 +180,19 @@ sub _create_secure_symlink
 
 	my $linkdir = _secure_symlink_path( $eprint );
 	print STDERR "\nLINKDIR=($linkdir)\n\n";
-	my @created = mkpath( $linkdir, 0, 0775 );
-
-	if( scalar @created == 0 )
+	if( -d $linkdir )
 	{
-		$archive->log( "Error creating symlink dir for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($linkdir): ".$! );
-		return( 0 );
+		$eprint->get_session()->get_archive()->log( "Link Dir $dir already exists!" );
+	}
+	else
+	{
+		my @created = mkpath( $linkdir, 0, 0775 );
+
+		if( scalar @created == 0 )
+		{
+			$archive->log( "Error creating symlink target dir for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($linkdir): ".$! );
+			return( 0 );
+		}
 	}
 
 	my $symlink = $linkdir."/".docid_to_path( $archive, $id );

@@ -478,6 +478,7 @@ sub _from_stage_meta
 	{
 		$self->_update_from_form( $field->get_name() );
 	}
+print STDERR "FACTS-----------\n".Dumper( $self->{eprint}->{data} )."\n////////\n";
 	$self->{eprint}->commit();
 
 	# What stage now?
@@ -1718,9 +1719,11 @@ sub _update_from_form
 	
 	my $field = $self->{dataset}->get_field( $field_id );
 
-	$self->{eprint}->set_value( 
-		$field_id,
-		$field->form_value( $self->{session} ) );
+	my $value = $field->form_value( $self->{session} );
+
+print STDERR "From form: ".$field->get_name()."----------\n".Dumper( $value )."----/\n";
+
+	$self->{eprint}->set_value( $field_id, $value );
 }
 
 ######################################################################

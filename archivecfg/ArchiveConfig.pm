@@ -1653,7 +1653,7 @@ sub validate_eprint_meta
 sub log
 {
 	my( $archive, $message ) = @_;
-	#print STDERR "EP(".$archive->get_id().") ".$message."\n";
+	print STDERR "EPlog(".$archive->get_id().") ".$message."\n";
 }
 
 sub set_document_defaults
