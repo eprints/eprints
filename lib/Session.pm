@@ -570,6 +570,15 @@ sub have_parameters
 
 #############################################################
 
+sub make_ruler
+{
+	my( $self ) = @_;
+
+	return $self->make_element( "hr",
+		size => 2,
+		noshade => "noshade" );
+}
+
 
 ## WP1: BAD
 sub make_option_list
@@ -752,7 +761,7 @@ sub send_page
 {
 	my( $self, %httpopts ) = @_;
 	$self->send_http_header( %httpopts );
-	print $self->{page}->to_string();
+	print $self->{page}->toString();
 	$self->{page}->dispose();
 }
 

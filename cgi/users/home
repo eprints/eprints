@@ -70,29 +70,30 @@ $page->appendChild( $p );
 if( $valid_user )
 { #cjg THIS IS NOT DONE
 	### Workspace
-	&render_workspace( $session, $user );
+	$page->appendChild(
+		&render_workspace( $session, $user ) );
 
 	### Pending
-	&show_pending( $session, $user );
+	#&show_pending( $session, $user );
 
-	print "<HR>\n";
+	$page->appendChild( $session->make_ruler() );
 }
 
 $dl = $session->make_element( "dl" );
 
-if( $valid_user )
-{ #cjg THIS IS NOT DONE
-	### View items in archive
-	print "<DL><DT><STRONG><A HREF=\"review\">";
-	$session->{lang}->phrase( "H:review" );
-	print "</A></STRONG></DT>\n";
-	print "<DD><P>";
-	$session->{lang}->phrase( "H:review_info" );
-	if( $session->{site}->{allow_user_removal} ) {
-		$session->{lang}->phrase( "H:remove_info" );
-	}
-	print "</P></DD>\n";
-}
+#if( $valid_user )
+#{ #cjg THIS IS NOT DONE
+	#### View items in archive
+	#print "<DL><DT><STRONG><A HREF=\"review\">";
+	#$session->{lang}->phrase( "H:review" );
+	#print "</A></STRONG></DT>\n";
+	#print "<DD><P>";
+	#$session->{lang}->phrase( "H:review_info" );
+	#if( $session->{site}->{allow_user_removal} ) {
+		#$session->{lang}->phrase( "H:remove_info" );
+	#}
+	#print "</P></DD>\n";
+#}
 
 ### Change author record
 
@@ -168,14 +169,17 @@ sub render_workspace
 {
 	my( $session, $user ) = @_;
 
-	### Get the actual items in the workspace
-	my @eprints = EPrints::EPrint::retrieve_eprints(
-		$session,
-		EPrints::Database::table_name( "inbox" ),
-		[ "username LIKE \"$user->{username}\"" ] );
+	my $ds = $session->get_site()->get_data_set( "inbox" );
 
-	if( $#eprints >= 0 )
+	my @eprints =  $user->get_eprints( $ds );
+
+	my $html = $session->make_doc_fragment();
+
+	### Get the actual items in the workspace
+
+	if( scalar @eprints > 0 )
 	{
+#cjg
 		print "<CENTER><H3>";	
 		print $session->{lang}->phrase( "H:docs" );
 		print "</H3></CENTER>\n";
@@ -216,14 +220,21 @@ sub render_workspace
 	}
 	else
 	{
-		print $session->{render}->start_form( "submit" );
-		print $session->{render}->hidden_field( "submit", "New" );
-		print "<P><CENTER>";
-		print $session->{render}->named_submit_button(
-			$session->{lang}->phrase( "F:start_upload" ) );
-		print "</CENTER></P>\n";
-		print $session->{render}->end_form();
+#cjg iffy
+		my( $form );
+		$form = $session->make_form( "POST", "submit" );	
+
+		$form->appendChild( 
+			$session->make_hidden_field( "submit", "New" ) );
+
+		$form->appendChild(
+			$session->make_submit_buttons( 	
+				$session->phrase( "start_upload" ) ) );
+
+		$html->appendChild( $form );
 	}
+
+	return $html;
 }
 
 
@@ -235,6 +246,7 @@ sub render_workspace
 #
 ######################################################################
 
+#cjg NOT DONE
 sub show_pending
 {
 	my( $session, $user ) = @_;

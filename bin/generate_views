@@ -79,10 +79,7 @@ sub write_subject_view
 	
 	# Tree at the top
 	$page->appendChild( $session->subject_tree( $subject ) );
-	my $hr = $session->make_element( "hr",
-			size => 2,
-			noshade => "noshade" );
-	$page->appendChild( $hr );
+	$page->appendChild( $session->make_ruler() );
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( 
 		$session->get_site()->get_data_set( "archive" ) );

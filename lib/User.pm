@@ -589,4 +589,23 @@ sub has_priv
 	return 0;
 }
 
+sub get_eprints
+{
+	my( $self , $ds ) = @_;
+
+	my $searchexp = new EPrints::SearchExpression(
+		session=>$self->{session},
+		dataset=>$ds );
+
+	$searchexp->add_field(
+		$ds->get_field( "username" ),
+		"PHR:EQ:$self->{username}" );
+
+#cjg set order (it's in the site config)
+
+	my $searchid = $searchexp->perform_search;
+
+	return  $searchexp->get_records;
+}
+
 1;
