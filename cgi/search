@@ -23,8 +23,6 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my $lang = $session->get_lang();
-
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	dataset => $session->getSite()->getDataSet( "archive" ),
@@ -32,8 +30,8 @@ my $searchexp = new EPrints::SearchExpression(
 
 
 $searchexp->process_webpage(
-	$lang->phrase( "H:simple_search" ),
-	"<P><A HREF=\"advsearch\">".$lang->phrase( "H:adv_search" )."</A></P>"
+	$session->phrase( "H:simple_search" ),
+	"<P><A HREF=\"advsearch\">".$session->phrase( "H:adv_search" )."</A></P>"
 );
 
 $session->terminate();

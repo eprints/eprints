@@ -17,7 +17,6 @@
 package EPrints::EPrint;
 
 use EPrints::Database;
-use EPrints::MetaInfo;
 
 use File::Path;
 use Filesys::DiskSpace;

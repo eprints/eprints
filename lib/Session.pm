@@ -99,13 +99,27 @@ sub new
 
 	#### Got Site Config Module ###
 
+	#print $self->{site}->getConf( "htmlpage" );
+	#my $parser = XML::DOM::Parser->new();
+	#$self->{domtree} = $parser->parse( $self->{site}->getConf( "htmlpage" ) );
+	#my @foo = $self->{domtree}->getElementsByTagName( "TITLEHERE" , 1 );
+	#print join(",",@foo)."\n";
+#
+	#foreach(@foo) 
+	#{
+		#my $element = $self->{domtree}->createTextNode( "Hi Tim!" );
+		#$_->getParentNode()->replaceChild( $element, $_ );
+	#}
+	#print $self->{domtree}->toString();
+#
+#die "OK!";
+
 	my $langcookie = $self->{query}->cookie( $self->{site}->getConf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
 	}
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
-	print STDERR "LANG IS: $langcookie\n;";
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -209,10 +223,13 @@ sub mail_administrator
 }
 
 
-sub get_lang
+sub phrase
 {
-	my( $self ) = @_;
-	return $self->{lang};
+	my( $self, $phraseid , $inserts ) = @_;
+
+        my @callinfo = caller();
+        $callinfo[1] =~ m#[^/]+$#;
+        return $self->{lang}->file_phase( $& , $phraseid , $inserts );
 }
 
 sub getDB
@@ -418,7 +435,7 @@ sub get_order_name
 	my( $self, $dataset, $orderid ) = @_;
 	
         return $self->{lang}->phrase( 
-		"A:ordername_".$dataset->toString()."_".$orderid );
+		"ordername_".$dataset->toString()."_".$orderid );
 }
 
 

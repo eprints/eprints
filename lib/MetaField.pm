@@ -61,20 +61,20 @@ my %TYPE_SQL =
 # Map of INDEXs required if a user wishes a field indexed.
 my %TYPE_INDEX =
 (
- 	INT        => "INDEX(\$(name))",
- 	DATE       => "INDEX(\$(name))",
-	BOOLEAN    => "INDEX(\$(name))",
- 	SET        => "INDEX(\$(name))",
- 	TEXT       => "INDEX(\$(name))",
- 	LONGTEXT   => "INDEX(\$(name))",
- 	URL        => "INDEX(\$(name))",
- 	EMAIL      => "INDEX(\$(name))",
- 	SUBJECT    => "INDEX(\$(name))",
- 	USERNAME   => "INDEX(\$(name))",
- 	PAGERANGE  => "INDEX(\$(name))",
- 	YEAR       => "INDEX(\$(name))",
- 	EPRINTTYPE => "INDEX(\$(name))",
- 	NAME       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
+ 	int        => "INDEX(\$(name))",
+ 	date       => "INDEX(\$(name))",
+	boolean    => "INDEX(\$(name))",
+ 	set        => "INDEX(\$(name))",
+ 	text       => "INDEX(\$(name))",
+ 	longtext   => "INDEX(\$(name))",
+ 	url        => "INDEX(\$(name))",
+ 	email      => "INDEX(\$(name))",
+ 	subject    => "INDEX(\$(name))",
+ 	username   => "INDEX(\$(name))",
+ 	pagerange  => "INDEX(\$(name))",
+ 	year       => "INDEX(\$(name))",
+ 	eprinttype => "INDEX(\$(name))",
+ 	name       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
 
@@ -122,11 +122,10 @@ sub new
 		if( !defined $data->{$_} )
 		{
 	print STDERR EPrints::Log::render_struct( $data );
-			die "No $_ defined for field.";	
+			die "No $_ defined for field. (".join(",",caller()).")";	
 		}
 		$self->{$_} = $data->{$_};
 	}
-print STDERR "NEW FIELD: $data->{name}\n";
 	foreach( "required","editable","visible","multiple" )
 	{
 		$self->{$_} = ( defined $data->{$_} ? $data->{$_} : 0 );
@@ -260,181 +259,14 @@ sub display_name
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "A:fieldname_".$self->{dataset}->confid()."_".$self->{name} );
+	return $session->{lang}->phrase( "fieldname_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
 sub display_help
 {
 	my( $self, $session ) = @_;
 	
-	return $session->{lang}->phrase( "H:fieldhelp_".$self->{dataset}->confid()."_".$self->{name} );
-}
-
-######################################################################
-#
-# $html = render_html()
-#
-#  Return HTML suitable for rendering an input component for this field.
-#
-######################################################################
-
-sub render_html
-{
-	my( $self, $session, $formname, $string, $anyall, $match ) = @_;
-
-	my $lang = $session->get_lang();
-	my $query = $session->get_query();
-	
-	my @set_tags = ( "ANY", "ALL" );
-	my %set_labels = ( 
-		"ANY" => $lang->phrase( "F:set_any" ),
-		"ALL" => $lang->phrase( "F:set_all" ) );
-
-	my @text_tags = ( "ALL", "ANY" );
-	my %text_labels = ( 
-		"ANY" => $lang->phrase( "F:text_any" ),
-		"ALL" => $lang->phrase( "F:text_all" ) );
-
-	my @bool_tags = ( "EITHER", "TRUE", "FALSE" );
-	my %bool_labels = ( "EITHER" => $lang->phrase( "F:bool_nopref" ),
-		            "TRUE"   => $lang->phrase( "F:bool_yes" ),
-		            "FALSE"  => $lang->phrase( "F:bool_no" ) );
-
-#EPrints::Log::debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
-
-	my $div = $session->make_element( "DIV" );
-	my $type = $self->{type};
-	
-	if( $type eq "boolean" )
-	{
-		# Boolean: Popup menu
-	
-		my $default = ( defined $self->{value} ? "EITHER" : $self->{value} );
-
-		$div->appendChild( 
-			$session->make_option_list(
-				name => $formname,
-				values => \@bool_tags,
-				default => ( defined $string ? $string : $bool_tags[0] ),
-				labels => \%bool_labels ) );
-	}
-	elsif( $type eq "longtext" || $type eq "text" || 
-		$type eq "name" || $type eq "url"  || $type eq "username" ) 
-	{
-		# complex text types
-		$div->appendChild(
-			$session->make_element( "INPUT",
-				type => "text",
-				name => $formname,
-				size => $EPrints::HTMLRender::search_form_width,
-				maxlength => $EPrints::HTMLRender::field_max ) );
-		$div->appendChild( 
-			$session->make_option_list(
-				name=>$formname."_srchtype",
-				values=>\@text_tags,
-				default=>$anyall,
-				labels=>\%text_labels ) );
-	}
-	elsif( $type eq "eprinttype" || $type eq "set" || $type eq "subject" )
-	{
-		my @defaults;
-		
-		# Do we have any values already?
-		if( defined $string && $string ne "" )
-		{
-			@defaults = split /\s/, $string;
-		}
-		else
-		{
-			@defaults = ();
-		}
-
-		# Make a list of possible values
-		my( $tags, $labels );
-		
-		if( $type eq "subject" )
-		{
-			# WARNING: passes in {} as a dummy user. May need to change this
-			# if the "postability" algorithm checks user info.
-			( $tags, $labels ) = EPrints::Subject::get_postable( $session, {} );
-		}
-		elsif( $type eq "eprinttype" )
-		{
-			$tags = $session->{metainfo}->get_types( $TID_EPRINT );
-			$labels = $session->{metainfo}->get_type_names( $session, $TID_EPRINT );
-		}
-		else
-		{
-			# set
-			( $tags, $labels ) = $self->tags_and_labels( $session );
-		}
-	
-		my( $old_tags, $old_labels ) = ( $tags, $labels );
-
-#EPrints::Log::debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
-	
-		$tags = [ "NONE" ];
-		$labels = { "NONE" => "(Any)" };
-
-		# we have to copy the tags and labels as they are currently
-		# references to the origionals. 
-	
-		push @{$tags}, @{$old_tags};
-		foreach (keys %{$old_labels})
-		{
-			$labels->{$_} = $old_labels->{$_};
-		}
-		$div->appendChild( $session->make_option_list(
-			name => $formname,
-			values => $tags,
-			default => \@defaults,
-			size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
-				scalar @$tags ),
-			multiple => "true",
-			labels => $labels ) );
-
-		if( $self->{multiple} )
-		{
-			$div->appendChild( 
-				$session->make_option_list(
-					name=>$formname."_anyall",
-					values=>\@set_tags,
-					default=>$anyall,
-					labels=>\%set_labels ) );
-		}
-	}
-	elsif( $type eq "int" )
-	{
-		$div->appendChild(
-			$session->make_element( "INPUT",
-				name=>$formname,
-				default=>$string,
-				size=>9,
-				maxlength=>100 ) );
-	}
-	elsif( $type eq "year" )
-	{
-		$div->appendChild(
-			$session->make_element( "INPUT",
-				name=>$formname,
-				default=>$string,
-				size=>9,
-				maxlength=>9 ) );
-	}
-	else
-	{
-		$session->getSite()->log( "Can't Render: $type" );
-	}
-
-	return $div->toString();
-}
-
-sub search_help
-{
-        my( $self, $lang ) = @_;
-
-        return $lang->phrase( "H:help_".$self->{type} );
+	return $session->{lang}->phrase( "fieldhelp_".$self->{dataset}->confid()."_".$self->{name} );
 }
 
 sub get_sql_type
@@ -448,10 +280,11 @@ sub get_sql_index
 {
         my( $self ) = @_;
 
+print STDERR "gsind: $self->{type}\n";
         return $TYPE_INDEX{$self->{type}};
 }
 
-sub get_name
+sub getName
 {
 	my( $self ) = @_;
 	return $self->{name};
@@ -461,5 +294,43 @@ sub get_type
 {
 	my( $self ) = @_;
 	return $self->{type};
+}
+
+sub isMultiple
+{
+	my( $self ) = @_;
+	return $self->{multiple};
+}
+sub setMultiple
+{
+	my( $self , $val ) = @_;
+	$self->{multiple} = $val;
+}
+
+sub isIndexed
+{
+	my( $self ) = @_;
+	return $self->{indexed};
+}
+sub setIndexed
+{
+	my( $self , $val ) = @_;
+	$self->{indexed} = $val;
+}
+sub isType
+{
+	my( $self , @typenames ) = @_;
+
+	foreach( @typenames )
+	{
+		return 1 if( $self->{type} eq $_ );
+	}
+	return 0;
+}
+
+sub isTextIndexable
+{
+	my( $self ) = @_;
+	return $self->isType( "text","longtext","url","email" );
 }
 

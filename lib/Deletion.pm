@@ -19,7 +19,6 @@ package EPrints::Deletion;
 
 use EPrints::Database;
 use EPrints::EPrint;
-use EPrints::MetaInfo;
 use EPrints::SearchField;
 use EPrints::Session;
 

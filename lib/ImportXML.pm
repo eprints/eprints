@@ -15,7 +15,6 @@
 package EPrints::ImportXML;
 
 use EPrints::Log;
-use EPrints::MetaInfo;
 use XML::Parser;
 
 # function will be called once for each object described by the XML

@@ -127,14 +127,7 @@ sub file_phase
 
 	if( $fb )
 	{
-		if( $phraseid =~ m/^H:/ )
-		{
-			$response = "<FONT color=\"#00ff00\">$response</FONT>";
-		}
-		else
-		{
-			$response = "*".$response."*";
-		}
+		$response = "*".$response."*";
 	}
 
 	if( defined $response )
@@ -227,7 +220,7 @@ sub read_phrases
 				$data->{$CURRENTFILE} = {};
 			}
 		}
-		elsif( /^\s*([A-Z]:[A-Za-z0-9_]+)\s*=\s*(.*)$/ )
+		elsif( /^\s*([:A-Za-z0-9_]+)\s*=\s*(.*)$/ )
 		{
 			my ( $key , $val ) = ( $1 , $2 );
 			# convert \n to actual CR's

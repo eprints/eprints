@@ -19,7 +19,6 @@ package EPrints::OpenArchives;
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::MetaField;
-use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Session;
 

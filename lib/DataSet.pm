@@ -87,26 +87,22 @@ sub new
 	{
 		my $class = $INFO->{$datasetname}->{class};
 		my $fielddata;
-		print STDERR "START FD!\n";
 		foreach $fielddata ( $class->get_system_field_info( $site ) )
 		{
-			print STDERR "NEXT FD!\n";
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
 			push @{$self->{system_fields}} , $field;
-			$self->{field_index}->{$field->get_name()} = $field;
+			$self->{field_index}->{$field->getName()} = $field;
 		}
 	}
 	if( defined $site->getConf("sitefields")->{$confid} )
 	{
 		$site->log( "$datasetname has EXTRA FIELDS!" );
-		print STDERR "START FD!\n";
 		foreach $fielddata ( @{$site->getConf("sitefields")->{$confid}} )
 		{
-			print STDERR "NEXT FD!\n";
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
-			$self->{field_index}->{$field->get_name()} = $field;
+			$self->{field_index}->{$field->getName()} = $field;
 		}
 	}
 
@@ -186,10 +182,28 @@ sub getSQLTableName
 	return $INFO->{$self->{datasetname}}->{sqlname};
 }
 
+sub getSQLIndexTableName
+{
+	my( $self ) = @_;
+	return $self->getSQLTableName()."__"."index";
+}
+
+sub getSQLSubTableName
+{
+	my( $self , $field ) = @_;
+	return $self->getSQLTableName()."_".$field->getName();
+}
+
 sub getFields
 {
 	my( $self ) = @_;
 	return @{ $self->{fields} };
+}
+
+sub getKeyField
+{
+	my( $self ) = @_;
+	return $self->{fields}->[0];
 }
 
 sub make_object
@@ -224,6 +238,34 @@ sub make_object
 		$item );
 
 }
+
+sub getTypes
+{
+	my( $self ) = @_;
+
+	my @types = sort keys %{$self->{types}};
+	return \@types;
+}
+
+sub getTypeNames
+{
+	my( $self, $session ) = @_;
+		
+	my %names = ();
+	foreach( keys %{$self->{types}} ) 
+	{
+		$names{$_} = $self->getTypeName( $session, $_ );
+	}
+	return( \%names );
+}
+
+sub getTypeName
+{
+	my( $self, $session, $type ) = @_;
+
+        return $session->phrase( "typename_".$self->toString()."_".$type );
+}
+
 
 
 1;

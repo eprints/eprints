@@ -46,16 +46,14 @@ sub log_entry
 {
 	my( $phraseid , $inserts ) = @_;
 
-print STDERR "$phraseid : ".join(",",values %{$inserts})."\n";
-
-	my $loglang = EPrints::Language::fetch( undef, $EPrints::Site::General::log_language );
-
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
 	my $name = $&;
 
+print STDERR "($name) $phraseid :".join(",",values %{$inserts})."\n";
 
-	my $msg = $loglang->file_phase( $name , $phraseid , $inserts );
+	#my $loglang = EPrints::Language::fetch( undef, $EPrints::Site::General::log_language );
+
 
 	print STDERR "EPRINTS LOG ($name): $msg\n";
 

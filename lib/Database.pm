@@ -22,7 +22,6 @@ use DBI;
 use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Log;
-use EPrints::MetaInfo;
 use EPrints::Subscription;
 use EPrints::Constants;
 
@@ -205,33 +204,36 @@ sub _create_table
 {
 	my( $self, $dataset ) = @_;
 	
-	my @fields = $dataset->getFields();
-
 	my $rv = 1;
 
-	my $keyfield = $fields[0]->clone();
+	my $keyfield = $dataset->getKeyField()->clone();
 
 	$keyfield->{indexed} = 1;
 	my $fieldword = EPrints::MetaField->new( 
+		undef,
 		{ 
 			name => "fieldword", 
 			type => "text"
 		} );
 
 	$rv = $rv & $self->_create_table_aux(
-			index_name( $dataset ),
-			$tableid,
+			$dataset->getSQLIndexTableName(),
+			$dataset,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
-	$rv = $rv && $self->_create_table_aux( table_name( $dataset ), $dataset, 1, @fields);
+	$rv = $rv && $self->_create_table_aux( 
+				$dataset->getSQLTableName(), 
+				$dataset, 
+				1, 
+				$dataset->getFields() );
 
 	return $rv;
 }
 
 sub _create_table_aux
 {
-	my( $self, $tablename, $tableid, $setkey, @fields ) = @_;
+	my( $self, $tablename, $dataset, $setkey, @fields ) = @_;
 	
 	my $field;
 	my $rv = 1;
@@ -244,7 +246,7 @@ sub _create_table_aux
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
-		if ( $field->{multiple} )
+		if ( $field->isMultiple() )
 		{ 	
 			# make an aux. table for a multiple field
 			# which will contain the same type as the
@@ -253,19 +255,19 @@ sub _create_table_aux
 			# auxfield and keyfield must be indexed or 
 			# there's not much point. 
 			my $auxfield = $field->clone();
-			$auxfield->{multiple} = 0;
-			my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
-			my $keyfield = $fields[0]->clone();
-			$keyfield->{indexed} = 1;
+			$auxfield->setMultiple( 0 );
+			my $keyfield = $dataset->getKeyField()->clone();
+			$keyfield->setIndexed( 1 );
 			my $pos = EPrints::MetaField->new( 
+				undef,
 				{ 
 					name => "pos", 
-					type => $FT_INT 
+					type => "int",
 				} );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
-				sub_table_name( $tableid, $field ),
-				$tableid,
+				$dataset->getSQLSubTableName( $field ),
+				$dataset,
 				0, # no primary key
 				@auxfields );
 			next;
@@ -336,20 +338,21 @@ sub _create_table_aux
 
 sub add_record
 {
-	my( $self, $tableid, $data ) = @_;
+	my( $self, $dataset, $data ) = @_;
 
-	my $table = table_name( $tableid );
+	my $table = $dataset->getSQLTableName();
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
-	my $keyfield = $fields[0];
+	my $keyfield = $dataset->getKeyField();
 
-	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\"".prep_value($data->{$keyfield->{name}})."\")";
+	my $sql = "INSERT INTO ".$dataset->getSQLTableName()." ";
+	$sql   .= " (".$dataset->getKeyField()->getName().") ";
+	$sql   .= "VALUES (\"".prep_value($data->{$dataset->getKeyField()->getName()})."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
 
 	# Now add the ACTUAL data:
-	$self->update( $tableid , $data );
+	$self->update( $dataset , $data );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -403,25 +406,23 @@ sub prep_value
 
 sub update
 {
-	my( $self, $tableid, $data ) = @_;
-
-	my $table = table_name( $tableid );
+	my( $self, $dataset, $data ) = @_;
 
 	my $rv = 1;
 	my $sql;
 
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
+	my @fields = $dataset->getFields();
 
 	# skip the keyfield;
-	my $keyfield = shift @fields;
+	my $keyfield = $dataset->getKeyField();
 
-	my $keyvalue = prep_value($data->{$keyfield->{name}});
+	my $keyvalue = prep_value($data->{$keyfield->getName()});
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
-	my $where = "$keyfield->{name} = \"$keyvalue\"";
+	my $where = $keyfield->getName()." = \"$keyvalue\"";
 
-	my $indextable = index_name( $tableid );
+	my $indextable = $dataset->getSQLIndexTableName();
 	$sql = "DELETE FROM $indextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
 
@@ -430,7 +431,7 @@ sub update
 
 	foreach( @fields ) 
 	{
-		if( $_->{multiple} ) 
+		if( $_->isMultiple() ) 
 		{ 
 			push @aux,$_;
 		}
@@ -438,26 +439,26 @@ sub update
 		{
 			# clearout the freetext search index table for this field.
 
-			if( $_->{type} == $FT_NAME )
+			if( $_->isType( "name" ) )
 			{
-				$values{"$_->{name}_given"} = 
-					prep_value( $data->{$_->{name}}->{given} );
-				$values{"$_->{name}_family"} = 
-					prep_value( $data->{$_->{name}}->{family} );
+				$values{$_->getName()."_given"} = 
+					$data->{$_->getName()}->{given};
+				$values{$_->getName()."_family"} = 
+					$data->{$_->getName()}->{family};
 			}
 			else
 			{
-				$values{"$_->{name}"} = 
-					prep_value( $data->{$_->{name}} );
+				$values{$_->getName()} =
+					$data->{$_->getName()};
 			}
-			if( _freetext_type( $_ ) )
+			if( $_->isTextIndexable() )
 			{ 
-				$self->_freetext_index( $tableid, $keyvalue, $_, $data->{$_->{name}} );
+				$self->_freetext_index( $dataset, $keyvalue, $_, $data->{$_->getName()} );
 			}
 		}
 	}
 	
-	$sql = "UPDATE $table SET ";
+	$sql = "UPDATE ".$dataset->getSQLTableName()." SET ";
 	my $first=1;
 	foreach( keys %values ) {
 		if( $first )
@@ -468,7 +469,7 @@ sub update
 		{
 			$sql.= ", ";
 		}
-		$sql.= "$_ = \"$values{$_}\"";
+		$sql.= "$_ = \"".prep_value($values{$_})."\"";
 	}
 	$sql.=" WHERE $where";
 	
@@ -478,32 +479,33 @@ sub update
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $auxtable = sub_table_name( $tableid, $multifield );
+		my $auxtable = $dataset->getSQLSubTableName( $multifield );
 		$sql = "DELETE FROM $auxtable WHERE $where";
 		$rv = $rv && $self->do( $sql );
 
 		# skip to next table if there are no values at all for this
 		# one.
-		if( !defined $data->{$multifield->{name}} )
+		if( !defined $data->{$multifield->getName()} )
 		{
 			next;
 		}
-print STDERR "*".$data->{$multifield->{name}}."\n";
-print STDERR "*".$multifield->{name}."\n";
+print STDERR "*".$data->{$multifield->getName()}."\n";
+print STDERR "*".$multifield->getName()."\n";
 		my $i=0;
-		foreach( @{$data->{$multifield->{name}}} )
+		foreach( @{$data->{$multifield->getName()}} )
 		{
-			$sql = "INSERT INTO $auxtable ($keyfield->{name},pos,";
-			if( $multifield->{type} == $FT_NAME )
+			$sql = "INSERT INTO $auxtable (".$keyfield->getName().",pos,";
+			if( $multifield->isType( "name ") )
 			{
-				$sql.="$multifield->{name}_given,$multifield->{name}_family";
+				$sql.=$multifield->getName()."_given, ";
+				$sql.=$multifield->getName()."_family";
 			}
 			else
 			{
-				$sql.=$multifield->{name};
+				$sql.=$multifield->getName();
 			}
 			$sql .= ") VALUES (\"$keyvalue\",\"$i\",";
-			if( $multifield->{type} eq "name" )
+			if( $multifield->isType( "name ") )
 			{
 				$sql .= "\"".prep_value($_->{given})."\",";
 				$sql .= "\"".prep_value($_->{family})."\"";
@@ -515,9 +517,9 @@ print STDERR "*".$multifield->{name}."\n";
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
 
-			if( _freetext_type( $multifield ) )
+			if( $multifield->isTextIndexable() )
 			{
-				$self->_freetext_index( $tableid, $keyvalue, $multifield, $_ );
+				$self->_freetext_index( $dataset, $keyvalue, $multifield, $_ );
 			}
 
 			++$i;
@@ -1092,9 +1094,8 @@ sub exists
 
 sub _freetext_index
 {
-	my( $self , $tableid , $id , $field , $value ) = @_;
-
-	my $table = table_name( $tableid );
+	my( $self , $dataset , $id , $field , $value ) = @_;
+				# nb. id is already escaped
 
 	my $rv = 1;
 	if( !defined $value || $value eq "" )
@@ -1102,34 +1103,22 @@ sub _freetext_index
 		return $rv;
 	}
 
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
-	my $keyfield = $fields[0];
+	my $keyfield = $dataset->getKeyField();
 
-	my $indextable = index_name( $tableid );
+	my $indextable = $dataset->getSQLIndexTableName();
 	
-	my( $good , $bad ) = $self->{session}->{site}->extract_words( $value );
-
-print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
+	my( $good , $bad ) = $self->{session}->getSite()->call( "extract_words" , $value );
 
 	my $sql;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( $keyfield->{name} , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prep_value("$field->{name}:$_")."\")";
+		$sql = "INSERT INTO $indextable ( ".$keyfield->getName()." , fieldword ) VALUES ";
+		$sql.= "( \"$id\" , \"".prep_value($field->getName().":$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;
 }
 
-sub _freetext_type
-{
-	my( $field ) = @_;	
-	return ( 
-		$field->{type} == $FT_TEXT || 
-		$field->{type} == $FT_LONGTEXT || 
-		$field->{type} == $FT_URL || 
-		$field->{type} == $FT_EMAIL );
-}
 
 sub table_name
 {
@@ -1138,40 +1127,5 @@ die "kill me".join(",",caller());
 	return $TABLE_NAMES{ $tableid };
 }
 
-sub sub_table_name
-{
-	my( $tableid, $field ) = @_;
-die "kill me sub";
-	
-	return table_name( $tableid ).$SEPERATOR.$field->{name};
-}
-
-sub index_name
-{
-	my( $tableid ) = @_;
-
-	my $table = table_name( $tableid );
-
-	return $table.$SEPERATOR.$SEPERATOR."index";
-}
-	
-sub table_class
-{
-	my( $tableid ) = @_;
-print STDERR "TABLE_CLASS: $tableid\n";
-print STDERR $TABLE_CLASS{ $tableid }."z\n";
-print STDERR ">".join(",",keys %TABLE_CLASS)."<\n";
-	return $TABLE_CLASS{ $tableid };
-}
-
-sub table_string
-{
-	my( $tableid ) = @_;
-print STDERR "TABLE: $tableid\n";
-print STDERR $TABLE_STRING{ $tableid }."z\n";
-print STDERR ">".join(",",keys %TABLE_STRING)."<\n";
-	return $TABLE_STRING{ $tableid };
-}
-	
 
 1; # For use/require success

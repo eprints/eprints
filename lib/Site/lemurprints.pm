@@ -817,6 +817,69 @@ $c->{types}->{user} = {
 # TITLE will be set by the system as appropriate.
 # See the CGI.pm manpage for more info ( man CGI ).
 
+# This is the HTML put at the top of every page. It will be put in the <BODY>,
+#  so shouldn't include a <BODY> tag.
+$c->{htmlpage} = <<END;
+<HTML>
+<HEAD>
+  <TITLE><TITLEHERE/></TITLE>
+</HEAD>
+
+<BODY bgcolor="#ffffff" fgcolor="#000000" topmargin="0" leftmargin="0" marginwidth="0"
+        marginheight="0">
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" valign="top" bgcolor="#dddddd" fgcolor="white">
+      <BR/>
+      <a href="$c->{frontpage}"><IMG border="0" width="100" height="100" src="$c->{server_static}/images/logo_sidebar.gif" ALT="$c->{sitename}"/></a>
+    </td>
+    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderr.gif"></td>
+    <td>
+      <BR/>
+      <H1><TITLEHERE/></H1>
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="#dddddd" align="center" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" valign="top">
+            <P><A HREF="$c->{frontpage}">Home</A></P>
+            <P><A HREF="$c->{server_static}/information.html">About</A></P>
+            <P><A HREF="$c->{server_subject_view_stem}ROOT.html">Browse</A></P>
+            <P><A HREF="$c->{server_perl}/search">Search</A></P>
+            <P><A HREF="$c->{server_static}/register.html">Register</A></P>
+            <P><A HREF="$c->{server_perl}/users/subscribe">Subscriptions</A></P>
+            <P><A HREF="$c->{server_perl}/users/home">Deposit Items</A></P>
+            <P><A HREF="$c->{server_static}/help">Help</A></P>
+            <P><I><A HREF="$c->{server_perl}/setlang?langid=english">English</A></I></P>
+            <P><I><A HREF="$c->{server_perl}/setlang?langid=french">Français</A></I></P>
+            <P><I><A HREF="$c->{server_perl}/setlang?langid=dummy">Test Lang</A></I></P>
+          </td>
+        </tr>
+      </table>
+      <BR/>
+    </td>
+    <td valign="top" width="95%">
+<BR/>
+<PAGEHERE/>
+<BR/>
+<HR noshade="yes" size="2"/>
+<address>
+Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a>
+</address>
+<BR/><BR/>
+    </td>
+  </tr>
+  <tr>
+    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderb.gif"></td>
+    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderc.gif"></td>
+  </tr>
+</table>
+</BODY>
+</HTML>
+END
+
 $c->{start_html_params}  = {
 	-BGCOLOR => "#ffffff",
 	-FGCOLOR => "#000000",
@@ -1195,7 +1258,7 @@ my $FREETEXT_CHAR_MAPPING = {
 
 sub extract_words
 {
-	my( $self , $text ) = @_;
+	my( $text ) = @_;
 
 	# convert acute's etc to their simple version using the map
 	# from SiteInfo.
@@ -1314,7 +1377,7 @@ sub extract_words
 
 sub eprint_short_title
 {
-	my( $self , $eprint ) = @_;
+	my( $eprint ) = @_;
 	
 	if( !defined $eprint->{title} || $eprint->{title} eq "" )
 	{
@@ -1338,7 +1401,7 @@ sub eprint_short_title
 
 sub eprint_render_full
 {
-	my( $self , $eprint, $for_staff ) = @_;
+	my( $eprint, $for_staff ) = @_;
 	my $html = "";
 
 	my $succeeds_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
@@ -1536,7 +1599,7 @@ my %CITATION_SPECS =
 
 sub eprint_render_citation
 {
-	my( $self , $eprint, $html ) = @_;
+	my( $eprint, $html ) = @_;
 	
 	my $citation_spec = $CITATION_SPECS{$eprint->{type}};
 
@@ -1557,7 +1620,7 @@ sub eprint_render_citation
 
 sub user_display_name
 {
-	my( $self , $user ) = @_;
+	my( $user ) = @_;
 
 	# If no surname, just return the username
 	return( "User $user->{username}" ) if( !defined $user->{name} ||
@@ -1578,7 +1641,7 @@ sub user_display_name
 
 sub user_render_full
 {
-	my( $self , $user, $public ) = @_;
+	my( $user, $public ) = @_;
 
 	my $html;	
 
@@ -1672,7 +1735,7 @@ sub user_render_full
 
 sub session_init
 {
-	my( $self , $session, $offline ) = @_;
+	my( $session, $offline ) = @_;
 }
 
 
@@ -1687,7 +1750,7 @@ sub session_init
 
 sub session_close
 {
-	my( $self , $session ) = @_;
+	my( $session ) = @_;
 }
 
 
@@ -1708,7 +1771,7 @@ sub session_close
 
 sub update_submitted_eprint
 {
-	my( $self , $eprint ) = @_;
+	my( $eprint ) = @_;
 }
 
 
@@ -1731,7 +1794,7 @@ sub update_submitted_eprint
 
 sub update_archived_eprint
 {
-	my( $self , $eprint ) = @_;
+	my( $eprint ) = @_;
 }
 
 
@@ -1757,7 +1820,7 @@ sub update_archived_eprint
 
 sub oai_list_metadata_formats
 {
-	my( $self , $eprint ) = @_;
+	my( $eprint ) = @_;
 	
 	# This returns the list of all metadata formats, suitable if we
 	# can export any of those metadata format for any record.
@@ -1799,7 +1862,7 @@ sub oai_list_metadata_formats
 
 sub oai_get_eprint_metadata
 {
-	my( $self , $eprint, $format ) = @_;
+	my( $eprint, $format ) = @_;
 
 	if( $format eq "oai_dc" )
 	{
@@ -1888,7 +1951,7 @@ sub oai_get_eprint_metadata
 
 sub oai_write_eprint_metadata
 {
-	my( $self , $eprint, $format, $writer ) = @_;
+	my( $eprint, $format, $writer ) = @_;
 
 	# This block of code is a minimal example
 	# to get you started
@@ -1924,7 +1987,7 @@ sub oai_write_eprint_metadata
 
 sub validate_user_field
 {
-	my( $self , $field, $value ) = @_;
+	my( $field, $value ) = @_;
 
 	my $problem;
 
@@ -1959,7 +2022,7 @@ sub validate_user_field
 
 sub validate_eprint_field
 {
-	my( $self , $field, $value );
+	my( $field, $value );
 
 	my $problem;
 
@@ -1992,7 +2055,7 @@ sub validate_eprint_field
 
 sub validate_subject_field
 {
-	my( $self , $field, $value ) = @_;
+	my( $field, $value ) = @_;
 
 	my $problem;
 
@@ -2022,7 +2085,7 @@ sub validate_subject_field
 
 sub validate_document
 {
-	my( $self , $document, $problems ) = @_;
+	my( $document, $problems ) = @_;
 
 	# CHECKS IN HERE
 }
@@ -2045,7 +2108,7 @@ sub validate_document
 
 sub validate_eprint
 {
-	my( $self , $eprint, $problems ) = @_;
+	my( $eprint, $problems ) = @_;
 
 	# CHECKS IN HERE
 }
@@ -2069,7 +2132,7 @@ sub validate_eprint
 
 sub validate_eprint_meta
 {
-	my( $self , $eprint, $problems ) = @_;
+	my( $eprint, $problems ) = @_;
 
 	# CHECKS IN HERE
 

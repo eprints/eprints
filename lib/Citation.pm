@@ -17,7 +17,6 @@
 package EPrints::Citation;
 
 use EPrints::MetaField;
-use EPrints::MetaInfo;
 use EPrints::Session;
 use EPrints::Language;
 use EPrints::Constants;

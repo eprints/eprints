@@ -19,7 +19,6 @@ package EPrints::User;
 
 use EPrints::Database;
 use EPrints::MetaField;
-use EPrints::MetaInfo;
 use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::Subscription;

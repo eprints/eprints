@@ -20,7 +20,6 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Mailer;
 use EPrints::MetaField;
-use EPrints::MetaInfo;
 use EPrints::SearchExpression;
 use EPrints::Session;
 use EPrints::User;
@@ -241,10 +240,11 @@ sub render_subscription_form
 	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscription" );
 	
 	$html .= "<P>";
-	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
-	           { howoften=>$self->{session}->{render}->input_field( 
-		        EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
-		        $self->{frequency} ) } );
+#cjg
+	#$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
+	           #{ howoften=>$self->{session}->{render}->input_field( 
+		        #EPrints::MetaInfo::find_field( \@all_fields, "frequency" ),
+		        #$self->{frequency} ) } );
 	$html .= "</P>\n";
 	
 	return( $html );
@@ -265,8 +265,9 @@ sub from_form
 	my( $self ) = @_;
 	
 	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscription" );
-	$self->{frequency} = $self->{session}->{render}->form_value(
-		 EPrints::MetaInfo::find_field( \@all_fields, "frequency" ) );
+#cjg
+	#$self->{frequency} = $self->{session}->{render}->form_value(
+		 #EPrints::MetaInfo::find_field( \@all_fields, "frequency" ) );
 
 	return( $self->{searchexpression}->from_form() );
 }

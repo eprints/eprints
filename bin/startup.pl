@@ -24,7 +24,6 @@ use EPrints::Language;
 use EPrints::Log;
 use EPrints::Mailer;
 use EPrints::MetaField;
-use EPrints::MetaInfo;
 use EPrints::Name;
 use EPrints::OpenArchives;
 use EPrints::Site;

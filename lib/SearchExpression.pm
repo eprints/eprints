@@ -188,7 +188,6 @@ sub render_search_form
 	my( $self, $help, $show_anyall ) = @_;
 
 	my $query = $self->{session}->get_query();
-	my $lang = $self->{session}->get_lang();
 	
 	my %shown_help;
 
@@ -203,7 +202,7 @@ sub render_search_form
 	my $sf;
 	foreach $sf (@{$self->{searchfields}})
 	{
-		my $shelp = $sf->get_field()->search_help( $self->{session}->get_lang() );
+		my $shelp = $sf->getHelp();
 		if( $help && !defined $shown_help{$shelp} )
 		{
 			$html .= "<TR><TD COLSPAN=\"2\">";
@@ -213,7 +212,7 @@ sub render_search_form
 		}
 		
 		$html .= "<TR><TD>$sf->{displayname}</TD><TD>";
-		$html .= $sf->render_html();
+		$html .= $sf->toHTML();
 		$html .= "</TD></TR>\n";
 
 		$html .= "<TR><TD COLSPAN=\"2\">&nbsp;</TD></TR>\n";
@@ -228,10 +227,10 @@ sub render_search_form
 			-values=>[ "ALL", "ANY" ],
 			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => $lang->phrase("F:all"),
-				   "ANY" => $lang->phrase("F:any") } );
+			-labels=>{ "ALL" => $self->{session}->phrase("all"),
+				   "ANY" => $self->{session}->phrase("any") } );
 		$html .= "<P>";
-		$html .= $lang->phrase( "H:mustfulfill", { anyall=>$menu } );
+		$html .= $self->{session}->phrase( "must_fulfill", { anyall=>$menu } );
 		$html .= "</P>\n";
 	}
 
@@ -252,14 +251,14 @@ print STDERR "foo\n";
 		-labels=>$self->{session}->get_order_names( 
 						$self->{dataset} ) );
 	$html .= "<P>";
-	$html .= $lang->phrase( 
-			"H:orderresults", 
+	$html .= $self->{session}->phrase( 
+			"order_results", 
 			{ ordermenu=>$menu } );
 	$html .= "</P>\n";
 	$html .= "<P>";
 	$html .= $self->{session}->render_submit_buttons( 
-			[ $lang->phrase("F:action_search"),
-		          $lang->phrase("F:action_reset") ] );
+			[ $self->{session}->phrase("action_search"),
+		          $self->{session}->phrase("action_reset") ] );
 	$html .= "</P>\n";
 
 	$html .= $self->{session}->end_form();
@@ -293,7 +292,7 @@ sub from_form
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, $self->{session}->{lang}->phrase("H:leastone")
+	push @problems, $self->{session}->phrase("leastone")
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->param( "_satisfyall" );
@@ -450,8 +449,6 @@ sub perform_search
 		}
 	}
 	
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{dataset} );
-        my $keyfield = $fields[0];
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
 
@@ -467,7 +464,7 @@ sub count
 			$self->{tmptable} );
 	}	
 
-	EPrints::Log::log_entry( "L:not_cached" );
+	$self->{session}->getSite()->log( "Search has not been performed" );
 		
 }
 
@@ -497,7 +494,7 @@ print STDERR "ORDER BY: $self->{order}\n";
 		return @records;
 	}	
 
-	EPrints::Log::log_entry( "L:not_cached" );
+	EPrints::Log::log_entry( "not_cached" );
 		
 }
 
@@ -520,7 +517,7 @@ sub process_webpage
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"
 	#     (i.e. the search is a direct GET from somewhere else)
-	if( ( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_search") ) || 
+	if( ( defined $submit_button && $submit_button eq $self->{session}->phrase("action_search") ) || 
 	    ( !defined $submit_button &&
 	      $self->{session}->have_parameters() ) )
 	{
@@ -559,13 +556,13 @@ sub process_webpage
 		$t3 = EPrints::Log::microtime();
 
 		print $self->{session}->start_html(
-			$self->{session}->{lang}->phrase( "H:results_for",
+			$self->{session}->phrase( "results_for",
 			                                  { title=>$title } ) );
 
 		if( $n_results > $MAX) 
 		{
 			print "<P>";
-	                print $self->{session}->{lang}->phrase( "H:too_many", 
+	                print $self->{session}->phrase( "too_many", 
 	{ n=>"<SPAN class=\"highlight\">$MAX</SPAN>" } )."\n";
 			print "</P>";
 		}
@@ -573,36 +570,36 @@ sub process_webpage
 		my $code;
 		if( $n_results == 0 )
 		{
-			$code = "H:no_hits";
+			$code = "no_hits";
 		}
 		elsif( $n_results == 1 )
 		{
-			$code = "H:one_hit";
+			$code = "one_hit";
 		}
 		else
 		{
-			$code = "H:n_hits";
+			$code = "n_hits";
 		}
 		print "<P>";
-       		print $self->{session}->{lang}->phrase( $code, { n=>"<SPAN class=\"highlight\">$n_results</SPAN>" } )."\n";
+       		print $self->{session}->phrase( $code, { n=>"<SPAN class=\"highlight\">$n_results</SPAN>" } )."\n";
 
 		if( @{ $self->{ignoredwords} } )
 		{
 			my %words = ();
 			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
-       			print $self->{session}->{lang}->phrase( 
-				"H:ignored",
+       			print $self->{session}->phrase( 
+				"ignored",
 				{ words=>"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" } );
 		}
 		print "</P>\n";
 
-       		print $self->{session}->{lang}->phrase( 
-			"H:search_time", 
+       		print $self->{session}->phrase( 
+			"search_time", 
 			{ searchtime=>"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
 			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
 
 		# Print results
-		if( $self->{what} eq "eprint" )
+		if( 1 || $self->{what} eq "eprint" )
 		{
 			
 			foreach (@results)
@@ -649,15 +646,15 @@ sub process_webpage
 		$self->write_hidden_state();
 
 		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
+			[ $self->{session}->phrase("action_update"), $self->{session}->phrase("action_newsearch") ] );
 		print $self->{session}->{render}->end_form();
 	
 		print $self->{session}->end_html();
 		return;
 	}
 
-	if( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
-		$submit_button eq $self->{session}->{lang}->phrase("F:action_newsearch") ) )
+	if( defined $submit_button && ( $submit_button eq $self->{session}->phrase("action_reset") || 
+		$submit_button eq $self->{session}->phrase("action_newsearch") ) )
 	{
 		# To reset the form, just reset the URL.
 		my $url = $self->{session}->{render}->url();
@@ -667,7 +664,7 @@ sub process_webpage
 		return;
 	}
 	
-	if( defined $submit_button && $submit_button eq $self->{session}->{lang}->phrase("F:action_update") )
+	if( defined $submit_button && $submit_button eq $self->{session}->phrase("action_update") )
 	{
 		$self->from_form();
 
@@ -698,7 +695,7 @@ sub _render_problems
 	print $self->{preamble};
 
 	print "<P>";
-	print $self->{session}->{lang}->phrase( "H:form_problem" );
+	print $self->{session}->phrase( "form_problem" );
 	print "</P>";
 	print "<UL>\n";
 	

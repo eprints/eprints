@@ -22,19 +22,17 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my $lang = $session->get_lang();
-
 my $searchexp = new EPrints::SearchExpression(
 	session=>$session,
 	dataset => $session->getSite()->getDataSet( "archive" ),
 	fieldnames=>$session->getSite()->getConf( "advanced_search_fields" ) );
 
 $searchexp->process_webpage(
-	$lang->phrase( "H:adv_search" ),
+	$session->phrase( "adv_search" ),
 	"<P>".
-	   $lang->phrase( "H:dont_panic" ).
+	   $session->phrase( "dont_panic" ).
 	   " <A HREF=\"search\">".
-	   $lang->phrase( "H:simple_search" ).
+	   $session->phrase( "simple_search" ).
 	   "</A></P>" );
 
 $session->terminate();

@@ -17,7 +17,6 @@ package EPrints::SubmissionForm;
 use EPrints::EPrint;
 use EPrints::HTMLRender;
 use EPrints::Session;
-use EPrints::MetaInfo;
 use EPrints::Document;
 
 use strict;
@@ -1270,9 +1269,8 @@ sub do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
-		my @doc_fields = $self->{session}->{metainfo}->get_fields( "documents" );
-		my $desc_field = EPrints::MetaInfo::find_table_field( \@doc_fields,
-	                                                	"formatdesc" );
+		my $ds = $self->{session}->getSite()->getDataSet( "document" );
+		my $desc_field = $ds->getField( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
 		print "<P><CENTER>";

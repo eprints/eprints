@@ -99,7 +99,9 @@ sub new
 	else
 	{
 		# Got ID, need to read stuff in from database
-		return $session->{database}->get_single( "subject" , $id );
+		return $session->{database}->get_single( 
+			$session->getSite()->getDataSet( "subject" ), 
+			$id );
 
 	}
 
@@ -145,7 +147,9 @@ sub create_subject
 		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
 
 # cjg add_record call
-	return( undef ) unless( $session->{database}->add_record( "subject", $newsub ) );
+	return( undef ) unless( $session->getDB()->add_record( 
+		$session->getSite()->getDataSet( "subject" ), 
+		$newsub ) );
 
 	return( new EPrints::Subject( $session, undef, $newsub ) );
 }
@@ -283,7 +287,7 @@ sub create_subject_table
 	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $session->{site}->{subject_config} or return( 0 );
+	open SUBJECTS, $session->getSite()->getConf( "subject_config" ) or return( 0 );
 
 	my $success = 1;
 	
@@ -344,8 +348,7 @@ sub get_postable
 				$session,
 				$_->{subjectid},
 				$subjectmap );
-
-			$labels{$_->{subjectid}} = $lab;
+			$labels{$_->getValue("subjectid")} = $lab;
 			$labelmap{$lab} = $_;
 		}
 	}
@@ -353,10 +356,11 @@ sub get_postable
 	# Put subjects in alphabetical order to labelmap
 	foreach (sort keys %labelmap)
 	{
-		push @tags, $labelmap{$_}->{subjectid};
+		push @tags, $labelmap{$_}->getValue("subjectid");
+		print STDERR "xxx>>".$labelmap{$_}->getValue("subjectid")."\n";
 	}
 
-	return( ( \@tags, \%labels ) );
+	return( \@tags, \%labels );
 }
 
 
@@ -419,7 +423,8 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $data = $session->{database}->get_single( "subject", $tag );
+		my $ds = $session->getSite()->getDataSet();
+		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
 		if( !defined $data )
@@ -521,6 +526,7 @@ sub get_all
 #			$p .= " $_";
 #		}
 #		EPrints::Log::debug( "Subject", $p );
+print STDERR "Subject: ".$_->getValue("subjectid")."\n";
 	}
 	
 	return( \@subjects, \%subjectmap );
@@ -585,7 +591,11 @@ sub count_eprints
 
 }
 
-
+sub getValue 
+{
+	my( $self, $key ) = @_;
+	return $self->{$key};
+}
 
 
 

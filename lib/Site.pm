@@ -112,7 +112,7 @@ sub log
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
-
+	$self->log( "Calling $cmd with (".join(",",@params).")" );
 	return &{$self->{class}."::".$cmd}( @params );
 }
 

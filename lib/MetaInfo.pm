@@ -55,16 +55,6 @@ die "NEW METAINFO\n";
 #
 #
 ######################################################################
-  
-sub get_types
-{
-	my( $self, $tableid ) = @_;
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
-
-	my @types =  sort keys %{$self->{$tableid}->{types}};
-	
-	return \@types;
-}
 
 
 ######################################################################
@@ -72,36 +62,6 @@ sub get_types
 #
 ######################################################################
   
-sub get_type_names
-{
-	my( $self, $session, $tableid ) = @_;
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
-		
-	my %names = ();
-	foreach( keys %{$self->{$tableid}->{types}} ) 
-	{
-		$names{$_}=$self->get_type_name( $session, $tableid, $_ );
-	}
-	return( \%names );
-}
-
-
-######################################################################
-#
-#
-#  Returns the displayable name of the given type,
-#
-######################################################################
-
-sub get_type_name
-{
-	my( $self, $session, $tableid, $type ) = @_;
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
-        return $session->{lang}->phrase( 
-		"A:typename_".
-		EPrints::Database::table_string( $tableid ).
-		"_".$type );
-}
 
 
 ######################################################################
@@ -146,30 +106,3 @@ sub find_table_field
 
 ######################################################################
 #
-# $field = get_fields( $tableid )
-#
-#  Get table metadata fields by tableid
-#
-######################################################################
-
-sub get_fields
-{
-	my ( $self , $tableid ) = @_;
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
-print STDERR "GF: $tableid\n";
-
-	if( !defined $self->{$tableid}->{fields} )
-	{
-		EPrints::Log::log_entry( "L:unknown_table", { table=>$tableid } );
-print STDERR join(",",caller())."\n";
-		return undef;
-	}
-	return @{$self->{$tableid}->{fields}};
-}
-
-###
-
-
-
-
-1;
