@@ -33,6 +33,7 @@ print STDERR "LEMURPRINTS:getconf\n";
 	#cjg Normalise the conf with the XML conf?	
 	$c->{host} = $archiveinfo->{hostname};
 	$c->{archive_root} = $archiveinfo->{archivepath};
+	$c->{port} = $archiveinfo->{port};
 	#urlpath might be important? cjg
 
 	# this SHOULD just dump archiveinfo into c! cjg cjg
@@ -79,11 +80,16 @@ $c->{local_document_root} = "$c->{archive_root}/documents";
 ######################################################################
 # URLS
 
-# Mod_perl script server, including port
-$c->{server_perl} = "http://$c->{host}/perl";
-
 # Server of static HTML + images, including port
 $c->{server_static} = "http://$c->{host}";
+if( $c->{port} != 80 )
+{
+	# cjg: Not SSL port 443 friendly
+	$c->{server_static}.= ":".$c->{port}; 
+}
+
+# Mod_perl script server, including port
+$c->{server_perl} = "$c->{server_static}/perl";
 
 # Site "home page" address
 $c->{frontpage} = "$c->{server_static}/";
