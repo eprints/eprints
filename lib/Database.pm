@@ -17,11 +17,24 @@
 
 =head1 NAME
 
-B<EPrints::Database> - undocumented
+B<EPrints::Database> - a connection to the SQL database for an eprints
+session.
 
 =head1 DESCRIPTION
 
-undocumented
+EPrints Database Access Module
+
+Provides access to the backend database. All database access done
+via this module, in the hope that the backend can be replaced
+as easily as possible.
+
+Not quite all the SQL is in the module. There is some in EPrints::SearchField,
+EPrints::SearchExpression & EPrints::MetaField.
+
+The database object is created automatically when you start a new
+eprints session. To get a handle on it use:
+
+$db = $session->get_archive
 
 =over 4
 
@@ -31,22 +44,15 @@ undocumented
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{foo}
-#     undefined
+#  $self->{session}
+#     The EPrints::Session which is associated with this database 
+#     connection.
 #
-######################################################################
-
-######################################################################
+#  $self->{debug}
+#     If true then SQL is logged.
 #
-# EPrints Database Access Module
-#
-#  Provides access to the backend database. All database access done
-#  via this module, in the hope that the backend can be replaced
-#  as easily as possible.
-#
-######################################################################
-#
-#  __LICENSE__
+#  $self->{dbh}
+#     The handle on the actual database connection.
 #
 ######################################################################
 
@@ -67,31 +73,19 @@ my $DEBUG_SQL = 0;
 @EPrints::Database::counters = ( "eprintid", "userid" );
 
 
-#
-#
 # ID of next buffer table. This can safely reset to zero each time
 # The module restarts as it is only used for temporary tables.
 #
 my $NEXTBUFFER = 0;
 my %TEMPTABLES = ();
-######################################################################
-#
-# connection_handle build_connection_string( %params )
-#                                            
-#  Build the string to use to connect via DBI
-#  params are:
-#     dbhost, dbport, dbname and dbsock.
-#  Only dbname is required.
-#
-######################################################################
-
 
 ######################################################################
 =pod
 
-=item EPrints::Database::build_connection_string( %params )
+=item $dbstr = EPrints::Database::build_connection_string( %params )
 
-undocumented
+Build the string to use to connect to the database via DBI. %params 
+must contain dbname, and may also contain dbport, dbhost and dbsock.
 
 =cut
 ######################################################################
@@ -118,23 +112,12 @@ sub build_connection_string
 }
 
 
-
-######################################################################
-#
-# EPrints::Database new( $session )
-#                        EPrints::Session
-#                          
-#  Connect to the database.
-#
-######################################################################
-
-
 ######################################################################
 =pod
 
-=item $thing = EPrints::Database->new( $session )
+=item $db = EPrints::Database->new( $session )
 
-undocumented
+Create a connection to the database.
 
 =cut
 ######################################################################
@@ -179,23 +162,13 @@ sub new
 }
 
 
-
-######################################################################
-#
-# disconnect()
-#
-#  Disconnects from the EPrints database. Should always be done
-#  before any script exits.
-#
-######################################################################
-
-
 ######################################################################
 =pod
 
-=item $foo = $thing->disconnect
+=item $foo = $db->disconnect
 
-undocumented
+Disconnects from the EPrints database. Should always be done
+before any script exits.
 
 =cut
 ######################################################################
@@ -213,22 +186,13 @@ sub disconnect
 }
 
 
-######################################################################
-#
-# $error = error()
-# string 
-# 
-#  Gives details of any errors that have occurred
-#
-######################################################################
-
 
 ######################################################################
 =pod
 
-=item $foo = $thing->error
+=item $errstr = $db->error
 
-undocumented
+Return a string describing the last SQL error.
 
 =cut
 ######################################################################
@@ -242,22 +206,11 @@ sub error
 
 
 ######################################################################
-#
-# $success = create_archive_tables()
-# boolean 
-#
-#  Creates the archive tables (user, archive and buffer) from the
-#  metadata tables.
-#
-######################################################################
-
-
-######################################################################
 =pod
 
-=item $foo = $thing->create_archive_tables
+=item $success = $db->create_archive_tables
 
-undocumented
+Create all the SQL tables for each dataset.
 
 =cut
 ######################################################################
@@ -285,21 +238,8 @@ sub create_archive_tables
 
 
 ######################################################################
-#
-# $success = _create_table( $dataset )
-# boolean                   EPrints::DataSet
-#
-#  Create a database table to contain the given dataset.
-#
-#  The aux. function has an extra parameter which means the table
-#  has no primary key, this is for purposes of recursive table 
-#  creation (aux. tables have no primary key)
-#
-######################################################################
-
-######################################################################
 # 
-# $foo = $thing->_create_table( $dataset )
+# $success = $db->_create_table( $dataset )
 #
 # undocumented
 #
@@ -381,7 +321,8 @@ sub _create_table
 
 ######################################################################
 # 
-# $foo = $thing->_create_table_aux( $tablename, $dataset, $setkey, @fields )
+# $success = $db->_create_table_aux( $tablename, $dataset, $setkey, 
+#                                     @fields )
 #
 # undocumented
 #
@@ -517,9 +458,11 @@ sub _create_table_aux
 ######################################################################
 =pod
 
-=item $foo = $thing->add_record( $dataset, $data )
+=item $success = $db->add_record( $dataset, $data )
 
-undocumented
+Add the given data as a new record in the given dataset. $data is
+a reference to a hash containing values structured for a record in
+the that dataset.
 
 =cut
 ######################################################################
@@ -528,7 +471,6 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
- #print STDERR "-----------------ADD RECORD------------------\n";
 	my $table = $dataset->get_sql_table_name();
 	
 	my $keyfield = $dataset->get_key_field();
@@ -555,11 +497,9 @@ sub add_record
 
 ######################################################################
 #
-# $munged = prep_value( $value )
+# $mungedvalue = prep_value( $value )
 #
 # [STATIC]
-#  Modify value such that " becomes \" and \ becomes \\ 
-#  Returns "" if $value is undefined.
 #
 ######################################################################
 
@@ -567,9 +507,10 @@ sub add_record
 ######################################################################
 =pod
 
-=item EPrints::Database::prep_value( $value )
+=item $mungedvalue = EPrints::Database::prep_value( $value )
 
-undocumented
+Escape a value for SQL. Modify value such that " becomes \" and \ 
+becomes \\ and ' becomes \'
 
 =cut
 ######################################################################
@@ -587,9 +528,10 @@ sub prep_value
 ######################################################################
 =pod
 
-=item EPrints::Database::prep_like_value( $value )
+=item $mungedvalue = EPrints::Database::prep_like_value( $value )
 
-undocumented
+Escape an value for an SQL like field. In addition to ' " and \ also 
+escapes % and _
 
 =cut
 ######################################################################
@@ -607,9 +549,12 @@ sub prep_like_value
 ######################################################################
 =pod
 
-=item $foo = $thing->update( $dataset, $data )
+=item $success = $db->update( $dataset, $data )
 
-undocumented
+Updates a record in the database with the given $data. Obviously the
+value of the primary key must be set.
+
+This also updates the text indexes and the ordering keys.
 
 =cut
 ######################################################################
@@ -617,12 +562,6 @@ undocumented
 sub update
 {
 	my( $self, $dataset, $data ) = @_;
-	#my( $database_self, $dataset_ds, $struct_md_data ) = @_;
-
-#use Data::Dumper;
-#print STDERR "-----------------UPDATE RECORD------------------\n";
-#print STDERR Dumper($data);
-#print STDERR "-----------------////UPDATE RECORD ------------------\n";
 
 	my $rv = 1;
 	my $sql;
@@ -770,21 +709,17 @@ sub update
 					}
 				}
 				$position++ if $incp;
-				#print STDERR "xxxx($incp)\n";
 			}
 		}
 		else
 		{
 			my $value = $multifield->which_bit( $fieldvalue );
-#print STDERR "ML".$multifield->get_name()." ".Dumper($value,$value)."\n-----------\n";
 			if( $multifield->get_property( "multilang" ) )
 			{
-#print STDERR "1 ".$multifield->get_name()." ".Dumper($value)."\n";
 				my $langid;
 				foreach $langid ( keys %{$value} )
 				{
 					my $val = $value->{$langid};
-#print STDERR "2 ".$multifield->get_name()." $langid=> ".Dumper($val)."\n";
 					if( defined $val )
 					{
 						push @values, { 
@@ -799,9 +734,6 @@ sub update
 				die "This can't happen in update!"; #cjg!
 			}
 		}
-##print STDERR "---(".$multifield->get_name().")---\n";
-#use Data::Dumper;
-#print STDERR Dumper(@values);
 					
 		my $v;
 		foreach $v ( @values )
@@ -882,22 +814,14 @@ sub update
 }
 
 
-######################################################################
-#
-# $success = remove( $table, $field, $value )
-#
-#  Attempts to remove a record from $table, where $field=$value.
-#  Typically, $field will be the key field and value the ID.
-#
-######################################################################
-
 
 ######################################################################
 =pod
 
-=item $foo = $thing->remove( $dataset, $id )
+=item $success = $db->remove( $dataset, $id )
 
-undocumented
+Attempts to remove the record with the primary key $id from the 
+specified dataset.
 
 =cut
 ######################################################################
@@ -944,16 +868,8 @@ sub remove
 
 
 ######################################################################
-#
-# $success = _create_counter_table()
-#
-#  Creates the counter table.
-#
-######################################################################
-
-######################################################################
 # 
-# $foo = $thing->_create_counter_table
+# $success = $db->_create_counter_table
 #
 # undocumented
 #
@@ -992,17 +908,10 @@ sub _create_counter_table
 	return( 1 );
 }
 
-######################################################################
-#
-# $success = _create_cachemap_table()
-#
-#  Creates the temporary table map table.
-#
-######################################################################
 
 ######################################################################
 # 
-# $foo = $thing->_create_cachemap_table
+# $success = $db->_create_cachemap_table
 #
 # undocumented
 #
@@ -1037,28 +946,18 @@ END
 
 
 ######################################################################
-#
-# $count = counter_next( $counter )
-#
-#  Return the next value for the named counter. Returns undef if the
-#  counter doesn't exist.
-#
-######################################################################
-
-
-######################################################################
 =pod
 
-=item EPrints::Database::counter_next( prep values too? )
+=item $n = $db->counter_next( $counter )
 
-undocumented
+Return the next unused value for the named counter. Returns undef if 
+the counter doesn't exist.
 
 =cut
 ######################################################################
 
 sub counter_next
 {
-	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "counter" );
@@ -1084,9 +983,10 @@ sub counter_next
 ######################################################################
 =pod
 
-=item $foo = $thing->cache_exp( $id )
+=item $searchexp = $db->cache_exp( $cacheid )
 
-undocumented
+Return the serialised SearchExpression of a the cached search with
+id $cacheid. Return undef if the id is invalid or expired.
 
 =cut
 ######################################################################
@@ -1115,9 +1015,12 @@ sub cache_exp
 ######################################################################
 =pod
 
-=item $foo = $thing->cache_id( $code, $include_expired )
+=item $id = $db->cache_id( $searchexp, [$include_expired] )
 
-undocumented
+Return the id of the cached results table containing tbe results of
+the specified serialised search or under if the table does not exist
+or is expired. If include_expired is true then items over the expire
+time but still in the db also get returned.
 
 =cut
 ######################################################################
@@ -1149,9 +1052,9 @@ sub cache_id
 ######################################################################
 =pod
 
-=item $foo = $thing->is_cached( $code )
+=item $bool = $db->is_cached( $searchexp )
 
-undocumented
+Return true if the serialised search expression is currently cached.
 
 =cut
 ######################################################################
@@ -1167,9 +1070,10 @@ sub is_cached
 ######################################################################
 =pod
 
-=item $foo = $thing->count_cache( $code )
+=item $n = $db->count_cache( $searchexp )
 
-undocumented
+Return the number of items in the cached search expression of undef
+if it's not cached.
 
 =cut
 ######################################################################
@@ -1188,9 +1092,17 @@ sub count_cache
 ######################################################################
 =pod
 
-=item $foo = $thing->cache( $code, $dataset, $srctable, $order, $oneshot )
+=item $cacheid = $db->cache( $searchexp, $dataset, $srctable, 
+[$order], [$oneshot] )
 
-undocumented
+Create a cache of the specified search expression from the SQL table
+$srctable.
+
+If $order is set then the cache is ordered by the specified fields. For
+example "-year/title" orders by year (descending). Records with the same
+year are ordered by title.
+
+If $oneshot is true then this cache will not be available to other searches.
 
 =cut
 ######################################################################
@@ -1257,9 +1169,11 @@ sub cache
 ######################################################################
 =pod
 
-=item $foo = $thing->create_buffer( $keyname )
+=item $tablename = $db->create_buffer( $keyname )
 
-undocumented
+Create a temporary table with the given keyname. This table will not
+be available to other processes and should be disposed of when you've
+finished with them - MySQL only allows so many temporary tables.
 
 =cut
 ######################################################################
@@ -1284,9 +1198,13 @@ sub create_buffer
 ######################################################################
 =pod
 
-=item $foo = $thing->make_buffer( $keyname, $data )
+=item $id = $db->make_buffer( $keyname, $data )
 
-undocumented
+Create a temporary table and dump the values from the array reference
+$data into it. 
+
+Even in debugging mode it does not mention this SQL as it's very
+dull.
 
 =cut
 ######################################################################
@@ -1306,14 +1224,13 @@ sub make_buffer
 	return $id;
 }
 
-# Loop through known temporary tables, and remove them.
 
 ######################################################################
 =pod
 
-=item $foo = $thing->garbage_collect
+=item $foo = $db->garbage_collect
 
-undocumented
+Loop through known temporary tables, and remove them.
 
 =cut
 ######################################################################
@@ -1321,12 +1238,10 @@ undocumented
 sub garbage_collect
 {
 	my( $self ) = @_;
-	#print STDERR "Garbage collect called.\n";
-	my $dropped = 0;
+
 	foreach( keys %TEMPTABLES )
 	{
 		$self->dispose_buffer( $_ );
-		$dropped++;
 	}
 
 }
@@ -1335,9 +1250,10 @@ sub garbage_collect
 ######################################################################
 =pod
 
-=item $foo = $thing->dispose_buffer( $id )
+=item $db->dispose_buffer( $id )
 
-undocumented
+Remove temporary table with given id. Won't just remove any
+old table.
 
 =cut
 ######################################################################
@@ -1359,9 +1275,10 @@ sub dispose_buffer
 ######################################################################
 =pod
 
-=item $foo = $thing->get_index_ids( $table, $condition )
+=item $ids = $db->get_index_ids( $table, $condition )
 
-undocumented
+Return a reference to an array of the primary keys from the given SQL 
+table which match the specified condition. 
 
 =cut
 ######################################################################
@@ -1388,9 +1305,12 @@ sub get_index_ids
 ######################################################################
 =pod
 
-=item $foo = $thing->search( $keyfield, $tables, $conditions )
+=item $ids = $db->search( $keyfield, $tables, $conditions )
 
-undocumented
+Return a reference to an array of ids - the results of the search
+specified by $conditions accross the tables specified in the $tables
+hash where keys are tables aliases and values are table names. One
+of the keys MUST be "M".
 
 =cut
 ######################################################################
@@ -1427,9 +1347,9 @@ sub search
 ######################################################################
 =pod
 
-=item $foo = $thing->drop_cache( $id )
+=item $db->drop_cache( $id )
 
-undocumented
+Remove the cached search with the given id.
 
 =cut
 ######################################################################
@@ -1458,9 +1378,9 @@ sub drop_cache
 ######################################################################
 =pod
 
-=item $foo = $thing->count_table( $tablename )
+=item $n = $db->count_table( $tablename )
 
-undocumented
+Return the number of rows in the specified SQL table.
 
 =cut
 ######################################################################
@@ -1482,9 +1402,10 @@ sub count_table
 ######################################################################
 =pod
 
-=item $foo = $thing->from_buffer ( $dataset, $buffer )
+=item $items = $db->from_buffer( $dataset, $buffer )
 
-undocumented
+Return a reference to an array containing all the items from the
+given dataset that have id's in the specified buffer.
 
 =cut
 ######################################################################
@@ -1499,9 +1420,17 @@ sub from_buffer
 ######################################################################
 =pod
 
-=item $foo = $thing->from_cache( $dataset, $code, $id, $offset, $count, $justids )
+=item $foo = $db->from_cache( $dataset, [$searchexp], [$id], [$offset], [$count, $justids] )
 
-undocumented
+Return a reference to an array containing all the items from the
+given dataset that have id's in the specified cache. The cache may be 
+specified either by id or serialised search expression. 
+
+$offset is an offset from the start of the cache and $count is the number
+of records to return.
+
+If $justids is true then it returns just an ref to an array of the record
+ids, not the objects.
 
 =cut
 ######################################################################
@@ -1555,9 +1484,9 @@ sub from_cache
 ######################################################################
 =pod
 
-=item $foo = $thing->drop_old_caches
+=item $db->drop_old_caches
 
-undocumented
+Drop all the expired caches.
 
 =cut
 ######################################################################
@@ -1585,9 +1514,10 @@ sub drop_old_caches
 ######################################################################
 =pod
 
-=item $foo = $thing->get_single( $dataset, $value )
+=item $obj = $db->get_single( $dataset, $id )
 
-undocumented
+Return a single item from the given dataset. The one with the specified
+id.
 
 =cut
 ######################################################################
@@ -1602,9 +1532,9 @@ sub get_single
 ######################################################################
 =pod
 
-=item $foo = $thing->get_all( $dataset )
+=item $items = $db->get_all( $dataset )
 
-undocumented
+Returns a reference to an array with all the items from the given dataset.
 
 =cut
 ######################################################################
@@ -1617,9 +1547,10 @@ sub get_all
 
 ######################################################################
 # 
-# $foo = $thing->_get ( $dataset, $mode, $param, $offset, $ntoreturn )
+# $foo = $db->_get ( $dataset, $mode, $param, $offset, $ntoreturn )
 #
-# undocumented
+# Scary generic function to get records from the database and put
+# them together.
 #
 ######################################################################
 
@@ -1627,13 +1558,10 @@ sub _get
 {
 	my ( $self , $dataset , $mode , $param, $offset, $ntoreturn ) = @_;
 
-# print STDERR "========================================BEGIN _get($mode,$param)\n";
 	# mode 0 = one or none entries from a given primary key
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 	# mode 3 = some entries from a cache table
-use Carp;
-if( ref($dataset) eq "" ) { confess(); }
 
 	my $table = $dataset->get_sql_table_name();
 
@@ -1747,34 +1675,22 @@ if( ref($dataset) eq "" ) { confess(); }
 				{
 					$value = shift @row;
 				}
-#print STDERR "FIELD: ".$field->get_sql_name()." ($subbit)\n";
 				if( $field->get_property( "mainpart" ) )
 				{
-#print STDERR "N{$value}\n";
 					$record->{$field->get_name()}->{main} = $value;
 				}
 				elsif( $field->get_property( "idpart" ) )
 				{
-#print STDERR "O{$value}\n";
 					$record->{$field->get_name()}->{id} = $value;
 				}
 				else
 				{
-#print STDERR "P{$value}\n";
 					$record->{$field->get_name()} = $value;
 				}
 			}
 		}
 		$data[$count] = $record;
 		$count++;
-	}
-
-	foreach( @data )
-	{
-# use Data::Dumper;
-# print STDERR "--------xxxx-----FROM DB------------------\n";
-# print STDERR Dumper($_);
-# print STDERR "--------xxxx-----////FROM DB------------------\n";
 	}
 
 	my $multifield;
@@ -1824,13 +1740,11 @@ if( ref($dataset) eq "" ) { confess(); }
 		$self->execute( $sth, $sql );
 		while( @values = $sth->fetchrow_array ) 
 		{
-#print STDERR "V:".join(",",@values)."\n";
 			my $id = shift( @values );
 			my( $pos, $lang );
 			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
 			$lang = shift( @values ) if( $multifield->get_property( "multilang" ) );
 			my $n = $lookup{ $id };
-#print STDERR "[$n][$id]\n";
 			my $value;
 			if( $multifield->is_type( "name" ) )
 			{
@@ -1847,7 +1761,6 @@ if( ref($dataset) eq "" ) { confess(); }
 			my $subbit;
 			$subbit = "id" if( $multifield->get_property( "idpart" ) );
 			$subbit = "main" if( $multifield->get_property( "mainpart" ) );
-#print STDERR "MUFIL: ".$multifield->get_sql_name()." ($subbit)\n";
 
 			if( $multifield->get_property( "multiple" ) )
 			{
@@ -1908,9 +1821,10 @@ if( ref($dataset) eq "" ) { confess(); }
 ######################################################################
 =pod
 
-=item $foo = $thing->get_values( $field )
+=item $foo = $db->get_values( $field )
 
-undocumented
+Return an array of all the distinct values of the EPrints::MetaField
+specified.
 
 =cut
 ######################################################################
@@ -1933,7 +1847,6 @@ sub get_values
 	my $sqlfn = $field->get_sql_name();
 
 	my $sql = "SELECT DISTINCT $sqlfn FROM $table";
-#print STDERR "($table)($sqlfn)\n";
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my @values = ();
@@ -1950,16 +1863,16 @@ sub get_values
 ######################################################################
 =pod
 
-=item $foo = $thing->do ( $sql )
+=item $success = $db->do( $sql )
 
-undocumented
+Execute the given SQL.
 
 =cut
 ######################################################################
 
 sub do 
 {
-	my ( $self , $sql ) = @_;
+	my( $self , $sql ) = @_;
 
 	if( $self->{debug} )
 	{
@@ -1979,9 +1892,9 @@ sub do
 ######################################################################
 =pod
 
-=item $foo = $thing->prepare ( $sql )
+=item $sth = $db->prepare( $sql )
 
-undocumented
+Prepare the given $sql and return a handle on it.
 
 =cut
 ######################################################################
@@ -2009,16 +1922,17 @@ sub prepare
 ######################################################################
 =pod
 
-=item $foo = $thing->execute ( $sth, $sql )
+=item $success = $db->execute( $sth, $sql )
 
-undocumented
+Execute the SQL prepared earlier. $sql is only passed in for debugging
+purposes.
 
 =cut
 ######################################################################
 
 sub execute 
 {
-	my ( $self , $sth , $sql ) = @_;
+	my( $self , $sth , $sql ) = @_;
 
 	if( $self->{debug} )
 	{
@@ -2040,9 +1954,10 @@ sub execute
 ######################################################################
 =pod
 
-=item $foo = $thing->exists( $dataset, $id )
+=item $boolean = $db->exists( $dataset, $id )
 
-undocumented
+Return true if a record with the given primary key exists in the
+dataset, otherwise false.
 
 =cut
 ######################################################################
@@ -2074,7 +1989,7 @@ sub exists
 
 ######################################################################
 # 
-# $foo = $thing->_freetext_index( $dataset, $id, $field, $value )
+# $foo = $db->_freetext_index( $dataset, $id, $field, $value )
 #
 # undocumented
 #
@@ -2153,7 +2068,7 @@ sub _freetext_index
 
 ######################################################################
 # 
-# $foo = $thing->_deindex( $dataset, $keyvalue )
+# $foo = $db->_deindex( $dataset, $keyvalue )
 #
 # undocumented
 #
@@ -2215,9 +2130,9 @@ sub _deindex
 ######################################################################
 =pod
 
-=item $foo = $thing->set_debug( $debug )
+=item $db->set_debug( $boolean )
 
-undocumented
+Set the SQL debug mode to true or false.
 
 =cut
 ######################################################################
@@ -2230,22 +2145,6 @@ sub set_debug
 }
 
 
-######################################################################
-=pod
-
-=item $foo = $thing->DESTROY
-
-undocumented
-
-=cut
-######################################################################
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
 
 1; # For use/require success
 

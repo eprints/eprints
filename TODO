@@ -85,6 +85,8 @@ Searches
 	of problems. This should run by default when verifying "search"
 	type fields?
 
+*	Create buffer uses VARCHAR for a key, not.. er... INT where possible.
+
 
 Other Stuff
 
@@ -147,7 +149,7 @@ FORMALLY COMMENT CODE
 -	Config.pm
 -	DataObj.pm
 -	DataSet.pm
-*	Database.pm
+-	Database.pm
 *	Document.pm
 *	EPrint.pm
 *	ImportXML.pm

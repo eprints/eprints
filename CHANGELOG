@@ -535,3 +535,4 @@ before next release. (metadata types & fields)
 - added from_string method to searchexp which unserialises the string and
    applies the "safe" parts. Does not add any new searchfields or change
    the dataset.
+- added pod docs to Database.pm
