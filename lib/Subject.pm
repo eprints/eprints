@@ -716,6 +716,8 @@ sub get_all
 		@{$rmap{$_}} = sort {   
 my $av = $namefield->most_local( $session, $a->{data}->{name} );
 my $bv = $namefield->most_local( $session, $b->{data}->{name} );
+$av = "" unless defined $av;
+$bv = "" unless defined $bv;
 $av cmp $bv;
 			} @{$rmap{$_}};
 	}
