@@ -39,6 +39,8 @@ my $STAGES = {
 	confirmdel => 1 
 };
 
+#cjg SKIP STAGES???
+#cjg "NEW" sets defaults?
 
 ######################################################################
 #
@@ -448,33 +450,47 @@ sub _from_stage_meta
 	my( $self ) = @_;
 
 	# Process uploaded data
-	$self->_update_from_meta_form();
+
+	my @all_fields = $self->{dataset}->get_fields();
+
+	my $field;
+	foreach $field (@all_fields)
+	{
+		# Only update if it appeared in the form.
+		if( $field->get_property( "editable" ) )
+		{
+			$self->_update_from_form( $field->get_name() );
+		}
+	}
+
 	$self->{eprint}->commit();
 
-	if( $self->{session}->{render}->internal_button_pressed() )
+	# What stage now?
+
+	if( $self->{session}->internal_button_pressed() )
 	{
 		# Leave the form as is
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
+		$self->{next_stage} = "meta";
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
+	elsif( $self->{action} eq "next" )
 	{
 		# validation checks
 		$self->{problems} = $self->{eprint}->validate_meta();
 
-		if( $#{$self->{problems}} >= 0 )
+		if( scalar @{$self->{problems}} > 0 )
 		{
 			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
+			$self->{next_stage} = "meta";
 		}
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
+			$self->{next_stage} = "subject";
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+	elsif( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+		$self->{next_stage} = "linking";
 	}
 	else
 	{
@@ -499,26 +515,28 @@ sub _from_stage_subject
 	my( $self ) = @_;
 
 	# Process uploaded data
-	$self->_update_from_subject_form();
+	$self->_update_from_form( "subjects" );
+	$self->_update_from_form( "additional" );
+	$self->_update_from_form( "reasons" );
 	$self->{eprint}->commit();
 	
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_next") )
+	if( $self->{action} eq "next" )
 	{
 		$self->{problems} = $self->{eprint}->validate_subject();
-		if( $#{$self->{problems}} >= 0 )
+		if( scalar @{$self->{problems}} > 0 )
 		{
 			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
+			$self->{next_stage} = "subject";
 		}
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+			$self->{next_stage} = "format";
 		}
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+	elsif( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_meta;
+		$self->{next_stage} = "meta";
 	}
 	else
 	{
@@ -1060,7 +1078,6 @@ sub _do_stage_meta
 
 	$page = $self->{session}->make_doc_fragment();
 
-print STDERR "-1.ok so far...\n";
 	$page->appendChild( $self->_render_problems() );
 
 	$p = $self->{session}->make_element( "p" );
@@ -1076,7 +1093,7 @@ print STDERR "-1.ok so far...\n";
 	my @edit_fields;
 	my @all_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
 	
-print STDERR "1.ok so far...\n";
+
 	# Get the appropriate fields
 	my $field;
 	foreach $field (@all_fields)
@@ -1084,7 +1101,7 @@ print STDERR "1.ok so far...\n";
 		push @edit_fields, $field if( $field->get_property( "editable" ) );
 	}
 
-print STDERR "2.ok so far...\n";
+
 	my $hidden_fields = {	
 		eprint_id => $self->{eprint}->get_value( "eprintid" ),
 		stage => "meta" };
@@ -1094,7 +1111,7 @@ print STDERR "2.ok so far...\n";
 				"lib/submissionform:action_prev" ),
 		next => $self->{session}->phrase( 
 				"lib/submissionform:action_next" ) };
-print STDERR "ok so far...\n";
+
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
 			\@edit_fields,
@@ -1120,19 +1137,42 @@ print STDERR "ok so far...\n";
 sub _do_stage_subject
 {
 	my( $self ) = @_;
-	
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_subject} ) );
-	$self->_render_problems();
 
-	$self->_render_subject_form(
-		[ $self->{session}->phrase("lib/submissionform:action_prev"),
-		  $self->{session}->phrase("lib/submissionform:action_next") ],
-		{ stage=>$EPrints::SubmissionForm::stage_subject }  );
+	my( $page );
 
-	print $self->{session}->{render}->end_html();
+	$page = $self->{session}->make_doc_fragment();
+
+	$page->appendChild( $self->_render_problems() );
+
+	my $hidden_fields = {	
+		eprint_id => $self->{eprint}->get_value( "eprintid" ),
+		stage => "subject" };
+
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ),
+		next => $self->{session}->phrase( 
+				"lib/submissionform:action_next" ) };
+
+
+	my @edit_fields;
+	push @edit_fields, $self->{dataset}->get_field( "subjects" );
+	push @edit_fields, $self->{dataset}->get_field( "additional" );
+	push @edit_fields, $self->{dataset}->get_field( "reasons" );
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			\@edit_fields,
+			$self->{eprint}->{data},
+			0,
+			1,
+			$submit_buttons,
+			$hidden_fields ) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_subject" ),
+		$page );
+	$self->{session}->send_page();
 }	
 
 
@@ -1668,75 +1708,6 @@ sub _render_problems
 
 
 
-######################################################################
-#
-# _update_from_meta_form()
-#
-#  Updated metadata from the form.
-#
-######################################################################
-
-## WP1: BAD
-sub _update_from_meta_form
-{
-	my( $self ) = @_;
-
-	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprint" );
-	my $field;
-	
-	if( $self->{session}->{render}->param( "eprint_id" ) ne
-		$self->{eprint}->{eprintid} )
-	{
-		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
-		return( 0 );
-	}
-	else
-	{
-		foreach $field (@all_fields)
-		{
-			my $param = $self->{session}->{render}->form_value( $field );
-
-			# Only update if it appeared in the form.
-			if( $field->{editable} )
-			{
-				$self->{eprint}->{$field->{name}} = $param;
-			}
-		}
-		return( 1 );
-	}
-}
-
-######################################################################
-#
-# _render_subject_form(  $submit_buttons, $hidden_fields )
-#                           array_ref        hash_ref
-#
-#  Render a form for the subject(s) field.
-#
-######################################################################
-
-## WP1: BAD
-sub _render_subject_form
-{
-	my( $self, $submit_buttons, $hidden_fields ) = @_;
-
-	my @edit_fields;
-
-	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "subjects" );
-	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "additional" );
-	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
-
-	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
-
-	$self->{session}->{render}->render_input_form( \@edit_fields,
-	                                         $self->{eprint},
-	                                         0,
-	                                         1,
-	                                         $submit_buttons,
-	                                         $hidden_fields );
-}
-
 
 
 ######################################################################
@@ -1767,57 +1738,6 @@ sub _render_users_form
 	                                         $hidden_fields );
 }
 
-
-######################################################################
-#
-# _update_from_subject_form()
-#
-#  Update subject data from the form
-#
-######################################################################
-
-## WP1: BAD
-sub _update_from_subject_form
-{
-	my( $self ) = @_;
-	
-	if( $self->{session}->{render}->param( "eprint_id" ) ne
-		$self->{eprint}->{eprintid} )
-	{
-		my $form_id = $self->{session}->{render}->param( "eprint_id" );
-		$self->{session}->get_archive()->log( "EPrint ID in form &gt;".$form_id."&lt; doesn't match object id ".$self->{eprint}->{eprintid} );
-
-		return( 0 );
-	}
-	else
-	{
-		my @all_fields = $self->{session}->{metainfo}->get_fields(
-			"eprint",
-			$self->{eprint}->{type} );
-		my $field;
-
-		foreach $field (@all_fields)
-		{
-			if( $field->{type} eq "subject")
-			{
-				my $param =
-					$self->{eprint}->{session}->{render}->form_value( $field );
-				$self->{eprint}->{$field->{name}} = $param;
-			}
-		}
-
-		my $additional_field = 
-			$self->{session}->{metainfo}->find_table_field( "eprint", "additional" );
-		my $reason_field = $self->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
-
-		$self->{eprint}->{$additional_field->{name}} =
-			$self->{session}->{render}->form_value( $additional_field );
-		$self->{eprint}->{$reason_field->{name}} =
-			$self->{session}->{render}->form_value( $reason_field );
-
-		return( 1 );
-	}
-}
 
 
 ######################################################################

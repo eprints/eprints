@@ -51,7 +51,8 @@ sub get_system_field_info
 
 	{ name=>"reasons", type=>"longtext", required=>0, editable=>0, displaylines=>6 },
 
-	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, editable=>0 },
+	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, editable=>0,
+		displaylines=>"ALL" },
 
 	{ name=>"succeeds", type=>"text", required=>0, editable=>0 },
 

@@ -371,9 +371,9 @@ sub render_option_list
 	}
 
 	my $element = $self->make_element( "select" , name => $params{name} );
-	if( defined $params{size} )
+	if( defined $params{height} )
 	{
-		$element->setAttribute( "size" , $params{size} );
+		$element->setAttribute( "size" , $params{height} );
 	}
 	if( defined $params{multiple} )
 	{

@@ -26,6 +26,9 @@ my @monthkeys = (
 	"00", "01", "02", "03", "04", "05", "06",
 	"07", "08", "09", "10", "11", "12" );
 
+# These '255'... Maybe make them bigger due to UTF-8
+# UTF-8 chars max 3 times normal (for unicode)
+
 my %TYPE_SQL =
 (
  	int        => "\$(name) INT UNSIGNED \$(param)",
@@ -75,7 +78,7 @@ my $PROPERTIES = {
 	editable => 1,
 	multiple => 0,
 	datasetid => "NO_DEFAULT",
-	displaylines => 5,
+	displaylines => 0,
 	digits => 20,
 	options => "NO_DEFAULT",
 	maxlength => 255,
@@ -125,6 +128,7 @@ sub new
 	if( $self->is_type( "longtext", "set", "subjects", "datatype" ) )
 	{
 		$self->set_property( "displaylines", $properties->{displaylines} );
+print STDERR "DISPLINES-".$self->{name}."-".$properties->{displaylines} ."\n";
 	}
 
 	if( $self->is_type( "int" ) )
@@ -576,11 +580,22 @@ sub render_input_field
 			$value = [ $value ];
 		}
 
+		my $height = $self->{displaylines};
+print STDERR "HEIGHT: $height\n";
+		if( $height eq "ALL")
+		{
+			$height = scalar @{$tags};
+		}
+		if( $height == 0 )
+		{
+			$height = undef;
+		}
+
 		$html->appendChild( $session->render_option_list(
 			name => $id,
 			values => $tags,
 			default => $value,
-			height => $self->{displaylines},
+			height => $height,
 			multiple => ( $self->{multiple} ? 
 					"multiple" : undef ),
 			labels => $labels ) );
@@ -680,7 +695,7 @@ print STDERR "$n... val($value)\n";
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 
 	my $html = $session->make_doc_fragment();
-	if( $self->is_type( "text", "username", "url", "int", "email" ) )
+	if( $self->is_type( "text", "username", "url", "int", "email", "year" ) )
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$id_suffix;
