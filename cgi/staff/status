@@ -17,6 +17,8 @@ use EPrints::User;
 
 use EPrintSite::SiteInfo;
 
+use Filesys::DiskSpace;
+
 use strict;
 
 my $session = new EPrints::Session;
@@ -67,6 +69,13 @@ my $num_subs = scalar @$rows;
 my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
 
+# Get available directories
+opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
+	or return( undef );
+# The grep here just removes the "." and ".." directories
+my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
+closedir DOCSTORE;
+
 # Write the results to a table
 print "<CENTER><TABLE BORDER=0>\n";
 
@@ -90,7 +99,30 @@ print "<CENTER><TABLE BORDER=0>\n";
 
 &print_row( "Subscriptions:", $num_subs );
 
+&print_row( "", "" );
+
+my $best_size = 0;
+
+foreach( @avail )
+{
+	my $size = df $EPrintSite::SiteInfo::local_document_root."/".$_;
+	&print_row( "Document partition $_:", $size."Kb free" );
+
+	$best_size = $size if( $size > $best_size );
+}
+
 print "</TABLE></CENTER>\n";
+
+if( $best_size < $EPrintSite::SiteInfo::diskspace_error_threshold )
+{
+	print "<CENTER><P><STRONG><FONT COLOR=RED>NO SPACE LEFT FOR EPRINTS!".
+		"</FONT></STRONG></P></CENTER>\n";
+}
+elsif( $best_size < $EPrintSite::SiteInfo::diskspace_warn_threshold )
+{
+	print "<CENTER><P><STRONG><FONT COLOR=RED>WARNING:</FONT></STRONG> ".
+		"Available space for new EPrints running low</P></CENTER>\n";
+}
 
 print $session->{render}->end_html();
 

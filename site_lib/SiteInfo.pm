@@ -131,10 +131,16 @@ $EPrintSite::SiteInfo::template_fail_user = "$EPrintSite::SiteInfo::local_root/c
 $EPrintSite::SiteInfo::template_change_email = "$EPrintSite::SiteInfo::local_root/cfg/template.change-email";
 $EPrintSite::SiteInfo::site_eprint_fields = "$EPrintSite::SiteInfo::local_root/cfg/metadata.eprint-fields";
 $EPrintSite::SiteInfo::site_eprint_types = "$EPrintSite::SiteInfo::local_root/cfg/metadata.eprint-types";
-$EPrintSite::SiteInfo::eprint_field_help = "$EPrintSite::SiteInfo::local_root/cfg/help.eprint-fields.en";
 $EPrintSite::SiteInfo::subject_config = "$EPrintSite::SiteInfo::local_root/cfg/subjects";
 
-$EPrintSite::SiteInfo::eprint_id_counter = "$EPrintSite::SiteInfo::local_root/cfg/counter.eprint";
+
+# This sets the minimum amount of free space allowed on a disk before EPrints
+# starts using the next available disk to store EPrints. Specified in kilobytes.
+$EPrintSite::SiteInfo::diskspace_error_threshold = 20480;
+
+# If ever the amount of free space drops below this threshold, the
+# archive administrator is sent a warning email.
+$EPrintSite::SiteInfo::diskspace_warn_threshold = 102400;
 
 $EPrintSite::SiteInfo::log_path = "$EPrintSite::SiteInfo::local_root/logs";
 

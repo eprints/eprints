@@ -18,6 +18,7 @@ use EPrints::MetaInfo;
 use EPrintSite::SiteRoutines;
 
 use File::Path;
+use Filesys::DiskSpace;
 use strict;
 
 # Number of digits in generated ID codes
@@ -189,7 +190,7 @@ sub create
 
 	my $new_id = _create_id( $session );
 
-	my $dir = _create_directory( $new_id );
+	my $dir = _create_directory( $session, $new_id );
 
 	return( undef ) if( !defined $dir );
 	
@@ -245,20 +246,57 @@ sub _create_id
 
 sub _create_directory
 {
-	my( $eprint_id ) = @_;
+	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
 	opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
 		or return( undef );
+	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
 	closedir DOCSTORE;
 	
-	# PLACEHOLDER!! Needs to check amount of space free on each device
-	# and make an intelligent choice
+	# Check amount of space free on each device. We'll use the first one we find
+	# (alphabetically) that has enough space on it.
+	my $storedir;
+	my $best_free_space = 0;
+	
+	foreach (sort @avail)
+	{
+		my $free_space = df $EPrintSite::SiteInfo::local_document_root . "/" . $_;
+		$best_free_space = $free_space if( $free_space > $best_free_space );
+
+		unless( defined $storedir )
+		{
+			if( $free_space >= $EPrintSite::SiteInfo::diskspace_error_threshold )
+			{
+				# Enough space on this drive.
+				$storedir = $_;
+			}
+		}
+	}
+
+	# Check that we do have a place for the new directory
+	if( !defined $storedir )
+	{
+		# Argh! Running low on disk space overall.
+		$session->mail_administrator(
+			"ERROR: Out of Disk Space",
+			"There are no available partitions with enough disk space to create ".
+				"new EPrints. This needs sorting out urgently." );
+		return( undef );
+	}
+
+	# Warn the administrator if we're low on space
+	if( $best_free_space < $EPrintSite::SiteInfo::diskspace_warn_threshold )
+	{
+		$session->mail_administrator(
+			"Warning: Low on disk space",
+			"The amount of disk space available for new EPrints has dropped ".
+				"below the site threshold. New disk space will be needed soon." );
+	}
 
 	# For now, just choose first
 	return( undef ) if( !defined $avail[0] );
-	my $storedir = $avail[0];
 	
 	# Work out the directory path. It's worked out using the ID of the EPrint.
 	# It takes the numerical suffix of the ID, and divides it into four

@@ -9,6 +9,7 @@
 ######################################################################
 #
 #  11/10/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -40,16 +41,6 @@ $EPrints::Database::table_subscription = "subscriptions";
 # Counters
 #
 @EPrints::Database::counters = ( "eprintid" );
-
-#@EPrints::Database::meta_fields =
-#(
-#	"field",
-#	"type",
-#	"valueset",
-#	"display_name",
-#	"required"
-#);
-
 
 #
 # Map of EPrints data types to MySQL types. keys %datatypes will give
