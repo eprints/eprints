@@ -15,6 +15,7 @@ use EPrints::Database;
 use EPrints::Session;
 use EPrints::User;
 
+use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 
 use strict;
@@ -35,9 +36,6 @@ if( $#eprints == -1 )
 	# No EPrints
 	print "<P><CENTER><STRONG>There are no entries in the submission buffer at ".
 		"the moment.</STRONG></CENTER></P>\n";
-
-	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
-		"Click here to return to the Staff Area</A></CENTER></P>\n";
 }
 else
 {
@@ -85,6 +83,9 @@ else
 	
 	print "</TABLE></CENTER>\n";
 }
+
+print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
+	"Click here to return to the Staff Area</A></CENTER></P>\n";
 
 print $session->{render}->end_html();
 $session->terminate();
