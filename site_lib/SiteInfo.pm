@@ -357,6 +357,9 @@ $EPrintSite::SiteInfo::signature =
 #  For Open Archives software
 #
 
+# Site specific **UNIQUE** archive identifier.
+# See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
+$EPrintSite::SiteInfo::archive_identifier = "cogprints";
 # Domain the software is running in
 $EPrintSite::SiteInfo::domain = "dibble.ecs.soton.ac.uk";
 # Port the perl server is running on

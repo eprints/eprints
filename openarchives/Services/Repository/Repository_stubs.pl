@@ -57,6 +57,8 @@
 #############################################################################
 package Repository;
 
+use EPrints::OpenArchives;
+
 use strict;
 use XML::Writer;
 use POSIX;
@@ -72,62 +74,47 @@ use IO::File;
 # Disseminate Verb - MUST BE MODIFIED TO LINK TO LOCAL REPOSITORY
 sub mr_disseminate {
     my ($fullID, $metaFormat, $contentType, $kwArgs, $Context) = @_;
-    if ($metaFormat !~ /^\#\w+/) {
-	&dienst::complaint(400, "Invalid meta-format specified");
-	exit;
-    }
-	
+
     if ($contentType ne "xml") {
 	&dienst::complaint(400, "xml is the only valid content type that can be specified");
 	exit;
     }
 
     if ($metaFormat eq "#oams") {
-	my %oamsTags;
 
-	# Set the Open Archives Metadata Tags to be passed into the write
-	# function.  Each OAMS element name is a hash key.  A simple non
-	# repeatable element has a scalar value. A repeatable element without
-	# structure has an array value (reference). A repeatable structured
-	# element (e.g., author) has an array value (reference) where is
-	# element of the array is a hash reference with keys that are
-	# the names of the internal structure.
-	%oamsTags = (
-		     title => "Sample Title",
-		     accession => "2000-01-01",
-		     subject => "Any Subject",
-		     fullID => "handlecorp/00001",
-		     abstract => "This is about anything",
-		     displayID => ['http://foo.com/handlecorp/0001'],
-		     subject => ['databases', 'ai'],
-		     comment => ['just a comment'],
-		     discovery => ['1900-01-01', '1971-01-01'],
-		     # author is repeatable and has internal structure
-		     author => [{'name' => 'Jane Doe', 
-				 'organization' => "Big Company"},
-				{'name' => 'John Doe',
-                                 'organization' => "Big University"}]
-		     );
+	# Get the record from EPrints....
+	my %oamsTags = EPrints::OpenArchives->disseminate( $fullID );
 
-	my $XMLOutputTempFile = POSIX::tmpnam();
-	my $output = new IO::File(">$XMLOutputTempFile");
-	my $writer = 
-	  new XML::Writer (OUTPUT => $output, NEWLINES => 1);   
-	$writer->xmlDecl();
-	$writer->startTag ("$Context->{'verb'}", 
-			   "version" => $Context->{'version'});
-	$writer->startTag("record", 
-			  "format" => "oams", "identifier" => $fullID);
-	&write_OAMS(\%oamsTags, $writer, $Context);
-	$writer->endTag("record");
-	$writer->endTag ($Context->{'verb'});
-	$writer->end ();
-	$output->close();
-	&dienst::xmit_file("$XMLOutputTempFile", "text/xml", 1);
-	unlink $XMLOutputTempFile;
+	# If the record doesn't exist, we will get an empty hash back
+	if( scalar keys %oamsTags == 0 )
+	{
+		# If this is the case, return appropriate error code
+		&dienst::complaint( 404, "Unknown record specified" );
+	}
+	else
+	{
+		# Have the record OK, return appropriate response
+		my $XMLOutputTempFile = POSIX::tmpnam();
+		my $output = new IO::File(">$XMLOutputTempFile");
+		my $writer = 
+		  new XML::Writer (OUTPUT => $output, NEWLINES => 1);   
+		$writer->xmlDecl();
+		$writer->startTag ("$Context->{'verb'}", 
+				   "version" => $Context->{'version'});
+		$writer->startTag("record", 
+				  "format" => "oams", "identifier" => $fullID);
+		&write_OAMS(\%oamsTags, $writer, $Context);
+		$writer->endTag("record");
+		$writer->endTag ($Context->{'verb'});
+		$writer->end ();
+		$output->close();
+		&dienst::xmit_file("$XMLOutputTempFile", "text/xml", 1);
+		unlink $XMLOutputTempFile;
+	}
     }
     else {
-	&dummy_XML_return($Context);
+	&dienst::complaint(400, "Invalid meta-format specified");
+	exit;
     }
 
 }

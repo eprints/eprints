@@ -370,4 +370,105 @@ sub update_archived_eprint
 	my( $class, $eprint ) = @_;
 }
 
+
+######################################################################
+#
+#  OPEN ARCHIVES INTEROPERABILITY ROUTINES
+#
+######################################################################
+
+
+######################################################################
+#
+# eprint_get_oams( $eprint, $tags )
+#                          hash_ref
+#
+#  Fill out the OAMS in $tags from the record $eprint. The tags (hash
+#  values) be filled out are:
+#
+#  title [M]      =>  "document title"
+#  author [M][R}  =>  [ { name => "author's name",
+#                     organization = "author's org." },
+#                   { name => "author's name",
+#                     organization = "author's org." },
+#                   .... ]
+#  abstract       =>  "document abstract"
+#  subject [R]    =>  [ "topic1", "topic2" ]  e.g. subjects, keywords (how this
+#                       should be filled out is not specified in OAMS)
+#  comment [R]    =>  [ "any extra info" ]
+#  discovery      =>  date for discovery, in the format YYYY-MM-DD. This can be
+#                     the date of original publication, for example.
+#
+#  [M] - mandatory tag, must give a value for this
+#  [R] - repeatable tag, pass in a reference to an array of values
+#
+#  If for some reason an error is encountered, or for some other
+#  reason the record shouldn't be disseminated, you can empty $tags.
+#
+######################################################################
+
+sub eprint_get_oams
+{
+	my( $class, $eprint, $tags ) = @_;
+	
+	# Title
+	$tags->{title} = $eprint->{title};
+	
+	# Authors
+	my @authors = EPrints::Name->extract( $eprint->{authors} );
+	$tags->{author} = [];
+	
+	foreach (@authors)
+	{
+		my( $surname, $firstnames ) = @$_;
+		push @{$tags->{author}}, "$firstnames $surname";
+	}
+
+	# Subject field will just be the subject descriptions
+	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+	my @subjects = $subject_list->get_subjects( $eprint->{session} );
+	$tags->{subject} = [];
+
+	foreach (@subjects)
+	{
+		push @{$tags->{subject}},
+		     $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
+	}
+	
+	# Abstract
+	$tags->{abstract} = $eprint->{abstract};
+
+	# Comment
+	$tags->{comment} = $eprint->{comment} if( defined $eprint->{comment} );
+	
+	# Date for discovery. For a month/day we don't have, assume 01.
+	my $year = $eprint->{year};
+	my $month = "01";
+
+	if( defined $eprint->{month} )
+	{
+		my %month_numbers = (
+			unspec => "01",
+			jan => "01",
+			feb => "02",
+			mar => "03",
+			apr => "04",
+			may => "05",
+			jun => "06",
+			jul => "07",
+			aug => "08",
+			sep => "09",
+			oct => "10",
+			nov => "11",
+			dec => "12" );
+	
+		$month = $month_numbers{$eprint->{month}};
+	}
+	
+	$tags->{discovery} = "$year-$month-01";
+}
+
+
+
+
 1;
