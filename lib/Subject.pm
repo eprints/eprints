@@ -497,7 +497,7 @@ sub get_all
 	# Retrieve all of the subjects
 	my @rows = $session->{database}->get_all(
 		$EPrints::Database::table_subject );
-	return( undef ) if( !defined @rows );
+	return( undef ) if( scalar @rows == 0 );
 
 	my( @subjects, %subjectmap );
 	
@@ -558,7 +558,7 @@ sub posted_eprints
 
 ######################################################################
 #
-# $num = count_posted_eprints( $table )
+# $num = count_eprints( $table )
 #
 #  Simpler version of above function. Counts the EPrints in this
 #  subject fields from $table. If $table is unspecified, the main
