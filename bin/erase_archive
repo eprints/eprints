@@ -1,0 +1,102 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Erase the archive.
+#
+#   This script completely erases the archive contents, including all
+#   database tables and eprint files.  After running this, the metadata
+#   configuration can be safely updated and the create_databases
+#   script run again.
+#
+#   This script asks for confirmation before actually erasing anything.
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+use EPrints::Database;
+use EPrintSite::SiteInfo;
+
+use strict;
+
+# Write the confirmation prompt
+print "This script completely erases the archive, including all metadata,\n";
+print "database tables and eprint files.\n\n";
+print "Are you sure you want this to happen? (yes/no)\n";
+
+my $input = <STDIN>;
+chomp( $input );
+
+# We'll only work if they type "yes" exactly, otherwise we just abort.
+if( $input eq "yes" )
+{
+	# First erase the database tables.  We'll need to use the mysql monitor
+	# tool and have the root password.
+	print "Erasing database tables (you will need to enter the database\n";
+	print "root password)\n";
+	
+	# Make the SQL necessary for dropping all of the tables
+	my @tables = (
+		$EPrints::Database::table_counter,
+		$EPrints::Database::table_user,
+		$EPrints::Database::table_inbox,
+		$EPrints::Database::table_buffer,
+		$EPrints::Database::table_archive,
+		$EPrints::Database::table_document,
+		$EPrints::Database::table_subject,
+		$EPrints::Database::table_subscription,
+		$EPrints::Database::table_deletion );
+
+	my $drop_table_sql = "";
+
+	foreach (@tables)
+	{
+		$drop_table_sql .= "drop table $_ ; ";
+	}
+
+	# Get the path of the mysql monitor tool
+	print "Path of mysql tool (the default is fine if it's in your standard shell path)\n";
+	print "[mysql]: ";
+
+	my $mysql_path = <STDIN>;
+	chomp( $mysql_path );
+	$mysql_path = "mysql" if( $mysql_path eq "" );
+
+
+	# Execute it
+	print "You will need to enter the MySQL root user password.\n";
+	my $rc = 0xffff & system( "$mysql_path -u root -p $EPrintSite::SiteInfo::database -e '$drop_table_sql'" );
+
+	# Abort unless it all went OK.
+	die "Error removing database tables; aborting\n" unless( $rc==0 );
+
+
+	print "Erasing eprint files...\n";
+	
+	# Get available directories
+	opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
+		or return( undef );
+
+	# The grep here just removes the "." and ".." directories
+	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
+	closedir DOCSTORE;
+
+	# Remove the contents of each of the directories.
+	foreach (@avail)
+	{
+		$rc = 0xffff & system(
+			"rm -rf $EPrintSite::SiteInfo::local_document_root/$_/*" );
+		print STDERR "Warning: Cleaning $EPrintSite::SiteInfo::local_document_root/$_ didn't go smoothly\n"
+			unless( $rc==0 );
+	}
+
+	print "Done.\n";
+}
