@@ -183,7 +183,6 @@
 #TODO
 #	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
 #	Call backs for LEAVING archive and buffer=>inbox
-#	change order tables to one per langid
 #	Call backs to handle Latex processing.
 #	"Squash" reverse indexes?
 

@@ -247,18 +247,18 @@ sub _create_table
 	{
 		foreach( @fields )
 		{
-			my $fname = $_->get_sql_name()."_".$langid;
+			my $fname = $_->get_sql_name();
 			push @orderfields, EPrints::MetaField->new( 
 						name => $fname,
 						type => "longtext" );
 		}
+		$rv = $rv && $self->_create_table_aux( 
+			$dataset->get_ordervalues_table_name( $langid ), 
+			$dataset, 
+			1, 
+			@orderfields );
+		return 0 unless $rv;
 	}
-	$rv = $rv && $self->_create_table_aux( 
-				$dataset->get_ordervalues_table_name(), 
-				$dataset, 
-				1, 
-				@orderfields );
-	return 0 unless $rv;
 
 
 	# Create the other tables
@@ -711,18 +711,17 @@ sub update
 					$self->{session}->get_archive(), 
 					$langid );
 			
-			push @fnames, $_->get_sql_name()."_".$langid;
+			push @fnames, $_->get_sql_name();
 			push @fvals, prep_value( $ov );
 		}
+
+		my $ovt = $dataset->get_ordervalues_table_name( $langid );
+		$sql = "DELETE FROM ".$ovt." WHERE ".$where;
+		$self->do( $sql );
+
+		$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".join( "\",\"", @fvals )."\")";
+		$self->do( $sql );
 	}
-
-	my $ovt = $dataset->get_ordervalues_table_name();
-	$sql = "DELETE FROM ".$ovt." WHERE ".$where;
-	$self->do( $sql );
-
-	$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".
-		join( "\",\"", @fvals )."\")";
-	$self->do( $sql );
 
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -962,7 +961,7 @@ sub cache
 	$sql = "INSERT INTO $tmptable SELECT NULL , B.$keyname from ".$srctable." as B";
 	if( defined $order )
 	{
-		$sql .= ", ".$dataset->get_ordervalues_table_name()." AS O";
+		$sql .= ", ".$dataset->get_ordervalues_table_name($self->{session}->get_langid())." AS O";
 		$sql .= " WHERE B.$keyname = O.$keyname ORDER BY ";
 		my $first = 1;
 		foreach( split( "/", $order ) )
@@ -973,7 +972,7 @@ sub cache
 			my $field = EPrints::Utils::field_from_config_string(
 					$dataset,
 					$_ );
-			$sql .= "O.".$field->get_sql_name()."_".$self->{session}->get_langid();
+			$sql .= "O.".$field->get_sql_name();
 			$sql .= " DESC" if $desc;
 			$first = 0;
 		}

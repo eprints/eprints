@@ -314,8 +314,8 @@ sub get_sql_rindex_table_name
 }
 sub get_ordervalues_table_name
 {
-	my( $self ) = @_;
-	return $self->get_sql_table_name()."__"."ordervalues";
+	my( $self,$langid ) = @_;
+	return $self->get_sql_table_name()."__"."ordervalues_".$langid;
 }
 
 # string get_sql_sub_table_name( $field )
