@@ -532,6 +532,12 @@ sub clone
 			}
 		}
 
+		# Add "Clone of" to the title
+		$new_eprint->{title} = "Clone of $self->{title}"
+			if( defined $self->{title} );
+		$new_eprint->{title} = "Clone of $self->{eprintid}"
+			if( !defined $self->{title} );
+
 		# We assume the new eprint will be a later version of this one,
 		# so we'll fill in the succeeds field, provided this one is
 		# already in the main archive.
