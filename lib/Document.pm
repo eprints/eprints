@@ -49,7 +49,7 @@ my $DIGITS = 2;
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
+	my( $class ) = @_;
 
 	return ( 
 	{
@@ -68,11 +68,11 @@ sub get_system_field_info
 	},
 	{
 		name=>"format",
-		type=>"set",
+		type=>"datatype",
 		required=>1,
 		editable=>1,
-		visible=>1,
-		options=>[] #cjg
+		datasetid=>"document",
+		visible=>1
 	},
 	{
 		name=>"formatdesc",

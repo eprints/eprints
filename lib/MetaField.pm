@@ -68,7 +68,7 @@ my %TYPE_SQL =
  	username   => "\$(name) VARCHAR(255) \$(param)",
  	pagerange  => "\$(name) VARCHAR(255) \$(param)",
  	year       => "\$(name) INT UNSIGNED \$(param)",
- 	eprinttype => "\$(name) VARCHAR(255) \$(param)",
+ 	datatype   => "\$(name) VARCHAR(255) \$(param)",
  	name       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
  );
  
@@ -87,7 +87,7 @@ my %TYPE_INDEX =
  	username   => "INDEX(\$(name))",
  	pagerange  => "INDEX(\$(name))",
  	year       => "INDEX(\$(name))",
- 	eprinttype => "INDEX(\$(name))",
+ 	datatype   => "INDEX(\$(name))",
  	name       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
@@ -124,48 +124,65 @@ my %TYPE_INDEX =
 ## WP1: BAD
 sub new
 {
-	my( $class, $dataset, $data ) = @_;
+	my( $class, $dataset, $properties ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 
 	#if( $_[1] =~ m/[01]:[01]:[01]/ ) { print STDERR "---\n".join("\n",caller())."\n"; die "WRONG KIND OF CALL TO NEW METAFIELD: $_[1]"; } #cjg to debug
 
-
-	foreach( "name","type" )
+	foreach( "name" , "type" )
 	{
-		if( !defined $data->{$_} )
+		if( !defined $properties->{$_} )
 		{
-	print STDERR EPrints::Log::render_struct( $data );
+	print STDERR EPrints::Log::render_struct( $properties );
 			die "No $_ defined for field. (".join(",",caller()).")";	
 		}
-		$self->{$_} = $data->{$_};
+		$self->setProperty( $_, $properties->{$_} );
 	}
-	foreach( "required","editable","visible","multiple","showall" )
+	foreach( "required","editable","visible","multiple" )
 	{
-		$self->{$_} = ( defined $data->{$_} ? $data->{$_} : 0 );
+		$self->setProperty( $_, $properties->{$_}, 0 );
 	}
+
 	$self->{dataset} = $dataset;
 
 	if( $self->{type} eq "longtext" || $self->{type} eq "set" )
 	{
-		$self->{displaylines} = ( defined $data->{displaylines} ? $data->{displaylines} : 5 );
+		$self->setProperty( 
+			"displaylines", 
+			$properties->{displaylines}, 
+			5 );
 	}
 	if( $self->{type} eq "int" )
 	{
-		$self->{digits} = ( defined $data->{digits} ? $data->{digits} : 20 );
+		$self->setProperty( "digits", $properties->{digits} , 20 );
+	}
+	if( $self->{type} eq "subject" )
+	{
+		$self->setProperty( "showall" , $properties->{showall} , 0 );
+	}
+	if( $self->{type} eq "datatype" )
+	{
+		if( !defined $properties->{datasetid} )
+		{
+			#cjg NOT a good way to quit
+			die "NO DATASETID for FIELD: $properties->{name}\n";
+		}
+		$self->setProperty( "datasetid" , $properties->{datasetid} );
 	}
 	if( $self->{type} eq "text" )
 	{
-		$self->{maxlength} = $data->{maxlength};
+		$self->setProperty( "maxlength" , $properties->{maxlength} );
 	}
 	if( $self->{type} eq "set" )
 	{
-		if( !defined $data->{options} )
+		if( !defined $properties->{options} )
 		{
-			die "NO OPTIONS for FIELD: $data->{name}\n";
+			#cjg NOT a good way to quit
+			die "NO OPTIONS for FIELD: $properties->{name}\n";
 		}
-		$self->{options} = $data->{options};	
+		$self->setProperty( "options" , $properties->{options} );
 	}
 
 	return( $self );
@@ -335,18 +352,19 @@ sub get_type
 	my( $self ) = @_;
 	return $self->{type};
 }
+
+sub setProperty
+{
+	my( $self , $property , $value , $default ) = @_;
+	
+	$self->{$property} = ( defined $value ? $value : $default );
+}
+
 ## WP1: GOOD
 sub isShowAll
 {
 	my( $self ) = @_;
 	return $self->{showall};
-}
-
-## WP1: GOOD
-sub setShowAll
-{
-	my( $self , $val ) = @_;
-	$self->{showall} = $val;
 }
 
 ## WP1: GOOD
@@ -402,6 +420,7 @@ sub setIndexed
 	my( $self , $val ) = @_;
 	$self->{indexed} = $val;
 }
+
 ## WP1: BAD
 sub is_type
 {
@@ -456,7 +475,7 @@ sub getHTML
 			EPrints::Name::format_names( $value ) );
 	}
 
-	if( $self->is_type( "eprinttype" ) )
+	if( $self->is_type( "datatype" ) )
 	{
 		$html = $self->{labels}->{$value} if( defined $value );
 		$html = $self->{session}->makeText("UNSPECIFIED") unless( defined $value );
@@ -585,24 +604,41 @@ sub render_input_field
 	# subject fields can be rendered here and now
 	# without looping and calling the aux function.
 
-	if( $self->is_type( "subject" ) )
+	if( $self->is_type( "subject" ) ||
+	    $self->is_type( "datatype" ) ||
+	    $self->is_type( "set" ) )
 	{
-		my( $sub_tags, $sub_labels );
-		
-		if( $self->{showall} )
+		my( $tags, $labels );
+	
+		if( $self->is_type( "set" ) )
 		{
-			( $sub_tags, $sub_labels ) = 
-				EPrints::Subject::all_subject_labels(
- 					$session ); 
+			$tags = $self->{tags};
+			$labels = $self->{labels};
 		}
-		else
-		{			
-			( $sub_tags, $sub_labels ) = 
-				EPrints::Subject::get_postable( 
-					$session, 
-					$session->current_user );
-print STDERR "##(".join(",",@{$sub_tags}).")\n";
-print STDERR "##(".join(",",%{$sub_labels}).")\n";
+		elsif( $self->is_type( "datatype" ) )
+		{
+			my $ds = $session->getSite()->getDataSet( 
+					$self->{datasetid} );	
+			$tags = $ds->getTypes();
+			$labels = $ds->getTypeNames( $session );
+		}
+		elsif( $self->is_type( "subject" ) )
+		{
+			if( $self->{showall} )
+			{
+				( $tags, $labels ) = 
+					EPrints::Subject::all_subject_labels(
+ 					$session ); 
+			}
+			else
+			{			
+				( $tags, $labels ) = 
+					EPrints::Subject::get_postable( 
+						$session, 
+						$session->current_user );
+	print STDERR "##(".join(",",@{$tags}).")\n";
+	print STDERR "##(".join(",",%{$labels}).")\n";
+			}
 		}
 
 		my $height = 7;
@@ -615,18 +651,15 @@ print STDERR "##(".join(",",%{$sub_labels}).")\n";
 		{
 			$value = [ $value ];
 		}
-			
-		my $subject_list = EPrints::SubjectList->new( $value );
-
-		my @selected_tags = $subject_list->get_tags();
 
 		$html->appendChild( $session->make_option_list(
 			name => $self->{name},
-			values => $sub_tags,
-			default => \@selected_tags,
+			values => $tags,
+			default => $value,
 			height => $height,
-			multiple => ( $self->{multiple} ? "multiple" : undef ),
-			labels => $sub_labels ) );
+			multiple => ( $self->{multiple} ? 
+					"multiple" : undef ),
+			labels => $labels ) );
 
 		return $html;
 	}
@@ -668,7 +701,8 @@ print STDERR "##(".join(",",%{$sub_labels}).")\n";
 			my $morebutton = undef;
 			if( $i == $boxcount )
 			{
-				$morebutton = $session->makeText( "MORE" );
+				$morebutton = $session->make_submit_buttons(
+					$session->phrase( "more_spaces" ) );
 			}
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 
@@ -699,22 +733,36 @@ print STDERR "val($value)\n";
 	$id_suffix = "_$n" if( defined $n );
 
 	# These DO NOT belong here. cjg.
-	my( $FORM_WIDTH, $INPUT_MAX ) = ( 60, 255 );
+	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 
 	my $html = $session->makeDocFragment();
 	if( 
 		$self->is_type( "text" ) ||
 		$self->is_type( "username" ) ||
 		$self->is_type( "url" ) ||
+		$self->is_type( "int" ) ||
 		$self->is_type( "email" ) )
 	{
-		my $maxlength = ( defined $self->{maxlength} ? 
-				$self->{maxlength} : 
-				$INPUT_MAX );
-		my $size = ( $maxlength > $FORM_WIDTH ?
-				$FORM_WIDTH : 
-				$maxlength );
-		my( $div );
+		my( $maxlength, $size, $div );
+		if( $self->is_type( "int" ) )
+		{
+			$maxlength = $self->{digits};
+		}
+		elsif( $self->is_type( "year" ) )
+		{
+			$maxlength = 4;
+		}
+		else
+		{
+			$maxlength = ( defined $self->{maxlength} ? 
+					$self->{maxlength} : 
+					$INPUT_MAX );
+		}
+
+		$size = ( $maxlength > $FORM_WIDTH ?
+					$FORM_WIDTH : 
+					$maxlength );
+
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
 			"input",
@@ -740,7 +788,26 @@ print STDERR "val($value)\n";
 			wrap => "virtual" );
 		$textarea->appendChild( $session->makeText( $value ) );
 		$div->appendChild( $textarea );
+		if( defined $morebutton )
+		{
+			$div->appendChild( $morebutton );
+		}
 		
+		$html->appendChild( $div );
+	}
+	elsif( $self->is_type( "boolean" ) )
+	{
+		my( $div );
+
+		$div = $session->make_element( "div" );	
+		$div->appendChild( $session->make_element(
+			"input",
+			type => "checkbox",
+			checked=>( defined $value && $value eq 
+					"TRUE" ? "checked" : undef ),
+			name => $self->{name}.$id_suffix,
+			value => "TRUE" ) );
+		# No more button for boolean. That would be silly.
 		$html->appendChild( $div );
 	}
 	elsif( $self->is_type( "name" ) )
@@ -771,8 +838,42 @@ print STDERR "val($value)\n";
 		}
 		$html->appendChild( $tr );
 	}
+	elsif( $self->is_type( "pagerange" ) )
+	{
+		my( $div , @pages );
+		
+		@pages = split /-/, $value if( defined $value );
+		
+		$div = $session->make_element( "div" );	
+
+		$div->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}.$id_suffix."_from",
+			value => $pages[0],
+			size => 6,
+			maxlength => 10 ) );
+
+		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->html_phrase( "to" ) );
+		$div->appendChild( $session->makeText(" ") );
+
+		$div->appendChild( $session->make_element(
+			"input",
+			name => $self->{name}.$id_suffix."_from",
+			value => $pages[0],
+			size => 6,
+			maxlength => 10 ) );
+		if( defined $morebutton )
+		{
+			$div->appendChild( $morebutton );
+		}
+		$html->appendChild( $div );
+
+	}
 	elsif( $self->is_type( "date" ) )
 	{
+		my( $div );
+		$div = $session->make_element( "div" );	
 		my( $year, $month, $day ) = ("", "", "");
 		if( defined $value && $value ne "" )
 		{
@@ -783,35 +884,40 @@ print STDERR "val($value)\n";
 			}
 		}
 
-		$html->appendChild( $session->html_phrase( "year" ) );
-		$html->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->html_phrase( "year" ) );
+		$div->appendChild( $session->makeText(" ") );
 
-		$html->appendChild( $session->make_element(
+		$div->appendChild( $session->make_element(
 			"input",
 			name => $self->{name}.$id_suffix."_year",
 			value => $year,
 			size => 4,
 			maxlength => 4 ) );
 
-		$html->appendChild( $session->makeText(" ") );
-		$html->appendChild( $session->html_phrase( "month" ) );
-		$html->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->html_phrase( "month" ) );
+		$div->appendChild( $session->makeText(" ") );
 
-		$html->appendChild( $session->make_option_list(
+		$div->appendChild( $session->make_option_list(
 			name => $self->{name}.$id_suffix."_month",
 			values => \@monthkeys,
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
-		$html->appendChild( $session->makeText(" ") );
-		$html->appendChild( $session->html_phrase( "day" ) );
-		$html->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->makeText(" ") );
+		$div->appendChild( $session->html_phrase( "day" ) );
+		$div->appendChild( $session->makeText(" ") );
 
-		$html->appendChild( $session->make_element(
+		$div->appendChild( $session->make_element(
 			"input",
 			name => $self->{name}.$id_suffix."_day",
 			value => $day,
 			size => 2,
 			maxlength => 2 ) );
+		if( defined $morebutton )
+		{
+			$div->appendChild( $morebutton );
+		}
+		$html->appendChild( $div );
 	}
 	else
 	{
@@ -825,127 +931,22 @@ my $field = 1;
 	
 	my $type = $field->{type};
 
-	if( $type eq "text" || $type eq "url" || $type eq "email" )
+	if( $type eq "eprinttype" )
 	{
-	}
-	elsif( $type eq "int" )
-	{
-		$html = $self->{query}->textfield( -name=>$field->{name},
-		                                   -default=>$value,
-		                                   -size=>$field->{displaydigits},
-		                                   -maxlength=>$field->{displaydigits} );
-	}
-	elsif( $type eq "boolean" )
-	{
-		$html = $self->{query}->checkbox(
-			-name=>$field->{name},
-			-checked=>( defined $value && $value eq "TRUE" ? "checked" : undef ),
-			-value=>"TRUE",
-			-label=>"" );
-	}
-	elsif( $type eq "longtext" )
-	{
-	}
-	elsif( $type eq "set" )
-	{
-		my @actual;
-		@actual = split /:/, $value if( defined $value );
 
-		# Get rid of beginning and end empty values
-		shift @actual if( defined $actual[0] && $actual[0] eq "" );
-		pop @actual if( defined $actual[$#actual] && $actual[$#actual] eq "" );
-
-		$html = $self->{query}->scrolling_list(
-			-name=>$field->{name},
-			-values=>$field->{tags},
-			-default=>\@actual,
-			-size=>( $field->{displaylines} ),
-			-multiple=>( $field->{multiple} ? 'true' : undef ),
-			-labels=>$field->{labels} );
-	}
-	elsif( $type eq "pagerange" )
-	{
-		my @pages;
-		
-		@pages = split /-/, $value if( defined $value );
-		
-		$html = $self->{query}->textfield( -name=>"$field->{name}_from",
-		                                   -default=>$pages[0],
-		                                   -size=>6,
-		                                   -maxlength=>10 );
-
-		$html .= "&nbsp;to&nbsp;";
-
-		$html .= $self->{query}->textfield( -name=>"$field->{name}_to",
-		                                    -default=>$pages[1],
-		                                    -size=>6,
-		                                    -maxlength=>10 );
-	}
-	elsif( $type eq "year" )
-	{
-		$html = $self->{query}->textfield( -name=>$field->{name},
-		                                   -default=>$value,
-		                                   -size=>4,
-		                                   -maxlength=>4 );
-	}
-	elsif( $type eq "eprinttype" )
-	{
-		my @eprint_types = $self->{session}->{metainfo}->get_types( "eprint" );
-		my $labels = $self->{session}->{metainfo}->get_type_names( $self->{session}, "eprint" );
-
-		my $actual = [ ( !defined $value || $value eq "" ?
-			$eprint_types[0] : $value ) ];
-		my $height = ( $EPrints::HTMLRender::list_height_max < $#eprint_types+1 ?
-		               $EPrints::HTMLRender::list_height_max : $#eprint_types+1 );
-
-		$html = $self->{query}->scrolling_list(
-			-name=>$field->{name},
-			-values=>\@eprint_types,
-			-default=>$actual,
-			-size=>$height,
-			-labels=>$labels );
 	}
 	elsif( $type eq "name" )
 	{
-		# Get the names out
-		my @names = EPrints::Name::extract( $value );
-
-		my $boxcount = $self->{nameinfo}->{"name_boxes_$field->{name}"};
-
-		if( defined $self->{nameinfo}->{"name_more_$field->{name}"} )
-		{
-			$boxcount += $EPrints::HTMLRender::add_boxes;
-		}
-
-		# Ensure at least 1...
-		$boxcount = 1 if( !defined $boxcount );
-		# And that there's enough to fit all the names in
-		$boxcount = $#names+1 if( $boxcount < $#names+1 );
-		my $i;
-		# Render the boxes
-		for( $i = 0; $i < $boxcount; $i++ )
-		{
-			my( $familyname, $firstnames );
-			
-			if( $i <= $#names )
-			{
-				( $familyname, $firstnames ) = @{$names[$i]};
-			}
-					
-			$html .= "</tr>\n<tr><td>";
-			$html .= "</td>";
-		}
 		
-		if( $field->{multiple} )
-		{
-			$html .= "<td>".$self->named_submit_button( 
-				"name_more_$field->{name}",
-				$self->{session}->phrase( "F:more_spaces" ) );
-			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
-			$html .= "</td>";
-		}
+#		if( $field->{multiple} )
+#		{
+#			$html .= "<td>".$self->named_submit_button( 
+#				"name_more_$field->{name}",
+#				$self->{session}->phrase( "F:more_spaces" ) );
+#			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
+#			$html .= "</td>";
+#		}
 		
-		$html .= "</tr>\n</table>\n";
 	}
 	
 	return( $html );

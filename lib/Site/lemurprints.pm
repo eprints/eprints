@@ -344,7 +344,7 @@ my $connect_string = EPrints::Database::build_connection_string(
 my $userdata = EPrints::DataSet->newStub( "user" );
  
 $c->{userauth} = {
-	User => { 
+	user => { 
 		routine  =>  \&Apache::AuthDBI::authen,
 		conf  =>  {
 			Auth_DBI_data_source  =>  $connect_string,
@@ -356,7 +356,7 @@ $c->{userauth} = {
 			Auth_DBI_grp_field  =>  "groups",
 			Auth_DBI_encrypted  =>  "off" },
 		priv  =>  [ "user" ] },
-	Staff => { 
+	staff => { 
 		routine  =>  \&Apache::AuthDBI::authen,
 		conf  =>  {
 			Auth_DBI_data_source  =>  $connect_string,
@@ -802,8 +802,8 @@ $c->{types}->{eprint} = {
 };
 
 $c->{types}->{user} = { 
-	Staff  =>  [],
-	User  =>  []
+	staff  =>  [],
+	user  =>  []
 };
 
 ######################################################################

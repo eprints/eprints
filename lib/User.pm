@@ -28,9 +28,7 @@ use strict;
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
-
-	my @usertypes = keys %{$site->getConf("types")->{user}};
+	my( $class ) = @_;
 
 	return ( 
 	{
@@ -49,11 +47,11 @@ sub get_system_field_info
 	},
 	{
 		name=>"usertype",
-		type=>"set",
+		type=>"datatype",
 		required=>1,
 		editable=>0,
 		visible=>0,
-		options=>\@usertypes
+		datasetid=>"user"
 	},
 	{
 		name=>"joined",
@@ -371,14 +369,14 @@ sub send_introduction
 	my( $self ) = @_;
 
 	my $subj;
-	if ( $self->{usertype} eq "Staff" )
+	if ( $self->{usertype} eq "staff" )
 	{
 		$subj = "S:newstaff";
-   }
+	}
 	else
 	{
 		$subj = "S:newuser";
-   }
+	}
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},

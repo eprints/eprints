@@ -88,6 +88,7 @@ sub newStub
 #  sources - the packages and the site config module.
 
 ## WP1: BAD
+# note that dataset know $site and vice versa - bad for GCollection.
 sub new
 {
 	my( $class , $site , $datasetname ) = @_;
@@ -104,7 +105,7 @@ sub new
 	{
 		my $class = $INFO->{$datasetname}->{class};
 		my $fielddata;
-		foreach $fielddata ( $class->get_system_field_info( $site ) )
+		foreach $fielddata ( $class->get_system_field_info() )
 		{
 			my $field = EPrints::MetaField->new( $self , $fielddata );	
 			push @{$self->{fields}}	, $field;
@@ -364,8 +365,7 @@ sub getTypeNames
 sub getTypeName
 {
 	my( $self, $session, $type ) = @_;
-
-        return $session->phrase( "typename_".$self->confid."_".$type );
+        return $session->phrase( "typename_".$self->confid()."_".$type );
 }
 
 

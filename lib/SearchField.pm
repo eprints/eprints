@@ -38,7 +38,7 @@ use strict;
 #                           "YYYY-MM-DD-YYYY-MM-DD" = between those dates (incl)
 #                           "YYYY-MM-DD" = just on that day
 #  email, XXXXXXXXXXXurl    "searchvalue" (simple)
-#  XXXX & eprinttype        "poss1:poss2:poss3"
+#  XXXX & datatype        "poss1:poss2:poss3"
 #  longtext, text & name   "[all][any][phr]:terms"
 #  username, set & subject  "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
@@ -212,25 +212,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
 		}
 	}		
-	elsif( $self->is_type( "eprinttype" ) )
-	{
-		my @vals = $self->{session}->param( $self->{formname} );
-		
-		if( scalar @vals > 0 )
-		{
-			# We have some values. Join them together.
-			my $val = join ' ', @vals;
-
-			# But if one of them was the "any" option, we don't want a value.
-			foreach (@vals)
-			{
-				undef $val if( $_ eq "NONE" );
-			}
-
-			$self->set_value( "ANY:EQ:$val" );
-		}
-	}
-	elsif( $self->is_type( "subject" , "set" ) )
+	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
 	{
 		my @vals = $self->{session}->param( $self->{formname} );
 		my $val;
@@ -305,7 +287,7 @@ sub get_conditions
 		return undef;
 	}
 
-	if ( $self->is_type( "set","subject","eprinttype","boolean","username" ) )
+	if ( $self->is_type( "set","subject","datatype","boolean","username" ) )
 	{
 		my @fields = ();
 		my $text = $self->{string};
@@ -929,7 +911,7 @@ sub toHTML
 				value=>$self->{anyall},
 				labels=>\%text_labels ) );
 	}
-	elsif( $self->is_type( "eprinttype" , "set" , "subject" ) )
+	elsif( $self->is_type( "datatype" , "set" , "subject" ) )
 	{
 		my @defaults;
 		
@@ -952,9 +934,10 @@ sub toHTML
 			# if the "postability" algorithm checks user info.
 			( $tags, $labels ) = EPrints::Subject::get_postable( $self->{session}, {} );
 		}
-		elsif( $self->is_type( "eprinttype" ) )
+		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $self->{session}->getSite()->getDataSet( "eprint" );
+			my $ds = $self->{session}->getSite()->getDataSet( 
+					$self->{field}->getDataSet() );
 			$tags = $ds->getTypes();
 			$labels = $ds->getTypeNames( $self->{session} );
 		}

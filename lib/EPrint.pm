@@ -33,7 +33,7 @@ $EPrints::EPrint::static_page = "index.html";
 ## WP1: BAD
 sub get_system_field_info
 {
-	my( $class , $site ) = @_;
+	my( $class ) = @_;
 
 	return ( 
 	{
@@ -64,9 +64,9 @@ sub get_system_field_info
 		editable=>0,
 		visable=>1
 	},
-	                                         # Subject categories. Tagged as
-	                                         # "not visible" since it's a special
-	                                         # case.
+                          # Subject categories. Tagged as
+                          # "not visible" since it's a special
+                          # case.
 	{
 		name=>"subjects",
 		type=>"subject",
@@ -92,7 +92,8 @@ sub get_system_field_info
 	},
 	{
 		name=>"type",
-		type=>"eprinttype",
+		type=>"datatype",
+		datasetid=>"eprint",
 		required=>1,
 		editable=>0,
 		visable=>0

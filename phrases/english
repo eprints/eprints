@@ -196,6 +196,8 @@
    <phrase ref="fieldname_user_filter">User's Editor "Filter"</phrase>
    <phrase ref="fieldhelp_user_filter"></phrase>
 
+   <phrase ref="typename_user_user">User</phrase>
+   <phrase ref="typename_user_staff">Staff</phrase>
 
 </phrases>
 

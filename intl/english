@@ -51,6 +51,7 @@
     <phrase ref="year">Year:</phrase>
     <phrase ref="month">Month:</phrase>
     <phrase ref="day">Day:</phrase>
+    <phrase ref="to">to</phrase>
     <phrase ref="family_name">Family Name</phrase>
     <phrase ref="first_names">First Names</phrase>
     <phrase ref="more_spaces">More Spaces</phrase>
@@ -95,7 +96,7 @@
     <phrase ref="no_words">Search field contains no indexable words: "<pin ref="words" />".</phrase>
     <phrase ref="help_boolean">Select a value.</phrase>
     <phrase ref="help_email">Enter some text to search for.</phrase>
-    <phrase ref="help_eprinttype">Select one or more values from the list. Default is (Any).</phrase>
+    <phrase ref="help_datatype">Select one or more values from the list. Default is (Any).</phrase>
     <phrase ref="help_longtext">Enter a term or terms to search for.</phrase>
     <phrase ref="help_name">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".</phrase>
     <phrase ref="help_set">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</phrase>
