@@ -25,23 +25,49 @@ use strict;
 # Stages of upload
 
 my $STAGES = {
-	type => 1,
-	linking => 1,
-	meta => 1,
-	subject => 1,
-	format => 1,#notyet
-	fileview => 1,#notyet
-	upload => 1,#notyet
-	verify => 1,#notyet
-	done => 1,#notyet
-	error => 1,#notyet
-	return => 1,
-	confirmdel => 1 #notyet
+	home => {
+		next => "type"
+	},
+	type => {
+		prev => "return",
+		next => "linking"
+	},
+	linking => {
+		prev => "type",
+		next => "meta"
+	},
+	meta => {
+		prev => "linking",
+		next => "subject"
+	},
+	subject => {
+		prev => "meta",
+		next => "format"
+	},
+	format => {
+		prev => "subject",
+		next => "verify"
+	},
+	fileview => {},
+	upload => {},
+	verify => {
+		prev => "format",
+		next => "done"
+	},
+	quickverify => {
+		prev => "return",
+		next => "done"
+	},
+	done => {},
+	return => {},
+	confirmdel => {
+		prev => "return",
+		next => "return"
+	}
 };
 
 #cjg SKIP STAGES???
 #cjg "NEW" sets defaults?
-
 
 ## WP1: BAD
 sub new
@@ -92,7 +118,7 @@ sub process
 			#cjg LOG..
 			$self->{session}->log( "Database Error: $db_error" );
 			$self->_database_err;
-			return;
+			return( 0 );
 		}
 
 		# check that we got the record we wanted - if we didn't
@@ -108,7 +134,7 @@ sub process
 				" doesn't match object id ".
 				$self->{eprint}->get_value( "eprintid" ) );
 			$self->_corrupt_err;
-			return;
+			return( 0 );
 		}
 
 		# Check it's owned by the current user
@@ -122,18 +148,20 @@ sub process
 				" by user with id ".
 				$self->{user}->get_value( "username" ) );
 			$self->_corrupt_err;
-			return;
+			return( 0 );
 		}
 	}
 
 	$self->{problems} = [];
 	my $ok = 1;
 	# Process data from previous stage
+
 	if( !defined $self->{stage} )
 	{
-		$ok = $self->_from_home();
+		$self->{stage} = "home";
 	}
-	elsif( defined $STAGES->{$self->{stage}} )
+
+	if( defined $STAGES->{$self->{stage}} )
 	{
 		# It's a valid stage. 
 
@@ -152,12 +180,12 @@ sub process
 			no strict 'refs';
 			$ok = $self->$function_name();
 		}
-	print STDERR "SUBMISSION done $function_name\n";
+print STDERR "SUBMISSION done $function_name\n";
 	}
 	else
 	{
 		$self->_corrupt_err;
-		return;
+		return( 0 );
 	}
 print STDERR "xxxxxxxxxxxxxxxxxxxxxxxx\n";
 
@@ -165,7 +193,7 @@ print STDERR "xxxxxxxxxxxxxxxxxxxxxxxx\n";
 	{
 		# Render stuff for next stage
 
-		my $function_name = "_do_stage_".$self->{next_stage};
+		my $function_name = "_do_stage_".$self->{new_stage};
 		{
 print STDERR "CALLING $function_name\n";
 			no strict 'refs';
@@ -173,7 +201,7 @@ print STDERR "CALLING $function_name\n";
 		}
 	}
 	
-	return;
+	return( 1 );
 }
 
 
@@ -206,7 +234,7 @@ sub _database_err
 #  Stage from functions:
 #
 # $self->{eprint} is the EPrint currently being edited, or undef if
-# there isn't one. This may change. $self->{next_stage} should be the
+# there isn't one. This may change. $self->{new_stage} should be the
 # stage to render next. $self->{problems} should contain any problems
 # with uploaded data (fieldname => problem). Some stages may also pass
 # any miscellaneous extra info to the next stage.
@@ -222,7 +250,7 @@ sub _database_err
 ######################################################################
 
 ## WP1: BAD
-sub _from_home
+sub _from_stage_home
 {
 	my( $self ) = @_;
 
@@ -246,7 +274,7 @@ sub _from_home
 			else
 			{
 
-				$self->{next_stage} = "type";
+				$self->_set_stage_next();
 			}
 		}
 		else
@@ -265,7 +293,8 @@ sub _from_home
 		}
 		else
 		{
-			$self->{next_stage} = "type";
+			$self->_set_stage_next;
+			return( 1 );
 		}
 	}
 #cjg NOT DONE REST OF THIS FUNCTION
@@ -281,7 +310,7 @@ sub _from_home
 
 		if( defined $new_eprint )
 		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
+			$self->{new_stage} = "return";
 		}
 		else
 		{
@@ -298,7 +327,7 @@ sub _from_home
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
+		$self->{new_stage} = $EPrints::SubmissionForm::stage_confirmdel;
 	}
 	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_submit") )
 	{
@@ -307,20 +336,16 @@ sub _from_home
 			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
+		$self->{new_stage} = $EPrints::SubmissionForm::stage_quickverify;
 	}
 	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
+		$self->_set_stage_prev;
 	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
-	}
-	
-	return( 1 );
+
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -349,27 +374,25 @@ sub _from_stage_type
 		{
 			# There were problems with the uploaded type, 
 			# don't move further
-			$self->{next_stage} = "type";
+			$self->_set_stage_this();
+			return( 1 );
 		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = "linking";
-		}
-	}
-	elsif( $self->{action} eq "cancel" )
-	{
-		# Cancelled, go back to author area.
-		$self->{next_stage} = "return";
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
+
+		# No problems, onto the next stage
+		$self->_set_stage_next();
+		return( 1 );
 	}
 
-	return( 1 );
+	if( $self->{action} eq "cancel" )
+	{
+		# Cancelled, go back to author area.
+		$self->_set_stage_prev();
+		return( 1 );
+	}
+
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 ######################################################################
@@ -399,29 +422,31 @@ sub _from_stage_linking
 		{
 			# There were problems with the uploaded type, 
 			# don't move further
-			$self->{next_stage} = "linking";
+			$self->_set_stage_this;
+			return( 1 );
 		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = "meta";
-		}
+
+		# No problems, onto the next stage
+		$self->_set_stage_next;
+		return( 1 );
 	}
-	elsif( $self->{action} eq "prev" )
+
+	if( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = "type";
+		$self->_set_stage_prev;
+		return( 1 );
 	}
-	elsif( $self->{action} eq "verify" )
+
+	if( $self->{action} eq "verify" )
 	{
 		# Just stick with this... want to verify ID's
-		$self->{next_stage} = "linking";
+		$self->_set_stage_this;
+		return( 1 );
 	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
-	}
+	
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }	
 
 
@@ -452,9 +477,11 @@ sub _from_stage_meta
 	if( $self->{session}->internal_button_pressed() )
 	{
 		# Leave the form as is
-		$self->{next_stage} = "meta";
+		$self->_set_stage_this;
+		return( 1 );
 	}
-	elsif( $self->{action} eq "next" )
+
+	if( $self->{action} eq "next" )
 	{
 		# validation checks
 		$self->{problems} = $self->{eprint}->validate_meta();
@@ -462,26 +489,24 @@ sub _from_stage_meta
 		if( scalar @{$self->{problems}} > 0 )
 		{
 			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = "meta";
+			$self->_set_stage_this;
+			return( 1 );
 		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = "subject";
-		}
-	}
-	elsif( $self->{action} eq "prev" )
-	{
-		$self->{next_stage} = "linking";
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 );
+
+		# No problems, onto the next stage
+		$self->_set_stage_next;
+		return( 1 );
 	}
 
-	return( 1 );
+	if( $self->{action} eq "prev" )
+	{
+		$self->_set_stage_prev;
+		return( 1 );
+	}
+	
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -508,20 +533,19 @@ print STDERR "sigh?\n";
 		if( scalar @{$self->{problems}} > 0 )
 		{
 			# There were problems with the uploaded type, don't move further
-			$self->{next_stage} = "subject";
+			$self->_set_stage_this;
+			return( 1 );
 		}
-		else
-		{
-			# No problems, onto the next stage
-			$self->{next_stage} = "format";
-		}
-		return 1;
+
+		# No problems, onto the next stage
+		$self->_set_stage_next;
+		return( 1 );
 	}
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = "meta";
-		return 1;
+		$self->_set_stage_prev;
+		return( 1 );
 	}
 
 	# Don't have a valid action!
@@ -544,8 +568,8 @@ sub _from_stage_format
 
 	if( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = "subject";
-		return 1;
+		$self->_set_stage_prev;
+		return( 1 );
 	}
 		
 	if( $self->{action} eq "upload" )
@@ -558,8 +582,9 @@ sub _from_stage_format
 			$self->_database_err;
 			return( 0 );
 		}
-		$self->{next_stage} = "fileview";
-		return 1;
+
+		$self->{new_stage} = "fileview";
+		return( 1 );
 	}
 
 	# edit
@@ -583,9 +608,11 @@ sub _from_stage_format
 #				return( 0 );
 #			}
 #
-#			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+#			$self->{new_stage} = $EPrints::SubmissionForm::stage_format;
+#			return( 1 );
 #		}
-#		elsif( $button eq "edit" )
+
+#		if( $button eq "edit" )
 #		{
 #			# Edit the document, creating it first if necessary
 #			if( !defined $self->{document} )
@@ -602,42 +629,40 @@ sub _from_stage_format
 #				}
 #			}
 #
-#			$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
+#			$self->{new_stage} = $EPrints::SubmissionForm::stage_fileview;
+#			return( 1 );
 #		}
-#		else
-#		{
-#			$self->_corrupt_err;
-			return( 0 );
-#		}
+#
+#		$self->_corrupt_err;
+#		return( 0 );
 #	}
-#	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+
+#	if( $self->{action} eq "prev" )
 #	{
 #		# prev stage depends if we're linking users or not
-#		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject
+#		$self->_set_stage_prev;
+#		return( 1 );
 #	}
-#	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
+
+#	if( $self->{action} eq "finished" )
 #	{
 #		$self->{problems} = $self->{eprint}->validate_documents();
 #
 #		if( $#{$self->{problems}} >= 0 )
 #		{
 #			# Problems, don't advance a stage
-#			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+#			$self->_set_stage_this;
+#			return( 1 )
 #		}
-#		else
-#		{
-#			# prev stage depends if we're linking users or not
-#			$self->{prev_stage} = $EPrints::SubmissionForm::stage_subject;
-#			$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
-#		}
-##	}
-	#else
-	#{
-	#	$self->_corrupt_err;
-	#	return( 0 );
-	#}		
-
-	#return( 1 );
+#
+#		$self->_set_stage_next;
+#		return( 1 );
+#	}
+#
+#
+#	$self->_corrupt_err;
+#	return( 0 );
+#		
 }
 
 
@@ -675,54 +700,54 @@ sub _from_stage_fileview
 			return( 0 );
 		}
 		
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
+		$self->{new_stage} = "fileview";
+		return( 1 );
 	}
-	else
+	
+
+	# Fileview button wasn't pressed, so it was an action button
+	# Update the description if appropriate
+	if( $self->{document}->{format} eq $EPrints::Document::OTHER )
 	{
-		# Fileview button wasn't pressed, so it was an action button
-		# Update the description if appropriate
-		if( $self->{document}->{format} eq $EPrints::Document::OTHER )
-		{
-			$self->{document}->{formatdesc} =
-				$self->{session}->{render}->param( "formatdesc" );
-			$self->{document}->commit();
-		}
-
-		if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-		}
-		elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_upload") )
-		{
-			# Set up info for next stage
-			$self->{arc_format} =
-				$self->{session}->{render}->param( "arc_format" );
-			$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_upload;
-		}
-		elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_finished") )
-		{
-			# Finished uploading apparently. Validate.
-			$self->{problems} = $self->{document}->validate();
-			
-			if( $#{$self->{problems}} >= 0 )
-			{
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
-			}
-			else
-			{
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-			}
-		}
-		else
-		{
-			# Erk! Unknown action.
-			$self->_corrupt_err;
-			return( 0 );
-		}
+		$self->{document}->{formatdesc} =
+			$self->{session}->{render}->param( "formatdesc" );
+		$self->{document}->commit();
 	}
 
-	return( 1 );
+	if( $self->{action} eq "prev" )
+	{
+		$self->{new_stage} = "fileview";
+		return( 1 );
+	}
+
+	if( $self->{action} eq "upload" )
+	{
+		# Set up info for next stage
+		$self->{arc_format} =
+			$self->{session}->{render}->param( "arc_format" );
+		$self->{numfiles} = $self->{session}->{render}->param( "numfiles" );
+		$self->{new_stage} = "upload";
+		return( 1 );
+	}
+	
+	if( $self->{action} eq "finished" )
+	{
+		# Finished uploading apparently. Validate.
+		$self->{problems} = $self->{document}->validate();
+			
+		if( $#{$self->{problems}} >= 0 )
+		{
+			$self->{new_stage} = "fileview";
+			return( 1 );
+		}
+
+		$self->{new_stage} = "format";
+		return( 1 );
+	}
+	
+	# Erk! Unknown action.
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -752,19 +777,19 @@ sub _from_stage_upload
 	
 	# We need to address a common "feature" of browsers here. If a form has
 	# only one text field in it, and the user types things into it and presses
-	# return, the form gets submitted but without any values for the submit
 	# button, so we can't tell whether the "Back" or "Upload" button is
 	# appropriate. We have to assume that if the user's pressed return they
 	# want to go ahead with the upload, so we default to the upload button:
-	$self->{action} = $self->{session}->phrase("lib/submissionform:action_upload")
-		unless( defined $self->{action} );
 
+	$self->{action} = "upload" unless( defined $self->{action} );
 
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+	if( $self->{action} eq "prev" )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
+		$self->{new_stage} = "fielview";
+		return( 1 );
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_upload") )
+
+	if( $self->{action} eq "upload" )
 	{
 		my $arc_format = $self->{session}->{render}->param( "arc_format" );
 		my $numfiles   = $self->{session}->{render}->param( "numfiles" );
@@ -808,15 +833,12 @@ sub _from_stage_upload
 		}
 
 		$doc->commit();
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_fileview;
+		$self->{new_stage} = "fileview";
+		return( 1 );
 	}
-	else
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
-
-	return( 1 );
+	
+	$self->_corrupt_err;
+	return( 0 );
 }	
 
 ######################################################################
@@ -826,33 +848,19 @@ sub _from_stage_upload
 ######################################################################
 
 ## WP1: BAD
+sub _from_stage_quickverify { return $_[0]->_from_stage_verify; }
+
 sub _from_stage_verify
 {
 	my( $self ) = @_;
 
-	# We need to know where we came from, so that the Back < button
-	# behaves sensibly. It's in a hidden field.
-	my $prev_stage = $self->{session}->{render}->param( "prev_stage" );
-
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_prev") )
+	if( $self->{action} eq "prev" )
 	{
-		# Go back to the relevant page
-		if( $prev_stage eq "home" )
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
-		}
-		elsif( $prev_stage eq $EPrints::SubmissionForm::stage_format )
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
-		}
-		else
-		{
-			# No relevant page! erk!
-			$self->_corrupt_err;
-			return( 0 );
-		}
+		$self->_set_stage_prev;
+		return( 1 );
 	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_submit") )
+
+	if( $self->{action} eq "submit" )
 	{
 		# Do the commit to the archive thang. One last check...
 		my $problems = $self->{eprint}->validate_full();
@@ -862,28 +870,21 @@ sub _from_stage_verify
 			# OK, no problems, submit it to the archive
 			if( $self->{eprint}->submit() )
 			{
-				$self->{next_stage} = $EPrints::SubmissionForm::stage_done;
+				$self->_set_stage_next;
+				return( 1 );
 			}
-			else
-			{
-				$self->_database_err;
-				return( 0 );
-			}
-		}
-		else
-		{
-			# Have problems, back to verify
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;
-			$self->{prev_stage} = $prev_stage;
-		}
-	}
-	else
-	{
-		$self->_corrupt_err;
-		return( 0 );
-	}
 	
-	return( 1 );
+			$self->_database_err;
+			return( 0 );
+		}
+		
+		# Have problems, back to verify
+		$self->_set_stage_this;
+		return( 1 );
+	}
+
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -899,32 +900,29 @@ sub _from_stage_confirmdel
 {
 	my( $self ) = @_;
 
-	if( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_confirm") )
+	if( $self->{action} eq "confirm" )
 	{
-		if( $self->{eprint}->remove() )
-		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
-		}
-		else
+		if( !$self->{eprint}->remove() )
 		{
 			my $db_error = $self->{session}->{database}->error();
 			$self->{session}->get_archive()->log( "DB error removing EPrint ".$self->{eprint}->{eprintid}.": $db_error" );#cjg!!
 			$self->_database_err;
 			return( 0 );
 		}
-	}
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_cancel") )
-	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_return;
-	}
-	else
-	{
-		# Don't have a valid action!
-		$self->_corrupt_err;
-		return( 0 )
+
+		$self->_set_stage_next;
+		return( 1 );
 	}
 
-	return( 1 );
+	if( $self->{action} eq "cancel" )
+	{
+		$self->_set_stage_prev;
+		return( 1 );
+	}
+	
+	# Don't have a valid action!
+	$self->_corrupt_err;
+	return( 0 );
 }
 
 
@@ -1593,6 +1591,8 @@ sub _do_stage_upload
 ######################################################################
 
 ## WP1: BAD
+sub _do_stage_quickverify { return $_[0]->_do_stage_verify; }
+
 sub _do_stage_verify
 {
 	my( $self ) = @_;
@@ -1609,13 +1609,6 @@ sub _do_stage_verify
 
 	print $self->{session}->{render}->start_form();
 	
-	# Put in information about where we came from in "prev_stage".
-	#   "home" means we came from the author's home
-	#   otherwise the previous stage (usually "stage_format")
-	my $prev_stage = $self->{prev_stage};
-	$prev_stage = "home" if( !defined $prev_stage );
-	print $self->{session}->{render}->hidden_field( "prev_stage", $prev_stage );
-
 	print $self->{session}->{render}->hidden_field(
 		"stage",
 		$EPrints::SubmissionForm::stage_verify );
@@ -1961,7 +1954,25 @@ sub _update_from_fileview
 }
 
 
+sub _set_stage_next
+{
+	my( $self ) = @_;
 
+	$self->{new_stage} = $STAGES->{$self->{stage}}->{next};
+}
 
+sub _set_stage_prev
+{
+	my( $self ) = @_;
+
+	$self->{new_stage} = $STAGES->{$self->{stage}}->{prev};
+}
+
+sub _set_stage_this
+{
+	my( $self ) = @_;
+
+	$self->{new_stage} = $self->{stage};
+}
 
 1;

@@ -15,17 +15,17 @@
 -	languages.xml file to configure what languages EPrints has heard of
 -	XML config files to tell eprints where to find each archive
 -	Multi-Lang fields in DB
-4	Multi-Lang fields in HTML
 -	Alpha Install Docs.
 -	Executable files should check they are running as the correct user.
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. [YOU ARE HERE]
 
+3	Get the Deposit Item form working
 4	Turn off caching of on-the-fly pages?
 0	Security -> config,edit,authz
 0	"ID" fields for ISBN/userid etc.
-2	Get the Deposit Item form working
-0	Magic Next & Prev in SubmissionForm
+-	Magic Next & Prev in SubmissionForm
+4	Multi-Lang fields in HTML
 0	Skippable Stages in SubmissionForm
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 0	Phrasify Option Fields
