@@ -56,7 +56,7 @@ sub _handle_start
 		$parser->{eprints}->{table} = $params{name};
 print "P:".join(",",keys %params).":\n";
 print "T:".$params{name}."\n";
-		my @fields = EPrints::MetaInfo::get_fields( $params{name} );
+		my @fields = $parser->{eprints}->{session}->{metainfo}->get_fields( $params{name} );
 		unless( @fields )
 		{
 			$parser->xpcroak( "unknown table: $params{name}" );

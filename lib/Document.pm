@@ -111,7 +111,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_fields( "documents" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
 
 	my $i=0;
 	my $field;
@@ -152,11 +152,10 @@ sub create
 	{
 		# Some error while making it
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_mkdir",{
-			                              eprintid=>$eprint->{eprintid},
-			                              format=>$format,
-			                              errmsg=>$! } ) );
+			"L:error_mkdir",{
+			          eprintid=>$eprint->{eprintid},
+			         format=>$format,
+			           errmsg=>$! } );
 		return( undef );
 	}
 
@@ -285,11 +284,9 @@ sub clone
 	if ( $rc!=0 )
 	{
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_cp",{
-			                              frompath=>$self->local_path(),
-				                      topath=>$new_doc->local_path(),
-			                              errmsg=>$! } ) );
+			"L:error_cp",{ frompath=>$self->local_path(),
+				       topath=>$new_doc->local_path(),
+			               errmsg=>$! } );
 		return( 0 );
 	}
 
@@ -327,10 +324,9 @@ sub remove
 	{
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_rm",{
+			"L:error_rm",{
 			                              docid=>$self->{docid},
-			                              errmsg=>$db_error } ) );
+			                              errmsg=>$db_error } );
 		return( 0 );
 	}
 
@@ -341,11 +337,10 @@ sub remove
 	if( $num_deleted <= 0 )
 	{
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_rmfiles",{
+			"L:error_rmfiles",{
 			                              docid=>$self->{docid},
 			                              path=>$full_path,
-			                              errmsg=>$! } ) );
+			                              errmsg=>$! } );
 		$success = 0;
 	}
 
@@ -504,11 +499,10 @@ sub remove_file
 	if( $count != 1 )
 	{
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_rmfile",{
-			                              filename=>$filename,
-			                              docid=>$self->{docid},
-			                              errmsg=>$! } ) );
+			"L:error_rmfile",{
+			          filename=>$filename,
+			          docid=>$self->{docid},
+			          errmsg=>$! } );
 	}
 
 	return( $count==1 );
@@ -538,11 +532,10 @@ sub remove_all_files
 	if( $num_deleted < scalar @to_delete )
 	{
 		EPrints::Log::log_entry(
-			"Document",
-			EPrints::Language::logphrase( "L:error_rmfiles",{
-			                              docid=>$self->{docid},
-			                              path=>$full_path,
-			                              errmsg=>$! } ) );
+			"L:error_rmfiles",{
+			          docid=>$self->{docid},
+			          path=>$full_path,
+			          errmsg=>$! } );
 		return( 0 );
 	}
 
@@ -804,7 +797,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "documents" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
 
 	my $key_field = shift @fields;
 	my $key_value = $self->{$key_field->{name}};
@@ -819,10 +812,9 @@ sub commit
 	{
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
-			"Document",
-			EPrint::Language::logphrase( "L:error_commit", {
-			                             docid=>$self->{docid},
-			                             errmsg=>$db_error } ) );
+			"L:error_commit", {
+			         docid=>$self->{docid},
+			         errmsg=>$db_error } );
 	}
 
 	return( $success );

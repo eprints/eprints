@@ -297,7 +297,7 @@ sub validate
 	my( $self ) = @_;
 
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "users" );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -429,7 +429,7 @@ sub retrieve_users
 {
 	my( $session, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "users" );
+	my @fields = $session->{metainfo}->get_fields( "users" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_user,

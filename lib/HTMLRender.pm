@@ -98,15 +98,13 @@ my %no_asterisk =
 
 sub new
 {
-	my( $class, $session, $offline ) = @_;
+	my( $class, $session, $offline, $query ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 	
 	$self->{offline} = $offline;
-	$self->{query} = new CGI unless( $offline );
-	$self->{query} = new CGI( {} ) if( $offline );
-
+	$self->{query} = $query;
 
 	$self->{session} = $session;
 
@@ -442,9 +440,8 @@ sub format_field
 	else
 	{
 		EPrints::Log::log_entry(
-			"HTMLRender",
-			EPrints::Language::logphrase( "L:cant_do_field" , 
-						{ type=>$type } ) );
+			"L:cant_do_field" , 
+				{ type=>$type } );
 	}
 
 	return( $html );
@@ -574,8 +571,8 @@ sub input_field
 	}
 	elsif( $type eq "eprinttype" )
 	{
-		my @eprint_types = EPrints::MetaInfo::get_eprint_types();
-		my $labels = EPrints::MetaInfo::get_eprint_type_names();
+		my @eprint_types = $self->{session}->{metainfo}->get_eprint_types();
+		my $labels = $self->{session}->{metainfo}->get_eprint_type_names();
 
 		my $actual = [ ( !defined $value || $value eq "" ?
 			$eprint_types[0] : $value ) ];
@@ -737,10 +734,7 @@ sub input_field
 	{
 		$html = "N/A";
 
-		EPrints::Log::log_entry(
-			"HTMLRender",
-			EPrints::Language::logphrase( "L:input_field_err" , 
-						{ type=>$type } ) );
+		EPrints::Log::log_entry( "L:input_field_err" , { type=>$type } );
 	}
 	
 	return( $html );

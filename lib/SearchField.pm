@@ -228,8 +228,8 @@ sub render_html
 		}
 		elsif( $type eq "eprinttype" )
 		{
-			my @eprint_types = EPrints::MetaInfo::get_eprint_types();
-			( $tags, $labels ) = ( \@eprint_types, EPrints::MetaInfo::get_eprint_type_names() );
+			my @eprint_types = $self->{session}->{metainfo}->get_eprint_types();
+			( $tags, $labels ) = ( \@eprint_types, $self->{session}->{metainfo}->get_eprint_type_names() );
 		}
 		else
 		{
@@ -289,10 +289,7 @@ sub render_html
 	}
 	else
 	{
-		EPrints::Log::log_entry(
-			"SearchField",
-			EPrints::Language::log_phrase( "L:cant_render", 
-						{ type=>$type } ) )
+		EPrints::Log::log_entry( "L:cant_render", { type=>$type } );
 	}
 
 	return( $html );
@@ -763,7 +760,7 @@ sub benchmark
 
 	my( $table , $field ) = split /:/ , $tablefield;
 
-        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
         my $keyfield = $fields[0];
 
 	if ( !defined $self->{benchcache}->{"$table:$where"} )
@@ -837,7 +834,7 @@ sub do
 {
 	my ( $self , $searchbuffer , $satisfy_all) = @_;
 	
-        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
         my $keyfield = $fields[0];
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();

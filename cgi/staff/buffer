@@ -89,7 +89,7 @@ else
 
 		print "<TD>";
 		print $session->{render}->format_field(
-			EPrints::MetaInfo::find_eprint_field( "datestamp" ),
+			$session->{metainfo}->find_eprint_field( "datestamp" ),
 			$e->{datestamp} );
 		print "</TD></TR>\n";
 	}

@@ -16,6 +16,7 @@
 
 package EPrints::Log;
 
+use EPrintSite;
 #require 'sys/syscall.ph';
 
 ######################################################################
@@ -31,6 +32,7 @@ my $debug = 1;
 
 ######################################################################
 #
+#cjg recomment
 # log_entry( $name, $msg )
 #
 #  Write a log message. Log messages are always written during the
@@ -42,9 +44,17 @@ my $debug = 1;
 
 sub log_entry
 {
-	my( $name, $msg ) = @_;
-	
-	print STDERR "$name: $msg\n";
+	my( $phraseid , $inserts ) = @_;
+
+	my $loglang = EPrints::Language::fetch( undef, $EPrintSite::log_language );
+
+	my @callinfo = caller();
+	$callinfo[1] =~ m#[^/]+$#;
+	my $name = $&;
+
+	my $msg = $loglang->file_phase( $name , $phraseid , $inserts );
+
+	print STDERR "EPRINTS LOG ($name): $msg\n";
 
 #	my $log_filename = "$EPrintSite::SiteInfo::log_path/$name.log";
 #

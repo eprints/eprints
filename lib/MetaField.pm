@@ -249,11 +249,9 @@ sub make_field
 				else
 				{
 					EPrints::Log::log_entry(
-						"MetaField",
-						EPrints::Language::logphrase(
-							"L:bad_value",
-							{ option=>$key,
-							field=>$self->{name} } ) );
+						"L:bad_value",
+						{ option=>$key,
+				  		field=>$self->{name} } );
 				}
 			}
 			# type
@@ -263,11 +261,9 @@ sub make_field
 				if( !defined $EPrints::Database::datatypes{lc $val} )
 				{
 					EPrints::Log::log_entry(
-						"MetaField",
-						EPrints::Language::logphrase(
 							"L:bad_type",
 							{ option=>$key,
-							field=>$self->{name} } ) );
+							field=>$self->{name} } );
 					return( undef );
 				}
 				else
@@ -323,10 +319,8 @@ sub make_field
 		!defined $self->{displayname} )
 	{
 		EPrints::Log::log_entry(
-			"MetaField",
-			EPrints::Language::logphrase(
 				"L:not_all_info",
-				{ field=>$self->{name} } ) );
+				{ field=>$self->{name} } );
 
 #EPrints::Log::debug( "MetaField", "TYPE $self->{type} NAME $self->{name} DISPLAYNAME $self->{displayname}" );
 	}
@@ -353,11 +347,9 @@ sub read_fields
 	unless( open CFG_FILE, $file )
 	{
 		EPrints::Log::log_entry( 
-			"MetaInfo",
-			EPrints::Language::logphrase(
-				"L:cant_open_file",
-				{ file=>$file,
-				errmsg=>$! } ) );
+			"L:cant_open_file",
+			{ file=>$file,
+			errmsg=>$! } );
 		return;
 	}
 	

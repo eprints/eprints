@@ -18,7 +18,6 @@ use EPrints::EPrint;
 use EPrints::SearchField;
 use EPrints::SearchExpression;
 use EPrints::SearchForm;
-use EPrints::MetaInfo;
 use EPrintSite::SiteInfo;
 
 use strict;
@@ -26,6 +25,7 @@ use strict;
 my $session = new EPrints::Session;
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
+	$session,
 	"eprints",
 	\@EPrintSite::SiteInfo::simple_search_fields );
 

@@ -401,7 +401,7 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 ######################################################################
 #
-# @metafields = make_meta_fields( $what, $fieldnames )
+# @metafields = make_meta_fields( $session, $what, $fieldnames )
 #
 #  A static method, that finds MetaField objects for the given named
 #  metafields. You can pass @metafields to the SearchForm and 
@@ -419,14 +419,13 @@ EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 sub make_meta_fields
 {
-	my( $what, $fieldnames ) = @_;
+	my( $session, $what, $fieldnames ) = @_;
 
 	my @metafields;
 
 	# We want to search the relevant MetaFields
 	my @all_fields;
-
-	@all_fields = EPrints::MetaInfo::get_fields( $what );
+	@all_fields = $session->{metainfo}->get_fields( $what );
 
 	foreach (@$fieldnames)
 	{
@@ -498,7 +497,7 @@ sub perform_search
 		}
 	}
 	
-        my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
         my $keyfield = $fields[0];
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
@@ -515,8 +514,7 @@ sub count
 			$self->{tmptable} );
 	}	
 
-	EPrints::Log::log_entry(
-		EPrints::Language::logphrase( "L:not_cached" ) );
+	EPrints::Log::log_entry( "L:not_cached" );
 		
 }
 
@@ -527,7 +525,7 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
-        	my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{table} );
         	my $keyfield = $fields[0];
 
 		my ( $buffer, $overlimit ) = $self->{session}->{database}->distinct_and_limit( 
@@ -545,8 +543,7 @@ sub get_records
 		return @records;
 	}	
 
-	EPrints::Log::log_entry(
-		EPrints::Language::logphrase( "L:not_cached" ) );
+	EPrints::Log::log_entry( "L:not_cached" );
 		
 }
 

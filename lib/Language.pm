@@ -18,46 +18,70 @@
 #
 ######################################################################
 
+
 package EPrints::Language;
+
+use EPrintSite;
 
 use strict;
 
-%EPrints::Language::languages = ();
+# Cache for language objects NOT attached to a config.
+%EPrints::Language::lang_cache = ();
 
 ######################################################################
 #
-# $language = fetch( $langid )
+# $language = fetch( $site , $langid )
 #
 # Return a language from the cache. If it isn't in the cache
 # attempt to load and return it.
 # Returns undef if it cannot be loaded.
 # Uses default language if langid is undef. [STATIC]
+# $site might not be defined if this is the log language and
+# therefore not of any specific site.
 #
 ######################################################################
 
 sub fetch
 {
-	my( $langid ) = @_;
+	my( $site , $langid ) = @_;
 
-	if ( !defined $langid )
+	if( defined $site )
 	{
-		$langid = $EPrintSite::SiteInfo::default_language;
+		if( !defined $site->{lang_cache} )
+		{
+			$site->{lang_cache} = {};
+		}
+		if( !defined $langid )
+		{
+			$langid = $site->{default_language};
+		}
+		if ( defined $site->{lang_cache}->{ $langid } )
+		{
+			return $site->{lang_cache}->{ $langid };
+		}
+	}
+	else
+	{
+		if ( defined $EPrints::Language::lang_cache{ $langid } )
+		{
+			return $EPrints::Language::lang_cache{ $langid };
+		}
 	}
 
-	if ( defined $EPrints::Language::languages{ $langid } )
-	{
-		return $EPrints::Language::languages{ $langid };
-	}
-
-	my $lang = EPrints::Language->new( $langid );
+	my $lang = EPrints::Language->new( $langid , $site );
 
 	if ( !defined $lang )
 	{
 		return undef;
 	}
-
-	$EPrints::Language::languages{ $langid } = $lang;
-
+	if( defined $site )
+	{
+		$site->{lang_cache}->{ $langid } = $lang;
+	}
+	else
+	{
+		$EPrints::Language::languages{ $langid } = $lang;
+	}
 	return $lang;
 
 }
@@ -65,16 +89,19 @@ sub fetch
 
 ######################################################################
 #
-# $language = new( )
+# $language = new( $langid, $site )
 #
 # Create a new language object representing the language to use, 
 # loading it from a config file.
+#
+# $site is optional. If it exists then the language object
+# will query the site specific override files.
 #
 ######################################################################
 
 sub new
 {
-	my( $class , $langid ) = @_;
+	my( $class , $langid , $site ) = @_;
 
 	my $self = {};
 	bless $self, $class;
@@ -84,32 +111,6 @@ sub new
 	$self->read_phrases();
 
 	return( $self );
-}
-
-######################################################################
-#
-# $phrase = logphrase( $phraseid, @inserts )
-#
-# Return the phrase represented by phraseid in the language 
-# of the log. [STATIC]
-#
-######################################################################
-
-sub logphrase
-{
-	my( $phraseid, $inserts ) = @_;
-	my $lang = EPrints::Language::fetch( 
-		$EPrintSite::SiteInfo::log_language );
-	if ( !defined $lang ) 
-	{
-		return "Can't fetch log language: ".
-		       $EPrintSite::SiteInfo::log_language;
-	}
-
-	my @callinfo = caller();
-	$callinfo[1] =~ m#[^/]+$#;
-
-	return $lang->_phrase_aux( $& , $phraseid , $inserts );
 }
 
 ######################################################################
@@ -128,11 +129,11 @@ sub phrase
 
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
-print STDERR "[$phraseid][$inserts]\n";
-	return $self->_phrase_aux( $& , $phraseid , $inserts );
+	return $self->file_phase( $& , $phraseid , $inserts );
 }
 
-sub _phrase_aux
+
+sub file_phase
 {
 	my( $self , $file , $phraseid , $inserts ) = @_;
 
@@ -164,12 +165,12 @@ sub read_phrases
 	
 	my @inbuffer;
 
-	my $file = $EPrintSite::SiteInfo::languages{$self->{id}};
+	my $file = $EPrintSite::languages{$self->{id}};
 
 	unless( open LANG_FILE, $file )
 	{
-		EPrints::Log::log_entry( "Language",
-		                         "Can't open eprint language file: $file: $!" );
+		# can't translate yet...
+		print STDERR "Can't open eprint language file: $file: $!";
 		return;
 	}
 

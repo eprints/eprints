@@ -21,17 +21,15 @@
 
 package EPrints::Session;
 
-use Apache;
-
 use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Language;
+use EPrints::ConfigLoader;
 
 use EPrintSite::SiteRoutines;
 use EPrintSite::SiteInfo;
 
 use strict;
-
 
 ######################################################################
 #
@@ -52,15 +50,38 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-	
-	# Get the Apache request object
-	#$self->{request} = Apache::request( "POST" );
+
+	$self->{query} = ( $offline ? new CGI( {} ) : new CGI );
+
+	# This should be set at installation.	
+	$self->{basepath} = "/opt/eprints";
+
+	if( $offline )
+	{
+		die "fucked";
+	}
+	else
+	{
+		# Errors in english - no configuration yet.
+		# These are pretty fatal - nothing will work if
+		# this bit dosn't.
+
+		$self->{site} = EPrints::ConfigLoader::get_config_by_url(
+					$self->{query}->url() );
+		if( !defined $self->{site} )
+		{
+			die "Can't load config for URL: $self->{query}->url()";
+		}
+	}
 
 	# Create a database connection
-	$self->{lang} = EPrints::Language::fetch();
+	$self->{lang} = EPrints::Language::fetch( $self->{site} );
+
+	# Load the config files
+	$self->{metainfo} = EPrints::MetaInfo->new( $self->{site} );
 	
 	# Create an HTML renderer object
-	$self->{render} = EPrints::HTMLRender->new( $self, $offline );
+	$self->{render} = EPrints::HTMLRender->new( $self, $offline, $self->{query} );
 
 	# Create a database connection
 	$self->{database} = EPrints::Database->new( $self );
@@ -141,6 +162,8 @@ sub terminate
 sub mail_administrator
 {
 	my( $self, $subject, $message ) = @_;
+
+	# cjg logphrase here will NOT do it no longer exists.
 	
 	my $message_body = EPrints::Language::logphrase( "msg_at" ,
 	                                             { time=>gmtime( time ) } );

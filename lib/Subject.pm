@@ -168,14 +168,14 @@ sub children
 {
 	my( $self ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "subjects" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
 		"subjects" );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
+		$self->{session}->{metainfo}->find_table_field(
 			"subjects",
 			"parent" ),
 		"ALL:EQ:$self->{subjectid}" );
@@ -485,7 +485,7 @@ sub get_all
 {
 	my( $session ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
+	my @fields = $session->{metainfo}->get_fields( "subjects" );
 	
 	# Retrieve all of the subjects
 	my @rows = $session->{database}->get_all(
@@ -531,7 +531,7 @@ sub posted_eprints
 		$table );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
+		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();
@@ -561,7 +561,7 @@ sub count_eprints
 		$table );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field( "archive", "subjects" ),
+		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
 		"ALL:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();

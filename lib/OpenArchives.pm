@@ -357,8 +357,8 @@ sub harvest
 		$end_date,
 		$setspec,
 		$EPrints::Database::table_archive,
-		EPrints::MetaInfo::find_eprint_field( "datestamp" ),
-		EPrints::MetaInfo::find_eprint_field( "subjects" ) );
+		$session->{metainfo}->find_eprint_field( "datestamp" ),
+		$session->{metainfo}->find_eprint_field( "subjects" ) );
 
 	return( $searchexp->do_eprint_search() );
 }
@@ -376,7 +376,7 @@ sub harvest_deleted
 {
 	my( $session, $start_date, $end_date, $setspec ) = @_;
 	
-	my @deletion_fields = EPrints::MetaInfo::get_fields( "deletions" );
+	my @deletion_fields = $session->{metainfo}->get_fields( "deletions" );
 
 	my $searchexp = make_harvest_search(
 		$session,
@@ -785,7 +785,7 @@ sub list_contents
 	if( defined $partitionspec && $partitionspec ne "" )
 	{
 		# Get the subject field
-		my $subject_field = EPrints::MetaInfo::find_eprint_field( "subjects" );
+		my $subject_field = $session->{metainfo}->find_eprint_field( "subjects" );
 
 		# Get the relevant subject ID. Since all subjects have unique ID's, we
 		# can just remove everything specifying the ancestry.
@@ -797,7 +797,7 @@ sub list_contents
 	if( defined $fileafter && $fileafter ne "" )
 	{
 		# Get the datestamp field
-		my $datestamp_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
+		my $datestamp_field = $session->{metainfo}->find_eprint_field( "datestamp" );
 		
 		$searchexp->add_field( $datestamp_field, "$fileafter-" );
 	}

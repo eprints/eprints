@@ -235,16 +235,16 @@ sub create_archive_tables
 	# Create the user table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_user,
-		EPrints::MetaInfo::get_fields( "users" ) );
+		$self->{session}->{metainfo}->get_fields( "users" ) );
 	
 
 	# Document table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_document,
-		EPrints::MetaInfo::get_fields( "documents" ) );
+		$self->{session}->{metainfo}->get_fields( "documents" ) );
 
 	# EPrint tables
-	my @eprint_metadata = EPrints::MetaInfo::get_fields( "eprints" );
+	my @eprint_metadata = $self->{session}->{metainfo}->get_fields( "eprints" );
 
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_inbox,
@@ -262,18 +262,18 @@ sub create_archive_tables
 	# Subscription table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subscription,
-		EPrints::MetaInfo::get_fields( "subscriptions" ) );
+		$self->{session}->{metainfo}->get_fields( "subscriptions" ) );
 
 
 	# Subject category table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_subject,
-		EPrints::MetaInfo::get_fields( "subjects" ) );
+		$self->{session}->{metainfo}->get_fields( "subjects" ) );
 
 	# Deletion table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_deletion,
-		EPrints::MetaInfo::get_fields( "deletions" ) );
+		$self->{session}->{metainfo}->get_fields( "deletions" ) );
 
 	return( $success );
 }
@@ -339,7 +339,7 @@ sub _create_table_aux
 			# there's not much point. 
 			my $auxfield = $field->clone();
 			$auxfield->{multiple} = 0;
-			my @fields = EPrints::MetaInfo::get_fields( $primarytable );
+			my @fields = $self->{session}->{metainfo}->get_fields( $primarytable );
 			my $keyfield = $fields[0]->clone();
 			$keyfield->{indexed} = 1;
 			my $pos = EPrints::MetaField->new(
@@ -399,10 +399,6 @@ sub _create_table_aux
 	
 #EPrints::Log::debug( "Database", "SQL: $sql" );
 
-	print EPrints::Language::logphrase( 
-		"L:created_table" ,
-		{ tablename=>$tablename } )."\n";
-		
 	# Send to the database
 	$rv = $rv && $self->do( $sql );
 	
@@ -424,7 +420,7 @@ sub add_record
 {
 	my( $self, $table, $data ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $table );
 	my $keyfield = $fields[0];
 
 	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\"".prep_value($data->{$keyfield->{name}})."\")";
@@ -493,7 +489,7 @@ sub update
 	my $sql;
 
 
-	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $table );
 
 	# skip the keyfield;
 	my $keyfield = shift @fields;
@@ -882,10 +878,8 @@ sub drop_cache
 	else
 	{
 		EPrints::Log::log_entry( 
-			"Database",
-			EPrints::Language::logphrase( 
-				"L:bad_cache",
-				{ tableid=>$tmptable } ) );
+			"L:bad_cache",
+			{ tableid=>$tmptable } );
 	}
 
 }
@@ -931,7 +925,7 @@ sub _get
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
-	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $table );
 	my $keyfield = $fields[0];
 
 	my $cols = "";
@@ -1174,7 +1168,7 @@ sub exists
 		return undef;
 	}
 	
-	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $table );
 	my $keyfield = $fields[0]->{name};
 
 	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"".prep_value( $id )."\";";
@@ -1206,7 +1200,7 @@ sub _freetext_index
 		return $rv;
 	}
 
-	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my @fields = $self->{session}->{metainfo}->get_fields( $table );
 	my $keyfield = $fields[0];
 
 	my $indextable = index_name( $table );

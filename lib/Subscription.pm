@@ -75,7 +75,7 @@ sub new
 	}
 
 	# Lob the row data into the relevant fields
-	my @fields = EPrints::MetaInfo::get_fields( "subscriptions" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
 
 	my $i=0;
 	
@@ -86,6 +86,7 @@ sub new
 	}
 
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
+		$self->{session},
 		"eprints",
 		\@EPrintSite::SiteInfo::subscription_fields );
 
@@ -211,7 +212,7 @@ sub render_subscription_form
 	my( $self ) = @_;
 	
 	my $html = $self->{searchexpression}->render_search_form( 1, 0 );
-	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
 	
 	$html .= "<P>";
 	$html .= $self->{session}->{lang}->phrase( "H:sendupdates",
@@ -237,7 +238,7 @@ sub from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "subscriptions" );
 	$self->{frequency} = $self->{session}->{render}->form_value(
 		 EPrints::MetaInfo::find_field( \@all_fields, "frequency" ) );
 
@@ -280,7 +281,7 @@ sub subscriptions_for
 	
 	my @subscriptions;
 	
-	my @sub_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
+	my @sub_fields = $session->{metainfo}->get_fields( "subscriptions" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_subscription,
@@ -311,7 +312,7 @@ sub subscriptions_for_frequency
 	
 	my @subscriptions;
 	
-	my @sub_fields = EPrints::MetaInfo::get_fields( "subscriptions" );
+	my @sub_fields = $session->{metainfo}->get_fields( "subscriptions" );
 
 	my $rows = $session->{database}->retrieve_fields(
 		$EPrints::Database::table_subscription,
@@ -405,10 +406,9 @@ sub process
 	unless( defined $user )
 	{
 		EPrints::Log::log_entry(
-			"Subscription",
-			EPrints::Language::logphrase( "L:notopenrec",
-		                                 { user=>$self->{username},
-				                   subid=>$self->{subid} } ) );
+			"L:notopenrec",
+		             { user=>$self->{username},
+			subid=>$self->{subid} } );
 		return( 0 );
 	}
 
@@ -418,7 +418,7 @@ sub process
 	$freq = "never" if( !defined $freq );
 
 	# Get the datestamp field
-	my $ds_field = EPrints::MetaInfo::find_eprint_field( "datestamp" );
+	my $ds_field = $self->{session}->{metainfo}->find_eprint_field( "datestamp" );
 
 	# Get the date for yesterday
 	my $yesterday = EPrints::MetaField::get_datestamp( time - (24*60*60) );
@@ -512,10 +512,9 @@ sub process
 		unless( $success )
 		{
 			EPrints::Log::log_entry(
-				"Subscription",
-				EPrints::Language::logphrase( "L:failsend", 
+				"L:failsend", 
 					{ user=>$user->{username}, 
-					errmsg=>$! } ) );
+					errmsg=>$! } );
 		}
 	}
 		

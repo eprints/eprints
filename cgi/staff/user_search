@@ -25,6 +25,7 @@ use strict;
 my $session = new EPrints::Session;
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
+	$session,
 	"users",
 	\@EPrintSite::SiteInfo::user_search_fields );
 

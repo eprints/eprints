@@ -77,14 +77,14 @@ sub process
 	{
 		print $self->{session}->{render}->start_html( 
 			$self->{session}->{lang}->phrase( 
-				"H:recfor", [ name=>$full_name ] ) );
+				"H:recfor", { name=>$full_name } ) );
 
 		print "<P>".$self->{session}->{lang}->phrase( "H:blurb" )."</P>\n"; 
 
 		print "<P>".$self->{session}->{lang}->phrase( 
 		        "H:changeemail",
-			[ clickhere=>"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
-			$self->{session}->{lang}->phrase( "H:clickhere" )."</A>" ] )."</P>";
+			{ clickhere=>"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
+			$self->{session}->{lang}->phrase( "H:clickhere" )."</A>" } )."</P>";
 
 		$self->render_form();
 
@@ -107,7 +107,7 @@ sub process
 			else
 			{
 				print $self->{session}->{render}->start_html( 
-					$self->{session}->{lang}->phrase( "H:recfor", [ name=>$full_name ] ) );
+					$self->{session}->{lang}->phrase( "H:recfor", { name=>$full_name } ) );
 
 				print "<P>".$self->{session}->{lang}->phrase( "H:formincorrect" )."</P>\n";
 				print "<UL>\n";
@@ -151,7 +151,7 @@ sub render_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "users" );
 	
 	# Get the appropriate fields
 	foreach $field (@all_fields)
@@ -182,7 +182,7 @@ sub update_from_form
 {
 	my( $self ) = @_;
 	
-	my @all_fields = EPrints::MetaInfo::get_fields( "users" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "users" );
 	my $field;
 
 	# Ensure correct user
@@ -206,10 +206,9 @@ sub update_from_form
 	{
 		my $form_id = $self->{session}->{render}->param( "username" );
 		EPrints::Log::log_entry(
-			"User",
-			EPrints::Language::logphrase( "usernotmatch",
-			                              [formid=>$form_id,
-			                               username=>$self->{username}] ) );
+			"usernotmatch",
+			      {formid=>$form_id,
+			        username=>$self->{username}} );
 
 		return( 0 );
 	}

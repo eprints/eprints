@@ -31,54 +31,58 @@ use EPrints::Log;
 use EPrints::Subject;
 use EPrints::Subscription;
 
-use EPrintSite::SiteInfo;
-
 use strict;
-
-my @user_meta_fields;
-my @document_meta_fields;
-my @subscription_meta_fields;
-my @subject_fields;
-my @deletion_meta_fields;
-my @eprint_meta_types;         # Metadata EPrint types (id's.) This is only
-                               #  really here so that the order can be retained
-                               #  from the cfg file.
-my @eprint_meta_fields;        # ALL EPrint metadata fields.
-my @eprint_meta_fieldnames;    # The field IDs, cached in an array for speed
-my @eprint_system_fields;      # The system EPrint metadata fields
-my %eprint_meta_type_fields;   # Maps EPrint types -> list of fields they need.
-                               # Always includes the system ones.
-my %eprint_type_names;         # Maps EPrint types -> displayable names
-
-my %eprint_field_help;         # Maps EPrint metadata fields->brief help
-my %eprint_field_index;        # Maps EPrint metadata field names -> MetaField
-                               #  objects
 
 
 ######################################################################
 #
-# read_meta_fields()
-# 
+# new()
+#cjg comment 
 #  Reads in the metadata fields from the config files.
 #
 ######################################################################
 
-sub read_meta_fields
+sub new
 {
+	my( $class , $site ) = @_;
+
+	my $self = {};
+	bless $self, $class;
+
+	$self->{site} = $site;
 	#
 	# Read in system and site USER metadata fields
 	#
-	@user_meta_fields = ();
+
+	$self->{user_meta_fields} = [];
+	$self->{document_meta_fields} = [];
+	$self->{subscription_meta_fields} = [];
+	$self->{subject_fields} = [];
+	$self->{deletion_meta_fields} = [];
+	$self->{eprint_meta_types} = [];         # Metadata EPrint types (id's.) This is only
+                           		#  really here so that the order can be retained
+                               		#  from the cfg file.
+	$self->{eprint_meta_fields} = [];        # ALL EPrint metadata fields.
+	$self->{eprint_meta_fieldnames} = [];    # The field IDs, cached in an array for speed
+	$self->{eprint_system_fields} = [];      # The system EPrint metadata fields
+	$self->{eprint_meta_type_fields} = {};   # Maps EPrint types -> list of fields they need.
+                               		# Always includes the system ones.
+	$self->{eprint_type_names}  = {};         # Maps EPrint types -> displayable names
+	
+	$self->{eprint_field_help}  = {};         # Maps EPrint metadata fields->brief help
+	$self->{eprint_field_index} = {};        # Maps EPrint metadata field names -> MetaField
+                               		#  objects
+
 	
 	foreach (@EPrints::User::system_meta_fields)
 	{
 		my $field = EPrints::MetaField->new( $_ );
 		$field->{help} = $EPrints::User::help{$_};
-		push @user_meta_fields, $field;
+		push @{$self->{user_meta_fields}}, $field;
 	}
 
-	push @user_meta_fields, EPrints::MetaField::read_fields(
-		 $EPrintSite::SiteInfo::user_meta_config );
+	push @{$self->{user_meta_fields}}, EPrints::MetaField::read_fields(
+		 $site->{user_meta_file} );
 
 
 	#
@@ -89,7 +93,7 @@ sub read_meta_fields
 	{
 		my $field = EPrints::MetaField->new( $_ );
 		$field->{help} = $EPrints::Document::help{$field->{name}};
-		push @document_meta_fields, $field;
+		push @{$self->{document_meta_fields}}, $field;
 	}
 
 
@@ -99,7 +103,7 @@ sub read_meta_fields
 	#
 	foreach (@EPrints::Subject::system_meta_fields)
 	{
-		push @subject_fields, EPrints::MetaField->new( $_ );
+		push @{$self->{subject_fields}}, EPrints::MetaField->new( $_ );
 	}
 
 
@@ -109,7 +113,7 @@ sub read_meta_fields
 	#
 	foreach (@EPrints::Subscription::system_meta_fields)
 	{
-		push @subscription_meta_fields, EPrints::MetaField->new( $_ );
+		push @{$self->{subscription_meta_fields}}, EPrints::MetaField->new( $_ );
 	}
 		
 
@@ -122,20 +126,20 @@ sub read_meta_fields
 	{
 		my $field = new EPrints::MetaField( $_ );
 		$field->{help} = $EPrints::EPrint::help{$field->{name}};
-		push @eprint_meta_fields, $field;
-		push @eprint_meta_fieldnames, $field->{name};
-		push @eprint_system_fields, $field;
+		push @{$self->{eprint_meta_fields}}, $field;
+		push @{$self->{eprint_meta_fieldnames}}, $field->{name};
+		push @{$self->{eprint_system_fields}}, $field;
 	}
 
 	# Read in all the possible site fields
 	my @fields = EPrints::MetaField::read_fields(
-		 $EPrintSite::SiteInfo::site_eprint_fields );
+		 $site->{eprint_fields_file} );
 	
 	foreach (@fields)
 	{
-		$eprint_field_index{$_->{name}} = $_;
-		push @eprint_meta_fields, $_;
-		push @eprint_meta_fieldnames, $_->{name};
+		$self->{eprint_field_index}->{$_->{name}} = $_;
+		push @{$self->{eprint_meta_fields}}, $_;
+		push @{$self->{eprint_meta_fieldnames}}, $_->{name};
 	}
 
 
@@ -145,14 +149,16 @@ sub read_meta_fields
 	#
 	foreach (@EPrints::Deletion::system_meta_fields)
 	{
-		push @deletion_meta_fields, EPrints::MetaField->new( $_ );
+		push @{$self->{deletion_meta_fields}}, EPrints::MetaField->new( $_ );
 	}
 	
 
 	#
 	# EPrint types
 	#
-	EPrints::MetaInfo::read_types( $EPrintSite::SiteInfo::site_eprint_types );
+	$self->read_types( $site->{eprint_types_file} );
+	
+	return $self;
 }
 
 
@@ -166,18 +172,16 @@ sub read_meta_fields
 
 sub read_types
 {
-	my( $file ) = @_;
+	my( $self , $file ) = @_;
 	
 	my @inbuffer;
 
 	unless( open CFG_FILE, $file )
 	{
 		EPrints::Log::log_entry( 
-			"MetaInfo",
-			EPrints::Language::logphrase(
 				"L:type_file_err",
 				{ file=>$file,
-				errmsg=>$! } ) );
+				errmsg=>$! } );
 
 		return;
 	}
@@ -190,7 +194,7 @@ sub read_types
 
 		if( /<\/class>/i )
 		{
-			EPrints::MetaInfo::make_type( @inbuffer );
+			$self->make_type( @inbuffer );
 
 			@inbuffer = ();
 		}
@@ -210,7 +214,7 @@ sub read_types
 
 sub make_type
 {
-	my( @lines ) = @_;
+	my( $self , @lines ) = @_;
 	
 	my $type;
 
@@ -220,21 +224,20 @@ sub make_type
 		if( /<class\s+"*([^"]+)"*\s+"*([^"]+)"*>/ )
 		{
 			$type = $1;
-			$eprint_type_names{$type} = $2;
-			push @eprint_meta_types, $type;
+			$self->{eprint_type_names}->{$type} = $2;
+			push @{$self->{eprint_meta_types}}, $type;
 
 			# Put in system defaults
-			$eprint_meta_type_fields{$type} = [];
+			$self->{eprint_meta_type_fields}->{$type} = [];
 			
-			foreach (@eprint_system_fields)
+			foreach (@{$self->{eprint_system_fields}})
 			{
-				push @{$eprint_meta_type_fields{$type}}, $_;
+				push @{$self->{eprint_meta_type_fields}->{$type}}, $_;
 			}
 		}
 		elsif( /<\/class>/i )
 		{
 			# End of the class
-#EPrints::Log::debug( "MetaInfo", "Read class $type with $#{$eprint_meta_type_fields{$type}} fields" );
 			return;
 		}
 		# Get the field out of a line "[REQUIRE] field_name"
@@ -244,15 +247,14 @@ sub make_type
 			# if necessary
 			my $required = 0;
 			$required = 1 if( (lc $1) eq "require" );
-			my $field = $eprint_field_index{$2};
+			my $field = $self->{eprint_field_index}->{$2};
 			
 			if( !defined $field )
 			{
 				EPrints::Log::log_entry( 
-					EPrints::Language::logphrase(
-						"L:unknown_field",
+					"L:unknown_field",
 						{ field => $2,
-						class => $type } ) );
+						class => $type } );
 				return;
 			}
 			
@@ -260,7 +262,7 @@ sub make_type
 			$new_field->{required} = $required;
 
 			# Put copy in type hash			
-			push @{$eprint_meta_type_fields{$type}}, $new_field;
+			push @{$self->{eprint_meta_type_fields}->{$type}}, $new_field;
 		}
 		# Can ignore everything else
 	}
@@ -279,10 +281,9 @@ sub make_type
   
 sub get_eprint_types
 {
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_types == -1 );
+	my( $self ) = @_;
 
-	return( @eprint_meta_types );
+	return( @{$self->{eprint_meta_types}} );
 }
 
 
@@ -296,10 +297,9 @@ sub get_eprint_types
   
 sub get_eprint_type_names
 {
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_types == -1 );
+	my( $self ) = @_;
 
-	return( \%eprint_type_names );
+	return( $self->{eprint_type_names} );
 }
 
 
@@ -313,10 +313,9 @@ sub get_eprint_type_names
 
 sub get_all_eprint_fieldnames
 {
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
+	my( $self ) = @_;
 
-	return( @eprint_meta_fieldnames );
+	return( @{$self->{eprint_meta_fieldnames}} );
 }
 
 
@@ -332,20 +331,13 @@ sub get_all_eprint_fieldnames
 
 sub get_eprint_fields
 {
-	my( $type ) = @_;
+	my( $self, $type ) = @_;
 	
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
-	
-	my $fields = $eprint_meta_type_fields{$type};
+	my $fields = $self->{eprint_meta_type_fields}->{$type};
 
 	if( !defined $fields )
 	{
-		EPrints::Log::log_entry( 
-			"MetaInfo",
-			EPrints::Language::logphrase(
-				"L:no_fields",
-				{ type=>$type } ) );
+		EPrints::Log::log_entry( "L:no_fields", { type=>$type } );
 		return( undef );
 	}
 
@@ -363,12 +355,9 @@ sub get_eprint_fields
 
 sub get_eprint_type_name
 {
-	my( $type ) = @_;
+	my( $self, $type ) = @_;
 	
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
-	
-	return( $eprint_type_names{$type} );
+	return( $self->{eprint_type_names}->{$type} );
 }
 
 
@@ -378,7 +367,7 @@ sub get_eprint_type_name
 #                     array_ref
 #
 #  Utility function to find a particular field from an array of
-#  fields.
+#  fields. [STATIC]
 #
 ######################################################################
 
@@ -407,13 +396,9 @@ sub find_field
 
 sub find_eprint_field
 {
-	my( $field_name ) = @_;
+	my( $self , $field_name ) = @_;
 	
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
-
-	return( EPrints::MetaInfo::find_field( \@eprint_meta_fields,
-	                                       $field_name ) );
+	return( find_field( $self->{eprint_meta_fields}, $field_name ) );
 }
 
 ######################################################################
@@ -426,12 +411,11 @@ sub find_eprint_field
 
 sub find_table_field
 {
-	my( $table , $field_name ) = @_;
+	my( $self, $table , $field_name ) = @_;
 
-	my @fields = get_fields( $table );
+	my @fields = $self->get_fields( $table );
 
-	return( EPrints::MetaInfo::find_field( \@fields,
-	                                       $field_name ) );
+	return( find_field( \@fields, $field_name ) );
 }
 
 
@@ -446,49 +430,42 @@ sub find_table_field
 
 sub get_fields
 {
-	my ( $table ) = @_;
-
-	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#eprint_meta_fields == -1 );
+	my ( $self , $table ) = @_;
 
 	if ( $table eq "users") 
 	{
-		return( @user_meta_fields );
+		return( @{$self->{user_meta_fields}} );
 	}
 	if ( $table eq "documents") 
 	{
-		return( @document_meta_fields );
+		return( @{$self->{document_meta_fields}} );
 	}
 	if ( $table eq "subjects") 
 	{
-		return( @subject_fields );
+		return( @{$self->{subject_fields}} );
 	}
 	if ( $table eq "subscriptions") 
 	{
-		return( @subscription_meta_fields );
+		return( @{$self->{subscription_meta_fields}} );
 	}
 	if ( $table eq "deletions") 
 	{
-		return( @deletion_meta_fields );
+		return( @{$self->{deletion_meta_fields}} );
 	}
 	if ( $table eq "inbox" ||
 	     $table eq "buffer" ||
 	     $table eq "archive" ) 
 	{
-		return( @eprint_meta_fields );
+		return( @{$self->{eprint_meta_fields}} );
 	}
 	# eprints isn't a table per se but it makes life easier
 	# to be able to identify this as a type too.
 	if ( $table eq "eprints" )
 	{
-		return( @eprint_meta_fields );
+		return( @{$self->{eprint_meta_fields}} );
 	}
 
-	EPrints::Log::log_entry( 
-		"MetaInfo",
-		EPrints::Language::logphrase(
-			"L:unknown_table",
-			{ table=>$table } ) );
+	EPrints::Log::log_entry( "L:unknown_table", { table=>$table } );
 	return undef;
 }
 

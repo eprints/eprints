@@ -74,7 +74,7 @@ sub new
 	return( undef ) if( scalar @row == 0 );
 
 	# Lob row data into relevant field
-	my @fields = EPrints::MetaInfo::get_fields( "deletions" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "deletions" );
 	my $i=0;
 	foreach (@fields)
 	{
@@ -102,7 +102,7 @@ sub new
 sub add_deletion_record
 {
 	my( $eprint ) = @_;
-	
+
 	# Inherit the eprint's session
 	my $session = $eprint->{session};
 
@@ -111,7 +111,7 @@ sub add_deletion_record
 
 	# Replacement is last in thread
 	my $last_in_thread = $eprint->last_in_thread(
-		EPrints::MetaInfo::find_eprint_field( "succeeds" ) );
+		$session->{metainfo}->find_eprint_field( "succeeds" ) );
 	
 	my $replacement = $last_in_thread->{eprintid};
 	

@@ -126,10 +126,7 @@ sub process
 		if( !defined $self->{eprint} )
 		{
 			my $db_error = $self->{session}->{database}->error();
-			EPrints::Log::log_entry( 
-			        "SubmissionForm", 
-			        EPrints::Language::logphrase( "L:dberr",
-				                          { errmsg=>$db_error } ) );
+			EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
 			$self->exit_error( $self->{session}->{lang}->phrase( 
 				"H:database_err" , 
@@ -248,10 +245,7 @@ sub from_home
 			if( !defined $self->{eprint} )
 			{
 				my $db_error = $self->{session}->{database}->error();
-				EPrints::Log::log_entry( 
-			        	"SubmissionForm", 
-			        	EPrints::Language::logphrase( "L:dberr",
-				                              { errmsg=>$db_error } ) );
+				EPrints::Log::log_entry( "L:dberr", { errmsg=>$db_error } );
 
 				$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=>$self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 				return( 0 );
@@ -518,8 +512,8 @@ sub from_stage_linking
 	}
 
 	# Update the values
-	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
 
 	$self->{eprint}->{succeeds} =
 		$self->{session}->{render}->form_value( $succeeds_field );
@@ -941,10 +935,9 @@ sub from_stage_confirmdel
 			my $db_error = $self->{session}->{database}->error();
 
 			EPrints::Log::log_entry(
-				"SubmissionForm",
-				EPrints::Language::logphrase( "L:removeerror",
-				                             { eprintid=> $self->{eprint}->{eprintid},
-				                              errmsg=>$db_error } ) );
+				"L:removeerror",
+				         { eprintid=> $self->{eprint}->{eprintid},
+				          errmsg=>$db_error } );
 
 			$self->exit_error( $self->{session}->{lang}->phrase( "H:database_err" , { siteadmin=> $self->{session}->{lang}->phrase( "H:siteadmin" ) } ) );
 			return( 0 );
@@ -1071,8 +1064,8 @@ sub do_stage_linking
 	
 	$self->list_problems();
 
-	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1275,7 +1268,7 @@ sub do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::other )
 	{
-		my @doc_fields = EPrints::MetaInfo::get_fields( "documents" );
+		my @doc_fields = $self->{session}->{metainfo}->get_fields( "documents" );
 		my $desc_field = EPrints::MetaInfo::find_field( \@doc_fields,
 	                                                	"formatdesc" );
 
@@ -1689,7 +1682,7 @@ sub render_type_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 	
-	my $field = EPrints::MetaInfo::find_eprint_field( "type" );
+	my $field = $self->{session}->{metainfo}->find_eprint_field( "type" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 	
@@ -1729,7 +1722,7 @@ sub update_from_type_form
 	}
 	else
 	{
-		my $field = EPrints::MetaInfo::find_eprint_field( "type" );
+		my $field = $self->{session}->{metainfo}->find_eprint_field( "type" );
 
 		$self->{eprint}->{type} =
 			$self->{session}->{render}->form_value( $field );
@@ -1753,7 +1746,7 @@ sub render_meta_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = EPrints::MetaInfo::get_eprint_fields(
+	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
 		$self->{eprint}->{type} );
 	
 	# Get the appropriate fields
@@ -1785,7 +1778,7 @@ sub update_from_meta_form
 {
 	my( $self ) = @_;
 
-	my @all_fields = EPrints::MetaInfo::get_fields( "eprints" );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "eprints" );
 	my $field;
 	
 	if( $self->{session}->{render}->param( "eprint_id" ) ne
@@ -1794,11 +1787,9 @@ sub update_from_meta_form
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
 		EPrints::Log::log_entry(
-			"Forms",
-			EPrints::Language::logphrase( 
-				"idnotmatch",
+				"L:idnotmatch",
 				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} ) );
+				eprintid=>$self->{eprint}->{eprintid} );
 
 		return( 0 );
 	}
@@ -1833,9 +1824,9 @@ sub render_subject_form
 
 	my @edit_fields;
 
-	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "subjects" );
-	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "additional" );
-	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "reasons" );
+	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "subjects" );
+	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "additional" );
+	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "reasons" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
@@ -1864,7 +1855,7 @@ sub render_users_form
 
 	my @edit_fields;
 
-	push @edit_fields, EPrints::MetaInfo::find_eprint_field( "usernames" );
+	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "usernames" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
@@ -1895,17 +1886,15 @@ sub update_from_subject_form
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
 		EPrints::Log::log_entry(
-			"Forms",
-			EPrints::Language::logphrase( 
-				"idnotmatch",
+				"L:idnotmatch",
 				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} } ) );
+				eprintid=>$self->{eprint}->{eprintid} } );
 
 		return( 0 );
 	}
 	else
 	{
-		my @all_fields = EPrints::MetaInfo::get_eprint_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
 			$self->{eprint}->{type} );
 		my $field;
 
@@ -1920,8 +1909,8 @@ sub update_from_subject_form
 		}
 
 		my $additional_field = 
-			EPrints::MetaInfo::find_eprint_field( "additional" );
-		my $reason_field = EPrints::MetaInfo::find_eprint_field( "reasons" );
+			$self->{session}->{metainfo}->find_eprint_field( "additional" );
+		my $reason_field = $self->{session}->{metainfo}->find_eprint_field( "reasons" );
 
 		$self->{eprint}->{$additional_field->{name}} =
 			$self->{session}->{render}->form_value( $additional_field );
@@ -1951,17 +1940,15 @@ sub update_from_users_form
 		my $form_id = $self->{session}->{render}->param( "eprint_id" );
 
 		EPrints::Log::log_entry(
-			"Forms",
-			EPrints::Language::logphrase( 
-				"idnotmatch",
+				"L:idnotmatch",
 				{ form=>$form_id,
-				eprintid=>$self->{eprint}->{eprintid} } ) );
+				eprintid=>$self->{eprint}->{eprintid} } );
 
 		return( 0 );
 	}
 	else
 	{
-		my @all_fields = EPrints::MetaInfo::get_eprint_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
 			$self->{eprint}->{type} );
 		my $field;
 

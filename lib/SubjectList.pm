@@ -107,10 +107,7 @@ sub get_subjects
 		
 		unless( defined $sub ) 
 		{
-			EPrints::Log::log_entry( 
-				"SubjectList", 
-		        	EPrints::Language::logphrase( "L:invalid_tag",
-					                      { tag=>$_ } ) );
+			EPrints::Log::log_entry( "L:invalid_tag", { tag=>$_ } );
 		}
 	}
 	

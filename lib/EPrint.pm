@@ -256,6 +256,10 @@ sub _create_directory
 	# Check that we do have a place for the new directory
 	if( !defined $storedir )
 	{
+
+# cjg Need to sort out these warnings - logphrase don't work
+# no more.
+
 		# Argh! Running low on disk space overall.
 		$session->mail_administrator(
 			EPrints::Language::logphrase( "S:diskout_sub" ),
@@ -303,9 +307,8 @@ sub _create_directory
 	if( $#created == -1 )
 	{
 		EPrints::Log::log_entry( 
-			"EPrint",
-			EPrints::Language::logphrase( "L:mkdir_err" ,
-				{ path=>$full_path , errmsg=>$@ } ) );
+			"L:mkdir_err" ,
+				{ path=>$full_path , errmsg=>$@ } );
 		return( undef );
 	}
 
@@ -329,7 +332,7 @@ sub retrieve_eprints
 {
 	my( $session, $table, $conditions, $order ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "archive" );
+	my @fields = $session->{metainfo}->get_fields( "archive" );
 
 	my $rows = $session->{database}->retrieve_fields( $table,
                                                      \@fields,
@@ -367,7 +370,7 @@ sub count_eprints
 {
 	my( $session, $table, $conditions ) = @_;
 	
-	my $field = EPrints::MetaInfo::find_eprint_field( "eprintid");
+	my $field = $session->{metainfo}->find_eprint_field( "eprintid");
 
 	my $rows = $session->{database}->retrieve_fields( $table,
                                                      [ $field ],
@@ -407,11 +410,9 @@ sub remove
 		if( !$success )
 		{
 			EPrints::Log::log_entry( 
-				"EPrint", 
-				EPrints::Language::logphrase( 
 					"L:doc_rm_err",
 					{ docid=>$_->{docid},
-					errmsg=>$! } ) );
+					errmsg=>$! } );
 		}
 	}
 
@@ -421,12 +422,10 @@ sub remove
 	if( $num_deleted <= 0 )
 	{
 		EPrints::Log::log_entry(
-			"EPrint",
-			EPrints::Language::logphrase( 
 				"L:file_rm_err", 
 				{ eprintid=>$self->{eprint},
 				path=>$self->local_path(),
-				errmsg=>$! } ) );
+				errmsg=>$! } );
 		$success = 0;
 	}
 
@@ -512,7 +511,7 @@ sub clone
 		my $field;
 
 		# Copy all the data across, except the ID and the datestamp
-		foreach $field (EPrints::MetaInfo::get_eprint_fields( $self->{type} ))
+		foreach $field ($self->{session}->{metainfo}->get_eprint_fields( $self->{type} ))
 		{
 			my $field_name = $field->{name};
 
@@ -637,11 +636,9 @@ sub commit
 	{
 		my $db_error = $self->{session}->{database}->error();
 		EPrints::Log::log_entry(
-			"EPrint",
-			EPrints::Language::logphrase( 
 				"error_commit",
 				{ eprintid=>$self->{eprintid},
-				errmsg=>$db_error } ) );
+				errmsg=>$db_error } );
 	}
 
 	return( $success );
@@ -670,7 +667,7 @@ sub validate_type
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:no_type" );
 	}
-	elsif( !defined EPrints::MetaInfo::get_eprint_type_name( $self->{type} ) )
+	elsif( !defined $self->{session}->{metainfo}->get_eprint_type_name( $self->{type} ) )
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:invalid_type" );
 	}
@@ -695,7 +692,7 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -769,7 +766,7 @@ sub validate_subject
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
 	my $field;
 
 	foreach $field (@all_fields)
@@ -819,8 +816,8 @@ sub validate_linking
 
 	my @problems;
 	
-	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
 
 	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
 	{
@@ -883,7 +880,7 @@ sub get_document
 {
 	my( $self, $format ) = @_;
 	
-	my @fields = EPrints::MetaInfo::get_fields( "documents" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
 
 	# Grab relevant rows from the database.
 	my $rows = $self->{session}->{database}->retrieve_fields(
@@ -924,7 +921,7 @@ sub get_all_documents
 		$EPrints::Database::table_document );
 
 	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field( 
+		$self->{session}->{metainfo}->find_table_field( 
 			$EPrints::Database::table_document,
 			"eprintid" ),
 		"ALL:EQ:$self->{eprintid}" );
@@ -1077,7 +1074,7 @@ sub prune_documents
 	my( $self ) = @_;
 	
 	# Get the documents from the database
-	my @fields = EPrints::MetaInfo::get_fields( "documents" );
+	my @fields = $self->{session}->{metainfo}->get_fields( "documents" );
 
 	my $rows = $self->{session}->{database}->retrieve_fields(
 		$EPrints::Database::table_document,
@@ -1114,13 +1111,13 @@ sub prune
 
 	$self->prune_documents();
 	
-	my @fields = EPrints::MetaInfo::get_eprint_fields( $self->{type} );
-	my @all_fields = EPrints::MetaInfo::get_fields( "archive" );
+	my @fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_fields( "archive" );
 	my $f;
 
 	foreach $f (@all_fields)
 	{
-		if( !defined EPrints::MetaInfo::find_field( \@fields, $f->{name} ) )
+		if( !defined $self->{session}->{metainfo}->find_field( \@fields, $f->{name} ) )
 		{
 			$self->{$f->{name}} = undef;
 		}
@@ -1197,9 +1194,9 @@ sub archive
 		$self->generate_static();
 
 		# Generate static pages for everything in threads, if appropriate
-		my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+		my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
 		my $commentary_field =
-			EPrints::MetaInfo::find_eprint_field( "commentary" );
+			$self->{session}->{metainfo}->find_eprint_field( "commentary" );
 
 		my @to_update = $self->get_all_related();
 		
@@ -1335,8 +1332,8 @@ sub get_all_related
 {
 	my( $self ) = @_;
 	
-	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
 
 	my @related = $self->all_in_thread( $succeeds_field )
 		if( $self->in_thread( $succeeds_field ) );

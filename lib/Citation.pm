@@ -60,7 +60,7 @@ sub render_citation
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-		my $field = EPrints::MetaInfo::find_eprint_field( $fieldname );
+		my $field = $session->{metainfo}->find_eprint_field( $fieldname );
 
 		# Check we have it
 		if( defined $field )
@@ -93,11 +93,9 @@ sub render_citation
 		else
 		{
 			EPrints::Log::log_entry(
-				"Citation",
-				EPrints::Language::logphrase( 
-					"L:unknowneprint",
-					{ fieldname=>$fieldname,
-					  citation_spec=>$citation_spec } ) );
+				"L:unknowneprint",
+				{ fieldname=>$fieldname,
+				  citation_spec=>$citation_spec } );
 			return( $session->{lang}->phrase( "A:na" ) );
 		}
 	}
@@ -108,7 +106,7 @@ sub render_citation
 	while( $citation =~ /{([^}]+)}/ )
 	{
 		my $entry = $1;
-		my $field = EPrints::MetaInfo::find_eprint_field( $entry );
+		my $field = $session->{metainfo}->find_eprint_field( $entry );
 
 		# Check we have it
 		if( defined $field )
@@ -133,11 +131,9 @@ sub render_citation
 		else
 		{
 			EPrints::Log::log_entry(
-				"Citation",
-				EPrints::Language::logphrase( "L:unknowneprint",
-						              { fieldname=>$entry,
-						     	      citation_spec=>$citation_spec } ) 
-                                					 );
+				"L:unknowneprint",
+				{ fieldname=>$entry,
+				   citation_spec=>$citation_spec } );
 		}
 	}
 	
