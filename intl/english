@@ -92,12 +92,12 @@ n_hits	= Search returned $(n) results.
 
 FILE = SearchField.pm
 year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
-no_words	= Search field contains no indexable words: &quot;$(words)&quot;.
+no_words	= Search field contains no indexable words: "$(words)".
 help_boolean	= Select a value.
 help_email    = Enter some text to search for.
 help_eprinttype= Select one or more values from the list. Default is (Any).
 help_longtext	= Enter a term or terms to search for.
-help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. &quot;van Damme, J&quot;.
+help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".
 help_set 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
 help_subject 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
 help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).

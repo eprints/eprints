@@ -28,7 +28,7 @@ for($i=10;$i<100;++$i) {
 my $eprint = new EPrints::EPrint( $session, $ds, "zook000000$i" );
 print "--- begin ---\n";
 print $eprint->{title}."\n";
-print $eprint->toHTML()."\n";
+print $eprint->toHTML->toString."\n";
 print "Yay\n";
 }
 

@@ -27,6 +27,7 @@ use EPrints::Language;
 use EPrints::Site;
 
 use XML::DOM;
+use XML::Parser;
 
 use strict;
 
@@ -68,7 +69,6 @@ sub new
 		{
 			die "Can't load site module for URL: ".$self->{query}->url();
 		}
-		$self->{page} = new XML::DOM::Document;
 	}
 	elsif( $mode == 1 )
 	{
@@ -99,21 +99,11 @@ sub new
 
 	#### Got Site Config Module ###
 
-	print $self->{site}->getConf( "htmlpage" );
-	my $parser = XML::DOM::Parser->new();
-	$self->{domtree} = $parser->parse( $self->{site}->getConf( "htmlpage" ) );
-	#my @foo = $self->{domtree}->getElementsByTagName( "TITLEHERE" , 1 );
-	#print join(",",@foo)."\n";
-#
-	#foreach(@foo) 
-	#{
-		#my $element = $self->{domtree}->createTextNode( "Hi Tim!" );
-		#$_->getParentNode()->replaceChild( $element, $_ );
-	#}
-	#print $self->{domtree}->toString();
-#
-#die "OK!";
-
+	$self->{page} = new XML::DOM::Document;
+	my $newpage = $self->{site}->getConf( "htmlpage" )->cloneNode( 1 );
+	$self->takeOwnership( $newpage );
+	$self->{page}->appendChild( $newpage );
+	
 	my $langcookie = $self->{query}->cookie( $self->{site}->getConf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
@@ -221,6 +211,14 @@ sub mail_administrator
 		$message_body );
 }
 
+sub html_phrase
+{
+	my( $self, $phraseid , %inserts ) = @_;
+
+        my @callinfo = caller();
+        $callinfo[1] =~ m#[^/]+$#;
+        return $self->{lang}->html_file_phrase( $& , $phraseid , \%inserts , $self);
+}
 
 sub phrase
 {
@@ -258,34 +256,41 @@ sub getSite
 #
 ######################################################################
 
+sub sendHTTPHeader
+{
+	my( $self, %opts ) = @_;
+
+	# Write HTTP headers if appropriate
+	if( $self->{offline} )
+	{
+		$self->{site}->log( "Attempt to send HTTP Header while offline" );
+		return;
+	}
+
+	my $r = Apache->request;
+
+	$r->content_type( 'text/html' );
+
+	if( defined $opts{lang} )
+	{
+		my $cookie = $self->{query}->cookie(
+			-name    => $self->{site}->getConf("lang_cookie_name"),
+			-path    => "/",
+			-value   => $opts{lang},
+			-expires => "+10y", # really long time
+			-domain  => $self->{site}->getConf("lang_cookie_domain") );
+		$r->header_out( "Set-Cookie"=>$cookie ); 
+	}
+	$r->send_http_header;
+}
+
 sub start_html
 {
 	my( $self, $title, $langid ) = @_;
 
+	$self->sendHTTPHeader();
+
 	my $html = "";
-	
-	# Write HTTP headers if appropriate
-	unless( $self->{offline} )
-	{
-		my $r = Apache->request;
-		$r->content_type( 'text/html' );
-		if( defined $langid )
-		{
-			my $cookie = $self->{query}->cookie(
-				-name    => $self->{site}->getConf("lang_cookie_name"),
-				-path    => "/",
-				-value   => $langid,
-				-expires => "+10y", # really long time
-				-domain  => $self->{site}->getConf("lang_cookie_domain") );
-			$r->header_out( "Set-Cookie"=>$cookie ); 
-print STDERR "COOK".$cookie."\n";
-		}
-		$r->send_http_header;
-	}
-	else
-	{
-		print STDERR "Header when offline\n";
-	}
 
 	my %opts = %{$self->{site}->getConf("start_html_params")};
 	$opts{-title} = $self->{site}->getConf("sitename").": $title";
@@ -349,6 +354,7 @@ sub url
 sub start_get_form
 {
 	my( $self, $dest ) = @_;
+die "NOPE";
 	
 	if( defined $dest )
 	{
@@ -372,6 +378,7 @@ sub start_get_form
 
 sub end_form
 {
+die "NOPE";
 	my( $self ) = @_;
 	return( $self->{query}->endform );
 }
@@ -537,45 +544,89 @@ sub make_submit_buttons
 
 	my $html = "";
 
-	my $div = $self->{page}->createElement( "DIV" );
-
 	if( scalar @submit_buttons == 0 )
 	{
-# lang me
+# lang me cjg
 		@submit_buttons = ( "Submit" );
 	}
 
+	my $table = $self->{page}->createElement( "TABLE", class=>"submitbuttons" );
+	my $tr = $self->{page}->createElement( "TR" );
+
 	foreach( @submit_buttons )
 	{
+		my $td = $self->{page}->createElement( "TD" );
 		# Some space between them
-		$div->appendChild(
+		$td->appendChild(
 			$self->make_element( "INPUT",
+				class => "submitbutton",
 				type => "submit",
 				name => "submit",
 				value => $_ ) );
+		$tr->appendChild( $td );
 	}
+	$table->appendChild( $tr );
 
-	return( $div );
+	return( $table );
 }
 
+sub makeText
+{
+	my( $self , $text ) = @_;
+
+	return $self->{page}->createTextNode( $text );
+}
+
+sub makeGetForm
+{
+	my( $self, $dest ) = @_;
+	
+	my $form = $self->{page}->createElement( "FORM" );
+	$form->setAttribute( "method", "GET" );
+	if( defined $dest )
+	{
+		$form->setAttribute( "action", $dest );
+	}
+	return $form;
+}
 
 sub bomb
 {	
 	my @info;
-	print STDERR "da BOMB :(--------------------------------\n";
+	print STDERR "=======================================\n";
+	print STDERR "=      EPRINTS BOMB                   =\n";
+	print STDERR "=======================================\n";
 	my $i=1;
 	while( @info = caller($i++) )
 	{
 		print STDERR $info[3]." ($info[2])\n";
 	}
+	print STDERR "=======================================\n";
 	exit;
 }
 
-sub getPage
+sub takeOwnership
 {
-	my( $self ) = @_;
+	my( $self , $domnode ) = @_;
 
-	return $self->{domtree};
+	$domnode->setOwnerDocument( $self->{page} );
+}
+
+sub printPage
+{
+	my( $self, $title, $mainbit, %httpopts ) = @_;
+
+	foreach( $self->{page}->getElementsByTagName( "TITLEHERE" , 1 ) )
+	{
+		my $element = $self->{page}->createTextNode( $title );
+		$_->getParentNode()->replaceChild( $element, $_ );
+	}
+	foreach( $self->{page}->getElementsByTagName( "PAGEHERE" , 1 ) )
+	{
+		$_->getParentNode()->replaceChild( $mainbit, $_ );
+	}
+	$self->sendHTTPHeader( %httpopts );
+	print $self->{page}->toString;
 }
 
 

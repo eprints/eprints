@@ -366,7 +366,7 @@ sub getHTML
 
 	if( !defined $value || $value eq "" )
 	{
-		return $session->getPage()->createTextNode("");
+		return $session->makeText( "" );
 	}
 
 	my $html;
@@ -374,12 +374,12 @@ sub getHTML
 	if( $self->isType( "text" , "int" , "pagerange" , "year" ) )
 	{
 		# Render text
-		return $session->getPage()->createTextNode( $value );
+		return $session->makeText( $value );
 	}
 
 	if( $self->isType( "name" ) )
 	{
-		return $session->getPage()->createTextNode( 
+		return $session->makeText(
 			EPrints::Name::format_names( $value ) );
 	}
 

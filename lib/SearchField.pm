@@ -985,7 +985,7 @@ sub toHTML
 		$self->{session}->getSite()->log( "Can't Render: ".$self->getType() );
 	}
 
-	return $div->toString();
+	return $div;
 }
 
 sub getHelp
@@ -1000,4 +1000,11 @@ sub isType
 	my( $self, @types ) = @_;
 	return $self->{field}->isType( @types );
 }
+
+sub getDisplayName
+{
+	my( $self ) = @_;
+	return $self->{displayname};
+}
+
 1;

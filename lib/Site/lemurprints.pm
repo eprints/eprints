@@ -12,7 +12,7 @@
 
 package EPrints::Site::lemurprints;
 
-use CGI qw/:standard/;
+use XML::DOM;
 
 use EPrints::Site::General;
 use EPrints::Version;
@@ -26,6 +26,8 @@ use EPrints::Subject;
 use EPrints::SubjectList;
 use EPrints::Name;
 use EPrints::Constants;
+
+use strict;
 
 
 sub get_conf
@@ -819,10 +821,12 @@ $c->{types}->{user} = {
 
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
-$c->{htmlpage} = <<END;
+
+$c->{htmlpage} = parseHTML( <<END );
 <HTML>
 <HEAD>
   <TITLE><TITLEHERE/></TITLE>
+  <LINK rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
 </HEAD>
 
 <BODY bgcolor="#ffffff" fgcolor="#000000" topmargin="0" leftmargin="0" marginwidth="0"
@@ -833,10 +837,11 @@ $c->{htmlpage} = <<END;
       <BR/>
       <a href="$c->{frontpage}"><IMG border="0" width="100" height="100" src="$c->{server_static}/images/logo_sidebar.gif" ALT="$c->{sitename}"/></a>
     </td>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderr.gif"></td>
     <td>
+      <DIV class="main">
       <BR/>
       <H1><TITLEHERE/></H1>
+      </DIV>
     </td>
   </tr>
   <tr>
@@ -861,38 +866,18 @@ $c->{htmlpage} = <<END;
       <BR/>
     </td>
     <td valign="top" width="95%">
-<BR/>
-<PAGEHERE/>
-<BR/>
-<HR noshade="yes" size="2"/>
-<address>
-Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a>
-</address>
-<BR/><BR/>
+      <DIV class="main">
+      <PAGEHERE/>
+      <HR noshade="yes" size="2"/>
+      <address>Contact site administrator at: <a href=\"mailto:$c->{admin}\">$c->{admin}</a></address>
+      </DIV>
     </td>
-  </tr>
-  <tr>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderb.gif"></td>
-    <td background="http://lemur.ecs.soton.ac.uk/~cjg/eborderc.gif"></td>
   </tr>
 </table>
 </BODY>
 </HTML>
 END
 
-$c->{start_html_params}  = {
-	-BGCOLOR => "#ffffff",
-	-FGCOLOR => "#000000",
-	-HEAD => [ Link( {-rel => 'stylesheet',
-			-type => 'text/css',
-			-href => '/eprints.css',
-			-title => 'screen stylesheet',
-			-media => 'screen'} ) ],
-	-AUTHOR => $c->{admin},
-	-TOPMARGIN => "0",
-	-LEFTMARGIN => "0",
-	-MARGINWIDTH => "0",
-	-MARGINHEIGHT => "0" };
 
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
@@ -1267,7 +1252,7 @@ sub extract_words
 	# regexp charlist.
 	$mapped_chars =~ s/\[\]\^\\/\\$&/g;
 	# apply the map to $text
-	$text =~ s/[$mapped_chars]/$FREETEXT_CHAR_MAPPING{$&}/g;
+	$text =~ s/[$mapped_chars]/$FREETEXT_CHAR_MAPPING->{$&}/g;
 	
 	# Remove single quotes so "don't" becomes "dont"
 	$text =~ s/'//g;
@@ -1314,13 +1299,13 @@ sub extract_words
 
 		# Consult list of "never words". Words which should never
 		# be indexed.	
-		if( $FREETEXT_NEVER_WORDS{lc $_} )
+		if( $FREETEXT_NEVER_WORDS->{lc $_} )
 		{
 			$ok = 0;
 		}
 		# Consult list of "always words". Words which should always
 		# be indexed.	
-		if( $FREETEXT_ALWAYS_WORDS{lc $_} )
+		if( $FREETEXT_ALWAYS_WORDS->{lc $_} )
 		{
 			$ok = 1;
 		}
@@ -1641,71 +1626,30 @@ END
 
 );
 
-use XML::DOM;
-sub eprint_render_citation
+
+
+my %CITATION_SPEC_DOMTREE;
+foreach( keys %CITATION_SPECS )
 {
-	my( $eprint, $html ) = @_;
-	
-	my $citation_spec = $CITATION_SPECS{$eprint->{type}};
-	$citation_spec = "<SPAN class=\"citation\">$citation_spec</SPAN>";
+	$CITATION_SPEC_DOMTREE{$_} = parseHTML(
+		"<SPAN class=\"citation\">".$CITATION_SPECS{$_}."</SPAN>" );
 
-	my $parser = XML::DOM::Parser->new();
-	my $dom = $parser->parse( $citation_spec );
-	my $div = $dom->getFirstChild;	
-	$dom->removeChild( $div );
-	$div->setOwnerDocument( $eprint->{session}->getPage() );
-
-	print $div->toString()."\n";
-
-	delete $eprint->{year};
-
-	foreach( $div->getElementsByTagName( "IF" , 1 ) )
-	{
-		my $fieldname = $_->getAttribute( "name" );
-		print "($fieldname)\n";
-		my $val = $eprint->getValue( $fieldname );
-		if( defined $val && $val ne "" )
-		{
-			my $sn;
-			foreach $sn ( $_->getChildNodes )
-			{
-				$_->getParentNode->insertBefore( $sn, $_ );
-			}
-			print "ack\n";
-		}
-		$_->getParentNode->removeChild( $_ );
-	}
-		
-	print "_------_\n";	
-	print $div->toString()."\n";
-	print "_------_\n";	
-
-	my $ds = $eprint->{session}->getSite()->getDataSet( "eprint" );
-	foreach( $div->getElementsByTagName( "FIELD" , 1 ) )
-	{
-		my $fieldname = $_->getAttribute( "name" );
-		print "($fieldname)\n";
-		print "($eprint->{session})\n";
-		my $el = $ds->getField( $fieldname )->getHTML( 
-				$eprint->{session},
-				$eprint->getValue( $fieldname ) );
-		print "(ook)\n";
-		print "$el\n";
-		$_->getParentNode()->replaceChild( $el, $_ );
-		print "(oqok)\n";
-	}
-		
-	print "_------_\n";	
-	print $div->toString()."\n";
-	print "_------_\n";	
-
-	
-	return $div->toString()."\n";
-	#return( EPrints::Citation::render_citation( $eprint->{session},
-	                                            #$citation_spec,
-	                                            #$eprint,
-	                                            #$html ) );
 }
+
+
+
+
+sub getEPrintCitationStyle 
+{
+	my( $eprint ) = @_;
+	
+	my $style = $CITATION_SPEC_DOMTREE{$eprint->{type}}->cloneNode( 1 );
+	$eprint->{session}->takeOwnership( $style );
+	
+	return $style;
+}
+
+
 
 
 ######################################################################
@@ -1722,7 +1666,7 @@ sub user_display_name
 
 	# If no surname, just return the username
 	return( "User $user->{username}" ) if( !defined $user->{name} ||
-	                                       $user->{name} eq "" );
+	                                       $user->{name}->{family} eq "" );
 
 	return( EPrints::Name::format_name( $user->{name}, 1 ) );
 }
@@ -2092,7 +2036,7 @@ sub validate_user_field
 	# CHECKS IN HERE
 
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
-	if( $field->{type} == FT_URL && defined $value && $value ne "" )
+	if( $field->is_type( "url" ) && defined $value && $value ne "" )
 	{
 		$problem = "The URL given for ".$field->display_name()." is invalid.  ".
 			"Have you included the initial <STRONG>http://</STRONG>?"
@@ -2254,6 +2198,16 @@ sub log
 {
 	my( $site, $message ) = @_;
 	print STDERR "EPRINTS:".$site->getConf("siteid").": ".$message."\n";
+}
+
+sub parseHTML
+{
+	my( $html ) = @_;
+	my $parser = new XML::DOM::Parser( ProtocolEncoding=>"ISO-8859-1" );
+	my $dom = $parser->parse( $html );
+	my $element = $dom->getFirstChild;	
+	$dom->removeChild( $element );
+	return $element;
 }
 
 1;

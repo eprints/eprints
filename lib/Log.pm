@@ -182,7 +182,7 @@ sub render_struct
 	# Hack: I really don't want to see the whole session
 
 	if( $type eq "EPrints::Session" || $type eq "Apache"
-		|| $type eq "CODE" )
+		|| $type eq "EPrints::DataSet"	|| $type eq "CODE" )
 	{
 		$text.= "  "x$depth;
 		$text.= "$type\n";

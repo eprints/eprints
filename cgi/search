@@ -20,7 +20,6 @@ use EPrints::SearchExpression;
 use EPrints::Constants;
 
 use strict;
-
 my $session = new EPrints::Session;
 
 my $searchexp = new EPrints::SearchExpression(
@@ -28,10 +27,13 @@ my $searchexp = new EPrints::SearchExpression(
 	dataset => $session->getSite()->getDataSet( "archive" ),
 	fieldnames => $session->getSite()->getConf( "simple_search_fields" ) );
 
+my $preamble = $session->make_element( "P" );
+my $a = $session->make_element( "A", href=>"advsearch" );
+$a->appendChild( $session->html_phrase( "adv_search" ) );
+$preamble->appendChild( $a );
 
-$searchexp->process_webpage(
-	$session->phrase( "simple_search" ),
-	"<P><A HREF=\"advsearch\">".$session->phrase( "adv_search" )."</A></P>"
-);
+my $title = $session->phrase( "simple_search" );
+
+$searchexp->process_webpage( $title, $preamble );
 
 $session->terminate();

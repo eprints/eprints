@@ -21,6 +21,7 @@ use EPrints::Database;
 use File::Path;
 use Filesys::DiskSpace;
 use strict;
+use XML::DOM;
 
 # Number of digits in generated ID codes
 $EPrints::EPrint::id_code_digits = 8;
@@ -1487,10 +1488,40 @@ sub toString
 
 sub toHTML
 {
-	my( $self ) = @_;
+	my( $self , $cstyle) = @_;
+	
+	if( !defined $cstyle )
+	{
+		$cstyle = $self->{session}->getSite()->call( "getEPrintCitationStyle", $self );
+	}
 
-	return $self->{session}->getSite()->call( "eprint_render_citation", $self, 1 );
-}
+	foreach( $cstyle->getElementsByTagName( "IF" , 1 ) )
+	{
+		my $fieldname = $_->getAttribute( "name" );
+		my $val = $self->{$fieldname};
+		if( defined $val && $val ne "" ) 
+		{       
+			my $sn; 
+			foreach $sn ( $_->getChildNodes )
+			{       
+				$_->getParentNode->insertBefore( $sn, $_ );
+			}       
+		}
+		$_->getParentNode->removeChild( $_ );
+	}
+
+	foreach( $cstyle->getElementsByTagName( "FIELD" , 1 ) ) 
+	{
+		my $fieldname = $_->getAttribute( "name" );
+		my $el = $self->{dataset}->getField( $fieldname )->getHTML( 
+			$self->{session},
+			$self->{$fieldname} );
+		$_->getParentNode()->replaceChild( $el, $_ );
+	}
+
+	return $cstyle;
+}                                                   
+
 
 sub getValue
 {

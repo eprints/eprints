@@ -1,16 +1,33 @@
 use strict;
+
+use XML::Parser;
+
+print join("\n",@INC)."\n";
+my     $p1 = new XML::Parser(Style => 'Debug');
+print STDERR "ak.\n";
+print STDERR    $p1->parse('<foo id="me">Hello World</foo>');
+print STDERR "ok.\n";
+
+
+
            
 # Extend @INC if needed
-use lib qw( /opt/eprints/perl_lib );
            
+use lib qw( /opt/eprints/perl_lib );
+
 # Make sure we are in a sane environment.
 $ENV{MOD_PERL} or die "not running under mod_perl!";
             
 # For things in the "/perl" URL
+
 use Apache::Registry;          
  
 # Load Perl modules of your choice here
 # This code is interpreted *once* when the server starts
+
+
+
+
 
 use EPrints::Auth;
 use EPrints::Citation;
@@ -42,5 +59,5 @@ use EPrints::Version;
 
 # Tell me more about warnings
 use Carp ();
-$SIG{__WARN__} = \&Carp::cluck;
+#$SIG{__WARN__} = \&Carp::cluck;
 

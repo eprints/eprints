@@ -118,25 +118,60 @@ sub file_phase
 {
 	my( $self , $file , $phraseid , $inserts ) = @_;
 
-	if( !defined $inserts )
+	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
+	if( !defined $response )
 	{
-		$inserts = {};
+		$response = "[\"$file:$phraseid\" not defined]";
 	}
+	$response = "*".$response."*" if ( $fb );
+	$inserts = {} if( !defined $inserts );
+	$response =~ s/\$\(([a-z_]+)\)/$inserts->{$1}/ieg;
+	return $response;
+}
+
+sub html_file_phrase
+{
+	my( $self, $file, $phraseid, $inserts, $session ) = @_;
 
 	my( $response , $fb ) = $self->_file_phrase( $file , $phraseid , $_ );
 
+	if( !defined $response )
+	{
+		$response = "[\"$file:$phraseid\" not defined]";
+	}
+	$inserts = {} if( !defined $inserts );
+
+	print STDERR "BEGIN\n";
+	my $span;
 	if( $fb )
 	{
-		$response = "*".$response."*";
+		$span = $session->make_element( "SPAN" , class=>"fallbacklanguage" );
 	}
-
-	if( defined $response )
+	else
 	{
-		$response =~ s/\$\(([a-z_]+)\)/$inserts->{$1}/ieg;
-		return $response;
+		$span = $session->make_element( "SPAN" );
 	}
-	return "[- \"$file:$phraseid\" not defined for lang (".join(")(",$self->{id},values %{$inserts}).")-]";
+	while($response=~s/^(\$\([a-z_]+\)|[^\$]+|\$)//)
+	{	
+		my $part = $&;
+		my $element;
+		if( $part =~ m/^\$\(([a-z_]+)\)$/ )
+		{
+			$element = $inserts->{$1};
+			if( !defined $element )
+			{
+				$element = $session->makeText( "[missing factor: \"$1\"]" );
+			}
+		}
+		else
+		{
+			$element = $session->makeText( $part );
+		}
+		$span->appendChild( $element );
+	}
+	return $span;
 }
+
 
 sub _file_phrase
 {

@@ -187,84 +187,83 @@ sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
 
-	my $query = $self->{session}->get_query();
+	my $form = $self->{session}->makeGetForm();
+
+	my $p = $self->{session}->make_element( "P" );
+
+	$form->appendChild( $p );
+
+	my $table = $self->{session}->make_element( "TABLE", border=>0 );
+
+	$p->appendChild( $table );
 	
 	my %shown_help;
-
-	my $html ="" ;
-
-	my $menu;
-
-	$html = $self->{session}->start_get_form();
-
-	$html .= "<P><TABLE BORDER=\"0\">\n";
-	
 	my $sf;
 	foreach $sf (@{$self->{searchfields}})
 	{
 		my $shelp = $sf->getHelp();
 		if( $help && !defined $shown_help{$shelp} )
 		{
-			$html .= "<TR><TD COLSPAN=\"2\">";
-			$html .= $shelp;
-			$html .= "</TD></TR>\n";
+			my $tr = $self->{session}->make_element( "TR" );
+			my $td = $self->{session}->make_element( "TD", colspan=>2 , class=>"searchfieldhelp" );
+			$tr->appendChild( $td );
+			$td->appendChild( $self->{session}->makeText( $shelp ) );
 			$shown_help{$shelp}=1;
+			$table->appendChild( $tr );
 		}
-		
-		$html .= "<TR><TD>$sf->{displayname}</TD><TD>";
-		$html .= $sf->toHTML();
-		$html .= "</TD></TR>\n";
 
-		$html .= "<TR><TD COLSPAN=\"2\">&nbsp;</TD></TR>\n";
+		my $tr = $self->{session}->make_element( "TR" );
+		my $td = $self->{session}->make_element( "TD" );
+		my $span = $self->{session}->make_element( "SPAN" , class=>"searchfieldname" );
+		$span->appendChild( $self->{session}->makeText( $sf->getDisplayName ) );
+		$td->appendChild( $span );
+		$tr->appendChild( $td );
+		$td = $self->{session}->make_element( "TD" );
+		$td->appendChild( $sf->toHTML );
+		$tr->appendChild( $td );
+		$table->appendChild( $tr );
 	}
-	
-	$html .= "</TABLE></P>\n";
+
+	my $menu;
 
 	if( $show_anyall )
 	{
-		$menu = $query->popup_menu(
-			-name=>"_satisfyall",
-			-values=>[ "ALL", "ANY" ],
-			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
+		$menu = $self->{session}->make_option_list(
+			name=>"_satisfyall",
+			values=>[ "ALL", "ANY" ],
+			default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => $self->{session}->phrase("all"),
-				   "ANY" => $self->{session}->phrase("any") } );
-		$html .= "<P>";
-		$html .= $self->{session}->phrase( "must_fulfill", { anyall=>$menu } );
-		$html .= "</P>\n";
+			labels=>{ "ALL" => $self->{session}->phrase("all"),
+				  "ANY" => $self->{session}->phrase("any") } );
+
+		my $p = $self->{session}->make_element( "P" );
+		$p->appendChild( 
+			$self->{session}->html_phrase( "must_fulfill",  anyall=>$menu ) );
+		$form->appendChild( $p );	
 	}
 
-
-			print STDERR "zz".$self->{dataset}->toString() ;
-print STDERR $self->{session}->getSite()."!!\n";
-	print STDERR ">>>".$self->{session}->getSite()->getConf(
-			"order_methods",
-			$self->{dataset}->confid() )."\n";
 	my @tags = keys %{$self->{session}->getSite()->getConf(
 			"order_methods",
 			$self->{dataset}->confid() )};
-print STDERR "foo\n";
-	$menu = $query->popup_menu(
-		-name=>"_order",
-		-values=>\@tags,
-		-default=>$self->{order},
-		-labels=>$self->{session}->get_order_names( 
+	$menu = $self->{session}->make_option_list(
+		name=>"_order",
+		values=>\@tags,
+		default=>$self->{order},
+		labels=>$self->{session}->get_order_names( 
 						$self->{dataset} ) );
-	$html .= "<P>";
-	$html .= $self->{session}->phrase( 
-			"order_results", 
-			{ ordermenu=>$menu } );
-	$html .= "</P>\n";
-	$html .= "<P>";
-	$html .= $self->{session}->make_submit_buttons( 
+
+	$p = $self->{session}->make_element( "P" );
+	$p->appendChild( 
+		$self->{session}->html_phrase( "order_results", ordermenu=>$menu  ) );
+	$form->appendChild( $p );	
+
+	$p = $self->{session}->make_element( "P" );	
+	$p->appendChild( $self->{session}->make_submit_buttons( 
 		$self->{session}->phrase("action_search"), 
-		$self->{session}->phrase("action_reset") )->toString();
-	$html .= "</P>\n";
+		$self->{session}->phrase("action_reset") ) );
+	$form->appendChild( $p );	
 
-	$html .= $self->{session}->end_form();
-
-
-	return( $html );
+	return( $form );
 }
 
 
@@ -518,8 +517,7 @@ sub process_webpage
 	#  b) if there are search parameters but we have no value for "submit"
 	#     (i.e. the search is a direct GET from somewhere else)
 	if( ( defined $submit_button && $submit_button eq $self->{session}->phrase("action_search") ) || 
-	    ( !defined $submit_button &&
-	      $self->{session}->have_parameters() ) )
+	    ( !defined $submit_button && $self->{session}->have_parameters() ) )
 	{
 		# We need to do a search
 		my $problems = $self->from_form();
@@ -602,7 +600,7 @@ sub process_webpage
 		foreach (@results)
 		{
 			print "<P>\n";
-			print $_->toHTML();
+			print $_->toHTML->toString;
 			print "</P>\n";
 		}
 			
@@ -641,26 +639,18 @@ print "---------<BR>\n";
 		return;
 	}
 	
-	if( defined $submit_button && $submit_button eq $self->{session}->phrase("action_update") )
+	if( defined $submit_button && 
+		$submit_button eq $self->{session}->phrase("action_update") )
 	{
 		$self->from_form();
-
-		print $self->{session}->start_html( $title );
-		print $preamble;
-
-		print $self->render_search_form( $self );
-
-		print $self->{session}->end_html();
-		return;
 	}
 
 	# Just print the form...
-	print $self->{session}->start_html( $title );
-	print $preamble;
+	my $page = $self->{session}->make_element( "DIV" );
+	$page->appendChild( $preamble );
+	$page->appendChild( $self->render_search_form( 1 ) );
 
-	print $self->render_search_form( $self );
-
-	print $self->{session}->end_html();
+	$self->{session}->printPage( $title, $page );
 }
 
 sub _render_problems
