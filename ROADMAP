@@ -182,9 +182,21 @@
 # NR: Email Change
 # clean up comments
 # clean up metadata (inc. boolean rendering):q
-# tidy up VLit
+# clean up later-in-thread
 
 # Xhtml docs: [gui]
 
-# todo: TTTTTttttbbbbbmg
+# todo: TTTTttttbbbbbmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 
+
+# HOW-TOS
+# produce DOM.
+# add a field
+# add a type
+# remove a field
+# remove a type
+# add an OAI format
+# add a usertype
+# make latexy magic happen
+# adding a document type
+# adding a complex browse view.

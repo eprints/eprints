@@ -32,9 +32,10 @@ sub handler
 
 	my $q = new CGI;
 
-	my $locspec = $q->param( "locSpec" );
+	my $version = $q->param( "xuversion" );
+	my $locspec = $q->param( "locspec" );
 
-	if( !defined $locspec && !defined $q->param( "mode" ) )
+	if( !defined $version && !defined $q->param( "mode" ) )
 	{
 		# We don't need to handle it, just do this 
 		# the normal way.
@@ -43,17 +44,17 @@ sub handler
 
 	if( !defined $locspec )
 	{
-		$locspec = "byterange:";
+		$locspec = "charrange:";
 	}
 
 	my $LSMAP = {
 "area" => \&ls_area,
-"byterange" => \&ls_byterange
+"charrange" => \&ls_charrange
 };
 
 	unless( $locspec =~ m/^([a-z]+):(.*)$/ )
 	{
-		send_http_error( 404, "Bad LocSpec" );
+		send_http_error( 404, "Bad locspec \"$locspec\"" );
 		return;
 	}
 
@@ -63,7 +64,7 @@ sub handler
 
 	if( !defined $fn )
 	{
-		send_http_error( 404, "Unsupported LocSpec" );
+		send_http_error( 404, "Unsupported locspec" );
 		return;
 	}
 
@@ -105,7 +106,7 @@ sub send_http_header
 
 ####################
 
-sub ls_byterange
+sub ls_charrange
 {
 	my( $filename, $param, $locspec ) = @_;
 
@@ -121,7 +122,7 @@ sub ls_byterange
 	{	
 		unless( $param=~m/^(\d+)\/(\d+)$/ )
 		{
-			send_http_error( 404, "Malformed byterange param: $param" );
+			send_http_error( 404, "Malformed charrange param: $param" );
 			return;
 		}
 		( $offset, $length ) = ( $1, $2 );
@@ -152,12 +153,12 @@ sub ls_byterange
 			$c = '<br />' if( $c eq "\n" );
 			if( $mode eq 'spanSelect' )
 			{ 
-				my $url = $baseurl.'?locSpec=byterange:'.($offset+$o)."/".($length-$o).'&mode=endSelect';
+				my $url = $baseurl.'?locspec=charrange:'.($offset+$o)."/".($length-$o).'&mode=endSelect';
 				$c ='<a href="'.$url.'">'.$c.'</a>';
 			}
 			if( $mode eq 'endSelect' )
 			{ 
-				my $url = $baseurl.'?locSpec=byterange:'.($offset)."/".($o+1).'&mode=link';
+				my $url = $baseurl.'?locspec=charrange:'.($offset)."/".($o+1).'&mode=link';
 				$c ='<a href="'.$url.'">'.$c.'</a>';
 			}
 			$html.=$c;
@@ -183,11 +184,11 @@ sub ls_byterange
 		my $title = "Byterange from: resspec (from $offset, length $length)";
 		if( $mode eq 'link' )
 		{
-			my $url = $baseurl.'?locSpec=byterange:'.($offset)."/".($length);
+			my $url = $baseurl.'?locspec=charrange:'.($offset)."/".($length);
 			my $urlh = $url.'&mode=human';
 			$msg=<<END;
 <p><b>$title</b></p>
-<p>Raw byte quote: <a href="$url">$url</a></p>
+<p>Raw char quote: <a href="$url">$url</a></p>
 <p>Human readable (HTML): <a href="$urlh">$urlh</a></p>
 <hr noshade="noshade">
 END

@@ -325,3 +325,9 @@ again.
 - removed uses of the word "paper(s)" to keep the text more generic.
 - cleaned up 2 errors in the CSS
 - renamed setlang to set_lang and internationalised it.
+
+[c] - removed "nowrapper" opt from views conf: now does no <p> wrapper round
+citations if using custom citation.
+- VLit stuff now uses charrange rather than byterange and requires "xuversion"
+to be set.
+

@@ -165,7 +165,7 @@
     <ep:phrase ref="user_fieldname_os">Operating System</ep:phrase>
     <ep:phrase ref="user_fieldhelp_os"></ep:phrase>
     <ep:phrase ref="user_fieldopt_os_unspec">Unspecified</ep:phrase>
-    <ep:phrase ref="user_fieldopt_os_win9x">Windows/DOS</ep:phrase>
+    <ep:phrase ref="user_fieldopt_os_win">Windows/DOS</ep:phrase>
     <ep:phrase ref="user_fieldopt_os_unix">UNIX</ep:phrase>
     <ep:phrase ref="user_fieldopt_os_vms">VMS</ep:phrase>
     <ep:phrase ref="user_fieldopt_os_mac">Macintosh</ep:phrase>

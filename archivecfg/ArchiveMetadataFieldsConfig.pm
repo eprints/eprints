@@ -57,7 +57,7 @@ $fields->{user} = [
 	{ name => "hideemail", type => "boolean" },
 
 	{ name => "os", type => "set",
-		options => [ "unspec", "win9x", "unix", "vms", "mac", "other" ] },
+		options => [ "unspec", "win", "unix", "vms", "mac", "other" ] },
 
 	{ name => "url", type => "url" }
 

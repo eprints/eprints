@@ -2,7 +2,7 @@ EPRINTSBASE/
 	MANIFEST
 	template/
 		cfg/
-			Config.pm
+			ArchiveConfig.pm
 			<?>.xml
 		phrases/
 			<lang>.xml
@@ -13,10 +13,13 @@ EPRINTSBASE/
 	archives/
 		<myarchive>/
 			cfg/
-				Config.pm
-				user-apache.conf
+				ArchiveConfig.pm
+				apache.conf
+				auto-apache.conf
 				template-<lang>.xml
 				citations-<lang>.xml
+				phrases-<lang>.xml
+				DTD's
 			documents/
 				<disk>/<nn>/<nn>/<nn>/<nn>/<format>/
 					.
@@ -28,8 +31,6 @@ EPRINTSBASE/
 					archive/<nn>/<nn>/<nn>/<nn>/
 						index.html
 						<SYMLINKS TO FORMATS>
-			phrases/
-				<lang>.xml
 			static/
 				general/
 					.
@@ -39,9 +40,6 @@ EPRINTSBASE/
 					.
 					.
 					.
-			sys/
-				system-apache.conf
-				DTD's
 	bin/
 		create_databases
 		create_user
@@ -63,6 +61,7 @@ EPRINTSBASE/
 		system-apache.conf
 		archives-apache.conf
 		user-apache.conf
+		<lang>.xml
 		??
 
 	cgi/
@@ -122,6 +121,4 @@ EPRINTSBASE/
 			<SYMLINKS> -> Config.pm's
 			General.pm <DOOMED>
 
-	system-phrases/
-		<lang>.xml
 

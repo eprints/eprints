@@ -264,7 +264,7 @@ sub make_view_pages
 			if( $info->{dom} )
 			{
 				my $cite = $item->render_citation_link( $info->{citation} );
-				unless( $info->{nowrapper} )
+				unless( defined $info->{citation} )
 				{
 					my $p = $session->make_element( "p" );
 					$p->appendChild( $cite );
