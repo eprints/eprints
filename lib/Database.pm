@@ -216,7 +216,6 @@ sub _create_table
 
 	my $keyfield = $dataset->getKeyField()->clone;
 
-	$keyfield->{indexed} = 1;
 	my $fieldword = EPrints::MetaField->new( 
 		undef,
 		{ 
@@ -259,7 +258,7 @@ sub _create_table_aux
 	# Iterate through the columns
 	foreach $field (@fields)
 	{
-		if ( $field->get_property( "multiple ") )
+		if ( $field->get_property( "multiple" ) )
 		{ 	
 			# make an aux. table for a multiple field
 			# which will contain the same type as the
@@ -271,7 +270,6 @@ sub _create_table_aux
 			my $auxfield = $field->clone;
 			$auxfield->set_property( "multiple", 0 );
 			my $keyfield = $dataset->getKeyField->clone;
-			$keyfield->set_property( "indexed", 1 );
 			my $pos = EPrints::MetaField->new( 
 				undef,
 				{ 
@@ -302,10 +300,14 @@ sub _create_table_aux
 			$key = $field;
 			$notnull = 1;
 		}
-		elsif( $field->get_property( "indexed" ) )
+		else
 		{
-			$notnull = 1;
-			push @indices, $field->getSQLIndex;
+			my( $index ) = $field->getSQLIndex;
+			if( defined $index )
+			{
+				$notnull = 1;
+				push @indices, $index;
+			}
 		}
 		$sql .= $field->getSQLType( $notnull );
 

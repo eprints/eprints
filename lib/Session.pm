@@ -1083,8 +1083,27 @@ sub seen_form
 sub internal_button_pressed
 {
 	my( $self ) = @_;
-	
-        return( defined $self->{query}->param( '_internal' ) );
+
+	# Have not yet worked this out?
+	if( !defined $self->{internalbuttonpressed} )
+	{
+		my $p;
+		# $p = string
+		
+		$self->{internalbuttonpressed} = 0;
+
+		foreach $p ( $self->param() )
+		{
+			if( $p =~ m/^_internal/ )
+			{
+				$self->{internalbuttonpressed} = 1;
+				last;
+			}
+
+		}	
+	}
+
+	return $self->{internalbuttonpressed};
 }
 
 ######################################################################
@@ -1184,7 +1203,7 @@ sub render_form_field
 		$div->appendChild( 
 			$self->make_text( $field->display_name( $self ) ) );
 
-		if( $field->get_property( "required ") && !$field->is_type( "boolean" ) )
+		if( $field->get_property( "required" ) && !$field->is_type( "boolean" ) )
 		{
 			$span = $self->make_element( 
 					"span", 

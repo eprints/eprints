@@ -52,7 +52,7 @@ my %TYPE_INDEX =
 	boolean    => "INDEX(\$(name))",
  	set        => "INDEX(\$(name))",
  	text       => "INDEX(\$(name))",
- 	longtext   => "INDEX(\$(name))",
+ 	longtext   => undef,
  	url        => "INDEX(\$(name))",
  	email      => "INDEX(\$(name))",
  	subject    => "INDEX(\$(name))",
@@ -63,6 +63,23 @@ my %TYPE_INDEX =
  	name       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
+# list of legal properties used to check
+# get & set property.
+
+#cjg MAYBE this could be the defaults? not just =>1
+
+my $PROPERTIES = {
+	name => 1,
+	type => 1,
+	required => 1,
+	editable => 1,
+	multiple => 1,
+	datasetid => 1,
+	displaylines => 1,
+	digits => 1,
+	options => 1,
+	maxlength => 1,
+	showall => 1 };
 
 ######################################################################
 #
@@ -74,7 +91,6 @@ my %TYPE_INDEX =
 # required # default = no
 # editable # default = no
 # multiple # default = no
-# tableid # for help & name 
 # 
 # displaylines   # for longtext and set (int)   # default = 5
 # digits  # for int  (int)   # default = 20
@@ -307,6 +323,11 @@ sub get_type
 sub set_property
 {
 	my( $self , $property , $value , $default ) = @_;
+
+	if( !defined $PROPERTIES->{$property})
+	{
+		die "BAD METAFIELD get_property NAME: \"$property\"";
+	}
 	
 	$self->{$property} = ( defined $value ? $value : $default );
 }
@@ -314,6 +335,12 @@ sub set_property
 sub get_property
 {
 	my( $self, $property ) = @_;
+
+	if( !defined $PROPERTIES->{$property})
+	{
+		die "BAD METAFIELD set_property NAME: \"$property\"";
+	}
+
 	return( $self->{$property} ); 
 } 
 
@@ -597,8 +624,7 @@ sub render_input_field
 		if( $session->internal_button_pressed() )
 		{
 			$boxcount = $session->param( $spacesid );
-			if( $session->param( "_internal" ) eq  
-				$session->phrase( "more_spaces" ) )
+			if( defined $session->param( "_internal_".$self->{name}."_morespaces" ) )
 			{
 				$boxcount += 2;
 			}
@@ -619,7 +645,7 @@ sub render_input_field
 				$more->appendChild( $session->make_element(
 					"input",
 					type => "submit",
-					name => "_internal",
+					name => "_internal_".$self->{name}."_morespaces",
 					value => $session->phrase( 
 							"more_spaces" ) ) );
 			}
@@ -924,10 +950,8 @@ sub form_value
 		{
 			return \@values;
 		}
-		else
-		{
-			$values[0];
-		}
+	
+		return $values[0];
 	}
 
 	if( $self->get_property( "multiple" ) )
@@ -961,7 +985,7 @@ sub _form_value_aux
 	my $id_suffix = "";
 	$id_suffix = "_$n" if( defined $n );
 
-	if( $self->is_type( "text", "username", "url", "int", "email" ) )
+	if( $self->is_type( "text", "username", "url", "int", "email", "longtext" ) )
 	{
 		my $value = $session->param( $self->{name} );
 		return undef if( $value eq "" );
