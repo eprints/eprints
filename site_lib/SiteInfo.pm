@@ -369,6 +369,11 @@ $EPrintSite::SiteInfo::diskspace_warn_threshold = 102400;
 	"TARGZ"
 );
 
+
+# Executables for unzip and wget
+$EPrintSite::SiteInfo::unzip_executable = "unzip";
+$EPrintSite::SiteInfo::wget_executable = "wget";
+
 # Command lines to execute to extract files from each type of archive.
 # Note that archive extraction programs should not ever do any prompting,
 # and should be SILENT whatever the error.  _DIR_ will be replaced with the 
@@ -378,7 +383,7 @@ $EPrintSite::SiteInfo::diskspace_warn_threshold = 102400;
 # if everything went OK, non-zero in the case of any error.
 %EPrintSite::SiteInfo::archive_extraction_commands =
 (
-	"ZIP"   => "/usr/bin/unzip 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
+	"ZIP"   => "$EPrintSite::SiteInfo::unzip_executable 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
 	"TARGZ" => "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
 );
 
@@ -404,7 +409,7 @@ $EPrintSite::SiteInfo::diskspace_warn_threshold = 102400;
 #  - start grabbing at _URL_
 #
 $EPrintSite::SiteInfo::wget_command =
-	"wget -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=_CUTDIRS_ _URL_";
+	"$EPrintSite::SiteInfo::wget_executable -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=_CUTDIRS_ _URL_";
 
 
 ######################################################################
@@ -414,7 +419,9 @@ $EPrintSite::SiteInfo::wget_command =
 ######################################################################
 
 # Command for sending mail
-$EPrintSite::SiteInfo::sendmail = "/usr/lib/sendmail -oi -t -odb";
+$EPrintSite::SiteInfo::sendmail_executable = "/usr/sbin/sendmail";
+$EPrintSite::SiteInfo::sendmail =
+	"$EPrintSite::SiteInfo::sendmail_executable -oi -t -odb";
 
 # Database information: Since we hold the password here unencrypted, this
 # file should have suitable strict read permissions
