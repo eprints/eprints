@@ -1,7 +1,7 @@
 *	Pre-Alpha - ie. You can't install it without a telepathic connection to Chris. [YOU ARE HERE]
 
-2	Distribution Installer
-2	Distribution creator ( needs to pick up new location of phrase files and pick the latest stable versions - mike? )
+3	Distribution Installer
+3	Distribution Creator
 3	"Create New Archive" Script
 -	Tool to manage XML Phrase files and spot missing bits.
 -	Tool to manage XML Template files
