@@ -448,12 +448,83 @@ sub state_from_string
 }
 
 
+sub perform_search2
+{
+	my( $self ) = @_;
 
+	my $matches = [];
+	my $firstpass = 1;
+	$self->{ignoredwords} = [];
+	$self->{error} = undef;
+	my @searchon = ();
+	my $search_field;
+	foreach $search_field ( @{$self->{searchfields}} )
+	{
+		if ( EPrints::Utils::is_set( $search_field->get_value() ) )
+		{
+			push @searchon , $search_field;
+		}
+	}
+	foreach $search_field ( @searchon )
+	{
+		print STDERR "(PASS)\n";
+		my ( $results , $badwords , $error) = $search_field->do2();
+	
+		if( defined $error )
+		{
+			$self->{tmptable} = undef;
+			$self->{error} = $error;
+			return;
+		}
+
+		if( defined $badwords )
+		{
+			push @{$self->{ignoredwords}},@{$badwords};
+		}
+		if( $firstpass )
+		{
+			$matches = $results;
+		}
+		else
+		{
+print STDERR "MERGER: ".$self->{satisfy_all} ."\n";
+print STDERR "A = (".join(",",@{$matches}).")\n";
+print STDERR "B = (".join(",",@{$results}).")\n";
+			$matches = &_merge( $matches, $results, $self->{satisfy_all} );
+print STDERR "C = (".join(",",@{$matches}).")\n";
+		}
+
+		$firstpass = 0;
+	}
+print STDERR "MATCHES = (".join(",",@{$matches}).")\n";
+	$self->{tmptable} = $self->{session}->get_db()->make_buffer( $self->{dataset}->get_key_field()->get_name(), $matches );
+}
+
+sub _merge
+{
+	my( $a, $b, $and ) = @_;
+
+	my @c;
+	if ($and) {
+		my (%MARK);
+		grep($MARK{$_}++,@{$a});
+		@c = grep($MARK{$_},@{$b});
+	} else {
+		my (%MARK);
+		foreach(@{$a}, @{$b}) {
+			$MARK{$_}++;
+		}
+		@c = keys %MARK;
+	}
+	return \@c;
+}
 
 ## WP1: BAD
 sub perform_search 
 {
 	my ( $self ) = @_;
+
+	return $self->perform_search2;
 
 	my @searchon = ();
 	my $search_field;
@@ -491,6 +562,7 @@ print STDERR "SearchExpression perform_search debug: ".(defined $buffer?$buffer:
 				$self->{error} = $error;
 				return;
 			}
+
 			if( defined $badwords )
 			{
 				push @{$self->{ignoredwords}},@{$badwords};
@@ -634,7 +706,7 @@ sub process_webpage
 			$page->appendChild( 
 				$self->{session}->html_phrase( 
 							"lib/searchexpression:too_many", 
-							n=>$MAX ) );
+							n=>$self->{session}->make_text( $MAX ) ) );
 		}
 	
 		my $p = $self->{session}->make_element( "p" );

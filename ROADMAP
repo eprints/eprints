@@ -57,7 +57,7 @@
 0	Multiple Skins (So we can make a subset of papers appear on a different site). Maybe this is just a clever script.
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
-4	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm 
+4	Create a Utils.pm method with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
 0	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 0	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).

@@ -92,7 +92,7 @@ if( !defined $_ )
 {
 	EPrints::Session::bomb();
 }
-			push @fieldnames, $_->get_name();
+			push @fieldnames, $_->get_sql_name();
 			push @displaynames, $_->display_name( $self->{session} );
 		}
 	
@@ -107,6 +107,10 @@ if( !defined $field ) { &EPrints::Session::bomb; }
 
 		$self->{displayname} = $field->display_name( $self->{session} );
 		$self->{formname} = $field->get_name();
+	}
+	if( $self->{field}->get_property( "hasid" ) )
+	{
+		$self->{field} = $self->{field}->get_main_field();
 	}
 	
 
@@ -269,6 +273,8 @@ sub from_form
 sub get_conditions 
 {
 	my ( $self , $benchmarking ) = @_;
+
+print STDERR "Hi*************\n";
 
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
@@ -448,7 +454,7 @@ sub get_conditions
 		if ( $self->{anyall} eq "PHR" ) 
 		{
 			# PHRASES HAVE SPECIAL HANDLING!
-
+			# cjg WHICH IS BROKEN!
 			# If we want an exact match just return records which exactly
 			# match this phrase.
 
@@ -519,7 +525,7 @@ sub get_conditions
 		{
 			if( $self->{match} eq "IN" )
 			{
-				$_ = "$self->{field}->{name}:$_";
+				$_ = $self->{field}->get_sql_name().":$_";
 			}
 			$_ = EPrints::Database::prep_value( $_ );
 			push @where, "__FIELDNAME__ = '$_'";
@@ -534,20 +540,21 @@ sub get_conditions
 ## WP1: BAD
 sub _get_conditions_aux
 {
+print STDERR "ack\n";
 	my ( $self , $wheres , $freetext ) = @_;
 	my $searchtable = $self->{dataset}->get_sql_table_name();
 	if ($self->{field}->{multiple}) 
 	{	
 		$searchtable= $self->{dataset}->get_sql_sub_table_name( $self->{field} );
-#print STDERR "ack\n";
 	}	
 	if( $freetext )
 	{
 		$searchtable= $self->{dataset}->get_sql_index_table_name();
 #print STDERR "ock\n";
 	}
+	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_sql_name() );
 
-	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_name() );
+print STDERR "__$fieldname\n".Dumper( $self->{field}->{data} );
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done
@@ -659,6 +666,60 @@ sub _get_tables_searches
 		if( defined $bad ) { push @badwords, @{$bad}; }
 	}
 	return (\@tables, \%searches, \@badwords);
+}
+
+sub do2
+{
+	my ( $self ) = @_;
+
+	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
+	print STDERR "-----------\n";
+use Data::Dumper;
+	print STDERR Dumper( $sfields, $searches, $badwords, $error )."\n";
+
+	my $n = scalar @{$searches->{$sfields->[0]}};
+	
+	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
+	# (phrases subsearches are always AND'd)
+
+	my $results = [];
+	my $firstpass = 1;
+
+        my $keyfield = $self->{dataset}->get_key_field();
+	my $i;
+	for( $i=0 ; $i<$n ; ++$i )
+	{
+		my $bitresults = [];
+		my $tablename;
+		foreach $tablename ( @{$sfields} )
+		{
+			my $tname = $tablename;
+			my $where = $searches->{$tablename}->[$i];
+			print STDERR "($i)($where)($tablename)\n";
+
+			# Tables have a colon and fieldname after them
+			# to make sure references to different fields are
+			# still kept seperate. But we don't want to pass
+			# this to the SQL.
+			$tname =~ s/:.*//;
+	
+			my $tlist = { "M"=>$tname };
+	
+			$bitresults = EPrints::SearchExpression::_merge( $self->{session}->{database}->search( $keyfield, $tlist, $where ), $bitresults, 0 );
+			print STDERR "(".join(",",@{$bitresults}).")\n";
+		}
+		if( $firstpass )
+		{
+			$results = $bitresults;
+		}	
+		else
+		{
+			$results = EPrints::SearchExpression::_merge( $bitresults, $results, ( $self->{anyall} ne "ANY" ) );
+		}
+		$firstpass = 0;
+	}
+
+	return $results;
 }
 
 ## WP1: BAD

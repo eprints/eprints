@@ -23,7 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-my $DEBUG_SQL = 0;
+my $DEBUG_SQL = 1;
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -872,6 +872,21 @@ sub create_buffer
 	return $tmptable;
 }
 
+sub make_buffer
+{
+	my( $self, $keyname, $data ) = @_;
+
+	my $id = $self->create_buffer( $keyname );
+
+	$sth = $self->prepare( "INSERT INTO $id VALUES (?)" );
+	foreach( @{$data} )
+	{
+		$sth->execute( $_ );
+	}
+
+	return $id;
+}
+
 # Loop through known temporary tables, and remove them.
 sub garbage_collect
 {
@@ -911,6 +926,22 @@ sub _make_select
 	}
 
 	return $sql;
+}
+
+sub search
+{
+#cjg iffy params
+	my( $self, $keyfield, $tables, $conditions ) = @_;
+	
+	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
+
+	my $results;
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+	while( @info = $sth->fetchrow_array ) {
+		push @{$results}, $info[0];
+	}
+	return( $results );
 }
 
 ## WP1: BAD
