@@ -34,10 +34,10 @@ $EPrints::Database::dsn = $EPrints::Database::driver.
 if (defined $EPrintSite::SiteInfo::database_host)
 {
 	$EPrints::Database::dsn.= ";host=".$EPrintSite::SiteInfo::database_host;
- }
+}
 if (defined $EPrintSite::SiteInfo::database_port)
 {
-$	EPrints::Database::dsn.= ";port=".$EPrintSite::SiteInfo::database_port;
+	$EPrints::Database::dsn.= ";port=".$EPrintSite::SiteInfo::database_port;
 }
 
 #
