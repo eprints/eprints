@@ -39,6 +39,7 @@ my $REGEXP_HOSTNAME_FULL = '^[a-z0-9]+(\.[a-z0-9]+)+$';
 my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
 my $REGEXP_YESNO = '^(yes|no)$';
+my $REGEXP_ANY = '^.*$';
 
 my %config = ();
 
@@ -405,12 +406,21 @@ if( $mkfiles eq "yes" )
 		$archivedir."/cfg",
 		$archiveid );
 
-	foreach( "html", "documents" )
+	foreach( "html", "documents", "documents/disk0" )
 	{
 		my $dir = $archivedir."/".$_;
 		mkdir( $dir, 0755 );
 		chown( $uid, $gid, $dir );
 	}
+	print <<END;
+Ok. I've created the initial config files and directory structure. 
+I've also created a "disk0" directory under documents/ if you want
+your full texts to be stored on a different partition then remove 
+the disk0, and create a symbolic link to the directory you wish to
+store the full texts in. Additional links may be placed here to be
+used when the first is full.
+END
+	EPrints::Utils::get_input( $REGEXP_ANY, "Hit return to continue", "" );
 }
 	
 	

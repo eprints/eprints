@@ -43,50 +43,6 @@ $EPrints::HTMLRender::add_boxes = 3;
 
 
 
-######################################################################
-#
-# new( $session, $offline)
-#
-#  Create an HTML Renderer. If $offline is true, won't try to read
-#  form values.
-#
-######################################################################
-
-## WP1: BAD
-sub new
-{
-	my( $class, $session, $offline, $query ) = @_;
-	
-	my $self = {};
-	bless $self, $class;
-
-	$self->{offline} = $offline;
-	$self->{query} = $query;
-
-	$self->{session} = $session;
-
-	return( $self );
-}
-
-
-
-######################################################################
-#
-# $url = absolute url()
-#
-#  Returns the absolute URL of the current script (no http:// or
-#  query string)
-#
-######################################################################
-
-## WP1: BAD
-sub absolute_url
-{
-	my( $self ) = @_;
-	
-	return( $self->{query}->url( -absolute=>1 ) );
-}
-
 
 
 

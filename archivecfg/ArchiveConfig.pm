@@ -1633,9 +1633,9 @@ sub validate_field
 {
 	my( $field, $value, $session, $for_archive ) = @_;
 
-	# CHECKS IN HERE
-
 	my @problems = ();
+
+	# CHECKS IN HERE
 
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
 	if( $field->is_type( "url" ) && defined $value && $value ne "" )
