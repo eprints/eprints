@@ -8,9 +8,16 @@ necessary for changing your subscription information.
 User ID:  __username__
 Password: __password__
 
+To create and edit your subscription, please visit this URL:
 
+__perlroot__/reader/subscribe
 
-Have your username and password ready when visiting the above site.
+If you wish to upgrade your account to an author account, please visit
+this URL:
+
+__perlroot__/reader/upgrade
+
+Have your username and password ready when visiting the above pages.
 
 This message was generated automatically by software. If you have any
 questions, then please feel free to E-mail a real person at:

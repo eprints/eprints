@@ -29,7 +29,7 @@ $EPrintSite::SiteInfo::admin = "rob\@soton.ac.uk";
 $EPrintSite::SiteInfo::local_root = "/opt/eprints";
 
 $EPrintSite::SiteInfo::server_static = "http://dibble.ecs.soton.ac.uk";
-$EPrintSite::SiteInfo::server_perl = "http://dibble.ecs.soton.ac.uk";
+$EPrintSite::SiteInfo::server_perl = "http://dibble.ecs.soton.ac.uk/cgi";
 $EPrintSite::SiteInfo::frontpage = "http://dibble.ecs.soton.ac.uk";
 
 $EPrintSite::SiteInfo::local_html_root = "$EPrintSite::SiteInfo::local_root/html";
@@ -278,9 +278,9 @@ $EPrintSite::SiteInfo::html_banner = "
 		      <BR>
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/search\">Search</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/reader/subscribe\">Subscribe</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/author/home\">Author\&nbsp;Area</A>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/reader/subscribe\">Subscribe</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">Author\&nbsp;Area</A>
           </td>
         </tr>
       </table>

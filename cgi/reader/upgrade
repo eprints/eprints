@@ -50,7 +50,7 @@ else
 }
 
 print "<CENTER><P>Please ".
-	"<A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/author/home\">visit your ".
+	"<A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">visit your ".
 	"author area</A> and fill out your author record.</P></CENTER>\n";
 
 print $session->{render}->end_html();

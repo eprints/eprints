@@ -481,7 +481,7 @@ sub process
 		my $body = "This mail contains your $freq subscription to ".
 			"$EPrintSite::SiteInfo::sitename.\n\nTo cancel, temporarily disable ".
 			"or alter your subscription, visit the following Web page:\n\n".
-			"$EPrintSite::SiteInfo::server_perl/cgi/reader/subscribe\n\n";
+			"$EPrintSite::SiteInfo::server_perl/reader/subscribe\n\n";
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";

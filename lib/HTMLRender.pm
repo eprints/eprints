@@ -1263,7 +1263,7 @@ sub render_user_name
 
 	my $html = "";
 	
-	$html = "<A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/staff/".
+	$html = "<A HREF=\"$EPrintSite::SiteInfo::server_perl/staff/".
 		"view_user?username=$user->{username}\">" if( $linked );
 
 	$html .= EPrintSite::SiteRoutines->user_display_name( $user );

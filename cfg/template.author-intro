@@ -11,7 +11,7 @@ Password: __password__
 Before you can start, you need to fill out some personal details into the
 form at the following web site:
 
-__perlroot__/cgi/author/record
+__perlroot__/author/record
 
 After you've successfully filled out that form, you can visit your user
 area. It is from there that you can upload and submit new papers, and
@@ -22,7 +22,7 @@ or monthly digest.
 
 Your author home area is at the following web site:
 
-__perlroot__/cgi/author/home
+__perlroot__/author/home
 
 Have your username and password ready when visiting either of the above
 sites.
