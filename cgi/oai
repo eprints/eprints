@@ -169,7 +169,12 @@ sub identify
 		EPrints::OpenArchives::to_utf8( "mailto:$EPrintSite::SiteInfo::admin" ) );
 
 	$writer->startTag( "description");
-	$writer->startTag( "oai-identifier", "xmlns"=>"http://www.openarchives.org/OAI/oai-identifier.xsd" );
+	$writer->startTag( "oai-identifier", 
+	                   "xmlns"=>"http://www.openarchives.org/OAI/oai-identifier",
+	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
+	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/oai-identifier ".
+	                                      http://www.openarchives.org/OAI/oai-identifier.xsd");
+
 	$writer->dataElement( "scheme", "oai" );
 	$writer->dataElement( "repositoryIdentifier",
 	                      $EPrintSite::SiteInfo::archive_identifier );
@@ -180,7 +185,11 @@ sub identify
 	$writer->endTag( "description");
 
 	$writer->startTag( "description");
-	$writer->startTag( "eprints", "xmlns"=>"http://www.openarchives.org/OAI/eprints.xsd" );
+	$writer->startTag( "eprints", 
+	                   "xmlns"=>"http://www.openarchives.org/OAI/eprints",
+	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
+	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/eprints ".
+	                                      http://www.openarchives.org/OAI/eprints.xsd");
 
 	write_TextURL( $writer, 
                           "content", 
@@ -570,7 +579,7 @@ sub start_response
 	}
 	$r->send_http_header;
 
-	# Namespaces for each of the verb's responses
+	# Namespaces and Schemas
 	my %verb_schemas =
 	(
 		"GetRecord" => "http://www.openarchives.org/OAI/1.0/OAI_GetRecord.xsd",
@@ -609,7 +618,7 @@ sub start_response
 	$writer->startTag( $verb, 
 	                   "xmlns"=>$verb_namespaces{$verb},
 	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
-	                   "xsi:schemaLocation"=>$verb_schemas{$verb} );
+	                   "xsi:schemaLocation"=>$verb_namespaces{$verb}." ".$verb_schemas{$verb} );
 	
 	$writer->dataElement( "responseDate",
 	                      EPrints::OpenArchives::full_timestamp() );

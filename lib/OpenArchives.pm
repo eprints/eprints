@@ -128,6 +128,7 @@ sub write_record
 	                                            $eprint->{eprintid},
 	                                            $eprint->{datestamp} );
 
+
 	# Get the metadata
 	my $metadata = EPrints::OpenArchives::get_eprint_metadata(
 		$eprint,
@@ -138,12 +139,19 @@ sub write_record
 		# Write the metadata
 		$writer->startTag( "metadata" );
 
-		$writer->startTag( $metadataFormat, 
-			"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat} );
+		my $tag = $metadataFormat;
+		$tag =~ s/^oai_//;
+
+		$writer->startTag( $tag, 
+			"xmlns" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat},
+			"xmlns:xsi" => "http://www.w3.org/2000/10/XMLSchema-instance",
+			"xsi:schemaLocation" => $EPrintSite::SiteInfo::oai_metadata_formats{$metadataFormat}.
+			                        " ".
+			                        $EPrintSite::SiteInfo::oai_metadata_schemas{$metadataFormat} );
 		
 		_write_record_aux( $writer, $metadata );
 
-		$writer->endTag( $metadataFormat );
+		$writer->endTag( $tag );
 		
 		$writer->endTag( "metadata" );
 	}
