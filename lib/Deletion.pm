@@ -147,7 +147,7 @@ sub add_deletion_record
 
 	# Replacement is last in thread
 	my $last_in_thread = $eprint->last_in_thread(
-		$session->{metainfo}->find_eprint_field( "succeeds" ) );
+		$session->{metainfo}->find_table_field( "eprint", "succeeds" ) );
 	
 	my $replacement = $last_in_thread->{eprintid};
 	

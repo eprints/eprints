@@ -49,7 +49,7 @@ if( $session->{render}->seen_form() )
 		{
 			$session->{render}->render_error(
 				$session->{lang}->phrase( "H:mk_acc_err" ),
-				"$EPrintSite::SiteInfo::server_static/staff",
+				"$session->{site}->{server_static}/staff",
 				$session->{lang}->phrase( "H:staff_area" ) );
 		}
 	}

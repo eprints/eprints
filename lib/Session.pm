@@ -71,7 +71,7 @@ sub new
 					$self->{query}->url() );
 		if( !defined $self->{site} )
 		{
-			die "Can't load config for URL: $self->{query}->url()";
+			die "Can't load config for URL: ".$self->{query}->url();
 		}
 	}
 	elsif( $mode == 1 )
@@ -151,8 +151,8 @@ sub failure
 	my( $self, $problem ) = @_;
 	
 	$self->{render}->render_error( $problem,
-	                               $EPrintSite::SiteInfo::frontpage,
-	                               $EPrintSite::SiteInfo::sitename );
+	                               $self->{site}->{frontpage},
+	                               $self->{site}->{sitename} );
 }
 
 
@@ -196,6 +196,7 @@ sub mail_administrator
 	$message_body .= "\n\n$message\n";
 
 	EPrints::Mailer::send_mail(
+		$self,
 		EPrints::Language::logphrase( "site_admin" ),
 		$EPrintSite::SiteInfo::admin,
 		$subject,

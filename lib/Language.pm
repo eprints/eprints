@@ -129,8 +129,6 @@ sub phrase
 
 	my @callinfo = caller();
 	$callinfo[1] =~ m#[^/]+$#;
-if (defined $inserts && ref($inserts) ne "HASH"){die "AGRH: $phraseid : ".join(" | ",@callinfo); }
-print STDERR "LANG: $&; $phraseid; ".(defined $inserts ? join(",",%{$inserts}): "NO INSERTS")."\n";
 	return $self->file_phase( $& , $phraseid , $inserts );
 }
 

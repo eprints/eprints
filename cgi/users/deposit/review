@@ -32,7 +32,7 @@ if( !defined $user )
 	# Can't find the user
 	$session->{render}->render_error( 
 		$session->{lang}->phrase( "H:dont_know_you" ),
-	      	$EPrintSite::SiteInfo::frontpage );
+	      	$session->{site}->{frontpage},
 	$session->terminate();
 	Apache::exit( 0 );
 }

@@ -512,8 +512,8 @@ sub from_stage_linking
 	}
 
 	# Update the values
-	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 
 	$self->{eprint}->{succeeds} =
 		$self->{session}->{render}->form_value( $succeeds_field );
@@ -1064,8 +1064,8 @@ sub do_stage_linking
 	
 	$self->list_problems();
 
-	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 
 	print $self->{session}->{render}->start_form();
 	
@@ -1491,8 +1491,8 @@ sub do_stage_verify
 	
 		print "<HR>\n";
 
-		print $EPrintSite::SiteInfo::deposit_agreement_text."\n"
-			if( defined $EPrintSite::SiteInfo::deposit_agreement_text );
+		print $self->{session}->{site}->{deposit_agreement_text}."\n"
+			if( defined $self->{session}->{site}->{deposit_agreement_text} );
 
 		print "<P><CENTER>";
 		print $self->{session}->{render}->submit_buttons(
@@ -1682,7 +1682,7 @@ sub render_type_form
 {
 	my( $self, $submit_buttons, $hidden_fields ) = @_;
 	
-	my $field = $self->{session}->{metainfo}->find_eprint_field( "type" );
+	my $field = $self->{session}->{metainfo}->find_table_field( "eprint", "type" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 	
@@ -1722,7 +1722,7 @@ sub update_from_type_form
 	}
 	else
 	{
-		my $field = $self->{session}->{metainfo}->find_eprint_field( "type" );
+		my $field = $self->{session}->{metainfo}->find_table_field( "eprint", "type" );
 
 		$self->{eprint}->{type} =
 			$self->{session}->{render}->form_value( $field );
@@ -1746,7 +1746,8 @@ sub render_meta_form
 	
 	my @edit_fields;
 	my $field;
-	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
+	my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+		"eprint",
 		$self->{eprint}->{type} );
 	
 	# Get the appropriate fields
@@ -1824,9 +1825,9 @@ sub render_subject_form
 
 	my @edit_fields;
 
-	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "subjects" );
-	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "additional" );
-	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "reasons" );
+	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "subjects" );
+	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "additional" );
+	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
@@ -1855,7 +1856,7 @@ sub render_users_form
 
 	my @edit_fields;
 
-	push @edit_fields, $self->{session}->{metainfo}->find_eprint_field( "usernames" );
+	push @edit_fields, $self->{session}->{metainfo}->find_table_field( "eprint", "usernames" );
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
@@ -1894,7 +1895,8 @@ sub update_from_subject_form
 	}
 	else
 	{
-		my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+			"eprint",
 			$self->{eprint}->{type} );
 		my $field;
 
@@ -1909,8 +1911,8 @@ sub update_from_subject_form
 		}
 
 		my $additional_field = 
-			$self->{session}->{metainfo}->find_eprint_field( "additional" );
-		my $reason_field = $self->{session}->{metainfo}->find_eprint_field( "reasons" );
+			$self->{session}->{metainfo}->find_table_field( "eprint", "additional" );
+		my $reason_field = $self->{session}->{metainfo}->find_table_field( "eprint", "reasons" );
 
 		$self->{eprint}->{$additional_field->{name}} =
 			$self->{session}->{render}->form_value( $additional_field );
@@ -1948,7 +1950,8 @@ sub update_from_users_form
 	}
 	else
 	{
-		my @all_fields = $self->{session}->{metainfo}->get_eprint_fields(
+		my @all_fields = $self->{session}->{metainfo}->get_table_fields(
+			"eprint",
 			$self->{eprint}->{type} );
 		my $field;
 

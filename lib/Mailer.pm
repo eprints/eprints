@@ -35,20 +35,20 @@ use strict;
 
 sub send_mail
 {
-	my( $name, $address, $subject, $body ) = @_;
+	my( $session, $name, $address, $subject, $body ) = @_;
 
 	open( SENDMAIL, "|$EPrintSite::SiteInfo::sendmail" )
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";
 X-Loop: $EPrintSite::SiteInfo::automail
-From: $EPrintSite::SiteInfo::sitename <$EPrintSite::SiteInfo::admin>
+From: $session->{site}->{sitename} <$EPrintSite::SiteInfo::admin>
 To: $name <$address>
-Subject: $EPrintSite::SiteInfo::sitename: $subject
+Subject: $session->{site}->{sitename}: $subject
 
 $body
 
-$EPrintSite::SiteInfo::signature
+$session->{site}->{signature}
 EOF
 
 	close(SENDMAIL) or return( 0 );
@@ -87,7 +87,7 @@ sub fill_template
 
 ######################################################################
 #
-# $new_line = update_template_line( $template_line, $user )
+# $new_line = update_template_line( $session, $template_line, $user )
 #
 #  Takes a line from a template and fills in the relevant values.
 #
@@ -98,7 +98,6 @@ sub fill_template
 #   __sitename__    name of the site
 #   __description__ short text description of the site
 #   __admin__       admin email address
-#   __automail__    email address of automatic mail processing account
 #   __perlroot__    URL of perl server
 #   __staticroot__  URL of static HTTP server
 #   __frontpage__   URL of site front page
@@ -110,7 +109,7 @@ sub fill_template
 
 sub update_template_line
 {
-	my( $template_line, $user ) = @_;
+	my( $session, $template_line, $user ) = @_;
 	
 	my $new_line = $template_line;
 
@@ -121,15 +120,14 @@ sub update_template_line
 		$new_line =~ s/__usermail__/$user->{email}/g;
 	}
 	
-	$new_line =~ s/__sitename__/$EPrintSite::SiteInfo::sitename/g;
+	$new_line =~ s/__sitename__/$session->{site}->{sitename}/g;
 	$new_line =~ s/__description__/$EPrintSite::SiteInfo::description/g;
 	$new_line =~ s/__admin__/$EPrintSite::SiteInfo::admin/g;
-	$new_line =~ s/__automail__/$EPrintSite::SiteInfo::automail/g;
 	$new_line =~ s/__perlroot__/$EPrintSite::SiteInfo::server_perl/g;
-	$new_line =~ s/__staticroot__/$EPrintSite::SiteInfo::server_static/g;
-	$new_line =~ s/__frontpage__/$EPrintSite::SiteInfo::frontpage/g;
+	$new_line =~ s/__staticroot__/$session->{site}->{server_static}/g;
+	$new_line =~ s/__frontpage__/$session->{site}->{frontpage}/g;
 	$new_line =~
-		s/__subjectroot__/$EPrintSite::SiteInfo::server_subject_view_stem/g;
+		s/__subjectroot__/$session->{site}->{server_subject_view_stem}/g;
 	$new_line =~ s/__version__/$EPrints::Version::eprints_software_version/g;
 	
 	return( $new_line );
@@ -149,7 +147,7 @@ sub update_template_line
 
 sub prepare_send_mail
 {
-	my( $class, $name, $address, $subject, $templatefile, $user ) = @_;
+	my( $session, $name, $address, $subject, $templatefile, $user ) = @_;
 	
 	my $body = EPrints::Mailer::fill_template(
 		$templatefile,
@@ -158,6 +156,7 @@ sub prepare_send_mail
 	return( 0 ) unless( defined $body );
 
 	return( EPrints::Mailer::send_mail(
+		$session,
 		$name,
 		$address,
 		$subject,

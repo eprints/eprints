@@ -124,11 +124,6 @@ print STDERR "$tableid:$type\n";
 
 ######################################################################
 #
-# @eprint_types = get_eprint_types()
-#
-#  Return the EPrint types supported by the system, in the order that
-#  they appear in the cfg file (which, one hopes, is the order that
-#  the site administrators wish it to appear!
 #
 ######################################################################
   
@@ -144,9 +139,6 @@ sub get_types
 
 ######################################################################
 #
-# @eprint_types = get_eprint_type_names()
-#
-#  Return the display names of EPrint types supported by the system
 #
 ######################################################################
   
@@ -165,57 +157,14 @@ sub get_type_names
 
 ######################################################################
 #
-# @meta_field_names = get_all_eprint_fieldnames()
-#
-#  Get ALL EPrint field names, cached for speed
-#
-######################################################################
-
-sub get_all_eprint_fieldnames
-{
-	my( $self ) = @_;
-
-	return( @{$self->{eprint_meta_fieldnames}} );
-}
-
-
-
-######################################################################
-#
-# @meta_fields = get_eprint_fields( $type )
-#
-#  Gives appropriate metadata fields for the given EPrint type,
-#  including the system ones.
-#
-######################################################################
-
-sub get_eprint_fields
-{
-	my( $self, $type ) = @_;
-	
-	my $fields = $self->{eprint_meta_type_fields}->{$type};
-
-	if( !defined $fields )
-	{
-		EPrints::Log::log_entry( "L:no_fields", { type=>$type } );
-		return( undef );
-	}
-
-	return( @$fields );
-}
-
-
-######################################################################
-#
-# $name = get_eprint_type_name( $type )
 #
 #  Returns the displayable name of the given EPrint type,
 #
 ######################################################################
 
-sub get_eprint_type_name
+sub get_table_type_name
 {
-	my( $self, $type ) = @_;
+	my( $self, $tableid, $type ) = @_;
 	
 	return( $self->{eprint_type_names}->{$type} );
 }
@@ -260,25 +209,6 @@ sub find_table_field
 	
 	return( find_field( $self->{$tableid}->{fields}, $field_name ) );
 }
-
-######################################################################
-#
-# $field = find_table_field( $table , $field_name )
-#
-#  Find a specific eprint field
-#
-######################################################################
-
-sub find_table_field
-{
-	my( $self, $table , $field_name ) = @_;
-
-	my @fields = $self->get_fields( $table );
-
-	return( find_field( \@fields, $field_name ) );
-}
-
-
 
 ######################################################################
 #

@@ -167,13 +167,13 @@ sub start_html
 		$r->send_http_header;
 	}
 
-	my %opts = %EPrintSite::SiteInfo::start_html_params;
-	$opts{-TITLE} = "$EPrintSite::SiteInfo::sitename\: $title";
+	my %opts = %{$self->{session}->{site}->{start_html_params}};
+	$opts{-TITLE} = "$self->{session}->{site}->{sitename}\: $title";
 
 	$html .= $self->{query}->start_html( %opts );
 
 	# Logo
-	my $banner = $EPrintSite::SiteInfo::html_banner;
+	my $banner = $self->{session}->{site}->{html_banner};
 	$banner =~ s/TITLE_PLACEHOLDER/$title/g;
 
 	$html .= "$banner\n";
@@ -196,7 +196,7 @@ sub end_html
 	my( $self ) = @_;
 	
 	# End of HTML gubbins
-	my $html = "$EPrintSite::SiteInfo::html_tail\n";
+	my $html = "$self->{session}->{site}->{html_tail}\n";
 	$html .= $self->{query}->end_html;
 
 	return( $html );
@@ -272,7 +272,7 @@ sub render_error
 	{
 		print $self->{session}->{lang}->phrase( 
 			"A:some_error",
-			{ sitename=>$EPrintSite::SiteInfo::sitename } );
+			{ sitename=>$self->{session}->{site}->{sitename} } );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
@@ -283,11 +283,11 @@ sub render_error
 
 		print "<P>".$self->{session}->{lang}->phrase( 
 			"H:some_error",
-			{ sitename=>$EPrintSite::SiteInfo::sitename } )."</P>\n";
+			{ sitename=>$self->{session}->{site}->{sitename} } )."</P>\n";
 		print "<P>$error_text</P>\n";
 		print "<P>".$self->{session}->{lang}->phrase( 
 			"H:contact",
-			{ adminemail=>"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$EPrintSite::SiteInfo::sitename } )."</A>" } )."</P>\n";
+			{ adminemail=>"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".$self->{session}->{lang}->phrase( "H:sitename_admin" , { sitename=>$self->{session}->{site}->{sitename} } )."</A>" } )."</P>\n";
 				
 		print "<P><A HREF=\"$back_to\">$back_to_text</A></P>\n";
 	
@@ -1450,7 +1450,7 @@ sub subject_desc
 	
 	my $html = "";
 	
-	$html .= "<A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"
+	$html .= "<A HREF=\"$self->{session}->{site}->{server_subject_view_stem}"
 		.$subject->{subjectid}.".html\">" if( $link );
 
 	if( defined $full && $full )

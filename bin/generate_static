@@ -29,7 +29,7 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 
 find( { wanted=>\&generate_static, follow=>1 },
-      $EPrintSite::SiteInfo::static_html_root."/" );
+      $session->{site}->{static_html_root}."/" );
 
 $session->terminate();
 
@@ -40,7 +40,7 @@ sub generate_static
 	return if( $File::Find::name =~ /\/CVS/ );
 
 	my $destination_filename = $File::Find::name;
-	$destination_filename =~ s/$EPrintSite::SiteInfo::static_html_root/$EPrintSite::SiteInfo::local_html_root/;
+	$destination_filename =~ s/$session->{site}->{static_html_root}/$session->{site}->{local_html_root}/;
 
 print STDERR "$File::Find::name -> $destination_filename\n";
 	
@@ -88,7 +88,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 			while( <IN> )
 			{
 				chomp();
-				print OUT EPrints::Mailer::update_template_line( $_, undef );
+				print OUT EPrints::Mailer::update_template_line($session, $_, undef );
 				print OUT "\n";
 			}
 

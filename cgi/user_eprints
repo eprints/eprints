@@ -76,7 +76,7 @@ if( defined $userid )
 	{
 		print $session->{render}->render_error(
 			$session->{lang}->phrase( "H:unknown_user" ),
-			"$EPrintSite::SiteInfo::frontpage",
+			$session->{site}->{frontpage},
 			$session->{lang}->phrase( "H:return_front" ) );
 	}
 }
@@ -84,7 +84,7 @@ else
 {
 	print $session->{render}->render_error(
 		$session->{lang}->phrase( "H:no_user" ),
-		"$EPrintSite::SiteInfo::frontpage",
+		$session->{site}->{frontpage},
 		$session->{lang}->phrase( "H:return_front" ) );
 }
 

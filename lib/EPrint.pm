@@ -280,7 +280,7 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-	opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
+	opendir DOCSTORE, $session->{site}->{local_document_root}
 		or return( undef );
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -294,7 +294,7 @@ sub _create_directory
 	foreach (sort @avail)
 	{
 		my $free_space = 
-			(df $EPrintSite::SiteInfo::local_document_root . "/" . $_ )[3];
+			(df "$session->{site}->{local_document_root}/$_" )[3];
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -345,7 +345,7 @@ sub _create_directory
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
 	# Full path including doc store root
-	my $full_path = $EPrintSite::SiteInfo::local_document_root . "/" . $dir;
+	my $full_path = "$session->{site}->{local_document_root}/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
 print "($full_path)\n";
@@ -508,7 +508,7 @@ sub clone
 		my $field;
 
 		# Copy all the data across, except the ID and the datestamp
-		foreach $field ($self->{session}->{metainfo}->get_eprint_fields( $self->{type} ))
+		foreach $field ($self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} ))
 		{
 			my $field_name = $field->{name};
 
@@ -663,7 +663,7 @@ sub validate_type
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:no_type" );
 	}
-	elsif( !defined $self->{session}->{metainfo}->get_eprint_type_name( $self->{type} ) )
+	elsif( !defined $self->{session}->{metainfo}->get_table_type_name( "eprintid", $self->{type} ) )
 	{
 		push @problems, $self->{session}->{lang}->phrase( "H:invalid_type" );
 	}
@@ -688,7 +688,7 @@ sub validate_meta
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
 	my $field;
 	
 	foreach $field (@all_fields)
@@ -762,7 +762,7 @@ sub validate_subject
 	my( $self ) = @_;
 	
 	my @all_problems;
-	my @all_fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
+	my @all_fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
 	my $field;
 
 	foreach $field (@all_fields)
@@ -812,8 +812,8 @@ sub validate_linking
 
 	my @problems;
 	
-	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 
 	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
 	{
@@ -1107,7 +1107,7 @@ sub prune
 
 	$self->prune_documents();
 	
-	my @fields = $self->{session}->{metainfo}->get_eprint_fields( $self->{type} );
+	my @fields = $self->{session}->{metainfo}->get_table_fields( "eprint", $self->{type} );
 	my @all_fields = $self->{session}->{metainfo}->get_fields( "archive" );
 	my $f;
 
@@ -1190,9 +1190,9 @@ sub archive
 		$self->generate_static();
 
 		# Generate static pages for everything in threads, if appropriate
-		my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
+		my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
 		my $commentary_field =
-			$self->{session}->{metainfo}->find_eprint_field( "commentary" );
+			$self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 
 		my @to_update = $self->get_all_related();
 		
@@ -1221,7 +1221,7 @@ sub local_path
 {
 	my( $self ) = @_;
 	
-	return( $EPrintSite::SiteInfo::local_document_root."/".$self->{dir} );
+	return( "$self->{session}->{site}->{local_document_root}/$self->{dir}" );
 }
 
 
@@ -1238,7 +1238,7 @@ sub url_stem
 {
 	my( $self ) = @_;
 	
-	return( $EPrintSite::SiteInfo::server_document_root."/".$self->{dir}."/" );
+	return( $self->{site}->{session}->{server_document_root}."/".$self->{dir}."/" );
 }
 
 
@@ -1328,8 +1328,8 @@ sub get_all_related
 {
 	my( $self ) = @_;
 	
-	my $succeeds_field = $self->{session}->{metainfo}->find_eprint_field( "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_eprint_field( "commentary" );
+	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
+	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 
 	my @related = $self->all_in_thread( $succeeds_field )
 		if( $self->in_thread( $succeeds_field ) );

@@ -83,7 +83,7 @@ sub process
 
 		print "<P>".$self->{session}->{lang}->phrase( 
 		        "H:changeemail",
-			{ clickhere=>"<a href=\"$EPrintSite::SiteInfo::server_static/register.html\">".
+			{ clickhere=>"<a href=\"$self->{session}->{site}->{server_static}/register.html\">".
 			$self->{session}->{lang}->phrase( "H:clickhere" )."</A>" } )."</P>";
 
 		$self->render_form();

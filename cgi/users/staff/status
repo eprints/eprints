@@ -81,7 +81,7 @@ my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
 
 # Get available directories
-opendir DOCSTORE, $EPrintSite::SiteInfo::local_document_root
+opendir DOCSTORE, $session->{site}->{local_document_root}
 	or return( undef );
 # The grep here just removes the "." and ".." directories
 my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -118,7 +118,7 @@ my $best_size = 0;
 
 foreach( @avail )
 {
-	my $size = ( df $EPrintSite::SiteInfo::local_document_root."/".$_ )[3];
+	my $size = ( df "$session->{site}->{local_document_root}/$_" )[3];
 	&print_row( "Document partition $_:", int($size/1024)."Mb free" );
 
 	$best_size = $size if( $size > $best_size );
@@ -137,7 +137,7 @@ elsif( $best_size < $EPrintSite::SiteInfo::diskspace_warn_threshold )
 		"Available space for new EPrints running low</P></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
+print "<P><CENTER><A HREF=\"$session->{site}->{server_static}/staff/\">".
 	"Click here to return to the Staff Area</A></CENTER></P>\n";
 
 print $session->{render}->end_html();

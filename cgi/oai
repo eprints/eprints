@@ -156,7 +156,7 @@ sub identify
 	
 	$writer->dataElement( 
 		"repositoryName",
-		EPrints::OpenArchives::to_utf8( $EPrintSite::SiteInfo::sitename ) );
+		EPrints::OpenArchives::to_utf8( $session->{site}->{sitename} ) );
 	
 	$writer->dataElement( "baseURL",
 	                      $EPrintSite::SiteInfo::oai_base_url );

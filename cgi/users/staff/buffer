@@ -89,7 +89,7 @@ else
 
 		print "<TD>";
 		print $session->{render}->format_field(
-			$session->{metainfo}->find_eprint_field( "datestamp" ),
+			$session->{metainfo}->find_table_field( "eprint","datestamp" ),
 			$e->{datestamp} );
 		print "</TD></TR>\n";
 	}
@@ -97,7 +97,7 @@ else
 	print "</TABLE></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">";
+print "<P><CENTER><A HREF=\"$session->{site}->{server_static}/staff/\">";
 print $session->{lang}->phrase( "H:return_staff" );
 print "</A></CENTER></P>\n";
 

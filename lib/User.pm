@@ -391,11 +391,12 @@ sub send_introduction
 		$subj = "S:newuser";
    }
 	# Try and send the mail
-	return( EPrints::Mailer->prepare_send_mail(
-		$self->{session}->{lang}->phrase( $subj , { sitename=>$EPrintSite::SiteInfo::sitename } ),
+	return( EPrints::Mailer::prepare_send_mail(
+		$self->{session},
+		$self->{session}->{lang}->phrase( $subj , { sitename=>$self->{session}->{site}->{sitename} } ),
 		$self->{email},
 		$self->{session}->{lang}->phrase( "S:welcome", 
-		                                 { sitename=>$EPrintSite::SiteInfo::sitename } ),
+		                                 { sitename=>$self->{session}->{site}->{sitename} } ),
 		$self->{session}->{site}->{template_user_intro},
 		$self ) );
 }
@@ -417,17 +418,19 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->{lang}->phrase(
 	     "M:reminder",
-		  { sitename=>$EPrintSite::SiteInfo::sitename,
+		  { sitename=>$self->{session}->{site}->{sitename},
 	     	  message=>( defined $message ? "$message\n\n" : "" ),
 		  username=>$self->{username},
 		  password=>$self->{passwd},
 		  adminemail=>$EPrintSite::SiteInfo::admin } );
 
-	return( EPrints::Mailer::send_mail( $self->full_name(),
-	                                    $self->{email},
-	                                    $self->{session}->{lang}->phrase( 
-                                          "S:remindersub" ),
-	                                    $full_message ) );
+	return( EPrints::Mailer::send_mail( 
+			$self->{session},
+			$self->full_name(),
+	                $self->{email},
+	                $self->{session}->{lang}->phrase( 
+                        	"S:remindersub" ),
+	                $full_message ) );
 }
 
 ######################################################################

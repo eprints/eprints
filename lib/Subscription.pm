@@ -447,7 +447,7 @@ sub process
 	$freq = "never" if( !defined $freq );
 
 	# Get the datestamp field
-	my $ds_field = $self->{session}->{metainfo}->find_eprint_field( "datestamp" );
+	my $ds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "datestamp" );
 
 	# Get the date for yesterday
 	my $yesterday = EPrints::MetaField::get_datestamp( time - (24*60*60) );
@@ -509,7 +509,7 @@ sub process
 		my $body = $self->{session}->{lang}->phrase( 
 			   "M:blurb",
 			   { howoften=>$freqphrase,
-			     sitename=>$EPrintSite::SiteInfo::sitename,
+			     sitename=>$self->{session}->{site}->{sitename},
 			     url=>"$EPrintSite::SiteInfo::server_perl/users/subscribe" } );
 		
 		# Then how many we got
@@ -536,6 +536,7 @@ sub process
 		
 		# Send the mail.
 		$success = EPrints::Mailer::send_mail( 
+				$self->{session},
 		             $user->full_name(),
 		             $user->{email},
 			          $self->{session}->{lang}->phrase( "S:subsubj" ),

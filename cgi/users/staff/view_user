@@ -58,7 +58,7 @@ if( defined $userid )
 	{
 		print $session->{render}->render_error(
 			"Unknown user",
-			"$EPrintSite::SiteInfo::server_static/staff/",
+			"$session->{site}->{server_static}/staff/",
 			"Return to staff home" );
 	}
 }
@@ -66,7 +66,7 @@ else
 {
 	print $session->{render}->render_error(
 		"No user specified!",
-		"$EPrintSite::SiteInfo::server_static/staff/",
+		"$session->{site}->{server_static}/staff/",
 		"Return to staff home" );
 }
 

@@ -136,8 +136,8 @@ sub bounce_form
 	my $reason_field = new EPrints::MetaField(
 		"reason:longtext:20::0:1:1" );
 	my $default_reason =
-		( $delete ? $EPrintSite::SiteInfo::default_delete_reason
-		          : $EPrintSite::SiteInfo::default_bounce_reason );
+		( $delete ? $session->{site}->{default_delete_reason}
+		          : $session->{site}->{default_bounce_reason} );
 	my $title = $eprint->short_title();
 	$default_reason =~ s/_SUBMISSION_TITLE_/$title/g;
 	
@@ -199,6 +199,7 @@ sub bounce
 	{
 		# Successfully transferred, mail the user with the reason
 		if( EPrints::Mailer::send_mail(
+			$session,
 			$user->full_name(),
 			$user->{email},
 			"Problem with submission",

@@ -20,6 +20,6 @@
 
 use EPrintSite::SiteInfo;
 
-system( $EPrintSite::SiteInfo::local_root . "/bin/generate_abstracts" );
-system( $EPrintSite::SiteInfo::local_root . "/bin/generate_static" );
-system( $EPrintSite::SiteInfo::local_root . "/bin/generate_views" );
+system( $EPrintSite::base_path . "/bin/generate_abstracts" );
+system( $EPrintSite::base_path . "/bin/generate_static" );
+system( $EPrintSite::base_path . "/bin/generate_views" );
