@@ -1,0 +1,73 @@
+######################################################################
+#
+#  Show user's EPrints
+#
+######################################################################
+#
+#  18/04/2000 - Created by Robert Tansley
+#  $Id$
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::EPrint;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $userid = $session->{render}->param( "username" );
+
+if( defined $userid )
+{
+	my $user = new EPrints::User( $session, $userid );
+
+	if( defined $user )
+	{
+		print $session->{render}->start_html(
+			"EPrints submitted by ".$user->full_name() );
+
+		my @eprints = EPrints::EPrint->retrieve_eprints(
+			$session,
+			$EPrints::Database::table_archive,
+			[ "username LIKE \"$userid\"" ],
+			[ "datestamp DESC" ] );
+
+		print "<CENTER><P><A HREF=\"user?username=$userid\">".
+			"Click here to see user's record.</A></P></CENTER>\n";
+
+		print "<CENTER><P>User has submitted ";
+		print "no EPrints." if( scalar @eprints==0 );
+		print "<STRONG>1</STRONG> EPrint." if( scalar @eprints==1 );
+		print "<STRONG>".scalar @eprints."</STRONG> EPrints"
+			if( scalar @eprints>1 );
+		print "</P></CENTER>\n";
+
+		foreach (@eprints)
+		{
+			print "<P>".$session->{render}->render_eprint_citation(
+				$_,
+				1,
+				1 )."</P>\n";
+		}
+
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		print $session->{render}->render_error(
+			"Unknown user",
+			"$EPrintSite::SiteInfo::frontpage",
+			"Return to front page" );
+	}
+}
+else
+{
+	print $session->{render}->render_error(
+		"No user specified!",
+		"$EPrintSite::SiteInfo::frontpage",
+		"Return to front page" );
+}
+
+$session->terminate();
