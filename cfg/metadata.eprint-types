@@ -1,0 +1,188 @@
+<class bookchapter "Book Chapter">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+REQUIRE abstract
+REQUIRE publication
+chapter
+pages
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class confpaper "Conference Paper">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+REQUIRE abstract
+REQUIRE conference
+pages
+confdates
+confloc
+volume
+number
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class confposter "Conference Poster">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+REQUIRE abstract
+REQUIRE conference
+pages
+confdates
+confloc
+volume
+number
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class techreport "Departmental Technical Report">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+REQUIRE department
+REQUIRE institution
+reportno
+comments
+commref
+altloc
+keywords
+</class>
+
+<class journale "Journal (On-line/Unpaginated)">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+REQUIRE publication
+volume
+number
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class journalp "Journal (Paginated)">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+REQUIRE publication
+volume
+number
+pages
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class newsarticle "Newspaper/Magazine Article">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+REQUIRE publication
+volume
+number
+pages
+editors
+publisher
+comments
+commref
+altloc
+keywords
+</class>
+
+<class other "Other">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+comments
+commref
+altloc
+keywords
+</class>
+
+<class preprint "Preprint">
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+comments
+commref
+altloc
+keywords
+</class>
+
+<class thesis "Thesis">
+REQUIRE ispublished
+REQUIRE refereed
+REQUIRE pubdom
+REQUIRE authors
+REQUIRE title
+REQUIRE year
+month
+REQUIRE abstract
+REQUIRE department
+REQUIRE institution
+comments
+commref
+altloc
+keywords
+</class>

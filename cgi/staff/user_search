@@ -1,0 +1,41 @@
+######################################################################
+#
+#  EPrints Staff User Search Form
+#
+######################################################################
+#
+#  27/03/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::EPrint;
+use EPrints::SearchField;
+use EPrints::SearchExpression;
+use EPrints::SearchForm;
+use EPrints::MetaInfo;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $session = new EPrints::Session;
+
+my @metafields = EPrints::SearchExpression->make_meta_fields(
+	"users",
+	\@EPrintSite::SiteInfo::user_search_fields );
+
+my $searchform = new EPrints::SearchForm(
+	$session,
+	"users",
+	$EPrints::Database::table_user,
+	\@metafields,
+	"Staff User Search",
+	"",
+	\%EPrintSite::SiteInfo::user_order_methods,
+	$EPrintSite::SiteInfo::default_user_order );
+
+$searchform->process();
+
+$session->terminate();

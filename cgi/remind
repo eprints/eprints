@@ -1,0 +1,71 @@
+######################################################################
+#
+#  EPrints Username/Password Reminder Page
+#
+######################################################################
+#
+#  18/02/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::User;
+use EPrints::HTMLRender;
+use EPrints::Session;
+use EPrints::MetaField;
+use EPrints::Database;
+
+use EPrintSite::SiteInfo;
+
+use strict;
+
+
+my $session = new EPrints::Session;
+
+if( $session->{render}->seen_form() )
+{
+	# Send an e-mail to the relevant user, if they exist
+	my $user = EPrints::User->user_with_email(
+		$session,
+		$session->{render}->param( "email" ) );
+
+	if( defined $user )
+	{
+		$user->send_reminder();
+	}
+
+	# If the user doesn't exist, we don't tell the page visitor for security
+	# reasons.
+
+	print $session->{render}->start_html( "Reminder Sent" );
+	print "<CENTER><P>A reminder of your username and password has been sent ".
+		"to you in an E-mail. If you still have problems, please mail the ".
+		"<A HREF=\"$EPrintSite::SiteInfo::admin\">site administrator</A>.</P>".
+		"</CENTER>\n";
+		
+	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::front_page\">Return to ".
+		"$EPrintSite::SiteInfo::sitename Home</A></CENTER></P>\n";
+
+	print $session->{render}->end_html();
+}
+else
+{
+	print $session->{render}->start_html( "Username and Password Reminder Form" );
+	
+	print "<CENTER><P>If you've forgotten your username and/or password, just ".
+		"type your E-mail address into the box below, and your username and ".
+		"password will be mailed to you.</P>\n";
+	
+	my $field = new EPrints::MetaField( "email:email::E-Mail Address:0:1:1" );
+	
+	$session->{render}->render_form( [ $field ],
+	                                 {},
+	                                 1,
+	                                 0,
+	                                 [ "Send" ] );
+
+	print $session->{render}->end_html();
+}
+
+$session->terminate();
+
+1;

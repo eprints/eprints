@@ -1,0 +1,115 @@
+######################################################################
+#
+#  Staff Add New Subject
+#
+######################################################################
+#
+#  21/02/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::SubjectList;
+use EPrints::Subject;
+
+
+my $session = new EPrints::Session;
+
+# Construct the fields for the form
+my $subject_field = new EPrints::MetaField( "parent:subjects:0:Parent:1:1:1" );
+$subject_field->{help} =
+	"Select the subject that the new subject is to be a specialisation of. ".
+	"Leave blank if the subject is to be a top-level subject.";
+
+my $id_field = new EPrints::MetaField( "id:text::ID:1:1:1" );
+$id_field->{help} =
+	"Enter an unique ID code for this subject.";
+
+my $name_field = new EPrints::MetaField( "name:text::Name:1:1:1" );
+$name_field->{help} =
+	"Enter a descriptive name for the subject. Do not include details of the ".
+	"\"parent\" subject. For example, if you wanted to add the subject <STRONG>".
+	"Artificial Intelligence</STRONG> to the broader subject <STRONG>Computer ".
+	"Science</STRONG>, just enter <STRONG>Artificial Intelligence</STRONG>, ".
+	"not <STRONG>Computer Science: Artificial Intelligence</STRONG>.";
+
+my $depositable_field = new EPrints::MetaField(
+	"deposit:boolean::Depositable:1:1:1" );
+$depositable_field->{help} =
+	"Select this box if users are to be allowed to put papers in this ".
+	"subject.";
+
+my $error;
+my $created_ok = 0;
+
+if( $session->{render}->seen_form() )
+{
+	# Attempt to add the new subject
+	
+	# Work out the parent
+	my $parent = new EPrints::Subject(
+		$session,
+		$session->{render}->param( "parent" ) );
+
+	my $id = $session->{render}->form_value( $id_field );
+	my $name = $session->{render}->form_value( $name_field );
+	my $depositable = $session->{render}->form_value( $depositable_field );
+	
+	# Sanity checks
+	if( !defined $parent )
+	{
+		$error = "For some reason couldn't retrieve the parent subject.";
+	}
+	elsif( !defined $name || !defined $id || $name eq "" || $id eq "" )
+	{
+		$error = "You must provide a name and an ID.";
+	}
+	elsif( new EPrints::Subject( $session, $id ) != undef )
+	{
+		# ID is already there
+		$error = "A subject with that I.D. already exists";
+	}
+	elsif( $parent->create_child( $id,
+	                              $name,
+	                              ( $depositable eq "TRUE" ) ) == undef )
+	{
+		# Couldn't create it
+		$error = "Couldn't create subject: ".$session->{database}->error();
+	}
+	else
+	{
+		$created_ok = 1;
+	}
+}
+
+print $session->{render}->start_html( "Add New Subject" );
+
+if( $created_ok )
+{
+	print "<CENTER><P>Subject successfully added!</P></CENTER>\n";
+	
+	print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::server_static/staff\">".
+		"Click here to return to the staff area</A></P></CENTER>";
+}
+else
+{
+	if( defined $error )
+	{
+		print "<CENTER><P><STRONG>There was a problem adding the new subject:".
+			"</STRONG></P><CENTER>\n";
+		print "<CENTER><P>$error</P></CENTER>\n";
+	}
+	
+	$session->{render}->render_form( [ $subject_field,
+	                                   $id_field,
+	                                   $name_field,
+	                                   $depositable_field ],
+	                                 {},
+	                                 0,
+	                                 1,
+	                                 [ "Add New Subject" ] );
+}
+
+print $session->{render}->end_html();
+
+$session->terminate();

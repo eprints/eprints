@@ -1,0 +1,24 @@
+######################################################################
+#
+#  EPrints Staff Status Page
+#
+######################################################################
+#
+#  18/02/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::Database;
+use EPrints::EPrint;
+use EPrints::User;
+
+use EPrintsSite::SiteInfo;
+
+my $session = new EPrints::Session;
+
+$session->{render}->start_html( "Server Status" );
+
+# Get some statistics
+my $users = 

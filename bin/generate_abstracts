@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  EPrint Static Abstract Page Generator
+#
+#   Causes the system to (re)generate static abstract pages for all
+#   of the eprints in the system.
+#
+######################################################################
+
+use EPrints::EPrint;
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::Subject;
+use EPrints::Log;
+
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session( 1 );
+
+my @eprints = EPrints::EPrint->retrieve_eprints(
+	$session,
+	$EPrints::Database::table_archive );
+
+foreach (@eprints)
+{
+	EPrints::Log->debug( "generate_abstracts",
+	                     "Generating abstract for $_->{eprintid}" );
+	$_->generate_static();
+}

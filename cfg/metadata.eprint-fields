@@ -1,0 +1,245 @@
+<field abstract>
+displaylines = "10"
+editable = YES
+type = "multitext"
+visible = YES
+displayname = "Abstract"
+help = "Please enter the abstract of your submission. You can easily copy "
+help = "and paste it into this box. If you want to include formatting such as "
+help = "italics and bold print, you can use HTML style tags, such as "
+help = "<em>&lt;EM&gt;</em> or <strong>&lt;strong&gt;</strong>."
+</field>
+
+<field altloc>
+displaylines = "3"
+editable = YES
+type = "multiurl"
+visible = YES
+displayname = "Alternative Locations"
+help = "If your submission is available from other sites, please enter the "
+help = "URLs of your submission on those sites here, including the initial "
+help = "<strong>http://</strong>. Please give the full URL of the paper "
+help = "itself, and not just the hosting website."
+</field>
+
+<field authors>
+editable = YES
+type = "name"
+visible = YES
+multiple = YES
+displayname = "Authors"
+help = "Please enter the authors below. If there are more authors than "
+help = "available spaces, click on the `More Spaces' button. To remove an "
+help = "author, just remove their surname from the surname box."
+</field>
+
+<field chapter>
+editable = YES
+visible = YES
+type = "text"
+maxlength = 5
+displayname = "Chapter"
+help = "Please enter the full name of the conference."
+</field>
+
+<field comments>
+editable = YES
+type = "multitext"
+displaylines = "3"
+visible = YES
+displayname = "Comments"
+help = "If you think you can specify some useful information about your "
+help = "submission that can't be entered anywhere else, please enter it here."
+</field>
+
+<field commref>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Commentary on"
+help = "If your submission is a commentary on a paper not in this archive, "
+help = "please enter the full reference of the paper here."
+</field>
+
+<field confdates>
+editable = YES
+visible = YES
+type = "text"
+displayname = "Conference Date"
+help = "Please enter when the conference took place."
+</field>
+
+<field conference>
+editable = YES
+visible = YES
+type = "text"
+displayname = "Conference"
+help = "Please enter the full name of the conference."
+</field>
+
+<field confloc>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Location"
+help = "Enter here where the conference took place."
+</field>
+
+<field department>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Department"
+help = "Please enter the department from which the submission originated."
+</field>
+
+<field editors>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Editors"
+help = "Please enter the names of the editors."
+multiple = YES
+</field>
+
+<field institution>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Institution"
+help = "Please enter the institution from which the submission originated."
+</field>
+
+<field ispublished>
+editable = YES
+type = "enum"
+visible = YES
+displayname = "Status"
+value unpub = "Unpublished"
+value inpress = "In Press"
+value pub = "Published"
+help = "Please state here whether your submission has been published, is "
+help = "currently in the process of being published (<strong>in "
+help = "press</strong>), or has not been previously published."
+</field>
+
+<field keywords>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Keywords"
+help = "Enter here any keywords you think will aid searchers in finding your "
+help = "submission. Please be careful to enter specific keywords relevant to "
+help = "your submission, and don't be to general."
+</field>
+
+<field month>
+editable = YES
+type = "enum"
+visible = YES
+displayname = "Month"
+value unspec = "Unspecified"
+value jan = "January"
+value feb = "February"
+value mar = "March"
+value apr = "April"
+value may = "May"
+value jun = "June"
+value jul = "July"
+value aug = "August"
+value sep = "September"
+value oct = "October"
+value nov = "November"
+value dec = "December"
+help = "Please enter the month in which your submission was published."
+</field>
+
+<field number>
+maxlength = "6"
+editable = YES
+type = "text"
+visible = YES
+displayname = "Number"
+help = "Enter the issue number of the journal in which your submission "
+help = "appeared."
+</field>
+
+<field pages>
+editable = YES
+type = "pagerange"
+visible = YES
+displayname = "Pages"
+help = Please enter the (inclusive) range of pages in which your paper "
+help = "appeared.
+</field>
+
+<field pubdom>
+editable = YES
+type = boolean
+visible = YES
+displayname = "Public Domain"
+help = "If the document you are submitting is not your own but rather an old "
+help = "document that is now in the public domain, then please tick the "
+help = "following box. This will prevent your own name and address appearing "
+help = "with the document as the address for correspondence."
+</field>
+
+<field publication>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Publication"
+help = "Please enter the full title of the publication your submission "
+help = "appeared in."
+</field>
+
+<field publisher>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Publisher"
+help = "Please enter the name of the publisher."
+</field>
+
+<field refereed>
+editable = YES
+type = boolean
+visible = YES
+displayname = "Refereed"
+help = "Please indicate whether this version of the work been refereed below."
+</field>
+
+<field reportno>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Report no."
+help = "Please enter the report number."
+</field>
+
+<field title>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Title"
+help = "Please enter the full title of the submission."
+</field>
+
+<field volume>
+maxlength = "6"
+editable = YES
+type = "text"
+visible = YES
+displayname = "Volume"
+help = "Enter the volume number of the journal in which your submission "
+help = "appeared."
+</field>
+
+<field year>
+editable = YES
+type = "year"
+visible = YES
+displayname = "Year"
+help = "Please enter the year in which your submission was published or "
+help = "produced."
+</field>

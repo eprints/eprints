@@ -1,0 +1,46 @@
+######################################################################
+#
+#  View User Record
+#
+######################################################################
+#
+#  09/03/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+
+my $session = new EPrints::Session;
+
+my $userid = $session->{render}->param( "username" );
+
+if( defined $userid )
+{
+	my $user = new EPrints::User( $session, $userid );
+
+	if( defined $user )
+	{
+		print $session->{render}->start_html( "User record for ".$user->full_name() );
+
+		print $session->{render}->render_user( $user, 1 );
+
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		print $session->{render}->render_error(
+			"Unknown user",
+			"$EPrintSite::SiteInfo::server_static/staff/",
+			"Return to staff home" );
+	}
+}
+else
+{
+	print $session->{render}->render_error(
+		"No user specified!",
+		"$EPrintSite::SiteInfo::server_static/staff/",
+		"Return to staff home" );
+}
+
+$session->terminate();

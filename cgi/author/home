@@ -1,0 +1,225 @@
+######################################################################
+#
+#  EPrints Author Home
+#
+######################################################################
+#
+#  19/10/99 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::User;
+use EPrints::HTMLRender;
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::EPrint;
+
+use strict;
+
+
+######################################################################
+#
+# Session initialisation
+#
+######################################################################
+
+my $session = EPrints::Session->new();
+
+my $user = EPrints::User->current_user( $session );
+
+if( !defined $user )
+{
+	# Can't find the user
+	$session->{render}->render_error( "I don't know who you are",
+	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my $fullname = $user->full_name();
+my $probs = $user->validate();
+my $valid_user = ( $#{$probs} == -1 );
+
+
+######################################################################
+#
+# Render page
+#
+######################################################################
+
+print $session->{render}->start_html( "Author Area for $fullname" );
+
+
+### Welcome author blurb
+print "<P><CENTER>Welcome to your author area at ".
+	"$EPrintSite::SiteInfo::sitename. Please select one of the options ".
+	"below.</CENTER></P>\n";
+
+if( !$valid_user )
+{
+	### User needs to update their record
+	print "<P><CENTER>Before you upload any documents, please fill out your ".
+		"<A HREF=\"record\">user record</A>.</CENTER></P>\n";
+	print "<P><CENTER><A HREF=\"record\">Please click here to fill out your ".
+		"user record.</A></CENTER></P>\n";
+}
+else
+{
+	### Workspace
+	&render_workspace();
+
+	### Pending
+	&show_pending();
+
+	print "<HR>\n";
+
+	### View papers in archive
+	print "<DL><DT><STRONG><A HREF=\"review\">Review your documents in the ".
+		"archive</A></STRONG></DT>\n";
+	print "<DD><P>This options allows you to view your documents in the main ".
+		"archive, and to make copies of the records to make submitting updated ".
+		"versions easier.";
+	print " You can also remove documents from the archive."
+		if( $EPrintSite::SiteInfo::allow_user_removal );
+	print "</P></DD>\n";
+
+	### Change author record
+	print "<DT><STRONG><A HREF=\"record\">View/change your user record</A>".
+		"</STRONG></DT>\n";
+	print "<DD><P>Select this option to see your user record, and to correct ".
+		"or update your user information.</P></DD>\n";
+	
+	### Update e-mail
+	print "<DT><STRONG><A HREF=\"email\">Change your e-mail address</A>".
+		"</STRONG></DT>\n";
+	print "<DD><P>Select this option if you want to change your e-mail address,".
+		"rather than the user record option above.</P></DD>\n";
+
+	### Change subscription options
+	print "<DT><STRONG><A HREF=\"../reader/subscribe\">Change your ".
+		"subscription options</A></STRONG></DT>\n";
+	print "<DD><P>Select this option to change your subscription. This allows ".
+		"you to instruct the archive to automatically e-mail you with lists ".
+		"of documents submitted in your chosen subject areas every day, week ".
+		"or month.</P></DD></DL>\n";
+}
+
+print $session->{render}->end_html();
+
+$session->terminate();
+
+
+
+######################################################################
+#
+# render_workspace()
+#
+#  This puts all of the user's papers in the inbox table in a form.
+#  The buttons will POST stuff to the submit script, with the possible
+#  actions:
+#
+#   New     (Create a new EPrint)
+#   Edit    (Edit a selected EPrint)
+#   Clone   (Clone the selected EPrint)
+#   Delete  (Delete the selected EPrint)
+#   Submit  (Submit the selected EPrint to the archive)
+#
+#
+#  If the user has no papers in the inbox, a single button is drawn,
+#  Allowing them to start the upload process.
+#
+######################################################################
+
+sub render_workspace
+{
+	### Get the actual papers in the workspace
+	my @eprints = EPrints::EPrint->retrieve_eprints(
+		$session,
+		$EPrints::Database::table_inbox,
+		[ "user LIKE \"$user->{username}\"" ] );
+
+	if( $#eprints >= 0 )
+	{
+		print "<CENTER><H3>Documents in your Workspace</H3></CENTER>\n";
+
+		my @eprint_ids;
+		my %eprint_titles;
+		my $e;
+
+		foreach $e (@eprints)
+		{
+			push @eprint_ids, $e->{eprintid};
+			$eprint_titles{$e->{eprintid}} = $e->short_title();
+		}
+
+		my $set_field = EPrints::MetaField->make_set( "eprint_id",
+                                             		 "",
+                                             		 6,
+                                             		 \@eprint_ids,
+                                             		 \%eprint_titles,
+                                             		 0 );
+
+		### Now put them in a form
+		$session->{render}->render_form(
+			[ $set_field ],
+			{},
+			0,
+			0,
+			[ "New", "Edit", "Clone", "Delete", "Submit" ],
+			undef,
+			"submit" );
+
+		print "<P><CENTER><EM>These are documents you are currently in the ".
+			"process of submitting. You can start submitting a new document by ".
+			"clicking on <STRONG>New</STRONG>, or you can select a document ".
+			"from the list, and select one of the other options.</EM></CENTER>".
+			"</P>\n";
+	}
+	else
+	{
+		print $session->{render}->start_form( "submit" );
+		print $session->{render}->hidden_field( "submit", "New" );
+		print "<P><CENTER>";
+		print $session->{render}->named_submit_button(
+			"Click here to start uploading a document" );
+		print "</CENTER></P>\n";
+		print $session->{render}->end_form();
+	}
+}
+
+
+######################################################################
+#
+# show_pending()
+#
+#  Show any papers that are in the submissions buffer, if any
+#
+######################################################################
+
+sub show_pending
+{
+	### Get the papers in the buffer
+	my @eprints = EPrints::EPrint->retrieve_eprints(
+		$session,
+		$EPrints::Database::table_buffer,
+		[ "user LIKE \"$user->{username}\"" ] );
+
+	if( $#eprints >= 0 )
+	{
+		print "<CENTER><H3>Pending Papers</H3></CENTER>\n";
+		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
+		my $e;
+		foreach $e (@eprints)
+		{
+			print "<TR><TD><EM>";
+			print $e->short_title();
+			print "</EM></TD><TD>Submitted ";
+			print $session->{render}->format_field(
+				EPrints::MetaInfo->find_eprint_field( "datestamp" ),
+				$e->{datestamp} );
+			print "</TD></TR>\n";
+		}
+		print "</TABLE></CENTER>\n";
+	}
+}
+

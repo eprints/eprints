@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+
+######################################################################
+#
+# Command line program for creating yables from the meta-metadata
+#  files. NOTE! It doesn't actually create the database itself - a
+#  database called "eprints" must already exist (without any tables).
+#
+######################################################################
+# 
+#  11/10/99 - Created by Robert Tansley
+#
+######################################################################
+
+use DBI;
+use EPrintSite::SiteInfo;
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::Subject;
+use strict;
+
+
+
+######################################################################
+#
+#  Create tables
+#
+######################################################################
+
+my $session = EPrints::Session->new( 1 );
+
+my $success = $session->{database}->create_archive_tables();
+
+if( $success )
+{
+	print "Created database tables\n";
+}
+else
+{
+	my $error = $session->{database}->error();
+	print "DB Error: $error\n";
+}
+
+
+######################################################################
+#
+#  Fill in subject database
+#
+######################################################################
+
+$success = EPrints::Subject->create_subject_table( $session );
+
+if( $success )
+{
+	print "Inserted subject categories\n";
+}
+else
+{
+	my $error = $session->{database}->error();
+	print "DB Error: $error\n";
+}
+
+$session->terminate();

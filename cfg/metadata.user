@@ -1,0 +1,95 @@
+<field title>
+required = NO
+type = "text"
+displayname = "Title"
+maxlength = 10
+editable = YES
+visible = YES
+</field>
+
+<field name>
+required = YES
+editable = YES
+type = "name"
+visible = YES
+displayname = "User's Name"
+</field>
+
+<field os>
+required = NO
+type = "enum"
+displayname = "Operating System"
+editable = YES
+visible = YES
+VALUE unspec = "Unspecified"
+VALUE win9x = "Windows/DOS"
+VALUE unix = "UNIX"
+VALUE vms = "VMS"
+VALUE mac = "Macintosh"
+VALUE other = "Other"
+</field>
+
+<field status>
+required = NO
+type = "enum"
+displayname = "Status"
+editable = YES
+visible = YES
+VALUE unspec = "Unspecified"
+VALUE prof = "Professor"
+VALUE doctor = "Doctor"
+VALUE researcher = "Researcher"
+VALUE graduate = "Graduate"
+VALUE undergrad = "Undergraduate"
+VALUE staff = "Staff"
+VALUE other = "Other"
+</field>
+
+<field dept>
+required = NO
+editable = YES
+type = "text"
+visible = YES
+displayname = "Department"
+</field>
+
+<field org>
+required = NO
+editable = YES
+type = "text"
+visible = YES
+displayname = "Organisation"
+</field>
+
+<field address>
+displaylines = "5"
+required = NO
+editable = YES
+type = "multitext"
+visible = YES
+displayname = "Address"
+</field>
+
+<field country>
+required = NO
+editable = YES
+type = "text"
+visible = YES
+displayname = "Country"
+</field>
+
+<field url>
+required = NO
+editable = YES
+type = "url"
+visible = YES
+displayname = "Homepage URL"
+</field>
+
+<field official>
+required = NO
+editable = NO
+type = "boolean"
+visible = NO
+displayname = "Official"
+</field>

@@ -1,0 +1,33 @@
+######################################################################
+#
+# EPrints Submission Forms
+#
+######################################################################
+#
+# 29/11/99 - Created by Robert Tansley
+# 20/01/2000 - Rejigged
+# 14/02/2000 - Rejigged again!
+#
+######################################################################
+
+use EPrints::User;
+use EPrints::HTMLRender;
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::EPrint;
+use EPrints::Document;
+use EPrints::SubmissionForm;
+
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $subform = new EPrints::SubmissionForm( $session,
+                                           "home",
+                                           0,
+                                           $EPrints::Database::table_inbox );
+$subform->process();
+
+$session->terminate();

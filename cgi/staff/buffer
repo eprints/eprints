@@ -1,0 +1,89 @@
+######################################################################
+#
+#  EPrints Submission Buffer Overview
+#
+######################################################################
+#
+#  11/02/99 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::EPrint;
+use EPrints::HTMLRender;
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::User;
+
+use EPrintSite::SiteRoutines;
+
+use strict;
+
+
+my $session = EPrints::Session->new();
+
+print $session->{render}->start_html( "Submission Buffer Overview" );
+
+# Get EPrints in the submission buffer
+my @eprints = EPrints::EPrint->retrieve_eprints(
+	$session,
+	$EPrints::Database::table_buffer,
+	undef );
+
+if( $#eprints == -1 )
+{
+	# No EPrints
+	print "<P><CENTER><STRONG>There are no entries in the submission buffer at ".
+		"the moment.</STRONG></CENTER></P>\n";
+
+	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
+		"Click here to return to the Staff Area</A></CENTER></P>\n";
+}
+else
+{
+	print "<P><CENTER>Click on the title of an entry to view, edit, accept ".
+		"or reject it.</CENTER></P>\n";
+
+	print "<CENTER><TABLE BORDER=1 CELLPADDING=5>\n";
+	print "<TR><TD><STRONG>Title</STRONG></TH><TH><STRONG>Submitted by</STRONG>".
+		"</TH><TH><STRONG>Submission Date</STRONG></TH></TR>\n";
+
+	my $e;
+	foreach $e (@eprints)
+	{
+		# Title
+		print "<TR><TD><A HREF=\"view_submission?eprintid=$e->{eprintid}\">";
+		print $e->short_title();
+		print "</A></TD>";
+		
+		# Link to user
+		print "<TD>";
+		
+		my $user = new EPrints::User( $session, $e->{user} );
+		
+		if( defined $user )
+		{
+			print "<A HREF=\"view_author?userid=$e->{user}\">";
+			print $user->full_name();
+			print "</A>";
+		}
+		else
+		{
+			print "<STRONG>INVALID</STRONG>";
+		}
+		
+		print "</TD>";
+		
+		# Submission date
+
+		print "<TD>";
+		print $session->{render}->format_field(
+			EPrints::MetaInfo->find_eprint_field( "datestamp" ),
+			$e->{datestamp} );
+		print "</TD></TR>\n";
+	}
+	
+	print "</TABLE></CENTER>\n";
+}
+
+print $session->{render}->end_html();
+$session->terminate();

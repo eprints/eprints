@@ -1,0 +1,85 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Subject View Generator
+#
+#   This script generates the per-subject views of documents, and
+#   regenerates the front page accordingly.
+#
+#   This script should be run periodically, AT LEAST every day but
+#   preferably every hour.  If the archive on a busy or large site,
+#   it might be an idea to nice this.
+#
+######################################################################
+
+use EPrints::EPrint;
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::Subject;
+use EPrints::Log;
+
+use EPrintSite::SiteInfo;
+
+my $session = new EPrints::Session( 1 );
+
+
+# Get all of the available subjects
+my( $subjects, $subjectmap ) = EPrints::Subject->get_all( $session );
+
+# Start with the root
+&write_subject_view( $session, new EPrints::Subject( $session ) );
+
+# Now do each of the subjects
+foreach (@$subjects)
+{
+	EPrints::Log->debug( "generate_views", "Generating view for $_->{name}" );
+	&write_subject_view( $session, $_ );
+}
+
+$session->terminate();
+
+
+
+sub write_subject_view
+{
+	my( $session, $subject ) = @_;
+	
+	my $output = $EPrintSite::SiteInfo::local_subject_view_stem.
+		$subject->{subjectid}.".html";
+
+	# Open the subject view file
+	my $ok = open( OUT, ">$output" );
+	
+	unless( $ok )
+	{
+		EPrints::Log->log_entry(
+			"generate_views",
+			"Error writing subject view for $subject->{subjectid} to $output:".
+				" $!" );
+		return;
+	}
+	
+	# Title
+	print OUT $session->{render}->start_html(
+		"Browse by Subject: $subject->{name}" );
+	
+	# Tree at the top
+	print OUT $session->{render}->subject_tree( $subject );
+	print OUT "<HR>\n";	
+
+	# The entries themselves
+	my @eprints = $subject->posted_eprints( $EPrints::Database::table_archive );
+
+	print OUT "<P><CENTER>This subject category contains <STRONG>".($#eprints+1).
+		"</STRONG> entries</CENTER></P>\n";
+	
+	foreach (@eprints)
+	{
+		print OUT "<P>";
+		print OUT $session->{render}->render_eprint_citation( $_, 1 );
+		print OUT "</P>\n";
+	}
+	
+	print OUT $session->{render}->end_html();
+}

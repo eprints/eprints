@@ -1,0 +1,25 @@
+######################################################################
+#
+#  EPrints Author Record Editing
+#
+######################################################################
+#
+#  21/10/99 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::User;
+use EPrints::HTMLRender;
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::UserForm;
+
+use strict;
+
+
+my $session = new EPrints::Session;
+
+my $userform = new EPrints::UserForm( $session, "home", 0 );
+$userform->process();
+
+$session->terminate();

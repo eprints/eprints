@@ -1,0 +1,41 @@
+######################################################################
+#
+#  EPrints Simple Search Form
+#
+######################################################################
+#
+#  20/03/2000 - Created by Robert Tansley
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::EPrint;
+use EPrints::SearchField;
+use EPrints::SearchExpression;
+use EPrints::SearchForm;
+use EPrints::MetaInfo;
+use EPrintSite::SiteInfo;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my @metafields = EPrints::SearchExpression->make_meta_fields(
+	"eprints",
+	\@EPrintSite::SiteInfo::simple_search_fields );
+
+my $searchform = new EPrints::SearchForm(
+	$session,
+	"eprints",
+	$EPrints::Database::table_archive,
+	\@metafields,
+	"Simple Search",
+	"<CENTER><P><A HREF=\"advsearch\">Click here for an advanced search.</A>".
+		"</P></CENTER>",
+	\%EPrintSite::SiteInfo::eprint_order_methods,
+	$EPrintSite::SiteInfo::eprint_default_order );
+
+$searchform->process();
+
+$session->terminate();

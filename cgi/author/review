@@ -1,0 +1,142 @@
+######################################################################
+#
+#  Review Author's Documents in the Archive
+#
+######################################################################
+#
+#  29/02/2000 - Created by Robert Tansley
+#
+######################################################################
+
+
+use EPrints::User;
+use EPrints::Session;
+use EPrints::Database;
+use EPrints::EPrint;
+
+use strict;
+
+
+my $session = new EPrints::Session;
+
+my $user = EPrints::User->current_user( $session );
+
+# Check user
+if( !defined $user )
+{
+	# Can't find the user
+	$session->{render}->render_error( "I don't know who you are",
+	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->terminate();
+	Apache::exit( 0 );
+}
+	
+# Retrieve the user's eprints in the main archive
+my @eprints = EPrints::EPrint->retrieve_eprints(
+	$session,
+	$EPrints::Database::table_archive,
+	[ "user LIKE \"$user->{username}\"" ] );
+
+
+if( $session->{render}->seen_form() )
+{
+	# They've clicked on something, clone the record
+	my $ok = 0;
+
+	foreach (@eprints)
+	{
+		if( defined $session->{render}->param( "clone_$_->{eprintid}" ) )
+		{
+			# Sanity check: Make sure it's this user's paper
+			if( $_->{user} eq $user->{username} )
+			{
+				my $copy = $_->clone( $EPrints::Database::table_inbox,
+			                         1 );
+				$ok = ( defined $copy );
+			}
+		}
+
+		if( $EPrintSite::SiteInfo::allow_user_removal &&
+		    defined $session->{render}->param( "remove_$_->{eprintid}" ) )
+		{
+			# Sanity check: Make sure it's this user's paper
+			if( $_->{user} eq $user->{username} )
+			{
+				$ok = $_->remove();
+			}
+		}
+
+	}
+
+	if( $ok )
+	{
+		$session->{render}->redirect( "home" );
+		print $session->{render}->start_html( "Done" );
+	
+		print "<P><CENTER>You should now automatically be returned to the ".
+			"previous page. If this doesn't happen, please <A ".
+			"HREF=\"home\">click here to return manually.</A>".
+			"</CENTER></P>\n";
+
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		$session->{render}->render_error(
+			"Unable to operate on that record. Please try again later.",
+			"home",
+			"Author Area" );
+	}
+}
+else
+{
+	print $session->{render}->start_html( "Review Documents" );
+	
+	if( $#eprints == -1 )
+	{
+		print "<CENTER><P><STRONG>You have no documents in the main archive.".
+			"</STRONG></P></CENTER>\n";
+		
+		print "<CENTER><P><A HREF=\"home\">Click here to return to your ".
+			"Author Area</A></P></CENTER>\n";
+	}
+	else
+	{
+		print "<CENTER><P>Below are listed your documents in the main archive. ".
+			"Click on the title of a document to view it. You can also click on ".
+			"the clone button to make a copy of the document record in your ".
+			"workspace. You might want to do this if you are going to submit an ".
+			"updated version of the document.</P></CENTER>\n";
+		
+		print $session->{render}->start_form();
+		print $session->{render}->hidden_field( "seen", "true" );
+
+		print "<CENTER><TABLE BORDER=1 CELLPADDING=3>\n";
+		print "<TR><TH><STRONG>Document</STRONG><TH></TH>";
+		print "<TH></TH>" if( $EPrintSite::SiteInfo::allow_user_removal );
+		print "</TR>\n";
+		
+		foreach (@eprints)
+		{
+			print "<TR><TD>".$session->{render}->render_eprint_citation( $_ ).
+				"</TD><TD>";
+			print $session->{render}->named_submit_button(
+				"clone_$_->{eprintid}", "Clone" );
+
+			print "</TD><TD>".$session->{render}->named_submit_button(
+				"remove_$_->{eprintid}", "Remove" )
+				if( $EPrintSite::SiteInfo::allow_user_removal );
+
+			print "</TD></TR>\n";
+		}
+		
+		print "</TABLE></CENTER>\n";
+		
+		print $session->{render}->end_form();
+	}
+
+	print $session->{render}->end_html();
+
+}
+
+$session->terminate();
