@@ -17,6 +17,8 @@ package EPrints::Site;
 use EPrints::Site::General;
 use EPrints::DataSet;
 
+use Filesys::DiskSpace;
+
 my %ID2SITE = ();
 
 
@@ -140,5 +142,40 @@ sub get_data_set
 	
 	return $self->{datasets}->{$setname};
 }
+
+sub get_store_dirs
+{
+	my( $self ) = @_;
+
+	my $docroot = $self->get_conf( "local_document_root" );
+
+	opendir( DOCSTORE, $docroot ) || return undef;
+
+	my( @dirs, $dir );
+	while( $dir = readdir( DOCSTORE ) )
+	{
+		next if( $dir =~ m/^\./ );
+		next unless( -d $docroot."/".$dir );
+		push @dirs, $dir;	
+	}
+
+	closedir( DOCSTORE );
+
+	return @dirs;
+}
+
+sub get_store_dir_size
+{
+	my( $self , $dir ) = @_;
+
+	my $filepath = $self->get_conf( "local_document_root" )."/".$dir;
+
+	if( ! -d $filepath )
+	{
+		return undef;
+	}
+
+	return( ( df $filepath)[3] );
+} 
 
 1;

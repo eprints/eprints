@@ -19,8 +19,6 @@ use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Version;
 
-use Filesys::DiskSpace;
-
 use strict;
 
 my $session = new EPrints::Session;
@@ -44,48 +42,24 @@ foreach $usertype ( @{$usertypes} )
 	$num_users{ $usertype } = $count;
 	print STDERR "($usertype)=$count\n";
 }
-exit;
-# Number of submissions in workspace
-$rows = $session->{database}->retrieve( EPrints::Database::table_name( "inbox" ),
-                                        [ "eprintid" ] );
 
-my $num_inbox = scalar @$rows;
+# Number of submissions in workspace
+my $num_inbox = count( "inbox" );
 
 # Number of submissions in buffer
-$rows = $session->{database}->retrieve( EPrints::Database::table_name( "buffer" ),
-                                        [ "eprintid" ] );
-
-my $num_buffer = scalar @$rows;
+my $num_buffer = count( "buffer" );
 
 # Number of submissions in archive
-$rows = $session->{database}->retrieve( EPrints::Database::table_name( "archive" ),
-                                        [ "eprintid" ] );
-
-my $num_archive = scalar @$rows;
+my $num_archive = count( "archive" );
 
 # Number of deleted eprints
-
-$rows = $session->{database}->retrieve( EPrints::Database::table_name( "deletion" ),
-                                        [ "eprintid" ] );
-
-my $num_deleted = scalar @$rows;
+my $num_deleted = count( "deletion" );
 
 # Number of subscriptions
-$rows = $session->{database}->retrieve( EPrints::Database::table_name( "subscription" ),
-                                        [ "subid" ] );
-
-my $num_subs = scalar @$rows;
-
+my $num_subs = count( "subscription" );
 
 my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
-
-# Get available directories
-opendir DOCSTORE, $session->get_site()->{local_document_root}
-	or return( undef );
-# The grep here just removes the "." and ".." directories
-my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
-closedir DOCSTORE;
 
 # Write the results to a table
 print "<CENTER><TABLE BORDER=0>\n";
@@ -119,22 +93,24 @@ foreach $usertype ( keys %num_users )
 
 my $best_size = 0;
 
-foreach( @avail )
+my @dirs = $session->get_site()->get_store_dirs();
+my $dir;
+foreach $dir ( @dirs )
 {
-	my $size = ( df "$session->get_site()->{local_document_root}/$_" )[3];
-	&print_row( "Document partition $_:", int($size/1024)."Mb free" );
+	my $size = $session->get_site()->get_store_dir_size();
+	&print_row( "Document partition $dir:", int($size/1024)."Mb free" );
 
 	$best_size = $size if( $size > $best_size );
 }
 
 print "</TABLE></CENTER>\n";
 
-if( $best_size < $session->get_site()->{diskspace_error_threshold} )
+if( $best_size < $session->get_site()->get_conf( "diskspace_error_threshold" ) )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>NO SPACE LEFT FOR EPRINTS!".
 		"</FONT></STRONG></P></CENTER>\n";
 }
-elsif( $best_size < $session->get_site()->{diskspace_warn_threshold} )
+elsif( $best_size < $session->get_site()->get_conf( "diskspace_warn_threshold" ) )
 {
 	print "<CENTER><P><STRONG><FONT COLOR=RED>WARNING:</FONT></STRONG> ".
 		"Available space for new EPrints running low</P></CENTER>\n";
@@ -156,6 +132,7 @@ sub print_row
 	print "<TR><TD><STRONG>$key</STRONG></TD><TD ALIGN=right>$val</TD></TR>\n";
 }
 
+# maybe this could be utility? cjg
 sub count
 {
 	my( $datasetid, %searchfields ) = @_;
@@ -165,7 +142,7 @@ sub count
 	my $searchexp = new EPrints::SearchExpression(
 		session => $session,
 		dataset => $dataset,
-		fieldnames => [] );
+		allowblank => 1 );
 
 	my $searchfield;
 	foreach $searchfield ( keys %searchfields )
@@ -177,5 +154,9 @@ sub count
 
 	$searchexp->perform_search();
 
-	return $searchexp->count();
+	my $count = $searchexp->count();
+
+print STDERR "count:$datasetid:$count\n";
+	
+	return( $count );
 }

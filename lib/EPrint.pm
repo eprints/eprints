@@ -221,6 +221,7 @@ print STDERR $session->get_site()->get_conf( "local_document_root" )."\n";
 	
 	foreach (sort @avail)
 	{
+#cjg use the lib!
 		my $free_space = 
 			(df $session->get_site()->get_conf( "local_document_root" )."/$_" )[3];
 print STDERR "(".$session->get_site()->get_conf( "local_document_root" )."/$_)($free_space)\n";

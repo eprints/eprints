@@ -439,32 +439,42 @@ sub perform_search
 	@searchon = sort { return $a->approx_rows <=> $b->approx_rows } 
 		         @searchon;
 
-
-	my $buffer = undef;
-	$self->{ignoredwords} = [];
-	my $badwords;
-	foreach( @searchon )
+	if( scalar @searchon == 0 )
 	{
-		$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
-		$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
-		my $error;
-		( $buffer , $badwords , $error) = 
-			$_->do( $buffer , $self->{satisfy_all} );
-
-		if( defined $error )
-		{
-			$self->{tmptable} = undef;
-			$self->{error} = $error;
-			return;
-		}
-		if( defined $badwords )
-		{
-			push @{$self->{ignoredwords}},@{$badwords};
-		}
+		$self->{error} = undef;
+		$self->{tmptable} = $self->{dataset}->get_sql_table_name();
+		print STDERR "FUCK!\n";
 	}
+	else 
+	{
+		my $buffer = undef;
+		$self->{ignoredwords} = [];
+		my $badwords;
+		foreach( @searchon )
+		{
+			$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$_->{field}->{name}."--".$_->{value});
+			$self->{session}->get_site()->log( "SearchExpression perform_search debug: ".$buffer."!\n" );
+			my $error;
+			( $buffer , $badwords , $error) = 
+				$_->do( $buffer , $self->{satisfy_all} );
 	
-	$self->{error} = undef;
-	$self->{tmptable} = $buffer;
+			if( defined $error )
+			{
+				$self->{tmptable} = undef;
+				$self->{error} = $error;
+				return;
+			}
+			if( defined $badwords )
+			{
+				push @{$self->{ignoredwords}},@{$badwords};
+			}
+		}
+		
+		$self->{error} = undef;
+		$self->{tmptable} = $buffer;
+	print STDERR "SHIOOOK: ".$buffer."\n";
+	}
+
 
 }
 	
