@@ -113,6 +113,9 @@ $noise = 2 if( $verbose );
 
 #cjg Write a more simple conf if only one language involved?
 
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
 my $archiveid = $ARGV[0];
 my $site_sysfile = EPrints::Config::get( "sys_path" )."/auto-apache.conf";
 my $site_incfile = EPrints::Config::get( "sys_path" )."/auto-apache-includes.conf";

@@ -19,6 +19,9 @@
 use strict;
 use EPrints::Session;
 
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 

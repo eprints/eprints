@@ -62,12 +62,13 @@ __GENERICPOD__
 #cjg Does not use noise levels
 
 
-use Sys::Hostname;
-use Cwd;
 use EPrints::Config;
 use EPrints::DOM;
 use EPrints::Database;
 use EPrints::Utils;
+
+use Sys::Hostname;
+use Cwd;
 use DBI;
 use Unicode::String qw(utf8 latin1);
 
@@ -89,6 +90,9 @@ GetOptions(
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV > 1 ); 
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
 
 my $noise = 1;
 $noise = 0 if( $quiet );

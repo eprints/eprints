@@ -1557,6 +1557,11 @@ sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
 
+	if( !EPrints::Utils::is_set( $value ) )
+	{
+		return $session->phrase( "lib/metafield:unspecified" );
+	}
+
 	if( $self->is_type( "set" ) )
 	{
 		return $self->display_option( $session, $value );

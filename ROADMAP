@@ -159,6 +159,8 @@
 #	Fix "upload then back" bug
 #	Status search field buggered
 #	directory listing on perl dir is showing and should be hidden.
+#	SearchExp still runs do's on searchfields when cached (?)
+#	Linking values to views seems to be broken.
 
 #Clean UP
 #	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
@@ -184,6 +186,7 @@
 #	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
 #	Call backs for LEAVING archive and buffer=>inbox
 #	"Squash" reverse indexes?
+#	rename tempmap to cachemap
 
 #LESS URGENT TODO...
 #	Call backs to handle Latex processing... Do with a value in the metafield config.
@@ -200,3 +203,4 @@
 # 	Make man pages from /bin etc build into docs.
 #	import_xml becomes import_foo etc. eprint/user/whatever.
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
+

@@ -528,13 +528,13 @@ Command Line Scripts
 
 <!-- generate_views -->
 
-    <phrase ref="bin/generate_views:indextitle">Browse by <pin ref="fieldname" /></phrase>
-    <phrase ref="bin/generate_views:title"><pin ref="fieldname" />: <pin ref="fieldvalue" /></phrase>
+    <phrase ref="bin/generate_views:indextitle">Browse by <pin ref="viewname" /></phrase>
+    <phrase ref="bin/generate_views:title"><pin ref="viewname" />: <pin ref="value" /></phrase>
     <phrase ref="bin/generate_views:intro"><p>Please select a value to browse from the list below.</p></phrase>
     <phrase ref="bin/generate_views:blurb"><p>Number of records: <strong><pin ref="n" /></strong></p></phrase>
     <phrase ref="bin/generate_views:toobig"><p>Number of records: <strong><pin ref="n" /></strong></p><p>Sorry, browse not available on sets of records larger than <pin ref="max" />.</p></phrase>
     <phrase ref="bin/generate_views:browsetitle">Browse Records</phrase>
-    <phrase ref="bin/generate_views:browseintro"><p>Records may be browsed by the following fields:</p></phrase>
+    <phrase ref="bin/generate_views:browseintro"><p>Records may be browsed by the following:</p></phrase>
 
 
 <!--********************************************************************** 

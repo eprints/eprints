@@ -24,6 +24,9 @@ use EPrints::Subject;
 
 use strict;
 
+# Nb. match=EX searches CANNOT be used in the HTML form (currently)
+# EX is "Exact", like EQuals but allows blanks.
+
 ######################################################################
 #
 #  Format of field values. In all cases, undef or "" means don't bother
@@ -281,9 +284,25 @@ sub get_conditions
 {
 	my ( $self ) = @_;
 
+	
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
 		return undef;
+	}
+
+	my $match = $self->{match};
+	if( $match eq "EX" )
+	{
+		# Special handling for exact matches, as it can handle NULL
+		# fields, although this will not work on most multiple tables.
+		my @where;
+		my $sql = "__FIELDNAME__ = \"".EPrints::Database::prep_value($self->{string})."\"";
+		push @where, $sql;
+		if( $self->{string} eq "" )
+		{	
+			push @where, "__FIELDNAME__ IS NULL";
+		}
+		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
 	if ( $self->is_type( "set","subject","datatype","boolean" ) )
@@ -571,7 +590,7 @@ sub _get_conditions_aux
 		}
 	}
 
-	if ( $self->{anyall} eq "ANY" ) 
+	if ( $self->{anyall} eq "ANY" || $self->{match} eq "EX" ) 
 	{
 		if( scalar @nwheres == 0 )
 		{
@@ -616,7 +635,6 @@ sub do
 				push @sfields,$table;
 				$searches{$table}=[];
 			}
-	##print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
 			push @{$searches{$table}},@{$where};
 		}
 		if( defined $bad ) 
@@ -818,7 +836,6 @@ sub to_html
 	
 			# If I don't have NONE this becomes much simpler...
 			# cjg I think I can remove a load of stuff here soon.		
-	
 			#$tags = [ "NONE" ];
 	
 			# we have to copy the tags and labels as they are currently
@@ -908,14 +925,14 @@ sub is_set
 {
 	my( $self ) = @_;
 
-	return EPrints::Utils::is_set( $self->{string} );
+	return EPrints::Utils::is_set( $self->{string} ) || $self->{match} eq "EX";
 }
 
 sub serialise
 {
 	my( $self ) = @_;
 
-	return undef if( $self->{string} eq "" );
+	return undef unless( $self->is_set() );
 
 	# cjg. Might make an teeny improvement if
 	# we sorted the {string} so that equiv. searches

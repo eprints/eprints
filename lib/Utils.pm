@@ -612,7 +612,6 @@ sub field_from_config_string
 	my $useid = ( $fieldname=~s/\.id$// );
 	# use id side of a field if the fieldname
 	# ends in .id (and strip the .id)
-print STDERR "FN: ($fieldname)\n";
 	my $field = $dataset->get_field( $fieldname );
 	if( $field->get_property( "hasid" ) )
 	{

@@ -178,6 +178,11 @@
     <phrase ref="ordername_eprint_byname">by author's name</phrase>
     <phrase ref="ordername_eprint_bytitle">by title</phrase>
 
+<!-- Browse Views Names -->
+
+    <phrase ref="viewname_eprint_people">Person</phrase>
+    <phrase ref="viewname_eprint_year">Year</phrase>
+    <phrase ref="viewname_eprint_subjects">Subject</phrase>
 
 <!-- User Field Names -->
 

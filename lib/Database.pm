@@ -841,7 +841,9 @@ CREATE TABLE $table_name (
 	tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	created DATETIME NOT NULL, 
 	lastused DATETIME NOT NULL, 
-	searchexp TEXT )
+	searchexp TEXT,
+	oneshot SET('TRUE','FALSE')
+)
 END
 	
 	# Send to the database
@@ -892,17 +894,17 @@ sub counter_next
 
 sub cache_id
 {
-	my( $self , $code , $include_expired) = @_;
+	my( $self , $code , $include_expired ) = @_;
 
 	my $a = $self->{session}->get_archive();
 	$ds = $a->get_dataset( "tempmap" );
 
 	#cjg NOT escaped!!!
-	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code'";
+	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code' AND oneshot!='TRUE'";
 	if( !$include_expired )
 	{
 		# Don't includes expired items
-		$sql.= " AND lastused > now()-interval ".$a->get_conf("cache_timeout")." minute"; 
+		$sql.= " AND lastused > now()-interval ".$a->get_conf( "cache_timeout" )." minute"; 
 	}
 	# Never include items past maxlife
 	$sql.= " AND created > now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
@@ -932,13 +934,15 @@ sub count_cache
 
 sub cache
 {
-	my( $self , $code , $dataset , $srctable , $order ) = @_;
+	my( $self , $code , $dataset , $srctable , $order , $oneshot ) = @_;
 
 	my $sql;
 	my $sth;
 
+	my $oneshotval = ($oneshot?"TRUE":"FALSE");
+
 	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , '$code' )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , '$code' , '$oneshotval' )";
 	
 	$self->do( $sql );
 
@@ -979,7 +983,7 @@ sub cache
 	}
 	$sth = $self->do( $sql );
 
-	return $tmptable;
+	return $id;
 }
 
 
@@ -1048,7 +1052,7 @@ sub get_index_ids
 #cjg iffy params
 	my( $self, $table, $condition ) = @_;
 
-	print STDERR "GET_INDEX_IDS($table)($condition)\n";
+#print STDERR "GET_INDEX_IDS($table)($condition)\n";
 	my $sql = "SELECT M.ids FROM $table as M where $condition";	
 	my $results;
 	my $sth = $self->prepare( $sql );
@@ -1134,15 +1138,18 @@ sub from_buffer
 
 sub from_cache
 {
-	my( $self , $dataset , $code , $offset , $count ) = @_;
+	my( $self , $dataset , $code , $id , $offset , $count ) = @_;
 
-	#print STDERR "[$offset][$count]\n";
 
 	# Force offset and count to be ints
 	$offset+=0;
 	$count+=0;
 
-	my $id = $self->cache_id( $code , 1 );
+	if( !defined $id )
+	{
+		$id = $self->cache_id( $code , 1 )+0;
+	}
+
 	my @results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
 
 	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
@@ -1161,7 +1168,8 @@ sub drop_old_caches
 	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
 	my $a = $self->{session}->get_archive();
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name()." WHERE";
-	$sql.= " lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute"; 
+	$sql.= " (lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute"; 
+	$sql.= " AND oneshot = 'FALSE' )";
 	$sql.= " OR created < now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1264,7 +1272,6 @@ if( ref($dataset) eq "" ) { confess(); }
 	}
 	elsif ( $mode == 3 )	
 	{
-#print STDERR "From cache $param\n";
 		$sql = "SELECT $cols, C.pos FROM $param AS C, $table AS M ";
 		$sql.= "WHERE M.$kn = C.$kn AND C.pos>$offset ";
 		if( $ntoreturn > 0 )
@@ -1377,16 +1384,14 @@ if( ref($dataset) eq "" ) { confess(); }
 		}
 		elsif ( $mode == 3 )	
 		{
-	print STDERR "From cache $param\n";
 			$sql = "SELECT $fields_sql, C.pos FROM $param AS C, "; 
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
-			$sql.= "WHERE M.$kn = C.$kn AND C.pos>=$offset ";
+			$sql.= "WHERE M.$kn = C.$kn AND C.pos>$offset ";
 			if( $ntoreturn > 0 )
 			{
-				$sql.="AND C.pos<".($offset+$ntoreturn)." ";
+				$sql.="AND C.pos<=".($offset+$ntoreturn)." ";
 			}
 			$sql .= "ORDER BY C.pos";
-			print STDERR "$sql\n";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -1490,7 +1495,7 @@ sub get_values
 	my $sqlfn = $field->get_sql_name();
 
 	my $sql = "SELECT DISTINCT $sqlfn FROM $table";
-print STDERR "($table)($sqlfn)\n";
+#print STDERR "($table)($sqlfn)\n";
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my @values = ();
@@ -1529,10 +1534,10 @@ sub prepare
 {
 	my ( $self , $sql ) = @_;
 
-	if( $DEBUG_SQL )
-	{
-		$self->{session}->get_archive()->log( "Database prepare debug: $sql" );
-	}
+#	if( $DEBUG_SQL )
+#	{
+#		$self->{session}->get_archive()->log( "Database prepare debug: $sql" );
+#	}
 
 	my $result = $self->{dbh}->prepare( $sql );
 

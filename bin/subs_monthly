@@ -25,6 +25,9 @@ use EPrints::User;
 
 use strict;
 
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
 
 # Create offline session
 my $session = new EPrints::Session( 1 );

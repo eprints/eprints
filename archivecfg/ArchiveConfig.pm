@@ -398,19 +398,35 @@ $c->{archivefields}->{document} = [
 #
 ######################################################################
 
-$c->{browse_fields} = 
-[ 
-	"year", 
-	"authors.id",
-	"subjects" 
-];
+# Browse views. allow_null indicates that no value set is 
+# a valid result. 
+# Multiple fields may be specified for one view, but avoid
+# subject or allowing null in this case.
+$c->{browse_views} = 
+{ 
+	"year" => {
+		allow_null=>1,
+		fields=>"year",
+		order=>"title/authors"
+	},
+	"people" => {
+		allow_null=>0,
+		fields=>"authors.id/editors.id",
+		order=>"title/authors"
+	},
+	"subjects" => {
+		allow_null=>0,
+		fields=>"subjects",
+		order=>"title/authors"
+	}
+};
 
 # Fields for a simple user search
 $c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
-	#"abstract/keywords",
+	"abstract/keywords/institution",
 	#"authors.id",
 	#"publication",
 	"year"
@@ -447,7 +463,6 @@ $c->{subscription_fields} =
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
-	"test"		=> "authors.id/-year",
 	"byyear" 	 => "-year/authors/title",
 	"byyearoldest"	 => "year/authors/title",
 	"byname"  	 => "authors/-year/title",
@@ -458,10 +473,6 @@ $c->{order_methods}->{eprint} =
 # The default way of ordering a search result
 #   (must be key to %eprint_order_methods)
 $c->{default_order}->{eprint} = "byname";
-
-# How to order the articles in a "browse by subject" view.
-#cjg HMMMM.
-$c->{view_order} = \&eprint_cmp_by_author;
 
 # Fields for a staff user search.
 $c->{user_search_fields} =

@@ -27,6 +27,8 @@ use EPrints::Language;
 use strict;
 # order method not presercved.
 
+$EPrints::SearchExpression::CustomOrder = "_CUSTOM_";
+
 ######################################################################
 #
 # $exp = new( $session,
@@ -82,9 +84,16 @@ sub new
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
 	# 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order / )
 	{
 		$self->{$_} = $data{$_};
+	}
+
+	if( defined $self->{custom_order} ) 
+	{ 
+		$self->{order} = $EPrints::SearchExpression::CustomOrder;
+		# can't cache a search with a custom ordering.
+		$self->{use_cache} = 0;
 	}
 
 	# Array for the SearchField objects
@@ -94,7 +103,7 @@ sub new
 
 	# tmptable represents cached results table.	
 	$self->{tmptable} = undef;
-#print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
+
 	my $fieldname;
 	foreach $fieldname (@{$self->{fieldnames}})
 	{
@@ -516,6 +525,11 @@ sub dispose
 	{
 		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
 	}
+	#cjg drop_cache/dispose_buffer : should be one or the other.
+	if( defined $self->{cache_table} && !$self->{use_cache} )
+	{
+		$self->{session}->get_db()->drop_cache( $self->{cache_table} );
+	}
 }
 
 # Note, is number returned, not number of matches.
@@ -556,16 +570,18 @@ sub get_records
 {
 	my ( $self , $offset , $count ) = @_;
 
-	if( $self->{use_cache} && 
-		$self->{session}->get_db()->is_cached( $self->serialise() ) )
+	if( $self->{use_cache} )
 	{
-			
-		my @records = $self->{session}->get_db()->from_cache( 
-							$self->{dataset}, 
-							$self->serialise(),
-							$offset,
-							$count );
-		return @records;
+		my $serialised = $self->serialise();
+		if( $self->{session}->get_db()->is_cached( $serialised ) )
+		{
+			return $self->{session}->get_db()->from_cache( 
+								$self->{dataset}, 
+								$serialised,
+								undef,
+								$offset,
+								$count );
+		}
 	}
 		
 
@@ -598,20 +614,30 @@ sub get_records
 	# or no order method was specified.
 	if( $self->{use_cache} || defined $self->{order} )
 	{
-		my $order = $self->{session}->get_archive()->get_conf( 
-					"order_methods" , 
-					$self->{dataset}->confid() ,
-					$self->{order} );
+		my $order;
+		if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+		{
+			$order = $self->{custom_order};
+		}
+		else
+		{
+			$order = $self->{session}->get_archive()->get_conf( 
+						"order_methods" , 
+						$self->{dataset}->confid() ,
+						$self->{order} );
+		}
 
-		my $srctable = $self->{session}->get_db()->cache( 
+		$self->{cache_table} = $self->{session}->get_db()->cache( 
 			$self->serialise(), 
 			$self->{dataset},
 			$srctable,
-			$order );
+			$order,
+			!$self->{use_cache} ); # oneshot
 
 		@records = $self->{session}->get_db()->from_cache( 
 						$self->{dataset}, 
-						$self->serialise(),
+						undef,
+						$self->{cache_table},
 						$offset,
 						$count );
 	}
@@ -666,12 +692,13 @@ sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
 
-	my $PAGESIZE = 10;
+	#cjg ONLY SHOW time and badwords on first page.
+
+	my $PAGESIZE = 20;
 	#cjg put this in the curry^H^H^H^H^Hconfig
 
 	my $action_button = $self->{session}->get_action_button();
 
-print STDERR ">$action_button<\n";
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"
@@ -701,7 +728,7 @@ print STDERR ">$action_button<\n";
 		$t1 = EPrints::Session::microtime();
 
 		# cjg this should be in site config.
-		my $MAX=1000;
+		my $MAX=1000000;
 		$self->perform_search( $MAX );
 
 		$t2 = EPrints::Session::microtime();

@@ -137,7 +137,7 @@ sub new
 	$self->new_page();
 
 	# Create a database connection
-	if( $self->{noise} >= 2 ) { print "Connecting to DB ... \n"; }
+	if( $self->{noise} >= 2 ) { print "Connecting to DB ... "; }
 	$self->{database} = EPrints::Database->new( $self );
 	if( !defined $self->{database} )
 	{
@@ -160,9 +160,7 @@ sub new
 		}
 		$sth->finish;
 	}
-
-
-	if( $self->{noise} >= 2 ) { print "...done.\n"; }
+	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
 	$self->{archive}->call( "session_init", $self, $self->{offline} );
 
@@ -287,6 +285,15 @@ sub get_order_name
         return $self->phrase( 
 		"ordername_".$dataset->confid()."_".$orderid );
 }
+
+sub get_view_name
+{
+	my( $self, $dataset, $viewid ) = @_;
+
+        return $self->phrase( 
+		"viewname_".$dataset->confid()."_".$viewid );
+}
+
 
 
 #############################################################

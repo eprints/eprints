@@ -119,6 +119,9 @@ our $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 2 if( $verbose );
 
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
 my $siteid = $ARGV[0];
 
 my $archive = EPrints::Archive->new_archive_by_id( $siteid, 1 );

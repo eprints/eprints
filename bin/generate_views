@@ -88,9 +88,12 @@ pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 1 ); 
 
-our $noise = 1;
+my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 2 if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
@@ -98,8 +101,7 @@ exit( 1 ) unless( defined $session );
 # cjg Would be nice to have multiple field browsing eg.
 # "authors.id/editors.id" but that can be done later.
 
-my $fieldids = $session->get_archive()->get_conf( "browse_fields" );
-$fieldids = [ "authors.id" ];
+my $views = $session->get_archive()->get_conf( "browse_views" );
 
 my $ds = $session->get_archive()->get_dataset( "archive" );
 
@@ -110,46 +112,32 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	my $dir =  $session->get_archive()->get_conf( "htdocs_path" )."/".$langid."/view";
 	my $tmpdir = $dir."_tmp";
 	my $doomdir = $dir."_toerase";
-	
-	my @fields;
-	foreach( @{$fieldids} )
-	{
-		push @fields,EPrints::Utils::field_from_config_string( $ds, $_ );
-	}
 
-	if( -e $tmpdir )
-	{
-		rmtree( $tmpdir );
-	}
-
+	if( -e $tmpdir ) { rmtree( $tmpdir ); }
 	EPrints::Utils::mkdir( $tmpdir );
 
-	my $field;
-
-	foreach $field ( @fields ) 
+	my $browseid;
+	foreach $browseid (keys %{$views} )
 	{
-		unless( $field->is_browsable() )
-		{
-			print STDERR "Cannot generate browse pages for field \"".$_."\"\n";
-			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
-			next;
-		}
-		make_field_pages( $field, $tmpdir, $ds );
+		print "Making browse pages for: $langid/$browseid\n" if( $noise > 0 );
+		make_view_pages( $browseid, $views->{$browseid}, $tmpdir, $ds, $noise );
 	}
 
-	# Make Browse Contents Page
-	
 
+
+	# Make Browse Page which lists various views
+
+	print "Making main browse index for: $langid ... " if( $noise > 1 );
 	my( $ul, $li, $page, $a, $file, $title );
 	$session->new_page();
 	$page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "bin/generate_views:browseintro" ) );
 	$ul = $session->make_element( "ul" );
-	foreach $field ( @fields ) 
+	foreach $browseid (keys %{$views} )
 	{
 		$li = $session->make_element( "li" );
-		$a = $session->make_element( "a", href=>$field->get_name()."/" );
-		$a->appendChild( $session->make_text( $field->display_name( $session ) ) );
+		$a = $session->make_element( "a", href=>$browseid."/" );
+		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $browseid ) ) );
 		$li->appendChild( $a );
 		$ul->appendChild( $li );
 	}
@@ -158,28 +146,57 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	$title = $session->phrase( "bin/generate_views:browsetitle" );
 	$file = $tmpdir."/index.html";
 	$session->build_page( $title, $page );
-print STDERR "Writing: $file\n";
 	$session->page_to_file( $file );
+	print "done\n" if( $noise > 1 );
 
+	print "Moving $langid views to be online ... " if( $noise > 1 );
 	move( $dir, $doomdir );
 	move( $tmpdir, $dir );
 	rmtree( $doomdir );
+	print "done\n" if( $noise > 1 );
+
 }
 
 $session->terminate();
 exit;
 
-sub make_field_pages
+sub make_view_pages
 {
-	my( $field, $viewdir, $ds ) = @_;
+	my( $browseid, $info, $viewdir, $ds, $noise ) = @_;
 
-	my $dir = $viewdir."/".$field->get_name();
+	my @fields;
+	foreach( split( "/", $info->{fields} ) )
+	{
+		my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
+		unless( $field->is_browsable() )
+		{
+			print STDERR "Cannot generate browse pages for field \"".$_."\"\n";
+			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
+			next;
+		}
+		push @fields, $field;
+	}
+	if( scalar @fields == 0 ) { return; }
+
+	my $order = $info->{order};
+
+	my $dir = $viewdir."/".$browseid;
 	mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
-	my( @values ) = $field->get_values( $session );
 
-	print $field->display_name( $session )."\n";
+	my $field;
+	my %v=();
+	foreach $field ( @fields )
+	{
+		foreach( $field->get_values( $session ) ) 
+		{ 
+			if( !defined $_ ) { $_=""; }
+			$v{$_}=1; 
+		}
+	}	
+	unless( $info->{allow_null} ) { delete $v{""}; }
+	my @values = keys %v;
 
-	my( $value, $title, $file );
+	my( $value, $title, $file, $fileid );
 	my( $ul, $li, $a, $page );
 
 	#################################################
@@ -188,12 +205,16 @@ sub make_field_pages
 
 	my %size = ();
 
-	foreach $value ( @values )
+	foreach $value ( sort @values )
 	{
 		$session->new_page();
 		$page = $session->make_doc_fragment();
 
-		if( $field->is_type( "subject" ) )
+		$fileid = $value;
+		if( $fileid eq "" ) { $fileid = "NULL"; }
+		print "[$browseid] = \"$fileid\"\n" if( $noise > 1 );
+
+		if( $fields[0]->is_type( "subject" ) )
 		{
 
 			# Note, this only shows ancestors and children. You might want
@@ -208,24 +229,29 @@ sub make_field_pages
 			}
 
         		$page->appendChild( $session->render_subjects( 
-					\@ids, $field->get_property( "top" ), $value, 2 ) );
+					\@ids, $fields[0]->get_property( "top" ), $value, 2 ) );
 			$page->appendChild( $session->render_ruler() );
 		}
 
 		my $searchexp = new EPrints::SearchExpression(
+				custom_order=>$order,
+				satisfy_all=>0,
 				session=>$session,
 				dataset=>$ds );
-print STDERR "V:".$value."\n";
-        	$searchexp->add_field( $field, "PHR:EQ:".$value );
 
-		#cjg set order (it's in the site config)
+		foreach $field ( @fields )
+		{
+        		$searchexp->add_field( $field, "PHR:EX:".$value );
+		}	
 
         	$searchexp->perform_search();
 		my $count = $searchexp->count();
 		$size{$value} = $count;
 
 		my $links = $session->make_doc_fragment();
-		my $MAX = 5000;#cjg MAKE ME A CONFIG OPTION!
+		my $MAX = 500000;
+		# cjg. This would be better if it were mapped so we
+		# didn't have problems with HUGE lists.
 
 		if( $count > $MAX ) {
 			$links->appendChild( $session->html_phrase( "bin/generate_views:toobig",
@@ -249,8 +275,8 @@ print STDERR "V:".$value."\n";
 		}
 		$searchexp->dispose();
 
-		$file = $dir."/$value.include";
-		print STDERR "Writing: $file\n";
+		$file = $dir."/".$fileid.".include";
+		print "Writing: $file\n" if( $noise > 1 );
 		open( FILE, ">$file" );
 		print FILE $links->toString;
 		close FILE;
@@ -258,15 +284,14 @@ print STDERR "V:".$value."\n";
 		$page->appendChild( $links );
 
 		$title = $session->phrase( "bin/generate_views:title", 
-					fieldname=>$field->display_name( $session ),
-					fieldvalue=>$field->get_value_label( $session, $value ) );
+					viewname=>$session->get_view_name( $ds, $browseid ),
+					value=>$fields[0]->get_value_label( $session, $value ) );
 
 
-		$file = $dir."/$value.html";
+		$file = $dir."/".$fileid.".html";
 		$session->build_page( $title, $page );
-		print STDERR "Writing: $file\n";
+		print "Writing: $file\n" if( $noise > 1 );
 		$session->page_to_file( $file );
-	
 	}
 
 	#################################################
@@ -277,18 +302,20 @@ print STDERR "V:".$value."\n";
 	$page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "bin/generate_views:intro" ) );
 
-	if( $field->is_type( "subject" ) )
+	if( $fields[0]->is_type( "subject" ) )
 	{
-        	$page->appendChild( $session->render_subjects( \@values, $field->get_property( "top" ), undef, 2 ) );
+        	$page->appendChild( $session->render_subjects( \@values, $fields[0]->get_property( "top" ), undef, 2 ) );
 	}
 	else
 	{
 		$ul = $session->make_element( "ul" );
 		foreach $value ( @values )
 		{
+			$fileid = $value;
+			if( $fileid eq "" ) { $fileid = "NULL"; }
 			$li = $session->make_element( "li" );
-			$a = $session->make_element( "a", href=>$value.".html" );
-			$a->appendChild( $session->make_text( $field->get_value_label( $session, $value ) ) );
+			$a = $session->make_element( "a", href=>$fileid.".html" );
+			$a->appendChild( $session->make_text( $fields[0]->get_value_label( $session, $value ) ) );
 			$a->appendChild( $session->make_text( " (".$size{$value}.")" ) );
 			$li->appendChild( $a );
 			$ul->appendChild( $li );
@@ -297,10 +324,11 @@ print STDERR "V:".$value."\n";
 	}
 
 	$title = $session->phrase( "bin/generate_views:indextitle", 
-				fieldname=>$field->display_name( $session ) );
+				viewname=>$session->get_view_name( $ds, $browseid ) ),
+
 	$file = $dir."/index.html";
 	$session->build_page( $title, $page );
-print STDERR "Writing: $file\n";
+	print "Writing: $file\n" if( $noise > 1 );
 	$session->page_to_file( $file );
 }
 
