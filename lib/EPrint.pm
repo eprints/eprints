@@ -39,9 +39,9 @@ sub get_system_field_info
 	my( $class ) = @_;
 
 	return ( 
-	{ name=>"eprintid", type=>"text", required=>1 },
+	{ name=>"eprintid", type=>"int", required=>1 },
 
-	{ name=>"userid", type=>"text", required=>1 },
+	{ name=>"userid", type=>"int", required=>1 },
 
 	{ name=>"dir", type=>"text", required=>0 },
 
@@ -180,9 +180,8 @@ sub _create_id
 {
 	my( $session ) = @_;
 	
-	my $new_id = sprintf( "%08d", $session->get_db()->counter_next( "eprintid" ) );
+	return $session->get_db()->counter_next( "eprintid" );
 
-	return( $session->get_archive()->get_conf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -264,11 +263,11 @@ sub _create_directory
 
 	# Work out the directory path. It's worked out using the ID of the 
 	# EPrint.
-	my $idpath = eprintid_to_path( $session->get_archive(), $eprint_id );
+	my $idpath = eprintid_to_path( $eprint_id );
 
 	if( !defined $idpath )
 	{
-		$session->get_archive()->log( "Failed to turn eprintid: \"$eprint_id\" until a path." );
+		$session->get_archive()->log( "Failed to turn eprintid: \"$eprint_id\" into a path." );
 		return( undef ) ;
 	}
 
@@ -290,22 +289,6 @@ sub _create_directory
 }
 
 
-# should be in Utils.pm cjg
-sub eprintid_to_path
-{
-	my( $archive, $eprint_id ) = @_;
-
-	# It takes the numerical suffix of the ID, and divides it into four
-	# components, which become the directory path for the EPrint.
-	# e.g. "stem001020304" is given the path "001/02/03/04"
-
-	my $archivestem = $archive->get_conf( "eprint_id_stem" );
-
-	return( undef ) unless( $eprint_id =~
-		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
-
-	return( $1 . "/" . $2 . "/" . $3 . "/" . $4 );
-}
 	
 	
 ######################################################################
@@ -1080,9 +1063,12 @@ sub local_path
 sub url_stem
 {
 	my( $self ) = @_;
-	
-	return( $self->{session}->get_archive()->get_conf( "server_document_root" ).
-		"/".$self->{data}->{eprintid}."/" );
+
+	return( sprintf( 
+			"%s/%s%08d/", 
+			$self->{session}->get_archive()->get_conf( "server_document_root" ), 
+			$self->{session}->get_archive()->get_conf( "eprint_id_stem" ), 
+			$self->{data}->{eprintid} ) );
 }
 
 
@@ -1120,26 +1106,13 @@ sub generate_static
 
 	my $eprint_id = $self->get_value( "eprintid" );
 
-	# Work out the directory path. It's worked out using the 
-	# ID of the EPrint.
-	# It takes the numerical suffix of the ID, and divides it into four
-	# components, which become the directory path for the EPrint.
-	# e.g. "stem001020304" is given the path "001/02/03/04"
-
-	my $archivestem = $self->{session}->get_archive()->get_conf( "eprint_id_stem" );
-
-	return( undef ) unless( $eprint_id =~
-		/$archivestem(\d+)(\d\d)(\d\d)(\d\d)/ );
-	
 	my $langid;
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		print "LANG: $langid\n";	
 
 
-		my $full_path = 
-			$self->{session}->get_archive()->get_conf( "local_html_root" ).
-			"/$langid/archive/$1/$2/$3/$4";
+		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprint_id );
 
 		my @created = eval
 		{
@@ -1494,4 +1467,22 @@ sub get_user
 	return $user;
 }
 
+sub eprintid_to_path
+{
+	my( $eprintid ) = @_;
+
+	return unless( $eprintid =~ m/^\d+$/ );
+
+	my( $a, $b, $c, $d );
+	$d = $eprintid % 100;
+	$eprintid = int( $eprintid / 100 );
+	$c = $eprintid % 100;
+	$eprintid = int( $eprintid / 100 );
+	$b = $eprintid % 100;
+	$eprintid = int( $eprintid / 100 );
+	$a = $eprintid % 100;
+	
+	return sprintf( "%02d/%02d/%02d/%02d", $a, $b, $c, $d );
+}
+	
 1;

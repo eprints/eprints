@@ -45,7 +45,7 @@ sub get_system_field_info
 	( 
 		{ name=>"docid", type=>"text", required=>1 },
 
-		{ name=>"eprintid", type=>"text", required=>1 },
+		{ name=>"eprintid", type=>"int", required=>1 },
 
 		{ name=>"format", type=>"datatype", required=>1, datasetid=>"document" },
 
@@ -230,7 +230,7 @@ sub _secure_symlink_path
 
 	my $archive = $eprint->get_session()->get_archive();
 		
-	return( $archive->get_conf( "local_secure_root" )."/".EPrints::EPrint::eprintid_to_path( $archive, $eprint->get_value( "eprintid" ) ) );
+	return( $archive->get_conf( "local_secure_root" )."/".EPrints::EPrint::eprintid_to_path( $eprint->get_value( "eprintid" ) ) );
 }
 
 sub docid_to_path
@@ -433,7 +433,8 @@ print STDERR Dumper( $eprint->{data} );
 	# point into the secure area. 
 
 	return $archive->get_conf( "server_secure_root" ) . "/" .
-		$eprint->get_value( "eprintid" ) . "/" .
+		$archive->get_conf( "eprint_id_stem" ) .
+		sprintf( "%08d", $eprint->get_value( "eprintid" )) . "/" .
 		docid_to_path( $archive, $self->get_value( "docid" ) ) . "/" . 
 		$self->get_main();
 }

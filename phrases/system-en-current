@@ -53,19 +53,6 @@ EPrints Modules
     <phrase ref="lib/metafield:honourific">Honourific</phrase>
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>
     <phrase ref="lib/metafield:more_langs">More Languages</phrase>
-    <phrase ref="lib/metafield:month_00">Unspecified</phrase>
-    <phrase ref="lib/metafield:month_01">January</phrase>
-    <phrase ref="lib/metafield:month_02">Febuary</phrase>
-    <phrase ref="lib/metafield:month_03">March</phrase>
-    <phrase ref="lib/metafield:month_04">April</phrase>
-    <phrase ref="lib/metafield:month_05">May</phrase>
-    <phrase ref="lib/metafield:month_06">June</phrase>
-    <phrase ref="lib/metafield:month_07">July</phrase>
-    <phrase ref="lib/metafield:month_08">August</phrase>
-    <phrase ref="lib/metafield:month_09">September</phrase>
-    <phrase ref="lib/metafield:month_10">October</phrase>
-    <phrase ref="lib/metafield:month_11">November</phrase>
-    <phrase ref="lib/metafield:month_12">December</phrase>
     <phrase ref="lib/metafield:unspecified">UNSPECIFIED</phrase>
 
 <!-- SearchExpression -->
@@ -219,6 +206,24 @@ EPrints Modules
     <phrase ref="lib/userform:complete_form"><p>Please complete the form before continuing.</p></phrase>
     <phrase ref="lib/userform:problem_updating">There was a problem reading the posted data and updating the database. Please try again later</phrase>
     <phrase ref="lib/userform:update_record">Update Record</phrase>
+
+<!-- Utils -->
+
+    <phrase ref="lib/utils:date_unspecified">UNSPECIFIED</phrase>
+    <phrase ref="lib/utils:date_invalid">INVALID</phrase>
+    <phrase ref="lib/utils:month_00">Unspecified</phrase>
+    <phrase ref="lib/utils:month_01">January</phrase>
+    <phrase ref="lib/utils:month_02">Febuary</phrase>
+    <phrase ref="lib/utils:month_03">March</phrase>
+    <phrase ref="lib/utils:month_04">April</phrase>
+    <phrase ref="lib/utils:month_05">May</phrase>
+    <phrase ref="lib/utils:month_06">June</phrase>
+    <phrase ref="lib/utils:month_07">July</phrase>
+    <phrase ref="lib/utils:month_08">August</phrase>
+    <phrase ref="lib/utils:month_09">September</phrase>
+    <phrase ref="lib/utils:month_10">October</phrase>
+    <phrase ref="lib/utils:month_11">November</phrase>
+    <phrase ref="lib/utils:month_12">December</phrase>
 
 <!--********************************************************************** 
 User Area CGI Scripts

@@ -28,18 +28,14 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my $dataset = $session->get_archive()->get_dataset( "archive" ),
+my $dataset = $session->get_archive()->get_dataset( "archive" );
 
 print "start\n";
-my @eprints = $session->{database}->get_all( $dataset );
-print "gotall\n";
+my $count  = $dataset->map( $session , \&make_static );
+print "done $count\n";
 
-my $eprint;
-my $i=0;
-foreach $eprint (@eprints)
+sub make_static
 {
-	++$i;
+	my( $eprint ) = @_;
 	$eprint->generate_static();
-	last if( $i==20 );
 }
-print "done\n";

@@ -1800,6 +1800,12 @@ sub _set_stage_next
 	my( $self ) = @_;
 
 	$self->{new_stage} = $STAGES->{$self->{stage}}->{next};
+
+	# Skip stage?
+	while( $self->{session}->get_archive()->get_conf( "submission_stage_skip", $self->{new_stage} ) )
+	{
+		$self->{new_stage} = $STAGES->{$self->{new_stage}}->{next};
+	}
 }
 
 sub _set_stage_prev
@@ -1807,6 +1813,12 @@ sub _set_stage_prev
 	my( $self ) = @_;
 
 	$self->{new_stage} = $STAGES->{$self->{stage}}->{prev};
+
+	# Skip stage?
+	while( $self->{session}->get_archive()->get_conf( "submission_stage_skip", $self->{new_stage} ) )
+	{
+		$self->{new_stage} = $STAGES->{$self->{new_stage}}->{prev};
+	}
 }
 
 sub _set_stage_this

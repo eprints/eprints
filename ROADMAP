@@ -32,9 +32,9 @@
 -	Multilang. Config for mails and submission agreement.
 -	"Magic" Next & Prev in SubmissionForm
 4	Multi-Lang fields in HTML
-3	Field Value Renderer 
+4	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
-0	Skippable Stages in SubmissionForm, and multiple page metadata form.
+-	Skippable Stages in SubmissionForm, and multiple page metadata form.
 2	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 0	Phrasify Option Fields
 -	Editor Pages -approve,bounce,edit etc.
@@ -46,12 +46,11 @@
 0	Password Encryption. (Via callback)
 - 	Super all-singing/dancing etc. Subject Editor
 1	From Form needs to do some trimming.
-0	Render Date Sub in ArchiveConfig ( multilang'd )
 0	ROADMAP item which disappears when done?
 0	Don't validate records with fields which have bad langids
 0	More opts for fields: freetext/idrequired etc.
 0	PDF Mollycoddler
-0	Numeric fields (not silly prefix)
+-	Numeric fields (not silly prefix)
 0	Move as much as possible of config into XML conf file.
 
 

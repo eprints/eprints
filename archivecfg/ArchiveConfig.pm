@@ -29,6 +29,9 @@ use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
+## Skip Stages
+## no 'commentary'
+## no 'laterversionof'
 
 
 ## WP1: BAD
@@ -258,6 +261,17 @@ $c->{oai_comments} = [
 	" (http://www.eprints.org)" ];
 
 
+###########################################
+#  Submission Form Customisation
+###########################################
+
+$c->{submission_stage_skip}->{type} = 0;
+$c->{submission_stage_skip}->{linking} = 0;
+$c->{submission_stage_skip}->{meta} = 0;
+$c->{submission_stage_skip}->{format} = 0;
+
+#cjg:
+# More things for simplifying submission form
 
 
 ###########################################
@@ -630,6 +644,7 @@ my $FREETEXT_STOP_WORDS = {
 		"been" => 1,
 		"have" => 1,
 		"were" => 1,
+		"what" => 1,
 		"where" => 1,
 		"is" => 1,
 		"and" => 1 
@@ -819,13 +834,13 @@ sub extract_words
 
 		# Consult list of "never words". Words which should never
 		# be indexed.	
-		if( $FREETEXT_STOP_WORDS->{lc $_} )
+		if( $FREETEXT_STOP_WORDS->{lc $word} )
 		{
 			$ok = 0;
 		}
 		# Consult list of "always words". Words which should always
 		# be indexed.	
-		if( $FREETEXT_ALWAYS_WORDS->{lc $_} )
+		if( $FREETEXT_ALWAYS_WORDS->{lc $word} )
 		{
 			$ok = 1;
 		}
@@ -1162,7 +1177,7 @@ sub user_display_name
 		return( "User ".$user->get_value( "username" ) );
 	} 
 
-	return( EPrints::Utils::format_name( $name, 1 ) );
+	return( EPrints::Utils::format_name( $user->get_session(), $name, 1 ) );
 }
 
 

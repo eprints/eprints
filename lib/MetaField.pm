@@ -555,8 +555,15 @@ sub _render_value3
 	if( $self->is_type( "name" ) )
 	{
 		return $session->make_text(
-			EPrints::Utils::format_name( $value ) );
+			EPrints::Utils::format_name( $session,  $value ) );
 	}
+
+	if( $self->is_type( "date" ) )
+	{
+		return $session->make_text(
+			EPrints::Utils::format_date( $session, $value ) );
+	}
+
 
 	if( $self->is_type( "longtext" ) )
 	{
@@ -595,31 +602,8 @@ my $html;
 		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
-	if( $self->is_type( "date" ) )
-	{
-		if( defined $value )
-		{
-			my @elements = split /\-/, $value;
 
-			if( $elements[0]==0 )
-			{
-				$html = "UNSPECIFIED";
-			}
-			elsif( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
-			{
-				$html = "INVALID";
-			}
-			else
-			{
-#				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
-			}
-		}
-		else
-		{
-			$html = "UNSPECIFIED";
-		}
-	}
-	elsif( $self->is_type( "subject" ) )
+	if( $self->is_type( "subject" ) )
 	{
 		$html = "";
 
@@ -640,7 +624,8 @@ my $html;
 			$html .= EPrints::Subject::subject_label( $self->{session}, $sub ); #cjg!!
 		}
 	}
-	elsif( $self->is_type( "set" ) )
+
+	if( $self->is_type( "set" ) )
 	{
 		$html = "";
 		my @setvalues;
@@ -1215,7 +1200,7 @@ sub _month_names
 	my $month;
 	foreach $month ( @monthkeys )
 	{
-		$months->{$month} = $session->phrase( "lib/metafield:month_".$month );
+		$months->{$month} = get_month_label( $session, $month );
 	}
 
 	return $months;
@@ -1537,8 +1522,12 @@ sub get_value_label
 		return $ds->get_type_name( $session, $value );
 	}
 
+	if( $self->is_type( "date" ) )
+	{
+		return EPrints::Utils::render_date( $session, $value );
+	}
 
-	if( $self->is_type( "date", "int", "year" ) )
+	if( $self->is_type( "int", "year" ) )
 	{
 		return $value;
 	}

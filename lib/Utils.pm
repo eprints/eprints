@@ -86,20 +86,46 @@ more information.");
 }
 
 
-######################################################################
-#
-# $html = format_name( $namespec, $familylast )
-#
-#  Takes a name (a reference to a hash containing keys
-#  "family" and "given" and returns it rendered 
-#  for screen display.
-#
-######################################################################
 
-## WP1: BAD
+sub format_date
+{	
+	my( $session, $datevalue ) = @_;
+
+	if( !defined $datevalue )
+	{
+		return $session->phrase( "lib/utils:date_unspecified" );
+	}
+
+	my @elements = split /\-/, $datevalue;
+
+	if( $elements[0]==0 )
+	{
+		return $session->phrase( "lib/utils:date_unspecified" );
+	}
+
+	if( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
+	{
+		return $session->phrase( "lib/utils:date_invalid" );
+	}
+
+	return $elements[2]." ".EPrints::Utils::get_month_label( $session, $elements[1] )." ".$elements[0];
+}
+
+sub get_month_label
+{
+	my( $session, $monthid ) = @_;
+
+	my $code = sprintf( "lib/utils:month_%02d", $monthid );
+
+	return $session->phrase( $code );
+}
+
+
+#cjg some kind of callback affair?
+#cjg need session?
 sub format_name
 {
-	my( $name, $familylast ) = @_;
+	my( $session, $name, $familylast ) = @_;
 
 	my $firstbit;
 	if( defined $name->{honourific} && $name->{honourific} ne "" )

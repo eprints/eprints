@@ -489,4 +489,19 @@ sub get_dataset_ids
 	return keys %{$INFO};
 }
 
+sub map
+{
+	my( $self, $session, $method ) = @_;
+	
+	# this needs to be BETTER later! cjg 
+	# this is just so we don't have to change the way
+	# things are called later.
+
+	my @records = $session->get_db()->get_all( $self );
+	foreach( @records ) 
+	{
+		&{$method}( $_ );
+	}
+	return scalar @records;
+}
 1;

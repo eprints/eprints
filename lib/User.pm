@@ -35,7 +35,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"userid", type=>"text", required=>1 },
+		{ name=>"userid", type=>"int", required=>1 },
 
 		{ name=>"username", type=>"text", required=>1 },
 

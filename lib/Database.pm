@@ -431,57 +431,6 @@ sub prep_value
 	return $value;
 }
 
-######################################################################
-#
-# $success = update( $dataset, $data )
-# boolean            |         structured data
-#                    EPrints::DataSet
-#
-#  Updates the record described by the $data.  
-#
-######################################################################
-
-sub deindex
-{
-	my( $self, $dataset, $keyvalue ) = @_;
-
-	$rv = 1;
-
-	my $keyfield = $dataset->get_key_field();
-	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
-
-	# Trim out indexes
-	my $indextable = $dataset->get_sql_index_table_name();
-	my $rindextable = $dataset->get_sql_rindex_table_name();
-	$sql = "SELECT fieldword FROM $rindextable WHERE $where";
-	my $sth=$self->prepare( $sql );
-	$rv = $rv && $self->execute( $sth, $sql );
-	my @codes = ();
-	my $code;	
-	while( $code = $sth->fetchrow_array )
-	{
-		push @codes,$code;
-		print STDERR "($code)\n";
-	}
-	foreach( @codes )
-	{
-		$code = prep_value( $_ );
-		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$code' AND ids LIKE '%:$keyvalue:%'";
-		$sth=$self->prepare( $sql );
-		$rv = $rv && $self->execute( $sth, $sql );
-		if( ($ids,$pos) = $sth->fetchrow_array )
-		{
-			$ids =~ s/:$keyvalue:/:/g;
-			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
-			$rv = $rv && $self->do( $sql );
-		}
-	}
-	$sql = "DELETE FROM $rindextable WHERE $where";
-	$rv = $rv && $self->do( $sql );
-
-	return $rv;
-}
-
 
 ## WP1: BAD
 sub update
@@ -507,7 +456,7 @@ sub update
 	# it now:
 	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
-	$self->deindex( $dataset, $keyvalue );
+	$self->_deindex( $dataset, $keyvalue );
 
 	my @aux;
 	my %values = ();
@@ -737,7 +686,7 @@ sub remove
 
 
 	# Delete from index
-	$self->deindex( $dataset, $id );
+	$self->_deindex( $dataset, $id );
 
 	# Delete Subtables
 	my @fields = $dataset->get_fields( 1 );
@@ -896,7 +845,7 @@ sub create_cache
 	my ( $id ) = $sth->fetchrow_array;
 
 	my $tmptable  = "cache".$id;
-
+#needs to know type of keyfield.
         $sql = "CREATE TABLE $tmptable ".
 	       "( $keyname VARCHAR(255) NOT NULL)";
 
@@ -1135,22 +1084,22 @@ sub count_buffer
 ## WP1: BAD
 sub from_buffer 
 {
-	my ( $self , $tableid , $buffer ) = @_;
-	return $self->_get( $tableid, 1 , $buffer );
+	my ( $self , $dataset , $buffer ) = @_;
+	return $self->_get( $dataset, 1 , $buffer );
 }
 
 ## WP1: BAD
 sub get_single
 {
-	my ( $self , $tableid , $value ) = @_;
-	return ($self->_get( $tableid, 0 , $value ))[0];
+	my ( $self , $dataset , $value ) = @_;
+	return ($self->_get( $dataset, 0 , $value ))[0];
 }
 
 ## WP1: BAD
 sub get_all
 {
-	my ( $self , $tableid ) = @_;
-	return $self->_get( $tableid, 2 );
+	my ( $self , $dataset ) = @_;
+	return $self->_get( $dataset, 2 );
 }
 
 ## WP1: BAD
@@ -1494,6 +1443,7 @@ sub execute
 	return $result;
 }
 
+#cjg no longer needed?
 ## WP1: BAD
 sub benchmark
 {
@@ -1604,12 +1554,46 @@ sub _freetext_index
 }
 
 
-## WP1: BAD
-sub table_name
+
+sub _deindex
 {
-	my( $tableid ) = @_;
-#cjg
-EPrints::Session::bomb();
+	my( $self, $dataset, $keyvalue ) = @_;
+
+	$rv = 1;
+
+	my $keyfield = $dataset->get_key_field();
+	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
+
+	# Trim out indexes
+	my $indextable = $dataset->get_sql_index_table_name();
+	my $rindextable = $dataset->get_sql_rindex_table_name();
+	$sql = "SELECT fieldword FROM $rindextable WHERE $where";
+	my $sth=$self->prepare( $sql );
+	$rv = $rv && $self->execute( $sth, $sql );
+	my @codes = ();
+	my $code;	
+	while( $code = $sth->fetchrow_array )
+	{
+		push @codes,$code;
+		print STDERR "($code)\n";
+	}
+	foreach( @codes )
+	{
+		$code = prep_value( $_ );
+		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$code' AND ids LIKE '%:$keyvalue:%'";
+		$sth=$self->prepare( $sql );
+		$rv = $rv && $self->execute( $sth, $sql );
+		if( ($ids,$pos) = $sth->fetchrow_array )
+		{
+			$ids =~ s/:$keyvalue:/:/g;
+			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
+			$rv = $rv && $self->do( $sql );
+		}
+	}
+	$sql = "DELETE FROM $rindextable WHERE $where";
+	$rv = $rv && $self->do( $sql );
+
+	return $rv;
 }
 
 
