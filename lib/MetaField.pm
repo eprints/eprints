@@ -613,33 +613,6 @@ print STDERR "HEIGHT: $height\n";
 
 	# The other types require a loop if they are multiple.
 
-	$frag = $html;
-
-	if( $self->is_type( "name" ) )
-	{
-		my( $table, $tr, $th, $div );
-		$table = $session->make_element( 
-					"table", 
-					cellpadding=>0,
-					cellspacing=>2,
-					border=>0 );
-		$tr = $session->make_element( "tr" );
-		$th = $session->make_element( "th" );
-		$div = $session->make_element( "div", class => "namefieldheading" );
-		$div->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
-		$th->appendChild( $div );
-		$tr->appendChild( $th );
-		$th = $session->make_element( "th" );
-		$div = $session->make_element( "div", class => "namefieldheading" );
-		$div->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
-		$th->appendChild( $div );
-		$tr->appendChild( $th );
-		$table->appendChild( $tr );
-	
-		$html->appendChild( $table );
-		$frag = $table;
-	}
-
 	if( $self->get_property( "multiple" ) )
 	{
 		my $boxcount = 3;
@@ -657,31 +630,31 @@ print STDERR "HEIGHT: $height\n";
 		my $i;
 		for( $i=1 ; $i<=$boxcount ; ++$i )
 		{
-			my $more = undef;
-			if( $i == $boxcount )
-			{
-				$more = $session->make_doc_fragment();
-				$more->appendChild( $session->make_element(
-					"input",
-					"accept-charset" => "utf-8",
-					type => "hidden",
-					name => $spacesid,
-					value => $boxcount ) );
-				$more->appendChild( $session->render_internal_buttons(
-					$self->{name}."_morespaces" => 
-						$session->phrase( "lib/metafield:more_spaces" ) ) );
-			}
-			$frag->appendChild( 
+			my $div;
+			$div = $session->make_element( "div" );
+			$div->appendChild( $session->make_text( $i.". " ) );
+			$html->appendChild( $div );
+			$div = $session->make_element( "div", style=>"margin-left: 20px" ); #cjg NOT CSS
+			$div->appendChild( 
 				$self->_render_input_field_aux( 
 					$session, 
 					$value->[$i-1], 
-					$i,
-					$more ) );
+					$i ) );
+			$html->appendChild( $div );
 		}
+		$html->appendChild( $session->make_element(
+			"input",
+			"accept-charset" => "utf-8",
+			type => "hidden",
+			name => $spacesid,
+			value => $boxcount ) );
+		$html->appendChild( $session->render_internal_buttons(
+			$self->{name}."_morespaces" => 
+				$session->phrase( "lib/metafield:more_spaces" ) ) );
 	}
 	else
 	{
-		$frag->appendChild( 
+		$html->appendChild( 
 			$self->_render_input_field_aux( 
 				$session, 
 				$value ) );
@@ -693,7 +666,7 @@ print STDERR "HEIGHT: $height\n";
 
 sub _render_input_field_aux
 {
-	my( $self, $session, $value, $n, $morebutton ) = @_;
+	my( $self, $session, $value, $n ) = @_;
 print STDERR "$n... val($value)\n";
 
 	my $id_suffix = "";
@@ -702,7 +675,7 @@ print STDERR "$n... val($value)\n";
 	# These DO NOT belong here. cjg.
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 
-	my $html = $session->make_doc_fragment();
+	my $frag = $session->make_doc_fragment();
 	if( $self->is_type( "text", "username", "url", "int", "email", "year" ) )
 	{
 		my( $maxlength, $size, $div, $id );
@@ -740,11 +713,7 @@ print STDERR "$n... val($value)\n";
 			size => $size,
 			maxlength => $maxlength ) );
 
-		if( defined $morebutton )
-		{
-			$div->appendChild( $morebutton );
-		}
-		$html->appendChild( $div );
+		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "longtext" ) )
 	{
@@ -763,15 +732,12 @@ print STDERR "$n... val($value)\n";
 			wrap => "virtual" );
 		$textarea->appendChild( $session->make_text( $value ) );
 		$div->appendChild( $textarea );
-		if( defined $morebutton )
-		{
-			$div->appendChild( $morebutton );
-		}
 		
-		$html->appendChild( $div );
+		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "boolean" ) )
 	{
+		#cjg OTHER METHOD THAN CHECKBOX? TRUE/FALSE MENU?
 		my( $div , $id);
  		$id = $self->{name}.$id_suffix;
 		if( $session->internal_button_pressed() )#cjg???
@@ -789,11 +755,13 @@ print STDERR "$n... val($value)\n";
 			name => $id,
 			value => "TRUE" ) );
 		# No more button for boolean. That would be silly.
-		$html->appendChild( $div );
+		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "name" ) )
 	{
-		my( $tr, $td , $givenid, $familyid );
+		my( $givenid, $familyid );
+		my( $div ) = $session->make_element( "div" );
+		my( $nobr ) = $session->make_element( "nobr" );
  		$givenid = $self->{name}.$id_suffix."_given";
  		$familyid = $self->{name}.$id_suffix."_family";
 		if( $session->internal_button_pressed() )#cjg???
@@ -801,32 +769,27 @@ print STDERR "$n... val($value)\n";
 			$value->{family} = $session->param( $familyid );
 			$value->{given} = $session->param( $givenid );
 		}
-		$tr = $session->make_element( "tr" );
-		$td = $session->make_element( "td" );
-		$td->appendChild( $session->make_element(
+		$nobr->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
+		$nobr->appendChild( $session->make_text( " " ) );
+		$nobr->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			name => $familyid,
 			value => $value->{family},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
-		$tr->appendChild( $td );
-		$td = $session->make_element( "td" );
-		$td->appendChild( $session->make_element(
+		$nobr->appendChild( $session->make_text( " " ) );
+		$nobr->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
+		$nobr->appendChild( $session->make_text( " " ) );
+		$nobr->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			name => $givenid,
 			value => $value->{given},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
-		$tr->appendChild( $td );
-		if( defined $morebutton )
-		{
-			$td = $session->make_element( "td" );
-			$td->appendChild( $morebutton );
-			$tr->appendChild( $td );
-		}
-		$html->appendChild( $tr );
+		$div->appendChild( $nobr );
+		$frag->appendChild( $div );
 	}
 	elsif( $self->is_type( "pagerange" ) )
 	{
@@ -862,11 +825,7 @@ print STDERR "$n... val($value)\n";
 			value => $pages[1],
 			size => 6,
 			maxlength => 10 ) );
-		if( defined $morebutton )
-		{
-			$div->appendChild( $morebutton );
-		}
-		$html->appendChild( $div );
+		$frag->appendChild( $div );
 
 	}
 	elsif( $self->is_type( "date" ) )
@@ -923,19 +882,15 @@ print STDERR "$n... val($value)\n";
 			value => $day,
 			size => 2,
 			maxlength => 2 ) );
-		if( defined $morebutton )
-		{
-			$div->appendChild( $morebutton );
-		}
-		$html->appendChild( $div );
+		$frag->appendChild( $div );
 	}
 	else
 	{
-		$html->appendChild( $session->make_text( "???" ) );
+		$frag->appendChild( $session->make_text( "???" ) );
 		$session->get_archive()->log( "Don't know how to render input".
 					  "field of type: ".$self->get_type() );
 	}
-	return $html;
+	return $frag;
 }
 
 #WP1: BAD
