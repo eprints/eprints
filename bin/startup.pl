@@ -1,40 +1,25 @@
+use lib '/opt/eprints/perl_lib';
+######################################
+
+#cjg headers?
 use strict;
 
-BEGIN {
-	if( !defined $ENV{EPRINTS_PATH} )
-	{
-		print STDERR <<END;
------------------------------------------------------------------------
-EPRINTS_PATH Environment variable not set.
-Try adding something like this to the apache conf:
-PerlSetEnv EPRINTS_PATH /opt/eprints
------------------------------------------------------------------------
-END
-		die;
-	}
-}
-
-
-$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
-
-
 print STDERR "EPRINTS: Loading Modules\n";
-
-# Extend @INC if needed
-use lib ( $ENV{EPRINTS_PATH}."/perl_lib" );
 
 ## Apache::DBI MUST come before other modules using DBI or
 ## you won't get constant connections and everything
 ## will go horribly wrong...
 
 use Apache::DBI;
-
+$Apache::DBI::DEBUG = 3;
 use Apache::Registry;          
+
+use EPrints::Config;
+
+$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
  
-# Load Perl modules of your choice here
 # This code is interpreted *once* when the server starts
 
-$Apache::DBI::DEBUG = 3;
 
 use EPrints::Config;
 use EPrints::Auth;

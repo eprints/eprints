@@ -1,35 +1,16 @@
 # HEADERS cjg
 
-print "EPRINTS: ".$ENV{EPRINTS_PATH}."\n";
 
 # This module loads and sets information for eprints not
 # specific to any archive.
 
 package EPrints::Config;
 
+use EPrints::SystemSettings;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);
 
 BEGIN {
-	if( !defined $ENV{EPRINTS_PATH} )
-	{
-		if( $ENV{MOD_PERL} )
-		{
-			EPrints::Config::abort( <<END );
-EPRINTS_PATH Environment variable not set.
-Try adding something like this to the apache conf:
-PerlSetEnv EPRINTS_PATH /opt/eprints
-END
-		}
-		else
-		{
-			EPrints::Config::abort( <<END );
-EPRINTS_PATH Environment variable not set.
-cjg need advice!
-END
-		}
-	}
-
 	# abort($err) Defined here so modules can abort even at startup
 
 	sub abort
@@ -47,12 +28,9 @@ END
 		$@="";
 		die;
 	}
-
-
 }
 
-my $eprints_path = $ENV{EPRINTS_PATH};
-
+my $eprints_path = $EPrints::SystemSettings::base_path;
 $EPrints::Config::base_path = $eprints_path;
 $EPrints::Config::cgi_path = $eprints_path."/cgi";
 $EPrints::Config::cfg_path = $eprints_path."/cfg";
@@ -89,7 +67,6 @@ while( $file = readdir( CFG ) )
 	next unless( $file=~m/^conf-(.*)\.xml/ );
 	my $fpath = $EPrints::Config::cfg_path."/".$file;
 	my $id = $1;
-	print STDERR "($file)($1)\n";
 	my $conf_doc = parse_xml( $fpath );
 	my $conf_tag = ($conf_doc->getElementsByTagName( "archive" ))[0];
 	if( !defined $conf_tag )
@@ -141,9 +118,6 @@ while( $file = readdir( CFG ) )
 	$ARCHIVES{$id} = $ainfo;
 }
 closedir( CFG );
-
-use Data::Dumper;
-print STDERR Dumper( \%ARCHIVEMAP );
 
 ###############################################
 

@@ -104,18 +104,6 @@ $c->{server_document_root} = "$c->{server_static}/archive";
 $c->{template_user_intro} 	= "$c->{archive_root}/cfg/template.user-intro";
 $c->{subject_config} 	= "$c->{archive_root}/cfg/subjects";
 
-######################################################################
-#
-# Local users customisations
-#
-######################################################################
-
-# Field to use to associate papers with authors in username and
-# nameusername fields. Set to undef to use normal username.
-# The named field should be of type "text".
-
-$c->{useridfield} = "ecsid";
-
 
 ######################################################################
 #
@@ -376,20 +364,19 @@ $c->{archivefields}->{user} = [
 
 	{ name => "name", type => "name", required => 1 },
 
-	{ name => "dept", type => "text", required => 0 },
+	{ name => "dept", type => "text" },
 
-	{ name => "org", type => "text", required => 0 },
+	{ name => "org", type => "text" },
 
-	{ name => "address", type => "longtext", displaylines => 5,
-		required => 0 },
+	{ name => "address", type => "longtext", displaylines => 5 },
 
 	{ name => "oook", type => "text", multiple => 1 },
 
-	{ name => "country", type => "text", required => 0 },
+	{ name => "country", type => "text" },
 
-	{ name => "url", type => "url", required => 0, multiple => 1 },
+	{ name => "url", type => "url", multiple => 1 },
 
-	{ name => "filter", type => "subject", required => 0, showall => 1, multiple => 1 }
+	{ name => "filter", type => "subject", showall => 1, multiple => 1 }
 ];
 
 $c->{archivefields}->{eprint} = [

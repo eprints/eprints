@@ -133,7 +133,7 @@ $ChNameChar	= "(?:[-._:]|$ChLetter|$ChDigit|$ChCombiningChar|$ChExtender)";
 $ReName		= "(?:(?:[:_]|$ChLetter)$ChNameChar*)";
 $ReNmToken	= "(?:$ChNameChar)+";
 $ReEntityRef	= "(?:\&$ReName;)";
-$ReCharRef	= "(?:\&#(?:\d+|x[0-9a-fA-F]+);)";
+$ReCharRef	= "(?:\&#(?:[0-9]+|x[0-9a-fA-F]+);)";
 $ReReference	= "(?:$ReEntityRef|$ReCharRef)";
 
 #?? what if it contains entity references?

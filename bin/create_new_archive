@@ -1,0 +1,211 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+BEGIN{ $ENV{EPRINTS_PATH} = "/opt/eprints"; }
+
+#cjg LIB
+
+use Sys::Hostname;
+use EPrints::Config;
+use EPrints::DOM;
+
+use strict;
+
+print <<END;
+
+Create new EPrint Archive
+
+Please select an ID for the archive, which will be used to create a directory
+and identify the archive. Lower case letters and numbers, may not start with
+a number) eg. "lemurprints" or "test3"
+
+END
+
+my $archiveid = get_input( '^[a-z][a-z0-9]*$', 'Archive ID?' );
+
+print "$archiveid\n";
+
+my( $configfile ) = $EPrints::Config::cfg_path."/conf-".$archiveid.".pm";
+my( $archivedir ) = $EPrints::Config::base_path."/archives/".$archiveid;
+if( -e $configfile )
+{
+	print <<END;
+We have a problem: 
+A configuration file for $archiveid already exists;
+$configfile
+Bailing out.
+END
+	exit;
+}
+if( -e $archivedir )
+{
+	print <<END;
+We have a problem: 
+Archive directory already exists.
+$archivedir
+Bailing out.
+END
+	exit;
+}
+	
+print <<END;
+
+Please enter the fully qualified hostname of the archive. 
+
+For a production system we recommend against using the real hostname of the 
+machine. 
+
+Example: $archiveid.footle.ac.uk
+
+END
+
+my $hostname = get_input( '^[a-z0-9]+(\.[a-z0-9]+)+$', 'Hostname?' );
+
+print <<END;
+
+Please enter the port of the webserver. This is probably 80, but you may wish 
+to run apache on a different port if you are experimenting.
+
+END
+
+my $port = get_input( '^[0-9]+$', 'Webserver Port?', '80' );
+
+# calculate example aliases
+my $realhostname = hostname();
+my @example_aliases = ();
+push @example_aliases,$realhostname;
+
+$realhostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+push @example_aliases,$1 if( $3 eq ".");
+push @example_aliases,$2;
+
+$hostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+push @example_aliases,$1 if( $3 eq "." );
+push @example_aliases,$2;
+print <<END;
+
+Please enter all the aliases which could reach the archive, and indicate if 
+you would like EPrints to write a Redirect Rule to redirect requests to this
+alias to the correct URL.
+
+eg.
+END
+foreach( @example_aliases )
+{
+	print $_."\n";
+}
+print <<END;
+
+Enter an empty value when you're done.
+
+END
+
+my @aliases = ();
+
+for(;;)
+{
+	my $alias = get_input( '^([a-z0-9]+(\.[a-z0-9]+)*|)$', 'Alias?' );
+	last if( $alias eq "" );
+	my $aliasrecord = {};
+	$aliasrecord->{name} = $alias;
+	$aliasrecord->{redirect} = get_input( '^(yes|no)$',"Redirect $alias to $hostname?",'yes' );
+	push @aliases,$aliasrecord;
+	print "\n";
+}
+
+# These are hard wired for the time being
+my $urlpath = '/';
+my $archivepath = "archives/".$archiveid;
+my $configmodule = "cfg/archive_config.pm";
+
+######
+#
+# Write XML Config FIle
+#
+
+my $doc = new EPrints::DOM::Document();
+my $doctype = $doc->createDocumentType( "archive" );
+$doc->setDoctype( $doctype );
+
+my $xmldecl = $doc->createXMLDecl( "1.0", "ISO-LATIN-1", "yes" );
+$doc->setXMLDecl( $xmldecl );
+
+my $t_archive = $doc->createElement( "archive" );
+$t_archive->setAttribute( "id", $archiveid );
+$doc->appendChild( $t_archive );
+
+$t_archive->appendChild( info_tag( $doc, "hostname", $hostname ) );
+foreach( @aliases )
+{
+	$t_archive->appendChild( info_tag( $doc, "alias", $_->{name}, "redirect", $_->{redirect} ) );
+}
+$t_archive->appendChild( info_tag( $doc, "port", $port ) );
+$t_archive->appendChild( info_tag( $doc, "urlpath", $urlpath ) );
+$t_archive->appendChild( info_tag( $doc, "archivepath", $archivepath ) );
+$t_archive->appendChild( info_tag( $doc, "configfile", $configmodule ) );
+$t_archive->appendChild( $doc->createTextNode( "\n" ) );
+
+print "Writing Config File to:\n$configfile...\n";
+$doc->printToFile( $configfile );
+print "...done\n\n";
+
+# Make DB!
+
+# Make filesystem
+
+# Link in initial disk0  (?)
+
+# Register with website!
+
+# Run make_apache_conf
+
+# give advice.
+
+exit;
+
+#######################################################################
+
+sub info_tag
+{
+	my( $doc, $tagname, $value, $attr, $attrvalue ) = @_;
+
+	my $frag = $doc->createDocumentFragment();
+	$frag->appendChild( $doc->createTextNode( "\n    " ) );
+	my $tag = $doc->createElement( $tagname );
+	$tag->appendChild( $doc->createTextNode( $value ) );
+	if( defined $attr )
+	{
+		$tag->setAttribute( $attr, $attrvalue );
+	}
+	$frag->appendChild( $tag );
+	return $frag;
+}
+
+sub get_input
+{
+	my( $regexp, $prompt, $default ) = @_;
+
+	$prompt = "?" if( !defined $prompt);
+	for(;;)
+	{
+		print $prompt." ";
+		if( defined $default )
+		{
+			print "[$default] ";
+		}
+		my $in = <STDIN>;
+		chomp $in;
+		if( $in eq "" && defined $default )
+		{
+			return $default;
+		}
+		if( $in=~m/^$regexp$/ )
+		{
+			return $in;
+		}
+		else
+		{
+			print "Bad Input, try again.\n";
+		}
+	}
+}
+
+
