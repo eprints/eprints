@@ -19,7 +19,7 @@ use strict;
 
 my $siteid = $ARGV[0];
 
-my $archive = EPrints::Archive->new_site_by_id( $siteid, 1 );
+my $archive = EPrints::Archive->new_archive_by_id( $siteid, 1 );
 exit( 1 ) unless( defined $archive );
 
 my $langid;
