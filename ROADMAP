@@ -38,7 +38,7 @@
 -	Multilang. Config for mails and submission agreement.
 -	"Magic" Next & Prev in SubmissionForm
 -	Multi-Lang fields in HTML
-4	Field Value Renderer 
+-	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 -	Skippable Stages in SubmissionForm, and multiple page metadata form.
 -	Phrasify Option Fields
@@ -54,9 +54,9 @@
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 
-0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
+-	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 0	Paged Metadata in submission form.
-0	Browse Multiple Fields at once (eg. authors.id/editors.id)
+-	Browse Multiple Fields at once (eg. authors.id/editors.id)
 4	Subject-editors (editors can only edit within certain subjects)
 2	Web-based Email Change
 -	Password Encryption. (Via callback)
@@ -74,12 +74,12 @@
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
-4	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
+-	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology. But make it optional.
 1	Indexing on name fields(?)
 0	patch for config files when upgrading.(?)
 0	different looks for boolean/opts eg. check/radio boxes.
 -	Allow users to request a username when registering.
-3	Bulk XML Dumper
+4	Bulk XML Dumper
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
@@ -91,7 +91,7 @@
 0 	- Logout feature (or maybe force a revalidate so someone can switch user).
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0	Some kind of BibTeX support (fill in metadata form from bibtex)
-0	Search by ID field (in search exp)
+-	Search by ID field (in search exp)
 0	What's new? page(s) (just a fixed search)
 0	Subscriptions - editing
 0	Subscriptions - sending
@@ -105,13 +105,13 @@
 0	Keywords field appears in META keywords for search engines
 0 	Clean up phrase file - nice and non-ambiguous.
 0	remove all #cjg comments which denote issues.
-4	Multipage search (cache code)
-0	Multipage views
+-	Multipage search (cache code)
+0	Multipage views(?)
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
-0	Other output charsets than UTF-8?
-1	XML Importer
+0	Other output charsets than UTF-8 (?)
+2	XML Importer
 0	Improve name search syntax (?)
-1	Remove (Hide) Lanuage related options if only one language supported.
+2	Remove (Hide) Lanuage related options if only one language supported.
 0	Xanadu interface(!)
 0	"Special search" which redirects to the abstract if only one match.
 
@@ -121,7 +121,7 @@
 0	Alternate config files for simple english only archives.
 1	Formally Comment Code
 0	Bugfixing
-0	Documentation! - Howto's, Datatypes, Installation
+1	Documentation! - Howto's, Datatypes, Installation, man pages
 0	How-To Documentation
 0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
 
@@ -137,13 +137,13 @@
 # *	EPrints 1.2 Final Planned EPrints 1.* release.
 
 
-1	Sleep
-2	Beer
+0	Sleep
+3	Beer
 0	Peer Review
 0	Mirroring
 0	Citation Scanning
 0	"People who read this eprint also read..."
-1	OpenURL support (?)
+2	OpenURL support (?)
 
 
 #BUGS
@@ -152,15 +152,14 @@
 #	Bug: 500 error when search for only ignored words.
 #	Bug: Why does 'help' disappear when there is a problem with a search?
 #	Fix Buttons on search results page.
-#	Order buttons somehow using extra param to render input form... 
-#	   ....done but now need to go and use it everywhere (_order=>[foo,bar]
-#	Default Action when buttons pushed (set in render input form?)... 
-#         .....Appears to just push first button!
-#	Fix "upload then back" bug
+#	Order buttons somehow using extra param to render input form...    ....done but now need to go and use it everywhere (_order=>[foo,bar]
+#	Default Action when buttons pushed (set in render input form?)...    .....Appears to just push first button!
+#	Fix "upload then back" bug in submission form
 #	Status search field buggered
 #	directory listing on perl dir is showing and should be hidden.
-#	SearchExp still runs do's on searchfields when cached (?)
+#	SearchExp still appears to run do's on searchfields when cached (?)
 #	Linking values to views seems to be broken.
+#	views pages are not sorted (correctly)
 
 #Clean UP
 #	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
@@ -172,7 +171,6 @@
 #	Not everything should be no-cache! (HTTP header)
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
 #	Named values in Constructors all round?
-#	subject label cache - scrap it or fix it?
 #	cmp methods : is they still needed?
 #	search buttons at top and bottom of search & (some) submission forms.
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
@@ -183,24 +181,18 @@
 # import_subjects does not check for errors very well.
 
 #TODO
-#	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
 #	Call backs for LEAVING archive and buffer=>inbox
-#	"Squash" reverse indexes?
-#	rename tempmap to cachemap
 
 #LESS URGENT TODO...
 #	Call backs to handle Latex processing... Do with a value in the metafield config.
 
 #	langid's -> validate they is correct (in multilang)
-#	Make all possible field-types browseable.
 #	sort subject input fields
 #	text area without CR's (config flag) eg. for title.
 #	Magic search fields - eg. Must have HTML format document/public document...
 #	no new eprints when disk fullish
-#	New search exp style which makes a one shot cache for dumping etc.
-#	browse fields should each have their own seperate order .
 #	Add POD manuals to ALL lib and CGI files.
 # 	Make man pages from /bin etc build into docs.
 #	import_xml becomes import_foo etc. eprint/user/whatever.
 #	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?
-
+#	ordervalues for sets & subjects being on their NAME not value?

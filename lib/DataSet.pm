@@ -24,8 +24,8 @@ use Carp;
 
 
 my $INFO = {
-	tempmap => {
-		sqlname => "tempmap"
+	cachemap => {
+		sqlname => "cachemap"
 	},
 	counter => {
 		sqlname => "counters"

@@ -26,6 +26,8 @@ use strict;
 
 # Nb. match=EX searches CANNOT be used in the HTML form (currently)
 # EX is "Exact", like EQuals but allows blanks.
+# EX search on subject only searches for that subject, not things
+# below it.
 
 ######################################################################
 #
@@ -284,7 +286,6 @@ sub get_conditions
 {
 	my ( $self ) = @_;
 
-	
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
 		return undef;
@@ -686,7 +687,7 @@ sub do
 				# Normal Search
 				my $tables = {};
 				$tables->{M} = $tname;
-				if( $self->{field}->is_type( "subject" ) )
+				if( $self->{field}->is_type( "subject" ) && $self->{match} ne "EX" )
 				{
 					# maybe we should calculate this
 					# tablename from dataset? for added

@@ -182,7 +182,7 @@ sub create_archive_tables
 			$self->{session}->get_archive()->get_dataset( $_ ) );
 	}
 
-	$success = $success && $self->_create_tempmap_table();
+	$success = $success && $self->_create_cachemap_table();
 
 	$success = $success && $self->_create_counter_table();
 	
@@ -822,19 +822,19 @@ sub _create_counter_table
 
 ######################################################################
 #
-# $success = _create_tempmap_table()
+# $success = _create_cachemap_table()
 #
 #  Creates the temporary table map table.
 #
 ######################################################################
 
 ## WP1: BAD
-sub _create_tempmap_table
+sub _create_cachemap_table
 {
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	my $table_name = $ds->get_sql_table_name();
 	my $sql = <<END;
 CREATE TABLE $table_name ( 
@@ -897,7 +897,7 @@ sub cache_id
 	my( $self , $code , $include_expired ) = @_;
 
 	my $a = $self->{session}->get_archive();
-	$ds = $a->get_dataset( "tempmap" );
+	$ds = $a->get_dataset( "cachemap" );
 
 	#cjg NOT escaped!!!
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code' AND oneshot!='TRUE'";
@@ -941,7 +941,7 @@ sub cache
 
 	my $oneshotval = ($oneshot?"TRUE":"FALSE");
 
-	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	my $ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , '$code' , '$oneshotval' )";
 	
 	$self->do( $sql );
@@ -1105,8 +1105,8 @@ sub drop_cache
 	my $tmptable = "cache$id";
 
 	my $sql;
-	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-	# We drop the table before removing the entry from the tempmap
+	my $ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
+	# We drop the table before removing the entry from the cachemap
 
        	$sql = "DROP TABLE $tmptable";
 	$self->do( $sql );
@@ -1152,7 +1152,7 @@ sub from_cache
 
 	my @results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
 
-	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	$ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET lastused = NOW() WHERE tableid = $id";
 	$self->do( $sql );
 
@@ -1165,7 +1165,7 @@ sub drop_old_caches
 {
 	my( $self ) = @_;
 
-	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	$ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	my $a = $self->{session}->get_archive();
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name()." WHERE";
 	$sql.= " (lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute"; 
@@ -1560,6 +1560,7 @@ sub execute
 	{
 		$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 	}
+
 	my $result = $sth->execute;
 
 	if ( !$result ) {

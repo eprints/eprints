@@ -402,33 +402,16 @@ $c->{archivefields}->{document} = [
 # a valid result. 
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
-$c->{browse_views} = 
-{ 
-	"year" => {
-		allow_null=>1,
-		fields=>"year",
-		order=>"title/authors"
-	},
-	"people" => {
-		allow_null=>0,
-		fields=>"authors.id/editors.id",
-		order=>"title/authors"
-	},
-	"subjects" => {
-		allow_null=>0,
-		fields=>"subjects",
-		order=>"title/authors"
-	}
-};
+$c->{browse_views} = [
+	{ id=>"year", allow_null=>1, fields=>"year", order=>"title/authors" },
+	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+];
 
 # Fields for a simple user search
 $c->{simple_search_fields} =
 [
 	"title/abstract/keywords",
 	"authors/editors",
-	"abstract/keywords/institution",
-	#"authors.id",
-	#"publication",
 	"year"
 ];
 

@@ -33,7 +33,7 @@ exit( 1 ) unless( defined $session );
 my $ds = $session->get_archive()->get_dataset( "subject" ) ;
 	
 my $sexp = EPrints::SearchExpression->new( 
-		use_cache => 1,
+		use_oneshot_cache => 1,
 		allow_blank => 1 , 
 		dataset => $ds , 
 		session => $session );

@@ -555,7 +555,10 @@ sub render_form
 
 sub render_subjects
 {
-	my( $self, $subject_list, $baseid, $current, $linkmode ) = @_;
+	my( $self, $subject_list, $baseid, $current, $linkmode, $sizes ) = @_;
+
+	# If sizes is defined then it contains a hash subjectid->#of subjects
+	# we don't do this ourselves.
 
 #cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
 	if( !defined $baseid )
@@ -569,19 +572,18 @@ sub render_subjects
 		$subs{$_} = EPrints::Subject->new( $self, $_ );
 	}
 
-	return $self->_render_subjects_aux( \%subs, $baseid, $current, $linkmode );
+	return $self->_render_subjects_aux( \%subs, $baseid, $current, $linkmode, $sizes );
 }
 
 sub _render_subjects_aux
 {
-	my( $self, $subjects, $id, $current, $linkmode ) = @_;
+	my( $self, $subjects, $id, $current, $linkmode, $sizes ) = @_;
 
 	my( $ul, $li, $elementx );
 	$ul = $self->make_element( "ul" );
 	$li = $self->make_element( "li" );
 	$ul->appendChild( $li );
-
-	if( $id eq $current )
+	if( defined $current && $id eq $current )
 	{
 		$elementx = $self->make_element( "strong" );
 	}
@@ -602,110 +604,21 @@ sub _render_subjects_aux
 	}
 	$li->appendChild( $elementx );
 	$elementx->appendChild( $subjects->{$id}->render() );
+	if( defined $sizes && $sizes->{$id} > 0 )
+	{
+		$elementx->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );
+	}
+		
 	foreach( $subjects->{$id}->children() )
 	{
 		my $thisid = $_->get_value( "subjectid" );
 		next unless( defined $subjects->{$thisid} );
-		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $linkmode ) );
+		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $linkmode, $sizes ) );
 	}
 	
 	return $ul;
 }
 
-
-#
-# $xhtml = render_subject_tree( $subject )
-#
-#  Return HTML for a subject tree for the given subject. If $subject is
-#  undef, the root subject is assumed.
-#
-#  The tree will feature the current tree, the parents up to the root,
-#  and all children.
-#
-
-#sooo very iffy.cjg
-sub render_subject_tree
-{
-	my( $self, $subject ) = @_;
-
-	my $frag = $self->make_doc_fragment();
-	
-	# Get the parents
-	my $parent = $subject->parent;
-	my @parents;
-	
-	while( defined $parent )
-	{
-		push @parents, $parent;
-		$parent = $parent->parent;
-	}
-	
-	# Render the parents
-	my $ul = $self->make_element( "ul" );
-	$frag->appendChild( $ul );
-	while( $#parents >= 0 )
-	{
-		$parent = pop @parents;
-
-		my $li = $self->make_element( "li" );
-		$li->appendChild(
-			$self->render_subject_desc( $parent, 1, 0, 1 ) );
-		$ul->appendChild( $li );
-		my $newul = $self->make_element( "ul" );
-		$ul->appendChild( $newul );
-		$ul = $newul;
-	}
-	
-	# Render this subject
-	if( defined $subject &&
-		( $subject->{subjectid} ne $EPrints::Subject::root_subject ) )
-	{
-		my $li = $self->make_element( "li" );
-		$li->appendChild(
-			$self->render_subject_desc( $subject, 0, 0, 1 ) );
-		$ul->appendChild( $li );
-		my $newul = $self->make_element( "ul" );
-		$ul->appendChild( $newul );
-		$ul = $newul;
-	}
-	
-	# Render children
-	$ul->appendChild( $self->_render_subject_children( $subject ) );
-
-	return( $frag );
-}
-
-#
-# $html = _render_subject_children( $subject )
-#
-#  Recursively render the children of the given subject into HTML lists.
-#
-
-sub _render_subject_children
-{
-	my( $self, $subject ) = @_;
-
-	my $frag = $self->make_doc_fragment();
-	my @children = $subject->children;
-
-	if( @children )
-	{
-		my $ul = $self->make_element( "ul" );
-		$frag->appendChild( $ul );
-		my $child;	
-		foreach $child (@children)
-		{
-			my $li = $self->make_element( "li" );
-			
-			$li->appendChild( $self->render_subject_desc( $child, 1, 0, 1 ) );
-			$li->appendChild( $self->_render_subject_children( $child ) );
-			$ul->appendChild( $li );
-		}
-		
-	}
-	
-	return( $frag );
-}
 
 
 #

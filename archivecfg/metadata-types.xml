@@ -20,12 +20,12 @@
   
   <dataset name="eprint">
     <type name="book">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" />
       <field name="editors" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="volume" />
       <field name="series" />
       <field name="year" required="yes" />
@@ -39,12 +39,12 @@
       <field name="referencetext" />
     </type>
     <type name="bookchapter">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" required="yes" />
       <field name="publication" required="yes" />
@@ -59,11 +59,11 @@
       <field name="referencetext" />
     </type>
     <type name="proceedings">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" />
       <field name="conference" required="yes" />
@@ -81,12 +81,12 @@
       <field name="referencetext" />
     </type>
     <type name="confpaper">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" required="yes" />
       <field name="conference" required="yes" />
@@ -104,12 +104,12 @@
       <field name="referencetext" />
     </type>
     <type name="incollection">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" required="yes" />
       <field name="conference" required="yes" />
@@ -127,12 +127,12 @@
       <field name="referencetext" />
     </type>
     <type name="confposter">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="abstract" required="yes" />
       <field name="conference" required="yes" />
@@ -150,12 +150,12 @@
       <field name="referencetext" />
     </type>
     <type name="techreport">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -169,12 +169,12 @@
       <field name="referencetext" />
     </type>
     <type name="journale">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -190,12 +190,12 @@
       <field name="referencetext" />
     </type>
     <type name="journalp">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -212,12 +212,12 @@
       <field name="referencetext" />
     </type>
     <type name="newsarticle">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -234,12 +234,12 @@
       <field name="referencetext" />
     </type>
     <type name="other">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -250,11 +250,11 @@
       <field name="referencetext" />
     </type>
     <type name="preprint">
-      <field name="subjects" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />
@@ -265,12 +265,12 @@
       <field name="referencetext" />
     </type>
     <type name="thesis">
-      <field name="subjects" required="yes" />
       <field name="ispublished" required="yes" />
       <field name="refereed" required="yes" />
       <field name="pubdom" required="yes" />
       <field name="authors" required="yes" />
       <field name="title" required="yes" />
+      <field name="subjects" required="yes" />
       <field name="year" required="yes" />
       <field name="month" />
       <field name="abstract" required="yes" />

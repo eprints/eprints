@@ -1509,7 +1509,7 @@ sub is_browsable
         # Can't yet browse:
         # boolean , text,  langid ,name 
 
-	return $self->is_type( "set", "subject", "datatype", "date", "int", "year", "id", "email", "url" );
+	return $self->is_type( "set", "subject", "datatype", "date", "int", "year", "id", "email", "url", "text" );
 
 }
 
@@ -1544,7 +1544,7 @@ sub get_values
 		return @{$ds->get_types()};
 	}
 
-	if( $self->is_type( "date", "int", "year", "id", "email", "url" ) )
+	if( $self->is_type( "date", "int", "year", "id", "email", "url" , "text" ) )
 	{
 		return $session->get_db()->get_values( $self );
 	}

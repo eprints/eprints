@@ -84,7 +84,7 @@ sub new
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
 	# 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order use_oneshot_cache / )
 	{
 		$self->{$_} = $data{$_};
 	}
@@ -94,6 +94,7 @@ sub new
 		$self->{order} = $EPrints::SearchExpression::CustomOrder;
 		# can't cache a search with a custom ordering.
 		$self->{use_cache} = 0;
+		$self->{use_oneshot_cache} = 1;
 	}
 
 	# Array for the SearchField objects
@@ -584,8 +585,6 @@ sub get_records
 		}
 	}
 		
-
-	
 	if( !defined $self->{tmptable} )
 	{
 		#ERROR TO USER cjg
@@ -612,28 +611,31 @@ sub get_records
 
 	# We don't bother sorting if we got too many results.	
 	# or no order method was specified.
-	if( $self->{use_cache} || defined $self->{order} )
+	if( $self->{use_cache} || defined $self->{use_oneshot_cache} )
 	{
-		my $order;
-		if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+		if( !defined $self->{cache_table} )
 		{
-			$order = $self->{custom_order};
+			my $order;
+			if( $self->{order} eq $EPrints::SearchExpression::CustomOrder )
+			{
+				$order = $self->{custom_order};
+			}
+			else
+			{
+				$order = $self->{session}->get_archive()->get_conf( 
+							"order_methods" , 
+							$self->{dataset}->confid() ,
+							$self->{order} );
+			}
+	
+			$self->{cache_table} = $self->{session}->get_db()->cache( 
+				$self->serialise(), 
+				$self->{dataset},
+				$srctable,
+				$order,
+				!$self->{use_cache} ); # oneshot or not
 		}
-		else
-		{
-			$order = $self->{session}->get_archive()->get_conf( 
-						"order_methods" , 
-						$self->{dataset}->confid() ,
-						$self->{order} );
-		}
-
-		$self->{cache_table} = $self->{session}->get_db()->cache( 
-			$self->serialise(), 
-			$self->{dataset},
-			$srctable,
-			$order,
-			!$self->{use_cache} ); # oneshot
-
+	
 		@records = $self->{session}->get_db()->from_cache( 
 						$self->{dataset}, 
 						undef,
@@ -663,13 +665,12 @@ sub map
 
 	my $count = $self->count();
 
-	my $CHUNKSIZE = 5; # cjg bigger later.
+	my $CHUNKSIZE = 512;
 
 	my $offset;
 	for( $offset = 0; $offset < $count; $offset+=$CHUNKSIZE )
 	{
 		my @records = $self->get_records( $offset, $CHUNKSIZE );
-		print STDERR "$offset ".(scalar @records)."\n";
 		my $item;
 		foreach $item ( @records )
 		{

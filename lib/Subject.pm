@@ -294,7 +294,6 @@ sub can_post
 	return( $self->{data}->{depositable} eq "TRUE" ? 1 : 0 );
 }
 
-#cjg LINK(optional) to "view" (? maybe not)
 sub render
 {
 	my( $self, $session ) = @_;
@@ -581,7 +580,6 @@ sub count_eprints
 
 }
 
-## WP1: BAD
 sub get_value 
 {
 	my( $self, $fieldname ) = @_;
@@ -592,124 +590,6 @@ sub get_value
 	
 	return $v;
 }
-
-#
-#
-#
-#
-#
-#
-#
-###############################################
-# JUNK
-###############################################
-
-## WP1: BAD
-sub get_postable
-{
-	my( $session, $user ) = @_;
-
-	# Get all of the subjects
-	my( $subjectmap, $rmap ) = EPrints::Subject::get_all( $session );
-
-
-	# For the results
-	#my @tags;
-	#my %labels;
-
-	# easy sorting
-	#my %labelmap;
-	#my $subject;
-	## Go through all of the subjects
-	#foreach $subject (keys
-	#{
-		## If the user can post to it...
-		#if( !defined $user || $subject->can_post( $user ) )
-		#{
-			## Lob it in the list!
-			#my $lab = EPrints::Subject::subject_label_cache(
-				#$session,
-				#$subject->{subjectid},
-				#$subjectmap );
-			#$labels{$subject->get_value("subjectid")} = $lab;
-			#$labelmap{$lab} = $subject;
-		#}
-	#}
-	#
-	## Put subjects in alphabetical order to labelmap
-	#foreach (sort keys %labelmap)
-	#{
-		#push @tags, $labelmap{$_}->get_value("subjectid");
-	#}
-#
-	#return( \@tags, \%labels );
-}
-
-######################################################################
-#
-# ($tags, $labels ) = all_subject_labels( $session )
-#
-#  Returns tags and labels for _all_ subjects, in a manner similar to
-#  get_postable().
-#
-######################################################################
-
-## WP1: BAD
-sub all_subject_labels
-{
-	my( $session ) = @_;
-	
-	return( EPrints::Subject::get_postable( $session, undef ) );
-}
-
-
-
-######################################################################
-#
-# $label = subject_label_cache( $session, $subject_tag, $subject_cache )
-#
-#  Return the full label of a subject, including parents. Returns
-#  undef if the subject tag is invalid. This one works when you have
-#  the subjects cached in a hash that maps subject ID - Subject. 
-#  [STATIC]
-#
-######################################################################
-
-## WP1: BAD
-sub subject_label_cache
-{
-	my( $session, $subject_tag, $subject_cache ) = @_;
-	
-	my $label = "";
-	my $tag = $subject_tag;
-
-	while( $tag ne $EPrints::Subject::root_subject )
-	{
-		my $s = $subject_cache->{$tag};
-
-		# If we can't find it, the tag must be invalid.
-		if( !defined $s )
-		{
-			return( undef );
-		}
-
-		$tag = $s->{parent};
-
-		if( $label eq "" )
-		{
-			$label = $s->{name};
-		}
-		else
-		{
-			#lang ": "cjg
-			$label = $s->{name} . ": " . $label;
-		}
-	}
-	
-	return( $label );
-}
-
-
 
 sub get_name
 {

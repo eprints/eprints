@@ -8,20 +8,15 @@
 
 &ruler;
 
-<p>This version ( &version; ) is still alpha code. It is not a production system.</p>
-<p>Things which currently work(ish):</p>
+<p>This version ( &version; ) is still alpha code. It is not a  system.</p>
 <ul>
 <li><a href="&perl_url;/set_password">User Registration</a> - allows you to:
 <ul>
 <li>submit records into the review buffer</li>
-<li>look at the review buffer</li>
 <li>edit your user record</li>
-<li>view the site status</li>
 </ul>
-Normal users cannot use all these features but as this is just a test server, a normal user can change their usertype.</li>
 <li><a href="&perl_url;/search">Search</a> - assuming there is any data in the archive.</li>
 <li><a href="&base_url;/view/">Browse</a> - Browse the database.</li>
-<li><a href="&perl_url;/setlang">Change Language</a> - well, we've not actually translated anything yet, but the mechanism works.</li>
 <li><a href="&userhome;">User Area</a> - should work once you've registered.</li>
 </ul>
 

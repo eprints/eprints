@@ -116,14 +116,11 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	if( -e $tmpdir ) { rmtree( $tmpdir ); }
 	EPrints::Utils::mkdir( $tmpdir );
 
-	my $browseid;
-	foreach $browseid (keys %{$views} )
+	foreach( @{$views} )
 	{
-		print "Making browse pages for: $langid/$browseid\n" if( $noise > 0 );
-		make_view_pages( $browseid, $views->{$browseid}, $tmpdir, $ds, $noise );
+		print "Making browse pages for: $langid/".$_->{id}."\n" if( $noise > 0 );
+		make_view_pages( $_, $tmpdir, $ds, $noise );
 	}
-
-
 
 	# Make Browse Page which lists various views
 
@@ -133,11 +130,11 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	$page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "bin/generate_views:browseintro" ) );
 	$ul = $session->make_element( "ul" );
-	foreach $browseid (keys %{$views} )
+	foreach( @{$views} )
 	{
 		$li = $session->make_element( "li" );
-		$a = $session->make_element( "a", href=>$browseid."/" );
-		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $browseid ) ) );
+		$a = $session->make_element( "a", href=>$_->{id}."/" );
+		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $_->{id} ) ) );
 		$li->appendChild( $a );
 		$ul->appendChild( $li );
 	}
@@ -162,7 +159,7 @@ exit;
 
 sub make_view_pages
 {
-	my( $browseid, $info, $viewdir, $ds, $noise ) = @_;
+	my( $info, $viewdir, $ds, $noise ) = @_;
 
 	my @fields;
 	foreach( split( "/", $info->{fields} ) )
@@ -180,7 +177,7 @@ sub make_view_pages
 
 	my $order = $info->{order};
 
-	my $dir = $viewdir."/".$browseid;
+	my $dir = $viewdir."/".$info->{id};
 	mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
 
 	my $field;
@@ -212,7 +209,7 @@ sub make_view_pages
 
 		$fileid = $value;
 		if( $fileid eq "" ) { $fileid = "NULL"; }
-		print "[$browseid] = \"$fileid\"\n" if( $noise > 1 );
+		print "[".$info->{id}."] = \"$fileid\"\n" if( $noise > 1 );
 
 		if( $fields[0]->is_type( "subject" ) )
 		{
@@ -235,6 +232,7 @@ sub make_view_pages
 
 		my $searchexp = new EPrints::SearchExpression(
 				custom_order=>$order,
+				use_oneshot_cache=>1,
 				satisfy_all=>0,
 				session=>$session,
 				dataset=>$ds );
@@ -244,35 +242,22 @@ sub make_view_pages
         		$searchexp->add_field( $field, "PHR:EX:".$value );
 		}	
 
-        	$searchexp->perform_search();
-		my $count = $searchexp->count();
-		$size{$value} = $count;
 
 		my $links = $session->make_doc_fragment();
-		my $MAX = 500000;
-		# cjg. This would be better if it were mapped so we
-		# didn't have problems with HUGE lists.
 
-		if( $count > $MAX ) {
-			$links->appendChild( $session->html_phrase( "bin/generate_views:toobig",
-				n=>$session->make_text( $count ),
-				max=>$session->make_text( $MAX ) ) );
-		}
-		else
-		{
-        		my @eprints = $searchexp->get_records();
-
-			$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
-					n=>$session->make_text( $count ) ) );
-
-			my $eprint;
-			foreach $eprint (@eprints)
-			{
-				my $p = $session->make_element( "p" );
-				$p->appendChild( $eprint->render_citation_link() );
-				$links->appendChild( $p );
-			}
-		}
+		my $fn = sub { 
+        		my( $session, $dataset, $item, $info ) = @_;
+			my $p = $session->make_element( "p" );
+			$p->appendChild( $item->render_citation_link() );
+			$links->appendChild( $p );
+		};
+		
+        	$searchexp->perform_search();
+		my $count = $searchexp->count();
+		$links->appendChild( $session->html_phrase( "bin/generate_views:blurb",
+				n=>$session->make_text( $count ) ) );
+		$size{$value} = $count;
+		$searchexp->map( $fn, { links => $links } );
 		$searchexp->dispose();
 
 		$file = $dir."/".$fileid.".include";
@@ -284,7 +269,7 @@ sub make_view_pages
 		$page->appendChild( $links );
 
 		$title = $session->phrase( "bin/generate_views:title", 
-					viewname=>$session->get_view_name( $ds, $browseid ),
+					viewname=>$session->get_view_name( $ds, $info->{id} ),
 					value=>$fields[0]->get_value_label( $session, $value ) );
 
 
@@ -304,12 +289,13 @@ sub make_view_pages
 
 	if( $fields[0]->is_type( "subject" ) )
 	{
-        	$page->appendChild( $session->render_subjects( \@values, $fields[0]->get_property( "top" ), undef, 2 ) );
+        	$page->appendChild( $session->render_subjects( \@values, $fields[0]->get_property( "top" ), undef, 2, \%size ) );
 	}
 	else
 	{
 		$ul = $session->make_element( "ul" );
-		foreach $value ( @values )
+		# sorting the keys is not ideal, but better than nothing.
+		foreach $value ( sort @values )
 		{
 			$fileid = $value;
 			if( $fileid eq "" ) { $fileid = "NULL"; }
@@ -324,7 +310,7 @@ sub make_view_pages
 	}
 
 	$title = $session->phrase( "bin/generate_views:indextitle", 
-				viewname=>$session->get_view_name( $ds, $browseid ) ),
+				viewname=>$session->get_view_name( $ds, $info->{id} ) ),
 
 	$file = $dir."/index.html";
 	$session->build_page( $title, $page );
