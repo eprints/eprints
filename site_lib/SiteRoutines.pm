@@ -87,6 +87,24 @@ sub eprint_render_full
 		0 );
 	$html .= "</P>\n";
 
+	# Available formats
+	my @documents = $eprint->get_all_documents();
+	
+	$html .= "<TABLE BORDER=0 CELLPADDING=5><TR><TD VALIGN=TOP><STRONG>Full ".
+		"text available as:</STRONG></TD><TD>";
+	
+	foreach (@documents)
+	{
+		my $description = 
+			$EPrintSite::SiteInfo::supported_format_names{$_->{format}};
+		$description = $_->{formatdesc}
+			if( $_->{format} eq $EPrints::Document::other );
+
+		$html .= "<A HREF=\"".$_->url()."\">$description</A><BR>";
+	}
+
+	$html .= "</TD></TR></TABLE>\n";
+
 	# Then the abstract
 	$html .= "<H2>Abstract</H2>\n";
 	$html .= "<P>$eprint->{abstract}</P>\n";

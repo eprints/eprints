@@ -1181,44 +1181,6 @@ sub render_eprint_full
 		$html .= $self->write_version_thread( $eprint, $commentary_field );
 	}
 
-	# Available formats
-	my @documents = $eprint->get_all_documents();
-	my $doc;
-
-	$html .= "<P><CENTER><STRONG>Available Download Formats</STRONG>".
-		"</CENTER></P>\n";
-
-	$html .= "<CENTER><TABLE BORDER=0 CELLPADDING=3>\n";
-	
-	foreach $doc (@documents)
-	{
-		# Get the icon
-		my $icon_filename = "doc-$doc->{format}.gif";
-		
-		# Does that specialised one exist?
-		unless( -e
-			$EPrintSite::SiteInfo::local_html_root . "/images/" . $icon_filename )
-		{
-			# Use the default
-			$icon_filename = "doc-default.gif";
-		}
-		
-		my $url = $doc->url();
-
-		my $description =
-			$EPrintSite::SiteInfo::supported_format_names{$doc->{format}};
-		$description = $doc->{formatdesc}
-			if( $doc->{format} eq $EPrints::Document::other );
-
-		$html .= "<TR><TD><A HREF=\"$url\"><IMG ".
-			"SRC=\"$EPrintSite::SiteInfo::server_static/images/$icon_filename\"".
-			" ALT=\"$doc->{format}\" BORDER=0></A></TD><TD><A HREF=\"$url\">".
-			"$description</A>".
-			"</TD></TR>\n";
-	}
-
-	$html .= "</TABLE></CENTER>\n";
-
 	return( $html );
 }
 
