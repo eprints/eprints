@@ -88,6 +88,8 @@ closedir DOCSTORE;
 print "<CENTER><TABLE BORDER=0>\n";
 
 
+&print_row( "EPrints Release:", $EPrints::Session::eprints_software_version );
+
 &print_row( "Database Status:", $db_status );
 
 &print_row( "", "" );
