@@ -24,6 +24,8 @@ use EPrints::Session;
 use EPrintSite::SiteInfo;
 use EPrintSite::SiteRoutines;
 
+use strict;
+
 # This is the character used to separate the unique archive ID from the
 # record ID in full Dienst record identifiers
 
@@ -193,7 +195,7 @@ sub get_oams_tags
 	$tags{displayID} = [ $eprint->static_page_url() ];
 
 	# FullID
-	$tags{fullID} = $fullID;
+	$tags{fullID} = &fullID( $eprint );
 
 	# Other tags are site-specific. Delegate to site routine.
 	EPrintSite::SiteRoutines::eprint_get_oams( $eprint, \%tags );
