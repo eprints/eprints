@@ -1,11 +1,8 @@
 ######################################################################
 #
-#  EPrints OAI 1.1 Handler
+#  EPrints OAI 2.0 Handler
 #
 #   Responds to incoming OAI requests
-#
-# Conforming to:
-# http://www.openarchives.org/OAI/1.1/openarchivesprotocol.htm
 #
 ######################################################################
 #

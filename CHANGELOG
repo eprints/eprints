@@ -680,3 +680,7 @@ before next release. (metadata types & fields)
    identifier and base_url are now all seperately configured for 
    OAI 2.0 (and changed cgi/oai2 and OpenArchives.pm to honour this)
 
+======================================================================
+04/07/2002 - EPRINTS 2.1.1
+======================================================================
+
