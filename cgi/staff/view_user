@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  09/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -24,6 +25,28 @@ if( defined $userid )
 		print $session->{render}->start_html( "User record for ".$user->full_name() );
 
 		print $session->{render}->render_user( $user, 1 );
+
+		print "<HR>\n";
+
+		my $rows = $session->{database}->retrieve(
+			$EPrints::Database::table_archive,
+			[ "eprintid" ],
+			[ "username LIKE \"$userid\"" ] );
+
+		print "<CENTER><P><A ".
+			"HREF=\"eprint_search?username=$userid\&submit=Search\">".
+			"User has ".scalar @$rows;
+		print ( scalar @$rows==1 ? " EPrint" : " EPrints" );
+		print " in the archive.</A></P></CENTER>\n";
+		
+
+		print $session->{render}->start_form( "edit_user" );
+		print "<CENTER><P>";
+		print $session->{render}->hidden_field( "username", $userid );
+		print $session->{render}->submit_buttons( [ "Edit User",
+		                                            "Delete User" ] );
+		print "</P></CENTER>\n";
+
 
 		print $session->{render}->end_html();
 	}
