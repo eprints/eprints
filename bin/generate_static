@@ -37,7 +37,7 @@ foreach $language ( keys %EPrints::Site::General::languages )
 	print $language."\n";
 	my $basepath = $session->getSite->getConf( "static_html_root" ).
 	               "/$language";
-	generateDTD( $session, $language, $basepath );	
+	generateDTD( $session, $language );
 	my $func = sub { generate_static( $language, $basepath, $session ) };
 	find( { wanted=>$func, follow=>1 }, $basepath );
 }
@@ -48,8 +48,9 @@ $session->terminate();
 
 sub generateDTD
 {
-	my( $session, $language, $basepath ) = @_;
-	my $filename = $basepath."/eprints.dtd";
+	my( $session, $language ) = @_;
+	my $filename = $session->getSite->getConf( "site_root" ).
+			"/dtd/".$language.".dtd";
 	print "Writing DTD: $filename\n";
 	
 	open( DTD, ">$filename" ) || 
@@ -103,6 +104,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 		# If it's a directory, just make sure it exists in the destination.
 		unless( -e $destination_filename )
 		{
+			print "mkdir $destination_filename\n";
 			mkdir( $destination_filename, 0775 )
 				or die "Can't make directory $destination_filename: $!\n";
 		}
@@ -116,8 +118,18 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 					ParseParamEnt => 1,
 					NoLWP => 1,
 					ProtocolEncoding => "ISO-8859-1" );
-			my $dom = eval { 
-				$parser->parsefile( $File::Find::name );
+
+			my $xhtml = "<!DOCTYPE html SYSTEM \"".
+				$session->getSite->getConf( "site_root" ).
+				"/dtd/".$language.".dtd\" >\n";
+			open( XML , $File::Find::name );
+			while( <XML> )
+			{
+				$xhtml .= $_;
+			}	
+			close XML;
+			my $doc = eval { 
+				$parser->parse( $xhtml );
 			};
 			if( $@ )
 			{
@@ -125,9 +137,28 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				$err =~ s# at /.*##;
 				die "Error parsing $File::Find::name\n$err";
 			}
+
+			#cjg this code is icky, esp. nextsib->nextsib
+			# setDocType don't seem to work right...
+
+			my $xmldoc = new XML::DOM::Document;
+			my $doctype = XML::DOM::DocumentType->new(
+				"html", 
+                        	"html",
+                        	"DTD/xhtml1-transitional.dtd",
+                        	"-//W3C//DTD XHTML 1.0 Transitional//EN" );
+			$doctype->setOwnerDocument( $xmldoc );
+			$xmldoc->setDoctype ($doctype);
+
+			my $page = $doc->getFirstChild->getNextSibling->getNextSibling;
+			$doc->removeChild( $page );
+
+			$page->setOwnerDocument( $xmldoc );
+
+			$xmldoc->appendChild( $page );
 			print STDERR "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ \n";
-			print STDERR $dom->getFirstChild->getNodeName."\n";
-			print $dom->printToFile( $destination_filename );
+			print STDERR $doc->getFirstChild->getNodeName."\n";
+			print $xmldoc->printToFile( $destination_filename );
 		}
 		else
 		{
