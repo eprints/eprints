@@ -88,23 +88,11 @@ sub new
 	my $self = {};
 	bless $self, $class;
 	
-	if( $offline )
-	{
-		# Offline session. Don't use CGI::Apache.
-		$self->{offline} = 1;
-		$self->{query} = new CGI( {} );
-	}
-	else
-	{
-		# Use CGI::Apache. Has to be required and imported here, as it dies
-		# if it's required elsewhere.
-		require CGI::Apache;
-		import CGI::Apache;
-		$self->{query} = new CGI::Apache();
-	}
-	
-	$self->{session} = $session;
+	$self->{offline} = $offline;
+	$self->{query} = new CGI unless( $offline );
+	$self->{query} = new CGI( {} ) if( $offline );
 
+	$self->{session} = $session;
 
 	# Get name boxcount stuff
 	$self->{namebuttonpressed} = 0;
@@ -714,11 +702,9 @@ sub render_form
 
 	if( defined $hidden_fields )
 	{
-		my $hf;
-
-		foreach $hf (keys %{$hidden_fields})
+		foreach (keys %{$hidden_fields})
 		{
-			print $self->hidden_field( $hf, $hidden_fields->{$hf} );
+			print $self->hidden_field( $_, $hidden_fields->{$_} );
 		}
 	}
 
