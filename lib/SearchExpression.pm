@@ -603,8 +603,41 @@ sub count
 	EPrints::Log::log_entry(
 		EPrints::Language::logphrase( "L:not_cached" ) );
 		
-	
 }
+
+
+sub get_records 
+{
+	my ( $self ) = @_;
+
+	if ( $self->{tmptable} )
+	{
+		return $self->{session}->{database}->from_cache( 
+			$self->{table},
+			$self->{tmptable} );
+	}	
+
+	EPrints::Log::log_entry(
+		EPrints::Language::logphrase( "L:not_cached" ) );
+		
+}
+
+sub get_eprints
+{
+	my ( $self ) = @_;
+	
+	my @data = $self->get_records();
+
+	foreach ( @data ) {
+		$_ = new EPrints::EPrint( 
+			$self->{session}, 
+			$self->{table},
+			$_->{eprintid},
+			$_  );
+	}
+	return @data;
+}
+
 
 
 1;

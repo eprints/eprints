@@ -104,86 +104,77 @@ sub new
 	my( $class, $session, $table, $id, $known ) = @_;
 
 	my $self = {};
-	bless $self, $class;
 	
-	$self->{session} = $session;
-	
-	my @row;
 
 	if( defined $known )
 	{
-		# Rows are already known
-		@row = @$known;
-		$self->{table} = $table;
+		## Rows are already known
+		$self = $known;
 	}
-	else
-	{
-		if( !defined $table )
-		{
-			# Work out in which table the EPrint resides.
+	bless $self, $class;
 
+	$self->{table} = $table;
+	$self->{session} = $session;
+
+	#if ( !defined $known )	
+	#{
+		#if( !defined $table )
+		#{
+			## Work out in which table the EPrint resides.
+##
 			# Try the archive table first
 			# Get the relevant row...
-			@row = $self->{session}->{database}->retrieve_single(
-				$EPrints::Database::table_archive,
-				"eprintid",
-				$id );
-
+			#@row = $self->{session}->{database}->retrieve_single(
+				#$EPrints::Database::table_archive,
+				#"eprintid",
+				#$id );
+#
 			# Next try buffer
-			if( $#row >= 0 )
-			{
-				$self->{table} = $EPrints::Database::table_archive;
-			}
-			else
-			{
-				@row = $self->{session}->{database}->retrieve_single(
-					$EPrints::Database::table_buffer,
-					"eprintid",
-					$id );
-			}
+			#if( $#row >= 0 )
+			#{
+				#$self->{table} = $EPrints::Database::table_archive;
+			#}
+			#else
+			#{
+				#@row = $self->{session}->{database}->retrieve_single(
+					#$EPrints::Database::table_buffer,
+					#"eprintid",
+					#$id );
+			#}
+#
+			## Finally, inbox
+			#if( $#row >= 0 )
+			#{
+				#$self->{table} = $EPrints::Database::table_buffer;
+			#}
+			#else
+			#{
+				#@row = $self->{session}->{database}->retrieve_single(
+					#$EPrints::Database::table_inbox,
+					#"eprintid",
+					#$id );
+			#}
+#
+			#$table = $EPrints::Database::table_inbox if( $#row >= 0 );
+		#}
+		#else
+		#{
+			#$self->{table} = $table;
+#
+			#@row = $self->{session}->{database}->retrieve_single(
+				#$table,
+				#"eprintid",
+				#$id );
+		#}		
+#
+#
+		#if( $#row == -1 )
+		#{
+			## We still don't have any data, so the EPrint obviously doesn't exist.
+			#return( undef );
+		#}		
+	#}
 
-			# Finally, inbox
-			if( $#row >= 0 )
-			{
-				$self->{table} = $EPrints::Database::table_buffer;
-			}
-			else
-			{
-				@row = $self->{session}->{database}->retrieve_single(
-					$EPrints::Database::table_inbox,
-					"eprintid",
-					$id );
-			}
-
-			$table = $EPrints::Database::table_inbox if( $#row >= 0 );
-		}
-		else
-		{
-			$self->{table} = $table;
-
-			@row = $self->{session}->{database}->retrieve_single(
-				$table,
-				"eprintid",
-				$id );
-		}		
-
-
-		if( $#row == -1 )
-		{
-			# We still don't have any data, so the EPrint obviously doesn't exist.
-			return( undef );
-		}		
-	}
-
-	# Read in the EPrint data from the rows.
-	my @fields = EPrints::MetaInfo::get_all_eprint_fieldnames();
-	my $i=0;
-
-	foreach $_ (@fields)
-	{
-		$self->{$_} = $row[$i];
-		$i++;
-	}
 
 	return( $self );
 }

@@ -531,11 +531,26 @@ sub posted_eprints
 {
 	my( $self, $table ) = @_;
 	
-	return( EPrints::EPrint::retrieve_eprints(
+	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		(defined $table ? $table : $EPrints::Database::table_archive ),
-		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ],
-		[ $EPrintSite::SiteInfo::subject_view_order ] ) );
+		$table,
+		0,
+		1,
+		[],
+		{},
+		undef );
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"archive",
+			"subjects" ),
+		"$self->{subjectid}:ALL" );
+
+	my $searchid = $searchexp->cache();
+	my @data = $searchexp->get_eprints();
+	$searchexp->drop_cache();
+
+	return @data;
 }
 
 
@@ -553,11 +568,6 @@ sub count_eprints
 {
 	my( $self, $table ) = @_;
 
-#	return( EPrints::EPrint::count_eprints(
-#		$self->{session},
-#		(defined $table ? $table : $EPrints::Database::table_archive ),
-#		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ] ) );
-
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
@@ -568,42 +578,18 @@ sub count_eprints
 		{},
 		undef );
 
-
-	#$searchexp->add_field(
-		#[ EPrints::MetaInfo::find_table_field( "archive", "title" ),
-		#EPrints::MetaInfo::find_table_field( "archive", "authors" ) ],
-		#"all:fish food" );
-
-	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
-			"archive",
-			"subjects" ),
-		"arts-msc:arts-fnar:ANY" );
-
-
-	my $searchid = $searchexp->cache();
-	print "(".$self->{session}->{database}->count_cache( $searchid ).")\n";
-	$self->{session}->{database}->drop_cache( $searchid );
-
 	$searchexp->add_field(
 		EPrints::MetaInfo::find_table_field(
 			"archive",
 			"subjects" ),
 		"$self->{subjectid}:ALL" );
 
+	my $searchid = $searchexp->cache();
+	my $count = $searchexp->count();
+	$searchexp->drop_cache();
 
-	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
-			"archive",
-			"subjects" ),
-		"C:D:$self->{subjectid}:AND" );
+	return $count;
 
-
-	$searchexp->add_field(
-		EPrints::MetaInfo::find_table_field(
-			"archive",
-			"title" ),
-		"all:cheese whizz" ) ;
 }
 
 

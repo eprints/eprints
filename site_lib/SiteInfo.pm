@@ -168,6 +168,8 @@ $EPrintSite::SiteInfo::subject_config = "$EPrintSite::SiteInfo::local_root/cfg/s
 $EPrintSite::SiteInfo::eprint_default_order = "by author's name";
 
 # How to order the articles in a "browse by subject" view.
+### cjg::: This field no longer does anything
+### it needs to replaced with one that works!
 $EPrintSite::SiteInfo::subject_view_order = "authors, year DESC, title";
 
 # Fields for a staff user search.

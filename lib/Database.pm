@@ -679,7 +679,7 @@ sub cache
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
-        my $sql = "SELECT $table.$keyfield->{name} FROM $table";
+	my $sql= "SELECT $table.$keyfield->{name} FROM $table";
 	foreach ( keys %{$aux_tables} )
 	{
 		$sql .= " LEFT JOIN ${$aux_tables}{$_} AS $_";
@@ -696,8 +696,8 @@ EPrints::Log::debug( "Database", "SQL:$tmp_sql" );
 	$self->{dbh}->do( $tmp_sql );
 
 EPrints::Log::debug( "Database", "SQL:$sql" );
-
-	$self->{dbh}->do( $sql );
+	
+	$self->{dbh}->do( "INSERT INTO $tmptable $sql" );
 
 
 	return( $tmptable );
@@ -731,17 +731,85 @@ sub count_cache
 {
 	my ( $self , $cache ) = @_;
 
-	my $sql = "SELECT COUNT(*) FROM $cache";
+	my ( $sql , $sth , $count );
 
+	$sql = "SELECT COUNT(*) FROM $cache";
 EPrints::Log::debug( "Database", "SQL:$sql" );
-
-	my $sth = $self->{dbh}->prepare( $sql );
+	$sth = $self->{dbh}->prepare( $sql );
 	$sth->execute();
-	my ( $count ) = $sth->fetchrow_array;
+	( $count ) = $sth->fetchrow_array;
+
 
 	return $count;
 }
-	
-	
+
+sub from_cache 
+{
+	my ( $self , $table , $cache ) = @_;
+
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my $keyfield = $fields[0];
+
+	my $cols = "";
+	my @aux = ();
+	print "_--------------------------_\n";	
+	print "COUNTCACHE: ".$self->count_cache( $cache )."\n";
+	my $first = 1;
+	foreach (@fields) {
+		if ( $_->{multiple}) 
+		{ 
+			push @aux,$_;
+		}
+		else 
+		{
+			if ($first)
+			{
+				$first = 0;
+			}
+			else
+			{
+				$cols .= ", ";
+			}
+			$cols .= "M.".$_->{name};
+		}
+	}
+	my $sql = "SELECT $cols FROM $cache AS C, $table AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
+	my $sth = $self->{dbh}->prepare( $sql );
+	$sth->execute();
+	my @data = ();
+	my @row;
+	my %lookup = ();
+	my $count = 0;
+	while( @row = $sth->fetchrow_array ) 
+	{
+		my $record = {};
+		$lookup{$row[0]} = $count;
+		foreach( @fields ) { 
+			next if $_->{multiple};
+			$$record{$_->{name}} = shift @row;
+		}
+		$data[$count] = $record;
+		$count++;
+	}
+	print "=========$count\n";
+
+	my $multifield;
+	foreach $multifield ( @aux )
+	{
+		$sql = "SELECT M.$keyfield->{name},M.pos,M.$multifield->{name} FROM ";
+		$sql.= "$cache AS C, $table"."aux".$multifield->{name};
+		$sql.= " AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
+		print "$sql\n";
+		$sth = $self->{dbh}->prepare( $sql );
+		$sth->execute();
+		my ( $id , $pos , $value);
+		while( ($id , $pos , $value) = $sth->fetchrow_array ) 
+		{
+			my $n = $lookup{ $id };
+			${${$data[$n]}{$multifield->{name}}}[$pos] = $value;
+		}
+	}	
+	return @data;
+}
 
 1; # For use/require success
