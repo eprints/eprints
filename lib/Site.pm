@@ -98,7 +98,7 @@ $self->log("done: $id");
 }
 
 ## WP1: GOOD
-sub getConf
+sub get_conf
 {
 	my( $self, $key, @subkeys ) = @_;
 
@@ -127,7 +127,7 @@ sub call
 }
 
 ## WP1: GOOD
-sub getDataSet
+sub get_data_set
 {
 	my( $self , $setname ) = @_;
 

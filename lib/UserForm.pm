@@ -84,7 +84,7 @@ sub process
 		$a = $self->{session}->make_element( 
 			"a", 
 			href => $self->{session}->get_site()->
-				  getConf( "server_static" ).
+				  get_conf( "server_static" ).
 				"/register.html"  );
 		$p = $self->{session}->make_element( "p" );		
 		$p->appendChild( $self->{session}->html_phrase( 
@@ -175,7 +175,7 @@ sub _render_form
 	
 	my @edit_fields;
 	my $field;
-	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
 	my @all_fields = $user_ds->get_fields;
 	
 	# Get the appropriate fields
@@ -225,7 +225,7 @@ sub _update_from_form
 	}
 	
 	my @all_fields = $self->{session}->get_site()->
-					getDataSet( "user" )->get_fields();
+					get_data_set( "user" )->get_fields();
 
 	my $field;
 	foreach $field ( @all_fields )
@@ -235,7 +235,7 @@ sub _update_from_form
 		# Only update if a value for the field was entered in the form.
 		if( $self->{staff} || $field->get_property( "editable" ) )
 		{
-			$self->{user}->setValue( $field->{name} , $param );
+			$self->{user}->set_value( $field->{name} , $param );
 		}
 	}
 	return( 1 );

@@ -113,7 +113,7 @@ sub new
 			$self->{field_index}->{$field->get_name()} = $field;
 		}
 	}
-	my $sitefields = $site->getConf( "sitefields", $self->{confid} );
+	my $sitefields = $site->get_conf( "sitefields", $self->{confid} );
 	if( $sitefields )
 	{
 		foreach $fielddata ( @{$sitefields} )
@@ -125,17 +125,17 @@ sub new
 	}
 
 	$self->{types} = {};
-	if( defined $site->getConf( "types", $self->{confid} ) )
+	if( defined $site->get_conf( "types", $self->{confid} ) )
 	{
 		my $type;
-		foreach $type ( keys %{$site->getConf( "types", $self->{confid} )} )
+		foreach $type ( keys %{$site->get_conf( "types", $self->{confid} )} )
 		{
 			$self->{types}->{$type} = [];
 			foreach( @{$self->{system_fields}} )
 			{
 				push @{$self->{types}->{$type}}, $_;
 			}
-			foreach ( @{$site->getConf( "types", $self->{confid}, $type )} )
+			foreach ( @{$site->get_conf( "types", $self->{confid}, $type )} )
 			{
 				my $required = ( s/^REQUIRED:// );
 				my $field = $self->{field_index}->{$_};
@@ -155,7 +155,7 @@ sub new
 	}
 	
 	$self->{default_order} = $self->{site}->
-			getConf( "default_order" , $self->{confid} );
+			get_conf( "default_order" , $self->{confid} );
 
 	return $self;
 }

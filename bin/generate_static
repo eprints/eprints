@@ -29,15 +29,15 @@ my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
 # change to base of site so expat can find the dtd directory.
-chdir( $session->get_site()->getConf( "site_root" ) );
+chdir( $session->get_site()->get_conf( "site_root" ) );
 
 print "____________________________\n";
 my $langid;
-my $generalpath = $session->get_site()->getConf( "static_html_root" )."/general";
+my $generalpath = $session->get_site()->get_conf( "static_html_root" )."/general";
 foreach $langid ( keys %EPrints::Site::General::languages )
 {
 	print $langid."\n";
-	my $basepath = $session->get_site()->getConf( "static_html_root" ).
+	my $basepath = $session->get_site()->get_conf( "static_html_root" ).
 	               "/$langid";
 	my $func;
 	$func = sub { generate_static( $langid, $basepath, $session ) };
@@ -50,28 +50,28 @@ exit;
 
 $session->terminate();
 
-sub generateDTD
+sub generate_dtd
 {
 	my( $session, $langid ) = @_;
 
 	my $dtd = "";
 	$dtd.= "<!ENTITY sitename \"".
-		$session->get_site()->getConf( "sitename" ).
+		$session->get_site()->get_conf( "sitename" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY description \"".
-		$session->get_site()->getConf( "description" ).
+		$session->get_site()->get_conf( "description" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY admin \"".
-		$session->get_site()->getConf( "admin" ).
+		$session->get_site()->get_conf( "admin" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY perlroot \"".
-		$session->get_site()->getConf( "server_perl" ).
+		$session->get_site()->get_conf( "server_perl" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY staticroot \"".
-		$session->get_site()->getConf( "server_static" ).
+		$session->get_site()->get_conf( "server_static" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY frontpage \"".
-		$session->get_site()->getConf( "frontpage" ).
+		$session->get_site()->get_conf( "frontpage" ).
 		"\" >\n";
 	$dtd.= "<!ENTITY version \"".
 		$EPrints::Version::eprints_software_version.
@@ -88,7 +88,7 @@ sub generate_static
 
 	my $destination_filename = $File::Find::name;
 
-	my $newpath = $session->get_site()->getConf( "local_html_root" ).
+	my $newpath = $session->get_site()->get_conf( "local_html_root" ).
 	              "/$langid";
 	$destination_filename =~ s/$basepath/$newpath/;
 
@@ -117,7 +117,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 					ProtocolEncoding => "ISO-8859-1" );
 
 			my $xhtml = "<!DOCTYPE $mode [\n".
-				generateDTD( $session, $langid )." ] >\n";
+				generate_dtd( $session, $langid )." ] >\n";
 print "$xhtml\n\n";
 			open( XML , $File::Find::name );
 			while( <XML> )

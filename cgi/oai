@@ -193,16 +193,16 @@ sub identify
 	                   "xsi:schemaLocation"=>"http://www.openarchives.org/OAI/eprints ".
 	                                      "http://www.openarchives.org/OAI/eprints.xsd");
 
-	write_TextURL( $writer, 
+	write_text_url( $writer, 
                           "content", 
                           $session->{site}->{oai_content} );
-	write_TextURL( $writer, 
+	write_text_urlL( $writer, 
                           "metadataPolicy", 
                           $session->{site}->{oai_metadataPolicy} );
-	write_TextURL( $writer, 
+	write_text_url( $writer, 
                           "dataPolicy", 
                           $session->{site}->{oai_dataPolicy} );
-	write_TextURL( $writer, 
+	write_text_url( $writer, 
                           "submissionPolicy", 
                           $session->{site}->{oai_submissionPolicy} );
 
@@ -222,7 +222,7 @@ sub identify
 
 ######################################################################
 #
-# write_TextURL( $writer, $name, $texturl )
+# write_text_url( $writer, $name, $texturl )
 #                                 hashref
 #  Write a TextURL type block to writer, of name $name. Block will 
 #  contain a text and/or url element, defined in %texturl.
@@ -230,7 +230,7 @@ sub identify
 #
 ######################################################################
 
-sub write_TextURL
+sub write_text_url
 {
 	my( $writer, $name, $texturl ) = @_;
 

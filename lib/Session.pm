@@ -116,7 +116,7 @@ sub new
 
 	# What language is this session in?
 
-	my $langcookie = $self->{query}->cookie( $self->{site}->getConf( "lang_cookie_name") );
+	my $langcookie = $self->{query}->cookie( $self->{site}->get_conf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
@@ -158,7 +158,7 @@ sub new_page
 
 	if( !defined $langid )
 	{
-		$langid = $self->{lang}->getID;
+		$langid = $self->{lang}->get_id;
 	}
 
 	$self->{page} = new XML::DOM::Document;
@@ -176,7 +176,7 @@ sub new_page
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
 
-	my $newpage = $self->{site}->getConf( "htmlpage" , $langid )->cloneNode( 1 );
+	my $newpage = $self->{site}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
 	$self->take_ownership( $newpage );
 	$self->{page}->appendChild( $newpage );
 }
@@ -374,11 +374,11 @@ sub send_http_header
 	if( defined $opts{lang} )
 	{
 		my $cookie = $self->{query}->cookie(
-			-name    => $self->{site}->getConf("lang_cookie_name"),
+			-name    => $self->{site}->get_conf("lang_cookie_name"),
 			-path    => "/",
 			-value   => $opts{lang},
 			-expires => "+10y", # really long time
-			-domain  => $self->{site}->getConf("lang_cookie_domain") );
+			-domain  => $self->{site}->get_conf("lang_cookie_domain") );
 		$r->header_out( "Set-Cookie"=>$cookie ); 
 	}
 	$r->send_http_header;
@@ -414,7 +414,7 @@ sub end_html
 die "NOPE";
 	
 	# End of HTML gubbins
-	my $html = $self->{site}->getConf("html_tail")."\n";
+	my $html = $self->{site}->get_conf("html_tail")."\n";
 	$html .= $self->{query}->end_html;
 
 	return( $html );
@@ -499,7 +499,7 @@ sub get_order_names
 print STDERR "SELF:".join(",",keys %{$self} )."\n";
 		
 	my %names = ();
-	foreach( keys %{$self->{site}->getConf(
+	foreach( keys %{$self->{site}->get_conf(
 			"order_methods",
 			$dataset->confid() )} )
 	{
@@ -906,7 +906,7 @@ sub subject_desc
 		$frag = $self->make_element(
 				"a",
 				href=>
-			$self->get_site()->getConf( "server_static" ).
+			$self->get_site()->get_conf( "server_static" ).
 			"/view/".$subject->{subjectid}.".html" );
 	}
 	else
@@ -931,7 +931,7 @@ sub subject_desc
 	{
 		my $text = $self->make_text( 
 			latin1(" (" .$subject->count_eprints( 
-				$self->get_site()->getDataSet( "archive" ) ).
+				$self->get_site()->get_data_set( "archive" ) ).
 				")" ) );
 		$frag->appendChild( $text );
 	}
@@ -957,7 +957,7 @@ sub render_error
 	
 	if( !defined $back_to )
 	{
-		$back_to = $self->get_site()->getConf( "frontpage" );
+		$back_to = $self->get_site()->get_conf( "frontpage" );
 	}
 	if( !defined $back_to_text )
 	{
@@ -981,7 +981,7 @@ sub render_error
 		$p->appendChild( $self->html_phrase( 
 			"some_error",
 			sitename => $self->make_text( 
-				$self->get_site()->getConf( "sitename" ) ) ) );
+				$self->get_site()->get_conf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
@@ -994,9 +994,9 @@ sub render_error
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
-					$self->get_site()->getConf( "admin" ) ),
+					$self->get_site()->get_conf( "admin" ) ),
 			sitename => $self->make_text(
-				$self->get_site()->getConf( "sitename" ) ) ) );
+				$self->get_site()->get_conf( "sitename" ) ) ) );
 		$page->appendChild( $p );
 				
 		$p = $self->make_element( "p" );

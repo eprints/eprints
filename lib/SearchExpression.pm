@@ -246,7 +246,7 @@ sub render_search_form
 		$form->appendChild( $div );	
 	}
 
-	my @tags = keys %{$self->{session}->get_site()->getConf(
+	my @tags = keys %{$self->{session}->get_site()->get_conf(
 			"order_methods",
 			$self->{dataset}->confid )};
 	$menu = $self->{session}->make_option_list(
@@ -508,7 +508,7 @@ sub get_records
  print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";
 
-			my $cmpmethod = $self->{session}->get_site()->getConf( 
+			my $cmpmethod = $self->{session}->get_site()->get_conf( 
 						"order_methods" , 
 						$self->{dataset}->confid, 
 						$self->{order} );

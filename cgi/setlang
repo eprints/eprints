@@ -55,7 +55,7 @@ elsif( defined $EPrints::Site::General::languages{$newlang} )
 	$p->appendChild( $session->make_text(
 		"Default language of this archive is: ".
 		$EPrints::Site::General::languages{ 
-			$session->get_site()->getConf( "default_language" )} ) );
+			$session->get_site()->get_conf( "default_language" )} ) );
 	$page->appendChild( $p );
 	$session->newPage( $newlang );
 	$session->build_page( "Language Changed", $page );

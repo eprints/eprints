@@ -63,7 +63,7 @@ $p->appendChild(
 	$session->html_phrase( 
 		"welcome",
 		sitename => $session->make_text( 
-			$session->get_site()->getConf( "sitename" ) ) ) );
+			$session->get_site()->get_conf( "sitename" ) ) ) );
 $page->appendChild( $p );
 
 

@@ -43,7 +43,7 @@ sub deal
 
 	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
 	print "------------\n";
-	my $ds = $session->get_site()->getDataSet( "archive" );
+	my $ds = $session->get_site()->get_data_set( "archive" );
 	if( $session->get_db()->exists( $ds , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";
@@ -51,6 +51,6 @@ sub deal
 		return;
 	}
 	print  "NOT EXISTS!\n";
-	EPrints::EPrint::create( $session, $ds, undef, $eprint->getData );
+	EPrints::EPrint::create( $session, $ds, undef, $eprint->get_data() );
 }
 

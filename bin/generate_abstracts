@@ -28,7 +28,7 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
-my $dataset = $session->get_site()->getDataSet( "archive" ),
+my $dataset = $session->get_site()->get_data_set( "archive" ),
 
 print "start\n";
 my @eprints = $session->{database}->get_all( $dataset );

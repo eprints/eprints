@@ -138,7 +138,7 @@ sub new
 		## and return the eprint.
 		foreach( "archive" , "inbox" , "buffer" )
 		{
-			my $ds = $session->get_site()->getDataSet( $_ );
+			my $ds = $session->get_site()->get_data_set( $_ );
 			$self = $session->get_db()->get_single( $ds, $id );
 			if ( defined $self ) 
 			{
@@ -233,7 +233,7 @@ sub _create_id
 		$new_id = "0".$new_id;
 	}
 
-	return( $session->get_site()->getConf( "eprint_id_stem" ) . $new_id );
+	return( $session->get_site()->get_conf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -253,8 +253,8 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-print STDERR $session->get_site()->getConf( "local_document_root" )."\n";
-	opendir DOCSTORE, $session->get_site()->getConf( "local_document_root" )
+print STDERR $session->get_site()->get_conf( "local_document_root" )."\n";
+	opendir DOCSTORE, $session->get_site()->get_conf( "local_document_root" )
 		or return( undef );
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -268,13 +268,13 @@ print STDERR $session->get_site()->getConf( "local_document_root" )."\n";
 	foreach (sort @avail)
 	{
 		my $free_space = 
-			(df $session->get_site()->getConf( "local_document_root" )."/$_" )[3];
-print STDERR "(".$session->get_site()->getConf( "local_document_root" )."/$_)($free_space)\n";
+			(df $session->get_site()->get_conf( "local_document_root" )."/$_" )[3];
+print STDERR "(".$session->get_site()->get_conf( "local_document_root" )."/$_)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $session->get_site()->getConf("diskspace_error_threshold") )
+			if( $free_space >= $session->get_site()->get_conf("diskspace_error_threshold") )
 			{
 				# Enough space on this drive.
 				$storedir = $_;
@@ -298,7 +298,7 @@ print STDERR "oraok\n";
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $session->get_site()->getConf("diskspace_warn_threshold") )
+	if( $best_free_space < $session->get_site()->get_conf("diskspace_warn_threshold") )
 	{
 # cjg - not done this bit yet...
 #
@@ -317,7 +317,7 @@ print STDERR "oak\n";
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $session->get_site()->getConf( "eprint_id_stem" );
+	my $sitestem = $session->get_site()->get_conf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
 		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
@@ -326,7 +326,7 @@ print STDERR "soak\n";
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
 	# Full path including doc store root
-	my $full_path = $session->get_site()->getConf("local_document_root")."/$dir";
+	my $full_path = $session->get_site()->get_conf("local_document_root")."/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
 print "($full_path)\n";
@@ -1229,7 +1229,7 @@ sub url_stem
 {
 	my( $self ) = @_;
 	
-	return( $self->{session}->get_site()->getConf( "server_document_root" ).
+	return( $self->{session}->get_site()->get_conf( "server_document_root" ).
 		"/".$self->{data}->{eprintid}."/" );
 }
 
@@ -1273,7 +1273,7 @@ sub generate_static
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	my $sitestem = $self->{session}->get_site()->getConf( "eprint_id_stem" );
+	my $sitestem = $self->{session}->get_site()->get_conf( "eprint_id_stem" );
 
 	return( undef ) unless( $eprint_id =~
 		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
@@ -1285,7 +1285,7 @@ sub generate_static
 
 
 		my $full_path = 
-			$self->{session}->get_site()->getConf( "local_html_root" ).
+			$self->{session}->get_site()->get_conf( "local_html_root" ).
 			"/$langid/archive/$1/$2/$3/$3";
 
 		my @created = eval
@@ -1533,7 +1533,7 @@ sub to_html
 	
 	if( !defined $cstyle )
 	{
-		$cstyle = $self->{session}->get_site()->call( "getEPrintCitationStyle", $self );
+		$cstyle = $self->{session}->get_site()->call( "get_eprint_citation_style", $self );
 	}
 
 	my $ifnode;
@@ -1584,7 +1584,7 @@ sub get_value
 }
 
 ## WP1: BAD
-sub setValue
+sub set_value
 {
 	my( $self , $fieldname, $value ) = @_;
 
@@ -1592,7 +1592,7 @@ sub setValue
 }
 
 ## WP1: BAD
-sub getSession
+sub get_session
 {
 	my( $self ) = @_;
 
@@ -1600,7 +1600,7 @@ sub getSession
 }
 
 ## WP1: BAD
-sub getData
+sub get_data
 {
 	my( $self ) = @_;
 	

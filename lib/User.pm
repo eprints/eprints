@@ -82,7 +82,7 @@ sub new
 	if( !defined $known )
 	{
 		return $session->get_db()->get_single( 
-			$session->get_site()->getDataSet( "user" ),
+			$session->get_site()->get_data_set( "user" ),
 			$username );
 	} 
 
@@ -144,7 +144,7 @@ sub create_user
 	my $used_count = 0;
 	my $candidate = $username_candidate;
 
-	my $user_ds = $session->get_site()->getDataSet( "user" );
+	my $user_ds = $session->get_site()->get_data_set( "user" );
 		
 	while( $found==0 )
 	{
@@ -227,7 +227,7 @@ sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
-	my $user_ds = $session->get_site()->getDataSet( "user" );
+	my $user_ds = $session->get_site()->get_data_set( "user" );
 	# Find out which user it is
 	my @row = $session->{database}->retrieve_single(
 		$user_ds,
@@ -285,7 +285,7 @@ sub validate
 
 	my @all_problems;
 	my @all_fields = $self->{session}->
-		get_site()->getDataSet( "user" )->get_fields();
+		get_site()->get_data_set( "user" )->get_fields();
 
 	my $field;
 	foreach $field ( @all_fields )
@@ -332,7 +332,7 @@ sub commit
 {
 	my( $self ) = @_;
 	
-	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
 	my $success = $self->{session}->{database}->update(
 		$user_ds,
 		$self->{data} );
@@ -424,7 +424,7 @@ sub retrieve_users
 	
 	my @fields = $session->{metainfo}->get_fields( "user" );
 
-	my $user_ds = $session->get_site()->getDataSet( "user" );
+	my $user_ds = $session->get_site()->get_data_set( "user" );
 	my $rows = $session->{database}->retrieve_fields(
 		$user_ds,
 		\@fields,
@@ -484,7 +484,7 @@ sub remove
 	}
 
 	# Now remove user record
-	my $user_ds = $self->{session}->get_site()->getDataSet( "user" );
+	my $user_ds = $self->{session}->get_site()->get_data_set( "user" );
 	$success = $success && $self->{session}->{database}->remove(
 		$user_ds,
 		"username",
@@ -548,7 +548,7 @@ sub getValues
 }
 
 ## WP1: GOOD
-sub setValue
+sub set_value
 {
 	my( $self , $fieldname, $newvalue ) = @_;
 
@@ -579,7 +579,7 @@ sub has_priv
 	my( $self, $resource ) = @_;
 
 	my $userprivs = $self->{session}->get_site()->
-		getConf( "userauth", $self->get_value( "usertype" ), "priv" );
+		get_conf( "userauth", $self->get_value( "usertype" ), "priv" );
 
 	foreach my $priv ( @{$userprivs} )
 	{

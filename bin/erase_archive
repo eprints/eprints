@@ -31,8 +31,8 @@ use strict;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit unless( defined $session );
 
-my $local_document_root = $session->get_site()->getConf( "local_document_root" );
-my $database = $session->get_site()->getConf( "db_name" );
+my $local_document_root = $session->get_site()->get_conf( "local_document_root" );
+my $database = $session->get_site()->get_conf( "db_name" );
 
 $session->terminate();
 

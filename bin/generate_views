@@ -36,7 +36,7 @@ my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 my $langid;
 foreach $langid ( keys %EPrints::Site::General::languages )
 {
-	my $dir =  $session->get_site()->getConf( "local_html_root" ).
+	my $dir =  $session->get_site()->get_conf( "local_html_root" ).
 		"/".$langid."/view";
 	unless( -d $dir )
 	{
@@ -85,7 +85,7 @@ sub write_subject_view
 	$page->appendChild( $hr );
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( 
-		$session->get_site()->getDataSet( "archive" ) );
+		$session->get_site()->get_data_set( "archive" ) );
 
 	# not INTL!cjg
 	my $p = $session->make_element( "p" );

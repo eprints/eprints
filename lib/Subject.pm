@@ -99,7 +99,7 @@ sub new
 	{
 		# Got ID, need to read stuff in from database
 		return $session->{database}->get_single( 
-			$session->get_site()->getDataSet( "subject" ), 
+			$session->get_site()->get_data_set( "subject" ), 
 			$id );
 
 	}
@@ -148,7 +148,7 @@ sub create_subject
 
 # cjg add_record call
 	return( undef ) unless( $session->get_db()->add_record( 
-		$session->get_site()->getDataSet( "subject" ), 
+		$session->get_site()->get_data_set( "subject" ), 
 		$newsub ) );
 
 	return( new EPrints::Subject( $session, undef, $newsub ) );
@@ -193,7 +193,7 @@ sub children
 	my( $self ) = @_;
 
 print "ack\n";
-	my $ds = $self->{session}->get_site()->getDataSet( "subject" );
+	my $ds = $self->{session}->get_site()->get_data_set( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session=>$self->{session},
@@ -288,7 +288,7 @@ sub create_subject_table
 	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $session->get_site()->getConf( "subject_config" ) or return( 0 );
+	open SUBJECTS, $session->get_site()->get_conf( "subject_config" ) or return( 0 );
 
 	my $success = 1;
 	
@@ -426,7 +426,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::Subject::root_subject )
 	{
-		my $ds = $session->get_site()->getDataSet();
+		my $ds = $session->get_site()->get_data_set();
 		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
@@ -513,7 +513,7 @@ sub get_all
 	
 	# Retrieve all of the subjects
 	my @rows = $session->get_db()->get_all( 
-		$session->get_site()->getDataSet( "subject" ) );
+		$session->get_site()->get_data_set( "subject" ) );
 
 	return( undef ) if( scalar @rows == 0 );
 

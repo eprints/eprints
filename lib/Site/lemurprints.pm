@@ -801,7 +801,7 @@ $c->{types}->{user} = {
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
 
-$c->{htmlpage}->{english} = parseHTML( <<END );
+$c->{htmlpage}->{english} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -853,7 +853,7 @@ END
 #########################################################################################
 
 
-$c->{htmlpage}->{french} = parseHTML( <<END );
+$c->{htmlpage}->{french} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -915,7 +915,7 @@ END
 #########################################################################################
 
 
-$c->{htmlpage}->{dummy} = parseHTML( <<END );
+$c->{htmlpage}->{dummy} = parse_html( <<END );
 <html>
 <head>
   <title><titlehere/></title>
@@ -1423,7 +1423,7 @@ sub eprint_render_full
 	#my $commentary_field = $eprint->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
 	#my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
 
-	my $session = $eprint->getSession;
+	my $session = $eprint->get_session();
 
 	my $page = $session->make_doc_fragment;
 
@@ -1678,7 +1678,7 @@ END
 my %CITATION_SPEC_DOMTREE;
 foreach( keys %CITATION_SPECS )
 {
-	$CITATION_SPEC_DOMTREE{$_} = parseHTML(
+	$CITATION_SPEC_DOMTREE{$_} = parse_html(
 		"<span class=\"citation\">".$CITATION_SPECS{$_}."</span>" );
 
 }
@@ -1687,7 +1687,7 @@ foreach( keys %CITATION_SPECS )
 
 
 ## WP1: BAD
-sub getEPrintCitationStyle 
+sub get_eprint_citation_style 
 {
 	my( $eprint ) = @_;
 
@@ -2259,11 +2259,11 @@ sub validate_eprint_meta
 sub log
 {
 	my( $site, $message ) = @_;
-	print STDERR "EPRINTS:".$site->getConf("siteid").": ".$message."\n";
+	print STDERR "EPRINTS:".$site->get_conf("siteid").": ".$message."\n";
 }
 
 ## WP1: BAD
-sub parseHTML
+sub parse_html
 {
 	my( $html ) = @_;
 	my $parser = new XML::DOM::Parser();

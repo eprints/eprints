@@ -51,7 +51,7 @@ print STDERR "URL: ".$r->the_request()."\n";
 
 print STDERR "THE USER IS: $user_sent\n";
 
-	my $ds = $session->get_site()->getDataSet( "user" );
+	my $ds = $session->get_site()->get_data_set( "user" );
 
 	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( !defined $user )
@@ -62,7 +62,7 @@ print STDERR "zong\n";
 		return AUTH_REQUIRED;
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
-	my $usertypedata = $session->get_site()->getConf( 
+	my $usertypedata = $session->get_site()->get_conf( 
 		"userauth", $user->get_value( "usertype" ) );
 	if( !defined $usertypedata )
 	{
@@ -111,11 +111,11 @@ print STDERR "REQUIRES: $val\n";
 	my $user_sent = $r->connection->user;
 	my $session = new EPrints::Session( 2 , $r->hostname.$r->uri );
 print STDERR "THE USER IS: $user_sent\n";
-	my $ds = $session->get_site()->getDataSet( "user" );
+	my $ds = $session->get_site()->get_data_set( "user" );
 	my $user = $session->get_db()->get_single( $ds , $user_sent );
 	if( defined $user )
 	{
-		foreach( @{$session->get_site()->getConf( 
+		foreach( @{$session->get_site()->get_conf( 
 					"userauth", 
 					$user->get_value( "usertype" ), 
 					"priv" )} )

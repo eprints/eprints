@@ -1262,7 +1262,7 @@ sub _do_stage_fileview
 
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
-		my $ds = $self->{session}->get_site()->getDataSet( "document" );
+		my $ds = $self->{session}->get_site()->get_data_set( "document" );
 		my $desc_field = $ds->get_field( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";

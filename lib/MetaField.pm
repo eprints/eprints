@@ -539,7 +539,7 @@ sub render_input_field
 		}
 		elsif( $self->is_type( "datatype" ) )
 		{
-			my $ds = $session->get_site()->getDataSet( 
+			my $ds = $session->get_site()->get_data_set( 
 					$self->{datasetid} );	
 			$tags = $ds->get_types();
 			$labels = $ds->get_type_names( $session );

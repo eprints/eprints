@@ -49,7 +49,7 @@ sub fetch
 
 	if( !defined $langid )
 	{
-		$langid = $site->getConf( "default_language" );
+		$langid = $site->get_conf( "default_language" );
 	}
 
 	my $lang = EPrints::Language->new( $langid , $site );
@@ -82,16 +82,16 @@ sub new
 	$self->{id} = $langid;
 
 	$self->{sitedata} =
-		read_phrases( $site->getConf( "phrases_path" )."/".$self->{id} );
+		read_phrases( $site->get_conf( "phrases_path" )."/".$self->{id} );
 
 	$self->{data} =
 		read_phrases( $EPrints::Site::General::lang_path."/".$self->{id} );
 	
-	if( $site->getConf("default_language") ne $self->{id})
+	if( $site->get_conf("default_language") ne $self->{id})
 	{
 		$self->{fallback} = EPrints::Language::fetch( 
 					$site,  
-					$site->getConf("default_language") );
+					$site->get_conf("default_language") );
 	}
 
 	return( $self );
@@ -279,7 +279,7 @@ sub read_phrases
 }
 
 ## WP1: BAD
-sub getID
+sub get_id
 {
 	my( $self ) = @_;
 	return $self->{id};

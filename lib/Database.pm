@@ -98,12 +98,12 @@ sub new
 	# Connect to the database
 	$self->{dbh} = DBI->connect( 
 		build_connection_string( 
-			db_host => $session->{site}->getConf("db_host"),
-			db_sock => $session->{site}->getConf("db_sock"),
-			db_port => $session->{site}->getConf("db_port"),
-			db_name => $session->{site}->getConf("db_name") ),
-	        $session->{site}->getConf("db_user"),
-	        $session->{site}->getConf("db_pass") );
+			db_host => $session->{site}->get_conf("db_host"),
+			db_sock => $session->{site}->get_conf("db_sock"),
+			db_port => $session->{site}->get_conf("db_port"),
+			db_name => $session->{site}->get_conf("db_name") ),
+	        $session->{site}->get_conf("db_user"),
+	        $session->{site}->get_conf("db_pass") );
 
 #	        { PrintError => 0, AutoCommit => 1 } );
 
@@ -182,7 +182,7 @@ sub create_archive_tables
 		 "document" , "subject" , "subscription" , "deletion" )
 	{
 		$success = $success && $self->_create_table( 
-			$self->{session}->get_site()->getDataSet( $_ ) );
+			$self->{session}->get_site()->get_data_set( $_ ) );
 	}
 
 	#$success = $success && $self->_create_tempmap_table();
@@ -583,7 +583,7 @@ sub _create_counter_table
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->get_site()->getDataSet( "counter" );
+	my $counter_ds = $self->{session}->get_site()->get_data_set( "counter" );
 	
 	# The table creation SQL
 	my $sql = "CREATE TABLE ".$counter_ds->get_sql_table_name().
@@ -625,7 +625,7 @@ sub _create_tempmap_table
 	my( $self ) = @_;
 	
 	# The table creation SQL
-	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
+	my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
 	my $sql = "CREATE TABLE ".$ds->get_sql_table_name()." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
@@ -656,7 +656,7 @@ sub counter_next
 	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->get_site()->getDataSet( "counter" );
+	my $ds = $self->{session}->get_site()->get_data_set( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
@@ -688,7 +688,7 @@ sub create_cache
 
 	my $sql;
 
-	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
+	my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
 	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
@@ -833,7 +833,7 @@ sub drop_cache
 	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
 		my $sql;
-		my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
+		my $ds = $self->{session}->get_site()->get_data_set( "tempmap" );
 
 		$sql = "DELETE FROM ".$ds->get_sql_table_name().
 		       " WHERE tableid = $1";
