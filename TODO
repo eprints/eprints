@@ -4,10 +4,6 @@ Subscriptions/subject-editors
 
 *	Alerts for editors about things they can edit (flag in User fields?)
 
-*	Subscriptions - editing
-
-*	Subscriptions - sending
-
 *	Subscriptions - importing from v1.
 
 
@@ -24,6 +20,9 @@ Metadata Fields
 * 	Make Hide Lineage/Honourific a field property.
 
 *	Add XHTML field renderer with list of legal tags.
+
+*	Add a no_clone property to flag fields which should not be copied
+	when a record is cloned.
 
 
 XML, Bibtex and Misc formats in & out
@@ -57,6 +56,8 @@ Browse Views
 * 	Time stamp views
 
 Searches
+
+*	Make subscriptions have "order".
 
 *	Don't index words in inbox/buffer? [maybe/maybe not]
 
@@ -97,6 +98,11 @@ Searches
 
 Other Stuff
 
+*	CSS searchfield input.
+
+*	Option for "subjects" to not appear with heirarchy when presented
+	in input forms.
+
 *	Make "stages" in sub form over-ridable.
 
 *	Make "Submit Later" option on submit form final page.
@@ -110,6 +116,8 @@ Other Stuff
 *	Turn Multiple input fields into <ol>'s. maybe?
 
 *	Commentary summary page (Psycoloquy style)
+
+*	Rename "create_foo" on DataObjs onto just "create".
 
 *	Stop refering directly to System::Settings - allow archive specific
 	tweaks.
@@ -238,4 +246,9 @@ DONE ====================================================================
 	like other Dataobj new methods.
 *	no_export property to indicate the field should not be exported
 	as XML. (eg. for subject ancestors) [ actually called export_as_xml ]
+*	Sort out message at top of search results to be a phrase.
+*	Subscriptions - editing
+*	Subscriptions - sending
+*	Subscriptions - not correctly ordered!
+
 

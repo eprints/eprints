@@ -357,7 +357,7 @@ sub _from_stage_home
 		$self->{eprint}->set_value( 
 			"userid", 
 			$self->{user}->get_value( "userid" ) );
-		$self->commit();
+		$self->{eprint}->commit();
 
 		if( !defined $self->{eprint} )
 		{

@@ -66,13 +66,17 @@ use EPrints::Subscription;
 
 my $DEBUG_SQL = 0;
 
+# this may not be the current version of eprints, it's the version
+# of eprints where the current desired db configuration became standard.
+$EPrints::Database::DBVersion = "2.1";
+
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
 
 #
 # Counters
 #
-@EPrints::Database::counters = ( "eprintid", "userid" );
+@EPrints::Database::counters = ( "eprintid", "userid", "subscriptionid" );
 
 
 # ID of next buffer table. This can safely reset to zero each time
@@ -223,31 +227,45 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( "user" , "inbox" , "buffer" , "archive" ,
-		 "document" , "subject" , "subscription" , "deletion" )
+	foreach( 
+		"user", 
+		"inbox", 
+		"buffer", 
+		"archive",
+		"document", 
+		"subject", 
+		"subscription", 
+		"deletion" )
 	{
-		$success = $success && $self->_create_table( 
+		$success = $success && $self->create_dataset_tables( 
 			$self->{session}->get_archive()->get_dataset( $_ ) );
 	}
 
 	$success = $success && $self->_create_cachemap_table();
 
 	$success = $success && $self->_create_counter_table();
+
+	$self->create_version_table;	
+	
+	$self->set_version( 
+		$self->{session}->get_archive->get_conf( "version_id" ) );
 	
 	return( $success );
 }
 		
 
-
 ######################################################################
-# 
-# $success = $db->_create_table( $dataset )
-#
-# undocumented
-#
+=pod
+
+=item $success = $db->create_dataset_tables( $dataset )
+
+Create all the SQL tables for a single dataset.
+
+=cut
 ######################################################################
 
-sub _create_table
+
+sub create_dataset_tables
 {
 	my( $self, $dataset ) = @_;
 	
@@ -522,7 +540,7 @@ sub prep_value
 	my( $value ) = @_; 
 	
 	return "" unless( defined $value );
-	$value =~ s/["\\.']/\\$&/g;
+	$value =~ s/["\\']/\\$&/g;
 	return $value;
 }
 
@@ -543,7 +561,7 @@ sub prep_like_value
 	my( $value ) = @_; 
 	
 	return "" unless( defined $value );
-	$value =~ s/["\\.'%_]/\\$&/g;
+	$value =~ s/["\\'%_]/\\$&/g;
 	return $value;
 }
 
@@ -897,8 +915,8 @@ sub _create_counter_table
 	# Create the counters 
 	foreach $counter (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".$counter_ds->get_sql_table_name()." VALUES ".
-			"(\"$counter\", 0);";
+		$sql = "INSERT INTO ".$counter_ds->get_sql_table_name()." ".
+			"VALUES (\"$counter\", 0);";
 
 		$sth = $self->do( $sql );
 		
@@ -1008,8 +1026,10 @@ sub cache_exp
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
+	my( $searchexp ) = $sth->fetchrow_array;
+	$sth->finish;
 
-	return $sth->fetchrow_array;
+	return $searchexp;
 }
 
 
@@ -1046,8 +1066,10 @@ sub cache_id
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
+	my( $tableid ) = $sth->fetchrow_array;
+	$sth->finish;
 
-	return $sth->fetchrow_array;
+	return $tableid;
 }
 
 
@@ -1128,6 +1150,7 @@ sub cache
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my( $id ) = $sth->fetchrow_array;
+	$sth->finish;
 
 	my $keyfield = $dataset->get_key_field();
 
@@ -1300,6 +1323,7 @@ sub get_index_ids
 		shift @list;
 		push @{$results}, @list;
 	}
+	$sth->finish;
 	return( $results );
 }
 
@@ -1340,6 +1364,7 @@ sub search
 	while( @info = $sth->fetchrow_array ) {
 		push @{$results}, $info[0];
 	}
+	$sth->finish;
 	return( $results );
 }
 
@@ -1396,6 +1421,7 @@ sub count_table
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my ( $count ) = $sth->fetchrow_array;
+	$sth->finish;
 
 	return $count;
 }
@@ -1467,6 +1493,7 @@ sub from_cache
 		{
 			push @results, $values[0];
 		}
+		$sth->finish;
 	}
 	else
 	{
@@ -1509,6 +1536,7 @@ sub drop_old_caches
 	{
 		$self->drop_cache( $id );
 	}
+	$sth->finish;
 }
 
 
@@ -1699,6 +1727,7 @@ confess();
 		$data[$count] = $record;
 		$count++;
 	}
+	$sth->finish;
 
 	my $multifield;
 	foreach $multifield ( @aux )
@@ -1814,6 +1843,7 @@ confess();
 				}
 			}
 		}
+		$sth->finish;
 	}	
 
 	foreach( @data )
@@ -1862,6 +1892,7 @@ sub get_values
 	{
 		push @values, $value;
 	}
+	$sth->finish;
 	return @values;
 }
 
@@ -1986,11 +2017,9 @@ sub exists
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
-
-	if( $sth->fetchrow_array )
-	{ 
-		return 1;
-	}
+	my $result = $sth->fetchrow_array;
+	$sth->finish;
+	return 1 if( $result );
 	return 0;
 }
 
@@ -2031,6 +2060,7 @@ sub _freetext_index
 		$rv = $rv && $self->execute( $sth, $sql );
 		return 0 unless $rv;
 		my ( $n ) = $sth->fetchrow_array;
+		$sth->finish;
 		my $insert = 0;
 		if( !defined $n )
 		{
@@ -2043,6 +2073,7 @@ sub _freetext_index
 			$sth=$self->prepare( $sql );
 			$rv = $rv && $self->execute( $sth, $sql );
 			my( $ids ) = $sth->fetchrow_array;
+			$sth->finish;
 			my( @list ) = split( ":",$ids );
 			# don't forget the first and last are empty!
 			if( (scalar @list)-2 < 128 )
@@ -2102,6 +2133,7 @@ sub _deindex
 	{
 		push @codes,$code;
 	}
+	$sth->finish;
 	foreach( @codes )
 	{
 		$code = prep_value( $_ );
@@ -2114,6 +2146,7 @@ sub _deindex
 			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
 			$rv = $rv && $self->do( $sql );
 		}
+		$sth->finish;
 	}
 	$sql = "DELETE FROM $rindextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
@@ -2151,7 +2184,161 @@ sub set_debug
 	$self->{debug} = $debug;
 }
 
+######################################################################
+=pod
 
+=item $db->create_version_table
+
+Make the version table (and set the only value to be the current
+version of eprints).
+
+=cut
+######################################################################
+
+sub create_version_table
+{
+	my( $self ) = @_;
+
+	my $sql;
+
+	$sql = "CREATE TABLE version ( version VARCHAR(255) )";
+	$self->do( $sql );
+
+	$sql = "INSERT INTO version ( version ) VALUES ( NULL )";
+	$self->do( $sql );
+
+}
+
+######################################################################
+=pod
+
+=item $db->set_version( $versionid );
+
+Set the version id table in the SQL database to the given value
+(used by the upgrade script).
+
+=cut
+######################################################################
+
+sub set_version
+{
+	my( $self, $versionid ) = @_;
+
+	my $sql;
+
+	$sql = "UPDATE version SET version = '".
+		prep_value( $versionid )."'";
+	$self->do( $sql );
+
+	if( $self->{session}->get_noise >= 1 )
+	{
+		print "Set DB compatibility flag to '$versionid'.\n";
+	}
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->has_table( $tablename )
+
+Return true if the a table of the given name exists in the database.
+
+=cut
+######################################################################
+
+sub has_table
+{
+	my( $self, $tablename ) = @_;
+
+	$sql = "SHOW TABLES";
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my @row;
+	my $result = 0;
+	while( @row = $sth->fetchrow_array )
+	{
+		if( $row[0] eq $tablename )
+		{
+			$result = 1;
+			last;
+		}
+	}
+	$sth->finish;
+	return $result;
+}
+
+######################################################################
+=pod
+
+=item @tables = $db->get_tables
+
+Return a list of all the tables in the database.
+
+=cut
+######################################################################
+
+sub get_tables
+{
+	my( $self ) = @_;
+
+	$sql = "SHOW TABLES";
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my @row;
+	my @list = ();
+	while( @row = $sth->fetchrow_array )
+	{
+		push @list, $row[0];
+	}
+	$sth->finish;
+
+	return @list;
+}
+
+
+######################################################################
+=pod
+
+=item $version = $db->get_version
+
+Return the version of eprints which the database is compatable with
+or undef if unknown (before v2.1).
+
+=cut
+######################################################################
+
+sub get_version
+{
+	my( $self ) = @_;
+
+	return undef unless $self->has_table( "version" );
+
+	$sql = "SELECT version FROM version;";
+	@row = $self->{dbh}->selectrow_array( $sql );
+
+	return( $row[0] );
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->is_latest_version
+
+Return true if the SQL tables are in the correct configuration for
+this edition of eprints. Otherwise false.
+
+=cut
+######################################################################
+
+sub is_latest_version
+{
+	my( $self ) = @_;
+
+	my $version = $self->get_version;
+	return 0 unless( defined $version );
+
+	return $version eq $EPrints::Database::DBVersion;
+}
 
 1; # For use/require success
 

@@ -13,6 +13,9 @@
 ######################################################################
 
 
+# SHOULD HAVE SOME KIND OF cache setting if order is specified or we
+# plan to map!
+
 =pod
 
 =head1 NAME
@@ -114,6 +117,15 @@ sub new
 
 	# tmptable represents cached results table.	
 	$self->{tmptable} = undef;
+
+	# Little hack to solve the problem of not knowing what
+	# the fields in the subscription spec are until we load
+	# the config.
+	if( $self->{fieldnames} eq "subscriptionfields" )
+	{
+		$self->{fieldnames} = $self->{session}->get_archive->get_conf(
+			"subscription_fields" );
+	}
 
 	my $fieldname;
 	foreach $fieldname (@{$self->{fieldnames}})
@@ -371,26 +383,7 @@ sub render_search_form
 		$form->appendChild( $div );	
 	}
 
-	my @tags = keys %{$self->{session}->get_archive()->get_conf(
-			"order_methods",
-			$self->{dataset}->confid )};
-	$menu = $self->{session}->render_option_list(
-		name=>$self->{prefix}."_order",
-		values=>\@tags,
-		default=>$self->{order},
-		labels=>$self->{session}->get_order_names( 
-						$self->{dataset} ) );
-
-	$div = $self->{session}->make_element( 
-		"div" , 
-		class => "searchorder" );
-
-	$div->appendChild( 
-		$self->{session}->html_phrase( 
-			"lib/searchexpression:order_results", 
-			ordermenu => $menu  ) );
-
-	$form->appendChild( $div );	
+	$form->appendChild( $self->render_order_menu );
 
 	$div = $self->{session}->make_element( 
 		"div" , 
@@ -403,6 +396,41 @@ sub render_search_form
 	$form->appendChild( $div );	
 
 	return( $form );
+}
+
+
+######################################################################
+=pod
+
+=item $foo = $thing->render_order_menu
+
+undocumented
+
+=cut
+######################################################################
+
+sub render_order_menu
+{
+	my( $self ) = @_;
+
+	my @tags = keys %{$self->{session}->get_archive()->get_conf(
+			"order_methods",
+			$self->{dataset}->confid )};
+	my $menu = $self->{session}->render_option_list(
+		name=>$self->{prefix}."_order",
+		values=>\@tags,
+		default=>$self->{order},
+		labels=>$self->{session}->get_order_names( 
+						$self->{dataset} ) );
+	my $div = $self->{session}->make_element( 
+		"div" , 
+		class => "searchorder" );
+	$div->appendChild( 
+		$self->{session}->html_phrase( 
+			"lib/searchexpression:order_results", 
+			ordermenu => $menu  ) );
+
+	return $div;
 }
 
 
@@ -697,7 +725,6 @@ undocumented
 sub perform_search
 {
 	my( $self ) = @_;
-	$self->{ignoredwords} = [];
 	$self->{error} = undef;
 
 	if( $self->{use_cache} && !defined $self->{cache_id} )
@@ -725,7 +752,7 @@ sub perform_search
 	}
 	foreach $search_field ( @searchon )
 	{
-		my ( $results , $badwords , $error) = $search_field->do();
+		my ( $results, $error) = $search_field->do();
 
 		if( defined $error )
 		{
@@ -734,10 +761,6 @@ sub perform_search
 			return;
 		}
 
-		if( defined $badwords )
-		{
-			push @{$self->{ignoredwords}},@{$badwords};
-		}
 		if( $firstpass )
 		{
 			$matches = $results;
@@ -1039,8 +1062,6 @@ sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
 
-	#cjg ONLY SHOW time and badwords on first page.
-
 	my $pagesize = $self->{session}->get_archive()->get_conf( "results_page_size" );
 
 	my $action_button = $self->{session}->get_action_button();
@@ -1099,57 +1120,36 @@ sub process_webpage
 
 		my $plast = $offset + $pagesize;
 		$plast = $n_results if $n_results< $plast;
-		my $p = $self->{session}->make_element( "p", class=>"resultsinfo" );
-		$page->appendChild( $p );
+
+		my %bits = ();
+		
 		if( scalar $n_results > 0 )
 		{
-       			$p->appendChild(  
+			$bits{matches} = 
 				$self->{session}->html_phrase( 
 					"lib/searchexpression:results",
 					from => $self->{session}->make_text( $offset+1 ),
 					to => $self->{session}->make_text( $plast ),
 					n => $self->{session}->make_text( $n_results )  
-				) );
+				);
 		}
 		else
 		{
-       			$p->appendChild(  
+			$bits{matches} = 
 				$self->{session}->html_phrase( 
-					"lib/searchexpression:noresults" ) );
+					"lib/searchexpression:noresults" );
 		}
 
-		if( @{ $self->{ignoredwords} } )
-		{
-			my %words = ();
-			$p->appendChild( $self->{session}->make_text( " " ) );
-			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
-			my $words = $self->{session}->make_doc_fragment();
-			my $first = 1;
-			foreach( sort keys %words )
-			{
-				unless( $first )
-				{
-					$words->appendChild( 
-						$self->{session}->make_text( ", " ) );
-				}
-				my $span = $self->{session}->make_element( "span", class=>"ignoredword" );
-				$words->appendChild( $span );
-				$span->appendChild( 
-					$self->{session}->make_text( $_ ) );
-				$first = 0;
-			}
-			$p->appendChild(
-       				$self->{session}->html_phrase( 
-					"lib/searchexpression:ignored",
-					words => $words ) );
+		$bits{time} = $self->{session}->html_phrase( 
+			"lib/searchexpression:search_time", 
+			searchtime => $self->{session}->make_text($t3-$t1) );
+
+		$bits{searchdesc} = $self->render_description;
+
+		$page->appendChild( $self->{session}->html_phrase(
+			"lib/searchexpression:results_blurb",
+			%bits ) );
 		
-		}
-
-		$p->appendChild( $self->{session}->make_text( " " ) );
-		$p->appendChild(
-       			$self->{session}->html_phrase( 
-				"lib/searchexpression:search_time", 
-				searchtime=>$self->{session}->make_text($t3-$t1) ) );
 
 		my $links = $self->{session}->make_doc_fragment();
 		my $controls = $self->{session}->make_element( "p", class=>"searchcontrols" );
@@ -1202,7 +1202,7 @@ sub process_webpage
 		my $result;
 		foreach $result (@results)
 		{
-			$p = $self->{session}->make_element( "p" );
+			my $p = $self->{session}->make_element( "p" );
 			$p->appendChild( $result->render_citation_link( undef, $self->{staff} ) );
 			$page->appendChild( $p );
 		}
@@ -1334,19 +1334,86 @@ sub set_dataset
 ######################################################################
 =pod
 
-=item $foo = $thing->DESTROY
+=item $xhtml = $thing->render_description
+
+Return an XHTML DOM description of this search expressions current
+parameters.
+
+=cut
+######################################################################
+
+sub render_description
+{
+	my( $self ) = @_;
+
+	my $frag = $self->{session}->make_doc_fragment;
+
+	my @bits = ();
+	foreach( keys %{$self->{searchfieldmap}} )
+	{
+		my $sf = $self->{searchfieldmap}->{$_};
+		next unless( EPrints::Utils::is_set( $sf->get_value ) );
+		push @bits, $sf->render_description;
+	}
+
+	my $joinphraseid = "lib/searchexpression:desc_or";
+	if( $self->{satisfy_all} )
+	{
+		$joinphraseid = "lib/searchexpression:desc_and";
+	}
+
+	for( my $i=0; $i<scalar @bits; ++$i )
+	{
+		if( $i>0 )
+		{
+			$frag->appendChild( $self->{session}->html_phrase( 
+				$joinphraseid ) );
+		}
+		$frag->appendChild( $bits[$i] );
+	}
+
+	if( scalar @bits > 0 )
+	{
+		$frag->appendChild( $self->{session}->make_text( "." ) );
+	}
+	else
+	{
+		$frag->appendChild( $self->{session}->html_phrase(
+			"lib/searchexpression:desc_no_conditions" ) );
+	}
+
+	if( defined $self->{order} )
+	{
+		$frag->appendChild( $self->{session}->make_text( " " ) );
+		$frag->appendChild( $self->{session}->html_phrase(
+			"lib/searchexpression:desc_order",
+			order => $self->{session}->make_text(
+				$self->{session}->get_order_name(
+					$self->{dataset},
+					$self->{order} ) ) ) );
+	} 
+
+	return $frag;
+}
+	
+
+######################################################################
+=pod
+
+=item $thing->set_property( $property, $value );
 
 undocumented
 
 =cut
 ######################################################################
 
-sub DESTROY
+sub set_property
 {
-	my( $self ) = @_;
+	my( $self, $property, $value ) = @_;
 
-	EPrints::Utils::destroy( $self );
+	$self->{$property} = $value;
 }
+
 1;
 
 ######################################################################

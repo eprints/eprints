@@ -101,11 +101,11 @@ $dl->appendChild( $dd );
 
 my $tools = [
 	### Change subscription options
-#	{ 
-#		code=>"subscribe",
-#		page=>"subscribe",
-#		priv=>"subscription"
-#	},
+	{ 
+		code=>"subscribe",
+		page=>"subscribe",
+		priv=>"subscription"
+	},
 	### View the archive status page
 	{ 
 		code=>"status",

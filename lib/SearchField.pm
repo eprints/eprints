@@ -464,11 +464,11 @@ sub get_conditions
 			{
 				my $error = "Bad ".$self->{field}->{type};
 				$error.=" search parameter: \"$_\"";
-				return( undef,undef,undef,$error);
+				return( undef,undef,$error);
 			}
 			push @where, $sql;
 		}
-		return( $self->_get_conditions_aux( \@where , 0) , [] );
+		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
 	# date
@@ -515,11 +515,11 @@ sub get_conditions
 			{
 				my $error = "Bad ".$self->{field}->{type};
 				$error.=" search parameter: \"$_\"";
-				return( undef,undef,undef,$error);
+				return( undef,undef,$error);
 			}
 			push @where, $sql;
 		}
-		return( $self->_get_conditions_aux( \@where , 0) , []);
+		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
 	# text, longtext, url, email:
@@ -542,7 +542,7 @@ sub get_conditions
 			if( $self->{match} eq "EQ" )
 			{
 				$text = EPrints::Database::prep_value( $text );
-				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
+				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ) );
 			}
 			my( $good , $bad ) = 
 				$self->{session}->get_archive()->call(
@@ -551,7 +551,7 @@ sub get_conditions
 
 			# If there are no useful words in the phrase, abort!
 			if( scalar @{$good} == 0) {
-				return(undef,undef,undef,"No indexable words in phrase \"$text\".");
+				return(undef,undef,"No indexable words in phrase \"$text\".");
 			}
 			foreach( @{$good} )
 			{
@@ -562,7 +562,7 @@ sub get_conditions
 				$_ = EPrints::Database::prep_value( $_ );
 				push @where, "__FIELDNAME__ = '$_'";
 			}
-			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
+			return $self->_get_conditions_aux( \@where ,  1 );
 
 		}
 		my $hasphrase = 0;
@@ -576,10 +576,10 @@ sub get_conditions
 				"IN",
 				"PHR" );
 			#cjg IFFY!!!!
-			my ($buffer,$bad,$error) = $sfield->do( undef , undef );
+			my ($buffer,$error) = $sfield->do( undef , undef );
 			if( defined $error )
 			{
-				return( undef, undef, undef, $error );
+				return( undef, undef, $error );
 			}
 			push @where,$buffer; 
 			$hasphrase=1;
@@ -591,7 +591,7 @@ sub get_conditions
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
-			return(undef,undef,undef,$self->{session}->phrase( "lib/searchfield:no_words" ,  words=>$text ) );
+			return(undef,undef,$self->{session}->phrase( "lib/searchfield:no_words" ,  words=>$text ) );
 		}
 
 		foreach( @{$good} )
@@ -605,7 +605,7 @@ sub get_conditions
 		}
 		return ( $self->_get_conditions_aux( 
 				\@where ,  
-				$self->{match} eq "IN" ) , $bad );
+				$self->{match} eq "IN" ) );
 	}
 
 }
@@ -681,7 +681,6 @@ sub do
 
 	my %searches = ();
 	my @sfields = ();
-	my @badwords = ();
 
 	my $field;
 	foreach $field ( @{$self->{fieldlist}} ) 
@@ -693,10 +692,10 @@ sub do
 			$self->{value},
 			$self->{match},
 			$self->{merge} );
-		my ($table,$where,$bad,$error) = $sfield->get_conditions();
+		my ($table,$where,$error) = $sfield->get_conditions();
 		if( defined $error )
 		{
-			return( undef, undef, $error );
+			return( undef, $error );
 		}
 		if( defined $where )
 		{
@@ -706,10 +705,6 @@ sub do
 				$searches{$table}=[];
 			}
 			push @{$searches{$table}},@{$where};
-		}
-		if( defined $bad ) 
-		{ 
-			push @badwords, @{$bad}; 
 		}
 	}
 
@@ -777,7 +772,7 @@ sub do
 		}
 		$firstpass = 0;
 	}
-	return( $results, \@badwords );
+	return( $results );
 }
 
 
@@ -1034,6 +1029,173 @@ sub render
 	{
 		$self->{session}->get_archive()->log( "Can't Render: ".$self->{field}->get_type() );
 	}
+	return $frag;
+}
+
+######################################################################
+=pod
+
+=item $xhtml = $sf->render_description
+
+Returns an XHTML DOM object describing this field and its current
+settings.
+
+=cut
+######################################################################
+
+sub render_description
+{
+	my( $self ) = @_;
+
+	my $frag = $self->{session}->make_doc_fragment;
+
+	my $phraseid;
+	if( $self->{match} eq "EQ" || $self->{match} eq "EX" )
+	{
+		$phraseid = "lib/searchfield:desc_is";
+	}
+	else
+	{
+		# match = "IN"
+		if( $self->{merge} eq "ANY" )
+		{
+			$phraseid = "lib/searchfield:desc_any_in";
+		}
+		else
+		{
+			$phraseid = "lib/searchfield:desc_all_in";
+		}
+	}
+
+	my $valuedesc = $self->{session}->make_doc_fragment;
+	if( $self->is_type( "datatype", "set", "subject" ) )
+	{
+		if( $self->{merge} eq "ANY" )
+		{
+			$phraseid = "lib/searchfield:desc_any_in";
+		}
+		else
+		{
+			$phraseid = "lib/searchfield:desc_all_in";
+		}
+		my @list = split( / /,  $self->{value} );
+		for( my $i=0; $i<scalar @list; ++$i )
+		{
+			if( $i>0 )
+			{
+				$valuedesc->appendChild( 
+					$self->{session}->make_text( ", " ) );
+			}
+			$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+			$valuedesc->appendChild(
+				$self->{field}->get_value_label(
+					$self->{session},
+					$list[$i] ) );
+			$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+
+		}
+	}
+	elsif( $self->is_type( "year", "int" ) )
+	{
+		my $type = $self->{field}->get_type;
+		if( $self->{value} =~ m/^([0-9]+)-([0-9]+)$/ )
+		{
+			$valuedesc->appendChild( $self->{session}->html_phrase(
+				"lib/searchfield:desc_".$type."_between",
+				from => $self->{session}->make_text( $1 ),
+				to => $self->{session}->make_text( $2 ) ) );
+		}
+		elsif( $self->{value} =~ m/^-([0-9]+)$/ )
+		{
+			$valuedesc->appendChild( $self->{session}->html_phrase(
+				"lib/searchfield:desc_".$type."_orless",
+				to => $self->{session}->make_text( $1 ) ) );
+		}
+		elsif( $self->{value} =~ m/^([0-9]+)-$/ )
+		{
+			$valuedesc->appendChild( $self->{session}->html_phrase(
+				"lib/searchfield:desc_".$type."_ormore",
+				from => $self->{session}->make_text( $1 ) ) );
+		}
+		else
+		{
+			$valuedesc->appendChild( $self->{session}->make_text(
+				$self->{value} ) );
+		}
+	}
+	elsif( $self->is_type( "email", "url", "text" , "longtext" ) )
+	{
+		$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+		$valuedesc->appendChild( 
+			$self->{session}->make_text( $self->{value} ) );
+		$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+		my( $good , $bad ) = $self->{session}->get_archive()->call(
+				"extract_words",
+				$self->{value} );
+
+		if( scalar(@{$bad}) )
+		{
+			my $igfrag = $self->{session}->make_doc_fragment;
+			for( my $i=0; $i<scalar(@{$bad}); $i++ )
+			{
+				if( $i>0 )
+				{
+					$igfrag->appendChild(
+						$self->{session}->make_text( 
+							', ' ) );
+				}
+				$igfrag->appendChild(
+					$self->{session}->make_text( 
+						'"'.$bad->[$i].'"' ) );
+			}
+			$valuedesc->appendChild( 
+				$self->{session}->html_phrase( 
+					"lib/searchfield:desc_ignored",
+					list => $igfrag ) );
+		}
+	}
+	elsif( $self->is_type( "boolean" ) )
+	{
+		if( $self->{value} eq "TRUE" )
+		{
+			$phraseid = "lib/searchfield:desc_true";
+		}
+		else
+		{
+			$phraseid = "lib/searchfield:desc_false";
+		}
+	}
+	elsif( $self->is_type( "name" ) )
+	{
+		$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+		$valuedesc->appendChild( 
+			$self->{session}->make_text( 
+				$self->{value} ) );
+		$valuedesc->appendChild(
+				$self->{session}->make_text( '"' ) );
+	}
+	else
+	{
+		$valuedesc->appendChild( 
+			$self->{session}->make_text( 
+				"(not sure how to describe) ".
+				$self->{value} ) );
+	}
+
+	$frag->appendChild( $self->{session}->html_phrase(
+		$phraseid,
+		name => $self->{session}->make_text( $self->{display_name} ),
+		value => $valuedesc ) ); 
+
+###int,year,
+###datatype,set,subjcet
+
+#id?,search?
 	return $frag;
 }
 

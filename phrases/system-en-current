@@ -75,16 +75,20 @@ EPrints Modules
     <ep:phrase ref="lib/searchexpression:action_newsearch">Start new search</ep:phrase>
     <ep:phrase ref="lib/searchexpression:action_update">Update the search</ep:phrase>
     <ep:phrase ref="lib/searchexpression:form_problem"><p>There is a problem with the form:</p></ep:phrase>
-    <ep:phrase ref="lib/searchexpression:search_time">Search time: <ep:pin ref="searchtime" />s</ep:phrase>
-    <ep:phrase ref="lib/searchexpression:ignored">Ignored words: <ep:pin ref="words" />.</ep:phrase>
     <ep:phrase ref="lib/searchexpression:results_for">Results for <ep:pin ref="title" /></ep:phrase>
     <ep:phrase ref="lib/searchexpression:results">Displaying results <span class="numeral"><ep:pin ref="from" /></span> to <span class="numeral"><ep:pin ref="to" /></span> of <span class="numeral"><ep:pin ref="n" /></span>.</ep:phrase>
+    <ep:phrase ref="lib/searchexpression:search_time">Search time: <ep:pin ref="searchtime" />s.</ep:phrase>
     <ep:phrase ref="lib/searchexpression:noresults">No matches.</ep:phrase>
+    <ep:phrase ref="lib/searchexpression:results_blurb"><p class="resultsinfo"><ep:pin ref="searchdesc" /><br /><ep:pin ref="matches" /> <ep:pin ref="time" /></p></ep:phrase>
     <ep:phrase ref="lib/searchexpression:next">Next <ep:pin ref="n" /></ep:phrase>
     <ep:phrase ref="lib/searchexpression:prev">Previous <ep:pin ref="n" /></ep:phrase>
     <ep:phrase ref="lib/searchexpression:new">New search</ep:phrase>
     <ep:phrase ref="lib/searchexpression:refine">Refine search</ep:phrase>
     <ep:phrase ref="lib/searchexpression:seperator"> | </ep:phrase>
+    <ep:phrase ref="lib/searchexpression:desc_and"> <b>AND</b> </ep:phrase>
+    <ep:phrase ref="lib/searchexpression:desc_or"> <b>OR</b> </ep:phrase>
+    <ep:phrase ref="lib/searchexpression:desc_order">Results ordered <ep:pin ref="order" />.</ep:phrase>
+    <ep:phrase ref="lib/searchexpression:desc_no_conditions">No conditions.</ep:phrase>
 
 <!-- SearchField -->
 
@@ -110,6 +114,19 @@ EPrints Modules
     <ep:phrase ref="lib/searchfield:set_all">All of these</ep:phrase>
     <ep:phrase ref="lib/searchfield:text_any">Match any</ep:phrase>
     <ep:phrase ref="lib/searchfield:text_all">Match all, in any order</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_is"><ep:pin ref="name" /> is <ep:pin ref="value" /></ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_true"><ep:pin ref="name" /></ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_false"><b>NOT</b> <ep:pin ref="name" /></ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_any_in"><ep:pin ref="name" /> matches any of <ep:pin ref="value" /></ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_all_in"><ep:pin ref="name" /> matches all of <ep:pin ref="value" /></ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_year_between">between <ep:pin ref="from" /> and <ep:pin ref="to" /> inclusive</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_year_orless"><ep:pin ref="to" /> or before</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_year_ormore"><ep:pin ref="from" /> or after</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_int_between">between <ep:pin ref="from" /> and <ep:pin ref="to" /> inclusive</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_int_orless"><ep:pin ref="to" /> or less</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_int_ormore"><ep:pin ref="from" /> or more</ep:phrase>
+    <ep:phrase ref="lib/searchfield:desc_ignored"> (Ignoring: <ep:pin ref="list" />)</ep:phrase>
+
 
 <!-- Session -->
 
@@ -200,13 +217,16 @@ EPrints Modules
 
 <!-- Subscription -->
 
-    <ep:phrase ref="lib/subscription:send_updates">Send updates: <ep:pin ref="howoften" /></ep:phrase>
+    <ep:phrase ref="lib/subscription:blurb">
+<p>This mail contains your <ep:pin ref="howoften" /> subscription to &archivename;.</p>
+<p>Your subscription is: <ep:pin ref="search" /></p>
+<p>To cancel, temporarily disable or alter your subscription, visit the following Web page:<br /><ep:pin ref="url" /></p>
+</ep:phrase>
     <ep:phrase ref="lib/subscription:weekly">weekly</ep:phrase>
     <ep:phrase ref="lib/subscription:daily">daily</ep:phrase>
     <ep:phrase ref="lib/subscription:monthly">monthly</ep:phrase>
-    <ep:phrase ref="lib/subscription:blurb">This mail contains your <ep:pin ref="howoften" /> subscription to &archivename;.\n\nTo cancel, temporarily disable or alter your subscription,\nvisit the following Web page:\n\n <ep:pin ref="url" />\n\n</ep:phrase>
-    <ep:phrase ref="newsub">One new submission was received.</ep:phrase>
     <ep:phrase ref="lib/subscription:new_subs"><ep:pin ref="n" /> new submissions were received.</ep:phrase>
+    <ep:phrase ref="lib/subscription:matches"><p>Number of new (or changed) submissions: <ep:pin ref="n" />.</p></ep:phrase>
     <ep:phrase ref="lib/subscription:sub_subj">Subscription</ep:phrase>
 
 <!-- User -->
@@ -369,19 +389,25 @@ User Area CGI Scripts
 
 <!-- subscribe -->
 
-    <ep:phrase ref="cgi/users/subscribe:dont_know_you">I don't know who you are</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:subscribe">Subscribe</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:create">Create a Subscription</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:remove">Remove the Subscription</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:mk_sub_error">Unable to create your subscription. The database may be busy. Please try again later.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:return_dep">Go to the user page</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:rm_sub_error">Unable to remove your subscription. The database may be busy. Please try again later.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:no_sub">You do not currently have a subscription. Click on the button below to create subscription.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:cant_accept">The subscription could not be accepted because:</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:please_enter">Enter the criteria for your subscription below.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:sub_accept">Your subscription has been accepted.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:ret_deposit">Click here to go to the  user page.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:ud_sub_error">Unable to update your subscription. The database may be busy. Please try again later.</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:list_title">&archivename; Subscription Service</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:intro"><p>You may configure subscriptions to this archive. A subscription is a stored search which will be run every day, week or month. Any matching records which have been added or modified since last time will be mailed to you.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:edit_blurb"><p>Please specify the properties of this subscription.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:no_subs"><p>You currently have no subscriptions.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:action_new">New Subscription</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:action_edit">Edit</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:action_remove">Remove</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:action_finish">Submit Changes</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:action_cancel">Cancel</ep:phrase>
+
+    <ep:phrase ref="subscription_fieldname_spec">Subscription Conditions</ep:phrase>
+    <ep:phrase ref="subscription_fieldhelp_spec">New or changed items matching this search will be mailed to you.</ep:phrase>
+    <ep:phrase ref="subscription_fieldname_frequency">Frequency of Subscription Mailings</ep:phrase>
+    <ep:phrase ref="subscription_fieldhelp_frequency">How often do you want to be sent this subscription. A setting of "never" disables this subscription.</ep:phrase>
+    <ep:phrase ref="subscription_fieldopt_frequency_never">Never</ep:phrase>
+    <ep:phrase ref="subscription_fieldopt_frequency_daily">Once per Day</ep:phrase>
+    <ep:phrase ref="subscription_fieldopt_frequency_weekly">Once per Week</ep:phrase>
+    <ep:phrase ref="subscription_fieldopt_frequency_monthly">Once per Month</ep:phrase>
+
 
 <!--********************************************************************** 
 Staff CGI Scripts

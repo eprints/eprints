@@ -781,7 +781,10 @@ sub _render_value3
 
 	if( $self->is_type( "search" ) )
 	{
-		return $session->make_text( "SEARCH: $value" );
+		my $searchexp = $self->make_searchexp( $session, $value );
+		my $desc = $searchexp->render_description;
+		$searchexp->dispose;
+		return $desc;
 	}
 
 	if( $self->is_type( "longtext" ) )
@@ -989,13 +992,12 @@ sub render_input_field
 		for( $i=1 ; $i<=$boxcount ; ++$i )
 		{
 			my $div;
-			$div = $session->make_element( 
-				"div",
-				id => "inputfield_".$self->get_name."_".$i );
+			$div = $session->make_element( "div" );
 			$div->appendChild( $session->make_text( $i.". " ) );
 			$html->appendChild( $div );
 			$div = $session->make_element( 
 				"div", 
+				id => "inputfield_".$self->get_name."_".$i,
 				style=>"margin-left: 20px" ); #cjg NOT CSS
 			$div->appendChild( 
 				$self->_render_input_field_aux( 
@@ -1511,23 +1513,21 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 
 	if( $self->is_type( "search" ) )
 	{
-#cjg NOT CSS
-		my $div = $session->make_element( "div", 
-			style=>"background-color: #eef; padding: 6pt;" );
+#cjg NOT CSS'd properly.
+		my $div = $session->make_element( 
+			"div", 
+			style => "padding: 6pt; margin-left: 24pt; " );
 
-		my $ds = $session->get_archive()->get_dataset( 
-				$self->{datasetid} );	
-
-		my $searchexp = EPrints::SearchExpression->new(
-			session => $session,
-			dataset => $ds,
-			prefix => $self->{name}.$suffix."_",
-			fieldnames => $self->get_property( "fieldnames" ) );
-		$searchexp->from_string( $value );
-		
 		# cjg - make help an option?
+
+		my $searchexp = $self->make_searchexp( 
+			$session,
+			$value,
+			$self->{name}.$suffix."_" );
 		$div->appendChild( $searchexp->render_search_fields( 0 ) );
+		$div->appendChild( $searchexp->render_order_menu );
 		$searchexp->dispose();
+
 		return $div;
 	}
 
@@ -1535,6 +1535,39 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 				  "field of type: ".$self->get_type() );
 	return $session->make_text( "?? Unknown type: ".$self->get_type." ??" );
 }
+
+######################################################################
+# 
+# $searchexp = $field->make_searchexp( $session, $value, [$prefix] )
+#
+# undocumented
+#
+######################################################################
+
+sub make_searchexp
+{
+	my( $self, $session, $value, $prefix ) = @_;
+
+	unless( $self->is_type( "search" ) )
+	{
+		EPrints::Config::abort( <<END );
+Attempt to call make_searchexp on a metafield which is not of type 'search'.
+END
+	}
+
+	my $ds = $session->get_archive()->get_dataset( 
+			$self->{datasetid} );	
+
+	my $searchexp = EPrints::SearchExpression->new(
+		session => $session,
+		dataset => $ds,
+		prefix => $prefix,
+		fieldnames => $self->get_property( "fieldnames" ) );
+	$searchexp->from_string( $value );
+
+	return $searchexp;
+}		
+
 
 ######################################################################
 # 
@@ -2371,9 +2404,9 @@ sub get_top_subject
 	if( !defined $topsubject )
 	{
 		$session->render_error( $session->make_text( 
-			'The top level subject (id=$topid) for field '.
+			'The top level subject (id='.$topid.') for field '.
 			'"'.$self->get_name().'" does not exist. The '.
-			'site admin probably has not run generate_subjects. '.
+			'site admin probably has not run import_subjects. '.
 			'See the documentation for more information.' ) );
 		exit;
 	}

@@ -143,7 +143,7 @@ sub new
 ######################################################################
 =pod
 
-=item $thing = EPrints::User->new_from_data( $session, $known )
+=item $thing = EPrints::User->new_from_data( $session, $data )
 
 undocumented
 
@@ -152,11 +152,11 @@ undocumented
 
 sub new_from_data
 {
-	my( $class, $session, $known ) = @_;
+	my( $class, $session, $data ) = @_;
 
 	my $self = {};
 	bless $self, $class;
-	$self->{data} = $known;
+	$self->{data} = $data;
 	$self->{dataset} = $session->get_archive()->get_dataset( "user" );
 	$self->{session} = $session;
 
@@ -378,7 +378,9 @@ sub commit
 {
 	my( $self ) = @_;
 
-	$self->{session}->get_archive()->call( "set_user_automatic_fields", $self );
+	$self->{session}->get_archive()->call( 
+		"set_user_automatic_fields", 
+		$self );
 	
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 	my $success = $self->{session}->get_db()->update(
@@ -416,7 +418,11 @@ sub remove
 	
 	my $success = 1;
 
-	# later we should remove subscriptions and stuff.
+	my $subscription;
+	foreach $subscription ( $self->get_subscriptions() )
+	{
+		$subscription->remove();
+	}
 
 	# remove user record
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
@@ -594,7 +600,7 @@ undocumented
 sub mail
 {
 	my( $self,   $subjectid, $message, $replyto,  $email ) = @_;
-	#   Session, string,     DOM,      User/undef Other Email
+	#   User   , string,     DOM,      User/undef Other Email
 
 	# Mail the admin in the default language
 	my $langid = $self->get_value( "lang" );
@@ -725,6 +731,42 @@ sub get_type
 
 	return $self->get_value( "usertype" );
 }
+
+
+######################################################################
+=pod
+
+=item @subscriptions = $eprint->get_subscriptions
+
+Return an array of all EPrint::Subscription objects associated with this
+user.
+
+=cut
+######################################################################
+
+sub get_subscriptions
+{
+	my( $self ) = @_;
+
+	my $subs_ds = $self->{session}->get_archive()->get_dataset( 
+		"subscription" );
+
+	my $searchexp = EPrints::SearchExpression->new(
+		session=>$self->{session},
+		dataset=>$subs_ds,
+		custom_order=>"subid" );
+
+	$searchexp->add_field(
+		$subs_ds->get_field( "userid" ),
+		$self->get_value( "userid" ) );
+
+	my $searchid = $searchexp->perform_search();
+	my @subs = $searchexp->get_records();
+	$searchexp->dispose();
+
+	return( @subs );
+}
+
 
 1;
 

@@ -1,8 +1,6 @@
 ######################################################################
 #
-#  Subscription page
-#
-# Not yet working!!cjg
+#  Add, Remove and Edit a the subscriptions for the current user.
 #
 ######################################################################
 #
@@ -14,234 +12,239 @@
 #
 ######################################################################
 
-use EPrints::Database;
-use EPrints::EPrint;
-use EPrints::Session;
+use EPrints::User;
 use EPrints::Subscription;
-
-use strict;
-use vars qw($action_subscribe $action_create $action_remove);
+use EPrints::Session;
 
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
-my $user = EPrints::User::current_user( $session );
-
-# Check user
-if( !defined $user )
+# Check we have privs
+if( !$session->auth_check( "subscription" ) )
 {
-	# Can't find the user
-	$session->render_error( 
-		$session->html_phrase( "cgi/users/subscribe:dont_know_you" ) );
 	$session->terminate();
-	exit;
+	Apache::exit( 0 );
 }
 
-my @all_subs = EPrints::Subscription::subscriptions_for( $session, $user );
+my $user = $session->current_user;
+my $action = $session->get_action_button();
+my $subs_ds = $session->get_archive->get_dataset( "subscription" );
 
+# handle user response
 
-my $subscription = undef;
-
-$subscription = $all_subs[0] if( scalar @all_subs > 0 );
-
-$action_subscribe = $session->{lang}->phrase( "cgi/users/subscribe:subscribe" );
-$action_create    = $session->{lang}->phrase( "cgi/users/subscribe:create" );
-$action_remove    = $session->{lang}->phrase( "cgi/users/subscribe:remove" );
-
-# Do we have an action?
-my $action = $session->{render}->param( "submit" );
-
-
-if( defined $action && $action eq $action_subscribe )
+if( $action eq "new" )
 {
-	# User wants to update subscription info.
-	if( defined $subscription )
-	{
-		my $problems = $subscription->from_form();
-		
-		if( defined $problems )
-		{
-			&edit_subscription( $session, $subscription, $problems );
-		}
-		else
-		{
-			&update_subscription( $session, $subscription );
-		}
-	}
-}
-elsif( defined $action && $action eq $action_create )
+	my $newsub = EPrints::Subscription->create( $session, $user->get_id );
+	edit_subscription( $session, $subs_ds, $user, $newsub );
+} 
+elsif( $action =~ /^edit_([0-9]+)$/ || $action eq "finish" )
 {
-	# Create a new subscription if necessary
-	if( !defined $subscription )
+	my $subid;
+	if( $action eq "finish" )
 	{
-		$subscription = EPrints::Subscription->create( $session,
-		                                               $user->{username} );
-	}
-
-	if( !defined $subscription )
-	{		
-		$session->render_error(
-			$session->html_phrase( "cgi/users/subscribe:mk_sub_error" ),
-			$session->get_archive()->get_conf( "userhome" ),
-			$session->html_phrase( "cgi/users/subscribe:return_dep" ) );
+		$subid = $session->param( "subid" );
 	}
 	else
 	{
-		&edit_subscription( $session, $subscription, undef );
+		$subid = $1;
 	}
-}
-elsif( defined $action && $action eq $action_remove )
-{
-	# Remove the user's subscription. For now, remove the first in the list
-	# (which should only ever have one in it anyway.)
-	if( defined $subscription )
+
+	my $subscr = EPrints::Subscription->new( $session, $subid );
+	if( !defined $subscr )
 	{
-		my $success = $subscription->remove();
-		if( $success )
+		$session->get_archive->log( "Attempt by user #".
+			$session->current_user->get_id." to edit ".
+			"subscription #".$subid." which does not ".
+			"exist." );
+		&show_subscriptions( $session, $subs_ds, $user );
+	}
+	elsif( $subscr->get_value( "userid" ) != $user->get_id )
+	{
+		$session->get_archive->log( "Attempt by user #".
+			$session->current_user->get_id." to edit ".
+			"subscription #".$subid." which does does not ".
+			"belong to them." );
+		&show_subscriptions( $session, $subs_ds, $user );
+	}
+	else
+	{
+		if( $action eq "finish" )
 		{
-			&no_subscription( $session );
+			$subscr->set_value( 
+				"spec",
+				$subs_ds->get_field( "spec" )->form_value(
+					$session ) );
+			$subscr->set_value( 
+				"frequency",
+				$subs_ds->get_field( "frequency" )->form_value(
+					$session ) );
+			$subscr->commit()
+			&show_subscriptions( $session, $subs_ds, $user );
 		}
 		else
 		{
-			$session->render_error(
-				$session->html_phrase( "cgi/users/subscribe:rm_sub_error" ),
-				$session->get_archive()->get_conf( "userhome" ),
-				$session->html_phrase( "cgi/users/subscribe:return_dep" ) );
+			edit_subscription( $session, $subs_ds, $user, $subscr );
 		}
 	}
+}
+elsif( $action =~ /^finish$/ )
+{
+	my $subid = $session->param( "subid" );
+}
+elsif( $action =~ /^remove_([0-9]+)$/ )
+{
+	my $subscr = EPrints::Subscription->new( $session, $1 );
+	if( !defined $subscr )
+	{
+		$session->get_archive->log( "Attempt by user #".
+			$session->current_user->get_id." to remove ".
+			"subscription #".$1." which does not ".
+			"exist." );
+	}
+	elsif( $subscr->get_user->get_id == $session->current_user->get_id )
+	{
+		$subscr->remove;
+	}
+	else
+	{
+		$session->get_archive->log( "Attempt by user #".
+			$session->current_user->get_id." to remove ".
+			"subscription #".$subscr->get_id." owned by user ".
+			"#".$subscr->get_user->get_id );
+	}
+	&show_subscriptions( $session, $subs_ds, $user );
 }
 else
 {
-	# Must have come straight here
-
-	# If the user has a subscription, let them edit it, otherwise offer them
-	# the option of creating a subscription
-	if( !defined $subscription )
-	{
-		# No subscription yet
-		&no_subscription( $session );
-	}
-	else
-	{
-		# Let them edit the one they have
-		&edit_subscription( $session, $subscription, undef );
-	}
+	&show_subscriptions( $session, $subs_ds, $user );
 }
-
 $session->terminate();
 
 
-
-######################################################################
-#
-# no_subscription( $session )
-#
-#  Offer the user the chance to create a subscription
-#
-######################################################################
-
-sub no_subscription
+sub show_subscriptions
 {
-	my( $session ) = @_;
+	my( $session, $subs_ds, $user ) = @_;
 
+	my $page = $session->make_doc_fragment;
 
-	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
-	
-	print "<CENTER><P>";
-	print $session->{lang}->phrase( "cgi/users/subscribe:no_sub" );
-	print "</P></CENTER>\n";
-	
-	print $session->{render}->start_form();
+	my $title = $session->html_phrase( "cgi/users/subscribe:list_title" );
 
-	print "<CENTER><P>";	
-	print $session->{render}->submit_buttons( [ $action_create ] );
-	print "</P></CENTER>\n";
-	
-	print $session->{render}->end_form();
-	
-	print $session->{render}->end_html();
-}
+	$page->appendChild( $session->html_phrase( 
+		"cgi/users/subscribe:intro" ) );
 
+	my @subs = $user->get_subscriptions;
 
-######################################################################
-#
-# edit_subscription( $session, $subscription, $problems )
-#
-#  Show the subscription form
-#
-######################################################################
+	my( $form );
+	$form = $session->render_form( "post", "subscribe" );	
+	$page->appendChild( $form );
 
-sub edit_subscription
-{
-	my( $session, $subscription, $problems ) = @_;
-
-
-	print $session->{render}->start_html( 
-		$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
-	
-	if( defined $problems )
+	if( scalar @subs == 0 )
 	{
-		print "<P>";
-		print $session->{lang}->phrase( "cgi/users/subscribe:cant_accept" );
-		print "</P>\n<UL>\n";
-		foreach (@$problems)
-		{
-			print "<LI>$_</LI>\n";
-		}
-		print "</UL>\n";
-	}
-
-	print "<CENTER><P>";
-	print $session->{lang}->phrase( "cgi/users/subscribe:please_enter" );
-	print "</P></CENTER>\n";
-	
-	print $session->{render}->start_form();
-	print $subscription->render_subscription_form();
-
-	print "<CENTER><P>";
-	print $session->{render}->submit_buttons( [ $action_subscribe,
-	                                            $action_remove ] );
-	print "</P></CENTER>\n";
-	print $session->{render}->end_form();
-	
-	print $session->{render}->end_html();
-}
-
-
-######################################################################
-#
-# update_subscription( $session, $subscription )
-#
-#  Call when subscription has been updated, with no problems. Displays
-#  a message.
-#
-######################################################################
-
-sub update_subscription
-{
-	my( $session, $subscription ) = @_;
-
-	my $success = $subscription->commit();
-
-
-	if( $success )
-	{
-		print $session->{render}->start_html( 
-			$session->{lang}->phrase( "cgi/users/subscribe:subscribe" ) );
-		print "<CENTER><P><STRONG>";
-		print $session->{lang}->phrase( "cgi/users/subscribe:sub_accept" );
-		print "</STRONG></P></CENTER>";
-		print "<CENTER><P><A HREF=\"".$session->get_archive()->get_conf( "userhome" ),
-		print $session->{lang}->phrase( "cgi/users/subscribe:ret_deposit" );
-		print "</A></P></CENTER>\n";
-		print $session->{render}->end_html();
+		$form->appendChild( $session->html_phrase( 
+			"cgi/users/subscribe:no_subs" ) );
 	}
 	else
 	{
-		$session->render_error(
-			$session->html_phrase( "cgi/users/subscribe:ud_sub_error" ),
-			$session->get_archive()->get_conf( "userhome "),
-			$session->html_phrase( "cgi/users/subscribe:ret_deposit" ) );
+		my( $table, $tr, $td, $th );
+		$table = $session->make_element( 
+			"table",
+			style => "margin-bottom: 12pt",
+			cellpadding => 4,
+			border => 1 );
+		$form->appendChild( $table );
+		
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+
+		# 50% width on this column. Not very CSS.	
+		$th = $session->make_element( 
+			"th",
+			width => '50%' );
+		$tr->appendChild( $th );
+		$th->appendChild( $session->make_text(
+			$subs_ds->get_field( "spec" )->display_name( 
+				$session ) ) );
+
+		$th = $session->make_element( "th" );
+		$tr->appendChild( $th );
+		$th->appendChild( $session->make_text(
+			$subs_ds->get_field( "frequency" )->display_name( 
+				$session ) ) );
+	
+		$th = $session->make_element( "th" );
+		$tr->appendChild( $th );
+	
+		foreach my $subscr ( @subs )
+		{
+			$tr = $session->make_element( "tr" );
+			$table->appendChild( $tr );
+		
+			$td = $session->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $subscr->render_value( "spec" ) );
+	
+			$td = $session->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $subscr->render_value( 
+				"frequency" ) );
+	
+			my $id = $subscr->get_id;
+			my %buttons = (
+				 _order => [ "edit_".$id, "remove_".$id ] );
+			$buttons{"edit_".$id} = $session->phrase( 
+				"cgi/users/subscribe:action_edit" );
+			$buttons{"remove_".$id} = $session->phrase( 
+				"cgi/users/subscribe:action_remove" );
+			
+			$td = $session->make_element( "td" );
+			$tr->appendChild( $td );
+			$td->appendChild( $session->render_action_buttons( 
+				%buttons ) );
+		}
+		
 	}
+
+	$form->appendChild(
+		$session->render_action_buttons( 	
+			new => $session->phrase( 
+				"cgi/users/subscribe:action_new" ) ) );
+	
+	$session->build_page( $title, $page );
+	$session->send_page();
+}
+
+sub edit_subscription
+{
+	my( $session, $subs_ds, $user, $subscr ) = @_;
+
+	my $page = $session->make_doc_fragment;
+
+	my $title = $session->html_phrase( "cgi/users/subscribe:list_title" );
+
+	$page->appendChild( $session->html_phrase( 
+		"cgi/users/subscribe:edit_blurb" ) );
+
+	$page->appendChild(
+		$session->render_input_form( 
+			fields => [
+				$subs_ds->get_field( "spec" ),
+				$subs_ds->get_field( "frequency" )
+			],
+			values => $subscr->get_data,
+			show_names => 1,
+			show_help => 1,
+			hidden_fields => {
+				subid => $subscr->get_value( "subid" ) } ,
+			default_action => "finish",
+			buttons => {
+				cancel => $session->phrase( 
+					"cgi/users/subscribe:action_cancel" ),
+				finish => $session->phrase( 
+					"cgi/users/subscribe:action_finish" )
+			}
+		) );
+			
+	
+	$session->build_page( $title, $page );
+	$session->send_page();
 }

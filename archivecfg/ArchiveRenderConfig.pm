@@ -30,6 +30,8 @@
 #---------------------------------------------------------------------
 
 
+
+
 ######################################################################
 #
 # $xhtmlfragment = eprint_render( $eprint, $session )
@@ -113,6 +115,7 @@ sub eprint_render
 				alt=>$_->get_value( "formatdesc" ) ) );
 			next;
 		}
+
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $_->render_citation_link() );
 	}

@@ -565,3 +565,55 @@ before next release. (metadata types & fields)
 
 2002-05-29
 - Added POD Documentation for Language.pm, Latex.pm, MetaField.pm
+
+2002-06-13
+- Added "pagehook" feature to allow certain pages to have extra body attibutes
+   and "stuff" in the top of the head and body elements. For javascript. Mostly
+   for Steve Harris in AKT.
+- Added "pageid"'s to all the submission form pages.
+- [c] Added examples of pagehooks to config.
+- added an "export_as_xml" attribute to fields which defaults to true but if
+   false then the field is not exported in an XML dump - now used by subject
+   to supress dumping ancestors.
+- fixed bug in abort() which attempted to report to the apache request while
+   under modperl even at startup (so no request -> error ).
+
+2002-06-24
+- [db] Added subscriptions! including a send_subscriptions bin script, a cgi 
+   page to edit them (subscribe) and added the link to the user home page. 
+- added a new bin script: "upgrade" which upgrades the database tables to the
+   latest version. (sorts out the subscription tables for 2.0->2.1)
+- [db] added a new db id counter - subscriptionid
+- turned _create_table in Database.pm into create_dataset_tables so that
+   upgrade could use it.
+- fixed a bug in the sql escaping code - escaped '.' when it didn't have to.
+- added a whole bunch of $sth->finish commands to clean up more after db
+   functions to hopefully reduce memory leaks.
+- added "version" concept to the database tables to reflect what version of
+   eprints they are suitable for the automatic "upgrade" script. Database.pm 
+   gained: create_version_table, set_version, has_table, get_tables, 
+   get_version, is_latest_version. 
+- session now uses "is_latest_version" to check the DB is ok and reports a
+   different warning if the "archive" tables exists. (wrong version vs. no
+   tables.)
+- SearchExpressions can now be rendered into a screenable description using
+   ->render_description - SearchField also gained a render_description which
+   is called by the SearchExpression method.
+- MetaField gained "make_searchexp" which is only legal on search type fields
+   and returns the searchexp described by the given value.
+- Fixed a typo in the message about not having a top-level-subject.
+- Added a hack to SearchExpression which gets the fields for a search-type
+   field from the subscription_fields conf setting if the property is set to
+   "subscriptionfields" rather than an array.
+- SearchExp again; made render_order_menu a seperate function so that it can
+   be used when rendering a inlined searchexp (eg. for a search-type-field)
+- SearchExp and SearchField no longer return the bad words from a search. This
+   is now handled by putting the searchexp description at the top of the 
+   search results page as part of the "blurb" which now lays out the data
+   about the search (so you can change the order, eg. Timing info first, or
+   even not at all)
+- added set_property to SearchExpression so that you can change properties
+   of an existing searchexpression. Useful to set use_oneshot_cache on a 
+   searchexp created from de-serialising.
+
+

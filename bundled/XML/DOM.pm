@@ -620,6 +620,17 @@ sub appendChild
 
     my $doc = $self->[_Doc];
 
+#cjg start hack
+    if( !defined $node )
+    {
+        croak "Attempt to append undef'd node!";
+    }
+    if( ref($node) eq "" )
+    {
+        croak "Attempt to append non blessed node!";
+    }
+#cjg end hack
+
     if ($node->isDocumentFragmentNode)
     {
 	if ($XML::DOM::SafeMode)

@@ -157,7 +157,7 @@ sub new
 
 	#### Got Archive Config Module ###
 
-	if( $self->{noise} >= 2 ) { print "Starting EPrints Session.\n"; }
+	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Session.\n"; }
 
 	# What language is this session in?
 
@@ -180,23 +180,35 @@ sub new
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
-		$self->render_error( $self->html_phrase( "lib/session:fail_db_connect" ) );
+		$self->render_error( $self->html_phrase( 
+			"lib/session:fail_db_connect" ) );
 		return undef;
 	}
 
+	#cjg make this a method of EPrints::Database?
 	unless( $nocheckdb )
 	{
-		# Check there is some tables.
-		my $sql = "SHOW TABLES";
-		my $sth = $self->{database}->prepare( $sql );
-		$self->{database}->execute( $sth , $sql );
-		if( !$sth->fetchrow_array )
+		# Check there are some tables.
+		# Well, check for the most important table, which 
+		# if it's not there is a show stopper.
+		unless( $self->{database}->is_latest_version )
 		{ 
-			$self->get_archive()->log( "No tables in the MySQL database! Did you run create_tables?" );
+			if( $self->{database}->has_table( "archive" ) )
+			{	
+				$self->get_archive()->log( 
+					"Database tables are in old ".
+					"configuration. Please run\n".
+					"bin/upgrade" );
+			}
+			else
+			{
+				$self->get_archive()->log( 
+					"No tables in the MySQL database! ".
+					"Did you run create_tables?" );
+			}
 			$self->{database}->disconnect();
 			return undef;
 		}
-		$sth->finish;
 	}
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
@@ -234,7 +246,7 @@ sub terminate
 	# it now.
 	if( $self->{pagemade} ) { $self->{page}->dispose(); }
 
-	if( $self->{noise} >= 2 ) { print "Ending EPrints Session.\n"; }
+	if( $self->{noise} >= 2 ) { print "Ending EPrints Session.\n\n"; }
 }
 
 #############################################################
@@ -358,7 +370,7 @@ sub best_language
 	return undef if( scalar keys %values == 0 );
 
 	# The language of the current session is best
-	return $values{$lang} if( defined $values{$lang} );
+	return $values{$lang} if( defined $lang && defined $values{$lang} );
 
 	# The default language of the archive is second best	
 	my $defaultlangid = $archive->get_conf( "defaultlanguage" );

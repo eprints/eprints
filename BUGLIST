@@ -76,13 +76,11 @@ Searching
 
 - No way to search date fields, via the forms interface.
 
-- Does not show "ignored words" if results are cached.
-
 - Staff search dataset field allows selection of more than one dataset
    but will ignore all but one.
 
-- SearchExpression::get_ids does not always return just ids! maybe
-   needs one-shot cache mode?
+- Problems in subscription having no conditions, just an order. Loses
+   the order in serialising?
 
 ----------------------------------------------------------------------
 EPrints Submission Form
@@ -250,6 +248,11 @@ it has been added]
    buffers.
 - Does not update abstracts when a live record is modified. (possibly
    the no-upload bug is just a symptom of this)
+- Does not show "ignored words" if results are cached.
+- SearchExpression::get_ids does not always return just ids! maybe
+   needs one-shot cache mode?
+
+
 
 
 

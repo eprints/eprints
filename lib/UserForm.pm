@@ -129,18 +129,21 @@ sub process
 
 		if( $self->{staff} )
 		{
-			$page->appendChild( $self->{session}->html_phrase( "lib/userform:staff_blurb" ) );
+			$page->appendChild( $self->{session}->html_phrase( 
+				"lib/userform:staff_blurb" ) );
 		}
 		else
 		{
-			$page->appendChild( $self->{session}->html_phrase( "lib/userform:blurb" ) );
+			$page->appendChild( $self->{session}->html_phrase( 
+				"lib/userform:blurb" ) );
 		}
 
 		$page->appendChild( $self->_render_user_form() );
 
 		$self->{session}->build_page(
-			$self->{session}->
-				html_phrase( "lib/userform:record_for", name => $full_name ),
+			$self->{session}->html_phrase( 
+				"lib/userform:record_for", 
+				name => $full_name ),
 			$page );
 		$self->{session}->send_page();
 
@@ -167,8 +170,8 @@ sub process
 
 		$page = $self->{session}->make_doc_fragment();
 
-		$page->appendChild( 
-			$self->{session}->html_phrase( "lib/userform:form_incorrect" ) );
+		$page->appendChild( $self->{session}->html_phrase( 
+			"lib/userform:form_incorrect" ) );
 
 		$ul = $self->{session}->make_element( "ul" );
 		my( $problem );
@@ -180,20 +183,24 @@ sub process
 		}
 		$page->appendChild( $ul );
 
-		$page->appendChild( 
-			$self->{session}->html_phrase( "lib/userform:complete_form" ) );
+		$page->appendChild( $self->{session}->html_phrase( 
+			"lib/userform:complete_form" ) );
 		$page->appendChild( $self->{session}->render_ruler() );
 	
 		$page->appendChild( $self->_render_user_form() );
 
 		$self->{session}->build_page(
-			$self->{session}->html_phrase( "lib/userform:record_for", name => $full_name ), $page );
+			$self->{session}->html_phrase( 
+				"lib/userform:record_for", 
+				name => $full_name ), 
+			$page );
 		$self->{session}->send_page();
 	}
 	else 
 	{
-		$self->{session}->render_error(
-			$self->{session}->html_phrase( "lib/userform:problem_updating" ),
+		$self->{session}->render_error( 
+			$self->{session}->html_phrase( 
+				"lib/userform:problem_updating" ),
 			$self->{redirect} );
 	}
 }
