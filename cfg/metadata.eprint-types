@@ -179,6 +179,7 @@ REQUIRE title
 REQUIRE year
 month
 REQUIRE abstract
+REQUIRE thesistype
 REQUIRE department
 REQUIRE institution
 comments

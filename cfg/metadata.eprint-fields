@@ -217,6 +217,14 @@ displayname = "Report no."
 help = "Please enter the report number."
 </field>
 
+<field thesistype>
+editable = YES
+type = "text"
+visible = YES
+displayname = "Thesis Type"
+help = "Please enter the thesis type, e.g. <strong>PhD thesis</strong>."
+</field>
+
 <field title>
 editable = YES
 type = "text"
