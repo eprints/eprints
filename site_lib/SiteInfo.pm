@@ -353,5 +353,18 @@ $EPrintSite::SiteInfo::signature =
  $EPrintSite::SiteInfo::admin\n";
 
 
+#
+#  For Open Archives software
+#
+
+# Domain the software is running in
+$EPrintSite::SiteInfo::domain = "ecs.soton.ac.uk";
+# Port the perl server is running on
+$EPrintSite::SiteInfo::server_perl_port = "80";
+# Standard time zone
+$EPrintSite::SiteInfo::standard_time_zone = "GMT";
+# Daylight savings time zone
+$EPrintSite::SiteInfo::daylight_savings_time_zone = "BST";
+
 
 1; # For use/require success

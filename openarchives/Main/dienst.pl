@@ -59,6 +59,8 @@
 
 package dienst;
 
+use EPrints::SiteInfo;
+
 use CGI qw(:standard);
 use strict;
 use POSIX;
@@ -83,7 +85,7 @@ if (!defined ($dienst::startup_flag)) {
     # AT INSTALLATION TIME YOU MUST CHANGE THIS TO THE FULL PATH WHERE YOUR
     # OPEN ARCHIVES SOFTWARE SITS.  THIS IS THE PATH UNDER WHICH THE Main,
     # Common, Config, and Services DIRECTORIES ARE
-    $dienst::source_dir = "/fsys/cs-tr/y/servers/OpenArchives";
+    $dienst::source_dir = "$EPrintSite::SiteInfo::local_root/openarchives";
 
     require "$dienst::source_dir/Config/config_constants.pl";
 

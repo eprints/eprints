@@ -59,29 +59,31 @@
 
 package dienst;
 
+use EPrintSite::SiteInfo;
+
 ###################################################################
 # SERVER INFORMATION THAT SHOULD BE CHANGED AT INSTALLATION TIME
 ###################################################################
 
 # AT INSTALLATION CHANGE THIS TO A DESCRIPTIVE NAME FOR YOUR SERVER.  DON'T
 # WORRY WHETHER THIS IS UNIQUE, IT IS USED FOR ONLY INFORMATION PURPOSES.
-$server = "Prototype Open Archives Server";
+$server = "$EPrintSite::SiteInfo::sitename Open Archives Server";
 
 # AT INSTALLATION TIME, CHANGE THIS TO THE DOMAIN NAME OF THE HOST ON WHICH
 # THIS SOFTWARE WILL BE RUNNING.
-$localhost = "yourhost.org";
+$localhost = $EPrintSite::SiteInfo::domain;
 
 # AT INSTALLATION TIME CHANGE THIS TO THE PORT ON WHICH THE HTTP SERVER WILL
 # BE RUNNING
-$localport = "8090";
+$localport = $EPrintSite::SiteInfo::server_perl_port;
 
 # AT INSTALLATION TIME CHANGE THIS TO THE EMAIL ADDRESS OF SOMEONE WHO SHOULD
 # BE CONTACTED IN CASE OF PROBLEMS.  NOTE THAT THE @ must be escaped with a \.
-$maintainer = qq/support@yourhost.org/;
+$maintainer = $EPrintSite::SiteInfo::admin;
 
 # AT INSTALLATION TIME CHANGE THIS TO THE APPROPRIATE TIME ZONES
-$daylight_savings_time_zone = "EDT";
-$standard_time_zone = "EST";
+$daylight_savings_time_zone = $EPrintSite::SiteInfo::daylight_savings_time_zone;
+$standard_time_zone = $EPrintSite::SiteInfo::standard_time_zone;
 
 
 ###################################################################
