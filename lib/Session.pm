@@ -480,17 +480,6 @@ die "NOPE";
 	return( $self->{query}->endform );
 }
 
-######################################################################
-#
-# $html = render_submit_buttons( $submit_buttons )
-#                                array_ref
-#
-#  Returns HTML for buttons all with the name "submit" but with the
-#  values given in the array. A single "Submit" button is printed
-#  if the buttons aren't specified.
-#
-######################################################################
-
 
 ## WP1: BAD
 sub get_order_names
@@ -653,29 +642,42 @@ sub make_hidden_field
 }
 
 ## WP1: BAD
-sub make_submit_buttons
+sub make_action_buttons
 {
-	my( $self, @submit_buttons ) = @_;
+	my( $self, %buttons ) = @_;
 
-	my $html = "";
+	# cjg default button if none set?
+	
+	return $self->_make_buttons_aux( "action" , %buttons );
+}
 
-	if( scalar @submit_buttons == 0 )
-	{
-# lang me cjg
-		@submit_buttons = ( "Submit" );
-	}
+sub make_internal_buttons
+{
+	my( $self, %buttons ) = @_;
+
+	# cjg default button if none set?
+	
+	return $self->_make_buttons_aux( "internal" , %buttons );
+}
+
+
+sub _make_buttons_aux
+{
+	my( $self, $btype, %buttons ) = @_;
 
 	my $frag = $self->make_doc_fragment();
 
-	foreach( @submit_buttons )
+	my $button_id;
+	foreach $button_id ( keys %buttons )
 	{
-		# Some space between them
 		$frag->appendChild(
 			$self->make_element( "input",
-				class => "submitbutton",
+				class => $btype."button",
 				type => "submit",
-				name => "_submit",
-				value => $_ ) );
+				name => "_".$btype."_".$button_id,
+				value => $buttons{$button_id} ) );
+
+		# Some space between butons.
 		$frag->appendChild( $self->make_text( latin1(" ") ) );
 	}
 
@@ -1090,10 +1092,14 @@ sub seen_form
 	return( $result );
 }
 
-## WP1: BAD cjg BOY IS THIS SOOO NOT FINISHED.
 sub internal_button_pressed
 {
-	my( $self ) = @_;
+	my( $self, $buttonid ) = @_;
+
+	if( defined $buttonid )
+	{
+		return( defined $self->param( "_internal_".$buttonid ) );
+	}
 
 	# Have not yet worked this out?
 	if( !defined $self->{internalbuttonpressed} )
@@ -1117,13 +1123,30 @@ sub internal_button_pressed
 	return $self->{internalbuttonpressed};
 }
 
+sub get_action_button
+{
+	my( $self ) = @_;
+
+	my $p;
+	# $p = string
+	foreach $p ( $self->param() )
+	{
+		if( $p =~ m/^_action_/ )
+		{
+			return substr($p,8);
+		}
+	}
+
+	return undef;
+}
+
 ######################################################################
 #
 # render_form( $fields,              #array_ref
 #              $values,              #hash_ref
 #              $show_names,
 #              $show_help,
-#              $submit_buttons,      #array_ref
+#              $action_buttons,      #array_ref
 #              $hidden_fields,       #hash_ref
 #              $dest
 #
@@ -1134,7 +1157,7 @@ sub internal_button_pressed
 #  "seen" to see if the users seen and responded to the form.
 #
 #  Submit buttons are specified in a reference to an array of names.
-#  If $submit_buttons isn't passed in (or is undefined), a simple
+#  If $action_buttons isn't passed in (or is undefined), a simple
 #  default "Submit" button is slapped on.
 #
 #  $dest should contain the URL of the destination
@@ -1144,7 +1167,7 @@ sub internal_button_pressed
 ## WP1: BAD
 sub render_form
 {
-	my( $self, $fields, $values, $show_names, $show_help, $submit_buttons,
+	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
 	    $hidden_fields, $dest ) = @_;
 
 print STDERR EPrints::Session::render_struct( $values );
@@ -1179,7 +1202,7 @@ print STDERR EPrints::Session::render_struct( $values );
 		}
 	}
 
-	$form->appendChild( $self->make_submit_buttons( @{$submit_buttons} ) );
+	$form->appendChild( $self->make_action_buttons( %{$action_buttons} ) );
 
 	return $form;
 }

@@ -621,7 +621,7 @@ sub render_input_field
 		if( $session->internal_button_pressed() )
 		{
 			$boxcount = $session->param( $spacesid );
-			if( defined $session->param( "_internal_".$self->{name}."_morespaces" ) )
+			if( $session->internal_button_pressed( $self->{name}."_morespaces" ) )
 			{
 				$boxcount += 2;
 			}
@@ -639,12 +639,9 @@ sub render_input_field
 					type => "hidden",
 					name => $spacesid,
 					value => $boxcount ) );
-				$more->appendChild( $session->make_element(
-					"input",
-					type => "submit",
-					name => "_internal_".$self->{name}."_morespaces",
-					value => $session->phrase( 
-							"more_spaces" ) ) );
+				$more->appendChild( $session->make_internal_buttons(
+					$self->{name}."_morespaces" => 
+						$session->phrase( "more_spaces" ) ) );
 			}
 			$frag->appendChild( 
 				$self->_render_input_field_aux( 

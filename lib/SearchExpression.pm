@@ -270,9 +270,9 @@ sub render_search_form
 	$div = $self->{session}->make_element( 
 		"div" , 
 		class => "searchbuttons" );
-	$div->appendChild( $self->{session}->make_submit_buttons( 
-		$self->{session}->phrase( "action_search" ), 
-		$self->{session}->phrase( "action_reset" ) ) );
+	$div->appendChild( $self->{session}->make_action_buttons( 
+		search => $self->{session}->phrase( "action_search" ), 
+		newsearch => $self->{session}->phrase( "action_reset" ) ) );
 	$form->appendChild( $div );	
 
 	return( $form );
@@ -537,18 +537,15 @@ sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
 	
-	my $submit_button = $self->{session}->param( "_submit" );
-
+	my $action_button = $self->{session}->get_action_button();
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
 	#  b) if there are search parameters but we have no value for "submit"
 	#     (i.e. the search is a direct GET from somewhere else)
 
-	if( ( defined $submit_button && 
-	      $submit_button eq $self->{session}->phrase( "action_search" ) ) 
+	if( ( defined $action_button && $action_button eq "search" ) 
             || 
-	    ( !defined $submit_button && 
-              $self->{session}->have_parameters ) )
+	    ( !defined $action_button && $self->{session}->have_parameters() ) )
 	{
 		# We need to do a search
 		my $problems = $self->from_form;
@@ -648,13 +645,13 @@ sub process_webpage
 		my $form = $self->{session}->make_form( "get" );
 		foreach( $self->{session}->param() )
 		{
-			next if( $_ eq "_submit" );
+			next if( $_ =~ m/^_/ );
 			$form->appendChild(
 				$self->{session}->make_hidden_field( $_ ) );
 		}
-		$form->appendChild( $self->{session}->make_submit_buttons( 
-			$self->{session}->phrase("action_update"), 
-			$self->{session}->phrase("action_newsearch") ) );
+		$form->appendChild( $self->{session}->make_action_buttons( 
+			update => $self->{session}->phrase("action_update"), 
+			newsearch => $self->{session}->phrase("action_newsearch") ) );
 		$page->appendChild( $form );
 		
 		foreach (@results)
@@ -676,15 +673,10 @@ sub process_webpage
 		return;
 	}
 
-	if( defined $submit_button 
-            && 
-	    ( $submit_button eq $self->{session}->phrase( "action_reset" ) 
-	      || 
-	      $submit_button eq $self->{session}->phrase(" action_newsearch" ) 
-	  ) )
+	if( defined $action_button && $action_button eq "newsearch" )
 	{
 		# To reset the form, just reset the URL.
-		my $url = $self->{session}->getURL;
+		my $url = $self->{session}->get_url();
 		# Remove everything that's part of the query string.
 print STDERR "URLURL URL URL: $url\n";
 		$url =~ s/\?.*//;
@@ -692,8 +684,7 @@ print STDERR "URLURL URL URL: $url\n";
 		return;
 	}
 	
-	if( defined $submit_button && 
-		$submit_button eq $self->{session}->phrase( "action_update" ) )
+	if( defined $action_button && $action_button eq "update" )
 	{
 		$self->from_form();
 	}

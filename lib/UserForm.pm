@@ -188,7 +188,7 @@ sub _render_form
 	
 	my %hidden = ( "username"=>$self->{user}->get_value( "username" ) );
 
-	my $buttons = [ $self->{session}->phrase( "update_record" ) ];
+	my $buttons = { update => $self->{session}->phrase( "update_record" ) };
 
 	return $self->{session}->render_form( \@edit_fields,
 	                                      $self->{user}->getValues(),

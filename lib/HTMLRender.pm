@@ -67,30 +67,6 @@ sub new
 
 	$self->{session} = $session;
 
-	# Get name & username boxcount stuff
-
-	$self->{internalbuttonpressed} = 0;
-
-	$self->{nameinfo} = {};
-	$self->{usernameinfo} = {};
-
-	my @params = $self->{query}->param();
-	my $n;
-
-	foreach $n (@params)
-	{
-		$self->{nameinfo}->{$n} = $self->{query}->param( $n )
-			if( substr($n, 0, 5) eq "name_" );
-		
-		$self->{internalbuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
-		$self->{usernameinfo}->{$n} = $self->{query}->param( $n )
-			if( substr($n, 0, 9) eq "username_" );
-		
-		$self->{internalbuttonpressed} = 1 if( substr($n, 0, 14) eq "username_more_" );
-	}
-	
-	
-
 	return( $self );
 }
 
@@ -114,15 +90,6 @@ sub absolute_url
 }
 
 
-######################################################################
-#
-# $consumed = internal_button_pressed()
-#
-#  Important function: if this returns true, then the button pressed on
-#  the form was an internal form state button, so whatever form you
-#  rendered should be re-rendered to show the updated state info.
-#
-######################################################################
 
 
 

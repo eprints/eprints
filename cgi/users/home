@@ -210,7 +210,7 @@ sub render_workspace
 			\%default_values,
 			0,
 			0,
-			EPrints::SubmissionForm::initial_actions($session),
+			EPrints::SubmissionForm::initial_actions($session ),#badbuttons
 			undef,
 			"submit" );
 
@@ -224,12 +224,9 @@ sub render_workspace
 		my( $form );
 		$form = $session->make_form( "POST", "submit" );	
 
-		$form->appendChild( 
-			$session->make_hidden_field( "submit", "New" ) );
-
 		$form->appendChild(
-			$session->make_submit_buttons( 	
-				$session->phrase( "start_upload" ) ) );
+			$session->make_action_buttons( 	
+				new => $session->phrase( "start_upload" ) ) );
 
 		$html->appendChild( $form );
 	}
