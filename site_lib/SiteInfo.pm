@@ -7,7 +7,8 @@
 #
 ######################################################################
 #
-# 01/10/99 - Created by Robert Tansley
+#  01/10/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -23,7 +24,7 @@ use strict;
 #
 
 $EPrintSite::SiteInfo::sitename = "RobPrints";
-$EPrintSite::SiteInfo::author = "rob\@soton.ac.uk";
+$EPrintSite::SiteInfo::automail = "rob\@soton.ac.uk";
 $EPrintSite::SiteInfo::admin = "rob\@soton.ac.uk";
 $EPrintSite::SiteInfo::local_root = "/opt/eprints";
 
