@@ -32,6 +32,7 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 
 use EPrintSite::SiteRoutines;
+use EPrintSite::SiteInfo;
 
 use strict;
 
@@ -110,8 +111,8 @@ sub failure
 	my $error_text = "<STRONG>$problem</STRONG>";
 
 	$self->{render}->render_error( $error_text,
-	                                 $EPrints::SiteInfo::frontpage,
-	                                 $EPrints::SiteInfo::sitename );
+	                               $EPrintSite::SiteInfo::frontpage,
+	                               $EPrintSite::SiteInfo::sitename );
 }
 
 
