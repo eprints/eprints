@@ -1,19 +1,145 @@
+<phrases>
+    <phrase ref="fieldname_eprint_eprintid">&#201;Print ID</phrase>
+
+    <phrase ref="fieldname_eprint_username">D&#232;positing Us&#232;r</phrase>
+
+    <phrase ref="fieldname_eprint_dir">Dir</phrase>
+
+    <phrase ref="fieldname_eprint_datestamp">Dat&#232; D&#232;posit&#232;d</phrase>
+
+    <phrase ref="fieldname_eprint_type">&#201;Print Typ&#232;</phrase>
+
+    <phrase ref="fieldhelp_eprint_additional">If you'd lik&#232; to sugg&#232;st anoth&#232;r subj&#232;ct or subj&#232;cts for your submission (and th&#232; archiv&#232;) that ar&#232; not in th&#232; abov&#232; list, th&#232;n &#232;nt&#232;r th&#232;m h&#232;r&#232;. Pl&#232;as&#232; sp&#232;cify th&#232;m fully, in a mann&#232;r similar to thos&#232; display&#232;d in th&#232; abov&#232; list.</phrase>
+
+    <phrase ref="fieldhelp_eprint_reasons">H&#232;r&#232; you can off&#232;r justification for your sugg&#232;st&#232;d n&#232;w subj&#232;ct(s).</phrase>
+
+    <phrase ref="fieldname_eprint_commentary">Comm&#232;ntary on</phrase>
+    <phrase ref="fieldhelp_eprint_commentary">If your pap&#232;r is a comm&#232;ntary on anoth&#232;r docum&#232;nt (or author's r&#232;spons&#232; to a comm&#232;ntary) in th&#232; archiv&#232;, pl&#232;as&#232; &#232;nt&#232;r its ID in this box.</phrase>
+
+    <phrase ref="fieldname_eprint_succeeds">Lat&#232;r V&#232;rsion of</phrase>
+    <phrase ref="fieldhelp_eprint_succeeds">If this docum&#232;nt is a r&#232;vis&#232;d v&#232;rsion of anoth&#232;r docum&#232;nt in th&#232; archiv&#232;, pl&#232;as&#232; &#232;nt&#232;r its ID cod&#232; in this box.</phrase>
+
+    <phrase ref="fieldname_eprint_subjects">Subj&#232;cts</phrase>
+    <phrase ref="fieldhelp_eprint_subjects">Pl&#232;as&#232; s&#232;l&#232;ct at l&#232;ast on&#232; main subj&#232;ct cat&#232;gory, and optionally up to two oth&#232;r subj&#232;ct cat&#232;gori&#232;s you think ar&#232; appropriat&#232; for your submisson, in th&#232; list b&#232;low. In som&#232; brows&#232;rs you may hav&#232; to hold CTRL or SHIFT to s&#232;l&#232;ct mor&#232; than on&#232; subj&#232;ct.</phrase>
+
+<!-- locally defined fields -->
+
+    <phrase ref="fieldname_eprint_abstract">Abstract</phrase>
+    <phrase ref="fieldhelp_eprint_abstract">Pl&#232;as&#232; &#232;nt&#232;r th&#232; abstract of your d&#232;posit. You can &#232;asily copy and past&#232; it into this box. </phrase>
+
+    <phrase ref="fieldname_eprint_altloc">Alt&#232;rnativ&#232; Locations</phrase>
+    <phrase ref="fieldhelp_eprint_altloc">If your d&#232;posit is availabl&#232; from oth&#232;r sit&#232;s, pl&#232;as&#232; &#232;nt&#232;r th&#232; URLs of your d&#232;posit on thos&#232; sit&#232;s h&#232;r&#232;, including th&#232; initial <strong>http://</strong>. Pl&#232;as&#232; giv&#232; th&#232; full URL of th&#232; pap&#232;r its&#232;lf, and not just th&#232; hosting w&#232;bsit&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_authors">Authors</phrase>
+    <phrase ref="fieldhelp_eprint_authors">Pl&#232;as&#232; &#232;nt&#232;r th&#232; authors b&#232;low. If th&#232;r&#232; ar&#232; mor&#232; authors than availabl&#232; spac&#232;s, click on th&#232; `Mor&#232; Spac&#232;s' button. To r&#232;mov&#232; an author, just r&#232;mov&#232; th&#232;ir surnam&#232; from th&#232; surnam&#232; box.</phrase>
+
+    <phrase ref="fieldname_eprint_chapter">Chapt&#232;r</phrase>
+    <phrase ref="fieldhelp_eprint_chapter">Pl&#232;as&#232; &#232;nt&#232;r th&#232; full nam&#232; of th&#232; conf&#232;r&#232;nc&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_comments">Additional Information</phrase>
+    <phrase ref="fieldhelp_eprint_comments">If you think you can sp&#232;cify som&#232; us&#232;ful information about your d&#232;posit that can't b&#232; &#232;nt&#232;r&#232;d anywh&#232;r&#232; &#232;ls&#232;, pl&#232;as&#232; &#232;nt&#232;r it h&#232;r&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_commref">Comm&#232;ntary on</phrase>
+    <phrase ref="fieldhelp_eprint_commref">If your d&#232;posit is a comm&#232;ntary on a pap&#232;r <strong>that is not in this archiv&#232;</strong>, pl&#232;as&#232; &#232;nt&#232;r th&#232; full r&#232;f&#232;r&#232;nc&#232; of th&#232; pap&#232;r h&#232;r&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_confdates">Conf&#232;r&#232;nc&#232; Dat&#232;</phrase>
+    <phrase ref="fieldhelp_eprint_confdates">Pl&#232;as&#232; &#232;nt&#232;r wh&#232;n th&#232; conf&#232;r&#232;nc&#232; took plac&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_conference">Conf&#232;r&#232;nc&#232;</phrase>
+    <phrase ref="fieldhelp_eprint_conference">Pl&#232;as&#232; &#232;nt&#232;r th&#232; full nam&#232; of th&#232; conf&#232;r&#232;nc&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_confloc">Location</phrase>
+    <phrase ref="fieldhelp_eprint_confloc">&#201;nt&#232;r h&#232;r&#232; wh&#232;r&#232; th&#232; conf&#232;r&#232;nc&#232; took plac&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_department">D&#232;partm&#232;nt</phrase>
+    <phrase ref="fieldhelp_eprint_department">Pl&#232;as&#232; &#232;nt&#232;r th&#232; d&#232;partm&#232;nt from which th&#232; d&#232;posit originat&#232;d.</phrase>
+
+    <phrase ref="fieldname_eprint_editors">&#201;ditors</phrase>
+    <phrase ref="fieldhelp_eprint_editors">Pl&#232;as&#232; &#232;nt&#232;r th&#232; nam&#232;s of th&#232; &#232;ditors.</phrase>
+
+    <phrase ref="fieldname_eprint_institution">Institution</phrase>
+    <phrase ref="fieldhelp_eprint_institution">Pl&#232;as&#232; &#232;nt&#232;r th&#232; institution from which th&#232; d&#232;posit originat&#232;d.</phrase>
+
+    <phrase ref="fieldname_eprint_ispublished">Status</phrase>
+    <phrase ref="fieldhelp_eprint_ispublished">Pl&#232;as&#232; stat&#232; h&#232;r&#232; wh&#232;th&#232;r your d&#232;posit has b&#232;&#232;n publish&#232;d, is curr&#232;ntly in th&#232; proc&#232;ss of b&#232;ing publish&#232;d (<strong>in pr&#232;ss</strong>), or has not b&#232;&#232;n pr&#232;viously publish&#232;d.</phrase>
+# valu&#232; unpub = Unpublish&#232;d
+# valu&#232; inpr&#232;ss = In Pr&#232;ss
+# valu&#232; pub = Publish&#232;d
+
+    <phrase ref="fieldname_eprint_keywords">K&#232;ywords</phrase>
+    <phrase ref="fieldhelp_eprint_keywords">&#201;nt&#232;r h&#232;r&#232; any k&#232;ywords you think will aid s&#232;arch&#232;rs in finding your d&#232;posit. Pl&#232;as&#232; b&#232; car&#232;ful to &#232;nt&#232;r sp&#232;cific k&#232;ywords r&#232;l&#232;vant to your d&#232;posit, and don't b&#232; too g&#232;n&#232;ral.</phrase>
+
+    <phrase ref="fieldname_eprint_month">Month</phrase>
+    <phrase ref="fieldhelp_eprint_month">Pl&#232;as&#232; &#232;nt&#232;r th&#232; month in which your d&#232;posit was publish&#232;d.</phrase>
+# valu&#232; unsp&#232;c = Unsp&#232;cifi&#232;d
+# valu&#232; jan = January
+# valu&#232; f&#232;b = F&#232;bruary
+# valu&#232; mar = March
+# valu&#232; apr = April
+# valu&#232; may = May
+# valu&#232; jun = Jun&#232;
+# valu&#232; jul = July
+# valu&#232; aug = August
+# valu&#232; s&#232;p = S&#232;pt&#232;mb&#232;r
+# valu&#232; oct = Octob&#232;r
+# valu&#232; nov = Nov&#232;mb&#232;r
+# valu&#232; d&#232;c = D&#232;c&#232;mb&#232;r
+
+    <phrase ref="fieldname_eprint_number">Numb&#232;r</phrase>
+    <phrase ref="fieldhelp_eprint_number">&#201;nt&#232;r th&#232; issu&#232; numb&#232;r of th&#232; journal in which your d&#232;posit app&#232;ar&#232;d.</phrase>
+
+    <phrase ref="fieldname_eprint_pages">Pag&#232;s</phrase>
+    <phrase ref="fieldhelp_eprint_pages">Pl&#232;as&#232; &#232;nt&#232;r th&#232; (inclusiv&#232;) rang&#232; of pag&#232;s in which your pap&#232;r app&#232;ar&#232;d.</phrase>
+
+    <phrase ref="fieldname_eprint_pubdom">Public Domain</phrase>
+    <phrase ref="fieldhelp_eprint_pubdom">If th&#232; docum&#232;nt you ar&#232; d&#232;posit is not your own but rath&#232;r an old docum&#232;nt that is now in th&#232; public domain, th&#232;n pl&#232;as&#232; tick th&#232; following box. This will pr&#232;v&#232;nt your own nam&#232; and addr&#232;ss app&#232;aring with th&#232; docum&#232;nt as th&#232; addr&#232;ss for corr&#232;spond&#232;nc&#232;.</phrase>
+
+    <phrase ref="fieldname_eprint_publication">Publication</phrase>
+    <phrase ref="fieldhelp_eprint_publication">Pl&#232;as&#232; &#232;nt&#232;r th&#232; full titl&#232; of th&#232; publication your d&#232;posit app&#232;ar&#232;d in.</phrase>
+
+    <phrase ref="fieldname_eprint_publisher">Publish&#232;r</phrase>
+    <phrase ref="fieldhelp_eprint_publisher">Pl&#232;as&#232; &#232;nt&#232;r th&#232; nam&#232; of th&#232; publish&#232;r.</phrase>
+
+    <phrase ref="fieldname_eprint_refereed">R&#232;f&#232;r&#232;&#232;d</phrase>
+    <phrase ref="fieldhelp_eprint_refereed">Pl&#232;as&#232; indicat&#232; wh&#232;th&#232;r this v&#232;rsion of th&#232; work b&#232;&#232;n r&#232;f&#232;r&#232;&#232;d b&#232;low.</phrase>
+
+    <phrase ref="fieldname_eprint_referencetext">R&#232;f&#232;r&#232;nc&#232;s</phrase>
+    <phrase ref="fieldhelp_eprint_referencetext">You ar&#232; strongly &#232;ncourag&#232;d to past&#232; in th&#232; r&#232;f&#232;r&#232;nc&#232; list of your pap&#232;r into th&#232; box b&#232;low. It will b&#232; us&#232;d to link your pap&#232;r to thos&#232; it cit&#232;s and to thos&#232; that cit&#232; it.</phrase>
+
+    <phrase ref="fieldname_eprint_reportno">R&#232;port no.</phrase>
+    <phrase ref="fieldhelp_eprint_reportno">Pl&#232;as&#232; &#232;nt&#232;r th&#232; r&#232;port numb&#232;r.</phrase>
+
+    <phrase ref="fieldname_eprint_thesistype">Th&#232;sis Typ&#232;</phrase>
+    <phrase ref="fieldhelp_eprint_thesistype">Pl&#232;as&#232; &#232;nt&#232;r th&#232; th&#232;sis typ&#232;, &#232;.g. <strong>PhD th&#232;sis</strong>.</phrase>
+
+    <phrase ref="fieldname_eprint_title">Titl&#232;</phrase>
+    <phrase ref="fieldhelp_eprint_title">Pl&#232;as&#232; &#232;nt&#232;r th&#232; full titl&#232; of th&#232; d&#232;posit.</phrase>
+
+    <phrase ref="fieldname_eprint_volume">Volum&#232;</phrase>
+    <phrase ref="fieldhelp_eprint_volume">&#201;nt&#232;r th&#232; volum&#232; numb&#232;r of th&#232; journal in which your d&#232;posit app&#232;ar&#232;d.</phrase>
+
+    <phrase ref="fieldname_eprint_year">Y&#232;ar</phrase>
+    <phrase ref="fieldhelp_eprint_year">Pl&#232;as&#232; &#232;nt&#232;r th&#232; y&#232;ar in which your d&#232;posit was publish&#232;d or produc&#232;d.</phrase>
 
 
-A:typename_eprint_bookchapter   = l'Book Chapter
-A:typename_eprint_confpaper     = l'Conference Paper
-A:typename_eprint_confposter    = l'Conference Poster
-A:typename_eprint_techreport    = l'Departmental Technical Report
-A:typename_eprint_journale      = l'Journal (On-line/Unpaginated)
-A:typename_eprint_journalp      = l'Journal (Paginated)
-A:typename_eprint_newsarticle   = l'Newspaper/Magazine Article
-A:typename_eprint_other         = l'Other
-A:typename_eprint_preprint      = l'Preprint
-A:typename_eprint_thesis        = l'Thesis
+<!-- Eprint Type Names -->
 
-### Sort Order names
+    <phrase ref="typename_eprint_bookchapter">Book Chapt&#232;r</phrase>
+    <phrase ref="typename_eprint_confpaper">Conf&#232;r&#232;nc&#232; Pap&#232;r</phrase>
+    <phrase ref="typename_eprint_confposter">Conf&#232;r&#232;nc&#232; Post&#232;r</phrase>
+    <phrase ref="typename_eprint_techreport">D&#232;partm&#232;ntal T&#232;chnical R&#232;port</phrase>
+    <phrase ref="typename_eprint_journale">Journal (On-lin&#232;/Unpaginat&#232;d)</phrase>
+    <phrase ref="typename_eprint_journalp">Journal (Paginat&#232;d)</phrase>
+    <phrase ref="typename_eprint_newsarticle">N&#232;wspap&#232;r/Magazin&#232; Articl&#232;</phrase>
+    <phrase ref="typename_eprint_other">Oth&#232;r</phrase>
+    <phrase ref="typename_eprint_preprint">Pr&#232;print</phrase>
+    <phrase ref="typename_eprint_thesis">Th&#232;sis&#25606;</phrase>
 
-A:ordername_archive_byyear	= by l'year (most recent first)
-A:ordername_archive_byyearoldest = by l'year (oldest first)
-A:ordername_archive_byname 	= by l'author's name
-A:ordername_archive_bytitle 	= by l'title
+<!-- Sort Order names -->
+
+    <phrase ref="ordername_archive_byyear">by y&#232;ar (most r&#232;c&#232;nt first)</phrase>
+    <phrase ref="ordername_archive_byyearoldest">by y&#232;ar (old&#232;st first)</phrase>
+    <phrase ref="ordername_archive_byname">by author's nam&#232;</phrase>
+    <phrase ref="ordername_archive_bytitle">by titl&#232;</phrase>
+
+</phrases>
