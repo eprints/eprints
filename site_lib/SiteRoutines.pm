@@ -13,6 +13,7 @@
 
 package EPrintSite::SiteRoutines;
 
+use EPrints::Citation;
 use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Session;
@@ -21,6 +22,22 @@ use EPrints::Name;
 use strict;
 use diagnostics;
 
+
+# Specs for rendering citations.
+
+%EPrints::SiteRoutines::citation_specs =
+(
+	"bookchapter" => "{authors}. <i>{title}</i>[, in <i>{publication}</i>][ ,chapter {chapter}][, pages {pages}]. [{publisher}, ]{year}.",
+	"confpaper"   => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
+	"confposter"  => "{authors}. {title}. In [{editors}, Eds. ] [<i>Proceedings {conference}.</i>][ <B>{volume}</B>][({number}),][ pages {pages},][ {confloc},] {year}.",
+	"techreport"  => "{authors}. {title}. Technical Report[ {reportno}], [{department}, ][{institution}, ][{month}, ]{year}.",
+	"journale"    => "{authors}. {title}. <i>{publication}</i> {volume}[({number})], [{month}, ]{year}.",
+	"journalp"    => "{authors}. {title}. <i>{publication}</i> {volume}[({number})][:{pages}], [{month}, ]{year}.",
+	"newsarticle" => "{authors}. {title}. In <i>{publication}</i>, {volume}[({number})][:{pages}], [{publisher} ][{month}, ]{year}.",
+	"other"       => "{authors}. {title}. [{month}, ]{year}.",
+	"preprint"    => "{authors}. {title}. [{month}, ]{year}.",
+	"thesis"      => "{authors}. <i>{title}</i>. {thesistype}, [{department}, ][{institution}, ][{month}, ]{year}."
+);
 
 ######################################################################
 #
@@ -94,11 +111,12 @@ sub eprint_render_citation
 {
 	my( $class, $eprint, $html ) = @_;
 	
-	my $bold = ( $html ? "<B>" : "" );
-	my $boldoff = ( $html ? "</B>" : "" );
-	
-	return(
-		"$eprint->{authors} ($bold$eprint->{year}$boldoff) $eprint->{title}" );
+	my $citation_spec = $EPrints::SiteRoutines::citation_specs{$eprint->{type}};
+
+	return( EPrints::Citation->render_citation( $eprint->{session},
+	                                            $citation_spec,
+	                                            $eprint,
+	                                            $html ) );
 }
 
 
