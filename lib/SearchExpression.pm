@@ -504,6 +504,13 @@ sub count
 }
 
 
+sub eprint_authcmp
+{	
+	return EPrints::Name::cmp_names( $a->{authors} , $b->{authors} ) ||
+		( $a->{year} <=> $b->{year} ) ||
+		( $a->{title} cmp $b->{title} ) ;
+}
+
 sub get_records 
 {
 	my ( $self , $max ) = @_;
@@ -517,6 +524,8 @@ sub get_records
 							$self->{tmptable}, 
 							$keyfield, 
 							$max );
+
+		my @records = $self->{session}->{database}->from_buffer( $self->{table}, $buffer );
 		if( $overlimit )
 		{
 			$self->{warning} = "Warning! $max or more results! Unsorted sample of results displayed.";
@@ -524,14 +533,14 @@ sub get_records
 		else
 		{
 			$self->{warning} = "Sorting not implemented";
+			@records = sort eprint_authcmp @records;
 		}
-		return $self->{session}->{database}->from_buffer( $self->{table}, $buffer );
+		return @records;
 	}	
 
 	EPrints::Log::log_entry(
 		EPrints::Language::logphrase( "L:not_cached" ) );
 		
 }
-
 
 1;

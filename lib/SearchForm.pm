@@ -174,8 +174,8 @@ sub process
        		print $self->{session}->{lang}->phrase( $code, "<STRONG>".(scalar @results)."</STRONG>" );
 		print "</P>";
 
-printf("<P>cachetime: <B>%.4f</B> seconds.</P>",($t2-$t1));
-printf("<P>gettime: <B>%.4f</B> seconds.</P>",($t3-$t2));
+printf("<P>Search Time: <B>%.4f</B> seconds.</P>",($t2-$t1));
+printf("<P>Retrieval and Sort Time: <B>%.4f</B> seconds.</P>",($t3-$t2));
 
 		if( @{ $searchexp->{ignoredwords} } )
 		{

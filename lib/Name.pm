@@ -230,4 +230,23 @@ sub split_name
 	return( @result );
 }
 
+######################################################################
+#
+# ( $cmp ) = cmp_names( $lista , $listb )
+#
+#  This method compares (alphabetically) two arrays of names. Passed
+#  by reference.
+#
+######################################################################
+
+sub cmp_names
+{
+	my( $lista , $listb ) = @_;	
+
+	my( $texta , $textb ) = ( "" , "" );
+	foreach( @{$lista} ) { $texta.=":$_->{family},$_->{given}"; } 
+	foreach( @{$listb} ) { $textb.=":$_->{family},$_->{given}"; } 
+	return( $texta cmp $textb );
+}
+
 1;
