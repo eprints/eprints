@@ -11,7 +11,7 @@
 	xmlns:ep="http://eprints.org/ep2/citations">
 
 <!-- eprint citations -->
-    <ep:citation type="eprint"><ep:ifset name="title">&title;</ep:ifset><ep:ifnotset name="title">Untitled &eprintid;</ep:ifnotset></ep:citation>
+    <ep:citation type="eprint"><ep:linkhere><ep:ifset name="title">&title;</ep:ifset><ep:ifnotset name="title">Untitled &eprintid;</ep:ifnotset></ep:linkhere></ep:citation>
 
     <ep:citation type="eprint_book"><ep:linkhere><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
 
@@ -46,7 +46,7 @@
     <ep:citation type="eprint_thread_commentary"><ep:linkhere><span class="citation">&authors;. &title;. (deposited &datestamp;)</span></ep:linkhere></ep:citation>
 
 <!-- user citations -->
-    <ep:citation type="user"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">User &username;</ep:ifnotset></ep:citation>
+    <ep:citation type="user"><ep:linkhere><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">User &username;</ep:ifnotset></ep:linkhere></ep:citation>
 
     <ep:citation type="user_admin"><ep:linkhere><span class="namecitation"><ep:ifset name="name">&name;</ep:ifset><ep:ifnotset name="name">No name, email=&email;</ep:ifnotset></span></ep:linkhere></ep:citation>
 
