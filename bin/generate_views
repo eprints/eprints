@@ -248,6 +248,7 @@ sub make_view_pages
        			$searchexp->add_field( \@fields, $value, "EQ" );
         		$searchexp->perform_search();
 			$size{$value} = $searchexp->count();
+			$searchexp->dispose();
 		}
 	}
 
@@ -499,10 +500,8 @@ sub mk_file_id
 	{
 		$fileid = EPrints::Utils::make_name_string( $value );
 	}
-	if( $fileid eq "" ) { $fileid = "NULL"; }
-	$fileid =~ s/[\s\/]/_/g; 
 
-	return $fileid;
+	return EPrints::Utils::escape_filename( $fileid );
 }
 
 

@@ -655,8 +655,9 @@ sub _render_value1
 		{
 			my $url = $session->get_archive()->get_conf( 
 					"base_url" );
-			$url .= "/view/".$self->{browse_link}."/";
-			$url .= $value.".html";
+			$url .= "/view/".$self->{browse_link}."/".
+				EPrints::Utils::escape_filename( $value ).
+				".html";
 			my $a = $session->render_link( $url );
 			$a->appendChild( $rendered );
 			return $a;

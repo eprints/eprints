@@ -682,7 +682,7 @@ sub list_sets
 			{
 				my @v = $field->get_values( $session, $ds );
 				my $delfield = $field->clone();
-				$delfield->set_dataset( $ds_del );
+				#$delfield->set_dataset( $ds_del );
 				push @v, $delfield->get_values( $session, $ds_del );
 				foreach( @v )
 				{

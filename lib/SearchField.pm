@@ -177,6 +177,8 @@ sub from_form
 	$val =~ s/\s+$//;
 	$val = undef if( $val eq "" );
 
+	$self->{value} = "";
+
 	if( $self->is_type( "boolean" ) )
 	{
 		$self->{merge} = "PHR";

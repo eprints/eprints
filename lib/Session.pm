@@ -1094,7 +1094,9 @@ sub _render_subjects_aux
 		}
 		elsif( $linkmode == 2 )
 		{
-			$elementx = $self->render_link( "$id.html" ); 
+			$elementx = $self->render_link( 
+				EPrints::Utils::escape_filename( $id ).
+					".html" ); 
 		}
 		else
 		{
@@ -1118,67 +1120,6 @@ sub _render_subjects_aux
 	return $ul;
 }
 
-
-
-#
-# $xhtml = render_subject_desc( $subject, $link, $full, $count )
-#
-#  Return the HTML to render the title of $subject. If $link is non-zero,
-#  the title is linked to the static subject view. If $full is non-zero,
-#  the full name of the subject is given. If $count is non-zero, the
-#  number of eprints in that subject is appended in brackets.
-#
-
-# cjg icky call!
-
-######################################################################
-=pod
-
-=item $foo = $thing->render_subject_desc( $subject, $link, $full, $count )
-
-undocumented
-
-=cut
-######################################################################
-
-sub render_subject_desc
-{
-	my( $self, $subject, $link, $full, $count ) = @_;
-	
-	my $frag;
-	if( $link )
-	{
-		$frag = $self->render_link( $self->get_archive()->get_conf( "base_url" )."/view/".$subject->{subjectid}.".html" );
-	}
-	else
-	{
-		$frag = $self->make_doc_fragment();
-	}
-	
-
-	if( defined $full && $full )
-	{
-		$frag->appendChild( $self->make_text(
-			EPrints::Subject::subject_label(  #cjg!!
-						$self,
-		                                $subject->{subjectid} ) ) );
-	}
-	else
-	{
-		$frag->appendChild( $self->make_text( $subject->{name} ) );
-	}
-		
-	if( $count && $subject->{depositable} eq "TRUE" )
-	{
-		my $text = $self->make_text( 
-			latin1(" (" .$subject->count_eprints( 
-				$self->get_archive()->get_dataset( "archive" ) ).
-				")" ) );
-		$frag->appendChild( $text );
-	}
-	
-	return( $frag );
-}
 
 
 #

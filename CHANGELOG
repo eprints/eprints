@@ -1007,9 +1007,39 @@ before next release. (metadata types & fields)
  - changed links on default pages to go to software.eprints.org and
     call the software GNU EPrints not eprints.org software.
 
-2002-10-30-cjg
+2002-10-30 cjg
  - [c] Cleaned up the default config files. Added examples of all the 
     new options.
  - Fixed some issues with documents which have been orphened (have no
     eprints)
+
+======================================================================
+31/10/2002 - EPRINTS-2.2
+======================================================================
+
+2002-11-14 cjg
+ - [c] fixed a missing ";" in the commented-out catch404 example in
+    ArchiveConfig.pm
+ - Fixed bug with export_xml (the vital "print" was missing)
+ - added a missing $searchexp->dispose() to generate_views
+ - generate_views now uses new sub: EPrints::Utils::escape_filename
+    to escape the non-filesystem characters.
+ - commented out illegal   $delfield->set_dataset( $ds_del ); in 
+    oai & oai2
+ - fixed bug in oai2 which returned only eprints IN a subject, and not
+    those in subjects under it.
+ - fixed view_eprint to work (never worked since ep2.0). Still a
+    bit shoddy.
+ - is_browsable also now uses EPrints::Utils::escape_filename to link.
+ - fixed bug in "search defaults" which meant that a boolean setting
+    of no-preference failed to over-ride the default!
+ - removed render_subject_desc from Session. It's never used.
+ - fixed bug in searchexp unserialise, which did not set fields in
+    the target exp to null if they were not mentioned in the serial-
+    ised version. This caused defaults to appear again when you 
+    select "refine search".
+
+======================================================================
+14/11/2002 - EPRINTS-2.2.1
+======================================================================
 

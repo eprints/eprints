@@ -73,7 +73,7 @@ sub deal
 	$frag->appendChild( $r );
 	$frag->addText( "\n" );
 
-	EPrints::XML::to_string( $frag )."\n";
+	print EPrints::XML::to_string( $frag )."\n";
 	EPrints::XML::dispose( $frag );
 
 }

@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+
+
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::Subject;
+
+use strict;
+
+if( scalar @ARGV != 3 )
+{
+	print <<END;
+rename_subject_id ARCHIVE old_subject_id new_subject_id
+
+Change every eprint which has subject field of old_subject_id to 
+be the new subject id. If the subject id has spaces in you will need
+to escape them in the shell. eg.
+
+rename_subject_id zimprints "mass destruction" mass_destruction
+
+This will only work on the default field called "subjects" (hack this
+script to change that)
+
+This will *not* modify the subjects tree (you need to add the new
+subject and remove the old one) and it will *not* recreate the
+views, abstracts etc. You should do that too.
+
+** WARNING **
+Make sure you understand what you are doing, this could screw stuff up!
+END
+	exit;
+}
+
+my $session = new EPrints::Session( 1, $ARGV[0] );
+exit( 1 ) unless defined $session;
+
+my $field = "subjects"; # rename this for a diff. field
+foreach( "archive","deletion","buffer","inbox" )
+{
+	my $table = $_.'_'.$field;
+	my $sql = "update $table set $field='$ARGV[2]' where $field='$ARGV[1]'";
+	print $sql."\n";
+	$session->get_db->do( $sql );
+	print "OK\n";
+}
+
+print "ALL DONE\n";
+
+
+$session->terminate();
+exit;
+
+

@@ -578,6 +578,7 @@ sub _list
 					"Invalid set parameter; unknown key ( $key )" );
 			}
 			my @fields;
+			my $match = "EX";
  			foreach( split( "/", $info->{fields} ) )
 			{
 				my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
@@ -591,8 +592,12 @@ Cannot generate OAI set for field "$_"
 END
 				}
 				push @fields, $field;
+				if( $field->is_type( "subject" ) )
+				{
+					$match = "EQ";
+				}
 			}
-			$searchexp->add_field( \@fields, $value, "EX" );
+			$searchexp->add_field( \@fields, $value, $match );
 		}
 		
 		if( defined $date_range )
@@ -882,7 +887,8 @@ sub ListSets
 			{
 				my @v = $field->get_values( $session, $ds );
 				my $delfield = $field->clone();
-				$delfield->set_dataset( $ds_del );
+#cjg why clone with new style datasets?
+				#$delfield->set_dataset( $ds_del );
 				push @v, $delfield->get_values( $session, $ds_del );
 				foreach( @v )
 				{

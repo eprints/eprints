@@ -644,6 +644,12 @@ sub from_string
 				$sf->get_match(),  
 				$sf->get_merge() );
 		}
+		else
+		{
+			# set it to empty to cancel any default
+			$self->add_field(
+				$search_field->get_fields() );
+		}
 	}
 }
 

@@ -1488,6 +1488,27 @@ sub is_in
 	return 0;
 }
 
+######################################################################
+=pod
+
+=item $esc_string = EPrints::Utils::escape_filename( $string )
+
+Take a value and escape it to be a legal filename to go in the /view/
+section of the site.
+
+=cut
+######################################################################
+
+sub escape_filename
+{
+	my( $fileid ) = @_;
+
+	return "NULL" if( $fileid eq "" );
+
+	$fileid =~ s/[\s\/]/_/g; 
+
+        return $fileid;
+}
 
 1;
 

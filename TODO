@@ -2,7 +2,17 @@ This is the rough and ready list of stuff that needs doing on
 eprints 2. It's really for my benefit, I include it here in
 case it might be helpful.
 
+!! can't change username?
 
+!! bug in refine search on defaulted booleans?
+
+!! ted wants persistent named urls.
+
+* add order_value to make @the@ at the end!
+
+* DOC!
+ - undone howtos
+ - how to do OL and UL views
 
 
 *	Make a list of phrase file changes. (Scripted?)
