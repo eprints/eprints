@@ -57,7 +57,7 @@ $EPrintSite::SiteInfo::allow_user_removal_request = 1;
 $EPrintSite::SiteInfo::server_static = "http://$EPrintSite::SiteInfo::host";
 
 # Mod_perl script server
-$EPrintSite::SiteInfo::server_perl = "$EPrintSite::SiteInfo::host/perl";
+$EPrintSite::SiteInfo::server_perl = "http://$EPrintSite::SiteInfo::host/perl";
 
 # Site "home page" address
 $EPrintSite::SiteInfo::frontpage = "$EPrintSite::SiteInfo::server_static/";
