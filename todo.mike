@@ -15,11 +15,16 @@ Things to do (Mike)
 		constructed. 	
 		(once this is done I can simplify the Language module)
 	* 'phrasify' remaining english text.
-	* lose all $_ and give sensible named variables instead
-	* comment by all "my" saying what type(?)
 	* spot all naughty regexps (ones which opperate(sp?) on UTF8),
 		and similar things like split which can't be trusted
 		either.
+	* lose all $_ and give sensible named variables instead
+	* make MetaField->to_html render_value
+	* make SearchField->to_html render_input_field
+	* make ALL DOM methods render_foo_bar
+	* rearrange large modules like Session.pm to be in sets, eg.
+		all CGI/param stuff together, all DOM stuff together
+	* comment by all "my" saying what type(?)
 	* comment making script
 
 

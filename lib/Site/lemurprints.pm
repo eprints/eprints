@@ -340,7 +340,7 @@ my $connect_string = EPrints::Database::build_connection_string(
 	db_sock  =>  $c->{db_sock}, 
 	db_host  =>  $c->{db_host}  );
 
-my $userdata = EPrints::DataSet->newStub( "user" );
+my $userdata = EPrints::DataSet->new_stub( "user" );
  
 $c->{userauth} = {
 	user => { 
@@ -349,7 +349,7 @@ $c->{userauth} = {
 			Auth_DBI_data_source  =>  $connect_string,
 			Auth_DBI_username  =>  $c->{db_user},
 			Auth_DBI_password  =>  $c->{db_pass},
-			Auth_DBI_pwd_table  =>  $userdata->getSQLTableName(),
+			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -361,7 +361,7 @@ $c->{userauth} = {
 			Auth_DBI_data_source  =>  $connect_string,
 			Auth_DBI_username  =>  $c->{db_user},
 			Auth_DBI_password  =>  $c->{db_pass},
-			Auth_DBI_pwd_table  =>  $userdata->getSQLTableName(),
+			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
 			Auth_DBI_grp_field  =>  "groups",
@@ -1429,7 +1429,7 @@ sub eprint_render_full
 
 	# Citation
 	my $p = $session->make_element( "p" );
-	$p->appendChild( $eprint->toHTML );
+	$p->appendChild( $eprint->to_html() );
 	$page->appendChild( $p );
 
 	# Available formats
@@ -1474,7 +1474,7 @@ sub eprint_render_full
 	$h2->appendChild( $session->make_text( "Abstract" ) ); # not langed #cjg
 
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->make_text( $eprint->getValue( "abstract" ) ) );
+	$p->appendChild( $session->make_text( $eprint->get_value( "abstract" ) ) );
 	$page->appendChild( $p );
 	
 	my( $table, $tr, $td );	# this table needs more class cjg
@@ -1490,7 +1490,7 @@ sub eprint_render_full
 	#}
 
 	# Keywords
-	my $keywords = $eprint->getValue( "keywords ");
+	my $keywords = $eprint->get_value( "keywords ");
 	if( defined $keywords && $keywords ne "" )
 	{
 		$tr = $session->make_element( "tr" );
@@ -1693,7 +1693,7 @@ sub getEPrintCitationStyle
 
 ## Crash if unknown style... cjg
 
-	my $style = $CITATION_SPEC_DOMTREE{$eprint->getValue( "type" )}->cloneNode( 1 );
+	my $style = $CITATION_SPEC_DOMTREE{$eprint->get_value( "type" )}->cloneNode( 1 );
 	$eprint->{session}->take_ownership( $style );
 	
 	return $style;
@@ -1716,11 +1716,11 @@ sub user_display_name
 	my( $user ) = @_;
 
 	# If no surname, just return the username
-	my $name = $user->getValue( "name" );
+	my $name = $user->get_value( "name" );
 
 	if( !defined $name || $name->{family} eq "" ) 
 	{
-		return( "User ".$user->getValue( "username" ) );
+		return( "User ".$user->get_value( "username" ) );
 	} 
 
 	return( EPrints::Name::format_name( $name, 1 ) );

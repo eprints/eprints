@@ -34,7 +34,7 @@ exit unless( defined $session );
 my $user_ds = $session->get_site()->getDataSet( "user" );
 
 my $valid_access_level = 0;
-foreach (@{ $user_ds->getTypes })
+foreach (@{ $user_ds->get_types() })
 {
 	$valid_access_level = 1 if( $ARGV[3] eq $_ );
 }
@@ -57,9 +57,9 @@ print "SET: $ARGV[4]\n";
 	{
 		print STDERR "Successfully created new user:\n";
 		print STDERR " User ID:  ".
-		             $new_user->getValue( "username" )."\n";
+		             $new_user->get_value( "username" )."\n";
 		print STDERR " Password: ".
-		             $new_user->getValue( "passwd" )."\n";
+		             $new_user->get_value( "passwd" )."\n";
 	}
 	else
 	{
@@ -70,7 +70,7 @@ print "SET: $ARGV[4]\n";
 else
 {
 	print STDERR "Invalid access level. Valid access levels are:\n";
-	foreach (@{ $user_ds->getTypes })
+	foreach (@{ $user_ds->get_types() })
 	{
 		print "  $_\n";
 	}

@@ -291,7 +291,7 @@ sub get_conditions
 		my @where;
 		foreach( @fields )
 		{
-			my $s = "__FIELDNAME__ = '".EPrints::Database::prepValue($_)."'";
+			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($_)."'";
 			push @where , $s;
 		}	
 		return( $self->_get_conditions_aux( \@where , 0) );
@@ -317,8 +317,8 @@ sub get_conditions
 		foreach( @names )
 		{
 			m/^([^,]+)(,(.*))?$/;
-			my $family = EPrints::Database::prepValue( $1 );
-			my $given = EPrints::Database::prepValue( $3 );
+			my $family = EPrints::Database::prep_value( $1 );
+			my $given = EPrints::Database::prep_value( $3 );
 			if ( $self->{match} eq "IN" )
 			{
 				$family .= "\%";
@@ -460,7 +460,7 @@ sub get_conditions
 
 			if( $self->{match} eq "EQ" )
 			{
-				$text = EPrints::Database::prepValue( $text );
+				$text = EPrints::Database::prep_value( $text );
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
@@ -478,7 +478,7 @@ sub get_conditions
 				{
 					$_ = "$self->{field}->{name}:$_";
 				}
-				$_ = EPrints::Database::prepValue( $_ );
+				$_ = EPrints::Database::prep_value( $_ );
 				push @where, "__FIELDNAME__ = '$_'";
 			}
 			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
@@ -527,7 +527,7 @@ sub get_conditions
 			{
 				$_ = "$self->{field}->{name}:$_";
 			}
-			$_ = EPrints::Database::prepValue( $_ );
+			$_ = EPrints::Database::prep_value( $_ );
 			push @where, "__FIELDNAME__ = '$_'";
 		}
 		return ( $self->_get_conditions_aux( 
@@ -541,15 +541,15 @@ sub get_conditions
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
-	my $searchtable = $self->{dataset}->getSQLTableName();
+	my $searchtable = $self->{dataset}->get_sql_table_name();
 	if ($self->{field}->{multiple}) 
 	{	
-		$searchtable= $self->{dataset}->getSQLSubTableName( $self->{field} );
+		$searchtable= $self->{dataset}->get_sql_sub_table_name( $self->{field} );
 print STDERR "ack\n";
 	}	
 	if( $freetext )
 	{
-		$searchtable= $self->{dataset}->getSQLIndexTableName();
+		$searchtable= $self->{dataset}->get_sql_index_table_name();
 print STDERR "ock\n";
 	}
 
@@ -596,7 +596,7 @@ sub benchmark
 
 	my( $table , $field ) = split /:/ , $tablefield;
 
-        my $keyfield = $self->{dataset}->getKeyField();
+        my $keyfield = $self->{dataset}->get_key_field();
 
 	if ( !defined $self->{benchcache}->{"$table:$where"} )
 	{
@@ -671,7 +671,7 @@ sub do
 {
 	my ( $self , $searchbuffer , $satisfy_all) = @_;
 	
-        my $keyfield = $self->{dataset}->getKeyField();
+        my $keyfield = $self->{dataset}->get_key_field();
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
 	if( defined $error ) 
@@ -753,7 +753,7 @@ sub do
 		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
 		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
 						[ "__FIELDNAME__ LIKE \"\%".
-						  EPrints::Database::prepValue( $self->{string} )."\%\"" ] , 
+						  EPrints::Database::prep_value( $self->{string} )."\%\"" ] , 
 						  0 );
 		my $table = $tablefield;
 		$table=~s/:.*//;
@@ -837,7 +837,7 @@ print STDERR ">>>>>$tables,$searches,$badwords,$error\n";
 
 
 ## WP1: BAD
-sub getField
+sub get_field
 {
 	my( $self ) = @_;
 	return $self->{field};
@@ -845,13 +845,13 @@ sub getField
 
 ######################################################################
 #
-# $html = toHTML()
+# $html = to_html()
 #
 #
 ######################################################################
 
 ## WP1: BAD
-sub toHTML
+sub to_html
 {
 	my( $self ) = @_;
 
@@ -932,8 +932,8 @@ sub toHTML
 		{
 			my $ds = $self->{session}->get_site()->getDataSet( 
 					$self->{field}->getDataSet() );
-			$tags = $ds->getTypes();
-			$labels = $ds->getTypeNames( $self->{session} );
+			$tags = $ds->get_types();
+			$labels = $ds->get_type_names( $self->{session} );
 		}
 		else
 		{
@@ -992,14 +992,14 @@ sub toHTML
 	}
 	else
 	{
-		$self->{session}->get_site()->log( "Can't Render: ".$self->getType() );
+		$self->{session}->get_site()->log( "Can't Render: ".$self->get_type() );
 	}
 
 	return $frag;
 }
 
 ## WP1: BAD
-sub getHelp
+sub get_help
 {
         my( $self ) = @_;
 
@@ -1014,21 +1014,21 @@ sub is_type
 }
 
 ## WP1: BAD
-sub getDisplayName
+sub get_display_name
 {
 	my( $self ) = @_;
 	return $self->{displayname};
 }
 
 ## WP1: BAD
-sub getFormName
+sub get_form_name
 {
 	my( $self ) = @_;
 	return $self->{formname};
 }
 
 ## WP1: BAD
-sub getValue
+sub get_value
 {
 	my( $self ) = @_;
 

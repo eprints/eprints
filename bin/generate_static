@@ -160,7 +160,7 @@ print "$xhtml\n\n";
 				my $kid;
 				foreach $kid ( $title->getChildNodes )
 				{
-					$titletext .= $kid->toString;	
+					$titletext .= $kid->to_string();	
 				}
 				
 				my $main = 

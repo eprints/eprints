@@ -200,7 +200,7 @@ print "ack\n";
 		dataset=>$ds );
 
 	$searchexp->add_field(
-		$ds->getField( "parent" ),
+		$ds->get_field( "parent" ),
 		"PHR:EQ:$self->{subjectid}" );
 
 #cjg set order (it's in the site config)
@@ -349,7 +349,7 @@ sub get_postable
 				$session,
 				$_->{subjectid},
 				$subjectmap );
-			$labels{$_->getValue("subjectid")} = $lab;
+			$labels{$_->get_value("subjectid")} = $lab;
 			$labelmap{$lab} = $_;
 		}
 	}
@@ -357,7 +357,7 @@ sub get_postable
 	# Put subjects in alphabetical order to labelmap
 	foreach (sort keys %labelmap)
 	{
-		push @tags, $labelmap{$_}->getValue("subjectid");
+		push @tags, $labelmap{$_}->get_value("subjectid");
 	}
 
 	return( \@tags, \%labels );
@@ -523,7 +523,7 @@ sub get_all
 	{
 		push @subjects, $_;
 
-		$subjectmap{$_->getValue("subjectid")} = $_;
+		$subjectmap{$_->get_value("subjectid")} = $_;
 
 #		my $p = "get_all:";
 #		foreach (@$r)
@@ -549,14 +549,14 @@ sub get_all
 sub posted_eprints
 {
 	my( $self, $dataset ) = @_;
-print STDERR "z(".$dataset->toString.")\n";
+print STDERR "z(".$dataset->to_string().")\n";
 
 	my $searchexp = new EPrints::SearchExpression(
 		session => $self->{session},
 		dataset => $dataset );
 
 	$searchexp->add_field(
-		$dataset->getField( "subjects" ),
+		$dataset->get_field( "subjects" ),
 		"PHR:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search;
@@ -587,7 +587,7 @@ sub count_eprints
 		dataset => $dataset );
 
 	$searchexp->add_field(
-		$dataset->getField( "subjects" ),
+		$dataset->get_field( "subjects" ),
 		"PHR:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search;
@@ -598,7 +598,7 @@ sub count_eprints
 }
 
 ## WP1: BAD
-sub getValue 
+sub get_value 
 {
 	my( $self, $fieldname ) = @_;
 

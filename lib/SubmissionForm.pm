@@ -123,8 +123,8 @@ sub process
 
 		# Check it's owned by the current user
 		if( !$self->{staff} &&
-			( $self->{eprint}->getValue( "username" ) ne 
-			  $self->{user}->getValue( "username" ) ) )
+			( $self->{eprint}->get_value( "username" ) ne 
+			  $self->{user}->get_value( "username" ) ) )
 		{
 			$self->_corrupt_err;
 			return;
@@ -1263,7 +1263,7 @@ sub _do_stage_fileview
 	if( $doc->{format} eq $EPrints::Document::OTHER )
 	{
 		my $ds = $self->{session}->get_site()->getDataSet( "document" );
-		my $desc_field = $ds->getField( "formatdesc" );
+		my $desc_field = $ds->get_field( "formatdesc" );
 
 		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
 		print "<P><CENTER>";

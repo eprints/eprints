@@ -276,7 +276,7 @@ sub display_help
 }
 
 ## WP1: BAD
-sub getSQLType
+sub get_sql_type
 {
         my( $self , $notnull ) = @_;
 
@@ -296,7 +296,7 @@ sub getSQLType
 }
 
 ## WP1: BAD
-sub getSQLIndex
+sub get_sql_index
 {
         my( $self ) = @_;
 
@@ -365,7 +365,7 @@ sub is_text_indexable
 
 ######################################################################
 #
-# $html = getHTML( $field, $value )
+# $html = render_value( $field, $value )
 #
 #  format a field. Returns the formatted HTML as a string (doesn't
 #  actually print it.)
@@ -373,7 +373,7 @@ sub is_text_indexable
 ######################################################################
 
 ## WP1: BAD
-sub getHTML
+sub render_value
 {
 	my( $self, $session, $value ) = @_;
 #cjg not DOM
@@ -541,8 +541,8 @@ sub render_input_field
 		{
 			my $ds = $session->get_site()->getDataSet( 
 					$self->{datasetid} );	
-			$tags = $ds->getTypes();
-			$labels = $ds->getTypeNames( $session );
+			$tags = $ds->get_types();
+			$labels = $ds->get_type_names( $session );
 		}
 		elsif( $self->is_type( "subject" ) )
 		{

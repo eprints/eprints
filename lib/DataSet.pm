@@ -49,15 +49,15 @@ my $INFO = {
 };
 
 #
-# EPrints::Dataset newStub( $datasetname )
+# EPrints::Dataset new_stub( $datasetname )
 #                           string
 #
 #  Creates a stub of a dataset on which functions such as 
-#  getSQLTableName can be called, but which dosn't know anything
+#  get_sql_table_name can be called, but which dosn't know anything
 #  about it's fields. 
 
 ## WP1: BAD
-sub newStub
+sub new_stub
 {
 	my( $class , $datasetname ) = @_;
 
@@ -93,7 +93,7 @@ sub new
 {
 	my( $class , $site , $datasetname ) = @_;
 	
-	my $self = EPrints::DataSet->newStub( $datasetname );
+	my $self = EPrints::DataSet->new_stub( $datasetname );
 
 	$self->{site} = $site;
 
@@ -160,14 +160,14 @@ sub new
 	return $self;
 }
 
-# EPrints::MetaField getField( $fieldname )
+# EPrints::MetaField get_field( $fieldname )
 #                              string
 #  
 #  returns a MetaField object describing the asked for field
 #  in this dataset, or undef if there is no such field.
 
 ## WP1: BAD
-sub getField
+sub get_field
 {
 	my( $self, $fieldname ) = @_;
 
@@ -182,12 +182,12 @@ sub getField
 }
 
 # 
-# string defaultOrder()
+# string default_order()
 #
 #  returns the id of the default order type.  
 
 ## WP1: BAD
-sub defaultOrder
+sub default_order
 {
 	my( $self ) = @_;
 
@@ -209,52 +209,52 @@ sub confid
 }
 
 #
-# string toString()
+# string to_string()
 #
 #  This returns a printable name of this dataset, for logging and errors.
 
 ## WP1: BAD
-sub toString
+sub to_string
 {
 	my( $self ) = @_;
 	return $self->{datasetname};
 }
 
-# string getSQLTableName()
+# string get_sql_table_name()
 #
 #  This returns the name of the main SQL Table containing this dataset.
 #  the other SQL tables names are based on this name.
  
 ## WP1: BAD
-sub getSQLTableName
+sub get_sql_table_name
 {
 	my( $self ) = @_;
 	return $INFO->{$self->{datasetname}}->{sqlname};
 }
 
-# string getSQLIndexTableName()
+# string get_sql_index_table_name()
 #
 #  Gives the name of the SQL table which contains the free text indexing
 #  information.
 
 ## WP1: BAD
-sub getSQLIndexTableName
+sub get_sql_index_table_name
 {
 	my( $self ) = @_;
-	return $self->getSQLTableName()."__"."index";
+	return $self->get_sql_table_name()."__"."index";
 }
 
-# string getSQLSubTableName( $field )
+# string get_sql_sub_table_name( $field )
 #                            EPrints::MetaField
 #
 #  Returns the name of the SQL Table which contains the information
 #  on the "multiple" field.
 
 ## WP1: BAD
-sub getSQLSubTableName
+sub get_sql_sub_table_name
 {
 	my( $self , $field ) = @_;
-	return $self->getSQLTableName()."_".$field->get_name();
+	return $self->get_sql_table_name()."_".$field->get_name();
 }
 
 # (Array of EPrints::MetaField) get_fields()
@@ -268,19 +268,19 @@ sub get_fields
 	return @{ $self->{fields} };
 }
 
-# EPrints::MetaField getKeyField()
+# EPrints::MetaField get_key_field()
 #
 #  returns the keyfield for this dataset, the unqiue identifier field.
 #  (always the first field).
 
 ## WP1: BAD
-sub getKeyField
+sub get_key_field
 {
 	my( $self ) = @_;
 	return $self->{fields}->[0];
 }
 
-# EPrints::????? makeObject( $session, $item )
+# EPrints::????? make_object( $session, $item )
 #                            |         hash ref
 #                            EPrints::Session
 #
@@ -288,7 +288,7 @@ sub getKeyField
 #  an object of the type belonging to this dataset.
 
 ## WP1: BAD
-sub makeObject
+sub make_object
 {
 	my( $self , $session , $item ) = @_;
 
@@ -321,13 +321,13 @@ sub makeObject
 
 }
 
-# (array of strings) ref getTypes()
+# (array of strings) ref get_types()
 #
 #  returns a reference to a list of all types of this dataset (eg. 
 #  eprint record types or types of user)
 
 ## WP1: BAD
-sub getTypes
+sub get_types
 {
 	my( $self ) = @_;
 
@@ -335,26 +335,26 @@ sub getTypes
 	return \@types;
 }
 
-# hash ref getTypeNames( $session )
+# hash ref get_type_names( $session )
 #                        EPrints::Session
 #
 #  returns a reference to a hash table which maps the id's of types given
-#  by getTypes to printable names in the language of the session. 
+#  by get_types to printable names in the language of the session. 
 
 ## WP1: BAD
-sub getTypeNames
+sub get_type_names
 {
 	my( $self, $session ) = @_;
 		
 	my %names = ();
 	foreach( keys %{$self->{types}} ) 
 	{
-		$names{$_} = $self->getTypeName( $session, $_ );
+		$names{$_} = $self->get_type_name( $session, $_ );
 	}
 	return( \%names );
 }
 
-# string getTypeName( $session, $type )
+# string get_type_name( $session, $type )
 #                     |         string
 #                     EPrints::Session
 # 
@@ -362,7 +362,7 @@ sub getTypeNames
 #  dataset, in the language of the $session.
 
 ## WP1: BAD
-sub getTypeName
+sub get_type_name
 {
 	my( $self, $session, $type ) = @_;
         return $session->phrase( "typename_".$self->confid()."_".$type );

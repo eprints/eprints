@@ -63,7 +63,7 @@ print STDERR "zong\n";
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
 	my $usertypedata = $session->get_site()->getConf( 
-		"userauth", $user->getValue( "usertype" ) );
+		"userauth", $user->get_value( "usertype" ) );
 	if( !defined $usertypedata )
 	{
 #cjg this is an error
@@ -117,7 +117,7 @@ print STDERR "THE USER IS: $user_sent\n";
 	{
 		foreach( @{$session->get_site()->getConf( 
 					"userauth", 
-					$user->getValue( "usertype" ), 
+					$user->get_value( "usertype" ), 
 					"priv" )} )
 		{
 			$authz = 1 if( defined $okgroups{$_} );

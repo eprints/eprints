@@ -305,7 +305,7 @@ sub validate
 			my $problem = $self->{session}->get_site()->call(
 				"validate_user_field",
 				$field,
-				$self->getValue( $field->get_name() ),
+				$self->get_value( $field->get_name() ),
 				$self->{session} );
 
 			if( defined $problem && $problem ne "" )
@@ -520,7 +520,7 @@ sub extract
 }
 
 ## WP1: BAD
-sub toString
+sub to_string
 {
 	my( $self ) = @_;
 
@@ -528,7 +528,7 @@ sub toString
 }
 
 ## WP1: GOOD
-sub getValue
+sub get_value
 {
 	my( $self , $fieldname ) = @_;
 
@@ -579,7 +579,7 @@ sub has_priv
 	my( $self, $resource ) = @_;
 
 	my $userprivs = $self->{session}->get_site()->
-		getConf( "userauth", $self->getValue( "usertype" ), "priv" );
+		getConf( "userauth", $self->get_value( "usertype" ), "priv" );
 
 	foreach my $priv ( @{$userprivs} )
 	{

@@ -1264,9 +1264,9 @@ sub generate_static
 {
 	my( $self ) = @_;
 
-	print "ID: ".$self->getValue( "eprintid" )."\n";
+	print "ID: ".$self->get_value( "eprintid" )."\n";
 
-	my $eprint_id = $self->getValue( "eprintid" );
+	my $eprint_id = $self->get_value( "eprintid" );
 
 	# Work out the directory path. It's worked out using the ID of the EPrint.
 	# It takes the numerical suffix of the ID, and divides it into four
@@ -1296,7 +1296,7 @@ sub generate_static
 		print "yo:".join(",",@created)."\n";
 
 		$self->{session}->new_page( $langid );
-		my $page = $self->toHTMLPage;
+		my $page = $self->to_html_page;
 		$self->{session}->build_page( "TITLE?????", $page ); #cjg title?
 		$self->{session}->page_to_file( $full_path .
 			  "/" . $EPrints::EPrint::static_page );
@@ -1311,7 +1311,7 @@ sub generate_static
 
 
 ## WP1: BAD
-sub toHTMLPage
+sub to_html_page
 {
         my( $self ) = @_;
 
@@ -1321,7 +1321,7 @@ sub toHTMLPage
 }
 
 ## WP1: BAD
-sub toHTMLStaffPage
+sub to_html_staff_page
 {
         my( $self ) = @_;
 
@@ -1516,18 +1516,18 @@ sub last_in_thread
 }
 
 ## WP1: BAD
-sub toHTMLLink
+sub to_html_link
 {
 	my( $self , $cstyle ) = @_;
 	my $a = $self->{session}->make_element( "A",
 			href => $self->static_page_url() );
-	$a->appendChild( $self->toHTML( $cstyle ) );
+	$a->appendChild( $self->to_html( $cstyle ) );
 
 	return $a;
 }
 
 ## WP1: BAD
-sub toHTML
+sub to_html
 {
 	my( $self , $cstyle) = @_;
 	
@@ -1540,7 +1540,7 @@ sub toHTML
 	foreach $ifnode ( $cstyle->getElementsByTagName( "IF" , 1 ) )
 	{
 		my $fieldname = $ifnode->getAttribute( "name" );
-		my $val = $self->getValue( "$fieldname" );
+		my $val = $self->get_value( "$fieldname" );
 		if( defined $val )
 		{       
 			my $sn; 
@@ -1559,9 +1559,9 @@ sub toHTML
 	foreach $fieldnode ( $cstyle->getElementsByTagName( "FIELD" , 1 ) ) 
 	{
 		my $fieldname = $fieldnode->getAttribute( "name" );
-		my $el = $self->{dataset}->getField( $fieldname )->getHTML( 
+		my $el = $self->{dataset}->get_field( $fieldname )->render_value( 
 			$self->{session},
-			$self->getValue( $fieldname ) );
+			$self->get_value( $fieldname ) );
 		$fieldnode->getParentNode()->replaceChild( $el, $fieldnode );
 		$fieldnode->dispose();
 	}
@@ -1571,7 +1571,7 @@ sub toHTML
 
 
 ## WP1: BAD
-sub getValue
+sub get_value
 {
 	my( $self , $fieldname ) = @_;
 

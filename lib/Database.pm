@@ -214,7 +214,7 @@ sub _create_table
 	
 	my $rv = 1;
 
-	my $keyfield = $dataset->getKeyField()->clone;
+	my $keyfield = $dataset->get_key_field()->clone;
 
 	my $fieldword = EPrints::MetaField->new( 
 		undef,
@@ -224,13 +224,13 @@ sub _create_table
 		} );
 
 	$rv = $rv & $self->_create_table_aux(
-			$dataset->getSQLIndexTableName,
+			$dataset->get_sql_index_table_name,
 			$dataset,
 			0, # no primary key
 			( $keyfield , $fieldword ) );
 
 	$rv = $rv && $self->_create_table_aux( 
-				$dataset->getSQLTableName, 
+				$dataset->get_sql_table_name, 
 				$dataset, 
 				1, 
 				$dataset->get_fields() );
@@ -269,7 +269,7 @@ sub _create_table_aux
 
 			my $auxfield = $field->clone;
 			$auxfield->set_property( "multiple", 0 );
-			my $keyfield = $dataset->getKeyField->clone;
+			my $keyfield = $dataset->get_key_field()->clone;
 			my $pos = EPrints::MetaField->new( 
 				undef,
 				{ 
@@ -278,7 +278,7 @@ sub _create_table_aux
 				} );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
 			my $rv = $rv && $self->_create_table_aux(	
-				$dataset->getSQLSubTableName( $field ),
+				$dataset->get_sql_sub_table_name( $field ),
 				$dataset,
 				0, # no primary key
 				@auxfields );
@@ -302,14 +302,14 @@ sub _create_table_aux
 		}
 		else
 		{
-			my( $index ) = $field->getSQLIndex;
+			my( $index ) = $field->get_sql_index();
 			if( defined $index )
 			{
 				$notnull = 1;
 				push @indices, $index;
 			}
 		}
-		$sql .= $field->getSQLType( $notnull );
+		$sql .= $field->get_sql_type( $notnull );
 
 	}
 	if ( $setkey )	
@@ -349,18 +349,18 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
-	my $table = $dataset->getSQLTableName;
+	my $table = $dataset->get_sql_table_name();
 	
-	my $keyfield = $dataset->getKeyField;
+	my $keyfield = $dataset->get_key_field();
 
 	# To save duplication of code, all this function does is insert
 	# a stub entry, then call the update method which does the hard
 	# work.
 
-	my $sql = "INSERT INTO ".$dataset->getSQLTableName." ";
-	$sql   .= " (".$dataset->getKeyField->get_name().") ";
+	my $sql = "INSERT INTO ".$dataset->get_sql_table_name()." ";
+	$sql   .= " (".$dataset->get_key_field()->get_name().") ";
 	$sql   .= "VALUES (\"".
-	          prepValue( $data->{$dataset->getKeyField->get_name()} )."\")";
+	          prep_value( $data->{$dataset->get_key_field()->get_name()} )."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -375,7 +375,7 @@ sub add_record
 
 ######################################################################
 #
-# $munged = prepValue( $value )
+# $munged = prep_value( $value )
 #
 # [STATIC]
 #  Modify value such that " becomes \" and \ becomes \\ 
@@ -384,7 +384,7 @@ sub add_record
 ######################################################################
 
 ## WP1: BAD
-sub prepValue
+sub prep_value
 {
 	my( $value ) = @_; 
 	
@@ -418,15 +418,15 @@ sub update
 
 	my @fields = $dataset->get_fields();
 
-	my $keyfield = $dataset->getKeyField();
+	my $keyfield = $dataset->get_key_field();
 
-	my $keyvalue = prepValue( $data->{$keyfield->get_name()} );
+	my $keyvalue = prep_value( $data->{$keyfield->get_name()} );
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
 	my $where = $keyfield->get_name()." = \"$keyvalue\"";
 
-	my $indextable = $dataset->getSQLIndexTableName;
+	my $indextable = $dataset->get_sql_index_table_name();
 	$sql = "DELETE FROM $indextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
 
@@ -466,7 +466,7 @@ sub update
 		}
 	}
 	
-	$sql = "UPDATE ".$dataset->getSQLTableName." SET ";
+	$sql = "UPDATE ".$dataset->get_sql_table_name()." SET ";
 	my $first=1;
 	foreach( keys %values ) {
 		if( $first )
@@ -477,7 +477,7 @@ sub update
 		{
 			$sql.= ", ";
 		}
-		$sql.= "$_ = \"".prepValue( $values{$_} )."\"";
+		$sql.= "$_ = \"".prep_value( $values{$_} )."\"";
 	}
 	$sql.=" WHERE $where";
 	
@@ -487,7 +487,7 @@ sub update
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $auxtable = $dataset->getSQLSubTableName( $multifield );
+		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
 		$sql = "DELETE FROM $auxtable WHERE $where";
 		$rv = $rv && $self->do( $sql );
 
@@ -516,12 +516,12 @@ print STDERR "*".$multifield->get_name()."\n";
 			$sql .= ") VALUES (\"$keyvalue\",\"$position\", ";
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= "\"".prepValue( $_->{given} )."\", ";
-				$sql .= "\"".prepValue( $_->{family} )."\"";
+				$sql .= "\"".prep_value( $_->{given} )."\", ";
+				$sql .= "\"".prep_value( $_->{family} )."\"";
 			}
 			else
 			{
-				$sql .= "\"".prepValue( $_ )."\"";
+				$sql .= "\"".prep_value( $_ )."\"";
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
@@ -586,7 +586,7 @@ sub _create_counter_table
 	my $counter_ds = $self->{session}->get_site()->getDataSet( "counter" );
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".$counter_ds->getSQLTableName.
+	my $sql = "CREATE TABLE ".$counter_ds->get_sql_table_name().
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
@@ -598,7 +598,7 @@ sub _create_counter_table
 	# Create the counters 
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".$counter_ds->getSQLTableName." VALUES ".
+		$sql = "INSERT INTO ".$counter_ds->get_sql_table_name()." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );
@@ -626,7 +626,7 @@ sub _create_tempmap_table
 	
 	# The table creation SQL
 	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
-	my $sql = "CREATE TABLE ".$ds->getSQLTableName." ".
+	my $sql = "CREATE TABLE ".$ds->get_sql_table_name()." ".
 		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
 		"created DATETIME NOT NULL)";
 	
@@ -659,7 +659,7 @@ sub counter_next
 	my $ds = $self->{session}->get_site()->getDataSet( "counter" );
 
 	# Update the counter	
-	my $sql = "UPDATE ".$ds->getSQLTableName()." SET counter=".
+	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
 	
 	# Send to the database
@@ -689,7 +689,7 @@ sub create_cache
 	my $sql;
 
 	my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
-	$sql = "INSERT INTO ".$ds->getSQLTableName." VALUES ( NULL , NOW() )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW() )";
 	
 	$self->do( $sql );
 
@@ -835,7 +835,7 @@ sub drop_cache
 		my $sql;
 		my $ds = $self->{session}->get_site()->getDataSet( "tempmap" );
 
-		$sql = "DELETE FROM ".$ds->getSQLTableName.
+		$sql = "DELETE FROM ".$ds->get_sql_table_name().
 		       " WHERE tableid = $1";
 
 		$self->do( $sql );
@@ -897,7 +897,7 @@ sub _get
 	# mode 1 = many entries from a buffer table
 	# mode 2 = return the whole table (careful now)
 
-	my $table = $dataset->getSQLTableName;
+	my $table = $dataset->get_sql_table_name();
 
 	my @fields = $dataset->get_fields();
 
@@ -937,7 +937,7 @@ sub _get
 	if ( $mode == 0 )
 	{
 		$sql = "SELECT $cols FROM $table AS M ".
-		       "WHERE M.$kn = \"".prepValue( $param )."\"";
+		       "WHERE M.$kn = \"".prep_value( $param )."\"";
 	}
 	elsif ( $mode == 1 )	
 	{
@@ -996,20 +996,20 @@ sub _get
 		if( $mode == 0 )	
 		{
 			$sql = "SELECT M.$kn, M.pos, $col FROM ";
-			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
-			$sql.= "WHERE M.$kn=\"".prepValue( $param )."\"";
+			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
+			$sql.= "WHERE M.$kn=\"".prep_value( $param )."\"";
 		}
 		elsif( $mode == 1)
 		{
 			$sql = "SELECT M.$kn,M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
-			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
+			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
 			$sql.= "WHERE M.$kn=C.$kn";
 		}	
 		elsif( $mode == 2)
 		{
 			$sql = "SELECT M.$kn,M.pos,$col FROM ";
-			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
+			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
@@ -1034,7 +1034,7 @@ sub _get
 
 	foreach( @data )
 	{
-		$_ = $dataset->makeObject( $self->{session} ,  $_);
+		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
 	return @data;
@@ -1120,11 +1120,11 @@ sub exists
 		return undef;
 	}
 	
-	my $keyfield = $dataset->getKeyField;
+	my $keyfield = $dataset->get_key_field();
 
 	my $sql = "SELECT ".$keyfield->get_name().
-		" FROM ".$dataset->getSQLTableName." WHERE ".
-		$keyfield->get_name()." = \"".prepValue( $id )."\";";
+		" FROM ".$dataset->get_sql_table_name()." WHERE ".
+		$keyfield->get_name()." = \"".prep_value( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1148,9 +1148,9 @@ sub _freetext_index
 		return $rv;
 	}
 
-	my $keyfield = $dataset->getKeyField;
+	my $keyfield = $dataset->get_key_field();
 
-	my $indextable = $dataset->getSQLIndexTableName;
+	my $indextable = $dataset->get_sql_index_table_name();
 	
 	my( $good , $bad ) = $self->{session}->get_site()->call( "extract_words" , $value );
 
@@ -1158,7 +1158,7 @@ sub _freetext_index
 	foreach( @{$good} )
 	{
 		$sql = "INSERT INTO $indextable ( ".$keyfield->get_name()." , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prepValue($field->get_name().":$_")."\")";
+		$sql.= "( \"$id\" , \"".prep_value($field->get_name().":$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;

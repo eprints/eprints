@@ -100,7 +100,7 @@ sub write_subject_view
 	foreach $eprint (@eprints)
 	{
 		$p = $session->make_element( "p" );
-		$p->appendChild( $eprint->toHTMLLink );
+		$p->appendChild( $eprint->to_html_link() );
 		$page->appendChild( $p );
 	}
 	$session->build_page( $title, $page );

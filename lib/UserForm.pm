@@ -186,7 +186,7 @@ sub _render_form
 		}
 	}
 	
-	my %hidden = ( "username"=>$self->{user}->getValue( "username" ) );
+	my %hidden = ( "username"=>$self->{user}->get_value( "username" ) );
 
 	my $buttons = [ $self->{session}->phrase( "update_record" ) ];
 
@@ -214,7 +214,7 @@ sub _update_from_form
 
 	# Ensure correct user
 	if( $self->{session}->param( "username" ) ne
-		$self->{user}->getValue( "username" ) )
+		$self->{user}->get_value( "username" ) )
 	{
 		my $form_id = $self->{session}->param( "username" );
 		$self->{session}->get_site()->log( 

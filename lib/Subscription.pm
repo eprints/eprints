@@ -291,7 +291,7 @@ sub commit
 	my( $self ) = @_;
 	
 	# Get the text rep of the search expression
-	$self->{spec} = $self->{searchexpression}->toString();
+	$self->{spec} = $self->{searchexpression}->to_string();
 
 	return( $self->{session}->{database}->update(
 		EPrints::Database::table_name( "subscription" ),

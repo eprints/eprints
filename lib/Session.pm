@@ -514,7 +514,7 @@ sub get_order_name
 	my( $self, $dataset, $orderid ) = @_;
 	
         return $self->phrase( 
-		"ordername_".$dataset->toString()."_".$orderid );
+		"ordername_".$dataset->to_string()."_".$orderid );
 }
 
 
@@ -752,7 +752,7 @@ sub send_page
 {
 	my( $self, %httpopts ) = @_;
 	$self->send_http_header( %httpopts );
-	print $self->{page}->toString;
+	print $self->{page}->to_string();
 	$self->{page}->dispose();
 }
 
