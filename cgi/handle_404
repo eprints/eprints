@@ -37,7 +37,7 @@ if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
 	if( defined $deletion_record )
 	{
 		# The user seems to be trying to get to a deleted eprint. 
-		record_deleted( $session, $deletion_record->{replacement} );
+		print $session->{render}->render_deleted_eprint( $deletion_record );
 	}
 	else
 	{
@@ -67,49 +67,6 @@ else
 
 $session->terminate();
 
-
-
-######################################################################
-#
-# record_deleted( $session, $replacement )
-#
-#  Render an appropriate error saying that the eprint the user is
-#  trying to access has been removed, and to point to the replacement
-#  if one exists.
-#
-######################################################################
-
-sub record_deleted
-{
-	my( $session, $replacement ) = @_;
-	
-	my $replacement_eprint;
-	
-	$replacement_eprint = new EPrints::EPrint(
-		$session,
-		$EPrints::Database::table_archive,
-		$replacement ) if( defined $replacement );
-	
-	print $session->{render}->start_html( "Eprint Removed" );
-	
-	print "<P>You seem to be attempting to access an eprint that has been ".
-		"removed from the archive.</P>\n";
-	
-	if( defined $replacement_eprint )
-	{
-		print "<P>There is a later version of the eprint you are trying to ".
-			"access:</P>\n<P ALIGN=CENTER>";
-
-		print $session->{render}->render_eprint_citation(
-			$replacement_eprint,
-			1,
-			1 );
-		
-		print "</P>\n";
-	}
-	
-	print $session->{render}->end_html();
-}
 
 
 ######################################################################

@@ -13,6 +13,7 @@
 ######################################################################
 
 use EPrints::Database;
+use EPrints::Deletion;
 use EPrints::HTMLRender;
 use EPrints::MetaField;
 use EPrints::OpenArchives;
@@ -65,6 +66,7 @@ if( defined $eprintid_in )
 # See if we can make an EPrint object (and hence if the ID is valid)
 
 my $eprint = undef;
+my $deletion_record = undef;
 
 if( defined $eprintid )
 {
@@ -77,10 +79,19 @@ if( defined $eprintid )
 		# ID is OK, so we can redirect to the abstract page
 		$session->{render}->redirect( $eprint->static_page_url() );
 	}
+	else
+	{
+		# See if it's a deleted eprint ID
+		$deletion_record = new EPrints::Deletion( $session, $eprintid );
+		if( defined $deletion_record )
+		{
+			print $session->{render}->render_deleted_eprint( $deletion_record );
+		}
+	}
 }
 
 
-unless( defined $eprint )
+unless( defined $eprint || defined $deletion_record )
 {
 	# We don't have an EPrint object, so the ID code is valid, or we didn't get
 	# one

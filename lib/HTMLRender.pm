@@ -1458,4 +1458,51 @@ sub _write_version_thread_aux
 }
 
 
+######################################################################
+#
+# $html = render_deleted_eprint( $deletion_record )
+#
+#  Render an appropriate error saying that the eprint the user is
+#  trying to access has been removed, and to point to the replacement
+#  if one exists.
+#
+######################################################################
+
+sub render_deleted_eprint
+{
+	my( $self, $deletion_record ) = @_;
+	
+	my $replacement_eprint;
+	
+	$replacement_eprint = new EPrints::EPrint(
+		$self->{session},
+		$EPrints::Database::table_archive,
+		$deletion_record->{replacement} )
+		if( defined $deletion_record->{replacement} );
+	
+	my $html = $self->start_html( "Eprint Removed" );
+	
+	$html .= "<P>You seem to be attempting to access an eprint that has been ".
+		"removed from the archive.</P>\n";
+	
+	if( defined $replacement_eprint )
+	{
+		$html .= "<P>There is a later version of the eprint you are trying to ".
+			"access:</P>\n<P ALIGN=CENTER>";
+
+		$html .= $self->render_eprint_citation(
+			$replacement_eprint,
+			1,
+			1 );
+		
+		$html .= "</P>\n";
+	}
+	
+	$html .= $self->end_html();
+
+	return( $html );
+}
+
+
+
 1; # For use/require success
