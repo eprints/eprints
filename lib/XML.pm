@@ -347,9 +347,11 @@ sub clone_and_own
 ######################################################################
 =pod
 
-=item $string = EPrints::XML::to_string( $node )
+=item $string = EPrints::XML::to_string( $node, [$enc] )
 
 Return the given node (and its children) as a UTF8 encoded string.
+
+$enc is only used when $node is a document.
 
 Papers over some cracks, specifically that XML::GDOME does not 
 support toString on a DocumentFragment, and that XML::GDOME does
@@ -361,8 +363,10 @@ confuses some browsers. Eg. <br/> vs <br />
 
 sub to_string
 {
-	my( $node ) = @_;
+	my( $node, $enc ) = @_;
 
+	$enc = 'utf-8' unless defined $enc;
+	
 	my @n = ();
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
@@ -402,9 +406,10 @@ sub to_string
 	}
 	elsif( EPrints::XML::is_dom( $node, "Document" ) )
 	{
-   		my $docType  = $node->getDoctype();
-	 	my $elem     = $node->getDocumentElement();
-		push @n, $docType->toString, "\n", to_string( $elem );
+   		#my $docType  = $node->getDoctype();
+	 	#my $elem     = $node->getDocumentElement();
+		#push @n, $docType->toString, "\n";, to_string( $elem );
+		push @n, $node->toStringEnc( $enc );
 	}
 	elsif( EPrints::XML::is_dom( 
 			$node, 
@@ -492,6 +497,7 @@ sub make_document
 	
 	# XML::GDOME
 	my $doc = XML::GDOME->createDocument( undef, "thing", undef );
+	$doc->removeChild( $doc->getFirstChild );
 
 	return $doc;
 }
@@ -519,7 +525,7 @@ Can't open to write to XML file: $filename
 END
 		}
 #		print XMLFILE $node->toStringEnc("utf8",0);
-		print XMLFILE EPrints::XML::to_string( $node );
+		print XMLFILE EPrints::XML::to_string( $node, "utf-8" );
 		close XMLFILE;
 	}
 	else

@@ -76,6 +76,11 @@ sub process
 	my $can_edit = 0;
 	my $ef_field = $user_ds->get_field( 'editperms' );
 	my $searches = $session->current_user->get_value( 'editperms' );
+	if( scalar @{$searches} == 0 )
+	{
+		$can_edit = 1;
+	}
+
 	foreach my $s ( @{$searches} )
 	{
 		next if( $can_edit ); # skip the rest if one matches

@@ -55,7 +55,8 @@ EPRINTS 2.2.0                                                  2002-10-31???
         make XML parsing easier. Also there is a new feature <ep:ifmatch>  
         which gives access to the eprints search syntax to make citation 
         elements conditional. Also improvements have been made to the citation 
-        rendering code so that elements may now be safely nested. (eg. <ep:isset>.
+        rendering code so that elements may now be safely nested. 
+        (eg. <ep:isset>.
 
 *       No GIFs (Due to patent issues, and EPrints being part of GNU),
         PNGs used instead.

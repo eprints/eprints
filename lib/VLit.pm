@@ -40,6 +40,7 @@ use Digest::MD5;
 use FileHandle;
 
 use strict;
+use EPrints::XML;
 
 my $TMPDIR = "/tmp/partial";
 
@@ -327,9 +328,7 @@ END
 	}
 	elsif( $mode eq "xml-entity" )
 	{
-		my $page = new XML::DOM::Document();
-		$page->setXMLDecl(
-			$page->createXMLDecl( "1.0", "UTF-8", "yes" ) );
+		my $page = EPrints::XML::make_document();
 		my $transclusion = $page->createElement( "transclusion" );
 		$transclusion->setAttribute(
 			"xlmns", 
@@ -341,7 +340,7 @@ END
 		$page->appendChild( $transclusion );	
 
 		send_http_header( "text/xml" );
-		$r->print( $page->toString );
+		$r->print( EPrints::XML::to_string( $page ) );
 	}
 	else
 	{

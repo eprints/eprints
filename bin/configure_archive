@@ -444,12 +444,13 @@ END
 # Write XML Config FIle
 #
 
-my $doc = new XML::DOM::Document();
-my $doctype = $doc->createDocumentType( "archive" );
-$doc->setDoctype( $doctype );
+my $doc = EPrints::XML::make_document();
 
-my $xmldecl = $doc->createXMLDecl( "1.0", "utf-8", "yes" );
-$doc->setXMLDecl( $xmldecl );
+#my $doctype = $doc->createDocumentType( "archive" );
+#$doc->setDoctype( $doctype );
+
+#my $xmldecl = $doc->createXMLDecl( "1.0", "utf-8", "yes" );
+#$doc->setXMLDecl( $xmldecl );
 
 my $t_archive = $doc->createElement( "archive" );
 $t_archive->setAttribute( "id", $archiveid );
@@ -478,7 +479,9 @@ foreach( keys %{$config{archivename}} )
 $t_archive->appendChild( $doc->createTextNode( "\n" ) );
 
 print "\nWriting Config File to:\n$configfile...\n";
-$doc->printToFile( $configfile );
+open( CONF, ">$configfile" ) || die "can't open $configfile for writing";
+print CONF EPrints::XML::to_string( $doc );
+close CONF;
 # It's got a password in so 600 to be safe!
 chmod( 0600, $configfile );
 print <<END;

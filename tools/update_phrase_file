@@ -14,54 +14,9 @@ B<update_phrase_file> - Not DOCd
 
 =head1 SYNOPSIS
 
-B<update_phrase_file> I<archiveid> [B<options>] 
+B<update_phrase_file> I<archive_cfg_directory> I<old_english_phrase_file> I<new_english_phrase_file> I<old_translated_phrase_file>
 
 =head1 DESCRIPTION
-
-This script renders static "browse views" for an EPrint Archive.
-
-What this does is generate browse pages for each field configured as browsable in B<ArchiveConfig.pm>. It creates a static web page for each value of that field, and index pages to navigate to them. 
-
-For example, if we make "year" browseable then this script will generate one page for each unique value of the year field. So a user can then view the 1995 page and see links to all the 1995 eprints.
-
-Advantages of this are that this puts less load on the database than user searches. Assuming you pick two or three sensible fields to make browsable. 
-
-This script should be run every hour or so, but that should once a day or even once a week on large archives, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
-
-=head1 ARGUMENTS
-
-=over 8
-
-=item B<archiveid> 
-
-The ID of the eprint archive to use.
-
-=back
-
-=head1 OPTIONS
-
-=over 8
-
-=item B<--help>
-
-Print a brief help message and exit.
-
-=item B<--man>
-
-Print the full manual page and then exit.
-
-=item B<--quiet>
-
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
-
-=item B<--verbose>
-
-Explain in detail what is going on.
-May be repeated for greater effect.
-
-=item B<--version>
-
-Output version information and exit.
 
 =back   
 
@@ -133,6 +88,9 @@ foreach my $node ( $phrases->getChildNodes )
 	print $ref."   ";
 	if( !defined $old_phr_en_phrases->{$ref} )
 	{
+		my $c1 = $new_phr_en->createComment( "\nTRANSLATE (New)\n" );
+		$phrases->insertBefore( $c1, $node->getNextSibling );
+		$phrases->insertBefore( $new_phr_en->createTextNode( "\n" ), $c1 );
 		print "NEW";
 	}
 	elsif( $node->toString eq $old_phr_en_phrases->{$ref}->toString )
@@ -141,11 +99,27 @@ foreach my $node ( $phrases->getChildNodes )
 	}
 	else
 	{
+		my @c = ();
+		push @c, "\nTRANSLATE (Changed)\nOLD ENGLISH: ";
+		foreach( $old_phr_en_phrases->{$ref}->getChildNodes )
+		{
+			push @c, $_->toString;
+		}
+		push @c, "\nOLD TRANSLATION: ";
+		foreach( $old_phr_other_phrases->{$ref}->getChildNodes )
+		{
+			push @c, $_->toString;
+		}
+		push @c, "\n";
+
+		my $c1 = $new_phr_en->createComment( join( "", @c ) );
+		$phrases->insertBefore( $c1, $node->getNextSibling );
+		$phrases->insertBefore( $new_phr_en->createTextNode( "\n" ), $c1 );
 		print "DIFF";
 	}
 	print "\n";
 }
 
-
+print $new_phr_en->toString;
 
 exit;

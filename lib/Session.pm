@@ -611,6 +611,22 @@ sub make_indent
 	return $self->{doc}->createTextNode( "\n"." "x$width );
 }
 
+######################################################################
+=pod
+
+=item $foo = $thing->make_comment( $text )
+
+undocumented
+
+=cut
+######################################################################
+
+sub make_comment
+{
+	my( $self, $text ) = @_;
+
+	return $self->{doc}->createComment( $text );
+}
 	
 
 # $text is a UTF8 String!

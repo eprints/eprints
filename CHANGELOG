@@ -974,3 +974,9 @@ before next release. (metadata types & fields)
  - <securehost> and <securepath> are now optional (in archive.xml)
  - Fixed a bug in the 2.1->2.2 SQL in bin/upgrade 
 
+2002-10-28 cjg
+ - No edit rules now means an editor can edit anything not nothing
+ - new method "make_comment" in EPrints::Session
+ - Fixed VLit & configure_archive to use whichever XML library is prefered.
+ - more work on the tools/update_phrase_file utility to aid translation. Still
+    not finished.
