@@ -73,11 +73,16 @@ EPrints Modules
     <phrase ref="lib/searchexpression:action_newsearch">Start new search</phrase>
     <phrase ref="lib/searchexpression:action_update">Update the search</phrase>
     <phrase ref="lib/searchexpression:form_problem"><p>There is a problem with the form:</p></phrase>
-    <phrase ref="lib/searchexpression:too_many"><p>Warning - too many results. Unsorted sample of <pin ref="n" /> shown.</p></phrase>
-    <phrase ref="lib/searchexpression:search_time">Search time: <pin ref="searchtime" /> sec. Retrieval and sort time: <pin ref="gettime" /> sec.</phrase>
+    <phrase ref="lib/searchexpression:search_time">Search time: <pin ref="searchtime" />s</phrase>
     <phrase ref="lib/searchexpression:ignored">Ignored words: <pin ref="words" />.</phrase>
     <phrase ref="lib/searchexpression:results_for">Results for <pin ref="title" /></phrase>
-    <phrase ref="lib/searchexpression:results_found">Number of results: <strong><pin ref="n" /></strong>.</phrase>
+    <phrase ref="lib/searchexpression:results">Displaying results <span class="numeral"><pin ref="from" /></span> to <span class="numeral"><pin ref="to" /></span> of <span class="numeral"><pin ref="n" /></span>.</phrase>
+    <phrase ref="lib/searchexpression:noresults">No matches.</phrase>
+    <phrase ref="lib/searchexpression:next">Next <pin ref="n" /></phrase>
+    <phrase ref="lib/searchexpression:prev">Previous <pin ref="n" /></phrase>
+    <phrase ref="lib/searchexpression:new">New search</phrase>
+    <phrase ref="lib/searchexpression:refine">Refine search</phrase>
+    <phrase ref="lib/searchexpression:seperator"> | </phrase>
 
 <!-- SearchField -->
 
@@ -508,10 +513,10 @@ Public CGI Scripts
     <phrase ref="cgi/set_password:no_email"><p>You did not specify an email address.</p></phrase>
     <phrase ref="cgi/set_password:username_in_use"><p>The username "<pin ref="username" />" has already been taken.</p></phrase>
 
-    <phrase ref="setpass_fieldhelp_email" >Enter your email address</phrase>
-    <phrase ref="setpass_fieldhelp_newpassword" >Enter a password. If you forget it you can set a new one using this form.</phrase>
-    <phrase ref="setpass_fieldhelp_username" >Requested username (only applicable to new users)</phrase>
-    <phrase ref="setpass_fieldhelp_lang" >Please select your prefered language.</phrase>
+    <phrase ref="setpass_fieldhelp_email">Enter your email address</phrase>
+    <phrase ref="setpass_fieldhelp_newpassword">Enter a password. If you forget it you can set a new one using this form.</phrase>
+    <phrase ref="setpass_fieldhelp_username">Requested username (only applicable to new users)</phrase>
+    <phrase ref="setpass_fieldhelp_lang">Please select your prefered language.</phrase>
 
 <!-- confirm -->
 

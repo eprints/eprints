@@ -5,6 +5,10 @@
   <head>
     <title><titlehere/></title>
     <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
+    <link rel="Top" href="&frontpage;" />
+    <link rel="Search" href="&perl_url;/search" />
+    <link rel="Help" href="&base_url;/help" />
+    <linkshere />
   </head>
   <body bgcolor="#ffffff" text="#000000" topmargin="0" rightmargin="0" leftmargin="0" marginwidth="0" marginheight="0" >
     <topofpage />

@@ -532,7 +532,7 @@ sub get_conditions
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
-			return(undef,undef,undef,$self->{session}->phrase( "lib/searchfield:no_words" , { words=>$text } ) );
+			return(undef,undef,undef,$self->{session}->phrase( "lib/searchfield:no_words" ,  words=>$text ) );
 		}
 
 		foreach( @{$good} )

@@ -718,8 +718,7 @@ sub process_webpage
 
 	#cjg ONLY SHOW time and badwords on first page.
 
-	my $PAGESIZE = 20;
-	#cjg put this in the curry^H^H^H^H^Hconfig
+	my $pagesize = $self->{session}->get_archive()->get_conf( "results_page_size" );
 
 	my $action_button = $self->{session}->get_action_button();
 
@@ -751,9 +750,7 @@ sub process_webpage
 
 		$t1 = EPrints::Session::microtime();
 
-		# cjg this should be in site config.
-		my $MAX=1000000;
-		$self->perform_search( $MAX );
+		$self->perform_search();
 
 		$t2 = EPrints::Session::microtime();
 
@@ -771,36 +768,53 @@ sub process_webpage
 
 		my $offset = $self->{session}->param( "_offset" ) + 0;
 
-		@results = $self->get_records( $offset , $PAGESIZE );
+		@results = $self->get_records( $offset , $pagesize );
 		$t3 = EPrints::Session::microtime();
 		$self->dispose();
 
 		my $page = $self->{session}->make_doc_fragment();
 
-		if( $n_results > $MAX) 
-		{
-			#cjg this is all wrong with cached results
-			$page->appendChild( 
-				$self->{session}->html_phrase( 
-							"lib/searchexpression:too_many", 
-							n=>$self->{session}->make_text( $MAX ) ) );
-		}
-	
-		my $p = $self->{session}->make_element( "p" );
+		my $plast = $offset + $pagesize;
+		$plast = $n_results if $n_results< $plast;
+		my $p = $self->{session}->make_element( "p", class=>"resultsinfo" );
 		$page->appendChild( $p );
-       		$p->appendChild(  
-			$self->{session}->html_phrase( 
-				"lib/searchexpression:results_found",
-				n => $self->{session}->make_text( 
-							$n_results ) ) );
+		if( scalar $n_results > 0 )
+		{
+       			$p->appendChild(  
+				$self->{session}->html_phrase( 
+					"lib/searchexpression:results",
+					from => $self->{session}->make_text( $offset+1 ),
+					to => $self->{session}->make_text( $plast ),
+					n => $self->{session}->make_text( $n_results )  
+				) );
+		}
+		else
+		{
+       			$p->appendChild(  
+				$self->{session}->html_phrase( 
+					"lib/searchexpression:noresults" ) );
+		}
 
 		if( @{ $self->{ignoredwords} } )
 		{
 			my %words = ();
 			$p->appendChild( $self->{session}->make_text( " " ) );
 			foreach( @{$self->{ignoredwords}} ) { $words{$_}++; }
-			my $words = $self->{session}->make_text( 
-					join( ", ", sort keys %words ) );
+			my $words = $self->{session}->make_doc_fragment();
+			my $first = 1;
+			foreach( sort keys %words )
+			{
+				unless( $first )
+				{
+					$words->appendChild( 
+						$self->{session}->make_text( ", " ) );
+				}
+				my $span = $self->{session}->make_element( "span", class=>"ignoredword" );
+				$words->appendChild( $span );
+				$span->appendChild( 
+					$self->{session}->make_text( $_ ) );
+				$first = 0;
+			}
 			$p->appendChild(
        				$self->{session}->html_phrase( 
 					"lib/searchexpression:ignored",
@@ -812,18 +826,54 @@ sub process_webpage
 		$p->appendChild(
        			$self->{session}->html_phrase( 
 				"lib/searchexpression:search_time", 
-				searchtime=>$self->{session}->make_text($t2-$t1),
-				gettime=>$self->{session}->make_text($t3-$t2) ) );
+				searchtime=>$self->{session}->make_text($t3-$t1) ) );
 
-		my $form = $self->{session}->render_form( "get" );
-		$form->appendChild(
-			$self->{session}->render_hidden_field( 
-				"_exp", $self->serialise() ) );
+		my $links = $self->{session}->make_doc_fragment();
+		my $controls = $self->{session}->make_element( "p", class=>"searchcontrols" );
+		my $url = $self->{session}->get_url();
+		#cjg escape URL'ify urls in this bit... (4 of them?)
+		my $escexp = $self->serialise();	
+		$escexp =~ s/ /+/g; # not great way...
+		my $a;
+		if( $offset > 0 ) 
+		{
+			my $bk = $offset-$pagesize;
+			my $href = "$url?_exp=$escexp&_offset=".($bk<0?0:$bk);
+			$a = $self->{session}->make_element( "a", href=>$href );
+			my $pn = $pagesize>$offset?$offset:$pagesize;
+			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:prev",
+						n=>$self->{session}->make_text( $pn ) ) );
+			$controls->appendChild( $a );
+			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+			$links->appendChild( $self->{session}->make_element( "link",
+							rel=>"Prev",
+							href=>$href ) );
+		}
+		if( $offset + $pagesize < $n_results )
+		{
+			my $href="$url?_exp=$escexp&_offset=".($offset+$pagesize);
+			$a = $self->{session}->make_element( "a", href=>$href );
+			my $nn = $n_results-$offset;
+			$nn = $pagesize if $pagesize< $nn;
+			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
+						n=>$self->{session}->make_text( $nn ) ) );
+			$controls->appendChild( $a );
+			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+			$links->appendChild( $self->{session}->make_element( "link",
+							rel=>"Next",
+							href=>$href ) );
+		}
 
-		$form->appendChild( $self->{session}->render_action_buttons( 
-			update => $self->{session}->phrase("lib/searchexpression:action_update"), 
-			newsearch => $self->{session}->phrase("lib/searchexpression:action_newsearch") ) );
-		$page->appendChild( $form );
+		$a = $self->{session}->make_element( "a", href=>"$url?_exp=$escexp&_action_update=1" );
+		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:refine" ) );
+		$controls->appendChild( $a );
+		$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
+
+		$a = $self->{session}->make_element( "a", href=>$url );
+		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:new" ) );
+		$controls->appendChild( $a );
+
+		$page->appendChild( $controls );
 
 		my $result;
 		foreach $result (@results)
@@ -832,41 +882,22 @@ sub process_webpage
 			$p->appendChild( $result->render_citation_link( undef, $self->{staff} ) );
 			$page->appendChild( $p );
 		}
+		
 
-		$page->appendChild( $form->cloneNode( 1 ) );
-
-
-		if( $offset + $PAGESIZE < $n_results )
+		if( scalar $n_results > 0 )
 		{
-			#cjg |NOT DOM
+			# Only print a second set of controls if there are matches.
+			$page->appendChild( $controls->cloneNode( 1 ) );
+		}
 
-			#cjg find right url
-			#cjg escape URL'ify exp
-			my $a = $self->{session}->make_element( "a", href=>"search?_exp=".$self->serialise()."&_offset=".($offset+$PAGESIZE) );
-			my $nn = $n_results-$offset;
-			$nn = $PAGESIZE if $PAGESIZE< $nn;
-			$a->appendChild( $self->{session}->make_text( "Next ".$nn." results" ) );
-			$page->appendChild( $a );
-		}
-		if( $offset > 0 ) 
-		{
-			#cjg |NOT DOM
-			my $bk = $offset-$PAGESIZE;
-			my $a = $self->{session}->make_element( "a", href=>"search?_exp=".$self->serialise()."&_offset=".($bk<0?0:$bk) );
-			my $pn = $PAGESIZE>$offset?$offset:$PAGESIZE;
-			$a->appendChild( $self->{session}->make_text( "Prev ".$pn." results" ) );
-			$page->appendChild( $a );
-		}
-		my $plast = $offset + $PAGESIZE;
-		$plast = $n_results if $n_results< $plast;
-#cjg bad for 0 results
-		$page->appendChild( $self->{session}->make_text( "showing results ".($offset+1)." to ".$plast." of ".$n_results." results" ) );
+
 			
 		$self->{session}->build_page( 
 			$self->{session}->phrase( 
 					"lib/searchexpression:results_for", 
 					title => $title ),
-			$page );
+			$page,
+			$links );
 		$self->{session}->send_page();
 		return;
 	}

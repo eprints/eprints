@@ -412,6 +412,9 @@ $c->{browse_views} = [
 	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
+# Number of results to display on a single search results page
+$c->{results_page_size} = 10;
+
 # Fields for a simple user search
 $c->{simple_search_fields} =
 [

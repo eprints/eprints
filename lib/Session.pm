@@ -909,7 +909,7 @@ sub take_ownership
 
 sub build_page
 {
-	my( $self, $title, $mainbit ) = @_;
+	my( $self, $title, $mainbit, $links ) = @_;
 	
 #cjg Could be different eg. <EPRINTSHOOK type="title" />	
 #cjg Could be different eg. <EPRINTSHOOK type="page" />	
@@ -926,6 +926,15 @@ sub build_page
 	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
 	{
 		$node->getParentNode()->replaceChild( $mainbit, $node );
+		$node->dispose();
+	}
+	if( !defined $links )
+	{
+		$links = $self->make_doc_fragment();
+	}
+	foreach $node ( $self->{page}->getElementsByTagName( "linkshere" , 1 ) )
+	{
+		$node->getParentNode()->replaceChild( $links, $node );
 		$node->dispose();
 	}
 	foreach $node ( $self->{page}->getElementsByTagName( "topofpage" , 1 ) )
@@ -997,7 +1006,7 @@ sub _tag_compression
 	my ($tag, $elem) = @_;
 
 	# Print empty br, hr and img tags like this: <br />
-	return 2 if $tag =~ /^(br|hr|img|input)$/;
+	return 2 if $tag =~ /^(br|hr|img|link|input)$/;
 	
 	# Print other empty tags like this: <empty></empty>
 	return 1;
