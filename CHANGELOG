@@ -414,15 +414,9 @@ Due to change in functionality of uri_escape in URI 1.18
 - made the vlit icon on the about page point to the vlit permission page.
 - tidied up vlit permission page.
 - removed <p> tag around URL's in emails - don't want them word wrapped!
+
 ======================================================================
 14/02/2002 - EPRINTS-2.0
-======================================================================
-
-
-
-
-======================================================================
-CHANGES BELOW ARE CURRENTLY IN CVS ONLY
 ======================================================================
 
 
@@ -494,4 +488,8 @@ metadata field - needed by OAI2 to list SetSpec's of an article.
 - added oai2 protocol talkin' script /cgi/oai2 and modified some bits of
 OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)
 - replaced subject file with lib of Congress.
+
+======================================================================
+16/04/2002 - EPRINTS-2.0.1
+======================================================================
 
