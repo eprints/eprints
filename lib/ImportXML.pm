@@ -33,7 +33,6 @@ use XML::Parser;
 sub import_file
 {
 	my( $session , $filename , $function ) = @_;
-
 	my $parser = new XML::Parser(
 		Style => "Subs", 
 		Handlers => { 
@@ -51,7 +50,7 @@ sub import_file
 sub _handle_start
 {
 	my( $parser , $tag , %params ) = @_;
-
+	$tag = uc($tag);
 	if( $tag eq "TABLE" )
 	{
 		if( defined $parser->{eprints}->{ds} )
@@ -115,6 +114,11 @@ print "T:".$params{name}."\n";
 		$parser->{eprints}->{currentdata}->{lc $params{name}} = "";
 		return;
 	}
+	
+	if( $tag eq "RECORDS")
+	{
+		return;
+	}
 
 	$parser->xpcroak( "Unknown tag: $tag" );
 }
@@ -125,7 +129,7 @@ print "T:".$params{name}."\n";
 sub _handle_end
 {
 	my ( $parser , $tag ) = @_;
-
+	$tag = uc($tag);
 	if ( $tag eq "TABLE" )
 	{
 		delete $parser->{eprints}->{ds};
@@ -146,7 +150,7 @@ sub _handle_end
 		&{$parser->{eprints}->{function}}( 
 			$parser->{eprints}->{session}, 
 			$parser->{eprints}->{dataset},
-			$item );
+			$item);
 
 		delete $parser->{eprints}->{data};
 		return;
