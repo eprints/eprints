@@ -17,14 +17,6 @@ use EPrints::OpenArchives;
 sub get_oai_conf { my( $perlurl ) = @_; my $oai={};
 
 
-# All three of the following configuration elements should have the same
-# keys. To support OAI you must offer basic dublic core as "oai_dc".
-
-# metadata_namespaces, metadata_schemas and metadata_functions must be
-# configured seperatly for OAI v1.1 and OAI v2.0. At the time of writing
-# this comment (summer 2002) you probably want to support both, but soon
-# everyone should be harvesting only v2.0 archives.
-
 ##########################################################################
 # OAI 1.1 
 ##########################################################################
