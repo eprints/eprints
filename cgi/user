@@ -49,16 +49,16 @@ if( defined $userid )
 	{
 		print $session->{render}->render_error(
 			"Unknown user",
-			"$EPrintSite::SiteInfo::server_static/staff/",
-			"Return to staff home" );
+			"$EPrintSite::SiteInfo::frontpage",
+			"Return to front page" );
 	}
 }
 else
 {
 	print $session->{render}->render_error(
 		"No user specified!",
-		"$EPrintSite::SiteInfo::server_static/staff/",
-		"Return to staff home" );
+		"$EPrintSite::SiteInfo::frontpage",
+		"Return to front page" );
 }
 
 $session->terminate();
