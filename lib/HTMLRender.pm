@@ -33,7 +33,7 @@ $EPrints::HTMLRender::search_form_width = 40;
 $EPrints::HTMLRender::form_name_width = 20;
 
 # Width of username fields
-$EPrints::HTMLRender::form_name_width = 10;
+$EPrints::HTMLRender::form_username_width = 10;
 
 # Max number of chars in (single-line) text fields
 $EPrints::HTMLRender::field_max = 255;
@@ -661,7 +661,7 @@ sub input_field
 		# Ensure at least 1...
 		$boxcount = 1 if( !defined $boxcount );
 		# And that there's enough to fit all the names in
-		$boxcount = $#names+1 if( $boxcount < $#names+1 );
+		$boxcount = $#names+3 if( $boxcount < $#names+3 );
 
 		# Render the boxes
 		$html = "<table border=0><tr><th>Surname</th><th>First names</th>";
@@ -716,10 +716,10 @@ sub input_field
 		# Ensure at least 1...
 		$boxcount = 1 if( !defined $boxcount );
 		# And that there's enough to fit all the usernames in
-		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
+		$boxcount = $#usernames+3 if( $boxcount < $#usernames+3 );
 
 		# Render the boxes
-		$html = "<table border=0><tr><th>Username</th>";
+		$html = "<table border=0><tr><th>Usernames</th>";
 		
 		my $i;
 		for( $i = 0; $i < $boxcount; $i++ )
@@ -1231,7 +1231,8 @@ sub form_value
 		#my $total = ( $field->{multiple} ? 
 			#$self->param( "username_boxes_$field->{name}" ) : 1 );
 		my $total = $self->param( "username_boxes_$field->{name}" );
-		
+	
+		$value = "";	
 		for( $i=0; $i<$total; $i++ )
 		{
 			my $username = $self->param( "username_$i"."_$field->{name}" );
@@ -1239,8 +1240,8 @@ sub form_value
 			{
 				$value.= ":$username";
 			}
-			$value .= ":" if ( $value ne "" );
 		}
+		$value .= ":" if ( $value ne "" );
 	}
 	else
 	{

@@ -54,7 +54,7 @@ $EPrints::EPrint::id_code_digits = 8;
 
 @EPrints::EPrint::system_meta_fields_link_users =
 (
-	"usernames:username::User IDs of Local Authors:0:0:1"
+	"usernames:username::Usernames of Local Authors:0:0:1"
 );
 
 # Additional fields in this class:

@@ -233,7 +233,7 @@ sub get_sql
 	{
 		$sql = $self->terms_to_sql( "__FIELDNAME__", $value, "\%:", ",\%" );
 	}
-	elsif( $type eq "set" || $type eq "subjects" )
+	elsif( $type eq "set" || $type eq "subjects" || $type eq "username" )
 	{
 		# Need to construct an OR statement if it's 
 		if( defined $value && $value ne "" )
@@ -453,6 +453,37 @@ sub render_html
 			-default=>$search_type,
 			-labels=>\%EPrints::SearchField::text_search_type_labels );
 	}
+	elsif( $type eq "username" )
+	{
+		my @defaults;
+		my $anyall = "ANY";
+		
+		# Do we have any values already?
+		if( defined $self->{value} && $self->{value} ne "" )
+		{
+			@defaults = split /:/, $self->{value};
+			$anyall = pop @defaults;
+		}
+		else
+		{
+			@defaults = ();
+		}
+		
+		$html = $self->{session}->{render}->{query}->textfield(
+			-name=>$self->{formname},
+			-default=>join( " " , @defaults ),
+			-size=>$EPrints::HTMLRender::search_form_width,
+			-maxlength=>$EPrints::HTMLRender::field_max );
+
+		my @anyall_tags = ( "ANY", "ALL" );
+		my %anyall_labels = ( "ANY" => "Any of these", "ALL" => "All of these" );
+
+		$html .= $self->{session}->{render}->{query}->popup_menu(
+			-name=>$self->{formname}."_anyall",
+			-values=>\@anyall_tags,
+			-default=>$anyall,
+			-labels=>\%anyall_labels );
+	}
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
 		my @defaults;
@@ -639,6 +670,20 @@ sub from_form
 		
 		$self->{value} = "$search_type:$search_terms"
 			if( defined $search_terms && $search_terms ne "" );
+	}		
+	elsif( $type eq "username" )
+	{
+		# usernames
+		my $anyall = $self->{session}->{render}->param( 
+			$self->{formname}."_anyall" );
+		
+		# Default search type if none supplied (to allow searches using simple
+		# HTTP GETs)
+		$anyall = "ALL" unless defined( $anyall );		
+	
+		my @vals = split /\s+/ , $self->{session}->{render}->param( $self->{formname} );
+		$self->{value} = join( ":" , @vals ) . ":$anyall"
+			if( scalar @vals > 0);
 	}		
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
