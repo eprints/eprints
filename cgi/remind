@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  18/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -42,7 +43,7 @@ if( $session->{render}->seen_form() )
 		"<A HREF=\"$EPrintSite::SiteInfo::admin\">site administrator</A>.</P>".
 		"</CENTER>\n";
 		
-	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::front_page\">Return to ".
+	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::frontpage\">Return to ".
 		"$EPrintSite::SiteInfo::sitename Home</A></CENTER></P>\n";
 
 	print $session->{render}->end_html();

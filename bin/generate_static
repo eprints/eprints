@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 ######################################################################
 #
@@ -65,7 +65,9 @@ EPrints::Log->debug( "generate_static", "Generating static page for $File::Find:
 	# Copy the file across
 	while( <IN> )
 	{
-		print OUT;
+		chomp();
+		print OUT EPrints::Mailer->update_template_line( $_, undef );
+		print OUT "\n";
 	}
 	
 	# Write the site frame terminator if appropriate

@@ -53,10 +53,40 @@ EOF
 
 ######################################################################
 #
-# $body = prepare_mail( $template_filename, $user )
+# $body = fill_template( $template_filename, $user )
 #
-#  Reads the mail template from the given file, and replaces the
-#  relevant placeholders with values. Placeholders are:
+#  Reads the template from the given file, and replaces the
+#  relevant placeholders with values.
+#  The updated body is returned, or undef if an error occurred.
+#
+######################################################################
+
+sub fill_template
+{
+	my( $class, $template_filename, $user ) = @_;
+	
+	my $body = "";
+
+	open( INTROFILE, $template_filename ) or return( undef );
+	
+	while( <INTROFILE> )
+	{
+		$body .= EPrints::Mailer->update_template_line( $_, $user );
+	}
+	
+	close( INTROFILE );
+
+	return( $body );
+}
+
+
+######################################################################
+#
+# $new_line = update_template_line( $template_line, $user )
+#
+#  Takes a line from a template and fills in the relevant values.
+#
+#  Values updated are:
 #
 #   __username__    username of $user
 #   __password__    password of $user
@@ -67,38 +97,35 @@ EOF
 #   __staticroot__  URL of static HTTP server
 #   __frontpage__   URL of site front page
 #   __usermail__    user's email address
-#
-#  The updated body is returned, or undef if an error occurred.
+#   __subjectroot__ where on the server the "browse by subject" views are
 #
 ######################################################################
 
-sub prepare_mail
+sub update_template_line
 {
-	my( $class, $template_filename, $user ) = @_;
+	my( $class, $template_line, $user ) = @_;
 	
-	my $body = "";
+	my $new_line = $template_line;
 
-	open( INTROFILE, $template_filename ) or return( undef );
-	
-	while( <INTROFILE> )
+	if( defined $user )
 	{
-		s/__username__/$user->{username}/g;
-		s/__password__/$user->{passwd}/g;
-		s/__usermail__/$user->{email}/g;
-		s/__sitename__/$EPrintSite::SiteInfo::sitename/g;
-		s/__admin__/$EPrintSite::SiteInfo::admin/g;
-		s/__automail__/$EPrintSite::SiteInfo::automail/g;
-		s/__perlroot__/$EPrintSite::SiteInfo::server_perl/g;
-		s/__staticroot__/$EPrintSite::SiteInfo::server_static/g;
-		s/__frontpage__/$EPrintSite::SiteInfo::frontpage/g;
-
-		$body .= $_;
+		$new_line =~ s/__username__/$user->{username}/g;
+		$new_line =~ s/__password__/$user->{passwd}/g;
+		$new_line =~ s/__usermail__/$user->{email}/g;
 	}
 	
-	close( INTROFILE );
-
-	return( $body );
+	$new_line =~ s/__sitename__/$EPrintSite::SiteInfo::sitename/g;
+	$new_line =~ s/__admin__/$EPrintSite::SiteInfo::admin/g;
+	$new_line =~ s/__automail__/$EPrintSite::SiteInfo::automail/g;
+	$new_line =~ s/__perlroot__/$EPrintSite::SiteInfo::server_perl/g;
+	$new_line =~ s/__staticroot__/$EPrintSite::SiteInfo::server_static/g;
+	$new_line =~ s/__frontpage__/$EPrintSite::SiteInfo::frontpage/g;
+	$new_line =~
+		s/__subjectroot__/$EPrintSite::SiteInfo::server_subject_view_stem/g;
+	
+	return( $new_line );
 }
+
 
 
 ######################################################################
@@ -115,7 +142,7 @@ sub prepare_send_mail
 {
 	my( $class, $name, $address, $subject, $templatefile, $user ) = @_;
 	
-	my $body = EPrints::Mailer->prepare_mail(
+	my $body = EPrints::Mailer->fill_template(
 		$templatefile,
 		$user );
 
