@@ -1,0 +1,209 @@
+#!/usr/bin/perl
+
+######################################################################
+#
+#  EPrints Automatic mail processor
+#
+#   This automatically processes mails in the EPrints inbox.
+#
+#   Understood subject lines:
+#
+#    join author -  add new author account for from address
+#    join reader -  add new reader account for from address
+#    change email <account> - change email for given account
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+
+use EPrints::Log;
+use EPrints::Mailer;
+use EPrints::Session;
+use EPrints::User;
+
+use EPrintSite::SiteInfo;
+
+
+my $session = new EPrints::Session( 1 );
+
+
+my( $from, $subject, $username, $password );
+
+# The message is being piped to STDIN. All we are interested in is the
+# From: and Subject: lines.
+
+while( <> )
+{
+	chomp;
+
+	if( s/^From:\s*// )
+	{
+		# From line
+		$from = &parse_from( $_ );
+	}
+	elsif( s/^Subject:\s*// )
+	{
+		$subject = $_;
+	}
+	elsif( s/^\s*USERNAME\s*//i )
+	{
+		$username = $_;
+	}
+	elsif( s/^\s*PASSWORD\s*//i )
+	{
+		$password = $_;
+	}
+}
+
+# Check we have both subject and from lines
+
+if( !defined $subject || !defined $from )
+{
+	EPrints::Log->log_entry( "process_mail",
+	                         "Error in mail: From or Subject line missing" );
+}
+elsif( $subject =~ /join\s+author/i )
+{
+	&add_user( $session, $from, 1 );
+}
+elsif( $subject =~ /join\s+reader/i )
+{
+	&add_user( $session, $from, 0 );
+}
+elsif( $subject =~ /change email/i )
+{
+	&change_email( $session, $from, $username, $password );
+}
+else
+{
+	# Don't know what to do with this email! Send it back...
+	EPrints::Mailer->prepare_send_mail(
+		"$EPrintSite::SiteInfo::sitename User",
+		$from,
+		"Re: $subject",
+		$EPrintSite::SiteInfo::template_fail_reply,
+		undef );
+}
+
+
+######################################################################
+#
+# add_user( $session, $email, $is_author )
+#
+#  Create a user account for the given mail address.
+#
+######################################################################
+
+sub add_user
+{
+	my( $session, $email, $is_author ) = @_;
+	
+	my $access_level = $EPrints::User::access_levels[$is_author];
+	
+	# Find user by email
+	my $user = EPrints::User->user_with_email( $session, $email );
+
+	if( defined $user )
+	{
+		# They've already got an account! Remind them....
+		$user->send_reminder( "You already have a user account!" );
+	}
+	else
+	{
+		# Not one already, create one
+		$user = EPrints::User->create_user_email( $session,
+		                                          $email,
+		                                          $access_level );
+		# If successful, send the introductory mail.
+		$user->send_introduction() if( defined $user );
+	}
+
+	if( !defined $user )
+	{
+		# Error creating account.
+		EPrints::Mailer->prepare_send_mail(
+			"Prospective User",
+			$from,
+			"Re: $subject",
+			$EPrintSite::SiteInfo::template_fail_user,
+			undef );
+	}
+}
+
+
+######################################################################
+#
+# change_email( $session, $from, $username, $password )
+#
+#  Change the user's email address if appropriate.
+#
+######################################################################
+
+sub change_email
+{
+	my( $session, $from, $username, $password ) = @_;
+	
+	# Verify user details
+	my $user = new EPrints::User( $session, $username );
+	
+	my $ok = defined( $user );
+
+	$ok = $ok && ( $user->{passwd} eq $password );
+	
+	# Change the email if username and password match
+	if( $ok )
+	{
+		$user->{email} = $from;
+		$ok = $user->commit();
+	}
+	
+	if( $ok )
+	{
+		# Everything OK
+		EPrints::Mailer->prepare_send_mail(
+			$user->full_name(),
+			$from,
+			"E-Mail address successfully changed",
+			$EPrintSite::SiteInfo::template_change_email,
+			$user );
+	}
+	else
+	{
+		# There was a problem, send an error
+		EPrints::Mailer->prepare_send_mail(
+			"$EPrintSite::SiteInfo::sitename User",
+			$from,
+			"E-Mail address change failed",
+			$EPrintSite::SiteInfo::template_fail_reply,
+			undef );
+	}
+}
+
+
+######################################################################
+#
+# $email = parse_from( $line )
+#
+#  Extract the email address out of a From: line. undef is returned
+#  if there is a problem.
+#
+######################################################################
+
+sub parse_from
+{
+	my( $line ) = @_;
+	my $email;
+
+	# Part of the email address spec from RFC822
+	# Don't deal with quotes in the email address
+	my $atom = q([^\x00-\x20\x7f\>\<\[\]\(\)\@\,\;\:\\\"\.\^]+);
+
+	if( m/(($atom(\.$atom)*)\@$atom(.$atom)*)/ )
+	{
+		$email = $1;
+	}
+
+	return( $email );
+}
