@@ -1,13 +1,18 @@
-<?xml version="1.0" encoding="iso-8859-1" ?>
-<!DOCTYPE archive >
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
+<!DOCTYPE archive>
 <archive id="lemurprints">
-   <hostname>lemur1.ecs.soton.ac.uk</hostname>
-   <alias redirect="no">localhost</alias>
-   <alias redirect="yes">lemur1</alias>
-   <alias redirect="yes">lemur1.ecs</alias>
-   <port>80</port>
-   <urlpath>/</urlpath>
-   <archivepath>archives/lemurprints</archivepath>
-   <configfile>cfg/config.pm</configfile>
+    <host>lemur1.ecs.soton.ac.uk</host>
+    <alias redirect="no">localhost</alias>
+    <alias redirect="yes">lemur1</alias>
+    <alias redirect="yes">lemur1.ecs</alias>
+    <port>80</port>
+    <urlpath>/</urlpath>
+    <archiveroot>/opt/eprints/archives/lemurprints</archiveroot>
+    <configmodule>/opt/eprints/archives/lemurprints/cfg/config.pm</configmodule>
+    <dbname>eprints</dbname>
+    <dbhost>localhost</dbhost>
+    <dbport></dbport>
+    <dbsock></dbsock>
+    <dbuser>eprints</dbuser>
+    <dbpass>fnord</dbpass>
 </archive>
-

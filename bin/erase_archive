@@ -32,7 +32,7 @@ my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
 exit( 1 ) unless( defined $archive );
 
 my $local_document_root = $archive->get_conf( "local_document_root" );
-my $database = $archive->get_conf( "db_name" );
+my $database = $archive->get_conf( "dbname" );
 
 my $force = ( $ARGV[1] eq "FORCE" );
 
@@ -41,9 +41,9 @@ my $force = ( $ARGV[1] eq "FORCE" );
 
 
 # make this work dammit cjg
-#if ( defined $db_host ||
-     #defined $EPrintSite::SiteInfo::db_socket ||
-     #defined $EPrintSite::SiteInfo::db_port ) 
+#if ( defined $dbhost ||
+     #defined $EPrintSite::SiteInfo::dbsock ||
+     #defined $EPrintSite::SiteInfo::dbport ) 
 #{
 	#print "\n";
 	#print "This script currently does not work with databases\n";

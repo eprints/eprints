@@ -80,11 +80,8 @@ while( $file = readdir( CFG ) )
 	my $ainfo = {};
 	my $tagname;
 	foreach $tagname ( 
-			"hostname", 
-			"urlpath", 
-			"configfile", 
-			"port", 
-			"archivepath" )
+			"host", "urlpath", "configmodule", "port", "archiveroot",
+	 		"dbname","dbhost","dbport","dbsock","dbuser","dbpass" )
 	{
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
 		if( !defined $tag )
@@ -95,15 +92,15 @@ while( $file = readdir( CFG ) )
 		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
 		$ainfo->{$tagname} = $val;
 	}
-	unless( $ainfo->{archivepath}=~m#^/# )
+	unless( $ainfo->{archiveroot}=~m#^/# )
 	{
-		$ainfo->{archivepath}= $eprints_path."/".$ainfo->{archivepath};
+		$ainfo->{archiveroot}= $eprints_path."/".$ainfo->{archiveroot};
 	}
-	unless( $ainfo->{configfile}=~m#^/# )
+	unless( $ainfo->{configmodule}=~m#^/# )
 	{
-		$ainfo->{configfile}= $ainfo->{archivepath}."/".$ainfo->{configfile};
+		$ainfo->{configmodule}= $ainfo->{archiveroot}."/".$ainfo->{configmodule};
 	}
-	$ARCHIVEMAP{$ainfo->{hostname}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
+	$ARCHIVEMAP{$ainfo->{host}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 	$ainfo->{aliases} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "alias" ) )
 	{
@@ -120,6 +117,13 @@ while( $file = readdir( CFG ) )
 closedir( CFG );
 
 ###############################################
+
+sub get_archive_config
+{
+	my( $id ) = @_;
+
+	return $ARCHIVES{$id};
+}
 
 sub get_languages
 {
@@ -175,19 +179,19 @@ sub parse_xml
 	return $doc;
 }
 
-sub load_archive_config_file
+sub load_archive_config_module
 {
 	my( $id ) = @_;
 
 	$info = $ARCHIVES{$id};
 	return unless( defined $info );
 	
-	eval{ require $info->{configfile} };	
+	eval{ require $info->{configmodule} };	
 
 	if( $@ )
 	{
-		$@=~s# at /.*##;
-		EPrints::Config::abort( "Failed to load config module for $id\nFile: $info->{configfile}\nError: $@" );
+		$@=~s#\nCompilation failed in require.*##;
+		EPrints::Config::abort( "Failed to load config module for $id\nFile: $info->{configmodule}\nError: $@" );
 	}
 
 	my $function = "EPrints::Config::".$id."::get_conf";

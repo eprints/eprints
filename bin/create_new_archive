@@ -1,13 +1,21 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
-BEGIN{ $ENV{EPRINTS_PATH} = "/opt/eprints"; }
 
 #cjg LIB
 
 use Sys::Hostname;
 use EPrints::Config;
 use EPrints::DOM;
+use EPrints::Config;
 
 use strict;
+
+my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
+my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
+my $REGEXP_HOSTNAME_FULL = '[a-z0-9]+(\.[a-z0-9]+)+';
+my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
+my $REGEXP_NUMBER = '^[0-9]+$';
+
+my %config = ();
 
 print <<END;
 
@@ -19,31 +27,52 @@ a number) eg. "lemurprints" or "test3"
 
 END
 
-my $archiveid = get_input( '^[a-z][a-z0-9]*$', 'Archive ID?' );
-
+my $archiveid = get_input( $REGEXP_VARNAME, 'Archive ID' );
 print "$archiveid\n";
 
-my( $configfile ) = $EPrints::Config::cfg_path."/conf-".$archiveid.".pm";
+my( $configfile ) = $EPrints::Config::cfg_path."/conf-".$archiveid.".xml";
 my( $archivedir ) = $EPrints::Config::base_path."/archives/".$archiveid;
 if( -e $configfile )
 {
-	print <<END;
-We have a problem: 
-A configuration file for $archiveid already exists;
-$configfile
-Bailing out.
-END
-	exit;
+	print "Config file detected:\n";
+	print "Loading from: $configfile\n";
+	my $loaded_config = EPrints::Config::get_archive_config( $archiveid );		
+	if( !defined $loaded_config )
+	{
+		print "Can't read config file.\n\n";
+		exit;
+	}	
+	foreach( keys %{$loaded_config} ) { $config{$_} = $loaded_config->{$_}; }
 }
-if( -e $archivedir )
+else
 {
-	print <<END;
-We have a problem: 
-Archive directory already exists.
-$archivedir
-Bailing out.
-END
-	exit;
+	$config{port} = 80;
+	$config{host} = undef;
+	$config{urlpath} = '/';
+	$config{archiveroot} = "archives/".$archiveid;
+	$config{configmodule} = "cfg/archive_config.pm";
+	$config{aliases} = [];
+	$config{dbname} = $archiveid;
+	$config{dbhost} = "localhost";
+	$config{dbport} = undef;
+	$config{dbsock} = undef;
+	$config{dbuser} = "eprints";
+	$config{dbpass} = undef;
+
+}
+
+unless( -e $archivedir )
+{
+	print "We need to create $archivedir, doing it now...\n";
+	unless( mkdir($archivedir) )
+	{
+		print "Problem creating directory\n\n";
+		exit;
+	}
+}
+unless( -d $archivedir )
+{	
+	print "$archivedir MUST be a directory.\n\n";
 }
 	
 print <<END;
@@ -57,7 +86,7 @@ Example: $archiveid.footle.ac.uk
 
 END
 
-my $hostname = get_input( '^[a-z0-9]+(\.[a-z0-9]+)+$', 'Hostname?' );
+$config{host} = get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
 
 print <<END;
 
@@ -66,10 +95,32 @@ to run apache on a different port if you are experimenting.
 
 END
 
-my $port = get_input( '^[0-9]+$', 'Webserver Port?', '80' );
+$config{port} = get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
+
 
 # calculate example aliases
 my $realhostname = hostname();
+if( $realhostname !~ m/\./ )
+{
+	# No dots in the actual hostname! Lets try and got the
+	# domain from resolv.conf
+	my $domain = "";
+	if( open( RESOLV, "/etc/resolv.conf" ) && 0)
+	{
+		while( <RESOLV> )
+		{
+			chomp;
+			if( m/^search\s+([^\s]+)/ )
+			{
+				$domain = $1;	
+				last;
+			}
+		}
+		close RESOLV;
+	}
+	$domain = "mydomain.com" if( $domain eq "" );
+	$realhostname.=".".$domain;
+}
 my @example_aliases = ();
 push @example_aliases,$realhostname;
 
@@ -77,7 +128,7 @@ $realhostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
 push @example_aliases,$1 if( $3 eq ".");
 push @example_aliases,$2;
 
-$hostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+$config{host}=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
 push @example_aliases,$1 if( $3 eq "." );
 push @example_aliases,$2;
 print <<END;
@@ -85,36 +136,62 @@ print <<END;
 Please enter all the aliases which could reach the archive, and indicate if 
 you would like EPrints to write a Redirect Rule to redirect requests to this
 alias to the correct URL.
-
-eg.
 END
-foreach( @example_aliases )
+if( scalar @{$config{aliases}}==0 )
 {
-	print $_."\n";
+	print "Some suggestions:\n";
+	foreach( @example_aliases )
+	{
+		print $_."\n";
+	}
 }
 print <<END;
 
-Enter an empty value when you're done.
+Enter a single hash (#) when you're done.
 
 END
 
-my @aliases = ();
+my @aliases = @{$config{aliases}};
+$config{aliases} = [];
 
 for(;;)
 {
-	my $alias = get_input( '^([a-z0-9]+(\.[a-z0-9]+)*|)$', 'Alias?' );
-	last if( $alias eq "" );
+	my $default = shift @aliases;
+	my $alias = get_input( '^'.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
+		(defined $default ? $default->{name} : '#' ) );
+	last if( $alias eq "#" );
 	my $aliasrecord = {};
 	$aliasrecord->{name} = $alias;
-	$aliasrecord->{redirect} = get_input( '^(yes|no)$',"Redirect $alias to $hostname?",'yes' );
-	push @aliases,$aliasrecord;
+	$aliasrecord->{redirect} = 
+		get_input( 
+			'^(yes|no)$',
+			"Redirect $alias to $config{host}",
+			(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
+	push @{$config{aliases}},$aliasrecord;
 	print "\n";
 }
 
-# These are hard wired for the time being
-my $urlpath = '/';
-my $archivepath = "archives/".$archiveid;
-my $configmodule = "cfg/archive_config.pm";
+print <<END;
+
+MySQL Configuration 
+
+END
+$config{dbname} = get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
+$config{dbhost} = get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
+
+print "\nYou probably don't need to set socket and port (unless you do!?).\n";
+$config{dbport} = "#" if( !defined $config{dbport} );
+$config{dbport} = get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
+$config{dbport} = undef if( $config{dbport} eq "#" );
+
+$config{dbsock} = "#" if( !defined $config{dbsock} );
+# can't remember what is a legal mysql socket... cjg
+$config{dbsock} = get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
+$config{dbsock} = undef if( $config{dbsock} eq "#" );
+
+$config{dbuser} = get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
+$config{dbpass} = get_input( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
+
 
 ######
 #
@@ -125,26 +202,28 @@ my $doc = new EPrints::DOM::Document();
 my $doctype = $doc->createDocumentType( "archive" );
 $doc->setDoctype( $doctype );
 
-my $xmldecl = $doc->createXMLDecl( "1.0", "ISO-LATIN-1", "yes" );
+my $xmldecl = $doc->createXMLDecl( "1.0", "iso-8859-1", "yes" );
 $doc->setXMLDecl( $xmldecl );
 
 my $t_archive = $doc->createElement( "archive" );
 $t_archive->setAttribute( "id", $archiveid );
 $doc->appendChild( $t_archive );
 
-$t_archive->appendChild( info_tag( $doc, "hostname", $hostname ) );
-foreach( @aliases )
+$t_archive->appendChild( info_tag( $doc, "host", $config{host} ) );
+foreach( @{$config{aliases}} )
 {
 	$t_archive->appendChild( info_tag( $doc, "alias", $_->{name}, "redirect", $_->{redirect} ) );
 }
-$t_archive->appendChild( info_tag( $doc, "port", $port ) );
-$t_archive->appendChild( info_tag( $doc, "urlpath", $urlpath ) );
-$t_archive->appendChild( info_tag( $doc, "archivepath", $archivepath ) );
-$t_archive->appendChild( info_tag( $doc, "configfile", $configmodule ) );
+foreach( "port", "urlpath", "archiveroot", "configmodule",
+	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass" )
+{
+	$t_archive->appendChild( info_tag( $doc, $_, $config{$_} ) );
+}
 $t_archive->appendChild( $doc->createTextNode( "\n" ) );
 
 print "Writing Config File to:\n$configfile...\n";
 $doc->printToFile( $configfile );
+# chmod !!! cjg
 print "...done\n\n";
 
 # Make DB!
@@ -183,14 +262,15 @@ sub get_input
 {
 	my( $regexp, $prompt, $default ) = @_;
 
-	$prompt = "?" if( !defined $prompt);
+	$prompt = "" if( !defined $prompt);
 	for(;;)
 	{
-		print $prompt." ";
+		print $prompt;
 		if( defined $default )
 		{
-			print "[$default] ";
+			print " [$default] ";
 		}
+		print "? ";
 		my $in = <STDIN>;
 		chomp $in;
 		if( $in eq "" && defined $default )

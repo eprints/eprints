@@ -68,9 +68,9 @@ print STDERR "zong\n";
 		return AUTH_REQUIRED;
 	}
 print STDERR "GRP:".$user->{usertype}."\n";
-	my $usertypedata = $session->get_archive()->get_conf( 
+	my $userauthdata = $session->get_archive()->get_conf( 
 		"userauth", $user->get_value( "usertype" ) );
-	if( !defined $usertypedata )
+	if( !defined $userauthdata )
 	{
 #cjg this is an error
 		$session->get_archive()->log(
@@ -78,11 +78,13 @@ print STDERR "GRP:".$user->{usertype}."\n";
 		$session->terminate();
 		return AUTH_REQUIRED;
 	}
-print STDERR "X2:".join(",",keys %{$usertypedata->{conf}})."\n";
-	my $rwrapper = EPrints::RequestWrapper->new( 
-			$r , 
-			$usertypedata->{conf} );
-	my $result = &{$usertypedata->{routine}}( $rwrapper );
+	my $authconfig = $userauthdata->{auth};
+	my $handler = $authconfig->{handler}; 
+	# {handler} should really be removed before passing authconfig
+	# to the requestwrapper. cjg
+print STDERR "X2:".join(",",keys %{$userauthdata->{auth}})."\n";
+	my $rwrapper = EPrints::RequestWrapper->new( $r , $authconfig );
+	my $result = &{$handler}( $rwrapper );
 	$session->terminate();
 print STDERR "***END OF AUTH***\n\n";
 	return $result;

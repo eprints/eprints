@@ -62,7 +62,7 @@ sub new_archive_by_id
 	my $self = {};
 	bless $self, $class;
 
-	$self->{config} = EPrints::Config::load_archive_config_file( $id );
+	$self->{config} = EPrints::Config::load_archive_config_module( $id );
 
 	$self->{class} = "EPrints::Config::$id";
 

@@ -45,8 +45,8 @@ my $NEXTBUFFER = 0;
 #                                            
 #  Build the string to use to connect via DBI
 #  params are:
-#     db_host, db_port, db_name and db_sock.
-#  Only db_name is required.
+#     dbhost, dbport, dbname and dbsock.
+#  Only dbname is required.
 #
 ######################################################################
 
@@ -56,18 +56,18 @@ sub build_connection_string
 	my( %params ) = @_;
 
         # build the connection string
-        my $dsn = "DBI:mysql:database=$params{db_name}";
-        if( defined $params{db_host} )
+        my $dsn = "DBI:mysql:database=$params{dbname}";
+        if( defined $params{dbhost} )
         {
-                $dsn.= ";host=".$params{db_host};
+                $dsn.= ";host=".$params{dbhost};
         }
-        if( defined $params{db_port} )
+        if( defined $params{dbport} )
         {
-                $dsn.= ";port=".$params{db_port};
+                $dsn.= ";port=".$params{dbport};
         }
-        if( defined $params{db_sock} )
+        if( defined $params{dbsock} )
         {
-                $dsn.= ";socket=".$params{db_sock};
+                $dsn.= ";socket=".$params{dbsock};
         }
         return $dsn;
 }
@@ -95,12 +95,12 @@ sub new
 	# Connect to the database
 	$self->{dbh} = DBI->connect( 
 		build_connection_string( 
-			db_host => $session->get_archive()->get_conf("db_host"),
-			db_sock => $session->get_archive()->get_conf("db_sock"),
-			db_port => $session->get_archive()->get_conf("db_port"),
-			db_name => $session->get_archive()->get_conf("db_name") ),
-	        $session->get_archive()->get_conf("db_user"),
-	        $session->get_archive()->get_conf("db_pass") );
+			dbhost => $session->get_archive()->get_conf("dbhost"),
+			dbsock => $session->get_archive()->get_conf("dbsock"),
+			dbport => $session->get_archive()->get_conf("dbport"),
+			dbname => $session->get_archive()->get_conf("dbname") ),
+	        $session->get_archive()->get_conf("dbuser"),
+	        $session->get_archive()->get_conf("dbpass") );
 
 #	        { PrintError => 0, AutoCommit => 1 } );
 

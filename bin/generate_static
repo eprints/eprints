@@ -28,7 +28,7 @@ my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
 # change to base of site so expat can find the dtd directory. cjg (still needed???)
-chdir( $session->get_archive()->get_conf( "archive_root" ) );
+chdir( $session->get_archive()->get_conf( "archiveroot" ) );
 
 print "____________________________\n";
 my $langid;

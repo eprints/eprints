@@ -27,16 +27,14 @@ use strict;
 sub get_conf
 {
 	my( $archiveinfo ) = @_;
-print STDERR "LEMURPRINTS:getconf\n";
 	my $c = {};
 
-	#cjg Normalise the conf with the XML conf?	
-	$c->{host} = $archiveinfo->{hostname};
-	$c->{archive_root} = $archiveinfo->{archivepath};
-	$c->{port} = $archiveinfo->{port};
-	#urlpath might be important? cjg
-
-	# this SHOULD just dump archiveinfo into c! cjg cjg
+	# First we import information that was configured in
+	# the XML file. It can be over-ridden, but that's 
+	# probably not a good idea.
+	foreach( keys %{$archiveinfo} ) { 
+		$c->{$_} = $archiveinfo->{$_} 
+	};
 
 
 ######################################################################
@@ -71,11 +69,11 @@ $c->{allow_user_removal_request} = 1;
 ######################################################################
 # paths
 
-$c->{config_path} = "$c->{archive_root}/cfg";
-$c->{system_files_path} = "$c->{archive_root}/sys";
-$c->{static_html_root} = "$c->{archive_root}/static";
-$c->{local_html_root} = "$c->{archive_root}/html";
-$c->{local_document_root} = "$c->{archive_root}/documents";
+$c->{config_path} = "$c->{archiveroot}/cfg";
+$c->{system_files_path} = "$c->{archiveroot}/sys";
+$c->{static_html_root} = "$c->{archiveroot}/static";
+$c->{local_html_root} = "$c->{archiveroot}/html";
+$c->{local_document_root} = "$c->{archiveroot}/documents";
 
 ######################################################################
 # URLS
@@ -96,14 +94,6 @@ $c->{frontpage} = "$c->{server_static}/";
 
 # Corresponding URL of document file hierarchy
 $c->{server_document_root} = "$c->{server_static}/archive"; 
-
-#################################################################
-#  Files
-#################################################################
-
-$c->{template_user_intro} 	= "$c->{archive_root}/cfg/template.user-intro";
-$c->{subject_config} 	= "$c->{archive_root}/cfg/subjects";
-
 
 ######################################################################
 #
@@ -196,17 +186,7 @@ $c->{wget_command} =
 
 # Command for sending mail
 $c->{sendmail_executable} = "/usr/sbin/sendmail";
-$c->{sendmail} =
-	"$c->{sendmail_executable} -oi -t -odb";
-
-# Database information: Since we hold the password here unencrypted, this
-# file should have suitable strict read permissions
-$c->{db_name} = "eprints";
-$c->{db_host} = "localhost";
-$c->{db_port} = undef;
-$c->{db_sock} = undef;
-$c->{db_user} = "eprints";
-$c->{db_pass} = "fnord";
+$c->{sendmail} = "$c->{sendmail_executable} -oi -t -odb";
 
 
 ######################################################################
@@ -218,7 +198,7 @@ $c->{db_pass} = "fnord";
 # Site specific **UNIQUE** archive identifier.
 # See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
 
-$c->{oai_archive_id} = "lemurid";
+$c->{oai_archive_id} = "GenericEPrints";
 
 
 # Exported metadata formats. The hash should map format ids to namespaces.
@@ -314,37 +294,43 @@ $c->{lang_cookie_name} = "lang";
 # We need to calculate the connection string, so we can pass it
 # into the AuthDBI config. 
 my $connect_string = EPrints::Database::build_connection_string(
-	db_name  =>  $c->{db_name}, 
-	db_port  =>  $c->{db_port},
-	db_sock  =>  $c->{db_sock}, 
-	db_host  =>  $c->{db_host}  );
+	dbname  =>  $c->{dbname}, 
+	dbport  =>  $c->{dbport},
+	dbsock  =>  $c->{dbsock}, 
+	dbhost  =>  $c->{dbhost}  );
 
 my $userdata = EPrints::DataSet->new_stub( "user" );
+
+my $UNENCRYPTED_DBI = {
+	handler  =>  \&Apache::AuthDBI::authen,
+	Auth_DBI_data_source  =>  $connect_string,
+	Auth_DBI_username  =>  $c->{dbuser},
+	Auth_DBI_password  =>  $c->{dbpass},
+	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
+	Auth_DBI_uid_field  =>  "username",
+	Auth_DBI_pwd_field  =>  "passwd",
+	Auth_DBI_grp_field  =>  "usertype",
+	Auth_DBI_encrypted  =>  "off" };
+
+my $ENCRYPTED_DBI = {
+	handler  =>  \&Apache::AuthDBI::authen,
+	Auth_DBI_data_source  =>  $connect_string,
+	Auth_DBI_username  =>  $c->{dbuser},
+	Auth_DBI_password  =>  $c->{dbpass},
+	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
+	Auth_DBI_uid_field  =>  "username",
+	Auth_DBI_pwd_field  =>  "passwd",
+	Auth_DBI_grp_field  =>  "usertype",
+	Auth_DBI_encrypted  =>  "on" };
+
+ 
  
 $c->{userauth} = {
 	user => { 
-		routine  =>  \&Apache::AuthDBI::authen,
-		conf  =>  {
-			Auth_DBI_data_source  =>  $connect_string,
-			Auth_DBI_username  =>  $c->{db_user},
-			Auth_DBI_password  =>  $c->{db_pass},
-			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
-			Auth_DBI_uid_field  =>  "username",
-			Auth_DBI_pwd_field  =>  "passwd",
-			Auth_DBI_grp_field  =>  "usertype",
-			Auth_DBI_encrypted  =>  "off" },
+		auth  => $UNENCRYPTED_DBI,
 		priv  =>  [ "user", "subscription" ] },
 	staff => { 
-		routine  =>  \&Apache::AuthDBI::authen,
-		conf  =>  {
-			Auth_DBI_data_source  =>  $connect_string,
-			Auth_DBI_username  =>  $c->{db_user},
-			Auth_DBI_password  =>  $c->{db_pass},
-			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
-			Auth_DBI_uid_field  =>  "username",
-			Auth_DBI_pwd_field  =>  "passwd",
-			Auth_DBI_grp_field  =>  "usertype",
-			Auth_DBI_encrypted  =>  "off" }, 
+		auth  => $UNENCRYPTED_DBI,
 		priv  =>  [ "tester", "subscription", "view-status" ] }
 };
 

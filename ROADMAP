@@ -12,6 +12,7 @@
 
 *	ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
 
+0	Turn off caching of on-the-fly pages?
 1	Get the Deposit Item form working
 0	"ID" fields for ISBN/userid etc.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
@@ -50,9 +51,12 @@
 0	Editor Pages -approve,bounce,filter etc.
 0	Multipage search (cache code)
 0	Multipage views
+0	remove all #cjg comments which denote issues.
+0 	Clean up phrase file - nice and non-ambiguous.
 
 *	BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
 
+1	Comment Code
 0	Bugfixing
 0	Documentation!
 0	How-Too Documentation
