@@ -31,6 +31,10 @@ my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
 my $ds = $session->get_archive()->get_dataset( $ARGV[1] ) ;
+if( !defined $ds )
+{
+	die "Bad Dataset ID";
+}
 	
 my $sexp = EPrints::SearchExpression->new( 
 		use_oneshot_cache => 1,
@@ -39,9 +43,9 @@ my $sexp = EPrints::SearchExpression->new(
 		session => $session );
 $sexp->perform_search();
 my $info = { doc => XML::DOM::Document->new() };
-print '<table name="subject">'."\n";
+print '<eprintsdata>'."\n";
 $sexp->map( \&deal, $info );
-print '</table>'."\n";
+print '</eprintsdata>'."\n";
 $session->terminate();
 
 exit;
@@ -120,8 +124,8 @@ sub mk_xml2
 		foreach( keys %{$v} )
 		{
 			my $l = $doc->createElement( "lang" );
-			$r->setAttribute( "id", $_ );
-			$r->appendChild( mk_xml3( $session, $doc, $field, $v->{$_} ) );
+			$l->setAttribute( "id", $_ );
+			$l->appendChild( mk_xml3( $session, $doc, $field, $v->{$_} ) );
 			$r->appendChild( $l );
 		}
 	}
@@ -143,7 +147,8 @@ sub mk_xml3
 		foreach( "honourific", "given", "family", "lineage" )
 		{
 			next unless( defined $v->{$_} && $v->{$_} ne "" );
-			my $e = $doc->createElement( $_ );
+			my $e = $doc->createElement( "part" );
+			$e->setAttribute( "name", $_ );
 			$e->addText( $v->{$_} );
 			$r->appendChild( $e );
 		}

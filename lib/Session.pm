@@ -29,6 +29,7 @@ use EPrints::Archive;
 use Unicode::String qw(utf8 latin1);
 use Apache;
 use CGI;
+use URI::Escape;
 # DOM runs really slowly if it checks all it's data is
 # valid...
 use XML::DOM;
@@ -419,6 +420,16 @@ sub render_data_element
 	return $f;
 }
 
+sub render_link
+{
+	my( $self, $uri, $target ) = @_;
+
+	return $self->make_element(
+		"a",
+		href=>uri_escape( $uri ),
+		target=>$target );
+}
+
 sub render_option_list
 {
 	my( $self , %params ) = @_;
@@ -633,11 +644,11 @@ sub _render_subjects_aux
 	{
 		if( $linkmode == 1 )
 		{
-			$elementx = $self->make_element( "a", href=>"edit_subject?subjectid=".$id ); 
+			$elementx = $self->render_link( "edit_subject?subjectid=".$id ); 
 		}
 		elsif( $linkmode == 2 )
 		{
-			$elementx = $self->make_element( "a", href=>"$id.html" ); 
+			$elementx = $self->render_link( "$id.html" ); 
 		}
 		else
 		{
@@ -680,11 +691,7 @@ sub render_subject_desc
 	my $frag;
 	if( $link )
 	{
-		$frag = $self->make_element(
-				"a",
-				href=>
-			$self->get_archive()->get_conf( "base_url" ).
-			"/view/".$subject->{subjectid}.".html" );
+		$frag = $self->render_link( $self->get_archive()->get_conf( "base_url" )."/view/".$subject->{subjectid}.".html" );
 	}
 	else
 	{
@@ -759,9 +766,7 @@ sub render_error
 	$page->appendChild( $self->html_phrase( "lib/session:contact" ) );
 				
 	$p = $self->make_element( "p" );
-	$a = $self->make_element( 
-			"a",
-			href => $back_to );
+	$a = $self->render_link( $back_to ); 
 	$a->appendChild( $back_to_text );
 	$p->appendChild( $a );
 	$page->appendChild( $p );

@@ -14,6 +14,7 @@ package EPrints::Latex;
 use EPrints::Session;
 
 use Digest::MD5;
+use Cwd;
 use strict;
 
 
@@ -159,7 +160,7 @@ sub texstring_to_png
 	}
 
 	# Make sure latex .aux & .log files go in this dir.
-	chdir( $cachedir );
+
 
 	$ofile = $cachedir."/".$ofile;
 
@@ -167,6 +168,9 @@ sub texstring_to_png
 	{
 		return $ofile;
 	}
+
+	my $prev_dir = cwd;
+	chdir( $cachedir );
 	my $fbase = $cachedir."/".$$;
 
 	open( TEX, ">$fbase.tex" );
@@ -184,6 +188,7 @@ END
 	$archive->exec( "convert_crop_white", SOURCE=>"$fbase.ps", TARGET=>$ofile );
 	unlink( "$fbase.aux", "$fbase.dvi", "$fbase.tex", "$fbase.ps", "$fbase.log" );
 
+	chdir( $prev_dir );
 	return $ofile;
 }
 

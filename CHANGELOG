@@ -303,3 +303,25 @@ it is.
 - moved "next" on search page to the right end of the list so it does
 not get as confusing when you goto page 2.
 
+05/02/2002
+[C] - trimed out "dc" from OAIConfig.pm again, probably not going to
+have time to add it before v2.0
+[C] - OAI: Added "format" items to unqualified DC which give format &
+URL of that doc.
+[C] - cleaned up static pages to be "nice" for version 2.0 - added in
+"powered by" images for things like apache & XHTML.
+- import_eprints now needs to know which dataset - so you can export from
+one and import into another.
+- fixed bugs in export_xml multilang bit.
+- top level tag of exported xml is now <eprintsdata> and does NOT have 
+a dataset id.
+- new Session method: render_link which creates an anchor: <a href="foo">
+it also uri_escapes the href. All places which did do make_element("a",...
+now use this instead.
+- ImportXML now also needs to know which dataset to import to.
+- everywhere theres a 'chdir' it now chdir's back to the origional dir
+again.
+- cleanded up subjects "depositable" field - now uses nice radio buttons.
+- removed uses of the word "paper(s)" to keep the text more generic.
+- cleaned up 2 errors in the CSS
+- renamed setlang to set_lang and internationalised it.

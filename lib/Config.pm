@@ -22,6 +22,7 @@ use Unicode::String qw(utf8 latin1);
 
 use Data::Dumper;
 use XML::DOM;
+use Cwd;
 
 
 BEGIN {
@@ -256,11 +257,15 @@ sub load_archive_config_module
 
 	$info = $ARCHIVES{$id};
 	return unless( defined $info );
+
+	my $prev_dir = cwd;
 	
 	eval { 
 		chdir $info->{archiveroot};
 		require $info->{configmodule};
 	};
+
+	chdir $prev_dir;
 
 	if( $@ )
 	{

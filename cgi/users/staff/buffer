@@ -77,8 +77,7 @@ else
 		# Title
 		$td = $session->make_element( "td" );
 		$tr->appendChild( $td );
-		$a = $session->make_element( "a", 
-			href=>"view_submission?eprintid=".$e->get_value("eprintid") );
+		$a = $session->render_link( "view_submission?eprintid=".$e->get_value("eprintid") );
 		$a->appendChild( $e->render_description() );
 		$td->appendChild( $a );
 		

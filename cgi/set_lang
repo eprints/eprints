@@ -30,55 +30,49 @@ my @langids = @{$session->get_archive()->get_conf( "languages" )};
 if( !defined $newlang )
 {
 	my $page = $session->make_doc_fragment;
+	$page->appendChild( $session->html_phrase( "cgi/set_lang:blurb" ) );
 	my $langid;
 	foreach $langid ( @langids )
 	{	
 		my $p = $session->make_element( "p" );
-		my $a = $session->make_element( "a", 
-				href => "setlang?langid=$langid" );
+		my $a = $session->render_link( "set_lang?langid=$langid" );
 		$a->appendChild( $session->make_text( 
 			EPrints::Config::lang_title($langid) ) );
 		$p->appendChild( $a );
 		$page->appendChild( $p );
 	}
-	$session->build_page( "Change Language", $page );#cjg INTL
+	$session->build_page( $session->html_phrase( "cgi/set_lang:title" ), $page );
         $session->send_page();
 }
 elsif( grep(/^$newlang$/,@langids) )
 {
 	my $page = $session->make_doc_fragment;
 	$session->change_lang( $newlang );
-	#print $session->start_html( "Language Changed" , $newlang );
-	my $p;
-	$p = $session->make_element( "p" );
-	$p->appendChild( $session->make_text(
-		"Language changed to: ".
-		EPrints::Config::lang_title($newlang) ) );
-	$page->appendChild( $p );
-	$p = $session->make_element( "p" );
-	$p->appendChild( $session->make_text(
-		"Default language of this archive is: ".
-		EPrints::Config::lang_title( 
-			$session->get_archive()->get_conf( "defaultlanguage" ))));
-	$page->appendChild( $p );
+	$page->appendChild( $session->html_phrase( 
+			"cgi/set_lang:changed_to",
+			lang=>$session->make_text( EPrints::Config::lang_title($newlang) ) ) );
+
+	$page->appendChild( $session->html_phrase( 
+			"cgi/set_lang:default_lang",
+			lang=>$session->make_text( EPrints::Config::lang_title( 
+				$session->get_archive()->get_conf( "defaultlanguage" ) ) ) ) );
+	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+
 	$session->new_page();
-	#cjg not langed
-	$session->build_page( "Language Changed", $page );
+	$session->build_page( $session->html_phrase( "cgi/set_lang:lang_changed" ), $page );
         $session->send_page( lang=>$newlang );
 }
 else 
 {
 	my $page = $session->make_doc_fragment;
-	my $p = $session->make_element( "p" );
-# NOT AVAILABLE/UNKNOWN  -> report if not supported by archive?cjg
-	$p->appendChild( $session->make_text(
-		"Unknown language identifier: \"$newlang\"" ) );
-	$page->appendChild( $p );
-	$session->build_page( "Language Change Failed", $page );
+	$page->appendChild( $session->html_phrase( "cgi/set_lang:unknown_lang",
+		id=>$session->make_text( $newlang ) ) );
+	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+
+	$session->build_page( $session->html_phrase( "cgi/set_lang:failed" ), $page );
         $session->send_page();
 }
 
 $session->terminate();
 
 
-#for(0..256) { my $j; for $j (1..8) { my $k=$_*256+$j; print "($_.$j = <font size=+8><b>&#$k;</b> </font>) "; } print "<BR>"; }

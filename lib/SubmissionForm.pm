@@ -1351,6 +1351,7 @@ sub _do_stage_fileview
 		confid=>'format',
 		archive=> $self->{session}->get_archive(),
 		name=>'arc_format',
+		required=>1,
 		type=>'set',
 		options => [ 
 				"plain", 
@@ -1513,10 +1514,7 @@ sub _do_stage_fileview
 				$self->{session}->phrase( 
 					"lib/submissionform:delete_all" ) ) );
 
-		$a = $self->{session}->make_element( 
-			"a", 
-			href => $self->{document}->get_url(),
-			target => "_blank" );
+		$a = $self->{session}->render_link( $self->{document}->get_url(), "_blank" );
 		$form->appendChild(
 			$self->{session}->html_phrase(
 				"lib/submissionform:here_to_view", link => $a ) );

@@ -27,15 +27,13 @@ $oai->{archive_id} = "GenericEPrints";
 # Exported metadata formats. The hash should map format ids to namespaces.
 $oai->{metadata_namespaces} =
 {
-	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/",
-	"dc"    =>  "http://purl.org/dc/elements/1.1/"
+	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
 };
 
 # Exported metadata formats. The hash should map format ids to schemas.
 $oai->{metadata_schemas} =
 {
-	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd",
-	"dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
+	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
 };
 
 # Each supported metadata format will need a function to turn
@@ -43,8 +41,7 @@ $oai->{metadata_schemas} =
 # are defined later in this file.
 $oai->{metadata_functions} = 
 {
-	"oai_dc"    =>  \&make_metadata_oai_dc,
-	"dc"    =>  \&make_metadata_oai_dc
+	"oai_dc"    =>  \&make_metadata_oai_dc
 };
 
 # Base URL of OAI
@@ -62,6 +59,7 @@ $oai->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 $oai->{sets} = [
 #	{ id=>"year", allow_null=>1, fields=>"year" },
 #	{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id" },
+	{ id=>"status", allow_null=>0, fields=>"ispublished" },
 	{ id=>"subjects", allow_null=>0, fields=>"subjects" }
 ];
 
@@ -273,9 +271,22 @@ sub eprint_to_unqualified_dc
 
 	my $ds = $eprint->get_dataset();
 	push @dcdata, [ "type", $ds->get_type_name( $session, $eprint->get_value( "type" ) ) ];
-	
+
+	# The identifier is the URL of the abstract page.
+	# possibly this should be the OAI ID, or both.
 	push @dcdata, [ "identifier", $eprint->get_url() ];
 
+	# Export the type and URL of each actual document, this
+	# is far from ideal, but DC offers no easy solution to
+	# this. This information is potentially very useful to
+	# citation linking systems, so better to have it than not.
+
+	my @documents = $eprint->get_all_documents();
+	foreach( @documents )
+	{
+		push @dcdata, [ "format", $_->get_value( "format" )." ".$_->get_url() ];
+	}
+		
 	return @dcdata;
 }
 

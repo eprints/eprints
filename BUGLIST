@@ -24,6 +24,8 @@ Apache Configuration & Page Serving
 Searching
 ----------------------------------------------------------------------
 
+- No way to search date fields.
+
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------
@@ -33,6 +35,12 @@ EPrints Submission Form
 
 - weird bug with multiple languages that they move the values around when
    you hit "more languages". Possily due to bad "squash up" code.
+
+----------------------------------------------------------------------
+EPrints Editorial Buffer
+----------------------------------------------------------------------
+
+- Can't delete or bounce an item belonging to a deleted user.
 
 ----------------------------------------------------------------------
 Installation

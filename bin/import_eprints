@@ -14,9 +14,9 @@ use EPrints::Session;
 use EPrints::ImportXML;
 use EPrints::EPrint;
 use strict;
-if( scalar @ARGV != 2 )
+if( scalar @ARGV != 3 )
 {
-	print STDERR "import_xml <siteid> <xmlfilename>\n";
+	print STDERR "import_xml <siteid> <dataset> <xmlfilename>\n";
 	exit( 1 );
 }
 #cjg Nice Command Options
@@ -28,25 +28,35 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
+
+my $ds = $session->get_archive()->get_dataset( $ARGV[1] ); 
+if( !defined $ds )
+{
+	die "doh: bad dataset";
+}
+my $dostatic = $ARGV[1] eq "archive" || $ARGV[1] eq "deletion";
+
 # Using a local so it appears in subroutines. Normally I would
 # try and avoid doing this.
 my $info =  { 
 	update_abstracts => [],
-	ds => $session->get_archive()->get_dataset( "archive" ) 
+	ds => $ds 
 };
 
-EPrints::ImportXML::import_file( $session , $ARGV[1] , \&deal, $info );
+EPrints::ImportXML::import_file( $session , $ARGV[2] , \&deal, $ds, $info );
 
-
-# Update all the abstract pages of these records and any which
-# they impact (later versions etc)
-my %done = ();
-foreach( @{$info->{update_abstracts}} )
+if( $dostatic )
 {
-	next if( $done{$_} );
-	my $eprint = EPrints::EPrint->new( $session, $info->{ds}, $_ );
-	$eprint->generate_static();
-	$done{$_} = 1;
+	# Update all the abstract pages of these records and any which
+	# they impact (later versions etc)
+	my %done = ();
+	foreach( @{$info->{update_abstracts}} )
+	{
+		next if( $done{$_} );
+		my $eprint = EPrints::EPrint->new( $session, $info->{ds}, $_ );
+		$eprint->generate_static();
+		$done{$_} = 1;
+	}
 }
 	
 $session->terminate();
@@ -57,15 +67,6 @@ sub deal
 {
 	my( $session , $table , $eprint, $info ) = @_;
 
-	#print EPrints::Session::render_struct( $eprint );
-	#print "___________________\n";
-	#print EPrints::Session::render_struct( $info );
-	#print "end\n";
-	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
-	#print "------------\n";
-
-	$eprint->set_value( "subjects" , ["blgc-bchm"] );
-	$eprint->set_value( "eprinttype" , "other" );
 	$eprint->datestamp();
 	if( $session->get_db()->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
 	{

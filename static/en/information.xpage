@@ -17,12 +17,35 @@
 <h2>About this software</h2>
 <p>This site is running software from eprints.org / revision: &version;</p>
 <p>EPrints is free software developed by the University of Southampton, England.</p>
-<p>EPrints-2 by Christopher Gutteridge, assisted by Mike Jewell.</p>
-<p>Origional version 1.0 software design and implemention by Robert Tansley.</p>
+<p><em>EPrints2</em> by <a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a>, assisted by Mike Jewell.</p>
+<p>Original version 1.0 software design and implemention by Robert Tansley.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a></p>
 
-<p><a href="http://www.mysql.com/"><img src="images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
-<a href="http://www.openarchives.org/"><img src="images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a></p>
+&ruler;
+
+<h2>Technologies employed and supported:</h2>
+
+<p align="center">
+<a href="http://www.mysql.com/"><img src="images/powered_by_mysql.gif" border="0" alt="Powered by MySQL" align="middle" /></a>
+<a href="http://www.openarchives.org/"><img src="images/OA100.gif" border="0" alt="The Open Archives Initiative" align="middle" /></a>
+<a href="http://www.w3.org/MarkUp/"><img src="images/vxhtml10.gif" border="0" alt="Powered by XHTML" align="middle" /></a>
+<a href="http://jigsaw.w3.org/css-validator/"><img border="0" align="middle" src="/images/vcss.gif" alt="Valid CSS!" /></a>
+<a href="http://perl.apache.org/"><img border="0" align="middle" src="/images/mod_perl.gif" alt="Powered by mod_perl!" /></a>
+<a href="http://www.apache.org/"><img src="images/apache_pb.gif" border="0" alt="Powered by Apache" align="middle" /></a>
+<br />
+<a href="http://www.w3c.org/XML/">XML</a> &amp; 
+<a href="http://www.w3c.org/DOM/">DOM</a> 
+</p>
+
+&ruler;
+
+<p align="center">
+Developed at the <a href="http://www.ecs.soton.ac.uk/">Department of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.
+<br />
+<a href="http://www.soton.ac.uk/"><img src="images/uoslogo.gif" border="0" alt="University of Southampton" align="top" /></a>
+<a href="http://www.ecs.soton.ac.uk/"><img src="images/ecslogo.gif" border="0" alt="Department of Electronics and Computer Science" align="top" /></a>
+</p>
+
 
 </ep:body>
 </ep:page>

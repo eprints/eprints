@@ -22,6 +22,7 @@ use EPrints::EPrint;
 use EPrints::Database;
 use EPrints::Language;
 
+use URI::Escape;
 use strict;
 # order method not presercved.
 
@@ -850,8 +851,8 @@ sub process_webpage
 		if( $offset > 0 ) 
 		{
 			my $bk = $offset-$pagesize;
-			my $href = "$url?_exp=$escexp&_offset=".($bk<0?0:$bk);
-			$a = $self->{session}->make_element( "a", href=>$href );
+			my $fullurl = "$url?_exp=$escexp&_offset=".($bk<0?0:$bk);
+			$a = $self->{session}->render_link( $fullurl );
 			my $pn = $pagesize>$offset?$offset:$pagesize;
 			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:prev",
 						n=>$self->{session}->make_text( $pn ) ) );
@@ -859,22 +860,22 @@ sub process_webpage
 			$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Prev",
-							href=>$href ) );
+							href=>uri_escape( $fullurl ) ) );
 		}
 
-		$a = $self->{session}->make_element( "a", href=>"$url?_exp=$escexp&_action_update=1" );
+		$a = $self->{session}->render_link( "$url?_exp=$escexp&_action_update=1" );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:refine" ) );
 		$controls->appendChild( $a );
 		$controls->appendChild( $self->{session}->html_phrase( "lib/searchexpression:seperator" ) );
 
-		$a = $self->{session}->make_element( "a", href=>$url );
+		$a = $self->{session}->render_link( $url );
 		$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:new" ) );
 		$controls->appendChild( $a );
 
 		if( $offset + $pagesize < $n_results )
 		{
-			my $href="$url?_exp=$escexp&_offset=".($offset+$pagesize);
-			$a = $self->{session}->make_element( "a", href=>$href );
+			my $fullurl="$url?_exp=$escexp&_offset=".($offset+$pagesize);
+			$a = $self->{session}->render_link( $fullurl );
 			my $nn = $n_results - $offset - $pagesize;
 			$nn = $pagesize if( $pagesize < $nn);
 			$a->appendChild( $self->{session}->html_phrase( "lib/searchexpression:next",
@@ -883,7 +884,7 @@ sub process_webpage
 			$controls->appendChild( $a );
 			$links->appendChild( $self->{session}->make_element( "link",
 							rel=>"Next",
-							href=>$href ) );
+							href=>uri_escape( $fullurl ) ) );
 		}
 
 		$page->appendChild( $controls );

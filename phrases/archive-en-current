@@ -21,7 +21,7 @@
     <ep:phrase ref="eprint_fieldhelp_abstract">Please enter the abstract of your deposit. You can easily copy and paste it into this box. </ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_altloc">Alternative Locations</ep:phrase>
-    <ep:phrase ref="eprint_fieldhelp_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the item itself, and not just the hosting website.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_authors">Authors</ep:phrase>
     <ep:phrase ref="eprint_fieldname_authors_id">Person ID</ep:phrase>
@@ -34,7 +34,7 @@
     <ep:phrase ref="eprint_fieldhelp_note">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_commref">Commentary on</ep:phrase>
-    <ep:phrase ref="eprint_fieldhelp_commref">If your deposit is a commentary on a paper <strong>that is not in this archive</strong>, please enter the full reference of the paper here.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_commref">If your deposit is a commentary on a item <strong>that is not in this archive</strong>, please enter the full reference of the item here.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_confdates">Conference Date</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_confdates">Please enter when the conference took place.</ep:phrase>
@@ -83,7 +83,7 @@
     <ep:phrase ref="eprint_fieldhelp_number">Enter the issue number of the journal in which your deposit appeared.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_pages">Pages</ep:phrase>
-    <ep:phrase ref="eprint_fieldhelp_pages">Please enter the (inclusive) range of pages in which your paper appeared.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_pages">Please enter the (inclusive) range of pages in which your item appeared.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_pubdom">Public Domain</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_pubdom">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</ep:phrase>
@@ -100,7 +100,7 @@
     <ep:phrase ref="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_referencetext">References</ep:phrase>
-    <ep:phrase ref="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your paper into the box below. It will be used to link your paper to those it cites and to those that cite it.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It will be used to link your item to those it cites and to those that cite it.</ep:phrase>
 
     <ep:phrase ref="eprint_fieldname_reportno">Report no.</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_reportno">Please enter the report number.</ep:phrase>
@@ -153,6 +153,7 @@
 <!-- Browse Views Names -->
 
     <ep:phrase ref="viewname_eprint_people">Person</ep:phrase>
+    <ep:phrase ref="viewname_eprint_status">Status</ep:phrase>
     <ep:phrase ref="viewname_eprint_year">Year</ep:phrase>
     <ep:phrase ref="viewname_eprint_subjects">Subject</ep:phrase>
 
@@ -292,12 +293,12 @@ Not actually written yet!
 <p>&perl_url;/users/subscribe</p>
 -->
 
-<p>Before you can start uploading papers, you need to fill out some personal
+<p>Before you can start uploading items, you need to fill out some personal
 details into the form at the following web site:</p>
 
 <p>&perl_url;/users/record</p>
 
-<p>After you've successfully filled out that form, you can deposit papers at
+<p>After you've successfully filled out that form, you can deposit items at
 the following Web address:</p>
 
 <p>&userhome;</p>

@@ -11,7 +11,7 @@ body {
 }
 .footer 
 {
-	padding-above: 1em;
+	padding-top: 8px;
 }
 
 .footer TABLE
@@ -140,6 +140,6 @@ dt {
         border-style: solid;
         border-color: #000000 ;
         background-color: #f0f0f0;
-	font-decoration: none;
+	text-decoration: none;
 }
 

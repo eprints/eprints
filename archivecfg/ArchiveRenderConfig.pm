@@ -81,10 +81,7 @@ sub eprint_render
 		{
 			$page->appendChild( $session->html_phrase( 
 				"page:not_latest_version",
-				link => $session->make_element(
-					"a",
-					href => $latest->get_url() 
-								) ) );
+				link => $session->render_link( $latest->get_url() ) ) );
 		}
 	}		
 

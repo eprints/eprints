@@ -794,7 +794,10 @@ sub upload_url
 			CUTDIRS => $cut_dirs,
 			URL => $url );
 	
+	chdir $prev_dir;
+
 	# If something's gone wrong...
+
 	return( 0 ) if ( $rc!=0 );
 
 	# Otherwise set the main file if appropriate

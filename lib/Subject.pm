@@ -41,7 +41,8 @@ sub get_system_field_info
 
 		{ name=>"ancestors", type=>"text", required=>0, multiple=>1 },
 
-		{ name=>"depositable", type=>"boolean", required=>1 },
+		{ name=>"depositable", type=>"boolean", required=>1,
+			input_style=>"radio" },
 	);
 }
 

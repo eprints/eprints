@@ -144,7 +144,7 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	{
 		next if( $_->{nolink} );
 		$li = $session->make_element( "li" );
-		$a = $session->make_element( "a", href=>$_->{id}."/" );
+		$a = $session->render_link( $_->{id}."/" );
 		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $_->{id} ) ) );
 		$li->appendChild( $a );
 		$ul->appendChild( $li );
@@ -335,7 +335,7 @@ sub make_view_pages
 			$fileid = $value;
 			if( $fileid eq "" ) { $fileid = "NULL"; }
 			$li = $session->make_element( "li" );
-			$a = $session->make_element( "a", href=>$fileid.".html" );
+			$a = $session->render_link( $fileid.".html" );
 			$a->appendChild( $fields[0]->get_value_label( $session, $value ) );
 			$a->appendChild( $session->make_text( " (".$size{$value}.")" ) );
 			$li->appendChild( $a );

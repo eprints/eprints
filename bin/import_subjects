@@ -123,7 +123,7 @@ associated with it.
 
 This is the standard eprints export format. It looks like this:
 
-  <table name="subject">
+  <eprintsdata>
     <record>
       <field name="subjectid">phys</field>
       <field name="name"><lang id="en">Physical Sciences &amp; Mathematics</lang></field>
@@ -133,7 +133,7 @@ This is the standard eprints export format. It looks like this:
     .
     .
     .
-  </table>
+  </eprintsdata>
 
 The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the archive. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
 
@@ -148,8 +148,6 @@ based on code by Rob Tansley
 
 
 =cut
-
-
 
 
 
@@ -199,7 +197,6 @@ if( !defined $filename )
 	$filename.= ".xml" if( $xml );
 }
 
-
 unless( $force )
 {
 	if( $noise > 0 )
@@ -231,12 +228,14 @@ if( $purge )
 	}
 }
 
+my $subds = $session->get_archive()->get_dataset( "subject" );
+
 print "Importing from $filename...\n" if( $noise >= 1 );
 my $count = 0;
 if( $xml )
 {
 	my $info =  { noise=>$noise, count=>0 }; 
-	EPrints::ImportXML::import_file( $session , $filename , \&deal, $info );
+	EPrints::ImportXML::import_file( $session , $filename , \&deal, $subds, $info );
 	$count = $info->{count};
 }
 else
@@ -245,7 +244,6 @@ else
 }
 print "Done importing $count subjects from $filename\n" if( $noise >= 1 );
 print "Reindexing subject dataset to set ancestor data\n" if( $noise >= 1 );
-my $subds = $session->get_archive()->get_dataset( "subject" );
 $subds->reindex( $session );
 print "Done reindexing\n" if( $noise >= 1 );
 

@@ -37,7 +37,7 @@ sub process
 
 	my $page = $session->make_doc_fragment();
 
-	my $a = $session->make_element( "a", href=>"user?userid=$userid" );
+	my $a = $session->render_link( "user?userid=$userid" );
 	$page->appendChild( $session->html_phrase( 
 		"cgi/user_eprints:record_link",
 		userlink=>$a ) );

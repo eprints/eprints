@@ -474,7 +474,7 @@ sub _render_value1
 		{
 			my $url = $session->get_archive()->get_conf( "base_url" ).
 					"/view/".$self->{browse_link}."/".$value.".html";
-			my $a = $session->make_element( "a", href=>$url );
+			my $a = $session->render_link( $url );
 			$a->appendChild( $rendered );
 			return $a;
 		}
@@ -552,7 +552,7 @@ sub _render_value3
 
 	if( $self->is_type( "url" ) )
 	{
-		my $a = $session->make_element( "a", href=>$value );
+		my $a = $session->render_link( $value );
 		$a->appendChild( $session->make_text( $value ) );
 		return $a;
 	}
@@ -564,7 +564,7 @@ sub _render_value3
 		{
 			return $text;
 		}
-		my $a = $session->make_element( "a", href=>"mailto:".$value );
+		my $a = $session->render_link( "mailto:".$value );
 		$a->appendChild( $text );
 		return $a;
 	}

@@ -41,7 +41,7 @@ else
 	$session->build_page( 
 		$session->html_phrase( "cgi/users/edit_subject:intro_title" ),
 		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
-			continuelink=>$session->make_element( "a", href=>"edit_subject?subjectid=".$EPrints::Subject::root_subject ) ) ); 
+			continuelink=>$session->render_link( "edit_subject?subjectid=".$EPrints::Subject::root_subject ) ) ); 
 	$session->send_page();
 }
 
@@ -238,7 +238,7 @@ sub mkpage_editsubject
 		$tr = $session->make_element( "tr" );
 
 		$td = $session->make_element( "td", align=>"left");
-		$a = $session->make_element( "a", href=>"edit_subject?subjectid=".$_->get_value( "subjectid" ) );
+		$a = $session->render_link( "edit_subject?subjectid=".$_->get_value( "subjectid" ) );
 		$a->appendChild( $_->render_description() );
 		$td->appendChild( $a );
 		$tr->appendChild( $td );

@@ -59,10 +59,7 @@
 2	Web-based Email Change
 -	Password Encryption. (Via callback)
 -	Autodetect optional system features: microtime, df etc.
-0	Field property: freetext (or not-freetext) to stop indexing)
-0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 -	Option to hide Honourific and/or Lineage.
-0	Commentary summary page (Psycoloquy style)
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 -	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 -	Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
@@ -72,15 +69,17 @@
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
 -	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology. But make it optional.
-1	Indexing on name fields(?)
 -	different looks for boolean/opts eg. check/radio boxes.
 -	Allow users to request a username when registering.
 -	Bulk XML Dumper
 
-*	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
+*	Milestone "Olive" 
 
 #	OAI support working.
 
+0	Field property: freetext (or not-freetext) to stop indexing)
+0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
+0	Commentary summary page (Psycoloquy style)
 0	Translate Initial phrases and templates into French
 1	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Alerts for editors about things they can edit (flag in User fields?)
@@ -108,7 +107,7 @@
 4	VLit/Xanadu interface(!)
 
 
-*	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
+*	Milestone "Tomato" 
 
 0	Alternate config files for simple english only archives.
 1	Formally Comment Code
@@ -117,7 +116,7 @@
 0	How-To Documentation
 0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
 
-*	Milestone "Double Cheese" : EPrints 2.0
+*	Milestone "Double Cheese"
 
 # -	EPrints 1 : Make it do OAI 1.1
 # -	Improve name search to handle ","s
@@ -161,17 +160,11 @@
 # robots.txt file
 
 #---- MIKE----
-# Post Upgrading people should re-run generate_apacheconf and restart the server.
-# Comment out the line in XML::DOM which calls deb() from ExternEnt [mike] NR
 # bibtex, 
 # whatsnew, 
 # importer
-#	import_xml becomes import_foo etc. eprint/user/whatever. NR [mike]
-# 	Make man pages from /bin etc build into docs. NR [mike]
-# SystemSettings needs the new latex stuff. and add ' to all invocations.  NR [mike]
-# XML GDOME readyness NR
+# XML GDOME readyness [screw this for now]
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm NR [mike]
-# URI escape ALL href calls NR. [mike]
 # -------------
 
 # lose all die statements
@@ -181,17 +174,17 @@
 # EASY
 # OAI - cache timeouts. NR
 # Check out Subscription dataset: sensible values even if not used yet.
-# better initial INDEX page.
+# 	Make man pages from /bin etc build into docs. NR 
 
 # HARD
-#	Make SearchFields have a better call method. NR
 #  Qualified Dublin Core NR
+#  Make SearchFields have a better call method. NR
 # NR: Email Change
 # clean up comments
 # clean up metadata (inc. boolean rendering):q
-# clean up setlang
+# tidy up VLit
 
 # Xhtml docs: [gui]
 
-# todo: TTTTTTtttbbbbbbbmmmmmmmmg
+# todo: TTTTTttttbbbbbmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

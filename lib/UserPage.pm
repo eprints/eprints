@@ -99,7 +99,7 @@ sub process
 	{
 		$url = $session->get_archive()->get_conf( "perl_url" )."/user_eprints?userid=$userid";
 	}
-	my $link = $session->make_element( "a", href=>$url );	
+	my $link = $session->render_link( $url );	
 
 	$page->appendChild( $session->html_phrase( 
 				"lib/userpage:number_of_records",

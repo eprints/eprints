@@ -104,7 +104,7 @@ if( !$valid_user )
 ### Change author record
 
 $dt = $session->make_element( "dt" );
-$a = $session->make_element( "a", href => "record" );
+$a = $session->render_link( "record" );
 $a->appendChild( $session->html_phrase( "cgi/users/home:change_link" ) );
 $dt->appendChild( $a );
 $dl->appendChild( $dt );
@@ -178,7 +178,7 @@ if( $valid_user )
 		next unless $user->has_priv( $tool->{priv} );
 	
 		$dt = $session->make_element( "dt" );
-		$a = $session->make_element( "a", href => $tool->{page} );
+		$a = $session->render_link( $tool->{page} );
 		$a->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{code}."_link" ) );
 		$dt->appendChild( $a );
 		$dl->appendChild( $dt );

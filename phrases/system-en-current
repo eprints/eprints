@@ -151,7 +151,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:enter_files"><p>Please enter the filenames (with full paths) of the document files in the boxes below.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:fix_probs">Before you deposit this entry to the archive, the following problems need to be corrected:</ep:phrase>
     <ep:phrase ref="lib/submissionform:please_verify"><p><strong>You have not finished yet!</strong></p><p>Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.</p><p>When you are satisfied click the submit button at the foot of this page.</p></ep:phrase>
-    <ep:phrase ref="lib/submissionform:thanks"><p>Thank you.</p><p>Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</p><p><a href="home">Click here to return to your deposit papers page</a></p></ep:phrase>
+    <ep:phrase ref="lib/submissionform:thanks"><p>Thank you.</p><p>Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</p><p><a href="home">Click here to return to your deposit page</a></p></ep:phrase>
     <ep:phrase ref="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this entry? <ep:pin ref="title" /></p></ep:phrase>
     <ep:phrase ref="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</ep:phrase>
     <ep:phrase ref="lib/submissionform:please_complete">Please complete the form before continuing.</ep:phrase>
@@ -182,9 +182,9 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:title_error">Error</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_return">Return to Author's Home</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_confirmdel">Confirm Deletion</ep:phrase>
-    <ep:phrase ref="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your paper depositing page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin ref="line_no" />)</ep:phrase>
+    <ep:phrase ref="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your user page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin ref="line_no" />)</ep:phrase>
     <ep:phrase ref="lib/submissionform:database_err">There's been a problem accessing the archive database. Please try again later. #cjg# could be old no disk0 problem... (Code <ep:pin ref="line_no" /></ep:phrase>
-    <ep:phrase ref="lib/submissionform:nosel_err">You hadn't selected a paper to edit, clone, delete or deposit!</ep:phrase>
+    <ep:phrase ref="lib/submissionform:nosel_err">You hadn't selected an item to edit, clone, delete or deposit!</ep:phrase>
     <ep:phrase ref="lib/submissionform:delete">Delete</ep:phrase>
     <ep:phrase ref="lib/submissionform:delete_all">Delete All Files</ep:phrase>
     <ep:phrase ref="lib/submissionform:format">Format</ep:phrase>
@@ -217,7 +217,7 @@ EPrints Modules
 
     <ep:phrase ref="lib/userform:dont_know">I don't know who you are</ep:phrase>
     <ep:phrase ref="lib/userform:record_for">Record for <ep:pin ref="name" /></ep:phrase>
-    <ep:phrase ref="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your papers. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <span class="requiredstar">*</span> to start using the archive.</p><p>For instructions on how to change your e-mail address, <a href="&perl_url;/users/set_email">click here</a>.</p></ep:phrase>
+    <ep:phrase ref="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your items. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a <span class="requiredstar">*</span> to start using the archive.</p><p>For instructions on how to change your e-mail address, <a href="&perl_url;/users/set_email">click here</a>.</p></ep:phrase>
     <ep:phrase ref="lib/userform:staff_blurb"><p>You may update the users record.</p></ep:phrase>
     <ep:phrase ref="lib/userform:form_incorrect"><p>The form doesn't seem to be filled out correctly:</p></ep:phrase>
     <ep:phrase ref="lib/userform:complete_form"><p>Please complete the form before continuing.</p></ep:phrase>
@@ -505,6 +505,16 @@ Public CGI Scripts
     <ep:phrase ref="cgi/search:simple_search">Simple Search</ep:phrase>
     <ep:phrase ref="cgi/search:preamble"><p><a href="advsearch">Click here for an advanced search</a></p></ep:phrase>
 
+<!-- setlang -->
+
+    <ep:phrase ref="cgi/set_lang:title">Change Language</ep:phrase>
+    <ep:phrase ref="cgi/set_lang:blurb"><p>Choose your prefered language:</p></ep:phrase>
+    <ep:phrase ref="cgi/set_lang:changed_to"><p>Prefered language set to <ep:pin ref="lang" /></p></ep:phrase>
+    <ep:phrase ref="cgi/set_lang:default_lang"><p>The default language of this archive is <ep:pin ref="lang" /></p></ep:phrase>
+    <ep:phrase ref="cgi/set_lang:lang_changed">Language Changed</ep:phrase>
+    <ep:phrase ref="cgi/set_lang:unknown_lang"><p>Unknown Language id: &quot;<ep:pin ref="id" />&quot;.</p></ep:phrase>
+    <ep:phrase ref="cgi/set_lang:failed">Language Change Failed</ep:phrase>
+
 <!-- user -->
 
 <!-- user_eprints -->
@@ -595,7 +605,7 @@ Titles and Help for the System Fields
     <ep:phrase ref="eprint_fieldname_succeeds">Later Version of</ep:phrase>
     <ep:phrase ref="eprint_fieldhelp_succeeds">If this document is a revised version of another document in the archive, please enter its ID code in this box.</ep:phrase>
     <ep:phrase ref="eprint_fieldname_commentary">Commentary on</ep:phrase>
-    <ep:phrase ref="eprint_fieldhelp_commentary">If your paper is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</ep:phrase>
+    <ep:phrase ref="eprint_fieldhelp_commentary">If your item is a commentary on another document (or author's response to a commentary) in the archive, please enter its ID in this box.</ep:phrase>
     <ep:phrase ref="eprint_fieldname_replacedby">Replaced by</ep:phrase>
 
     <ep:phrase ref="user_fieldname_userid">User ID Number</ep:phrase>
@@ -623,6 +633,10 @@ Titles and Help for the System Fields
 
     <ep:phrase ref="subject_fieldname_name">Subject Name</ep:phrase>
     <ep:phrase ref="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</ep:phrase>
+    <ep:phrase ref="subject_fieldname_parents">Subject Parents Subject(s)</ep:phrase>
+    <ep:phrase ref="subject_fieldname_depositable">Depositable</ep:phrase>
+    <ep:phrase ref="subject_fieldhelp_depositable">Can users add items to this subject?</ep:phrase>
+    <ep:phrase ref="subject_radio_depositable"><ep:pin ref="true" />Yes, users can add records to this subject.<br /><ep:pin ref="false" />No. (In which case it should probably have some children.</ep:phrase>
 
 
 </ep:phrases>

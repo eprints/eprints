@@ -27,7 +27,7 @@ use XML::Parser;
 
 sub import_file
 {
-	my( $session , $filename , $function, $theirinfo ) = @_;
+	my( $session , $filename , $function, $dataset, $theirinfo ) = @_;
 	my $parser = new XML::Parser(
 		Style => "Subs", 
 		Handlers => { 
@@ -39,6 +39,13 @@ sub import_file
 	$parser->{eprints}->{session} = $session;
 	$parser->{eprints}->{theirinfo} = $theirinfo;
 	$parser->{eprints}->{function} = $function;
+	$parser->{eprints}->{fields} = {};
+	foreach( $dataset->get_fields() )
+	{
+		$parser->{eprints}->{fields}->{$_->{name}}=$_;
+	}
+	$parser->{eprints}->{dataset} = $dataset;
+print `pwd`;
 	$parser->parsefile( $filename );
 }
 
@@ -46,27 +53,14 @@ sub _handle_start
 {
 	my( $parser , $tag , %params ) = @_;
 	$tag = uc($tag);
-	if( $tag eq "TABLE" )
+	if( $tag eq "EPRINTSDATA" )
 	{
-		if( defined $parser->{eprints}->{ds} )
+		if( $parser->{eprints}->{started} )
 		{
-			$parser->xpcroak( "TABLE inside TABLE" );
+			$parser->xpcroak( "EPRINTSDATA inside EPRINTSDATA" );
 		}
-print "P:".join(",",keys %params).":\n";
-print "T:".$params{name}."\n";
+		$parser->{eprints}->{started} = 1;
 	
-		my $ds = $parser->{eprints}->{session}->get_archive()->get_dataset( $params{name} );
-
-		unless( $ds )
-		{
-			$parser->xpcroak( "unknown table: $params{name}" );
-		}
-		$parser->{eprints}->{fields} = {};
-		foreach( $ds->get_fields() )
-		{
-			$parser->{eprints}->{fields}->{$_->{name}}=$_;
-		}
-		$parser->{eprints}->{dataset} = $ds;
 		return;
 	}
 
@@ -136,7 +130,7 @@ sub _handle_end
 {
 	my ( $parser , $tag ) = @_;
 	$tag = uc($tag);
-	if ( $tag eq "TABLE" )
+	if ( $tag eq "EPRINTSDATA" )
 	{
 		delete $parser->{eprints}->{ds};
 		delete $parser->{eprints}->{fields};
@@ -145,7 +139,6 @@ sub _handle_end
 
 	if ( $tag eq "RECORD" )
 	{
-
 
 		my $ds = $parser->{eprints}->{dataset};
 		my $item = $ds->make_object(

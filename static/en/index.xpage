@@ -6,32 +6,58 @@
 <ep:title>Welcome to &archivename;</ep:title>
 <ep:body>
 
-<p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/">eprints.org archive software</a>. <a href="information.html">More information</a> is available about the archive.</p>
+<p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/">eprints.org archive software</a>.</p>
+
+<p><a href="information.html">More information</a> is available about the archive.</p>
 
 &ruler;
 
-<p>This version ( &version; ) is still alpha code.</p>
+<form method="get" accept-charset="utf-8" action="/perl/search">
+<p align="center"><b>Search the Titles, Abstracts and Keywords</b><br />
+<input accept-charset="utf-8" size="40" type="text" name="abstract/keywords/title" /> 
+<input type="hidden" name="_order" value="bytitle" />
+<input type="hidden" name="abstract/keywords/title_srchtype" value="ALL" />
+<input type="hidden" name="_satisfyall" value="ALL" />
+<input class="actionbutton" value="Search" type="submit" name="_action_search" /> </p>
+</form>
 
-<ul>
- <li><a href="&perl_url;/set_password">User Registration</a> - allows you to:
- <ul>
-  <li>submit records into the review buffer</li>
-  <li>edit your user record</li>
- </ul></li>
- <li><a href="&perl_url;/search">Search</a> - assuming there is any data in the archive.</li>
- <li><a href="&base_url;/view/">Browse</a> - Browse the database.</li>
- <li><a href="&userhome;">User Area</a> - should work once you've registered.</li>
-</ul>
+&ruler;
 
-<p>Suggestions may be made to the mailing lists, see <a href="http://www.eprints.org">eprints.org</a> for more info.</p>
+<dl>
 
-<address>
-support@eprints.org<br />
-The <strong>eprints.org</strong> team.<br />
-University of Southampton.<br />
-+44 23 8059 4833</address>
+ <dt><a href="&base_url;/view/">Browse</a></dt>
+ <dd><p>Browse the archive by <a href="&base_url;/view/subjects/">Subject</a> or <a href="&base_url;/view/year/">Year</a>.</p></dd>
+
+ <dt><a href="&perl_url;/search">Simple Search</a></dt>
+ <dd><p>Search the archive using the most common fields.</p></dd>
+
+ <dt><a href="&perl_url;/advsearch">Advanced Search</a></dt>
+ <dd><p>Search the archive using a more complex range of fields.</p></dd>
+
+ <dt><a href="&userhome;">Registered Users Area</a></dt>
+ <dd><p>Registered users may submit items to the archive.</p></dd>
+
+ <dt><a href="&perl_url;/set_password">Register</a></dt>
+ <dd><p>Register for an account (or reset a forgotten password).</p></dd>
+
+</dl>
 
 
+&ruler;
+
+<table width="100%"><tr>
+
+<td>
+
+ <p>&archivename; is running on <em>EPrints2</em> archive-creating software, which generates eprints archives that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1</a>.</p>
+
+ <p>The eprints.org archive-creating software is available for free at <a href="http://www.eprints.org/">http://www.eprints.org/</a>.</p>
+
+</td>
+<td>
+ <a href="http://www.eprints.org/"><img src="&base_url;/images/logo_small.gif" width="100" height="100" border="0" alt="EPrints.org" /></a>
+</td>
+</tr></table>
 
 
 </ep:body>
