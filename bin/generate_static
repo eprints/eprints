@@ -30,19 +30,23 @@ exit( 1 ) unless( defined $session );
 # change to base of site so expat can find the dtd directory. cjg (still needed???)
 chdir( $session->get_archive()->get_conf( "archiveroot" ) );
 
-print "____________________________\n";
 my $langid;
 my $generalpath = $session->get_archive()->get_conf( "static_html_root" )."/general";
+my $errcnt = 0;
 foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
-	print $langid."\n";
+	#print $langid."\n";
 	my $basepath = $session->get_archive()->get_conf( "static_html_root" ).
 	               "/$langid";
 	my $func;
-	$func = sub { generate_static( $langid, $basepath, $session ) };
+	$func = sub { generate_static( $langid, $basepath, $session, \$errcnt ) };
 	find( { wanted=>$func, follow=>1 }, $basepath );
-	$func = sub { generate_static( $langid, $generalpath, $session ) };
+	$func = sub { generate_static( $langid, $generalpath, $session, \$errcnt ) };
 	find( { wanted=>$func, follow=>1 }, $generalpath );
+}
+if( $errcnt )
+{
+	print "Errors Encountered: $errcnt\n";
 }
 exit;
 
@@ -52,7 +56,7 @@ $session->terminate();
 
 sub generate_static
 {
-	my( $langid , $basepath , $session ) = @_;
+	my( $langid , $basepath , $session, $errcnt ) = @_;
 	# Ignore CVS directories
 	return if( $File::Find::name =~ /\/CVS/ );
 	$session->change_lang( $langid );
@@ -63,7 +67,8 @@ sub generate_static
 	              "/$langid";
 	$destination_filename =~ s/$basepath/$newpath/;
 
-print STDERR "$File::Find::name -> $destination_filename\n";
+#cjg cmd line flag for verbose/quiet?
+#print STDERR "$File::Find::name -> $destination_filename\n";
 	
 	if( -d $File::Find::name )
 	{
@@ -88,13 +93,15 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 
 			if( !defined $doc )
 			{
-				print STDERR "Could not load file\n";
+				print STDERR "Could not load file: $File::Find::name\n";
+				$$errcnt++;
 				return;
 			}
 			my $page = ($doc->getElementsByTagName( $mode ))[0];
 			if( !defined $page )
 			{
 				print STDERR "Error: no $mode element in ".$File::Find::name."\n";
+				$$errcnt++;
 				return;
 			}
 
@@ -111,6 +118,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				{
 					print STDERR "Error: no title element in ".$File::Find::name."\n";
 					$page->dispose();
+					$$errcnt++;
 					return;
 				}
 				my $titletext = "";
@@ -124,8 +132,9 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				   ($page->getElementsByTagName( "body" ))[0];
 				if( !defined $main )
 				{
-					print STDERR "Error: no main element in ".$File::Find::name."\n"
+					print STDERR "Error: no main element in ".$File::Find::name."\n";
 					$page->dispose();
+					$$errcnt++;
 					return;
 				}
 				$page->removeChild( $main );

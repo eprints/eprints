@@ -81,7 +81,7 @@ $CJGDEBUG = 1 if( $realid eq "estiny.totl.net" || $realid eq "lemur" );
 # paths
 
 $c->{config_path} = $c->{archiveroot}."/cfg";
-$c->{system_files_path} = $c->{archiveroot}."/sys";
+$c->{system_files_path} = $c->{archiveroot}."/cfg";
 $c->{static_html_root} = $c->{archiveroot}."/cfg/static";
 $c->{local_html_root} = $c->{archiveroot}."/html";
 $c->{local_document_root} = $c->{archiveroot}."/documents";
@@ -1801,7 +1801,12 @@ sub validate_eprint_meta
 sub log
 {
 	my( $archive, $message ) = @_;
-	print STDERR "EPRINTS(".$archive->get_id().") ".$message."\n";
+
+	print STDERR $message."\n";
+
+	# You may wish to use this line instead if you have many archives, but if you
+	# only have on then it's just more noise.
+	#print STDERR "[".$archive->get_id()."] ".$message."\n";
 }
 
 sub set_document_defaults

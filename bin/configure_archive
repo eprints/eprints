@@ -61,7 +61,7 @@ if( scalar EPrints::Config::get_archive_ids() )
 
 my $archiveid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
 
-my( $configfile ) = EPrints::Config::get( "cfg_path" )."/conf-".$archiveid.".xml";
+my( $configfile ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid.".xml";
 my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
 
 my $loaded_config = EPrints::Config::get_archive_config( $archiveid );		
@@ -405,7 +405,7 @@ if( $mkfiles eq "yes" )
 		$archivedir."/cfg",
 		$archiveid );
 
-	foreach( "html", "documents", "sys" )
+	foreach( "html", "documents" )
 	{
 		my $dir = $archivedir."/".$_;
 		mkdir( $dir, 0755 );

@@ -62,10 +62,12 @@ foreach( keys %{$EPrints::SystemSettings::conf} )
 {
 	$SYSTEMCONF{$_} = $EPrints::SystemSettings::conf->{$_};
 }
+# cjg Should these be hardwired? Probably they should.
 $SYSTEMCONF{cgi_path} = $SYSTEMCONF{base_path}."/cgi";
 $SYSTEMCONF{cfg_path} = $SYSTEMCONF{base_path}."/cfg";
-$SYSTEMCONF{phr_path} = $SYSTEMCONF{base_path}."/sys";
-$SYSTEMCONF{sys_path} = $SYSTEMCONF{base_path}."/sys";
+$SYSTEMCONF{arc_path} = $SYSTEMCONF{base_path}."/archives";
+$SYSTEMCONF{phr_path} = $SYSTEMCONF{base_path}."/cfg";
+$SYSTEMCONF{sys_path} = $SYSTEMCONF{base_path}."/cfg";
 $SYSTEMCONF{bin_path} = $SYSTEMCONF{base_path}."/bin";
 
 ###############################################
@@ -99,11 +101,11 @@ $lang_doc->dispose();
 
 my %ARCHIVES;
 my %ARCHIVEMAP;
-opendir( CFG, $SYSTEMCONF{cfg_path} );
+opendir( CFG, $SYSTEMCONF{arc_path} );
 while( $file = readdir( CFG ) )
 {
-	next unless( $file=~m/^conf-(.*)\.xml/ );
-	my $fpath = $SYSTEMCONF{cfg_path}."/".$file;
+	next unless( $file=~m/^(.*)\.xml$/ );
+	my $fpath = $SYSTEMCONF{arc_path}."/".$file;
 	my $id = $1;
 	my $conf_doc = parse_xml( $fpath );
 	if( !defined $conf_doc )

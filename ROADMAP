@@ -69,16 +69,15 @@
 #	Bug: 500 error when search for only ignored words.
 # 	"Bad archive ID" on bin scripts rather than weird crash.
 #	print STDERR's should be log()
-
 #	Eliminate HTMLRenderer
 
-0	Browse Multiple Fields at once (eg. authors.id/editors.id)
 0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...
 0	Paged Metadata in submission form.
+0	Browse Multiple Fields at once (eg. authors.id/editors.id)
 0	Alerts for editors about things they can edit (flag in User fields?)
 2	Subject-editors (editors can only edit within certain subjects)
 2	Web-based Email Change
-0	Password Encryption. (Via callback)
+-	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
 0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Field property: freetext (or not-freetext) to stop indexing)
@@ -100,6 +99,8 @@
 #!!!!!!!!!!!VVVVVV
 0	Indexing on name fields(?)
 0	patch for config files when upgrading.
+0	different looks for boolean/opts eg. check/radio boxes.
+0	allow users to request a username
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
