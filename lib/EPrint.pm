@@ -41,8 +41,8 @@ my $digits = 8;
 	"reasons:multitext:6:Reason for Additional Heading:0:0:0",
 	                                         # Chance for user to explain why
 	"type:eprinttype::EPrint Type:1:0:0",    # EPrint types, special case again
-	"succeeds:text::Later Version Of:0:1:1", # Later version of....
-	"commentary:text::Commentary On:0:1:1"   # Commentary on/response to...
+	"succeeds:text::Later Version Of:0:0:0", # Later version of....
+	"commentary:text::Commentary On:0:0:0"   # Commentary on/response to...
 );
 
 # Additional fields in this class:
@@ -723,6 +723,47 @@ sub validate_subject
 
 ######################################################################
 #
+# $problems = validate_linking()
+#  array_ref
+#
+######################################################################
+
+sub validate_linking
+{
+	my( $self ) = @_;
+
+	my @problems;
+	
+	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
+	{
+		my $test_eprint = new EPrints::EPrint( $self->{session}, 
+		                                       $EPrints::Database::table_archive,
+		                                       $self->{succeeds} );
+		push @problems,
+			"EPrint ID in $succeeds_field->{displayname} field is invalid"
+				unless( defined( $test_eprint ) );
+	}
+	
+	if( defined $self->{commentary} && $self->{commentary} ne "" )
+	{
+		my $test_eprint = new EPrints::EPrint( $self->{session}, 
+		                                       $EPrints::Database::table_archive,
+		                                       $self->{commentary} );
+		push @problems,
+			"EPrint ID in $commentary_field->{displayname} field is invalid"
+				unless( defined( $test_eprint ) );
+
+	}
+	
+	return( \@problems );
+}
+
+
+######################################################################
+#
 # $document = get_document( $format )
 #
 #  Gets an associated document with the given format.
@@ -890,6 +931,9 @@ sub validate_full
 	push @problems, @$probs;
 
 	$probs = $self->validate_subject();
+	push @problems, @$probs;
+
+	$probs = $self->validate_linking();
 	push @problems, @$probs;
 
 	$probs = $self->validate_documents();

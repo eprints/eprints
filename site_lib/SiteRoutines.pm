@@ -22,7 +22,6 @@ use EPrints::SubjectList;
 use EPrints::Name;
 
 use strict;
-use diagnostics;
 
 
 # Specs for rendering citations.

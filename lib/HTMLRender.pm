@@ -688,30 +688,12 @@ sub render_form
 
 	print "<CENTER><P><TABLE BORDER=0>\n";
 
-	my $colspan = ($show_names ? " COLSPAN=2" : "" );
-	my $align = ($show_names ? "" : " ALIGN=CENTER" );
-	
-	my $field;
-
-	foreach $field (@$fields)
+	foreach (@$fields)
 	{
-		# Field name should have a star next to it if it is required
-		my $required_string = ( $field->{required} ? "*" : "" );
-
-		if( $show_help )
-		{
-			print "<TR><TD$colspan>&nbsp;</TD></TR>\n";
-			print "<TR><TD$colspan><CENTER><EM>$field->{help}</EM></CENTER></TD></TR>\n";
-		}
-
-		print "<TR><TD$align>";
-		
-		print "<STRONG>$field->{displayname}$required_string</STRONG></TD><TD>" if $show_names;
-
-		print $self->input_field( $field, $values->{$field->{name}} );
-
-		print "</TD></TR>\n";
-
+		print $self->input_field_tr( $_,
+		                             $values->{$_->{name}},
+		                             $show_names,
+		                             $show_help );
 	}
 
 	print "</TABLE></P></CENTER>\n";
@@ -737,6 +719,45 @@ sub render_form
 	print "</CENTER>\n";
 	print $self->end_form();
 }
+
+
+######################################################################
+#
+# $html = input_field_tr( $field, $value, $show_names, $show_help )
+#
+#  Write a table row with the given field and value.
+#
+######################################################################
+
+sub input_field_tr
+{
+	my( $self, $field, $value, $show_names, $show_help ) = @_;
+	
+	my $html;
+
+	# Field name should have a star next to it if it is required
+	my $required_string = ( $field->{required} ? "*" : "" );
+	my $colspan = ($show_names ? " COLSPAN=2" : "" );
+	my $align = ($show_names ? "" : " ALIGN=CENTER" );
+	
+	if( $show_help )
+	{
+		$html .= "<TR><TD$colspan>&nbsp;</TD></TR>\n";
+		$html .= "<TR><TD$colspan><CENTER><EM>$field->{help}</EM></CENTER>".
+			"</TD></TR>\n";
+	}
+
+	$html .= "<TR><TD$align>";
+
+	$html .= "<STRONG>$field->{displayname}$required_string</STRONG></TD><TD>"
+		if( $show_names );
+
+	$html .= $self->input_field( $field, $value );
+
+	$html .= "</TD></TR>\n";
+
+	return( $html );
+}	
 
 
 ######################################################################

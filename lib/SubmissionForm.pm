@@ -32,12 +32,15 @@ $EPrints::SubmissionForm::action_clone      = "Clone";
 $EPrints::SubmissionForm::action_uploadedit = "Upload/Edit >";
 $EPrints::SubmissionForm::action_finished   = "Finished";
 $EPrints::SubmissionForm::action_upload     = "Upload >";
+$EPrints::SubmissionForm::action_verify     = "Verify ID's";
+
 
 # Stages of upload
 
 $EPrints::SubmissionForm::stage_type       = "stage_type";       # EPrint type (e.g. journal article)
 $EPrints::SubmissionForm::stage_meta       = "stage_meta";       # Metadata (authors, title, etc)
 $EPrints::SubmissionForm::stage_subject    = "stage_subject";    # Subject tag form
+$EPrints::SubmissionForm::stage_linking    = "stage_linking";    # Linking to other eprints
 $EPrints::SubmissionForm::stage_format     = "stage_format";     # File format selection form
 $EPrints::SubmissionForm::stage_fileview   = "stage_fileview";   # View/delete files
 $EPrints::SubmissionForm::stage_upload     = "stage_upload";     # Upload file form
@@ -52,6 +55,7 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 	$EPrints::SubmissionForm::stage_type       => "Submission Type",
 	$EPrints::SubmissionForm::stage_meta       => "Bibliographic Information",
 	$EPrints::SubmissionForm::stage_subject    => "Subject Categories",
+	$EPrints::SubmissionForm::stage_linking    => "Succession/Commentary",
 	$EPrints::SubmissionForm::stage_format     => "Document Storage Formats",
 	$EPrints::SubmissionForm::stage_fileview   => "Document File Upload",
 	$EPrints::SubmissionForm::stage_upload     => "Document File Upload",
@@ -498,7 +502,7 @@ sub from_stage_subject
 		else
 		{
 			# No problems, onto the next stage
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 		}
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
@@ -514,6 +518,67 @@ sub from_stage_subject
 
 	return( 1 );
 }
+
+
+######################################################################
+#
+#  From sucession/commentary stage
+#
+######################################################################
+
+sub from_stage_linking
+{
+	my( $self ) = @_;
+	
+	if( !defined $self->{eprint} )
+	{
+		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		return( 0 );
+	}
+
+	# Update the values
+	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+	$self->{eprint}->{succeeds} =
+		$self->{session}->{render}->form_value( $succeeds_field );
+	$self->{eprint}->{commentary} =
+		$self->{session}->{render}->form_value( $commentary_field );
+	
+	$self->{eprint}->commit();
+	
+	# What's the next stage?
+	if( $self->{action} eq $EPrints::SubmissionForm::action_next )
+	{
+		$self->{problems} = $self->{eprint}->validate_linking();
+
+		if( $#{$self->{problems}} >= 0 )
+		{
+			# There were problems with the uploaded type, don't move further
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+		}
+		else
+		{
+			# No problems, onto the next stage
+			$self->{next_stage} = $EPrints::SubmissionForm::stage_format;
+		}
+	}
+	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
+	{
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
+	}
+	elsif( $self->{action} eq $EPrints::SubmissionForm::action_verify )
+	{
+		# Just stick with this... want to verify ID's
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
+	}
+	else
+	{
+		# Don't have a valid action!
+		$self->exit_error( $EPrints::SubmissionForm::corruption_error );
+		return( 0 );
+	}
+}	
 
 
 ######################################################################
@@ -577,7 +642,7 @@ sub from_stage_format
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_prev )
 	{
-		$self->{next_stage} = $EPrints::SubmissionForm::stage_subject;
+		$self->{next_stage} = $EPrints::SubmissionForm::stage_linking;
 	}
 	elsif( $self->{action} eq $EPrints::SubmissionForm::action_finished )
 	{
@@ -1006,6 +1071,111 @@ sub do_stage_subject
 
 	print $self->{session}->{render}->end_html();
 }	
+
+
+######################################################################
+#
+#  Succession/Commentary form
+#
+######################################################################
+
+sub do_stage_linking
+{
+	my( $self ) = @_;
+	
+	print $self->{session}->{render}->start_html(
+		$EPrints::SubmissionForm::stage_titles{
+			$EPrints::SubmissionForm::stage_linking} );
+	
+	$self->list_problems();
+
+	my $succeeds_field = EPrints::MetaInfo->find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo->find_eprint_field( "commentary" );
+
+	print $self->{session}->{render}->start_form();
+	
+	print "<CENTER><P><TABLE BORDER=0>\n";
+
+	# Get the previous version
+
+	print $self->{session}->{render}->input_field_tr(
+		$succeeds_field,
+		$self->{eprint}->{succeeds},
+		1,
+		1 );
+	
+	if( defined $self->{eprint}->{succeeds} &&
+		$self->{eprint}->{succeeds} ne "" )
+	{
+		my $older_eprint = new EPrints::EPrint( $self->{session}, 
+		                                        $EPrints::Database::table_archive,
+		                                        $self->{eprint}->{succeeds} );
+		
+		if( defined $older_eprint )
+		{
+			print "<TR><TD><STRONG>Verify:</STRONG></TD><TD>";
+			print $self->{session}->{render}->render_eprint_citation(
+				$older_eprint );
+			print "</TD></TR>\n";
+		}
+		else
+		{
+			print "<TR><TD COLSPAN=2><STRONG>ID $self->{eprint}->{succeeds} is ".
+				"not a valid EPrint ID!</STRONG></TD></TR>\n";
+		}
+	}
+			
+	# Get the paper commented on
+
+	print $self->{session}->{render}->input_field_tr(
+		$commentary_field,
+		$self->{eprint}->{commentary},
+		1,
+		1 );
+	
+	if( defined $self->{eprint}->{commentary} &&
+		$self->{eprint}->{commentary} ne "" )
+	{
+		my $older_eprint = new EPrints::EPrint( $self->{session}, 
+		                                        $EPrints::Database::table_archive,
+		                                        $self->{eprint}->{commentary} );
+		
+		if( defined $older_eprint )
+		{
+			print "<TR><TD><STRONG>Verify:</STRONG></TD><TD>";
+			print $self->{session}->{render}->render_eprint_citation(
+				$older_eprint );
+			print "</TD></TR>\n";
+		}
+		else
+		{
+			print "<TR><TD COLSPAN=2><STRONG>ID $self->{eprint}->{commentary} is ".
+				"not a valid EPrint ID!</STRONG></TD></TR>\n";
+		}
+	}
+
+	print "</TABLE></P></CENTER>\n";
+
+	print $self->{session}->{render}->hidden_field(
+		"eprint_id",
+		$self->{eprint}->{eprintid} );
+	
+	print $self->{session}->{render}->hidden_field(
+		"stage",
+		$EPrints::SubmissionForm::stage_linking );
+
+	print "<CENTER><P>";
+	print $self->{session}->{render}->submit_buttons(
+		[ $EPrints::SubmissionForm::action_prev,
+		  $EPrints::SubmissionForm::action_verify,
+		  $EPrints::SubmissionForm::action_next ] );
+	print "</P></CENTER>";
+
+	print $self->{session}->{render}->end_form();
+	
+	print $self->{session}->{render}->end_html();
+}
+	
 
 
 ######################################################################
