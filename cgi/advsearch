@@ -34,10 +34,12 @@ my $searchform = new EPrints::SearchForm(
 	0,
 	$EPrints::Database::table_archive,
 	\@metafields,
-	"Advanced Search",
-	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
-		" blank.	<A HREF=\"search\">Click here for a simple search.</A>".
-		"</P></CENTER>",
+	$session->{lang}->phrase( "H:adv_search" ),
+	"<CENTER><P>".
+	   $session->{lang}->phrase( "H:dont_panic" ).
+	   "<A HREF=\"search\">".
+	   $session->{lang}->phrase( "H:simple_search" ).
+	   "</A></P></CENTER>",
 	\%EPrintSite::SiteInfo::eprint_order_methods,
 	$EPrintSite::SiteInfo::eprint_default_order,
 	0 );

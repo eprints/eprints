@@ -194,3 +194,9 @@ H:invalid_id	= EPrint ID in $(1) field is invalid
 H:need_a_format = You need to upload at least one of the following formats:
 L:error_gen_st	= Error generating static page for $(1): $(2)
 </file>
+
+<file advsearch>
+H:adv_search	= Advanced Search
+H:dont_panic	= Don't panic! Just leave the fields you don't want to search blank.
+H:simple_search = Click here for a simple search.
+</file>

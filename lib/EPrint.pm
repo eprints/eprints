@@ -687,8 +687,8 @@ sub commit
 			"EPrint",
 			EPrints::Language::logphrase( 
 				"error_commit",
-				$self->{eprintid}
-				$db_error" ) );
+				$self->{eprintid},
+				$db_error ) );
 	}
 
 	return( $success );
