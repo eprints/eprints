@@ -95,7 +95,7 @@ sub new
 	$data{prefix} = "" if ( !defined $data{prefix} );
 
 	# 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order use_oneshot_cache use_private_cache cache_id prefix / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache custom_order use_oneshot_cache use_private_cache cache_id prefix defaults / )
 	{
 		$self->{$_} = $data{$_};
 	}
@@ -107,6 +107,11 @@ sub new
 		$self->{use_cache} = 0;
 		$self->{use_oneshot_cache} = 1;
 	}
+	if( !defined $self->{defaults} ) 
+	{ 
+		$self->{defaults} = {};
+	}
+
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -145,18 +150,18 @@ sub new
 			}
 			
 			# Add a reference to the list
-			$self->add_field( \@multiple_fields );
+			$self->add_field( \@multiple_fields, $self->{defaults}->{$fieldname} );
 		}
 		elsif( $fieldname =~ m/^!(.*)$/ )
 		{
 			# "extra" field - one not in the current dataset.
-			$self->add_extrafield( $data{extrafields}->{$1} );
+			$self->add_extrafield( $data{extrafields}->{$1}, $self->{defaults}->{$fieldname} );
 		}
 		else
 		{
 			# Single field
 			
-			$self->add_field( EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname ) );
+			$self->add_field( EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname ), $self->{defaults}->{$fieldname} );
 		}
 	}
 

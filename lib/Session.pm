@@ -938,7 +938,8 @@ sub _render_buttons_aux
 {
 	my( $self, $btype, %buttons ) = @_;
 
-	my $frag = $self->make_doc_fragment();
+	#my $frag = $self->make_doc_fragment();
+	my $frag = $self->make_element( "div", class=>"buttons" );
 
 	my @order = keys %buttons;
 	if( defined $buttons{_order} )

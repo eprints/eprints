@@ -720,7 +720,7 @@ sub get_url
 
 	}
 
-	return $self->{session}->get_archive()->get_conf( "perl_url" )."/view_user?userid=".$self->get_value( "userid" );
+	return $self->{session}->get_archive()->get_conf( "perl_url" )."/user?userid=".$self->get_value( "userid" );
 }
 
 

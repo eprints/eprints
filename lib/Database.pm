@@ -227,15 +227,7 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( 
-		"user", 
-		"inbox", 
-		"buffer", 
-		"archive",
-		"document", 
-		"subject", 
-		"subscription", 
-		"deletion" )
+	foreach( &EPrints::DataSet::get_sql_dataset_ids )
 	{
 		$success = $success && $self->create_dataset_tables( 
 			$self->{session}->get_archive()->get_dataset( $_ ) );

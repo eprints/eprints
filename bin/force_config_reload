@@ -10,32 +10,26 @@
 #
 ######################################################################
 
+
 =pod
 
 =head1 NAME
 
-B<send_subscriptions> - Send out all the email subscriptions for a given frequency.
+B<force_config_reload> - Force the webserver to reload the configuration of this archive.
 
 =head1 SYNOPSIS
 
-B<generate_views> I<archiveid> I<frequency> [B<options>] 
+B<force_config_reload> I<archiveid> [B<options>] 
 
 =head1 DESCRIPTION
 
-This script sends out all the subscription emails for the specified archive
-and frequency. frequency must be one of daily|weekly|monthly.
+This command forces the webserver to reload the config files for the given archive.
 
-This script should probably be called from your "cron" system, soon after
-midnight. Something like:
+This is very useful, but the webserver will only reload the config files in the "forked" versions of itself, but the origional. This will generate a major extra load each time the webserver forks of a process.
 
- # 00:15 every morning
- 15 0 * * * /opt/eprints2/bin/send_subscriptions dookuprints daily
- # 00:30 every sunday morning
- 30 0 * * 0 /opt/eprints2/bin/send_subscriptions dookuprints weekly
- # 00:45 every first of the month
- 45 0 1 * * /opt/eprints2/bin/send_subscriptions dookuprints monthly
+This command offers a B<temporary> solution to the problem only. You should still restart apache at some point.
 
-Note the spacing out so that all 3 don't start at once and hammer the database.
+All this file really does is create an empty file named .changed in the archives own cfg/ directory. The main system, running in the webservers mod_perl, looks at the time this file was last modified. If this file has changed since the archive configuration was loaded then it forces a reload.
 
 =head1 ARGUMENTS
 
@@ -43,11 +37,7 @@ Note the spacing out so that all 3 don't start at once and hammer the database.
 
 =item B<archiveid> 
 
-The ID of the eprint archive to use.
-
-=item B<frequency> 
-
-Which "frequency" of subscriptions to send - the daily, weekly or monthly ones.
+The ID of the eprint archive to force a reload on.
 
 =back
 
@@ -82,11 +72,10 @@ __GENERICPOD__
 
 =cut
 
-use EPrints::Subscription;
 use EPrints::Session;
 
 use File::Copy;
-use File::Path;
+use File::Find;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
@@ -105,12 +94,12 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "send_subscriptions" ) if $version;
+EPrints::Utils::cmd_version( "force_config_reload" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 2 ); 
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
 
-my $noise = 1;
+our $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
 
@@ -120,9 +109,20 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
-EPrints::Subscription::process_set( $session, $ARGV[1] );
-
+my $file = $session->get_archive->get_conf( "config_path" )."/.changed";
+unless( open( CHANGEDFILE, ">$file" ) )
+{
+	EPrints::Config::abort( "Cannot write to file $file" );
+}
+print CHANGEDFILE "This file last poked at: ".EPrints::Utils::get_timestamp()."\n";
+close CHANGEDFILE;
+if( $noise > 0 )
+{
+	print <<END;
+The archive config will be reloaded, but you should still restart apache as
+soon as possible.
+END
+}
 $session->terminate();
+	
 exit;
-
-

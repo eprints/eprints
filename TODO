@@ -7,20 +7,11 @@ SQL Tables
 -	Add time:lastwrite & time:lastindex to each dataset  - either in 
 	index or main table.
 
-+	Add boolean:mailempty to subscriptions
-
-+	Remove editorsubjects from user dataset.
-
-+	Add search:editperms, boolean:mailempty, set:frequency to user
-	dataset.
-
 Subscriptions/subject-editors
 
-+	Subject-editors (editors can only edit within certain subjects/search)
+*	Subject-editors (editors can only edit within certain subjects/search)
 
-+	Alerts for editors about things they can edit (flag in User fields?)
-
-+	Option: Mail empty subscriptions - yes/no.
+*	Alerts for editors about things they can edit (flag in User fields?)
 
 Metadata Fields
 
@@ -28,8 +19,6 @@ Metadata Fields
 
 +	Field property: freetext (or not-freetext) to stop indexing) - will 
 	disable non-ex searching. (?)
-
-+	field property to stop SQL indexing. - will disable EX searching
 
 +	Field Property: 'id required' - If main bit is set then ID *must* 
 	be set. Otherwise lax.
@@ -58,6 +47,8 @@ OAI
 	it's own. Searches can of course be modified with from and to 
 	dates from OAI.
 
+-	Add a filter - eg. to limit ever showing records to post 2000.
+
 Database
 
 -	Turn docid into an int (no minor feat)
@@ -68,25 +59,28 @@ Database
 
 Browse Views
 
-+ 	Time stamp views
+* 	Time stamp views [optionally] - done but not an option
+
++	Second level views - eg. /group/year/ - /view/iam/2001.html
+
+* 	Browse on "name" fields
+
 
 Searches
 
--	Add congiguration via cookie for n results, citation style &
+*	Deprecate temporary tables and just make oneshot_cache the 
+	 default?
+
++	Add congiguration via cookie for n results, citation style &
          default search.
 
 -	Don't index words in inbox/buffer? [maybe/maybe not]
 
 +	Reindex via script rather than on the fly?
 
--	Add search-by-id
-
--	Show all items in a subject view count, not just those in the
-	current subject.
+*	Add search-by-id
 
 - 	max time for caches eg. 30 for latest?
-
--	Set default values for searches
 
 -	Improve name search syntax (?)
 
@@ -95,6 +89,8 @@ Searches
 -	Phrase searching
 
 -	Improved steming.
+
+-	Merge int/name/text searches 
 
 -	Add a get_problems method to searchexp which returns a list
 	of problems. This should run by default when verifying "search"
@@ -110,27 +106,29 @@ Installer / Package Builder
 
 Command Line Tools
 
--	generate_views needs a datestamp
+.	generate_views needs to say what order stuff is in. [kinda hard, it
+	uses a custom order]
 
--	generate_views needs to say what order stuff is in.
-
--	Clean up export XML command.
+*	Clean up export XML command. [XML headers etc.]
 
 -	For generate_views, subscriptions, abstracts etc. Maybe have an
          archiveid of ALL which runs the script once for each archive?
 
--	For generate_abstracts - an option to only update one abstract.
+.	Make tools run as "eprints" if they are running as "root". 
+	-Forces "Taint" checking which certain eprints bits just can't darn
+ 	handle.
 
--	Make tools run as "eprints" if they are running as "root".
+*	MD5 digest all documents.
 
 Submission Page
 
--	Deposit now/Deposit Later page as last part of normal 
+*	Deposit now/Deposit Later page as last part of normal 
 	sumbission.
 
--	Change it so it goes back to the front page after submission
+*	Change it so it goes back to the front page after submission
 	or even a page explaining how to deposit.
--	Change the text of the user home page to explain the above.
+
+*	Change the text of the user home page to explain the above.
 
 
 Other Stuff
@@ -168,7 +166,7 @@ Other Stuff
 +	Make all needed get()'s map it instead so ready for that 
 	1,000,000 papers.
 
-- 	List of editors?
++ 	List of editors?
 
 -	langid's -> validate they is correct (in multilang)
 
@@ -179,7 +177,7 @@ Other Stuff
 
 * 	Add option to supress empty subjects in browse views.
 
-- 	robots.txt file
++ 	robots.txt file
 
 - 	XML GDOME readyness
 
@@ -190,8 +188,6 @@ Other Stuff
 *	testing to see if "dom" is set in generate_views seems kinda pointless.
 
 ? 	setlang - show all langs, flag supported.
-
-- 	Way to reload config without offlining server.
 
 - 	Debugging helpers - make session and searchexp notice if they are 
 	DESTROY'd without being terminate/disposed.
@@ -204,10 +200,6 @@ Other Stuff
 
 -	Make some eprint types require different/no document types, eg. 
 	books.
-
-TEST
-
--	New 404 config option.
 
 DOCUMENTATION ============================================================
 
@@ -311,4 +303,27 @@ DONE ====================================================================
 -	Add a no_clone property to flag fields which should not be copied
 	when a record is cloned. [ called can_clone, now ]
 -	Subscriptions - importing from eprints v1.
++	Add boolean:mailempty to subscriptions
++	Add search:editperms, boolean:mailempty, set:frequency to user
+	dataset.
+-	New 404 config option.
++	Option: Mail empty subscriptions - yes/no. (and make it actually work)
+-	Set default values for searches
++	field property to stop SQL indexing. - will disable EX searching [does
+         not disable it, but darn it might be slow]
++	Remove editorsubjects from user dataset.
++	Log last sent time for week/month/daily for info page.
+*	For generate_abstracts - an option to only update one abstract.
+*	Show all items in a subject view count, not just those in the
+	current subject.
+- 	Way to reload config without offlining server.
+
+
+
+
+
+
+
+
+
 

@@ -94,6 +94,7 @@ use File::Path;
 use File::Copy;
 use Cwd;
 use URI::Heuristic;
+use Digest::MD5;
 
 use strict;
 
@@ -131,7 +132,9 @@ sub get_system_field_info
 		{ name=>"security", type=>"datatype", required=>1, 
 			datasetid=>"security" },
 
-		{ name=>"main", type=>"text", required=>1 }
+		{ name=>"main", type=>"text", required=>1 },
+
+		{ name=>"hash", type=>"longtext" }
 	);
 
 }
@@ -713,6 +716,9 @@ sub remove_file
 	{
 		$self->{session}->get_archive()->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
 	}
+
+	$self->rehash;
+
 	return( $count==1 );
 }
 
@@ -744,6 +750,8 @@ sub remove_all_files
 		$self->{session}->get_archive()->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
 		return( 0 );
 	}
+
+	$self->rehash;
 
 	return( 1 );
 }
@@ -866,13 +874,13 @@ sub upload
 	my $out_path = $self->local_path() . "/" . $file;
 		
 	open OUT, ">$out_path" or return( 0 );
-	
 	while( $bytes = read( $filehandle, $buffer, 1024 ) )
 	{
 		print OUT $buffer;
 	}
-
 	close OUT;
+
+	$self->rehash;
 	
 	return( 1 );
 }
@@ -914,6 +922,8 @@ sub upload_archive
 	# Remove the temp archive
 	unlink $arc_tmp;
 	
+	$self->rehash;
+
 	return( $rc==0 );
 }
 
@@ -1001,6 +1011,8 @@ sub upload_url
 		# have a main file.
 	}
 	
+	$self->rehash;
+
 	return( 1 );
 }
 
@@ -1161,6 +1173,35 @@ sub get_type
 	my( $self ) = @_;
 
 	return $self->get_value( "format" );
+}
+
+######################################################################
+=pod
+
+=item $doc->rehash
+
+Recalculate the hash value of the document. Uses MD5 of the files (in
+alphabetic order), but can use user specified hashing function instead.
+
+=cut
+######################################################################
+
+sub rehash
+{
+	my( $self ) = @_;
+
+
+	
+        my $ctx = Digest::MD5->new;
+	my( %files ) = $self->files;
+	foreach( sort keys %files ) 
+	{
+		open( FILE, $_ );
+        	$ctx->addfile(*FILE);
+		close FILE;
+	}
+	$self->set_value( "hash", $ctx->hexdigest );
+	$self->commit;
 }
 
 

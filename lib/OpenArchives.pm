@@ -196,11 +196,26 @@ sub make_header
 	my ( $session, $eprint, $oai2 ) = @_;
 
 	my $header = $session->make_element( "header" );
+	my $oai_id;
+	if( $oai2 )
+	{
+		$oai_id = $session->get_archive()->get_conf( 
+			"oai", 
+			"v2", 
+			"archive_id" );
+	}
+	else
+	{
+		$oai_id = $session->get_archive()->get_conf( 
+			"oai", 
+			"archive_id" );
+	}
+	
 	$header->appendChild( $session->render_data_element(
 		6,
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier(
-			$session->get_archive()->get_conf( "oai", "archive_id" ),
+			$oai_id,
 			$eprint->get_value( "eprintid" ) ) ) );
 
 	my $datestamp = $eprint->get_value( "datestamp" );

@@ -114,6 +114,7 @@ my $PROPERTIES =
 	requiredlangs => 1,
 	showall => 1,
 	showtop => 1,
+	sql_index => 1,
 	idpart => 1,
 	mainpart => 1,
 	make_value_orderkey => 1,
@@ -385,11 +386,17 @@ or an empty string if no index is required.
 sub get_sql_index
 {
         my( $self ) = @_;
-
+	
 	if( $self->is_type( "longtext", "secret", "search" ) )
 	{
 		return undef;
 	}
+
+	unless( $self->get_property( "sql_index" ) )
+	{
+		return undef;
+	}
+
 
 	my $sqlname = $self->get_sql_name();
 	
@@ -2410,6 +2417,7 @@ sub get_property_default
 	return 0 if( $property eq "mainpart" );
 	return 1 if( $property eq "export_as_xml" );
 	return 1 if( $property eq "can_clone" );
+	return 1 if( $property eq "sql_index" );
 
 	return "subjects" if( $property eq "top" );
 

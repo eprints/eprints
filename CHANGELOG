@@ -754,4 +754,19 @@ before next release. (metadata types & fields)
  - Edit subscriptions page now includes extra option to indicate if a user
     wants a mail when there are zero matches.
  - Changed the layout of the subscriptions summary page to be a bit clearer.
+ - Added a check in get_conf to prevent null reference errors in the case
+    of an optional hash table. Eg $c->{a} = { c=>4, b=>5 } OR $c->{a} = undef;
+    and someone requests $archive->get_conf( "a", "c" ) - will return "4" in
+    1st case and undef in the 2nd.
+ - [c] Added new metadata parameter "can_clone" which defaults to 1. If set 
+    to 0 then the field is not cloned when the record containing it is cloned.
+ - added a test to prevent a warning when unserialising an undefined value as
+    a search expression (and treat it like an empty string).
+ - fixed bug in SubmissionForm. Now only lists the required formats, and asks
+    for at least one if there is at least one required format.
+ - added some checks to render_name in Utils.pm to avoid warnings in the 
+    case of undefined values.
+ - fixed render_citation so that it should now not crash on nested <isset> 
+    elements.
+
 

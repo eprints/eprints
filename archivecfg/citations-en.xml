@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!DOCTYPE citations SYSTEM "fields.dtd"><!-- fields.dtd is NOT parsed -->
+<!DOCTYPE citations SYSTEM "fields.dtd" ><!-- fields.dtd is NOT parsed -->
 
 <!-- 
 	Citation Styles for each type of eprint. 
@@ -13,7 +13,7 @@
 <!-- eprint citations -->
     <ep:citation type="eprint"><ep:linkhere><ep:ifset name="title">&title;</ep:ifset><ep:ifnotset name="title">Untitled &eprintid;</ep:ifnotset></ep:linkhere></ep:citation>
 
-    <ep:citation type="eprint_book"><ep:linkhere><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds. </ep:ifset>.<ep:ifset name="publisher"> &publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
+    <ep:citation type="eprint_book"><ep:linkhere><span class="citation"><ep:ifset name="authors">&authors; </ep:ifset>(&year;) <i>&title;</i><ep:ifset name="editors">, &editors;, Eds. </ep:ifset>.<ep:ifset name="publisher"> &publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
 
     <ep:citation type="eprint_bookchapter"><ep:linkhere><span class="citation">&authors; <ep:ifset name="year">(&year;) </ep:ifset><i>&title;</i>, in <ep:ifset name="editors">&editors;, Eds.</ep:ifset><ep:ifset name="publication"> <i>&publication;</i></ep:ifset><ep:ifset name="chapter">, chapter &chapter;</ep:ifset><ep:ifset name="pages">, pages &pages;</ep:ifset>. <ep:ifset name="publisher">&publisher;.</ep:ifset></span></ep:linkhere></ep:citation>
 

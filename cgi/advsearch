@@ -25,6 +25,7 @@ my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	use_cache => 1,
 	dataset => $session->get_archive()->get_dataset( "archive" ),
+	defaults => $session->get_archive()->get_conf( "advanced_search_defaults" ),
 	fieldnames=>$session->get_archive()->get_conf( "advanced_search_fields" ) );
 
 my $preamble = $session->html_phrase( "cgi/advsearch:preamble" );

@@ -145,37 +145,45 @@ my $INFO = {
 		sqlname => "counters"
 	},
 	user => {
+		is_sql_dataset => 1,
 		sqlname => "users",
 		class => "EPrints::User"
 	},
 	archive => {
+		is_sql_dataset => 1,
 		sqlname => "archive",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	buffer => {
+		is_sql_dataset => 1,
 		sqlname => "buffer",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	inbox => {
+		is_sql_dataset => 1,
 		sqlname => "inbox",
 		class => "EPrints::EPrint",
 		confid => "eprint"
 	},
 	document => {
+		is_sql_dataset => 1,
 		sqlname => "document",
 		class => "EPrints::Document"
 	},
 	subject => {
+		is_sql_dataset => 1,
 		sqlname => "subject",
 		class => "EPrints::Subject"
 	},
 	subscription => {
+		is_sql_dataset => 1,
 		sqlname => "subscription",
 		class => "EPrints::Subscription"
 	},
 	deletion => {
+		is_sql_dataset => 1,
 		sqlname => "deletion",
 		class => "EPrints::EPrint",
 		confid => "eprint"
@@ -895,7 +903,7 @@ sub reindex
 ######################################################################
 =pod
 
-=item EPrints::DataSet::get_dataset_ids( get_dataset_ids )
+=item @ids = EPrints::DataSet::get_dataset_ids( get_dataset_ids )
 
 Return a list of all dataset ids.
 
@@ -908,6 +916,54 @@ sub get_dataset_ids
 }
 
 
+######################################################################
+=pod
+
+=item @ids = EPrints::DataSet::get_sql_dataset_ids
+
+Return a list of all dataset ids of datasets which are directly mapped
+into SQL (not counters or cache which work a bit differently).
+
+=cut
+######################################################################
+
+sub get_sql_dataset_ids
+{
+	my @list = ();
+	foreach( keys %{$INFO} )
+	{
+		push @list, $_ if $INFO->{$_}->{is_sql_dataset};
+	}
+	return @list;
+}
+
+######################################################################
+=pod
+
+=item $n = $ds->count_indexes
+
+Return the number of indexes required for the main SQL table of this
+dataset. Used to check it's not over 32 (the current maximum allowed
+by MySQL)
+
+=cut
+######################################################################
+
+sub count_indexes
+{
+	my( $self ) = @_;
+
+	my $n = 0;
+	foreach my $field ( $self->get_fields( 1 ) )
+	{
+		next if( $field->get_property( "multiple" ) );
+		next if( $field->get_property( "multilang" ) );
+		next unless( defined $field->get_sql_index );
+		$n++;
+	}
+	return $n;
+}
+		
 
 
 1;

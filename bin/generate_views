@@ -235,6 +235,24 @@ sub make_view_pages
 	## Make Browse Pages
 
 	my %size = ();
+	if( $fields[0]->is_type( "subject" ) )
+	{
+		foreach $value ( @values )
+		{
+			my $searchexp = new EPrints::SearchExpression(
+					use_oneshot_cache=>1,
+					satisfy_all=>0,
+					session=>$session,
+					dataset=>$ds );
+	
+			# EX if we do not want sub-subject vals.
+       			$searchexp->add_field( \@fields, $value, "EQ" );
+        		$searchexp->perform_search();
+			$size{$value} = $searchexp->count();
+		}
+	}
+
+
 
 	$info->{dom} = 1 if( $info->{include} || !$info->{nohtml} );
 
@@ -254,8 +272,9 @@ sub make_view_pages
 		if( $fields[0]->is_type( "subject" ) && !$info->{nohtml} )
 		{
 
-			# Note, this only shows ancestors and children. You might want
-			# Ancestors and decendents (children of children of ... )
+			# Note, this only shows ancestors and children. 
+			# You might want Ancestors and decendents (children 
+			# of children of ... )
 			# No support yet, but easy to add.
 
 			my $subject = EPrints::Subject->new( $session, $value );
@@ -265,19 +284,24 @@ sub make_view_pages
 				push @ids,$_->get_value( "subjectid" );
 			}
 
+			my $subjects_to_show = \@ids;
+			if( 1 )
+			{
+				$subjects_to_show = [];
+				foreach( @ids )
+				{
+					next unless( $size{$_} > 0 );
+					push @{$subjects_to_show}, $_;
+				}
+			}
        			$page->appendChild( $session->render_subjects( 
-					\@ids, $fields[0]->get_property( "top" ), $value, 2 ) );
+					$subjects_to_show,
+					$fields[0]->get_property( "top" ), 
+					$value, 
+					2,
+					\%size ) );
 			$page->appendChild( $session->render_ruler() );
 		}
-
-		my $searchexp = new EPrints::SearchExpression(
-				custom_order=>$order,
-				use_oneshot_cache=>1,
-				satisfy_all=>0,
-				session=>$session,
-				dataset=>$ds );
-
-       		$searchexp->add_field( \@fields, $value, "EX" );
 
 		my $links;
 		if( !defined $info->{layout} )
@@ -323,26 +347,51 @@ sub make_view_pages
 			$links->appendChild( $cite );
 		};
 		
-        	$searchexp->perform_search();
-		my $count = $searchexp->count();
-		if( $info->{dom} && !$info->{nocount} )
+		my $count = 0;
+		# Skip empty subject views. This could speed up small
+		# archives. 
+		unless( defined $size{$value} && $size{$value} == 0 )
 		{
-			$links->appendChild( $session->html_phrase( 
-				"bin/generate_views:blurb",
-				n=>$session->make_text( $count ) ) );
+			my $searchexp = new EPrints::SearchExpression(
+					custom_order=>$order,
+					use_oneshot_cache=>1,
+					satisfy_all=>0,
+					session=>$session,
+					dataset=>$ds );
+
+       			$searchexp->add_field( \@fields, $value, "EX" );
+        		$searchexp->perform_search();
+			$count = $searchexp->count();
+			unless( $fields[0]->is_type( "subject" ) )
+			{
+				$size{$value} = $count;
+			}
+			if( $info->{dom} && !$info->{nocount} )
+			{
+				$links->appendChild( $session->html_phrase( 
+					"bin/generate_views:blurb",
+					n=>$session->make_text( $count ) ) );
+			}
+			my %mapinfo = %{$info};
+			$mapinfo{links} = $links;
+			if( !defined $mapinfo{layout} )
+			{
+				$mapinfo{layout} = "paragraph";
+			}
+			if( $mapinfo{dom} )
+			{
+				$searchexp->map( $fn, \%mapinfo );
+			}
+			$searchexp->dispose();
 		}
-		$size{$value} = $count;
-		my %mapinfo = %{$info};
-		$mapinfo{links} = $links;
-		if( !defined $mapinfo{layout} )
+
+		if( 1 )
 		{
-			$mapinfo{layout} = "paragraph";
+			$links->appendChild( $session->html_phrase(
+				"bin/generate_views:timestamp",
+				time=>$session->make_text( 
+					EPrints::Utils::get_timestamp() ) ) );
 		}
-		if( $mapinfo{dom} )
-		{
-			$searchexp->map( $fn, \%mapinfo );
-		}
-		$searchexp->dispose();
 
 		if( $info->{include} )
 		{
@@ -385,11 +434,35 @@ sub make_view_pages
 	$page->appendChild( 
 		$session->html_phrase( "bin/generate_views:intro" ) );
 
+
+#cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
+#        if( !defined $baseid )
+#        {
+#                $baseid = $EPrints::Subject::root_subject;
+#        }
+#
+#        my %subs = ();
+#        foreach( @{$subject_list}, $baseid )
+#        {
+#                $subs{$_} = EPrints::Subject->new( $self, $_ );
+#        }
+	
+	my $subjects_to_show = \@values;
+	if( 1 )
+	{
+		$subjects_to_show = [];
+		foreach( @values )
+		{
+			next unless( $size{$_} > 0 );
+			push @{$subjects_to_show}, $_;
+		}
+	}
+
 	if( $fields[0]->is_type( "subject" ) )
 	{
         	$page->appendChild( 
 			$session->render_subjects( 
-				\@values, 
+				$subjects_to_show,
 				$fields[0]->get_property( "top" ), 
 				undef, 
 				2, 

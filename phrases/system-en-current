@@ -154,6 +154,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:invalid_eprint">ID <ep:pin ref="eprintid" /> is not a valid EPrint ID!</ep:phrase>
     <ep:phrase ref="lib/submissionform:current_docs"><p>Here are the documents currently attached to this EPrint, and how many files you have uploaded for each.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:least_one"><p>You must upload at least one of the following formats: <ep:pin ref="list" />.</p></ep:phrase>
+    <ep:phrase ref="lib/submissionform:none_required"><p>You may upload one or formats of the document at this stage. This is not required, but is strongly encouraged.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:plain">Plain Files</ep:phrase>
     <ep:phrase ref="lib/submissionform:grab_url">From an Existing Web Site</ep:phrase>
     <ep:phrase ref="lib/submissionform:fix_upload">The document upload can't be completed because:</ep:phrase>
@@ -377,6 +378,12 @@ User Area CGI Scripts
     <ep:phrase ref="cgi/users/status:release">EPrints Release:</ep:phrase>
     <ep:phrase ref="cgi/users/status:database">Database Status:</ep:phrase>
     <ep:phrase ref="cgi/users/status:users">Total Users:</ep:phrase>
+    <ep:phrase ref="cgi/users/status:usertitle"><h2>Users</h2></ep:phrase>
+    <ep:phrase ref="cgi/users/status:articles"><h2>Articles</h2></ep:phrase>
+    <ep:phrase ref="cgi/users/status:diskspace"><h2>Disk Space</h2></ep:phrase>
+    <ep:phrase ref="cgi/users/status:subscriptions"><h2>Subscriptions</h2></ep:phrase>
+    <ep:phrase ref="cgi/users/status:subsent">Last completed mailing</ep:phrase>
+    <ep:phrase ref="cgi/users/status:subcount">Total Number</ep:phrase>
     <ep:phrase ref="cgi/users/status:set_archive">Articles in Archive:</ep:phrase>
     <ep:phrase ref="cgi/users/status:set_buffer">Articles in Buffer:</ep:phrase>
     <ep:phrase ref="cgi/users/status:set_inbox">Articles in Workspace:</ep:phrase>
@@ -630,9 +637,10 @@ Command Line Scripts
     <ep:phrase ref="bin/generate_views:indextitle">Browse by <ep:pin ref="viewname" /></ep:phrase>
     <ep:phrase ref="bin/generate_views:title"><ep:pin ref="viewname" />: <ep:pin ref="value" /></ep:phrase>
     <ep:phrase ref="bin/generate_views:intro"><p>Please select a value to browse from the list below.</p></ep:phrase>
-    <ep:phrase ref="bin/generate_views:blurb"><p>Number of records: <strong><ep:pin ref="n" /></strong></p></ep:phrase>
+    <ep:phrase ref="bin/generate_views:blurb"><p>Number of records: <strong><ep:pin ref="n" /></strong>.</p></ep:phrase>
     <ep:phrase ref="bin/generate_views:browsetitle">Browse Records</ep:phrase>
     <ep:phrase ref="bin/generate_views:browseintro"><p>Records may be browsed by the following:</p></ep:phrase>
+    <ep:phrase ref="bin/generate_views:timestamp"><p>This page was generated on <strong><ep:pin ref="time" /></strong>.</p></ep:phrase>
 
 
 <!--********************************************************************** 

@@ -47,12 +47,38 @@ use Cwd;
 BEGIN {
 	# Paranoia: This may annoy people, or help them... cjg
 
-	unless( $ENV{MOD_PERL} ) # mod_perl will probably be running as root for the main httpd.
+	# mod_perl will probably be running as root for the main httpd.
+	# The sub processes should run as the same user as the one specified
+	# in $EPrints::SystemSettings
+	# An exception to this is running as root (uid==0) in which case
+	# we can become the required user.
+	unless( $ENV{MOD_PERL} ) 
 	{
-		if( (getpwuid($>))[0] ne $EPrints::SystemSettings::conf->{user})
+		#my $req($login,$pass,$uid,$gid) = getpwnam($user)
+		my $req_username = $EPrints::SystemSettings::conf->{user};
+		my $req_group = $EPrints::SystemSettings::conf->{group};
+		my $req_uid = (getpwnam($req_username))[2];
+		my $req_gid = (getgrnam($req_group))[2];
+
+		my $username = (getpwuid($>))[0];
+		if( $> == 0 )
 		{
-			abort( "We appear to be running as user: ".(getpwuid($>))[0]."\n"."We expect to be running as user: ".$EPrints::SystemSettings::conf->{user} );
+			# Special case: Running as root, we change the 
+			# effective UID to be the one required in
+			# EPrints::SystemSettings
+
+			# remember kids, change the GID first 'cus you
+			# can't after you change from root UID.
+			$) = $( = $req_gid;
+			$> = $< = $req_uid;
 		}
+		elsif( $username ne $req_username )
+		{
+			abort( 
+"We appear to be running as user: ".$username."\n".
+"We expect to be running as user: ".$req_username );
+		}
+		# otherwise ok.
 	}
 
 	# abort($err) Defined here so modules can abort even at startup
@@ -417,15 +443,25 @@ sub load_archive_config_module
 	
 	eval { 
 		chdir $info->{archiveroot};
-		require $info->{configmodule};
+		do $info->{configmodule};
 	};
-
+	
 	chdir $prev_dir;
 
 	if( $@ )
 	{
 		$@=~s#\nCompilation failed in require.*##;
-		print STDERR "Failed to load config module for $id\nFile: $info->{configmodule}\nError: $@";
+		print STDERR <<END;
+------------------------------------------------------------------
+---------------- EPrints System Warning --------------------------
+------------------------------------------------------------------
+Failed to load config module for $id
+Main Config File: $info->{configmodule}
+Errors follow:
+------------------------------------------------------------------
+$@
+------------------------------------------------------------------
+END
 		return;
 	}
 

@@ -139,7 +139,7 @@ sub df_dir
 {
 	my( $dir ) = @_;
 
-	return df $dir if ($DF_AVAILABLE);
+	return df $dir if( $DF_AVAILABLE );
 	die( "Attempt to call df when df function is not available." );
 }
 
@@ -827,8 +827,6 @@ sub render_citation
 	# This should belong to the base class of EPrint User Subject and
 	# Subscription, if we were better OO people...
 
-	# cjg BUG in nested <ifset>'s ?
-
 	my $nodes = { keep=>[], lose=>[] };
 	my $node;
 
@@ -923,6 +921,17 @@ sub _expand_references
 		else
 		{
 			_expand_references( $obj, $_ );
+		}
+
+		my $attrs = $node->getAttributes;
+		if( $attrs )
+		{
+			foreach my $attr ( $attrs->getValues )
+			{
+				my $v = $attr->getValue;
+				$v =~ s/@([a-z0-9_]+)@/$obj->get_value( $1 )/egi;
+				$attr->setValue( $v );
+			}
 		}
 	}
 }
@@ -1333,6 +1342,27 @@ sub get_datestamp
 
 	return( $year."-".$month."-".$day );
 }
+
+######################################################################
+=pod
+
+=item $timestamp = EPrints::Utils::get_timestamp()
+
+Return a string discribing the current local date and time.
+
+=cut
+######################################################################
+
+sub get_timestamp
+{
+	my $stamp = "Error in get_timestamp";
+	eval {
+		use POSIX qw(strftime);
+		$stamp = strftime( "%a %b %e %H:%M:%S %Z %Y", localtime);
+	};	
+	return $stamp;
+}
+
 
 
 ######################################################################

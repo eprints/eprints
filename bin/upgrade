@@ -256,6 +256,9 @@ This will:
        + editperms (search) 
        + mailempty (boolean) 
        + frequency (set) 
+
+ * in dataset "document"
+    - add a longtext field named "hash"
     
 Are you sure you want to do this? (yes/no)
 END
@@ -321,6 +324,20 @@ END
 			$sql = "ALTER TABLE $table ADD frequency TEXT AFTER editperms";
 			$ok = $ok && $rootdbh->do( $sql );
 			$sql = "ALTER TABLE $table ADD mailempty TEXT AFTER frequency";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	# add "hash" to document
+
+	$sql = "ALTER TABLE document ADD hash TEXT default NULL AFTER main";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^document__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD hash text AFTER main",
 			$ok = $ok && $rootdbh->do( $sql );
 		}
 	}

@@ -60,6 +60,7 @@ my $searchexp = new EPrints::SearchExpression(
 	use_oneshot_cache => 1,
 	dataset => $dataset,
 	fieldnames => \@search_fields,
+	defaults => $session->get_archive()->get_conf( "advanced_search_defaults" ),
 	extrafields => $extrafields );
 
 my $preamble = $session->html_phrase( "cgi/users/eprint_search:preamble" );

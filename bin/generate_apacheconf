@@ -197,6 +197,13 @@ print CONF <<END;
 #
 
 NameVirtualHost $virtualhost
+
+# If the apache configuration is reloaded the the
+# perl modules (and therefore archive configurations)
+# must be reloaded too.
+PerlFreshRestart  On
+
+# Load the perl modules & archive configurations
 PerlRequire $startupfile
 
 END

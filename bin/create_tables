@@ -40,6 +40,10 @@ The ID of the EPrint archive to effect.
 
 =over 8
 
+=item B<--force>
+
+Go ahead and try and create the tables, even if the script encounters things it thinks are wrong like too many indexed fields or too the database not being empty.
+
 =item B<--help>
 
 Print a brief help message and exit.
@@ -82,6 +86,7 @@ my $version = 0;
 my $quiet = 0;
 my $help = 0;
 my $man = 0;
+my $force = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -89,6 +94,7 @@ GetOptions(
 	'verbose+' => \$verbose,
 	'version' => \$version,
 	'silent' => \$quiet,
+	'force' => \$force,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "create_tables" ) if $version;
@@ -105,6 +111,30 @@ $|=1;
 
 my $session = new EPrints::Session( 1, $ARGV[0], $noise, 1 );
 exit( 1 ) unless defined $session;
+
+if( $session->get_db->has_table( "archive" ) )
+{
+	print STDERR "WARNING: Database is NOT empty. Contains an \"archive\" table.\n";
+	if( !$force )
+	{
+		EPrints::Config::abort( "Cannot create tables Erase the database (erase_archive does this)\nor use --force to override this check." );
+	}
+}
+foreach my $dsid ( &EPrints::DataSet::get_sql_dataset_ids )
+{
+	my $ds = $session->get_archive->get_dataset( $dsid );
+	my $indexes = $ds->count_indexes;
+	if( $indexes > 32 )
+	{
+		print STDERR "WARNING: Main table of dataset \"$dsid\" requires $indexes indexes.\n";
+		if( !$force )
+		{
+			EPrints::Config::abort( "MySQL has a maximum of 32 indexes per table and the '$dsid'\ntable requires $indexes. Add an sql_index=>0 parameter to some of the\nfields in this dataset. See the Documentation for more information\non the 'sql_index' metadata parameter. --force will override this\ncheck but the SQL will probably fail anyway." );
+		}
+	}
+}
+		
+
 
 if( $noise>=1 ) { print "Creating database tables...\n"; }
 if( $session->get_db()->create_archive_tables() )

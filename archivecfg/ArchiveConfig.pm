@@ -125,7 +125,7 @@ $c->{userhome} = "$c->{perl_url}/users/home";
 #
 # Available formats are configured elsewhere. See the docs.
 
-$c->{required_formats} =
+$c->{required_formats} = 
 [
 	"html",
 	"pdf",
@@ -344,8 +344,9 @@ $c->{vlit}->{context_size} = 1024;
 # subject or allowing null in this case.
 $c->{browse_views} = [
 	{ id=>"year",  allow_null=>1, fields=>"year", order=>"title/authors" },
+{ id=>"name",  allow_null=>1, fields=>"authors/editors", order=>"title/authors" }
 	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 },
-	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
+	#{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
 # Number of results to display on a single search results page
@@ -358,6 +359,7 @@ $c->{simple_search_fields} =
 	"authors/editors",
 	"year"
 ];
+
 
 # Fields for an advanced user search
 $c->{advanced_search_fields} =
@@ -684,6 +686,7 @@ sub session_close
 {
 	my( $session ) = @_;
 }
+
 
 # Return true to indicate the module loaded OK.
 1;

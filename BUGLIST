@@ -24,8 +24,6 @@ does NOT have all required langs filled in.
 Documentation
 ----------------------------------------------------------------------
 
-- subscriptions not allowed to be blank! (should be allow blank!)
-
 ----------------------------------------------------------------------
 Documentation
 ----------------------------------------------------------------------
@@ -52,13 +50,10 @@ element. [Mark Faine]
 - Mozilla puts whitespace under imgs for no good reason if there
   is an <?xml ?> header or XHTML DOCTYPE 
 
-- browseviews don't expect spaces - causes a fatal error. Can't make the 
- filenames.
-
 - broken link in "record_for_user" goes to "set_email" not "change_email"
   ?? did I fix this absent mindedly?
 
-- render_citation_link on a user points to a non existant cgi script.
+- Full summary and abstract summary should say what TYPE the eprint is.
 
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
@@ -75,7 +70,8 @@ Searching
    'next' is clicked. Eg. Start searching inbox and next page is
    main archive.
 
-- ID Search appears to return values twice.
+- ID Search appears to return values twice. //similar to problem
+   with subscriptions?
 
 - Does not ignore umlauts etc. in NAME searches.
 
@@ -101,6 +97,8 @@ EPrints Submission Form
 
 - "Cancel" from the "EPrint Type" page still appears to set the type.
 
+- "Edit" and "Remove" buttons on list-of-formats page vary in order.
+
 ----------------------------------------------------------------------
 EPrints "Staff" Edit
 ----------------------------------------------------------------------
@@ -111,8 +109,6 @@ EPrints "Staff" Edit
 ----------------------------------------------------------------------
 Installation & Archive Setup Script
 ----------------------------------------------------------------------
-
-- Maximum of 32 Indexes on a MySQL table can cause problems.
 
 ----------------------------------------------------------------------
 Email
@@ -127,8 +123,6 @@ causes a 500 error. [gone away?]
  [Thu Feb 21 12:15:02 2002] [error] Bizarre copy of HASH in aassign at /usr/lib/perl5/5.6.0/Carp/Heavy.pm line 79.
 
 - null datestamp field caused OAI go barf.
-
-- oai2 uses oai1 archive id for records.
 
 ======================================================================
 Fixed in Release 2.0 (major bugs in alpha-2)
@@ -275,8 +269,31 @@ it has been added]
 - Docs don't tell people how to do the main part of the upgrade!
 - Tim Brody's reports of some incorrect responses in obscure cases.
    [tested now and appears to work].
+
+======================================================================
+Fixed in CVS 
+======================================================================
+
+
 - URLS like http://eprints.ecs.soton.ac.uk/archive/00000001 fail
    for lack of a trailing / [ apache conf now matches these.]
+- browseviews don't expect spaces - causes a fatal error. Can't make the 
+ filenames. [spaces and "/" now become "_" in filenames]
+- subscriptions not allowed to be blank! (should be allow blank!) [they
+  can be, must be me being stupid, or possibly a double-error countering
+  each other. ulp]
+- render_citation_link on a user points to a non existant cgi script.
+   [non staff mode url was wrong. Fixed.]
+- Maximum of 32 Indexes on a MySQL table can cause problems. [create_tables
+   now checks how many indexes are required before it creates the tables]
+- oai2 uses oai1 archive id for records.
+- "No eprint selected" from user home. Continue takes back to archive
+    home which is annoying.
+
+
+
+
+
 
 
 

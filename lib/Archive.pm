@@ -132,7 +132,21 @@ sub new_archive_by_id
 	
 	if( defined $ARCHIVE_CACHE{$id} )
 	{
-		return $ARCHIVE_CACHE{$id};
+		my $self = $ARCHIVE_CACHE{$id};
+		my $file = $self->get_conf( "config_path" )."/.changed";
+		my $poketime = (stat( $file ))[9];
+		# If the /cfg/.changed file was touched since the config
+		# for this archive was loaded then we will reload it.
+		# This is not as handy as it sounds as we'll have to reload
+		# it each time the main server forks.
+		if( defined $poketime && $poketime > $self->{loadtime} )
+		{
+			$self->log( "$file has been modified since the archive config was loaded: reloading!" );
+		}
+		else
+		{
+			return $self;
+		}
 	}
 	
 	#print STDERR "Loading: $id\n";
@@ -141,6 +155,8 @@ sub new_archive_by_id
 	bless $self, $class;
 
 	$self->{config} = EPrints::Config::load_archive_config_module( $id );
+
+	$self->{loadtime} = time;
 
 	return unless( defined $self->{config} );
 
@@ -187,7 +203,7 @@ sub get_ruler
 	}
 	my $file = $self->get_conf( "config_path" )."/ruler.xml";
 	
-	my $doc = $self->parse_xml( $file , ParseParamEnt=>0 );
+	my $doc = $self->parse_xml( $file , ParseParamEnt=>0, NoExpand=>1 );
 	if( !defined $doc )
 	{
 		$self->log( "Error loading: $file\n" );

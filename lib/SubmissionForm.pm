@@ -60,44 +60,36 @@ use strict;
 #cjg bug pruning very new doc?
 
 my $STAGES = {
-	home => {
-		next => "type"
-	},
-	type => {
-		prev => "return",
-		next => "linking"
-	},
-	linking => {
-		prev => "type",
-		next => "meta"
-	},
-	meta => {
-		prev => "linking",
-		next => "files"
-	},
-	files => {
-		prev => "meta",
-		next => "verify"
-	},
+	home => { next => "type" },
+	type => { prev => "return", next => "linking" },
+	linking => { prev => "type", next => "meta" },
+	meta => { prev => "linking", next => "files" },
+	files => { prev => "meta", next => "verify" },
 	docmeta => {},
 	fileview => {},
 	upload => {},
-	verify => {
-		prev => "files",
-		next => "done"
-	},
-	quickverify => {
-		prev => "return",
-		next => "done"
-	},
+	verify => { prev => "files", next => "done" },
+	quickverify => { prev => "return", next => "done" },
 	done => {},
 	return => {},
-	confirmdel => {
-		prev => "return",
-		next => "return"
-	}
+	confirmdel => { prev => "return", next => "return" }
 };
 
+$EPrints::SubmissionForm::STAGES = {
+	home => { next => "type" },
+	type => { prev => "return", next => "linking" },
+	linking => { prev => "type", next => "meta" },
+	meta => { prev => "linking", next => "files" },
+	files => { prev => "meta", next => "verify" },
+	docmeta => {},
+	fileview => {},
+	upload => {},
+	verify => { prev => "files", next => "done" },
+	quickverify => { prev => "return", next => "done" },
+	done => {},
+	return => {},
+	confirmdel => { prev => "return", next => "return" }
+};
 
 
 ######################################################################
@@ -288,7 +280,9 @@ sub _corrupt_err
 	$self->{session}->render_error( 
 		$self->{session}->html_phrase( 
 			"lib/submissionform:corrupt_err",
-			line_no => $self->{session}->make_text( (caller())[2] ) ) );
+			line_no => 
+				$self->{session}->make_text( (caller())[2] ) ),
+		$self->{session}->get_archive->get_conf( "userhome" ) );
 
 }
 
@@ -307,8 +301,9 @@ sub _database_err
 	$self->{session}->render_error( 
 		$self->{session}->html_phrase( 
 			"lib/submissionform:database_err",
-			line_no => $self->{session}->make_text( (caller())[2] ) ) );
-
+			line_no => 
+				$self->{session}->make_text( (caller())[2] ) ),
+		$self->{session}->get_archive->get_conf( "userhome" ) );
 }
 
 ######################################################################
@@ -350,7 +345,9 @@ sub _from_stage_home
 		{
 			$self->{session}->render_error( 
 				$self->{session}->html_phrase(
-		        		"lib/submissionform:use_auth_area" ) );
+		        		"lib/submissionform:use_auth_area" ),
+				$self->{session}->get_archive->get_conf( 
+					"userhome" ) );
 			return( 0 );
 		}
 		$self->{eprint} = EPrints::EPrint::create(
@@ -379,7 +376,9 @@ sub _from_stage_home
 		{
 			$self->{session}->render_error( 
 				$self->{session}->html_phrase( 
-					"lib/submissionform:nosel_err" ) );
+					"lib/submissionform:nosel_err" ),
+				$self->{session}->get_archive->get_conf( 
+					"userhome" ) );
 			return( 0 );
 		}
 
@@ -394,7 +393,9 @@ sub _from_stage_home
 		{
 			$self->{session}->render_error( 
 				$self->{session}->html_phrase( 
-					"lib/submissionform:nosel_err" ) );
+					"lib/submissionform:nosel_err" ),
+				$self->{session}->get_archive->get_conf( 
+					"userhome" ) );
 			return( 0 );
 		}
 		
@@ -418,7 +419,11 @@ sub _from_stage_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:nosel_err" ),
+				$self->{session}->get_archive->get_conf( 
+					"userhome" ) );
 			return( 0 );
 		}
 		$self->{new_stage} = "confirmdel";
@@ -429,7 +434,11 @@ sub _from_stage_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->render_error( $self->{session}->html_phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( 
+				$self->{session}->html_phrase( 
+					"lib/submissionform:nosel_err" ),
+				$self->{session}->get_archive->get_conf( 
+					"userhome" ) );
 			return( 0 );
 		}
 		$self->{new_stage} = "quickverify";
@@ -1413,22 +1422,20 @@ sub _do_stage_files
 			$td->appendChild( $self->{session}->make_text( $nfiles ) );
 			$td = $self->{session}->make_element( "td" );
 			$tr->appendChild( $td );
-			$td->appendChild( $self->{session}->render_action_buttons(
-				"edit_".$doc->get_value( "docid" ) => 
-					$self->{session}->phrase( 
-						"lib/submissionform:action_edit" ) ,
-				"remove_".$doc->get_value( "docid" ) => 
-					$self->{session}->phrase( 
-						"lib/submissionform:action_remove" ) 
+			my $edit_id = "edit_".$doc->get_value( "docid" );
+			my $remove_id = "remove_".$doc->get_value( "docid" );
+			$td->appendChild( 
+				$self->{session}->render_action_buttons(
+				_order => [ $edit_id, $remove_id ],
+				$edit_id => $self->{session}->phrase( 
+					"lib/submissionform:action_edit" ) ,
+				$remove_id => $self->{session}->phrase( 
+					"lib/submissionform:action_remove" ) 
 			) );
 		}
-		$form->appendChild( $self->{session}->make_element( "br " ) );
+		$form->appendChild( $self->{session}->make_element( "br" ) );
 	}
 
-	$form->appendChild( $self->{session}->render_action_buttons(
-		newdoc => $self->{session}->phrase( 
-				"lib/submissionform:action_newdoc" ) ) );
-		
 	$form->appendChild( $self->{session}->render_hidden_field(
 		"stage",
 		"files" ) );
@@ -1449,19 +1456,28 @@ sub _do_stage_files
 	}
 
 	my @reqformats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};	
-	if( scalar @reqformats > 0 )
+	if( scalar @reqformats == 0 )
 	{
- 		my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
-
+		$form->appendChild(
+			$self->{session}->html_phrase(
+				"lib/submissionform:none_required" ) );
+	}
+	else
+	{
+ 		my $doc_ds = $self->{session}->get_archive()->get_dataset( 
+			"document" );
 		my $list = $self->{session}->make_doc_fragment();
 		my $c = scalar @reqformats;
 		foreach( @reqformats )
 		{
 			--$c;
-                	$list->appendChild( $doc_ds->render_type_name( $self->{session}, $_ ) );
+                	$list->appendChild( 
+				$doc_ds->render_type_name( 
+					$self->{session}, $_ ) );
 			if( $c > 0 )
 			{
-                		$list->appendChild( $self->{session}->make_text( ", " ) );
+                		$list->appendChild( 
+					$self->{session}->make_text( ", " ) );
 			}
 		}
 		$form->appendChild(
@@ -1470,6 +1486,10 @@ sub _do_stage_files
 				list=>$list ) );
 	}
 
+	$form->appendChild( $self->{session}->render_action_buttons(
+		newdoc => $self->{session}->phrase( 
+				"lib/submissionform:action_newdoc" ) ) );
+	$form->appendChild( $self->{session}->make_element( "br" ) );
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
 	$self->{session}->build_page(
