@@ -57,7 +57,7 @@ $EPrintSite::SiteInfo::allow_user_removal_request = 1;
 $EPrintSite::SiteInfo::server_static = "http://$EPrintSite::SiteInfo::host";
 
 # Mod_perl script server
-$EPrintSite::SiteInfo::server_perl = "$EPrintSite::SiteInfo::server_static/perl";
+$EPrintSite::SiteInfo::server_perl = "$EPrintSite::SiteInfo::host/perl";
 
 # Site "home page" address
 $EPrintSite::SiteInfo::frontpage = "$EPrintSite::SiteInfo::server_static/";
@@ -79,6 +79,9 @@ $EPrintSite::SiteInfo::local_subject_view_stem = "$EPrintSite::SiteInfo::local_h
 
 # Corresponding URL stem for "browse by subject" HTML files
 $EPrintSite::SiteInfo::server_subject_view_stem = "$EPrintSite::SiteInfo::server_static/view-";
+
+# Local path of perl scripts
+$EPrintSite::SiteInfo::local_perl_root = "$EPrintSite::SiteInfo::local_root/cgi";
 
 # Paths of configuration files
 $EPrintSite::SiteInfo::user_meta_config = "$EPrintSite::SiteInfo::local_root/cfg/metadata.user";

@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Script to update the username, password and database fields in
+#  the EPrints .htaccess files.
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+
+use EPrints::Database;
+use EPrintSite::SiteInfo;
+
+use File::Find;
+
+use strict;
+
+find( \&update_htaccess,
+      $EPrintSite::SiteInfo::local_html_root,
+      $EPrintSite::SiteInfo::local_perl_root );
+
+
+
+sub update_htaccess
+{
+	# Only work on .htaccess files
+	return unless( /.htaccess/i );
+	
+	my @htaccess_lines;
+
+	# Read it in, changing the appropriate lines
+	open IN, $File::Find::name or die "Error opening $File::Find::name: $!";
+	
+	while( <IN> )
+	{
+		chomp();
+
+		if( /Auth_DBI_username/ )
+		{
+			push @htaccess_lines, "PerlSetVar Auth_DBI_username      ".
+				$EPrintSite::SiteInfo::username;
+		}
+		elsif( /Auth_DBI_password/ )
+		{
+			push @htaccess_lines, "PerlSetVar Auth_DBI_password      ".
+				$EPrintSite::SiteInfo::password;
+		}
+		elsif( /Auth_DBI_data_source/ )
+		{
+			push @htaccess_lines, "PerlSetVar Auth_DBI_data_source   ".
+				$EPrints::Database::driver.$EPrintSite::SiteInfo::database;
+		}
+		else
+		{
+			push @htaccess_lines, $_;
+		}
+	}
+	
+	close( IN );
+	
+	
+	# Now write a new version.
+	open OUT, ">$File::Find::name"
+		or die "Error opening $File::Find::name for writing: $!";
+	
+	foreach (@htaccess_lines)
+	{
+		print OUT;
+		print OUT "\n";
+	}
+	
+	close( OUT );
+
+	chmod 0600, $File::Find::name or
+		warn "Warning: Couldn't set permissions on $File::Find::name ".
+			"for writing: $!";
+}
