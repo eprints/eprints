@@ -952,7 +952,7 @@ sub _get_search_type
 
 sub get_conditions 
 {
-	my ( $self ) = @_;
+	my ( $self , $benchmarking ) = @_;
 
 print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\n";
 
@@ -1084,6 +1084,10 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 			}
 			foreach( @{$good} )
 			{
+				if( $self->{match} eq "IN" )
+				{
+					$_ = "$self->{field}->{name}:$_";
+				}
 				push @where, "__FIELDNAME__ = '$_'";
 			}
 			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
@@ -1092,17 +1096,28 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 		my $hasphrase = 0;
 		while ($text =~ s/"([^"]+)"//g)
 		{
-			my $sfield = new EPrints::SearchField( 
-				$self->{session},
-				$self->{table},
-				$self->{field},
-				"PHR:IN:$1" );
-			my ($buffer,$bad,$error) = $sfield->do( undef , undef );
-			if( defined $error )
+			if( !$benchmarking )
 			{
-				return( undef, undef, undef, $error );
+				my $sfield = new EPrints::SearchField( 
+					$self->{session},
+					$self->{table},
+					$self->{field},
+					"PHR:IN:$1" );
+				my ($buffer,$bad,$error) = $sfield->do( undef , undef );
+				if( defined $error )
+				{
+					return( undef, undef, undef, $error );
+				}
+				push @where,"!$buffer"; 
 			}
-			push @where,"!$buffer"; 
+			else
+			{
+				# Just benchmarking - we'll return a search condition of "1=0"
+				# Which is always false so will be optimisted out and this will
+				# evaluate as 0 meaning it will go first. Which makes sense as
+				# this cannot (is not) optimised.	
+				push @where, "1=0";
+			}
 			$hasphrase=1;
 		}
 		my( $good , $bad ) = 
@@ -1115,6 +1130,10 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 
 		foreach( @{$good} )
 		{
+			if( $self->{match} eq "IN" )
+			{
+				$_ = "$self->{field}->{name}:$_";
+			}
 			push @where, "__FIELDNAME__ = '$_'";
 		}
 		return ( $self->_get_conditions_aux( 
@@ -1129,7 +1148,6 @@ sub _get_conditions_aux
 	my ( $self , $wheres , $freetext ) = @_;
 print STDERR "_GCA($self->{field}->{name})\n";
 	my $searchtable = $self->{table};
-	my $freetextcond;
 	if ($self->{field}->{multiple}) 
 	{	
 		$searchtable.= $EPrints::Database::seperator.$self->{field}->{name};
@@ -1137,10 +1155,9 @@ print STDERR "_GCA($self->{field}->{name})\n";
 	if( $freetext )
 	{
 		$searchtable = EPrints::Database::index_name( $self->{table} );
-		$freetextcond = "M.field = \"$self->{field}->{name}\"";
 	}
 
-	my $fieldname = "M.".($freetext ? "word" : $self->{field}->{name} );
+	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->{name} );
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done
@@ -1167,13 +1184,6 @@ print STDERR "_GCA($self->{field}->{name})\n";
 		else
 		{
 			@nwheres = ( join( " OR " , @nwheres ) );
-		}
-	}
-	if( $freetext )
-	{
-		foreach( @nwheres )
-		{
-			$_="($_) AND $freetextcond"; 
 		}
 	}
 	push @nwheres , @pwheres;
@@ -1210,9 +1220,12 @@ sub benchmark
 
 }
 
+# benchmarking means that we only need to get approx 
+# results from this...
+
 sub _get_tables_searches
 {
-	my ( $self ) = @_;
+	my ( $self , $benchmarking) = @_;
 
 	my %searches = ();
 	my @tables = ();
@@ -1227,7 +1240,7 @@ sub _get_tables_searches
 				$_,
 				$self->{value} );
 			my ($table,$where,$bad,$error) = 
-				$sfield->get_conditions();
+				$sfield->get_conditions( $benchmarking );
 			if( defined $error )
 			{
 				return( undef, undef, undef, $error );
@@ -1246,7 +1259,7 @@ print STDERR join(" | ",@{$where})."\n";
 	}
 	else 
 	{
-		my ($table,$where,$bad,$error) = $self->get_conditions();
+		my ($table,$where,$bad,$error) = $self->get_conditions( $benchmarking );
 		if( defined $error )
 		{
 			return( undef, undef, undef, $error );
@@ -1383,7 +1396,7 @@ sub approx_rows
 
 EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
 
-	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches();
+	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches( 1 );
 	if( defined $error )
 	{
 		return 0;
@@ -1398,7 +1411,6 @@ EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
 		foreach( @{$tables} )
 		{
 			my $rows = $self->benchmark( $_ , $searches->{$_}->[$i] ); 
-EPrints::Log::debug("rows: $rows");
 			if( !defined $i_result )
 			{
 				$i_result = $rows;

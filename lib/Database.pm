@@ -296,34 +296,34 @@ sub create_archive_tables
 
 sub _create_table
 {
-	my( $self, $name, @fields ) = @_;
+	my( $self, $tablename, @fields ) = @_;
 	
-	my $success;
+	my $rv = 1;
 
 	my $keyfield = $fields[0]->clone();
 	$keyfield->{indexed} = 1;
-	my $field = EPrints::MetaField->new( "field:text:0:Field:1:0:0:1" );
-	my $word = EPrints::MetaField->new( "word:text:0:Word:1:0:0:1" );
-	
-	$success = $self->_create_table_aux(
-		index_name( $name ),
-		0,
-		( $keyfield , $field, $word ) );
+	my $fieldword = EPrints::MetaField->new( "fieldword:text:0:Word:1:0:0:1" );
 
-	$success = $success && $self->_create_table_aux( $name, 1, @fields);
+	$rv = $rv & $self->_create_table_aux(
+			index_name( $tablename ),
+			$tablename,
+			0, # no primary key
+			( $keyfield , $fieldword ) );
 
-	return $success;
+	$rv = $rv && $self->_create_table_aux( $tablename, $tablename, 1, @fields);
 
+	return $rv;
 }
 
 sub _create_table_aux
 {
-	my( $self, $name, $setkey, @fields ) = @_;
+	my( $self, $tablename, $primarytable, $setkey, @fields ) = @_;
 	
 	my $field;
+	my $rv = 1;
 
 	# Construct the SQL statement
-	my $sql = "CREATE TABLE $name (";
+	my $sql = "CREATE TABLE $tablename (";
 	my $key = undef;
 	my @indices;
 	my $first = 1;
@@ -340,20 +340,17 @@ sub _create_table_aux
 			# there's not much point. 
 			my $auxfield = $field->clone();
 			$auxfield->{multiple} = 0;
-			my $keyfield = $key->clone();
+			my @fields = EPrints::MetaInfo::get_fields( $primarytable );
+			my $keyfield = $fields[0]->clone();
 			$keyfield->{indexed} = 1;
 			my $pos = EPrints::MetaField->new(
 				"pos:int:0:Postion:1:0:0:0" );
 			my @auxfields = ( $keyfield, $pos, $auxfield );
-			my $auxresult = $self->_create_table_aux(	
-				$name.$EPrints::Database::seperator.
-					$field->{name},
+			my $rv = $rv && $self->_create_table_aux(	
+				$tablename.$EPrints::Database::seperator.$field->{name},
+				$primarytable,
 				0, # no primary key
 				@auxfields );
-			unless ( $auxresult )
-			{
-				return undef; 
-			}
 			next;
 		}
 		if ( $first )
@@ -367,7 +364,6 @@ sub _create_table_aux
 		my $part = $EPrints::Database::datatypes{$field->{type}};
 		my %bits = (
 			 "name"=>$field->{name},
-			 "size"=>"12",
 			 "param"=>"" );
 
 			
@@ -406,11 +402,10 @@ sub _create_table_aux
 
 	print EPrints::Language::logphrase( 
 		"L:created_table" ,
-		$name )."\n";
+		$tablename )."\n";
 		
-
 	# Send to the database
-	my $rv = $self->do( $sql );
+	$rv = $rv && $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -496,6 +491,10 @@ sub update
 {
 	my( $self, $table, $data ) = @_;
 
+	my $rv = 1;
+	my $sql;
+
+
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 
 	# skip the keyfield;
@@ -507,9 +506,9 @@ sub update
 	# it now:
 	my $where = "$keyfield->{name} = \"$keyvalue\"";
 
-	# clearout the freetext search index table for this record.
-	my $sql = "DELETE FROM ".index_name( $table )." WHERE $where";
-	my $rv = $self->do( $sql );
+	my $indextable = index_name( $table );
+	$sql = "DELETE FROM $indextable WHERE $where";
+	$rv = $rv && $self->do( $sql );
 
 	my @aux;
 	my %values = ();
@@ -522,6 +521,8 @@ sub update
 		}
 		else 
 		{
+			# clearout the freetext search index table for this field.
+
 			if( $_->{type} eq "name" )
 			{
 				$values{"$_->{name}_given"} = 
@@ -534,14 +535,13 @@ sub update
 				$values{"$_->{name}"} = 
 					_prep_value( $data->{$_->{name}} );
 			}
-			if( $_->{type} eq "text" || $_->{type} eq "multitext" ||
-				$_->{type} eq "url" || $_->{type} eq "email" )
-			{
+			if( _freetext_type( $_ ) )
+			{ 
 				$self->_freetext_index( $table, $keyvalue, $_, $data->{$_->{name}} );
 			}
 		}
 	}
-
+	
 	$sql = "UPDATE $table SET ";
 	my $first=1;
 	foreach( keys %values ) {
@@ -556,10 +556,8 @@ sub update
 		$sql.= "$_ = \"$values{$_}\"";
 	}
 	$sql.=" WHERE $where";
+	
 	$rv = $rv && $self->do( $sql );
-
-
-
 
 	# Erase old, and insert new, values into aux-tables.
 	my $multifield;
@@ -951,13 +949,13 @@ sub buffer
 	return( $targetbuffer );
 }
 
-# remove this later - it will be replaced by ORDER code.
-sub tidy_hack
+sub distinct_and_limit
 {
-	my( $self, $buffer, $keyfield ) = @_;
+	my( $self, $buffer, $keyfield, $max ) = @_;
 	my $tmptable = $self->create_buffer( $keyfield->{name} );
-	$self->do( "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer LIMIT 1000" );
-	return $tmptable;
+	$self->do( "INSERT INTO $tmptable SELECT DISTINCT $keyfield->{name} FROM $buffer LIMIT $max" );
+	my $count = $self->count_buffer( $tmptable );
+	return( $tmptable , ($count >= $max) );
 }
 
 sub drop_cache
@@ -1299,30 +1297,37 @@ sub index_name
 sub _freetext_index
 {
 	my( $self , $table , $id , $field , $value ) = @_;
-	
+
+	my $rv = 1;
 	if( !defined $value || $value eq "" )
 	{
-		return;
+		return $rv;
 	}
-	
+
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
+	my $indextable = index_name( $table );
+	
 	my( $good , $bad ) = EPrintSite::SiteRoutines::extract_words( $value );
 
-	my $indextable = index_name( $table );
+print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 
-	print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 	my $sql;
-	my $rv = 1;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( $keyfield->{name} , field , word ) VALUES ";
-		$sql.= "( \"$id\" , \"$field->{name}\" , \""._prep_value($_)."\")";
+		$sql = "INSERT INTO $indextable ( $keyfield->{name} , fieldword ) VALUES ";
+		$sql.= "( \"$id\" , \""._prep_value("$field->{name}:$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;
 }
-	
+
+sub _freetext_type
+{
+	my( $field ) = @_;	
+	return ( $field->{type} eq "text" || $field->{type} eq "multitext" ||
+		$field->{type} eq "url" || $field->{type} eq "email" );
+}
 
 1; # For use/require success

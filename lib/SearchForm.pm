@@ -145,12 +145,18 @@ sub process
 			return;
 		}
 
-		@results = $searchexp->get_records();
+		@results = $searchexp->get_records( 1000 );
 		$t3 = EPrints::Log::microtime();
 
 		print $self->{session}->{render}->start_html(
 			$self->{session}->{lang}->phrase( "H:results_for",
 			                                  $self->{title} ) );
+
+		if( defined $searchexp->{warning} )
+		{
+			print "<P><B><I>".$searchexp->{warning}."</I></B></P>";
+		}
+	
 		my $code;
 		if( scalar @results==0 )
 		{

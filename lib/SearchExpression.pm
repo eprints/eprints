@@ -484,8 +484,6 @@ EPrints::Log::debug("buffer:".$buffer);
 	
         my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
         my $keyfield = $fields[0];
-	$buffer = $self->{session}->{database}->tidy_hack( $buffer , $keyfield );
-
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
 }
@@ -508,13 +506,26 @@ sub count
 
 sub get_records 
 {
-	my ( $self ) = @_;
-
+	my ( $self , $max ) = @_;
+	
 	if ( $self->{tmptable} )
 	{
-		return $self->{session}->{database}->from_buffer( 
-			$self->{table},
-			$self->{tmptable} );
+        	my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+        	my $keyfield = $fields[0];
+
+		my ( $buffer, $overlimit ) = $self->{session}->{database}->distinct_and_limit( 
+							$self->{tmptable}, 
+							$keyfield, 
+							$max );
+		if( $overlimit )
+		{
+			$self->{warning} = "Warning! $max or more results! Unsorted sample of results displayed.";
+		}
+		else
+		{
+			$self->{warning} = "Sorting not implemented";
+		}
+		return $self->{session}->{database}->from_buffer( $self->{table}, $buffer );
 	}	
 
 	EPrints::Log::log_entry(
