@@ -12,8 +12,6 @@ use Unicode::String qw(utf8 latin1 utf16);
 
 $EPrints::Site::General::base_path = "/opt/eprints";
 
-$EPrints::Site::General::log_language = "english";
-
 $EPrints::Site::General::lang_path = 
 	$EPrints::Site::General::base_path."/intl";
 

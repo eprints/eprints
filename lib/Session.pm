@@ -66,16 +66,16 @@ sub new
 	if( $mode == 0 || !defined $mode )
 	{
 		$offline = 0;
-		$self->{site} = EPrints::Site->new_site_by_url( $self->{query}->url() );
-		if( !defined $self->{site} )
+		$self->{archive} = EPrints::Site->new_site_by_url( $self->{query}->url() );
+		if( !defined $self->{archive} )
 		{
 			#cjg icky error handler...
 			my $r = Apache->request;
 			$r->content_type( 'text/html' );
 			$r->send_http_header;
-			print "<p>EPRINTS SERVER: Can't load site module for URL: ".$self->{query}->url()."</p>\n";
+			print "<p>EPRINTS SERVER: Can't load archive module for URL: ".$self->{query}->url()."</p>\n";
 			
-			print STDERR "xCan't load site module for URL: ".$self->{query}->url()."\n";
+			print STDERR "xCan't load archive module for URL: ".$self->{query}->url()."\n";
 
 			return undef;
 			
@@ -86,23 +86,23 @@ sub new
 		$offline = 1;
 		if( !defined $param || $param eq "" )
 		{
-			print STDERR "No site id specified.\n";
+			print STDERR "No archive id specified.\n";
 			return undef;
 		}
-		$self->{site} = EPrints::Site->new_site_by_id( $param );
-		if( !defined $self->{site} )
+		$self->{archive} = EPrints::Site->new_site_by_id( $param );
+		if( !defined $self->{archive} )
 		{
-			print STDERR "Can't load site module for: $param\n";
+			print STDERR "Can't load archive module for: $param\n";
 			return undef;
 		}
 	}
 	elsif( $mode == 2 )
 	{
 		$offline = 1;
-		$self->{site} = EPrints::Site->new_site_by_host_and_path( $param );
-		if( !defined $self->{site} )
+		$self->{archive} = EPrints::Site->new_site_by_host_and_path( $param );
+		if( !defined $self->{archive} )
 		{
-			print STDERR "Can't load site module for URL: $param\n";			return undef;
+			print STDERR "Can't load archive module for URL: $param\n";			return undef;
 			return undef;
 		}
 	}
@@ -116,12 +116,12 @@ sub new
 
 	# What language is this session in?
 
-	my $langcookie = $self->{query}->cookie( $self->{site}->get_conf( "lang_cookie_name") );
+	my $langcookie = $self->{query}->cookie( $self->{archive}->get_conf( "lang_cookie_name") );
 	if( defined $langcookie && !defined $EPrints::Site::General::languages{ $langcookie } )
 	{
 		$langcookie = undef;
 	}
-	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
+	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $langcookie );
 	
 	$self->new_page;
 
@@ -137,7 +137,7 @@ sub new
 #$self->{starttime} = gmtime( time );
 
 	
-	$self->{site}->call( "session_init", $self, $offline );
+	$self->{archive}->call( "session_init", $self, $offline );
 
 #
 #	my @params = $self->{render}->{query}->param();
@@ -176,7 +176,7 @@ sub new_page
 	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
 	$self->{page}->setXMLDecl( $xmldecl );
 
-	my $newpage = $self->{site}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
+	my $newpage = $self->{archive}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
 	$self->take_ownership( $newpage );
 	$self->{page}->appendChild( $newpage );
 }
@@ -199,7 +199,7 @@ sub change_lang
 {
 	my( $self, $newlangid ) = @_;
 
-	$self->{lang} = EPrints::Language::fetch( $self->{site} , $newlangid );
+	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $newlangid );
 }
 
 
@@ -216,7 +216,7 @@ sub terminate
 {
 	my( $self ) = @_;
 	
-	$self->{site}->call( "session_close", $self );
+	$self->{archive}->call( "session_close", $self );
 
 	$self->{database}->disconnect();
 
@@ -227,7 +227,7 @@ sub terminate
 #
 # mail_administrator( $subject, $message )
 #
-#  Sends a mail to the site administrator with the given subject and
+#  Sends a mail to the archive administrator with the given subject and
 #  message body.
 #
 ######################################################################
@@ -245,7 +245,7 @@ sub mail_administrator
 	EPrints::Mailer::send_mail(
 		$self,
 		 "lib/session:site_admin" ,
-		$self->{site}->{admin},
+		$self->{archive}->{admin},
 		$subject,
 		$message_body );
 }
@@ -335,7 +335,7 @@ sub get_query
 sub get_site
 {
 	my( $self ) = @_;
-	return $self->{site};
+	return $self->{archive};
 }
 
 ######################################################################
@@ -355,7 +355,7 @@ sub send_http_header
 	# Write HTTP headers if appropriate
 	if( $self->{offline} )
 	{
-		$self->{site}->log( "Attempt to send HTTP Header while offline" );
+		$self->{archive}->log( "Attempt to send HTTP Header while offline" );
 		return;
 	}
 
@@ -365,11 +365,11 @@ sub send_http_header
 	if( defined $opts{lang} )
 	{
 		my $cookie = $self->{query}->cookie(
-			-name    => $self->{site}->get_conf("lang_cookie_name"),
+			-name    => $self->{archive}->get_conf("lang_cookie_name"),
 			-path    => "/",
 			-value   => $opts{lang},
 			-expires => "+10y", # really long time
-			-domain  => $self->{site}->get_conf("lang_cookie_domain") );
+			-domain  => $self->{archive}->get_conf("lang_cookie_domain") );
 		$r->header_out( "Set-Cookie"=>$cookie ); 
 	}
 	$r->send_http_header;
@@ -405,7 +405,7 @@ sub end_html
 die "NOPE";
 	
 	# End of HTML gubbins
-	my $html = $self->{site}->get_conf("html_tail")."\n";
+	my $html = $self->{archive}->get_conf("html_tail")."\n";
 	$html .= $self->{query}->end_html;
 
 	return( $html );
@@ -479,7 +479,7 @@ sub get_order_names
 print STDERR "SELF:".join(",",keys %{$self} )."\n";
 		
 	my %names = ();
-	foreach( keys %{$self->{site}->get_conf(
+	foreach( keys %{$self->{archive}->get_conf(
 			"order_methods",
 			$dataset->confid() )} )
 	{
@@ -970,7 +970,7 @@ sub render_error
 	{
 		print $self->phrase( 
 			"lib/session:some_error",
-			sitename=>$self->{session}->{site}->{sitename} );
+			sitename=>$self->{session}->{archive}->{sitename} );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
