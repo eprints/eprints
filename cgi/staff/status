@@ -62,6 +62,13 @@ $rows = $session->{database}->retrieve( $EPrints::Database::table_archive,
 
 my $num_archive = scalar @$rows;
 
+# Number of deleted eprints
+
+$rows = $session->{database}->retrieve( $EPrints::Database::table_deletion,
+                                        [ "eprintid" ] );
+
+my $num_deleted = scalar @$rows;
+
 # Number of subscriptions
 $rows = $session->{database}->retrieve( $EPrints::Database::table_subscription,
                                         [ "subid" ] );
@@ -98,6 +105,7 @@ print "<CENTER><TABLE BORDER=0>\n";
 &print_row( "Articles in archive:", $num_archive );
 &print_row( "Articles in buffer:", $num_buffer );
 &print_row( "Articles in workspace:", $num_inbox );
+&print_row( "Deleted Articles:", $num_deleted );
 
 &print_row( "", "" );
 
