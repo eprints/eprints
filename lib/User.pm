@@ -542,18 +542,35 @@ sub get_editable_eprints
 
 sub mail
 {
-	my( $self, $subject, $message ) = @_;
-	#   Session  utf8    DOM
+	my( $self,   $subjectid, $messageid,    %inserts ) = @_;
+	#   Session, string,     string OR DOM, string->DOM
+
+	# Mail the admin in the default language
+	my $langid = $self->get_value( "lang" );
+	my $lang = $self->{session}->get_archive()->get_language( $langid );
+
+	my $message;
+	if( ref($message eq "") )
+	{
+		$message = $lang->phrase( $messageid, \%inserts, $self->{session} );
+	}
+	else
+	{
+		$message = $messageid;
+	}
+
 
 	return EPrints::Utils::send_mail(
 		$self->{session}->get_archive(),
-		$self->get_value( "lang" ),
-		$self->full_name(),		
+		$langid,
+		$self->full_name(),
 		$self->get_value( "email" ),
-		$subject,
+		EPrints::Config::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
 		$message,
-		$self->{session}->html_phrase( "mail_sig" ) );
+		$lang->phrase( "mail_sig", {}, $self->{session} ) ); 
 }
+
+
 
 sub _create_userid
 {

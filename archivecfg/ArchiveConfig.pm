@@ -326,10 +326,10 @@ $c->{userauth} = {
 		priv  =>  [ "user", "subscription", "set-password" ] },
 	editor => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor" ] },
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password" ] },
 	admin => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor" ] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password" ] }
 };
 
 
@@ -1366,7 +1366,8 @@ sub oai_get_eprint_metadata
 		$tags{title} = $eprint->{title};
 
 #cjg Name don't live here anymore :-)
-#		my @authors = EPrints::Name::extract( $eprint->{authors} );
+##		my @authors = EPrints::Name::extract( $eprint->{authors} );
+my @authors;
 		$tags{creator} = [];
 		my $author;
 		foreach $author (@authors)

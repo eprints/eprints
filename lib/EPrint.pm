@@ -245,7 +245,7 @@ print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$d
 		# Argh! Running low on disk space overall.
 		$session->mail_administrator(
 			"lib/eprint:diskout_sub" ,
-			"lib/eprint:diskout"  );
+			"lib/eprint:diskout" );
 print STDERR "oraok\n";
 #cjg LOG WHY!
 		return( undef );
@@ -1488,6 +1488,15 @@ sub get_data
 	my( $self ) = @_;
 	
 	return $self->{data};
+}
+
+sub get_user
+{
+	my( $self ) = @_;
+
+	my $user = EPrints::User->new( $self->{session}, $self->get_value( "userid" ) );
+
+	return $user;
 }
 
 1;

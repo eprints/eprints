@@ -66,6 +66,7 @@ EPrints Modules
     <phrase ref="lib/metafield:month_10">October</phrase>
     <phrase ref="lib/metafield:month_11">November</phrase>
     <phrase ref="lib/metafield:month_12">December</phrase>
+    <phrase ref="lib/metafield:unspecified">UNSPECIFIED</phrase>
 
 <!-- SearchExpression -->
 
@@ -334,6 +335,19 @@ User Area CGI Scripts
     <phrase ref="cgi/users/view_submission:action_delete">Delete</phrase>
     <phrase ref="cgi/users/view_submission:back">Back to buffer overview</phrase>
 
+<!-- edit_submission -->
+
+    <phrase ref="cgi/users/edit_submission:problem_getting">Problem retrieving the submission with ID="<pin ref="eprintid" />"</phrase>
+    <phrase ref="cgi/users/edit_submission:no_user">Cannot find the data for the user who submitted this item.</phrase>
+    <phrase ref="cgi/users/edit_submission:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this submission, and any possible fix. This will be e-mailed to the relevant author.</p><p>(The authors language of preference is &quot;<pin ref="langpref" />&quot;.)</p></phrase>
+    <phrase ref="cgi/users/edit_submission:title_delete_form">Deleting Submission</phrase>
+    <phrase ref="cgi/users/edit_submission:title_bounce_form">Bouncing Submission</phrase>
+    <phrase ref="cgi/users/edit_submission:action_send">Send</phrase>
+    <phrase ref="cgi/users/edit_submission:subject_bounce">Problem with Submission</phrase>
+    <phrase ref="cgi/users/edit_submission:mail_fail">The submission was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><pin ref="username" /></strong>, email <pin ref="email" />.</phrase>
+    <phrase ref="cgi/users/edit_submission:bord_fail">The submission could not be bounced/deleted - this probably indicates a database error. Check the logs.</phrase>
+
+
 <!--********************************************************************** 
 Public CGI Scripts
 ***********************************************************************-->
@@ -412,7 +426,6 @@ Public CGI Scripts
 
     <phrase ref="cgi/confirm:title">Confirm Account Change</phrase>
     <phrase ref="cgi/confirm:err_title">Error: Account Change Failed</phrase>
-    <phrase ref="cgi/confirm:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></phrase> 
     <phrase ref="cgi/confirm:bad_user"><p>User not found. It is possible that indicates a database problem, but please check the parameters in the URL carefully.</p></phrase> 
     <phrase ref="cgi/confirm:pin_mismatch"><p>The confirmation pin is incorrect. Please try and request the change again to generate an email with a new pin.</p></phrase> 
     <phrase ref="cgi/confirm:return"><p><a href="&frontpage;">Return to &archivename; front page</a></p></phrase>
@@ -422,5 +435,11 @@ Public CGI Scripts
     <phrase ref="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></phrase>
     <phrase ref="cgi/confirm:username"><p>Your username on this system is: <strong><pin ref="username" /></strong></p></phrase>
 
+
+<!--********************************************************************** 
+General phrases, used alot
+***********************************************************************-->
+
     <phrase ref="general:userhome_link"><p><a href="&cgiroot;/users/home">Go to the &archivename; User Area Homepage</a></p></phrase>
+    <phrase ref="general:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></phrase> 
 </phrases>

@@ -243,7 +243,7 @@ sub lang_title
 # a stupid thing to do, anyway.	
 sub tree_to_utf8
 {
-	my( $node, $width ) = @_;
+	my( $node, $width, $pre ) = @_;
 
 	if( defined $width )
 	{
@@ -256,14 +256,14 @@ sub tree_to_utf8
 	if( $name eq "#text" || $name eq "#cdata-section")
 	{
 		my $text = utf8( $node->getNodeValue );
-		$text =~ s/[\s\r\n\t]+/ /g;
+		$text =~ s/[\s\r\n\t]+/ /g unless( $pre );
 		return $text;
 	}
 
 	my $string = utf8("");
 	foreach( $node->getChildNodes )
-	{
-		$string .= tree_to_utf8( $_, $width );
+	{	
+		$string .= tree_to_utf8( $_, $width, ( $pre || $name eq "pre" ) );
 	}
 
 	if( $name eq "fallback" )

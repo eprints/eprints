@@ -15,9 +15,10 @@
 ######################################################################
 
 package EPrints::Utils;
-use EPrints::SystemSettings;
 use Filesys::DiskSpace;
 use strict;
+use Unicode::String qw(utf8 latin1 utf16);
+
 print "Utility module loaded...\n";
 
 my $DF_AVAILABLE;
@@ -194,11 +195,14 @@ sub mime_encode_q
 	my( $string ) = @_;
 
 	return "" if (length($string) == 0);
+
 	my $svnbit = 1;
 	my $latin1 = 1;
 	my $utf8   = 0;
+	my $stringobj = Unicode::String->new();
+	$stringobj->utf8( $string );	
 
-	foreach($string->unpack())
+	foreach($stringobj->unpack())
 	{
 		$svnbit &= !($_ > 0x79);	
 		$latin1 &= !($_ > 0xFF);
@@ -208,9 +212,9 @@ sub mime_encode_q
 			last;
 		} 
 	}
-	return $string if $svnbit;
-	return "=?utf-8?Q?".encode_str($string)."?=" if $utf8;
-	return "=?iso-latin1?Q?".encode_str($string)."?=" if $latin1;
+	return $stringobj if $svnbit;
+	return "=?utf-8?Q?".encode_str($stringobj)."?=" if $utf8;
+	return "=?iso-latin-1?Q?".encode_str($stringobj->latin1)."?=" if $latin1;
 }
 
 sub encode_str

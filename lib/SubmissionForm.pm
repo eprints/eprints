@@ -70,7 +70,7 @@ my $STAGES = {
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $redirect, $staff, $dataset ) = @_;
+	my( $class, $session, $redirect, $staff, $dataset, $formtarget ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -79,6 +79,7 @@ sub new
 	$self->{redirect} = $redirect;
 	$self->{staff} = $staff;
 	$self->{dataset} = $dataset;
+	$self->{formtarget} = $formtarget;
 
 	return( $self );
 }
@@ -970,7 +971,7 @@ sub _do_stage_type
 	        { stage => "type", 
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
 		{},
-		"submit#t"
+		$self->{formtarget}."#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1052,7 +1053,7 @@ sub _do_stage_linking
 	        { stage => "linking",
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
 		$comment,
-		"submit#t"
+		$self->{formtarget}."#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1113,7 +1114,7 @@ sub _do_stage_meta
 			$submit_buttons,
 			$hidden_fields,
 			{},
-			"submit#t" ) );
+			$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_meta" ),
@@ -1160,7 +1161,7 @@ sub _do_stage_format
 			"lib/submissionform:valid_formats") );
 	$page->appendChild( $p );
 
-	$form = $self->{session}->render_form( "post", "submit#t" );
+	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
 
 	$table = $self->{session}->make_element( "table", border=>1 );
@@ -1294,7 +1295,7 @@ sub _do_stage_fileview
 			$submit_buttons,
 			$hidden_fields,
 			{},
-			"submit#t" ) );
+			$self->{formtarget}."#t" ) );
 
 
 	##################################
@@ -1316,7 +1317,7 @@ sub _do_stage_fileview
 	}
 	else
 	{
-		$form = $self->{session}->render_form( "post", "submit#t" );
+		$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 		$page->appendChild( $form );
 
 		foreach( keys %{$hidden_fields} )
@@ -1459,7 +1460,7 @@ sub _do_stage_fileview
 			$submit_buttons,
 			$hidden_fields,
 			{},
-			"submit#t" ) );
+			$self->{formtarget}."#t" ) );
 
 
 # cjg Deprecate/rename these.
@@ -1489,7 +1490,7 @@ sub _do_stage_upload
 	my( $page, $form, $p );
 
 	$page = $self->{session}->make_doc_fragment();
-	$form = $self->{session}->render_form( "post", "submit#t" );
+	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
 
 	if( $self->{arc_format} eq "graburl" )
@@ -1627,7 +1628,7 @@ sub _do_stage_verify
 			$submit_buttons,
 			$hidden_fields,
 			{},
-			"submit#t" ) );
+			$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_verify" ),
@@ -1713,7 +1714,7 @@ sub _do_stage_confirmdel
 			$submit_buttons,
 			$hidden_fields,
 			{},
-			"submit#t" ) );
+			$self->{formtarget}."#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_confirmdel" ),

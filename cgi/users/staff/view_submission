@@ -17,7 +17,6 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::Session;
 use EPrints::User;
-use EPrints::SubmissionForm;
 
 use strict;
 
@@ -31,9 +30,9 @@ if( !$session->auth_check( "editor" ) )
 	Apache::exit( 0 );
 }
 
-my $eprint_id = $session->param( "eprintid" );
+my $eprintid = $session->param( "eprintid" );
 
-if( !defined $eprint_id || $eprint_id eq "" )
+if( !defined $eprintid || $eprintid eq "" )
 {
 	$session->render_error( 
 		$session->html_phrase( "cgi/users/view_submission:not_directly" ),
@@ -46,13 +45,13 @@ if( !defined $eprint_id || $eprint_id eq "" )
 my $eprint = new EPrints::EPrint( 
 		$session,
 		$session->get_archive()->get_dataset( "buffer" ),
-		$eprint_id );
+		$eprintid );
 
 if( !defined $eprint )
 {
 	$session->render_error( 
 		$session->html_phrase( "cgi/users/view_submission:no_eprint",
-			eprintid => $session->make_text( $eprint_id ) ) );
+			eprintid => $session->make_text( $eprintid ) ) );
 	$session->terminate();
 	exit;
 }
@@ -69,7 +68,7 @@ $form = $session->render_form( "post", "edit_submission" );
 $page->appendChild( $form );
 
 $form->appendChild( $session->render_hidden_field(
-			"eprint_id",
+			"eprintid",
 			$eprint->get_value( "eprintid" ) ) );
 	
 $form->appendChild( $session->render_action_buttons(

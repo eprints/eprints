@@ -377,7 +377,15 @@ sub render_option_list
 {
 	my( $self , %params ) = @_;
 
-	#cjg What IS this shit?
+	#params:
+	# default  : array or scalar
+	# height   :
+	# multiple : allow multiple selections
+	# pairs    :
+	# values   :
+	# labels   :
+	# name     :
+
 	my %defaults = ();
 	if( ref( $params{default} ) eq "ARRAY" )
 	{
@@ -506,7 +514,7 @@ sub _render_buttons_aux
 				value => $buttons{$button_id} ) );
 
 		# Some space between butons.
-		$frag->appendChild( $self->make_text( latin1(" ") ) );
+		$frag->appendChild( $self->make_text( " " ) );
 	}
 
 	return( $frag );
@@ -1401,17 +1409,21 @@ sub redirect
 ## WP1: BAD
 sub mail_administrator
 {
-	my( $self, $subject, $message ) = @_;
-	#   Session  utf8    DOM
+	my( $self,   $subjectid, $messageid, %inserts ) = @_;
+	#   Session, string,     string,     string->DOM
+
+	# Mail the admin in the default language
+	my $langid = $self->{archive}->get_conf( "languages" )->[0];
+	my $lang = $self->{archive}->get_language( $langid );
 
 	return EPrints::Utils::send_mail(
 		$self->{archive},
-		$self->{archive}->get_conf( "languages" )->[0], # default lang.
-		$self->phrase( "lib/session:archive_admin" ),
+		$langid,
+		$lang->phrase( "lib/session:archive_admin", {}, $self ),
 		$self->{archive}->get_conf( "adminemail" ),
-		$subject,
-		$message,
-		$self->html_phrase( "mail_sig" ) );
+		EPrints::Config::tree_to_utf8( $lang->phrase( $subjectid, {}, $self ) ),
+		$lang->phrase( $messageid, \%inserts, $self ), 
+		$lang->phrase( "mail_sig", {}, $self ) ); 
 }
 
 sub send_http_header

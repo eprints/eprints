@@ -64,7 +64,7 @@ $page->appendChild( $p );
 
 
 if( $valid_user )
-{ #cjg THIS IS NOT DONE
+{
 	### Workspace
 	$page->appendChild(
 		&render_workspace( $session, $user ) );
@@ -230,13 +230,6 @@ sub render_workspace
 		$eprint_titles{$id} = EPrints::Config::tree_to_utf8(
 					$e->render_short_title() );
 	}
-
-	my $set_field = EPrints::MetaField->new(
-				dataset => $ds,
-				name=>"eprintid",
-				type=>"set",
-				displaylines=>6,
-				options=>\@eprintids );
 
 	### Now put them in a form
 	$form = $session->render_form( "post", "submit#t" );

@@ -472,7 +472,7 @@ sub _render_value2
 
 	if( !defined $value )
 	{
-		return $session->make_text( "[undef#5]" );#cjg!??!? null or text?
+		return $session->html_phrase( "lib/metafield:unspecified" );
 	}
 
 	if( $self->is_type( "text" , "int" , "pagerange" , "year" ) )
@@ -524,21 +524,21 @@ sub _render_value2
 		return $frag;
 	}
 
+	if( $self->is_type( "datatype" ) )
+	{
+		my $ds = $session->get_archive()->get_dataset( $self->get_property( "datasetid" ) );
+		return $ds->render_type_name( $session, $value ); 
+	}
+
 return $session->make_text( "<<".$value.">>" );#cjg!!!!!
 my $html;
 
-	if( $self->is_type( "datatype" ) )
-	{
-		# BAD {labels} DEPR
-		$html = $self->{labels}->{$value} if( defined $value );
-		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
-	}
-	elsif( $self->is_type( "boolean" ) )
+	if( $self->is_type( "boolean" ) )
 	{
 		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
-	elsif( $self->is_type( "date" ) )
+	if( $self->is_type( "date" ) )
 	{
 		if( defined $value )
 		{

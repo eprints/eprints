@@ -25,80 +25,95 @@ use strict;
 
 my $session = new EPrints::Session();
 
-# Work out whether Accept or Reject buttons pressed
-my $action = $session->{render}->param( "submit" );
-my $stage = $session->{render}->param( "stage" );
-my $eprint_id = $session->{render}->param( "eprint_id" );
-
-if( defined $stage && $stage eq $EPrints::SubmissionForm::stage_format &&
-	 defined $action && $action eq $EPrints::SubmissionForm::action_finished )
+# Check we have privs
+if( !$session->auth_check( "editor" ) )
 {
-	# Intercept the verify page, that's what we were doing!
-	$session->{render}->redirect( "view_submission?eprintid=$eprint_id" );
+	$session->terminate();
+	Apache::exit( 0 );
 }
-elsif( defined $action && ( $action eq "Accept" || $action eq "Bounce" ||
-	$action eq "Send" || $action eq "Delete" ) )
-{
-	# Specialist cases, not for Submission Form
-	
-	
 
-	if( !defined $eprint_id || $eprint_id eq "" )
-	{
-		$session->render_error(
-			#cjg not DOM not LANG
-			"Come to this page from the <A HREF=\"buffer\">Submission Buffer ".
-				"Overview</A>, not directly",
-			"buffer",
-			"Return to Submission Buffer Overview" );
-	}
-	else
-	{
-		my $eprint = new EPrints::EPrint( $session,
-	                                  EPrints::Database::table_name( "buffer" ),
-	                                  $eprint_id );
-		if( !defined $eprint )
-		{
-			#not DOM not LANG
-			$session->render_error( "Problem retrieving the submission ".
-				"with ID=\"$eprint_id\". May be a problem with the database - ".
-				"check the logs.\n" );
-		}
-		elsif( $action eq "Accept" )
-		{	
-			# Accept button pressed
-			&accepted( $session, $eprint );
-		}
-		elsif( $action eq "Bounce" )
-		{
-			# Bounce button pressed - get reason
-			&bounce_form( $session, 0, $eprint );
-		}
-		elsif( $action eq "Delete" )
-		{
-			# Delete button pressed - get reason
-			&bounce_form( $session, 1, $eprint );
-		}
-		elsif( $action eq "Send" )
-		{
-			# Actually do the bounce
-			&bounce( $session, $eprint );
-		}
-	}
-}
-else
-{
-	# Give to edit form
-	my $subform = new EPrints::SubmissionForm(
-		$session,
-		"view_submission?eprintid=$eprint_id",
-		1,
-		EPrints::Database::table_name( "buffer" ) );
-
-	$subform->process();
-}
+process( $session );
 
 $session->terminate();
+
+sub process
+{
+	my( $session ) = @_;
+
+	# Work out whether Accept or Reject buttons pressed
+	my $action = $session->get_action_button();
+	my $stage = $session->param( "stage" );
+	my $eprintid = $session->param( "eprintid" );
+
+	if( defined $stage && $stage eq "format" && defined $action && $action eq "finished" )
+	{
+		# Intercept the verify page, that's what we were doing!
+		$session->redirect( "view_submission?eprintid=$eprintid" );
+		return;
+	}
+
+	my $bufferds = $session->get_archive()->get_dataset( "buffer" );
+	
+	if( !defined $eprintid || $eprintid eq "" )
+	{
+		$session->render_error( $session->html_phrase( "general:bad_param" ) );
+		return;
+	}
+
+	my $eprint = new EPrints::EPrint( $session, $bufferds, $eprintid );
+
+	if( !defined $eprint )
+	{
+		$session->render_error( 
+			$session->html_phrase( 
+				"cgi/users/edit_submission:problem_getting", 
+				eprintid => $session->make_text( $eprintid ) ) );
+		return;
+	}
+
+	# Specialist cases, not for Submission Form
+	
+	if( $action eq "accept" )
+	{	
+		# Accept button pressed
+		&accepted( $session, $eprint );
+		return;
+	}
+
+	if( $action eq "bounce" )
+	{
+		# Bounce button pressed - get reason
+		&bounce_form( $session, 0, $eprint );
+		return;
+	}
+
+	if( $action eq "delete" )
+	{
+		# Delete button pressed - get reason
+		&bounce_form( $session, 1, $eprint );
+		return;
+	}
+
+	if( $action eq "send" )
+	{
+		# Actually do the bounce
+		&bounce( $session, $eprint );
+		return;
+	}
+
+	# Give other cases to the edit form
+	my $subform = new EPrints::SubmissionForm(
+		$session,
+		"view_submission?eprintid=$eprintid",
+		1,
+		$bufferds,
+		"edit_submission" );
+
+	$subform->process();
+	return;
+
+}
+
 	
 	
 
@@ -126,45 +141,47 @@ sub accepted
 sub bounce_form
 {
 	my( $session, $delete, $eprint ) = @_;
+
+	# Get the user's details
+	my $user = $eprint->get_user();
+	if( !defined $user )
+	{
+		# Can't find the user
+		$session->render_error( 
+			$session->html_phrase( "cgi/users/edit_submission:no_user" ),
+			"buffer" );
+		return;
+	}
+
+	my $page = $session->make_doc_fragment();
 	
-	print $session->{render}->start_html(
-		( $delete ? "Deleting" : "Bouncing" ) . " Submission" );
+	$page->appendChild( $session->html_phrase( "cgi/users/edit_submission:bounce_form_intro", langpref=>$user->render_value( "lang" ) ) );
+	my $form = $session->render_form( "post", "edit_submission" );
+	my $div = $session->make_element( "div", class => "formfieldinput" );
+	my $textarea = $session->make_element(
+		"textarea",
+		name => "reason",
+		rows => 20,
+		cols => 60,
+		wrap => "virtual" );
+	$textarea->appendChild( $session->html_phrase(
+		( $delete ? "mail_delete_reason" : "mail_bounce_reason" ),
+		title => $eprint->render_short_title() ) );
+	$div->appendChild( $textarea );
+	$form->appendChild( $div );
 
-	print "<P><CENTER>Please enter in the box below the reason for ".
-		"bouncing/deleting this submission, and any possible fix. This will be ".
-		"e-mailed to the relevant author.</CENTER></P>\n";
+	$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_value( "eprintid" ) ) );
+	$form->appendChild( $session->render_hidden_field( "delete", $delete ) );
 
-	# Make the field
-	my $reason_field = new EPrints::MetaField(
-		"reason:longtext:20::0:1:1" );
-	my $default_reason =
-		( $delete ? $session->get_archive()->get_conf( "default_delete_reason" )
-		          : $session->get_archive()->get_conf(" default_bounce_reason" ) );
+	$form->appendChild( $session->render_action_buttons(
+		"send" => $session->phrase( "cgi/users/edit_submission:action_send" ) ) );
 
-	#cjg !!!!!!! render_short_title
-	my $title = $eprint->short_title();
-	$default_reason =~ s/_SUBMISSION_TITLE_/$title/g;
-	
-	# Render the box, with the default stem
-	print "<P><CENTER>";
-	print $session->{render}->start_form();
-	print $session->{render}->input_field(
-		$reason_field,
-		$default_reason );
-	print "</CENTER></P>\n";
+	$page->appendChild( $form );
 
-	# Send + Cancel buttons
-	print "<P><CENTER>";
-	print $session->{render}->submit_buttons(
-		[ "Send",
-		  $EPrints::SubmissionForm::action_cancel ] );
-	print "</CENTER></P>\n";
-
-	# Other state info
-	print $session->{render}->hidden_field( "eprint_id", $eprint->{eprintid} );
-	print $session->{render}->hidden_field( "delete", $delete );
-	print $session->{render}->end_form();
-	print $session->{render}->end_html();
+	$session->build_page(
+		$session->phrase( "cgi/users/edit_submission:title_".( $delete ? "delete" : "bounce" )."_form" ),
+		$page );
+	$session->send_page();
 }
 
 
@@ -173,20 +190,17 @@ sub bounce
 	my( $session, $eprint ) = @_;
 
 	# Get the user's details
-	my $user = EPrints::User->new( $session, $eprint->{username} );
-
+	my $user = $eprint->get_user();
 	if( !defined $user )
 	{
 		# Can't find the user
-		#not DOM not LANG cjg
 		$session->render_error( 
-			"Can't find user data! Try again later, or check the logs.",
-			"buffer",
-			"Return to Submission Buffer Overview" );
+			$session->html_phrase( "cgi/users/edit_submission:no_user" ),
+			"buffer" );
 		return;
 	}
 	
-	my $delete = $session->{render}->param( "delete" );
+	my $delete = $session->param( "delete" );
 	my $success = 0;
 	
 	if( $delete )
@@ -197,43 +211,34 @@ sub bounce
 	else
 	{
 		# Transfer the EPrint back to the user's inbox
-		$success = $eprint->transfer( EPrints::Database::table_name( "inbox" ) );
+		$success = $eprint->transfer( $session->get_archive()->get_dataset( "inbox" ) );
 	}
 	
-	if( $success )
-	{
-		# Successfully transferred, mail the user with the reason
-		if( EPrints::Utils::send_mail(
-			$session,
-			$user->full_name(),
-			$user->{email},
-			"Problem with submission",
-			$session->{render}->param( "reason" ) ) )
-		{	
-			# Successfully bounced, redirect
-			$session->{render}->redirect( "buffer" );
-		}
-		else
-		{
-			# Couldn't mail
-#not DOM not LANG
-			$session->render_error( 
-				"The submission was successfully ".($delete?"deleted":"bounced").
-					", but for some reason the user couldn't be mailed. User ID: ".
-					"<STRONG>$user->{username}</STRONG>, Mail: <A ".
-					"HREF=\"mailto:$user->{email}>$user->{email}</A>.",
-				"buffer",
-				"Return to Submission Buffer Overview" );
-		}
-	}
-	else
+	unless( $success )
 	{
 		# Couldn't be bounced at all
-#cjg NOT DOM NOT LANG
 		$session->render_error( 
-			"The submission couldn't be ".($delete?"deleted":"bounced").
-			" - probably a database error. Check the logs.",
-			"buffer",
-			"Return to Submission Buffer Overview" );
+			$session->html_phrase( "cgi/users/edit_submission:bord_fail" ),
+			"buffer" );
+		return;
 	}
+	my $pre = $session->make_element( "pre" );
+	$pre->appendChild( $session->make_text( $session->param( "reason" ) ) );
+
+	# Successfully transferred, mail the user with the reason
+	if( $user->mail(
+		"cgi/users/edit_submission:subject_bounce",
+		$pre ) )
+	{	
+		# Successfully bounced, redirect
+		$session->redirect( "buffer" );
+		return;
+	}
+
+	# Couldn't mail
+	$session->render_error( 
+		$session->html_phrase( "cgi/users/edit_submission:mail_fail",
+			username=>$user->render_value( "username" ),
+			email=>$user->render_value( "email" ) ),
+		"buffer" );
 }

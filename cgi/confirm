@@ -36,7 +36,7 @@ sub make_confirm_page
 
 	if( !$session->have_parameters() )
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:bad_param" ) );
+		$page->appendChild( $session->html_phrase( "general:bad_param" ) );
 		return( $session->phrase( "cgi/confirm:err_title" ) , $page );
 	}
 

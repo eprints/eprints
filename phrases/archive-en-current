@@ -218,7 +218,6 @@
    <phrase ref="user_fieldhelp_filter"></phrase>
 
    <phrase ref="user_typename_user">User</phrase>
-   <phrase ref="user_typename_staff">Staff(deprecated)</phrase>
    <phrase ref="user_typename_editor">Editor</phrase>
    <phrase ref="user_typename_admin">EPrints Administrator</phrase>
 
@@ -235,19 +234,25 @@
     </phrase>
 
     <phrase ref="mail_bounce_reason">
-<p>Unfortunately your eprint:</p>
-<p><pin ref="title" /></p>
-<p>could not be accepted into &archivename; as-is.</p>
-<p>The eprint has been returned to your workspace. If you
+Unfortunately your eprint:
+
+<pin ref="title" />
+
+could not be accepted into &archivename; as-is.
+
+The eprint has been returned to your workspace. If you
 visit your item depositing page you will be able to
-edit your eprint, fix the problem and redeposit.</p>
+edit your eprint, fix the problem and redeposit.
     </phrase>
 
     <phrase ref="mail_delete_reason">
-<p>Unfortunately your eprint:</p>
-<p><pin ref="title" /></p>
-<p>could not be accepted into &archivename;.</p>
-<p>The eprint has been deleted.</p>
+Unfortunately your eprint:
+
+<pin ref="title" />
+
+could not be accepted into &archivename;.
+
+The eprint has been deleted.
     </phrase>
 
     <phrase ref="deposit_agreement_text">

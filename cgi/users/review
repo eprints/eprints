@@ -270,7 +270,7 @@ sub handle_removal_request
 		$msg .= $session->get_archive()->get_conf( "server_perl" )."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
-		$session->mail_administrator(
+		$session->mail_administrator( #cjg MAIL IN ADMIN LANG
 			$session->{lang}->phrase( "cgi/users/review:remove_sub" ),
 			$msg );
 	}
