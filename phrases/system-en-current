@@ -251,6 +251,9 @@ User Area CGI Scripts
     <phrase ref="cgi/users/home:staff/buffer_link">View the Submission Buffer</phrase>
     <phrase ref="cgi/users/home:staff/buffer_info">This option allows you to view, edit and approve records which users have submitted but have not yet been approved for the archive. You may only edit records within your subject area.</phrase>
 
+    <phrase ref="cgi/users/home:staff/edit_subject_link">Use the Subject Editing Tool</phrase>
+    <phrase ref="cgi/users/home:staff/edit_subject_info">This option allows you to create, delete unlink, and link items in the subject tree.</phrase>
+
     <phrase ref="cgi/users/home:docs">Documents in your Workspace</phrase>
     <phrase ref="cgi/users/home:depositing">These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.</phrase>
     <phrase ref="cgi/users/home:start_upload">Click here to start uploading a document</phrase>
@@ -346,6 +349,27 @@ User Area CGI Scripts
     <phrase ref="cgi/users/edit_submission:subject_bounce">Problem with Submission</phrase>
     <phrase ref="cgi/users/edit_submission:mail_fail">The submission was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><pin ref="username" /></strong>, email <pin ref="email" />.</phrase>
     <phrase ref="cgi/users/edit_submission:bord_fail">The submission could not be bounced/deleted - this probably indicates a database error. Check the logs.</phrase>
+
+<!-- edit_subject -->
+
+    <phrase ref="cgi/users/edit_subject:title">Edit Subject: <pin ref="subjectname" /></phrase>
+    <phrase ref="cgi/users/edit_subject:intro_title">Edit Subjects Tool</phrase>
+    <phrase ref="cgi/users/edit_subject:intro_blurb"><p>This is the EPrints subject editor tool. You should be aware that it can make major changes <em>which cannot be undone</em>. If you remove a subject which is the only subject of an eprint then you will no longer be able to find that eprint via the browse views, only by the search.</p><p>Be careful. Think before deleting anything.</p><p>(Of course, if this is not a live archive, then it doesn't matter.)</p><p><pin ref="continuelink">Continue</pin></p></phrase>
+    <phrase ref="cgi/users/edit_subject:error_badsubject">The specified subject does not exist, or a database error has occured.</phrase>
+    <phrase ref="cgi/users/edit_subject:subjectid"><p>Subject ID: <pin ref="id" /></p></phrase>
+    <phrase ref="cgi/users/edit_subject:subject">Subject</phrase>
+    <phrase ref="cgi/users/edit_subject:inarchive">EPrints in Archive</phrase>
+    <phrase ref="cgi/users/edit_subject:inbuffer">EPrints in Submission Buffer</phrase>
+    <phrase ref="cgi/users/edit_subject:nparents">Number of Parents</phrase>
+    <phrase ref="cgi/users/edit_subject:nchildren">Number of Children</phrase>
+    <phrase ref="cgi/users/edit_subject:action_delete">Delete</phrase>
+    <phrase ref="cgi/users/edit_subject:action_unlink">Unlink</phrase>
+    <phrase ref="cgi/users/edit_subject:location"><h2>Location(s) in Hierarchy</h2></phrase>
+    <phrase ref="cgi/users/edit_subject:children"><h2>Children</h2></phrase>
+    <phrase ref="cgi/users/edit_subject:action_submit">Submit</phrase>
+    <phrase ref="cgi/users/edit_subject:action_add">Add Child</phrase>
+    <phrase ref="cgi/users/edit_subject:add_child"><h2>Add Child</h2></phrase>
+    <phrase ref="cgi/users/edit_subject:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an used subject id to create a new subject.</p></phrase>
 
 
 <!--********************************************************************** 

@@ -400,15 +400,11 @@ sub render_option_list
 	}
 
 	my $element = $self->make_element( "select" , name => $params{name} );
-	if( defined $params{height} )
-	{
-		$element->setAttribute( "size" , $params{height} );
-	}
 	if( defined $params{multiple} )
 	{
 		$element->setAttribute( "multiple" , $params{multiple} );
 	}
-
+	my $size = 0;
 	if( defined $params{pairs} )
 	{
 		my $pair;
@@ -419,6 +415,7 @@ sub render_option_list
 					$pair->[0],
 					$pair->[1],
 					$defaults{$pair->[0]} ) );
+			$size++;
 		}
 	}
 	else
@@ -430,9 +427,15 @@ sub render_option_list
 					$_,
 					$params{labels}->{$_},
 					$defaults{$_} ) );
+			$size++;
 			
 						
 		}
+	}
+	if( defined $params{height} )
+	{
+		$size = $params{height} if( $params{height} < $size );
+		$element->setAttribute( "size" , $size );
 	}
 	return $element;
 }
@@ -534,6 +537,56 @@ sub render_form
 	$form->setAttribute( "enctype", "multipart/form-data" );
 	return $form;
 }
+
+sub render_subjects
+{
+	my( $self, $subject_list, $baseid, $current, $edit ) = @_;
+
+#cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
+	if( !defined $baseid )
+	{
+		$baseid = $EPrints::Subject::root_subject;
+	}
+
+	my %subs = ();
+	foreach( @{$subject_list}, $baseid )
+	{
+		$subs{$_} = EPrints::Subject->new( $self, $_ );
+	}
+
+	return $self->_render_subjects_aux( \%subs, $baseid, $current, $edit );
+}
+
+sub _render_subjects_aux
+{
+	my( $self, $subjects, $id, $current, $edit ) = @_;
+
+	my( $ul, $li, $elementx );
+	$ul = $self->make_element( "ul" );
+	$li = $self->make_element( "li" );
+	$ul->appendChild( $li );
+
+	if( $id eq $current )
+	{
+		$elementx = $self->make_element( "strong" );
+	}
+	else
+	{
+		#cjg NEED VIEW later dep on $edit
+		$elementx = $self->make_element( "a", href=>"edit_subject?subjectid=".$id ); 
+	}
+	$li->appendChild( $elementx );
+	$elementx->appendChild( $subjects->{$id}->render() );
+	foreach( $subjects->{$id}->children() )
+	{
+		my $thisid = $_->get_value( "subjectid" );
+		next unless( defined $subjects->{$thisid} );
+		$ul->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $edit ) );
+	}
+	
+	return $ul;
+}
+
 
 #
 # $xhtml = render_subject_tree( $subject )

@@ -44,6 +44,7 @@ sub deal
 	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
 	print "------------\n";
 	my $ds = $session->get_archive()->get_dataset( "archive" );
+	$eprint->set_value( "subjects" , ["blgc-bchm"] );
 	if( $session->get_db()->exists( $ds , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";

@@ -20,9 +20,9 @@
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
 -	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
-1	Multilangify Subject Fields and Subject DB
+2	Multilangify Subject Fields and Subject DB
 3	"ID" fields for ISBN/userid etc.
-2	Subject editors (editors can only edit within certain subjects)
+2	Subject-editors (editors can only edit within certain subjects)
 -	Web-based Registration/password change
 2	Web-based Email Change
 -	Get the Deposit Item form working
@@ -44,12 +44,12 @@
 2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 0	Password Encryption. (Via callback)
+2 	Super all-singing/dancing etc. Subject Editor
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 0	Option to hide Honourific and/or Lineage.
-0	Special rendering for multilang fields on single language sites. 
 0	Multiple Skins (So we can make a subset of papers appear on a different site). Maybe this is just a clever script.
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
@@ -78,7 +78,6 @@
 0	Search of User DB
 0	Staff Eprint & User searches
 0	XML 1.1 Support(?)
-0 	Super all-singing/dancing etc. Subject Editor
 0	Staff Eprint & User edit
 1	OAI support working.
 0	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
@@ -94,7 +93,7 @@
 0	Other output charsets than UTF-8?
 1	XML Importer
 0	Improve name search syntax (?)
-0	Remove Lanuage related options if only one language supported.
+0	Remove (Hide) Lanuage related options if only one language supported.
 
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
@@ -107,14 +106,18 @@
 
 *	Milestone "Double Cheese" : EPrints 2.0
 
-1	EPrints 1 : Make it do OAI 1.1
+-	EPrints 1 : Make it do OAI 1.1
+-	Improve name search to handle ","s
+
+*	EPrints 1.1.2 OAI1.1 Compliance patch (August 28th 2001)
+
 0	EPrints 1 : Make an exporter to dump database for import by ep2
 
-*	EPrints 1.2 Minor Fixes release.
+*	EPrints 1.2 Final Planned EPrints 1.* release.
 
 
-0	Sleep
-0	Beer
+1	Sleep
+1	Beer
 0	Peer Review
 0	Mirroring
 0	OAI Sets for users/sets etc as well as subjects

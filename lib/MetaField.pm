@@ -22,7 +22,7 @@ use EPrints::Subject;
 use EPrints::Database;
 
 use strict;
-
+#CJG Option for Boolean to be a menu or radio buttons?
 # Months
 my @monthkeys = ( 
 	"00", "01", "02", "03", "04", "05", "06",
@@ -82,7 +82,7 @@ my %TYPE_INDEX =
 my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	digits => 20,
-	displaylines => 0,
+	displaylines => 12,
 	maxlength => 255,
 	hasid => 0,
 	multilang => 0,
@@ -130,12 +130,13 @@ sub new
 
 	#if( $_[1] =~ m/[01]:[01]:[01]/ ) { print STDERR "---\n".join("\n",caller())."\n"; die "WRONG KIND OF CALL TO NEW METAFIELD: $_[1]"; } #cjg to debug
 
-	foreach( "name", "type", "required", "multiple", "hasid", "mainpart", "idpart" )
-	{
-		$self->set_property( $_, $properties{$_} );
-	}
+	$self->set_property( "name", $properties{name} );
+	$self->set_property( "type", $properties{type} );
+	$self->set_property( "required", $properties{required} );
+	$self->set_property( "multiple", $properties{multiple} );
 
 	$self->{confid} = $properties{confid};
+
 	if( defined $properties{dataset} ) { 
 		$self->{confid} = $properties{dataset}->confid(); 
 	}
@@ -174,6 +175,17 @@ sub new
 	{
 		$self->set_property( "options" , $properties{options} );
 	}
+
+	if( $self->is_type( "text", "name" ) )
+	{
+		$self->set_property( "hasid" , $properties{hasid} );
+		$self->set_property( "mainpart" , $properties{mainpart} );
+	}
+	if( $self->is_type( "id" ) )
+	{
+		$self->set_property( "idpart" , $properties{idpart} );
+	}
+
 	if( $self->get_property( "multilang" ) )
 	{
 		$self->set_property( "requiredlangs", $properties{requiredlangs} );
@@ -789,15 +801,21 @@ sub _render_input_field_aux
 {
 	my( $self, $session, $value, $n ) = @_;
 
-	my $id_suffix = (defined $n ? "_$n" : "" );	
+	my $suffix = (defined $n ? "_$n" : "" );	
 
+	my $idvalue;
+	if( $self->get_property( "hasid" ) )
+	{
+		$idvalue = $value->{id};
+		$value = $value->{main};
+	}
 	my( $boxcount, $spacesid, $buttonid, $rows );
-
+print STDERR "AUX: ".$self->{name}."\n";
 	if( $self->get_property( "multilang" ) )
 	{
 		$boxcount = 1;
-		$spacesid = $self->{name}.$id_suffix."_langspaces";
-		$buttonid = $self->{name}.$id_suffix."_morelangspaces";
+		$spacesid = $self->{name}.$suffix."_langspaces";
+		$buttonid = $self->{name}.$suffix."_morelangspaces";
 
 		$rows = $session->make_doc_fragment();
 		if( $session->internal_button_pressed() )
@@ -840,12 +858,12 @@ sub _render_input_field_aux
 				delete( $langstodo{$langid} );
 			}
 			
-print STDERR "****************".$id_suffix."_".$i."\n";
+print STDERR "****************".$suffix."_".$i."\n";
 use Data::Dumper;
 print STDERR Dumper( $langid, $value, $value->{$langid} );
 print STDERR "************\n";
 
-			my $langparamid = $self->{name}.$id_suffix."_".$i."_lang";
+			my $langparamid = $self->{name}.$suffix."_".$i."_lang";
 			my $langbit;
 			if( $forced )
 			{
@@ -867,8 +885,15 @@ print STDERR "************\n";
 					labels => \%langlabels );
 			}
 			$langbit->appendChild( $session->make_text( " (LANGID:$langid)") );
-			
-			my $aux2 = $self->_render_input_field_aux2( $session, $value->{$langid}, $id_suffix."_".$i );
+			my $aux2;
+			if( $self->get_property( "hasid" ) )	
+			{
+				$aux2 = $self->get_main_field()->_render_input_field_aux2( $session, $value->{$langid}, $suffix."_".$i );
+			}
+			else
+			{
+				$aux2 = $self->_render_input_field_aux2( $session, $value->{$langid}, $suffix."_".$i );
+			}
 
 			if( $self->is_type( "name" ) )
 			{
@@ -888,7 +913,7 @@ print STDERR "************\n";
 				$rows->appendChild( $div );
 			}
 			
-print STDERR "****************".$id_suffix."_".$i."\n";
+print STDERR "****************".$suffix."_".$i."\n";
 use Data::Dumper;
 print STDERR Dumper( $langid, $value, $value->{$langid} );
 print STDERR "************\n\n";
@@ -908,7 +933,16 @@ print STDERR "************\n\n";
 		{
 			$rows = $session->make_doc_fragment();
 		}
-		my $aux2 = $self->_render_input_field_aux2( $session, $value, $id_suffix );
+		my $aux2;
+		if( $self->get_property( "hasid" ) )	
+		{
+			$aux2 = $self->get_main_field()->_render_input_field_aux2( $session, $value, $suffix );
+print SDTERR "ZOOKl\n";
+		}
+		else
+		{
+			$aux2 = $self->_render_input_field_aux2( $session, $value, $suffix );
+		}
 		$rows->appendChild( $aux2 );
 	}
 
@@ -955,14 +989,26 @@ print STDERR "************\n\n";
 		$block->appendChild( $session->render_internal_buttons(
 			$buttonid => $session->phrase( "lib/metafield:more_langs" ) ) );
 	}
+	if( $self->get_property( "hasid" ) )
+	{
+		$block->appendChild( $session->make_text( "[[HAS ID]]" ) );
+		my $div = $session->make_element( "div", class=>"formfieldinputid" );
+		$div->appendChild( $session->make_element(
+			"input",
+			"accept-charset" => "utf-8",
+			name => $self->{name}.$suffix."_id",
+			value => $idvalue,
+			size => 40 ) );
+		$block->appendChild( $div );
+	}
 	
 	return $block;
 }
 
 sub _render_input_field_aux2
 {
-	my( $self, $session, $value, $id_suffix ) = @_;
-print STDERR "$id_suffix ... val($value)\n";
+	my( $self, $session, $value, $suffix ) = @_;
+print STDERR "$suffix ... val($value)\n";
 
 
 	# These DO NOT belong here. cjg.
@@ -972,7 +1018,7 @@ print STDERR "$id_suffix ... val($value)\n";
 	if( $self->is_type( "text", "url", "int", "email", "year","secret" ) )
 	{
 		my( $maxlength, $size, $div, $id );
- 		$id = $self->{name}.$id_suffix;
+ 		$id = $self->{name}.$suffix;
 		if( $session->internal_button_pressed() )
 		{
 			$value = $session->param( $id );
@@ -1009,7 +1055,7 @@ print STDERR "$id_suffix ... val($value)\n";
 	elsif( $self->is_type( "longtext" ) )
 	{
 		my( $div , $textarea , $id );
- 		$id = $self->{name}.$id_suffix;
+ 		$id = $self->{name}.$suffix;
 		$div = $session->make_element( "div" );	
 		$textarea = $session->make_element(
 			"textarea",
@@ -1026,7 +1072,7 @@ print STDERR "$id_suffix ... val($value)\n";
 	{
 		#cjg OTHER METHOD THAN CHECKBOX? TRUE/FALSE MENU?
 		my( $div , $id);
- 		$id = $self->{name}.$id_suffix;
+ 		$id = $self->{name}.$suffix;
 
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
@@ -1059,7 +1105,7 @@ print STDERR "$id_suffix ... val($value)\n";
 			$td->appendChild( $session->make_element(
 				"input",
 				"accept-charset" => "utf-8",
-				name => $self->{name}.$id_suffix."_".$_,
+				name => $self->{name}.$suffix."_".$_,
 				value => $value->{$_},
 				size => $size,
 				maxlength => $INPUT_MAX ) );
@@ -1070,8 +1116,8 @@ print STDERR "$id_suffix ... val($value)\n";
 	{
 		my( $div , @pages , $fromid, $toid );
 		@pages = split /-/, $value if( defined $value );
- 		$fromid = $self->{name}.$id_suffix."_from";
- 		$toid = $self->{name}.$id_suffix."_to";
+ 		$fromid = $self->{name}.$suffix."_from";
+ 		$toid = $self->{name}.$suffix."_to";
 		
 		$div = $session->make_element( "div" );	
 
@@ -1110,9 +1156,9 @@ print STDERR "$id_suffix ... val($value)\n";
 				($year, $month, $day) = ("", "00", "");
 			}
 		}
- 		$dayid = $self->{name}.$id_suffix."_day";
- 		$monthid = $self->{name}.$id_suffix."_month";
- 		$yearid = $self->{name}.$id_suffix."_year";
+ 		$dayid = $self->{name}.$suffix."_day";
+ 		$monthid = $self->{name}.$suffix."_month";
+ 		$yearid = $self->{name}.$suffix."_year";
 
 		$div->appendChild( $session->html_phrase( "lib/metafield:year" ) );
 		$div->appendChild( $session->make_text(" ") );
@@ -1236,50 +1282,50 @@ sub _form_value_aux
 {
 	my( $self, $session, $n ) = @_;
 
-	my $id_suffix = "";
-	$id_suffix = "_$n" if( defined $n );
+	my $suffix = "";
+	$suffix = "_$n" if( defined $n );
 
 	my $value;
 	if( $self->get_property( "multilang" ) )
 	{
 		$value = {};
-		my $boxcount = $session->param( $self->{name}.$id_suffix."_langspaces" );
+		my $boxcount = $session->param( $self->{name}.$suffix."_langspaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		my $i;
 		for( $i=1; $i<=$boxcount; ++$i )
 		{
-			my $subvalue = $self->_form_value_aux2( $session, $id_suffix."_".$i );
-			my $langid = $session->param( $self->{name}.$id_suffix."_".$i."_lang" );
+			my $subvalue = $self->_form_value_aux2( $session, $suffix."_".$i );
+			my $langid = $session->param( $self->{name}.$suffix."_".$i."_lang" );
 			if( defined $subvalue && $langid ne "" )
 			{
 				$value->{$langid} = $subvalue;
 #cjg -- does not check that this is a valid langid...
 			}
-	print STDERR ".....................tick: ".$self->{name}.$id_suffix."_".$i."_lang\n";
+	print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
 		}
 		$value = undef if( scalar keys %{$value} == 0 );
 	}
 	else
 	{
-		$value = $self->_form_value_aux2( $session, $id_suffix );
+		$value = $self->_form_value_aux2( $session, $suffix );
 	}
 	return $value;
 }
 
 sub _form_value_aux2
 {
-	my( $self, $session, $id_suffix ) = @_;
+	my( $self, $session, $suffix ) = @_;
 
 	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret", "id" ) )
 	{
-		my $value = $session->param( $self->{name}.$id_suffix );
+		my $value = $session->param( $self->{name}.$suffix );
 		return undef if( $value eq "" );
 		return $value;
 	}
 	elsif( $self->is_type( "pagerange" ) )
 	{
-		my $from = $session->param( $self->{name}.$id_suffix."_from" );
-		my $to = $session->param( $self->{name}.$id_suffix."_to" );
+		my $from = $session->param( $self->{name}.$suffix."_from" );
+		my $to = $session->param( $self->{name}.$suffix."_to" );
 
 		if( !defined $to || $to eq "" )
 		{
@@ -1290,15 +1336,15 @@ sub _form_value_aux2
 	}
 	elsif( $self->is_type( "boolean" ) )
 	{
-		my $form_val = $session->param( $self->{name}.$id_suffix );
+		my $form_val = $session->param( $self->{name}.$suffix );
 		return ( defined $form_val ? "TRUE" : "FALSE" );
 	}
 	elsif( $self->is_type( "date" ) )
 	{
-		my $day = $session->param( $self->{name}.$id_suffix."_day" );
+		my $day = $session->param( $self->{name}.$suffix."_day" );
 		my $month = $session->param( 
-					$self->{name}.$id_suffix."_month" );
-		my $year = $session->param( $self->{name}.$id_suffix."_year" );
+					$self->{name}.$suffix."_month" );
+		my $year = $session->param( $self->{name}.$suffix."_year" );
 
 		if( defined $day && $month ne "00" && defined $year )
 		{
@@ -1311,7 +1357,7 @@ sub _form_value_aux2
 		my $data = {};
 		foreach( "honourific", "given", "family", "lineage" )
 		{
-			$data->{$_} = $session->param( $self->{name}.$id_suffix."_".$_ );
+			$data->{$_} = $session->param( $self->{name}.$suffix."_".$_ );
 		}
 
 		if( EPrints::Utils::is_set( $data ) )
@@ -1347,6 +1393,7 @@ sub get_id_field
 	my( $self ) = @_;
 	# only meaningful to call this on "hasid" fields
 	#cjg SHould log an issue if otherwise?
+	#returns undef for non-id fields.
 	return unless( $self->get_property( "hasid" ) );
 	my $idfield = $self->clone();
 	$idfield->set_property( "multilang", 0 );
@@ -1360,8 +1407,8 @@ sub get_main_field
 {
 	my( $self ) = @_;
 	# only meaningful to call this on "hasid" fields
-	#cjg SHould log an issue if otherwise?
 	return unless( $self->get_property( "hasid" ) );
+
 	my $idfield = $self->clone();
 	$idfield->set_property( "hasid", 0 );
 	$idfield->set_property( "mainpart", 1 );

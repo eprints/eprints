@@ -329,7 +329,7 @@ $c->{userauth} = {
 		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password" ] },
 	admin => { 
 		auth  => $UNENCRYPTED_DBI,
-		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password" ] }
+		priv  =>  [ "tester", "subscription", "view-status", "editor", "set-password", "edit-subject" ] }
 };
 
 

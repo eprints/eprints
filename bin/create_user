@@ -50,7 +50,7 @@ if( $valid_access_level )
 	$new_user->set_value( "email" , $ARGV[2] );
 	if( $#ARGV == 4 )
 	{
-		$new_user->set_value( "passwd" , $ARGV[4] );
+		$new_user->set_value( "password" , $ARGV[4] );
 print "SET: $ARGV[4]\n";
 		$new_user->commit;
 	}
@@ -61,7 +61,7 @@ print "SET: $ARGV[4]\n";
 		print STDERR " User ID:  ".
 		             $new_user->get_value( "username" )."\n";
 		print STDERR " Password: ".
-		             $new_user->get_value( "passwd" )."\n";
+		             $new_user->get_value( "password" )."\n";
 	}
 	else
 	{

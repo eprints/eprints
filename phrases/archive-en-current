@@ -319,4 +319,8 @@ the following Web address:</p>
 Your site Description goes here. (edit this text in the archive-phrases file(s).
     </phrase>
 
+    <phrase ref="subject_fieldname_name">Subject Name</phrase>
+    <phrase ref="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</phrase>
+
+
 </phrases>

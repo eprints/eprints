@@ -511,6 +511,8 @@ sub posted_eprints
 ######################################################################
 
 ## WP1: BAD
+#cjg Should be a recursive method that does all things for which self is
+# an ancestor
 sub count_eprints
 {
 	my( $self, $dataset ) = @_;
@@ -613,31 +615,6 @@ sub all_subject_labels
 }
 
 
-######################################################################
-#
-# $name = subject_name( $session, $subject_tag )
-#
-#  Return just the subjects name. Returns
-#  undef if the subject tag is invalid. [STATIC]
-#
-######################################################################
-
-## WP1: BAD
-sub subject_name
-{
-	my( $session, $subject_tag ) = @_;
-
-	my $data = $session->{database}->get_single( "subject" , $subject_tag );
-
-	# If we can't find it, the tag must be invalid.
-	if( !defined $data )
-	{
-		return( undef );
-	}
-
-	# return the name
-	return $data->{name};
-}
 
 ######################################################################
 #
@@ -684,5 +661,13 @@ sub subject_label_cache
 }
 
 
+
+sub get_name
+{
+	my( $self ) = @_;
+
+	my $html = $self->render();
+	return EPrints::Utils::tree_to_utf8( $html );
+}
 
 1;

@@ -44,20 +44,20 @@ phys-stts:Statistics:phys:1
 #scls-sclw:Social Work:scls:1
 #scls-sclg:Sociology:scls:1
 #scls-urbn:Urban Planning:scls:1
-#blgc:Biological Sciences:subjects:0
-#blgc-antm:Anatomy:blgc:1
-#blgc-bchm:Biochemistry:blgc:1
-#blgc-blgy:Biology:blgc:1
-#blgc-bphy:Biophysics:blgc,phys:1
-#blgc-bstt:Biostatistics:blgc:1
-#blgc-btny:Botany:blgc:1
-#blgc-cllb:Cell Biology:blgc:1
-#blgc-cgnt:Cognitive Neuroscience:blgc:1
-#blgc-dvlp:Developmental Biology:blgc:1
-#blgc-eclg:Ecology:blgc:1
-#blgc-frst:Forestry:blgc:1
-#blgc-gntc:Genetics:blgc:1
-#blgc-mlcl:Molecular Biology:blgc:1
+blgc:Biological Sciences:subjects:0
+blgc-antm:Anatomy:blgc:1
+blgc-bchm:Biochemistry:blgc:1
+blgc-blgy:Biology:blgc:1
+blgc-bphy:Biophysics:blgc,phys:1
+blgc-bstt:Biostatistics:blgc:1
+blgc-btny:Botany:blgc:1
+blgc-cllb:Cell Biology:blgc:1
+blgc-cgnt:Cognitive Neuroscience:blgc:1
+blgc-dvlp:Developmental Biology:blgc:1
+blgc-eclg:Ecology:blgc:1
+blgc-frst:Forestry:blgc:1
+blgc-gntc:Genetics:blgc:1
+blgc-mlcl:Molecular Biology:blgc:1
 #blgc-nrsc:Neuroscience:blgc:1
 #blgc-phys:Physiology:blgc:1
 #blgc-plnt:Plant Sciences:blgc:1

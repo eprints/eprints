@@ -1,0 +1,193 @@
+######################################################################
+#
+#  EPrints Subject Editor
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use strict;
+
+use EPrints::Session;
+use EPrints::Subject;
+
+my $session = EPrints::Session->new();
+Apache::exit( 0 ) unless( defined $session );
+
+# Check we have privs
+if( !$session->auth_check( "edit-subject" ) )
+{
+	$session->terminate();
+	Apache::exit( 0 );
+}
+my( $title, $page );
+
+my( $subid ) = $session->param( "subjectid" );
+if( defined $subid )
+{
+	mkpage_editsubject( $session, $subid );
+	
+}
+else
+{
+	#cjg How About Whole Lot on this page - all subjects?
+	$session->build_page( 
+		$session->phrase( "cgi/users/edit_subject:intro_title" ),
+		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
+			continuelink=>$session->make_element( "a", href=>"edit_subject?subjectid=".$EPrints::Subject::root_subject ) ) ); 
+	$session->send_page();
+}
+
+$session->terminate();
+
+exit;
+
+#######################################################
+
+sub mkpage_editsubject
+{
+	my( $session, $subid ) = @_;
+
+	my $subject = EPrints::Subject->new( $session, $subid );
+	if( !defined $subject )
+	{
+		$session->render_error( 
+			$session->html_phrase( "cgi/users/edit_subject:error_badsubject" ), 
+			"edit_subject" );
+		return;
+	}
+	
+	my $subname = $subject->get_name();
+	my( $title, $page );
+	my $title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subname ), 
+	my $page = $session->make_doc_fragment();
+
+	my @children = $subject->children();
+
+	my @ids = @{$subject->get_value( "ancestors" )};
+	foreach( @children )
+	{
+		push @ids, $_->get_value( "subjectid" );
+	}
+	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:location" ) );
+	$page->appendChild( $session->render_subjects( \@ids, undef, $subid ) );
+
+	$page->appendChild( $session->render_ruler() );
+
+	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:subjectid", 
+		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
+
+	my $subject_ds = $session->get_archive()->get_dataset( "subject" );
+	my $archive_ds = $session->get_archive()->get_dataset( "archive" );
+	my $buffer_ds = $session->get_archive()->get_dataset( "buffer" );
+
+	if( $subid ne $EPrints::Subject::root_subject )
+	{
+		$page->appendChild( $session->render_ruler() );
+
+        	$page->appendChild(
+                	$session->render_input_form(
+                        	[ $subject_ds->get_field( "name" ) ],
+                        	{ name=>$subject->get_value( "name" ) },
+                        	1,
+                        	1,
+                        	{ submit => $session->phrase( "cgi/users/edit_subject:action_submit" ) },
+                        	{ subjectid => $subid },
+                        	{},
+                        	"edit_subject" ) );
+	}
+
+	$page->appendChild( $session->render_ruler() );
+
+	my $form = $session->render_form( "post" );
+	$form->appendChild( $session->render_hidden_field( "subjectid", $subid ) );
+	$page->appendChild( $form );
+
+	my( $table, $tr, $td, $th, $a );
+	$table = $session->make_element( "table", border=>1, cellpadding=>4 );
+
+	$tr = $session->make_element( "tr" );
+	
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/edit_subject:subject" ) );
+	$tr->appendChild( $th );
+
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/edit_subject:inarchive" ) );
+	$tr->appendChild( $th );
+
+#	$th = $session->make_element( "th" );
+#	$th->appendChild( $session->html_phrase( "cgi/users/edit_subject:inbuffer" ) );
+#	$tr->appendChild( $th );
+
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/edit_subject:nparents" ) );
+	$tr->appendChild( $th );
+
+	$th = $session->make_element( "th" );
+	$th->appendChild( $session->html_phrase( "cgi/users/edit_subject:nchildren" ) );
+	$tr->appendChild( $th );
+
+	$table->appendChild( $tr );
+
+
+	foreach( @children )
+	{
+		$tr = $session->make_element( "tr" );
+
+		$td = $session->make_element( "td", align=>"left");
+		$a = $session->make_element( "a", href=>"edit_subject?subjectid=".$_->get_value( "subjectid" ) );
+		$a->appendChild( $_->render() );
+		$td->appendChild( $a );
+		$tr->appendChild( $td );
+		
+#		$td = $session->make_element( "td", align=>"center");
+#		$td->appendChild( $session->make_text( $_->count_eprints( $archive_ds ) ) );
+#		$tr->appendChild( $td );
+
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $_->count_eprints( $buffer_ds ) ) );
+		$tr->appendChild( $td );
+
+		my $parents_n = scalar @{$_->get_value( "parents" )};
+		my $children_n = scalar $_->children();
+
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $parents_n ) );
+		$tr->appendChild( $td );
+		
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $children_n ) );
+		$tr->appendChild( $td );
+		
+		$td = $session->make_element( "td" );
+		if( $children_n == 0 )
+		{
+			$td->appendChild( $session->render_action_buttons( 
+				"unlink_".$_->get_value( "subjectid" ) =>
+					$session->phrase( "cgi/users/edit_subject:action_".($parents_n == 1?"delete":"unlink") ) ) );
+		}
+		$tr->appendChild( $td );
+		$table->appendChild( $tr );
+	}
+	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:children" ) );
+	$form->appendChild( $table );
+
+	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child" ) );
+	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child_help" ) );
+	$form->appendChild( $subject_ds->get_field( "subjectid" )->render_input_field( $session ) );
+	$form->appendChild( $session->render_action_buttons( 
+		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
+
+
+	$session->build_page( $title, $page );
+	$session->send_page();
+
+	return( $title, $page );
+}

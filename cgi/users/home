@@ -129,6 +129,11 @@ my $tools = [
 	{
 		page=>"staff/buffer",
 		priv=>"editor"
+	},
+	### Use the Subject Edit Tool
+	{
+		page=>"staff/edit_subject",
+		priv=>"edit-subject"
 	}
 ];
 # Staff Eprint Search

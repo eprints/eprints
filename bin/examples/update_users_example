@@ -49,7 +49,7 @@ foreach $user ( @users )
 	if ( defined $passfile{$user->{username}} )
 	{
 		my @data = split( ":" , $passfile{$user->{username}} );
-		$user->{passwd} = $data[1];
+		$user->{password} = $data[1];
 		my $name = $data[4];
 		$name =~ s/^(.*) ([^ ]+)$/$2,$1/;
 		$user->{name} = ":$name:";
@@ -63,7 +63,7 @@ foreach $user ( @users )
 
 		# We'll remove their password but leave their info
 		# in the system.
-		$user->{passwd} = "-CLAMPED-";
+		$user->{password} = "-CLAMPED-";
 	}
 	if ( $user->commit ) 
 	{
@@ -88,7 +88,7 @@ foreach $userid ( keys %passfile ) {
 	                                           $email,
 	                                           "User" );
 	my @data = split( ":" , $passfile{$userid} );
-	$new_user->{passwd} = $data[1];
+	$new_user->{password} = $data[1];
 	my $name = $data[4];
 	$name =~ s/^(.*) ([^ ]+)$/$2,$1/;
 	$new_user->{name} = ":$name:";

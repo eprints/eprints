@@ -370,10 +370,7 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
- use Data::Dumper;
  print STDERR "-----------------ADD RECORD------------------\n";
- print STDERR Dumper($data);
- print STDERR "-----------------////ADD RECORD ------------------\n";
 	my $table = $dataset->get_sql_table_name();
 	
 	my $keyfield = $dataset->get_key_field();
@@ -437,6 +434,11 @@ sub update
 {
 	my( $self, $dataset, $data ) = @_;
 	#my( $database_self, $dataset_ds, $struct_md_data ) = @_;
+
+ use Data::Dumper;
+ print STDERR "-----------------UPDATE RECORD------------------\n";
+ print STDERR Dumper($data);
+ print STDERR "-----------------////UPDATE RECORD ------------------\n";
 
 	my $rv = 1;
 	my $sql;
@@ -1116,11 +1118,12 @@ sub _get
 		foreach $field ( @fields ) { 
 			if( $field->get_property( "multiple" ) )
 			{
+				#cjg Maybe should do nothing.
 				$record->{$field->get_name()} = [];
 			}
 			elsif( $field->get_property( "multilang" ) )
 			{
-				$record->{$field->get_name()} = {};
+				# Do Nothing
 			}
 			else 
 			{
@@ -1137,16 +1140,20 @@ sub _get
 				{
 					$value = shift @row;
 				}
+print STDERR "FIELD: ".$field->get_sql_name()." ($subbit)\n";
 				if( $field->get_property( "mainpart" ) )
 				{
+print STDERR "N{$value}\n";
 					$record->{$field->get_name()}->{main} = $value;
 				}
 				elsif( $field->get_property( "idpart" ) )
 				{
+print STDERR "O{$value}\n";
 					$record->{$field->get_name()}->{id} = $value;
 				}
 				else
 				{
+print STDERR "P{$value}\n";
 					$record->{$field->get_name()} = $value;
 				}
 			}
@@ -1222,6 +1229,8 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 			my $subbit;
 			$subbit = "id" if( $multifield->get_property( "idpart" ) );
 			$subbit = "main" if( $multifield->get_property( "mainpart" ) );
+print STDERR "MUFIL: ".$multifield->get_sql_name()." ($subbit)\n";
+
 			if( $multifield->get_property( "multiple" ) )
 			{
 				if( $multifield->get_property( "multilang" ) )
@@ -1272,10 +1281,10 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 
 	foreach( @data )
 	{
- #use Data::Dumper;
- #print STDERR "-----------------FROM DB------------------\n";
- #print STDERR Dumper($_);
- #print STDERR "-----------------////FROM DB------------------\n";
+ use Data::Dumper;
+ print STDERR "-----------------FROM DB------------------\n";
+ print STDERR Dumper($_);
+ print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
