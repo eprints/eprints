@@ -1,4 +1,8 @@
-one @@
-two @@@@ a
-three @@@@@@ x
-blah@@ecs.om
+#!/bin/sh
+
+one @
+two @@ a
+three @@@ x
+blah@ecs.om
+
+
