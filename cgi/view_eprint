@@ -113,7 +113,7 @@ unless( defined $eprint || defined $deletion_record )
 	
 	my $id_field = new EPrints::MetaField( "eprintid:text::EPrint ID Code::::" );
 	
-	$session->{render}->render_form( [ $id_field ],
+	$session->{render}->render_input_form( [ $id_field ],
 	                                 {},
 	                                 1,
 	                                 0,

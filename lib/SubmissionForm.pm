@@ -1684,7 +1684,7 @@ sub _render_type_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 	
-	$self->{session}->{render}->_render_form( [ $field ],
+	$self->{session}->{render}->render_input_form( [ $field ],
 	                                         $self->{eprint},
 	                                         0,
 	                                         0,
@@ -1753,7 +1753,7 @@ sub _render_meta_form
 	
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->_render_form( \@edit_fields,
+	$self->{session}->{render}->render_input_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         1,
 	                                         1,
@@ -1823,7 +1823,7 @@ sub _render_subject_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->_render_form( \@edit_fields,
+	$self->{session}->{render}->render_input_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         0,
 	                                         1,
@@ -1853,7 +1853,7 @@ sub _render_users_form
 
 	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
 
-	$self->{session}->{render}->_render_form( \@edit_fields,
+	$self->{session}->{render}->render_input_form( \@edit_fields,
 	                                         $self->{eprint},
 	                                         0,
 	                                         1,

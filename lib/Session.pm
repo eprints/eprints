@@ -151,65 +151,11 @@ sub new
 	return( $self );
 }
 
-## WP1: BAD
-sub new_page
-{
-	my( $self , $langid ) = @_;
-
-	if( !defined $langid )
-	{
-		$langid = $self->{lang}->get_id;
-	}
-
-	$self->{page} = new XML::DOM::Document;
-
-	XML::DOM::setTagCompression( \&_tag_compression );
-
-	my $doctype = XML::DOM::DocumentType->new(
-			"foo", #cjg what's this bit?
-			"html",
-			"DTD/xhtml1-transitional.dtd",
-			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
-	$self->take_ownership( $doctype );
-	$self->{page}->setDoctype( $doctype );
-
-	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
-	$self->{page}->setXMLDecl( $xmldecl );
-
-	my $newpage = $self->{archive}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
-	$self->take_ownership( $newpage );
-	$self->{page}->appendChild( $newpage );
-}
-
-#WP1 GOOD
-sub _tag_compression
-{
-	my ($tag, $elem) = @_;
-
-	# Print empty br, hr and img tags like this: <br />
-	return 2 if $tag =~ /^(br|hr|img)$/;
-	
-	# Print other empty tags like this: <empty></empty>
-	return 1;
-}
-
-
-## WP1: BAD
-sub change_lang
-{
-	my( $self, $newlangid ) = @_;
-
-	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $newlangid );
-}
-
-
-######################################################################
 #
 # terminate()
 #
 #  Perform any cleaning up necessary
 #
-######################################################################
 
 ## WP1: BAD
 sub terminate
@@ -222,35 +168,19 @@ sub terminate
 
 }
 
+#############################################################
+#
+# LANGUAGE FUNCTIONS
+#
+#############################################################
 
-######################################################################
-#
-# mail_administrator( $subject, $message )
-#
-#  Sends a mail to the archive administrator with the given subject and
-#  message body.
-#
-######################################################################
-
-## WP1: BAD
-sub mail_administrator
+sub change_lang
 {
-	my( $self, $subject, $message ) = @_;
+	my( $self, $newlangid ) = @_;
 
-	# cjg logphrase here will NOT do it no longer exists.
-	
-	my $message_body = "lib/session:msg_at".gmtime( time );
-	$message_body .= "\n\n$message\n";
-
-	EPrints::Mailer::send_mail(
-		$self,
-		 "lib/session:site_admin" ,
-		$self->{archive}->{admin},
-		$subject,
-		$message_body );
+	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $newlangid );
 }
 
-## WP1: BAD
 sub html_phrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
@@ -261,10 +191,9 @@ sub html_phrase
 
         my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
 
-	return $self->tree_to_xhtml( $r );
+	return $r;
 }
 
-## WP1: GOOD
 sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
@@ -279,7 +208,103 @@ sub phrase
 	return $self->tree_to_utf8( $r );
 }
 
-## WP1: BAD
+sub get_order_names
+{
+	my( $self, $dataset ) = @_;
+print STDERR "SELF:".join(",",keys %{$self} )."\n";
+		
+	my %names = ();
+	foreach( keys %{$self->{archive}->get_conf(
+			"order_methods",
+			$dataset->confid() )} )
+	{
+		$names{$_}=$self->get_order_name( $dataset, $_ );
+	}
+	return( \%names );
+}
+
+sub get_order_name
+{
+	my( $self, $dataset, $orderid ) = @_;
+	
+        return $self->phrase( 
+		"ordername_".$dataset->to_string()."_".$orderid );
+}
+
+
+#############################################################
+#
+# ACCESSOR(sp cjg) FUNCTIONS
+#
+#############################################################
+
+sub get_db
+{
+	my( $self ) = @_;
+	return $self->{database};
+}
+
+sub get_query
+{
+	my( $self ) = @_;
+	return $self->{query};
+}
+
+sub get_archive
+{
+	my( $self ) = @_;
+	return $self->{archive};
+}
+
+#
+# $url = url()
+#
+#  Returns the URL of the current script
+#
+
+sub get_url
+{
+	my( $self ) = @_;
+	
+	return( $self->{query}->url() );
+}
+
+
+
+
+#############################################################
+#
+# DOM FUNCTIONS
+#
+#############################################################
+
+sub make_element
+{
+	my( $self , $ename , %params ) = @_;
+
+	my $element = $self->{page}->createElement( $ename );
+	foreach( keys %params )
+	{
+		$element->setAttribute( $_ , $params{$_} );
+	}
+	return $element;
+}
+
+# $text is a UTF8 String!
+sub make_text
+{
+	my( $self , $text ) = @_;
+
+	return $self->{page}->createTextNode( $text );
+}
+
+sub make_doc_fragment
+{
+	my( $self ) = @_;
+
+	return $self->{page}->createDocumentFragment;
+}
+
 sub tree_to_utf8
 {
 	my( $self, $node ) = @_;
@@ -306,251 +331,14 @@ sub tree_to_utf8
 	
 }
 
-## WP1: BAD
-sub tree_to_xhtml
-{
-	my( $self, $node ) = @_;
-
-	return $node;
-}
-	
-
-	
-
-## WP1: BAD
-sub get_db
-{
-	my( $self ) = @_;
-	return $self->{database};
-}
-
-## WP1: BAD
-sub get_query
-{
-	my( $self ) = @_;
-	return $self->{query};
-}
-
-## WP1: BAD
-sub get_archive
-{
-	my( $self ) = @_;
-	return $self->{archive};
-}
-
-######################################################################
-#
-# $html = start_html( $title )
-#
-#  Return a standard HTML header, with any title or logo we might
-#   want
-#
-######################################################################
-
-## WP1: BAD
-sub send_http_header
-{
-	my( $self, %opts ) = @_;
-
-	# Write HTTP headers if appropriate
-	if( $self->{offline} )
-	{
-		$self->{archive}->log( "Attempt to send HTTP Header while offline" );
-		return;
-	}
-
-	my $r = Apache->request;
-	$r->content_type( 'text/html; charset=UTF8' );
-
-	if( defined $opts{lang} )
-	{
-		my $cookie = $self->{query}->cookie(
-			-name    => $self->{archive}->get_conf("lang_cookie_name"),
-			-path    => "/",
-			-value   => $opts{lang},
-			-expires => "+10y", # really long time
-			-domain  => $self->{archive}->get_conf("lang_cookie_domain") );
-		$r->header_out( "Set-Cookie"=>$cookie ); 
-	}
-	$r->send_http_header;
-}
-
-## WP1: BAD
-sub start_html
-{
-	my( $self, $title, $langid ) = @_;
-die "NOPE";
-
-	$self->send_http_header();
-
-	my $html = "<BODY> begin here ";
-
-	return( $html );
-}
-
-
-######################################################################
-#
-# end_html()
-#
-#  Write out stuff at the bottom of the page. Any standard navigational
-#  stuff might go in here.
-#
-######################################################################
-
-## WP1: BAD
-sub end_html
-{
-	my( $self ) = @_;
-die "NOPE";
-	
-	# End of HTML gubbins
-	my $html = $self->{archive}->get_conf("html_tail")."\n";
-	$html .= $self->{query}->end_html;
-
-	return( $html );
-}
-
-
-######################################################################
-#
-# $url = url()
-#
-#  Returns the URL of the current script
-#
-######################################################################
-
-## WP1: BAD
-sub get_url
-{
-	my( $self ) = @_;
-	
-	return( $self->{query}->url() );
-}
-
-######################################################################
-#
-# $html = start_get_form( $dest )
-#
-#  Return form preamble, using GET method. 
-#
-######################################################################
-
-## WP1: BAD
-sub start_get_form
-{
-	my( $self, $dest ) = @_;
-die "NOPE";
-
-		
-	if( defined $dest )
-	{
-		return( $self->{query}->start_form( -method=>"GET",
-		                                    -action=>$dest ) );
-	}
-	else
-	{
-		return( $self->{query}->start_form( -method=>"GET" ) );
-	}
-}
-
-
-######################################################################
-#
-# $html = end_form()
-#
-#  Return end of form HTML stuff.
-#
-######################################################################
-
-## WP1: BAD
-sub end_form
-{
-die "NOPE";
-	my( $self ) = @_;
-	return( $self->{query}->endform );
-}
-
-
-## WP1: BAD
-sub get_order_names
-{
-	my( $self, $dataset ) = @_;
-print STDERR "SELF:".join(",",keys %{$self} )."\n";
-		
-	my %names = ();
-	foreach( keys %{$self->{archive}->get_conf(
-			"order_methods",
-			$dataset->confid() )} )
-	{
-		$names{$_}=$self->get_order_name( $dataset, $_ );
-	}
-	return( \%names );
-}
-
-## WP1: BAD
-sub get_order_name
-{
-	my( $self, $dataset, $orderid ) = @_;
-	
-        return $self->phrase( 
-		"ordername_".$dataset->to_string()."_".$orderid );
-}
-
-
-######################################################################
-#
-# $param = param( $name )
-#
-#  Return a query parameter.
-#
-######################################################################
-
-## WP1: BAD
-sub param
-{
-	my( $self, $name ) = @_;
-
-	return( $self->{query}->param( $name ) ) unless wantarray;
-	
-	# Called in an array context
-	my @result;
-
-	if( defined $name )
-	{
-		@result = $self->{query}->param( $name );
-	}
-	else
-	{
-		@result = $self->{query}->param;
-	}
-
-	return( @result );
-
-}
-
-######################################################################
-#
-# $bool = have_parameters()
-#
-#  Return true if the current script had any parameters (POST or GET)
-#
-######################################################################
-
-## WP1: BAD
-sub have_parameters
-{
-	my( $self ) = @_;
-	
-	my @names = $self->{query}->param();
-
-	return( scalar @names > 0 );
-}
-
 
 #############################################################
+#
+# XHTML FUNCTIONS
+#
+#############################################################
 
-sub make_ruler
+sub render_ruler
 {
 	my( $self ) = @_;
 
@@ -559,9 +347,7 @@ sub make_ruler
 		noshade => "noshade" );
 }
 
-
-## WP1: BAD
-sub make_option_list
+sub render_option_list
 {
 	my( $self , %params ) = @_;
 
@@ -603,21 +389,8 @@ sub make_option_list
 	return $element;
 }
 
-## WP1: BAD
-sub make_element
-{
-	my( $self , $ename , %params ) = @_;
 
-	my $element = $self->{page}->createElement( $ename );
-	foreach( keys %params )
-	{
-		$element->setAttribute( $_ , $params{$_} );
-	}
-	return $element;
-}
-
-## WP1: BAD
-sub make_hidden_field
+sub render_hidden_field
 {
 	my( $self , $name , $value ) = @_;
 
@@ -632,27 +405,26 @@ sub make_hidden_field
 		type => "hidden" );
 }
 
-## WP1: BAD
-sub make_action_buttons
+sub render_action_buttons
 {
 	my( $self, %buttons ) = @_;
 
 	# cjg default button if none set?
 	
-	return $self->_make_buttons_aux( "action" , %buttons );
+	return $self->_render_buttons_aux( "action" , %buttons );
 }
 
-sub make_internal_buttons
+sub render_internal_buttons
 {
 	my( $self, %buttons ) = @_;
 
 	# cjg default button if none set?
 	
-	return $self->_make_buttons_aux( "internal" , %buttons );
+	return $self->_render_buttons_aux( "internal" , %buttons );
 }
 
 
-sub _make_buttons_aux
+sub _render_buttons_aux
 {
 	my( $self, $btype, %buttons ) = @_;
 
@@ -675,26 +447,9 @@ sub _make_buttons_aux
 	return( $frag );
 }
 
-# $text is a UTF8 String!
-## WP1: BAD
-sub make_text
-{
-	my( $self , $text ) = @_;
-
-	return $self->{page}->createTextNode( $text );
-}
-
-## WP1: BAD
-sub make_doc_fragment
-{
-	my( $self ) = @_;
-
-	return $self->{page}->createDocumentFragment;
-}
-
-## WP1: BAD (dest is optional)
+## (dest is optional)
 #cjg "POST" forms must be utf8 and multipart
-sub make_form
+sub render_form
 {
 	my( $self, $method, $dest ) = @_;
 	
@@ -705,84 +460,8 @@ sub make_form
 	return $form;
 }
 
-## WP1: BAD
-sub bomb
-{	
-	my @info;
-	print STDERR "=======================================\n";
-	print STDERR "=      EPRINTS BOMB                   =\n";
-	print STDERR "=======================================\n";
-	my $i=1;
-	while( @info = caller($i++) )
-	{
-		print STDERR $info[3]." ($info[2])\n";
-	}
-	print STDERR "=======================================\n";
-	exit;
-}
-
-## WP1: BAD
-sub take_ownership
-{
-	my( $self , $domnode ) = @_;
-
-	$domnode->setOwnerDocument( $self->{page} );
-}
-
-## WP1: BAD
-sub build_page
-{
-	my( $self, $title, $mainbit ) = @_;
-	
-	$self->take_ownership( $mainbit );
-	my $node;
-	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
-	{
-		my $element = $self->{page}->createTextNode( $title );
-		$node->getParentNode()->replaceChild( $element, $node );
-		$node->dispose();
-	}
-	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
-	{
-		$node->getParentNode()->replaceChild( $mainbit, $node );
-		$node->dispose();
-	}
-}
-
-## WP1: BAD
-sub send_page
-{
-	my( $self, %httpopts ) = @_;
-	$self->send_http_header( %httpopts );
-	print $self->{page}->toString();
-	$self->{page}->dispose();
-}
-
-## WP1: BAD
-sub page_to_file
-{
-	my( $self , $filename ) = @_;
-
-	$self->{page}->printToFile( $filename );
-
-}
-
-## WP1: BAD
-sub set_page
-{
-	my( $self, $newhtml ) = @_;
-	
-	my $html = ($self->{page}->getElementsByTagName( "html" ))[0];
-	$self->{page}->removeChild( $html );
-	$self->{page}->appendChild( $newhtml );
-	$html->dispose();
-}
-
-	
-	
-######################################################################
 #
-# $html = subject_tree( $subject )
+# $xhtml = render_subject_tree( $subject )
 #
 #  Return HTML for a subject tree for the given subject. If $subject is
 #  undef, the root subject is assumed.
@@ -790,10 +469,8 @@ sub set_page
 #  The tree will feature the current tree, the parents up to the root,
 #  and all children.
 #
-######################################################################
 
-## WP1: BAD
-sub subject_tree
+sub render_subject_tree
 {
 	my( $self, $subject ) = @_;
 
@@ -818,7 +495,7 @@ sub subject_tree
 
 		my $li = $self->make_element( "li" );
 		$li->appendChild(
-			$self->subject_desc( $parent, 1, 0, 1 ) );
+			$self->render_subject_desc( $parent, 1, 0, 1 ) );
 		$ul->appendChild( $li );
 		my $newul = $self->make_element( "ul" );
 		$ul->appendChild( $newul );
@@ -831,7 +508,7 @@ sub subject_tree
 	{
 		my $li = $self->make_element( "li" );
 		$li->appendChild(
-			$self->subject_desc( $subject, 0, 0, 1 ) );
+			$self->render_subject_desc( $subject, 0, 0, 1 ) );
 		$ul->appendChild( $li );
 		my $newul = $self->make_element( "ul" );
 		$ul->appendChild( $newul );
@@ -839,44 +516,35 @@ sub subject_tree
 	}
 	
 	# Render children
-	$ul->appendChild( $self->_render_children( $subject ) );
+	$ul->appendChild( $self->_render_subject_children( $subject ) );
 
 	return( $frag );
 }
 
-######################################################################
 #
-# $html = _render_children( $subject )
+# $html = _render_subject_children( $subject )
 #
 #  Recursively render the children of the given subject into HTML lists.
 #
-######################################################################
 
-## WP1: BAD
-sub _render_children
+sub _render_subject_children
 {
 	my( $self, $subject ) = @_;
 
 	my $frag = $self->make_doc_fragment();
 	my @children = $subject->children;
 
-print "ooooooooooooooooooook: ".(scalar @children)."\n";
-print "doin:\n";
-print EPrints::Session::render_struct( $subject );
-print "has ".(scalar @children)." kids\n";
 	if( @children )
 	{
-print "ek:\n";
 		my $ul = $self->make_element( "ul" );
 		$frag->appendChild( $ul );
 	
 		foreach (@children)
 		{
-print "zoop\n";
 			my $li = $self->make_element( "li" );
 			
-			$li->appendChild( $self->subject_desc( $_, 1, 0, 1 ) );
-			$li->appendChild( $self->_render_children( $_ ) );
+			$li->appendChild( $self->render_subject_desc( $_, 1, 0, 1 ) );
+			$li->appendChild( $self->_render_subject_children( $_ ) );
 			$ul->appendChild( $li );
 		}
 		
@@ -886,19 +554,17 @@ print "zoop\n";
 }
 
 
-######################################################################
 #
-# $html = subject_desc( $subject, $link, $full, $count )
+# $xhtml = render_subject_desc( $subject, $link, $full, $count )
 #
 #  Return the HTML to render the title of $subject. If $link is non-zero,
 #  the title is linked to the static subject view. If $full is non-zero,
 #  the full name of the subject is given. If $count is non-zero, the
 #  number of eprints in that subject is appended in brackets.
 #
-######################################################################
 
-## WP1: BAD
-sub subject_desc
+# cjg icky call!
+sub render_subject_desc
 {
 	my( $self, $subject, $link, $full, $count ) = @_;
 	
@@ -942,15 +608,13 @@ sub subject_desc
 }
 
 
-######################################################################
 #
-# render_error( $error_text, $back_to, $back_to_text )
+# $xhtml = render_error( $error_text, $back_to, $back_to_text )
 #
 #  Renders an error page with the given error text. A link, with the
 #  text $back_to_text, is offered, the destination of this is $back_to,
 #  which should take the user somewhere sensible.
 #
-######################################################################
 
 ## WP1: GOOD
 sub render_error
@@ -1016,6 +680,301 @@ sub render_error
 		$self->send_page();
 	}
 }
+
+#
+# render_input_form( $fields,              #array_ref
+#              $values,              #hash_ref
+#              $show_names,
+#              $show_help,
+#              $action_buttons,      #array_ref
+#              $hidden_fields,       #hash_ref
+#              $dest
+#
+#  Renders an HTML form. $fields is a reference to metadata fields
+#  in the usual format. $values should map field names to existing values.
+#  This function also puts in a hidden parameter "seen" and sets it to
+#  true. That way, a calling script can check the value of the parameter
+#  "seen" to see if the users seen and responded to the form.
+#
+#  Submit buttons are specified in a reference to an array of names.
+#  If $action_buttons isn't passed in (or is undefined), a simple
+#  default "Submit" button is slapped on.
+#
+#  $dest should contain the URL of the destination
+#
+
+## WP1: BAD
+sub render_input_form
+{
+	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
+	    $hidden_fields, $dest ) = @_;
+
+print STDERR EPrints::Session::render_struct( $values );
+
+	my $query = $self->{query};
+
+	my( $form );
+
+	$form =	$self->render_form( "post", $dest );
+
+	my $field;	
+	foreach $field (@$fields)
+	{
+		$form->appendChild( $self->_render_input_form_field( 
+					     $field,
+		                             $values->{$field->get_name()},
+		                             $show_names,
+		                             $show_help ) );
+	}
+
+	# Hidden field, so caller can tell whether or not anything's
+	# been POSTed
+	$form->appendChild( $self->render_hidden_field( "_seen", "true" ) );
+
+	if( defined $hidden_fields )
+	{
+		foreach (keys %{$hidden_fields})
+		{
+			$form->appendChild( $self->render_hidden_field( 
+						$_, 
+						$hidden_fields->{$_} ) );
+		}
+	}
+
+	$form->appendChild( $self->render_action_buttons( %{$action_buttons} ) );
+
+	return $form;
+}
+
+
+sub _render_input_form_field
+{
+	my( $self, $field, $value, $show_names, $show_help ) = @_;
+	
+	my( $div, $html, $span );
+
+	$html = $self->make_doc_fragment();
+
+	if( $show_names )
+	{
+		$div = $self->make_element( "div", class => "formfieldname" );
+
+		# Field name should have a star next to it if it is required
+		# special case for booleans - even if they're required it
+		# dosn't make much sense to highlight them.	
+
+		$div->appendChild( 
+			$self->make_text( $field->display_name( $self ) ) );
+
+		if( $field->get_property( "required" ) && !$field->is_type( "boolean" ) )
+		{
+			$span = $self->make_element( 
+					"span", 
+					class => "requiredstar" );	
+			$span->appendChild( $self->make_text( "*" ) );	
+			$div->appendChild( $self->make_text( " " ) );	
+			$div->appendChild( $span );
+		}
+		$html->appendChild( $div );
+	}
+
+	if( $show_help )
+	{
+		my $help = $field->display_help( $self );
+
+		$div = $self->make_element( "div", class => "formfieldhelp" );
+
+		$div->appendChild( 
+			$self->make_text( $field->display_help( $self ) ) );
+		$html->appendChild( $div );
+	}
+
+	$div = $self->make_element( "div", class => "formfieldinput" );
+	$div->appendChild( $field->render_input_field( $self, $value ) );
+	$html->appendChild( $div );
+
+	return( $html );
+}	
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################
+#
+# CURRENT XHTML PAGE FUNCTIONS
+#
+#############################################################
+
+sub take_ownership
+{
+	my( $self , $domnode ) = @_;
+
+	$domnode->setOwnerDocument( $self->{page} );
+}
+
+sub build_page
+{
+	my( $self, $title, $mainbit ) = @_;
+	
+	$self->take_ownership( $mainbit );
+	my $node;
+	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
+	{
+		my $element = $self->{page}->createTextNode( $title );
+		$node->getParentNode()->replaceChild( $element, $node );
+		$node->dispose();
+	}
+	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
+	{
+		$node->getParentNode()->replaceChild( $mainbit, $node );
+		$node->dispose();
+	}
+}
+
+sub send_page
+{
+	my( $self, %httpopts ) = @_;
+	$self->send_http_header( %httpopts );
+	print $self->{page}->toString();
+	$self->{page}->dispose();
+}
+
+sub page_to_file
+{
+	my( $self , $filename ) = @_;
+
+	$self->{page}->printToFile( $filename );
+
+}
+
+sub set_page
+{
+	my( $self, $newhtml ) = @_;
+	
+	my $html = ($self->{page}->getElementsByTagName( "html" ))[0];
+	$self->{page}->removeChild( $html );
+	$self->{page}->appendChild( $newhtml );
+	$html->dispose();
+}
+
+sub new_page
+{
+	my( $self , $langid ) = @_;
+
+	if( !defined $langid )
+	{
+		$langid = $self->{lang}->get_id;
+	}
+
+	$self->{page} = new XML::DOM::Document;
+
+	XML::DOM::setTagCompression( \&_tag_compression );
+
+	my $doctype = XML::DOM::DocumentType->new(
+			"foo", #cjg what's this bit?
+			"html",
+			"DTD/xhtml1-transitional.dtd",
+			"-//W3C//DTD XHTML 1.0 Transitional//EN" );
+	$self->take_ownership( $doctype );
+	$self->{page}->setDoctype( $doctype );
+
+	my $xmldecl = $self->{page}->createXMLDecl( "1.0", "UTF-8", "yes" );
+	$self->{page}->setXMLDecl( $xmldecl );
+
+	my $newpage = $self->{archive}->get_conf( "htmlpage" , $langid )->cloneNode( 1 );
+	$self->take_ownership( $newpage );
+	$self->{page}->appendChild( $newpage );
+}
+
+
+sub _tag_compression
+{
+	my ($tag, $elem) = @_;
+
+	# Print empty br, hr and img tags like this: <br />
+	return 2 if $tag =~ /^(br|hr|img)$/;
+	
+	# Print other empty tags like this: <empty></empty>
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+###########################################################
+#
+# FUNCTIONS WHICH HANDLE INPUT FROM THE USER, BROWSER AND
+# APACHE
+#
+###########################################################
+
+
+
+
+#
+# $param = param( $name )
+#
+#  Return a query parameter.
+#
+
+## WP1: BAD
+sub param
+{
+	my( $self, $name ) = @_;
+
+	return( $self->{query}->param( $name ) ) unless wantarray;
+	
+	# Called in an array context
+	my @result;
+
+	if( defined $name )
+	{
+		@result = $self->{query}->param( $name );
+	}
+	else
+	{
+		@result = $self->{query}->param;
+	}
+
+	return( @result );
+
+}
+
+# $bool = have_parameters()
+#
+#  Return true if the current script had any parameters (POST or GET)
+#
+
+## WP1: BAD
+sub have_parameters
+{
+	my( $self ) = @_;
+	
+	my @names = $self->{query}->param();
+
+	return( scalar @names > 0 );
+}
+
+
+
+
 
 ## WP1: GOOD
 sub auth_check
@@ -1131,139 +1090,22 @@ sub get_action_button
 	return undef;
 }
 
-######################################################################
+
+
+###########################################################
 #
-# render_form( $fields,              #array_ref
-#              $values,              #hash_ref
-#              $show_names,
-#              $show_help,
-#              $action_buttons,      #array_ref
-#              $hidden_fields,       #hash_ref
-#              $dest
+# OTHER FUNCTIONS
 #
-#  Renders an HTML form. $fields is a reference to metadata fields
-#  in the usual format. $values should map field names to existing values.
-#  This function also puts in a hidden parameter "seen" and sets it to
-#  true. That way, a calling script can check the value of the parameter
-#  "seen" to see if the users seen and responded to the form.
-#
-#  Submit buttons are specified in a reference to an array of names.
-#  If $action_buttons isn't passed in (or is undefined), a simple
-#  default "Submit" button is slapped on.
-#
-#  $dest should contain the URL of the destination
-#
-######################################################################
-
-## WP1: BAD
-sub render_form
-{
-	my( $self, $fields, $values, $show_names, $show_help, $action_buttons,
-	    $hidden_fields, $dest ) = @_;
-
-print STDERR EPrints::Session::render_struct( $values );
-
-	my $query = $self->{query};
-
-	my( $form );
-
-	$form =	$self->make_form( "post", $dest );
-
-	my $field;	
-	foreach $field (@$fields)
-	{
-		$form->appendChild( $self->render_form_field( 
-					     $field,
-		                             $values->{$field->get_name()},
-		                             $show_names,
-		                             $show_help ) );
-	}
-
-	# Hidden field, so caller can tell whether or not anything's
-	# been POSTed
-	$form->appendChild( $self->make_hidden_field( "_seen", "true" ) );
-
-	if( defined $hidden_fields )
-	{
-		foreach (keys %{$hidden_fields})
-		{
-			$form->appendChild( $self->make_hidden_field( 
-						$_, 
-						$hidden_fields->{$_} ) );
-		}
-	}
-
-	$form->appendChild( $self->make_action_buttons( %{$action_buttons} ) );
-
-	return $form;
-}
+###########################################################
 
 
-######################################################################
-#
-# $html = input_field_tr( $field, $value, $show_names, $show_help )
-#
-#  Write a table row with the given field and value.
-#
-######################################################################
 
-## WP1: BAD
-sub render_form_field
-{
-	my( $self, $field, $value, $show_names, $show_help ) = @_;
-	
-	my( $div, $html, $span );
 
-	$html = $self->make_doc_fragment();
-
-	if( $show_names )
-	{
-		$div = $self->make_element( "div", class => "formfieldname" );
-
-		# Field name should have a star next to it if it is required
-		# special case for booleans - even if they're required it
-		# dosn't make much sense to highlight them.	
-
-		$div->appendChild( 
-			$self->make_text( $field->display_name( $self ) ) );
-
-		if( $field->get_property( "required" ) && !$field->is_type( "boolean" ) )
-		{
-			$span = $self->make_element( 
-					"span", 
-					class => "requiredstar" );	
-			$span->appendChild( $self->make_text( "*" ) );	
-			$div->appendChild( $self->make_text( " " ) );	
-			$div->appendChild( $span );
-		}
-		$html->appendChild( $div );
-	}
-
-	if( $show_help )
-	{
-		my $help = $field->display_help( $self );
-
-		$div = $self->make_element( "div", class => "formfieldhelp" );
-
-		$div->appendChild( 
-			$self->make_text( $field->display_help( $self ) ) );
-		$html->appendChild( $div );
-	}
-
-	$div = $self->make_element( "div", class => "formfieldinput" );
-	$div->appendChild( $field->render_input_field( $self, $value ) );
-	$html->appendChild( $div );
-
-	return( $html );
-}	
-
-######################################################################
 #
 # $text = render_struct( $ref, $depth )
 #
 #  Renders a reference into a human readable tree.
 #
-######################################################################
 
 
 ## WP1: BAD
@@ -1365,7 +1207,6 @@ sub microtime
         return $t[0]+$t[1];
 }
 
-######################################################################
 
 # NEEDS REWRITE IF TO BE USED
 # PROBABLY BELONGS HERE, THOUGH.
@@ -1391,13 +1232,11 @@ sub get_subjects
 	return( @subjects );
 }
 
-######################################################################
 #
 # redirect( $url )
 #
 #  Redirects the browser to $url.
 #
-######################################################################
 
 ## WP1: BAD
 sub redirect
@@ -1414,6 +1253,115 @@ sub redirect
 
 }
 
+#
+# mail_administrator( $subject, $message )
+#
+#  Sends a mail to the archive administrator with the given subject and
+#  message body.
+#
+
+## WP1: BAD
+sub mail_administrator
+{
+	my( $self, $subject, $message ) = @_;
+
+	# cjg logphrase here will NOT do it no longer exists.
+	
+	my $message_body = "lib/session:msg_at".gmtime( time );
+	$message_body .= "\n\n$message\n";
+
+	EPrints::Mailer::send_mail(
+		$self,
+		 "lib/session:site_admin" ,
+		$self->{archive}->{admin},
+		$subject,
+		$message_body );
+}
+
+sub send_http_header
+{
+	my( $self, %opts ) = @_;
+
+	# Write HTTP headers if appropriate
+	if( $self->{offline} )
+	{
+		$self->{archive}->log( "Attempt to send HTTP Header while offline" );
+		return;
+	}
+
+	my $r = Apache->request;
+	$r->content_type( 'text/html; charset=UTF8' );
+
+	if( defined $opts{lang} )
+	{
+		my $cookie = $self->{query}->cookie(
+			-name    => $self->{archive}->get_conf("lang_cookie_name"),
+			-path    => "/",
+			-value   => $opts{lang},
+			-expires => "+10y", # really long time
+			-domain  => $self->{archive}->get_conf("lang_cookie_domain") );
+		$r->header_out( "Set-Cookie"=>$cookie ); 
+	}
+	$r->send_http_header;
+}
+
+
+
+
+
+########################################################################
+# DEPRECATED AND DOOMED
+########################################################################
+
+## WP1: BAD
+sub start_html
+{
+	my( $self, $title, $langid ) = @_;
+die "NOPE";
+
+	$self->send_http_header();
+
+	my $html = "<BODY> begin here ";
+
+	return( $html );
+}
+
+## WP1: BAD
+sub end_html
+{
+	my( $self ) = @_;
+die "NOPE";
+	
+	# End of HTML gubbins
+	my $html = $self->{archive}->get_conf("html_tail")."\n";
+	$html .= $self->{query}->end_html;
+
+	return( $html );
+}
+
+## WP1: BAD
+sub end_form
+{
+die "NOPE";
+	my( $self ) = @_;
+	return( $self->{query}->endform );
+}
+
+## WP1: BAD
+sub bomb
+{	
+	my @info;
+	print STDERR "=======================================\n";
+	print STDERR "=      EPRINTS BOMB                   =\n";
+	print STDERR "=======================================\n";
+	my $i=1;
+	while( @info = caller($i++) )
+	{
+		print STDERR $info[3]." ($info[2])\n";
+	}
+	print STDERR "=======================================\n";
+	exit;
+}
 
 1;
 

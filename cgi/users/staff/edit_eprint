@@ -32,7 +32,7 @@ if( !defined $eprint_id || $eprint_id eq "" )
 	my $id_field = new EPrints::MetaField(
 		"eprint_id:text::ID of EPrint to View:1:1:1" );
 	
-	$session->{render}->render_form(
+	$session->{render}->render_input_form(
 		[ $id_field ],
 		{},
 		1,

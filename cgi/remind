@@ -70,7 +70,7 @@ else
 	
 	my $field = new EPrints::MetaField( "email:email::E-Mail Address:0:1:1" );
 	
-	$session->{render}->render_form( [ $field ],
+	$session->{render}->render_input_form( [ $field ],
 	                                 {},
 	                                 1,
 	                                 0,

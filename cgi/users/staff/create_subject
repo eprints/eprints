@@ -104,7 +104,7 @@ else
 		print "<CENTER><P>$error</P></CENTER>\n";
 	}
 	
-	$session->{render}->render_form( [ $subject_field,
+	$session->{render}->render_input_form( [ $subject_field,
 	                                   $id_field,
 	                                   $name_field,
 	                                   $depositable_field ],

@@ -571,7 +571,7 @@ sub render_input_field
 			$value = [ $value ];
 		}
 
-		$html->appendChild( $session->make_option_list(
+		$html->appendChild( $session->render_option_list(
 			name => $id,
 			values => $tags,
 			default => $value,
@@ -638,7 +638,7 @@ sub render_input_field
 					type => "hidden",
 					name => $spacesid,
 					value => $boxcount ) );
-				$more->appendChild( $session->make_internal_buttons(
+				$more->appendChild( $session->render_internal_buttons(
 					$self->{name}."_morespaces" => 
 						$session->phrase( "lib/metafield:more_spaces" ) ) );
 			}
@@ -871,7 +871,7 @@ print STDERR "$n... val($value)\n";
 		$div->appendChild( $session->html_phrase( "lib/metafield:month" ) );
 		$div->appendChild( $session->make_text(" ") );
 
-		$div->appendChild( $session->make_option_list(
+		$div->appendChild( $session->render_option_list(
 			name => $monthid,
 			values => \@monthkeys,
 			default => $month,

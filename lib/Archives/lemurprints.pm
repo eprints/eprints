@@ -384,6 +384,9 @@ $c->{userauth} = {
 #
 ######################################################################
 
+$c->{archivefields}->{document} = [
+	{ name => "citeinfo", type => "longtext", multiple => 1 }
+];
 
 $c->{archivefields}->{user} = [
 
@@ -1394,7 +1397,7 @@ sub eprint_render_full
 
 	#foreach (@subjects)
 	#{
-		#$html .= $eprint->{session}->{render}->subject_desc( $_, 1, 1, 0 );
+		#$html .= $eprint->{session}->render_subject_desc( $_, 1, 1, 0 );
 		#$html .= "<BR>\n";
 	#}
 
@@ -1864,7 +1867,7 @@ sub oai_get_eprint_metadata
 		foreach (@subjects)
 		{
 			push @{$tags{subject}},
-		   	  $eprint->{session}->{render}->subject_desc( $_, 0, 1, 0 );
+		   	  $eprint->{session}->{render}->render_subject_desc( $_, 0, 1, 0 );
 		}
 
 		$tags{description} = $eprint->{abstract};

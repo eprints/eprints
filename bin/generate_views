@@ -78,8 +78,8 @@ sub write_subject_view
 	my $title = "Browse by Subject: ".$subject->{name};
 	
 	# Tree at the top
-	$page->appendChild( $session->subject_tree( $subject ) );
-	$page->appendChild( $session->make_ruler() );
+	$page->appendChild( $session->render_subject_tree( $subject ) );
+	$page->appendChild( $session->render_ruler() );
 	# The entries themselves
 	my @eprints = $subject->posted_eprints( 
 		$session->get_archive()->get_data_set( "archive" ) );

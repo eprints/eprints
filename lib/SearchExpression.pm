@@ -195,7 +195,7 @@ sub render_search_form
 {
 	my( $self, $help, $show_anyall ) = @_;
 
-	my $form = $self->{session}->make_form( "get" );
+	my $form = $self->{session}->render_form( "get" );
 	my $div;
 
 	my %shown_help;
@@ -229,7 +229,7 @@ sub render_search_form
 
 	if( $show_anyall )
 	{
-		$menu = $self->{session}->make_option_list(
+		$menu = $self->{session}->render_option_list(
 			name=>"_satisfyall",
 			values=>[ "ALL", "ANY" ],
 			default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
@@ -250,7 +250,7 @@ sub render_search_form
 	my @tags = keys %{$self->{session}->get_archive()->get_conf(
 			"order_methods",
 			$self->{dataset}->confid )};
-	$menu = $self->{session}->make_option_list(
+	$menu = $self->{session}->render_option_list(
 		name=>"_order",
 		values=>\@tags,
 		default=>$self->{order},
@@ -271,7 +271,7 @@ sub render_search_form
 	$div = $self->{session}->make_element( 
 		"div" , 
 		class => "searchbuttons" );
-	$div->appendChild( $self->{session}->make_action_buttons( 
+	$div->appendChild( $self->{session}->render_action_buttons( 
 		search => $self->{session}->phrase( "lib/searchexpression:action_search" ), 
 		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ) ) );
 	$form->appendChild( $div );	
@@ -654,14 +654,14 @@ sub process_webpage
 				searchtime=>$self->{session}->make_text($t2-$t1),
 				gettime=>$self->{session}->make_text($t3-$t2) ) );
 
-		my $form = $self->{session}->make_form( "get" );
+		my $form = $self->{session}->render_form( "get" );
 		foreach( $self->{session}->param() )
 		{
 			next if( $_ =~ m/^_/ );
 			$form->appendChild(
-				$self->{session}->make_hidden_field( $_ ) );
+				$self->{session}->render_hidden_field( $_ ) );
 		}
-		$form->appendChild( $self->{session}->make_action_buttons( 
+		$form->appendChild( $self->{session}->render_action_buttons( 
 			update => $self->{session}->phrase("lib/searchexpression:action_update"), 
 			newsearch => $self->{session}->phrase("lib/searchexpression:action_newsearch") ) );
 		$page->appendChild( $form );

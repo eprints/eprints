@@ -92,7 +92,7 @@ sub process
 				registerlink => $a ) );	
 		$page->appendChild( $p );
 
-		$page->appendChild( $self->_render_form() );
+		$page->appendChild( $self->_render_user_form() );
 
 		$self->{session}->build_page(
 			$self->{session}->
@@ -141,7 +141,7 @@ sub process
 			$self->{session}->html_phrase( "lib/userform:complete_form" ) );
 		$page->appendChild( $p );
 	
-		$page->appendChild( $self->_render_form() );
+		$page->appendChild( $self->_render_user_form() );
 
 		$self->{session}->build_page(
 			$self->{session}->
@@ -169,7 +169,7 @@ sub process
 ######################################################################
 
 ## WP1: BAD
-sub _render_form
+sub _render_user_form
 {
 	my( $self ) = @_;
 	
@@ -190,7 +190,7 @@ sub _render_form
 
 	my $buttons = { update => $self->{session}->phrase( "lib/userform:update_record" ) };
 
-	return $self->{session}->render_form( \@edit_fields,
+	return $self->{session}->render_input_form( \@edit_fields,
 	                                      $self->{user}->getValues(),
 	                                      1,
 	                                      1,

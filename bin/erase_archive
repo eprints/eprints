@@ -98,6 +98,7 @@ if( $input eq "yes" )
 	closedir DOCSTORE;
 
 	# Remove the contents of each of the directories.
+	my $dir;
 	foreach $dir (@avail)
 	{
 		$rc = 0xffff & system(

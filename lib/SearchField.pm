@@ -879,7 +879,7 @@ sub to_html
 		# Boolean: Popup menu
 	
 		$frag->appendChild( 
-			$self->{session}->make_option_list(
+			$self->{session}->render_option_list(
 				name => $self->{formname},
 				values => \@bool_tags,
 				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
@@ -897,7 +897,7 @@ sub to_html
 				maxlength => $EPrints::HTMLRender::field_max ) );
 		$frag->appendChild( $self->{session}->make_text(" ") );
 		$frag->appendChild( 
-			$self->{session}->make_option_list(
+			$self->{session}->render_option_list(
 				name=>$self->{formname}."_srchtype",
 				values=>\@text_tags,
 				value=>$self->{anyall},
@@ -948,7 +948,7 @@ sub to_html
 		push @{$tags}, @{$old_tags};
 		$labels->{NONE} = "(Any)";
 
-		$frag->appendChild( $self->{session}->make_option_list(
+		$frag->appendChild( $self->{session}->render_option_list(
 			name => $self->{formname},
 			values => $tags,
 			default => \@defaults,
@@ -962,7 +962,7 @@ sub to_html
 		{
 			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 
-				$self->{session}->make_option_list(
+				$self->{session}->render_option_list(
 					name=>$self->{formname}."_self->{anyall}",
 					values=>\@set_tags,
 					value=>$self->{anyall},

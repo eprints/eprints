@@ -198,7 +198,7 @@ sub removal_request_form
 		"request in the box below. The request will be sent to the site ".
 		"administrator.";
 	
-	$session->{render}->render_form(
+	$session->{render}->render_input_form(
 		[ $reason_field ],
 		{},
 		0,

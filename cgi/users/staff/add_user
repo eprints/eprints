@@ -70,7 +70,7 @@ else
 	print $session->{lang}->phrase( "cgi/users/add_user:enter_username" );
 	print "</P></CENTER>\n";
 	
-	$session->{render}->render_form(
+	$session->{render}->render_input_form(
 		[ $username_field ],
 		{},
 		1,

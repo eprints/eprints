@@ -34,6 +34,7 @@ exit unless( defined $session );
 my $user_ds = $session->get_archive()->get_data_set( "user" );
 
 my $valid_access_level = 0;
+my $type;
 foreach $type (@{ $user_ds->get_types() })
 {
 	$valid_access_level = 1 if( $ARGV[3] eq $type );

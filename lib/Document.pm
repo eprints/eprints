@@ -59,7 +59,7 @@ sub get_system_field_info
 		{ name=>"format", type=>"datatype", required=>1, editable=>1, datasetid=>"document" },
 
 		{ name=>"formatdesc", type=>"text", required=>1, editable=>1 },
-
+#Language?
 		{ name=>"main", type=>"text", required=>1, editable=>1 }
 	);
 
