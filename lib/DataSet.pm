@@ -365,7 +365,7 @@ sub get_type_names
 sub get_type_name
 {
 	my( $self, $session, $type ) = @_;
-        return $session->phrase( "typename_".$self->confid()."_".$type );
+        return $session->phrase( $self->confid()."_typename_".$type );
 }
 
 sub get_type_fields

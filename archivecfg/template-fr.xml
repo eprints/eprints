@@ -34,13 +34,13 @@
         <tr>
           <td bgcolor="#333333">
             <div class="menu">
-              <a class="menulink" href="&htmlroot;">Home</a> ||
-              <a class="menulink" href="&htmlroot;information.html">About</a> ||
-              <a class="menulink" href="&htmlroot;view/">Browse</a> ||
-              <a class="menulink" href="&cgiroot;search">Search</a> ||
-              <a class="menulink" href="&htmlroot;register.html">Register</a> ||
-              <a class="menulink" href="&cgiroot;users/home">User Area</a> ||
-              <a class="menulink" href="&htmlroot;help">Help</a>
+              <a class="menulink" href="&frontpage;">Home</a> ||
+              <a class="menulink" href="&htmlroot;/information.html">About</a> ||
+              <a class="menulink" href="&htmlroot;/view/">Browse</a> ||
+              <a class="menulink" href="&cgiroot;/search">Search</a> ||
+              <a class="menulink" href="&htmlroot;/register.html">Register</a> ||
+              <a class="menulink" href="&cgiroot;/users/home">User Area</a> ||
+              <a class="menulink" href="&htmlroot;/help">Help</a>
             </div>
           </td>
         </tr>

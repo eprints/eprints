@@ -1,7 +1,7 @@
 *	Pre-Alpha - ie. You can't install it without a telepathic connection to Chris. [YOU ARE HERE]
 
-1	Distribution Installer
-1	Distribution creator ( needs to pick up new location of phrase files and pick the latest stable versions - mike? )
+2	Distribution Installer
+2	Distribution creator ( needs to pick up new location of phrase files and pick the latest stable versions - mike? )
 3	"Create New Archive" Script
 -	Tool to manage XML Phrase files and spot missing bits.
 -	Tool to manage XML Template files
@@ -12,6 +12,7 @@
 -	XML config files to tell eprints where to find each archive
 -	Multi-Lang fields in DB
 4	Multi-Lang fields in HTML
+0	Alpha Install Docs.
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
 
@@ -36,6 +37,7 @@
 0	Mailer
 0	Editor Pages -approve,bounce,filter etc.
 
+
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
 0	UserSearch needs to work and stuff.
@@ -44,6 +46,7 @@
 0 	Super all-singing/dancing etc. Subject Editor
 0	Staff Eprint & User edit
 1	OAI support
+0	Taint all code to force sanity checking of all data
 0	Probity (see www.probity.org for more info)
 0	Content Negotiation with Browser
 0	Subject field root is not always ROOT - can come into different places in the subject tree
@@ -55,6 +58,7 @@
 0	remove all #cjg comments which denote issues.
 0	Multipage search (cache code)
 0	Multipage views
+0	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 0	Other output charsets than UTF-8?
 1	XML Importer
 0	Indexing on name fields
@@ -68,7 +72,13 @@
 0	How-Too Documentation
 0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
 
-*	EPrints 2.0
+*	Milestone "Double Cheese" : EPrints 2.0
+
+1	EPrints 1 : Make it do OAI 1.1
+0	EPrints 1 : Make an exporter to dump database for import by ep2
+
+*	EPrints 1.2 Minor Fixes release.
+
 
 0	Sleep
 0	Beer
