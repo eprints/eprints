@@ -1,0 +1,12 @@
+<file SearchExpression.pm>
+leastone = You need to specify something for at least one field, dumbass!
+</file>
+
+<file update_ecs_users>
+dude = Internationalisation Rocks.
+</file>
+
+<file Citation.pm>
+unknowneprint = Unknown EPrint field $1 in "$2"
+na = "N/A"
+</file>
