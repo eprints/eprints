@@ -508,6 +508,49 @@ EPrints::Log->debug( "EPrint", "Making User objects" );
 }
 
 
+######################################################################
+#
+# $success = remove()
+#
+#  Removes the user from the archive, together with their EPrints
+#  and subscriptions.
+#
+######################################################################
 
+sub remove
+{
+	my( $self ) = @_;
+	
+	my $success = 1;
+
+	# First, remove their EPrints
+	my @eprints = EPrints::EPrint->retrieve_eprints(
+		$self->{session},
+		$EPrints::Database::table_archive,
+		[ "username LIKE \"$self->{username}\"" ] );
+
+	foreach (@eprints)
+	{
+		$success = $success && $_->remove();
+	}
+
+	# And subscriptions
+	my @subs = EPrints::Subscriptions->subscriptions_for(
+		$self->{session},
+		$self );
+	
+	foreach (@subs)
+	{
+		$success = $success && $_->remove();
+	}
+
+	# Now remove user record
+	$success = $success && $self->{session}->{database}->remove(
+		$EPrints::Database::table_user,
+		"username",
+		$self->{username} );
+	
+	return( $success );
+}
 
 1;
