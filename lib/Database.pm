@@ -92,17 +92,24 @@ $EPrints::Database::table_deletion = "deletions";
 	"enum"       => "INDEX(\$(name))",
 	"boolean"    => "INDEX(\$(name))",
 	"set"        => "INDEX(\$(name))",
-	"text"       => "INDEX(\$(name)(\$(size)))",
-	"multitext"  => "INDEX(\$(name)(\$(size)))",
-	"url"        => "INDEX(\$(name)(\$(size)))",
-	"multiurl"   => "INDEX(\$(name)(\$(size)))",
-	"email"      => "INDEX(\$(name)(\$(size)))",
+	#"text"       => "INDEX(\$(name)(\$(size)))",
+	#"multitext"  => "INDEX(\$(name)(\$(size)))",
+	#"url"        => "INDEX(\$(name)(\$(size)))",
+	#"multiurl"   => "INDEX(\$(name)(\$(size)))",
+	#"email"      => "INDEX(\$(name)(\$(size)))",
+	"text"       => "INDEX(\$(name))",
+	"multitext"  => "INDEX(\$(name))",
+	"url"        => "INDEX(\$(name))",
+	"multiurl"   => "INDEX(\$(name))",
+	"email"      => "INDEX(\$(name))",
+
 	"subjects"   => "INDEX(\$(name))",
 	"username"   => "INDEX(\$(name))",
 	"pagerange"  => "INDEX(\$(name))",
 	"year"       => "INDEX(\$(name))",
 	"eprinttype" => "INDEX(\$(name))",
-	"name"       => "INDEX(\$(name)_given(\$(size))), INDEX(\$(name)_family(\$(size)))"
+	#"name"       => "INDEX(\$(name)_given(\$(size))), INDEX(\$(name)_family(\$(size)))"
+	"name"       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
 # set, subjects, name and username can all be multiple which requires
@@ -794,7 +801,7 @@ sub cache
 	my $sql= "SELECT DISTINCT $table.$keyfield->{name} FROM $table";
 	foreach ( keys %{$aux_tables} )
 	{
-		$sql .= " LEFT JOIN ${$aux_tables}{$_} AS $_";
+		$sql .= " INNER JOIN ${$aux_tables}{$_} AS $_";
 		$sql .= " USING ($keyfield->{name})";
 	}
 	$sql .= " WHERE $conditions";

@@ -461,14 +461,16 @@ sub cache
 			$aux_tables{$auxid} = ${$aux_tables_term}{$_};
 			$auxcount++;
 		}
-
+print STDERR "<TERMS>\n";
 		if( defined $sql_term )
 		{
+print STDERR "* $sql_term\n";
 			$where .= ( $self->{satisfy_all} ? " AND " : " OR " ) unless( $first );
 			$first = 0 if( $first );
 			$where .= "($sql_term)";
 		}
 	}
+print STDERR "</TERMS>\n";
 	$self->{tmptable} = $self->{session}->{database}->cache(
 				$self->{table},
 				\%aux_tables,
