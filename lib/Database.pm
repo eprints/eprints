@@ -1045,7 +1045,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "Database", "$sql" );
+EPrints::Log::debug( "Database", "$sql" );
 
 	return $result;
 }
@@ -1066,6 +1066,7 @@ sub prepare
 
 	return $result;
 }
+
 sub execute 
 {
 	my ( $self , $sth , $sql ) = @_;
@@ -1082,7 +1083,5 @@ sub execute
 
 	return $result;
 }
-
-1; # For use/require success
 
 1; # For use/require success

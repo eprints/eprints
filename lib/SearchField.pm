@@ -109,10 +109,10 @@ sub new
 	
 	$self->{session} = $session;
 	$self->{table} = $table;
+	$self->{value} = $value;
 
 	if( ref( $field ) eq "ARRAY" )
 	{
-		print STDERR "!!!!!!!!!!!!!!!!!!!!!!!!!\nDEBUG ME - need to call self multiple times?\n!!!!!!!!!!!!!!!!!!!!!\n";
 		# Search >1 field
 		$self->{multifields} = $field;
 
@@ -121,11 +121,11 @@ sub new
 		{
 			push @fieldnames, $_->{name};
 			push @displaynames, $_->{displayname};
-
 		}
+	
 		$self->{displayname} = join '/', @displaynames;
 		$self->{formname} = join '_', @fieldnames;
-		$self->{type} = $self->{multifields}->[0]->{type};
+		$self->{type} = $field->[0]->{type};
 	}
 	else
 	{
@@ -135,7 +135,6 @@ sub new
 		$self->{type} = $field->{type};
 	}
 	
-	$self->{value} = $value;
 
 	return( $self );
 }
@@ -154,14 +153,83 @@ sub new
 sub get_sql
 {
 	my( $self ) = @_;
-	
-#EPrints::Log::debug( "SearchField", "making SQL for $self->{formname} of type $self->{type}" );
-#EPrints::Log::debug( "SearchField", "Value is $self->{value}" );
-
 	unless( defined $self->{value} && $self->{value} ne "" )
 	{
 		return ( undef , undef );
 	}
+
+	if ( defined $self->{multifields} )
+	{
+		my $sql = "";
+		my %aux_tables = ();
+		my $v = $self->{value};
+		# This bit assumes that ALL: always means
+		# what it usually means at the start of 
+		# a value.
+		$v =~ s/^ALL:/SEP:/i;
+		my @parts;
+		my $fieldcount = 0;
+		my $auxcount=0;
+		foreach ( @{$self->{multifields}} ) 
+		{
+			my $sfield = new EPrints::SearchField( 
+				$self->{session},
+				$self->{table},
+				$_,
+				$v );
+			my ( $sql_term , $aux_tables_term ) = 
+				$sfield->get_sql();
+			if ($self->{value} =~ m/^ALL:/i) 
+			{
+				my $clause;
+				my $clausecount=0;
+				foreach $clause ( @{$sql_term} )
+				{
+					my $aux;
+					foreach $aux (keys %{$aux_tables_term}) 
+					{
+						my $auxid = "__auxM$auxcount"."__";
+						if ($clause =~ s/$aux/$auxid/g)
+						{
+							$aux_tables{$auxid} = ${$aux_tables_term}{$aux};
+							$auxcount++;
+						}
+					}
+						
+					$parts[$clausecount].=" OR " unless( $fieldcount == 0 );
+					$parts[$clausecount].=$clause;
+					++$clausecount;
+				}
+			}
+			else
+			{
+				my $aux;
+				foreach $aux (keys %{$aux_tables_term}) 
+				{
+					my $auxid = "__auxM$auxcount"."__";
+					if ($sql_term =~ s/$aux/$auxid/g)
+					{
+						$aux_tables{$auxid} = ${$aux_tables_term}{$aux};
+						$auxcount++;
+					}
+				}
+				push @parts,$sql_term;
+			}
+			++$fieldcount;
+
+		}
+		if ($self->{value} =~ m/^ALL:/i) 
+		{
+			$sql = "(".join( ") AND (" , @parts ).")";
+		} 
+		else 
+		{
+			$sql = "(".join( ") OR (" , @parts ).")";
+		}
+		return ( $sql , \%aux_tables );
+	}
+
+#EPrints::Log::debug( "SearchField", "Value is $self->{value}" );
 
 	# Get the SQL for a single term
 
@@ -229,17 +297,17 @@ sub get_sql
 	# email, url, multiurl
 	# text, multitext
 	#
-	# ANY|ALL|PHR:IN|EQ:foo bar...
+	# SEP|ANY|ALL|PHR:IN|EQ:foo bar...
 
 	if( $type eq "email" || $type eq "multiurl" || $type eq "url" ||
 		$type eq "text" || $type eq "multitext"	)
 	{
-		unless ($value =~ m/^(ANY|ALL|PHR):(IN|EQ):(.*)$/)
+		unless ($value =~ m/^(SEP|ANY|ALL|PHR):(IN|EQ):(.*)$/i)
 		{
 			return ( "BAD_"."\U$type"."_SEARCH" , undef );
 		}
-		my $mode = $1;
-		my $match = $2;
+		my $mode = uc $1;
+		my $match = uc $2;
 		my @vals;
 		if ( $mode eq "PHR" ) 
 		{
@@ -270,14 +338,14 @@ sub get_sql
 	# set, subjects, username
 	# enum, eprinttype
 	#
-	# ANY|ALL:foo:bar:...
+	# SEP|ANY|ALL:foo:bar:...
 	
 	if( $type eq "set" || $type eq "subjects" || $type eq "username" ||
 		$type eq "enum" || $type eq "eprinttype" ) 
 	{
 		my @sql;
 		my @vals = split /:/, $value;
-		my $mode = shift @vals;
+		my $mode = uc shift @vals;
 		foreach( @vals )
 		{
 			push @sql , "__FIELDNAME__ = '$_'";
@@ -336,17 +404,21 @@ sub get_sql
 
 	# name
 	#
-	# ANY|ALL|EQ|IN:smith:jones,bob:...
+	# SEP|ANY|ALL:EQ|IN:smith jones,bob ...
 
 	if( $type eq "name" )
 	{
-		my @vals = split /:/ , $value ;
-		my $mode = shift @vals;
-		my $match = shift @vals;
+		unless ($value =~ m/^(SEP|ANY|ALL|PHR):(IN|EQ):(.*)$/i)
+		{
+			return ( "BAD_"."\U$type"."_SEARCH" , undef );
+		}
+		my $mode = uc $1;
+		my $match = uc $2;
+		my @vals = split /\s+/ , $3;
 		my @sql;
 		foreach( @vals )
 		{
-			m/^([^,])+(,(.*))?$/;
+			m/^([^,]+)(,(.*))?$/;
 			my ( $family , $given ) = ( $1 , $3 );
 			if ( $match eq "IN" )
 			{
@@ -359,7 +431,7 @@ sub get_sql
 			my $s = "__FIELDNAME___family LIKE '$family'";
 			if ( defined $given )
 			{
-				$s.= "__FIELDNAME___given LIKE '$given'";
+				$s = "($s AND __FIELDNAME___given LIKE '$given')";
 			}
 			push @sql , $s;
 		}	
@@ -376,7 +448,15 @@ sub _get_sql_aux
 {
 	my ( $self , $mode , @sqlbits ) = @_;
 
-	my $sql = "";
+	my $sql;
+	if ( $mode eq "SEP" ) 
+	{
+		$sql = [];
+	}
+	else
+	{
+		$sql = "";
+	}
 	my %auxtables = ();
 
 	my $count = 0;
@@ -396,8 +476,12 @@ sub _get_sql_aux
 			$sql .= " OR " if ( $count > 0);
 			$auxalias = "__aux__";
 		} 
-		else
+		elsif ( $mode eq "SEP" )
 		{
+			$auxalias = "__aux".$count."__";
+		}
+		else
+		{	
 			$sql .= " AND " if ( $count > 0);
 			$auxalias = "__aux".$count."__";
 		}
@@ -410,7 +494,14 @@ sub _get_sql_aux
 			$auxalias = $self->{table};
 		}
 		$bit =~ s/__FIELDNAME__/$auxalias.$self->{field}->{name}/g;
-		$sql .= $bit;
+		if ( $mode eq "SEP" )
+		{
+			push @{$sql},$bit;
+		}
+		else
+		{
+			$sql .= $bit;
+		}
 
 		$count++;
 	}
@@ -680,7 +771,11 @@ sub from_form
 	{
 		# simple text types
 		my $val = $self->{session}->{render}->param( $self->{formname} );
-		$self->{value} = $val if( defined $val && $val ne "" );
+		
+		if( defined $val && $val ne "" )
+		{
+			$self->{value} = "ANY:EX:$val";
+		}
 	}
 	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
 	{
@@ -688,13 +783,16 @@ sub from_form
 		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
 		my $search_type = $self->{session}->{render}->param( 
 			$self->{formname}."_srchtype" );
+		my $exact = "IN";
 		
 		# Default search type if none supplied (to allow searches using simple
 		# HTTP GETs)
 		$search_type = "all" unless defined( $search_type );		
 		
-		$self->{value} = "$search_type:$search_terms"
-			if( defined $search_terms && $search_terms ne "" );
+		if( defined $search_terms && $search_terms ne "" ) 
+		{
+			$self->{value} = "$search_type:$exact:$search_terms";
+		}
 	}		
 	elsif( $type eq "username" )
 	{
@@ -705,10 +803,13 @@ sub from_form
 		# Default search type if none supplied (to allow searches using simple
 		# HTTP GETs)
 		$anyall = "ALL" unless defined( $anyall );		
+		my $exact = "IN";
 	
 		my @vals = split /\s+/ , $self->{session}->{render}->param( $self->{formname} );
-		$self->{value} = join( ":" , @vals ) . ":$anyall"
-			if( scalar @vals > 0);
+		if( scalar @vals > 0)
+		{
+			$self->{value} = "$anyall:$exact:".join( ":" , @vals );
+		}
 	}		
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
@@ -725,7 +826,7 @@ sub from_form
 				undef $val if( $_ eq "NONE" );
 			}
 
-			$self->{value} = $val;
+			$self->{value} = "ANY:$val";
 		}
 	}
 	elsif( $type eq "set" || $type eq "subjects" )
@@ -754,8 +855,8 @@ sub from_form
 			# ANY or ALL?
 			my $anyall = $self->{session}->{render}->param(
 				$self->{formname}."_anyall" );
-			
-			$val .= (defined $anyall? ":$anyall" : ":ANY" );
+				
+			$val = (defined $anyall? "$anyall" : "ANY" ).":$val";
 		}
 
 		$self->{value} = $val;

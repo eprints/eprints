@@ -157,8 +157,11 @@ sub process
 
 			if( $self->{what} eq "eprints" )
 			{
-				my @eprints = $searchexp->do_eprint_search();
-				
+
+				my $searchid = $searchexp->cache();
+				my @eprints = $searchexp->get_records();
+				$searchexp->drop_cache();
+
 				print _render_matchcount( $self->{session} , scalar @eprints );
 
 
