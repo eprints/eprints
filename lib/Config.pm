@@ -1,3 +1,15 @@
+######################################################################
+#
+# COMMENTME
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 # HEADERS cjg
 
 #cjg SHOULD BE a way to configure an archive NOT to load the
