@@ -284,6 +284,7 @@ $EPrintSite::SiteInfo::html_banner = "
           <td align=center valign=top bgcolor=#dddddd fgcolor=white>
 		      <BR>
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_static/information.html\">About</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Registrations</A>\&nbsp;<BR><BR>
