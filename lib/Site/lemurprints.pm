@@ -87,7 +87,8 @@ $c->{bin_root} = "$EPrints::Site::General::base_path/bin";
 $c->{phrases_path} = "$c->{site_root}/phrases";
 $c->{static_html_root} = "$c->{site_root}/static";
 $c->{local_html_root} = "$c->{site_root}/html";
-$c->{local_document_root} = "$c->{local_html_root}/documents";
+$c->{local_document_root} = "$c->{site_root}/documents";
+$c->{local_abstract_root} = "$c->{local_html_root}/abstracts/";
 
 ######################################################################
 # URLS
