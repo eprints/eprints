@@ -5,6 +5,7 @@
 ######################################################################
 #
 #  18/02/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -14,11 +15,91 @@ use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::User;
 
-use EPrintsSite::SiteInfo;
+use EPrintSite::SiteInfo;
+
+use strict;
 
 my $session = new EPrints::Session;
 
-$session->{render}->start_html( "Server Status" );
+print $session->{render}->start_html( "Server Status" );
 
-# Get some statistics
-my $users = 
+# Total number of users
+my $rows = $session->{database}->retrieve( $EPrints::Database::table_user,
+                                           [ "username" ] );
+
+# Number of users in each group
+my $num_users = scalar @$rows;
+my @num_users_cat;
+
+foreach (@EPrints::User::access_levels)
+{
+	$rows = $session->{database}->retrieve( $EPrints::Database::table_user,
+	                                        [ "username" ],
+	                                        [ "groups LIKE \"$_\"" ] );
+	push @num_users_cat, scalar @$rows;
+}
+
+# Number of submissions in workspace
+$rows = $session->{database}->retrieve( $EPrints::Database::table_inbox,
+                                        [ "eprintid" ] );
+
+my $num_inbox = scalar @$rows;
+
+# Number of submissions in buffer
+$rows = $session->{database}->retrieve( $EPrints::Database::table_inbox,
+                                        [ "eprintid" ] );
+
+my $num_buffer = scalar @$rows;
+
+# Number of submissions in archive
+$rows = $session->{database}->retrieve( $EPrints::Database::table_archive,
+                                        [ "eprintid" ] );
+
+my $num_archive = scalar @$rows;
+
+# Number of subscriptions
+$rows = $session->{database}->retrieve( $EPrints::Database::table_subscription,
+                                        [ "subid" ] );
+
+my $num_subs = scalar @$rows;
+
+
+my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
+
+
+# Write the results to a table
+print "<CENTER><TABLE BORDER=0>\n";
+
+
+&print_row( "Database Status:", $db_status );
+
+&print_row( "", "" );
+
+&print_row( "Readers:", $num_users_cat[0] );
+&print_row( "Authors:", $num_users_cat[1] );
+&print_row( "Staff:", $num_users_cat[2] );
+&print_row( "Total Users:", $num_users );
+
+&print_row( "", "" );
+
+&print_row( "Articles in archive:", $num_archive );
+&print_row( "Articles in buffer:", $num_buffer );
+&print_row( "Articles in workspace:", $num_inbox );
+
+&print_row( "", "" );
+
+&print_row( "Subscriptions:", $num_subs );
+
+print "</TABLE></CENTER>\n";
+
+print $session->{render}->end_html();
+
+$session->terminate();
+
+
+sub print_row
+{
+	my( $key, $val ) = @_;
+	
+	print "<TR><TD><STRONG>$key</STRONG></TD><TD ALIGN=right>$val</TD></TR>\n";
+}
