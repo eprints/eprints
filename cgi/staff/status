@@ -48,7 +48,7 @@ $rows = $session->{database}->retrieve( $EPrints::Database::table_inbox,
 my $num_inbox = scalar @$rows;
 
 # Number of submissions in buffer
-$rows = $session->{database}->retrieve( $EPrints::Database::table_inbox,
+$rows = $session->{database}->retrieve( $EPrints::Database::table_buffer,
                                         [ "eprintid" ] );
 
 my $num_buffer = scalar @$rows;
