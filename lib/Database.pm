@@ -25,11 +25,13 @@ use EPrints::Subscription;
 
 my $DEBUG_SQL = 0;
 
+# cjg not using transactions so there is a (very small) chance of
+# dupping on a counter. 
 
 #
 # Counters
 #
-@EPrints::Database::counters = ( "eprintid" );
+@EPrints::Database::counters = ( "eprintid","userid" );
 
 
 #

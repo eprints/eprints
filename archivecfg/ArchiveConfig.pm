@@ -48,23 +48,21 @@ sub get_conf
 #
 ######################################################################
 
-$c->{archivename}->{en} = latin1( "Lemur Prints Archive" );
+$c->{archivename}->{en} = latin1( "Lêmur Prints" );
 $c->{archivename}->{fr} = latin1( "l'eprints" );
  
-# Short text description cjg <doomed to phrases>
-$c->{description} = latin1( "Your Site Description Here" );
-
 # E-mail address for human-read administration mail
-$c->{adminemail} = "admin\@lemur.ecs.soton.ac.uk";
+$c->{adminemail} = "cjg";
 
-# Stem for local ID codes
+# Stem for local ID codes. This gets prepended to all eprint ids.
 $c->{eprint_id_stem} = "zook";
 
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
-
-###cjg Devel hack#############
+#############################
+###cjg Development hack, This should not affect you unless your
+### machine happens to have the same ID as my home linux box
 my $realid = `hostname`;
 chomp $realid;
 if( $realid eq "destiny.totl.net" ) { $c->{host} = "localhost"; }
@@ -195,7 +193,9 @@ $c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 # of the repository.  It would be appropriate to indicate the language(s)
 # of the metadata/data in the repository.
 
-$c->{oai_content}->{"text"} = $c->{description};
+$c->{oai_content}->{"text"} = latin1( <<END );
+OAI Site description has not been configured.
+END
 $c->{oai_content}->{"url"} = undef;
 
 # "metadataPolicy" : Text and/or a URL linking to text describing policies
@@ -207,6 +207,8 @@ $c->{oai_content}->{"url"} = undef;
 $c->{oai_metadata_policy}->{"text"} = latin1( <<END );
 No metadata policy defined. 
 This server has not yet been fully configured.
+Please contact the admin for more information, but if in doubt assume that
+NO rights at all are granted to this data.
 END
 $c->{oai_metadata_policy}->{"url"} = undef;
 
@@ -220,6 +222,8 @@ $c->{oai_metadata_policy}->{"url"} = undef;
 $c->{oai_data_policy}->{"text"} = latin1( <<END );
 No data policy defined. 
 This server has not yet been fully configured.
+Please contact the admin for more information, but if in doubt assume that
+NO rights at all are granted to this data.
 END
 $c->{oai_data_policy}->{"url"} = undef;
 
@@ -250,7 +254,9 @@ $c->{oai_comments} = [
 
 ###########################################
 #  Language
+###########################################
 
+# First language is the default. Only select Id's from languages.xml
 $c->{languages} = [ "en", "fr" ];
 
 $c->{lang_cookie_domain} = $c->{host};
@@ -258,7 +264,7 @@ $c->{lang_cookie_name} = "lang";
 
 ###########################################
 #  User Types
-#
+###########################################
 
 # We need to calculate the connection string, so we can pass it
 # into the AuthDBI config. 
@@ -277,7 +283,7 @@ my $UNENCRYPTED_DBI = {
 	Auth_DBI_password  =>  $c->{dbpass},
 	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 	Auth_DBI_uid_field  =>  "username",
-	Auth_DBI_pwd_field  =>  "passwd",
+	Auth_DBI_pwd_field  =>  "password",
 	Auth_DBI_grp_field  =>  "usertype",
 	Auth_DBI_encrypted  =>  "off" };
 
@@ -288,17 +294,29 @@ my $ENCRYPTED_DBI = {
 	Auth_DBI_password  =>  $c->{dbpass},
 	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 	Auth_DBI_uid_field  =>  "username",
-	Auth_DBI_pwd_field  =>  "passwd",
+	Auth_DBI_pwd_field  =>  "password",
 	Auth_DBI_grp_field  =>  "usertype",
 	Auth_DBI_encrypted  =>  "on" };
 
+# The type of user that gets created when someone signs up
+# over the web. This can be modified after they sign up by
+# staff with the right priv. set. 
+$c->{default_user_type} = "user";
+
+#user
+#subscription
+#view-status
+#editor
  
  
 $c->{userauth} = {
 	user => { 
 		auth  => $UNENCRYPTED_DBI,
 		priv  =>  [ "user", "subscription" ] },
-	staff => { 
+	editor => { 
+		auth  => $UNENCRYPTED_DBI,
+		priv  =>  [ "tester", "subscription", "view-status", "editor" ] },
+	admin => { 
 		auth  => $UNENCRYPTED_DBI,
 		priv  =>  [ "tester", "subscription", "view-status", "editor" ] }
 };
@@ -835,6 +853,7 @@ sub eprint_render_short_title
 	
 	if( !defined $eprint->get_value( "title" ) )
 	{
+		#cjg LANGIT!
 		return $eprint->get_session()->make_text( 
 			"Untitled (ID: ".$eprint->get_value( "eprintid" ).")" );
 	}
@@ -1084,6 +1103,7 @@ sub user_display_name
 
 	if( !defined $name || $name->{family} eq "" ) 
 	{
+		#langify cjg
 		return( "User ".$user->get_value( "username" ) );
 	} 
 
@@ -1644,7 +1664,5 @@ sub get_entities
 	return %entities;
 }
 
-
-	
 
 1;

@@ -2,6 +2,9 @@
 
 #cjg ??? Write datestamps?
 
+#cjg need to somehow keep track of comments. Maybe tag them onto next
+#phrase?
+
 use EPrints::DOM;
 EPrints::DOM::setTagCompression( \&tag_compression );
 

@@ -17,147 +17,76 @@
 package EPrints::Mailer;
 
 use strict;
-##what's with automail in this file? Lose it.
 
-######################################################################
-#
-# $success = send_mail( $name, $address, $subject, $body )
-#  bool                   str   str        str      str
-#
-#  Send a mail to the given address. Note that the returned $success
-#  value indicated whether or not the mail was successfully dispatched,
-#  and isn't an indication of whether or not the mail was received.
-#
-######################################################################
-
-## WP1: BAD
 sub send_mail
 {
-	my( $session, $name, $address, $subject, $body ) = @_;
+	my( $archive, $langid, $name, $address, $subject, $body, $sig ) = @_;
+	#   Archive   string   utf8   utf8      utf8      DOM    DOM
 
-	open( SENDMAIL, "|".$session->get_archive()->get_conf( "sendmail" ) )
-		or return( 0 );
+	unless( open( SENDMAIL, "|".$archive->invocation( "sendmail" ) ) )
+	{
+		$archive->log( "Failed to invoke sendmail: ".
+			$archive->invocation( "sendmail" ) );
+		return( 0 );
+	}
 
-	print SENDMAIL <<"EOF";
-From: $session->get_archive()->get_conf( "archivename" ) <$session->get_archive()->get_conf( "admin" )>
-To: $name <$address>
-Subject: $session->get_archive()->get_conf( "archivename" ): $subject
+	# Addresses should be 7bit clean, but I'm not checking yet.
+	# god only knows what 8bit data does in an email address.
 
-$body
+	#cjg should be in the top of the file.
+	my $MAILWIDTH = 80;
 
-$session->get_archive()->get_conf( "signature" )
-EOF
+	my $arcname_q = mime_encode_q( EPrints::Session::best_language( 
+		$archive,
+		$langid,
+		%{$archive->get_conf( "archivename" )} ) );
+
+	my $name_q = mime_encode_q( $name );
+	my $subject_q = mime_encode_q( $subject );
+	my $adminemail = $archive->get_conf( "adminemail" );
+
+	#precedence bulk to avoid automail replies?  cjg
+	print SENDMAIL <<END;
+From: $arcname_q <$adminemail>
+To: $name_q <$address>
+Subject: $arcname_q: $subject_q
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+END
+	print SENDMAIL EPrints::Config::tree_to_utf8( $body , $MAILWIDTH );
+	if( defined $sig )
+	{
+		print SENDMAIL EPrints::Config::tree_to_utf8( $sig , $MAILWIDTH );
+	}
 
 	close(SENDMAIL) or return( 0 );
 	return( 1 );
 }
 
+# Encode a utf8 string for a MIME header.
+sub mime_encode_q {
+	my( $string ) = @_;
 
-######################################################################
-#
-# $body = fill_template( $template_filename, $user )
-#
-#  Reads the template from the given file, and replaces the
-#  relevant placeholders with values.
-#  The updated body is returned, or undef if an error occurred.
-#
-######################################################################
-
-## WP1: BAD
-sub fill_template
-{
-	my( $template_filename, $user ) = @_;
-	
-	my $body = "";
-
-	open( INTROFILE, $template_filename ) or return( undef );
-	
-	while( <INTROFILE> )
+	return "" if( length($string) == 0);
+	my $encoded = "";
+	my $i;
+	for $i (0..length($string)-1)
 	{
-		$body .= EPrints::Mailer::update_template_line( $_, $user );
+		my $o = ord(substr($string,$i,1));
+		# less than space, higher or equal than 'DEL' or _ or ?
+		if( $o < 0x20 || $o > 0x7E || $o == 0x5F || $o == 0x3F )
+		{
+			$encoded.=sprintf( "=%02X", $o );
+		}
+		else
+		{
+			$encoded.=chr($o);
+		}
 	}
-	
-	close( INTROFILE );
-
-	return( $body );
+	return "=?utf-8?Q?".$encoded."?=";
 }
 
-
-######################################################################
-#
-# $new_line = update_template_line( $session, $template_line, $user )
-#
-#  Takes a line from a template and fills in the relevant values.
-#
-#  Values updated are:
-#
-#   __username__    username of $user
-#   __password__    password of $user
-#   __sitename__    name of the site
-#   __description__ short text description of the site
-#   __admin__       admin email address
-#   __perlroot__    URL of perl server
-#   __staticroot__  URL of static HTTP server
-#   __frontpage__   URL of site front page
-#   __usermail__    user's email address
-#   __subjectroot__ where on the server the "browse by subject" views are
-#   __version__     EPrints software version
-#
-######################################################################
-
-## WP1: BAD
-sub update_template_line
-{
-	my( $session, $template_line, $user ) = @_;
-	
-	my $new_line = $template_line;
-
-	if( defined $user )
-	{
-		$new_line =~ s/__username__/$user->{username}/g;
-		$new_line =~ s/__password__/$user->{passwd}/g;
-		$new_line =~ s/__usermail__/$user->{email}/g;
-	}
-	
-	#$new_line =~ s/__description__/$session->get_archive()->get_conf( "description" )n/g;
-	$new_line =~ s/__admin__/$session->get_archive()->get_conf( "admin" )/g;
-	$new_line =~ s/__perlroot__/$session->get_archive()->get_conf( "server_perl" )/g;
-	$new_line =~ s/__staticroot__/$session->get_archive()->get_conf( "server_static" )/g;
-	$new_line =~ s/__frontpage__/$session->get_archive()->get_conf( "frontpage" )/g;
-	
-	return( $new_line );
-}
-
-
-
-######################################################################
-#
-# $success = prepare_send_mail( $name, $address, $subject,
-#                               $templatefile, $user )
-#
-#  Prepare and send a mail to the given $name and $address, filling
-#  out $templatefile with appropriate values.
-#
-######################################################################
-
-## WP1: BAD
-sub prepare_send_mail
-{
-	my( $session, $name, $address, $subject, $templatefile, $user ) = @_;
-	
-	my $body = EPrints::Mailer::fill_template(
-		$templatefile,
-		$user );
-
-	return( 0 ) unless( defined $body );
-
-	return( EPrints::Mailer::send_mail(
-		$session,
-		$name,
-		$address,
-		$subject,
-		$body ) );
-}
 
 
 1;

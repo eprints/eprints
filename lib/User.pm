@@ -35,29 +35,39 @@ sub get_system_field_info
 
 	return 
 	( 
+		{ name=>"userid", type=>"text", required=>1 },
+
 		{ name=>"username", type=>"text", required=>1 },
 
-		{ name=>"passwd", type=>"text", required=>1 },
+		{ name=>"password", type=>"secret", required=>1 },
 
-		{ name=>"usertype", type=>"datatype", required=>1, datasetid=>"user" },
+		{ name=>"usertype", type=>"datatype", required=>1, 
+			datasetid=>"user" },
+	
+		{ name=>"newemail", type=>"email" },
+	
+		{ name=>"newpassword", type=>"secret" },
 
+		{ name=>"pin", type=>"text" },
+
+		{ name=>"pinsettime", type=>"int" },
+
+		#cjg created would be a better name than joined??
 		{ name=>"joined", type=>"date", required=>1 },
 
-		{ name=>"email", type=>"email", required=>1 }
+		{ name=>"email", type=>"email", required=>1 },
 
-# cjg NEWFIELDS
-# New Email Pin
-# New Email
-
+		{ name=>"lang", type=>"datatype", required=>0, 
+			datasetid=>"arclanguage" }
 	)
 };
 
 
 ######################################################################
 #
-# new( $session, $username, $dbrow )
+# new( $session, $userid, $dbrow )
 #
-#  Construct a user object corresponding to the given username.
+#  Construct a user object corresponding to the given userid.
 #  If $dbrow is undefined, user info is read in from the database.
 #  Pre-read data can be passed in (exactly as retrieved from the
 #  database) into $dbrow.
@@ -67,13 +77,13 @@ sub get_system_field_info
 ## WP1: BAD
 sub new
 {
-	my( $class, $session, $username, $known ) = @_;
+	my( $class, $session, $userid, $known ) = @_;
 
 	if( !defined $known )
 	{
 		return $session->get_db()->get_single( 
 			$session->get_archive()->get_dataset( "user" ),
-			$username );
+			$userid );
 	} 
 
 	my $self = {};
@@ -86,38 +96,6 @@ sub new
 
 ######################################################################
 #
-# $user = create_user_email( $session, $email, $access_level )
-#
-#  Creates a new user with the given email address. A username is
-#  automatically generated from the email address.
-#
-######################################################################
-
-## WP1: BAD
-sub create_user_email
-{
-	my( $session, $email, $access_level ) = @_;
-	
-	# Work out the username by removing the domain. Hopefully this will
-	# give the user their home system's username that they're used to.
-	my $username = $email;
-	$username =~ s/\@.*//;
-
-	if( $username eq "" )
-	{
-		# Fail! Not a valid email address...
-		return( undef );
-	}
-	
-	return( EPrints::User::create_user( $session,
-	                                    $username,
-	                                    $email,
-	                                    $access_level ) );
-}
-
-
-######################################################################
-#
 # $user = create_user( $session, $username_candidate, $email, $access_level )
 #
 #  Creates a new user with given access priviledges and a randomly
@@ -125,81 +103,24 @@ sub create_user_email
 #
 ######################################################################
 
-## WP1: BAD
 sub create_user
 {
-	my( $session, $username_candidate, $email, $access_level ) = @_;
+	my( $session, $access_level ) = @_;
 	
-	my $found = 0;
-	my $used_count = 0;
-	my $candidate = $username_candidate;
-
 	my $user_ds = $session->get_archive()->get_dataset( "user" );
+	my $userid = _create_userid( $session );
 		
-	while( $found==0 )
-	{
-		#print "Trying $candidate\n";
-	
-		if( $session->get_db()->exists( $user_ds, $candidate ) )
-		{
-			# Already exists. Try again...
-			$used_count++;
-			$candidate = $username_candidate . $used_count;
-		}
-		else
-		{
-			# Doesn't exist, we've found it.
-			$found = 1;
-		}
-	}
-
-	# Now we have a new user name. Generate a password for it.
-	my $passwd = _generate_password( 6 );
-
 	# And work out the date joined.
 	my $date_joined = EPrints::MetaField::get_datestamp( time );
 
-	# Add the user to the database... e-mail add. is lowercased
-# cjg add_record call
-	$session->{database}->add_record( $user_ds,
-	                                  { "username"=>$candidate,
-	                                    "passwd"=>$passwd,
-	                                    "usertype"=>$access_level,
-	                                    "joined"=>$date_joined,
-	                                    "email"=>lc $email } );
+	# Add the user to the database...
+	$session->get_db()->add_record( $user_ds,
+	                                { "userid"=>$userid,
+	                                  "usertype"=>$access_level,
+	                                  "joined"=>$date_joined } );
 	
 	# And return the new user as User object.
-	return( EPrints::User->new( $session, $candidate ) );
-}
-
-
-######################################################################
-#
-#  $password = _generate_password( $length )
-#
-#   Generates a random password $length characters long.
-#
-######################################################################
-
-## WP1: BAD
-sub _generate_password
-{
-	my( $length ) = @_;
-	
-	# Seed the random number generator
-	srand;
-	# no l's (mdh 1/7/98)
-	my $enc="0123456789abcdefghijkmnopqrstuvwxyz";
-	# now for the associated password
-	my $passwd = "";
-
-	my $i;
-	for ($i = 0; $i < $length ;$i++)
-	{
-		$passwd .= substr($enc,int(rand(35)),1);
-	}
-
-	return( $passwd );
+	return( EPrints::User->new( $session, $userid ) );
 }
 
 
@@ -212,27 +133,46 @@ sub _generate_password
 #
 ######################################################################
 
-## WP1: BAD
 sub user_with_email
 {
 	my( $session, $email ) = @_;
 	
 	my $user_ds = $session->get_archive()->get_dataset( "user" );
-	# Find out which user it is
-	my @row = $session->{database}->retrieve_single(
-		$user_ds,
-		"email",
-		lc $email );
 
-	if( $#row >= 0 )
-	{
-		# Found the user
-		return( new EPrints::User( $session, $row[0] ) );
-	}
-	else
-	{
-		return( undef );
-	}
+	my $searchexp = new EPrints::SearchExpression(
+		session=>$session,
+		dataset=>$user_ds );
+
+	$searchexp->add_field(
+		$user_ds->get_field( "email" ),
+		"PHR:EQ:".$email );
+
+	my $searchid = $searchexp->perform_search;
+
+	my @records = $searchexp->get_records;
+	
+	return $records[0];
+}
+
+sub user_with_username
+{
+	my( $session, $username ) = @_;
+	
+	my $user_ds = $session->get_archive()->get_dataset( "user" );
+
+	my $searchexp = new EPrints::SearchExpression(
+		session=>$session,
+		dataset=>$user_ds );
+
+	$searchexp->add_field(
+		$user_ds->get_field( "username" ),
+		"PHR:EQ:".$username );
+
+	my $searchid = $searchexp->perform_search;
+
+	my @records = $searchexp->get_records;
+	
+	return $records[0];
 }
 
 
@@ -339,7 +279,7 @@ sub commit
 #  bool
 #
 #  Send an email to the user, introducing them to the archive and
-#  giving them their username and password.
+#  giving them their userid and password.
 #
 ######################################################################
 
@@ -347,6 +287,7 @@ sub commit
 sub send_introduction
 {
 	my( $self ) = @_;
+#cjg oH, this so needs rewriting.
 
 	my $subj;
 	if ( $self->{usertype} eq "staff" )
@@ -358,6 +299,7 @@ sub send_introduction
 		$subj = "lib/user:new_user";
 	}
 	# Try and send the mail
+
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
 		$self->{session}->phrase( $subj ),
@@ -372,7 +314,7 @@ sub send_introduction
 #
 # $success = send_reminder( $message )
 #
-#  Sends the user a reminder of their username and password, with the
+#  Sends the user a reminder of their userid and password, with the
 #  given message. The message passed in should just be a line or two
 #  of explanation, or can be left blank.
 #
@@ -386,8 +328,8 @@ sub send_reminder
 	my $full_message = $self->{session}->phrase(
 	     	"lib/user:reminder",
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
-		 username=>$self->{username},
-		 password=>$self->{passwd},
+		 userid=>$self->{userid},
+		 password=>$self->{password},
 		 adminemail=>$self->{session}->get_archive()->get_conf( "adminemail" )  );
 
 	return( EPrints::Mailer::send_mail( 
@@ -455,7 +397,7 @@ sub remove
 	my @eprints = EPrints::EPrint::retrieve_eprints(
 		$self->{session},
 		EPrints::Database::table_name( "archive" ),
-		[ "username LIKE \"$self->{username}\"" ] );
+		[ "userid LIKE \"$self->{userid}\"" ] );
 
 	foreach (@eprints)
 	{
@@ -476,45 +418,12 @@ sub remove
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
 	$success = $success && $self->{session}->{database}->remove(
 		$user_ds,
-		"username",
-		$self->{username} );
+		"userid",
+		$self->{userid} );
 	
 	return( $success );
 }
 
-######################################################################
-#
-# @username = $extract( $names )
-#
-#  Gets the usernames out of a username list. Returns an array of username's
-#
-######################################################################
-
-## WP1: BAD
-sub extract
-{
-	my( $usernames ) = @_;
-	
-	my( @usernamelist, $i, @usernamesplit );
-	
-	@usernamesplit = split /:/, $usernames if( defined $usernames );
-	
-	for( $i = 1; $i<=$#usernamesplit; $i++ )
-	{
-		push @usernamelist, $usernamesplit[$i]
-			if( $usernamesplit[$i] ne "" );
-	}
-	
-	return( @usernamelist );
-}
-
-## WP1: BAD
-sub to_string
-{
-	my( $self ) = @_;
-
-	return( $self->{session}->get_archive()->call( "user_display_name" , $self  ) );
-}
 
 ## WP1: GOOD
 sub get_value
@@ -587,8 +496,8 @@ sub get_eprints
 		dataset=>$ds );
 
 	$searchexp->add_field(
-		$ds->get_field( "username" ),
-		"PHR:EQ:".$self->get_value( "username" ) );
+		$ds->get_field( "userid" ),
+		"PHR:EQ:".$self->get_value( "userid" ) );
 
 #cjg set order (it's in the site config)
 
@@ -596,5 +505,30 @@ sub get_eprints
 
 	return  $searchexp->get_records;
 }
+
+sub mail
+{
+	my( $self, $subject, $message ) = @_;
+	#   Session  utf8    DOM
+
+	return EPrints::Mailer::send_mail(
+		$self->{session}->get_archive(),
+		$self->get_value( "lang" ),
+		$self->full_name(),		
+		$self->get_value( "email" ),
+		$subject,
+		$message,
+		$self->{session}->html_phrase( "mail_sig" ) );
+}
+
+sub _create_userid
+{
+	my( $session ) = @_;
+	
+	my $new_id = $session->get_db()->counter_next( "userid" );
+
+	return( $new_id );
+}
+
 
 1;

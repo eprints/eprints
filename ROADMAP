@@ -19,11 +19,12 @@
 
 *	Milestone "Anchovy" : ALPHA Release - ie. You can download and install it, but it won't be actually useful yet. (August 1st 2001) [YOU ARE HERE]
 
-0	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
+1	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
 1	Multilangify Subject Fields and Subject DB
 0	"ID" fields for ISBN/userid etc.
 2	Subject editors (editors can only edit within certain subjects)
-0	Web-based registration and Email Change
+0	Web-based Registration/password change
+1	Web-based Email Change
 -	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
 1	Generate abstract page routine will create symlinks to actual docs (if appropriate)
@@ -39,7 +40,7 @@
 2	Editor Pages -approve,bounce,edit etc.
 0	Staff EPrint Edit
 0	Staff User Edit/Create
-0	Mailer (Unicode friendly?)
+-	Mailer (Unicode friendly?)
 0	Autodetect optional system features: microtime, df etc. (Is this possible?)
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 
@@ -67,10 +68,11 @@
 2	TeX mathmode support.
 0	Search of User DB
 0	Staff Eprint & User searches
-0	XML 1.1 Support
+0	XML 1.1 Support(?)
 0 	Super all-singing/dancing etc. Subject Editor
 0	Staff Eprint & User edit
-1	OAI support
+1	OAI support working.
+0	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
 0	Taint all code to force sanity checking of all data
 0	Probity (see www.probity.org for more info)
 0	Content Negotiation with Browser

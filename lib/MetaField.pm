@@ -37,6 +37,7 @@ my %TYPE_SQL =
  	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
  	set        => "\$(name) VARCHAR(255) \$(param)",
  	text       => "\$(name) VARCHAR(255) \$(param)",
+ 	secret     => "\$(name) VARCHAR(255) \$(param)",
  	longtext   => "\$(name) TEXT \$(param)",
  	url        => "\$(name) VARCHAR(255) \$(param)",
  	email      => "\$(name) VARCHAR(255) \$(param)",
@@ -57,6 +58,7 @@ my %TYPE_INDEX =
  	set        => "INDEX(\$(name))",
  	text       => "INDEX(\$(name))",
  	longtext   => undef,
+ 	secret     => undef,
  	url        => "INDEX(\$(name))",
  	email      => "INDEX(\$(name))",
  	subject    => "INDEX(\$(name))",
@@ -152,7 +154,7 @@ sub new
 		$self->set_property( "datasetid" , $properties{datasetid} );
 	}
 
-	if( $self->is_type( "text" ) )
+	if( $self->is_type( "text" , "secret" ) )
 	{
 		$self->set_property( "maxlength" , $properties{maxlength} );
 	}
@@ -438,7 +440,7 @@ sub _render_value1
 	}
 	if( !$alllangs )
 	{
-		my $v = $session->best_language( %$value );
+		my $v = EPrints::Session::best_language( $self->{session}->get_archvie(), $self->{session}->get_langid(), %$value );
 		return $self->_render_value2( $session, $v );
 	}
 	my( $table, $tr, $td, $th );
@@ -472,6 +474,12 @@ sub _render_value2
 	{
 		# Render text
 		return $session->make_text( $value );
+	}
+
+	if( $self->is_type( "secret" ) )
+	{
+		# cjg better return than ???? ?
+		return $session->make_text( "????" );
 	}
 
 	if( $self->is_type( "url" ) )
@@ -851,7 +859,7 @@ print STDERR "$id_suffix ... val($value)\n";
 	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
 # not return DIVs? cjg (currently some types do some don't)
 	my $frag = $session->make_doc_fragment();
-	if( $self->is_type( "text", "url", "int", "email", "year" ) )
+	if( $self->is_type( "text", "url", "int", "email", "year","secret" ) )
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$id_suffix;
@@ -881,6 +889,7 @@ print STDERR "$id_suffix ... val($value)\n";
 
 		$frag->appendChild( $session->make_element(
 			"input",
+			type => ($self->is_type( "secret" )?"password":undef),
 			"accept-charset" => "utf-8",
 			name => $id,
 			value => $value,
@@ -1151,7 +1160,7 @@ sub _form_value_aux2
 {
 	my( $self, $session, $id_suffix ) = @_;
 
-	if( $self->is_type( "text", "url", "int", "email", "longtext", "year" ) )
+	if( $self->is_type( "text", "url", "int", "email", "longtext", "year", "secret" ) )
 	{
 		my $value = $session->param( $self->{name}.$id_suffix );
 		return undef if( $value eq "" );

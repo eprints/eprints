@@ -41,7 +41,7 @@ sub get_system_field_info
 	return ( 
 	{ name=>"eprintid", type=>"text", required=>1 },
 
-	{ name=>"username", type=>"text", required=>1 },
+	{ name=>"userid", type=>"text", required=>1 },
 
 	{ name=>"dir", type=>"text", required=>0 },
 
@@ -119,7 +119,7 @@ sub new
 
 ######################################################################
 #
-# $eprint = create( $session, $dataset, $username, $data )
+# $eprint = create( $session, $dataset, $userid, $data )
 #
 #  Create a new EPrint entry in the given table, from the given user.
 #
@@ -131,7 +131,7 @@ sub new
 ## WP1: BAD
 sub create
 {
-	my( $session, $dataset, $username, $data ) = @_;
+	my( $session, $dataset, $userid, $data ) = @_;
 
 	if( !defined $data )
 	{
@@ -148,7 +148,7 @@ print STDERR "($new_id)($dir)\n";
 	}
 
 	$data->{eprintid} = $new_id;
-	$data->{username} = $username;
+	$data->{userid} = $userid;
 	$data->{dir} = $dir;
 	
 # cjg add_record call
@@ -432,7 +432,7 @@ die "clone NOT DONE"; #cjg
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
 		$dest_dataset,
-		$self->{username} );
+		$self->{userid} );
 	
 	if( defined $new_eprint )
 	{
@@ -742,13 +742,13 @@ sub validate_linking
 		if( $field_id eq "succeeds" )
 		{
 			# Ensure that the user is authorised to post to this
-			if( $test_eprint->get_value("username") ne $self->get_value("username") )
+			if( $test_eprint->get_value("userid") ne $self->get_value("userid") )
 			{
  				# Not the same user. 
 
 #Must be certified to do this. cjg: Should this be staff only or something???
 #				my $user = new EPrints::User( $self->{session},
-#				                              $self->{username} );
+#				                              $self->{userid} );
 #				if( !defined $user && $user->{
 
 				push @problems, $self->{session}->html_phrase( "lib/eprint:cant_succ" );

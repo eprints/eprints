@@ -112,7 +112,7 @@ EPrints Modules
 
     <phrase ref="lib/session:fail_db_connect">Failed to connect to database</phrase>
     <phrase ref="lib/session:msg_at">Archive maintenance message generated at <pin ref="time" /></phrase>
-    <phrase ref="lib/session:archive admin">Archive Administrator</phrase>
+    <phrase ref="lib/session:archive_admin">Archive Administrator</phrase>
     <phrase ref="lib/session:some_error">&archivename; has encountered an error:</phrase>
     <phrase ref="lib/session:contact">Feel free to contact <pin ref="adminemail">&archivename; administration</pin> with details.</phrase>
     <phrase ref="lib/session:cant_do_field">Error: Don't know how to render field of type <pin ref="type" /></phrase>
@@ -390,5 +390,12 @@ Public CGI Scripts
     <phrase ref="cgi/view_eprint:invalid_code">The specified ID code is not a valid ID code.</phrase>
     <phrase ref="cgi/view_eprint:enter_code">Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.</phrase>
     <phrase ref="cgi:view_eprint:view_eprint">View EPrint</phrase>
+
+<!-- password -->
+
+    <phrase ref="cgi/password:password_title">Create Account / Change Password</phrase>
+    <phrase ref="cgi/password:intro"><p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p><p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
+    <phrase ref="cgi/password:action_submit">Submit</phrase>
+    <phrase ref="cgi/password:account">Account</phrase>
 
 </phrases>

@@ -77,8 +77,6 @@ sub phrase
 	}
 	$inserts = {} if( !defined $inserts );
 
-print STDERR "PHRASE($phraseid)";
-
 if( !defined $session ) {
 	EPrints::Session::bomb();
 } 

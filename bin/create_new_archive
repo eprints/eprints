@@ -375,7 +375,7 @@ bin/generate_dtd $archiveid
 bin/create_databases $archiveid
 bin/generate_static $archiveid
 
-bin/create_user $archiveid <userid> <email> staff <password>
+bin/create_user $archiveid <username> <email> staff <password>
 
 Then restart your webserver: 
 /etc/rc.d/init.d/httpd stop

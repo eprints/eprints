@@ -67,6 +67,7 @@ my $INFO = {
 	# language and security are here so they can be used in
 	# "datatype" fields.
 	language => {},
+	arclanguage => {},
 	security => {}
 };
 
@@ -103,8 +104,7 @@ sub new_stub
 
 
 # EPrints::DataSet new( $archive, $datasetname )
-#                       |      string
-#                       EPrints::Site
+#                       Archive   string
 #
 #  Create a new dataset object and get all the information
 #  on types, system fields, and user fields from the various
@@ -135,6 +135,16 @@ sub new
 		}
 		return $self;
 	}
+	if( $datasetname eq "arclanguage" )
+	{	
+		foreach( @{$archive->get_conf( "languages" )} )
+		{
+			$self->{types}->{$_} = [];
+			push @{$self->{typeorder}},$_;
+		}
+		return $self;
+	}
+
 
 	if( defined $INFO->{$self->{confid}}->{class} )
 	{
@@ -180,6 +190,10 @@ sub new
 			my $f;
 			foreach $f ( @{$typesconf->{$self->{confid}}->{$typeid}} )
 			{
+				if( !defined $self->{field_index}->{$f->{id}} )
+				{
+					EPrints::Config::abort( "Could not find field \"".$f->{id}."\" in dataset \"".$datasetname."\", although it is\nrequired for type: \"".$typeid."\"" );
+				}
 				my $field = $self->{field_index}->{$f->{id}}->clone();
 				if( !defined $field )
 				{
@@ -386,7 +400,7 @@ sub get_type_name
 {
 	my( $self, $session, $type ) = @_;
 
-	if( $self->{confid} eq "language" )
+	if( $self->{confid} eq "language"  || $self->{confid} eq "arclanguage" )
 	{
 		if( $type eq "?" )
 		{
@@ -402,7 +416,7 @@ sub render_type_name
 {
 	my( $self, $session, $type ) = @_;
 
-	if( $self->{confid} eq "language" )
+	if( $self->{confid} eq "language"  || $self->{confid} eq "arclanguage" )
 	{
 		return $session->make_text( $self->get_type_name( $session, $type ) );
 	}

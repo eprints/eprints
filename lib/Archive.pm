@@ -270,7 +270,7 @@ sub log
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
-	$self->log( "Calling $cmd with (".join(",",@params).")" );
+#$self->log( "Calling $cmd with (".join(",",@params).")" );
 	return &{$self->{class}."::".$cmd}( @params );
 }
 
@@ -336,6 +336,17 @@ sub exec
 {
 	my( $self, $cmd_id, %map ) = @_;
 
+	my $command = $self->invocation( $cmd_id, %map );
+
+	my $rc = 0xffff & system $command;
+
+	return $rc;
+}	
+
+sub invocation
+{
+	my( $self, $cmd_id, %map ) = @_;
+
 	my $execs = $self->get_conf( "executables" );
 	foreach( keys %{$execs} )
 	{
@@ -346,10 +357,9 @@ sub exec
 
 	$command =~ s/\$\(([a-z]*)\)/$map{$1}/gei;
 
-	my $rc = 0xffff & system $command;
+	return $command;
+}
 
-	return $rc;
-}	
 
 
 1;

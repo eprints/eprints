@@ -202,8 +202,8 @@
    <phrase ref="user_fieldname_username">User's Username</phrase>
    <phrase ref="user_fieldhelp_username"></phrase>
 
-   <phrase ref="user_fieldname_passwd">User's Password</phrase>
-   <phrase ref="user_fieldhelp_passwd">This may be ignored if this user is authenticated by a different method.</phrase>
+   <phrase ref="user_fieldname_password">User's Password</phrase>
+   <phrase ref="user_fieldhelp_password">This may be ignored if this user is authenticated by a different method.</phrase>
 
    <phrase ref="user_fieldname_usertype">User Type</phrase>
    <phrase ref="user_fieldhelp_usertype"></phrase>
@@ -218,19 +218,24 @@
    <phrase ref="user_fieldhelp_filter"></phrase>
 
    <phrase ref="user_typename_user">User</phrase>
-   <phrase ref="user_typename_staff">Staff</phrase>
+   <phrase ref="user_typename_staff">Staff(deprecated)</phrase>
+   <phrase ref="user_typename_editor">Editor</phrase>
+   <phrase ref="user_typename_admin">EPrints Administrator</phrase>
+
+   <phrase ref="user_fieldhelp_email">The email address for this user</phrase>
+   <phrase ref="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</phrase>
 
    <phrase ref="mail_sig">
---<br />
+<hr /><p>
 &archivename;<br />
 &frontpage;<br />
-&adminemail;<br />
-<br />
+&adminemail;
+</p>
     </phrase>
 
     <phrase ref="mail_bounce_reason">
 <p>Unfortunately your eprint:</p>
-<p><pin name="title" /></p>
+<p><pin ref="title" /></p>
 <p>could not be accepted into &archivename; as-is.</p>
 <p>The eprint has been returned to your workspace. If you
 visit your item depositing page you will be able to
@@ -239,7 +244,7 @@ edit your eprint, fix the problem and redeposit.</p>
 
     <phrase ref="mail_delete_reason">
 <p>Unfortunately your eprint:</p>
-<p><pin name="title" /></p>
+<p><pin ref="title" /></p>
 <p>could not be accepted into &archivename;.</p>
 <p>The eprint has been deleted.</p>
     </phrase>
@@ -273,5 +278,39 @@ terms.</p>
     <phrase ref="page_id_code">ID Code</phrase>
     <phrase ref="page_id_invalid_user">INVALID USER</phrase>
 
-</phrases>
+    <phrase ref="mail_password_pin">
 
+<p>Dear User,</p>
+
+<p>Thank you for your interest in &archivename;.</p>
+
+<p>You now need to activate your new password, using the following URL:</p>
+
+<p><pin ref="confirmurl" /></p>
+
+<p>Once you have confirmed your identity you may also subscribe to the E-Mail subscription service, to be automatically informed of new deposits in the archive in your chosen subject areas in a daily, weekly or monthly digest.</p>
+
+<p>You can create a subscription by visiting the following page:</p>
+
+<p>&cgiroot;/users/subscribe</p>
+
+<p>Before you can start uploading papers, you need to fill out some personal
+details into the form at the following web site:</p>
+
+<p>&cgiroot;/users/record</p>
+
+<p>After you've successfully filled out that form, you can deposit papers at
+the following Web address:</p>
+
+<p>&cgiroot;/users/home</p>
+
+<p>Have your username and password ready when visiting any of the above pages.</p> <p>This message was generated automatically by software. If you have any questions, then please feel free to E-mail a real person at:</p>
+
+<p>&adminemail;</p>
+    </phrase>
+
+    <phrase ref="site_description">
+Your site Description goes here. (edit this text in the archive-phrases file(s).
+    </phrase>
+
+</phrases>

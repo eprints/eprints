@@ -370,6 +370,6 @@ Public CGI Scripts
     <phrase ref="cgi/view_eprint:code_title">Enter EPrint ID Code</phrase>
     <phrase ref="cgi/view_eprint:invalid_code">The specified ID code is not a valid ID code.</phrase>
     <phrase ref="cgi/view_eprint:enter_code">Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.</phrase>
-    <phrase ref="cgi:view_eprint:view_eprint">View EPrint</phrase>
+    <phrase ref="cgi/view_eprint:view_eprint">View EPrint</phrase>
 
 </phrases>

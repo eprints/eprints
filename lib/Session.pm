@@ -224,7 +224,7 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-	return EPrints::Config::tree_to_utf8( $r );
+	return EPrints::Config::tree_to_utf8( $r, 40 );#cjg so undo this
 }
 
 sub get_langid
@@ -234,28 +234,24 @@ sub get_langid
 	return $self->{lang}->get_id();
 }
 
+#cjg: should be a util?
 sub best_language
 {
-	my( $self, %values ) = @_;
+	my( $archive, $lang, %values ) = @_;
 
 	# no options?
-	if( scalar keys %values == 0 )
-	{
-		return undef;
-	}
+	return undef if( scalar keys %values == 0 );
 
 	# The language of the current session is best
-	if( defined $values{ $self->{lang}->get_id() } )
-	{
-		return $values{ $self->{lang}->get_id() };
-	} 
+	return $values{$lang} if( defined $values{$lang} );
 
 	# The default lanuage of the archive is second best	
-	my $defaultlangid = $self->get_archive()->get_conf( "languages" )->[0];
-	if( defined $values{ $defaultlangid } )
-	{
-		return $values{ $defaultlangid };
-	} 
+	my $defaultlangid = $archive->get_conf( "languages" )->[0];
+	return $values{$defaultlangid} if( defined $values{$defaultlangid} );
+
+	# Bit of personal bias: We'll try English before we just
+	# pick the first of the heap.
+	return $values{en} if( defined $values{en} );
 
 	# Anything is better than nothing.
 	my $akey = (keys %values)[0];
@@ -1124,7 +1120,7 @@ sub current_user
 		if( defined $username && $username ne "" )
 		{
 			$self->{currentuser} = 
-					new EPrints::User( $self, $username );
+				EPrints::User::user_with_username( $self, $username );
 		}
 	}
 
@@ -1406,18 +1402,16 @@ sub redirect
 sub mail_administrator
 {
 	my( $self, $subject, $message ) = @_;
+	#   Session  utf8    DOM
 
-	# cjg logphrase here will NOT do it no longer exists.
-	
-	my $message_body = "lib/session:msg_at".gmtime( time );
-	$message_body .= "\n\n$message\n";
-
-	EPrints::Mailer::send_mail(
-		$self,
-		 "lib/session:archive_admin" ,
-		$self->{archive}->{adminemail},
+	return EPrints::Mailer::send_mail(
+		$self->{archive},
+		$self->{archive}->get_conf( "languages" )->[0], # default lang.
+		$self->phrase( "lib/session:archive_admin" ),
+		$self->{archive}->get_conf( "adminemail" ),
 		$subject,
-		$message_body );
+		$message,
+		$self->html_phrase( "mail_sig" ) );
 }
 
 sub send_http_header

@@ -248,6 +248,10 @@ sub from_form
 			}
 		}
 	}
+	elsif( $self->is_type( "secret" ) )
+	{
+		$self->{session}->get_archive()->log( "Attempt to search a \"secret\" type field." );
+	}
 	else
 	{
 		$self->{session}->get_archive()->log( "Unknown search type." );

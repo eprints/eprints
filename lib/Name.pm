@@ -33,13 +33,32 @@ sub format_name
 {
 	my( $name, $familylast ) = @_;
 
+	my $firstbit;
+	if( defined $name->{honourific} && $name->{honourific} ne "" )
+	{
+		$firstbit = $name->{honourific}." ".$name->{given};
+	}
+	else
+	{
+		$firstbit = $name->{given};
+	}
+	
+	my $secondbit;
+	if( defined $name->{lineage} && $name->{lineage} ne "" )
+	{
+		$secondbit = $name->{given}." ".$name->{lineage};
+	}
+	else
+	{
+		$secondbit = $name->{lineage};
+	}
+	
 	if( $familylast )
 	{
-		return "$$name{given} $$name{family}";
+		return $firstbit." ".$secondbit;
 	}
-print STDERR "!sigh!\n" if (!defined $$name{given}); #cjg!!!
-		
-	return "$$name{family}, $$name{given}";
+	
+	return $secondbit.", ".$firstbit;
 }
 
 ######################################################################
