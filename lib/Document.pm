@@ -105,8 +105,7 @@ sub create
 	my $doc_id = _generate_doc_id( $session, $eprint );
 	
 	# Make directory on filesystem
-	my $dir = _create_directory( $doc_id, $eprint );
-	return undef unless( defined $dir );
+	return undef unless _create_directory( $doc_id, $eprint ); 
 
 	# Make secure area symlink
 	return undef unless( _create_secure_symlink( $doc_id, $eprint ) );
@@ -154,18 +153,16 @@ sub _create_directory
 	
 	my $dir = $eprint->local_path()."/".docid_to_path( $eprint->get_session()->get_archive(), $id );
 
-	# Ensure the path is there. Dir. is made group writable.
-	my @created = mkpath( $dir, 0, 0775 );
-print STDERR "DOCDIR : ".join( " / ", @created )."\n";
-
 	# Return undef if dir creation failed. Should always have created 1 dir.
-	if( scalar @created == 0 )
+	if(!EPrints::Utils::mkdir($dir))
 	{
 		$eprint->get_session()->get_archive()->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($dir): ".$! );
-		return( undef );
+		return 0;
 	}
-
-	return( $dir );
+	else
+	{
+		return 1;
+	}
 }
 
 sub _create_secure_symlink

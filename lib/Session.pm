@@ -224,7 +224,7 @@ sub phrase
 		$inserts{$_} = $self->make_text( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-	return EPrints::Config::tree_to_utf8( $r, 40 );#cjg so undo this
+	return EPrints::Utils::tree_to_utf8( $r, 40 );#cjg so undo this
 }
 
 sub get_langid
@@ -1422,7 +1422,7 @@ sub mail_administrator
 		$langid,
 		$lang->phrase( "lib/session:archive_admin", {}, $self ),
 		$self->{archive}->get_conf( "adminemail" ),
-		EPrints::Config::tree_to_utf8( $lang->phrase( $subjectid, {}, $self ) ),
+		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self ) ),
 		$lang->phrase( $messageid, \%inserts, $self ), 
 		$lang->phrase( "mail_sig", {}, $self ) ); 
 }

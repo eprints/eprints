@@ -567,7 +567,7 @@ print STDERR "REF: ".ref($messageid)."\n";
 		$langid,
 		$self->full_name(),
 		$self->get_value( "email" ),
-		EPrints::Config::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
+		EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
 		$message,
 		$lang->phrase( "mail_sig", {}, $self->{session} ) ); 
 }

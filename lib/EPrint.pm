@@ -141,6 +141,7 @@ sub create
 	my $new_id = _create_id( $session );
 	my $dir = _create_directory( $session, $new_id );
 print STDERR "($new_id)($dir)\n";
+
 	if( !defined $dir )
 	{
 		return( undef );
@@ -275,25 +276,17 @@ print STDERR "oraok\n";
 
 	# Full path including doc store root
 	my $full_path = $session->get_archive()->get_conf("local_document_root")."/".$dir;
-
-################## cjg should be a mkdir routine in Utils.pm
-	# Ensure the path is there. Dir. is made group writable.
-	my @created = eval
+	
+	if (!EPrints::Utils::mkdir( $full_path ))
 	{
-		my @created = mkpath( $full_path, 0, 0775 );
-		return( @created );
-	};
-
-	# Error if we couldn't even create one
-	if( scalar @created == 0 )
-	{
-		$session->get_archive()->log( "Failed to create directory ".$full_path.": $@"); 
-		return( undef );
+		$session->get_archive()->log( "Failed to create directory ".$full_path.": $@");
+                return( undef );
 	}
-######################
-
-	# Return the path relative to the document store root
-	return( $dir );
+	else
+	{
+		# Return the path relative to the document store root
+		return( $dir );
+	}
 }
 
 
@@ -354,7 +347,6 @@ sub remove
 
 	# Now remove the directory
 	my $num_deleted = rmtree( $self->local_path() );
-
 	if( $num_deleted <= 0 )
 	{
 		$self->{session}->get_archive()->log( "Error removing files for ".$self->get_value( "eprintid" ).", path ".$self->local_path().": $!" );

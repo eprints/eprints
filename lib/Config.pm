@@ -83,7 +83,7 @@ my $land_tag;
 foreach $lang_tag ( $top_tag->getElementsByTagName( "lang" ) )
 {
 	my $id = $lang_tag->getAttribute( "id" );
-	my $val = tree_to_utf8( $lang_tag );
+	my $val = EPrints::Utils::tree_to_utf8( $lang_tag );
 	push @LANGLIST,$id;
 	$LANGNAMES{$id} = $val;
 }
@@ -237,126 +237,6 @@ sub lang_title
 	my( $id ) = @_;
 
 	return $LANGNAMES{$id};
-}
-
-# widths smaller than about 3 may totally break, but that's
-# a stupid thing to do, anyway.	
-sub tree_to_utf8
-{
-	my( $node, $width, $pre ) = @_;
-
-	if( defined $width )
-	{
-		# If we are supposed to be doing an 80 character wide display
-		# then only do 79, so the last char does not force a line break.
-		$width = $width - 1; 
-	}
-
-	my $name = $node->getNodeName;
-	if( $name eq "#text" || $name eq "#cdata-section")
-	{
-		my $text = utf8( $node->getNodeValue );
-		$text =~ s/[\s\r\n\t]+/ /g unless( $pre );
-		return $text;
-	}
-
-	my $string = utf8("");
-	foreach( $node->getChildNodes )
-	{	
-		$string .= tree_to_utf8( $_, $width, ( $pre || $name eq "pre" ) );
-	}
-
-	if( $name eq "fallback" )
-	{
-		$string = "*".$string."*";
-	}
-
-	# <hr /> only makes sense if we are generating a known width.
-	if( $name eq "hr" && defined $width )
-	{
-		$string = latin1("\n"."-"x$width."\n");
-	}
-
-	# Handle wrapping block elements if a width was set.
-	if( $name eq "p" && defined $width) 
-	{
-		my @chars = $string->unpack;
-		my @donechars = ();
-		my $i;
-		while( scalar @chars > 0 )
-		{
-			# remove whitespace at the start of a line
-			if( $chars[0] == 32 )
-			{
-				splice( @chars, 0, 1 );
-				next;
-			}
-
-			# no whitespace at start, so look for first line break
-			$i=0;
-			while( $i<$width && defined $chars[$i] && $chars[$i] != 10 ) { ++$i; }
-			if( defined $chars[$i] && $chars[$i] == 10 ) 
-			{
-				push @donechars, splice( @chars, 0, $i+1 );
-				next;
-			}
-
-			# no line breaks, so if remaining text is smaller
-			# than the width then just add it to the end and 
-			# we're done.
-			if( scalar @chars < $width )
-			{
-				push @donechars,@chars;
-				last;
-			}
-
-			# no line break, more than $width chars.
-			# so look for the last whitespace within $width
-			$i=$width-1;
-			while( $i>=0 && $chars[$i] != 32 ) { --$i; }
-			if( defined $chars[$i] && $chars[$i] == 32 ) 
-			{
-				# up to BUT NOT INCLUDING the whitespace
-				my @line = splice( @chars, 0, $i );
-# This code makes the output "flush" by inserting extra spaces where
-# there is currently one. Is that what we want? cjg
-#my $j=0;
-#while( scalar @line < $width )
-#{
-#	if( $line[$j] == 32 )
-#	{
-#		splice(@line,$j,0,-1);
-#		++$j;
-#	}
-#	++$j;
-#	$j=0 if( $j >= scalar @line );
-#}
-#foreach(@line) { $_ = 32 if $_ == -1; }
-				push @donechars, @line;
-				# just consume the whitespace 
-				splice( @chars, 0, 1);
-				# and a CR...
-				push @donechars,10;
-				next;
-			}
-
-			# No CR's, no whitespace, just split on width then.
-			push @donechars,splice(@chars,0,$width);
-
-			# Not the end of the block, so add a \n
-			push @donechars,10;
-		}
-		$string->pack( @donechars );
-	}
-	if( $name eq "p" )
-	{
-		$string = "\n".$string."\n";
-	}
-	if( $name eq "br" )
-	{
-		$string = "\n";
-	}
-	return $string;
 }
 
 sub get
