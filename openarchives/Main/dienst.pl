@@ -59,7 +59,7 @@
 
 package dienst;
 
-use EPrints::SiteInfo;
+use EPrintSite::SiteInfo;
 
 use CGI qw(:standard);
 use strict;
