@@ -20,6 +20,7 @@
   
   <dataset name="eprint">
     <type name="bookchapter">
+      <field name="authors" required="yes" />
       <field name="subjects" required="yes" />
       <field name="groups" required="yes" />
       <field name="ispublished" required="yes" />

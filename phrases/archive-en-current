@@ -54,6 +54,7 @@
     <phrase ref="eprint_fieldhelp_altloc">If your deposit is available from other sites, please enter the URLs of your deposit on those sites here, including the initial <strong>http://</strong>. Please give the full URL of the paper itself, and not just the hosting website.</phrase>
 
     <phrase ref="eprint_fieldname_authors">Authors</phrase>
+    <phrase ref="eprint_fieldname_authors_id">Person ID</phrase>
     <phrase ref="eprint_fieldhelp_authors">Please enter the authors below. If there are more authors than available spaces, click on the `More Spaces' button. To remove an author, just remove their surname from the surname box.</phrase>
 
     <phrase ref="eprint_fieldname_chapter">Chapter</phrase>
@@ -118,6 +119,7 @@
     <phrase ref="eprint_fieldhelp_pubdom">If the document you are deposit is not your own but rather an old document that is now in the public domain, then please tick the following box. This will prevent your own name and address appearing with the document as the address for correspondence.</phrase>
 
     <phrase ref="eprint_fieldname_publication">Publication</phrase>
+    <phrase ref="eprint_fieldname_publication_id">ISSN Code</phrase>
     <phrase ref="eprint_fieldhelp_publication">Please enter the full title of the publication your deposit appeared in.</phrase>
 
     <phrase ref="eprint_fieldname_publisher">Publisher</phrase>
@@ -136,6 +138,7 @@
     <phrase ref="eprint_fieldhelp_thesistype">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</phrase>
 
     <phrase ref="eprint_fieldname_title">Title</phrase>
+    <phrase ref="eprint_fieldname_title_id">ISBN Code</phrase>
     <phrase ref="eprint_fieldhelp_title">Please enter the full title of the deposit.</phrase>
 
     <phrase ref="eprint_fieldname_volume">Volume</phrase>

@@ -65,9 +65,17 @@ P {
         font: bold medium serif;
 }
 
+.formfieldidname {
+        font: bold medium serif;
+}
+
+
 .formfieldinput {
         padding-bottom: 3pt;
 }
+.formfieldidinput {
+}
+
 
 .formfieldcomment {
 	font-style: italic;

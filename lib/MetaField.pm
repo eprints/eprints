@@ -211,7 +211,6 @@ sub new
 #
 ######################################################################
 
-## WP1: BAD
 sub clone
 {
 	my( $self ) = @_;
@@ -221,14 +220,12 @@ sub clone
 
 
 
-######################################################################
 #
 # ( $year, $month, $day ) = get_date( $time )
 #
 #  Static method that returns the given time (in UNIX time, seconds 
 #  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
 #
-######################################################################
 
 ## WP1: BAD
 sub get_date
@@ -975,8 +972,13 @@ print SDTERR "ZOOKl\n";
 	}
 	if( $self->get_property( "hasid" ) )
 	{
-		$block->appendChild( $session->make_text( "[[HAS ID]]" ) );
-		my $div = $session->make_element( "div", class=>"formfieldinputid" );
+		my $div;
+		$div = $session->make_element( "div", class=>"formfieldidname" );
+		$div->appendChild( $session->make_text( $self->get_id_field()->display_name( $session ).":" ) );
+		$block->appendChild( $div );
+		$div = $session->make_element( "div", class=>"formfieldidinput" );
+		$block->appendChild( $div );
+
 		$div->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",

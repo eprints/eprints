@@ -45,7 +45,6 @@
 - 	Super all-singing/dancing etc. Subject Editor
 3	From Form needs to do some trimming.
 0	Don't validate records with fields which have bad langids
-0	More opts for fields: freetext/idrequired etc.
 -	Numeric fields (not prefix'd)
 0	Move as much as possible of config into XML conf file.
 -	Views (and searches?) with JUST results - no wrapper. For including in other pages.
@@ -58,6 +57,7 @@
 0	ROADMAP item which disappears when done?
 0	PDF Mollycoddler
 0	Make all possible field-types browseable.
+0	More opts for fields: freetext/idrequired etc.
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 0	Option to hide Honourific and/or Lineage.
 0	Commentary summary page (Psycoloquy style)

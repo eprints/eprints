@@ -25,10 +25,6 @@ use strict;
 # Root subject specifier
 $EPrints::Subject::root_subject = "ROOT";
 
-# Root subject name
-$EPrints::Subject::root_subject_name = "(Top Level)";
-
-## WP1: BAD
 sub get_system_field_info
 {
 	my( $class ) = @_;
@@ -47,7 +43,6 @@ sub get_system_field_info
 	);
 }
 
-#cjg NEED TO {data} OO it.
 
 ######################################################################
 #
@@ -81,7 +76,7 @@ sub new
 		my $langid;
 		foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 		{
-			$data->{name}->{$langid} = $session->get_archive()->get_language( $langid )->phrase( "lib/subjects:top_level", {}, $session )->toString;	
+			$data->{name}->{$langid} = $session->get_archive()->get_language( $langid )->phrase( "lib/subject:top_level", {}, $session )->toString;	
 		}
 
 		return EPrints::Subject->new_from_data( $session, $data );
