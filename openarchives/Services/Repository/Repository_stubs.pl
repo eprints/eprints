@@ -62,7 +62,7 @@ use XML::Writer;
 use POSIX;
 use IO::File;
 
-my $oamsns = "http://www.openarchives.org";
+my $oamsns = "http://www.openarchives.org/sfc/sfc_oams.htm";
 my $oamsns_prefix = "oams";
 
 # NOTE - This file consists of a set handlers for the prototol requests
@@ -106,10 +106,7 @@ sub mr_disseminate {
 		$writer->xmlDecl();
 		$writer->startTag ("$Context->{'verb'}", 
 				   "version" => $Context->{'version'});
-		$writer->startTag("record", 
-				  "format" => "oams", "identifier" => $fullID);
 		&write_OAMS(\%oamsTags, $writer, $Context);
-		$writer->endTag("record");
 		$writer->endTag ($Context->{'verb'});
 		$writer->end ();
 		$output->close();
