@@ -64,6 +64,10 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 Explain in detail what is going on.
 May be repeated for greater effect.
 
+=item B<--version>
+
+Output version information and exit.
+
 =item B<--force>
 
 Don't ask before making the changes.
@@ -111,8 +115,8 @@ my $erasedb = 1;
 my $erasefiles = 1;
 
 GetOptions( 
-	'help|?' => => \$help,
-	'man' => => \$man,
+	'help|?' => \$help,
+	'man' => \$man,
 	'force' => \$force , 
 	'erasedb!' => \$erasedb , 
 	'erasefiles!' => \$erasefiles , 

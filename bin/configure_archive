@@ -63,6 +63,10 @@ This option does not do anything.
 
 Explain in detail what is going on. May be repeated for greater effect.
 
+=item B<--version>
+
+Output version information and exit.
+
 =back   
 
 __GENERICPOD__

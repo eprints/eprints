@@ -1,0 +1,171 @@
+Subscriptions/subject-editors
+
+*	Subject-editors (editors can only edit within certain subjects/search)
+
+*	Alerts for editors about things they can edit (flag in User fields?)
+
+*	Subscriptions - editing
+
+*	Subscriptions - sending
+
+*	Subscriptions - importing from v1.
+
+
+Metadata Fields
+
+*	Make a field type which IS a serialised search.
+
+*	Field property: freetext (or not-freetext) to stop indexing) - will 
+	disable non-ex searching. (?)
+
+*	field property to stop SQL indexing. - will disable EX searching
+
+*	Field Property: 'id required' - If main bit is set then ID *must* 
+	be set. Otherwise lax.
+
+* 	Make Hide Lineage/Honourific a field property.
+
+
+XML, Bibtex and Misc formats in & out
+
+*	Some kind of BibTeX support (fill in metadata form from bibtex) 
+	- library function plus cgi + bin tools? 
+
+*	Some kind of RIS format import (similar to bibtex). 
+
+* 	Bibtex import/export
+
+*	XML Importer
+
+OAI
+
+*	Extra sets in OAI: By ID field, or by configurable serialised search. 
+	Even "subject" should be configured. so "subject:blgy:biophys" 
+	or "username_id:cjg" or "stuffjackwants" which is a search of 
+	it's own. Searches can of course be modified with from and to 
+	dates from OAI.
+
+*       OAI2.0 support
+
+* 	Filters for OAI. eg. files with full text only!
+
+
+Browse Views
+
+*	Ordervalues for sets & subjects being on their NAME not value? 
+
+* 	Time stamp views
+
+* 	Option to make views ordered/unordered lists?
+
+
+Searches
+
+*	Show all items in a subject view count, not just those in the
+	current subject.
+
+* 	max time for caches eg. 30 for latest?
+
+*	Set default values for searches
+
+*	Improve name search syntax (?)
+
+*	Phrase searching
+
+*	SearchExpression "describer" to print search expression
+	in a human readable manner. Use this on search results page.
+	Possibly with "ignored words"
+
+*	Improved steming.
+
+*	Add optional param prefix to searchexp, searchfield - from and render
+	form.
+
+*	Add "does record match search" function.
+
+
+Other Stuff
+
+*	Commentary summary page (Psycoloquy style)
+
+*	Remove all #cjg comments which denote issues.
+
+*	cmp methods : is they still needed?
+
+*	Make all needed get()'s map it instead so ready for that 
+	1,000,000 papers.
+
+* 	List of editors?
+
+*	langid's -> validate they is correct (in multilang)
+
+*	Sort subject input fields
+
+*	No new eprints when disk fullish
+
+*	Bad Things(tm) will happen if a session has a langid which is not a 
+	supported langid - can this happen?
+
+* 	Add option to supress empty subjects in browse views.
+
+* 	robots.txt file
+
+* 	XML GDOME readyness
+
+* 	check Database.pm for any sql without escaping. and SearchExpression.pm
+ 	and SearchField.pm 
+
+* 	Lose all die statements
+
+* 	Check Referer on LatexCache.?
+
+? 	setlang - show all langs, flag supported.
+
+* 	Join GNU.
+
+* 	Way to reload config without offlining server.
+
+* 	Debugging helpers - make session and searchexp notice if they are 
+	DESTROY'd without being terminate/disposed.
+
+*	PDF Mollycoddler ( Serve PDF in a special way which avoids certain 
+	bugs in the plugin )
+
+DOCUMENTATION ============================================================
+
+*	Add POD manuals to ALL lib and CGI files.
+
+*	Formally Comment Code
+
+HOW-TOS
+*	produce DOM.
+*	add a type
+*	remove a type
+*	add an OAI format
+*	add a usertype
+*	make latexy magic happen
+*	adding a document type
+*	adding a search on another page
+
+
+
+WISHLIST =================================================================
+
+*	Paged Metadata in submission form.
+*	Content Negotiation with Browser
+*	Alternate config files for simple english only archives.
+*	Multiple Initial Configurations (eg Pre-print Archive, Institutional 
+	Archive etc, data archive)
+*	MathML support
+*	Peer Review
+*	Mirroring
+*	Citation Scanning
+*	"People who read this eprint also read..."
+*	OpenURL support (?)
+*	Probity (see www.probity.org for more info)
+*	CD-ROM publisher - create ISO of an archive.
+*	CD-ROM distribution of software.
+
+DONE ====================================================================
+# remove => => from all bins (man line)
+# add --version to all bins. 

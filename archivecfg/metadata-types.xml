@@ -18,6 +18,11 @@
   </dataset>
   
   <dataset name="eprint">
+    <type name="testcjg">
+      <field name="searchfield" required="yes" />
+      <field name="title" required="yes" />
+      <field name="authors" />
+    </type>
     <type name="book">
       <field name="ispublished" required="yes" />
       <field name="pubdom" required="yes" />

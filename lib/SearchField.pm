@@ -118,7 +118,8 @@ sub new
 
 sub set_value
 {
-confess( "ooops: serachfield: set_value" );
+#cjg ?? why this confess?
+confess( "ooops: searchfield: set_value" );
 	my ( $self , $newvalue ) = @_;
 
 	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
@@ -188,8 +189,8 @@ sub from_form
 		my $search_type = $self->{session}->param( 
 			$self->{form_name_prefix}."_srchtype" );
 		
-		# Default search type if none supplied (to allow searches using simple
-		# HTTP GETs)
+		# Default search type if none supplied (to allow searches 
+		# using simple HTTP GETs)
 		$search_type = "ALL" unless defined( $search_type );		
 		
 		if( defined $val )

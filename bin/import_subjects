@@ -63,6 +63,10 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 Explain in detail what is going on.
 May be repeated for greater effect.
 
+=item B<--version>
+
+Output version information and exit.
+
 =item B<--xml>
 
 Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
@@ -142,6 +146,7 @@ This is the standard eprints export format. It looks like this:
 
 The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the archive. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
 
+__GENERICPOD__
 
 =cut
 
@@ -165,8 +170,8 @@ my $help = 0;
 my $man = 0;
 
 GetOptions( 
-	'help|?' => => \$help,
-	'man' => => \$man,
+	'help|?' => \$help,
+	'man' => \$man,
 	'xml' => \$xml , 
 	'force' => \$force , 
 	'version' => \$version,

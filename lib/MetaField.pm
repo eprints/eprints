@@ -42,6 +42,7 @@ use EPrints::Utils;
 use EPrints::Session;
 use EPrints::Subject;
 use EPrints::Database;
+use EPrints::SearchExpression;
 
 use strict;
 
@@ -63,6 +64,7 @@ my $PROPERTIES =
 	confid => -1,
 	datasetid => -1,
 	digits => 1,
+	fieldnames => -1,
 	input_rows => 1,
 	input_cols => 1,
 	input_name_cols => 1,
@@ -140,11 +142,15 @@ sub new
 	}
 	$self->set_property( "name", $properties{name} );
 	$self->set_property( "type", $properties{type} );
-	if( $self->is_type( "datatype" ) )
+	if( $self->is_type( "datatype", "search" ) )
 	{
 		$self->set_property( "datasetid" , $properties{datasetid} );
 	}
 
+	if( $self->is_type( "search" ) )
+	{
+		$self->set_property( "fieldnames" , $properties{fieldnames} );
+	}
 	if( $self->is_type( "set" ) )
 	{
 		$self->set_property( "options" , $properties{options} );
@@ -152,8 +158,10 @@ sub new
 	my $p;
 	foreach $p ( keys %{$PROPERTIES} )
 	{
-		next unless( $PROPERTIES->{$p} == 1 );
-		$self->set_property( $p, $properties{$p} );
+		if( $PROPERTIES->{$p} == 1 )
+		{
+			$self->set_property( $p, $properties{$p} );
+		}
 	}
 
 	return( $self );
@@ -286,7 +294,7 @@ sub get_sql_type
  		return $sqlname.' CHAR(16) '.$param;
 	}
 
-	if( $self->is_type( "longtext" ) )
+	if( $self->is_type( "longtext", "searchfield" ) )
 	{
  		return $sqlname.' TEXT '.$param;
 	}
@@ -320,7 +328,7 @@ sub get_sql_index
 {
         my( $self ) = @_;
 
-	if( $self->is_type( "longtext", "secret" ) )
+	if( $self->is_type( "longtext", "secret", "search" ) )
 	{
 		return undef;
 	}
@@ -577,6 +585,10 @@ sub _render_value3
 		return EPrints::Utils::render_date( $session, $value );
 	}
 
+	if( $self->is_type( "search" ) )
+	{
+		return $session->make_text( "SEARCH: $value" );
+	}
 
 	if( $self->is_type( "longtext" ) )
 	{
@@ -932,22 +944,26 @@ sub _render_input_field_aux
 		unless( $session->get_archive()->get_conf( "hide_honourific" ) )
 		{
 			$th = $session->make_element( "th" );
-			$th->appendChild( $session->html_phrase( "lib/metafield:honourific" ) );
+			$th->appendChild( $session->html_phrase( 
+						"lib/metafield:honourific" ) );
 			$tr->appendChild( $th );
 		}
 
 		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "lib/metafield:given_names" ) );
+		$th->appendChild( $session->html_phrase( 
+					"lib/metafield:given_names" ) );
 		$tr->appendChild( $th );
 
 		$th = $session->make_element( "th" );
-		$th->appendChild( $session->html_phrase( "lib/metafield:family_names" ) );
+		$th->appendChild( $session->html_phrase( 
+					"lib/metafield:family_names" ) );
 		$tr->appendChild( $th );
 
 		unless( $session->get_archive()->get_conf( "hide_lineage" ) )
 		{
 			$th = $session->make_element( "th" );
-			$th->appendChild( $session->html_phrase( "lib/metafield:lineage" ) );
+			$th->appendChild( $session->html_phrase( 
+						"lib/metafield:lineage" ) );
 			$tr->appendChild( $th );
 		}
 
@@ -968,16 +984,22 @@ sub _render_input_field_aux
 			name => $spacesid,
 			value => $boxcount ) );
 		$block->appendChild( $session->render_internal_buttons(
-			$buttonid => $session->phrase( "lib/metafield:more_langs" ) ) );
+			$buttonid => $session->phrase( 
+					"lib/metafield:more_langs" ) ) );
 	}
 
 	if( $self->get_property( "hasid" ) )
 	{
 		my $div;
-		$div = $session->make_element( "div", class=>"formfieldidname" );
-		$div->appendChild( $session->make_text( $self->get_id_field()->display_name( $session ).":" ) );
+		$div = $session->make_element( 
+					"div", 
+					class => "formfieldidname" );
+		$div->appendChild( $session->make_text( 
+			$self->get_id_field()->display_name( $session ).":" ) );
 		$block->appendChild( $div );
-		$div = $session->make_element( "div", class=>"formfieldidinput" );
+		$div = $session->make_element( 
+					"div",
+			 		class=>"formfieldidinput" );
 		$block->appendChild( $div );
 
 		$div->appendChild( $session->make_element(
@@ -998,7 +1020,6 @@ sub _render_input_field_aux2
 
 # not return DIVs? cjg (currently some types do some don't)
 
-	my $frag = $session->make_doc_fragment();
 	if( $self->is_type( "longtext" ) || $self->{input_style} eq "textarea" )
 	{
 		my( $div , $textarea , $id );
@@ -1013,9 +1034,10 @@ sub _render_input_field_aux2
 		$textarea->appendChild( $session->make_text( $value ) );
 		$div->appendChild( $textarea );
 		
-		$frag->appendChild( $div );
+		return $div;
 	}
-	elsif( $self->is_type( "text", "url", "int", "email", "year","secret" ) )
+
+	if( $self->is_type( "text", "url", "int", "email", "year", "secret" ) )
 	{
 		my( $maxlength, $size, $div, $id );
  		$id = $self->{name}.$suffix;
@@ -1037,22 +1059,22 @@ sub _render_input_field_aux2
 					$self->{input_cols} : 
 					$maxlength );
 
-		$frag->appendChild( $session->make_element(
+		my $input = $session->make_element(
 			"input",
 			type => ($self->is_type( "secret" )?"password":undef),
 			"accept-charset" => "utf-8",
 			name => $id,
 			value => $value,
 			size => $size,
-			maxlength => $maxlength ) );
+			maxlength => $maxlength );
+		return $input;
 	}
-	elsif( $self->is_type( "boolean" ) )
+
+	if( $self->is_type( "boolean" ) )
 	{
-		#cjg OTHER METHOD THAN CHECKBOX? TRUE/FALSE MENU?
 		my( $div , $id);
  		$id = $self->{name}.$suffix;
 		
-
 		$div = $session->make_element( "div" );	
 		if( $self->{input_style} eq "menu" )
 		{
@@ -1060,13 +1082,14 @@ sub _render_input_field_aux2
 				height=>2,
 				values=>[ "TRUE", "FALSE" ],
 				labels=>{
-					TRUE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
-					FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
+TRUE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
+FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 				},
 				name=>$id,
 				default=>$value
 			);
-			$div->appendChild( $session->render_option_list( %settings ) );
+			$div->appendChild( 
+				$session->render_option_list( %settings ) );
 		}
 		elsif( $self->{input_style} eq "radio" )
 		{
@@ -1104,11 +1127,13 @@ sub _render_input_field_aux2
 				name => $id,
 				value => "TRUE" ) );
 		}
-		$frag->appendChild( $div );
+		return $div;
 	}
-	elsif( $self->is_type( "name" ) )
+
+	if( $self->is_type( "name" ) )
 	{
-		my( $td );
+		my( $td, $frag );
+		$frag = $session->make_doc_fragment;
 		my @namebits;
 		unless( $session->get_archive()->get_conf( "hide_honourific" ) )
 		{
@@ -1133,9 +1158,10 @@ sub _render_input_field_aux2
 				size => $size,
 				maxlength => $self->{maxlength} ) );
 		}
-
+		return $frag;
 	}
-	elsif( $self->is_type( "pagerange" ) )
+
+	if( $self->is_type( "pagerange" ) )
 	{
 		my( $div , @pages , $fromid, $toid );
 		@pages = split /-/, $value if( defined $value );
@@ -1163,10 +1189,10 @@ sub _render_input_field_aux2
 			value => $pages[1],
 			size => 6,
 			maxlength => 10 ) );
-		$frag->appendChild( $div );
-
+		return $div;
 	}
-	elsif( $self->is_type( "date" ) )
+
+	if( $self->is_type( "date" ) )
 	{
 		my( $div, $yearid, $monthid, $dayid );
 		$div = $session->make_element( "div" );	
@@ -1214,15 +1240,39 @@ sub _render_input_field_aux2
 			value => $day,
 			size => 2,
 			maxlength => 2 ) );
-		$frag->appendChild( $div );
+
+		return $div;
 	}
-	else
+
+	if( $self->is_type( "search" ) )
 	{
-		$frag->appendChild( $session->make_text( "???" ) );
-		$session->get_archive()->log( "Don't know how to render input".
-					  "field of type: ".$self->get_type() );
+#cjg NOT INTL
+		my $div = $session->make_element( "div", 
+			style=>"background-color: #eef;" );
+		$div->appendChild( $session->make_text( "SEARCH: " ) );
+		my $string = $value;
+		if( !defined $value )
+		{
+			$string = "undefined";
+		}
+		$div->appendChild( $session->make_text( $string ) );
+
+		my $ds = $session->get_archive()->get_dataset( 
+				$self->{datasetid} );	
+		my $searchexp = EPrints::SearchExpression->new(
+			session => $session,
+			dataset => $ds,
+			fieldnames => $self->get_property( "fieldnames" ) );
+		# cjg - make help an option?
+		$div->appendChild( $searchexp->render_search_fields( 0 ) );
+	$div->appendChild( $session->make_text( "XXX" ) );
+		$searchexp->dispose();
+		return $div;
 	}
-	return $frag;
+
+	$session->get_archive()->log( "Don't know how to render input".
+				  "field of type: ".$self->get_type() );
+	return $session->make_text( "?? Unknown type: ".$self->get_type." ??" );
 }
 
 sub _month_names
@@ -1517,7 +1567,8 @@ sub is_browsable
         # Can't yet browse:
         # boolean , text,  langid ,name 
 
-	return $self->is_type( "set", "subject", "datatype", "date", "int", "year", "id", "email", "url", "text" );
+	return $self->is_type( "set", "subject", "datatype", "date", "int", 
+				"year", "id", "email", "url", "text" );
 
 }
 

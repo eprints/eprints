@@ -207,6 +207,7 @@
 # debugging helpers - make session and searchexp notice if they
 # are DESTROY'd without being terminate/disposed.
 
+# add "--version" to pod docs.
 
 # HOW-TOS
 #================

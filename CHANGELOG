@@ -493,7 +493,7 @@ OpenArchives.pm to handle oai2 (in addition to oai1 which still works fine)
 16/04/2002 - EPRINTS-2.0.1
 ======================================================================
 
-20/05/2002 
+2002-05-20
 - [config] changed "Contact site admin" text at bottom of page template
 to look less like an order (people thought it indicated an error)
 - added --silent as a synonym for --quiet - part of GNU regs.
@@ -507,3 +507,13 @@ returned an error before!
 - added EPrints::Utils::cmd_version($progname) to automate generation of
    --version outputs.
 - changed syntax of image quoting locspecs in VLit module.
+
+2002-05-22
+- [config] some test stuff added to default config. Should be removed
+before next release. (metadata types & fields) 
+- removed a number of doubled-up => symbols in scripts.
+- POD doc'd DataObj
+- Added 'search' metafield type. Does not work fully yet.
+- in search expression, split the part which renders the actual search
+   fields from the search page renderer. This allows it to be called
+   by the search field type input form renderer.

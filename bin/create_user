@@ -95,6 +95,10 @@ Be vewwy vewwy quiet. This option will supress all output unless an error occurs
 Explain in detail what is going on.
 May be repeated for greater effect.
 
+=item B<--version>
+
+Output version information and exit.
+
 =back   
 
 __GENERICPOD__
@@ -118,8 +122,8 @@ my $help = 0;
 my $man = 0;
 
 GetOptions( 
-	'help|?' => => \$help,
-	'man' => => \$man,
+	'help|?' => \$help,
+	'man' => \$man,
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,

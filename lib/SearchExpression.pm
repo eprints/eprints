@@ -222,35 +222,22 @@ sub clear
 }
 
 
-######################################################################
-#
-# $html = render_search_form( $help, $show_anyall )
-#
-#  Render the search form. If $help is 1, then help is written with
-#  the search fields. If $show_anyall is 1, then the "must satisfy any/
-#  all" field is shown at the bottom of the form.
-#
-######################################################################
-
-sub render_search_form
+sub render_search_fields
 {
-	my( $self, $help, $show_anyall ) = @_;
+	my( $self, $help ) = @_;
 
-	my $form = $self->{session}->render_form( "get" );
-
-	my $div;
+	my $frag = $self->{session}->make_doc_fragment;
 
 	my %shown_help;
-	my $sf;
 	foreach ( @{$self->{allfields}} )
 	{
 		my $sf = $self->get_searchfield( $_ );
-		$div = $self->{session}->make_element( 
+		my $div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
 		$div->appendChild( $self->{session}->make_text( 
 					$sf->get_display_name ) );
-		$form->appendChild( $div );
+		$frag->appendChild( $div );
 		my $shelp = $sf->get_help();
 		if( $help && !defined $shown_help{$shelp} )
 		{
@@ -258,16 +245,27 @@ sub render_search_form
 				"div" , 
 				class => "searchfieldhelp" );
 			$div->appendChild( $self->{session}->make_text( $shelp ) );
-			$form->appendChild( $div );
+			$frag->appendChild( $div );
 			#$shown_help{$shelp}=1;
 		}
 
 		$div = $self->{session}->make_element( 
 			"div" , 
 			class => "searchfieldinput" );
-		$form->appendChild( $sf->render() );
+		$frag->appendChild( $sf->render() );
 	}
 
+	return $frag;
+}
+
+sub render_search_form
+{
+	my( $self, $help, $show_anyall ) = @_;
+
+	my $form = $self->{session}->render_form( "get" );
+	$form->appendChild( $self->render_search_fields( $help ) );
+
+	my $div;
 	my $menu;
 
 	if( $show_anyall )
@@ -280,7 +278,7 @@ sub render_search_form
 			labels=>{ "ALL" => $self->{session}->phrase( "lib/searchexpression:all" ),
 				  "ANY" => $self->{session}->phrase( "lib/searchexpression:any" )} );
 
-		$div = $self->{session}->make_element( 
+		my $div = $self->{session}->make_element( 
 			"div" , 
 			class => "searchanyall" );
 		$div->appendChild( 
