@@ -30,7 +30,10 @@ exit;
 sub deal 
 {
 	my( $session , $table , $eprint ) = @_;
+print EPrints::Log::render_struct( $eprint );
 	print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
+	print "------------\n";
+	return;
 	if( $session->{database}->exists( $table , $eprint->{eprintid} ) )
 	{
 		print  "EXISTS!\n";

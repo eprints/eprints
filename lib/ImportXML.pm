@@ -53,11 +53,11 @@ sub _handle_start
 		{
 			$parser->xpcroak( "TABLE inside TABLE" );
 		}
-		$parser->{eprints}->{table} = $params{name};
-		my @fields = EPrints::MetaInfo::get_fields( $params{name} );
-		if( !defined @fields )
+		$parser->{eprints}->{table} = $params{id};
+		my @fields = EPrints::MetaInfo::get_fields( $params{id} );
+		unless( @fields )
 		{
-			$parser->xpcroak( "unknown table: $params{name}" );
+			$parser->xpcroak( "unknown table: $params{id}" );
 		}
 		$parser->{eprints}->{fields} = {};
 		foreach( @fields )
