@@ -176,7 +176,7 @@ print STDERR "dEStROY\n";
 		push @ids, $_->get_value( "subjectid" );
 	}
 	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:location" ) );
-	$page->appendChild( $session->render_subjects( \@ids, undef, $subid ) );
+	$page->appendChild( $session->render_subjects( \@ids, undef, $subid, 1 ) );
 
 	$page->appendChild( $session->render_ruler() );
 

@@ -28,6 +28,8 @@ my @monthkeys = (
 	"00", "01", "02", "03", "04", "05", "06",
 	"07", "08", "09", "10", "11", "12" );
 
+my $VARCHAR_SIZE = 255;
+
 # These '255'... Maybe make them bigger due to UTF-8
 # UTF-8 chars max 3 times normal (for unicode)
 
@@ -38,19 +40,19 @@ my %TYPE_SQL =
  	int        => "\$(name) INT UNSIGNED \$(param)",
  	date       => "\$(name) DATE \$(param)",
  	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
- 	set        => "\$(name) VARCHAR(255) \$(param)",
- 	text       => "\$(name) VARCHAR(255) \$(param)",
- 	secret     => "\$(name) VARCHAR(255) \$(param)",
+ 	set        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	text       => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	secret     => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	longtext   => "\$(name) TEXT \$(param)",
- 	url        => "\$(name) VARCHAR(255) \$(param)",
- 	email      => "\$(name) VARCHAR(255) \$(param)",
- 	subject    => "\$(name) VARCHAR(255) \$(param)",
- 	pagerange  => "\$(name) VARCHAR(255) \$(param)",
+ 	url        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	email      => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	subject    => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	pagerange  => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	year       => "\$(name) INT UNSIGNED \$(param)",
- 	datatype   => "\$(name) VARCHAR(255) \$(param)",
+ 	datatype   => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	langid	   => "\$(name) CHAR(16) \$(param)",
-	id         => "\$(name) VARCHAR(255) \$(param)",
- 	name       => "\$(name)_honourific VARCHAR(255) \$(param), \$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param), \$(name)_lineage VARCHAR(255) \$(param)"
+	id         => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
+ 	name       => "\$(name)_honourific VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_given VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_family VARCHAR($VARCHAR_SIZE) \$(param), \$(name)_lineage VARCHAR($VARCHAR_SIZE) \$(param)"
  );
  
 # Map of INDEXs required if a user wishes a field indexed.
@@ -83,7 +85,7 @@ my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	digits => 20,
 	displaylines => 12,
-	maxlength => 255,
+	maxlength => $VARCHAR_SIZE,
 	hasid => 0,
 	multilang => 0,
 	multiple => 0,
@@ -1013,7 +1015,7 @@ sub _render_input_field_aux2
 
 
 	# These DO NOT belong here. cjg.
-	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, 255 );
+	my( $FORM_WIDTH, $INPUT_MAX ) = ( 40, $VARCHAR_SIZE );
 # not return DIVs? cjg (currently some types do some don't)
 	my $frag = $session->make_doc_fragment();
 	if( $self->is_type( "text", "url", "int", "email", "year","secret" ) )

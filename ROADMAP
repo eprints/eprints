@@ -52,6 +52,7 @@
 0	More opts for fields: freetext/idrequired etc.
 0	PDF Mollycoddler
 0	Numeric fields (not silly prefix)
+0	Move as much as possible of config into XML conf file.
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.

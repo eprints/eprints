@@ -441,6 +441,48 @@ sub prep_value
 #
 ######################################################################
 
+sub deindex
+{
+	my( $self, $dataset, $keyvalue ) = @_;
+
+	$rv = 1;
+
+	my $keyfield = $dataset->get_key_field();
+	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
+
+	# Trim out indexes
+	my $indextable = $dataset->get_sql_index_table_name();
+	my $rindextable = $dataset->get_sql_rindex_table_name();
+	$sql = "SELECT fieldword FROM $rindextable WHERE $where";
+	my $sth=$self->prepare( $sql );
+	$rv = $rv && $self->execute( $sth, $sql );
+	my @codes = ();
+	my $code;	
+	while( $code = $sth->fetchrow_array )
+	{
+		push @codes,$code;
+		print STDERR "($code)\n";
+	}
+	foreach( @codes )
+	{
+		$code = prep_value( $_ );
+		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$code' AND ids LIKE '%:$keyvalue:%'";
+		$sth=$self->prepare( $sql );
+		$rv = $rv && $self->execute( $sth, $sql );
+		if( ($ids,$pos) = $sth->fetchrow_array )
+		{
+			$ids =~ s/:$keyvalue:/:/g;
+			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
+			$rv = $rv && $self->do( $sql );
+		}
+	}
+	$sql = "DELETE FROM $rindextable WHERE $where";
+	$rv = $rv && $self->do( $sql );
+
+	return $rv;
+}
+
+
 ## WP1: BAD
 sub update
 {
@@ -465,40 +507,7 @@ sub update
 	# it now:
 	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
-##cjg SORT IT OOT
-# needs to remove itself from all fields.
-
-	# Trim out indexes
-
-	my $indextable = $dataset->get_sql_index_table_name();
-	my $rindextable = $dataset->get_sql_rindex_table_name();
-
-	$sql = "SELECT fieldword FROM $rindextable WHERE $where";
-	my $sth=$self->prepare( $sql );
-	$rv = $rv && $self->execute( $sth, $sql );
-	my @codes = ();
-	my $code;	
-	while( $code = $sth->fetchrow_array )
-	{
-		push @codes,$code;
-		print STDERR "($code)\n";
-	}
-	foreach( @codes )
-	{
-		$code = prep_value( $_ );
-		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$code' AND ids LIKE '%:$keyvalue:%'";
-		$sth=$self->prepare( $sql );
-		$rv = $rv && $self->execute( $sth, $sql );
-		if( ($ids,$pos) = $sth->fetchrow_array )
-		{
-			$ids =~ s/:$keyvalue:/:/g;
-			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
-			$rv = $rv && $self->do( $sql );
-		}
-	}
-
-	$sql = "DELETE FROM $rindextable WHERE $where";
-	$rv = $rv && $self->do( $sql );
+	$self->deindex( $dataset, $keyvalue );
 
 	my @aux;
 	my %values = ();
@@ -727,9 +736,8 @@ sub remove
 	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
 
-	# Delete Index
-	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
-	$rv = $rv && $self->do( $sql );
+	# Delete from index
+	$self->deindex( $dataset, $id );
 
 	# Delete Subtables
 	my @fields = $dataset->get_fields( 1 );
