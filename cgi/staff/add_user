@@ -48,31 +48,34 @@ if( $session->{render}->seen_form() )
 		else
 		{
 			$session->{render}->render_error(
-				"Error creating user's account.",
+				$session->{lang}->phrase( "H:mk_acc_err" ),
 				"$EPrintSite::SiteInfo::server_static/staff",
-				"Staff area" );
+				$session->{lang}->phrase( "H:staff_area" ) );
 		}
 	}
 	else
 	{
 		$session->{render}->render_error(
-			"No user ID entered!",
+			$session->{lang}->phrase( "H:no_username" ),
 			"add_user",
-			"Try again" );
+			$session->{lang}->phrase( "H:try_again" ) );
 	}
 }
 else
 {
-	print $session->{render}->start_html( "Create a User" );
+	print $session->{render}->start_html(
+		$session->{lang}->phrase( "H:create_title" ) );
 
-	print "<CENTER><P>Enter a user ID for the new user below.</P></CENTER>\n";
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( "H:enter_username" );
+	print "</P></CENTER>\n";
 	
 	$session->{render}->render_form(
 		[ $username_field ],
 		{},
 		1,
 		0,
-		[ "Create User" ] );
+		[ $session->{lang}->phrase( "F:create_user" ) ] );
 	
 	print $session->{render}->end_html();
 }

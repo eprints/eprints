@@ -276,16 +276,27 @@ sub render_error
 
 	if ( $self->{offline} )
 	{
-		print "$EPrintSite::SiteInfo::sitename has encountered an error:\n\n";
+		print $self->{session}->{lang}->phrase( 
+			"A:some_error",
+			$EPrintSite::SiteInfo::sitename );
+		print "\n\n";
 		print "$error_text\n\n";
 	} 
 	else
 	{
-		print $self->start_html( "Error" );
+		print $self->start_html( 
+			$self->{session}->{lang}->phrase( "H:error_title" ) );
 
-		print "<P>$EPrintSite::SiteInfo::sitename has encountered an error:</P>\n";
+		print "<P>".$self->{session}->{lang}->phrase( 
+			"H:some_error",
+			$EPrintSite::SiteInfo::sitename )."</P>\n";
 		print "<P>$error_text</P>\n";
-		print "<P>Feel free to contact <A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">$EPrintSite::SiteInfo::sitename administration</A> with details.</P>\n";
+		print "<P>".$self->{session}->{lang}->phrase( 
+			"H:contact",
+			"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">".
+			  $self->{session}->{lang}->phrase( "H:sitename_admin" ).
+			  "</A>" )."</P>\n";
+				
 		print "<P><CENTER><A HREF=\"$back_to\">$back_to_text</A></CENTER></P>\n";
 	
 		print $self->end_html();
@@ -450,7 +461,7 @@ sub format_field
 	{
 		EPrints::Log::log_entry(
 			"HTMLRender",
-			"Error: Don't know how to render field of type $type" );
+			EPrints::Language::logphrase( "L:cant_do_field" , $type ) );
 	}
 
 	return( $html );
@@ -496,17 +507,17 @@ sub input_field
 			($year, $month, $day) = ("", "00", "") if( $month == 0 );
 		}
 
-		$html = "Year:";
+		$html = $self->{session}->{lang}->phrase( "H:year" );
 		$html .= $self->{query}->textfield( -name=>"$field->{name}_year",
 		                                    -default=>$year,
 		                                    -size=>4,
 		                                    -maxlength=>4 );
-		$html .= " Month:";
+		$html .= " ".$self->{session}->{lang}->phrase( "H:month" );
 		$html .= $self->{query}->popup_menu( -name=>"$field->{name}_month",
 		                                     -values=>\@months,
 		                                     -default=>$month,
 		                                     -labels=>\%monthnames );
-		$html .= " Day:";
+		$html .= " ".$self->{session}->{lang}->phrase( "H:day" );
 		$html .= $self->{query}->textfield( -name=>"$field->{name}_day",
 		                                    -default=>$day,
 		                                    -size=>2,
@@ -664,7 +675,11 @@ sub input_field
 		$boxcount = $#names+1 if( $boxcount < $#names+1 );
 
 		# Render the boxes
-		$html = "<table border=0><tr><th>Surname</th><th>First names</th>";
+		$html  = "<table border=0><tr><th>";
+		$html .= $self->{session}->{lang}->phrase( "H:surname" );
+		$html .= "</th><th>";
+		$html .= $self->{session}->{lang}->phrase( "H:first_names" );
+		$html .= "</th>";
 		
 		my $i;
 		for( $i = 0; $i < $boxcount; $i++ )
@@ -693,8 +708,9 @@ sub input_field
 		
 		if( $field->{multiple} )
 		{
-			$html .= "<td>".$self->named_submit_button( "name_more_$field->{name}",
-		                                          	  "More Spaces" );
+			$html .= "<td>".$self->named_submit_button( 
+				"name_more_$field->{name}",
+				$self->{session}->{lang}->phrase( "F:more_spaces" ) );
 			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
 		}
@@ -719,7 +735,9 @@ sub input_field
 		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
 
 		# Render the boxes
-		$html = "<table border=0><tr><th>Usernames</th>";
+		$html = "<table border=0><tr><th>";
+		$html.= $self->{session}->{lang}->phrase( "H:username_title" ) );
+		$html.= "</th>";
 		
 		my $i;
 		for( $i = 0; $i < $boxcount; $i++ )
@@ -741,8 +759,9 @@ sub input_field
 		
 		if( $field->{multiple} )
 		{
-			$html .= "<td>".$self->named_submit_button( "username_more_$field->{name}",
-		                                          	  "More Spaces" );
+			$html .= "<td>".$self->named_submit_button( 
+				"username_more_$field->{name}",
+				$self->{session}->{lang}->phrase( "F:more_spaces" ) );
 			$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
 		}
@@ -755,7 +774,7 @@ sub input_field
 
 		EPrints::Log::log_entry(
 			"HTMLRender",
-			"Don't know how to render input field for type $type" );
+			EPrints::Language::logphrase( "L:input_field_err" , $type ) );
 	}
 	
 	return( $html );
@@ -1545,8 +1564,12 @@ sub _write_version_thread_aux
 	$html .= "</A>" if( $eprint->{eprintid} ne $eprint_shown->{eprintid} );
 
 	# Show the current
-	$html .= " <strong>[Currently displayed]</strong>"
-		if( $eprint->{eprintid} eq $eprint_shown->{eprintid} );
+	if( $eprint->{eprintid} eq $eprint_shown->{eprintid} ) 
+	{
+		$html .= " <strong>[";
+		$html .= $self->{session}->{lang}->phrase( "H:curr_disp" );
+		$html .= "]</strong>";
+	}
 	
 	# Are there any later versions in the thread?
 	my @later = $eprint->later_in_thread( $field );
@@ -1591,15 +1614,19 @@ sub render_deleted_eprint
 		$deletion_record->{replacement} )
 		if( defined $deletion_record->{replacement} );
 	
-	my $html = $self->start_html( "Eprint Removed" );
+	my $html = $self->start_html( 
+		$self->{session}->{lang}->phrase( "H:eprint_gone_title" ) );
 	
-	$html .= "<P>You seem to be attempting to access an eprint that has been ".
-		"removed from the archive.</P>\n";
+	$html .= "<P>";
+	$html .= $self->{session}->{lang}->phrase( "H:eprint_gone" ) );
+	$html .= "</P>\n";
 	
 	if( defined $replacement_eprint )
 	{
-		$html .= "<P>There is a later version of the eprint you are trying to ".
-			"access:</P>\n<P ALIGN=CENTER>";
+		$html .= "<P>";
+		$html .= $self->{session}->{lang}->phrase( "H:later_version" ) );
+		$html .= "</P>\n";
+		$html .= "<P ALIGN=CENTER>";
 
 		$html .= $self->render_eprint_citation(
 			$replacement_eprint,

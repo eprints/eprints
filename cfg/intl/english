@@ -9,16 +9,16 @@
 # M = Mail Message
 # F = HTML Form (Some characters maybe illegal! Don't use &eacute; escaping) 
 
+######################################################################
+# Library Files
+######################################################################
+
 <file SearchExpression.pm>
 H:leastone = You need to specify something for at least one field!
 F:any = any
 F:all = all
 H:mustfulfill = Retrieved records must fulfill $(1) of these conditions.
 H:orderresults = Order the results: $(1)
-</file>
-
-<file update_ecs_users>
-A:dude = Internationalisation Rocks.
 </file>
 
 <file Citation.pm>
@@ -138,7 +138,6 @@ F:uploadedit	= Upload/Edit
 F:remove	= Remove
 </file>
 
-
 <file SubjectList.pm>
 L:invalid_tag	= List contains invalid tag $(1)
 </file>
@@ -195,8 +194,149 @@ H:need_a_format = You need to upload at least one of the following formats:
 L:error_gen_st	= Error generating static page for $(1): $(2)
 </file>
 
+<file HTMLRender.pm>
+A:some_error	= $(1) has encountered an error:
+H:some_error	= $(1) has encountered an error:
+H:contact	= Feel free to contact $(1) with details.
+H:sitename_admin= $(1) administration
+L:cant_do_field= Error: Don't know how to render field of type $(1)
+H:year		= Year:
+H:month		= Month:
+H:day		= Day:
+H:surname	= Surname
+H:first_names	= First Names
+F:more_spaces	= More Spaces
+H:username_title= Usernames
+L:input_field_err= Don't know how to render input field for type $(1)
+H:curr_disp	= Currently Displayed
+H:error_title	= Error
+H:eprint_gone_title = EPrint Removed
+H:eprint_gone	= You seem to be attempting to access an eprint that has been removed from the archive.
+H:later_version = There is a later version of the eprint you are trying to access:
+</file>
+
+<file MetaField.pm>
+L:bad_value	= Garbled value for $(1) in field $(2)
+L:bad_type	= Unknown field type $(1) for field $(2)
+L:not_all_info	= Not all necessary information specified for field $(1)
+L:cant_open_file= Can't open metadata config file: $(1): $(2)
+</file>
+
+<file MetaInfo.pm>
+L:type_file_err = Can't open eprint types file: $(1): $(2)
+L:unknown_field = Unknown EPrint field $(1) in class $(2)
+L:no_fields	= No fields for EPrint type $(1)
+</file>
+
+
+######################################################################
+# cgi/users 
+######################################################################
+
+<file home>
+H:dont_know_you	= I don't know who you are
+H:deposit_items = Deposit Items
+H:welcome	= Welcome to the item depositing area at $(1). Please select one of the options below.
+H:review	= Review your documents in the archive
+H:review_info	= This options allows you to view your documents in the main archive, and to make copies of the records to make depositing updated versions easier.
+H:remove_info	= You can also remove documents from the archive.
+H:change	= View/change your user record
+H:change_info	= Select this option to see your user record, and to correct or update your user information.
+H:before	= Before you upload any documents, please fill out your user record.
+H:sub_opts	= Change your subscription options
+H:sub_opts_info = Select this option to change your subscription. This allows you to instruct the archive to automatically e-mail you with lists of documents deposited that match your criteria every day, week or month.
+H:docs		= Documents in your Workspace
+H:depositing	= These are documents you are currently in the process of depositing. You can start depositing a new document by clicking on <STRONG>New</STRONG>, or you can select a document from the list, and select one of the other options.
+F:start_upload	= Click here to start uploading a document
+H:pending_title = Pending Items
+H:deposited_at	= Deposited $(1)
+</file>
+
+<file record>
+</file>
+
+<file review>
+H:dont_know_you	= I don't know who you are
+H:cant_clone	= Unable to clone that record. Please try again later.
+H:deposit_page	= Deposit Items Page
+H:review_title	= Review Documents
+H:no_docs	= You have no documents in the main archive.
+H:ret_deposit	= Click here to return to your deposit items page
+H:blurb_below	= Below are listed your documents in the main archive. Click on the title of a document to view it. You can also click on the clone button to make a copy of the document record in your workspace. You might want to do this if you are going to submit an updated version of the document.
+H:remove_info	= You can also request the removal of a document, but this is <strong>strongly</strong> discouraged, since different versions of a document can all be linked in the archive.
+H:document	= Document
+F:clone		= Clone
+F:req_remove	= Request Removal
+H:remove_title	= Request EPrint Removal
+H:remove_blurb	= Please note that we <STRONG>strongly</STRONG> discourage removal of EPrints from the archive. If you upload a new version of an EPrint, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.
+H:removing	= You are requesting the removal of:
+F:send_req	= Send Request
+F:cancel	= Cancel
+H:cant_find_it	= Couldn't find the EPrint! There's probably a problem with the database. Try again later.
+M:remove_mail	= User $(1) (E-Mail: $(2))\nrequests the removal of the following EPrint:
+M:reason	= The following reason was given:
+M:no_reason	= No reason was given.
+M:visit_url	= Visit the following URL to view the EPrint and have the option to remove it:
+S:remove_sub	= EPrint Removal Request from $(1)
+</file>
+
+<file subscribe>
+H:dont_know_you	= I don't know who you are
+F:subscribe	= Subscribe
+F:create	= Create a Subscription
+F:remove	= Remove the Subscription
+H:mk_sub_error	= Unable to create your subscription. The database may be busy. Please try again later.
+H:return_dep	= Return to your deposit items page
+H:rm_sub_error	= Unable to remove your subscription. The database may be busy. Please try again later.
+H:no_sub	= You do not currently have a subscription. Click on the button below to create subscription.
+H:subscribe	= Subscribe
+H:cant_accept	= The subscription could not be accepted because:
+H:please_enter	= Enter the criteria for your subscription below.
+H:sub_accept	= Your subscription has been accepted.
+H:ret_deposit	= Click here to return to your deposit items page.
+H:ud_sub_error	= Unable to update your subscription. The database may be busy. Please try again later.
+</file>
+
+
+######################################################################
+# cgi/staff 
+######################################################################
+
+<file add_user>
+H:mk_acc_err	= Error creating user's account.
+H:staff_area	= Staff Area
+H:no_username	= No username entered!
+H:try_again	= Try Again
+H:create_title  = Create a User
+H:enter_username= Enter a username for the new user below.
+F:create_user	= Create User
+</file>
+
+<file buffer>
+H:ov_title	= Submission Buffer Overview
+H:no_entries	= There are no entries in the submission buffer at the moment.
+H:buffer_blurb  = Click on the title of an entry to view, edit, accept or reject it.
+H:title		= Title
+H:sub_by	= Submitted by
+H:sub_date	= Submission Date
+H:invalid	= INVALID
+H:return_staff	= Click here to return to the Staff Area
+</file>
+
+
+######################################################################
+
 <file advsearch>
 H:adv_search	= Advanced Search
 H:dont_panic	= Don't panic! Just leave the fields you don't want to search blank.
 H:simple_search = Click here for a simple search.
 </file>
+
+
+
+
+
+<file update_ecs_users>
+A:dude = Internationalisation Rocks.
+</file>
+

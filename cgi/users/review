@@ -30,8 +30,9 @@ my $user = EPrints::User::current_user( $session );
 if( !defined $user )
 {
 	# Can't find the user
-	$session->{render}->render_error( "I don't know who you are",
-	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->{render}->render_error( 
+		$session->{lang}->phrase( "H:dont_know_you" ),
+	      	$EPrintSite::SiteInfo::frontpage );
 	$session->terminate();
 	Apache::exit( 0 );
 }
@@ -75,9 +76,9 @@ if( $session->{render}->seen_form() )
 				else
 				{
 					$session->{render}->render_error(
-						"Unable to clone that record. Please try again later.",
+						$session->{lang}->phrase( "H:cant_clone" ),
 						"home",
-						"Deposit Items Page" );
+						$session->{lang}->phrase( "H:deposit_page" ) );
 				}
 
 				$page_written = 1;				
@@ -98,35 +99,40 @@ if( $session->{render}->seen_form() )
 
 unless( $page_written )
 {
-	print $session->{render}->start_html( "Review Documents" );
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:review_title" ) );
 	
 	if( $#eprints == -1 )
 	{
-		print "<CENTER><P><STRONG>You have no documents in the main archive.".
-			"</STRONG></P></CENTER>\n";
+		print "<CENTER><P><STRONG>";
+		print $session->{lang}->phrase( "H:no_docs" );
+		print "</STRONG></P></CENTER>\n";
 		
-		print "<CENTER><P><A HREF=\"home\">Click here to return to your ".
-			"deposit items page</A></P></CENTER>\n";
+		print "<CENTER><P><A HREF=\"home\">";
+		print $session->{lang}->phrase( "H:ret_deposit" );
+		print "</A></P></CENTER>\n";
 	}
 	else
 	{
-		print "<CENTER><P>Below are listed your documents in the main archive. ".
-			"Click on the title of a document to view it. You can also click on ".
-			"the clone button to make a copy of the document record in your ".
-			"workspace. You might want to do this if you are going to submit an ".
-			"updated version of the document.</P></CENTER>\n";
+		print "<CENTER><P>";
+		print $session->{lang}->phrase( "H:blurb_below" );
+		print "</P></CENTER>\n";		
 
-		print "<CENTER><P>You can also request the removal of a document, but ".
-			"this is <strong>strongly</strong> discouraged, since different ".
-			"versions of a document can all be linked in the archive.</P>".
-			"</CENTER>\n";
+		print "<CENTER><P>";
+		print $session->{lang}->phrase( "H:remove_info" );
+		print "</P></CENTER>\n";		
 		
 		print $session->{render}->start_form();
 		print $session->{render}->hidden_field( "seen", "true" );
 
 		print "<CENTER><TABLE BORDER=1 CELLPADDING=3>\n";
-		print "<TR><TH><STRONG>Document</STRONG><TH></TH>";
-		print "<TH></TH>" if( $EPrintSite::SiteInfo::allow_user_removal_request );
+		print "<TR><TH><STRONG>";
+		print $session->{lang}->phrase( "H:document" );
+		print "</STRONG><TH></TH>";
+		if( $EPrintSite::SiteInfo::allow_user_removal_request ) 
+		{
+			print "<TH></TH>" 
+		}
 		print "</TR>\n";
 		
 		foreach (@eprints)
@@ -135,11 +141,16 @@ unless( $page_written )
 				$session->{render}->render_eprint_citation( $_, 1, 1 ).
 				"</TD><TD>";
 			print $session->{render}->named_submit_button(
-				"clone_$_->{eprintid}", "Clone" );
+				"clone_$_->{eprintid}",
+				$session->{lang}->phrase( "F:clone" ) );
 
-			print "</TD><TD>".$session->{render}->named_submit_button(
-				"remove_$_->{eprintid}", "Request Removal" )
-				if( $EPrintSite::SiteInfo::allow_user_removal_request );
+			if( $EPrintSite::SiteInfo::allow_user_removal_request )
+			{
+				print "</TD><TD>";
+				print $session->{render}->named_submit_button(
+					"remove_$_->{eprintid}", 
+					$session->{lang}->phrase( "F:req_remove" ) );
+			}
 
 			print "</TD></TR>\n";
 		}
@@ -167,15 +178,16 @@ sub removal_request_form
 {
 	my( $session, $eprint ) = @_;
 	
-	print $session->{render}->start_html( "Request EPrint Removal" );
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:remove_title" ) );
 	
-	print "<P><EM>Please note that we <STRONG>strongly</STRONG> discourage ".
-		"removal of EPrints from the archive. If you upload a new version of ".
-		"an EPrint, a link to the later version will appear on the older ".
-		"version. Thus, anyone finding the old version will be able to see that ".
-		"a newer version has been deposited.</EM></P>\n";
+	print "<P><EM>";
+	print $session->{lang}->phrase( "H:remove_blurb" ) );
+	print "</EM></P>\n";
 	
-	print "<P>You are requesting the removal of:</P>\n<P>";
+	print "<P>";
+	print $session->{lang}->phrase( "H:removing" ) );
+	print "</P>\n<P>";
 	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
 	print "</P>\n";
 
@@ -190,7 +202,10 @@ sub removal_request_form
 		{},
 		0,
 		1,
-		[ "Send Request", "Cancel" ],
+		[ 
+			$session->{lang}->phrase( "F:send_req" ),
+			$session->{lang}->phrase( "F:cancel" )
+		],
 		{ "eprint_id" => $eprint->{eprintid} } );
 	
 	print $session->{render}->end_html();
@@ -221,17 +236,19 @@ sub handle_removal_request
 	        $eprint->{username} eq $user->{username} )
 	{
 		$session->{render}->render_error(
-			"Couldn't find the EPrint! There's probably a problem with the ".
-				"database. Try again later.",
+			$session->{lang}->phrase( "H:cant_find_it" ),
 			"home",
-			"Deposit items page" );
+			$session->{lang}->phrase( "H:deposit_page" ) );
 		return( 1 );
 	}
 	
-	if( $session->{render}->param( "submit") eq "Send Request" )
+	if( $session->{render}->param( "submit") eq 
+		$session->{lang}->phrase( "F:send_req" ) 
 	{
-		my $msg = "User ".$user->full_name()." (E-Mail: ".$user->{email}.")\n";
-		$msg .= "requests the removal of the following EPrint:\n\n";
+		my $msg = $session->{lang}->phrase( 
+			"M:remove_mail",
+			$user->full_name(),
+			$user->{email} )."\n\n";
 		$msg .= $session->{render}->render_eprint_citation( $eprint, 0, 0 );
 		$msg .= "\n\n";
 		
@@ -239,21 +256,21 @@ sub handle_removal_request
 
 		if( defined $reason && $reason ne "" )
 		{
-			$msg .= "The following reason was given:\n\n$reason\n\n";
+			$msg .= $session->{lang}->phrase( "M:reason" );
+			$msg .= "\n\n$reason\n\n";
 		}
 		else
 		{
-			$msg .= "No reason was given.\n\n";
+			$msg .= $session->{lang}->phrase( "M:no_reason" );
 		}
 		
-		$msg .= "Visit the following URL to view the EPrint and have the ".
-			"option to remove it:\n\n";
+		$msg .= $session->{lang}->phrase( "M:visit_url" )."\n\n";
 			
 		$msg .= $EPrintSite::SiteInfo::server_perl."/staff/edit_eprint?".
 			"eprint_id=$eprint->{eprintid}";
 
 		$session->mail_administrator(
-			"EPrint Removal Request from ".$user->full_name(),
+			$session->{lang}->phrase( "S:remove_sub" ),
 			$msg );
 	}
 	return( 0 );

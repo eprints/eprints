@@ -172,8 +172,13 @@ sub read_types
 
 	unless( open CFG_FILE, $file )
 	{
-		EPrints::Log::log_entry( "MetaInfo",
-		                         "Can't open eprint types file: $file: $!" );
+		EPrints::Log::log_entry( 
+			"MetaInfo",
+			EPrints::Language::logphrase(
+				"L:type_file_err",
+				$file,
+				$! ) );
+
 		return;
 	}
 
@@ -243,7 +248,11 @@ sub make_type
 			
 			if( !defined $field )
 			{
-				EPrints::Log::log_entry( "Unknown EPrint field $2 in class $type" );
+				EPrints::Log::log_entry( 
+					EPrints::Language::logphrase(
+						"L:unknown_field",
+						$2,
+						$type ) );
 				return;
 			}
 			
@@ -435,7 +444,11 @@ sub get_eprint_fields
 
 	if( !defined $fields )
 	{
-		EPrints::Log::log_entry( "MetaInfo", "No fields for EPrint type $type" );
+		EPrints::Log::log_entry( 
+			"MetaInfo",
+			EPrints::Language::logphrase(
+				"L:no_fields",
+				$type ) );
 		return( undef );
 	}
 

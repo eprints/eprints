@@ -35,8 +35,10 @@ my $user = EPrints::User::current_user( $session );
 if( !defined $user )
 {
 	# Can't find the user
-	$session->{render}->render_error( "I don't know who you are",
-	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->{render}->render_error( 
+		$session->{lang}->phrase( 
+			"H:dont_know_you",
+			$EPrintSite::SiteInfo::frontpage ) );
 	$session->terminate();
 	Apache::exit( 0 );
 }
@@ -52,13 +54,14 @@ my $valid_user = ( $#{$probs} == -1 );
 #
 ######################################################################
 
-print $session->{render}->start_html( "Deposit Items ($fullname)" );
+print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:deposit_items" )." ($fullname)" );
 
 
 ### Welcome author blurb
-print "<P><CENTER>Welcome to the item depositing area at ".
-	"$EPrintSite::SiteInfo::sitename. Please select one of the options ".
-	"below.</CENTER></P>\n";
+print "<P><CENTER>";
+$session->{lang}->phrase( "H:welcome" , $EPrintSite::SiteInfo::sitename );
+print "</CENTER></P>\n";
 
 if( $valid_user )
 {
@@ -71,13 +74,14 @@ if( $valid_user )
 	print "<HR>\n";
 
 	### View items in archive
-	print "<DL><DT><STRONG><A HREF=\"review\">Review your documents in the ".
-		"archive</A></STRONG></DT>\n";
-	print "<DD><P>This options allows you to view your documents in the main ".
-		"archive, and to make copies of the records to make depositing updated ".
-		"versions easier.";
-	print " You can also remove documents from the archive."
-		if( $EPrintSite::SiteInfo::allow_user_removal );
+	print "<DL><DT><STRONG><A HREF=\"review\">";
+	$session->{lang}->phrase( "H:review" );
+	print "</A></STRONG></DT>\n";
+	print "<DD><P>";
+	$session->{lang}->phrase( "H:review_info" );
+	if( $EPrintSite::SiteInfo::allow_user_removal ) {
+		$session->{lang}->phrase( "H:remove_info" );
+	}
 	print "</P></DD>\n";
 }
 else
@@ -86,28 +90,28 @@ else
 }
 
 ### Change author record
-print "<DT><STRONG><A HREF=\"record\">View/change your user record</A>".
-	"</STRONG></DT>\n<DD><P>";
+print "<DT><STRONG><A HREF=\"record\">";
+print $session->{lang}->phrase( "H:change" );
+print "</A></STRONG></DT>\n<DD><P>";
 
 if( $valid_user )
 {
-	print "Select this option to see your user record, and to correct ".
-		"or update your user information.</P></DD>\n";
+	print $session->{lang}->phrase( "H:change_info" );
 }
 else
 {
 	### User needs to update their record
-	print "Before you upload any documents, please fill out your user record.".
-		"</P></DD>\n";
+	print $session->{lang}->phrase( "H:before" );
 }
+print "</P></DD>\n";
 	
 ### Change subscription options
-print "<DT><STRONG><A HREF=\"subscribe\">Change your ".
-	"subscription options</A></STRONG></DT>\n";
-print "<DD><P>Select this option to change your subscription. This allows ".
-	"you to instruct the archive to automatically e-mail you with lists ".
-	"of documents deposited that match your criteria every day, week ".
-	"or month.</P></DD></DL>\n";
+print "<DT><STRONG><A HREF=\"subscribe\">";
+print $session->{lang}->phrase( "H:sub_opts" );
+print "</A></STRONG></DT>\n";
+print "<DD><P>";
+print $session->{lang}->phrase( "H:sub_opts_info" );
+print "</P></DD></DL>\n";
 
 print $session->{render}->end_html();
 
@@ -147,7 +151,9 @@ sub render_workspace
 
 	if( $#eprints >= 0 )
 	{
-		print "<CENTER><H3>Documents in your Workspace</H3></CENTER>\n";
+		print "<CENTER><H3>";	
+		print $session->{lang}->phrase( "H:docs" );
+		print "</H3></CENTER>\n";
 
 		my @eprint_ids;
 		my %eprint_titles;
@@ -180,11 +186,9 @@ sub render_workspace
 			undef,
 			"submit" );
 
-		print "<P><CENTER><EM>These are documents you are currently in the ".
-			"process of depositing. You can start depositing a new document by ".
-			"clicking on <STRONG>New</STRONG>, or you can select a document ".
-			"from the list, and select one of the other options.</EM></CENTER>".
-			"</P>\n";
+		print "<P><CENTER><EM>";
+		print $session->{lang}->phrase( "H:depositing" );
+		print "</EM></CENTER></P>\n";
 	}
 	else
 	{
@@ -192,7 +196,7 @@ sub render_workspace
 		print $session->{render}->hidden_field( "submit", "New" );
 		print "<P><CENTER>";
 		print $session->{render}->named_submit_button(
-			"Click here to start uploading a document" );
+			$session->{lang}->phrase( "F:start_upload" ) );
 		print "</CENTER></P>\n";
 		print $session->{render}->end_form();
 	}
@@ -219,17 +223,21 @@ sub show_pending
 
 	if( $#eprints >= 0 )
 	{
-		print "<CENTER><H3>Pending Items</H3></CENTER>\n";
+		print "<CENTER><H3>";
+		print $session->{lang}->phrase( "H:pending_title" );
+		print "</H3></CENTER>\n";
 		print "<CENTER><TABLE CELLPADDING=3 BORDER=0>\n";
 		my $e;
 		foreach $e (@eprints)
 		{
 			print "<TR><TD><EM>";
 			print $e->short_title();
-			print "</EM></TD><TD>Deposited ";
-			print $session->{render}->format_field(
-				EPrints::MetaInfo::find_eprint_field( "datestamp" ),
-				$e->{datestamp} );
+			print "</EM></TD><TD>";
+			print $session->{lang}->phrase( 
+				"H:deposited_at",
+				$session->{render}->format_field(
+					EPrints::MetaInfo::find_eprint_field( "datestamp" ),
+					$e->{datestamp} ) );
 			print "</TD></TR>\n";
 		}
 		print "</TABLE></CENTER>\n";

@@ -297,7 +297,10 @@ sub make_field
 				{
 					EPrints::Log::log_entry(
 						"MetaField",
-						"Garbled value for $key in field $self->{name}" );
+						EPrints::Language::logphrase(
+							"L:bad_value",
+							$key,
+							$self->{name} ) );
 				}
 			}
 			# type
@@ -308,7 +311,10 @@ sub make_field
 				{
 					EPrints::Log::log_entry(
 						"MetaField",
-						"Unknown field type $key for field $self->{name}" );
+						EPrints::Language::logphrase(
+							"L:bad_type",
+							$key,
+							$self->{name} ) );
 					return( undef );
 				}
 				else
@@ -356,7 +362,9 @@ sub make_field
 	{
 		EPrints::Log::log_entry(
 			"MetaField",
-			"Not all necessary information specified for field $self->{name}" );
+			EPrints::Language::logphrase(
+				"L:not_all_info",
+				$self->{name} ) );
 
 #EPrints::Log::debug( "MetaField", "TYPE $self->{type} NAME $self->{name} DISPLAYNAME $self->{displayname}" );
 	}
@@ -382,8 +390,12 @@ sub read_fields
 	
 	unless( open CFG_FILE, $file )
 	{
-		EPrints::Log::log_entry( "MetaInfo",
-		                         "Can't open metadata config file: $file: $!" );
+		EPrints::Log::log_entry( 
+			"MetaInfo",
+			EPrints::Language::logphrase(
+				"L:cant_open_file",
+				$file,
+				$! ) );
 		return;
 	}
 	

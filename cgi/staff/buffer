@@ -26,7 +26,8 @@ use strict;
 
 my $session = EPrints::Session->new();
 
-print $session->{render}->start_html( "Submission Buffer Overview" );
+print $session->{render}->start_html( 
+	$session->{lang}->phrase( "H:ov_title" ) );
 
 # Get EPrints in the submission buffer
 my @eprints = EPrints::EPrint::retrieve_eprints(
@@ -37,17 +38,24 @@ my @eprints = EPrints::EPrint::retrieve_eprints(
 if( $#eprints == -1 )
 {
 	# No EPrints
-	print "<P><CENTER><STRONG>There are no entries in the submission buffer at ".
-		"the moment.</STRONG></CENTER></P>\n";
+	print "<P><CENTER><STRONG>";
+	print $session->{lang}->phrase( "H:no_entries" ) );
+	print "</STRONG></CENTER></P>\n";
 }
 else
 {
-	print "<P><CENTER>Click on the title of an entry to view, edit, accept ".
-		"or reject it.</CENTER></P>\n";
+	print "<P><CENTER>";
+	print $session->{lang}->phrase( "H:buffer_blurb" ) );
+	print "</CENTER></P>\n";
 
 	print "<CENTER><TABLE BORDER=1 CELLPADDING=5>\n";
-	print "<TR><TD><STRONG>Title</STRONG></TH><TH><STRONG>Submitted by</STRONG>".
-		"</TH><TH><STRONG>Submission Date</STRONG></TH></TR>\n";
+	print "<TR><TH><STRONG>";
+	print $session->{lang}->phrase( "H:title" ) );
+	print "</STRONG></TH><TH><STRONG>";
+	print $session->{lang}->phrase( "H:sub_by" ) );
+	print "</STRONG></TH><TH><STRONG>";
+	print $session->{lang}->phrase( "H:sub_date" ) );
+	print "</STRONG></TH></TR>\n";
 
 	my $e;
 	foreach $e (@eprints)
@@ -70,7 +78,9 @@ else
 		}
 		else
 		{
-			print "<STRONG>INVALID</STRONG>";
+			print "<STRONG>";
+			print $session->{lang}->phrase( "H:invalid" ) );
+			print "</STRONG>";
 		}
 		
 		print "</TD>";
@@ -87,8 +97,9 @@ else
 	print "</TABLE></CENTER>\n";
 }
 
-print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
-	"Click here to return to the Staff Area</A></CENTER></P>\n";
+print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">";
+print $session->{lang}->phrase( "H:return_staff" );
+print "</A></CENTER></P>\n";
 
 print $session->{render}->end_html();
 $session->terminate();
