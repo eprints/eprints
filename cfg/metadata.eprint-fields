@@ -132,7 +132,7 @@ visible = YES
 displayname = "Keywords"
 help = "Enter here any keywords you think will aid searchers in finding your "
 help = "deposit. Please be careful to enter specific keywords relevant to "
-help = "your deposit, and don't be to general."
+help = "your deposit, and don't be too general."
 </field>
 
 <field month>
