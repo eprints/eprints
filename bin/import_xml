@@ -29,8 +29,16 @@ exit;
 
 sub deal 
 {
-	my( $session , $eprint ) = @_;
+	my( $session , $table , $eprint ) = @_;
 	print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
+	if( $session->{database}->exists( $table , $eprint->{eprintid} ) )
+	{
+		print  "EXISTS!\n";
+	}
+	else
+	{
+		print  "NOT EXISTS!\n";
+	}
 	print "------------\n";
 }
 

@@ -98,11 +98,6 @@ $EPrints::Database::seperator = "_";
 	"enum"       => "INDEX(\$(name))",
 	"boolean"    => "INDEX(\$(name))",
 	"set"        => "INDEX(\$(name))",
-	#"text"       => "INDEX(\$(name)(\$(size)))",
-	#"multitext"  => "INDEX(\$(name)(\$(size)))",
-	#"url"        => "INDEX(\$(name)(\$(size)))",
-	#"multiurl"   => "INDEX(\$(name)(\$(size)))",
-	#"email"      => "INDEX(\$(name)(\$(size)))",
 	"text"       => "INDEX(\$(name))",
 	"multitext"  => "INDEX(\$(name))",
 	"url"        => "INDEX(\$(name))",
@@ -114,7 +109,6 @@ $EPrints::Database::seperator = "_";
 	"pagerange"  => "INDEX(\$(name))",
 	"year"       => "INDEX(\$(name))",
 	"eprinttype" => "INDEX(\$(name))",
-	#"name"       => "INDEX(\$(name)_given(\$(size))), INDEX(\$(name)_family(\$(size)))"
 	"name"       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
 );
 
@@ -1205,5 +1199,24 @@ sub benchmark
 	return $info[6];
 
 }	
+
+sub exists
+{
+	my( $self, $table, $id ) = @_;
+	
+	my @fields = EPrints::MetaInfo::get_fields( $table );
+	my $keyfield = $fields[0]->{name};
+
+	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"$id\";";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+
+	if( $sth->fetchrow_array )
+	{ 
+		return 1;
+	}
+	return 0;
+}
 
 1; # For use/require success

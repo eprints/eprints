@@ -19,7 +19,8 @@ use EPrints::MetaInfo;
 use XML::Parser;
 
 # function will be called once for each object described by the XML
-# file with the session handle and whatever kind of eprint object.
+# file with the session handle, the table and whatever kind of 
+# eprint object.
 
 # this module creates an extra property of the parser, calling it
 # "eprints". This is used to pass around state information including
@@ -138,6 +139,7 @@ sub _handle_end
 		
 		&{$parser->{eprints}->{function}}( 
 			$parser->{eprints}->{session}, 
+			$parser->{eprints}->{table},
 			$item );
 
 		delete $parser->{eprints}->{data};
