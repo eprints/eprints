@@ -29,9 +29,10 @@ P {
         margin-right: 12pt;
 }
 
+
 .pagetitle {
         font: bold x-large Helvetica,Arial,Sans-serif;
-	color: #000000;
+	color: #ffffff;
 }
 
 .sitetitle {
@@ -60,6 +61,11 @@ P {
 
 .requiredstar {
 	color: #ff0000;
+}
+
+.alert {
+	color: #ff0000;
+        font: bold medium serif;
 }
 
 .namefieldheading {

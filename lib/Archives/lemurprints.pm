@@ -685,16 +685,17 @@ $c->{htmlpage}->{english} = parse_html( <<END );
 <body bgcolor="#ffffff" text="#000000">
 
 <div class="header">
-<table  cellpadding="5" border="0" cellspacing="0" width="100%"><tr><td bgcolor="#cccccc">
-      <a href="http://lemur.ecs.soton.ac.uk/"><img border="0" width="100" height
-="100" src="http://lemur.ecs.soton.ac.uk/images/logo_sidebar.gif" alt="" /></a>
-</td><td align="left" width="100%" bgcolor="#cccccc">
+<table  cellpadding="5" border="0" cellspacing="0" width="100%">
+<tr><td align="left" width="100%" bgcolor="#cccccc">
 <h1 class="sitetitle">$c->{archivename}</h1>
-<h2 class="pagetitle"><titlehere /></h2>
 </td><td align="right" bgcolor="#cccccc">
 <a href="$c->{server_perl}/setlang"><img border="0" src="/images/english.png" width="60" height="40" alt="english mode" /></a>
 </td></tr>
-<tr><td colspan="3" bgcolor="#333333">
+<tr>
+<td bgcolor="#333333">
+<div class="pagetitle"><titlehere /></div>
+</td>
+<td bgcolor="#333333">
 <div class="menu">
 
             <a class="menulink" href="$c->{frontpage}">Home</a> ||

@@ -23,24 +23,18 @@ use strict;
 
 my $session = new EPrints::Session;
 
-my( $html );
 
 my $rows;
 
 # Number of users in each group
 my $num_users = count( "user" );
-print STDERR "NUMUSERS...... $num_users\n";
-my %num_users;
 
-my $usertypes = $session->get_archive()->get_data_set( "user" )->get_types();
-
-my $usertype;
+my( %num_users, $usertypes, $usertype, $userds );
+$userds = $session->get_archive()->get_data_set( "user" );
+$usertypes = $userds->get_types();
 foreach $usertype ( @{$usertypes} )
 {
-	print STDERR "triying($usertype)=\n";
-	my $count = count( "user", usertype => $usertype );
-	$num_users{ $usertype } = $count;
-	print STDERR "($usertype)=$count\n";
+	$num_users{ $usertype } = count( "user", usertype => $usertype );
 }
 
 # Number of submissions in workspace
@@ -61,35 +55,77 @@ my $num_subs = count( "subscription" );
 my $db_status = ( $num_users > 0 ? "OK" : "DOWN" );
 
 
+my( $html , $table , $p , $span );
+
 # Write the results to a table
-print "<CENTER><TABLE BORDER=0>\n";
 
+$html = $session->make_doc_fragment;
 
-&print_row( "EPrints Release:", $EPrints::Version::eprints_software_version );
+$table = $session->make_element( "table", border=>"0" );
+$html->appendChild( $table );
 
-&print_row( "Database Status:", $db_status );
+$table->appendChild( render_row( 
+		$session,
+		$session->make_text( "EPrints Release:" ), 
+		$session->make_text( 
+			$EPrints::Version::eprints_software_version ) ) );
 
-&print_row( "", "" );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Database Status:" ), 
+		$session->make_text( $db_status ) ) );
+
+$table->appendChild( render_empty_row( $session ) );
 
 foreach $usertype ( keys %num_users )
 {
 	#lang cjg
-	&print_row( $usertype, $num_users{$usertype} );
+	$table->appendChild(
+		render_row( 
+			$session,
+			$session->make_text(
+				$userds->get_type_name( $session, $usertype )), 
+			$session->make_text( $num_users{$usertype} ) ) );
 }
-&print_row( "Total Users:", $num_users );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Total Users:" ), 
+		$session->make_text( $num_users ) ) );
 
-&print_row( "", "" );
+$table->appendChild( render_empty_row( $session ) );
 
-&print_row( "Articles in archive:", $num_archive );
-&print_row( "Articles in buffer:", $num_buffer );
-&print_row( "Articles in workspace:", $num_inbox );
-&print_row( "Deleted Articles:", $num_deleted );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Articles in archive:" ), 
+		$session->make_text( $num_archive ) ) );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Articles in buffer:" ), 
+		$session->make_text( $num_buffer ) ) );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Articles in workspace:" ), 
+		$session->make_text( $num_inbox ) ) );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Deleted Articles:" ),
+		$session->make_text( $num_deleted ) ) );
 
-&print_row( "", "" );
+$table->appendChild( render_empty_row( $session ) );
 
-&print_row( "Subscriptions:", $num_subs );
+$table->appendChild(
+	render_row( 
+		$session,
+		$session->make_text( "Subscriptions:" ), 
+		$session->make_text( $num_subs ) ) );
 
-&print_row( "", "" );
+$table->appendChild( render_empty_row( $session ) );
 
 my $best_size = 0;
 
@@ -98,38 +134,69 @@ my $dir;
 foreach $dir ( @dirs )
 {
 	my $size = $session->get_archive()->get_store_dir_size();
-	&print_row( "Document partition $dir:", int($size/1024)."Mb free" );
+	$table->appendChild(
+		render_row( 
+			$session,
+			$session->make_text( "Document partition $dir:" ), 
+			$session->make_text( int($size/1024)."Mb free" ) ) );
 
 	$best_size = $size if( $size > $best_size );
 }
 
-print "</TABLE></CENTER>\n";
-
 if( $best_size < $session->get_archive()->get_conf( "diskspace_error_threshold" ) )
 {
-	print "<CENTER><P><STRONG><FONT COLOR=RED>NO SPACE LEFT FOR EPRINTS!".
-		"</FONT></STRONG></P></CENTER>\n";
+	$p = $session->make_element( "p" );
+	$html->appendChild( $p );
+	$span = $session->make_element( "span", class=>"alert" );
+	$p->appendChild( $span );
+	$span->appendChild( 
+		$session->make_text( "NO SPACE LEFT FOR EPRINTS!" ) );
 }
 elsif( $best_size < $session->get_archive()->get_conf( "diskspace_warn_threshold" ) )
 {
-	print "<CENTER><P><STRONG><FONT COLOR=RED>WARNING:</FONT></STRONG> ".
-		"Available space for new EPrints running low</P></CENTER>\n";
+	$p = $session->make_element( "p" );
+	$html->appendChild( $p );
+	$span = $session->make_element( "span", class=>"alert" );
+	$p->appendChild( $span );
+	$span->appendChild( 
+		$session->make_text( "WARNING:" ) );
+	$p->appendChild( 
+		$session->make_text( 
+			" Available space for new EPrints running low" ) );
 }
 
-print "<P><CENTER><A HREF=\"$session->get_archive()->{server_static}/staff/\">".
-	"Click here to return to the Staff Area</A></CENTER></P>\n";
+$session->build_page( "Server Status", $html );
 
-print $session->{render}->start_html( "Server Status" );
-print $session->{render}->end_html();
+$session->send_page(); 
 
 $session->terminate();
 
-
-sub print_row
+sub render_empty_row
 {
-	my( $key, $val ) = @_;
+	my( $session ) = @_;
+
+	return render_row( 
+		$session,
+		$session->make_text( "" ), 
+		$session->make_text( "" ) );
+}
 	
-	print "<TR><TD><STRONG>$key</STRONG></TD><TD ALIGN=right>$val</TD></TR>\n";
+	
+# this cjg should probably by styled.
+sub render_row
+{
+	my( $session, $key, $val ) = @_;
+	
+	my( $tr, $td );
+	$tr = $session->make_element( "tr" );
+	$td = $session->make_element( "td" );
+	$tr->appendChild( $td );
+	$td->appendChild( $key );
+	$td = $session->make_element( "td" );
+	$tr->appendChild( $td );
+	$td->appendChild( $val );
+
+	return $tr;
 }
 
 # maybe this could be utility? cjg

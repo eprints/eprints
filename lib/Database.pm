@@ -1045,10 +1045,10 @@ sub do
 	my $result = $self->{dbh}->do( $sql );
 
 	if ( !$result ) {
-		print "--------\n";
-		print "DBErr:\n";
+		print "<pre>--------\n";
+		print "dpDBErr:\n";
 		print "$sql\n";
-		print "----------\n";
+		print "----------</pre>\n";
 	}
 	$self->{session}->get_archive()->log( "Database do debug: $sql" );
 
@@ -1063,10 +1063,10 @@ sub prepare
 	my $result = $self->{dbh}->prepare( $sql );
 
 	if ( !$result ) {
-		print "--------\n";
-		print "DBErr:\n";
+		print "<pre>--------\n";
+		print "prepDBErr:\n";
 		print "$sql\n";
-		print "----------\n";
+		print "----------</pre>\n";
 	}
 
 	return $result;
@@ -1080,10 +1080,10 @@ sub execute
 	my $result = $sth->execute;
 
 	if ( !$result ) {
-		print "--------\n";
-		print "DBErr:\n";
+		print "<pre>--------\n";
+		print "execDBErr:\n";
 		print "$sql\n";
-		print "----------\n";
+		print "----------</pre>\n";
 	}
 	$self->{session}->get_archive()->log( "Database execute debug: $sql" );
 
