@@ -51,3 +51,26 @@ citation
 it in code. and to contain <ep:a> </ep:a> to show where to put the link.
 [CONFIG] - added oai_sets config option, same format as browse views. 
 
+23/01/2002
+ - generate_apacheconf now (optionally) includes directives to pass .txt and
+.uni files through the VLit (Xanadu) handler.
+ - added VLit and Latex to startup.pl to force mod_perl to load them at the
+start.
+ - added support for render_value and render_single_value to MetaField.pm
+ - removed some broken and useless old browse views linking code from 
+MetaField.pm
+ - added 3 new executable paths to the CVS SystemSettings: latex, dvips and
+convert, convert is invoked as convert_crop_white as we may wish to invoke it
+with other options. The autoinstaller does NOT add these new values.
+ - put ' quotes around values in default system settings invocations - should
+added to installer too.
+ - Utils::tree_to_utf8 now understands to turn an <img> into the contents of
+the alt attribute.
+ - renamed Xanadu.pm to VLit.pm
+ - added Latex.pm which calls latex, dvips & convert to turn a latex string
+into a PNG and also a method which renders a string as DOM but replaces
+bits which look like latex with <img>s which point to cgi/latex2png 
+ - added cgi/latex2png which uses Latex.pm to create an image from a latex 
+string and serve it. (uses a cache dir so each one only has to be done once)
+[CONFIG] - added "enable_vlit_support" to the ApacheConfig.pm file. If set to
+zero then the VLit handler is not turned on.
