@@ -1513,7 +1513,7 @@ sub _write_version_thread_aux
 	
 	# Write the citation
 	my $citation_spec =
-		$EPrintSite::SiteInfo::thread_citation_specs{$field->{name}};
+		$self->{session}->{site}->{thread_citation_specs}->{$field->{name}};
 
 	$html .= EPrints::Citation::render_citation( $eprint->{session},
 	                                             $citation_spec,

@@ -25,7 +25,7 @@ use strict;
 my $session = new EPrints::Session;
 
 my @search_fields = ( "eprintid", "username", "dir" );
-push @search_fields, @EPrintSite::SiteInfo::advanced_search_fields;
+push @search_fields, @{$session->{site}->{advanced_search_fields}};
 
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
@@ -42,8 +42,8 @@ my $searchform = new EPrints::SearchForm(
 	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
 		" blank. <A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
 		"Click here to return to the staff page.</A></P></CENTER>",
-	\%EPrintSite::SiteInfo::eprint_order_methods,
-	$EPrintSite::SiteInfo::eprint_default_order,
+	$session->{site}->{eprint_order_methods},
+	$session->{site}->{eprint_default_order},
 	1 );
 
 $searchform->process();

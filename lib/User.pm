@@ -383,7 +383,7 @@ sub send_introduction
 		$self->{email},
 		$self->{session}->{lang}->phrase( "S:welcome", 
 		                                 { sitename=>$EPrintSite::SiteInfo::sitename } ),
-		$EPrintSite::SiteInfo::template_user_intro,
+		$self->{session}->{site}->{template_user_intro},
 		$self ) );
 }
 

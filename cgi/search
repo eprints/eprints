@@ -27,7 +27,7 @@ my $session = new EPrints::Session;
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
 	"eprints",
-	\@EPrintSite::SiteInfo::simple_search_fields );
+	$session->{site}->{simple_search_fields} );
 
 my $searchform = new EPrints::SearchForm(
 	$session,
@@ -39,8 +39,8 @@ my $searchform = new EPrints::SearchForm(
 	"<P><A HREF=\"advsearch\">".
 	  $session->{lang}->phrase( "H:adv_search" ).
 	  "</A></P>",
-	\%EPrintSite::SiteInfo::eprint_order_methods,
-	$EPrintSite::SiteInfo::eprint_default_order,
+	$session->{site}->{eprint_order_methods},
+	$session->{site}->{eprint_default_order},
 	0 );
 
 $searchform->process();

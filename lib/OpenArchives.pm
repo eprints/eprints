@@ -443,6 +443,7 @@ sub make_harvest_search
 		my $date_search_spec = ( defined $start_date ? $start_date : "" ) . "-" .
 		( defined $end_date ? $end_date : "" );
 
+#cjg?
 		$searchexp->add_field(
 			$date_field,
 			$date_search_spec );
@@ -462,6 +463,7 @@ sub make_harvest_search
 		}
 		$subject_search_spec .= ":ANY";
 
+#cjg?
 		$searchexp->add_field(
 			$subject_field,
 			$subject_search_spec );
@@ -777,7 +779,7 @@ sub list_contents
 		0,
 		1,
 		[],
-		\%EPrintSite::SiteInfo::eprint_order_methods,
+		$session->{site}->{eprint_order_methods},
 		undef );
 	
 	# Add the relevant fields
@@ -790,7 +792,7 @@ sub list_contents
 		# Get the relevant subject ID. Since all subjects have unique ID's, we
 		# can just remove everything specifying the ancestry.
 		$partitionspec =~ s/.*;//;
-
+#cjg
 		$searchexp->add_field( $subject_field, "$partitionspec:ANY" );
 	}
 	
@@ -798,7 +800,8 @@ sub list_contents
 	{
 		# Get the datestamp field
 		my $datestamp_field = $session->{metainfo}->find_eprint_field( "datestamp" );
-		
+	
+#cjg	
 		$searchexp->add_field( $datestamp_field, "$fileafter-" );
 	}
 	

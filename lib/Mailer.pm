@@ -20,6 +20,7 @@ use EPrintSite::SiteInfo;
 use EPrints::Version;
 
 use strict;
+##what's with automail in this file? Lose it.
 
 ######################################################################
 #

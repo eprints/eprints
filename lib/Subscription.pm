@@ -88,7 +88,7 @@ sub new
 	my @metafields = EPrints::SearchExpression::make_meta_fields(
 		$self->{session},
 		"eprints",
-		\@EPrintSite::SiteInfo::subscription_fields );
+		$self->{session}->{site}->{subscription_fields} );
 
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
@@ -97,7 +97,7 @@ sub new
 		1,
 		1,
 		\@metafields,
-		\%EPrintSite::SiteInfo::eprint_order_methods,
+		$self->{session}->{eprint_order_methods},
 		$EPrintSite::SiteInfo::default_eprint_order );
 
 	$self->{searchexpression}->state_from_string( $self->{spec} )
@@ -427,6 +427,7 @@ sub process
 	if( $freq eq "daily" )
 	{
 		# Get from the last day
+#cjg?
 		$se->add_field( $ds_field, $yesterday );
 	}
 	elsif( $freq eq "weekly" )
@@ -436,6 +437,7 @@ sub process
 
 		# Get from the last week
 		$se->add_field( $ds_field, "$last_week-$yesterday" );
+#cjg?
 	}
 	elsif( $freq eq "monthly" )
 	{
@@ -459,6 +461,7 @@ sub process
 		
 		# Add the field searching for stuff from a month ago to yesterday.
 		$se->add_field( $ds_field, "$year-$month-$day-$yesterday" );
+#cjg?
 	}
 
 	my $success = 0;

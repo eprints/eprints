@@ -27,7 +27,7 @@ my $session = new EPrints::Session;
 my @metafields = EPrints::SearchExpression::make_meta_fields(
 	$session,
 	"users",
-	\@EPrintSite::SiteInfo::user_search_fields );
+	$session->{site]->{user_search_fields} );
 
 my $searchform = new EPrints::SearchForm(
 	$session,
@@ -37,8 +37,8 @@ my $searchform = new EPrints::SearchForm(
 	\@metafields,
 	"Staff User Search",
 	"",
-	\%EPrintSite::SiteInfo::user_order_methods,
-	$EPrintSite::SiteInfo::default_user_order );
+	$session->{site}->{user_order_methods},
+	$session->{site}->{default_user_order} );
 
 $searchform->process();
 

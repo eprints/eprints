@@ -180,6 +180,8 @@ sub children
 			"parent" ),
 		"ALL:EQ:$self->{subjectid}" );
 
+#cjg set order (it's in the site config)
+
 	my $searchid = $searchexp->perform_search();
 	my @rows = $searchexp->get_records();
 
@@ -263,7 +265,7 @@ sub create_subject_table
 	my( $session ) = @_;
 	
 	# Read stuff in from the subject config file
-	open SUBJECTS, $EPrintSite::SiteInfo::subject_config or return( 0 );
+	open SUBJECTS, $session->{site}->{subject_config} or return( 0 );
 
 	my $success = 1;
 	
@@ -532,7 +534,7 @@ sub posted_eprints
 
 	$searchexp->add_field(
 		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
-		"ALL:$self->{subjectid}" );
+		"ALL:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();
 	my @data = $searchexp->get_records();
@@ -562,7 +564,7 @@ sub count_eprints
 
 	$searchexp->add_field(
 		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
-		"ALL:$self->{subjectid}" );
+		"ALL:EQ:$self->{subjectid}" );
 
 	my $searchid = $searchexp->perform_search();
 	my $count = $searchexp->count();
