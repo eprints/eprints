@@ -59,11 +59,7 @@ $page = $session->make_doc_fragment();
 
 ### Welcome author blurb
 $p = $session->make_element( "p" );
-$p->appendChild( 
-	$session->html_phrase( 
-		"cgi/users/home:welcome",
-		sitename => $session->make_text( 
-			$session->get_archive()->get_conf( "archivename" ) ) ) );
+$p->appendChild( $session->html_phrase( "cgi/users/home:welcome" ) );
 $page->appendChild( $p );
 
 

@@ -1473,11 +1473,12 @@ sub render_citation
 	
 	if( !defined $cstyle )
 	{
-		$cstyle = $self->{session}->get_archive()->call( "get_eprint_citation_style", $self );
+		$cstyle = $self->{session}->get_citation_spec(
+					$self->get_value("type") );
 	}
 
 	my $ifnode;
-	foreach $ifnode ( $cstyle->getElementsByTagName( "IF" , 1 ) )
+	foreach $ifnode ( $cstyle->getElementsByTagName( "if" , 1 ) )
 	{
 		my $fieldname = $ifnode->getAttribute( "name" );
 		my $val = $self->get_value( "$fieldname" );
@@ -1495,32 +1496,47 @@ sub render_citation
 		$ifnode->dispose();
 	}
 
-	my $fieldnode;
-	foreach $fieldnode ( $cstyle->getElementsByTagName( "FIELD" , 1 ) ) 
-	{
-		my $fieldname = $fieldnode->getAttribute( "name" );
-		my $el = $self->{dataset}->get_field( $fieldname )->render_value( 
-			$self->{session},
-			$self->get_value( $fieldname ) );
-		$fieldnode->getParentNode()->replaceChild( $el, $fieldnode );
-		$fieldnode->dispose();
+	$self->_expand_references( $cstyle );
+
+	my $span = $self->{session}->make_element( "span", class=>"citation" );
+	$span->appendChild( $cstyle );
+	
+	return $span;
+}                                   
+
+sub _expand_references
+{
+	my( $self, $node ) = @_;
+
+	foreach( $node->getChildNodes )
+	{                
+		if( $_->getNodeType == ENTITY_REFERENCE_NODE )
+		{
+			my $fname = $_->getNodeName;
+			my $field = $self->{dataset}->get_field( $fname );
+			my $fieldvalue = $field->render_value( 
+						$self->{session}, 
+						$self->get_value( $fname ) );
+			$node->replaceChild( $fieldvalue, $_ );
+			$_->dispose();
+		}
+		else
+		{
+			$self->_expand_references( $_ );
+		}
 	}
-
-	return $cstyle;
-}                                                   
-
+}
 
 ## WP1: BAD
 sub get_value
 {
 	my( $self , $fieldname ) = @_;
+	
+	my $r = $self->{data}->{$fieldname};
 
-	if( $self->{data}->{$fieldname} eq "")
-	{
-		return undef;
-	}
+	$r = undef if( defined $r && $r eq "" );
 
-	return $self->{data}->{$fieldname};
+	return $r;
 }
 
 ## WP1: BAD

@@ -52,9 +52,7 @@ if( $session->{render}->seen_form() )
 	print "</P></CENTER>\n";
 		
 	print "<P><A HREF=\"".$session->get_archive()->get_conf( "frontpage" )."\">";
-	print $session->{lang}->phrase( 
-		"cgi/remind:return_home",
-		sitename=>"$session->get_archive()->get_conf( "siteinfo" ) );
+	print $session->{lang}->phrase( "cgi/remind:return_home" );
 	print "</A></P>\n";
 
 	print $session->{render}->end_html();

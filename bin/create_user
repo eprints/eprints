@@ -22,7 +22,6 @@ use EPrints::Session;
 
 use strict;
 
-
 if( $#ARGV < 3 || $#ARGV > 4 )
 {
 	die "Usage: create_user <siteid> <username> <email> <access-level> [<password>]\n";

@@ -53,8 +53,6 @@ $c->{description} = latin1( "Your Site Description Here" );
 # E-mail address for human-read administration mail
 $c->{adminemail} = "admin\@lemur.ecs.soton.ac.uk";
 
-$c->{languages} = [ "en", "fr" ];
-
 # Host the machine is running on
 $c->{host} = "HOSTNAME";
 
@@ -328,7 +326,7 @@ $c->{oai_comments} = [
 
 # List of supported languages is in EPrints::Archives::General.pm
 # Default Language for this archive
-$c->{default_language} = "en";
+$c->{languages} = [ "en", "fr" ];
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
@@ -681,8 +679,6 @@ $c->{signature} = <<END;
 END
 #########################################################################################
 
-
-END
 
 #  Default text to send a user when "bouncing" a submission back to their
 #  workspace. It should leave some space for staff to give a reason.
@@ -1314,99 +1310,6 @@ sub eprint_render_full
 }
 
 
-######################################################################
-#
-# $citation = eprint_render_citation( $eprint, $html )
-#
-#  Return text for rendering an EPrint in a form suitable for a
-#  bibliography. If $html is non-zero, HTML formatting tags may be
-#  used. Otherwise, only plain text should be returned.
-#
-######################################################################
-
-my %OLD_CITATION_SPECS =
-(
-	"bookchapter"  =>  "{authors} [({year}) ]<i>{title}</i>, in [{editors}, Eds. ][<i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
-	"confpaper"    =>  "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
-	"confposter"   =>  "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
-	"techreport"   =>  "{authors} [({year}) ]{title}. Technical Report[ {reportno}][, {department}][, {institution}].",
-	"journale"     =>  "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})].",
-	"journalp"     =>  "{authors} [({year}) ]{title}. <i>{publication}</i>[ {volume}][({number})][:{pages}].",
-	"newsarticle"  =>  "{authors} [({year}) ]{title}. In <i>{publication}</i>[, {volume}][({number})][ pages {pages}][, {publisher}].",
-	"other"        =>  "{authors} [({year}) ]{title}.",
-	"preprint"     =>  "{authors} [({year}) ]{title}.",
-	"thesis"       =>  "{authors} [({year}) ]<i>{title}</i>. {thesistype},[ {department},][ {institution}]."
-);
-
-my %CITATION_SPECS =
-(
-	"bookchapter"  =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<i><FIELD name="title" /></i>, in [<FIELD name="editors" />, Eds. ][<i><FIELD name="publication" /></i>][, chapter <FIELD name="chapter" />][, pages <FIELD name="pages" />]. [<FIELD name="publisher" />.]
-END
-	"confpaper"    =>  <<END,
-<FIELD name="authors"/> <IF name="year">(<FIELD name="year"/>) </IF><FIELD name="title"/>. In <IF name="editors"><FIELD name="editors"/>, Eds. </IF><IF name="conference"><I>Proceedings <FIELD name="conference" /></I></IF><IF name="volume"> <B><FIELD name="volume" /></B></IF><IF name="number">(<FIELD name="number" />)</IF><IF name="pages">, pages <FIELD name="pages" /></IF><IF name="confloc">, <FIELD name="confloc" /></IF>.
-END
-
-	"confposter"   =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. In [<FIELD name="editors" />, Eds. ][<i>Proceedings <FIELD name="conference" /></i>][ <B><FIELD name="volume" /></B>][(<FIELD name="number" />)][, pages <FIELD name="pages" />][, <FIELD name="confloc" />].
-END
-
-	"techreport"   =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. Technical Report[ <FIELD name="reportno" />][, <FIELD name="department" />][, <FIELD name="institution" />].
-END
-
-	"journale"     =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. <i><FIELD name="publication" /></i>[ <FIELD name="volume" />][(<FIELD name="number" />)].
-END
-
-	"journalp"     =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. <i><FIELD name="publication" /></i>[ <FIELD name="volume" />][(<FIELD name="number" />)][:<FIELD name="pages" />].
-END
-
-	"newsarticle"  =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />. In <i><FIELD name="publication" /></i>[, <FIELD name="volume" />][(<FIELD name="number" />)][ pages <FIELD name="pages" />][, <FIELD name="publisher" />].
-END
-
-	"other"        =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />.
-END
-
-	"preprint"     =>  <<END,
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<FIELD name="title" />.
-END
-
-	"thesis"       =>  <<END
-<FIELD name="authors" /> [(<FIELD name="year" />) ]<i><FIELD name="title" /></i>. <FIELD name="thesistype" />,[ <FIELD name="department" />,][ <FIELD name="institution" />]."
-)" />
-END
-
-);
-
-
-
-my %CITATION_SPEC_DOMTREE;
-foreach( keys %CITATION_SPECS )
-{
-	$CITATION_SPEC_DOMTREE{$_} = parse_html(
-		"<span class=\"citation\">".$CITATION_SPECS{$_}."</span>" );
-
-}
-
-
-
-
-## WP1: BAD
-sub get_eprint_citation_style 
-{
-	my( $eprint ) = @_;
-
-## Crash if unknown style... cjg
-
-	my $style = $CITATION_SPEC_DOMTREE{$eprint->get_value( "type" )}->cloneNode( 1 );
-	$eprint->{session}->take_ownership( $style );
-	
-	return $style;
-}
 
 
 
@@ -1971,7 +1874,7 @@ sub validate_eprint_meta
 sub log
 {
 	my( $archive, $message ) = @_;
-	print STDERR "EPRINTS:".$archive->get_conf("archiveid").": ".$message."\n";
+	print STDERR "EP(".$archive->get_conf("archiveid").") ".$message."\n";
 }
 
 ## WP1: BAD

@@ -43,7 +43,7 @@ unless( $input eq "yes" )
 }
 
 my $session = new EPrints::Session( 1 );
-exit unless( defined $session );
+exit( 1 ) unless( defined $session );
 
 # Hose all entries in subject table:
 

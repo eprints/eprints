@@ -27,7 +27,7 @@ use EPrints::HTMLRender;
 use EPrints::Subject;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
-exit unless( defined $session );
+exit( 1 ) unless( defined $session );
 
 
 # Get all of the available subjects

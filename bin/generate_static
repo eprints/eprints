@@ -25,7 +25,7 @@ use File::Find;
 use strict;
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
-exit unless( defined $session );
+exit( 1 ) unless( defined $session );
 
 # change to base of site so expat can find the dtd directory. cjg (still needed???)
 chdir( $session->get_archive()->get_conf( "archive_root" ) );
@@ -81,19 +81,9 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 		{
 			my $mode = $1;
 			$destination_filename =~ s/\.x(html|page)$/.html/;
-			my $parser = $session->get_archive()->new_parser();
 
-			open( XPAGE , $File::Find::name );
-			my $doc = eval { 
-				$parser->parse( *XPAGE );
-			};
-			if( $@ )
-			{
-				my $err = $@;
-				$err =~ s# at /.*##;
-				die "Error parsing $File::Find::name\n$err";
-			}
-			close XPAGE;
+			my $doc = $session->get_archive()->parse_xml(
+						$File::Find::name );
 
 			my $page = ($doc->getElementsByTagName( $mode ))[0];
 			if( !defined $page )

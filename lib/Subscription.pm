@@ -499,7 +499,6 @@ sub process
 		my $body = $self->{session}->phrase( 
 			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
-			     sitename=>$self->{session}->get_archive()->get_conf( "archivename" ),
 			     url=>$self->{session}->get_archive()->get_conf( "server_perl" )."/users/subscribe" );
 		
 		# Then how many we got

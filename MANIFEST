@@ -15,7 +15,8 @@ EPRINTSBASE/
 			cfg/
 				Config.pm
 				user-apache.conf
-				<?>.xml
+				template-<lang>.xml
+				citations-<lang>.xml
 			documents/
 				<disk>/<nn>/<nn>/<nn>/<nn>/<format>/
 					.

@@ -119,12 +119,13 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 	# What language is this session in?
 
 	my $langcookie = $self->{query}->cookie( $self->{archive}->get_conf( "lang_cookie_name") );
-	if( defined $langcookie && grep( /^$langcookie$/, @{$self->{archive}->get_conf( "languages" )} ) )
+	if( defined $langcookie && !grep( /^$langcookie$/, @{$self->{archive}->get_conf( "languages" )} ) )
 	{
 		$langcookie = undef;
 	}
-	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $langcookie );
-	#lang should cache, really only (cjg) ONLINE mode should have
+
+	$self->change_lang( $langcookie );
+	#really only (cjg) ONLINE mode should have
 	#a language set automatically.
 	
 	$self->new_page();
@@ -184,7 +185,12 @@ sub change_lang
 {
 	my( $self, $newlangid ) = @_;
 
-	$self->{lang} = EPrints::Language::fetch( $self->{archive} , $newlangid );
+	if( !defined $newlangid )
+	{
+		$newlangid = ${$self->{archive}->get_conf( "languages" )}[0];
+	}
+
+	$self->{lang} = $self->{archive}->get_language( $newlangid );
 }
 
 sub html_phrase
@@ -637,9 +643,7 @@ sub render_error
 
 	if ( $self->{offline} )
 	{
-		print $self->phrase( 
-			"lib/session:some_error",
-			sitename=>$self->get_archive()->get_conf( "archivename" ) );
+		print $self->phrase( "lib/session:some_error" );
 		print "\n\n";
 		print "$error_text\n\n";
 	} 
@@ -649,10 +653,7 @@ sub render_error
 		$page = $self->make_doc_fragment();
 
 		$p = $self->make_element( "p" );
-		$p->appendChild( $self->html_phrase( 
-			"lib/session:some_error",
-			sitename => $self->make_text( 
-				$self->get_archive()->get_conf( "archivename" ) ) ) );
+		$p->appendChild( $self->html_phrase( "lib/session:some_error"));
 		$page->appendChild( $p );
 
 		$p = $self->make_element( "p" );
@@ -665,9 +666,7 @@ sub render_error
 			adminemail => $self->make_element( 
 				"a",
 				href => "mailto:".
-					$self->get_archive()->get_conf( "adminemail" ) ),
-			sitename => $self->make_text(
-				$self->get_archive()->get_conf( "archivename" ) ) ) );
+					$self->get_archive()->get_conf( "adminemail" ) ) ) );
 		$page->appendChild( $p );
 				
 		$p = $self->make_element( "p" );
@@ -1112,7 +1111,17 @@ sub get_action_button
 #
 ###########################################################
 
+sub get_citation_spec
+{
+	my( $self, $ctype ) = @_;
 
+	my $cite = $self->{archive}->get_citation_spec( 
+			$self->{lang}->get_id(),
+			$ctype )->cloneNode( 1 );
+	$self->take_ownership( $cite );
+
+	return $cite;
+}
 
 
 #

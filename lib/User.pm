@@ -359,10 +359,9 @@ sub send_introduction
 	# Try and send the mail
 	return( EPrints::Mailer::prepare_send_mail(
 		$self->{session},
-		$self->{session}->phrase( $subj , sitename=>$self->{session}->get_archive()->get_conf( "archivename" ) ),
+		$self->{session}->phrase( $subj ),
 		$self->{email},
-		$self->{session}->phrase( "lib/user:welcome", 
-		                          sitename=>$self->{session}->get_archive()->get_conf( "archivename" ) ),
+		$self->{session}->phrase( "lib/user:welcome" ),
 		$self->{session}->get_archive()->get_conf( "template_user_intro" ),
 		$self ) );
 }
@@ -385,7 +384,6 @@ sub send_reminder
 	
 	my $full_message = $self->{session}->phrase(
 	     	"lib/user:reminder",
-		 sitename=>$self->{session}->get_archive()->get_conf( "archivename" ),
 	     	 message=>( defined $message ? "$message\n\n" : "" ),
 		 username=>$self->{username},
 		 password=>$self->{passwd},

@@ -121,8 +121,7 @@ sub update_template_line
 		$new_line =~ s/__usermail__/$user->{email}/g;
 	}
 	
-	$new_line =~ s/__sitename__/$session->get_archive()->get_conf( "archivename" )/g;
-	$new_line =~ s/__description__/$session->get_archive()->get_conf( "description" )n/g;
+	#$new_line =~ s/__description__/$session->get_archive()->get_conf( "description" )n/g;
 	$new_line =~ s/__admin__/$session->get_archive()->get_conf( "admin" )/g;
 	$new_line =~ s/__perlroot__/$session->get_archive()->get_conf( "server_perl" )/g;
 	$new_line =~ s/__staticroot__/$session->get_archive()->get_conf( "server_static" )/g;

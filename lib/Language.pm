@@ -27,34 +27,7 @@ use strict;
 
 # Cache for language objects NOT attached to a config.
 
-######################################################################
-#
-# $language = fetch( $archive , $langid )
-#
-# Return a language from the cache. If it isn't in the cache
-# attempt to load and return it.
-# Returns undef if it cannot be loaded.
-# Uses default language if langid is undef. [STATIC]
-# $archive might not be defined if this is the log language and
-# therefore not of any specific site.
-#
-######################################################################
 
-## WP1: BAD
-sub fetch
-{
-	my( $archive , $langid ) = @_;
-
-	if( !defined $langid )
-	{
-		$langid = $archive->get_conf( "default_language" );
-	}
-
-	my $lang = EPrints::Language->new( $langid , $archive );
-
-	return $lang;
-
-}
 
 
 ######################################################################
@@ -72,7 +45,7 @@ sub fetch
 ## WP1: BAD
 sub new
 {
-	my( $class , $langid , $archive ) = @_;
+	my( $class , $langid , $archive , $fallback ) = @_;
 
 	my $self = {};
 	bless $self, $class;
@@ -80,6 +53,8 @@ sub new
 print STDERR "------LOADINGLANG:$langid-------\n";
 
 	$self->{id} = $langid;
+	
+	$self->{fallback} = $fallback;
 
 	$self->{archivedata} =
 		read_phrases( $archive->get_conf( "phrases_path" )."/".$self->{id}.".xml", $archive );
@@ -87,13 +62,6 @@ print STDERR "------LOADINGLANG:$langid-------\n";
 	$self->{data} =
 		read_phrases( $EPrints::Archives::General::lang_path."/".$self->{id}.".xml", $archive );
 	
-	if( $archive->get_conf("default_language") ne $self->{id})
-	{
-		$self->{fallback} = EPrints::Language::fetch( 
-					$archive,  
-					$archive->get_conf("default_language") );
-	}
-
 	return( $self );
 }
 
@@ -208,25 +176,11 @@ sub _get_archivedata
 sub read_phrases
 {
 	my( $file, $archive ) = @_;
-	
-	my $parser = $archive->new_parser();
 
-	open( LANGXML, $file ) || die( "Language.pm: Can't open $file" );
-	my $doc = eval {
-		$parser->parse( *LANGXML );
-	};
-	close LANGXML;
-	if( $@ )
-	{
-		my $err = $@;
-		$err =~ s# at /.*##;
-		die "Error parsing $file\n$err";
-	}
-	my $phrases;
-	foreach( $doc->getChildNodes )
-	{
-		$phrases = $_ if( $_->getNodeName eq "phrases" );
-	}
+	my $doc=$archive->parse_xml( $file );	
+
+	my $phrases = ($doc->getElementsByTagName( "phrases" ))[0];
+
 	if( !defined $phrases ) 
 	{
 		die "Error parsing $file\nCan't find top level element.";

@@ -18,6 +18,7 @@ package EPrints::Archive;
 
 use EPrints::Archives::General;
 use EPrints::DataSet;
+use EPrints::Language;
 
 use Filesys::DiskSpace;
 
@@ -74,10 +75,13 @@ sub new_site_by_id
 	my $self = {};
 	bless $self, $class;
 
+	eval{ require "EPrints/Archives/$id.pm" };
 
-	unless( eval{ require "EPrints/Archives/$id.pm" } )
+	if( $@ )
 	{
-		print STDERR "EPRINTS: FAILED TO LOAD CONFIG MODULE: $id\n";
+		my $err = $@;
+		$err =~ s# at /.*##;
+		print STDERR "EPrints: FAILED TO LOAD CONFIG MODULE \"$id\": $err";
 		return undef;
 	}
 	$ID2SITE{$id} = $self;
@@ -99,30 +103,103 @@ sub new_site_by_id
 		$self->{datasets}->{$_} = EPrints::DataSet->new( $self, $_ );
 	}
 
-	###########
-	# cjg LOAD LANGUAGES!!!!! unless noxml
-
-
-	# Load Templates
 	
+	unless( $noxml )
+	{
+		$self->_load_languages();
+		$self->_load_templates();
+		$self->_load_citation_specs();
+	}
+
+	$self->log("done: new($id)");
+	return $self;
+}
+
+sub _load_languages
+{
+	my( $self ) = @_;
+	
+	my @langs = @{$self->get_conf( "languages" )};
+	my $defaultid = splice( @langs, 0, 1 );
+	$self->{langs}->{$defaultid} = 
+		EPrints::Language->new( $defaultid , $self );
+
+	my $langid;
+	foreach $langid ( @{$self->get_conf( "languages" )} )
+	{
+		$self->{langs}->{$langid} =
+			 EPrints::Language->new( 
+				$langid , 
+				$self , 
+				$self->{langs}->{$defaultid} );
+	}
+}
+
+sub get_language
+{
+	my( $self , $langid ) = @_;
+
+	if( !defined $langid )
+	{
+		$langid = ($self->get_conf( "languages" ))[0];
+	}
+	return $self->{langs}->{$langid};
+}
+
+sub _load_citation_specs
+{
+	my( $self ) = @_;
+
+	my $langid;
+	foreach $langid ( @{$self->get_conf( "languages" )} )
+	{
+		my $file = $self->get_conf( "config_path" ).
+				"/citations-$langid.xml";
+		my $doc = $self->parse_xml( $file , ParseParamEnt=>0 );
+
+		my $citations = ($doc->getElementsByTagName( "citations" ))[0];
+		if( !defined $citations )
+		{
+			die "Missing <citations> tag in $file";
+		}
+
+		my $citation;
+		foreach $citation ($doc->getElementsByTagName( "citation" ))
+		{
+			my( $type ) = $citation->getAttribute( "type" );
+			
+			my( $frag ) = $doc->createDocumentFragment();
+			foreach( $citation->getChildNodes )
+			{
+				$citation->removeChild( $_ );
+				$frag->appendChild( $_ );
+			}
+			$self->{cstyles}->{$langid}->{$type} = $frag;
+		}
+		$doc->dispose();
+
+	}
+}
+
+sub get_citation_spec
+{
+	my( $self, $langid, $type ) = @_;
+
+	return $self->{cstyles}->{$langid}->{$type};
+}
+
+sub _load_templates
+{
+	my( $self ) = @_;
+
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
 	{
 		my $file = $self->get_conf( "config_path" ).
 				"/template-$langid.xml";
-		my $parser = $self->new_parser();
-		open( TEMPLATEXML, $file ) || die "Can't open $file";
-		my $doc = eval {
-			$parser->parse( *TEMPLATEXML );
-		};
-		close TEMPLATEXML;
-		if( $@ )
-		{
-			die "Error parsing $file\n$@";
-		}
+		my $doc = $self->parse_xml( $file );
 
-		my @list = $doc->getElementsByTagName( "html" );
-		my $html = $list[0];
+		my $html = ($doc->getElementsByTagName( "html" ))[0];
 		if( !defined $html )
 		{
 			die "Missing <html> tag in $file";
@@ -131,11 +208,7 @@ sub new_site_by_id
 		$doc->dispose();
 		$self->{html_templates}->{$langid} = $html;
 	}
-
-$self->log("done: $id");
-	return $self;
 }
-
 
 sub get_template
 {
@@ -224,16 +297,37 @@ sub get_store_dir_size
 	return( ( df $filepath)[3] );
 } 
 
-sub new_parser
+sub parse_xml
 {
-	my( $self ) = @_;
+	my( $self, $file, %config ) = @_;
 
-	my $parser = EPrints::DOM::Parser->new(
+	my( %c ) = (
 		Base => $self->get_conf( "system_files_path" )."/",
 		ParseParamEnt => 1,
 		ErrorContext => 2,
 		NoLWP => 1 );
-	return $parser;
+
+	foreach( keys %config ) { $c{$_}=$config{$_}; }
+
+	my $parser = EPrints::DOM::Parser->new( %c );
+
+	unless( open( XML, $file ) )
+	{
+		$self->log( "Error opening: $file" );
+		exit( 1 );
+	}
+	my $doc = eval { $parser->parse( *XML ); };
+	close XML;
+	if( $@ )
+	{
+		my $err = $@;
+		$err =~ s# at /.*##;
+		$self->log( "Error parsing $file\n$err" );
+		exit( 1 );
+	}
+	$self->log( "Loaded&Parsed: $file" );
+
+	return $doc;
 }
 
 1;

@@ -34,8 +34,6 @@ sub format_name
 	my( $name, $familylast ) = @_;
 
 
-	print STDERR "---------->$$name{given} $$name{family}\n";
-
 	if( $familylast )
 	{
 		return "$$name{given} $$name{family}";

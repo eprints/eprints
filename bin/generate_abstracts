@@ -26,7 +26,7 @@ use strict;
 
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
-exit unless( defined $session );
+exit( 1 ) unless( defined $session );
 
 my $dataset = $session->get_archive()->get_data_set( "archive" ),
 
