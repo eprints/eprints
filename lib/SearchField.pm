@@ -86,7 +86,7 @@ my $texthelp = "Enter a term or terms to search for.";
 
 ######################################################################
 #
-# $field = new( $session, $field, $value )
+# $field = new( $session, $table, $field, $value )
 #
 #  Create a new search field for the metadata field $field. $value
 #  is a default value, if there's one already. You can pass in a
@@ -95,20 +95,24 @@ my $texthelp = "Enter a term or terms to search for.";
 #  (and is useful) for fields of types listed together at the top of
 #  the file (e.g. "text" and "multitext", or "email" and "url", but not
 #  "year" and "boolean").
+#  We need to know the name of the table to build the name of aux.
+#  table.
 #
 ######################################################################
 
 sub new
 {
-	my( $class, $session, $field, $value ) = @_;
+	my( $class, $session, $table, $field, $value ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 	
 	$self->{session} = $session;
+	$self->{table} = $table;
 
 	if( ref( $field ) eq "ARRAY" )
 	{
+		print STDERR "!!!!!!!!!!!!!!!!!!!!!!!!!\nDEBUG ME - need to call self multiple times?\n!!!!!!!!!!!!!!!!!!!!!\n";
 		# Search >1 field
 		$self->{multifields} = $field;
 
@@ -158,7 +162,9 @@ sub get_sql
 
 	my $type = $self->{type};
 	my $value = $self->{value};
+	my $name = $self->{field}->{name};
 	my $sql = undef;
+	my %auxtables = ();
 
 	if( $type eq "boolean" )
 	{
@@ -244,16 +250,38 @@ sub get_sql
 			my @vals = split /:/, $value;
 			my $any_or_all = pop @vals;
 
-			my $first = 1;
+			my $count = 0;
 
 			# Put the values together into a WHERE clause. 
+			my $auxtable;
+			if ($self->{field}->{multiple}) 
+			{	
+				$auxtable = $self->{table}."aux".$self->{field}->{name};
+			}
+			my $auxalias;
 			foreach (@vals)
 			{
-				$sql .= ($any_or_all eq "ANY" ? " OR " : " AND ")
-					unless( $first );
-				$first = 0 if( $first );
+				if ( $any_or_all eq "ANY" ) 
+				{
+					$sql .= " OR " if ( $count > 0);
+					$auxalias = "__aux__";
+				} 
+				else
+				{
+					$sql .= " AND " if ( $count > 0);
+					$auxalias = "__aux".$count."__";
+				}
+				if ($self->{field}->{multiple}) 
+				{
+					$auxtables{$auxalias} = $auxtable;
+				}
+				else
+				{
+					$auxalias = $self->{table};
+				}
+				$sql .= "($auxalias.$name LIKE \"$_\")";
 
-				$sql .= "(__FIELDNAME__ LIKE \"\%:$_:\%\")";
+				$count++;
 			}
 		}
 	}
@@ -292,41 +320,9 @@ sub get_sql
 		}
 	}
 
-	my $all_sql = undef;
-
-	# Now construct final SQL statement
-	if( defined $sql )
-	{
-		if( defined $self->{multifields} )
-		{
-			my $first = 1;
-			
-			foreach (@{$self->{multifields}})
-			{
-				my $term_sql = $sql;
-				$term_sql =~ s/__FIELDNAME__/$_->{name}/g;
-				
-				if( $first )
-				{
-					$all_sql = "($term_sql)";
-					$first = 0;
-				}
-				else
-				{
-					$all_sql .= " OR ($term_sql)";
-				}
-			}
-		}
-		else
-		{
-			$all_sql = $sql;
-			$all_sql =~ s/__FIELDNAME__/$self->{field}->{name}/g;
-		}
-	}
-
 #EPrints::Log::debug( "SearchField", "SQL = $all_sql" );
 
-	return( $all_sql );
+	return( $sql , \%auxtables );
 }
 
 

@@ -62,6 +62,7 @@ $EPrints::Database::table_deletion = "deletions";
 	"text"       => "VARCHAR(255)",
 	"multitext"  => "TEXT",
 	"url"        => "VARCHAR(255)",
+	"multiurl"   => "TEXT",
 	"email"      => "VARCHAR(255)",
 	"subjects"   => "VARCHAR(255)",
 	"username"   => "VARCHAR(255)",
@@ -330,7 +331,7 @@ sub _create_table_aux
 	
 	foreach (@indices)
 	{
-		$sql .= ", INDEX($_)";
+		$sql .= ", INDEX($_(10))";
 	}
 	
 	$sql .= ");";

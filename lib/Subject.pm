@@ -18,6 +18,7 @@ package EPrints::Subject;
 
 use EPrints::Database;
 use EPrintSite::SiteInfo;
+use EPrints::SearchExpression;
 
 use strict;
 
@@ -552,11 +553,58 @@ sub count_eprints
 {
 	my( $self, $table ) = @_;
 
-	return( EPrints::EPrint::count_eprints(
+#	return( EPrints::EPrint::count_eprints(
+#		$self->{session},
+#		(defined $table ? $table : $EPrints::Database::table_archive ),
+#		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ] ) );
+
+	# Create a search expression
+	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
-		(defined $table ? $table : $EPrints::Database::table_archive ),
-		[ "subjects LIKE \"\%:$self->{subjectid}:\%\"" ] ) );
+		$table,
+		0,
+		1,
+		[],
+		{},
+		undef );
+
+
+	#$searchexp->add_field(
+		#[ EPrints::MetaInfo::find_table_field( "archive", "title" ),
+		#EPrints::MetaInfo::find_table_field( "archive", "authors" ) ],
+		#"all:fish food" );
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"archive",
+			"subjects" ),
+		"arts-msc:arts-fnar:ANY" );
+
+
+	$searchexp->ookitup();
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"archive",
+			"subjects" ),
+		"$self->{subjectid}:ALL" );
+
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"archive",
+			"subjects" ),
+		"C:D:$self->{subjectid}:AND" );
+
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"archive",
+			"title" ),
+		"all:cheese whizz" ) ;
 }
+
+
 
 
 

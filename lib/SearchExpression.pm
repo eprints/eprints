@@ -66,7 +66,7 @@ sub new
 	my( $class,
 	    $session,
 	    $table,
-		 $allow_blank,
+	    $allow_blank,
 	    $satisfy_all,
 	    $fields,
 	    $orderby,
@@ -136,6 +136,7 @@ sub add_field
 	
 	# Create a new searchfield
 	my $searchfield = new EPrints::SearchField( $self->{session},
+	                                            $self->{table},					
 	                                            $field,
 	                                            $value );
 
@@ -378,7 +379,7 @@ sub get_sql_order
 	# Make the SQL condition
 	foreach (@{$self->{searchfields}})
 	{
-		my $sql_term = $_->get_sql();
+		my ( $sql_term ) = $_->get_sql();
 
 		if( defined $sql_term )
 		{
@@ -539,6 +540,54 @@ sub make_meta_fields
 	return( @metafields );
 }
 
+##################################################################
+#
+# NEW DB DEVEL CODE!!
+
 	
+sub ookitup
+{
+	my ( $self ) = @_;
+
+	my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
+	my $keyfield = $fields[0];
+		
+	print "-------------<OOOK>\n";
+	print "SQL TERMS:\n";
+	my $from = $self->{table};
+	my $first = 1;
+	my $auxcount = 0;
+	my $where = "";
+	foreach (@{$self->{searchfields}})
+	{
+		my ( $sql_term , $aux_table ) = $_->get_sql();
+	
+		print "SQL: $sql_term\nAUX: ";
+		foreach(keys %{$aux_table}) {
+			my $auxid = "aux$auxcount";
+			$from .= " LEFT JOIN ${$aux_table}{$_} AS $auxid ";
+			$from .= "USING ($keyfield->{name})";
+			$sql_term =~ s/$_/$auxid/g;
+			print "$_ = ${$aux_table}{$_} : $auxid\n     ";
+			$auxcount++;
+		}
+		print "\n--\n";
+	
+		print "NEW: $sql_term\n";
+		if( defined $sql_term )
+		{
+			$where .= ( $self->{satisfy_all} ? " AND " : " OR " ) unless( $first );
+			$first = 0 if( $first );
+			$where .= "($sql_term)";
+		}
+	}
+	my $sql = "SELECT $self->{table}.$keyfield->{name} ";	
+	$sql .=   "FROM $from ";
+	$sql .=   "WHERE $where ";
+	print "----sql coming!!\n$sql\n";
+	print "-------------</OOOK>\n";
+
+}
+
 
 1;

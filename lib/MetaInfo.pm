@@ -416,6 +416,25 @@ sub find_eprint_field
 	                                       $field_name ) );
 }
 
+######################################################################
+#
+# $field = find_table_field( $table , $field_name )
+#
+#  Find a specific eprint field
+#
+######################################################################
+
+sub find_table_field
+{
+	my( $table , $field_name ) = @_;
+
+	my @fields = get_fields( $table );
+
+	return( EPrints::MetaInfo::find_field( \@fields,
+	                                       $field_name ) );
+}
+
+
 
 ######################################################################
 #
