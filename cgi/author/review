@@ -112,6 +112,11 @@ unless( $page_written )
 			"the clone button to make a copy of the document record in your ".
 			"workspace. You might want to do this if you are going to submit an ".
 			"updated version of the document.</P></CENTER>\n";
+
+		print "<CENTER><P>You can also request the removal of a document, but ".
+			"this is <strong>strongly</strong> discouraged, since different ".
+			"versions of a document can all be linked in the archive.</P>".
+			"</CENTER>\n";
 		
 		print $session->{render}->start_form();
 		print $session->{render}->hidden_field( "seen", "true" );
