@@ -182,14 +182,18 @@ sub new
 
 sub create
 {
-	my( $session, $tableid, $username, $data ) = @_;
+	my( $session, $dataset, $username, $data ) = @_;
 
 	my $new_eprint = ( defined $data ? $data : {} );
 
 	my $new_id = _create_id( $session );
 	my $dir = _create_directory( $session, $new_id );
 print STDERR "($new_id)($dir)\n";
-	return( undef ) if( !defined $dir );
+	if( !defined $dir )
+	{
+		$session->getSite()->log( "Failed to make dir." );
+		return( undef );
+	}
 
 	$new_eprint->{eprintid} = $new_id;
 	$new_eprint->{username} = $username;
@@ -197,12 +201,12 @@ print STDERR "($new_id)($dir)\n";
 	
 # cjg add_record call
 	my $success = $session->{database}->add_record(
-		$tableid,
+		$dataset,
 		$new_eprint );
 
 	if( $success )
 	{
-		return( EPrints::EPrint->new( $session, $tableid, $new_id ) );
+		return( EPrints::EPrint->new( $session, $dataset, $new_id ) );
 	}
 	else
 	{
@@ -230,7 +234,7 @@ sub _create_id
 		$new_id = "0".$new_id;
 	}
 
-	return( $session->{site}->{eprint_id_stem} . $new_id );
+	return( $session->getSite()->getConf( "eprint_id_stem" ) . $new_id );
 }
 
 
@@ -249,7 +253,8 @@ sub _create_directory
 	my( $session, $eprint_id ) = @_;
 	
 	# Get available directories
-	opendir DOCSTORE, $session->{site}->{local_document_root}
+print STDERR $session->getSite()->getConf( "local_document_root" )."\n";
+	opendir DOCSTORE, $session->getSite()->getConf( "local_document_root" )
 		or return( undef );
 	# The grep here just removes the "." and ".." directories
 	my @avail = grep !/^\.\.?$/, readdir DOCSTORE;
@@ -263,12 +268,13 @@ sub _create_directory
 	foreach (sort @avail)
 	{
 		my $free_space = 
-			(df "$session->{site}->{local_document_root}/$_" )[3];
+			(df $session->getSite()->getConf( "local_document_root" )."/$_" )[3];
+print STDERR "(".$session->getSite()->getConf( "local_document_root" )."/$_)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
 		{
-			if( $free_space >= $session->{site}->{diskspace_error_threshold} )
+			if( $free_space >= $session->getSite()->getConf("diskspace_error_threshold") )
 			{
 				# Enough space on this drive.
 				$storedir = $_;
@@ -285,13 +291,14 @@ sub _create_directory
 
 		# Argh! Running low on disk space overall.
 		$session->mail_administrator(
-			EPrints::Language::logphrase( "S:diskout_sub" ),
-			EPrints::Language::logphrase( "M:diskout" ) );
+			"S:diskout_sub" ,
+			"M:diskout"  );
+print STDERR "oraok\n";
 		return( undef );
 	}
 
 	# Warn the administrator if we're low on space
-	if( $best_free_space < $session->{site}->{diskspace_warn_threshold} )
+	if( $best_free_space < $session->getSite()->getConf("diskspace_warn_threshold") )
 	{
 # cjg - not done this bit yet...
 #
@@ -301,20 +308,25 @@ sub _create_directory
 	}
 
 	# For now, just choose first
+print STDERR "ook\n";
 	return( undef ) if( !defined $avail[0] );
 	
+print STDERR "oak\n";
 	# Work out the directory path. It's worked out using the ID of the EPrint.
 	# It takes the numerical suffix of the ID, and divides it into four
 	# components, which become the directory path for the EPrint.
 	# e.g. "stem001020304" is given the path "001/02/03/04"
 
-	return( undef ) unless( $eprint_id =~
-		/$session->{site}->{eprint_id_stem}(\d+)(\d\d)(\d\d)(\d\d)/ );
+	my $sitestem = $session->getSite()->getConf( "eprint_id_stem" );
 
+	return( undef ) unless( $eprint_id =~
+		/$sitestem(\d+)(\d\d)(\d\d)(\d\d)/ );
+
+print STDERR "soak\n";
 	my $dir = $storedir . "/" . $1 . "/" . $2 . "/" . $3 . "/" . $4;
 	
 	# Full path including doc store root
-	my $full_path = "$session->{site}->{local_document_root}/$dir";
+	my $full_path = $session->getSite()->getConf("local_document_root")."/$dir";
 
 	# Ensure the path is there. Dir. is made group writable.
 print "($full_path)\n";
@@ -1464,5 +1476,19 @@ sub last_in_thread
 
 	return( $latest );
 }
+
+sub toString
+{
+	my( $self ) = @_;
+	#	???
+}
+
+sub toHTML
+{
+	my( $self ) = @_;
+
+	return $self->{session}->getSite()->call( "eprint_render_citation", $self, 1 );
+}
+
 
 1;

@@ -535,6 +535,11 @@ sub extract
 	return( @usernamelist );
 }
 
+sub toString
+{
+	my( $self ) = @_;
 
+	return( $self->{session}->getSite()->call( "user_display_name" , $self  ) );
+}
 
 1;

@@ -210,13 +210,12 @@ sub mail_administrator
 
 	# cjg logphrase here will NOT do it no longer exists.
 	
-	my $message_body = EPrints::Language::logphrase( "msg_at" ,
-	                                             { time=>gmtime( time ) } );
+	my $message_body = "msg_at".gmtime( time );
 	$message_body .= "\n\n$message\n";
 
 	EPrints::Mailer::send_mail(
 		$self,
-		EPrints::Language::logphrase( "site_admin" ),
+		 "site_admin" ,
 		$self->{site}->{admin},
 		$subject,
 		$message_body );
@@ -388,32 +387,6 @@ sub end_form
 #
 ######################################################################
 
-sub render_submit_buttons
-{
-	my( $self, $submit_buttons ) = @_;
-
-	my $html = "";
-	my $first = 1;
-
-	if( defined $submit_buttons )
-	{
-		my $button;
-		foreach $button (@$submit_buttons)
-		{
-			# Some space between them
-			$html .= "&nbsp;&nbsp;" if( $first==0 );
-
-			$html .=  $self->{query}->submit( -name=>"submit", -value=>$button );
-			$first = 0 if( $first );
-		}
-	}
-	else
-	{
-		$html = $self->{query}->submit( -name=>"submit", -value=>"Submit" );
-	}
-
-	return( $html );
-}
 
 sub get_order_names
 {
@@ -423,7 +396,7 @@ print STDERR "SELF:".join(",",keys %{$self} )."\n";
 	my %names = ();
 	foreach( keys %{$self->{site}->getConf(
 			"order_methods",
-			$dataset->toString() )} )
+			$dataset->confid() )} )
 	{
 		$names{$_}=$self->get_order_name( $dataset, $_ );
 	}
@@ -541,6 +514,61 @@ sub make_element
 		$element->setAttribute( $_ , $params{$_} );
 	}
 	return $element;
+}
+
+sub make_hidden_field
+{
+	my( $self , $name , $value ) = @_;
+
+	if( defined $self->param( $name ) )
+	{
+		$value = $self->param( $name );
+	}
+
+	return $self->make_element( "INPUT",
+		name => $name,
+		value => $value,
+		type => "hidden" );
+}
+
+sub make_submit_buttons
+{
+	my( $self, @submit_buttons ) = @_;
+
+	my $html = "";
+
+	my $div = $self->{page}->createElement( "DIV" );
+
+	if( scalar @submit_buttons == 0 )
+	{
+# lang me
+		@submit_buttons = ( "Submit" );
+	}
+
+	foreach( @submit_buttons )
+	{
+		# Some space between them
+		$div->appendChild(
+			$self->make_element( "INPUT",
+				type => "submit",
+				name => "submit",
+				value => $_ ) );
+	}
+
+	return( $div );
+}
+
+
+sub bomb
+{	
+	my @info;
+	print STDERR "da BOMB :(--------------------------------\n";
+	my $i=1;
+	while( @info = caller($i++) )
+	{
+		print STDERR $info[3]." ($info[2])\n";
+	}
+	exit;
 }
 
 1;

@@ -54,8 +54,8 @@ sub newStub
 
 	if( !defined $INFO->{$datasetname} )
 	{
-		$site->log( "Unknown dataset name: $datasetname" );
-		exit;
+		&EPrints::Session::bomb;
+		die( "Unknown dataset name: $datasetname" );
 	}
 	my $self = {};
 	bless $self, $class;
@@ -192,6 +192,12 @@ sub getSQLSubTableName
 {
 	my( $self , $field ) = @_;
 	return $self->getSQLTableName()."_".$field->getName();
+}
+
+sub getField
+{
+	my( $self, $fieldname ) = @_;
+	return $self->{field_index}->{$fieldname};
 }
 
 sub getFields

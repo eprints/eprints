@@ -49,6 +49,8 @@ sub render_citation
 	
 	my $citation = $citation_spec;
 
+	my $ds = $session->getSite()->getDataSet( "eprint" );
+
 	# First handle the fields with dependent text [volume {value}]
 
 	# Get out everything between the brackets
@@ -60,7 +62,7 @@ sub render_citation
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
 
-		my $field = $session->{metainfo}->find_table_field( $TID_EPRINT, $fieldname );
+		my $field = $ds->getField( $fieldname );
 
 		# Check we have it
 		if( defined $field )
@@ -72,8 +74,7 @@ sub render_citation
 			{
 				# If it's not null or an empty string, go ahead with the
 				# substitution
-				my $rendered = _remove_problematic( 
-					$session->{render}->format_field( $field, $value ) );
+				my $rendered = $field->format_field( $value );
 				my $new_entry = $entry;
 				$new_entry =~ s/{$fieldname}/$rendered/;
 				substr( $citation,
@@ -106,7 +107,7 @@ sub render_citation
 	while( $citation =~ /{([^}]+)}/ )
 	{
 		my $entry = $1;
-		my $field = $session->{metainfo}->find_table_field( $TID_EPRINT, $entry );
+		my $field = $ds->getField( $entry );
 
 		# Check we have it
 		if( defined $field )
@@ -118,8 +119,7 @@ sub render_citation
 			{
 				# If it's not null or an empty string, go ahead with the
 				# substitution
-				my $rendered = _remove_problematic(
-					$session->{render}->format_field( $field, $value ) );
+				my $rendered = $field->format_field( $value );
 				$citation =~ s/\{$entry\}/$rendered/;
 			}
 			else
@@ -148,23 +148,5 @@ sub render_citation
 
 
 
-######################################################################
-#
-# $new = _remove_problematic( $old )
-#
-#  Changes []'s and {}'s into brackets so as not to interfere with
-#  later substitutions in the citation.
-#
-######################################################################
-
-sub _remove_problematic
-{
-	my $old = shift;
-
-	$old =~ s/[\[{]/(/g;	
-	$old =~ s/[\]}]/)/g;	
-	
-	return( $old );
-}
 
 1;

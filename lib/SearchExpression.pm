@@ -239,10 +239,10 @@ sub render_search_form
 print STDERR $self->{session}->getSite()."!!\n";
 	print STDERR ">>>".$self->{session}->getSite()->getConf(
 			"order_methods",
-			$self->{dataset}->toString() )."\n";
+			$self->{dataset}->confid() )."\n";
 	my @tags = keys %{$self->{session}->getSite()->getConf(
 			"order_methods",
-			$self->{dataset}->toString() )};
+			$self->{dataset}->confid() )};
 print STDERR "foo\n";
 	$menu = $query->popup_menu(
 		-name=>"_order",
@@ -256,9 +256,9 @@ print STDERR "foo\n";
 			{ ordermenu=>$menu } );
 	$html .= "</P>\n";
 	$html .= "<P>";
-	$html .= $self->{session}->render_submit_buttons( 
-			[ $self->{session}->phrase("action_search"),
-		          $self->{session}->phrase("action_reset") ] );
+	$html .= $self->{session}->make_submit_buttons( 
+		$self->{session}->phrase("action_search"), 
+		$self->{session}->phrase("action_reset") )->toString();
 	$html .= "</P>\n";
 
 	$html .= $self->{session}->end_form();
@@ -475,26 +475,26 @@ sub get_records
 	
 	if ( $self->{tmptable} )
 	{
-        	my @fields = $self->{session}->{metainfo}->get_fields( $self->{dataset} );
-        	my $keyfield = $fields[0];
+        	my $keyfield = $self->{dataset}->getKeyField();
 
-		my ( $buffer, $overlimit ) = $self->{session}->{database}->distinct_and_limit( 
+		my ( $buffer, $overlimit ) = $self->{session}->getDB()->distinct_and_limit( 
 							$self->{tmptable}, 
 							$keyfield, 
 							$max );
 
-		my @records = $self->{session}->{database}->from_buffer( $self->{dataset}, $buffer );
+		my @records = $self->{session}->getDB()->from_buffer( $self->{dataset}, $buffer );
 		if( !$overlimit )
 		{
+ print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";
 			@records = sort 
-				{ &{$self->{session}->{site}->{order_methods}->{$self->{dataset}}->{$self->{order}}}($a,$b); }
+				{ &{$self->{session}->getSite()->getConf( "order_methods" , $self->{dataset}->confid(), $self->{order} )}($a,$b); }
 				@records;
 		}
 		return @records;
 	}	
 
-	EPrints::Log::log_entry( "not_cached" );
+	$self->{session}->getSite()->log( "Search not yet performed" );
 		
 }
 
@@ -598,56 +598,33 @@ sub process_webpage
 			{ searchtime=>"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
 			gettime=>"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" } ) ."\n";
 
-		# Print results
-		if( 1 || $self->{what} eq "eprint" )
-		{
 			
-			foreach (@results)
-			{
-				if( $self->{staff} )
-				{
-					print "<P><A HREF=\"$self->{session}->{site}->{server_perl}/".
-						"staff/edit_eprint?eprint_id=$_->{eprintid}\">".
-						$self->{session}->{render}->render_eprint_citation(
-							$_,
-							1,
-							0 )."</A></P>\n";
-				}
-				else
-				{
-					print "<P>".
-						$self->{session}->{render}->render_eprint_citation(
-							$_,
-							1,
-							1 )."</P>\n";
-				}
-			}
-		}
-		elsif( $self->{what} eq "user" )
+		foreach (@results)
 		{
-			
-			foreach (@results)
-			{
-				print "<P>";
-				print $self->{session}->{render}->render_user_name( $_, 1 );
-				print "</P>\n";
-			}
-		}
-		else
-		{
-			die "dammit";
-			#cjg
+			print "<P>\n";
+			print $_->toHTML();
+			print "</P>\n";
 		}
 			
 		# Print out state stuff for a further invocation
 		
 		print $self->{session}->start_get_form();
 
-		$self->write_hidden_state();
+		my @params = $self->{session}->param();
 
-		print $self->{session}->{render}->submit_buttons(
-			[ $self->{session}->phrase("action_update"), $self->{session}->phrase("action_newsearch") ] );
-		print $self->{session}->{render}->end_form();
+print "---------<BR>\n";
+		foreach (@params)
+		{
+			print $self->{session}->make_hidden_field( $_ )->toString() if( $_ ne "submit" );
+		}
+
+print "---------<BR>\n";
+		print $self->{session}->make_submit_buttons( 
+			$self->{session}->phrase("action_update"), 
+			$self->{session}->phrase("action_newsearch") )->toString();
+
+print "---------<BR>\n";
+		print $self->{session}->end_form();
 	
 		print $self->{session}->end_html();
 		return;
@@ -730,25 +707,6 @@ sub _render_matchcount
 
 
 
-######################################################################
-#
-# write_hidden_state()
-#
-#  Write out the state of the form in hidden HTML fields.
-#
-######################################################################
-
-sub write_hidden_state
-{
-	my( $self ) = @_;
 	
-	# Call CGI directly, we want an array
-	my @params = $self->{session}->param();
-
-	foreach (@params)
-	{
-		print $self->{session}->{render}->hidden_field( $_ ) if( $_ ne "submit" );
-	}
-}
 
 1;

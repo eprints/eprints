@@ -22,6 +22,23 @@ use EPrints::Constants;
 
 use strict;
 
+# Month names
+my %monthnames =
+(
+	"00"     => "Unspecified",
+	"01"     => "January",
+	"02"     => "February",
+	"03"     => "March",
+	"04"     => "April",
+	"05"     => "May",
+	"06"     => "June",
+	"07"     => "July",
+	"08"     => "August",
+	"09"     => "September",
+	"10"     => "October",
+	"11"     => "November",
+	"12"     => "December"
+);
 #
 # The following is the information about the metadata field. This is the
 # format of the terse in-line code version, which should be colon-separated.
@@ -332,5 +349,155 @@ sub isTextIndexable
 {
 	my( $self ) = @_;
 	return $self->isType( "text","longtext","url","email" );
+}
+
+######################################################################
+#
+# $html = format_field( $field, $value )
+#
+#  format a field. Returns the formatted HTML as a string (doesn't
+#  actually print it.)
+#
+######################################################################
+
+sub format_field
+{
+	my( $self, $value ) = @_;
+
+	my $html;
+	
+	if( $self->isType( "text" , "int" ) )
+	{
+		# Render text
+		$html = ( defined $value ? $value : "" );
+	}
+	elsif( $self->isType( "eprinttype" ) )
+	{
+		$html = $self->{labels}->{$value} if( defined $value );
+		$html = "UNSPECIFIED" unless( defined $value );
+	}
+	elsif( $self->isType( "boolean" ) )
+	{
+		$html = "UNSPECIFIED" unless( defined $value );
+		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
+	}
+	elsif( $self->isType( "longtext" ) )
+	{
+		$html = ( defined $value ? $value : "" );
+		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
+	}
+	elsif( $self->isType( "date" ) )
+	{
+		if( defined $value )
+		{
+			my @elements = split /\-/, $value;
+
+			if( $elements[0]==0 )
+			{
+				$html = "UNSPECIFIED";
+			}
+			elsif( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
+			{
+				$html = "INVALID";
+			}
+			else
+			{
+				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
+			}
+		}
+		else
+		{
+			$html = "UNSPECIFIED";
+		}
+	}
+	elsif( $self->isType( "url" ) )
+	{
+		$html = "<A HREF=\"$value\">$value</A>" if( defined $value );
+		$html = "" unless( defined $value );
+	}
+	elsif( $self->isType( "email" ) )
+	{
+		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
+		$html = "" unless( defined $value );
+	}
+	elsif( $self->isType( "subject" ) )
+	{
+		$html = "";
+
+		my $subject_list = EPrints::SubjectList->new( $value );
+		my @subjects = $subject_list->get_tags();
+		
+		my $sub;
+		my $first = 0;
+
+		foreach $sub (@subjects)
+		{
+			if( $first==0 )
+			{
+				$first = 1;
+			}
+			else
+			{
+				$html .= "<BR>";
+			}
+			
+			$html .= EPrints::Subject::subject_label( $self->{session}, $sub );
+		}
+	}
+	elsif( $self->isType( "set" ) )
+	{
+		$html = "";
+		my @setvalues;
+		@setvalues = split /:/, $value if( defined $value );
+		my $first = 0;
+
+		foreach (@setvalues)
+		{
+			if( $_ ne "" )
+			{
+				$html .=  ", " unless( $first );
+				$first=1 if( $first );
+				$html .= $self->{labels}->{$_};
+			}
+		}
+	}
+	elsif( $self->isType( "username" ) )
+	{
+		$html = "";
+		my @usernames;
+		@usernames = split /:/, $value if( defined $value );
+		my $first = 0;
+
+		foreach (@usernames)
+		{
+			if( $_ ne "" )
+			{
+				$html .=  ", " unless( $first );
+				$first=1 if( $first );
+				$html .= $_;
+				# This could be much prettier
+			}
+		}
+	}
+	elsif( $self->isType( "pagerange" ) )
+	{
+		$html = ( defined $value ? $value : "" );
+	}
+	elsif( $self->isType( "year" ) )
+	{
+		$html = ( defined $value ? $value : "" );
+	}
+	elsif( $self->isType( "name" ) )
+	{
+		$html = EPrints::Name::format_names( $value );
+	}
+	else
+	{
+		EPrints::Log::log_entry(
+			"L:cant_do_field" , 
+				{ type=>$self->{type} } );
+	}
+
+	return( $html );
 }
 

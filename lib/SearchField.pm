@@ -536,7 +536,7 @@ sub get_conditions
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
-	my $searchtable = EPrints::Database::table_name( $self->{dataset} );
+	my $searchtable = $self->{dataset}->getSQLTableName();
 	if ($self->{field}->{multiple}) 
 	{	
 		$searchtable= $self->{dataset}->getSQLSubTableName( $self->{field} );
@@ -592,8 +592,7 @@ sub benchmark
 
 	my( $table , $field ) = split /:/ , $tablefield;
 
-        my @fields = $self->{session}->{metainfo}->get_fields( $self->{dataset} );
-        my $keyfield = $fields[0];
+        my $keyfield = $self->{dataset}->getKeyField();
 
 	if ( !defined $self->{benchcache}->{"$table:$where"} )
 	{

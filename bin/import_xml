@@ -37,16 +37,16 @@ exit;
 sub deal 
 {
 	my( $session , $table , $eprint ) = @_;
-	print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
+	#print $session->{render}->render_eprint_citation( $eprint, 0, 0)."\n";
 	print "------------\n";
-	
-	if( $session->{database}->exists( $table , $eprint->{eprintid} ) )
+	my $ds = $session->getSite()->getDataSet( "archive" );
+	if( $session->{database}->exists( $ds , $eprint->{eprintid} ) )
 	{
 		print  "EXISTS!\n";
 		$eprint->commit();
 		return;
 	}
 	print  "NOT EXISTS!\n";
-	EPrints::EPrint::create( $session, "archive", undef, $eprint );
+	EPrints::EPrint::create( $session, $ds, undef, $eprint );
 }
 

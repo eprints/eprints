@@ -219,156 +219,6 @@ sub render_error
 	}
 }
 
-######################################################################
-#
-# $html = format_field( $field, $value )
-#
-#  format a field. Returns the formatted HTML as a string (doesn't
-#  actually print it.)
-#
-######################################################################
-
-sub format_field
-{
-	my( $self, $field, $value ) = @_;
-
-	my $type = $field->{type};
-	my $html;
-	
-	if( $type eq "text" || $type eq "int" )
-	{
-		# Render text
-		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $type eq "eprinttype" )
-	{
-		$html = $field->{labels}->{$value} if( defined $value );
-		$html = "UNSPECIFIED" unless( defined $value );
-	}
-	elsif( $type eq "boolean" )
-	{
-		$html = "UNSPECIFIED" unless( defined $value );
-		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
-	}
-	elsif( $type eq "longtext" )
-	{
-		$html = ( defined $value ? $value : "" );
-		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
-	}
-	elsif( $type eq "date" )
-	{
-		if( defined $value )
-		{
-			my @elements = split /\-/, $value;
-
-			if( $elements[0]==0 )
-			{
-				$html = "UNSPECIFIED";
-			}
-			elsif( $#elements != 2 || $elements[1] < 1 || $elements[1] > 12 )
-			{
-				$html = "INVALID";
-			}
-			else
-			{
-				$html = $elements[2]." ".$monthnames{$elements[1]}." ".$elements[0];
-			}
-		}
-		else
-		{
-			$html = "UNSPECIFIED";
-		}
-	}
-	elsif( $type eq "url" )
-	{
-		$html = "<A HREF=\"$value\">$value</A>" if( defined $value );
-		$html = "" unless( defined $value );
-	}
-	elsif( $type eq "email" )
-	{
-		$html = "<A HREF=\"mailto:$value\">$value</A>"if( defined $value );
-		$html = "" unless( defined $value );
-	}
-	elsif( $type eq "subject" )
-	{
-		$html = "";
-
-		my $subject_list = EPrints::SubjectList->new( $value );
-		my @subjects = $subject_list->get_tags();
-		
-		my $sub;
-		my $first = 0;
-
-		foreach $sub (@subjects)
-		{
-			if( $first==0 )
-			{
-				$first = 1;
-			}
-			else
-			{
-				$html .= "<BR>";
-			}
-			
-			$html .= EPrints::Subject::subject_label( $self->{session}, $sub );
-		}
-	}
-	elsif( $type eq "set" )
-	{
-		$html = "";
-		my @setvalues;
-		@setvalues = split /:/, $value if( defined $value );
-		my $first = 0;
-
-		foreach (@setvalues)
-		{
-			if( $_ ne "" )
-			{
-				$html .=  ", " unless( $first );
-				$first=1 if( $first );
-				$html .= $field->{labels}->{$_};
-			}
-		}
-	}
-	elsif( $type eq "username" )
-	{
-		$html = "";
-		my @usernames;
-		@usernames = split /:/, $value if( defined $value );
-		my $first = 0;
-
-		foreach (@usernames)
-		{
-			if( $_ ne "" )
-			{
-				$html .=  ", " unless( $first );
-				$first=1 if( $first );
-				$html .= $_;
-				# This could be much prettier
-			}
-		}
-	}
-	elsif( $type eq "pagerange" )
-	{
-		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $type eq "year" )
-	{
-		$html = ( defined $value ? $value : "" );
-	}
-	elsif( $type eq "name" )
-	{
-		$html = EPrints::Name::format_names( $value );
-	}
-	else
-	{
-		EPrints::Log::log_entry(
-			"L:cant_do_field" , 
-				{ type=>$type } );
-	}
-
-	return( $html );
-}
 
 
 ######################################################################
@@ -824,6 +674,7 @@ sub start_form
 sub hidden_field
 {
 	my( $self, $name, $value ) = @_;
+die"nope";
 	
 	return( $self->{query}->hidden( -name=>$name,
 	                                -default=>$value,
@@ -1086,6 +937,7 @@ sub render_eprint_full
 sub render_eprint_citation
 {
 	my( $self, $eprint, $html, $linked ) = @_;
+$self->{session}->bomb();
 	
 	my $citation = $self->{session}->{site}->eprint_render_citation( $eprint,
 	                                                                 $html );
@@ -1112,32 +964,6 @@ sub render_user
 	my( $self, $user, $public ) = @_;
 
 	return( $self->{session}->{site}->user_render_full( $user, $public ) );
-}
-
-
-######################################################################
-#
-# $html = render_user_name( $user, $linked )
-#
-#  Render the current user as HTML. if $public==1, only public fields
-#  will be shown.
-#
-######################################################################
-
-sub render_user_name
-{
-	my( $self, $user, $linked ) = @_;
-
-	my $html = "";
-	
-	$html = "<A HREF=\"$self->{session}->{site}->{server_perl}/staff/".
-		"view_user?username=$user->{username}\">" if( $linked );
-
-	$html .= $self->{session}->{site}->user_display_name( $user );
-
-	$html .= "</A>" if( $linked );
-	
-	return( $html );
 }
 
 

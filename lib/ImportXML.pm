@@ -48,23 +48,25 @@ sub _handle_start
 
 	if( $tag eq "TABLE" )
 	{
-		if( defined $parser->{eprints}->{table} )
+		if( defined $parser->{eprints}->{ds} )
 		{
 			$parser->xpcroak( "TABLE inside TABLE" );
 		}
-		$parser->{eprints}->{table} = $params{name};
 print "P:".join(",",keys %params).":\n";
 print "T:".$params{name}."\n";
-		my @fields = $parser->{eprints}->{session}->{metainfo}->get_fields( $params{name} );
-		unless( @fields )
+	
+		my $ds = $parser->{eprints}->{session}->getSite()->getDataSet( $params{name} );
+
+		unless( $ds )
 		{
 			$parser->xpcroak( "unknown table: $params{name}" );
 		}
 		$parser->{eprints}->{fields} = {};
-		foreach( @fields )
+		foreach( $ds->getFields() )
 		{
 			$parser->{eprints}->{fields}->{$_->{name}}=$_;
 		}
+		$parser->{eprints}->{dataset} = $ds;
 		return;
 	}
 
@@ -84,10 +86,10 @@ print "T:".$params{name}."\n";
 		{
 			$parser->xpcroak( "$tag inside other field" );
 		}
-		elsif( !defined $parser->{eprints}->{fields}->{$params{name}} )
-		{
-			$parser->xpcroak( "unknown field: $params{name}" );
-		}
+		#elsif( !defined $parser->{eprints}->{fields}->{$params{name}} )
+		#{
+		#	$parser->xpcroak( "unknown field: $params{name}" );
+		#}
 		else
 		{
 			$parser->{eprints}->{currentfield} = $params{name};
@@ -119,7 +121,7 @@ sub _handle_end
 
 	if ( $tag eq "TABLE" )
 	{
-		delete $parser->{eprints}->{table};
+		delete $parser->{eprints}->{ds};
 		delete $parser->{eprints}->{fields};
 		return;
 	}
@@ -128,15 +130,15 @@ sub _handle_end
 	{
 
 
-		my $item = EPrints::Database::make_object(
+		my $ds = $parser->{eprints}->{dataset};
+		my $item = $ds->make_object(
 			$parser->{eprints}->{session},
-			$parser->{eprints}->{table},
 			$parser->{eprints}->{data} );
 
 		
 		&{$parser->{eprints}->{function}}( 
 			$parser->{eprints}->{session}, 
-			$parser->{eprints}->{table},
+			$parser->{eprints}->{dataset},
 			$item );
 
 		delete $parser->{eprints}->{data};

@@ -180,7 +180,8 @@ sub create_archive_tables
 	}
 
 	#$success = $success && $self->_create_tempmap_table();
-	#$success = $success && $self->_create_counter_table();
+
+	$success = $success && $self->_create_counter_table();
 	
 	return( $success );
 }
@@ -567,9 +568,11 @@ die "remove not fini_cjgshed";# don't forget to prep values
 sub _create_counter_table
 {
 	my( $self ) = @_;
+
+	my $ds = $self->{session}->getSite()->getDataSet( "counter" );
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".EPrints::Database::table_name( $TID_COUNTER ).
+	my $sql = "CREATE TABLE ".$ds->getSQLTableName().
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
@@ -581,7 +584,7 @@ sub _create_counter_table
 	# Create the counters
 	foreach (@EPrints::Database::counters)
 	{
-		$sql = "INSERT INTO ".EPrints::Database::table_name( $TID_COUNTER)." VALUES ".
+		$sql = "INSERT INTO ".$ds->getSQLTableName()." VALUES ".
 			"(\"$_\", 0);";
 
 		$sth = $self->do( $sql );
@@ -636,8 +639,11 @@ sub counter_next
 	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
+	my $ds = $self->{session}->getSite()->getDataSet( "counter" );
+
+
 	# Update the counter	
-	my $sql = "UPDATE ".EPrints::Database::table_name( $TID_COUNTER )." SET counter=".
+	my $sql = "UPDATE ".$ds->getSQLTableName()." SET counter=".
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
 	
 	# Send to the database
@@ -1069,18 +1075,18 @@ sub benchmark
 
 sub exists
 {
-	my( $self, $tableid, $id ) = @_;
+	my( $self, $dataset, $id ) = @_;
 
 	if( !defined $id )
 	{
 		return undef;
 	}
-	my $table = table_name( $tableid );
 	
-	my @fields = $self->{session}->{metainfo}->get_fields( $tableid );
-	my $keyfield = $fields[0]->{name};
+	my $keyfield = $dataset->getKeyField();
 
-	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"".prep_value( $id )."\";";
+	my $sql = "SELECT ".$keyfield->getName().
+		" FROM ".$dataset->getSQLTableName()." WHERE ".
+		$keyfield->getName()." = \"".prep_value( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1123,7 +1129,7 @@ sub _freetext_index
 sub table_name
 {
 	my( $tableid ) = @_;
-die "kill me".join(",",caller());
+EPrints::Session::bomb();
 	return $TABLE_NAMES{ $tableid };
 }
 

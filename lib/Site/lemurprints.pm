@@ -1078,7 +1078,7 @@ $c->{subscription_fields} =
 
 
 # Ways of ordering search results
-$c->{order_methods}->{archive} =
+$c->{order_methods}->{eprint} =
 {
 	"byyear" 	 =>  \&eprint_cmp_by_year,
 	"byyearoldest"	 =>  \&eprint_cmp_by_year_oldest_first,
@@ -1088,7 +1088,7 @@ $c->{order_methods}->{archive} =
 
 # The default way of ordering a search result
 #   (must be key to %eprint_order_methods)
-$c->{default_order}->{archive} = "byname";
+$c->{default_order}->{eprint} = "byname";
 
 # How to order the articles in a "browse by subject" view.
 $c->{subject_view_order} = \&eprint_cmp_by_author;

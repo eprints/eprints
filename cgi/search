@@ -30,8 +30,8 @@ my $searchexp = new EPrints::SearchExpression(
 
 
 $searchexp->process_webpage(
-	$session->phrase( "H:simple_search" ),
-	"<P><A HREF=\"advsearch\">".$session->phrase( "H:adv_search" )."</A></P>"
+	$session->phrase( "simple_search" ),
+	"<P><A HREF=\"advsearch\">".$session->phrase( "adv_search" )."</A></P>"
 );
 
 $session->terminate();
