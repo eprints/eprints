@@ -58,19 +58,23 @@ sub new
 {
 	my( $class, $session, $id, $row ) = @_;
 
-	my $self = {};
-	bless $self, $class;
-	
+	my $self;
+	if( defined $row )
+	{
+		$self = $row;	
+	}
+	else 
+	{
+		$self = {};
+	}
 	$self->{session} = $session;
 	
 	if( defined $row )
 	{
-		# Got stuff in from database already
-		$self->{subjectid} = $row->[0];
-		$self->{name} = $row->[1];
-		$self->{parent} = ( defined $row->[2] ? $row->[2]
-		                                      : $EPrints::Subject::root_subject );
-		$self->{depositable} = $row->[3];
+		if (! defined $self->{parent} ) {
+			$self->{parent} = $EPrints::Subject::root_subject;
+		}
+print "A\n";
 	}
 	elsif( !defined $id || $id eq $EPrints::Subject::root_subject )
 	{
@@ -79,14 +83,13 @@ sub new
 		$self->{subjectid} = $EPrints::Subject::root_subject;
 		$self->{depositable} = "FALSE";
 		$self->{name} = $EPrints::Subject::root_subject_name;
+print "B\n";
 	}
 	else
 	{
 		# Got ID, need to read stuff in from database
-
-		my @retr_row = $self->{session}->{database}->retrieve_single(
+		my @retr_row = $self->{session}->{database}->get_single(
 			$EPrints::Database::table_subject,
-			"subjectid",
 			$id );
 
 		return( undef ) if( $#retr_row==-1 );    # If a db error
@@ -95,7 +98,9 @@ sub new
 		$self->{name} = $retr_row[1];
 		$self->{parent} = $retr_row[2];
 		$self->{depositable} = $retr_row[3];
+print "C\n";
 	}
+	bless $self, $class;
 
 	return( $self );
 }
@@ -127,16 +132,19 @@ sub create_subject
 	$actual_parent = $EPrints::Subject::root_subject
 		if( !defined $parent || $parent eq "" );
 
-	return( undef ) unless( $session->{database}->add_record(
-		$EPrints::Database::table_subject,
+	my $newsub = 
 		{ "subjectid"=>$id,
 		  "name"=>$name,
 		  "parent"=>$actual_parent,
-		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) } ) );
+		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
+
+	return( undef ) unless( $session->{database}->add_record(
+		$EPrints::Database::table_subject,
+		$newsub ) );
 
 	return( new EPrints::Subject( $session,
 	                              undef,
-	                              [$id, $name, $parent, $depositable ] ) );
+	                              $newsub ) );
 }
 
 
@@ -177,18 +185,31 @@ sub children
 	
 	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
 
-	my $rows = $self->{session}->{database}->retrieve_fields(
-		$EPrints::Database::table_subject,
-		\@fields,
-		[ "parent LIKE \"$self->{subjectid}\"" ],
-		[ "name" ] );
+	my $searchexp = new EPrints::SearchExpression(
+		$self->{session},
+		"subjects",
+		0,
+		1,
+		[],
+		{},
+		undef );
+
+	$searchexp->add_field(
+		EPrints::MetaInfo::find_table_field(
+			"subjects",
+			"parent" ),
+		"$self->{subjectid}:ALL" );
+
+	my $searchid = $searchexp->cache();
+	my @rows = $searchexp->get_eprints();
+	$searchexp->drop_cache();
 
 	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 
 	my @children;
 	my $r;
 
-	foreach $r (@$rows)
+	foreach $r (@rows)
 	{
 		my $child = new EPrints::Subject( $self->{session}, undef, $r );
 
@@ -491,15 +512,13 @@ sub get_all
 	my @fields = EPrints::MetaInfo::get_fields( "subjects" );
 	
 	# Retrieve all of the subjects
-	my $rows = $session->{database}->retrieve_fields(
-		$EPrints::Database::table_subject,
-		\@fields );
-	
-	return( undef ) if( !defined $rows );
+	my @rows = $session->{database}->get_all(
+		$EPrints::Database::table_subject );
+	return( undef ) if( !defined @rows );
 
 	my( @subjects, %subjectmap );
 	
-	foreach (@$rows)
+	foreach (@rows)
 	{
 		my $s = new EPrints::Subject( $session, undef, $_ );
 		push @subjects, $s;
@@ -530,7 +549,10 @@ sub get_all
 sub posted_eprints
 {
 	my( $self, $table ) = @_;
-	
+
+print "SELF:$self\n";
+
+
 	my $searchexp = new EPrints::SearchExpression(
 		$self->{session},
 		$table,

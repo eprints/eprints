@@ -104,77 +104,54 @@ sub new
 	my( $class, $session, $table, $id, $known ) = @_;
 
 	my $self = {};
-	
 
 	if( defined $known )
 	{
 		## Rows are already known
 		$self = $known;
-	}
-	bless $self, $class;
-
-	$self->{table} = $table;
-	$self->{session} = $session;
-
-	#if ( !defined $known )	
-	#{
-		#if( !defined $table )
-		#{
+		$self->{table} = $table;
+	} 
+	elsif ( !defined $known )	
+	{
+		if( !defined $table )
+		{
 			## Work out in which table the EPrint resides.
-##
+
 			# Try the archive table first
 			# Get the relevant row...
-			#@row = $self->{session}->{database}->retrieve_single(
-				#$EPrints::Database::table_archive,
-				#"eprintid",
-				#$id );
-#
-			# Next try buffer
-			#if( $#row >= 0 )
-			#{
-				#$self->{table} = $EPrints::Database::table_archive;
-			#}
-			#else
-			#{
-				#@row = $self->{session}->{database}->retrieve_single(
-					#$EPrints::Database::table_buffer,
-					#"eprintid",
-					#$id );
-			#}
-#
-			## Finally, inbox
-			#if( $#row >= 0 )
-			#{
-				#$self->{table} = $EPrints::Database::table_buffer;
-			#}
-			#else
-			#{
-				#@row = $self->{session}->{database}->retrieve_single(
-					#$EPrints::Database::table_inbox,
-					#"eprintid",
-					#$id );
-			#}
-#
-			#$table = $EPrints::Database::table_inbox if( $#row >= 0 );
-		#}
-		#else
-		#{
-			#$self->{table} = $table;
-#
-			#@row = $self->{session}->{database}->retrieve_single(
-				#$table,
-				#"eprintid",
-				#$id );
-		#}		
-#
-#
-		#if( $#row == -1 )
-		#{
-			## We still don't have any data, so the EPrint obviously doesn't exist.
-			#return( undef );
-		#}		
-	#}
+			foreach( 
+				$EPrints::Database::table_archive,
+				$EPrints::Database::table_inbox,
+				$EPrints::Database::table_buffer )
+			{
+				$self = $session->{database}->get_single(
+					$_,
+					$id );
+				if ( defined $self ) 
+				{
+					$self->{table} = $_;
+					last;
+				}
+			}
+		}
+		else
+		{
+			$self = $session->{database}->get_single(
+				$_,
+				$id );
+			$self->{table} = $table;
+		}		
 
+		if( !defined $self )
+		{
+			## We still don't have any data, so the EPrint obviously doesn't exist.
+			return( undef );
+		}		
+	}
+
+	$self->{session} = $session;
+
+	bless $self, $class;
 
 	return( $self );
 }

@@ -21,27 +21,45 @@ use strict;
 
 ######################################################################
 #
-# $html = format_name( $namespec, $surnamelast )
+# $html = format_name( $namespec, $familylast )
 #
-#  Takes the raw names value $namespec and returns it in a form suitable
+#  Takes a name (a reference to a hash containing keys
+#  "family" and "given" and returns it rendered 
 #  for screen display.
 #
 ######################################################################
 
 sub format_name
 {
-	my( $namespec, $surnamelast ) = @_;
+	my( $name, $familylast ) = @_;
 
+	if( $familylast )
+	{
+		return "$$name{given} $$name{family}";
+	}
+print "<sigh>\n" if (!defined $$name{given});
+		
+	return "$$name{family}, $$name{given}";
+}
+
+######################################################################
+#
+# $html = format_names( $namelist, $familylast )
+#
+#  Takes a list of names and formats them 
+#  for screen display.
+#
+######################################################################
+
+sub format_names
+{
+	my ( $namelist , $familylast ) = @_;
 	my $html = "";
 	my $i;
+	my @names = @{$namelist};
 
-	# Get the names out of the list
-	my @names = EPrints::Name::extract( $namespec );
-	
 	for( $i=0; $i<=$#names; $i++ )
 	{
-		my( $surname, $firstnames ) = @{$names[$i]};
-		
 		if( $i==$#names && $#names > 0 )
 		{
 			# If it's the last name and there's >1 name, add " and "
@@ -51,61 +69,13 @@ sub format_name
 		{
 			$html .= ", ";
 		}
+		$html .= format_name( $names[$i] , $familylast );
 		
-		if( $surnamelast )
-		{
-			$html .= "$firstnames $surname";
-		}
-		else
-		{
-			$html .= "$surname, $firstnames";
-		}
 	}
 
 	return( $html );
 }
 
-
-
-
-######################################################################
-#
-# @namelist = $extract( $names )
-#
-#  Gets the names out of a name list. Returns an array of array refs.
-#  Each array has two elements, the first being the SURNAME, the
-#  second being the FIRST NAMES.
-#
-#  i.e. @nameslist = ( [ "surname1", "firstnames1" ],
-#                      ["surname2", "firstnames2" ], ... )
-#
-######################################################################
-
-sub extract
-{
-	my( $names ) = @_;
-	
-#EPrints::Log::debug( "Name", "in: $names" );
-
-	my( @nameslist, $i, @namesplit );
-	
-	@namesplit = split /:/, $names if( defined $names );
-
-#EPrints::Log::debug( "Name", "Split into $#namesplit (+1)" );
-
-	
-	for( $i = 1; $i<=$#namesplit; $i++ )
-	{
-		my( $surname, $firstnames ) = split /,/, $namesplit[$i];
-
-#EPrints::Log::debug( "Name", "added: $surname, $firstnames" );
-
-		push @nameslist, [ $surname, $firstnames ]
-			if( defined $surname && $surname ne "" );
-	}
-	
-	return( @nameslist );
-}
 
 
 ######################################################################

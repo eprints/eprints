@@ -104,5 +104,61 @@ sub debug
 	}
 }
 
+######################################################################
+#
+# render_struct( $ref, $depth )
+#
+#  Renders a reference into a human readable tree.
+#
+######################################################################
 
+
+sub render_struct
+{
+	my ( $ref , $depth ) = @_;
+
+	$depth = 0 if ( !defined $depth );
+	my $text = "";
+
+	if ( !defined $ref ) 
+	{
+		$text = "  "x$depth;
+		$text.= "[undef]\n";
+		return $text;
+	} 
+
+	$type = "$ref";
+
+	if ( $ref =~ m/HASH\(/ ) 
+	{
+		%foo = %{$ref};
+		$text.= "  "x$depth;
+		$text.= "HASH\n";
+		foreach (keys %foo) 
+		{
+			$text.= "  "x$depth;
+			$text.= " $_=>\n";
+			$text.= render_struct( $foo{$_} , $depth+1 );
+		}
+	} 
+	elsif ( $ref =~ m/ARRAY\(/ ) 
+	{
+		@foo = @{$ref};
+		$text.= "  "x$depth;
+		$text.= "ARRAY (".($#foo+1).")\n";
+		foreach (@foo) 
+		{
+			$text.= render_struct( $_ , $depth+1 );
+		}
+	}
+	else
+	{
+		$text.= "  "x$depth;
+		$text.= "\"$ref\"\n";
+	}
+			
+	return $text;
+}
+
+		
 1;

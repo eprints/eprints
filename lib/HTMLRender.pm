@@ -455,7 +455,7 @@ sub format_field
 	}
 	elsif( $type eq "name" )
 	{
-		$html = EPrints::Name::format_name( $value );
+		$html = EPrints::Name::format_names( $value );
 	}
 	else
 	{

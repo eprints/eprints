@@ -33,6 +33,7 @@ $EPrints::Database::driver = "DBI:mysql:";
 #
 # Table names
 #
+$EPrints::Database::table_tempmap = "tempmap";
 $EPrints::Database::table_counter = "counters";
 $EPrints::Database::table_user = "users";
 $EPrints::Database::table_inbox = "inbox";
@@ -54,22 +55,43 @@ $EPrints::Database::table_deletion = "deletions";
 #
 %EPrints::Database::datatypes =
 (
-	"int"        => "INT UNSIGNED",
-	"date"       => "DATE",
-	"enum"       => "VARCHAR(255)",
-	"boolean"    => "SET('TRUE','FALSE')",
-	"set"        => "VARCHAR(255)",
-	"text"       => "VARCHAR(255)",
-	"multitext"  => "TEXT",
-	"url"        => "VARCHAR(255)",
-	"multiurl"   => "TEXT",
-	"email"      => "VARCHAR(255)",
-	"subjects"   => "VARCHAR(255)",
-	"username"   => "VARCHAR(255)",
-	"pagerange"  => "VARCHAR(255)",
-	"year"       => "INT UNSIGNED",
-	"eprinttype" => "VARCHAR(255)",
-	"name"       => "VARCHAR(255)"
+	"int"        => "\$(name) INT UNSIGNED \$(param)",
+	"date"       => "\$(name) DATE \$(param)",
+	"enum"       => "\$(name) VARCHAR(255) \$(param)",
+	"boolean"    => "\$(name) SET('TRUE','FALSE') \$(param)",
+	"set"        => "\$(name) VARCHAR(255) \$(param)",
+	"text"       => "\$(name) VARCHAR(255) \$(param)",
+	"multitext"  => "\$(name) TEXT \$(param)",
+	"url"        => "\$(name) VARCHAR(255) \$(param)",
+	"multiurl"   => "\$(name) TEXT \$(param)",
+	"email"      => "\$(name) VARCHAR(255) \$(param)",
+	"subjects"   => "\$(name) VARCHAR(255) \$(param)",
+	"username"   => "\$(name) VARCHAR(255) \$(param)",
+	"pagerange"  => "\$(name) VARCHAR(255) \$(param)",
+	"year"       => "\$(name) INT UNSIGNED \$(param)",
+	"eprinttype" => "\$(name) VARCHAR(255) \$(param)",
+	"name"       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
+);
+
+# Map of INDEXs required if a user wishes a field indexed.
+%EPrints::Database::dataindexes =
+(
+	"int"        => "INDEX(\$(name))",
+	"date"       => "INDEX(\$(name))",
+	"enum"       => "INDEX(\$(name))",
+	"boolean"    => "INDEX(\$(name))",
+	"set"        => "INDEX(\$(name))",
+	"text"       => "INDEX(\$(name)(\$(size)))",
+	"multitext"  => "INDEX(\$(name)(\$(size)))",
+	"url"        => "INDEX(\$(name)(\$(size)))",
+	"multiurl"   => "INDEX(\$(name)(\$(size)))",
+	"email"      => "INDEX(\$(name)(\$(size)))",
+	"subjects"   => "INDEX(\$(name))",
+	"username"   => "INDEX(\$(name))",
+	"pagerange"  => "INDEX(\$(name))",
+	"year"       => "INDEX(\$(name))",
+	"eprinttype" => "INDEX(\$(name))",
+	"name"       => "INDEX(\$(name)_given(\$(size))), INDEX(\$(name)_family(\$(size)))"
 );
 
 # set, subjects, name and username can all be multiple which requires
@@ -194,6 +216,8 @@ sub create_archive_tables
 	# Create the ID counter table
 	my $success = $self->_create_counter_table();
 
+	$success = $success && $self->_create_tempmap_table();
+
 	# Create the user table
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_user,
@@ -204,7 +228,6 @@ sub create_archive_tables
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_document,
 		EPrints::MetaInfo::get_fields( "documents" ) );
-
 
 	# EPrint tables
 	my @eprint_metadata = EPrints::MetaInfo::get_fields( "eprints" );
@@ -310,33 +333,45 @@ sub _create_table_aux
 		{
 			$sql .= ", ";
 		}
-		$sql .= "$field->{name} $EPrints::Database::datatypes{$field->{type}}";
+		my $part = $EPrints::Database::datatypes{$field->{type}};
+		my %bits = (
+			 "name"=>$field->{name},
+			 "size"=>"12",
+			 "param"=>"" );
+
+			
 		# First field is primary key.
 		if( !defined $key && $setkey)
 		{
 			$key = $field;
-			$sql .= " NOT NULL";
+			$bits{"param"} = "NOT NULL";
 		}
 		elsif( $field->{indexed} )
 		{
-			$sql .= " NOT NULL";
-			push @indices, $field->{name};
+			$bits{"param"} = "NOT NULL";
+			my $index = $EPrints::Database::dataindexes{$field->{type}};
+	
+			while( $index =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
+			push @indices, $index;
 		}
+		while( $part =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
+		$sql .= $part;
 
 	}
 	if ( $setkey )	
 	{
 		$sql .= ", PRIMARY KEY ($key->{name})";
 	}
+
 	
 	foreach (@indices)
 	{
-		$sql .= ", INDEX($_(10))";
+		$sql .= ", $_";
 	}
 	
 	$sql .= ");";
 	
-#EPrints::Log::debug( "Database", "SQL: $sql" );
+EPrints::Log::debug( "Database", "SQL: $sql" );
 
 	print EPrints::Language::logphrase( 
 		"L:created_table" ,
@@ -344,7 +379,7 @@ sub _create_table_aux
 		
 
 	# Send to the database
-	my $rv = $self->{dbh}->do( $sql );
+	my $rv = $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -393,10 +428,8 @@ sub add_record
 
 	$sql .= ") VALUES ($vsql);";	
 
-EPrints::Log::debug( "Database", "SQL: $sql" );
-
 	# Send to the database
-	my $rv = $self->{dbh}->do( $sql );
+	my $rv = $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -470,10 +503,8 @@ EPrints::Log::debug( "Database", "$f->{name} type $f->{type}!!" );
 
 	$sql .= " WHERE $key_field LIKE \"$key_value\";";
 	
-EPrints::Log::debug( "Database", "SQL: $sql" );
-
 	# Send to the database
-	my $rv = $self->{dbh}->do( $sql );
+	my $rv = $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -590,7 +621,7 @@ sub remove
 	
 	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
 
-	my $rv = $self->{dbh}->do( $sql );
+	my $rv = $self->do( $sql );
 
 	# Return with an error if unsuccessful
 	return( defined $rv )
@@ -614,7 +645,7 @@ sub _create_counter_table
 		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
 	
 	# Send to the database
-	my $sth = $self->{dbh}->do( $sql );
+	my $sth = $self->do( $sql );
 	
 	# Return with an error if unsuccessful
 	return( 0 ) unless defined( $sth );
@@ -625,12 +656,38 @@ sub _create_counter_table
 		$sql = "INSERT INTO $EPrints::Database::table_counter VALUES ".
 			"(\"$_\", 0);";
 
-		$sth = $self->{dbh}->do( $sql );
+		$sth = $self->do( $sql );
 		
 		# Return with an error if unsuccessful
 		return( 0 ) unless defined( $sth );
 	}
 	
+	# Everything OK
+	return( 1 );
+}
+######################################################################
+#
+# $success = _create_tempmap_table()
+#
+#  Creates the temporary table map table.
+#
+######################################################################
+
+sub _create_tempmap_table
+{
+	my( $self ) = @_;
+	
+	# The table creation SQL
+	my $sql = "CREATE TABLE $EPrints::Database::table_tempmap ".
+		"(tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
+		"created DATETIME NOT NULL)";
+	
+	# Send to the database
+	my $sth = $self->do( $sql );
+	
+	# Return with an error if unsuccessful
+	return( 0 ) unless defined( $sth );
+
 	# Everything OK
 	return( 1 );
 }
@@ -654,7 +711,7 @@ sub counter_next
 		"LAST_INSERT_ID(counter+1) WHERE countername LIKE \"$counter\";";
 	
 	# Send to the database
-	my $rows_affected = $self->{dbh}->do( $sql );
+	my $rows_affected = $self->do( $sql );
 
 	# Return with an error if unsuccessful
 	return( undef ) unless( $rows_affected==1 );
@@ -668,7 +725,50 @@ sub counter_next
 
 ######################################################################
 #
+# $cacheid = create_cache( $keyname )
+#
+#  perform a search and store the keys of the results in
+#  a cache tmp table.
+#
+######################################################################
+
+sub create_cache
+{
+	my ( $self , $keyname ) = @_;
+
+	my $sql;
+
+	$sql = "INSERT INTO $EPrints::Database::table_tempmap ".
+	       "VALUES ( NULL , NOW() )";
+	
+	$self->do( $sql );
+
+	$sql = "SELECT LAST_INSERT_ID()";
+
+EPrints::Log::debug( "Database", "SQL:$sql" );
+
+	my $sth = $self->prepare( $sql );
+	$sth->execute();
+	my ( $id ) = $sth->fetchrow_array;
+
+	my $tmptable  = "cache".$id;
+
+        $sql = "CREATE TABLE $tmptable ".
+	       "( $keyname VARCHAR(255) NOT NULL)";
+
+	$self->do( $sql );
+	
+	return $tmptable;
+
+}
+
+
+######################################################################
+#
 # $cacheid = cache( $table, $auxtables{}, $conditions)
+#
+#  perform a search and store the keys of the results in
+#  a cache tmp table.
 #
 ######################################################################
 
@@ -687,17 +787,9 @@ sub cache
 	}
 	$sql .= " WHERE $conditions";
 
-	my $tmptable = "tmp$$";
+	my $tmptable = $self->create_cache( $keyfield->{name} );
 
-        my $tmp_sql = "CREATE TABLE $tmptable ( $keyfield->{name} VARCHAR(127) NOT NULL)";
-
-EPrints::Log::debug( "Database", "SQL:$tmp_sql" );
-
-	$self->{dbh}->do( $tmp_sql );
-
-EPrints::Log::debug( "Database", "SQL:$sql" );
-	
-	$self->{dbh}->do( "INSERT INTO $tmptable $sql" );
+	$self->do( "INSERT INTO $tmptable $sql" );
 
 
 	return( $tmptable );
@@ -708,13 +800,19 @@ sub drop_cache
 	my ( $self , $tmptable ) = @_;
 	# sanity check! Dropping the wrong table could be
 	# VERY bad.	
-	if ( $tmptable =~ m/^tmp\d+$/ )
+	if ( $tmptable =~ m/^cache(\d+)$/ )
 	{
-        	my $tmp_sql = "DROP TABLE $tmptable";
+		my $sql;
 
-EPrints::Log::debug( "Database", "SQL:$tmp_sql" );
+		$sql = "DELETE FROM $EPrints::Database::table_tempmap ".
+	               "WHERE tableid = $1";
 
-		$self->{dbh}->do( $tmp_sql );
+		$self->do( $sql );
+
+        	$sql = "DROP TABLE $tmptable";
+
+		$self->do( $sql );
+		
 	}
 	else
 	{
@@ -731,14 +829,13 @@ sub count_cache
 {
 	my ( $self , $cache ) = @_;
 
-	my ( $sql , $sth , $count );
+	my $sql = "SELECT COUNT(*) FROM $cache";
 
-	$sql = "SELECT COUNT(*) FROM $cache";
 EPrints::Log::debug( "Database", "SQL:$sql" );
-	$sth = $self->{dbh}->prepare( $sql );
-	$sth->execute();
-	( $count ) = $sth->fetchrow_array;
 
+	my $sth = $self->prepare( $sql );
+	$sth->execute();
+	my ( $count ) = $sth->fetchrow_array;
 
 	return $count;
 }
@@ -746,14 +843,37 @@ EPrints::Log::debug( "Database", "SQL:$sql" );
 sub from_cache 
 {
 	my ( $self , $table , $cache ) = @_;
+print join("  ,  ",caller())."\n";
+	return $self->_get( $table, 1 , $cache );
+}
 
+sub get_single
+{
+	my ( $self , $table , $value ) = @_;
+	return ($self->_get( $table, 0 , $value ))[0];
+}
+
+sub get_all
+{
+	my ( $self , $table ) = @_;
+	return $self->_get( $table, 2 );
+}
+
+sub _get 
+{
+	my ( $self , $table , $mode , $param ) = @_;
+
+	# mode 0 = one or none entries from a given primary key
+	# mode 1 = many entries from a cache table
+	# mode 2 = return the whole table (careful now)
+
+
+	print "GET:($table)($mode)\n";	
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
 	my $cols = "";
 	my @aux = ();
-	print "_--------------------------_\n";	
-	print "COUNTCACHE: ".$self->count_cache( $cache )."\n";
 	my $first = 1;
 	foreach (@fields) {
 		if ( $_->{multiple}) 
@@ -773,8 +893,20 @@ sub from_cache
 			$cols .= "M.".$_->{name};
 		}
 	}
-	my $sql = "SELECT $cols FROM $cache AS C, $table AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
-	my $sth = $self->{dbh}->prepare( $sql );
+	my $sql;
+	if ( $mode == 0 )
+	{
+		$sql = "SELECT $cols FROM $table AS M WHERE M.$keyfield->{name} = \"$param\"";
+	}
+	elsif ( $mode == 1 )	
+	{
+		$sql = "SELECT $cols FROM $param AS C, $table AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
+	}
+	elsif ( $mode == 2 )	
+	{
+		$sql = "SELECT $cols FROM $table AS M";
+	}
+	my $sth = $self->prepare( $sql );
 	$sth->execute();
 	my @data = ();
 	my @row;
@@ -785,31 +917,99 @@ sub from_cache
 		my $record = {};
 		$lookup{$row[0]} = $count;
 		foreach( @fields ) { 
-			next if $_->{multiple};
-			$$record{$_->{name}} = shift @row;
+			if ( $_->{multiple} )
+			{
+				$$record{$_->{name}} = [];
+			}
+			else 
+			{
+				my $value;
+				if ($_->{type} eq "name") 
+				{
+					$value = {};
+					$value->{given} = shift @row;
+					$value->{family} = shift @row;
+				} 
+				else
+				{
+					$value = shift @row;
+				}
+				$$record{$_->{name}} = $value;
+			}
 		}
 		$data[$count] = $record;
 		$count++;
 	}
-	print "=========$count\n";
 
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		$sql = "SELECT M.$keyfield->{name},M.pos,M.$multifield->{name} FROM ";
-		$sql.= "$cache AS C, $table"."aux".$multifield->{name};
-		$sql.= " AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
-		print "$sql\n";
-		$sth = $self->{dbh}->prepare( $sql );
+		my $col = "M.$multifield->{name}";
+		if ( $multifield->{type} eq "name" ) 
+		{
+			$col = "M.$multifield->{name}_given,M.$multifield->{name}_family";
+		}
+		
+		$col =~ s/\$\(name\)/M.$multifield->{name}/g;
+		if ( $mode == 0 )	
+		{
+			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql.= $table."aux$multifield->{name} AS M ";
+			$sql.= "WHERE M.$keyfield->{name}=$param";
+		}
+		elsif ( $mode == 1)
+		{
+			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql.= "$param AS C, ";
+		        $sql.= $table."aux$multifield->{name} AS M ";
+			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
+		}	
+		elsif ( $mode == 2)
+		{
+			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql.= $table."aux$multifield->{name} AS M";
+		}
+		$sth = $self->prepare( $sql );
 		$sth->execute();
-		my ( $id , $pos , $value);
-		while( ($id , $pos , $value) = $sth->fetchrow_array ) 
+		my ( $id , $pos , @values);
+		while( ($id , $pos , @values) = $sth->fetchrow_array ) 
 		{
 			my $n = $lookup{ $id };
-			${${$data[$n]}{$multifield->{name}}}[$pos] = $value;
+			my $value;
+			if ($multifield->{type} eq "name") 
+			{
+				$value = {};
+				$value->{given} = shift @values;
+				$value->{family} = shift @values;
+			} 
+			else
+			{
+				$value = shift @values;
+			}
+			$data[$n]->{$multifield->{name}}->[$pos] = $value;
 		}
 	}	
 	return @data;
+}
+
+sub do 
+{
+	my ( $self , $sql ) = @_;
+
+EPrints::Log::debug( "Database", "$sql" );
+print "$sql\n";
+
+	return $self->{dbh}->do( $sql );
+}
+
+sub prepare 
+{
+	my ( $self , $sql ) = @_;
+
+EPrints::Log::debug( "Database", "$sql" );
+print "$sql\n";
+
+	return $self->{dbh}->prepare( $sql );
 }
 
 1; # For use/require success
