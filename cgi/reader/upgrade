@@ -1,0 +1,58 @@
+######################################################################
+#
+#  Upgrade registration from reader to author.
+#
+######################################################################
+#
+#  $Id$
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::User;
+
+use strict;
+
+
+my $session = new EPrints::Session;
+
+my $user = EPrints::User->current_user( $session );
+
+# Check user
+if( !defined $user )
+{
+	# Can't find the user
+	$session->{render}->render_error( "I don't know who you are",
+	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+print $session->{render}->start_html( "Registration Upgrade" );
+
+
+# Is user an author already?
+
+if( $user->{groups} eq $EPrints::User::access_levels[1] ||
+    $user->{groups} eq $EPrints::User::access_levels[2] )
+{
+	print "<CENTER><P><STRONG>You already have an author account.</STRONG></P>".
+		"</CENTER>\n";
+}
+else
+{
+	$user->{groups} = $EPrints::User::access_levels[1];
+	$user->commit();
+
+	print "<CENTER><P><STRONG>Your account has been upgraded to an author ".
+		"account. You may now start uploading documents.</STRONG></P></CENTER>\n";
+}
+
+print "<CENTER><P>Please ".
+	"<A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/author/home\">visit your ".
+	"author area</A> and fill out your author record.</P></CENTER>\n";
+
+print $session->{render}->end_html();
+
+$session->terminate();
