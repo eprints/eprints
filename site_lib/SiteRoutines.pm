@@ -112,6 +112,13 @@ sub eprint_render_full
 	$html .= "<P><TABLE BORDER=0 CELLPADDING=3>\n";
 	
 	# Keywords
+	if( defined $eprint->{commref} && $eprint->{commref} ne "" )
+	{
+		$html .= "<TR><TD VALIGN=TOP><STRONG>Commentary on:</STRONG></TD><TD>".
+			$eprint->{commref}."</TD></TR>\n";
+	}
+
+	# Keywords
 	if( defined $eprint->{keywords} && $eprint->{keywords} ne "" )
 	{
 		$html .= "<TR><TD VALIGN=TOP><STRONG>Keywords:</STRONG></TD><TD>".
