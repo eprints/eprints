@@ -79,12 +79,14 @@ sub make_confirm_page
 	# This script hacks the SQL directly, as normally "secret" fields are not
 	# accessable to eprints. 
 	
-	if( defined $user->get_value( "newemail" ) )
+	if( $user->is_set( "newemail" ) )
 	{
 		# check no one else has this email! cjg
 		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET email=newemail, newemail=NULL, pin=NULL where userid=".$userid; 
 		$session->get_db()->do( $sql );
-		$page->appendChild( $session->html_phrase( "cgi/confirm:set_email" ) );
+		$page->appendChild( $session->html_phrase( 
+			"cgi/confirm:set_email",
+			newemail=>$session->make_text( $user->get_value( "newemail" ) ) ) );
 	} 
 	else
 	{

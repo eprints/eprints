@@ -120,7 +120,7 @@ sub eprint_render
 
 
 	# Then the abstract
-	if( defined $eprint->get_value( "abstract" ) )
+	if( $eprint->is_set( "abstract" ) )
 	{
 		my $h2 = $session->make_element( "h2" );
 		$h2->appendChild( 
@@ -138,7 +138,7 @@ sub eprint_render
 	$page->appendChild( $table );
 
 	# Commentary
-	if( defined $eprint->get_value( "commentary" ) )
+	if( $eprint->is_set( "commentary" ) )
 	{
 		my $target = EPrints::EPrint->new( $session,
 			$session->get_archive()->get_dataset( "archive" ), 
@@ -154,7 +154,7 @@ sub eprint_render
 	}
 
 	# Keywords
-	if( defined $eprint->get_value( "keywords" ) )
+	if( $eprint->is_set( "keywords" ) )
 	{
 		$table->appendChild( _render_row(
 			$session,
@@ -200,7 +200,7 @@ sub eprint_render
 		$eprint->render_value( "datestamp" ) ) );
 
 	# Alternative locations
-	if( defined $eprint->get_value( "altloc" ) )
+	if( $eprint->is_set( "altloc" ) )
 	{
 		$table->appendChild( _render_row(
 			$session,
@@ -396,22 +396,22 @@ sub user_render
 	$p = $session->make_element( "p" );
 	$p->appendChild( $user->render_description() );
 	# Address, Starting with dept. and organisation...
-	if( defined $user->get_value( "dept" ) )
+	if( $user->is_set( "dept" ) )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "dept" ) );
 	}
-	if( defined $user->get_value( "org" ) )
+	if( $user->is_set( "org" ) )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "org" ) );
 	}
-	if( defined $user->get_value( "address" ) )
+	if( $user->is_set( "address" ) )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "address" ) );
 	}
-	if( defined $user->get_value( "country" ) )
+	if( $user->is_set( "country" ) )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "country" ) );
@@ -422,7 +422,7 @@ sub user_render
 	## E-mail and URL last, if available.
 	if( $user->get_value( "hideemail" ) ne "TRUE" )
 	{
-		if( defined $user->get_value( "email" ) )
+		if( $user->is_set( "email" ) )
 		{
 			$p = $session->make_element( "p" );
 			$p->appendChild( $user->render_value( "email" ) );
@@ -430,7 +430,7 @@ sub user_render
 		}
 	}
 
-	if( defined $user->get_value( "url" ) )
+	if( $user->is_set( "url" ) )
 	{
 		$p = $session->make_element( "p" );
 		$p->appendChild( $user->render_value( "url" ) );

@@ -107,23 +107,16 @@ my $FREETEXT_CHAR_MAPPING = {
 # details some useful methods.
 
 my $FREETEXT_SEPERATOR_CHARS = {
-	'@' => 1, 	'[' => 1,
-	'\\' => 1, 	']' => 1,
-	'^' => 1, 	'_' => 1,
-	' ' => 1, 	'`' => 1,
-	'!' => 1, 	'"' => 1,
-	'#' => 1, 	'$' => 1,
-	'%' => 1, 	'&' => 1,
-	'(' => 1, 	')' => 1,
-	'*' => 1, 	'+' => 1,
-	',' => 1, 	'-' => 1,
-	'.' => 1, 	'/' => 1,
-	':' => 1, 	';' => 1,
-	'{' => 1, 	'<' => 1,
-	'|' => 1, 	'=' => 1,
-	'}' => 1, 	'>' => 1,
-	'~' => 1, 	'?' => 1
+	'@' => 1, 	'[' => 1, 	'\\' => 1, 	']' => 1,
+	'^' => 1, 	'_' => 1,	' ' => 1, 	'`' => 1,
+	'!' => 1, 	'"' => 1, 	'#' => 1, 	'$' => 1,
+	'%' => 1, 	'&' => 1, 	'(' => 1, 	')' => 1,
+	'*' => 1, 	'+' => 1, 	',' => 1, 	'-' => 1,
+	'.' => 1, 	'/' => 1, 	':' => 1, 	';' => 1,
+	'{' => 1, 	'<' => 1, 	'|' => 1, 	'=' => 1,
+	'}' => 1, 	'>' => 1, 	'~' => 1, 	'?' => 1
 };
+
 
 ######################################################################
 #
@@ -180,7 +173,7 @@ sub extract_words
 	{
 		my $s = $buffer->substr( $i, 1 );
 		# $s is now char number $i
-		if( defined $FREETEXT_SEPERATOR_CHARS->{$s} )
+		if( defined $FREETEXT_SEPERATOR_CHARS->{$s} || ord($s)<32 )
 		{
 			push @words, $cword; # even if it's empty	
 			$cword = utf8( "" );
@@ -234,38 +227,38 @@ sub extract_words
 	
 		# Add this word to the good list or the bad list
 		# as appropriate.	
-		if( $ok )
-		{
-			# Only "bad" words are used in display to the
-			# user. Good words can be normalised even further.
-
-			# non-acronyms (ie not all UPPERCASE words) have
-			# a trailing 's' removed. Thus in searches the
-			# word "chair" will match "chairs" and vice-versa.
-			# This isn't perfect "mose" will match "moses" and
-			# "nappy" still won't match "nappies" but it's a
-			# reasonable attempt.
-			$word =~ s/s$//;
-
-			# If any of the characters are lowercase then lower
-			# case the entire word so "Mesh" becomes "mesh" but
-			# "HTTP" remains "HTTP".
-			if( $word =~ m/[a-z]/ )
-			{
-				$word = lc $word;
-			}
-	
-			$good{$word}++;
-		}
-		else 
+		unless( $ok )
 		{
 			$bad{$word}++;
+			next;
 		}
+
+		# Only "bad" words are used in display to the
+		# user. Good words can be normalised even further.
+
+		# non-acronyms (ie not all UPPERCASE words) have
+		# a trailing 's' removed. Thus in searches the
+		# word "chair" will match "chairs" and vice-versa.
+		# This isn't perfect "mose" will match "moses" and
+		# "nappy" still won't match "nappies" but it's a
+		# reasonable attempt.
+		$word =~ s/s$//;
+
+		# If any of the characters are lowercase then lower
+		# case the entire word so "Mesh" becomes "mesh" but
+		# "HTTP" remains "HTTP".
+		if( $word =~ m/[a-z]/ )
+		{
+			$word = lc $word;
+		}
+
+		$good{$word}++;
 	}
 	# convert hash keys to arrays and return references
 	# to these arrays.
 	my( @g ) = keys %good;
 	my( @b ) = keys %bad;
+
 	return( \@g , \@b );
 }
 

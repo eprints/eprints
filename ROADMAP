@@ -201,6 +201,8 @@
 # Make Hide Lineage a field property.
 # sometimes exits without terminating 
 
+# Add option to supress empty subjects in browse views.
+
 
 
 # HOW-TOS

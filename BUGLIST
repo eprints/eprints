@@ -13,6 +13,18 @@ General
 - VLit code does not understand that server may not be running on
    port 80.
 
+- Several Problems running EPrints on a high port.
+
+- set_email missing(?) [ I can't seem to confirm this problem ]
+
+----------------------------------------------------------------------
+Default Configuration
+----------------------------------------------------------------------
+
+- Default subjects - replace with Library of Congress.
+
+- Need a Better description of Lineage and Title(Honourific)
+
 ----------------------------------------------------------------------
 Rendering
 ----------------------------------------------------------------------
@@ -25,19 +37,11 @@ Rendering
 
 - cant use &nbsp; in pages.
 
-- Default template: html page title does not include site name
-
 - does not remove abstracts of deleted papers!
-
 
 ----------------------------------------------------------------------
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
-
-- user "deposit" priv is ignored.
-
-- Bad &foo; and <ifset> items in citations should give a clean error
-if they use non-existant fields. 
 
 ----------------------------------------------------------------------
 Searching
@@ -46,8 +50,6 @@ Searching
 - No way to search date fields, via the forms interface.
 
 - Does not show "ignored words" if results are cached.
-
-- Does not index words after a \n
 
 ----------------------------------------------------------------------
 EPrints Submission Form
@@ -87,6 +89,9 @@ causes a 500 error.
 Fixed in CVS
 ======================================================================
 
+- Does not index word after a \n - due to \n not being a split 
+   character. [fixed]
+- user "deposit" priv is ignored.
 - No subjects at all causes a HTTP error. Possibly due to the top 
    subject for a field not existing.
 - importer treats whitespace in a multilang field between the <lang>
@@ -99,6 +104,24 @@ Fixed in CVS
 - Screws up Reply-to (DOM fragment instead of name) [fixed]
 - non-ASCII escaping in MIME appears broken [fixed]
 - non-ascii char (latin1 one) in message body not sent at all.
+- Bad &foo; and <ifset> items in citations should give a clean error
+if they use non-existant fields.  [ abort function now called. Also
+ abort now generates an HTTP message if under mod_perl in addition
+to writing to the logs via STDERR ]
+- use of "defined" in Render functions where "EPrints::Utils::is_set"
+would be more appropriate. [ In fact all occurancies of
+(defined $foo->get_value( "bar" )) have become ($foo->is_set( "bar" ))
+].
+- creating a new archive with a different password for user eprints
+   resets ALL db passwords for user 'eprints'. [ default MySQL user
+  is now $archiveid instead of eprints. This is easier than trying
+  to document the problem! ]
+- Default template: html page title does not include site name [ now
+ HTML page title is "sitename - pagetitle" ]
+
+
+
+
 
 
 

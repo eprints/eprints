@@ -130,7 +130,7 @@ EPrints Modules
 
 <!-- SubmissionForm -->
 
-    <ep:phrase ref="lib/submissionform:use_auth_area">Use your author area to deposit new documents</ep:phrase>
+    <ep:phrase ref="lib/submissionform:use_auth_area">Use the  user area to deposit new documents</ep:phrase>
     <ep:phrase ref="lib/submissionform:upload_prob">There was a problem uploading your file(s). Please try again.</ep:phrase>
     <ep:phrase ref="lib/submissionform:bib_info"><p>Please enter the bibliographic data about your deposit. Fields marked with a <span class="requiredstar">*</span> are fields that must be filled out before your deposit will be accepted.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:verify">Verify: <ep:pin ref="citation" /></ep:phrase>
@@ -151,7 +151,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:enter_files"><p>Please enter the filenames (with full paths) of the document files in the boxes below.</p></ep:phrase>
     <ep:phrase ref="lib/submissionform:fix_probs">Before you deposit this entry to the archive, the following problems need to be corrected:</ep:phrase>
     <ep:phrase ref="lib/submissionform:please_verify"><p><strong>You have not finished yet!</strong></p><p>Please verify that all of the details about your deposit are correct, and that all necessary document files have been correctly uploaded including any figures.</p><p>When you are satisfied click the submit button at the foot of this page.</p></ep:phrase>
-    <ep:phrase ref="lib/submissionform:thanks"><p>Thank you.</p><p>Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</p><p><a href="home">Click here to return to your deposit page</a></p></ep:phrase>
+    <ep:phrase ref="lib/submissionform:thanks"><p>Thank you.</p><p>Your document is now held in the deposit buffer. Provided there are no problems it should appear in the main archive within the next few days.</p><p><a href="home">Click here to go to the user page</a></p></ep:phrase>
     <ep:phrase ref="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this entry? <ep:pin ref="title" /></p></ep:phrase>
     <ep:phrase ref="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</ep:phrase>
     <ep:phrase ref="lib/submissionform:please_complete">Please complete the form before continuing.</ep:phrase>
@@ -180,7 +180,7 @@ EPrints Modules
     <ep:phrase ref="lib/submissionform:title_verify">Deposit Verification</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_done">Completed Deposit</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_error">Error</ep:phrase>
-    <ep:phrase ref="lib/submissionform:title_return">Return to Author's Home</ep:phrase>
+    <ep:phrase ref="lib/submissionform:title_return">Go to Author's Home</ep:phrase>
     <ep:phrase ref="lib/submissionform:title_confirmdel">Confirm Deletion</ep:phrase>
     <ep:phrase ref="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your user page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin ref="line_no" />)</ep:phrase>
     <ep:phrase ref="lib/submissionform:database_err">There's been a problem accessing the archive database. Please try again later. (Code <ep:pin ref="line_no" />)</ep:phrase>
@@ -258,10 +258,8 @@ User Area CGI Scripts
 <!-- home -->
 
     <ep:phrase ref="cgi/users/home:user_home">User Area Homepage - <ep:pin ref="name" /></ep:phrase>
-    <ep:phrase ref="cgi/users/home:intro"><p>Welcome to the item depositing area at &archivename;. Please select one of the options below.</p></ep:phrase>
-    <ep:phrase ref="cgi/users/home:before"><p>Before you upload any documents, please fill out your user record.</p></ep:phrase>
-
-    <ep:phrase ref="cgi/users/home:remove_info">You can also remove documents from the archive.!?cjg</ep:phrase>
+    <ep:phrase ref="cgi/users/home:intro"><p>Welcome to the registered user area at &archivename;. Please select one of the options below.</p></ep:phrase>
+    <ep:phrase ref="cgi/users/home:before"><p>Before you use any of the user area functions, you must fill out your user information.</p></ep:phrase>
 
     <ep:phrase ref="cgi/users/home:change_link">View/change your user record</ep:phrase>
     <ep:phrase ref="cgi/users/home:change_info"><p>Select this option to see your user record, and to correct or update your user information.</p></ep:phrase>
@@ -376,13 +374,13 @@ User Area CGI Scripts
     <ep:phrase ref="cgi/users/subscribe:create">Create a Subscription</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:remove">Remove the Subscription</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:mk_sub_error">Unable to create your subscription. The database may be busy. Please try again later.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:return_dep">Return to your deposit items page</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:return_dep">Go to the user page</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:rm_sub_error">Unable to remove your subscription. The database may be busy. Please try again later.</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:no_sub">You do not currently have a subscription. Click on the button below to create subscription.</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:cant_accept">The subscription could not be accepted because:</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:please_enter">Enter the criteria for your subscription below.</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:sub_accept">Your subscription has been accepted.</ep:phrase>
-    <ep:phrase ref="cgi/users/subscribe:ret_deposit">Click here to return to your deposit items page.</ep:phrase>
+    <ep:phrase ref="cgi/users/subscribe:ret_deposit">Click here to go to the  user page.</ep:phrase>
     <ep:phrase ref="cgi/users/subscribe:ud_sub_error">Unable to update your subscription. The database may be busy. Please try again later.</ep:phrase>
 
 <!--********************************************************************** 
@@ -407,7 +405,7 @@ Staff CGI Scripts
     <ep:phrase ref="cgi/users/buffer:sub_by">Submitted by</ep:phrase>
     <ep:phrase ref="cgi/users/buffer:sub_date">Submission Date</ep:phrase>
     <ep:phrase ref="cgi/users/buffer:invalid">INVALID</ep:phrase>
-    <ep:phrase ref="cgi/users/buffer:return_staff">Click here to return to the Staff Area</ep:phrase>
+    <ep:phrase ref="cgi/users/buffer:return_staff">Click here to go to the User Area</ep:phrase>
 
 <!-- view_submission -->
 
@@ -418,7 +416,7 @@ Staff CGI Scripts
     <ep:phrase ref="cgi/users/view_submission:action_edit">Edit</ep:phrase>
     <ep:phrase ref="cgi/users/view_submission:action_bounce">Bounce</ep:phrase>
     <ep:phrase ref="cgi/users/view_submission:action_delete">Delete</ep:phrase>
-    <ep:phrase ref="cgi/users/view_submission:back"><p><a href="buffer">Back to buffer overview</a></p></ep:phrase>
+    <ep:phrase ref="cgi/users/view_submission:back"><p><a href="buffer">Go to buffer overview</a></p></ep:phrase>
 
 <!-- edit_submission -->
 
@@ -507,7 +505,7 @@ Public CGI Scripts
 
     <ep:phrase ref="cgi/remind:rem_sent_title">Reminder Sent</ep:phrase>
     <ep:phrase ref="cgi/remind:archive_admin">Archive Administrator</ep:phrase>
-    <ep:phrase ref="cgi/remind:return_home">Return to &archivename; Home</ep:phrase>
+    <ep:phrase ref="cgi/remind:return_home">Go to &archivename; Home</ep:phrase>
     <ep:phrase ref="cgi/remind:form_title">Username and Password Reminder Form</ep:phrase>
     <ep:phrase ref="cgi/remind:form_blurb">If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.</ep:phrase>
     <ep:phrase ref="cgi/remind:send">Send</ep:phrase>
@@ -592,7 +590,7 @@ Public CGI Scripts
     <ep:phrase ref="cgi/confirm:pin_mismatch"><p>The confirmation pin is incorrect. Please try and request the change again to generate an email with a new pin.</p></ep:phrase> 
     <ep:phrase ref="cgi/confirm:pin_timeout"><p>The confirmation pin has timed out. Please repeat the request, and confirm it as soon as you get the mail.</p></ep:phrase>
     <ep:phrase ref="cgi/confirm:no_pin"><p>There are currently no changes for this user which await confirmation.</p></ep:phrase>
-    <ep:phrase ref="cgi/confirm:set_email"><p>Your email address has been changed to the new one you requested.</p></ep:phrase>
+    <ep:phrase ref="cgi/confirm:set_email"><p>Your email address has been changed to <strong><pin ref="newemail" /></strong></p></ep:phrase>
     <ep:phrase ref="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></ep:phrase>
     <ep:phrase ref="cgi/confirm:username"><p>Your username on this system is: <strong><ep:pin ref="username" /></strong></p></ep:phrase>
 
@@ -615,7 +613,7 @@ General phrases, used alot
 ***********************************************************************-->
 
     <ep:phrase ref="general:userhome_link"><p><a href="&userhome;">Go to the &archivename; User Area Homepage</a></p></ep:phrase>
-    <ep:phrase ref="general:frontpage_link"><p><a href="&frontpage;">Return to the &archivename; Homepage</a></p></ep:phrase>
+    <ep:phrase ref="general:frontpage_link"><p><a href="&frontpage;">Go to the &archivename; Homepage</a></p></ep:phrase>
     <ep:phrase ref="general:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></ep:phrase> 
 
 <!--********************************************************************** 

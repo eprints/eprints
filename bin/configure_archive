@@ -173,7 +173,7 @@ else
 	$config{dbhost} = "localhost";
 	$config{dbport} = undef;
 	$config{dbsock} = undef;
-	$config{dbuser} = "eprints";
+	$config{dbuser} = $archiveid;
 	$config{dbpass} = undef;
 	$config{adminemail} = undef;
 	$config{archivename} = {};

@@ -66,7 +66,7 @@ $page = $session->make_doc_fragment();
 ### Welcome author blurb
 $page->appendChild( $session->html_phrase( "cgi/users/home:intro" ) );
 
-if( $valid_user )
+if( $valid_user && $user->has_priv( "deposit" ) )
 {
 	### Workspace
 	$page->appendChild(
@@ -79,27 +79,13 @@ if( $valid_user )
 	$page->appendChild( $session->render_ruler() );
 }
 
-$dl = $session->make_element( "dl" );
-
-if( $valid_user )
-{ #cjg THIS IS NOT DONE
-	### View items in archive
-	#print "<DL><DT><STRONG><A HREF=\"review\">";
-	#$session->phrase( "cgi/users/home:review" );
-	#print "</A></STRONG></DT>\n";
-	#print "<DD><P>";
-	#$session->phrase( "cgi/users/home:review_info" );
-	#if( $session->get_archive()->get_conf( "allow_user_removal" ) ) {
-		#$session->phrase( "cgi/users/home:remove_info" );
-	#}
-	#print "</P></DD>\n";
-}
-
 if( !$valid_user )
 {
 	### User needs to update their record
 	$page->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
 }
+
+$dl = $session->make_element( "dl" );
 
 ### Change author record
 

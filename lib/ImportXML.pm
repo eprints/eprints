@@ -30,6 +30,7 @@ sub import_file
 	my( $session , $filename , $function, $dataset, $theirinfo ) = @_;
 	my $parser = new XML::Parser(
 		Style => "Subs", 
+		ErrorContext => 5,
 		Handlers => { 
 			Start => \&_handle_start, 
 			End => \&_handle_end,

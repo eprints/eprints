@@ -41,6 +41,29 @@ BEGIN {
 	sub abort
 	{
 		my( $errmsg ) = @_;
+
+		if( $ENV{MOD_PERL} )
+		{
+			# If we are running under MOD_PERL
+			# then we should print an explanation to the
+			# user in addition to logging to STDERR.
+
+			my $r = Apache->request();
+			$r->content_type( 'text/html' );
+			$r->send_http_header;
+			print <<END;
+<html>
+  <head>
+    <title>EPrints System Error</title>
+  </head>
+  <body>
+    <h1>EPrints System Error</h1>
+    <p><tt>$errmsg</tt></p>
+  </body>
+</html>
+END
+		}
+
 		
 		print STDERR <<END;
 	
