@@ -309,7 +309,24 @@ sub create_archive_tables
 sub _create_table
 {
 	my( $self, $name, @fields ) = @_;
-	return $self->_create_table_aux( $name, 1, @fields);
+	
+	my $success;
+
+	my $keyfield = $fields[0]->clone();
+	$keyfield->{indexed} = 1;
+	my $field = EPrints::MetaField->new( "field:text:0:Field:1:0:0:1" );
+	my $word = EPrints::MetaField->new( "word:text:0:Word:1:0:0:1" );
+	
+	$success = $self->_create_table_aux(
+		$name.$EPrints::Database::seperator.
+		$EPrints::Database::seperator."index",
+		0,
+		( $keyfield , $field, $word ) );
+
+	$success = $success && $self->_create_table_aux( $name, 1, @fields);
+
+	return $success;
+
 }
 
 sub _create_table_aux
@@ -336,7 +353,6 @@ sub _create_table_aux
 			# there's not much point. 
 			my $auxfield = $field->clone();
 			$auxfield->{multiple} = 0;
-			$auxfield->{indexed} = 1;
 			my $keyfield = $key->clone();
 			$keyfield->{indexed} = 1;
 			my $pos = EPrints::MetaField->new(
