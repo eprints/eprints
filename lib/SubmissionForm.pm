@@ -1408,40 +1408,52 @@ sub _do_stage_fileview
 			target => "_blank" );
 		$form->appendChild(
 			$self->{session}->html_phrase(
-				"lib/submissionform:here_to_view"),
-				link=>$a );
+				"lib/submissionform:here_to_view", link => $a ) );
 
 	}
 
 	##################################
 
-	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
-
-
+	$page->appendChild( $self->{session}->render_ruler() );	
 	$submit_buttons = {
 		prev => $self->{session}->phrase(
 				"lib/submissionform:action_prev" ) };
 
 	if( scalar keys %files > 0 ) {
+
+		my $docds = $self->{session}->get_archive()->get_dataset( "document" );
+
 		$submit_buttons->{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" );
+
+		$page->appendChild( 
+			$self->{session}->render_input_form( 
+				[ 
+					$docds->get_field( "format" ),
+					$docds->get_field( "formatdesc" ),
+					$docds->get_field( "language" ),
+					$docds->get_field( "security" )
+				],
+				$self->{document}->get_data(),
+				0,
+				1,
+				$submit_buttons,
+				$hidden_fields,
+				{},
+				$self->{formtarget}."#t" ) );
 	}
-
-	$page->appendChild( 
-		$self->{session}->render_input_form( 
-			[ 
-				$docds->get_field( "format" ),
-				$docds->get_field( "formatdesc" ),
-				$docds->get_field( "language" ),
-				$docds->get_field( "security" )
-			],
-			$self->{document}->get_data(),
-			0,
-			1,
-			$submit_buttons,
-			$hidden_fields,
-			{},
-			$self->{formtarget}."#t" ) );
-
+	else
+	{
+		$page->appendChild( 
+			$self->{session}->render_input_form( 
+				[],
+				{},
+				0,
+				0,
+				{ prev => $self->{session}->phrase( "lib/submissionform:action_prev" ) },
+				$hidden_fields,
+				{},
+				$self->{formtarget}."#t" ) );
+	}	
 
 # cjg Deprecate/rename these.
 #	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
@@ -1467,7 +1479,7 @@ sub _do_stage_upload
 {
 	my( $self ) = @_;
 
-	my( $page, $form, $p );
+	my( $page, $form );
 
 	$page = $self->{session}->make_doc_fragment();
 	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
@@ -1483,7 +1495,6 @@ sub _do_stage_upload
 	}
 	else
 	{
-		$form->appendChild( $p );
 		if( $self->{arc_format} eq "plain" )
 		{
 			if( $self->{num_files} > 1 )
