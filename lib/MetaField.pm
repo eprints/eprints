@@ -387,7 +387,7 @@ sub render_value
 		return $self->_render_value1( $session, $value, $alllangs );
 	}
 
-	if( defined $value )
+	if(! defined $value )
 	{
 		return $session->make_text( "[undef#0]" );#cjg!??!? null or text?		
 	}
