@@ -170,7 +170,7 @@ sub render_form
 	$self->{session}->{render}->render_form( \@edit_fields,
 	                                         $self->{user},
 	                                         1,
-	                                         0,
+	                                         1,
 	                                         [ "Update Record" ],
 	                                         \%hidden );
 }

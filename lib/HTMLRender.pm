@@ -748,7 +748,7 @@ sub input_field_tr
 	my $colspan = ($show_names ? " COLSPAN=2" : "" );
 	my $align = ($show_names ? "" : " ALIGN=CENTER" );
 	
-	if( $show_help )
+	if( $show_help && defined $field->{help} )
 	{
 		$html .= "<TR><TD$colspan>&nbsp;</TD></TR>\n";
 		$html .= "<TR><TD$colspan><CENTER><EM>$field->{help}</EM></CENTER>".
