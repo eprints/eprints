@@ -27,6 +27,7 @@ use File::Path;
 use File::Copy;
 use Cwd;
 use URI::Escape;
+use URI::Heuristic;
 
 use strict;
 
@@ -407,7 +408,7 @@ sub local_path
 
 ######################################################################
 #
-# @files = files()
+# %files = files()
 #
 #  Returns a list of the files associated with this document.
 #
@@ -543,7 +544,19 @@ sub set_main
 {
 	my( $self, $main_file ) = @_;
 	
-	$self->{main} = $main_file;
+	if( defined $main_file )
+	{
+		# Ensure that the file exists
+		my %all_files = $self->files();
+
+		# Set the main file if it does
+		$self->{main} = $main_file if( defined $all_files{$main_file} );
+	}
+	else
+	{
+		# The caller passed in undef, so we unset the main file
+		undef $self->{main};
+	}
 }
 
 
@@ -676,7 +689,7 @@ sub upload_archive
 
 ######################################################################
 #
-# $success = upload_url( $url )
+# $success = upload_url( $url_in )
 #
 #  Attempt to grab stuff from the given URL. Grabbing HTML stuff this
 #  way is always problematic, so:
@@ -689,8 +702,12 @@ sub upload_archive
 
 sub upload_url
 {
-	my( $self, $url ) = @_;
+	my( $self, $url_in ) = @_;
 	
+	# Use the URI heuristic module to attempt to get a valid URL, in case
+	# users haven't entered the initial http://.
+	my $url = URI::Heuristic::uf_uristr( $url_in );
+
 	# save previous dir
 	my $prev_dir = cwd();
 
@@ -719,13 +736,9 @@ sub upload_url
 	# $count - 3.
 	my $cut_dirs = $count - 3;
 	
-	# Exit with failure if the result is less than zero, since URL must
-	# be malformed.
-	if( $cut_dirs < 0 )
-	{
-		chdir $prev_dir;
-		return( 0 );
-	}
+	# If the result is less than zero, assume no cut dirs (probably have URL
+	# with no trailing slash, an INCORRECT result from URI::Heuristic
+	$cut_dirs = 0 if( $cut_dirs < 0 );
 	
 	# Construct wget command line.
 	my $command = $EPrintSite::SiteInfo::wget_command;
@@ -746,6 +759,13 @@ sub upload_url
 		my $endfile = $url;
 		$endfile =~ s/.*\///;
 		$self->set_main( $endfile );
+
+		# If it's still undefined, try setting it to index.html or index.htm
+		$self->set_main( "index.html" ) unless( defined $self->{main} );
+		$self->set_main( "index.htm" ) unless( defined $self->{main} );
+
+		# Those are our best guesses, best leave it to the user if still don't
+		# have a main file.
 	}
 	
 	return( 1 );

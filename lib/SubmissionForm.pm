@@ -1374,8 +1374,7 @@ sub do_stage_upload
 	if( $self->{arc_format} eq "graburl" )
 	{
 		print "<P><CENTER>Please enter the URL of the document you wish to ".
-			"upload to the archive in the box below. Please be sure to include ".
-			"the initial <STRONG>http://</STRONG>.</CENTER></P>\n";
+			"upload to the archive in the box below.</CENTER></P>\n";
 		print "<P><CENTER><EM>Occasionally, uploading this way may ".
 			"not produce a totally accurate copy. This is because some ".
 			"assumptions about the structure of the HTML must be made, to stop ".
