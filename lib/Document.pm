@@ -84,6 +84,8 @@ sub new
 {
 	my( $class, $session, $docid, $known ) = @_;
 
+print STDERR "(newdoc)\n";
+
 	if( !defined $known )
 	{
 		return $session->get_db()->get_single( 
@@ -117,16 +119,19 @@ sub create
 		return( undef );
 	}
 
+	my $data = {};
+	$data->{docid} = $doc_id;
+
 	# Make database entry
-# cjg add_record call
-	my $success = $session->{database}->add_record(
-		EPrints::Database::table_name( "document" ),
-		{ "docid"=>$doc_id,
-		  "eprintid"=>$eprint->{eprintid} } );
-		  
+	my $dataset = $session->get_archive()->get_dataset( "document" );
+
+	my $success = $session->get_db()->add_record(
+		$dataset,
+		$data );  
+
 	if( $success )
 	{
-		return( EPrints::Document->new( $session, $doc_id, undef, $eprint ) );
+		return( EPrints::Document->new( $session, $doc_id, undef ) );
 	}
 	else
 	{
@@ -171,68 +176,34 @@ sub _create_directory
 ######################################################################
 
 ## WP1: BAD
-sub generate_doc_id
+sub _generate_doc_id
 {
 	my( $session, $eprint ) = @_;
 
 	my $dataset = $session->get_archive()->get_dataset( "document" );
 
-	my $searchexp = new EPrints::SearchExpression(
+	my $searchexp = EPrints::SearchExpression->new(
 				session=>$session,
 				dataset=>$dataset );
+
 	$searchexp->add_field(
 		$dataset->get_field( "eprintid" ),
-		"PHR:EQ:".$eprint->get_value( "eprint_id" ) );
+		"PHR:EQ:".$eprint->get_value( "eprintid" ) );
 	$searchexp->perform_search();
 
 	my( @docs ) = $searchexp->get_records();
 
+	my $n = 0;
 	foreach( @docs )
 	{
-		print $_->get_value( "docid" );
+		my $id = $_->get_value( "docid" );
+		$id=~m/-(\d+)$/;
+		if( $1 > $n ) { $n = $1; }
 	}
-	exit;
+	$n = $n + 1;
+
+	return sprintf( "%s-%02d", $eprint->{eprintid}, $n );
 }
-
-sub _generate_doc_id2
-{
-	my( $session, $eprint ) = @_;
-	
-	# Get document IDs associated with this EPrint
-	my $rows = $session->{database}->retrieve(
-		EPrints::Database::table_name( "document" ),
-		[ "docid" ],
-		[ "eprintid LIKE \"$eprint->{eprintid}\"" ],
-		[ "docid" ] );
-	
-	my $id;
-
-	# Is there already a document for given EPrint?
-	if( $#{$rows} >= 0 )
-	{
-		# Since they're ordered by docid, last in the list will be one we want
-		$id = $rows->[$#{$rows}]->[0];
-
-		# Extract all except last two digits
-		$id =~ s/.*-//;
-		$id++;
-
-		# Add any preceding 0's
-		while( length $id < $DIGITS )
-		{
-			$id = "0".$id;
-		}
-	}
-	else
-	{
-		# No documents for this EPrint
-		$id = "00";
-	}
-
-	return( $eprint->{eprintid} . "-" . $id );
-}
-
-
 
 
 ######################################################################

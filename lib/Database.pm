@@ -585,9 +585,9 @@ sub update
 				die "This can't happen in update!"; #cjg!
 			}
 		}
-		print STDERR "---(".$multifield->get_name().")---\n";
-use Data::Dumper;
-print STDERR Dumper(@values);
+##print STDERR "---(".$multifield->get_name().")---\n";
+#use Data::Dumper;
+#print STDERR Dumper(@values);
 					
 		my $v;
 		foreach $v ( @values )
@@ -1117,7 +1117,7 @@ sub _get
 		$self->execute( $sth, $sql );
 		while( @values = $sth->fetchrow_array ) 
 		{
-print STDERR "V:".join(",",@values)."\n";
+#print STDERR "V:".join(",",@values)."\n";
 			my $id = shift( @values );
 			my( $pos, $lang );
 			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
@@ -1142,7 +1142,7 @@ print STDERR "V:".join(",",@values)."\n";
 				}
 				else
 				{
-print STDERR 	"data[".$n."]->{".$mn."}->[".$pos."] = ".$value."\n";
+#print STDERR 	"data[".$n."]->{".$mn."}->[".$pos."] = ".$value."\n";
 					$data[$n]->{$mn}->[$pos] = $value;
 				}
 			}
@@ -1162,10 +1162,10 @@ print STDERR 	"data[".$n."]->{".$mn."}->[".$pos."] = ".$value."\n";
 
 	foreach( @data )
 	{
-use Data::Dumper;
-print STDERR "-----------------FROM DB------------------\n";
-print STDERR Dumper($_);
-print STDERR "-----------------////FROM DB------------------\n";
+#use Data::Dumper;
+#print STDERR "-----------------FROM DB------------------\n";
+#print STDERR Dumper($_);
+#print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 

@@ -1360,6 +1360,14 @@ sub _do_stage_fileview
 	my $doc = $self->{document};
 
 	# Make some metadata fields
+#	my $arc_format_field = EPrints::MetaField->new(
+#	"arc_format",
+#	undef,
+#	\@arc_formats,
+ #	\%arc_labels );
+   ##
+     #########
+
 	my @arc_formats = ( "plain", "graburl" );
 	my %arc_labels = (
 		"plain"   => $self->{session}->phrase("lib/submissionform:plain"),
