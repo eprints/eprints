@@ -61,7 +61,7 @@ chomp $host;
 if( $host eq "lemur" ) {
 	$c->{host} = "lemur.ecs.soton.ac.uk";
 } else {
-	$c->{host} = "destiny";
+	$c->{host} = "localhost";
 }
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w 
 
 ######################################################################
 #
@@ -50,6 +50,7 @@ foreach $langid ( keys %EPrints::Site::General::languages )
 		$dir."/index.html",
 		new EPrints::Subject( $session ) );
 
+
 	# Now do each of the subjects
 
 	foreach (@$subjects)
@@ -70,36 +71,38 @@ sub write_subject_view
 {
 	my( $session, $langid, $file, $subject ) = @_;
 	
-	# Open the subject view file
-	my $ok = open( OUT, ">$file" );
+	$session->newPage( $langid );
+	my $page = $session->makeDocFragment;
 	
-	unless( $ok )
-	{
-		EPrints::Log::log_entry(
-			"generate_views",
-			"Error writing subject view for $subject->{subjectid} to $file:".
-				" $!" );
-		return;
-	}
-	
-	# Title
-	print OUT "Browse by Subject: $subject->{name}" ;
+	# Title (cjg NOT INTL)
+	my $title = "Browse by Subject: ".$subject->{name};
 	
 	# Tree at the top
-	print OUT $session->subjectTree( $subject );
-	print OUT "<HR noshade size=\"2\">\n";	
-
+	$page->appendChild( $session->subjectTree( $subject ) );
+	my $hr = $session->make_element( "hr",
+			size => 2,
+			noshade => "noshade" );
+	$page->appendChild( $hr );
 	# The entries themselves
-	my @eprints = $subject->posted_eprints( EPrints::Database::table_name( "archive" ) );
+	my @eprints = $subject->posted_eprints( 
+		$session->getSite->getDataSet( "archive" ) );
 
-	print OUT "<P>This subject category contains <STRONG>".($#eprints+1).
-		"</STRONG> entries</P>\n";
+	# not INTL!cjg
+	my $p = $session->make_element( "p" );
+	my $n = $session->make_element( "span", class=>"number" );
+	$p->appendChild( $session->makeText("This subject category contains "));
+	$n->appendChild( $session->makeText(scalar @eprints) );
+	$p->appendChild( $n );
+	$p->appendChild( $session->makeText(" entries"));
+	$page->appendChild( $p );		
 	
-	foreach (@eprints)
+	my $eprint;
+	foreach $eprint (@eprints)
 	{
-		print OUT "<P>";
-		print OUT $session->{render}->render_eprint_citation( $_, 1, 1 );
-		print OUT "</P>\n";
+		$p = $session->make_element( "p" );
+		$p->appendChild( $eprint->toHTMLLink );
+		$page->appendChild( $p );
 	}
-	
+	$session->buildPage( $title, $page );
+	$session->pageToFile( $file );
 }

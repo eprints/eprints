@@ -101,6 +101,8 @@ print STDERR "TID: $dataset\n";
 	else
 	{
 		$self->{field} = $field;
+if( !defined $field ) { &EPrints::Session::bomb; }
+
 		$self->{displayname} = $field->display_name( $self->{session} );
 		$self->{formname} = $field->getName();
 	}
@@ -162,7 +164,7 @@ print STDERR  $self->{session}->param( $self->{formname} )."\n";
 	if( $self->isType( "boolean" ) )
 	{
 		my $val = $self->{session}->param( $self->{formname} );
-		$self->set_value( "ALL:EQ:$val" ) if( $val ne "EITHER" );
+		$self->set_value( "PHR:EQ:$val" ) if( $val ne "EITHER" );
 	}
 	elsif( $self->isType( "email","url" ) )
 	{
@@ -481,7 +483,9 @@ sub get_conditions
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
-				$self->{session}->{site}->extract_words( $text );
+				$self->{session}->getSite->call(
+					"extract_words",
+					$text );
 
 			# If there are no useful words in the phrase, abort!
 			if( scalar @{$good} == 0) {
@@ -568,8 +572,6 @@ print STDERR "ock\n";
 	}
 
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->getName() );
-print STDERR "!!!!>>> $fieldname ON $searchtable\n";
-print STDERR "!!!!>>> $self->{dataset}\n";
 
 	my @nwheres; # normal
 	my @pwheres; # pre-done

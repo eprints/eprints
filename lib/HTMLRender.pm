@@ -934,21 +934,6 @@ sub render_eprint_full
 #
 ######################################################################
 
-sub render_eprint_citation
-{
-	my( $self, $eprint, $html, $linked ) = @_;
-$self->{session}->bomb();
-	
-	my $citation = $self->{session}->{site}->eprint_render_citation( $eprint,
-	                                                                 $html );
-	if( $html && $linked )
-	{
-		$citation = "<A HREF=\"".$eprint->static_page_url()."\">$citation</A>";
-	}
-	
-	return( $citation );
-}
-
 
 ######################################################################
 #

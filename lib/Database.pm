@@ -1028,7 +1028,7 @@ sub do
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "   ".$sql );
+EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }
@@ -1062,7 +1062,7 @@ sub execute
 		print "$sql\n";
 		print "----------\n";
 	}
-#EPrints::Log::debug( "   ".$sql );
+EPrints::Log::debug( "   ".$sql );
 
 	return $result;
 }

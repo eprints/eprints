@@ -190,6 +190,7 @@ sub children
 {
 	my( $self ) = @_;
 
+print "ack\n";
 	my $ds = $self->{session}->getSite->getDataSet( "subject" );
 
 	my $searchexp = new EPrints::SearchExpression(
@@ -198,22 +199,21 @@ sub children
 
 	$searchexp->add_field(
 		$ds->getField( "parent" ),
-		"ALL:EQ:$self->{subjectid}" );
+		"PHR:EQ:$self->{subjectid}" );
 
 #cjg set order (it's in the site config)
 
 	my $searchid = $searchexp->perform_search;
-	my @rows = $searchexp->get_records;
+	my @children = $searchexp->get_records;
 
 	#EPrints::Log::debug( "Subject", "Children: $#{$rows}" );
 
-	my @children;
-	my $r;
-
-	foreach $r (@rows)
+	my $child;
+print "gin' loop:\n";
+	foreach $child (@children)
 	{
-		my $child = new EPrints::Subject( $self->{session}, undef, $r );
-
+print EPrints::Log::render_struct( $child );
+print "ack\n";
 		# Sort out the full label for displaying in listboxes etc.
 		if( defined $self->{label} )
 		{
@@ -224,9 +224,9 @@ sub children
 			$child->{label} = $child->{name};
 		}
 
-		#EPrints::Log::debug( "Subject", "Child: $child->{subjectid}" );
-		push @children, $child;
+		EPrints::Log::debug( "Subject", "Child: $child->{subjectid}" );
 	}
+print "done\n";
 	return( @children );
 }
 
@@ -542,19 +542,20 @@ print STDERR "Subject: ".$_->getValue("subjectid")."\n";
 
 sub posted_eprints
 {
-	my( $self, $tableid ) = @_;
+	my( $self, $dataset ) = @_;
+print STDERR "z(".$dataset->toString.")\n";
 
 	my $searchexp = new EPrints::SearchExpression(
-		$self->{session},
-		$tableid );
+		session => $self->{session},
+		dataset => $dataset );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( "archive", "subjects" ),
-		"ALL:EQ:$self->{subjectid}" );
+		$dataset->getField( "subjects" ),
+		"PHR:EQ:$self->{subjectid}" );
 
-	my $searchid = $searchexp->perform_search();
-	my @data = $searchexp->get_records();
-
+	my $searchid = $searchexp->perform_search;
+	my @data = $searchexp->get_records;
+print STDERR "borkl\n";
 	return @data;
 }
 
@@ -571,19 +572,19 @@ sub posted_eprints
 
 sub count_eprints
 {
-	my( $self, $tableid ) = @_;
+	my( $self, $dataset ) = @_;
 
 	# Create a search expression
 	my $searchexp = new EPrints::SearchExpression(
-		$self->{session},
-		$tableid );
+		session => $self->{session},
+		dataset => $dataset );
 
 	$searchexp->add_field(
-		$self->{session}->{metainfo}->find_table_field( "archive", "subject" ),
-		"ALL:EQ:$self->{subjectid}" );
+		$dataset->getField( "subjects" ),
+		"PHR:EQ:$self->{subjectid}" );
 
-	my $searchid = $searchexp->perform_search();
-	my $count = $searchexp->count();
+	my $searchid = $searchexp->perform_search;
+	my $count = $searchexp->count;
 
 	return $count;
 

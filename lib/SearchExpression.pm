@@ -65,7 +65,9 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-print STDERR "SE:[".$data{dataset}->toString."]\n";
+print STDERR "k:[".join(",",keys %data)."]\n";
+print STDERR "SE1:[".$data{dataset}."]\n";
+print STDERR "SE2:[".$data{dataset}->toString."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
@@ -493,7 +495,8 @@ sub get_records
 							$buffer );
 
 		# We don't bother sorting if we got too many results.	
-		if( !$overlimit )
+		# or no order method was specified.
+		if( !$overlimit && defined $self->{order})
 		{
  print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
 print STDERR "ORDER BY: $self->{order}\n";

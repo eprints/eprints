@@ -626,12 +626,13 @@ sub make_submit_buttons
 				type => "submit",
 				name => "submit",
 				value => $_ ) );
-		$frag->appendChild( $self->makeText( " " ) );
+		$frag->appendChild( $self->makeText( latin1(" ") ) );
 	}
 
 	return( $frag );
 }
 
+# $text is a UTF8 String!
 sub makeText
 {
 	my( $self , $text ) = @_;
@@ -740,13 +741,13 @@ sub subjectTree
 	my $frag = $self->makeDocFragment;
 	
 	# Get the parents
-	my $parent = $subject->parent();
+	my $parent = $subject->parent;
 	my @parents;
 	
 	while( defined $parent )
 	{
 		push @parents, $parent;
-		$parent = $parent->parent();
+		$parent = $parent->parent;
 	}
 	
 	# Render the parents
@@ -797,15 +798,21 @@ sub _render_children
 	my( $self, $subject ) = @_;
 
 	my $frag = $self->makeDocFragment;
-	my @children = $subject->children();
+	my @children = $subject->children;
 
-	if( $#children >= 0 )
+print "ooooooooooooooooooook: ".(scalar @children)."\n";
+print "doin:\n";
+print EPrints::Log::render_struct( $subject );
+print "has ".(scalar @children)." kids\n";
+	if( @children )
 	{
+print "ek:\n";
 		my $ul = $self->make_element( "ul" );
 		$frag->appendChild( $ul );
 	
 		foreach (@children)
 		{
+print "zoop\n";
 			my $li = $self->make_element( "li" );
 			
 			$li->appendChild( $self->subject_desc( $_, 1, 0, 1 ) );
@@ -841,7 +848,7 @@ sub subject_desc
 				"a",
 				href=>
 			$self->getSite->getConf( "server_static" ).
-			"/view/".$subject->{subjectid}.".html\">" );
+			"/view/".$subject->{subjectid}.".html" );
 	}
 	else
 	{
@@ -863,14 +870,16 @@ sub subject_desc
 		
 	if( $count && $subject->{depositable} eq "TRUE" )
 	{
-		$frag->appendChild( $self->makeText( 
-			" (" .$subject->count_eprints( 
-				$self->getSite->getDataSet( "archive" ) ) ).
-			")" );
+		my $text = $self->makeText( 
+			latin1(" (" .$subject->count_eprints( 
+				$self->getSite->getDataSet( "archive" ) ).
+				")" ) );
+		$frag->appendChild( $text );
 	}
 	
 	return( $frag );
 }
+
 
 		
 

@@ -904,7 +904,7 @@ sub get_all_documents
 		$self->{session}->{metainfo}->find_table_field( 
 			"document",
 			"eprintid" ),
-		"ALL:EQ:$self->{eprintid}" );
+		"PHR:EQ:$self->{eprintid}" );
 
 	my $searchid = $searchexp->perform_search();
 	my @documents = $searchexp->get_records();
@@ -1407,7 +1407,7 @@ sub later_in_thread
 		$self->{session},
 		"archive" );
 
-	$searchexp->add_field( $field, "ALL:EQ:$self->{eprintid}" );
+	$searchexp->add_field( $field, "PHR:EQ:$self->{eprintid}" );
 
 #cjg		[ "datestamp DESC" ] ) );
 
@@ -1480,10 +1480,15 @@ sub last_in_thread
 	return( $latest );
 }
 
-sub toString
+sub toHTMLLink
 {
-	my( $self ) = @_;
-	#	???
+	my( $self , $cstyle ) = @_;
+
+	my $a = $self->{session}->make_element( "A",
+			href => $self->static_page_url() );
+	$a->appendChild( $self->toHTML( $cstyle ) );
+
+	return $a;
 }
 
 sub toHTML
@@ -1492,7 +1497,7 @@ sub toHTML
 	
 	if( !defined $cstyle )
 	{
-		$cstyle = $self->{session}->getSite()->call( "getEPrintCitationStyle", $self );
+		$cstyle = $self->{session}->getSite->call( "getEPrintCitationStyle", $self );
 	}
 
 	foreach( $cstyle->getElementsByTagName( "IF" , 1 ) )
