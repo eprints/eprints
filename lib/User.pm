@@ -44,7 +44,7 @@ sub get_system_field_info
 	
 		{ name=>"newemail", type=>"email" },
 	
-		{ name=>"newpassword", type=>"secret" },
+		{ name=>"newpassword", type=>"text" },
 
 		{ name=>"pin", type=>"text" },
 

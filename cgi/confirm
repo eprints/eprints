@@ -58,14 +58,6 @@ sub make_confirm_page
 	my $newpassword = $user->get_value( "newpassword" );
 	my $delta = (time - $pinsettime);
 
-print STDERR "userid: $userid\n";	
-print STDERR "pin: $pin\n";	
-print STDERR "pinsettime: $pinsettime\n";	
-print STDERR "newemail: $newemail\n";	
-print STDERR "newpassword: $newpassword\n";	
-print STDERR "delta: $delta\n";	
-
-
 	if( !defined $userpin )
 	{
 		$page->appendChild( $session->html_phrase( "cgi/confirm:no_pin" ) );
@@ -89,7 +81,6 @@ print STDERR "delta: $delta\n";
 	if( defined $newemail )
 	{
 		# check no one else has this email! cjg
-
 		$user->set_value( "email", $newemail );
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_email" ) );
 	}
@@ -100,7 +91,7 @@ print STDERR "delta: $delta\n";
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
 	}
 	$user->set_value( "pin", undef );
-	$user->set_value( "pintimeout", undef );
+	$user->set_value( "pinsettime", undef );
 	$user->set_value( "newemail", undef );
 	$user->set_value( "newpassword", undef );
 	$user->commit();		
