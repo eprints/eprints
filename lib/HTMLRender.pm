@@ -500,7 +500,9 @@ sub input_field
 	}
 	elsif( $type eq "pagerange" )
 	{
-		my @pages = split /-/, $value;
+		my @pages;
+		
+		@pages = split /-/, $value if( defined $value );
 		
 		$html = $self->{query}->textfield( -name=>"$field->{name}_from",
 		                                   -default=>$pages[0],
