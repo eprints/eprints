@@ -676,40 +676,17 @@ $c->{cache_timeout} = 10;
 #   Maximum lifespan of a cache, in use or not. In hours.
 $c->{cache_maxlife} = 12;
 
-######################################################################
-	return $c;
+return $c;
 }
-######################################################################
-
-
-
-
-
-
-
-#---------------------------------------------------------------------
-######################################################################
-#
-# Configurable Routines
-# 
-#  The rest of this file contains perl subroutines which maybe 
-#  modified to change the policy and behaviour of your archive.
-#
-######################################################################
-#---------------------------------------------------------------------
-
-
 
 
 
 
 
 #---------------------------------------------------------------------
-######################################################################
 #
 #  Free Text search configuration
 #
-######################################################################
 #---------------------------------------------------------------------
 
 # These values control what words do and don't make it into
@@ -969,102 +946,54 @@ sub extract_words
 }
 
 #---------------------------------------------------------------------
-######################################################################
 #  End of Free Text search configuration
-######################################################################
 #---------------------------------------------------------------------
 
-sub render_value_with_id
-{
-	my( $field, $session, $value, $alllangs, $rendered ) = @_;
 
-	# You might want to wrap the rendered value in an anchor, 
-	# eg if the ID is a staff username
-	# you may wish to link to their homepage. 
 
-#cjg Link Baton?
 
-# Simple Example:
+#---------------------------------------------------------------------
 #
-#	if( $field->get_name() eq "SOMENAME" ) 
-#	{	
-#		my $fragment = $session->make_doc_fragment();
-#		$fragment->appendChild( $rendered );
-#		$fragment->appendChild( 
-#			$session->make_text( " (".$value->{id}.")" ) );
-#		return( $fragment );
-#	}
-
-	return( $rendered );
-}
-
-sub can_user_view_document
-{
-	my( $doc, $user ) = @_;
-
-	my $eprint = $doc->get_eprint();
-	my $security = $doc->get_value( "security" );
-
-	# If the document belongs to an eprint which is in the
-	# inbox or the submissionbuffer then we treat the security
-	# as staff only, whatever it's actual setting.
-	if( $eprint->get_dataset()->id() ne "archive" )
-	{
-		$security = "staffonly";
-	}
-
-	# Add/remove types of security in metadata-types.xml
-
-	# Trivial cases:
-	return( 1 ) if( $security eq "public" );
-	return( 1 ) if( $security eq "validuser" );
-	
-	if( $security eq "staffonly" )
-	{
-		# If you want to finer tune this, you could create
-		# a new priv. and use that.
-		return $user->has_priv( "editor" );
-	}
-
-	# Unknown security type, be paranoid and deny permission.
-	return( 0 );
-}
-
-######################################################################
+# Rendering Routines
 #
-# $title = eprint_render_short_title( $eprint )
+#   Functions which convert archive data into a human readable form.
 #
-#  Return a single line concise title for an EPrint, for rendering
-#  lists
+#   A couple of these routines return UTF8 encoded strings, but the
+#   others return DOM structures. See the docs for more information
+#   about this.
+#   
+#   Anywhere text is set, it is requested from the archive phrases
+#   XML file, in case you are running the archive in more than one
+#   language.
 #
-######################################################################
-
-## WP1: BAD
-sub eprint_render_short_title
-{
-	my( $eprint ) = @_;
-	
-	if( !defined $eprint->get_value( "title" ) )
-	{
-		#cjg LANGIT!
-		return $eprint->get_session()->make_text( 
-			"Untitled ".$eprint->get_value( "eprintid" ) );
-	}
-
-	return( $eprint->render_value( "title" ) );
-}
+#   Hopefully when we are in beta the'll be an alternative version
+#   of this config for single language archives.
+#
+#---------------------------------------------------------------------
 
 
 ######################################################################
 #
-# $title = eprint_render_full( $eprint, $show_all )
+# $xhtmlfragment = eprint_render( $eprint, $session, $show_all )
 #
-#  Return HTML for rendering an EPrint. If $show_all is non-zero,
-#  extra information appropriate for only staff may be shown.
+######################################################################
+# $eprint
+# - the EPrints::User to be rendered
+# $session
+# - the current EPrints::Session
+# $show_all
+# - a boolean (1 or 0) which if set to 1 indicates we should render
+# ALL the fields, not just the publicly visible ones (ie. the staff
+# view)
+#
+# returns: $xhtmlfragment
+# - a XHTML DOM fragment 
+######################################################################
+# This subroutine takes an eprint object and renders the XHTML view
+# of this user for either public or private viewing.
 #
 ######################################################################
 
-## WP1: BAD
 sub eprint_render
 {
 	my( $eprint, $session, $show_all ) = @_;
@@ -1282,33 +1211,26 @@ sub _render_row
 
 ######################################################################
 #
-# $name = user_display_name( $user )
+# $xhtmlfragment = user_render( $user, $session, $show_all )
 #
-#  Return the user's name in a form appropriate for display.
+######################################################################
+# $user
+# - the EPrints::User to be rendered
+# $session
+# - the current EPrints::Session
+# $show_all
+# - a boolean (1 or 0) which if set to 1 indicates we should render
+# ALL the fields, not just the publicly visible ones (ie. the staff
+# view)
+#
+# returns: $xhtmlfragment
+# - a XHTML DOM fragment 
+######################################################################
+# This subroutine takes a user object and renders the XHTML view
+# of this user for either public or private viewing.
 #
 ######################################################################
 
-## WP1: BAD
-sub user_display_name
-{
-	my( $user ) = @_;
-
-	# If no surname, just return the username
-	my $name = $user->get_value( "name" );
-
-	if( !defined $name || !EPrints::Utils::is_set( $name->{family} ) )
-	{
-		#langify cjg
-		return( "User ".$user->get_value( "username" ) );
-	} 
-
-	return( EPrints::Utils::format_name( $user->get_session(), $name, 1 ) );
-}
-
-
-#
-# $DOM = user_render( $user, $session, $show_all )
-#
 
 sub user_render
 {
@@ -1401,96 +1323,137 @@ sub user_render
 
 ######################################################################
 #
-# session_init( $session, $offline )
+# $title = eprint_render_short_title( $eprint )
 #
-#  Invoked each time a new session is needed (generally one per
-#  script invocation.) $session is a session object that can be used
-#  to store any values you want. To prevent future clashes, prefix
-#  all of the keys you put in the hash with archive.
+######################################################################
+# $user
+# - the EPrints::EPrint in question
 #
-#  If $offline is non-zero, the session is an `off-line' session, i.e.
-#  it has been run as a shell script and not by the web server.
+# returns: $title
+# - a UTF-8 encoded string
+#
+######################################################################
+#  Return a short title to describe this eprint. Used to list eprints
+#  in the submission process. 
 #
 ######################################################################
 
-## WP1: BAD
-sub session_init
-{
-	my( $session, $offline ) = @_;
-}
-
-
-######################################################################
-#
-# session_close( $session )
-#
-#  Invoked at the close of each session. Here you should clean up
-#  anything you did in session_init().
-#
-######################################################################
-
-## WP1: BAD
-sub session_close
-{
-	my( $session ) = @_;
-}
-
-
-######################################################################
-#
-# update_submitted_eprint( $eprint )
-#
-#  This function is called on an EPrint whenever it is transferred
-#  from the inbox (the author's workspace) to the submission buffer.
-#  You can alter the EPrint here if you need to, or maybe send a
-#  notification mail to the administrator or something. 
-#
-#  Any changes you make to the EPrint object will be written to the
-#  database after this function finishes, so you don't need to do a
-#  commit().
-#
-######################################################################
-
-## WP1: BAD
-sub update_submitted_eprint
+sub eprint_render_short_title
 {
 	my( $eprint ) = @_;
+	
+	if( !defined $eprint->get_value( "title" ) )
+	{
+		# EPrint has no title field? Return it's ID then.
+		#cjg LANGIT!
+		return $eprint->get_session()->make_text( 
+			"Untitled ".$eprint->get_value( "eprintid" ) );
+	}
+
+	return( $eprint->render_value( "title" ) );
 }
 
 
 ######################################################################
 #
-# update_archived_eprint( $eprint )
+# $name = user_display_name( $user )
 #
-#  This function is called on an EPrint whenever it is transferred
-#  from the submission buffer to the real archive (i.e. when it is
-#  actually "archived".)
+######################################################################
+# $user
+# - the EPrints::User in question
 #
-#  You can alter the EPrint here if you need to, or maybe send a
-#  notification mail to the author or administrator or something. 
+# returns: $name
+# - a UTF-8 encoded string
 #
-#  Any changes you make to the EPrint object will be written to the
-#  database after this function finishes, so you don't need to do a
-#  commit().
+######################################################################
+#  Return the user's name in a form appropriate for display.
 #
 ######################################################################
 
-## WP1: BAD
-sub update_archived_eprint
+sub user_display_name
 {
-	my( $eprint ) = @_;
+	my( $user ) = @_;
+
+	my $name = $user->get_value( "name" );
+
+	if( !defined $name || !EPrints::Utils::is_set( $name->{family} ) )
+	{
+		# No family name, or no name at all? Just return the username.
+		return( "User ".$user->get_value( "username" ) );
+		#langify cjg
+	} 
+
+	return( EPrints::Utils::format_name( $user->get_session(), $name, 1 ) );
 }
 
+
+######################################################################
+#
+# $xhtmlfragment = render_value_with_id( $field, $session, $value,
+#			$alllangs, $rendered );
+#
+######################################################################
+# $field 
+# - the EPrints::MetaField to which this value belongs
+# $session
+# - the current EPrints::Session
+# $value
+# - the metadata value structure (see docs)
+# $alllangs
+# - boolean flag (1 or 0) - are we rendering for just the current
+# session language or showing all the data in the value.
+# - $rendered
+# XHTML DOM fragment containing the value rendered without any
+# attention to the ID.
+#
+# returns: $xhtmlfragment
+# - An XHTML DOM fragment containing the value rendered with 
+# attention to the ID (or by default just $rendered)
+#
+######################################################################
+# This function is used to madify how a field with an ID is rendered,
+# By default it just returns the rendered value as it was passed. The
+# most likely use for this function is to wrap the rendered value in
+# an anchor ( <a href="foo"> </a> ), generating the URL as appropriate
+# from the value's ID part.
+#
+######################################################################
+
+sub render_value_with_id
+{
+	my( $field, $session, $value, $alllangs, $rendered ) = @_;
+
+	# You might want to wrap the rendered value in an anchor, 
+	# eg if the ID is a staff username
+	# you may wish to link to their homepage. 
+
+#cjg Link Baton?
+
+# Simple Example:
+#
+#	if( $field->get_name() eq "SOMENAME" ) 
+#	{	
+#		my $fragment = $session->make_doc_fragment();
+#		$fragment->appendChild( $rendered );
+#		$fragment->appendChild( 
+#			$session->make_text( " (".$value->{id}.")" ) );
+#		return( $fragment );
+#	}
+
+	return( $rendered );
+}
+
+#---------------------------------------------------------------------
+# End of RENDER routines
+#---------------------------------------------------------------------
 
 
 
 
 #---------------------------------------------------------------------
-######################################################################
 #
 #  OPEN ARCHIVES INTEROPERABILITY ROUTINES
 #
-######################################################################
 #---------------------------------------------------------------------
 
 
@@ -1665,9 +1628,7 @@ sub oai_write_eprint_metadata
 }
 
 #---------------------------------------------------------------------
-######################################################################
 # End of OPEN ARCHIVES INTEROPERABILITY ROUTINES
-######################################################################
 #---------------------------------------------------------------------
 
 
@@ -1675,31 +1636,26 @@ sub oai_write_eprint_metadata
 
 
 #---------------------------------------------------------------------
-######################################################################
 #
 # VALIDATION 
 #
-######################################################################
+#  Validation routines. EPrints does some validation itself, such as
+#  checking for required fields, but you can add custom requirements
+#  here.
+#
+#  All the validation routines should return a list of XHTML DOM 
+#  objects, one per problem. An empty list means no problems.
+#
+#  $for_archive is a boolean flag (1 or 0) it is set to 0 when the
+#  item is being validated as a submission and to 1 when the item is
+#  being validated for submission to the actual archive. This allows
+#  a stricter validation for editors than for submitters. A useful 
+#  example would be that a deposit may have one of several format of
+#  documents but the editor must ensure that it has a PDF before it
+#  can be submitted into the main archive. If it doesn't have a PDF
+#  file, then the editor will have to generate one.
+#
 #---------------------------------------------------------------------
-
-#
-# Validation routines. EPrints does some validation itself, such as
-# checking for required fields, but you can add custom requirements
-# here.
-#
-# All the validation routines should return a list of XHTML DOM 
-# objects, one per problem. An empty list means no problems.
-#
-# $for_archive is a boolean flag (1 or 0) it is set to 0 when the
-# item is being validated as a submission and to 1 when the item is
-# being validated for submission to the actual archive. This allows
-# a stricter validation for editors than for submitters. A useful 
-# example would be that a deposit may have one of several format of
-# documents but the editor must ensure that it has a PDF before it
-# can be submitted into the main archive. If it doesn't have a PDF
-# file, then the editor will have to generate one.
-#
-#
 
 ######################################################################
 #
@@ -1909,13 +1865,11 @@ sub validate_user
 	return( @problems );
 }
 
-
-
 #---------------------------------------------------------------------
-######################################################################
 # End of VALIDATION section
-######################################################################
 #---------------------------------------------------------------------
+
+
 
 
 
@@ -2107,10 +2061,128 @@ sub get_entities
 	return %entities;
 }
 
+#
+#cjg NEED introcomment
+sub can_user_view_document
+{
+	my( $doc, $user ) = @_;
+
+	my $eprint = $doc->get_eprint();
+	my $security = $doc->get_value( "security" );
+
+	# If the document belongs to an eprint which is in the
+	# inbox or the submissionbuffer then we treat the security
+	# as staff only, whatever it's actual setting.
+	if( $eprint->get_dataset()->id() ne "archive" )
+	{
+		$security = "staffonly";
+	}
+
+	# Add/remove types of security in metadata-types.xml
+
+	# Trivial cases:
+	return( 1 ) if( $security eq "public" );
+	return( 1 ) if( $security eq "validuser" );
+	
+	if( $security eq "staffonly" )
+	{
+		# If you want to finer tune this, you could create
+		# a new priv. and use that.
+		return $user->has_priv( "editor" );
+	}
+
+	# Unknown security type, be paranoid and deny permission.
+	return( 0 );
+}
+
+
+
+#cjg clean up below...
+
+######################################################################
+#
+# session_init( $session, $offline )
+#
+#  Invoked each time a new session is needed (generally one per
+#  script invocation.) $session is a session object that can be used
+#  to store any values you want. To prevent future clashes, prefix
+#  all of the keys you put in the hash with archive.
+#
+#  If $offline is non-zero, the session is an `off-line' session, i.e.
+#  it has been run as a shell script and not by the web server.
+#
+######################################################################
+
+## WP1: BAD
+sub session_init
+{
+	my( $session, $offline ) = @_;
+}
+
+
+######################################################################
+#
+# session_close( $session )
+#
+#  Invoked at the close of each session. Here you should clean up
+#  anything you did in session_init().
+#
+######################################################################
+
+## WP1: BAD
+sub session_close
+{
+	my( $session ) = @_;
+}
+
+
+######################################################################
+#
+# update_submitted_eprint( $eprint )
+#
+#  This function is called on an EPrint whenever it is transferred
+#  from the inbox (the author's workspace) to the submission buffer.
+#  You can alter the EPrint here if you need to, or maybe send a
+#  notification mail to the administrator or something. 
+#
+#  Any changes you make to the EPrint object will be written to the
+#  database after this function finishes, so you don't need to do a
+#  commit().
+#
+######################################################################
+
+## WP1: BAD
+sub update_submitted_eprint
+{
+	my( $eprint ) = @_;
+}
+
+
+######################################################################
+#
+# update_archived_eprint( $eprint )
+#
+#  This function is called on an EPrint whenever it is transferred
+#  from the submission buffer to the real archive (i.e. when it is
+#  actually "archived".)
+#
+#  You can alter the EPrint here if you need to, or maybe send a
+#  notification mail to the author or administrator or something. 
+#
+#  Any changes you make to the EPrint object will be written to the
+#  database after this function finishes, so you don't need to do a
+#  commit().
+#
+######################################################################
+
+## WP1: BAD
+sub update_archived_eprint
+{
+	my( $eprint ) = @_;
+}
+
+
 
 
 # Return true to indicate the module loaded OK.
 1;
-
-
-

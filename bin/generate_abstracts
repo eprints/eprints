@@ -22,6 +22,8 @@ use EPrints::Session;
 use EPrints::Subject;
 
 use strict;
+#cjg Nice Command Options
+#cjg man page
 
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );

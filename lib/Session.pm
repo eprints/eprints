@@ -55,16 +55,17 @@ use strict;
 ## WP1: BAD
 sub new
 {
-	my( $class, $mode, $param) = @_;
+	my( $class, $mode, $param, $noise ) = @_;
 	# mode = 0    - We are online (CGI script)
 	# mode = 1    - We are offline (bin script) param is archiveid
 	# mode = 2    - We are offline (auth) param is host and path.	
 	my $self = {};
 	bless $self, $class;
 
-print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
-
 	$self->{query} = ( $mode==0 ? new CGI() : new CGI( {} ) );
+	
+	$noise = 0 unless defined( $noise );
+	$self->{noise} = $noise;
 
 	if( $mode == 0 || !defined $mode )
 	{
@@ -118,9 +119,11 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 
 	#### Got Archive Config Module ###
 
+	if( $self->{noise} >= 2 ) { print "Starting EPrints Session.\n"; }
+
 	# Create a database connection
+	if( $self->{noise} >= 2 ) { print "Connecting to DB ... "; }
 	$self->{database} = EPrints::Database->new( $self );
-	
 	if( !defined $self->{database} )
 	{
 		# Database connection failure - noooo!
@@ -128,6 +131,8 @@ print STDERR "\n******* NEW SESSION (mode $mode) ******\n";
 		$self->render_error( $self->html_phrase( "lib/session:fail_db_connect" ) );
 		return undef;
 	}
+	if( $self->{noise} >= 2 ) { print "done.\n"; }
+	
 
 	# What language is this session in?
 
@@ -174,8 +179,8 @@ sub terminate
 	$self->{database}->garbage_collect();
 	$self->{archive}->call( "session_close", $self );
 	$self->{database}->disconnect();
-print STDERR "******* END SESSION ******\n\n";
 
+	if( $self->{noise} >= 2 ) { print "Ending EPrints Session.\n"; }
 }
 
 #############################################################

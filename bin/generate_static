@@ -20,6 +20,8 @@
 
 use EPrints::Session;
 
+#cjg Nice Command Options
+#cjg man page
 use File::Copy;
 use File::Find;
 use strict;

@@ -22,6 +22,8 @@ use EPrints::Database;
 use EPrints::User;
 use EPrints::Session;
 
+#cjg Nice Command Options
+#cjg man page
 use strict;
 
 if( $#ARGV < 3 || $#ARGV > 4 )

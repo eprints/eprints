@@ -21,6 +21,8 @@ use EPrints::Session;
 use EPrints::EPrint;
 use EPrints::Database;
 use EPrints::Language;
+#cjg Clear cache, for before perform for searches which must be NOW
+#AND cached.:w
 
 use strict;
 # order method not presercved.
@@ -79,16 +81,11 @@ sub new
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
+	# 
 	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff order use_cache / )
 	{
 		$self->{$_} = $data{$_};
 	}
-
-	# cjg order CAN be null, can't it?
-	#if( !defined $self->{order} )
-	#{
-		#$self->{order} = $self->{dataset}->default_order(); 
-	#}
 
 	# Array for the SearchField objects
 	$self->{searchfields} = [];
@@ -542,7 +539,7 @@ sub count
 
 		if( $self->{tmptable} eq "ALL" )
 		{
-			return $self->{dataset}->count();
+			return $self->{dataset}->count( $self->{session} );
 		}
 
 		return $self->{session}->get_db()->count_table( 
@@ -634,6 +631,26 @@ sub get_records
 	return @records;
 }
 
+sub map
+{
+	my( $self, $function, $info ) = @_;	
+
+	my $count = $self->count();
+
+	my $CHUNKSIZE = 5; # cjg bigger later.
+
+	my $offset;
+	for( $offset = 0; $offset < $count; $offset+=$CHUNKSIZE )
+	{
+		my @records = $self->get_records( $offset, $CHUNKSIZE );
+		print STDERR "$offset ".(scalar @records)."\n";
+		my $item;
+		foreach $item ( @records )
+		{
+			&{$function}( $self->{session}, $self->{dataset}, $item, $info );
+		}
+	}
+}
 
 ######################################################################
 #

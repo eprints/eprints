@@ -1,32 +1,111 @@
 #!/usr/bin/perl -w -I/opt/eprints/perl_lib
 
-######################################################################
-#
-#  Erase the archive.
-#
-#   This script completely erases the archive contents, including all
-#   database tables and eprint files.  After running this, the metadata
-#   configuration can be safely updated and the create_databases
-#   script run again.
-#
-#   This script asks for confirmation before actually erasing anything.
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
+=pod
+
+=head1 NAME
+
+B<erase-archive> - Erase all database tables and files associated with an EPrint archive
+
+=head1 SYNOPSIS
+
+B<import_subjects> I<archiveid> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script completely erases the archive contents, including all
+database tables and eprint document files and the web site. After running this, the metadata configuration can be safely updated and the creation scripts run again.
+
+Without the B<--force> option, this script asks for confirmation before actually erasing anything.
+
+After this script you will need to run B<create_tables> before you can use the archive.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<archiveid> 
+
+The ID of the eprint archive to use.
+
+=item B<--rootpass> I<password>
+
+This option allows you to specify the MySQL root password, which will skip the bit where you get asked for it. It's not very secure to put a root password on the command line. Consider yourself warned...
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+	'force' => \$force , 
+	'erasedb!' => \$erasedb , 
+	'erasefiles!' => \$erasefiles , 
+
+=item B<-xml>
+
+Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
+
+=back   
+
+=head1 BUGS
+
+This assumes that the root mysql user is called root.
+
+You may run into problems if your mysql install is not on the same machine as EPrints. If this happens use B<--noerasefiles> and delete and recreate the database yourself.
+
+__GENERICPOD__
+
+=cut
 
 
-## NEEDS A SESSION, eh?
+
 
 use EPrints::Database;
 
 use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $verbose = 0;
+my $quiet = 0;
+my $force = 0;
+my $help = 0;
+my $man = 0;
+my $rootpass;
+my $erasedb = 1;
+my $erasefiles = 1;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'force' => \$force , 
+	'erasedb!' => \$erasedb , 
+	'erasefiles!' => \$erasefiles , 
+	'rootpass=s', \$rootpass,
+	'verbose' => \$verbose,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
 
 my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
 exit( 1 ) unless( defined $archive );
@@ -35,25 +114,13 @@ my $documents_path = $archive->get_conf( "documents_path" );
 my $htdocs_path = $archive->get_conf( "htdocs_path" );
 my $database = $archive->get_conf( "dbname" );
 
-my $force = ( defined $ARGV[1] && $ARGV[1] eq "FORCE" );
-
-# This script dosn't currently work on remote machines, which may well
-# not allow remote admin log in anyway.
-
-
-	#print "\n";
-	#print "This script currently does not work with databases\n";
-	#print "not running on the default port of localhost.\n";
-	#print "\n";
-	#exit;
-#}
-
-my $input;
+my $input="";
 unless( $force )
 {
 	# Write the confirmation prompt
-	print "This script completely erases the archive, including all metadata,\n";
-	print "database tables and eprint files.\n\n";
+	print "You are about to erase:\n";
+	if( $erasedb ) { print "- all database tables\n"; }
+	if( $erasefiles ) { print "- all eprint files\n"; }
 	print "Are you sure you want this to happen? (yes/no)\n";
 	
 	$input = <STDIN>;
@@ -61,73 +128,86 @@ unless( $force )
 }
 
 # We'll only work if they type "yes" exactly, otherwise we just abort.
-unless( $force || $input eq "yes" )
+if( !$force && $input ne "yes" )
 {
-	print STDERR "Aborting.\n";
+	print "Aborting then.\n";
 	exit( 1 );
 }
-####################################################
 
-# First erase the database tables. We now do this the dramatic way
-# of dropping and recreating the database.
-# This makes it possible to erase a really broken setup.
-
-print "Dropping and recreating database (requires database root password)\n";
-print "You will need to enter the MySQL root user password.\n";
-
-# force shold skip this? cjg
-
-my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
-
-print "\nConnecting to the database...\n";
-my $dbh = DBI->connect(
-	EPrints::Database::build_connection_string(
-		dbname=>"mysql",
-		dbsock=>$archive->get_conf( "dbsock" ),
-		dbport=>$archive->get_conf( "dbport" ),
-		dbhost=>$archive->get_conf( "dbhost" ) ),
-	"root",
-	$mysqlrootpass );
-
-
-if( !defined $dbh )
+if( $erasedb )
 {
-	print <<END;
+	# First erase the database tables. We now do this the dramatic way
+	# of dropping and recreating the database.
+	# This makes it possible to erase a really broken setup.
 
-Hmmm. Problem connecting to database as root. Aborting.
+	if( !defined $rootpass )
+	{
+		if( $noise>=1 ) {
+			print "Dropping and recreating database (requires database root password)\n";
+			print "You will need to enter the MySQL root user password.\n";
+		}
+	
+		$rootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+		print "\n";
+	}
+	
+	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
+	
+	my $dbh = DBI->connect(
+		EPrints::Database::build_connection_string(
+			dbname=>"mysql",
+			dbsock=>$archive->get_conf( "dbsock" ),
+			dbport=>$archive->get_conf( "dbport" ),
+			dbhost=>$archive->get_conf( "dbhost" ) ),
+		"root",
+		$rootpass );
 
-END
-	exit( 1 );
-}
-else
-{
-	print "Dropping database \"$database\"\n";
+	if( !defined $dbh )
+	{
+		print STDERR "\n\nFailed to connect to database. Aborting.\n\n";
+		exit( 1 );
+	}
+	if( $noise>=1 ) { print "Dropping database \"$database\"\n"; }
 	$dbh->do( "drop database $database" );
-	print "Re-creating database \"$database\"\n";
+	if( $noise>=1 ) { print "Re-creating database \"$database\"\n"; }
 	$dbh->do( "create database $database" );
+
+	$dbh->disconnect;
+	if( $noise>=1 ) { print "Done recreating database\n"; }
 }
-$dbh->disconnect;
-print "\n";
 
-
-print "Erasing eprint files...\n";
-
-# Get available directories
-opendir DOCSTORE, $documents_path
-	or print STDERR "Can't open DOCSTORE";
-
-# The grep here just removes the "." and ".." directories
-my @doomeddirs = grep !/^\.\.?$/, readdir DOCSTORE;
-closedir DOCSTORE;
-
-# Remove the contents of each of the directories.
-my $dir;
-push @doomeddirs, $htdocs_path;
-foreach $dir (@doomeddirs)
+if( $erasefiles )
 {
-	print STDERR "Removing stuff in: $dir\n";
-	my $rc = CORE::system( "rm -rf $documents_path/$dir/*" ) & 0xffff;
-	print STDERR "Warning: Cleaning $documents_path/$dir didn't go smoothly\n" unless( $rc==0 );
+	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
+
+	# Get available directories
+	opendir DOCSTORE, $documents_path
+		or print STDERR "Can't open DOCSTORE\n";
+	
+	my @doomeddirs;
+	foreach( readdir DOCSTORE )
+	{
+		next if m/^\.\.?$/; # skip . and ..
+		push @doomeddirs,
+			$documents_path."/".$_;
+	}
+	closedir DOCSTORE;
+	
+	# Remove the contents of each of the directories.
+
+	my $dir;
+	push @doomeddirs, $htdocs_path;
+	foreach $dir (@doomeddirs)
+	{
+		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
+		my $cmd = "rm -rf $dir/*";
+		if( $noise>=2 ) { print "$cmd\n"; }
+		my $rc = CORE::system( $cmd ) & 0xffff;
+		print STDERR "Warning: Cleaning $dir didn't go smoothly\n" unless( $rc==0 );
+	}
+	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
 }
-mkdir( $htdocs_path, 0755 );
-print "Done.\n";
+
+if( $noise>=2) { print "Exiting normally.\n"; }
+exit;
+

@@ -20,6 +20,8 @@ use EPrints::Session;
 use EPrints::User;
 
 use strict;
+#cjg Nice Command Options
+#cjg man page
  
 my $session = new EPrints::Session( 1, $ARGV[0] );
 exit( 1 ) unless( defined $session );

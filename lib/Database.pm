@@ -1136,7 +1136,7 @@ sub from_cache
 {
 	my( $self , $dataset , $code , $offset , $count ) = @_;
 
-	print STDERR "[$offset][$count]\n";
+	#print STDERR "[$offset][$count]\n";
 
 	# Force offset and count to be ints
 	$offset+=0;
@@ -1264,7 +1264,7 @@ if( ref($dataset) eq "" ) { confess(); }
 	}
 	elsif ( $mode == 3 )	
 	{
-print STDERR "From cache $param\n";
+#print STDERR "From cache $param\n";
 		$sql = "SELECT $cols, C.pos FROM $param AS C, $table AS M ";
 		$sql.= "WHERE M.$kn = C.$kn AND C.pos>$offset ";
 		if( $ntoreturn > 0 )
@@ -1272,7 +1272,7 @@ print STDERR "From cache $param\n";
 			$sql.="AND C.pos<=".($offset+$ntoreturn)." ";
 		}
 		$sql .= "ORDER BY C.pos";
-		print STDERR "$sql\n";
+		#print STDERR "$sql\n";
 	}
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );

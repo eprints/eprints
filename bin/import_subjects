@@ -1,0 +1,309 @@
+#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<import_subjects> - rebuild an EPrint archive subjects list from the contents of a file
+
+=head1 SYNOPSIS
+
+B<import_subjects> I<archiveid> [B<options>] [I<subjectfile>]
+
+=head1 DESCRIPTION
+
+Import a set of subjects into an EPrints archive. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint archive. 
+
+Use the staff admin subject editor for little tweaks. Use this command for the initial setup or bulk editing subjects. Use the exporter to dump the current subjects if you (an administrator) have edited them online.
+
+This script should also be run after B<create_tables>.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<archiveid> 
+
+The ID of the EPrint archive to use.
+
+=item I<subjectfile>
+
+This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given archives cfg directory (or "subjects.xml" if you used B<-xml>).
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exit.
+
+=item B<-man>
+
+Print the full manual page and then exit.
+
+=item B<-quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<-verbose>
+
+Explain in detail what is going on.
+
+=item B<-xml>
+
+Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
+
+=item B<-nopurge>
+
+Do not purge the existing records from the subject table before importing this file. Rather than do this, it's probably easier to export the current subjects as XML, then combine in your new file and reimport it.
+
+=back   
+
+=head1 FILE FORMAT
+
+There are two different file formats excepted, the default colon seperated file and XML in the eprints export format. 
+
+The colon seperated ASCII is easier to edit, but is more limited. It is not 
+intended for UTF-8 encoded characters and can only specify subject names in
+the default language. 
+
+The XML format can contain any unicode characters and also allows multiple
+languages for the names of subjects. You may wish to dump the current subjects
+out of eprints as XML. Edit it. Then re-import it. The downside is that this
+format is far more verbose.
+
+=head2 The ASCII Default Format
+
+This is the default format. 
+
+Comments may be placed on lines begining with a hash (#)
+
+Each (non-comment) line of the file should be in the following format:
+
+I<subjectid>:I<name>:I<parents>:I<depositable>
+
+eg.
+
+blgc-bphy:Biophysics:blgc,phys:1
+
+Please see the main documentation for the meaning of these fields.
+
+=item B<subjectid> 
+
+An ASCII string which is a unique ID for this subject.
+
+=item B<name> 
+
+The name of this subject, in the default language of the archive.
+
+=item B<parents> 
+
+A comma seperated list of the parents of this subject. Be careful not to cause
+loops. The top level subject id is ROOT and should not be imported as it always exists.
+
+=item B<depositable> 
+
+A boolean value ( 1 or 0 ) which indicates if this subject may have eprints
+associated with it. 
+
+=head2 The XML File Format
+
+This is the standard eprints export format. It looks like this:
+
+  <table name="subject">
+    <record>
+      <field name="subjectid">phys</field>
+      <field name="name"><lang id="en">Physical Sciences &amp; Mathematics</lang></field>
+      <field name="parents">subjects</field>
+      <field name="depositable">FALSE</field>
+    </record>
+    .
+    .
+    .
+  </table>
+
+The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the archive. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
+
+=head1 AUTHOR
+
+Written by Christopher Gutteridge
+based on code by Rob Tansley
+
+=head1 SEE ALSO
+
+(cjg) the exporter program I've not done yet, create_tables
+
+
+=cut
+
+
+
+
+
+use Getopt::Long;
+use Pod::Usage;
+use strict;
+
+use EPrints::Session;
+use EPrints::Subject;
+use EPrints::ImportXML;
+
+my $xml = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $force = 0;
+my $purge = 1;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => => \$help,
+	'man' => => \$man,
+	'xml' => \$xml , 
+	'force' => \$force , 
+	'verbose' => \$verbose,
+	'quiet' => \$quiet,
+	'purge!' => \$purge
+) || pod2usage( 2 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 2 if( $verbose );
+
+my $session = new EPrints::Session( 1, $ARGV[0], $noise );
+exit( 1 ) unless defined $session;
+my $filename = $ARGV[1];
+
+if( !defined $filename )
+{
+	$filename = $session->get_archive()->get_conf( "config_path" )."/subjects";
+	$filename.= ".xml" if( $xml );
+}
+
+
+unless( $force )
+{
+	if( $noise > 0 )
+	{
+		print "You are about to make bulk changes to the subject table\n";
+		print "in the $ARGV[0] archive.\n";
+	}
+	print "Continue (yes/no): ";
+	my $input = <STDIN>;
+	chomp( $input );
+	unless( $input eq "yes" )
+	{
+		print "Aborting then.\n\n";
+		$session->terminate();
+		exit;
+	}
+}
+
+if( $purge )
+{
+	if( $noise > 0 )
+	{
+		print "Purging current subjects...\n";
+	}
+	EPrints::Subject::remove_all( $session );
+	if( $noise > 0 )
+	{
+		print "...done purging.\n";
+	}
+}
+
+print "Importing from $filename...\n" if( $noise >= 1 );
+my $count = 0;
+if( $xml )
+{
+	my $info =  { noise=>$noise, count=>0 }; 
+	EPrints::ImportXML::import_file( $session , $filename , \&deal, $info );
+	$count = $info->{count};
+}
+else
+{
+	$count = &from_ascii_file( $session , $filename , $noise );
+}
+print "Done importing $count subjects from $filename\n" if( $noise >= 1 );
+
+$session->terminate();
+print "Exiting normally.\n" if( $noise >= 2 );
+exit;
+
+sub deal 
+{
+#cjg table? do I mean dataset?
+	my( $session , $table , $subject, $info ) = @_;
+
+	if( $info->{noise} >= 2 )
+	{
+		print "Importing: ".$subject->get_value( "subjectid" )."\n";
+	}
+
+	$subject = EPrints::Subject::create( 
+		$session, 
+		$subject->get_value( "subjectid" ),
+		$subject->get_value( "name" ),
+		$subject->get_value( "parents" ),
+		$subject->get_value( "depositable" ) eq "TRUE" );
+
+	$info->{count}+=1;
+}
+
+sub from_ascii_file
+{
+	my( $session, $filename, $noise ) = @_;
+	
+	# Read stuff in from the subject config file
+	unless( open( SUBJECTS, $filename ) )
+	{
+		print STDERR "Failed to open $filename\n";
+		return 0;
+	}
+
+	my $count = 0;
+	my $lang = $session->{archive}->get_conf( "defaultlanguage" );
+	
+	while( <SUBJECTS> )
+	{
+		chomp();
+		next if /^\s*(#|$)/;
+		my @vals = split /:/;
+
+		my @parents = split( ",", $vals[2] );
+	
+		if( $noise >= 2 )
+		{
+			print "Importing: ".$vals[0]."\n";
+		}
+
+		EPrints::Subject::create( 
+			$session,
+		        $vals[0],
+		        {$lang=>$vals[1]},
+			\@parents,					
+		        $vals[3] );
+
+		$count+=1;
+
+	}
+	
+	return( $count );
+}
+

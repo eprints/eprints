@@ -14,8 +14,8 @@
 #
 ######################################################################
 
-#cjg LIB
-#cjg Make disk0? cjg
+#cjg Nice Command Options
+#cjg man page
 
 use Sys::Hostname;
 use Cwd;

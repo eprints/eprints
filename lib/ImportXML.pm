@@ -24,7 +24,7 @@ use XML::Parser;
 # "eprints". This is used to pass around state information including
 # the session handle and the current object.
 
-#cjg NEEDS to spot MULTILANG and ID!
+#cjg NEEDS to spot ID!
 
 #cjg Needs to be able to specify default language (to stop it doing 
 # "?" )

@@ -19,6 +19,8 @@ use EPrints::Config;
 use strict;
 
 #cjg Write a more simple conf if only one language involved?
+#cjg Nice Command Options
+#cjg man page
 
 my $archiveid = $ARGV[0];
 my $site_sysfile = EPrints::Config::get( "sys_path" )."/auto-apache.conf";

@@ -175,6 +175,9 @@
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 #	paged searches are not very neat(understatement!)Q
 #	What type for ordervalues? Something which keeps memory use down...
+#	Standardise some functions between Subject, EPrint and User.(and Subsc?)
+#`	subjec t importer has iffy ordering - should really re-commit 'em all to update ancestors list.
+# import_subjects does not check for errors very well.
 
 #TODO
 #	langid's -> validate they is correct (in multilang)
@@ -192,5 +195,8 @@
 #	subject importer to use XML
 #	rename views to browse/ (?)
 #	rename rebuild_sets to something betterer?
-#	Edit abstract renderer to add comments on how to view PS and PDF etc.
-
+#	Edit abstract renderer to add comments on how to view PS and PDF etc.# 
+#	change order tables to one per langid
+#	New search exp style which makes a one shot cache for dumping etc.
+#	Default config should have a "comments" subject
+#	make bin scripts flush ...'s before "done"'s

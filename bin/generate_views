@@ -25,6 +25,8 @@ use EPrints::EPrint;
 use EPrints::Session;
 use EPrints::Subject;
 
+#cjg Nice Command Options
+#cjg man page
 
 use File::Copy;
 use File::Path;

@@ -364,52 +364,6 @@ sub _get_paths
 	return @paths;
 }
 
-######################################################################
-#
-# $success = create_subject_table( $session )
-#
-#  Reads in the subject info from a config file and writes it to the
-#  database. [STATIC]
-#
-######################################################################
-
-## WP1: BAD
-#cjg Ultimatly should use ImportXML.
-sub create_subject_table
-{
-	my( $session, $filename ) = @_;
-	
-	# Read stuff in from the subject config file
-#print STDERR "subjectfile=($filename)\n";
-	open( SUBJECTS, $filename ) or return( 0 );
-
-	my $success = 1;
-	my $lang = $session->{archive}->get_conf( "defaultlanguage" );
-	
-	while( <SUBJECTS> )
-	{
-#		print "Line: $_\n";
-		chomp();
-		next if /^\s*(#|$)/;
-		my @vals = split /:/;
-
-		my @parents = split( ",", $vals[2] );
-	
-		print STDERR "$vals[0]\n";
-		
-		$success = $success &&
-			( defined EPrints::Subject::create( 
-				$session,
-			        $vals[0],
-			        {$lang=>$vals[1]},
-				\@parents,					
-			        $vals[3] ) );
-	}
-	
-	return( $success );
-}
-
-
 
 ######################################################################
 #
@@ -631,12 +585,12 @@ sub count_eprints
 sub get_value 
 {
 	my( $self, $fieldname ) = @_;
-	if( $self->{data}->{$fieldname} eq "")
-	{
-		return undef;
-	}
 
-	return $self->{data}->{$fieldname};
+	my $v = $self->{data}->{$fieldname};
+
+	return undef if( !EPrints::Utils::is_set( $v ) );
+	
+	return $v;
 }
 
 #
@@ -770,6 +724,13 @@ sub set_value
 	my( $self , $fieldname, $value ) = @_;
 
 	$self->{data}->{$fieldname} = $value;
+}
+
+sub get_data
+{
+	my( $self ) = @_;
+	
+	return $self->{data};
 }
 
 1;
