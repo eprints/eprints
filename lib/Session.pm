@@ -844,6 +844,7 @@ sub render_input_form
 			width => 1, 
 			height => 1, 
 			border => 0,
+			style => "display: none",
 			src => $self->{archive}->get_conf( "base_url" )."/images/1x1trans.gif",
 			name => "_default", 
 			alt => $p{buttons}->{$p{default_action}} ) );
@@ -1311,94 +1312,6 @@ sub get_citation_spec
 	$self->take_ownership( $cite );
 
 	return $cite;
-}
-
-
-#
-# $text = render_struct( $ref, $depth )
-#
-#  Renders a reference into a human readable tree.
-#
-
-
-sub render_struct
-{
-	my( $ref , $depth , %done) = @_;
-
-	$depth = 0 if ( !defined $depth );
-	my $text = "";
-	my $type = "";
-
-	if ( !defined $ref )
-	{
-		$text = "  "x$depth;
-		$text.= "[undef]\n";
-		return $text;
-	}
-	
-	if ( defined $done{$ref} )
-	{
-		$text = "  "x$depth;
-		$text.= "[LOOP]\n";
-		return $text;
-	}
-
-	$done{$ref} = 1;
-	
-	$type = ref( $ref );
-	
-	if( $type eq "" )
-	{
-		$text.= "  "x$depth;
-		$text.= "\"$ref\"\n";
-		return $text;
-	}
-
-	if( $type eq "SCALAR" )
-	{
-		$text.= "  "x$depth;
-		$text.= "SCALAR: \"$ref\"\n";
-		return $text;
-	}
-
-	if ( $type eq "ARRAY" )
-	{
-		my @bits = @{$ref};
-		$text.= "  "x$depth;
-		$text.= "[ (length=".(scalar @bits).")\n";
-		foreach( @bits )
-		{
-			$text.= render_struct( $_ , $depth+1 , %done );
-		}
-		$text.= "  "x$depth;
-		$text.= "]\n";
-		return $text;
-	}
-
-	# HASH or CLASS
-
-	# Hack: I really don't want to see the whole session
-
-	if( $type eq "EPrints::Session" || $type eq "Apache"
-		|| $type eq "EPrints::DataSet"  || $type eq "CODE" )
-	{
-		$text.= "  "x$depth;
-		$text.= "$type\n";
-		return $text;
-	}
-
-	my %bits = %{$ref};
-	$text.= "  "x$depth;
-	$text.= "{ $type\n";
-	foreach( keys %bits )
-	{
-		$text.= "  "x$depth;
-		$text.= " $_=>\n";
-		$text.= render_struct( $bits{$_} , $depth+1 , %done );
-	}
-	$text.= "  "x$depth;
-	$text.= "}\n";
-	return $text;
 }
 
 sub microtime

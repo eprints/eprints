@@ -289,8 +289,6 @@ sub _load_datasets
 		}
 	}
 	
-#print EPrints::Session::render_struct( $dsconf );	
-	
 	$self->{datasets} = {};
 	my $ds_id;
 	foreach $ds_id ( EPrints::DataSet::get_dataset_ids() )

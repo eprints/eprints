@@ -26,6 +26,8 @@ Searching
 
 - No way to search date fields.
 
+- Does not show "ignored words" if results are cached.
+
 ----------------------------------------------------------------------
 EPrints Submission Form
 ----------------------------------------------------------------------

@@ -343,3 +343,7 @@ front page.
 PHR:EQ:fred format. Still serialise OK. Also ANY/ALL/PHR is not needed if 
 match mode is not "IN" and if match mode is not specified it defaults to
 "EQ" - which is usually used internally.
+
+[c]- fixed typo in citations file.
+- fixed bug in "area" code of VLit
+- removed sub render_struct - use Data::Dumper, dammit.

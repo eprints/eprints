@@ -245,7 +245,7 @@ sub ls_area
 		}
 	}
 
-	send_header( $session, "image/gif" );
+	send_http_header( "image/gif" );
 	print `cat $cache`;
 }
 
