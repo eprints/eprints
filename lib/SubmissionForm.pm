@@ -457,7 +457,6 @@ sub _from_stage_meta
 	{
 		$self->_update_from_form( $field->get_name() );
 	}
-
 	$self->{eprint}->commit();
 
 	# What stage now?
@@ -964,7 +963,9 @@ sub _do_stage_type
 	        0,
 	        $submit_buttons,
 	        { stage => "type", 
-		  eprint_id => $self->{eprint}->get_value( "eprintid" ) }
+		  eprint_id => $self->{eprint}->get_value( "eprintid" ) },
+		{},
+		"submit#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1045,7 +1046,8 @@ sub _do_stage_linking
 	        $submit_buttons,
 	        { stage => "linking",
 		  eprint_id => $self->{eprint}->get_value( "eprintid" ) },
-		$comment
+		$comment,
+		"submit#t"
 	) );
 
 	$self->{session}->build_page(
@@ -1077,12 +1079,12 @@ sub _do_stage_meta
 
 	$p = $self->{session}->make_element( "p" );
 
-	$p->appendChild( 
-		$self->{session}->html_phrase( 
+	my $intro = $self->{session}->html_phrase( 
 			"lib/submissionform:bib_info",
 			star => $self->{session}->make_element(
 					"span",
-					class => "requiredstar" ) ) );	
+					class => "requiredstar" ) );	
+	$p->appendChild( $intro );
 	$page->appendChild( $p );
 	
 	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
@@ -1104,7 +1106,9 @@ sub _do_stage_meta
 			1,
 			1,
 			$submit_buttons,
-			$hidden_fields ) );
+			$hidden_fields,
+			{},
+			"submit#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_meta" ),
@@ -1152,7 +1156,9 @@ sub _do_stage_subject
 			0,
 			1,
 			$submit_buttons,
-			$hidden_fields ) );
+			$hidden_fields,
+			{},
+			"submit#t" ) );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_subject" ),
@@ -1728,7 +1734,9 @@ sub _render_users_form
 	                                         0,
 	                                         1,
 	                                         $submit_buttons,
-	                                         $hidden_fields );
+	                                         $hidden_fields,
+			{},
+			"submit#t" );
 }
 
 

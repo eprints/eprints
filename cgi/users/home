@@ -237,7 +237,7 @@ print STDERR "FOO: ###".scalar(@eprints)."\n";
 		};
 
 		### Now put them in a form
-		$form = $session->render_form( "post", "submit" );	
+		$form = $session->render_form( "post", "submit#t" );	
 		$form->appendChild( $session->render_input_form(
 			[ $set_field ],
 			\%default_values,

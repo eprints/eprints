@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/eprints.css" title="screen stylesheet" media="screen"/>
   </head>
   <body bgcolor="#ffffff" text="#000000">
+    <topofpage />
     <div class="header">
       <table  cellpadding="5" border="0" cellspacing="0" width="100%">
         <tr>

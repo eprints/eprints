@@ -447,7 +447,7 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", multilang => 1 },
+	{ name => "title", type => "text", multilang => 1, requiredlangs=>["fr"] },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 

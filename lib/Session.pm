@@ -795,6 +795,13 @@ sub _render_input_form_field
 		$html->appendChild( $div );
 	}
 
+	if( substr( $self->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 
+	{
+		my $a = $self->make_element( "a", name=>"t" );
+		$a->appendChild( $html );
+		$html = $a;
+	}
+				
 	return( $html );
 }	
 
@@ -827,7 +834,10 @@ sub build_page
 	my( $self, $title, $mainbit ) = @_;
 	
 	print STDERR "BUILDPAGE go!\n";	
-	
+#cjg Could be different eg. <EPRINTSHOOK type="title" />	
+#cjg Could be different eg. <EPRINTSHOOK type="page" />	
+#cjg Could be different eg. <EPRINTSHOOK type="topofpage" />	
+#cjg would only require one recursive run through, not lots.
 	$self->take_ownership( $mainbit );
 	my $node;
 	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
@@ -839,6 +849,20 @@ sub build_page
 	foreach $node ( $self->{page}->getElementsByTagName( "pagehere" , 1 ) )
 	{
 		$node->getParentNode()->replaceChild( $mainbit, $node );
+		$node->dispose();
+	}
+	foreach $node ( $self->{page}->getElementsByTagName( "topofpage" , 1 ) )
+	{
+		my $topofpage;
+		if( $self->internal_button_pressed() )
+		{
+			$topofpage = $self->make_doc_fragment();
+		}
+		else
+		{
+			$topofpage = $self->make_element( "a", name=>"t" );
+		}
+		$node->getParentNode()->replaceChild( $topofpage, $node );
 		$node->dispose();
 	}
 	print STDERR "BUILDPAGE stop!\n";	
@@ -1094,6 +1118,29 @@ sub get_action_button
 }
 
 
+sub get_internal_button
+{
+	my( $self ) = @_;
+
+	if( defined $self->{internalbutton} )
+	{
+		return $self->{internalbutton};
+	}
+
+	my $p;
+	# $p = string
+	foreach $p ( $self->param() )
+	{
+		if( $p =~ m/^_internal_/ )
+		{
+			$self->{internalbutton} = substr($p,10);
+			return $self->{internalbutton};
+		}
+	}
+
+	$self->{internalbutton} = "";
+	return $self->{internalbutton};
+}
 
 ###########################################################
 #

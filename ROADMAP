@@ -7,14 +7,15 @@
 0	System Apache Config Maker
 -	languages.xml file to configure what languages EPrints has heard of
 -	XML config files to tell eprints where to find each archive
-1	Get the Deposit Item form working
 -	Multi-Lang fields in DB
-3	Multi-Lang fields in HTML
-0	"ID" fields for ISBN/userid etc.
-0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
+4	Multi-Lang fields in HTML
 
 *	ALPHA Release - ie. You can download and install it, but it won't be actually useful yet.
 
+1	Get the Deposit Item form working
+0	"ID" fields for ISBN/userid etc.
+0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
+0	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
 0	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 0	Phrasify Option Fields
 0	Multilangify Subject Fields and Subject DB

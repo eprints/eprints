@@ -74,17 +74,19 @@ my %TYPE_INDEX =
 #cjg MAYBE this could be the defaults? not just =>1
 
 my $PROPERTIES = {
-	name => "NO_DEFAULT",
-	type => "NO_DEFAULT",
-	required => 0,
-	multiple => 0,
 	datasetid => "NO_DEFAULT",
-	displaylines => 0,
 	digits => 20,
-	multilang => 0,
-	options => "NO_DEFAULT",
+	displaylines => 0,
 	maxlength => 255,
-	showall => 0 };
+	multilang => 0,
+	multiple => 0,
+	name => "NO_DEFAULT",
+	options => "NO_DEFAULT",
+	required => 0,
+	requiredlangs => [],
+	showall => 0, 
+	type => "NO_DEFAULT"
+};
 
 ######################################################################
 #
@@ -158,6 +160,10 @@ sub new
 	if( $self->is_type( "set" ) )
 	{
 		$self->set_property( "options" , $properties->{options} );
+	}
+	if( $self->get_property( "multilang" ) )
+	{
+		$self->set_property( "requiredlangs", $properties->{requiredlangs} );
 	}
 
 	return( $self );
@@ -544,11 +550,6 @@ print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
 	{
 		my( $tags, $labels, $id );
  		$id = $self->{name};
-		if( $session->internal_button_pressed() )
-		{
-			my @values = $session->param( $id );
-			$value = \@values;
-		}
 	
 		if( $self->is_type( "set" ) )
 		{
@@ -677,7 +678,7 @@ sub _render_input_field_aux
 	if( $self->get_property( "multilang" ) )
 	{
 		my $boxcount = 1;
-		my $spacesid = $self->{name}.$id_suffix."_langs";
+		my $spacesid = $self->{name}.$id_suffix."_langspaces";
 		my $buttonid = $self->{name}.$id_suffix."_morelangspaces";
 
 		$frag = $session->make_doc_fragment();
@@ -693,17 +694,19 @@ sub _render_input_field_aux
 			}
 		}
 		
-		my( @force ) = ("en");
+		my( @force ) = @{$self->get_property( "requiredlangs" )};
 		
 		my %langstodo = ();
 		foreach( keys %{$value} ) { $langstodo{$_}=1; }
-		my %langopts = ();
-		foreach( EPrints::Config::get_languages() ) { $langopts{$_}=1; }
-		
+		my %langlabels = ();
+		foreach( EPrints::Config::get_languages() ) { $langlabels{$_}=EPrints::Config::lang_title($_); }
+		foreach( @force ) { delete $langlabels{$_}; }
+		my @langopts = ("", keys %langlabels );
+		$langlabels{""} = "** Select Language **";
 	
 		my $i=1;
 		my $langid;
-		while( scalar(@force)>0 || $i<$boxcount || scalar(keys %langstodo)>0)
+		while( scalar(@force)>0 || $i<=$boxcount || scalar(keys %langstodo)>0)
 		{
 			my $langid = undef;
 			my $forced = 0;
@@ -719,20 +722,40 @@ sub _render_input_field_aux
 				delete( $langstodo{$langid} );
 			}
 			
+print STDERR "****************".$id_suffix."_".$i."\n";
+use Data::Dumper;
+print STDERR Dumper( $langid, $value, $value->{$langid} );
+print STDERR "************\n";
 			my $div = $session->make_element( "div" );# cjg style?
 			$div->appendChild( $self->_render_input_field_aux2( $session, $value->{$langid}, $id_suffix."_".$i ) );
-			$div->appendChild( $session->make_text( " - " ) );
-			if( !$forced )
+			my $langparamid = $self->{name}.$id_suffix."_".$i."_lang";
+			$div->appendChild( $session->make_text( " - "."($langparamid)" ) );
+			if( $forced )
 			{
-				$div->appendChild( $session->make_text( " opt (".$langid.")" ) );
-			}
-			else
-			{
+				$div->appendChild( $session->make_element(
+					"input",
+					"accept-charset" => "utf-8",
+					type => "hidden",
+					name => $langparamid,
+					value => $langid ) );
 				my $span = $session->make_element( "span", class=>"requiredlang" );
 				$span->appendChild( $session->make_text( EPrints::Config::lang_title( $langid ) ) );
 				$div->appendChild( $span );
 			}
+			else
+			{
+				$div->appendChild( $session->render_option_list(
+					name => $langparamid,
+					values => \@langopts,
+					default => $langid,
+					labels => \%langlabels ) );
+			}
+			$div->appendChild( $session->make_text( "LANGID:($langid)") );
 			$frag->appendChild( $div );
+print STDERR "****************".$id_suffix."_".$i."\n";
+use Data::Dumper;
+print STDERR Dumper( $langid, $value, $value->{$langid} );
+print STDERR "************\n\n";
 			++$i;
 		}
 				
@@ -805,10 +828,6 @@ print STDERR "$id_suffix ... val($value)\n";
 	{
 		my( $div , $textarea , $id );
  		$id = $self->{name}.$id_suffix;
-		if( $session->internal_button_pressed() )#cjg???
-		{
-			$value = $session->param( $id );
-		}
 		$div = $session->make_element( "div" );	
 		$textarea = $session->make_element(
 			"textarea",
@@ -826,10 +845,6 @@ print STDERR "$id_suffix ... val($value)\n";
 		#cjg OTHER METHOD THAN CHECKBOX? TRUE/FALSE MENU?
 		my( $div , $id);
  		$id = $self->{name}.$id_suffix;
-		if( $session->internal_button_pressed() )#cjg???
-		{
-			$value = $session->param( $id );
-		}
 
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
@@ -848,11 +863,6 @@ print STDERR "$id_suffix ... val($value)\n";
 		my( $givenid, $familyid );
  		$givenid = $self->{name}.$id_suffix."_given";
  		$familyid = $self->{name}.$id_suffix."_family";
-		if( $session->internal_button_pressed() )#cjg???
-		{
-			$value->{family} = $session->param( $familyid );
-			$value->{given} = $session->param( $givenid );
-		}
 		$frag->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
 		$frag->appendChild( $session->make_text( " " ) );
 		$frag->appendChild( $session->make_element(
@@ -879,12 +889,6 @@ print STDERR "$id_suffix ... val($value)\n";
 		@pages = split /-/, $value if( defined $value );
  		$fromid = $self->{name}.$id_suffix."_from";
  		$toid = $self->{name}.$id_suffix."_to";
-		if( $session->internal_button_pressed() )#cjg???
-		{
-			$pages[0] = $session->param( $fromid );
-			$pages[1] = $session->param( $toid );
-		}
-		
 		
 		$div = $session->make_element( "div" );	
 
@@ -926,12 +930,6 @@ print STDERR "$id_suffix ... val($value)\n";
  		$dayid = $self->{name}.$id_suffix."_day";
  		$monthid = $self->{name}.$id_suffix."_month";
  		$yearid = $self->{name}.$id_suffix."_year";
-		if( $session->internal_button_pressed() )#cjg???
-		{
-			$month = $session->param( $monthid );
-			$day = $session->param( $dayid );
-			$year = $session->param( $yearid );
-		}
 
 		$div->appendChild( $session->html_phrase( "lib/metafield:year" ) );
 		$div->appendChild( $session->make_text(" ") );
@@ -1052,6 +1050,37 @@ sub _form_value_aux
 	my $id_suffix = "";
 	$id_suffix = "_$n" if( defined $n );
 
+	my $value;
+	if( $self->get_property( "multilang" ) )
+	{
+		$value = {};
+		my $boxcount = $session->param( $self->{name}.$id_suffix."_langspaces" );
+		$boxcount = 1 if( $boxcount < 1 );
+		my $i;
+		for( $i=1; $i<=$boxcount; ++$i )
+		{
+			my $subvalue = $self->_form_value_aux2( $session, $id_suffix."_".$i );
+			my $langid = $session->param( $self->{name}.$id_suffix."_".$i."_lang" );
+			if( defined $subvalue && $langid ne "" )
+			{
+				$value->{$langid} = $subvalue;
+#cjg -- does not check that this is a valid langid...
+			}
+	print STDERR ".....................tick: ".$self->{name}.$id_suffix."_".$i."_lang\n";
+		}
+		$value = undef if( scalar keys %{$value} == 0 );
+	}
+	else
+	{
+		$value = $self->_form_value_aux2( $session, $id_suffix );
+	}
+	return $value;
+}
+
+sub _form_value_aux2
+{
+	my( $self, $session, $id_suffix ) = @_;
+
 	if( $self->is_type( "text", "username", "url", "int", "email", "longtext", "year" ) )
 	{
 		my $value = $session->param( $self->{name}.$id_suffix );
@@ -1103,7 +1132,7 @@ sub _form_value_aux
 	else
 	{
 		$session->get_archive()->log( 
-			"Error: can't do _form_value_aux on type ".
+			"Error: can't do _form_value_aux2 on type ".
 			"'".$self->{type}."'" );
 		return undef;
 	}	
