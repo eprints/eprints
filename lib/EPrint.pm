@@ -1456,4 +1456,29 @@ sub _collect_thread
 }
 
 
+######################################################################
+#
+# $eprint = last_in_thread( $field )
+#
+#  Return the eprint that is the most recent deposit in the given
+#  thread.  This eprint is returned if it is the latest.
+#
+######################################################################
+
+sub last_in_thread
+{
+	my( $self, $field ) = @_;
+	
+	my $latest = $self;
+	my @later = ( $self );
+
+	while( scalar @later > 0 )
+	{
+		$latest = $later[0];
+		@later = $latest->later_in_thread( $field );
+	}
+
+	return( $latest );
+}
+
 1;

@@ -106,17 +106,10 @@ sub new
 
 	foreach $n (@names)
 	{
-#EPrints::Log::debug( "HTMLRender", "Checking: $n" );
-		if( substr($n, 0, 5) eq "name_" )
-		{
-#EPrints::Log::debug( "HTMLRender", "In it goes" );
-			$self->{nameinfo}->{$n} = $self->{query}->param( $n );
-		}
-		if( substr($n, 0, 10) eq "name_more_" )
-		{
-#EPrints::Log::debug( "HTMLRender", "Name Button Pressed" );
-			$self->{namebuttonpressed} = 1;
-		}
+		$self->{nameinfo}->{$n} = $self->{query}->param( $n )
+			if( substr($n, 0, 5) eq "name_" );
+		
+		$self->{namebuttonpressed} = 1 if( substr($n, 0, 10) eq "name_more_" );
 	}
 	
 
@@ -146,8 +139,6 @@ sub start_html
 		$r->content_type( 'text/html' );
 		$r->send_http_header;
 	}
-
-#	$html .= "Content-Type: text/html\r\n\r\n" unless( $self->{offline} );
 
 	# Now the HTML itself.
 	$html .= $self->{query}->start_html(
@@ -408,10 +399,6 @@ sub input_field
 	
 	my $type = $field->{type};
 
-#	EPrints::Log::debug( "HTMLRender", "Rendering form for $field->{name} type $field->{type}" );
-#	EPrints::Log::debug( "HTMLRender", "type is $type" );
-#	EPrints::Log::debug( "HTMLRender", "Value I have is $value" );
-
 	my $html;
 
 	if( $type eq "text" || $type eq "url" || $type eq "email" )
@@ -591,8 +578,6 @@ sub input_field
 		# Get the names out
 		my @names = EPrints::Name::extract( $value );
 
-#EPrints::Log::debug( "HTMLRender", "input_field got $#names from $value" );
-
 		my $boxcount = $self->{nameinfo}->{"name_boxes_$field->{name}"};
 
 		if( defined $self->{nameinfo}->{"name_more_$field->{name}"} )
@@ -639,9 +624,6 @@ sub input_field
 		                                          	  "More Spaces" );
 			$html .= $self->hidden_field( "name_boxes_$field->{name}", $boxcount );
 			$html .= "</td>";
-
-#			$self->{query}->param( -name=>"name_boxes_$field->{name}",
-#			                       -value=>$boxcount );
 		}
 		
 		$html .= "</tr>\n</table>\n";
@@ -1053,8 +1035,6 @@ sub form_value
 		my $from = $self->param( "$field->{name}_from" );
 		my $to = $self->param( "$field->{name}_to" );
 
-#EPrints::Log::debug ( "HTMLRender", "from: $from  to: $to" );
-
 		if( !defined $to || $to eq "" )
 		{
 			$value = $from;
@@ -1169,42 +1149,6 @@ sub render_eprint_full
 	my $html = EPrintSite::SiteRoutines::eprint_render_full( $eprint,
 	                                                         $for_staff );
 
-	if( $for_staff )
-	{
-		my $additional_field = 
-			EPrints::MetaInfo::find_eprint_field( "additional" );
-		my $reason_field = EPrints::MetaInfo::find_eprint_field( "reasons" );
-
-		# Write suggested extra subject category
-		if( defined $eprint->{additional} )
-		{
-			$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
-			$html .= "<TR><TD><STRONG>$additional_field->{displayname}:</STRONG>".
-				"</TD><TD>$eprint->{additional}</TD></TR>\n";
-			$html .= "<TR><TD><STRONG>$reason_field->{displayname}:</STRONG>".
-				"</TD><TD>$eprint->{reasons}</TD></TR>\n";
-
-			$html .= "</TABLE>\n";
-		}
-	}
-			
-
-	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
-	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
-
-	# Threads
-	if( $eprint->in_thread( $succeeds_field ) )
-	{
-		$html .= "<h3>Available Versions of This Paper</h3>\n";
-		$html .= $self->write_version_thread( $eprint, $succeeds_field );
-	}
-	
-	if( $eprint->in_thread( $commentary_field ) )
-	{
-		$html .= "<h3>Commentary/Response Threads</h3>\n";
-		$html .= $self->write_version_thread( $eprint, $commentary_field );
-	}
-
 	return( $html );
 }
 
@@ -1295,8 +1239,6 @@ sub subject_tree
 {
 	my( $self, $subject ) = @_;
 
-#EPrints::Log::debug( "HTMLRender", "Called with subject $subject->{subjectid}" );
-	
 	my $opened_lists = 0;
 	my $html = "";
 	
@@ -1315,8 +1257,6 @@ sub subject_tree
 	{
 		$parent = pop @parents;
 		
-#EPrints::Log::debug( "HTMLRender", "Parent: $parent->{subjectid}" );
-
 		$html .= "<UL>\n<LI>".$self->subject_desc( $parent, 1, 0, 1 )."</LI>\n";
 		$opened_lists++;
 	}
@@ -1353,8 +1293,6 @@ sub subject_tree
 sub _render_children
 {
 	my( $self, $subject ) = @_;
-
-#EPrints::Log::debug( "HTMLRender", "_render_children: $subject->{subjectid}" );
 
 	my $html = "";
 	my @children = $subject->children();
@@ -1393,8 +1331,6 @@ sub subject_desc
 {
 	my( $self, $subject, $link, $full, $count ) = @_;
 	
-#EPrints::Log::debug( "HTMLRender", "subject_desc: $subject->{subjectid}" );
-
 	my $html = "";
 	
 	$html .= "<A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"
@@ -1465,11 +1401,6 @@ sub _write_version_thread_aux
 	                                             $eprint,
 	                                             1 );
 
-
-#	EPrintSite::SiteRoutines::eprint_render_citation(
-#		$eprint,
-#		1 );
-	
 	# End of the link if appropriate
 	$html .= "</A>" if( $eprint->{eprintid} ne $eprint_shown->{eprintid} );
 

@@ -80,10 +80,16 @@ sub eprint_short_title
 
 sub eprint_render_full
 {
-	my( $eprint ) = @_;
+	my( $eprint, $for_staff ) = @_;
 
-	# Start with a citation
-	my $html = "<P>";
+	my $html = "";
+
+	my $succeeds_field = EPrints::MetaInfo::find_eprint_field( "succeeds" );
+	my $commentary_field = EPrints::MetaInfo::find_eprint_field( "commentary" );
+	my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
+
+	# Citation
+	$html .= "<P>";
 	$html .= $eprint->{session}->{render}->render_eprint_citation(
 		$eprint,
 		1,
@@ -107,6 +113,25 @@ sub eprint_render_full
 	}
 
 	$html .= "</TD></TR></TABLE>\n";
+
+	# Put in a message describing how this document has other versions
+	# in the archive if appropriate
+	if( $has_multiple_versions)
+	{
+		my $latest = $eprint->last_in_thread( $succeeds_field );
+
+		if( $latest->{eprintid} eq $eprint->{eprintid} )
+		{
+			$html .= "<P ALIGN=CENTER><EM>This is the latest version of this ".
+				"eprint.</EM></P>\n";
+		}
+		else
+		{
+			$html .= "<P ALIGN=CENTER><EM>There is a later version of this ".
+				"eprint available: <A HREF=\"" . $latest->static_page_url() . 
+				"\">Click here to view it.</A></EM></P>\n";
+		}
+	}		
 
 	# Then the abstract
 	$html .= "<H2>Abstract</H2>\n";
@@ -186,6 +211,44 @@ sub eprint_render_full
 	}
 
 	$html .= "</TABLE></P>\n";
+
+	# If being viewed by a staff member, we want to show any suggestions for
+	# additional subject categories
+	if( $for_staff )
+	{
+		my $additional_field = 
+			EPrints::MetaInfo::find_eprint_field( "additional" );
+		my $reason_field = EPrints::MetaInfo::find_eprint_field( "reasons" );
+
+		# Write suggested extra subject category
+		if( defined $eprint->{additional} )
+		{
+			$html .= "<TABLE BORDER=0 CELLPADDING=3>\n";
+			$html .= "<TR><TD><STRONG>$additional_field->{displayname}:</STRONG>".
+				"</TD><TD>$eprint->{additional}</TD></TR>\n";
+			$html .= "<TR><TD><STRONG>$reason_field->{displayname}:</STRONG>".
+				"</TD><TD>$eprint->{reasons}</TD></TR>\n";
+
+			$html .= "</TABLE>\n";
+		}
+	}
+			
+	# Now show the version and commentary response threads
+	if( $has_multiple_versions )
+	{
+		$html .= "<h3>Available Versions of This Paper</h3>\n";
+		$html .= $eprint->{session}->{render}->write_version_thread(
+			$eprint,
+			$succeeds_field );
+	}
+	
+	if( $eprint->in_thread( $commentary_field ) )
+	{
+		$html .= "<h3>Commentary/Response Threads</h3>\n";
+		$html .= $eprint->{session}->{render}->write_version_thread(
+			$eprint,
+			$commentary_field );
+	}
 
 	return( $html );
 }

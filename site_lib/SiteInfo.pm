@@ -192,8 +192,8 @@ $EPrintSite::SiteInfo::default_user_order = "by surname";
 #  See lib/Citation.pm for information on how to specify this.
 %EPrintSite::SiteInfo::thread_citation_specs =
 (
-	"succeeds"   => "{title} ({datestamp})",
-	"commentary" => "{authors}. {title}. ({datestamp})"
+	"succeeds"   => "{title} (deposited {datestamp})",
+	"commentary" => "{authors}. {title}. (deposited {datestamp})"
 );
 
 
