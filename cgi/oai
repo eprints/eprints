@@ -607,8 +607,8 @@ sub start_response
 	$writer->xmlDecl("UTF-8");
 
 	$writer->startTag( $verb, 
-	                   "xmlns"=>$verb_namespaces{$verb} 
-	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance"
+	                   "xmlns"=>$verb_namespaces{$verb},
+	                   "xmlns:xsi"=>"http://www.w3.org/2000/10/XMLSchema-instance",
 	                   "xsi:schemaLocation"=>$verb_schemas{$verb} );
 	
 	$writer->dataElement( "responseDate",
