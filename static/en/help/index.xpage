@@ -39,15 +39,14 @@
 idea of what you're looking for. There are two ways to browse the archive,
 by subject and by year.</p>
 
-<p>To browse the archive either select Browse from the front page or, or
-from the navigation bar at the top of the screen. Then choose whether you
-wish to browse by subject or by year.</p>
+<p>To browse the archive either select Browse from the front page or
+from the navigation bar at the top of the screen. Then choose which property
+you wish to browse by eg. "subject".</p>
 
-<p>You will be presented with either a list of subjects or years, select
-one of these, and the display will updated. If you have selected a subject
-or a year with documents in the archive, those documents will be listed on
-the display. To access a paper, simply click on its reference in the
-display. </p>
+<p>You will be presented with a list of possible values, select
+one of these, and you will be given a list of references to documents in
+the archive (if any) which match this value.
+ To access a paper, simply click on its reference in the display. </p>
 
 <p>On the abstract page, you should be able to see what subjects are
 pertinent to the current document. Clicking on one of those subjects will
@@ -58,19 +57,16 @@ take you back to the relevant browse by subject view. </p>
 <p>The archive offers two levels of searching, simple and advanced. They
 are similar, but the advanced form lets you perform a finer-grained search
 using more fields. Access the simple search using the Search the Archive
-link on the front page, or using the using the navigation bar at the top
+link on the front page, or using the navigation bar at the top
 of the screen. To perform an advanced search, use the advanced search link
 at the top of the simple search page. </p>
-
-<p>Generally, there are three types of search field. </p>
-
 
 <h3>Text Search Fields </h3>
 <p>These are used to search fields like abstract or author. These are the
 fields where there is a text entry area, and a popup menu just to the
 right of it. Type your search terms into the box. You can decide how the
 system will use your search terms by selecting one of the options from the
-popup menu just to the right of the box.</p>
+popup menu just to the right of the input box.</p>
 
 <dl>
 <dt><h4>Match all, in any order. </h4></dt>
@@ -93,8 +89,8 @@ keywords. </p></dd>
 <h3>Lists of Values </h3>
 <p>With these you can select one or more values from a list of values for
 the system to search for. If no value in the list is selected, the system
-will not filter out records in the search using this field (i.e. it will
-retrieve records with any value for this field.) </p>
+will ignore this field (i.e. it will
+retrieve records with any value of this field.) </p>
 
 <p>In cases where each individual record may have more than one value
 attached to the list, you can also change search behaviour by selecting
@@ -141,10 +137,11 @@ records. </p>
 
 
 <p>Certain services require you to register with the system so that it can
-identify you, such as the subscription (alerting) and document depositing
-services. When you register with the system, you can register you username
-and password which will be confirmed via a registration e-mail, however
-you need to confirm this registration. Before you can start uploading
+identify you, such as the <!-- NOT DONE YET!! subscription (alerting) and --> document depositing
+services. When you register with the system, you can register a username, email address
+and password which must be confirmed. The system will email you a confirmation
+URL to visit to enable the password.</p>
+<p>Before you can start uploading
 items, you need to fill out some personal details into a form (<a
 href="http://lemur1.ecs.soton.ac.uk/perl/users/record">http://lemur1.ecs.soton.ac.uk/perl/users/record</a>),
 the registration e-mail will contain instruction on how to do this. This
@@ -161,7 +158,8 @@ your user record'': Select this option. The user record form is described
 below. </p>
 
 <p>Once you've correctly filled out your user record, the ``Deposit
-Papers'' page will show a number of options and some information. These
+Papers'' page will show a number of options and any any items you are working
+on or have submitted but are not yet approved by an editor. The options
 are described below. Note that the options and information that appear may
 vary slightly, depending on whether you are in the process of depositing
 any papers and whether you have any papers pending entry into the main
@@ -175,11 +173,11 @@ purely for internal archive use. General information like your name, URL,
 address and e-mail address are public, so it's inadvisable to put down a
 home address. (Usually a postal address isn't required.) Information about
 your operating system is purely to help the archive administrators help
-you. </p>
+you if you encouter problems. </p>
 
-<p>Enter the relevant information in the boxes. Those boxes where the box
+<p>Enter the relevant information in the form. Those boxes where the field
 name (on the left of the box) has an asterisk are required fields that you
-must fill out before you can deposit papers in the archive. </p>
+must fill out before you can deposit papers in to the archive. </p>
 
 <p>Note that you cannot change your e-mail address here. This is
 deliberate; if you inadvertently enter an incorrect e-mail address, the
