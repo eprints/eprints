@@ -4,7 +4,7 @@ editable = YES
 type = "multitext"
 visible = YES
 displayname = "Abstract"
-help = "Please enter the abstract of your submission. You can easily copy "
+help = "Please enter the abstract of your deposit. You can easily copy "
 help = "and paste it into this box. If you want to include formatting such as "
 help = "italics and bold print, you can use HTML style tags, such as "
 help = "<em>&lt;EM&gt;</em> or <strong>&lt;strong&gt;</strong>."
@@ -16,8 +16,8 @@ editable = YES
 type = "multiurl"
 visible = YES
 displayname = "Alternative Locations"
-help = "If your submission is available from other sites, please enter the "
-help = "URLs of your submission on those sites here, including the initial "
+help = "If your deposit is available from other sites, please enter the "
+help = "URLs of your deposit on those sites here, including the initial "
 help = "<strong>http://</strong>. Please give the full URL of the paper "
 help = "itself, and not just the hosting website."
 </field>
@@ -49,7 +49,7 @@ displaylines = "3"
 visible = YES
 displayname = "Additional Information"
 help = "If you think you can specify some useful information about your "
-help = "submission that can't be entered anywhere else, please enter it here."
+help = "deposit that can't be entered anywhere else, please enter it here."
 </field>
 
 <field commref>
@@ -57,7 +57,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Commentary on"
-help = "If your submission is a commentary on a paper <strong> that is not in "
+help = "If your deposit is a commentary on a paper <strong> that is not in "
 help = "this archive</strong>, please enter the full reference of the paper "
 help = "here."
 </field>
@@ -91,7 +91,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Department"
-help = "Please enter the department from which the submission originated."
+help = "Please enter the department from which the deposit originated."
 </field>
 
 <field editors>
@@ -108,7 +108,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Institution"
-help = "Please enter the institution from which the submission originated."
+help = "Please enter the institution from which the deposit originated."
 </field>
 
 <field ispublished>
@@ -119,7 +119,7 @@ displayname = "Status"
 value unpub = "Unpublished"
 value inpress = "In Press"
 value pub = "Published"
-help = "Please state here whether your submission has been published, is "
+help = "Please state here whether your deposit has been published, is "
 help = "currently in the process of being published (<strong>in "
 help = "press</strong>), or has not been previously published."
 </field>
@@ -131,8 +131,8 @@ displaylines = 2
 visible = YES
 displayname = "Keywords"
 help = "Enter here any keywords you think will aid searchers in finding your "
-help = "submission. Please be careful to enter specific keywords relevant to "
-help = "your submission, and don't be to general."
+help = "deposit. Please be careful to enter specific keywords relevant to "
+help = "your deposit, and don't be to general."
 </field>
 
 <field month>
@@ -153,7 +153,7 @@ value sep = "September"
 value oct = "October"
 value nov = "November"
 value dec = "December"
-help = "Please enter the month in which your submission was published."
+help = "Please enter the month in which your deposit was published."
 </field>
 
 <field number>
@@ -162,7 +162,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Number"
-help = "Enter the issue number of the journal in which your submission "
+help = "Enter the issue number of the journal in which your deposit "
 help = "appeared."
 </field>
 
@@ -180,7 +180,7 @@ editable = YES
 type = boolean
 visible = YES
 displayname = "Public Domain"
-help = "If the document you are submitting is not your own but rather an old "
+help = "If the document you are deposit is not your own but rather an old "
 help = "document that is now in the public domain, then please tick the "
 help = "following box. This will prevent your own name and address appearing "
 help = "with the document as the address for correspondence."
@@ -191,7 +191,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Publication"
-help = "Please enter the full title of the publication your submission "
+help = "Please enter the full title of the publication your deposit "
 help = "appeared in."
 </field>
 
@@ -219,8 +219,8 @@ displayname = "References"
 displaylines = 3
 help = "In the future, the software should support hypertext citation linking "
 help = "between papers and archives. It would really assist this effort, and "
-help = "give your submission a much higher chance of being usefully linked, "
-help = "if you would paste the references of papers your submission cites as "
+help = "give your deposit a much higher chance of being usefully linked, "
+help = "if you would paste the references of papers your deposit cites as "
 help = "ASCII text in the box below. This is of course entirely optional."
 </field>
 
@@ -245,7 +245,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Title"
-help = "Please enter the full title of the submission."
+help = "Please enter the full title of the deposit."
 </field>
 
 <field volume>
@@ -254,7 +254,7 @@ editable = YES
 type = "text"
 visible = YES
 displayname = "Volume"
-help = "Enter the volume number of the journal in which your submission "
+help = "Enter the volume number of the journal in which your deposit "
 help = "appeared."
 </field>
 
@@ -263,6 +263,6 @@ editable = YES
 type = "year"
 visible = YES
 displayname = "Year"
-help = "Please enter the year in which your submission was published or "
+help = "Please enter the year in which your deposit was published or "
 help = "produced."
 </field>

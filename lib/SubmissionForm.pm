@@ -33,7 +33,7 @@ $EPrints::SubmissionForm::action_delete     = "Delete";
 $EPrints::SubmissionForm::action_edit       = "Edit";
 $EPrints::SubmissionForm::action_next       = "Next >";
 $EPrints::SubmissionForm::action_prev       = "< Back";
-$EPrints::SubmissionForm::action_submit     = "Submit";
+$EPrints::SubmissionForm::action_submit     = "Deposit";
 $EPrints::SubmissionForm::action_cancel     = "Cancel";
 $EPrints::SubmissionForm::action_confirm    = "Confirm";
 $EPrints::SubmissionForm::action_clone      = "Clone";
@@ -60,15 +60,15 @@ $EPrints::SubmissionForm::stage_confirmdel = "stage_confirmdel"; # Confirm delet
 
 %EPrints::SubmissionForm::stage_titles =
 (
-	$EPrints::SubmissionForm::stage_type       => "Submission Type",
+	$EPrints::SubmissionForm::stage_type       => "Deposit Type",
 	$EPrints::SubmissionForm::stage_meta       => "Bibliographic Information",
 	$EPrints::SubmissionForm::stage_subject    => "Subject Categories",
 	$EPrints::SubmissionForm::stage_linking    => "Succession/Commentary",
 	$EPrints::SubmissionForm::stage_format     => "Document Storage Formats",
 	$EPrints::SubmissionForm::stage_fileview   => "Document File Upload",
 	$EPrints::SubmissionForm::stage_upload     => "Document File Upload",
-	$EPrints::SubmissionForm::stage_verify     => "Submission Verification",
-	$EPrints::SubmissionForm::stage_done       => "Completed Submission",
+	$EPrints::SubmissionForm::stage_verify     => "Deposit Verification",
+	$EPrints::SubmissionForm::stage_done       => "Completed Deposit",
 	$EPrints::SubmissionForm::stage_error      => "Error",
 	$EPrints::SubmissionForm::stage_return     => "Return to Author's Home",
 	$EPrints::SubmissionForm::stage_confirmdel => "Confirm Deletion"
@@ -79,7 +79,7 @@ $EPrints::SubmissionForm::corruption_error =
 	"An inconsistency in the posted data was detected. Usually this is caused ".
 	"by arriving directly to this page from a bookmark and not from your ".
 	"author area, or through using the browser's back/forwards or reload ".
-	"buttons. Always access the submission mechanism via your author area ".
+	"buttons. Always access the depositing mechanism via your author area ".
 	"and use the buttons on the form.</P><P>If this has happened in the normal ".
 	"course of operation please tell the " .
 	"<A HREF=\"mailto:$EPrintSite::SiteInfo::admin\">site administrator</A>";
@@ -91,7 +91,7 @@ $EPrints::SubmissionForm::database_error =
 	"administrator</A> if the problem persists.";
 
 $EPrints::SubmissionForm::noselection_error =
-	"You hadn't selected a paper to edit, clone, delete or submit!";
+	"You hadn't selected a paper to edit, clone, delete or deposit!";
 
 
 ######################################################################
@@ -298,7 +298,7 @@ sub from_home
 		}
 		else
 		{
-			$self->exit_error( "Use your author area to create new submissions" );
+			$self->exit_error( "Use your author area to deposit new documents" );
 			return( 0 );
 		}
 	}
@@ -1015,7 +1015,7 @@ sub do_stage_type
 	$self->list_problems();
 	
 	print "<P>Please select the most appropriate type for your ".
-		"submission.</P>\n";
+		"deposit.</P>\n";
 
 	$self->render_type_form(
 		[ $EPrints::SubmissionForm::action_cancel,
@@ -1041,9 +1041,9 @@ sub do_stage_meta
 			$EPrints::SubmissionForm::stage_meta} );
 	$self->list_problems();
 
-	print "<P>Please enter the bibliographic data about your submission. ".
+	print "<P>Please enter the bibliographic data about your deposit. ".
 		"Fields marked with a * are fields that must be filled out ".
-		"before your submission will be accepted.</P>\n";
+		"before your deposit will be accepted.</P>\n";
 	$self->render_meta_form(
 		[ $EPrints::SubmissionForm::action_prev,
 		  $EPrints::SubmissionForm::action_next ],
@@ -1315,7 +1315,7 @@ sub do_stage_fileview
 		if( !defined $doc->get_main() )
 		{
 			print " You need to select the file that should be shown first when ".
-				"a reader wishes to view your submission.";
+				"a reader wishes to view your deposit.";
 		}
 
 		print "</CENTER></P>\n";
@@ -1482,7 +1482,7 @@ sub do_stage_verify
 	if( $#{$self->{problems}} >= 0 )
 	{
 		$self->list_problems(
-			"Before you submit this entry to the archive, the following ".
+			"Before you deposit this entry to the archive, the following ".
 				"problems need to be corrected:",
 			"" );
 
@@ -1494,7 +1494,7 @@ sub do_stage_verify
 	else
 	{
 		print "<P><CENTER>Please verify that all of the details about your ".
-			"submission are correct, and that all necessary document files ".
+			"deposit are correct, and that all necessary document files ".
 			"have been correctly upload including any figures.</CENTER></P>\n";
 		print "<HR>\n";
 		
@@ -1528,8 +1528,8 @@ sub do_stage_done
 	
 	print "<P><CENTER><STRONG>Thank you.</STRONG><CENTER></P>\n";
 	
-	print "<P><CENTER>Your submission has been successfully submitted and ".
-		"provided there are no problems should appear in the main archive ".
+	print "<P><CENTER>Your document is now held in the deposit buffer. ".
+		"Provided there are no problems it should appear in the main archive ".
 		"within the next few days.</CENTER></P>\n";
 	
 	print "<P><CENTER><A HREF=\"home\">Click here to return to your author ".

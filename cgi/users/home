@@ -78,7 +78,7 @@ if( $valid_user )
 	print "<DL><DT><STRONG><A HREF=\"review\">Review your documents in the ".
 		"archive</A></STRONG></DT>\n";
 	print "<DD><P>This options allows you to view your documents in the main ".
-		"archive, and to make copies of the records to make submitting updated ".
+		"archive, and to make copies of the records to make depositing updated ".
 		"versions easier.";
 	print " You can also remove documents from the archive."
 		if( $EPrintSite::SiteInfo::allow_user_removal );
@@ -110,7 +110,7 @@ print "<DT><STRONG><A HREF=\"subscribe\">Change your ".
 	"subscription options</A></STRONG></DT>\n";
 print "<DD><P>Select this option to change your subscription. This allows ".
 	"you to instruct the archive to automatically e-mail you with lists ".
-	"of documents submitted that match your criteria every day, week ".
+	"of documents deposited that match your criteria every day, week ".
 	"or month.</P></DD></DL>\n";
 
 print $session->{render}->end_html();
@@ -131,7 +131,7 @@ $session->terminate();
 #   Edit    (Edit a selected EPrint)
 #   Clone   (Clone the selected EPrint)
 #   Delete  (Delete the selected EPrint)
-#   Submit  (Submit the selected EPrint to the archive)
+#   Deposit (Submit the selected EPrint to the archive)
 #
 #
 #  If the user has no papers in the inbox, a single button is drawn,
@@ -180,12 +180,12 @@ sub render_workspace
 			\%default_values,
 			0,
 			0,
-			[ "New", "Edit", "Clone", "Delete", "Submit" ],
+			[ "New", "Edit", "Clone", "Delete", "Deposit" ],
 			undef,
 			"submit" );
 
 		print "<P><CENTER><EM>These are documents you are currently in the ".
-			"process of submitting. You can start submitting a new document by ".
+			"process of depositing. You can start depositing a new document by ".
 			"clicking on <STRONG>New</STRONG>, or you can select a document ".
 			"from the list, and select one of the other options.</EM></CENTER>".
 			"</P>\n";
@@ -230,7 +230,7 @@ sub show_pending
 		{
 			print "<TR><TD><EM>";
 			print $e->short_title();
-			print "</EM></TD><TD>Submitted ";
+			print "</EM></TD><TD>Deposited ";
 			print $session->{render}->format_field(
 				EPrints::MetaInfo::find_eprint_field( "datestamp" ),
 				$e->{datestamp} );

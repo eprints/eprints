@@ -237,7 +237,7 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Register</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Submit\&nbsp;Papers</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Deposit\&nbsp;Papers</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
           </td>
         </tr>
@@ -279,19 +279,19 @@ $EPrintSite::SiteInfo::signature =
 #  Default text to send a user when "bouncing" a submission back to their
 #  workspace. It should leave some space for staff to give a reason.
 $EPrintSite::SiteInfo::default_bounce_reason =
-"Unfortunately your submission:\n\n".
+"Unfortunately your eprint:\n\n".
 "  _SUBMISSION_TITLE_\n\n".
 "could not be accepted into $EPrintSite::SiteInfo::sitename as-is.\n\n\n\n".
-"The submission has been returned to your workspace. If you\n".
+"The eprint has been returned to your workspace. If you\n".
 "visit your author area you will be able to edit your\n".
-"submission, fix the problem and re-submit.\n";
+"eprint, fix the problem and redeposit.\n";
 
 #  Default text to send a user when rejecting a submission outright.
 $EPrintSite::SiteInfo::default_delete_reason =
-"Unfortunately your submission:\n\n".
+"Unfortunately your eprint:\n\n".
 "  _SUBMISSION_TITLE_\n\n".
 "could not be accepted into $EPrintSite::SiteInfo::sitename.\n\n\n\n".
-"The submission has been deleted.\n";
+"The eprint has been deleted.\n";
 
 
 ######################################################################
