@@ -96,19 +96,19 @@ sub eprint_render_full
 	# Keywords
 	if( defined $eprint->{keywords} && $eprint->{keywords} ne "" )
 	{
-		$html .= "<TD VALIGN=TOP><STRONG>Keywords:</STRONG></TD><TD>".
+		$html .= "<TR><TD VALIGN=TOP><STRONG>Keywords:</STRONG></TD><TD>".
 			$eprint->{keywords}."</TD></TR>\n";
 	}
 
 	# Comments:
 	if( defined $eprint->{comments} && $eprint->{comments} ne "" )
 	{
-		$html .= "<TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
+		$html .= "<TR><TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
 			$eprint->{comments}."</TD></TR>\n";
 	}
 
 	# Subjects...
-	$html .= "<TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
+	$html .= "<TR><TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
 
 	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
 	my @subjects = $subject_list->get_subjects( $eprint->{session} );
@@ -124,7 +124,7 @@ sub eprint_render_full
 		$eprint->{eprintid}."</TD></TR>\n";
 
 	# And who submitted it, and when.
-	$html .= "<TD VALIGN=TOP><STRONG>Submitted by:</STRONG></TD><TD>";
+	$html .= "<TR><TD VALIGN=TOP><STRONG>Submitted by:</STRONG></TD><TD>";
 	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
 	if( defined $user )
 	{
@@ -145,7 +145,7 @@ sub eprint_render_full
 	# Alternative locations
 	if( defined $eprint->{altloc} && $eprint->{altloc} ne "" )
 	{
-		$html .= "</TD></TR>\n<TD VALIGN=TOP><STRONG>Alternative Locations:".
+		$html .= "<TR><TD VALIGN=TOP><STRONG>Alternative Locations:".
 			"</STRONG></TD><TD>";
 		my $altloc_field = EPrints::MetaInfo->find_eprint_field( "altloc" );
 		$html .= $eprint->{session}->{render}->format_field(
