@@ -38,7 +38,7 @@ The ID of the EPrint archive to use.
 
 =item I<subjectfile>
 
-This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given archives cfg directory (or "subjects.xml" if you used B<-xml>).
+This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given archives cfg directory (or "subjects.xml" if you used B<--xml>).
 
 =back
 
@@ -46,27 +46,27 @@ This is the file to import the subjects from. If you do not specify it then the 
 
 =over 8
 
-=item B<-help>
+=item B<--help>
 
 Print a brief help message and exit.
 
-=item B<-man>
+=item B<--man>
 
 Print the full manual page and then exit.
 
-=item B<-quiet>
+=item B<--quiet>
 
 Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
 
-=item B<-verbose>
+=item B<--verbose>
 
 Explain in detail what is going on.
 
-=item B<-xml>
+=item B<--xml>
 
 Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
 
-=item B<-nopurge>
+=item B<--nopurge>
 
 Do not purge the existing records from the subject table before importing this file. Rather than do this, it's probably easier to export the current subjects as XML, then combine in your new file and reimport it.
 

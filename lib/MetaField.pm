@@ -1502,12 +1502,14 @@ sub get_sql_name
 sub is_browsable
 {
 	my( $self ) = @_;
+	
+	# Can never browse:
+	# pagerange , secret , longtext
 
-	# does not yet understand ID fields.
+        # Can't yet browse:
+        # boolean , text,  langid ,name 
 
-	return $self->is_type( "set", "subject", "year", "int", "date", "datatype" );
-
-#cjg NOT DONE: "boolean",  "langid", "idpart" );
+	return $self->is_type( "set", "subject", "datatype", "date", "int", "year", "id", "email", "url" );
 
 }
 
@@ -1542,12 +1544,13 @@ sub get_values
 		return @{$ds->get_types()};
 	}
 
-	if( $self->is_type( "date", "int", "year" ) )
+	if( $self->is_type( "date", "int", "year", "id", "email", "url" ) )
 	{
 		return $session->get_db()->get_values( $self );
 	}
 
-	#error (cjg: not caught)
+	# should not have called this function without checking is_browsable
+	return ();
 }
 
 sub get_value_label
@@ -1577,9 +1580,19 @@ sub get_value_label
 		return EPrints::Utils::render_date( $session, $value );
 	}
 
-	if( $self->is_type( "int", "year" ) )
+	# In some contexts people migth want the URL or email to be a link
+	# but usually it's going to be a label, which can be a link in
+	# itself. Which is weird, but I doubt anyone will browse by URL
+	# anyway...
+
+	if( $self->is_type( "int", "year", "email", "url" ) )
 	{
 		return $value;
+	}
+
+	if( $self->is_type( "id" ) )
+	{
+		return $session->get_archive()->call( "id_label", $self, $session, $value );
 	}
 
 	return "???".$value."???";

@@ -183,10 +183,11 @@
 #TODO
 #	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
 #	Call backs for LEAVING archive and buffer=>inbox
-#	Call backs to handle Latex processing.
 #	"Squash" reverse indexes?
 
 #LESS URGENT TODO...
+#	Call backs to handle Latex processing... Do with a value in the metafield config.
+
 #	langid's -> validate they is correct (in multilang)
 #	Make all possible field-types browseable.
 #	sort subject input fields
@@ -198,3 +199,4 @@
 #	Add POD manuals to ALL lib and CGI files.
 # 	Make man pages from /bin etc build into docs.
 #	import_xml becomes import_foo etc. eprint/user/whatever.
+#	Bad Things(tm) will happen if a session has a langid which is not a supported langid - can this happen?

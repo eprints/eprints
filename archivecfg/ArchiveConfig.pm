@@ -401,6 +401,7 @@ $c->{archivefields}->{document} = [
 $c->{browse_fields} = 
 [ 
 	"year", 
+	"authors.id",
 	"subjects" 
 ];
 
@@ -1002,7 +1003,7 @@ sub eprint_render
 	if( $has_multiple_versions )
 	{
 		my $latest = $eprint->last_in_thread( $succeeds_field );
-#
+
 		if( $latest->get_value( "eprintid" ) == $eprint->get_value( "eprintid" ) )
 		{
 			$page->appendChild( $session->html_phrase( 
@@ -1425,6 +1426,40 @@ sub render_value_with_id
 #	}
 
 	return( $rendered );
+}
+
+
+######################################################################
+#
+# $label = id_label( $field, $session, $id );
+#
+######################################################################
+# $field 
+# - the EPrints::MetaField to which this ID belongs
+# $session
+# - the current EPrints::Session
+# $id
+# - ID part of a single metadata value 
+#
+# returns: $label
+# - UTF8 string describing human readable version of the ID.
+#
+######################################################################
+# Used when browsing by an ID field, this is used to convert the ID
+# to a displayable label. 
+# 
+# For example, if you are creating a browse-by for the authors ID
+# then you might want them displayed as the authors name. How you do 
+# this, if at all, depends very much on your data. By default it
+# just returns the value of the ID it was passed.
+#
+######################################################################
+
+sub id_label
+{
+	my( $field, $session, $id ) = @_;
+
+	return $id;
 }
 
 #---------------------------------------------------------------------

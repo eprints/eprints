@@ -33,19 +33,19 @@ The ID of the eprint archive to use.
 
 =over 8
 
-=item B<-help>
+=item B<--help>
 
 Print a brief help message and exit.
 
-=item B<-man>
+=item B<--man>
 
 Print the full manual page and then exit.
 
-=item B<-quiet>
+=item B<--quiet>
 
 Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
 
-=item B<-verbose>
+=item B<--verbose>
 
 Explain in detail what is going on.
 

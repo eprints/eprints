@@ -458,7 +458,7 @@ sub get_conditions
 	#  word word "a phrase" word
 	#
 
-	if ( $self->is_type( "text","longtext","email","url" ) )
+	if ( $self->is_type( "text","longtext","email","url","id" ) )
 	{
 		my @where = ();
 		my @phrases = ();

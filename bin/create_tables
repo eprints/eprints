@@ -24,7 +24,7 @@ B<create_tables> I<archiveid> [B<options>]
 
 Create the SQL tables which the EPrints software will use. 
 
-You should run B<import_subjects> after this, actually it will remind you unless you make it B<-quiet>.
+You should run B<import_subjects> after this, actually it will remind you unless you make it B<--quiet>.
 
 =head1 ARGUMENTS
 
@@ -40,19 +40,19 @@ The ID of the EPrint archive to effect.
 
 =over 8
 
-=item B<-help>
+=item B<--help>
 
 Print a brief help message and exit.
 
-=item B<-man>
+=item B<--man>
 
 Print the full manual page and then exit.
 
-=item B<-quiet>
+=item B<--quiet>
 
 Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
 
-=item B<-verbose>
+=item B<--verbose>
 
 Explain in detail what is going on.
 

@@ -30,7 +30,7 @@ my $DEBUG_SQL = 0;
 #
 # Counters
 #
-@EPrints::Database::counters = ( "eprintid","userid" );
+@EPrints::Database::counters = ( "eprintid", "userid" );
 
 
 #
@@ -1432,7 +1432,6 @@ if( ref($dataset) eq "" ) { confess(); }
 				}
 				else
 				{
-#print STDERR 	"data[".$n."]->{".$fn."}->[".$pos."] = ".$value."\n";
 					if( defined $subbit )
 					{
 						$data[$n]->{$fn}->[$pos]->{$subbit} = $value;
@@ -1467,14 +1466,9 @@ if( ref($dataset) eq "" ) { confess(); }
 
 	foreach( @data )
 	{
- #use Data::Dumper;
- #print STDERR "-----------------FROM DB------------------\n";
- #print STDERR Dumper($_);
- #print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 
-# print STDERR "========================================END _get\n";
 	return @data;
 }
 
@@ -1487,7 +1481,7 @@ sub get_values
 	my $table;
 	if ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
 	{
-		$table = $dataset->get_sql_sub_table_name();
+		$table = $dataset->get_sql_sub_table_name( $field );
 	} 
 	else 
 	{
@@ -1496,7 +1490,7 @@ sub get_values
 	my $sqlfn = $field->get_sql_name();
 
 	my $sql = "SELECT DISTINCT $sqlfn FROM $table";
-	print "($table)($sqlfn)\n";
+print STDERR "($table)($sqlfn)\n";
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my @values = ();
@@ -1534,6 +1528,11 @@ sub do
 sub prepare 
 {
 	my ( $self , $sql ) = @_;
+
+	if( $DEBUG_SQL )
+	{
+		$self->{session}->get_archive()->log( "Database prepare debug: $sql" );
+	}
 
 	my $result = $self->{dbh}->prepare( $sql );
 
