@@ -104,7 +104,7 @@ print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 			foreach (@multiple_names)
 			{
 				push @multiple_fields, 
-					$self->{dataset}->get_field( $fieldname );
+					$self->{dataset}->get_field( $_ );
 			}
 			
 			# Add a reference to the list

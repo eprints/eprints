@@ -27,9 +27,8 @@
     <phrase ref="lib/eprint:not_done_field">You haven't filled out the required <pin ref="fieldname" /> field.</phrase>
     <phrase ref="lib/eprint:invalid_users">The following usernames are not valid: <pin ref="usernames" />.</phrase>
     <phrase ref="lib/eprint:least_one_sub">You need to select at least one subject from the list!</phrase>
-    <phrase ref="lib/eprint:invalid_succ">EPrint ID in <pin ref="field" /> field is invalid</phrase>
     <phrase ref="lib/eprint:cant_succ">You cannot succeed an EPrint that someone else has posted</phrase>
-    <phrase ref="lib/eprint:invalid_id">EPrint ID in <pin ref="field" /> field is invalid</phrase>
+    <phrase ref="lib/eprint:invalid_id">EPrint ID in "<pin ref="field" />" field is invalid</phrase>
     <phrase ref="lib/eprint:need_a_format">You need to upload at least one of the following formats:</phrase>
 
 <!-- MetaField -->

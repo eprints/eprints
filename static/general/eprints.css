@@ -17,6 +17,10 @@ A.menulink {
         font: bold small sans-serif;
         color: #ccccff;
 }
+A.langlink {
+        font: bold small sans-serif;
+        color: #000080;
+}
 
 P {
 	font: medium serif;
@@ -28,6 +32,12 @@ P {
         text-align: right;
         margin-right: 12pt;
 }
+.langmenu {
+        font: bold small sans-serif;
+        color: black;
+        text-align: right;
+        margin-right: 12pt;
+}
 
 
 .pagetitle {
@@ -35,7 +45,7 @@ P {
 	color: #ffffff;
 }
 
-.sitetitle {
+.archivetitle {
         font: large Helvetica,Arial,Sans-serif;
 	color: #000000;
 }
@@ -56,6 +66,11 @@ P {
 }
 
 .formfieldinput {
+        padding-bottom: 3pt;
+}
+
+.formfieldcomment {
+	font-style: italic;
         padding-bottom: 3pt;
 }
 

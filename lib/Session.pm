@@ -2,12 +2,6 @@
 #
 # EPrint Session
 #
-#  Holds information about a particular EPrint session.
-#
-#
-#  Fields are:
-#    database        - EPrints::Database object
-#    renderer        - EPrints::HTMLRender object
 #
 ######################################################################
 #
@@ -21,6 +15,11 @@
 
 # CGI scripts must be no-cache. Hmmm.
 
+# cjg
+# - Make sure user is ePrints for sessions
+# - Check for df on startup
+
+
 package EPrints::Session;
 
 use EPrints::Database;
@@ -28,6 +27,7 @@ use EPrints::HTMLRender;
 use EPrints::Language;
 use EPrints::Archive;
 use Unicode::String qw(utf8 latin1);
+
 
 
 use XML::DOM;
@@ -201,10 +201,9 @@ sub phrase
 	foreach( keys %inserts )
 	{
 		$inserts{$_} = $self->make_text( $inserts{$_} );
-		
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-
+print STDERR $r->toString()." eep!\n";
 	return $self->tree_to_utf8( $r );
 }
 
@@ -294,8 +293,13 @@ sub make_element
 sub make_text
 {
 	my( $self , $text ) = @_;
+print STDERR ">>>>>>>>>>>>MAKE_TEXT::: $text\n";
 
-	return $self->{page}->createTextNode( $text );
+	my $textnode = $self->{page}->createTextNode( $text );
+
+print STDERR ">>>>>>>>>".$textnode->toString()."\n";
+
+	return $textnode;
 }
 
 sub make_doc_fragment
@@ -309,18 +313,20 @@ sub tree_to_utf8
 {
 	my( $self, $node ) = @_;
 
-
 	my $name = $node->getNodeName;
 	if( $name eq "#text" || $name eq "#cdata-section")
 	{
-		return $node->getNodeValue;
+print STDERR "#text/cdata: ".$node->getNodeValue."\n";
+		return utf8($node->getNodeValue);
 	}
 
-	my $string = "";
+	my $string = utf8("");
 	foreach( $node->getChildNodes )
 	{
+print STDERR ".string: $string\n";
 		$string .= $self->tree_to_utf8( $_ );
 	}
+print STDERR "#string: $string\n";
 
 	if( $name eq "fallback" )
 	{
@@ -328,7 +334,6 @@ sub tree_to_utf8
 	}
 
 	return $string;
-	
 }
 
 
@@ -399,6 +404,7 @@ sub render_hidden_field
 # but dosn't now. Is that bad? cjg
 
 	return $self->make_element( "input",
+		"accept-charset" => "utf-8",
 		name => $name,
 		value => $value,
 		type => "hidden" );
@@ -455,6 +461,7 @@ sub render_form
 	
 	my $form = $self->{page}->createElement( "form" );
 	$form->setAttribute( "method", $method );
+	$form->setAttribute( "accept-charset", "utf-8" );
 	$dest = $ENV{SCRIPT_NAME} if( !defined $dest );
 	$form->setAttribute( "action", $dest );
 	return $form;
@@ -834,12 +841,16 @@ sub take_ownership
 sub build_page
 {
 	my( $self, $title, $mainbit ) = @_;
+print STDERR $title."\n";
+	
+	print STDERR "BUILDPAGE go!\n";	
 	
 	$self->take_ownership( $mainbit );
 	my $node;
 	foreach $node ( $self->{page}->getElementsByTagName( "titlehere" , 1 ) )
 	{
 		my $element = $self->{page}->createTextNode( $title );
+print STDERR $element->toString()."\n\n";
 		$node->getParentNode()->replaceChild( $element, $node );
 		$node->dispose();
 	}
@@ -848,14 +859,17 @@ sub build_page
 		$node->getParentNode()->replaceChild( $mainbit, $node );
 		$node->dispose();
 	}
+	print STDERR "BUILDPAGE stop!\n";	
 }
 
 sub send_page
 {
 	my( $self, %httpopts ) = @_;
+	print STDERR "SENDPAGE go!\n";	
 	$self->send_http_header( %httpopts );
 	print $self->{page}->toString();
 	$self->{page}->dispose();
+	print STDERR "SENDPAGE stop!\n";	
 }
 
 sub page_to_file

@@ -731,27 +731,33 @@ sub validate_linking
 
 	my @problems;
 	
-	my $succeeds_field = $self->{session}->{metainfo}->find_table_field( "eprint", "succeeds" );
-	my $commentary_field = $self->{session}->{metainfo}->find_table_field( "eprint", "commentary" );
-
-	if( defined $self->{succeeds} && $self->{succeeds} ne "" )
+	my $field_id;
+	foreach $field_id ( "succeeds", "commentary" )
 	{
+		my $field = $self->{dataset}->get_field( $field_id );
+
+		next unless( defined $self->get_value( $field_id ) );
+
+		my $archive_ds = $self->{session}->get_archive()->get_data_set( "archive" );
+
 		my $test_eprint = new EPrints::EPrint( $self->{session}, 
-		                                       "archive",
-		                                       $self->{succeeds} );
-		unless( defined( $test_eprint ) )
+		                                       $archive_ds,
+		                                       $self->get_value( $field_id ) );
+
+		if( !defined( $test_eprint ) )
 		{
-			push @problems, $self->{session}->phrase(
-				"lib/eprint:invalid_succ",	
-				field=>$succeeds_field->displayname( $self->{session} ) );
+			push @problems, $self->{session}->html_phrase(
+				"lib/eprint:invalid_id",	
+				field => $self->{session}->make_text(
+					$field->display_name( $self->{session} ) ) );
+			next;
 		}
 
-		if( defined $test_eprint )
+		if( $field_id eq "succeeds" )
 		{
 			# Ensure that the user is authorised to post to this
-			if( $test_eprint->{username} ne $self->{username} )
+			if( $test_eprint->get_value("username") ne $self->get_value("username") )
 			{
-
  				# Not the same user. 
 
 #Must be certified to do this. cjg: Should this be staff only or something???
@@ -759,24 +765,9 @@ sub validate_linking
 #				                              $self->{username} );
 #				if( !defined $user && $user->{
 
-				push @problems, $self->{session}->phrase(
-					"lib/eprint:cant_succ" );
+				push @problems, $self->{session}->html_phrase( "lib/eprint:cant_succ" );
 			}
 		}
-	}
-	
-	if( defined $self->{commentary} && $self->{commentary} ne "" )
-	{
-		my $test_eprint = new EPrints::EPrint( $self->{session}, 
-		                                       "archive",
-		                                       $self->{commentary} );
-		
-		unless( defined( $test_eprint ) ) { 
-			push @problems, $self->{session}->phrase(
-				"lib/eprint:invalid_id",
-				field=>$commentary_field->displayname( $self->{session} ) );
-		}
-
 	}
 	
 	return( \@problems );
@@ -1228,7 +1219,7 @@ sub generate_static
 
 		my $full_path = 
 			$self->{session}->get_archive()->get_conf( "local_html_root" ).
-			"/$langid/archive/$1/$2/$3/$3";
+			"/$langid/archive/$1/$2/$3/$4";
 
 		my @created = eval
 		{

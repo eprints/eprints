@@ -678,6 +678,8 @@ $c->{types}->{user} = {
 # This is the HTML put at the top of every page. It will be put in the <BODY>,
 #  so shouldn't include a <BODY> tag.
 
+my $fr = latin1("Français");#cjg!!!
+
 $c->{htmlpage}->{english} = parse_html( <<END );
 <html>
 <head>
@@ -689,25 +691,36 @@ $c->{htmlpage}->{english} = parse_html( <<END );
 
 <div class="header">
 <table  cellpadding="5" border="0" cellspacing="0" width="100%">
-<tr><td align="left" width="100%" bgcolor="#cccccc">
-<h1 class="archivetitle">$c->{archivename}</h1>
-</td><td align="right" bgcolor="#cccccc">
-<a href="$c->{server_perl}/setlang"><img border="0" src="/images/english.png" width="60" height="40" alt="english mode" /></a>
+
+<tr><td bgcolor="#cccccc">
+<div class="archivetitle">$c->{archivename}</div>
+</td>
+</tr>
+
+<tr>
+<td bgcolor="#cccccc">
+<div class="langmenu">
+English
+||
+<a class="langlink" href="$c->{server_perl}/setlang?langid=dummy">Dummy</a>
+||
+<a class="langlink" href="$c->{server_perl}/setlang?langid=french">$fr</a>
+</div>
 </td></tr>
+
 <tr>
 <td bgcolor="#333333">
 <div class="pagetitle"><titlehere /></div>
-</td>
-<td bgcolor="#333333">
-<div class="menu">
+</td></tr>
 
+<tr><td bgcolor="#333333">
+<div class="menu">
             <a class="menulink" href="$c->{frontpage}">Home</a> ||
             <a class="menulink" href="$c->{server_static}/information.html">About</a> ||
             <a class="menulink" href="$c->{server_static}/view/">Browse</a> ||
             <a class="menulink" href="$c->{server_perl}/search">Search</a> ||
             <a class="menulink" href="$c->{server_static}/register.html">Register</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/subscribe">Subscriptions</a> ||
-            <a class="menulink" href="$c->{server_perl}/users/home">Deposit Items</a> ||
+            <a class="menulink" href="$c->{server_perl}/users/home">User Area</a> ||
             <a class="menulink" href="$c->{server_static}/help">Help</a>
 </div>
 </td></tr></table>

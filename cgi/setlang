@@ -57,7 +57,7 @@ elsif( defined $EPrints::Archives::General::languages{$newlang} )
 		$EPrints::Archives::General::languages{ 
 			$session->get_archive()->get_conf( "default_language" )} ) );
 	$page->appendChild( $p );
-	$session->newPage( $newlang );
+	$session->new_page( $newlang );
 	$session->build_page( "Language Changed", $page );
         $session->send_page( lang=>$newlang );
 }
@@ -74,12 +74,5 @@ else
 
 $session->terminate();
 
-for(0..256) { 
-	my $j;
-	for $j (1..8) {
-		my $k=$_*256+$j;
-		print "($_.$j = <font size=+8><b>&#$k;</b> </font>) ";
-	}
-	print "<BR>";
-}
-print "x";
+
+#for(0..256) { my $j; for $j (1..8) { my $k=$_*256+$j; print "($_.$j = <font size=+8><b>&#$k;</b> </font>) "; } print "<BR>"; }

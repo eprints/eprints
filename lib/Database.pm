@@ -444,9 +444,9 @@ sub update
 
 			if( $field->is_type( "name" ) )
 			{
-				$values{$_->get_name()."_given"} = 
+				$values{$field->get_name()."_given"} = 
 					$data->{$field->get_name()}->{given};
-				$values{$_->get_name()."_family"} = 
+				$values{$field->get_name()."_family"} = 
 					$data->{$field->get_name()}->{family};
 			}
 			else

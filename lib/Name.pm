@@ -33,11 +33,14 @@ sub format_name
 {
 	my( $name, $familylast ) = @_;
 
+
+	print STDERR "---------->$$name{given} $$name{family}\n";
+
 	if( $familylast )
 	{
 		return "$$name{given} $$name{family}";
 	}
-print "<sigh>\n" if (!defined $$name{given});
+print "<sigh>\n" if (!defined $$name{given}); #cjg!!!
 		
 	return "$$name{family}, $$name{given}";
 }

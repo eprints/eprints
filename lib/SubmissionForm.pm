@@ -178,6 +178,7 @@ print STDERR "SUBMISSION YAY\n";
 
 		my $function_name = "_do_stage_".$self->{next_stage};
 		{
+print STDERR "CALLING $function_name\n";
 			no strict 'refs';
 			$self->$function_name();
 		}
@@ -266,8 +267,7 @@ sub _from_home
 			return( 0 );
 		}
 	}
-#cjg NOT DONE REST OF THIS FUNCTION
-	elsif( $self->{action} eq $self->{session}->phrase("lib/submissionform:action_edit") )
+	elsif( $self->{action} eq "edit" )
 	{
 		if( !defined $self->{eprint} )
 		{
@@ -276,9 +276,10 @@ sub _from_home
 		}
 		else
 		{
-			$self->{next_stage} = $EPrints::SubmissionForm::stage_type;
+			$self->{next_stage} = "type";
 		}
 	}
+#cjg NOT DONE REST OF THIS FUNCTION
 	elsif( $self->{action} eq $self->{session}->phrase( "lib/submissionform:action_clone" ) )
 	{
 		if( !defined $self->{eprint} )
@@ -1055,20 +1056,58 @@ sub _do_stage_meta
 {
 	my( $self ) = @_;
 	
-	print $self->{session}->{render}->start_html(
-		$self->{session}->phrase(
-			$EPrints::SubmissionForm::stage_titles{
-				$EPrints::SubmissionForm::stage_meta} ) );
-	$self->_render_problems();
+	my( $page, $p );
 
-	print "<P>".$self->{session}->phrase( "lib/submissionform:bib_info" )."</P>\n";
+	$page = $self->{session}->make_doc_fragment();
 
-	$self->_render_meta_form(
-		[ $self->{session}->phrase("lib/submissionform:action_prev"),
-		  $self->{session}->phrase("lib/submissionform:action_next") ],
-		{ stage=>$EPrints::SubmissionForm::stage_meta }  );
+print STDERR "-1.ok so far...\n";
+	$page->appendChild( $self->_render_problems() );
 
-	print $self->{session}->{render}->end_html();
+	$p = $self->{session}->make_element( "p" );
+
+	$p->appendChild( 
+		$self->{session}->html_phrase( 
+			"lib/submissionform:bib_info",
+			star => $self->{session}->make_element(
+					"span",
+					class => "requiredstar" ) ) );	
+	$page->appendChild( $p );
+	
+	my @edit_fields;
+	my @all_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
+	
+print STDERR "1.ok so far...\n";
+	# Get the appropriate fields
+	my $field;
+	foreach $field (@all_fields)
+	{
+		push @edit_fields, $field if( $field->get_property( "editable" ) );
+	}
+
+print STDERR "2.ok so far...\n";
+	my $hidden_fields = {	
+		eprint_id => $self->{eprint}->get_value( "eprintid" ),
+		stage => "meta" };
+
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ),
+		next => $self->{session}->phrase( 
+				"lib/submissionform:action_next" ) };
+print STDERR "ok so far...\n";
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			\@edit_fields,
+			$self->{eprint}->{data},
+			1,
+			1,
+			$submit_buttons,
+			$hidden_fields ) );
+
+	$self->{session}->build_page(
+		$self->{session}->phrase( "lib/submissionform:title_meta" ),
+		$page );
+	$self->{session}->send_page();
 }
 
 ######################################################################
@@ -1627,42 +1666,6 @@ sub _render_problems
 
 
 
-
-######################################################################
-#
-# _render_meta_form( $submit_buttons, $hidden_fields )
-#                      array_ref        hash_ref
-#
-#  Render a form for the (site-specific) metadata fields.
-#
-######################################################################
-
-## WP1: BAD
-sub _render_meta_form
-{
-	my( $self, $submit_buttons, $hidden_fields ) = @_;
-	
-	my @edit_fields;
-	my $field;
-	my @all_fields = $self->{session}->{metainfo}->get_fields(
-		"eprint",
-		$self->{eprint}->{type} );
-	
-	# Get the appropriate fields
-	foreach $field (@all_fields)
-	{
-		push @edit_fields, $field if( $field->{editable} );
-	}
-	
-	$hidden_fields->{eprint_id} = $self->{eprint}->{eprintid};
-
-	$self->{session}->{render}->render_input_form( \@edit_fields,
-	                                         $self->{eprint},
-	                                         1,
-	                                         1,
-	                                         $submit_buttons,
-	                                         $hidden_fields );
-}
 
 
 ######################################################################

@@ -640,6 +640,7 @@ sub render_input_field
 				$more = $session->make_doc_fragment();
 				$more->appendChild( $session->make_element(
 					"input",
+					"accept-charset" => "utf-8",
 					type => "hidden",
 					name => $spacesid,
 					value => $boxcount ) );
@@ -710,6 +711,7 @@ print STDERR "$n... val($value)\n";
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $id,
 			value => $value,
 			size => $size,
@@ -757,6 +759,7 @@ print STDERR "$n... val($value)\n";
 		$div = $session->make_element( "div" );	
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			type => "checkbox",
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
@@ -779,6 +782,7 @@ print STDERR "$n... val($value)\n";
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $familyid,
 			value => $value->{family},
 			size => int( $FORM_WIDTH / 2 ),
@@ -787,6 +791,7 @@ print STDERR "$n... val($value)\n";
 		$td = $session->make_element( "td" );
 		$td->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $givenid,
 			value => $value->{given},
 			size => int( $FORM_WIDTH / 2 ),
@@ -817,6 +822,7 @@ print STDERR "$n... val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $fromid,
 			value => $pages[0],
 			size => 6,
@@ -828,6 +834,7 @@ print STDERR "$n... val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $toid,
 			value => $pages[1],
 			size => 6,
@@ -867,6 +874,7 @@ print STDERR "$n... val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $yearid,
 			value => $year,
 			size => 4,
@@ -887,6 +895,7 @@ print STDERR "$n... val($value)\n";
 
 		$div->appendChild( $session->make_element(
 			"input",
+			"accept-charset" => "utf-8",
 			name => $dayid,
 			value => $day,
 			size => 2,

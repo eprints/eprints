@@ -86,10 +86,13 @@ print STDERR "TID: $dataset\n";
 	{
 		# Search >1 field
 		$self->{multifields} = $field;
-
 		my( @fieldnames, @displaynames );
-		foreach (@$field)
+		foreach (@{$field})
 		{
+if( !defined $_ )
+{
+	EPrints::Session::bomb();
+}
 			push @fieldnames, $_->get_name();
 			push @displaynames, $_->display_name( $self->{session} );
 		}
@@ -893,6 +896,7 @@ sub to_html
 		# complex text types
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
+				"accept-charset" => "utf-8",
 				type => "text",
 				name => $self->{formname},
 				value => $self->{string},
@@ -976,6 +980,7 @@ sub to_html
 	{
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
+				"accept-charset" => "utf-8",
 				name=>$self->{formname},
 				value=>$self->{string},
 				size=>9,
@@ -985,6 +990,7 @@ sub to_html
 	{
 		$frag->appendChild(
 			$self->{session}->make_element( "input",
+				"accept-charset" => "utf-8",
 				name=>$self->{formname},
 				value=>$self->{string},
 				size=>9,
