@@ -21,7 +21,7 @@ use strict;
 my $session = new EPrints::Session();
 
 # Try and work out if the user is trying to access a deleted document
-my $url = $session->{render}->absolute_url();
+my $url = $ENV{REDIRECT_URL};
 
 my $was_deleted = 0;
 
