@@ -55,9 +55,18 @@ print STDERR "------LOADINGLANG:$langid-------\n";
 
 	$self->{archivedata} =
 		read_phrases( $archive->get_conf( "config_path" )."/phrases-".$self->{id}.".xml", $archive );
+	
+	if( !defined  $self->{archivedata} )
+	{
+		return( undef );
+	}
 
 	$self->{data} =
 		read_phrases( EPrints::Config::get( "phr_path" )."/system-phrases-".$self->{id}.".xml", $archive );
+	if( !defined  $self->{data} )
+	{
+		return( undef );
+	}
 	
 	return( $self );
 }
@@ -174,12 +183,18 @@ sub read_phrases
 	my( $file, $archive ) = @_;
 
 	my $doc=$archive->parse_xml( $file );	
+	if( !defined $doc )
+	{
+		return;
+	}
 
 	my $phrases = ($doc->getElementsByTagName( "phrases" ))[0];
 
 	if( !defined $phrases ) 
 	{
-		die "Error parsing $file\nCan't find top level element.";
+		print STDERR "Error parsing $file\nCan't find top level element.";
+		$doc->dispose();
+		return;
 	}
 	my $data;
 

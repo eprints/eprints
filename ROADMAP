@@ -69,9 +69,12 @@
 #	Bug: 500 error when search for only ignored words.
 # 	"Bad archive ID" on bin scripts rather than weird crash.
 #	Bull on through if a single archiveconfig.pm won't load.
+#	print STDERR's should be log()
 
 #	Eliminate HTMLRenderer
 
+0	Browse Multiple Fields at once (eg. authors.id/editors.id)
+0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...
 0	Paged Metadata in submission form.
 0	Alerts for editors about things they can edit (flag in User fields?)
 2	Subject-editors (editors can only edit within certain subjects)

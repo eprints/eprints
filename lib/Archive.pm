@@ -43,8 +43,6 @@ sub new_archive_by_id
 {
 	my( $class, $id, $noxml ) = @_;
 
-	print STDERR "Loading: $id\n";
-
 	if( $id !~ m/[a-z_]+/ )
 	{
 		die "Archive ID illegal: $id\n";
@@ -55,26 +53,30 @@ sub new_archive_by_id
 		return $ARCHIVE_CACHE{$id};
 	}
 	
-	print STDERR "******** REALLY LOADING $id *********\n";
+	print STDERR "Loading: $id\n";
 
 	my $self = {};
 	bless $self, $class;
 
 	$self->{config} = EPrints::Config::load_archive_config_module( $id );
 
-	$self->{class} = "EPrints::Config::$id";
+	return unless( defined $self->{config} );
 
-	$ARCHIVE_CACHE{$id} = $self;
+	$self->{class} = "EPrints::Config::$id";
 
 	$self->{id} = $id;
 
+	# If loading any of the XML config files then 
+	# abort loading the config for this archive.
 	unless( $noxml )
 	{
-		$self->_load_datasets();
-		$self->_load_languages();
-		$self->_load_templates();
-		$self->_load_citation_specs();
+		$self->_load_datasets() || return;
+		$self->_load_languages() || return;
+		$self->_load_templates() || return;
+		$self->_load_citation_specs() || return;
 	}
+
+	$ARCHIVE_CACHE{$id} = $self;
 
 	$self->log("done: new($id)");
 	return $self;
@@ -86,6 +88,10 @@ sub _load_languages
 	
 	my $defaultid = $self->get_conf( "defaultlanguage" );
 	$self->{langs}->{$defaultid} = EPrints::Language->new( $defaultid , $self );
+	if( !defined $self->{langs}->{$defaultid} )
+	{
+		return 0;
+	}
 
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
@@ -96,7 +102,12 @@ sub _load_languages
 				$langid , 
 				$self , 
 				$self->{langs}->{$defaultid} );
+		if( !defined $self->{langs}->{$langid} )
+		{
+			return 0;
+		}
 	}
+	return 1;
 }
 
 sub get_language
@@ -119,12 +130,19 @@ sub _load_citation_specs
 	{
 		my $file = $self->get_conf( "config_path" ).
 				"/citations-$langid.xml";
+	
 		my $doc = $self->parse_xml( $file , ParseParamEnt=>0 );
+		if( !defined $doc )
+		{
+			return 0;
+		}
 
 		my $citations = ($doc->getElementsByTagName( "citations" ))[0];
 		if( !defined $citations )
 		{
-			die "Missing <citations> tag in $file";
+			print STDERR  "Missing <citations> tag in $file\n";
+			$doc->dispose();
+			return 0;
 		}
 
 		my $citation;
@@ -143,6 +161,7 @@ sub _load_citation_specs
 		$doc->dispose();
 
 	}
+	return 1;
 }
 
 sub get_citation_spec
@@ -162,16 +181,23 @@ sub _load_templates
 		my $file = $self->get_conf( "config_path" ).
 				"/template-$langid.xml";
 		my $doc = $self->parse_xml( $file );
+		if( !defined $doc )
+		{
+			return 0;
+		}
 
 		my $html = ($doc->getElementsByTagName( "html" ))[0];
 		if( !defined $html )
 		{
-			die "Missing <html> tag in $file";
+			$doc->dispose();
+			print STDERR "Missing <html> tag in $file\n";
+			return 0;
 		}
 		$doc->removeChild( $html );
 		$doc->dispose();
 		$self->{html_templates}->{$langid} = $html;
 	}
+	return 1;
 }
 
 sub get_template
@@ -188,11 +214,17 @@ sub _load_datasets
 	my $file = $self->get_conf( "config_path" ).
 			"/metadata-types.xml";
 	my $doc = $self->parse_xml( $file );
+	if( !defined $doc )
+	{
+		return 0;
+	}
 
 	my $types_tag = ($doc->getElementsByTagName( "metadatatypes" ))[0];
 	if( !defined $types_tag )
 	{
-		die "Missing <metadatatypes> tag in $file";
+		$doc->dispose();
+		print STDERR "Missing <metadatatypes> tag in $file\n";
+		return 0;
 	}
 
 	my $dsconf = {};
@@ -233,6 +265,7 @@ sub _load_datasets
 	}
 
 	$doc->dispose();
+	return 1;
 }
 
 sub get_dataset
@@ -321,7 +354,10 @@ sub parse_xml
 	}
 	
 	my $doc = EPrints::Config::parse_xml( $file, %config );
-	#$self->log( "Loaded&Parsed: $file" );
+	if( defined $doc )
+	{
+		$self->log( "Loaded&Parsed: $file" );
+	}
 	return $doc;
 }
 

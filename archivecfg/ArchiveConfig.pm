@@ -32,7 +32,6 @@ use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
-
 my $CJGDEBUG = 0;
 
 ## WP1: BAD
@@ -1111,14 +1110,16 @@ sub eprint_render
 
 
 	# Then the abstract
-
-	my $h2 = $session->make_element( "h2" );
-	$h2->appendChild( 
-		$session->html_phrase( "eprint_fieldname_abstract" ) );
-
-	$p = $session->make_element( "p" );
-	$p->appendChild( $eprint->render_value( "abstract", $show_all ) );
-	$page->appendChild( $p );
+	if( defined $eprint->get_value( "abstract" ) )
+	{
+		my $h2 = $session->make_element( "h2" );
+		$h2->appendChild( 
+			$session->html_phrase( "eprint_fieldname_abstract" ) );
+	
+		$p = $session->make_element( "p" );
+		$p->appendChild( $eprint->render_value( "abstract", $show_all ) );
+		$page->appendChild( $p );
+	}
 	
 	my( $table, $tr, $td, $th );	# this table needs more class cjg
 	$table = $session->make_element( "table",

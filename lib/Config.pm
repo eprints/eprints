@@ -106,14 +106,23 @@ while( $file = readdir( CFG ) )
 	my $fpath = $SYSTEMCONF{cfg_path}."/".$file;
 	my $id = $1;
 	my $conf_doc = parse_xml( $fpath );
+	if( !defined $conf_doc )
+	{
+		print STDERR "Error parsing file: $fpath\n";
+		next;
+	}
 	my $conf_tag = ($conf_doc->getElementsByTagName( "archive" ))[0];
 	if( !defined $conf_tag )
 	{
-		EPrints::Config::abort( "In file: $fpath there is no <archive> tag." );
+		print STDERR "In file: $fpath there is no <archive> tag.\n";
+		$conf_doc->dispose();
+		next;
 	}
 	if( $id ne $conf_tag->getAttribute( "id" ) )
 	{
-		EPrints::Config::abort( "In file: $fpath id is not $id" );
+		print STDERR "In file: $fpath id is not $id\n";
+		$conf_doc->dispose();
+		next;
 	}
 	my $ainfo = {};
 	foreach( keys %SYSTEMCONF ) { $ainfo->{$_} = $SYSTEMCONF{$_}; }
@@ -168,6 +177,7 @@ while( $file = readdir( CFG ) )
 		$ainfo->{archivename}->{$langid} = $val;
 	}
 	$ARCHIVES{$id} = $ainfo;
+	$conf_doc->dispose();
 }
 closedir( CFG );
 
@@ -225,7 +235,8 @@ sub parse_xml
 
 	unless( open( XML, $file ) )
 	{
-		EPrints::Config::abort( "Error opening XML file: $file" );
+		print STDERR "Error opening XML file: $file\n";
+		return;
 	}
 	my $doc = eval { $parser->parse( *XML ); };
 	close XML;
@@ -233,7 +244,8 @@ sub parse_xml
 	{
 		my $err = $@;
 		$err =~ s# at /.*##;
-		EPrints::Config::abort( "Error parsing XML $file ($err)" );
+		print STDERR "Error parsing XML $file ($err)";
+		return;
 	}
 
 	return $doc;
@@ -251,7 +263,8 @@ sub load_archive_config_module
 	if( $@ )
 	{
 		$@=~s#\nCompilation failed in require.*##;
-		EPrints::Config::abort( "Failed to load config module for $id\nFile: $info->{configmodule}\nError: $@" );
+		print STDERR "Failed to load config module for $id\nFile: $info->{configmodule}\nError: $@";
+		return;
 	}
 
 	my $function = "EPrints::Config::".$id."::get_conf";

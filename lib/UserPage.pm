@@ -19,11 +19,10 @@ use EPrints::SearchExpression;
 use EPrints::Utils;
 use EPrints::User;
 
-sub process
+sub user_from_param
 {
-	my( $session, $staff ) = @_;
+	my( $session ) = @_;
 
-	
 	my $username = $session->param( "username" );
 	my $userid = $session->param( "userid" );
 
@@ -51,8 +50,17 @@ sub process
 		return;
 	}
 
-	$userid = $user->get_value( "userid" );
+	return $user;
+}
 
+sub process
+{
+	my( $session, $staff ) = @_;
+
+	my $user = EPrints::UserPage::user_from_param( $session );
+	return unless( defined $user );
+	
+	$userid = $user->get_value( "userid" );
 
 	my( $page );
 

@@ -86,11 +86,16 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 			my $doc = $session->get_archive()->parse_xml(
 						$File::Find::name );
 
+			if( !defined $doc )
+			{
+				print STDERR "Could not load file\n";
+				return;
+			}
 			my $page = ($doc->getElementsByTagName( $mode ))[0];
 			if( !defined $page )
 			{
-				die( "Error: no $mode element in ".
-					$File::Find::name );
+				print STDERR "Error: no $mode element in ".$File::Find::name."\n";
+				return;
 			}
 
 			$doc->removeChild( $page );
@@ -104,8 +109,9 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				   ($page->getElementsByTagName( "title" ))[0];
 				if( !$title )
 				{
-					die( "Error: no title element in ".
-						$File::Find::name );
+					print STDERR "Error: no title element in ".$File::Find::name."\n";
+					$page->dispose();
+					return;
 				}
 				my $titletext = "";
 				my $kid;
@@ -118,8 +124,9 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 				   ($page->getElementsByTagName( "body" ))[0];
 				if( !defined $main )
 				{
-					die( "Error: no main element in ".
-						$File::Find::name );
+					print STDERR "Error: no main element in ".$File::Find::name."\n"
+					$page->dispose();
+					return;
 				}
 				$page->removeChild( $main );
 				$session->build_page( $titletext, $main );
@@ -136,7 +143,7 @@ print STDERR "$File::Find::name -> $destination_filename\n";
 		{
 			# Just need to copy the file verbatim
 			File::Copy::copy( $File::Find::name, $destination_filename ) or
-				die "Couldn't copy $File::Find::name to $destination_filename: $!\n";
+				print STDERR "Couldn't copy $File::Find::name to $destination_filename: $!\n";
 		}
 	}
 }

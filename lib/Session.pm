@@ -30,7 +30,6 @@ use EPrints::Archive;
 use Unicode::String qw(utf8 latin1);
 
 use EPrints::DOM;
-use XML::Parser;
 use Apache;
 
 

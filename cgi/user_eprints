@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
 use EPrints::EPrint;
 
 use strict;
@@ -21,73 +20,67 @@ use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
+&process( $session );
 
-my $userid = $session->{render}->param( "username" );
+$session->terminate();
 
-if( defined $userid )
+sub process
 {
-	my $user = new EPrints::User( $session, $userid );
+	my( $session ) = @_;
 
-	if( defined $user )
+	my $user = EPrints::UserPage::user_from_param( $session );
+	return unless defined( $user );
+	
+	my $userid = $user->get_value( "userid" );
+
+	my @eprints = EPrints::EPrint::retrieve_eprints(
+		$session,
+		EPrints::Database::table_name( "archive" ),
+		[ "username LIKE \"$userid\"" ],
+		[ "datestamp DESC" ] );
+
+	print "<CENTER><P><A HREF=\"user?username=$userid\">";
+	print $session->{lang}->phrase( "cgi/user_eprints:record_link" );
+	print "</A></P></CENTER>\n";
+
+	print "<P>";
+	if ( scalar @eprints == 0 )
 	{
-		print $session->{render}->start_html(
-			$session->{lang}->phrase( 
-				"cgi/user_eprints:eprints_title",
-				{ name=>$user->full_name() } ) );
-
-		my @eprints = EPrints::EPrint::retrieve_eprints(
-			$session,
-			EPrints::Database::table_name( "archive" ),
-			[ "username LIKE \"$userid\"" ],
-			[ "datestamp DESC" ] );
-
-		print "<CENTER><P><A HREF=\"user?username=$userid\">";
-		print $session->{lang}->phrase( "cgi/user_eprints:record_link" );
-		print "</A></P></CENTER>\n";
-
-		print "<P>";
-		if ( scalar @eprints == 0 )
-		{
-			print $session->{lang}->phrase( "cgi/user_eprints:no_eprints" );
-		}
-		else if ( scalar @eprints == 1 )
-		{
-			print $session->{lang}->phrase( 
-				"cgi/user_eprints:one_eprint",
-				{n=>"<STRONG>1</STRONG>"} );
-		}
-		else
-		{
-			print $session->{lang}->phrase( 
-				"cgi/user_eprints:n_eprints",
-				{n=>"<STRONG>".scalar @eprints."</STRONG>"} );
-		}
-		print "</P>\n";
-
-		foreach (@eprints)
-		{
-			print "<P>".$session->{render}->render_eprint_citation(
-				$_,
-				1,
-				1 )."</P>\n";
-		}
-
-		print $session->{render}->end_html();
+		print $session->{lang}->phrase( "cgi/user_eprints:no_eprints" );
+	}
+	else if ( scalar @eprints == 1 )
+	{
+		print $session->{lang}->phrase( 
+			"cgi/user_eprints:one_eprint",
+			{n=>"<STRONG>1</STRONG>"} );
 	}
 	else
 	{
-		print $session->render_error(
-			$session->html_phrase( "cgi/user_eprints:unknown_user" ),
-			$session->get_archive()->get_conf( "frontpage" ),
-			$session->html_phrase( "cgi/user_eprints:return_front" ) );
+		print $session->{lang}->phrase( 
+			"cgi/user_eprints:n_eprints",
+			{n=>"<STRONG>".scalar @eprints."</STRONG>"} );
 	}
-}
-else
-{
-	print $session->render_error(
-		$session->html_phrase( "cgi/user_eprints:no_user" ),
-		$session->get_archive()->get_conf( "frontpage" ),
-		$session->html_phrase( "cgi/user_eprints:return_front" ) );
+	print "</P>\n";
+
+	foreach (@eprints)
+	{
+		print "<P>".$session->{render}->render_eprint_citation(
+			$_,
+			1,
+			1 )."</P>\n";
+	}
+
+#	print $session->{render}->start_html(
+#		$session->{lang}->phrase( 
+#			"cgi/user_eprints:eprints_title",
+#			{ name=>$user->full_name() } ) );
+#	print $session->{render}->end_html();
 }
 
-$session->terminate();
+
+
+
+
+
+########################################################
+
