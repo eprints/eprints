@@ -863,17 +863,7 @@ print STDERR "$id_suffix ... val($value)\n";
 		my( $givenid, $familyid );
  		$givenid = $self->{name}.$id_suffix."_given";
  		$familyid = $self->{name}.$id_suffix."_family";
-		$frag->appendChild( $session->html_phrase( "lib/metafield:family_name" ) );
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
-			name => $familyid,
-			value => $value->{family},
-			size => int( $FORM_WIDTH / 2 ),
-			maxlength => $INPUT_MAX ) );
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $session->html_phrase( "lib/metafield:first_names" ) );
+		$frag->appendChild( $session->html_phrase( "lib/metafield:given_names" ) );
 		$frag->appendChild( $session->make_text( " " ) );
 		$frag->appendChild( $session->make_element(
 			"input",
@@ -882,6 +872,17 @@ print STDERR "$id_suffix ... val($value)\n";
 			value => $value->{given},
 			size => int( $FORM_WIDTH / 2 ),
 			maxlength => $INPUT_MAX ) );
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $session->html_phrase( "lib/metafield:family_names" ) );
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $session->make_element(
+			"input",
+			"accept-charset" => "utf-8",
+			name => $familyid,
+			value => $value->{family},
+			size => int( $FORM_WIDTH / 2 ),
+			maxlength => $INPUT_MAX ) );
+
 	}
 	elsif( $self->is_type( "pagerange" ) )
 	{
