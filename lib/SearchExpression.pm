@@ -470,7 +470,7 @@ sub perform_search
 	}
 	foreach $search_field ( @searchon )
 	{
-		my ( $results , $badwords , $error) = $search_field->do2();
+		my ( $results , $badwords , $error) = $search_field->do();
 	
 		if( defined $error )
 		{

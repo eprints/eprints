@@ -17,8 +17,6 @@
 
 ##cjg _ verify password is NOT non-ascii!
 
-##cjg - emails should be UNIQUE
-
 package EPrints::User;
 
 use EPrints::Database;
@@ -665,6 +663,8 @@ sub render_citation_link
 {
 	my( $self , $cstyle , $staff ) = @_;
 	my $url;
+
+#cjg finish me!
 	if( defined $staff && $staff )
 	{
 		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" )."/users/staff/view_user?userid=".$self->get_value( "userid" );

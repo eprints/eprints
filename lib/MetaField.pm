@@ -89,6 +89,8 @@ my $PROPERTIES = {
 	datasetid => "NO_DEFAULT",
 	digits => 20,
 	displaylines => 12,
+	fromform => "UNDEF",
+	toform => "UNDEF",
 	maxlength => $VARCHAR_SIZE,
 	hasid => 0,
 	multilang => 0,
@@ -140,6 +142,9 @@ sub new
 	$self->set_property( "type", $properties{type} );
 	$self->set_property( "required", $properties{required} );
 	$self->set_property( "multiple", $properties{multiple} );
+
+	$self->set_property( "fromform", $properties{fromform} );
+	$self->set_property( "toform", $properties{toform} );
 
 	$self->{confid} = $properties{confid};
 
@@ -377,6 +382,10 @@ sub set_property
 			EPrints::Config::abort( $property." on a metafield can't be undef" );
 		}
 		$self->{$property} = $PROPERTIES->{$property};
+		if( $self->{$property} eq "UNDEF" )
+		{
+			$self->{$property} = undef;
+		}
 	}
 	else
 	{
@@ -646,8 +655,10 @@ sub render_input_field
 {
 	my( $self, $session, $value ) = @_;
 
-#use Data::Dumper;
-#print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
+	if( defined $self->{toform} )
+	{
+		$value = &{$self->{toform}}( $value, $session );
+	}
 
 	my( $html, $frag );
 
@@ -1230,8 +1241,21 @@ sub _month_names
 #
 ######################################################################
 
-## WP1: BAD
 sub form_value
+{
+	my( $self, $session ) = @_;
+
+	my $value = $self->_form_value_aux0( $session );
+
+	if( defined $self->{fromform} )
+	{
+		$value = &{$self->{fromform}}( $value, $session );
+	}
+
+	return $value;
+}
+
+sub _form_value_aux0
 {
 	my( $self, $session ) = @_;
 	
@@ -1265,7 +1289,7 @@ sub form_value
 		my $i;
 		for( $i=1; $i<=$boxcount; ++$i )
 		{
-			my $value = $self->_form_value_aux( $session, $i );
+			my $value = $self->_form_value_aux1( $session, $i );
 			if( defined $value )
 			{
 				push @values, $value;
@@ -1278,10 +1302,10 @@ sub form_value
 		return \@values;
 	}
 
-	return $self->_form_value_aux( $session );
+	return $self->_form_value_aux1( $session );
 }
 
-sub _form_value_aux
+sub _form_value_aux1
 {
 	my( $self, $session, $n ) = @_;
 

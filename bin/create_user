@@ -58,7 +58,7 @@ print "SET: $ARGV[4]\n";
 	if( defined $new_user )
 	{
 		print STDERR "Successfully created new user:\n";
-		print STDERR " User ID:  ".
+		print STDERR " Username: ".
 		             $new_user->get_value( "username" )."\n";
 		print STDERR " Password: ".
 		             $new_user->get_value( "password" )."\n";

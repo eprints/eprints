@@ -21,10 +21,8 @@
 
 -	Names need 4 fields: Honourific Givennames Familynames Lineage. For Sir Richard Thompson Jnr. or similar names.
 -	Multilangify Subject Fields and Subject DB
-3	"ID" fields for ISBN/userid etc.
-2	Subject-editors (editors can only edit within certain subjects)
+-	"ID" fields for ISBN/userid etc.
 -	Web-based Registration/password change
-2	Web-based Email Change
 -	Get the Deposit Item form working
 -	Turn off caching of on-the-fly pages?
 -	Generate abstract page routine will create symlinks to actual docs (if appropriate)
@@ -35,7 +33,6 @@
 4	Field Value Renderer 
 -	Best version sub for multilang fields (picks the best choice of language when a field has several set)
 -	Skippable Stages in SubmissionForm, and multiple page metadata form.
-3	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 -	Phrasify Option Fields
 -	Editor Pages -approve,bounce,edit etc.
 -	Mailer (Unicode friendly?)
@@ -55,18 +52,27 @@
 #	Default Action when buttons pushed
 #	Fix Buttons on search results page.
 #	Bug: Why does 'help' disappear when there is a problem with a search?
-#	Clean up validators - Don't validate records with fields which have bad langids
+#	Clean up validators - Don't validate records with fields which have bad langids including user validate.
 #	Order buttons somehow
 #	Staff EPrint Edit
 #	Threads rendering code.
 #	Staff User Edit/Create
 #	Delete records function.
+#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static"
 #	Make all possible field-types browseable.
 #	Make SearchFields have a better call method.
 #	Get install upgrader working properly.
 #	"Squash" reverse indexes?
 #	clone cocks up later version id
+#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
+#	"secret" field should never have a default set in forms, but no value should not erase previous value.
+#	lose "bomb"
 
+#	Eliminate HTMLRenderer
+
+0	Paged Metadata in submission form.
+2	Subject-editors (editors can only edit within certain subjects)
+2	Web-based Email Change
 0	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
 0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
@@ -75,23 +81,23 @@
 -	Option to hide Honourific and/or Lineage.
 0	Commentary summary page (Psycoloquy style)
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
-0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
-4	Create a Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
-#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
+-	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
+4	Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
 -	multiple views for things like people/groups etc.
 0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
-0 	Metadata approve page in Submission Form for Admin Conf'd comments
+0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
 1	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
-0	"secret" field should never have a default set, but no value should not erase previous value.
 0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
 0	Translate Initial phrases and templates into French
 #!!!!!!!!!!!VVVVVV
-0	Indexing on name fields
+0	Indexing on name fields(?)
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
+
+#	OAI support working.
 
 0	Some kind of BibTeX support (fill in metadata form from bibtex)
 0	Search by ID field (in search exp)
@@ -100,10 +106,7 @@
 0	Subscriptions - sending
 0	MathML support
 2	TeX mathmode support.
-0	Search of User DB
-0	Staff Eprint & User searches
 0	XML 1.1 Support(?)
-1	OAI support working.
 1	Extra sets in OAI: By ID field, or by configurable serialised search. Even "subject" should be configured. so "subject:blgy:biophys" or "username_id:cjg" or "stuffjackwants" which is a search of it's own. Searches can of course be modified with from and to dates from OAI.
 0	Taint all code to force sanity checking of all data
 0	Probity (see www.probity.org for more info)
@@ -142,12 +145,12 @@
 
 
 1	Sleep
-1	Beer
+2	Beer
 0	Peer Review
 0	Mirroring
 0	Citation Scanning
 0	"People who read this eprint also read..."
-0	OpenURL support (?)
+1	OpenURL support (?)
 
 
 

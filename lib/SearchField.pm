@@ -507,6 +507,7 @@ sub get_conditions
 					$self->{dataset},
 					$self->{field},
 					"PHR:IN:$1" );
+				#cjg IFFY!!!!
 				my ($buffer,$bad,$error) = $sfield->do( undef , undef );
 				if( defined $error )
 				{
@@ -679,14 +680,11 @@ sub _get_tables_searches
 	return (\@tables, \%searches, \@badwords);
 }
 
-sub do2
+sub do
 {
 	my ( $self ) = @_;
 
 	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
-#print STDERR "-----------\n";
-#use Data::Dumper;
-#print STDERR Dumper( $sfields, $searches, $badwords, $error )."\n";
 
 	my $n = scalar @{$searches->{$sfields->[0]}};
 	
@@ -739,117 +737,6 @@ sub do2
 		$firstpass = 0;
 	}
 	return $results;
-}
-
-## WP1: BAD
-sub do
-{
-	my ( $self , $searchbuffer , $satisfy_all) = @_;
-	
-        my $keyfield = $self->{dataset}->get_key_field();
-
-	my ($sfields, $searches, $badwords, $error) = $self->_get_tables_searches();
-	if( defined $error ) 
-	{
-		return ( undef , undef , $error );
-	}
-	if( !defined $sfields || !defined $sfields->[0] )
-	{
-		return $searchbuffer;
-	}
-	my $n = scalar @{$searches->{$sfields->[0]}};
-	
-	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
-
-	my $buffer = undef;
-	if( !$satisfy_all && $self->{anyall} eq "ANY" )
-	{
-		# don't create a new buffer, just dump more 
-		# values into the current one.
-		$buffer = $searchbuffer;
-	}
-	my $i;
-	
-	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
-	# (phrases subsearches are always AND'd)
-
-	for( $i=0 ; $i<$n ; ++$i )
-	{
-		my $nextbuffer 	= undef;
-		my $tablename 	= undef;
-		foreach $tablename ( @{$sfields} )
-		{
-			my $where = $searches->{$tablename}->[$i];
-
-			# Tables have a colon and fieldname after them
-			# to make sure references to different fields are
-			# still kept seperate. But we don't want to pass
-			# this to the SQL.
-			$tablename =~ s/:.*//;
-
-			my $tlist = { "M"=>$tablename };
-			my $orbuf = undef;
-			if( $self->{anyall} eq "ANY" && defined $buffer )
-			{
-				$orbuf = $buffer;
-			}
-			if( defined $nextbuffer )
-			{
-				$orbuf = $nextbuffer;
-			}
-			if( $satisfy_all && defined $searchbuffer )
-			{
-				$tlist->{T} = $searchbuffer;
-			}
-			if( $self->{anyall} ne "ANY" && defined $buffer )
-			{
-				$tlist->{T} = $buffer;
-			}
-
-			# Starting with a pling! means that this is a pre
-			# done search and we should just link against the
-			# results buffer table.
-			if( $where =~ s/^!// )
-			{
-				$tlist->{M} = $where;
-				$where = undef;
-			}
-			$nextbuffer = $self->{session}->{database}->buffer( 
-				$keyfield,
-				$tlist, 
-				$where,
-				$orbuf );
-		}
-		$buffer = $nextbuffer;
-	}
-	if( $self->{anyall} eq "PHR"  && $self->{anyall} eq "IN" )
-	{
-		#print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
-		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
-						[ "__FIELDNAME__ LIKE \"\%".
-						  EPrints::Database::prep_value( $self->{string} )."\%\"" ] , 
-						  0 );
-		my $table = $tablefield;
-		$table=~s/:.*//;
-		my $tlist = { "M"=>$table };
-		$buffer = $self->{session}->{database}->buffer( 
-			$keyfield,
-			$tlist, 
-			${$wheres}[0],
-			undef );
-	}
-
-	if( $self->{anyall} ne "ANY" && !$satisfy_all )
-	{
-		$buffer = $self->{session}->{database}->buffer( 
-			$keyfield,
-			{ "T"=>$buffer },
-			undef,
-			$searchbuffer );
-	}
-
-	return ( $buffer, $badwords );
-
 }
 
 ## WP1: BAD
