@@ -69,7 +69,7 @@ sub build_connection_string
         }
         if( defined $params{dbsock} )
         {
-                $dsn.= ";socket=".$params{dbsock};
+                $dsn.= ";mysql_socket=".$params{dbsock};
         }
         return $dsn;
 }
@@ -338,7 +338,6 @@ print "\n\n";
 			my( $index ) = $field->get_sql_index();
 			if( defined $index )
 			{
-				$notnull = 1;
 				push @indices, $index;
 			}
 		}
@@ -515,14 +514,14 @@ sub update
 			$sql.= ", ";
 		}
 		$sql.= "$_ = ";
-#		if( defined $values{$_} ) 
-#		{
+		if( defined $values{$_} ) 
+		{
 			$sql.= "\"".prep_value( $values{$_} )."\"";
-#		}
-#		else
-#		{
-#			$sql .= "NULL";
-#		}
+		}
+		else
+		{
+			$sql .= "NULL";
+		}
 	}
 	$sql.=" WHERE $where";
 	

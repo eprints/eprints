@@ -33,7 +33,6 @@ my @monthkeys = (
 	"07", "08", "09", "10", "11", "12" );
 
 my $VARCHAR_SIZE = 255;
-my $INT_SIZE = 32;
 
 # These '255'... Maybe make them bigger due to UTF-8
 # UTF-8 chars max 3 times normal (for unicode)
@@ -42,7 +41,7 @@ my $INT_SIZE = 32;
 
 my %TYPE_SQL =
 (
- 	int        => "\$(name) CHAR($INT_SIZE) \$(param)",
+ 	int        => "\$(name) INTEGER \$(param)",
  	date       => "\$(name) DATE \$(param)",
  	boolean    => "\$(name) SET('TRUE','FALSE') \$(param)",
  	set        => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
@@ -53,7 +52,7 @@ my %TYPE_SQL =
  	email      => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	subject    => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	pagerange  => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
- 	year       => "\$(name) CHAR($INT_SIZE) \$(param)",
+ 	year       => "\$(name) INTEGER \$(param)",
  	datatype   => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
  	langid	   => "\$(name) CHAR(16) \$(param)",
 	id         => "\$(name) VARCHAR($VARCHAR_SIZE) \$(param)",
@@ -316,7 +315,6 @@ sub display_option
 	return $session->phrase( $phrasename );
 }
 
-## WP1: BAD
 sub get_sql_type
 {
         my( $self , $notnull ) = @_;

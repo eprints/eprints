@@ -91,7 +91,7 @@ my $cmds = "drop $database";
 $cmds.= " create $database";
 
 
-my $rc = system( "$mysqladmin_path -u root -f $cmds" ) & 0xffff;
+my $rc = CORE::system( "$mysqladmin_path -u root -f $cmds" ) & 0xffff;
 print "Ok.\n";
 # We use the force -f option as we've already checked user meant to do this.
 
@@ -111,7 +111,7 @@ push @doomeddirs, $local_html_root;
 foreach $dir (@doomeddirs)
 {
 	print STDERR "Removing: $dir\n";
-	$rc = system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
+	$rc = CORE::system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
 	print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n" unless( $rc==0 );
 }
 mkdir( $local_html_root, 0755 );

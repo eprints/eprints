@@ -113,6 +113,10 @@ EPrints Modules
     <phrase ref="lib/session:no_login">You are somehow accessing a page which requires you to be logged in. This probably indicates a server misconfiguration.</phrase>
     <phrase ref="lib/session:no_priv">Your account does not have the required privilege to use this function.</phrase>
 
+<!-- Subject -->
+
+    <phrase ref="lib/subject:top_level">(Top Level)</phrase>
+
 <!-- SubmissionForm -->
 
     <phrase ref="lib/submissionform:use_auth_area">Use your author area to deposit new documents</phrase>

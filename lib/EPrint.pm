@@ -47,9 +47,6 @@ sub get_system_field_info
 
 	{ name=>"datestamp", type=>"date", required=>0 },
 
-	{ name=>"additional", type=>"text", required=>0 },#cjg DOOM
-	{ name=>"reasons", type=>"longtext", required=>0, displaylines=>6 },#cjg DOOM
-
 	{ name=>"type", type=>"datatype", datasetid=>"eprint", required=>1, 
 		displaylines=>"ALL" },
 

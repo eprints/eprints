@@ -444,7 +444,9 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "volume", type => "text", maxlength => 6 },
 
-	{ name => "year", type => "year" }
+	{ name => "year", type => "year" },
+
+	{ name => "suggestions", type => "longtext" }
 ];
 	
 

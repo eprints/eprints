@@ -73,12 +73,16 @@ sub new
 	{
 		my $data = {
 			subjectid => $EPrints::Subject::root_subject,
-			#cjg NOT LANG'd
-			name => $EPrints::Subject::root_subject_name,
+			name => {},
 			parents => [],
 			ancestors => [ $EPrints::Subject::root_subject ],
 			depositable => "FALSE" 
 		};
+		my $langid;
+		foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
+		{
+			$data->{name}->{$langid} = $session->get_archive()->get_language( $langid )->phrase( "lib/subjects:top_level", {}, $session )->toString;	
+		}
 
 		return EPrints::Subject->new_from_data( $session, $data );
 	}
@@ -176,7 +180,7 @@ sub create_subject
 		$session->get_archive()->get_dataset( "subject" ), 
 		$newsubdata ) );
 
-	my $newsub = new EPrints::Subject( $session, undef, $newsubdata );
+	my $newsub = EPrints::Subject->new_from_data( $session, $newsubdata );
 
 	$newsub->commit(); # will update ancestors
 
