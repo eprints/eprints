@@ -129,26 +129,26 @@ sub render_struct
 		return $text;
 	} 
 
-	$type = "$ref";
+	$type = ref( $ref );
 
-	if ( $ref =~ m/HASH\(/ ) 
+	if( $type eq "HASH" )
 	{
-		%foo = %{$ref};
+		my %bits = %{$ref};
 		$text.= "  "x$depth;
 		$text.= "HASH\n";
-		foreach (keys %foo) 
+		foreach( keys %bits ) 
 		{
 			$text.= "  "x$depth;
 			$text.= " $_=>\n";
-			$text.= render_struct( $foo{$_} , $depth+1 );
+			$text.= render_struct( $bits{$_} , $depth+1 );
 		}
 	} 
-	elsif ( $ref =~ m/ARRAY\(/ ) 
+	elsif( $type eq "ARRAY" )
 	{
-		@foo = @{$ref};
+		my @bits = @{$ref};
 		$text.= "  "x$depth;
-		$text.= "ARRAY (".($#foo+1).")\n";
-		foreach (@foo) 
+		$text.= "ARRAY (".(scalar @bits).")\n";
+		foreach( @bits ) 
 		{
 			$text.= render_struct( $_ , $depth+1 );
 		}
