@@ -190,7 +190,7 @@ sub process
 		$ok = $self->$function_name();
 	}
 
-print STDERR "xxxxxxxxx SUBMISSION done $function_name\n";
+print STDERR "------------------FROM done $function_name\n";
 
 	if( $ok )
 	{
@@ -202,6 +202,7 @@ print STDERR "CALLING $function_name\n";
 			no strict 'refs';
 			$self->$function_name();
 		}
+print STDERR "------------------DO done $function_name\n";
 	}
 	
 	return( 1 );
@@ -1256,7 +1257,6 @@ sub _do_stage_format
 	{
 		$tr = $self->{session}->make_element( "tr" );
 		$table->appendChild( $tr );
-		my $nfiles = "???";
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
 		if( defined $doc->get_value( "format" ) )
@@ -1271,6 +1271,8 @@ sub _do_stage_format
 		}
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
+		my %files = $self->{document}->files();
+		my $nfiles = scalar(keys %files);
 		$td->appendChild( $self->{session}->make_text( $nfiles ) );
 		$td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
@@ -1301,67 +1303,6 @@ sub _do_stage_format
 	
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 
-#	my $f;
-#	foreach $f (@{$self->{session}->get_archive()->get_conf( "supported_formats" )})
-#	{
-#		my $req = EPrints::Document::required_format( $self->{session} , $f );
-#		my $doc = $self->{eprint}->get_document( $f );
-#		my $num_files = 0;
-#		if( defined $doc )
-#		{
-#			my %files = $doc->files();
-#			$num_files = scalar( keys %files );
-#		} 
-#
-#		print "<TR><TD>";
-#		print "<STRONG>" if $req;
-#		print EPrints::Document::format_name( $self->{session}, $f );
-#		print "</STRONG>" if $req;
-#		print "</TD><TD ALIGN=CENTER>$num_files</TD><TD>";
-#		print $self->{session}->{render}->named_submit_button(
-#			"edit_$f",
-#			$self->{session}->phrase("lib/submissionform:action_uploadedit") );
-#		print "</TD><TD>";
-#		if( $num_files > 0 )
-##		{
-#			print $self->{session}->{render}->named_submit_button(
-#				"remove_$f",
-#				$self->{session}->phrase("lib/submissionform:remove") );
-#		}
-#		print "</TD></TR>\n";
-#	}
-#
-#	if( $self->{session}->get_archive()->get_conf( "allow_arbitrary_formats" ) )
-#	{
-#		my $other = $self->{eprint}->get_document( $EPrints::Document::OTHER );
-#		my $othername = "Other";
-#		my $num_files = 0;
-#		
-#		if( defined $other )
-#		{
-#			$othername = $other->{formatdesc} if( $other->{formatdesc} ne "" );
-#			my %files = $other->files();
-#			$num_files = scalar( keys %files );
-#		} 
-#
-#		print "<TR><TD>$othername</TD><TD ALIGN=CENTER>$num_files</TD><TD>";
-#		print $self->{session}->{render}->named_submit_button(
-#			"edit_$EPrints::Document::OTHER",
-#			$self->{session}->phrase("lib/submissionform:uploadedit") );
-#		print "</TD><TD>";
-#		if( $num_files > 0 )
-#		{
-#			print $self->{session}->{render}->named_submit_button(
-#				"remove_$EPrints::Document::OTHER",
-#				$self->{session}->phrase("lib/submissionform:remove") );
-#		}
-#		print "</TD></TR>\n";
-#	}		
-#
-#	print "</TABLE></CENTER>\n";
-#
-
-
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_format" ),
 		$page );
@@ -1382,8 +1323,6 @@ sub _do_stage_fileview
 
 	my $page = $self->{session}->make_doc_fragment();
 
-	my $doc = $self->{document};
-
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
 		name=>'arc_format',
@@ -1392,7 +1331,7 @@ sub _do_stage_fileview
 				"plain", 
 				"graburl", 
 				@{$self->{session}->get_archive()->get_conf( 
-					"supported_archive_formats" )}
+					"archive_formats" )}
 			] );		
 
 	my $num_files_field = EPrints::MetaField->new(
@@ -1404,7 +1343,7 @@ sub _do_stage_fileview
 	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
 
 	my $hidden_fields = {	
-		docid => $doc->get_value( "docid" ),
+		docid => $self->{document}->get_value( "docid" ),
 		eprintid => $self->{eprint}->get_value( "eprintid" ),
 		stage => "fileview" };
 
@@ -1431,8 +1370,8 @@ sub _do_stage_fileview
 				$num_files_field 
 			],
 			{
-				format => $doc->get_value( "format" ),
-				formatdesc => $doc->get_value( "formatdesc" ),
+				format => $self->{document}->get_value( "format" ),
+				formatdesc => $self->{document}->get_value( "formatdesc" ),
 				num_files => 1 
 			},
 			0,
@@ -1442,34 +1381,17 @@ sub _do_stage_fileview
 			{},
 			"submit#t" ) );
 
+#######
+
+	# Render info about uploaded files
+
+	my %files = $self->{document}->files();
+
+	foreach( keys %files )
+	{
+		print STDERR "<$_> $files{$_}\n";
+	}
 	
-#	# Render the form
-#
-#	print $self->{session}->{render}->start_html(
-#		$self->{session}->phrase(
-#			$EPrints::SubmissionForm::stage_titles{
-#				$EPrints::SubmissionForm::stage_fileview} ) );
-#
-#	print $self->{session}->{render}->start_form();
-#	
-#	# Format description, if appropriate
-#
-#	if( $doc->{format} eq $EPrints::Document::OTHER )
-#	{
-#		my $ds = $self->{session}->get_archive()->get_dataset( "document" );
-#		my $desc_field = $ds->get_field( "formatdesc" );
-#
-#		print "<P><CENTER><EM>$desc_field->{help}</EM></CENTER></P>\n";
-#		print "<P><CENTER>";
-#		print $self->{session}->{render}->input_field( $desc_field, 
-#		                                               $doc->{formatdesc} );
-#		print "</CENTER></P>\n";
-#	}
-#	
-#	# Render info about uploaded files
-#
-#	my %files = $doc->files();
-#	
 #	if( scalar keys %files == 0 )
 #	{
 #		print "<P><CENTER><EM>";
@@ -1481,15 +1403,15 @@ sub _do_stage_fileview
 #		print "<P><CENTER>";
 #		print $self->{session}->phrase("lib/submissionform:files_for_format");
 #
-#		if( !defined $doc->get_main() )
+#		if( !defined $self->{document}->get_main() )
 #		{
 #			print $self->{session}->phrase("lib/submissionform:sel_first");
 #		}
 #
 #		print "</CENTER></P>\n";
-#		print $self->_render_file_view( $doc );
+#		print $self->_render_file_view( $self->{document} );
 #
-#		print "<P ALIGN=CENTER><A HREF=\"".$doc->url()."\" TARGET=_blank>";
+#		print "<P ALIGN=CENTER><A HREF=\"".$self->{document}->url()."\" TARGET=_blank>";
 #		print $self->{session}->phrase("lib/submissionform:here_to_view");
 #		print "</A></P>\n";
 #	}
@@ -1517,7 +1439,7 @@ sub _do_stage_fileview
 #	print $self->{session}->{render}->hidden_field(
 #		"eprintid",
 #		$self->{eprint}->{eprintid} );
-#	print $self->{session}->{render}->hidden_field( "docid", $doc->{docid} );
+#	print $self->{session}->{render}->hidden_field( "docid", $self->{document}->{docid} );
 #
 #	$self->{session}->{render}->end_form();
 

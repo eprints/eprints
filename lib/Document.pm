@@ -393,7 +393,8 @@ sub files
 #
 ######################################################################
 
-## WP1: BAD#### NEEEEEEEEEEEEEED
+# cjg should this function be in some kind of utils module and
+# used by generate_static too?
 sub _get_files
 {
 	my( $files, $root, $dir ) = @_;
@@ -425,7 +426,6 @@ sub _get_files
 		}
 	}
 
-	#return( @files );
 }
 
 

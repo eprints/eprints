@@ -25,24 +25,22 @@ $EPrints::SystemSettings::conf =
 		unzip 	=> "/usr/bin/unzip",
 		wget 	=> "/usr/bin/wget",
 		sendmail => "/usr/sbin/sendmail",
-		gunzip 	=> "???",
+		gunzip 	=> "/bin/gunzip",
 		tar 	=> "/bin/tar"
 	},
 	invocation => {
-		ZIP 	=> "$(EXE_ZIP) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)",
-	        TARGZ  	=> "$(EXE_GUNZIP) -c < $(ARC) 2>/dev/null | $(EXE_TAR) xf - -C $(DIR) >/dev/null 2>\&1",
-		WGET 	=> "$(EXE_WGET)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)",
-		SENDMAIL => "$(EXE_SENDMAIL) -oi -t -odb --"
+		zip 	=> '$(EXE_ZIP) 1>/dev/null 2>\&1 -qq -o -d $(DIR) $(ARC)',
+	        targz  	=> '$(EXE_GUNZIP) -c < $(ARC) 2>/dev/null | $(EXE_TAR) xf - -C $(DIR) >/dev/null 2>\&1',
+		wget 	=> '$(EXE_WGET)  -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=$(CUTDIRS) $(URL)',
+		sendmail => '$(EXE_SENDMAIL) -oi -t -odb --'
 	},
 	archive_extensions => {
-		"ZIP"    =>  ".zip",
-		"TARGZ"  =>  ".tar.gz"
+		"zip"    =>  ".zip",
+		"targz"  =>  ".tar.gz"
 	},
-	archives => [ "ZIP", "TARGZ" ],
-	version => "2.0.a.2001-09-04",
-	version_desc => "EPrints 2.0 Alpha (Nightly Build 2001-09-04)",
-	orig_version => "2.0.a",
-	orig_version_desc => "EPrints 2.0 Alpha (Anchovy)",
+	archive_formats => [ "zip", "targz" ],
+	version => "CVS",
+	version_desc => "EPrints 2.? CVS Version",
 	user => "eprints",
 	group => "eprints"
 };

@@ -24,7 +24,6 @@ use Filesys::DiskSpace;
 
 my %ARCHIVE_CACHE = ();
 
-
 ## WP1: BAD
 sub new_archive_by_host_port_path
 {
@@ -320,7 +319,7 @@ sub parse_xml
 	}
 	
 	my $doc = EPrints::Config::parse_xml( $file, %config );
-	$self->log( "Loaded&Parsed: $file" );
+	#$self->log( "Loaded&Parsed: $file" );
 	return $doc;
 }
 

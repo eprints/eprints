@@ -106,16 +106,6 @@ $c->{server_document_root} = "$c->{server_static}/archive";
 #
 ######################################################################
 
-# Supported document storage formats, given as an array and a hash value,
-#  so that some order of preference can be imposed.
-#cjg should these have screenable names?
-$c->{supported_formats} =
-[
-	"HTML",
-	"PDF",
-	"PS",
-	"ASCII"
-];
 
 # AT LEAST one of the following formats will be required. Include
 # $EPrints::Document::OTHER as well as those in your list if you want to
@@ -123,14 +113,11 @@ $c->{supported_formats} =
 # full text is deposited.
 $c->{required_formats} =
 [
-	"HTML",
-	"PDF",
-	"PS",
-	"ASCII"
+	"html",
+	"pdf",
+	"ps",
+	"ascii"
 ];
-
-#  If 1, will allow non-listed formats to be uploaded.
-$c->{allow_arbitrary_formats} = 1;
 
 # This sets the minimum amount of free space allowed on a disk before EPrints
 # starts using the next available disk to store EPrints. Specified in kilobytes.
@@ -140,18 +127,8 @@ $c->{diskspace_error_threshold} = 20480;
 # archive administrator is sent a warning email. In kilobytes.
 $c->{diskspace_warn_threshold} = 512000;
 
-# A list of compressed/archive formats that are accepted
-$c->{supported_archive_formats} =
-[
-	"zip",
-	"targz"
-];
 
-
-# Executables for unzip and wget
-$c->{unzip_executable} = "/usr/bin/unzip";
-$c->{wget_executable} = "/usr/bin/wget";
-
+### Where put this info, cjg?
 # Command lines to execute to extract files from each type of archive.
 # Note that archive extraction programs should not ever do any prompting,
 # and should be SILENT whatever the error.  _DIR_ will be replaced with the 
@@ -159,19 +136,8 @@ $c->{wget_executable} = "/usr/bin/wget";
 # occurence will be replaced if more than one of each.) Make NO assumptions
 # about which dir the command will be run in. Exit code is assumed to be zero
 # if everything went OK, non-zero in the case of any error.
-$c->{archive_extraction_commands} =
-{
-	"zip"    =>  "$c->{unzip_executable} 1>/dev/null 2>\&1 -qq -o -d _DIR_ _ARC_",
-	"targz"  =>  "gunzip -c < _ARC_ 2>/dev/null | /bin/tar xf - -C _DIR_ >/dev/null 2>\&1"
-};
 
-# The extensions to give the temporary uploaded file for each format.
-$c->{archive_extensions} =
-{
-	"zip"    =>  ".zip",
-	"targz"  =>  ".tar.gz"
-};
-
+### Where put this info, cjg?
 #  Command to run to grab URLs. Should:
 #  - Produce no output
 #  - only follow relative links to same or subdirectory
@@ -179,19 +145,6 @@ $c->{archive_extensions} =
 #    deep directories aren't created
 #  - start grabbing at _URL_
 #
-$c->{wget_command} =
-	"$c->{wget_executable} -r -L -q -m -nH -np --execute=\"robots=off\" --cut-dirs=_CUTDIRS_ _URL_";
-
-
-######################################################################
-#
-#  Miscellaneous
-#
-######################################################################
-
-# Command for sending mail
-$c->{sendmail_executable} = "/usr/sbin/sendmail";
-$c->{sendmail} = "$c->{sendmail_executable} -oi -t -odb";
 
 
 ######################################################################

@@ -24,6 +24,9 @@ use EPrints::SystemSettings;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);
 
+# for debuggering
+	use Data::Dumper;
+
 BEGIN {
 	# Paranoia: This may annoy people, or help them... cjg
 
@@ -88,6 +91,7 @@ $lang_doc->dispose();
 
 ###############################################
 
+print "\n=== SYSTEMCONF ===\n".Dumper( \%SYSTEMCONF );
 my %ARCHIVES;
 my %ARCHIVEMAP;
 opendir( CFG, $SYSTEMCONF{cfg_path} );
@@ -107,7 +111,7 @@ while( $file = readdir( CFG ) )
 		EPrints::Config::abort( "In file: $fpath id is not $id" );
 	}
 	my $ainfo = {};
-#	foreach( keys %SYSTEMCONF ) { $ainfo->{$_} = $SYSTEMCONF{$_}; }
+	foreach( keys %SYSTEMCONF ) { $ainfo->{$_} = $SYSTEMCONF{$_}; }
 	my $tagname;
 	foreach $tagname ( 
 			"host", "urlpath", "configmodule", "port", "archiveroot",
@@ -143,6 +147,7 @@ while( $file = readdir( CFG ) )
 		push @{$ainfo->{aliases}},$alias;
 	}
 	$ARCHIVES{$id} = $ainfo;
+	print "\n=== $id ===\n".Dumper( $ainfo );
 }
 closedir( CFG );
 
@@ -227,7 +232,8 @@ sub load_archive_config_module
 	my $function = "EPrints::Config::".$id."::get_conf";
 print "FUNCTION: $function\n";
 	my $config = &{$function}( $info );
-
+use Data::Dumper;
+print Dumper( $config, $info );
 	return $config;
 }
 
