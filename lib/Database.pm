@@ -1386,6 +1386,37 @@ sub _get
 	return @data;
 }
 
+sub get_values
+{
+	my( $self, $field ) = @_;
+
+	my $dataset = $field->get_dataset();
+
+	my $table;
+	if ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
+	{
+		$table = $dataset->get_sql_sub_table_name();
+	} 
+	else 
+	{
+		$table = $dataset->get_sql_table_name();
+	}
+	my $sqlfn = $field->get_sql_name();
+
+	my $sql = "SELECT DISTINCT $sqlfn FROM $table";
+	print "($table)($sqlfn)\n";
+	$sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+	my @values = ();
+	my $value;
+	while( ( $value ) = $sth->fetchrow_array ) 
+	{
+		push @values, $value;
+	}
+	return @values;
+}
+
+
 ## WP1: BAD
 sub do 
 {

@@ -139,6 +139,7 @@ sub new
 
 	if( defined $properties{dataset} ) { 
 		$self->{confid} = $properties{dataset}->confid(); 
+		$self->{dataset} = $properties{dataset};
 	}
 
 	if( $self->is_type( "longtext", "set", "subject", "datatype" ) )
@@ -1461,5 +1462,93 @@ sub get_sql_name
 	return $self->{name};
 }
 
+sub is_browsable
+{
+	my( $self ) = @_;
+
+	# does not yet understand ID fields.
+
+	return $self->is_type( "set", "subject", "year", "int", "date", "datatype" );
+
+#cjg NOT DONE: "boolean",  "langid", "idpart" );
+
+}
+
+sub get_values
+{
+	my( $self, $session ) = @_;
+
+	if( $self->is_type( "set" ) )
+	{
+		return @{$self->get_property( "options" )};
+	}
+
+	if( $self->is_type( "subject" ) )
+	{
+		my $topsubj = EPrints::Subject->new(
+			$session,
+			$self->get_property( "top" ) );
+		my ( $pairs ) = $topsubj->get_subjects( 0 , 1 );
+		my @values = ();
+		my $pair;
+		foreach $pair ( @{$pairs} )
+		{
+			push @values, $pair->[0];
+		}
+		return @values;
+	}
+
+	if( $self->is_type( "datatype" ) )
+	{
+		my $ds = $session->get_archive()->get_dataset( 
+				$self->{datasetid} );	
+		return @{$ds->get_types()};
+	}
+
+	if( $self->is_type( "date", "int", "year" ) )
+	{
+		return $session->get_db()->get_values( $self );
+	}
+
+	#error (cjg: not caught)
+}
+
+sub get_value_label
+{
+	my( $self, $session, $value ) = @_;
+
+	if( $self->is_type( "set" ) )
+	{
+		return "SET($value)";
+	}
+
+	if( $self->is_type( "subject" ) )
+	{
+		my $subj = EPrints::Subject->new( $session, $value );
+		return $subj->get_name();
+	}
+
+	if( $self->is_type( "datatype" ) )
+	{
+		my $ds = $session->get_archive()->get_dataset( 
+				$self->{datasetid} );	
+		return $ds->get_type_name( $session, $value );
+	}
+
+
+	if( $self->is_type( "date", "int", "year" ) )
+	{
+		return $value;
+	}
+
+	return "???".$value."???";
+}
+
+sub get_dataset
+{
+	my( $self ) = @_;
+
+	return $self->{dataset};
+}		
 
 1;

@@ -222,16 +222,6 @@ sub create_child
 }
 
 
-######################################################################
-#
-# @children = children()
-#
-#  Retrieves the subject's children, if any. Children of the root
-#  subject are the top-level subjects.
-#
-#  The children are ordered by name.
-#
-######################################################################
 
 ## WP1: BAD
 sub children #cjg should be get_children()
@@ -255,16 +245,6 @@ sub children #cjg should be get_children()
 }
 
 
-######################################################################
-#
-# $subject = parent()
-#
-#  Returns the subject's parent. If this is called on the root subject,
-#  undef is returned. If this is called on a top-level subject, the
-#  root subject is returned (i.e. $subject->{subjectid} is
-#  $EPrints::Subject::root_subject.)
-#
-######################################################################
 
 sub get_parents
 {
