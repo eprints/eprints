@@ -194,9 +194,9 @@ sub mime_encode_q
 	my( $string ) = @_;
 
 	return "" if (length($string) == 0);
-	$svnbit = 1;
-	$latin1 = 1;
-	$utf8	= 0;
+	my $svnbit = 1;
+	my $latin1 = 1;
+	my $utf8   = 0;
 
 	foreach($string->unpack())
 	{
