@@ -25,6 +25,7 @@ use Apache;
 
 use EPrints::Database;
 use EPrints::HTMLRender;
+use EPrints::Language;
 
 use EPrintSite::SiteRoutines;
 use EPrintSite::SiteInfo;
@@ -59,6 +60,9 @@ sub new
 	# Get the Apache request object
 	#$self->{request} = Apache::request( "POST" );
 
+	# Create a database connection
+	$self->{lang} = EPrints::Language::fetch();
+	
 	# Create an HTML renderer object
 	$self->{render} = EPrints::HTMLRender->new( $self, $offline );
 

@@ -38,7 +38,7 @@ use strict;
 #  email, multiurl & url    "searchvalue" (simple)
 #  enum & eprinttype        "poss1:poss2:poss3"
 #  multitext, text & name   "[all][any][phr]:terms"
-#  set & subject            "val1:val2:val3:[ANY|ALL]"
+#  username, set & subject  "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
 #                           "-YYYY" = any year up to YYYY
 #                           "YYYY-ZZZZ" = any year from YYYY to ZZZZ (incl.)
@@ -63,6 +63,9 @@ my $texthelp = "Enter a term or terms to search for.";
 	                "want to search for records with any one or all of those ".
 	                "values. Default is (Any).",
 	"subjects"   => "Select one or more values from the list, and whether you ".
+	                "want to search for records with any one or all of those ".
+	                "values. Default is (Any).",
+	"username"   => "Enter one or more usernames (space seperated) and whether you ".
 	                "want to search for records with any one or all of those ".
 	                "values. Default is (Any).",
 	"text"       => $texthelp,

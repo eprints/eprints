@@ -1,0 +1,16 @@
+<file SearchExpression.pm>
+leastone = You need to specify something for at least one field!
+any = any
+all = all
+mustfulfill = Retrieved records must fulfill $(1) of these conditions.
+orderresults = Order the results: $(1)
+</file>
+
+<file update_ecs_users>
+dude = Internationalisation Rocks.
+</file>
+
+<file Citation.pm>
+unknowneprint = Unknown EPrint field $(1) in "$(2)"
+na = "N/A"
+</file>

@@ -32,7 +32,7 @@ exit 1;
 
 my $session = EPrints::Session->new( 1 );
 
-open( PASSWD, "/home/cjg/ecs.passwords" ) ||
+open( PASSWD, "/etc/password" ) ||
 	die( "Couldn't open password file" );
 
 my %passfile = ();

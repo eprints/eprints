@@ -19,6 +19,7 @@ package EPrints::Citation;
 use EPrints::MetaField;
 use EPrints::MetaInfo;
 use EPrints::Session;
+use EPrints::Language;
 
 use strict;
 
@@ -93,8 +94,11 @@ sub render_citation
 		{
 			EPrints::Log::log_entry(
 				"Citation",
-				"Unknown EPrint field $fieldname in \"$citation_spec\"" );
-			return( "N/A" );
+				EPrints::Language::logphrase( "unknowneprint",
+						              $fieldname,
+						     	      $citation_spec ) 
+                                					 );
+			return( $session->{lang}->phrase( "na" ) );
 		}
 	}
 
@@ -131,7 +135,10 @@ sub render_citation
 		{
 			EPrints::Log::log_entry(
 				"Citation",
-				"Unknown EPrint field $entry in \"$citation_spec\"" );
+				EPrints::Language::logphrase( "unknowneprint",
+						              $entry,
+						     	      $citation_spec ) 
+                                					 );
 		}
 	}
 	

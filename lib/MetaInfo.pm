@@ -130,7 +130,6 @@ sub read_meta_fields
 	# Read in all the possible site fields
 	my @fields = EPrints::MetaField::read_fields(
 		 $EPrintSite::SiteInfo::site_eprint_fields );
-	my %field_index;
 	
 	foreach (@fields)
 	{

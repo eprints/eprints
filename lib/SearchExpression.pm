@@ -20,6 +20,7 @@ use EPrints::SearchField;
 use EPrints::Session;
 use EPrints::EPrint;
 use EPrints::Database;
+use EPrints::Language;
 
 use strict;
 
@@ -189,7 +190,9 @@ sub render_search_form
 
 	my $html;
 
-	$html = "<CENTER><P><TABLE BORDER=0>\n";
+	my $menu;
+
+	$html = "<P align=\"center\"><TABLE BORDER=\"0\">\n";
 	
 	my $sf;
 
@@ -211,28 +214,32 @@ sub render_search_form
 		$html .= "<TR><TD COLSPAN=2>&nbsp;</TD></TR>\n";
 	}
 	
-	$html .= "</TABLE></P></CENTER>\n";
+	$html .= "</TABLE></P>\n";
 
 	if( $show_anyall )
 	{
-		$html .= "<CENTER><P>Retrieved records must fulfill ";
-		$html .= $self->{session}->{render}->{query}->popup_menu(
+		$menu = $self->{session}->{render}->{query}->popup_menu(
 			-name=>"_satisfyall",
 			-values=>[ "ALL", "ANY" ],
 			-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			-labels=>{ "ALL" => "all", "ANY" => "any" } );
-		$html .= " of these conditions.</P></CENTER>\n";
+			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("all"),
+				   "ANY" => $self->{session}->{lang}->phrase("any") } );
+		$html .= "<CENTER><P>";
+		$html .= $self->{session}->{lang}->phrase( "mustfulfill",
+							   $menu );
+		$html .= "</P></CENTER>\n";
 	}
-	
-	$html .= "<CENTER><P>Order the results: ";
 
-	$html .= $self->{session}->{render}->{query}->popup_menu(
+
+	$menu = $self->{session}->{render}->{query}->popup_menu(
 		-name=>"_order",
 		-values=>$self->{order_ids},
 		-default=>$self->{order},
 		-labels=>$self->{order_desc} );
 		
+	$html .= "<CENTER><P>";
+	$html .= $self->{session}->{lang}->phrase( "orderresults", $menu );
 	$html .= "</P></CENTER>\n";
 
 	return( $html );
@@ -263,7 +270,7 @@ sub from_form
 		push @problems, $prob if( defined $prob );
 	}
 
-	push @problems, "You need to specify something for at least one field!"
+	push @problems, $self->{session}->{lang}->phrase("leastone")
 		unless( $self->{allow_blank} || $onedefined );
 
 	my $anyall = $self->{session}->{render}->param( "_satisfyall" );
