@@ -757,20 +757,20 @@ print STDERR "arc(".$self->{arc_format}.")(".$self->{num_files}.")\n";
 		return( 1 );
 	}
 	
-#	if( $self->{action} eq "finished" )
-#	{
-#		# Finished uploading apparently. Validate.
-#		$self->{problems} = $self->{document}->validate();
-#			
-#		if( $#{$self->{problems}} >= 0 )
-#		{
-#			$self->{new_stage} = "fileview";
-#			return( 1 );
-#		}
-#
-#		$self->{new_stage} = "format";
-#		return( 1 );
-#	}
+	if( $self->{action} eq "finished" )
+	{
+		# Finished uploading apparently. Validate.
+		$self->{problems} = $self->{document}->validate();
+			
+		if( $#{$self->{problems}} >= 0 )
+		{
+			$self->{new_stage} = "fileview";
+			return( 1 );
+		}
+
+		$self->{new_stage} = "format";
+		return( 1 );
+	}
 	
 	# Erk! Unknown action.
 	$self->_corrupt_err;
@@ -823,8 +823,8 @@ sub _from_stage_upload
 		my $num_files = $self->{session}->param( "num_files" );
 		# Establish a sensible max and minimum number of files.
 		# (The same ones as we used to render the upload form)
-		$num_files = 1 if( $self->{num_files} < 1 );
-		$num_files = 1 if( $self->{num_files} > 99 ); 
+		$num_files = 1 if( $num_files < 1 );
+		$num_files = 1 if( $num_files > 99 ); 
 		my( $success, $file );
 
 		if( $arc_format eq "plain" )
@@ -832,6 +832,7 @@ sub _from_stage_upload
 			my $i;
 			for( $i=0; $i<$num_files; $i++ )
 			{
+print STDERR "---$i---\n";
 				$file = $self->{session}->param( "file_$i" );
 				
 				$success = $self->{document}->upload( $file, $file );
@@ -1340,6 +1341,19 @@ sub _do_stage_fileview
 
 	my $page = $self->{session}->make_doc_fragment();
 
+	$page->appendChild( $self->_render_problems(
+		$self->{session}->html_phrase("lib/submissionform:fix_upload"),
+		$self->{session}->html_phrase("lib/submissionform:please_fix") ) );
+
+
+	# The hidden fields, used by all forms.
+	my $hidden_fields = {	
+		docid => $self->{document}->get_value( "docid" ),
+		eprintid => $self->{eprint}->get_value( "eprintid" ),
+		stage => "fileview" };
+
+	############################
+
 	my $arc_format_field = EPrints::MetaField->new(
 		confid=>'format',
 		name=>'arc_format',
@@ -1357,38 +1371,17 @@ sub _do_stage_fileview
 		type=>'int',
 		digits=>2 );
 
-	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
-
-	my $hidden_fields = {	
-		docid => $self->{document}->get_value( "docid" ),
-		eprintid => $self->{eprint}->get_value( "eprintid" ),
-		stage => "fileview" };
-
 	my $submit_buttons = {
-		prev => $self->{session}->phrase(
-				"lib/submissionform:action_prev" ),
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) };
-
-	if( scalar keys %files > 0 ) {
-		$submit_buttons->{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" );
-	}
-
-	$page->appendChild( $self->_render_problems(
-		$self->{session}->html_phrase("lib/submissionform:fix_upload"),
-		$self->{session}->html_phrase("lib/submissionform:please_fix") ) );
 
 	$page->appendChild( 
 		$self->{session}->render_input_form( 
 			[ 
-				$docds->get_field( "format" ),
-				$docds->get_field( "formatdesc" ),
 				$arc_format_field, 
 				$num_files_field 
 			],
 			{
-				format => $self->{document}->get_value( "format" ),
-				formatdesc => $self->{document}->get_value( "formatdesc" ),
 				num_files => 1 
 			},
 			0,
@@ -1397,6 +1390,7 @@ sub _do_stage_fileview
 			$hidden_fields,
 			{},
 			"submit#t" ) );
+
 
 	##################################
 	#
@@ -1532,6 +1526,37 @@ sub _do_stage_fileview
 				"lib/submissionform:here_to_view") );
 
 	}
+
+	##################################
+
+	my $docds = $self->{session}->get_archive()->get_dataset( "document" );
+
+
+	my $submit_buttons = {
+		prev => $self->{session}->phrase(
+				"lib/submissionform:action_prev" ) };
+
+	if( scalar keys %files > 0 ) {
+		$submit_buttons->{finished} = $self->{session}->phrase( "lib/submissionform:action_finished" );
+	}
+
+	$page->appendChild( 
+		$self->{session}->render_input_form( 
+			[ 
+				$docds->get_field( "format" ),
+				$docds->get_field( "formatdesc" )
+			],
+			{
+				format => $self->{document}->get_value( "format" ),
+				formatdesc => $self->{document}->get_value( "formatdesc" )
+			},
+			0,
+			1,
+			$submit_buttons,
+			$hidden_fields,
+			{},
+			"submit#t" ) );
+
 
 # cjg Deprecate/rename these.
 #	print $self->{session}->phrase("lib/submissionform:file_up_method")." ";
