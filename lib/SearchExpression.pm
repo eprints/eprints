@@ -196,7 +196,7 @@ sub render_search_form
 		{
 			$html .= "<TR><TD COLSPAN=2 ALIGN=CENTER><EM>";
 			$html .= $EPrints::SearchField::search_help{$sf->{type}};
-			$html .= "</EM</TD></TR>\n";
+			$html .= "</EM></TD></TR>\n";
 			$shown_help{$EPrints::SearchField::search_help{$sf->{type}}} = 1;
 		}
 		

@@ -34,7 +34,7 @@ use strict;
 #                           "YYYY-MM-DD" = just on that day
 #  email, multiurl & url    "searchvalue" (simple)
 #  enum & eprinttype        "poss1:poss2:poss3"
-#  multitext, text & name   'or_term or_term +must_have -must_not "multi word"'
+#  multitext, text & name   "[all][any][phr]:terms"
 #  set & subject            "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
 #                           "-YYYY" = any year up to YYYY
@@ -45,10 +45,7 @@ use strict;
 #
 ######################################################################
 
-my $texthelp = "Enter a term or terms to search for.  You can insist that ".
-	"terms are present by adding a +, e.g. `+term'. You can insist a term is ".
-	"<strong>not</strong> present by adding a -, e.g. `-term'. To search for ".
-	"a phrase, enclose it in quotes.";
+my $texthelp = "Enter a term or terms to search for.";
 
 %EPrints::SearchField::search_help =
 (
@@ -71,6 +68,14 @@ my $texthelp = "Enter a term or terms to search for.  You can insist that ".
 	                "e.g. `1990-2000', `1990-' or -2000'."
 );
 
+@EPrints::SearchField::text_search_types = ( "all", "any", "phr" );
+
+%EPrints::SearchField::text_search_type_labels =
+(
+	"all" => "Match all, in any order",
+	"any" => "Match any",
+	"phr" => "Match as a phrase"
+);
 
 
 ######################################################################
@@ -347,109 +352,40 @@ sub terms_to_sql
 
 	my $sql = undef;
 	
-	# First get each individual search term
-	my @termlist = &parse_line( '\s+', 0, $terms );
-	my( @must, @mustnot, @maybe );
-
-#EPrints::Log->debug( "SearchField", "No. of terms: ".(scalar @termlist) );
-
-	foreach (@termlist)
+	my( $search_type, $search_terms ) = &_get_search_type( $terms );
+	
+	if( defined $search_terms && $search_terms ne "" )
 	{
-		if( /^\+/ )
-		{
-			s/^\+//;
-			push @must, $_;
-		}
-		elsif( /^\-/ )
-		{
-			s/^\-//;
-			push @mustnot, $_;
-		}
-		else
-		{
-			push @maybe, $_;
-		}
-	}
+		my @terms = split /\s+/, $search_terms;
 
-#EPrints::Log->debug( "SearchField", "No. of musts:   ".(scalar @must));
-#EPrints::Log->debug( "SearchField", "No. of mustnots:".(scalar @mustnot));
-#EPrints::Log->debug( "SearchField", "No. of maybes:  ".(scalar @maybe));
-
-	# Now the tricky bit: formulate the SQL
-	my( $mustsql, $mustnotsql, $maybesql );
-
-	if( scalar @must > 0 )
-	{
-		$mustsql = "";
-		my $first = 1;
-
-		foreach (@must)
+		if( $search_type eq "all" )
 		{
-			$mustsql .= " AND " unless( $first );
-			$first=0 if( $first );
-			$mustsql .= "(LCASE($fieldname) LIKE \"$pattern_left".
+			# Match all of the terms
+			foreach (@terms)
+			{
+				$sql .= " AND " if( defined $sql );
+				$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
 				(lc $_)."$pattern_right\")";
+			}
 		}
-	}
-
-	# Now the "must not be like" terms
-	if( scalar @mustnot > 0 )
-	{
-		$mustnotsql = "";
-		my $first = 1;
-
-		foreach (@mustnot)
+		elsif( $search_type eq "any" )
 		{
-			$mustnotsql .= " AND " unless( $first );
-			$first=0 if( $first );
-			$mustnotsql .= "(LCASE($fieldname) NOT LIKE \"$pattern_left".
+			# Match any of the terms
+			foreach (@terms)
+			{
+				$sql .= " OR " if( defined $sql );
+				$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
 				(lc $_)."$pattern_right\")";
+			}
 		}
-	}
-
-	# The "like any of these" fields
-	if( scalar (@maybe) > 0 )
-	{
-		$maybesql = "";
-		my $first = 1;
-
-		foreach (@maybe)
+		elsif( $search_type eq "phr" )
 		{
-			$maybesql .= " OR " unless( $first );
-			$first=0 if( $first );
-			$maybesql .= "(LCASE($fieldname) LIKE \"$pattern_left".
-				(lc $_)."$pattern_right\")";
+			# Phrase search
+			$sql .= "(LCASE($fieldname) LIKE \"$pattern_left".
+				(lc $search_terms)."$pattern_right\")";
 		}
 	}
-
-	# Put it all together
-	if( scalar @must > 0 )
-	{
-		# If we have any must terms, at the moment, we ignore the "maybe" terms
-		# since they'll make no difference. (We have no ranking yet.)
-		$sql = $mustsql;
-
-		if( scalar @mustnot > 0 )
-		{
-			$sql = "($sql) AND ($mustnotsql)";
-		}
-	}
-	elsif( scalar @mustnot > 0 )
-	{
-		# Don't have must, but have some "must nots"
-		$sql = $mustnotsql;
-
-		if( scalar @maybe > 0 )
-		{
-			$sql = "($sql) AND ($maybesql)";
-		}
-	}
-	else
-	{
-		# Only have "maybe's"
-		$sql = $maybesql;
-	}
-
+	
 	return( $sql );
 }
 
@@ -488,15 +424,31 @@ sub render_html
 			-default=>( defined $self->{value} ? $self->{value} : $tags[0] ),
 			-labels=>\%labels );
 	}
-	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" ||
-		$type eq "multitext" || $type eq "text" || $type eq "name" )
+	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" )
 	{
-		# text types
+		# simple text types
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
 			-default=>$self->{value},
 			-size=>$EPrints::HTMLRender::search_form_width,
 			-maxlength=>$EPrints::HTMLRender::field_max );
+	}
+	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
+	{
+		# complex text types
+		my( $search_type, $search_phrases ) = _get_search_type( $self->{value} );
+		
+		$html = $self->{session}->{render}->{query}->textfield(
+			-name=>$self->{formname},
+			-default=>$search_phrases,
+			-size=>$EPrints::HTMLRender::search_form_width,
+			-maxlength=>$EPrints::HTMLRender::field_max );
+
+		$html .= $self->{session}->{render}->{query}->popup_menu(
+			-name=>$self->{formname}."_srchtype",
+			-values=>\@EPrints::SearchField::text_search_types,
+			-default=>$search_type,
+			-labels=>\%EPrints::SearchField::text_search_type_labels );
 	}
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
@@ -665,13 +617,21 @@ sub from_form
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		$self->{value} = $val if( $val ne "EITHER" );;
 	}
-	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" ||
-		$type eq "multitext" || $type eq "text" || $type eq "name" )
+	elsif( $type eq "email" || $type eq "multiurl" || $type eq "url" )
 	{
-		# text types
+		# simple text types
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		$self->{value} = $val if( defined $val && $val ne "" );
 	}
+	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
+	{
+		# complex text types
+		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
+		my $search_type = $self->{session}->{render}->param( 
+			$self->{formname}."_srchtype" );
+		$self->{value} = "$search_type:$search_terms"
+			if( defined $search_terms && $search_terms ne "" );
+	}		
 	elsif( $type eq "enum" || $type eq "eprinttype" )
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
@@ -748,5 +708,46 @@ sub from_form
 }
 	
 
+######################################################################
+#
+# ( $search_type, $search_terms) =  _get_search_type( $value )
+#
+#  Extract the type and terms of a text search from the internal string
+#  representation of the search field.
+#
+######################################################################
+
+sub _get_search_type
+{
+	my( $value ) = @_;
 	
+	my( $search_type, $search_terms );
+
+	if( !defined $value || $value eq "" )
+	{
+		# Default is "match all", and no terms entered
+		$search_type = "all";
+		$search_terms = "";
+	}
+	elsif( $value =~ /(\w\w\w):(.*)/ )
+	{
+		# Have the terms + the type in the string
+		$search_type = $1;
+		$search_terms = $2;
+		
+		# Ensure that we have a valid search type
+		$search_type = "all"
+			unless( defined(
+				$EPrints::SearchField::text_search_type_labels{$search_type} ) );
+	}
+	else
+	{
+		# No type, just the terms
+		$search_type = "all";
+		$search_terms = $value;
+	}
+	
+	return( $search_type, $search_terms );
+}
+
 1;
