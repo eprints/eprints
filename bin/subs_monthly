@@ -28,6 +28,7 @@ use strict;
 
 # Create offline session
 my $session = new EPrints::Session( 1 );
+exit unless( defined $session );
 
 my @subs = EPrints::Subscription::get_monthly( $session );
 

@@ -36,40 +36,41 @@ my $input = <STDIN>;
 chomp( $input );
 
 # We'll only work if they type "yes" exactly, otherwise we just abort.
-if( $input eq "yes" )
+unless( $input eq "yes" )
 {
+	print "Did not type \"yes\". ABORTED.\n";
+	print "\n";
+}
 
-	my $session = new EPrints::Session( 1 );
+my $session = new EPrints::Session( 1 );
+exit unless( defined $session );
 
-	# Hose all entries in subject table:
+# Hose all entries in subject table:
 
-	if( $session->{database}->remove( EPrints::Database::table_name( "subject" ),
-	                                  "subjectid",
-	                                  '%' ) )
-	{
-		print "Emptied subject table\n";
-	}
-	else 
-	{
-		my $error = $session->{database}->error();
-		print STDERR "DB Error: $error\n";
-	}
+if( $session->{database}->remove( EPrints::Database::table_name( "subject" ),
+                                  "subjectid",
+                                  '%' ) )
+{
+	print "Emptied subject table\n";
+}
+else 
+{
+	my $error = $session->{database}->error();
+	print STDERR "DB Error: $error\n";
+}
 
 				
 
 
-	if( EPrints::Subject::create_subject_table( $session ) )
-	{
-		print "Inserted subject categories\n";
-	}
-	else
-	{
-		my $error = $session->{database}->error();
-		print STDERR "DB Error: $error\n";
-	}
-
-	$session->terminate();
-} else {
-	print "Did not type \"yes\". ABORTED.\n";
-	print "\n";
+if( EPrints::Subject::create_subject_table( $session ) )
+{
+	print "Inserted subject categories\n";
 }
+else
+{
+	my $error = $session->{database}->error();
+	print STDERR "DB Error: $error\n";
+}
+
+$session->terminate();
+

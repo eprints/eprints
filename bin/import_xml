@@ -26,6 +26,7 @@ if( scalar @ARGV != 2 )
 }
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit unless( defined $session );
 
 
 EPrints::ImportXML::import_file( $session , $ARGV[1] , \&deal );

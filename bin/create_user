@@ -29,6 +29,7 @@ if( $#ARGV < 3 || $#ARGV > 4 )
 }
 
 my $session = EPrints::Session->new( 1 , $ARGV[0] );
+exit unless( defined $session );
 
 my $user_ds = $session->getSite->getDataSet( "user" );
 

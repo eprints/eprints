@@ -65,6 +65,8 @@ sub get_system_field_info
 	} );
 }
 
+#cjg NEED TO {data} OO it.
+
 ######################################################################
 #
 # $subject = new( $session, $id, $row )
@@ -364,7 +366,6 @@ sub get_postable
 	foreach (sort keys %labelmap)
 	{
 		push @tags, $labelmap{$_}->getValue("subjectid");
-		print STDERR "xxx>>".$labelmap{$_}->getValue("subjectid")."\n";
 	}
 
 	return( \@tags, \%labels );
@@ -611,7 +612,7 @@ sub getValue
 {
 	my( $self, $fieldname ) = @_;
 
-	if( $self->{data}->{$fieldname} eq "")
+	if( $self->{$fieldname} eq "")
 	{
 		return undef;
 	}

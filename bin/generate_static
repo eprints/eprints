@@ -26,6 +26,7 @@ use strict;
 
 
 my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit unless( defined $session );
 
 # change to base of site so expat can find the dtd directory.
 chdir( $session->getSite->getConf( "site_root" ) );

@@ -425,6 +425,7 @@ $c->{sitefields}->{user} = [
 		required => 0,
 		editable => 1,
 		visible => 1,
+		showall => 1,
 		multiple => 1
 	}
 ];

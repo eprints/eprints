@@ -141,7 +141,7 @@ sub new
 		}
 		$self->{$_} = $data->{$_};
 	}
-	foreach( "required","editable","visible","multiple" )
+	foreach( "required","editable","visible","multiple","showall" )
 	{
 		$self->{$_} = ( defined $data->{$_} ? $data->{$_} : 0 );
 	}
@@ -335,6 +335,19 @@ sub get_type
 	my( $self ) = @_;
 	return $self->{type};
 }
+## WP1: GOOD
+sub isShowAll
+{
+	my( $self ) = @_;
+	return $self->{showall};
+}
+
+## WP1: GOOD
+sub setShowAll
+{
+	my( $self , $val ) = @_;
+	$self->{showall} = $val;
+}
 
 ## WP1: GOOD
 sub isEditable
@@ -349,6 +362,7 @@ sub setEditable
 	my( $self , $val ) = @_;
 	$self->{editable} = $val;
 }
+
 ## WP1: GOOD
 sub isRequired
 {
@@ -566,9 +580,60 @@ sub render_input_field
 
 	$html = $session->makeDocFragment();
 
-	$frag = $html;
-
 	my $boxcount = 2;
+
+	# subject fields can be rendered here and now
+	# without looping and calling the aux function.
+
+	if( $self->is_type( "subject" ) )
+	{
+		my( $sub_tags, $sub_labels );
+		
+		if( $self->{showall} )
+		{
+			( $sub_tags, $sub_labels ) = 
+				EPrints::Subject::all_subject_labels(
+ 					$session ); 
+		}
+		else
+		{			
+			( $sub_tags, $sub_labels ) = 
+				EPrints::Subject::get_postable( 
+					$session, 
+					$session->current_user );
+print STDERR "##(".join(",",@{$sub_tags}).")\n";
+print STDERR "##(".join(",",%{$sub_labels}).")\n";
+		}
+
+		my $height = 7;
+
+		if( !defined $value )
+		{
+			$value = [];
+		}
+		elsif( !$self->isMultiple() )
+		{
+			$value = [ $value ];
+		}
+			
+		my $subject_list = EPrints::SubjectList->new( $value );
+
+		my @selected_tags = $subject_list->get_tags();
+
+		$html->appendChild( $session->make_option_list(
+			name => $self->{name},
+			values => $sub_tags,
+			default => \@selected_tags,
+			height => $height,
+			multiple => ( $self->{multiple} ? "multiple" : undef ),
+			labels => $sub_labels ) );
+
+		return $html;
+	}
+
+	# The other types require a loop if they are multiple.
+
+	$frag = $html;
 
 	if( $self->is_type( "name" ) )
 	{
@@ -639,6 +704,7 @@ print STDERR "val($value)\n";
 	my $html = $session->makeDocFragment();
 	if( 
 		$self->is_type( "text" ) ||
+		$self->is_type( "username" ) ||
 		$self->is_type( "url" ) ||
 		$self->is_type( "email" ) )
 	{
@@ -736,7 +802,6 @@ print STDERR "val($value)\n";
 			values => \@monthkeys,
 			default => $month,
 			labels => $self->_month_names( $session ) ) );
-print STDERR "(MONTH=$month)\n";
 		$html->appendChild( $session->makeText(" ") );
 		$html->appendChild( $session->html_phrase( "day" ) );
 		$html->appendChild( $session->makeText(" ") );
@@ -840,39 +905,6 @@ my $field = 1;
 			-size=>$height,
 			-labels=>$labels );
 	}
-	elsif( $type eq "subject" )
-	{
-		my $subject_list = EPrints::SubjectList->new( $value );
-
-		# If in the future more user-specific subject tuning is needed,
-		# will need to put the current user in the place of undef.
-		my( $sub_tags, $sub_labels );
-		
-		if( $field->{showall} )
-		{
-			( $sub_tags, $sub_labels ) = EPrints::Subject::all_subject_labels( 
-				$self->{session} ); 
-		}
-		else
-		{			
-			( $sub_tags, $sub_labels ) = EPrints::Subject::get_postable( 
-				$self->{session}, 
-				$self->{session}->current_user );
-		}
-
-		my $height = ( $EPrints::HTMLRender::list_height_max < $#{$sub_tags}+1 ?
-		               $EPrints::HTMLRender::list_height_max : $#{$sub_tags}+1 );
-
-		my @selected_tags = $subject_list->get_tags();
-
-		$html = $self->{query}->scrolling_list(
-			-name=>$field->{name},
-			-values=>$sub_tags,
-			-default=>\@selected_tags,
-			-size=>$height,
-			-multiple=>( $field->{multiple} ? "true" : undef ),
-			-labels=>$sub_labels );
-	}
 	elsif( $type eq "name" )
 	{
 		# Get the names out
@@ -914,62 +946,6 @@ my $field = 1;
 		}
 		
 		$html .= "</tr>\n</table>\n";
-	}
-	elsif( $type eq "username" )
-	{
-		# Get the usernames out
-		my @usernames = EPrints::User::extract( $value );
-
-		my $boxcount = $self->{usernameinfo}->{"username_boxes_$field->{name}"};
-
-		if( defined $self->{usernameinfo}->{"username_more_$field->{name}"} )
-		{
-			$boxcount += $EPrints::HTMLRender::add_boxes;
-		}
-
-		# Ensure at least 1...
-		$boxcount = 1 if( !defined $boxcount );
-		# And that there's enough to fit all the usernames in
-		$boxcount = $#usernames+1 if( $boxcount < $#usernames+1 );
-
-		# Render the boxes
-		$html = "<table border=0><tr><th>";
-		$html.= $self->{session}->phrase( "H:username_title" );
-		$html.= "</th>";
-		
-		my $i;
-		for( $i = 0; $i < $boxcount; $i++ )
-		{
-			my $username;	
-			if( $i <= $#usernames )
-			{
-				( $username ) = $usernames[$i];
-			}
-					
-			$html .= "</tr>\n<tr><td>";
-			$html .= $self->{query}->textfield(
-				-name=>"username_$i"."_$field->{name}",
-				-default=>$username,
-				-size=>$EPrints::HTMLRender::form_username_width,
-				-maxlength=>$EPrints::HTMLRender::field_max );
-			$html .= "</td>";
-		}
-		
-		if( $field->{multiple} )
-		{
-			$html .= "<td>".$self->named_submit_button( 
-				"username_more_$field->{name}",
-				$self->{session}->phrase( "F:more_spaces" ) );
-			$html .= $self->hidden_field( "username_boxes_$field->{name}", $boxcount );
-			$html .= "</td>";
-		}
-		
-		$html .= "</tr>\n</table>\n";
-	}
-	else
-	{
-		$html = "N/A";
-
 	}
 	
 	return( $html );
