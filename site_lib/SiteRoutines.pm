@@ -554,7 +554,7 @@ sub oai_get_eprint_metadata
 {
 	my( $eprint, $format ) = @_;
 
-	if( $format eq "oams" )
+	if( $format eq "dc_oams" )
 	{
 		my %tags;
 
@@ -617,7 +617,7 @@ sub oai_get_eprint_metadata
 
 		return( %tags );
 	}
-	elsif( $format eq "dc" )
+	elsif( $format eq "oai_dc" )
 	{
 		my %tags;
 		
