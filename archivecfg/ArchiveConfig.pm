@@ -20,7 +20,7 @@ package EPrints::Config::lemurprints;
 #cjg NO UNICODE IN PASSWORDS!!!!!!!!!
 #cjg Hide Passwords when editing.
 
-
+use EPrints::Utils;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1 utf16);
 use EPrints::OpenArchives;
@@ -556,7 +556,7 @@ $c->{thread_citation_specs} =
 sub eprint_cmp_by_year
 {
 	return ( $_[1]->{year} <=> $_[0]->{year} ) ||
-		EPrints::Name::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
+		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
 
@@ -564,7 +564,7 @@ sub eprint_cmp_by_year
 sub eprint_cmp_by_year_oldest_first
 {
 	return ( $_[0]->{year} <=> $_[1]->{year} ) ||
-		EPrints::Name::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
+		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
 
@@ -572,7 +572,7 @@ sub eprint_cmp_by_year_oldest_first
 sub eprint_cmp_by_author
 {
 	
-	return EPrints::Name::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
+	return EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
 		( $_[1]->{year} <=> $_[0]->{year} ) || # largest year first
 		( $_[0]->{title} cmp $_[1]->{title} ) ;
 }
@@ -581,7 +581,7 @@ sub eprint_cmp_by_author
 sub eprint_cmp_by_title
 {
 	return ( $_[0]->{title} cmp $_[1]->{title} ) ||
-		EPrints::Name::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
+		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
 		( $_[1]->{year} <=> $_[0]->{year} ) ; # largest year first
 }
 
@@ -1118,7 +1118,7 @@ sub user_display_name
 		return( "User ".$user->get_value( "username" ) );
 	} 
 
-	return( EPrints::Name::format_name( $name, 1 ) );
+	return( EPrints::Utils::format_name( $name, 1 ) );
 }
 
 
@@ -1365,7 +1365,8 @@ sub oai_get_eprint_metadata
 		
 		$tags{title} = $eprint->{title};
 
-		my @authors = EPrints::Name::extract( $eprint->{authors} );
+#cjg Name don't live here anymore :-)
+#		my @authors = EPrints::Name::extract( $eprint->{authors} );
 		$tags{creator} = [];
 		my $author;
 		foreach $author (@authors)

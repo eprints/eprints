@@ -23,7 +23,7 @@ package EPrints::User;
 
 use EPrints::Database;
 use EPrints::MetaField;
-use EPrints::Mailer;
+use EPrints::Utils;
 use EPrints::Subscription;
 
 use strict;
@@ -305,7 +305,7 @@ sub send_introduction
 	}
 	# Try and send the mail
 
-	return( EPrints::Mailer::prepare_send_mail(
+	return( EPrints::Utils::prepare_send_mail(
 		$self->{session},
 		$self->{session}->phrase( $subj ),
 		$self->{email},
@@ -337,7 +337,7 @@ sub send_reminder
 		 password=>$self->{password},
 		 adminemail=>$self->{session}->get_archive()->get_conf( "adminemail" )  );
 
-	return( EPrints::Mailer::send_mail( 
+	return( EPrints::Utils::send_mail( 
 			$self->{session},
 			$self->full_name(),
 	                $self->{email},
@@ -545,7 +545,7 @@ sub mail
 	my( $self, $subject, $message ) = @_;
 	#   Session  utf8    DOM
 
-	return EPrints::Mailer::send_mail(
+	return EPrints::Utils::send_mail(
 		$self->{session}->get_archive(),
 		$self->get_value( "lang" ),
 		$self->full_name(),		

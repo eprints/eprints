@@ -17,6 +17,7 @@
 package EPrints::Archive;
 
 use EPrints::Config;
+use EPrints::Utils;
 use EPrints::DataSet;
 use EPrints::Language;
 
@@ -306,7 +307,9 @@ sub get_store_dir_size
 		return undef;
 	}
 
-	return( ( df $filepath)[3] );
+	my @retval = EPrints::Utils::df_dir $filepath;
+	return undef unless @retval;
+	return (@retval)[3];
 } 
 
 

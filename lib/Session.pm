@@ -1404,7 +1404,7 @@ sub mail_administrator
 	my( $self, $subject, $message ) = @_;
 	#   Session  utf8    DOM
 
-	return EPrints::Mailer::send_mail(
+	return EPrints::Utils::send_mail(
 		$self->{archive},
 		$self->{archive}->get_conf( "languages" )->[0], # default lang.
 		$self->phrase( "lib/session:archive_admin" ),

@@ -18,7 +18,7 @@ package EPrints::Subscription;
 
 use EPrints::Database;
 use EPrints::HTMLRender;
-use EPrints::Mailer;
+use EPrints::Utils;
 use EPrints::MetaField;
 use EPrints::SearchExpression;
 use EPrints::Session;
@@ -524,7 +524,7 @@ sub process
 		}
 		
 		# Send the mail.
-		$success = EPrints::Mailer::send_mail( 
+		$success = EPrints::Utils::send_mail( 
 			$self->{session},
 		             $user->full_name(),
 		             $user->{email},

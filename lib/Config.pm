@@ -19,7 +19,7 @@
 # specific to any archive.
 
 package EPrints::Config;
-
+use EPrints::Utils;
 use EPrints::SystemSettings;
 use EPrints::DOM;
 use Unicode::String qw(utf8 latin1);

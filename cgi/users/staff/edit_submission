@@ -12,6 +12,7 @@
 #
 ######################################################################
 
+use EPrints::Utils;
 use EPrints::EPrint;
 use EPrints::HTMLRender;
 use EPrints::Database;
@@ -202,7 +203,7 @@ sub bounce
 	if( $success )
 	{
 		# Successfully transferred, mail the user with the reason
-		if( EPrints::Mailer::send_mail(
+		if( EPrints::Utils::send_mail(
 			$session,
 			$user->full_name(),
 			$user->{email},

@@ -25,14 +25,13 @@ use Apache::DBI;
 $Apache::DBI::DEBUG = 3;
 use Apache::Registry;          
 
+use EPrints::Utils;
 use EPrints::Config;
 
-$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
+$ENV{MOD_PERL} or EPrints::Utils::abort( "not running under mod_perl!" );
  
 # This code is interpreted *once* when the server starts
 
-
-use EPrints::Config;
 use EPrints::Auth;
 use EPrints::Database;
 use EPrints::Deletion;
@@ -41,9 +40,7 @@ use EPrints::EPrint;
 use EPrints::HTMLRender;
 use EPrints::ImportXML;
 use EPrints::Language;
-use EPrints::Mailer;
 use EPrints::MetaField;
-use EPrints::Name;
 use EPrints::OpenArchives;
 use EPrints::Archive;
 use EPrints::SearchExpression;

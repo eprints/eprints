@@ -1462,42 +1462,9 @@ sub get_value
 	
 	my $r = $self->{data}->{$fieldname};
 
-	$r = undef unless( _isset( $r ) );
+	$r = undef unless( EPrints::Utils::is_set( $r ) );
 
 	return $r;
-}
-
-# should be a generic function in, er, Config? or even Utils.pm
-# ALL cjg get_value should use this.
-sub _isset
-{
-	my( $r ) = @_;
-
-	return 0 if( !defined $r );
-		
-	if( ref($r) eq "" )
-	{
-		return ($r ne "");
-	}
-	if( ref($r) eq "ARRAY" )
-	{
-		foreach( @$r )
-		{
-			return( 1 );
-		}
-		return( 0 );
-	}
-	if( ref($r) eq "HASH" )
-	{
-		foreach( keys %$r )
-		{
-			return( 1 );
-		}
-		return( 0 );
-	}
-	# Hmm not a scalar, or a hash or array ref.
-	# Lets assume it's set. (it is probably a blessed thing)
-	return( 1 );
 }
 
 ## WP1: BAD

@@ -16,6 +16,7 @@
 
 package EPrints::MetaField;
 
+use EPrints::Utils;
 use EPrints::Session;
 use EPrints::Subject;
 use EPrints::Database;
@@ -503,7 +504,7 @@ sub _render_value2
 	if( $self->is_type( "name" ) )
 	{
 		return $session->make_text(
-			EPrints::Name::format_name( $value ) );
+			EPrints::Utils::format_name( $value ) );
 	}
 
 	if( $self->is_type( "longtext" ) )
@@ -1271,7 +1272,7 @@ sub _form_value_aux2
 			$data->{$_} = $session->param( $self->{name}.$id_suffix."_".$_ );
 		}
 
-		if( EPrints::EPrint::_isset( $data ) )
+		if( EPrints::Utils::is_set( $data ) )
 		{
 			return $data;
 		}

@@ -16,8 +16,6 @@
 
 package EPrints::HTMLRender;
 
-use EPrints::Name;
-
 use strict;
 
 use CGI;
