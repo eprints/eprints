@@ -86,6 +86,7 @@ else
 		$tr->appendChild( $td );
 		if( defined $user )
 		{
+#cjg Has view-user priv?
 			$a = $session->make_element( "a", 
 				href=>"view_user?userid=".$e->get_value("userid") );
 			$a->appendChild( $session->make_text( $user->full_name() ) );

@@ -1637,8 +1637,6 @@ sub set_document_defaults
 	my( $data, $session, $eprint ) = @_;
 
 	$data->{language} = $session->get_langid();
-	$data->{format} = "other";
-	$data->{formatdesc} = "bunch of arse";
 }
 
 #cjg not used yet
