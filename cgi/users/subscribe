@@ -82,8 +82,8 @@ elsif( defined $action && $action eq $action_create )
 			"Please try again later, and if the problem persists, contact ".
 			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 			"administrator</a>.",
-			$EPrintSite::SiteInfo::frontpage,
-			"Return to front page" );
+			"$EPrintSite::SiteInfo::server_perl/users/home",
+			"Return to your user area" );
 	}
 	else
 	{
@@ -108,8 +108,8 @@ elsif( defined $action && $action eq $action_remove )
 				"Please try again later, and if the problem persists, contact ".
 				"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 				"administrator</a>.",
-				$EPrintSite::SiteInfo::frontpage,
-				"Return to front page" );
+				"$EPrintSite::SiteInfo::server_perl/users/home",
+				"Return to your user area" );
 		}
 	}
 }
@@ -127,7 +127,7 @@ else
 	else
 	{
 		# Let them edit the one they have
-		&edit_subscription(  $session, $subscription, undef );
+		&edit_subscription( $session, $subscription, undef );
 	}
 }
 
@@ -230,8 +230,8 @@ sub update_subscription
 		print $session->{render}->start_html( "Subscribe" );
 		print "<CENTER><P><STRONG>Your subscription has been accepted.</STRONG>".
 			"</P></CENTER>";
-		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::frontpage\">Click ".
-			"here to return to the front page.</P></CENTER>\n";
+		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::server_perl/users/".
+			"home\">Click here to return to your user area.</P></CENTER>\n";
 		print $session->{render}->end_html();
 	}
 	else
@@ -241,7 +241,7 @@ sub update_subscription
 			"Please try again later, and if the problem persists, contact ".
 			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
 			"administrator</a>.",
-			$EPrintSite::SiteInfo::frontpage,
-			"Return to front page" );
+			"$EPrintSite::SiteInfo::server_perl/users/home",
+			"Return to your user area" );
 	}
 }

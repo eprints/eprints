@@ -227,9 +227,9 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::server_static/information.html\">About</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Registrations</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Register</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Author\&nbsp;Area</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Submit\&nbsp;Papers</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
           </td>
         </tr>

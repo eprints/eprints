@@ -74,7 +74,7 @@ if( $session->{render}->seen_form() )
 					$session->{render}->render_error(
 						"Unable to clone that record. Please try again later.",
 						"home",
-						"Author Area" );
+						"User Area" );
 				}
 
 				$page_written = 1;				
@@ -103,7 +103,7 @@ unless( $page_written )
 			"</STRONG></P></CENTER>\n";
 		
 		print "<CENTER><P><A HREF=\"home\">Click here to return to your ".
-			"Author Area</A></P></CENTER>\n";
+			"User Area</A></P></CENTER>\n";
 	}
 	else
 	{
@@ -221,7 +221,7 @@ sub handle_removal_request
 			"Couldn't find the EPrint! There's probably a problem with the ".
 				"database. Try again later.",
 			"home",
-			"Author Area" );
+			"User Area" );
 		return( 1 );
 	}
 	

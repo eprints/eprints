@@ -48,23 +48,15 @@ my $valid_user = ( $#{$probs} == -1 );
 #
 ######################################################################
 
-print $session->{render}->start_html( "Author Area for $fullname" );
+print $session->{render}->start_html( "User Area for $fullname" );
 
 
 ### Welcome author blurb
-print "<P><CENTER>Welcome to your author area at ".
+print "<P><CENTER>Welcome to your user area at ".
 	"$EPrintSite::SiteInfo::sitename. Please select one of the options ".
 	"below.</CENTER></P>\n";
 
-if( !$valid_user )
-{
-	### User needs to update their record
-	print "<P><CENTER>Before you upload any documents, please fill out your ".
-		"<A HREF=\"record\">user record</A>.</CENTER></P>\n";
-	print "<P><CENTER><A HREF=\"record\">Please click here to fill out your ".
-		"user record.</A></CENTER></P>\n";
-}
-else
+if( $valid_user )
 {
 	### Workspace
 	&render_workspace( $session, $user );
@@ -83,21 +75,35 @@ else
 	print " You can also remove documents from the archive."
 		if( $EPrintSite::SiteInfo::allow_user_removal );
 	print "</P></DD>\n";
-
-	### Change author record
-	print "<DT><STRONG><A HREF=\"record\">View/change your user record</A>".
-		"</STRONG></DT>\n";
-	print "<DD><P>Select this option to see your user record, and to correct ".
-		"or update your user information.</P></DD>\n";
-	
-	### Change subscription options
-	print "<DT><STRONG><A HREF=\"subscribe\">Change your ".
-		"subscription options</A></STRONG></DT>\n";
-	print "<DD><P>Select this option to change your subscription. This allows ".
-		"you to instruct the archive to automatically e-mail you with lists ".
-		"of documents submitted in your chosen subject areas every day, week ".
-		"or month.</P></DD></DL>\n";
 }
+else
+{
+	print "<DL>";
+}
+
+### Change author record
+print "<DT><STRONG><A HREF=\"record\">View/change your user record</A>".
+	"</STRONG></DT>\n<DD><P>";
+
+if( $valid_user )
+{
+	print "Select this option to see your user record, and to correct ".
+		"or update your user information.</P></DD>\n";
+}
+else
+{
+	### User needs to update their record
+	print "Before you upload any documents, please fill out your user record.".
+		"</P></DD>\n";
+}
+	
+### Change subscription options
+print "<DT><STRONG><A HREF=\"subscribe\">Change your ".
+	"subscription options</A></STRONG></DT>\n";
+print "<DD><P>Select this option to change your subscription. This allows ".
+	"you to instruct the archive to automatically e-mail you with lists ".
+	"of documents submitted that match your criteria every day, week ".
+	"or month.</P></DD></DL>\n";
 
 print $session->{render}->end_html();
 
