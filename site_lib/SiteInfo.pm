@@ -220,7 +220,7 @@ $EPrintSite::SiteInfo::html_banner = "
 <table border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td align=\"center\" valign=\"top\" bgcolor=\"#dddddd\" fgcolor=\"white\">
-      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=0 src=\"$EPrintSite::SiteInfo::server_static/images/logo_sidebar.gif\" ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
+      <a href=\"$EPrintSite::SiteInfo::frontpage\"><img border=\"0\" width=\"100\" height=\"100\" src=\"$EPrintSite::SiteInfo::server_static/images/logo_sidebar.gif\" ALT=\"$EPrintSite::SiteInfo::sitename\"></a>
     </td>
     <td width=\"100\%\" colspan=2 align=center valign=\"middle\" bgcolor=\"white\" fgcolor=\"black\">
       <H1>TITLE_PLACEHOLDER</H1>
