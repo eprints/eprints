@@ -874,12 +874,13 @@ sub _get
 	my @fields = $dataset->getFields();
 
 	my $keyfield = $fields[0];
+	my $kn = $keyfield->getName();
 
 	my $cols = "";
 	my @aux = ();
 	my $first = 1;
 	foreach (@fields) {
-		if ( $_->{multiple}) 
+		if ( $_->isMultiple() )
 		{ 
 			push @aux,$_;
 		}
@@ -893,10 +894,10 @@ sub _get
 			{
 				$cols .= ", ";
 			}
-			my $col = "M.".$_->{name};
-			if ( $_->{type} == $FT_NAME )
+			my $col = "M.".$_->getName();
+			if ( $_->isType( "name" ) )
 			{
-				$col = "M.$_->{name}_given,M.$_->{name}_family";
+				$col = "M.".$_->getName()."_given,M.".$_->getName()."_family";
 			}
 			$cols .= $col;
 		}
@@ -904,11 +905,11 @@ sub _get
 	my $sql;
 	if ( $mode == 0 )
 	{
-		$sql = "SELECT $cols FROM $table AS M WHERE M.$keyfield->{name} = \"".prep_value($param)."\"";
+		$sql = "SELECT $cols FROM $table AS M WHERE M.$kn = \"".prep_value($param)."\"";
 	}
 	elsif ( $mode == 1 )	
 	{
-		$sql = "SELECT $cols FROM $param AS C, $table AS M WHERE M.$keyfield->{name} = C.$keyfield->{name}";
+		$sql = "SELECT $cols FROM $param AS C, $table AS M WHERE M.$kn = C.$kn";
 	}
 	elsif ( $mode == 2 )	
 	{
@@ -925,14 +926,14 @@ sub _get
 		my $record = {};
 		$lookup{$row[0]} = $count;
 		foreach( @fields ) { 
-			if ( $_->{multiple} )
+			if ( $_->isMultiple() )
 			{
 				$$record{$_->{name}} = [];
 			}
 			else 
 			{
 				my $value;
-				if ($_->get_type() eq "name" )
+				if ($_->isType( "name" ) )
 				{
 					$value = {};
 					$value->{given} = shift @row;
@@ -952,29 +953,30 @@ sub _get
 	my $multifield;
 	foreach $multifield ( @aux )
 	{
-		my $col = "M.$multifield->{name}";
-		if ( $multifield->get_type() eq "name" )
+		my $mn = $multifield->getName();
+		my $col = "M.$mn";
+		if( $multifield->isType( "name" ) )
 		{
-			$col = "M.$multifield->{name}_given,M.$multifield->{name}_family";
+			$col = "M.".$mn."_given,M.".$mn."_family";
 		}
 		
-		$col =~ s/\$\(name\)/M.$multifield->{name}/g;
-		if ( $mode == 0 )	
+		$col =~ s/\$\(name\)/M.$mn/g;
+		if( $mode == 0 )	
 		{
-			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql = "SELECT M.$kn,M.pos,$col FROM ";
 			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
-			$sql.= "WHERE M.$keyfield->{name}=\"".prep_value( $param )."\"";
+			$sql.= "WHERE M.$kn=\"".prep_value( $param )."\"";
 		}
-		elsif ( $mode == 1)
+		elsif( $mode == 1)
 		{
-			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql = "SELECT M.$kn,M.pos,$col FROM ";
 			$sql.= "$param AS C, ";
 			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
-			$sql.= "WHERE M.$keyfield->{name}=C.$keyfield->{name}";
+			$sql.= "WHERE M.$kn=C.$kn";
 		}	
-		elsif ( $mode == 2)
+		elsif( $mode == 2)
 		{
-			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
+			$sql = "SELECT M.$kn,M.pos,$col FROM ";
 			$sql.= $dataset->getSQLSubTableName( $multifield )." AS M ";
 		}
 		$sth = $self->prepare( $sql );
@@ -984,7 +986,7 @@ sub _get
 		{
 			my $n = $lookup{ $id };
 			my $value;
-			if ( $multifield->get_type() eq "name" )
+			if ( $multifield->isType( "name" ) )
 			{
 				$value = {};
 				$value->{given} = shift @values;
@@ -994,7 +996,7 @@ sub _get
 			{
 				$value = shift @values;
 			}
-			$data[$n]->{$multifield->{name}}->[$pos] = $value;
+			$data[$n]->{$mn}->[$pos] = $value;
 		}
 	}	
 

@@ -1583,7 +1583,7 @@ sub eprint_render_full
 #
 ######################################################################
 
-my %CITATION_SPECS =
+my %OLD_CITATION_SPECS =
 (
 	"bookchapter"  =>  "{authors} [({year}) ]<i>{title}</i>, in [{editors}, Eds. ][<i>{publication}</i>][, chapter {chapter}][, pages {pages}]. [{publisher}.]",
 	"confpaper"    =>  "{authors} [({year}) ]{title}. In [{editors}, Eds. ][<i>Proceedings {conference}</i>][ <B>{volume}</B>][({number})][, pages {pages}][, {confloc}].",
@@ -1597,16 +1597,70 @@ my %CITATION_SPECS =
 	"thesis"       =>  "{authors} [({year}) ]<i>{title}</i>. {thesistype},[ {department},][ {institution}]."
 );
 
+my %CITATION_SPECS =
+(
+	"bookchapter"  =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<i><DIV class="field_title" /></i>, in [<DIV class="field_editors" />, Eds. ][<i><DIV class="field_publication" /></i>][, chapter <DIV class="field_chapter" />][, pages <DIV class="field_pages" />]. [<DIV class="field_publisher" />.]
+END
+	"confpaper"    =>  <<END,
+<DIV class="field_authors"/> <DIV class="if_year">(<DIV class="field_year"/>) </DIV><DIV class="field_title"/>. In [<DIV class="field_editors" />, Eds. ][<i>Proceedings <DIV class="field_conference" /></i>][ <B><DIV class="field_volume" /></B>][(<DIV class="field_number" />)][, pages <DIV class="field_pages" />][, <DIV class="field_confloc" />].
+END
+
+	"confposter"   =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. In [<DIV class="field_editors" />, Eds. ][<i>Proceedings <DIV class="field_conference" /></i>][ <B><DIV class="field_volume" /></B>][(<DIV class="field_number" />)][, pages <DIV class="field_pages" />][, <DIV class="field_confloc" />].
+END
+
+	"techreport"   =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. Technical Report[ <DIV class="field_reportno" />][, <DIV class="field_department" />][, <DIV class="field_institution" />].
+END
+
+	"journale"     =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. <i><DIV class="field_publication" /></i>[ <DIV class="field_volume" />][(<DIV class="field_number" />)].
+END
+
+	"journalp"     =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. <i><DIV class="field_publication" /></i>[ <DIV class="field_volume" />][(<DIV class="field_number" />)][:<DIV class="field_pages" />].
+END
+
+	"newsarticle"  =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />. In <i><DIV class="field_publication" /></i>[, <DIV class="field_volume" />][(<DIV class="field_number" />)][ pages <DIV class="field_pages" />][, <DIV class="field_publisher" />].
+END
+
+	"other"        =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />.
+END
+
+	"preprint"     =>  <<END,
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<DIV class="field_title" />.
+END
+
+	"thesis"       =>  <<END
+<DIV class="field_authors" /> [(<DIV class="field_year" />) ]<i><DIV class="field_title" /></i>. <DIV class="field_thesistype" />,[ <DIV class="field_department" />,][ <DIV class="field_institution" />]."
+)" />
+END
+
+);
+
+use XML::DOM;
 sub eprint_render_citation
 {
 	my( $eprint, $html ) = @_;
 	
 	my $citation_spec = $CITATION_SPECS{$eprint->{type}};
+	$citation_spec = "<P>$citation_spec</P>";
 
-	return( EPrints::Citation::render_citation( $eprint->{session},
-	                                            $citation_spec,
-	                                            $eprint,
-	                                            $html ) );
+	my $parser = XML::DOM::Parser->new();
+	my $dom = $parser->parse( $citation_spec );
+
+	print $dom->toString()."\n";
+
+
+
+die;
+	#return( EPrints::Citation::render_citation( $eprint->{session},
+	                                            #$citation_spec,
+	                                            #$eprint,
+	                                            #$html ) );
 }
 
 

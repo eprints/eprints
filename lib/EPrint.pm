@@ -129,24 +129,26 @@ sub get_system_field_info
 
 sub new
 {
-	my( $class, $session, $tableid, $id, $known ) = @_;
+	my( $class, $session, $dataset, $id, $known ) = @_;
 
 	my $self;
 
 	if ( !defined $known )	
 	{
-		if( defined $tableid )
+		if( defined $dataset )
 		{
-			return $session->{database}->get_single( $tableid , $id );
+			return $session->getDB()->get_single( $dataset , $id );
 		}
 
 		## Work out in which table the EPrint resides.
 		## and return the eprint.
 		foreach( "archive" , "inbox" , "buffer" )
 		{
-			$self = $session->{database}->get_single( $_, $id );
+			my $ds = $session->getSite()->getDataSet( $_ );
+			$self = $session->getDB()->get_single( $ds, $id );
 			if ( defined $self ) 
 			{
+				$self->{dataset} = $ds;
 				return $self;
 			}
 		}
@@ -160,7 +162,7 @@ sub new
 	} else {
 		$self = {};
 	}
-	$self->{tableid} = $tableid;
+	$self->{dataset} = $dataset;
 	$self->{session} = $session;
 
 	bless $self, $class;
@@ -171,7 +173,7 @@ sub new
 
 ######################################################################
 #
-# $eprint = create( $session, $tableid, $username, $data )
+# $eprint = create( $session, $dataset, $username, $data )
 #
 #  Create a new EPrint entry in the given table, from the given user.
 #
@@ -374,7 +376,7 @@ sub remove
 	
 	# Create a deletion record if we're removing the record from the main
 	# archive
-	if( $self->{tableid} eq "archive" )
+	if( $self->{dataset} eq "archive" )
 	{
 		$success = $success && EPrints::Deletion::add_deletion_record( $self );
 	}
@@ -412,7 +414,7 @@ sub remove
 
 	# Remove our entry from the DB
 	$success = $success && $self->{session}->{database}->remove(
-		$self->{tableid},
+		$self->{dataset},
 		"eprintid",
 		$self->{eprintid} );
 	
@@ -434,7 +436,7 @@ sub remove_from_threads
 {
 	my( $self ) = @_;
 	
-	if( $self->{tableid} eq  "archive" )
+	if( $self->{dataset} eq  "archive" )
 	{
 		# Remove thread info in this eprint
 		$self->{succeeds} = undef;
@@ -476,12 +478,12 @@ sub remove_from_threads
 
 sub clone
 {
-	my( $self, $dest_tableid, $copy_documents ) = @_;
+	my( $self, $dest_dataset, $copy_documents ) = @_;
 	
 	# Create the new EPrint record
 	my $new_eprint = EPrints::EPrint::create(
 		$self->{session},
-		$dest_tableid,
+		$dest_dataset,
 		$self->{username} );
 	
 	if( defined $new_eprint )
@@ -505,7 +507,7 @@ sub clone
 		# so we'll fill in the succeeds field, provided this one is
 		# already in the main archive.
 		$new_eprint->{succeeds} = $self->{eprintid}
-			if( $self->{tableid} eq  "archive"  );
+			if( $self->{dataset} eq  "archive"  );
 
 		# Attempt to copy the documents, if appropriate
 		my $ok = 1;
@@ -541,7 +543,7 @@ sub clone
 
 ######################################################################
 #
-# $success = transfer( $tableid )
+# $success = transfer( $dataset )
 #
 #  Move the EPrint to the given table
 #
@@ -549,18 +551,18 @@ sub clone
 
 sub transfer
 {
-	my( $self, $tableid ) = @_;
+	my( $self, $dataset ) = @_;
 
 	# Keep the old table
-	my $old_tableid = $self->{tableid};
+	my $old_dataset = $self->{dataset};
 
 	# Copy to the new table
-	$self->{tableid} = $tableid;
+	$self->{dataset} = $dataset;
 
 	# Create an entry in the new table
 # cjg add_record call
 	my $success = $self->{session}->{database}->add_record(
-		$tableid,
+		$dataset,
 		{ "eprintid"=>$self->{eprintid} } );
 
 	# Write self to new table
@@ -568,7 +570,7 @@ sub transfer
 
 	# If OK, remove the old copy
 	$success = $success && $self->{session}->{database}->remove(
-		$old_tableid,
+		$old_dataset,
 		"eprintid",
 		$self->{eprintid} );
 	
@@ -606,7 +608,7 @@ sub commit
 {
 	my( $self ) = @_;
 	my $success = $self->{session}->{database}->update(
-		$self->{tableid},
+		$self->{dataset},
 		$self );
 
 	if( !$success )
