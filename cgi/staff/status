@@ -84,9 +84,8 @@ print "<CENTER><TABLE BORDER=0>\n";
 
 &print_row( "", "" );
 
-&print_row( "Readers:", $num_users_cat[0] );
-&print_row( "Authors:", $num_users_cat[1] );
-&print_row( "Staff:", $num_users_cat[2] );
+&print_row( "Users:", $num_users_cat[0] );
+&print_row( "Staff:", $num_users_cat[1] );
 &print_row( "Total Users:", $num_users );
 
 &print_row( "", "" );

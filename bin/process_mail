@@ -8,8 +8,7 @@
 #
 #   Understood subject lines:
 #
-#    join author -  add new author account for from address
-#    join reader -  add new reader account for from address
+#    newuser -      add new user account for from address
 #    change email <account> - change email for given account
 #
 ######################################################################
@@ -64,13 +63,9 @@ if( !defined $subject || !defined $from )
 	EPrints::Log->log_entry( "process_mail",
 	                         "Error in mail: From or Subject line missing" );
 }
-elsif( $subject =~ /join\s+author/i )
+elsif( $subject =~ /new\s?user/i )
 {
-	&add_user( $session, $from, 1 );
-}
-elsif( $subject =~ /join\s+reader/i )
-{
-	&add_user( $session, $from, 0 );
+	&add_user( $session, $from );
 }
 elsif( $subject =~ /change email/i )
 {
@@ -100,8 +95,6 @@ sub add_user
 {
 	my( $session, $email, $is_author ) = @_;
 	
-	my $access_level = $EPrints::User::access_levels[$is_author];
-	
 	# Find user by email
 	my $user = EPrints::User->user_with_email( $session, $email );
 
@@ -113,9 +106,10 @@ sub add_user
 	else
 	{
 		# Not one already, create one
-		$user = EPrints::User->create_user_email( $session,
-		                                          $email,
-		                                          $access_level );
+		$user = EPrints::User->create_user_email(
+			$session,
+			$email,
+			$EPrints::User::access_levels[0] );
 		# If successful, send the introductory mail.
 		$user->send_introduction() if( defined $user );
 	}

@@ -15,4 +15,4 @@ PerlSetVar Auth_DBI_grp_field     groups
 
 PerlSetVar Auth_DBI_encrypted     off
 
-require group Reader Author Staff
+require group User Staff

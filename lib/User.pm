@@ -31,8 +31,7 @@ use strict;
 #
 @EPrints::User::access_levels =
 (
-	"Reader",    # Can subscribe to receive e-mail announcements and summaries
-	"Author",    # Can submit papers
+	"User",      # Can subscribe and submit papers
 	"Staff"      # Can access staff maintanence area
 );
 
@@ -40,7 +39,7 @@ use strict;
 (
 	"username:text::User ID:1:0:0",
 	"passwd:text::Password:1:0:0",
-	"groups:enum:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1];$EPrints::User::access_levels[2],$EPrints::User::access_levels[2]:Access Level:1:0:0",
+	"groups:enum:$EPrints::User::access_levels[0],$EPrints::User::access_levels[0];$EPrints::User::access_levels[1],$EPrints::User::access_levels[1]:Access Level:1:0:0",
 	"joined:date::Date Joined:1:0:0",
 	"email:email::E-Mail Address:1:0:1"
 );
@@ -410,17 +409,12 @@ sub send_introduction
 {
 	my( $self ) = @_;
 
-	# Which template for the mail body?
-	my $file = ( $self->{groups} eq $EPrints::User::access_levels[0] ?
-		$EPrintSite::SiteInfo::template_reader_intro :
-		$EPrintSite::SiteInfo::template_author_intro );
-
 	# Try and send the mail
 	return( EPrints::Mailer->prepare_send_mail(
 		"New $EPrintSite::SiteInfo::sitename $self->{groups}",
 		$self->{email},
 		"Welcome to $EPrintSite::SiteInfo::sitename!",
-		$file,
+		$EPrintSite::SiteInfo::template_user_intro,
 		$self ) );
 }
 

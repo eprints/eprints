@@ -85,8 +85,7 @@ $EPrintSite::SiteInfo::local_perl_root = "$EPrintSite::SiteInfo::local_root/cgi"
 
 # Paths of configuration files
 $EPrintSite::SiteInfo::user_meta_config = "$EPrintSite::SiteInfo::local_root/cfg/metadata.user";
-$EPrintSite::SiteInfo::template_author_intro = "$EPrintSite::SiteInfo::local_root/cfg/template.author-intro";
-$EPrintSite::SiteInfo::template_reader_intro = "$EPrintSite::SiteInfo::local_root/cfg/template.reader-intro";
+$EPrintSite::SiteInfo::template_user_intro = "$EPrintSite::SiteInfo::local_root/cfg/template.user-intro";
 $EPrintSite::SiteInfo::template_fail_reply = "$EPrintSite::SiteInfo::local_root/cfg/template.fail-reply";
 $EPrintSite::SiteInfo::template_fail_user = "$EPrintSite::SiteInfo::local_root/cfg/template.fail-user";
 $EPrintSite::SiteInfo::template_change_email = "$EPrintSite::SiteInfo::local_root/cfg/template.change-email";
@@ -229,8 +228,8 @@ $EPrintSite::SiteInfo::html_banner = "
             <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT.html\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/search\">Search</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/register.html\">Registrations</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/reader/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::server_perl/author/home\">Author\&nbsp;Area</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/subscribe\">Subscriptions</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">Author\&nbsp;Area</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_static/help\">Help</A>
           </td>
         </tr>
