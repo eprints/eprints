@@ -8,6 +8,7 @@
 ######################################################################
 #
 #  13/10/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -175,13 +176,7 @@ sub create_user
 	my $passwd = _generate_password( 6 );
 
 	# And work out the date joined.
-	my @current_time = gmtime( time );
-	
-	my $day = $current_time[3];
-	my $month = $current_time[4]+1;
-	my $year = $current_time[5]+1900;  # MAKE SURE YEAR 2000 OK!!
-
-	my $date_joined = "$year-$month-$day";
+	my $date_joined = EPrints::MetaField->get_datestamp( time );
 
 	# Add the user to the database... e-mail add. is lowercased
 	$session->{database}->add_record( $EPrints::Database::table_user,

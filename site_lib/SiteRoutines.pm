@@ -1,12 +1,13 @@
 ######################################################################
 #
-# Site Specific Routines
+#  Site Specific Routines
 #
-#  Routines for handling operations that will vary from site to site
+#   Routines for handling operations that will vary from site to site
 #
 ######################################################################
 #
-# 06/01/00 - Created by Robert Tansley
+#  06/01/00 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -81,18 +82,23 @@ sub eprint_render_full
 
 ######################################################################
 #
-# $html = eprint_render_citation( $eprint )
+# $citation = eprint_render_citation( $eprint, $html )
 #
-#  Return HTML for rendering an EPrint in a form suitable for a
-#  bibliography
+#  Return text for rendering an EPrint in a form suitable for a
+#  bibliography. If $html is non-zero, HTML formatting tags may be
+#  used. Otherwise, only plain text should be returned.
 #
 ######################################################################
 
 sub eprint_render_citation
 {
-	my( $class, $eprint ) = @_;
+	my( $class, $eprint, $html ) = @_;
 	
-	return( "$eprint->{authors} (<B>$eprint->{year}</B>) $eprint->{title}" );
+	my $bold = ( $html ? "<B>" : "" );
+	my $boldoff = ( $html ? "</B>" : "" );
+	
+	return(
+		"$eprint->{authors} ($bold$eprint->{year}$boldoff) $eprint->{title}" );
 }
 
 

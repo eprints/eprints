@@ -67,6 +67,16 @@ sub new
 	
 	EPrintSite::SiteRoutines->session_init( $self, $offline );
 
+
+	my @params = $self->{render}->{query}->param();
+	
+	foreach (@params)
+	{
+		my @vals = $self->{render}->{query}->param($_);
+		EPrints::Log->debug( "Session", "Param <$_> Values:<".@vals.">" );
+	}
+	
+
 	return( $self );
 }
 

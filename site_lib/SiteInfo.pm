@@ -125,7 +125,7 @@ $EPrintSite::SiteInfo::eprint_id_counter = "$EPrintSite::SiteInfo::local_root/cf
 
 $EPrintSite::SiteInfo::log_path = "$EPrintSite::SiteInfo::local_root/logs";
 
-$EPrintSite::SiteInfo::sendmail = "/usr/lib/sendmail";
+$EPrintSite::SiteInfo::sendmail = "/usr/lib/sendmail -oi -t -odb";
 
 
 @EPrintSite::SiteInfo::supported_archive_formats =
@@ -264,8 +264,10 @@ $EPrintSite::SiteInfo::html_banner = "
           <td align=center valign=top bgcolor=#dddddd fgcolor=white>
 		      <BR>
             <A HREF=\"$EPrintSite::SiteInfo::frontpage\">Home</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"."ROOT\">Browse</A>\&nbsp;<BR><BR>
             <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/search\">Search</A>\&nbsp;<BR><BR>
-            <A HREF=\"$EPrintSite::SiteInfo::frontpage/cgi/author/home\">Author\&nbsp;Area</A>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/reader/subscribe\">Subscribe</A>\&nbsp;<BR><BR>
+            <A HREF=\"$EPrintSite::SiteInfo::server_perl/cgi/author/home\">Author\&nbsp;Area</A>
           </td>
         </tr>
       </table>

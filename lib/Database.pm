@@ -89,7 +89,10 @@ sub new
 	                             $EPrintSite::SiteInfo::database,
 	                             $EPrintSite::SiteInfo::username,
 	                             $EPrintSite::SiteInfo::password,
-	                             { PrintError => 0, AutoCommit => 1 } );
+	                             { PrintError => 1, AutoCommit => 1 } );
+
+
+#	                             { PrintError => 0, AutoCommit => 1 } );
 
 	if( !defined $self->{dbh} )
 	{
@@ -179,6 +182,12 @@ sub create_archive_tables
 	$success = $success && $self->_create_table(
 		$EPrints::Database::table_archive,
 		@eprint_metadata );
+
+
+	# Subscription table
+	$success = $success && $self->_create_table(
+		$EPrints::Database::table_subscription,
+		EPrints::MetaInfo->get_subscription_fields() );
 
 
 	# Subject category table

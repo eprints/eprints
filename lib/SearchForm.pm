@@ -148,6 +148,7 @@ EPrints::Log->debug( "SearchForm", $searchexp->to_string() );
 				{
 					print "<P>".$self->{session}->{render}->render_eprint_citation(
 						$_,
+						1,
 						1 )."</P>\n";
 				}
 			}

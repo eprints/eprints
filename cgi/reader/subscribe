@@ -1,0 +1,247 @@
+######################################################################
+#
+#  Subscription page
+#
+######################################################################
+#
+#  04/04/2000 - Created by Robert Tansley
+#  $Id$
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::EPrint;
+use EPrints::HTMLRender;
+use EPrints::Session;
+use EPrints::Subscription;
+
+use strict;
+
+
+my $session = new EPrints::Session;
+
+my $user = EPrints::User->current_user( $session );
+
+# Check user
+if( !defined $user )
+{
+	# Can't find the user
+	$session->{render}->render_error( "I don't know who you are",
+	                                  $EPrintSite::SiteInfo::frontpage );
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my @all_subs = EPrints::Subscription->subscriptions_for( $session, $user );
+
+EPrints::Log->debug( "subscribe", "Got ".scalar @all_subs." subscriptions for user $user->{username}" );
+
+my $subscription = undef;
+
+$subscription = $all_subs[0] if( scalar @all_subs > 0 );
+
+my $action_subscribe = "Subscribe";
+my $action_create    = "Create a Subscription";
+my $action_remove    = "Remove the Subscription";
+
+# Do we have an action?
+my $action = $session->{render}->param( "submit" );
+
+EPrints::Log->debug( "subscribe", "Action: $action" );
+
+if( $action eq $action_subscribe )
+{
+	# User wants to update subscription info.
+	if( defined $subscription )
+	{
+		my $problems = $subscription->from_form();
+		
+		if( defined $problems )
+		{
+			&edit_subscription( $session, $subscription, $problems );
+		}
+		else
+		{
+			&update_subscription( $session, $subscription );
+		}
+	}
+}
+elsif( $action eq $action_create )
+{
+	# Create a new subscription if necessary
+	if( !defined $subscription )
+	{
+		$subscription = EPrints::Subscription->create( $session,
+		                                               $user->{username} );
+	}
+
+	if( !defined $subscription )
+	{		
+		$session->{render}->render_error(
+			"Unable to create your subscription. The database may be busy. ".
+			"Please try again later, and if the problem persists, contact ".
+			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
+			"administrator</a>.",
+			$EPrintSite::SiteInfo::frontpage,
+			"Return to front page" );
+	}
+	else
+	{
+		&edit_subscription( $session, $subscription, undef );
+	}
+}
+elsif( $action eq $action_remove )
+{
+	# Remove the user's subscription. For now, remove the first in the list
+	# (which should only ever have one in it anyway.)
+	if( defined $subscription )
+	{
+		my $success = $subscription->remove();
+		if( $success )
+		{
+			&no_subscription( $session );
+		}
+		else
+		{
+			$session->{render}->render_error(
+				"Unable to remove your subscription. The database may be busy. ".
+				"Please try again later, and if the problem persists, contact ".
+				"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
+				"administrator</a>.",
+				$EPrintSite::SiteInfo::frontpage,
+				"Return to front page" );
+		}
+	}
+}
+else
+{
+	# Must have come straight here
+
+	# If the user has a subscription, let them edit it, otherwise offer them
+	# the option of creating a subscription
+	if( !defined $subscription )
+	{
+		# No subscription yet
+		&no_subscription( $session );
+	}
+	else
+	{
+		# Let them edit the one they have
+		&edit_subscription(  $session, $subscription, undef );
+	}
+}
+
+$session->terminate();
+
+
+
+######################################################################
+#
+# no_subscription( $session )
+#
+#  Offer the user the chance to create a subscription
+#
+######################################################################
+
+sub no_subscription
+{
+	my( $session ) = @_;
+
+EPrints::Log->debug( "subscribe", "no_subscription" );
+
+	print $session->{render}->start_html( "Subscribe" );
+	
+	print "<CENTER><P>You do not currently have a subscription. Click on the ".
+		"button below to create subscription.</P></CENTER>\n";
+	
+	print $session->{render}->start_form();
+
+	print "<CENTER><P>";	
+	print $session->{render}->submit_buttons( [ $action_create ] );
+	print "</P></CENTER>\n";
+	
+	print $session->{render}->end_form();
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# edit_subscription( $session, $subscription, $problems )
+#
+#  Show the subscription form
+#
+######################################################################
+
+sub edit_subscription
+{
+	my( $session, $subscription, $problems ) = @_;
+
+EPrints::Log->debug( "subscribe", "edit_subscription" );
+
+	print $session->{render}->start_html( "Subscribe" );
+	
+	if( defined $problems )
+	{
+		print "<P>The subscription could not be accepted because:</P>\n<UL>\n";
+		foreach (@$problems)
+		{
+			print "<LI>$_</LI>\n";
+		}
+		print "</UL>\n";
+	}
+
+	print "<CENTER><P>Enter the criteria for your subscription below.</P>".
+		"</CENTER>\n";
+	
+	print $session->{render}->start_form();
+	print $subscription->render_subscription_form();
+
+	print "<CENTER><P>";
+	print $session->{render}->submit_buttons( [ $action_subscribe,
+	                                            $action_remove ] );
+	print "</P></CENTER>\n";
+	print $session->{render}->end_form();
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# update_subscription( $session, $subscription )
+#
+#  Call when subscription has been updated, with no problems. Displays
+#  a message.
+#
+######################################################################
+
+sub update_subscription
+{
+	my( $session, $subscription ) = @_;
+
+	my $success = $subscription->commit();
+
+EPrints::Log->debug( "subscribe", "update_subscription" );
+
+	if( $success )
+	{
+		print $session->{render}->start_html( "Subscribe" );
+		print "<CENTER><P><STRONG>Your subscription has been accepted.</STRONG>".
+			"</P></CENTER>";
+		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::frontpage\">Click ".
+			"here to return to the front page.</P></CENTER>\n";
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		$session->{render}->render_error(
+			"Unable to update your subscription. The database may be busy. ".
+			"Please try again later, and if the problem persists, contact ".
+			"the <a href=\"mailto:$EPrintSite::SiteInfo::admin\">site ".
+			"administrator</a>.",
+			$EPrintSite::SiteInfo::frontpage,
+			"Return to front page" );
+	}
+}

@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use EPrints::Database;
+use EPrints::Session;
+use EPrints::Subscription;
+use EPrints::User;
+
+use strict;
+
+
+# Create offline session
+my $session = new EPrints::Session( 1 );
+
+my @subs = EPrints::Subscription->get_weekly( $session );
+
+foreach (@subs)
+{
+	$_->process();
+}

@@ -7,6 +7,7 @@
 ######################################################################
 #
 # 20/10/99 - Created by Robert Tansley
+# $Id$
 #
 ######################################################################
 
@@ -400,6 +401,58 @@ sub read_fields
 	close( CFG_FILE );
 	
 	return( @fields );
+}
+
+
+######################################################################
+#
+# ( $year, $month, $day ) = get_date( $time )
+#
+#  Static method that returns the given time (in UNIX time, seconds 
+#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
+#
+######################################################################
+
+sub get_date
+{
+	my( $class, $time ) = @_;
+
+	my @date = gmtime( $time );
+	my $day = $date[3];
+	my $month = $date[4]+1;
+	my $year = $date[5]+1900;
+	
+	# Ensure number of digits
+	while( length $day < 2 )
+	{
+		$day = "0".$day;
+	}
+
+	while( length $month < 2 )
+	{
+		$month = "0".$month;
+	}
+
+	return( $year, $month, $day );
+}
+
+
+######################################################################
+#
+# $datestamp = get_datestamp( $time )
+#
+#  Static method that returns the given time (in UNIX time, seconds 
+#  since 1.1.79) in the format used by EPrints and MySQL (YYYY-MM-DD).
+#
+######################################################################
+
+sub get_datestamp
+{
+	my( $class, $time ) = @_;
+
+	my( $year, $month, $day ) = EPrints::MetaField->get_date( $time );
+
+	return( $year."-".$month."-".$day );
 }
 
 1;

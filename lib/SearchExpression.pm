@@ -7,6 +7,7 @@
 ######################################################################
 #
 #  16/03/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -200,11 +201,12 @@ sub render_search_form
 	
 	$html .= "</TABLE></P></CENTER>\n";
 
-	$html .= "<CENTER><P>Retrived records must fulfill ";
+	$html .= "<CENTER><P>Retrieved records must fulfill ";
 	$html .= $self->{session}->{render}->{query}->popup_menu(
 		-name=>"_satisfyall",
 		-values=>[ "ALL", "ANY" ],
-		-default=>"ALL",
+		-default=>( defined $self->{satisfy_all} && $self->{satisfy_all}==0 ?
+			"ANY" : "ALL" ),
 		-labels=>{ "ALL" => "all", "ANY" => "any" } );
 	$html .= " of these conditions.</P></CENTER>\n";
 
@@ -224,7 +226,7 @@ sub render_search_form
 
 ######################################################################
 #
-# @problems = from_form()
+# $problems = from_form()
 #
 #  Update the search fields in this expression from the current HTML
 #  form. Any problems are returned in @problems.
@@ -360,7 +362,7 @@ sub to_string
 
 	# Start with satisfy all
 	my $text_rep = "\[".( defined $self->{satisfy_all} &&
-	                      $self->{satisfy_all}==0 ? "ALL" : "ANY" )."\]";
+	                      $self->{satisfy_all}==0 ? "ANY" : "ALL" )."\]";
 
 	# default order
 	$text_rep .= "\[";
@@ -392,29 +394,34 @@ sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
 	
+EPrints::Log->debug( "SearchExpression", "state_from_string ($text_rep)" );
+
 	# Split everything up
-	my @elements = /(\[[^\]]+\])/, $text_rep;
-	
+	my @elements = ( $text_rep =~ m/\[([^\]]*)\]/g );
+
 	my $satisfyall = shift @elements;
 
 	# Satisfy all?
 	$self->{satisfy_all} = ( defined $satisfyall && $satisfyall eq "ANY" ? 0
-	                                                                     : 1);
+	                                                                     : 1 );
 	
 	# Get the order
 	my $order = shift @elements;
 	$self->{order} = $order if( defined $order && $order ne "" );
 
-	# Get the field values	
+	# Get the field values
 	while( $#elements > 0 )
 	{
 		my $formname = shift @elements;
 		my $value = shift @elements;
 	
 		my $sf = $self->{searchfieldmap}->{$formname};
-		
+EPrints::Log->debug( "SearchExpression", "Eep! $formname not in searchmap!" )
+	if( !defined $sf );
 		$sf->{value} = $value if( defined $sf && defined $value && $value ne "" );
 	}
+
+EPrints::Log->debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
 }
 
 

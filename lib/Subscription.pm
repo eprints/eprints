@@ -7,22 +7,31 @@
 ######################################################################
 #
 #  03/04/2000 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
 package EPrints::Subscription;
 
 use EPrints::Database;
+use EPrints::HTMLRender;
+use EPrints::Mailer;
+use EPrints::MetaField;
 use EPrints::MetaInfo;
+use EPrints::SearchExpression;
+use EPrints::Session;
 use EPrints::User;
 
+use EPrintSite::SiteInfo;
+
+use strict;
 
 @EPrints::Subscription::system_meta_fields =
 (
 	"subid:text::Subscription ID:1:0:0",
 	"username:text::User:1:0:0:1",
 	"spec:text::Specification:1:0:0",
-	"frequency:enum:daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
+	"frequency:enum:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
 );
 
 
@@ -80,14 +89,14 @@ sub new
 	# Get out the search expression
 	$self->{searchexpression} = new EPrints::SearchExpression(
 		$self->{session},
-		$EPrints::Database::table_archive;
+		$EPrints::Database::table_archive,
 		1,
 		\@metafields,
 		\%EPrintSite::SiteInfo::eprint_order_methods,
 		$EPrintSite::SiteInfo::default_eprint_order );
 
 	$self->{searchexpression}->state_from_string( $self->{spec} )
-		if( defined $self->{spec} && $spec ne "" );
+		if( defined $self->{spec} && $self->{spec} ne "" );
 
 	return( $self );
 }
@@ -125,13 +134,13 @@ sub create
 
 ######################################################################
 #
-# $id = _generate_id( $session, $username )
+# $id = _generate_subid( $session, $username )
 #
 #  Generate an ID for a new subscription
 #
 ######################################################################
 
-sub _generate_id
+sub _generate_subid
 {
 	my( $session, $username ) = @_;
 	
@@ -196,7 +205,7 @@ sub render_subscription_form
 {
 	my( $self ) = @_;
 	
-	my $html = $self->{searchexp}->render_search_form( 1 ) );
+	my $html = $self->{searchexpression}->render_search_form( 1 );
 	my @all_fields = EPrints::MetaInfo->get_subscription_fields;
 	
 	$html .= "<CENTER><P>Send updates: ";
@@ -211,7 +220,7 @@ sub render_subscription_form
 
 ######################################################################
 #
-# @problems = from_form()
+# $problems = from_form()
 #
 #  Update the subscription from the form. Any problems returned as
 #  text descriptions in an array.
@@ -226,7 +235,7 @@ sub from_form
 	$self->{frequency} = $self->{session}->{render}->form_value(
 		 EPrints::MetaInfo->find_field( \@all_fields, "frequency" ) );
 
-	return( $self->{searchexp}->from_form() );
+	return( $self->{searchexpression}->from_form() );
 }
 
 
@@ -257,11 +266,251 @@ sub commit
 	
 	return( $self->{session}->{database}->update(
 		$EPrints::Database::table_subscription,
-		$key_field->{name};
+		$key_field->{name},
 		$self->{$key_field->{name}},
 		\@data ) );
 }
 	
+
+######################################################################
+#
+# @subscriptions = subscriptions_for( $session, $user )
+#
+#  Find subscriptions for the given user
+#
+######################################################################
+
+sub subscriptions_for
+{
+	my( $class, $session, $user ) = @_;
+	
+	my @subscriptions;
+	
+	my @sub_fields = EPrints::MetaInfo->get_subscription_fields();
+
+	my $rows = $session->{database}->retrieve_fields(
+		$EPrints::Database::table_subscription,
+		\@sub_fields,
+		[ "username LIKE \"$user->{username}\"" ] );
+	
+	foreach (@$rows)
+	{
+		push @subscriptions, new EPrints::Subscription( $session, undef, $_ );
+	}
+	
+	return( @subscriptions );
+}
+
+
+######################################################################
+#
+# @subscriptions = subscriptions_for_frequency( $session, $frequency )
+#
+#  Returns subscriptions for the given frequency (daily, weekly or
+#  monthly).
+#
+######################################################################
+
+sub subscriptions_for_frequency
+{
+	my( $class, $session, $frequency ) = @_;
+	
+	my @subscriptions;
+	
+	my @sub_fields = EPrints::MetaInfo->get_subscription_fields();
+
+	my $rows = $session->{database}->retrieve_fields(
+		$EPrints::Database::table_subscription,
+		\@sub_fields,
+		[ "frequency LIKE \"$frequency\"" ] );
+	
+	foreach (@$rows)
+	{
+		push @subscriptions, new EPrints::Subscription( $session, undef, $_ );
+	}
+	
+	return( @subscriptions );
+}
+		
+
+######################################################################
+#
+# @subscriptions = get_daily( $session )
+#
+#  Returns daily subscriptions.
+#
+######################################################################
+
+sub get_daily
+{
+	my( $class, $session ) = @_;
+	
+	return( EPrints::Subscription->subscriptions_for_frequency( $session,
+	                                                            "daily" ) );
+}
+
+
+######################################################################
+#
+# @subscriptions = get_weekly( $session )
+#
+#  Returns weekly subscriptions.
+#
+######################################################################
+
+sub get_weekly
+{
+	my( $class, $session ) = @_;
+	
+	return( EPrints::Subscription->subscriptions_for_frequency( $session,
+	                                                            "weekly" ) );
+}
+
+
+######################################################################
+#
+# @subscriptions = get_monthly( $session )
+#
+#  Returns monthly subscriptions.
+#
+######################################################################
+
+sub get_monthly
+{
+	my( $class, $session ) = @_;
+	
+	return( EPrints::Subscription->subscriptions_for_frequency( $session,
+	                                                            "monthly" ) );
+}
+
+
+######################################################################
+#
+# $success = process()
+#
+#  Process the subscription. This will always result in a mail being
+#  sent, and thus should only be invoked at appropriate intervals.
+#
+#  Daily subscriptions: everything dated yesterday will be sent.
+#  Weekly: everything in the previous week (not including current day.)
+#  Monthly: everything in the previous month (not including current day.)
+#
+#  Current day's submissions are not included, since more might be
+#  received in the same day, so in the next processing, we won't know
+#  which have been sent to the user and which haven't.
+#
+######################################################################
+
+sub process
+{
+	my( $self ) = @_;
+	
+	# Get the user
+	my $user = new EPrints::User( $self->{session}, $self->{username} );
+	
+	unless( defined $user )
+	{
+		EPrints::Log->log_entry(
+			"Subscription",
+			"Couldn't open user record for user $self->{username} (sub ID ".
+				"$self->{subid})" );
+		return( 0 );
+	}
+
+	# Get the search expression and frequency
+	my $se = $self->{searchexpression};
+	my $freq = $self->{frequency};
+	$freq = "never" if( !defined $freq );
+
+	# Get the datestamp field
+	my $ds_field = EPrints::MetaInfo->find_eprint_field( "datestamp" );
+
+	# Get the date for yesterday
+	my $yesterday = EPrints::MetaField->get_datestamp( time - (24*60*60) );
+
+	# Update the search expression to search the relevant time period
+	if( $freq eq "daily" )
+	{
+		# Get from the last day
+		$se->add_field( $ds_field, $yesterday );
+	}
+	elsif( $freq eq "weekly" )
+	{
+		# Work out date a week ago
+		my $last_week = EPrints::MetaField->get_datestamp( time - (7*24*60*60) );
+
+		# Get from the last week
+		$se->add_field( $ds_field, "$last_week-$yesterday" );
+	}
+	elsif( $freq eq "monthly" )
+	{
+		# Get today's date
+		my( $year, $month, $day ) = EPrints::MetaField->get_date( time );
+		# Substract a month		
+		$month--;
+
+		# Check for year "wrap"
+		if( $month==0 )
+		{
+			$month = 12;
+			$year--;
+		}
+		
+		# Ensure two digits in month
+		while( length $month < 2 )
+		{
+			$month = "0".$month;
+		}
+		
+		# Add the field searching for stuff from a month ago to yesterday.
+		$se->add_field( $ds_field, "$year-$month-$day-$yesterday" );
+	}
+
+	my $success = 0;
+	
+	# If the subscription is active, send it off
+	unless( $freq eq "never" )
+	{
+		my @eprints = $se->do_eprint_search();
+		
+		# Don't send a mail if we've retrieved nothing
+		return( 1 ) if( scalar @eprints == 0 );
+
+		# Put together the body of the message. First some blurb:
+		my $body = "This mail contains your $freq subscription to ".
+			"$EPrintSite::SiteInfo::sitename.\n\nTo cancel, temporarily disable ".
+			"or alter your subscription, visit the following Web page:\n\n".
+			"$EPrintSite::SiteInfo::server_perl/cgi/reader/subscribe\n\n";
+		
+		# Then how many we got
+		$body .= "                              ==========\n\n";
+		$body .= "   ".scalar @eprints." new submission";
+		$body .= ( scalar @eprints==1 ? " was" : "s were" );
+		$body .= " received.\n\n\n";
+		
+		# Then citations, with links to appropriate pages.
+		foreach (@eprints)
+		{
+			$body .= $self->{session}->{render}->render_eprint_citation(
+				$_, 0, 0 );
+			$body .= "\n\n".$_->static_page_url()."\n\n\n";
+		}
+		
+		# Send the mail.
+		$success = EPrints::Mailer->send_mail( $user->full_name(),
+		                                       $user->{email},
+		                                       "Subscription",
+		                                       $body );
+		unless( $success )
+		{
+			EPrints::Log->log_entry(
+				"Subscription",
+				"Failed to send subscription to user $user->{username}: $!" );
+		}
+	}
+		
+	return( $success );
+}
 
 
 1;

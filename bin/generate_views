@@ -77,7 +77,7 @@ sub write_subject_view
 	foreach (@eprints)
 	{
 		print OUT "<P>";
-		print OUT $session->{render}->render_eprint_citation( $_, 1 );
+		print OUT $session->{render}->render_eprint_citation( $_, 1, 1 );
 		print OUT "</P>\n";
 	}
 	

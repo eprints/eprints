@@ -1,4 +1,4 @@
-AuthName "EPrints Staff Maintanence Area"
+AuthName "Staff Area"
 AuthType Basic
 
 PerlAuthenHandler Apache::AuthDBI::authen

@@ -25,6 +25,7 @@ use EPrints::MetaField;
 use EPrints::Document;
 use EPrints::Log;
 use EPrints::Subject;
+use EPrints::Subscription;
 
 use EPrintSite::SiteInfo;
 
@@ -301,10 +302,10 @@ sub get_subject_fields
 #
 ######################################################################
 
-sub get_subject_fields
+sub get_subscription_fields
 {
 	# Ensure we've read in the metadata fields
-	read_meta_fields if( $#subscription_fields == -1 );
+	read_meta_fields if( $#subscription_meta_fields == -1 );
 
 	return( @subscription_meta_fields );
 }
@@ -464,7 +465,7 @@ sub find_field
 
 sub find_eprint_field
 {
-	my ( $class, $field_name ) = @_;
+	my( $class, $field_name ) = @_;
 	
 	# Ensure we've read in the metadata fields
 	read_meta_fields if( $#eprint_meta_fields == -1 );

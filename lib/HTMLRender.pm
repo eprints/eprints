@@ -18,7 +18,7 @@ use EPrints::Name;
 use EPrintSite::SiteInfo;
 
 use strict;
-use CGI;
+use CGI::Apache;
 
 
 # Width of text fields
@@ -90,11 +90,11 @@ sub new
 	if( $offline )
 	{
 		$self->{offline} = 1;
-		$self->{query} = new CGI( {} );
+		$self->{query} = new CGI::Apache( {} );
 	}
 	else
 	{
-		$self->{query} = CGI->new();
+		$self->{query} = new CGI::Apache();
 	}
 	
 	$self->{session} = $session;
@@ -1134,25 +1134,28 @@ sub render_eprint_full
 
 ######################################################################
 #
-# $html = render_eprint_citation( $eprint, $linked )
+# $citation = render_eprint_citation( $eprint, $html, $linked )
 #
-#  Render a citation for the given EPrint. If $linked is non-zero,
-#  the citation will be rendered within a link to the static page.
+#  Render a citation for the given EPrint. If $html is non-zero, the 
+#  citation will be rendered in HTML, otherwise it will just be plain
+#  text. If $linked and $html are non-zero, the citation will be
+#  rendered as a link to the static page.
 #
 ######################################################################
 
 sub render_eprint_citation
 {
-	my( $self, $eprint, $linked ) = @_;
+	my( $self, $eprint, $html, $linked ) = @_;
 	
-	my $html = EPrintSite::SiteRoutines->eprint_render_citation( $eprint );
+	my $citation = EPrintSite::SiteRoutines->eprint_render_citation( $eprint,
+	                                                                 $html );
 	
-	if( $linked )
+	if( $html && $linked )
 	{
-		$html = "<A HREF=\"".$eprint->static_page_url()."\">$html</A>";
+		$citation = "<A HREF=\"".$eprint->static_page_url()."\">$citation</A>";
 	}
 	
-	return( $html );
+	return( $citation );
 }
 
 

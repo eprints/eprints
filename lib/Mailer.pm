@@ -1,12 +1,13 @@
 ######################################################################
 #
-# EPrints E-Mail module
+#  EPrints E-Mail module
 #
-#  Provides e-mail services
+#   Provides e-mail services
 #
 ######################################################################
 #
-# 09/11/99 - Created by Robert Tansley
+#  09/11/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -31,7 +32,7 @@ sub send_mail
 {
 	my( $class, $name, $address, $subject, $body ) = @_;
 
-	open( SENDMAIL, "|$EPrintSite::SiteInfo::sendmail -oi -t -odb" )
+	open( SENDMAIL, "|$EPrintSite::SiteInfo::sendmail" )
 		or return( 0 );
 
 	print SENDMAIL <<"EOF";

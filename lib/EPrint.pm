@@ -7,6 +7,7 @@
 ######################################################################
 #
 #  17/11/99 - Created by Robert Tansley
+#  $Id$
 #
 ######################################################################
 
@@ -340,7 +341,7 @@ sub retrieve_eprints
                                                      $conditions,
                                                      $order );
 
-EPrints::Log->debug( "EPrint", "Making EPrint objects" );
+EPrints::Log->debug( "EPrint", "Making ".scalar @$rows." EPrint objects" );
 
 	my $r;
 	my @eprints;
@@ -1016,24 +1017,8 @@ sub submit
 sub datestamp
 {
 	my( $self ) = @_;
-	
-	my @date = gmtime( time );
-	my $day = $date[3];
-	my $month = $date[4]+1;
-	my $year = $date[5]+1900;
-	
-	# Ensure number of digits
-	while( length $day < 2 )
-	{
-		$day = " ".$day;
-	}
 
-	while( length $day < 2 )
-	{
-		$month = " ".$month;
-	}
-
-	$self->{datestamp} = $year."-".$month."-".$day;
+	$self->{datestamp} = EPrints::MetaField->get_datestamp( time );
 }
 
 
