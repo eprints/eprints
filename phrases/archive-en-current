@@ -293,16 +293,19 @@ that distributing these files or metadata may entail.</p>
 terms.</p>
     </phrase>
 
-    <phrase ref="page_fulltext">Full text available as:</phrase>
-    <phrase ref="page_abstract">Abstract</phrase>
-    <phrase ref="page_deposited_by">Deposited By</phrase>
-    <phrase ref="page_deposited_on">Deposited On</phrase>
-    <phrase ref="page_id_code">ID Code</phrase>
-    <phrase ref="page_invalid_user">INVALID USER</phrase>
-    <phrase ref="page_latest_version"><p><em>This is the latest version of this eprint.</em></p></phrase>
-    <phrase ref="page_not_latest_version"><p class="notice">There is a more recent version of this eprint available. <pin ref="link">Click here to view it.</pin></p></phrase>
-    <phrase ref="page_available_versions"><h3>Available Versions of this Item</h3></phrase>
-    <phrase ref="page_commentary_threads"><h3>Commentary/Response Threads</h3></phrase>
+    <phrase ref="page:fulltext">Full text available as:</phrase>
+    <phrase ref="page:abstract">Abstract</phrase>
+    <phrase ref="page:deposited_by">Deposited By</phrase>
+    <phrase ref="page:deposited_on">Deposited On</phrase>
+    <phrase ref="page:id_code">ID Code</phrase>
+    <phrase ref="page:invalid_user">INVALID USER</phrase>
+    <phrase ref="page:latest_version"><p><em>This is the latest version of this eprint.</em></p></phrase>
+    <phrase ref="page:not_latest_version"><p class="notice">There is a more recent version of this eprint available. <pin ref="link">Click here to view it.</pin></p></phrase>
+    <phrase ref="page:available_versions"><h3>Available Versions of this Item</h3></phrase>
+    <phrase ref="page:commentary_threads"><h3>Commentary/Response Threads</h3></phrase>
+
+    <phrase ref="validate:missing_http">The URL given for <pin ref="fieldname" /> is invalid. Did you include the initial <strong>http://</strong>?</phrase>
+    <phrase ref="validate:need_description">Documents of type <em><pin ref="type" /></em> need a description.</phrase>
 
     <phrase ref="mail_password_pin">
 

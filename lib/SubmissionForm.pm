@@ -76,6 +76,7 @@ sub new
 	$self->{staff} = $staff;
 	$self->{dataset} = $dataset;
 	$self->{formtarget} = $formtarget;
+	$self->{for_archive} = $staff;
 
 	return( $self );
 }
@@ -372,7 +373,7 @@ sub _from_stage_type
 
 	if( $self->{action} eq "next" )
 	{
-		$self->{problems} = $self->{eprint}->validate_type();
+		$self->{problems} = $self->{eprint}->validate_type( $self->{for_archive} );
 		if( scalar @{$self->{problems}} > 0 )
 		{
 			# There were problems with the uploaded type, 
@@ -419,7 +420,7 @@ sub _from_stage_linking
 
 	if( $self->{action} eq "next" )
 	{
-		$self->{problems} = $self->{eprint}->validate_linking();
+		$self->{problems} = $self->{eprint}->validate_linking( $self->{for_archive} );
 
 		if( scalar @{$self->{problems}} > 0 )
 		{
@@ -487,7 +488,7 @@ sub _from_stage_meta
 	if( $self->{action} eq "next" )
 	{
 		# validation checks
-		$self->{problems} = $self->{eprint}->validate_meta();
+		$self->{problems} = $self->{eprint}->validate_meta( $self->{for_archive} );
 
 		if( scalar @{$self->{problems}} > 0 )
 		{
@@ -547,7 +548,7 @@ sub _from_stage_files
 
 	if( $self->{action} eq "finished" )
 	{
-		$self->{problems} = $self->{eprint}->validate_documents();
+		$self->{problems} = $self->{eprint}->validate_documents( $self->{for_archive} );
 
 		if( $#{$self->{problems}} >= 0 )
 		{
@@ -716,7 +717,7 @@ sub _from_stage_fileview
 	if( $self->{action} eq "finished" )
 	{
 		# Finished uploading apparently. Validate.
-		$self->{problems} = $self->{document}->validate();
+		$self->{problems} = $self->{document}->validate( $self->{for_archive} );
 			
 		if( $#{$self->{problems}} >= 0 )
 		{
@@ -851,7 +852,7 @@ sub _from_stage_verify
 	if( $self->{action} eq "submit" )
 	{
 		# Do the commit to the archive thang. One last check...
-		my $problems = $self->{eprint}->validate_full();
+		my $problems = $self->{eprint}->validate_full( $self->{for_archive} );
 		
 		if( scalar @{$problems} == 0 )
 		{
@@ -1121,7 +1122,7 @@ sub _do_stage_files
 	# Validate again, so we know what buttons to put up and how 
 	# to state stuff
 	$self->{eprint}->prune_documents(); 
-	my $probs = $self->{eprint}->validate_documents();
+	my $probs = $self->{eprint}->validate_documents( $self->{for_archive} );
 
 	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
 	{
@@ -1556,7 +1557,7 @@ sub _do_stage_verify
 	$self->{eprint}->prune();
 	$self->{eprint}->commit();
 	# Validate again, in case we came from home
-	$self->{problems} = $self->{eprint}->validate_full();
+	$self->{problems} = $self->{eprint}->validate_full( $self->{for_archive} );
 
 	my( $page, $p );
 	$page = $self->{session}->make_doc_fragment();

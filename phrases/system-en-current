@@ -24,7 +24,6 @@ EPrints Modules
 
     <phrase ref="lib/document:no_files">You haven't uploaded any files!</phrase>
     <phrase ref="lib/document:no_first">You need to select a file to be shown first.</phrase>
-    <phrase ref="lib/document:no_desc">You need to supply a description of the document format you've updated, e.g. Microsoft Word version 6.0</phrase>
 
 <!-- EPrint -->
 
@@ -54,7 +53,7 @@ EPrints Modules
     <phrase ref="lib/metafield:family_names">Family Name(s)</phrase>
     <phrase ref="lib/metafield:given_names">Given Name(s)/Initials</phrase>
     <phrase ref="lib/metafield:lineage">Lineage</phrase>
-    <phrase ref="lib/metafield:honourific">Honourific</phrase>
+    <phrase ref="lib/metafield:honourific">Title</phrase>
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>
     <phrase ref="lib/metafield:more_langs">More Languages</phrase>
     <phrase ref="lib/metafield:unspecified">UNSPECIFIED</phrase>
@@ -155,7 +154,7 @@ EPrints Modules
     <phrase ref="lib/submissionform:size_bytes">Size (Bytes)</phrase>
     <phrase ref="lib/submissionform:shown_first">Shown First</phrase>
     <phrase ref="lib/submissionform:show_first">Show first</phrase>
-    <phrase ref="lib/submissionform:action_next">Néxt &gt;</phrase>
+    <phrase ref="lib/submissionform:action_next">Next &gt;</phrase>
     <phrase ref="lib/submissionform:action_prev">&lt; Back</phrase>
     <phrase ref="lib/submissionform:action_cancel">Cancel</phrase>
     <phrase ref="lib/submissionform:action_confirm">Confirm</phrase>

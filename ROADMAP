@@ -106,7 +106,7 @@
 0	Keywords field appears in META keywords for search engines
 0 	Clean up phrase file - nice and non-ambiguous.
 0	remove all #cjg comments which denote issues.
-3	Multipage search (cache code)
+4	Multipage search (cache code)
 0	Multipage views
 -	"Suckable" views for adding to external pages (eg. Staff CV/Resumes)
 0	Other output charsets than UTF-8?
@@ -159,7 +159,8 @@
 #         .....Appears to just push first button!
 #	Fix "upload then back" bug
 #	Status search field buggered
-#	 FIX installer - phrases don't work! some dirs are wrong # 	what about a default disk0 dir?
+#	 FIX installer - phrases don't work! some dirs are wrong ...done
+#        	what about a default disk0 dir?
 #	directory listing on perl dir is showing and should be hidden.
 
 #Clean UP
@@ -169,9 +170,8 @@
 #	Put System field titles in system phrase file.
 #	rationalise names of cgi and bin scripts ? 
 #	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
-#	Not everything should be no-cache!
+#	Not everything should be no-cache! (HTTP header)
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
-#	 remove non system editor filter
 #	Named values in Constructors all round?
 #	subject label cache - scrap it or fix it?
 #	cmp methods : is they still needed?
@@ -179,9 +179,10 @@
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 #	paged searches are not very neat(understatement!)Q
 #	What type for ordervalues? Something which keeps memory use down...
+#	Does required flag still do anything in MetaField conf?
 
 #TODO
-#	Clean up validators - Don't validate records with fields which have bad langids including user validate.
+#	langid's -> validate they is correct (in multilang)
 #	Make all possible field-types browseable.
 #	Threads rendering code.
 #	"Squash" reverse indexes?

@@ -231,36 +231,39 @@ sub validate
 
 	my @all_problems;
 	my $user_ds = $self->{session}->get_archive()->get_dataset( "user" );
-	my @rfields = $user_ds->get_required_type_fields();
+	my @rfields = $user_ds->get_required_type_fields( $self->get_value( "usertype" ) );
 	my @all_fields = $user_ds->get_fields();
 
+	print STDERR "+".$self->get_value( "usertype" )."\n";
 	my $field;
 	foreach $field ( @rfields )
 	{
 		# Check that the field is filled in if it is required
+	print STDERR "-".$field->get_name() ."\n";
 		if( !$self->is_set( $field->get_name() ) )
 		{
 			push @all_problems, 
-			  $self->{session}->phrase( 
+			  $self->{session}->html_phrase( 
 			   "lib/user:missed_field", 
-			   field => $field->display_name( $self->{session} ) );
+			   field => $self->{session}->make_text( $field->display_name( $self->{session} ) ) );
 		}
 	}
 
 	# Give the validation module a go
 	foreach $field ( @all_fields )
 	{
-		my $problem = $self->{session}->get_archive()->call(
-			"validate_user_field",
+		push @all_problems, $self->{session}->get_archive()->call(
+			"validate_field",
 			$field,
 			$self->get_value( $field->get_name() ),
-			$self->{session} );
-
-		if( defined $problem && $problem ne "" )
-		{
-			push @all_problems, $problem;
-		}
+			$self->{session},
+			0 );
 	}
+
+	push @all_problems, $self->{session}->get_archive()->call(
+			"validate_user",
+			$self,
+			$self->{session} );
 
 	return( \@all_problems );
 }
@@ -368,18 +371,8 @@ sub set_value
 sub is_set
 {
 	my( $self ,  $fieldname ) = @_;
-
-	if( !defined $self->{data}->{$fieldname} )
-	{
-		return 0;
-	}
-
-	if( $self->{data}->{$fieldname} eq "" )
-	{
-		return 0;
-	}
-
-	return 1;
+#cjg Is this sub extraneous? or should EPrint etc have it too?
+	return EPrints::Utils::is_set( $self->{data}->{$fieldname} );
 }
 
 sub has_priv

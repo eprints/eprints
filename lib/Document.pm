@@ -49,7 +49,7 @@ sub get_system_field_info
 
 		{ name=>"format", type=>"datatype", required=>1, datasetid=>"document" },
 
-		{ name=>"formatdesc", type=>"text", required=>1 },
+		{ name=>"formatdesc", type=>"text" },
 
 		{ name=>"language", type=>"datatype", required=>1, datasetid=>"language" },
 
@@ -914,7 +914,7 @@ sub render_desc
 
 sub validate
 {
-	my( $self ) = @_;
+	my( $self, $for_archive ) = @_;
 
 	my @problems;
 	
@@ -932,11 +932,12 @@ sub validate
 		push @problems, $self->{session}->html_phrase( "lib/document:no_first" );
 	}
 		
-	#push @problems, $self->{session}->html_phrase( "lib/document:no_desc" );
-	# cjg Deprecated no_desc OR make some formats require a description.
-		
 	# Site-specific checks
-	$self->{session}->get_archive()->call( "validate_document", $self, \@problems );
+	push @problems, $self->{session}->get_archive()->call( 
+		"validate_document", 
+		$self, 
+		$self->{session},
+		$for_archive );
 
 	return( \@problems );
 }

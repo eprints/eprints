@@ -295,7 +295,7 @@
       <field name="usertype" staffonly="yes"/>
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
-      <field name="name" />
+      <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
@@ -308,7 +308,7 @@
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
-      <field name="name" />
+      <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />
@@ -322,7 +322,7 @@
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes" />
       <field name="email" staffonly="yes" />
-      <field name="name" />
+      <field name="name" required="yes" />
       <field name="dept" />
       <field name="org" />
       <field name="address" />

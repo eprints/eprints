@@ -111,14 +111,14 @@ sub process
 		foreach $problem (@$problems)
 		{
 			$li = $self->{session}->make_element( "li" );
-			$li->appendChild( 
-				$self->{session}->make_text( $problem ) );
+			$li->appendChild( $problem );
 			$ul->appendChild( $li );
 		}
 		$page->appendChild( $ul );
 
 		$page->appendChild( 
 			$self->{session}->html_phrase( "lib/userform:complete_form" ) );
+		$page->appendChild( $self->{session}->render_ruler() );
 	
 		$page->appendChild( $self->_render_user_form() );
 

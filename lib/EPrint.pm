@@ -460,17 +460,11 @@ sub commit
 
 
 ######################################################################
-#
-# $problems = validate_type
-# array_ref
-#
-#  Make sure that the type field is OK.
-#
 ######################################################################
 
 sub validate_type
 {
-	my( $self ) = @_;
+	my( $self, $for_archive ) = @_;
 	
 	my @problems;
 
@@ -486,70 +480,18 @@ sub validate_type
 		push @problems, $self->{session}->html_phrase( 
 					"lib/eprint:invalid_type" );
 	}
-	
+
+	my $field = $self->{dataset}->get_field( "type" );
+
+	push @problems, $self->{session}->get_archive()->call(
+				"validate_field",
+				$field,
+				$self->get_value( $field->get_name() ),
+				$self->{session},
+				$for_archive );
+
 	return( \@problems );
 }
-
-
-
-######################################################################
-#
-# @problems = validate_meta()
-#  array_ref
-#
-#  Validate the metadata in this EPrint, returning a hash of any
-#  problems found (fieldname->problem).
-#
-######################################################################
-
-## WP1: BAD
-sub validate_meta
-{
-	my( $self ) = @_;
-	
-	my @all_problems;
-	my @r_fields = $self->{dataset}->get_required_type_fields( $self->get_value("type") );
-	my @all_fields = $self->{dataset}->get_fields();
-
-	my $field;
-	foreach $field (@r_fields)
-	{
-##print STDERR "REQ?: $field->{name}\n";
-#print STDERR "====: ".$self->get_value( $field->{name} )."\n";
-		# Check that the field is filled in if it is required
-		next if ( defined $self->get_value( $field->{name} ) );
-
-		my $problem = $self->{session}->html_phrase( 
-			"lib/eprint:not_done_field" ,
-			fieldname=> $self->{session}->make_text( 
-			   $field->display_name( $self->{session} ) ) );
-		push @all_problems,$problem;
-	}
-
-	# Give the site validation module a go
-	foreach $field (@all_fields)
-	{
-		my $problem = $self->{session}->get_archive()->call(
-			"validate_eprint_field",
-			$field,
-			$self->get_value( $field->{name} ) );
-		if( defined $problem )
-		{
-			push @all_problems,$problem;
-		}
-	}
-
-	# Site validation routine for eprint metadata as a whole:
-	$self->{session}->get_archive()->call(
-		"validate_eprint_meta",
-		$self, 
-		\@all_problems );
-
-	return( \@all_problems );
-}
-	
-
-	
 
 
 ######################################################################
@@ -559,10 +501,9 @@ sub validate_meta
 #
 ######################################################################
 
-## WP1: BAD
 sub validate_linking
 {
-	my( $self ) = @_;
+	my( $self, $for_archive ) = @_;
 
 	my @problems;
 	
@@ -570,6 +511,13 @@ sub validate_linking
 	foreach $field_id ( "succeeds", "commentary" )
 	{
 		my $field = $self->{dataset}->get_field( $field_id );
+	
+		push @problems, $self->{session}->get_archive()->call(
+					"validate_field",
+					$field,
+					$self->get_value( $field->get_name() ),
+					$self->{session},
+					$for_archive );
 
 		next unless( defined $self->get_value( $field_id ) );
 
@@ -604,43 +552,67 @@ sub validate_linking
 			}
 		}
 	}
+
 	
 	return( \@problems );
 }
 
 
 
-
 ######################################################################
 #
-# @documents = get_all_documents()
+# @problems = validate_meta()
+#  array_ref
 #
-#  Return all documents associated with the EPrint.
+#  Validate the metadata in this EPrint, returning a hash of any
+#  problems found (fieldname->problem).
 #
 ######################################################################
 
-## WP1: BAD
-sub get_all_documents
+sub validate_meta
 {
-	my( $self ) = @_;
+	my( $self, $for_archive ) = @_;
+	
+	my @all_problems;
+	my @req_fields = $self->{dataset}->get_required_type_fields( $self->get_value("type") );
+	my @all_fields = $self->{dataset}->get_fields();
 
-	my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
+	# For all required fields...
+	my $field;
+	foreach $field (@req_fields)
+	{
+		# Check that the field is filled 
+		next if ( defined $self->get_value( $field->get_name() ) );
 
-	my $searchexp = EPrints::SearchExpression->new(
-		session=>$self->{session},
-		dataset=>$doc_ds );
+		my $problem = $self->{session}->html_phrase( 
+			"lib/eprint:not_done_field" ,
+			fieldname=> $self->{session}->make_text( 
+			   $field->display_name( $self->{session} ) ) );
 
-	$searchexp->add_field(
-		$doc_ds->get_field( "eprintid" ),
-		"PHR:EQ:".$self->get_value( "eprintid" ) );
+		push @all_problems,$problem;
+	}
 
-	my $searchid = $searchexp->perform_search();
-	my @documents = $searchexp->get_records();
-	$searchexp->dispose();
+	# Give the site validation module a go
+	foreach $field (@all_fields)
+	{
+		push @all_problems, $self->{session}->get_archive()->call(
+			"validate_field",
+			$field,
+			$self->get_value( $field->{name} ),
+			$self->{session},
+			$for_archive );
+	}
 
-	return( @documents );
+	# Site validation routine for eprint metadata as a whole:
+	push @all_problems, $self->{session}->get_archive()->call(
+		"validate_eprint_meta",
+		$self, 
+		$self->{session},
+		$for_archive );
+
+	return( \@all_problems );
 }
-
+	
 
 ######################################################################
 #
@@ -651,10 +623,9 @@ sub get_all_documents
 #
 ######################################################################
 
-## WP1: BAD
 sub validate_documents
 {
-	my( $self ) = @_;
+	my( $self, $for_archive ) = @_;
 	my @problems;
 	
         my @req_formats = @{$self->{session}->get_archive()->get_conf( "required_formats" )};
@@ -694,7 +665,7 @@ sub validate_documents
 
 	foreach $doc (@docs)
 	{
-		my $probs = $doc->validate();
+		my $probs = $doc->validate( $for_archive );
 		foreach (@$probs)
 		{
 			my $prob = $self->{session}->make_doc_fragment();
@@ -717,30 +688,33 @@ sub validate_documents
 #
 ######################################################################
 
-## WP1: BAD
 sub validate_full
 {
-	my( $self ) = @_;
+	my( $self , $for_archive ) = @_;
 	
 	my @problems;
 
 	# Firstly, all the previous checks, just to be certain... it's possible
 	# that some problems remain, but the user is submitting direct from
 	# the author home.	
-	my $probs = $self->validate_type();
+	my $probs = $self->validate_type( $for_archive );
 	push @problems, @$probs;
 
-	$probs = $self->validate_linking();
+	$probs = $self->validate_linking( $for_archive );
 	push @problems, @$probs;
 
-	$probs = $self->validate_meta();
+	$probs = $self->validate_meta( $for_archive );
 	push @problems, @$probs;
 
-	$probs = $self->validate_documents();
+	$probs = $self->validate_documents( $for_archive );
 	push @problems, @$probs;
 
 	# Now give the site specific stuff one last chance to have a gander.
-	$self->{session}->get_archive()->call( "validate_eprint", $self, \@problems );
+	push @problems, $self->{session}->get_archive()->call( 
+			"validate_eprint", 
+			$self,
+			$self->{session},
+			$for_archive );
 
 	return( \@problems );
 }
@@ -771,6 +745,36 @@ sub prune_documents
 	}
 }
 
+
+######################################################################
+#
+# @documents = get_all_documents()
+#
+#  Return all documents associated with the EPrint.
+#
+######################################################################
+
+## WP1: BAD
+sub get_all_documents
+{
+	my( $self ) = @_;
+
+	my $doc_ds = $self->{session}->get_archive()->get_dataset( "document" );
+
+	my $searchexp = EPrints::SearchExpression->new(
+		session=>$self->{session},
+		dataset=>$doc_ds );
+
+	$searchexp->add_field(
+		$doc_ds->get_field( "eprintid" ),
+		"PHR:EQ:".$self->get_value( "eprintid" ) );
+
+	my $searchid = $searchexp->perform_search();
+	my @documents = $searchexp->get_records();
+	$searchexp->dispose();
+
+	return( @documents );
+}
 
 ######################################################################
 #

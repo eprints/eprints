@@ -431,9 +431,8 @@ $c->{archivefields}->{user} = [
 
 	{ name => "country", type => "text" },
 
-	{ name => "url", type => "url" },
+	{ name => "url", type => "url" }
 
-	{ name => "filter", type => "subject", showall => 1, multiple => 1 }
 ];
 
 if( $CJGDEBUG ) {
@@ -965,7 +964,7 @@ sub eprint_render_short_title
 	{
 		#cjg LANGIT!
 		return $eprint->get_session()->make_text( 
-			"Untitled (ID: ".$eprint->get_value( "eprintid" ).")" );
+			"Untitled ".$eprint->get_value( "eprintid" ) );
 	}
 
 	return( $eprint->render_value( "title" ) );
@@ -1008,12 +1007,12 @@ sub eprint_render
 		if( $latest->get_value( "eprintid" ) == $eprint->get_value( "eprintid" ) )
 		{
 			$page->appendChild( $session->html_phrase( 
-						"page_latest_version" ) );
+						"page:latest_version" ) );
 		}
 		else
 		{
 			$page->appendChild( $session->html_phrase( 
-				"page_not_latest_version",
+				"page:not_latest_version",
 				link => $session->make_element(
 					"a",
 					href => $latest->static_page_url() 
@@ -1025,7 +1024,7 @@ sub eprint_render
 	my @documents = $eprint->get_all_documents();
 
 	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "page_fulltext" ) );
+	$p->appendChild( $session->html_phrase( "page:fulltext" ) );
 	foreach( @documents )
 	{
 		$p->appendChild( $session->make_element( "br" ) );
@@ -1085,7 +1084,7 @@ sub eprint_render
 
 	$table->appendChild( _render_row(
 		$session,
-		$session->html_phrase( "page_id_code" ),
+		$session->html_phrase( "page:id_code" ),
 		$eprint->render_value( "eprintid", $show_all ) ) );
 
 	my $user = new EPrints::User( 
@@ -1101,17 +1100,17 @@ sub eprint_render
 	}
 	else
 	{
-		$usersname = $session->html_phrase( "page_invalid_user" );
+		$usersname = $session->html_phrase( "page:invalid_user" );
 	}
 
 	$table->appendChild( _render_row(
 		$session,
-		$session->html_phrase( "page_deposited_by" ),
+		$session->html_phrase( "page:deposited_by" ),
 		$usersname ) );
 
 	$table->appendChild( _render_row(
 		$session,
-		$session->html_phrase( "page_deposited_on" ),
+		$session->html_phrase( "page:deposited_on" ),
 		$eprint->render_value( "datestamp", $show_all ) ) );
 
 	# Alternative locations
@@ -1127,7 +1126,7 @@ sub eprint_render
 	if( $has_multiple_versions )
 	{
 		$page->appendChild( 
-			$session->html_phrase( "page_available_versions" ) );
+			$session->html_phrase( "page:available_versions" ) );
 		#$html .= $eprint->{session}->{render}->write_version_thread(
 			#$eprint,
 			#$succeeds_field );
@@ -1136,7 +1135,7 @@ sub eprint_render
 	if( $eprint->in_thread( $commentary_field ) )
 	{
 		$page->appendChild( 
-			$session->html_phrase( "page_commentary_threads" ) );
+			$session->html_phrase( "page:commentary_threads" ) );
 		#$html .= $eprint->{session}->{render}->write_version_thread(
 			#$eprint,
 			#$commentary_field );
@@ -1583,149 +1582,106 @@ sub oai_write_eprint_metadata
 # VALIDATION 
 #
 ######################################################################
+# Validation routines. EPrints does some validation itself, such as
+# checking for required fields, but you can add custom requirements
+# here.
+#
+# All the validation routines should return a list of XHTML DOM 
+# objects, one per problem. An empty list means no problems.
+#
+# $for_archive is a boolean flag (1 or 0) it is set to 0 when the
+# item is being validated as a submission and to 1 when the item is
+# being validated for submission to the actual archive. This allows
+# a stricter validation for editors than for submitters. A useful 
+# example would be that a deposit may have one of several format of
+# documents but the editor must ensure that it has a PDF before it
+# can be submitted into the main archive. If it doesn't have a PDF
+# file, then the editor will have to generate one.
+#
+######################################################################
 
 ######################################################################
 #
-# $problem = validate_field( $field, $value, $session, $for_archive )
+# validate_field( $field, $value, $session, $for_archive ) 
 #
 ######################################################################
+# $field 
+# - MetaField object
+# $value
+# - metadata value (see docs)
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
 #
-# Validate a particular field of metadata, currently used on
-#  
-#  undef if the field is OK, otherwise should return a textual
-#  description of the problem. This description should make sense on
-#  its own (i.e. should include the name of the field.)
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
 #
-#  The "required" field is checked elsewhere, no need to check that
-#  here.
+######################################################################
+# Validate a particular field of metadata, currently used on users
+# and eprints.
+#
+# This description should make sense on its own (i.e. should include 
+# the name of the field.)
+#
+# The "required" field is checked elsewhere, no need to check that
+# here.
 #
 ######################################################################
 
-## WP1: BAD
-sub validate_user_field
+sub validate_field
 {
-	my( $field, $value, $session ) = @_;
-
-	my $problem;
+	my( $field, $value, $session, $for_archive ) = @_;
 
 	# CHECKS IN HERE
+
+	my @problems = ();
 
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
-#	if( $field->is_type( "url" ) && defined $value && $value ne "" )
-#	{
-#		$problem = "The URL given for ".$field->display_name( $session )." is invalid.  ".
-#			"Have you included the initial <STRONG>http://</STRONG>?"
-#			if( $value !~ /^\w+:/ );
-#	}
+	if( $field->is_type( "url" ) && defined $value && $value ne "" )
+	{
+		if( $value !~ /^\w+:/ )
+		{
+			push @problems,
+				$session->html_phrase( "validate:missing_http",
+				fieldname=>$session->make_text( $field->display_name( $session ) ) );
+		}
+	}
 
-	return( $problem );
+	return( @problems );
 }
 
-
 ######################################################################
 #
-# $problem = validate_eprint_field( $field, $value )
-#   str                         MetaField  str
-#
-#  Validate a particular field of an eprint's metadata. Should return
-#  undef if the field is OK, otherwise should return a textual
-#  description of the problem. This description should make sense on
-#  its own (i.e. should include the name of the field.)
-#
-#  The "required" field is checked elsewhere, no need to check that
-#  here.
+# validate_eprint_meta( $eprint, $session, $for_archive ) 
 #
 ######################################################################
-
-## WP1: BAD
-sub validate_eprint_field
-{
-	my( $field, $value );
-
-	my $problem;
-#cjg SHOULD THIS BE GENERIC ie validate_field, but with a ref to what
-#type it is
-
-	# CHECKS IN HERE
-
-	return( $problem );
-}
-
-
-
+# $field 
+# - EPrint object
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
+#
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
+#
 ######################################################################
-#
-# validate_document( $document, $problems )
-#                                array_ref
-#
-#  Validate the given document. $document is an EPrints::Document
-#  object. $problems is a reference to an array in which any identified
-#  problems with the document can be put.
-#
-#  Any number of problems can be put in the array but it's probably
-#  best to keep the number down so the user's heart doesn't sink!
-#
-#  If no problems are identified and everything's fine then just
-#  leave $problems alone.
+# Validate just the metadata of an eprint. The validate_field method
+# will have been called on each field first so only complex problems
+# such as interdependancies need to be checked here.
 #
 ######################################################################
 
-## WP1: BAD
-sub validate_document
-{
-	my( $document, $problems ) = @_;
-
-	# CHECKS IN HERE
-}
-
-
-######################################################################
-#
-# validate_eprint( $eprint, $problems )
-#                           array_ref
-#
-#  Validate a whole EPrint record. $eprint is an EPrints::EPrint object.
-#  
-#  Any number of problems can be put in the array but it's probably
-#  best to keep the number down so the user's heart doesn't sink!
-#
-#  If no problems are identified and everything's fine then just
-#  leave $problems alone.
-#
-######################################################################
-
-## WP1: BAD
-sub validate_eprint
-{
-	my( $eprint, $problems ) = @_;
-
-	# CHECKS IN HERE
-}
-
-
-######################################################################
-#
-# validate_eprint_meta( $eprint, $problems )
-#                                 array_ref
-#
-#  Validate the archive-specific EPrints metadata. $eprint is an
-#  EPrints::EPrint object.
-#  
-#  Any number of problems can be put in the array but it's probably
-#  best to keep the number down so the user's heart doesn't sink!
-#
-#  If no problems are identified and everything's fine then just
-#  leave $problems alone.
-#
-######################################################################
-
-## WP1: BAD
 sub validate_eprint_meta
 {
-	my( $eprint, $problems ) = @_;
+	my( $eprint, $session, $for_archive ) = @_;
 
-	# CHECKS IN HERE cjg NOT DONE
+	my @problems = ();
 
+	# CHECKS IN HERE
+	
+	#[ cjg NOT DONE
 	# We check that if a journal article is published, then it 
 	# has the volume number and page numbers.
 	#if( $eprint->{type} eq "journalp" && $eprint->{ispublished} eq "pub" )
@@ -1740,7 +1696,123 @@ sub validate_eprint_meta
 		#push @$problems, "You haven't specified the volume number"
 			#unless( defined $eprint->{volume} && $eprint->{volume} ne "" );
 	#}
+
+	return @problems;
 }
+
+######################################################################
+#
+# validate_eprint( $eprint, $session, $for_archive ) 
+#
+######################################################################
+# $field 
+# - EPrint object
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
+#
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
+#
+######################################################################
+# Validate the whole eprint, this is the last part of a full 
+# validation so you don't need to duplicate tests in 
+# validate_eprint_meta, validate_field or validate_document.
+#
+######################################################################
+
+sub validate_eprint
+{
+	my( $eprint, $session, $for_archive ) = @_;
+
+	my @problems = ();
+
+	# CHECKS IN HERE
+
+	return( @problems );
+}
+
+
+######################################################################
+#
+# validate_document( $document, $session, $for_archive ) 
+#
+######################################################################
+# $document 
+# - Document object
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
+#
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
+#
+######################################################################
+# Validate a document.
+#
+######################################################################
+
+
+sub validate_document
+{
+	my( $document, $session, $for_archive ) = @_;
+
+	my @problems = ();
+
+	# CHECKS IN HERE
+
+	# "other" documents must have a description set
+	if( $document->get_value( "format" ) eq "other" &&
+	   !EPrints::Utils::is_set( $document->get_value( "formatdesc" ) ) )
+	{
+		push @problems, $session->html_phrase( 
+					"validate:need_description" ,
+					type=>$document->render_desc() );
+	}
+
+	return( @problems );
+}
+
+######################################################################
+#
+# validate_user( $user, $session, $for_archive ) 
+#
+######################################################################
+# $user 
+# - User object
+# $session 
+# - Session object (the current session)
+# $for_archive
+# - boolean (see comments at the start of the validation section)
+#
+# returns: @problems
+# - ARRAY of DOM objects (may be null)
+#
+######################################################################
+# Validate a user, although all the fields will already have been
+# checked with validate_field so only complex problems need to be
+# tested.
+#
+######################################################################
+
+sub validate_user
+{
+	my( $user, $session, $for_archive ) = @_;
+
+	my @problems = ();
+
+	# CHECKS IN HERE
+
+	return( @problems );
+}
+
+######################################################################
+# End of VALIDATION 
+######################################################################
+
+
 
 ######################################################################
 #
@@ -1751,6 +1823,8 @@ sub validate_eprint_meta
 # - archive object
 # $message 
 # - log message string
+#
+# returns: nothing 
 #
 ######################################################################
 # This method is called to log something important. By default it 
