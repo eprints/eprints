@@ -196,13 +196,7 @@ EPrints::Log->debug( "SearchForm", $searchexp->to_string() );
 		my $url = $self->{session}->{render}->url();
 		# Remove everything that's part of the query string.
 		$url =~ s/\?.*//;
-		print $self->{session}->{render}->redirect( $url );
-
-		print $self->{session}->{render}->start_html( "Redirecting" );
-		print "<CENTER><P>If you can see this, your browser hasn't ".
-			"automatically updated the page as expected... please </a href=\"".
-			"$url\">click here</a>.</P></CENTER>\n";
-		print $self->{session}->{render}->end_html();
+		$self->{session}->{render}->redirect( $url );
 	}
 	elsif( defined $submit_button && $submit_button eq $action_update )
 	{

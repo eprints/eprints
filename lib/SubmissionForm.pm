@@ -1406,8 +1406,7 @@ sub do_stage_confirmdel
 
 ######################################################################
 #
-#  Automatically return to author's home if possible, sensible
-#  message if browser doesn't understand redirect
+#  Automatically return to author's home.
 #
 ######################################################################
 
@@ -1416,17 +1415,6 @@ sub do_stage_return
 	my( $self ) = @_;
 
 	$self->{session}->{render}->redirect( $self->{redirect} );
-	
-	print $self->{session}->{render}->start_html(
-		$EPrints::SubmissionForm::stage_titles{
-			$EPrints::SubmissionForm::stage_return} );
-	
-	print "<P><CENTER>You should now automatically be returned to the ".
-		"previous page. If this doesn't happen, please <A ".
-		"HREF=\"$self->{redirect}\">click here to return manually.</A>".
-		"</CENTER></P>\n";
-	
-	print $self->{session}->{render}->end_html();
 }	
 
 

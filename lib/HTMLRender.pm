@@ -144,10 +144,16 @@ sub start_html
 
 	my $html = "";
 	
-	# mod_perl already writes most of the stuff we need. We need only specify
-	# a MIME-type...
-	$html .= "Content-type: text/html \r\n\r\n" unless( $self->{offline} );
-	
+	# Write HTTP headers if appropriate
+	unless( $self->{offline} )
+	{
+		my $r = Apache->request;
+		$r->content_type( 'text/html' );
+		$r->send_http_header;
+	}
+
+#	$html .= "Content-Type: text/html\r\n\r\n" unless( $self->{offline} );
+
 	# Now the HTML itself.
 	$html .= $self->{query}->start_html(
 		-AUTHOR=>"$EPrintSite::SiteInfo::author",
@@ -901,7 +907,8 @@ sub seen_form
 	
 	my $result = 0;
 
-	$result = 1 if( $self->{query}->param( 'seen' ) eq 'true' );
+	$result = 1 if( defined $self->{query}->param( 'seen' ) &&
+	                $self->{query}->param( 'seen' ) eq 'true' );
 
 	return( $result );
 }
@@ -911,17 +918,23 @@ sub seen_form
 #
 # redirect( $url )
 #
-#  Redirects the browser to $url. If any other text is to be written,
-#  (in case a browser doesn't accept the redirection) this must be
-#  called BEFORE start_html().
+#  Redirects the browser to $url.
 #
 ######################################################################
 
 sub redirect
 {
 	my( $self, $url ) = @_;
-	
-	return( $self->{query}->redirect( $url ) );
+
+	# Write HTTP headers if appropriate
+	unless( $self->{offline} )
+	{
+		# For some reason, redirection doesn't work with CGI::Apache.
+		# We have to use CGI.
+		my $q = new CGI;
+		print $q->redirect( -uri=>$url );
+	}
+
 }
 
 

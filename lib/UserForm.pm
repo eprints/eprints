@@ -97,16 +97,6 @@ sub process
 				# User has entered everything OK
 				$self->{user}->commit();
 				$self->{session}->{render}->redirect( $self->{redirect} );
-				print $self->{session}->{render}->start_html(
-					"Record for $full_name" );
-
-				print "<P><CENTER>Your record has been updated. You should now be ".
-					"taken back to your user area automatically. If this doesn\'t ".
-					"happen, click below to return to your	user area.</CENTER></P>".
-					"\n<P><CENTER><A HREF=\"$self->{redirect}\">[OK]</A></CENTER>".
-					"</P>\n";
-
-				print $self->{session}->{render}->end_html();
 			}
 			else
 			{

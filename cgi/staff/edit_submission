@@ -33,15 +33,6 @@ if( $stage eq $EPrints::SubmissionForm::stage_format &&
 {
 	# Intercept the verify page, that's what we were doing!
 	$session->{render}->redirect( "view_submission?eprintid=$eprint_id" );
-
-	print $session->{render}->start_html( "Finished Editing" );
-
-	print "<P><CENTER>You should now automatically be returned to ".
-		"the view submission page. If this doesn't happen, please <A ".
-		"HREF=\"view_submission?eprintid=$eprint_id\">click here to return ".
-		"manually.</A></CENTER></P>\n";
-
-	print $session->{render}->end_html();
 }
 elsif( $action eq "Accept" || $action eq "Bounce" || $action eq "Send" ||
 	$action eq "Delete" )
@@ -115,15 +106,6 @@ sub accepted
 	{
 		# Successfully archived, redirect
 		$session->{render}->redirect( "buffer" );
-
-		print $session->{render}->start_html( "Accepted" );
-
-		print "<P><CENTER>You should now automatically be returned to ".
-			"the buffer overview page. If this doesn't happen, please <A ".
-			"HREF=\"buffer\">click here to return manually.</A></CENTER>".
-			"</P>\n";
-
-		print $session->{render}->end_html();
 	}
 	else
 	{
@@ -221,15 +203,6 @@ sub bounce
 		{	
 			# Successfully bounced, redirect
 			$session->{render}->redirect( "buffer" );
-
-			print $session->{render}->start_html( "Bounced" );
-
-			print "<P><CENTER>You should now automatically be returned to ".
-				"the buffer overview page. If this doesn't happen, please <A ".
-				"HREF=\"buffer\">click here to return manually.</A></CENTER>".
-				"</P>\n";
-
-			print $session->{render}->end_html();
 		}
 		else
 		{
