@@ -105,7 +105,7 @@ OAI
 causes a 500 error. [gone away?]
  [Thu Feb 21 12:15:02 2002] [error] Bizarre copy of HASH in aassign at /usr/lib/perl5/5.6.0/Carp/Heavy.pm line 79.
 
-
+- null datestamp field caused OAI go barf.
 
 ======================================================================
 Fixed in Release 2.0 (major bugs in alpha-2)

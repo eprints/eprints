@@ -124,9 +124,11 @@ sub new
 	$self->{formtarget} = $formtarget;
 	$self->{for_archive} = $staff;
 
-	# Will be overrideable in conf. cjg
-	$self->{stages} = $STAGES;
-	
+	# Use user configured order for stages or...
+	$self->{stages} = $session->get_archive->get_conf( 
+		"submission_stages" );
+
+	$self->{stages} = $STAGES if( !defined $self->{stages} );
 
 	return( $self );
 }

@@ -1,5 +1,74 @@
 See CHANGELOG for the gory details.
 
+eprints-2.1                                                    2002-???
+-------------------------------------------------------------------------
+
+This release contains a major new feature - subscriptions. It also has
+OAI-PMH v2.0 support and a few new configuration options.
+
+*       Various bug-fixes, typo-fixes and clarification of text.
+
+*       Added subscriptions - which allows a user to configure searches to
+        be run periodically and any new results mailed to them.
+
+*       Now OAI 2 compliant. Note OAI-PMH v2 base URL is different to OAI
+        v1 URL - /perl/oai2 - /perl/oai will continue to work.
+
+*       New options in SystemSettings.pm 
+
+        - disable_df which is set disables all the places eprints uses "df". 
+          (It is buggy on some platforms).
+
+        - virtualhost which is the value to use in the apache config files
+          in VirtualHost entries. By default "*" is used, but some people need
+          to change it.
+
+*       Added "POD" documentation to about half of the main perl modules. The
+        other modules have stubs describing the methods, but no actual 
+        documentation. Use "perldoc Foo.pm" to view docs of a file.
+
+*       Added a new type of metafield - "search". Which is a serialised 
+        search expression. 
+
+*       You can now use XHTML entites in the phrase files, static pages
+        and the page template eg. &nbsp; &pound; &eacute; etc. These are
+        not available in the citations config file.
+
+*       New built-in "custom" field render method: 
+        EPrints::Utils::render_xhtml_field which can be set as a 
+        render_single_value option in a metafield, it will pass through
+        all XHTML elements rather than &lt;foo&gt; escaping them which the
+        normal renderer does.
+
+*       New optional configuration options:
+
+        - "pagehooks" to allow extra "stuff" to be added in the <body> and 
+          <head> parts and attributes to the <body> tag. This allows people 
+          to do clever stuff, like add javascript to some pages.
+
+        - "submission_stages" which allows the admin to change the order
+          of the submission form.
+
+*       New metafield attributes: 
+
+        - export_as_xml: This defaults to 1 but if explicitly set to zero it 
+          will supress this field in output from export_xml.
+
+        - make_value_orderkey: this is a reference to a function which will
+          generate a value to compare alphabetically to order this field.
+
+        - make_single_value_orderkey: as above but only gets passed individual
+          values even if the field is multiple.
+
+*       New script - upgrade. This updates the SQL database of an archive to
+        work with the latest version of eprints.
+
+*       generate_views should now correctly sort values in the index paeg.
+
+*       Order by subjects, sets or datatypes should now be alphabetical.
+       
+
+
 
 eprints-2.0.1                                                  2002-04-16
 -------------------------------------------------------------------------

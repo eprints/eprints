@@ -507,13 +507,6 @@ $c->{cache_maxlife} = 12;
 # $c->{pagehooks}->{submission_meta} = { head => $meta };
 # $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
 
-my $doc = XML::DOM::Document->new();
-my $meta = $doc->createElement( "script" );
-$meta->setAttribute( 
-	"src", 
-	"http://inanna.ecs.soton.ac.uk/~swh/AKT/gatetest/autos.js" );
-$c->{pagehooks}->{submission_meta} = { head => $meta };
-$c->{pagehooks}->{submission_meta}->{bodyattr}->{onload} = 'makeAutos()';
 
 
 

@@ -643,19 +643,6 @@ before next release. (metadata types & fields)
    an "internal" button was pushed. This broke the whole idea of the #t jump
    to where you were before.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- added new config option (submission_stages) which lets the admin override the
+   default order of the submission form stages.
 
