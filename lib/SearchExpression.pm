@@ -150,7 +150,7 @@ sub add_field
 	if( defined $self->{searchfieldmap}->{$searchfield->{formname}} )
 	{
 		# Already got a seachfield, just update the value
-		$self->{searchfieldmap}->{$searchfield->{formname}}->{value} = $value;
+		$self->{searchfieldmap}->{$searchfield->{formname}}->set_value( $value );
 	}
 	else
 	{
@@ -176,7 +176,7 @@ sub clear
 	
 	foreach (@{$self->{searchfields}})
 	{
-		delete $_->{value};
+		$_->set_value( "" );
 	}
 	
 	$self->{satisfy_all} = 1;
@@ -203,26 +203,26 @@ sub render_search_form
 
 	my $menu;
 
-	$html = "<P align=\"center\"><TABLE BORDER=\"0\">\n";
+	$html = "<P><TABLE BORDER=\"0\">\n";
 	
 	my $sf;
 
 	foreach $sf (@{$self->{searchfields}})
 	{
-		if( $help && !defined 
-			$shown_help{$EPrints::SearchField::search_help{$sf->{type}}} )
+		my $shelp = $sf->search_help();
+		if( $help && !defined $shown_help{$shelp} )
 		{
-			$html .= "<TR><TD COLSPAN=2 ALIGN=CENTER><EM>";
-			$html .= $EPrints::SearchField::search_help{$sf->{type}};
-			$html .= "</EM></TD></TR>\n";
-			$shown_help{$EPrints::SearchField::search_help{$sf->{type}}} = 1;
+			$html .= "<TR><TD COLSPAN=\"2\">";
+			$html .= $shelp;
+			$html .= "</TD></TR>\n";
+			$shown_help{$shelp}=1;
 		}
 		
-		$html .= "<TR><TD><STRONG>$sf->{displayname}</STRONG></TD><TD>";
+		$html .= "<TR><TD>$sf->{displayname}</TD><TD>";
 		$html .= $sf->render_html();
 		$html .= "</TD></TR>\n";
 
-		$html .= "<TR><TD COLSPAN=2>&nbsp;</TD></TR>\n";
+		$html .= "<TR><TD COLSPAN=\"2\">&nbsp;</TD></TR>\n";
 	}
 	
 	$html .= "</TABLE></P>\n";
@@ -236,10 +236,10 @@ sub render_search_form
 				"ANY" : "ALL" ),
 			-labels=>{ "ALL" => $self->{session}->{lang}->phrase("F:all"),
 				   "ANY" => $self->{session}->{lang}->phrase("F:any") } );
-		$html .= "<CENTER><P>";
+		$html .= "<P>";
 		$html .= $self->{session}->{lang}->phrase( "H:mustfulfill",
 							   $menu );
-		$html .= "</P></CENTER>\n";
+		$html .= "</P>\n";
 	}
 
 
@@ -249,9 +249,9 @@ sub render_search_form
 		-default=>$self->{order},
 		-labels=>$self->{order_desc} );
 		
-	$html .= "<CENTER><P>";
+	$html .= "<P>";
 	$html .= $self->{session}->{lang}->phrase( "H:orderresults", $menu );
-	$html .= "</P></CENTER>\n";
+	$html .= "</P>\n";
 
 	return( $html );
 }
@@ -310,7 +310,6 @@ sub from_form
 
 sub to_string
 {
-die "Needs updating cjg";
 	my( $self ) = @_;
 
 	# Start with satisfy all
@@ -319,13 +318,13 @@ die "Needs updating cjg";
 
 	# default order
 	$text_rep .= "\[";
-	$text_rep .= $self->{order} if( defined $self->{order} );
+	$text_rep .= _escape_search_string( $self->{order} ) if( defined $self->{order} );
 	$text_rep .= "\]";
 	
 	foreach (@{$self->{searchfields}})
 	{
-		$text_rep .= "\[$_->{formname}\]\[".
-			( defined $_->{value} ? $_->{value} : "" )."\]";
+		$text_rep .= "\["._escape_search_string( $_->{formname} )."\]\[".
+			( defined $_->{value} ? _escape_search_string( $_->{value} ) : "" )."\]";
 	}
 	
 #EPrints::Log::debug( "SearchExpression", "Text rep is >>>$text_rep<<<" );
@@ -333,6 +332,19 @@ die "Needs updating cjg";
 	return( $text_rep );
 }
 
+sub _escape_search_string
+{
+	my( $string ) = @_;
+	$string =~ s/[\\\[]/\\$&/g; 
+	return $string;
+}
+
+sub _unescape_search_string
+{
+	my( $string ) = @_;
+	$string =~ s/\\(.)/$1/g; 
+	return $string;
+}
 
 ######################################################################
 #
@@ -347,13 +359,18 @@ die "Needs updating cjg";
 sub state_from_string
 {
 	my( $self, $text_rep ) = @_;
-die "Needs updating cjg";
 	
-#EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
+EPrints::Log::debug( "SearchExpression", "state_from_string ($text_rep)" );
 
 	# Split everything up
-	my @elements = ( $text_rep =~ m/\[([^\]]*)\]/g );
 
+	my @elements = ();
+	while( $text_rep =~ s/\[((\\\[|[^\]])*)\]//i )
+	{
+		push @elements, _unescape_search_string( $1 );
+		print STDERR "el ($1)\n";
+	}
+	
 	my $satisfyall = shift @elements;
 
 	# Satisfy all?
@@ -373,7 +390,7 @@ die "Needs updating cjg";
 		my $sf = $self->{searchfieldmap}->{$formname};
 #EPrints::Log::debug( "SearchExpression", "Eep! $formname not in searchmap!" )
 #	if( !defined $sf );
-		$sf->{value} = $value if( defined $sf && defined $value && $value ne "" );
+		$sf->set_value( $value ) if( defined $sf && defined $value && $value ne "" );
 	}
 
 #EPrints::Log::debug( "SearchExpression", "new text rep: (".$self->to_string().")" );
@@ -440,9 +457,6 @@ sub make_meta_fields
 	return( @metafields );
 }
 
-##################################################################
-#
-# NEW DB DEVEL CODE!!
 
 sub perform_search 
 {
@@ -471,21 +485,23 @@ sub perform_search
 		( $buffer , $badwords , $error) = 
 			$_->do($buffer , $self->{satisfy_all} );
 
-EPrints::Log::debug("buffer:".$buffer."  error:$error");
 		if( defined $error )
 		{
 			$self->{tmptable} = undef;
 			$self->{error} = $error;
 			return;
 		}
-		push @{$self->{ignoredwords}},@{$badwords};
-EPrints::Log::debug("buffer:".$buffer);
+		if( defined $badwords )
+		{
+			push @{$self->{ignoredwords}},@{$badwords};
+		}
 	}
 	
         my @fields = EPrints::MetaInfo::get_fields( $self->{table} );
         my $keyfield = $fields[0];
 	$self->{error} = undef;
 	$self->{tmptable} = $buffer;
+
 }
 	
 sub count 
@@ -519,13 +535,8 @@ sub get_records
 							$max );
 
 		my @records = $self->{session}->{database}->from_buffer( $self->{table}, $buffer );
-		if( $overlimit )
+		if( !$overlimit )
 		{
-			$self->{warning} = "Warning! $max or more results! Unsorted sample of results displayed.";
-		}
-		else
-		{
-				print STDERR "!!".$self->{order_func}->{$self->{order}}."\n";
 			@records = sort 
 				{ &{$self->{order_func}->{$self->{order}}}($a,$b); }
 				@records;

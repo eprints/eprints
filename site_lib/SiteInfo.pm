@@ -19,6 +19,7 @@ package EPrintSite::SiteInfo;
 
 use EPrints::Document;
 use EPrints::OpenArchives;
+use EPrints::Version;
 
 use strict;
 
@@ -513,7 +514,7 @@ $EPrintSite::SiteInfo::oai_submissionPolicy{"url"} = undef;
 # An array of comments to be returned. May be empty.
 
 @EPrintSite::SiteInfo::oai_comments = ( "System is EPrints ".
-	$EPrints::Session::eprints_software_version.
+	$EPrints::Version::eprints_software_version.
 	" (http://www.eprints.org)" );
 
 

@@ -134,7 +134,7 @@ sub bounce_form
 
 	# Make the field
 	my $reason_field = new EPrints::MetaField(
-		"reason:multitext:20::0:1:1" );
+		"reason:longtext:20::0:1:1" );
 	my $default_reason =
 		( $delete ? $EPrintSite::SiteInfo::default_delete_reason
 		          : $EPrintSite::SiteInfo::default_bounce_reason );

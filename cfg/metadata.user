@@ -49,7 +49,7 @@ displayname = "Organisation"
 displaylines = "5"
 required = NO
 editable = YES
-type = "multitext"
+type = "longtext"
 visible = YES
 displayname = "Address"
 </field>
@@ -73,7 +73,7 @@ displayname = "Homepage URL"
 <field expertise>
 required = NO
 editable = YES
-type = "multitext"
+type = "longtext"
 visible = YES
 displayname = "Expertise"
 displaylines = 3

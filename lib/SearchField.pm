@@ -39,7 +39,7 @@ use strict;
 #                           "YYYY-MM-DD" = just on that day
 #  email, XXXXXXXXXXXurl    "searchvalue" (simple)
 #  XXXX & eprinttype        "poss1:poss2:poss3"
-#  multitext, text & name   "[all][any][phr]:terms"
+#  longtext, text & name   "[all][any][phr]:terms"
 #  username, set & subject  "val1:val2:val3:[ANY|ALL]"
 #  year                     "YYYY-" = any year from YYYY onwards
 #                           "-YYYY" = any year up to YYYY
@@ -50,37 +50,7 @@ use strict;
 #
 ######################################################################
 
-my $texthelp = "Enter a term or terms to search for.";
 
-%EPrints::SearchField::search_help =
-(
-	"boolean"    => "Select a value.",
-	"email"      => "Enter some text to search for",
-	"eprinttype" => "Select one or more values from the list. Default is (Any).",
-	"multitext"  => $texthelp,
-	"name"       => $texthelp,
-	"set"        => "Select one or more values from the list, and whether you ".
-	                "want to search for records with any one or all of those ".
-	                "values. Default is (Any).",
-	"subject"    => "Select one or more values from the list, and whether you ".
-	                "want to search for records with any one or all of those ".
-	                "values. Default is (Any).",
-	"username"   => "Enter one or more usernames (space seperated) and whether you ".
-	                "want to search for records with any one or all of those ".
-	                "values. Default is (Any).",
-	"text"       => $texthelp,
-	"url"        => "Enter some text to search for",
-	"year"       => "Enter a single year (e.g. 1999), or a range of years, ".
-	                "e.g. `1990-2000', `1990-' or -2000'."
-);
-
-@EPrints::SearchField::text_search_types = ( "ALL", "ANY" );
-
-%EPrints::SearchField::text_search_type_labels =
-(
-	"ALL" => "Match all, in any order",
-	"ANY" => "Match any"
-);
 
 
 ######################################################################
@@ -92,7 +62,7 @@ my $texthelp = "Enter a term or terms to search for.";
 #  reference to an array for $field, in which case the fields will
 #  all be searched using the one search value (OR'd). This only works
 #  (and is useful) for fields of types listed together at the top of
-#  the file (e.g. "text" and "multitext", or "email" and "url", but not
+#  the file (e.g. "text" and "longtext", or "email" and "url", but not
 #  "year" and "boolean").
 #  We need to know the name of the table to build the name of aux.
 #  table.
@@ -108,9 +78,7 @@ sub new
 	
 	$self->{session} = $session;
 	$self->{table} = $table;
-	$self->{value} = $value;
-
-	$self->process_value();
+	$self->set_value( $value );
 
 		
 	if( ref( $field ) eq "ARRAY" )
@@ -141,9 +109,11 @@ sub new
 	return( $self );
 }
 
-sub process_value
+sub set_value
 {
-	my ( $self ) = @_;
+	my ( $self , $newvalue ) = @_;
+
+	$self->{value} = $newvalue;
 
 	$self->{value} =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i;
 	$self->{anyall} = uc $1;
@@ -153,7 +123,6 @@ sub process_value
 	# Value has changed. Previous benchmarks no longer apply.
 	$self->{benchcache} = {};
 
-	print STDERR "NEW SE ($1)($2)($3) [$self->{value}] \n";
 }
 
 
@@ -169,6 +138,21 @@ sub render_html
 {
 	my( $self ) = @_;
 	
+	my @set_tags = ( "ANY", "ALL" );
+	my %set_labels = ( 
+		"ANY" => $self->{session}->{lang}->phrase( "F:set_any" ),
+		"ALL" => $self->{session}->{lang}->phrase( "F:set_all" ) );
+
+	my @text_tags = ( "ALL", "ANY" );
+	my %text_labels = ( 
+		"ANY" => $self->{session}->{lang}->phrase( "F:text_any" ),
+		"ALL" => $self->{session}->{lang}->phrase( "F:text_all" ) );
+
+	my @bool_tags = ( "EITHER", "TRUE", "FALSE" );
+	my %bool_labels = ( "EITHER" => $self->{session}->{lang}->phrase( "F:bool_nopref" ),
+		            "TRUE"   => $self->{session}->{lang}->phrase( "F:bool_yes" ),
+		            "FALSE"  => $self->{session}->{lang}->phrase( "F:bool_no" ) );
+
 #EPrints::Log::debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
 
 	my $html;
@@ -177,30 +161,16 @@ sub render_html
 	if( $type eq "boolean" )
 	{
 		# Boolean: Popup menu
-		my %labels = ( "EITHER" => "No Preference",
-		               "TRUE"   => "Yes",
-		               "FALSE"  => "No" );
-
-		my @tags = ( "EITHER", "TRUE", "FALSE" );
-		
+	
 		my $default = ( defined $self->{value} ? "EITHER" : $self->{value} );
 
 		$html = $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname},
-			-values=>\@tags,
-			-default=>( defined $self->{string} ? $self->{string} : $tags[0] ),
-			-labels=>\%labels );
+			-values=>\@bool_tags,
+			-default=>( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
+			-labels=>\%bool_labels );
 	}
-	elsif( $type eq "email" || $type eq "url" )
-	{
-		# simple text types
-		$html = $self->{session}->{render}->{query}->textfield(
-			-name=>$self->{formname},
-			-default=>$self->{string},
-			-size=>$EPrints::HTMLRender::search_form_width,
-			-maxlength=>$EPrints::HTMLRender::field_max );
-	}
-	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
+	elsif( $type eq "longtext" || $type eq "text" || $type eq "name" || $type eq "email" || $type eq "url")
 	{
 		# complex text types
 		$html = $self->{session}->{render}->{query}->textfield(
@@ -211,31 +181,29 @@ sub render_html
 
 		$html .= $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname}."_srchtype",
-			-values=>\@EPrints::SearchField::text_search_types,
+			-values=>\@text_tags,
 			-default=>$self->{anyall},
-			-labels=>\%EPrints::SearchField::text_search_type_labels );
+			-labels=>\%text_labels );
 	}
 	elsif( $type eq "username" )
 	{
 		my @defaults;
 		my $anyall = "ANY";
-		
+	
+		#cjg HMMMM	
 		$html = $self->{session}->{render}->{query}->textfield(
 			-name=>$self->{formname},
 			-default=>$self->{string},
 			-size=>$EPrints::HTMLRender::search_form_width,
 			-maxlength=>$EPrints::HTMLRender::field_max );
 
-		my @anyall_tags = ( "ANY", "ALL" );
-		my %anyall_labels = ( "ANY" => "Any of these", "ALL" => "All of these" );
-
 		$html .= $self->{session}->{render}->{query}->popup_menu(
 			-name=>$self->{formname}."_anyall",
-			-values=>\@anyall_tags,
+			-values=>\@set_tags,
 			-default=>$self->{anyall},
-			-labels=>\%anyall_labels );
+			-labels=>\%set_labels );
 	}
-	elsif( $type eq "eprinttype" )
+	elsif( $type eq "eprinttype" || $type eq "set" || $type eq "subject" )
 	{
 		my @defaults;
 		
@@ -248,87 +216,60 @@ sub render_html
 		{
 			@defaults = ();
 		}
-		
-		# Make a list of possible values
-		my( $values, $labels );
-		
-		if( $type eq "eprinttype" )
-		{
-			my @eprint_types = EPrints::MetaInfo::get_eprint_types();
-			( $values, $labels ) = _add_any_option(
-				\@eprint_types,
-				EPrints::MetaInfo::get_eprint_type_names() );
-		}
-		else
-		{
-			( $values, $labels ) = _add_any_option(
-				$self->{field}->{tags},
-				$self->{field}->{labels} );
-		}		
 
-		$html = $self->{session}->{render}->{query}->scrolling_list(
-			-name=>$self->{formname},
-			-values=>$values,
-			-default=>\@defaults,
-			-size=>( scalar @$values > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
-				scalar @$values ),
-			-multiple=>"true",
-			-labels=>$labels );
-	}
-	elsif( $type eq "set" || $type eq "subject" )
-	{
-		my @defaults;
-		my $anyall = "ANY";
-		
-		# Do we have any values already?
-		if( defined $self->{string} && $self->{string} ne "" )
-		{
-			@defaults = split /\s/, $self->{string};
-			$anyall = pop @defaults;
-		}
-		else
-		{
-			@defaults = ();
-		}
-		
 		# Make a list of possible values
-		my( $values, $labels );
+		my( $tags, $labels );
 		
 		if( $type eq "subject" )
 		{
 			# WARNING: passes in {} as a dummy user. May need to change this
 			# if the "postability" algorithm checks user info.
-			( $values, $labels ) = _add_any_option(
-				EPrints::Subject::get_postable( $self->{session}, {} ) );
+			( $tags, $labels ) = EPrints::Subject::get_postable( $self->{session}, {} );
+		}
+		elsif( $type eq "eprinttype" )
+		{
+			my @eprint_types = EPrints::MetaInfo::get_eprint_types();
+			( $tags, $labels ) = ( \@eprint_types, EPrints::MetaInfo::get_eprint_type_names() );
 		}
 		else
 		{
-			( $values, $labels ) = _add_any_option(
-				$self->{field}->{tags},
-				$self->{field}->{labels} );
+			# set
+			( $tags, $labels ) = ( $self->{field}->{tags}, $self->{field}->{labels} );
 		}
-		
+	
+		my( $old_tags, $old_labels ) = ( $tags, $labels );
+
+#EPrints::Log::debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
+	
+		$tags = [ "NONE" ];
+		$labels = { "NONE" => "(Any)" };
+
+		# we have to copy the tags and labels as they are currently
+		# references to the origionals. 
+	
+		push @{$tags}, @{$old_tags};
+		foreach (keys %{$old_labels})
+		{
+			$labels->{$_} = $old_labels->{$_};
+		}
+
 		$html = $self->{session}->{render}->{query}->scrolling_list(
 			-name=>$self->{formname},
-			-values=>$values,
+			-values=>$tags,
 			-default=>\@defaults,
-			-size=>( scalar @$values > $EPrints::HTMLRender::list_height_max ?
+			-size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
 				$EPrints::HTMLRender::list_height_max :
-				scalar @$values ),
+				scalar @$tags ),
 			-multiple=>"true",
 			-labels=>$labels );
-
-		$html .= "&nbsp;";
-		
-		my @anyall_tags = ( "ANY", "ALL" );
-		my %anyall_labels = ( "ANY" => "Any of these", "ALL" => "All of these" );
-
-		$html .= $self->{session}->{render}->{query}->popup_menu(
-			-name=>$self->{formname}."_anyall",
-			-values=>\@anyall_tags,
-			-default=>$self->{anyall},
-			-labels=>\%anyall_labels );
+		if( $self->{field}->{multiple} )
+		{
+			$html .= $self->{session}->{render}->{query}->popup_menu(
+				-name=>$self->{formname}."_anyall",
+				-values=>\@set_tags,
+				-default=>$self->{anyall},
+				-labels=>\%set_labels );
+		}
 	}
 	elsif( $type eq "int" )
 	{
@@ -350,39 +291,10 @@ sub render_html
 	{
 		EPrints::Log::log_entry(
 			"SearchField",
-			"Don't know how to render search field for type $type" );
+			EPrints::Language::log_phrase( "L:cant_render", $type ) )
 	}
 
 	return( $html );
-}
-
-
-######################################################################
-#
-# ( $tags, $labels ) = _add_any_option( $old_tags, $old_labels )
-#
-#  Given a list of tags ($old_tags) and labels ($old_labels) for a
-#  scrolling list, adds the "NONE" tag and corresponding "(Any)" label.
-#
-######################################################################
-
-sub _add_any_option
-{
-	my( $old_tags, $old_labels ) = @_;
-
-#EPrints::Log::debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
-	
-	my @tags = ( "NONE" );
-	my %labels = ( "NONE" => "(Any)" );
-	
-	push @tags, @$old_tags;
-	
-	foreach (keys %{$old_labels})
-	{
-		$labels{$_} = $old_labels->{$_};
-	}
-
-	return( \@tags, \%labels );
 }
 
 
@@ -403,12 +315,12 @@ sub from_form
 	my $type = $self->{type};
 
 	# Remove any default we have
-	delete $self->{value};
+	$self->set_value( "" );
 	
 	if( $type eq "boolean" )
 	{
 		my $val = $self->{session}->{render}->param( $self->{formname} );
-		$self->{value} = "ALL:EQ:$val" if( $val ne "EITHER" );;
+		$self->set_value( "ALL:EQ:$val" ) if( $val ne "EITHER" );
 	}
 	elsif( $type eq "email" || $type eq "url" )
 	{
@@ -416,10 +328,10 @@ sub from_form
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		if( defined $val && $val ne "" )
 		{
-			$self->{value} = "ANY:IN:$val";
+			$self->set_value( "ANY:IN:$val" );
 		}
 	}
-	elsif( $type eq "multitext" || $type eq "text" || $type eq "name" )
+	elsif( $type eq "longtext" || $type eq "text" || $type eq "name" )
 	{
 		# complex text types
 		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
@@ -433,7 +345,7 @@ sub from_form
 		
 		if( defined $search_terms && $search_terms ne "" ) 
 		{
-			$self->{value} = "$search_type:$exact:$search_terms";
+			$self->set_value( "$search_type:$exact:$search_terms" );
 		}
 	}		
 	elsif( $type eq "username" )
@@ -450,7 +362,7 @@ sub from_form
 		my @vals = split /\s+/ , $self->{session}->{render}->param( $self->{formname} );
 		if( scalar @vals > 0)
 		{
-			$self->{value} = "$anyall:$exact:".join( " " , @vals );
+			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
 		}
 	}		
 	elsif( $type eq "eprinttype" )
@@ -468,7 +380,7 @@ sub from_form
 				undef $val if( $_ eq "NONE" );
 			}
 
-			$self->{value} = "ANY:EQ:$val";
+			$self->set_value( "ANY:EQ:$val" );
 		}
 	}
 	elsif( $type eq "set" || $type eq "subject" )
@@ -500,7 +412,7 @@ sub from_form
 				
 			$val = (defined $anyall? "$anyall" : "ANY" ).":EQ:$val";
 
-			$self->{value} = $val;
+			$self->set_value( $val );
 		}
 
 	}
@@ -512,21 +424,17 @@ sub from_form
 		{
 			if( $val =~ /^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
 			{
-				$self->{value} = "ANY:EQ:$val";
+				$self->set_value( "ANY:EQ:$val" );
 			}
 			else
 			{
-				$problem = "A year field must be specified as a single year, e.g. ".
-					"`2000', or a range of years, e.g. `1990-2000', `1990-' or ".
-					"`-2000'.";
+				$problem = $self->{session}->{lang}->phrase( "H:year_err" );
 			}
 		}
 	}
 
 #EPrints::Log::debug( "SearchField", "Value is <".(defined $self->{value} ? $self->{value} : "undef")."> for field $self->{formname}" );
 #EPrints::Log::debug( "SearchField", "Returning <".(defined $problem ? $problem : "undef")."> for field $self->{formname}" );
-
-	$self->process_value();
 
 	return( $problem );
 }
@@ -539,8 +447,6 @@ sub from_form
 sub get_conditions 
 {
 	my ( $self , $benchmarking ) = @_;
-
-print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\n";
 
 	if ( !defined $self->{value} || $self->{value} eq "" )
 	{
@@ -558,7 +464,7 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 		my @where;
 		foreach( @fields )
 		{
-			my $s = "__FIELDNAME__ = '$_'";
+			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($_)."'";
 			push @where , $s;
 		}	
 		return( $self->_get_conditions_aux( \@where , 0) );
@@ -569,22 +475,33 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 		my @where = ();
 		my @names = ();
 		my $text = $self->{string};
+
+		# Remove spaces before and  after commas. So Jones , C
+		# is searched as Jones,C 
+		$text =~ s/,\s+/,/g;
+		$text =~ s/\s+,/,/g;
+
+		# Extact names in quotes 
 		while( $text=~s/"([^"]+)"// ) { push @names, $1; }
+
+		# Extact other names
 		while( $text=~s/([^\s]+)// ) { push @names, $1; }
+
 		foreach( @names )
 		{
 			m/^([^,]+)(,(.*))?$/;
-			my ( $family , $given ) = ( $1 , $3 );
+			my $family = EPrints::Database::prep_value( $1 );
+			my $given = EPrints::Database::prep_value( $3 );
 			if ( $self->{match} eq "IN" )
 			{
 				$family .= "\%";
-				if ( defined $given )
-				{
-					$given .= "\%";
-				}
+			}
+			if ( defined $given && $given ne "" )
+			{
+				$given .= "\%";
 			}
 			my $s = "__FIELDNAME___family LIKE '$family'";
-			if ( defined $given )
+			if ( defined $given && $given ne "" )
 			{
 				$s = "($s AND __FIELDNAME___given LIKE '$given')";
 			}
@@ -697,12 +614,12 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 		return( $self->_get_conditions_aux( \@where , 0) , []);
 	}
 
-	# text, multitext, url, email:
+	# text, longtext, url, email:
 	#
 	#  word word "a phrase" word
 	#
 
-	if ( $self->{field}->{type} eq "text" ||  $self->{field}->{type} eq "multitext" ||
+	if ( $self->{field}->{type} eq "text" ||  $self->{field}->{type} eq "longtext" ||
 		$self->{field}->{type} eq "url" ||  $self->{field}->{type} eq "email")
 	{
 		my @where = ();
@@ -717,6 +634,7 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 
 			if( $self->{match} eq "EQ" )
 			{
+				$text = EPrints::Database::prep_value( $text );
 				return ( $self->_get_conditions_aux( [ "__FIELDNAME__ = \"$text\"" ], 0 ), [] );
 			}
 			my( $good , $bad ) = 
@@ -732,6 +650,7 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 				{
 					$_ = "$self->{field}->{name}:$_";
 				}
+				$_ = EPrints::Database::prep_value( $_ );
 				push @where, "__FIELDNAME__ = '$_'";
 			}
 			return ( $self->_get_conditions_aux( \@where ,  1 ) , [] );
@@ -769,7 +688,7 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 
 		if( scalar @{$good} == 0 && !$hasphrase )
 		{
-			return(undef,undef,undef,"Search field contains no indexable words: \"$text\".");
+			return(undef,undef,undef,$self->{session}->{lang}->phrase( "H:no_words" , $text ) );
 		}
 
 		foreach( @{$good} )
@@ -778,6 +697,7 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 			{
 				$_ = "$self->{field}->{name}:$_";
 			}
+			$_ = EPrints::Database::prep_value( $_ );
 			push @where, "__FIELDNAME__ = '$_'";
 		}
 		return ( $self->_get_conditions_aux( 
@@ -790,7 +710,6 @@ print STDERR "get_condititions: ($self->{field}->{type},$self->{field}->{name})\
 sub _get_conditions_aux
 {
 	my ( $self , $wheres , $freetext ) = @_;
-print STDERR "_GCA($self->{field}->{name})\n";
 	my $searchtable = $self->{table};
 	if ($self->{field}->{multiple}) 
 	{	
@@ -809,7 +728,6 @@ print STDERR "_GCA($self->{field}->{name})\n";
 	{
 		if( $_ =~ m/^!/ )
 		{
-			print STDERR ">>> $_\n";
 			push @pwheres, $_;
 		}
 		else
@@ -854,11 +772,6 @@ sub benchmark
 				$keyfield,
 				{ "M"=>$table }, 
 				$where );
-		EPrints::Log::debug("cache: $table:$where");
-	}
-	else
-	{
-		EPrints::Log::debug("used cache: $table:$where");
 	}
 	return $self->{benchcache}->{"$table:$where"};
 
@@ -889,16 +802,20 @@ sub _get_tables_searches
 			{
 				return( undef, undef, undef, $error );
 			}
-print STDERR "_GTS($table)\n";
-			if( !defined $searches{$table} )
+			if( defined $where )
 			{
-				push @tables,$table;
-				$searches{$table}=[];
+				if( !defined $searches{$table} )
+				{
+					push @tables,$table;
+					$searches{$table}=[];
+				}
+	print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
+				push @{$searches{$table}},@{$where};
 			}
-			push @{$searches{$table}},@{$where};
-print STDERR "WHERE\n";
-print STDERR join(" | ",@{$where})."\n";
-			if( defined $bad ) { push @badwords, @{$bad}; }
+			if( defined $bad ) 
+			{ 
+				push @badwords, @{$bad}; 
+			}
 		}
 	}
 	else 
@@ -927,11 +844,13 @@ sub do
 	{
 		return ( undef , undef , $error );
 	}
+	if( !defined $sfields || !defined $sfields->[0] )
+	{
+		return $searchbuffer;
+	}
 	my $n = scalar @{$searches->{$sfields->[0]}};
 	
 	#my @forder = sort { $self->benchmark($table,$a) <=> $self->benchmark($table,$b) } @{$where};
-EPrints::Log::debug("n: [$n] ");
-EPrints::Log::debug("sfields: [".join("][",@{$sfields})."] ");
 
 	my $buffer = undef;
 	if( !$satisfy_all && $self->{anyall} eq "ANY" )
@@ -945,14 +864,11 @@ EPrints::Log::debug("sfields: [".join("][",@{$sfields})."] ");
 	# I use "ne ANY" here as a fast way to mean "eq PHR" or "eq AND"
 	# (phrases subsearches are always AND'd)
 
-print STDERR "<SEARCH : $self->{value}   IN   $self->{field}->{name}\n";
 	for( $i=0 ; $i<$n ; ++$i )
 	{
 		my $nextbuffer = undef;
-print STDERR "<SEARCH ITEM: $i\n";
 		foreach( @{$sfields} )
 		{
-print STDERR "<TABLE : $_\n";
 			my $tablename = $_;
 			# Tables have a colon and fieldname after them
 			# to make sure references to different fields are
@@ -995,22 +911,18 @@ print STDERR "<TABLE : $_\n";
 				$tlist, 
 				$where,
 				$orbuf );
-print STDERR "</TABLE : $_\n";
 		}
 		$buffer = $nextbuffer;
-print STDERR "</SEARCH ITEM: $i\n";
 	}
 	if( $self->{anyall} eq "PHR" )
 	{
 		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
 		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
-						["__FIELDNAME__ LIKE \"%$self->{string}%\""] , 
-						0 );
+						[ "__FIELDNAME__ LIKE \"\%".
+						  EPrints::Database::prep_value( $self->{string} )."\%\"" ] , 
+						  0 );
 		my $table = $tablefield;
 		$table=~s/:.*//;
-print STDERR "($table)(".join(")(",@{$wheres}).")\n";
-print STDERR "HMMMM: ".$self->{table}."\n";
-print STDERR "HMMMM: ".$self->{field}->{name}."\n";
 		my $tlist = { "M"=>$table };
 		$buffer = $self->{session}->{database}->buffer( 
 			$keyfield,
@@ -1018,7 +930,6 @@ print STDERR "HMMMM: ".$self->{field}->{name}."\n";
 			${$wheres}[0],
 			undef );
 	}
-print STDERR "</SEARCH : $self->{value}   IN   $self->{field}->{name}\n";
 
 	if( $self->{anyall} ne "ANY" && !$satisfy_all )
 	{
@@ -1029,7 +940,6 @@ print STDERR "</SEARCH : $self->{value}   IN   $self->{field}->{name}\n";
 			$searchbuffer );
 	}
 
-EPrints::Log::debug("retbuffer: [$buffer]");
 	return ( $buffer, $badwords );
 
 }
@@ -1038,10 +948,12 @@ sub approx_rows
 {
 	my ( $self ) = @_;
 
-EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
-
 	my ($tables, $searches, $badwords, $error) = $self->_get_tables_searches( 1 );
 	if( defined $error )
+	{
+		return 0;
+	}
+	if( !defined $tables || !defined $tables->[0] )
 	{
 		return 0;
 	}
@@ -1082,9 +994,15 @@ EPrints::Log::debug("APPROX ROWS START: $self->{displayname}");
 		
 	}
 
-EPrints::Log::debug("APPROX ROWS END: $self->{displayname}: $result");
 	return $result;
 }
 
+
+sub search_help
+{
+	my( $self ) = @_;
+
+	return $self->{session}->{lang}->phrase( "H:help_".$self->{type} );
+}
 
 1;

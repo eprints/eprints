@@ -33,10 +33,6 @@ use EPrintSite::SiteInfo;
 use strict;
 
 
-# GLOBAL SITE REVISION NUMBER
-$EPrints::Session::eprints_software_version = "Version 1.1.1 (23/01/2001)";
-
-
 ######################################################################
 #
 # new( $offline )

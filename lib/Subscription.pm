@@ -33,7 +33,7 @@ use strict;
 (
 	"subid:text::Subscription ID:1:0:0",
 	"username:text::User:1:0:0:1",
-	"spec:multitext:3:Specification:1:0:0",
+	"spec:longtext:3:Specification:1:0:0",
 	"frequency:set:never,Never (Off);daily,Daily;weekly,Weekly;monthly,Monthly:Frequency:1:1:1"
 );
 

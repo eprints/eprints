@@ -77,7 +77,7 @@ $EPrints::Database::seperator = "_";
 	"boolean"    => "\$(name) SET('TRUE','FALSE') \$(param)",
 	"set"        => "\$(name) VARCHAR(255) \$(param)",
 	"text"       => "\$(name) VARCHAR(255) \$(param)",
-	"multitext"  => "\$(name) TEXT \$(param)",
+	"longtext"   => "\$(name) TEXT \$(param)",
 	"url"        => "\$(name) VARCHAR(255) \$(param)",
 	"email"      => "\$(name) VARCHAR(255) \$(param)",
 	"subject"    => "\$(name) VARCHAR(255) \$(param)",
@@ -96,10 +96,9 @@ $EPrints::Database::seperator = "_";
 	"boolean"    => "INDEX(\$(name))",
 	"set"        => "INDEX(\$(name))",
 	"text"       => "INDEX(\$(name))",
-	"multitext"  => "INDEX(\$(name))",
+	"longtext"   => "INDEX(\$(name))",
 	"url"        => "INDEX(\$(name))",
 	"email"      => "INDEX(\$(name))",
-
 	"subject"    => "INDEX(\$(name))",
 	"username"   => "INDEX(\$(name))",
 	"pagerange"  => "INDEX(\$(name))",
@@ -428,7 +427,7 @@ sub add_record
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0];
 
-	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\""._prep_value($data->{$keyfield->{name}})."\")";
+	my $sql = "INSERT INTO $table ($keyfield->{name}) VALUES (\"".prep_value($data->{$keyfield->{name}})."\")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -451,21 +450,20 @@ sub add_record
 sub _escape_chars
 {
 	my( $value ) = @_; 
-	$value =~ s/\\/\\\\/g;
-	$value =~ s/"/\\"/g;
+	$value =~ s/["\\.'%]/\\$&/g;
 	return $value;
 }
 
 ######################################################################
 #
-# $munged = _prep_value( $value )
+# $munged = prep_value( $value )
 #
 #  Call _escape_chars on value. If value is not defined return
 #  an empty string instead. [STATIC]
 #
 ######################################################################
 
-sub _prep_value
+sub prep_value
 {
 	my( $value ) = @_; 
 	
@@ -500,7 +498,7 @@ sub update
 	# skip the keyfield;
 	my $keyfield = shift @fields;
 
-	my $keyvalue = _prep_value($data->{$keyfield->{name}});
+	my $keyvalue = prep_value($data->{$keyfield->{name}});
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
@@ -526,14 +524,14 @@ sub update
 			if( $_->{type} eq "name" )
 			{
 				$values{"$_->{name}_given"} = 
-					_prep_value( $data->{$_->{name}}->{given} );
+					prep_value( $data->{$_->{name}}->{given} );
 				$values{"$_->{name}_family"} = 
-					_prep_value( $data->{$_->{name}}->{family} );
+					prep_value( $data->{$_->{name}}->{family} );
 			}
 			else
 			{
 				$values{"$_->{name}"} = 
-					_prep_value( $data->{$_->{name}} );
+					prep_value( $data->{$_->{name}} );
 			}
 			if( _freetext_type( $_ ) )
 			{ 
@@ -589,16 +587,16 @@ sub update
 			$sql .= ") VALUES (\"$keyvalue\",\"$i\",";
 			if( $multifield->{type} eq "name" )
 			{
-				$sql .= "\""._prep_value($_->{given})."\",";
-				$sql .= "\""._prep_value($_->{family})."\"";
+				$sql .= "\"".prep_value($_->{given})."\",";
+				$sql .= "\"".prep_value($_->{family})."\"";
 			}
 			else
 			{
-				$sql .= "\""._prep_value($_)."\"";
+				$sql .= "\"".prep_value($_)."\"";
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
-			if( $multifield->{type} eq "text" || $multifield->{type} eq "multitext" )
+			if( $multifield->{type} eq "text" || $multifield->{type} eq "longtext" )
 			{
 				$self->_freetext_index( $table, $keyvalue, $multifield, $_ );
 			}
@@ -614,104 +612,6 @@ sub update
 
 ######################################################################
 #
-# retrieve_single( $table, $key_field, $value )
-#
-#  Retrieves a single object from the database, where field 
-#  $key_field matches $value. An empty list is returned if the field
-#  can't be found.
-#
-######################################################################
-
-sub retrieve_single
-{
-die "retrieve_single deprecated_cjg";
-	my( $self, $table, $key_field, $value ) = @_;
-	
-	my $sql = "SELECT * FROM $table WHERE $key_field LIKE \"$value\";";
-
-	my @row = $self->{dbh}->selectrow_array( $sql );
-
-	return( @row );
-}
-
-
-######################################################################
-#
-# $rows = retrieve( $table, $cols[], $conditions[], $order )
-#
-#   Retrieve the specified rows from the $table, with the given
-#   conditions. If conditions is undefined, retrieves all rows.
-#   Returns a reference to an array of references to row arrays.
-#   Erk! i.e.:
-#
-#   $rows = [  \@row1, \@row2, \@row3, ... ];
-#
-#   $order is a reference to an array specifying the order in which
-#   rows should be returned. If undef, no order is imposed.
-#
-######################################################################
-
-sub retrieve
-{
-die "retrieve deprecate_cjgd";
-	my( $self, $table, $cols, $conditions, $order ) = @_;
-
-	my $sql = "SELECT ";
-
-	$sql .= join( "," , @$cols );	
-	$sql .= " FROM $table";
-
-	if( defined $conditions )
-	{
-		$sql .= " WHERE ";
-		$sql .= join( " \&\& " , @$conditions );	
-	}
-
-	if( defined $order )
-	{
-		$sql .= " ORDER BY ";
-		$sql .= join( "," , @$order );	
-	}		
-
-	$sql .= ";";
-
-#EPrints::Log::debug( "Database", "SQL:$sql" );
-	my $ret_rows = $self->{dbh}->selectall_arrayref( $sql );
-
-	return( $ret_rows );
-}
-
-
-######################################################################
-#
-# $rows = retrieve_fields( $table, $fields, $conditions, $order )
-#
-#  Convenience function. Similar to retrieve() above, except that
-#  $fields should be an array of MetaField objects.
-#
-######################################################################
-
-sub retrieve_fields
-{
-die "retrieve_fields deprecate_cjgd";
-	my( $self, $table, $fields, $conditions, $order ) = @_;
-	
-	my @field_names;
-	my $f;
-	
-	foreach $f (@$fields)
-	{
-		push @field_names, $f->{name};
-	}
-
-	my $rows = $self->retrieve( $table, \@field_names, $conditions, $order );
-
-	return( $rows );
-}
-
-
-######################################################################
-#
 # $success = remove( $table, $field, $value )
 #
 #  Attempts to remove a record from $table, where $field=$value.
@@ -721,7 +621,7 @@ die "retrieve_fields deprecate_cjgd";
 
 sub remove
 {
-die "remove not fini_cjgshed";
+die "remove not fini_cjgshed";# don't forget to prep values
 	my( $self, $table, $field, $value ) = @_;
 	
 	my $sql = "DELETE FROM $table WHERE $field LIKE \"$value\";";
@@ -770,6 +670,7 @@ sub _create_counter_table
 	# Everything OK
 	return( 1 );
 }
+
 ######################################################################
 #
 # $success = _create_tempmap_table()
@@ -809,6 +710,7 @@ sub _create_tempmap_table
 
 sub counter_next
 {
+	# still not appy with this #cjg (prep values too?)
 	my( $self, $counter ) = @_;
 
 	# Update the counter	
@@ -1061,7 +963,7 @@ sub _get
 	my $sql;
 	if ( $mode == 0 )
 	{
-		$sql = "SELECT $cols FROM $table AS M WHERE M.$keyfield->{name} = \"$param\"";
+		$sql = "SELECT $cols FROM $table AS M WHERE M.$keyfield->{name} = \"".prep_value($param)."\"";
 	}
 	elsif ( $mode == 1 )	
 	{
@@ -1120,7 +1022,7 @@ sub _get
 		{
 			$sql = "SELECT M.$keyfield->{name},M.pos,$col FROM ";
 			$sql.= $table.$EPrints::Database::seperator."$multifield->{name} AS M ";
-			$sql.= "WHERE M.$keyfield->{name}=\"$param\"";
+			$sql.= "WHERE M.$keyfield->{name}=\"".prep_value( $param )."\"";
 		}
 		elsif ( $mode == 1)
 		{
@@ -1275,7 +1177,7 @@ sub exists
 	my @fields = EPrints::MetaInfo::get_fields( $table );
 	my $keyfield = $fields[0]->{name};
 
-	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"$id\";";
+	my $sql = "SELECT $keyfield FROM $table WHERE $keyfield = \"".prep_value( $id )."\";";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1317,7 +1219,7 @@ print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 	foreach( @{$good} )
 	{
 		$sql = "INSERT INTO $indextable ( $keyfield->{name} , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \""._prep_value("$field->{name}:$_")."\")";
+		$sql.= "( \"$id\" , \"".prep_value("$field->{name}:$_")."\")";
 		$rv = $rv && $self->do( $sql );
 	} 
 	return $rv;
@@ -1326,7 +1228,7 @@ print "$table:$field->{name}:".join(",",@{$good}).":".join(",",@{$bad}).":\n";
 sub _freetext_type
 {
 	my( $field ) = @_;	
-	return ( $field->{type} eq "text" || $field->{type} eq "multitext" ||
+	return ( $field->{type} eq "text" || $field->{type} eq "longtext" ||
 		$field->{type} eq "url" || $field->{type} eq "email" );
 }
 

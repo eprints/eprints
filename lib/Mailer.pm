@@ -17,6 +17,7 @@
 package EPrints::Mailer;
 
 use EPrintSite::SiteInfo;
+use EPrints::Version;
 
 use strict;
 
@@ -128,7 +129,7 @@ sub update_template_line
 	$new_line =~ s/__frontpage__/$EPrintSite::SiteInfo::frontpage/g;
 	$new_line =~
 		s/__subjectroot__/$EPrintSite::SiteInfo::server_subject_view_stem/g;
-	$new_line =~ s/__version__/$EPrints::Session::eprints_software_version/g;
+	$new_line =~ s/__version__/$EPrints::Version::eprints_software_version/g;
 	
 	return( $new_line );
 }

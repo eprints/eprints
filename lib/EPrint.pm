@@ -43,7 +43,7 @@ $EPrints::EPrint::id_code_digits = 8;
 	                                         # case.
 	"additional:text::Suggested Additional Subject Heading:0:0:0",
 	                                         # Suggested extra subject...
-	"reasons:multitext:6:Reason for Additional Heading:0:0:0",
+	"reasons:longtext:6:Reason for Additional Heading:0:0:0",
 	                                         # Chance for user to explain why
 	"type:eprinttype::EPrint Type:1:0:0",    # EPrint types, special case again
 	"succeeds:text::Later Version Of:0:0:0:1", # Later version of....

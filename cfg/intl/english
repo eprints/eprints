@@ -160,10 +160,37 @@ F:action_reset     = Reset the form
 F:action_newsearch = Start new search
 F:action_update    = Update the search
 H:form_problem	= There is a problem with the form:
+H:too_many	= Warning - too many results. Unsorted sample of $(1) shown.
+H:search_time	= Search time: $(1) sec. Retrieval and sort time: $(2) sec.
+H:ignored	= Ignored words: $(1).
 H:results_for	= Results for $(1)
-H:no_hits	= Received no hits.
-H:one_hit	= Received $(1) hit.
-H:n_hits	= Received $(1) hits.
+H:no_hits	= Search returned no results.
+H:one_hit	= Search returned $(1) result.
+H:n_hits	= Search returned $(1) results.
+</file>
+
+<file SearchField.pm>
+F:bool_nopref	= No Preference
+F:bool_yes	= Yes
+F:bool_no	= No
+F:set_any	= Any of these
+F:set_all	= All of these
+F:text_any	= Match any
+F:text_all	= Match all, in any order
+H:help_boolean	= Select a value.
+H:help_email    = Enter some text to search for.
+H:help_eprinttype= Select one or more values from the list. Default is (Any).
+H:help_longtext	= Enter a term or terms to search for.
+H:help_name 	= Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. &quot;van Damme, J&quot;.
+H:help_set 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_subject 	= Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
+H:help_text	= Enter a term or terms to search for.
+H:help_url 	= Enter some text to search for.
+H:help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
+H:year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
+H:no_words	= Search field contains no indexable words: &quot;$(1)&quot;.
+L:cant_render	= Don't know how to render search field for type $(1).
 </file>
 
 <file Document.pm>

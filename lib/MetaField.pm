@@ -110,7 +110,7 @@ sub new
 		# display digits is simply the whole argument
 		$self->{displaydigits} = $self->{arguments};
 	}
-	elsif( $self->{type} eq "multitext" )
+	elsif( $self->{type} eq "longtext" )
 	{
 		# display digits is simply the whole argument
 		$self->{displaylines} = $self->{arguments};
@@ -311,7 +311,7 @@ sub make_field
 	# Over-ride index settings [cjg]
 
 	if( $self->{type} ne "pagerange" && 
-	    $self->{type} ne "multitext" )
+	    $self->{type} ne "longtext" )
 	{
 		$self->{indexed} = 1;
 	}

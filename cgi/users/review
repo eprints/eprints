@@ -192,7 +192,7 @@ sub removal_request_form
 	print "</P>\n";
 
 	my $reason_field = new EPrints::MetaField(
-		"removal_reason:multitext:15:Reason for Requesting Removal:1:1:1" );
+		"removal_reason:longtext:15:Reason for Requesting Removal:1:1:1" );
 	$reason_field->{help} = "Please enter the reason for your removal ".
 		"request in the box below. The request will be sent to the site ".
 		"administrator.";

@@ -170,7 +170,7 @@ sub start_html
 		$r->send_http_header;
 	}
 
-	my %opts = %EPrintSite::SiteInfo::body_params;
+	my %opts = %EPrintSite::SiteInfo::start_html_params;
 	$opts{-TITLE} = "$EPrintSite::SiteInfo::sitename\: $title";
 
 	$html .= $self->{query}->start_html( %opts );
@@ -331,7 +331,7 @@ sub format_field
 		$html = "UNSPECIFIED" unless( defined $value );
 		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
 	}
-	elsif( $type eq "multitext" )
+	elsif( $type eq "longtext" )
 	{
 		$html = ( defined $value ? $value : "" );
 		$html =~ s/\r?\n\r?\n/<BR><BR>\n/s;
@@ -522,7 +522,7 @@ sub input_field
 			-value=>"TRUE",
 			-label=>"" );
 	}
-	elsif( $type eq "multitext" )
+	elsif( $type eq "longtext" )
 	{
 		$html = $self->{query}->textarea(
 			-name=>$field->{name},

@@ -145,24 +145,30 @@ sub process
 			return;
 		}
 
-		@results = $searchexp->get_records( 1000 );
+		my $n_results = $searchexp->count();
+
+		my $MAX=1000;
+
+		@results = $searchexp->get_records( $MAX );
 		$t3 = EPrints::Log::microtime();
 
 		print $self->{session}->{render}->start_html(
 			$self->{session}->{lang}->phrase( "H:results_for",
 			                                  $self->{title} ) );
 
-		if( defined $searchexp->{warning} )
+		if( $n_results > $MAX) 
 		{
-			print "<P><B><I>".$searchexp->{warning}."</I></B></P>";
+			print "<P>";
+	                print $self->{session}->{lang}->phrase( "H:too_many", "<SPAN class=\"highlight\">$MAX</SPAN>" )."\n";
+			print "</P>";
 		}
 	
 		my $code;
-		if( scalar @results==0 )
+		if( $n_results == 0 )
 		{
 			$code = "H:no_hits";
 		}
-		elsif( scalar @results==1 )
+		elsif( $n_results == 1 )
 		{
 			$code = "H:one_hit";
 		}
@@ -171,18 +177,23 @@ sub process
 			$code = "H:n_hits";
 		}
 		print "<P>";
-       		print $self->{session}->{lang}->phrase( $code, "<STRONG>".(scalar @results)."</STRONG>" );
-		print "</P>";
-
-printf("<P>Search Time: <B>%.4f</B> seconds.</P>",($t2-$t1));
-printf("<P>Retrieval and Sort Time: <B>%.4f</B> seconds.</P>",($t3-$t2));
+       		print $self->{session}->{lang}->phrase( $code, "<SPAN class=\"highlight\">$n_results</SPAN>" )."\n";
 
 		if( @{ $searchexp->{ignoredwords} } )
 		{
 			my %words = ();
 			foreach( @{$searchexp->{ignoredwords}} ) { $words{$_}++; }
-			print "<P>Ignored words: <B>".join("</B>, <B>",sort keys %words)."</B>.</P>";
+       			print $self->{session}->{lang}->phrase( 
+				"H:ignored",
+				"<SPAN class=\"highlight\">".join("</SPAN>, <SPAN class=\"highlight\">",sort keys %words)."</SPAN>" );
 		}
+		print "</P>\n";
+
+       		print $self->{session}->{lang}->phrase( 
+			"H:search_time", 
+			"<SPAN class=\"highlight\">".($t2-$t1)."</SPAN>", 
+			"<SPAN class=\"highlight\">".($t3-$t2)."</SPAN>" ) ."\n";
+
 		# Print results
 
 		if( $self->{what} eq "eprints" )
@@ -226,20 +237,17 @@ printf("<P>Retrieval and Sort Time: <B>%.4f</B> seconds.</P>",($t3-$t2));
 		}
 			
 		# Print out state stuff for a further invocation
-		print "<CENTER><P>";
+		
 		print $self->{session}->{render}->start_get_form();
 
 		$self->write_hidden_state();
 
 		print $self->{session}->{render}->submit_buttons(
 			[ $self->{session}->{lang}->phrase("F:action_update"), $self->{session}->{lang}->phrase("F:action_newsearch") ] );
-		print "</P></CENTER>\n";
-
 		print $self->{session}->{render}->end_form();
-
-
+	
 		print $self->{session}->{render}->end_html();
-		return
+		return;
 	}
 
 	if( defined $submit_button && ( $submit_button eq $self->{session}->{lang}->phrase("F:action_reset") || 
@@ -332,10 +340,10 @@ sub render_search_form
 	print $self->{session}->{render}->start_get_form();
 
 	print $searchexp->render_search_form( 1, 1 );
-	print "<CENTER><P>";
+	print "<P>";
 	print $self->{session}->{render}->submit_buttons( [ $self->{session}->{lang}->phrase("F:action_search"),
 		                                                 $self->{session}->{lang}->phrase("F:action_reset") ] );
-	print "</P></CENTER>\n";
+	print "</P>\n";
 
 	print $self->{session}->{render}->end_form();
 }

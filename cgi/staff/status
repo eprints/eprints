@@ -17,6 +17,7 @@ use EPrints::HTMLRender;
 use EPrints::Database;
 use EPrints::EPrint;
 use EPrints::User;
+use EPrints::Version;
 
 use EPrintSite::SiteInfo;
 
@@ -90,7 +91,7 @@ closedir DOCSTORE;
 print "<CENTER><TABLE BORDER=0>\n";
 
 
-&print_row( "EPrints Release:", $EPrints::Session::eprints_software_version );
+&print_row( "EPrints Release:", $EPrints::Version::eprints_software_version );
 
 &print_row( "Database Status:", $db_status );
 
