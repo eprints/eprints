@@ -566,12 +566,12 @@ sub render_citation_link
 #cjg finish me!
 	if( defined $staff && $staff )
 	{
-		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
+		$url = $self->{session}->get_archive()->get_conf( "perl_url" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
 
 	}
 	else
 	{
-		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" )."/view_user?userid=".$self->get_value( "userid" );
+		$url = $self->{session}->get_archive()->get_conf( "perl_url" )."/view_user?userid=".$self->get_value( "userid" );
 		$url = "???";
 	}
 

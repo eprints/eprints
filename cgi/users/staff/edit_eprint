@@ -130,7 +130,7 @@ sub process
 	if( defined $action && $action eq "cancel" )
 	{
 		$session->redirect(
-			$session->get_archive()->get_conf( "server_perl_root" )."/users/home" );
+			$session->get_archive()->get_conf( "userhome" );
 		return;
 	}
 

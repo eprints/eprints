@@ -159,8 +159,6 @@
 #         .....Appears to just push first button!
 #	Fix "upload then back" bug
 #	Status search field buggered
-#	 FIX installer - phrases don't work! some dirs are wrong ...done
-#        	what about a default disk0 dir?
 #	directory listing on perl dir is showing and should be hidden.
 
 #Clean UP
@@ -168,8 +166,6 @@
 #	Eliminate HTMLRenderer
 #	Make SearchFields have a better call method.
 #	Put System field titles in system phrase file.
-#	rationalise names of cgi and bin scripts ? 
-#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
 #	Not everything should be no-cache! (HTTP header)
 # 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
 #	Named values in Constructors all round?
@@ -179,7 +175,6 @@
 #	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 #	paged searches are not very neat(understatement!)Q
 #	What type for ordervalues? Something which keeps memory use down...
-#	Does required flag still do anything in MetaField conf?
 
 #TODO
 #	langid's -> validate they is correct (in multilang)

@@ -272,7 +272,7 @@ sub handle_removal_request
 	}
 
 	my $reason = $session->param( "reason" );
-	my $url = $session->get_archive()->get_conf( "server_perl_root" ).
+	my $url = $session->get_archive()->get_conf( "perl_url" ).
 		"/users/staff/edit_eprint?eprintid=".$eprint->get_value( "eprintid" );
 	
 	$session->mail_administrator( 	

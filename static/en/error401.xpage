@@ -8,7 +8,7 @@
 
 <p><strong>If you don't have a username and password</strong> you need to register with us.</p>
 
-<p><a href="&cgiroot;/set_password">Click here if you would like to register or have forgotten your password and want to set it again.</a></p>
+<p><a href="&perl_url;/set_password">Click here if you would like to register or have forgotten your password and want to set it again.</a></p>
 
 </body>
 </page>

@@ -114,7 +114,6 @@ sub commit
 	my $rv = $self->{session}->get_db()->update(
 			$self->{dataset},
 			$self->{data} );
-
 	
 	# Need to update all children in case ancesors have changed.
 	# This is pretty slow esp. For a top level subject, but subject
@@ -161,7 +160,7 @@ sub remove_all
 	
 ######################################################################
 #
-# $subject = create_subject( $session, $id, $name, $parent, $depositable )
+# $subject = create( $session, $id, $name, $parent, $depositable )
 #
 #  Creates the given subject in the database. $id is the ID of the subject,
 #  $name is a suitably meaningful name in English, and $depositable is
@@ -171,9 +170,9 @@ sub remove_all
 #
 ######################################################################
 
-sub create_subject
+sub create
 {
-	my( $class, $session, $id, $name, $parents, $depositable ) = @_;
+	my( $session, $id, $name, $parents, $depositable ) = @_;
 	
 	my $actual_parents = $parents;
 	$actual_parents = [ $EPrints::Subject::root_subject ] if( !defined $parents );
@@ -231,11 +230,11 @@ sub create_child
 {
 	my( $self, $id, $name, $depositable ) = @_;
 	
-	return( EPrints::Subject->create_subject( $self->{session},
-	                                          $id,
-	                                          $name,
-	                                          $self->{subjectid},
-	                                          $depositable ) );
+	return( EPrints::Subject::create( $self->{session},
+	                                  $id,
+	                                  $name,
+	                                  $self->{subjectid},
+	                                  $depositable ) );
 }
 
 
@@ -399,7 +398,7 @@ sub create_subject_table
 		print STDERR "$vals[0]\n";
 		
 		$success = $success &&
-			( defined EPrints::Subject->create_subject( 
+			( defined EPrints::Subject::create( 
 				$session,
 			        $vals[0],
 			        {$lang=>$vals[1]},

@@ -93,11 +93,11 @@ sub process
 	my $url;
 	if( $staff )
 	{
-		$url = $session->get_archive()->get_conf( "server_perl_root" )."/users/staff/eprint_search?userid=$userid&_action_search=1";
+		$url = $session->get_archive()->get_conf( "perl_url" )."/users/staff/eprint_search?userid=$userid&_action_search=1";
 	}
 	else
 	{
-		$url = $session->get_archive()->get_conf( "server_perl_root" )."/user_eprints?userid=$userid";
+		$url = $session->get_archive()->get_conf( "perl_url" )."/user_eprints?userid=$userid";
 	}
 	my $link = $session->make_element( "a", href=>$url );	
 

@@ -42,7 +42,7 @@ my $langid;
 foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 {
 	$session->change_lang( $langid );
-	my $dir =  $session->get_archive()->get_conf( "local_html_root" )."/".$langid."/view";
+	my $dir =  $session->get_archive()->get_conf( "htdocs_path" )."/".$langid."/view";
 	my $tmpdir = $dir."_tmp";
 	my $doomdir = $dir."_toerase";
 

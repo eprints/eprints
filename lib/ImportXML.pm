@@ -118,6 +118,16 @@ print "T:".$params{name}."\n";
 		return;
 	}
 	
+	if( $tag eq "LANG" )
+	{
+		if( !defined $parser->{eprints}->{currentmultilang} )
+		{
+			$parser->{eprints}->{currentmultilang} = {};
+		}
+		$parser->{eprints}->{currentlang} = lc $params{id};
+		return;
+	}
+	
 	if( $tag eq "RECORDS")
 	{
 		return;
@@ -164,12 +174,16 @@ sub _handle_end
 	{
 #cjg What non OO it has... (call the damn methods, chris!)
 		my $fielddata = $parser->{eprints}->{currentdata};
+		if( $fielddata eq "" ) { $fielddata = undef; }
 		my $currfield = $parser->{eprints}->{currentfield};
 		if( $parser->{eprints}->{fields}->{$currfield}->{multilang} )
 		{
-			$fielddata = {
-				"?" => $fielddata
-			};
+			my $ml = $parser->{eprints}->{currentmultilang};
+			if( !defined $ml ) { $ml = {}; }
+
+			if( defined $fielddata ) { $ml->{"?"} = $fielddata; }
+			
+			$fielddata = $ml;
 		}
 		if( $parser->{eprints}->{fields}->{$currfield}->{hasid} )
 		{
@@ -190,6 +204,8 @@ sub _handle_end
 		delete $parser->{eprints}->{currentid};
 		delete $parser->{eprints}->{currentfield};
 		delete $parser->{eprints}->{currentdata};
+		delete $parser->{eprints}->{currentmultilang};
+		delete $parser->{eprints}->{currentlang};
 		delete $parser->{eprints}->{currentspecial};
 		delete $parser->{eprints}->{currentspecialpart};
 		return;
@@ -200,10 +216,17 @@ sub _handle_end
 		delete $parser->{eprints}->{currentspecialpart};
 		return;
 	}
+	if( $tag eq "LANG" )
+	{
+		$parser->{eprints}->{currentmultilang}->{
+			$parser->{eprints}->{currentlang} } = 
+				$parser->{eprints}->{currentdata};
+		$parser->{eprints}->{currentdata} = "";
+		return;
+	}
 	$parser->xpcroak( "Unknown end tag: $tag" );
 }
 
-## WP1: BAD
 sub _handle_char
 {
 	my( $parser , $text ) = @_;

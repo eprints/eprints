@@ -1398,6 +1398,7 @@ print STDERR "From cache $param\n";
 			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
 			$lang = shift( @values ) if( $multifield->get_property( "multilang" ) );
 			my $n = $lookup{ $id };
+#print STDERR "[$n][$id]\n";
 			my $value;
 			if( $multifield->is_type( "name" ) )
 			{

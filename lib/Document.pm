@@ -232,7 +232,7 @@ sub _secure_symlink_path
 
 	my $archive = $eprint->get_session()->get_archive();
 		
-	return( $archive->get_conf( "local_secure_root" )."/".EPrints::EPrint::eprintid_to_path( $eprint->get_value( "eprintid" ) ) );
+	return( $archive->get_conf( "htdocs_secure_path" )."/".EPrints::EPrint::eprintid_to_path( $eprint->get_value( "eprintid" ) ) );
 }
 
 sub docid_to_path
@@ -435,11 +435,11 @@ sub url
 	if( $self->get_value( "security" ) eq "public"
 	 && $eprint->get_dataset()->id() eq "archive" )
 	{
-		$basepath = $archive->get_conf( "server_document_root" );
+		$basepath = $archive->get_conf( "documents_url" );
 	}
 	else
 	{
-		$basepath = $archive->get_conf( "server_secure_root" );
+		$basepath = $archive->get_conf( "secure_url" );
 	}
 	return $basepath . "/" . 
 		sprintf( "%08d", $eprint->get_value( "eprintid" )) . "/" .

@@ -111,7 +111,7 @@ unless( defined $archiveid )
 my $archive = EPrints::Archive->new_archive_by_id( $archiveid, 1 );
 exit( 1 ) unless( defined $archive );
 
-my $sysfile = $archive->get_conf( "system_files_path" )."/auto-apache.conf";
+my $sysfile = $archive->get_conf( "config_path" )."/auto-apache.conf";
 my $userfile = $archive->get_conf( "config_path" )."/apache.conf";
 
 my $id = $archive->get_id();
@@ -139,8 +139,8 @@ END
 
 my $cgidir = EPrints::Config::get( "cgi_path" );
 my $adminemail = $archive->get_conf( "adminemail" );
-my $local_html_root = $archive->get_conf( "local_html_root" );
-my $local_secure_root = $archive->get_conf( "local_secure_root" );
+my $htdocs_path = $archive->get_conf( "htdocs_path" );
+my $htdocs_secure_path = $archive->get_conf( "htdocs_secure_path" );
 my $host = $archive->get_conf( "host" );
 
 open( CONF, ">$sysfile" ) || die "Can't write to $sysfile";
@@ -181,7 +181,7 @@ print CONF <<END;
 <VirtualHost *>
   ServerName $host
 $aliases
-  DocumentRoot $local_html_root
+  DocumentRoot $htdocs_path
   ServerAdmin $adminemail
 
   Alias /perl $cgidir
@@ -221,11 +221,12 @@ print CONF <<END;
   # Default Language
   RewriteRule ^/(.*)\$         /$defaultlang/\$1   [L]
 
-  <Directory "$local_secure_root">
+  <Directory "$htdocs_secure_path">
     AuthName "Secure Document Area"
     AuthType "Basic"
     PerlAuthenHandler EPrints::Auth::authen
     PerlAuthzHandler EPrints::Auth::authz
+    PerlSetVar EPrints_Security_Area Documents
     require valid-user
   </Directory>
 
@@ -241,10 +242,11 @@ print CONF <<END;
     AuthType "Basic"
     PerlAuthenHandler EPrints::Auth::authen
     PerlAuthzHandler EPrints::Auth::authz
+    PerlSetVar EPrints_Security_Area User
     require valid-user
   </Directory>
 
-  <Directory "$local_html_root">
+  <Directory "$htdocs_path">
     AddType 'text/html; charset=UTF-8' .html
 #???
   </Directory>

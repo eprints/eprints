@@ -39,8 +39,8 @@ $EPrints::SystemSettings::conf =
 		"targz"  =>  ".tar.gz"
 	},
 	archive_formats => [ "zip", "targz" ],
-	version => "CVS",
-	version_desc => "EPrints 2.? CVS Version",
+	version_id => "CVS",
+	version => "EPrints 2.? CVS Version",
 	user => "eprints",
 	group => "eprints"
 };

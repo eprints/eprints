@@ -211,7 +211,7 @@ sub _create_directory
 	my( $session, $eprintid ) = @_;
 	
 	# Get available directories
-	my $docpath = $session->get_archive()->get_conf( "local_document_root" );
+	my $docpath = $session->get_archive()->get_conf( "documents_path" );
 #print STDERR "DOCPATH: $docpath\n";
 	unless( opendir DOCSTORE, $docpath )
 	{
@@ -231,8 +231,8 @@ sub _create_directory
 	{
 #cjg use the lib!
 		my $free_space = 1000000000;
-#cjg OH GOD			(df $session->get_archive()->get_conf( "local_document_root" )."/$device" )[3];
-#print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$device)($free_space)\n";
+#cjg OH GOD			(df $session->get_archive()->get_conf( "documents_path" )."/$device" )[3];
+#print STDERR "(".$session->get_archive()->get_conf( "documents_path" )."/$device)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -284,7 +284,7 @@ sub _create_directory
 	my $dir = $storedir."/".$idpath;
 
 	# Full path including doc store root
-	my $full_path = $session->get_archive()->get_conf("local_document_root")."/".$dir;
+	my $full_path = $session->get_archive()->get_conf("documents_path")."/".$dir;
 	
 	if (!EPrints::Utils::mkdir( $full_path ))
 	{
@@ -966,7 +966,7 @@ sub local_path
 {
 	my( $self ) = @_;
 	
-	return( $self->{session}->get_archive()->get_conf( "local_document_root" )."/".$self->get_value( "dir" ) );
+	return( $self->{session}->get_archive()->get_conf( "documents_path" )."/".$self->get_value( "dir" ) );
 }
 
 
@@ -986,7 +986,7 @@ sub url_stem
 
 	return( sprintf( 
 			"%s/%0".$EPrints::EPrint::id_code_digits."d/", 
-			$self->{session}->get_archive()->get_conf( "server_document_root" ), 
+			$self->{session}->get_archive()->get_conf( "documents_url" ), 
 			$self->{data}->{eprintid} ) );
 }
 
@@ -1040,7 +1040,7 @@ sub generate_static
 	foreach $langid ( @{$self->{session}->get_archive()->get_conf( "languages" )} )
 	{
 		$self->{session}->change_lang( $langid );
-		my $full_path = $self->{session}->get_archive()->get_conf( "local_html_root" )."/$langid/archive/".eprintid_to_path( $eprintid );
+		my $full_path = $self->{session}->get_archive()->get_conf( "htdocs_path" )."/$langid/archive/".eprintid_to_path( $eprintid );
 
 		my @created = eval
 		{
@@ -1123,7 +1123,7 @@ sub render_citation_link
 	my $url;
 	if( defined $staff && $staff )
 	{
-		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" ).
+		$url = $self->{session}->get_archive()->get_conf( "perl_url" ).
 			"/users/staff/edit_eprint?eprintid=".$self->get_value( "eprintid" );
 	}
 	else

@@ -94,29 +94,42 @@ sub authz
 	my $archive = $session->get_archive();
 
 	my $uri = $r->uri;
-	
-	my $secpath = $archive->get_conf( "server_secure_path" );
-	
-	if( $uri !~ m#^$secpath# )
+
+	my $area = $r->dir_config( "EPrints_Security_Area" );
+	if( $area eq "User" )
 	{
-		print STDERR "OK\n";
-		# Not the secure documents area, so probably the script area
-		# which handles security on a script by script basis.
+		# All we need in the user area is to check that
+		# this is a valid user, which we have so let's
+		# return OK.
+
 		$session->terminate();
 		return OK;
-	}	
+	}
 
+	if( $area ne "Documents" )
+	{
+		# Ok, It's not User or Documents which means
+		# something screwed up. 
+
+		$archive->log( "Request to ".$r->uri." in unknown EPrints HTTP Security area \"$area\"." );
+		$session->terminate();
+		return FORBIDDEN;
+	}
+
+	my $secpath = $archive->get_conf( "secure_url_dir" );
+	
 	if( $uri !~ m#^$secpath/(\d+)/(\d+)/# )
 	{
-		print STDERR "URL in secure area fails to match pattern\n";
-		print STDERR "$uri\n";
-		$r->note_basic_auth_failure;
+		# isn't in format:
+		# /archive/00000001/01/.....
+
+		$archive->log( "Request to ".$r->uri." in secure documents area failed to match REGEXP." );
 		$session->terminate();
-		return AUTH_REQUIRED;
+		return FORBIDDEN;
 	}
 
 	my $user_sent = $r->connection->user;
-	my $eprintid = $1+0; # force it to be integer.
+	my $eprintid = $1+0; # force it to be integer. (Lose leading zeros)
 	my $docid = "$eprintid-$2";
 	my $user = EPrints::User::user_with_username( $session, $user_sent );
 	my $document = EPrints::Document->new( $session, $docid );

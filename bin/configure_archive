@@ -29,9 +29,6 @@ use Unicode::String qw(utf8 latin1);
 
 use strict;
 
-my $MYSQL = "/usr/local/bin/mysql";
-# cjg get from config later.
-
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
 my $REGEXP_EMAIL = '^[^@]+@'.$REGEXP_HOSTNAME_MIDDLE.'$';
@@ -413,12 +410,14 @@ if( $mkfiles eq "yes" )
 		chown( $uid, $gid, $dir );
 	}
 	print <<END;
+
 Ok. I've created the initial config files and directory structure. 
 I've also created a "disk0" directory under documents/ if you want
 your full texts to be stored on a different partition then remove 
 the disk0, and create a symbolic link to the directory you wish to
 store the full texts in. Additional links may be placed here to be
 used when the first is full.
+
 END
 	EPrints::Utils::get_input( $REGEXP_ANY, "Hit return to continue", "" );
 }

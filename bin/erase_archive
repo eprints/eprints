@@ -31,8 +31,8 @@ use strict;
 my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
 exit( 1 ) unless( defined $archive );
 
-my $local_document_root = $archive->get_conf( "local_document_root" );
-my $local_html_root = $archive->get_conf( "local_html_root" );
+my $documents_path = $archive->get_conf( "documents_path" );
+my $htdocs_path = $archive->get_conf( "htdocs_path" );
 my $database = $archive->get_conf( "dbname" );
 
 my $force = ( defined $ARGV[1] && $ARGV[1] eq "FORCE" );
@@ -113,7 +113,7 @@ print "\n";
 print "Erasing eprint files...\n";
 
 # Get available directories
-opendir DOCSTORE, $local_document_root
+opendir DOCSTORE, $documents_path
 	or print STDERR "Can't open DOCSTORE";
 
 # The grep here just removes the "." and ".." directories
@@ -122,12 +122,12 @@ closedir DOCSTORE;
 
 # Remove the contents of each of the directories.
 my $dir;
-push @doomeddirs, $local_html_root;
+push @doomeddirs, $htdocs_path;
 foreach $dir (@doomeddirs)
 {
 	print STDERR "Removing stuff in: $dir\n";
-	my $rc = CORE::system( "rm -rf $local_document_root/$dir/*" ) & 0xffff;
-	print STDERR "Warning: Cleaning $local_document_root/$dir didn't go smoothly\n" unless( $rc==0 );
+	my $rc = CORE::system( "rm -rf $documents_path/$dir/*" ) & 0xffff;
+	print STDERR "Warning: Cleaning $documents_path/$dir didn't go smoothly\n" unless( $rc==0 );
 }
-mkdir( $local_html_root, 0755 );
+mkdir( $htdocs_path, 0755 );
 print "Done.\n";

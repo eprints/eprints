@@ -508,7 +508,7 @@ sub _render_value1
 #print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
 		if( $self->{browse} && !$nolink)
 		{
-			my $url = $session->get_archive()->get_conf( "server_static" ).
+			my $url = $session->get_archive()->get_conf( "base_url" ).
 					"/view/".$self->get_name()."/".$value.".html";
 			my $a = $session->make_element( "a", href=>$url );
 			$a->appendChild( $rendered );

@@ -19,7 +19,7 @@ package EPrints::Config::lemurprints;
 
 #cjg NO UNICODE IN PASSWORDS!!!!!!!!!
 # remove additional + suggestion fields from eprint static and add
-# them to the normal roster.
+# them to the normal roster. cjg non-public comments field?
 
 use EPrints::Utils;
 use EPrints::DOM;
@@ -30,20 +30,12 @@ use strict;
 
 ## Config to add: MAX browse items, MAX search results to display sorted
 ## Fields to make browseable.
-my $CJGDEBUG = 0;
 
-## WP1: BAD
+
 sub get_conf
 {
 	my( $archiveinfo ) = @_;
 	my $c = {};
-
-	# First we import information that was configured in
-	# the XML file. It can be over-ridden, but that's 
-	# probably not a good idea.
-	foreach( keys %{$archiveinfo} ) { 
-		$c->{$_} = $archiveinfo->{$_} 
-	};
 
 ######################################################################
 #
@@ -51,61 +43,76 @@ sub get_conf
 #
 ######################################################################
 
+# First we import information that was configured in
+# the XML file. It can be over-ridden, but that's 
+# probably not a good idea.
+foreach( keys %{$archiveinfo} ) { 
+	$c->{$_} = $archiveinfo->{$_} 
+};
+
 # If 1, users can request the removal of their submissions from the archive
 $c->{allow_user_removal_request} = 1;
 
-# Time (in hours) to allow a email/password change "pin" to be active.
-# Set a time of zero ("0") to make pins never time out.
-$c->{pin_timeout} = 3;
-
-# Cache timeout:
-# Number of minutes of unuse to timeout a search cache
-$c->{cache_timeout} = 10;
-# Maximum lifespan of a cache, in use or not. In hours.
-$c->{cache_maxlife} = 12;
-
 ######################################################################
 #
-#  Site information that shouldn't need changing
+# Local Paths 
+#
+#  These probably don't need changing.
 #
 ######################################################################
 
+# Where the full texts (document files) are stored:
+$c->{documents_path} = $c->{archiveroot}."/documents";
 
-######################################################################
-# paths
-
+# The location of the configuration files (and where some
+# automatic files will be written to)
 $c->{config_path} = $c->{archiveroot}."/cfg";
-$c->{system_files_path} = $c->{archiveroot}."/cfg";
-$c->{static_html_root} = $c->{archiveroot}."/cfg/static";
-$c->{local_html_root} = $c->{archiveroot}."/html";
-$c->{local_document_root} = $c->{archiveroot}."/documents";
-$c->{local_secure_root} = $c->{local_html_root}."/secure";
+
+# The location of the initial static website, before it's processed
+# with the DTD and the site template.
+$c->{static_path} = $c->{archiveroot}."/cfg/static";
+
+# The location where eprints will build the website
+$c->{htdocs_path} = $c->{archiveroot}."/html";
+
+# The directory which will be secured for web access to 
+# protect non-public documents.
+$c->{htdocs_secure_path} = $c->{htdocs_path}."/secure";
 
 ######################################################################
+#
 # URLS
+#
+#  These probably don't need changing.
+#
+######################################################################
 
 # Server of static HTML + images, including port
-$c->{server_static} = "http://$c->{host}";
+$c->{base_url} = "http://$c->{host}";
 if( $c->{port} != 80 )
 {
 	# cjg: Not SSL port 443 friendly
-	$c->{server_static}.= ":".$c->{port}; 
+	$c->{base_url}.= ":".$c->{port}; 
 }
 
 # Site "home page" address
-$c->{frontpage} = "$c->{server_static}/";
+$c->{frontpage} = "$c->{base_url}/";
 
-# Corresponding URL of document file hierarchy
-$c->{server_document_path} = "/archive";
-$c->{server_document_root} = $c->{server_static}.$c->{server_document_path};
+# URL of document file hierarchy
+$c->{documents_url} = $c->{base_url}."/archive";
 
-# URL of secure document file hierarchy
-$c->{server_secure_path} = "/secure"; 
-$c->{server_secure_root} = $c->{server_static}.$c->{server_secure_path};
+# URL of secure document file hierarchy. EPrints needs to know the
+# path from the baseurl as this is used by the authentication module
+# to extract the document number from the url, eg.
+# http://www.lemurprints.org/secure/00000120/01/index.html
+$c->{secure_url_dir} = "/secure"; 
+$c->{secure_url} = $c->{base_url}.$c->{secure_url_dir};
 
-# Mod_perl script server, including port
-$c->{server_perl_path} = "/perl";
-$c->{server_perl_root} = $c->{server_static}.$c->{server_perl_path};
+# Mod_perl script base URL
+$c->{perl_url} = $c->{base_url}."/perl";
+
+# The user area home page URL
+$c->{userhome} = "$c->{perl_url}/users/home";
 
 ######################################################################
 #
@@ -113,11 +120,12 @@ $c->{server_perl_root} = $c->{server_static}.$c->{server_perl_path};
 #
 ######################################################################
 
+# AT LEAST one of the following formats will be required. If you do
+# not want this requirement, then make the list empty (Although this
+# means users will be able to submit eprints with ZERO documents.
+#
+# Available formats are configured elsewhere. See the docs.
 
-# AT LEAST one of the following formats will be required. Include
-# $EPrints::Document::OTHER as well as those in your list if you want to
-# allow any format. Leave this list empty if you don't want to require that
-# full text is deposited.
 $c->{required_formats} =
 [
 	"html",
@@ -156,103 +164,12 @@ $c->{diskspace_warn_threshold} = 512000;
 
 ######################################################################
 #
-#  Open Archives interoperability
-#
-######################################################################
-
-# Site specific **UNIQUE** archive identifier.
-# See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
-
-$c->{oai_archive_id} = "GenericEPrints";
-
-# Exported metadata formats. The hash should map format ids to namespaces.
-$c->{oai_metadata_formats} =
-{
-	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
-};
-
-# Exported metadata formats. The hash should map format ids to schemas.
-$c->{oai_metadata_schemas} =
-{
-	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
-};
-
-# Base URL of OAI
-$c->{oai_base_url} = $c->{server_perl_root}."/oai";
-
-$c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
-	$c->{oai_archive_id},
-	"23" );
-
-# Information for "Identify" responses.
-
-# "content" : Text and/or a URL linking to text describing the content
-# of the repository.  It would be appropriate to indicate the language(s)
-# of the metadata/data in the repository.
-
-$c->{oai_content}->{"text"} = latin1( <<END );
-OAI Site description has not been configured.
-END
-$c->{oai_content}->{"url"} = undef;
-
-# "metadataPolicy" : Text and/or a URL linking to text describing policies
-# relating to the use of metadata harvested through the OAI interface.
-
-# oai_metadataPolicy{"text"} and/or oai_metadataPolicy{"url"} 
-# MUST be defined to comply to OAI.
-
-$c->{oai_metadata_policy}->{"text"} = latin1( <<END );
-No metadata policy defined. 
-This server has not yet been fully configured.
-Please contact the admin for more information, but if in doubt assume that
-NO rights at all are granted to this data.
-END
-$c->{oai_metadata_policy}->{"url"} = undef;
-
-# "dataPolicy" : Text and/or a URL linking to text describing policies
-# relating to the data held in the repository.  This may also describe
-# policies regarding downloading data (full-content).
-
-# oai_dataPolicy{"text"} and/or oai_dataPolicy{"url"} 
-# MUST be defined to comply to OAI.
-
-$c->{oai_data_policy}->{"text"} = latin1( <<END );
-No data policy defined. 
-This server has not yet been fully configured.
-Please contact the admin for more information, but if in doubt assume that
-NO rights at all are granted to this data.
-END
-$c->{oai_data_policy}->{"url"} = undef;
-
-# "submissionPolicy" : Text and/or a URL linking to text describing
-# policies relating to the submission of content to the repository (or
-# other accession mechanisms).
-
-$c->{oai_submission_policy}->{"text"} = latin1( <<END );
-No submission-data policy defined. 
-This server has not yet been fully configured.
-END
-$c->{oai_submission_policy}->{"url"} = undef;
-
-# "comment" : Text and/or a URL linking to text describing anything else
-# that is not covered by the fields above. It would be appropriate to
-# include additional contact details (additional to the adminEmail that
-# is part of the response to the Identify request).
-
-# An array of comments to be returned. May be empty.
-
-$c->{oai_comments} = [
-	latin1( "System is EPrints ").
-	EPrints::Config::get( "version_desc" ).
-	" (http://www.eprints.org)" ];
-
-###########################################
 # Complexity Customisation
 #
-# aka. things you might not want to bother
-# the users with, or might consider really 
-# useful.
-###########################################
+#  Things you might not want to bother the users with, or might 
+#  consider really useful.
+#
+######################################################################
 
 # You may hide the "lineage" and "honourific"
 # fields in the "name" type field input, if you
@@ -262,9 +179,11 @@ $c->{oai_comments} = [
 $c->{hide_honourific} = 0;
 $c->{hide_lineage} = 0;
 
-###########################################
+######################################################################
+#
 # Web Sign-up customisation
-###########################################
+#
+######################################################################
 
 # Allow users to sign up for an account on
 # the web. If you disable this you should
@@ -272,14 +191,18 @@ $c->{hide_lineage} = 0;
 # to not offer this option.
 $c->{allow_web_signup} = 1;
 
-# To prevent users from changing their email
-# and/or passwords via the web, see the 
-# user permissions section elsewhere in this
-# file.
+# The type of user that gets created when someone signs up
+# over the web. This can be modified after they sign up by
+# staff with the right priv. set. 
+$c->{default_user_type} = "user";
 
-###########################################
+# See also the user type configuration section.
+
+######################################################################
+#
 #  Submission Form Customisation
-###########################################
+#
+######################################################################
 
 # These items let you skip the various stages
 # of the submission form if they are not relevant.
@@ -322,9 +245,11 @@ $c->{submission_hide_language} = 1;
 # confidential contents.
 $c->{submission_hide_security} = 0;
 
-###########################################
-#  Language
-###########################################
+######################################################################
+#
+# Language
+#
+######################################################################
 
 # Setting this to zero will simplify the
 # interface to the system if you want to 
@@ -336,88 +261,34 @@ $c->{multi_language_options} = 1;
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
 
-###########################################
-#  User Types
-###########################################
 
-# We need to calculate the connection string, so we can pass it
-# into the AuthDBI config. 
-my $connect_string = EPrints::Database::build_connection_string(
-	dbname  =>  $c->{dbname}, 
-	dbport  =>  $c->{dbport},
-	dbsock  =>  $c->{dbsock}, 
-	dbhost  =>  $c->{dbhost}  );
-
-my $userdata = EPrints::DataSet->new_stub( "user" );
-
-my $UNENCRYPTED_DBI = {
-	handler  =>  \&Apache::AuthDBI::authen,
-	Auth_DBI_data_source  =>  $connect_string,
-	Auth_DBI_username  =>  $c->{dbuser},
-	Auth_DBI_password  =>  $c->{dbpass},
-	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
-	Auth_DBI_uid_field  =>  "username",
-	Auth_DBI_pwd_field  =>  "password",
-	Auth_DBI_grp_field  =>  "usertype",
-	Auth_DBI_encrypted  =>  "off" };
-
-my $ENCRYPTED_DBI = {
-	handler  =>  \&Apache::AuthDBI::authen,
-	Auth_DBI_data_source  =>  $connect_string,
-	Auth_DBI_username  =>  $c->{dbuser},
-	Auth_DBI_password  =>  $c->{dbpass},
-	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
-	Auth_DBI_uid_field  =>  "username",
-	Auth_DBI_pwd_field  =>  "password",
-	Auth_DBI_grp_field  =>  "usertype",
-	Auth_DBI_encrypted  =>  "on" };
-
-# The type of user that gets created when someone signs up
-# over the web. This can be modified after they sign up by
-# staff with the right priv. set. 
+######################################################################
 #
-# If you change this, you should probably change the user
-# automatic field generator (lower down this file) too.
-$c->{default_user_type} = "user";
-
-#cjg = no default user type = no web signup???
-
-#subscription
-#set-password
-#deposit
-#view-status
-#editor
-#staff-view -> view & search users & eprints in staff mode.
-#edit-subject
-#edit-user
-#change-email
-
- 
-$c->{userauth} = {
-	user => { 
-		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email" ] },
-	editor => { 
-		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
-				"view-status", "editor", "staff-view" ] },
-	admin => { 
-		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
-				"view-status", "editor", "staff-view", 
-				"edit-subject", "edit-user" ] }
-};
-
-
+# Metadata Configuration
+#
+#  The archive specific fields for users and eprints. Some fields
+#  come automatically like a user's username or an eprints type. See
+#  the docs for more information.
+#
+#  It's very tricky to change these fields without erasing the archive
+#  and starting from scratch. So make the effort to get it right!
+#
+#  Note: Changing the fields here (usually) requires you to make a 
+#  number of other configuration changes in some or all of the 
+#  following:
+#   - The metadata types config XML file
+#   - The citation config XML file(s)
+#   - The render functions section of this file
+#   - The search options section of this file
+#   - The OAI support section of this file.
+#
+#  To (re)create the database you will need to run
+#   bin/erase_archive  (if you've already run create_tables before)
+#   bin/create_tables
+#
+#  See the documentation for more information.
+#
 ######################################################################
-# METADATA CONFIGURATION
-######################################################################
-# The archive specific fields for users and eprints.
-######################################################################
-
-$c->{archivefields}->{document} = [
-	{ name => "citeinfo", type => "longtext", multiple => 1 }
-];
 
 $c->{archivefields}->{user} = [
 
@@ -434,10 +305,6 @@ $c->{archivefields}->{user} = [
 	{ name => "url", type => "url" }
 
 ];
-
-if( $CJGDEBUG ) {
-	push @{$c->{archivefields}->{user}},{ name => "ecsid", type=>"int" };
-}
 
 $c->{archivefields}->{eprint} = [
 	{ name => "abstract", displaylines => 10, type => "longtext" },
@@ -503,21 +370,31 @@ $c->{archivefields}->{eprint} = [
 
 	{ name => "suggestions", type => "longtext" }
 ];
+
+# Don't worry about this bit, remove it if you want.
+# it's to store some information for a citation-linking
+# modules we've not built yet. 
 	
+$c->{archivefields}->{document} = [
+	{ name => "citeinfo", type => "longtext", multiple => 1 }
+];
+
 
 ######################################################################
 #
 #  Search and subscription information
 #
-#   Before the archive goes live, ensure that these are correct and work OK.
+#   Before the archive goes public, ensure that these are correct and work OK.
 #
 #   To specify a search field that will search >1 metadata field, enter
 #   all of the fields to be searched separated by slashes "/" as a single
 #   entry. e.g.  "title/abstract/keywords".
 #
-#   When specifying ordering, separate the fields with a comma, and specify
-#   ASC for ascending order, or DESC for descending. Ascending order is
-#   the default.  e.g. "year DESC, authors ASC, title"
+#   When specifying ordering, separate the fields with a "/", and specify
+#   proceed the fieldname with a dash "-" for reverse sorting.
+#
+#   To search or sort on the id part of a field eg. "authors" append
+#   ".id" to it's name. eg. "authors.id"
 #
 ######################################################################
 
@@ -526,7 +403,6 @@ $c->{browse_fields} =
 	"year", 
 	"subjects" 
 ];
-
 
 # Fields for a simple user search
 $c->{simple_search_fields} =
@@ -624,14 +500,217 @@ $c->{thread_citation_specs} =
 	"commentary"  =>  "{authors}. {title}. (deposited {datestamp})"
 };
 
+######################################################################
+#
+# User Types
+#
+#  Set the user types and what metadata they require in
+#  metadata-types.xml
+#
+#  Here you can configure how different types of user are 
+#  authenticated and which parts of the system they are allowed
+#  to use.
+#
+######################################################################
+
+# We need to calculate the connection string, so we can pass it
+# into the AuthDBI config. 
+my $connect_string = EPrints::Database::build_connection_string(
+	dbname  =>  $c->{dbname}, 
+	dbport  =>  $c->{dbport},
+	dbsock  =>  $c->{dbsock}, 
+	dbhost  =>  $c->{dbhost}  );
+
+# By default all users authenticate with the AuthDBI module,
+# using passwords encoded with crypt. $CRYPTED_DBI contains
+# the info EPrints needs to call AuthDBI and is used below
+# to set userauth.
+
+my $userdata = EPrints::DataSet->new_stub( "user" );
+my $CRYPTED_DBI = {
+	handler  =>  \&Apache::AuthDBI::authen,
+	Auth_DBI_data_source  =>  $connect_string,
+	Auth_DBI_username  =>  $c->{dbuser},
+	Auth_DBI_password  =>  $c->{dbpass},
+	Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
+	Auth_DBI_uid_field  =>  "username",
+	Auth_DBI_pwd_field  =>  "password",
+	Auth_DBI_grp_field  =>  "usertype",
+	Auth_DBI_encrypted  =>  "on" };
+
+#subscription
+#set-password
+#deposit
+#view-status
+#editor
+#staff-view -> view & search users & eprints in staff mode.
+#edit-subject
+#edit-user
+#change-email
+
+# Please the the documentation for a full explanation of user privs.
+
+$c->{userauth} = {
+	user => { 
+		auth  => $CRYPTED_DBI,
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email" ] },
+	editor => { 
+		auth  => $CRYPTED_DBI,
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
+				"view-status", "editor", "staff-view" ] },
+	admin => { 
+		auth  => $CRYPTED_DBI,
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
+				"view-status", "editor", "staff-view", 
+				"edit-subject", "edit-user" ] }
+};
+
+
+######################################################################
+#
+#  Open Archives interoperability
+#
+######################################################################
+
+# Site specific **UNIQUE** archive identifier.
+# See http://www.openarchives.org/sfc/sfc_archives.htm for existing identifiers.
+
+$c->{oai_archive_id} = "GenericEPrints";
+
+# Exported metadata formats. The hash should map format ids to namespaces.
+$c->{oai_metadata_formats} =
+{
+	"oai_dc"    =>  "http://purl.org/dc/elements/1.1/"
+};
+
+# Exported metadata formats. The hash should map format ids to schemas.
+$c->{oai_metadata_schemas} =
+{
+	"oai_dc"    =>  "http://www.openarchives.org/OAI/1.1/dc.xsd"
+};
+
+# Base URL of OAI
+$c->{oai_base_url} = $c->{perl_url}."/oai";
+
+$c->{oai_sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
+	$c->{oai_archive_id},
+	"23" );
+
+# Information for "Identify" responses.
+
+# "content" : Text and/or a URL linking to text describing the content
+# of the repository.  It would be appropriate to indicate the language(s)
+# of the metadata/data in the repository.
+
+$c->{oai_content}->{"text"} = latin1( <<END );
+OAI Site description has not been configured.
+END
+$c->{oai_content}->{"url"} = undef;
+
+# "metadataPolicy" : Text and/or a URL linking to text describing policies
+# relating to the use of metadata harvested through the OAI interface.
+
+# oai_metadataPolicy{"text"} and/or oai_metadataPolicy{"url"} 
+# MUST be defined to comply to OAI.
+
+$c->{oai_metadata_policy}->{"text"} = latin1( <<END );
+No metadata policy defined. 
+This server has not yet been fully configured.
+Please contact the admin for more information, but if in doubt assume that
+NO rights at all are granted to this data.
+END
+$c->{oai_metadata_policy}->{"url"} = undef;
+
+# "dataPolicy" : Text and/or a URL linking to text describing policies
+# relating to the data held in the repository.  This may also describe
+# policies regarding downloading data (full-content).
+
+# oai_dataPolicy{"text"} and/or oai_dataPolicy{"url"} 
+# MUST be defined to comply to OAI.
+
+$c->{oai_data_policy}->{"text"} = latin1( <<END );
+No data policy defined. 
+This server has not yet been fully configured.
+Please contact the admin for more information, but if in doubt assume that
+NO rights at all are granted to this data.
+END
+$c->{oai_data_policy}->{"url"} = undef;
+
+# "submissionPolicy" : Text and/or a URL linking to text describing
+# policies relating to the submission of content to the repository (or
+# other accession mechanisms).
+
+$c->{oai_submission_policy}->{"text"} = latin1( <<END );
+No submission-data policy defined. 
+This server has not yet been fully configured.
+END
+$c->{oai_submission_policy}->{"url"} = undef;
+
+# "comment" : Text and/or a URL linking to text describing anything else
+# that is not covered by the fields above. It would be appropriate to
+# include additional contact details (additional to the adminEmail that
+# is part of the response to the Identify request).
+
+# An array of comments to be returned. May be empty.
+
+$c->{oai_comments} = [
+	latin1( "System is EPrints ").
+	EPrints::Config::get( "version" ).
+	" (http://www.eprints.org)" ];
+
+
+######################################################################
+#
+# Timeouts
+#
+######################################################################
+
+# Time (in hours) to allow a email/password change "pin" to be active.
+# Set a time of zero ("0") to make pins never time out.
+$c->{pin_timeout} = 3;
+
+# Search cache.
+#
+#   Number of minutes of unuse to timeout a search cache
+$c->{cache_timeout} = 10;
+#   Maximum lifespan of a cache, in use or not. In hours.
+$c->{cache_maxlife} = 12;
+
+######################################################################
 	return $c;
 }
+######################################################################
 
+
+
+
+
+
+
+#---------------------------------------------------------------------
+######################################################################
+#
+# Configurable Routines
+# 
+#  The rest of this file contains perl subroutines which maybe 
+#  modified to change the policy and behaviour of your archive.
+#
+######################################################################
+#---------------------------------------------------------------------
+
+
+
+
+
+
+
+#---------------------------------------------------------------------
 ######################################################################
 #
 #  Free Text search configuration
 #
 ######################################################################
+#---------------------------------------------------------------------
 
 # These values control what words do and don't make it into
 # the free text search index. They are used by the extract_words
@@ -889,6 +968,11 @@ sub extract_words
 	return( \@g , \@b );
 }
 
+#---------------------------------------------------------------------
+######################################################################
+#  End of Free Text search configuration
+######################################################################
+#---------------------------------------------------------------------
 
 sub render_value_with_id
 {
@@ -1094,7 +1178,7 @@ sub eprint_render
 	if( defined $user )
 	{
 		$usersname = $session->make_element( "a", 
-				href=>$eprint->{session}->get_archive()->get_conf( "server_perl_root" )."/user?userid=".$user->get_value( "userid" ) );
+				href=>$eprint->{session}->get_archive()->get_conf( "perl_url" )."/user?userid=".$user->get_value( "userid" ) );
 		$usersname->appendChild( 
 			$session->make_text( $user->full_name() ) );
 	}
@@ -1398,11 +1482,16 @@ sub update_archived_eprint
 }
 
 
+
+
+
+#---------------------------------------------------------------------
 ######################################################################
 #
 #  OPEN ARCHIVES INTEROPERABILITY ROUTINES
 #
 ######################################################################
+#---------------------------------------------------------------------
 
 
 ######################################################################
@@ -1575,13 +1664,25 @@ sub oai_write_eprint_metadata
 	}
 }
 
+#---------------------------------------------------------------------
+######################################################################
+# End of OPEN ARCHIVES INTEROPERABILITY ROUTINES
+######################################################################
+#---------------------------------------------------------------------
 
 
+
+
+
+#---------------------------------------------------------------------
 ######################################################################
 #
 # VALIDATION 
 #
 ######################################################################
+#---------------------------------------------------------------------
+
+#
 # Validation routines. EPrints does some validation itself, such as
 # checking for required fields, but you can add custom requirements
 # here.
@@ -1598,7 +1699,7 @@ sub oai_write_eprint_metadata
 # can be submitted into the main archive. If it doesn't have a PDF
 # file, then the editor will have to generate one.
 #
-######################################################################
+#
 
 ######################################################################
 #
@@ -1808,9 +1909,13 @@ sub validate_user
 	return( @problems );
 }
 
+
+
+#---------------------------------------------------------------------
 ######################################################################
-# End of VALIDATION 
+# End of VALIDATION section
 ######################################################################
+#---------------------------------------------------------------------
 
 
 
@@ -1992,10 +2097,11 @@ sub get_entities
 	my %entities = ();
 	$entities{archivename} = $archive->get_conf( "archivename", $langid );
 	$entities{adminemail} = $archive->get_conf( "adminemail" );
-	$entities{cgiroot} = $archive->get_conf( "server_perl_root" );
-	$entities{htmlroot} = $archive->get_conf( "server_static" );
+	$entities{base_url} = $archive->get_conf( "base_url" );
+	$entities{perl_url} = $archive->get_conf( "perl_url" );
 	$entities{frontpage} = $archive->get_conf( "frontpage" );
-	$entities{version} = EPrints::Config::get( "version_desc" );
+	$entities{userhome} = $archive->get_conf( "userhome" );
+	$entities{version} = EPrints::Config::get( "version" );
 	$entities{ruler} = $archive->get_ruler()->toString;
 
 	return %entities;

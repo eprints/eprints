@@ -26,7 +26,7 @@ my $langid;
 foreach $langid ( @{$archive->get_conf( "languages" )} )
 {	
 	my %entities = $archive->call( "get_entities", $archive, $langid );
-	my $file = $archive->get_conf( "system_files_path" ).
+	my $file = $archive->get_conf( "config_path" ).
 			"/entities-$langid.dtd";
 	open( DTD, ">$file" ) || die "Failed to open $file for writing";
 

@@ -78,7 +78,7 @@ sub process
 		{
 			$session->render_error(
 				"Couldn't remove user! Check logs for details.",
-				$session->get_archive()->get_conf( "server_static" )."/staff",
+				$session->get_archive()->get_conf( "base_url" )."/staff",
 				"Return to staff area" );
 			return;
 		}
@@ -87,7 +87,7 @@ sub process
 
 		print "<CENTER><P>User has been deleted.</P></CENTER>\n";
 		print "<CENTER><P><A HREF=\"".
-		$session->get_archive()->get_conf( "server_static ")."/staff\">".
+		$session->get_archive()->get_conf( "base_url ")."/staff\">".
 			"Click here to return to staff area</A></P></CENTER>\n";
 
 		print $session->{render}->end_html();
@@ -96,14 +96,14 @@ sub process
 
 	if( $action eq "cancel" )
 	{
-		$session->redirect( $session->get_archive()->get_conf( "server_perl_root" )."/users/home" );
+		$session->redirect( $session->get_archive()->get_conf( "userhome" ) );
 		return;
 	}
 	
 
 	my $userform = new EPrints::UserForm(
 		$session,
-		$session->get_archive()->get_conf( "server_perl_root" )."/users/home",
+		$session->get_archive()->get_conf( "userhome" ),
 		1,
 		$user );
 	$userform->process();

@@ -133,7 +133,7 @@ print STDERR "dEStROY\n";
 				}
 				else
 				{
-					$subject = EPrints::Subject->create_subject( 
+					$subject = EPrints::Subject::create( 
 							$session, 
 							$newid, 
 							'', 

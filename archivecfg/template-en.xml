@@ -17,12 +17,12 @@
           <td bgcolor="#cccccc">
             <div class="menu">
               <a class="menulink" href="&frontpage;">Home</a> ||
-              <a class="menulink" href="&htmlroot;/information.html">About</a> ||
-              <a class="menulink" href="&htmlroot;/view/">Browse</a> ||
-              <a class="menulink" href="&cgiroot;/search">Search</a> ||
-              <a class="menulink" href="&cgiroot;/set_password">Register</a> ||
-              <a class="menulink" href="&cgiroot;/users/home">User Area</a> ||
-              <a class="menulink" href="&htmlroot;/help">Help</a>
+              <a class="menulink" href="&base_url;/information.html">About</a> ||
+              <a class="menulink" href="&base_url;/view/">Browse</a> ||
+              <a class="menulink" href="&perl_url;/search">Search</a> ||
+              <a class="menulink" href="&perl_url;/set_password">Register</a> ||
+              <a class="menulink" href="&userhome;">User Area</a> ||
+              <a class="menulink" href="&base_url;/help">Help</a>
             </div>
           </td>
         </tr>

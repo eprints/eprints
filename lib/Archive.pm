@@ -348,7 +348,7 @@ sub get_store_dirs
 {
 	my( $self ) = @_;
 
-	my $docroot = $self->get_conf( "local_document_root" );
+	my $docroot = $self->get_conf( "documents_path" );
 
 	opendir( DOCSTORE, $docroot ) || return undef;
 
@@ -369,7 +369,7 @@ sub get_store_dir_size
 {
 	my( $self , $dir ) = @_;
 
-	my $filepath = $self->get_conf( "local_document_root" )."/".$dir;
+	my $filepath = $self->get_conf( "documents_path" )."/".$dir;
 
 	if( ! -d $filepath )
 	{
@@ -389,7 +389,7 @@ sub parse_xml
 
 	unless( defined $config{Base} )
 	{
-		$config{Base} = $self->get_conf( "system_files_path" )."/";
+		$config{Base} = $self->get_conf( "config_path" )."/";
 	}
 	
 	my $doc = EPrints::Config::parse_xml( $file, %config );

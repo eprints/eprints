@@ -712,7 +712,7 @@ sub render_subject_desc
 		$frag = $self->make_element(
 				"a",
 				href=>
-			$self->get_archive()->get_conf( "server_static" ).
+			$self->get_archive()->get_conf( "base_url" ).
 			"/view/".$subject->{subjectid}.".html" );
 	}
 	else

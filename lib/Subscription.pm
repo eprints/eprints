@@ -501,7 +501,7 @@ sub process
 		my $body = $self->{session}->phrase( 
 			   "lib/subscription:blurb",
 			   howoften=>$freqphrase,
-			     url=>$self->{session}->get_archive()->get_conf( "server_perl_root" )."/users/subscribe" );
+			     url=>$self->{session}->get_archive()->get_conf( "perl_url" )."/users/subscribe" );
 		
 		# Then how many we got
 		$body .= "                              ==========\n\n";
