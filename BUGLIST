@@ -59,6 +59,9 @@ element. [Mark Faine]
 Apache Configuration & Page Serving
 ----------------------------------------------------------------------
 
+- The "path" option for an archive is broken. Archives currently can
+  only be one-per-virtualhost and based at "/"
+
 ----------------------------------------------------------------------
 Searching
 ----------------------------------------------------------------------

@@ -84,8 +84,6 @@ Searches
 
 -	Improved steming.
 
--	Add "does record match search" function.
-
 -	Add a get_problems method to searchexp which returns a list
 	of problems. This should run by default when verifying "search"
 	type fields?
@@ -98,12 +96,20 @@ Installer / Package Builder
 -	Make a simple version of file upload for archives which only want one
          (PDF) document with no security etc.
 
+Command Line Tools
+
+-	Make generate_apacheconf do the whole thing each time, rather than
+         on a per archive basis.
+-	For generate_views, subscriptions, abstracts etc. Maybe have an
+         archiveid of ALL which runs the script once for each archive?
 
 Submission Page
 
+
 Other Stuff
 
-+	Remove gif's
+*       Make a way of .css working in both https and http - possibly
+        a new entity which does something different on the https server.
 
 -	CSS searchfield input.
 
@@ -116,7 +122,7 @@ Other Stuff
 
 -	Turn Multiple input fields into <ol>'s. maybe?
 
--	Commentary summary page (Psycoloquy style)
+.	Commentary summary page (Psycoloquy style)
 
 +	Rename "create_foo" on DataObjs onto just "create".
 
@@ -133,8 +139,6 @@ Other Stuff
 - 	List of editors?
 
 -	langid's -> validate they is correct (in multilang)
-
-+	Sort subject input fields
 
 +	No new eprints when disk fullish
 
@@ -260,12 +264,6 @@ DONE ====================================================================
 *	Make "stages" in sub form over-ridable.
 ** 	Do not put SystemSettings in the distribution!
 + 	Join GNU.
-
-
-
-
-
-
-
-
-
+-	Add "does record match search" function.
++	Remove gif's
++	Sort subject input fields

@@ -186,6 +186,8 @@ else
 	$config{dbpass} = undef;
 	$config{adminemail} = undef;
 	$config{archivename} = {};
+	$config{securehost} = undef;
+	$config{securepath} = undef;
 }
 
 
@@ -464,7 +466,7 @@ foreach( @{$config{languages}} )
 }
 foreach( "port", "urlpath", "archiveroot", "configmodule",
 	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass", 
-	"defaultlanguage", "adminemail" )
+	"defaultlanguage", "adminemail", "securehost", "securepath" )
 {
 	$config{$_}='' if( !defined $config{$_} );
 	$t_archive->appendChild( info_tag( $doc, $_, $config{$_} ) );
@@ -519,28 +521,21 @@ END
 	
 	
 
-# replace package line in PATH/cfg/ArchiveConfig.pm
-
-# Link in initial disk0  (?)
-
-# Register with website!
+# cjg: Register with website!
 
 print <<END;
 
 --------------------------------------------------------------------------
 That seemed to more or less work...
 --------------------------------------------------------------------------
-Now run:
-bin/generate_apacheconf $archiveid
 
-Make any changes to the cfg files. As this is just an alpha install
-you might as well except the defaults for now...
+Now make any required changes to the cfg files.
 
 Then run:
 
 bin/create_tables $archiveid
 bin/generate_static $archiveid
-bin/generate_apacheconf $archiveid
+bin/generate_apacheconf 
 
 bin/create_user $archiveid <username> <email> admin <password>
 

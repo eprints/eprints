@@ -224,23 +224,38 @@ sub authz
 	}
 
 	my $secpath = $archive->get_conf( "secure_url_dir" );
-	
-	if( $uri !~ m#^$secpath/(\d+)/(\d+)/# )
-	{
-		# isn't in format:
-		# /archive/00000001/01/.....
+	my $sechostpath = $archive->get_conf( "securepath" );
 
-		$archive->log( "Request to ".$r->uri." in secure documents area failed to match REGEXP." );
+	my $docid;
+	my $eprintid;
+	if( $uri =~ m#^($sechostpath)?$secpath/(\d\d\d\d\d\d\d\d)/(\d+)/# )
+	{
+		# /archive/00000001/01/.....
+		# or
+		# /$archiveid/archive/00000001/01/.....
+
+		# force it to be integer. (Lose leading zeros)
+		$eprintid = $2+0; 
+		$docid = "$eprintid-$3";
+	}
+	elsif( $uri =~ 
+		m#^$sechostpath$secpath/(\d\d)/(\d\d)/(\d\d)/(\d\d)/(\d+)/# )
+	{
+		# /$archiveid/archive/00/00/00/01/01/.....
+		$eprintid = "$1$2$3$4"+0;
+		$docid = "$eprintid-$5";
+	}
+	else
+	{
+
+		$archive->log( 
+"Request to ".$r->uri." in secure documents area failed to match REGEXP." );
 		$session->terminate();
 		return FORBIDDEN;
 	}
-
 	my $user_sent = $r->connection->user;
-	my $eprintid = $1+0; # force it to be integer. (Lose leading zeros)
-	my $docid = "$eprintid-$2";
 	my $user = EPrints::User::user_with_username( $session, $user_sent );
 	my $document = EPrints::Document->new( $session, $docid );
-
 	unless( $document->can_view( $user ) )
 	{
 		$session->terminate();

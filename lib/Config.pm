@@ -191,7 +191,7 @@ while( $file = readdir( CFG ) )
 			"host", "urlpath", "configmodule", "port", 
 			"archiveroot", "dbname", "dbhost", "dbport",
 			"dbsock", "dbuser", "dbpass", "defaultlanguage",
-			"adminemail" )
+			"adminemail", "securehost", "securepath" )
 	{
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
 		if( !defined $tag )
@@ -211,6 +211,10 @@ while( $file = readdir( CFG ) )
 		$ainfo->{configmodule}= $ainfo->{archiveroot}."/".$ainfo->{configmodule};
 	}
 	$ARCHIVEMAP{$ainfo->{host}.$ainfo->{urlpath}} = $id;
+	if( EPrints::Utils::is_set( $ainfo->{securehost} ) )
+	{
+		$ARCHIVEMAP{$ainfo->{securehost}.$ainfo->{securepath}} = $id;
+	}
 	$ainfo->{aliases} = [];
 	foreach $tag ( $conf_tag->getElementsByTagName( "alias" ) )
 	{

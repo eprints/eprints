@@ -99,6 +99,14 @@ $dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
 
 $dl->appendChild( $dd );
 
+my $changeuserpath = "/change_user/".($user->get_value( "username" ));
+my $securehost = $session->get_archive->get_conf( "securehost" );
+my $securepath = $session->get_archive->get_conf( "securepath" );
+if( EPrints::Utils::is_set( $securehost ) )
+{
+	$changeuserpath = $securepath.$changeuserpath;
+}
+
 my $tools = [
 	### Change subscription options
 	{ 
@@ -154,10 +162,10 @@ my $tools = [
 		page=>"staff/edit_subject",
 		priv=>"edit-subject"
 	},
-	### Use the Subject Edit Tool
+	### Change the current login user
 	{
 		code=>"change_user",
-		page=>"/change_user/".($user->get_value( "username" )),
+		page=>$changeuserpath,
 		priv=>"change-user"
 	}
 ];

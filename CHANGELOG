@@ -706,3 +706,18 @@ before next release. (metadata types & fields)
     items in a second list. Two modes: success if one found or success
     if all found.
 
+2002-07-08
+ - Added PNGs to replace GIFs for logos in the static/image directory.
+ - [c] Made stylesheet link in the default template link to the full URL 
+    rather than relative link. Eeep. That's not going to work - it'll
+    give an error. Dammit.
+ - [c] Added 2 new archive config settings: securehost and securepath for
+    running https.
+ - generate_apacheconf now generates all the apache confs (does not take
+    an archive id, anymore). Also now generates extra auto file to be
+    Include'd into a sercure virtualhost config. Played around with the
+    config file which gets generated to make it work both secure & not.
+ - tweak to /perl/users/home to make change_user work on secure setting.
+ - made the Auth.pm module accept /00/00/00/00/00/ format document paths
+    for authentications in addition to /0000000/00/. (needed for https
+    mode).

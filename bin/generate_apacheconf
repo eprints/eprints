@@ -18,7 +18,7 @@ B<generate_apacheconf> - Create the apache config files needed for EPrints
 
 =head1 SYNOPSIS
 
-B<generate_apacheconf> [I<archiveid>] [B<options>] 
+B<generate_apacheconf> [B<options>] 
 
 =head1 DESCRIPTION
 
@@ -37,10 +37,6 @@ But the * can be changed to something different by editing the <virtualhost> opt
 =head1 ARGUMENTS
 
 =over 8
-
-=item B<archiveid> 
-
-The ID of the eprint archive to use.
 
 =back
 
@@ -129,7 +125,7 @@ GetOptions(
 EPrints::Utils::cmd_version( "generate_apacheconf" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 1 && scalar @ARGV != 0 ); 
+pod2usage( 2 ) if( scalar @ARGV != 0 ); 
 
 our $noise = 1;
 $noise = 0 if( $quiet );
@@ -140,12 +136,11 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $archiveid = $ARGV[0];
 my $site_sysfile = EPrints::Config::get( "sys_path" )."/auto-apache.conf";
 my $site_incfile = EPrints::Config::get( "sys_path" )."/auto-apache-includes.conf";
 my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
 
-print "Creating system wide apache conf files...\n" if( $noise >= 1 );
+print "Creating system wide apache conf files.\n" if( $noise >= 1 );
 unless( -e $site_userfile )
 {
 	print "Creating $site_userfile.\n" if( $noise >= 2 );
@@ -217,31 +212,35 @@ print CONF <<END;
 # List of files to include for archive specific config...
 
 END
-my $a_archiveid;
-foreach $a_archiveid ( EPrints::Config::get_archive_ids() )
+foreach my $archiveid ( EPrints::Config::get_archive_ids() )
 {
-	my $archive_config = EPrints::Config::get_archive_config( $a_archiveid );
+	my $archive_config = EPrints::Config::get_archive_config( $archiveid );
 	my $archive_inc = $archive_config->{archiveroot}."/cfg/apache.conf";
 	print CONF <<END;
-# $a_archiveid
+# $archiveid
 Include $archive_inc
 
 END
 }
 close CONF;
-print "...done creating system wide apache conf files.\n" if( $noise >= 1 );
 
 
-unless( defined $archiveid )
-{
-	print "No archive ID specified, only system wide apache conf files updated\n" if( $noise >= 1 );
-	exit;
-}
+
+
+
+
+
 
 ########################################F#N#O#R#D########
 # 
-#   Write apache conf files for a specific archive
+#   Write apache conf files for each archive
 #
+########################################F#N#O#R#D########
+
+my $secureconfigs = {};
+foreach my $archiveid ( EPrints::Config::get_archive_ids() )
+{
+
 
 my $archive = EPrints::Archive->new_archive_by_id( $archiveid, 1 );
 exit( 1 ) unless( defined $archive );
@@ -251,7 +250,7 @@ my $userfile = $archive->get_conf( "config_path" )."/apache.conf";
 
 my $id = $archive->get_id();
 
-print "Creating apache conf files for archive $archiveid...\n" if( $noise >= 1 );
+print "Creating apache conf files for archive $archiveid.\n" if( $noise >= 1 );
 unless( -e $userfile )
 {
 	print "Creating $userfile.\n" if( $noise >= 2 );
@@ -283,6 +282,13 @@ my $htdocs_path = $archive->get_conf( "htdocs_path" );
 my $htdocs_secure_path = $archive->get_conf( "htdocs_secure_path" );
 my $host = $archive->get_conf( "host" );
 my $userhome = $archive->get_conf( "userhome" );
+my $securehost = $archive->get_conf( "securehost" );
+my $securepath = '';
+if( EPrints::Utils::is_set( $securehost ) )
+{
+	$securepath = $archive->get_conf( "securepath" );
+}
+
 
 print "Creating $sysfile.\n" if( $noise >= 2 );
 open( CONF, ">$sysfile" ) || die "Can't write to $sysfile";
@@ -338,9 +344,7 @@ $aliases
 
   # Protect /perl/ from other rewrite rules
   RewriteRule ^/perl/      -   [L]
-#cjg all this can come from config
-  RewriteRule ^/secure/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /secure/\$1/\$2/\$3/\$4/\$5 [L]
-
+  RewriteRule ^/secure/    -   [L]
   RewriteRule ^/archive/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ /archive/\$1/\$2/\$3/\$4/\$5
 
 END
@@ -362,34 +366,6 @@ print CONF <<END;
   # Default Language
   RewriteRule ^/(.*)\$         /$defaultlang/\$1   [L]
 
-  <Directory "$htdocs_secure_path">
-    AuthName "Secure Document Area"
-    AuthType "Basic"
-    PerlAuthenHandler EPrints::Auth::authen
-    PerlAuthzHandler EPrints::Auth::authz
-    PerlSetVar EPrints_Security_Area Documents
-    require valid-user
-  </Directory>
-
-  <Directory "$cgidir">
-    SetHandler perl-script
-    PerlHandler Apache::Registry
-    PerlSendHeader Off
-    Options ExecCGI
-  </Directory>
-  <Directory "$cgidir/users">
-    AuthName "User Area"
-    AuthType "Basic"
-    PerlAuthenHandler EPrints::Auth::authen
-    PerlAuthzHandler EPrints::Auth::authz
-    PerlSetVar EPrints_Security_Area User
-    require valid-user
-  </Directory>
-
-  <Directory "$htdocs_path">
-    AddType 'text/html; charset=UTF-8' .html
-  </Directory>
-
 END
 
 if( $archive->get_conf( "vlit" )->{enable} )
@@ -407,28 +383,112 @@ END
 }
 
 print CONF <<END;
+  <Directory "$htdocs_path">
+    AddType 'text/html; charset=UTF-8' .html
+  </Directory>
+
+  <Directory "$cgidir">
+    SetHandler perl-script
+    PerlHandler Apache::Registry
+    PerlSendHeader Off
+    Options ExecCGI
+  </Directory>
+
+END
+
+my $secureconfig = <<END;
+  <Directory "$cgidir/users">
+    AuthName "User Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Auth::authen
+    PerlAuthzHandler EPrints::Auth::authz
+    PerlSetVar EPrints_Security_Area User
+    require valid-user
+
+    SetHandler perl-script
+    PerlHandler Apache::Registry
+    PerlSendHeader Off
+    Options ExecCGI
+  </Directory>
+
+  <Directory "$htdocs_secure_path">
+    AuthName "Secure Document Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Auth::authen
+    PerlAuthzHandler EPrints::Auth::authz
+    PerlSetVar EPrints_Security_Area Documents
+    require valid-user
+    RewriteEngine on
+    RewriteBase $securepath/secure
+    RewriteRule ^([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ \$1/\$2/\$3/\$4/\$5 [L]
+  </Directory>
 
   # This sets up the change_user URL, which does
   # not have a REAL file associated with it, it
   # forces the browser to fail to register the
   # current user as a valid user, and thus ask
   # for re-validation.
-  <Location "/change_user">
+  <Location "$securepath/change_user">
     AuthName "User Area"
     AuthType "Basic"
     PerlAuthenHandler EPrints::Auth::authen
     PerlAuthzHandler EPrints::Auth::authz
     PerlSetVar EPrints_Security_Area ChangeUser
     require valid-user
-    Redirect /change_user $userhome
+    Redirect $securepath/change_user $userhome
   </Location>
+
+END
+
+if( EPrints::Utils::is_set( $securehost ) )
+{
+#cjg MUST BE HTTPS!
+	my $securebase = "http://".$securehost.$securepath;
+	print CONF <<END;
+  Redirect /secure/ $securebase/secure/
+  Redirect /perl/users/ $securebase/perl/users/
+  Redirect /change_user $securebase/change_user
+
+END
+	# cjg =- 404 & 401 handlers?
+	$secureconfigs->{$securehost} .= <<END;
+##### CONFIG FOR $archiveid
+
+$secureconfig
+
+  Alias $securepath/secure/ $htdocs_secure_path/
+  Alias $securepath/perl/users/ $cgidir/users/
+
+  RewriteRule ^$securepath/secure/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])/(.*)\$ $securepath/secure/\$1/\$2/\$3/\$4/\$5 [L]
+
+##### END OF CONFIG FOR $archiveid
+
+END
+}
+else
+{
+	print CONF $secureconfig;
+}
+
+print CONF <<END;
 
 </VirtualHost>
 
 END
 
 close CONF;
-print "...done creating apache conf files for archive $archiveid.\n" if( $noise >= 1 );
+}
+
+foreach( keys %{$secureconfigs} )
+{
+	my $secfile = EPrints::Config::get( "sys_path" )."/auto-".$_.".conf";
+	print "Making include block for $_\n" if( $noise >= 1 );
+
+	open( CONF, ">$secfile" ) || die "Can't write $secfile";
+	print CONF $secureconfigs->{$_};
+	close CONF;
+}
+
 print "\nDo not forget to stop and restart apache to cause changes to take effect!\n" if( $noise >= 1 );
 
 print "Exiting normally.\n" if( $noise >= 2 );
