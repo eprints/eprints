@@ -1,0 +1,83 @@
+######################################################################
+#
+#  Add a User
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::MetaField;
+use EPrints::HTMLRender;
+use EPrints::Session;
+use EPrints::User;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $username_field = new EPrints::MetaField( "username:text::User ID:0:1:1" );
+
+
+if( $session->{render}->seen_form() )
+{
+	# First ensure something's been entered
+	my $candidate_username = $session->{render}->form_value( $username_field );
+
+	if( defined $candidate_username && $candidate_username ne "" )
+	{
+		# Attempt to create a new account
+		my $new_user = EPrints::User::create_user(
+			$session,
+			$candidate_username,
+			"",
+			$EPrints::User::access_levels[0] );
+		
+		if( defined $new_user )
+		{
+			# Created the user OK, send to edit screen
+			$session->{render}->redirect(
+				"edit_user?username=$new_user->{username}" );
+		}
+		else
+		{
+			$session->{render}->render_error(
+				$session->{lang}->phrase( "H:mk_acc_err" ),
+				"$EPrintSite::SiteInfo::server_static/staff",
+				$session->{lang}->phrase( "H:staff_area" ) );
+		}
+	}
+	else
+	{
+		$session->{render}->render_error(
+			$session->{lang}->phrase( "H:no_username" ),
+			"add_user",
+			$session->{lang}->phrase( "H:try_again" ) );
+	}
+}
+else
+{
+	print $session->{render}->start_html(
+		$session->{lang}->phrase( "H:create_title" ) );
+
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( "H:enter_username" );
+	print "</P></CENTER>\n";
+	
+	$session->{render}->render_form(
+		[ $username_field ],
+		{},
+		1,
+		0,
+		[ $session->{lang}->phrase( "F:create_user" ) ] );
+	
+	print $session->{render}->end_html();
+}
+
+$session->terminate();

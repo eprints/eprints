@@ -1,0 +1,73 @@
+######################################################################
+#
+#  View User Record
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+
+my $session = new EPrints::Session;
+
+my $userid = $session->{render}->param( "username" );
+
+if( defined $userid )
+{
+	my $user = new EPrints::User( $session, $userid );
+
+	if( defined $user )
+	{
+		print $session->{render}->start_html( "User record for ".$user->full_name() );
+
+		print $session->{render}->render_user( $user, 0 );
+
+		print "<HR>\n";
+
+		my $rows = $session->{database}->retrieve(
+			$EPrints::Database::table_archive,
+			[ "eprintid" ],
+			[ "username LIKE \"$userid\"" ] );
+
+		print "<CENTER><P><A ".
+			"HREF=\"eprint_search?username=$userid\&submit=Search\">".
+			"User has ".scalar @$rows;
+		print ( scalar @$rows==1 ? " EPrint" : " EPrints" );
+		print " in the archive.</A></P></CENTER>\n";
+		
+
+		print $session->{render}->start_form( "edit_user" );
+		print "<CENTER><P>";
+		print $session->{render}->hidden_field( "username", $userid );
+		print $session->{render}->submit_buttons( [ "Edit User",
+		                                            "Delete User" ] );
+		print "</P></CENTER>\n";
+		print $session->{render}->end_form();
+
+
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		print $session->{render}->render_error(
+			"Unknown user",
+			"$EPrintSite::SiteInfo::server_static/staff/",
+			"Return to staff home" );
+	}
+}
+else
+{
+	print $session->{render}->render_error(
+		"No user specified!",
+		"$EPrintSite::SiteInfo::server_static/staff/",
+		"Return to staff home" );
+}
+
+$session->terminate();

@@ -1,0 +1,51 @@
+######################################################################
+#
+#  EPrints Advanced Search Form
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Session;
+use EPrints::HTMLRender;
+use EPrints::EPrint;
+use EPrints::SearchField;
+use EPrints::SearchExpression;
+use EPrints::SearchForm;
+use EPrints::MetaInfo;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my @search_fields = ( "eprintid", "username", "dir" );
+push @search_fields, @{$session->{site}->{advanced_search_fields}};
+
+my @metafields = EPrints::SearchExpression::make_meta_fields(
+	$session,
+	"eprints",
+	\@search_fields );
+
+my $searchform = new EPrints::SearchForm(
+	$session,
+	"eprints",
+	1,
+	$EPrints::Database::table_archive,
+	\@metafields,
+	"Staff EPrint Search",
+	"<CENTER><P>Don't panic! Just leave the fields you don't want to search ".
+		" blank. <A HREF=\"$EPrintSite::SiteInfo::server_static/staff/\">".
+		"Click here to return to the staff page.</A></P></CENTER>",
+	$session->{site}->{eprint_order_methods},
+	$session->{site}->{eprint_default_order},
+	1 );
+
+$searchform->process();
+
+$session->terminate();

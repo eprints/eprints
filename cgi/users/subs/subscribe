@@ -1,0 +1,251 @@
+######################################################################
+#
+#  Subscription page
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Database;
+use EPrints::EPrint;
+use EPrints::HTMLRender;
+use EPrints::Session;
+use EPrints::Subscription;
+
+use strict;
+use vars qw($action_subscribe $action_create $action_remove);
+
+my $session = new EPrints::Session;
+
+my $user = EPrints::User::current_user( $session );
+
+# Check user
+if( !defined $user )
+{
+	# Can't find the user
+	$session->{render}->render_error( 
+		$session->{lang}->phrase( "dont_know_you" ),
+	        $EPrintSite::SiteInfo::frontpage );
+	$session->terminate();
+	Apache::exit( 0 );
+}
+
+my @all_subs = EPrints::Subscription::subscriptions_for( $session, $user );
+
+#EPrints::Log::debug( "subscribe", "Got ".scalar @all_subs." subscriptions for user $user->{username}" );
+
+my $subscription = undef;
+
+$subscription = $all_subs[0] if( scalar @all_subs > 0 );
+
+$action_subscribe = $session->{lang}->phrase( "F:subscribe" );
+$action_create    = $session->{lang}->phrase( "F:create" );
+$action_remove    = $session->{lang}->phrase( "F:remove" );
+
+# Do we have an action?
+my $action = $session->{render}->param( "submit" );
+
+#EPrints::Log::debug( "subscribe", "Action: $action" );
+
+if( defined $action && $action eq $action_subscribe )
+{
+	# User wants to update subscription info.
+	if( defined $subscription )
+	{
+		my $problems = $subscription->from_form();
+		
+		if( defined $problems )
+		{
+			&edit_subscription( $session, $subscription, $problems );
+		}
+		else
+		{
+			&update_subscription( $session, $subscription );
+		}
+	}
+}
+elsif( defined $action && $action eq $action_create )
+{
+	# Create a new subscription if necessary
+	if( !defined $subscription )
+	{
+		$subscription = EPrints::Subscription->create( $session,
+		                                               $user->{username} );
+	}
+
+	if( !defined $subscription )
+	{		
+		$session->{render}->render_error(
+			$session->{lang}->phrase( "H:mk_sub_error" ),
+			"$EPrintSite::SiteInfo::server_perl/users/home",
+			$session->{lang}->phrase( "H:return_dep" ) );
+	}
+	else
+	{
+		&edit_subscription( $session, $subscription, undef );
+	}
+}
+elsif( defined $action && $action eq $action_remove )
+{
+	# Remove the user's subscription. For now, remove the first in the list
+	# (which should only ever have one in it anyway.)
+	if( defined $subscription )
+	{
+		my $success = $subscription->remove();
+		if( $success )
+		{
+			&no_subscription( $session );
+		}
+		else
+		{
+			$session->{render}->render_error(
+				$session->{lang}->phrase( "H:rm_sub_error" ),
+				"$EPrintSite::SiteInfo::server_perl/users/home",
+				$session->{lang}->phrase( "H:return_dep" ) );
+		}
+	}
+}
+else
+{
+	# Must have come straight here
+
+	# If the user has a subscription, let them edit it, otherwise offer them
+	# the option of creating a subscription
+	if( !defined $subscription )
+	{
+		# No subscription yet
+		&no_subscription( $session );
+	}
+	else
+	{
+		# Let them edit the one they have
+		&edit_subscription( $session, $subscription, undef );
+	}
+}
+
+$session->terminate();
+
+
+
+######################################################################
+#
+# no_subscription( $session )
+#
+#  Offer the user the chance to create a subscription
+#
+######################################################################
+
+sub no_subscription
+{
+	my( $session ) = @_;
+
+#EPrints::Log::debug( "subscribe", "no_subscription" );
+
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:subscribe" ) );
+	
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( "H:no_sub" );
+	print "</P></CENTER>\n";
+	
+	print $session->{render}->start_form();
+
+	print "<CENTER><P>";	
+	print $session->{render}->submit_buttons( [ $action_create ] );
+	print "</P></CENTER>\n";
+	
+	print $session->{render}->end_form();
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# edit_subscription( $session, $subscription, $problems )
+#
+#  Show the subscription form
+#
+######################################################################
+
+sub edit_subscription
+{
+	my( $session, $subscription, $problems ) = @_;
+
+#EPrints::Log::debug( "subscribe", "edit_subscription" );
+
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:subscribe" ) );
+	
+	if( defined $problems )
+	{
+		print "<P>";
+		print $session->{lang}->phrase( "H:cant_accept" );
+		print "</P>\n<UL>\n";
+		foreach (@$problems)
+		{
+			print "<LI>$_</LI>\n";
+		}
+		print "</UL>\n";
+	}
+
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( "H:please_enter" );
+	print "</P></CENTER>\n";
+	
+	print $session->{render}->start_form();
+	print $subscription->render_subscription_form();
+
+	print "<CENTER><P>";
+	print $session->{render}->submit_buttons( [ $action_subscribe,
+	                                            $action_remove ] );
+	print "</P></CENTER>\n";
+	print $session->{render}->end_form();
+	
+	print $session->{render}->end_html();
+}
+
+
+######################################################################
+#
+# update_subscription( $session, $subscription )
+#
+#  Call when subscription has been updated, with no problems. Displays
+#  a message.
+#
+######################################################################
+
+sub update_subscription
+{
+	my( $session, $subscription ) = @_;
+
+	my $success = $subscription->commit();
+
+#EPrints::Log::debug( "subscribe", "update_subscription" );
+
+	if( $success )
+	{
+		print $session->{render}->start_html( 
+			$session->{lang}->phrase( "H:subscribe" ) );
+		print "<CENTER><P><STRONG>";
+		print $session->{lang}->phrase( "H:sub_accept" );
+		print "</STRONG></P></CENTER>";
+		print "<CENTER><P><A HREF=\"$EPrintSite::SiteInfo::server_perl/users/home\">";
+		print $session->{lang}->phrase( "H:ret_deposit" );
+		print "</A></P></CENTER>\n";
+		print $session->{render}->end_html();
+	}
+	else
+	{
+		$session->{render}->render_error(
+			$session->{lang}->phrase( "H:ud_sub_error" ),
+			"$EPrintSite::SiteInfo::server_perl/users/home",
+			$session->{lang}->phrase( "H:ret_deposit" ) );
+	}
+}

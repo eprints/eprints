@@ -1,0 +1,131 @@
+######################################################################
+#
+#  EPrint Editor
+#
+#   Allows staff to remove EPrints or transfer them back to the
+#   submission buffer.
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::EPrint;
+use EPrints::HTMLRender;
+use EPrints::Session;
+
+use strict;
+
+my $session = new EPrints::Session;
+
+my $eprint_id = $session->{render}->param( "eprint_id" );
+
+if( !defined $eprint_id || $eprint_id eq "" )
+{
+	print $session->{render}->start_html( "View/Withdraw EPrint" );
+
+	my $id_field = new EPrints::MetaField(
+		"eprint_id:text::ID of EPrint to View:1:1:1" );
+	
+	$session->{render}->render_form(
+		[ $id_field ],
+		{},
+		1,
+		0,
+		[ "Check" ] );
+
+	print $session->{render}->end_html();
+}
+else
+{
+	my $eprint = new EPrints::EPrint( $session,
+	                                  $EPrints::Database::table_archive,
+	                                  $eprint_id );
+
+	if( !defined $eprint )
+	{
+		$session->{render}->render_error( "Problem retrieving the EPrint ".
+			"with ID=\"$eprint_id\". May be a problem with the database - ".
+			"check the logs.\n" );
+	}
+	else
+	{
+		if( defined $session->{render}->param( "submit" ) &&
+		    $session->{render}->param( "submit" ) eq "Remove" )
+		{
+			if( $eprint->remove() )
+			{
+				print $session->{render}->start_html( "Removal Successful" );
+
+				print "<CENTER><P>EPrint successfully removed.</P></CENTER>\n";
+				print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/".
+					"staff/\">Click here to return to the Staff Area</A></CENTER>".
+					"</P>\n";
+
+				print $session->{render}->end_html();
+			}
+			else
+			{
+				$session->{render}->render_error( "Problem removing the EPrint ".
+					"with ID=\"$eprint_id\". May be a problem with the database - ".
+					"check the logs.\n" );
+			}
+		}
+		elsif( defined $session->{render}->param( "submit" ) &&
+		    $session->{render}->param( "submit" ) eq "Move to Buffer" )
+		{
+			$eprint->remove_from_threads();
+			
+			if( $eprint->transfer( $EPrints::Database::table_buffer ) )
+			{
+				print $session->{render}->start_html( "Move Successful" );
+
+				print "<CENTER><P>EPrint successfully moved.</P></CENTER>\n";
+				print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::server_static/".
+					"staff/\">Click here to return to the Staff Area</A></CENTER>".
+					"</P>\n";
+
+				print $session->{render}->end_html();
+			}
+			else
+			{
+				$session->{render}->render_error( "Problem moving the EPrint ".
+					"with ID=\"$eprint_id\". May be a problem with the database - ".
+					"check the logs.\n" );
+			}
+		}
+		elsif( defined $session->{render}->param( "submit" ) &&
+		       $session->{render}->param( "submit" ) eq "Cancel" )
+		{
+			$session->{render}->redirect(
+				"$EPrintSite::SiteInfo::server_static/staff/" );
+		}
+		else
+		{
+			print $session->{render}->start_html( "View/Withdraw EPrint" );
+
+			print $session->{render}->render_eprint_full( $eprint, 1 );
+			
+			print "<HR>\n";
+			
+			print $session->{render}->start_form();
+			print $session->{render}->hidden_field( "eprint_id", $eprint_id );
+			print "<CENTER>";
+			print $session->{render}->submit_buttons( [ "Remove",
+			                                            "Move to Buffer",
+			                                            "Cancel" ] );
+			print "</CENTER>\n";
+			print $session->{render}->end_form();
+			
+			print $session->{render}->end_html();
+		}
+	}
+}
+
+
+$session->terminate();
