@@ -199,7 +199,7 @@ sub parse_from
 	# Don't deal with quotes in the email address
 	my $atom = q([^\x00-\x20\x7f\>\<\[\]\(\)\@\,\;\:\\\"\.\^]+);
 
-	if( m/(($atom(\.$atom)*)\@$atom(.$atom)*)/ )
+	if( m/(($atom(\.$atom)*)\@$atom(\.$atom)*)/ )
 	{
 		$email = $1;
 	}
