@@ -1,0 +1,50 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Generate DTD
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::Archive;
+use strict;
+
+my $siteid = $ARGV[0];
+
+my $archive = EPrints::Archive->new_site_by_id( $siteid, 1 );
+exit( 1 ) unless( defined $archive );
+
+my $langid;
+foreach $langid ( @{$archive->get_conf( "languages" )} )
+{	
+	my %entities = $archive->call( "get_entities", $archive, $langid );
+	my $file = $archive->get_conf( "system_files_path" ).
+			"/entities-$langid.dtd";
+	open( DTD, ">$file" ) || die "Failed to open $file for writing";
+
+#cjg NOT ENCODED PROPERLY UTF8 will probably bugger it up
+	print DTD <<END;
+<!-- 
+	Entities file for $siteid, language ID "$langid"
+
+	*** DO NOT EDIT ***
+
+	To add entities modify the config module then re-run
+	generate_dtd 
+-->
+END
+	foreach( keys %entities )
+	{
+		print DTD "<!ENTITY $_ \"$entities{$_}\" >\n";
+	}
+	close DTD;
+}
+
