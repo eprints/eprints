@@ -100,7 +100,7 @@ sub process
 	my( $self ) = @_;
 	
 #cjg NOT VERY FAR YET...	
-	$self->{action}    = $self->{session}->param( "_submit" );
+	$self->{action}    = $self->{session}->get_action_button();
 	$self->{stage}     = $self->{session}->param( "stage" );
 	$self->{eprint_id} = $self->{session}->param( "eprint_id" );
 
@@ -180,7 +180,7 @@ sub _corrupt_err
 {
 	my( $self ) = @_;
 
-	$self->{session}->_render_error( 
+	$self->{session}->render_error( 
 		$self->{session}->phrase( 
 			"lib/submissionform:corrupt_err",
 			line_no => (caller())[2] ) );
@@ -192,7 +192,7 @@ sub _database_err
 {
 	my( $self ) = @_;
 
-	$self->{session}->_render_error( 
+	$self->{session}->render_error( 
 		$self->{session}->phrase( 
 			"lib/submissionform:database_err",
 			line_no => (caller())[2] ) );
@@ -249,7 +249,7 @@ sub _from_home
 		}
 		else
 		{
-			$self->{session}->_render_error( $self->{session}->phrase(
+			$self->{session}->render_error( $self->{session}->phrase(
 			        "lib/submissionform:useautharea" ) );
 			return( 0 );
 		}
@@ -258,7 +258,7 @@ sub _from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		else
@@ -270,7 +270,7 @@ sub _from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		
@@ -292,7 +292,7 @@ sub _from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_confirmdel;
@@ -301,7 +301,7 @@ sub _from_home
 	{
 		if( !defined $self->{eprint} )
 		{
-			$self->{session}->_render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
+			$self->{session}->render_error( $self->{session}->phrase( "lib/submissionform:nosel_err" ) );
 			return( 0 );
 		}
 		$self->{next_stage} = $EPrints::SubmissionForm::stage_verify;

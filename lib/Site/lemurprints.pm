@@ -352,7 +352,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
-			Auth_DBI_grp_field  =>  "groups",
+			Auth_DBI_grp_field  =>  "usertype",
 			Auth_DBI_encrypted  =>  "off" },
 		priv  =>  [ "user" ] },
 	staff => { 
@@ -364,7 +364,7 @@ $c->{userauth} = {
 			Auth_DBI_pwd_table  =>  $userdata->get_sql_table_name(),
 			Auth_DBI_uid_field  =>  "username",
 			Auth_DBI_pwd_field  =>  "passwd",
-			Auth_DBI_grp_field  =>  "groups",
+			Auth_DBI_grp_field  =>  "usertype",
 			Auth_DBI_encrypted  =>  "off" }, 
 		priv  =>  [ "tester", "subscription" ] }
 };
@@ -980,7 +980,7 @@ $c->{user_search_fields} =
 	"name",
 	"dept/org",
 	"address/country",
-	"groups",
+	"usertype",
 	"email"
 ];
 

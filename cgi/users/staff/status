@@ -34,10 +34,13 @@ my $num_users = count( "user" );
 print STDERR "NUMUSERS...... $num_users\n";
 my %num_users;
 
+my $usertypes = $session->get_site()->get_data_set( "user" )->get_types();
+
 my $usertype;
-foreach $usertype (@EPrints::User::access_levels)
+foreach $usertype ( @{$usertypes} )
 {
-	my $count = count( "username", groups => $usertype );
+	print STDERR "triying($usertype)=\n";
+	my $count = count( "user", usertype => $usertype );
 	$num_users{ $usertype } = $count;
 	print STDERR "($usertype)=$count\n";
 }
@@ -156,17 +159,19 @@ sub print_row
 sub count
 {
 	my( $datasetid, %searchfields ) = @_;
+		
+	my $dataset = $session->get_site()->get_data_set( $datasetid );
 
 	my $searchexp = new EPrints::SearchExpression(
 		session => $session,
-		dataset => $session->get_site()->get_data_set( $datasetid ),
+		dataset => $dataset,
 		fieldnames => [] );
 
 	my $searchfield;
 	foreach $searchfield ( keys %searchfields )
 	{
 		$searchexp->add_field(
-			$datasetid->get_field( $searchfield ),
+			$dataset->get_field( $searchfield ),
 			"PHR:EQ:".$searchfields{ $searchfield } );
 	}
 
