@@ -281,11 +281,15 @@ sub get_sql_table_name
 #  Gives the name of the SQL table which contains the free text indexing
 #  information.
 
-## WP1: BAD
 sub get_sql_index_table_name
 {
 	my( $self ) = @_;
 	return $self->get_sql_table_name()."__"."index";
+}
+sub get_sql_rindex_table_name
+{
+	my( $self ) = @_;
+	return $self->get_sql_table_name()."__"."rindex";
 }
 
 # string get_sql_sub_table_name( $field )

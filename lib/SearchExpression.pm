@@ -487,11 +487,7 @@ sub perform_search2
 		}
 		else
 		{
-print STDERR "MERGER: ".$self->{satisfy_all} ."\n";
-print STDERR "A = (".join(",",@{$matches}).")\n";
-print STDERR "B = (".join(",",@{$results}).")\n";
 			$matches = &_merge( $matches, $results, $self->{satisfy_all} );
-print STDERR "C = (".join(",",@{$matches}).")\n";
 		}
 
 		$firstpass = 0;

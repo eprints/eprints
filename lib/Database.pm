@@ -23,7 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-my $DEBUG_SQL = 1;
+my $DEBUG_SQL = 0;
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -214,16 +214,28 @@ sub _create_table
 
 	my $keyfield = $dataset->get_key_field()->clone;
 
+	my $fieldpos = EPrints::MetaField->new( 
+		name => "pos", 
+		type => "int" );
 	my $fieldword = EPrints::MetaField->new( 
 		name => "fieldword", 
 		type => "text");
+	my $fieldids = EPrints::MetaField->new( 
+		name => "ids", 
+		type => "longtext");
 
 	# Create the index table
 	$rv = $rv & $self->_create_table_aux(
 			$dataset->get_sql_index_table_name,
 			$dataset,
 			0, # no primary key
-			( $keyfield , $fieldword ) );
+			( $fieldword, $fieldpos, $fieldids ) );
+	$rv = $rv & $self->_create_table_aux(
+			$dataset->get_sql_rindex_table_name,
+			$dataset,
+			0, # no primary key
+			( $keyfield, $fieldword ) );
+
 
 	# Create the other tables
 	$rv = $rv && $self->_create_table_aux( 
@@ -453,7 +465,39 @@ sub update
 	# it now:
 	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
 
-	$sql = "DELETE FROM ".$dataset->get_sql_index_table_name()." WHERE ".$where;
+##cjg SORT IT OOT
+# needs to remove itself from all fields.
+
+	# Trim out indexes
+
+	my $indextable = $dataset->get_sql_index_table_name();
+	my $rindextable = $dataset->get_sql_rindex_table_name();
+
+	$sql = "SELECT fieldword FROM $rindextable WHERE $where";
+	my $sth=$self->prepare( $sql );
+	$rv = $rv && $self->execute( $sth, $sql );
+	my @codes = ();
+	my $code;	
+	while( $code = $sth->fetchrow_array )
+	{
+		push @codes,$code;
+		print STDERR "($code)\n";
+	}
+	foreach( @codes )
+	{
+		$code = prep_value( $_ );
+		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$code' AND ids LIKE '%:$keyvalue:%'";
+		$sth=$self->prepare( $sql );
+		$rv = $rv && $self->execute( $sth, $sql );
+		if( ($ids,$pos) = $sth->fetchrow_array )
+		{
+			$ids =~ s/:$keyvalue:/:/g;
+			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$code' AND pos='$pos'";
+			$rv = $rv && $self->do( $sql );
+		}
+	}
+
+	$sql = "DELETE FROM $rindextable WHERE $where";
 	$rv = $rv && $self->do( $sql );
 
 	my @aux;
@@ -926,6 +970,26 @@ sub _make_select
 	}
 
 	return $sql;
+}
+
+sub get_index_ids
+{
+#cjg iffy params
+	my( $self, $table, $condition ) = @_;
+
+	print STDERR "GET_INDEX_IDS($table)($condition)\n";
+	my $sql = "SELECT M.ids FROM $table as M where $condition";	
+	my $results;
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+	while( @info = $sth->fetchrow_array ) {
+		my @list = split(":",$info[0]);
+		# Remove first & last.
+		pop @list;
+		shift @list;
+		push @{$results}, @list;
+	}
+	return( $results );
 }
 
 sub search
@@ -1439,15 +1503,53 @@ sub _freetext_index
 	my $keyfield = $dataset->get_key_field();
 
 	my $indextable = $dataset->get_sql_index_table_name();
+	my $rindextable = $dataset->get_sql_rindex_table_name();
 	
 	my( $good , $bad ) = $self->{session}->get_archive()->call( "extract_words" , $value );
 
 	my $sql;
 	foreach( @{$good} )
 	{
-		$sql = "INSERT INTO $indextable ( ".$keyfield->get_sql_name()." , fieldword ) VALUES ";
-		$sql.= "( \"$id\" , \"".prep_value($field->get_sql_name().":$_")."\")";
+#cjg FOR GODS SAKE make this a transaction...
+		my $code = prep_value($field->get_sql_name().":$_");
+		my $sth;
+		$sql = "SELECT max(pos) FROM $indextable where fieldword='$code'"; 
+		$sth=$self->prepare( $sql );
+		$rv = $rv && $self->execute( $sth, $sql );
+		my ( $n ) = $sth->fetchrow_array;
+		my $insert = 0;
+		if( !defined $n )
+		{
+			$n = 0;
+			$insert = 1;
+		}
+		else
+		{
+			$sql = "SELECT ids FROM $indextable WHERE fieldword='$code' AND pos=$n"; 
+			$sth=$self->prepare( $sql );
+			$rv = $rv && $self->execute( $sth, $sql );
+			my( $ids ) = $sth->fetchrow_array;
+			my( @list ) = split( ":",$ids );
+			# don't forget the first and last are empty!
+			if( (scalar @list)-2 < 1024 )
+			{
+				$sql = "UPDATE $indextable SET ids='$ids$id:' WHERE fieldword='$code' AND pos=$n";	
+				$rv = $rv && $self->do( $sql );
+			}
+			else
+			{
+				++$n;
+				$insert = 1;
+			}
+		}
+		if( $insert )
+		{
+			$sql = "INSERT INTO $indextable (fieldword,pos,ids ) VALUES ('$code',$n,':$id:')";
+			$rv = $rv && $self->do( $sql );
+		}
+		$sql = "INSERT INTO $rindextable (fieldword,".$keyfield->get_sql_name()." ) VALUES ('$code','$id')";
 		$rv = $rv && $self->do( $sql );
+
 	} 
 	return $rv;
 }

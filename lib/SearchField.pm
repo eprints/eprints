@@ -549,7 +549,7 @@ print STDERR "ack\n";
 	}	
 	if( $freetext )
 	{
-		$searchtable= $self->{dataset}->get_sql_index_table_name();
+		$searchtable= "!".$self->{dataset}->get_sql_index_table_name();
 #print STDERR "ock\n";
 	}
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_sql_name() );
@@ -705,8 +705,19 @@ use Data::Dumper;
 	
 			my $tlist = { "M"=>$tname };
 	
-			$bitresults = EPrints::SearchExpression::_merge( $self->{session}->{database}->search( $keyfield, $tlist, $where ), $bitresults, 0 );
-			print STDERR "(".join(",",@{$bitresults}).")\n";
+			my $r;
+			if( $tname=~s/^!// )
+			{
+				$r = $self->{session}->get_db()->get_index_ids( $tname, $where );
+			}	
+			else
+			{ 
+				$r = $self->{session}->get_db()->search( $keyfield, $tlist, $where );
+			}
+			
+
+
+			$bitresults = EPrints::SearchExpression::_merge( $r , $bitresults, 0 );
 		}
 		if( $firstpass )
 		{
