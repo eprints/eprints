@@ -1295,7 +1295,7 @@ sub subject_tree
 		
 #EPrints::Log->debug( "HTMLRender", "Parent: $parent->{subjectid}" );
 
-		$html .= "<UL>\n<LI>".$self->subject_desc( $parent, 1 )."</LI>\n";
+		$html .= "<UL>\n<LI>".$self->subject_desc( $parent, 1, 0, 1 )."</LI>\n";
 		$opened_lists++;
 	}
 	
@@ -1303,7 +1303,7 @@ sub subject_tree
 	if( defined $subject &&
 		( $subject->{subjectid} ne $EPrints::Subject::root_subject ) )
 	{
-		$html .= "<UL>\n<LI>".$self->subject_desc( $subject, 0 )."</LI>\n";
+		$html .= "<UL>\n<LI>".$self->subject_desc( $subject, 0, 0, 1 )."</LI>\n";
 		$opened_lists++;
 	}
 	
@@ -1343,7 +1343,7 @@ sub _render_children
 	
 		foreach (@children)
 		{
-			$html .= "<LI>".$self->subject_desc( $_, 1 )."\n";
+			$html .= "<LI>".$self->subject_desc( $_, 1, 0, 1 )."\n";
 			
 			$html .= $self->_render_children( $_ );
 			$html .= "</LI>\n";
@@ -1358,16 +1358,18 @@ sub _render_children
 
 ######################################################################
 #
-# $html = subject_desc( $subject, $link )
+# $html = subject_desc( $subject, $link, $full, $count )
 #
 #  Return the HTML to render the title of $subject. If $link is non-zero,
-#  the title is linked to the static subject view.
+#  the title is linked to the static subject view. If $full is non-zero,
+#  the full name of the subject is given. If $count is non-zero, the
+#  number of eprints in that subject is appended in brackets.
 #
 ######################################################################
 
 sub subject_desc
 {
-	my( $self, $subject, $link ) = @_;
+	my( $self, $subject, $link, $full, $count ) = @_;
 	
 #EPrints::Log->debug( "HTMLRender", "subject_desc: $subject->{subjectid}" );
 
@@ -1376,11 +1378,19 @@ sub subject_desc
 	$html .= "<A HREF=\"$EPrintSite::SiteInfo::server_subject_view_stem"
 		.$subject->{subjectid}.".html\">" if( $link );
 
-	$html .= $subject->{name};
-	
+	if( defined $full && $full )
+	{
+		$html .= EPrints::Subject->subject_label( $subject->{session},
+		                                          $subject->{subjectid} );
+	}
+	else
+	{
+		$html .= $subject->{name};
+	}
+		
 	$html .= "</A>" if( $link );
 
-	if( $subject->{depositable} eq "TRUE" )
+	if( $count && $subject->{depositable} eq "TRUE" )
 	{
 		$html .= " (" .
 			$subject->count_eprints( $EPrints::Database::table_archive ) . ")";

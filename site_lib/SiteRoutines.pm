@@ -17,6 +17,8 @@ use EPrints::Citation;
 use EPrints::EPrint;
 use EPrints::User;
 use EPrints::Session;
+use EPrints::Subject;
+use EPrints::SubjectList;
 use EPrints::Name;
 
 use strict;
@@ -75,23 +77,77 @@ sub eprint_render_full
 {
 	my( $class, $eprint ) = @_;
 
-	my $html = "<P><TABLE BORDER=0>\n";
+	# Start with a citation
+	my $html = "<P>";
+	$html .= $eprint->{session}->{render}->render_eprint_citation(
+		$eprint,
+		1,
+		0 );
+	$html .= "</P>\n";
+
+	# Then the abstract
+	$html .= "<H2>Abstract</H2>\n";
+	$html .= "<P>$eprint->{abstract}</P>\n";
 	
-	my @fields = EPrints::MetaInfo->get_eprint_fields( $eprint->{type} );
-	my $field;
+	$html .= "<P><TABLE BORDER=0 CELLPADDING=3>\n";
 	
-	foreach $field (@fields)
+	# Keywords
+	if( defined $eprint->{keywords} && $eprint->{keywords} ne "" )
 	{
-		if( $field->{visible} )
-		{
-			$html .= "<TR><TD><STRONG>$field->{displayname}</STRONG></TD><TD>";
-			$html .= $eprint->{session}->{render}->format_field(
-				$field,
-				$eprint->{$field->{name}} ) if( defined $eprint->{$field->{name}} );
-			$html .= "</TD></TR>\n";
-		}
+		$html .= "<TD VALIGN=TOP><STRONG>Keywords:</STRONG></TD><TD>".
+			$eprint->{keywords}."</TD></TR>\n";
 	}
-	$html .= "</TABLE></P>\n";
+
+	# Comments:
+	if( defined $eprint->{comments} && $eprint->{comments} ne "" )
+	{
+		$html .= "<TD VALIGN=TOP><STRONG>Comments:</STRONG></TD><TD>".
+			$eprint->{comments}."</TD></TR>\n";
+	}
+
+	# Subjects...
+	$html .= "<TD VALIGN=TOP><STRONG>Subjects:</STRONG></TD><TD>";
+
+	my $subject_list = new EPrints::SubjectList( $eprint->{subjects} );
+	my @subjects = $subject_list->get_subjects( $eprint->{session} );
+
+	foreach (@subjects)
+	{
+		$html .= $eprint->{session}->{render}->subject_desc( $_, 1, 1, 0 );
+		$html .= "<BR>\n";
+	}
+
+	# ID code...
+	$html .= "</TD><TR>\n<TD VALIGN=TOP><STRONG>ID code:</STRONG></TD><TD>".
+		$eprint->{eprintid}."</TD></TR>\n";
+
+	# And who submitted it, and when.
+	$html .= "<TD VALIGN=TOP><STRONG>Submitted by:</STRONG></TD><TD>";
+	my $user = new EPrints::User( $eprint->{session}, $eprint->{username} );
+	if( defined $user )
+	{
+		$html .= "<A HREF=\"$EPrints::SiteInfo::server_perl/cgi/user?username=".
+			$user->{username}."\">".$user->full_name()."</A>";
+	}
+	else
+	{
+		$html .= "INVALID USER";
+	}
+
+	my $date_field = EPrints::MetaInfo->find_eprint_field( "datestamp" );
+	$html .= " on ".$eprint->{session}->{render}->format_field(
+		$date_field,
+		$eprint->{datestamp} );
+	
+	# Alternative locations
+	$html .= "</TD></TR>\n<TD VALIGN=TOP><STRONG>Alternative Locations:".
+		"</STRONG></TD><TD>";
+	my $altloc_field = EPrints::MetaInfo->find_eprint_field( "altloc" );
+	$html .= $eprint->{session}->{render}->format_field(
+		$altloc_field,
+		$eprint->{altloc} );
+
+	$html .= "</TD></TR>\n</TABLE></P>\n";
 
 	return( $html );
 }

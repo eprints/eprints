@@ -41,15 +41,7 @@ sub render_citation
 {
 	my( $class, $session, $citation_spec, $value_hash, $html ) = @_;
 	
-#EPrints::Log->debug( "Citation", "Citation for $value_hash->{eprintid}" );
-
 	my $citation = $citation_spec;
-
-#	# Escape out dodgy bits
-#	$citation =~ s/\(/\\\(/g;
-#	$citation =~ s/\)/\\\)/g;
-#
-#EPrints::Log->debug( "Citation", "Escaped citation spec: \"$citation\"" );
 
 	# First handle the fields with dependent text [volume {value}]
 
@@ -58,13 +50,9 @@ sub render_citation
 	{
 		my $entry = $1;
 
-#EPrints::Log->debug( "Citation", "Entry: \"$entry\"" );
-
 		# Get the fieldname and MetaField entry
 		$entry =~ /{([^}]+)}/;
 		my $fieldname = $1;
-
-#EPrints::Log->debug( "Citation", "Fieldname: \"$fieldname\"" );
 
 		my $field = EPrints::MetaInfo->find_eprint_field( $fieldname );
 
@@ -73,21 +61,18 @@ sub render_citation
 		{
 			# Get the value out of thehash
 			my $value = $value_hash->{$fieldname};
-#EPrints::Log->debug( "Citation", "Value for field: ".(defined $value ? $value : "undef" ) );
 
 			if( defined $value && $value ne "" )
 			{
 				# If it's not null or an empty string, go ahead with the
 				# substitution
-				my $rendered = $session->{render}->format_field( $field, $value );
+				my $rendered = _remove_problematic( 
+					$session->{render}->format_field( $field, $value ) );
 				my $new_entry = $entry;
-#EPrints::Log->debug( "Citation", "Rendered value for field: $rendered" );
 				$new_entry =~ s/{$fieldname}/$rendered/;
-#EPrints::Log->debug( "Citation", "new entry: $new_entry" );
 				substr( $citation,
 				        (index $citation, "[$entry]"),
 				        length "[$entry]" ) = $new_entry;
-#				$citation =~ s/\[$entry\]/$new_entry/;
 			}
 			else
 			{
@@ -96,11 +81,8 @@ sub render_citation
 				        (index $citation, "[$entry]"),
 				        length "[$entry]" ) = "";
 
-				$citation =~ s/\[$entry\]//;
-#EPrints::Log->debug( "Citation", "Removing entry" );
+				#$citation =~ s/\[$entry\]//;
 			}
-#EPrints::Log->debug( "Citation", "Citation is now: \"$citation>\"" );
-
 		}
 		else
 		{
@@ -110,6 +92,8 @@ sub render_citation
 			return( "N/A" );
 		}
 	}
+
+	# Put any square brackets back
 	
 	# Now sort out the fields on their own {value}
 	while( $citation =~ /{([^}]+)}/ )
@@ -128,7 +112,8 @@ sub render_citation
 			{
 				# If it's not null or an empty string, go ahead with the
 				# substitution
-				my $rendered = $session->{render}->format_field( $field, $value );
+				my $rendered = _remove_problematic(
+					$session->{render}->format_field( $field, $value ) );
 				$citation =~ s/\{$entry\}/$rendered/;
 			}
 			else
@@ -152,6 +137,27 @@ sub render_citation
 	}
 	
 	return( $citation );
+}
+
+
+
+######################################################################
+#
+# $new = _remove_problematic( $old )
+#
+#  Changes []'s and {}'s into brackets so as not to interfere with
+#  later substitutions in the citation.
+#
+######################################################################
+
+sub _remove_problematic
+{
+	my $old = shift;
+	
+	$old =~ tr/\[/(/;
+	$old =~ tr/\]/)/;
+	
+	return( $old );
 }
 
 1;
