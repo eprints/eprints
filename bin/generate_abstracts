@@ -39,7 +39,7 @@ my @eprints = EPrints::EPrint::retrieve_eprints(
 
 foreach (@eprints)
 {
-	EPrints::Log::debug( "generate_abstracts",
-	                     "Generating abstract for $_->{eprintid}" );
+#	EPrints::Log::debug( "generate_abstracts",
+#	                     "Generating abstract for $_->{eprintid}" );
 	$_->generate_static();
 }

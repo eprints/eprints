@@ -45,7 +45,7 @@ my( $subjects, $subjectmap ) = EPrints::Subject::get_all( $session );
 # Now do each of the subjects
 foreach (@$subjects)
 {
-	EPrints::Log::debug( "generate_views", "Generating view for $_->{name}" );
+	#EPrints::Log::debug( "generate_views", "Generating view for $_->{name}" );
 	&write_subject_view( $session, $_ );
 }
 
