@@ -490,6 +490,8 @@ $c->{subscription_fields} =
 	"ispublished"
 ];
 
+#cjg normalise so byname=>by_name becomes by_name=>by_name
+
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
@@ -506,10 +508,6 @@ $c->{default_order}->{eprint} = "byname";
 # How to order the articles in a "browse by subject" view.
 $c->{view_order} = \&eprint_cmp_by_author;
 
-#####
-##### This is the point from which chaos reigns
-##### but it will be made better. Later...
-
 # Fields for a staff user search.
 $c->{user_search_fields} =
 [
@@ -520,18 +518,24 @@ $c->{user_search_fields} =
 	"email"
 ];
 
-# Ways to order the results of a staff user search.
-# cjg needs doing....
-$c->{user_order_methods} =
+# Ways of ordering user search results
+$c->{order_methods}->{user} =
 {
-	"by surname"                           =>  "name",
-	"by joining date (most recent first)"  =>  "joined DESC, name",
-	"by joining date (oldest first)"       =>  "joined ASC, name",
-	"by group"                             =>  "group, name "
+	"byname" 	 =>  \&user_cmp_by_name,
+	"byjoin"	 =>  \&user_cmp_by_join,
+	"byrevjoin"  	 =>  \&user_cmp_by_revjoin,
+	"bytype" 	 =>  \&user_cmp_by_type 
 };
 
-# Default order for a staff user search (must be key to user_order_methods)
-$c->{default_user_order} = "by surname";	
+# The default way of ordering a search result
+#   (must be key to %eprint_order_methods)
+$c->{default_order}->{user} = "byname";
+
+
+#####
+##### This is the point from which chaos reigns
+##### but it will be made better. Later...
+
 
 # How to display articles in "version of" and "commentary" threads.
 #  See lib/Citation.pm for information on how to specify this.
@@ -565,39 +569,64 @@ $c->{thread_citation_specs} =
 ######################################################################
 
 
-#cjg These give lots of warnings due to the cmp method.
 
-## WP1: BAD
 sub eprint_cmp_by_year
 {
-	return(	EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) ||
-		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_ints( $b, $a, "year" ) ||
+	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
+	EPrints::Utils::cmp_strings( $a, $b, "title" );
 }
 
-## WP1: BAD
 sub eprint_cmp_by_year_oldest_first
 {
-	return( EPrints::Utils::cmp_ints( $_[0]->{year} , $_[1]->{year} ) ||
-		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_ints( $a, $b, "year" ) ||
+	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
+	EPrints::Utils::cmp_strings( $a, $b, "title" );
 }
 
-## WP1: BAD
 sub eprint_cmp_by_author
 {
-	
-	return( EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) || # largest year first
-		EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} )  );
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_namelists( $a, $b, "authors" ) ||
+	EPrints::Utils::cmp_ints( $b, $a, "year" ) ||
+	EPrints::Utils::cmp_strings( $a, $b, "title" );
 }
 
-## WP1: BAD
 sub eprint_cmp_by_title
 {
-	return( EPrints::Utils::cmp_strings( $_[0]->{title} , $_[1]->{title} ) ||
-		EPrints::Utils::cmp_names( $_[0]->{authors} , $_[1]->{authors} ) ||
-		EPrints::Utils::cmp_ints( $_[1]->{year} , $_[0]->{year} ) ) ; # largest year first
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_strings( $a, $b, "title" ) ||
+	EPrints::Utils::cmp_names( $a, $b, "authors" ) ||
+	EPrints::Utils::cmp_ints( $b, $a, "year" );
+}
+
+
+
+sub user_cmp_by_name
+{
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_names( $a, $b, "name" ) ||
+	EPrints::Utils::cmp_dates( $a, $b, "joined" );
+}
+sub user_cmp_by_join
+{
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_dates( $a, $b, "joined" ) ||
+	EPrints::Utils::cmp_names( $a, $b, "name" );
+}
+sub user_cmp_by_revjoin
+{
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_dates( $b, $a, "joined" ) ||
+	EPrints::Utils::cmp_names( $a, $b, "name" );
+}
+sub user_cmp_by_type
+{
+	my( $a, $b ) = @_;
+	EPrints::Utils::cmp_strings( $a, $b, "usertype" ) ||
+	EPrints::Utils::cmp_names( $a, $b, "name" );
 }
 
 ######################################################################

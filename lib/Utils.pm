@@ -157,40 +157,75 @@ sub format_name
 
 ######################################################################
 #
-# ( $cmp ) = cmp_names( $lista , $listb )
+# ( $cmp ) = cmp_names( $val_a , $val_b )
 #
 #  This method compares (alphabetically) two arrays of names. Passed
 #  by reference.
 #
 ######################################################################
 
-## WP1: BAD
+
+sub cmp_namelists
+{
+	my( $a , $b , $fieldname ) = @_;
+
+	my $val_a = $a->get_value( $fieldname );
+	my $val_b = $b->get_value( $fieldname );
+	return _cmp_names_aux( $val_a, $val_b );
+}
+
 sub cmp_names
 {
-	my( $lista , $listb ) = @_;	
+	my( $a , $b , $fieldname ) = @_;
+
+	my $val_a = $a->get_value( $fieldname );
+	my $val_b = $b->get_value( $fieldname );
+	return _cmp_names_aux( [$val_a] , [$val_b] );
+}
+
+sub _cmp_names_aux
+{
+	my( $val_a, $val_b ) = @_;
 
 	my( $texta , $textb ) = ( "" , "" );
-	foreach( @{$lista} ) { $texta.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
-	foreach( @{$listb} ) { $textb.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
+	if( defined $val_a )
+	{ 
+		foreach( @{$a} ) { $texta.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
+	}
+	if( defined $val_b )
+	{ 
+		foreach( @{$b} ) { $textb.=":$_->{family},$_->{given},$_->{honourific},$_->{lineage}"; } 
+	}
+
 	return( $texta cmp $textb );
 }
 
+
 sub cmp_ints
 {
-	my( $a , $b ) = @_;
-	$a = 0 if( !defined $a );
-	$b = 0 if( !defined $b );
-	return $a <=> $b;
+	my( $a , $b , $fieldname ) = @_;
+	my $val_a = $a->get_value( $fieldname );
+	my $val_b = $b->get_value( $fieldname );
+	$val_a = 0 if( !defined $val_a );
+	$val_b= 0 if( !defined $val_b);
+	return $val_a <=> $val_b
 }
 
 sub cmp_strings
 {
-	my( $a , $b ) = @_;
-	$a = "" if( !defined $a );
-	$b = "" if( !defined $b );
-	return $a cmp $b;
+	my( $a , $b , $fieldname ) = @_;
+	my $val_a = $a->get_value( $fieldname );
+	my $val_b = $b->get_value( $fieldname );
+	$val_a = "" if( !defined $val_a );
+	$val_b= "" if( !defined $val_b);
+	return $val_a cmp $val_b
 }
 
+sub cmp_dates
+{
+	my( $a , $b , $fieldname ) = @_;
+	return cmp_strings( $a, $b, $fieldname );
+}
 
 sub send_mail
 {
@@ -484,5 +519,86 @@ sub mkdir
         };
         return ( scalar @created > 0 )
 }
+
+# cjg - Potential bug if: <ifset a><ifset b></></> and ifset a is disposed
+# then ifset: b is processed it will crash.
+
+sub render_citation
+{
+	my( $obj, $cstyle ) = @_;
+
+	# This should belong to the base class of EPrint User Subject and
+	# Subscription, if we were better OO people...
+	my $nodes = { keep=>[], lose=>[] };
+	my $node;
+
+	foreach $node ( $cstyle->getElementsByTagName( "ifset" , 1 ) )
+	{
+		my $fieldname = $node->getAttribute( "name" );
+		my $val = $obj->get_value( "$fieldname" );
+		push @{$nodes->{EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
+	}
+	foreach $node ( $cstyle->getElementsByTagName( "ifnotset" , 1 ) )
+	{
+		my $fieldname = $node->getAttribute( "name" );
+		my $val = $obj->get_value( "$fieldname" );
+		push @{$nodes->{!EPrints::Utils::is_set( $val )?"keep":"lose"}}, $node;
+	}
+	foreach $node ( @{$nodes->{keep}} )
+	{
+		my $sn; 
+		foreach $sn ( $node->getChildNodes )
+		{       
+			$node->getParentNode->insertBefore( $sn, $node );
+		}
+		$node->getParentNode->removeChild( $node );
+		$node->dispose();
+	}
+	foreach $node ( @{$nodes->{lose}} )
+	{
+		$node->getParentNode->removeChild( $node );
+		$node->dispose();
+	}
+
+	_expand_references( $obj, $cstyle );
+
+	my $span = $obj->get_session()->make_element( "span", class=>"citation" );
+	$span->appendChild( $cstyle );
+	
+	return $span;
+}      
+
+sub _expand_references
+{
+	my( $obj, $node ) = @_;
+
+	foreach( $node->getChildNodes )
+	{                
+		if( $_->getNodeType == ENTITY_REFERENCE_NODE )
+		{
+			my $fname = $_->getNodeName;
+			my $field = $obj->get_dataset()->get_field( $fname );
+			my $fieldvalue = $field->render_value( 
+						$obj->get_session(),
+						$obj->get_value( $fname ) );
+			$node->replaceChild( $fieldvalue, $_ );
+			$_->dispose();
+		}
+		else
+		{
+			_expand_references( $obj, $_ );
+		}
+	}
+}
+
+sub render_value
+{
+	my( $self, $fieldname, $showall ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );	
+	
+	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+}
+
 
 1;

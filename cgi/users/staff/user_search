@@ -13,31 +13,23 @@
 ######################################################################
 
 use EPrints::Session;
-use EPrints::HTMLRender;
-use EPrints::EPrint;
-use EPrints::SearchField;
 use EPrints::SearchExpression;
-use EPrints::SearchForm;
-use EPrints::MetaInfo;
 
 use strict;
-
 my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
 
-my @metafields = EPrints::SearchExpression::make_meta_fields(
-	$session,
-	"user",
-	$session->{site]->{user_search_fields} );#cjg CRAP
+my $searchexp = new EPrints::SearchExpression(
+	session => $session,
+	dataset => $session->get_archive()->get_dataset( "user" ),
+	staff => 1,
+	fieldnames => $session->get_archive()->get_conf( "user_search_fields" ) );
 
-my $searchform = new EPrints::SearchForm(
-	$session,
-	"user",
-	"user",
-	1,
-	\@metafields,
-	"Staff User Search",
-	"" );
+my $preamble = $session->html_phrase( "cgi/search:preamble" );
 
-$searchform->process();
+my $title = $session->phrase( "cgi/search:simple_search" );
 
-$session->terminate();
+$searchexp->process_webpage( $title, $preamble );
+
+$session->terminate;
+

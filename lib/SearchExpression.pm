@@ -78,7 +78,7 @@ sub new
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
 	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 
-	foreach( qw/ session dataset allow_blank satisfy_all fieldnames / )
+	foreach( qw/ session dataset allow_blank satisfy_all fieldnames staff / )
 	{
 		$self->{$_} = $data{$_};
 	}
@@ -655,7 +655,7 @@ sub get_records
 sub process_webpage
 {
 	my( $self, $title, $preamble ) = @_;
-	
+
 	my $action_button = $self->{session}->get_action_button();
 	# Check if we need to do a search. We do if:
 	#  a) if the Search button was pressed.
@@ -763,7 +763,7 @@ sub process_webpage
 		foreach $result (@results)
 		{
 			$p = $self->{session}->make_element( "p" );
-			$p->appendChild( $result->render_citation_link() );
+			$p->appendChild( $result->render_citation_link( undef, $self->{staff} ) );
 			$page->appendChild( $p );
 		}
 

@@ -7,24 +7,30 @@
 -->
 
 <citations>
-    <citation type="bookchapter">&authors; <if name="year">(&year;) </if><i>&title;</i>, in <if name="editors">&editors;, Eds. </if><if name="publication"><i>&publication;</i></if><if name="chapter">, chapter &chapter;</if><if name="pages">, pages &pages;</if>. <if name="publisher">&publisher;.</if></citation>
+    <citation type="eprint_bookchapter">&authors; <ifset name="year">(&year;) </ifset><i>&title;</i>, in <ifset name="editors">&editors;, Eds. </ifset><ifset name="publication"><i>&publication;</i></ifset><ifset name="chapter">, chapter &chapter;</ifset><ifset name="pages">, pages &pages;</ifset>. <ifset name="publisher">&publisher;.</ifset></citation>
 
-    <citation type="confpaper">&authors; <if name="year">(&year;) </if>&title;. In <if name="editors">&editors;, Eds. </if><if name="conference"><I>Proceedings &conference;</I></if><if name="volume"> <b>&volume;</b></if><if name="number">(&number;)</if><if name="pages">, pages &pages;</if><if name="confloc">, &confloc;</if>.</citation>
+    <citation type="eprint_confpaper">&authors; <ifset name="year">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><I>Proceedings &conference;</I></ifset><ifset name="volume"> <b>&volume;</b></ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
 
-    <citation type="confposter">&authors; <if name="years">(&year;) </if>&title;. In <if name="editors">&editors;, Eds. </if><if name="conference"><i>Proceedings &conference;</i></if><if name="volume"> <b>&volume;</b></if><if name="number">(&number;)</if><if name="pages">, pages &pages;</if><if name="confloc">, &confloc;</if>.</citation>
+    <citation type="eprint_confposter">&authors; <ifset name="years">(&year;) </ifset>&title;. In <ifset name="editors">&editors;, Eds. </ifset><ifset name="conference"><i>Proceedings &conference;</i></ifset><ifset name="volume"> <b>&volume;</b></ifset><ifset name="number">(&number;)</ifset><ifset name="pages">, pages &pages;</ifset><ifset name="confloc">, &confloc;</ifset>.</citation>
 
-    <citation type="techreport">&authors; <if name="year">(&year;) </if>&title;. Technical Report<if name="reportno"> &reportno;</if><if name="department">, &department;</if><if name="institution">, &institution;</if>.</citation>
+    <citation type="eprint_techreport">&authors; <ifset name="year">(&year;) </ifset>&title;. Technical Report<ifset name="reportno"> &reportno;</ifset><ifset name="department">, &department;</ifset><ifset name="institution">, &institution;</ifset>.</citation>
 
-    <citation type="journale">&authors; <if name="year">(&year;) </if>&title;. <i>&publication;</i><if name="volume"> &volume;</if><if name="number">(&number;)</if>.</citation>
+    <citation type="eprint_journale">&authors; <ifset name="year">(&year;) </ifset>&title;. <i>&publication;</i><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset>.</citation>
 
-    <citation type="journalp">&authors; <if name="year">(&year;) </if>&title;. <i>&publication;</i><if name="volume"> &volume;</if><if name="number">(&number;)</if><if name="pages">:&pages;</if>.</citation>
+    <citation type="eprint_journalp">&authors; <ifset name="year">(&year;) </ifset>&title;. <i>&publication;</i><ifset name="volume"> &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages">:&pages;</ifset>.</citation>
 
-    <citation type="newsarticle">&authors; <if name="year">(&year;) </if>&title;. In <i>&publication;</i><if name="volume">, &volume;</if><if name="number">(&number;)</if><if name="pages"> pages &pages;</if><if name="publisher">, &publisher;</if>.</citation>
+    <citation type="eprint_newsarticle">&authors; <ifset name="year">(&year;) </ifset>&title;. In <i>&publication;</i><ifset name="volume">, &volume;</ifset><ifset name="number">(&number;)</ifset><ifset name="pages"> pages &pages;</ifset><ifset name="publisher">, &publisher;</ifset>.</citation>
 
-    <citation type="other">&authors; <if name="year">(&year;) </if>&title;.</citation>
+    <citation type="eprint_other">&authors; <ifset name="year">(&year;) </ifset>&title;.</citation>
 
-    <citation type="preprint">&authors; <if name="year">(&year;) </if>&title;.</citation>
+    <citation type="eprint_preprint">&authors; <ifset name="year">(&year;) </ifset>&title;.</citation>
 
-    <citation type="thesis">&authors; <if name="year">(&year;) </if><i>&title;</i>. &thesistype;,<if name="department"> &department;,</if><if name="institution"> &institution;</if>.</citation>
+    <citation type="eprint_thesis">&authors; <ifset name="year">(&year;) </ifset><i>&title;</i>. &thesistype;,<ifset name="department"> &department;,</ifset><ifset name="institution"> &institution;</ifset>.</citation>
+
+    <citation type="user_admin"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
+
+    <citation type="user_editor"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
+
+    <citation type="user_user"><ifset name="name">&name;</ifset><ifnotset name="name">No name, email=&email;</ifnotset></citation>
 
 </citations>

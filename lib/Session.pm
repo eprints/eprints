@@ -1282,12 +1282,17 @@ sub get_internal_button
 
 sub get_citation_spec
 {
-	my( $self, $ctype ) = @_;
+	my( $self, $dataset, $ctype ) = @_;
 
-	my $citespec = $self->{archive}->get_citation_spec( $self->{lang}->get_id(), $ctype );
+
+	my $citation_id = $dataset->confid()."_".$ctype;
+
+	my $citespec = $self->{archive}->get_citation_spec( 
+					$self->{lang}->get_id(), 
+					$citation_id );
 	if( !defined $citespec )
 	{
-		return $self->make_text( "Error: Unknown Citation Style \"$ctype\"" );
+		return $self->make_text( "Error: Unknown Citation Style \"$citation_id\"" );
 	}
 	my $cite = $citespec->cloneNode( 1 );
 	$self->take_ownership( $cite );

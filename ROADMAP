@@ -197,7 +197,7 @@
 # cgi/users/staff/edit_submission	*
 # cgi/users/staff/edit_user		.
 # cgi/users/staff/eprint_search		*
-# cgi/users/staff/user_search		.
+# cgi/users/staff/user_search		*
 # cgi/users/staff/view_submission	*
 # cgi/users/staff/view_user		*
 # cgi/users/staff/edit_subject		*

@@ -1081,7 +1081,7 @@ sub to_html
 	}
 	else
 	{
-		$self->{session}->get_archive()->log( "Can't Render: ".$self->get_type() );
+		$self->{session}->get_archive()->log( "Can't Render: ".$self->{field}->get_type() );
 	}
 
 	return $frag;

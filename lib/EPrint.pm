@@ -1142,18 +1142,25 @@ sub render_full
 ################################################################################
 
 
-## WP1: BAD
 sub render_citation_link
 {
-	my( $self , $cstyle ) = @_;
-	my $a = $self->{session}->make_element( "a",
-			href => $self->static_page_url() );
+	my( $self , $cstyle , $staff ) = @_;
+	my $url;
+	if( defined $staff && $staff )
+	{
+		$url = "oook";
+	}
+	else
+	{
+		$url = $self->static_page_url();
+	}
+
+	my $a = $self->{session}->make_element( "a", href=>$url );
 	$a->appendChild( $self->render_citation( $cstyle ) );
 
 	return $a;
 }
 
-## WP1: BAD
 sub render_citation
 {
 	my( $self , $cstyle) = @_;
@@ -1161,66 +1168,11 @@ sub render_citation
 	if( !defined $cstyle )
 	{
 		$cstyle = $self->{session}->get_citation_spec(
-					$self->get_value("type") );
+					$self->{dataset},
+					$self->get_value( "type" ) );
 	}
 
-	my $ifnode;
-	foreach $ifnode ( $cstyle->getElementsByTagName( "if" , 1 ) )
-	{
-		my $fieldname = $ifnode->getAttribute( "name" );
-		my $val = $self->get_value( "$fieldname" );
-		if( defined $val )
-		{       
-			my $sn; 
-			foreach $sn ( $ifnode->getChildNodes )
-			{       
-				$ifnode->getParentNode->insertBefore( 
-								$sn, 
-								$ifnode );
-			}       
-		}
-		$ifnode->getParentNode->removeChild( $ifnode );
-		$ifnode->dispose();
-	}
-
-	$self->_expand_references( $cstyle );
-
-	my $span = $self->{session}->make_element( "span", class=>"citation" );
-	$span->appendChild( $cstyle );
-	
-	return $span;
-}      
-
-sub _expand_references
-{
-	my( $self, $node ) = @_;
-
-	foreach( $node->getChildNodes )
-	{                
-		if( $_->getNodeType == ENTITY_REFERENCE_NODE )
-		{
-			my $fname = $_->getNodeName;
-			my $field = $self->{dataset}->get_field( $fname );
-			my $fieldvalue = $field->render_value( 
-						$self->{session}, 
-						$self->get_value( $fname ) );
-			$node->replaceChild( $fieldvalue, $_ );
-			$_->dispose();
-		}
-		else
-		{
-			$self->_expand_references( $_ );
-		}
-	}
-}
-
-sub render_value
-{
-	my( $self, $fieldname, $showall ) = @_;
-
-	my $field = $self->{dataset}->get_field( $fieldname );	
-	
-	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall );
+	EPrints::Utils::render_citation( $self , $cstyle );
 }
 
 ## WP1: BAD

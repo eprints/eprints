@@ -695,4 +695,40 @@ sub get_session
 
 	return $self->{session};
 }
+
+sub render_citation_link
+{
+	my( $self , $cstyle , $staff ) = @_;
+	my $url;
+	if( defined $staff && $staff )
+	{
+		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
+
+	}
+	else
+	{
+		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" )."/view_user?userid=".$self->get_value( "userid" );
+		$url = "???";
+	}
+
+	my $a = $self->{session}->make_element( "a", href=>$url );
+	$a->appendChild( $self->render_citation( $cstyle ) );
+
+	return $a;
+}
+
+sub render_citation
+{
+	my( $self , $cstyle ) = @_;
+
+	if( !defined $cstyle )
+	{
+		$cstyle = $self->{session}->get_citation_spec(
+					$self->{dataset},
+					$self->get_value( "usertype" ) );
+	}
+
+	EPrints::Utils::render_citation( $self , $cstyle );
+}
+
 1;
