@@ -36,9 +36,14 @@ my $eprintid = undef;
 if( defined $eprintid_in )
 {
 	# Work out what form it's in
-	if( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
+	if( $eprintid_in =~ /^[Oo][Aa][Ii]:$openarchives_id_stem($idcode_match)$/ )
 	{
-		# Full open archives ID
+		# Old style full open archives ID
+		$eprintid = $EPrintSite::SiteInfo::eprint_id_stem . $1;
+	}
+	elsif( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
+	{
+		# Old style full open archives ID
 		$eprintid = $EPrintSite::SiteInfo::eprint_id_stem . $1;
 	}
 	elsif( $eprintid_in =~
