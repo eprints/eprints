@@ -33,24 +33,27 @@ my $openarchives_id_stem = $EPrintSite::SiteInfo::archive_identifier .
 my $idcode_match = "\\d" x $EPrints::EPrint::id_code_digits;
 my $eprintid = undef;
 
-# Work out what form it's in
-if( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
+if( defined $eprintid_in )
 {
-	# Full open archives ID
-	$eprintid = $EPrintSite::SiteInfo::eprint_id_stem . $1;
-}
-elsif( $eprintid_in =~
-	/^($EPrintSite::SiteInfo::eprint_id_stem$idcode_match)$/ )
-{
-	# Standard EPrint ID code
-	$eprintid = $1;
-}
-elsif( $eprintid_in =~ /^\d+$/ )
-{
-	# Just some digits. Prepend the site stem and any necessary zeroes.
-	$eprintid = $EPrintSite::SiteInfo::eprint_id_stem .
-		"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) .
-		$eprintid_in;
+	# Work out what form it's in
+	if( $eprintid_in =~ /^$openarchives_id_stem($idcode_match)$/ )
+	{
+		# Full open archives ID
+		$eprintid = $EPrintSite::SiteInfo::eprint_id_stem . $1;
+	}
+	elsif( $eprintid_in =~
+		/^($EPrintSite::SiteInfo::eprint_id_stem$idcode_match)$/ )
+	{
+		# Standard EPrint ID code
+		$eprintid = $1;
+	}
+	elsif( $eprintid_in =~ /^\d+$/ )
+	{
+		# Just some digits. Prepend the site stem and any necessary zeroes.
+		$eprintid = $EPrintSite::SiteInfo::eprint_id_stem .
+			"0" x ( $EPrints::EPrint::id_code_digits - length $eprintid_in ) .
+			$eprintid_in;
+	}
 }
 
 
