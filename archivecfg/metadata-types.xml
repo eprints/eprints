@@ -328,7 +328,7 @@
       <field name="address" />
       <field name="country" />
       <field name="url" />
-      <field name="editorsubjects" staffonly="yes" />
+      <field name="editorsubjects" />
     </type>
   </dataset>
 

@@ -17,6 +17,8 @@ package EPrints::DataSet;
 # cjg allowblank vs allow_blank
 use EPrints::Document;
 
+use Carp;
+
 #cjg Should deletion be just another "eprints" dataset.
 
 
@@ -90,9 +92,7 @@ sub new_stub
 	if( !defined $INFO->{$datasetname} )
 	{
 		# no archive info, so can't log.
-		print STDERR "Unknown dataset name: $datasetname\n";	
-		&EPrints::Session::bomb;
-		die( "Unknown dataset name: $datasetname" );
+		confess( "Unknown dataset name: $datasetname" );
 	}
 	my $self = {};
 	bless $self, $class;

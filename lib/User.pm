@@ -50,7 +50,7 @@ sub get_system_field_info
 
 		{ name=>"pinsettime", type=>"int" },
 
-		{ name=>"editorsubjects", type=>"subject", multiple=>1 },
+		{ name=>"editorsubjects", type=>"subject", multiple=>1, showall=>1, showtop=>1, top=>"ROOT" },
 
 		#cjg created would be a better name than joined??
 		{ name=>"joined", type=>"date", required=>1 },
@@ -551,33 +551,13 @@ sub render_full
         return( $dom, $title );
 }
 
-
-
-sub unused_username
-{
-	my( $session, $candidate ) = @_;
-	
-	my $user = user_with_username( $session, $candidate );
-	
-	return $candidate unless( defined $user );
-
-	my $suffix = 0;
-	
-	while( defined $user )
-	{
-		$suffix++;
-		$user = user_with_username( $session, $candidate.$suffix );
-	}
-	
-	return $candidate.$suffix;
-}	
-	
 sub get_dataset
 {
 	my( $self ) = @_;
 	
 	return $self->{dataset};
 }
+
 sub get_session
 {
 	my( $self ) = @_;

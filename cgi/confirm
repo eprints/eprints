@@ -19,7 +19,7 @@ my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
 my( $title, $page ) = make_confirm_page( $session );
-$page->appendChild( $session->html_phrase( "cgi/confirm:return" ) );
+$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
 $session->build_page( $title, $page );
 $session->send_page();

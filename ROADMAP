@@ -53,39 +53,15 @@
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
-#	Fix "upload then back" bug
-#	Default Action when buttons pushed (set in render input form?)... 
-#         .....Appears to just push first button!
-#	Order buttons somehow using extra param to render input form... 
-#	   ....done but now need to go and use it everywhere (_order=>[foo,bar]
 
-#	Fix Buttons on search results page.
-#	Bug: Why does 'help' disappear when there is a problem with a search?
-#	Clean up validators - Don't validate records with fields which have bad langids including user validate.
-#	Threads rendering code.
-#	Delete records function.
-#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
-#	Make all possible field-types browseable.
-#	Make SearchFields have a better call method.
-#	"Squash" reverse indexes?
-#	rationalise names of cgi and bin scripts ? 
-#	clone cocks up later version id
-#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
-#	lose "bomb"
-#	Put System field titles in system phrase file.
-#	Bug: 500 error when search for only ignored words.
-#	print STDERR's should be log()
-#	Eliminate HTMLRenderer
 
-0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...
+0	Cosmetic views of broswed fields. Eg. authors.id renders as their name...( maybe renders MAIN field not ID?)
 0	Paged Metadata in submission form.
 0	Browse Multiple Fields at once (eg. authors.id/editors.id)
-0	Alerts for editors about things they can edit (flag in User fields?)
-2	Subject-editors (editors can only edit within certain subjects)
+4	Subject-editors (editors can only edit within certain subjects)
 2	Web-based Email Change
 -	Password Encryption. (Via callback)
 2	Autodetect optional system features: microtime, df etc.
-0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
 0	Field property: freetext (or not-freetext) to stop indexing)
 0	Field Property: 'id required' - If main bit is set then ID *must* be set. Otherwise lax.
 -	Option to hide Honourific and/or Lineage.
@@ -94,25 +70,27 @@
 -	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
 4	Utils.pm module with all the general static methods. Including all of Name.pm and some of Session.pm and Config.pm and parse_xml?
 -	multiple views for things like people/groups etc.
-0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0 	Metadata approve page in Submission Form for Admin Conf'd comments(?)
 -	Search Expression Serialiser/Unserialiser - Needs to have guaranteed order to use in caches.
 0	Multiple Citation formats (generally, and for browse/abstract/search)
 -	Default Values for metadata
 -	Subject field root is not always ROOT - can come into different places in the subject tree
-0	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
-0	Translate Initial phrases and templates into French
-#!!!!!!!!!!!VVVVVV
-0	Indexing on name fields(?)
-0	patch for config files when upgrading.
+4	Searching "ancestors" of a subject. eg. search for biology maps all subjects which are below biology.
+1	Indexing on name fields(?)
+0	patch for config files when upgrading.(?)
 0	different looks for boolean/opts eg. check/radio boxes.
-0	Allow users to request a username when registering.
+-	Allow users to request a username when registering.
+0	Bulk XML Dumper
 
 *	Milestone "Olive" : Core code should be stable, scripts & cgi still not stable, core code may still change.
 
 #	OAI support working.
 
-0 - Logout fature (or maybe force a revalidate so someone can switch user).
+0	Translate Initial phrases and templates into French
+0	PDF Mollycoddler ( Serve PDF in a special way which avoids certain bugs in the plugin )
+0	Alerts for editors about things they can edit (flag in User fields?)
+0 	- Logout feature (or maybe force a revalidate so someone can switch user).
+0	Optional "new" highlight in views/searches etc. (maybe done by eprint->render link).
 0	Some kind of BibTeX support (fill in metadata form from bibtex)
 0	Search by ID field (in search exp)
 0	What's new? page(s) (just a fixed search)
@@ -141,9 +119,9 @@
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
 
-1	Comment Code
+1	Formally Comment Code
 0	Bugfixing
-0	Documentation!
+0	Documentation! - Howto's, Datatypes, Installation
 0	How-To Documentation
 0	Multiple Initial Configurations (eg Pre-print Archive, Institutional Archive etc)
 
@@ -159,8 +137,8 @@
 # *	EPrints 1.2 Final Planned EPrints 1.* release.
 
 
-2	Sleep
-1	Beer
+1	Sleep
+2	Beer
 0	Peer Review
 0	Mirroring
 0	Citation Scanning
@@ -168,77 +146,51 @@
 1	OpenURL support (?)
 
 
+#BUGS
+#	clone eprint cocks up later version id
+#	/users/perl/home/ is legal and should not be -> should redir to /users/perl/home, and/or make all URL links absolute.
+#	Bug: 500 error when search for only ignored words.
+#	Bug: Why does 'help' disappear when there is a problem with a search?
+#	Fix Buttons on search results page.
+#	Order buttons somehow using extra param to render input form... 
+#	   ....done but now need to go and use it everywhere (_order=>[foo,bar]
+#	Default Action when buttons pushed (set in render input form?)... 
+#         .....Appears to just push first button!
+#	Fix "upload then back" bug
+#	Status search field buggered
+#	 FIX installer - phrases don't work! some dirs are wrong # 	what about a default disk0 dir?
 
-# Files what do something: 
-# . = not touched
-# * = getting there
-# - = "perfect"
-# 46 files.
+#Clean UP
+#	print STDERR's should be log()
+#	Eliminate HTMLRenderer
+#	Make SearchFields have a better call method.
+#	Put System field titles in system phrase file.
+#	rationalise names of cgi and bin scripts ? 
+#	Normalise names for things between XML config, DTD and Perl modules... eg "server_static" and perl//cgi
+#	Not everything should be no-cache!
+# 	check Database.pm for any sql without escaping. and SearchExpression.pm and SearchField.pm
+#	 remove non system editor filter
+#	Named values in Constructors all round?
+#	subject label cache - scrap it?
+#	search buttons at top and bottom of search & (some) submission forms.
+#	 Make all needed get()'s map it instead so ready for that 1,000,000 papers.
 
-# bin/create_databases			*
-# bin/create_user			*
-# bin/erase_archive			*
-# bin/generate_abstracts		*
-# bin/generate_static			*
-# bin/generate_views			*
-# bin/list_user_emails			*
-# bin/generate_dtd			*
-# bin/rebuild_sets			.
-# bin/subs_daily			.
-# bin/subs_monthly			.
-# bin/subs_weekly			.
-# bin/update_htaccess			*
-# bin/update_laf			 ?
-# bin/import_xml			*
-# bin/startup.pl			*
-# bin/generate_apacheconf		*
-# bin/create_new_archive		*
-
-# cgi/set_password			*
-# cgi/advsearch				*
-# cgi/handle_404			.
-# what error page for forbidden docs in the secure area?
-# cgi/oai				.
-# cgi/remind				 ?
-# cgi/search				*
-# cgi/user				*
-# cgi/user_eprints			*
-# cgi/view_eprint			.
-# cgi/confirm				*
-# cgi/setlang				*
-
-# cgi/users/tester			 ?
-# cgi/users/home			*
-# cgi/users/record			*
-# cgi/users/review			*
-# cgi/users/submit			*
-# cgi/users/subscribe			.
-# cgi/users/status			*
-
-# cgi/users/staff/add_user		*
-# cgi/users/staff/buffer		*
-# cgi/users/staff/edit_eprint		*
-# cgi/users/staff/edit_submission	*
-# cgi/users/staff/edit_user		.
-# cgi/users/staff/eprint_search		*
-# cgi/users/staff/user_search		*
-# cgi/users/staff/view_submission	*
-# cgi/users/staff/view_user		*
-# cgi/users/staff/edit_subject		*
-
-
-# allow configure_archive to specify archive name on command line.
-# sort out "deletion"
-# abstract page for deleted records?
-# set all relevant. search exp's to cache
-
-# make cache clean up code.
-
-# check Database.pm for any sql without escaping. and SearchExpression.pm and
-# SearchField.pm
-
-#cjg Named values in Constructors all round?
-
-#verbose mode for bin scripts?
-
-# text area without CR's (config flag) eg. for title.
+#TODO
+#	Clean up validators - Don't validate records with fields which have bad langids including user validate.
+#	Make all possible field-types browseable.
+#	Delete records function.
+#	Threads rendering code.
+#	"Squash" reverse indexes?
+#	 allow configure_archive to specify archive name on command line.
+#	 sort out "deletion"
+#	 abstract page for deleted records?
+#	verbose mode for bin scripts?
+#	 sort subject input fields
+#	 text area without CR's (config flag) eg. for title.
+#	 Magic search fields - eg. Must have HTML format document/public document...
+#	 no new eprints when disk fullish
+#	SearchFields should have param'd new() flag for subject search to not cover kids # Then we can fix gen_views which is a bit off right now.
+#	 Call backs for LEAVING archive and buffer=>inbox
+#	subject importer to use XML
+#	rename views to browse/ (?)
+#	rename rebuild_sets to something betterer?

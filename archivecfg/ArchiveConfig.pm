@@ -60,6 +60,12 @@ $c->{allow_user_removal_request} = 1;
 # Set a time of zero ("0") to make pins never time out.
 $c->{pin_timeout} = 3;
 
+# Cache timeout:
+# Number of minutes of unuse to timeout a search cache
+$c->{cache_timeout} = 10;
+# Maximum lifespan of a cache, in use or not. In hours.
+$c->{cache_maxlife} = 12;
+
 #############################
 ###cjg Development hack, This should not affect you unless your
 ### machine happens to have the same ID as my home linux box
@@ -269,6 +275,22 @@ $c->{hide_honourific} = 0;
 $c->{hide_lineage} = 0;
 
 ###########################################
+# Web Sign-up customisation
+###########################################
+
+# Allow users to sign up for an account on
+# the web. If you disable this you should
+# edit the template file and the error page
+# to not offer this option.
+$c->{allow_web_signup} = 1;
+
+# To prevent users from changing their email
+# and/or passwords via the web, see the 
+# user permissions section elsewhere in this
+# file.
+
+
+###########################################
 #  Submission Form Customisation
 ###########################################
 
@@ -316,6 +338,13 @@ $c->{submission_hide_security} = 0;
 ###########################################
 #  Language
 ###########################################
+
+# Setting this to zero will simplify the
+# interface to the system if you want to 
+# operate in a single language. 
+# It will disable the following:
+# -cjg Stuff...
+$c->{multi_language_options} = 1;
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";
@@ -374,19 +403,20 @@ $c->{default_user_type} = "user";
 #staff-view -> view & search users & eprints in staff mode.
 #edit-subject
 #edit-user
+#change-email
 
  
 $c->{userauth} = {
 	user => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit" ] },
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email" ] },
 	editor => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit",
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
 				"view-status", "editor", "staff-view" ] },
 	admin => { 
 		auth  => $ENCRYPTED_DBI,
-		priv  =>  [ "subscription", "set-password", "deposit",
+		priv  =>  [ "subscription", "set-password", "deposit", "change-email",
 				"view-status", "editor", "staff-view", 
 				"edit-subject", "edit-user" ] }
 };
@@ -509,6 +539,9 @@ if( $CJGDEBUG ) {
 #   the default.  e.g. "year DESC, authors ASC, title"
 #
 ######################################################################
+
+$c->{browse_fields} = [ "year", "subjects" ];
+
 
 # Fields for a simple user search
 $c->{simple_search_fields} =
@@ -1196,29 +1229,6 @@ sub eprint_render
 			$eprint->render_value( "altloc", $show_all ) ) );
 	}
 
-
-	# If being viewed by a staff member, we want to show any suggestions for
-	# additional subject categories
-	if( $show_all )
-	{
-		# Show all the other fields
-
-		my $field;
-		foreach $field ( $eprint->get_dataset()->get_type_fields(
-			  $eprint->get_value( "type" ) ) )
-		{
-			print STDERR "ST:".$field->get_name()."\n";
-			$table->appendChild( _render_row(
-				$session,
-				$session->make_text( 
-					$field->display_name( $session ) ),	
-				$eprint->render_value( 
-					$field->get_name(), 
-					$show_all ) ) );
-
-		}
-	}
-			
 	# Now show the version and commentary response threads
 	if( $has_multiple_versions )
 	{
@@ -1237,6 +1247,33 @@ sub eprint_render
 			#$eprint,
 			#$commentary_field );
 	}
+
+	# If being viewed by a staff member, we want to show any suggestions for
+	# additional subject categories
+	if( $show_all )
+	{
+		# Show all the other fields
+		$page->appendChild( $session->render_ruler() );
+		$table = $session->make_element( "table",
+					border=>"0",
+					cellpadding=>"3" );
+		$page->appendChild( $table );
+		my $field;
+		foreach $field ( $eprint->get_dataset()->get_type_fields(
+			  $eprint->get_value( "type" ) ) )
+		{
+			print STDERR "ST:".$field->get_name()."\n";
+			$table->appendChild( _render_row(
+				$session,
+				$session->make_text( 
+					$field->display_name( $session ) ),	
+				$eprint->render_value( 
+					$field->get_name(), 
+					$show_all ) ) );
+
+		}
+	}
+			
 
 	my $title = eprint_render_short_title( $eprint );
 
@@ -1838,25 +1875,6 @@ sub set_user_defaults
 sub set_user_automatic_fields
 {
 	my( $user ) = @_;
-	# This must set username
-
-	if( $user->get_value( "usertype" ) eq "user" && 
-		!defined $user->get_value( "username" ) )
-	{
-		# This is the user type which is created by signing up over 
-		# the web.
-
-		# This code takes their username as everything before the
-		# @ in their email address. Then adds a numerical suffix if
-		# that username is in use.
-		 
-		my $candidate = $user->get_value( "email" );
-		$candidate =~ s/\@.*$//;
-		my $username = EPrints::User::unused_username( 
-			$user->get_session(),
-			$candidate );
-		$user->set_value( "username" , $username );
-	}
 
 	# Because password is a "secret" field, it is only set if it
 	# is being changed - therefor if it's set we need to crypt

@@ -54,6 +54,8 @@ EPrints Modules
     <phrase ref="lib/metafield:more_spaces">More Spaces</phrase>
     <phrase ref="lib/metafield:more_langs">More Languages</phrase>
     <phrase ref="lib/metafield:unspecified">UNSPECIFIED</phrase>
+    <phrase ref="lib/metafield:true">Yes</phrase>
+    <phrase ref="lib/metafield:false">No</phrase>
 
 <!-- SearchExpression -->
 
@@ -484,17 +486,29 @@ Public CGI Scripts
 <!-- set_password -->
 
     <phrase ref="cgi/set_password:password_title">Create Account / Change Password</phrase>
+    <phrase ref="cgi/set_password:password_changeonlytitle">Change Password</phrase>
     <phrase ref="cgi/set_password:intro">
 <p>In order to access some areas of the archive, you'll need a <em>user registration</em>. No charge is made for registering with us or using any of our services.</p>
 <p>This page lets you sign up for an account with this archive, this will allow you to create a subscription and deposit items. You will need to confirm your email address by using a code which will be mailed to you.</p>
-<p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p></phrase>
+</phrase>
+    <phrase ref="cgi/set_password:pchange">
+<p>If you are an existing user but have forgotten your password then you may use this form to set a new one.</p>
+</phrase>
     <phrase ref="cgi/set_password:action_submit">Submit</phrase>
     <phrase ref="cgi/set_password:account">Account</phrase>
     <phrase ref="cgi/set_password:mail_sent"><p>An email has been sent to <pin ref="email" /> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></phrase>
-    <phrase ref="cgi/set_password:return"><p><a href="&frontpage;">Return to the front page</a></p></phrase>
     <phrase ref="cgi/set_password:no_priv"><p>The user with the email address <pin ref="email" /> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></phrase>
+    <phrase ref="lib/session:no_signup"><p>New users may not register for this archive via the web.</p></phrase>
     <phrase ref="cgi/set_password:no_password"><p>You did not actually specify a password.</p></phrase>
     <phrase ref="cgi/set_password:created_new_user"><p>A new user account has been registered.</p></phrase>
+    <phrase ref="cgi/set_password:no_username"><p>You did not specify a username.</p></phrase>
+    <phrase ref="cgi/set_password:no_email"><p>You did not specify an email address.</p></phrase>
+    <phrase ref="cgi/set_password:username_in_use"><p>The username "<pin ref="username" />" has already been taken.</p></phrase>
+
+    <phrase ref="setpass_fieldhelp_email" >Enter your email address</phrase>
+    <phrase ref="setpass_fieldhelp_newpassword" >Enter a password. If you forget it you can set a new one using this form.</phrase>
+    <phrase ref="setpass_fieldhelp_username" >Requested username (only applicable to new users)</phrase>
+    <phrase ref="setpass_fieldhelp_lang" >Please select your prefered language.</phrase>
 
 <!-- confirm -->
 
@@ -502,7 +516,6 @@ Public CGI Scripts
     <phrase ref="cgi/confirm:err_title">Error: Account Change Failed</phrase>
     <phrase ref="cgi/confirm:bad_user"><p>User not found. It is possible that indicates a database problem, but please check the parameters in the URL carefully.</p></phrase> 
     <phrase ref="cgi/confirm:pin_mismatch"><p>The confirmation pin is incorrect. Please try and request the change again to generate an email with a new pin.</p></phrase> 
-    <phrase ref="cgi/confirm:return"><p><a href="&frontpage;">Return to &archivename; front page</a></p></phrase>
     <phrase ref="cgi/confirm:pin_timeout"><p>The confirmation pin has timed out. Please repeat the request, and confirm it as soon as you get the mail.</p></phrase>
     <phrase ref="cgi/confirm:no_pin"><p>There are currently no changes for this user which await confirmation.</p></phrase>
     <phrase ref="cgi/confirm:set_email"><p>Your email address has been changed to the new one you requested.</p></phrase>
@@ -529,5 +542,6 @@ General phrases, used alot
 ***********************************************************************-->
 
     <phrase ref="general:userhome_link"><p><a href="&cgiroot;/users/home">Go to the &archivename; User Area Homepage</a></p></phrase>
+    <phrase ref="general:frontpage_link"><p><a href="&frontpage;">Return the &archivename; Homepage</a></p></phrase>
     <phrase ref="general:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></phrase> 
 </phrases>

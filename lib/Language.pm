@@ -86,9 +86,6 @@ sub phrase
 	}
 	$inserts = {} if( !defined $inserts );
 
-if( !defined $session ) {
-	EPrints::Session::bomb();
-} 
 	my $result;
 	if( $fb )
 	{

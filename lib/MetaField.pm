@@ -86,6 +86,7 @@ my %TYPE_INDEX =
 #cjg MAYBE this could be the defaults? not just =>1
 
 my $PROPERTIES = {
+	confid => "UNDEF",
 	datasetid => "NO_DEFAULT",
 	digits => 20,
 	displaylines => 12,
@@ -100,6 +101,7 @@ my $PROPERTIES = {
 	required => 0,
 	requiredlangs => [],
 	showall => 0, 
+	showtop => 0, 
 	idpart => 0,
 	mainpart => 0,
 	top => "subjects", #cjg is this right?
@@ -120,7 +122,7 @@ my $PROPERTIES = {
 # digits  # for int  (int)   # default = 20
 # options # for set (array)   **required if type**
 # maxlength # for text (maybe url & email?)
-# showall # for subjects
+# showtop, showall # for subjects
 
 # hasid # for all - has an ID value(s)
 # idpart, mainpart # internal use only by the "ID" fields sub-fields.
@@ -170,6 +172,7 @@ sub new
 	if( $self->is_type( "subject" ) )
 	{
 		$self->set_property( "showall" , $properties{showall} );
+		$self->set_property( "showtop" , $properties{showtop} );
 		$self->set_property( "top" , $properties{top} );
 	}
 
@@ -429,6 +432,19 @@ sub render_value
 {
 	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
+	if( !defined $self->{browse} )
+	{
+		my $browsefields = $session->get_archive()->get_conf( "browse_fields" );
+		$self->{browse} = 0;
+		foreach( @{$browsefields} )
+		{
+			if( $_ eq $self->get_name() )
+			{
+				$self->{browse} = 1;
+			}
+		}
+	}
+
 	if( !$self->get_property( "multiple" ) )
 	{
 		return $self->_render_value1( $session, $value, $alllangs, $nolink );
@@ -436,30 +452,33 @@ sub render_value
 
 	if(! EPrints::Utils::is_set( $value ) )
 	{
-		return $session->make_text( "[undef-$self->{name}]" );#cjg!??!? null or text?		
+		# maybe should just return nothing
+		return $session->html_phrase( "lib/metafield:unspecified" );
 	}
 
 	my @rendered_values = ();
-	my $sep; #cjg NOT LANG'D
-	if( $self->is_type( "name" ) )
-	{
-		$sep = " and ";
-	}
-	else
-	{
-		$sep = ", ";
-	}
+
 	my $first = 1;
 	my $html = $session->make_doc_fragment();
+	
 	foreach( @$value )
 	{
 		if( $first )
 		{
 			$first = 0;	
 		}	
+		elsif( $self->is_type( "name" ) )
+		{
+			#cjg LANG ME BABY
+			$html->appendChild( $session->make_text( " and " ) );
+		}
+		elsif( $self->is_type( "subject" ) )
+		{
+			; # do nothing
+		}
 		else
 		{
-			$html->appendChild( $session->make_text( $sep ) );
+			$html->appendChild( $session->make_text( ", " ) );
 		}
 		$html->appendChild( $self->_render_value1( $session, $_, $alllangs, $nolink ) );
 	}
@@ -486,7 +505,19 @@ sub _render_value1
 	}
 	else
 	{
-		return $rendered;
+print STDERR "(".$self->get_name().")(".$self->{browse}.")(".$nolink.")\n";
+		if( $self->{browse} && !$nolink)
+		{
+			my $url = $session->get_archive()->get_conf( "server_static" ).
+					"/view/".$self->get_name()."/".$value.".html";
+			my $a = $session->make_element( "a", href=>$url );
+			$a->appendChild( $rendered );
+			return $a;
+		}
+		else
+		{
+			return $rendered;
+		}
 	}
 
 }
@@ -605,53 +636,30 @@ sub _render_value3
 		return $ds->render_type_name( $session, $value ); 
 	}
 
-	if( $self->is_type( "subject" ) )
-	{
-		my $subject = EPrints::Subject->new( $session, $value );
-		return $subject->render();
-	}
-
 	if( $self->is_type( "set" ) )
 	{
 		return $session->make_text( 
 			$self->display_option( $session , $value ) );
 	}
 
-return $session->make_text( "<<".$value.">>" );#cjg!!!!!
-my $html;
-
 	if( $self->is_type( "boolean" ) )
 	{
-		$html = $self->{session}->make_text("UNSPECIFIED") unless( defined $value );
-		$html = ( $value eq "TRUE" ? "Yes" : "No" ) if( defined $value );
-	}
-
-	if( $self->is_type( "subject" ) )
-	{
-		$html = "";
-
-		my $sub;
-		my $first = 0;
-
-		foreach $sub (@{$value})
-		{
-			if( $first==0 )
-			{
-				$first = 1;
-			}
-			else
-			{
-				$html .= "<BR>";
-			}
-			
-			$html .= EPrints::Subject::subject_label( $self->{session}, $sub ); #cjg!!
-		}
+		return $session->html_phrase( "lib/metafield:".($value eq "TRUE"?"true":"false") );
 	}
 
 	
+	if( $self->is_type( "subject" ) )
+	{
+		my $subject = new EPrints::Subject( $session, $value );
+		if( !defined $subject )
+		{
+			return $session->make_text( "?? $value ??" );
+		}
+		return $subject->render_with_path( $session, $self->get_property( "top" ) );
+	}
+	
 	$session->get_archive()->log( "Unknown field type: ".$self->{type} );
-	return undef;
-
+	return $session->make_text( "?? $value ??" );
 }
 
 
@@ -706,7 +714,7 @@ sub render_input_field
 				$self->get_property( "top" ) );
 			my ( $pairs ) = $topsubj->get_subjects( 
 				!($self->{showall}), 
-				0 );
+				$self->{showtop} );
 			$settings{pairs} = $pairs;
 			if( $settings{height} eq "ALL")
 			{

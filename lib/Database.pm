@@ -51,7 +51,6 @@ my %TEMPTABLES = ();
 #
 ######################################################################
 
-## WP1: BAD
 sub build_connection_string
 {
 	my( %params ) = @_;
@@ -683,7 +682,6 @@ sub update
 #
 ######################################################################
 
-## WP1: BAD
 sub remove
 {
 	my( $self, $dataset, $id ) = @_;
@@ -841,14 +839,18 @@ sub cache_id
 {
 	my( $self , $code , $include_expired) = @_;
 
-	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	my $a = $self->{session}->get_archive();
+	$ds = $a->get_dataset( "tempmap" );
+
 	#cjg NOT escaped!!!
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name() . " WHERE searchexp = '$code'";
 	if( !$include_expired )
 	{
-		#cjg
-	#	$sql.= "AND created+a day< now() and lastused+ a bit < now()
+		# Don't includes expired items
+		$sql.= " AND lastused > now()-interval ".$a->get_conf("cache_timeout")." minute"; 
 	}
+	# Never include items past maxlife
+	$sql.= " AND created > now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -972,29 +974,6 @@ sub dispose_buffer
 	
 
 
-## WP1: BAD
-sub _make_select
-{
-	my( $self, $keyfield, $tables, $conditions ) = @_;
-	
-	my $sql = "SELECT ".((keys %{$tables})[0]).".".
-	          $keyfield->get_sql_name()." FROM ";
-	my $first = 1;
-	foreach( keys %{$tables} )
-	{
-		$sql .= " INNER JOIN" unless( $first );
-		$sql .= " ${$tables}{$_} AS $_";
-		$sql .= " USING (".$keyfield->get_sql_name().")" unless( $first );
-		$first = 0;
-	}
-	if( defined $conditions )
-	{
-		$sql .= " WHERE $conditions";
-	}
-
-	return $sql;
-}
-
 sub get_index_ids
 {
 #cjg iffy params
@@ -1017,10 +996,20 @@ sub get_index_ids
 
 sub search
 {
-#cjg iffy params
-	my( $self, $keyfield, $tables, $conditions ) = @_;
+	my( $self, $keyfield, $tables, $conditions) = @_;
 	
-	my $sql = $self->_make_select( $keyfield, $tables, $conditions );
+	my $sql = "SELECT M.".$keyfield->get_sql_name()." FROM ";
+	my $first = 1;
+	foreach( keys %{$tables} )
+	{
+		$sql.= ", " unless($first);
+		$first = 0;
+		$sql.= $tables->{$_}." AS $_";
+	}
+	if( defined $conditions )
+	{
+		$sql .= " WHERE $conditions";
+	}
 
 	my $results;
 	my $sth = $self->prepare( $sql );
@@ -1033,31 +1022,24 @@ sub search
 
 
 
-## WP1: BAD
 sub drop_cache
 {
-	my ( $self , $tmptable ) = @_;
-	# sanity check! Dropping the wrong table could be
-	# VERY bad.	
-	if ( $tmptable =~ m/^cache(\d+)$/ )
-	{
-		my $sql;
-		my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
-		# We drop the table before removing the entry from the tempmap
+	my ( $self , $id ) = @_;
 
-        	$sql = "DROP TABLE $tmptable";
-		$self->do( $sql );
+	# $id MUST be an integer.
+	$id += 0;
+
+	my $tmptable = "cache$id";
+
+	my $sql;
+	my $ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	# We drop the table before removing the entry from the tempmap
+
+       	$sql = "DROP TABLE $tmptable";
+	$self->do( $sql );
 		
-		$sql = "DELETE FROM ".$ds->get_sql_table_name().
-		       " WHERE tableid = $1";
-		$self->do( $sql );
-
-	}
-	else
-	{
-		$self->{session}->get_archive()->log( "Bad Cache ID: $tmptable" );
-	}
-
+	$sql = "DELETE FROM ".$ds->get_sql_table_name()." WHERE tableid = $id";
+	$self->do( $sql );
 }
 
 ## WP1: BAD
@@ -1087,15 +1069,38 @@ sub from_cache
 
 	print STDERR "[$offset][$count]\n";
 
+	# Force offset and count to be ints
 	$offset+=0;
 	$count+=0;
 
 	my $id = $self->cache_id( $code , 1 );
 	my @results = $self->_get( $dataset, 3, "cache".$id, $offset , $count );
-	#cjg clean up cache
 
-#cjg is_cached must return no if result is too old.
+	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET lastused = NOW() WHERE tableid = $id";
+	$self->do( $sql );
+
+	$self->drop_old_caches();
+
 	return @results;
+}
+
+sub drop_old_caches
+{
+	my( $self ) = @_;
+
+	$ds = $self->{session}->get_archive()->get_dataset( "tempmap" );
+	my $a = $self->{session}->get_archive();
+	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name()." WHERE";
+	$sql.= " lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute"; 
+	$sql.= " OR created < now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my $id;
+	while( $id  = $sth->fetchrow_array() )
+	{
+		$self->drop_cache( $id );
+	}
 }
 
 

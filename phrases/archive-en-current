@@ -134,6 +134,10 @@
     <phrase ref="eprint_fieldname_reportno">Report no.</phrase>
     <phrase ref="eprint_fieldhelp_reportno">Please enter the report number.</phrase>
 
+    <phrase ref="eprint_fieldname_series">Series.</phrase>
+    <phrase ref="eprint_fieldhelp_series">The title of the series or set of books.</phrase>
+
+
     <phrase ref="eprint_fieldname_thesistype">Thesis Type</phrase>
     <phrase ref="eprint_fieldhelp_thesistype">Please enter the thesis type, e.g. <strong>PhD thesis</strong>.</phrase>
 

@@ -616,7 +616,7 @@ sub get_records
 		
 		my @records = $self->{session}->get_db()->from_buffer( 
 							$self->{dataset}, 
-							$self->{tmptable} );
+							$srctable );
 
 		# We don't bother sorting if we got too many results.	
 		# or no order method was specified.
@@ -632,7 +632,10 @@ sub get_records
 
 			@records = sort { &{$cmpmethod}($a,$b); } @records;
 		}
-		$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+		if( $self->{tmptable} ne "ALL" )
+		{
+			$self->{session}->get_db()->dispose_buffer( $self->{tmptable} );
+		}
 		if( $self->{use_cache} )
 		{
 			$self->{session}->get_db()->cache( 

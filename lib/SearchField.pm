@@ -296,9 +296,17 @@ sub get_conditions
 		my $field;
 		foreach $field ( @fields )
 		{
-			my $s = "__FIELDNAME__ = '".EPrints::Database::prep_value($field)."'";
+			my $s;
+			if( $self->is_type( "subject" ) )
+			{
+				$s = "( __FIELDNAME__ = S.subjectid AND S.ancestors='".EPrints::Database::prep_value($field)."' )";
+			} 
+			else 
+			{
+				$s = "__FIELDNAME__ = '".EPrints::Database::prep_value($field)."'";
+			}
 			push @where , $s;
-		}	
+		}
 		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
@@ -348,7 +356,6 @@ sub get_conditions
 	# N-
 	# -N
 	# N-N
-
 
 	if ( $self->is_type( "year","int" ) )
 	{
@@ -643,8 +650,6 @@ sub do
 			# this to the SQL.
 			$tname =~ s/:.*//;
 	
-			my $tlist = { "M"=>$tname };
-	
 			my $r;
 #phrases: a pre done set, than a LOIKE? cjg
 			if( ref( $where ) eq "ARRAY" )
@@ -661,7 +666,16 @@ sub do
 			else
 			{ 
 				# Normal Search
-				$r = $self->{session}->get_db()->search( $keyfield, $tlist, $where );
+				my $tables = {};
+				$tables->{M} = $tname;
+				if( $self->{field}->is_type( "subject" ) )
+				{
+					# maybe we should calculate this
+					# tablename from dataset? for added
+					# robusty goodness.
+					$tables->{S} = "subject_ancestors";
+				}
+				$r = $self->{session}->get_db()->search( $keyfield, $tables, $where );
 			}
 			$bitresults = EPrints::SearchExpression::_merge( $r , $bitresults, 0 );
 		}
@@ -777,7 +791,7 @@ sub to_html
 				$self->{session},
 				$self->{field}->get_property( "top" ) );
 			my ( $pairs ) = $topsubj->get_subjects( 0, 0 );
-			splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
+			#splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
 			$settings{pairs} = $pairs;
 			$settings{size} = ( 
 #cjg Number for form dfefaults
@@ -802,13 +816,16 @@ sub to_html
 		
 			my( $old_tags, $old_labels ) = ( $tags, $labels );
 	
-			$tags = [ "NONE" ];
+			# If I don't have NONE this becomes much simpler...
+			# cjg I think I can remove a load of stuff here soon.		
+	
+			#$tags = [ "NONE" ];
 	
 			# we have to copy the tags and labels as they are currently
 			# references to the origionals. 
 		
 			push @{$tags}, @{$old_tags};
-			$labels->{NONE} = "(Any)"; #cjg lang
+			#$labels->{NONE} = "(Any)"; #cjg lang
 			$settings{labels} = $labels;
 			$settings{values} = $tags;
 			$settings{size} = ( 
@@ -818,8 +835,7 @@ sub to_html
 				scalar @$tags );
 		}	
 
-		$frag->appendChild( $self->{session}->render_option_list(
-			%settings ) );
+		$frag->appendChild( $self->{session}->render_option_list( %settings ) );
 
 		if( $self->{field}->get_property( "multiple" ) )
 		{

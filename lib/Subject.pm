@@ -143,8 +143,22 @@ sub remove
 		$self->{dataset},
 		$self->{data}->{subjectid} );
 }
-	
 
+sub remove_all
+{
+	my( $session ) = @_;
+
+	my $ds = $session->get_archive()->get_dataset( "subject" );
+	my @subjects = $session->get_db()->get_all( $ds );
+	foreach( @subjects )
+	{
+		my $id = $_->get_value( "subjectid" );
+		$session->get_db()->remove( $ds, $id );
+	}
+	return;
+}
+
+	
 ######################################################################
 #
 # $subject = create_subject( $session, $id, $name, $parent, $depositable )
@@ -281,25 +295,74 @@ sub can_post
 	return( $self->{data}->{depositable} eq "TRUE" ? 1 : 0 );
 }
 
-#cjg LINK(optional) to "view"
+#cjg LINK(optional) to "view" (? maybe not)
 sub render
 {
-	my( $self ) = @_;
+	my( $self, $session ) = @_;
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "subject" );
-	#my %opts = %{$self->{data}->{name}};
-	#$opts{"?"} = "(".$self->{data}->{subjectid}.")";
-	#my $namefield = $ds->get_field( "name" );
-	#my $html = $namefield->render_value( 
-			#$self->{session}, 
-			#\%opts );
 	my $name = $self->{data}->{name};
 	if( $name eq '' ) { $name = "(".$self->{data}->{subjectid}.")"; }
 	my $namefield = $ds->get_field( "name" );
 	my $html = $namefield->render_value( 
 			$self->{session}, 
 			$name );
-	return $html;
+}
+
+
+sub render_with_path
+{
+	my( $self, $session, $topsubjid ) = @_;
+
+	my @paths = $self->_get_paths( $session, $topsubjid );
+
+	my $v = $session->make_doc_fragment();
+
+	foreach( @paths )
+	{
+		my $div = $session->make_element( "div" );
+		my $first = 1;
+		foreach( @{$_} )
+		{
+			if( !$first )
+			{
+				# lang ": "cjg
+				$div->appendChild( $session->make_text( ": ") );
+			}
+			$first = 0;
+			$div->appendChild( $_->render() );
+		}
+		$v->appendChild( $div );
+	}
+	return $v;
+}
+
+# This function returns all the paths from this subject back up to the
+# specified top subject.
+sub _get_paths
+{
+	my( $self, $session, $topsubjid ) = @_;
+
+	if( $self->get_value( "subjectid" ) eq $topsubjid )
+	{
+		# empty list, for the top level we care about
+		return ([]);
+	}
+	if( $self->get_value( "subjectid" ) eq $EPrints::Subject::root_subject )
+	{
+		return ();
+	}
+	my( @paths ) = ();
+	foreach( @{$self->{data}->{parents}} )
+	{
+		my $subj = new EPrints::Subject( $session, $_ );
+		push @paths, $subj->_get_paths( $session, $topsubjid );
+	}
+	foreach( @paths )
+	{
+		push @{$_}, $self;
+	}
+	return @paths;
 }
 
 ######################################################################
@@ -332,6 +395,8 @@ sub create_subject_table
 		my @vals = split /:/;
 
 		my @parents = split( ",", $vals[2] );
+	
+		print STDERR "$vals[0]\n";
 		
 		$success = $success &&
 			( defined EPrints::Subject->create_subject( 
@@ -394,6 +459,7 @@ sub _get_subjects2
 		my $pair;
 		foreach $pair ( @{$kidmap} )
 		{
+			# lang ": "cjg
 			my $pair2 = [ 
 				$pair->[0], 
 				($hidenode?"":$label.": ").$pair->[1] ];
@@ -440,6 +506,7 @@ sub subject_label
 		}
 		else
 		{
+			#cjg lang ": "
 			$label = $data->{name} . ": " . $label;
 		}
 	}
@@ -466,6 +533,9 @@ sub get_all
 	foreach $subject (@subjects)
 	{
 		$subjectmap{$subject->get_value("subjectid")} = $subject;
+		# iffy non oo bit here.
+		# guess it's ok within the same class... (maybe)
+		# works fine, just a bit naughty
 		foreach( @{$subject->{data}->{parents}} )
 		{
 			$rmap{$_} = [] if( !defined $rmap{$_} );
@@ -678,6 +748,7 @@ sub subject_label_cache
 		}
 		else
 		{
+			#lang ": "cjg
 			$label = $s->{name} . ": " . $label;
 		}
 	}

@@ -1568,22 +1568,4 @@ die "NOPE";
 	return( $self->{query}->endform );
 }
 
-## WP1: BAD
-sub bomb
-{	
-	my( $notabort ) = @_;
-	my @info;
-	print STDERR "=======================================\n";
-	print STDERR "=      EPRINTS BOMB                   =\n";
-	print STDERR "=======================================\n";
-	my $i=1;
-	while( @info = caller($i++) )
-	{
-		print STDERR $info[3]." ($info[2])\n";
-	}
-	print STDERR "=======================================\n";
-	exit unless $notabort;
-}
-
 1;
-

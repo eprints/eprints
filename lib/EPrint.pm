@@ -39,7 +39,11 @@ sub get_system_field_info
 	return ( 
 	{ name=>"eprintid", type=>"int", required=>1 },
 
-	{ name=>"userid", type=>"int", required=>1 },
+	# UserID is not required, as some bulk importers
+	# may not provide this info. maybe bulk importers should
+	# set a userid of -1 or something.
+
+	{ name=>"userid", type=>"int", required=>0 },
 
 	{ name=>"dir", type=>"text", required=>0 },
 
@@ -1108,7 +1112,8 @@ sub render_citation_link
 	my $url;
 	if( defined $staff && $staff )
 	{
-		$url = "oook";
+		$url = $self->{session}->get_archive()->get_conf( "server_perl_root" ).
+			"/users/staff/edit_eprint?eprintid=".$self->get_value( "eprintid" );
 	}
 	else
 	{

@@ -44,7 +44,17 @@ sub process
 	my $stage = $session->param( "stage" );
 	my $eprintid = $session->param( "eprintid" );
 
-	if( defined $stage && $stage eq "format" && defined $action && $action eq "finished" )
+	# If we are skipping the files stage then we have to work out what the
+	# actual last stage is...
+	my $laststage = "files";
+	my @stages = ( "meta","linking","type" );
+	while( $session->get_archive()->get_conf( "submission_stage_skip", $laststage ) )
+	{
+		$laststage = pop @stages;
+		last if( $laststage eq "type" );
+	}
+
+	if( defined $stage && $laststage eq $stage && defined $action && ($action eq "finished" || $action eq "next") )
 	{
 		# Intercept the verify page, that's what we were doing!
 		$session->redirect( "view_submission?eprintid=$eprintid" );

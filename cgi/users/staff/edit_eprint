@@ -97,7 +97,8 @@ sub process
 		{
 			$page->appendChild( $session->html_phrase( 
 				"cgi/users/edit_eprint:removed" ) );
-			# back to home (cjg)
+			$page->appendChild( $session->html_phrase( 
+				"general:userhome_link" ) );
 			return( $session->phrase( 
 					"cgi/users/edit_eprint:remove_title" ),
 	 			$page );
@@ -116,7 +117,8 @@ sub process
 		{
 			$page->appendChild( $session->html_phrase( 
 				"cgi/users/edit_eprint:moved" ) );
-			# back to home (cjg)
+			$page->appendChild( $session->html_phrase( 
+				"general:userhome_link" ) );
 			return( $session->phrase( 
 					"cgi/users/edit_eprint:move_title" ),
 	 			$page );

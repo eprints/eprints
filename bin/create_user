@@ -41,12 +41,15 @@ foreach $type (@{ $user_ds->get_types() })
 	$valid_access_level = 1 if( $ARGV[3] eq $type );
 }
 
-if( $valid_access_level )
+if( defined EPrints::User::user_with_username( $session, $ARGV[1] ) )
+{
+	print STDERR "User with username '$ARGV[1]' already exists.\n";
+}
+elsif( $valid_access_level )
 {
 	my $new_user = EPrints::User::create_user( $session, $ARGV[3] );
 
-	my $username = EPrints::User::unused_username( $session, $ARGV[1] );
-	$new_user->set_value( "username" , $username );
+	$new_user->set_value( "username" , $ARGV[1] );
 	$new_user->set_value( "email" , $ARGV[2] );
 	if( $#ARGV == 4 )
 	{
@@ -56,9 +59,10 @@ if( $valid_access_level )
 
 	if( defined $new_user )
 	{
-		print STDERR "Successfully created new user:\n";
-		print STDERR " Username: ".
-		             $new_user->get_value( "username" )."\n";
+		print "Successfully created new user:\n";
+		print "       ID: ".$new_user->get_value( "userid" )."\n";
+		print " Username: ".$new_user->get_value( "username" )."\n";
+		print "     Type: ".$new_user->get_value( "usertype" )."\n";
 	}
 	else
 	{
