@@ -94,7 +94,8 @@ input_boxes input_style (and digits) to decide size and height and stuff
  - plain text fields can have textareas as their input field.
  - phrase files now have namespaces for ep:foo like other XML files with
 XHTML in.
-[C] - added varchar_size option to set how big the SQL fields are.
+[C] - [this has been undone again! 30/01/2002] added varchar_size option 
+to set how big the SQL fields are.
 [C] - added FIELD PROPERTY DEFAULTS SECTION WITH the fields:
 input_rows input_cols input_name_cols input_id_cols input_add_boxes
 input_boxes digits
@@ -188,3 +189,9 @@ require "cfg/ArchiveOAIConfig.pm";
 $c->{oai} = get_oai_conf();
 - Latex.pm now uses MD5 to generate cache filename (so it does not go over
 256 char limit)
+
+30/01/2002
+[C] - !removed varchar_size again!
+[C] - changed the default title from a "text" to a "longtext"
+- removed varchar size setting support - the max size is 255. You want more
+use a longtext metafield.

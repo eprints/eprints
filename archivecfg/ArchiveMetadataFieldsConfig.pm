@@ -119,7 +119,7 @@ $fields->{eprint} = [
 
 	{ name => "thesistype", type => "text" },
 
-	{ name => "title", type => "text", render_single_value=>\&EPrints::Latex::render_string, input_style=>'textarea' },
+	{ name => "title", type => "longtext", render_single_value=>\&EPrints::Latex::render_string },
 
 	{ name => "volume", type => "text", maxlength => 6 },
 

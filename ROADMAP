@@ -147,7 +147,6 @@
 
 
 #Clean UP
-#	print STDERR's should be log() NR
 #	Make SearchFields have a better call method. NR
 #	Put System field titles in system phrase file. NR
 #	Not everything should be no-cache! (HTTP header) NR
@@ -201,5 +200,9 @@
 
 #edit_user !!! bits not done NR
 
-# todo: TTTTTTTTTTTTTTTTTTTTbbbbbbbbbbbbbbbb
+# namespace static files NR
+
+# fix static - puts <title> in where it should not! NR
+
+# todo: TTTTTTTTTTTTTTTTTTbbbbbbbbbbbbbbbbmmm
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 

@@ -25,7 +25,6 @@ use Filesys::DiskSpace;
 
 my %ARCHIVE_CACHE = ();
 
-## WP1: BAD
 sub new_archive_by_host_port_path
 {
 	my( $class, $hostpath ) = @_;
@@ -38,7 +37,6 @@ sub new_archive_by_host_port_path
 	return new_archive_by_id( $class, $id );
 }
 
-## WP1: BAD
 sub new_archive_by_id
 {
 	my( $class, $id, $noxml ) = @_;

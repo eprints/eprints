@@ -212,6 +212,8 @@ sub generate_static
 
 			if( $mode eq "page" )
 			{
+				my $kid;
+
 				my $title = 
 				   ($page->getElementsByTagName( "title" ))[0];
 				if( !$title )
@@ -221,6 +223,13 @@ sub generate_static
 					$$errcnt++;
 					return;
 				}
+				my $titlefrag = $doc->createDocumentFragment;
+				foreach $kid ( $title->getChildNodes )
+				{
+					$title->removeChild( $kid );
+					$titlefrag->appendChild( $kid );
+				}
+
 				
 				my $main = 
 				   ($page->getElementsByTagName( "body" ))[0];
@@ -231,8 +240,14 @@ sub generate_static
 					$$errcnt++;
 					return;
 				}
-				$page->removeChild( $main );
-				$session->build_page( $title, $main );
+				my $mainfrag = $doc->createDocumentFragment;
+				foreach $kid ( $main->getChildNodes )
+				{
+					$main->removeChild( $kid );
+					$mainfrag->appendChild( $kid );
+				}
+
+				$session->build_page( $titlefrag, $mainfrag );
 				$page->dispose();
 			}
 			else 	# $mode is "html"

@@ -568,9 +568,6 @@ sub _from_stage_files
 	#### The other actions ( edit & remove ) have a doc
 	#### Attached to their action id.
 
-print STDERR "=====================================\n";	
-print STDERR $self->{action}."!";
-
 	unless( $self->{action} =~ m/^([a-z]+)_(.*)$/ )
 	{
 		$self->_corrupt_err;
@@ -617,7 +614,6 @@ print STDERR $self->{action}."!";
 #
 ######################################################################
 
-## WP1: BAD
 sub _from_stage_fileview
 {
 	my( $self ) = @_;
@@ -640,8 +636,6 @@ sub _from_stage_fileview
 	my $i;
 	my $consumed = 0;
 	
-	print STDERR "ACTION=".$self->{action}."\n";#cjg
-
 	# Determine which button was pressed
 	if( $self->{action} eq "deleteall" )
 	{
@@ -1562,8 +1556,8 @@ sub _do_stage_upload
 	}	
 
 	$form->appendChild( $self->{session}->render_action_buttons(
-		prev => $self->{session}->phrase(
-				"lib/submissionform:action_prev" ),
+		#prev => $self->{session}->phrase(
+				#"lib/submissionform:action_prev" ),
 		upload => $self->{session}->phrase( 
 				"lib/submissionform:action_upload" ) ) );
 

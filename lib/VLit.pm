@@ -222,7 +222,6 @@ sub ls_area
 		my( $x, $y, $w, $h ) = ( $1, $2, $3, $4 );
 
 		my $cmd = "convert -crop ".$w."x".$h."+$x+$y '$file' 'gif:$cache'";
-print STDERR "$cmd\n";
 		`$cmd`;
 
 		if( !-e $cache )

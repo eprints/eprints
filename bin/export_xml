@@ -30,7 +30,7 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my $ds = $session->get_archive()->get_dataset( "subject" ) ;
+my $ds = $session->get_archive()->get_dataset( $ARGV[1] ) ;
 	
 my $sexp = EPrints::SearchExpression->new( 
 		use_oneshot_cache => 1,
@@ -82,6 +82,7 @@ sub mk_xml
 {
 	my( $session, $doc, $field, $v ) = @_;
 
+
 	my $r = $doc->createDocumentFragment();
 	if( $field->get_property( "multiple" ) )
 	{
@@ -107,21 +108,49 @@ sub mk_xml2
 
 	my $r = $doc->createElement( "field" );
 	$r->setAttribute( "name", $field->get_name() );
+
+	if( $field->get_property( "hasid" ) )
+	{
+		$r->setAttribute( "id", $v->{id} );
+		$v = $v->{main};
+	}
+
 	if( $field->get_property( "multilang" ) )
 	{
 		foreach( keys %{$v} )
 		{
 			my $l = $doc->createElement( "lang" );
 			$r->setAttribute( "id", $_ );
-			$l->addText( $v->{$_} );
+			$r->appendChild( mk_xml3( $session, $doc, $field, $v->{$_} ) );
 			$r->appendChild( $l );
 		}
 	}
 	else
 	{
-		$r->addText( $v );
-		
+		$r->appendChild( mk_xml3( $session, $doc, $field, $v ) );
 	}
 
+	return $r;
+}
+
+sub mk_xml3
+{
+	my( $session, $doc, $field, $v ) = @_;
+
+	my $r = $doc->createDocumentFragment();
+	if( $field->is_type( "name" ) )
+	{
+		foreach( "honourific", "given", "family", "lineage" )
+		{
+			next unless( defined $v->{$_} && $v->{$_} ne "" );
+			my $e = $doc->createElement( $_ );
+			$e->addText( $v->{$_} );
+			$r->appendChild( $e );
+		}
+	}
+	else
+	{
+		$r->addText( $v ) if defined( $v );
+	}
 	return $r;
 }

@@ -94,6 +94,8 @@ my $PROPERTIES =
 	type => -1
 };
 
+my $VARCHAR_SIZE = 255;
+
 ######################################################################
 #
 ##
@@ -304,21 +306,19 @@ sub get_sql_type
  		return $sqlname." SET('TRUE','FALSE') ".$param;
 	}
 
-	my $varchar_size = $self->get_dataset()->get_archive()->get_conf( "varchar_size" );
-
 	if( $self->is_type( "name" ) )
 	{
-		return $sqlname."_honourific VARCHAR($varchar_size) ".$param.", ".
-			$sqlname."_given VARCHAR($varchar_size) ".$param.", ".
-			$sqlname."_family VARCHAR($varchar_size) ".$param.", ".
-			$sqlname."_lineage VARCHAR($varchar_size) ".$param;
+		return $sqlname."_honourific VARCHAR($VARCHAR_SIZE) ".$param.", ".
+			$sqlname."_given VARCHAR($VARCHAR_SIZE) ".$param.", ".
+			$sqlname."_family VARCHAR($VARCHAR_SIZE) ".$param.", ".
+			$sqlname."_lineage VARCHAR($VARCHAR_SIZE) ".$param;
 	}
 
 	# all others: set, text, secret, url, email, subject, pagerange, datatype, id
 
 	# This is not very effecient, but diskspace is cheap, right?
 
-	return $sqlname." VARCHAR($varchar_size) ".$param;
+	return $sqlname." VARCHAR($VARCHAR_SIZE) ".$param;
 }
 
 sub get_sql_index
@@ -1325,7 +1325,6 @@ sub _form_value_aux1
 				$value->{$langid} = $subvalue;
 #cjg -- does not check that this is a valid langid...
 			}
-	print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
 		}
 #print STDERR "!!".Dumper( $value ) if( $self->{name} =~ m/editor/ );
 		$value = undef if( scalar keys %{$value} == 0 );
@@ -1711,7 +1710,7 @@ sub get_property_default
 
 	if( $property eq "maxlength" )
 	{
-		return $archive->get_conf( "varchar_size" );
+		return $VARCHAR_SIZE;
 	}
 
 	return [] if( $property eq "requiredlangs" );

@@ -12,6 +12,8 @@
 #
 ######################################################################
 
+use EPrints::OpenArchives;
+
 sub get_oai_conf { my $oai={};
 
 # Site specific **UNIQUE** archive identifier.

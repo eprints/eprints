@@ -68,14 +68,6 @@ $c->{allow_user_removal_request} = 1;
 # whole documents. 
 $c->{enable_vlit_support} = 1;
 
-# VARCHAR size. The size of the fields used to store text in the database.
-# text is stored in UTF-8 so if you use lots of non ASCII chars then you
-# may wish to up this.
-# WARNING: Don't change this after the archive is set up. You will have
-# to re-run create_tables and start from scratch to change this setting.
-$c->{varchar_size} = 512;
- 
-
 ######################################################################
 #
 # Local Paths 
