@@ -23,6 +23,7 @@ use EPrints::Database;
 use EPrints::HTMLRender;
 use EPrints::Subject;
 use EPrints::Log;
+use EPrints::Constants;
 
 use Text::ParseWords;
 use strict;
@@ -97,6 +98,7 @@ print STDERR "TID: $tableid\n";
 		$self->{displayname} = join '/', @displaynames;
 		$self->{formname} = join '_', @fieldnames;
 		$self->{type} = $field->[0]->{type};
+		$self->{field} = $field->[0];
 	}
 	else
 	{
@@ -127,175 +129,6 @@ sub set_value
 }
 
 
-######################################################################
-#
-# $html = render_html()
-#
-#  Return HTML suitable for rendering an input component for this field.
-#
-######################################################################
-
-sub render_html
-{
-	my( $self ) = @_;
-	
-	my @set_tags = ( "ANY", "ALL" );
-	my %set_labels = ( 
-		"ANY" => $self->{session}->{lang}->phrase( "F:set_any" ),
-		"ALL" => $self->{session}->{lang}->phrase( "F:set_all" ) );
-
-	my @text_tags = ( "ALL", "ANY" );
-	my %text_labels = ( 
-		"ANY" => $self->{session}->{lang}->phrase( "F:text_any" ),
-		"ALL" => $self->{session}->{lang}->phrase( "F:text_all" ) );
-
-	my @bool_tags = ( "EITHER", "TRUE", "FALSE" );
-	my %bool_labels = ( "EITHER" => $self->{session}->{lang}->phrase( "F:bool_nopref" ),
-		            "TRUE"   => $self->{session}->{lang}->phrase( "F:bool_yes" ),
-		            "FALSE"  => $self->{session}->{lang}->phrase( "F:bool_no" ) );
-
-#EPrints::Log::debug( "SearchField", "rendering field $self->{formname} of type $self->{type}" );
-
-	my $html;
-	my $type = $self->{type};
-	
-	if( $type eq "boolean" )
-	{
-		# Boolean: Popup menu
-	
-		my $default = ( defined $self->{value} ? "EITHER" : $self->{value} );
-
-		$html = $self->{session}->{render}->{query}->popup_menu(
-			-name=>$self->{formname},
-			-values=>\@bool_tags,
-			-default=>( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
-			-labels=>\%bool_labels );
-	}
-	elsif( $type eq "longtext" || $type eq "text" || $type eq "name" || $type eq "email" || $type eq "url")
-	{
-		# complex text types
-		$html = $self->{session}->{render}->{query}->textfield(
-			-name=>$self->{formname},
-			-default=>$self->{string},
-			-size=>$EPrints::HTMLRender::search_form_width,
-			-maxlength=>$EPrints::HTMLRender::field_max );
-
-		$html .= $self->{session}->{render}->{query}->popup_menu(
-			-name=>$self->{formname}."_srchtype",
-			-values=>\@text_tags,
-			-default=>$self->{anyall},
-			-labels=>\%text_labels );
-	}
-	elsif( $type eq "username" )
-	{
-		my @defaults;
-		my $anyall = "ANY";
-	
-		#cjg HMMMM	
-		$html = $self->{session}->{render}->{query}->textfield(
-			-name=>$self->{formname},
-			-default=>$self->{string},
-			-size=>$EPrints::HTMLRender::search_form_width,
-			-maxlength=>$EPrints::HTMLRender::field_max );
-
-		$html .= $self->{session}->{render}->{query}->popup_menu(
-			-name=>$self->{formname}."_anyall",
-			-values=>\@set_tags,
-			-default=>$self->{anyall},
-			-labels=>\%set_labels );
-	}
-	elsif( $type eq "eprinttype" || $type eq "set" || $type eq "subject" )
-	{
-		my @defaults;
-		
-		# Do we have any values already?
-		if( defined $self->{string} && $self->{string} ne "" )
-		{
-			@defaults = split /\s/, $self->{string};
-		}
-		else
-		{
-			@defaults = ();
-		}
-
-		# Make a list of possible values
-		my( $tags, $labels );
-		
-		if( $type eq "subject" )
-		{
-			# WARNING: passes in {} as a dummy user. May need to change this
-			# if the "postability" algorithm checks user info.
-			( $tags, $labels ) = EPrints::Subject::get_postable( $self->{session}, {} );
-		}
-		elsif( $type eq "eprinttype" )
-		{
-			$tags = $self->{session}->{metainfo}->get_types( "eprint" );
-			$labels = $self->{session}->{metainfo}->get_type_names( $self->{session}, "eprint" );
-		}
-		else
-		{
-			# set
-			( $tags, $labels ) = $self->{field}->tags_and_labels( $self->{session} );
-		}
-	
-		my( $old_tags, $old_labels ) = ( $tags, $labels );
-
-#EPrints::Log::debug( "SearchField", "_add_any_option: $old_tags, $old_labels" );
-	
-		$tags = [ "NONE" ];
-		$labels = { "NONE" => "(Any)" };
-
-		# we have to copy the tags and labels as they are currently
-		# references to the origionals. 
-	
-		push @{$tags}, @{$old_tags};
-		foreach (keys %{$old_labels})
-		{
-			$labels->{$_} = $old_labels->{$_};
-		}
-
-		$html = $self->{session}->{render}->{query}->scrolling_list(
-			-name=>$self->{formname},
-			-values=>$tags,
-			-default=>\@defaults,
-			-size=>( scalar @$tags > $EPrints::HTMLRender::list_height_max ?
-				$EPrints::HTMLRender::list_height_max :
-				scalar @$tags ),
-			-multiple=>"true",
-			-labels=>$labels );
-		if( $self->{field}->{multiple} )
-		{
-			$html .= $self->{session}->{render}->{query}->popup_menu(
-				-name=>$self->{formname}."_anyall",
-				-values=>\@set_tags,
-				-default=>$self->{anyall},
-				-labels=>\%set_labels );
-		}
-	}
-	elsif( $type eq "int" )
-	{
-		$html = $self->{session}->{render}->{query}->textfield(
-			-name=>$self->{formname},
-			-default=>$self->{string},
-			-size=>9,
-			-maxlength=>100 );
-	}
-	elsif( $type eq "year" )
-	{
-		$html = $self->{session}->{render}->{query}->textfield(
-			-name=>$self->{formname},
-			-default=>$self->{string},
-			-size=>9,
-			-maxlength=>9 );
-	}
-	else
-	{
-		EPrints::Log::log_entry( "L:cant_render", { type=>$type } );
-	}
-
-	return( $html );
-}
-
 
 ######################################################################
 #
@@ -316,12 +149,12 @@ sub from_form
 	# Remove any default we have
 	$self->set_value( "" );
 	
-	if( $type eq "boolean" )
+	if( $type == $FT_BOOLEAN )
 	{
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		$self->set_value( "ALL:EQ:$val" ) if( $val ne "EITHER" );
 	}
-	elsif( $type eq "email" || $type eq "url" )
+	elsif( $type == $FT_EMAIL || $type == $FT_URL )
 	{
 		# simple text types
 		my $val = $self->{session}->{render}->param( $self->{formname} );
@@ -330,7 +163,7 @@ sub from_form
 			$self->set_value( "ANY:IN:$val" );
 		}
 	}
-	elsif( $type eq "longtext" || $type eq "text" || $type eq "name" )
+	elsif( $type == $FT_LONGTEXT || $type == $FT_TEXT || $type == $FT_NAME )
 	{
 		# complex text types
 		my $search_terms = $self->{session}->{render}->param( $self->{formname} );
@@ -347,7 +180,7 @@ sub from_form
 			$self->set_value( "$search_type:$exact:$search_terms" );
 		}
 	}		
-	elsif( $type eq "username" )
+	elsif( $type == $FT_USERNAME )
 	{
 		# usernames
 		my $anyall = $self->{session}->{render}->param( 
@@ -364,7 +197,7 @@ sub from_form
 			$self->set_value( "$anyall:$exact:".join( " " , @vals ) );
 		}
 	}		
-	elsif( $type eq "eprinttype" )
+	elsif( $type == $FT_EPRINTTYPE )
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		
@@ -382,7 +215,7 @@ sub from_form
 			$self->set_value( "ANY:EQ:$val" );
 		}
 	}
-	elsif( $type eq "set" || $type eq "subject" )
+	elsif( $type == $FT_SET || $type == $FT_SUBJECT )
 	{
 		my @vals = $self->{session}->{render}->param( $self->{formname} );
 		my $val;
@@ -415,7 +248,7 @@ sub from_form
 		}
 
 	}
-	elsif( $type eq "year" )
+	elsif( $type == $FT_YEAR )
 	{
 		my $val = $self->{session}->{render}->param( $self->{formname} );
 		
@@ -452,9 +285,9 @@ sub get_conditions
 		return undef;
 	}
 
-	if ( $self->{field}->{type} eq "set" || $self->{field}->{type} eq "subject" || 
-		$self->{field}->{type} eq "eprinttype" || $self->{field}->{type} eq "boolean" ||
-		$self->{field}->{type} eq "username" )
+	if ( $self->{field}->{type} == $FT_SET || $self->{field}->{type} == $FT_SUBJECT ||
+	 $self->{field}->{type} == $FT_EPRINTTYPE || $self->{field}->{type} == $FT_BOOLEAN ||
+	 $self->{field}->{type} == $FT_USERNAME )
 	{
 		my @fields = ();
 		my $text = $self->{string};
@@ -469,7 +302,7 @@ sub get_conditions
 		return( $self->_get_conditions_aux( \@where , 0) );
 	}
 
-	if ( $self->{field}->{type} eq "name" )
+	if ( $self->{field}->{type} == $FT_NAME )
 	{
 		my @where = ();
 		my @names = ();
@@ -516,8 +349,8 @@ sub get_conditions
 	# -N
 	# N-N
 
-	if ( $self->{field}->{type} eq "year"
-	  || $self->{field}->{type} eq "int" )
+	if ( $self->{field}->{type} == $FT_YEAR
+	  || $self->{field}->{type} == $FT_INT )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -569,7 +402,7 @@ sub get_conditions
 	# -YYYY-MM-DD
 	# YYYY-MM-DD-YYYY-MM-DD
 
-	if( $self->{field}->{type} eq "date" )
+	if( $self->{field}->{type} == $FT_DATE )
 	{
 		my @where = ();
 		foreach( split /\s+/ , $self->{string} )
@@ -618,8 +451,8 @@ sub get_conditions
 	#  word word "a phrase" word
 	#
 
-	if ( $self->{field}->{type} eq "text" ||  $self->{field}->{type} eq "longtext" ||
-		$self->{field}->{type} eq "url" ||  $self->{field}->{type} eq "email")
+	if ( $self->{field}->{type} == $FT_TEXT || $self->{field}->{type} == $FT_LONGTEXT || 
+	      $self->{field}->{type} == $FT_URL || $self->{field}->{type} == $FT_EMAIL ) 
 	{
 		my @where = ();
 		my @phrases = ();
@@ -1008,11 +841,21 @@ print STDERR EPrints::Log::render_struct($searches);
 }
 
 
-sub search_help
+sub render_html
 {
 	my( $self ) = @_;
-
-	return $self->{session}->{lang}->phrase( "H:help_".$self->{type} );
+	
+	return $self->{field}->render_html( 
+			$self->{session},
+			$self->{formname}, 
+			$self->{string},
+			$self->{anyall},
+			$self->{match} );
 }
 
+sub get_field
+{
+	my( $self ) = @_;
+	return $self->{field};
+}
 1;

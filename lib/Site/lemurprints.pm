@@ -338,8 +338,10 @@ $self->{lang_cookie_name} = $self->{siteid}."_lang";
 # We need to calculate the connection string, so we can pass it
 # into the AuthDBI config. 
 my $connect_string = EPrints::Database::build_connection_string(
-	{ db_name  =>  $self->{db_name}, db_port  =>  $self->{db_port},
- 	  db_sock  =>  $self->{db_sock}, db_host  =>  $self->{db_host} } );
+	db_name  =>  $self->{db_name}, 
+	db_port  =>  $self->{db_port},
+	db_sock  =>  $self->{db_sock}, 
+	db_host  =>  $self->{db_host}  );
  
 $self->{userauth} = {
 	User => { 
@@ -372,53 +374,53 @@ $self->{userauth} = {
 # USER FIELDS
 ######################################################################
 
-$self->{sitefields}->{$TID_USER} = [
+$self->{sitefields}->{user} = [
 	{
 		name => "name",
-		type => $FT_NAME,
+		type => "text",
 		required => 1,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "dept",
-		type => $FT_TEXT,
+		type => "text",
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "org",
-		type => $FT_TEXT,
+		type => "text",
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "address",
-		type => $FT_LONGTEXT,
-		displaylines => "5",
+		type => "longtext",
+		displaylines => 5,
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "country",
-		type => $FT_TEXT,
+		type => "text",
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "url",
-		type => $FT_URL,
+		type => "url",
 		required => 0,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "filter",
-		type => $FT_SUBJECT,
+		type => "subject",
 		required => 0,
 		editable => 1,
 		visible => 1,
@@ -426,185 +428,185 @@ $self->{sitefields}->{$TID_USER} = [
 	}
 ];
 
-$self->{sitefields}->{$TID_EPRINT} = [
+$self->{sitefields}->{eprint} = [
 	{
 		name => "abstract",
-		type => $FT_LONGTEXT,
-		displaylines => "10",
+		displaylines => 10,
+		type => "longtext",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "altloc",
-		type => $FT_URL,
-		displaylines => "3",
+		displaylines => 3,
+		type => "url",
 		editable => 1,
 		multiple => 1,
 		visible => 1
 	},
 	{
 		name => "authors",
-		type => $FT_NAME,
+		type => "name",
 		editable => 1,
 		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "chapter",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1,
 		maxlength => 5
 	},
 	{
 		name => "comments",
-		type => $FT_LONGTEXT,
+		type => "longtext",
 		editable => 1,
 		displaylines => 3,
 		visible => 1
 	},
 	{
 		name => "commref",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "confdates",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "conference",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "confloc",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "department",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "editors",
-		type => $FT_NAME,
+		type => "name",
 		editable => 1,
 		visible => 1,
 		multiple => 1
 	},
 	{
 		name => "institution",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "ispublished",
-		type => $FT_SET,
+		type => "set",
 		editable => 1,
 		visible => 1,
 		options => [ "unpub","inpress","pub" ]
 	},
 	{
 		name => "keywords",
-		type => $FT_LONGTEXT,
+		type => "longtext",
 		editable => 1,
 		displaylines => 2,
 		visible => 1
 	},
 	{
 		name => "month",
-		type => $FT_SET,
+		type => "set",
 		editable => 1,
 		visible => 1,
 		options => [ "unspec","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec" ]
 	},
 	{
 		name => "number",
-		type => $FT_TEXT,
+		type => "text",
 		maxlength => 6,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "pages",
-		type => $FT_PAGERANGE,
+		type => "pagerange",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "pubdom",
-		type => $FT_BOOLEAN,
+		type => "boolean",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "publication",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "publisher",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "refereed",
-		type => $FT_BOOLEAN,
+		type => "boolean",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "referencetext",
-		type => $FT_LONGTEXT,
+		type => "longtext",
 		editable => 1,
 		visible => 1,
 		displaylines => 3
 	},
 	{
 		name => "reportno",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "thesistype",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "title",
-		type => $FT_TEXT,
+		type => "text",
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "volume",
-		type => $FT_TEXT,
-		maxlength => "6",
+		type => "text",
+		maxlength => 6,
 		editable => 1,
 		visible => 1
 	},
 	{
 		name => "year",
-		type => $FT_YEAR,
+		type => "year",
 		editable => 1,
 		visible => 1
 	}
 ];
 	
-$self->{sitetypes}->{$TID_EPRINT} = {
+$self->{types}->{eprint} = {
 	"bookchapter" => [
 		"REQUIRED:ispublished",
 		"REQUIRED:refereed",
@@ -797,7 +799,7 @@ $self->{sitetypes}->{$TID_EPRINT} = {
 	]
 };
 
-$self->{sitetypes}->{$TID_USER} = { 
+$self->{types}->{user} = { 
 	Staff  =>  [],
 	User  =>  []
 };
@@ -1930,7 +1932,7 @@ sub validate_user_field
 	# CHECKS IN HERE
 
 	# Ensure that a URL is valid (i.e. has the initial scheme like http:)
-	if( $field->{type} eq "url" && defined $value && $value ne "" )
+	if( $field->{type} == FT_URL && defined $value && $value ne "" )
 	{
 		$problem = "The URL given for ".$field->display_name()." is invalid.  ".
 			"Have you included the initial <STRONG>http://</STRONG>?"
@@ -2088,5 +2090,16 @@ sub validate_eprint_meta
 	}
 }
 
+sub log
+{
+	my( $self , $message ) = @_;
+	print STDERR "EPRINTS:".$self->{siteid}.": ".$message."\n";
+}
+
+sub get_val
+{
+	my( $self , $id ) = @_;
+	return $self->{$id};
+}
 
 1;

@@ -30,7 +30,7 @@ sub get_system_field_info
 {
 	my( $class , $site ) = @_;
 
-	my @usertypes = keys %{$site->{usertypes}};
+	my @usertypes = keys %{$site->conf("types")->{user}};
 
 	return ( 
 	{

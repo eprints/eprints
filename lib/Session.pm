@@ -61,8 +61,7 @@ sub new
 	if( $mode == 0 || !defined $mode )
 	{
 		$offline = 0;
-		$self->{site} = EPrints::Site::get_site_by_url(
-					$self->{query}->url() );
+		$self->{site} = EPrints::Site->new_site_by_url( $self->{query}->url() );
 		if( !defined $self->{site} )
 		{
 			die "Can't load site module for URL: ".$self->{query}->url();
@@ -75,7 +74,7 @@ sub new
 			die "No site id specified.";
 		}
 		$offline = 1;
-		$self->{site} = EPrints::Site::get_site_by_id( $param );
+		$self->{site} = EPrints::Site->new_site_by_id( $param );
 		if( !defined $self->{site} )
 		{
 			die "Can't load site module for: $param";
@@ -84,7 +83,7 @@ sub new
 	elsif( $mode == 2 )
 	{
 		$offline = 1;
-		$self->{site} = EPrints::Site::get_site_by_host_and_path( $param );
+		$self->{site} = EPrints::Site->new_site_by_host_and_path( $param );
 		if( !defined $self->{site} )
 		{
 			die "Can't load site module for URL: $param";
@@ -105,9 +104,6 @@ sub new
 	$self->{lang} = EPrints::Language::fetch( $self->{site} , $langcookie );
 	print STDERR "LANG IS: $langcookie\n;";
 
-	# Load the config files
-	$self->{metainfo} = EPrints::MetaInfo->new( $self->{site} );
-	
 	# Create an HTML renderer object
 	$self->{render} = EPrints::HTMLRender->new( $self, $offline, $self->{query} );
 
@@ -213,5 +209,22 @@ sub mail_administrator
 }
 
 
+sub get_lang
+{
+	my( $self ) = @_;
+	return $self->{lang};
+}
+
+sub get_query
+{
+	my( $self ) = @_;
+	return $self->{query};
+}
+
+sub get_site
+{
+	my( $self ) = @_;
+	return $self->{site};
+}
 
 1;

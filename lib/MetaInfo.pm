@@ -46,85 +46,9 @@ sub new
 {
 	my( $class , $site ) = @_;
 
-print STDERR "NEW METAINFO\n";
+die "NEW METAINFO\n";
 
-	my $self = {};
-	bless $self, $class;
 
-	$self->{site} = $site;
-	#
-	# Read in system and site USER metadata fields
-	#
-
-	foreach( $TID_USER, $TID_DOCUMENT, $TID_SUBSCRIPTION,
-		$TID_SUBJECT, $TID_EPRINT, $TID_DELETION )
-	{
-		$self->{$_} = {};
-		$self->{$_}->{fields} = [];
-		$self->{$_}->{system_fields} = [];
-		$self->{$_}->{field_index} = {};
-		my $class = EPrints::Database::table_class( $_ );
-		
-		my $field_data;
-		my @data = $class->get_system_field_info( $site );
-		if( defined $site->{sitefields}->{$_} )
-		{
-			push @data, @{ $site->{sitefields}->{$_} };
-print STDERR "$class -> BING\n";
-		}
-print STDERR "$class -> $_\n";
-print STDERR join(",",sort keys %{ $site->{sitefields} })."!zzz\n";
-
-		foreach $field_data ( @data )
-		{
-			$field_data->{tableid} = $_;
-			my $field = EPrints::MetaField->new( $field_data );
-			push @{$self->{$_}->{fields}}, $field;
-			push @{$self->{$_}->{system_fields}}, $field;
-			$self->{$_}->{field_index}->{$field_data->{name}} = $field;
-		}
-
-	}
-
-	$self->{types} = {};
-	my $tableid;
-	foreach $tableid ( keys %{$site->{sitetypes}} )
-	{
-		$self->{$tableid}->{types} = {};
-		my $type;
-		foreach $type ( keys %{$site->{sitetypes}->{$tableid}} )
-		{
-print STDERR "$tableid:$type\n";
-			$self->{$tableid}->{types}->{$type} = [];
-			foreach (@{$self->{$tableid}->{system_fields}})
-			{
-				push @{$self->{$tableid}->{types}->{$type}}, $_;
-			}
-			foreach ( @{$site->{sitetypes}->{$tableid}->{$type}} )
-			{
-				my $required = ( s/^REQUIRED:// );
-				my $field = $self->{$tableid}->{field_index}->{$_};
-				if( !defined $field )
-				{
-
-					EPrints::Log::log_entry( 
-						"L:unknown_field",
-						{ field => $_, class => $type } );
-					return;
-				}
-				if( $required )
-				{
-					$field = $field->clone();
-					$field->{required} = 1;
-				}
-				push @{$self->{$tableid}->{types}->{$type}}, $field;
-			}
-		}
-	}
-
-	$self->{inbox} = $self->{buffer} = $self->{archive} = $self->{eprint};
-
-	return $self;
 }
 
 ######################################################################
@@ -249,7 +173,6 @@ sub get_order_names
 {
 	my( $self, $session, $tableid ) = @_;
 print STDERR "SELF:".join(",",keys %{$self} )."\n";
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 		
 	my %names = ();
 	foreach( keys %{$session->{site}->{order_methods}->{$tableid}} )
@@ -262,7 +185,6 @@ print STDERR "SELF:".join(",",keys %{$self} )."\n";
 sub get_order_name
 {
 	my( $self, $session, $tableid, $orderid ) = @_;
-	die "Bad Tableid: $tableid" if ( !defined $self->{$tableid} );
 	
         return $session->{lang}->phrase( 
 		"A:ordername_".

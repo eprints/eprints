@@ -79,22 +79,6 @@ L:bad_value	= Garbled value for $(option) in field $(field)
 L:bad_type	= Unknown field type $(option) for field $(field)
 L:not_all_info	= Not all necessary information specified for field $(field)
 L:cant_open_file= Can't open metadata config file: $(file): $(errmsg)
-
-FILE = MetaInfo.pm
-L:type_file_err = Can't open eprint types file: $(file): $(errmsg)
-L:unknown_field = Unknown EPrint field $(field) in class $(class)
-L:no_fields	= No fields for EPrint type $(type)
-L:unknown_table = Can't return fields for nonexistant table: $(table)
-
-FILE = SearchExpression.pm
-H:leastone	= You need to specify something for at least one field!
-F:any		= any
-F:all		= all
-H:mustfulfill	= Retrieved records must fulfill $(anyall) of these conditions.
-H:orderresults	= Order the results: $(ordermenu)
-L:not_cached	= error: Search has not been performed yet
-
-FILE = SearchField.pm
 F:bool_nopref	= No Preference
 F:bool_yes	= Yes
 F:bool_no	= No
@@ -112,10 +96,26 @@ H:help_subject 	= Select one or more values from the list, and whether you want 
 H:help_username	= Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).
 H:help_text	= Enter a term or terms to search for.
 H:help_url 	= Enter some text to search for.
+
 H:help_year	= Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.
+
+FILE = MetaInfo.pm
+L:type_file_err = Can't open eprint types file: $(file): $(errmsg)
+L:unknown_field = Unknown EPrint field $(field) in class $(class)
+L:no_fields	= No fields for EPrint type $(type)
+L:unknown_table = Can't return fields for nonexistant table: $(table)
+
+FILE = SearchExpression.pm
+H:leastone	= You need to specify something for at least one field!
+F:any		= any
+F:all		= all
+H:mustfulfill	= Retrieved records must fulfill $(anyall) of these conditions.
+H:orderresults	= Order the results: $(ordermenu)
+L:not_cached	= error: Search has not been performed yet
+
+FILE = SearchField.pm
 H:year_err	= A year field must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'
 H:no_words	= Search field contains no indexable words: &quot;$(words)&quot;.
-L:cant_render	= Don't know how to render search field for type $(type).
 
 FILE = SearchForm.pm
 F:action_search    = Search

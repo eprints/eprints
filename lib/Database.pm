@@ -30,48 +30,6 @@ use EPrints::Constants;
 # Table names
 #
 
-# the X is to make sure I'm not using table
-# names directly in the code...
-my %TABLE_NAMES = (
-	($TID_TEMPMAP) =>	"Xtempmap",
-	($TID_COUNTER) =>	"Xcounters",
-	($TID_USER) =>	"Xusers",
-	($TID_INBOX) =>	"Xinbox",
-	($TID_BUFFER) =>	"Xbuffer",
-	($TID_ARCHIVE) =>	"Xarchive",
-	($TID_DOCUMENT) =>	"Xdocuments",
-	($TID_SUBJECT) =>	"Xsubjects",
-	($TID_SUBSCRIPTION) => "Xsubscriptions",
-	($TID_DELETION) =>	"Xdeletions"
-);
-
-
-# 'eprint' isn't really a table, but it's a generic handle for all three.
-my %TABLE_CLASS = (
-	($TID_EPRINT) => 	"EPrints::EPrint",
-	($TID_USER) => 	"EPrints::User",
-	($TID_INBOX) => 	"EPrints::EPrint",
-	($TID_BUFFER) => 	"EPrints::EPrint",
-	($TID_ARCHIVE) => 	"EPrints::EPrint",
-	($TID_DOCUMENT) =>	"EPrints::Document",
-	($TID_SUBJECT) => 	"EPrints::Subject",
-	($TID_SUBSCRIPTION) =>	"EPrints::Subscription",
-	($TID_DELETION) => "EPrints::Deletion"
-);
-
-# these are used for building phrase identifiers.
-my %TABLE_STRING = (
-	($TID_EPRINT) => 	"eprint",
-	($TID_USER) => 	"user",
-	($TID_INBOX) => 	"eprint",
-	($TID_BUFFER) => 	"eprint",
-	($TID_ARCHIVE) => 	"eprint",
-	($TID_DOCUMENT) =>	"document",
-	($TID_SUBJECT) => 	"subject",
-	($TID_SUBSCRIPTION) =>	"subscription",
-	($TID_DELETION) => "deletion"
-);
-
 #
 # Seperator - used to join parts of the name of a table
 #
@@ -84,46 +42,6 @@ my $SEPERATOR = "_";
 
 
 #
-# Map of EPrints data types to MySQL types. keys %datatypes will give
-#  a list of the types supported by the system.
-#
-my %DATATYPES =
-(
-	($FT_INT)        => "\$(name) INT UNSIGNED \$(param)",
-	($FT_DATE)       => "\$(name) DATE \$(param)",
-	($FT_BOOLEAN)    => "\$(name) SET('TRUE','FALSE') \$(param)",
-	($FT_SET)        => "\$(name) VARCHAR(255) \$(param)",
-	($FT_TEXT)       => "\$(name) VARCHAR(255) \$(param)",
-	($FT_LONGTEXT)   => "\$(name) TEXT \$(param)",
-	($FT_URL)        => "\$(name) VARCHAR(255) \$(param)",
-	($FT_EMAIL)      => "\$(name) VARCHAR(255) \$(param)",
-	($FT_SUBJECT)    => "\$(name) VARCHAR(255) \$(param)",
-	($FT_USERNAME)   => "\$(name) VARCHAR(255) \$(param)",
-	($FT_PAGERANGE)  => "\$(name) VARCHAR(255) \$(param)",
-	($FT_YEAR)       => "\$(name) INT UNSIGNED \$(param)",
-	($FT_EPRINTTYPE) => "\$(name) VARCHAR(255) \$(param)",
-	($FT_NAME)       => "\$(name)_given VARCHAR(255) \$(param), \$(name)_family VARCHAR(255) \$(param)"
-);
-
-# Map of INDEXs required if a user wishes a field indexed.
-my %DATAINDEXES =
-(
-	($FT_INT)        => "INDEX(\$(name))",
-	($FT_DATE)       => "INDEX(\$(name))",
-	($FT_BOOLEAN)    => "INDEX(\$(name))",
-	($FT_SET)        => "INDEX(\$(name))",
-	($FT_TEXT)       => "INDEX(\$(name))",
-	($FT_LONGTEXT)   => "INDEX(\$(name))",
-	($FT_URL)        => "INDEX(\$(name))",
-	($FT_EMAIL)      => "INDEX(\$(name))",
-	($FT_SUBJECT)    => "INDEX(\$(name))",
-	($FT_USERNAME)   => "INDEX(\$(name))",
-	($FT_PAGERANGE)  => "INDEX(\$(name))",
-	($FT_YEAR)       => "INDEX(\$(name))",
-	($FT_EPRINTTYPE) => "INDEX(\$(name))",
-	($FT_NAME)       => "INDEX(\$(name)_given), INDEX(\$(name)_family)"
-);
-
 #
 # ID of next buffer table. This can safely reset to zero each time
 # The module restarts as it is only used for temporary tables.
@@ -140,21 +58,21 @@ my $NEXTBUFFER = 0;
 
 sub build_connection_string
 {
-	my( $site ) = @_;
+	my( %params ) = @_;
 
         # build the connection string
-        my $dsn = "DBI:mysql:database=$site->{db_name}";
-        if( defined $site->{db_host} )
+        my $dsn = "DBI:mysql:database=$params{db_name}";
+        if( defined $params{db_host} )
         {
-                $dsn.= ";host=$site->{db_host}";
+                $dsn.= ";host=".$params{db_host};
         }
-        if( defined $site->{db_port} )
+        if( defined $params{db_port} )
         {
-                $dsn.= ";port=$site->{db_port}";
+                $dsn.= ";port=".$params{db_port};
         }
-        if( defined $site->{db_sock} )
+        if( defined $params{db_sock} )
         {
-                $dsn.= ";mysql_socket=$site->{db_sock}";
+                $dsn.= ";socket=".$params{db_sock};
         }
 print STDERR ">>$dsn\n";
         return $dsn;
@@ -179,9 +97,13 @@ sub new
 	$self->{session} = $session;
 
 	# Connect to the database
-	$self->{dbh} = DBI->connect( build_connection_string( $session->{site} ),
-	                             $session->{site}->{db_user},
-	                             $session->{site}->{db_pass},
+	$self->{dbh} = DBI->connect( build_connection_string( 
+					db_host => $session->{site}->conf("db_host"),
+					db_sock => $session->{site}->conf("db_sock"),
+					db_port => $session->{site}->conf("db_port"),
+					db_name => $session->{site}->conf("db_name") ),
+	                             $session->{site}->conf("db_user"),
+	                             $session->{site}->conf("db_pass"),
 	                             { PrintError => 1, AutoCommit => 1 } );
 
 #	                             { PrintError => 0, AutoCommit => 1 } );
@@ -354,7 +276,7 @@ sub _create_table_aux
 		{
 			$sql .= ", ";
 		}
-		my $part = $DATATYPES{$field->{type}};
+		my $part = $field->get_sql_type();
 		my %bits = (
 			 "name"=>$field->{name},
 			 "param"=>"" );
@@ -369,7 +291,7 @@ sub _create_table_aux
 		elsif( $field->{indexed} )
 		{
 			$bits{"param"} = "NOT NULL";
-			my $index = $DATAINDEXES{$field->{type}};
+			my $index = $field->get_sql_index();
 	
 			while( $index =~ s/\$\(([a-z]+)\)/$bits{$1}/e ) { ; }
 			push @indices, $index;
@@ -1274,7 +1196,7 @@ print STDERR ">".join(",",keys %TABLE_CLASS)."<\n";
 sub table_string
 {
 	my( $tableid ) = @_;
-print STDERR "TABLE_STRING: $tableid\n";
+print STDERR "TABLE: $tableid\n";
 print STDERR $TABLE_STRING{ $tableid }."z\n";
 print STDERR ">".join(",",keys %TABLE_STRING)."<\n";
 	return $TABLE_STRING{ $tableid };

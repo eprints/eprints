@@ -182,7 +182,7 @@ sub render_search_form
 
 	foreach $sf (@{$self->{searchfields}})
 	{
-		my $shelp = $sf->search_help();
+		my $shelp = $sf->get_field()->search_help( $self->{session}->get_lang() );
 		if( $help && !defined $shown_help{$shelp} )
 		{
 			$html .= "<TR><TD COLSPAN=\"2\">";

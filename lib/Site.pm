@@ -15,50 +15,89 @@
 package EPrints::Site;
 
 use EPrints::Site::General;
+use EPrints::DataSet;
 
 my %ID2SITE = ();
 
-sub get_site_by_url
+
+sub new_site_by_url
 {
-	my( $url ) = @_;
+	my( $class, $url ) = @_;
+	print STDERR "($url)\n";
 	$hostpath = $url;
 	$hostpath =~ s#^[a-z]+://##;
-	return get_site_by_host_and_path( $hostpath );
+	print STDERR "($hostpath)\n";
+	return new_site_by_host_and_path( $class , $hostpath );
 }
 
-sub get_site_by_host_and_path
+sub new_site_by_host_and_path
 {
-	my( $hostpath ) = @_;
+	my( $class, $hostpath ) = @_;
+
+	print STDERR "($hostpath)\n";
 
 	foreach( keys %EPrints::Site::General::sites )
 	{
 		if( substr( $hostpath, 0, length($_) ) eq $_ )
 		{
-			return get_site_by_id( $EPrints::Site::General::sites{$_} );
+			return new_site_by_id( $class, $EPrints::Site::General::sites{$_} );
 		}
 	}
 	return undef;
 }
 
 
-sub get_site_by_id
+sub new_site_by_id
 {
-	my( $id ) = @_;
+	my( $class, $id ) = @_;
 
 	print STDERR "Loading: $id\n";
+
+	if( $id !~ m/[a-z_]+/ )
+	{
+		die "Site ID illegal: $id\n";
+	}
 	
 	if( defined $ID2SITE{$id} )
 	{
 		return $ID2SITE{$id};
 	}
+	my $self = {};
+	bless $self, $class;
+
 	require "EPrints/Site/$id.pm";
-	my $site = "EPrints::Site::$id"->new();
-	if( defined $site )
+	$self->{config} = "EPrints::Site::$id"->new();
+	if( !defined $self->{config} )
 	{
-		$ID2SITE{$id} = $site;
-		return $site;
+		return undef;
 	}
-	return undef;
+	$ID2SITE{$id} = $self;
+
+	$self->{id} = $id;
+$self->log("ID: $id");
+	$self->{datasets} = {};
+	foreach( "user", "document", "subscription", "subject", "eprint", "deletion" )
+        {
+$self->log("DS: $_");
+		$self->{datasets} = EPrints::DataSet->new( $self, $_ );
+	}
+
+$self->log("done: $id");
+	return $self;
+}
+
+sub conf
+{
+	my( $self, $key ) = @_;
+	my $val= $self->{config}->get_val($key);
+	$self->log( "GETPARAM: $key = $val\n" );
+	return $val;
+}
+
+sub log
+{
+	$self = shift;
+	$self->{config}->log( @_ );
 }
 
 1;
