@@ -49,7 +49,6 @@ sub get_conf
 		$c->{$_} = $archiveinfo->{$_} 
 	};
 
-
 ######################################################################
 #
 #  General archive information
@@ -282,9 +281,6 @@ $c->{submission_stage_skip}->{files} = 0;
 ###########################################
 #  Language
 ###########################################
-
-# First language is the default. Only select Id's from languages.xml
-$c->{languages} = [ "en", "fr" ];
 
 $c->{lang_cookie_domain} = $c->{host};
 $c->{lang_cookie_name} = "lang";

@@ -1407,7 +1407,7 @@ sub later_in_thread
 {
 	my( $self, $field ) = @_;
 
-	my $searchexp = new EPrints::SearchExpression(
+	my $searchexp = EPrints::SearchExpression->new(
 		session => $self->{session},
 		dataset => $self->{session}->get_archive()->get_dataset( "archive" ) );
 #cjg		[ "datestamp DESC" ] ) ); sort by date!

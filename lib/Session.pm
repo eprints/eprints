@@ -186,20 +186,13 @@ print STDERR "******* END SESSION ******\n\n";
 #
 #############################################################
 
-sub default_lang_id
-{
-	my( $self ) = @_;
-
-	return ${$self->{archive}->get_conf( "languages" )}[0];
-}
-
 sub change_lang
 {
 	my( $self, $newlangid ) = @_;
 
 	if( !defined $newlangid )
 	{
-		$newlangid = $self->default_lang_id();
+		$newlangid = $self->{archive}->get_conf( "defaultlanguage" );
 	}
 	$self->{lang} = $self->{archive}->get_language( $newlangid );
 
@@ -254,7 +247,7 @@ sub best_language
 	return $values{$lang} if( defined $values{$lang} );
 
 	# The default lanuage of the archive is second best	
-	my $defaultlangid = $archive->get_conf( "languages" )->[0];
+	my $defaultlangid = $archive->get_conf( "defaultlanguage" );
 	return $values{$defaultlangid} if( defined $values{$defaultlangid} );
 
 	# Bit of personal bias: We'll try English before we just
@@ -1474,7 +1467,7 @@ sub mail_administrator
 	#   Session, string,     string,     string->DOM
 
 	# Mail the admin in the default language
-	my $langid = $self->{archive}->get_conf( "languages" )->[0];
+	my $langid = $self->{archive}->get_conf( "defaultlanguage" );
 	my $lang = $self->{archive}->get_language( $langid );
 
 	return EPrints::Utils::send_mail(

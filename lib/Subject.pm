@@ -322,7 +322,7 @@ sub create_subject_table
 	open( SUBJECTS, $filename ) or return( 0 );
 
 	my $success = 1;
-	my $lang = $session->default_lang_id();
+	my $lang = $session->{archive}->get_conf( "defaultlanguage" );
 	
 	while( <SUBJECTS> )
 	{

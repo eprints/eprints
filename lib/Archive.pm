@@ -84,14 +84,13 @@ sub _load_languages
 {
 	my( $self ) = @_;
 	
-	my @langs = @{$self->get_conf( "languages" )};
-	my $defaultid = splice( @langs, 0, 1 );
-	$self->{langs}->{$defaultid} = 
-		EPrints::Language->new( $defaultid , $self );
+	my $defaultid = $self->get_conf( "defaultlanguage" );
+	$self->{langs}->{$defaultid} = EPrints::Language->new( $defaultid , $self );
 
 	my $langid;
 	foreach $langid ( @{$self->get_conf( "languages" )} )
 	{
+		next if( $langid eq $defaultid );	
 		$self->{langs}->{$langid} =
 			 EPrints::Language->new( 
 				$langid , 
@@ -106,7 +105,7 @@ sub get_language
 
 	if( !defined $langid )
 	{
-		$langid = ($self->get_conf( "languages" ))[0];
+		$langid = $self->get_conf( "defaultlanguage" );
 	}
 	return $self->{langs}->{$langid};
 }

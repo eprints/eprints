@@ -59,7 +59,7 @@ elsif( grep(/^$newlang$/,@langids) )
 	$p->appendChild( $session->make_text(
 		"Default language of this archive is: ".
 		EPrints::Config::lang_title( 
-			$session->get_archive()->get_conf( "languages" )->[0])));
+			$session->get_archive()->get_conf( "defaultlanguage" ))));
 	$page->appendChild( $p );
 	$session->new_page();
 	#cjg not langed

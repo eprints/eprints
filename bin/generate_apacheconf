@@ -206,10 +206,11 @@ $aliases
 END
 
 my @langs = @{$archive->get_conf( "languages" )};
-my $deflang =splice(@langs,0,1);
+my $defaultlang = $archive->get_conf( "defaultlanguage" );
 my $langid;
 foreach $langid ( @langs )
 {
+	next if( $langid eq $defaultlang );
 		print CONF <<END;
   RewriteCond %{HTTP_COOKIE}   lang=$langid
   RewriteRule ^/(.*)\$         /$langid/\$1   [L]
@@ -219,7 +220,7 @@ END
   
 print CONF <<END;
   # Default Language
-  RewriteRule ^/(.*)\$         /$deflang/\$1   [L]
+  RewriteRule ^/(.*)\$         /$defaultlang/\$1   [L]
 
   <Directory "$local_secure_root">
     AuthName "Secure Document Area"

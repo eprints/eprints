@@ -71,6 +71,7 @@ $SYSTEMCONF{bin_path} = $SYSTEMCONF{base_path}."/bin";
 ###############################################
 
 my @LANGLIST;
+my @SUPPORTEDLANGLIST;
 my %LANGNAMES;
 my $file = $SYSTEMCONF{cfg_path}."/languages.xml";
 my $lang_doc = parse_xml( $file );
@@ -83,8 +84,13 @@ my $land_tag;
 foreach $lang_tag ( $top_tag->getElementsByTagName( "lang" ) )
 {
 	my $id = $lang_tag->getAttribute( "id" );
+	my $supported = ($lang_tag->getAttribute( "supported" ) eq "yes" );
 	my $val = EPrints::Utils::tree_to_utf8( $lang_tag );
 	push @LANGLIST,$id;
+	if( $supported )
+	{
+		push @SUPPORTEDLANGLIST,$id;
+	}
 	$LANGNAMES{$id} = $val;
 }
 $lang_doc->dispose();
@@ -114,7 +120,7 @@ while( $file = readdir( CFG ) )
 	my $tagname;
 	foreach $tagname ( 
 			"host", "urlpath", "configmodule", "port", "archiveroot",
-	 		"dbname","dbhost","dbport","dbsock","dbuser","dbpass" )
+	 		"dbname","dbhost","dbport","dbsock","dbuser","dbpass","defaultlanguage" )
 	{
 		my $tag = ($conf_tag->getElementsByTagName( $tagname ))[0];
 		if( !defined $tag )
@@ -142,9 +148,16 @@ while( $file = readdir( CFG ) )
 		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
 		$alias->{name} = $val; 
 		$alias->{redirect} = ( $tag->getAttribute( "redirect" ) eq "yes" );
-		$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 		push @{$ainfo->{aliases}},$alias;
 	}
+	$ainfo->{languages} = [];
+	foreach $tag ( $conf_tag->getElementsByTagName( "language" ) )
+	{
+		my $val = "";
+		foreach( $tag->getChildNodes ) { $val.=$_->toString; }
+		push @{$ainfo->{languages}},$val;
+	}
+	$ARCHIVEMAP{$alias->{name}.":".$ainfo->{port}.$ainfo->{urlpath}} = $id;
 	$ARCHIVES{$id} = $ainfo;
 }
 closedir( CFG );
@@ -161,6 +174,11 @@ sub get_archive_config
 sub get_languages
 {
 	return @LANGLIST;
+}
+
+sub get_supported_languages
+{
+	return @SUPPORTEDLANGLIST;
 }
 
 sub get_id_from_host_port_path
