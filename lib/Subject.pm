@@ -122,8 +122,25 @@ sub commit
 		$rv = $rv && $child->commit();
 	}
 	return $rv;
-}	
+}
 
+sub remove
+{
+	my( $self ) = @_;
+	
+	if( scalar $self->children() != 0 )
+	{
+		return( 0 );
+	}
+
+	#cjg Should we unlink all eprints linked to this subject from
+	# this subject?
+
+	return $self->{session}->get_db()->remove(
+		$self->{dataset},
+		$self->{data}->{subjectid} );
+}
+	
 
 ######################################################################
 #
@@ -165,9 +182,9 @@ sub create_subject
 sub _get_ancestors
 {
 	my( $self ) = @_;
-use Data::Dumper;
-print "$self->{data}->{subjectid}->GETANCESTORS\n";
-print Dumper( $self->{data} );
+#use Data::Dumper;
+#print "$self->{data}->{subjectid}->GETANCESTORS\n";
+#print Dumper( $self->{data} );
 	my %ancestors;
 	$ancestors{$self->{data}->{subjectid}} = 1;
 
@@ -175,7 +192,7 @@ print Dumper( $self->{data} );
 	foreach $parent ( $self->get_parents() )
 	{
 
-print ".\n";
+#print ".\n";
 		foreach( $parent->_get_ancestors() )
 		{
 			$ancestors{$_} = 1;
@@ -309,7 +326,7 @@ sub create_subject_table
 	my( $session, $filename ) = @_;
 	
 	# Read stuff in from the subject config file
-print STDERR "subjectfile=($filename)\n";
+#print STDERR "subjectfile=($filename)\n";
 	open( SUBJECTS, $filename ) or return( 0 );
 
 	my $success = 1;
@@ -522,9 +539,22 @@ sub count_eprints
 		session => $self->{session},
 		dataset => $dataset );
 
-	$searchexp->add_field(
-		$dataset->get_field( "subjects" ),
-		"PHR:EQ:".$self->get_value( "subjectid" ) );
+	my $n = 0;
+	my $field;
+	foreach $field ( $dataset->get_fields() )
+	{
+		next unless( $field->is_type( "subject" ) );
+		$n += 1;
+		$searchexp->add_field(
+			$field,
+			"PHR:EQ:".$self->get_value( "subjectid" ) );
+	}
+
+	if( $n == 0 )
+	{
+		# no actual subject fields
+		return( 0 );
+	}
 
 	my $searchid = $searchexp->perform_search;
 	my $count = $searchexp->count;
@@ -668,6 +698,13 @@ sub get_name
 
 	my $html = $self->render();
 	return EPrints::Utils::tree_to_utf8( $html );
+}
+
+sub set_value
+{
+	my( $self , $fieldname, $value ) = @_;
+
+	$self->{data}->{$fieldname} = $value;
 }
 
 1;

@@ -77,7 +77,7 @@ sub new
 	
 	$self->{session} = $session;
 	$self->{dataset} = $dataset;
-print STDERR "TID: $dataset\n";
+#print STDERR "TID: $dataset\n";
 	$self->set_value( $value );
 
 		
@@ -119,7 +119,7 @@ sub set_value
 	my ( $self , $newvalue ) = @_;
 
 
-print STDERR "set_value( $newvalue )\n";
+#print STDERR "set_value( $newvalue )\n";
 
 	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
 	{
@@ -539,12 +539,12 @@ sub _get_conditions_aux
 	if ($self->{field}->{multiple}) 
 	{	
 		$searchtable= $self->{dataset}->get_sql_sub_table_name( $self->{field} );
-print STDERR "ack\n";
+#print STDERR "ack\n";
 	}	
 	if( $freetext )
 	{
 		$searchtable= $self->{dataset}->get_sql_index_table_name();
-print STDERR "ock\n";
+#print STDERR "ock\n";
 	}
 
 	my $fieldname = "M.".($freetext ? "fieldword" : $self->{field}->get_name() );
@@ -638,7 +638,7 @@ sub _get_tables_searches
 					push @tables,$table;
 					$searches{$table}=[];
 				}
-	print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
+	##print STDERR "[$searches{$table}][$table][$where][$bad][$error][$sfield->{field}->{name}][$benchmarking]\n";
 				push @{$searches{$table}},@{$where};
 			}
 			if( defined $bad ) 
@@ -744,7 +744,7 @@ sub do
 	}
 	if( $self->{anyall} eq "PHR"  && $self->{anyall} eq "IN" )
 	{
-		print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
+		#print STDERR "==================================\nRIGHT NOW $self->{string}\n==============\n";
 		my( $tablefield , $wheres ) = $self->_get_conditions_aux( 
 						[ "__FIELDNAME__ LIKE \"\%".
 						  EPrints::Database::prep_value( $self->{string} )."\%\"" ] , 

@@ -54,6 +54,10 @@ sub mkpage_editsubject
 {
 	my( $session, $subid ) = @_;
 
+	my $subject_ds = $session->get_archive()->get_dataset( "subject" );
+	my $archive_ds = $session->get_archive()->get_dataset( "archive" );
+	my $buffer_ds = $session->get_archive()->get_dataset( "buffer" );
+
 	my $subject = EPrints::Subject->new( $session, $subid );
 	if( !defined $subject )
 	{
@@ -62,11 +66,63 @@ sub mkpage_editsubject
 			"edit_subject" );
 		return;
 	}
-	
 	my $subname = $subject->get_name();
+	
+	
 	my( $title, $page );
-	my $title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subname ), 
 	my $page = $session->make_doc_fragment();
+	my $title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subname ), 
+
+	my $action = $session->get_action_button();
+
+	if( defined $action )
+	{
+		if( $action eq "submit" )
+		{
+			$subject->set_value( "name", $subject_ds->get_field( "name" )->form_value( $session ) );
+			$subject->set_value( "depositable", $subject_ds->get_field( "depositable" )->form_value( $session ) );
+			$subject->commit();
+		}
+		if( $action =~ m/^unlink_(.*)$/ )
+		{
+			my $victimid = $1;
+			my $victim = EPrints::Subject->new( $session, $victimid );
+				foreach( @{$victim->get_value( "parents" )} )
+				{
+	print STDERR "PARENT($_)\n";
+				}
+			if( !defined $victim )
+			{
+				#cjg render an error?	
+			}
+			elsif( scalar @{$victim->get_value( "parents" )}==1 )
+			{
+				$victim->remove();
+print STDERR "UNLINK\n";
+			}
+			else
+			{
+print STDERR "dEStROY\n";
+				my @newparents = ();
+				foreach( @{$victim->get_value( "parents" )} )
+				{
+					push @newparents,$_ if($_ ne $subject->get_value("subjectid"));
+				}
+				$victim->set_value( "parents", \@newparents );
+				$victim->commit();
+			}
+		}
+		if( $action eq "add" )
+		{
+			my $newid = $session->param( "newsubjectid" );
+			if( defined $newid )
+			{
+				print STDERR "NEWID: $newid\n";
+			}
+		}
+		print STDERR "ACTION::".$action."\n";
+	}
+		
 
 	my @children = $subject->children();
 
@@ -83,9 +139,6 @@ sub mkpage_editsubject
 	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:subjectid", 
 		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
 
-	my $subject_ds = $session->get_archive()->get_dataset( "subject" );
-	my $archive_ds = $session->get_archive()->get_dataset( "archive" );
-	my $buffer_ds = $session->get_archive()->get_dataset( "buffer" );
 
 	if( $subid ne $EPrints::Subject::root_subject )
 	{
@@ -93,8 +146,16 @@ sub mkpage_editsubject
 
         	$page->appendChild(
                 	$session->render_input_form(
-                        	[ $subject_ds->get_field( "name" ) ],
-                        	{ name=>$subject->get_value( "name" ) },
+                        	[ 
+					$subject_ds->get_field( "name" ),
+					$subject_ds->get_field( "depositable" )
+				],
+                        	{ 
+					name=>
+					  $subject->get_value( "name" ),
+					depositable=>
+					  $subject->get_value( "depositable" )
+				},
                         	1,
                         	1,
                         	{ submit => $session->phrase( "cgi/users/edit_subject:action_submit" ) },
@@ -181,7 +242,9 @@ sub mkpage_editsubject
 
 	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child" ) );
 	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child_help" ) );
-	$form->appendChild( $subject_ds->get_field( "subjectid" )->render_input_field( $session ) );
+	my $newidfield = $subject_ds->get_field( "subjectid" )->clone();
+	$newidfield->set_property( "name", "newsubjectid" );
+	$form->appendChild( $newidfield->render_input_field( $session ) );
 	$form->appendChild( $session->render_action_buttons( 
 		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
 

@@ -289,6 +289,7 @@ sub harvest
 		$setspec,
 		"archive",
 		$session->{metainfo}->find_table_field( "eprint", "datestamp" ),
+#cjg "subjects" can't be right
 		$session->{metainfo}->find_table_field( "eprint", "subjects" ) );
 
 	return( $searchexp->do_eprint_search() );
@@ -321,6 +322,7 @@ sub harvest_deleted
 			"deletiondate" ),
 		EPrints::MetaInfo::find_field(
 			\@deletion_fields,
+#cjg "subjects" can't be right
 			"subjects" ) );
 
 	my $rows = $searchexp->do_raw_search( [ "eprintid" ] );

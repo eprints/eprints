@@ -66,9 +66,9 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-print STDERR "k:[".join(",",keys %data)."]\n";
-print STDERR "SE1:[".$data{dataset}."]\n";
-print STDERR "SE2:[".$data{dataset}->confid()."]\n";
+#print STDERR "k:[".join(",",keys %data)."]\n";
+#print STDERR "SE1:[".$data{dataset}."]\n";
+#print STDERR "SE2:[".$data{dataset}->confid()."]\n";
 	# only session & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
@@ -88,7 +88,7 @@ print STDERR "SE2:[".$data{dataset}->confid()."]\n";
 
 	# tmptable represents cached results table.	
 	$self->{tmptable} = undef;
-print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
+#print STDERR "FN: ".join(",",@{$self->{fieldnames}})."\n";
 	my $fieldname;
 	foreach $fieldname (@{$self->{fieldnames}})
 	{
@@ -127,7 +127,7 @@ sub _searching_field
 	my $useid = ( $fieldname=~s/\.id$// );
 	# use id side of a field if the fieldname
 	# ends in .id (and strip the .id)
-print STDERR "FN: ($fieldname)\n";
+#print STDERR "FN: ($fieldname)\n";
 	my $field = $dataset->get_field( $fieldname );
 	if( $field->get_property( "hasid" ) )
 	{
@@ -421,7 +421,7 @@ sub state_from_string
 	while( $text_rep =~ s/\[((\\\[|[^\]])*)\]//i )
 	{
 		push @elements, _unescape_search_string( $1 );
-		print STDERR "el ($1)\n";
+		#print STDERR "el ($1)\n";
 	}
 	
 	my $satisfyall = shift @elements;
@@ -499,7 +499,7 @@ sub perform_search
 		
 		$self->{error} = undef;
 		$self->{tmptable} = $buffer;
-	print STDERR "SHIOOOK: ".$buffer."\n";
+	##print STDERR "SHIOOOK: ".$buffer."\n";
 	}
 
 
@@ -543,8 +543,8 @@ sub get_records
 		# or no order method was specified.
 		if( !$overlimit && defined $self->{order})
 		{
- print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
-print STDERR "ORDER BY: $self->{order}\n";
+ #print STDERR "order_methods " , $self->{dataset}->confid(). " ". $self->{order} ;
+#print STDERR "ORDER BY: $self->{order}\n";
 
 			my $cmpmethod = $self->{session}->get_archive()->get_conf( 
 						"order_methods" , 
@@ -718,7 +718,7 @@ sub process_webpage
 		# To reset the form, just reset the URL.
 		my $url = $self->{session}->get_url();
 		# Remove everything that's part of the query string.
-print STDERR "URLURL URL URL: $url\n";
+#print STDERR "URLURL URL URL: $url\n";
 		$url =~ s/\?.*//;
 		$self->{session}->redirect( $url );
 		return;

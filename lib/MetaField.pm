@@ -94,7 +94,7 @@ my $PROPERTIES = {
 	showall => 0, 
 	idpart => 0,
 	mainpart => 0,
-	top => "subjects",
+	top => "subjects", #cjg is this right?
 	type => "NO_DEFAULT"
 };
 
@@ -667,8 +667,8 @@ sub render_input_field
 {
 	my( $self, $session, $value ) = @_;
 
-use Data::Dumper;
-print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
+#use Data::Dumper;
+#print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
 
 	my( $html, $frag );
 
@@ -698,7 +698,7 @@ print STDERR "FIELD: ".$self->get_name()."\n".Dumper($value);
 		}
 
 		$settings{height} = $self->{displaylines};
-print STDERR "HEIGHT: $settings{height}\n";
+#print STDERR "HEIGHT: $settings{height}\n";
 		if( $settings{height} == 0 )
 		{
 			$settings{height} = undef;
@@ -810,7 +810,7 @@ sub _render_input_field_aux
 		$value = $value->{main};
 	}
 	my( $boxcount, $spacesid, $buttonid, $rows );
-print STDERR "AUX: ".$self->{name}."\n";
+#print STDERR "AUX: ".$self->{name}."\n";
 	if( $self->get_property( "multilang" ) )
 	{
 		$boxcount = 1;
@@ -858,10 +858,10 @@ print STDERR "AUX: ".$self->{name}."\n";
 				delete( $langstodo{$langid} );
 			}
 			
-print STDERR "****************".$suffix."_".$i."\n";
-use Data::Dumper;
-print STDERR Dumper( $langid, $value, $value->{$langid} );
-print STDERR "************\n";
+#print STDERR "****************".$suffix."_".$i."\n";
+#use Data::Dumper;
+#print STDERR Dumper( $langid, $value, $value->{$langid} );
+#print STDERR "************\n";
 
 			my $langparamid = $self->{name}.$suffix."_".$i."_lang";
 			my $langbit;
@@ -913,10 +913,10 @@ print STDERR "************\n";
 				$rows->appendChild( $div );
 			}
 			
-print STDERR "****************".$suffix."_".$i."\n";
-use Data::Dumper;
-print STDERR Dumper( $langid, $value, $value->{$langid} );
-print STDERR "************\n\n";
+#print STDERR "****************".$suffix."_".$i."\n";
+#use Data::Dumper;
+#print STDERR Dumper( $langid, $value, $value->{$langid} );
+#print STDERR "************\n\n";
 			++$i;
 		}
 				
@@ -1008,7 +1008,7 @@ print SDTERR "ZOOKl\n";
 sub _render_input_field_aux2
 {
 	my( $self, $session, $value, $suffix ) = @_;
-print STDERR "$suffix ... val($value)\n";
+#print STDERR "$suffix ... val($value)\n";
 
 
 	# These DO NOT belong here. cjg.
@@ -1301,7 +1301,7 @@ sub _form_value_aux
 				$value->{$langid} = $subvalue;
 #cjg -- does not check that this is a valid langid...
 			}
-	print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
+	#print STDERR ".....................tick: ".$self->{name}.$suffix."_".$i."_lang\n";
 		}
 		$value = undef if( scalar keys %{$value} == 0 );
 	}

@@ -140,7 +140,7 @@ sub create
 
 	my $new_id = _create_id( $session );
 	my $dir = _create_directory( $session, $new_id );
-print STDERR "($new_id)($dir)\n";
+#print STDERR "($new_id)($dir)\n";
 
 	if( !defined $dir )
 	{
@@ -203,7 +203,7 @@ sub _create_directory
 	
 	# Get available directories
 	my $docpath = $session->get_archive()->get_conf( "local_document_root" );
-print STDERR "DOCPATH: $docpath\n";
+#print STDERR "DOCPATH: $docpath\n";
 	unless( opendir DOCSTORE, $docpath )
 	{
 		$session->get_archive()->log( "Failed to open docpath: ".$docpath );
@@ -223,7 +223,7 @@ print STDERR "DOCPATH: $docpath\n";
 #cjg use the lib!
 		my $free_space = 1000000000;
 #cjg OH GOD			(df $session->get_archive()->get_conf( "local_document_root" )."/$device" )[3];
-print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$device)($free_space)\n";
+#print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$device)($free_space)\n";
 		$best_free_space = $free_space if( $free_space > $best_free_space );
 
 		unless( defined $storedir )
@@ -247,7 +247,7 @@ print STDERR "(".$session->get_archive()->get_conf( "local_document_root" )."/$d
 		$session->mail_administrator(
 			"lib/eprint:diskout_sub" ,
 			"lib/eprint:diskout" );
-print STDERR "oraok\n";
+#print STDERR "oraok\n";
 #cjg LOG WHY!
 		return( undef );
 	}
@@ -631,8 +631,8 @@ sub validate_meta
 	my $field;
 	foreach $field (@r_fields)
 	{
-print STDERR "REQ?: $field->{name}\n";
-print STDERR "====: ".$self->get_value( $field->{name} )."\n";
+##print STDERR "REQ?: $field->{name}\n";
+#print STDERR "====: ".$self->get_value( $field->{name} )."\n";
 		# Check that the field is filled in if it is required
 		next if ( defined $self->get_value( $field->{name} ) );
 
@@ -681,6 +681,7 @@ sub validate_subject
 	my( $self ) = @_;
 
 	my @all_problems;
+	# cjg IS THIS METHOD EVER USED
 	my $subjects = $self->get_value( "subjects" );
 	if( !defined $subjects )
 	{

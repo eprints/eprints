@@ -96,7 +96,7 @@ if( !defined $session ) {
 	foreach $pin ( $result->getElementsByTagName( "pin", 1 ) )
 	{
 		my $ref = $pin->getAttribute( "ref" );
-		print STDERR "^*^ $ref\n";
+		#print STDERR "^*^ $ref\n";
 		my $repl;
 		if( defined $inserts->{$ref} )
 		{

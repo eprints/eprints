@@ -23,7 +23,7 @@ use EPrints::Deletion;
 use EPrints::EPrint;
 use EPrints::Subscription;
 
-my $DEBUG_SQL = 1;
+my $DEBUG_SQL = 0;
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -370,7 +370,7 @@ sub add_record
 {
 	my( $self, $dataset, $data ) = @_;
 
- print STDERR "-----------------ADD RECORD------------------\n";
+ #print STDERR "-----------------ADD RECORD------------------\n";
 	my $table = $dataset->get_sql_table_name();
 	
 	my $keyfield = $dataset->get_key_field();
@@ -435,10 +435,10 @@ sub update
 	my( $self, $dataset, $data ) = @_;
 	#my( $database_self, $dataset_ds, $struct_md_data ) = @_;
 
- use Data::Dumper;
- print STDERR "-----------------UPDATE RECORD------------------\n";
- print STDERR Dumper($data);
- print STDERR "-----------------////UPDATE RECORD ------------------\n";
+ #use Data::Dumper;
+ #print STDERR "-----------------UPDATE RECORD------------------\n";
+ #print STDERR Dumper($data);
+ #print STDERR "-----------------////UPDATE RECORD ------------------\n";
 
 	my $rv = 1;
 	my $sql;
@@ -573,21 +573,21 @@ sub update
 					}
 				}
 				$position++ if $incp;
-				print STDERR "xxxx($incp)\n";
+				#print STDERR "xxxx($incp)\n";
 			}
 		}
 		else
 		{
 			my $value = $multifield->which_bit( $fieldvalue );
-print STDERR "ML".$multifield->get_name()." ".Dumper($value,$value)."\n-----------\n";
+#print STDERR "ML".$multifield->get_name()." ".Dumper($value,$value)."\n-----------\n";
 			if( $multifield->get_property( "multilang" ) )
 			{
-print STDERR "1 ".$multifield->get_name()." ".Dumper($value)."\n";
+#print STDERR "1 ".$multifield->get_name()." ".Dumper($value)."\n";
 				my $langid;
 				foreach $langid ( keys %{$value} )
 				{
 					my $val = $value->{$langid};
-print STDERR "2 ".$multifield->get_name()." $langid=> ".Dumper($val)."\n";
+#print STDERR "2 ".$multifield->get_name()." $langid=> ".Dumper($val)."\n";
 					if( defined $val )
 					{
 						push @values, { 
@@ -863,7 +863,7 @@ sub create_buffer
 
 	my $tmptable = "searchbuffer".($NEXTBUFFER++);
 	$TEMPTABLES{$tmptable} = 1;
-	print STDERR "Pushed $tmptable onto temporary table list\n";
+	#print STDERR "Pushed $tmptable onto temporary table list\n";
         my $sql = "CREATE TEMPORARY TABLE $tmptable ".
 	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
 
@@ -876,17 +876,17 @@ sub create_buffer
 sub garbage_collect
 {
 	my( $self ) = @_;
-	print STDERR "Garbage collect called.\n";
+	#print STDERR "Garbage collect called.\n";
 	my $dropped = 0;
 	foreach( keys %TEMPTABLES )
 	{
-print STDERR "Dropping $_\n";
+##print STDERR "Dropping $_\n";
 		my $sql = "DROP TABLE $_";
 		$self->do( $sql );
 		delete $TEMPTABLES{$_};
 		$dropped++;
 	}
-print STDERR "Done. Dropped $dropped tables.\n";
+#print STDERR "Done. Dropped $dropped tables.\n";
 }
 
 
@@ -1140,20 +1140,20 @@ sub _get
 				{
 					$value = shift @row;
 				}
-print STDERR "FIELD: ".$field->get_sql_name()." ($subbit)\n";
+#print STDERR "FIELD: ".$field->get_sql_name()." ($subbit)\n";
 				if( $field->get_property( "mainpart" ) )
 				{
-print STDERR "N{$value}\n";
+#print STDERR "N{$value}\n";
 					$record->{$field->get_name()}->{main} = $value;
 				}
 				elsif( $field->get_property( "idpart" ) )
 				{
-print STDERR "O{$value}\n";
+#print STDERR "O{$value}\n";
 					$record->{$field->get_name()}->{id} = $value;
 				}
 				else
 				{
-print STDERR "P{$value}\n";
+#print STDERR "P{$value}\n";
 					$record->{$field->get_name()} = $value;
 				}
 			}
@@ -1175,7 +1175,6 @@ print STDERR "P{$value}\n";
 	{
 		my $mn = $multifield->get_sql_name();
 		my $fn = $multifield->get_name();
-print STDERR "MULTIFIELD: ".$mn."\n";
 		my $col = "M.$mn";
 		if( $multifield->is_type( "name" ) )
 		{
@@ -1229,7 +1228,7 @@ print STDERR "MULTIFIELD: ".$mn."\n";
 			my $subbit;
 			$subbit = "id" if( $multifield->get_property( "idpart" ) );
 			$subbit = "main" if( $multifield->get_property( "mainpart" ) );
-print STDERR "MUFIL: ".$multifield->get_sql_name()." ($subbit)\n";
+#print STDERR "MUFIL: ".$multifield->get_sql_name()." ($subbit)\n";
 
 			if( $multifield->get_property( "multiple" ) )
 			{
@@ -1281,10 +1280,10 @@ print STDERR "MUFIL: ".$multifield->get_sql_name()." ($subbit)\n";
 
 	foreach( @data )
 	{
- use Data::Dumper;
- print STDERR "-----------------FROM DB------------------\n";
- print STDERR Dumper($_);
- print STDERR "-----------------////FROM DB------------------\n";
+ #use Data::Dumper;
+ #print STDERR "-----------------FROM DB------------------\n";
+ #print STDERR Dumper($_);
+ #print STDERR "-----------------////FROM DB------------------\n";
 		$_ = $dataset->make_object( $self->{session} ,  $_);
 	}
 

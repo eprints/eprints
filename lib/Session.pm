@@ -581,7 +581,7 @@ sub _render_subjects_aux
 	{
 		my $thisid = $_->get_value( "subjectid" );
 		next unless( defined $subjects->{$thisid} );
-		$ul->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $edit ) );
+		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $current, $edit ) );
 	}
 	
 	return $ul;
@@ -837,9 +837,9 @@ sub render_input_form
 
 	my( $form );
 
-print STDERR "_________RENDER_FORM____________\n";
-use Data::Dumper;
-print STDERR Dumper($values);
+#print STDERR "_________RENDER_FORM____________\n";
+#use Data::Dumper;
+#print STDERR Dumper($values);
 
 	$form =	$self->render_form( "post", $dest );
 
