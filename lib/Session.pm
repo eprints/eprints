@@ -171,8 +171,8 @@ sub terminate
 {
 	my( $self ) = @_;
 	
+	$self->{database}->garbage_collect();
 	$self->{archive}->call( "session_close", $self );
-
 	$self->{database}->disconnect();
 print STDERR "******* END SESSION ******\n\n";
 

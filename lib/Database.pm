@@ -40,7 +40,7 @@ my $DEBUG_SQL = 1;
 # The module restarts as it is only used for temporary tables.
 #
 my $NEXTBUFFER = 0;
-
+my @TEMPTABLES = ();
 ######################################################################
 #
 # connection_handle build_connection_string( %params )
@@ -840,15 +840,31 @@ sub create_buffer
 
 
 	my $tmptable = "searchbuffer".($NEXTBUFFER++);
-
+	push(@TEMPTABLES, $tmptable);
+	print STDERR "Pushed $tmptable onto temporary table list\n";
         my $sql = "CREATE TEMPORARY TABLE $tmptable ".
 	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
 
 	$self->do( $sql );
-	
+		
 	return $tmptable;
 }
 
+# Loop through known temporary tables, and remove them.
+sub garbage_collect
+{
+	my( $self ) = @_;
+	print STDERR "Garbage collect called.\n";
+	my $dropped = 0;
+	foreach(@TEMPTABLES)
+	{
+		print STDERR "Dropping $_\n";
+		my $sql = "DROP TABLE $_";
+		$self->do( $sql );
+		$dropped++;
+	}
+	print STDERR "Done. Dropped $dropped tables.\n";
+}
 
 ######################################################################
 #
