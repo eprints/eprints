@@ -5,15 +5,20 @@
 use Sys::Hostname;
 use EPrints::Config;
 use EPrints::DOM;
-use EPrints::Config;
+use EPrints::Database;
+use DBI;
 
 use strict;
 
+my $MYSQL = "/usr/local/bin/mysql";
+# cjg get from config later.
+
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9]+(\.[a-z0-9]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
-my $REGEXP_HOSTNAME_FULL = '[a-z0-9]+(\.[a-z0-9]+)+';
+my $REGEXP_HOSTNAME_FULL = '^[a-z0-9]+(\.[a-z0-9]+)+$';
 my $REGEXP_VARNAME = '^[a-z][a-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
+my $REGEXP_YESNO = '^(yes|no)$';
 
 my %config = ();
 
@@ -58,7 +63,6 @@ else
 	$config{dbsock} = undef;
 	$config{dbuser} = "eprints";
 	$config{dbpass} = undef;
-
 }
 
 unless( -e $archivedir )
@@ -157,14 +161,14 @@ $config{aliases} = [];
 for(;;)
 {
 	my $default = shift @aliases;
-	my $alias = get_input( '^'.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
+	my $alias = get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
 		(defined $default ? $default->{name} : '#' ) );
 	last if( $alias eq "#" );
 	my $aliasrecord = {};
 	$aliasrecord->{name} = $alias;
 	$aliasrecord->{redirect} = 
 		get_input( 
-			'^(yes|no)$',
+			$REGEXP_YESNO,
 			"Redirect $alias to $config{host}",
 			(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
 	push @{$config{aliases}},$aliasrecord;
@@ -192,6 +196,74 @@ $config{dbsock} = undef if( $config{dbsock} eq "#" );
 $config{dbuser} = get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
 $config{dbpass} = get_input( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
 
+print <<END;
+
+EPrints can create the database, and grant the correct permissions.
+
+END
+
+my $makedb = get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
+if( $makedb eq "yes" )
+{
+	print <<END;
+
+Ok, I'll need to connect to the mysql database as root. What is the root 
+password? #cjg hide password from display?
+	
+END
+	my $mysqlrootpass = get_input( '^.*$', "MySQL Root Password" );
+
+	print "Connecting to the database...\n";
+	my $dbh = DBI->connect(
+		EPrints::Database::build_connection_string(
+			dbname=>"mysql",
+			dbsock=>$config{dbsock},
+			dbport=>$config{dbport},
+			dbhost=>$config{dbhost} ),
+		"root",
+		$mysqlrootpass );
+
+
+	if( !defined $dbh )
+	{
+		print <<END;
+
+Hmmm. Problem connecting to database as root. We'll skip skip this but
+you should create it by hand.
+
+END
+	}
+	else
+	{
+		my $sth = $dbh->prepare( "show databases" );
+		$sth->execute;
+		my $dbexists = 0;
+		my @row;
+		while( @row = $sth->fetchrow_array )
+		{
+			$dbexists = 1 if $row[0] eq $config{dbname};
+		}
+		if( $dbexists )
+		{
+			print "Hmm. A database called $config{dbname} already exists, oh well.\n\n";
+		}
+		else
+		{
+			my $SQL = "CREATE DATABASE ".$config{dbname};
+			print "DOING: $SQL\n";
+			$dbh->do( $SQL );
+		}
+		print "Setting MySQL privs\n";
+		#cjg @localhost ??? what about remote mysql's?
+		my $SQL = "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE ON $config{dbname}.* TO $config{dbuser}@localhost IDENTIFIED BY "$config{dbpass}"'
+		print "DOING: $SQL\n";
+		$dbh->do( $SQL );
+
+		print "Disconnecting from database.\n";
+		$dbh->disconnect;
+	}
+}
+ 
 
 ######
 #
@@ -226,7 +298,6 @@ $doc->printToFile( $configfile );
 # chmod !!! cjg
 print "...done\n\n";
 
-# Make DB!
 
 # Make filesystem
 

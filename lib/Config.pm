@@ -1,5 +1,8 @@
 # HEADERS cjg
 
+#cjg SHOULD BE a way to configure an archive NOT to load the
+# module except on demand (for buggy / testing ones )
+
 
 # This module loads and sets information for eprints not
 # specific to any archive.
@@ -35,6 +38,8 @@ $EPrints::Config::base_path = $eprints_path;
 $EPrints::Config::cgi_path = $eprints_path."/cgi";
 $EPrints::Config::cfg_path = $eprints_path."/cfg";
 $EPrints::Config::phr_path = $eprints_path."/sys";
+$EPrints::Config::sys_path = $eprints_path."/sys";
+$EPrints::Config::bin_path = $eprints_path."/bin";
 
 ###############################################
 
