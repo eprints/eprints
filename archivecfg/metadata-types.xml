@@ -304,7 +304,7 @@
   <dataset name="user">
     <type name="user" >
       <field name="password" />
-      <field name="lang" />
+ <!--     <field name="lang" /> -->
       <field name="usertype" staffonly="yes"/>
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
@@ -319,7 +319,7 @@
     </type>
     <type name="editor" >
       <field name="password" />
-      <field name="lang" />
+ <!--     <field name="lang" /> -->
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes"/>
       <field name="email" staffonly="yes" />
@@ -335,7 +335,7 @@
     </type>
     <type name="admin" >
       <field name="password" />
-      <field name="lang" />
+ <!--     <field name="lang" /> -->
       <field name="usertype" staffonly="yes" />
       <field name="username" staffonly="yes" />
       <field name="email" staffonly="yes" />

@@ -254,7 +254,7 @@ sub make_view_pages
 				session=>$session,
 				dataset=>$ds );
 
-       		$searchexp->add_field( \@fields, "PHR:EX:".$value );
+       		$searchexp->add_field( \@fields, $value, "EX" );
 
 		my $links = $session->make_doc_fragment();
 

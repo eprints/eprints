@@ -269,7 +269,7 @@ sub _generate_doc_id
 
 	$searchexp->add_field(
 		$dataset->get_field( "eprintid" ),
-		"PHR:EQ:".$eprint->get_value( "eprintid" ) );
+		$eprint->get_value( "eprintid" ) );
 	$searchexp->perform_search();
 
 	my( @docs ) = $searchexp->get_records();

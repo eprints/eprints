@@ -159,7 +159,7 @@ sub user_with_email
 
 	$searchexp->add_field(
 		$user_ds->get_field( "email" ),
-		"PHR:EQ:".$email );
+		$email );
 
 	my $searchid = $searchexp->perform_search;
 	my @records = $searchexp->get_records;
@@ -180,7 +180,7 @@ sub user_with_username
 
 	$searchexp->add_field(
 		$user_ds->get_field( "username" ),
-		"PHR:EQ:".$username );
+		$username );
 
 	my $searchid = $searchexp->perform_search;
 
@@ -319,7 +319,7 @@ sub get_eprints
 
 	$searchexp->add_field(
 		$ds->get_field( "userid" ),
-		"PHR:EQ:".$self->get_value( "userid" ) );
+		$self->get_value( "userid" ) );
 
 #cjg set order (it's in the site config)
 
@@ -346,7 +346,7 @@ sub get_editable_eprints
 
 #	$searchexp->add_field(
 #		$ds->get_field( "userid" ),
-#		"PHR:EQ:".$self->get_value( "userid" ) );
+#		$self->get_value( "userid" ) );
 
 #cjg set order (it's in the site config)
 

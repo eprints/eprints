@@ -74,16 +74,18 @@ use strict;
 #cjg MAKE $field $fields and _require_ a [] 
 sub new
 {
-	my( $class, $session, $dataset, $fields, $value ) = @_;
+	my( $class, $session, $dataset, $fields, $value, $match, $merge ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 	
 	$self->{session} = $session;
 	$self->{dataset} = $dataset;
-	$self->set_value( $value );
 
-	#cjg Hmmm.
+	$self->{value} = $value;
+	$self->{match} = ( defined $match ? $match : "EQ" );
+	$self->{merge} = ( defined $merge ? $merge : "PHR" );
+
 	if( ref( $fields ) ne "ARRAY" )
 	{
 		$fields = [ $fields ];
@@ -110,33 +112,36 @@ sub new
 	{
 		$self->{field} = $self->{field}->get_main_field();
 	}
-	
 
 	return( $self );
 }
 
 sub set_value
 {
+confess( "ooops: serachfield: set_value" );
 	my ( $self , $newvalue ) = @_;
 
 	if( $newvalue =~ m/^([A-Z][A-Z][A-Z]):([A-Z][A-Z]):(.*)$/i )
 	{
-		$self->{value} = $newvalue;
-		$self->{anyall} = uc $1;
+		$self->{merge} = uc $1;
 		$self->{match} = uc $2;
-		$self->{string} = $3;
+		$self->{value} = $3;
 	}
 	else
 	{
-		$self->{value} = undef;
-		$self->{anyall} = undef;
+		$self->{merge} = undef;
 		$self->{match} = undef;
-		$self->{string} = undef;
+		$self->{value} = undef;
 	}
 
 }
 
-
+sub clear
+{
+	my( $self ) = @_;
+	
+	$self->{match} = "NO";
+}
 
 ######################################################################
 #
@@ -154,7 +159,8 @@ sub from_form
 	my $problem;
 
 	# Remove any default we have
-	$self->set_value( "" );
+	$self->clear();
+
 	my $val = $self->{session}->param( $self->{form_name_prefix} );
 	$val =~ s/^\s+//;
 	$val =~ s/\s+$//;
@@ -162,15 +168,18 @@ sub from_form
 
 	if( $self->is_type( "boolean" ) )
 	{
-		$self->set_value( "PHR:EQ:TRUE" ) if( $val eq "TRUE" );
-		$self->set_value( "PHR:EQ:FALSE" ) if( $val eq "FALSE" );
+		$self->{merge} = "PHR";
+		$self->{match} = "EQ";
+		$self->{value} = "FALSE" if( $val eq "FALSE" );
+		$self->{value} = "TRUE" if( $val eq "TRUE" );
 	}
 	elsif( $self->is_type( "email","url" ) )
 	{
-		# simple text types
 		if( defined $val )
 		{
-			$self->set_value( "ANY:IN:$val" );
+			$self->{merge} = "ANY";
+			$self->{match} = "IN";
+			$self->{value} = $val;
 		}
 	}
 	elsif( $self->is_type( "longtext","text","name" ) )
@@ -178,7 +187,6 @@ sub from_form
 		# complex text types
 		my $search_type = $self->{session}->param( 
 			$self->{form_name_prefix}."_srchtype" );
-		my $exact = "IN";
 		
 		# Default search type if none supplied (to allow searches using simple
 		# HTTP GETs)
@@ -186,7 +194,9 @@ sub from_form
 		
 		if( defined $val )
 		{
-			$self->set_value( "$search_type:$exact:$val" );
+			$self->{match} = "IN";
+			$self->{merge} = $search_type;
+			$self->{value} = $val;
 		}
 	}		
 	elsif( $self->is_type( "subject" , "set" , "datatype" ) )
@@ -215,12 +225,11 @@ sub from_form
 		if( defined $val )
 		{
 			# ANY or ALL?
-			my $anyall = $self->{session}->param(
-				$self->{form_name_prefix}."_anyall" );
-				
-			$val = (defined $anyall? "$anyall" : "ANY" ).":EQ:$val";
-
-			$self->set_value( $val );
+			my $merge = $self->{session}->param(
+				$self->{form_name_prefix}."_merge" );
+			$self->{merge} = defined $merge? "$merge" : "ANY";
+			$self->{match} = "EQ";
+			$self->{value} = $val;
 		}
 
 	}
@@ -230,7 +239,9 @@ sub from_form
 		{
 			if( $val =~ m/^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
 			{
-				$self->set_value( "ANY:EQ:$val" );
+				$self->{merge} = ""; # not used
+				$self->{match} = "EQ";
+				$self->{value} = $val;
 			}
 			else
 			{
@@ -244,7 +255,9 @@ sub from_form
 		{
 			if( $val =~ m/^(\d+)?\-?(\d+)?/ )
 			{
-				$self->set_value( "ANY:EQ:$val" );
+				$self->{merge} = ""; # not used
+				$self->{match} = "EQ";
+				$self->{value} = $val;
 			}
 			else
 			{
@@ -274,10 +287,7 @@ sub get_conditions
 {
 	my ( $self ) = @_;
 
-	if ( !defined $self->{value} || $self->{value} eq "" )
-	{
-		return undef;
-	}
+	return if( $self->{match} eq "NO" );
 
 	my $match = $self->{match};
 	if( $match eq "EX" )
@@ -285,9 +295,9 @@ sub get_conditions
 		# Special handling for exact matches, as it can handle NULL
 		# fields, although this will not work on most multiple tables.
 		my @where;
-		my $sql = "__FIELDNAME__ = \"".EPrints::Database::prep_value($self->{string})."\"";
+		my $sql = "__FIELDNAME__ = \"".EPrints::Database::prep_value($self->{value})."\"";
 		push @where, $sql;
-		if( $self->{string} eq "" )
+		if( $self->{value} eq "" )
 		{	
 			push @where, "__FIELDNAME__ IS NULL";
 		}
@@ -297,7 +307,7 @@ sub get_conditions
 	if ( $self->is_type( "set","subject","datatype","boolean" ) )
 	{
 		my @fields = ();
-		my $text = $self->{string};
+		my $text = $self->{value};
 		while( $text=~s/"([^"]+)"// ) { push @fields, $1; }
 		while( $text=~s/([^\s]+)// ) { push @fields, $1; }
 		my @where;
@@ -322,7 +332,7 @@ sub get_conditions
 	{
 		my @where = ();
 		my @names = ();
-		my $text = $self->{string};
+		my $text = $self->{value};
 
 		# Remove spaces before and  after commas. So Jones , C
 		# is searched as Jones,C 
@@ -368,7 +378,7 @@ sub get_conditions
 	if ( $self->is_type( "year","int" ) )
 	{
 		my @where = ();
-		foreach( split /\s+/ , $self->{string} )
+		foreach( split /\s+/ , $self->{value} )
 		{
 			my $sql;
 			if( m/^(\d+)?\-(\d+)?$/ )
@@ -420,7 +430,7 @@ sub get_conditions
 	if ( $self->is_type( "date" ) )
 	{
 		my @where = ();
-		foreach( split /\s+/ , $self->{string} )
+		foreach( split /\s+/ , $self->{value} )
 		{
 			my $sql;
 			if( m/^(\d\d\d\d\-\d\d\-\d\d)?\-(\d\d\d\d\-\d\d\-\d\d)?$/ )
@@ -470,8 +480,8 @@ sub get_conditions
 	{
 		my @where = ();
 		my @phrases = ();
-		my $text = $self->{string};
-		if ( $self->{anyall} eq "PHR" ) 
+		my $text = $self->{value};
+		if ( $self->{merge} eq "PHR" ) 
 		{
 			# PHRASES HAVE SPECIAL HANDLING!
 			# cjg WHICH IS BROKEN!
@@ -511,7 +521,9 @@ sub get_conditions
 				$self->{session},
 				$self->{dataset},
 				$self->{field},
-				"PHR:IN:$1" );
+				$1,
+				"IN",
+				"PHR" );
 			#cjg IFFY!!!!
 			my ($buffer,$bad,$error) = $sfield->do( undef , undef );
 			if( defined $error )
@@ -576,7 +588,7 @@ sub _get_conditions_aux
 		}
 	}
 
-	if ( $self->{anyall} eq "ANY" || $self->{match} eq "EX" ) 
+	if ( $self->{merge} eq "ANY" || $self->{match} eq "EX" ) 
 	{
 		if( scalar @nwheres == 0 )
 		{
@@ -608,7 +620,9 @@ sub do
 			$self->{session},
 			$self->{dataset},
 			$field,
-			$self->{value} );
+			$self->{value},
+			$self->{match},
+			$self->{merge} );
 		my ($table,$where,$bad,$error) = $sfield->get_conditions();
 		if( defined $error )
 		{
@@ -689,19 +703,35 @@ sub do
 		}	
 		else
 		{
-			$results = EPrints::SearchExpression::_merge( $bitresults, $results, ( $self->{anyall} ne "ANY" ) );
+			$results = EPrints::SearchExpression::_merge( $bitresults, $results, ( $self->{merge} ne "ANY" ) );
 		}
 		$firstpass = 0;
 	}
 	return( $results, \@badwords );
 }
 
-
 sub get_value
 {
 	my( $self ) = @_;
+
 	return $self->{value};
 }
+
+sub get_match
+{
+	my( $self ) = @_;
+
+	return $self->{match};
+}
+
+sub get_merge
+{
+	my( $self ) = @_;
+
+	return $self->{merge};
+}
+
+
 
 #returns the FIRST field which should indicate type and stuff.
 sub get_field
@@ -755,10 +785,10 @@ sub render
 			$self->{session}->render_option_list(
 				name => $self->{form_name_prefix},
 				values => \@bool_tags,
-				default => ( defined $self->{string} ? $self->{string} : $bool_tags[0] ),
+				default => ( defined $self->{value} ? $self->{value} : $bool_tags[0] ),
 				labels => \%bool_labels ) );
 	}
-	elsif( $self->is_type( "boolean","longtext","text","name","url","id","email" ) )
+	elsif( $self->is_type( "longtext","text","name","url","id","email" ) )
 	{
 		# complex text types
 		$frag->appendChild(
@@ -766,7 +796,7 @@ sub render
 				"accept-charset" => "utf-8",
 				type => "text",
 				name => $self->{form_name_prefix},
-				value => $self->{string},
+				value => $self->{value},
 #cjg Number for form width1
 				size => $EPrints::HTMLRender::search_form_width,
 				maxlength => $EPrints::HTMLRender::field_max ) );
@@ -775,7 +805,7 @@ sub render
 			$self->{session}->render_option_list(
 				name=>$self->{form_name_prefix}."_srchtype",
 				values=>\@text_tags,
-				value=>$self->{anyall},
+				default=>$self->{merge},
 				labels=>\%text_labels ) );
 	}
 	elsif( $self->is_type( "datatype" , "set" , "subject" ) )
@@ -783,9 +813,9 @@ sub render
 		my @defaults;
 		
 		# Do we have any values already?
-		if( defined $self->{string} && $self->{string} ne "" )
+		if( defined $self->{value} && $self->{value} ne "" )
 		{
-			@defaults = split /\s/, $self->{string};
+			@defaults = split /\s/, $self->{value};
 		}
 		else
 		{
@@ -844,9 +874,9 @@ sub render
 			$frag->appendChild( $self->{session}->make_text(" ") );
 			$frag->appendChild( 
 				$self->{session}->render_option_list(
-					name=>$self->{form_name_prefix}."_self->{anyall}",
+					name=>$self->{form_name_prefix}."_self->{merge}",
 					values=>\@set_tags,
-					value=>$self->{anyall},
+					value=>$self->{merge},
 					labels=>\%set_labels ) );
 		}
 	}
@@ -856,7 +886,7 @@ sub render
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
 				name=>$self->{form_name_prefix},
-				value=>$self->{string},
+				value=>$self->{value},
 				size=>9,
 				maxlength=>100 ) );
 	}
@@ -866,7 +896,7 @@ sub render
 			$self->{session}->make_element( "input",
 				"accept-charset" => "utf-8",
 				name=>$self->{form_name_prefix},
-				value=>$self->{string},
+				value=>$self->{value},
 				size=>9,
 				maxlength=>9 ) );
 	}
@@ -906,7 +936,7 @@ sub is_set
 {
 	my( $self ) = @_;
 
-	return EPrints::Utils::is_set( $self->{string} ) || $self->{match} eq "EX";
+	return EPrints::Utils::is_set( $self->{value} ) || $self->{match} eq "EX";
 }
 
 sub serialise
@@ -916,7 +946,7 @@ sub serialise
 	return undef unless( $self->is_set() );
 
 	# cjg. Might make an teeny improvement if
-	# we sorted the {string} so that equiv. searches
+	# we sorted the {value} so that equiv. searches
 	# have the same serialisation string.
 
 	my @fnames;
@@ -927,9 +957,9 @@ sub serialise
 	
 	my @escapedparts;
 	foreach(join( "/", sort @fnames ),
-		$self->{anyall}, 	
+		$self->{merge}, 	
 		$self->{match}, 
-		$self->{string} )
+		$self->{value} )
 	{
 		my $item = $_;
 		$item =~ s/[\\\:]/\\$&/g;
@@ -942,22 +972,23 @@ sub unserialise
 {
 	my( $class, $session, $dataset, $string ) = @_;
 
-	my @parts = split( ":", $string );
-	# Un-escape
-	foreach( @parts ) { s/\\(.)/$1/g; }
+	$string=~m/^([^:]*):([^:]*):([^:]*):(.*)$/;
+	my( $fields, $merge, $match, $value ) = ( $1, $2, $3, $4 );
+	# Un-escape (cjg, not very tested)
+	$value =~ s/\\(.)/$1/g;
 
-	#cjg sick lose this dreadful "value"
-	my $value = "$parts[1]:$parts[2]:$parts[3]";
 	my @fields = ();
-	foreach( split( "/" , $parts[0] ) )
+	foreach( split( "/" , $fields ) )
 	{
 		push @fields, $dataset->get_field( $_ );
 	}
-	
-	return $class->new( $session, $dataset, \@fields, $value );
+
+	return $class->new( $session, $dataset, \@fields, $value, $match, $merge );
 }
 
 # only really meaningful to move between eprint datasets
+# could be dangerous later with complex datasets.
+# currently only used by the OAI code.
 sub set_dataset
 {
 	my( $self, $dataset ) = @_;

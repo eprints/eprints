@@ -338,7 +338,7 @@ $c->{lang_cookie_name} = "lang";
 # subject or allowing null in this case.
 $c->{browse_views} = [
 	{ id=>"year", allow_null=>1, fields=>"year", order=>"title/authors" },
-	{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 }
+	#{ id=>"person", allow_null=>0, fields=>"authors.id/editors.id", order=>"title/authors", noindex=>1, nolink=>1, nohtml=>1, include=>1, citation=>"title_only", nocount=>1 },
 	{ id=>"subjects", allow_null=>0, fields=>"subjects", order=>"title/authors" }
 ];
 
@@ -495,7 +495,10 @@ $c->{pin_timeout} = 3;
 #
 #   Number of minutes of unuse to timeout a search cache
 $c->{cache_timeout} = 10;
+
 #   Maximum lifespan of a cache, in use or not. In hours.
+#   ( This will be the length of time an OAI resumptionToken is 
+#   valid for ).
 $c->{cache_maxlife} = 12;
 
 ######################################################################

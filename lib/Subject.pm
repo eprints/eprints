@@ -251,7 +251,7 @@ sub children #cjg should be get_children()
 
 	$searchexp->add_field(
 		$self->{dataset}->get_field( "parents" ),
-		"PHR:EQ:".$self->get_value( "subjectid" ) );
+		$self->get_value( "subjectid" ) );
 
 	my $searchid = $searchexp->perform_search();
 	my @children = $searchexp->get_records();
@@ -505,7 +505,7 @@ sub posted_eprints
 		$n += 1;
 		$searchexp->add_field(
 			$field,
-			"PHR:EQ:".$self->get_value( "subjectid" ) );
+			$self->get_value( "subjectid" ) );
 	}
 
 	if( $n == 0 )
@@ -552,7 +552,7 @@ sub count_eprints
 		$n += 1;
 		$searchexp->add_field(
 			$field,
-			"PHR:EQ:".$self->get_value( "subjectid" ) );
+			$self->get_value( "subjectid" ) );
 	}
 
 	if( $n == 0 )

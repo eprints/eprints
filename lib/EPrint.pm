@@ -763,7 +763,7 @@ sub get_all_documents
 
 	$searchexp->add_field(
 		$doc_ds->get_field( "eprintid" ),
-		"PHR:EQ:".$self->get_value( "eprintid" ) );
+		$self->get_value( "eprintid" ) );
 
 	my $searchid = $searchexp->perform_search();
 	my @documents = $searchexp->get_records();
@@ -1259,7 +1259,7 @@ sub later_in_thread
 
 	$searchexp->add_field( 
 		$field, 
-		"PHR:EQ:".$self->get_value( "eprintid" ) );
+		$self->get_value( "eprintid" ) );
 
 	my $searchid = $searchexp->perform_search();
 	my @eprints = $searchexp->get_records();

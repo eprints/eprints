@@ -374,17 +374,16 @@ END
 
 if( $archive->get_conf( "enable_vlit_support" ) )
 {
-	print CONF <<END;
-  <Files ~ "\\.txt\$">
+	foreach $langid ( @langs )
+	{
+		print CONF <<END;
+  <Directory "$htdocs_path/$langid/archive">
     SetHandler perl-script
     PerlHandler EPrints::VLit::handler
-  </Files>
-  <Files ~ "\\.uni\$">
-    SetHandler perl-script
-    PerlHandler EPrints::VLit::handler
-  </Files>
+  </Directory>
 
 END
+	}
 }
 
 print CONF <<END;

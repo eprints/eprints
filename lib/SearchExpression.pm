@@ -150,7 +150,7 @@ sub new
 
 sub add_field
 {
-	my( $self, $field, $value ) = @_;
+	my( $self, $field, $value, $match, $merge ) = @_;
 
 	#field may be a field OR a ref to an array of fields
 
@@ -158,21 +158,19 @@ sub add_field
 	my $searchfield = new EPrints::SearchField( $self->{session},
 	                                            $self->{dataset},
 	                                            $field,
-	                                            $value );
+	                                            $value,
+	                                            $match,
+	                                            $merge );
 
 	my $formname = $searchfield->get_form_name();
-	if( defined $self->{searchfieldmap}->{$formname} )
-	{
-		# Already got a seachfield, just update the value
-		$self->{searchfieldmap}->{$formname}->set_value( $value );
-	}
-	else
+	unless( defined $self->{searchfieldmap}->{$formname} )
 	{
 		# Add it to our list
-		push @{$self->{searchfields}}, $searchfield;
-		# Put it in the name -> searchfield map
-		$self->{searchfieldmap}->{$formname} = $searchfield;
+		push @{$self->{searchfields}}, $formname;
 	}
+	# Put it in the name -> searchfield map
+	# (possibly replacing an old one)
+	$self->{searchfieldmap}->{$formname} = $searchfield;
 }
 
 sub get_searchfield
@@ -196,7 +194,7 @@ sub clear
 	
 	foreach (@{$self->{searchfields}})
 	{
-		$_->set_value( "" );
+		$self->get_searchfield($_)->clear();
 	}
 	
 	$self->{satisfy_all} = 1;
@@ -223,8 +221,9 @@ sub render_search_form
 
 	my %shown_help;
 	my $sf;
-	foreach $sf ( @{$self->{searchfields}} )
+	foreach ( @{$self->{searchfields}} )
 	{
+		my $sf = $self->get_searchfield( $_ );
 		$div = $self->{session}->make_element( 
 				"div" , 
 				class => "searchfieldname" );
@@ -337,13 +336,18 @@ sub from_form
 		$self->{order} = $fromexp->get_order();
 		$self->{satisfy_all} = $fromexp->get_satisfy_all();
 		my $search_field;
-		foreach $search_field ( @{$self->{searchfields}} )
+		foreach ( @{$self->{searchfields}} )
 		{
+			my $search_field = $self->get_searchfield( $_ );
 			my $formname = $search_field->get_form_name();
 			my $sf = $fromexp->get_searchfield( $formname );
 			if( defined $sf )
 			{
-				$self->add_field( $sf->get_fields() , $sf->get_value() );
+				$self->add_field( 
+					$sf->get_fields(), 
+					$sf->get_value(),
+					$sf->get_match(),  
+					$sf->get_merge() );
 			}
 		}
 		return;
@@ -352,8 +356,9 @@ sub from_form
 	my @problems;
 	my $onedefined = 0;
 	my $search_field;
-	foreach $search_field ( @{$self->{searchfields}} )
+	foreach ( @{$self->{searchfields}} )
 	{
+		my $search_field = $self->get_searchfield( $_ );
 		my $prob = $search_field->from_form();
 		$onedefined = 1 if( defined $search_field->{value} );
 		
@@ -404,8 +409,9 @@ sub serialise
 	# property in a later version without breaking when we upgrade.
 	push @parts, "-";
 	my $search_field;
-	foreach $search_field (sort {$a->get_form_name() cmp $b->get_form_name()} @{$self->{searchfields}})
+	foreach (sort @{$self->{searchfields}})
 	{
+		my $search_field = $self->get_searchfield( $_ );
 		my $fieldstring = $search_field->serialise();
 		next unless( defined $fieldstring );
 		push @parts, $fieldstring;
@@ -451,10 +457,10 @@ sub _unserialise_aux
 		my $searchfield = EPrints::SearchField->unserialise(
 			$self->{session}, $self->{dataset}, $_ );
 
-		# Add it to our list
-		push @{$self->{searchfields}}, $searchfield;
-		# Put it in the name -> searchfield map
 		my $formname = $searchfield->get_form_name();
+		# Add it to our list
+		push @{$self->{searchfields}}, $formname;
+		# Put it in the name -> searchfield map
 		$self->{searchfieldmap}->{$formname} = $searchfield;
 		
 	}
@@ -488,8 +494,9 @@ sub perform_search
 	my $firstpass = 1;
 	my @searchon = ();
 	my $search_field;
-	foreach $search_field ( @{$self->{searchfields}} )
+	foreach ( @{$self->{searchfields}} )
 	{
+		$search_field = $self->get_searchfield( $_ );
 		if( $search_field->is_set() )
 		{
 			push @searchon , $search_field;
@@ -986,7 +993,7 @@ sub set_dataset
 	$self->{dataset} = $dataset;
 	foreach (@{$self->{searchfields}})
 	{
-		$_->set_dataset( $dataset );
+		$self->get_searchfield( $_ )->set_dataset( $dataset );
 	}
 }
 

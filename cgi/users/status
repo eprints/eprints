@@ -39,7 +39,7 @@ foreach $usertype ( @{$usertypes} )
 
 	$searchexp->add_field(
 		$userds->get_field( "usertype" ),
-		"PHR:EQ:".$usertype );
+		$usertype );
 
 	$searchexp->perform_search();
 	$num_users{ $usertype } = $searchexp->count();

@@ -1206,8 +1206,7 @@ sub drop_old_caches
 	$ds = $self->{session}->get_archive()->get_dataset( "cachemap" );
 	my $a = $self->{session}->get_archive();
 	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name()." WHERE";
-	$sql.= " (lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute"; 
-	$sql.= " AND oneshot = 'FALSE' )";
+	$sql.= " (lastused < now()-interval ".($a->get_conf("cache_timeout") + 5)." minute AND oneshot = 'FALSE' )";
 	$sql.= " OR created < now()-interval ".$a->get_conf("cache_maxlife")." hour"; 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );

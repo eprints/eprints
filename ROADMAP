@@ -172,21 +172,23 @@
 # Check Referer on LatexCache.?
 
 # EASY
-# OAI - cache timeouts. NR
 # Check out Subscription dataset: sensible values even if not used yet.
 # 	Make man pages from /bin etc build into docs. NR 
 
 # HARD
 #  Qualified Dublin Core NR
-#  Make SearchFields have a better call method. NR
 # NR: Email Change
 # clean up comments
 # clean up metadata (inc. boolean rendering):q
 # clean up later-in-thread
+# subject editors (maybe)
+
+# HARRIS.XML!!!
+# MIKE: doc perl modules
 
 # Xhtml docs: [gui]
 
-# todo: TTTTttttbbbbbmg
+# todo: TTTttttbbbbbmg
 #      10  9  8  7  6  5  4  3  2  1  31  30  29 
 
 # HOW-TOS

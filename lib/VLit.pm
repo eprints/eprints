@@ -54,7 +54,7 @@ sub handler
 
 	unless( $locspec =~ m/^([a-z]+):(.*)$/ )
 	{
-		send_http_error( 404, "Bad locspec \"$locspec\"" );
+		send_http_error( 400, "Bad locspec \"$locspec\"" );
 		return;
 	}
 
@@ -64,7 +64,7 @@ sub handler
 
 	if( !defined $fn )
 	{
-		send_http_error( 404, "Unsupported locspec" );
+		send_http_error( 501, "Unsupported locspec" );
 		return;
 	}
 
@@ -99,7 +99,10 @@ sub send_http_header
 	my( $type ) = @_;
 
 	my $r = Apache->request;
-	$r->content_type( $type );
+	if( defined $type )
+	{
+		$r->content_type( $type );
+	}
 	$r->status_line( "200 YAY" );
 	$r->send_http_header;
 }
@@ -111,7 +114,13 @@ sub ls_charrange
 	my( $filename, $param, $locspec ) = @_;
 
 	my $r = Apache->request;
-
+	
+	if( $r->content_type !~ m#^text/# )
+	{
+		send_http_error( 400, "Can't return a charrange of mimetype: ".$r->content_type );
+		return;
+	}
+		
 	my( $offset, $length );
 	if( $param eq "" )
 	{
@@ -122,7 +131,7 @@ sub ls_charrange
 	{	
 		unless( $param=~m/^(\d+)\/(\d+)$/ )
 		{
-			send_http_error( 404, "Malformed charrange param: $param" );
+			send_http_error( 400, "Malformed charrange param: $param" );
 			return;
 		}
 		( $offset, $length ) = ( $1, $2 );
@@ -181,7 +190,7 @@ sub ls_charrange
 		
 			
 		send_http_header( "text/html" );
-		my $title = "Byterange from: resspec (from $offset, length $length)";
+		my $title = "Character Range from $offset, length $length";
 		if( $mode eq 'link' )
 		{
 			my $url = $baseurl.'?locspec=charrange:'.($offset)."/".($length);
@@ -205,7 +214,7 @@ END
 	}
 	else
 	{
-		send_http_header( "text/plain" );
+		send_http_header();
 		$r->print( $data );
 	}
 }
@@ -216,7 +225,7 @@ sub ls_area
 	
 	unless( $param=~m/^(\d+),(\d+)\/(\d+),(\d+)$/ )
 	{
-		send_http_error( $session, 404, "Malformed area param: $param" );
+		send_http_error( $session, 400, "Malformed area param: $param" );
 		return;
 	}
 	

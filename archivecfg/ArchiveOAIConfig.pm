@@ -253,7 +253,7 @@ sub eprint_to_unqualified_dc
 	{
 		# no point mentioning the date without a year.
 
-		my $month = "01";
+		my $month;
 
 		if( $eprint->is_set( "month" ) )
 		{
@@ -265,6 +265,8 @@ sub eprint_to_unqualified_dc
 	
 			$month = $month_numbers{$eprint->get_value( "month" )};
 		}
+
+		$month = "01" if( !defined $month );
 		
 		push @dcdata, [ "date", "$year-$month-01" ];
 	}

@@ -382,7 +382,7 @@ END
 			}
 			push @fields, $field;
 		}
-		$searchexp->add_field( \@fields, "PHR:EX:".$value );
+		$searchexp->add_field( \@fields, $value, "EX" );
 	}
 
 
@@ -414,7 +414,8 @@ END
 	{
 		$searchexp->add_field( 
 				$ds->get_field( "datestamp" ), 
-				"PHR:EQ:".$date_range );
+				$value,
+				"EX" );
 	}
 
 	return( $searchexp, 0, $metadata_format );

@@ -331,3 +331,11 @@ citations if using custom citation.
 - VLit stuff now uses charrange rather than byterange and requires "xuversion"
 to be set.
 
+06/02/2002
+[c] - tweaked the OAI renderer to handle bad months!
+[c] - commended out the "lang" field in metadata-types: {users} as it's
+only needed for multilingual archives.
+- VLit now runs over all of the "document" area but not secure docs or the 
+front page.
+- VLit now returns 401 or 501 where appropriate.
+[c] - table on the default frontpage is no longer 100%: looked bad in IE.

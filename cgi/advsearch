@@ -14,7 +14,6 @@
 
 use EPrints::Session;
 use EPrints::EPrint;
-use EPrints::SearchField;
 use EPrints::SearchExpression;
 
 use strict;

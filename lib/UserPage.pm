@@ -84,7 +84,7 @@ sub process
 
 	$searchexp->add_field(
 		$arc_ds->get_field( "userid" ),
-		"PHR:EQ:$userid" );
+		$userid );
 
 	$searchexp->perform_search();
 	my $count = $searchexp->count();
