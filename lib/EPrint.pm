@@ -59,18 +59,20 @@ my $digits = 8;
 %EPrints::EPrint::help =
 (
 	"additional" => "If you'd like to suggest another subject or subjects for ".
-		"your submission, then enter it here. Please specify it fully, in a ".
-		"manner similar to those displayed in the above list.",
-	"reasons" => "Here you can offer justification for your suggested added ".
+		"your submission (and the archive) that are not in the above list, ".
+		"then enter them here. Please specify them fully, in a manner similar ".
+		"to those displayed in the above list.",
+	"reasons" => "Here you can offer justification for your suggested new ".
 		"subject(s).",
 	"commentary" => "If your paper is a commentary on another document (or ".
 		"author's response to a commentary) in the archive, please enter its ".
 		"ID in this box.",
 	"succeeds" => "If this document is a revised version of another document ".
 		"in the archive, please enter its ID code in this box.",
-	"subjects" => "Please enter at least one main subject category, and ".
+	"subjects" => "Please select at least one main subject category, and ".
 		"optionally up to two other subject categories you think are ".
-		"appropriate for your submisson."
+		"appropriate for your submisson, in the list below. In some browsers ".
+		"you may have to hold CTRL or SHIFT to select more than one subject."
 );
 
 $EPrints::EPrint::static_page = "index.html";
@@ -782,7 +784,7 @@ sub validate_subject
 			if( !defined $self->{$field->{name}} ||
 			    $self->{$field->{name}} eq ":" )
 			{
-				$problem = "You need to select at least one subject!";
+				$problem = "You need to select at least one subject from the list!";
 			}
 		}
 		else
