@@ -25,7 +25,10 @@ if( defined $userid )
 
 	if( defined $user )
 	{
-		print $session->{render}->start_html( "User record for ".$user->full_name() );
+		print $session->{render}->start_html( 
+			$session->{lang}->phrase( 
+				"H:user_title", 
+				$user->full_name() ) );
 
 		print $session->{render}->render_user( $user, 1 );
 
@@ -36,14 +39,24 @@ if( defined $userid )
 			[ "eprintid" ],
 			[ "username LIKE \"$userid\"" ] );
 
-		print "<CENTER><P>User has ".scalar @$rows;
-		print ( scalar @$rows==1 ? " EPrint" : " EPrints" );
-		print " in the archive.</P></CENTER>\n";
+		print "<CENTER><P>";
+		if ( scalar @$rows==1 )
+		{
+			print $session->{lang}->phrase( "H:one_record" );
+		} 
+		else 
+		{
+			print $session->{lang}->phrase( 
+				"H:n_records", 
+				scalar @$rows );
+		} 
+		print "</P></CENTER>\n";
 		
 		if( scalar @$rows > 0 )
 		{
-			print "<CENTER><P><A HREF=\"user_eprints?username=$userid\">Click here ".
-				"to view this author's EPrints.</A></P></CENTER>\n"; 
+			print "<CENTER><P><A HREF=\"user_eprints?username=$userid\">";
+			print $session->{lang}->phrase( "H:view_link" );
+			print "</A></P></CENTER>\n"; 
 		}
 		
 		print $session->{render}->end_html();
@@ -51,17 +64,17 @@ if( defined $userid )
 	else
 	{
 		print $session->{render}->render_error(
-			"Unknown user",
+			$session->{lang}->phrase( "H:unknown_user" ),
 			"$EPrintSite::SiteInfo::frontpage",
-			"Return to front page" );
+			$session->{lang}->phrase( "H:return_front" ) );
 	}
 }
 else
 {
 	print $session->{render}->render_error(
-		"No user specified!",
+		$session->{lang}->phrase( "H:no_user" ),
 		"$EPrintSite::SiteInfo::frontpage",
-		"Return to front page" );
+		$session->{lang}->phrase( "H:return_front" ) );
 }
 
 $session->terminate();

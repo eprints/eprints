@@ -29,7 +29,9 @@ if( defined $userid )
 	if( defined $user )
 	{
 		print $session->{render}->start_html(
-			"EPrints submitted by ".$user->full_name() );
+			$session->{lang}->phrase( 
+				"H:eprints_title",
+				$user->full_name() ) );
 
 		my @eprints = EPrints::EPrint::retrieve_eprints(
 			$session,
@@ -37,14 +39,27 @@ if( defined $userid )
 			[ "username LIKE \"$userid\"" ],
 			[ "datestamp DESC" ] );
 
-		print "<CENTER><P><A HREF=\"user?username=$userid\">".
-			"Click here to see user's record.</A></P></CENTER>\n";
+		print "<CENTER><P><A HREF=\"user?username=$userid\">";
+		print $session->{lang}->phrase( "H:record_link" );
+		print "</A></P></CENTER>\n";
 
-		print "<CENTER><P>User has submitted ";
-		print "no EPrints." if( scalar @eprints==0 );
-		print "<STRONG>1</STRONG> EPrint." if( scalar @eprints==1 );
-		print "<STRONG>".scalar @eprints."</STRONG> EPrints"
-			if( scalar @eprints>1 );
+		print "<CENTER><P>";
+		if ( scalar @eprints == 0 )
+		{
+			print $session->{lang}->phrase( "H:no_eprints" );
+		}
+		else if ( scalar @eprints == 1 )
+		{
+			print $session->{lang}->phrase( 
+				"H:one_eprint",
+				"<STRONG>1</STRONG>" );
+		}
+		else
+		{
+			print $session->{lang}->phrase( 
+				"H:n_eprints",
+				"<STRONG>".scalar @eprints."</STRONG>" );
+		}
 		print "</P></CENTER>\n";
 
 		foreach (@eprints)
@@ -60,17 +75,17 @@ if( defined $userid )
 	else
 	{
 		print $session->{render}->render_error(
-			"Unknown user",
+			$session->{lang}->phrase( "H:unknown_user" ),
 			"$EPrintSite::SiteInfo::frontpage",
-			"Return to front page" );
+			$session->{lang}->phrase( "H:return_front" ) );
 	}
 }
 else
 {
 	print $session->{render}->render_error(
-		"No user specified!",
+		$session->{lang}->phrase( "H:no_user" ),
 		"$EPrintSite::SiteInfo::frontpage",
-		"Return to front page" );
+		$session->{lang}->phrase( "H:return_front" ) );
 }
 
 $session->terminate();

@@ -83,10 +83,15 @@ sub existing_record
 {
 	my( $session, $eprint ) = @_;
 	
-	print $session->{render}->start_html( "Document Not Found" );
-	
-	print "<P>File not found: <CODE>$url</CODE></P>\n";
-	print "<P>Perhaps you're looking for the following eprint:</P>\n";
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:doc_not_found" ) );
+
+	print "<P>";
+	print $session->{lang}->phrase( "H:file_not_found" );
+	print "<CODE>$url</CODE></P>\n";
+	print "<P>";
+	print $session->{lang}->phrase( "H:looking_for" );
+	print "</P>\n";
 	print "<P ALIGN=CENTER>";
 	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
 	print "</P>\n";
@@ -107,17 +112,21 @@ sub plain_404
 {
 	my( $session ) = @_;
 
-	print $session->{render}->start_html( "File not found" );
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:file_not_found" ) );
 	
 	my $url = $ENV{REDIRECT_URL};
-	print "<P>File not found: <CODE>$url</CODE></P>\n";
-	
-	print "<P>The specified file could not be found on this server.  If you ".
-		"reached this page by following a link within the archive, please ".
-		"<a href=\"mailto:$EPrintSite::SiteInfo::admin\">contact the site ".
-		"administrator</a>.  Otherwise, please check that you have typed the ".
-		"URL in correctly, or contact the person or site that supplied you with ".
-		"this URL.</P>\n";
+	print "<P>";
+	print $session->{lang}->phrase( "H:file_not_found" );
+	print "<CODE>$url</CODE></P>\n";
+
+	print "<P>";	
+	print $session->{lang}->phrase( 
+		"H:blurb",
+		"<a href=\"mailto:$EPrintSite::SiteInfo::admin\">".
+		  $session->{lang}->phrase( "H:blurb_link" ).
+		  "</a>" );
+	print "</P>\n";
 	
 	print $session->{render}->end_html();
 }

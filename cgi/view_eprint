@@ -96,19 +96,20 @@ unless( defined $eprint || defined $deletion_record )
 	# We don't have an EPrint object, so the ID code is valid, or we didn't get
 	# one
 	$session->{render}->clear();
-	print $session->{render}->start_html( "Enter EPrint ID Code" );
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:code_title" ) );
 	
 	if( defined $eprintid_in && $eprintid_in ne "" )
 	{
 		# Write an error message if we got an invalid ID code in
-		print "<P ALIGN=\"CENTER\"><STRONG>The specified ID code is not a valid ".
-			"ID code.</STRONG></P>\n";
+		print "<P ALIGN=\"CENTER\"><STRONG>";
+		print $session->{lang}->phrase( "H:invalid_code" );
+		print "</STRONG></P>\n";
 	}
 	
-	print "<P ALIGN=\"CENTER\">Please enter the ID code of the record you ".
-		"wish to view below. You can enter a standard ID code, an Open ".
-		"Archives full ID code, or just the digits on the right hand side ".
-		"of an ID code.</P>\n";
+	print "<P ALIGN=\"CENTER\">";
+	print $session->{lang}->phrase( "H:enter_code" );
+	print "</P>\n";
 	
 	my $id_field = new EPrints::MetaField( "eprintid:text::EPrint ID Code::::" );
 	
@@ -116,7 +117,7 @@ unless( defined $eprint || defined $deletion_record )
 	                                 {},
 	                                 1,
 	                                 0,
-	                                 [ "View EPrint" ] );
+	                                 [ $session->{lang}->phrase( "F:view_eprint" ) ] );
 
 	print $session->{render}->end_html();
 }

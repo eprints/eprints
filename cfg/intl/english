@@ -325,6 +325,8 @@ H:return_staff	= Click here to return to the Staff Area
 
 
 ######################################################################
+# cgi
+######################################################################
 
 <file advsearch>
 H:adv_search	= Advanced Search
@@ -332,6 +334,64 @@ H:dont_panic	= Don't panic! Just leave the fields you don't want to search blank
 H:simple_search = Click here for a simple search.
 </file>
 
+<file handle_404>
+H:doc_not_found	= Document Not Found
+H:file_not_found= File not found:
+H:looking_for	= Perhaps you're looking for the following eprint:
+H:blurb		= The specified file could not be found on this server.  If you reached this page by following a link within the archive, please $(1).  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.
+H:blurb_link	= contact the site administrator
+</file>
+
+<file oai>
+# OAI should only be used by automatic systems so we have not
+# provided a translation.
+</file>
+
+<file remind>
+H:rem_sent_title= Reminder Sent
+H:sent_blurb	= A reminder of your username and password has been sent to you in an E-mail. If you still have problems, please mail the $(1).
+H:admin_link	= site administrator
+H:return_home 	= Return to $(1) Home
+H:form_title	= Username and Password Reminder Form
+H:form_blurb	= If you've forgotten your username and/or password, just type your E-mail address into the box below, and your username and password will be mailed to you.
+F:send		= Send
+</file>
+
+<file search>
+H:simple_search	= Simple Search
+H:adv_search	= Click here for an advanced search
+</file>
+
+<file user>
+H:user_title	= User record for $(1)
+H:one_record	= User has 1 EPrint in the archive.
+H:n_records	= User has $(1) EPrints in the archive.
+H:view_link	= Click here to view this author's EPrints.
+H:unknown_user	= Unknown User
+H:return_front	= Return to front page
+H:no_user	= No user specified!
+</file>
+
+<file user_eprints>
+H:eprints_title	= EPrints submitted by $(1)
+H:record_link	= Click here to see user's record.
+H:no_eprints	= User has submitted no EPrints.
+H:one_eprint	= User has submitted $(1) EPrint.
+H:n_eprints	= User has submitted $(1) EPrints.
+H:unknown_user	= Unknown User
+H:return_front	= Return to front page
+H:no_user	= No user specified!
+</file>
+
+<file view_eprint>
+H:code_title	= Enter EPrint ID Code
+H:invalid_code	= The specified ID code is not a valid ID code.
+H:enter_code	= Please enter the ID code of the record you wish to view below. You can enter a standard ID code, an Open Archives full ID code, or just the digits on the right hand side of an ID code.
+F:view_eprint	= View EPrint
+</file>
+
+
+######################################################################
 
 
 

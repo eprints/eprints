@@ -35,9 +35,10 @@ my $searchform = new EPrints::SearchForm(
 	0,
 	$EPrints::Database::table_archive,
 	\@metafields,
-	"Simple Search",
-	"<CENTER><P><A HREF=\"advsearch\">Click here for an advanced search.</A>".
-		"</P></CENTER>",
+	$session->{lang}->phrase( "H:simple_search" ),
+	"<CENTER><P><A HREF=\"advsearch\">".
+	  $session->{lang}->phrase( "H:adv_search" ).
+	  "</A></P></CENTER>",
 	\%EPrintSite::SiteInfo::eprint_order_methods,
 	$EPrintSite::SiteInfo::eprint_default_order,
 	0 );

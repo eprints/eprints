@@ -40,24 +40,32 @@ if( $session->{render}->seen_form() )
 	# If the user doesn't exist, we don't tell the page visitor for security
 	# reasons.
 
-	print $session->{render}->start_html( "Reminder Sent" );
-	print "<CENTER><P>A reminder of your username and password has been sent ".
-		"to you in an E-mail. If you still have problems, please mail the ".
-		"<A HREF=\"$EPrintSite::SiteInfo::admin\">site administrator</A>.</P>".
-		"</CENTER>\n";
+	print $session->{render}->start_html(
+		$session->{lang}->phrase( "H:rem_sent_title" ) );
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( 
+		"H:sent_blurb",
+		"<A HREF=\"$EPrintSite::SiteInfo::admin\">.
+		  $session->{lang}->phrase( "H:admin_link" )."</A>" );
+
+	print "</P></CENTER>\n";
 		
-	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::frontpage\">Return to ".
-		"$EPrintSite::SiteInfo::sitename Home</A></CENTER></P>\n";
+	print "<P><CENTER><A HREF=\"$EPrintSite::SiteInfo::frontpage\">";
+	print $session->{lang}->phrase( 
+		"H:return_home",
+		"$EPrintSite::SiteInfo::sitename );
+	print "</A></CENTER></P>\n";
 
 	print $session->{render}->end_html();
 }
 else
 {
-	print $session->{render}->start_html( "Username and Password Reminder Form" );
+	print $session->{render}->start_html( 
+		$session->{lang}->phrase( "H:form_title ) );
 	
-	print "<CENTER><P>If you've forgotten your username and/or password, just ".
-		"type your E-mail address into the box below, and your username and ".
-		"password will be mailed to you.</P>\n";
+	print "<CENTER><P>";
+	print $session->{lang}->phrase( "H:form_blurb );
+	print "</CENTER></P>\n";
 	
 	my $field = new EPrints::MetaField( "email:email::E-Mail Address:0:1:1" );
 	
@@ -65,7 +73,7 @@ else
 	                                 {},
 	                                 1,
 	                                 0,
-	                                 [ "Send" ] );
+	                                 [ $session->{lang}->phrase( "F:send" ) ] );
 
 	print $session->{render}->end_html();
 }
