@@ -452,7 +452,8 @@ sub eprint_get_oams
 	foreach (@authors)
 	{
 		my( $surname, $firstnames ) = @$_;
-		push @{$tags->{author}}, "$firstnames $surname";
+		push @{$tags->{author}}, { "name" => "$firstnames $surname",
+		                           "organization" => "" };
 	}
 
 	# Subject field will just be the subject descriptions
