@@ -22,6 +22,7 @@
 
 package EPrints::SubjectList;
 
+use EPrints::Subject;
 
 use strict;
 
@@ -98,6 +99,34 @@ sub set_tags
 	my( $self, $tags ) = @_;
 	
 	$self->{subjects} = $tags;
+}
+
+
+######################################################################
+#
+# @subjects = get_subjects( $session )
+#
+#  Return the subjects in the list.
+#
+######################################################################
+
+sub get_subjects
+{
+	my( $self, $session ) = @_;
+	
+	my @subjects;
+
+	foreach (@{$self->{subjects}})
+	{
+		my $sub = new EPrints::Subject( $session, $_ );
+		
+		push @subjects, $sub if( defined $sub );
+		
+		EPrints::Log->log_entry( "SubjectList", "List contains invalid tag $_" )
+			unless( defined $sub );
+	}
+	
+	return( @subjects );
 }
 
 
