@@ -773,22 +773,13 @@ sub render_error
 	my( $p, $page, $a );
 	$page = $self->make_doc_fragment();
 
-	$p = $self->make_element( "p" );
-	$p->appendChild( $self->html_phrase( "lib/session:some_error"));
-	$page->appendChild( $p );
+	$page->appendChild( $self->html_phrase( "lib/session:some_error"));
 
 	$p = $self->make_element( "p" );
 	$p->appendChild( $error_text );
 	$page->appendChild( $p );
 
-	$p = $self->make_element( "p" );
-	$p->appendChild( $self->html_phrase( 
-		"lib/session:contact",
-		adminemail => $self->make_element( 
-			"a",
-			href => "mailto:".
-				$self->get_archive()->get_conf( "adminemail" ) ) ) );
-	$page->appendChild( $p );
+	$page->appendChild( $self->html_phrase( "lib/session:contact" ) );
 				
 	$p = $self->make_element( "p" );
 	$a = $self->make_element( 

@@ -303,10 +303,18 @@ sub render
 	my( $self ) = @_;
 
 	my $ds = $self->{session}->get_archive()->get_dataset( "subject" );
+	#my %opts = %{$self->{data}->{name}};
+	#$opts{"?"} = "(".$self->{data}->{subjectid}.")";
+	#my $namefield = $ds->get_field( "name" );
+	#my $html = $namefield->render_value( 
+			#$self->{session}, 
+			#\%opts );
+	my $name = $self->{data}->{name};
+	if( $name eq '' ) { $name = "(".$self->{data}->{subjectid}.")"; }
 	my $namefield = $ds->get_field( "name" );
 	my $html = $namefield->render_value( 
 			$self->{session}, 
-			$self->{data}->{name} );
+			$name );
 	return $html;
 }
 

@@ -27,10 +27,7 @@ my $searchexp = new EPrints::SearchExpression(
 	dataset => $session->get_archive()->get_dataset( "archive" ),
 	fieldnames => $session->get_archive()->get_conf( "simple_search_fields" ) );
 
-my $preamble = $session->make_element( "p" );
-my $a = $session->make_element( "a", href=>"advsearch" );
-$a->appendChild( $session->html_phrase( "cgi/search:adv_search" ) );
-$preamble->appendChild( $a );
+my $preamble = $session->html_phrase( "cgi/search:preamble" );
 
 my $title = $session->phrase( "cgi/search:simple_search" );
 

@@ -56,7 +56,7 @@ if( !defined $eprint )
 	exit;
 }
 
-my( $page, $form, $p, $a );
+my( $page, $form );
 
 $page = $session->make_doc_fragment();
 
@@ -81,11 +81,7 @@ $form->appendChild( $session->render_action_buttons(
 	"delete" => $session->phrase( 
 			"cgi/users/view_submission:action_delete" ) ) );
 
-$p = $session->make_element( "p" );
-$page->appendChild( $p );
-$a = $session->make_element( "a", href=>"buffer" );
-$p->appendChild( $a );
-$a->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
+$page->appendChild( $session->html_phrase( "cgi/users/view_submission:back" ) );
 
 $session->build_page(
 	$session->phrase( "cgi/users/view_submission:title" ), 

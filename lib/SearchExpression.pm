@@ -631,32 +631,17 @@ sub process_webpage
 
 		if( $n_results > $MAX) 
 		{
-			my $p = $self->{session}->make_element( "p" );
-			$page->appendChild( $p );
-			$p->appendChild( 
+			$page->appendChild( 
 				$self->{session}->html_phrase( 
 							"lib/searchexpression:too_many", 
 							n=>$MAX ) );
 		}
 	
-		my $code;
-		if( $n_results == 0 )
-		{
-			$code = "no_hits";
-		}
-		elsif( $n_results == 1 )
-		{
-			$code = "one_hit";
-		}
-		else
-		{
-			$code = "n_hits";
-		}
 		my $p = $self->{session}->make_element( "p" );
 		$page->appendChild( $p );
        		$p->appendChild(  
 			$self->{session}->html_phrase( 
-				"lib/searchexpression:".$code,  
+				"lib/searchexpression:results_found",
 				n => $self->{session}->make_text( 
 							$n_results ) ) );
 
@@ -748,9 +733,7 @@ sub _render_problems
 	my $page = $self->{session}->make_doc_fragment();
 	$page->appendChild( $preamble );
 
-	my $p = $self->{session}->make_element( "p" );
-	$p->appendChild( $self->{session}->html_phrase( "lib/searchexpression:form_problem" ) );
-	$page->appendChild( $p );
+	$page->appendChild( $self->{session}->html_phrase( "lib/searchexpression:form_problem" ) );
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );
 	my $problem;

@@ -73,24 +73,7 @@ sub process
 
 		$page = $self->{session}->make_doc_fragment();
 
-		$p = $self->{session}->make_element( "p" );		
-		$p->appendChild( $self->{session}->html_phrase( 
-			"lib/userform:blurb", 
-			star => $self->{session}->make_element(
-					"span",
-					class => "requiredstar" ) ) );	
-		$page->appendChild( $p );
-
-		$a = $self->{session}->make_element( 
-			"a", 
-			href => $self->{session}->get_archive()->
-				  get_conf( "server_static" ).
-				"/register.html"  );
-		$p = $self->{session}->make_element( "p" );		
-		$p->appendChild( $self->{session}->html_phrase( 
-				"lib/userform:change_email",
-				registerlink => $a ) );	
-		$page->appendChild( $p );
+		$page->appendChild( $self->{session}->html_phrase( "lib/userform:blurb" ) );
 
 		$page->appendChild( $self->_render_user_form() );
 
@@ -120,10 +103,8 @@ sub process
 
 		$page = $self->{session}->make_doc_fragment();
 
-		$p = $self->{session}->make_element( "p" );
-		$p->appendChild( 
+		$page->appendChild( 
 			$self->{session}->html_phrase( "lib/userform:form_incorrect" ) );
-		$page->appendChild( $p );
 
 		$ul = $self->{session}->make_element( "ul" );
 		my( $problem );
@@ -136,10 +117,8 @@ sub process
 		}
 		$page->appendChild( $ul );
 
-		$p = $self->{session}->make_element( "p" );
-		$p->appendChild( 
+		$page->appendChild( 
 			$self->{session}->html_phrase( "lib/userform:complete_form" ) );
-		$page->appendChild( $p );
 	
 		$page->appendChild( $self->_render_user_form() );
 

@@ -12,6 +12,8 @@
 #
 ######################################################################
 
+#cjg Not lang'd
+
 use EPrints::Session;
 use EPrints::Config;
 

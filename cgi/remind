@@ -20,6 +20,7 @@ use EPrints::Database;
 
 use strict;
 
+#cjg PROBABLY GOING TO BE REMOVED
 
 
 my $session = new EPrints::Session;

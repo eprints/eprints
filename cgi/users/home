@@ -53,15 +53,12 @@ foreach( @{$probs} ) { print STDERR "[prob:$_]\n"; }
 #
 ######################################################################
 
-my( $p, $page, $dl, $dt, $dd, $a );
+my( $page, $dl, $dt, $dd, $a );
 
 $page = $session->make_doc_fragment();
 
 ### Welcome author blurb
-$p = $session->make_element( "p" );
-$p->appendChild( $session->html_phrase( "cgi/users/home:welcome" ) );
-$page->appendChild( $p );
-
+$page->appendChild( $session->html_phrase( "cgi/users/home:intro" ) );
 
 if( $valid_user )
 {
@@ -101,17 +98,15 @@ $dt->appendChild( $a );
 $dl->appendChild( $dt );
 
 $dd = $session->make_element( "dd" );
-$p = $session->make_element( "p" );
 if( $valid_user )
 {
-	$p->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
+	$dd->appendChild( $session->html_phrase( "cgi/users/home:change_info" ) );
 }
 else
 {
 	### User needs to update their record
-	$p->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
+	$dd->appendChild( $session->html_phrase( "cgi/users/home:before" ) );
 }
-$dd->appendChild( $p );
 $dl->appendChild( $dd );
 
 my $tools = [
@@ -153,9 +148,7 @@ foreach	$tool (@{$tools})
 	$dl->appendChild( $dt );
 
 	$dd = $session->make_element( "dd" );
-	$p = $session->make_element( "p" );
-	$p->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
-	$dd->appendChild( $p );
+	$dd->appendChild( $session->html_phrase( "cgi/users/home:".$tool->{page}."_info" ) );
 	$dl->appendChild( $dd );
 }
 
@@ -215,14 +208,11 @@ sub render_workspace
 	# One or more items in workspace.
 	# Render a form to let the user fiddle with them.
 
-	my( $html, $h3, $p, $form, $div );
+	my( $html, $form, $div );
 
 	$html = $session->make_doc_fragment();
 
-	$h3 = $session->make_element( "h3" );
-	$h3->appendChild( 
-		$session->html_phrase( "cgi/users/home:docs" ));
-	$html->appendChild( $h3 );
+	$html->appendChild( $session->html_phrase( "cgi/users/home:docs" ));
 
 	my @eprintids;
 	my %eprint_titles;
@@ -264,10 +254,7 @@ sub render_workspace
 
 	$html->appendChild( $form );
 
-	$p = $session->make_element( "p" );
-	$p->appendChild( 
-		$session->html_phrase( "cgi/users/home:depositing" ) );
-	$html->appendChild( $p );
+	$html->appendChild( $session->html_phrase( "cgi/users/home:depositing" ) );
 
 	return $html;
 }
@@ -297,13 +284,9 @@ sub render_pending
 	{
 		return $html;
 	}
-	my( $h3, $table, $tr, $td );
+	my( $table, $tr, $td );
 
-	my $h3 = $session->make_element( "h3" );
-	$h3->appendChild(
-		$session->html_phrase( "cgi/users/home:pending_title" ) );
-	$html->appendChild( $h3 );
-
+	$html->appendChild( $session->html_phrase( "cgi/users/home:pending_title" ) );
 
 	$table = $session->make_element( "table",
 			cellpadding=>3,

@@ -23,17 +23,12 @@ use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
-
 my $searchexp = new EPrints::SearchExpression(
 	session => $session,
 	dataset => $session->get_archive()->get_dataset( "archive" ),
 	fieldnames=>$session->get_archive()->get_conf( "advanced_search_fields" ) );
 
-my $preamble = $session->make_element( "p" );
-$preamble->appendChild( 
-	$session->html_phrase( 
-		"cgi/advsearch:dont_panic",
-		simplesearch => $session->make_element( "a", href=>"search" ) ) );
+my $preamble = $session->html_phrase( "cgi/advsearch:preamble" );
 
 $searchexp->process_webpage(
 	$session->phrase( "cgi/advsearch:adv_search" ),

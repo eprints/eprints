@@ -66,14 +66,13 @@ sub mkpage_editsubject
 			"edit_subject" );
 		return;
 	}
-	my $subname = $subject->get_name();
 	
 	
 	my( $title, $page );
 	my $page = $session->make_doc_fragment();
-	my $title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subname ), 
 
 	my $action = $session->get_action_button();
+	my @problems = ();
 
 	if( defined $action )
 	{
@@ -115,13 +114,58 @@ print STDERR "dEStROY\n";
 		if( $action eq "add" )
 		{
 			my $newid = $session->param( "newsubjectid" );
-			if( defined $newid )
+			if( defined $newid && $newid ne '')
 			{
-				print STDERR "NEWID: $newid\n";
+				my $newchild = EPrints::Subject->new( $session, $newid );
+				if( defined $newchild )
+				{
+					if( grep( /^$newid$/, @{$subject->get_value( "ancestors" )} ) )
+					{
+						push @problems, $session->html_phrase( "cgi/users/edit_subject:problem_ancestor" );
+					}
+					else
+					{
+						my @parents = @{$newchild->get_value( "parents" )}; 
+						push @parents, $subject->get_value( "subjectid" );
+						$newchild->set_value( "parents", \@parents );
+						$newchild->commit();
+					}
+				}
+				else
+				{
+					$subject = EPrints::Subject->create_subject( 
+							$session, 
+							$newid, 
+							'', 
+							[ $subject->get_value( "subjectid" ) ],
+							1 );
+					$subid = $newid;
+				}
+			}
+			else
+			{
+				push @problems, $session->html_phrase( "cgi/users/edit_subject:problem_noid" );
 			}
 		}
 		print STDERR "ACTION::".$action."\n";
 	}
+	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:subjectid", 
+		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
+	$page->appendChild( $session->render_ruler() );
+
+
+	if( scalar @problems )
+	{
+		my $ul = $session->make_element( "ul" );
+		$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:problems" ) );
+		$page->appendChild( $ul );
+		foreach( @problems )
+		{
+			$ul->appendChild( $_ );
+		}
+		$page->appendChild( $session->render_ruler() );
+	}
+		
 		
 
 	my @children = $subject->children();
@@ -136,13 +180,8 @@ print STDERR "dEStROY\n";
 
 	$page->appendChild( $session->render_ruler() );
 
-	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:subjectid", 
-		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
-
-
 	if( $subid ne $EPrints::Subject::root_subject )
 	{
-		$page->appendChild( $session->render_ruler() );
 
         	$page->appendChild(
                 	$session->render_input_form(
@@ -162,9 +201,10 @@ print STDERR "dEStROY\n";
                         	{ subjectid => $subid },
                         	{},
                         	"edit_subject" ) );
+
+		$page->appendChild( $session->render_ruler() );
 	}
 
-	$page->appendChild( $session->render_ruler() );
 
 	my $form = $session->render_form( "post" );
 	$form->appendChild( $session->render_hidden_field( "subjectid", $subid ) );
@@ -248,9 +288,9 @@ print STDERR "dEStROY\n";
 	$form->appendChild( $session->render_action_buttons( 
 		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
 
+	$title = $session->phrase( "cgi/users/edit_subject:title", subjectname=>$subject->get_name() ), 
 
 	$session->build_page( $title, $page );
 	$session->send_page();
 
-	return( $title, $page );
 }

@@ -12,6 +12,8 @@
 #
 ######################################################################
 
+#cjg NOT LANG
+
 use EPrints::Session;
 use EPrints::HTMLRender;
 use EPrints::Database;

@@ -29,6 +29,8 @@
     <phrase ref="eprint_fieldname_datestamp">Date Deposited</phrase>
 
     <phrase ref="eprint_fieldname_type">EPrint Type</phrase>
+    <phrase ref="eprint_fieldhelp_type">Please select the most appropriate type for your deposit.</phrase>
+
 
     <phrase ref="eprint_fieldhelp_additional">If you'd like to suggest another subject or subjects for your submission (and the archive) that are not in the above list, then enter them here. Please specify them fully, in a manner similar to those displayed in the above list.</phrase>
 

@@ -951,10 +951,6 @@ sub _do_stage_type
 	$page->appendChild( $self->_render_problems() );
 
 	# should this be done with "help?" cjg
-	$p = $self->{session}->make_element( "p" );	
-	$p->appendChild( 
-		$self->{session}->html_phrase( "lib/submissionform:sel_type" ));
-	$page->appendChild( $p );
 
 	my $submit_buttons = {
 		cancel => $self->{session}->phrase(
@@ -965,8 +961,8 @@ sub _do_stage_type
 	$page->appendChild( $self->{session}->render_input_form( 
 		[ $self->{dataset}->get_field( "type" ) ],
 	        $self->{eprint}->get_data(),
-	        0,
-	        0,
+	        1,
+	        1,
 	        $submit_buttons,
 	        { stage => "type", 
 		  eprintid => $self->{eprint}->get_value( "eprintid" ) },
@@ -1083,15 +1079,7 @@ sub _do_stage_meta
 
 	$page->appendChild( $self->_render_problems() );
 
-	$p = $self->{session}->make_element( "p" );
-
-	my $intro = $self->{session}->html_phrase( 
-			"lib/submissionform:bib_info",
-			star => $self->{session}->make_element(
-					"span",
-					class => "requiredstar" ) );	
-	$p->appendChild( $intro );
-	$page->appendChild( $p );
+	$page->appendChild( $self->{session}->html_phrase( "lib/submissionform:bib_info" ) );
 	
 	my @edit_fields = $self->{dataset}->get_type_fields( $self->{eprint}->get_value( "type" ) );
 
@@ -1148,18 +1136,14 @@ sub _do_stage_format
 
 	if( @{$self->{session}->get_archive()->get_conf( "required_formats" )} >= 0 )
 	{
-		$p = $self->{session}->make_element( "p" );
-		$p->appendChild(
+		$page->appendChild(
 			$self->{session}->html_phrase(
 				"lib/submissionform:least_one") );
-		$page->appendChild( $p );
 	}
 
-	$p = $self->{session}->make_element( "p" );
-	$p->appendChild(
+	$page->appendChild(
 		$self->{session}->html_phrase(
 			"lib/submissionform:valid_formats") );
-	$page->appendChild( $p );
 
 	$form = $self->{session}->render_form( "post", $self->{formtarget}."#t" );
 	$page->appendChild( $form );
@@ -1309,9 +1293,7 @@ sub _do_stage_fileview
 	
 	if( scalar keys %files == 0 )
 	{
-		$p = $self->{session}->make_element( "p" );
-		$page->appendChild( $p );
-		$p->appendChild(
+		$page->appendChild(
 			$self->{session}->html_phrase(
 				"lib/submissionform:no_files") );
 	}
@@ -1420,16 +1402,14 @@ sub _do_stage_fileview
 				$self->{session}->phrase( 
 					"lib/submissionform:delete_all" ) ) );
 
-		$p = $self->{session}->make_element( "p" );
-		$form->appendChild( $p );
 		$a = $self->{session}->make_element( 
 			"a", 
 			href => $self->{document}->url(),
 			target => "_blank" );
-		$p->appendChild( $a );
-		$a->appendChild(
+		$form->appendChild(
 			$self->{session}->html_phrase(
-				"lib/submissionform:here_to_view") );
+				"lib/submissionform:here_to_view"),
+				link=>$a );
 
 	}
 
@@ -1495,12 +1475,7 @@ sub _do_stage_upload
 
 	if( $self->{arc_format} eq "graburl" )
 	{
-		$p = $self->{session}->make_element( "p" );
-		$p->appendChild( $self->{session}->html_phrase( "lib/submissionform:enter_url" ) );
-		$form->appendChild( $p );
-		$p = $self->{session}->make_element( "p" );
-		$p->appendChild( $self->{session}->html_phrase( "lib/submissionform:url_warning" ) );
-		$form->appendChild( $p );
+		$form->appendChild( $self->{session}->html_phrase( "lib/submissionform:enter_url" ) );
 		my $field = EPrints::MetaField->new( 
 			name => "url",
 			type => "text" );
@@ -1508,23 +1483,22 @@ sub _do_stage_upload
 	}
 	else
 	{
-		$p = $self->{session}->make_element( "p" );
 		$form->appendChild( $p );
 		if( $self->{arc_format} eq "plain" )
 		{
 			if( $self->{num_files} > 1 )
 			{
-				$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_files") );
+				$form->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_files") );
 			}
 			else
 			{
-				$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_file") );
+				$form->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_file") );
 			}
 		}
 		else
 		{
 			$self->{num_files} = 1;
-			$p->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_compfile") );
+			$form->appendChild( $self->{session}->html_phrase("lib/submissionform:enter_compfile") );
 		}
 		my $i;
 		# Establish a sensible max and minimum number of files.
@@ -1605,9 +1579,7 @@ sub _do_stage_verify
 	}
 	else
 	{
-		$p = $self->{session}->make_element( "p" );
-		$page->appendChild( $p );
-		$p->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
+		$page->appendChild( $self->{session}->html_phrase("lib/submissionform:please_verify") );
 
 		$page->appendChild( $self->{session}->render_ruler() );	
 		$page->appendChild( $self->{eprint}->render_full_details() );
@@ -1648,22 +1620,10 @@ sub _do_stage_done
 {
 	my( $self ) = @_;
 	
-	my( $page, $p, $a );
+	my( $page );
 	$page = $self->{session}->make_doc_fragment();
 
-	$p = $self->{session}->make_element( "p" );
-	$page->appendChild( $p );
-	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:thanks") );
-	
-	$p = $self->{session}->make_element( "p" );
-	$page->appendChild( $p );
-	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:in_buffer") );
-
-	$p = $self->{session}->make_element( "p" );
-	$page->appendChild( $p );
-	$a = $self->{session}->make_element( "a", href=>"home" );
-	$page->appendChild( $a );
-	$a->appendChild( $self->{session}->html_phrase("lib/submissionform:ret_dep_page") );
+	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:thanks") );
 
 	$self->{session}->build_page(
 		$self->{session}->phrase( "lib/submissionform:title_done" ),
@@ -1686,12 +1646,8 @@ sub _do_stage_confirmdel
 	my( $page, $p );
 	$page = $self->{session}->make_doc_fragment();
 
-	$p = $self->{session}->make_element( "p" );
-	$page->appendChild( $p );
-	$p->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete") );
-	$p->appendChild( $self->{session}->make_text( " " ) );
-	$p->appendChild( $self->{eprint}->render_short_title() );
-	# should the title be in a 'pin' ? cjg
+	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete",
+		title=>$self->{eprint}->render_short_title() ) );
 
 	my $hidden_fields = {
 		stage => "confirmdel",

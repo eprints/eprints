@@ -44,12 +44,13 @@
 2	Autodetect optional system features: microtime, df etc.
 -	Indexcode generator in ArchiveConfig.pm is UTF-8 clean
 0	Password Encryption. (Via callback)
-2 	Super all-singing/dancing etc. Subject Editor
+- 	Super all-singing/dancing etc. Subject Editor
 
 
 *	Milestone "Pepperoni" : Database code stable. Modules, scripts and CGI still unstable.
 
 0	Option to hide Honourific and/or Lineage.
+0	Commentary summary page (Psycoloquy style)
 0	Multiple Skins (So we can make a subset of papers appear on a different site). Maybe this is just a clever script.
 -	Make the mailer only encode UTF-8 in Mime Headers if needed, and (possibly) try and use ISO-LATIN-1 if possible.
 0	Cosmetic usernames via callbacks to Config.pm to munge and unmunge what the user edits - so you can edit the username, not the UID, for example.
@@ -94,6 +95,7 @@
 1	XML Importer
 0	Improve name search syntax (?)
 0	Remove (Hide) Lanuage related options if only one language supported.
+0	Xanadu interface(!)
 
 
 *	Milestone "Tomato" : BETA Release - ie. You can download it and install it, it should work, but has bugs. All features for 2.0 are (should) be stable. 
