@@ -113,11 +113,10 @@ sub init
 	my $file;
 	while( $file = readdir( CFG ) )
 	{
-		next unless( $file=~m/^(.*)\.xml$/ );
+		next if( $file =~ m/^./ );
+		next if( !-d $SYSTEMCONF{arc_path}."/".$file );
 		
-		my $id = $1;
-	
-		$ARCHIVES{$id} = {};
+		$ARCHIVES{$file} = {};
 	}
 	closedir( CFG );
 }
