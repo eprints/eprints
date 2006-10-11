@@ -4496,3 +4496,7 @@ PACKAGE: 2.2.99.2
  * Disabled localplugin feature
  * EPScript phrase and print are now available to templates
  * foo{bar} in eprscript now returns value bar of hash foo
+
+2006-10-11 moj
+ * generate_apacheconf now loads the repository to make sure the 
+    config is there

@@ -260,8 +260,8 @@ print CONF <<END;
 END
 foreach my $repository_id ( EPrints::Config::get_repository_ids() )
 {
-	my $repository_config = EPrints::Config::get_repository_config( $repository_id );
-	my $repository_inc = $repository_config->{archiveroot}."/cfg/apache.conf";
+	my $repository = EPrints::Repository->new( $repository_id );
+	my $repository_inc = $repository->{config}->{archiveroot}."/cfg/apache.conf";
 	print CONF <<END;
 # $repository_id
 Include $repository_inc
