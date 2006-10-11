@@ -14,34 +14,26 @@
 
 =head1 NAME
 
-B<configure_archive> - create a new EPrint Archive, or edit the basic options of an existing repository.
+B<epadmin> - EPrints repository admin tool
 
 =head1 SYNOPSIS
 
-B<configure_archive> [I<repository_id>] [B<options>]
+B<epadmin> --help
+
+B<epadmin> create
+
+B<epadmin> configcore
+
+B<epadmin> configdb
+
+B<epadmin> createdb
+
 
 =head1 DESCRIPTION
 
-Create a new EPrint Archive, or edit the basic options of an existing repository.
+Perform various admin functions including:
 
-This script will prompt the user for various basic information about the repository and then will:
-
-  - create a basic XML config file
-  - make the repository directory
-  - copy default files into the repository directory
-  - create the MySQL database (but not the tables)
-
-After running this script you should edit the files created in the repository B<cfg> directory, especially B<Config.pm> then you will need to run a number of setup scripts, starting with B<create_tables>.
-
-=head1 ARGUMENTS
-
-=over 8
-
-=item I<repository_id> 
-
-The ID of the EPrint repository to modify (or create).
-
-=back
+Create a new EPrint Repository (create configuration and database)
 
 =head1 OPTIONS
 
@@ -81,6 +73,7 @@ use EPrints;
 use Sys::Hostname;
 use DBI;
 use Unicode::String qw(utf8 latin1);
+use Data::Dumper;
 
 use strict;
 use Getopt::Long;
@@ -103,7 +96,7 @@ GetOptions(
 EPrints::Utils::cmd_version( "configure_archive" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV > 1 ); 
+pod2usage( 2 ) if( scalar @ARGV == 0 ); 
 
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
@@ -111,8 +104,6 @@ $|=1;
 my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
-
-my $repoid = $ARGV[0];
 
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
@@ -123,19 +114,34 @@ my $REGEXP_NUMBER = '^[0-9]+$';
 my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
 
-my %config = ();
-
-if( !defined $repoid )
+my $action = $ARGV[0];
+if( $action eq "create" ) { create(); }
+else
 {
+	my $repoid = $ARGV[1];
+	pod2usage(1) unless defined $repoid;
+	if( $action eq "configcore" ) { configcore( $repoid ); }
+	elsif( $action eq "configdb" ) { configdb( $repoid ); }
+	elsif( $action eq "createdb" ) { createdb( $repoid ); }
+	else { pod2usage( 1 ); }
+}
+
+
+exit;
+
+
+
+sub create
+{
+	pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
 	print <<END;
 
-Create or Edit an EPrint Archive
+Create an EPrint Repository
 
 Please select an ID for the repository, which will be used to create a directory
 and identify the repository. Lower case letters and numbers, may not start with
-a number) eg. "lemurprints" or "test3"
-
-Enter an already existing repository ID to edit the settings.
+a number. examples: "lemurprints" or "test3"
 
 END
 	if( scalar EPrints::Config::get_repository_ids() )
@@ -144,373 +150,33 @@ END
 		print join( ", ", EPrints::Config::get_repository_ids() )."\n\n";
 	}
 
-	$repoid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
-}
+	my $repoid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
 
-my( $configfile ) = EPrints::Config::get( "base_path" )."/archives/".$repoid.".xml";
-my( $repodir ) = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
 
-my $loaded_config = EPrints::Config::get_repository_config( $repoid );		
-my $exists = ( defined $loaded_config );
+	my $loaded_config = EPrints::Config::get_repository_config( $repoid );		
+	my $exists = ( defined $loaded_config );
 
-if( $exists )
-{
-	print "Config file detected:\n";
-	print "Loading from: $configfile\n";
-	if( !defined $loaded_config )
+	if( $exists )
 	{
-		print "Can't read config file.\n\n";
-		exit;
-	}	
-	foreach( keys %{$loaded_config} ) 
-	{ 
-		$config{$_} = $loaded_config->{$_}; 
+		print "A repository with that ID already exist.\n";
+		exit;	
 	}
-}
-else
-{
-	$config{port} = 80;
-	$config{host} = undef;
-	$config{urlpath} = '/';
-	$config{archiveroot} = "archives/".$repoid;
-	$config{configmodule} = "cfg/Config.pm";
-	$config{aliases} = [];
-	$config{dbname} = $repoid;
-	$config{dbhost} = "localhost";
-	$config{dbport} = undef;
-	$config{dbsock} = undef;
-	$config{dbuser} = $repoid;
-	$config{dbpass} = undef;
-	$config{adminemail} = undef;
-	$config{archivename} = {};
-	$config{securehost} = undef;
-	$config{securepath} = undef;
-}
 
-
-#cjg Default to english for now!
-if( !defined $config{languages} ) 
-{
-	$config{languages} = [ "en" ];
-	$config{defaultlanguage} = "en";
-}
-
-unless( -e $repodir )
-{
-	print "We need to create $repodir, doing it now...\n";
-	unless( mkdir($repodir) )
+	unless( -e $repodir )
 	{
-		print "Problem creating directory\n\n";
-		exit;
-	}
-}
-unless( -d $repodir )
-{	
-	print "$repodir MUST be a directory.\n\n";
-}
-	
-print <<END;
-
-Please enter the fully qualified hostname of the repository. 
-
-For a production system we recommend against using the real hostname of the 
-machine. 
-
-Example: $repoid.footle.ac.uk
-
-END
-
-$config{host} = EPrints::Utils::get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
-
-print <<END;
-
-Please enter the port of the webserver. This is probably 80, but you may wish 
-to run apache on a different port if you are experimenting.
-
-END
-
-$config{port} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
-
-
-# calculate example aliases
-my $realhostname = hostname();
-if( $realhostname !~ m/\./ )
-{
-	# No dots in the actual hostname! Lets try and got the
-	# domain from resolv.conf
-	my $domain = "";
-	if( open( RESOLV, "/etc/resolv.conf" ) && 0)
-	{
-		while( <RESOLV> )
+		print "We need to create $repodir, doing it now...\n";
+		unless( mkdir($repodir) )
 		{
-			chomp;
-			if( m/^search\s+([^\s]+)/ )
-			{
-				$domain = $1;	
-				last;
-			}
+			print "Problem creating directory\n\n";
+			exit;
 		}
-		close RESOLV;
 	}
-	$domain = "mydomain.com" if( $domain eq "" );
-	$realhostname.=".".$domain;
-}
-my @example_aliases = ();
-push @example_aliases,$realhostname;
-
-$realhostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
-push @example_aliases,$1 if( $3 eq ".");
-push @example_aliases,$2;
-
-$config{host}=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
-push @example_aliases,$1 if( $3 eq "." );
-push @example_aliases,$2;
-print <<END;
-
-Please enter all the aliases which could reach the repository, and indicate if 
-you would like EPrints to write a Redirect Rule to redirect requests to this
-alias to the correct URL.
-END
-if( scalar @{$config{aliases}}==0 )
-{
-	print "Some suggestions:\n";
-	foreach( @example_aliases )
-	{
-		print $_."\n";
+	unless( -d $repodir )
+	{	
+		print "$repodir MUST be a directory.\n\n";
 	}
-}
-print <<END;
 
-Enter a single hash (#) when you're done.
-
-END
-
-my @aliases = @{$config{aliases}};
-$config{aliases} = [];
-
-for(;;)
-{
-	my $default = shift @aliases;
-	my $alias = EPrints::Utils::get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
-		(defined $default ? $default->{name} : '#' ) );
-	last if( $alias eq "#" );
-	my $aliasrecord = {};
-	$aliasrecord->{name} = $alias;
-	$aliasrecord->{redirect} = 
-		EPrints::Utils::get_input( 
-			$REGEXP_YESNO,
-			"Redirect $alias to $config{host}",
-			(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
-	push @{$config{aliases}},$aliasrecord;
-	print "\n";
-}
-
-#print <<END;
-#
-#Language Configuration
-#
-#Please enter the primary language and other supported languages for the 
-#repository. Supporting other languages represents a serious commitment to 
-#translate all the phrases and templates etc. into each of these other 
-#languages.
-#
-#Available languages: (please use the ID to refer to them)
-#END
-#my @langs = EPrints::Config::get_supported_languages();
-#foreach( @langs )
-#{
-#	my $title = utf8("");
-#	$title->utf8( "".EPrints::Config::lang_title( $_ ) );
-#	print $_." - ".($title->latin1)."\n";
-#}
-#print <<END;
-#
-#If you plan to add support for another language, you will need to edit the 
-#languages.xml file to indicate that this language is supported, and create 
-#the relevant phrase and template files. 
-#
-#END
-
-print "\n";
-
-$config{adminemail} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
-print <<END;
-
-Enter the name of the repository in the default language. If you wish to enter 
-other titles for other languages or enter non ascii characters then you may
-enter something as a placeholder and edit the XML config file which this
-script generates.
-
-END
-$config{archivename}->{$config{defaultlanguage}} = EPrints::Utils::get_input( '^.+$', 'Archive Name',  $config{archivename}->{$config{defaultlanguage}} );
-
-print <<END;
-
-MySQL Configuration 
-
-END
-$config{dbname} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
-$config{dbhost} = EPrints::Utils::get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
-
-print "\nYou probably don't need to set socket and port (unless you do!?).\n";
-$config{dbport} = "#" if( !defined $config{dbport} );
-$config{dbport} = EPrints::Utils::get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
-$config{dbport} = undef if( $config{dbport} eq "#" );
-
-$config{dbsock} = "#" if( !defined $config{dbsock} );
-# can't remember what is a legal mysql socket... cjg
-$config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
-$config{dbsock} = undef if( $config{dbsock} eq "#" );
-
-$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
-$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
-
-print <<END;
-
-EPrints can create the database, and grant the correct permissions.
-
-END
-
-my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", $exists?"no":"yes" );
-if( $makedb eq "yes" )
-{
-	#cjg hide password from display?
-	print <<END;
-
-Ok, I'll need to connect to the mysql database as root. What is the root 
-password? 
-	
-END
-	my $mysqlrootpass = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
-
-	print "Connecting to the database...\n";
-	my $dbh = DBI->connect(
-		EPrints::Database::build_connection_string(
-			dbname=>"mysql",
-			dbsock=>$config{dbsock},
-			dbport=>$config{dbport},
-			dbhost=>$config{dbhost} ),
-		"root",
-		$mysqlrootpass );
-
-
-	if( !defined $dbh )
-	{
-		print <<END;
-
-Hmmm. Problem connecting to database as root. We'll skip this but
-you should create it by hand.
-
-END
-	}
-	else
-	{
-		my $mversion = EPrints::Database::mysql_version_from_dbh( $dbh );
-		my $oldpasswords = 0;
-		if( $mversion >= 40100 ) 
-		{
-			print "MySQL version id $mversion >= 40100\n";
-			print "MYSQL OLD PASSWORDS will be used for compatibility with DBI::mysql\n";
-			$oldpasswords = 1;
-		} 
-	
-		my $sth = $dbh->prepare( "show databases" );
-		$sth->execute;
-		my $dbexists = 0;
-		my @row;
-		while( @row = $sth->fetchrow_array )
-		{
-			$dbexists = 1 if $row[0] eq $config{dbname};
-		}
-		if( $dbexists )
-		{
-			print "Hmm. A database called $config{dbname} already exists, oh well.\n\n";
-		}
-		else
-		{
-			my $SQL = "CREATE DATABASE ".$config{dbname};
-			print "DOING: $SQL\n";
-			$dbh->do( $SQL );
-		}
-		print "Setting MySQL privs\n";
-		#cjg @localhost ??? what about remote mysql's?
-
-		#my $SQL = 'GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE, ALTER ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost IDENTIFIED BY "'.$config{dbpass}.'"';
-		my $SQL;
-		$SQL = 'GRANT ALL ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost';
-		print "DOING: $SQL\n";
-		$dbh->do( $SQL );
-		my $pass = '"'.$config{dbpass}.'"';
-		if( $oldpasswords ) 
-		{
-			$pass = "OLD_PASSWORD($pass)";
-		} else {
-			$pass = "PASSWORD($pass)";
-		}
-		$SQL = 'SET PASSWORD FOR '.$config{dbuser}.'@localhost = '.$pass;
-		print "DOING: $SQL\n";
-		$dbh->do( $SQL );
-
-		print "Disconnecting from database.\n";
-		$dbh->disconnect;
-	}
-}
- 
-
-######
-#
-# Write XML Config FIle
-#
-
-my $doc = EPrints::XML::make_document();
-
-#my $doctype = $doc->createDocumentType( "archive" );
-#$doc->setDoctype( $doctype );
-
-#my $xmldecl = $doc->createXMLDecl( "1.0", "utf-8", "yes" );
-#$doc->setXMLDecl( $xmldecl );
-
-my $t_archive = $doc->createElement( "archive" );
-$t_archive->setAttribute( "id", $repoid );
-$doc->appendChild( $t_archive );
-
-$t_archive->appendChild( info_tag( $doc, "host", $config{host} ) );
-foreach( @{$config{aliases}} )
-{
-	$t_archive->appendChild( info_tag( $doc, "alias", $_->{name}, "redirect", $_->{redirect} ) );
-}
-foreach( @{$config{languages}} )
-{
-	$t_archive->appendChild( info_tag( $doc, "language", $_) );
-}
-foreach( "port", "urlpath", "archiveroot", "configmodule",
-	 "dbname","dbhost","dbport","dbsock","dbuser","dbpass", 
-	"defaultlanguage", "adminemail", "securehost", "securepath" )
-{
-	$config{$_}='' if( !defined $config{$_} );
-	$t_archive->appendChild( info_tag( $doc, $_, $config{$_} ) );
-}
-foreach( keys %{$config{archivename}} )
-{
-	$t_archive->appendChild( info_tag( $doc, "archivename", $config{archivename}->{$_}, language=>$_ ) );
-}
-$t_archive->appendChild( $doc->createTextNode( "\n" ) );
-
-print "\nWriting Config File to:\n$configfile...\n";
-open( CONF, ">$configfile" ) || die "can't open $configfile for writing";
-print CONF EPrints::XML::to_string( $doc );
-close CONF;
-# It's got a password in so 600 to be safe!
-chmod( $EPrints::SystemSettings::conf->{"file_perms"}, $configfile );
-print <<END;
-
-Copy across initial config files? You have to do this for a new repository but
-probably don't want to if you're editing an repository configuration.
-
-END
-my $mkfiles = EPrints::Utils::get_input( $REGEXP_YESNO, "Create config files", $exists?"no":"yes" );
-if( $mkfiles eq "yes" )
-{
 	my(undef,undef,$uid,$gid) = getpwnam( EPrints::Config::get( "user" ) );
 	print "\nCreating initial files:\n";
 	&install( 
@@ -537,10 +203,28 @@ store the full texts in. Additional links may be placed here to be
 used when the first is full.
 
 END
-	EPrints::Utils::get_input( $REGEXP_ANY, "Hit return to continue", "" );
-}
-	
-	
+	print "\n";
+	my $configcore = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
+	if( $configcore eq "yes" )
+	{
+		configcore( $repoid );	
+	}
+	else
+	{
+		print "OK, but you'll need to edit 10_core.pl by hand in that case.\n";
+	}
+
+	print "\n";
+	my $configdb = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure database?", "yes" );
+	if( $configdb eq "yes" )
+	{
+		configdb( $repoid );	
+	}
+	else
+	{
+		print "OK, but you'll need to edit database.pl by hand in that case, and make sure the database exists.\n";
+	}
+
 
 # cjg: Register with website!
 
@@ -575,24 +259,9 @@ END
 
 exit;
 
-#######################################################################
-
-sub info_tag
-{
-	my( $doc, $tagname, $value, %attrs ) = @_;
-
-	my $frag = $doc->createDocumentFragment();
-	$frag->appendChild( $doc->createTextNode( "\n    " ) );
-	my $tag = $doc->createElement( $tagname );
-	$tag->appendChild( $doc->createTextNode( $value ) );
-	foreach( keys %attrs )
-	{
-		$tag->setAttribute( $_, $attrs{$_} );
-	}
-	$frag->appendChild( $tag );
-	return $frag;
 }
 
+	
 # don't be fooled. This isn't the same as the install() in
 # eprints-install
 sub install
@@ -635,3 +304,404 @@ sub install
 		install("$dir/".$_, $perms, $user, $group, "$dest/$_", $repoid );
 	}
 }
+
+
+
+sub configcore
+{
+	my( $repoid ) = @_;
+
+	print "Core configuration for $repoid\n\n";
+
+	my %config = ();
+
+	$config{port} = 80;
+	$config{host} = undef;
+	$config{urlpath} = '/';
+	$config{archiveroot} = "archives/".$repoid;
+	$config{configmodule} = "cfg/Config.pm";
+	$config{aliases} = [];
+	$config{securehost} = undef;
+	$config{securepath} = undef;
+
+	$config{adminemail} = undef;
+
+	$config{archive_name} = "Test Repository";
+
+print <<END;
+
+Please enter the fully qualified hostname of the repository. 
+
+For a production system we recommend against using the real hostname of the 
+machine. 
+
+Example: $repoid.footle.ac.uk
+
+END
+
+	$config{host} = EPrints::Utils::get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
+
+print <<END;
+
+Please enter the port of the webserver. This is probably 80, but you may wish 
+to run apache on a different port if you are experimenting.
+
+END
+
+	$config{port} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
+
+
+	# calculate example aliases
+	my $realhostname = hostname();
+	if( $realhostname !~ m/\./ )
+	{
+		# No dots in the actual hostname! Lets try and got the
+		# domain from resolv.conf
+		my $domain = "";
+		if( open( RESOLV, "/etc/resolv.conf" ) && 0)
+		{
+			while( <RESOLV> )
+			{
+				chomp;
+				if( m/^search\s+([^\s]+)/ )
+				{
+					$domain = $1;	
+					last;
+				}
+			}
+			close RESOLV;
+		}
+		$domain = "mydomain.com" if( $domain eq "" );
+		$realhostname.=".".$domain;
+	}
+	my @example_aliases = ();
+	push @example_aliases,$realhostname;
+	
+	$realhostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+	push @example_aliases,$1 if( $3 eq ".");
+	push @example_aliases,$2;
+	
+	$config{host}=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+	push @example_aliases,$1 if( $3 eq "." );
+	push @example_aliases,$2;
+	print <<END;
+	
+Please enter all the aliases which could reach the repository, and indicate if 
+you would like EPrints to write a Redirect Rule to redirect requests to this
+alias to the correct URL.
+END
+	if( scalar @{$config{aliases}}==0 )
+	{
+		print "Some suggestions:\n";
+		foreach( @example_aliases )
+		{
+			print $_."\n";
+		}
+	}
+	print <<END;
+	
+Enter a single hash (#) when you're done.
+
+END
+
+	my @aliases = @{$config{aliases}};
+	$config{aliases} = [];
+
+	for(;;)
+	{
+		my $default = shift @aliases;
+		my $alias = EPrints::Utils::get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
+			(defined $default ? $default->{name} : '#' ) );
+		last if( $alias eq "#" );
+		my $aliasrecord = {};
+		$aliasrecord->{name} = $alias;
+		$aliasrecord->{redirect} = 
+			EPrints::Utils::get_input( 
+				$REGEXP_YESNO,
+				"Redirect $alias to $config{host}",
+				(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
+		push @{$config{aliases}},$aliasrecord;
+		print "\n";
+	}
+
+#print <<END;
+#
+#Language Configuration
+#
+#Please enter the primary language and other supported languages for the 
+#repository. Supporting other languages represents a serious commitment to 
+#translate all the phrases and templates etc. into each of these other 
+#languages.
+#
+#Available languages: (please use the ID to refer to them)
+#END
+#my @langs = EPrints::Config::get_supported_languages();
+#foreach( @langs )
+#{
+#	my $title = utf8("");
+#	$title->utf8( "".EPrints::Config::lang_title( $_ ) );
+#	print $_." - ".($title->latin1)."\n";
+#}
+#print <<END;
+#
+#If you plan to add support for another language, you will need to edit the 
+#languages.xml file to indicate that this language is supported, and create 
+#the relevant phrase and template files. 
+#
+#END
+
+	print "\n";
+	print "\n";
+
+	$config{adminemail} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
+	print <<END;
+
+Enter the name of the repository in the default language. If you wish to enter 
+other titles for other languages or enter non ascii characters then you may
+enter something as a placeholder and edit the XML config file which this
+script generates.
+
+END
+	$config{archive_name} = EPrints::Utils::get_input( '^.+$', 'Archive Name',  $config{archive_name} );
+
+	# Write files?
+
+	print "\n";
+	my $configcore = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these core settings?", "yes" );
+	if( $configcore eq "no" )
+	{
+		print "\nOK. Not writing after all.\n";
+		return;
+	}
+
+	# Write files!
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+
+	my $aemailfile = "$repodir/cfg/cfg.d/adminemail.pl";
+	open( AEMAIL, ">$aemailfile" ) || die "Could not write to $aemailfile: $!";
+	print AEMAIL Data::Dumper->Dump(
+		[
+			$config{adminemail}, 
+		],
+		[qw/
+			$c->{adminemail} 
+		/]
+	);
+	close AEMAIL;
+	print "Wrote $aemailfile\n";
+
+	my $corefile = "$repodir/cfg/cfg.d/10_core.pl";
+	open( CORE, ">$corefile" ) || die "Could not write to $corefile: $!";
+	print CORE Data::Dumper->Dump(
+		[
+			$config{host}, 
+			$config{port},
+			$config{aliases},
+			$config{securehost},
+			$config{secureport},
+		],
+		[qw/
+			$c->{host} 
+			$c->{port} 
+			$c->{aliases} 
+			$c->{securehost} 
+			$c->{securepath}
+		/]
+	);
+	close CORE;
+	print "Wrote $corefile\n";
+
+	my $anamefile = "$repodir/cfg/lang/en/phrases/archive_name.xml";
+	open( ANAME, ">$anamefile" ) || die "Could not write to $anamefile: $!";
+	print ANAME <<END;
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+    <ep:phrase id="archive_name">$config{archive_name}</ep:phrase>
+
+</ep:phrases>
+END
+	close( ANAME );
+	print "Wrote $anamefile\n";
+}
+
+sub configdb
+{
+	my( $repoid ) = @_;
+
+	my %config = ();
+	$config{dbname} = $repoid;
+	$config{dbhost} = "localhost";
+	$config{dbport} = undef;
+	$config{dbsock} = undef;
+	$config{dbuser} = $repoid;
+	$config{dbpass} = undef;
+
+	print "\nConfiguring Database for: $repoid\n";
+
+	$config{dbname} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
+	$config{dbhost} = EPrints::Utils::get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
+
+	print "\nYou probably don't need to set socket and port (unless you do!?).\n";
+	$config{dbport} = "#" if( !defined $config{dbport} );
+	$config{dbport} = EPrints::Utils::get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
+	$config{dbport} = undef if( $config{dbport} eq "#" );
+
+	$config{dbsock} = "#" if( !defined $config{dbsock} );
+	# can't remember what is a legal mysql socket... cjg
+	$config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
+	$config{dbsock} = undef if( $config{dbsock} eq "#" );
+
+	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
+	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
+
+	print "\n";
+	my $configdb = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
+	if( $configdb eq "no" )
+	{
+		print "\nOK. Not writing after all.\n";
+		return;
+	}
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+	my $dbfile = "$repodir/cfg/cfg.d/database.pl";
+	open( DBCONF, ">$dbfile" ) || die "Could not write to $dbfile: $!";
+	print DBCONF Data::Dumper->Dump(
+		[
+			$config{dbname}, 
+			$config{dbhost},
+			$config{dbport},
+			$config{dbsock},
+			$config{dbuser},
+			$config{dbpass},
+		],
+		[qw/
+			$c->{dbname} 
+			$c->{dbhost}
+			$c->{dbport}
+			$c->{dbsock}
+			$c->{dbuser}
+			$c->{dbpass}
+		/]
+	);
+	close DBCONF;
+	print "Wrote $dbfile\n";
+
+	print <<END;
+
+EPrints can create the database, and grant the correct permissions.
+	
+END
+	my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
+	if( $makedb eq "yes" )
+	{
+		createdb( $repoid );
+	}
+	else
+	{
+		print "\nWell, OK. But you'll need to do it yourself then.\n";
+	}
+
+}
+
+
+# subroutine so that it can cache if we do several operations
+sub get_mysql_root_pass
+{
+	#cjg hide password from display?
+	print <<END;
+
+Ok, I'll need to connect to the mysql database as root. What is the root 
+password? 
+	
+END
+	my $mysqlrootpass = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
+
+	return $mysqlrootpass;
+}
+
+sub createdb
+{
+	my( $repoid ) = @_;
+
+	print "Loading config...\n";
+	my $config = EPrints::Config::load_repository_config_module( $repoid );
+
+	my $mysqlrootpass = get_mysql_root_pass();
+	print "Connecting to the database...\n";
+	my $dbh = DBI->connect(
+		EPrints::Database::build_connection_string(
+			dbname=>"mysql",
+			dbsock=>$config->{dbsock},
+			dbport=>$config->{dbport},
+			dbhost=>$config->{dbhost} ),
+		"root",
+		$mysqlrootpass );
+
+	if( !defined $dbh )
+	{
+		print <<END;
+
+Hmmm. Problem connecting to database as root. We'll skip this but
+you should create it by hand.
+
+END
+		exit 1;
+	}
+
+	my $mversion = EPrints::Database::mysql_version_from_dbh( $dbh );
+	my $oldpasswords = 0;
+	if( $mversion >= 40100 ) 
+	{
+		print "MySQL version id $mversion >= 40100\n";
+		print "MYSQL OLD PASSWORDS will be used for compatibility with DBI::mysql\n";
+		$oldpasswords = 1;
+	} 
+
+	my $sth = $dbh->prepare( "show databases" );
+	$sth->execute;
+	my $dbexists = 0;
+	my @row;
+	while( @row = $sth->fetchrow_array )
+	{
+		$dbexists = 1 if $row[0] eq $config->{dbname};
+	}
+	if( $dbexists )
+	{
+		print "Hmm. A database called ".$config->{dbname}." already exists, oh well.\n\n";
+		return;
+	}
+	else
+	{
+		my $SQL = "CREATE DATABASE ".$config->{dbname};
+		print "DOING: $SQL\n";
+		$dbh->do( $SQL );
+	}
+	print "Setting MySQL privs\n";
+	#cjg @localhost ??? what about remote mysql's?
+
+	my $SQL;
+	$SQL = 'GRANT ALL ON '.$config->{dbname}.'.* TO '.$config->{dbuser}.'@localhost';
+	print "DOING: $SQL\n";
+	$dbh->do( $SQL );
+	my $pass = '"'.$config->{dbpass}.'"';
+	if( $oldpasswords ) 
+	{
+		$pass = "OLD_PASSWORD($pass)";
+	} else {
+		$pass = "PASSWORD($pass)";
+	}
+	$SQL = 'SET PASSWORD FOR '.$config->{dbuser}.'@localhost = '.$pass;
+	print "DOING: $SQL\n";
+	$dbh->do( $SQL );
+
+	print "Disconnecting from database.\n";
+	$dbh->disconnect;
+}
+ 
+
+
