@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+
+
+<!-- User Field Names -->
+
+    <ep:phrase id="user_fieldname_name">Name</ep:phrase>
+    <ep:phrase id="user_fieldhelp_name"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_os">Operating System</ep:phrase>
+    <ep:phrase id="user_fieldhelp_os"></ep:phrase>
+    <ep:phrase id="user_fieldopt_os_win">Windows/DOS</ep:phrase>
+    <ep:phrase id="user_fieldopt_os_unix">UNIX</ep:phrase>
+    <ep:phrase id="user_fieldopt_os_vms">VMS</ep:phrase>
+    <ep:phrase id="user_fieldopt_os_mac">Macintosh</ep:phrase>
+    <ep:phrase id="user_fieldopt_os_other">Other</ep:phrase>
+
+    <ep:phrase id="user_fieldname_hideemail">Hide Email</ep:phrase>
+    <ep:phrase id="user_fieldhelp_hideemail">This option allows or prevents a users email being shown on their public summary page.</ep:phrase>
+    <ep:phrase id="user_radio_hideemail"><ep:pin name="false" />Make email visible to all.<br /><ep:pin name="true" />Hide email to all except repository administrators.</ep:phrase>
+
+
+    <ep:phrase id="user_fieldname_dept">Department</ep:phrase>
+    <ep:phrase id="user_fieldhelp_dept"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_org">Organisation</ep:phrase>
+    <ep:phrase id="user_fieldhelp_org"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_address">Address</ep:phrase>
+    <ep:phrase id="user_fieldhelp_address"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_country">Country</ep:phrase>
+    <ep:phrase id="user_fieldhelp_country"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_url">Homepage URL</ep:phrase>
+    <ep:phrase id="user_fieldhelp_url"></ep:phrase>
+
+    <ep:phrase id="user_fieldname_expertise">Expertise</ep:phrase>
+    <ep:phrase id="user_fieldhelp_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</ep:phrase>
+
+    <ep:phrase id="user_typename_minuser">Minimal User</ep:phrase>
+    <ep:phrase id="user_typename_user">User</ep:phrase>
+    <ep:phrase id="user_typename_editor">Editor</ep:phrase>
+    <ep:phrase id="user_typename_admin">Repository Administrator</ep:phrase>
+
+
+</ep:phrases>
+

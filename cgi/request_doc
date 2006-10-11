@@ -1,0 +1,199 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+use EPrints;
+use strict;
+
+my $session = new EPrints::Session();
+exit( 1 ) unless( defined $session );
+
+# What is being requested? Need:
+# valid docid OR valid eprintid (and eprint must have 0 docs)
+my $docid = $session->param( "docid" );
+my $doc = EPrints::DataObj::Document->new( $session, $docid );
+my $eprint;
+if( !defined $doc )
+{
+	my $eprintid = $session->param( "eprintid" );
+	$eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
+	&_error( $session ) if !defined $eprint || $eprint->get_value( "metadata_visibility" ) eq "hide";
+	&_error( $session ) if $eprint->get_value( "full_text_status" ) ne "none";
+}
+else
+{
+	$eprint = $doc->get_eprint;
+}
+
+# No point if requested document is already OA
+if( defined $doc )
+{
+	&_error( $session ) if $doc->public;
+}
+
+# Need a contact email
+my $contact_email = undef;
+if( $session->get_repository->can_call( "email_for_doc_request" ) ) 
+{
+	$contact_email = $session->get_repository->call( "email_for_doc_request", $session, $eprint );
+}
+&_error( $session ) if !defined $contact_email;
+
+sub _error
+{
+	my( $session ) = @_;
+	$session->render_error( $session->html_phrase( "general:bad_param" ) );
+	$session->terminate();
+	exit( 1 );
+}
+
+my $title = $session->html_phrase( "request:button" );
+my $page = $session->make_doc_fragment();
+
+my $email = $session->param( "requester_email" );
+if( defined( $email ) && $email ne "" )
+{
+	
+	# Store request data
+	my $data = {};
+	$data->{eprintid} = $eprint->get_id;
+	$data->{docid} = $doc->get_id if defined $doc;
+	$data->{requester_email} = $email;
+	my $user = EPrints::DataObj::User::user_with_email( $session, $contact_email );
+	$data->{userid} = $user->get_id if defined $user;
+	$data->{email} = $contact_email;
+	my $reason = $session->param( "reason" );
+	$data->{reason} = $reason if EPrints::Utils::is_set( $reason );
+	my $request = $session->get_repository->get_dataset( "request" )->create_object( $session, $data );
+
+	# Log event
+	my $history_ds = $session->get_repository->get_dataset( "history" );
+	$history_ds->create_object(
+		$session,
+		{
+			actor=>"cgi/request_doc",
+			datasetid=>"request",
+			objectid=>$request->get_id,
+			action=>"create",
+		}
+	);
+
+	# Send request email
+	my $subject = $session->phrase( "request/request_email:subject", eprint => $eprint->get_value( "title" ) );
+	my $mail = $session->make_element( "mail" );
+	$mail->appendChild( $session->html_phrase(
+		"request/request_email:body", 
+		eprint => $eprint->render_citation_link,
+		document => defined $doc ? $doc->render_citation_link : $session->make_doc_fragment,
+		requester => $session->make_text( $email ),
+		reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
+			: $session->html_phrase( "cgi/users/review:no_reason" ) ) );
+
+	my $result;
+	if( defined $user && defined $doc )
+	{
+		# Contact is registered user and EPrints holds requested document
+		# Send email to contact with accept/reject links
+		my $url =  $session->get_repository->get_conf( "perl_url" ) . 
+			"/users/respond_doc?requestid=" . $request->get_id;
+
+		$mail->appendChild( $session->html_phrase( "request/request_email:links",
+			accept => $session->render_link( "$url&action=accept" ),
+			reject => $session->render_link( "$url&action=reject" ) ) );
+
+		$result = EPrints::Utils::send_mail(
+			session => $session,
+			langid => $session->get_langid,
+			to_name => EPrints::Utils::tree_to_utf8( $user->render_description ),
+			to_email => $contact_email,
+			subject => $subject,
+			message => $mail,
+			sig => $session->html_phrase( "mail_sig" ),
+		);
+	} 
+	else
+	{
+		# Contact is non-registered user or EPrints holds no documents
+		# Send email to contact with 'replyto'
+		$result = EPrints::Utils::send_mail(
+			session => $session,
+			langid => $session->get_langid,
+			to_name => defined $user ? EPrints::Utils::tree_to_utf8( $user->render_description ) : "",
+			to_email => $contact_email,
+			subject => $subject,
+			message => $mail,
+			sig => $session->html_phrase( "mail_sig" ),
+			replyto_email => $email,
+		);
+	}
+
+	if( !$result )
+	{
+		$session->render_error( $session->html_phrase( "general:email_failed" ) );
+		$session->terminate();
+		exit( 1 );
+	}
+		
+	# Send acknowledgement to requester
+	$mail = $session->make_element( "mail" );
+	$mail->appendChild( $session->html_phrase(
+		"request/ack_email:body", 
+		document => defined $doc ? $doc->render_citation : $session->make_doc_fragment,
+		eprint	=> $eprint->render_citation_link ) );
+
+	$result = EPrints::Utils::send_mail(
+		session => $session,
+		langid => $session->get_langid,
+		to_email => $email,
+		subject => $session->phrase( "request/ack_email:subject", eprint=>$eprint->get_value( "title" ) ), 
+		message => $mail,
+		sig => $session->html_phrase( "mail_sig" )
+	);
+
+	if( !$result )
+	{
+		$session->render_error( $session->html_phrase( "general:email_failed" ) );
+		$session->terminate();
+		exit( 1 );
+	}
+
+	# Render confirmation page
+	$page->appendChild( $session->html_phrase( "request/ack_page",
+		link => $session->render_link( $eprint->get_url ),
+	) );
+	$session->build_page( $title, $page );
+	$session->send_page();
+	$session->terminate();
+	exit( 1 );
+}
+
+# Render requested eprint/document
+my $p = $session->make_element( "p" );
+$page->appendChild( $p );
+$p->appendChild( $eprint->render_citation );
+if( defined $doc )
+{
+	my $p = $session->make_element( "p" );
+	$page->appendChild( $p );
+	$p->appendChild( $doc->render_citation );
+}
+
+# Render request form
+my $form = $session->render_input_form(
+	fields => [ 
+		$session->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
+		$session->get_repository->get_dataset( "request" )->get_field( "reason" ),
+	],
+	show_names => 1,
+	show_help => 1,
+	buttons => { submit => $session->phrase( "request:button" ) },
+);
+$page->appendChild( $form );
+$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id ) );
+if( defined $doc )
+{
+	$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) );
+}
+
+$session->build_page( $title, $page );
+$session->send_page();
+
+$session->terminate();

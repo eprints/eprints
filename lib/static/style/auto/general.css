@@ -1,0 +1,44 @@
+
+body {
+	margin: 1em;
+	font-family: Arial,Sans-serif;
+	font-size: 80%;
+}
+
+.ep_no_js { 
+	display: none; 
+}
+
+.ep_hide { 
+	display: none; 
+}
+
+h1 {
+	margin: 0px;
+        font: bold 130% Arial,Sans-serif;
+        color: #606060;
+}
+
+h2 {
+        font: bold 120% Arial,Sans-serif;
+        color: #606060;
+}
+
+h3 {
+        font: 120% Arial,Sans-serif;
+        color: #606060;
+}
+
+h4 {
+        font: 100% Arial,Sans-serif;
+        color: #606060;
+}
+
+hr {
+	border: 0px;
+	color: #ccc;
+	background-color: #ccc;
+	height: 2px;
+}
+
+

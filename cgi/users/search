@@ -1,0 +1,76 @@
+######################################################################
+#
+#  EPrints Simple Search Form
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+unless( $session->auth_check( "staff-view" ) )
+{
+	$session->terminate();
+	exit( 0 );
+}
+
+my $path_info = $session->get_request->path_info;
+# lose a leading slash
+$path_info =~ s#^/##;
+# we only want stuff up to the 2nd slash
+$path_info =~ s#/.*$##;
+
+my $searchid = $path_info;
+my $sconf = $session->get_repository->get_conf( "search", $searchid );
+if( !defined $sconf )
+{
+	my $page = $session->make_doc_fragment;
+	my $ul = $session->make_element( "ul" );
+	$page->appendChild( $ul );
+	my $searches = $session->get_repository->get_conf( "search" );
+	foreach my $s_id ( keys %{$searches} )
+	{
+		next unless( $searches->{$s_id}->{"staff"} );
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+		my $url = $session->get_repository->get_conf( "perl_url" ).
+				"/users/search/".$s_id;
+		my $a = $session->render_link( $url );
+		$li->appendChild( $a );
+		$a->appendChild( 
+			$session->html_phrase( 
+				$searches->{$s_id}->{"title_phrase"} ) );
+	}
+	my $title = $session->html_phrase( "cgi/users/eprint_search:title" );
+		
+#	if( defined $session->get_request->args )
+#	{
+#		$url .="?".$session->get_request->args;
+#	}
+#	$session->redirect( $url );
+#	$session->terminate;
+	$session->build_page( $title, $page );
+	$session->send_page;
+}
+else
+{
+	my $searchexp = new EPrints::SearchExpression(
+		keep_cache => 1,
+		session => $session,
+		dataset => $session->get_repository->get_dataset( "archive" ),
+		%{$sconf} );
+	
+	$searchexp->process_webpage();
+}
+
+$session->terminate;

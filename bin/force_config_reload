@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -15,29 +15,29 @@
 
 =head1 NAME
 
-B<force_config_reload> - Force the webserver to reload the configuration of this archive.
+B<force_config_reload> - Force the webserver to reload the configuration of this repository.
 
 =head1 SYNOPSIS
 
-B<force_config_reload> I<archiveid> [B<options>] 
+B<force_config_reload> I<repository_id> [B<options>] 
 
 =head1 DESCRIPTION
 
-This command forces the webserver to reload the config files for the given archive.
+This command forces the webserver to reload the config files for the given repository.
 
 This is very useful, but the webserver will only reload the config files in the "forked" versions of itself, but the origional. This will generate a major extra load each time the webserver forks of a process.
 
 This command offers a B<temporary> solution to the problem only. You should still restart apache at some point.
 
-All this file really does is create an empty file named .changed in the archives own cfg/ directory. The main system, running in the webservers mod_perl, looks at the time this file was last modified. If this file has changed since the archive configuration was loaded then it forces a reload.
+All this file really does is create an empty file named .changed in the repositories own var/ directory. The main system, running in the webservers mod_perl, looks at the time this file was last modified. If this file has changed since the repository configuration was loaded then it forces a reload.
 
 =head1 ARGUMENTS
 
 =over 8
 
-=item B<archiveid> 
+=item B<repository_id> 
 
-The ID of the eprint archive to force a reload on.
+The ID of the eprint repository to force a reload on.
 
 =back
 
@@ -72,7 +72,7 @@ __GENERICPOD__
 
 =cut
 
-use EPrints::Session;
+use EPrints;
 
 use File::Copy;
 use File::Find;
@@ -109,17 +109,17 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
-my $file = $session->get_archive->get_conf( "config_path" )."/.changed";
+my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
 unless( open( CHANGEDFILE, ">$file" ) )
 {
 	EPrints::Config::abort( "Cannot write to file $file" );
 }
-print CHANGEDFILE "This file last poked at: ".EPrints::Utils::get_timestamp()."\n";
+print CHANGEDFILE "This file last poked at: ".EPrints::Utils::human_time()."\n";
 close CHANGEDFILE;
 if( $noise > 0 )
 {
 	print <<END;
-The archive config will be reloaded, but you should still restart apache as
+The repository config will be reloaded, but you should still restart apache as
 soon as possible.
 END
 }

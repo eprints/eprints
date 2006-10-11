@@ -1,0 +1,98 @@
+# temp file remove before beta!
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+# $session->get_database->set_debug( 1 );
+
+my $item = EPrints::DataObj::EPrint->new( $session, 112 );
+my $workflow = new EPrints::Workflow( $session, "default", dataset => $item->get_dataset, item => $item );
+
+$workflow->from();
+my $page= $workflow->render;
+
+
+print STDERR $workflow->{stage};
+$session->build_page( 
+	$session->make_text("Workflow Demo" ),
+	$page,
+	"status" );
+
+$session->send_page(); 
+
+
+$session->terminate();
+exit;
+
+
+#class->new( session=>$self->{session}, xml_config=>$stage_node, dataobj=>$self->{item} );
+my $surround = $session->plugin( "InputForm::Surround::Default" );
+
+#<component>
+#<field ref="creators">
+#  <required />
+#</field>
+#</component>
+
+#<component>
+#<field ref="title">
+#  <required />
+#</field>
+#<field ref="abstract">
+#  <required />
+#</field>
+#<title ref="..." />
+#<help ref="..." />
+#</component>
+
+my $comp1 = $session->make_element( "component" );
+my $comp2 = $session->make_element( "component" );
+
+# Create some field configs
+
+my $cre_field = $session->make_element( "field", "ref"=>"creators" );
+$cre_field->appendChild( $session->make_element( "required" ) );
+#$cre_field->appendChild( $session->make_element( "collapsed" ) );
+$comp1->appendChild( $cre_field );
+
+# MultiComponent
+
+$comp2->appendChild( $session->make_element( "field", "ref"=>"publication" ) );
+$comp2->appendChild( $session->make_element( "field", "ref"=>"volume" ) );
+$comp2->appendChild( $session->make_element( "field", "ref"=>"number" ) );
+$comp2->appendChild( $session->make_element( "field", "ref"=>"pagerange" ) );
+$comp2->appendChild( $session->make_element( "field", "ref"=>"issn" ) );
+my $title_field = $session->make_element( "field", "ref"=>"title" );
+$title_field->appendChild( $session->make_element( "required" ) );
+#$e_field->appendChild( $session->make_element( "collapsed" ) );
+$comp2->appendChild( $title_field );
+
+my $c2_title = $session->make_element( "title" );
+my $title_phrase = $session->make_element( "phrase" );
+$title_phrase->appendChild( $session->make_text( "A Title" ) );
+$c2_title->appendChild( $title_phrase );
+
+my $c2_help = $session->make_element( "help", "ref"=>"eprint_fieldhelp_abstract" );
+$comp2->appendChild( $c2_title );
+$comp2->appendChild( $c2_help );
+
+# Render the page
+
+my $page=$session->make_doc_fragment();
+my $stage=$session->make_element( "div", class => "wf_stage" );
+$page->appendChild( $stage );
+
+my $plugin = $session->plugin( "InputForm::Component::Field", dataobj=>$item, xml_config=>$comp1, session=>$session );
+my $plugin2 = $session->plugin( "InputForm::Component::Field::Multi", dataobj=>$item, xml_config=>$comp2, session=>$session );
+
+my $title = $session->make_text( "Workflow Demo" );
+$stage->appendChild( $surround->render( $plugin, $session ) );
+$stage->appendChild( $surround->render( $plugin2, $session ) );
+
+$session->build_page( $title, $page );
+$session->send_page();
+
+
+$session->terminate;

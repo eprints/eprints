@@ -1,0 +1,48 @@
+
+/* 
+   Styles for the upload component.
+
+   ep_upload_*
+
+*/
+
+.ep_upload_newdoc
+{
+        text-align: center;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+
+
+
+/* Document section */
+
+.ep_upload_doc
+{
+	margin-bottom: 1em;
+}
+
+/* only shown when js is off */
+.ep_upload_doc_title
+{
+	padding: 4px; 
+	font-size: 120%;
+	font-weight: bold;
+	background-image: url(/style/images/gray_bar.png);
+	color: black;
+}
+
+.ep_upload_files
+{
+	border: dashed #c8cbdf 1px; 
+	margin-top: 0.5em; 
+	padding: 0.5em; 
+	background-color: white;
+}
+
+.ep_upload_file_table 
+{
+	margin-bottom: 0.5em;
+}
+
+/* End of Document section */

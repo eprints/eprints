@@ -1,0 +1,45 @@
+######################################################################
+#
+#  Remove the login ticket
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my $page=$session->make_doc_fragment();
+
+
+my $ticketid = EPrints::Apache::AnApache::cookie( $session->get_request, "eplogin" );
+
+my $sql = "DELETE FROM login_tickets WHERE code='".EPrints::Database::prep_value($ticketid)."'";
+my $sth = $session->get_database->prepare( $sql );
+$session->get_database->execute( $sth , $sql );
+$session->logout;
+
+
+
+$page->appendChild( $session->make_text( "Logout OK!" ) );
+
+$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+	
+my $title = $session->make_text( "Logout" );
+$session->build_page( $title, $page, "login" );
+$session->send_page( eplogin=>'' );
+
+$session->terminate;
+exit;
+
+
+

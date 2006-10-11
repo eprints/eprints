@@ -1,14 +1,26 @@
-use EPrints::Session;
-use EPrints::EPrint;
-use EPrints::SearchExpression;
-use Citation::Parser::Simple;
+######################################################################
+#
+#  Paracitation Module
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use ParaTools::CiteParser::Standard;
 use URI;
 
 use strict;
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
-my $ds = $session->get_archive()->get_dataset( "archive" );
+my $ds = $session->get_repository->get_dataset( "archive" );
 
 &process( $session );
 
@@ -36,7 +48,7 @@ sub process
 
 	my $ref = $session->param("ref");
 
-	my $parser = new Citation::Parser::Simple();
+	my $parser = new ParaTools::CiteParser::Standard();
 	my $metadata = $parser->parse($ref);
 	my ($year, $author) = ($metadata->{year}, $metadata->{aulast});
 
@@ -65,19 +77,37 @@ sub process
 		return;
 	}
 
-	my $searchexp = new EPrints::SearchExpression(
+	my $searchexp = new EPrints::Search(
+		filters => [
+			{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EQ', merge=>"ANY", describe=>0 },
+		],
 		session => $session,
-		use_cache => 0,
 		dataset => $ds );
 
 	if( EPrints::Utils::is_set( $author ) )
 	{
-		$searchexp->add_field( $ds->get_field( "authors" ), $author );
+		if( $ds->has_field( "authors" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "authors" ), $author );
+		}
+		elsif( $ds->has_field( "creators" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "creators" ), $author );
+		}
+		# otherwise dunno what to do.
 	}
 
 	if( EPrints::Utils::is_set( $year ) )
 	{
-		$searchexp->add_field( $ds->get_field( "year" ), $year );
+		if( $ds->has_field( "year" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "year" ), $year );
+		}
+		elsif( $ds->has_field( "date_effective" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "date_effective" ), $year );
+		}
+		# otherwise dunno what to do
 	}
 
 	$searchexp->perform_search();

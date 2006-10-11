@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -14,32 +14,32 @@
 
 =head1 NAME
 
-B<configure_archive> - create a new EPrint Archive, or edit the basic options of an existing archive
+B<configure_archive> - create a new EPrint Archive, or edit the basic options of an existing repository.
 
 =head1 SYNOPSIS
 
-B<configure_archive> [I<archiveid>] [B<options>]
+B<configure_archive> [I<repository_id>] [B<options>]
 
 =head1 DESCRIPTION
 
-Create a new EPrint Archive, or edit the basic options of an existing archive.
+Create a new EPrint Archive, or edit the basic options of an existing repository.
 
-This script will prompt the user for various basic information about the archive and then will:
+This script will prompt the user for various basic information about the repository and then will:
 
   - create a basic XML config file
-  - make the archive directory
-  - copy default files into the archive directory
+  - make the repository directory
+  - copy default files into the repository directory
   - create the MySQL database (but not the tables)
 
-After running this script you should edit the files created in the archives B<cfg> directory, especially B<ArchiveConfig.pm> then you will need to run a number of setup scripts, starting with B<create_tables>.
+After running this script you should edit the files created in the repository B<cfg> directory, especially B<Config.pm> then you will need to run a number of setup scripts, starting with B<create_tables>.
 
 =head1 ARGUMENTS
 
 =over 8
 
-=item I<archiveid> 
+=item I<repository_id> 
 
-The ID of the EPrint archive to modify (or create).
+The ID of the EPrint repository to modify (or create).
 
 =back
 
@@ -76,12 +76,9 @@ __GENERICPOD__
 #cjg Does not use noise levels
 
 
-use EPrints::Config;
-use EPrints::Database;
-use EPrints::Utils;
+use EPrints;
 
 use Sys::Hostname;
-use Cwd;
 use DBI;
 use Unicode::String qw(utf8 latin1);
 
@@ -115,7 +112,7 @@ my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
 
-my $archiveid = $ARGV[0];
+my $repoid = $ARGV[0];
 
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
@@ -128,32 +125,32 @@ my $REGEXP_ANY = '^.*$';
 
 my %config = ();
 
-if( !defined $archiveid )
+if( !defined $repoid )
 {
 	print <<END;
 
 Create or Edit an EPrint Archive
 
-Please select an ID for the archive, which will be used to create a directory
-and identify the archive. Lower case letters and numbers, may not start with
+Please select an ID for the repository, which will be used to create a directory
+and identify the repository. Lower case letters and numbers, may not start with
 a number) eg. "lemurprints" or "test3"
 
-Enter an already existing archive ID to edit the settings.
+Enter an already existing repository ID to edit the settings.
 
 END
-	if( scalar EPrints::Config::get_archive_ids() )
+	if( scalar EPrints::Config::get_repository_ids() )
 	{
-		print "Existing archives:\n";
-		print join( ", ", EPrints::Config::get_archive_ids() )."\n\n";
+		print "Existing repositories:\n";
+		print join( ", ", EPrints::Config::get_repository_ids() )."\n\n";
 	}
 
-	$archiveid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
+	$repoid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
 }
 
-my( $configfile ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid.".xml";
-my( $archivedir ) = EPrints::Config::get( "base_path" )."/archives/".$archiveid;
+my( $configfile ) = EPrints::Config::get( "base_path" )."/archives/".$repoid.".xml";
+my( $repodir ) = EPrints::Config::get( "base_path" )."/archives/".$repoid;
 
-my $loaded_config = EPrints::Config::get_archive_config( $archiveid );		
+my $loaded_config = EPrints::Config::get_repository_config( $repoid );		
 my $exists = ( defined $loaded_config );
 
 if( $exists )
@@ -175,14 +172,14 @@ else
 	$config{port} = 80;
 	$config{host} = undef;
 	$config{urlpath} = '/';
-	$config{archiveroot} = "archives/".$archiveid;
-	$config{configmodule} = "cfg/ArchiveConfig.pm";
+	$config{archiveroot} = "archives/".$repoid;
+	$config{configmodule} = "cfg/Config.pm";
 	$config{aliases} = [];
-	$config{dbname} = $archiveid;
+	$config{dbname} = $repoid;
 	$config{dbhost} = "localhost";
 	$config{dbport} = undef;
 	$config{dbsock} = undef;
-	$config{dbuser} = $archiveid;
+	$config{dbuser} = $repoid;
 	$config{dbpass} = undef;
 	$config{adminemail} = undef;
 	$config{archivename} = {};
@@ -198,28 +195,28 @@ if( !defined $config{languages} )
 	$config{defaultlanguage} = "en";
 }
 
-unless( -e $archivedir )
+unless( -e $repodir )
 {
-	print "We need to create $archivedir, doing it now...\n";
-	unless( mkdir($archivedir) )
+	print "We need to create $repodir, doing it now...\n";
+	unless( mkdir($repodir) )
 	{
 		print "Problem creating directory\n\n";
 		exit;
 	}
 }
-unless( -d $archivedir )
+unless( -d $repodir )
 {	
-	print "$archivedir MUST be a directory.\n\n";
+	print "$repodir MUST be a directory.\n\n";
 }
 	
 print <<END;
 
-Please enter the fully qualified hostname of the archive. 
+Please enter the fully qualified hostname of the repository. 
 
 For a production system we recommend against using the real hostname of the 
 machine. 
 
-Example: $archiveid.footle.ac.uk
+Example: $repoid.footle.ac.uk
 
 END
 
@@ -270,7 +267,7 @@ push @example_aliases,$1 if( $3 eq "." );
 push @example_aliases,$2;
 print <<END;
 
-Please enter all the aliases which could reach the archive, and indicate if 
+Please enter all the aliases which could reach the repository, and indicate if 
 you would like EPrints to write a Redirect Rule to redirect requests to this
 alias to the correct URL.
 END
@@ -313,7 +310,7 @@ for(;;)
 #Language Configuration
 #
 #Please enter the primary language and other supported languages for the 
-#archive. Supporting other languages represents a serious commitment to 
+#repository. Supporting other languages represents a serious commitment to 
 #translate all the phrases and templates etc. into each of these other 
 #languages.
 #
@@ -339,7 +336,7 @@ print "\n";
 $config{adminemail} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
 print <<END;
 
-Enter the name of the archive in the default language. If you wish to enter 
+Enter the name of the repository in the default language. If you wish to enter 
 other titles for other languages or enter non ascii characters then you may
 enter something as a placeholder and edit the XML config file which this
 script generates.
@@ -366,7 +363,7 @@ $config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no set
 $config{dbsock} = undef if( $config{dbsock} eq "#" );
 
 $config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
-$config{dbpass} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
+$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
 
 print <<END;
 
@@ -384,7 +381,7 @@ Ok, I'll need to connect to the mysql database as root. What is the root
 password? 
 	
 END
-	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+	my $mysqlrootpass = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
 
 	print "Connecting to the database...\n";
 	my $dbh = DBI->connect(
@@ -408,6 +405,15 @@ END
 	}
 	else
 	{
+		my $mversion = EPrints::Database::mysql_version_from_dbh( $dbh );
+		my $oldpasswords = 0;
+		if( $mversion >= 40100 ) 
+		{
+			print "MySQL version id $mversion >= 40100\n";
+			print "MYSQL OLD PASSWORDS will be used for compatibility with DBI::mysql\n";
+			$oldpasswords = 1;
+		} 
+	
 		my $sth = $dbh->prepare( "show databases" );
 		$sth->execute;
 		my $dbexists = 0;
@@ -429,7 +435,19 @@ END
 		print "Setting MySQL privs\n";
 		#cjg @localhost ??? what about remote mysql's?
 
-		my $SQL = 'GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost IDENTIFIED BY "'.$config{dbpass}.'"';
+		#my $SQL = 'GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE, ALTER ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost IDENTIFIED BY "'.$config{dbpass}.'"';
+		my $SQL;
+		$SQL = 'GRANT ALL ON '.$config{dbname}.'.* TO '.$config{dbuser}.'@localhost';
+		print "DOING: $SQL\n";
+		$dbh->do( $SQL );
+		my $pass = '"'.$config{dbpass}.'"';
+		if( $oldpasswords ) 
+		{
+			$pass = "OLD_PASSWORD($pass)";
+		} else {
+			$pass = "PASSWORD($pass)";
+		}
+		$SQL = 'SET PASSWORD FOR '.$config{dbuser}.'@localhost = '.$pass;
 		print "DOING: $SQL\n";
 		$dbh->do( $SQL );
 
@@ -453,7 +471,7 @@ my $doc = EPrints::XML::make_document();
 #$doc->setXMLDecl( $xmldecl );
 
 my $t_archive = $doc->createElement( "archive" );
-$t_archive->setAttribute( "id", $archiveid );
+$t_archive->setAttribute( "id", $repoid );
 $doc->appendChild( $t_archive );
 
 $t_archive->appendChild( info_tag( $doc, "host", $config{host} ) );
@@ -483,11 +501,11 @@ open( CONF, ">$configfile" ) || die "can't open $configfile for writing";
 print CONF EPrints::XML::to_string( $doc );
 close CONF;
 # It's got a password in so 600 to be safe!
-chmod( 0600, $configfile );
+chmod( $EPrints::SystemSettings::conf->{"file_perms"}, $configfile );
 print <<END;
 
-Copy across initial config files? You have to do this for a new archive but
-probably don't want to if you're editing an archive configuration.
+Copy across initial config files? You have to do this for a new repository but
+probably don't want to if you're editing an repository configuration.
 
 END
 my $mkfiles = EPrints::Utils::get_input( $REGEXP_YESNO, "Create config files", $exists?"no":"yes" );
@@ -496,17 +514,17 @@ if( $mkfiles eq "yes" )
 	my(undef,undef,$uid,$gid) = getpwnam( EPrints::Config::get( "user" ) );
 	print "\nCreating initial files:\n";
 	&install( 
-		EPrints::Config::get( "base_path" )."/defaultcfg",
-		0644,
+		EPrints::Config::get( "base_path" )."/lib/defaultcfg",
+		$EPrints::SystemSettings::conf->{"file_perms"},
 		$uid,
 		$gid,
-		$archivedir."/cfg",
-		$archiveid );
+		$repodir."/cfg",
+		$repoid );
 
-	foreach( "html", "documents", "documents/disk0" )
+	foreach( "var", "html", "documents", "documents/disk0" )
 	{
-		my $dir = $archivedir."/".$_;
-		mkdir( $dir, 0755 );
+		my $dir = $repodir."/".$_;
+		mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
 		chown( $uid, $gid, $dir );
 	}
 	print <<END;
@@ -536,11 +554,11 @@ Now make any required changes to the cfg files.
 
 Then run:
 
-bin/create_tables $archiveid
-bin/generate_static $archiveid
+bin/create_tables $repoid
+bin/generate_static $repoid
 bin/generate_apacheconf 
 
-bin/create_user $archiveid <username> <email> admin <password>
+bin/create_user $repoid <username> <email> admin <password>
 
 Then stop and start your webserver:
 Often:
@@ -548,10 +566,10 @@ Often:
 /etc/rc.d/init.d/httpd start
 (or maybe /usr/local/apache/bin/apachectl stop & start)
 
-Now connect to the archive, see everything work perfectly first time...(!)
+Now connect to the repository, see everything work perfectly first time...(!)
 --------------------------------------------------------------------------
 
-Don't forget to register your archive at http://www.eprints.org/
+Don't forget to register your repository at http://www.eprints.org/
 
 END
 
@@ -579,13 +597,13 @@ sub info_tag
 # eprints-install
 sub install
 {
-	my($dir, $perms, $user, $group, $dest, $archiveid) = @_;
+	my($dir, $perms, $user, $group, $dest, $repoid) = @_;
 
 	print "Installing: $dest\n";
 	opendir(INDIR, $dir) or die("Unable to install directory: $dir");
 	my @dirs = ();
 	my @files = ();
-	mkdir( $dest, 0755 );
+	mkdir( $dest, $EPrints::SystemSettings::conf->{"dir_perms"} );
 	chown($user, $group, $dest);
 	while(my $item = readdir(INDIR))
 	{
@@ -600,10 +618,10 @@ sub install
 		open(OUTFILE, ">$dest/$_") or die "Can't write to $dest/$_";
 		while(my $line=<INFILE>)
 		{
-			if( $_ eq "ArchiveConfig.pm" && $line=~m/^package/ )
+			if( $_ eq "Config.pm" && $line=~m/^package/ )
 			{
 				#hack about with the config module
-				$line = "package EPrints::Config::$archiveid;\n";
+				$line = "package EPrints::Config::$repoid;\n";
 			}	
 			print OUTFILE $line;
 		}		
@@ -614,6 +632,6 @@ sub install
 	}
 	foreach(@dirs)
 	{
-		install("$dir/".$_, $perms, $user, $group, "$dest/$_", $archiveid );
+		install("$dir/".$_, $perms, $user, $group, "$dest/$_", $repoid );
 	}
 }

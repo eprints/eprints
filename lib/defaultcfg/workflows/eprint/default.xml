@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<workflow xmlns="http://eprints.org/ep3/workflow" xmlns:ep="http://eprints.org/ep3/">
+  <flow>
+    <stage ref="type"/>
+    <stage ref="files"/>
+    <stage ref="core"/>
+    <stage ref="subjects"/>
+  </flow>
+
+
+  <stage name="type">
+    <component><field ref="type" required="yes" /></component>
+  </stage>
+
+  <stage name="files">
+    <component type="Upload" surround="None">
+      <field ref="format" />
+      <field ref="formatdesc" />
+      <field ref="security" />
+      <field ref="license" />
+      <field ref="date_embargo" />
+<!--  <field ref="language" /> -->
+    </component>
+  </stage>
+
+
+  <stage name="core">
+
+    <component><field ref="title" required="yes" /></component>
+    <component><field ref="abstract"/></component>
+
+    <ep:if test="type = 'monograph'">
+      <component><field ref="monograph_type" required="yes" /></component>
+    </ep:if>
+    <ep:if test="type = 'thesis'">
+      <component><field ref="thesis_type" required="yes" /></component>
+    </ep:if>
+    <ep:if test="type = 'conference_item'">
+      <component><field ref="pres_type" required="yes" /></component>
+    </ep:if>
+
+    <ep:choose>
+      <ep:when test="type.one_of('book','book_section')">
+        <component><field ref="creators_list"/></component>
+        <component><field ref="editors_list"/></component>
+      </ep:when>
+      <ep:otherwise>
+        <component><field ref="creators_list" required="yes" input_lookup_url="/perl/users/issn" /></component>
+      </ep:otherwise>
+    </ep:choose>
+
+
+    <component type="Field::Multi">
+      <title>Publication Details</title>
+      <ep:if test="type != 'patent' ">
+        <ep:if test="type.one_of('book_section', 'book', 'article', 'conference_item')">
+          <field ref="refereed" required="yes" />
+        </ep:if>
+        <field ref="ispublished" required="yes" />
+      </ep:if>
+
+      <ep:if test='type = "patent"'>
+        <field ref="date_issue" required="yes" />
+        <field ref="official_url"/>
+        <field ref="patent_applicant" required="yes" />
+        <field ref="id_number" required="yes" />
+        <field ref="pages"/>
+      </ep:if>
+      <ep:if test="type = 'monograph'">
+        <field ref="institution"/>
+        <field ref="department"/>
+        <field ref="place_of_pub"/>
+        <field ref="publisher" required="yes" />
+        <field ref="id_number"/>
+        <field ref="pages"/>
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="official_url"/>
+      </ep:if>
+      <ep:if test="type = 'book'">
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="place_of_pub"/>
+        <field ref="publisher" required="yes" />
+        <field ref="pages"/>
+        <field ref="series"/>
+        <field ref="volume"/>
+        <field ref="number"/>
+        <field ref="isbn"/>
+        <field ref="official_url"/>
+      </ep:if>
+      <ep:if test="type = 'other'">
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="official_url"/>
+        <field ref="place_of_pub"/>
+        <field ref="publisher" required="yes" />
+        <field ref="id_number"/>
+      </ep:if>
+      <ep:if test="type = 'book_section'">
+        <field ref="pagerange"/>
+        <field ref="book_title" required="yes" />
+        <field ref="volume"/>
+        <field ref="place_of_pub"/>
+        <field ref="publisher" required="yes" />
+        <field ref="pages"/>
+        <field ref="id_number"/>
+        <field ref="series"/>
+        <field ref="number"/>
+        <field ref="isbn"/>
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="official_url"/>
+      </ep:if>
+      <ep:if test="type = 'thesis'">
+        <field ref="date_issue" required="yes" />
+        <field ref="official_url"/>
+        <field ref="institution" required="yes" />
+        <field ref="department" required="yes" />
+        <field ref="pages"/>
+      </ep:if>
+      <ep:if test="type = 'conference_item'">
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="pages"/>
+        <field ref="official_url"/>
+      </ep:if>
+      <ep:if test="type = 'article'">
+        <field ref="publication" required="yes" />
+        <field ref="volume"/>
+        <field ref="number"/>
+        <field ref="pagerange"/>
+        <field ref="date_issue"/>
+        <field ref="date_sub"/>
+        <field ref="id_number"/>
+        <field ref="official_url"/>
+        <field ref="issn" input_lookup_url="/perl/users/issn" />
+        <validate type="at_least_one" value="date_issue,date_sub" />
+      </ep:if>
+    </component>
+
+    <ep:if test="type = 'conference_item'">
+      <component type="Field::Multi">
+        <title>Event Details</title>
+        <field ref="event_title" required="yes" />
+        <field ref="event_type" required="yes" />
+        <field ref="event_location"/>
+        <field ref="event_dates"/>
+      </component>
+    </ep:if>
+
+    <component collapse="yes"><field ref="referencetext"/></component>
+    <component collapse="yes"><field ref="keywords"/></component>
+    <component collapse="yes"><field ref="note"/></component>
+    <component collapse="yes"><field ref="suggestions"/></component>
+
+  </stage>
+
+  <stage name="subjects">
+    <component type="Field::Subject"><field ref="subjects" required="yes" /></component>
+  </stage>
+
+</workflow>

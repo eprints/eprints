@@ -1,5 +1,38 @@
-use lib '/opt/eprints2/perl_lib';
+use lib '/opt/eprints3/perl_lib';
 
+BEGIN
+{
+	use EPrints::SystemSettings;
+
+	my $conf_v = $ENV{EPRINTS_APACHE};
+	if( defined $conf_v )
+	{
+		my $av =  $EPrints::SystemSettings::conf->{apache};
+		$av = "1" unless defined $av;
+
+		my $mismatch = 0;
+		$mismatch = 1 if( $av eq "2" && $conf_v ne "2" );
+		$mismatch = 1 if( $av ne "2" && $conf_v ne "1" );
+		if( $mismatch )
+		{
+			print STDERR <<END;
+
+------------------------------------------------------------
+According to a flag in the Apache configuration, the part
+of it relating to EPrints was generated for running with 
+Apache $conf_v but this version of EPrints is configured 
+to use version $av of Apache.
+
+You should probably check the "apache" parameter setting in
+perl_lib/EPrints/SystemSettings.pm then run the script
+generate_apacheconf, then try to start Apache again.
+------------------------------------------------------------
+
+END
+			die "Apache version mismatch";
+		}
+	}
+}
 ######################################################################
 #
 #  __COPYRIGHT__
@@ -10,64 +43,31 @@ use lib '/opt/eprints2/perl_lib';
 #
 ######################################################################
 
-print STDERR "EPRINTS: Loading Core Modules\n";
-
 ## Apache::DBI MUST come before other modules using DBI or
 ## you won't get constant connections and everything
 ## will go horribly wrong...
 
 use Carp qw(verbose);
 
-use Apache::DBI;
-#$Apache::DBI::DEBUG = 3;
-use Apache::Registry;          
+$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
 
-
-use EPrints::XML;
-use EPrints::Utils;
-use EPrints::Config;
-
-$ENV{MOD_PERL} or EPrints::Utils::abort( "not running under mod_perl!" );
-
-# This code is interpreted *once* when the server starts
-use EPrints::Auth;
-use EPrints::Database;
-use EPrints::Document;
-use EPrints::EPrint;
-use EPrints::ImportXML;
-use EPrints::Language;
-use EPrints::Latex;
-use EPrints::MetaField;
-use EPrints::OpenArchives;
-use EPrints::Archive;
-use EPrints::SearchExpression;
-use EPrints::SearchField;
-use EPrints::Session;
-use EPrints::Subject;
-use EPrints::SubmissionForm;
-use EPrints::Subscription;
-use EPrints::UserForm;
-use EPrints::User;
-use EPrints::UserPage;
-use EPrints::VLit;
-use EPrints::Paracite;
+use EPrints;
 
 use strict;
 
-print STDERR "EPRINTS: Core Modules Loaded\n";
 
-# cjg SYSTEM CONF SHOULD SAY IF TO PRELOAD OR NOT...
+EPrints::Config::ensure_init();
 
-print STDERR "EPRINTS: Loading Config Modules\n";
 my %done = ();
-foreach( EPrints::Config::get_archive_ids() )
+foreach( EPrints::Config::get_repository_ids() )
 {
 	next if $done{$_};
 	EPrints::Archive->new_archive_by_id( $_ );
 }
-print STDERR "EPRINTS: Config Modules Loaded\n";
+print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
 
 # Tell me more about warnings
 $SIG{__WARN__} = \&Carp::cluck;
 
+$EPrints::SystemSettings::loaded = 1;
 1;

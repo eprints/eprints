@@ -12,11 +12,12 @@
 #
 ######################################################################
 
-use EPrints::Session;
+use EPrints;
+
 use strict;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 my( $title, $page ) = make_confirm_page( $session );
 $page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
@@ -32,7 +33,7 @@ sub make_confirm_page
 
 	my $page = $session->make_doc_fragment;
 
-	my $user_ds = $session->get_archive()->get_dataset( "user" );
+	my $user_ds = $session->get_repository->get_dataset( "user" );
 
 	if( !$session->have_parameters() )
 	{
@@ -66,7 +67,7 @@ sub make_confirm_page
 		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_mismatch" ) );
 		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
-	my $maxdelta = $session->get_archive()->get_conf( "pin_timeout" );
+	my $maxdelta = $session->get_repository->get_conf( "pin_timeout" );
 	if( ( $maxdelta != 0 ) && ( $maxdelta * 60 * 60 < $delta ) )
 	{
 		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_timeout" ) );
@@ -83,7 +84,14 @@ sub make_confirm_page
 	{
 		# check no one else has this email! cjg
 		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET email=newemail, newemail=NULL, pin=NULL where userid=".$userid; 
-		$session->get_db()->do( $sql );
+		$session->get_database->do( $sql );
+		if( $user->has_priv( "lock-username-to-email" ) )# cjg change to new system
+		{
+			my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET username=email where userid=".$userid; 
+			$session->get_database->do( $sql );
+			# shim the username in the current user object
+			$user->set_value( "username", $user->get_value( "newemail" ) );
+		}
 		$page->appendChild( $session->html_phrase( 
 			"cgi/confirm:set_email",
 			newemail=>$session->make_text( $user->get_value( "newemail" ) ) ) );
@@ -92,14 +100,14 @@ sub make_confirm_page
 	{
 		# Must be password then. Can't see it 'cus it's a "secret".
 		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET password=newpassword, newpassword=NULL, pin=NULL where userid=".$userid; 
-		$session->get_db()->do( $sql );
+		$session->get_database->do( $sql );
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
 	}
 
 	$page->appendChild( $session->html_phrase( "cgi/confirm:username",
 		username => $user->render_value( "username" ) ) );
 
-	$page->appendChild( $session->html_phrase( "general:userhome_link" ) );
+	$page->appendChild( $session->html_phrase( "cgi/confirm:go_login" ) );
 
 	return( $session->html_phrase( "cgi/confirm:title" ) , $page );
 }

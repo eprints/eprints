@@ -19,9 +19,7 @@
 #
 ######################################################################
 
-use EPrints::Database;
-use EPrints::User;
-use EPrints::Session;
+use EPrints;
 
 use strict;
 
@@ -43,7 +41,7 @@ while( $currline = <PASSWD> )
 }
 close PASSWD;
 
-my @users = EPrints::User::retrieve_users( $session , undef , undef );
+my @users = EPrints::DataObj::User::retrieve_users( $session , undef , undef );
 foreach $user ( @users ) 
 {
 	if ( defined $passfile{$user->{username}} )
@@ -83,7 +81,7 @@ foreach $userid ( keys %passfile ) {
 	# specific to your site.
 
 	my $email = $userid;
-	my $new_user = EPrints::User::create_user( $session,
+	my $new_user = EPrints::DataObj::User::create_user( $session,
 	                                           $userid,
 	                                           $email,
 	                                           "User" );

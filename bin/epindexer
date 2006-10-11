@@ -1,0 +1,66 @@
+#!/usr/bin/perl -T -w -I/opt/eprints3/perl_lib 
+
+######################################################################
+#
+# chkconfig: - 85 15
+# description: Start the eprints indexer daemon as the correct user
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints::SystemSettings;
+
+use strict;
+
+if( $< != 0 )
+{
+	print "This script is intended to start the eprints indexer as a service.\nIt should only be run as root.\nExiting.\n";
+	exit 1;
+}
+if( !defined $ARGV[0] || $ARGV[0] !~ m/^(start|stop|status)$/ )
+{
+	print "Usage: $0 {start|stop|status}\n";
+	exit 1;
+}
+my $opt = $1;
+
+my @uinfo = getpwnam($EPrints::SystemSettings::conf->{'user'});
+my @ginfo = getgrnam($EPrints::SystemSettings::conf->{'group'});
+my $uid = $uinfo[2];
+my $gid = $ginfo[2];
+$( = $) = $gid;
+$> = $< = $uid;
+
+my $indexer_cmd = $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer';
+$| = 0;
+if( $opt eq 'start' )
+{
+	print 'Starting EPrints Indexer: ';
+}
+if( $opt eq 'stop' )
+{
+	print 'Stopping EPrints Indexer: ';
+}
+delete $ENV{'PATH'};
+my $rv = system( $indexer_cmd, $opt );
+$rv = $rv >> 8;
+if( $opt eq 'start' || $opt eq 'stop' ) 
+{
+	if( $rv == 0 )
+	{
+		print '                                 [  OK  ]'."\n";
+	}
+	else
+	{
+		print '                                 [FAILED]'."\n";
+	}
+}
+
+exit $rv;

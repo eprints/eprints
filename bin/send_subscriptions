@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -18,22 +18,22 @@ B<send_subscriptions> - Send out all the email subscriptions for a given frequen
 
 =head1 SYNOPSIS
 
-B<generate_views> I<archiveid> I<frequency> [B<options>] 
+B<generate_views> I<repository_id> I<frequency> [B<options>] 
 
 =head1 DESCRIPTION
 
-This script sends out all the subscription emails for the specified archive
+This script sends out all the subscription emails for the specified repository
 and frequency. frequency must be one of daily|weekly|monthly.
 
 This script should probably be called from your "cron" system, soon after
 midnight. Something like:
 
  # 00:15 every morning
- 15 0 * * * /opt/eprints2/bin/send_subscriptions dookuprints daily
+ 15 0 * * * /opt/eprints3/bin/send_subscriptions dookuprints daily
  # 00:30 every sunday morning
- 30 0 * * 0 /opt/eprints2/bin/send_subscriptions dookuprints weekly
+ 30 0 * * 0 /opt/eprints3/bin/send_subscriptions dookuprints weekly
  # 00:45 every first of the month
- 45 0 1 * * /opt/eprints2/bin/send_subscriptions dookuprints monthly
+ 45 0 1 * * /opt/eprints3/bin/send_subscriptions dookuprints monthly
 
 Note the spacing out so that all 3 don't start at once and hammer the database.
 
@@ -41,9 +41,9 @@ Note the spacing out so that all 3 don't start at once and hammer the database.
 
 =over 8
 
-=item B<archiveid> 
+=item B<repository_id> 
 
-The ID of the eprint archive to use.
+The ID of the eprint repository to use.
 
 =item B<frequency> 
 
@@ -82,8 +82,7 @@ __GENERICPOD__
 
 =cut
 
-use EPrints::Subscription;
-use EPrints::Session;
+use EPrints;
 
 use File::Copy;
 use File::Path;
@@ -120,8 +119,8 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
-EPrints::Subscription::process_set( $session, $ARGV[1] );
-EPrints::User::process_editor_alerts( $session, $ARGV[1] );
+EPrints::DataObj::Subscription::process_set( $session, $ARGV[1] );
+EPrints::DataObj::User::process_editor_alerts( $session, $ARGV[1] );
 
 
 $session->terminate();

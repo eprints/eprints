@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
 
 ######################################################################
 #
@@ -14,15 +14,15 @@
 
 =head1 NAME
 
-B<generate_views> - Generate static browse pages for an EPrint archive
+B<generate_views> - Generate static browse pages for an EPrint repository
 
 =head1 SYNOPSIS
 
-B<generate_views> I<archiveid> [B<options>] 
+B<generate_views> I<repository_id> [B<options>] 
 
 =head1 DESCRIPTION
 
-This script renders static "browse views" for an EPrint Archive.
+This script renders static "browse views" for an EPrint repository.
 
 What this does is generate browse pages for each field configured as browsable in B<ArchiveConfig.pm>. It creates a static web page for each value of that field, and index pages to navigate to them. 
 
@@ -30,15 +30,15 @@ For example, if we make "year" browseable then this script will generate one pag
 
 Advantages of this are that this puts less load on the database than user searches. Assuming you pick two or three sensible fields to make browsable. 
 
-This script should be run every hour or so, but that should once a day or even once a week on large archives, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
+This script should be run every hour or so, but that should once a day or even once a week on large repositories, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
 
 =head1 ARGUMENTS
 
 =over 8
 
-=item B<archiveid> 
+=item B<repository_id> 
 
-The ID of the eprint archive to use.
+The ID of the eprint repository to use.
 
 =back
 
@@ -73,12 +73,8 @@ __GENERICPOD__
 
 =cut
 
-#cjg NOT doing noise right.
-#cjg not aktually working...
 
-use EPrints::EPrint;
-use EPrints::Session;
-use EPrints::Subject;
+use EPrints;
 
 use File::Copy;
 use File::Path;
@@ -109,34 +105,48 @@ my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
 
+my $PATH = "view";
+
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
+
+
 
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
-# cjg Would be nice to have multiple field browsing eg.
-# "authors.id/editors.id" but that can be done later.
 
-my $views = $session->get_archive()->get_conf( "browse_views" );
+my $views = $session->get_repository->get_conf( "browse_views" );
 
-my $ds = $session->get_archive()->get_dataset( "archive" );
+my $ds = $session->get_repository->get_dataset( "archive" );
 
 my $langid;
-foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
+foreach $langid ( @{$session->get_repository->get_conf( "languages" )} )
 {
 	$session->change_lang( $langid );
-	my $dir =  $session->get_archive()->get_conf( "htdocs_path" )."/".$langid."/view";
-	my $tmpdir = $dir."_tmp";
-	my $doomdir = $dir."_toerase";
+	my $dir =  $session->get_repository->get_conf( "htdocs_path" )."/".$langid."/".$PATH;
+	my $tmpdir = $dir."_tmp.$$";
+	my $doomdir = $dir."_toerase.$$";
 
 	if( -e $tmpdir ) { rmtree( $tmpdir ); }
 	EPrints::Utils::mkdir( $tmpdir );
 
-	foreach( @{$views} )
+	foreach my $view ( @{$views} )
 	{
-		print "Making browse pages for: $langid/".$_->{id}."\n" if( $noise > 0 );
-		make_view_pages( $_, $tmpdir, $ds, $noise );
+		#print "Making browse pages for: $langid/".$view->{id}."\n" if( $noise > 0 );
+
+		my @f = split( ',', $view->{fields} );
+		my $fieldids = \@f;
+		my $filters = [];
+		make_menu( 
+			$session, 
+			$tmpdir.'/'.$view->{id}, 
+			$ds, 
+			$view, 
+			$fieldids, 
+			$filters,
+			$noise );
+		
 	}
 
 	# Make Browse Page which lists various views
@@ -159,8 +169,8 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	
 	$title = $session->html_phrase( "bin/generate_views:browsetitle" );
 	$file = $tmpdir."/index.html";
-	$session->build_page( $title, $page, "browsemain" );
-	$session->page_to_file( $file );
+
+	$session->write_static_page( $tmpdir."/index", {title=>$title, page=>$page}, "browsemain" );
 	print "done\n" if( $noise > 1 );
 
 	print "Moving $langid views to be online ... " if( $noise > 1 );
@@ -168,20 +178,20 @@ foreach $langid ( @{$session->get_archive()->get_conf( "languages" )} )
 	move( $tmpdir, $dir );
 	rmtree( $doomdir );
 	print "done\n" if( $noise > 1 );
-
 }
 
 $session->terminate();
 exit;
 
-sub make_view_pages
+sub get_fields_from_config
 {
-	my( $info, $viewdir, $ds, $noise ) = @_;
+	my( $ds, $ids ) = @_;
 
+	$ids =~ s/^-//;
 	my @fields;
-	foreach( split( "/", $info->{fields} ) )
+	foreach my $fieldid ( split( "/", $ids ))
 	{
-		my $field = EPrints::Utils::field_from_config_string( $ds, $_ );
+		my $field = EPrints::Utils::field_from_config_string( $ds, $fieldid );
 		unless( $field->is_browsable() )
 		{
 #cjg should abort here. Or maybe just log.
@@ -189,34 +199,94 @@ sub make_view_pages
 			print STDERR "- Type \"".$field->get_type()."\" cannot be browsed.\n";
 			next;
 		}
+		#print STDERR "cjg-($fieldid)\n";
 		push @fields, $field;
 	}
 	if( scalar @fields == 0 ) { return; }
 
-	my $order = $info->{order};
+	return @fields
+}
 
-	my $dir = $viewdir."/".$info->{id};
-	mkdir( $dir, 0775 ) or die "Can't make directory $dir: $!\n";
-	my @values = ();
-	if( scalar @fields == 1 )
+
+sub get_pfilter_count
+{
+	my( $session, $ds, $pfilters, $mode ) = @_;
+
+	$mode = 'EX' unless( defined $mode );
+
+	my $count = -1;
+
+	if( scalar @{$pfilters} )
 	{
-		@values = $fields[0]->get_values( $session, $ds );
+		my $searchexp = new EPrints::Search(
+					satisfy_all=>1,
+					session=>$session,
+					dataset=>$ds );
+		# filter nosearch and hide metadata
+		$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
+		foreach my $filter ( @{$pfilters} )
+		{
+     			$searchexp->add_field( $filter->[0], $filter->[1], $mode );
+		}
+		
+      		$searchexp->perform_search();
+		$count = $searchexp->count();
+		$searchexp->dispose;
+	}
+	return $count;
+}
+	
+
+sub get_filtered_values
+{
+	my( $session, $ids, $pfilters, $view, $fields ) = @_;
+
+	my $reverse_list = 0;
+	if( $ids =~ s/^-// )
+	{
+		$reverse_list = 1;
+	}
+
+	my @values = ();
+	if( scalar @{$fields} == 1 )
+	{
+		my $vref = $fields->[0]->get_values( $session, $ds );
+		@values = @{$vref};
+	}
+	elsif( $fields->[0]->is_type( "name" ) )
+	{
+		my %v=();
+		foreach my $field ( @{$fields} )
+		{
+			my $vref = $field->get_values( $session, $ds );
+			foreach( @{$vref} )
+			{
+				if( !defined $_ ) { $_=""; }
+				$_->{given} = '' unless defined( $_->{given} );
+				$_->{family} = '' unless defined( $_->{family} );
+				$v{$_->{given}.':'.$_->{family}}=$_; 
+				
+			}
+		}
+		@values = values %v;
+
 	}
 	else
 	{
-		my $field;
 		my %v=();
-		foreach $field ( @fields )
+		foreach my $field ( @{$fields} )
 		{
-			foreach( $field->get_values( $session, $ds ) ) 
+			my $vref = $field->get_values( $session, $ds );
+			foreach( @{$vref} )
 			{ 
 				if( !defined $_ ) { $_=""; }
 				$v{$_}=1; 
 			}
 		}
-		@values = sort keys %v;	
+		@values = keys %v;
 	}
-	unless( $info->{allow_null} )
+
+	if( !$view->{allow_null} )
 	{
 		my @ov = @values;
 		@values = ();
@@ -225,269 +295,465 @@ sub make_view_pages
 			push @values,$_ unless $_ eq "";
 		}
 	}
+
 	
-	my( $value, $title, $file, $fileid );
-	my( $ul, $li, $a, $page );
+	my $ov = {};
 
-	#################################################
-	##
-	## Make Browse Pages
+	my $o_v = $fields->[0]->sort_values( $session, \@values );
 
-	my %size = ();
+	if( $reverse_list )
+	{
+		@values = reverse @{$o_v};
+	}
+	else
+	{
+		@values = @{$o_v};
+	}
+
+	return( @values );
+}
+
+sub make_menu
+{
+	my( $session, $dir, $ds, $view, $fieldids, $pfilters, $noise ) = @_;
+
+	EPrints::Utils::mkdir( $dir );
+
+	# head & tail
+	my( $levelids, @sublevelids ) = @{$fieldids};
+
+	my $count = get_pfilter_count( $session, $ds, $pfilters );
+
+	if( $count == 0 )
+	{
+		unless( EPrints::Utils::is_set( $view->{nocut} ) && $view->{nocut} )
+		{
+#print STDERR  "cjg: Nothing here. Cut.\n";
+				return 0;
+		}
+	}
+
+	my @fields = get_fields_from_config( $ds, $levelids );
+
+	my @values = get_filtered_values( $session, $levelids, $pfilters, $view, \@fields );
+
+	my $has_submenu = ( scalar @sublevelids > 0 );
+
+	# if !$has_submenu && graph
+	# render: graph page & return
+
+	#################################
+	#
+	# Render the pages or recurse the next level of menus
+	#
+	#################################
+
+	my $show_sizes = undef;
 	if( $fields[0]->is_type( "subject" ) )
 	{
-		foreach $value ( @values )
+		$show_sizes = {};
+		foreach my $value ( @values )
 		{
-			my $searchexp = new EPrints::SearchExpression(
-					use_oneshot_cache=>1,
-					satisfy_all=>0,
-					session=>$session,
-					dataset=>$ds );
-	
-			# EX if we do not want sub-subject vals.
-       			$searchexp->add_field( \@fields, $value, "EQ" );
-        		$searchexp->perform_search();
-			$size{$value} = $searchexp->count();
-			$searchexp->dispose();
+			my( $filters ) = [ @{$pfilters}, [ \@fields, $value ] ];
+			$show_sizes->{$value} = get_pfilter_count( $session, $ds, $filters,'EQ' );
 		}
 	}
 
 
-
-
-	foreach $value ( @values )
+	my %size = ();
+	foreach my $value ( @values )
 	{
-		$fileid = &mk_file_id( $value, $fields[0]->get_type );
-		print "[".$info->{id}."] = \"$fileid\"\n" if( $noise > 1 );
+		my $fileid = mk_file_id( $value, $fields[0]->get_type );
 
-		$page = $session->make_doc_fragment();
+		my( $filters ) = [ @{$pfilters}, [ \@fields, $value ] ];
 
-		if( $fields[0]->is_type( "subject" ) && !$info->{nohtml} )
+		if( $has_submenu )
 		{
+			$size{$value}=make_menu( 
+				$session, 
+				$dir.'/'.$fileid,
+				$ds, 
+				$view, 
+				[@sublevelids], 
+				$filters,
+				$noise );
 
-			# Note, this only shows ancestors and children. 
-			# You might want Ancestors and decendents (children 
-			# of children of ... )
-			# No support yet, but easy to add.
+			next;
+		}
+		
 
-			my $subject = EPrints::Subject->new( $session, $value );
+		my $page = $session->make_doc_fragment;
+			
+		my @sh_ids = ();
+		if( defined $view->{subheadings} )
+		{
+			 @sh_ids = split( ',', $view->{subheadings} );
+		}
+		my( $list, $n ) = render_list(
+			$session, 
+			$view, 
+			$filters,
+			\@sh_ids,
+			$view->{heading_level} );
+
+		$size{$value} = $n;
+
+		unless( $view->{nocount} )
+		{
+			$page->appendChild( $session->html_phrase( 
+				"bin/generate_views:blurb",
+				n=>$session->make_text( $size{$value} ) ) );
+		}
+		$page->appendChild( $list );
+
+		unless( $view->{notimestamp} )
+		{
+			$page->appendChild( $session->html_phrase(
+				"bin/generate_views:timestamp",
+				time=>$session->make_text(
+				EPrints::Utils::human_time() ) ) );
+	       	}
+
+
+		# render page
+		if( $view->{include} )
+		{
+			my $file = $dir."/".$fileid.".include";
+			print "Writing: $file\n" if( $noise > 1 );
+			open( FILE, ">$file" );
+			print FILE EPrints::XML::to_string( $page, undef, 1 );
+			close FILE;
+		}
+
+		if( $view->{nohtml} )
+		{
+			EPrints::XML::dispose( $page );
+			next;
+		}
+
+		my $pagedesc = $session->make_doc_fragment;
+		foreach my $pfilter ( @{$pfilters} )
+		{
+			$pagedesc->appendChild( $pfilter->[0]->[0]->get_value_label( $session, $pfilter->[1] ) );
+			$pagedesc->appendChild( $session->make_text( " / " ) );
+		}
+		$pagedesc->appendChild( $fields[0]->get_value_label( 
+				$session, 
+				$value ) );
+		my $title = $session->html_phrase( 
+			"bin/generate_views:title", 
+			viewname=>$session->make_text( 
+				$session->get_view_name( 
+					$ds, 
+					$view->{id} ) ),
+			value=>$pagedesc );
+		my $htmlpage = $session->make_doc_fragment;
+
+		if( $fields[0]->is_type( "subject" ) )
+		{
+			my $subject = EPrints::DataObj::Subject->new( $session, $value );
 			my @ids= @{$subject->get_value( "ancestors" )};
 			foreach( $subject->children() )
 			{
 				push @ids,$_->get_value( "subjectid" );
 			}
-
-			my $subjects_to_show = \@ids;
-			if( $info->{hideempty} )
+			foreach my $field ( @fields )
 			{
-				$subjects_to_show = [];
-				foreach( @ids )
-				{
-					next if( $_ eq "ROOT" );
-					next unless( $size{$_} > 0 );
-					push @{$subjects_to_show}, $_;
-				}
+				$htmlpage->appendChild( $session->render_subjects( \@ids, $field->get_property( "top" ), $value, 2, $show_sizes ) );
 			}
-       			$page->appendChild( $session->render_subjects( 
-					$subjects_to_show,
-					$fields[0]->get_property( "top" ), 
-					$value, 
-					2,
-					\%size ) );
-			$page->appendChild( $session->render_ruler() );
+
+			$htmlpage->appendChild( $session->render_ruler() );
 		}
 
-		my $links;
-		if( !defined $info->{layout} )
-		{
-			$links = $session->make_doc_fragment();
-		}
-		elsif( $info->{layout} eq "orderedlist" )
-		{
-			$links = $session->make_element( "ol" );
-		}
-		elsif( $info->{layout} eq "unorderedlist" )
-		{
-			$links = $session->make_element( "ul" );
-		}
-		else
-		{
-			$links = $session->make_doc_fragment();
-		}
+		$htmlpage->appendChild( $page );
 
-		my $fn = sub { 
-        		my( $session, $dataset, $item, $info ) = @_;
-
-			my $cite = $item->render_citation_link( 
-				$info->{citation} );
-
-			if( $info->{layout} eq "paragraph" )
-			{
-				my $p = $session->make_element( "p" );
-				$p->appendChild( $cite );
-				$cite = $p;
-			}
-			elsif( 
-				$info->{layout} eq "orderedlist" ||
-				$info->{layout} eq "unorderedlist" )
-			{
-				my $li = $session->make_element( "li" );
-				$li->appendChild( $cite );
-				$cite = $li;
-			}
-			#otherwise layout is "none"
-
-			$links->appendChild( $session->make_indent( 4 ) );
-			$links->appendChild( $cite );
-		};
-		
-		my $count = 0;
-		# Skip empty subject views. This could speed up small
-		# archives. 
-		unless( defined $size{$value} && $size{$value} == 0 )
-		{
-			my $searchexp = new EPrints::SearchExpression(
-					custom_order=>$order,
-					use_oneshot_cache=>1,
-					satisfy_all=>0,
-					session=>$session,
-					dataset=>$ds );
-
-       			$searchexp->add_field( \@fields, $value, "EX" );
-        		$searchexp->perform_search();
-			$count = $searchexp->count();
-			unless( $fields[0]->is_type( "subject" ) )
-			{
-				$size{$value} = $count;
-			}
-			unless( $info->{nocount} )
-			{
-				$links->appendChild( $session->html_phrase( 
-					"bin/generate_views:blurb",
-					n=>$session->make_text( $count ) ) );
-			}
-			my %mapinfo = %{$info};
-			$mapinfo{links} = $links;
-			if( !defined $mapinfo{layout} )
-			{
-				$mapinfo{layout} = "paragraph";
-			}
-			$searchexp->map( $fn, \%mapinfo );
-			$searchexp->dispose();
-		}
-
-		unless( $info->{notimestamp} )
-		{
-			$links->appendChild( $session->html_phrase(
-				"bin/generate_views:timestamp",
-				time=>$session->make_text( 
-					EPrints::Utils::get_timestamp() ) ) );
-		}
-
-		if( $info->{include} )
-		{
-			$file = $dir."/".$fileid.".include";
-			print "Writing: $file\n" if( $noise > 1 );
-			open( FILE, ">$file" );
-			print FILE EPrints::XML::to_string( $links );
-			close FILE;
-		}
-
-		unless( $info->{nohtml} )
-		{
-			$page->appendChild( $links );
-
-			$title = $session->html_phrase( 
-				"bin/generate_views:title", 
-				viewname=>$session->make_text( 
-					$session->get_view_name( 
-						$ds, 
-						$info->{id} ) ),
-				value=>$fields[0]->get_value_label( 
-					$session, 
-					$value ) );
-
-			$file = $dir."/".$fileid.".html";
-			$session->build_page( $title, $page, "browseview" );
-			print "Writing: $file\n" if( $noise > 1 );
-			$session->page_to_file( $file );
-		}
+		$session->write_static_page( $dir."/".$fileid, {title=>$title, page=>$htmlpage}, "browseview" );
 	}
 
-	return if( $info->{noindex} );
+	#################################
+	#
+	# Render the menu page
+	#
+	#################################
 
-	#################################################
-	##
-	## Make Index Page
+	return if( $view->{noindex} );
 
-	$page = $session->make_doc_fragment();
+	my $page = $session->make_doc_fragment();
 	$page->appendChild( 
 		$session->html_phrase( "bin/generate_views:intro" ) );
 
-
-#cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
-#        if( !defined $baseid )
-#        {
-#                $baseid = $EPrints::Subject::root_subject;
-#        }
-#
-#        my %subs = ();
-#        foreach( @{$subject_list}, $baseid )
-#        {
-#                $subs{$_} = EPrints::Subject->new( $self, $_ );
-#        }
-	
-	my $subjects_to_show = \@values;
-	if( $info->{hideempty} )
+	$show_sizes = \%size unless defined( $show_sizes );	
+	if( $fields[0]->is_type( "subject" ) )
 	{
-		$subjects_to_show = [];
-		foreach( @values )
+		$page->appendChild( render_subj_menu( 
+					$session, 
+					$view,
+					$show_sizes,
+					\@values,
+					\@fields,
+					$has_submenu ) );
+	}	
+	else
+	{
+		$page->appendChild( render_menu( 
+					$session,
+					$view,
+					$show_sizes,
+					\@values,
+					\@fields,
+					$has_submenu ) );
+	}	
+	
+	my $title = get_index_title( $session, $pfilters, $ds, $view );
+
+	if( $view->{include} )
+	{
+		my $file = $dir."/index.include";
+		print "Writing: $file\n" if( $noise > 1 );
+		open( FILE, ">$file" );
+		print FILE EPrints::XML::to_string( $page, undef, 1 );
+		close FILE;
+	}
+	
+	$session->write_static_page( $dir."/index", {title=>$title, page=>$page}, "browseindex" );
+
+	return( $count );
+}
+
+
+sub render_subj_menu
+{
+	my( $session, $view, $sizes, $values, $fields, $has_submenu ) = @_;
+
+	my $subjects_to_show = $values;
+
+	if( $view->{hideempty} )
+	{
+		my %show = ();
+		foreach my $value ( @{$values} )
 		{
-			next unless( $size{$_} > 0 );
-			push @{$subjects_to_show}, $_;
+			next unless( $sizes->{$value} > 0 );
+			my $subject = EPrints::DataObj::Subject->new(
+						$session, $value );
+			my @ids= @{$subject->get_value( "ancestors" )};
+			foreach my $id ( @ids ) { $show{$id} = 1; }
+		}
+		$subjects_to_show = [];
+		foreach my $value ( @{$values} )
+		{
+			next unless( $show{$value} );
+			push @{$subjects_to_show}, $value;
 		}
 	}
 
-	if( $fields[0]->is_type( "subject" ) )
+	my $f = $session->make_doc_fragment;
+	foreach my $field ( @{$fields} )
 	{
-        	$page->appendChild( 
-			$session->render_subjects( 
+		$f->appendChild(
+			$session->render_subjects(
 				$subjects_to_show,
-				$fields[0]->get_property( "top" ), 
-				undef, 
-				2, 
-				\%size ) );
+				$field->get_property( "top" ),
+				undef,
+				($has_submenu?3:2),
+				$sizes ) );
 	}
-	else
-	{
-		$ul = $session->make_element( "ul" );
-		foreach $value ( @values )
-		{
-			$fileid = &mk_file_id( $value, $fields[0]->get_type );
+	return $f;
+}
 
-			$li = $session->make_element( "li" );
-			$a = $session->render_link( $fileid.".html" );
-			$a->appendChild( 
+
+sub render_menu
+{
+	my( $session, $view, $sizes, $values, $fields, $has_submenu ) = @_;
+
+	my $ul = $session->make_element( "ul" );
+
+	foreach my $value ( @{$values} )
+	{
+		next if( $view->{hideempty} && $sizes->{$value} == 0 );
+
+		my $fileid = &mk_file_id( $value, $fields->[0]->get_type );
+
+		my $li = $session->make_element( "li" );
+
+		my $link = $fileid;
+		if( $has_submenu )
+		{
+			$link .= '/';
+		}
+		else
+		{
+			$link .= '.html';
+		}
+		my $a = $session->render_link( $link );
+		$a->appendChild( 
+			$fields->[0]->get_value_label( 
+				$session, 
+				$value ) );
+		$a->appendChild( 
+			$session->make_text( " (".$sizes->{$value}.")" ) );
+		$li->appendChild( $a );
+		$ul->appendChild( $li );
+	}
+
+	return $ul;
+}
+
+
+sub get_index_title
+{
+	my( $session, $pfilters, $ds, $view ) = @_;
+
+	unless( scalar @{$pfilters} )
+	{
+		# top level index
+		return $session->html_phrase( 
+			"bin/generate_views:indextitle", 
+			viewname=>$session->make_text( 
+				$session->get_view_name( $ds, $view->{id} ) ) );
+	}
+		
+	# sub level index
+	my $pagedesc = $session->make_doc_fragment;
+	my $first = 1;
+	foreach my $pfilter ( @{$pfilters} )
+	{
+		if( !$first )
+		{
+			$pagedesc->appendChild( $session->make_text( " / " ) );
+		}
+		$pagedesc->appendChild( $pfilter->[0]->[0]->get_value_label( $session, $pfilter->[1] ) );
+		$first = 0;
+	}
+	
+	return $session->html_phrase( 
+			"bin/generate_views:title", 
+			viewname=>$session->make_text( 
+					$session->get_view_name( 
+						$ds, 
+						$view->{id} ) ),
+			value=>$pagedesc );
+}
+
+
+sub render_list
+{
+	my( $session, $view, $pfilters, $subheadings, $level ) = @_;
+
+	if( !defined $level ) 
+	{
+		$level = 2;
+	}
+
+	if( defined $subheadings && scalar @{$subheadings} > 0 )
+	{
+		my( $heading_ids, @subheading_ids ) = @{$subheadings};
+		my $part = $session->make_doc_fragment;
+
+		my @fields = get_fields_from_config( $ds, $heading_ids );
+
+		my @values = get_filtered_values( $session, $heading_ids, $pfilters, $view, \@fields );
+
+		my $count = 0;
+
+		foreach my $value ( @values )
+		{
+			my( $filters ) = [ @{$pfilters}, [ \@fields, $value ] ];
+			my( $list, $sh_count ) = render_list( 
+				$session, 
+				$view, 
+				$filters, 
+				\@subheading_ids, 
+				$level+1 );
+			
+			if( $sh_count == 0 )
+			{
+				EPrints::XML::dispose( $list );
+				next;
+			}
+
+			$count += $sh_count;
+
+			if( $level > 6 ) { $level = 6; } # can't go past h6
+
+			my $heading = $session->make_element( "h".$level );
+			$heading->appendChild( 
 				$fields[0]->get_value_label( 
 					$session, 
 					$value ) );
-			$a->appendChild( 
-				$session->make_text( " (".$size{$value}.")" ) );
-			$li->appendChild( $a );
-			$ul->appendChild( $li );
+			$part->appendChild( $heading );
+			$part->appendChild( $list );
+		
 		}
-		$page->appendChild( $ul );
+
+		return( $part, $count );
 	}
 
-	$title = $session->html_phrase( 
-		"bin/generate_views:indextitle", 
-		viewname=>$session->make_text( 
-			$session->get_view_name( $ds, $info->{id} ) ) ),
+	my $links;
+	if( !defined $view->{layout} )
+	{
+		$links = $session->make_doc_fragment();
+	}
+	elsif( $view->{layout} eq "orderedlist" )
+	{
+		$links = $session->make_element( "ol" );
+	}
+	elsif( $view->{layout} eq "unorderedlist" )
+	{
+		$links = $session->make_element( "ul" );
+	}
+	else
+	{
+		$links = $session->make_doc_fragment();
+	}
 
-	$file = $dir."/index.html";
-	$session->build_page( $title, $page, "browseindex" );
-	print "Writing: $file\n" if( $noise > 1 );
-	$session->page_to_file( $file );
+	my $fn = sub { 
+       		my( $session, $dataset, $item, $view ) = @_;
+
+		my $cite = $item->render_citation_link( 
+			$view->{citation} );
+		if( $view->{layout} eq "paragraph" )
+		{
+			my $p = $session->make_element( "p" );
+			$p->appendChild( $cite );
+			$cite = $p;
+		}
+		elsif( 
+			$view->{layout} eq "orderedlist" ||
+			$view->{layout} eq "unorderedlist" )
+		{
+			my $li = $session->make_element( "li" );
+			$li->appendChild( $cite );
+			$cite = $li;
+		}
+		#otherwise layout is "none"
+
+		$links->appendChild( $session->make_indent( 4 ) );
+		$links->appendChild( $cite );
+	};
+	
+	my $searchexp = new EPrints::Search(
+				custom_order=>$view->{order},
+				satisfy_all=>1,
+				session=>$session,
+				dataset=>$ds );
+	$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
+	foreach my $filter ( @{$pfilters} )
+	{
+     		$searchexp->add_field( $filter->[0], $filter->[1], "EX" );
+	}
+      	$searchexp->perform_search();
+	my $count = $searchexp->count();
+
+	my %mapinfo = %{$view};
+	$mapinfo{links} = $links;
+	if( !defined $mapinfo{layout} )
+	{
+		$mapinfo{layout} = "paragraph";
+	}
+	$searchexp->map( $fn, \%mapinfo );
+	$searchexp->dispose();
+	
+	return( $links, $count );
 }
 
 
@@ -503,5 +769,11 @@ sub mk_file_id
 
 	return EPrints::Utils::escape_filename( $fileid );
 }
+
+
+
+
+
+
 
 

@@ -12,10 +12,19 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::UserPage;
-
+use EPrints;
+use strict;
 my $session = new EPrints::Session;
+
+if( $session->get_repo->get_conf( "disable_userinfo" ) )
+{
+	$session->build_page( 
+	     $session->html_phrase( "general:disabled_feature_title" ),
+	     $session->html_phrase( "general:disabled_feature_body" ) );
+	$session->send_page;
+	$session->terminate();
+	exit;
+}
 
 EPrints::UserPage::process( $session, 0 );
 

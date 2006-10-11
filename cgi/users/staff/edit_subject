@@ -14,17 +14,16 @@
 
 use strict;
 
-use EPrints::Session;
-use EPrints::Subject;
+use EPrints;
 
 my $session = EPrints::Session->new();
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 # Check we have privs
 if( !$session->auth_check( "edit-subject" ) )
 {
 	$session->terminate();
-	Apache::exit( 0 );
+	exit( 0 );
 }
 my( $title, $page );
 
@@ -41,7 +40,7 @@ else
 	$session->build_page( 
 		$session->html_phrase( "cgi/users/edit_subject:intro_title" ),
 		$session->html_phrase( "cgi/users/edit_subject:intro_blurb",
-			continuelink=>$session->render_link( "edit_subject?subjectid=".$EPrints::Subject::root_subject ) ),
+			continuelink=>$session->render_link( "edit_subject?subjectid=".$EPrints::DataObj::Subject::root_subject ) ),
 		"edit_subject_intro" ); 
 	$session->send_page();
 }
@@ -56,10 +55,10 @@ sub mkpage_editsubject
 {
 	my( $session, $subid ) = @_;
 
-	my $subject_ds = $session->get_archive()->get_dataset( "subject" );
-	my $archive_ds = $session->get_archive()->get_dataset( "archive" );
-	my $buffer_ds = $session->get_archive()->get_dataset( "buffer" );
-	my $subject = EPrints::Subject->new( $session, $subid );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $archive_ds = $session->get_repository->get_dataset( "archive" );
+	my $buffer_ds = $session->get_repository->get_dataset( "buffer" );
+	my $subject = EPrints::DataObj::Subject->new( $session, $subid );
 	if( !defined $subject )
 	{
 		$session->render_error( 
@@ -80,6 +79,7 @@ sub mkpage_editsubject
 		if( $action eq "submit" )
 		{
 			$subject->set_value( "name", $subject_ds->get_field( "name" )->form_value( $session ) );
+			my $d =  $subject_ds->get_field( "name" )->form_value( $session );
 
 			my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session );
 			$subject->set_value( "depositable", $depositable );
@@ -88,7 +88,7 @@ sub mkpage_editsubject
 		if( $action =~ m/^unlink_(.*)$/ )
 		{
 			my $victimid = $1;
-			my $victim = EPrints::Subject->new( $session, $victimid );
+			my $victim = EPrints::DataObj::Subject->new( $session, $victimid );
 				foreach( @{$victim->get_value( "parents" )} )
 				{
 				}
@@ -114,9 +114,9 @@ sub mkpage_editsubject
 		if( $action eq "add" )
 		{
 			my $newid = $session->param( "newsubjectid" );
-			if( defined $newid && $newid ne '')
+			if( EPrints::Utils::is_set( $newid ) )
 			{
-				my $newchild = EPrints::Subject->new( $session, $newid );
+				my $newchild = EPrints::DataObj::Subject->new( $session, $newid );
 				if( defined $newchild )
 				{
 					if( grep( /^$newid$/, @{$subject->get_value( "ancestors" )} ) )
@@ -133,13 +133,20 @@ sub mkpage_editsubject
 				}
 				else
 				{
-					$subject = EPrints::Subject::create( 
-							$session, 
-							$newid, 
-							'', 
-							[ $subject->get_value( "subjectid" ) ],
-							1 );
-					$subid = $newid;
+					my $new_subject = $subject_ds->create_object( $session, {
+						subjectid => $newid,
+						name => ''
+						parents => [ $subject->get_value( "subjectid" ) ],
+						depositable => 1 } );
+
+					my $newname = $session->param( "name" );
+					$newsubject->set_value( 
+						"name", 
+						{ $session->get_lang => $newname } );
+					my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session );
+					$newsubject->set_value( "depositable", $depositable );
+					$newsubject->commit;
+#					$subid = $newid;
 				}
 			}
 			else
@@ -153,15 +160,18 @@ sub mkpage_editsubject
 	$page->appendChild( $session->render_ruler() );
 
 	if( scalar @problems )
-	{
+	{	
+		my $probdiv = $session->make_element( "div", class=>"problems" );
 		my $ul = $session->make_element( "ul" );
-		$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:problems" ) );
-		$page->appendChild( $ul );
+		$probdiv->appendChild( $session->html_phrase( "cgi/users/edit_subject:problems" ) );
+		$probdiv->appendChild( $ul );
 		foreach( @problems )
 		{
-			$ul->appendChild( $_ );
+			my $li = $session->make_element( "li" );
+			$li->appendChild( $_ );
+			$ul->appendChild( $li );
 		}
-		$page->appendChild( $session->render_ruler() );
+		$page->appendChild( $probdiv );
 	}
 		
 		
@@ -176,12 +186,15 @@ sub mkpage_editsubject
 	$page->appendChild( $session->html_phrase( "cgi/users/edit_subject:location" ) );
 	$page->appendChild( $session->render_subjects( \@ids, undef, $subid, 1 ) );
 
-	$page->appendChild( $session->render_ruler() );
-
-	if( $subid ne $EPrints::Subject::root_subject )
+	if( $subid ne $EPrints::DataObj::Subject::root_subject )
 	{
-
-        	$page->appendChild(
+		my $div = $session->make_element( 	
+			"div", 
+			style=>"margin: 1em; padding: 1em; border: solid black 2px;" );
+		$div->appendChild( $session->html_phrase( 
+			"cgi/users/edit_subject:edit_heading",
+			subid=>$session->make_text( $subid ) ) );
+        	$div->appendChild(
                 	$session->render_input_form(
                         	fields=>[ 
 					$subject_ds->get_field( "name" ),
@@ -200,7 +213,7 @@ sub mkpage_editsubject
                         	hidden_fields=>{ subjectid => $subid },
                         	dest=>"edit_subject" ) );
 
-		$page->appendChild( $session->render_ruler() );
+		$page->appendChild( $div );
 	}
 
 
@@ -278,13 +291,42 @@ sub mkpage_editsubject
 	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:children" ) );
 	$form->appendChild( $table );
 
-	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child" ) );
-	$form->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child_help" ) );
+#	$form = $session->render_form( "post" );
+#	$form->appendChild( $session->render_hidden_field( "subjectid", $subid ) );
+#	$page->appendChild( $form );
+#	#$form->appendChild( $newidfield->render_input_field( $session ) );
+#	$form->appendChild( $newnamefield->render_input_field( $session ) );
+#	$form->appendChild( $session->render_action_buttons( 
+#		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
+#	$page->appendChild( $session->render_ruler );
+
+	my $f2div = $session->make_element( 
+		"div", 
+		style=>"margin: 1em; padding: 1em; border: solid black 2px;" );
+
 	my $newidfield = $subject_ds->get_field( "subjectid" )->clone();
 	$newidfield->set_property( "name", "newsubjectid" );
-	$form->appendChild( $newidfield->render_input_field( $session ) );
-	$form->appendChild( $session->render_action_buttons( 
-		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
+	my $newnamefield = $subject_ds->get_field( "name" )->clone();
+	$newnamefield->set_property( "multilang", 0 );
+	$f2div->appendChild( $session->html_phrase( 
+		"cgi/users/edit_subject:add_child",
+		subid=>$session->make_text( $subid ) ) );
+	$f2div->appendChild( $session->html_phrase( "cgi/users/edit_subject:add_child_help" ) );
+	$f2div->appendChild( $session->render_input_form(
+                       	fields=>[ 
+				$newidfield,
+				$newnamefield,
+				$subject_ds->get_field( "depositable" )
+			],
+			values =>{ depositable=>"TRUE" },
+                       	show_names=>1,
+                       	show_help=>1,
+			default_action => "add",
+                       	buttons=>{ add => $session->phrase( "cgi/users/edit_subject:action_add" ) },
+                       	hidden_fields=>{ subjectid => $subid },
+                       	dest=>"edit_subject" ) );
+
+	$page->appendChild( $f2div );
 
 	$title = $session->html_phrase( "cgi/users/edit_subject:title", subjectname=>$subject->render_description() ), 
 

@@ -1,4 +1,287 @@
-See CHANGELOG for the gory details.
+This file describes the major changes between versions. In addition you
+can assume every new version fixes minor bugs and typos. If you want to
+see the blow by blow account of every single change see the file called
+CHANGELOG.
+======================================================================
+
+
+
+EPRINTS 2.3.13                                                 2005-07-21
+-------------------------------------------------------------------------
+
+ - Support for the new mod_perl2 API.
+ - Terminology standardisation 
+       "archive" becomes "repository"
+       "submission buffer" becomes "editorial review"
+       "record" becomes "item"
+ - Fixed issue with apache setups which default to deny-from-all
+ - Solved issue causing warnings in indexer log
+ - Added "Date:" header to outgoing emails
+ - The Any/All these fields option is now hidden on search forms with 
+    only one field.
+ - Added default values for editor-only fields. This means that the edit
+    record page won't unexpectedly appear when people first become an 
+    editor.
+ - Looped threads no longer cause problems.
+ - New configuration option "show_ids_in_log" which can be set at the
+    archive level, but is best set in SystemSettings.pm - it causes all
+    log messages to be prefixed with which repository generated them.
+ - New hook routine: "eprint_status_change" which, if it exists, is 
+    called every time an eprint moves between buffers. This deprecates
+    "update_archived_eprint" and "update_submitted_eprint", although 
+    they will continue to work.
+ - Improvements to the installation procedure. Better instructions and
+    warnings.
+ - The default email message sent when an editor removes an item from
+    a workarea is now different from the one sent when removing an item
+    from editorial review (ne. submission buffer).
+ - Items in "deletion" may not be modified, even by editors. This can
+    be disabled with the "allow_edit_deleted" config option.
+
+EPRINTS 2.3.12                                                 2005-05-24
+-------------------------------------------------------------------------
+
+ - New HTTPS-mode which allows the registration and logged-in parts
+    of the site to run via https. 
+ - HTTPS-mode uses seperate template for secure pages (so that a secure
+    css file & images may be used)
+ - Added more exceptions to filename escaping in Documents. Now should
+    comply with RFC 2396.
+ - Fixed a bug which occasionally caused EPrints to fail to start.
+ - Fixed bug in full text search which meant occasionally the same
+    result appeared twice in one list.
+ - Better detection and warning messages for common problems, such as
+    wrong apache version, or email failing to send.
+ - Split staff option "clone eprint" into two options: "Use as template" 
+    and "New Version". These create new eprint records in the submission 
+    buffer.
+ - Other bugfixes and minor config options. (see CHANGELOG)
+
+EPRINTS 2.3.11                                                 2005-03-08
+-------------------------------------------------------------------------
+
+ - Fixed bug which prevented errors from displaying correctly when 
+    loading modules in mod_perl startup.
+ - Fixed bug in outgoing mail introduced in 2.3.10
+ - Added new metadata field type "itemref" which contains a reference
+    to an eprint or user object. Certain internal fields now use this
+    instead of "int".
+
+EPRINTS 2.3.10                                                 2005-03-02
+-------------------------------------------------------------------------
+
+ - Lots of little bugfixes - see CHANGELOG for details
+ - New script "epindexer" which can be used as a service to start and
+    stop the indexer when the machine reboots. To set this up, see the
+    instructions in the indexer man page.
+ - EPrints can now send email using Net::SMTP and this is now the
+    prefered (and default) method for new archives. Established 
+    archives can use this method, or stay with "sendmail"
+ - Apache 2 is now the default. You may need to change your options
+    to "configure".
+
+EPRINTS 2.3.9                                                  2005-02-17
+-------------------------------------------------------------------------
+
+ - Minor change to generate_apacheconf to work in RedHat Enterprise 4.
+
+EPRINTS 2.3.8                                                  2005-02-16
+-------------------------------------------------------------------------
+
+ - Clone-eprint deprecated and replaced with options "new version" and
+    "use as template".
+ - Fixed bugs in interaction with Apache 2.
+ - Improvements to coping with mysql 4.1
+ - Fixed some issues with installer
+ - Option to disable public information on users (for data protection 
+    concerns)
+ - Improvements to interface
+
+EPRINTS 2.3.7                                                  2004-11-25
+-------------------------------------------------------------------------
+
+ - No longer depends on libapreq
+ - Required formats may now be varied depending on eprint. For example
+    an eprint of type "book" may not require any formats, whereas a 
+    "article" may require PDF or HTML. 
+ - Added search support for special case where a search is being done
+    over names and text fields and a two letter surname is searched for.
+ - Three new config options for fields: input_assist, input_advice_right
+    and input_advice_below.
+ - General revamp of default style, added print style sheet, an XSLT 
+    file for OAI responses, nicer use of CSS, file sizes in metadata
+    page.
+ - Made RSS output standards compliant.
+ - Added an RSS output mode compatible with buggy postnuke RSS handler.
+ - Added warnings over unrecognised config options, rather than silent
+    ignore. This should help catch typos.
+ - Submission buffer now sorted by submission date.
+ - Added option to allow buttons to appear at top of search pages.
+ - Reduced startup message to a single line.
+ - New script; erase_fulltext_cache to force re-indexing of fulltext.
+
+EPRINTS 2.3.6                                                  2004-08-09
+-------------------------------------------------------------------------
+
+ - Fix of bug introduced in 2.3.5
+
+EPRINTS 2.3.5                                                  2004-08-06
+-------------------------------------------------------------------------
+
+ - New options and logging for indexer.
+ - XHTML produced by EPrints no longer contains xmlns attributes, this
+    should make it possible to properly validate the XHTML.
+ - Short URL's: The the URL of an eprint is now /123/ instead of
+    /archive/00000123/. This must be enabled in existing archives. Old
+    URL's will continue to work.
+ - Caching function for full text to reduce CPU load of indexer.
+ - Support for hungarian characters in indexer.
+ - Bugfixes.
+
+EPRINTS 2.3.4                                                  2004-07-06
+-------------------------------------------------------------------------
+
+ - Bugfixes.
+
+EPRINTS 2.3.3                                                  2004-03-04
+-------------------------------------------------------------------------
+
+ - Added explain_sql_tables script which explains what all 
+    the SQL tables are used for. Handy for hacking and debugging.
+ - Fixes to generate_views handling of subjects fields.
+ - Fixes for Apache 2 compatibility
+ - The name of a language can now be specified in an language specific 
+    phrase file. Added a new method to session: render_language_name
+    which renders the given name in the right language. 
+ - The string used to join names (and other field types) can now be
+    varied for the first or last item. So you can join names with ", "
+    but for the last pair use " and ".
+
+EPRINTS 2.3.2                                                  2004-02-25
+-------------------------------------------------------------------------
+
+  - Fixes for MySQL 4 compatibility.
+  - Fixes some problems with generate_views handling of subjects.
+  - Fixes for Apache 2 compatibility.
+
+EPRINTS 2.3.1                                                  2004-02-05
+-------------------------------------------------------------------------
+
+ - "last indexed" information to search results page so that users won't
+    be (as) confused if a search does not contain an item they just 
+    added.
+ - Browse by 'name' fields now works. So you can have a static "browse"
+    page for each unique author name eg. Fenderson,_Marvin.html - this
+    is not perfect as he may also by Fenderson,_M.html etc. Or you 
+    might have to Marvin Fendersons. Browse by author ID is still a
+    safer bet in the long term.
+ - Hooks so thta input fields can vary based on other factors. This 
+    should allow input fields which can (for example) limit the options
+    in one field based on values in another.
+ - Fixes for Perl 5.8 compatibility.
+
+EPRINTS 2.3.0                                                  2004-01-12
+-------------------------------------------------------------------------
+
+ - Date fields may now be configured so that only the year part is
+    required, with month and day optional. They may be treated as
+    if they were "year" fields for browsing and rendering citations.
+ - Completely new default fields, help and citations. Based on the
+    work of the TARDIS project.
+ - The registration process has been cleaned up a bit. Now change
+    password and register for new account are two seperate forms.
+    Also, fields from the user dataset can be added to the register
+    page (eg. Name), to save doing it later.
+ - If a user record is not valid the users home page now automatically
+    redirects to the edit my details page.
+ - Changed layout of the users home page. Cleaner layout.
+ - Metadata "types" code completely rewritten so as to be object-
+    oriented. Eg. Url extends Text. This should allow sites to add
+    their own custom types with unique rendering, input, storage
+    and search properties.
+ - Filters. As described for searches filters allow you to limit
+    the results of searches to only those matching a hard-wired 
+    setting. Filters can also be applied to the OAI interface and
+    latest_tool and will be applicable to views in a subsequent 
+    version.
+ - Citations are now full of <span> tags indicating fields and
+    also peoples names. Handy for style-sheeting.
+ - Apache 2 support.
+ - OAI Config now roughly follows Andy Powell's recomendations. nb.
+    This only affects new archives.
+ - Multilang archives can now understand the browsers language 
+    preference.
+ - Views may now have sub-pages eg. /year/2000/article.html 
+    (browse by year then type). 
+ - Views may now have sub-headings. eg. Browse by year, but results
+    page is divided into <h3>Article</h3>.....<h3>Book</h3>...etc.
+ - New CGI Tool: latest_tool. This lists the last "n" additions to
+    the archive. It can also have more than one "mode". Eg. Another
+    mode might be to output the last "n" items which had full
+    texts attached. It can also be made to output results in
+    RSS format.
+ - New CGI Tool: counter. This just lists the size of each dataset
+    in a simple, machine-readable way. This is to allow eprints.org
+    to monitor growth of archives in a low-impact way.
+ - Option to work with Apache 2. Apache 2.0 support relies on
+    3rd party libraries which are in active development. 
+ - Tested with perl 5.8 on Redhat 9.0. Some bugs fixed with unicode
+    support problems.
+ - MimeTex support.
+
+Submission & Data Input 
+ - Option to make the eprint type selection a list with radio buttons
+    and long descriptions, rather than just an HTML option element.
+    (submission_long_types). This is the default for new archives.
+ - Paged metadata input. Rather than overwhelm the user with a huge
+    form, the eprint metadata input may now be split into several
+    small stages.
+ - New input_style for "set" and "datatype" fields: "long". This
+    renders them as a deliniated list with radio buttons and long
+    descriptions taken from the phrase file. (This is the option 
+    which "submission_long_types" turns on for the system field
+    "type".
+ - The input method for fields can now be completely replaced with
+    alternate code. A much nicer input method for "subjects" is 
+    supplied.
+ - Changed the layout of the submission form. Now has control buttons
+    at the top and bottom with one being "save for later" (rather 
+    than the confusing "cancel"). The file upload section is now 
+    much quicker and cleaner. It does not even ask what the
+    "primary file" is unless there are two or more files in the 
+    document.
+ - "Help" for metadata input fields can now have HTML elements in
+     including links or javascript pop-ups. Different help may be
+     supplied for different types, eg. The help for title-of-article
+     can be different from title-of-book.
+ - Improvement to input-form-render for metafields. The layout is
+    now much more compact. Multiple fields now have arrow buttons
+    to allow them to be easily re-ordered.
+ - Improvements to the VLit transcluding interface.
+
+Searching & Indexing
+ - Search Field help may now contain HTML.
+ - Indexing and search code rewritten. Now indexing is done by
+    a daemon which runs in the background. This means that you don't
+    have to wait for the indexes to keep updating while editing a 
+    live record.
+ - Web-interface searches redesigned. No longer "simple" and 
+    "advanced", but as many different search configurations as you 
+    need. Searches can have custom citation style, items-per-page,
+    title, help and can even have "filters". Filters allow you to,
+    for example, limit a search to papers where status="published"
+    without that being an option in the form.
+ - Full text search tool. This uses the bundled Convert::PlainText
+    module. That just provides a wrapper to various UNIX tools which
+    extract the words.
+ - New name search syntax. "Smith, R" will match "Smith, Robert" 
+    and a search for "Smith, Robert" will match "Smith, R".
+ - Searching fields of type "date" now possible. Allows searching
+    of just years or exact dates.
+ - Staff searches are now just like the new user searches. By default
+    there are searches to search the user, buffer, inbox, archive
+    and deletion datasets, but more can be added.
+
 
 EPRINTS 2.2.0                                                  2002-10-31
 -------------------------------------------------------------------------

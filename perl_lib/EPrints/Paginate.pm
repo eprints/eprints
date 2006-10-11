@@ -1,0 +1,356 @@
+######################################################################
+#
+# EPrints::Paginate
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<EPrints::Paginate> - Methods for rendering a paginated List
+
+=head1 DESCRIPTION
+
+=over 4
+
+=cut
+
+######################################################################
+package EPrints::Paginate;
+
+use URI::Escape;
+use strict;
+
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Paginate->paginate_list( $session, $basename, $list, %opts )
+
+Render a "paginated" view of the list i.e. display a "page" of items 
+with links to navigate through the list.
+
+$basename is currently unused.
+
+%opts is a hash of options which can be used to customise the 
+behaviour and/or rendering of the paginated list. See EPrints::Search 
+for a good example!
+
+B<Behaviour options:>
+
+=over 4
+
+=item page_size	
+
+The maximum number of items to display on a page.
+
+=item pagejumps
+
+The maximum number of page jump links to display.
+
+=item params
+
+A hashref of parameters to include in the prev/next/jump URLs, 
+e.g. to maintain the state of other controls on the page between jumps.
+
+=back
+
+B<Rendering options:>
+
+=over 4
+
+=item controls_before, controls_after
+
+Additional links to display before/after the page navigation controls.
+
+=item container
+
+A containing XML DOM element for the list of items on the current page.
+
+=item render_result, render_result_params
+
+A custom subroutine for rendering an individual item on the current 
+page. The subroutine will be called with $session, $item, and the
+parameter specified by the render_result_params option. The
+rendered item should be returned.
+
+=item phrase
+
+The phrase to use to render the entire "page". Can make use of the following pins:
+
+=over 4
+
+=item controls
+
+prev/next/jump links
+
+=item searchdesc
+
+description of list e.g. what search parameters produced it
+
+=item matches
+
+total number of items in list, range of items displayed on current page
+
+=item results
+
+list of rendered items
+
+=item controls_if_matches
+
+prev/next/jump links (only if list contains >0 items)
+
+=back
+
+These can be overridden in the "pins" option (below).
+
+=item pins
+
+Named "pins" to render on the page. These may override the default 
+"pins" (see above), or specify new "pins" (although you would need 
+to define a custom phrase in order to make use of them).
+
+=back
+
+=cut
+######################################################################
+
+sub paginate_list
+{
+	my( $class, $session, $basename, $list, %opts ) = @_;
+
+	my $n_results = $list->count();
+	my $offset = $session->param( $basename."_offset" ) + 0;
+	#my $offset = $session->param( "_offset" ) + 0;
+	my $pagesize = $opts{page_size} || 10; # TODO: get default from somewhere?
+	my @results = $list->get_records( $offset , $pagesize );
+	my $plast = $offset + $pagesize;
+	$plast = $n_results if $n_results< $plast;
+
+	my %pins = ();
+	
+	if( scalar $n_results > 0 )
+	{
+		# TODO default phrase for item range
+		# TODO override default phrase with opts
+		my %numbers = ();
+		$numbers{from} = $session->make_element( "span", class=>"ep_search_number" );
+		$numbers{from}->appendChild( $session->make_text( $offset+1 ) );
+		$numbers{to} = $session->make_element( "span", class=>"ep_search_number" );
+		$numbers{to}->appendChild( $session->make_text( $plast ) );
+		$numbers{n} = $session->make_element( "span", class=>"ep_search_number" );
+		$numbers{n}->appendChild( $session->make_text( $n_results ) );
+		$pins{matches} = $session->html_phrase( "lib/searchexpression:results", %numbers );
+	}
+	else
+	{
+		# TODO default phrase for empty list
+		# override default phrase with opts
+		$pins{matches} = 
+			$session->html_phrase( 
+				"lib/searchexpression:noresults" );
+	}
+
+	$pins{searchdesc} = $list->render_description;
+
+	# Add params to action urls
+	my $url = $session->get_uri . "?";
+	my @param_list;
+	#push @param_list, "_cache=" . $list->get_cache_id; # if cached
+	#my $escexp = $list->{encoded}; # serialised search expression
+	#$escexp =~ s/ /+/g; # not great way...
+	#push @param_list, "_exp=$escexp";
+	if( defined $opts{params} )
+	{
+		my $params = $opts{params};
+		foreach my $key ( keys %$params )
+		{
+			my $value = $params->{$key};
+			push @param_list, "$key=$value";
+		}
+	}
+	$url .= join "&", @param_list;
+
+	my @controls; # page controls
+	if( defined $opts{controls_before} )
+	{
+		my $custom_controls = $opts{controls_before};
+		for( @$custom_controls )
+		{
+			my $custom_control = $session->render_link( $_->{url} );
+			$custom_control->appendChild( $_->{label} );
+			push @controls, $custom_control;
+		}
+	}
+
+	# Previous page link
+	if( $offset > 0 ) 
+	{
+		my $bk = $offset-$pagesize;
+		my $prevurl = "$url&$basename\_offset=".($bk<0?0:$bk);
+		my $prevlink = $session->render_link( $prevurl );
+		my $pn = $pagesize>$offset?$offset:$pagesize;
+		$prevlink->appendChild( 
+			$session->html_phrase( 
+				"lib/searchexpression:prev",
+				n=>$session->make_doc_fragment ) );
+				#n=>$session->make_text( $pn ) ) );
+		push @controls, $prevlink;
+	}
+
+	# Page jumps
+	my $pages_to_show = $opts{pagejumps} || 10; # TODO: get default from somewhere?
+	my $cur_page = $offset / $pagesize;
+	my $num_pages = int( $n_results / $pagesize );
+	$num_pages++ if $n_results % $pagesize;
+	$num_pages--; # zero based
+
+	my $start_page = $cur_page - ( $pages_to_show / 2 );
+	my $end_page = $cur_page + ( $pages_to_show / 2 );
+
+	if( $start_page < 0 )
+	{
+		$end_page += -$start_page; # end page takes up slack
+	}
+	if( $end_page > $num_pages )
+	{
+		$start_page -= $end_page - $num_pages; # start page takes up slack
+	}
+
+	$start_page = 0 if $start_page < 0; # normalise
+	$end_page = $num_pages if $end_page > $num_pages; # normalise
+	unless( $start_page == $end_page ) # only one page, don't need jumps
+	{
+		for( $start_page..$end_page )
+		{
+			my $jumplink;
+			if( $_ != $cur_page )
+			{
+				my $jumpurl = "$url&$basename\_offset=" . $_ * $pagesize;
+				$jumplink = $session->render_link( $jumpurl );
+				$jumplink->appendChild( $session->make_text( $_ + 1 ) );
+			}
+			else
+			{
+				$jumplink = $session->make_element( "strong" );
+				$jumplink->appendChild( $session->make_text( $_ + 1 ) );
+			}
+			push @controls, $jumplink;
+		}
+	}
+
+	# Next page link
+	if( $offset + $pagesize < $n_results )
+	{
+		my $nexturl="$url&$basename\_offset=".($offset+$pagesize);
+		my $nextlink = $session->render_link( $nexturl );
+		my $nn = $n_results - $offset - $pagesize;
+		$nn = $pagesize if( $pagesize < $nn);
+		$nextlink->appendChild( $session->html_phrase( "lib/searchexpression:next",
+					n=>$session->make_doc_fragment ) );
+					#n=>$session->make_text( $nn ) ) );
+		push @controls, $nextlink;
+	}
+
+	if( defined $opts{controls_after} )
+	{
+		my $custom_controls = $opts{controls_after};
+		for( @$custom_controls )
+		{
+			my $custom_control = $session->render_link( $_->{url} );
+			$custom_control->appendChild( $_->{label} );
+			push @controls, $custom_control;
+		}
+	}
+
+	if( scalar @controls )
+	{
+		$pins{controls} = $session->make_element( "div", class=>"ep_search_controls" );
+		for( @controls )
+		{
+			my $cspan = $session->make_element( 'span', class=>"ep_search_control" );
+			$cspan->appendChild( $_ );
+			$pins{controls}->appendChild( $cspan );
+			$pins{controls}->appendChild( $session->html_phrase( "lib/searchexpression:seperator" ) );
+		}
+	}
+	else
+	{
+		$pins{controls} = $session->make_doc_fragment;
+	}
+
+	# Container for results (e.g. table, div..)
+	if( defined $opts{container} )
+	{
+		$pins{results} = $opts{container};
+	}
+	else
+	{
+		$pins{results} = $session->make_doc_fragment;
+	}
+
+	foreach my $result ( @results )
+	{
+		# Render individual results
+		if( defined $opts{render_result} )
+		{
+			# Custom rendering routine specified
+			my $params = $opts{render_result_params};
+			my $custom = &{ $opts{render_result} }( $session, $result, $params );
+			$pins{results}->appendChild( $custom );
+		}
+		else
+		{
+			# Default: render citation
+			my $div = $session->make_element( "div", class=>"ep_search_result" );
+			$div->appendChild( $result->render_citation_link() ); 
+			$pins{results}->appendChild( $div );
+		}
+	}
+	
+	if( $n_results > 0 )
+	{
+		# Only print a second set of controls if there are matches.
+		$pins{controls_if_matches} = EPrints::XML::clone_node( $pins{controls}, 1 );
+	}
+	else
+	{
+		$pins{controls_if_matches} = $session->make_doc_fragment;
+	}
+
+	# Render a page of results
+	my $custom_pins = $opts{pins};
+	for( keys %$custom_pins )
+	{
+		$pins{$_} = $custom_pins->{$_} if defined $custom_pins->{$_};
+	}
+	my $page;
+	if( defined $opts{phrase} )
+	{
+		$page = $session->html_phrase( $opts{phrase}, %pins );
+	}
+	else
+	{
+		# Default: use built-in phrase
+		$page = $session->html_phrase( "lib/list:page", %pins );
+	}
+	return $page;
+}
+
+1;
+
+######################################################################
+=pod
+
+=back
+
+=cut
+

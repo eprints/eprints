@@ -1,0 +1,203 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+use EPrints::Session;
+
+use strict;
+
+my $session = new EPrints::Session();
+my $repository = $session->get_repository;
+
+$session->send_http_header( content_type=>'text/xml' );
+
+my $host = $repository->get_conf( "base_url" );
+my $perl = $repository->get_conf( "perl_url" );
+
+my @ops = (qw/ echo removeEprint getEprintFiles getEprint putEprint modifyEprint addDocument modifyDocument removeDocument addFile removeFile searchEprint/);
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+<definitions name="PmSoapRpcApi"
+             targetNamespace="$host/EPrints/WebServices"
+             xmlns:pm="$host/EPrints/WebServices"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+  <types>
+END
+
+print <<END;
+    <xsd:schema>
+        <xsd:import schemaLocation="$perl/soap/xsd" />
+    </xsd:schema>
+END
+
+#do "fooxsd";
+#rrr($session,$host);
+print <<END;
+  </types>
+
+
+  <message name="echoInput">
+    <part name="inputString"             type="xsd:string"/>
+    <part name="stringDuplicationCount"  type="xsd:int"/>
+  </message>
+
+  <message name="echoOutput">
+    <part name="return"                  type="xsd:string"/>
+  </message>
+
+
+  <message name="removeEprintInput">
+    <part name="eprintID"                type="xsd:string"/>
+  </message>
+
+  <message name="removeEprintOutput">
+  </message>
+
+
+  <message name="getEprintFilesInput">
+    <part name="eprintID"                type="xsd:string"/>
+  </message>
+
+  <message name="getEprintFilesOutput">
+    <part name="eprint"                  type="pm:Eprint"/>
+  </message>
+
+
+  <message name="getEprintInput">
+    <part name="eprintID"                type="xsd:string"/>
+  </message>
+
+  <message name="getEprintOutput">
+    <part name="eprint"                  type="pm:Eprint"/>
+  </message>
+
+
+  <message name="putEprintInput">
+    <part name="eprint"                  type="pm:Eprint"/>
+  </message>
+
+  <message name="putEprintOutput">
+    <part name="eprintID"                type="xsd:string"/>
+  </message>
+
+
+  <message name="modifyEprintInput">
+    <part name="eprintID"                  type="xsd:string"/>
+    <part name="eprint"                    type="pm:Eprint"/>
+  </message>
+
+  <message name="modifyEprintOutput">
+  </message>
+
+
+  <message name="addDocumentInput">
+    <part name="eprintID"                  type="xsd:string"/>
+    <part name="document"                  type="pm:Document"/>
+  </message>
+
+  <message name="addDocumentOutput">
+    <part name="documentID"                type="xsd:string"/>
+  </message>
+
+  <message name="modifyDocumentInput">
+    <part name="documentID"                  type="xsd:string"/>
+    <part name="document"                    type="pm:Document"/>
+  </message>
+
+  <message name="modifyDocumentOutput">
+  </message>
+
+
+  <message name="removeDocumentInput">
+    <part name="documentID"                  type="xsd:string"/>
+  </message>
+
+  <message name="removeDocumentOutput">
+  </message>
+
+
+  <message name="removeFileInput">
+    <part name="documentID"                  type="xsd:string"/>
+    <part name="filename"                    type="xsd:string"/>
+  </message>
+
+  <message name="removeFileOutput">
+  </message>
+
+
+  <message name="addFileInput">
+    <part name="documentID"                  type="xsd:string"/>
+    <part name="filename"                    type="xsd:string"/>
+    <part name="data"                        type="xsd:base64Binary"/>
+  </message>
+
+  <message name="addFileOutput">
+  </message>
+
+
+  <message name="searchEprintInput">
+    <part name="params"                  type="pm:ListParam"/>
+    <part name="searchFields"            type="pm:ListSearchField"/>
+  </message>
+
+  <message name="searchEprintOutput">
+    <part name="results"                 type="pm:ListEprint"/>
+  </message>
+
+
+  <portType name="PmSoapRpcApiPort">
+END
+foreach my $operation ( @ops )
+{
+	my $input = $operation."Input";
+	my $output = $operation."Output";
+	print <<END;
+    <operation name="$operation">
+      <input  name='$input'  message="pm:$input"/>
+      <output name='$output' message="pm:$output"/>
+    </operation>
+
+END
+}
+print <<END;
+  </portType>
+
+  <binding name="PmSoapRpcApiBinding" type="pm:PmSoapRpcApiPort">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+END
+foreach my $operation ( @ops )
+{
+	my $input = $operation."Input";
+	my $output = $operation."Output";
+	print <<END;
+    <operation name="$operation">
+      <soap:operation soapAction="$host/EPrints/WebServices#$operation"/>
+      <input name="$input">
+        <soap:body use="encoded"
+                   namespace="$host/EPrints/WebServices"
+                   encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </input>
+      <output name="$output">
+        <soap:body use="encoded"
+                   namespace="$host/EPrints/WebServices"
+                   encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </output>
+    </operation>
+END
+}
+print <<END;
+  </binding>
+
+  <service name="PmSoapRpcApi">
+    <port name="PmSoapRpcApiPort" binding="pm:PmSoapRpcApiBinding">
+      <soap:address location="$perl/soap/soap"/>
+    </port>
+  </service>
+
+</definitions>
+END
+
+exit;

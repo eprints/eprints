@@ -1,0 +1,147 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<lift_embargos> - lift expired publisher- or funder-imposed embargos from an repository
+
+=head1 SYNOPSIS
+
+B<lift_embargos> - I<repository_id> [B<options>]
+
+=head1 DESCRIPTION
+
+Lift expired publisher- or funder-imposed embargos from an repository.
+
+This script will:
+
+  - search the repository for eprints which have an expired publisher- or funder-imposed embargo date (relative to the system date)
+  - make all documents associated with each eprint publically available
+  - remove the expired embargo date value
+  - re-generate the abstract page for the eprint
+
+Note that this considers the date to be the local date, not the UTC date.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the EPrint repository to search.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+This option does not do anything.
+
+=item B<--verbose>
+
+Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+use strict;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "lift_embargos" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $session );
+
+my $ds = $session->get_repository->get_dataset( "document" );
+
+# Search for expired embargos
+my $searchexp = new EPrints::Search( 
+		session=>$session, 
+		dataset=>$ds,
+		custom_order=>"title");
+
+my $date = sprintf("-%04d-%02d-%02d", EPrints::Utils::get_date_array( time ) );
+$searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
+
+$searchexp->perform_search;
+
+# For matching documents, remove embargo date value,
+# make documents publically accessible, and
+# re-generate abstract page
+$searchexp->map( sub {
+	my( $session, $dataset, $doc ) = @_;
+
+	my $eprint = $doc->get_eprint;
+
+	# only concerned with documents in main archive
+	return unless $eprint->get_value( "eprint_status" ) eq "archive";
+
+	if( $noise )
+	{
+		print "Lifting expired embargo on document #" . $doc->get_id . " (" . $doc->get_value("date_embargo") . ")\n";
+	}
+	$doc->set_value( "security", "public" );
+	$doc->set_value( "date_embargo", undef );
+	$doc->commit;
+	$eprint->commit;
+	$eprint->generate_static;
+} );
+
+$searchexp->dispose();
+$session->terminate();
+

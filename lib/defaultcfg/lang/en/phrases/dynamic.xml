@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+    <ep:phrase id="dynamic:logged_in">Logged in as <ep:pin name="user"/> <a href="&perl_url;/logout">logout</a></ep:phrase>
+
+    <ep:phrase id="dynamic:not_logged_in">Not logged in. <a href="&userhome;">login</a> | <a href="&perl_url;/register">register</a></ep:phrase>
+
+</ep:phrases>

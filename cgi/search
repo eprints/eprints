@@ -12,25 +12,56 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::EPrint;
-use EPrints::SearchExpression;
+use EPrints;
 
 use strict;
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
+# $session->get_database->set_debug( 1 );
 
-my $searchexp = new EPrints::SearchExpression(
+my $path_info = $session->get_request->path_info;
+# lose a leading slash
+$path_info =~ s#^/##;
+# we only want stuff up to the 2nd slash
+$path_info =~ s#/.*$##;
+
+my $searchid = $path_info;
+if( $searchid eq "advsearch" )
+{
+	# cover the old systems sins...
+	my $url = $session->get_repository->get_conf( "perl_url" ).
+			"/search/advanced";
+	if( defined $session->get_request->args )
+	{
+		$url .="?".$session->get_request->args;
+	}
+	$session->redirect( $url );
+	$session->terminate;
+	exit;
+}
+my $sconf = $session->get_repository->get_conf( "search", $searchid );
+if( !defined $sconf )
+{
+	my $url = $session->get_repository->get_conf( "perl_url" ).
+			"/search/simple";
+	if( defined $session->get_request->args )
+	{
+		$url .="?".$session->get_request->args;
+	}
+	$session->redirect( $url );
+	$session->terminate;
+	exit;
+}
+
+my $ds = $session->get_repository->get_dataset( "archive" );
+my $searchexp = new EPrints::Search(
+	keep_cache => 1,
 	session => $session,
-	use_cache => 1,
-	defaults => $session->get_archive()->get_conf( "simple_search_defaults" ),
-	dataset => $session->get_archive()->get_dataset( "archive" ),
-	fieldnames => $session->get_archive()->get_conf( "simple_search_fields" ) );
-
-my $preamble = $session->html_phrase( "cgi/search:preamble" );
-
-my $title = $session->html_phrase( "cgi/search:simple_search" );
-
-$searchexp->process_webpage( $title, $preamble );
+	dataset => $ds,
+	filters => [
+		{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EX', describe=>0 },
+	],
+	%{$sconf} );
+$searchexp->process_webpage();
 
 $session->terminate;

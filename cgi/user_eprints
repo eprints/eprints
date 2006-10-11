@@ -12,13 +12,22 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::EPrint;
+use EPrints;
 
 use strict;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
+
+if( $session->get_repository->get_conf( "disable_userinfo" ) )
+{
+	$session->build_page( 
+	     $session->html_phrase( "general:disabled_feature_title" ),
+	     $session->html_phrase( "general:disabled_feature_body" ) );
+	$session->send_page;
+	$session->terminate();
+	exit;
+}
 
 &process( $session );
 
@@ -31,8 +40,8 @@ sub process
 	my $user = EPrints::UserPage::user_from_param( $session );
 	return unless defined( $user );
 
-	my $arc_ds = $session->get_archive()->get_dataset( "archive" );
-	my @eprints = $user->get_owned_eprints( $arc_ds );
+	my $arc_ds = $session->get_repository->get_dataset( "archive" );
+	my $list = $user->get_owned_eprints( $arc_ds );
 	my $userid = $user->get_value( "userid" );
 
 	my $page = $session->make_doc_fragment();
@@ -44,14 +53,17 @@ sub process
 
 	$page->appendChild( $session->html_phrase(
 		"cgi/user_eprints:n_eprints",
-		n=>$session->make_text( scalar @eprints ) ) );
+		n=>$session->make_text( $list->count ) ) );
 
-	foreach( @eprints )
-	{
+	$list->map( sub {
+		my( $session, $dataset, $eprint ) = @_;
+
+		return if( $eprint->get_value( "metadata_visibility" ) eq "hide" );
+
 		my $p = $session->make_element( "p" );
-		$p->appendChild( $_->render_citation_link() );
+		$p->appendChild( $eprint->render_citation_link() );
 		$page->appendChild( $p ); 
-	}
+	} );
 
 	$session->build_page(
 		$session->html_phrase( 
@@ -60,7 +72,6 @@ sub process
 		$page,
 		"user_eprints" );
 	$session->send_page();
-
 }
 
 

@@ -1,0 +1,9 @@
+
+/*  only loaded if the browser has javascript turned off (or does
+ *  not support it.
+ */
+
+.ep_no_js { display: block; }
+
+.ep_only_js { display: none; }
+

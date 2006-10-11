@@ -1,0 +1,515 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<indexer> - Indexing daemon for EPrints
+
+=head1 SYNOPSIS
+
+B<indexer> start [B<options>]
+
+B<indexer> stop 
+
+B<indexer> status
+
+B<indexer> --help
+
+=head1 DESCRIPTION
+
+This daemon runs in the background and creates index files for all eprints repositories.
+
+Messages and errors are logged to /opt/eprints3/var/indexer.log unless you change the log options. If it appears to be having problems try raising the log level and examining the log.
+
+Once every 24 hours, the indexer rolls the logs (up to logfile.5) and then starts again. See --rollcount for ways to customise this.
+
+=over 8
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--force>
+
+Start up, even if the PID file exists (implying another copy is running). This
+is useful for starting after a crash, but be carefully not to run to copies at
+once as BAD THINGS will happen.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--logfile> I<filename>
+
+Log to I<filename> rather than default indexer log.
+
+=item B<--loglevel> I<level>
+
+Set the level of detail to log. Level may be 0-5.
+
+=item B<--rollcount> I<number>
+
+Set the number of once-through logs that should be kept. If set to zero then indexer will never roll the logs but rather just keep writing to the main log.
+
+=item B<--notdaemon>
+
+Do not become a daemon, remain attached to the current terminal.
+
+Log goes to STDERR instead of the log file.
+
+Does not create a .pid file.
+
+=item B<--once>
+
+Only clear the current queue of things needing indexing then exit.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+=head1 Making into a service 
+
+This has only been tested under redhat linux. It make work on other OS's, but not promise.
+
+To make the indexer into a service which starts and stops on reboots etc. like httpd and mysqld do the following (as root):
+
+ ln -s /opt/eprints3/bin/epindexer /etc/init.d/epindexer 
+ chkconfig --add epindexer
+ chkconfig epindexer on
+
+The epindexer script runs as root, changes user to "eprints" (or whatever uid your eprints install runs as) and then calls indexer. 
+
+__GENERICPOD__
+
+=cut
+
+use EPrints;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+my $force = 0;
+my $logfile;
+my $loglevel = 2;
+my $rollcount = 5;
+my $notdaemon = 0;
+my $once = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'force' => \$force,
+	'quiet' => \$quiet,
+	'notdaemon' => \$notdaemon,
+	'once' => \$once,
+	'rollcount=s' => \$rollcount,
+	'logfile=s' => \$logfile,
+	'loglevel=s' => \$loglevel
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "indexer" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 );
+pod2usage( 2 ) if( $ARGV[0] ne "start" && $ARGV[0] ne "stop" && $ARGV[0] ne "status" );
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+my $p = {
+	loglevel => $loglevel+0,
+	rollcount => $rollcount+0,
+	daemon => !$notdaemon,
+	noise => $noise,
+	once => $once,
+	logfile => $logfile 
+};
+
+$p->{pidfile} = EPrints::Config::get("var_path")."/indexer.pid";
+if( !defined $p->{logfile} ) 
+{
+	$p->{logfile} = EPrints::Config::get("var_path")."/indexer.log";
+}
+
+if( $ARGV[0] eq "status" )
+{
+	if( !-e $p->{pidfile} )
+	{
+		print "Indexer is not running\n";
+		exit;
+	}
+
+	my $pid = get_pid( $p );
+	print "Indexer appears to be running with PID $pid\n";
+	exit;
+}
+
+
+if( $ARGV[0] eq "stop" )
+{
+	if( !-e $p->{pidfile} )
+	{
+		print <<END;
+$p->{pidfile} does not appear to exist.
+
+Maybe something bad happend? If indexer is still running you will have to
+shut it down by hand.
+END
+		exit 1;
+	}
+
+	my $pid = get_pid( $p );
+
+	if( !defined $pid )
+	{	
+		die "Could not find PID in $p->{pidfile}.  Weird. Better kill it by hand.";
+	}
+	
+	# if "kill" is not in bin then this will cause trouble. 
+	print "Sending TERM signal to $pid\n" if( $p->{noise} > 1 );
+	kill 15, $pid;
+
+
+	# give it 10 seconds
+	my $counter = 10;
+	for( 1..$counter )
+	{
+		if( !-e $p->{pidfile} )
+		{
+			print "...Killed $pid\n" if( $p->{noise} > 1 );
+			exit 0;
+		}
+		sleep 1;
+		print "tick\n" if( $p->{noise} > 2 );
+	}
+
+	print <<END;
+pidfile did not disappear within $counter seconds, so something didn't 
+work somewhere. Try killing process number $pid (if it exists) and 
+then removing $p->{pidfile}
+END
+
+	exit;
+}
+
+
+#foreach my $arc_id ( EPrints::Config::get_repository_ids() )
+#{
+#
+#	my $session  = new EPrints::Session( 1 , $arc_id , $noise );
+#	if( !defined $session ) 
+#	{
+#		print STDERR "Error opening session: $arc_id\n";
+#		exit( 1 );
+#	}
+#	$session->terminate;
+#}
+
+if( !$force && -e $p->{pidfile} )
+{
+	my $pid = get_pid( $p );
+	print <<END;
+
+EPrints indexer appears to be running with process ID $pid. 
+It may have crashed. 
+
+To check if the process is still running (on a linux system)
+use:
+
+ps auwwx | grep indexer
+
+Options to "ps" vary on other systems. You may also try:
+
+ps -ef | grep indexer
+
+If indexer is not already running you may either:
+ * delete the PID file: $p->{pidfile} 
+ * run indexer with the --force option
+
+END
+	exit 1;
+}
+if( $p->{daemon})
+{
+	close STDERR;
+}
+if( $p->{loglevel} > 0 && $p->{daemon})
+{
+	open( STDERR, ">>$p->{logfile}" ) || die "Error opening $p->{logfile} as STDERR: $!";
+	select( STDERR );
+	$| = 1;
+
+	rolllogs( $p );
+	indexlog();
+	indexlog();
+	indexlog( "**** Indexer starting..." );
+}
+
+
+if( $p->{daemon} )
+{
+	indexlog( "**** Becoming Daemon" );
+	close STDIN;
+	open STDIN, "/dev/null" || die "Can't open /dev/null for reading: $!";
+	close STDOUT;
+	open( STDOUT, ">>$p->{logfile}" ) || die "Error opening $p->{logfile} as STDOUT: $!";
+	exit if fork;
+	exit if fork;
+}
+
+
+
+$SIG{TERM} = sub { 
+	indexlog( "*** TERM signal received" ) if( $p->{loglevel} > 1 );
+	stopindexer( $p );
+};
+
+
+if( $p->{daemon} )
+{
+	open( PID, ">>$p->{pidfile}" ) || die "Can't open $p->{pidfile} for writing: $!";
+	print PID <<END;
+# This file is automatically generated to indicate what process ID
+# indexer is running as. If this file exists then indexer is assumed
+# to be running.
+END
+	print PID $$."\n";
+	print PID EPrints::Utils::human_time()."\n";
+	close PID;
+}
+
+indexlog( "** Indexer control process started with process ID: $$" ) if( $p->{loglevel} > 2 );
+
+while( 1 ) 
+{
+	indexlog( "*** Starting indexing" ) if( $p->{loglevel} > 1 );
+	
+	$p->{kid} = fork();
+	if( $p->{kid} == 0 )
+	{
+		my @sessions = ();
+		my @arc_ids = EPrints::Config::get_repository_ids();
+		foreach my $arc_id ( sort @arc_ids )
+		{
+			my $repository = EPrints::Repository->new( $arc_id );
+			next unless $repository->get_conf( "index" );
+			push @sessions, new EPrints::Session( 1 , $arc_id );
+		}
+
+		$SIG{TERM} = sub { 
+			indexlog( "** Worker process terminated: $$" ) if( $p->{loglevel} > 2 );
+			foreach( @sessions ) { $_->terminate; }
+			exit;
+		};
+		$SIG{ALRM} = sub {
+			indexlog( "** Wake up... time to die: $$" ) if( $p->{loglevel} > 2 );
+			indexlog( "** Worker process restarting: $$" ) if( $p->{loglevel} > 2 );
+			foreach( @sessions ) { $_->terminate; }
+			rolllogs();
+			exit;
+		};
+		# restart once a day in case of memory leaks
+		alarm( 60*60*24 ) unless $p->{once};  
+			
+		indexlog( "** Worker process started: $$" ) if( $p->{loglevel} > 2 );
+		my $cmd = "/usr/bin/renice 8 $$";	
+		`$cmd`;
+
+		while( 1 ) 
+		{
+			my $seen_action = 0;
+
+			foreach my $session ( sort @sessions )
+			{
+				# $session->get_database->set_debug( 1 );
+				my $sql = "SELECT UNIX_TIMESTAMP(NOW()), field FROM indexqueue ORDER BY added LIMIT 10";
+				my $sth = $session->get_database->prepare( $sql );
+				$session->get_database->execute( $sth, $sql );
+				my( $now, $field ) = @_;
+				my %todo = (); # use a hash so we only do each field in the set once.
+				while( my @info = $sth->fetchrow_array ) {
+					$todo{$info[1]} = 1;
+					$seen_action = 1;
+					$now = $info[0] unless defined $now;
+				}
+				$sth->finish;
+				foreach my $fieldcode ( keys %todo )
+				{
+					my( $datasetid, $objectid, $fieldid ) = split( /\./, $fieldcode );
+		
+					my $dataset = $session->get_repository->get_dataset( $datasetid );
+					if( !defined $dataset )
+					{
+						indexlog( "Could not make dataset: $datasetid ($fieldcode)" );
+						next;
+					}
+					my $field = $dataset->get_field( $fieldid );
+					if( !defined $field )
+					{
+						indexlog( "No such field: $fieldid (found on index queue).. skipping.\n" );
+						next;
+					}
+		
+					indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
+					EPrints::Index::remove( $session, $dataset, $objectid, $fieldid );
+
+					next unless( $field->get_property( "text_index" ) );
+
+					my $item = $dataset->get_object( $session, $objectid );
+					next unless ( defined $item );
+
+					my $value = $item->get_value( $fieldid );
+					
+					next unless EPrints::Utils::is_set( $value );	
+
+					indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
+					EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value );
+				}
+				# always remove them, even if they didn't index right.
+				foreach my $fieldcode ( keys %todo )
+				{
+					my $sql = "DELETE FROM indexqueue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
+					$session->get_database->do( $sql );
+				}
+				
+			}
+
+			indexlog( "* tick: $$" ) if( $p->{loglevel} > 3 );
+		
+			next if( $seen_action );
+			
+			if( $p->{once} )	
+			{
+				indexlog( "** Queue empty: Sub process exiting: $$" ) if( $p->{loglevel} > 2 );
+				foreach( @sessions ) { $_->terminate; }
+				exit;
+			}
+			sleep 30; 
+		}
+		exit;
+	}
+	wait; 
+	undef $p->{kid};
+
+	stopindexer($p) if( $p->{once} );
+
+	rolllogs( $p );
+}
+
+
+####################################################################################
+
+sub rolllogs
+{
+	my( $p ) = @_;
+
+	return if( $p->{loglevel} <= 0 );
+	return if( $p->{rollcount} <= 0 );
+
+	indexlog( "** End of log. Closing and rolling." ) if( $p->{loglevel} > 2 );
+	for( my $n = $p->{rollcount}; $n > 0; --$n )
+	{
+		my $src = $p->{logfile};	
+		if( $n > 1 ) { $src.='.'.($n-1); }
+		next unless( -f $src );
+		my $tgt = $p->{logfile}.'.'.$n;
+		rename( $src, $tgt ) || warn "Error renaming: $!";
+	}
+	close STDERR;
+	open( STDERR, ">>$p->{logfile}" ) || warn "Error opening: $p->{logfile}: $!";
+	select( STDERR );
+	$| = 1;
+}
+
+
+sub get_pid
+{
+	my( $p ) = @_;
+
+	print "Reading $p->{pidfile}\n" if( $p->{noise} > 1 );
+	open( PID, $p->{pidfile} ) || die( "Could not open $p->{pidfile}: $!" );
+	my $pid;
+	while( <PID> )
+	{
+		chomp;
+		if( m/^\d+$/ )
+		{
+			$pid = $_;
+			last;
+		}
+	}
+	close PID;
+
+	return $pid;
+}
+
+sub indexlog
+{
+	my( $txt ) = @_;
+
+	if( !defined $txt )
+	{
+		print STDERR "\n";
+		return;
+	}
+
+	print STDERR "[".localtime()."] ".$txt."\n";
+}
+
+sub stopindexer
+{
+	my( $p ) = @_;
+
+	indexlog( "** Control process $$ stopping..." ) if( $p->{loglevel} > 2 );
+	indexlog( "* Unlinking $p->{pidfile}" ) if( $p->{loglevel} > 3 );
+	unlink( $p->{pidfile} ) || die( "Can't unlink $p->{pidfile}" );
+	if( defined $p->{kid} )
+	{
+		indexlog( "* Sending TERM signal to worker process: $p->{kid}" ) if( $p->{loglevel} > 2 );
+		kill 15, $p->{kid};
+	}
+
+	indexlog( "** Control process $$ stopped", 1 ) if( $p->{loglevel} > 2 );
+	indexlog( "**** Indexer stopped" ) if( $p->{loglevel} > 0 );
+	indexlog() if( $p->{loglevel} > 0 );
+	exit;
+}

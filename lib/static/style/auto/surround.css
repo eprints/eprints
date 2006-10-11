@@ -1,0 +1,71 @@
+
+/* EPrints 3 default workflow component-surround style */
+
+/* ep_sr */
+
+.ep_sr_component {
+	padding: 0px;
+	background-color: transparent;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+.ep_sr_component .ep_sr_title {
+	background-color: white;
+	color: #444;
+	border: 0;
+}
+.ep_sr_component .ep_sr_input {
+	text-align: left;
+	clear: both;
+	background-image: url(/style/images/toolbox.png);
+	border: solid 1px #d8dbef;
+	padding: 8px;
+}
+
+/* collapse bar */
+
+.ep_sr_collapse_bar {
+	text-align: left;
+	background-image: url(/style/images/toolbox.png);
+	border: solid 1px #d8dbef;
+	padding: 8px;
+}
+.ep_sr_collapse_bar a {
+	text-decoration: none;
+}
+.ep_sr_title a {
+	text-decoration: none;
+}
+
+/* help style - not primetime */
+
+.ep_sr_component .ep_sr_help {
+	padding-bottom: 8px;
+}
+.ep_sr_component .ep_sr_show_help {
+	white-space: nowrap;
+	padding-bottom: 4px;
+	float: right;
+}
+.ep_sr_component .ep_sr_show_help a {
+	text-decoration: none;
+}	
+.ep_sr_component .ep_sr_hide_help {
+	white-space: nowrap;
+	padding-bottom: 4px;
+	float: right;
+}
+.ep_sr_component .ep_sr_hide_help a {
+	text-decoration: none;
+}	
+.ep_sr_component .ep_sr_title_bar {
+	width: 100%;
+}
+
+
+/* used for multi, maybe should be elsewhere */
+.ep_sr_component .ep_sr_help_chunk {
+	border-bottom: 1px solid #888;
+	padding-bottom: 4px; 
+	margin-bottom: 4px;
+}

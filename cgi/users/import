@@ -1,0 +1,92 @@
+
+use EPrints;
+use strict;
+
+my $session = new EPrints::Session;
+exit( 1 ) unless defined $session;
+
+my $ds = $session->get_repository->get_dataset( "inbox" ) ;
+
+my $title = $session->html_phrase( "cgi/users/import:title"  );
+my $page = $session->make_doc_fragment();
+my $error = $session->make_doc_fragment();
+
+my $button = $session->get_action_button;
+if( defined $button && $button eq "submit" )
+{
+	my $pluginid = $session->param( "pluginid" );
+	my $plugin = $session->plugin( $pluginid, dataset=>$ds );
+
+	my $home = $session->get_repository->get_conf( "userhome" );
+	if( !defined $plugin )
+	{
+		$session->render_error( $session->html_phrase( "general:bad_param" ),
+			$home, $session->html_phrase( "general_userhome_link") );
+		$session->terminate;
+		exit( 1 );
+	}
+
+	my $req_plugin_type = "list/eprint";
+	unless( $plugin->can_produce( $req_plugin_type ) )
+	{
+		$session->render_error( $session->html_phrase( "general:bad_param" ),
+			$home, $session->html_phrase( "general_userhome_link") );
+		$session->terminate;
+		exit( 1 );
+	}
+
+	my $data = $session->param( "data" );
+	my $eprint = $plugin->input_dataobj( $data );
+	if( defined $eprint )
+	{
+		$eprint->set_value( "userid", $session->current_user->get_id );
+		$eprint->commit;
+		$session->redirect( $home );
+		$session->terminate;
+		exit( 0 );
+	}
+	$error = $session->html_phrase( "cgi/users/import:parse_error" );
+}
+
+$page->appendChild( $session->html_phrase( 
+	"cgi/users/import:instructions",
+	msg => $error ) );
+
+my $form =  $session->render_form( "post" );
+$page->appendChild( $form );
+
+my $textarea = $session->make_element( "textarea", 
+	name => "data",
+	"accept-charset" => "utf-8",
+	rows => 20,
+	cols => 60,
+	wrap => "virtual",
+);
+$textarea->appendChild( $session->make_text( "" ) );
+$form->appendChild( $textarea );
+
+$form->appendChild( $session->make_element( "br" ) );
+
+my @plugins = $session->plugin_list( 
+	type=>"Import",
+	can_produce=>"dataobj/".$ds->confid );
+
+my $select = $session->make_element( "select", name => "pluginid" );
+$form->appendChild( $select );
+
+for( @plugins )
+{
+	my $plugin = $session->plugin( $_ );
+	next if $plugin->broken;
+	my $opt = $session->make_element( "option", value => $_ );
+	$opt->appendChild( $plugin->render_name );
+	$select->appendChild( $opt );
+}
+
+$form->appendChild( $session->render_action_buttons( submit => $session->phrase( "cgi/users/import:button" ) ) );
+
+$session->build_page( $title, $page );
+$session->send_page();
+
+$session->terminate();
+exit( 0 );

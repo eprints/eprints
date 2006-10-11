@@ -2,6 +2,8 @@
 #
 #  EPrints Advanced Search Form
 #
+#  Now deprecated. Use normal search for with /advanced on the end!
+#
 ######################################################################
 #
 #  __COPYRIGHT__
@@ -12,26 +14,20 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::EPrint;
-use EPrints::SearchExpression;
+use EPrints;
 
 use strict;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
-my $searchexp = new EPrints::SearchExpression(
-	session => $session,
-	use_cache => 1,
-	dataset => $session->get_archive()->get_dataset( "archive" ),
-	defaults => $session->get_archive()->get_conf( "advanced_search_defaults" ),
-	fieldnames=>$session->get_archive()->get_conf( "advanced_search_fields" ) );
+my $url = $session->get_repository->get_conf( "perl_url" )."/search/advanced";
+if( $session->get_request->args )
+{
+	$url.= "?".$session->get_request->args;
+}
+$session->redirect( $url );
 
-my $preamble = $session->html_phrase( "cgi/advsearch:preamble" );
-$searchexp->process_webpage(
-	$session->html_phrase( "cgi/advsearch:adv_search" ),
-	$preamble );
-
-$session->terminate; 
+$session->terminate;
+exit;
 

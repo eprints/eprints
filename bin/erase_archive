@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -14,28 +14,28 @@
 
 =head1 NAME
 
-B<erase_archive> - Erase all database tables and files associated with an EPrint archive
+B<erase_archive> - Erase all database tables and files associated with an EPrint repository
 
 =head1 SYNOPSIS
 
-B<erase_archive> I<archiveid> [B<options>] 
+B<erase_archive> I<repository_id> [B<options>] 
 
 =head1 DESCRIPTION
 
-This script completely erases the archive contents, including all
+This script completely erases the repository contents, including all
 database tables and eprint document files and the web site. After running this, the metadata configuration can be safely updated and the creation scripts run again.
 
 Without the B<--force> option, this script asks for confirmation before actually erasing anything.
 
-After this script you will need to run B<create_tables> before you can use the archive.
+After this script you will need to run B<create_tables> before you can use the repository.
 
 =head1 ARGUMENTS
 
 =over 8
 
-=item B<archiveid> 
+=item B<repository_id> 
 
-The ID of the eprint archive to use.
+The ID of the eprint repository to use.
 
 =back
 
@@ -96,9 +96,7 @@ __GENERICPOD__
 =cut
 
 
-
-
-use EPrints::Database;
+use EPrints;
 
 use strict;
 use Getopt::Long;
@@ -138,38 +136,33 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $archive = EPrints::Archive->new_archive_by_id( $ARGV[0], 1 );
-unless( defined $archive )
+my $repo = EPrints::Repository->new( $ARGV[0], 1 );
+unless( defined $repo )
 {
-	print STDERR "Unknown archive id: $ARGV[0]\n";
+	print STDERR "Unknown repository id: $ARGV[0]\n";
 	exit 1;
 }
 
 
-my $documents_path = $archive->get_conf( "documents_path" );
-my $htdocs_path = $archive->get_conf( "htdocs_path" );
-my $database = $archive->get_conf( "dbname" );
+my $documents_path = $repo->get_conf( "documents_path" );
+my $htdocs_path = $repo->get_conf( "htdocs_path" );
+my $database = $repo->get_conf( "dbname" );
 
-my $input="";
 unless( $force )
 {
 	# Write the confirmation prompt
 	print "You are about to erase:\n";
 	if( $erasedb ) { print "- all database tables\n"; }
 	if( $erasefiles ) { print "- all eprint files\n"; }
-	print "From archive: ".$archive->get_id."\n";
-	print "Are you sure you want this to happen? (yes/no)\n";
-	
-	$input = <STDIN>;
-	chomp( $input );
+	print "From repository: ".$repo->get_id."\n";
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		exit( 1 );
+	}
 }
 
-# We'll only work if they type "yes" exactly, otherwise we just abort.
-if( !$force && $input ne "yes" )
-{
-	print "Aborting then.\n";
-	exit( 1 );
-}
 
 if( $erasedb )
 {
@@ -184,7 +177,7 @@ if( $erasedb )
 			print "You will need to enter the MySQL root user password.\n";
 		}
 	
-		$rootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+		$rootpass = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
 		print "\n";
 	}
 	
@@ -193,9 +186,9 @@ if( $erasedb )
 	my $dbh = DBI->connect(
 		EPrints::Database::build_connection_string(
 			dbname=>"mysql",
-			dbsock=>$archive->get_conf( "dbsock" ),
-			dbport=>$archive->get_conf( "dbport" ),
-			dbhost=>$archive->get_conf( "dbhost" ) ),
+			dbsock=>$repo->get_conf( "dbsock" ),
+			dbport=>$repo->get_conf( "dbport" ),
+			dbhost=>$repo->get_conf( "dbhost" ) ),
 		"root",
 		$rootpass );
 
@@ -237,9 +230,7 @@ if( $erasefiles )
 	foreach $dir (@doomeddirs)
 	{
 		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
-		my $cmd = "rm -rf $dir/*";
-		if( $noise>=2 ) { print "$cmd\n"; }
-		my $rc = CORE::system( $cmd ) & 0xffff;
+		my $rc = $repo->exec( "rmall", TARGET=>$dir );
 		print STDERR "Warning: Cleaning $dir didn't go smoothly\n" unless( $rc==0 );
 	}
 	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }

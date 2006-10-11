@@ -1,0 +1,72 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+#-d:DProf
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use strict;
+$|=1;
+
+# nb. This syntax is subject to change in future versions.
+my( $archiveid, $datasetid, $userid ) = @ARGV;
+
+my $session = new EPrints::Session( 1 , $archiveid );
+exit( 1 ) unless( defined $session );
+
+my $db = $session->get_database;
+#$db->set_timer( 1 );
+
+$userid = 1 unless defined $userid;
+$datasetid = "archive" unless defined $datasetid;
+
+my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
+
+my $ds = $session->get_archive()->get_dataset( $datasetid );
+
+my $info =  { 
+	ds => $ds,
+	userid => $userid,
+	datapath => $datapath,
+};
+my $infile = $datapath."/set-01.xml";
+#print `date`;
+EPrints::ImportXML::import_file( $session , $infile , \&deal, $ds, $info );
+#print `date`;
+
+$session->terminate();
+
+exit;
+
+sub deal 
+{
+	my( $session , $table , $eprint, $info ) = @_;
+
+	my $fullpath = $info->{datapath}."/demo.pdf";
+#	open( PDF, $fullpath ) || die "Could not read $fullpath";
+#	my $filedata = join(",",<PDF> );
+#	close PDF;
+
+	$eprint->set_value( "userid", $info->{userid} );
+	my $data = $eprint->get_data;
+	$data->{documents} = [
+		{
+			format=>"pdf",
+			main=>"paper.pdf",
+			files => [ { filename=>"paper.pdf", data=>$fullpath } ],
+		}
+	];
+	$eprint = $info->{ds}->create_object( $session, $data );
+
+	print "added: ".$eprint->get_id."\n";
+}
+
+

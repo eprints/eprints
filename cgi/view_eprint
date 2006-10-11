@@ -14,12 +14,11 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::EPrint;
+use EPrints;
 
 use strict;
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 my $eprintid_in = $session->param( "eprintid" );
 $eprintid_in =~ m/\d+/;
@@ -28,8 +27,8 @@ my $eprintid = $&;
 my $url;
 foreach( "archive" , "deletion" )
 {
-	my $ds = $session->get_archive()->get_dataset( $_ );
-	my $eprint = new EPrints::EPrint( $session, $eprintid, $ds );
+	my $ds = $session->get_repo->get_dataset( $_ );
+	my $eprint = new EPrints::DataObj::EPrint( $session, $eprintid, $ds );
 	if( defined $eprint )
 	{
 		$url = $eprint->get_url;

@@ -1,0 +1,76 @@
+
+use EPrints;
+
+use strict;
+
+my $session = EPrints::Session->new();
+
+# security?
+
+my $content = "text/xml";
+$session->send_http_header( content_type=>$content );
+$a = $session->param( "a" );
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ul>
+  <li class="ep_first">foo
+    <ul>
+      <li id="for:value:component:_issn">Hello this is fun</li>
+      <li id="for:value:component:_ispublished">pub</li>
+      <li id="for:value:component:_pagerange_from">hell</li>
+      <li id="for:value:component:_pagerange_to">highwater</li>
+      <li id="for:value:component:_volume">Loud</li>
+    </ul>
+  </li>
+  <li class="ep_first">hello
+    <ul>
+      <li id="for:value:component:_issn">Hello this is fun</li>
+      <li id="for:value:component:_volume">Loud</li>
+    </ul>
+  </li>
+  <li>world
+    <ul>
+      <li id="for:value:component:_issn">working!</li>
+      <li id="for:value:component:_volume">Quiet</li>
+    </ul>
+  </li>
+  <li>person test - chris
+    <ul>
+      <li id="for:value:relative:_id">cjg\@ecs.soton.ac.uk</li>
+      <li id="for:value:relative:_main_family">Gutteridge</li>
+      <li id="for:value:relative:_main_given">Christopher</li>
+    </ul>
+  </li>
+  <li>person test - mike
+    <ul>
+      <li id="for:value:relative:_id">moj\@ecs.soton.ac.uk</li>
+      <li id="for:value:relative:_main_family">Jewell</li>
+      <li id="for:value:relative:_main_given">Mike</li>
+    </ul>
+  </li>
+  <li>world
+    <ul>
+      <li id="for:value:component:_issn">working!</li>
+      <li id="for:value:component:_volume">Quiet</li>
+    </ul>
+  </li>
+  <li>world
+    <ul>
+      <li id="for:value:component:_issn">working!</li>
+      <li id="for:value:component:_volume">Quiet</li>
+    </ul>
+  </li>
+  <li>world
+    <ul>
+      <li id="for:value:component:_issn">working!</li>
+      <li id="for:value:component:_volume">Quiet</li>
+    </ul>
+  </li>
+</ul>
+END
+
+
+$session->terminate;
+

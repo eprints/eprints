@@ -1,0 +1,29 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities-en.dtd" >
+<ep:page
+        xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>&archivename; Contact Information</ep:title>
+<ep:body>
+
+<p>&archivename; Site Administrator: <a href="mailto:&adminemail;">&adminemail;</a></p>
+
+</ep:body>
+
+<!-- **************************************************
+
+This page, by default, only has the email address of 
+the site administrator ( taken from the primary XML
+file in opt/eprints3/archives/ ) 
+
+We suggest adding other contact information such as
+subject-editors, user-support and policy makers 
+emails, etc, as appropriate.
+
+It's handy having all the contact details on one 
+and only one page - it means that when they change
+you didn't forget to update them somewhere else.
+
+*************************************************** -->
+
+</ep:page>

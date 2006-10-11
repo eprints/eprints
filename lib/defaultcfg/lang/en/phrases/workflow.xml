@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+<!-- Submission Form Page Titles -->
+
+    <ep:phrase id="metapage_title_type">Type</ep:phrase>
+    <ep:phrase id="metapage_title_files">Files</ep:phrase>
+    <ep:phrase id="metapage_title_core">Details</ep:phrase>
+    <ep:phrase id="metapage_title_pubinfo">Publication</ep:phrase>
+    <ep:phrase id="metapage_title_status">Status</ep:phrase>
+    <ep:phrase id="metapage_title_event">Event</ep:phrase>
+    <ep:phrase id="metapage_title_abstract">Abstract</ep:phrase>
+    <ep:phrase id="metapage_title_subjects">Subjects</ep:phrase>
+    <ep:phrase id="metapage_title_notes">Extras</ep:phrase>
+
+
+
+
+</ep:phrases>
+

@@ -1,6 +1,8 @@
 ######################################################################
 #
-#  EPrints Staff User Search Form
+#  EPrints Users Search Form
+#
+#  Now deprecated. Use normal staff search for with /users on the end!
 #
 ######################################################################
 #
@@ -12,26 +14,20 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::SearchExpression;
+use EPrints;
 
 use strict;
+
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
-my $searchexp = new EPrints::SearchExpression(
-	session => $session,
-	dataset => $session->get_archive()->get_dataset( "user" ),
-	use_oneshot_cache => 1,
-	staff => 1,
-	defaults => $session->get_archive()->get_conf( "user_search_defaults" ),
-	fieldnames => $session->get_archive()->get_conf( "user_search_fields" ) );
-
-my $preamble = $session->html_phrase( "cgi/users/user_search:preamble" );
-
-my $title = $session->html_phrase( "cgi/users/user_search:simple_search" );
-
-$searchexp->process_webpage( $title, $preamble );
+my $url = $session->get_repository->get_conf( "perl_url" )."/users/search/users";
+if( $session->get_request->args )
+{
+	$url.= "?".$session->get_request->args;
+}
+$session->redirect( $url );
 
 $session->terminate;
+exit;
 

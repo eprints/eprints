@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+
+    <ep:phrase id="mail_delete_reason">
+Unfortunately your item:
+
+<ep:pin name="title" />
+
+could not be accepted into &archivename;.
+
+The item has been deleted.
+    </ep:phrase>
+
+
+
+</ep:phrases>
+

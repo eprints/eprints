@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -14,11 +14,11 @@
 
 =head1 NAME
 
-B<export_hashes> - export the hash values for all documents in an archive.
+B<export_hashes> - export the hash values for all documents in an repository.
 
 =head1 SYNOPSIS
 
-B<export_hashes> I<archiveid> [B<options>] [I<filename>]
+B<export_hashes> I<repository_id> [B<options>] [I<filename>]
 
 =head1 DESCRIPTION
 
@@ -42,9 +42,9 @@ That's why this is an experimental feature.
 
 =over 8
 
-=item I<archiveid> 
+=item I<repository_id> 
 
-The ID of the EPrint archive to use.
+The ID of the EPrint repository to use.
 
 =item I<filename>
 
@@ -93,11 +93,8 @@ use Getopt::Long;
 use Pod::Usage;
 use strict;
 
-use EPrints::Session;
-use EPrints::Subject;
-use EPrints::ImportXML;
+use EPrints;
 
-my $xml = 0;
 my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
@@ -115,7 +112,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "reindex" ) if $version;
+EPrints::Utils::cmd_version( "export_hashes" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 && @ARGV != 1 );
@@ -130,7 +127,7 @@ $|=1;
 my $session = new EPrints::Session( 1, $ARGV[0], $noise );
 exit( 1 ) unless defined $session;
 
-my $ds = $session->get_archive()->get_dataset( "document" );
+my $ds = $session->get_repository->get_dataset( "document" );
 my $info = { files=>[], all=>$all };
 $ds->map( $session, \&show_hash, $info );
 
@@ -156,7 +153,7 @@ sub show_hash
 	my $eprint = $doc->get_eprint;
 	if( !defined $eprint )
 	{
-		$session->get_archive->log( "No eprint for document: $id" );
+		$session->get_repository->log( "No eprint for document: $id" );
 		return;
 	}
 	my $path = $eprint->local_path;

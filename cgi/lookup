@@ -1,0 +1,114 @@
+######################################################################
+#
+#  EPrints Lookup Script
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+# $session->get_database->set_debug( 1 );
+
+my $search = $session->param( "search" ) || "";
+
+if( !$session->auth_check) #cjg this needs to change!
+{
+	$session->terminate();
+	exit( 0 );
+}
+
+if( !$search )
+{
+	# moj: Decide how to bail nicely :)
+}
+	
+my $user = $session->current_user;
+
+
+my $rv = 1;
+
+my $out = "<ul>\n";
+
+my( $num, $results ) = get_matches( $session, 
+	table => "lookup_people",
+	search => $search,
+	user => $user,
+	own => 1,
+	max => 5 );
+
+if( $num < 5 )
+{
+	my( $num, $other_results ) = get_matches( $session,
+	table => "lookup_people",
+	search => $search,
+	user => $user,
+	own => 0,
+	max => 5-$num );
+
+	$results .= $other_results;
+}
+
+$out .= $results;
+$out .= "</ul>\n";
+print $out;
+
+$session->terminate;
+
+sub get_matches
+{
+	my( $session, %params ) = @_;
+	
+	my $table = $params{table};
+	my $search = $params{search};
+	my $user = $params{user};
+	my $own = $params{own};
+	my $max = $params{max} || 5;
+	
+	my $db = $session->get_database;
+	my $userid = $user->get_value( "userid" );
+	
+
+	my $where = "match_str LIKE \"%".EPrints::Database::prep_value($search)."%\"";
+	if( $own )
+	{
+		$where .= " AND userid=$userid";
+	}
+	else
+	{
+		$where .= " AND userid!=$userid";
+	}
+	my $sql = "SELECT match_str, score, xml, provenance FROM lookup_people WHERE $where ORDER BY score LIMIT $max";
+	print STDERR $sql."\n";
+	my $sth = $db->prepare( $sql );
+	$rv = $rv && $db->execute( $sth, $sql );
+	my $out = "";
+	my $count = 0;
+	while( my( $match_str, $score, $xml, $provenance ) = $sth->fetchrow_array )
+	{	
+		$out .= "<li>\n";
+		$out .= "<div class='name'>".$match_str."</div>";
+		$out .= "<div class='informal bottom'>".$provenance."</div>";
+		$out .= "<div class='informal' style='display: none'>";
+		$out .= "<ep:inserts>\n";
+		$out .= $xml;
+		#$out .= "<score>".$score."</score>";
+		$out .= "</ep:inserts>\n";
+		$out .= "</div>\n";
+		$out .= "</li>\n";
+		$count++;
+	}
+	$sth->finish;
+	return ($count, $out);
+
+	
+}

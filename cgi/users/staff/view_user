@@ -12,8 +12,9 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::UserPage;
+use EPrints;
+
+use strict;
 
 my $session = new EPrints::Session;
 
@@ -21,7 +22,7 @@ my $session = new EPrints::Session;
 if( !$session->auth_check( "staff-view" ) )
 {
 	$session->terminate();
-	Apache::exit( 0 );
+	exit( 0 );
 }
 
 EPrints::UserPage::process( $session, 1 );

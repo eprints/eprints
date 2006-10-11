@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:ep="http://eprints.org/ep3/phrases">
+
+
+<!-- Eprint Type Names -->
+
+    <ep:phrase id="eprint_typename_book">Book</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_book">A book or a conference volume.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_book_section">Book Section</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_book_section">A chapter or section in a book.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_article">Article</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_article">An article in a journal, magazine, newspaper. Not necessarily peer-reviewed. May be an electronic-only medium, such as an online journal or news website.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_conference_item">Conference or Workshop Item</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_conference_item">A paper, poster, speech, lecture or presentation given at a conference, workshop or other event. If the conference item has been published in a journal or book then please use "Book Section" or "Article" instead.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_monograph">Monograph</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_monograph">A monograph. This may be a technical report, project report, documentation, manual, working paper or discussion paper.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_thesis">Thesis</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_thesis">A thesis or dissertation.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_patent">Patent</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_patent">A published patent. Do <em>not</em> include as yet unpublished patent applications.</ep:phrase>
+
+    <ep:phrase id="eprint_typename_other">Other</ep:phrase>
+    <ep:phrase id="eprint_optdetails_type_other">Something within the scope of the repository, but not covered by the other categories.</ep:phrase>
+
+</ep:phrases>

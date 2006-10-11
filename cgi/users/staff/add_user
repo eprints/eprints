@@ -12,15 +12,12 @@
 #
 ######################################################################
 
-use EPrints::Database;
-use EPrints::MetaField;
-use EPrints::Session;
-use EPrints::User;
+use EPrints;
 
 use strict;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 # Check the permissions
 
@@ -28,7 +25,7 @@ Apache::exit( 0 ) unless( defined $session );
 if( !$session->auth_check( "edit-user" ) )
 {
 	$session->terminate();
-	Apache::exit( 0 );
+	exit( 0 );
 }
 
 
@@ -49,7 +46,7 @@ sub render_form
 	my( $session , $page ) = @_;
 
 	$page->appendChild( $session->html_phrase( "cgi/users/add_user:enter_username" ) );
-	my $userds = $session->get_archive()->get_dataset( "user" );
+	my $userds = $session->get_repository->get_dataset( "user" );
 
 	$page->appendChild( $session->render_input_form(
 		show_names=>1,
@@ -88,7 +85,7 @@ sub process_form
 		return;
 	}
 
-	if( defined EPrints::User::user_with_username( $session, $candidate_username ) )
+	if( defined EPrints::DataObj::User::user_with_username( $session, $candidate_username ) )
 	{
 		$page->appendChild(
 			$session->html_phrase( "cgi/users/add_user:user_exists",
@@ -102,11 +99,15 @@ sub process_form
 	my $usertype = $session->param( "usertype" );
 	if( !defined $usertype )
 	{
-		$usertype = $session->get_archive()->get_conf( "default_user_type" ); 
+		$usertype = $session->get_repository->get_conf( "default_user_type" ); 
 	}
 
 	# Attempt to create a new account
-	my $new_user = EPrints::User::create_user( $session, $usertype );
+	my $user_ds = $session->get_repository->get_dataset( "user" );
+
+	my $new_user = $user_ds->create_object( $session, { 
+				usertype=>$usertype,
+				username=>$candidate_username } );
 	
 	unless( defined $new_user )
 	{
@@ -114,9 +115,6 @@ sub process_form
 			$session->html_phrase( "cgi/users/add_user:mk_acc_err" ) );
 		return;
 	}
-
-	$new_user->set_value( "username", $candidate_username );
-	$new_user->commit();
 
 	# Created the user OK, send to edit screen
 	$session->redirect(

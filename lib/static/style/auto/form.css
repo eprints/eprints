@@ -1,0 +1,49 @@
+
+/* Form related styles */
+
+
+select, input.ep_form_text, textarea {
+	padding: 1px 2px 1px 2px;
+	margin-right: 4px;
+	border: solid 1px #ccc;
+}
+
+
+.ep_form_example {
+	font-weight: bold;
+	color: blue;
+}
+
+/* buttons */
+
+.ep_form_button_bar {
+	text-align: center;
+	padding: 4px;
+	background-image: url(/style/images/toolbox.png);
+	clear: both;
+	border: solid 1px #d8dbef;
+}
+
+.ep_form_action_button, .ep_form_internal_button {
+	text-align: center;
+	background-image: url(/style/images/blue_bar.png);
+	color: white;
+	font-weight: normal;
+}
+
+/* form fields */
+
+.ep_form_field_help {
+        font-size: small ;
+}
+
+.ep_form_field_name {
+        padding-top: 1em;
+	font-weight: bold;
+}
+
+.ep_form_field_input {
+        padding-bottom: 3pt;
+}
+
+

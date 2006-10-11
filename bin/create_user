@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -14,15 +14,15 @@
 
 =head1 NAME
 
-B<create_user> - add a new user to an EPrint archive
+B<create_user> - add a new user in an EPrint repository
 
 =head1 SYNOPSIS
 
-B<create_user> I<archiveid> [B<options>] I<username> I<email> I<usertype> [I<password>]
+B<create_user> I<repository_id> [B<options>] I<username> I<email> I<usertype> [I<password>]
 
 =head1 DESCRIPTION
 
-Create a new user to an eprint archive. 
+Create a new user in an eprint repository. 
 
 This is handy for making the initial admin user at the very least.
 
@@ -30,9 +30,9 @@ This is handy for making the initial admin user at the very least.
 
 =over 8
 
-=item I<archiveid> 
+=item I<repository_id> 
 
-The ID of the EPrint archive to add a user to.
+The ID of the EPrint repository to add a user to.
 
 =item I<username> 
 
@@ -54,11 +54,11 @@ Normal everyday joe public users.
 
 =item I<editor>
 
-Editors may approve eprints for addition, browse the submission buffer, and check the archive status.
+Editors may approve eprints for addition, browse the submission buffer, and check the repository status.
 
 =item I<admin>
 
-Administrators may do everything. That's probably what for yourself if you are the person setting up the archive.
+Administrators may do everything. That's probably what for yourself if you are the person setting up the repository.
 
 =back
 
@@ -68,9 +68,9 @@ The initial password for this user. You don't have to specify it here if you don
 encrypted, by EPrints, using UNIX crypt. This should not be a problem unless you are using a different
 method to authenticate users.
 
-=item I<archiveid> 
+=item I<repository_id> 
 
-The ID of the EPrint archive to add a user to.
+The ID of the EPrint repository to add a user to.
 
 =back
 
@@ -107,9 +107,7 @@ __GENERICPOD__
 
 #cjg Does not use noise levels
 
-use EPrints::Database;
-use EPrints::User;
-use EPrints::Session;
+use EPrints;
 
 use strict;
 use Getopt::Long;
@@ -144,22 +142,22 @@ $|=1;
 my $session = EPrints::Session->new( 1 , $ARGV[0], $noise );
 exit unless( defined $session );
 
-my $user_ds = $session->get_archive()->get_dataset( "user" );
 
 my $valid_access_level = 0;
 my $type;
-foreach $type (@{ $user_ds->get_types() })
+foreach $type ( $session->get_repository->get_types( "user" ) )
 {
 	$valid_access_level = 1 if( $ARGV[3] eq $type );
 }
 
-if( defined EPrints::User::user_with_username( $session, $ARGV[1] ) )
+if( defined EPrints::DataObj::User::user_with_username( $session, $ARGV[1] ) )
 {
 	print STDERR "User with username '$ARGV[1]' already exists.\n";
 }
 elsif( $valid_access_level )
 {
-	my $new_user = EPrints::User::create_user( $session, $ARGV[3] );
+	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $new_user = $user_ds->create_object( $session, { usertype=> $ARGV[3] } );
 
 	$new_user->set_value( "username" , $ARGV[1] );
 	$new_user->set_value( "email" , $ARGV[2] );
@@ -184,16 +182,16 @@ elsif( $valid_access_level )
 	}
 	else
 	{
-		my $db_error = $session->get_db()->error();
+		my $db_error = $session->get_database->error;
 		print STDERR "Error creating user: $db_error\n";
 	}
 }
 else
 {
 	print STDERR "Invalid access level. Valid access levels are:\n";
-	foreach (@{ $user_ds->get_types() })
+	foreach $type ( $session->get_repository->get_types( "user" ) )
 	{
-		print "  $_\n";
+		print "  $type\n";
 	}
 }
 

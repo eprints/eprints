@@ -1,0 +1,91 @@
+
+/* EPrints 3 template styles */
+/* prefix all styles with ep_tm */
+
+.ep_tm_logo img {
+	float: right;
+	padding-bottom: 4px;
+	border-style: none;
+}
+
+.ep_tm_archivetitle {
+        font: 40px Arial,Sans-serif;
+	color: #269ae3;
+	text-decoration: none;
+}
+
+.ep_tm_main {
+        margin: 1em;
+}
+
+hr.ep_tm_last {
+	color: #240f78;
+	background-color: #240f78;
+}
+
+.ep_tm_footer {
+	clear: both;
+}
+
+/* Menu Bar */
+
+ul.ep_tm_menu {
+	clear: both;
+	background: #204f76;
+	list-style: none;
+	margin: 0px;
+	padding: 0px;
+	background-image: url(/style/images/blue_bar.png);
+}
+
+ul.ep_tm_menu li {
+	list-style: none;
+	display: inline;
+	padding-left: 10px;
+	padding-right: 10px;
+	border-right: solid 2px white;
+	font-weight: bold;
+}
+
+ul.ep_tm_menu li:hover {
+	background: #279ae2;
+}
+
+ul.ep_tm_menu li a {
+	text-decoration: none;
+	color: white;
+}
+ul.ep_tm_menu li a:visited {
+	color: white;
+}
+
+/* end of menu bar */
+
+/* Search bar */
+
+.ep_tm_searchbar {
+	color: #606060;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	border-top: solid 4px white;
+	background: #ccc;
+	background-image: url(/style/images/gray_bar.png);
+}
+
+.ep_tm_searchbarbutton {
+	color: #ccc;
+	border: #606060 1px solid;
+	background-color: #606060; 
+	font-weight: bold;
+	font-size: 80%;
+	padding: 0;
+}
+
+.ep_tm_searchbarbox {
+	font-size: 80%;
+	border: #606060 1px solid;
+}
+
+/* end of search bar */

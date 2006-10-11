@@ -1,0 +1,10 @@
+# types for eprint 
+
+article
+book_section
+monograph
+conference_item
+book
+thesis
+patent
+other

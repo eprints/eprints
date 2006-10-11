@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -11,8 +11,7 @@
 ######################################################################
 # cjg not supported yet.
 
-use EPrints::Session;
-use EPrints::User;
+use EPrints;
 
 use strict;
 #cjg Nice Command Options
@@ -24,7 +23,7 @@ $|=1;
 my $session = new EPrints::Session( 1, $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
-my $user_ds = $session->get_archive()->get_dataset( "user" );
+my $user_ds = $session->get_repository->get_dataset( "user" );
 $user_ds->map( $session, \&print_user_email );
 
 $session->terminate();

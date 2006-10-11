@@ -15,18 +15,18 @@
 
 #cjg Not fully finnished. Should detect missing items.
 
-use EPrints::Session;
+use EPrints;
 
 use strict;
 
 my $session = new EPrints::Session();
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 my $url = $ENV{REDIRECT_URL};
 
 
 my $newurl;
-my $fn = $session->get_archive->get_conf( "catch404" );
+my $fn = $session->get_repository->get_conf( "catch404" );
 if( defined $fn )
 {
 	$newurl = &{$fn}( $session, $url );
@@ -70,7 +70,7 @@ $session->terminate();
 #	else
 #	{
 #		# See if the eprint exists.
-#		my $eprint = new EPrints::EPrint(
+#		my $eprint = new EPrints::DataObj::EPrint(
 #			$session,
 #			$guessed_id,;
 #			EPrints::Database::table_name( "archive" ) );
@@ -160,7 +160,7 @@ sub noview_404
 		$session->html_phrase( "cgi/handle_http_error:404_title" ),
 		$session->make_text( $error ),
 		"noview_404" );
-	$session->get_archive()->log( $error );
+	$session->get_repository->log( $error );
 
         $session->send_page();
 }

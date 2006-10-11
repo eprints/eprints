@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE html SYSTEM "entities-en.dtd" > 
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ep="http://eprints.org/ep2/template">
+  <head>
+    <title>&archivename; (SECURE) - <ep:pin ref="title" textonly="yes" /></title>
+    <style type="text/css" media="screen">
+@import  url(&https_base_url;/eprints.css);
+    </style>
+    <style type="text/css" media="print">
+@import  url(&https_base_url;/eprints.css);
+@import  url(&https_base_url;/print.css);
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="Top" href="&frontpage;" />
+    <link rel="Search" href="&perl_url;/search" />
+    <link rel="Help" href="&base_url;/help" />
+    <ep:pin ref="head" />
+  </head>
+  <body bgcolor="#ffffff" text="#000000" topmargin="0" rightmargin="0" leftmargin="0" marginwidth="0" marginheight="0" >
+    <ep:pin ref="pagetop" />
+    <div class="header noPrint">
+      <table cellpadding="5" border="0" cellspacing="0" width="100%">
+        <tr>
+          <td>
+            <div class="archivetitle">&archivename; (SECURE)</div>
+          </td>
+          <td>
+            <ul class="menu"><li><a class="menulink" href="&frontpage;">Home</a></li><li><a class="menulink" href="&base_url;/information.html">About</a></li><li><a class="menulink" href="&base_url;/view/">Browse</a></li><li><a class="menulink" href="&perl_url;/search">Search</a></li><li><a class="menulink" href="&perl_url;/register">Register</a></li><li><a class="menulink" href="&userhome;">User Area</a></li><li><a class="menulink" href="&base_url;/help">Help</a></li></ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="main">
+      <div align="center"><table width="720"><tr><td align="left">
+        <h1 class="pagetitle"><ep:pin ref="title" /></h1>
+        <ep:pin ref="page" />
+      </td></tr></table></div>
+    </div>
+    <div class="footer noPrint">
+       <a href="&base_url;/contact.html">Contact Information</a>
+    </div>
+  </body>
+</html>

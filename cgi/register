@@ -1,0 +1,237 @@
+######################################################################
+#
+#  EPrints Register Account 
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use strict;
+
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my( $page, $title ) = make_page( $session );
+
+$session->build_page( $title, $page, "register" );
+$session->send_page();
+
+$session->terminate();
+
+sub make_page
+{
+	my( $session ) = @_;
+
+	my $min = 0;
+	my $signup_style = $session->get_repository->get_conf( "signup_style" );
+	if( defined $signup_style && $signup_style eq "minimal" )
+	{
+		$min = 1;
+	}
+
+	unless( $session->get_repository->get_conf("allow_web_signup") )
+	{
+		return mk_err_page( 
+			$session,
+			"cgi/register:no_web_signup" );
+	}
+
+	my $user_ds = $session->get_repository->get_dataset( "user" );
+
+	my $extrafields = $session->get_repository->get_conf( "extra_reg_fields" );
+
+	my $default_type = $session->get_repository->get_conf( "default_user_type" ); 
+	my $extrafields =  $session->get_repository->get_conf( "user_registration_fields" ) if !$min;
+	$extrafields = [] if( !defined $extrafields );
+
+	my $fieldlist = []; 
+	my( $f ) = {};
+	foreach my $fieldid ( @{$extrafields} )
+	{
+		$f->{$fieldid} = $user_ds->get_field( $fieldid )->clone();
+		if( $user_ds->field_required_in_type( $f->{$fieldid}, $default_type ))
+		{
+			$f->{$fieldid}->set_property( "required", 1 );
+		}
+		push @{$fieldlist}, $f->{$fieldid};
+	}
+
+	my @sysfields;
+	unless( $min )
+	{
+		@sysfields = ( "email", "username", "newpassword" );
+	}
+	else
+	{
+		@sysfields = ( "email", "newpassword" );
+	}
+
+	foreach my $fieldid ( @sysfields )
+	{
+		$f->{$fieldid} = $user_ds->get_field( $fieldid )->clone();
+		$f->{$fieldid}->set_property( "confid" , "register" );
+		$f->{$fieldid}->set_property( "required", 1 );
+		push @{$fieldlist}, $f->{$fieldid};
+	}
+
+	if( !$session->have_parameters() )
+	{
+		my $page = $session->make_doc_fragment;
+		unless( $min )
+		{
+			$page->appendChild( $session->html_phrase( "cgi/register:intro" ) );
+		}
+		else
+		{
+			$page->appendChild( $session->html_phrase( "cgi/register:intro_minimal" ) );
+		}
+		my $defaults = { lang => $session->get_langid() };
+		$page->appendChild( make_reg_form( $session, $fieldlist, $defaults ));
+		
+		my $title = $session->html_phrase( "cgi/register:title" );
+		return( $page, $title );
+	}
+
+
+
+	if( $session->have_parameters() )
+	{
+	}
+	# Process the form.
+	my $v = { lang => $session->get_langid() };
+	foreach my $field ( @{$fieldlist} )
+	{
+		$v->{$field->get_name} = $field->form_value( $session );
+	}
+	$v->{username} = $v->{email} if $min;
+	foreach my $field ( @{$fieldlist} )
+	{
+		if( !EPrints::Utils::is_set( $v->{$field->get_name} ) 
+			&& $field->get_property( "required" ) )
+		{
+			return mk_err_page( 
+				$session,
+				"cgi/register:missing_field",
+				$fieldlist,
+				$v,
+				{fieldname=>$field->render_name($session)} );
+		}
+	}
+
+	if( defined EPrints::DataObj::User::user_with_email( $session, $v->{email} ) )
+	{
+		return mk_err_page( 
+			$session,
+			"cgi/register:email_exists", 
+			$fieldlist,
+			$v,
+			{email=>$session->make_text( $v->{email} )} );
+	}
+
+	if( defined EPrints::DataObj::User::user_with_username( $session, $v->{username} ) )
+	{
+		return mk_err_page( 
+			$session,
+			"cgi/register:username_exists", 
+			$fieldlist,
+			$v,
+			{username=>$session->make_text( $v->{username} )} );
+	}
+
+	my $pin = sprintf( "%04X%04X%04X%04X",int rand 0xffff,int rand 0xffff,int rand 0xffff,int rand 0xffff );
+	my $user_data = { 
+		usertype => $default_type,
+		newemail => undef,
+		pin => $pin,
+		pinsettime => time(),
+	};
+	foreach my $fieldid ( keys %{$f} )
+	{
+		$user_data->{$fieldid} = $v->{$fieldid};
+	}
+	if( $min )
+	{
+		$user_data->{username} = $v->{email};
+	}
+	my $user_dataset = $session->get_repository->get_dataset( "user" );
+	my $user = $user_dataset->create_object( $session, $user_data );
+
+	my $page = $session->make_doc_fragment;
+	$page->appendChild( $session->html_phrase( 
+		"cgi/register:created_new_user",
+			email=>$session->make_text( $v->{email} ),
+			username=>$session->make_text( $v->{username} ) ) );
+
+	# If email fails then we should abort
+	my $rc = $user->mail( 
+		"cgi/register:account",
+		$session->html_phrase( 
+			"mail_password_pin", 
+			confirmurl => $session->render_link( $session->get_repository->get_conf( "perl_url" )."/confirm?userid=".$user->get_value( "userid" )."&pin=".$pin ),
+			username => $user->render_value( "username" ) ) );
+
+	if( !$rc )
+	{
+		# couldn't send email, so remove the user object again
+		# and apologise
+		$user->remove();
+		return mk_err_page(
+			$session,
+			"general:email_failed",
+			$fieldlist,
+			$v,
+			{} );
+	}
+
+#`	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+
+	my $title = $session->html_phrase( "cgi/register:title" );
+	return( $page, $title );
+}
+
+
+sub mk_err_page
+{
+	my( $session, $phrase, $fieldlist, $defaults, $opts ) = @_;
+
+	my $page = $session->make_doc_fragment;
+	my $problems = $session->make_element( "div",class=>'problems' );
+	$page->appendChild( $problems );
+	$problems->appendChild( $session->html_phrase( $phrase, %{$opts} ) );
+#	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+	if( defined $fieldlist )
+	{
+		#$page->appendChild( $session->render_ruler );
+		$page->appendChild( make_reg_form( $session, $fieldlist, $defaults ) );
+	}
+
+	return( 
+		$page,	
+		$session->html_phrase( "cgi/register:error" ) );
+}
+
+sub make_reg_form
+{
+	my( $session, $fieldlist, $defaults ) = @_;
+
+	$defaults->{newpassword} = undef;
+
+	return $session->render_input_form(
+			fields=>$fieldlist,
+			values=>$defaults,
+			show_help=>1,
+			show_names=>1,
+			comments=>{above_buttons=>$session->html_phrase( "cgi/register:register_agreement" )},
+			default_action=>"submit",
+			buttons=>{
+				submit=>$session->phrase( "cgi/register:action_submit" )
+			},
+			dest=>"register" );
+}

@@ -12,28 +12,32 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::EPrint;
-use EPrints::SearchExpression;
+use EPrints;
 
 use strict;
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
-my $ds = $session->get_archive()->get_dataset( "archive" );
+my $ds = $session->get_repository->get_dataset( "archive" );
 my $page=$session->make_doc_fragment();
+
+$page->appendChild( $session->html_phrase( "cgi/latest:intro" ) );
+
+my $citation = $session->get_repository->get_conf( "latest_citation" );
 
 my $seensome = 0;
 for( my $d=0; $d<7; ++$d )
 {
 	my $t = time-60*60*24*$d;
-	my $searchexp = new EPrints::SearchExpression(
+	my $searchexp = new EPrints::Search(
+		filters => [
+			{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EX', describe=>0 },
+		],
 		session => $session,
-		use_cache => 0,
 		dataset => $ds );
 	
 
-	my $date = EPrints::Utils::get_datestamp( $t );
+	my $date = EPrints::Utils::get_iso_timestamp( $t );
 	$searchexp->add_field( $ds->get_field( "datestamp" ), $date );
 		
 	$searchexp->perform_search();
@@ -65,7 +69,7 @@ for( my $d=0; $d<7; ++$d )
 			my( $session, $dataset, $item, $info ) = @_;
 		
 			my $p = $session->make_element( "p" );
-			$p->appendChild( $item->render_citation_link() );
+			$p->appendChild( $item->render_citation_link( $citation ) );
 			$page->appendChild( $p );
 		} );
 	
@@ -81,7 +85,6 @@ unless( $seensome )
 $page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 	
 my $title = $session->html_phrase( "cgi/latest:title" );
-
 $session->build_page( $title, $page, "latest" );
 $session->send_page();
 

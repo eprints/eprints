@@ -12,12 +12,12 @@
 #
 ######################################################################
 
-use EPrints::Session;
+use EPrints;
 
 use strict;
 
 my $session = new EPrints::Session;
-Apache::exit( 0 ) unless( defined $session );
+exit( 0 ) unless( defined $session );
 
 my $latex = $session->param( "latex" );
 $latex = "???" if( !defined $latex );

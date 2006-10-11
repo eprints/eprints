@@ -1,0 +1,194 @@
+######################################################################
+#
+#  Show Last "n" EPrints added.
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my $ds = $session->get_repository->get_dataset( "archive" );
+my $page=$session->make_doc_fragment();
+
+my $citation = $session->get_repository->get_conf( "latest_tool_citation" );
+my $max = 20;
+my $mode = $session->param( "mode" );
+$mode = "default" if( !defined $mode );
+my $filters = [];
+my $conf = $session->get_repository->get_conf( "latest_tool_modes", $mode );
+my $class= "latest_tool";
+if( defined $conf )
+{
+	foreach my $key (keys %{$conf} )
+	{
+		$citation = $conf->{"citation"} if( $key eq "citation" );
+		$filters = $conf->{"filters"} if( $key eq "filters" );
+		$max = $conf->{"max"} if( $key eq "max" );
+	}
+	$class.= "_".$mode;
+}
+push @{$filters}, { meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EX', describe=>0 };
+my $number_to_get = $max;
+my $n = $session->param( "n" );
+if( $n > 0 && $n <= $max )
+{
+	$number_to_get = $n;
+}
+my $searchexp = new EPrints::Search(
+	allow_blank => 1,
+	session => $session,
+	filters => $filters,
+	custom_order => "-datestamp",
+	dataset => $ds );
+my $title;
+if( EPrints::Utils::is_set( $filters ) )
+{
+	$title = $session->html_phrase( 
+		"cgi/latest_tool:title_matching",
+		n => $session->make_text( $number_to_get ),
+		search => $searchexp->render_description );
+}
+else
+{
+	$title = $session->html_phrase( 
+		"cgi/latest_tool:title",
+		n => $session->make_text( $number_to_get ) );
+}
+
+$searchexp->perform_search();
+my @records = $searchexp->get_records( 0, $number_to_get );
+$searchexp->dispose();
+
+my $output = $session->param( "output" );
+if( $output eq "rss" )
+{
+	my $response = $session->make_element( "rdf:RDF",
+		"xmlns:rdf"=>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"xmlns"=>"http://purl.org/rss/1.0/" );
+
+	my $channel = $session->make_element( "channel",
+		"rdf:about"=>"http://www.iamcal.com/rss.php" );
+	$response->appendChild( $channel );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"title",
+		EPrints::Session::best_language( 
+			$session->get_repository,
+			$session->get_langid(),
+			%{$session->get_repository->get_conf( "archivename" )} ) ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"link",
+		$session->get_repository->get_conf( "frontpage" ) ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"description", 
+		$session->get_repository->get_conf( "oai","content","text" ) ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"pubDate", 
+		RFC822_time() ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"lastBuildDate", 
+		RFC822_time() ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"language", 
+		$session->get_langid ) );
+
+	$channel->appendChild( $session->render_data_element(
+		4,
+		"copyright", 
+		"" ) );
+
+	#$channel->appendChild( $session->render_data_element( 4, "docs", "" ) );
+
+#	<title>Footle</title>
+#	<link>http://www.foo.com/</link>
+#	<description>The Foo.</description>
+#	<lastBuildDate>Tuesday, November 4, 2003 4:31:05 PM</lastBuildDate>
+#	<pubDate>Tuesday, November 4, 2003 4:31:05 PM</pubDate>
+#	<language>en</language>
+#	<copyright>(C)2003 Footle</copyright>
+#	<docs>http://www.foo.com/rss.html</docs>
+
+	my $items = $session->make_element( "items" );
+	$channel->appendChild( $items );
+	my $seq = $session->make_element( "rdf:Seq" );
+	$items->appendChild( $seq );
+
+	foreach my $eprint ( @records )
+	{
+		my $li = $session->make_element( "rdf:li",
+			"rdf:resource"=>$eprint->get_url );
+		$seq->appendChild( $li );
+
+		my $item = $session->make_element( "item",
+			"rdf:about"=>$eprint->get_url );
+
+		$item->appendChild( $session->render_data_element(
+			2,
+			"title",
+			EPrints::Utils::tree_to_utf8( $eprint->render_description ) ) );
+		$item->appendChild( $session->render_data_element(
+			2,
+			"link",
+			$eprint->get_url ) );
+		$item->appendChild( $session->render_data_element(
+			2,
+			"description",
+			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
+		$response->appendChild( $item );		
+	}	
+
+	my $content = "text/xml";
+	$session->send_http_header( content_type=>$content );
+
+	print <<END;
+<?xml version="1.0" encoding="utf-8" ?>
+
+END
+	print EPrints::XML::to_string( $response );
+	EPrints::XML::dispose( $response );
+	print "\n\n";
+	
+}
+else
+{
+
+	foreach my $item ( @records )
+	{
+		my $p = $session->make_element( "p", class=>$class );
+		$p->appendChild( $item->render_citation_link( $citation ) );
+		$page->appendChild( $p )
+	}
+	$session->build_page( $title, $page, "latest_tool" );
+	$session->send_page();
+}
+
+$session->terminate;
+exit;
+
+use POSIX qw(strftime);
+sub RFC822_time
+{
+	return( strftime( "%a,  %d  %b  %Y  %H:%M:%S  %z",localtime ) );
+}

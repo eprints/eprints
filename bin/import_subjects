@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -14,31 +14,33 @@
 
 =head1 NAME
 
-B<import_subjects> - rebuild an EPrint archive subjects list from the contents of a file
+B<import_subjects> - rebuild an EPrint repository subjects list from the contents of a file
 
 =head1 SYNOPSIS
 
-B<import_subjects> I<archiveid> [B<options>] [I<subjectfile>]
+B<import_subjects> I<repository_id> [B<options>] [I<subjectfile>]
 
 =head1 DESCRIPTION
 
-Import a set of subjects into an EPrints archive. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint archive. 
+Import a set of subjects into an EPrints repository. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint repository. 
 
 Use the staff admin subject editor for little tweaks. Use this command for the initial setup or bulk editing subjects. Use the exporter to dump the current subjects if you (an administrator) have edited them online.
 
 This script should also be run after B<create_tables>.
 
+Without the B<--force> option, this script asks for confirmation before actually erasing anything.
+
 =head1 ARGUMENTS
 
 =over 8
 
-=item I<archiveid> 
+=item I<repository_id> 
 
-The ID of the EPrint archive to use.
+The ID of the EPrint repository to use.
 
 =item I<subjectfile>
 
-This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given archives cfg directory (or "subjects.xml" if you used B<--xml>).
+This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given repository cfg directory (or "subjects.xml" if you used B<--xml>).
 
 =back
 
@@ -74,6 +76,10 @@ Instead of using colon sepearted subject file, the input file is in the XML form
 =item B<--nopurge>
 
 Do not purge the existing records from the subject table before importing this file. Rather than do this, it's probably easier to export the current subjects as XML, then combine in your new file and reimport it.
+
+=item B<--force>
+
+Don't ask before making the changes.
 
 =back   
 
@@ -114,7 +120,7 @@ An ASCII string which is a unique ID for this subject.
 
 =item B<name> 
 
-The name of this subject, in the default language of the archive.
+The name of this subject, in the default language of the repository.
 
 =item B<parents> 
 
@@ -144,7 +150,7 @@ This is the standard eprints export format. It looks like this:
     .
   </eprintsdata>
 
-The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the archive. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
+The fields have the same meaning as described for the ASCII format, with the following variations. The name field can (and should) have a name for each language supported by the repository. Multiple parents are indicated by multiple C<<lt>field name="parents<gt>> elements. Depositable should be either TRUE or FALSE.
 
 __GENERICPOD__
 
@@ -156,9 +162,7 @@ use Getopt::Long;
 use Pod::Usage;
 use strict;
 
-use EPrints::Session;
-use EPrints::Subject;
-use EPrints::ImportXML;
+use EPrints;
 
 my $xml = 0;
 my $version = 0;
@@ -198,21 +202,14 @@ my $filename = $ARGV[1];
 
 if( !defined $filename )
 {
-	$filename = $session->get_archive()->get_conf( "config_path" )."/subjects";
+	$filename = $session->get_repository->get_conf( "config_path" )."/subjects";
 	$filename.= ".xml" if( $xml );
 }
 
 unless( $force )
 {
-	if( $noise > 0 )
-	{
-		print "You are about to make bulk changes to the subject table\n";
-		print "in the $ARGV[0] archive.\n";
-	}
-	print "Continue (yes/no): ";
-	my $input = <STDIN>;
-	chomp( $input );
-	unless( $input eq "yes" )
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to make bulk changes to the subject table in the $ARGV[0] repository" );
+	unless( $sure )
 	{
 		print "Aborting then.\n\n";
 		$session->terminate();
@@ -226,14 +223,14 @@ if( $purge )
 	{
 		print "Purging current subjects...\n";
 	}
-	EPrints::Subject::remove_all( $session );
+	EPrints::DataObj::Subject::remove_all( $session );
 	if( $noise > 0 )
 	{
 		print "...done purging.\n";
 	}
 }
 
-my $subds = $session->get_archive()->get_dataset( "subject" );
+my $subds = $session->get_repository->get_dataset( "subject" );
 
 print "Importing from $filename...\n" if( $noise >= 1 );
 my $count = 0;
@@ -265,12 +262,7 @@ sub deal
 		print "Importing: ".$subject->get_value( "subjectid" )."\n";
 	}
 
-	$subject = EPrints::Subject::create( 
-		$session, 
-		$subject->get_value( "subjectid" ),
-		$subject->get_value( "name" ),
-		$subject->get_value( "parents" ),
-		$subject->get_value( "depositable" ) eq "TRUE" );
+	$dataset->create_object( $session, $subject->get_data );
 
 	$info->{count}+=1;
 }
@@ -287,7 +279,9 @@ sub from_ascii_file
 	}
 
 	my $count = 0;
-	my $lang = $session->{archive}->get_conf( "defaultlanguage" );
+	my $lang = $session->get_repository->get_conf( "defaultlanguage" );
+
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	
 	while( <SUBJECTS> )
 	{
@@ -302,12 +296,11 @@ sub from_ascii_file
 			print "Importing: ".$vals[0]."\n";
 		}
 
-		EPrints::Subject::create( 
-			$session,
-		        $vals[0],
-		        {$lang=>$vals[1]},
-			\@parents,					
-		        $vals[3] );
+		$subject_ds->create_object( $session, {
+			subjectid=>$vals[0],
+			name=>{$lang=>$vals[1]},
+			parents=>\@parents,					
+		        depositable=>$vals[3] } );
 
 		$count+=1;
 

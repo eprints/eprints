@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -15,11 +15,11 @@
 
 =head1 NAME
 
-B<rehash_documents> - Regenerate all the hashes of all documents in the archive.
+B<rehash_documents> - Regenerate all the hashes of all documents in the repository.
 
 =head1 SYNOPSIS
 
-B<rehash_documents> I<archiveid> [B<options>] [I<documentid>]
+B<rehash_documents> I<repository_id> [B<options>] [I<documentid>]
 
 =head1 DESCRIPTION
 
@@ -34,14 +34,14 @@ files are removed.
 It is useful as a quick reliable way of seeing if the document contents has 
 changed. If you generate other formats of a document on-the-fly the MD5 can
 be useful as part of caching, or you may wish to pass the hashes to a third
-party to allow you to later verify that an item was in the archive since
+party to allow you to later verify that an item was in the repository since
 a given date.
 
 =over 8
 
-=item B<archiveid> 
+=item B<repository_id> 
 
-The ID of the eprint archive to rehash the documents of.
+The ID of the eprint repository to rehash the documents of.
 
 =back
 
@@ -76,7 +76,7 @@ __GENERICPOD__
 
 =cut
 
-use EPrints::Session;
+use EPrints;
 
 use File::Copy;
 use File::Find;
@@ -115,10 +115,10 @@ exit( 1 ) unless( defined $session );
 
 if( defined $ARGV[1] )
 {
-	my $doc = EPrints::Document->new( $session, $ARGV[1] );
+	my $doc = EPrints::DataObj::Document->new( $session, $ARGV[1] );
 	if( !defined $doc )
 	{
-		$session->get_archive->log( 
+		$session->get_repository->log( 
 "Document #".$ARGV[1]." not found. Can't rehash." );
 	}
 	else
@@ -130,7 +130,7 @@ if( defined $ARGV[1] )
 else
 {
 	print "Rehashing documents\n" if( $noise > 0);
-	my $dataset = $session->get_archive()->get_dataset( "document" );
+	my $dataset = $session->get_repository->get_dataset( "document" );
 	my $info = { count=>0 };
 	$dataset->map( $session , \&rehash, $info );
 	if( $noise > 0)
@@ -140,6 +140,8 @@ else
 }
 $session->terminate();
 exit;
+
+######################################################################
 
 sub rehash
 {
@@ -154,6 +156,3 @@ sub rehash
 
 
 
-$session->terminate();
-	
-exit;

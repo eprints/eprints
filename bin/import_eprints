@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I/opt/eprints/perl_lib
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 ######################################################################
 #
@@ -10,10 +10,10 @@
 #
 ######################################################################
 
-use EPrints::Session;
-use EPrints::ImportXML;
-use EPrints::EPrint;
+use EPrints;
+
 use strict;
+
 if( scalar @ARGV != 3 )
 {
 	print STDERR "import_xml <siteid> <dataset> <xmlfilename>\n";
@@ -29,7 +29,7 @@ my $session = new EPrints::Session( 1 , $ARGV[0] );
 exit( 1 ) unless( defined $session );
 
 
-my $ds = $session->get_archive()->get_dataset( $ARGV[1] ); 
+my $ds = $session->get_repository->get_dataset( $ARGV[1] ); 
 if( !defined $ds )
 {
 	die "doh: bad dataset";
@@ -53,7 +53,7 @@ if( $dostatic )
 	foreach( @{$info->{update_abstracts}} )
 	{
 		next if( $done{$_} );
-		my $eprint = EPrints::EPrint->new( $session, $_, $info->{ds} );
+		my $eprint = EPrints::DataObj::EPrint->new( $session, $_, $info->{ds} );
 		$eprint->generate_static();
 		$done{$_} = 1;
 	}
@@ -67,8 +67,7 @@ sub deal
 {
 	my( $session , $table , $eprint, $info ) = @_;
 
-	$eprint->datestamp();
-	if( $session->get_db()->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
+	if( $session->get_database->exists( $info->{ds} , $eprint->get_value( "eprintid" ) ) )
 	{
 		print  "EXISTS!\n";
 		$eprint->commit;
@@ -77,7 +76,7 @@ sub deal
 	{
 		print  "NOT EXISTS!\n";
 		#cjg needs a userid
-		$eprint = EPrints::EPrint::create( $session, $info->{ds}, $eprint->get_data() );
+		$eprint = $info->{ds}->create_object( $session, $eprint->get_data );
 	}
 	foreach( $eprint->get_all_related() )
 	{
