@@ -39,7 +39,7 @@ Files with a .xpage or .xhtml suffix are processed as they are copied.
 This is an XML file with the following structure:
 
  <?xml version="1.0" standalone="no" ?>
- <!DOCTYPE page SYSTEM "entities-en.dtd" >
+ <!DOCTYPE page SYSTEM "entities.dtd" >
  <page>
    <title>This is the page title</title>
    <body>
@@ -54,9 +54,9 @@ The resulting file will be a .html file (foo.xpage becomes foo.html). It will ta
 This is a normal XHTML file but with the following XML header:
 
  <?xml version="1.0" standalone="no" ?>
- <!DOCTYPE html SYSTEM "entities-en.dtd" >
+ <!DOCTYPE html SYSTEM "entities.dtd" >
 
-This will cause the the special EPrints entities to be converted as it is copied. See the main documentation for more about these entities. It will also be renamed to .html for example, foo.xhtml will become foo.html
+This will cause the the HTML entities to be properly decoded. It will also be renamed to .html for example, foo.xhtml will become foo.html
 
 =back
 
@@ -325,7 +325,9 @@ sub copy_xpage
 		foreach my $kid ( $elements->{$part}->getChildNodes )
 		{
 			$parts->{$part}->appendChild( 
-				$session->clone_for_me( $kid, 1 ) );
+				EPrints::XML::collapse_conditions( 
+					$kid,
+					session => $session ) ); 
 		}
 	}
 
@@ -356,7 +358,12 @@ sub copy_xhtml
 		return;
 	}
 	# why clone?
-	$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
+	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
+	$session->set_page( 
+		EPrints::XML::collapse_conditions( 
+			$elements->{html}, 
+			session => $session ) ); 
+
 	$session->page_to_file( $to );
 }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="no" ?>
-<!DOCTYPE html SYSTEM "entities-en.dtd" > 
+<!DOCTYPE html SYSTEM "entities.dtd" > 
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/template">
   <head>
@@ -18,7 +18,7 @@
     <div class="ep_noprint"><noscript><style type='text/css'>@import url(<ep:print expr="$config{base_url}"/>/style/nojs.css);</style></noscript></div>
     <ep:pin ref="pagetop"/>
     <div class="ep_tm_header ep_noprint">
-      <div class="ep_tm_logo"><a href="{$config{frontpage}}"><ep:phrase ref="logo" /></a></div>
+      <div class="ep_tm_logo"><a href="{$config{frontpage}}"><img alt="Logo" src="{$config{site_logo}" /></a></div>
       <div><a class="ep_tm_archivetitle" href="{$config{frontpage}}"><ep:phrase ref="archive_name"/></a></div>
 
   <ul class="ep_tm_menu"><li><a href="{$config{frontpage}}">Home</a></li><li><a href="{$config{base_url}}/information.html">About</a></li><li><a href="{$config{base_url}}/view/year">Browse by Year</a></li><li><a href="{$config{base_url}}/view/subjects">Browse by Subject</a></li><li><a href="{$config{userhome}}">User Area</a></li><li><a href="{$config{base_url}}/help">Help</a></li></ul>

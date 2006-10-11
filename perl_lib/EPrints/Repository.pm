@@ -1373,32 +1373,19 @@ sub generate_dtd
 			"in repository DTD";
 	my $xhtmlentities = join( "", <XHTMLENTITIES> );
 	close XHTMLENTITIES;
-	my $langid;
-	foreach $langid ( @{$self->get_conf( "languages" )} )
-	{	
-		my %entities = $self->call( "get_entities", $self, $langid );
-		my $file = $self->get_conf( "variables_path" )."/entities-$langid.dtd";
-		my $tmpfile = $file.".".$$;
-		open( DTD, ">$tmpfile" ) || die "Failed to open $tmpfile for writing";
 
-		my $siteid = $self->{id};
-	
-		print DTD <<END;
+	my $file = $self->get_conf( "variables_path" )."/entities.dtd";
+	my $tmpfile = $file.".".$$;
+	open( DTD, ">$tmpfile" ) || die "Failed to open $tmpfile for writing";
+
+	print DTD <<END;
 <!-- 
-	Entities file for $siteid, language ID "$langid"
+	XHTML Entities
 
 	*** DO NOT EDIT, This is auto-generated ***
 -->
 
 END
-		foreach( keys %entities )
-		{
-			my $value = $entities{$_};
-			$value=~s/&/&#x26;/g;
-			$value=~s/"/&#x22;/g;
-			$value=~s/%/&#x25;/g;
-			print DTD "<!ENTITY $_ \"$value\" >\n";
-		}
 		print DTD <<END;
 
 <!--
@@ -1406,10 +1393,9 @@ END
 -->
 
 END
-		print DTD $xhtmlentities;
-		close DTD;
-		move( $tmpfile, $file );
-	}
+	print DTD $xhtmlentities;
+	close DTD;
+	move( $tmpfile, $file );
 
 	return 1;
 }

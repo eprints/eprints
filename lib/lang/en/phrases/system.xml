@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
-<!DOCTYPE phrases SYSTEM "entities-en.dtd">
+<!DOCTYPE phrases SYSTEM "entities.dtd">
 
 <!-- 
 	English Language System Phrases File 
@@ -1537,5 +1537,6 @@ Titles and Help for the System Fields
 
 <ep:phrase id="request/response:ack_page"><p>Thank you. The email has been sent to the requester.</p></ep:phrase>
 
+<ep:phrase id="ruler"><hr noshade="noshade" class="ep_ruler" /></ep:phrase>
 
 </ep:phrases>

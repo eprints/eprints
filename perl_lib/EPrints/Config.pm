@@ -203,7 +203,7 @@ sub load_repository_config_module
 	my $dir = $info->{archiveroot}."/cfg/cfg.d";
 
 	my $dh;
-	opendir( $dh, $dir ) || EPrints::abort( "Can't read cfg.d config files: $!" );
+	opendir( $dh, $dir ) || EPrints::abort( "Can't read cfg.d config files from $dir: $!" );
 	my @files = ();
 	while( my $file = readdir( $dh ) )
 	{

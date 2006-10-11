@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"  standalone="no"  ?>
-<!DOCTYPE page SYSTEM "entities-en.dtd" >
+<!DOCTYPE page SYSTEM "entities.dtd" >
 <ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
 <ep:title>Welcome to <ep:phrase ref="archive_name" /></ep:title>
 <ep:body>

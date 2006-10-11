@@ -4510,3 +4510,10 @@ PACKAGE: 2.2.99.2
 
 2006-10-11 cjg
  * Started reworking configure_archive into epadmin
+
+2006-10-12 cjg 
+ * Removed entities.pl
+ * No longer copies entites-en.dtd per language - now just makes one
+    copy names entities.dtd
+ * Changed the header of all XML files to reflect this.
+ * Renamed archivename.pl to archive_name.pl
