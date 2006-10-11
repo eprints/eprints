@@ -10,8 +10,7 @@
 	the repository specific phrase file.
 -->
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
 <!--********************************************************************** 
 EPrints Modules  
@@ -39,15 +38,15 @@ EPrints Modules
     <ep:phrase id="lib/eprint:diskout"><p>There are no available partitions with enough disk space to create new items. This needs sorting out urgently.</p><p>NO NEW ITEMS WILL BE ADDED UNTIL YOU FIX THIS.</p><p>To add more capacity, symlink a directory on a new drive into the repository "documents" directory.</p></ep:phrase>
     <ep:phrase id="lib/eprint:no_type">You haven't selected a type for this item.</ep:phrase>
     <ep:phrase id="lib/eprint:invalid_type">This item doesn't seem to have a valid type.</ep:phrase>
-    <ep:phrase id="lib/eprint:not_done_field">You haven't filled out the required <ep:pin name="fieldname" /> field.</ep:phrase>
-    <ep:phrase id="lib/eprint:invalid_users">The following usernames are not valid: <ep:pin name="usernames" />.</ep:phrase>
+    <ep:phrase id="lib/eprint:not_done_field">You haven't filled out the required <ep:pin name="fieldname"/> field.</ep:phrase>
+    <ep:phrase id="lib/eprint:invalid_users">The following usernames are not valid: <ep:pin name="usernames"/>.</ep:phrase>
     <ep:phrase id="lib/eprint:least_one_sub">You need to select at least one subject from the list!</ep:phrase>
     <ep:phrase id="lib/eprint:cant_succ">You cannot succeed an item that someone else has posted</ep:phrase>
-    <ep:phrase id="lib/eprint:invalid_id">Item ID in "<ep:pin name="field" />" field is invalid</ep:phrase>
+    <ep:phrase id="lib/eprint:invalid_id">Item ID in "<ep:pin name="field"/>" field is invalid</ep:phrase>
     <ep:phrase id="lib/eprint:need_a_format">You need to <ep:pin name="fieldname">upload</ep:pin> at least one of the following formats:</ep:phrase>
     <ep:phrase id="lib/eprint:eprint_gone_title">Item Removed</ep:phrase>
     <ep:phrase id="lib/eprint:eprint_gone"><p>You seem to be attempting to access an item that has been removed from the repository.</p></ep:phrase>
-    <ep:phrase id="lib/eprint:later_version"><p>There is a later version of the item you are trying to access:<br /><ep:pin name="citation" /></p></ep:phrase>
+    <ep:phrase id="lib/eprint:later_version"><p>There is a later version of the item you are trying to access:<br/><ep:pin name="citation"/></p></ep:phrase>
     <ep:phrase id="lib/eprint:curr_disp"><strong>[Currently Displayed]</strong></ep:phrase>
 
 <!-- History -->
@@ -58,12 +57,12 @@ EPrints Modules
     <ep:phrase id="lib/history:no_earlier">Earlier revision not available. No diff possible. Showing all data in this revision.</ep:phrase>
     <ep:phrase id="lib/history:no_file">Revision file not available.</ep:phrase>
     <ep:phrase id="lib/history:record">
-<div style="padding: 0.3em; margin-top: 2em; border: solid 1px black; background-color: #ccc;"><ep:pin name="item" /></div>
-<div style="padding: 0.3em; background-color: black; color: white; font-weight: bold;"><ep:pin name="action" /> by <ep:pin name="cause" /> at <ep:pin name="when" /></div>
-<div style="padding: 0.3em; margin-bottom: 2em; border: solid 1px black;"><ep:pin name="details" /></div>
+<div style="padding: 0.3em; margin-top: 2em; border: solid 1px black; background-color: #ccc;"><ep:pin name="item"/></div>
+<div style="padding: 0.3em; background-color: black; color: white; font-weight: bold;"><ep:pin name="action"/> by <ep:pin name="cause"/> at <ep:pin name="when"/></div>
+<div style="padding: 0.3em; margin-bottom: 2em; border: solid 1px black;"><ep:pin name="details"/></div>
     </ep:phrase>
-    <ep:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black;"><ep:pin name="xml" /></pre></ep:phrase>
-    <ep:phrase id="lib/history:no_such_item"><ep:pin name="datasetid" /> <ep:pin name="objectid" /> does not exist. It may have been erased.</ep:phrase>
+    <ep:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black;"><ep:pin name="xml"/></pre></ep:phrase>
+    <ep:phrase id="lib/history:no_such_item"><ep:pin name="datasetid"/> <ep:pin name="objectid"/> does not exist. It may have been erased.</ep:phrase>
 
     <ep:phrase id="history_fieldname_action">Action</ep:phrase>
     <ep:phrase id="history_fieldname_actor">Cause of Action</ep:phrase>
@@ -107,18 +106,18 @@ EPrints Modules
     <ep:phrase id="lib/metafield:honourific">Title</ep:phrase>
     <ep:phrase id="lib/metafield:more_spaces">More Spaces</ep:phrase>
     <ep:phrase id="lib/metafield:more_langs">More Languages</ep:phrase>
-    <ep:phrase id="lib/metafield:unspecified"><pin name="fieldname" /> UNSPECIFIED</ep:phrase>
+    <ep:phrase id="lib/metafield:unspecified"><pin name="fieldname"/> UNSPECIFIED</ep:phrase>
     <ep:phrase id="lib/metafield:unspecified_selection">UNSPECIFIED</ep:phrase>
     <ep:phrase id="lib/metafield:unspecified_editperms">No Restrictions</ep:phrase>
     <ep:phrase id="lib/metafield:true">Yes</ep:phrase>
     <ep:phrase id="lib/metafield:false">No</ep:phrase>
 
     <ep:phrase id="lib/metafield:date_res_second"></ep:phrase>
-    <ep:phrase id="lib/metafield:date_res_hour">"Second" may be omitted.<br /></ep:phrase>
-    <ep:phrase id="lib/metafield:date_res_hour">"Minute" and "Second" may be omitted.<br /></ep:phrase>
-    <ep:phrase id="lib/metafield:date_res_day">"Year" and "Month" and "Day" are necessary.<br /></ep:phrase>
-    <ep:phrase id="lib/metafield:date_res_month">Only "Year" and "Month" are necessary.<br /></ep:phrase>
-    <ep:phrase id="lib/metafield:date_res_year">Only "Year" is necessary.<br /></ep:phrase>
+    <ep:phrase id="lib/metafield:date_res_hour">"Second" may be omitted.<br/></ep:phrase>
+    <ep:phrase id="lib/metafield:date_res_hour">"Minute" and "Second" may be omitted.<br/></ep:phrase>
+    <ep:phrase id="lib/metafield:date_res_day">"Year" and "Month" and "Day" are necessary.<br/></ep:phrase>
+    <ep:phrase id="lib/metafield:date_res_month">Only "Year" and "Month" are necessary.<br/></ep:phrase>
+    <ep:phrase id="lib/metafield:date_res_year">Only "Year" is necessary.<br/></ep:phrase>
 
     <!-- phrases used to seperate multiple values in a field -->
     <!-- you can use .first and .last to make the first or 
@@ -138,27 +137,27 @@ EPrints Modules
     <ep:phrase id="lib/metafield:join_secret">, </ep:phrase>
     <ep:phrase id="lib/metafield:join_url">, </ep:phrase>
     <ep:phrase id="lib/metafield:join_email">, </ep:phrase>
-    <ep:phrase id="lib/metafield:join_subject"><br /></ep:phrase>
+    <ep:phrase id="lib/metafield:join_subject"><br/></ep:phrase>
     <ep:phrase id="lib/metafield:join_subject_parts"> &gt; </ep:phrase>
     <ep:phrase id="lib/metafield:join_pagerange">, </ep:phrase>
     <ep:phrase id="lib/metafield:join_datatype">, </ep:phrase>
     <ep:phrase id="lib/metafield:join_search"> <strong>OR</strong> </ep:phrase>
 
     <ep:phrase id="lib/metafield/itemref:lookup">Lookup</ep:phrase>
-    <ep:phrase id="lib/metafield/itemref:not_found"><i><ep:pin name="objtype" /> <ep:pin name="id" /> not found.</i></ep:phrase>
+    <ep:phrase id="lib/metafield/itemref:not_found"><i><ep:pin name="objtype"/> <ep:pin name="id"/> not found.</i></ep:phrase>
     <ep:phrase id="lib/metafield/secret:show_value">[hidden]</ep:phrase>
 
 
 <!-- List Pagination -->
 <ep:phrase id="lib/list:page">
-<ep:pin name="controls" />
+<ep:pin name="controls"/>
 <p>
-	<ep:pin name="searchdesc" />
-	<br />
-	<ep:pin name="matches" />
+	<ep:pin name="searchdesc"/>
+	<br/>
+	<ep:pin name="matches"/>
 </p>
-<ep:pin name="results" />
-<ep:pin name="controls_if_matches" />
+<ep:pin name="results"/>
+<ep:pin name="controls_if_matches"/>
 </ep:phrase>
 
 <!-- Search (used to be SearchExpression) -->
@@ -166,37 +165,37 @@ EPrints Modules
     <ep:phrase id="lib/searchexpression:least_one">You need to specify something for at least one field!</ep:phrase>
     <ep:phrase id="lib/searchexpression:any">any</ep:phrase>
     <ep:phrase id="lib/searchexpression:all">all</ep:phrase>
-    <ep:phrase id="lib/searchexpression:must_fulfill">Retrieved records must fulfill <ep:pin name="anyall" /> of these conditions.</ep:phrase>
-    <ep:phrase id="lib/searchexpression:order_results">Order the results: <ep:pin name="ordermenu" /></ep:phrase>
+    <ep:phrase id="lib/searchexpression:must_fulfill">Retrieved records must fulfill <ep:pin name="anyall"/> of these conditions.</ep:phrase>
+    <ep:phrase id="lib/searchexpression:order_results">Order the results: <ep:pin name="ordermenu"/></ep:phrase>
     <ep:phrase id="lib/searchexpression:action_search">Search</ep:phrase>
     <ep:phrase id="lib/searchexpression:action_reset">Reset the form</ep:phrase>
     <ep:phrase id="lib/searchexpression:action_newsearch">Start new search</ep:phrase>
     <ep:phrase id="lib/searchexpression:action_update">Update the search</ep:phrase>
     <ep:phrase id="lib/searchexpression:form_problem"><p>There is a problem with the form:</p></ep:phrase>
-    <ep:phrase id="lib/searchexpression:results_for">Results for <ep:pin name="title" /></ep:phrase>
-    <ep:phrase id="lib/searchexpression:results">Displaying results <ep:pin name="from" /> to <ep:pin name="to" /> of <ep:pin name="n" />.</ep:phrase>
-    <ep:phrase id="lib/searchexpression:search_time">Search time: <ep:pin name="searchtime" />s.</ep:phrase>
+    <ep:phrase id="lib/searchexpression:results_for">Results for <ep:pin name="title"/></ep:phrase>
+    <ep:phrase id="lib/searchexpression:results">Displaying results <ep:pin name="from"/> to <ep:pin name="to"/> of <ep:pin name="n"/>.</ep:phrase>
+    <ep:phrase id="lib/searchexpression:search_time">Search time: <ep:pin name="searchtime"/>s.</ep:phrase>
     <ep:phrase id="lib/searchexpression:noresults">No matches.</ep:phrase>
     <ep:phrase id="lib/searchexpression:results_page">
-<ep:pin name="controls" />
+<ep:pin name="controls"/>
 <p class="resultsinfo">
-   <div style="border: solid 1px #a0a0a0; float: right; width: 35%; padding: 0.5em; margin-left: 0.5em; margin-bottom: 0.5em;"><ep:pin name="export" /></div>
-   <ep:pin name="searchdesc" /><br />
-   <ep:pin name="matches" /> <ep:pin name="time" /><br />
+   <div style="border: solid 1px #a0a0a0; float: right; width: 35%; padding: 0.5em; margin-left: 0.5em; margin-bottom: 0.5em;"><ep:pin name="export"/></div>
+   <ep:pin name="searchdesc"/><br/>
+   <ep:pin name="matches"/> <ep:pin name="time"/><br/>
 </p>
-<ep:pin name="results" />
-<ep:pin name="controls_if_matches" />
+<ep:pin name="results"/>
+<ep:pin name="controls_if_matches"/>
 </ep:phrase>
-    <ep:phrase id="lib/searchexpression:export_section">Export all matching items as:<br /><ep:pin name="menu" /> <ep:pin name="button" /></ep:phrase>
+    <ep:phrase id="lib/searchexpression:export_section">Export all matching items as:<br/><ep:pin name="menu"/> <ep:pin name="button"/></ep:phrase>
     <ep:phrase id="lib/searchexpression:export_button">Export</ep:phrase>
-    <ep:phrase id="lib/searchexpression:next">Next <ep:pin name="n" /></ep:phrase>
-    <ep:phrase id="lib/searchexpression:prev">Previous <ep:pin name="n" /></ep:phrase>
+    <ep:phrase id="lib/searchexpression:next">Next <ep:pin name="n"/></ep:phrase>
+    <ep:phrase id="lib/searchexpression:prev">Previous <ep:pin name="n"/></ep:phrase>
     <ep:phrase id="lib/searchexpression:new">New search</ep:phrase>
     <ep:phrase id="lib/searchexpression:refine">Refine search</ep:phrase>
     <ep:phrase id="lib/searchexpression:seperator"> | </ep:phrase>
     <ep:phrase id="lib/searchexpression:desc_and"> <b>AND</b> </ep:phrase>
     <ep:phrase id="lib/searchexpression:desc_or"> <b>OR</b> </ep:phrase>
-    <ep:phrase id="lib/searchexpression:desc_order">Results ordered <ep:pin name="order" />.</ep:phrase>
+    <ep:phrase id="lib/searchexpression:desc_order">Results ordered <ep:pin name="order"/>.</ep:phrase>
     <ep:phrase id="lib/searchexpression:desc_no_conditions">No conditions.</ep:phrase>
     <ep:phrase id="lib/searchexpression:export_error_title">Error Exporting Results</ep:phrase>
     <ep:phrase id="lib/searchexpression:export_error_search"><p>The search failed to execute correctly.</p></ep:phrase>
@@ -207,14 +206,14 @@ EPrints Modules
     <ep:phrase id="lib/searchfield:year_err">A year search must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</ep:phrase>
     <ep:phrase id="lib/searchfield:int_err">A numerical search must be specified as a single integer number, e.g. `23', or a range of numbers, e.g. `9-21', `17-' or `-93'</ep:phrase>
     <ep:phrase id="lib/searchfield:date_err">A date search must be specified as a single date or a range.</ep:phrase>
-    <ep:phrase id="lib/searchfield:no_words">Search field contains no indexable words: "<ep:pin name="words" />". The system ignores very small or common words.</ep:phrase>
+    <ep:phrase id="lib/searchfield:no_words">Search field contains no indexable words: "<ep:pin name="words"/>". The system ignores very small or common words.</ep:phrase>
     <ep:phrase id="lib/searchfield:help_time">Enter a date or date range. 
-<br />Examples:  "<span class="ep_form_example">1985-</span>", 
+<br/>Examples:  "<span class="ep_form_example">1985-</span>", 
 "<span class="ep_form_example">2001-05-17-2002-05-16</span>",
 "<span class="ep_form_example">-11-1980</span>"
 </ep:phrase>
     <ep:phrase id="lib/searchfield:help_date">Enter a date or date range. 
-<br />Examples:  "<span class="ep_form_example">1985-</span>", 
+<br/>Examples:  "<span class="ep_form_example">1985-</span>", 
 "<span class="ep_form_example">2001-05-17-2002-05-16</span>",
 "<span class="ep_form_example">-11-1980</span>"
 </ep:phrase>
@@ -239,36 +238,36 @@ EPrints Modules
     <ep:phrase id="lib/searchfield:set_all">All of these</ep:phrase>
     <ep:phrase id="lib/searchfield:text_any">Match any</ep:phrase>
     <ep:phrase id="lib/searchfield:text_all">Match all, in any order</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_is"><ep:pin name="name" /> is <ep:pin name="value" /></ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_true"><ep:pin name="name" /></ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_false"><b>NOT</b> <ep:pin name="name" /></ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_any_in"><ep:pin name="name" /> matches any of <ep:pin name="value" /></ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_all_in"><ep:pin name="name" /> matches all of <ep:pin name="value" /></ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_is"><ep:pin name="name"/> is <ep:pin name="value"/></ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_true"><ep:pin name="name"/></ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_false"><b>NOT</b> <ep:pin name="name"/></ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_any_in"><ep:pin name="name"/> matches any of <ep:pin name="value"/></ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_all_in"><ep:pin name="name"/> matches all of <ep:pin name="value"/></ep:phrase>
 
-    <ep:phrase id="lib/searchfield:desc_year_between">between <ep:pin name="from" /> and <ep:pin name="to" /> inclusive</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_year_orless"><ep:pin name="to" /> or before</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_year_ormore"><ep:pin name="from" /> or after</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_year_between">between <ep:pin name="from"/> and <ep:pin name="to"/> inclusive</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_year_orless"><ep:pin name="to"/> or before</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_year_ormore"><ep:pin name="from"/> or after</ep:phrase>
 
-    <ep:phrase id="lib/searchfield:desc_int_between">between <ep:pin name="from" /> and <ep:pin name="to" /> inclusive</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_int_orless"><ep:pin name="to" /> or less</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_int_ormore"><ep:pin name="from" /> or more</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_int_between">between <ep:pin name="from"/> and <ep:pin name="to"/> inclusive</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_int_orless"><ep:pin name="to"/> or less</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_int_ormore"><ep:pin name="from"/> or more</ep:phrase>
 
-    <ep:phrase id="lib/searchfield:desc_date_between">between <ep:pin name="from" /> and <ep:pin name="to" /> inclusive</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_date_orless"><ep:pin name="to" /> or before</ep:phrase>
-    <ep:phrase id="lib/searchfield:desc_date_ormore"><ep:pin name="from" /> or after</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_date_between">between <ep:pin name="from"/> and <ep:pin name="to"/> inclusive</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_date_orless"><ep:pin name="to"/> or before</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_date_ormore"><ep:pin name="from"/> or after</ep:phrase>
 
-    <ep:phrase id="lib/searchfield:desc_ignored"> (Ignoring: <ep:pin name="list" />)</ep:phrase>
+    <ep:phrase id="lib/searchfield:desc_ignored"> (Ignoring: <ep:pin name="list"/>)</ep:phrase>
 
 
 <!-- Session -->
 
     <ep:phrase id="lib/session:fail_db_connect">Failed to connect to database</ep:phrase>
-    <ep:phrase id="lib/session:msg_at">Repository maintenance message generated at <ep:pin name="time" /></ep:phrase>
+    <ep:phrase id="lib/session:msg_at">Repository maintenance message generated at <ep:pin name="time"/></ep:phrase>
     <ep:phrase id="lib/session:archive_admin">Repository Administrator</ep:phrase>
     <ep:phrase id="lib/session:continue">Continue</ep:phrase>
-    <ep:phrase id="lib/session:some_error"><p>&archivename; has encountered an error:</p></ep:phrase>
-    <ep:phrase id="lib/session:contact"><p>Feel free to contact <a href="mailto:&adminemail;">&archivename; administration</a> with details.</p></ep:phrase>
-    <ep:phrase id="lib/session:cant_do_field">Error: Don't know how to render field of type <ep:pin name="type" /></ep:phrase>
+    <ep:phrase id="lib/session:some_error"><p><ep:phrase ref="archive_name" /> has encountered an error:</p></ep:phrase>
+    <ep:phrase id="lib/session:contact"><p>Feel free to contact <a href="mailto:{$config{adminemail}}"><ep:phrase ref="archive_name" /> administration</a> with details.</p></ep:phrase>
+    <ep:phrase id="lib/session:cant_do_field">Error: Don't know how to render field of type <ep:pin name="type"/></ep:phrase>
     <ep:phrase id="lib/session:username_title">Usernames</ep:phrase>
     <ep:phrase id="lib/session:error_title">Error</ep:phrase>
     <ep:phrase id="lib/session:no_login">You are somehow accessing a page which requires you to be logged in, without actually being logged in. This probably indicates a server misconfiguration.</ep:phrase>
@@ -281,10 +280,10 @@ EPrints Modules
 <!-- SubmissionForm -->
 
     <ep:phrase id="lib/submissionform:use_auth_area">Use the user area to deposit new items</ep:phrase>
-    <ep:phrase id="lib/submissionform:verify">Verify: <ep:pin name="citation" /></ep:phrase>
-    <ep:phrase id="lib/submissionform:invalid_eprint">ID <ep:pin name="eprintid" /> is not a valid item ID!</ep:phrase>
+    <ep:phrase id="lib/submissionform:verify">Verify: <ep:pin name="citation"/></ep:phrase>
+    <ep:phrase id="lib/submissionform:invalid_eprint">ID <ep:pin name="eprintid"/> is not a valid item ID!</ep:phrase>
     <ep:phrase id="lib/submissionform:current_docs"><p>Here are the documents currently attached to this item, and how many files you have uploaded for each.</p></ep:phrase>
-    <ep:phrase id="lib/submissionform:least_one"><p>You must upload at least one of the following formats: <ep:pin name="list" />.</p></ep:phrase>
+    <ep:phrase id="lib/submissionform:least_one"><p>You must upload at least one of the following formats: <ep:pin name="list"/>.</p></ep:phrase>
     <ep:phrase id="lib/submissionform:none_required"><p>You may upload one or more formats of the document at this stage. This is not required, but is strongly encouraged.</p></ep:phrase>
     <ep:phrase id="lib/submissionform:plain">Plain Files</ep:phrase>
     <ep:phrase id="lib/submissionform:grab_url">From an Existing Web Site</ep:phrase>
@@ -300,29 +299,29 @@ EPrints Modules
     <ep:phrase id="lib/submissionform:enter_files"><p>Please enter the filenames (with full paths) of the document files in the boxes below.</p></ep:phrase>
     <ep:phrase id="lib/submissionform:upload_prob">File upload failed</ep:phrase>
     <ep:phrase id="lib/submissionform:upload_layout">
-Type of file being uploaded: <ep:pin name="type" /><br />
-Select a file to upload: <ep:pin name="file" /><br />
-<ep:pin name="button" />
+Type of file being uploaded: <ep:pin name="type"/><br/>
+Select a file to upload: <ep:pin name="file"/><br/>
+<ep:pin name="button"/>
     </ep:phrase>
     <ep:phrase id="lib/submissionform:url_upload_layout">
-Enter a URL to capture a file from: <ep:pin name="url" /><br />
-<ep:pin name="button" />
+Enter a URL to capture a file from: <ep:pin name="url"/><br/>
+<ep:pin name="button"/>
     </ep:phrase>
     <ep:phrase id="lib/submissionform:fileview_page_layout">
-<p>Adding files for format: <strong><ep:pin name="document" /></strong></p>
-&ruler;
-<ep:pin name="show_files" />
-&ruler;
+<p>Adding files for format: <strong><ep:pin name="document"/></strong></p>
+<ep:phrase ref="ruler" />
+<ep:pin name="show_files"/>
+<ep:phrase ref="ruler" />
 <h3>Upload a file from your PC</h3>
-<ep:pin name="upload_form" />
-&ruler;
+<ep:pin name="upload_form"/>
+<ep:phrase ref="ruler" />
 <h3>Capture a file from a URL</h3>
-<ep:pin name="url_form" />
+<ep:pin name="url_form"/>
     </ep:phrase>
     <ep:phrase id="lib/submissionform:fix_probs">Before you deposit this entry into the repository, the following problems need to be corrected:</ep:phrase>
     <ep:phrase id="lib/submissionform:please_verify"><p><strong>You have not finished yet!</strong></p><p>Please verify that all of the details about your deposit are correct, and that all necessary files have been correctly uploaded including any figures.</p><p>When you are satisfied click the <strong>Deposit Item Now</strong> button at the foot of this page.</p></ep:phrase>
-    <ep:phrase id="lib/submissionform:thanks"><p>Thank you.</p><p>Your submission will now be held for editorial review. Provided there are no problems it should appear in the repository within the next few days.</p><p><a href="&userhome;">Click here to go to the user page</a></p></ep:phrase>
-    <ep:phrase id="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this item? <ep:pin name="title" /></p></ep:phrase>
+    <ep:phrase id="lib/submissionform:thanks"><p>Thank you.</p><p>Your submission will now be held for editorial review. Provided there are no problems it should appear in the repository within the next few days.</p><p><a href="{$config{userhome}}">Click here to go to the user page</a></p></ep:phrase>
+    <ep:phrase id="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this item? <ep:pin name="title"/></p></ep:phrase>
     <ep:phrase id="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</ep:phrase>
     <ep:phrase id="lib/submissionform:please_complete">Please complete the form before continuing.</ep:phrase>
     <ep:phrase id="lib/submissionform:filename">Filename</ep:phrase>
@@ -361,8 +360,8 @@ Enter a URL to capture a file from: <ep:pin name="url" /><br />
     <ep:phrase id="lib/submissionform:title_error">Error</ep:phrase>
     <ep:phrase id="lib/submissionform:title_return">Return</ep:phrase>
     <ep:phrase id="lib/submissionform:title_confirmdel">Confirm Deletion</ep:phrase>
-    <ep:phrase id="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your user page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin name="line_no" />)</ep:phrase>
-    <ep:phrase id="lib/submissionform:database_err">There's been a problem accessing the repository database. Please try again later. (Code <ep:pin name="line_no" />)</ep:phrase>
+    <ep:phrase id="lib/submissionform:corrupt_err">An inconsistency in the posted data was detected. Usually this is caused by arriving directly to this page from a bookmark and not from your user page, or through using the browser's back/forwards or reload buttons. Always access the depositing mechanism via your author area and use the buttons on the form. (Code <ep:pin name="line_no"/>)</ep:phrase>
+    <ep:phrase id="lib/submissionform:database_err">There's been a problem accessing the repository database. Please try again later. (Code <ep:pin name="line_no"/>)</ep:phrase>
     <ep:phrase id="lib/submissionform:nosel_err">You hadn't selected an item to act upon!</ep:phrase>
     <ep:phrase id="lib/submissionform:delete">Delete</ep:phrase>
     <ep:phrase id="lib/submissionform:delete_all">Delete All Files</ep:phrase>
@@ -380,12 +379,12 @@ Enter a URL to capture a file from: <ep:pin name="url" /><br />
 <!-- Subscription -->
 
     <ep:phrase id="lib/subscription:mail">
-<p>This mail contains your <ep:pin name="howoften" /> subscription to &archivename;.</p>
-<p>Number of new (or changed) submissions: <ep:pin name="n" />.</p>
-<p>Your subscription is: <ep:pin name="search" /></p>
+<p>This mail contains your <ep:pin name="howoften"/> subscription to <ep:phrase ref="archive_name" />.</p>
+<p>Number of new (or changed) submissions: <ep:pin name="n"/>.</p>
+<p>Your subscription is: <ep:pin name="search"/></p>
 <p>To cancel, temporarily disable or alter your subscription, <ep:pin name="url">click here</ep:pin>.</p>
-&ruler;
-<ep:pin name="matches" />
+<ep:phrase ref="ruler" />
+<ep:pin name="matches"/>
 </ep:phrase>
     <ep:phrase id="lib/subscription:weekly">weekly</ep:phrase>
     <ep:phrase id="lib/subscription:daily">daily</ep:phrase>
@@ -394,22 +393,22 @@ Enter a URL to capture a file from: <ep:pin name="url" /><br />
 
 <!-- User -->
 
-    <ep:phrase id="lib/user:missed_field">You haven't filled out the required <ep:pin name="field" /> field.</ep:phrase>
+    <ep:phrase id="lib/user:missed_field">You haven't filled out the required <ep:pin name="field"/> field.</ep:phrase>
     <ep:phrase id="lib/user:editor_update_subject">Editorial Review Summary</ep:phrase>
     <ep:phrase id="lib/user:editor_update_mail">
-<p>This mail is your <ep:pin name="howoften" /> summary of items awaiting approval for addition to &archivename;.</p>
-<p>Number of items: <ep:pin name="n" />.</p>
-<p>Only items matching your editorial scope are listed. Your scope is: <ep:pin name="search" /></p>
+<p>This mail is your <ep:pin name="howoften"/> summary of items awaiting approval for addition to <ep:phrase ref="archive_name" />.</p>
+<p>Number of items: <ep:pin name="n"/>.</p>
+<p>Only items matching your editorial scope are listed. Your scope is: <ep:pin name="search"/></p>
 <p>To cancel or temporarily disable this email update, <ep:pin name="url">click here</ep:pin>.</p>
-&ruler;
-<ep:pin name="matches" />
+<ep:phrase ref="ruler" />
+<ep:pin name="matches"/>
 </ep:phrase>
 
 <!-- UserForm -->
 
     <ep:phrase id="lib/userform:dont_know">I don't know who you are</ep:phrase>
-    <ep:phrase id="lib/userform:record_for">Record for <ep:pin name="name" /></ep:phrase>
-    <ep:phrase id="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your items. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a star to start using the repository.</p><p>For instructions on how to change your email address, <a href="&perl_url;/users/change_email">click here</a>.</p></ep:phrase>
+    <ep:phrase id="lib/userform:record_for">Record for <ep:pin name="name"/></ep:phrase>
+    <ep:phrase id="lib/userform:blurb"><p>Please enter correct information about yourself for our records. This information will be useful to us and readers of your items. You don't have to supply all this information if you don't want to; you need only fill out those fields marked with a star to start using the repository.</p><p>For instructions on how to change your email address, <a href="{$config{perl_url}}/users/change_email">click here</a>.</p></ep:phrase>
     <ep:phrase id="lib/userform:staff_blurb"><p>You may update the users record.</p></ep:phrase>
     <ep:phrase id="lib/userform:form_incorrect"><p>The form doesn't seem to be filled out correctly:</p></ep:phrase>
     <ep:phrase id="lib/userform:complete_form"><p>Please complete the form before continuing.</p></ep:phrase>
@@ -420,8 +419,8 @@ Enter a URL to capture a file from: <ep:pin name="url" /><br />
 
     <ep:phrase id="lib/userpage:no_user">No user specified!</ep:phrase>
     <ep:phrase id="lib/userpage:unknown_user">Unknown user.</ep:phrase>
-    <ep:phrase id="lib/userpage:title">User record for <ep:pin name="name" /></ep:phrase>
-    <ep:phrase id="lib/userpage:number_of_records"><p><ep:pin name="link">Number of items user has in repository: <strong><ep:pin name="n" /></strong></ep:pin></p></ep:phrase>
+    <ep:phrase id="lib/userpage:title">User record for <ep:pin name="name"/></ep:phrase>
+    <ep:phrase id="lib/userpage:number_of_records"><p><ep:pin name="link">Number of items user has in repository: <strong><ep:pin name="n"/></strong></ep:pin></p></ep:phrase>
     <ep:phrase id="lib/userpage:action_edit">Edit User</ep:phrase>
     <ep:phrase id="lib/userpage:action_delete">Delete User</ep:phrase>
 
@@ -449,7 +448,7 @@ User Area CGI Scripts
 
 <!-- home -->
 
-    <ep:phrase id="cgi/users/home:user_home">User Area Homepage - <ep:pin name="name" /></ep:phrase>
+    <ep:phrase id="cgi/users/home:user_home">User Area Homepage - <ep:pin name="name"/></ep:phrase>
     <ep:phrase id="cgi/users/home:before"><p>Before you use any of the user area functions, you must fill out your user information.</p></ep:phrase>
 
     <ep:phrase id="cgi/users/home:change_link">View/change your user record</ep:phrase>
@@ -493,7 +492,7 @@ User Area CGI Scripts
 
     <ep:phrase id="cgi/users/home:depositing"><p>These are items you are currently in the process of depositing. These will not be considered for the repository until you <i>deposit</i> them.</p></ep:phrase>
     <ep:phrase id="cgi/users/home:no_pending"><p>You currently have no pending items</p></ep:phrase>
-    <ep:phrase id="cgi/users/home:deposited_at">Deposited <ep:pin name="time" /></ep:phrase>
+    <ep:phrase id="cgi/users/home:deposited_at">Deposited <ep:pin name="time"/></ep:phrase>
     <ep:phrase id="cgi/users/home:action_new">New</ep:phrase>
     <ep:phrase id="cgi/users/home:action_delete">Delete</ep:phrase>
     <ep:phrase id="cgi/users/home:action_edit">Edit</ep:phrase>
@@ -501,12 +500,12 @@ User Area CGI Scripts
     <ep:phrase id="cgi/users/home:action_clone">New&nbsp;version</ep:phrase>
     <ep:phrase id="cgi/users/home:action_submit">Deposit</ep:phrase>
     <ep:phrase id="cgi/users/home:no_recent"><p>You have no accepted items</p></ep:phrase>
-    <ep:phrase id="cgi/users/home:accepted_at">Accepted <ep:pin name="time" /></ep:phrase>
+    <ep:phrase id="cgi/users/home:accepted_at">Accepted <ep:pin name="time"/></ep:phrase>
 
 
 <!-- review -->
 
-    <ep:phrase id="cgi/users/review:title">Review Items: <ep:pin name="name" /></ep:phrase>
+    <ep:phrase id="cgi/users/review:title">Review Items: <ep:pin name="name"/></ep:phrase>
     <ep:phrase id="cgi/users/review:no_docs"><p><strong>You have no items in the repository.</strong></p></ep:phrase>
     <ep:phrase id="cgi/users/review:blurb">
 <p>Below are listed your items in the repository. Click on the title of an item to view it.</p>
@@ -524,7 +523,7 @@ User Area CGI Scripts
     <ep:phrase id="cgi/users/review:remove_title">Request Item Removal</ep:phrase>
     <ep:phrase id="cgi/users/review:remove_blurb">
 <p><em>Please note that we strongly discourage removal of items from the repository. If you upload a new version of an items, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</em></p>
-<p>You are requesting the removal of:<br /><ep:pin name="citation" /></p>
+<p>You are requesting the removal of:<br/><ep:pin name="citation"/></p>
 </ep:phrase>
     <ep:phrase id="cgi/users/review:cancel">Cancel</ep:phrase>
     <ep:phrase id="cgi/users/review:send">Send Request</ep:phrase>
@@ -532,13 +531,13 @@ User Area CGI Scripts
     <ep:phrase id="remove_request_fieldhelp_reason">Please enter the reason for removal. The request will be sent to the site administrator.</ep:phrase>
     <ep:phrase id="cgi/users/review:remove_mail_subject">Item Removal Request</ep:phrase>
     <ep:phrase id="cgi/users/review:remove_mail">
-<p>User <ep:pin name="user" /> (Email: <ep:pin name="email" />) requests the removal of the following item:</p>
+<p>User <ep:pin name="user"/> (Email: <ep:pin name="email"/>) requests the removal of the following item:</p>
 
-<p><ep:pin name="citation" /></p>
+<p><ep:pin name="citation"/></p>
 
 <p>The following reason was given:</p>
 
-<p><ep:pin name="reason" /></p>
+<p><ep:pin name="reason"/></p>
 
 <p>To view the item and have the option to remove it, <ep:pin name="url">click here</ep:pin>.</p>
     </ep:phrase>
@@ -549,12 +548,12 @@ User Area CGI Scripts
 <!-- change_email -->
 
     <ep:phrase id="cgi/users/change_email:title">Change Email Address</ep:phrase>
-    <ep:phrase id="cgi/users/change_email:intro"><p>To change your email address you should enter the new email below. The system will then mail you a URL to visit to activate this new address.</p><p>This system ensures that we always have a valid email address for you.</p><p>The email address we currently have for you is: <pin name="email" /></p></ep:phrase>
+    <ep:phrase id="cgi/users/change_email:intro"><p>To change your email address you should enter the new email below. The system will then mail you a URL to visit to activate this new address.</p><p>This system ensures that we always have a valid email address for you.</p><p>The email address we currently have for you is: <pin name="email"/></p></ep:phrase>
     <ep:phrase id="cgi/users/change_email:action_submit">Submit</ep:phrase>
     <ep:phrase id="cgi/users/change_email:no_email"><p>You did not actually supply a new email address.</p></ep:phrase>
-    <ep:phrase id="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><ep:pin name="email" /></b> containing the code required to confirm this new email address.</p><p>This code is only valid for a short time</p></ep:phrase>
+    <ep:phrase id="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><ep:pin name="email"/></b> containing the code required to confirm this new email address.</p><p>This code is only valid for a short time</p></ep:phrase>
     <ep:phrase id="cgi/users/change_email:changeemail">Email Change Request</ep:phrase>
-    <ep:phrase id="cgi/users/change_email:email_exists"><p>A user with the email address <tt><ep:pin name="email" /></tt> already exists.</p><p>If this is your email address, you should just <a href="../reset_password">reset your password</a>.</p></ep:phrase>
+    <ep:phrase id="cgi/users/change_email:email_exists"><p>A user with the email address <tt><ep:pin name="email"/></tt> already exists.</p><p>If this is your email address, you should just <a href="../reset_password">reset your password</a>.</p></ep:phrase>
 
 <!-- status -->
 
@@ -571,34 +570,34 @@ User Area CGI Scripts
     <ep:phrase id="cgi/users/status:set_buffer">Items in Editorial Review:</ep:phrase>
     <ep:phrase id="cgi/users/status:set_inbox">Items in User Areas:</ep:phrase>
     <ep:phrase id="cgi/users/status:set_deletion">Items Deleted:</ep:phrase>
-    <ep:phrase id="cgi/users/status:diskfree">Document Partition <pin name="dir" />:</ep:phrase>
-    <ep:phrase id="cgi/users/status:mbfree"><pin name="mb" />Mb free</ep:phrase>
+    <ep:phrase id="cgi/users/status:diskfree">Document Partition <pin name="dir"/>:</ep:phrase>
+    <ep:phrase id="cgi/users/status:mbfree"><pin name="mb"/>Mb free</ep:phrase>
     <ep:phrase id="cgi/users/status:out_of_space"><span class="alert">NO DISK SPACE LEFT!</span></ep:phrase>
     <ep:phrase id="cgi/users/status:nearly_out_of_space"><span class="alert">WARNING:</span> Available space for new items is running low</ep:phrase>
     <ep:phrase id="cgi/users/status:title">Server Status</ep:phrase>
 
 
     <ep:phrase id="cgi/export:no_id"><p>No valid EPrint ID Number was specified.</p></ep:phrase>
-    <ep:phrase id="cgi/export:eprint_not_fount">EPrint with ID <ep:pin name="eprintid" /> was not found.</ep:phrase>
-    <ep:phrase id="cgi/export:title">Export: <ep:pin name="shortname" /></ep:phrase>
+    <ep:phrase id="cgi/export:eprint_not_fount">EPrint with ID <ep:pin name="eprintid"/> was not found.</ep:phrase>
+    <ep:phrase id="cgi/export:title">Export: <ep:pin name="shortname"/></ep:phrase>
     <ep:phrase id="cgi/export:page">
-<p><ep:pin name="citation" /></p>
+<p><ep:pin name="citation"/></p>
 <p>Please select an output format:</p>
-<ep:pin name="formats" /></ep:phrase>
-    <ep:phrase id="cgi/export:not_available"><p>Requested output format '<ep:pin name="format" />' is not available.</p></ep:phrase>
+<ep:pin name="formats"/></ep:phrase>
+    <ep:phrase id="cgi/export:not_available"><p>Requested output format '<ep:pin name="format"/>' is not available.</p></ep:phrase>
     <ep:phrase id="cgi/export:error_title">Error in export</ep:phrase>
 
 <!-- login -->
 
     <ep:phrase id="cgi/login:page_layout">
-      <ep:pin name="problems" />
+      <ep:pin name="problems"/>
       <p>Please enter your username and password.</p>
       <table>
-        <tr><td>Username:</td><td><ep:pin name="input_username" /></td></tr>
-        <tr><td>Password:</td><td><ep:pin name="input_password" /></td></tr>
-        <tr><td>Keep logged in:</td><td><ep:pin name="log_in_until" /></td></tr>
-        <tr><td>Bind to IP:</td><td><ep:pin name="bind_to_ip" /></td></tr>
-        <tr><td><ep:pin name="login_button" /></td></tr>
+        <tr><td>Username:</td><td><ep:pin name="input_username"/></td></tr>
+        <tr><td>Password:</td><td><ep:pin name="input_password"/></td></tr>
+        <tr><td>Keep logged in:</td><td><ep:pin name="log_in_until"/></td></tr>
+        <tr><td>Bind to IP:</td><td><ep:pin name="bind_to_ip"/></td></tr>
+        <tr><td><ep:pin name="login_button"/></td></tr>
       </table>
       <p>Binding your login to a single IP (Internet address) is more secure, but may be annoying if you use an internet service provider which changes your IP address each time you dial in.</p>
     </ep:phrase>
@@ -607,7 +606,7 @@ User Area CGI Scripts
     <ep:phrase id="cgi/login:bind">yes (more secure)</ep:phrase>
     <ep:phrase id="cgi/login:dont_bind">no (more convenient)</ep:phrase>
 	<ep:phrase id="cgi/login:failed">Incorrect username or password. If you have forgotten your password, you may <a href="/perl/reset_password">reset</a> it.</ep:phrase>
-    <ep:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <ep:pin name="name" />.</p> <p>If you wish to log in as a different user you must <a href="/perl/users/logout">Logout</a> first.</p></ep:phrase>
+    <ep:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <ep:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="/perl/users/logout">Logout</a> first.</p></ep:phrase>
 
 <!--********************************************************************** 
 Staff CGI Scripts
@@ -619,14 +618,14 @@ Staff CGI Scripts
     <ep:phrase id="cgi/users/add_user:create_user_title">Create a User</ep:phrase>
     <ep:phrase id="cgi/users/add_user:create_user">Create User</ep:phrase>
     <ep:phrase id="cgi/users/add_user:no_username"><p><em>No username entered!</em></p></ep:phrase>
-    <ep:phrase id="cgi/users/add_user:user_exists"><p><em>A user with the username "<ep:pin name="username" />" already exists!</em></p></ep:phrase>
+    <ep:phrase id="cgi/users/add_user:user_exists"><p><em>A user with the username "<ep:pin name="username"/>" already exists!</em></p></ep:phrase>
     <ep:phrase id="cgi/users/add_user:mk_acc_err">Error registering user.</ep:phrase>
 
 <!-- buffer -->
 
     <ep:phrase id="cgi/users/buffer:overview_title">Editorial Review</ep:phrase>
-    <ep:phrase id="cgi/users/buffer:no_entries"><p>There are currently no items matching your editorial scope, which is: <ep:pin name="scope" /></p></ep:phrase>
-    <ep:phrase id="cgi/users/buffer:buffer_blurb"><p>The following items match your editorial scope, which is: <ep:pin name="scope" /></p><p>Click on the title of an item to view, edit, accept or reject it.</p></ep:phrase>
+    <ep:phrase id="cgi/users/buffer:no_entries"><p>There are currently no items matching your editorial scope, which is: <ep:pin name="scope"/></p></ep:phrase>
+    <ep:phrase id="cgi/users/buffer:buffer_blurb"><p>The following items match your editorial scope, which is: <ep:pin name="scope"/></p><p>Click on the title of an item to view, edit, accept or reject it.</p></ep:phrase>
     <ep:phrase id="cgi/users/buffer:title">Title</ep:phrase>
     <ep:phrase id="cgi/users/buffer:sub_by">Submitted by</ep:phrase>
     <ep:phrase id="cgi/users/buffer:sub_date">Submission Date</ep:phrase>
@@ -635,11 +634,11 @@ Staff CGI Scripts
 
 <!-- edit_subject -->
 
-    <ep:phrase id="cgi/users/edit_subject:title">Edit Subject: <ep:pin name="subjectname" /></ep:phrase>
+    <ep:phrase id="cgi/users/edit_subject:title">Edit Subject: <ep:pin name="subjectname"/></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:intro_title">Edit Subjects Tool</ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:intro_blurb"><p>This is the EPrints subject editor tool. You should be aware that it can make major changes <em>which cannot be undone</em>. If you remove a subject which is the only subject of an eprint then you will no longer be able to find that eprint via the browse views, only by the search.</p><p>Be careful. Think before deleting anything.</p><p>(Of course, if this is not a live repository, then it doesn't matter.)</p><p><ep:pin name="continuelink">Continue</ep:pin></p></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:error_badsubject">The specified subject does not exist, or a database error has occured.</ep:phrase>
-    <ep:phrase id="cgi/users/edit_subject:subjectid"><p>Subject ID: <ep:pin name="id" /></p></ep:phrase>
+    <ep:phrase id="cgi/users/edit_subject:subjectid"><p>Subject ID: <ep:pin name="id"/></p></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:subject">Subject</ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:inarchive">Items in Repository</ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:inbuffer">Items in Editorial Review</ep:phrase>
@@ -651,8 +650,8 @@ Staff CGI Scripts
     <ep:phrase id="cgi/users/edit_subject:children"><h2>Children</h2></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:action_submit">Submit</ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:action_add">Add Child</ep:phrase>
-    <ep:phrase id="cgi/users/edit_subject:add_child"><h2>Add Child to <pin name="subid" /></h2></ep:phrase>
-    <ep:phrase id="cgi/users/edit_subject:edit_heading"><h2>Edit <pin name="subid" /></h2></ep:phrase>
+    <ep:phrase id="cgi/users/edit_subject:add_child"><h2>Add Child to <pin name="subid"/></h2></ep:phrase>
+    <ep:phrase id="cgi/users/edit_subject:edit_heading"><h2>Edit <pin name="subid"/></h2></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an used subject id to create a new subject.</p></ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:problem_noid">No ID given for new child</ep:phrase>
     <ep:phrase id="cgi/users/edit_subject:problems"><h2>Problems</h2></ep:phrase>
@@ -686,11 +685,11 @@ Staff CGI Scripts
     <ep:phrase id="cgi/users/edit_eprint:stage_type">Item Type</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:stage_linking">Succession/Commentary</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:stage_files">Files</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:cant_find_it">Can't retrieve item with the ID "<ep:pin name="id" />"</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:cant_edit">This item (id <ep:pin name="id" />) does not match the scope of the items you are allowed to edit. If you need assistance please contact the repository administrator.</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:cant_remove">Problem removing item with the ID "<ep:pin name="id" />"</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:cant_clone">Problem cloning item with the ID "<ep:pin name="id" />"</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this item, and any possible fix. This will be emailed to the relevant author.</p><p>(The authors language of preference is &quot;<ep:pin name="langpref" />&quot;.)</p></ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:cant_find_it">Can't retrieve item with the ID "<ep:pin name="id"/>"</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:cant_edit">This item (id <ep:pin name="id"/>) does not match the scope of the items you are allowed to edit. If you need assistance please contact the repository administrator.</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:cant_remove">Problem removing item with the ID "<ep:pin name="id"/>"</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:cant_clone">Problem cloning item with the ID "<ep:pin name="id"/>"</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this item, and any possible fix. This will be emailed to the relevant author.</p><p>(The authors language of preference is &quot;<ep:pin name="langpref"/>&quot;.)</p></ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:title_delete_form">Deleting Submission</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:title_bounce_form">Bouncing Submission</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:action_send">Send</ep:phrase>
@@ -698,7 +697,7 @@ Staff CGI Scripts
     <ep:phrase id="cgi/users/edit_eprint:no_user">Cannot find the data for the user who submitted this item.</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:subject_bounce">Problem with Submission</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:mail_sent">Email successfully sent.</ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:mail_fail">The item was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><ep:pin name="username" /></strong>, email <ep:pin name="email" />.</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:mail_fail">The item was successfully deleted/bounced, but for some reason the user couldn't be mailed. Username: <strong><ep:pin name="username"/></strong>, email <ep:pin name="email"/>.</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:bord_fail">The item could not be bounced/deleted - this probably indicates a database error. Check the logs.</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:form_title">Item Control Page</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:remove_title">Removal Successful</ep:phrase>
@@ -709,9 +708,9 @@ Staff CGI Scripts
     <ep:phrase id="mail_delete_reason.inbox">
 The following eprint has been deleted from your User Area:
 
-<ep:pin name="title" />
+<ep:pin name="title"/>
 </ep:phrase>
-    <ep:phrase id="cgi/users/edit_eprint:action_not_allowed"><ep:pin name="action" />: You may not perform this action on this item.</ep:phrase>
+    <ep:phrase id="cgi/users/edit_eprint:action_not_allowed"><ep:pin name="action"/>: You may not perform this action on this item.</ep:phrase>
 
     <ep:phrase id="cgi/users/edit_eprint:cant_edit_deleted">Modifying deleted records is not allowed.</ep:phrase>
     <ep:phrase id="cgi/users/edit_eprint:item_is_in_inbox">This item is still in your work area. It will not appear in the repository until you deposit it.</ep:phrase>
@@ -735,7 +734,7 @@ The following eprint has been deleted from your User Area:
     <ep:phrase id="cgi/users/edit_user:action_cancel">Cancel</ep:phrase>
     <ep:phrase id="cgi/users/edit_user:delete_title">Delete User</ep:phrase>
     <ep:phrase id="cgi/users/edit_user:could_not_remove">Could not remove user. Check the logs for more information.</ep:phrase>
-    <ep:phrase id="cgi/users/edit_user:deleted"><p>The user &quot;<ep:pin name="username" />&quot; has been deleted.</p><p>Any items associated with that user have <em>not</em> been removed. They are still associated with userid #<ep:pin name="userid" />.</p></ep:phrase>
+    <ep:phrase id="cgi/users/edit_user:deleted"><p>The user &quot;<ep:pin name="username"/>&quot; has been deleted.</p><p>Any items associated with that user have <em>not</em> been removed. They are still associated with userid #<ep:pin name="userid"/>.</p></ep:phrase>
 
 <!-- user_search -->
 
@@ -754,7 +753,7 @@ Public CGI Scripts
 <!-- handle_http_error -->
 
     <ep:phrase id="cgi/handle_http_error:404_title">404 File not Found</ep:phrase>
-    <ep:phrase id="cgi/handle_http_error:404_blurb"><p>Could not find the file: <code><pin name="url" /></code></p><p>The specified file could not be found on this server.  If you reached this page by following a link within the repository, please contact the <a href="mailto:&adminemail;">&archivename; administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p></ep:phrase>
+    <ep:phrase id="cgi/handle_http_error:404_blurb"><p>Could not find the file: <code><pin name="url"/></code></p><p>The specified file could not be found on this server.  If you reached this page by following a link within the repository, please contact the <a href="mailto:{$config{adminemail}}"><ep:phrase ref="archive_name" /> administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p></ep:phrase>
 
 <!-- paracite -->
 
@@ -767,7 +766,7 @@ Public CGI Scripts
 
     <ep:phrase id="cgi/remind:rem_sent_title">Reminder Sent</ep:phrase>
     <ep:phrase id="cgi/remind:archive_admin">Repository Administrator</ep:phrase>
-    <ep:phrase id="cgi/remind:return_home">Go to &archivename; Home</ep:phrase>
+    <ep:phrase id="cgi/remind:return_home">Go to <ep:phrase ref="archive_name" /> Home</ep:phrase>
     <ep:phrase id="cgi/remind:form_title">Username and Password Reminder Form</ep:phrase>
     <ep:phrase id="cgi/remind:form_blurb">If you've forgotten your username and/or password, just type your email address into the box below, and your username and password will be mailed to you.</ep:phrase>
     <ep:phrase id="cgi/remind:send">Send</ep:phrase>
@@ -781,13 +780,13 @@ Public CGI Scripts
 
     <ep:phrase id="cgi/set_lang:title">Change Language</ep:phrase>
     <ep:phrase id="cgi/set_lang:blurb"><p>Choose your preferred languages_typename_</p></ep:phrase>
-    <ep:phrase id="cgi/set_lang:changed_to"><p>Preferred language set to <ep:pin name="lang" /></p></ep:phrase>
-    <ep:phrase id="cgi/set_lang:cleared"><p>Your language preference has been cleared. From now on this repository will use the closest language to your browser setting. This is currently <ep:pin name="lang" />.</p></ep:phrase>
-    <ep:phrase id="cgi/set_lang:default_lang"><p>The default language of this repository is <ep:pin name="lang" />.</p></ep:phrase>
+    <ep:phrase id="cgi/set_lang:changed_to"><p>Preferred language set to <ep:pin name="lang"/></p></ep:phrase>
+    <ep:phrase id="cgi/set_lang:cleared"><p>Your language preference has been cleared. From now on this repository will use the closest language to your browser setting. This is currently <ep:pin name="lang"/>.</p></ep:phrase>
+    <ep:phrase id="cgi/set_lang:default_lang"><p>The default language of this repository is <ep:pin name="lang"/>.</p></ep:phrase>
     <ep:phrase id="cgi/set_lang:cache_warning"><p>Some pages may be cached in your browser. Use your browser "reload" button to get the page in your requested language.</p></ep:phrase>
     <ep:phrase id="cgi/set_lang:back_to_lastpage"><p><ep:pin name="link">Return to the page you were on before</ep:pin></p></ep:phrase>
     <ep:phrase id="cgi/set_lang:lang_changed">Language Changed</ep:phrase>
-    <ep:phrase id="cgi/set_lang:unknown_lang"><p>Unknown Language id: &quot;<ep:pin name="id" />&quot;.</p></ep:phrase>
+    <ep:phrase id="cgi/set_lang:unknown_lang"><p>Unknown Language id: &quot;<ep:pin name="id"/>&quot;.</p></ep:phrase>
     <ep:phrase id="cgi/set_lang:failed">Language Change Failed</ep:phrase>
     <ep:phrase id="cgi/set_lang:clear_cookie">Clear Cookie - decide language by browser settings</ep:phrase>
 
@@ -796,8 +795,8 @@ Public CGI Scripts
 <!-- user_eprints -->
 
     <ep:phrase id="cgi/user_eprints:record_link"><p><ep:pin name="userlink">Click here to see user's record.</ep:pin></p></ep:phrase>
-    <ep:phrase id="cgi/user_eprints:n_eprints"><p>Number of items submitted by this user: <ep:pin name="n" /></p></ep:phrase>
-    <ep:phrase id="cgi/user_eprints:title">Items submitted by <ep:pin name="name" /></ep:phrase>
+    <ep:phrase id="cgi/user_eprints:n_eprints"><p>Number of items submitted by this user: <ep:pin name="n"/></p></ep:phrase>
+    <ep:phrase id="cgi/user_eprints:title">Items submitted by <ep:pin name="name"/></ep:phrase>
 
 <!-- view_eprint -->
 
@@ -810,16 +809,16 @@ Public CGI Scripts
     <ep:phrase id="cgi/register:no_web_signup"><p>Registration is not enabled on this system.</p></ep:phrase>
     <ep:phrase id="cgi/register:intro">
 <p>In order to access some areas of the repository, you'll need a <em>user registration</em>. No charge is made for registering with us or using any of our services.</p>
-<p>This page lets you register with &archivename;. This will allow you to create subscriptions and deposit items.</p>
+<p>This page lets you register with <ep:phrase ref="archive_name" />. This will allow you to create subscriptions and deposit items.</p>
 <p>Your new password  will need to confirm your email address by using a code which will be mailed to you.</p>
 <p>If you have already registered but have forgotten your username or password, <a href="reset_password">click here</a> to set a new password.</p>
 </ep:phrase>
     <ep:phrase id="cgi/register:action_submit">Register</ep:phrase>
     <ep:phrase id="cgi/register:title">Register</ep:phrase>
-    <ep:phrase id="cgi/register:missing_field"><p>You have not filled in the &quot;<ep:pin name="fieldname" />&quot; field.</p></ep:phrase>
-    <ep:phrase id="cgi/register:email_exists"><p>A user with the email address <tt><ep:pin name="email" /></tt> already exists.</p><p>Rather than register, you should just <a href="reset_password">reset your password</a>.</p></ep:phrase>
-    <ep:phrase id="cgi/register:username_exists"><p>Another user already has the username <tt><ep:pin name="username" /></tt> already exists.</p></ep:phrase>
-    <ep:phrase id="cgi/register:created_new_user"><p>You have registered with username <big><strong><tt><ep:pin name="username" /></tt></strong></big>.</p><p>This registration <em>will not</em> be activated until you visit the confirmation URL which has been emailed to <tt><ep:pin name="email" /></tt></p>
+    <ep:phrase id="cgi/register:missing_field"><p>You have not filled in the &quot;<ep:pin name="fieldname"/>&quot; field.</p></ep:phrase>
+    <ep:phrase id="cgi/register:email_exists"><p>A user with the email address <tt><ep:pin name="email"/></tt> already exists.</p><p>Rather than register, you should just <a href="reset_password">reset your password</a>.</p></ep:phrase>
+    <ep:phrase id="cgi/register:username_exists"><p>Another user already has the username <tt><ep:pin name="username"/></tt> already exists.</p></ep:phrase>
+    <ep:phrase id="cgi/register:created_new_user"><p>You have registered with username <big><strong><tt><ep:pin name="username"/></tt></strong></big>.</p><p>This registration <em>will not</em> be activated until you visit the confirmation URL which has been emailed to <tt><ep:pin name="email"/></tt></p>
 </ep:phrase>
     <ep:phrase id="cgi/register:account">Registration</ep:phrase>
     <ep:phrase id="cgi/register:error">Error</ep:phrase>
@@ -857,17 +856,17 @@ Public CGI Scripts
     <ep:phrase id="cgi/set_password:action_submit">Submit</ep:phrase>
     <ep:phrase id="cgi/set_password:no_email"><p>You did not specify an email address.</p></ep:phrase>
     <ep:phrase id="cgi/set_password:error_title">Error</ep:phrase>
-    <ep:phrase id="cgi/set_password:no_such_user"><p>There is no account with email address "<ep:pin name="email" />".</p></ep:phrase>
-    <ep:phrase id="cgi/set_password:no_priv"><p>The user with the email address <ep:pin name="email" /> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></ep:phrase>
+    <ep:phrase id="cgi/set_password:no_such_user"><p>There is no account with email address "<ep:pin name="email"/>".</p></ep:phrase>
+    <ep:phrase id="cgi/set_password:no_priv"><p>The user with the email address <ep:pin name="email"/> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></ep:phrase>
     <ep:phrase id="cgi/set_password:no_password"><p>You did not actually specify a password.</p></ep:phrase>
-    <ep:phrase id="cgi/set_password:mail_sent"><p>An email has been sent to <b><ep:pin name="email" /></b> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></ep:phrase>
+    <ep:phrase id="cgi/set_password:mail_sent"><p>An email has been sent to <b><ep:pin name="email"/></b> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></ep:phrase>
     <ep:phrase id="cgi/set_password:account">Reset Password</ep:phrase>
     <ep:phrase id="setpass_fieldhelp_email">Enter your email address</ep:phrase>
     <ep:phrase id="setpass_fieldhelp_newpassword">Enter a new password</ep:phrase>
 
 <!-- latest -->
 
-    <ep:phrase id="cgi/latest:title">Latest Additions to &archivename;</ep:phrase>
+    <ep:phrase id="cgi/latest:title">Latest Additions to <ep:phrase ref="archive_name" /></ep:phrase>
     <ep:phrase id="cgi/latest:intro"></ep:phrase>
     <ep:phrase id="cgi/latest:none"><p>Nothing new in the last 7 days.</p></ep:phrase>
     <ep:phrase id="cgi/latest:today">Today</ep:phrase>
@@ -882,8 +881,8 @@ Public CGI Scripts
 
 <!-- latest_tool -->
 
-    <ep:phrase id="cgi/latest_tool:title">Latest <ep:pin name="n" /> Additions to &archivename;</ep:phrase>
-    <ep:phrase id="cgi/latest_tool:title_matching">Latest <ep:pin name="n" /> Additions to &archivename; where <ep:pin name="search" /></ep:phrase>
+    <ep:phrase id="cgi/latest_tool:title">Latest <ep:pin name="n"/> Additions to <ep:phrase ref="archive_name" /></ep:phrase>
+    <ep:phrase id="cgi/latest_tool:title_matching">Latest <ep:pin name="n"/> Additions to <ep:phrase ref="archive_name" /> where <ep:pin name="search"/></ep:phrase>
 
 <!-- confirm -->
 
@@ -892,11 +891,11 @@ Public CGI Scripts
     <ep:phrase id="cgi/confirm:bad_user"><p>User not found. It is possible that indicates a database problem, but please check the parameters in the URL carefully.</p></ep:phrase> 
     <ep:phrase id="cgi/confirm:pin_mismatch"><p>The confirmation pin is incorrect. Please try and <a href="reset_password">reset your password</a> to generate an email with a new confirmation pin number.</p></ep:phrase> 
     <ep:phrase id="cgi/confirm:pin_timeout"><p>The confirmation pin number has timed out. Please repeat the <a href="reset_password">reset password</a> or <a href="register">registration</a> request, and confirm it as soon as you get the email.</p></ep:phrase>
-    <ep:phrase id="cgi/confirm:no_pin"><p>There are currently no changes for this user which await confirmation. This probably means you have already confirmed the change. Try and <a href="&userhome;">login</a>.</p></ep:phrase>
-    <ep:phrase id="cgi/confirm:set_email"><p>Your email address has been changed to <strong><pin name="newemail" /></strong></p></ep:phrase>
+    <ep:phrase id="cgi/confirm:no_pin"><p>There are currently no changes for this user which await confirmation. This probably means you have already confirmed the change. Try and <a href="{$config{userhome}}">login</a>.</p></ep:phrase>
+    <ep:phrase id="cgi/confirm:set_email"><p>Your email address has been changed to <strong><pin name="newemail"/></strong></p></ep:phrase>
     <ep:phrase id="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></ep:phrase>
-    <ep:phrase id="cgi/confirm:username"><p>Your username on this system is: <strong><ep:pin name="username" /></strong></p></ep:phrase>
-    <ep:phrase id="cgi/confirm:go_login"><p>You may now <a href="&userhome;">login</a> and start using the registered user options.</p></ep:phrase>
+    <ep:phrase id="cgi/confirm:username"><p>Your username on this system is: <strong><ep:pin name="username"/></strong></p></ep:phrase>
+    <ep:phrase id="cgi/confirm:go_login"><p>You may now <a href="{$config{userhome}}">login</a> and start using the registered user options.</p></ep:phrase>
 
 <!--********************************************************************** 
 Command Line Scripts 
@@ -904,25 +903,25 @@ Command Line Scripts
 
 <!-- generate_views -->
 
-    <ep:phrase id="bin/generate_views:indextitle">Browse by <ep:pin name="viewname" /></ep:phrase>
-    <ep:phrase id="bin/generate_views:title"><ep:pin name="viewname" />: <ep:pin name="value" /></ep:phrase>
+    <ep:phrase id="bin/generate_views:indextitle">Browse by <ep:pin name="viewname"/></ep:phrase>
+    <ep:phrase id="bin/generate_views:title"><ep:pin name="viewname"/>: <ep:pin name="value"/></ep:phrase>
     <ep:phrase id="bin/generate_views:intro"><p>Please select a value to browse from the list below.</p></ep:phrase>
-    <ep:phrase id="bin/generate_views:blurb"><p>Number of items: <strong><ep:pin name="n" /></strong>.</p></ep:phrase>
+    <ep:phrase id="bin/generate_views:blurb"><p>Number of items: <strong><ep:pin name="n"/></strong>.</p></ep:phrase>
     <ep:phrase id="bin/generate_views:browsetitle">Browse Items</ep:phrase>
     <ep:phrase id="bin/generate_views:browseintro"><p>Items may be browsed by the following:</p></ep:phrase>
-    <ep:phrase id="bin/generate_views:timestamp"><p>This list was generated on <strong><ep:pin name="time" /></strong>.</p></ep:phrase>
+    <ep:phrase id="bin/generate_views:timestamp"><p>This list was generated on <strong><ep:pin name="time"/></strong>.</p></ep:phrase>
 
 
 <!--********************************************************************** 
 General phrases, used alot
 ***********************************************************************-->
 
-    <ep:phrase id="general:userhome_link"><p><a href="&userhome;">Go to the &archivename; User Area Homepage</a></p></ep:phrase>
-    <ep:phrase id="general:frontpage_link"><p><a href="&frontpage;">Go to the &archivename; Homepage</a></p></ep:phrase>
+    <ep:phrase id="general:userhome_link"><p><a href="{$config{userhome}}">Go to the <ep:phrase ref="archive_name" /> User Area Homepage</a></p></ep:phrase>
+    <ep:phrase id="general:frontpage_link"><p><a href="{$config{frontpage}}">Go to the <ep:phrase ref="archive_name" /> Homepage</a></p></ep:phrase>
     <ep:phrase id="general:bad_param"><p>Bad parameters. Do not try and access this script directly.</p></ep:phrase> 
     <ep:phrase id="general:disabled_feature_title">Disabled Feature</ep:phrase> 
     <ep:phrase id="general:disabled_feature_body"><p>This feature has been disabled for this repository.</p></ep:phrase> 
-    <ep:phrase id="general:email_failed"><p>The system is currently unable to send email. Please try again later. If this problem persists, please contact the <a href="mailto:&adminemail;">administrator</a> with details.</p></ep:phrase>
+    <ep:phrase id="general:email_failed"><p>The system is currently unable to send email. Please try again later. If this problem persists, please contact the <a href="mailto:{$config{adminemail}}">administrator</a> with details.</p></ep:phrase>
 
     <ep:phrase id="general:dataset_object_eprint">Item</ep:phrase> 
     <ep:phrase id="general:dataset_object_user">User</ep:phrase> 
@@ -992,7 +991,7 @@ Titles and Help for the System Fields
     <ep:phrase id="user_fieldopt_frequency_monthly">Once per Month</ep:phrase>
     <ep:phrase id="user_fieldname_mailempty">Mail Empty Results</ep:phrase>
     <ep:phrase id="user_fieldhelp_mailempty">If there are items in editorial review, within your editorial rights, should the repository still send you an empty email?</ep:phrase>
-    <ep:phrase id="user_radio_mailempty"><ep:pin name="true" />Yes, mail me when editorial review is empty.<br /><ep:pin name="false" />No. Only mail me when there is something I can edit and approve.</ep:phrase>
+    <ep:phrase id="user_radio_mailempty"><ep:pin name="true"/>Yes, mail me when editorial review is empty.<br/><ep:pin name="false"/>No. Only mail me when there is something I can edit and approve.</ep:phrase>
 
 
     <ep:phrase id="document_fieldname_eprintid">ID of the owning item</ep:phrase>
@@ -1009,8 +1008,8 @@ Titles and Help for the System Fields
     <ep:phrase id="document_fieldhelp_license">Specify an explicit license for this document (does not effect the access rights you grant at the end of this deposit process).</ep:phrase>
     <ep:phrase id="document_fieldname_date_embargo">Embargo expiry date</ep:phrase>
     <ep:phrase id="document_fieldhelp_date_embargo">The date that a publisher- or sponsor-imposed embargo expires. On and after this date, this document will be made publically accessible.
-<br />Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
-<br />Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
+<br/>Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
+<br/>Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
 </ep:phrase>
 
     <ep:phrase id="document_fieldname_main">Main file</ep:phrase>
@@ -1022,7 +1021,7 @@ Titles and Help for the System Fields
     <ep:phrase id="subject_fieldname_parents">Subject Parents Subject(s)</ep:phrase>
     <ep:phrase id="subject_fieldname_depositable">Depositable</ep:phrase>
     <ep:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</ep:phrase>
-    <ep:phrase id="subject_radio_depositable"><ep:pin name="true" />Yes, users can add items to this subject.<br /><ep:pin name="false" />No. (In which case it should probably have some children.</ep:phrase>
+    <ep:phrase id="subject_radio_depositable"><ep:pin name="true"/>Yes, users can add items to this subject.<br/><ep:pin name="false"/>No. (In which case it should probably have some children.</ep:phrase>
     <ep:phrase id="subject_fieldname_newsubjectid">Subject ID String</ep:phrase>
     <ep:phrase id="subject_fieldhelp_newsubjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It shoud contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</ep:phrase>
 
@@ -1056,13 +1055,13 @@ Titles and Help for the System Fields
 	
     <ep:phrase id="Plugin/Screen:tool_divide"> | </ep:phrase>
     <ep:phrase id="Plugin/Screen:more">more...</ep:phrase>
-    <ep:phrase id="Plugin/Screen:unknown_action">This screen (<ep:pin name="screen" />) does not know how to process this action: <ep:pin name="action" />.</ep:phrase>
-    <ep:phrase id="Plugin/Screen:unknown_screen">The requested screen does not exist, or has a fatal error: <ep:pin name="screen" />.</ep:phrase>
-    <ep:phrase id="Plugin/Screen:screen_not_allowed">You may not view this screen: <ep:pin name="screen" />.</ep:phrase>
+    <ep:phrase id="Plugin/Screen:unknown_action">This screen (<ep:pin name="screen"/>) does not know how to process this action: <ep:pin name="action"/>.</ep:phrase>
+    <ep:phrase id="Plugin/Screen:unknown_screen">The requested screen does not exist, or has a fatal error: <ep:pin name="screen"/>.</ep:phrase>
+    <ep:phrase id="Plugin/Screen:screen_not_allowed">You may not view this screen: <ep:pin name="screen"/>.</ep:phrase>
     <ep:phrase id="Plugin/Screen:message_message">Message</ep:phrase>
     <ep:phrase id="Plugin/Screen:message_error">Error</ep:phrase>
     <ep:phrase id="Plugin/Screen:message_warning">Warning</ep:phrase>
-	<ep:phrase id="Plugin/Screen:no_render_subclass">Error. $screen->render should be sub-classed for <ep:pin name="screen" />.</ep:phrase>
+	<ep:phrase id="Plugin/Screen:no_render_subclass">Error. $screen->render should be sub-classed for <ep:pin name="screen"/>.</ep:phrase>
    
     <ep:phrase id="Plugin/Screen/Items:title">Items</ep:phrase>
 
@@ -1112,8 +1111,8 @@ Titles and Help for the System Fields
     <ep:phrase id="Plugin/Screen/EPrint/Staff/Edit:title">Edit item</ep:phrase>
     <ep:phrase id="Plugin/Screen/EPrint/Staff/Edit:description">Edit item (as an editor)</ep:phrase>
 
-    <ep:phrase id="Plugin/Screen/EPrint/Move:status_changed">Status of item changed to "<ep:pin name="status" />".</ep:phrase>
-    <ep:phrase id="Plugin/Screen/EPrint/Move:cant_move">Problem changing status of item with the ID "<ep:pin name="id" />".</ep:phrase>
+    <ep:phrase id="Plugin/Screen/EPrint/Move:status_changed">Status of item changed to "<ep:pin name="status"/>".</ep:phrase>
+    <ep:phrase id="Plugin/Screen/EPrint/Move:cant_move">Problem changing status of item with the ID "<ep:pin name="id"/>".</ep:phrase>
     <ep:phrase id="Plugin/Screen/EPrint/Move:action:move_archive_inbox:title">Return item to user work area</ep:phrase>
     <ep:phrase id="Plugin/Screen/EPrint/Move:action:move_archive_inbox:description">Return to user work area, allowing the user to make changes to it and re-deposit it.</ep:phrase>
     <ep:phrase id="Plugin/Screen/EPrint/Move:action:move_inbox_buffer:title">Move item into editorial review</ep:phrase>
@@ -1191,7 +1190,7 @@ Titles and Help for the System Fields
 
 <!-- export -->
 
-    <ep:phrase id="sys:ep_form_required"><img src="/style/images/required.png" border="0" alt="Required"/>&nbsp;<ep:pin name="label" /></ep:phrase>
+    <ep:phrase id="sys:ep_form_required"><img src="/style/images/required.png" border="0" alt="Required"/>&nbsp;<ep:pin name="label"/></ep:phrase>
 
 
 
@@ -1203,11 +1202,11 @@ Titles and Help for the System Fields
 	<!-- errors -->
 	<ep:phrase id="Plugin/InputForm/Component/Upload:create_failed">Document creation failed.</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:upload_failed">File upload failed.</ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/Upload:no_document">Attempted action on non-existent document: <ep:pin name="docid" /></ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/Upload:no_document">Attempted action on non-existent document: <ep:pin name="docid"/></ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:bad_document">Specified document does not belong to current item.</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:no_file">File does not exist.</ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/Upload:bad_button">Unknown internal button: <ep:pin name="button" /></ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <ep:pin name="button" /></ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/Upload:bad_button">Unknown internal button: <ep:pin name="button"/></ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <ep:pin name="button"/></ep:phrase>
 	
 	<!-- options -->
 	<ep:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </ep:phrase>
@@ -1216,7 +1215,7 @@ Titles and Help for the System Fields
 	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_format_confirm">Delete entire document: are you sure?</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:add_file">Add file</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_file">Delete</ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_file_confirm">Delete file <ep:pin name="filename" />: are you sure?</ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_file_confirm">Delete file <ep:pin name="filename"/>: are you sure?</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_document">Delete document</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:delete_document_confirm">Delete entire document: are you sure?</ep:phrase>
 	<ep:phrase id="Plugin/InputForm/Component/Upload:upload_blurb">Please upload a file.</ep:phrase>
@@ -1225,7 +1224,7 @@ Titles and Help for the System Fields
 	<ep:phrase id="Plugin/InputForm/Component/Field/Subject:selections">Current selections:</ep:phrase>
 	
     <ep:phrase id="Plugin/InputForm/Component/Field/Subject:search_no_matches"><p>No matches</p></ep:phrase>
-    <ep:phrase id="Plugin/InputForm/Component/Field/Subject:search_bar">Quick Search: <ep:pin name="input" /> <ep:pin name="search_button" /> <ep:pin name="clear_button" /></ep:phrase>
+    <ep:phrase id="Plugin/InputForm/Component/Field/Subject:search_bar">Quick Search: <ep:pin name="input"/> <ep:pin name="search_button"/> <ep:pin name="clear_button"/></ep:phrase>
     <ep:phrase id="Plugin/InputForm/Component/Field/Subject:search_search_button">Go!</ep:phrase>
     <ep:phrase id="Plugin/InputForm/Component/Field/Subject:search_clear_button">Clear</ep:phrase>
     <ep:phrase id="Plugin/InputForm/Component/Field/Subject:add">Add</ep:phrase>
@@ -1234,33 +1233,33 @@ Titles and Help for the System Fields
 
 	<!-- PlaceHolder component -->
 	
-	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:title">Problem loading component: <ep:pin name="placeholding" /></ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <ep:pin name="placeholding" /> component</ep:phrase>
-	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <ep:pin name="placeholding" /> component</ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:title">Problem loading component: <ep:pin name="placeholding"/></ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <ep:pin name="placeholding"/> component</ep:phrase>
+	<ep:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <ep:pin name="placeholding"/> component</ep:phrase>
 
 	<!-- Surround -->
 
-    <ep:phrase id="Plugin/InputForm/Surround/Default:show_help"><ep:pin name="link">Help <img alt="+" src="/style/images/plus.png" border="0" /></ep:pin></ep:phrase>
-    <ep:phrase id="Plugin/InputForm/Surround/Default:hide_help"><ep:pin name="link">Help <img alt="-" src="/style/images/minus.png" border="0" /></ep:pin></ep:phrase>
+    <ep:phrase id="Plugin/InputForm/Surround/Default:show_help"><ep:pin name="link">Help <img alt="+" src="/style/images/plus.png" border="0"/></ep:pin></ep:phrase>
+    <ep:phrase id="Plugin/InputForm/Surround/Default:hide_help"><ep:pin name="link">Help <img alt="-" src="/style/images/minus.png" border="0"/></ep:pin></ep:phrase>
 
 
 	<!-- Import Plugins -->
 
 	<ep:phrase id="Plugin/Import/BibTeX:mod_load_failure">Failed to load required module Text::BibTeX</ep:phrase>
-	<ep:phrase id="Plugin/Import/BibTeX:unsupported_cite_type">Skipping unsupported citation type <ep:pin name="type" /></ep:phrase>
-	<ep:phrase id="Plugin/Import/BibTeX:skip_year">Skipping year '<ep:pin name="year" />'</ep:phrase>
-	<ep:phrase id="Plugin/Import/BibTeX:skip_month">Skipping month '<ep:pin name="month" />'</ep:phrase>
+	<ep:phrase id="Plugin/Import/BibTeX:unsupported_cite_type">Skipping unsupported citation type <ep:pin name="type"/></ep:phrase>
+	<ep:phrase id="Plugin/Import/BibTeX:skip_year">Skipping year '<ep:pin name="year"/>'</ep:phrase>
+	<ep:phrase id="Plugin/Import/BibTeX:skip_month">Skipping month '<ep:pin name="month"/>'</ep:phrase>
 	
 	<ep:phrase id="Plugin/Import/EndNote:mod_load_failure">Failed to load required module Text::Refer</ep:phrase>
-	<ep:phrase id="Plugin/Import/EndNote:unsupported_cite_type">Skipping unsupported citation type <ep:pin name="type" /></ep:phrase>
+	<ep:phrase id="Plugin/Import/EndNote:unsupported_cite_type">Skipping unsupported citation type <ep:pin name="type"/></ep:phrase>
 	
-	<ep:phrase id="Plugin/Import/XML:unexpected_element">Unexpected element: &lt;<ep:pin name="name" />&gt;</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:unexpected_type">&lt;<ep:pin name="type" />&gt; where &lt;<ep:pin name="expected" />&gt; was expected inside &lt;<ep:pin name="fieldname" />&gt;</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:unknown_virtual">&lt;<ep:pin name="type" />&gt; is an unknown virtual field inside &lt;<ep:pin name="fieldname" />&gt;</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:dup_element">&lt;<ep:pin name="name" />&gt; appears twice in one parent.</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:expected_file">&lt;<ep:pin name="type" />&gt; where &lt;file&gt; was expected inside &lt;<ep:pin name="fieldname" />&gt;</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:expected_item">&lt;<ep:pin name="type" />&gt; where &lt;item&gt; was expected inside &lt;<ep:pin name="fieldname" />&gt;</ep:phrase>
-	<ep:phrase id="Plugin/Import/XML:expected">Expected <ep:pin name="elements" /></ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:unexpected_element">Unexpected element: &lt;<ep:pin name="name"/>&gt;</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:unexpected_type">&lt;<ep:pin name="type"/>&gt; where &lt;<ep:pin name="expected"/>&gt; was expected inside &lt;<ep:pin name="fieldname"/>&gt;</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:unknown_virtual">&lt;<ep:pin name="type"/>&gt; is an unknown virtual field inside &lt;<ep:pin name="fieldname"/>&gt;</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:dup_element">&lt;<ep:pin name="name"/>&gt; appears twice in one parent.</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:expected_file">&lt;<ep:pin name="type"/>&gt; where &lt;file&gt; was expected inside &lt;<ep:pin name="fieldname"/>&gt;</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:expected_item">&lt;<ep:pin name="type"/>&gt; where &lt;item&gt; was expected inside &lt;<ep:pin name="fieldname"/>&gt;</ep:phrase>
+	<ep:phrase id="Plugin/Import/XML:expected">Expected <ep:pin name="elements"/></ep:phrase>
 	<ep:phrase id="Plugin/Import/DefaultXML:no_subclass">xml_to_epdata should be overridden.</ep:phrase>
 
 
@@ -1467,7 +1466,7 @@ Titles and Help for the System Fields
     <ep:phrase id="subscription_fieldname_userid">User ID of Subscriber</ep:phrase>
     <ep:phrase id="subscription_fieldname_mailempty">Mail Empty Results</ep:phrase>
     <ep:phrase id="subscription_fieldhelp_mailempty">If there are no new items matching your subscription, since it was last mailed, do you still want to be mailed?</ep:phrase>
-    <ep:phrase id="subscription_radio_mailempty"><ep:pin name="true" />Yes, mail me empty subscriptions.<br /><ep:pin name="false" />No. Only mail me subscriptions with content.</ep:phrase>
+    <ep:phrase id="subscription_radio_mailempty"><ep:pin name="true"/>Yes, mail me empty subscriptions.<br/><ep:pin name="false"/>No. Only mail me subscriptions with content.</ep:phrase>
 
 
 <!-- Request eprint -->
@@ -1478,14 +1477,14 @@ Titles and Help for the System Fields
 <ep:phrase id="request_fieldname_reason">Reason</ep:phrase>
 <ep:phrase id="request_fieldhelp_reason">You may enter a rationale for requesting this document.</ep:phrase>
 
-<ep:phrase id="request/request_email:subject">Request for &quot;<ep:pin name="eprint" />&quot;</ep:phrase>
-<ep:phrase id="request/request_email:body"><p>This item has been requested from the &archivename; by <ep:pin name="requester" />. Please can you respond.</p>
+<ep:phrase id="request/request_email:subject">Request for &quot;<ep:pin name="eprint"/>&quot;</ep:phrase>
+<ep:phrase id="request/request_email:body"><p>This item has been requested from the <ep:phrase ref="archive_name" /> by <ep:pin name="requester"/>. Please can you respond.</p>
 
-<p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p>
+<p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p>
 
 <p>The following reason was given:</p>
 
-<ep:pin name="reason" />
+<ep:pin name="reason"/>
 
 <p>Please consider removing restrictions or uploading the full text to the archive so that it will be available immediately to future searchers.</p>
 </ep:phrase>
@@ -1497,43 +1496,43 @@ Titles and Help for the System Fields
 </ep:phrase>
 
 <ep:phrase id="request/ack_page"><p>Your request has been sent.</p><ep:pin name="link">Return to item</ep:pin></ep:phrase>
-<ep:phrase id="request/ack_email:subject">Confirmation of request for &quot;<ep:pin name="eprint" />&quot;</ep:phrase>
+<ep:phrase id="request/ack_email:subject">Confirmation of request for &quot;<ep:pin name="eprint"/>&quot;</ep:phrase>
 <ep:phrase id="request/ack_email:body"><p>Your request for the following item has been passed on for action:</p>
 
-<p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p>
+<p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p>
 
-<p>If you do not receive a reply or need advice at a later time please contact &adminemail;. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
+<p>If you do not receive a reply or need advice at a later time please contact <ep:print expr="$config{adminemail}" />. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
 </ep:phrase>
 
 <ep:phrase id="request/respond_page:title">Confirm response</ep:phrase>
 <ep:phrase id="request/respond_page:action_respond">Confirm</ep:phrase>
-<ep:phrase id="request/respond_page:accept"><p>You have chosen to accept the request for the following item:</p><p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></ep:phrase>
-<ep:phrase id="request/respond_page:reject"><p>You have chosen to reject the request for the following item:</p><p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></ep:phrase>
-<ep:phrase id="request/respond_page:oa"><p>This item has been made publically accessible since the request was made:</p><p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p><p>A notice will be emailed to the requester.</p></ep:phrase>
+<ep:phrase id="request/respond_page:accept"><p>You have chosen to accept the request for the following item:</p><p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></ep:phrase>
+<ep:phrase id="request/respond_page:reject"><p>You have chosen to reject the request for the following item:</p><p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></ep:phrase>
+<ep:phrase id="request/respond_page:oa"><p>This item has been made publically accessible since the request was made:</p><p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p><p>A notice will be emailed to the requester.</p></ep:phrase>
 <ep:phrase id="request/respond_page:fieldname_oa">Tick this box to make this document publically available from now on.</ep:phrase>
 
-<ep:phrase id="request/response_email:subject">Result of request for &quot;<ep:pin name="eprint" />&quot;</ep:phrase>
+<ep:phrase id="request/response_email:subject">Result of request for &quot;<ep:pin name="eprint"/>&quot;</ep:phrase>
 <ep:phrase id="request/response_email:body_accept"><p>Your request for the following item has been accepted:</p>
 
-<p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p>
+<p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p>
 
 <p>Please find the requested document attached.</p>
 </ep:phrase>
 
 <ep:phrase id="request/response_email:body_reject"><p>Your request for the following item has been rejected:</p>
 
-<p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p>
+<p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p>
 
-<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact &adminemail;</p>
+<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact <ep:print expr="$config{adminemail}" /></p>
 
 <p>The following reason was given:</p>
 
-<ep:pin name="reason" />
+<ep:pin name="reason"/>
 </ep:phrase>
 
 <ep:phrase id="request/response_email:body_oa"><p>The item you requested is now publically accessible:</p>
 
-<p><ep:pin name="eprint" /><br /><ep:pin name="document" /></p>
+<p><ep:pin name="eprint"/><br/><ep:pin name="document"/></p>
 </ep:phrase>
 
 <ep:phrase id="request/response:ack_page"><p>Thank you. The email has been sent to the requester.</p></ep:phrase>
