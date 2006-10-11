@@ -1,9 +1,7 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<ep:page
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep2/page">
-<ep:title>&archivename; User Documentation</ep:title>
+<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
+<ep:title><ep:phrase ref="archive_name" /> User Documentation</ep:title>
 <ep:body>
 
 
@@ -142,8 +140,7 @@ services. When you register with the system, you can register a username, email 
 and password which must be confirmed. The system will email you a confirmation
 URL to visit to enable the password.</p>
 <p>Before you can start uploading
-items, you need to fill out some personal details into a form (<a
-href="&perl_url;/users/record">&perl_url;/users/record</a>),
+items, you need to fill out some personal details into a form (<a href="{$config{perl_url}}/users/record"><ep:print expr="$config{perl_url}" />/users/record</a>),
 the registration e-mail will contain instruction on how to do this. This
 same form is used to change user details once registered. </p>
 
@@ -151,8 +148,7 @@ same form is used to change user details once registered. </p>
 <h2>Depositing Records</h2>
 
 <p>The first thing you'll need to do, after registering, is fill out your
-user record using the form at <a
-href="&perl_url;/users/record">&perl_url;/users/record</a>. When
+user record using the form at <a href="{$config{perl_url}}/users/record"><ep:print expr="$config{perl_url}" />/users/record</a>. When
 you click on ``Deposit Papers,'' you'll see an option saying ``View/change
 your user record'': Select this option. The user record form is described
 below. </p>

@@ -59,20 +59,7 @@ while( $file ne "" )
 sub text
 {
 	my( $val ) = @_;
-	if( $val =~ /&([^;]+);/ )
-	{
-		if( $confs{$1} )
-		{
-			my $id = $confs{$1};
-			$val =~ s/&$1;/<ep:print expr="\$config{$id}" \/>/;
-		}
-		elsif( $phrases{$1} )
-		{
-			my $id = $phrases{$1};
-			$val =~ s/&$1;/<ep:phrase ref="$id" \/>/;
-		}
-	}
-
+	$val =~ s/&([^;]+);/replace_text_entity($1)/ge;
 	print $val;
 }
 
@@ -150,11 +137,32 @@ sub replace_attr_entity
 {
 	my( $entid ) = @_;
 
-print "**$entid**\n";
 	return "&$entid;" unless( $confs{$entid} );
 
 	my $id = $confs{$1};
 	return "{\$config{$id}}";
+}
+
+
+sub replace_text_entity
+{
+	my( $entid ) = @_;
+
+
+	if( $confs{$entid} )
+	{
+		my $id = $confs{$entid};
+		return "<ep:print expr=\"\$config{$id}\" />";
+	}
+	
+	if( $phrases{$entid} )
+	{
+		my $id = $phrases{$entid};
+		return "<ep:phrase ref=\"$id\" />";
+	}
+	
+	return "&$entid;"; 
+
 }
 
 

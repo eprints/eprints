@@ -113,7 +113,7 @@ sub init
 	my $file;
 	while( $file = readdir( CFG ) )
 	{
-		next if( $file =~ m/^./ );
+		next if( $file =~ m/^\./ );
 		next if( !-d $SYSTEMCONF{arc_path}."/".$file );
 		
 		$ARCHIVES{$file} = {};

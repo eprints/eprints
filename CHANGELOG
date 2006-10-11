@@ -4500,3 +4500,6 @@ PACKAGE: 2.2.99.2
 2006-10-11 moj
  * generate_apacheconf now loads the repository to make sure the 
     config is there
+
+2006-10-11 moj
+ * Converted files with entities to use EPScript and phrases

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
     <ep:phrase id="security_typename_public">Anyone</ep:phrase>
     <ep:phrase id="security_typename_validuser">Registered users only</ep:phrase>

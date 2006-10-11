@@ -1,8 +1,6 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<ep:page
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep2/page">
+<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
 <ep:title>About the Repository</ep:title>
 <ep:body>
 
@@ -12,10 +10,10 @@
 
 <h2>Contact Information</h2>
 
-<p>Any correspondence concerning this specific repository should be sent to <a href="mailto:&adminemail;">&adminemail;</a>.</p>
+<p>Any correspondence concerning this specific repository should be sent to <a href="mailto:{$config{adminemail}}"><ep:print expr="$config{adminemail}" /></a>.</p>
 
 <h2>About this software</h2>
-<p>This site is running GNU EPrints / revision: &version;</p>
+<p>This site is running GNU EPrints / revision: <ep:print expr="$config{version}" /></p>
 <p>GNU EPrints is free software developed by the University of Southampton, England.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a> and <a href="http://software.eprints.org/">software.eprints.org</a></p>
 
@@ -47,17 +45,17 @@
 
 <div align="center">
 <table bgcolor="#ffffff" border="0" cellpadding="8" cellspacing="0"><tr><td>
-<a href="http://www.mysql.com/"><img src="&base_url;/images/poweredbymysql-167.png" border="0" alt="Powered by MySQL" align="middle" /></a>
-<a href="http://www.openarchives.org/"><img src="&base_url;/images/OA100.png" border="0" alt="The Open Archives Initiative" align="middle" /></a>
-<a href="http://www.gnu.org/"><img src="&base_url;/images/gnu-head-sm.jpg" border="0" alt="Part of the GNU Project" align="middle" width="129" height="122" /></a>
+<a href="http://www.mysql.com/"><img src="{$config{base_url}}/images/poweredbymysql-167.png" border="0" alt="Powered by MySQL" align="middle"/></a>
+<a href="http://www.openarchives.org/"><img src="{$config{base_url}}/images/OA100.png" border="0" alt="The Open Archives Initiative" align="middle"/></a>
+<a href="http://www.gnu.org/"><img src="{$config{base_url}}/images/gnu-head-sm.jpg" border="0" alt="Part of the GNU Project" align="middle" width="129" height="122"/></a>
 </td></tr><tr><td>
-<a href="http://tardis.eprints.org/"><img src="&base_url;/images/tardis-logo.png" border="0" alt="Tardis Project" align="middle" /></a>
-<a href="http://software.eprints.org/"><img src="&base_url;/images/logo_small.png" border="0" alt="GNU EPrints" align="middle" /></a>
-<a href="vlit.html"><img src="&base_url;/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle" /></a>
+<a href="http://tardis.eprints.org/"><img src="{$config{base_url}}/images/tardis-logo.png" border="0" alt="Tardis Project" align="middle"/></a>
+<a href="http://software.eprints.org/"><img src="{$config{base_url}}/images/logo_small.png" border="0" alt="GNU EPrints" align="middle"/></a>
+<a href="vlit.html"><img src="{$config{base_url}}/images/XanaduVLit.png" border="0" alt="Powered by Vlit" align="middle"/></a>
 </td></tr></table>
 </div>
 
-&ruler;
+<ep:phrase ref="ruler" />
 
 <h2>Credits</h2>
 <p><a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a> - Designer and coder of <em>EPrints version 2</em>.</p>
@@ -67,17 +65,17 @@
 <p>Robert Tansley - Creator of <em>EPrints 1</em> on which <em>EPrints 2</em> is based.</p>
 <p>Al Riddoch &lt;<a href="mailto:ajr@ecs.soton.ac.uk">ajr@ecs.soton.ac.uk</a>&gt; - Assistance in writing the "configure" script for the installer.</p>
 <p><a href="http://www.ecs.soton.ac.uk/info/people/jmnh">Jessie Hey</a> and Pauline Simpson (as part of the <a href="http://tardis.eprints.org">TARDIS Project</a>) - Feature suggestions and contributions to the default configuration of version 2.3.</p>
-<p>Gui Power - Adapting the <a href="&base_url;/help/">online help</a> for version 2.</p>
+<p>Gui Power - Adapting the <a href="{$config{base_url}}/help/">online help</a> for version 2.</p>
 <p>Timothy Miles-Board - Programmer, Services manager</p>
 
-&ruler;
+<ep:phrase ref="ruler" />
 <p align="center">
 Developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
 
 <div align="center">
 <table bgcolor="#ffffff" border="0" cellpadding="8" cellspacing="0"><tr><td>
-<a href="http://www.soton.ac.uk/"><img src="&base_url;/images/uoslogo.png" border="0" alt="University of Southampton" align="top" /></a>
-<a href="http://www.ecs.soton.ac.uk/"><img src="&base_url;/images/ecslogo.png" border="0" alt="School of Electronics and Computer Science" align="top" /></a>
+<a href="http://www.soton.ac.uk/"><img src="{$config{base_url}}/images/uoslogo.png" border="0" alt="University of Southampton" align="top"/></a>
+<a href="http://www.ecs.soton.ac.uk/"><img src="{$config{base_url}}/images/ecslogo.png" border="0" alt="School of Electronics and Computer Science" align="top"/></a>
 </td></tr></table>
 </div>
 

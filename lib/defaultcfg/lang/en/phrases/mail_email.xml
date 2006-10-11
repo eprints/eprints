@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
 
     <ep:phrase id="mail_email_pin">
 
 <p>Dear User,</p>
 
-<p>You have requested your email to be changed to <pin name="newemail" /></p> 
+<p>You have requested your email to be changed to <pin name="newemail"/></p> 
 
 <p>To activate this new address please <ep:pin name="confirmurl">click here</ep:pin>.</p>
 

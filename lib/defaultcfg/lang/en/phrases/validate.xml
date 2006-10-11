@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
-    <ep:phrase id="validate:missing_http">The URL given for <b><ep:pin name="fieldname" /></b> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
-    <ep:phrase id="validate:bad_email">The email given for <b><ep:pin name="fieldname" /></b> is invalid.</ep:phrase>
-    <ep:phrase id="validate:missing_family">Name in field <b><ep:pin name="fieldname" /></b> is missing the "family" part.</ep:phrase>
-    <ep:phrase id="validate:missing_given">Name in field <b><ep:pin name="fieldname" /></b> is missing the "given names/initials" part.</ep:phrase>
-    <ep:phrase id="validate:need_description">Documents of type <em><ep:pin name="type" /></em> <ep:pin name="fieldname">need a description</ep:pin>.</ep:phrase>
+    <ep:phrase id="validate:missing_http">The URL given for <b><ep:pin name="fieldname"/></b> is invalid. Did you include the initial <strong>http://</strong>?</ep:phrase>
+    <ep:phrase id="validate:bad_email">The email given for <b><ep:pin name="fieldname"/></b> is invalid.</ep:phrase>
+    <ep:phrase id="validate:missing_family">Name in field <b><ep:pin name="fieldname"/></b> is missing the "family" part.</ep:phrase>
+    <ep:phrase id="validate:missing_given">Name in field <b><ep:pin name="fieldname"/></b> is missing the "given names/initials" part.</ep:phrase>
+    <ep:phrase id="validate:need_description">Documents of type <em><ep:pin name="type"/></em> <ep:pin name="fieldname">need a description</ep:pin>.</ep:phrase>
     <ep:phrase id="validate:need_sub_or_issue">An item must have at least one of a <ep:pin name="fieldname">submission date</ep:pin> and an issue date.</ep:phrase>
     <ep:phrase id="validate:need_creators_or_editors">If an item does not have any <ep:pin name="fieldname">creators</ep:pin> then it must have at least one editor.</ep:phrase>
 

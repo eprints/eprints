@@ -1,12 +1,10 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<ep:page
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep2/page">
-<ep:title>&archivename; Contact Information</ep:title>
+<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
+<ep:title><ep:phrase ref="archive_name" /> Contact Information</ep:title>
 <ep:body>
 
-<p>&archivename; Site Administrator: <a href="mailto:&adminemail;">&adminemail;</a></p>
+<p><ep:phrase ref="archive_name" /> Site Administrator: <a href="mailto:{$config{adminemail}}"><ep:print expr="$config{adminemail}" /></a></p>
 
 </ep:body>
 

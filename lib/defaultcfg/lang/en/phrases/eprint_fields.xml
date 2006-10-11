@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
 <!-- locally defined fields -->
 
     <ep:phrase id="eprint_fieldname_title">Title</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_title">The title of the item. The title should not end with a full stop, but may end with a question mark. There is no way to make italic text, please enter it normally. If you have a subtitle, it should be preceded with a colon [:]. Use capitals only for the first word and for proper nouns.
-<br />Example: <span class="ep_form_example">A brief history of time</span>
-<br />Example: <span class="ep_form_example">Life: an unauthorised biography</span>
-<br />Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
-<br />Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
+<br/>Example: <span class="ep_form_example">A brief history of time</span>
+<br/>Example: <span class="ep_form_example">Life: an unauthorised biography</span>
+<br/>Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
+<br/>Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
 </ep:phrase>
     <ep:phrase id="eprint_fieldhelp_title.book">The title of the book, usually found on the title page. The title should not end with a full stop, but may end with a question mark. There is no way to make italic text, please enter it normally. If it has a subtitle, it should be preceded with a colon [:]. Use capitals only for the first word and for proper nouns.
-<br />Example: <span class="ep_form_example">A brief history of time</span>
-<br />Example: <span class="ep_form_example">Life: an unauthorised biography</span>
-<br />Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
-<br />Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
+<br/>Example: <span class="ep_form_example">A brief history of time</span>
+<br/>Example: <span class="ep_form_example">Life: an unauthorised biography</span>
+<br/>Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
+<br/>Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
 </ep:phrase>
 
 
@@ -33,59 +32,59 @@
     <ep:phrase id="eprint_fieldname_creators">Creators</ep:phrase>
     <ep:phrase id="eprint_fieldname_creators_id">Creators email (if known)</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_creators">Enter in the format given on the first page or title page. If there are more than four authors, click on the [More&nbsp;Spaces] button.
-<br />Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
-<br />Example: [<span class="ep_form_example">Chance-Collins</span>] [<span class="ep_form_example">Chris</span>] [<span class="ep_form_example">chris@bar.com</span>]
-<br />Example: [<span class="ep_form_example">Fu</span>] [<span class="ep_form_example">Yan-Li</span>] []
-<br />Example: [<span class="ep_form_example">von Höpfner</span>] [<span class="ep_form_example">Ludwig G.</span>] []
+<br/>Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
+<br/>Example: [<span class="ep_form_example">Chance-Collins</span>] [<span class="ep_form_example">Chris</span>] [<span class="ep_form_example">chris@bar.com</span>]
+<br/>Example: [<span class="ep_form_example">Fu</span>] [<span class="ep_form_example">Yan-Li</span>] []
+<br/>Example: [<span class="ep_form_example">von Höpfner</span>] [<span class="ep_form_example">Ludwig G.</span>] []
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_pages">Number of Pages</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_pages">The total number of pages of the item.
-<br />Example: <span class="ep_form_example">123</span>
+<br/>Example: <span class="ep_form_example">123</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_pagerange">Page Range</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_pagerange">Numerals only. The sequence of pages of the item. Do not enter pp.
-<br />Example:  <span class="ep_form_example">21</span> to <span class="ep_form_example">34</span>
+<br/>Example:  <span class="ep_form_example">21</span> to <span class="ep_form_example">34</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_series">Series Name</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_series">The name of the series to which the document belongs. Enter without punctuation.
-<br />Example:  <span class="ep_form_example">Elsevier Oceanography Series</span>
+<br/>Example:  <span class="ep_form_example">Elsevier Oceanography Series</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_publication">Journal or Publication Title</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_publication">The title of a journal, publication or magazine.
-<br />Example:  <span class="ep_form_example">Marine Biology</span>
+<br/>Example:  <span class="ep_form_example">Marine Biology</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_publisher">Publisher</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_publisher">A person, firm or corporate body responsible for placing an item on the market. Do not use abbreviations, enter in full.
-<br />Example: <span class="ep_form_example">Oxford University Press</span>
+<br/>Example: <span class="ep_form_example">Oxford University Press</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_place_of_pub">Place of Publication</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_place_of_pub">Locality of the publisher. Use city or town then country. If city is not known then just use country.
-<br />Example: <span class="ep_form_example">Southampton, UK</span>
-<br />Example: <span class="ep_form_example">Brazil</span>
+<br/>Example: <span class="ep_form_example">Southampton, UK</span>
+<br/>Example: <span class="ep_form_example">Brazil</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_event_location">Event Location</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_event_location">City or town then country where event was held. If city is not known then just use country.
-<br />Example: <span class="ep_form_example">Rome, Italy</span>
-<br />Example: <span class="ep_form_example">Greece</span>
+<br/>Example: <span class="ep_form_example">Rome, Italy</span>
+<br/>Example: <span class="ep_form_example">Greece</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_event_dates">Event Dates</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_event_dates">Start and end dates for the event
-<br />Example: <span class="ep_form_example">13-15 Dec 2003</span>
-<br />Example: <span class="ep_form_example">31 Oct - 02 Nov 1999</span>
+<br/>Example: <span class="ep_form_example">13-15 Dec 2003</span>
+<br/>Example: <span class="ep_form_example">31 Oct - 02 Nov 1999</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_event_title">Event Title</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_event_title">The title of the conference or workshop.
-<br />Example: <span class="ep_form_example">11th onference of PanHellenic Librarians</span>
-<br />Example: <span class="ep_form_example">SIGIR 2001</span>
+<br/>Example: <span class="ep_form_example">11th onference of PanHellenic Librarians</span>
+<br/>Example: <span class="ep_form_example">SIGIR 2001</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_event_type">Event Type</ep:phrase>
@@ -97,14 +96,14 @@
     
     <ep:phrase id="eprint_fieldname_isbn">ISBN</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_isbn">Unique code identifying a book.
-<br />Example: <span class="ep_form_example">1 871438 57 8</span>
-<br />Example: <span class="ep_form_example">067157826X</span>
+<br/>Example: <span class="ep_form_example">1 871438 57 8</span>
+<br/>Example: <span class="ep_form_example">067157826X</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_issn">ISSN</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_issn">Unique code identifying a serial.
-<br />Example: <span class="ep_form_example">1055-0143</span>
-<br />Example: <span class="ep_form_example">0891-060X</span>
+<br/>Example: <span class="ep_form_example">1055-0143</span>
+<br/>Example: <span class="ep_form_example">0891-060X</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_pres_type">Presentation Type</ep:phrase>
@@ -123,17 +122,17 @@
     <ep:phrase id="eprint_fieldname_official_url">Official URL</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_official_url">The canonical URL for this item. Some journals require you to provide a link to their version.
 <!-- fnord -->
-<br />Example: <span class="ep_form_example">http://www.stuffjournal.com/2003/3/</span>
+<br/>Example: <span class="ep_form_example">http://www.stuffjournal.com/2003/3/</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_editors">Editors</ep:phrase>
-    <ep:phrase id="eprint_fieldhelp_editors">Please enter the names of the editors.<br />
+    <ep:phrase id="eprint_fieldhelp_editors">Please enter the names of the editors.<br/>
 This field is required if no creators are listed.
 </ep:phrase>
     <ep:phrase id="eprint_fieldname_editors_id">Editors email (if known)</ep:phrase>
 
     <ep:phrase id="eprint_fieldname_date_sub">Date of Submission</ep:phrase>
-    <ep:phrase id="eprint_fieldhelp_date_sub">The date this item was submitted to a publisher. <b>Not</b> the date of submission to this service.<br />
+    <ep:phrase id="eprint_fieldhelp_date_sub">The date this item was submitted to a publisher. <b>Not</b> the date of submission to this service.<br/>
 Date of submission is required if the item has no date of issue. If the item has not yet been submitted to a journal, conference or publisher, or is not intended for submission then please enter the date it was completed as the date of issue.
 </ep:phrase>
 
@@ -176,7 +175,7 @@ Date of submission is required if the item has no date of issue. If the item has
 
     <ep:phrase id="eprint_fieldname_refereed">Refereed</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</ep:phrase>
-    <ep:phrase id="eprint_radio_refereed"><ep:pin name="true" />Yes, this version has been refereed.<br /><ep:pin name="false" />No, this version has not been refereed.</ep:phrase>
+    <ep:phrase id="eprint_radio_refereed"><ep:pin name="true"/>Yes, this version has been refereed.<br/><ep:pin name="false"/>No, this version has not been refereed.</ep:phrase>
 
     <ep:phrase id="eprint_fieldname_referencetext">References</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It may be used to link your item to those it cites and to those that cite it.</ep:phrase>
@@ -192,12 +191,12 @@ Date of submission is required if the item has no date of issue. If the item has
 
     <ep:phrase id="eprint_fieldname_department">Department</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_department">Please enter the department from which the item originated.
-<br />Example: <span class="ep_form_example">School of Electronics and Computer Science</span>
+<br/>Example: <span class="ep_form_example">School of Electronics and Computer Science</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_institution">Institution</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_institution">Please enter the institution from which the item originated.
-<br />Example: <span class="ep_form_example">University of Southampton</span>
+<br/>Example: <span class="ep_form_example">University of Southampton</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_thesis_type">Thesis Type</ep:phrase>
@@ -209,8 +208,8 @@ Date of submission is required if the item has no date of issue. If the item has
 
     <ep:phrase id="eprint_fieldname_patent_applicant">Patent Applicant</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_patent_applicant">The name of the applicant to whom the patent was granted. May be a person or an organisation.
-<br />Example: <span class="ep_form_example">Purdue Research Institute</span>
-<br />Example: <span class="ep_form_example">John K. Ducklingson</span>
+<br/>Example: <span class="ep_form_example">Purdue Research Institute</span>
+<br/>Example: <span class="ep_form_example">John K. Ducklingson</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_full_text_status">Full Text Status</ep:phrase>
@@ -221,8 +220,8 @@ Date of submission is required if the item has no date of issue. If the item has
 
     <ep:phrase id="eprint_fieldname_date_embargo">Embargo expiry date</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_date_embargo">The date that a publisher- or funder-imposed embargo expires. On and after this date, <em>all</em> documents associated with this deposit will be made publically accessible. For more complex embargo requirements, please contact the repository administrator.
-<br />Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
-<br />Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
+<br/>Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
+<br/>Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
 </ep:phrase>
 
     <ep:phrase id="eprint_fieldname_contact_email">Contact Email Address</ep:phrase>

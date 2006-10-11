@@ -4,13 +4,11 @@
 	Brief citation for an eprint. Just gives the title or the type and ID number.
 -->
 
-<ep:citation
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep3/citations">
+<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citations">
 
 <ep:linkhere><ep:choose>
-  <ep:when test="title"><ep:print expr="title" /></ep:when>
-  <ep:otherwise><ep:print expr="type" /> #<ep:print expr="eprintid" /></ep:otherwise>
+  <ep:when test="title"><ep:print expr="title"/></ep:when>
+  <ep:otherwise><ep:print expr="type"/> #<ep:print expr="eprintid"/></ep:otherwise>
 </ep:choose></ep:linkhere>
 
 </ep:citation>

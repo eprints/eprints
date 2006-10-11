@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
     <ep:phrase id="page:fulltext">Full text available as:</ep:phrase>
     <ep:phrase id="page:nofulltext">Full text not available from this repository.</ep:phrase>
@@ -23,7 +22,7 @@
     <ep:phrase id="page:edit_link">Repository Staff Only: <ep:pin name="link">edit this item</ep:pin></ep:phrase>
  
     <!-- Publisher- or funder-imposed embargos --> 
-    <ep:phrase id="page:embargo_status"><p>These documents will be made publically accessible from <ep:pin name="date" />.</p></ep:phrase>
+    <ep:phrase id="page:embargo_status"><p>These documents will be made publically accessible from <ep:pin name="date"/>.</p></ep:phrase>
 
 
 </ep:phrases>

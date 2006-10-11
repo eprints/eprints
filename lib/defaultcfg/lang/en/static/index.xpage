@@ -1,68 +1,66 @@
 <?xml version="1.0" encoding="iso-8859-1"  standalone="no"  ?>
 <!DOCTYPE page SYSTEM "entities-en.dtd" >
-<ep:page
-        xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ep="http://eprints.org/ep2/page">
-<ep:title>Welcome to &archivename;</ep:title>
+<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
+<ep:title>Welcome to <ep:phrase ref="archive_name" /></ep:title>
 <ep:body>
 
 <p>Welcome to this generic eprint server, running the default configuration for <a href="http://software.eprints.org/">GNU EPrints repository software</a>.</p>
 
 <p><a href="information.html">More information</a> is available about the repository.</p>
 
-&ruler; 
+<ep:phrase ref="ruler" /> 
 <div align="center">
-<form method="get" accept-charset="utf-8" action="&perl_url;/search">
+<form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search">
 <table cellspacing="0" cellpadding="4">
-<tr><td align="right">Search items:</td><td><input accept-charset="utf-8" size="40" type="text" name="meta" /></td></tr>
-<tr><td align="right">Search full text:</td><td><input accept-charset="utf-8" size="40" type="text" name="full" /></td>
-<td><input class="actionbutton" value="Search" type="submit" name="_action_search" /> </td>
+<tr><td align="right">Search items:</td><td><input accept-charset="utf-8" size="40" type="text" name="meta"/></td></tr>
+<tr><td align="right">Search full text:</td><td><input accept-charset="utf-8" size="40" type="text" name="full"/></td>
+<td><input class="actionbutton" value="Search" type="submit" name="_action_search"/> </td>
 </tr>
 </table>
-<input type="hidden" name="_order" value="bytitle" />
-<input type="hidden" name="basic_srchtype" value="ALL" />
-<input type="hidden" name="_satisfyall" value="ALL" />
+<input type="hidden" name="_order" value="bytitle"/>
+<input type="hidden" name="basic_srchtype" value="ALL"/>
+<input type="hidden" name="_satisfyall" value="ALL"/>
 </form>
 </div>
 
-&ruler;
+<ep:phrase ref="ruler" />
 
 <dl>
 
- <dt><a href="&base_url;/view/">Browse</a></dt>
- <dd><p>Browse the repository by <a href="&base_url;/view/subjects/">Subject</a> or <a href="&base_url;/view/year/">Year</a>.</p></dd>
+ <dt><a href="{$config{base_url}}/view/">Browse</a></dt>
+ <dd><p>Browse the repository by <a href="{$config{base_url}}/view/subjects/">Subject</a> or <a href="{$config{base_url}}/view/year/">Year</a>.</p></dd>
 
- <dt><a href="&perl_url;/latest">Latest Additions</a></dt>
+ <dt><a href="{$config{perl_url}}/latest">Latest Additions</a></dt>
  <dd><p>View items added to the repository in the past week.</p></dd>
 
- <dt><a href="&perl_url;/search">Simple Search</a></dt>
+ <dt><a href="{$config{perl_url}}/search">Simple Search</a></dt>
  <dd><p>Search the repository using the most common fields.</p></dd>
 
- <dt><a href="&perl_url;/advsearch">Advanced Search</a></dt>
+ <dt><a href="{$config{perl_url}}/advsearch">Advanced Search</a></dt>
  <dd><p>Search the repository using a more complex range of fields.</p></dd>
 
- <dt><a href="&userhome;">Registered Users Area</a></dt>
+ <dt><a href="{$config{userhome}}">Registered Users Area</a></dt>
  <dd><p>Registered users may submit items to the repository.</p></dd>
 
- <dt><a href="&perl_url;/set_password">Register</a></dt>
+ <dt><a href="{$config{perl_url}}/set_password">Register</a></dt>
  <dd><p>Register for an account (or reset a forgotten password).</p></dd>
 
 </dl>
 
 
-&ruler;
+<ep:phrase ref="ruler" />
 
 <table border="0"><tr>
 
 <td>
 
- <p>&archivename; is running on <em>GNU EPrints</em> repository-creating software, which generates eprints repositories that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
+ <p><ep:phrase ref="archive_name" /> is running on <em>GNU EPrints</em> repository-creating software, which generates eprints repositories that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
 
  <p>The GNU EPrints repository-creating software is available for free at <a href="http://software.eprints.org/">http://software.eprints.org/</a>.</p>
 
 </td>
 <td>
- <a href="http://www.eprints.org/"><img src="&base_url;/images/logo_small.png" width="100" height="100" border="0" alt="EPrints.org" /></a>
+ <a href="http://www.eprints.org/"><img src="{$config{base_url}}/images/logo_small.png" width="100" height="100" border="0" alt="EPrints.org"/></a>
 </td>
 </tr></table>
 

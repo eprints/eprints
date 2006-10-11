@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities-en.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml"
-            xmlns:ep="http://eprints.org/ep3/phrases">
+<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
 
 
 
@@ -21,7 +20,7 @@
 
     <ep:phrase id="user_fieldname_hideemail">Hide Email</ep:phrase>
     <ep:phrase id="user_fieldhelp_hideemail">This option allows or prevents a users email being shown on their public summary page.</ep:phrase>
-    <ep:phrase id="user_radio_hideemail"><ep:pin name="false" />Make email visible to all.<br /><ep:pin name="true" />Hide email to all except repository administrators.</ep:phrase>
+    <ep:phrase id="user_radio_hideemail"><ep:pin name="false"/>Make email visible to all.<br/><ep:pin name="true"/>Hide email to all except repository administrators.</ep:phrase>
 
 
     <ep:phrase id="user_fieldname_dept">Department</ep:phrase>
