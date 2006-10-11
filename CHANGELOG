@@ -4503,3 +4503,8 @@ PACKAGE: 2.2.99.2
 
 2006-10-11 moj
  * Converted files with entities to use EPScript and phrases
+
+2006-10-11 cjg
+ * Moved upgrade into tools - we'll need it later but not until the
+    ep2>ep3 script.
+
