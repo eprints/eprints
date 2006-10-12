@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+test_pod - Test Eprints POD coverage
+
+=head1 SYNOPSIS
+
+B<test_pod> [B<options>] [EPrints::Utils[, EPrints::DataObj[, ...]]]
+
+=head1 DESCRIPTION
+
+This script tests for Eprints POD coverage in core modules (i.e. things that form the 'Eprints API').
+
+If no arguments are provided uses a default list of modules to check.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --help
+
+Show help for this script.
+
+=item --detail
+
+Show which functions are missing documentation.
+
+=item --verbose
+
+Be more verbose (i.e. show functions that do have POD).
+
+=back
+
+=cut
+
+use strict;
+use warnings;
+
+use EPrints; # Otherwise deprecated causes problems :-(
+
+use Getopt::Long;
+use Pod::Usage;
+use Pod::Coverage;
+
+my( $opt_help, $opt_verbose, $opt_detail );
+
+GetOptions(
+	"help" => \$opt_help,
+	"verbose" => \$opt_verbose,
+	"detail" => \$opt_detail,
+) or pod2usage( 2 );
+
+pod2usage( 1 ) if $opt_help;
+
+our @VICTIMS = ();
+our %OLD = map { $_ => 1 } qw(
+	EPrints::AnApache
+	EPrints::Subscription
+	EPrints::Archive
+	EPrints::User
+	EPrints::EPrint
+	EPrints::SearchField
+	EPrints::Subject
+	EPrints::Document
+	EPrints::SystemSettings
+	EPrints::SearchCondition
+	EPrints::SearchExpression
+	EPrints::Auth
+);
+
+for(grep { /^\*EPrints::[A-Z]/ } values %EPrints::)
+{
+	local $_ = $_;
+	s/^\*//;
+	s/::$//;
+	eval "use $_";
+	push @VICTIMS, $_ unless $OLD{$_} or $@;
+}
+
+@VICTIMS = @ARGV if @ARGV;
+
+for (@VICTIMS)
+{
+	print STDERR $_, "\r";
+	my $pc = Pod::Coverage->new(package => $_);
+	if( !defined $pc->coverage )
+	{
+		print &FAILED;
+		warn "Something broken in [$_]: " . $pc->why_unrated;
+	}
+	elsif( $pc->coverage < 1 )
+	{
+		print &FAILED;
+		if( $opt_detail )
+		{
+			print "POD missing for: ", join(', ', sort $pc->uncovered), "\n";
+			if( $opt_verbose )
+			{
+				print "POD found for: ", join(', ', sort $pc->covered), "\n";
+			}
+		}
+	}
+	else
+	{
+		print &OK;
+	}
+}
+
+sub OK()
+{
+	&MOVE_TO_COL, "[", &SETCOLOR_SUCCESS, "OK", &SETCOLOR_NORMAL, "]\n";
+}
+
+sub FAILED()
+{
+	&MOVE_TO_COL, "[", &SETCOLOR_FAILURE, "FAILED", &SETCOLOR_NORMAL, "]\n";
+}
+
+sub MOVE_TO_COL()
+{
+	my $RES_COL = 60;
+	"\033[${RES_COL}G";
+}
+
+sub SETCOLOR_SUCCESS()
+{
+	"\033[1;32m";
+}
+
+sub SETCOLOR_FAILURE()
+{
+	"\033[1;31m";
+}
+
+sub SETCOLOR_WARNING()
+{
+	"\033[1;33m";
+}
+
+sub SETCOLOR_NORMAL()
+{
+	"\033[0;39m";
+}
+

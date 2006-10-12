@@ -4525,3 +4525,7 @@ PACKAGE: 2.2.99.2
  * Removed GEO IP code from Apache/LogHandler - this will be handled 
     in the batch script.
 
+2006-10-12 tdb
+ * test_pod script checks for presence of POD for public methods in
+   EPrints modules
+ * Added missing POD in TempDir

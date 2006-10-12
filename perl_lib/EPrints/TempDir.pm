@@ -43,7 +43,12 @@ This module is basically a clone of File::Temp, but provides an object-interface
 
 =head1 METHODS
 
-This module does not provide any additional methods.
+=over 4
+
+=item EPrints::TempDir->new()
+
+Create a temporary directory (see File::Temp for a description of the relevant
+arguments);
 
 =cut
 
@@ -69,3 +74,7 @@ sub DESTROY
 }
 
 1;
+
+__END__
+
+=back
