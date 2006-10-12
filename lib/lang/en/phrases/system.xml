@@ -1239,8 +1239,8 @@ Titles and Help for the System Fields
 
 	<!-- Surround -->
 
-    <ep:phrase id="Plugin/InputForm/Surround/Default:show_help"><ep:pin name="link">Help <img alt="+" src="/style/images/plus.png" border="0"/></ep:pin></ep:phrase>
-    <ep:phrase id="Plugin/InputForm/Surround/Default:hide_help"><ep:pin name="link">Help <img alt="-" src="/style/images/minus.png" border="0"/></ep:pin></ep:phrase>
+    <ep:phrase id="Plugin/InputForm/Surround/Default:show_help"><ep:pin name="link">Show Help <img alt="+" src="/style/images/plus.png" border="0"/></ep:pin></ep:phrase>
+    <ep:phrase id="Plugin/InputForm/Surround/Default:hide_help"><ep:pin name="link">Hide Help <img alt="-" src="/style/images/minus.png" border="0"/></ep:pin></ep:phrase>
 
 
 	<!-- Import Plugins -->

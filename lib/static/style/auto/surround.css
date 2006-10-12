@@ -6,29 +6,42 @@
 .ep_sr_component {
 	padding: 0px;
 	background-color: transparent;
-	margin-bottom: 10px;
-	margin-top: 10px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+.ep_sr_component .ep_sr_title_bar {
+	background-image: url(/style/images/toolbox_title.png);
+	padding: 2px 6px 2px 6px; 
+	border-left: solid 1px #d8dbef;
+	border-top: solid 1px #d8dbef;
+	border-right: solid 1px #d8dbef;
+}
+
+.ep_sr_component .ep_sr_title_bar table {
 }
 .ep_sr_component .ep_sr_title {
-	background-color: white;
+	font-weight: bold;
+	font-size: 115%;
 	color: #444;
-	border: 0;
 }
 .ep_sr_component .ep_sr_input {
 	text-align: left;
 	clear: both;
 	background-image: url(/style/images/toolbox.png);
 	border: solid 1px #d8dbef;
-	padding: 8px;
+	padding: 6px;
 }
 
 /* collapse bar */
 
 .ep_sr_collapse_bar {
-	text-align: left;
-	background-image: url(/style/images/toolbox.png);
+	background-image: url(/style/images/toolbox_title.png);
+	padding: 2px 6px 2px 6px; 
 	border: solid 1px #d8dbef;
-	padding: 8px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+	font-weight: bold;
+	font-size: 115%;
 }
 .ep_sr_collapse_bar a {
 	text-decoration: none;
@@ -44,22 +57,17 @@
 }
 .ep_sr_component .ep_sr_show_help {
 	white-space: nowrap;
-	padding-bottom: 4px;
-	float: right;
 }
 .ep_sr_component .ep_sr_show_help a {
 	text-decoration: none;
 }	
 .ep_sr_component .ep_sr_hide_help {
 	white-space: nowrap;
-	padding-bottom: 4px;
-	float: right;
 }
 .ep_sr_component .ep_sr_hide_help a {
 	text-decoration: none;
 }	
 .ep_sr_component .ep_sr_title_bar {
-	width: 100%;
 }
 
 

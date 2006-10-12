@@ -5,15 +5,29 @@ use strict;
 our @ISA = qw/ EPrints::Plugin /;
 
 
+sub render_title
+{
+	my( $self, $component ) = @_;
+
+	my $title = $component->render_title( $self );
+
+	if( $component->is_required )
+	{
+		$title = $self->{session}->html_phrase( 
+			"sys:ep_form_required",
+			label=>$title );
+	}
+
+	return $title;
+}
+
+
 sub render
 {
 	my( $self, $component ) = @_;
 
-	my $is_req = $component->is_required();
 	my $help = $component->render_help( $self );
-	my $collapsed = $component->is_collapsed();
 	my $comp_name = $component->get_name();
-	my $title = $component->render_title( $self );
 	my @problems = @{$component->get_problems()};
 
 	my $surround = $self->{session}->make_element( "div", class => "ep_sr_component" );
@@ -29,34 +43,36 @@ sub render
 	# Help rendering
 
 
-	my $title_bar = $self->{session}->make_element( "div" );
-
-	my $title_div = $self->{session}->make_element( "div", class=>"ep_sr_title" );
-
-	if( $is_req )
-	{
-		$title = $self->{session}->html_phrase( 
-			"sys:ep_form_required",
-			label=>$title );
-	}
-
+	my $title_bar = $self->{session}->make_element( "div", class=>"ep_sr_title_bar" );
 
 	my $help_prefix = $component->{prefix}."_help";
+
+	my $help_table = $self->{session}->make_element( "table",cellpadding=>"0",border=>"0",cellspacing=>"0", width=>"100%" );
+	my $help_table_tr = $self->{session}->make_element( "tr" );
+	my $help_table_td1 = $self->{session}->make_element( "td" );
+	my $help_table_td2 = $self->{session}->make_element( "td", align=>"right" );
+	$help_table->appendChild( $help_table_tr );
+	$help_table_tr->appendChild( $help_table_td1 );
+	$help_table_tr->appendChild( $help_table_td2 );
+
+	$title_bar->appendChild( $help_table );
+	my $title_div = $self->{session}->make_element( "div", class=>"ep_sr_title" );
+	$help_table_td1->appendChild( $title_div );
 
 	my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$help_prefix."_show" );
 	my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_toggle('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
 	$show_help->appendChild( $self->html_phrase( "show_help",link=>$helplink ) );
-	$title_bar->appendChild( $show_help );
+	$help_table_td2->appendChild( $show_help );
 
 	my $hide_help = $self->{session}->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$help_prefix."_hide" );
 	my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_toggle('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
 	$hide_help->appendChild( $self->html_phrase( "hide_help",link=>$helplink2 ) );
-	$title_bar->appendChild( $hide_help );
+	$help_table_td2->appendChild( $hide_help );
 	
-	$title_bar->appendChild( $title_div );
-
 	my $help_div = $self->{session}->make_element( "div", class => "ep_sr_help ep_no_js", id => $help_prefix );
 	$help_div->appendChild( $help );
+
+	$help_table_td2->appendChild( $help_div );
 
 	# Problem rendering
 
@@ -79,7 +95,7 @@ sub render
 	$surround->appendChild( $title_bar );
 	$surround->appendChild( $input_div );
 
-	if( $collapsed )
+	if( $component->is_collapsed )
 	{
 		my $outer = $self->{session}->make_doc_fragment;
 		my $col_prefix = $component->{prefix}."_help";
@@ -98,21 +114,18 @@ sub render
 		my $recol_link =  $self->{session}->make_element( "a", onClick => "EPJS_toggle('${col_prefix}_bar',true,'block');EPJS_toggle('${col_prefix}_full',false,'block');return false", href=>"#", class=>"ep_only_js" );
 		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"/style/images/minus.png", border=>0 ) );
 		$recol_link->appendChild( $self->{session}->make_text( " " ) );
-		$recol_link->appendChild( $title );
+		#nb. clone the title as we've already used it above.
+		$recol_link->appendChild( $self->render_title( $component ) );
 		$title_div->appendChild( $recol_link );
 
 		my $nojstitle = $self->{session}->make_element( "div", class=>"ep_no_js" );
-		$nojstitle->appendChild( $component->render_title( $self ) );
+		$nojstitle->appendChild( $self->render_title( $component ) );
 		$title_div->appendChild( $nojstitle );
-		
 
 		return $outer;
 	}
-	else
-	{	
-		$title_div->appendChild( $title );
-	}
-	
+
+	$title_div->appendChild( $self->render_title( $component ) );
 	
 	return $surround;
 }

@@ -214,7 +214,10 @@ sub render_help
 sub render_title
 {
 	my( $self, $surround ) = @_;
-	return $self->{config}->{title};
+
+	# nb. That this must clone the title as the title may be used 
+	# more than once.
+	return $self->{session}->clone_for_me( $self->{config}->{title}, 1 );
 }
 
 
