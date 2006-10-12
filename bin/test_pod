@@ -12,7 +12,7 @@ B<test_pod> [B<options>] [EPrints::Utils[, EPrints::DataObj[, ...]]]
 
 This script tests for Eprints POD coverage in core modules (i.e. things that form the 'Eprints API').
 
-If no arguments are provided uses a default list of modules to check.
+If no arguments are provided tests all modules in the EPrints::* space that are included by L<EPrints>.
 
 =head1 ARGUMENTS
 
@@ -37,7 +37,7 @@ Be more verbose (i.e. show functions that do have POD).
 use strict;
 use warnings;
 
-use EPrints; # Otherwise deprecated causes problems :-(
+use EPrints;
 
 use Getopt::Long;
 use Pod::Usage;
@@ -69,25 +69,47 @@ our %OLD = map { $_ => 1 } qw(
 	EPrints::Auth
 );
 
-for(grep { /^\*EPrints::[A-Z]/ } values %EPrints::)
+sub grep_namespace
 {
-	local $_ = $_;
-	s/^\*//;
-	s/::$//;
-	eval "use $_";
-	push @VICTIMS, $_ unless $OLD{$_} or $@;
+	my( $path ) = @_;
+	my @spaces;
+	my @k;
+	eval "\@k = keys \%$path";
+	for(grep { /^[A-Z]/ and $_ !~ /^DESTROY|AUTOLOAD|CLONE|SUPER::$/ } @k)
+	{
+		my $space = "$path$_";
+		push @spaces, $space, grep_namespace($space);
+	}
+	return grep { /::$/ } @spaces;
+}
+
+our @NAMESPACES = grep_namespace("EPrints::");
+
+for(@NAMESPACES)
+{
+	$_ =~ s/::$//;
+	eval "require $_";
+	unless( $OLD{$_} or $@ )
+	{
+		push @VICTIMS, $_;
+	}
 }
 
 @VICTIMS = @ARGV if @ARGV;
 
-for (@VICTIMS)
+our $RES_COL = 60;
+
+for(sort @VICTIMS)
 {
-	print STDERR $_, "\r";
+	print STDERR $_, '_' x ($RES_COL-length($_));
 	my $pc = Pod::Coverage->new(package => $_);
 	if( !defined $pc->coverage )
 	{
 		print &FAILED;
-		warn "Something broken in [$_]: " . $pc->why_unrated;
+		if( $opt_detail )
+		{
+			print "Unable to parse: " . $pc->why_unrated . "\n";
+		}
 	}
 	elsif( $pc->coverage < 1 )
 	{
@@ -119,7 +141,6 @@ sub FAILED()
 
 sub MOVE_TO_COL()
 {
-	my $RES_COL = 60;
 	"\033[${RES_COL}G";
 }
 
