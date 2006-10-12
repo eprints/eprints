@@ -29,17 +29,17 @@ $c->{fields}->{eprint} = [
 
 	{ name => "title", type => "longtext", multilang=>0, input_rows => 3 },
 
-	{ name => "ispublished", type => "set", 
+	{ name => "ispublished", type => "set", input_style=>"medium",
 			options => [ "pub","inpress","submitted" , "unpub" ] },
 
 	{ name => "subjects", type=>"subject", top=>"subjects", multiple => 1, 
 		browse_link => "subjects",
 		render_input=>"EPrints::Extras::subject_browser_input" },
 
-	{ name => "full_text_status", type=>"set",
+	{ name => "full_text_status", type=>"set", input_style=>"medium",
 			options => [ "public", "restricted", "none" ] },
 
-	{ name => "monograph_type", type=>"set",
+	{ name => "monograph_type", type=>"set", input_style=>"medium",
 			options => [ 
 				"technical_report", 
 				"project_report",
@@ -51,7 +51,7 @@ $c->{fields}->{eprint} = [
 
 
 
-	{ name => "pres_type", type=>"set",
+	{ name => "pres_type", type=>"set", input_style=>"medium",
 			options => [ 
 				"paper", 
 				"lecture", 
@@ -95,7 +95,7 @@ $c->{fields}->{eprint} = [
 	
 	{ name => "event_dates", type => "text" },
 
-	{ name => "event_type", type => "set", options=>[ "conference","workshop","other" ] },
+	{ name => "event_type", type => "set", options=>[ "conference","workshop","other" ], input_style=>"medium", },
 
 	{ name => "id_number", type => "text" },
 
@@ -105,7 +105,7 @@ $c->{fields}->{eprint} = [
 
 	{ name => "department", type => "text" },
 
-	{ name => "thesis_type", type => "set", options=>[ "masters", "phd", "other"] },
+	{ name => "thesis_type", type => "set", options=>[ "masters", "phd", "other"], input_style=>"medium", },
 
 	{ name => "refereed", type => "boolean", input_style=>"radio" },
 

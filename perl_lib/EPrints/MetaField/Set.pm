@@ -153,8 +153,10 @@ sub render_set_input
 	my( $self, $session, $default, $required, $obj, $basename ) = @_;
 
 	my( $tags, $labels ) = $self->input_tags_and_labels( $session, $obj );
+	
+	my $input_style = $self->get_property( "input_style" );
 
-	if( $self->get_property( "input_style" ) ne "long" )
+	if( $input_style eq "short" )
 	{
 		if( 
 			!$self->get_property( "multiple" ) && 
@@ -179,41 +181,67 @@ sub render_set_input
 	}
 
 
-	if( $self->{multiple} )
+	my( $list );
+	if( $input_style eq "long" )
 	{
-		$session->get_repository->log( "Using input_style long for a 'multiple' field. It's only intended for\nnon-multiple fields." );
+		$list = $session->make_element( "dl", class=>"ep_field_set_long" );
+	}	
+	else
+	{
+		$list = $session->make_doc_fragment;
 	}
-
-	my( $dl, $dt, $dd );
-	$dl = $session->make_element( "dl", class=>"ep_field_set_long" );
 	foreach my $opt ( @{$tags} )
 	{
-		$dt = $session->make_element( "dt" );
-		my $label1 = $session->make_element( "label", for=>$basename."_".$opt );
-		$dt->appendChild( $label1 );
-		my $checked = undef;
-		if( defined $default->[0] && $default->[0] eq $opt )
+		my $row;
+		if( $input_style eq "long" )
 		{
-			$checked = "checked";
+			$row = $session->make_element( "row" );
+		}
+		else
+		{
+			$row = $session->make_element( "div" );
+		}
+		my $label1 = $session->make_element( "label", for=>$basename."_".$opt );
+		$row->appendChild( $label1 );
+		my $checked = undef;
+		my $type = "radio";
+		if( $self->{multiple} )
+		{
+			$type = "checkbox";
+			foreach( @{$default} )
+			{
+				$checked = "checked" if( $_ eq $opt );
+			}
+		}
+		else
+		{
+			$type = "radio";
+			if( defined $default->[0] && $default->[0] eq $opt )
+			{
+				$checked = "checked";
+			}
 		}
 		$label1->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
-			type => "radio",
+			type => $type,
 			name => $basename,
 			id => $basename."_".$opt,
 			value => $opt,
 			checked => $checked ) );
 		$label1->appendChild( $session->make_text( " ".$labels->{$opt} ));
-		$dl->appendChild( $dt );
-		$dd = $session->make_element( "dd" );
+		$list->appendChild( $row );
+
+		next unless( $input_style eq "long" );
+
+		my $dd = $session->make_element( "dd" );
 		my $label2 = $session->make_element( "label", for=>$basename."_".$opt );
 		$dd->appendChild( $label2 );
 		my $phrasename = $self->{confid}."_optdetails_".$self->{name}."_".$opt;
 		$label2->appendChild( $session->html_phrase( $phrasename ));
-		$dl->appendChild( $dd );
+		$list->appendChild( $dd );
 	}
-	return $dl;
+	return $list;
 }
 
 sub form_value_actual
@@ -432,7 +460,7 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{input_style} = 0;
+	$defaults{input_style} = "short";
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{search_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{options} = $EPrints::MetaField::REQUIRED;

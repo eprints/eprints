@@ -4560,3 +4560,9 @@ PACKAGE: 2.2.99.2
 2006-10-12 cjg
  * Added citation function to epscript
  * Added yesno function to epscript
+
+2006-10-12 cjg
+ * Added a new input_style to set which shows the items as a short list
+    of radio buttons.
+ * Made most sets use this input style.
+
