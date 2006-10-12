@@ -4543,3 +4543,7 @@ PACKAGE: 2.2.99.2
 
 2006-10-12 moj
  * Added namespaces throughout lib
+
+2006-10-12 cjg 
+ * Added some warnings when XML functions are passed undefined nodes.
+ * Moved document type guesser into cfg.d/document_upload.pl
