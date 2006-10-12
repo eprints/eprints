@@ -24,14 +24,6 @@ To enable the Apache::LogHandler add to your ArchiveConfig:
 
    $c->{loghandler}->{enable} = 1;
 
-You also need to specify the C<geoip> configuration option in SystemSettings:
-
-	geoip => {
-		class => "Geo::IP",
-		country => "/usr/local/share/GeoIP/GeoIP.dat",
-		organisation => "/usr/local/share/GeoIP/GeoIPOrg.dat",
-	},
-
 =head1 DATA FORMAT
 
 =over 4
@@ -67,10 +59,6 @@ package EPrints::Apache::LogHandler;
 use strict;
 use warnings;
 
-use vars qw( $GEOIP $GEOIP_DB $GEOORG_DB );
-
-$GEOIP = 0;
-
 use URI;
 
 use EPrints;
@@ -92,20 +80,6 @@ sub handler
 	my $session = new EPrints::Session or return DECLINED;
 	my $repository = $session->get_repository;
 
-	# Open the GeoIP databases once on the first request
-#	unless( $GEOIP )
-#	{
-#		my $conf = $repository->get_conf( "geoip" );
-#
-#		unless( defined $conf )
-#		{
-#			EPrints::abort( "geoip not configured in SystemSettings" );
-#		}
-#
-#		geoip_open( $conf );
-#		$GEOIP = 1;
-#	}
-
 	my $c = $r->connection;
 	my $ip = $c->remote_ip;
 	my $uri = URI->new($r->uri);
@@ -118,14 +92,6 @@ sub handler
 	$access->{referring_entity_id} = $r->headers_in->{ "Referer" };
 	$access->{service_type_id} = '';
 	$access->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
-	if( $GEOIP_DB )
-	{
-		$access->{country} = $GEOIP_DB->country_code_by_addr( $ip );
-	}
-	if( $GEOORG_DB )
-	{
-		$access->{institution} = $GEOORG_DB->org_by_name( $ip );
-	}
 
 	# External full-text request
 	if( $r->filename and $r->filename =~ /redirect$/ )
@@ -214,25 +180,6 @@ sub uri_to_docid
 	return undef;
 }
 
-sub geoip_open
-{
-	my( $geoip ) = @_;
-
-	my $class = $geoip->{ "class" } or return;
-	eval "use $class";
-
-	if( my $fn = $geoip->{ "country" } )
-	{
-		eval { $GEOIP_DB = $class->open( $fn ) };
-		warn "Apache::LogHandler: Country lookup unavailable: $@" if $@;
-	}
-
-	if( my $fn = $geoip->{ "organisation" } )
-	{
-		eval { $GEOORG_DB = $class->open( $fn ) };
-		warn "Apache::LogHandler: Organisation lookup unavailable: $@" if $@;
-	}
-}
 
 1;
 
@@ -242,6 +189,5 @@ __END__
 
 =head1 SEE ALSO
 
-L<EPrints::DataObj::Access>, L<Geo::IP> or L<Geo::IP::PurePerl>.
+L<EPrints::DataObj::Access>
 
-Download GeoIP databases from L<http://www.maxmind.com/>.

@@ -4521,3 +4521,7 @@ PACKAGE: 2.2.99.2
 2006-10-12 cjg
  * Added labels and style to eprint-type (and long-view sets in general)
 
+2006-10-12 cjg
+ * Removed GEO IP code from Apache/LogHandler - this will be handled 
+    in the batch script.
+
