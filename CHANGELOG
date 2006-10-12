@@ -4517,3 +4517,7 @@ PACKAGE: 2.2.99.2
     copy names entities.dtd
  * Changed the header of all XML files to reflect this.
  * Renamed archivename.pl to archive_name.pl
+
+2006-10-12 cjg
+ * Added labels and style to eprint-type (and long-view sets in general)
+

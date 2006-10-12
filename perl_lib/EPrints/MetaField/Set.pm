@@ -185,27 +185,32 @@ sub render_set_input
 	}
 
 	my( $dl, $dt, $dd );
-	$dl = $session->make_element( "dl", class=>"longset" );
+	$dl = $session->make_element( "dl", class=>"ep_field_set_long" );
 	foreach my $opt ( @{$tags} )
 	{
 		$dt = $session->make_element( "dt" );
+		my $label1 = $session->make_element( "label", for=>$basename."_".$opt );
+		$dt->appendChild( $label1 );
 		my $checked = undef;
 		if( defined $default->[0] && $default->[0] eq $opt )
 		{
 			$checked = "checked";
 		}
-		$dt->appendChild( $session->make_element(
+		$label1->appendChild( $session->make_element(
 			"input",
 			"accept-charset" => "utf-8",
 			type => "radio",
 			name => $basename,
+			id => $basename."_".$opt,
 			value => $opt,
 			checked => $checked ) );
-		$dt->appendChild( $session->make_text( " ".$labels->{$opt} ));
+		$label1->appendChild( $session->make_text( " ".$labels->{$opt} ));
 		$dl->appendChild( $dt );
 		$dd = $session->make_element( "dd" );
+		my $label2 = $session->make_element( "label", for=>$basename."_".$opt );
+		$dd->appendChild( $label2 );
 		my $phrasename = $self->{confid}."_optdetails_".$self->{name}."_".$opt;
-		$dd->appendChild( $session->html_phrase( $phrasename ));
+		$label2->appendChild( $session->html_phrase( $phrasename ));
 		$dl->appendChild( $dd );
 	}
 	return $dl;
