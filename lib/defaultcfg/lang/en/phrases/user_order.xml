@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase">
 
 
 
 <!-- User Sort Order names -->
 
-    <ep:phrase id="ordername_user_byjoin">By registration date (oldest first)</ep:phrase>
-    <ep:phrase id="ordername_user_bytype">By user type</ep:phrase>
-    <ep:phrase id="ordername_user_byname">By name</ep:phrase>
-    <ep:phrase id="ordername_user_byrevjoin">By registration date (newest first)</ep:phrase>
+    <epp:phrase id="ordername_user_byjoin">By registration date (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_user_bytype">By user type</epp:phrase>
+    <epp:phrase id="ordername_user_byname">By name</epp:phrase>
+    <epp:phrase id="ordername_user_byrevjoin">By registration date (newest first)</epp:phrase>
 
 
 
-</ep:phrases>
+</epp:phrases>

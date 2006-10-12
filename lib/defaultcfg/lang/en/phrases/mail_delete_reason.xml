@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
 
 
-    <ep:phrase id="mail_delete_reason">
+    <epp:phrase id="mail_delete_reason">
 Unfortunately your item:
 
-<ep:pin name="title"/>
+<epc:pin name="title"/>
 
-could not be accepted into <ep:phrase ref="archive_name" />.
+could not be accepted into <epc:phrase ref="archive_name" />.
 
 The item has been deleted.
-    </ep:phrase>
+    </epp:phrase>
 
 
 
-</ep:phrases>
+</epp:phrases>
 

@@ -142,6 +142,14 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
+# Load up the repositories
+my %reps = ();
+foreach my $repository_id ( EPrints::Config::get_repository_ids() )
+{
+	$reps{$repository_id} = new EPrints::Repository( $repository_id, 1 ); 
+	exit( 1 ) unless( defined $reps{$repository_id} );
+}
+
 my $av =  $EPrints::SystemSettings::conf->{apache};
 $av = "1" unless defined $av;
 
@@ -219,11 +227,9 @@ PerlRequire $startupfile
 
 END
 my %portlist = ();
-foreach my $repository_id ( EPrints::Config::get_repository_ids() )
+foreach my $repository_id ( keys %reps ) 
 {
-	my $repository = EPrints::Repository->new( $repository_id, 1 );
-	exit( 1 ) unless( defined $repository );
-	$portlist{$repository->get_conf( 'port' )} = 1;
+	$portlist{$reps{$repository_id}->get_conf( 'port' )} = 1;
 }
 foreach my $port ( keys %portlist )
 {
@@ -258,10 +264,10 @@ print CONF <<END;
 # List of files to include for repository specific config...
 
 END
-foreach my $repository_id ( EPrints::Config::get_repository_ids() )
+foreach my $repository_id ( keys %reps ) 
 {
-	my $repository = EPrints::Repository->new( $repository_id );
-	my $repository_inc = $repository->{config}->{archiveroot}."/cfg/apache.conf";
+	my $repository_inc = 
+		$reps{$repository_id}->get_conf( "archiveroot" )."/cfg/apache.conf";
 	print CONF <<END;
 # $repository_id
 Include $repository_inc
@@ -284,9 +290,9 @@ close CONF;
 ########################################F#N#O#R#D########
 
 my $secureconfigs = {};
-foreach my $repository_id ( EPrints::Config::get_repository_ids() )
+foreach my $repository_id ( keys %reps ) 
 {
-my $repository = EPrints::Repository->new( $repository_id, 1 );
+my $repository = $reps{$repository_id}; 
 exit( 1 ) unless( defined $repository );
 
 my $sysfile = $repository->get_conf( "variables_path" )."/auto-apache.conf";

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow xmlns="http://eprints.org/ep2/workflow" xmlns:ep="http://eprints.org/ep2/">
+
+<workflow xmlns="http://eprints.org/ep3/workflow" xmlns:epc="http://eprints.org/ep3/control">
 
   <flow>
     <stage ref="default"/>
@@ -12,11 +13,11 @@
 
   <stage name="default">
     <component><field ref="password"/></component>
-    <ep:if test="$STAFF_ONLY">
+    <epc:if test="$STAFF_ONLY">
       <component><field ref="usertype"/></component>
       <component><field ref="username"/></component>
       <component><field ref="email"/></component>
-    </ep:if>
+    </epc:if>
     <component><field ref="hideemail"/></component>
     <component><field ref="name"><required/></field></component>
     <component><field ref="dept"/></component>
@@ -26,19 +27,19 @@
     <component><field ref="os"/></component>
     <component><field ref="url"/></component>
 
-    <ep:if test="usertype = 'editor'">
-      <ep:if test="$STAFF_ONLY">
+    <epc:if test="usertype = 'editor'">
+      <epc:if test="$STAFF_ONLY">
         <component><field ref="editperms"/></component>
-      </ep:if>
+      </epc:if>
       <component><field ref="frequency" required="yes" /></component>
       <component><field ref="mailempty" required="yes" /></component>
-    </ep:if>
+    </epc:if>
 
-    <ep:if test="usertype = 'admin'">
+    <epc:if test="usertype = 'admin'">
       <component><field ref="editperms" /></component>
       <component><field ref="frequency" required="yes" /></component>
       <component><field ref="mailempty" required="yes" /></component>
-    </ep:if>
+    </epc:if>
 
   </stage>
 </workflow>

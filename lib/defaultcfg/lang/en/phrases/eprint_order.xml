@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities.dtd">
 
-<ep:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/phrases">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase">
 
 <!-- Sort Order names -->
 
-    <ep:phrase id="ordername_eprint_byyear">by year (most recent first)</ep:phrase>
-    <ep:phrase id="ordername_eprint_byyearoldest">by year (oldest first)</ep:phrase>
-    <ep:phrase id="ordername_eprint_byname">by author's name</ep:phrase>
-    <ep:phrase id="ordername_eprint_bytitle">by title</ep:phrase>
+    <epp:phrase id="ordername_eprint_byyear">by year (most recent first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_byyearoldest">by year (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_byname">by author's name</epp:phrase>
+    <epp:phrase id="ordername_eprint_bytitle">by title</epp:phrase>
 
-    <ep:phrase id="ordername_eprint_bytitlerev">by title (reverse)</ep:phrase>
-    <ep:phrase id="ordername_eprint_bystatuschanged">by status changed (most recent first)</ep:phrase>
-    <ep:phrase id="ordername_eprint_bystatuschangedoldest">by status changed (oldest first)</ep:phrase>
+    <epp:phrase id="ordername_eprint_bytitlerev">by title (reverse)</epp:phrase>
+    <epp:phrase id="ordername_eprint_bystatuschanged">by status changed (most recent first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_bystatuschangedoldest">by status changed (oldest first)</epp:phrase>
 
-</ep:phrases>
+</epp:phrases>

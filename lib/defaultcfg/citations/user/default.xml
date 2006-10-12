@@ -4,11 +4,11 @@
 	Citation Styles for user records.
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
 
-<ep:linkhere><span class="ep_name_citation"><ep:choose>
-  <ep:when test="name"><ep:print expr="name"/></ep:when>
-  <ep:otherwise>No name, email=<ep:print expr="email"/></ep:otherwise>
-</ep:choose></span></ep:linkhere>
+<cite:linkhere><span class="ep_name_citation"><epc:choose>
+  <epc:when test="name"><epc:print expr="name"/></epc:when>
+  <epc:otherwise>No name, email=<epc:print expr="email"/></epc:otherwise>
+</epc:choose></span></cite:linkhere>
 
-</ep:citation>
+</cite:citation>

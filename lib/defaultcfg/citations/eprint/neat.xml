@@ -4,16 +4,16 @@
 	Neat citation for eprints used in search results.
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
 <table border="0" width="100%">
   <tr>
-    <td><span class="citation"><ep:print expr="creators"/><br/><ep:linkhere><ep:print expr="title"/></ep:linkhere><br/><ep:if test="is_set('date_issue')"><ep:print expr="date_issue"/>, </ep:if><ep:print expr="type"/>.
+    <td><span class="citation"><epc:print expr="creators"/><br/><cite:linkhere><epc:print expr="title"/></cite:linkhere><br/><epc:if test="is_set('date_issue')"><epc:print expr="date_issue"/>, </epc:if><epc:print expr="type"/>.
 
-<ep:if test="full_text_status = 'none'"> Item not available online.</ep:if>
-<ep:if test="full_text_status = 'restricted'"> Item availablity restricted.</ep:if>
+<epc:if test="full_text_status = 'none'"> Item not available online.</epc:if>
+<epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
 </span></td>
-    <td align="right"><ep:print expr="fileinfo"/></td>
+    <td align="right"><epc:print expr="fileinfo"/></td>
   </tr>
 </table>
 
-</ep:citation>
+</cite:citation>

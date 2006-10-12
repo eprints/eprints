@@ -4541,3 +4541,5 @@ PACKAGE: 2.2.99.2
  * Made the text in the surround title bar bigger and bold
  * Made the collapsed bar look like the title bar.
 
+2006-10-12 moj
+ * Added namespaces throughout lib

@@ -1,12 +1,12 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities.dtd" >
-<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
-<ep:title><ep:phrase ref="archive_name" /> Contact Information</ep:title>
-<ep:body>
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title><epc:phrase ref="archive_name" /> Contact Information</xpage:title>
+<xpage:body>
 
-<p><ep:phrase ref="archive_name" /> Site Administrator: <a href="mailto:{$config{adminemail}}"><ep:print expr="$config{adminemail}" /></a></p>
+<p><epc:phrase ref="archive_name" /> Site Administrator: <a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a></p>
 
-</ep:body>
+</xpage:body>
 
 <!-- **************************************************
 
@@ -24,4 +24,4 @@ you didn't forget to update them somewhere else.
 
 *************************************************** -->
 
-</ep:page>
+</xpage:page>

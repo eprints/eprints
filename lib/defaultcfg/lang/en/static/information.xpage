@@ -1,8 +1,8 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE page SYSTEM "entities.dtd" >
-<ep:page xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep2/page">
-<ep:title>About the Repository</ep:title>
-<ep:body>
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title>About the Repository</xpage:title>
+<xpage:body>
 
 <p>This repository is running on GNU EPrints open repository software, a freely distributable repository system available from <a href="http://software.eprints.org/">software.eprints.org</a>. </p>
 
@@ -10,10 +10,10 @@
 
 <h2>Contact Information</h2>
 
-<p>Any correspondence concerning this specific repository should be sent to <a href="mailto:{$config{adminemail}}"><ep:print expr="$config{adminemail}" /></a>.</p>
+<p>Any correspondence concerning this specific repository should be sent to <a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a>.</p>
 
 <h2>About this software</h2>
-<p>This site is running GNU EPrints / revision: <ep:print expr="$config{version}" /></p>
+<p>This site is running GNU EPrints / revision: <epc:print expr="$config{version}" /></p>
 <p>GNU EPrints is free software developed by the University of Southampton, England.</p>
 <p>For more information see <a href="http://eprints.org/">eprints.org</a> and <a href="http://software.eprints.org/">software.eprints.org</a></p>
 
@@ -55,7 +55,7 @@
 </td></tr></table>
 </div>
 
-<ep:phrase ref="ruler" />
+<epc:phrase ref="ruler" />
 
 <h2>Credits</h2>
 <p><a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a> - Designer and coder of <em>EPrints version 2</em>.</p>
@@ -68,7 +68,7 @@
 <p>Gui Power - Adapting the <a href="{$config{base_url}}/help/">online help</a> for version 2.</p>
 <p>Timothy Miles-Board - Programmer, Services manager</p>
 
-<ep:phrase ref="ruler" />
+<epc:phrase ref="ruler" />
 <p align="center">
 Developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
 
@@ -79,5 +79,5 @@ Developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and
 </td></tr></table>
 </div>
 
-</ep:body>
-</ep:page>
+</xpage:body>
+</xpage:page>

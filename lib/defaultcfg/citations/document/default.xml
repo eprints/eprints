@@ -4,15 +4,15 @@
 	Document citation style.
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
 
 <!-- document citation -->
 
-<ep:linkhere><span class="ep_document_citation"><ep:print expr='format'/><ep:if test="formatdesc"> (<ep:print expr="formatdesc"/>)</ep:if></span></ep:linkhere>
-<ep:if test="security != 'public'"> - <ep:print expr="security"/><ep:if test="date_embargo"> until <ep:print expr="date_embargo"/></ep:if></ep:if>
-<ep:choose>
-  <ep:when test="format = 'pdf'"> - Requires a PDF viewer such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a>, <a href="http://www.foolabs.com/xpdf/download.html">Xpdf</a> or <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a></ep:when>
-  <ep:when test="format = 'ps'"> - Requires a viewer, such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a></ep:when>
-</ep:choose>
+<cite:linkhere><span class="ep_document_citation"><epc:print expr='format'/><epc:if test="formatdesc"> (<epc:print expr="formatdesc"/>)</epc:if></span></cite:linkhere>
+<epc:if test="security != 'public'"> - <epc:print expr="security"/><epc:if test="date_embargo"> until <epc:print expr="date_embargo"/></epc:if></epc:if>
+<epc:choose>
+  <epc:when test="format = 'pdf'"> - Requires a PDF viewer such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a>, <a href="http://www.foolabs.com/xpdf/download.html">Xpdf</a> or <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a></epc:when>
+  <epc:when test="format = 'ps'"> - Requires a viewer, such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a></epc:when>
+</epc:choose>
 
-</ep:citation>
+</cite:citation>
