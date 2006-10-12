@@ -62,6 +62,7 @@ $result = searchEprint($session,$params) if( $tn eq "searchEprint" );
 
 # devel hard coded <<<<<<<<<<<<<<<<<<<<<<<<<< TODO
 my $ns = "http://devel.eprints.org/EPrints/WebServices";
+$tn.= "Output";
 $response.= '<'.$tn.' xmlns="'.$ns.'">';
 $response.= $result->toString if defined $result;
 $response.= '</'.$tn.'>';
