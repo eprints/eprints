@@ -52,6 +52,7 @@ arguments);
 
 =cut
 
+# When this object is used in string context return the directory
 use overload '""' => sub { return shift->{'dir'} };
 
 sub new {

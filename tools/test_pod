@@ -10,9 +10,11 @@ B<test_pod> [B<options>] [EPrints::Utils[, EPrints::DataObj[, ...]]]
 
 =head1 DESCRIPTION
 
-This script tests for Eprints POD coverage in core modules (i.e. things that form the 'Eprints API').
+This script tests for Eprints POD coverage in core modules (i.e. things that
+form the 'Eprints API').
 
-If no arguments are provided tests all modules in the EPrints::* space that are included by L<EPrints>.
+If no arguments are provided tests all modules in the EPrints::* space that are
+included by L<EPrints>.
 
 =head1 ARGUMENTS
 
@@ -69,6 +71,7 @@ our %OLD = map { $_ => 1 } qw(
 	EPrints::Auth
 );
 
+# Find modules currently loaded in Perl
 sub grep_namespace
 {
 	my( $path ) = @_;
@@ -85,6 +88,7 @@ sub grep_namespace
 
 our @NAMESPACES = grep_namespace("EPrints::");
 
+# Build a list of modules to test (by checking whether they can be required)
 for(@NAMESPACES)
 {
 	$_ =~ s/::$//;
