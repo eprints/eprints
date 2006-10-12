@@ -7,8 +7,8 @@ use strict;
 my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 
-#my $POSTDATA = $session->param( "POSTDATA" );
-my $POSTDATA=<<END;
+my $POSTDATA = $session->param( "POSTDATA" );
+my $xPOSTDATA=<<END;
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://devel.eprints.org/EPrints/WebServices" xmlns:types="http://devel.eprints.org/EPrints/WebServices/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><tns:echo><inputString xsi:type="xsd:string">hello</inputString><stringDuplicationCount xsi:type="xsd:int">2</stringDuplicationCount></tns:echo></soap:Body></soap:Envelope>
 END
