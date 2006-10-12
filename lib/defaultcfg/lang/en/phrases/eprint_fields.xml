@@ -175,7 +175,7 @@ Date of submission is required if the item has no date of issue. If the item has
 
     <ep:phrase id="eprint_fieldname_refereed">Refereed</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</ep:phrase>
-    <ep:phrase id="eprint_radio_refereed"><ep:pin name="true"/>Yes, this version has been refereed.<br/><ep:pin name="false"/>No, this version has not been refereed.</ep:phrase>
+    <ep:phrase id="eprint_radio_refereed"><label><ep:pin name="true"/>Yes, this version has been refereed.</label><br/><label><ep:pin name="false"/>No, this version has not been refereed.</label></ep:phrase>
 
     <ep:phrase id="eprint_fieldname_referencetext">References</ep:phrase>
     <ep:phrase id="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It may be used to link your item to those it cites and to those that cite it.</ep:phrase>

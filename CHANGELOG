@@ -4527,5 +4527,8 @@ PACKAGE: 2.2.99.2
 
 2006-10-12 tdb
  * test_pod script checks for presence of POD for public methods in
-   EPrints modules
+    EPrints modules
  * Added missing POD in TempDir
+
+2006-10-12 cjg
+ * Added labels to the refereed field.
