@@ -4,7 +4,7 @@
 	Document citation style (brief)
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citations">
+<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
 
 <!-- document citations -->
 

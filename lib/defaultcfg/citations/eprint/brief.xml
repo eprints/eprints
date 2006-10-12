@@ -4,7 +4,7 @@
 	Brief citation for an eprint. Just gives the title or the type and ID number.
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citations">
+<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
 
 <ep:linkhere><ep:choose>
   <ep:when test="title"><ep:print expr="title"/></ep:when>

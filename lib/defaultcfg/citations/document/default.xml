@@ -4,9 +4,9 @@
 	Document citation style.
 -->
 
-<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citations">
+<ep:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:ep="http://eprints.org/ep3/citation">
 
-<!-- document citations -->
+<!-- document citation -->
 
 <ep:linkhere><span class="ep_document_citation"><ep:print expr='format'/><ep:if test="formatdesc"> (<ep:print expr="formatdesc"/>)</ep:if></span></ep:linkhere>
 <ep:if test="security != 'public'"> - <ep:print expr="security"/><ep:if test="date_embargo"> until <ep:print expr="date_embargo"/></ep:if></ep:if>
