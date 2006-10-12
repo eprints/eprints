@@ -622,9 +622,7 @@ sub render_citation
 	# Subscription, if we were better OO people...
 
 	my $session = $obj->get_session;
-
 	my $collapsed = EPrints::XML::collapse_conditions( $cstyle, session=>$session, item=>$obj, in=>$indesc );
-
 	my $r= _render_citation_aux( $obj, $session, $collapsed, $url );
 
 	return $r;
@@ -634,15 +632,6 @@ sub _render_citation_aux
 {
 	my( $obj, $session, $node, $url ) = @_;
 
-	if( EPrints::XML::is_dom( $node, "EntityReference" ) )
-	{
-		# old style. Deprecated.
-
-		my $fname = $node->getNodeName;
-		my $field = $obj->get_dataset()->get_field( $fname );
-
-		return _citation_field_value( $obj, $field );
-	}
 
 	my $addkids = $node->hasChildNodes;
 
@@ -651,6 +640,7 @@ sub _render_citation_aux
 	{
 		my $name = $node->getTagName;
 		$name =~ s/^ep://;
+		$name =~ s/^cite://;
 
 		if( $name eq "iflink" )
 		{
@@ -681,20 +671,6 @@ sub _render_citation_aux
 	if( !defined $rendered )
 	{
 		$rendered = $session->clone_for_me( $node );
-	}
-
-	# icky code to spot @title@ in node attributes and replace it.
-	my $attrs = $rendered->getAttributes;
-	if( $attrs )
-	{
-		for my $i ( 0..$attrs->getLength-1 )
-		{
-			my $attr = $attrs->item( $i );
-			my $v = $attr->getValue;
-			$v =~ s/@([a-z0-9_]+)@/$obj->get_value( $1 )/egi;
-			$v =~ s/@@/@/gi;
-			$attr->setValue( $v );
-		}
 	}
 
 	if( $addkids )

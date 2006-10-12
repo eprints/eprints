@@ -397,6 +397,7 @@ sub _find_elements2
 	{
 		my $name = $node->getTagName;
 		$name =~ s/^ep://;
+		$name =~ s/^epc://;
 		if( defined $found->{$name} )
 		{
 			if( $found->{$name} eq "no" )
@@ -630,9 +631,12 @@ sub collapse_conditions
 		{
 			return _collapse_phrase( $node, %params );
 		}
+		if( $name eq "pin" )
+		{
+			return _collapse_pin( $node, %params );
+		}
 
 	}
-
 
 	my $collapsed = $params{session}->clone_for_me( $node );
 	my $attrs = $collapsed->getAttributes;
@@ -661,12 +665,12 @@ sub collapse_conditions
 		}
 	}
 
-	$collapsed->appendChild( _collapse_kids( $node, %params ) );
+	$collapsed->appendChild( collapse_child_nodes( $node, %params ) );
 
 	return $collapsed;
 }
 
-sub _collapse_kids
+sub collapse_child_nodes
 {
 	my( $node, %params ) = @_;
 
@@ -682,6 +686,44 @@ sub _collapse_kids
 
 	return $collapsed;
 }
+
+sub _collapse_pin
+{
+	my( $node, %params ) = @_;
+
+	if( !$node->hasAttribute( "name" ) )
+	{
+		EPrints::abort( "In ".$params{in}.": pin element with no ref attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $ref = $node->getAttribute( "name" );
+
+	if( !defined $params{pindata}->{inserts}->{$ref} )
+	{
+		$params{session}->get_repository->log(
+"missing parameter \"$ref\" when making phrase \"".$params{pindata}->{phraseid}."\"" );
+		return $params{session}->make_text( "[pin missing: $ref]" );
+	}
+
+	my $retnode;	
+	if( $params{pindata}->{used}->{$ref} )
+	{
+		$retnode = EPrints::XML::clone_node( 
+				$params{pindata}->{inserts}->{$ref}, 1 );
+	}
+	else
+	{
+		$retnode = $params{pindata}->{inserts}->{$ref};
+		$params{pindata}->{used}->{$ref} = 1;
+	}
+
+	if( $node->hasChildNodes )
+	{	
+		$retnode->appendChild( collapse_child_nodes( $node, %params ) );
+	}
+
+	return $retnode;
+}
+
 
 sub _collapse_phrase
 {
@@ -704,7 +746,7 @@ sub _collapse_phrase
 		}
 		my $name = $param->getAttribute( "name" );
 		
-		$pins{$name} = _collapse_kids( $param, %params );
+		$pins{$name} = collapse_child_nodes( $param, %params );
 	}
 
 	my $collapsed = $params{session}->html_phrase( $ref, %pins );
@@ -759,7 +801,7 @@ sub _collapse_if
 
 	if( $result->[0] )
 	{
-		$collapsed->appendChild( _collapse_kids( $node, %params ) );
+		$collapsed->appendChild( collapse_child_nodes( $node, %params ) );
 	}
 
 	return $collapsed;
@@ -777,6 +819,7 @@ sub _collapse_choose
 		next unless( EPrints::XML::is_dom( $child, "Element" ) );
 		my $name = $child->getTagName;
 		$name=~s/^ep://;
+		$name=~s/^epc://;
 		next unless $name eq "when";
 		
 		if( !$child->hasAttribute( "test" ) )
@@ -792,7 +835,7 @@ sub _collapse_choose
 #		print STDERR  "WHENTEST:::".$test." == $result\n";
 		if( $result->[0] )
 		{
-			$collapsed->appendChild( _collapse_kids( $child, %params ) );
+			$collapsed->appendChild( collapse_child_nodes( $child, %params ) );
 			return $collapsed;
 		}
 	}
@@ -803,9 +846,10 @@ sub _collapse_choose
 		next unless( EPrints::XML::is_dom( $child, "Element" ) );
 		my $name = $child->getTagName;
 		$name=~s/^ep://;
+		$name=~s/^epc://;
 		next unless $name eq "otherwise";
 		
-		$collapsed->appendChild( _collapse_kids( $child, %params ) );
+		$collapsed->appendChild( collapse_child_nodes( $child, %params ) );
 		return $collapsed;
 	}
 
@@ -905,7 +949,7 @@ sub _collapse_condition
 
 	if( $result )
 	{
-		return _collapse_kids( $node, %params );
+		return collapse_child_nodes( $node, %params );
 	}
 
 	return $params{session}->make_doc_fragment;

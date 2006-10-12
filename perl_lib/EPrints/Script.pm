@@ -52,7 +52,6 @@ sub execute
 {
 	my( $code, $state ) = @_;
 
-#print STDERR "Exec: $code\n";
 #foreach( keys %{$state} ) { print STDERR "$_: ".$state->{$_}."\n"; }
 	$state->{repository} = $state->{session}->get_repository;
 	$state->{config} = $state->{session}->get_repository->{config};

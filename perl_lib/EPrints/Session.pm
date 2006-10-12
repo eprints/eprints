@@ -2298,7 +2298,8 @@ sub prepare_page
 				}
 				elsif( defined $map->{$pinid} )
 				{
-					push @output, EPrints::Utils::tree_to_utf8( $map->{$pinid} );
+					my $dom = EPrints::XML::collapse_conditions( $map->{$pinid}, session=>$self );
+					push @output, EPrints::Utils::tree_to_utf8( $dom );
 				}
 				# else no title
 		

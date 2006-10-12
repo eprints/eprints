@@ -169,132 +169,37 @@ sub phrase
 {
 	my( $self, $phraseid, $inserts, $session ) = @_;
 
+	# not using fb 
 	my( $phrase , $fb ) = $self->_phrase_aux( $phraseid );
 
-	my $response;
 	if( !defined $phrase )
 	{
-		$response = $session->make_doc_fragment;
-		$response->appendChild( 
-			 $session->make_text(  
-				'["'.$phraseid.'" not defined]' ) );
 		$session->get_repository->log( 
 			'Undefined phrase: "'.$phraseid.'" ('.$self->{id}.')' );
-if( $phraseid eq "document_fieldopt_main_Error.pm" ){ EPrints::abort("wheee");}
+		return $session->make_text( '["'.$phraseid.'" not defined]' );
 	}
-	else
-	{
-		$inserts = {} if( !defined $inserts );
+
+	$inserts = {} if( !defined $inserts );
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
-		my $used = {};
-		$response = _insert_pins( $phrase, $session, $inserts, $used, $phraseid );
-		foreach( keys %{$inserts} )
+	my $used = {};
+	my $result = EPrints::XML::collapse_child_nodes( 
+		$phrase, 
+		session => $session, 
+		pindata=>{ 
+			inserts => $inserts,
+			used => $used,
+			phraseid => $phraseid,
+		} );
+	foreach( keys %{$inserts} )
+	{
+		if( !$used->{$_} )
 		{
-			if( !$used->{$_} )
-			{
-				# Should log this, but somtimes it's supposed to happen!
-				# $session->get_repository->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
-				EPrints::XML::dispose( $inserts->{$_} );
-			}
+			# Should log this, but somtimes it's supposed to happen!
+			# $session->get_repository->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
+			EPrints::XML::dispose( $inserts->{$_} );
 		}
 	}
-
-
-	my $result;
-	if( $fb )
-	{
-		$result = $session->make_element( "fallback" );
-	}
-	else
-	{
-		$result = $session->make_doc_fragment();
-	}
-
-	$result->appendChild( $response );
 	return $result;
-}
-
-sub _insert_pins
-{
-	my( $node, $session, $inserts, $used, $phraseid ) = @_;
-
-	my $retnode;
-
-	if( EPrints::XML::is_dom( $node, "Element" ) )
-	{
-		my $name = $node->getTagName;
-		$name =~ s/^ep://;
-		if( $name eq "pin" )
-		{
-			my $name = $node->getAttribute( "name" );
-			my $repl;
-			if( defined $inserts->{$name} )
-			{
-				if( $used->{$name} )
-				{
-					$retnode = EPrints::XML::clone_node( 
-						$inserts->{$name}, 1 );
-				}
-				else
-				{
-					$retnode = $inserts->{$name};
-					$used->{$name} = 1;
-				}
-				# special case if the pin is a docfragment containing only 
-				# one element. Sometimes this is used to pass <a> elements which
-				# are going to be spanning something in the phrase.
-				# in this case we set retnode to that only element.
-				if( EPrints::XML::is_dom( $retnode, "DocumentFragment" ) )
-				{ 
-					my @retkids = $retnode->getChildNodes;
-					if( scalar @retkids == 1 && EPrints::XML::is_dom( $retkids[0], "Element" ))
-					{
-						$retnode = $retkids[0];
-					}
-			
-				}
-				
-			}
-			else
-			{
-				$retnode = $session->make_text( 
-						"[name missing: $name]" );
-				$session->get_repository->log(
-"missing parameter \"$name\" when making phrase \"$phraseid\"" );
-			}
-		
-
-		}
-
-		if( $name eq "phrase" )
-		{
-			$retnode = $session->make_doc_fragment;
-		}
-	}
-
-	# If the retnode was not "pin" or "phrase" element...
-	if( !defined $retnode )
-	{
-		$retnode = $session->clone_for_me( $node, 0 );
-	}
-
-	if( EPrints::XML::is_dom( $retnode, "Text" ) )
-	{
-		# can't insert kids on a text node!
-		# 
-		# This can happen if we have a <pin> which spans
-		# a range but is not set. Then the whole range
-		# becomes a "not found" text node.
-		return $retnode;
-	}
-
-	foreach my $kid ( $node->getChildNodes() )
-	{
-		$retnode->appendChild(
-			_insert_pins( $kid, $session, $inserts, $used, $phraseid ) );
-	}
-
-	return $retnode;
 }
 
 
@@ -416,7 +321,7 @@ sub _read_phrases
 	foreach $element ( $phrases->getChildNodes )
 	{
 		my $name = $element->getNodeName;
-		if( $name eq "phrase" || $name eq "ep:phrase" )
+		if( $name eq "phrase" || $name eq "epp:phrase" )
 		{
 			my $key = $element->getAttribute( "id" );
 			if( !defined $key || $key eq "")

@@ -158,7 +158,7 @@
   </stage>
 
   <stage name="subjects">
-    <component type="Field::Subject" collapse="yes"><field ref="subjects" required="yes" /></component>
+    <component type="Field::Subject"><field ref="subjects" required="yes" /></component>
   </stage>
 
 </workflow>

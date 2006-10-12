@@ -6,8 +6,7 @@
 .ep_sr_component {
 	padding: 0px;
 	background-color: transparent;
-	margin-bottom: 5px;
-	margin-top: 5px;
+	margin-top: 10px;
 }
 .ep_sr_component .ep_sr_title_bar {
 	background-image: url(/style/images/toolbox_title.png);
@@ -38,10 +37,9 @@
 	background-image: url(/style/images/toolbox_title.png);
 	padding: 2px 6px 2px 6px; 
 	border: solid 1px #d8dbef;
-	margin-bottom: 5px;
-	margin-top: 5px;
 	font-weight: bold;
 	font-size: 115%;
+	margin-top: 10px;
 }
 .ep_sr_collapse_bar a {
 	text-decoration: none;

@@ -431,7 +431,7 @@ sub putEprint
 	my $id = $eprint->get_id;
 	$eprint->generate_static;
 
-	my $eprintID = $session->make_element( "eprintID", "xsi:type"=>"xsd:int" );
+	my $eprintID = $session->make_element( "eprintID", "xsi:type"=>"xsd:string" );
 	$eprintID->appendChild( $session->make_text( $id ) );
 	return $eprintID;
 }
@@ -466,7 +466,7 @@ sub addDocument
 	my $id = $doc->get_id;
 	$eprint->generate_static;
 	
-	my $documentID = $session->make_element( "documentID", "xsi:type"=>"xsd:int" );
+	my $documentID = $session->make_element( "documentID", "xsi:type"=>"xsd:string" );
 	$documentID->appendChild( $session->make_text( $id ) );
 	return $documentID;
 }
