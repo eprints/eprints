@@ -47,18 +47,20 @@ This module is basically a clone of File::Temp, but provides an object-interface
 
 =item EPrints::TempDir->new()
 
-Create a temporary directory (see File::Temp for a description of the relevant
-arguments);
+Create a temporary directory (see L<File::Temp>::tempdir for a description of
+the arguments);
 
 =cut
 
-# When this object is used in string context return the directory
+# When this object is stringified return the directory name
 use overload '""' => sub { return shift->{'dir'} };
 
-sub new {
+sub new
+{
 	my $class = shift;
 	my $templ = 'eprintsXXXXX';
-	if( 1 == @_ % 2 ) {
+	if( 1 == @_ % 2 )
+	{
 		$templ = shift;
 	}
 	my %args = (TEMPLATE=>$templ,@_);
@@ -69,7 +71,8 @@ sub new {
 sub DESTROY
 {
 	my $self = shift;
-	if( $self->{UNLINK} ) {
+	if( $self->{UNLINK} )
+	{
 		rmtree($self->{dir},0,0);
 	}
 }
