@@ -4556,3 +4556,7 @@ PACKAGE: 2.2.99.2
  * Removed a stray collapse option from the subjects input component
     in the default workflow.
  * Added a little padding to the top of the tabs 
+
+2006-10-12 cjg
+ * Added citation function to epscript
+ * Added yesno function to epscript

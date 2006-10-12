@@ -70,6 +70,10 @@ sub print
 	my $result = execute( $code, $state );	
 #	print STDERR  "IFTEST:::".$expr." == $result\n";
 
+	if( $result->[1] eq "XHTML"  )
+	{
+		return $result->[0];
+	}
 	if( $result->[1] eq "BOOLEAN"  )
 	{
 		return $state->{session}->make_text( $result->[0]?"TRUE":"FALSE" );
@@ -294,6 +298,29 @@ sub run_is_set
 
 	return [ EPrints::Utils::is_set( $param->[0] ), "BOOLEAN" ];
 } 
+
+sub run_citation
+{
+	my( $self, $state, $object, $citationid ) = @_;
+
+	my $stylespec = $state->{session}->get_citation_spec( $object->[0]->get_dataset, $citationid->[0] );
+
+	my $citation = EPrints::XML::collapse_conditions( $stylespec, item=>$object->[0], session=>$state->{session} );
+
+	return [ $citation, "XHTML" ];
+}
+
+sub run_yesno
+{
+	my( $self, $state, $left ) = @_;
+
+	if( $left->[0] )
+	{
+		return [ "yes", "STRING" ];
+	}
+
+	return [ "no", "STRING" ];
+}
 
 sub run_one_of
 {
