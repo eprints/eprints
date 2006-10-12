@@ -129,6 +129,11 @@ sub clone_and_own
 {
 	my( $node, $doc, $deep ) = @_;
 
+	if( !defined $node )
+	{
+		EPrints::abort( "no node passed to clone_and_own" );
+	}
+
 	my $newnode;
 	$deep = 0 unless defined $deep;
 

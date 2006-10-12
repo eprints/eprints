@@ -51,27 +51,11 @@ sub update_from_form
 		{
 			my $doc_data = { eprintid => $self->{dataobj}->get_id };
 
-        		my @formats = $self->{session}->get_repository->get_types( "document" );
-			# make a very loose stab at the file format
-			my $filename = $self->{session}->param( $self->{prefix}."_first_file" );
-			if( $filename=~m/\.([^.]+)$/ )
-			{
-				my $suffix = $1;
-				foreach my $format ( @formats ) 
-				{ 
-					if( $suffix eq $format )
-					{
-						$doc_data->{format} = $suffix;
-						last;
-					}
-					# some hacks
-					if( $suffix eq "htm" && $format eq "html" ) { $doc_data->{format} = $format; }
-					if( $suffix eq "txt" && $format eq "ascii" ) { $doc_data->{format} = $format; }
-					if( $suffix eq "jpg" && $format eq "image" ) { $doc_data->{format} = $format; }
-					if( $suffix eq "gif" && $format eq "image" ) { $doc_data->{format} = $format; }
-					if( $suffix eq "png" && $format eq "image" ) { $doc_data->{format} = $format; }
-				}
-			}
+			my $repository = $self->{session}->get_repository;
+			my $guess_doc_type = $repository->get_conf( "guess_doc_type" );
+			$doc_data->{format} = &{$guess_doc_type}(
+				$self->{session},
+				$self->{session}->param( $self->{prefix}."_first_file" ) );
 
 			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
 			my $document = $doc_ds->create_object( $self->{session}, $doc_data );

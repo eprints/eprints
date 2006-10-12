@@ -250,7 +250,7 @@ sub run_PROPERTY
 
 	if( !defined $objvar->[0] )
 	{
-		$self->runtime_error( "can't get a property from undef".$self->{value} );
+		$self->runtime_error( "can't get a property {".$self->{value}."} from undefined value" );
 	}
 	my $ref = ref($objvar->[0]);
 	if( $ref eq "HASH" )

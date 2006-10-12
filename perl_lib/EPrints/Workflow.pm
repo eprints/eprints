@@ -92,6 +92,10 @@ sub new
 	$params{in} = $self->description;
 
 	$self->{raw_config} = $self->{repository}->get_workflow_config( $self->{dataset}->confid, $workflow_id );
+	if( !defined $self->{raw_config} ) 
+	{
+		EPrints::abort( "Failed to find workflow: ".$self->{dataset}->confid.".$workflow_id" );
+	}
 	$self->{config} = EPrints::XML::collapse_conditions( $self->{raw_config}, %params );
 
 	$self->_read_flow;

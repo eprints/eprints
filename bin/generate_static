@@ -309,12 +309,13 @@ sub copy_xpage
 		return;
 	}
 
-	my( $elements ) = EPrints::XML::find_elements( $doc, "title", "body" );
+	my( $elements ) = EPrints::XML::find_elements( $doc, "xpage:title", "xpage:body" );
 
 	my $parts;
 	foreach my $part ( "title", "body" )
 	{
-		if( !defined $elements->{$part} )
+		my $node = $elements->{"xpage:$part"};
+		if( !$node )
 		{
 			$session->get_repository->log( "Error: no $part element in ".$from );
 			EPrints::XML::dispose( $doc );
@@ -322,7 +323,7 @@ sub copy_xpage
 		}
 		$parts->{$part} = $session->make_doc_fragment;
 			
-		foreach my $kid ( $elements->{$part}->getChildNodes )
+		foreach my $kid ( $node->getChildNodes )
 		{
 			$parts->{$part}->appendChild( 
 				EPrints::XML::collapse_conditions( 

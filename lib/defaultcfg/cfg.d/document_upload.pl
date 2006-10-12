@@ -45,3 +45,33 @@ $c->{diskspace_error_threshold} = 64*1024;
 $c->{diskspace_warn_threshold} = 512*1024;
 
 
+# make a very loose stab at the file format
+# By default this just looks at the filename suffix, but there's no reason
+# It can't be much more clever.
+# It must return a legal document format id.
+$c->{guess_doc_type} = sub
+{
+	my( $session, $filename ) = @_;
+
+	my @formats = $session->get_repository->get_types( "document" );
+
+	if( $filename=~m/\.([^.]+)$/ )
+	{
+		my $suffix = $1;
+		foreach my $format ( @formats ) 
+		{ 
+			if( $suffix eq $format )
+			{
+				return $suffix;
+			}
+			# some hacks
+			if( $suffix eq "htm" && $format eq "html" ) { return "html"; }
+			if( $suffix eq "txt" && $format eq "ascii" ) { return "ascii"; }
+			if( $suffix eq "jpg" && $format eq "image" ) { return "image"; }
+			if( $suffix eq "gif" && $format eq "image" ) { return "image"; }
+			if( $suffix eq "png" && $format eq "image" ) { return "image"; }
+		}
+	}
+
+	return "other";
+};

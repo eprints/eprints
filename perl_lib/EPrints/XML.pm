@@ -199,6 +199,11 @@ sub to_string
 {
 	my( $node, $enc, $noxmlns ) = @_;
 
+	if( !defined $node )
+	{
+		EPrints::abort( "no node passed to to_string" );
+	}
+
 	$enc = 'utf-8' unless defined $enc;
 	
 	my @n = ();
@@ -590,13 +595,17 @@ sub collapse_conditions
 {
 	my( $node, %params ) = @_;
 
+	if( !defined $node )
+	{
+		EPrints::abort( "no node passed to collapse_conditions" );
+	}
 # cjg - Potential bug if: <ifset a><ifset b></></> and ifset a is disposed
 # then ifset: b is processed it will crash.
 	
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
 		my $name = $node->getTagName;
-		$name =~ s/^ep://;
+		$name =~ s/^epc://;
 
 		# old style
 		if( $name =~ m/^ifset|ifnotset|ifmatch|ifnotmatch$/ )
