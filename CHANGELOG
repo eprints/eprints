@@ -4575,3 +4575,6 @@ PACKAGE: 2.2.99.2
  * Moved js files around so they load in the right order.
  * Put dotted lines between elements in multi-component.
  * Removed the "may be ommited" text from date input.
+
+2006-10-13 cjg
+ * Added warning on running scripts as root.

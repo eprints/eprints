@@ -6,8 +6,12 @@ BEGIN {
 	use Carp qw(cluck);
 
 	umask( 0002 );
+
+	if( $< == 0 )
+	{
+		abort( "Do not run EPrints scripts as root!");
+	}
 	
-	# Paranoia: This may annoy people, or help them... cjg
 
 	# mod_perl will probably be running as root for the main httpd.
 	# The sub processes should run as the same user as the one specified
