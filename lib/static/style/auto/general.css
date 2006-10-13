@@ -41,4 +41,10 @@ hr {
 	height: 2px;
 }
 
+.ep_required {
+}
 
+.ep_toggle a, a.ep_toggle {
+	text-decoration: none;
+	color: #44c;
+}

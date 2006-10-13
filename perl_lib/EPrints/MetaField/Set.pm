@@ -195,7 +195,7 @@ sub render_set_input
 		my $row;
 		if( $input_style eq "long" )
 		{
-			$row = $session->make_element( "row" );
+			$row = $session->make_element( "dt" );
 		}
 		else
 		{

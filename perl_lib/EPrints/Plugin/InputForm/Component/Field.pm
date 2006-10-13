@@ -129,6 +129,21 @@ sub get_fields_handled
 
 =pod
 
+=item $boolean = $component->has_help()
+
+Returns true if this component has help available.
+
+=cut
+
+sub has_help
+{
+	my( $self ) = @_;
+
+	return 1;
+}
+
+=pod
+
 =item $help = $component->render_help()
 
 Returns DOM containing the help text for this component.

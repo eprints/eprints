@@ -4566,3 +4566,12 @@ PACKAGE: 2.2.99.2
     of radio buttons.
  * Made most sets use this input style.
 
+2006-10-13 cjg
+ * Fixed bug in render-set-long
+ * Added xml tidy to pins so that we can debug the HTML. This needs to
+    become a config option.
+ * Show/Hide of help, subjects and collapsed components now uses animation.
+ * Help for multiple components is now inlined into the table.
+ * Moved js files around so they load in the right order.
+ * Put dotted lines between elements in multi-component.
+ * Removed the "may be ommited" text from date input.

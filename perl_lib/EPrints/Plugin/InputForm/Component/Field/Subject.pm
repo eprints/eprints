@@ -391,12 +391,12 @@ sub _render_subnode
 		push @classes, "ep_no_js";
 		if( $expanded )
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggle('${prefix}_kids',true,'block');EPJS_toggle('${prefix}_hide',true,'inline');EPJS_toggle('${prefix}_show',false,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${prefix}_kids',true,'block');EPJS_toggle('${prefix}_hide',true,'inline');EPJS_toggle('${prefix}_show',false,'inline');return false" );
 			$show->setAttribute( "style", "display:none" );
 		}
 		else # not expanded
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggle('${prefix}_kids',false,'block');EPJS_toggle('${prefix}_hide',false,'inline');EPJS_toggle('${prefix}_show',true,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${prefix}_kids',false,'block');EPJS_toggle('${prefix}_hide',false,'inline');EPJS_toggle('${prefix}_show',true,'inline');return false" );
 			$hide->setAttribute( "style", "display:none" );
 		}
 
@@ -421,11 +421,13 @@ sub _render_subnode
 	if( $has_kids )
 	{
 		my $div = $session->make_element( "div", id => $prefix."_kids" );
+		my $div_inner = $session->make_element( "div", id => $prefix."_kids_inner" );
 		if( !$expanded ) 
 		{ 
 			$div->setAttribute( "class", "ep_no_js" ); 
 		}
-		$div->appendChild( $self->_render_subnodes( $subject, $depth ) );
+		$div_inner->appendChild( $self->_render_subnodes( $subject, $depth ) );
+		$div->appendChild( $div_inner );
 		$r_node->appendChild( $div );
 	}
 

@@ -2312,6 +2312,7 @@ sub prepare_page
 			}
 			elsif( defined $map->{$pinid} )
 			{
+EPrints::XML::tidy( $map->{$pinid} );
 				push @output, $map->{$pinid}->toString;
 			}
 		}

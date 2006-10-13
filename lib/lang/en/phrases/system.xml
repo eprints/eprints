@@ -113,11 +113,18 @@ EPrints Modules
     <epp:phrase id="lib/metafield:false">No</epp:phrase>
 
     <epp:phrase id="lib/metafield:date_res_second"></epp:phrase>
-    <epp:phrase id="lib/metafield:date_res_hour">"Second" may be omitted.<br/></epp:phrase>
+<!--
+    <epp:phrase id="lib/metafield:date_res_minute">"Second" may be omitted.<br/></epp:phrase>
     <epp:phrase id="lib/metafield:date_res_hour">"Minute" and "Second" may be omitted.<br/></epp:phrase>
     <epp:phrase id="lib/metafield:date_res_day">"Year" and "Month" and "Day" are necessary.<br/></epp:phrase>
     <epp:phrase id="lib/metafield:date_res_month">Only "Year" and "Month" are necessary.<br/></epp:phrase>
     <epp:phrase id="lib/metafield:date_res_year">Only "Year" is necessary.<br/></epp:phrase>
+-->
+    <epp:phrase id="lib/metafield:date_res_minute"></epp:phrase>
+    <epp:phrase id="lib/metafield:date_res_hour"></epp:phrase>
+    <epp:phrase id="lib/metafield:date_res_day"></epp:phrase>
+    <epp:phrase id="lib/metafield:date_res_month"></epp:phrase>
+    <epp:phrase id="lib/metafield:date_res_year"></epp:phrase>
 
     <!-- phrases used to seperate multiple values in a field -->
     <!-- you can use .first and .last to make the first or 
@@ -1190,7 +1197,7 @@ Titles and Help for the System Fields
 
 <!-- export -->
 
-    <epp:phrase id="sys:ep_form_required"><img src="/style/images/required.png" border="0" alt="Required"/>&nbsp;<epc:pin name="label"/></epp:phrase>
+    <epp:phrase id="sys:ep_form_required"><img src="/style/images/required.png" border="0" class="ep_required" alt="Required"/>&nbsp;<epc:pin name="label"/></epp:phrase>
 
 
 
@@ -1237,6 +1244,11 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <epc:pin name="placeholding"/> component</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <epc:pin name="placeholding"/> component</epp:phrase>
 
+	<!-- Multi -->
+
+    <epp:phrase id="Plugin/InputForm/Component/Field/Multi:show_help"><epc:pin name="link">Show&nbsp;Help&nbsp;<img alt="+" src="/style/images/plus.png" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="Plugin/InputForm/Component/Field/Multi:hide_help"><epc:pin name="link">Hide&nbsp;Help&nbsp;<img alt="-" src="/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
+	
 	<!-- Surround -->
 
     <epp:phrase id="Plugin/InputForm/Surround/Default:show_help"><epc:pin name="link">Show Help <img alt="+" src="/style/images/plus.png" border="0"/></epc:pin></epp:phrase>

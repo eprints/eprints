@@ -23,7 +23,7 @@
 	font-size: 115%;
 	color: #444;
 }
-.ep_sr_component .ep_sr_input {
+.ep_sr_component .ep_sr_content {
 	text-align: left;
 	clear: both;
 	background-image: url(/style/images/toolbox.png);
@@ -51,7 +51,7 @@
 /* help style - not primetime */
 
 .ep_sr_component .ep_sr_help {
-	padding-bottom: 8px;
+	margin-bottom: 8px;
 }
 .ep_sr_component .ep_sr_show_help {
 	white-space: nowrap;
