@@ -4583,3 +4583,6 @@ PACKAGE: 2.2.99.2
  * Removed code which checks we're not running as root, and removed code
     that tries to do a change uid if we're root. Even if it works, the taint
     flag still applies.
+
+2006-10-16 cjg
+ * Fixed a bug that stopped you logging out.
