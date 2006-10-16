@@ -20,7 +20,7 @@
 #
 ######################################################################
 
-sub validate_user
+$c->{validate_user} = sub
 {
 	my( $user, $session, $for_archive ) = @_;
 
@@ -29,6 +29,6 @@ sub validate_user
 	# CHECKS IN HERE
 
 	return( @problems );
-}
+};
 
 1;

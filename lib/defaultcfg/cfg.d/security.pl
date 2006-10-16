@@ -7,7 +7,7 @@
 # succeed.
 # use REQ for request (location) based security, so it doesn't then
 # ask for a username/password after passing the first part.
-sub document_security_rule
+$c->{document_security_rule} = sub
 {
 	my( $security ) = @_;
 
@@ -17,12 +17,12 @@ sub document_security_rule
 	# return( "REQ" ) if( $security eq "campus" );
 
 	return( "REQ_AND_USER" );
-}
+};
 
 # this method handles checking to see if a basic request is allowed to
 # view a secured document. Usually this means checking the IP address 
 # but other aspects of the request could also be used.
-sub can_request_view_document
+$c->{can_request_view_document} = sub
 {
 	my( $doc, $r ) = @_;
 
@@ -58,9 +58,9 @@ sub can_request_view_document
 "unrecognized request security flag '$security' on document ".$doc->get_id );
 	# return 0 if we don't recognise the security flag.
 	return( 0 );
-}
+};
 
-sub can_user_view_document
+$c->{can_user_view_document} = sub
 {
 	my( $doc, $user ) = @_;
 
@@ -113,7 +113,7 @@ sub can_user_view_document
 "unrecognized user security flag '$security' on document ".$doc->get_id );
 	# Unknown security type, be paranoid and deny permission.
 	return( 0 );
-}
+};
 
 
 

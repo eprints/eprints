@@ -84,20 +84,19 @@ sub send_mail
 
 	if( !defined $p{from_email} ) 
 	{
-		$p{from_name} = EPrints::Session::best_language( 
-			$repository,
-			$p{langid},
-			%{$repository->get_conf( "archivename" )} );
+		$p{from_name} = $p{session}->phrase( "archive_name" );
 		$p{from_email} = $repository->get_conf( "adminemail" );
 	}
-
-	my $mail_func = $p{session}->get_repository->get_conf( "send_email" );
-	if( !defined $mail_func )
+	
+	my $result;
+	if( $repository->can_call( 'send_email' ) )
 	{
-		$mail_func = \&send_mail_via_sendmail;
+		$result = $repository->call( 'send_email', %p );
 	}
-
-	my $result = &{$mail_func}( %p );
+	else
+	{
+		$result = send_mail_via_sendmail( %p );
+	}
 
 	if( !$result )
 	{

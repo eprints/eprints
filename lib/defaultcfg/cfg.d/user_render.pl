@@ -15,7 +15,7 @@ Returns an $xhtmlfragment (see L<EPrints::XML>).
 ######################################################################
 
 
-sub user_render
+$c->{user_render} = sub
 {
 	my( $user, $session ) = @_;
 
@@ -80,5 +80,5 @@ sub user_render
 		
 
 	return( $info );
-}
+};
 

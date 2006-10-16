@@ -22,7 +22,7 @@
 #
 ######################################################################
 
-sub validate_eprint
+$c->{validate_eprint} = sub
 {
 	my( $eprint, $session, $for_archive ) = @_;
 
@@ -54,4 +54,4 @@ sub validate_eprint
 	}
 
 	return( @problems );
-}
+};

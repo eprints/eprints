@@ -1017,17 +1017,7 @@ sub call_property
 		return &{$v}(@args);
 	}	
 
-	# We've got a scalar then...
-
-	unless( $v=~/::/ )
-	{
-		$v = "EPrints::Config::".$self->{repository}->get_id."::".$v;
-	}
-
-	no strict "refs";
-	my @r = &{$v}(@args);
-	use strict "refs";
-	return @r;
+	return $self->{repository}->call( $v, @args );
 }
 
 

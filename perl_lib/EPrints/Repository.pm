@@ -1064,8 +1064,12 @@ sub call
 {
 	my( $self, $cmd, @params ) = @_;
 
-	my $fn = \&{$self->{class}."::".$cmd};
-			
+	my $fn = $self->get_conf( $cmd );
+	if( !$fn || ref $fn ne "CODE" )
+	{
+		$fn = \&{$self->{class}."::".$cmd};
+	}
+	
 	local $SIG{__WARN__} = sub {
         	my( $msg ) = @_;
         	my @a = split( " at ", $msg );
@@ -1101,6 +1105,9 @@ package.
 sub can_call($$)
 {
 	my( $self, $cmd ) = @_;
+	
+	my $fn = $self->get_conf( $cmd );
+	return( 1 ) if( $fn && ref $fn eq "CODE" );
 
 	# We're going to be turning strings into references
 	no strict 'refs';

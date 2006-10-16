@@ -1,5 +1,5 @@
 
-sub set_user_automatic_fields
+$c->{set_user_automatic_fields} = sub
 {
 	my( $user ) = @_;
 
@@ -7,4 +7,4 @@ sub set_user_automatic_fields
 	{
 		$user->set_value( "frequency", "never" );
 	}
-}
+};

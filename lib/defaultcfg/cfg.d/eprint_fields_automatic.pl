@@ -1,5 +1,5 @@
 
-sub set_eprint_automatic_fields
+$c->{set_eprint_automatic_fields} = sub
 {
 	my( $eprint ) = @_;
 
@@ -61,5 +61,5 @@ sub set_eprint_automatic_fields
 	$eprint->set_value( "fileinfo", join( "|", @finfo ) );
 
 
-}
+};
 

@@ -4600,3 +4600,11 @@ PACKAGE: 2.2.99.2
  
 2006-10-16 cjg
  * Fixed minor bug in javascript tabs caused by the "tidy" HTML output.
+
+2006-10-16 moj
+ * Converted all subs in cfg.d to be $c->{mysub} = sub
+ * Converted Repository::call and can_call to handle this
+ * Converted most &{...} calls to use Repository::call - some still need
+     changing, but will need an alteration to the call method.
+ * Added some missing phrases to system.xml
+ * Added missing namespace info to epadmin

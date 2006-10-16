@@ -15,7 +15,7 @@ The fileinfo field is updated using the "L<set_eprint_automatic_fields|ArchiveMe
 
 ######################################################################
 
-sub render_fileinfo
+$c->{render_fileinfo} = sub
 {
 	my( $session, $field, $value ) = @_;
 
@@ -27,7 +27,7 @@ sub render_fileinfo
 	}
 
 	return $f;
-}
+};
 
 sub _render_fileicon
 {

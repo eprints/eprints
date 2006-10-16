@@ -23,7 +23,7 @@
 #
 ######################################################################
 
-sub validate_field
+$c->{validate_field} = sub
 {
 	my( $field, $value, $session, $for_archive ) = @_;
 
@@ -80,7 +80,7 @@ sub validate_field
 
 
 	return( @problems );
-}
+};
 
 
 

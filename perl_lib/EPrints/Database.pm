@@ -2135,11 +2135,12 @@ sub do
 {
 	my( $self , $sql ) = @_;
 
-	my $adjust_fn = $self->{session}->get_repository->get_conf( 'sql_adjust' );
-	if( defined $adjust_fn )
+	
+	if( $self->{session}->get_repository->can_call( 'sql_adjust' ) )
 	{
-		$sql = &{$adjust_fn}( $sql );
+		$sql = $self->{session}->get_repository->call( 'sql_adjust', $sql );
 	}
+	
 	my( $secs, $micro );
 	if( $self->{debug} )
 	{
@@ -2199,11 +2200,11 @@ sub prepare
 {
 	my ( $self , $sql ) = @_;
 
-	my $adjust_fn = $self->{session}->get_repository->get_conf( 'sql_adjust' );
-	if( defined $adjust_fn )
+	if( $self->{session}->get_repository->can_call( 'sql_adjust' ) )
 	{
-		$sql = &{$adjust_fn}( $sql );
+		$sql = $self->{session}->get_repository->call( 'sql_adjust', $sql );
 	}
+	
 #	if( $self->{debug} )
 #	{
 #		$self->{session}->get_repository->log( "Database prepare debug: $sql" );

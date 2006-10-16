@@ -653,10 +653,13 @@ sub _transfer
 
 	# Trigger any actions which are configured for eprints status
 	# changes.
-	my $status_change_fn = $self->{session}->get_repository->get_conf( 'eprint_status_change' );
-	if( defined $status_change_fn )
+	if( $self->{session}->get_repository->can_call( 'eprint_status_change' ) )
 	{
-		&{$status_change_fn}( $self, $old_status, $new_status );
+		$self->{session}->get_repository->call( 
+			'eprint_status_change', 
+			$self, 
+			$old_status, 
+			$new_status );
 	}
 
 	# if this succeeds something then update its metadata visibility
@@ -946,11 +949,15 @@ sub skip_validation
 {
 	my( $self ) = @_;
 
-	my $skip_func = $self->{session}->get_repository->get_conf( "skip_validation" );
-
-	return( 0 ) if( !defined $skip_func );
-
-	return &{$skip_func}( $self );
+	my $repos = $self->{session}->get_repository;
+	if( $repos->can_call( 'skip_validation' ) )
+	{
+		return $repos->call( 'skip_validation', $self );
+	}
+	else
+	{
+		return( 0 );
+	}
 }
 
 
@@ -1042,7 +1049,9 @@ sub required_formats
 	if( ref( $fmts ) ne "ARRAY" )
 	{
 		# function pointer then...
-		$fmts = &{$fmts}($self->{session},$self);
+		$fmts = $self->{session}->get_repository->call(
+			'required_formats',
+			$self );
 	}
 
 	return @{$fmts};

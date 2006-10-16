@@ -78,7 +78,7 @@ my $FREETEXT_SEPERATOR_CHARS = {
 #
 ######################################################################
 
-sub extract_words
+$c->{extract_words} = sub
 {
 	my( $session, $text ) = @_;
 
@@ -189,5 +189,5 @@ sub extract_words
 	my( @b ) = keys %bad;
 
 	return( \@g , \@b );
-}
+};
 

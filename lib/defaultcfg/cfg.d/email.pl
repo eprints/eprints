@@ -26,7 +26,8 @@ $c->{send_email} = \&EPrints::Utils::send_mail_via_smtp;
 #};
 
 
-sub email_for_doc_request {
+$c->{email_for_doc_request} = sub 
+{
 	my ( $session, $eprint ) = @_;
 	# To turn off this feature, uncomment the line below
 	#return undef;
@@ -39,4 +40,4 @@ sub email_for_doc_request {
 	}
 	return $session->get_repository->get_conf("adminemail");
 }
-
+;

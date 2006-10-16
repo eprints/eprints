@@ -14,7 +14,7 @@ Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (a
 
 ######################################################################
 
-sub eprint_render
+$c->{eprint_render} = sub
 {
 	my( $eprint, $session ) = @_;
 
@@ -384,6 +384,6 @@ if(0){
 	}
 
 	return( $page, $title, $links );
-}
+};
 
 

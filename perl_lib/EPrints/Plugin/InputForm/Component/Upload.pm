@@ -52,8 +52,7 @@ sub update_from_form
 			my $doc_data = { eprintid => $self->{dataobj}->get_id };
 
 			my $repository = $self->{session}->get_repository;
-			my $guess_doc_type = $repository->get_conf( "guess_doc_type" );
-			$doc_data->{format} = &{$guess_doc_type}(
+			$repository->call( 'guess_doc_type', 
 				$self->{session},
 				$self->{session}->param( $self->{prefix}."_first_file" ) );
 

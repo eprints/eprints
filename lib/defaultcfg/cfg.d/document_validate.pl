@@ -20,7 +20,7 @@
 ######################################################################
 
 
-sub validate_document
+$c->{validate_document} = sub
 {
 	my( $document, $session, $for_archive ) = @_;
 
@@ -67,4 +67,4 @@ sub validate_document
 
 
 	return( @problems );
-}
+};

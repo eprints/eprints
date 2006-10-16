@@ -37,7 +37,7 @@ $c->{loghandler}->{enable} = 1;
 #
 ######################################################################
 
-sub log
+$c->{log} = sub
 {
 	my( $repository, $message ) = @_;
 
@@ -46,6 +46,6 @@ sub log
 	# You may wish to use this line instead if you have many repositories, but if you
 	# only have on then it's just more noise.
 	#print STDERR "[".$repository->get_id()."] ".$message."\n";
-}
+};
 
 
