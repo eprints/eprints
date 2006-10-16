@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session
+# EPrints::TempDir
 #
 ######################################################################
 #
@@ -37,9 +37,11 @@ EPrints::TempDir - Create temporary directories that can automatically be remove
 		DIR => 'mydir',
 		UNLINK => 1);
 
+	opendir DIR, "$dir"; # Stringifies object
+
 =head1 DESCRIPTION
 
-This module is basically a clone of File::Temp, but provides an object-interface to directory creation.
+This module is basically a clone of File::Temp, but provides an object-interface to directory creation. When the object goes out of scope (and UNLINK is specified) the directory will automatically get removed.
 
 =head1 METHODS
 
@@ -55,6 +57,8 @@ the arguments);
 # When this object is stringified return the directory name
 use overload '""' => sub { return shift->{'dir'} };
 
+# NB this can't use my( $class ) = @_ because it may take 1 argument or named
+# arguments
 sub new
 {
 	my $class = shift;
@@ -70,7 +74,7 @@ sub new
 
 sub DESTROY
 {
-	my $self = shift;
+	my( $self ) = @_;
 	if( $self->{UNLINK} )
 	{
 		rmtree($self->{dir},0,0);
