@@ -4578,3 +4578,8 @@ PACKAGE: 2.2.99.2
 
 2006-10-13 cjg
  * Added warning on running scripts as root.
+
+2006-10-16 cjg
+ * Removed code which checks we're not running as root, and removed code
+    that tries to do a change uid if we're root. Even if it works, the taint
+    flag still applies.

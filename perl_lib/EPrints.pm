@@ -7,18 +7,12 @@ BEGIN {
 
 	umask( 0002 );
 
-	if( $< == 0 )
-	{
-		abort( "Do not run EPrints scripts as root!");
-	}
-	
-
 	# mod_perl will probably be running as root for the main httpd.
 	# The sub processes should run as the same user as the one specified
 	# in $EPrints::SystemSettings
 	# An exception to this is running as root (uid==0) in which case
 	# we can become the required user.
-	unless( $ENV{MOD_PERL} ) 
+	if( ! $ENV{MOD_PERL} ) 
 	{
 		#my $req($login,$pass,$uid,$gid) = getpwnam($user)
 		my $req_username = $EPrints::SystemSettings::conf->{user};
@@ -27,18 +21,8 @@ BEGIN {
 		my $req_gid = (getgrnam($req_group))[2];
 
 		my $username = (getpwuid($>))[0];
-		if( $> == 0 )
-		{
-			# Special case: Running as root, we change the 
-			# effective UID to be the one required in
-			# EPrints::SystemSettings
 
-			# remember kids, change the GID first 'cus you
-			# can't after you change from root UID.
-			$) = $( = $req_gid;
-			$> = $< = $req_uid;
-		}
-		elsif( $username ne $req_username )
+		if( $username ne $req_username )
 		{
 			abort( 
 "We appear to be running as user: ".$username."\n".
