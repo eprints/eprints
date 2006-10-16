@@ -371,7 +371,8 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $new_id = _create_id( $session );
+	my $new_id = $session->get_database->counter_next( "eprintid" );
+
 	my $dir = _create_directory( $session, $new_id );
 
 	$data->{eprintid} = $new_id;
@@ -391,22 +392,6 @@ sub get_defaults
 		$session );
 
 	return $data;
-}
-
-######################################################################
-# 
-# $eprintid = EPrints::DataObj::EPrint::_create_id( $session )
-#
-#  Create a new EPrint ID code. (Unique across all eprint datasets)
-#
-######################################################################
-
-sub _create_id
-{
-	my( $session ) = @_;
-	
-	return $session->get_database->counter_next( "eprintid" );
-
 }
 
 
@@ -1227,7 +1212,7 @@ sub local_path
 		$self->{session}->get_repository->log( "EPrint ".$self->get_id." has no directory set." );
 		return undef;
 	}
-	
+
 	return( 
 		$self->{session}->get_repository->get_conf( 
 			"documents_path" )."/".$self->get_value( "dir" ) );
@@ -1251,21 +1236,10 @@ sub url_stem
 
 	my $repository = $self->{session}->get_repository;
 
-	my $shorturl = $repository->get_conf( "use_short_urls" );
-	$shorturl = 0 unless( defined $shorturl );
-
 	my $url;
 	$url = $repository->get_conf( "base_url" );
-	$url .= '/archive' unless( $shorturl );
 	$url .= '/';
-	if( $shorturl )
-	{
-		$url .= $self->get_value( "eprintid" )+0;
-	}
-	else
-	{
-		$url .= sprintf( "%08d", $self->get_value( "eprintid" ) );
-	}
+	$url .= $self->get_value( "eprintid" )+0;
 	$url .= '/';
 
 	return $url;
@@ -1281,8 +1255,6 @@ Generate the static version of the abstract web page. In a multi-language
 repository this will generate one version per language.
 
 If called on inbox or buffer, remove the abstract page.
-
-Always create the symlinks for documents in the secure area.
 
 =cut
 ######################################################################
@@ -1322,30 +1294,10 @@ sub generate_static
 				$full_path . "/index",
 				{title=>$title, page=>$page, head=>$links },
 				"default" );
-	
-			next if( $status ne "archive" );
-			# Only live archive records have actual documents 
-			# available.
-	
-			my @docs = $self->get_all_documents;
-			my $doc;
-			foreach $doc ( @docs )
-			{
-				if( $doc->is_public )
-				{
-					$doc->create_symlink( $self, $full_path );
-				}
-			}
 		}
 		$self->{session}->change_lang( $real_langid );
 	}
 
-	my @docs = $self->get_all_documents;
-	foreach my $doc ( @docs )
-	{
-		my $linkdir = EPrints::DataObj::Document::_secure_symlink_path( $self );
-		$doc->create_symlink( $self, $linkdir );
-	}
 }
 
 ######################################################################

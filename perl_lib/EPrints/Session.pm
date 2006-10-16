@@ -2458,7 +2458,7 @@ sub clone_for_me
 ######################################################################
 =pod
 
-=item $session->redirect( $url )
+=item $session->redirect( $url, [%opts] )
 
 Redirects the browser to $url.
 
@@ -2467,7 +2467,7 @@ Redirects the browser to $url.
 
 sub redirect
 {
-	my( $self, $url ) = @_;
+	my( $self, $url, %opts ) = @_;
 
 	# Write HTTP headers if appropriate
 	if( $self->{"offline"} )
@@ -2481,7 +2481,8 @@ sub redirect
 		$self->{"request"},
 		"Location",
 		$url );
-	EPrints::Apache::AnApache::send_http_header( $self->{"request"} );
+
+	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
 }
 
 
@@ -2528,8 +2529,12 @@ sub send_http_header
 	my $r = $self->{request};
 	my $c = $r->connection;
 	
+	# from apache notes (cgi script)
 	my $code = $c->notes->get( "cookie_code" );
 	$c->notes->set( cookie_code=>'undef' );
+
+	# from opts (document)
+	$code = $opts{code} if( defined $opts{code} );
 	
 	if( defined $code && $code ne 'undef')
 	{
@@ -2756,12 +2761,12 @@ sub _current_user_auth_cookie
 		return undef;
 	}
 
-	my $username = $self->{request}->user;
 
 	# we won't have the cookie for the page after login.
 	my $c = $self->{request}->connection;
 	my $userid = $c->notes->get( "userid" );
 	$c->notes->set( "userid", 'undef' );
+
 	if( EPrints::Utils::is_set( $userid ) && $userid ne 'undef' )
 	{	
 		my $user = EPrints::DataObj::User->new( $self, $userid );

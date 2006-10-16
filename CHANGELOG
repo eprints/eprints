@@ -4586,3 +4586,15 @@ PACKAGE: 2.2.99.2
 
 2006-10-16 cjg
  * Fixed a bug that stopped you logging out.
+
+2006-10-16 cjg
+ * Rewrote document security to use rewrite rules not symlinks!
+ * Removed concept of "areas" in apache security
+ * Removed the secure/ dir as this was just used for symlinks
+ * Documents URLs are now /444/1/ not /444/01/ but the old style will 
+    redirect and the filesystem still uses "01" not "1".
+ * Added pos to Document and Subscription. This will be used to order them.
+ * Added documentid counter to generate unique ID's for documents
+ * Documents now use integer to acutally identify themselves.
+ * Removed support for not short_urls 
+ 

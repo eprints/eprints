@@ -356,7 +356,7 @@ else
 my $cgidir = EPrints::Config::get( "cgi_path" );
 my $adminemail = $repository->get_conf( "adminemail" );
 my $htdocs_path = $repository->get_conf( "htdocs_path" );
-my $htdocs_secure_path = $repository->get_conf( "htdocs_secure_path" );
+my $documents_path = $repository->get_conf( "documents_path" );
 my $host = $repository->get_conf( "host" );
 my $port = $repository->get_conf( "port" );
 my $urlpath = $repository->get_conf( "urlpath" );
@@ -531,6 +531,12 @@ print CONF <<END;
     AddType 'text/html; charset=UTF-8' .html
   </Directory>
 
+  <Directory "$documents_path">
+    AuthName "Documents Area"
+    PerlAuthenHandler EPrints::Apache::Auth::authen_doc
+    PerlAuthzHandler EPrints::Apache::Auth::authz_doc
+  </Directory>
+
   <Directory "$cgidir">
     SetHandler perl-script
     PerlHandler $registry_module
@@ -546,7 +552,6 @@ my $secureconfig = <<END;
     AuthType "Basic"
     PerlAuthenHandler EPrints::Apache::Auth::authen
     PerlAuthzHandler EPrints::Apache::Auth::authz
-    PerlSetVar EPrints_Security_Area User
     require valid-user
 
     SetHandler perl-script
@@ -557,31 +562,6 @@ my $secureconfig = <<END;
   <Directory "$cgidir/users/awstats">
     PerlSendHeader On
   </Directory>
-
-  <Directory "$htdocs_secure_path">
-    AuthName "Secure Document Area"
-    AuthType "Basic"
-    PerlAuthenHandler EPrints::Apache::Auth::authen
-    PerlAuthzHandler EPrints::Apache::Auth::authz
-    PerlSetVar EPrints_Security_Area Documents
-    require valid-user
-  </Directory>
-
-  # This sets up the change_user URL, which does
-  # not have a REAL file associated with it, it
-  # forces the browser to fail to register the
-  # current user as a valid user, and thus ask
-  # for re-validation.
-  <Location "$securepath/change_user">
-    AuthName "User Area"
-    AuthType "Basic"
-    PerlAuthenHandler EPrints::Apache::Auth::authen
-    PerlAuthzHandler EPrints::Apache::Auth::authz
-    PerlSetVar EPrints_Security_Area ChangeUser
-    PerlSetVar EPrints_ArchiveID $repository_id
-    require valid-user
-    Redirect $securepath/change_user $userhome
-  </Location>
 
 END
 
@@ -603,7 +583,6 @@ my $securebase = "https://".$securehost.$securepath;
 
 print CONF <<END;
 
-  Redirect /secure/ $securebase/secure/
   Redirect /perl/users/ $securebase/perl/users/
   Redirect /change_user $securebase/change_user
   Redirect /perl/confirm $securebase/perl/accounts/confirm
@@ -670,7 +649,6 @@ print CONF <<END;
   Alias $securepath/perl/accounts/reset_password $cgidir/reset_password
   Alias $securepath/perl/accounts/set_password $cgidir/set_password
   Alias $securepath/perl/users/ $cgidir/users/
-  Alias $securepath/secure/ $htdocs_secure_path/
   Alias $securepath/ $htdocs_path/
 
 ##### END OF CONFIG FOR $id

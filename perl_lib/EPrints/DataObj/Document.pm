@@ -122,7 +122,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"docid", type=>"text", required=>1, import=>0 },
+		{ name=>"docid", type=>"int", required=>1, import=>0 },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
 
@@ -130,6 +130,8 @@ sub get_system_field_info
 
 		{ name=>"eprintid", type=>"itemref",
 			datasetid=>"eprint", required=>1 },
+
+		{ name=>"pos", type=>"int", required=>1 },
 
 		{ name=>"format", type=>"namedset", required=>1, input_rows=>1,
 			set_name=>"document" },
@@ -251,6 +253,22 @@ sub create
 }
 
 ######################################################################
+# 
+# $eprintid = EPrints::DataObj::Document::_create_id( $session )
+#
+#  Create a new Document ID code. 
+#
+######################################################################
+
+sub _create_id
+{
+	my( $session ) = @_;
+	
+	return $session->get_database->counter_next( "documentid" );
+
+}
+
+######################################################################
 # =pod
 # 
 # =item $dataobj = EPrints::DataObj::Document->create_from_data( $session, $data, $dataset )
@@ -289,7 +307,17 @@ END
 
 	$document->set_under_construction( 1 );
 
-	_create_directory( $document->get_id, $eprint ); 
+	my $dir = $document->local_path();
+
+	if( -d $dir )
+	{
+		$eprint->get_session()->get_repository->log( "Dir $dir already exists!" );
+	}
+	elsif(!EPrints::Utils::mkdir($dir))
+	{
+		$eprint->get_session()->get_repository->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$document->get_value( "docid" )." ($dir): ".$! );
+		return undef;
+	}
 
 	if( defined $data->{files} )
 	{
@@ -313,9 +341,6 @@ END
 		}
 	}
 
-	my $linkdir = _secure_symlink_path( $eprint );
-	$document->create_symlink( $eprint, $linkdir );
-
 	$document->set_under_construction( 0 );
 
 	return $document;
@@ -337,11 +362,13 @@ sub get_defaults
 
 	my $eprint = EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
 
-	if( defined $data->{eprintid} )
-	{
-		$data->{docid} = _generate_doc_id( $session, $eprint );
-	}
+	$data->{docid} = $session->get_database->counter_next( "documentid" );
+
 	$data->{rev_number} = 1;
+
+	# this needs to become the lowest possible pos for this document
+	# before beta!
+	$data->{pos} = 1;
 
 	$session->get_repository->call( 
 			"set_document_defaults", 
@@ -352,160 +379,8 @@ sub get_defaults
 	return $data;
 }
 
-######################################################################
-# 
-# $success = EPrints::DataObj::Document::_create_directory( $id, $eprint )
-#
-#  Make Document $id a directory. $eprint is the EPrint this document
-#  is associated with.
-#
-######################################################################
-
-sub _create_directory
-{
-	my( $id, $eprint ) = @_;
-	
-	my $dir = $eprint->local_path()."/".docid_to_path( $eprint->get_session()->get_repository, $id );
-
-	if( -d $dir )
-	{
-		$eprint->get_session()->get_repository->log( "Dir $dir already exists!" );
-		return 1;
-	}
-
-	# Return undef if dir creation failed. Should always have created 1 dir.
-	if(!EPrints::Utils::mkdir($dir))
-	{
-		$eprint->get_session()->get_repository->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($dir): ".$! );
-		return 0;
-	}
-	else
-	{
-		return 1;
-	}
-}
 
 
-######################################################################
-=pod
-
-=item $success = $doc->create_symlink( $eprint, $linkdir )
-
-Symbolically link the directory containing this document into the
-directory $linkdir. If $linkdir does not exist then create it.
-
-=cut
-######################################################################
-
-sub create_symlink
-{
-	my( $self, $eprint, $linkdir ) = @_;
-
-	my $id = $self->get_value( "docid" );
-
-	my $repository = $eprint->get_session()->get_repository;
-
-	my $dir = $eprint->local_path()."/".docid_to_path( $repository, $id );
-
-	unless( -d $linkdir )
-	{
-		my @created = EPrints::try sub { mkpath( $linkdir, 0,  $EPrints::SystemSettings::conf->{"dir_perms"}  ); };
-
-		if( scalar @created == 0 )
-		{
-			$repository->log( "Error creating symlink target dir for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." ($linkdir): ".$! );
-			return( 0 );
-		}
-	}
-
-	my $symlink = $linkdir."/".docid_to_path( $repository, $id );
-	if( -e $symlink )
-	{
-		unlink( $symlink );
-	}
-	unless( symlink( $dir, $symlink ) )
-	{
-		$repository->log( "Error creating symlink for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$id." symlink($dir to $symlink): ".$! );
-		return( 0 );
-	}	
-
-	return( 1 );
-}
-
-
-######################################################################
-=pod
-
-=item $success = $doc->remove_symlink( $eprint, $linkdir )
-
-Remove a symlink in $linkdir created by $doc->create_symlink
-
-=cut
-######################################################################
-
-sub remove_symlink
-{
-	my( $self, $eprint, $linkdir ) = @_;
-
-	my $id = $self->get_value( "docid" );
-
-	my $repository = $eprint->get_session()->get_repository;
-
-	my $symlink = $linkdir."/".docid_to_path( $repository, $id );
-
-	unless( unlink( $symlink ) )
-	{
-		$repository->log( "Failed to unlink secure symlink for ".$eprint->get_value( "eprintid" ).", docid=".$id." ($symlink): ".$! );
-		return( 0 );
-	}
-	return( 1 );	
-}
-
-#cjg: should this belong to eprint?
-######################################################################
-# 
-# EPrints::DataObj::Document::_secure_symlink_path( $eprint )
-#
-# undocumented
-#
-######################################################################
-
-sub _secure_symlink_path
-{
-	my( $eprint ) = @_;
-
-	my $repository = $eprint->get_session()->get_repository;
-		
-	return( $repository->get_conf( "htdocs_secure_path" )."/".EPrints::DataObj::EPrint::eprintid_to_path( $eprint->get_value( "eprintid" ) ) );
-}
-
-
-######################################################################
-=pod
-
-=item $path = EPrints::DataObj::Document::docid_to_path( $repository, $docid )
-
-Return the name of the directory (in the eprint directory) in which
-to place this document.
-
-=cut
-######################################################################
-
-sub docid_to_path
-{
-	my( $repository, $docid ) = @_;
-
-	$docid =~ m/-(\d+)$/;
-	my $id = $1;
-	if( !defined $1 )
-	{
-		$repository->log( "Doc ID did not take expected format: \"".$docid."\"" );
-		# Setting id to "badid" is messy, but recoverable. And should
-		# be noticed easily enough.
-		$id = "badid";
-	}
-	return $id;
-}
 
 
 ######################################################################
@@ -613,14 +488,7 @@ sub remove
 {
 	my( $self ) = @_;
 
-	# If removing the symlink fails then it's not the end of the 
-	# world. We will delete all the files it points to. 
-
 	my $eprint = $self->get_eprint();
-
-	$self->remove_symlink( 
-		$self->get_eprint(),
-		_secure_symlink_path( $eprint ) );
 
 	# Remove database entry
 	my $success = $self->{session}->get_database->remove(
@@ -698,24 +566,9 @@ sub get_baseurl
 
 	my $repository = $self->{session}->get_repository;
 
-	# Unless this is a public doc in "repository" then the url should
-	# point into the secure area. 
+	my $docpath = sprintf( "%02d",$self->get_value( "pos" ) );
 
-	my $shorturl = $repository->get_conf( "use_short_urls" );
-	$shorturl = 0 unless( defined $shorturl );
-
-	my $docpath = docid_to_path( $repository, $self->get_value( "docid" ) );
-
-	if( $self->is_public )
-	{
-		return $eprint->url_stem.$docpath.'/';
-	}
-
-	my $url = $repository->get_conf( "secure_url" ).'/';
-	$url .= sprintf( "%08d", $eprint->get_value( "eprintid" ) );
-	$url .= '/'.$docpath.'/';
-
-	return $url;
+	return $eprint->url_stem.$docpath.'/';
 }
 
 ######################################################################
@@ -793,7 +646,7 @@ sub local_path
 		return( undef );
 	}	
 	
-	return( $eprint->local_path()."/".docid_to_path( $self->{session}->get_repository, $self->get_value( "docid" ) ) );
+	return( $eprint->local_path()."/".sprintf( "%02d", $self->get_value( "pos" ) ) );
 }
 
 

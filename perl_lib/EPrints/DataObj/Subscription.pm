@@ -70,11 +70,14 @@ sub get_system_field_info
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>1 },
 
+		{ name=>"pos", type=>"int", required=>1 },
+
 		{ 
 			name => "spec",
 			type => "search",
-			datasetid => "archive",
-			fieldnames => "subscriptionfields"
+fieldnames => "subscriptionfields",
+
+			datasetid => "eprint",
 		},
 
 		{ name=>"frequency", type=>"set", required=>1,

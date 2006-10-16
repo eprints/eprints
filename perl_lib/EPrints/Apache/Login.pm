@@ -36,7 +36,6 @@ sub handler
 			my $params = $session->param("params");
 			$c->notes->set( params=>$params );
 
-
 			return DECLINED;
 		}
 

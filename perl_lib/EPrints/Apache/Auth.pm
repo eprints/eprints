@@ -40,117 +40,19 @@ use EPrints::Apache::AnApache; # exports apache constants
 #use EPrints::SystemSettings;
 
 
-######################################################################
-=pod
-
-=item $result = EPrints::Apache::Auth::authen( $r )
-
-Authenticate a request. This works in a slightly whacky way.
-
-If the username isn't a valid user in the current repository then it
-fails right away.
-
-Otherwise it looks up the type of the given user. Then it looks up
-in the repository configuration to find how to authenticate that user
-type (a reference to another authen function, probably a normal
-3rd party mod_perl library like AuthDBI.) and then makes a mock
-request and attempts to authenticate it using the authen function for
-that usertype.
-
-This is a bit odd, but allows, for example, you to have local users 
-being authenticated via LDAP and remote users authenticated by the
-normal eprints AuthDBI method.
-
-If the authentication area is "ChangeUser" then it returns true unless
-the current user is the user specified in the URL. This will allow a
-user to log in as someone else.
-
-=cut
-######################################################################
 
 sub authen
 {
 	my( $r ) = @_;
 
 	return OK unless $r->is_initial_req; # only the first internal request
-
+	
 	my $session = new EPrints::Session(2); # don't open the CGI info
 	
 	if( !defined $session )
 	{
 		return FORBIDDEN;
 	}
-
-	my $area = $r->dir_config( "EPrints_Security_Area" );
-
-	if( $area eq "Documents" )
-	{
-		my $document = secure_doc_from_url( $r, $session );
-		if( !defined $document ) 
-		{
-			$session->terminate();
-			return FORBIDDEN;
-		}
-
-		my $security = $document->get_value( "security" );
-
-#		if( $security->is_public )
-#		{
-#			$session->terminate();
-#			return OK;
-#		}
-
-		my $rule = "REQ_AND_USER";
-		if( $session->get_repository->can_call( "document_security_rule" ) )
-		{
-			$rule = $session->get_repository->call("document_security_rule", $security );
-		}
-		if( $rule !~ m/^REQ|REQ_AND_USER|REQ_OR_USER$/ )
-		{
-			$session->get_repository->log( "Bad document_security_rule: '$rule'." );
-			$session->terminate();
-			return FORBIDDEN;
-		}
-
-		my $req_view = 1;
-		if( $session->get_repository->can_call( "can_request_view_document" ) )
-		{
-			$req_view = $session->get_repository->call( "can_request_view_document", $document, $r );
-		}
-
-		if( $rule eq "REQ" )
-		{
-			if( $req_view )
-			{
-				$session->terminate();
-				return OK;
-			}
-
-			$session->terminate();
-			return FORBIDDEN;
-		}
-
-		if( $rule eq "REQ_AND_USER" )
-		{
-			if( !$req_view )
-			{
-				$session->terminate();
-				return FORBIDDEN;
-			}
-		}
-
-		if( $rule eq "REQ_OR_USER" )
-		{
-			if( $req_view )
-			{
-				$session->terminate();
-				return OK;
-			}
-		}
-
-		#otherwise we need a valid username
-	}
-
 
 	my $rc;
 	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
@@ -167,18 +69,113 @@ sub authen
 	return $rc;
 }
 
+sub authen_doc
+{
+	my( $r ) = @_;
+
+	my $session = new EPrints::Session(2); # don't open the CGI info
+	
+	if( !defined $session )
+	{
+		return FORBIDDEN;
+	}
+
+	my $document = secure_doc_from_url( $r, $session );
+
+	if( !defined $document ) 
+	{
+		$session->terminate();
+		return FORBIDDEN;
+	}
+
+	my $security = $document->get_value( "security" );
+
+	my $rule = "REQ_AND_USER";
+	if( $session->get_repository->can_call( "document_security_rule" ) )
+	{
+		$rule = $session->get_repository->call("document_security_rule", $security );
+	}
+	if( $rule !~ m/^REQ|REQ_AND_USER|REQ_OR_USER$/ )
+	{
+		$session->get_repository->log( "Bad document_security_rule: '$rule'." );
+		$session->terminate();
+		return FORBIDDEN;
+	}
+
+	my $req_view = 1;
+	if( $session->get_repository->can_call( "can_request_view_document" ) )
+	{
+		$req_view = $session->get_repository->call( "can_request_view_document", $document, $r );
+	}
+
+	if( $rule eq "REQ" )
+	{
+		if( $req_view )
+		{
+			$session->terminate();
+			return OK;
+		}
+
+		$session->terminate();
+		return FORBIDDEN;
+	}
+
+	if( $rule eq "REQ_AND_USER" )
+	{
+		if( !$req_view )
+		{
+			$session->terminate();
+			return FORBIDDEN;
+		}
+	}
+
+	if( $rule eq "REQ_OR_USER" )
+	{
+		if( $req_view )
+		{
+			$session->terminate();
+			return OK;
+		}
+	}
+
+	my $rc;
+	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	{
+		$rc = auth_cookie( $r, $session, 1 );
+	}
+	else
+	{
+		$rc = auth_basic( $r, $session );
+	}
+
+	$session->terminate();
+	return $rc;
+}
+
+
 
 
 sub auth_cookie
 {
-	my( $r, $session ) = @_;
+	my( $r, $session, $redir ) = @_;
 
 	my $user = $session->current_user;
 
 	if( !defined $user ) 
 	{
+		if( $redir )
+		{
+			my $target_url = $r->uri;
+			$target_url =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
+			my $login_url = $session->get_repository->get_conf( "perl_url" )."/users/login?target=$target_url";
+			$r->status_line( "302 Need to login first" );
+			EPrints::Apache::AnApache::header_out( $r, "Location", $login_url );
+			EPrints::Apache::AnApache::send_http_header( $r );
+			return DONE;
+		}
+
+
 		# bad ticket or no ticket
-		my $registry_module;
 		my $av =  $EPrints::SystemSettings::conf->{apache};
 		if( !defined $av || $av eq "1" ) 
 		{
@@ -208,16 +205,6 @@ sub auth_basic
 	}
 
 	my $area = $r->dir_config( "EPrints_Security_Area" );
-	if( $area eq "ChangeUser" )
-	{
-		if( $r->uri !~ m/\/$user_sent$/i )
-		{
-			return OK;
-		}
-		
-		$r->note_basic_auth_failure;
-		return AUTH_REQUIRED;
-	}
 
 	my $user_ds = $session->get_repository->get_dataset( "user" );
 
@@ -248,86 +235,20 @@ sub auth_basic
 }
 
 
-######################################################################
-=pod
-
-=item $results = EPrints::Apache::Auth::authz( $r )
-
-Tests to see if the user making the current request is authorised to
-see this URL.
-
-There are three kinds of security area in the system:
-
-=over 4
-
-=item User
-
-The main user area. Noramally /perl/users/. This just returns true -
-any valid user can access it. Individual scripts worry about who is 
-running them.
-
-=item Documents
-
-This is the secure documents area - for documents of records which
-are either not in the public repository, or have a non-public security
-option.
-
-In which case it works out which document is being viewed and calls
-$doc->can_view( $user ) to decide if it should allow them to view it
-or not.
-
-=item ChangeUser
-
-This area is just a way to de-validate the current user, so the user
-can log in as some other user. 
-
-=back
-
-=cut
-######################################################################
 
 sub authz
 {
 	my( $r ) = @_;
 
-	# If we are looking at the users section then do nothing, 
-	# but if we are looking at a document in the secure area then
-	# we need to do some work.
+
+	return OK;
+}
+
+sub authz_doc
+{
+	my( $r ) = @_;
 
 	my $session = new EPrints::Session(2); # don't open the CGI info
-	my $repository = $session->get_repository;
-
-	my $area = $r->dir_config( "EPrints_Security_Area" );
-
-	if( $area eq "ChangeUser" )
-	{
-		# All we need here is to check it's a valid user
-		# this is a valid user, which we have so let's
-		# return OK.
-
-		$session->terminate();
-		return OK;
-	}
-
-	if( $area eq "User" )
-	{
-		# All we need in the user area is to check that
-		# this is a valid user, which we have so let's
-		# return OK.
-
-		$session->terminate();
-		return OK;
-	}
-
-	if( $area ne "Documents" )
-	{
-		# Ok, It's not User or Documents which means
-		# something screwed up. 
-
-		$repository->log( "Request to ".$r->uri." in unknown EPrints HTTP Security area \"$area\"." );
-		$session->terminate();
-		return FORBIDDEN;
-	}
 
 	my $document = secure_doc_from_url( $r, $session );
 	if( !defined $document ) {
@@ -426,7 +347,7 @@ sub secure_doc_from_url
 	my $docid;
 	my $eprintid;
 
-	if( $uri =~ m#^/(\d\d\d\d\d\d\d\d)/(\d+)/# )
+	if( $uri =~ m#^/(\d+)/(\d+)/# )
 	{
 		# /archive/00000001/01/.....
 		# or

@@ -13,6 +13,6 @@ $c->{perl_url} = $c->{base_url}."/perl";
 # path from the baseurl as this is used by the authentication module
 # to extract the document number from the url, eg.
 # http://www.lemurprints.org/secure/00000120/01/index.html
-$c->{secure_urlpath} = "/secure"; 
-$c->{secure_url} = $c->{base_url}.$c->{secure_urlpath};
+#$c->{secure_urlpath} = "/secure"; 
+#$c->{secure_url} = $c->{base_url}.$c->{secure_urlpath};
 

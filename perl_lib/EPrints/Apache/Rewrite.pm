@@ -99,64 +99,53 @@ sub handler
 		return DECLINED if( $uri =~ m/^$exppath/ );
 	}
 	
-	# shorturl does not (yet) effect secure docs.
-	if( $uri =~ s#^/secure/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])#/secure/$1/$2/$3/$4# )
-	{
-		$r->filename( $repository->get_conf( "htdocs_path" )."/".$uri );
-		return OK;
-	}
-
-
-	my $shorturl = $repository->get_conf( "use_short_urls" );
-	$shorturl = 0 unless( defined $shorturl );
-
-	#$uri =~ s#^/archive/([0-9]+)([0-9][0-9])([0-9][0-9])([0-9][0-9])#/archive/$1/$2/$3/$4#;
-	if( $uri =~ m#^/archive/([0-9]+)(.*)$# )
-	{
-		# is a long record url
-		my $n = $1;
-		my $tail = $2;
-		my $redir =0;
-		if( $tail eq "" ) { $tail = "/"; $redir=1 }
-		
-		if( $shorturl )
-		{
-			# redirect to short form
-			return redir( $r, sprintf( "%s/%d%s",$urlpath, $n, $tail ).$args );
-		}
-
-		my $s8 = sprintf('%08d',$n);
-		$s8 =~ m/(..)(..)(..)(..)/;	
-		if( length $n < 8 || $redir)
-		{
-			# not enough zeros, redirect to correct version
-			return redir( $r, sprintf( "%s/archive/%08d%s",$urlpath, $n, $tail ).$args );
-		}
-		$uri = "/archive/$1/$2/$3/$4$tail";
-	}
-
-	
 	if( $uri =~ m#^/([0-9]+)(.*)$# )
 	{
-		# is a shorturl record url
-		my $n = $1;
+		my $eprintid = $1;
 		my $tail = $2;
 		my $redir = 0;
 		if( $tail eq "" ) { $tail = "/"; $redir = 1; }
-		if( !$shorturl )
-		{
-			# redir to long form
-			return redir( $r, sprintf( "%s/archive/%08d%s",$urlpath, $n, $tail ).$args);
-		} 
 
-		if( ($n + 0) ne $n || $redir)
+		if( ($eprintid + 0) ne $eprintid || $redir)
 		{
 			# leading zeros
-			return redir( $r, sprintf( "%s/%d%s",$urlpath, $n, $tail ).$args );
+			return redir( $r, sprintf( "%s/%d%s",$urlpath, $eprintid, $tail ).$args );
 		}
-		my $s8 = sprintf('%08d',$n);
+		my $s8 = sprintf('%08d',$eprintid);
 		$s8 =~ m/(..)(..)(..)(..)/;	
-		$uri = "/archive/$1/$2/$3/$4$tail";
+		my $splitpath = "$1/$2/$3/$4";
+		$uri = "/archive/$splitpath$tail";
+
+		if( $tail =~ s/^\/(\d+)// )
+		{
+			my $pos = $1;
+			if( $tail eq "" || $pos ne $pos+0 )
+			{
+				$tail = "/" if $tail eq "";
+				return redir( $r, sprintf( "%s/%d/%d%s",$urlpath, $eprintid, $pos, $tail ).$args );
+			}
+
+			my $session = new EPrints::Session(2); # don't open the CGI info
+			my $ds = $repository->get_dataset("eprint") ;
+			my $searchexp = new EPrints::Search( session=>$session, dataset=>$ds );
+			$searchexp->add_field( $ds->get_field( "eprintid" ), $eprintid );
+			my $results = $searchexp->perform_search;
+			my( $eprint ) = $results->get_records(0,1);
+			$searchexp->dispose;
+		
+			# let it fail if this isn't a real eprint	
+			if( !defined $eprint )
+			{
+				return OK;
+			}
+
+			my $filename = sprintf( '%s/%02d%s',$eprint->local_path, $pos, $tail );
+			$r->filename( $filename );
+
+			$session->terminate;
+			
+			return OK;
+		}
 	}
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves

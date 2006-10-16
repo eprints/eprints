@@ -64,7 +64,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "2.3.99.3";
+$EPrints::Database::DBVersion = "3.0";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -72,7 +72,7 @@ $EPrints::Database::DBVersion = "2.3.99.3";
 #
 # Counters
 #
-@EPrints::Database::counters = ( "eprintid", "userid", "subscriptionid","historyid","accessid","requestid" );
+@EPrints::Database::counters = ( "eprintid", "userid", "subscriptionid","historyid","accessid","requestid","documentid" );
 
 
 # ID of next buffer table. This can safely reset to zero each time

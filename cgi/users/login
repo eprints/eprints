@@ -1,0 +1,26 @@
+
+use EPrints;
+
+use strict;
+
+my $session = EPrints::Session->new();
+
+my $url = $session->param( "target" );
+my $c = $session->{request}->connection;
+
+my $code = $c->notes->get( "cookie_code" );
+
+my $cookie = $session->get_query->cookie(
+	-name    => "eprints_session",
+	-path    => "/",
+	-value   => $code,
+	-domain  => $session->get_repository->get_conf("cookie_domain"),
+	-expires => "+10y" );
+EPrints::Apache::AnApache::header_out( 
+	$session->get_request,
+	"Set-Cookie" => $cookie );
+if( !defined $url ) { $url = "/perl/users/home"; }
+$session->redirect( $url, code=>$code );
+
+$session->terminate;
+
