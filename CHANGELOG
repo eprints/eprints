@@ -4608,3 +4608,6 @@ PACKAGE: 2.2.99.2
      changing, but will need an alteration to the call method.
  * Added some missing phrases to system.xml
  * Added missing namespace info to epadmin
+
+2006-10-16 cjg
+ * Indexer now updates .pid every "tick"
