@@ -4598,3 +4598,5 @@ PACKAGE: 2.2.99.2
  * Documents now use integer to acutally identify themselves.
  * Removed support for not short_urls 
  
+2006-10-16 cjg
+ * Fixed minor bug in javascript tabs caused by the "tidy" HTML output.
