@@ -1063,13 +1063,24 @@ for this repository with the given params and returns the result.
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
-
-	my $fn = $self->get_conf( $cmd );
-	if( !$fn || ref $fn ne "CODE" )
-	{
-		$fn = \&{$self->{class}."::".$cmd};
-	}
 	
+	my $fn;
+	if( ref $cmd eq "ARRAY" )
+	{
+		$fn = $self->get_conf( @$cmd );
+	}
+	else
+	{
+		$fn = $self->get_conf( $cmd );
+	}
+
+	if( !defined $fn || ref $fn ne "CODE" )
+	{
+		# Can't log, as that could cause a loop.
+		print STDERR "Undefined or invalid function: $cmd\n";
+		return;
+	}
+
 	local $SIG{__WARN__} = sub {
         	my( $msg ) = @_;
         	my @a = split( " at ", $msg );
@@ -1102,23 +1113,14 @@ package.
 =cut
 ######################################################################
 
-sub can_call($$)
+sub can_call($$@)
 {
-	my( $self, $cmd ) = @_;
+	my( $self, $cmd, @subkeys ) = @_;
 	
-	my $fn = $self->get_conf( $cmd );
-	return( 1 ) if( $fn && ref $fn eq "CODE" );
+	my $fn = $self->get_conf( $cmd, @subkeys );
+	return( 0 ) unless( defined $fn );
 
-	# We're going to be turning strings into references
-	no strict 'refs';
-
-	my %namespace = %{$self->{class}."::"};
-
-	# Is there anything in the namespace called $cmd?
-	return( 0 ) unless( defined $namespace{$cmd} );
-
-	# is it a code reference?
-	return( 0 ) unless( defined *{$namespace{$cmd}}{CODE} );
+	return( 0 ) unless( ref $fn eq "CODE" );
 
 	return 1;
 }

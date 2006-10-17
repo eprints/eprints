@@ -2205,10 +2205,11 @@ sub prepare_page
 	
 	if( $self->get_repository->get_conf( "dynamic_template","enable" ) )
 	{
-		my $fn = $self->get_repository->get_conf( "dynamic_template","function" );
-		if( defined !$fn )
+		if( $self->get_repository->can_call( "dynamic_template", "function" ) )
 		{
-			&{$fn}( $self, $map );
+			$self->get_repository->call( [ "dynamic_template", "function" ],
+				$self,
+				$map );
 		}
 	}
 

@@ -215,22 +215,28 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
+	my $user_type = $user->get_value( "usertype" );
+
 	my $userauthdata = $session->get_repository->get_conf( 
-		"userauth", $user->get_value( "usertype" ) );
+		"userauth", $user_type ); 
 
 	if( !defined $userauthdata )
 	{
 		$session->get_repository->log(
-			"Unknown user type: ".$user->get_value( "usertype" ) );
+			"Unknown user type: ".$user_type );
 		return AUTH_REQUIRED;
 	}
 	my $authconfig = $userauthdata->{auth};
-	my $handler = $authconfig->{handler}; 
+	
 	# {handler} should really be removed before passing authconfig
 	# to the requestwrapper. cjg
 
 	my $rwrapper = $EPrints::Apache::AnApache::RequestWrapper->new( $r , $authconfig );
-	my $result = &{$handler}( $rwrapper );
+	
+	my $result = $session->get_repository->call( 
+		[ "userauth", $user_type, "auth", "handler" ],
+		$rwrapper );
+	
 	return $result;
 }
 

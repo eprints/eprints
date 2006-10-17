@@ -4611,3 +4611,11 @@ PACKAGE: 2.2.99.2
 
 2006-10-16 cjg
  * Indexer now updates .pid every "tick"
+
+2006-10-17 moj
+ * Added call support to Apache/Auth and Session for dynamic templates
+ * Adapted can_call to allow multiple args (for cases such as 
+	$c->{dynamic_template}->{function}).
+ * Removed previous namespace calls - now just uses the new approach.
+ * Returns and prints error if invalid call (note that it can't use
+    $self->log, as this uses call.
