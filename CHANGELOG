@@ -4619,3 +4619,7 @@ PACKAGE: 2.2.99.2
  * Removed previous namespace calls - now just uses the new approach.
  * Returns and prints error if invalid call (note that it can't use
     $self->log, as this uses call.
+
+2006-10-17 moj
+ * Shifted _render_fileicon to its own sub in $c->{render_fileicon}
+ * Altered eprint_render and fileinfo_render to use this.

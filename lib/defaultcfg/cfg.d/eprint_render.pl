@@ -112,7 +112,7 @@ $c->{eprint_render} = sub
 			$doctd = $session->make_element( "td" );
 			$doctr->appendChild( $doctd );
 			$doctd->appendChild( 
-				_render_fileicon( 
+				$session->get_repository->call( "render_fileicon", 
 					$session, 
 					$doc->get_type, 
 					$doc->get_url ) );

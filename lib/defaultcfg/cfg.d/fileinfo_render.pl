@@ -23,13 +23,14 @@ $c->{render_fileinfo} = sub
 	foreach my $icon ( split /\|/ , $value )
 	{
 		my( $type, $url ) = split( /;/, $icon );
-		$f->appendChild( _render_fileicon( $session, $type, $url ));
+		$f->appendChild( $session->get_repository->call( 
+			"render_fileicon", $session, $type, $url ) );
 	}
 
 	return $f;
 };
 
-sub _render_fileicon
+$c->{render_fileicon} = sub
 {
 	my( $session, $type, $url ) = @_;
 
@@ -46,6 +47,3 @@ sub _render_fileicon
 		border=>0 ));
 	return $a;
 }
-
-
-
