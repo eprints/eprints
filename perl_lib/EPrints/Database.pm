@@ -1160,6 +1160,33 @@ sub _create_permission_table
 ######################################################################
 =pod
 
+=item $n = $db->next_doc_pos( $eprintid )
+
+Return the next unused document pos for the given eprintid.
+
+=cut
+######################################################################
+
+sub next_doc_pos
+{
+	my( $self, $eprintid ) = @_;
+
+	if( $eprintid ne $eprintid + 0 )
+	{
+		EPrints::abort( "next_doc_pos got odd eprintid: '$eprintid'" );
+	}
+
+	my $sql = "SELECT MAX(pos) FROM document WHERE eprintid=$eprintid;";
+	my @row = $self->{dbh}->selectrow_array( $sql );
+
+	my $max = $row[0];
+
+	return $max + 1;
+}
+	
+######################################################################
+=pod
+
 =item $n = $db->counter_next( $counter )
 
 Return the next unused value for the named counter. Returns undef if 

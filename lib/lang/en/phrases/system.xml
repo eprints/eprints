@@ -1079,6 +1079,10 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Status:title">Repository status</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Error:title">Error</epp:phrase>
+
+
+    <epp:phrase id="Plugin/Screen/User/View:title">User Info.</epp:phrase>
+
 	
 	<epp:phrase id="Plugin/Screen/EPrint:deposit">Deposit</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint:deposit_progress">Deposit progress</epp:phrase>
