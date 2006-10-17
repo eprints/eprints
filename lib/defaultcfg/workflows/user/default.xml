@@ -3,42 +3,49 @@
 <workflow xmlns="http://eprints.org/ep3/workflow" xmlns:epc="http://eprints.org/ep3/control">
 
   <flow>
+    <epc:if test="$STAFF_ONLY = 'TRUE'"><stage ref="usertype"/></epc:if>
     <stage ref="default"/>
-    <stage ref="oo"/>
   </flow>
    
-  <stage name="oo">
+  <stage name="usertype">
       <component><field ref="usertype"/></component>
+      <component><field ref="username"/></component>
   </stage>
 
   <stage name="default">
-    <component><field ref="password"/></component>
-    <epc:if test="$STAFF_ONLY">
-      <component><field ref="usertype"/></component>
-      <component><field ref="username"/></component>
-      <component><field ref="email"/></component>
-    </epc:if>
-    <component><field ref="hideemail"/></component>
-    <component><field ref="name"><required/></field></component>
-    <component><field ref="dept"/></component>
-    <component><field ref="org"/></component>
-    <component><field ref="address"/></component>
-    <component><field ref="country"/></component>
-    <component><field ref="os"/></component>
-    <component><field ref="url"/></component>
+    <component type="Field::Multi">
+      <title><epc:phrase ref="moj_make_a_phrase_for_this" /></title>
+      <field ref="name" required="yes" />
+      <field ref="email"/>
+      <field ref="hideemail"/>
+      <field ref="password"/>
+      <field ref="url"/>
+    </component>
+
+    <component type="Field::Multi">
+      <title><epc:phrase ref="moj_make_a_phrase_for_address" /></title>
+      <field ref="dept"/>
+      <field ref="org"/>
+      <field ref="address"/>
+      <field ref="country"/>
+    </component>
 
     <epc:if test="usertype = 'editor'">
-      <epc:if test="$STAFF_ONLY">
-        <component><field ref="editperms"/></component>
-      </epc:if>
-      <component><field ref="frequency" required="yes" /></component>
-      <component><field ref="mailempty" required="yes" /></component>
+      <epc:if test="$STAFF_ONLY = 'TRUE'"><component><field ref="editperms"/></component></epc:if>
+      <component type="Field::Multi">
+        <title>Editorial Alerts</title>
+        <field ref="frequency" required="yes" />
+        <field ref="mailempty" required="yes" />
+      </component>
     </epc:if>
 
     <epc:if test="usertype = 'admin'">
       <component><field ref="editperms" /></component>
-      <component><field ref="frequency" required="yes" /></component>
-      <component><field ref="mailempty" required="yes" /></component>
+      <component type="Field::Multi">
+        <title>Editorial Alerts</title>
+        <field ref="frequency" required="yes" />
+        <field ref="mailempty" required="yes" />
+      </component>
     </epc:if>
 
   </stage>

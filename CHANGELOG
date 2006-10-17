@@ -4623,3 +4623,21 @@ PACKAGE: 2.2.99.2
 2006-10-17 moj
  * Shifted _render_fileicon to its own sub in $c->{render_fileicon}
  * Altered eprint_render and fileinfo_render to use this.
+
+2006-10-17 cjg
+ * Added Platform code (defaults to UNIX) so that cross platform issues
+    can be easily handled. 
+ * Made chmod and chown platform based functions.
+ * Made it possible to pass a type as well as a value in EPC state.
+ * Made STAFF_ONLY have type "BOOLEAN"
+ * Reorder now doesn't bother if there's zero or one results.
+ * Subjects Search now uses a nested view. Not perfect, but better.
+ * render_input_field and render_input_field_actual no longer pass the 
+    type.
+ * Session now uses XML::to_string to convert strings to XHTML, as does
+    repository template loading. This fixes a few bugs including the 
+    xmlns in HTML one.
+ * Added $session->reload_current_user and made logout call this.
+ * Reworked user workflow
+ * s/in_owner/has_owner/ in DataObj/User
+ * Added view and edit user (both own and other)

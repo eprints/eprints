@@ -354,7 +354,7 @@ sub load_workflows
 		}
 		my $item = $self->make_object( $mini_session, $data );
 		my $workflow = EPrints::Workflow->new( $mini_session, "default", item=> $item );
-		my $s_workflow = EPrints::Workflow->new( $mini_session, "default", item=> $item, "STAFF_ONLY"=>"TRUE" );
+		my $s_workflow = EPrints::Workflow->new( $mini_session, "default", item=> $item, "STAFF_ONLY"=>["TRUE","BOOLEAN"] );
 		$tdata->{page_order} = [$workflow->get_stage_ids];
 		$tdata->{fields} = { staff=>[], normal=>[] };
 		$tdata->{req_field_map} = {};

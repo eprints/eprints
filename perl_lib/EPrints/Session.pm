@@ -1927,7 +1927,7 @@ sub _render_input_form_field
 		class => "ep_form_field_input",
 		id => "inputfield_".$field->get_name );
 	$div->appendChild( $field->render_input_field( 
-		$self, $value, $dataset, $type, $staff, $hidden_fields , $object ) );
+		$self, $value, $dataset, $staff, $hidden_fields , $object ) );
 	$html->appendChild( $div );
 				
 	return( $html );
@@ -2133,7 +2133,7 @@ sub write_static_page
 		my $file = $filebase.".".$part_id;
 		if( open( CACHE, ">$file" ) )
 		{
-			print CACHE $parts->{$part_id}->toString;
+			print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
 			close CACHE;
 		}
 		else
@@ -2275,7 +2275,7 @@ sub prepare_page
 		if( $type eq "print" )
 		{
 			my $expr = join "", @parts;
-			my $result = EPrints::Script::print( $expr, { session=>$self } )->toString;
+			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$self } ), undef, 1 );
 			push @output, $result;
 			next;
 		}
@@ -2283,7 +2283,7 @@ sub prepare_page
 		if( $type eq "phrase" )
 		{	
 			my $phraseid = join "", @parts;
-			push @output, $self->html_phrase( $phraseid )->toString;
+			push @output, EPrints::XML::to_string( $self->html_phrase( $phraseid ), undef, 1 );
 			next;
 		}
 
@@ -2314,7 +2314,7 @@ sub prepare_page
 			elsif( defined $map->{$pinid} )
 			{
 EPrints::XML::tidy( $map->{$pinid} );
-				push @output, $map->{$pinid}->toString;
+				push @output, EPrints::XML::to_string( $map->{$pinid}, undef, 1 );
 			}
 		}
 
@@ -2693,6 +2693,13 @@ sub logout
 	my( $self ) = @_;
 
 	$self->{logged_out} = 1;
+}
+
+sub reload_current_user
+{
+	my( $self ) = @_;
+
+	delete $self->{current_user};
 }
 
 ######################################################################

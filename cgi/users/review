@@ -194,7 +194,7 @@ sub process_form
 
 		if( $act eq "remove" && $r_req)
 		{
-			unless( $user->is_owner( $eprint ) )
+			unless( $eprint->has_owner( $user ) )
 			{
 				$session->render_error(
 					$session->html_phrase( "cgi/users/review:cant_remove" ) );
@@ -206,7 +206,7 @@ sub process_form
 
 		if( $act eq "checkout" && $checkout)
 		{
-			unless( $user->is_owner( $eprint ) )
+			unless( $eprint->has_owner( $user ) )
 			{
 				$session->render_error(
 					$session->html_phrase( "cgi/users/review:cant_checkout" ) );
@@ -302,7 +302,7 @@ sub handle_removal_request
 			$session->html_phrase( "cgi/users/review:cant_find_it" ) );
 		return;
 	}		
-	if( !$user->is_owner( $eprint ) )
+	if( !$eprint->has_owner( $user ) )
 	{
 		$session->render_error(
 			$session->html_phrase( "cgi/users/review:cant_remove" ) );

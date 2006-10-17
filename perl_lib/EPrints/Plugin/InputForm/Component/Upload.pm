@@ -337,7 +337,6 @@ sub _render_doc
 				$session, 
 				$doc->get_value( $field->get_name ),
 				undef,
-				undef,
 				0,
 				undef,
 				$doc,

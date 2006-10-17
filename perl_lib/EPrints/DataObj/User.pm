@@ -153,7 +153,7 @@ sub get_system_field_info
 			fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"usertype", type=>"namedset", required=>1, 
-			set_name=>"user" },
+			set_name=>"user", input_style=>"medium" },
 	
 		{ name=>"newemail", type=>"email", show_in_html=>0 },
 	
@@ -183,7 +183,7 @@ sub get_system_field_info
 		{ name => "permission_group", multiple => 1, type => "namedset", 
 			set_name => "permission_group", },
 
-		{ name=>"frequency", type=>"set", 
+		{ name=>"frequency", type=>"set", input_style=>"medium",
 			options=>["never","daily","weekly","monthly"] },
 
 		{ name=>"mailempty", type=>"boolean", input_style=>"radio" }
@@ -620,7 +620,7 @@ True if the users are the same record.
 =cut
 ######################################################################
 
-sub is_owner
+sub has_owner
 {
 	my( $self, $possible_owner ) = @_;
 
@@ -1016,7 +1016,7 @@ my $PRIVMAP =
 
 	"edit-own-record" => 
 	{
-		"user/edit" => 2,
+		"user/edit" => 4,
 	},
 		
 	"set-password" => 
@@ -1068,7 +1068,8 @@ my $PRIVMAP =
 	},
 	"edit-user" => 
 	{
-		# not done
+		"user/view" => 8,
+		"user/staff/edit" => 8,
 	},
 
 	"view-status" => 

@@ -101,6 +101,11 @@ sub print
 			$field->set_property( "render_$k", $v );
 		}
 	}
+
+	if( !defined $field )
+	{
+		EPrints::abort( "No type for value '".$result->[0]."' (got from $code)" );
+	}
 	
 	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );
 }
@@ -166,6 +171,7 @@ sub run
 		
 			return [ 0, "BOOLEAN" ];
 		}
+		return $r if( ref( $r ) eq "ARRAY" );
 		return [ $r ];
 	}
 

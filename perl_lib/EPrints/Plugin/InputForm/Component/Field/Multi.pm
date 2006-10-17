@@ -215,7 +215,6 @@ sub render_content
 			$self->{session}, 
 			$value, 
 			undef,
-			undef,
 			0,
 			undef,
 			$self->{dataobj},

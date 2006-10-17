@@ -915,7 +915,7 @@ sub validate
 	# get the workflow
 
 	my %opts = ( item=> $self, session=>$self->{session} );
-	if( $for_archive ) { $opts{STAFF_ONLY} = "TRUE"; }
+	if( $for_archive ) { $opts{STAFF_ONLY} = ["TRUE","BOOLEAN"]; }
  	my $workflow = EPrints::Workflow->new( $self->{session}, "default", %opts );
 
 	my @problems = ();

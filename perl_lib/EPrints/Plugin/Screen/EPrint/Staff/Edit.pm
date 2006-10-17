@@ -56,6 +56,12 @@ sub render
 	return $form;
 }
 
+sub workflow
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::workflow( 1 );
+}
 
 sub render_buttons
 {

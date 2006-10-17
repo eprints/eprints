@@ -85,13 +85,10 @@ sub new
 	$params{current_user} = $session->current_user;
 	$self->{user} = $params{current_user};
 
-	# a bit of a hack so validating documents can know where
-	# they are validating for (live/buffer)
-	$self->{for_archive} = $params{STAFF_ONLY} eq "TRUE";
-
 	$params{in} = $self->description;
 
 	$self->{raw_config} = $self->{repository}->get_workflow_config( $self->{dataset}->confid, $workflow_id );
+
 	if( !defined $self->{raw_config} ) 
 	{
 		EPrints::abort( "Failed to find workflow: ".$self->{dataset}->confid.".$workflow_id" );
@@ -100,7 +97,6 @@ sub new
 
 	$self->_read_flow;
 	$self->_read_stages;
-
 
 	return( $self );
 }

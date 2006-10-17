@@ -131,6 +131,7 @@ END
 }
 
 use EPrints::BackCompatibility;
+use EPrints::Platform;
 use EPrints::XML;
 use EPrints::Utils;
 use EPrints::Config;

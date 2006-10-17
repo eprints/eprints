@@ -160,6 +160,12 @@ sub reorder
 {
 	my( $self, $new_order ) = @_;
 
+	# no need to order 0 or 1 length lists.
+	if( $self->count < 2 )
+	{
+		return $self;
+	}
+
 	# must be cached to be reordered
 
 	$self->cache;

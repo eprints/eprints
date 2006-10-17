@@ -419,7 +419,7 @@ sub render_help
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field( $session, $value, [$dataset, $type], [$staff], [$hidden_fields], $obj, [$basename] )
+=item $xhtml = $field->render_input_field( $session, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -432,7 +432,7 @@ The actual function called may be overridden from the config.
 
 sub render_input_field
 {
-	my( $self, $session, $value, $dataset, $type, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
 	if( defined $basename )
 	{
@@ -455,7 +455,6 @@ sub render_input_field
 			$session, 
 			$value, 
 			$dataset, 
-			$type, 
 			$staff,
 			$hidden_fields,
 			$obj,
@@ -466,7 +465,6 @@ sub render_input_field
 			$session, 
 			$value, 
 			$dataset, 
-			$type, 
 			$staff,
 			$hidden_fields,
 			$obj,
@@ -1086,7 +1084,7 @@ sub render_single_value
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field_actual( $session, $value, [$dataset, $type], [$staff], [$hidden_fields], [$obj], [$basename] )
+=item $xhtml = $field->render_input_field_actual( $session, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -1103,7 +1101,7 @@ with, if any.
 
 sub render_input_field_actual
 {
-	my( $self, $session, $value, $dataset, $type, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
 
 	my $elements = $self->get_input_elements( $session, $value, $staff, $obj, $basename );

@@ -215,7 +215,6 @@ sub render_content
 			$self->{session}, 
 			$value, 
 			$self->{dataobj}->get_dataset,
-			$self->{dataobj}->get_value( "type" ),
 			0, # staff mode should be detected from workflow
 			undef,
 			$self->{dataobj},

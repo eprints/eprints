@@ -522,7 +522,7 @@ sub _template_to_text
 
 	_divide_attributes( $template, $doc, $divide );
 
-	my @r = split( "$divide", $template->toString );
+	my @r = split( "$divide", EPrints::XML::to_string( $template,undef,1 ) );
 
 	return \@r;
 }

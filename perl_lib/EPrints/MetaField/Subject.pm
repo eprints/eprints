@@ -169,7 +169,11 @@ sub render_search_set_input
 	my $value = $searchfield->get_value;
 	
 	my $topsubj = $self->get_top_subject( $session );
-	my ( $pairs ) = $topsubj->get_subjects( 0, 0 );
+
+	my( $subjectmap, $rmap ) = EPrints::Subject::get_all( $session );
+
+	my $pairs = traverse_subjects( $topsubj, 1,$subjectmap, $rmap, "");
+
 	my $max_rows =  $self->get_property( "search_rows" );
 
 	#splice( @{$pairs}, 0, 0, [ "NONE", "(Any)" ] ); #cjg
@@ -192,6 +196,33 @@ sub render_search_set_input
 		pairs => $pairs,
 		height => $height );
 }	
+
+sub traverse_subjects
+{
+	my( $subject, $hidenode, $subjectmap, $rmap, $prefix) = @_; 
+	
+	my $id = $subject->get_value( "subjectid" );
+
+	my $desc = $subject->render_description;
+	my $label = EPrints::Utils::tree_to_utf8( $desc );
+	EPrints::XML::dispose( $desc );
+
+	my $subpairs = [];
+	unless( $hidenode )
+	{
+		push @{$subpairs},[ $id,$prefix.$label ];
+		$prefix .= "....";
+	}
+	$prefix = "" if( $hidenode );
+	foreach my $kid ( @{$rmap->{$id}} )
+	{
+		my $kidmap = traverse_subjects( $kid,0, $subjectmap, $rmap, $prefix );
+		push @{$subpairs}, @{$kidmap};
+	}
+
+	return $subpairs;
+}
+
 
 sub get_search_conditions_not_ex
 {

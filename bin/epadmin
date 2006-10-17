@@ -191,7 +191,7 @@ END
 	{
 		my $dir = $repodir."/".$_;
 		mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
-		chown( $uid, $gid, $dir );
+		EPrints::Platform::chown( $uid, $gid, $dir );
 	}
 	print <<END;
 
@@ -273,7 +273,7 @@ sub install
 	my @dirs = ();
 	my @files = ();
 	mkdir( $dest, $EPrints::SystemSettings::conf->{"dir_perms"} );
-	chown($user, $group, $dest);
+	EPrints::Platform::chown($user, $group, $dest);
 	while(my $item = readdir(INDIR))
 	{
 		next if $item=~m/^\./;
@@ -296,8 +296,8 @@ sub install
 		}		
 		close(OUTFILE);
 		close(INFILE);
-		chmod($perms, "$dest/$_");
-		chown($user, $group, "$dest/$_");
+		EPrints::Platform::chmod($perms, "$dest/$_");
+		EPrints::Platform::chown($user, $group, "$dest/$_");
 	}
 	foreach(@dirs)
 	{
