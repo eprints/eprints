@@ -1105,7 +1105,7 @@ sub call
 ######################################################################
 =pod
 
-=item $boolean = $repository->can_call( $cmd )
+=item $boolean = $repository->can_call( @cmd_conf_path )
 
 Return true if the given subroutine exists in this repository's config
 package.
@@ -1113,11 +1113,11 @@ package.
 =cut
 ######################################################################
 
-sub can_call($$@)
+sub can_call
 {
-	my( $self, $cmd, @subkeys ) = @_;
+	my( $self, @cmd_conf_path ) = @_;
 	
-	my $fn = $self->get_conf( $cmd, @subkeys );
+	my $fn = $self->get_conf( @cmd_conf_path );
 	return( 0 ) unless( defined $fn );
 
 	return( 0 ) unless( ref $fn eq "CODE" );
