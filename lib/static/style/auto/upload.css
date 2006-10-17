@@ -13,7 +13,10 @@
 	margin-bottom: 1em;
 }
 
-
+.ep_upload_fields th
+{
+	text-align: right;
+}
 
 /* Document section */
 

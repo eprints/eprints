@@ -364,11 +364,9 @@ sub get_defaults
 
 	$data->{docid} = $session->get_database->counter_next( "documentid" );
 
-	$data->{rev_number} = $session->get_database->next_doc_pos( $data->{eprintid} );
+	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
 
-	# this needs to become the lowest possible pos for this document
-	# before beta!
-	$data->{pos} = 1;
+	$data->{rev_number} = 1;
 
 	$session->get_repository->call( 
 			"set_document_defaults", 

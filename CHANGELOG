@@ -4641,3 +4641,11 @@ PACKAGE: 2.2.99.2
  * Reworked user workflow
  * s/in_owner/has_owner/ in DataObj/User
  * Added view and edit user (both own and other)
+
+2006-10-17 cjg 
+ * Fixed tiny bug introduced by call code which broke guessing file format.
+ * Fixed regexps to match new style document ids.
+ * Fixed pos of new documents.
+ * Added style to upload document fields table.
+ * Right aligned document fields titles.
+ 

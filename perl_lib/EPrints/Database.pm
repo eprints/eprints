@@ -1178,7 +1178,6 @@ sub next_doc_pos
 
 	my $sql = "SELECT MAX(pos) FROM document WHERE eprintid=$eprintid;";
 	my @row = $self->{dbh}->selectrow_array( $sql );
-
 	my $max = $row[0];
 
 	return $max + 1;

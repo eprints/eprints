@@ -52,7 +52,7 @@ sub update_from_form
 			my $doc_data = { eprintid => $self->{dataobj}->get_id };
 
 			my $repository = $self->{session}->get_repository;
-			$repository->call( 'guess_doc_type', 
+			$doc_data->{format} = $repository->call( 'guess_doc_type', 
 				$self->{session},
 				$self->{session}->param( $self->{prefix}."_first_file" ) );
 
@@ -74,7 +74,7 @@ sub update_from_form
 			return ();
 		}
 
-		if( $internal =~ m/^doc(\d+-\d+)_(.*)$/ )
+		if( $internal =~ m/^doc(\d+)_(.*)$/ )
 		{
 			my $doc = EPrints::DataObj::Document->new(
 				$self->{session},
@@ -206,7 +206,7 @@ sub render_content
 
 	my $internal = $self->get_internal_button;
 	my $affected_doc_id = undef;
-	if( $internal =~ m/^doc(\d+-\d+)_(.*)$/ )
+	if( $internal =~ m/^doc(\d+)_(.*)$/ )
 	{
 		$affected_doc_id = $1;
 	}
@@ -322,7 +322,7 @@ sub _render_doc
 
 	if( scalar @fields )
 	{
-		my $table = $session->make_element( "table" );
+		my $table = $session->make_element( "table", class=>"ep_upload_fields" );
 		$doc_cont->appendChild( $table );
 		foreach my $field ( @fields )
 		{
@@ -331,6 +331,7 @@ sub _render_doc
 			my $th = $session->make_element( "th" );
 			$tr->appendChild( $th );
 			$th->appendChild( $field->render_name($session) );
+			$th->appendChild( $session->make_text( ": ") );
 			my $td = $session->make_element( "td" );
 			$tr->appendChild( $td );
 			$td->appendChild( $field->render_input_field( 
