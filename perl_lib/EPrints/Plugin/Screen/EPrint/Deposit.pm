@@ -14,7 +14,12 @@ sub new
 		{
 			place => "eprint_actions",
 			position => 100,
-		}
+		},
+		{ 
+			place => "eprint_actions_owner_inbox", 
+			action => "deposit", 
+			position => 100, 
+		},
 	];
 
 	$self->{actions} = [qw/ deposit /];
@@ -31,14 +36,6 @@ sub can_be_viewed
 
 	return $self->allow( "eprint/deposit" );
 }
-
-sub allow_deposit
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
-}
-
 
 sub render
 {
@@ -77,6 +74,12 @@ sub render
 	return $page;
 }
 
+sub allow_deposit
+{
+	my( $self ) = @_;
+
+	return $self->can_be_viewed;
+}
 
 sub action_deposit
 {

@@ -454,63 +454,6 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
 User Area CGI Scripts
 ***********************************************************************-->
 
-<!-- home -->
-
-    <epp:phrase id="cgi/users/home:user_home">User Area Homepage - <epc:pin name="name"/></epp:phrase>
-    <epp:phrase id="cgi/users/home:before"><p>Before you use any of the user area functions, you must fill out your user information.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:change_link">View/change your user record</epp:phrase>
-    <epp:phrase id="cgi/users/home:change_info"><p>Select this option to see your user record, and to correct or update your user information.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:review_link">Review your items in the repository</epp:phrase>
-    <epp:phrase id="cgi/users/home:review_info"><p>This options allows you to view your items in the repository, and to make copies of the items to make depositing updated versions easier.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:new_item_link">Begin a New Item</epp:phrase>
-    <epp:phrase id="cgi/users/home:new_item_info"><p>This will create a new item start editing it and allow you to attach files. You must <i>deposit</i> the item for it to be added to the repository. Deposited items will not appear until they have been checked by a person with that responsibility. You should <a href="review">review your existing items</a> if you can't remember if you have deposited an item or not.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:import_item_link">Import an Item</epp:phrase>
-    <epp:phrase id="cgi/users/home:import_item_info"><p>Create a new item by cutting and pasting an existing bibliographic record.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:subscribe_link">Change your subscription options</epp:phrase>
-    <epp:phrase id="cgi/users/home:subscribe_info"><p>Select this option to change your subscription. This allows you to instruct the repository to automatically email you with lists of documents deposited that match your criteria every day, week or month.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:status_link">View the Repository status</epp:phrase>
-    <epp:phrase id="cgi/users/home:status_info"><p>This option allows you to view the current status of the system, including the number of items in each dataset.</p></epp:phrase>
-    
-    <epp:phrase id="cgi/users/home:staff_buffer_link">Editorial Review</epp:phrase>
-    <epp:phrase id="cgi/users/home:staff_buffer_info"><p>This option allows you to view, edit and approve items which users have submitted but have not yet been approved for the repository. You may only edit items within your editorial scope.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:staff_eprint_search_link">Staff EPrint Search</epp:phrase>
-    <epp:phrase id="cgi/users/home:staff_eprint_search_info"><p>This search gives you more power than the public search. It also gives you the option to edit or delete records.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:staff_user_search_link">User Search</epp:phrase>
-    <epp:phrase id="cgi/users/home:staff_user_search_info"><p>Search the list of users, view ALL their details and edit their records.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:staff_add_user_link">Add New User</epp:phrase>
-    <epp:phrase id="cgi/users/home:staff_add_user_info"><p>Create a new user.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:change_email_link">Change your Email Address</epp:phrase>
-    <epp:phrase id="cgi/users/home:change_email_info"><p>Change the email address which eprints has for you.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:staff_edit_subject_link">Use the Subject Editing Tool</epp:phrase>
-    <epp:phrase id="cgi/users/home:staff_edit_subject_info"><p>This option allows you to create, delete unlink, and link items in the subject tree.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:change_user_link">Change User Login</epp:phrase>
-    <epp:phrase id="cgi/users/home:change_user_info"><p>Log in to the repository as a different user. There is currently no "logout" feature.</p></epp:phrase>
-
-    <epp:phrase id="cgi/users/home:depositing"><p>These are items you are currently in the process of depositing. These will not be considered for the repository until you <i>deposit</i> them.</p></epp:phrase>
-    <epp:phrase id="cgi/users/home:no_pending"><p>You currently have no pending items</p></epp:phrase>
-    <epp:phrase id="cgi/users/home:deposited_at">Deposited <epc:pin name="time"/></epp:phrase>
-    <epp:phrase id="cgi/users/home:action_new">New</epp:phrase>
-    <epp:phrase id="cgi/users/home:action_delete">Delete</epp:phrase>
-    <epp:phrase id="cgi/users/home:action_edit">Edit</epp:phrase>
-    <epp:phrase id="cgi/users/home:action_copy">Use&nbsp;as&nbsp;template</epp:phrase>
-    <epp:phrase id="cgi/users/home:action_clone">New&nbsp;version</epp:phrase>
-    <epp:phrase id="cgi/users/home:action_submit">Deposit</epp:phrase>
-    <epp:phrase id="cgi/users/home:no_recent"><p>You have no accepted items</p></epp:phrase>
-    <epp:phrase id="cgi/users/home:accepted_at">Accepted <epc:pin name="time"/></epp:phrase>
-
-
 <!-- review -->
 
     <epp:phrase id="cgi/users/review:title">Review Items: <epc:pin name="name"/></epp:phrase>
@@ -720,11 +663,17 @@ The following eprint has been deleted from your User Area:
 </epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:action_not_allowed"><epc:pin name="action"/>: You may not perform this action on this item.</epp:phrase>
 
-    <epp:phrase id="cgi/users/edit_eprint:cant_edit_deleted">Modifying deleted records is not allowed.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:cant_edit_deleted">Modifying retired records is not allowed.</epp:phrase>
+
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_inbox">This item is still in the users work area.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_buffer">This item is in editorial review. It will not appear in the repository until it has been approved by an editor.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_archive">This item is in the repository.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_deletion">This item has been retired from the repository.</epp:phrase>
+
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_inbox">This item is still in your work area. It will not appear in the repository until you deposit it.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_buffer">This item is in editorial review. It will not appear in the repository until it has been checked by an editor.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_archive">This item is in the repository.</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:item_is_in_deletion">This item has been retired from the repository..</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:item_is_in_deletion">This item has been retired from the repository.</epp:phrase>
 
     <epp:phrase id="cgi/users/edit_eprint:message_message">Message</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:message_error">Error</epp:phrase>
@@ -733,7 +682,7 @@ The following eprint has been deleted from your User Area:
     <epp:phrase id="cgi/users/edit_eprint:loading">Loading...</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:status_changed">Item status successfully changed.</epp:phrase>
 
-    <epp:phrase id="cgi/users/edit_eprint:view_as_either">View this item as <epc:pin name="owner_link">an owner</epc:pin> or as <epc:pin name="editor_link">an editor</epc:pin> of it.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:view_as_either">You are both <epc:pin name="owner_link">an owner</epc:pin> and <epc:pin name="editor_link">an editor</epc:pin> of this item.</epp:phrase>
 
 
 <!-- edit_user -->

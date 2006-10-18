@@ -123,13 +123,14 @@ sub register_furniture
 
 	my $f = $self->{session}->make_doc_fragment;
 
-	#my $div = $self->{session}->make_element( "div", style=>"padding-bottom: 4px; border-bottom: solid 1px black; margin-bottom: 8px;" );
-	my $div = $self->{session}->make_element( "div", style=>"margin-bottom: 8px; text-align: center;
-        background-image: url(/style/images/toolbox.png);
-        border-top: solid 1px #d8dbef;
-        border-bottom: solid 1px #d8dbef;
-	padding-top:4px;
-	padding-bottom:4px;
+	my $div = $self->{session}->make_element( "div", style=>"
+		margin-bottom: 8px; 
+		text-align: center;
+        	background-image: url(/style/images/toolbox.png);
+        	border-top: solid 1px #d8dbef;
+        	border-bottom: solid 1px #d8dbef;
+		padding-top:4px;
+		padding-bottom:4px;
  " );
 
 	my @core = $self->list_items( "key_tools" );
@@ -309,7 +310,6 @@ sub matches
 {
 	my( $self, $test, $param ) = @_;
 
-
 	return $self->SUPER::matches( $test, $param );
 }
 
@@ -366,7 +366,137 @@ sub list_items
 	return sort { $a->{position} <=> $b->{position} } @list_items;
 }	
 
+sub action_list
+{
+	my( $self, $list_id ) = @_;
 
+	my @list = ();
+	foreach my $item ( $self->list_items( $list_id ) )
+	{
+		my $who_allowed;
+		if( defined $item->{action} )
+		{
+ 			$who_allowed = $item->{screen}->allow_action( $item->{action} );
+		}
+		else
+		{
+			$who_allowed = $item->{screen}->can_be_viewed;
+		}
+
+		next unless( $who_allowed & $self->who_filter );
+
+		push @list, $item;
+	}
+
+	return @list;
+}
+
+
+sub who_filter { return 255; }
+
+sub render_action_list
+{
+	my( $self, $list_id, $passthrough ) = @_;
+
+	my $session = $self->{session};
+
+	my $table = $session->make_element( "table" );
+	foreach my $item ( $self->action_list( $list_id ) )
+	{
+		my $tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+
+		my $td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+
+		my $form = $session->render_form( "form" );
+		$td->appendChild( $form );
+#		$form->appendChild( $session->render_hidden_field( "userid", $self->{processor}->{userid} ) );
+
+		$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
+		foreach my $id ( @{$passthrough} )
+		{
+			$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
+		}
+		my( $action, $title, $description );
+		if( defined $item->{action} )
+		{
+			$action = $item->{action};
+			$title = $item->{screen}->phrase( "action:$action:title" );
+			$description = $item->{screen}->html_phrase( "action:$action:description" );
+		}
+		else
+		{
+			$action = "null";
+			$title = $item->{screen}->phrase( "title" );
+			$description = $item->{screen}->html_phrase( "description" );
+		}
+		$form->appendChild( 
+			$session->make_element( 
+				"input", 
+				type=>"submit",
+				class=>"ep_form_action_button",
+				name=>"_action_$action", 
+				value=>$title ));
+
+		my $td2 = $session->make_element( "td" );
+		$tr->appendChild( $td2 );
+
+		$td2->appendChild( $description );
+	}
+
+	return $table;
+}
+
+
+
+sub render_action_list_bar
+{
+	my( $self, $list_id, $passthrough ) = @_;
+
+	my $session = $self->{session};
+
+	my $div = $self->{session}->make_element( "div", style=>" margin-bottom: 4px; margin-top: 4px; " );
+	my $table = $session->make_element( "table", style=>"margin:auto" );
+	$div->appendChild( $table );
+	my $tr = $session->make_element( "tr" );
+	$table->appendChild( $tr );
+	foreach my $item ( $self->action_list( $list_id ) )
+	{
+		my $td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		my $form = $session->render_form( "form" );
+		$td->appendChild( $form );
+		$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
+		foreach my $id ( @{$passthrough} )
+		{
+			$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
+		}
+		my( $action, $title );
+		if( defined $item->{action} )
+		{
+			$action = $item->{action};
+			$title = $item->{screen}->phrase( "action:$action:title" );
+		}
+		else
+		{
+			$action = "null";
+			$title = $item->{screen}->phrase( "title" );
+		}
+		$form->appendChild( 
+			$session->make_element( 
+				"input", 
+				type=>"submit",
+				class=>"ep_form_action_button",
+				name=>"_action_$action", 
+				value=>$title ));
+	}
+
+	return $div;
+}
+
+
+1;
 
 		
-1;
+		

@@ -13,8 +13,6 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ create /];
-
 	$self->{appears} = [
 		{
 			place => "key_tools",
@@ -32,42 +30,6 @@ sub can_be_viewed
 	return $self->allow( "items" );
 }
 
-sub allow_create
-{
-	my ( $self ) = @_;
-
-	return $self->allow( "create_eprint" );
-}
-
-sub action_create
-{
-	my( $self ) = @_;
-
-	my $ds = $self->{processor}->{session}->get_repository->get_dataset( "inbox" );
-
-	my $user = $self->{session}->current_user;
-
-	$self->{processor}->{eprint} = $ds->create_object( $self->{session}, { 
-		userid => $user->get_value( "userid" ) } );
-
-	if( !defined $self->{processor}->{eprint} )
-	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{processor}->{session}->get_repository->log( "Database Error: $db_error" );
-		$self->{processor}->add_message( 
-			"error",
-			$self->html_phrase( "db_error" ) );
-		return;
-	}
-
-	$self->{processor}->{eprintid} = $self->{processor}->{eprint}->get_id;
-	$self->{processor}->{screenid} = "EPrint::Edit";
-
-}
-
-
-
-
 
 sub render
 {
@@ -77,35 +39,9 @@ sub render
 
 	my $user = $self->{session}->current_user;
 
-	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" );	
+	$chunk->appendChild( $self->render_action_list( "item_tools" ) );
 
-	my $dt;
-	my $dd;
-
-	my $dl =  $self->{session}->make_element( "dl" );
-
-	$dt = $self->{session}->make_element( "dt" );
-	$dd = $self->{session}->make_element( "dd" );
-	$a = $self->{session}->render_link( "?screen=Items&_action_create=1" );
-	$a->appendChild( $self->{session}->html_phrase( "cgi/users/home:new_item_link" ) );
-	$dt->appendChild( $a );
-	$dd->appendChild( $self->{session}->html_phrase( "cgi/users/home:new_item_info" ) );
-	$dl->appendChild( $dt );
-	$dl->appendChild( $dd );
-
-	$dt = $self->{session}->make_element( "dt" );
-	$dd = $self->{session}->make_element( "dd" );
-	$a = $self->{session}->render_link( "?screen=Items::Import" );
-	$a->appendChild( $self->{session}->html_phrase( "cgi/users/home:import_item_link" ) );
-	$dt->appendChild( $a );
-	$dd->appendChild( $self->{session}->html_phrase( "cgi/users/home:import_item_info" ) );
-	$dl->appendChild( $dt );
-	$dl->appendChild( $dd );
-
-
-	$chunk->appendChild( $dl );	
-
-	### Get the items in the buffer
+	### Get the items owned by the current user
 	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
 	my $list = $self->{session}->current_user->get_owned_eprints( $ds );
 	$list = $list->reorder( "-status_changed" );

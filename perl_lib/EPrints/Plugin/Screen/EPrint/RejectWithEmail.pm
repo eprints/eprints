@@ -14,7 +14,11 @@ sub new
 		{
 			place => "eprint_actions",
 			position => 200,
-		}
+		},
+		{
+			place => "eprint_actions_editor_buffer", 
+			position => 200,
+		},
 	];
 
 	$self->{actions} = [qw/ send cancel /];

@@ -7,9 +7,6 @@ use EPrints::Plugin::Screen::EPrint;
 
 use strict;
 
-
-
-
 sub render_status
 {
 	my( $self ) = @_;
@@ -54,6 +51,7 @@ sub render
 	my $chunk = $self->{session}->make_doc_fragment;
 
 	$chunk->appendChild( $self->render_status );
+	$chunk->appendChild( $self->render_common_action_buttons );
 
 	# if in archive and can request delete then do that here TODO
 
@@ -168,7 +166,15 @@ sub render
 		$other_view->appendChild( $screen->render );
 	}
 
+	$chunk->appendChild( $self->render_common_action_buttons );
 	return $chunk;
+}
+
+sub render_common_action_buttons
+{
+	my( $self ) = @_;
+
+	return $self->{session}->make_doc_fragment;
 }
 
 
