@@ -202,7 +202,7 @@ $sql = "DELETE FROM history WHERE datasetid='eprint'";
 $db->do( $sql );
 
 if( $noise>=1 ) { print "Erasing index queue for all eprints.\n"; }
-$sql = "DELETE FROM indexqueue WHERE field LIKE 'inbox.%' OR field LIKE 'buffer.%' OR field LIKE 'archive.%' OR field LIKE 'deletion.%' OR field LIKE 'eprint.%'  OR field LIKE 'document.%' ";
+$sql = "DELETE FROM index_queue WHERE field LIKE 'inbox.%' OR field LIKE 'buffer.%' OR field LIKE 'archive.%' OR field LIKE 'deletion.%' OR field LIKE 'eprint.%'  OR field LIKE 'document.%' ";
 $db->do( $sql );
 
 

@@ -147,7 +147,7 @@ foreach my $datasetid ( &EPrints::DataSet::get_sql_dataset_ids )
 }
 print row( "counters", "used to store highest identifier for eprints and users etc." );
 print row( "version", "used to store compatability number for tables (to check they work with current eprints install)" );
-print row( "indexqueue", "used to queue all the fields which currently need reindexing" );
+print row( "index_queue", "used to queue all the fields which currently need reindexing" );
 print row( "cachemap", "used to store ids of temporary search results table ids so they can be erased later" );
 print row( "cache****", "(where * are digits) used to store cached searches for a little while" );
 

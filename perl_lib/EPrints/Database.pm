@@ -249,7 +249,7 @@ sub create_archive_tables
 
 	$success = $success && $self->_create_counter_table();
 
-	$success = $success && $self->_create_indexqueue_table();
+	$success = $success && $self->_create_index_queue_table();
 
 	$success = $success && $self->create_login_tickets_table();
 
@@ -1072,19 +1072,19 @@ sub _create_counter_table
 
 ######################################################################
 # 
-# $success = $db->_create_indexqueue_table
+# $success = $db->_create_index_queue_table
 #
 # create the table used to keep track of what needs to be indexed in
 # this repository.
 #
 ######################################################################
 
-sub _create_indexqueue_table
+sub _create_index_queue_table
 {
 	my( $self ) = @_;
 
 	# The table creation SQL
-	my $sql = "CREATE TABLE indexqueue ( field VARCHAR(128), added DATETIME , index(field), index(added) )";
+	my $sql = "CREATE TABLE index_queue ( field VARCHAR(128), added DATETIME , index(field), index(added) )";
 
 	# Send to the database
 	my $sth = $self->do( $sql );
@@ -1178,7 +1178,7 @@ sub next_doc_pos
 
 	my $sql = "SELECT MAX(pos) FROM document WHERE eprintid=$eprintid;";
 	my @row = $self->{dbh}->selectrow_array( $sql );
-	my $max = $row[0];
+	my $max = $row[0] || 0;
 
 	return $max + 1;
 }
@@ -2708,7 +2708,7 @@ sub index_queue
 {
 	my( $self, $datasetid, $objectid, $fieldname ) = @_; 
 
-	my $sql = "INSERT INTO indexqueue VALUES ( \"$datasetid.$objectid.$fieldname\", NOW() )";
+	my $sql = "INSERT INTO index_queue VALUES ( \"$datasetid.$objectid.$fieldname\", NOW() )";
 	$self->do( $sql );
 }
 

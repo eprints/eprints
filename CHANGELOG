@@ -4668,3 +4668,8 @@ PACKAGE: 2.2.99.2
  * Indexing config now sets "index" to true (or else no indexing happens)
  * Moved $FOO style indexing constants to $c->{indexing}->{foo} style.
 
+2006-10-18 cjg
+ * Fixed undef error when an eprint tried to get the lowest pos of doc when
+    there wasn't one at all.
+ * Renamed indexqueue table to index_queue
+
