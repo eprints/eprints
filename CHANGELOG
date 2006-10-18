@@ -4663,3 +4663,8 @@ PACKAGE: 2.2.99.2
 
 2006-10-18 cjg
  * Deposit button on owner-view page now goes to deposit screen, not action.
+
+2006-10-18 cjg
+ * Indexing config now sets "index" to true (or else no indexing happens)
+ * Moved $FOO style indexing constants to $c->{indexing}->{foo} style.
+

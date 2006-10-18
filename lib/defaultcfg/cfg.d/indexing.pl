@@ -21,8 +21,10 @@
 
 use Unicode::String qw(utf8);
 
+$c->{index} = 1;
+
 # Minimum size word to normally index.
-my $FREETEXT_MIN_WORD_SIZE = 3;
+$c->{indexing}->{freetext_min_word_size} = 3;
 
 # We use a hash rather than an array for good and bad
 # words as we only use these to lookup if words are in
@@ -30,17 +32,17 @@ my $FREETEXT_MIN_WORD_SIZE = 3;
 # it might slow things down.
 
 # Words to never index, despite their length.
-my $FREETEXT_STOP_WORDS = {
+$c->{indexing}->{freetext_stop_words} = {
 	"this"=>1,	"are"=>1,	"which"=>1,	"with"=>1,
 	"that"=>1,	"can"=>1,	"from"=>1,	"these"=>1,
 	"those"=>1,	"the"=>1,	"you"=>1,	"for"=>1,
 	"been"=>1,	"have"=>1,	"were"=>1,	"what"=>1,
-	"where"=>1,	"is"=>1,	"and"=>1, 	"fnord"=>1
+	"where"=>1,	"is"=>1,	"and"=>1, 	"fnord"=>1,
 };
 
 # Words to always index, despite their length.
-my $FREETEXT_ALWAYS_WORDS = {
-		"ok" => 1 
+$c->{indexing}->{freetext_always_words} = {
+		"ok" => 1,
 };
 
 
@@ -52,7 +54,7 @@ my $FREETEXT_ALWAYS_WORDS = {
 # should be encoded in utf8. The Unicode::String man page
 # details some useful methods.
 
-my $FREETEXT_SEPERATOR_CHARS = {
+$c->{indexing}->{freetext_seperator_chars} = {
 	'@' => 1, 	'[' => 1, 	'\\' => 1, 	']' => 1,
 	'^' => 1, 	'_' => 1,	' ' => 1, 	'`' => 1,
 	'!' => 1, 	'"' => 1, 	'#' => 1, 	'$' => 1,
@@ -60,7 +62,7 @@ my $FREETEXT_SEPERATOR_CHARS = {
 	'*' => 1, 	'+' => 1, 	',' => 1, 	'-' => 1,
 	'.' => 1, 	'/' => 1, 	':' => 1, 	';' => 1,
 	'{' => 1, 	'<' => 1, 	'|' => 1, 	'=' => 1,
-	'}' => 1, 	'>' => 1, 	'~' => 1, 	'?' => 1
+	'}' => 1, 	'>' => 1, 	'~' => 1, 	'?' => 1,
 };
 
 
@@ -132,7 +134,7 @@ $c->{extract_words} = sub
 
 		# First approximation is if this word is over or equal
 		# to the minimum size set in SiteInfo.
-		my $ok = $wordlen >= $FREETEXT_MIN_WORD_SIZE;
+		my $ok = $wordlen >= $c->{indexing}->{freetext_min_word_size};
 	
 		# If this word is at least 2 chars long and all capitals
 		# it is assumed to be an acronym and thus should be indexed.
@@ -143,13 +145,13 @@ $c->{extract_words} = sub
 
 		# Consult list of "never words". Words which should never
 		# be indexed.	
-		if( $FREETEXT_STOP_WORDS->{lc $word} )
+		if( $c->{indexing}->{freetext_stop_words}->{lc $word} )
 		{
 			$ok = 0;
 		}
 		# Consult list of "always words". Words which should always
 		# be indexed.	
-		if( $FREETEXT_ALWAYS_WORDS->{lc $word} )
+		if( $c->{indexing}->{freetext_always_words}->{lc $word} )
 		{
 			$ok = 1;
 		}
