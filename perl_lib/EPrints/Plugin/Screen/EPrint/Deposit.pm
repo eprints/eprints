@@ -17,7 +17,6 @@ sub new
 		},
 		{ 
 			place => "eprint_actions_owner_inbox", 
-			action => "deposit", 
 			position => 100, 
 		},
 	];

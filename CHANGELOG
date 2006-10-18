@@ -4661,3 +4661,5 @@ PACKAGE: 2.2.99.2
 2006-10-18 cjg
  * Named Sets now search correctly and have a correct help phrase.
 
+2006-10-18 cjg
+ * Deposit button on owner-view page now goes to deposit screen, not action.
