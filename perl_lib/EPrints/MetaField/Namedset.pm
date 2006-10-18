@@ -74,6 +74,8 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub get_search_group { return 'set'; }
+
 
 
 ######################################################################

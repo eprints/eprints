@@ -63,12 +63,12 @@ sub tags_and_labels
 {
 	my( $self , $session ) = @_;
 	my %labels = ();
-	foreach( @{$self->{options}} )
+	foreach( $self->tags( $session ) )
 	{
 		$labels{$_} = EPrints::Utils::tree_to_utf8( 
 			$self->render_option( $session, $_ ) );
 	}
-	return ($self->{options}, \%labels);
+	return ([$self->tags( $session )], \%labels);
 }
 
 sub tags

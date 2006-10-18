@@ -231,6 +231,7 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:help_name">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".</epp:phrase>
     <epp:phrase id="lib/searchfield:help_set">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_subject">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
+    <epp:phrase id="lib/searchfield:help_namedset">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_username">Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_text">Enter a term or terms to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_fulltext">Enter a term or terms to search for.</epp:phrase>
