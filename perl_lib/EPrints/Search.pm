@@ -1284,9 +1284,6 @@ sub _dopage_results
 	}
 	
 
-	$bits{time} = $self->{session}->make_doc_fragment;
-
-
 	my $links = $self->{session}->make_doc_fragment(); # TODO: links in document header?
 
 	my $cacheid = $self->{cache_id};
@@ -1311,15 +1308,17 @@ sub _dopage_results
 			_exp => $escexp,
 		},
 		render_result => sub {
-			my( $session, $result, $searchexp ) = @_;
+			my( $session, $result, $searchexp, $n ) = @_;
 			my $div = $session->make_element( "div", class=>"ep_search_result" );
 			$div->appendChild( 
 				$result->render_citation_link(
 					$searchexp->{citation},  #undef unless specified
-					$searchexp->{staff} ) );
+					$searchexp->{staff},
+					n => [$n,"INTEGER"] ) );
 			return $div;
 		},
 		render_result_params => $self,
+		page_size => $self->{page_size},
 	);
 
 	my $page = $self->{session}->render_form( "GET" );

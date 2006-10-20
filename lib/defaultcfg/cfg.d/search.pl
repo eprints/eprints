@@ -21,7 +21,7 @@
 
 # Default number of results to display on a single search results page
 # can be over-ridden per search config.
-$c->{results_page_size} = 100;
+$c->{results_page_size} = 20;
 
 $c->{search}->{simple} = 
 {
@@ -63,7 +63,7 @@ $c->{search}->{simple} =
 	title_phrase => "cgi/search:simple_search",
 	citation => "neat",
 	default_order => "byyear",
-	page_size => 100,
+	page_size => 20,
 	controls => { top=>0, bottom=>1 }
 };
 		
@@ -89,7 +89,7 @@ $c->{search}->{advanced} =
 	title_phrase => "cgi/advsearch:adv_search",
 	citation => "neat",
 	default_order => "byyear",
-	page_size => 100,
+	page_size => 20,
 	controls => { top=>1, bottom=>1 }
 };
 

@@ -56,6 +56,9 @@ sub execute
 	$state->{repository} = $state->{session}->get_repository;
 	$state->{config} = $state->{session}->get_repository->{config};
 
+	# might be undefined
+	$state->{current_user} = $state->{session}->current_user; 
+
 	my $compiled = EPrints::Script::Compiler->new()->compile( $code, $state->{in} );
 
 #print STDERR $compiled->debug;
@@ -104,7 +107,7 @@ sub print
 
 	if( !defined $field )
 	{
-		EPrints::abort( "No type for value '".$result->[0]."' (got from $code)" );
+		return $state->{session}->make_text( "[No type for value '$result->[0]' from '$code']" );
 	}
 	
 	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );

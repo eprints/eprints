@@ -4673,3 +4673,22 @@ PACKAGE: 2.2.99.2
     there wasn't one at all.
  * Renamed indexqueue table to index_queue
 
+2006-10-20 cjg
+ * Added current user to the state available to epscript
+ * Improved a debug message in epscript
+ * Reworked citation methods to take parameters which are
+    passed into epscript.
+ * Cleaned up search rendering
+ * Cleaned up items page
+ * Search results now obey page_size
+ * Added option to turn off ordering in multiple fields. It hides
+    the numbers and arrows.
+ * Added the option to editperms
+ * Fixed a typo s/()/{}/ in Import::Endnote
+ * Added a FlatSubjects import that can replace import_subjects 
+ * Changed the default search results size to 20 as 100 was very slow.
+ * Added some missing phrases
+ * Screens now ignore "login" action (which sometimes get sent
+    if someone hits back/reload after logging in)
+ * Styled Pagination
+

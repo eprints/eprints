@@ -23,16 +23,16 @@
 
 
 /* buttons are on the form, controls on the results */
-.ep_search_buttons, .ep_search_controls {
-	margin-top: 8pt;
+.ep_search_buttons, .ep_search_controls, .ep_search_controls_bottom {
+	border-top: 1px solid rgb(216, 219, 239); 
+	border-bottom: 1px solid rgb(216, 219, 239);
 	text-align: center;
-	text-decoration: none;
-	clear: both;
-	padding: 2px;
-	border: #8080f0 1px solid;
-	background: #efefff; 
+	background-image: url(/style/images/toolbox.png);
+	padding-top: 4px;
+	padding-bottom: 4px;
+	margin-bottom: 0.25em;
+	margin-top: 0.251em;
 }
-
 
 .ep_search_order {
         padding-top: 12pt;
@@ -43,8 +43,25 @@
 	padding: 0px 4px 0px 4px;
 }
 
-.ep_search_result {
-	margin-top: 1em;
-	margin-bottom: 1em;
+.ep_search_export {
+	margin: 0.25em auto 0.25em auto;
+	text-align: center;
 }
+
+.ep_search_results
+{
+	margin: 1em 0 1em 0;
+}
+
+.ep_search_desc
+{
+	text-align: center;
+	margin: 0.25em 0 0 0;
+}
+
+.ep_search_result
+{
+	border-bottom: dashed #bbf 1px;
+}
+
 

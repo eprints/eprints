@@ -136,7 +136,8 @@ sub paginate_list
 	$plast = $n_results if $n_results< $plast;
 
 	my %pins = ();
-	
+
+	my $matches;	
 	if( scalar $n_results > 0 )
 	{
 		# TODO default phrase for item range
@@ -148,18 +149,21 @@ sub paginate_list
 		$numbers{to}->appendChild( $session->make_text( $plast ) );
 		$numbers{n} = $session->make_element( "span", class=>"ep_search_number" );
 		$numbers{n}->appendChild( $session->make_text( $n_results ) );
-		$pins{matches} = $session->html_phrase( "lib/searchexpression:results", %numbers );
+		$matches = $session->html_phrase( "lib/searchexpression:results", %numbers );
 	}
 	else
 	{
 		# TODO default phrase for empty list
 		# override default phrase with opts
-		$pins{matches} = 
+		$matches = 
 			$session->html_phrase( 
 				"lib/searchexpression:noresults" );
 	}
 
-	$pins{searchdesc} = $list->render_description;
+	if( !defined $pins{searchdesc} )
+	{
+		$pins{searchdesc} = $list->render_description;
+	}
 
 	# Add params to action urls
 	my $url = $session->get_uri . "?";
@@ -183,10 +187,10 @@ sub paginate_list
 	if( defined $opts{controls_before} )
 	{
 		my $custom_controls = $opts{controls_before};
-		for( @$custom_controls )
+		foreach my $control ( @$custom_controls )
 		{
-			my $custom_control = $session->render_link( $_->{url} );
-			$custom_control->appendChild( $_->{label} );
+			my $custom_control = $session->render_link( $control->{url} );
+			$custom_control->appendChild( $control->{label} );
 			push @controls, $custom_control;
 		}
 	}
@@ -229,19 +233,19 @@ sub paginate_list
 	$end_page = $num_pages if $end_page > $num_pages; # normalise
 	unless( $start_page == $end_page ) # only one page, don't need jumps
 	{
-		for( $start_page..$end_page )
+		for my $page_n ( $start_page..$end_page )
 		{
 			my $jumplink;
-			if( $_ != $cur_page )
+			if( $page_n != $cur_page )
 			{
-				my $jumpurl = "$url&$basename\_offset=" . $_ * $pagesize;
+				my $jumpurl = "$url&$basename\_offset=" . $page_n * $pagesize;
 				$jumplink = $session->render_link( $jumpurl );
-				$jumplink->appendChild( $session->make_text( $_ + 1 ) );
+				$jumplink->appendChild( $session->make_text( $page_n + 1 ) );
 			}
 			else
 			{
 				$jumplink = $session->make_element( "strong" );
-				$jumplink->appendChild( $session->make_text( $_ + 1 ) );
+				$jumplink->appendChild( $session->make_text( $page_n + 1 ) );
 			}
 			push @controls, $jumplink;
 		}
@@ -260,31 +264,44 @@ sub paginate_list
 		push @controls, $nextlink;
 	}
 
-	if( defined $opts{controls_after} )
-	{
-		my $custom_controls = $opts{controls_after};
-		for( @$custom_controls )
-		{
-			my $custom_control = $session->render_link( $_->{url} );
-			$custom_control->appendChild( $_->{label} );
-			push @controls, $custom_control;
-		}
-	}
+#	if( defined $opts{controls_after} )
+#	{
+#		my $custom_controls = $opts{controls_after};
+#		foreach my $control ( @$custom_controls )
+#		{
+#			my $custom_control = $session->render_link( $control->{url} );
+#			$custom_control->appendChild( $control->{label} );
+#			push @controls, $custom_control;
+#		}
+#	}
 
 	if( scalar @controls )
 	{
-		$pins{controls} = $session->make_element( "div", class=>"ep_search_controls" );
-		for( @controls )
+		$pins{controls} = $session->make_element( "div" );
+		$pins{controls}->appendChild( $matches );
+
+		$pins{controls}->appendChild( $session->make_element( "br" ) );
+
+		my $first = 1;
+		foreach my $control ( @controls )
 		{
+			if( $first )
+			{
+				$first = 0;
+			}
+			else
+			{
+				$pins{controls}->appendChild( $session->html_phrase( "lib/searchexpression:seperator" ) );
+			}
 			my $cspan = $session->make_element( 'span', class=>"ep_search_control" );
-			$cspan->appendChild( $_ );
+			$cspan->appendChild( $control );
 			$pins{controls}->appendChild( $cspan );
-			$pins{controls}->appendChild( $session->html_phrase( "lib/searchexpression:seperator" ) );
 		}
 	}
 	else
 	{
 		$pins{controls} = $session->make_doc_fragment;
+		$pins{controls} = $session->make_text( "eh?");
 	}
 
 	# Container for results (e.g. table, div..)
@@ -297,14 +314,16 @@ sub paginate_list
 		$pins{results} = $session->make_doc_fragment;
 	}
 
+	my $n = $offset;
 	foreach my $result ( @results )
 	{
+		$n += 1;
 		# Render individual results
 		if( defined $opts{render_result} )
 		{
 			# Custom rendering routine specified
 			my $params = $opts{render_result_params};
-			my $custom = &{ $opts{render_result} }( $session, $result, $params );
+			my $custom = &{ $opts{render_result} }( $session, $result, $params, $n );
 			$pins{results}->appendChild( $custom );
 		}
 		else

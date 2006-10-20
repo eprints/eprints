@@ -1122,7 +1122,7 @@ sub render_input_field_actual
 		my $tr = $session->make_element( "tr" );
 		my $th;
 		my $x = 0;
-		if( $self->get_property( "multiple" ) )
+		if( $self->get_property( "multiple" ) && $self->{input_ordered})
 		{
 			$th = $session->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
 			$tr->appendChild( $th );
@@ -1314,9 +1314,10 @@ sub get_input_elements
 		my $first = 1;
 		for my $n (0..(scalar @{$section})-1)
 		{
+			my $row =  [  @{$section->[$n]} ];
 			my $col1 = {};
 			my $lastcol = {};
-			if( $n == 0 )
+			if( $n == 0 && $self->{input_ordered})
 			{
 				$col1 = { el=>$session->make_text( $i.". " ) };
 				my $arrows = $session->make_doc_fragment;
@@ -1356,8 +1357,8 @@ sub get_input_elements
 						src=> "/$imagesurl/multi_down_dim.png" ));
 				}
 				$lastcol = { el=>$arrows, valign=>"middle" };
+				$row =  [ $col1, @{$section->[$n]}, $lastcol ];
 			}
-			my $row =  [ $col1, @{$section->[$n]}, $lastcol ];
 			if( defined $self->{input_advice_right} )
 			{
 				my $advice = $self->call_property( "input_advice_right", $session, $self, $value->[$i-1] );
@@ -1386,7 +1387,10 @@ sub get_input_elements
 					$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")]); ' ) );
 				}
 				$lookup->appendChild( $script );
-				push @{$rows}, [ {},{el=>$lookup,colspan=>$cols-1} ];
+				my @row = ();
+				push @row, {} if( $self->{input_ordered} );
+				push @row, {el=>$lookup,colspan=>$cols-1};
+				push @{$rows}, \@row;
 			#, {afterUpdateElement: updated}); " ));
 			}
 			if( defined $self->{input_advice_below} )
@@ -1412,7 +1416,10 @@ sub get_input_elements
 		$more->appendChild( $assist );
 	}
 
-	push @{$rows}, [ {}, {el=>$more,colspan=>3} ];
+	my @row = ();
+	push @row, {} if( $self->{input_ordered} );
+	push @row, {el=>$more,colspan=>3};
+	push @{$rows}, \@row;
 
 	return $rows;
 }
@@ -2218,6 +2225,7 @@ sub get_property_defaults
 		input_cols 	=> $EPrints::MetaField::FROM_CONFIG,
 		input_id_cols	=> $EPrints::MetaField::FROM_CONFIG,
 		input_lookup_url 	=> $EPrints::MetaField::UNDEF,
+		input_ordered 	=> 1,
 		make_single_value_orderkey 	=> $EPrints::MetaField::UNDEF,
 		make_value_orderkey 		=> $EPrints::MetaField::UNDEF,
 		maxlength 	=> $EPrints::MetaField::VARCHAR_SIZE,

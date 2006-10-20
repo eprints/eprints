@@ -432,7 +432,7 @@ sub input_list
 sub convert_input 
 {
 	my ( $plugin, $input_data ) = @_;
-	my $epdata = ();
+	my $epdata = {};
 
 	# 0 Citation type
 	my $input_data_type = $input_data->get( "0" ) || "[none]";

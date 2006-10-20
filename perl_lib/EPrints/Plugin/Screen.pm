@@ -263,6 +263,10 @@ sub from
 
 	return if( $action_id eq "null" );
 
+	# If you hit reload after login you can cause a
+	# login action, so we'll just ignore it.
+	return if( $action_id eq "login" );
+
 	my $ok = 0;
 	foreach my $an_action ( @{$self->{actions}} )
 	{
@@ -400,13 +404,15 @@ sub render_action_list
 
 	my $session = $self->{session};
 
-	my $table = $session->make_element( "table" );
+	# TODO css me!
+	my $table = $session->make_element( "table", style=>"margin: auto" );
 	foreach my $item ( $self->action_list( $list_id ) )
 	{
 		my $tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );
 
-		my $td = $session->make_element( "td" );
+		# TODO css me!
+		my $td = $session->make_element( "td", style=>"text-align: right; padding: 0.25em 0 0.25em 0" );
 		$tr->appendChild( $td );
 
 		my $form = $session->render_form( "form" );
@@ -442,6 +448,7 @@ sub render_action_list
 		my $td2 = $session->make_element( "td" );
 		$tr->appendChild( $td2 );
 
+		$td2->appendChild( $session->make_text( " - " ) );
 		$td2->appendChild( $description );
 	}
 

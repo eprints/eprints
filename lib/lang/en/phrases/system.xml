@@ -157,14 +157,10 @@ EPrints Modules
 
 <!-- List Pagination -->
 <epp:phrase id="lib/list:page">
-<epc:pin name="controls"/>
-<p>
-	<epc:pin name="searchdesc"/>
-	<br/>
-	<epc:pin name="matches"/>
-</p>
-<epc:pin name="results"/>
-<epc:pin name="controls_if_matches"/>
+<h2 class="ep_search_desc"><epc:pin name="searchdesc"/></h2>
+<div class="ep_search_controls"><epc:pin name="controls"/></div>
+<div class="ep_search_results"><epc:pin name="results"/></div>
+<div class="ep_search_controls_bottom"><epc:pin name="controls_if_matches"/></div>
 </epp:phrase>
 
 <!-- Search (used to be SearchExpression) -->
@@ -184,16 +180,13 @@ EPrints Modules
     <epp:phrase id="lib/searchexpression:search_time">Search time: <epc:pin name="searchtime"/>s.</epp:phrase>
     <epp:phrase id="lib/searchexpression:noresults">No matches.</epp:phrase>
     <epp:phrase id="lib/searchexpression:results_page">
-<epc:pin name="controls"/>
-<p class="resultsinfo">
-   <div style="border: solid 1px #a0a0a0; float: right; width: 35%; padding: 0.5em; margin-left: 0.5em; margin-bottom: 0.5em;"><epc:pin name="export"/></div>
-   <epc:pin name="searchdesc"/><br/>
-   <epc:pin name="matches"/> <epc:pin name="time"/><br/>
-</p>
-<epc:pin name="results"/>
-<epc:pin name="controls_if_matches"/>
+<h2 class="ep_search_desc"><epc:pin name="searchdesc"/></h2>
+<div class="ep_search_controls"><epc:pin name="controls"/></div>
+<div class="ep_search_export"><epc:pin name="export"/></div>
+<div class="ep_search_results"><epc:pin name="results"/></div>
+<div class="ep_search_controls_bottom"><epc:pin name="controls_if_matches"/></div>
 </epp:phrase>
-    <epp:phrase id="lib/searchexpression:export_section">Export all matching items as:<br/><epc:pin name="menu"/> <epc:pin name="button"/></epp:phrase>
+    <epp:phrase id="lib/searchexpression:export_section">Export all matching items as: <epc:pin name="menu"/> <epc:pin name="button"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:export_button">Export</epp:phrase>
     <epp:phrase id="lib/searchexpression:next">Next <epc:pin name="n"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:prev">Previous <epc:pin name="n"/></epp:phrase>
@@ -1032,7 +1025,15 @@ Titles and Help for the System Fields
 
 
     <epp:phrase id="Plugin/Screen/User/View:title">User Info.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:title">Edit User Info.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:description">Edit your account information.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:title">Administer Account</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:description">Modify this Account (including changing user_name and user-type)</epp:phrase>
 
+
+
+    <epp:phrase id="Plugin/Screen/NewEPrint:action:create:title">New Item</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewEPrint:action:create:description">Begin a new deposit.</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/EPrint:deposit">Deposit</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint:deposit_progress">Deposit progress</epp:phrase>
@@ -1040,6 +1041,7 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Screen/FirstTool:no_tools">Sorry, you are not able to use any tools</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Items:db_error">Database Error</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Items:list_desc">Your Deposits</epp:phrase>
 
 
     <!-- eprint action screens -->

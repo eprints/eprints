@@ -602,36 +602,40 @@ sub mkdir
 ######################################################################
 #=pod
 #
-# =item $xhtml = EPrints::Utils::render_citation( $obj, $cstyle, [$url], [$indesc] )
+# =item $xhtml = EPrints::Utils::render_citation( $cstyle, %params );
 #
 # Render the given object (EPrint, User, etc) using the citation style
 # $cstyle. If $url is specified then the <ep:linkhere> element will be
 # replaced with a link to that URL.
 #
-# $indesc describes where this came from in case it needs to report an
+# in=>.. describes where this came from in case it needs to report an
 # error.
+#
+# session=> is required
+#
+# item => is required (the epobject being cited).
+#
+# url => is option if the item is to be linked.
 #
 #=cut
 ######################################################################
 
 sub render_citation
 {
-	my( $obj, $cstyle, $url, $indesc ) = @_;
+	my( $cstyle, %params ) = @_;
 
 	# This should belong to the base class of EPrint User Subject and
 	# Subscription, if we were better OO people...
 
-	my $session = $obj->get_session;
-	my $collapsed = EPrints::XML::collapse_conditions( $cstyle, session=>$session, item=>$obj, in=>$indesc );
-	my $r= _render_citation_aux( $obj, $session, $collapsed, $url );
+	my $collapsed = EPrints::XML::collapse_conditions( $cstyle, %params );
+	my $r= _render_citation_aux( $collapsed, %params );
 
 	return $r;
 }
 
 sub _render_citation_aux
 {
-	my( $obj, $session, $node, $url ) = @_;
-
+	my( $node, %params ) = @_;
 
 	my $addkids = $node->hasChildNodes;
 
@@ -644,33 +648,33 @@ sub _render_citation_aux
 
 		if( $name eq "iflink" )
 		{
-			$rendered = $session->make_doc_fragment;
-			$addkids = defined $url;
+			$rendered = $params{session}->make_doc_fragment;
+			$addkids = defined $params{url};
 		}
 		elsif( $name eq "ifnotlink" )
 		{
-			$rendered = $session->make_doc_fragment;
-			$addkids = !defined $url;
+			$rendered = $params{session}->make_doc_fragment;
+			$addkids = !defined $params{url};
 		}
 		elsif( $name eq "linkhere" )
 		{
-			if( defined $url )
+			if( defined $params{url} )
 			{
-				$rendered = $session->make_element( 
+				$rendered = $params{session}->make_element( 
 					"a",
 					href=>EPrints::Utils::url_escape( 
-						$url ) );
+						$params{url} ) );
 			}
 			else
 			{
-				$rendered = $session->make_doc_fragment;
+				$rendered = $params{session}->make_doc_fragment;
 			}
 		}
 	}
 
 	if( !defined $rendered )
 	{
-		$rendered = $session->clone_for_me( $node );
+		$rendered = $params{session}->clone_for_me( $node );
 	}
 
 	if( $addkids )
@@ -679,31 +683,13 @@ sub _render_citation_aux
 		{
 			$rendered->appendChild(
 				_render_citation_aux( 
-					$obj,
-					$session,
 					$child,
-					$url ) );			
+					%params ) );			
 		}
 	}
 	return $rendered;
 }
 
-sub _citation_field_value
-{
-	my( $obj, $field ) = @_;
-
-	my $session = $obj->get_session;
-	my $fname = $field->get_name;
-	my $span = $session->make_element( "span", class=>"field_".$fname );
-	my $value = $obj->get_value( $fname );
-	$span->appendChild( $field->render_value( 
-				$session,
-				$value,
-				0,
- 				1 ) );
-
-	return $span;
-}
 
 
 ######################################################################

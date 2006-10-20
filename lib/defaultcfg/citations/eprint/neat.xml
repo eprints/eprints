@@ -5,14 +5,15 @@
 -->
 
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
-<table border="0" width="100%">
+<table border="0" width="100%" >
   <tr>
-    <td><span class="citation"><epc:print expr="creators"/><br/><cite:linkhere><epc:print expr="title"/></cite:linkhere><br/><epc:if test="is_set('date_issue')"><epc:print expr="date_issue"/>, </epc:if><epc:print expr="type"/>.
-
-<epc:if test="full_text_status = 'none'"> Item not available online.</epc:if>
-<epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
-</span></td>
-    <td align="right"><epc:print expr="fileinfo"/></td>
+    <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
+    <td style="padding-left: 0.5em">
+      <epc:print expr="citation($item)" />
+      <epc:if test="full_text_status = 'none'"> Item not available online.</epc:if>
+      <epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
+    </td>
+    <td style="padding-right: 0.5em" align="right"><epc:print expr="fileinfo"/></td>
   </tr>
 </table>
 </cite:citation>

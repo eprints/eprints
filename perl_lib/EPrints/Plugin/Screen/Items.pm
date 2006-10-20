@@ -68,7 +68,7 @@ sub render
 		},
 		container => $table,
 		pins => {
-			searchdesc => $self->{session}->make_doc_fragment,
+			searchdesc => $self->html_phrase( "list_desc" ),
 		},
 		render_result => sub {
 			my( $session, $e ) = @_;
@@ -78,31 +78,19 @@ sub render
 			my $style = "";
 			my $status = $e->get_value( "eprint_status" );
 
-			if( $status eq "inbox" )
-			{
-				$style="background-color: #ffc;";
-			}
-			if( $status eq "buffer" )
-			{
-				$style="background-color: #ddf;";
-			}
-			if( $status eq "archive" )
-			{
-				$style="background-color: #cfc;";
-			}
-			if( $status eq "deletion" )
-			{
-				$style="background-color: #ccc;";
-			}
+			if( $status eq "inbox" ) { $style="background-color: #ffc;"; }
+			if( $status eq "buffer" ) { $style="background-color: #ddf;"; }
+			if( $status eq "archive" ) { $style="background-color: #cfc;"; }
+			if( $status eq "deletion" ) { $style="background-color: #ccc;"; }
 			$style.=" border-bottom: 1px solid #888; padding: 4px;";
 
 			my $td;
 
-			$td = $session->make_element( "td", style=>$style." text-align: center;" );
+			$td = $session->make_element( "td", style=>$style." text-align: center;  border-right: 1px dashed #ccc;" );
 			$tr->appendChild( $td );
 			$td->appendChild( $e->render_value( "eprint_status" ) );
 
-			$td = $session->make_element( "td", style=>$style );
+			$td = $session->make_element( "td", style=>$style."  border-right: 1px dashed #ccc;" );
 			$tr->appendChild( $td );
 			$td->appendChild( $e->render_value( "lastmod" ) );
 

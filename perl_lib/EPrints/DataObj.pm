@@ -668,11 +668,11 @@ sub render_value
 ######################################################################
 =pod
 
-=item $xhtml = $dataobj->render_citation( [$style], [$url] )
+=item $xhtml = $dataobj->render_citation( [$style], [%params] )
 
 Renders the record as a citation. If $style is set then it uses that citation
 style from the citations config file. Otherwise $style defaults to the type
-of this record. If $url is set then the citiation will link to the specified
+of this record. If $params{url} is set then the citiation will link to the specified
 URL.
 
 =cut
@@ -680,7 +680,7 @@ URL.
 
 sub render_citation
 {
-	my( $self , $style , $url ) = @_;
+	my( $self , $style , %params ) = @_;
 
 	unless( defined $style )
 	{
@@ -691,14 +691,18 @@ sub render_citation
 					$self->{dataset},
 					$style );
 
-	my $r =  EPrints::Utils::render_citation( $self , $stylespec, $url, "citation ".$self->{dataset}->confid."/".$style );
+	return EPrints::Utils::render_citation( $stylespec, 
+			item=>$self, 
+			in=>"citation ".$self->{dataset}->confid."/".$style, 
+			session=>$self->{session},
+			%params );
 }
 
 
 ######################################################################
 =pod
 
-=item $xhtml = $dataobj->render_citation_link( [$style], [$staff] )
+=item $xhtml = $dataobj->render_citation_link( [$style], [$staff], %params )
 
 Renders a citation (as above) but as a link to the URL for this item. For
 example - the abstract page of an eprint. If $staff is true then the 
@@ -710,13 +714,11 @@ of this record.
 
 sub render_citation_link
 {
-	my( $self , $style , $staff ) = @_;
+	my( $self , $style , $staff, %params ) = @_;
 
-	my $url = $self->get_url( $staff );
+	$params{url} = $self->get_url( $staff );
 	
-	my $citation = $self->render_citation( $style, $url );
-
-	return $citation;
+	return $self->render_citation( $style, %params );
 }
 
 
@@ -733,14 +735,9 @@ for this dataset.
 
 sub render_description
 {
-	my( $self ) = @_;
+	my( $self, %params ) = @_;
 
-	my $stylespec = $self->{session}->get_citation_spec(
-					$self->{dataset},"brief" );
-				
-	my $r =  EPrints::Utils::render_citation( $self , $stylespec, undef, "citation ".$self->{dataset}->confid."/brief" );
-
-	return $r;
+	return $self->render_citation( "brief", %params );
 }
 
 ######################################################################
