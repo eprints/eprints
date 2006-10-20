@@ -41,7 +41,6 @@ no strict 'refs';
 my $platform = $EPrints::SystemSettings::conf->{platform};
 my $real_module = "EPrints::Platform::\u$platform";
 eval "use $real_module;";
-print STDERR "realmodeiul: $real_module\n";
 
 sub chmod { return &{$real_module."::chmod"}( @_ ); }
 
