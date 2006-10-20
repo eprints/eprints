@@ -23,18 +23,18 @@ B<EPrints::Platform> - Functions for the UNIX Platform
 
 =cut
 
-package EPrints::Platform;
+package EPrints::Platform::Unix;
 
 use strict;
 
 sub chmod 
 {
-	return chmod( @_ );
+	return CORE::chmod( @_ );
 } 
 
 sub chown 
 {
-	return chown( @_ );
+	return CORE::chown( @_ );
 }
 
 

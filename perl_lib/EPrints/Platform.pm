@@ -34,14 +34,17 @@ SystemSettings.pm
 
 package EPrints::Platform;
 
+use EPrints::SystemSettings;
 use strict;
 no strict 'refs';
 
 my $platform = $EPrints::SystemSettings::conf->{platform};
 my $real_module = "EPrints::Platform::\u$platform";
+eval "use $real_module;";
+print STDERR "realmodeiul: $real_module\n";
 
-sub chmod { return &{"$real_module::chmod"}( @_ ); }
+sub chmod { return &{$real_module."::chmod"}( @_ ); }
 
-sub chown { return &{"$real_module::chown"}( @_ ); }
+sub chown { return &{$real_module."::chown"}( @_ ); }
 
 1;

@@ -4705,3 +4705,6 @@ PACKAGE: 2.2.99.2
  * Removed hide from metadata visibility
  * Changed citations files to neatly redirect user.brief to default
 
+2006-10-20 cjg
+ * Fixed some issues in platform code
+
