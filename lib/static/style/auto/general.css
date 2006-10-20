@@ -48,3 +48,16 @@ hr {
 	text-decoration: none;
 	color: #44c;
 }
+
+th.ep_row {
+	border-bottom: dashed #bbf 1px;
+	padding-right: 0.25em;
+	text-align: right;
+	width: 20%;
+}
+td.ep_row {
+	border-left: dashed #bbf 1px;
+	border-bottom: dashed #bbf 1px;
+	padding-left: 0.25em;
+	text-align: left;
+}

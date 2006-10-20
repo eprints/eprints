@@ -432,13 +432,15 @@ if( $repository->get_conf( "use_mimetex" ) )
 }
 
 print CONF <<END;
-  Alias $urlpath/perl $cgidir
+  Alias $urlpath/cgi $cgidir
   Alias $urlpath/ $htdocs_path/
 
   <Location "$urlpath">
     ErrorDocument 401 $urlpath/error401.html
-    ErrorDocument 404 $urlpath/perl/handle_404
+    ErrorDocument 404 $urlpath/cgi/handle_404
     PerlSetVar EPrints_ArchiveID $repository_id
+    Redirect /perl/ http://$host/cgi/
+
 END
 # EPrints log handler (this gets called for all requests, not just
 # mod_perl)
@@ -583,12 +585,12 @@ my $securebase = "https://".$securehost.$securepath;
 
 print CONF <<END;
 
-  Redirect /perl/users/ $securebase/perl/users/
+  Redirect /cgi/users/ $securebase/cgi/users/
   Redirect /change_user $securebase/change_user
-  Redirect /perl/confirm $securebase/perl/accounts/confirm
-  Redirect /perl/register $securebase/perl/accounts/register
-  Redirect /perl/reset_password $securebase/perl/accounts/reset_password
-  Redirect /perl/set_password $securebase/perl/accounts/set_password
+  Redirect /cgi/confirm $securebase/cgi/accounts/confirm
+  Redirect /cgi/register $securebase/cgi/accounts/register
+  Redirect /cgi/reset_password $securebase/cgi/accounts/reset_password
+  Redirect /cgi/set_password $securebase/cgi/accounts/set_password
 
 </VirtualHost>
 
@@ -601,7 +603,7 @@ close CONF;
 # error documents can't change server
 # need to make secure 401 and 404 pages, I guess.
     #ErrorDocument 401 $baseurl/error401.html
-    #ErrorDocument 404 $baseurl/perl/handle_404
+    #ErrorDocument 404 $baseurl/cgi/handle_404
 open( CONF, ">$securefile" ) || die "Can't write to $securefile";
 print CONF <<END;
 #
@@ -644,11 +646,11 @@ print CONF <<END;
 
   PerlTransHandler EPrints::Apache::Rewrite
 
-  Alias $securepath/perl/accounts/confirm $cgidir/confirm
-  Alias $securepath/perl/accounts/register $cgidir/register
-  Alias $securepath/perl/accounts/reset_password $cgidir/reset_password
-  Alias $securepath/perl/accounts/set_password $cgidir/set_password
-  Alias $securepath/perl/users/ $cgidir/users/
+  Alias $securepath/cgi/accounts/confirm $cgidir/confirm
+  Alias $securepath/cgi/accounts/register $cgidir/register
+  Alias $securepath/cgi/accounts/reset_password $cgidir/reset_password
+  Alias $securepath/cgi/accounts/set_password $cgidir/set_password
+  Alias $securepath/cgi/users/ $cgidir/users/
   Alias $securepath/ $htdocs_path/
 
 ##### END OF CONFIG FOR $id

@@ -4692,3 +4692,10 @@ PACKAGE: 2.2.99.2
     if someone hits back/reload after logging in)
  * Styled Pagination
 
+2006-10-20 cjg
+ * Renamed /perl/ to /cgi/
+ * Improved rendering of details tab
+ * Removed test script lookup_demo
+ * Changed export text on search
+ * Fixed typo in workflow/eprint/default.xml
+

@@ -7,7 +7,7 @@ $c->{urlpath} = "";
 $c->{base_url} = "http://$c->{host}".($c->{port}!=80?":".$c->{port}:"").$c->{urlpath};
 
 # Mod_perl script base URL
-$c->{perl_url} = $c->{base_url}."/perl";
+$c->{perl_url} = $c->{base_url}."/cgi";
 
 # URL of secure document file hierarchy. EPrints needs to know the
 # path from the baseurl as this is used by the authentication module

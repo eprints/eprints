@@ -19,7 +19,7 @@ my $cookie = $session->get_query->cookie(
 EPrints::Apache::AnApache::header_out( 
 	$session->get_request,
 	"Set-Cookie" => $cookie );
-if( !defined $url ) { $url = "/perl/users/home"; }
+if( !defined $url ) { $url = "/cgi/users/home"; }
 $session->redirect( $url, code=>$code );
 
 $session->terminate;

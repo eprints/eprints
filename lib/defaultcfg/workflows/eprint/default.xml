@@ -46,7 +46,7 @@
         <component><field ref="editors_list"/></component>
       </epc:when>
       <epc:otherwise>
-        <component><field ref="creators_list" required="yes" input_lookup_url="/perl/users/issn" /></component>
+        <component><field ref="creators_list" required="yes" input_lookup_url="{$config{perl_url}}/users/issn" /></component>
       </epc:otherwise>
     </epc:choose>
 
@@ -135,7 +135,7 @@
         <field ref="date_sub"/>
         <field ref="id_number"/>
         <field ref="official_url"/>
-        <field ref="issn" input_lookup_url="/perl/users/issn" />
+        <field ref="issn" input_lookup_url="{$config{perl_url}}/users/issn" />
         <validate type="at_least_one" value="date_issue,date_sub" />
       </epc:if>
     </component>

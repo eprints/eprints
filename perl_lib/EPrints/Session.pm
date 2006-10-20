@@ -1071,12 +1071,12 @@ sub render_row
 
 	$tr = $session->make_element( "tr" );
 
-	$th = $session->make_element( "th", valign=>"top" ); 
+	$th = $session->make_element( "th", valign=>"top", class=>"ep_row" ); 
 	$th->appendChild( $key );
 	$th->appendChild( $session->make_text( ":" ) );
 	$tr->appendChild( $th );
 
-	$td = $session->make_element( "td", valign=>"top" ); 
+	$td = $session->make_element( "td", valign=>"top", class=>"ep_row" ); 
 	$td->appendChild( $value );
 	$tr->appendChild( $td );
 
@@ -1478,11 +1478,11 @@ $dest is the target of the form. By default the current page.
 
 eg.
 
-$session->render_form( "GET", "http://example.com/perl/foo" );
+$session->render_form( "GET", "http://example.com/cgi/foo" );
 
 returns a DOM object representing:
 
-<form method="get" action="http://example.com/perl/foo" accept-charset="utf-8" />
+<form method="get" action="http://example.com/cgi/foo" accept-charset="utf-8" />
 
 If $method is "post" then an addition attribute is set:
 enctype="multipart/form-data" 

@@ -76,12 +76,12 @@ sub handler
 		return DECLINED;
 	}
 
-	# Skip rewriting the /perl/ path and any other specified in
+	# Skip rewriting the /cgi/ path and any other specified in
 	# the config file.
 	my $econf = $repository->get_conf('rewrite_exceptions');
-	my @exceptions = ( '/cgi/' );
+	my @exceptions = ();
 	if( defined $econf ) { @exceptions = @{$econf}; }
-	push @exceptions, '/perl/';
+	push @exceptions, '/cgi/';
 
 	my $securehost = $repository->get_conf( "securehost" );
 	if( EPrints::Utils::is_set( $securehost ) && !$secure )
