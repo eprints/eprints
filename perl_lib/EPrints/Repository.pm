@@ -418,6 +418,7 @@ sub get_citation_spec
 	my $spec = $self->{cstyles}->{$type}->{$style};
 	if( !defined $spec )
 	{
+		$self->log( "Could not find citation style $type.$style. Using default instead." );
 		$spec = $self->{cstyles}->{$type}->{default};
 	}
 	

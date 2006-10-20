@@ -4699,3 +4699,9 @@ PACKAGE: 2.2.99.2
  * Changed export text on search
  * Fixed typo in workflow/eprint/default.xml
 
+2006-10-20 cjg
+ * Renamed neat citation to result
+ * Added a warning for the case of a citation style not existing.
+ * Removed hide from metadata visibility
+ * Changed citations files to neatly redirect user.brief to default
+

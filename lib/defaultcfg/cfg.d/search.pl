@@ -61,7 +61,7 @@ $c->{search}->{simple} =
 	],
 	preamble_phrase => "cgi/search:preamble",
 	title_phrase => "cgi/search:simple_search",
-	citation => "neat",
+	citation => "result",
 	default_order => "byyear",
 	page_size => 20,
 	controls => { top=>0, bottom=>1 }
@@ -87,7 +87,7 @@ $c->{search}->{advanced} =
 	],
 	preamble_phrase => "cgi/advsearch:preamble",
 	title_phrase => "cgi/advsearch:adv_search",
-	citation => "neat",
+	citation => "result",
 	default_order => "byyear",
 	page_size => 20,
 	controls => { top=>1, bottom=>1 }
@@ -165,7 +165,7 @@ $c->{default_order}->{user} = "byname";
 
 # customise the citation used to give results on the latest page
 # nb. This is the "last 7 days" page not the "latest_tool" page.
-$c->{latest_citation} = "neat";
+$c->{latest_citation} = "result";
 
 
 ######################################################################
@@ -178,7 +178,7 @@ $c->{latest_citation} = "neat";
 ######################################################################
 
 $c->{latest_tool_modes} = {
-	default => { citation => "neat" }
+	default => { citation => "result" }
 };
 
 # Example of a latest_tool mode. This makes a mode=articles option

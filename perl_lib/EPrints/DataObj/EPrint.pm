@@ -152,10 +152,9 @@ sub get_system_field_info
 
 	# empty string: normal visibility
 	# no_search: does not appear on search/view pages. 
-	# hide: as for no_search but also the abstract page & export
-	# page don't work.
+	# to hide... well, the dark dataset should appear in 3.1 or 3.2
 	{ name=>"metadata_visibility", type=>"set", required=>1,
-		options=>[ "show", "no_search", "hide" ] },
+		options=>[ "show", "no_search" ] },
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
 
@@ -1276,37 +1275,33 @@ sub generate_static
 
 	$self->remove_static;
 
-	if( $self->get_value( "metadata_visibility" ) ne "hide" )
+	# We is going to temporarily change the language of our session to
+	# render the abstracts in each language.
+	my $real_langid = $self->{session}->get_langid;
+
+	my @langs = @{$self->{session}->get_repository->get_conf( "languages" )};
+	foreach my $langid ( @langs )
 	{
-		# We is going to temporarily change the language of our session to
-		# render the abstracts in each language.
-		my $real_langid = $self->{session}->get_langid;
+		$self->{session}->change_lang( $langid );
+		my $full_path = $self->_htmlpath( $langid );
 
-		my @langs = @{$self->{session}->get_repository->get_conf( "languages" )};
-		foreach my $langid ( @langs )
+		my @created = eval
 		{
-			$self->{session}->change_lang( $langid );
-			my $full_path = $self->_htmlpath( $langid );
-	
-			my @created = eval
-			{
-				my @created = EPrints::try sub { mkpath( $full_path, 0,  $EPrints::SystemSettings::conf->{"dir_perms"}  ); };
-				return( @created );
-			};
-	
-			# only deleted and live records have a web page.
-			next if( $status ne "archive" && $status ne "deletion" );
-	
-			my( $page, $title, $links ) = $self->render;
-	
-			$self->{session}->write_static_page( 
-				$full_path . "/index",
-				{title=>$title, page=>$page, head=>$links },
-				"default" );
-		}
-		$self->{session}->change_lang( $real_langid );
-	}
+			my @created = EPrints::try sub { mkpath( $full_path, 0,  $EPrints::SystemSettings::conf->{"dir_perms"}  ); };
+			return( @created );
+		};
 
+		# only deleted and live records have a web page.
+		next if( $status ne "archive" && $status ne "deletion" );
+
+		my( $page, $title, $links ) = $self->render;
+
+		$self->{session}->write_static_page( 
+			$full_path . "/index",
+			{title=>$title, page=>$page, head=>$links },
+			"default" );
+	}
+	$self->{session}->change_lang( $real_langid );
 }
 
 ######################################################################

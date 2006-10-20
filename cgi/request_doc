@@ -15,7 +15,7 @@ if( !defined $doc )
 {
 	my $eprintid = $session->param( "eprintid" );
 	$eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-	&_error( $session ) if !defined $eprint || $eprint->get_value( "metadata_visibility" ) eq "hide";
+	&_error( $session ) if !defined $eprint;
 	&_error( $session ) if $eprint->get_value( "full_text_status" ) ne "none";
 }
 else

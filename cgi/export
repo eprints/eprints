@@ -52,7 +52,7 @@ my $eprint = EPrints::DataObj::EPrint->new(
 			$id, 
 			$session->get_repository->get_dataset( "archive" ) );
 
-if( !defined $eprint || $eprint->get_value( "metadata_visibility" ) eq "hide" ) 
+if( !defined $eprint )
 {
 	error( 
 		$session, 

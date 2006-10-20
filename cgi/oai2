@@ -403,14 +403,6 @@ sub GetRecord
 			$session->get_repository->get_dataset( "deletion" ) );
 	}
 
-	if( !defined $eprint || $eprint->get_value( "metadata_visibility" ) eq "hide" ) 
-	{	
-		return render_oai_error(
-			$session,
-			"idDoesNotExist",
-			"ID: ".$args->{identifier}." does not exist in this repository" );
-	}
-
 	my $response = $session->make_element( "GetRecord" );
 
 	# The eprint exists, so write the record
@@ -502,7 +494,6 @@ sub _list
 			session => $session,
 			keep_cache => 1,
 			filters => [
-				{ meta_fields=>[ 'metadata_visibility' ], value=>'show no_search', match=>'EQ', merge=>"ANY", describe=>0 },
 				@{$filters},
 			],
 			cache_id => $cache_id );
@@ -572,7 +563,6 @@ sub _list
 			keep_cache => 1,
 			allow_blank => 1,
 			filters => [
-				{ meta_fields=>[ 'metadata_visibility' ], value=>'show no_search', match=>'EQ', merge=>"ANY", describe=>0 },
 				@{$filters},
 			],
 			dataset => $ds );
@@ -785,14 +775,6 @@ sub ListMetadataFormats
 				$session,
 				$args->{identifier} ),
 			$session->get_repository->get_dataset( "archive" ) );
-
-		if( !defined $eprint || $eprint->get_value( "metadata_visibility" ) eq "hide" ) 
-		{	
-			return render_oai_error(
-				$session,
-				"idDoesNotExist",
-				"ID: ".$args->{identifier}." does not exist in this repository" );
-		}
 
 	}
 	

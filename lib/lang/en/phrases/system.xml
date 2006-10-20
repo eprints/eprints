@@ -908,7 +908,6 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldhelp_metadata_visibility"></epp:phrase>
     <epp:phrase id="eprint_fieldopt_metadata_visibility_show">Always Show</epp:phrase>
     <epp:phrase id="eprint_fieldopt_metadata_visibility_no_search">Hide in search results</epp:phrase>
-    <epp:phrase id="eprint_fieldopt_metadata_visibility_hide">Always Hide</epp:phrase>
 
     <epp:phrase id="eprint_fieldname__fulltext_">Full Text</epp:phrase>
 
