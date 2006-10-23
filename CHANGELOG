@@ -4743,3 +4743,8 @@ PACKAGE: 2.2.99.2
 2006-10-23 cjg
  * Login now no longer talks about IPs and sessions. We can maybe add those
     features later.
+
+2006-10-23 cjg
+ * Fixed bug in oai2, rss and latest_tool which was looking for the config
+    option 
+ * Added "n" to latest_tool to make it render result citation correctly

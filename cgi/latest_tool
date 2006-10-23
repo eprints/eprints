@@ -84,10 +84,7 @@ if( $output eq "rss" )
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"title",
-		EPrints::Session::best_language( 
-			$session->get_repository,
-			$session->get_langid(),
-			%{$session->get_repository->get_conf( "archivename" )} ) ) );
+		$session->phrase( "archive_name" ) ) );
 
 	$channel->appendChild( $session->render_data_element(
 		4,
@@ -173,11 +170,14 @@ END
 }
 else
 {
-
+	my $n = 1;
 	foreach my $item ( @records )
 	{
 		my $p = $session->make_element( "p", class=>$class );
-		$p->appendChild( $item->render_citation_link( $citation ) );
+		$p->appendChild( $item->render_citation_link( 
+			$citation,
+			0,
+			n => [$n++, "INTEGER"] ) );
 		$page->appendChild( $p )
 	}
 	$session->build_page( $title, $page, "latest_tool" );

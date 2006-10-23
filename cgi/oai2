@@ -202,10 +202,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"repositoryName",
-		EPrints::Session::best_language( 
-			$session->get_repository,
-			$session->get_langid(),
-			%{$session->get_repository->get_conf( "archivename" )} ) ) );
+		$session->phrase( "archive_name" ) ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,

@@ -44,11 +44,8 @@ sub output_list
 		"rdf:about"=>"http://www.iamcal.com/rss.php" );
 	$response->appendChild( $channel );
 
-	my $title = "";
-	$title.= EPrints::Session::best_language( 
-			$session->get_repository,
-			$session->get_langid(),
-			%{$session->get_repository->get_conf( "archivename" )} );
+	my $title = $session->phrase( "archive_name" );
+
 	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
 
 	$channel->appendChild( $session->render_data_element(
