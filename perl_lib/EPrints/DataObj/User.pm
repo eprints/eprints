@@ -1078,6 +1078,17 @@ my $PRIVMAP =
 		"status" => 1,
 	},
 
+	"admin-config" =>
+	{
+		"config/reload" => 1,
+	},
+
+	"admin-indexer" =>
+	{
+		"indexer/stop" => 1,
+		"indexer/start" => 1,
+	},
+
 	subscription => 
 	{
 		"subscription" => 2,

@@ -4708,3 +4708,18 @@ PACKAGE: 2.2.99.2
 2006-10-20 cjg
  * Fixed some issues in platform code
 
+2006-10-23 moj
+ * Moved several bin/indexer functions into Index.pm
+ * Added tick file (separate from pid file)
+ * Added functions to Index.pm to allow start/stop from within EPrints
+    (these call bin/indexer)
+ * Added is_empty function to XML.pm to return true if node has no
+     children.
+
+2006-10-23 moj
+ * Added is_running to Index
+ * Added actions for start/stop indexer and force-config reload
+ * Added necessary phrases
+ * Added roles to admin
+ (nb: known bug - indexer currently stopping on apache reload)
+ 

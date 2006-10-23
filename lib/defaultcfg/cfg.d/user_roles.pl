@@ -42,6 +42,8 @@ $c->{user_roles}->{admin} = [qw/
 	staff-view
 	edit-subject
 	edit-user
+	admin-indexer
+	admin-config
 /],
 
 

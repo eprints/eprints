@@ -603,27 +603,32 @@ sub do_index
 	return $seen_action;
 }	
 
-sub stop
+sub is_running
 {
 	my $pidfile = EPrints::Index::pidfile();
-	return -1 if( !-e $pidfile ); # Already stopped
+	return 0 if( !-e $pidfile );
+	return 1;
+}
+
+sub stop
+{
+	return -1 if( !EPrints::Index::is_running );
 	
 	my $bin_path = EPrints::Index::binfile();
 	system( $bin_path, "stop" );	
 	
-	return 0 if( -e $pidfile ); # Couldn't stop
+	return 0 if( EPrints::Index::is_running );
 	return 1;
 }
 
 sub start
 {
-	my $pidfile = EPrints::Index::pidfile();
-	return -1 if( -e $pidfile ); # Already running
+	return -1 if( EPrints::Index::is_running );
 	
 	my $bin_path = EPrints::Index::binfile();
 	system( $bin_path, "start" );	
 	
-	return 0 if( !-e $pidfile ); # Couldn't start
+	return 0 if( !EPrints::Index::is_running );
 	return 1;
 }
 

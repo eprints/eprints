@@ -12,8 +12,25 @@ sub new
 	my( $class, %params ) = @_;
 
 	my $self = $class->SUPER::new(%params);
+	
+	$self->{actions} = [qw/ start_indexer stop_indexer reload_config /]; 
 
 	$self->{appears} = [
+		{ 
+			place => "indexer_actions", 	
+			action => "start_indexer",
+			position => 100, 
+		},
+		{ 
+			place => "indexer_actions", 	
+			action => "stop_indexer",
+			position => 200, 
+		},
+		{ 
+			place => "config_actions", 	
+			action => "reload_config",
+			position => 100, 
+		},
 		{
 			place => "other_tools",
 			position => 100,
@@ -23,6 +40,73 @@ sub new
 	return $self;
 }
 
+sub allow_stop_indexer
+{
+	my( $self ) = @_;
+	return 0 if( !EPrints::Index::is_running );
+	return $self->allow( "indexer/stop" );
+}
+
+sub action_stop_indexer
+{
+	my( $self ) = @_;
+
+	my $result = EPrints::Index::stop;
+
+	if( $result == 1 )
+	{
+		$self->{processor}->add_message( 
+			"message", 
+			$self->html_phrase( "indexer_stopped" ) 
+		);
+	}
+	else
+	{
+		$self->{processor}->add_message( 
+			"error", 
+			$self->html_phrase( "cant_stop_indexer" ) 
+		);
+	}
+}
+
+sub allow_start_indexer
+{
+	my( $self ) = @_;
+	return 0 if( EPrints::Index::is_running );
+	return $self->allow( "indexer/start" );
+}
+
+sub action_start_indexer
+{
+	my( $self ) = @_;
+	my $result = EPrints::Index::start;
+
+	if( $result == 1 )
+	{
+		$self->{processor}->add_message( 
+			"message", 
+			$self->html_phrase( "indexer_started" ) 
+		);
+	}
+	else
+	{
+		$self->{processor}->add_message( 
+			"error", 
+			$self->html_phrase( "cant_start_idexer" ) 
+		);
+	}
+}
+
+sub allow_reload_config
+{
+	my( $self ) = @_;
+	return 1;
+}
+
+sub action_reload_config
+{
+	my( $self ) = @_;
+}
 
 sub can_be_viewed
 {
@@ -30,7 +114,6 @@ sub can_be_viewed
 
 	return $self->allow( "status" );
 }
-
 
 sub render
 {
@@ -79,6 +162,8 @@ sub render
 	# Write the results to a table
 	
 	$html = $session->make_doc_fragment;
+
+	$html->appendChild( $self->render_action_list_bar( "indexer_actions" ) );
 	
 	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $table );
