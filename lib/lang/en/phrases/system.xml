@@ -549,11 +549,8 @@ User Area CGI Scripts
       <table>
         <tr><td>Username:</td><td><epc:pin name="input_username"/></td></tr>
         <tr><td>Password:</td><td><epc:pin name="input_password"/></td></tr>
-        <tr><td>Keep logged in:</td><td><epc:pin name="log_in_until"/></td></tr>
-        <tr><td>Bind to IP:</td><td><epc:pin name="bind_to_ip"/></td></tr>
         <tr><td><epc:pin name="login_button"/></td></tr>
       </table>
-      <p>Binding your login to a single IP (Internet address) is more secure, but may be annoying if you use an internet service provider which changes your IP address each time you dial in.</p>
     </epp:phrase>
     <epp:phrase id="cgi/login:until_close">until the browser closes</epp:phrase>
     <epp:phrase id="cgi/login:forever">forever (until I log out)</epp:phrase>
