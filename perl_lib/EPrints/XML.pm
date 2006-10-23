@@ -1008,6 +1008,11 @@ sub split_script_attribute
 	return @r;
 }
 
+sub is_empty
+{
+	my( $node ) = @_;
+	return $node->hasChildNodes();
+}
 
 
 

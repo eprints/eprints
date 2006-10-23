@@ -161,13 +161,14 @@ my $p = {
 	daemon => !$notdaemon,
 	noise => $noise,
 	once => $once,
-	logfile => $logfile 
+	logfile => EPrints::Index::logfile(), 
+	pidfile => EPrints::Index::pidfile(),
+	tickfile => EPrints::Index::tickfile(),
 };
 
-$p->{pidfile} = EPrints::Config::get("var_path")."/indexer.pid";
-if( !defined $p->{logfile} ) 
+if( defined $logfile ) 
 {
-	$p->{logfile} = EPrints::Config::get("var_path")."/indexer.log";
+	$p->{logfile} = $logfile;
 }
 
 if( $ARGV[0] eq "status" )
@@ -178,9 +179,25 @@ if( $ARGV[0] eq "status" )
 		exit;
 	}
 
-	my $pid = get_pid( $p );
-	print "Indexer appears to be running with PID $pid\n";
-	exit;
+	if( !-e $p->{tickfile} )
+	{
+		print "Indexer may not have started correctly - tick file not found.\n";
+		exit;
+	}
+
+	my $last_tick = EPrints::Index::get_last_tick();
+
+	if( $last_tick > 10*60 )
+	{
+		print "Indexer appears to have stalled. It may need restarting.\n";
+		exit;
+	}	
+	else
+	{
+		my $pid = EPrints::Index::get_pid();
+		print "Indexer appears to be running with PID $pid. Next index in ".(30-$last_tick)." seconds.\n";
+		exit;
+	}
 }
 
 
@@ -191,13 +208,13 @@ if( $ARGV[0] eq "stop" )
 		print <<END;
 $p->{pidfile} does not appear to exist.
 
-Maybe something bad happend? If indexer is still running you will have to
+Maybe something bad happened? If indexer is still running you will have to
 shut it down by hand.
 END
 		exit 1;
 	}
 
-	my $pid = get_pid( $p );
+	my $pid = EPrints::Index::get_pid();
 
 	if( !defined $pid )
 	{	
@@ -246,7 +263,7 @@ END
 
 if( !$force && -e $p->{pidfile} )
 {
-	my $pid = get_pid( $p );
+	my $pid = EPrints::Index::get_pid();
 	print <<END;
 
 EPrints indexer appears to be running with process ID $pid. 
@@ -278,16 +295,16 @@ if( $p->{loglevel} > 0 && $p->{daemon})
 	select( STDERR );
 	$| = 1;
 
-	rolllogs( $p );
-	indexlog();
-	indexlog();
-	indexlog( "**** Indexer starting..." );
+	EPrints::Index::rolllogs( $p );
+	EPrints::Index::indexlog();
+	EPrints::Index::indexlog();
+	EPrints::Index::indexlog( "**** Indexer starting..." );
 }
 
 
 if( $p->{daemon} )
 {
-	indexlog( "**** Becoming Daemon" );
+	EPrints::Index::indexlog( "**** Becoming Daemon" );
 	close STDIN;
 	open STDIN, "/dev/null" || die "Can't open /dev/null for reading: $!";
 	close STDOUT;
@@ -299,21 +316,22 @@ if( $p->{daemon} )
 
 
 $SIG{TERM} = sub { 
-	indexlog( "*** TERM signal received" ) if( $p->{loglevel} > 1 );
-	stopindexer( $p );
+	EPrints::Index::indexlog( "*** TERM signal received" ) if( $p->{loglevel} > 1 );
+	EPrints::Index::stop_indexer( $p );
 };
 
 
 if( $p->{daemon} )
 {
-	write_pid( $p );
+	EPrints::Index::write_pid();
+	EPrints::Index::do_tick();
 }
 
-indexlog( "** Indexer control process started with process ID: $$" ) if( $p->{loglevel} > 2 );
+EPrints::Index::indexlog( "** Indexer control process started with process ID: $$" ) if( $p->{loglevel} > 2 );
 
 while( 1 ) 
 {
-	indexlog( "*** Starting indexing" ) if( $p->{loglevel} > 1 );
+	EPrints::Index::indexlog( "*** Starting indexing" ) if( $p->{loglevel} > 1 );
 	
 	$p->{kid} = fork();
 	if( $p->{kid} == 0 )
@@ -328,13 +346,13 @@ while( 1 )
 		}
 
 		$SIG{TERM} = sub { 
-			indexlog( "** Worker process terminated: $$" ) if( $p->{loglevel} > 2 );
+			EPrints::Index::indexlog( "** Worker process terminated: $$" ) if( $p->{loglevel} > 2 );
 			foreach( @sessions ) { $_->terminate; }
 			exit;
 		};
 		$SIG{ALRM} = sub {
-			indexlog( "** Wake up... time to die: $$" ) if( $p->{loglevel} > 2 );
-			indexlog( "** Worker process restarting: $$" ) if( $p->{loglevel} > 2 );
+			EPrints::Index::indexlog( "** Wake up... time to die: $$" ) if( $p->{loglevel} > 2 );
+			EPrints::Index::indexlog( "** Worker process restarting: $$" ) if( $p->{loglevel} > 2 );
 			foreach( @sessions ) { $_->terminate; }
 			rolllogs();
 			exit;
@@ -342,7 +360,7 @@ while( 1 )
 		# restart once a day in case of memory leaks
 		alarm( 60*60*24 ) unless $p->{once};  
 			
-		indexlog( "** Worker process started: $$" ) if( $p->{loglevel} > 2 );
+		EPrints::Index::indexlog( "** Worker process started: $$" ) if( $p->{loglevel} > 2 );
 		my $cmd = "/usr/bin/renice 8 $$";	
 		`$cmd`;
 
@@ -352,67 +370,18 @@ while( 1 )
 
 			foreach my $session ( sort @sessions )
 			{
-				# $session->get_database->set_debug( 1 );
-				my $sql = "SELECT UNIX_TIMESTAMP(NOW()), field FROM index_queue ORDER BY added LIMIT 10";
-				my $sth = $session->get_database->prepare( $sql );
-				$session->get_database->execute( $sth, $sql );
-				my( $now, $field ) = @_;
-				my %todo = (); # use a hash so we only do each field in the set once.
-				while( my @info = $sth->fetchrow_array ) {
-					$todo{$info[1]} = 1;
-					$seen_action = 1;
-					$now = $info[0] unless defined $now;
-				}
-				$sth->finish;
-				foreach my $fieldcode ( keys %todo )
-				{
-					my( $datasetid, $objectid, $fieldid ) = split( /\./, $fieldcode );
-		
-					my $dataset = $session->get_repository->get_dataset( $datasetid );
-					if( !defined $dataset )
-					{
-						indexlog( "Could not make dataset: $datasetid ($fieldcode)" );
-						next;
-					}
-					my $field = $dataset->get_field( $fieldid );
-					if( !defined $field )
-					{
-						indexlog( "No such field: $fieldid (found on index queue).. skipping.\n" );
-						next;
-					}
-		
-					indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-					EPrints::Index::remove( $session, $dataset, $objectid, $fieldid );
-
-					next unless( $field->get_property( "text_index" ) );
-
-					my $item = $dataset->get_object( $session, $objectid );
-					next unless ( defined $item );
-
-					my $value = $item->get_value( $fieldid );
-					
-					next unless EPrints::Utils::is_set( $value );	
-
-					indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-					EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value );
-				}
-				# always remove them, even if they didn't index right.
-				foreach my $fieldcode ( keys %todo )
-				{
-					my $sql = "DELETE FROM index_queue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
-					$session->get_database->do( $sql );
-				}
-				
+				$seen_action ||= EPrints::Index::do_index( $session, $p );
 			}
 
-			indexlog( "* tick: $$" ) if( $p->{loglevel} > 3 );
-			write_pid( $p );
+			EPrints::Index::indexlog( "* tick: $$" ) if( $p->{loglevel} > 3 );
+#			EPrints::Index::write_pid();
+			EPrints::Index::do_tick();
 		
 			next if( $seen_action );
 			
 			if( $p->{once} )	
 			{
-				indexlog( "** Queue empty: Sub process exiting: $$" ) if( $p->{loglevel} > 2 );
+				EPrints::Index::indexlog( "** Queue empty: Sub process exiting: $$" ) if( $p->{loglevel} > 2 );
 				foreach( @sessions ) { $_->terminate; }
 				exit;
 			}
@@ -423,101 +392,11 @@ while( 1 )
 	wait; 
 	undef $p->{kid};
 
-	stopindexer($p) if( $p->{once} );
+	EPrints::Index::stop_indexer($p) if( $p->{once} );
 
-	rolllogs( $p );
+	EPrints::Index::rolllogs( $p );
 }
 
 
 ####################################################################################
 
-sub rolllogs
-{
-	my( $p ) = @_;
-
-	return if( $p->{loglevel} <= 0 );
-	return if( $p->{rollcount} <= 0 );
-
-	indexlog( "** End of log. Closing and rolling." ) if( $p->{loglevel} > 2 );
-	for( my $n = $p->{rollcount}; $n > 0; --$n )
-	{
-		my $src = $p->{logfile};	
-		if( $n > 1 ) { $src.='.'.($n-1); }
-		next unless( -f $src );
-		my $tgt = $p->{logfile}.'.'.$n;
-		rename( $src, $tgt ) || warn "Error renaming: $!";
-	}
-	close STDERR;
-	open( STDERR, ">>$p->{logfile}" ) || warn "Error opening: $p->{logfile}: $!";
-	select( STDERR );
-	$| = 1;
-}
-
-
-sub get_pid
-{
-	my( $p ) = @_;
-
-	print "Reading $p->{pidfile}\n" if( $p->{noise} > 1 );
-	open( PID, $p->{pidfile} ) || die( "Could not open $p->{pidfile}: $!" );
-	my $pid;
-	while( <PID> )
-	{
-		chomp;
-		if( m/^\d+$/ )
-		{
-			$pid = $_;
-			last;
-		}
-	}
-	close PID;
-
-	return $pid;
-}
-
-sub indexlog
-{
-	my( $txt ) = @_;
-
-	if( !defined $txt )
-	{
-		print STDERR "\n";
-		return;
-	}
-
-	print STDERR "[".localtime()."] ".$txt."\n";
-}
-
-sub stopindexer
-{
-	my( $p ) = @_;
-
-	indexlog( "** Control process $$ stopping..." ) if( $p->{loglevel} > 2 );
-	indexlog( "* Unlinking $p->{pidfile}" ) if( $p->{loglevel} > 3 );
-	unlink( $p->{pidfile} ) || die( "Can't unlink $p->{pidfile}" );
-	if( defined $p->{kid} )
-	{
-		indexlog( "* Sending TERM signal to worker process: $p->{kid}" ) if( $p->{loglevel} > 2 );
-		kill 15, $p->{kid};
-	}
-
-	indexlog( "** Control process $$ stopped", 1 ) if( $p->{loglevel} > 2 );
-	indexlog( "**** Indexer stopped" ) if( $p->{loglevel} > 0 );
-	indexlog() if( $p->{loglevel} > 0 );
-	exit;
-}
-
-sub write_pid
-{
-	my( $p ) = @_;
-
-	open( PID, ">$p->{pidfile}" ) || die "Can't open $p->{pidfile} for writing: $!";
-	print PID <<END;
-# This file is automatically generated to indicate what process ID
-# indexer is running as. If this file exists then indexer is assumed
-# to be running.
-END
-	print PID $$."\n";
-	print PID EPrints::Utils::human_time()."\n";
-	close PID;
-}
