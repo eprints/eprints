@@ -186,7 +186,7 @@ EPrints Modules
 <div class="ep_search_results"><epc:pin name="results"/></div>
 <div class="ep_search_controls_bottom"><epc:pin name="controls_if_matches"/></div>
 </epp:phrase>
-    <epp:phrase id="lib/searchexpression:export_section">Export as <epc:pin name="menu"/> <epc:pin name="button"/></epp:phrase>
+    <epp:phrase id="lib/searchexpression:export_section">Export results as <epc:pin name="menu"/> <epc:pin name="button"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:export_button">Export</epp:phrase>
     <epp:phrase id="lib/searchexpression:next">Next <epc:pin name="n"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:prev">Previous <epc:pin name="n"/></epp:phrase>

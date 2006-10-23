@@ -120,7 +120,7 @@ package EPrints::Utils;
 sub send_mail { EPrints::deprecated; return EPrints::Email::send_mail( @_ ); }
 sub send_mail_via_smtp { EPrints::deprecated; return EPrints::Email::send_mail_via_smtp( @_ ); }
 sub send_mail_via_sendmail { EPrints::deprecated; return EPrints::Email::send_mail_via_sendmail( @_ ); }
-sub collapse_conditions { EPrints::deprecated; return EPrints::XML::collapse_conditions( @_ ); }
+sub collapse_conditions { EPrints::deprecated; return EPrints::XML::EPC::process( @_ ); }
 
 
 ######################################################################

@@ -67,7 +67,7 @@ sub register_furniture
 	my $editor = $self->{processor}->{user}->has_editor( $cuser );
 
 	my $h2 = $self->{session}->make_element( "h2", style=>"margin: 0px" );
-	my $title = $self->{processor}->{user}->render_description;
+	my $title = $self->{processor}->{user}->render_citation( "screen" );
 	if( $owner && $editor )
 	{
 		my $a = $self->{session}->render_link( "?screen=User::View&userid=".$self->{processor}->{userid} );

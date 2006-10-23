@@ -73,6 +73,7 @@ database and website.
 package EPrints::Repository;
 
 use EPrints;
+use EPrints::XML::EPC;
 
 use File::Copy;
 
@@ -549,7 +550,7 @@ sub _divide_attributes
 		my $v = $attr->getValue;
 		next unless( $v =~ m/\{/ );
 		my $name = $attr->getName;
-		my @r = EPrints::XML::split_script_attribute( $v, $name );
+		my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
 		my @r2 = ();
 		for( my $i = 0; $i<scalar @r; ++$i )
 		{

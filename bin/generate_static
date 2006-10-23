@@ -309,26 +309,31 @@ sub copy_xpage
 		return;
 	}
 
-	my( $elements ) = EPrints::XML::find_elements( $doc, "xpage:title", "xpage:body" );
-
-	my $parts;
-	foreach my $part ( "title", "body" )
+	my $html = $doc->getDocumentElement;
+	my $parts = {};
+	foreach my $node ( $html->getChildNodes )
 	{
-		my $node = $elements->{"xpage:$part"};
-		if( !$node )
-		{
-			$session->get_repository->log( "Error: no $part element in ".$from );
-			EPrints::XML::dispose( $doc );
-			return;
-		}
+		my $part = $node->getNodeName;
+		$part =~ s/^.*://;
+		next unless( $part eq "body" || $part eq "title" );
+
 		$parts->{$part} = $session->make_doc_fragment;
 			
 		foreach my $kid ( $node->getChildNodes )
 		{
 			$parts->{$part}->appendChild( 
-				EPrints::XML::collapse_conditions( 
+				EPrints::XML::EPC::process( 
 					$kid,
 					session => $session ) ); 
+		}
+	}
+	foreach my $part ( qw/ title body / )
+	{
+		if( !$parts->{$part} )
+		{
+			$session->get_repository->log( "Error: no $part element in ".$from );
+			EPrints::XML::dispose( $doc );
+			return;
 		}
 	}
 
@@ -361,7 +366,7 @@ sub copy_xhtml
 	# why clone?
 	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
 	$session->set_page( 
-		EPrints::XML::collapse_conditions( 
+		EPrints::XML::EPC::process( 
 			$elements->{html}, 
 			session => $session ) ); 
 

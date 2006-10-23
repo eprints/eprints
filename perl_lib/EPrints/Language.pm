@@ -182,7 +182,7 @@ sub phrase
 	$inserts = {} if( !defined $inserts );
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
 	my $used = {};
-	my $result = EPrints::XML::collapse_child_nodes( 
+	my $result = EPrints::XML::EPC::process_child_nodes( 
 		$phrase, 
 		session => $session, 
 		pindata=>{ 

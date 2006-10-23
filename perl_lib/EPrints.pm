@@ -170,5 +170,6 @@ use EPrints::Paracite;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::Workflow::Processor;
+use EPrints::XML::EPC;
 
 1;

@@ -93,7 +93,7 @@ sub new
 	{
 		EPrints::abort( "Failed to find workflow: ".$self->{dataset}->confid.".$workflow_id" );
 	}
-	$self->{config} = EPrints::XML::collapse_conditions( $self->{raw_config}, %params );
+	$self->{config} = EPrints::XML::EPC::process( $self->{raw_config}, %params );
 
 	$self->_read_flow;
 	$self->_read_stages;

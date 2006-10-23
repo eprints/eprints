@@ -4733,3 +4733,10 @@ PACKAGE: 2.2.99.2
  * Added a setsid to indexer
  * Added _run_indexer to avoid redundant code
   
+2006-10-23 cjg
+ * Moved collapse conditions to EPrints::XML::EPC::process
+ * Added screen citiation formats for headers of EPrint and User screens.
+ * Modified generate_static to find title and body directly rather than
+    use XML::find_elements
+ * Removed now unused XML::find_elements
+
