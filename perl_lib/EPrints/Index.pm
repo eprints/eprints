@@ -34,7 +34,8 @@ the free-text search indexes.
 package EPrints::Index;
 
 use Unicode::String qw( latin1 utf8 );
-
+use POSIX 'setsid';
+use Apache2::SubProcess;
 use strict;
 
 
@@ -612,25 +613,65 @@ sub is_running
 
 sub stop
 {
+	my( $session ) = @_;
 	return -1 if( !EPrints::Index::is_running );
 	
-	my $bin_path = EPrints::Index::binfile();
-	system( $bin_path, "stop" );	
-	
+	EPrints::Index::_run_indexer( $session, "stop" );	
+	# give it 10 seconds
+	my $counter = 10;
+	for( 1..$counter )
+	{
+		if( !EPrints::Index::is_running )
+		{
+			return 1;
+		}
+		sleep 1;
+	}
 	return 0 if( EPrints::Index::is_running );
 	return 1;
 }
 
 sub start
 {
+	my( $session ) = @_;
+
 	return -1 if( EPrints::Index::is_running );
-	
-	my $bin_path = EPrints::Index::binfile();
-	system( $bin_path, "start" );	
-	
+
+	EPrints::Index::_run_indexer( $session, "start" );	
+
+	# give it 10 seconds
+	my $counter = 10;
+	for( 1..$counter )
+	{
+		if( EPrints::Index::is_running )
+		{
+			return 1;
+		}
+		sleep 1;
+	}
 	return 0 if( !EPrints::Index::is_running );
 	return 1;
 }
+
+sub _run_indexer
+{
+	my( $session, $action ) = @_;
+	my $bin_path = EPrints::Index::binfile();
+	$session->get_request->spawn_proc_prog( $EPrints::SystemSettings::conf->{executables}->{perl},
+		["-e", <<END] );
+use strict;
+use warnings;
+use POSIX 'setsid';
+chdir '/' or die "Can't chdir to /: \$!";
+open STDIN, '/dev/null'  or die "Can't read /dev/null: \$!";
+open STDOUT, '+>>', '/tmp/error_log' or die "Can't write to /dev/null: \$!";
+open STDERR, '>&STDOUT'  or die "Can't dup stdout: \$!";
+setsid or die "Can't start a new session: \$!";
+exec( "$bin_path", "$action" );
+END
+
+}
+
 
 # This map is used to convert Unicode characters
 # to ASCII characters below 127, in the word index.

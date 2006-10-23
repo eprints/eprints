@@ -113,7 +113,7 @@ __GENERICPOD__
 =cut
 
 use EPrints;
-
+use POSIX;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
@@ -336,6 +336,7 @@ while( 1 )
 	$p->{kid} = fork();
 	if( $p->{kid} == 0 )
 	{
+		setsid or die "Unable to start session: $!\n";
 		my @sessions = ();
 		my @arc_ids = EPrints::Config::get_repository_ids();
 		foreach my $arc_id ( sort @arc_ids )

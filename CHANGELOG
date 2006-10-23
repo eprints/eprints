@@ -4722,4 +4722,14 @@ PACKAGE: 2.2.99.2
  * Added necessary phrases
  * Added roles to admin
  (nb: known bug - indexer currently stopping on apache reload)
- 
+
+2006-10-23 moj
+ * Fixed indexer spawning in Index.pm
+ * Created Admin/Indexer.pm and Admin/Reload.pm and moved actions
+    into the correct places.
+ * Added render_common_actions to Status, as Reload/Indexer extend
+    it.
+ * Renamed phrases and added Admin/Indexer:title
+ * Added a setsid to indexer
+ * Added _run_indexer to avoid redundant code
+  
