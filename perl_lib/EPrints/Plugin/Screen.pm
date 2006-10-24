@@ -370,7 +370,7 @@ sub list_items
 	return sort { $a->{position} <=> $b->{position} } @list_items;
 }	
 
-sub allowed
+sub action_allowed
 {
 	my( $self, $item ) = @_;
 	my $who_allowed;
@@ -394,7 +394,7 @@ sub action_list
 	my @list = ();
 	foreach my $item ( $self->list_items( $list_id ) )
 	{
-		next unless $self->allowed( $item );
+		next unless $self->action_allowed( $item );
 
 		push @list, $item;
 	}
@@ -459,7 +459,7 @@ sub render_action_button_if_allowed
 {
 	my( $self, $item, $passthrough ) = @_;
 
-	if( $self->allowed( $item ) )
+	if( $self->action_allowed( $item ) )
 	{
 		return $self->render_action_button( $item, $passthrough ); 
 	}
