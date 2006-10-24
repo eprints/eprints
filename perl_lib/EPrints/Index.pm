@@ -477,6 +477,13 @@ sub get_pid
 	return $pid;
 }
 
+sub has_stalled
+{
+	my $last_tick = EPrints::Index::get_last_tick();
+	return 1 if( $last_tick > 10*60 );
+	return 0;
+}
+
 sub get_last_tick
 {
 	my $tickfile = tickfile();
@@ -616,7 +623,8 @@ sub stop
 	my( $session ) = @_;
 	return -1 if( !EPrints::Index::is_running );
 	
-	EPrints::Index::_run_indexer( $session, "stop" );	
+	my $bin_path = EPrints::Index::binfile();
+	system( "$bin_path", "stop" );
 	# give it 10 seconds
 	my $counter = 10;
 	for( 1..$counter )
@@ -651,6 +659,18 @@ sub start
 	}
 	return 0 if( !EPrints::Index::is_running );
 	return 1;
+}
+
+sub force_start
+{
+	my( $session ) = @_;
+
+	EPrints::Index::stop( $session );
+
+	unlink( EPrints::Index::pidfile() );
+	unlink( EPrints::Index::tickfile() );
+
+	return EPrints::Index::start( $session );
 }
 
 sub _run_indexer

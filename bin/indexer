@@ -185,15 +185,14 @@ if( $ARGV[0] eq "status" )
 		exit;
 	}
 
-	my $last_tick = EPrints::Index::get_last_tick();
-
-	if( $last_tick > 10*60 )
+	if( EPrints::Index::has_stalled() )
 	{
 		print "Indexer appears to have stalled. It may need restarting.\n";
 		exit;
 	}	
 	else
 	{
+		my $last_tick = EPrints::Index::get_last_tick();
 		my $pid = EPrints::Index::get_pid();
 		print "Indexer appears to be running with PID $pid. Next index in ".(30-$last_tick)." seconds.\n";
 		exit;

@@ -236,7 +236,6 @@ sub can_be_viewed
 sub allow_action
 {
 	my( $self, $action_id ) = @_;
-
 	my $ok = 0;
 	foreach my $an_action ( @{$self->{actions}} )
 	{
@@ -407,43 +406,43 @@ sub who_filter { return 255; }
 
 sub get_description
 {
-	my( $self, $item ) = @_;
+	my( $self, $params ) = @_;
 	my $description;
-	if( defined $item->{action} )
+	if( defined $params->{action} )
 	{
-		my $action = $item->{action};
-		$description = $item->{screen}->html_phrase( "action:$action:description" );
+		my $action = $params->{action};
+		$description = $params->{screen}->html_phrase( "action:$action:description" );
 	}
 	else
 	{
-		$description = $item->{screen}->html_phrase( "description" );
+		$description = $params->{screen}->html_phrase( "description" );
 	}
 	return $description;
 }
 
 sub render_action_button
 {
-	my( $self, $item, $passthrough ) = @_;
+	my( $self, $params ) = @_;
 	
 	my $session = $self->{session};
 		
 	my $form = $session->render_form( "form" );
 
-	$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
-	foreach my $id ( @{$passthrough} )
+	$form->appendChild( $session->render_hidden_field( "screen", substr( $params->{screen_id}, 8 ) ) );
+	foreach my $id ( @{$params->{hidden}} )
 	{
 		$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
 	}
 	my( $action, $title );
-	if( defined $item->{action} )
+	if( defined $params->{action} )
 	{
-		$action = $item->{action};
-		$title = $item->{screen}->phrase( "action:$action:title" );
+		$action = $params->{action};
+		$title = $params->{screen}->phrase( "action:$action:title" );
 	}
 	else
 	{
 		$action = "null";
-		$title = $item->{screen}->phrase( "title" );
+		$title = $params->{screen}->phrase( "title" );
 	}
 	$form->appendChild( 
 		$session->make_element( 
@@ -457,11 +456,11 @@ sub render_action_button
 
 sub render_action_button_if_allowed
 {
-	my( $self, $item, $passthrough ) = @_;
+	my( $self, $params, $hidden ) = @_;
 
-	if( $self->action_allowed( $item ) )
+	if( $self->action_allowed( $params ) )
 	{
-		return $self->render_action_button( $item, $passthrough ); 
+		return $self->render_action_button( { %$params, hidden => $hidden } ); 
 	}
 	else
 	{
@@ -471,13 +470,13 @@ sub render_action_button_if_allowed
 
 sub render_action_list
 {
-	my( $self, $list_id, $passthrough ) = @_;
+	my( $self, $list_id, $hidden ) = @_;
 
 	my $session = $self->{session};
 
 	# TODO css me!
 	my $table = $session->make_element( "table", style=>"margin: auto" );
-	foreach my $item ( $self->action_list( $list_id ) )
+	foreach my $params ( $self->action_list( $list_id ) )
 	{
 		my $tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );
@@ -485,13 +484,13 @@ sub render_action_list
 		# TODO css me!
 		my $td = $session->make_element( "td", style=>"text-align: right; padding: 0.25em 0 0.25em 0" );
 		$tr->appendChild( $td );
-		$td->appendChild( $self->render_action_button( $item, $passthrough ) );
+		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
 
 		my $td2 = $session->make_element( "td" );
 		$tr->appendChild( $td2 );
 
 		$td2->appendChild( $session->make_text( " - " ) );
-		$td2->appendChild( $self->get_description( $item ) );
+		$td2->appendChild( $self->get_description( $params ) );
 	}
 
 	return $table;
@@ -500,7 +499,7 @@ sub render_action_list
 
 sub render_action_list_bar
 {
-	my( $self, $list_id, $passthrough ) = @_;
+	my( $self, $list_id, $hidden ) = @_;
 
 	my $session = $self->{session};
 
@@ -509,11 +508,11 @@ sub render_action_list_bar
 	$div->appendChild( $table );
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
-	foreach my $item ( $self->action_list( $list_id ) )
+	foreach my $params ( $self->action_list( $list_id ) )
 	{
 		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
-		$td->appendChild( $self->render_action_button( $item, $passthrough ) );
+		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
 	}
 
 	return $div;

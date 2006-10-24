@@ -1087,6 +1087,7 @@ my $PRIVMAP =
 	{
 		"indexer/stop" => 1,
 		"indexer/start" => 1,
+		"indexer/force_start" => 1,
 	},
 
 	subscription => 

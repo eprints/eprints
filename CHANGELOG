@@ -4765,3 +4765,19 @@ PACKAGE: 2.2.99.2
     allowed to be viewed. Returns an empty doc fragment otherwise.
  * Created 'allowed' to return true if an action is allowed (used by 
     action_list and render_action_button_if_allowed)
+
+2006-10-24 moj
+ * Added 'has_stalled' to Index - returns true if the tick file is out of
+    date.
+ * Added 'force_start' to Index - stops the indexer (with no checking of the
+    result - just to kill off any remaining process), unlinks the pid and tick
+    files, and then starts the indexer and returns the result.
+ * Added force_start_indexer to the Admin/Index screen
+ * Rejigged Screen.pl to take $params (a hash array that can contain 'hidden').
+    This replaces 'passthrough'.
+ * Added Admin.pm. This warns if the indexer is not started, or needs force
+    restarting, with buttons to carry these out. It also shows a list of
+    available admin tools. 
+ * Added the relevant phrases for the start/stop/force_start
+ * Adjusted indexer.pl to use has_stalled
+ * Added necessary roles to User.pm

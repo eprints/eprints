@@ -10,18 +10,23 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ start_indexer stop_indexer /]; 
+	$self->{actions} = [qw/ start_indexer force_start_indexer stop_indexer /]; 
 
 	$self->{appears} = [
 		{ 
-			place => "indexer_actions", 	
+			place => "admin_actions", 	
 			action => "start_indexer",
 			position => 100, 
 		},
 		{ 
-			place => "indexer_actions", 	
-			action => "stop_indexer",
+			place => "admin_actions", 	
+			action => "force_start_indexer",
 			position => 200, 
+		},
+		{ 
+			place => "admin_actions", 	
+			action => "stop_indexer",
+			position => 300, 
 		},
 	];
 
@@ -29,16 +34,16 @@ sub new
 	return $self;
 }
 
-sub render_common_action_buttons
+sub about_to_render
 {
 	my( $self ) = @_;
-	return $self->render_action_list_bar( "indexer_actions" );
+	$self->{processor}->{screenid} = "Admin";
 }
 
 sub allow_stop_indexer
 {
 	my( $self ) = @_;
-	return 0 if( !EPrints::Index::is_running );
+	return 0 if( !EPrints::Index::is_running || EPrints::Index::has_stalled);
 	return $self->allow( "indexer/stop" );
 }
 
@@ -75,6 +80,34 @@ sub action_start_indexer
 {
 	my( $self ) = @_;
 	my $result = EPrints::Index::start( $self->{session} );
+
+	if( $result == 1 )
+	{
+		$self->{processor}->add_message( 
+			"message", 
+			$self->html_phrase( "indexer_started" ) 
+		);
+	}
+	else
+	{
+		$self->{processor}->add_message( 
+			"error", 
+			$self->html_phrase( "cant_start_indexer" ) 
+		);
+	}
+}
+
+sub allow_force_start_indexer
+{
+	my( $self ) = @_;
+	return 0 if( !EPrints::Index::has_stalled );
+	return $self->allow( "indexer/force_start" );
+}
+
+sub action_force_start_indexer
+{
+	my( $self ) = @_;
+	my $result = EPrints::Index::force_start( $self->{session} );
 
 	if( $result == 1 )
 	{
