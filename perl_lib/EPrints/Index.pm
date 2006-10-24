@@ -35,7 +35,7 @@ package EPrints::Index;
 
 use Unicode::String qw( latin1 utf8 );
 use POSIX 'setsid';
-use Apache2::SubProcess;
+use EPrints;
 use strict;
 
 

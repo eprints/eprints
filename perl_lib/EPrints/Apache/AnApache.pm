@@ -118,6 +118,7 @@ if( defined $av && $av eq "2" )
 	if( $EPrints::Apache::AnApache::ModPerlAPI == 1 )
 	{
 		push @modules,
+			'Apache::SubProcess',
 			'Apache::Const',
 			'Apache::Connection',
 			'Apache::RequestRec';
@@ -125,6 +126,7 @@ if( defined $av && $av eq "2" )
 	if( $EPrints::Apache::AnApache::ModPerlAPI == 2 )
 	{
 		push @modules,
+			'Apache2::SubProcess',
 			'Apache2::Const',
 			'Apache2::Connection';
 	}

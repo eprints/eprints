@@ -4753,3 +4753,7 @@ PACKAGE: 2.2.99.2
  * Added LibXML DOM option
  * Modified to_dom to use isa (otherwise inheritence will break comparison)
  * Added dom_compare tool to, er, compare DOM implementations
+
+2006-10-24 cjg
+ * Moved use Apache::SubProcess into AnApache so it handles mod_perl 1.99 
+    correctly.
