@@ -4748,3 +4748,8 @@ PACKAGE: 2.2.99.2
  * Fixed bug in oai2, rss and latest_tool which was looking for the config
     option 
  * Added "n" to latest_tool to make it render result citation correctly
+
+2006-10-24 tdb
+ * Added LibXML DOM option
+ * Modified to_dom to use isa (otherwise inheritence will break comparison)
+ * Added dom_compare tool to, er, compare DOM implementations

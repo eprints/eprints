@@ -21,10 +21,10 @@ B<EPrints::XML> - XML Abstraction Module
 
 =head1 DESCRIPTION
 
-EPrints can use either XML::DOM or XML::GDOME modules to generate
-and process XML. Some of the functionality of these modules differs
-so this module abstracts such functionality so that all the module
-specific code is in one place. 
+EPrints can use either XML::DOM, XML::LibXML or XML::GDOME modules to generate
+and process XML. Some of the functionality of these modules differs so this
+module abstracts such functionality so that all the module specific code is in
+one place. 
 
 =over 4
 
@@ -39,13 +39,13 @@ use Carp;
 
 @EPrints::XML::COMPRESS_TAGS = qw/br hr img link input meta/;
 
-my $gdome = ( 
-	 defined $EPrints::SystemSettings::conf->{enable_gdome} &&
-	 $EPrints::SystemSettings::conf->{enable_gdome} );
-
-if( $gdome )
+if( $EPrints::SystemSettings::conf->{enable_gdome} )
 {
 	require EPrints::XML::GDOME;
+}
+elsif( $EPrints::SystemSettings::conf->{enable_libxml} )
+{
+	require EPrints::XML::LibXML;
 }
 else
 {
@@ -118,8 +118,8 @@ sub is_dom
 
 	foreach( @nodestrings )
 	{
-		my $v = $EPrints::XML::PREFIX.$_;
-		return 1 if( substr( ref($node), 0, length( $v ) ) eq $v );
+		my $name = $EPrints::XML::PREFIX.$_;
+		return 1 if $node->isa( $name );
 	}
 
 	return 0;
