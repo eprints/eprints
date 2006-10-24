@@ -370,6 +370,23 @@ sub list_items
 	return sort { $a->{position} <=> $b->{position} } @list_items;
 }	
 
+sub allowed
+{
+	my( $self, $item ) = @_;
+	my $who_allowed;
+	if( defined $item->{action} )
+	{
+ 		$who_allowed = $item->{screen}->allow_action( $item->{action} );
+	}
+	else
+	{
+		$who_allowed = $item->{screen}->can_be_viewed;
+	}
+
+	return 0 unless( $who_allowed & $self->who_filter );
+	return 1;
+}
+
 sub action_list
 {
 	my( $self, $list_id ) = @_;
@@ -377,17 +394,7 @@ sub action_list
 	my @list = ();
 	foreach my $item ( $self->list_items( $list_id ) )
 	{
-		my $who_allowed;
-		if( defined $item->{action} )
-		{
- 			$who_allowed = $item->{screen}->allow_action( $item->{action} );
-		}
-		else
-		{
-			$who_allowed = $item->{screen}->can_be_viewed;
-		}
-
-		next unless( $who_allowed & $self->who_filter );
+		next unless $self->allowed( $item );
 
 		push @list, $item;
 	}
@@ -397,6 +404,70 @@ sub action_list
 
 
 sub who_filter { return 255; }
+
+sub get_description
+{
+	my( $self, $item ) = @_;
+	my $description;
+	if( defined $item->{action} )
+	{
+		my $action = $item->{action};
+		$description = $item->{screen}->html_phrase( "action:$action:description" );
+	}
+	else
+	{
+		$description = $item->{screen}->html_phrase( "description" );
+	}
+	return $description;
+}
+
+sub render_action_button
+{
+	my( $self, $item, $passthrough ) = @_;
+	
+	my $session = $self->{session};
+		
+	my $form = $session->render_form( "form" );
+
+	$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
+	foreach my $id ( @{$passthrough} )
+	{
+		$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
+	}
+	my( $action, $title );
+	if( defined $item->{action} )
+	{
+		$action = $item->{action};
+		$title = $item->{screen}->phrase( "action:$action:title" );
+	}
+	else
+	{
+		$action = "null";
+		$title = $item->{screen}->phrase( "title" );
+	}
+	$form->appendChild( 
+		$session->make_element( 
+			"input", 
+			type=>"submit",
+			class=>"ep_form_action_button",
+			name=>"_action_$action", 
+			value=>$title ));
+	return $form;
+}
+
+sub render_action_button_if_allowed
+{
+	my( $self, $item, $passthrough ) = @_;
+
+	if( $self->allowed( $item ) )
+	{
+		return $self->render_action_button( $item, $passthrough ); 
+	}
+	else
+	{
+		return $self->{session}->make_doc_fragment;
+	}
+}
 
 sub render_action_list
 {
@@ -414,47 +485,17 @@ sub render_action_list
 		# TODO css me!
 		my $td = $session->make_element( "td", style=>"text-align: right; padding: 0.25em 0 0.25em 0" );
 		$tr->appendChild( $td );
-
-		my $form = $session->render_form( "form" );
-		$td->appendChild( $form );
-#		$form->appendChild( $session->render_hidden_field( "userid", $self->{processor}->{userid} ) );
-
-		$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
-		foreach my $id ( @{$passthrough} )
-		{
-			$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
-		}
-		my( $action, $title, $description );
-		if( defined $item->{action} )
-		{
-			$action = $item->{action};
-			$title = $item->{screen}->phrase( "action:$action:title" );
-			$description = $item->{screen}->html_phrase( "action:$action:description" );
-		}
-		else
-		{
-			$action = "null";
-			$title = $item->{screen}->phrase( "title" );
-			$description = $item->{screen}->html_phrase( "description" );
-		}
-		$form->appendChild( 
-			$session->make_element( 
-				"input", 
-				type=>"submit",
-				class=>"ep_form_action_button",
-				name=>"_action_$action", 
-				value=>$title ));
+		$td->appendChild( $self->render_action_button( $item, $passthrough ) );
 
 		my $td2 = $session->make_element( "td" );
 		$tr->appendChild( $td2 );
 
 		$td2->appendChild( $session->make_text( " - " ) );
-		$td2->appendChild( $description );
+		$td2->appendChild( $self->get_description( $item ) );
 	}
 
 	return $table;
 }
-
 
 
 sub render_action_list_bar
@@ -472,31 +513,7 @@ sub render_action_list_bar
 	{
 		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
-		my $form = $session->render_form( "form" );
-		$td->appendChild( $form );
-		$form->appendChild( $session->render_hidden_field( "screen", substr( $item->{screen_id}, 8 ) ) );
-		foreach my $id ( @{$passthrough} )
-		{
-			$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
-		}
-		my( $action, $title );
-		if( defined $item->{action} )
-		{
-			$action = $item->{action};
-			$title = $item->{screen}->phrase( "action:$action:title" );
-		}
-		else
-		{
-			$action = "null";
-			$title = $item->{screen}->phrase( "title" );
-		}
-		$form->appendChild( 
-			$session->make_element( 
-				"input", 
-				type=>"submit",
-				class=>"ep_form_action_button",
-				name=>"_action_$action", 
-				value=>$title ));
+		$td->appendChild( $self->render_action_button( $item, $passthrough ) );
 	}
 
 	return $div;

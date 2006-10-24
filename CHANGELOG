@@ -4757,3 +4757,11 @@ PACKAGE: 2.2.99.2
 2006-10-24 cjg
  * Moved use Apache::SubProcess into AnApache so it handles mod_perl 1.99 
     correctly.
+
+2006-10-24 moj
+ * Created render_action_button in Screen that is used by action_bar and
+    action_list. 
+ * Added render_action_button_if_allowed - only returns a button if it is
+    allowed to be viewed. Returns an empty doc fragment otherwise.
+ * Created 'allowed' to return true if an action is allowed (used by 
+    action_list and render_action_button_if_allowed)
