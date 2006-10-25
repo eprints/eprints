@@ -527,16 +527,16 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin:title">Administration</epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:indexer_not_running">The full-text indexer is not currently running. You should start it to ensure full-text searching operates correctly. <epc:pin name="start_button" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:indexer_stalled">The full-text indexer appears to have stalled. You may need to force restart it to ensure full-text searching operates correctly. <epc:pin name="force_start_button" /></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:force_start_indexer:title">Force Start Indexer</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:force_start_indexer:description">Forcefully stops and cleans up the indexer, then restarts it.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:start_indexer:title">Start Indexer</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:start_indexer:description">Starts the full-text indexer.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:stop_indexer:title">Stop Indexer</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:action:stop_indexer:description">Stops the full-text indexer.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:indexer_started">Indexer started successfully.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:indexer_stopped">Indexer stopped successfully.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:cant_start_indexer">Unable to start indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/Indexer:cant_stop_indexer">Unable to stop indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:force_start_indexer:title">Force Start Indexer</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:force_start_indexer:description">Forcefully stops and cleans up the indexer, then restarts it.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:start_indexer:title">Start Indexer</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:start_indexer:description">Starts the full-text indexer.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:stop_indexer:title">Stop Indexer</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:stop_indexer:description">Stops the full-text indexer.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:indexer_started">Indexer started successfully.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:indexer_stopped">Indexer stopped successfully.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_start_indexer">Unable to start indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_stop_indexer">Unable to stop indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
 
 
     <epp:phrase id="cgi/export:no_id"><p>No valid EPrint ID Number was specified.</p></epp:phrase>

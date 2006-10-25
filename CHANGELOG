@@ -4792,3 +4792,7 @@ PACKAGE: 2.2.99.2
  * Added 'Indexer Status' to the status view as well as a few phrases
  * Form now uses 'inline' to keep the button in the right place.
  * Moved stop_indexer to cleanup_indexer
+
+2006-10-25 moj
+ * Renamed Indexer.pm to IndexerControl.pm and updated Status.pm accordingly.
+ * Renamed phrases to use IndexerControl

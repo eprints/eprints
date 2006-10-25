@@ -1,4 +1,4 @@
-package EPrints::Plugin::Screen::Admin::Indexer;
+package EPrints::Plugin::Screen::Admin::IndexerControl;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
