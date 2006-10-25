@@ -233,8 +233,8 @@ sub build_email
 	my $xml_mail = $p{message};
 	if( defined $p{sig} )
 	{
-		$xml_mail = $p{session}->clone_for_me( $xml_mail );
-		$xml_mail->appendChild( $p{session}->clone_for_me( $p{sig} ) );
+		$xml_mail = $p{session}->clone_for_me( $xml_mail, 1 );
+		$xml_mail->appendChild( $p{session}->clone_for_me( $p{sig}, 1 ) );
 	}
 	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH );
 
