@@ -432,6 +432,11 @@ sub binfile
 	return EPrints::Config::get("bin_path")."/indexer";
 }
 
+sub suicidefile
+{
+	return EPrints::Config::get("var_path")."/indexer.suicide";
+}
+
 sub do_tick
 {
 	my $tickfile = EPrints::Index::tickfile();
@@ -530,7 +535,7 @@ sub rolllogs
 }
 
 
-sub stop_indexer
+sub cleanup_indexer
 {
 	my( $p ) = @_;
 
@@ -544,10 +549,14 @@ sub stop_indexer
 		kill 15, $p->{kid};
 	}
 
+	if( EPrints::Index::suicidal() ) 
+	{
+		unlink( EPrints::Index::suicidefile() );
+	}
+
 	EPrints::Index::indexlog( "** Control process $$ stopped", 1 ) if( $p->{loglevel} > 2 );
 	EPrints::Index::indexlog( "**** Indexer stopped" ) if( $p->{loglevel} > 0 );
 	EPrints::Index::indexlog() if( $p->{loglevel} > 0 );
-	exit;
 }
 
 
@@ -618,15 +627,43 @@ sub is_running
 	return 1;
 }
 
+sub suicidal
+{
+	return 1 if( -e EPrints::Index::suicidefile() );
+	return 0;
+}
+
 sub stop
 {
 	my( $session ) = @_;
 	return -1 if( !EPrints::Index::is_running );
+
+	my $suicidefile = EPrints::Index::suicidefile();
+	open( SUICIDE, ">$suicidefile" );
+	print SUICIDE <<END;
+# This file is recreated by the indexer to indicate
+# that the indexer should exit. 
+END
+	close SUICIDE;
 	
+	# give it 8 seconds
+	my $counter = 8;
+	for( 1..$counter )
+	{
+		if( !EPrints::Index::is_running )
+		{
+			return 1;
+		}
+		sleep 1;
+	}
+	
+	# That didn't work - try to stop it using the command-line
+	# approach.
+
 	my $bin_path = EPrints::Index::binfile();
 	system( "$bin_path", "stop" );
 	# give it 10 seconds
-	my $counter = 10;
+	$counter = 10;
 	for( 1..$counter )
 	{
 		if( !EPrints::Index::is_running )

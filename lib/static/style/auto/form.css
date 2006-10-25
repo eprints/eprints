@@ -1,6 +1,9 @@
 
 /* Form related styles */
 
+form {
+	display: inline;
+}
 
 select, input.ep_form_text, textarea {
 	padding: 1px 2px 1px 2px;

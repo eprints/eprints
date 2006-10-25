@@ -316,7 +316,8 @@ if( $p->{daemon} )
 
 $SIG{TERM} = sub { 
 	EPrints::Index::indexlog( "*** TERM signal received" ) if( $p->{loglevel} > 1 );
-	EPrints::Index::stop_indexer( $p );
+	EPrints::Index::cleanup_indexer( $p );
+	exit;
 };
 
 
@@ -376,7 +377,12 @@ while( 1 )
 			EPrints::Index::indexlog( "* tick: $$" ) if( $p->{loglevel} > 3 );
 #			EPrints::Index::write_pid();
 			EPrints::Index::do_tick();
-		
+			if( EPrints::Index::suicidal )
+			{
+				EPrints::Index::indexlog( "** Indexer sub process asked to suicide" );
+				exit;
+			}
+	
 			next if( $seen_action );
 			
 			if( $p->{once} )	
@@ -385,14 +391,34 @@ while( 1 )
 				foreach( @sessions ) { $_->terminate; }
 				exit;
 			}
-			sleep 30; 
+			for( my $i=0; $i<6; $i++ )
+			{
+				if( EPrints::Index::suicidal )
+				{
+					EPrints::Index::indexlog( "** Indexer sub process asked to suicide" );
+					exit;
+				}
+				sleep 5;
+			}
 		}
 		exit;
 	}
 	wait; 
 	undef $p->{kid};
 
-	EPrints::Index::stop_indexer($p) if( $p->{once} );
+	if( EPrints::Index::suicidal )
+	{
+		EPrints::Index::indexlog( "** Indexer control process asked to suicide" );
+		EPrints::Index::cleanup_indexer($p);
+		exit;
+	}
+
+
+	if( $p->{once} )
+	{
+		EPrints::Index::cleanup_indexer($p); 
+		exit;
+	}
 
 	EPrints::Index::rolllogs( $p );
 }

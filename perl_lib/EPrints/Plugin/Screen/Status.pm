@@ -30,9 +30,47 @@ sub can_be_viewed
 	return $self->allow( "status" );
 }
 
+sub indexer_warnings 
+{
+	my( $self ) = @_;
+
+	if( EPrints::Index::has_stalled )
+	{
+		my $index_screen = $self->{session}->plugin( "Screen::Admin::Indexer", processor => $self->{processor} );
+		my $force_start_button = $self->render_action_button_if_allowed( 
+		{ 
+			action => "force_start_indexer", 
+			screen => $index_screen, 
+			screen_id => $index_screen->{id} 
+		} );
+
+		$self->{processor}->add_message( 
+			"warning",
+			$self->html_phrase( "indexer_stalled", force_start_button => $force_start_button ) 
+		);
+	}
+	elsif( !EPrints::Index::is_running )
+	{
+		my $index_screen = $self->{session}->plugin( "Screen::Admin::Indexer", processor => $self->{processor} );
+		my $start_button = $self->render_action_button_if_allowed( 
+		{ 
+			action => "start_indexer", 
+			screen => $index_screen, 
+			screen_id => $index_screen->{id} ,
+		} );
+ 
+		$self->{processor}->add_message( 
+			"warning", 
+			$self->html_phrase( "indexer_not_running", start_button => $start_button ) 
+		);
+	}
+}
+
 sub render
 {
 	my( $self ) = @_;
+
+	$self->indexer_warnings();
 
 	my $session = $self->{session};
 	my $user = $session->current_user;
@@ -71,6 +109,23 @@ sub render
 	}
 	
 	my $db_status = ( $total_users > 0 ? "OK" : "DOWN" );
+
+
+	my $indexer_status;
+
+	if( !EPrints::Index::is_running )
+	{
+		$indexer_status = "stopped";
+	}
+	elsif( EPrints::Index::has_stalled )
+	{
+		$indexer_status = "stalled";
+	}
+	else
+	{
+		$indexer_status = "running";
+	}
+
 	
 	my( $html , $table , $p , $span );
 	
@@ -94,6 +149,12 @@ sub render
 			$session,
 			$session->html_phrase( "cgi/users/status:database" ),
 			$session->make_text( $db_status ) ) );
+	
+	$table->appendChild(
+		render_row( 
+			$session,
+			$session->html_phrase( "cgi/users/status:indexer" ),
+			$session->html_phrase( "cgi/users/status:indexer_".$indexer_status ) ) );
 	
 	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $session->html_phrase( "cgi/users/status:usertitle" ) );

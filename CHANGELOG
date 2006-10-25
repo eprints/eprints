@@ -4781,3 +4781,14 @@ PACKAGE: 2.2.99.2
  * Added the relevant phrases for the start/stop/force_start
  * Adjusted indexer.pl to use has_stalled
  * Added necessary roles to User.pm
+
+2006-10-25 moj
+ * Moved edit-subject and edit-user privs into admin, along with admin-indexer
+ * EPrints::Index::stop_indexer now writes a indexer.suicide file, and waits for 8
+    seconds to see if the indexer has exited before trying the cmdline approach.
+ * Put the logfile path in the 'couldn't start/stop' phrase for now, should be
+    a link to a screen soon.
+ * Moved the indexer warning code to Status and put in indexer_warnings
+ * Added 'Indexer Status' to the status view as well as a few phrases
+ * Form now uses 'inline' to keep the button in the right place.
+ * Moved stop_indexer to cleanup_indexer

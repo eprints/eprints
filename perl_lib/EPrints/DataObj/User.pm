@@ -1063,31 +1063,21 @@ my $PRIVMAP =
 		"eprint/deletion/staff/details" => 2,
 		"eprint/deletion/history" => 2,
 	},
-	"edit-subject" => 
-	{
-		# not done
-	},
-	"edit-user" => 
-	{
-		"user/view" => 8,
-		"user/staff/edit" => 8,
-	},
-
+	
 	"view-status" => 
 	{
 		"status" => 1,
 	},
 
-	"admin-config" =>
+	"admin" =>
 	{
-		"config/reload" => 1,
-	},
-
-	"admin-indexer" =>
-	{
-		"indexer/stop" => 1,
-		"indexer/start" => 1,
-		"indexer/force_start" => 1,
+		"config/reload" => 2,
+		"indexer/stop" => 2,
+		"indexer/start" => 2,
+		"indexer/force_start" => 2,
+		"user/view" => 8,
+		"user/staff/edit" => 8,
+		# "subject/edit" => 8,
 	},
 
 	subscription => 
