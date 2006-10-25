@@ -35,7 +35,7 @@ sub convert_dataobj
 		foreach my $name ( @{ $dataobj->get_value( "creators" ) } )
 		{
 			# given name first
-			push @{ $data->{A} }, EPrints::Utils::make_name_string( $name->{main}, 1 );
+			push @{ $data->{A} }, EPrints::Utils::make_name_string( $name->{name}, 1 );
 		}
 	}
 	if( $dataobj->exists_and_set( "editors" ) )
@@ -43,7 +43,7 @@ sub convert_dataobj
 		foreach my $name ( @{ $dataobj->get_value( "editors" ) } )
 		{
 			# given name first
-			push @{ $data->{E} }, EPrints::Utils::make_name_string( $name->{main}, 1 );
+			push @{ $data->{E} }, EPrints::Utils::make_name_string( $name->{name}, 1 );
 		}
 	}
 
@@ -51,9 +51,9 @@ sub convert_dataobj
 	#??$data->{B} = $dataobj->get_value( "event_title" ) if $dataobj->exists_and_set( "event_title" );
 	$data->{B} = $dataobj->get_value( "book_title" ) if $dataobj->exists_and_set( "book_title" );
 
-	if( $dataobj->exists_and_set( "date_effective" ) )
+	if( $dataobj->exists_and_set( "date" ) )
 	{
-		$dataobj->get_value( "date_effective" ) =~ /^([0-9]{4})/;
+		$dataobj->get_value( "date" ) =~ /^([0-9]{4})/;
 		$data->{D} = $1;
 	}
 

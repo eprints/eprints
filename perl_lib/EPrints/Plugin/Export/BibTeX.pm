@@ -107,8 +107,8 @@ sub convert_dataobj
 	$data->{bibtex}->{journal} = $dataobj->get_value( "publication" ) if $dataobj->exists_and_set( "publication" );
 
 	# month
-	if ($dataobj->exists_and_set( "date_effective" )) {
-		$dataobj->get_value( "date_effective" ) =~ /^[0-9]{4}-([0-9]{2})/;
+	if ($dataobj->exists_and_set( "date" )) {
+		$dataobj->get_value( "date" ) =~ /^[0-9]{4}-([0-9]{2})/;
 		$data->{bibtex}->{month} = EPrints::Utils::get_month_label( $plugin->{session}, $1 ) if $1;
 	}
 
@@ -163,8 +163,8 @@ sub convert_dataobj
 	$data->{bibtex}->{volume} = $dataobj->get_value( "volume" ) if $dataobj->exists_and_set( "volume" );
 
 	# year
-	if ($dataobj->exists_and_set( "date_effective" )) {
-		$dataobj->get_value( "date_effective" ) =~ /^([0-9]{4})/;
+	if ($dataobj->exists_and_set( "date" )) {
+		$dataobj->get_value( "date" ) =~ /^([0-9]{4})/;
 		$data->{bibtex}->{year} = $1 if $1;
 	}
 

@@ -144,7 +144,7 @@ sub eprint_to_uketd_dc
 		# sets or unsets creators to having and ID part it will make
 		# no difference to this bit.
 	
-		my $creators = $eprint->get_value( "creators", 1 );
+		my $creators = $eprint->get_value( "creators_name" );
 		if( defined $creators )
 		{
 			foreach my $creator ( @{$creators} )
@@ -170,7 +170,7 @@ sub eprint_to_uketd_dc
 			push @etddata, [ "commercial", $eprint->get_value( "publisher" ), "uketdterms" ]; 
 		}
 	
-		my $editors = $eprint->get_value( "editors", 1 );
+		my $editors = $eprint->get_value( "editors_name" );
 		if( defined $editors )
 		{
 			foreach my $editor ( @{$editors} )
@@ -178,14 +178,14 @@ sub eprint_to_uketd_dc
 				push @etddata, [ "contributor", EPrints::Utils::make_name_string( $editor ), "dc" ];
 			}
 		}
-	
-		## Date for discovery. For a month/day we don't have, assume 01.
-		my $date = $eprint->get_value( "date_issue" );
-		if( defined $date )
-		{
-	        	$date =~ s/(-0+)+$//;
-			push @etddata, [ "issued", $date, "dcterms" ];
-		}
+#	 cjg commented out. need to make work for new date layout
+##		## Date for discovery. For a month/day we don't have, assume 01.
+##		my $date = $eprint->get_value( "date_issue" );
+#		if( defined $date )
+#		{
+#	        	$date =~ s/(-0+)+$//;
+#			push @etddata, [ "issued", $date, "dcterms" ];
+#		}
 	
 	
 		my $ds = $eprint->get_dataset();

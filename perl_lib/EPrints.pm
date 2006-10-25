@@ -149,7 +149,6 @@ use EPrints::DataSet;
 use EPrints::Email;
 use EPrints::Extras;
 use EPrints::Index;
-use EPrints::ImportXML;
 use EPrints::Language;
 use EPrints::Latex;
 use EPrints::List;

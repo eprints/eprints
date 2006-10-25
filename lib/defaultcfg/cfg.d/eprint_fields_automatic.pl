@@ -27,20 +27,6 @@ $c->{set_eprint_automatic_fields} = sub
 		# thesis are always unpublished.
 	}
 
-	my $date;
-	if( $eprint->is_set( "date_issue" ) )
-	{
-		$date = $eprint->get_value( "date_issue" );
-	} 
-	elsif( $eprint->is_set( "date_sub" ) )
-	{
-		$date = $eprint->get_value( "date_sub" );
-	}
-	else
-	{
-	 	$date = $eprint->get_value( "datestamp" ); # worstcase
-	}
-	$eprint->set_value( "date_effective", $date );
 
 	my @docs = $eprint->get_all_documents();
 	my $textstatus = "none";

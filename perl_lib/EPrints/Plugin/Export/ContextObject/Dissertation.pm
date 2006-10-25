@@ -16,7 +16,7 @@ use strict;
 our %MAPPING = qw(
 	title	title
 	pages	tpages
-	date_effective	date
+	date	date
 	institution	inst
 	thesis_type	degree
 );
@@ -75,7 +75,7 @@ sub xml_dataobj
 		my $auths = $session->make_element( "dis:authors" );
 		$jnl->appendChild( $auths );
 
-		foreach my $author ( @{$dataobj->get_value( "creators", 1 )} )
+		foreach my $author ( @{$dataobj->get_value( "creators_name" )} )
 		{
 			my $auth = $session->make_element( "dis:author" );
 			$auths->appendChild( $auth );

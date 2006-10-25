@@ -4783,6 +4783,10 @@ PACKAGE: 2.2.99.2
  * Added necessary roles to User.pm
 
 2006-10-25 moj
+ * Renamed Indexer.pm to IndexerControl.pm and updated Status.pm accordingly.
+ * Renamed phrases to use IndexerControl
+
+2006-10-25 moj
  * Moved edit-subject and edit-user privs into admin, along with admin-indexer
  * EPrints::Index::stop_indexer now writes a indexer.suicide file, and waits for 8
     seconds to see if the indexer has exited before trying the cmdline approach.
@@ -4793,6 +4797,29 @@ PACKAGE: 2.2.99.2
  * Form now uses 'inline' to keep the button in the right place.
  * Moved stop_indexer to cleanup_indexer
 
-2006-10-25 moj
- * Renamed Indexer.pm to IndexerControl.pm and updated Status.pm accordingly.
- * Renamed phrases to use IndexerControl
+2006-10-25 cjg
+ * Added additional test to $dataset->get_value_raw.
+ * Compound fields now have an automatically created propert fields_cache 
+    which contains references to the actual subfield objects.
+ * Compound sub-fields now inherit multiple from their parents.
+ * Compound sub-fields now have a sub name and parent name and their sql 
+    name is the two joined.
+ * Added get_basic_input_elements to set so that it can render single input
+    elements for use in compound list.
+ * Fixed bug in SQL in indexer.
+ * "creators" and "editors" are now compound fields with sub-parts name
+    and id.
+ * date_issue, date_sub and date_effective become date and date_type.
+ * Updated plugins and config files to reflect this. 
+ * Removed input_id_cols as we don't use id parts in ep3.
+ * Added loads of new document types
+ * Documents now use mime types as their ids
+ * File icons replace "/" with "_" for file icons.
+ * Added corporate creator field
+ * Removed ImportXML (ep2 importer)
+ * Added related_url which is a list of urls and types.
+ * Removed some id part related code.
+ * Removed repository specific plugin dir (we're not doing it that way)
+ * import_subjects now uses Import plugins
+ * testdata/bin/import_test_data now uses gziped ep3xml data
+ 

@@ -22,7 +22,7 @@ our %MAPPING = qw(
 	series	series
 	publication	title
 	pagerange	pages
-	date_effective	date
+	date	date
 );
 our %TYPE_MAPPING = qw(
 	article	article

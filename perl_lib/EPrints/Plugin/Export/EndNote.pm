@@ -49,9 +49,9 @@ sub convert_dataobj
 	$data->{0} = "Thesis" if $type eq "thesis";
 
 	# D Year
-	if( $dataobj->exists_and_set( "date_effective" ) )
+	if( $dataobj->exists_and_set( "date" ) )
 	{
-		$dataobj->get_value( "date_effective" ) =~ /^([0-9]{4})/;
+		$dataobj->get_value( "date" ) =~ /^([0-9]{4})/;
 		$data->{D} = $1;
 	}
 	# J Journal
@@ -79,7 +79,7 @@ sub convert_dataobj
 		foreach my $name ( @{ $dataobj->get_value( "creators" ) } )
 		{
 			# Family name first
-			push @{ $data->{A} }, EPrints::Utils::make_name_string( $name->{main}, 0 );
+			push @{ $data->{A} }, EPrints::Utils::make_name_string( $name->{name}, 0 );
 		}
 	}
 
@@ -125,7 +125,7 @@ sub convert_dataobj
 		foreach my $name ( @{ $dataobj->get_value( "editors" ) } )
 		{
 			# Family name first
-			push @{ $data->{E} }, EPrints::Utils::make_name_string( $name->{main}, 0 );
+			push @{ $data->{E} }, EPrints::Utils::make_name_string( $name->{name}, 0 );
 		}
 	}
 

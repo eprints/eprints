@@ -135,6 +135,19 @@ sub new
 		$self->{repository} = $properties{repository};
 	}
 
+
+	if( !defined $properties{name} )
+	{
+		if( defined $properties{sub_name} && defined $properties{parent_name} )
+		{
+			$properties{name} = $properties{parent_name}."_".$properties{sub_name};
+		}
+		else 
+		{
+			EPrints::abort( "A sub field needs sub_name and parent_name to be set." );
+		}
+	}
+
 	# This gets reset later, but we need it for potential
 	# debug messages.
 	$self->{type} = $properties{type};
@@ -2223,7 +2236,6 @@ sub get_property_defaults
 		input_assist	=> 0,
 		input_boxes 	=> $EPrints::MetaField::FROM_CONFIG,
 		input_cols 	=> $EPrints::MetaField::FROM_CONFIG,
-		input_id_cols	=> $EPrints::MetaField::FROM_CONFIG,
 		input_lookup_url 	=> $EPrints::MetaField::UNDEF,
 		input_ordered 	=> 1,
 		make_single_value_orderkey 	=> $EPrints::MetaField::UNDEF,
@@ -2247,7 +2259,8 @@ sub get_property_defaults
 		text_index 	=> 0,
 		toform 		=> $EPrints::MetaField::UNDEF,
 		type 		=> $EPrints::MetaField::REQUIRED,
-		hasid		=> 0, # do not use!
+		sub_name	=> $EPrints::MetaField::UNDEF,
+		parent_name	=> $EPrints::MetaField::UNDEF,
 );
 }
 		

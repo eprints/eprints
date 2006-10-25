@@ -65,9 +65,9 @@ B<FORMAT:> Lastname, Firstname, Suffix
 	
 =item Y1
 
-Date primary (GEN) B<date_effective>
+Date primary (GEN) B<date>
 
-Pub Date (Other Types) B<date_effective>
+Pub Date (Other Types) B<date>
 
 B<FORMAT:> YYYY/MM/DD/other info 
 
@@ -361,14 +361,14 @@ sub convert_dataobj
 		foreach my $name ( @{ $dataobj->get_value( "creators" ) } )
 		{
 			# family name first
-			push @{ $data->{A1} }, EPrints::Utils::make_name_string( $name->{main}, 0 );
+			push @{ $data->{A1} }, EPrints::Utils::make_name_string( $name->{name}, 0 );
 		}
 	}
 
 	# Y1 Pub Date
 	# TODO: month and day
-	if( $dataobj->exists_and_set( "date_effective" ) ) {
-		$dataobj->get_value( "date_effective" ) =~ /^([0-9]{4})(-([0-9]{2}))?(-([0-9]{2}))?$/;
+	if( $dataobj->exists_and_set( "date" ) ) {
+		$dataobj->get_value( "date" ) =~ /^([0-9]{4})(-([0-9]{2}))?(-([0-9]{2}))?$/;
 		# YYYY/MM/DD/other info - slashes required
 		$data->{Y1} = sprintf(
 			"%s/%s/%s/", 
@@ -430,7 +430,7 @@ sub convert_dataobj
 			foreach my $name ( @{ $dataobj->get_value( "editors" ) } )
 			{
 				# family name first
-				push @{ $data->{ED} }, EPrints::Utils::make_name_string( $name->{main}, 0 );
+				push @{ $data->{ED} }, EPrints::Utils::make_name_string( $name->{name}, 0 );
 			}
 		}
 	}

@@ -61,7 +61,7 @@ sub convert_dataobj
 	# sets or unsets creators to having and ID part it will make
 	# no difference to this bit.
 
-	my $creators = $eprint->get_value( "creators", 1 );
+	my $creators = $eprint->get_value( "creators_name" );
 	if( defined $creators )
 	{
 		foreach my $creator ( @{$creators} )
@@ -84,7 +84,7 @@ sub convert_dataobj
 
 	push @dcdata, [ "publisher", $eprint->get_value( "publisher" ) ]; 
 
-	my $editors = $eprint->get_value( "editors", 1 );
+	my $editors = $eprint->get_value( "editors_name" );
 	if( defined $editors )
 	{
 		foreach my $editor ( @{$editors} )
@@ -94,7 +94,7 @@ sub convert_dataobj
 	}
 
 	## Date for discovery. For a month/day we don't have, assume 01.
-	my $date = $eprint->get_value( "date_effective" );
+	my $date = $eprint->get_value( "date" );
 	if( defined $date )
 	{
 		$date =~ s/(-0+)+$//;

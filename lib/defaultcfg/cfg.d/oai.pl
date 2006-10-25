@@ -63,8 +63,8 @@ $oai->{v2}->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
 # defined in the same manner as "browse_views". Only id, allow_null, fields
 # are used.
 $oai->{sets} = [
-#	{ id=>"year", allow_null=>1, fields=>"date_effective" },
-#	{ id=>"person", allow_null=>0, fields=>"creators.id/editors.id" },
+#	{ id=>"year", allow_null=>1, fields=>"date" },
+#	{ id=>"person", allow_null=>0, fields=>"creators_id/editors_id" },
 	{ id=>"status", allow_null=>0, fields=>"ispublished" },
 	{ id=>"subjects", allow_null=>0, fields=>"subjects" },
 	{ id=>"types", allow_null=>0, fields=>"type" },
@@ -75,7 +75,6 @@ $oai->{sets} = [
 
 $oai->{filters} = [
 
-#	{ meta_fields => [ "creators" ], value=>"harnad" }
 # Example: don't export any OAI records from before 2003.
 #	{ meta_fields => [ "date-effective" ], value=>"2003-" }
 ];

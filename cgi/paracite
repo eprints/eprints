@@ -103,9 +103,9 @@ sub process
 		{
 			$searchexp->add_field( $ds->get_field( "year" ), $year );
 		}
-		elsif( $ds->has_field( "date_effective" ) )
+		elsif( $ds->has_field( "date" ) )
 		{
-			$searchexp->add_field( $ds->get_field( "date_effective" ), $year );
+			$searchexp->add_field( $ds->get_field( "date" ), $year );
 		}
 		# otherwise dunno what to do
 	}

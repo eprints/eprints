@@ -147,6 +147,30 @@ sub input_tags_and_labels
 	return( \@tags, \%labels );
 }
 
+# this is only called by the compound renderer
+sub get_basic_input_elements
+{
+	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+
+	my( $tags, $labels ) = $self->input_tags_and_labels( $session, $obj );
+
+	# If it's not multiple and not required there 
+	# must be a way to unselect it.
+	$tags = [ "", @{$tags} ];
+	my $unspec = $session->phrase( 
+		"lib/metafield:unspecified_selection" );
+	$labels = { ""=>$unspec, %{$labels} };
+
+	return( [ [ { el=>$session->render_option_list(
+			values => $tags,
+			labels => $labels,
+			name => $basename,
+			id => $basename,
+			default => $value,
+			multiple => 0,
+			height => 1 ) } ]] );
+}
+
 # basic input renderer for "set" type fields
 sub render_set_input
 {

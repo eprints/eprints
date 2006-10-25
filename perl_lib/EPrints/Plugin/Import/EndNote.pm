@@ -49,7 +49,7 @@ B<NOTE:> For the Conference Paper type, the C<pres_type> field is set to C<paper
 
 =item D 
 
-Year B<date_issue>
+Year B<date>
 
 =item J 
 
@@ -454,7 +454,7 @@ sub convert_input
 	}
 
 	# D Year
-	$epdata->{date_issue} = $input_data->date if defined $input_data->date;
+	$epdata->{date} = $input_data->date if defined $input_data->date;
 	# J Journal
 	$epdata->{publication} = $input_data->journal if defined $input_data->journal && $input_data_type eq "Journal Article";
 	# K Keywords

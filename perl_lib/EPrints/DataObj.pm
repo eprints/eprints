@@ -338,6 +338,8 @@ sub get_value_raw
 {
 	my( $self, $fieldname ) = @_;
 
+	EPrints::abort( "\$fieldname undefined in get_value_raw" ) unless defined $fieldname;
+
 	return $self->{data}->{$fieldname};
 }
 

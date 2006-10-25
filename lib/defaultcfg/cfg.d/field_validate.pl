@@ -39,9 +39,6 @@ $c->{validate_field} = sub
 		foreach( @{$value} )
 		{
 			my $v = $_;
-			# If a name field has an ID part then we are looking at a hash
-			# with "main" and "id" parts. We just want the main part.
-			$v = $v->{main} if( $field->get_property( "hasid" ) );
 
 			# Check a URL for correctness
 			if( $field->is_type( "url" ) && $v !~ /^\w+:/ )

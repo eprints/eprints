@@ -12,9 +12,6 @@
 #   When specifying ordering, separate the fields with a "/", and specify
 #   proceed the fieldname with a dash "-" for reverse sorting.
 #
-#   To search or sort on the id part of a field eg. "creators" append
-#   ".id" to it's name. eg. "creators.id"
-#
 ######################################################################
 
 
@@ -31,8 +28,8 @@ $c->{search}->{simple} =
 			meta_fields => [
 				"title",
 				"abstract",
-				"creators",
-				"date_effective" 
+				"creators_name",
+				"date" 
 			]
 		},
 		{
@@ -41,21 +38,21 @@ $c->{search}->{simple} =
 				$EPrints::Utils::FULLTEXT,
 				"title",
 				"abstract",
-				"creators",
-				"date_effective" 
+				"creators_name",
+				"date" 
 			]
 		},
 		{
 			id => "person",
 			meta_fields => [
-				"creators",
-				"editors"
+				"creators_name",
+				"editors_name"
 			]
 		},
 		{	
 			id => "date",
 			meta_fields => [
-				"date_effective"
+				"date"
 			]
 		}
 	],
@@ -73,7 +70,7 @@ $c->{search}->{advanced} =
 	search_fields => [
 		{ meta_fields => [ $EPrints::Utils::FULLTEXT ] },
 		{ meta_fields => [ "title" ] },
-		{ meta_fields => [ "creators" ] },
+		{ meta_fields => [ "creators_name" ] },
 		{ meta_fields => [ "abstract" ] },
 		{ meta_fields => [ "keywords" ] },
 		{ meta_fields => [ "subjects" ] },
@@ -83,7 +80,7 @@ $c->{search}->{advanced} =
 		{ meta_fields => [ "ispublished" ] },
 		{ meta_fields => [ "refereed" ] },
 		{ meta_fields => [ "publication" ] },
-		{ meta_fields => [ "date_effective" ] }
+		{ meta_fields => [ "date" ] }
 	],
 	preamble_phrase => "cgi/advsearch:preamble",
 	title_phrase => "cgi/advsearch:adv_search",
@@ -117,10 +114,10 @@ $c->{editor_limit_fields} =
 # Ways of ordering search results
 $c->{order_methods}->{eprint} =
 {
-	"byyear" 	 => "-date_effective/creators/title",
-	"byyearoldest"	 => "date_effective/creators/title",
-	"byname"  	 => "creators/-date_effective/title",
-	"bytitle" 	 => "title/creators/-date_effective"
+	"byyear" 	 => "-date/creators_name/title",
+	"byyearoldest"	 => "date/creators_name/title",
+	"byname"  	 => "creators_name/-date/title",
+	"bytitle" 	 => "title/creators_name/-date"
 };
 
 $c->{order_methods}->{"eprint.review"} =

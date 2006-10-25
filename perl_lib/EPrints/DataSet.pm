@@ -267,15 +267,19 @@ sub new
 		foreach my $fielddata ( @{$repository_fields} )
 		{
 			if( $fielddata->{type} eq "compound" )
-			{
+			{	
+				$fielddata->{fields_cache} = [];
 				foreach my $inner_field ( @{$fielddata->{fields}} )
 				{
 					my $field = EPrints::MetaField->new( 
+						parent_name => $fielddata->{name},
 						dataset => $self, 
+						multiple => $fielddata->{multiple},
 						%{$inner_field} );	
 					push @{$self->{fields}}	, $field;
 					$self->{field_index}->{$field->get_name()} = 
 						$field;
+					push @{$fielddata->{fields_cache}}, $field;
 				}
 			}
 			my $field = EPrints::MetaField->new( 

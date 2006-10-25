@@ -1,8 +1,17 @@
 # types for document 
 
-html
-pdf
-ps
-ascii
-image
+text/html
+application/pdf
+application/postscript
+text/plain
+application/vnd.ms-powerpoint
+application/msword
+image/jpeg
+image/png
+image/gif
+image/bmp
+image/tiff
+video/mpeg
+video/quicktime
+video/x-msvideo
 other

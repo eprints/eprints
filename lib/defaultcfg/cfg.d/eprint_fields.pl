@@ -2,30 +2,33 @@
 $c->{fields}->{eprint} = [
 
 	{ 
-		name => "creators_list", 
-		type=>"compound",  
+		name        => "creators", 
+		type        => "compound",  
 		input_boxes => 4,
-		multiple=>1,
+		multiple    => 1,
 		fields=>[
 			{ 
-				name => "creators", 
-				type => "name", 
-				multiple => 1, 
-				family_first => 1, 
+				sub_name         => "name", 
+				type            => "name", 
+				family_first    => 1, 
 				hide_honourific => 1, 
-				hide_lineage => 1, 
-				allow_null => 1,
+				hide_lineage    => 1, 
 			}, 
 			{ 
-				name => "creators_id", 
-				type => "text", 
-				multiple => 1, 
+				sub_name    => "id", 
+				type       => "text", 
 				input_cols => 20, 
 				allow_null => 1, 
 			},
 		],
-		addressing=>{ id=>"creators_id", main=>"creators" },
 	},
+
+	{
+		name     => "corp_creators",
+		type     => "text",
+		multiple => 1,
+	},
+		
 
 	{ name => "title", type => "longtext", multilang=>0, input_rows => 3 },
 
@@ -67,11 +70,9 @@ $c->{fields}->{eprint} = [
 
 	{ name => "abstract", input_rows => 10, type => "longtext" },
 
-	{ name => "date_sub", type=>"date", min_resolution=>"year" },
+	{ name => "date", type=>"date", min_resolution=>"year" },
 
-	{ name => "date_issue", type=>"date", min_resolution=>"year" },
-
-	{ name => "date_effective", type=>"date", min_resolution=>"year" },
+	{ name => "date_type", type=>"set", options=>[qw/ published submitted completed /] },
 
 	{ name => "series", type => "text" },
 
@@ -119,32 +120,49 @@ $c->{fields}->{eprint} = [
 	{ name => "book_title", type => "text" },
 	
 	{
-		name => "editors_list", 
+		name => "editors", 
 		type=>"compound",  
 		input_boxes => 4,
 		multiple=>1,
 		fields=>[
 			{ 
-				name => "editors", 
+				sub_name => "name", 
 				type => "name", 
-				multiple => 1, 
 				family_first => 1, 
 				hide_honourific => 1, 
 				hide_lineage => 1, 
-				allow_null => 1,
 			}, 
 			{ 
-				name => "editors_id", 
+				sub_name => "id", 
 				type => "text", 
-				multiple => 1, 
 				input_cols => 20, 
 				allow_null => 1, 
 			},
 		],
-		addressing=>{ id=>"editors_id", main=>"editors" },
 	},
 
-	{ name => "official_url", type => "url" },
+	{ 
+		name => "official_url", 
+		type=>"url",  
+	},
+
+	{ 
+		name => "related_url", 
+		type=>"compound",  
+		input_boxes => 1,
+		multiple=>1,
+		fields=>[
+			{ 
+				sub_name => "url", 
+				type => "url", 
+			},
+			{ 
+				sub_name => "type", 
+				type => "set", 
+				options => [qw/ pub auth org /],
+			},
+		],
+	},
 
 # nb. Can't call this field "references" because that's a MySQL keyword.
 	{ name => "referencetext", type => "longtext", input_rows => 3 },

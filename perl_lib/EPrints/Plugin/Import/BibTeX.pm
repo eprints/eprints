@@ -74,9 +74,9 @@ Journal name B<publication>
 
 =over 8
 
-=item Month written (unpublished) B<date_issue>
+=item Month written (unpublished) B<date>
 
-=item Month published (Other Types) B<date_issue>
+=item Month published (Other Types) B<date>
 
 =back
 
@@ -428,7 +428,7 @@ sub convert_input
 		my $year = $input_data->get( "year" );
 		if( $year =~ /^[0-9]{4}$/ )
 		{
-			$epdata->{date_issue} = $year;
+			$epdata->{date} = $year;
 		}
 		else
 		{
@@ -456,7 +456,7 @@ sub convert_input
 		my $month = substr( lc( $input_data->get( "month" ) ), 0, 3 );
 		if( defined $months{$month} )
 		{
-			$epdata->{date_issue} .= "-" . $months{$month}; 
+			$epdata->{date} .= "-" . $months{$month}; 
 		}
 		else
 		{

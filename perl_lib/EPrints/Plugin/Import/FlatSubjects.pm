@@ -28,9 +28,7 @@ sub input_list
 		my $epdata = $plugin->convert_input( $input_data );
 
 		next unless( defined $epdata );
-
-		use Data::Dumper;
-		print Dumper( $epdata );
+		
 		my $dataobj = $plugin->epdata_to_dataobj( $opts{dataset}, $epdata );
 		if( defined $dataobj )
 		{
@@ -50,7 +48,7 @@ sub convert_input
 
 	chomp($input_data);
 
-	next if $input_data =~ m/^\s*(#|$)/;
+	return if $input_data =~ m/^\s*(#|$)/;
 	my @vals = split /:/ , $input_data;
 
 	my @parents = split( ",", $vals[2] );

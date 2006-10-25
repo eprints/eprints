@@ -38,6 +38,7 @@ $c->{render_fileicon} = sub
 	# map several types to one icon, then this
 	# is the place to do it! 
 
+	$type =~ s/\//_/g;
 	my $a = $session->render_link( $url );
 	$a->appendChild( $session->make_element( 
 		"img", 

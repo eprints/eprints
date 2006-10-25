@@ -42,11 +42,13 @@
 
     <epc:choose>
       <epc:when test="type.one_of('book','book_section')">
-        <component><field ref="creators_list"/></component>
-        <component><field ref="editors_list"/></component>
+        <component><field ref="creators"/></component>
+        <component><field ref="corp_creators"/></component>
+        <component><field ref="editors"/></component>
       </epc:when>
       <epc:otherwise>
-        <component><field ref="creators_list" required="yes" input_lookup_url="{$config{perl_url}}/users/issn" /></component>
+        <component><field ref="creators" required="yes" input_lookup_url="{$config{perl_url}}/users/issn" /></component>
+        <component><field ref="corp_creators"/></component>
       </epc:otherwise>
     </epc:choose>
 
@@ -61,7 +63,8 @@
       </epc:if>
 
       <epc:if test='type = "patent"'>
-        <field ref="date_issue" required="yes" />
+        <field ref="date" required="yes" />
+        <field ref="date_type" required="yes" />
         <field ref="official_url"/>
         <field ref="patent_applicant" required="yes" />
         <field ref="id_number" required="yes" />
@@ -74,13 +77,13 @@
         <field ref="publisher" required="yes" />
         <field ref="id_number"/>
         <field ref="pages"/>
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="official_url"/>
       </epc:if>
       <epc:if test="type = 'book'">
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="place_of_pub"/>
         <field ref="publisher" required="yes" />
         <field ref="pages"/>
@@ -91,8 +94,8 @@
         <field ref="official_url"/>
       </epc:if>
       <epc:if test="type = 'other'">
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="official_url"/>
         <field ref="place_of_pub"/>
         <field ref="publisher" required="yes" />
@@ -109,20 +112,21 @@
         <field ref="series"/>
         <field ref="number"/>
         <field ref="isbn"/>
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="official_url"/>
       </epc:if>
       <epc:if test="type = 'thesis'">
-        <field ref="date_issue" required="yes" />
+        <field ref="date" required="yes" />
+        <field ref="date_type" required="yes" />
         <field ref="official_url"/>
         <field ref="institution" required="yes" />
         <field ref="department" required="yes" />
         <field ref="pages"/>
       </epc:if>
       <epc:if test="type = 'conference_item'">
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="pages"/>
         <field ref="official_url"/>
       </epc:if>
@@ -131,13 +135,13 @@
         <field ref="volume"/>
         <field ref="number"/>
         <field ref="pagerange"/>
-        <field ref="date_issue"/>
-        <field ref="date_sub"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
         <field ref="id_number"/>
         <field ref="official_url"/>
         <field ref="issn" input_lookup_url="{$config{perl_url}}/users/issn" />
-        <validate type="at_least_one" value="date_issue,date_sub" />
       </epc:if>
+      <field ref="related_url" />
     </component>
 
     <epc:if test="type = 'conference_item'">

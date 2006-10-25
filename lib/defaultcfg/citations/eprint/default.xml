@@ -9,11 +9,11 @@
 <choose>
 
   <when test="type = 'book' and is_set( creators )">
-    <print expr="creators"/>
+    <print expr="creators_name"/>
   </when>
 
   <when test="type = 'book' and !is_set( creators )">
-    <print expr="editors"/>, ed<if test="length(editors) gt 1">s</if>.
+    <print expr="editors_name"/>, ed<if test="length(editors_name) gt 1">s</if>.
   </when>
 
   <when test="type = 'patent'">
@@ -21,12 +21,12 @@
   </when>
 
   <otherwise>
-    <print expr="creators"/>
+    <print expr="creators_name"/>
   </otherwise>
 
 </choose>
 
-<if test="date_effective">(<print expr="date_effective" opts="res=year"/>)</if>
+<if test="date">(<print expr="date" opts="res=year"/>)</if>
 
 <cite:linkhere><xhtml:em><print expr="title" opts="magicstop"/></xhtml:em></cite:linkhere>
 
@@ -34,7 +34,7 @@
 
   <when test="type.one_of( 'book','book_section' )">
     <if test="type = 'book_section'">
-      In: <if test="!is_set(creators)"><print expr="editors"/>, (ed<if test="length(editors) gt 1">s</if>.)</if> 
+      In: <if test="!is_set(creators)"><print expr="editors_name"/>, (ed<if test="length(editors_name) gt 1">s</if>.)</if> 
       <print expr="book_title" opts="magicstop"/>
     </if>
     <if test="series">

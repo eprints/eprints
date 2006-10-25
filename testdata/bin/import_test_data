@@ -32,41 +32,18 @@ my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
 my $ds = $session->get_archive()->get_dataset( $datasetid );
 
-my $info =  { 
-	ds => $ds,
-	userid => $userid,
-	datapath => $datapath,
-};
-my $infile = $datapath."/set-01.xml";
-#print `date`;
-EPrints::ImportXML::import_file( $session , $infile , \&deal, $ds, $info );
-#print `date`;
+my $pluginid = "Import::XML";
+my $plugin = $session->plugin( $pluginid );
 
-$session->terminate();
+my $infile = $datapath."/data.xml.gz";
+
+
+my $fh;
+open( $fh, "gunzip $infile -c |" ) || die "Can't gunzip file.";
+my $list = $plugin->input_list( dataset=>$ds, fh=>$fh, filename=>$infile );
+close $fh; 
+
+$session->terminate;
 
 exit;
-
-sub deal 
-{
-	my( $session , $table , $eprint, $info ) = @_;
-
-	my $fullpath = $info->{datapath}."/demo.pdf";
-#	open( PDF, $fullpath ) || die "Could not read $fullpath";
-#	my $filedata = join(",",<PDF> );
-#	close PDF;
-
-	$eprint->set_value( "userid", $info->{userid} );
-	my $data = $eprint->get_data;
-	$data->{documents} = [
-		{
-			format=>"pdf",
-			main=>"paper.pdf",
-			files => [ { filename=>"paper.pdf", data=>$fullpath } ],
-		}
-	];
-	$eprint = $info->{ds}->create_object( $session, $data );
-
-	print "added: ".$eprint->get_id."\n";
-}
-
 

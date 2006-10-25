@@ -40,7 +40,7 @@ The ID of the EPrint repository to use.
 
 =item I<subjectfile>
 
-This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given repository cfg directory (or "subjects.xml" if you used B<--xml>).
+This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given repository cfg directory. 
 
 =back
 
@@ -68,10 +68,6 @@ May be repeated for greater effect.
 =item B<--version>
 
 Output version information and exit.
-
-=item B<--xml>
-
-Instead of using colon sepearted subject file, the input file is in the XML format which the exporter uses.
 
 =item B<--nopurge>
 
@@ -164,7 +160,6 @@ use strict;
 
 use EPrints;
 
-my $xml = 0;
 my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
@@ -176,7 +171,6 @@ my $man = 0;
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,
-	'xml' => \$xml , 
 	'force' => \$force , 
 	'version' => \$version,
 	'verbose+' => \$verbose,
@@ -203,7 +197,6 @@ my $filename = $ARGV[1];
 if( !defined $filename )
 {
 	$filename = $session->get_repository->get_conf( "config_path" )."/subjects";
-	$filename.= ".xml" if( $xml );
 }
 
 unless( $force )
@@ -233,18 +226,55 @@ if( $purge )
 my $subds = $session->get_repository->get_dataset( "subject" );
 
 print "Importing from $filename...\n" if( $noise >= 1 );
-my $count = 0;
-if( $xml )
+
+my $ipluginid = "FlatSubjects";
+my $pluginid = "Import::".$ipluginid;
+my $plugin = $session->plugin( $pluginid );
+
+if( !defined $plugin )
 {
-	my $info =  { noise=>$noise, count=>0 }; 
-	EPrints::ImportXML::import_file( $session , $filename , \&deal, $subds, $info );
-	$count = $info->{count};
+	$session->terminate;
+	exit 1;
+}
+	
+my $req_plugin_type = "list/subject";
+	
+unless( $plugin->can_produce( "list/subject" ) )
+{
+	print STDERR "Plugin $pluginid can't process list/subject data.\n";
+	$session->terminate;
+	exit 1;
+}
+
+if( $plugin->broken )
+{
+	print STDERR "Plugin $pluginid could not run because:\n";
+	print STDERR $plugin->error_message."\n";
+	$session->terminate;
+	exit 1;
+}
+
+my $fh;
+if( $filename eq "-" )
+{
+	$fh = *STDIN;
 }
 else
 {
-	$count = &from_ascii_file( $session , $filename , $noise );
+	unless( open( INFILE, $filename ) )
+	{
+		print STDERR "Could not open file $filename: $!\n";
+		$session->terminate;
+		exit 1;
+	}
+	$fh = *INFILE;
 }
-print "Done importing $count subjects from $filename\n" if( $noise >= 1 );
+
+my $list = $plugin->input_list( dataset=>$subds, fh=>$fh, filename=>$filename );
+
+unless( $filename eq "-" ) { close $fh; }
+
+print "Done importing ".$list->count." subjects from $filename\n" if( $noise >= 1 );
 print "Reindexing subject dataset to set ancestor data\n" if( $noise >= 1 );
 $subds->reindex( $session );
 print "Done reindexing\n" if( $noise >= 1 );
@@ -252,60 +282,4 @@ print "Done reindexing\n" if( $noise >= 1 );
 $session->terminate();
 print "Exiting normally.\n" if( $noise >= 2 );
 exit;
-
-sub deal 
-{
-	my( $session , $dataset , $subject, $info ) = @_;
-
-	if( $info->{noise} >= 2 )
-	{
-		print "Importing: ".$subject->get_value( "subjectid" )."\n";
-	}
-
-	$dataset->create_object( $session, $subject->get_data );
-
-	$info->{count}+=1;
-}
-
-sub from_ascii_file
-{
-	my( $session, $filename, $noise ) = @_;
-	
-	# Read stuff in from the subject config file
-	unless( open( SUBJECTS, $filename ) )
-	{
-		print STDERR "Failed to open $filename\n";
-		return 0;
-	}
-
-	my $count = 0;
-	my $lang = $session->get_repository->get_conf( "defaultlanguage" );
-
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
-	
-	while( <SUBJECTS> )
-	{
-		chomp();
-		next if /^\s*(#|$)/;
-		my @vals = split /:/;
-
-		my @parents = split( ",", $vals[2] );
-	
-		if( $noise >= 2 )
-		{
-			print "Importing: ".$vals[0]."\n";
-		}
-
-		$subject_ds->create_object( $session, {
-			subjectid=>$vals[0],
-			name=>{$lang=>$vals[1]},
-			parents=>\@parents,					
-		        depositable=>$vals[3] } );
-
-		$count+=1;
-
-	}
-	
-	return( $count );
-}
 

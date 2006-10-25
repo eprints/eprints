@@ -568,10 +568,10 @@ sub do_index
 	my $seen_action = 0;
 
 	# $session->get_database->set_debug( 1 );
-	my $sql = "SELECT UNIX_TIMESTAMP(NOW()), field FROM indexqueue ORDER BY added LIMIT 10";
+	my $sql = "SELECT UNIX_TIMESTAMP(NOW()), field FROM index_queue ORDER BY added LIMIT 10";
 	my $sth = $session->get_database->prepare( $sql );
 	$session->get_database->execute( $sth, $sql );
-	my( $now, $field ) = @_;
+	my $now;
 	my %todo = (); # use a hash so we only do each field in the set once.
 	while( my @info = $sth->fetchrow_array ) {
 		$todo{$info[1]} = 1;
@@ -614,7 +614,7 @@ sub do_index
 	# always remove them, even if they didn't index right.
 	foreach my $fieldcode ( keys %todo )
 	{
-		my $sql = "DELETE FROM indexqueue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
+		my $sql = "DELETE FROM index_queue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
 		$session->get_database->do( $sql );
 	}
 	return $seen_action;

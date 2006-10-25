@@ -308,11 +308,11 @@ if(0){
 	$url .= "&";
 	my $authors = $eprint->get_value( "creators" );
 	my $first_author = $authors->[0];
-	$url .= "aulast=".$first_author->{main}->{family};
+	$url .= "aulast=".$first_author->{name}->{family};
 	$url .= "&";
-	$url .= "aufirst=".$first_author->{main}->{family};
+	$url .= "aufirst=".$first_author->{name}->{family};
 	$url .= "&";
-	$url .= "date=".$eprint->get_value( "date_issue" );
+	$url .= "date=".$eprint->get_value( "date" );
 	my $sfx_block = $session->make_element( "p" );
 	$page->appendChild( $sfx_block );
 	my $sfx_link = $session->render_link( $url );
@@ -327,9 +327,9 @@ if(0){
 	$url .= "&";
 	my $authors = $eprint->get_value( "creators" );
 	my $first_author = $authors->[0];
-	$url .= "aulast=".$first_author->{main}->{family};
+	$url .= "aulast=".$first_author->{name}->{family};
 	$url .= "&";
-	$url .= "date=".substr($eprint->get_value( "date_issue" ),0,4);
+	$url .= "date=".substr($eprint->get_value( "date" ),0,4);
 	if( $eprint->is_set( "issn" ) )
 	{
 		$url .= "&issn=".$eprint->get_value( "issn" );

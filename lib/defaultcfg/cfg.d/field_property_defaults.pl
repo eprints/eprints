@@ -27,9 +27,6 @@ $c->{field_defaults}->{input_name_cols} = {
 	lineage=>8 
 };
 
-# Default number of cols in an ID input field.
-$c->{field_defaults}->{input_id_cols} = 40;
-
 # Default number of boxes to add when clicking the "more spaces"
 # button on a multiple field.
 $c->{field_defaults}->{input_add_boxes} = 2;

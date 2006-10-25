@@ -13,10 +13,10 @@
 
 $c->{required_formats} = 
 [
-	"html",
-	"pdf",
-	"ps",
-	"ascii"
+	"text/html",
+	"application/pdf",
+	"application/postscript",
+	"text/plain"
 ];
 
 # if you want to make this depend on the values in the eprint then
@@ -57,20 +57,26 @@ $c->{guess_doc_type} = sub
 
 	if( $filename=~m/\.([^.]+)$/ )
 	{
-		my $suffix = $1;
-		foreach my $format ( @formats ) 
-		{ 
-			if( $suffix eq $format )
-			{
-				return $suffix;
-			}
-			# some hacks
-			if( $suffix eq "htm" && $format eq "html" ) { return "html"; }
-			if( $suffix eq "txt" && $format eq "ascii" ) { return "ascii"; }
-			if( $suffix eq "jpg" && $format eq "image" ) { return "image"; }
-			if( $suffix eq "gif" && $format eq "image" ) { return "image"; }
-			if( $suffix eq "png" && $format eq "image" ) { return "image"; }
-		}
+		my $suffix = "\L$1";
+
+		return "text/html" if $suffix eq "htm";
+		return "text/html" if $suffix eq "html";
+		return "application/pdf" if $suffix eq "pdf";
+		return "application/postscript" if $suffix eq "ps";
+		return "text/plain" if $suffix eq "txt";
+		return "application/vnd.ms-powerpoint" if $suffix eq "ppt";
+		return "application/msword" if $suffix eq "doc";
+		return "image/jpeg" if $suffix eq "jpg";
+		return "image/jpeg" if $suffix eq "jpeg";
+		return "image/png" if $suffix eq "png";
+		return "image/gif" if $suffix eq "gif";
+		return "image/bmp" if $suffix eq "bmp";
+		return "image/tiff" if $suffix eq "tiff";
+		return "image/tiff" if $suffix eq "tif";
+		return "video/mpeg" if $suffix eq "mpg";
+		return "video/mpeg" if $suffix eq "mpeg";
+		return "video/quicktime" if $suffix eq "mov";
+		return "video/x-msvideo" if $suffix eq "avi";
 	}
 
 	return "other";

@@ -301,7 +301,6 @@ sub paginate_list
 	else
 	{
 		$pins{controls} = $session->make_doc_fragment;
-		$pins{controls} = $session->make_text( "eh?");
 	}
 
 	# Container for results (e.g. table, div..)
