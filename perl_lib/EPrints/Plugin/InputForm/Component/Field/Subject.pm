@@ -33,14 +33,14 @@ sub update_from_form
 		my %vals = ();
 		$vals{$subject} = 1;
 			
-		my $values = $self->{dataobj}->get_value( "subjects" );
+		my $values = $self->{dataobj}->get_value( $field->get_name );
 		foreach my $s ( @$values )
 		{
 			$vals{$s} = 1;
 		}
 		
 		my @out = keys %vals;
-		$self->{dataobj}->set_value( "subjects", \@out );
+		$self->{dataobj}->set_value( $field->get_name, \@out );
 		$self->{dataobj}->commit;
 	}
 	
@@ -49,7 +49,7 @@ sub update_from_form
 		my $subject = $1;
 		my %vals = ();
 		
-		my $values = $self->{dataobj}->get_value( "subjects" );
+		my $values = $self->{dataobj}->get_value( $field->get_name );
 		foreach my $s ( @$values )
 		{
 			$vals{$s} = 1;
@@ -58,7 +58,7 @@ sub update_from_form
 		
 		my @out = keys %vals;
 		
-		$self->{dataobj}->set_value( "subjects", \@out );
+		$self->{dataobj}->set_value( $field->get_name, \@out );
 		$self->{dataobj}->commit;
 	}
 
