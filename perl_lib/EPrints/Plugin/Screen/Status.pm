@@ -82,7 +82,7 @@ sub render
 
 	my %num_users = ();
 	my $userds = $session->get_repository->get_dataset( "user" );
-	my $subds = $session->get_repository->get_dataset( "subscription" );
+	my $subds = $session->get_repository->get_dataset( "saved_search" );
 	my @usertypes = $session->get_repository->get_types( "user" );
 	foreach my $usertype ( @usertypes )
 	{
@@ -240,7 +240,7 @@ sub render
 	
 	
 	$table = $session->make_element( "table", border=>"0" );
-	$html->appendChild( $session->html_phrase( "cgi/users/status:subscriptions" ) );
+	$html->appendChild( $session->html_phrase( "cgi/users/status:saved_searches" ) );
 	$html->appendChild( $table );
 	
 	$table->appendChild(
@@ -254,7 +254,7 @@ sub render
 		my $sent;
 		if( $freq ne "never" )
 		{
-			$sent = EPrints::DataObj::Subscription::get_last_timestamp( 
+			$sent = EPrints::DataObj::SavedSearch::get_last_timestamp( 
 				$session, 
 				$freq );
 		}
@@ -275,7 +275,7 @@ sub render
 		$searchexp->dispose;
 
 		my $k = $session->make_doc_fragment;
-		$k->appendChild( $session->html_phrase( "subscription_fieldopt_frequency_".$freq ) );
+		$k->appendChild( $session->html_phrase( "saved_search_fieldopt_frequency_".$freq ) );
 		$k->appendChild( $session->make_text( ":" ) );
 		$table->appendChild(
 			render_row( 

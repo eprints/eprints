@@ -1,5 +1,5 @@
 
-package EPrints::Plugin::Screen::Subscription::List;
+package EPrints::Plugin::Screen::SavedSearch::List;
 
 use EPrints::Plugin::Screen;
 
@@ -29,14 +29,14 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return $self->allow( "subscription" );
+	return $self->allow( "saved_search" );
 }
 
 sub allow_create
 {
 	my( $self ) = @_;
 
-	return $self->allow( "create_subscription" );
+	return $self->allow( "create_saved_search" );
 }
 
 sub action_create
@@ -45,13 +45,13 @@ sub action_create
 
 	my $session = $self->{session};
 	my $user = $session->current_user;
-	my $subscribe_ds = $session->get_repository->get_dataset( "subscription" );
+	my $ds = $session->get_repository->get_dataset( "saved_search" );
 
-	$self->{processor}->{subscription} = $subscribe_ds->create_object( $session, { userid=>$user->get_id } );
-	$self->{processor}->{subid} = $self->{processor}->{subscription}->get_id;
+	$self->{processor}->{saved_search} = $ds->create_object( $session, { userid=>$user->get_id } );
+	$self->{processor}->{searchid} = $self->{processor}->{saved_search}->get_id;
 
 	# change screen
-	$self->{processor}->{screenid} = "Subscription::Edit";
+	$self->{processor}->{screenid} = "SavedSearch::Edit";
 }	
 
 sub render
@@ -64,7 +64,7 @@ sub render
 
 	$page->appendChild( $self->html_phrase( "intro" ) );
 
-	$page->appendChild( $self->render_subscription_list );
+	$page->appendChild( $self->render_saved_search_list );
 
 	my $form = $self->render_form;
 	$form->appendChild(
@@ -75,18 +75,18 @@ sub render
 	return $page;
 }
 
-sub render_subscription_list
+sub render_saved_search_list
 {
 	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $user = $session->current_user;
-	my @subs = $user->get_subscriptions;
-	my $subscribe_ds = $session->get_repository->get_dataset( "subscription" );
+	my @subs = $user->get_saved_search;
+	my $ds = $session->get_repository->get_dataset( "saved_search" );
 
 	if( scalar @subs == 0 )
 	{
-		return $self->html_phrase( "no_subs" );
+		return $self->html_phrase( "no_searches" );
 	}
 
 	my( $table, $tr, $td, $th );
@@ -110,8 +110,8 @@ sub render_subscription_list
 			align=>"center" );
 		$tr->appendChild( $td );
 		my $form = $session->render_form( "GET" );
-		$form->appendChild( $session->render_hidden_field( "subid", $id ) );
-		$form->appendChild( $session->render_hidden_field( "screen", "Subscription::Edit" ) );
+		$form->appendChild( $session->render_hidden_field( "saved_search_id", $id ) );
+		$form->appendChild( $session->render_hidden_field( "screen", "SavedSearch::Edit" ) );
 		$td->appendChild( $form );
 		$form->appendChild( 
 			$session->make_element( 
