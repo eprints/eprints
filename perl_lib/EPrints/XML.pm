@@ -524,7 +524,7 @@ sub debug_xml
 sub is_empty
 {
 	my( $node ) = @_;
-	return $node->hasChildNodes();
+	return !$node->hasChildNodes();
 }
 
 

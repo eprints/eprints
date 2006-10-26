@@ -220,7 +220,7 @@ sub subject_browser_input
 	else
 	{	
 		my $ul = $session->make_element( "ul" );
-		foreach my $s ( $topsubj->children() )
+		foreach my $s ( $topsubj->get_children() )
 		{
 			$ul->appendChild( 
 				_subject_browser_input_aux( 
@@ -255,7 +255,7 @@ sub _subject_browser_input_aux
 
 	my $li = $session->make_element( "li" );
 
-	my $n_kids = scalar $subject->children();
+	my $n_kids = scalar $subject->get_children();
 	my $exp = 0;
 	if( $n_kids > 0 )
 	{
@@ -310,7 +310,7 @@ sub _subject_browser_input_aux
 		$li->appendChild( $session->make_element( "br" ));
 
 		my $ul = $session->make_element( "ul" );
-		foreach my $s ( $subject->children() )
+		foreach my $s ( $subject->get_children() )
 		{
 				$ul->appendChild( _subject_browser_input_aux(
 					$field,

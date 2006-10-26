@@ -1628,7 +1628,7 @@ sub _render_subjects_aux
 		$elementx->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );
 	}
 		
-	foreach( $subjects->{$id}->children() )
+	foreach( $subjects->{$id}->get_children() )
 	{
 		my $thisid = $_->get_value( "subjectid" );
 		next unless( defined $subjects->{$thisid} );

@@ -139,6 +139,13 @@ sub has_help
 {
 	my( $self ) = @_;
 
+	my $dom = $self->{config}->{field}->render_help(
+		$self->{session},
+		$self->{config}->{field}->get_type() );
+	if( EPrints::XML::is_empty( $dom ) )
+	{
+		return 0;
+	}
 	return 1;
 }
 

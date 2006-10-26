@@ -225,6 +225,19 @@ sub render_content
 	my( $self, $surround ) = @_;
 }
 
+=pod
+
+=item $boolean = $component->has_help()
+
+Returns true if this component has help available.
+
+=cut
+
+sub has_help
+{
+	my( $self ) = @_;
+	return 0;
+}
 
 =pod
 

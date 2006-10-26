@@ -184,7 +184,7 @@ sub commit
 	# This is pretty slow esp. For a top level subject, but subject
 	# changes will be rare and only done by admin, so mnya.
 	my $child;
-	foreach $child ( $self->children() )
+	foreach $child ( $self->get_children() )
 	{
 		$rv = $rv && $child->commit();
 	}
@@ -206,7 +206,7 @@ sub remove
 {
 	my( $self ) = @_;
 	
-	if( scalar $self->children() != 0 )
+	if( scalar $self->get_children() != 0 )
 	{
 		return( 0 );
 	}
@@ -389,7 +389,7 @@ sub create_child
 ######################################################################
 =pod
 
-=item @children = $subject->children
+=item @children = $subject->get_children
 
 Return a list of EPrints::DataObj::Subject objects which are direct children
 of the current subject.
@@ -397,7 +397,7 @@ of the current subject.
 =cut
 ######################################################################
 
-sub children #cjg should be get_children()
+sub get_children
 {
 	my( $self ) = @_;
 

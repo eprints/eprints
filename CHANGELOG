@@ -4862,7 +4862,7 @@ PACKAGE: 2.2.99.2
  * Tweaked Staff/Edit:Description to be less 'tech'
  * Moved phrases_map out of the way
  * Added phrases for missing fields
- * Rearranged user workflow slightly to have Account/Personal sections  
+ * Rearranged user workflow slightly to have Account/Personal sections 
 
 2006-10-26 cjg
  * related_url field no longer has up and down arrows in input
@@ -4872,4 +4872,12 @@ PACKAGE: 2.2.99.2
  * create_tables is now part of epadmin
  * erase_archive is now part of epadmin
  * test_config is now part of epadmin
- 
+
+2006-10-26 moj
+ * s/children/get_children/ in Subject (and Extras/Session)
+ * Added has_help to Component, made has_help in Field check the content
+    of the help DOM, made Surround only show help on the field if there's 
+    help content. Note that this should be refined to use colspan if there
+    is a mixture of fields with help/no help.
+ * s/auth/author/ for the url types.
+ * Added help for the Personal Details fields. 

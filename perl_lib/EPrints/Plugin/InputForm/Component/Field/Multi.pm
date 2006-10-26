@@ -203,14 +203,23 @@ sub render_content
  
 		my $help_prefix = $self->{prefix}."_help_".$field->get_name;
 		$td = $self->{session}->make_element( "td", class=>"ep_multi_input" );
-		my $inline_help = $self->{session}->make_element( "div", id=>$help_prefix, class=>"ep_no_js ep_multi_inline_help" );
-		my $inline_help_inner = $self->{session}->make_element( "div", id=>$help_prefix."_inner" );
-		$inline_help->appendChild( $inline_help_inner );
-		$inline_help_inner->appendChild(
-			$field->render_help( 
-					$self->{session}, 
-					$field->get_type() ) );
-		$td->appendChild( $inline_help );
+
+		my $help_dom = $field->render_help(
+			$self->{session},
+			$field->get_type() );
+	
+		my $field_has_help = 1;
+		$field_has_help = 0 if( EPrints::XML::is_empty( $help_dom ) );
+
+		if( $field_has_help ) 
+		{
+			my $inline_help = $self->{session}->make_element( "div", id=>$help_prefix, class=>"ep_no_js ep_multi_inline_help" );
+			my $inline_help_inner = $self->{session}->make_element( "div", id=>$help_prefix."_inner" );
+			$inline_help->appendChild( $inline_help_inner );
+			$inline_help_inner->appendChild( $help_dom );
+			$td->appendChild( $inline_help );
+		}
+
 		$td->appendChild( $field->render_input_field( 
 			$self->{session}, 
 			$value, 
@@ -224,21 +233,24 @@ sub render_content
 		$tr->appendChild( $th );
 		$tr->appendChild( $td );
 
-		# help toggle
 
-		my $td2 = $self->{session}->make_element( "td", class=>"ep_multi_help ep_only_js ep_toggle" );
+		if( $field_has_help )
+		{
+			# help toggle
 
-		my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$help_prefix."_show" );
-		my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
-		$show_help->appendChild( $self->html_phrase( "show_help",link=>$helplink ) );
-		$td2->appendChild( $show_help );
-	
-		my $hide_help = $self->{session}->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$help_prefix."_hide" );
-		my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
-		$hide_help->appendChild( $self->html_phrase( "hide_help",link=>$helplink2 ) );
-		$td2->appendChild( $hide_help );
+			my $td2 = $self->{session}->make_element( "td", class=>"ep_multi_help ep_only_js ep_toggle" );
+			my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$help_prefix."_show" );
+			my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
+			$show_help->appendChild( $self->html_phrase( "show_help",link=>$helplink ) );
+			$td2->appendChild( $show_help );
+		
+			my $hide_help = $self->{session}->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$help_prefix."_hide" );
+			my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
+			$hide_help->appendChild( $self->html_phrase( "hide_help",link=>$helplink2 ) );
+			$td2->appendChild( $hide_help );
+			$tr->appendChild( $td2 );
+		}
 
-		$tr->appendChild( $td2 );
 	}
 	return $table;
 }

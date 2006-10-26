@@ -173,7 +173,7 @@ $c->{fields}->{eprint} = [
 			{ 
 				sub_name => "type", 
 				type => "set", 
-				options => [qw/ pub auth org /],
+				options => [qw/ pub author org /],
 			},
 		],
 	},
