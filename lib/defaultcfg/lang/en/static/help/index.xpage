@@ -135,7 +135,7 @@ records. </p>
 
 
 <p>Certain services require you to register with the system so that it can
-identify you, such as the <!-- NOT DONE YET!! subscription (alerting) and --> document depositing
+identify you, such as the <!-- NOT DONE YET!! alerts and --> document depositing
 services. When you register with the system, you can register a username, email address
 and password which must be confirmed. The system will email you a confirmation
 URL to visit to enable the password.</p>

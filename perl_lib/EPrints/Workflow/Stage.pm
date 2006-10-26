@@ -62,11 +62,11 @@ sub _read_components
 					surround=>$surround_obj );
 
 			# Grab any values inside
-			my $class = $self->{repository}->plugin_class( "InputForm::Component::$type" );
+			my $class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::$type"};
 			if( !defined $class )
 			{
 				print STDERR "Using placeholder for $type\n";
-				$class = $self->{repository}->plugin_class( "InputForm::Component::PlaceHolder" );
+				$class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::PlaceHolder"};
 				$params{placeholding}=$type;
 			}
 			if( defined $class )

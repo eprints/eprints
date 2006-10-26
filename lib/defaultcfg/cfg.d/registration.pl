@@ -15,7 +15,7 @@
 $c->{allow_web_signup} = 1;
 
 # Set this to "minimal" to allow minimal user accounts -
-# users can set up subscriptions but not deposit
+# users can set up alerts but not deposit
 $c->{signup_style} = "full";
 
 # Allow users to change their password via the web?

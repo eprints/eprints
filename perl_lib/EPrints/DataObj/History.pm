@@ -48,8 +48,7 @@ is used for eprints, rather than the inbox, buffer etc.
 
 =item objectid (int)
 
-The numerical ID of the object in the dataset. Being numerical means
-this will only work for users and eprints. (maybe subscriptions).
+The numerical ID of the object in the dataset. 
 
 =item revision (int)
 

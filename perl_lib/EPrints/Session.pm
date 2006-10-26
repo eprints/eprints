@@ -2313,7 +2313,7 @@ sub prepare_page
 			}
 			elsif( defined $map->{$pinid} )
 			{
-EPrints::XML::tidy( $map->{$pinid} );
+#EPrints::XML::tidy( $map->{$pinid} );
 				push @output, EPrints::XML::to_string( $map->{$pinid}, undef, 1 );
 			}
 		}
@@ -3043,7 +3043,7 @@ sub plugin
 {
 	my( $self, $pluginid, %params ) = @_;
 
-	my $class = $self->{repository}->plugin_class( $pluginid );
+	my $class = $EPrints::Plugin::REGISTRY->{$pluginid};
 
 	if( !defined $class )
 	{
@@ -3078,8 +3078,7 @@ sub plugin_list
 	my( $self, %restrictions ) = @_;
 
 	my %pids = ();
-
-	foreach( $self->{repository}->plugin_list() ) { $pids{$_}=1; }
+	foreach( EPrints::Plugin::plugin_list() ) { $pids{$_}=1; }
 
 	return sort keys %pids if( !scalar %restrictions );
 	my @out = ();

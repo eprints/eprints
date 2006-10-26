@@ -136,7 +136,7 @@ sub render_saved_search_list
 		{
 			my $strong;
 			$strong = $session->make_element( "strong" );
-			$strong->appendChild( $subscribe_ds->get_field( $_ )->render_name( $session ) );
+			$strong->appendChild( $ds->get_field( $_ )->render_name( $session ) );
 			$strong->appendChild( $session->make_text( ": " ) );
 			$td->appendChild( $strong );
 			$td->appendChild( $subscr->render_value( $_ ) );

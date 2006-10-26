@@ -1,7 +1,7 @@
 
 ######################################################################
 #
-#  Search and subscription information
+#  Search configuration
 #
 #   Before the repository goes public, ensure that these are correct and work OK.
 #
@@ -24,16 +24,7 @@ $c->{search}->{simple} =
 {
 	search_fields => [
 		{
-			id => "meta",
-			meta_fields => [
-				"title",
-				"abstract",
-				"creators_name",
-				"date" 
-			]
-		},
-		{
-			id => "full",
+			id => "q",
 			meta_fields => [
 				$EPrints::Utils::FULLTEXT,
 				"title",
@@ -42,19 +33,6 @@ $c->{search}->{simple} =
 				"date" 
 			]
 		},
-		{
-			id => "person",
-			meta_fields => [
-				"creators_name",
-				"editors_name"
-			]
-		},
-		{	
-			id => "date",
-			meta_fields => [
-				"date"
-			]
-		}
 	],
 	preamble_phrase => "cgi/search:preamble",
 	title_phrase => "cgi/search:simple_search",
@@ -96,13 +74,6 @@ $c->{order_methods}->{subject} =
 	"byrevname"	 =>  "-name" 
 };
 
-# Fields used for specifying a subscription
-$c->{subscription_fields} =
-[
-	"subjects",
-	"refereed",
-	"ispublished"
-];
 
 # Fields used for limiting the scope of editors
 $c->{editor_limit_fields} =

@@ -64,11 +64,23 @@ $c->{fields}->{eprint} = [
 
 	{ name => "keywords", type => "longtext", input_rows => 2 },
 
-	{ name => "note", type => "longtext", input_rows => 3 },
+	{ 
+		name => "note", 
+		type => "longtext", 
+		input_rows => 3,
+	},
 
-	{ name => "suggestions", type => "longtext" },
+	{ 
+		name => "suggestions", 
+		type => "longtext",
+		render_value => "EPrints::Extras::render_highlighted_field",
+	},
 
-	{ name => "abstract", input_rows => 10, type => "longtext" },
+	{ 
+		name => "abstract", 
+		input_rows => 10,
+		type => "longtext",
+	},
 
 	{ name => "date", type=>"date", min_resolution=>"year" },
 

@@ -144,7 +144,7 @@ sub get_system_field_info
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
 
-		{ name=>"subscriptions", type=>"subobject", datasetid=>'subscription',
+		{ name=>"saved_searches", type=>"subobject", datasetid=>'saved_search',
 			multiple=>1 },
 
 		{ name=>"username", type=>"text", required=>1 },
@@ -467,7 +467,7 @@ sub commit
 
 =item $success = $user->remove
 
-Remove this user from the database. Also, remove their subscriptions,
+Remove this user from the database. Also, remove their saved searches,
 but do not remove their eprints.
 
 =cut
@@ -479,10 +479,9 @@ sub remove
 	
 	my $success = 1;
 
-	my $subscription;
-	foreach $subscription ( $self->get_subscriptions() )
+	foreach my $saved_search ( $self->get_saved_searches )
 	{
-		$subscription->remove();
+		$saved_search->remove;
 	}
 
 	# remove user record
@@ -759,24 +758,23 @@ sub render_full
 
 	my( $table, $title ) = $self->SUPER::render_full;
 
-	my @subs = $self->get_subscriptions;
-	my $subs_ds = $self->{session}->get_repository->get_dataset( "subscription" );
-	foreach my $subscr ( @subs )
+	my $ds = $self->{session}->get_repository->get_dataset( "saved_search" );
+	foreach my $saved_search ( $self->get_saved_searches )
 	{
 		my $rowright = $self->{session}->make_doc_fragment;
 		foreach( "frequency","spec","mailempty" )
 		{
 			my $strong;
 			$strong = $self->{session}->make_element( "strong" );
-			$strong->appendChild( $subs_ds->get_field( $_ )->render_name( $self->{session} ) );
+			$strong->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
 			$strong->appendChild( $self->{session}->make_text( ": " ) );
 			$rowright->appendChild( $strong );
-			$rowright->appendChild( $subscr->render_value( $_ ) );
+			$rowright->appendChild( $saved_search->render_value( $_ ) );
 			$rowright->appendChild( $self->{session}->make_element( "br" ) );
 		}
 		$table->appendChild( $self->{session}->render_row(
 			$self->{session}->html_phrase(
-				"page:subscription" ),
+				"page:saved_search" ),
 			$rowright ) );
 				
 	}
@@ -834,35 +832,35 @@ sub get_type
 ######################################################################
 =pod
 
-=item @subscriptions = $eprint->get_subscriptions
+=item @saved_searches = $eprint->get_saved_searches
 
-Return an array of all EPrint::Subscription objects associated with this
+Return an array of all EPrint::DataObj::SavedSearch objects associated with this
 user.
 
 =cut
 ######################################################################
 
-sub get_subscriptions
+sub get_saved_searches
 {
 	my( $self ) = @_;
 
-	my $subs_ds = $self->{session}->get_repository->get_dataset( 
-		"subscription" );
+	my $ds = $self->{session}->get_repository->get_dataset( 
+		"saved_searches" );
 
 	my $searchexp = EPrints::Search->new(
 		session=>$self->{session},
-		dataset=>$subs_ds,
+		dataset=>$ds,
 		custom_order=>"subid" );
 
 	$searchexp->add_field(
-		$subs_ds->get_field( "userid" ),
+		$ds->get_field( "userid" ),
 		$self->get_value( "userid" ) );
 
-	my $searchid = $searchexp->perform_search();
-	my @subs = $searchexp->get_records();
-	$searchexp->dispose();
+	my $searchid = $searchexp->perform_search;
+	my @results = $searchexp->get_records;
+	$searchexp->dispose;
 
-	return( @subs );
+	return( @results );
 }
 
 
@@ -914,7 +912,7 @@ sub send_out_editor_alert
 		my $url = $self->{session}->get_repository->get_conf( "perl_url" ).
 			"/users/record";
 		my $freqphrase = $self->{session}->html_phrase(
-			"lib/subscription:".$freq ); # nb. reusing the subscription.pm phrase
+			"lib/saved_search:".$freq ); # nb. reusing the SavedSearch.pm phrase
 		my $searchdesc = $self->render_value( "editperms" );
 
 		my $matches = $self->{session}->make_doc_fragment;
@@ -1080,11 +1078,12 @@ my $PRIVMAP =
 		# "subject/edit" => 8,
 	},
 
-	subscription => 
+	saved_search => 
 	{
-		"subscription" => 2,
-		"create_subscription" => 2,
-		"subscription/edit" => 2,
+		"saved_search" => 2,
+		"create_saved_search" => 2,
+		"saved_search/edit" => 4,
+		"saved_search/remove" => 4,
 	},
 
 	deposit => 

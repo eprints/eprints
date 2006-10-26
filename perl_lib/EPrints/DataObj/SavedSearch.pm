@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::DataObj::Subscription
+# EPrints::DataObj::SavedSearch
 #
 ######################################################################
 #
@@ -16,14 +16,14 @@
 
 =head1 NAME
 
-B<EPrints::DataObj::Subscription> - Single saved search.
+B<EPrints::DataObj::SavedSearch> - Single saved search.
 
 =head1 DESCRIPTION
 
-A subscription is a sub class of EPrints::DataObj.
+A saved search is a sub class of EPrints::DataObj.
 
-Each on belongs to one and only one user, although one user may own
-multiple subscriptions.
+Each one belongs to one and only one user, although one user may own
+multiple saved searches.
 
 =over 4
 
@@ -37,7 +37,7 @@ multiple subscriptions.
 #
 ######################################################################
 
-package EPrints::DataObj::Subscription;
+package EPrints::DataObj::SavedSearch;
 
 @ISA = ( 'EPrints::DataObj' );
 
@@ -49,9 +49,9 @@ use strict;
 ######################################################################
 =pod
 
-=item $subscription = EPrints::DataObj::Subscription->get_system_field_info
+=item $field_config = EPrints::DataObj::SavedSearch->get_system_field_info
 
-Return an array describing the system metadata of the Subscription
+Return an array describing the system metadata of the saved search.
 dataset.
 
 =cut
@@ -63,7 +63,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"subid", type=>"int", required=>1, import=>0 },
+		{ name=>"id", type=>"int", required=>1, import=>0 },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
 
@@ -75,8 +75,6 @@ sub get_system_field_info
 		{ 
 			name => "spec",
 			type => "search",
-fieldnames => "subscriptionfields",
-
 			datasetid => "eprint",
 		},
 
@@ -90,9 +88,9 @@ fieldnames => "subscriptionfields",
 ######################################################################
 =pod
 
-=item $subscription = EPrints::DataObj::Subscription->new( $session, $id )
+=item $saved_search = EPrints::DataObj::SavedSearch->new( $session, $id )
 
-Return new subscription object, created by loading the subscription
+Return new Saved Search object, created by loading the Saved Search
 with id $id from the database.
 
 =cut
@@ -103,16 +101,16 @@ sub new
 	my( $class, $session, $id ) = @_;
 
 	return $session->get_database->get_single( 	
-		$session->get_repository->get_dataset( "subscription" ),
+		$session->get_repository->get_dataset( "saved_search" ),
 		$id );
 }
 
 ######################################################################
 =pod
 
-=item $subscription = EPrints::DataObj::Subscription->new_from_data( $session, $data )
+=item $saved_search = EPrints::DataObj::SavedSearch->new_from_data( $session, $data )
 
-Construct a new EPrints::DataObj::Subscription object based on the $data hash 
+Construct a new EPrints::DataObj::SavedSearch object based on the $data hash 
 reference of metadata.
 
 =cut
@@ -127,7 +125,7 @@ sub new_from_data
 
 	$self->{data} = $data;
 	$self->{dataset} = $session->get_repository->get_dataset( 
-		"subscription" );
+		"saved_search" );
 	$self->{session} = $session;
 	
 	return $self;
@@ -136,9 +134,9 @@ sub new_from_data
 ######################################################################
 # =pod
 # 
-# =item $subscription = EPrints::DataObj::Subscription->create( $session, $userid )
+# =item $saved_search = EPrints::DataObj::SavedSearch->create( $session, $userid )
 # 
-# Create a new Subsciption entry in the database, belonging to user
+# Create a new saved search. entry in the database, belonging to user
 # with id $userid.
 # 
 # =cut
@@ -148,17 +146,16 @@ sub create
 {
 	my( $class, $session, $userid ) = @_;
 
-
-	return EPrints::DataObj::Subscription->create_from_data( 
+	return EPrints::DataObj::SavedSearch->create_from_data( 
 		$session, 
 		{ userid=>$userid },
-		$session->get_repository->get_dataset( "subscription" ) );
+		$session->get_repository->get_dataset( "saved_search" ) );
 }
 
 ######################################################################
 =pod
 
-=item $defaults = EPrints::DataObj::Subscription->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::SavedSearch->get_defaults( $session, $data )
 
 Return default values for this object based on the starting data.
 
@@ -169,16 +166,16 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $id = $session->get_database->counter_next( "subscriptionid" );
+	my $id = $session->get_database->counter_next( "saved_search_id" );
 
-	$data->{subid} = $id;
+	$data->{id} = $id;
 	$data->{frequency} = 'never';
 	$data->{mailempty} = "TRUE";
 	$data->{spec} = '';
 	$data->{rev_number} = 1;
 
 	$session->get_repository->call(
-		"set_subscription_defaults",
+		"set_saved_search_defaults",
 		$data,
 		$session );
 
@@ -189,9 +186,9 @@ sub get_defaults
 ######################################################################
 =pod
 
-=item $success = $subscription->remove
+=item $success = $saved_search->remove
 
-Remove the subscription.
+Remove the saved search.
 
 =cut
 ######################################################################
@@ -201,11 +198,11 @@ sub remove
 	my( $self ) = @_;
 
 	my $subs_ds = $self->{session}->get_repository->get_dataset( 
-		"subscription" );
+		"saved_search" );
 	
 	my $success = $self->{session}->get_database->remove(
 		$subs_ds,
-		$self->get_value( "subid" ) );
+		$self->get_value( "id" ) );
 
 	return $success;
 }
@@ -214,7 +211,7 @@ sub remove
 ######################################################################
 =pod
 
-=item $success = $subscription->commit( [$force] )
+=item $success = $saved_search->commit( [$force] )
 
 Write this object to the database.
 
@@ -229,7 +226,7 @@ sub commit
 	my( $self, $force ) = @_;
 	
 	$self->{session}->get_repository->call( 
-		"set_subscription_automatic_fields", 
+		"set_saved_search_automatic_fields", 
 		$self );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
@@ -240,7 +237,7 @@ sub commit
 	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 
 	my $subs_ds = $self->{session}->get_repository->get_dataset( 
-		"subscription" );
+		"saved_search" );
 	my $success = $self->{session}->get_database->update(
 		$subs_ds,
 		$self->{data} );
@@ -254,9 +251,9 @@ sub commit
 ######################################################################
 =pod
 
-=item $user = $subscription->get_user
+=item $user = $saved_search->get_user
 
-Return the EPrints::User which owns this subscription.
+Return the EPrints::User which owns this saved search.
 
 =cut
 ######################################################################
@@ -274,10 +271,10 @@ sub get_user
 ######################################################################
 =pod
 
-=item $searchexp = $subscription->make_searchexp
+=item $searchexp = $saved_search->make_searchexp
 
 Return a EPrints::Search describing how to find the eprints
-which are in the scope of this subscription.
+which are in the scope of this saved search.
 
 =cut
 ######################################################################
@@ -287,7 +284,7 @@ sub make_searchexp
 	my( $self ) = @_;
 
 	my $ds = $self->{session}->get_repository->get_dataset( 
-		"subscription" );
+		"saved_search" );
 	
 	return $ds->get_field( 'spec' )->make_searchexp( 
 		$self->{session},
@@ -298,16 +295,16 @@ sub make_searchexp
 ######################################################################
 =pod
 
-=item $subscription->send_out_subscription
+=item $saved_search->send_out_alert
 
 Send out an email for this subcription. If there are no matching new
-items then an email is only sent if the subscription has mailempty
+items then an email is only sent if the saved search has mailempty
 set to true.
 
 =cut
 ######################################################################
 
-sub send_out_subscription
+sub send_out_alert
 {
 	my( $self ) = @_;
 
@@ -316,7 +313,7 @@ sub send_out_subscription
 	if( $freq eq "never" )
 	{
 		$self->{session}->get_repository->log( 
-			"Attempt to send out a subscription for a\n".
+			"Attempt to send out an alert for a\n".
 			"which has frequency 'never'\n" );
 		return;
 	}
@@ -326,8 +323,8 @@ sub send_out_subscription
 	if( !defined $user )
 	{
 		$self->{session}->get_repository->log( 
-			"Attempt to send out a subscription for a\n".
-			"non-existant user. Subid#".$self->get_id."\n" );
+			"Attempt to send out an alert for a\n".
+			"non-existant user. ID#".$self->get_id."\n" );
 		return;
 	}
 
@@ -390,9 +387,9 @@ sub send_out_subscription
 	}
 
 	my $url = $self->{session}->get_repository->get_conf( "perl_url" ).
-		"/users/subscribe";
+		"/users/home?screenid=SavedSearh::View";
 	my $freqphrase = $self->{session}->html_phrase(
-		"lib/subscription:".$freq );
+		"lib/saved_search:".$freq );
 
 	my $fn = sub {
 		my( $session, $dataset, $item, $info ) = @_;
@@ -415,7 +412,7 @@ sub send_out_subscription
 		$searchexp->map( $fn, $info );
 
 		my $mail = $self->{session}->html_phrase( 
-				"lib/subscription:mail",
+				"lib/saved_search:mail",
 				howoften => $freqphrase,
 				n => $self->{session}->make_text( $searchexp->count ),
 				search => $searchdesc,
@@ -423,10 +420,10 @@ sub send_out_subscription
 				url => $self->{session}->render_link( $url ) );
 		if( $self->{session}->get_noise >= 2 )
 		{
-			print "Sending out subscription #".$self->get_id." to ".$user->get_value( "email" )."\n";
+			print "Sending out alert #".$self->get_id." to ".$user->get_value( "email" )."\n";
 		}
 		$user->mail( 
-			"lib/subscription:sub_subj",
+			"lib/saved_search:sub_subj",
 			$mail );
 		EPrints::XML::dispose( $mail );
 	}
@@ -439,12 +436,12 @@ sub send_out_subscription
 ######################################################################
 =pod
 
-=item EPrints::DataObj::Subscription::process_set( $session, $frequency );
+=item EPrints::DataObj::SavedSearch::process_set( $session, $frequency );
 
-Static method. Calls send_out_subscriptions on every subscription 
+Static method. Calls send_out_alerts on every saved search 
 with a frequency matching $frequency.
 
-Also saves a file logging that the subscription for this frequency
+Also saves a file logging that the alerts for this frequency
 was sent out at the current time.
 
 =cut
@@ -458,11 +455,11 @@ sub process_set
 		$frequency ne "weekly" && 
 		$frequency ne "monthly" )
 	{
-		$session->get_repository->log( "EPrints::DataObj::Subscription::process_set called with unknown frequency: ".$frequency );
+		$session->get_repository->log( "EPrints::DataObj::SavedSearch::process_set called with unknown frequency: ".$frequency );
 		return;
 	}
 
-	my $subs_ds = $session->get_repository->get_dataset( "subscription" );
+	my $subs_ds = $session->get_repository->get_dataset( "saved_search" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
@@ -475,7 +472,7 @@ sub process_set
 	my $fn = sub {
 		my( $session, $dataset, $item, $info ) = @_;
 
-		$item->send_out_subscription;
+		$item->send_out_alerts;
 	};
 
 	$searchexp->perform_search;
@@ -483,18 +480,18 @@ sub process_set
 	$searchexp->dispose;
 
 	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
-		"/subscription-".$frequency.".timestamp";
+		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, ">$statusfile" ) )
 	{
-		$session->get_repository->log( "EPrints::DataObj::Subscription::process_set failed to open\n$statusfile\nfor writing." );
+		$session->get_repository->log( "EPrints::DataObj::SavedSearch::process_set failed to open\n$statusfile\nfor writing." );
 	}
 	else
 	{
 		print TIMESTAMP <<END;
 # This file is automatically generated to indicate the last time
 # this repository successfully completed sending the *$frequency* 
-# subscriptions. It should not be edited.
+# alerts. It should not be edited.
 END
 		print TIMESTAMP EPrints::Utils::human_time()."\n";
 		close TIMESTAMP;
@@ -505,10 +502,10 @@ END
 ######################################################################
 =pod
 
-=item $timestamp = EPrints::DataObj::Subscription::get_last_timestamp( $session, $frequency );
+=item $timestamp = EPrints::DataObj::SavedSearch::get_last_timestamp( $session, $frequency );
 
 Static method. Return the timestamp of the last time this frequency 
-of subscription was sent.
+of alert was sent.
 
 =cut
 ######################################################################
@@ -521,12 +518,12 @@ sub get_last_timestamp
 		$frequency ne "weekly" && 
 		$frequency ne "monthly" )
 	{
-		$session->get_repository->log( "EPrints::DataObj::Subscription::get_last_timestamp called with unknown\nfrequency: ".$frequency );
+		$session->get_repository->log( "EPrints::DataObj::SavedSearch::get_last_timestamp called with unknown\nfrequency: ".$frequency );
 		return;
 	}
 
 	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
-		"/subscription-".$frequency.".timestamp";
+		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, $statusfile ) )
 	{

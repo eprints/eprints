@@ -8,21 +8,6 @@
 
 <p><a href="information.html">More information</a> is available about the repository.</p>
 
-<epc:phrase ref="ruler" /> 
-<div align="center">
-<form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search">
-<table cellspacing="0" cellpadding="4">
-<tr><td align="right">Search items:</td><td><input accept-charset="utf-8" size="40" type="text" name="meta"/></td></tr>
-<tr><td align="right">Search full text:</td><td><input accept-charset="utf-8" size="40" type="text" name="full"/></td>
-<td><input class="actionbutton" value="Search" type="submit" name="_action_search"/> </td>
-</tr>
-</table>
-<input type="hidden" name="_order" value="bytitle"/>
-<input type="hidden" name="basic_srchtype" value="ALL"/>
-<input type="hidden" name="_satisfyall" value="ALL"/>
-</form>
-</div>
-
 <epc:phrase ref="ruler" />
 
 <dl>
@@ -42,11 +27,7 @@
  <dt><a href="{$config{userhome}}">Registered Users Area</a></dt>
  <dd><p>Registered users may submit items to the repository.</p></dd>
 
- <dt><a href="{$config{perl_url}}/set_password">Register</a></dt>
- <dd><p>Register for an account (or reset a forgotten password).</p></dd>
-
 </dl>
-
 
 <epc:phrase ref="ruler" />
 

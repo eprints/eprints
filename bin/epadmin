@@ -18,22 +18,35 @@ B<epadmin> - EPrints repository admin tool
 
 =head1 SYNOPSIS
 
-B<epadmin> --help
+=over 8
 
-B<epadmin> create
+=item B<epadmin> create_repo
 
-B<epadmin> configcore
+START HERE! This option will walk you through the tasks needed to create your repository.
 
-B<epadmin> configdb
+=item B<epadmin> config_core [repo_id]
 
-B<epadmin> createdb
+Set hostname, contact email and repository name. 
 
+=item B<epadmin> config_db [repo_id]
 
-=head1 DESCRIPTION
+Set database connection properties and, optionally, to create database and database user.
 
-Perform various admin functions including:
+=item B<epadmin> create_db [repo_id]
 
-Create a new EPrint Repository (create configuration and database)
+Create a database and database user with the current settings.
+
+=item B<epadmin> create_user [repo_id]
+
+Create a new user. You need to do this to create your first admin account.
+
+=item B<epadmin> reload [repo_id]
+
+Cause the web server to reload the repository configuration.
+
+=item B<epadmin> --help
+
+=back
 
 =head1 OPTIONS
 
@@ -93,7 +106,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "configure_archive" ) if $version;
+EPrints::Utils::cmd_version( "epadmin" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV == 0 ); 
@@ -115,14 +128,16 @@ my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
 
 my $action = $ARGV[0];
-if( $action eq "create" ) { create(); }
+if( $action eq "create_repo" ) { create_repo(); }
 else
 {
 	my $repoid = $ARGV[1];
 	pod2usage(1) unless defined $repoid;
-	if( $action eq "configcore" ) { configcore( $repoid ); }
-	elsif( $action eq "configdb" ) { configdb( $repoid ); }
-	elsif( $action eq "createdb" ) { createdb( $repoid ); }
+	if( $action eq "config_core" ) { config_core( $repoid ); }
+	elsif( $action eq "config_db" ) { configdb( $repoid ); }
+	elsif( $action eq "create_db" ) { create_db( $repoid ); }
+	elsif( $action eq "create_user" ) { create_user( $repoid ); }
+	elsif( $action eq "reload" ) { reload( $repoid ); }
 	else { pod2usage( 1 ); }
 }
 
@@ -131,7 +146,7 @@ exit;
 
 
 
-sub create
+sub create_repo
 {
 	pod2usage( 2 ) if( scalar @ARGV != 1 ); 
 
@@ -204,10 +219,10 @@ used when the first is full.
 
 END
 	print "\n";
-	my $configcore = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
-	if( $configcore eq "yes" )
+	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
+	if( $config_core eq "yes" )
 	{
-		configcore( $repoid );	
+		config_core( $repoid );	
 	}
 	else
 	{
@@ -215,10 +230,10 @@ END
 	}
 
 	print "\n";
-	my $configdb = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure database?", "yes" );
-	if( $configdb eq "yes" )
+	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure database?", "yes" );
+	if( $config_db eq "yes" )
 	{
-		configdb( $repoid );	
+		config_db( $repoid );	
 	}
 	else
 	{
@@ -226,6 +241,16 @@ END
 	}
 
 
+	print "\n";
+	my $create_user = EPrints::Utils::get_input( $REGEXP_YESNO, "Create an initial user?", "yes" );
+	if( $create_user eq "yes" )
+	{
+		create_user( $repoid );	
+	}
+	else
+	{
+		print "OK, but you will not be able to log into the website. You can always run 'epadmin create_user $repoid' later.\n"
+	}
 # cjg: Register with website!
 
 print <<END;
@@ -307,7 +332,7 @@ sub install
 
 
 
-sub configcore
+sub config_core
 {
 	my( $repoid ) = @_;
 
@@ -467,8 +492,8 @@ END
 	# Write files?
 
 	print "\n";
-	my $configcore = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these core settings?", "yes" );
-	if( $configcore eq "no" )
+	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these core settings?", "yes" );
+	if( $config_core eq "no" )
 	{
 		print "\nOK. Not writing after all.\n";
 		return;
@@ -529,7 +554,7 @@ END
 	print "Wrote $anamefile\n";
 }
 
-sub configdb
+sub config_db
 {
 	my( $repoid ) = @_;
 
@@ -560,8 +585,8 @@ sub configdb
 	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
 
 	print "\n";
-	my $configdb = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
-	if( $configdb eq "no" )
+	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
+	if( $config_db eq "no" )
 	{
 		print "\nOK. Not writing after all.\n";
 		return;
@@ -599,7 +624,7 @@ END
 	my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
 	if( $makedb eq "yes" )
 	{
-		createdb( $repoid );
+		create_db( $repoid );
 	}
 	else
 	{
@@ -624,7 +649,7 @@ END
 	return $mysqlrootpass;
 }
 
-sub createdb
+sub create_db
 {
 	my( $repoid ) = @_;
 
@@ -704,4 +729,75 @@ END
 }
  
 
+sub create_user
+{
+	my( $repoid ) = @_;
+
+	my $session = EPrints::Session->new( 1 , $repoid, $noise );
+	exit unless( defined $session );
+
+	my $user_info = {};
+	print "Creating a new user in $repoid\n\n";
+	$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	while( defined EPrints::DataObj::User::user_with_username( $session, $user_info->{username} ) )
+	{
+		print STDERR "User with username '".$user_info->{username}."' already exists.\n";
+		$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	}
+	my @utypes = $session->get_repository->get_types( "user" );
+	$user_info->{usertype} = EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
+	my $rawpassword = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
+	$user_info->{password} = EPrints::Utils::crypt_password( $rawpassword, $session );
+	$user_info->{email} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
+	
+	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $new_user = $user_ds->create_object( $session, $user_info );
+
+	print "\n";
+
+	if( defined $new_user )
+	{
+		if( $noise >= 1 )
+		{
+			print "Successfully created new user:\n";
+			print "       ID: ".$new_user->get_value( "userid" )."\n";
+		}
+		if( $noise >= 2 )
+		{
+			print " Username: ".$new_user->get_value( "username" )."\n";
+			print "     Type: ".$new_user->get_value( "usertype" )."\n";
+		}
+	}
+	else
+	{
+		my $db_error = $session->get_database->error;
+		print STDERR "Error creating user: $db_error\n";
+	}
+	$session->terminate;
+}
+
+
+sub reload
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+	
+	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
+	unless( open( CHANGEDFILE, ">$file" ) )
+	{
+		EPrints::Config::abort( "Cannot write to file $file" );
+	}
+	print CHANGEDFILE "This file last poked at: ".EPrints::Utils::human_time()."\n";
+	close CHANGEDFILE;
+	if( $noise > 0 )
+	{
+		print <<END;
+The repository config will be reloaded, but you should still restart apache as
+soon as possible.
+END
+	}
+	$session->terminate;
+}	
 

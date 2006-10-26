@@ -403,6 +403,28 @@ sub render_preformatted_field
 	return $pre;
 }
 
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Extras::render_hightlighted_field( $session, $field, $value )
+
+Return an XHTML DOM object of the contents of $value.
+
+The contents of $value will be rendered in an HTML <pre>
+element. 
+
+=cut
+######################################################################
+
+sub render_highlighted_field
+{
+	my( $session , $field , $value, $alllangs, $nolink, $object ) = @_;
+
+	my $div = $session->make_element( "div", class=>"ep_highlight" );
+	my $v=$field->render_value_actual( $session, $value, $alllangs, $nolink, $object );
+	$div->appendChild( $v );	
+	return $div;
+}
 
 
 ######################################################################

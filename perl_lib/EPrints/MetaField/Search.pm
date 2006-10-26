@@ -153,7 +153,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED;
-	$defaults{fieldnames} = $EPrints::MetaField::REQUIRED;
+	$defaults{fieldnames} = $EPrints::MetaField::UNDEF;;
 	$defaults{allow_set_order} = 0;
 	return %defaults;
 }

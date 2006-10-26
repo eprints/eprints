@@ -14,7 +14,7 @@
 
 =head1 NAME
 
-B<send_subscriptions> - Send out all the email subscriptions for a given frequency.
+B<send_alerts> - Send out all the email alerts for a given frequency.
 
 =head1 SYNOPSIS
 
@@ -22,18 +22,18 @@ B<generate_views> I<repository_id> I<frequency> [B<options>]
 
 =head1 DESCRIPTION
 
-This script sends out all the subscription emails for the specified repository
+This script sends out all the alerts emails for the specified repository
 and frequency. frequency must be one of daily|weekly|monthly.
 
 This script should probably be called from your "cron" system, soon after
 midnight. Something like:
 
  # 00:15 every morning
- 15 0 * * * /opt/eprints3/bin/send_subscriptions dookuprints daily
+ 15 0 * * * /opt/eprints3/bin/send_alerts dookuprints daily
  # 00:30 every sunday morning
- 30 0 * * 0 /opt/eprints3/bin/send_subscriptions dookuprints weekly
+ 30 0 * * 0 /opt/eprints3/bin/send_alerts dookuprints weekly
  # 00:45 every first of the month
- 45 0 1 * * /opt/eprints3/bin/send_subscriptions dookuprints monthly
+ 45 0 1 * * /opt/eprints3/bin/send_alerts dookuprints monthly
 
 Note the spacing out so that all 3 don't start at once and hammer the database.
 
@@ -47,7 +47,7 @@ The ID of the eprint repository to use.
 
 =item B<frequency> 
 
-Which "frequency" of subscriptions to send - the daily, weekly or monthly ones.
+Which "frequency" of alerts to send - the daily, weekly or monthly ones.
 
 =back
 
@@ -104,7 +104,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "send_subscriptions" ) if $version;
+EPrints::Utils::cmd_version( "send_alerts" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 ); 
@@ -119,7 +119,7 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
-EPrints::DataObj::Subscription::process_set( $session, $ARGV[1] );
+EPrints::DataObj::SavedSearch::process_set( $session, $ARGV[1] );
 EPrints::DataObj::User::process_editor_alerts( $session, $ARGV[1] );
 
 

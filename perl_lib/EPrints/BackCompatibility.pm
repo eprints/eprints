@@ -89,12 +89,12 @@ sub valid_id { EPrints::deprecated; return EPrints::DataObj::Subject::valid_id( 
 
 package EPrints::Subscription;
 
-our @ISA = qw/ EPrints::DataObj::Subscription /;
+our @ISA = qw/ EPrints::DataObj::SavedSearch /;
 
 $INC{"EPrints/Subscription.pm"} = 1;
 
-sub process_set { EPrints::deprecated; return EPrints::DataObj::Subscription::process_set( @_ ); }
-sub get_last_timestamp { EPrints::deprecated; return EPrints::DataObj::Subscription::get_last_timestamp( @_ ); }
+sub process_set { EPrints::deprecated; return EPrints::DataObj::SavedSearch::process_set( @_ ); }
+sub get_last_timestamp { EPrints::deprecated; return EPrints::DataObj::SavedSearch::get_last_timestamp( @_ ); }
 
 ######################################################################
 

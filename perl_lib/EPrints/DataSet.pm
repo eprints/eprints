@@ -27,7 +27,7 @@ This module describes an EPrint dataset.
 An repository has one of each type of dataset:
 
 cachemap, counter, user, archive, buffer, inbox, document, subject,
-subscription, deletion, eprint, access.
+saved_search, deletion, eprint, access.
 
 A normal dataset (eg. "user") has a package associated with it 
 (eg. EPrints::DataObj::User) which must be a subclass of EPrints::DataObj 
@@ -170,9 +170,9 @@ my $INFO = {
 		class => "EPrints::DataObj::History",
 		import => 1,
 	},
-	subscription => {
-		sqlname => "subscription",
-		class => "EPrints::DataObj::Subscription",
+	saved_search => {
+		sqlname => "saved_search",
+		class => "EPrints::DataObj::SavedSearch",
 		import => 1,
 	},
 	access => {
@@ -838,7 +838,7 @@ into SQL (not counters or cache which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ eprint user document subscription subject history access request / );
+	return( qw/ eprint user document saved_search subject history access request / );
 }
 
 ######################################################################

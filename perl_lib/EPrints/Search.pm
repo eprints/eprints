@@ -290,15 +290,6 @@ END
 	# Map for MetaField names -> corresponding EPrints::Search::Field objects
 	$self->{searchfieldmap} = {};
 
-	# Little hack to solve the problem of not knowing what
-	# the fields in the subscription spec are until we load
-	# the config.
-	if( $self->{fieldnames} eq "subscriptionfields" )
-	{
-		$self->{fieldnames} = $self->{session}->get_repository->get_conf(
-			"subscription_fields" );
-	}
-
 	if( $self->{fieldnames} eq "editpermfields" )
 	{
 		$self->{fieldnames} = $self->{session}->get_repository->get_conf(

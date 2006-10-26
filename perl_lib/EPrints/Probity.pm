@@ -139,6 +139,20 @@ sub create_log
 {
 	my( $session, $filenames, $outfile ) = @_;
 
+	my $fh;
+	unless( open( $fh, ">$outfile" ) )
+	{
+		$session->get_repository->log( "Error pening '$outfile' to write log: $!" );
+		return;
+	}
+	create_log_fh( $session, $filenames, $fh );
+	close $fh;
+}
+
+sub create_log_fh
+{
+	my( $session, $filenames, $fh ) = @_;
+
 	my $hashlist = $session->make_element( 
 		"hashlist", 
 		xmlns=>"http://probity.org/XMLprobity" );
@@ -150,25 +164,11 @@ sub create_log
 			process_file( $session, $filename ) );
 	}
 
-	if( defined $outfile )
-	{
-		if( open( FILE, ">$outfile" ) )
-		{
-			print FILE '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-			print FILE $hashlist->toString."\n";
-			close FILE;
-		}
-		else
-		{
-			$session->get_repository->log(
-"Error opening '$outfile' to write log: $!" );
-		}
-	}
-	else
-	{
-		print '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-		print $hashlist->toString."\n";
-	}
+	$fh = *STDOUT unless defined $fh;
+
+	print $fh '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
+	print $fh $hashlist->toString."\n";
+
 	EPrints::XML::dispose( $hashlist );
 }
 	

@@ -4832,3 +4832,27 @@ PACKAGE: 2.2.99.2
  * Added eprints/index.xpage with some info about the EPrints project
  * Removed licences from Workflow etc and replaced with __LICENSE__
  * Changed copyright to 2000-2006
+
+2006-10-26 cjg
+ * Renamed subscription dataset to saved_search
+ * Renamed DataObj::Subscription to DataObj::SavedSearch
+ * Renamed subscriptions to alerts in UI
+ * Merged create_user into epadmin
+ * Merged force_config reload into epadmin
+ * Turned export_hashes into an export plugin
+ * Removed the requirement that metafields of type search MUST have
+    fields defined in the config.
+ * XHTML is no longer tidied before output.
+ * Local Repository Plugin code removed entirely.
+ * Added a new field render function which just puts a css highlighted
+    div around an item.
+ * Made "suggestions" render with a highlight.
+ * Saved Search option disabled for beta release.
+ * Split render_field into also having render_field_actual which is not
+    subject to the render_value config option.
+ * Fixed bug in function pointer names containing :: in fields.
+ * Made simple search simple
+ * Removed some cruft from index.xpage
+ * Removed /help/ from the template
+ * Fixed bug in information.xpage
+ 

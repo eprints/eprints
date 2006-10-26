@@ -643,6 +643,12 @@ sub render_value
 			$object );
 	}
 
+	return $self->render_value_actual( $session, $value, $alllangs, $nolink, $object );
+}
+
+sub render_value_actual
+{
+	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
 	unless( EPrints::Utils::is_set( $value ) )
 	{
@@ -1023,8 +1029,9 @@ sub call_property
 
 	return unless defined $v;
 
-	if( ref( $v ) eq "CODE" )
+	if( ref( $v ) eq "CODE" || $v =~ m/::/ )
 	{
+		no strict 'refs';
 		return &{$v}(@args);
 	}	
 

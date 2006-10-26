@@ -625,7 +625,7 @@ sub render_citation
 	my( $cstyle, %params ) = @_;
 
 	# This should belong to the base class of EPrint User Subject and
-	# Subscription, if we were better OO people...
+	# SavedSearch, if we were better OO people...
 
 	my $collapsed = EPrints::XML::EPC::process( $cstyle, %params );
 	my $r= _render_citation_aux( $collapsed, %params );

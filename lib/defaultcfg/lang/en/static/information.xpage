@@ -9,8 +9,6 @@
 <ul>
 <li>More Information about EPrints</li></ul>
 
-<p>A
-
 <h2>Contact Information</h2>
 
 <p>Any correspondence concerning this specific repository should be sent to <a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a>.</p>

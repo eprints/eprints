@@ -11,7 +11,6 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
     <link rel="Top" href="{$config{frontpage}}"/>
     <link rel="Search" href="{$config{perl_url}}/search"/>
-    <link rel="Help" href="{$config{base_url}}/help"/>
     <epc:pin ref="head"/>
   </head>
   <body bgcolor="#ffffff" text="#000000">
@@ -21,7 +20,7 @@
       <div class="ep_tm_logo"><a href="{$config{frontpage}}"><img alt="Logo" src="{$config{site_logo}}" /></a></div>
       <div><a class="ep_tm_archivetitle" href="{$config{frontpage}}"><epc:phrase ref="archive_name"/></a></div>
 
-  <ul class="ep_tm_menu"><li><a href="{$config{frontpage}}">Home</a></li><li><a href="{$config{base_url}}/information.html">About</a></li><li><a href="{$config{base_url}}/view/year">Browse by Year</a></li><li><a href="{$config{base_url}}/view/subjects">Browse by Subject</a></li><li><a href="{$config{userhome}}">User Area</a></li><li><a href="{$config{base_url}}/help">Help</a></li></ul>
+  <ul class="ep_tm_menu"><li><a href="{$config{frontpage}}">Home</a></li><li><a href="{$config{base_url}}/information.html">About</a></li><li><a href="{$config{base_url}}/view/year">Browse by Year</a></li><li><a href="{$config{base_url}}/view/subjects">Browse by Subject</a></li><li><a href="{$config{userhome}}">User Area</a></li></ul>
 
   <table class="ep_tm_searchbar" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
@@ -32,7 +31,7 @@
             <td align="right">
               <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
                 <img alt="Search" src="/images/search.gif"/> Search
-                <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="meta"/>
+                <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="q"/>
                 <input class="ep_tm_searchbarbutton" value="Go" type="submit" name="_action_search"/>
                 <input type="hidden" name="_order" value="bytitle"/>
                 <input type="hidden" name="basic_srchtype" value="ALL"/>

@@ -91,7 +91,7 @@ print <<END;
 
 END
 
-my @datasetids = ( "eprint","subject","user","subscription","document" );
+my @datasetids = ( "eprint","subject","user","saved_search","document" );
 
 #print <<END;
 #  <xsd:element name="records">

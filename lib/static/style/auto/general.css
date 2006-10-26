@@ -61,3 +61,9 @@ td.ep_row {
 	padding-left: 0.25em;
 	text-align: left;
 }
+
+.ep_highlight {
+	padding: 0.5em;
+	border: solid 2px #ff8888;
+	background-color: #ffeeee;
+}

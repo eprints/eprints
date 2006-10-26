@@ -143,7 +143,7 @@ use EPrints::DataObj::EPrint;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Request;
 use EPrints::DataObj::Subject;
-use EPrints::DataObj::Subscription;
+use EPrints::DataObj::SavedSearch;
 use EPrints::DataObj::User;
 use EPrints::DataSet;
 use EPrints::Email;

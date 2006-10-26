@@ -12,7 +12,7 @@
 $c->{user_roles}->{user} = [qw/
 	general
 	edit-own-record
-	subscription
+	saved-searches
 	set-password
 	deposit
 	change-email
@@ -21,7 +21,7 @@ $c->{user_roles}->{user} = [qw/
 $c->{user_roles}->{editor} = [qw/
 	general
 	edit-own-record
-	subscription
+	saved-searches
 	set-password
 	deposit
 	change-email
@@ -33,7 +33,7 @@ $c->{user_roles}->{editor} = [qw/
 $c->{user_roles}->{admin} = [qw/
 	general
 	edit-own-record
-	subscription
+	saved-searches
 	set-password
 	deposit
 	change-email
@@ -45,7 +45,7 @@ $c->{user_roles}->{admin} = [qw/
 
 
 #$c->{user_roles}->{minuser} = [qw/
-#	subscription
+#	saved-searches
 #	set-password
 #	change-email
 #	change-user

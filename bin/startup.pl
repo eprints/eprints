@@ -62,7 +62,7 @@ my %done = ();
 foreach( EPrints::Config::get_repository_ids() )
 {
 	next if $done{$_};
-	EPrints::Archive->new_archive_by_id( $_ );
+	EPrints::Repository->new( $_ );
 }
 print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
 
