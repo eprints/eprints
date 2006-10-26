@@ -176,7 +176,7 @@ sub mkpage_editsubject
 		
 		
 
-	my @children = $subject->children();
+	my @children = $subject->get_children;
 
 	my @ids = @{$subject->get_value( "ancestors" )};
 	foreach( @children )
@@ -268,7 +268,7 @@ sub mkpage_editsubject
 #		$tr->appendChild( $td );
 
 		my $parents_n = scalar @{$_->get_value( "parents" )};
-		my $children_n = scalar $_->children();
+		my $children_n = scalar $_->get_children;
 
 		$td = $session->make_element( "td", align=>"center");
 		$td->appendChild( $session->make_text( $parents_n ) );

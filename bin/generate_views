@@ -453,7 +453,7 @@ sub make_menu
 		{
 			my $subject = EPrints::DataObj::Subject->new( $session, $value );
 			my @ids= @{$subject->get_value( "ancestors" )};
-			foreach( $subject->children() )
+			foreach( $subject->get_children )
 			{
 				push @ids,$_->get_value( "subjectid" );
 			}

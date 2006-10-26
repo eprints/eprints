@@ -4884,3 +4884,6 @@ PACKAGE: 2.2.99.2
 
 2006-10-26 cjg
  * Reworked template and default homepage for beta release
+
+2006-10-26 cjg
+ * Fixed bug introduced in s/children/get_children/ 
