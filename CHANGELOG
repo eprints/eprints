@@ -4855,4 +4855,11 @@ PACKAGE: 2.2.99.2
  * Removed some cruft from index.xpage
  * Removed /help/ from the template
  * Fixed bug in information.xpage
- 
+
+2006-10-26 moj
+ * Tweaked Subject to avoid deprecation warning
+ * Moved db ok/down to phrase file
+ * Tweaked Staff/Edit:Description to be less 'tech'
+ * Moved phrases_map out of the way
+ * Added phrases for missing fields
+ * Rearranged user workflow slightly to have Account/Personal sections  

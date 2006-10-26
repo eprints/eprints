@@ -170,7 +170,7 @@ sub render_search_set_input
 	
 	my $topsubj = $self->get_top_subject( $session );
 
-	my( $subjectmap, $rmap ) = EPrints::Subject::get_all( $session );
+	my( $subjectmap, $rmap ) = EPrints::DataObj::Subject::get_all( $session );
 
 	my $pairs = traverse_subjects( $topsubj, 1,$subjectmap, $rmap, "");
 

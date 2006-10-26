@@ -108,7 +108,7 @@ sub render
 		$num_eprints{$_} = $session->get_repository->get_dataset( $_ )->count( $session );
 	}
 	
-	my $db_status = ( $total_users > 0 ? "OK" : "DOWN" );
+	my $db_status = ( $total_users > 0 ? "ok" : "down" );
 
 
 	my $indexer_status;
@@ -148,7 +148,7 @@ sub render
 		render_row( 
 			$session,
 			$session->html_phrase( "cgi/users/status:database" ),
-			$session->make_text( $db_status ) ) );
+			$session->html_phrase( "cgi/users/status:database_".$db_status ) ) );
 	
 	$table->appendChild(
 		render_row( 

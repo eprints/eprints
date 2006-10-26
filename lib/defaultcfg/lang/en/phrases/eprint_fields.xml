@@ -29,7 +29,10 @@
     <epp:phrase id="eprint_fieldname_creators">Creators</epp:phrase>
     <epp:phrase id="eprint_fieldname_editors">Editors</epp:phrase>
 
-    <epp:phrase id="eprint_fieldname_creators_name">Creators</epp:phrase>
+    <epp:phrase id="eprint_fieldname_corp_creators">Corporate Creators</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_corp_creators"></epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_creators_name">Creators</epp:phrase>
     <epp:phrase id="eprint_fieldname_creators_id">Creators email (if known)</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_creators">Enter in the format given on the first page or title page. If there are more than four authors, click on the [More&nbsp;Spaces] button.
 <br/>Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
@@ -124,6 +127,14 @@
 <!-- fnord -->
 <br/>Example: <span class="ep_form_example">http://www.stuffjournal.com/2003/3/</span>
 </epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_related_url">Related URL</epp:phrase>
+	<epp:phrase id="eprint_fieldhelp_related_url"></epp:phrase>
+	<epp:phrase id="eprint_fieldname_related_url_url">URL</epp:phrase>
+	<epp:phrase id="eprint_fieldname_related_url_type">URL Type</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_pub">Publisher</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_org">Organisation</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_auth">Authoritative</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_editors_name">Editors</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_editors_name">Please enter the names of the editors.<br/>
@@ -133,6 +144,12 @@ This field is required if no creators are listed.
 
     <epp:phrase id="eprint_fieldname_date">Date</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_date">The date this EPrint was completed, submitted to a publisher, published or submitted for a Ph.D.</epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_date_type">Date Type</epp:phrase>
+	<epp:phrase id="eprint_fieldhelp_date_type"></epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_published">Publication</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_submitted">Submission</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_completed">Completion</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_volume">Volume</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_volume">Enter the volume number of the journal or series in which your item appeared.</epp:phrase>

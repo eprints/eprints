@@ -14,20 +14,20 @@
 
   <stage name="default">
     <component type="Field::Multi">
-      <title><epc:phrase ref="moj_make_a_phrase_for_this" /></title>
-      <field ref="name" required="yes" />
+      <title><epc:phrase ref="user_section_account" /></title>
       <field ref="email"/>
       <field ref="hideemail"/>
       <field ref="password"/>
-      <field ref="url"/>
     </component>
 
     <component type="Field::Multi">
-      <title><epc:phrase ref="moj_make_a_phrase_for_address" /></title>
+      <title><epc:phrase ref="user_section_personal" /></title>
+      <field ref="name" required="yes" />
       <field ref="dept"/>
       <field ref="org"/>
       <field ref="address"/>
       <field ref="country"/>
+      <field ref="url"/>
     </component>
 
     <epc:if test="usertype = 'editor'">
