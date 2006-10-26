@@ -4822,4 +4822,13 @@ PACKAGE: 2.2.99.2
  * Removed repository specific plugin dir (we're not doing it that way)
  * import_subjects now uses Import plugins
  * testdata/bin/import_test_data now uses gziped ep3xml data
- 
+
+2006-10-26 moj
+ * Rearranged AUTHORS for EP3
+ * Added /eprints/ dir for EPrints-related docs
+ * Trimmed information.xpage to just have a link to the EPrints docs.
+ * Changed software.eprints.org to eprints.org/software/
+ * Changed EPrints 2 to EPrints 3 where applicable
+ * Added eprints/index.xpage with some info about the EPrints project
+ * Removed licences from Workflow etc and replaced with __LICENSE__
+ * Changed copyright to 2000-2006

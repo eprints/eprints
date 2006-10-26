@@ -7,6 +7,6 @@ University of Southampton does not hold the copyright.
 The file XML/DOM.pm has been slightly modified to disable features which
 require LWP::UserAgent.
 
-The contents of the EPrints/ directory is part of the EPrints 2 system and
-is copyright 2002 University of Southampton.
+The contents of the EPrints/ directory are part of the EPrints 3 system and
+are copyright 2000-2006 University of Southampton.
 

@@ -1054,7 +1054,7 @@ sub cmd_version
 $progname (GNU EPrints $version_id)
 $version
 
-Copyright (C) 2001-2006 University of Southampton
+Copyright (C) 2000-2006 University of Southampton
 
 __LICENSE__
 END

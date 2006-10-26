@@ -4,7 +4,7 @@
 <xpage:title>Welcome to <epc:phrase ref="archive_name" /></xpage:title>
 <xpage:body>
 
-<p>Welcome to this generic eprint server, running the default configuration for <a href="http://software.eprints.org/">GNU EPrints repository software</a>.</p>
+<p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/software/">GNU EPrints repository software</a>.</p>
 
 <p><a href="information.html">More information</a> is available about the repository.</p>
 
@@ -56,7 +56,7 @@
 
  <p><epc:phrase ref="archive_name" /> is running on <em>GNU EPrints</em> repository-creating software, which generates eprints repositories that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
 
- <p>The GNU EPrints repository-creating software is available for free at <a href="http://software.eprints.org/">http://software.eprints.org/</a>.</p>
+ <p>The GNU EPrints repository-creating software is available for free at <a href="http://www.eprints.org/software/">http://www.eprints.org/software/</a>.</p>
 
 </td>
 <td>

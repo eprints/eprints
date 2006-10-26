@@ -1,32 +1,17 @@
-The following people are identified as contributors to GNU EPrints 2.
+The following people have contributed to the EPrints project.
 
-Christopher Gutteridge - http://www.ecs.soton.ac.uk/info/people/cjg
-Designer and coder of EPrints version 2.
+Lead Developer
+ Christopher Gutteridge
 
-Tim Brody - http://www.ecs.soton.ac.uk/~tdb01r/
-Programmer, code repository administrator.
+Developers
+ Michael O. Jewell
+ Timothy Miles-Board
+ Tim Brody
+ Harry Mason
 
-Mike Jewell - http://www.mikesroom.org/
-Pre-release testing. The initial versions of scripts for creating and 
-installing an EPrints version 2 package. Some coding assistance.
-
-Timothy Miles-Board - http://www.ecs.soton.ac.uk/info/people/tmb
-Programmer, Services manager
-
-Harry Mason
-Testing. Document to text conversion wrappers. Document icons. Apache 2.0 
-support.
-
-Robert Tansley
-Creator of EPrints 1 on which EPrints 2 is based.
-
-Al Riddoch - ajr@ecs.soton.ac.uk
-Assistance in writing the "configure" script for the installer.
-
-Gui Power 
-Adapting the online help for version 2.
-
-TARDIS Project
-Jessie Hey - http://www.ecs.soton.ac.uk/info/people/jmnh
-Pauline Simpson
-Feature suggestions and contributions to the default configuration of version 2.3.
+Contributors
+ Jessie Hey
+ Al Riddoch
+ Gui Power
+ Pauline Simpson
+ Robert Tansley

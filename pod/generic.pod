@@ -1,6 +1,6 @@
 =head1 AUTHOR
 
-This is part of this EPrints 2 system. EPrints 2 is developed by Christopher Gutteridge.
+This is part of this EPrints 3 system. EPrints 3 is developed by Christopher Gutteridge.
 
 =head1 VERSION
 
