@@ -24,6 +24,10 @@ B<epadmin> - EPrints repository admin tool
 
 START HERE! This option will walk you through the tasks needed to create your repository.
 
+=item B<epadmin> test [repo_id]
+
+A null operation which just checks your configuration files are OK and that you can connect to the database.
+
 =item B<epadmin> config_core [repo_id]
 
 Set hostname, contact email and repository name. 
@@ -36,6 +40,10 @@ Set database connection properties and, optionally, to create database and datab
 
 Create a database and database user with the current settings.
 
+=item B<epadmin> create_tables [repo_id]
+
+Create the database tables.
+
 =item B<epadmin> create_user [repo_id]
 
 Create a new user. You need to do this to create your first admin account.
@@ -43,6 +51,14 @@ Create a new user. You need to do this to create your first admin account.
 =item B<epadmin> reload [repo_id]
 
 Cause the web server to reload the repository configuration.
+
+=item B<epadmin> erase_data [repo_id]
+
+Erases and recreates the database. Removes all documents and files. Does not touch the configuration files.
+
+=item B<epadmin> erase_eprints [repo_id]
+
+Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
 
 =item B<epadmin> --help
 
@@ -137,7 +153,11 @@ else
 	elsif( $action eq "config_db" ) { configdb( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
 	elsif( $action eq "create_user" ) { create_user( $repoid ); }
+	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
+	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
+	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
 	elsif( $action eq "reload" ) { reload( $repoid ); }
+	elsif( $action eq "test" ) { test( $repoid ); }
 	else { pod2usage( 1 ); }
 }
 
@@ -263,11 +283,8 @@ Now make any required changes to the cfg files.
 
 Then run:
 
-bin/create_tables $repoid
 bin/generate_static $repoid
 bin/generate_apacheconf 
-
-bin/create_user $repoid <username> <email> admin <password>
 
 Then stop and start your webserver:
 Often:
@@ -633,10 +650,12 @@ END
 
 }
 
-
+my $mysql_root_password;
 # subroutine so that it can cache if we do several operations
-sub get_mysql_root_pass
+sub get_mysql_root_password
 {
+	return $mysql_root_password if( defined $mysql_root_password );
+
 	#cjg hide password from display?
 	print <<END;
 
@@ -644,9 +663,9 @@ Ok, I'll need to connect to the mysql database as root. What is the root
 password? 
 	
 END
-	my $mysqlrootpass = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
+	$mysql_root_password = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
 
-	return $mysqlrootpass;
+	return $mysql_root_password;
 }
 
 sub create_db
@@ -656,7 +675,7 @@ sub create_db
 	print "Loading config...\n";
 	my $config = EPrints::Config::load_repository_config_module( $repoid );
 
-	my $mysqlrootpass = get_mysql_root_pass();
+	my $mysqlrootpassword = get_mysql_root_password();
 	print "Connecting to the database...\n";
 	my $dbh = DBI->connect(
 		EPrints::Database::build_connection_string(
@@ -665,7 +684,7 @@ sub create_db
 			dbport=>$config->{dbport},
 			dbhost=>$config->{dbhost} ),
 		"root",
-		$mysqlrootpass );
+		$mysqlrootpassword );
 
 	if( !defined $dbh )
 	{
@@ -703,7 +722,7 @@ END
 	else
 	{
 		my $SQL = "CREATE DATABASE ".$config->{dbname};
-		print "DOING: $SQL\n";
+		#print "DOING: $SQL\n";
 		$dbh->do( $SQL );
 	}
 	print "Setting MySQL privs\n";
@@ -711,7 +730,7 @@ END
 
 	my $SQL;
 	$SQL = 'GRANT ALL ON '.$config->{dbname}.'.* TO '.$config->{dbuser}.'@localhost';
-	print "DOING: $SQL\n";
+	#print "DOING: $SQL\n";
 	$dbh->do( $SQL );
 	my $pass = '"'.$config->{dbpass}.'"';
 	if( $oldpasswords ) 
@@ -721,11 +740,18 @@ END
 		$pass = "PASSWORD($pass)";
 	}
 	$SQL = 'SET PASSWORD FOR '.$config->{dbuser}.'@localhost = '.$pass;
-	print "DOING: $SQL\n";
+	#print "DOING: $SQL\n";
 	$dbh->do( $SQL );
 
-	print "Disconnecting from database.\n";
+	print "Disconnecting from database.\n\n";
 	$dbh->disconnect;
+
+	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
+	if( $mktables eq "yes" )
+	{
+		create_tables( $repoid );
+	}
+
 }
  
 
@@ -796,8 +822,162 @@ sub reload
 		print <<END;
 The repository config will be reloaded, but you should still restart apache as
 soon as possible.
+
 END
 	}
 	$session->terminate;
+}	
+
+
+sub create_tables
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
+
+	if( $session->get_database->has_table( "eprint" ) )
+	{
+		print "WARNING: Database is NOT empty. Contains an \"eprint\" table.\n";
+		print "You might consider running 'epadmin erase_data $repoid' instead.\n";
+		$session->terminate;
+		exit 1;
+	}
+
+	foreach my $dsid ( &EPrints::DataSet::get_sql_dataset_ids )
+	{
+		my $ds = $session->get_repository->get_dataset( $dsid );
+		my $indexes = $ds->count_indexes;
+		if( $indexes > 32 )
+		{
+			print STDERR "WARNING: Main table of dataset \"$dsid\" requires $indexes indexes.\n";
+			$session->terminate;
+			EPrints::abort( "MySQL has a maximum of 32 indexes per table and the '$dsid'\ntable requires $indexes. Add an sql_index=>0 parameter to some of the\nfields in this dataset. See the Documentation for more information\non the 'sql_index' metadata parameter. --force will override this\ncheck but the SQL will probably fail anyway." );
+		}
+	}
+			
+	if( $noise>=1 ) { print "Creating database tables...\n"; }
+	if( $session->get_database->create_archive_tables )
+	{
+		if( $noise>=1 ) { print "Done creating database tables.\n\n"; }
+	}
+	else
+	{
+		my $error = $session->get_database->error;
+		print STDERR "DB Error: $error\n";
+		$session->terminate;
+		exit 1;
+	}
+}
+
+sub erase_data
+{
+	my( $repoid ) = @_;
+
+	print <<END;
+You are about to erase from $repoid:
+  - all database tables
+  - all eprint files
+but NOT the configuration files.
+
+END
+	
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		exit( 1 );
+	}
+
+	erase_eprint_files( $repoid );
+	drop_and_recreate_db( $repoid );
+}
+
+# not an option directly!
+sub drop_and_recreate_db
+{
+	my( $repoid ) = @_;
+
+	my $repo = EPrints::Repository->new( $repoid );
+	my $database = $repo->get_conf( "dbname" );
+	
+	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
+	
+	my $dbh = DBI->connect(
+		EPrints::Database::build_connection_string(
+			dbname=>"mysql",
+			dbsock=>$repo->get_conf( "dbsock" ),
+			dbport=>$repo->get_conf( "dbport" ),
+			dbhost=>$repo->get_conf( "dbhost" ) ),
+		"root",
+		get_mysql_root_password() );
+
+	if( !defined $dbh )
+	{
+		print STDERR "\n\nFailed to connect to database. Aborting.\n\n";
+		exit( 1 );
+	}
+
+	if( $noise>=1 ) { print "Dropping database \"$database\"\n"; }
+	$dbh->do( "drop database $database" );
+	if( $noise>=1 ) { print "Re-creating database \"$database\"\n"; }
+	$dbh->do( "create database $database" );
+	$dbh->disconnect;
+
+	if( $noise>=1 ) { print "Done recreating database\n\n"; }
+
+	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
+	if( $mktables eq "yes" )
+	{
+		create_tables( $repoid );
+	}
+}
+
+# not an option directly!
+sub erase_eprint_files
+{
+	my( $repoid ) = @_;
+
+	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
+
+	my $repo = EPrints::Repository->new( $repoid );
+	my $documents_path = $repo->get_conf( "documents_path" );
+	my $htdocs_path = $repo->get_conf( "htdocs_path" );
+	
+	# Get available directories
+	opendir DOCSTORE, $documents_path
+		or print STDERR "Can't open DOCSTORE\n";
+	
+	my @doomeddirs;
+	foreach( readdir DOCSTORE )
+	{
+		next if m/^\.\.?$/; # skip . and ..
+		push @doomeddirs,
+			$documents_path."/".$_;
+	}
+	closedir DOCSTORE;
+	
+	# Remove the contents of each of the directories.
+
+	push @doomeddirs, $htdocs_path;
+	foreach my $dir (@doomeddirs)
+	{
+		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
+		my $rc = $repo->exec( "rmall", TARGET=>$dir );
+		print STDERR "Warning: Cleaning $dir didn't go smoothly\n" unless( $rc==0 );
+	}
+	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
+}
+
+
+sub test
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+	$session->terminate;
+
+	print "Everything seems OK.\n";
 }	
 

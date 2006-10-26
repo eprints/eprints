@@ -4863,3 +4863,13 @@ PACKAGE: 2.2.99.2
  * Moved phrases_map out of the way
  * Added phrases for missing fields
  * Rearranged user workflow slightly to have Account/Personal sections  
+
+2006-10-26 cjg
+ * related_url field no longer has up and down arrows in input
+ * Moved a bunch of bin scripts away until they get combined into epadmin
+    later. (recommit_dataset, rehash_documents, erase_eprints, 
+    reindex_dataset, erase_fulltext_cache)
+ * create_tables is now part of epadmin
+ * erase_archive is now part of epadmin
+ * test_config is now part of epadmin
+ 

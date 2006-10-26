@@ -162,11 +162,13 @@ $c->{fields}->{eprint} = [
 		name => "related_url", 
 		type=>"compound",  
 		input_boxes => 1,
+		input_ordered => 0,
 		multiple=>1,
 		fields=>[
 			{ 
 				sub_name => "url", 
 				type => "url", 
+				input_cols => 40,
 			},
 			{ 
 				sub_name => "type", 
