@@ -4,47 +4,37 @@
 <xpage:title>Welcome to <epc:phrase ref="archive_name" /></xpage:title>
 <xpage:body>
 
-<p>Welcome to this generic eprint server, running the default configuration for <a href="http://www.eprints.org/software/">GNU EPrints repository software</a>.</p>
+<div class="ep_msg_warning"><div class="ep_msg_warning_content"><table><tbody><tr><td>
+<img alt="Warning" src="/style/images/warning.png" /></td><td>
+This repository has not yet been fully configured. This paragraph would describe the repository, who runs it and what it contains. To modify this text edit 
+<tt><epc:print expr="$config{config_path}" />/lang/en/static/index.xpage</tt> then run <tt>generate_static</tt>.
+</td></tr></tbody></table></div></div>
 
-<p><a href="information.html">More information</a> is available about the repository.</p>
+<p>If you need a bit more help getting started, the EPrints team has a <a href="http://eprints.org/services/">commercial services</a> arm which provides training, support, hosting and consultancy services.</p>
 
-<epc:phrase ref="ruler" />
+<div class="ep_toolbox" ><div class="ep_toolbox_content" >
+ <a href="{$config{perl_url}}/latest">Latest Additions</a><br /><br />
+ View items added to the repository in the past week.  
+</div></div>
 
-<dl>
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{perl_url}}/advsearch">Search Repository</a><br /><br />
+ Search the repository using a full range of fields. Use the search field at the top of the page for a quick search.
+</div></div>
 
- <dt><a href="{$config{base_url}}/view/">Browse</a></dt>
- <dd><p>Browse the repository by <a href="{$config{base_url}}/view/subjects/">Subject</a> or <a href="{$config{base_url}}/view/year/">Year</a>.</p></dd>
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{base_url}}/view/subjects">Browse Repository</a><br /><br />
+ Browse the items in the repository by subject.
+</div></div>
 
- <dt><a href="{$config{perl_url}}/latest">Latest Additions</a></dt>
- <dd><p>View items added to the repository in the past week.</p></dd>
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{base_url}}/information.html">About this Repository</a><br /><br />
+ More information about this site.
+</div></div>
 
- <dt><a href="{$config{perl_url}}/search">Simple Search</a></dt>
- <dd><p>Search the repository using the most common fields.</p></dd>
-
- <dt><a href="{$config{perl_url}}/advsearch">Advanced Search</a></dt>
- <dd><p>Search the repository using a more complex range of fields.</p></dd>
-
- <dt><a href="{$config{userhome}}">Registered Users Area</a></dt>
- <dd><p>Registered users may submit items to the repository.</p></dd>
-
-</dl>
-
-<epc:phrase ref="ruler" />
-
-<table border="0"><tr>
-
-<td>
-
- <p><epc:phrase ref="archive_name" /> is running on <em>GNU EPrints</em> repository-creating software, which generates eprints repositories that are compliant with the <a href="http://www.openarchives.org">Open Archives Protocol for Metadata Harvesting OAI 1.1 and 2.0</a>.</p>
-
- <p>The GNU EPrints repository-creating software is available for free at <a href="http://www.eprints.org/software/">http://www.eprints.org/software/</a>.</p>
-
-</td>
-<td>
- <a href="http://www.eprints.org/"><img src="{$config{base_url}}/images/logo_small.png" width="100" height="100" border="0" alt="EPrints.org"/></a>
-</td>
-</tr></table>
-
+<p style="margin-top: 2em; font-size: 90%">
+<epc:phrase ref="archive_name" /> supports <a href="http://www.openarchives.org"><abbr title="Open Archives Protocol for Metadata Harvesting v2.0">OAI 2.0</abbr></a> with a base URL of <tt><epc:print expr="$config{perl_url}" />/oai2</tt>
+</p>
 
 </xpage:body>
 </xpage:page>

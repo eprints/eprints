@@ -4881,3 +4881,6 @@ PACKAGE: 2.2.99.2
     is a mixture of fields with help/no help.
  * s/auth/author/ for the url types.
  * Added help for the Personal Details fields. 
+
+2006-10-26 cjg
+ * Reworked template and default homepage for beta release
