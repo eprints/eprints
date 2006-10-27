@@ -309,11 +309,11 @@ sub copy_xpage
 		return;
 	}
 
-	my $html = $doc->getDocumentElement;
+	my $html = $doc->documentElement;
 	my $parts = {};
 	foreach my $node ( $html->getChildNodes )
 	{
-		my $part = $node->getNodeName;
+		my $part = $node->nodeName;
 		$part =~ s/^.*://;
 		next unless( $part eq "body" || $part eq "title" );
 
