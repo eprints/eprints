@@ -246,7 +246,7 @@ sub build_email
 	$mimemsg->attach( $text );
 	my $html = MIME::Lite->new( 
 		Type  => "text/html",
-		Data  => $p{message}->toString,
+		Data  => $xml_mail->toString,
 	);
 	$html->attr("Content-disposition" => "");
 	$mimemsg->attach( $html );
