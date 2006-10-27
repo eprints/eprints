@@ -154,6 +154,7 @@
       </component>
     </epc:if>
 
+    <component collapse="yes"><field ref="contact_email"/></component>
     <component collapse="yes"><field ref="referencetext"/></component>
     <component collapse="yes"><field ref="keywords"/></component>
     <component collapse="yes"><field ref="note"/></component>

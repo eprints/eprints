@@ -43,10 +43,34 @@ $action = "oa" if $doc->is_public;
 my $button = $session->get_action_button;
 unless( defined $button && $button eq "submit" )
 {
+	my( $doctable, $doctr, $doctd );
+	$doctable = $session->make_element( "table" );
+	$doctr = $session->make_element( "tr" );
+	
+	$doctd = $session->make_element( "td" );
+	$doctr->appendChild( $doctd );
+	$doctd->appendChild( 
+		$session->get_repository->call( "render_fileicon", 
+			$session, 
+			$doc->get_type, 
+			$doc->get_url ) );
+	
+	$doctd = $session->make_element( "td" );
+	$doctr->appendChild( $doctd );
+	$doctd->appendChild( $doc->render_citation_link() );
+	my %files = $doc->files;
+	if( defined $files{$doc->get_main} )
+	{
+		my $size = $files{$doc->get_main};
+		$doctd->appendChild( $session->make_element( 'br' ) );
+		$doctd->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+	}
+
+	$doctable->appendChild( $doctr );
 
 	$page->appendChild( $session->html_phrase( "request/respond_page:$action",
 		eprint => $eprint->render_citation_link,
-		document => $doc->render_citation_link
+		document => $doctable,
 	) );
 
 	# Render response form

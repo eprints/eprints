@@ -6,8 +6,7 @@ use strict;
 my $session = new EPrints::Session();
 exit( 1 ) unless( defined $session );
 
-# What is being requested? Need:
-# valid docid OR valid eprintid (and eprint must have 0 docs)
+# Need valid docid or valid eprintid (where eprint has no docs)
 my $docid = $session->param( "docid" );
 my $doc = EPrints::DataObj::Document->new( $session, $docid );
 my $eprint;
@@ -26,7 +25,7 @@ else
 # No point if requested document is already OA
 if( defined $doc )
 {
-	&_error( $session ) if $doc->public;
+	&_error( $session ) if $doc->is_public;
 }
 
 # Need a contact email
@@ -51,8 +50,8 @@ my $page = $session->make_doc_fragment();
 my $email = $session->param( "requester_email" );
 if( defined( $email ) && $email ne "" )
 {
-	
-	# Store request data
+
+	# Create request object
 	my $data = {};
 	$data->{eprintid} = $eprint->get_id;
 	$data->{docid} = $doc->get_id if defined $doc;
@@ -171,9 +170,32 @@ $page->appendChild( $p );
 $p->appendChild( $eprint->render_citation );
 if( defined $doc )
 {
-	my $p = $session->make_element( "p" );
-	$page->appendChild( $p );
-	$p->appendChild( $doc->render_citation );
+	my( $doctable, $doctr, $doctd );
+	$doctable = $session->make_element( "table" );
+	$doctr = $session->make_element( "tr" );
+	
+	$doctd = $session->make_element( "td" );
+	$doctr->appendChild( $doctd );
+	$doctd->appendChild( 
+		$session->get_repository->call( "render_fileicon", 
+			$session, 
+			$doc->get_type, 
+			$doc->get_url ) );
+	
+	$doctd = $session->make_element( "td" );
+	$doctr->appendChild( $doctd );
+	$doctd->appendChild( $doc->render_citation_link() );
+	my %files = $doc->files;
+	if( defined $files{$doc->get_main} )
+	{
+		my $size = $files{$doc->get_main};
+		$doctd->appendChild( $session->make_element( 'br' ) );
+		$doctd->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+	}
+
+	$doctable->appendChild( $doctr );
+
+	$page->appendChild( $doctable );
 }
 
 # Render request form

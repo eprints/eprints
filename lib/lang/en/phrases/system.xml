@@ -1494,7 +1494,7 @@ Titles and Help for the System Fields
 
 <p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
 
-<p>If you do not receive a reply or need advice at a later time please contact <epp:print expr="$config{adminemail}" />. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
+<p>If you do not receive a reply or need advice at a later time please contact <epp:print expr="{$config{adminemail}}" />. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
 </epp:phrase>
 
 <epp:phrase id="request/respond_page:title">Confirm response</epp:phrase>
@@ -1516,7 +1516,7 @@ Titles and Help for the System Fields
 
 <p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
 
-<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact <epp:print expr="$config{adminemail}" /></p>
+<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact <epp:print expr="{$config{adminemail}}" /></p>
 
 <p>The following reason was given:</p>
 
