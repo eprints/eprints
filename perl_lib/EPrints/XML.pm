@@ -223,8 +223,8 @@ sub to_string
 			my $attr = $nnm->item($i);
 			my $name = $attr->nodeName;
 			next if( $noxmlns && $name =~ m/^xmlns/ );
-			next if( $done->{$attr->name} );
-			$done->{$attr->name} = 1;
+			next if( $done->{$attr->nodeName} );
+			$done->{$attr->nodeName} = 1;
 			# cjg Should probably escape these values.
 			my $value = $attr->nodeValue;
 			$value =~ s/&/&amp;/g;
