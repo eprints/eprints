@@ -103,7 +103,7 @@ sub xml_to_text
                         "CDATASection",
                         "EntityReference" ) ) 
 		{
-			push @v, $node->getNodeValue;
+			push @v, $node->nodeValue;
 		}
 		else
 		{

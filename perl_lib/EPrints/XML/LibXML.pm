@@ -31,20 +31,45 @@ loaded into EPrints::XML namespace if we're using XML::LibXML
 use XML::LibXML;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
+$EPrints::XML::PREFIX = "XML::LibXML::";
+
+##############################################################################
 # DOM spec fixes
+##############################################################################
+
 {
-no warnings;
-*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' };
+	no warnings; # don't complain about redefinition
+	# incorrectly set to '#cdata'
+	*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' };
+}
+# these aren't set at all
 *XML::LibXML::Document::nodeName = sub { '#document' };
 *XML::LibXML::DocumentFragment::nodeName = sub { '#document-fragment' };
+
 # incorrectly set to 'text'
 *XML::LibXML::Text::nodeName = sub { '#text' };
-# otherwise getElementsByTagName never matches namespaced tags
-*XML::LibXML::Document::getElementsByTagName = \&XML::LibXML::Document::getElementsByLocalName;
-*XML::LibXML::DocumentFragment::getElementsByTagName = \&XML::LibXML::DocumentFragment::getElementsByLocalName;
-}
 
-$EPrints::XML::PREFIX = "XML::LibXML::";
+##############################################################################
+# GDOME compatibility
+##############################################################################
+
+# Make getElementsByTagName use LocalName, because EPrints doesn't use
+# namespacing when searching DOM trees
+*XML::LibXML::Element::getElementsByTagName =
+*XML::LibXML::Document::getElementsByTagName =
+*XML::LibXML::DocumentFragment::getElementsByTagName =
+	\&XML::LibXML::Element::getElementsByLocalName;
+
+# LibXML doesn't set a root element on $doc->appendChild (unused, but could
+# cause problems)
+*XML::LibXML::Document::appendChild = sub {
+		my( $self, $node ) = @_;
+		$self->SUPER::appendChild( $node );
+		$self->setDocumentElement( $node );
+		return $node;
+	};
+
+##############################################################################
 
 our $PARSER = XML::LibXML->new();
 
@@ -58,9 +83,7 @@ sub parse_xml_string
 {
 	my( $string ) = @_;
 
-	my $doc = $PARSER->parse_string( $string );
-
-	return bless $doc, LibXMLDocWrapper;
+	return $PARSER->parse_string( $string );
 }
 
 =item $doc = parse_xml( $filename [, $basepath [, $no_expand]] )
@@ -78,22 +101,23 @@ sub parse_xml
 		EPrints::Config::abort( "Can't read XML file: '$file'" );
 	}
 
-	my $tmpfile = $file;
-	if( defined $basepath )
-	{	
-		$tmpfile =~ s#/#_#g;
-		$tmpfile = $basepath."/".$tmpfile;
-		symlink( $file, $tmpfile );
-	}
+#	my $tmpfile = $file;
+#	if( defined $basepath )
+#	{	
+#		$tmpfile =~ s#/#_#g;
+#		$tmpfile = $basepath."/".$tmpfile;
+#		symlink( $file, $tmpfile );
+#	}
 	my $fh;
-	open( $fh, $tmpfile );
+	open( $fh, $file );
 	my $doc = $PARSER->parse_fh( $fh, $basepath );
 	close $fh;
-	if( defined $basepath )
-	{
-		unlink( $tmpfile );
-	}
-	return bless $doc, LibXMLDocWrapper;
+#	if( defined $basepath )
+#	{
+#		unlink( $tmpfile );
+#	}
+
+	return $doc;
 }
 
 =item dispose( $node )
@@ -133,7 +157,6 @@ sub clone_node
 	{
 		my $doc = $node->getOwner;
 		my $f = $doc->createDocumentFragment;
-		$f = bless $f, LibXMLDocFragWrapper;
 		return $f unless $deep;
 		
 		foreach my $c ( $node->getChildNodes )
@@ -167,12 +190,11 @@ sub clone_and_own
 	if( is_dom( $node, "DocumentFragment" ) )
 	{
 		my $f = $doc->createDocumentFragment;
-		$f = bless $f, LibXMLDocFragWrapper;
 		return $f unless $deep;
 
 		foreach my $c ( $node->getChildNodes )
 		{
-			$newnode->appendChild( $c->cloneNode( $deep ));
+			$f->appendChild( $c->cloneNode( $deep ));
 		}
 
 		return $f;
@@ -211,54 +233,8 @@ sub make_document
 
 	# leave ($version, $encoding) blank to avoid getting a declaration
 	# *implicitly* utf8
-	my $doc = XML::LibXML::Document->new();
-
-	return bless $doc, LibXMLDocWrapper;
+	return XML::LibXML::Document->new();
 }
-
-=back
-
-=head2 SUPPORT MODULES
-
-LibXML doesn't use $doc->appendChild in the DOM way so we need to wrap it.
-
-=over 4
-
-=cut
-
-package LibXMLDocWrapper;
-
-use vars qw( @ISA );
-@ISA = qw( XML::LibXML::Document );
-
-=item LibXMLDocWrapper::appendChild()
-
-Wrapper for setDocumentElement().
-
-=cut
-
-sub appendChild
-{
-	shift->setDocumentElement( @_ );
-}
-
-package LibXMLDocFragWrapper;
-
-use vars qw( @ISA );
-@ISA = qw( XML::LibXML::DocumentFragment );
-
-=item LibXMLDocFragWrapper::appendChild()
-
-Wrapper for setDocumentElement().
-
-=cut
-
-sub appendChild
-{
-	shift->setDocumentElement( @_ );
-}
-
-1;
 
 __END__
 

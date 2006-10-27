@@ -480,10 +480,10 @@ sub tree_to_utf8
 # Hmm, a node list, not a node.
 		my $string = utf8("");
 		my $ws = $whitespace_before;
-		for( my $i=0 ; $i<$node->getLength ; ++$i )
+		for( my $i=0 ; $i<$node->length ; ++$i )
 		{
 			$string .= tree_to_utf8( 
-					$node->index( $i ), 
+					$node->item( $i ), 
 					$width,
 					$pre,
 					$ws );
@@ -495,11 +495,11 @@ sub tree_to_utf8
 	if( EPrints::XML::is_dom( $node, "Text" ) ||
 		EPrints::XML::is_dom( $node, "CDataSection" ) )
 	{
-		my $v = $node->getNodeValue();
+		my $v = $node->nodeValue();
 		$v =~ s/[\s\r\n\t]+/ /g unless( $pre );
 		return $v;
 	}
-	my $name = $node->getNodeName();
+	my $name = $node->nodeName();
 
 	my $string = utf8("");
 	my $ws = $whitespace_before;
@@ -642,7 +642,7 @@ sub _render_citation_aux
 	my $rendered;
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		my $name = $node->getTagName;
+		my $name = $node->tagName;
 		$name =~ s/^ep://;
 		$name =~ s/^cite://;
 

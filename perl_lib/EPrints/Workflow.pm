@@ -128,7 +128,7 @@ sub _read_flow
 	my $has_stages = 0; 
 	foreach my $element ( $flow->getChildNodes )
 	{
-		my $name = $element->getNodeName;
+		my $name = $element->nodeName;
 		if( $name eq "stage" )
 		{
 			my $ref = $element->getAttribute("ref");
@@ -166,7 +166,7 @@ sub _read_stages
 
 	foreach my $element ( $self->{config}->getChildNodes )
 	{
-		my $e_name = $element->getNodeName;
+		my $e_name = $element->nodeName;
 		next unless( $e_name eq "stage" );
 
 		my $stage_id = $element->getAttribute("name");
@@ -452,7 +452,7 @@ sub load_all
 		if( $fn=~m/^(.*)\.xml$/ )
 		{
 			my $doc = EPrints::XML::parse_xml( $filename );
-			$v->{$1} = $doc->getDocumentElement();
+			$v->{$1} = $doc->documentElement();
 		}
 	}
 	return $v;

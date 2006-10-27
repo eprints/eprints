@@ -209,24 +209,24 @@ sub to_string
 	my @n = ();
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		my $tagname = $node->getTagName;
+		my $tagname = $node->tagName;
 
 		# lowercasing all tags screws up OAI.
 		#$tagname = "\L$tagname";
 
 		push @n, '<', $tagname;
 
-		my $nnm = $node->getAttributes;
+		my $nnm = $node->attributes;
 		my $done = {};
-		foreach my $i ( 0..$nnm->getLength-1 )
+		foreach my $i ( 0..$nnm->length-1 )
 		{
 			my $attr = $nnm->item($i);
-			my $name = $attr->getName;
+			my $name = $attr->nodeName;
 			next if( $noxmlns && $name =~ m/^xmlns/ );
-			next if( $done->{$attr->getName} );
-			$done->{$attr->getName} = 1;
+			next if( $done->{$attr->name} );
+			$done->{$attr->name} = 1;
 			# cjg Should probably escape these values.
-			my $value = $attr->getValue;
+			my $value = $attr->nodeValue;
 			$value =~ s/&/&amp;/g;
 			$value =~ s/"/&quot;/g;
 			push @n, " ", $name."=\"".$value."\"";
@@ -268,7 +268,7 @@ sub to_string
 	elsif( EPrints::XML::is_dom( $node, "Document" ) )
 	{
    		#my $docType  = $node->getDoctype();
-	 	#my $elem     = $node->getDocumentElement();
+	 	#my $elem     = $node->documentElement();
 		#push @n, $docType->toString, "\n";, to_string( $elem , $enc, $noxmlns);
 		push @n, document_to_string( $node, $enc );
 	}
@@ -384,7 +384,7 @@ sub tidy
 {
 	my( $node, $opts, $indent ) = @_;
 
-	my $name = $node->getNodeName;
+	my $name = $node->nodeName;
 	if( defined $opts->{collapse} )
 	{
 		foreach my $col_id ( @{$opts->{collapse}} )
@@ -394,7 +394,7 @@ sub tidy
 	}
 
 	# tidys the node in it's own document so we don't require $session
-	my $doc = $node->getOwnerDocument;
+	my $doc = $node->ownerDocument;
 
 	$indent = $indent || 0;
 

@@ -477,7 +477,7 @@ sub _template_to_text
 {
 	my( $template ) = @_;
 
-	my $doc = $template->getOwnerDocument;
+	my $doc = $template->ownerDocument;
 
 	$template = EPrints::XML::clone_and_own( 
 			$template,
@@ -537,16 +537,16 @@ sub _divide_attributes
 		_divide_attributes( $kid, $doc, $divide );
 	}
 	
-	my $attrs = $node->getAttributes;
+	my $attrs = $node->attributes;
 
 	return unless defined $attrs;
 	
-	for( my $i = 0; $i<$attrs->getLength; ++$i )
+	for( my $i = 0; $i < $attrs->length; ++$i )
 	{
 		my $attr = $attrs->item( $i );
-		my $v = $attr->getValue;
+		my $v = $attr->nodeValue;
 		next unless( $v =~ m/\{/ );
-		my $name = $attr->getName;
+		my $name = $attr->nodeName;
 		my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
 		my @r2 = ();
 		for( my $i = 0; $i<scalar @r; ++$i )

@@ -273,7 +273,7 @@ sub xml_to_metafield
 	}
 
 	# Do a few validation checks.
-	if( $xml->getNodeName ne "field" )
+	if( $xml->nodeName ne "field" )
 	{
 		EPrints::abort(
 			"xml_to_metafield config error: Not a field node" );

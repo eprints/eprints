@@ -523,16 +523,16 @@ sub render_modify
 	foreach my $cnode ( $file_old->getFirstChild->getChildNodes )
 	{
 		next unless EPrints::XML::is_dom( $cnode, "Element" );
-		$fieldnames{$cnode->getNodeName}=1;
-		$old_nodes{$cnode->getNodeName}=$cnode;
+		$fieldnames{$cnode->nodeName}=1;
+		$old_nodes{$cnode->nodeName}=$cnode;
 	}
 
 	my %new_nodes = ();
 	foreach my $cnode ( $file_new->getFirstChild->getChildNodes )
 	{
 		next unless EPrints::XML::is_dom( $cnode, "Element" );
-		$fieldnames{$cnode->getNodeName}=1;
-		$new_nodes{$cnode->getNodeName}=$cnode;
+		$fieldnames{$cnode->nodeName}=1;
+		$new_nodes{$cnode->nodeName}=$cnode;
 	}
 
 	my $table;
@@ -627,7 +627,7 @@ sub empty_tree
 
 	if( EPrints::XML::is_dom( $domtree, "Text" ) )
 	{
-		my $v = $domtree->getNodeValue;
+		my $v = $domtree->nodeValue;
 		
 		if( $v=~m/^[\s\r\n]*$/ )
 		{
@@ -665,8 +665,8 @@ sub render_xml_diffs
 
 	if( EPrints::XML::is_dom( $tree1, "Text" ) && EPrints::XML::is_dom( $tree2, "Text" ))
 	{
-		my $v1 = $tree1->getNodeValue;
-		my $v2 = $tree2->getNodeValue;
+		my $v1 = $tree1->nodeValue;
+		my $v2 = $tree2->nodeValue;
 		$v1=~s/^[\s\r\n]*$//;
 		$v2=~s/^[\s\r\n]*$//;
 		if( $v1 eq "" && $v2 eq "" )
@@ -684,8 +684,8 @@ sub render_xml_diffs
 
 	my $f1 = $session->make_doc_fragment;
 	my $f2 = $session->make_doc_fragment;
-	my $name1 = $tree1->getNodeName;
-	my $name2 = $tree2->getNodeName;
+	my $name1 = $tree1->nodeName;
+	my $name2 = $tree2->nodeName;
 	my( @list1 ) = $tree1->getChildNodes;
 	my( @list2 ) = $tree2->getChildNodes;
 	my $justtext = 1;
@@ -698,7 +698,7 @@ sub render_xml_diffs
 			$justtext = 0;
 			last;
 		}
-		$t1.=$cnode->getNodeValue;
+		$t1.=$cnode->nodeValue;
 	}
 	foreach my $cnode ( @list2 )
 	{
@@ -707,7 +707,7 @@ sub render_xml_diffs
 			$justtext = 0;
 			last;
 		}
-		$t2.=$cnode->getNodeValue;
+		$t2.=$cnode->nodeValue;
 	}
 
 	if( $justtext )
@@ -905,7 +905,7 @@ sub render_xml
 
 	if( EPrints::XML::is_dom( $domtree, "Text" ) )
 	{
-		my $v = $domtree->getNodeValue;
+		my $v = $domtree->nodeValue;
 		if( $v=~m/^[\s\r\n]*$/ )
 		{
 			if( $mkpadder ) { return( $session->make_doc_fragment, $session->make_doc_fragment ); }
@@ -930,10 +930,10 @@ sub render_xml
 			}
 			if( EPrints::XML::is_dom( $cnode,"Text" ) )
 			{
-				$t.=$cnode->getNodeValue;
+				$t.=$cnode->nodeValue;
 			}
 		}
-		my $name = $domtree->getNodeName;
+		my $name = $domtree->nodeName;
 		my $f = $session->make_doc_fragment;
 		my $padder;
 		if( $mkpadder ) { $padder = $session->make_doc_fragment; }
@@ -999,7 +999,7 @@ sub diff
 		return 1;
 	}
 		
-	if( $a->getNodeName ne $b->getNodeName )
+	if( $a->nodeName ne $b->nodeName )
 	{
 		return 1;
 	}
@@ -1008,8 +1008,8 @@ sub diff
 	
 	if( EPrints::XML::is_dom( $a, "Text" ) )
 	{
-		my $va = $a->getNodeValue;
-		my $vb = $b->getNodeValue;
+		my $va = $a->nodeValue;
+		my $vb = $b->nodeValue;
 
 		# both empty
 		if( $va=~m/^[\s\r\n]*$/ && $vb=~m/^[\s\r\n]*$/ )

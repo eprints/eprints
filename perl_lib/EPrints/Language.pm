@@ -320,8 +320,8 @@ sub _read_phrases
 	my $near;
 	foreach $element ( $phrases->getChildNodes )
 	{
-		my $name = $element->getNodeName;
-		if( $name eq "phrase" || $name eq "epp:phrase" )
+		my $name = $element->nodeName;
+		if( $name eq "phrase" or $name eq "epp:phrase" )
 		{
 			my $key = $element->getAttribute( "id" );
 			if( !defined $key || $key eq "")

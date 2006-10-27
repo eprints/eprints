@@ -59,7 +59,7 @@ sub process
 	
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		my $name = $node->getTagName;
+		my $name = $node->tagName;
 		$name =~ s/^epc://;
 
 		# new style
@@ -87,15 +87,15 @@ sub process
 	}
 
 	my $collapsed = $params{session}->clone_for_me( $node );
-	my $attrs = $collapsed->getAttributes;
+	my $attrs = $collapsed->attributes;
 	if( defined $attrs )
 	{
-		for( my $i = 0; $i<$attrs->getLength; ++$i )
+		for( my $i = 0; $i<$attrs->length; ++$i )
 		{
 			my $attr = $attrs->item( $i );
-			my $v = $attr->getValue;
+			my $v = $attr->nodeValue;
 			next unless( $v =~ m/\{/ );
-			my $name = $attr->getName;
+			my $name = $attr->nodeName;
 			my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
 			my $newv='';
 			for( my $i=0; $i<scalar @r; ++$i )
@@ -113,8 +113,10 @@ sub process
 		}
 	}
 
-	$collapsed->appendChild( process_child_nodes( $node, %params ) );
-
+	if( $node->hasChildNodes )
+	{
+		$collapsed->appendChild( process_child_nodes( $node, %params ) );
+	}
 	return $collapsed;
 }
 
@@ -186,7 +188,7 @@ sub _process_phrase
 	my %pins = ();
 	foreach my $param ( $node->getChildNodes )
 	{
-		next unless( $param->getTagName eq "param" );
+		next unless( $param->tagName eq "param" );
 
 		if( !$param->hasAttribute( "name" ) )
 		{
@@ -265,7 +267,7 @@ sub _process_choose
 	foreach my $child ( $node->getChildNodes )
 	{
 		next unless( EPrints::XML::is_dom( $child, "Element" ) );
-		my $name = $child->getTagName;
+		my $name = $child->tagName;
 		$name=~s/^ep://;
 		$name=~s/^epc://;
 		next unless $name eq "when";
@@ -292,7 +294,7 @@ sub _process_choose
 	foreach my $child ( $node->getChildNodes )
 	{
 		next unless( EPrints::XML::is_dom( $child, "Element" ) );
-		my $name = $child->getTagName;
+		my $name = $child->tagName;
 		$name=~s/^ep://;
 		$name=~s/^epc://;
 		next unless $name eq "otherwise";

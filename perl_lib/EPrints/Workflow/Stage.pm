@@ -34,7 +34,7 @@ sub _read_components
 	$self->{components} = [];
 	foreach my $stage_node ( @stage_nodes )
 	{
-		my $name = $stage_node->getNodeName;
+		my $name = $stage_node->nodeName;
 		if( $name eq "component" )
 		{
 			# Pull out the type
@@ -77,11 +77,11 @@ sub _read_components
 		}
 		elsif( $name eq "title" )
 		{
-			$self->{title} = $stage_node->getFirstChild->getNodeValue;
+			$self->{title} = $stage_node->getFirstChild->nodeValue;
 		}
 		elsif( $name eq "short-title" )
 		{
-			$self->{short_title} = $stage_node->getFirstChild->getNodeValue;
+			$self->{short_title} = $stage_node->getFirstChild->nodeValue;
 		}
 	}
 }

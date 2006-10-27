@@ -4896,3 +4896,7 @@ PACKAGE: 2.2.99.2
  * Added hasAttribute to XML::DOM (error in EPC.pm)
  * More examples from dom_compare.pl
 
+2006-10-27 tdb
+ * Added support for XML::LibXML
+ * Changed (most) DOM calls to use the DOM Core method names
+

@@ -75,7 +75,7 @@ sub xml_field_to_epdatafield
 	foreach my $el ( @list )
 	{
 		next unless EPrints::XML::is_dom( $el, "Element" );
-		my $type = $el->getNodeName;
+		my $type = $el->nodeName;
 		if( $field->is_type( "subobject" ) )
 		{
 			my $expect = $field->get_property( "datasetid" );
@@ -157,12 +157,12 @@ sub get_known_nodes
 	foreach my $el ( @list )
 	{
 		next unless EPrints::XML::is_dom( $el, "Element" );
-		if( defined $map{$el->getNodeName()} )
+		if( defined $map{$el->nodeName()} )
 		{
 			$plugin->warning( "<$el> appears twice in one parent." );
 			next;
 		}
-		$map{$el->getNodeName()} = $el;
+		$map{$el->nodeName()} = $el;
 	}
 
 	my %toreturn = ();
