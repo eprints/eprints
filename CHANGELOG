@@ -4887,3 +4887,6 @@ PACKAGE: 2.2.99.2
 
 2006-10-26 cjg
  * Fixed bug introduced in s/children/get_children/ 
+
+2006-10-27 tmb
+ * Added hook for overriding default username/password check (e.g. for handing off to LDAP server)

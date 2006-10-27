@@ -18,7 +18,12 @@ sub handler
 
 	if( defined $username )
 	{
-		if( valid_login( $session, $username, $password ) )
+		my $valid_login_handler = \&valid_login;
+		if( $session->get_repository->can_call( "check_user_password" ) )
+		{
+			$valid_login_handler = $session->get_repository->get_conf( "check_user_password" );
+		}
+		if( &{$valid_login_handler}( $session, $username, $password ) )
 		{
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 			my @a = ();
