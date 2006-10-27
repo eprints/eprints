@@ -1,0 +1,95 @@
+Submission:
+- Reduce number of pages for submission
+- Reduce back button problem with forms
+- Use style sheets/javascript to preload
+- Add new components base on page selections
+- Determine whether a user is an author or depositor based on previous activity
+- Present a list of co-authors from previous papers (or other project sources)
+- Include the depositor's name / preferred form of name by default
+- Automate ordering of others?
+- Suggest several options of name presentation
+- Re-euse conference publishers/titles
+- Conferences/journals could complete with appropriate previous conference names
+- Provide a persistently available overview of the process
+- Use plain language (avoid 'add another format', use 'upload your deposit')
+- Examine conference web sites for data?
+- Ready uploading of endnote or bibtex lists of data
+- Associate files to bibtex entries 
+- Integrated submission: Have a save as pdf + submit to EPrints option. Takes
+  directly to EPrints entry screen to confirm some fields + ask for more info.
+- Use LaTeX/Word metadata for autocompletion
+- Provide LaTeX/Word templates that can be parsed easily (for when templates
+  aren't provided by conferences, etc).
+- 'Watch folders' - upload documents dragged into a folder
+- Auto-generate tech report numbers?
+- Automatic change from in press -> published at a certain date
+
+More community-based things:
+- Encourage conferences/journals to publish conference info in an EPrints-friendly
+  format. Provide toolsto help.
+
+Editing:
+- Select an eprint, choose 'edit' to show a single page with editable fields, press
+  submit to save changes, then confirm completion/movement to archive.
+
+Version control:
+- "clone" is confusing. Better to have "new version" on existing eprint. Can show
+  edit form.
+- Tech reports could be associated with papers as a 'longer discussion'
+- Allow depositor to determine how versions will be presented/counted by EPrints.
+  e.g. 'this version should be available, but all drafts + final should be in one
+  other doc'.
+
+User Stats:
+- See total number of peer-reviewed journal papers this year/since last RAE
+- Number of conference papers
+- Papers associated with a project 
+
+Export:
+- Make it easy to include archive data in web pages
+- Provide well-CSSed output to allow for styling.
+- Suggestion: Choose how to represent work (date/type/project, etc), then output
+  has divs in correct places.
+- Provide instructions re how to include the parts.
+- Provide easy-to-share links representing groups of publications. Make it simple
+  to add parameters to these searches.
+
+Other:
+- Multiple servers: Allow a project to include files from multiple EPrint databases
+- Show citation info on pages
+
+Specific bits
+
+Search:
+- Show /where/ the search matched (e.g. the author, the references, etc) - provide
+  ordering based on these? Allow ordering based on dates
+- Headers in search lists (Authored By, Referenced To, Mentioned In)
+- Easy addition of sort options (e.g. date alone, by author + date, etc)
+- Saved searches: order by date/title/project/etc
+- Keep search history to allow for future saving. 
+- Allow to see all searches with marked searches highlighted
+- Allow non-registered users to save queries
+- Searching sometimes returns unlikely results (e.g. keyword not present in any of the
+  fields that it claims it's searching)
+
+Search results:
+- Allow customisable results per page
+- Searchers want info on abstracts, author links, publication place, etc, in search results
+- Visual cues (?)
+- Add additional info per article result or for all - as fast as possible. (sounds like
+  iTunes when you right-click on a heading bar and add a new heading)
+- Support special characters for article names in maths, names, etc
+- Export results to bibtex, endnote, etc
+- Thumbnails of web pages
+
+Browsing:
+- Consult with groups to identify appropriate subjects. LCSH?
+- 'Apparent unification' - even if >1 archive per subject, show them as one browse
+- Browse by author.
+- Browse by 'kind' (e.g. demonstration, lecture, recording, etc)
+
+Latest:
+- Organise 'latest' by school/group, subject, kind, with 'time' as optional. 
+- Highlight for today, this week, this month, etc
+
+- Support cookies for login
