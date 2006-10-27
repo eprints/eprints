@@ -38,6 +38,20 @@ XML::DOM::setTagCompression( \&_xmldom_tag_compression );
 
 $EPrints::XML::PREFIX = "XML::DOM::";
 
+# DOM spec fixes
+*XML::DOM::Document::documentElement = \&XML::DOM::Document::getDocumentElement;
+*XML::DOM::Node::attributes = sub { shift->getAttributes(@_) };
+*XML::DOM::Node::nodeName = sub { shift->getNodeName(@_) };
+*XML::DOM::Node::nodeValue = sub { shift->getNodeValue(@_) };
+*XML::DOM::Node::nodeType = sub { shift->getNodeType(@_) };
+*XML::DOM::Attr::name = \&XML::DOM::Attr::getName;
+*XML::DOM::Attr::nodeName = \&XML::DOM::Attr::getName;
+*XML::DOM::Attr::value = \&XML::DOM::Attr::getValue;
+*XML::DOM::Attr::nodeValue = \&XML::DOM::Attr::getValue;
+*XML::DOM::Element::tagName = \&XML::DOM::Element::getTagName;
+*XML::DOM::NamedNodeMap::length = \&XML::DOM::NamedNodeMap::getLength;
+*XML::DOM::Element::hasAttribute = sub { defined(shift->getAttributeNode(@_)) };
+
 ######################################################################
 # 
 # EPrints::XML::_xmldom_tag_compression( $tag, $elem )

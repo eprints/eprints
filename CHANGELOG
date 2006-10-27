@@ -4890,3 +4890,9 @@ PACKAGE: 2.2.99.2
 
 2006-10-27 tmb
  * Added hook for overriding default username/password check (e.g. for handing off to LDAP server)
+
+2006-10-27 tdb
+ * DOM spec fixes to XML::DOM, XML::LibXML
+ * Added hasAttribute to XML::DOM (error in EPC.pm)
+ * More examples from dom_compare.pl
+

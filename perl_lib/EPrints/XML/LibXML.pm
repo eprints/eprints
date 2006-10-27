@@ -31,6 +31,19 @@ loaded into EPrints::XML namespace if we're using XML::LibXML
 use XML::LibXML;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
+# DOM spec fixes
+{
+no warnings;
+*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' };
+*XML::LibXML::Document::nodeName = sub { '#document' };
+*XML::LibXML::DocumentFragment::nodeName = sub { '#document-fragment' };
+# incorrectly set to 'text'
+*XML::LibXML::Text::nodeName = sub { '#text' };
+# otherwise getElementsByTagName never matches namespaced tags
+*XML::LibXML::Document::getElementsByTagName = \&XML::LibXML::Document::getElementsByLocalName;
+*XML::LibXML::DocumentFragment::getElementsByTagName = \&XML::LibXML::DocumentFragment::getElementsByLocalName;
+}
+
 $EPrints::XML::PREFIX = "XML::LibXML::";
 
 our $PARSER = XML::LibXML->new();
@@ -72,8 +85,10 @@ sub parse_xml
 		$tmpfile = $basepath."/".$tmpfile;
 		symlink( $file, $tmpfile );
 	}
-
-	my $doc = $PARSER->parse_file( $tmpfile );
+	my $fh;
+	open( $fh, $tmpfile );
+	my $doc = $PARSER->parse_fh( $fh, $basepath );
+	close $fh;
 	if( defined $basepath )
 	{
 		unlink( $tmpfile );
@@ -164,7 +179,7 @@ sub clone_and_own
 	}
 
 	my $newnode = $node->cloneNode( $deep );
-	$newnode->setOwnerDocument( $doc );
+#	$newnode->setOwnerDocument( $doc );
 
 	return $newnode;
 }
