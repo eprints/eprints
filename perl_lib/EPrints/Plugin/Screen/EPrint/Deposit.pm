@@ -26,6 +26,29 @@ sub new
 	return $self;
 }
 
+sub from
+{
+	my( $self ) = @_;
+
+	my $action_id = $self->{processor}->{action};
+	if( $action_id =~ m/^jump_(.*)$/ )
+	{
+		my $jump_to = $1;
+
+		if( $jump_to eq "deposit" )
+		{
+			return;
+		}
+
+		# not checking that this succeded. Maybe we should.
+		$self->{processor}->{screenid} = "EPrint::Edit";
+		$self->workflow->set_stage( $jump_to );
+		return;
+	}
+
+	$self->EPrints::Plugin::Screen::from;
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;
@@ -54,20 +77,19 @@ sub render
 		$self->{processor}->add_message( "warning", $warnings );
 	}
 
-	$self->{processor}->before_messages( 
-		 $self->render_blister( "deposit", 1 ) );
-
 	my $page = $self->{session}->make_doc_fragment;
+	my $form = $self->render_form;
+	$page->appendChild( $form );
+	$form->appendChild( 
+		 $self->render_blister( "deposit", 0 ) );
+
 	if( scalar @{$problems} == 0 )
 	{
-		$page->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
+		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 	
-		my $form = $self->render_form;
 		$form->appendChild(
 		 	$self->{session}->render_action_buttons( 
 				deposit=>$self->{session}->phrase( "priv:action/eprint/deposit" ) ) );
-	
-		$page->appendChild( $form );
 	}
 
 	return $page;

@@ -112,54 +112,45 @@ sub render_blister
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
 	my $first = 1;
-	foreach my $stage_id ( $workflow->get_stage_ids )
+	my @stages = $workflow->get_stage_ids;
+	if( !$staff_mode )
+	{
+		push @stages, "deposit";
+	}
+	foreach my $stage_id ( @stages )
 	{
 		if( !$first )  
 		{ 
 			my $td = $session->make_element( "td", class=>"ep_blister_join" );
 			$tr->appendChild( $td );
 		}
+		
 		my $td;
-		if( $stage_id eq $sel_stage_id )
+		$td = $session->make_element( "td" );
+		my $class = "ep_blister_node";
+		if( $stage_id eq $sel_stage_id ) 
+		{ 
+			$class="ep_blister_node_selected"; 
+		}
+		my $phrase;
+		if( $stage_id eq "deposit" )
 		{
-			$td = $session->make_element( "td", class=>"ep_blister_node_selected" );
+			$phrase = $session->phrase( "Plugin/Screen/EPrint:deposit" );
 		}
 		else
 		{
-			$td = $session->make_element( "td", class=>"ep_blister_node" );
+			$phrase = $session->phrase( "metapage_title_".$stage_id );
 		}
-		my $a;
-		if( $staff_mode )
-		{
-			$a = $session->render_link( "?eprintid=".$self->{processor}->{eprintid}."&screen=EPrint::Edit&stage=$stage_id" );
-		}
-		else
-		{
-			$a = $session->render_link( "?eprintid=".$self->{processor}->{eprintid}."&screen=EPrint::Staff::Edit&stage=$stage_id" );
-		}
-		#my $div = $session->make_element( "div", class=>"ep_blister_node_inner" );
-		$a->appendChild( $session->html_phrase( "metapage_title_".$stage_id ) );
-		$td->appendChild( $a );
+		my $button = $session->make_element( 
+			"input", 
+			name  => "_action_jump_$stage_id", 
+			type  => "submit",
+			value => $phrase,
+			class => $class );
+
+		$td->appendChild( $button );
 		$tr->appendChild( $td );
 		$first = 0;
-	}
-
-	if( $staff_mode )
-	{
-		$tr->appendChild( $session->make_element( "td", class=>"ep_blister_join" ) );
-		my $td;
-		if( $sel_stage_id eq "deposit" ) 
-		{
-			$td = $session->make_element( "td", class=>"ep_blister_node_selected" );
-		}
-		else
-		{
-			$td = $session->make_element( "td", class=>"ep_blister_node" );
-		}
-		my $a = $session->render_link( "?eprintid=".$self->{processor}->{eprintid}."&screen=EPrint::Deposit" );
-		$td->appendChild( $a );
-		$a->appendChild( $self->{session}->html_phrase( "Plugin/Screen/EPrint:deposit" ) );
-		$tr->appendChild( $td );
 	}
 
 	return $self->{session}->render_toolbox( 

@@ -4914,4 +4914,15 @@ PACKAGE: 2.2.99.2
     $c->{} subroutines.
  * Added an environmental variable to disable checking the correct user
  * Used this to call eprints bin scripts from mod_perl
+
+2006-10-30 cjg
+ * Changed blister bar to use buttons
+ * Added jump action to deposit and edit eprint, to handle response to the
+    blister buttons.
+ * Fixed bug in render-date which showed wrong date by one month.
+ * Added set_stage method to workflow to facilitate jumps
+ * Flag on blister bar was inverted (said "isstaff" but actually meant 
+    "notstaff"). Fixed.
+ * Journal autocomplete now works in a limited fashion.
+
  

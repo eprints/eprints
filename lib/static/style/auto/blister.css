@@ -6,18 +6,7 @@
 
 
 .ep_blister_bar {
-	width: 100%;
-}
-.ep_blister_node {
-	background-image: url(/style/images/gray_bar.png);
-	border: solid 1px #cccccc;
-	text-align: center;
-}
-.ep_blister_node a {
-	padding: 4px;
-	display: block;
-	text-decoration: none;
-	color: #000000;
+	margin: auto;
 }
 .ep_blister_join {
 	background-image: url(/style/images/blackline.png);
@@ -25,15 +14,16 @@
 	background-position: center;
 	width: 10px;
 }
+.ep_blister_node {
+	padding: 3px;
+	text-align: center;
+	border: solid 1px #cccccc;
+	background-image: url(/style/images/gray_bar.png);
+}
 .ep_blister_node_selected {
+	padding: 3px;
 	text-align: center;
 	border: solid 1px #204f76;
 	background-image: url(/style/images/blue_bar.png);
-}
-.ep_blister_node_selected a {
-	padding: 4px;
-	display: block;
-	text-decoration: none;
 	color: #ffffff;
 }
-

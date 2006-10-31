@@ -11,7 +11,7 @@ my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
 my $q = $session->param( "q" );
 
-my $sql = "select distinct creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid where creators_name_family LIKE '".EPrints::Database::prep_like_value($q)."\%' ORDER BY creators_name_family,creators_name_given LIMIT 40" ;
+my $sql = "select distinct creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid WHERE eprint_status = 'archive' AND creators_name_family LIKE '".EPrints::Database::prep_like_value($q)."\%' ORDER BY creators_name_family,creators_name_given LIMIT 40" ;
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>

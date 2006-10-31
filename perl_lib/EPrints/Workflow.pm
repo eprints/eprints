@@ -247,6 +247,19 @@ sub get_next_stage_id
 	return $self->{stage_order}->[$num+1];
 }
 
+# return false if it fails to set the stage
+sub set_stage
+{
+	my( $self, $stage_id ) = @_;
+
+	return 0 if( !defined $self->{stages}->{$stage_id} );
+
+	$self->{stage} = $stage_id;
+	
+	return 1;
+}
+
+
 sub next
 {
 	my( $self ) = @_;

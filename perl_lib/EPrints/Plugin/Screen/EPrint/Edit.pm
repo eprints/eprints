@@ -45,6 +45,29 @@ sub from
 		return;
 	}
 
+	my $action_id = $self->{processor}->{action};
+	if( $action_id =~ m/^jump_(.*)$/ )
+	{
+		my $jump_to = $1;
+
+		my @problems = $self->workflow->from;
+		if( scalar @problems )
+		{
+			$self->add_problems( @problems );
+			return;
+		}
+
+		if( $jump_to eq "deposit" )
+		{
+			$self->{processor}->{screenid} = $self->screen_after_flow;
+			return;
+		}
+
+		# not checking that this succeded. Maybe we should.
+		$self->workflow->set_stage( $jump_to );
+		return;
+	}
+
 	$self->EPrints::Plugin::Screen::from;
 }
 
@@ -152,10 +175,9 @@ sub render
 {
 	my( $self ) = @_;
 
-	$self->{processor}->before_messages( 
-		$self->render_blister( $self->workflow->get_stage_id, 1 ) );
-
 	my $form = $self->render_form;
+	$form->appendChild( 
+		$self->render_blister( $self->workflow->get_stage_id, 0 ) );
 
 	$form->appendChild( $self->render_buttons );
 	$form->appendChild( $self->workflow->render );

@@ -190,7 +190,7 @@ sub render_date
 	{
 		# if we have a time as well as a date then shift it to
 		# localtime.
-		my $t = timegm_nocheck $sec||0,$min||0,$hour,$day,$mon,$year;
+		my $t = timegm_nocheck $sec||0,$min||0,$hour,$day,$mon-1,$year-1900;
 		my @l = localtime( $t );
 		$l[0] = undef unless defined $sec;
 		$l[1] = undef unless defined $min;

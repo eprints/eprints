@@ -9,33 +9,42 @@ my $session = EPrints::Session->new();
 
 my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
-$a = $session->param( "a" );
+my $q = $session->param( "q" );
+
+my $sql = "SELECT count(eprintid),publication,publisher,issn from eprint WHERE eprint_status='archive' AND publication IS NOT NULL AND issn LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY publication,issn ORDER BY COUNT(eprintid) DESC";
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <ul>
-  <li class="ep_first">Badger Journal
-    <ul>
-      <li id="for:value:component:_issn">12345678</li>
-      <li id="for:value:component:_publication">Journal of Badgers</li>
-    </ul>
-  </li>
-  <li>Mushroom Journal
-    <ul>
-      <li id="for:value:component:_issn">222222</li>
-      <li id="for:value:component:_publication">Musroom Journal</li>
-    </ul>
-  </li>
-  <li>New Snakes Monthly
-    <ul>
-      <li id="for:value:component:_issn">1111111</li>
-      <li id="for:value:component:_publication">New Snakes Monthly</li>
-    </ul>
-  </li>
-</ul>
 END
 
+my $sth = $session->get_database->prepare( $sql );
+$session->get_database->execute( $sth , $sql );
+my $first = 1;
+while( my( $n,$pub,$org,$issn ) = $sth->fetchrow_array )
+{
+	if( $first )
+	{
+		print "<li class='ep_first'>";
+		$first = 0;
+	}
+	else
+	{
+		print "<li>";
+	}
+	print "\"$pub\"";
+	print " published by \"$org\"" if defined $org;
+	print " ISSN:$issn" if defined $issn;
+	print " ";
+	print "<small>(found on $n record".($n>1?"s":"")." in this repository)</small>";
+	print "<ul>";
+	print "<li id='for:value:component:_publication'>$pub</li>";
+	print "<li id='for:value:component:_publisher'>$org</li>";
+	print "<li id='for:value:component:_issn'>$issn</li>";
+	print "</ul></li>\n";
+}
+print "</ul>";
 
 $session->terminate;
 
