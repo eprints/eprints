@@ -922,19 +922,11 @@ sub call
 
 	local $SIG{__WARN__} = sub {
         	my( $msg ) = @_;
-        	my @a = split( " at ", $msg );
-        	pop @a;
-        	print STDERR join( " at ", @a );
-        	my @c = caller;
-        	print STDERR " in configuration subroutine $cmd at line ".($c[2]-10)." of the file.\n";
+        	print STDERR " (while in configuration subroutine $cmd) $msg\n";
 	};
 	local $SIG{__DIE__} = sub {
         	my( $msg ) = @_;
-        	my @a = split( " at ", $msg );
-        	pop @a;
-        	print STDERR join( " at ", @a );
-        	my @c = caller;
-        	print STDERR " in configuration subroutine $cmd at line ".($c[2]-10)." of the file.\n";
+        	print STDERR " (while in configuration subroutine $cmd) $msg\n";
 		exit 1;
 	};
 

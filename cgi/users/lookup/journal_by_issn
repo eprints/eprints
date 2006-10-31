@@ -1,0 +1,41 @@
+
+use EPrints;
+
+use strict;
+
+my $session = EPrints::Session->new();
+
+# security?
+
+my $content = "text/xml";
+$session->send_http_header( content_type=>$content );
+$a = $session->param( "a" );
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ul>
+  <li class="ep_first">Badger Journal
+    <ul>
+      <li id="for:value:component:_issn">12345678</li>
+      <li id="for:value:component:_publication">Journal of Badgers</li>
+    </ul>
+  </li>
+  <li>Mushroom Journal
+    <ul>
+      <li id="for:value:component:_issn">222222</li>
+      <li id="for:value:component:_publication">Musroom Journal</li>
+    </ul>
+  </li>
+  <li>New Snakes Monthly
+    <ul>
+      <li id="for:value:component:_issn">1111111</li>
+      <li id="for:value:component:_publication">New Snakes Monthly</li>
+    </ul>
+  </li>
+</ul>
+END
+
+
+$session->terminate;
+

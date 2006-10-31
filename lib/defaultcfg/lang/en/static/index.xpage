@@ -18,7 +18,7 @@ This repository has not yet been fully configured. This paragraph would describe
 </div></div>
 
 <div class="ep_toolbox"><div class="ep_toolbox_content" >
- <a href="{$config{perl_url}}/advsearch">Search Repository</a><br /><br />
+ <a href="{$config{perl_url}}/search/advanced">Search Repository</a><br /><br />
  Search the repository using a full range of fields. Use the search field at the top of the page for a quick search.
 </div></div>
 

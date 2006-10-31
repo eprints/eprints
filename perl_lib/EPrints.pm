@@ -12,7 +12,7 @@ BEGIN {
 	# in $EPrints::SystemSettings
 	# An exception to this is running as root (uid==0) in which case
 	# we can become the required user.
-	if( ! $ENV{MOD_PERL} ) 
+	if( ! $ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER}) 
 	{
 		#my $req($login,$pass,$uid,$gid) = getpwnam($user)
 		my $req_username = $EPrints::SystemSettings::conf->{user};

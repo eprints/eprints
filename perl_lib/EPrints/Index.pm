@@ -714,8 +714,7 @@ sub _run_indexer
 {
 	my( $session, $action ) = @_;
 	my $bin_path = EPrints::Index::binfile();
-	$session->get_request->spawn_proc_prog( $EPrints::SystemSettings::conf->{executables}->{perl},
-		["-e", <<END] );
+	my $prog = <<END;
 use strict;
 use warnings;
 use POSIX 'setsid';
@@ -724,8 +723,12 @@ open STDIN, '/dev/null'  or die "Can't read /dev/null: \$!";
 open STDOUT, '+>>', '/tmp/error_log' or die "Can't write to /dev/null: \$!";
 open STDERR, '>&STDOUT'  or die "Can't dup stdout: \$!";
 setsid or die "Can't start a new session: \$!";
+\$ENV{EPRINTS_NO_CHECK_USER} = 1;
 exec( "$bin_path", "$action" );
 END
+	print STDERR $prog;
+	$session->get_request->spawn_proc_prog( $EPrints::SystemSettings::conf->{executables}->{perl},
+		["-e", $prog ] );
 
 }
 

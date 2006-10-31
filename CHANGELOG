@@ -4900,3 +4900,18 @@ PACKAGE: 2.2.99.2
  * Added support for XML::LibXML
  * Changed (most) DOM calls to use the DOM Core method names
 
+2006-10-30 cjg
+ * Changed autocomplete param to "q="
+ * Added a lookup directory for doing autocompletion responses
+ * The workflow now points to the new autocompletion scripts
+ * Made a nominal name completion script. Just works on-the-fly.
+ * Changed searching from "editors" to "editors_name"
+ * Fixed a broken link in index.xpage
+ * Converted some embedded phrases in the phrase file to epc: (they
+    were mistakenly epp:)
+ * Removed dodgey "issn" autocompletion demonstrator.
+ * Cleaned up warnings for __WARN__ and __DIE__ when tunning inside the
+    $c->{} subroutines.
+ * Added an environmental variable to disable checking the correct user
+ * Used this to call eprints bin scripts from mod_perl
+ 
