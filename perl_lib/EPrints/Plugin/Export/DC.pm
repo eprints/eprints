@@ -118,7 +118,8 @@ sub convert_dataobj
 	foreach( @documents )
 	{
 		my $format = $mimetypes->{$_->get_value("format")};
-		$format = "application/octet-stream" unless defined $format;
+		$format = $_->get_value("format") unless defined $format;
+		#$format = "application/octet-stream" unless defined $format;
 		push @dcdata, [ "format", $format ];
 		push @dcdata, [ "identifier", $_->get_url() ];
 	}

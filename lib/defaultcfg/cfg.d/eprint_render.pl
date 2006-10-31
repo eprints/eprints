@@ -25,7 +25,6 @@ $c->{eprint_render} = sub
 	my( $page, $p, $a );
 
 	$page = $session->make_doc_fragment;
-
 	# Citation
 	$p = $session->make_element( "p" );
 	$p->appendChild( $eprint->render_citation() );

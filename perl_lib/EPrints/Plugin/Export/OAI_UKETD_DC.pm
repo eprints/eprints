@@ -200,7 +200,8 @@ sub eprint_to_uketd_dc
 		foreach( @documents )
 		{
 			my $format = $mimetypes->{$_->get_value("format")};
-			$format = "application/octet-stream" unless defined $format;
+			$format = $_->get_value("format") unless defined $format;
+			#$format = "application/octet-stream" unless defined $format;
 			
 			push @etddata, [ "identifier", $_->get_url(), "dc", "dcterms:URI" ];
 			push @etddata, [ "format", $format, "dc", "dcterms" ];

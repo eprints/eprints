@@ -15,7 +15,9 @@
 use EPrints::OpenArchives;
 use Unicode::String qw(latin1 utf8);
 
-my $oai;
+my $oai = {};
+$c->{oai} = $oai;
+
 ##########################################################################
 # OAI-PMH 2.0 
 #
@@ -79,9 +81,23 @@ $oai->{filters} = [
 #	{ meta_fields => [ "date-effective" ], value=>"2003-" }
 ];
 
-# Number of results to display on a single search results page
 
+# This maps eprints document types to mime types if they are not the
+# same.
+$oai->{mime_types} = {};
+
+
+
+########################################################################
+#
 # Information for "Identify" responses.
+# 
+# TIP: There is an online tool which we recommend you used to 
+#      generate the remainder of this configuration file.
+#
+#      http://www.opendoar.org/tools/en/policies.php
+#
+########################################################################
 
 # "content" : Text and/or a URL linking to text describing the content
 # of the repository.  It would be appropriate to indicate the language(s)
@@ -145,12 +161,10 @@ $oai->{comments} = [
 		"http://www.eprints.org/" ) 
 ];
 
-$oai->{mime_types} = {
-	pdf => "application/pdf",
-	ps => "application/postscript",
-	html => "text/html",
-	other => "application/octet-stream",
-	ascii => "text/plain"
-};
+########################################################################
+# This is the end of the block which the DOAR policy tool can help you
+# generate.
+########################################################################
 
-$c->{oai} = $oai;
+
+

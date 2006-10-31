@@ -72,7 +72,7 @@ sub xml_dataobj
 	$d2->appendChild( $s2 );
 	$item->appendChild( $d2 );
 
-	my $mimetypes = $plugin->{session}->get_repository->get_conf( "oai", "mime_types" );
+	#my $mimetypes = $plugin->{session}->get_repository->get_conf( "oai", "mime_types" );
 	foreach my $doc ( $eprint->get_all_documents )
 	{
 		my $comp = $plugin->{session}->make_element( "didl:Component" );
