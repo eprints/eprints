@@ -4932,3 +4932,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-02 cjg 
  * Removed old subjects input code.
+
+2006-11-02 tdb
+ * /cgi/openurl is now runnable

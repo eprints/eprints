@@ -1,5 +1,3 @@
-# TODO: alpha code, tbc
-
 ######################################################################
 #
 #  EPrints OpenURL Internal Resolver
@@ -23,35 +21,65 @@ exit( 0 ) unless( defined $session );
 # $session->get_database->set_debug( 1 );
 
 # Create an OpenURL object
-my $request = $session->get_request;
-my $uri = URI::OpenURL->new( $request->uri );
+my $uri = URI::OpenURL->new();
 
+# Fill the OpenURL object with the current CGI parameters
+my @query;
+foreach my $name ($session->param)
+{
+	for ($session->param( $name ))
+	{
+		push @query, $name => $_;
+	}
+}
+$uri->query_form( @query );
+
+# warn $uri->dump;
+
+# Get the referent (the referred to object)
 my $rft = $uri->referent;
+
+# Get the metadata given for the referent
 my %md = $rft->metadata;
 
-my @query;
-push @query, {
-	meta_fields => [ "title" ],
-	default => $md->{ "atitle" },
-};
-
+# Set up a new search expression
+# NB I'm not worrying about filtering because this script will only
+# redirect?
 my $ds = $session->get_repository->get_dataset( "archive" );
 my $searchexp = new EPrints::Search(
 	keep_cache => 1,
 	session => $session,
 	dataset => $ds,
-	search_fields => \@query,
 );
 
+# Fill in the search expression, mapping OpenURL terms to eprint fields
+$searchexp->add_field(
+	$ds->get_field( "title" ),
+	$md{ "atitle" },
+);
+$searchexp->add_field(
+	$ds->get_field( "eprintid" ),
+	scalar($rft->id)
+);
+
+# Urg, either the query was empty or we couldn't use the query given
+if( $searchexp->is_blank )
+{
+	die "No query given";
+}
+
+# Perform the search, but we're only interested in the first match
+# that comes back (perhaps we should error on more than one match?)
 my $list = $searchexp->perform_search();
 my( $eprint ) = $list->get_records( 0, 1 );
 
+# No match found for the given query
 unless( $eprint ) {
-	die "no match";
+	die "No match found";
 }
 
-my $url = $eprint->get_url;
-
 # Redirect to the abstract page
+my $url = $eprint->get_url;
 $session->redirect( $url );
+
 $session->terminate;
