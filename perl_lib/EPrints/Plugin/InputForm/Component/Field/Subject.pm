@@ -355,6 +355,7 @@ sub _render_subnode
 	$expanded = 0 if( !$has_kids );
 
 	my $prefix = $self->{prefix}."_".$node_id;
+	my $id = "id".$session->get_next_id;
 	
 	my $r_node = $session->make_doc_fragment;
 
@@ -374,14 +375,14 @@ sub _render_subnode
 		my $toggle;
 		$toggle = $self->{session}->make_element( "a", href=>"#", class=>"ep_only_js ep_subjectinput_toggle" );
 
-		my $hide = $self->{session}->make_element( "span", id=>$prefix."_hide" );
+		my $hide = $self->{session}->make_element( "span", id=>$id."_hide" );
 		$hide->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"/style/images/minus.png", border=>0 ) );
 		$hide->appendChild( $self->{session}->make_text( " " ) );
 		$hide->appendChild( $subject->render_description );
 		$hide->setAttribute( "class", join( " ", @classes ) );
 		$toggle->appendChild( $hide );
 
-		my $show = $self->{session}->make_element( "span", id=>$prefix."_show" );
+		my $show = $self->{session}->make_element( "span", id=>$id."_show" );
 		$show->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"/style/images/plus.png", border=>0 ) );
 		$show->appendChild( $self->{session}->make_text( " " ) );
 		$show->appendChild( $subject->render_description );
@@ -391,12 +392,12 @@ sub _render_subnode
 		push @classes, "ep_no_js";
 		if( $expanded )
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${prefix}_kids',true,'block');EPJS_toggle('${prefix}_hide',true,'inline');EPJS_toggle('${prefix}_show',false,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${id}_kids',true,'block');EPJS_toggle('${id}_hide',true,'inline');EPJS_toggle('${id}_show',false,'inline');return false" );
 			$show->setAttribute( "style", "display:none" );
 		}
 		else # not expanded
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${prefix}_kids',false,'block');EPJS_toggle('${prefix}_hide',false,'inline');EPJS_toggle('${prefix}_show',true,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${id}_kids',false,'block');EPJS_toggle('${id}_hide',false,'inline');EPJS_toggle('${id}_show',true,'inline');return false" );
 			$hide->setAttribute( "style", "display:none" );
 		}
 
@@ -420,8 +421,8 @@ sub _render_subnode
 
 	if( $has_kids )
 	{
-		my $div = $session->make_element( "div", id => $prefix."_kids" );
-		my $div_inner = $session->make_element( "div", id => $prefix."_kids_inner" );
+		my $div = $session->make_element( "div", id => $id."_kids" );
+		my $div_inner = $session->make_element( "div", id => $id."_kids_inner" );
 		if( !$expanded ) 
 		{ 
 			$div->setAttribute( "class", "ep_no_js" ); 

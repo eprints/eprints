@@ -4955,4 +4955,7 @@ PACKAGE: 2.2.99.2
  * Upload component now places "add another file" under some javascript
     and pops up a warning before showing it.
  * lookup/name now filters on eprint_status=archive
+
+2006-11-02 cjg
+ * Fixed bug in expand/close on subjects with multiple parents
  
