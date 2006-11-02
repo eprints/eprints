@@ -273,6 +273,7 @@ sub new
 				{
 					my $field = EPrints::MetaField->new( 
 						parent_name => $fielddata->{name},
+						show_in_html => 0,
 						dataset => $self, 
 						multiple => $fielddata->{multiple},
 						%{$inner_field} );	

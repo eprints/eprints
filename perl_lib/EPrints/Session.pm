@@ -1054,31 +1054,41 @@ sub render_link
 ######################################################################
 =pod
 
-=item $table_row = $session->render_row( $key, $value );
+=item $table_row = $session->render_row( $key, @values );
 
-Return the key and value in a DOM encoded HTML table row. eg.
+Return the key and values in a DOM encoded HTML table row. eg.
 
- <tr><th>$key:</th><td>$value</td></tr>
+ <tr><th>$key:</th><td>$value[0]</td><td>...</td></tr>
 
 =cut
 ######################################################################
 
 sub render_row
 {
-	my( $session, $key, $value ) = @_;
+	my( $session, $key, @values ) = @_;
 
 	my( $tr, $th, $td );
 
 	$tr = $session->make_element( "tr" );
 
 	$th = $session->make_element( "th", valign=>"top", class=>"ep_row" ); 
-	$th->appendChild( $key );
-	$th->appendChild( $session->make_text( ":" ) );
+	if( !defined $key )
+	{
+		$th->appendChild( $session->render_nbsp );
+	}
+	else
+	{
+		$th->appendChild( $key );
+		$th->appendChild( $session->make_text( ":" ) );
+	}
 	$tr->appendChild( $th );
 
-	$td = $session->make_element( "td", valign=>"top", class=>"ep_row" ); 
-	$td->appendChild( $value );
-	$tr->appendChild( $td );
+	foreach my $value ( @values )
+	{
+		$td = $session->make_element( "td", valign=>"top", class=>"ep_row" ); 
+		$td->appendChild( $value );
+		$tr->appendChild( $td );
+	}
 
 	return $tr;
 }
@@ -1955,6 +1965,28 @@ sub render_toolbox
 	$div->appendChild( $content_div );
 	$title_div->appendChild( $title );
 	$content_div->appendChild( $content );
+	return $div;
+}
+
+sub render_message
+{
+	my( $self, $type, $content ) = @_;
+
+	my $id = "m".$self->get_next_id;
+	my $div = $self->make_element( "div", class=>"ep_msg_".$type, id=>$id );
+	my $content_div = $self->make_element( "div", class=>"ep_msg_".$type."_content" );
+	my $table = $self->make_element( "table" );
+	my $tr = $self->make_element( "tr" );
+	$table->appendChild( $tr );
+	my $td1 = $self->make_element( "td" );
+	$td1->appendChild( $self->make_element( "img", src=>"/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
+	$tr->appendChild( $td1 );
+	my $td2 = $self->make_element( "td" );
+	$tr->appendChild( $td2 );
+	$td2->appendChild( $content );
+	$content_div->appendChild( $table );
+#	$div->appendChild( $title_div );
+	$div->appendChild( $content_div );
 	return $div;
 }
 

@@ -1389,9 +1389,16 @@ Calls L</eprint_render> to actually render the C<$eprint>, if it isn't deleted.
 =cut
 ######################################################################
 
+sub render_preview
+{
+	my( $self ) = @_;
+
+	return $self->render( 1 );
+}
+
 sub render
 {
-        my( $self ) = @_;
+        my( $self, $preview ) = @_;
 
         my( $dom, $title, $links );
 
@@ -1420,7 +1427,7 @@ sub render
 		( $dom, $title, $links ) = 
 			$self->{session}->get_repository->call( 
 				"eprint_render", 
-				$self, $self->{session} );
+				$self, $self->{session}, $preview );
 	}
 
 	if( !defined $links )

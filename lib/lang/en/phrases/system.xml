@@ -23,6 +23,7 @@ EPrints Modules
 <!-- DataObj -->
 
     <epp:phrase id="lib/dataobj:unspecified">Unspecified fields</epp:phrase>
+    <epp:phrase id="lib/dataobj:document_title">Document: <epc:pin name="doc" /></epp:phrase>
 
 <!-- Document -->
 
@@ -178,7 +179,7 @@ EPrints Modules
     <epp:phrase id="lib/searchexpression:results_for">Results for <epc:pin name="title"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:results">Displaying results <epc:pin name="from"/> to <epc:pin name="to"/> of <epc:pin name="n"/>.</epp:phrase>
     <epp:phrase id="lib/searchexpression:search_time">Search time: <epc:pin name="searchtime"/>s.</epp:phrase>
-    <epp:phrase id="lib/searchexpression:noresults">No matches.</epp:phrase>
+    <epp:phrase id="lib/searchexpression:noresults">Search has no matches.</epp:phrase>
     <epp:phrase id="lib/searchexpression:results_page">
 <h2 class="ep_search_desc"><epc:pin name="searchdesc"/></h2>
 <div class="ep_search_controls"><epc:pin name="controls"/></div>
@@ -502,26 +503,26 @@ User Area CGI Scripts
 
 <!-- status -->
 
-    <epp:phrase id="cgi/users/status:release">EPrints Release:</epp:phrase>
-    <epp:phrase id="cgi/users/status:database">Database Status:</epp:phrase>
-    <epp:phrase id="cgi/users/status:indexer">Indexer Status:</epp:phrase>
+    <epp:phrase id="cgi/users/status:release">EPrints Release</epp:phrase>
+    <epp:phrase id="cgi/users/status:database">Database Status</epp:phrase>
+    <epp:phrase id="cgi/users/status:indexer">Indexer Status</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_running">Running</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_stopped">Stopped</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_stalled">Stalled</epp:phrase>
     <epp:phrase id="cgi/users/status:database_ok">OK</epp:phrase>
     <epp:phrase id="cgi/users/status:database_down">DOWN</epp:phrase>
-    <epp:phrase id="cgi/users/status:users">Total Users:</epp:phrase>
+    <epp:phrase id="cgi/users/status:users">Total Users</epp:phrase>
     <epp:phrase id="cgi/users/status:usertitle"><h2>Users</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:articles"><h2>Items</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:diskspace"><h2>Disk Space</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:saved_searches"><h2>Saved Searches and Alerts</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:subsent">Last completed alert mailing</epp:phrase>
     <epp:phrase id="cgi/users/status:subcount">Total Number</epp:phrase>
-    <epp:phrase id="cgi/users/status:set_archive">Items in Repository:</epp:phrase>
-    <epp:phrase id="cgi/users/status:set_buffer">Items in Editorial Review:</epp:phrase>
-    <epp:phrase id="cgi/users/status:set_inbox">Items in User Areas:</epp:phrase>
-    <epp:phrase id="cgi/users/status:set_deletion">Items Deleted:</epp:phrase>
-    <epp:phrase id="cgi/users/status:diskfree">Document Partition <pin name="dir"/>:</epp:phrase>
+    <epp:phrase id="cgi/users/status:set_archive">Repository</epp:phrase>
+    <epp:phrase id="cgi/users/status:set_buffer">Editorial Review</epp:phrase>
+    <epp:phrase id="cgi/users/status:set_inbox">User Areas</epp:phrase>
+    <epp:phrase id="cgi/users/status:set_deletion">Retired</epp:phrase>
+    <epp:phrase id="cgi/users/status:diskfree">Document Partition <pin name="dir"/></epp:phrase>
     <epp:phrase id="cgi/users/status:mbfree"><pin name="mb"/>Mb free</epp:phrase>
     <epp:phrase id="cgi/users/status:out_of_space"><span class="alert">NO DISK SPACE LEFT!</span></epp:phrase>
     <epp:phrase id="cgi/users/status:nearly_out_of_space"><span class="alert">WARNING:</span> Available space for new items is running low</epp:phrase>
@@ -960,8 +961,10 @@ Titles and Help for the System Fields
     <epp:phrase id="user_radio_mailempty"><epc:pin name="true"/>Yes, mail me when editorial review is empty.<br/><epc:pin name="false"/>No. Only mail me when there is something I can edit and approve.</epp:phrase>
 
 
+    <epp:phrase id="document_fieldname_docid">ID of Document</epp:phrase>
+    <epp:phrase id="document_fieldname_pos">Document number (within item)</epp:phrase>
     <epp:phrase id="document_fieldname_eprintid">ID of the owning item</epp:phrase>
-    <epp:phrase id="document_fieldname_rev_number">Revision</epp:phrase>
+    <epp:phrase id="document_fieldname_rev_number">Metadata Revision</epp:phrase>
     <epp:phrase id="document_fieldname_language">Language</epp:phrase>
     <epp:phrase id="document_fieldhelp_language">Please indicate the primary language of this format.</epp:phrase>
     <epp:phrase id="document_fieldname_format">Format</epp:phrase>
@@ -1208,6 +1211,8 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_document">Delete document</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_document_confirm">Delete entire document: are you sure?</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:upload_blurb">Please upload a file.</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:add_files"><epc:pin name="link">Need to add additional files to this document?</epc:pin></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:really_add">Wait! Are you really sure you want to add another file to this document? Only do this if the file is directly required by the document. For example an image required by an HTML document. If you are sure you want to then click OK. Most of the time you want to click Cancel then use the New Document field above.</epp:phrase>
 
 	<!-- Subject component -->
 	<epp:phrase id="Plugin/InputForm/Component/Field/Subject:selections">Current selections:</epp:phrase>

@@ -102,7 +102,7 @@ sub from_search_form
 		return( $val );
 	}
 			
-	return( undef,undef,undef, $session->phrase( "lib/searchfield:int_err" ) );
+	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:int_err" ) );
 }
 
 sub render_search_value

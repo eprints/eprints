@@ -72,7 +72,7 @@ sub from_search_form
 		return( $val );
 	}
 			
-	return( undef,undef,undef, $session->phrase( "lib/searchfield:year_err" ) );
+	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:year_err" ) );
 }
 
 sub get_property_defaults

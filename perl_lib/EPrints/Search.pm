@@ -808,7 +808,7 @@ sub from_form
 
 	if( $self->is_blank && ! $self->{allow_blank} )
 	{
-		push @problems, $self->{session}->phrase( 
+		push @problems, $self->{session}->html_phrase( 
 			"lib/searchexpression:least_one" );
 	}
 	
@@ -1233,6 +1233,14 @@ sub _dopage_results
 		return;
 	}
 
+	if( $self->count == 0 )
+	{
+		$self->_dopage_problems( $self->{session}->html_phrase(
+			"lib/searchexpression:noresults") );
+		return;
+	}
+
+
 	$self->dispose();
 
 	my %bits = ();
@@ -1378,25 +1386,21 @@ sub _dopage_problems
 	my $page = $self->{session}->make_doc_fragment();
 	$page->appendChild( $self->_render_preamble );
 
-	my $problem_box = $self->{session}->make_element( 
-				"div",
-				class=>"ep_search_problems" );
+	my $problem_box = $self->{session}->make_doc_fragment;
 	$problem_box->appendChild( $self->{session}->html_phrase( "lib/searchexpression:form_problem" ) );
-
 	# List the problem(s)
 	my $ul = $self->{session}->make_element( "ul" );
 	$page->appendChild( $ul );
-	my $problem;
-	foreach $problem (@problems)
+	foreach my $problem (@problems)
 	{
 		my $li = $self->{session}->make_element( 
 			"li",
 			class=>"ep_search_proble" );
 		$ul->appendChild( $li );
-		$li->appendChild( $self->{session}->make_text( $problem ) );
+		$li->appendChild( $problem );
 	}
 	$problem_box->appendChild( $ul );
-	$page->appendChild( $problem_box );
+	$page->appendChild( $self->{session}->render_message( "error", $problem_box ));
 	$page->appendChild( $self->render_search_form( 1 , 1 ) );
 			
 	$self->{session}->build_page( $self->_render_title, $page, "search_problems" );

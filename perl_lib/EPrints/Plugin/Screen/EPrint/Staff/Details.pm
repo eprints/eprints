@@ -11,24 +11,14 @@ sub can_be_viewed
 	return $self->allow( "eprint/staff/details" );
 }
 
-sub _render_name_maybe_with_link
+sub edit_screen_id { return "EPrint::Staff::Edit"; }
+
+sub edit_ok
 {
-	my( $self, $eprint, $field ) = @_;
+	my( $self ) = @_;
 
-	my $r_name = $field->render_name( $eprint->{session} );
-
-	return $r_name unless $self->allow( "eprint/staff/edit" ) & 8;
-
-	my $name = $field->get_name;
-
-	my $workflow = $self->workflow;
-	my $stage = $workflow->{field_stages}->{$name};
-	return $r_name if( !defined $stage );
-
-	my $url = "?eprintid=".$eprint->get_id."&screen=EPrint::Staff::Edit&stage=$stage#$name";
-	my $link = $eprint->{session}->render_link( $url );
-	$link->appendChild( $r_name );
-	return $link;
+	return $self->allow( "eprint/staff/edit" ) & 8;
 }
+
 
 

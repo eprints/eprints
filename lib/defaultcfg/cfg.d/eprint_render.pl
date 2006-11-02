@@ -1,7 +1,7 @@
 
 ######################################################################
 
-=item $xhtmlfragment = eprint_render( $eprint, $session )
+=item $xhtmlfragment = eprint_render( $eprint, $session, $preview )
 
 This subroutine takes an eprint object and renders the XHTML view
 of this eprint for public viewing.
@@ -10,13 +10,17 @@ Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the c
 
 Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>.
 
+If $preview is true then this is only being shown as a preview.
+(This is used to stop the "edit eprint" link appearing when it makes
+no sense.)
+
 =cut
 
 ######################################################################
 
 $c->{eprint_render} = sub
 {
-	my( $eprint, $session ) = @_;
+	my( $eprint, $session, $preview ) = @_;
 
 	my $succeeds_field = $session->get_repository->get_dataset( "eprint" )->get_field( "succeeds" );
 	my $commentary_field = $session->get_repository->get_dataset( "eprint" )->get_field( "commentary" );
@@ -356,13 +360,15 @@ if(0){
 }
 
 
-
-	# Add a link to the edit-page for this record. Handy for staff.
-	my $edit_para = $session->make_element( "p", align=>"right" );
-	$edit_para->appendChild( $session->html_phrase( 
-		"page:edit_link",
-		link => $session->render_link( $eprint->get_control_url ) ) );
-	$page->appendChild( $edit_para );
+	unless( $preview )
+	{
+		# Add a link to the edit-page for this record. Handy for staff.
+		my $edit_para = $session->make_element( "p", align=>"right" );
+		$edit_para->appendChild( $session->html_phrase( 
+			"page:edit_link",
+			link => $session->render_link( $eprint->get_control_url ) ) );
+		$page->appendChild( $edit_para );
+	}
 
 	my $title = $eprint->render_description();
 

@@ -143,7 +143,7 @@ sub _process_pin
 
 	if( !$node->hasAttribute( "name" ) )
 	{
-		EPrints::abort( "In ".$params{in}.": pin element with no ref attribute.\n".substr( $node->toString, 0, 100 ) );
+		EPrints::abort( "In ".$params{in}.": pin element with no name attribute.\n".substr( $node->toString, 0, 100 ) );
 	}
 	my $ref = $node->getAttribute( "name" );
 

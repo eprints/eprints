@@ -31,7 +31,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my ($data,$title) = $self->{processor}->{eprint}->render; 
+	my ($data,$title) = $self->{processor}->{eprint}->render_preview;
 
 	return $data;
 }	

@@ -144,22 +144,10 @@ sub render_messages
 
 	foreach my $message ( @{$self->{messages}} )
 	{
-		my $id = "m".$self->{session}->get_next_id;
-		my $div = $self->{session}->make_element( "div", class=>"ep_msg_".$message->{type}, id=>$id );
-		my $content_div = $self->{session}->make_element( "div", class=>"ep_msg_".$message->{type}."_content" );
-		my $table = $self->{session}->make_element( "table" );
-		my $tr = $self->{session}->make_element( "tr" );
-		$table->appendChild( $tr );
-		my $td1 = $self->{session}->make_element( "td" );
-		$td1->appendChild( $self->{session}->make_element( "img", src=>"/style/images/".$message->{type}.".png", alt=>$self->{session}->phrase( "Plugin/Screen:message_".$message->{type} ) ) );
-		$tr->appendChild( $td1 );
-		my $td2 = $self->{session}->make_element( "td" );
-		$tr->appendChild( $td2 );
-		$td2->appendChild( $message->{content} );
-		$content_div->appendChild( $table );
-#		$div->appendChild( $title_div );
-		$div->appendChild( $content_div );
-		$chunk->appendChild( $div );
+		$chunk->appendChild( 
+			$self->{session}->render_message( 
+				$message->{type},
+				$message->{content} ));
 	}
 
 	return $chunk;

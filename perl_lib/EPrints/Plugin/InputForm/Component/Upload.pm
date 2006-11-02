@@ -204,8 +204,16 @@ sub render_content
 
 	my $view = $session->param( $self->{prefix}."_view" );
 
+	# this overrides the prefix-dependent view. It's used when
+	# we're coming in from outside the form and is, to be honest,
+	# a dirty little hack.
+	if( defined $session->param( "docid" ) )
+	{
+		$view = $session->param( "docid" );
+	}
+
+	my $affected_doc_id;
 	my $internal = $self->get_internal_button;
-	my $affected_doc_id = undef;
 	if( $internal =~ m/^doc(\d+)_(.*)$/ )
 	{
 		$affected_doc_id = $1;
@@ -402,7 +410,24 @@ sub _render_add_file
 	my $docid = $document->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 
-	my $toolbar = $session->make_element( "div" );
+	my $hide = 0;
+	my %files = $document->files;
+	$hide = 1 if( scalar keys %files == 1 );
+
+	my $f = $session->make_doc_fragment;	
+	if( $hide )
+	{
+		my $hide_add_files = $session->make_element( "div", id=>$doc_prefix."_af1" );
+		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onClick => "if(!confirm('".$self->phrase("really_add")."')) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
+		$hide_add_files->appendChild( $self->html_phrase( 
+			"add_files",
+			link=>$show ));
+		$f->appendChild( $hide_add_files );
+	}
+
+	my %l = ( id=>$doc_prefix."_af2" );
+	$l{class} = "ep_no_js" if( $hide );
+	my $toolbar = $session->make_element( "div", %l );
 	my $file_button = $session->make_element( "input",
 		name => $doc_prefix."_file",
 		id => "filename",
@@ -414,12 +439,12 @@ sub _render_add_file
 		value => $self->phrase( "add_file" ),
 		type => "submit",
 		);
-	
-	
 	$toolbar->appendChild( $file_button );
 	$toolbar->appendChild( $session->make_text( " " ) );
 	$toolbar->appendChild( $upload_button );
-	return $toolbar; 
+	$f->appendChild( $toolbar );
+
+	return $f; 
 }
 
 

@@ -4935,3 +4935,24 @@ PACKAGE: 2.2.99.2
 
 2006-11-02 tdb
  * /cgi/openurl is now runnable
+
+2006-11-02 cjg
+ * Search errors now show as a warning box, like in screens.
+ * No-matches no counts as an error (so stays on search form page)
+ * Moved message/error/warning render into Session
+ * Metafield search form problems now return XML, not text
+ * $session->render_row now just inserts a nbsp; without a : after it
+    if undef is passed as the heading. Also now takes an array of <td>
+    contents, not just one.
+ * Status now uses $session->render_row
+ * Corrected error message in EPC
+ * The sub-parts of compound field are no show_in_html=>0
+ * Added a flag to tell eprint_render if it's a preview or the final
+    page.
+ * Tests this flag for the "edit" button on the abstract page.
+ * Added documents to the details screen.
+ * Blister bar now occurs in form to allow buttons to work.
+ * Upload component now places "add another file" under some javascript
+    and pops up a warning before showing it.
+ * lookup/name now filters on eprint_status=archive
+ 

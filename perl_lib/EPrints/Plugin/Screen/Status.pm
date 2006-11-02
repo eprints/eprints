@@ -138,21 +138,18 @@ sub render
 	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $table );
 	
-	$table->appendChild( render_row( 
-			$session,
+	$table->appendChild( $session->render_row( 
 			$session->html_phrase( "cgi/users/status:release" ),
 			$session->make_text( 
 				EPrints::Config::get( "version" ) ) ) );
 
 	$table->appendChild(
-		render_row( 
-			$session,
+		$session->render_row( 
 			$session->html_phrase( "cgi/users/status:database" ),
 			$session->html_phrase( "cgi/users/status:database_".$db_status ) ) );
 	
 	$table->appendChild(
-		render_row( 
-			$session,
+		$session->render_row( 
 			$session->html_phrase( "cgi/users/status:indexer" ),
 			$session->html_phrase( "cgi/users/status:indexer_".$indexer_status ) ) );
 	
@@ -164,16 +161,13 @@ sub render
 	{
 		my $k = $session->make_doc_fragment;
 		$k->appendChild( $session->render_type_name( "user", $usertype ) );
-		$k->appendChild( $session->make_text( ":" ) );
 		$table->appendChild(
-			render_row( 
-				$session,
+			$session->render_row( 
 				$k, 
 				$session->make_text( $num_users{$usertype} ) ) );
 	}
 	$table->appendChild(
-		render_row( 
-			$session,
+		$session->render_row( 
 			$session->html_phrase( "cgi/users/status:users" ),
 			$session->make_text( $total_users ) ) );
 	
@@ -184,8 +178,7 @@ sub render
 	foreach( @esets )
 	{
 		$table->appendChild(
-			render_row( 
-				$session,
+			$session->render_row( 
 				$session->html_phrase( "cgi/users/status:set_".$_ ),
 				$session->make_text( $num_eprints{$_} ) ) );
 	}
@@ -205,8 +198,7 @@ sub render
 		{
 			my $size = $session->get_repository->get_store_dir_size( $dir );
 			$table->appendChild(
-				render_row( 
-					$session,
+				$session->render_row( 
 					$session->html_phrase( 
 						"cgi/users/status:diskfree",
 						dir=>$session->make_text( $dir ) ),
@@ -244,8 +236,7 @@ sub render
 	$html->appendChild( $table );
 	
 	$table->appendChild(
-		render_row( 
-			$session,
+		$session->render_row( 
 			undef,
 			$session->html_phrase( "cgi/users/status:subcount" ),
 			$session->html_phrase( "cgi/users/status:subsent" ) ) );
@@ -276,10 +267,8 @@ sub render
 
 		my $k = $session->make_doc_fragment;
 		$k->appendChild( $session->html_phrase( "saved_search_fieldopt_frequency_".$freq ) );
-		$k->appendChild( $session->make_text( ":" ) );
 		$table->appendChild(
-			render_row( 
-				$session,
+			$session->render_row( 
 				$k,
 				$session->make_text( $n ),
 				$session->make_text( $sent ) ) );
@@ -296,34 +285,6 @@ sub render_common_action_buttons
 	return $self->{session}->make_doc_fragment;
 }
 	
-# this cjg should probably by styled.
-sub render_row
-{
-	my( $session, $key, @vals ) = @_;
-	
-	my( $tr, $td );
-	$tr = $session->make_element( "tr" );
-
-	if( !defined $key )
-	{
-		$td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-	}
-	else
-	{
-		$td = $session->make_element( "td", class=>"status_row_heading" );
-		$tr->appendChild( $td );
-		$td->appendChild( $key );
-	}
-
-	foreach( @vals )
-	{
-		$td = $session->make_element( "td", align=>"center", class=>"status_cell"  );
-		$tr->appendChild( $td );
-		$td->appendChild( $_ );
-	}
-	return $tr;
-}
 
 
 1;

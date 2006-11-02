@@ -44,10 +44,9 @@ sub render
 {
 	my( $self ) = @_;
 
-	$self->{processor}->before_messages( 
-		$self->render_blister( $self->workflow->get_stage_id, 1 ) );
-
 	my $form = $self->render_form;
+	$form->appendChild( 
+		$self->render_blister( $self->workflow->get_stage_id, 1 ) );
 
 	$form->appendChild( $self->render_buttons );
 	$form->appendChild( $self->workflow->render );
