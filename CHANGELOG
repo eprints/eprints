@@ -4959,3 +4959,9 @@ PACKAGE: 2.2.99.2
 2006-11-02 cjg
  * Fixed bug in expand/close on subjects with multiple parents
  
+2006-11-02 cjg
+ * Added "public" field to saved searches.
+ * Added "items_fields" and "review_fields" to users.
+ * Added epadmin upgrade to update the database.
+ * Added items_fields and review_fields to user workflow.
+

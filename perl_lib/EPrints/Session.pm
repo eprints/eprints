@@ -218,7 +218,7 @@ sub new
 		# if it's not there is a show stopper.
 		unless( $self->{database}->is_latest_version )
 		{ 
-			if( $self->{database}->has_table( "repository" ) )
+			if( $self->{database}->has_table( "eprint" ) )
 			{	
 				$self->get_repository->log( 
 	"Database tables are in old configuration. Please run bin/upgrade" );

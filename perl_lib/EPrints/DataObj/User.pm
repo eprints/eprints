@@ -187,7 +187,11 @@ sub get_system_field_info
 		{ name=>"frequency", type=>"set", input_style=>"medium",
 			options=>["never","daily","weekly","monthly"] },
 
-		{ name=>"mailempty", type=>"boolean", input_style=>"radio" }
+		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
+
+		{ name=>"items_fields", type=>"text", multiple=>1, },
+
+		{ name=>"review_fields", type=>"text", multiple=>1, },
 	)
 };
 

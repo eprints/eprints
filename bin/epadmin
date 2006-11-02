@@ -60,6 +60,10 @@ Erases and recreates the database. Removes all documents and files. Does not tou
 
 Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
 
+=item B<epadmin> upgrade [repo_id]
+
+After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
+
 =item B<epadmin> --help
 
 =back
@@ -157,6 +161,7 @@ else
 	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
 	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
 	elsif( $action eq "reload" ) { reload( $repoid ); }
+	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
 	else { pod2usage( 1 ); }
 }
@@ -668,23 +673,32 @@ END
 	return $mysql_root_password;
 }
 
-sub create_db
+sub root_dbh
 {
-	my( $repoid ) = @_;
+	my( $repoid, $dbname ) = @_;
 
-	print "Loading config...\n";
 	my $config = EPrints::Config::load_repository_config_module( $repoid );
+
+	$dbname = $config->{dbname} unless defined $dbname;
 
 	my $mysqlrootpassword = get_mysql_root_password();
 	print "Connecting to the database...\n";
 	my $dbh = DBI->connect(
 		EPrints::Database::build_connection_string(
-			dbname=>"mysql",
+			dbname=>$dbname,
 			dbsock=>$config->{dbsock},
 			dbport=>$config->{dbport},
 			dbhost=>$config->{dbhost} ),
 		"root",
 		$mysqlrootpassword );
+	return $dbh;
+}
+
+sub create_db
+{
+	my( $repoid ) = @_;
+
+	my $dbh = root_dbh( $repoid, "mysql" );
 
 	if( !defined $dbh )
 	{
@@ -705,6 +719,8 @@ END
 		print "MYSQL OLD PASSWORDS will be used for compatibility with DBI::mysql\n";
 		$oldpasswords = 1;
 	} 
+
+	my $config = EPrints::Config::load_repository_config_module( $repoid );
 
 	my $sth = $dbh->prepare( "show databases" );
 	$sth->execute;
@@ -980,4 +996,69 @@ sub test
 
 	print "Everything seems OK.\n";
 }	
+
+sub upgrade
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
+	my $db = $session->get_db();
+	my $dbversion = $db->get_version();
+	
+	if( $dbversion eq "3.0" )
+	{
+		upgrade_3_0_to_3_0_1( $repoid, $db );
+		$dbversion="3.0.1";
+		$db->set_version( $dbversion );
+	}
+
+	print $dbversion."\n";
+	$session->terminate;
+}
+
+sub upgrade_3_0_to_3_0_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+
+	if( !defined $rootdbh )
+	{
+		die "Could not open database as root";
+	}
+
+	my @tables = $db->get_tables;
+	
+	my $sql;
+
+	$sql = "ALTER TABLE saved_search ADD public set('TRUE','FALSE') default 'FALSE' AFTER mailempty";
+	$rootdbh->do( $sql );
+
+	$sql = "CREATE TABLE user_items_fields ( userid INT NOT NULL, pos INT, items_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
+	$rootdbh->do( $sql );
+
+	$sql = "CREATE TABLE user_review_fields ( userid INT NOT NULL, pos INT, review_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^saved_search__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD public TEXT AFTER mailempty",
+			$rootdbh->do( $sql );
+		}
+		if( $table =~ m/^user__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD items_fields TEXT AFTER mailempty",
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD review_fields TEXT AFTER items_fields",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
 

@@ -82,6 +82,8 @@ sub get_system_field_info
 			options=>["never","daily","weekly","monthly"] },
 
 		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
+
+		{ name=>"public", type=>"boolean", input_style=>"radio" },
 	);
 }
 
