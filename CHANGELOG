@@ -4969,3 +4969,6 @@ PACKAGE: 2.2.99.2
  * Fixed bug with get_values which meant it returned values from all
     datasets of eprint, not just the requested one.
 
+2006-11-04 tdb
+ * Added more fields to openurl resolver
+ * Added support for svc.fulltext=yes to openurl resolver

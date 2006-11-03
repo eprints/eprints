@@ -50,17 +50,63 @@ my $searchexp = new EPrints::Search(
 	keep_cache => 1,
 	session => $session,
 	dataset => $ds,
+	satisfy_all => 1,
 );
 
 # Fill in the search expression, mapping OpenURL terms to eprint fields
-$searchexp->add_field(
-	$ds->get_field( "title" ),
-	$md{ "atitle" },
+if( $md{ "aulast" } )
+{
+	$searchexp->add_field(
+		$ds->get_field( "creators_name" ),
+		$md{ "aulast" }
+	);
+}
+if( defined($rft->id) )
+{
+	my $oai_id = $session->get_repository->get_conf( "oai" )->{ "v2" }->{ "archive_id" };
+	if( defined($rft->id) and $rft->id =~ /^oai:$oai_id:(\d+)$/ )
+	{
+		$searchexp->add_field(
+			$ds->get_field( "eprintid" ),
+			$1
+		);
+	}
+	else
+	{
+		$searchexp->add_field(
+			$ds->get_field( "official_url" ),
+			scalar($rft->id)
+		);
+	}
+}
+my %FREE_TEXT = qw(
+	title atitle
+	publication title
 );
-$searchexp->add_field(
-	$ds->get_field( "eprintid" ),
-	scalar($rft->id)
+while(my( $epf, $ouf ) = each %FREE_TEXT)
+{
+	next unless defined($md{ $ouf }) and length($md{ $ouf });
+	$searchexp->add_field(
+		$ds->get_field( $epf ),
+		$md{ $ouf },
+		"IN"
+	);
+}
+my %EXACT_TERMS = qw(
+	volume	volume
+	number	number
+	series	series
+	date	date
+	pagerange	pages
 );
+while(my( $epf, $ouf ) = each %EXACT_TERMS)
+{
+	next unless defined($md{ $ouf }) and length($md{ $ouf });
+	$searchexp->add_field(
+		$ds->get_field( $epf ),
+		$md{ $ouf }
+	);
+}
 
 # Urg, either the query was empty or we couldn't use the query given
 if( $searchexp->is_blank )
@@ -78,8 +124,26 @@ unless( $eprint ) {
 	die "No match found";
 }
 
-# Redirect to the abstract page
-my $url = $eprint->get_url;
-$session->redirect( $url );
+my $svc = $uri->serviceType;
+
+my %svc_md = $svc->metadata;
+
+if( $svc_md{ "fulltext" } and
+	$svc_md{ "fulltext" } eq 'yes' )
+{
+	# Redirect to the main document (if possible)
+	my @docs = $eprint->get_all_documents();
+	if( @docs )
+	{
+		my $url = $docs[0]->get_url();
+		$session->redirect( $url );
+	}
+}
+else
+{
+	# Redirect to the abstract page
+	my $url = $eprint->get_url;
+	$session->redirect( $url );
+}
 
 $session->terminate;
