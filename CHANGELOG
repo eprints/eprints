@@ -4969,7 +4969,7 @@ PACKAGE: 2.2.99.2
  * Fixed bug with get_values which meant it returned values from all
     datasets of eprint, not just the requested one.
 
-2006-11-04 tdb
+2006-11-04 tdb 
  * Added more fields to openurl resolver
  * Added support for svc.fulltext=yes to openurl resolver
 
@@ -4986,3 +4986,7 @@ PACKAGE: 2.2.99.2
  * Made items_fields and review_fields type "field"
  * New option to multiple set fields to allow them to be ordered.
  * Added filtering options to Items page (needs tidying up) 
+
+2006-11-03 cjg
+ * Moved soap code out of normal cgi dir.
+
