@@ -4990,3 +4990,6 @@ PACKAGE: 2.2.99.2
 2006-11-03 cjg
  * Moved soap code out of normal cgi dir.
 
+2006-11-03 cjg
+ * Indexer now cleans up suicide file when it starts.
+ * Indexer stop now tries the suicide file approach before trying kill.

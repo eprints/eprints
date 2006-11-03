@@ -635,7 +635,7 @@ sub suicidal
 
 sub stop
 {
-	my( $session ) = @_;
+	# no params
 	return -1 if( !EPrints::Index::is_running );
 
 	my $suicidefile = EPrints::Index::suicidefile();

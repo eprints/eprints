@@ -202,6 +202,10 @@ if( $ARGV[0] eq "status" )
 
 if( $ARGV[0] eq "stop" )
 {
+	exit if EPrints::Index::stop();
+
+	print "First request for indexer to stop failed. I'll try and kill it...\n\n";
+
 	if( !-e $p->{pidfile} )
 	{
 		print <<END;
@@ -325,6 +329,11 @@ if( $p->{daemon} )
 {
 	EPrints::Index::write_pid();
 	EPrints::Index::do_tick();
+}
+
+if( EPrints::Index::suicidal() ) 
+{
+	unlink( EPrints::Index::suicidefile() );
 }
 
 EPrints::Index::indexlog( "** Indexer control process started with process ID: $$" ) if( $p->{loglevel} > 2 );
