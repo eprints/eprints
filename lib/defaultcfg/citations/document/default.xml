@@ -11,8 +11,8 @@
 <cite:linkhere><span class="ep_document_citation"><epc:print expr='format'/><epc:if test="formatdesc"> (<epc:print expr="formatdesc"/>)</epc:if></span></cite:linkhere>
 <epc:if test="security != 'public'"> - <epc:print expr="security"/><epc:if test="date_embargo"> until <epc:print expr="date_embargo"/></epc:if></epc:if>
 <epc:choose>
-  <epc:when test="format = 'pdf'"> - Requires a PDF viewer such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a>, <a href="http://www.foolabs.com/xpdf/download.html">Xpdf</a> or <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a></epc:when>
-  <epc:when test="format = 'ps'"> - Requires a viewer, such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a></epc:when>
+  <epc:when test="format = 'application/pdf'"> - Requires a PDF viewer such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a>, <a href="http://www.foolabs.com/xpdf/download.html">Xpdf</a> or <a href="http://www.adobe.com/products/acrobat/">Adobe Acrobat Reader</a></epc:when>
+  <epc:when test="format = 'application/postscript'"> - Requires a viewer, such as <a href="http://www.cs.wisc.edu/~ghost/gsview/index.htm">GSview</a></epc:when>
 </epc:choose>
 
 </cite:citation>
