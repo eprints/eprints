@@ -4972,3 +4972,17 @@ PACKAGE: 2.2.99.2
 2006-11-04 tdb
  * Added more fields to openurl resolver
  * Added support for svc.fulltext=yes to openurl resolver
+
+2006-11-03 cjg
+ * Fixed some broken parameters in render_citation_link
+ * Changed the way searches are serialised. They now store both the field
+    names and the alias. Also separates filters and normal search fields.
+ * Can deserialise a search safely, into an existing search, or raw which
+    creates all the conditions from the serialised search.
+ * Removed UserPage and UserForm - no longer used.
+ * Added option to save searches
+ * Added saved search view, edit and remove
+ * New MetaField type - Field
+ * Made items_fields and review_fields type "field"
+ * New option to multiple set fields to allow them to be ordered.
+ * Added filtering options to Items page (needs tidying up) 

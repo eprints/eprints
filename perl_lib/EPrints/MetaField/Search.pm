@@ -86,13 +86,24 @@ sub make_searchexp
 
 	my $ds = $session->get_repository->get_dataset( 
 			$self->{datasetid} );	
+	my $fieldnames = $self->get_property( "fieldnames" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
 		dataset => $ds,
 		prefix => $basename,
-		fieldnames => $self->get_property( "fieldnames" ) );
-	$searchexp->from_string( $value );
+		fieldnames => $fieldnames );
+
+	# don't limit the deserialising unless there are fieldnames
+	# defined.	
+	if( defined $fieldnames )
+	{
+		$searchexp->from_string( $value );
+	}
+	else
+	{
+		$searchexp->from_string_raw( $value );
+	}
 
 	return $searchexp;
 }		

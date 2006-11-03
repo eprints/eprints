@@ -189,9 +189,9 @@ sub get_system_field_info
 
 		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
 
-		{ name=>"items_fields", type=>"text", multiple=>1, },
+		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
 
-		{ name=>"review_fields", type=>"text", multiple=>1, },
+		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
 	)
 };
 
@@ -849,12 +849,12 @@ sub get_saved_searches
 	my( $self ) = @_;
 
 	my $ds = $self->{session}->get_repository->get_dataset( 
-		"saved_searches" );
+		"saved_search" );
 
 	my $searchexp = EPrints::Search->new(
 		session=>$self->{session},
 		dataset=>$ds,
-		custom_order=>"subid" );
+		custom_order=>"id" );
 
 	$searchexp->add_field(
 		$ds->get_field( "userid" ),
@@ -1082,10 +1082,12 @@ my $PRIVMAP =
 		# "subject/edit" => 8,
 	},
 
-	saved_search => 
+	"saved-searches" => 
 	{
 		"saved_search" => 2,
 		"create_saved_search" => 2,
+		"saved_search/view" => 4,
+		"saved_search/perform" => 4,
 		"saved_search/edit" => 4,
 		"saved_search/remove" => 4,
 	},

@@ -134,8 +134,7 @@ sub render
 			$tr->appendChild( $td );
 			if( defined $user )
 			{
-				#cjg Has view-user priv?
-				$td->appendChild( $user->render_citation_link( undef, 1 ) );
+				$td->appendChild( $user->render_citation );
 			}
 			else
 			{

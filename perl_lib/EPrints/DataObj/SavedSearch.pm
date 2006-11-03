@@ -549,6 +549,28 @@ sub get_last_timestamp
 }
 
 
+######################################################################
+=pod
+
+=item $boolean = $user->has_owner( $possible_owner )
+
+True if the users are the same record.
+
+=cut
+######################################################################
+
+sub has_owner
+{
+	my( $self, $possible_owner ) = @_;
+
+	if( $possible_owner->get_value( "userid" ) == $self->get_value( "userid" ) )
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 
 =pod
 

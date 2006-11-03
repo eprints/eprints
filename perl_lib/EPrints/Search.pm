@@ -872,12 +872,24 @@ sub serialise
 	# property in a later version without breaking when we upgrade.
 	push @parts, "-";
 	my $search_field;
+	my @filters = ();
 	foreach my $sf_id (sort @{$self->{searchfields}})
 	{
 		my $search_field = $self->get_searchfield( $sf_id );
 		my $fieldstring = $search_field->serialise();
 		next unless( defined $fieldstring );
-		push @parts, $fieldstring;
+                if( $self->{filtersmap}->{$sf_id} )
+		{
+			push @filters, $fieldstring;
+		}
+		else
+		{
+			push @parts, $fieldstring;
+		}
+	}
+	if( scalar @filters )
+	{
+		push @parts, "-", @filters;
 	}
 	my @escapedparts;
 	foreach( @parts )
@@ -911,8 +923,8 @@ sub from_string
 
 	return unless( EPrints::Utils::is_set( $string ) );
 
-	my( $pstring , $fstring ) = split /\|-\|/ , $string ;
-	$fstring = "" unless( defined $fstring ); # avoid a warning
+	my( $pstring , $field_string, $filter_string ) = split /\|-\|/ , $string ;
+	$field_string = "" unless( defined $field_string ); # avoid a warning
 
 	my @parts = split( /\|/ , $pstring );
 	$self->{satisfy_all} = $parts[1]; 
@@ -922,10 +934,13 @@ sub from_string
 #	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
 
 	my $sf_data = {};
-	foreach( split /\|/ , $fstring )
+	if( defined $field_string )
 	{
-		my $data = EPrints::Search::Field->unserialise( $_ );
-		$sf_data->{$data->{"id"}} = $data;	
+		foreach( split /\|/ , $field_string )
+		{
+			my $data = EPrints::Search::Field->unserialise( $_ );
+			$sf_data->{$data->{"id"}} = $data;	
+		}
 	}
 
 	foreach my $sf ( $self->get_non_filter_searchfields )
@@ -938,6 +953,59 @@ sub from_string
 			$data->{"merge"},
 			$sf->get_id() );
 	}
+}
+
+
+sub from_string_raw
+{
+	my( $self, $string ) = @_;
+
+	return unless( EPrints::Utils::is_set( $string ) );
+
+	my( $pstring , $field_string, $filter_string ) = split /\|-\|/ , $string ;
+	$field_string = "" unless( defined $field_string ); # avoid a warning
+	$filter_string = "" unless( defined $filter_string ); # avoid a warning
+
+	my @parts = split( /\|/ , $pstring );
+	$self->{satisfy_all} = $parts[1]; 
+	$self->{order} = $parts[2];
+# not overriding these bits
+#	$self->{allow_blank} = $parts[0];
+#	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
+
+	foreach( split /\|/ , $field_string )
+	{
+		my $data = EPrints::Search::Field->unserialise( $_ );
+		my $fields = [];
+		foreach my $fname ( split( "/", $data->{rawid} ) )
+		{
+			push @{$fields}, $self->{dataset}->get_field( $fname );
+		}
+		$self->add_field( 
+			$fields,
+			$data->{"value"},
+			$data->{"match"},
+			$data->{"merge"},
+			$data->{"id"}, );
+	}
+	foreach( split /\|/ , $filter_string )
+	{
+		my $data = EPrints::Search::Field->unserialise( $_ );
+		my $fields = [];
+		foreach my $fname ( split( "/", $data->{rawid} ) )
+		{
+			push @{$fields}, $self->{dataset}->get_field( $fname );
+		}
+		my $sf = $self->add_field( 
+			$fields,
+			$data->{"value"},
+			$data->{"match"},
+			$data->{"merge"},
+			$data->{"id"}, 
+			1, );
+		$sf->set_include_in_description( 0 );
+	}
+
 }
 
 
@@ -1298,6 +1366,19 @@ sub _dopage_results
 		}
 	);
 
+	my $cuser = $self->{session}->current_user;
+	if( defined $cuser )
+	{
+		if( $cuser->allow( "create_saved_search" ) )
+		{
+			my $base = $self->{session}->get_repository->get_conf( "userhome" );
+			push @controls_before, {
+				url => $base."?screen=User::SaveSearch&cache=$cacheid&_action_create=1",
+				label => $self->{session}->html_phrase( "lib/searchexpression:savesearch" ),
+			};
+		}
+	}
+
 	my %opts = (
 		pins => \%bits,
 		controls_before => \@controls_before,
@@ -1312,7 +1393,6 @@ sub _dopage_results
 			$div->appendChild( 
 				$result->render_citation_link(
 					$searchexp->{citation},  #undef unless specified
-					$searchexp->{staff},
 					n => [$n,"INTEGER"] ) );
 			return $div;
 		},

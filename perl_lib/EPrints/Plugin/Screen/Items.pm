@@ -30,6 +30,21 @@ sub can_be_viewed
 	return $self->allow( "items" );
 }
 
+sub get_filters
+{
+	my( $self ) = @_;
+
+	my %f = ( inbox=>1, buffer=>1, archive=>0, deletion=>0 );
+
+	foreach my $filter ( keys %f )
+	{
+		my $v = $self->{session}->param( "show_$filter" );
+		$f{$filter} = $v if defined $v;
+	}	
+
+	return %f;
+}
+	
 
 sub render
 {
@@ -41,10 +56,50 @@ sub render
 
 	$chunk->appendChild( $self->render_action_list( "item_tools" ) );
 
+	my %filters = $self->get_filters;
+	my @l = ();
+	foreach( keys %filters ) { push @l, $_ if $filters{$_}; }
+
 	### Get the items owned by the current user
 	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
 	my $list = $self->{session}->current_user->get_owned_eprints( $ds );
 	$list = $list->reorder( "-status_changed" );
+
+	my $searchexp = new EPrints::Search(
+		session=>$self->{session},
+		dataset=>$ds );
+	$searchexp->add_field(
+		$ds->get_field( "eprint_status" ),
+		join( " ", @l ),
+		"EQ",
+		"ANY" );
+	$list = $list->intersect( $searchexp->perform_search, "-eprintid" );
+	my $filter_div = $self->{session}->make_element( "div" );
+	$filter_div->appendChild( $self->{session}->make_text( "Filters {lang}: " ) );
+	foreach my $f ( qw/ inbox buffer archive deletion / )
+	{
+		my %f2 = %filters;
+		$f2{$f} = 1-$f2{$f};
+		my $url = "?screen=Items";
+		foreach my $inner_f ( qw/ inbox buffer archive deletion / )
+		{
+			$url.= "&show_$inner_f=".$f2{$inner_f};
+		}
+		my $a = $self->{session}->render_link( $url );
+		if( $filters{$f} )
+		{
+			$a->appendChild( $self->{session}->make_text( "Showing " ) );
+		}
+		else
+		{
+			$a->appendChild( $self->{session}->make_text( "Concealing " ) );
+		}
+		$a->appendChild( $self->{session}->html_phrase( "dataset_fieldopt_dataset_$f" ) );
+		$filter_div->appendChild( $a );
+		$filter_div->appendChild( $self->{session}->make_text( ". " ) );
+	}
+	$chunk->appendChild( $filter_div );		
+
 
 	my $table = $self->{session}->make_element( "table", cellspacing=>0, width => "100%" );
 	my $tr = $self->{session}->make_element( "tr", class=>"header_plain" );
@@ -65,6 +120,10 @@ sub render
 	my %opts = (
 		params => {
 			screen => "Items",
+			show_inbox=>$filters{inbox},
+			show_buffer=>$filters{buffer},
+			show_archive=>$filters{archive},
+			show_deletion=>$filters{deletion},
 		},
 		container => $table,
 		pins => {

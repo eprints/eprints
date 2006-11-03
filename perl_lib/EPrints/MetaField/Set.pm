@@ -108,6 +108,12 @@ sub render_input_field_actual
 {
 	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
+	if( $self->get_property( "input_ordered" ) )
+	{
+		return $self->SUPER::render_input_field_actual( 
+			$session, $value, $dataset, $staff, $hidden_fields, $obj, $basename );
+	}
+
 	my $required = $self->get_property( "required" );
 
 	# this should not be needed anymore.
@@ -271,6 +277,11 @@ sub render_set_input
 sub form_value_actual
 {
 	my( $self, $session, $obj, $basename ) = @_;
+
+	if( $self->get_property( "input_ordered" ) )
+	{
+		return $self->SUPER::form_value_actual( $session, $obj, $basename );
+	}
 
 	my @values = $session->param( $basename );
 	
@@ -486,6 +497,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = "short";
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
+	$defaults{input_ordered} = 0;
 	$defaults{search_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{options} = $EPrints::MetaField::REQUIRED;
 	$defaults{input_tags} = $EPrints::MetaField::UNDEF;

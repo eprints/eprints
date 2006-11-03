@@ -176,7 +176,6 @@ else
 		my $p = $session->make_element( "p", class=>$class );
 		$p->appendChild( $item->render_citation_link( 
 			$citation,
-			0,
 			n => [$n++, "INTEGER"] ) );
 		$page->appendChild( $p )
 	}

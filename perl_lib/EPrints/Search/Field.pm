@@ -198,17 +198,14 @@ sub new
 
 	$prefix = "" unless defined $prefix;
 		
-	$self->{"id"} = $id;
-
-	if( !defined $self->{"id"} )
+	my( @fieldnames );
+	foreach my $f (@{$self->{"fieldlist"}})
 	{
-		my( @fieldnames );
-		foreach my $f (@{$self->{"fieldlist"}})
-		{
-			push @fieldnames, $f->get_sql_name();
-		}
-		$self->{"id"} = join '/', sort @fieldnames;
+		push @fieldnames, $f->get_sql_name();
 	}
+	$self->{rawid} = join '/', sort @fieldnames;
+
+	$self->{"id"} = $id || $self->{rawid};
 
 
 	$self->{"form_name_prefix"} = $prefix.$self->{"id"};
@@ -686,6 +683,7 @@ sub serialise
 
 	my @escapedparts;
 	foreach($self->{"id"},
+		$self->{"rawid"}, 	
 		$self->{"merge"}, 	
 		$self->{"match"}, 
 		$self->{"value"} )
@@ -716,12 +714,13 @@ sub unserialise
 {
 	my( $class, $string ) = @_;
 
-	$string=~m/^([^:]*):([^:]*):([^:]*):(.*)$/;
+	$string=~m/^([^:]*):([^:]*):([^:]*):(.*):(.*)$/;
 	my $data = {};
 	$data->{"id"} = $1;
-	$data->{"merge"} = $2;
-	$data->{"match"} = $3;
-	$data->{"value"} = $4;
+	$data->{"rawid"} = $2;
+	$data->{"merge"} = $3;
+	$data->{"match"} = $4;
+	$data->{"value"} = $5;
 	# Un-escape (cjg, not very tested)
 	$data->{"value"} =~ s/\\(.)/$1/g;
 

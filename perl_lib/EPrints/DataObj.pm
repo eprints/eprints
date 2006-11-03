@@ -704,25 +704,31 @@ sub render_citation
 ######################################################################
 =pod
 
-=item $xhtml = $dataobj->render_citation_link( [$style], [$staff], %params )
+=item $xhtml = $dataobj->render_citation_link( [$style], %params )
 
 Renders a citation (as above) but as a link to the URL for this item. For
-example - the abstract page of an eprint. If $staff is true then the 
-citation links to the staff URL - which will provide more a full staff view 
-of this record.
+example - the abstract page of an eprint. 
 
 =cut
 ######################################################################
 
 sub render_citation_link
 {
-	my( $self , $style , $staff, %params ) = @_;
+	my( $self , $style , %params ) = @_;
 
-	$params{url} = $self->get_url( $staff );
+	$params{url} = $self->get_url( 0 );
 	
 	return $self->render_citation( $style, %params );
 }
 
+sub render_citation_link_staff
+{
+	my( $self , $style , %params ) = @_;
+
+	$params{url} = $self->get_url( 1 );
+	
+	return $self->render_citation( $style, %params );
+}
 
 ######################################################################
 =pod
