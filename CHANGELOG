@@ -4965,3 +4965,7 @@ PACKAGE: 2.2.99.2
  * Added epadmin upgrade to update the database.
  * Added items_fields and review_fields to user workflow.
 
+2006-11-03 cjg
+ * Fixed bug with get_values which meant it returned values from all
+    datasets of eprint, not just the requested one.
+

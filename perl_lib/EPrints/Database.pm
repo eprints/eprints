@@ -2086,16 +2086,7 @@ sub get_values
 		return [];
 	}
 
-	my $table;
-	if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
-	{
-		$table = $dataset->get_sql_sub_table_name( $field );
-	} 
-	else 
-	{
-		$table = $dataset->get_sql_table_name();
-	}
-	my $fn = $field->get_sql_name();
+	my $fn = "M.".$field->get_sql_name();
 	if( $field->is_type( "name" ) )
 	{
 		$fn = "$fn\_honourific,$fn\_given,$fn\_family,$fn\_lineage";
@@ -2108,7 +2099,30 @@ sub get_values
 	{
 		$fn = "$fn\_year,$fn\_month,$fn\_day,$fn\_hour,$fn\_minute,$fn\_second";
 	}
-	my $sql = "SELECT DISTINCT $fn FROM $table";
+	my $sql = "SELECT DISTINCT $fn FROM ";
+	my $limit;
+	$limit = "archive" if( $dataset->id eq "archive" );
+	$limit = "inbox" if( $dataset->id eq "inbox" );
+	$limit = "deletion" if( $dataset->id eq "deletion" );
+	$limit = "buffer" if( $dataset->id eq "buffer" );
+	if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
+	{
+		$sql.= $dataset->get_sql_sub_table_name( $field )." as M";
+		if( $limit )
+		{
+			$sql.=", ".$dataset->get_sql_table_name()." as L";
+			$sql.=" WHERE L.eprintid = M.eprintid";
+			$sql.=" AND L.eprint_status = '$limit'";
+		}
+	} 
+	else 
+	{
+		$sql.= $dataset->get_sql_table_name()." as M";
+		if( $limit )
+		{
+			$sql.=" WHERE M.eprint_status = '$limit'";
+		}
+	}
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my @values = ();
