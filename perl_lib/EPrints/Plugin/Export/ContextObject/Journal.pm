@@ -93,7 +93,7 @@ sub xml_dataobj
 		my $auths = $session->make_element( "jnl:authors" );
 		$jnl->appendChild( $auths );
 
-		foreach my $author ( @{$dataobj->get_value( "creators", 1 )} )
+		foreach my $author ( @{$dataobj->get_value( "creators_name" )} )
 		{
 			my $auth = $auths->appendChild( $session->make_element( "jnl:author" ) );
 			
