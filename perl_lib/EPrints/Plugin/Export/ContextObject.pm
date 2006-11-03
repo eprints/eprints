@@ -164,7 +164,7 @@ sub xml_eprint
 	elsif( $etype eq "thesis" )
 	{
 		$rft->appendChild( $plugin->_metadata_by_val( $eprint, %opts,
-			schema => "info:ofi/fmt:xml:xsd:journal",
+			schema => "info:ofi/fmt:xml:xsd:dissertation",
 			plugin => "Export::ContextObject::Dissertation"
 		));
 	}
