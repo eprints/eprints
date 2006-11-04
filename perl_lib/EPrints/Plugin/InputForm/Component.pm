@@ -301,12 +301,18 @@ sub xml_to_metafield
 
 		if( EPrints::Utils::is_set( $setting ) )
 		{
-			if( !$cloned )
-			{
-				$field = $field->clone;
-				$cloned = 1;
-			}	
+			if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
 			$field->set_property( $prop, $setting );
+		}
+	}
+	foreach my $child ( $xml->getChildNodes )
+	{
+		if( $xml->nodeName ne "help" )
+		{
+			if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
+			$field->set_property( 
+				"help_xhtml", 
+				EPrints::XML::contents_of( $child ) );
 		}
 	}
 

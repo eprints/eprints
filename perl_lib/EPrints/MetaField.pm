@@ -370,60 +370,23 @@ sub display_name
 ######################################################################
 =pod
 
-=item $helpstring = $field->display_help( $session, [$type] )
-
-Use of this method is not recommended. Use render_help instead.
-
-Return the help information for a user inputing some data for this
-field as a UTF-8 encoded string in the language of the $session.
-
-If an optional type is specified then specific help for that
-type will be used if available. Otherwise the normal help will be
-used.
-
-=cut
-######################################################################
-
-sub display_help
-{
-	my( $self, $session, $type ) = @_;
-
-	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
-
-	if( defined $type && $session->get_lang->has_phrase( $phrasename.".".$type ) )
-	{	
-		return $session->phrase( $phrasename.".".$type );
-	}
-
-	return $session->phrase( $phrasename );
-}
-
-######################################################################
-=pod
-
-=item $xhtml = $field->render_help( $session, [$type] )
+=item $xhtml = $field->render_help( $session )
 
 Return the help information for a user inputing some data for this
 field as an XHTML chunk.
-
-If an optional type is specified then specific help for that
-type will be used if available. Otherwise the normal help will be
-used. Eg. help for the title of a book may have different examples to
-the default help for the title field.
 
 =cut
 ######################################################################
 
 sub render_help
 {
-	my( $self, $session, $type ) = @_;
+	my( $self, $session ) = @_;
 
-	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
-
-	if( defined $type && $session->get_lang->has_phrase( $phrasename.".".$type ) )
-	{	
-		return $session->html_phrase( $phrasename.".".$type );
+	if( defined $self->{help_xhtml} )
+	{
+		return $self->{help_xhtml};
 	}
+	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
 
 	return $session->html_phrase( $phrasename );
 }
@@ -2268,6 +2231,7 @@ sub get_property_defaults
 		type 		=> $EPrints::MetaField::REQUIRED,
 		sub_name	=> $EPrints::MetaField::UNDEF,
 		parent_name	=> $EPrints::MetaField::UNDEF,
+		help_xhtml	=> $EPrints::MetaField::UNDEF,
 );
 }
 		

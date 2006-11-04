@@ -527,5 +527,19 @@ sub is_empty
 	return !$node->hasChildNodes();
 }
 
+sub contents_of
+{
+	my( $node ) = @_;
+
+	my $doc = $node->ownerDocument;
+	my $f = $doc->createDocumentFragment;
+	foreach my $c ( $node->getChildNodes )
+	{
+		$node->removeChild( $c );
+		$f->appendChild( $c );
+	}
+
+	return $f;
+}
 
 1;
