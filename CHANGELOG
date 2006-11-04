@@ -4993,3 +4993,10 @@ PACKAGE: 2.2.99.2
 2006-11-03 cjg
  * Indexer now cleans up suicide file when it starts.
  * Indexer stop now tries the suicide file approach before trying kill.
+
+2006-11-04 cjg
+ * Workflow can now override help for a field.
+ * Removed type-based help.
+ * New XML utility method: contents_of which returns the children of a
+    node in a doc fragment.
+
