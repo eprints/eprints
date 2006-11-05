@@ -74,7 +74,7 @@ sub tags_and_labels
 sub tags
 {
 	my( $self, $session ) = @_;
-
+	EPrints::abort( "no options in tags()" ) if( !defined $self->{options} );
 	return @{$self->{options}};
 }
 

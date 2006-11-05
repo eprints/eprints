@@ -57,6 +57,20 @@ sub render_single_value
 		$self->get_property( "top" ) );
 }
 
+sub render_option
+{
+	my( $self, $session, $option ) = @_;
+
+	if( defined $self->get_property("render_option") )
+	{
+		return $self->call_property( "render_option", $session, $option );
+	}
+
+	my $subject = new EPrints::DataObj::Subject( $session, $option );
+
+	return $subject->render_description;
+}
+
 ######################################################################
 =pod
 
@@ -266,6 +280,13 @@ sub get_values
 		push @outvalues, $pair->[0];
 	}
 	return \@outvalues;
+}
+
+sub tags
+{
+	my( $self, $session ) = @_;
+
+	return @{$self->get_values( $session )};
 }
 
 ######################################################################
