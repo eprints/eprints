@@ -789,7 +789,7 @@ sub get_input
 		print wrap_text( $prompt, 'console' );
 
 		my $in = Term::ReadKey::ReadLine(0);
-		chomp $in;
+		$in =~ s/\015?\012?$//s;
 		if( $in eq "" && defined $default )
 		{
 			return $default;
@@ -832,7 +832,7 @@ sub get_input_hidden
 		Term::ReadKey::ReadMode('noecho');
 		my $in = Term::ReadKey::ReadLine( 0 );
 		Term::ReadKey::ReadMode('normal');
-		chomp $in;
+		$in =~ s/\015?\012?$//s;
 		print "\n";
 
 		if( $in eq "" && defined $default )

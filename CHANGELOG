@@ -5011,3 +5011,6 @@ PACKAGE: 2.2.99.2
 2006-11-06 cjg
  * Saved search workflows now are in the generic lib config, not part of the
     repository.
+
+2006-11-06 tdb
+ * Modified get_input and get_input_hidden to remove return as well - #2581
