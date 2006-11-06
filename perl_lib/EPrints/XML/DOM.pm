@@ -40,6 +40,7 @@ $EPrints::XML::PREFIX = "XML::DOM::";
 
 # DOM spec fixes
 *XML::DOM::Document::documentElement = \&XML::DOM::Document::getDocumentElement;
+*XML::DOM::Node::ownerDocument = \&XML::DOM::Node::getOwnerDocument;
 *XML::DOM::Node::attributes = sub { shift->getAttributes(@_) };
 *XML::DOM::Node::nodeName = sub { shift->getNodeName(@_) };
 *XML::DOM::Node::nodeValue = sub { shift->getNodeValue(@_) };

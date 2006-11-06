@@ -5014,3 +5014,4 @@ PACKAGE: 2.2.99.2
 
 2006-11-06 tdb
  * Modified get_input and get_input_hidden to remove return as well - #2581
+ * Added ownerDocument to XML::DOM compatibility
