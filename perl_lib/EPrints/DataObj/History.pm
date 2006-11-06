@@ -356,7 +356,7 @@ sub render
 		$pins{item} = $self->{session}->make_doc_fragment;
 		$pins{item}->appendChild( $obj->render_description );
 		$pins{item}->appendChild( $self->{session}->make_text( " (" ) );
- 		my $a = $self->{session}->render_link( $obj->get_url( 1 ) );
+ 		my $a = $self->{session}->render_link( $obj->get_control_url );
 		$pins{item}->appendChild( $a );
 		$a->appendChild( $self->{session}->make_text( $self->get_value( "datasetid" )." ".$self->get_value("objectid" ) ) );
 		$pins{item}->appendChild( $self->{session}->make_text( " r".$self->get_value( "revision" ) ) );

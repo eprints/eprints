@@ -1010,7 +1010,8 @@ Titles and Help for the System Fields
 
 
     <epp:phrase id="Plugin/Screen/NewUser:blurb"><p>Create a new user account.</p></epp:phrase>
-    <epp:phrase id="Plugin/Screen/NewUser:title">Create a new user</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:title">Create user</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:description">Create a new user account</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:create">Create User</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:cancel">Cancel</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:no_username">No username entered!</epp:phrase>
@@ -1137,10 +1138,11 @@ Titles and Help for the System Fields
     <!-- SavedSearch screens -->
 
     <epp:phrase id="Plugin/Screen/User/SavedSearches:title">Saved searches</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearches:description">View and configure saved searches</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:intro"><p>You may view your saved searches and request to recieve a periodic email update if anything in the search changes.</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:no_subs"><p>You currently have no saved searches.</p></epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:title">Change settings</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:title">Settings</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:save">Save changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:cancel">Cancel</epp:phrase>
     <epp:phrase id="saved_search_mail">Email alert</epp:phrase>

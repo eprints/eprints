@@ -46,4 +46,6 @@ sub chmod { return &{$real_module."::chmod"}( @_ ); }
 
 sub chown { return &{$real_module."::chown"}( @_ ); }
 
+sub test_uid { return &{$real_module."::test_uid"}( @_ ); }
+
 1;

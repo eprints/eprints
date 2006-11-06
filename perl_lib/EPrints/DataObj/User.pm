@@ -790,7 +790,7 @@ sub render_full
 ######################################################################
 =pod
 
-=item $url = $user->get_url( [$staff] )
+=item $url = $user->get_url
 
 Return the URL which will display information about this user.
 
@@ -802,17 +802,18 @@ and modify this record.
 
 sub get_url
 {
-	my( $self , $staff ) = @_;
+	my( $self ) = @_;
 
-	if( defined $staff && $staff )
-	{
-		return $self->{session}->get_repository->get_conf( "perl_url" )."/users/staff/view_user?userid=".$self->get_value( "userid" );
-
-	}
-
-	return $self->{session}->get_repository->get_conf( "perl_url" )."/user?userid=".$self->get_value( "userid" );
+	return $self->{session}->get_repository->get_conf( "perl_url" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
 }
 
+sub get_control_url
+{
+	my( $self ) = @_;
+
+	return $self->{session}->get_repository->get_conf( "perl_url" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+}
+	
 
 ######################################################################
 =pod

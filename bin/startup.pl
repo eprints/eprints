@@ -43,10 +43,6 @@ END
 #
 ######################################################################
 
-## Apache::DBI MUST come before other modules using DBI or
-## you won't get constant connections and everything
-## will go horribly wrong...
-
 use Carp qw(verbose);
 
 $ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );

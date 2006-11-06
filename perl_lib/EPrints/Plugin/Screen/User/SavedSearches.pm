@@ -17,6 +17,10 @@ sub new
 		{
 			place => "key_tools",
 			position => 300,
+		},
+		{
+			place => "user_actions",
+			position => 200,
 		}
 	];
 
@@ -66,19 +70,24 @@ sub render_saved_search_list
 		style => "margin-bottom: 12pt",
 		cellpadding => 4,
 		cellspacing => 0,
-		border => 1 );
+		border => 0 );
 	$page->appendChild( $table );
-	foreach my $saved_search ( @saved_searches )
+	foreach my $saved_search ( sort { $a->get_value( "id" ) <=> $b->get_value( "id" ) } @saved_searches )
 	{
 		$self->{processor}->{savedsearchid} = $saved_search->get_id;
 		$self->{processor}->{savedsearch} = $saved_search;
-		my $screen = $self->{session}->plugin( 
-			"Screen::User::SavedSearch::View",
-			processor=>$self->{processor} );
-		$page->appendChild( 
-			$session->render_toolbox( 
-				$saved_search->render_value( "spec" ),
-				$screen->render ) );
+		my $screen = $self->{session}->plugin(
+				"Screen::User::SavedSearch::View",
+				processor=>$self->{processor} );
+
+		my $tr = $session->make_element( "tr" );
+		my $th = $session->make_element( "th" );
+		my $td = $session->make_element( "td" );
+		$table->appendChild( $tr );
+		$tr->appendChild( $th );
+		$tr->appendChild( $td );
+		$th->appendChild( $saved_search->render_citation( "default" ) );
+		$td->appendChild( $screen->render_action_list_bar( "saved_search_actions", ['userid','savedsearchid'] ) );
 	}
 	
 	return $page;

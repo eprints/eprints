@@ -58,6 +58,7 @@ sub workflow
 	{
 		my %opts = ( 
 			item => $self->{processor}->{savedsearch},
+			search_description=>[$self->{processor}->{savedsearch}->render_value( "spec" ),"XHTML"],
 			session => $self->{session} );
 		if( $staff ) { $opts{STAFF_ONLY} = ["TRUE","BOOLEAN"]; }
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( 
@@ -90,7 +91,7 @@ sub register_furniture
 	$self->SUPER::register_furniture;
 
 	my $h3 = $self->{session}->make_element( "h3", style=>"margin: 0px" );
-	$h3->appendChild( $self->{processor}->{savedsearch}->render_value( "spec" ) );
+	$h3->appendChild( $self->{processor}->{savedsearch}->render_description );
 
 	$self->{processor}->before_messages( $h3 );
 }

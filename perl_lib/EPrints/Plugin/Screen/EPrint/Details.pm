@@ -124,14 +124,23 @@ sub render
 			my $td = $session->make_element( "td", class=>"ep_row" );
 			$tr->appendChild( $td );
 
-			my $url = "?eprintid=".$eprint->get_id."&screen=".$self->edit_screen_id."&stage=$stage&docid=".$doc->get_id."#documents";
-			my $a = $session->render_link( $url );
-			$a->appendChild( $doc->render_description );
-			$th->appendChild( $session->html_phrase( 
-				"lib/dataobj:document_title",
-				doc=>$a ) );
+			if( defined $stage )
+			{
+				my $url = "?eprintid=".$eprint->get_id."&screen=".$self->edit_screen_id."&stage=$stage&docid=".$doc->get_id."#documents";
+				my $a = $session->render_link( $url );
+				$a->appendChild( $doc->render_description );
+				$th->appendChild( $session->html_phrase( 
+					"lib/dataobj:document_title",
+					doc=>$a ) );
+			}
+			else
+			{
+				$th->appendChild( $session->html_phrase( 
+					"lib/dataobj:document_title",
+					doc=>$doc->render_description ) );
+			}
+			
 	
-			$th->appendChild( $a );
 			
 			my %files = $doc->files;	
 			my @list = (

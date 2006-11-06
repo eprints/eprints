@@ -345,14 +345,20 @@ while( 1 )
 	$p->{kid} = fork();
 	if( $p->{kid} == 0 )
 	{
-		setsid or die "Unable to start session: $!\n";
+		setsid or die "Unable to start UNIX setsid session: $!\n";
 		my @sessions = ();
 		my @arc_ids = EPrints::Config::get_repository_ids();
 		foreach my $arc_id ( sort @arc_ids )
 		{
 			my $repository = EPrints::Repository->new( $arc_id );
 			next unless $repository->get_conf( "index" );
-			push @sessions, new EPrints::Session( 1 , $arc_id );
+			my $session = new EPrints::Session( 1 , $arc_id );
+			if( !defined $session )
+			{
+				EPrints::Index::indexlog( "!! Could not open session for $arc_id" );
+				next;
+			}
+			push @sessions, $session;
 		}
 
 		$SIG{TERM} = sub { 

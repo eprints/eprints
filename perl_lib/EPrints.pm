@@ -5,6 +5,8 @@ use EPrints::SystemSettings;
 BEGIN {
 	use Carp qw(cluck);
 
+	use EPrints::Platform;
+
 	umask( 0002 );
 
 	# mod_perl will probably be running as root for the main httpd.
@@ -12,30 +14,14 @@ BEGIN {
 	# in $EPrints::SystemSettings
 	# An exception to this is running as root (uid==0) in which case
 	# we can become the required user.
-	if( ! $ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER}) 
+	if( !$ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER}) 
 	{
-		#my $req($login,$pass,$uid,$gid) = getpwnam($user)
-		my $req_username = $EPrints::SystemSettings::conf->{user};
-		my $req_group = $EPrints::SystemSettings::conf->{group};
-		my $req_uid = (getpwnam($req_username))[2];
-		my $req_gid = (getgrnam($req_group))[2];
-
-		my $username = (getpwuid($>))[0];
-
-		if( $username ne $req_username )
-		{
-			abort( 
-"We appear to be running as user: ".$username."\n".
-"We expect to be running as user: ".$req_username );
-		}
-		# otherwise ok.
+		EPrints::Platform::test_uid();
 	}
 
 	if( $ENV{MOD_PERL} )
 	{
 		eval '
-use Apache::DBI; # must be first!
-#$Apache::DBI::DEBUG = 3;
 use EPrints::Apache::AnApache;
 use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
@@ -131,7 +117,6 @@ END
 }
 
 use EPrints::BackCompatibility;
-use EPrints::Platform;
 use EPrints::XML;
 use EPrints::Utils;
 use EPrints::Config;

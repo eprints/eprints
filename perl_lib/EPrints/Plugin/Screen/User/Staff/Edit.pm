@@ -18,7 +18,7 @@ sub new
 	$self->{appears} = [
 		{
 			place => "user_actions",
-			position => 100,
+			position => 1000,
 		}
 	];
 

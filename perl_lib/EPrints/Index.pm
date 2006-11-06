@@ -726,7 +726,6 @@ setsid or die "Can't start a new session: \$!";
 \$ENV{EPRINTS_NO_CHECK_USER} = 1;
 exec( "$bin_path", "$action" );
 END
-	print STDERR $prog;
 	$session->get_request->spawn_proc_prog( $EPrints::SystemSettings::conf->{executables}->{perl},
 		["-e", $prog ] );
 

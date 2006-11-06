@@ -11,7 +11,13 @@ my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
 my $q = $session->param( "q" );
 
-my $sql = "select distinct creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid WHERE eprint.eprint_status = 'archive' AND creators_name_family LIKE '".EPrints::Database::prep_like_value($q)."\%' ORDER BY creators_name_family,creators_name_given LIMIT 40" ;
+my $sql = "
+SELECT count(eprint.eprintid),creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid 
+WHERE eprint.eprint_status = 'archive' AND creators_name_family LIKE '".EPrints::Database::prep_like_value($q)."\%' 
+GROUP BY creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id 
+ORDER BY count(eprint.eprintid) DESC,creators_name_family,creators_name_given 
+LIMIT 40
+";
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -22,7 +28,7 @@ END
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
 my $first = 1;
-while( my( $h,$g,$f,$l,$id ) = $sth->fetchrow_array )
+while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
 {
 	if( $first )
 	{
@@ -35,7 +41,7 @@ while( my( $h,$g,$f,$l,$id ) = $sth->fetchrow_array )
 	}
 	print "$h $g $f $l"; 
 	if( defined $id ) { print " ($id)"; }
-	print "<small>(author of a paper in this repository)</small>";
+	print " <small>(author of ".$cnt." item".($cnt>1?"s":"")." in this repository)</small>";
 	print "<ul>";
 	print "<li id='for:value:relative:_name_family'>$f</li>";
 	print "<li id='for:value:relative:_name_given'>$g</li>";

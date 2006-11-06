@@ -65,6 +65,8 @@ sub process
 			screen=>$self->{session}->make_text( $self->{screenid} ) ) );
 		$self->{screenid} = "Error";
 	}
+
+	# XHTML or special format?
 	
 	$self->screen->register_furniture;
 

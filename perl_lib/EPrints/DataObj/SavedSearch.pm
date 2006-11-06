@@ -168,7 +168,7 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $id = $session->get_database->counter_next( "saved_search_id" );
+	my $id = $session->get_database->counter_next( "savedsearchid" );
 
 	$data->{id} = $id;
 	$data->{frequency} = 'never';

@@ -716,7 +716,7 @@ sub render_citation_link
 {
 	my( $self , $style , %params ) = @_;
 
-	$params{url} = $self->get_url( 0 );
+	$params{url} = $self->get_url;
 	
 	return $self->render_citation( $style, %params );
 }
@@ -725,7 +725,7 @@ sub render_citation_link_staff
 {
 	my( $self , $style , %params ) = @_;
 
-	$params{url} = $self->get_url( 1 );
+	$params{url} = $self->get_control_url;
 	
 	return $self->render_citation( $style, %params );
 }
@@ -843,7 +843,7 @@ of an eprint.
 
 sub get_url
 {
-	my( $self , $staff ) = @_;
+	my( $self ) = @_;
 
 	return "EPrints::DataObj::get_url should have been over-ridden.";
 }

@@ -5013,7 +5013,7 @@ PACKAGE: 2.2.99.2
     repository.
 
 2006-11-06 tdb
- * Modified get_input and get_input_hidden to remove return as well
+ * Modified get_input and get_input_hidden to remove return (CR) as well
  * Added ownerDocument to XML::DOM compatibility
  * Removed AuthDBI from requirements (unused?)
  * Added copy() to EPrints::Utils to copy files from one location to another
@@ -5023,3 +5023,23 @@ PACKAGE: 2.2.99.2
 
 2006-11-06 cjg
  * Reworked parser in Import::DefaultXML to be more SAXY.
+
+2006-11-06 cjg
+ * Moved testing the correct UID into the Platform module because it won't
+    work on all platforms.
+ * Changed $dataobj->get_url( 1 ) to dataobj->get_control_url.
+ * Fixed bug in getting new ids for saved searches.
+ * Removed debug code from index-stopping-screen
+ * Citations now can have /lib level ones as well as repository specific.
+ * Fixed bug in edit-linking documents in Details.pm
+ * Moved the administer user action to the bottom of the list.
+ * Added the description of the search as a parameter to the savedsearch 
+    workflow.
+ * Added a default citation for saved searches.
+ * Removed extra info at the top of the run-saved-search page.
+ * Name-Ajax-autocomplete now orders by number of eprints the name appaers
+    on.
+ * Removed unused coverimage code in eprint_render.pl
+ * The last vestages of Apache::AuthDBI have been swept away.
+ * Added label to user_radio_hideemail.
+ * Added warning to indexer if a single session fails to start.

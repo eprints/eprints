@@ -327,7 +327,19 @@ sub _load_citation_specs
 {
 	my( $self ) = @_;
 
-	my $dir = $self->get_conf( "config_path" )."/citations";
+	$self->{cstyles} = {};
+	$self->_load_citation_dir( 
+		$self->get_conf( "config_path" )."/citations",
+		$self->{cstyles} );
+	$self->_load_citation_dir( 
+		$self->get_conf( "lib_path" )."/citations",
+		$self->{cstyles} );
+}
+
+sub _load_citation_dir
+{
+	my( $self, $dir, $data ) = @_;
+
 	my $dh;
 	opendir( $dh, $dir );
 	my @dirs = ();
@@ -338,7 +350,6 @@ sub _load_citation_specs
 	}
 	close $dh;
 
-	$self->{cstyles} = {};
 	# for each dataset dir
 	foreach my $dsid ( @dirs )
 	{
@@ -351,10 +362,14 @@ sub _load_citation_specs
 			push @files,$fn;
 		}
 		close $dh;
-		$self->{cstyles}->{$dsid} = {};
+		if( !defined $data->{$dsid} )
+		{
+			$data->{$dsid} = {};
+		}
 		foreach my $file ( @files )
 		{
-			$self->{cstyles}->{$dsid}->{$file} = 
+			next if defined ( $data->{$dsid}->{$file} );
+			$data->{$dsid}->{$file} = 
 				$self->_parse_citation_file( "$dir/$dsid/$file.xml" );
 		}
 	}

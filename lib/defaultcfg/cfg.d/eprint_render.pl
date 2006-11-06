@@ -68,20 +68,6 @@ $c->{eprint_render} = sub
 
 	my $docs_to_show = scalar @documents;
 
-	# look for any coverimage document
-	foreach( @documents )
-	{
-		next unless ( $_->get_value( "format" ) eq "coverimage" );
-
-		$page->appendChild( $session->make_element(
-			"img",
-			align=>"left",
-			style=>"padding-right: 0.5em; padding-bottom: 0.5em;",
-			src=>$_->get_url(),
-			alt=>$_->get_value( "formatdesc" ) ) );
-		--$docs_to_show;	
-	}
-
 	$p = $session->make_element( "p" );
 	$page->appendChild( $p );
 
@@ -108,8 +94,6 @@ $c->{eprint_render} = sub
 
 		foreach my $doc ( @documents )
 		{
-			next if( $doc->get_value( "format" ) eq "coverimage" );
-	
 			$doctr = $session->make_element( "tr" );
 	
 			$doctd = $session->make_element( "td" );

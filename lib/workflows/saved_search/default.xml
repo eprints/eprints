@@ -7,6 +7,7 @@
   </flow>
    
   <stage name="default">
+    <component type="XHTML" surround="None"><p><epc:print expr="$search_description" /></p></component>
     <component type="Field::Multi">
       <title><epc:phrase ref="saved_search_mail" /></title>
       <field ref="frequency"/>

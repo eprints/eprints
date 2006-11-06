@@ -22,7 +22,7 @@
 
     <epp:phrase id="user_fieldname_hideemail">Hide Email</epp:phrase>
     <epp:phrase id="user_fieldhelp_hideemail">This option allows or prevents a users email being shown on their public summary page.</epp:phrase>
-    <epp:phrase id="user_radio_hideemail"><epc:pin name="false"/>Make email visible to all.<br/><epc:pin name="true"/>Hide email to all except repository administrators.</epp:phrase>
+    <epp:phrase id="user_radio_hideemail"><label><epc:pin name="false"/> Make email visible to all.</label><br/><label><epc:pin name="true"/> Hide email to all except repository administrators.</label></epp:phrase>
 
 
     <epp:phrase id="user_fieldname_dept">Department</epp:phrase>

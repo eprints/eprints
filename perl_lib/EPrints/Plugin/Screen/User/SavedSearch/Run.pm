@@ -40,19 +40,6 @@ sub render
 	
 	my $ds = $self->{processor}->{savedsearch}->get_dataset;
 
-	foreach my $fid ( "frequency","mailempty","public" )
-	{
-		next unless $self->{processor}->{savedsearch}->is_set( $fid );
-		my $strong = $session->make_element( "strong" );
-		$strong->appendChild( $ds->get_field( $fid )->render_name( $session ) );
-		$strong->appendChild( $session->make_text( ": ") );
-		$page->appendChild( $strong );
-		$page->appendChild( $self->{processor}->{savedsearch}->render_value( $fid ) );
-		$page->appendChild( $session->make_text( ". ") );
-	}
-
-	$page->appendChild( $self->render_action_list_bar( "saved_search_actions", ['userid','savedsearchid'] ) );
-
 	my $spec = $self->{processor}->{savedsearch}->get_value( 'spec' );
 	my $search = $ds->get_field( "spec" )->make_searchexp( $session, $spec );
 	my $list = $search->perform_search;
