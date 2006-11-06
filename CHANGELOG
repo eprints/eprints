@@ -5020,6 +5020,8 @@ PACKAGE: 2.2.99.2
     in a cross-platform compatible manner
  * Removed file-handle based copying
  * Replaced all chomp()s with s/\015?\012?$/s
+ * XML::LibXML::Element doesn't copy attributes on cloneNode, fixed in
+    compatibility module
 
 2006-11-06 cjg
  * Reworked parser in Import::DefaultXML to be more SAXY.

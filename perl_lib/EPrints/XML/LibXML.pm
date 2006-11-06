@@ -60,6 +60,15 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 *XML::LibXML::DocumentFragment::getElementsByTagName =
 	\&XML::LibXML::Element::getElementsByLocalName;
 
+# Element::cloneNode should copy attributes too
+*XML::LibXML::Element::cloneNode = sub {
+		my( $self, $deep ) = @_;
+		my $node = XML::LibXML::Node::cloneNode( @_ );
+		return $node if $deep;
+		$node->setAttribute( $_->nodeName, $_->value ) for $self->attributes();
+		return $node;
+	};
+
 # LibXML doesn't set a root element on $doc->appendChild (unused, but could
 # cause problems)
 *XML::LibXML::Document::appendChild = sub {
