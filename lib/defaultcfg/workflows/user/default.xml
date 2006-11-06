@@ -31,7 +31,7 @@
     </component>
 
     <component type="Field::Multi">
-      <title><epc:phrase ref="user_prefs" /></title>
+      <title><epc:phrase ref="user_section_prefs" /></title>
       <field ref="items_fields"/>
       <epc:if test="usertype = 'editor' or usertype = 'admin'"><field ref="review_fields" /></epc:if>
     </component>

@@ -100,22 +100,18 @@ sub render
 	}
 	$chunk->appendChild( $filter_div );		
 
-
 	my $table = $self->{session}->make_element( "table", cellspacing=>0, width => "100%" );
 	my $tr = $self->{session}->make_element( "tr", class=>"header_plain" );
 	$table->appendChild( $tr );
 
-	my $th = $self->{session}->make_element( "th" );
-	$th->appendChild( $ds->get_field( "eprint_status" )->render_name( $self->{session} ) );
-	$tr->appendChild( $th );
-
-	$th = $self->{session}->make_element( "th" );
-	$th->appendChild( $ds->get_field( "lastmod" )->render_name( $self->{session} ) );
-	$tr->appendChild( $th );
-
-	$th = $self->{session}->make_element( "th" );
-	$th->appendChild( $ds->get_field( "title" )->render_name( $self->{session} ) );
-	$tr->appendChild( $th );
+	# Columns displayed according to user preference
+	my $cols = $self->{session}->current_user->get_value( "items_fields" );
+	for( @$cols )
+	{
+		my $th = $self->{session}->make_element( "th" );
+		$th->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
+		$tr->appendChild( $th );
+	}
 
 	my %opts = (
 		params => {
@@ -143,22 +139,16 @@ sub render
 			if( $status eq "deletion" ) { $style="background-color: #ccc;"; }
 			$style.=" border-bottom: 1px solid #888; padding: 4px;";
 
-			my $td;
+			my $cols = $self->{session}->current_user->get_value( "items_fields" );
+			for( @$cols )
+			{
+				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
+				$tr->appendChild( $td );
+				my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Owner" );
+				$td->appendChild( $a );
+				$a->appendChild( $e->render_value( $_ ) );
+			}
 
-			$td = $session->make_element( "td", style=>$style." text-align: center;  border-right: 1px dashed #ccc;" );
-			$tr->appendChild( $td );
-			$td->appendChild( $e->render_value( "eprint_status" ) );
-
-			$td = $session->make_element( "td", style=>$style."  border-right: 1px dashed #ccc;" );
-			$tr->appendChild( $td );
-			$td->appendChild( $e->render_value( "lastmod" ) );
-
-			$td = $session->make_element( "td", style=>$style );
-			$tr->appendChild( $td );
-			my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Owner" );
-			$a->appendChild( $e->render_description() );
-			$td->appendChild( $a );
-			
 			return $tr;
 		},
 	); 

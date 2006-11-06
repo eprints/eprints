@@ -5043,3 +5043,6 @@ PACKAGE: 2.2.99.2
  * The last vestages of Apache::AuthDBI have been swept away.
  * Added label to user_radio_hideemail.
  * Added warning to indexer if a single session fails to start.
+
+2006-11-06 tmb
+ * Columns in Items and Editorial Screens now displayed according to user preference

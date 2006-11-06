@@ -91,18 +91,16 @@ sub render
 	my $table = $self->{session}->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, width=>"100%" );
 	my $tr = $self->{session}->make_element( "tr", class=>"header_plain" );
 	$table->appendChild( $tr );
-	
-	my $th = $self->{session}->make_element( "th" );
-	$th->appendChild( $self->{session}->html_phrase( "cgi/users/buffer:title" ) );
-	$tr->appendChild( $th );
 
-	$th = $self->{session}->make_element( "th" );
-	$th->appendChild( $self->{session}->html_phrase( "cgi/users/buffer:sub_by" ) );
-	$tr->appendChild( $th );
-
-	$th = $self->{session}->make_element( "th" );
-	$th->appendChild( $self->{session}->html_phrase( "cgi/users/buffer:sub_date" ) );
-	$tr->appendChild( $th );
+	# Columns displayed according to user preference
+	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
+	my $cols = $self->{session}->current_user->get_value( "review_fields" );
+	for( @$cols )
+	{
+		my $th = $self->{session}->make_element( "th" );
+		$th->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
+		$tr->appendChild( $th );
+	}
 	
 	my $info = {row => 1};
 	my %opts = (
@@ -120,39 +118,24 @@ sub render
 
 			my $tr = $session->make_element( "tr", class=>"row_".($info->{row}%2?"b":"a") );
 
-			# Title
-			my $td = $session->make_element( "td", class=>"first_col" );
-			$tr->appendChild( $td );
-			my $link = $session->render_link( "?screen=EPrint::View::Editor&eprintid=".$e->get_value("eprintid") );
-			$link->appendChild( $e->render_description() );
-			$td->appendChild( $link );
-		
-			# Link to user
-			my $user = new EPrints::User( $session, $e->get_value( "userid" ) );
-		
-			$td = $session->make_element( "td", class=>"middle_col" );
-			$tr->appendChild( $td );
-			if( defined $user )
+			my $style = "border-bottom: 1px solid #888; padding: 4px;";
+
+			my $cols = $self->{session}->current_user->get_value( "review_fields" );
+			for( @$cols )
 			{
-				$td->appendChild( $user->render_citation );
+				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
+				$tr->appendChild( $td );
+				my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Editor" );
+				$td->appendChild( $a );
+				$a->appendChild( $e->render_value( $_ ) );
 			}
-			else
-			{
-				$td->appendChild( $session->html_phrase( "cgi/users/buffer:invalid" ) );
-			}
-	
-			my $buffds = $session->get_repository->get_dataset( "buffer" );	
-		
-			$td = $session->make_element( "td", class=>"last_col" );
-			$tr->appendChild( $td );
-			$td->appendChild( $buffds->get_field( "status_changed" )->render_value( $session, $e->get_value( "status_changed" ) ) );
+
 			++$info->{row};
 
 			return $tr;
 		},
 	);
 	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, $basename, $list, %opts ) );
-
 
 	return $page;
 }

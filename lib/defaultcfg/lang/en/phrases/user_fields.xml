@@ -43,6 +43,14 @@
     <epp:phrase id="user_fieldname_expertise">Expertise</epp:phrase>
     <epp:phrase id="user_fieldhelp_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</epp:phrase>
 
+    <epp:phrase id="user_section_prefs">User Preferences</epp:phrase>
+
+    <epp:phrase id="user_fieldname_items_fields">Items Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the Items page.</epp:phrase>
+
+    <epp:phrase id="user_fieldname_review_fields">Editorial Review Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_review_fields">The fields shown for each item on the Editorial Review page.</epp:phrase>
+
     <epp:phrase id="user_typename_minuser">Minimal User</epp:phrase>
     <epp:phrase id="user_typename_user">User</epp:phrase>
     <epp:phrase id="user_typename_editor">Editor</epp:phrase>
