@@ -275,7 +275,10 @@ sub copy_plain
 {
 	my( $session, $from, $to ) = @_;
 
-	return EPrints::Utils::copy( $from, $to );
+	if( !EPrints::Utils::copy( $from, $to ) )
+	{
+		EPrints::abort( "Can't copy $from to $to: $!" );
+	}
 }
 
 sub copy_xpage
