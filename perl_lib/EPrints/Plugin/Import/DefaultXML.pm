@@ -24,7 +24,6 @@ sub new
 
 	$self->{name} = "Default XML";
 	$self->{visible} = "";
-	$self->{tmpfiles} = [];
 	#$self->{produce} = [ 'list/*', 'dataobj/*' ];
 
 	return $self;
@@ -48,25 +47,48 @@ sub input_list
 {
 	my( $plugin, %opts ) = @_;
 
+	my $handler = {
+		dataset => $opts{dataset},
+		state => 'toplevel',
+		plugin => $plugin,
+		depth => 0,
+		tmpfiles => [],
+		imported => [], };
+	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
+
+	EPrints::XML::parse_fh_with_handler( $opts{fh}, $handler );
+
+	return EPrints::List->new(
+			dataset => $opts{dataset},
+			session => $plugin->{session},
+			ids => $handler->{imported} );
+}
+
+sub EPrints::XML::parse_fh_with_handler
+{
+	my( $fh, $handler ) = @_;	
+	
         my $parser = new XML::Parser(
                 Style => "Subs",
                 ErrorContext => 5,
                 Handlers => {
-                        Start => \&_handle_start,
-                        End => \&_handle_end,
-                        Char => \&_handle_char
+                        Start => sub { 
+				my( $p, $v, %a ) = @_; 
+				my $attr = {};
+				foreach my $k ( keys %a ) { $attr->{$k} = { Name=>$k, Value=>$a{$k} }; }
+				$handler->start_element( { Name=>$v, Attributes=>$attr } );
+			},
+                        End => sub { 
+				my( $p, $v ) = @_; 
+				$handler->end_element( { Name=>$v } );
+			},
+                        Char => sub { 
+				my( $p, $data ) = @_; 
+				$handler->characters( { Data=>$data } );
+			},
                 } );
-	$parser->{eprints}->{dataset} = $opts{dataset};
-	$parser->{eprints}->{state} = 'toplevel';
-	$parser->{eprints}->{plugin} = $plugin;
-	$parser->{eprints}->{depth} = 0;
-	$parser->{eprints}->{imported} = [];
-	$parser->parse( $opts{fh} );
 
-	return EPrints::List->new(
-			dataset=>$opts{dataset},
-			session=>$plugin->{session},
-			ids=>$parser->{eprints}->{imported} );
+	$parser->parse( $fh );
 }
 
 sub xml_to_dataobj
@@ -120,102 +142,116 @@ sub xml_to_text
 	return $r;
 }
 
-sub _handle_char
+
+
+package EPrints::Plugin::Import::DefaultXML::Handler;
+
+use strict;
+
+sub characters
 {
-        my( $parser , $text ) = @_;
-                                                                                                                                                             
-	if( $parser->{eprints}->{depth} > 1 )
+        my( $self , $node_info ) = @_;
+
+	if( $self->{depth} > 1 )
 	{
-		if( $parser->{eprints}->{base64} )
+		if( $self->{base64} )
 		{
-			push @{$parser->{eprints}->{base64data}}, $text;
+			push @{$self->{base64data}}, $node_info->{Data};
 		}
 		else
 		{
-			$parser->{eprints}->{xmlcurrent}->appendChild( $parser->{eprints}->{plugin}->{session}->make_text( $text ) );
+			$self->{xmlcurrent}->appendChild( $self->{plugin}->{session}->make_text( $node_info->{Data} ) );
 		}
 	}
 }
 
-sub _handle_end
+sub end_element
 {
-        my( $parser , $tag , %params ) = @_;
+        my( $self , $node_info ) = @_;
 
-	$parser->{eprints}->{depth}--;
+	$self->{depth}--;
 
-	if( $parser->{eprints}->{depth} == 1 )
+	if( $self->{depth} == 1 )
 	{
-		my $item = $parser->{eprints}->{plugin}->xml_to_dataobj( $parser->{eprints}->{dataset}, $parser->{eprints}->{xml} );
+		my $item = $self->{plugin}->xml_to_dataobj( $self->{dataset}, $self->{xml} );
 
 		if( defined $item )
 		{
-			push @{$parser->{eprints}->{imported}}, $item->get_id;
+			push @{$self->{imported}}, $item->get_id;
 		}
 
 		# don't keep tmpfiles between items...
-		foreach( @{$parser->{eprints}->{plugin}->{tmpfiles}} )
+		foreach( @{$self->{tmpfiles}} )
 		{
 			unlink( $_ );
 		}
 	}
 
-	if( $parser->{eprints}->{depth} > 1 )
+	if( $self->{depth} > 1 )
 	{
-		if( $parser->{eprints}->{base64} )
+		if( $self->{base64} )
 		{
-			$parser->{eprints}->{base64} = 0;
-			my $tf = $parser->{eprints}->{tmpfiles}++;
+			$self->{base64} = 0;
+			my $tf = $self->{tmpfilecount}++;
 			my $tmpfile = "/tmp/epimport.$$.".time.".$tf.data";
-			$parser->{eprints}->{tmpfile} = $tmpfile;
-			push @{$parser->{eprints}->{plugin}->{tmpfiles}},$tmpfile;
+			$self->{tmpfile} = $tmpfile;
+			push @{$self->{tmpfiles}},$tmpfile;
 			open( TMP, ">$tmpfile" );
-			print TMP MIME::Base64::decode( join('',@{$parser->{eprints}->{base64data}}) );
+			print TMP MIME::Base64::decode( join('',@{$self->{base64data}}) );
 			close TMP;
 
-			$parser->{eprints}->{xmlcurrent}->appendChild( 
-				$parser->{eprints}->{plugin}->{session}->make_text( $tmpfile ) );
-			delete $parser->{eprints}->{basedata};
+			$self->{xmlcurrent}->appendChild( 
+				$self->{plugin}->{session}->make_text( $tmpfile ) );
+			delete $self->{basedata};
 		}
-		pop @{$parser->{eprints}->{xmlstack}};
+		pop @{$self->{xmlstack}};
 		
-		$parser->{eprints}->{xmlcurrent} = $parser->{eprints}->{xmlstack}->[-1]; # the end!
+		$self->{xmlcurrent} = $self->{xmlstack}->[-1]; # the end!
 	}
 
 }
-sub _handle_start
-{
-        my( $parser , $tag , %params ) = @_;
 
-	if( $parser->{eprints}->{depth} == 0 )
+sub start_element
+{
+        my( $self, $node_info ) = @_;
+
+	my %params = ();
+	foreach ( keys %{$node_info->{Attributes}} )
 	{
-		my $tlt = $parser->{eprints}->{plugin}->top_level_tag( $parser->{eprints}->{dataset} );
-		if( defined $tlt && $tlt ne $tag )
+		$params{$node_info->{Attributes}->{$_}->{Name}} = 
+			$node_info->{Attributes}->{$_}->{Value};
+	}
+
+	if( $self->{depth} == 0 )
+	{
+		my $tlt = $self->{plugin}->top_level_tag( $self->{dataset} );
+		if( defined $tlt && $tlt ne $node_info->{Name} )
 		{
-			die "Unexpected tag: $tag\n";
+			die "Unexpected tag: $node_info->{Name}\n";
 		}
 	}
 
-	if( $parser->{eprints}->{depth} == 1 )
+	if( $self->{depth} == 1 )
 	{
-		$parser->{eprints}->{xml} = $parser->{eprints}->{plugin}->{session}->make_element( $tag );
-		$parser->{eprints}->{xmlstack} = [$parser->{eprints}->{xml}];
-		$parser->{eprints}->{xmlcurrent} = $parser->{eprints}->{xml};
+		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name} );
+		$self->{xmlstack} = [$self->{xml}];
+		$self->{xmlcurrent} = $self->{xml};
 	}
 
-	if( $parser->{eprints}->{depth} > 1 )
+	if( $self->{depth} > 1 )
 	{
-		my $new = $parser->{eprints}->{plugin}->{session}->make_element( $tag );
-		$parser->{eprints}->{xmlcurrent}->appendChild( $new );
-		push @{$parser->{eprints}->{xmlstack}}, $new;
-		$parser->{eprints}->{xmlcurrent} = $new;
+		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name} );
+		$self->{xmlcurrent}->appendChild( $new );
+		push @{$self->{xmlstack}}, $new;
+		$self->{xmlcurrent} = $new;
 		if( $params{encoding} && $params{encoding} eq "base64" )
 		{
-			$parser->{eprints}->{base64} = 1;
-			$parser->{eprints}->{base64data} = [];
+			$self->{base64} = 1;
+			$self->{base64data} = [];
 		}
 	}
 
-	$parser->{eprints}->{depth}++;
+	$self->{depth}++;
 }
 	
 
