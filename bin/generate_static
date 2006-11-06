@@ -274,27 +274,8 @@ sub scan_static_dir_aux
 sub copy_plain
 {
 	my( $session, $from, $to ) = @_;
-	
-	open( FROM, $from ) || EPrints::abort( "Can't read $from: $!" );
-	open( TO, ">$to" ) || EPrints::abort( "Can't write $to: $!" );
-	my @stat = stat( $from );
-	my $size = $stat[7];
-	my $chunk;
-	while( $size > 16*1024 )
-	{
-		read( FROM, $chunk, 16*1024 );
-		print TO $chunk;
-		$size -= 16*1024;
-	}
 
-	if( $size )
-	{
-		read( FROM, $chunk, $size );
-		print TO $chunk;
-	}
-
-	close TO;
-	close FROM;
+	return EPrints::Utils::copy( $from, $to );
 }
 
 sub copy_xpage

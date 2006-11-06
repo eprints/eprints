@@ -83,7 +83,8 @@ sub get_index_codes_basic
 		}
 		else
 		{
-			foreach( <CODELOG> ) { chomp; push @$codes, $_; }
+			@$codes = <CODELOG>;
+			s/\015?\012?$//s for @$codes;
 			close CODELOG;
 		}
 		return( $codes, [], [] );

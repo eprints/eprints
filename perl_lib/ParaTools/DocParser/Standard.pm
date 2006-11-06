@@ -107,8 +107,8 @@ sub parse
 	# First isolate the reference array. This ensures that we handle columns correctly.
 	foreach(@lines)
 	{
+		s/\015?\012?$//s;
 		$outcount++;
-		chomp;
 		if (/(?:references)|(?:bibliography)|(?:\s+cited)/i)
                 {
                         last;
@@ -128,7 +128,7 @@ sub parse
 	{
 		foreach(@chopped_lines)
 		{
-			chomp;
+			s/\015?\012?$//s;
 			s/^(\s{3,8})(?=\S)//;
 			$indnt = defined($1) ? $1 : '';
 			if (/\f/)
@@ -159,7 +159,7 @@ sub parse
 	my $prevnew = 0;
 	foreach(@chopped_lines)
 	{
-		chomp;
+		s/\015?\012?$//s;
 		if (/^\s*references\s*$/i || /REFERENCES/ || /Bibliography/i || /References and Notes/)
                 {
                         $in_refs = 1;

@@ -539,7 +539,7 @@ sub get_last_timestamp
 	{
 		next if m/^\s*#/;	
 		next if m/^\s*$/;	
-		chomp;
+		s/\015?\012?$//s;
 		$timestamp = $_;
 		last;
 	}

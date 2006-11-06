@@ -112,7 +112,6 @@ if( defined $av && $av eq "2" )
 
 	my @modules = ( 
 		'EPrints::Apache::AnApache::RequestWrapper2', 
-		'Apache::AuthDBI', 
 		'ModPerl::Registry' 
 	);
 	if( $EPrints::Apache::AnApache::ModPerlAPI == 1 )
@@ -196,7 +195,6 @@ else
 		die;
 	};
 	eval "require EPrints::Apache::AnApache::RequestWrapper"; if( $@ ) { die $@; }
-	eval "require Apache::AuthDBI"; if( $@ ) { die $@; }
 	eval "require Apache::Registry"; if( $@ ) { die $@; }
 	eval "require Apache::Constants; "; if( $@ ) { die $@; }
 	$EPrints::Apache::AnApache::RequestWrapper = "EPrints::Apache::AnApache::RequestWrapper"; 

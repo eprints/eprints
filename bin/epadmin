@@ -328,23 +328,31 @@ sub install
 		else { push(@files, $item); }
 	}
 	closedir(INDIR);
-	foreach(@files)
+	foreach my $filename (@files)
 	{
-		open(INFILE, "$dir/$_");
-		open(OUTFILE, ">$dest/$_") or die "Can't write to $dest/$_";
-		while(my $line=<INFILE>)
+		if( $filename eq "Config.pm" )
 		{
-			if( $_ eq "Config.pm" && $line=~m/^package/ )
+			open(my $i_fh, "<", "$dir/$filename");
+			open(my $o_fh, ">", "$dest/$filename")
+				or die "Can't write to $dest/$filename";
+			while(defined($_ = <$i_fh>))
 			{
-				#hack about with the config module
-				$line = "package EPrints::Config::$repoid;\n";
-			}	
-			print OUTFILE $line;
-		}		
-		close(OUTFILE);
-		close(INFILE);
-		EPrints::Platform::chmod($perms, "$dest/$_");
-		EPrints::Platform::chown($user, $group, "$dest/$_");
+				if( /^package/ )
+				{
+					# Change the package name to the local repository ($/ = line seperator)
+					$_ = "package EPrints::Config::$repoid;$/";
+				}
+				print $o_fh $_;
+			}
+			close($i_fh);
+			close($o_fh);
+		}
+		else
+		{
+			EPrints::Utils::copy("$dir/$filename", "$dest/$filename");
+		}
+		EPrints::Platform::chmod($perms, "$dest/$filename");
+		EPrints::Platform::chown($user, $group, "$dest/$filename");
 	}
 	foreach(@dirs)
 	{
@@ -409,7 +417,6 @@ END
 		{
 			while( <RESOLV> )
 			{
-				chomp;
 				if( m/^search\s+([^\s]+)/ )
 				{
 					$domain = $1;	

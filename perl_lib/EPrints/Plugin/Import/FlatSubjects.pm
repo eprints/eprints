@@ -46,7 +46,7 @@ sub convert_input
 {
 	my ( $plugin, $input_data ) = @_;
 
-	chomp($input_data);
+	$input_data =~ s/\015?\012?$//s;
 
 	return if $input_data =~ m/^\s*(#|$)/;
 	my @vals = split /:/ , $input_data;

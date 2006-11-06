@@ -694,7 +694,7 @@ sub _load_namedsets
 		my @types = ();
 		foreach my $line (<FILE>)
 		{
-			chomp $line;
+			$line =~ s/\015?\012?$//s;
 			$line =~ s/#.*$//;
 			$line =~ s/^\s+//;
 			$line =~ s/\s+$//;

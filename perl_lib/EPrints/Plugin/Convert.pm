@@ -196,7 +196,7 @@ sub mime_type
 
 	# Prepare the command to call
 	my $file = $EPrints::SystemSettings::conf->{executables}->{file} || `which file` || 'file';
-	chomp($file);
+	$file =~ s/\015?\012?$//s;
 	my $file_cmd = $EPrints::SystemSettings::conf->{invocation}->{file} || '$(file) -b -i $(SOURCE)';
 	my $cmd = EPrints::Utils::prepare_cmd(
 		$file_cmd,
@@ -206,7 +206,7 @@ sub mime_type
 	
 	# Call file and return the mime-type found
 	my $mt = `$cmd`;
-	chomp($mt);
+	$mt =~ s/\015?\012?$//s;
 	($mt) = split /,/, $mt, 2; # file can return a 'sub-type'
 	return length($mt) > 0 ? $mt : undef;
 }

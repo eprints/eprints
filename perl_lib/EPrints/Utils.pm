@@ -32,6 +32,7 @@ package EPrints::Utils;
 use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
+use File::Copy qw();
 use Term::ReadKey;
 use Text::Wrap qw();
 use MIME::Lite;
@@ -569,6 +570,24 @@ sub _blank_lines
 	return $ws;
 }
 
+######################################################################
+=pod
+
+=item $ok = EPrints::Utils::copy( $source, $target )
+
+Copy $source file to $target file without alteration.
+
+Return true on success (sets $! on error).
+
+=cut
+######################################################################
+
+sub copy
+{
+	my( $source, $target ) = @_;
+	
+	return File::Copy::copy( $source, $target );
+}
 
 ######################################################################
 =pod
@@ -896,7 +915,7 @@ sub get_input_confirm
 			print wrap_text( $prompt, 'console' );
 
 			$in = lc(Term::ReadKey::ReadLine( 0 ));
-			chomp $in;
+			$in =~ s/\015?\012?$//s;
 		}
 		return( $in eq "yes" );
 	}
@@ -1201,12 +1220,13 @@ sub get_iso_date
 
 =item $timestamp = EPrints::Utils::human_time( [$time] )
 
-Return a string discribing the current local date and time in a human
-readable way.
+Return a string describing the current local date and time in the
+current locale's format (see Perl's 'localtime).
 
 =cut
 ######################################################################
-sub get_timestamp { return human_time( @_ ); }
+
+sub get_timestamp { EPrints::deprecated; return human_time( @_ ); }
 
 sub human_time
 {
@@ -1214,10 +1234,11 @@ sub human_time
 
 	$time = time unless defined $time;
 
-	my $stamp = "Error in get_timestamp";
-	eval {
-		$stamp = strftime( "%a %b %e %H:%M:%S %Z %Y", localtime);
-	};	
+	my $stamp = sprintf("%s %s",
+		scalar(localtime($time)),
+		strftime("%Z", localtime($time))
+	);
+
 	return $stamp;
 }
 
