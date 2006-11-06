@@ -556,15 +556,6 @@ User Area CGI Scripts
 Staff CGI Scripts
 ***********************************************************************-->
 
-<!-- add_user -->
-
-    <epp:phrase id="cgi/users/add_user:enter_username"><p>Enter a username for the new user below.</p></epp:phrase>
-    <epp:phrase id="cgi/users/add_user:create_user_title">Create a User</epp:phrase>
-    <epp:phrase id="cgi/users/add_user:create_user">Create User</epp:phrase>
-    <epp:phrase id="cgi/users/add_user:no_username"><p><em>No username entered!</em></p></epp:phrase>
-    <epp:phrase id="cgi/users/add_user:user_exists"><p><em>A user with the username "<epc:pin name="username"/>" already exists!</em></p></epp:phrase>
-    <epp:phrase id="cgi/users/add_user:mk_acc_err">Error registering user.</epp:phrase>
-
 <!-- buffer -->
 
     <epp:phrase id="cgi/users/buffer:overview_title">Editorial Review</epp:phrase>
@@ -989,19 +980,6 @@ Titles and Help for the System Fields
     <epp:phrase id="dataset_name_user">Users</epp:phrase>
     <epp:phrase id="dataset_name_history">History</epp:phrase>
 
-<!--
-    <epp:phrase id="tool:eprints">Your Items</epp:phrase>
-    <epp:phrase id="tool:user">Your Details</epp:phrase>
-    <epp:phrase id="tool:saved_searches">Saved Search</epp:phrase>
-    <epp:phrase id="tool:edreview">Editorial Review</epp:phrase>
-    <epp:phrase id="tool:status">Repository Status</epp:phrase>
-    <epp:phrase id="tool:search_eprint">Search Items</epp:phrase>
-    <epp:phrase id="tool:search_user">Search Users</epp:phrase>
-    <epp:phrase id="tool:add_user">Add User</epp:phrase>
-    <epp:phrase id="tool:subject">Manage Subject Tree</epp:phrase>
-    <epp:phrase id="tool:all">all tools </epp:phrase>
-    <epp:phrase id="tool:divide"> | </epp:phrase>
--->
 <!-- Plugin phrases -->
 	
     <epp:phrase id="Plugin/Screen:tool_divide"> | </epp:phrase>
@@ -1030,6 +1008,14 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:title">Administer Account</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:description">Modify this Account (including changing username and user type)</epp:phrase>
 
+
+    <epp:phrase id="Plugin/Screen/NewUser:blurb"><p>Create a new user account.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:title">Create a new user</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:create">Create User</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:no_username">No username entered!</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:user_exists">A user with the username "<epc:pin name="username"/>" already exists!</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:db_error">Error registering user.</epp:phrase>
 
 
     <epp:phrase id="Plugin/Screen/NewEPrint:action:create:title">New Item</epp:phrase>

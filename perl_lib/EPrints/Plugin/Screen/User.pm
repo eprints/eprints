@@ -68,13 +68,10 @@ sub register_furniture
 
 	my $h2 = $self->{session}->make_element( "h2", style=>"margin: 0px" );
 	my $title = $self->{processor}->{user}->render_citation( "screen" );
-	if( $owner && $editor )
-	{
-		my $a = $self->{session}->render_link( "?screen=User::View&userid=".$self->{processor}->{userid} );
-		$f->appendChild( $h2 );
-		$h2->appendChild( $a );
-		$a->appendChild( $title );
-	}
+	my $a = $self->{session}->render_link( "?screen=User::View&userid=".$self->{processor}->{userid} );
+	$f->appendChild( $h2 );
+	$h2->appendChild( $a );
+	$a->appendChild( $title );
 
 	$self->{processor}->before_messages( $f );
 }

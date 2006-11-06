@@ -5002,3 +5002,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-04 cjg
  * Subjects now work inside compound fields
+
+2006-11-05 cjg 
+ * Added "Add User" feature
+ * Tidied up citations/user/screen.xml
+ * Fixed bug in rendering user/screen citation 

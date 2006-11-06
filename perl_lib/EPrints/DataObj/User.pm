@@ -1079,6 +1079,7 @@ my $PRIVMAP =
 		"indexer/force_start" => 2,
 		"user/view" => 8,
 		"user/staff/edit" => 8,
+		"create_user" => 2,
 		# "subject/edit" => 8,
 	},
 
