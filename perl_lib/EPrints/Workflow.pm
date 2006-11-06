@@ -444,9 +444,8 @@ sub link_problem_xhtml
 
 sub load_all
 {
-	my( $path ) = @_;
+	my( $path, $v ) = @_;
 
-	my $v = {};
 	my $dh;
 	opendir( $dh, $path ) || die "Could not open $path";
 	# This sorts the directory such that directories are last
@@ -459,16 +458,20 @@ sub load_all
 		my $filename = "$path/$fn";
 		if( -d $filename )
 		{
-			$v->{$fn} = load_all( $filename );
+			$v->{$fn} = {} if( !defined $v->{$fn} );
+			load_all( $filename, $v->{$fn} );
 			next;
 		}
 		if( $fn=~m/^(.*)\.xml$/ )
 		{
-			my $doc = EPrints::XML::parse_xml( $filename );
-			$v->{$1} = $doc->documentElement();
+			my $id = $1;
+			if( !defined $v->{$id} )
+			{
+				my $doc = EPrints::XML::parse_xml( $filename );
+				$v->{$id} = $doc->documentElement();
+			}
 		}
 	}
-	return $v;
 }
 
 

@@ -5007,3 +5007,7 @@ PACKAGE: 2.2.99.2
  * Added "Add User" feature
  * Tidied up citations/user/screen.xml
  * Fixed bug in rendering user/screen citation 
+
+2006-11-06 cjg
+ * Saved search workflows now are in the generic lib config, not part of the
+    repository.

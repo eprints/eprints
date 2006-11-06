@@ -220,12 +220,18 @@ sub _load_workflows
 {
 	my( $self ) = @_;
 
-	$self->{workflows} = EPrints::Workflow::load_all( $self->get_conf( "config_path" )."/workflows" );
+	$self->{workflows} = {};
 
-	if( !defined $self->{workflows} )
-	{
-		return 0;
-	}
+	EPrints::Workflow::load_all( 
+		$self->get_conf( "config_path" )."/workflows",
+		$self->{workflows} );
+
+	# load any remaining workflows from the generic level.
+	# eg. saved searches
+	EPrints::Workflow::load_all( 
+		$self->get_conf( "lib_path" )."/workflows",
+		$self->{workflows} );
+
 	return 1;
 }
 
