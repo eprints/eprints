@@ -2,6 +2,7 @@
 /* Message styles - used to provide alerts and errors */
 
 .ep_msg_message, .ep_msg_warning, .ep_msg_error {
+	margin-top: 10px;
 	margin-bottom: 10px;
 }
 

@@ -22,7 +22,7 @@ sub new
 # only returns a value if it belongs to this component
 sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my $eprint = $self->{workflow}->{item};
 	my @eprint_docs = $eprint->get_all_documents;
@@ -60,7 +60,8 @@ sub update_from_form
 			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
 			if( !defined $document )
 			{
-				return $self->html_phrase( "create_failed" );
+				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
+				return;
 			}
 			my $success = EPrints::Apache::AnApache::upload_doc_file( 
 				$self->{session},
@@ -69,9 +70,10 @@ sub update_from_form
 			if( !$success )
 			{
 				$document->remove();
-				return $self->html_phrase( "upload_failed" );
+				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
+				return;
 			}
-			return ();
+			return;
 		}
 
 		if( $internal =~ m/^doc(\d+)_(.*)$/ )
@@ -81,24 +83,28 @@ sub update_from_form
 				$1 );
 			if( !defined $doc )
 			{
-				return $self->html_phrase( "no_document", docid => $1 );
+				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $1 ) );
+				return;
 			}
 			if( $doc->get_value( "eprintid" ) != $self->{dataobj}->get_id )
 			{
-				return $self->html_phrase( "bad_document" );
+				$processor->add_message( "error", $self->html_phrase( "bad_document" ) );
+				return;
 			}
-			return $self->doc_update( $doc, $2 );
+			$self->doc_update( $doc, $2, $processor );
+			return;
 		}
 
-		return $self->html_phrase( "bad_button", button => $internal );
+		$processor->add_message( "error",$self->html_phrase( "bad_button", button => $internal ));
+		return;
 	}
 
-	return ();
+	return;
 }
 
 sub doc_update
 {
-	my( $self, $doc, $doc_internal ) = @_;
+	my( $self, $doc, $doc_internal, $processor ) = @_;
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
@@ -106,7 +112,7 @@ sub doc_update
 	if( $doc_internal eq "delete_doc" )
 	{
 		$doc->remove();
-		return ();
+		return;
 	}
 
 	if( $doc_internal eq "add_file" )
@@ -117,9 +123,10 @@ sub doc_update
 			$doc_prefix."_file" );
 		if( !$success )
 		{
-			return $self->html_phrase( "upload_failed" );
+			$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
+			return;
 		}
-		return ();
+		return;
 	}
 
 	if( $doc_internal =~ m/^delete_(\d+)$/ )
@@ -131,11 +138,12 @@ sub doc_update
 
 		if( !defined $files[$fileid] )
 		{
-			return $self->html_phrase( "no_file" );
+			$processor->add_message( "error", $self->html_phrase( "no_file" ) );
+			return;
 		}
 		
 		$doc->remove_file( $files[$fileid] );
-		return ();
+		return;
 	}
 
 	if( $doc_internal =~ m/^main_(\d+)$/ )
@@ -147,7 +155,8 @@ sub doc_update
 
 		if( !defined $files[$fileid] )
 		{
-			return $self->html_phrase( "no_file" );
+			$processor->add_message( "error", $self->html_phrase( "no_file" ) );
+			return;
 		}
 		
 		# Pressed "Show First" button for this file
@@ -156,7 +165,7 @@ sub doc_update
 		return ();
 	}
 			
-	return $self->html_phrase( "bad_doc_button", button => $doc_internal );
+	$processor->add_message( "error", $self->html_phrase( "bad_doc_button", button => $doc_internal ) );
 }
 	
 sub render_help
@@ -355,11 +364,10 @@ sub _render_doc
 
 	# in case javascript is not available...
 	my $tool_div = $session->make_element( "div", class=>"ep_no_js" );
-	my $delete_fmt_button = $session->make_element( "input",
+	my $delete_fmt_button = $session->render_button(
 		name => "_internal_".$doc_prefix."_delete_doc",
 		value => $self->phrase( "delete_format" ), 
 		class => "ep_form_internal_button",
-		type => "submit",
 		);
 	$tool_div->appendChild( $delete_fmt_button );
 
@@ -383,19 +391,25 @@ sub _render_add_document
 	my $session = $self->{session};
 	my $toolbar = $session->make_element( "div", class=>"ep_toolbox_content ep_upload_newdoc" );
 	$toolbar->appendChild( $self->html_phrase( "new_document" ) );
-	
+
+	my $ffname = $self->{prefix}."_first_file";	
 	my $file_button = $session->make_element( "input",
-		name => $self->{prefix}."_first_file",
+		name => $ffname,
+		id => $ffname,
 		type => "file",
 		);
-	my $add_format_button = $session->make_element( "input", 
-		type => "submit", 
+	my $add_format_button = $session->render_button(
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format" );
 	$toolbar->appendChild( $file_button );
 	$toolbar->appendChild( $session->make_text( " " ) );
 	$toolbar->appendChild( $add_format_button );
+
+	my $script = $session->make_element( "script", type=>"text/javascript" );
+	$script->appendChild( $session->make_text( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( '".$self->phrase("really_next")."' ); } return true; } );" ));
+	$toolbar->appendChild( $script);
+
 	
 	return $toolbar; 
 }
@@ -433,11 +447,10 @@ sub _render_add_file
 		id => "filename",
 		type => "file",
 		);
-	my $upload_button = $session->make_element( "input",
+	my $upload_button = $session->render_button(
 		name => "_internal_".$doc_prefix."_add_file",
 		class => "ep_form_internal_button",
 		value => $self->phrase( "add_file" ),
-		type => "submit",
 		);
 	$toolbar->appendChild( $file_button );
 	$toolbar->appendChild( $session->make_text( " " ) );

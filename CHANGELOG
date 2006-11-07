@@ -5047,33 +5047,58 @@ PACKAGE: 2.2.99.2
  * Added warning to indexer if a single session fails to start.
 
 2006-11-06 tmb
- * Columns in Items and Editorial Screens now displayed according to user preference
+ * Columns in Items and Editorial Screens now displayed according to user
+    preference
 
 2006-11-07 tdb
- * Added Compat::Term::ReadKey module to avoid Term::ReadKey requirement (linux
-    support only via stty)
+ * Added Compat::Term::ReadKey module to avoid Term::ReadKey requirement 
+    (linux support only via stty)
  * Modified Term::ReadKey usage to fallback to Compat::Term::ReadKey.
  * $session->make_doc_fragment now calls EPrints::XML::make_document_fragment
  * Work-around for LibXML appendChild() bug for empty DocumentFragment
 
 2006-11-07 moj
  * Fixed typo in epadmin config_db
- * Added event_parse subs to all XML parser modules. LibXML uses the SAX parser, and
-    GDOME/DOM use the technique from Import::DefaultXML (with XML::Parser). Takes a 
-    filehandle to read from, and a handler object (see the example in Import::DefaultXML)
+ * Added event_parse subs to all XML parser modules. LibXML uses the SAX 
+    parser, and GDOME/DOM use the technique from Import::DefaultXML (with 
+    XML::Parser). Takes a filehandle to read from, and a handler object 
+    (see the example in Import::DefaultXML)
 
 2006-11-07 moj
- * Added send_status_line to AnApache - this takes a code and message, and does status and
-    status_line on the request. This fixes the problem with redirecting.
+ * Added send_status_line to AnApache - this takes a code and message, and 
+    does status and status_line on the request. This fixes the problem with 
+    redirecting.
  * Adjusted other modules to use send_status_line.
 
 2006-11-07 tmb
 
- * Added shortcut sub paginate_list_with_columns to Paginate.pm which displays the list as
-    a table of field values, with sortable columns.
+ * Added shortcut sub paginate_list_with_columns to Paginate.pm which 
+    displays the list as a table of field values, with sortable columns.
 
 2006-11-07 cjg
  * Changed epadmin create_repo back to epadmin create.
 
-2006-11-06 cjg 
+2006-11-07 cjg 
  * Cleaned up filters in Items screen.
+
+2006-11-07 cjg
+ * Added $session->render_input_field and made all metafield <input> elements 
+    go via this method.
+ * Added javascript hooks to register code it be exexed when buttons are
+    pressed.
+ * Upload now popups a confirm box if you have a value in the file upload but
+    push "Next>" 
+ * Renamed "Add" to "Upload" for clarity.
+ * Renamed workflow->from to workflow->update_from_form
+ * Workflow update_from_form and component methods now take a handle to the
+    processor (or something which accepts add_message( $type, $msg). 
+ * Component->update_from_form now registers errors with the processor rather
+    than muddling them with the validation messages.
+ * Added top margin to message boxes.
+ * Added a render_buttom method to $session
+ * Uploading a 0byte file now fails with an error.
+ * Added empty checkbox square and items filters now show this rather than a
+    cross.
+ * Renamed some instances of "Deletion" to "Retired"
+ * Removed some unused javascript 
+

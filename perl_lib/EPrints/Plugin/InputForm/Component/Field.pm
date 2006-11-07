@@ -38,7 +38,7 @@ sub parse_config
 
 =pod
 
-=item @problems = $fieldcomponent->update_from_form()
+=item $fieldcomponent->update_from_form($processor)
 
 Set the values of the object we are working with from the submitted form.
 
@@ -46,12 +46,10 @@ Set the values of the object we are working with from the submitted form.
 
 sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 	my $field = $self->{config}->{field};
 	my $value = $field->form_value( $self->{session}, $self->{dataobj}, $self->{prefix} );
 	$self->{dataobj}->set_value( $field->{name}, $value );
-
-	return ();
 }
 
 =pod

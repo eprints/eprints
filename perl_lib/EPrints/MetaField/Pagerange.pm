@@ -89,10 +89,8 @@ sub get_basic_input_elements
 		
 	my $frag = $session->make_doc_fragment;
 
-	$frag->appendChild( $session->make_element(
-		"input",
+	$frag->appendChild( $session->render_input_field(
 		class => "ep_form_text",
-		"accept-charset" => "utf-8",
 		name => $fromid,
 		id => $fromid,
 		value => $pages[0],
@@ -104,10 +102,8 @@ sub get_basic_input_elements
 		"lib/metafield:to" ) );
 	$frag->appendChild( $session->make_text(" ") );
 
-	$frag->appendChild( $session->make_element(
-		"input",
+	$frag->appendChild( $session->render_input_field(
 		class => "ep_form_text",
-		"accept-charset" => "utf-8",
 		name => $toid,
 		id => $toid,
 		value => $pages[1],

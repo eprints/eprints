@@ -141,10 +141,8 @@ sub render_blister
 		{
 			$phrase = $session->phrase( "metapage_title_".$stage_id );
 		}
-		my $button = $session->make_element( 
-			"input", 
+		my $button = $session->render_button(
 			name  => "_action_jump_$stage_id", 
-			type  => "submit",
 			value => $phrase,
 			class => $class );
 
@@ -169,6 +167,5 @@ sub render_hidden_bits
 
 	return $chunk;
 }
-
 1;
 

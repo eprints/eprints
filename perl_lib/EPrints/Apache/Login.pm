@@ -102,12 +102,10 @@ sub input_form
 			name => 'login_password',
 			type => "password" );
 
-	$bits{login_button} = $session->make_element( "input",
-			"accept-charset" => "utf-8",
+	$bits{login_button} = $session->render_button(
 			name => '_action_login',
 			value => "Login",
-			class => 'ep_form_action_button',
-			type => "submit" );
+			class => 'ep_form_action_button', );
 
 	my $op1;
 	my $op2;

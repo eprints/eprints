@@ -97,7 +97,7 @@ sub render
 		{
 			$a->appendChild( $self->{session}->make_element(
 				"img",
-				src=> "$imagesurl/checkbox_cross.png",
+				src=> "$imagesurl/checkbox_empty.png",
 				alt=>"Not showing" ) );
 		}
 		$a->appendChild( $self->{session}->make_text( " " ) );

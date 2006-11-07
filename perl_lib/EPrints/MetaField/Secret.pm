@@ -89,10 +89,8 @@ sub get_basic_input_elements
 	my $size = ( $maxlength > $self->{input_cols} ?
 					$self->{input_cols} : 
 					$maxlength );
-	my $input = $session->make_element(
-		"input",
+	my $input = $session->render_input_field(
 		class => "ep_form_text",
-		"accept-charset" => "utf-8",
 		type => "password",
 		name => $basename,
 		id => $basename,

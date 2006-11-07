@@ -133,10 +133,8 @@ sub get_basic_input_elements
 		$session->html_phrase( "lib/metafield:year" ) );
 	$div->appendChild( $session->make_text(" ") );
 
-	$div->appendChild( $session->make_element(
-		"input",
+	$div->appendChild( $session->render_input_field(
 		class=>"ep_form_text",
-		"accept-charset" => "utf-8",
 		name => $yearid,
 		id => $yearid,
 		value => $year,
@@ -160,14 +158,6 @@ sub get_basic_input_elements
 	$div->appendChild( 
 		$session->html_phrase( "lib/metafield:day" ) );
 	$div->appendChild( $session->make_text(" ") );
-#	$div->appendChild( $session->make_element(
-#		"input",
-#		class=>"ep_form_text",
-#		"accept-charset" => "utf-8",
-#		name => $dayid,
-#		value => $day,
-#		size => 2,
-#		maxlength => 2 ) );
 	my @daykeys = ();
 	my %daylabels = ();
 	for( 0..31 )
@@ -259,8 +249,7 @@ sub render_search_input
 {
 	my( $self, $session, $searchfield ) = @_;
 	
-	return $session->make_element( "input",
-				"accept-charset" => "utf-8",
+	return $session->render_input_field(
 				class => "ep_form_text",
 				type => "text",
 				name => $searchfield->get_form_prefix,

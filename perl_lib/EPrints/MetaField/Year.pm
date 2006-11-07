@@ -51,9 +51,8 @@ sub render_search_input
 {
 	my( $self, $session, $searchfield ) = @_;
 	
-	return $session->make_element( "input",
+	return $session->render_input_field(
 				class => "ep_form_text",
-				"accept-charset" => "utf-8",
 				name=>$searchfield->get_form_prefix,
 				value=>$searchfield->get_value,
 				size=>9,

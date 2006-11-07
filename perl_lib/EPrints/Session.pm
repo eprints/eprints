@@ -1334,11 +1334,19 @@ sub render_hidden_field
 		$value = $self->param( $name );
 	}
 
-	return $self->make_element( "input",
-		"accept-charset" => "utf-8",
+	return $self->render_input_field( 
 		name => $name,
 		value => $value,
 		type => "hidden" );
+}
+
+sub render_input_field
+{
+	my( $self, %opts ) = @_;
+
+	$opts{'accept-charset'} = "utf-8" unless defined $opts{'accept-charset'};
+
+	return $self->make_element( "input",%opts );
 }
 
 
@@ -1366,8 +1374,7 @@ sub render_upload_field
 #		type => "file" ) );
 #	return $div;
 
-	return $self->make_element(
-		"input",
+	return $self->render_input_field(
 		name => $name,
 		type => "file" );
 
@@ -1461,10 +1468,9 @@ sub _render_buttons_aux
 		next if( $button_id eq '_class' );
 		next if( $button_id eq '_order' );
 		$div->appendChild(
-			$self->make_element( "input",
+			$self->render_button( 
+				name => "_".$btype."_".$button_id, 
 				class => "ep_form_".$btype."_button",
-				type => "submit",
-				name => "_".$btype."_".$button_id,
 				value => $buttons{$button_id} ) );
 
 		# Some space between butons.
@@ -1472,6 +1478,24 @@ sub _render_buttons_aux
 	}
 
 	return( $div );
+}
+
+sub render_button
+{
+	my( $self, %opts ) = @_;
+
+	if( !defined $opts{onClick} )
+	{
+		$opts{onClick} = "return EPJS_button_pushed( '$opts{name}' )";	
+	}
+	
+	if( !defined $opts{class} )
+	{
+		$opts{class} = "ep_form_action_button";
+	}
+	$opts{type} = "submit";
+
+	return $self->make_element( "input", %opts );
 }
 
 ######################################################################

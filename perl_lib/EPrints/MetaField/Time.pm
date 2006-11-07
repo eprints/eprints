@@ -137,10 +137,8 @@ sub get_basic_input_elements
 		$session->html_phrase( "lib/metafield:year" ) );
 	$div->appendChild( $session->make_text(" ") );
 
-	$div->appendChild( $session->make_element(
-		"input",
+	$div->appendChild( $session->render_input_field(
 		class => "ep_form_text",
-		"accept-charset" => "utf-8",
 		name => $yearid,
 		id => $yearid,
 		value => $year,

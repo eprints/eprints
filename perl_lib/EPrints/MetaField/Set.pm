@@ -251,9 +251,7 @@ sub render_set_input
 				$checked = "checked";
 			}
 		}
-		$label1->appendChild( $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
+		$label1->appendChild( $session->render_input_field(
 			type => $type,
 			name => $basename,
 			id => $basename."_".$opt,

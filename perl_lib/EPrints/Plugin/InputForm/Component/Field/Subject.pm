@@ -23,7 +23,7 @@ sub new
 
 sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 	my $field = $self->{config}->{field};
 
 	my $ibutton = $self->get_internal_button;
@@ -62,7 +62,7 @@ sub update_from_form
 		$self->{dataobj}->commit;
 	}
 
-	return ();
+	return;
 }
 
 
@@ -255,9 +255,8 @@ sub _format_subjects
 			my $td1 = $session->make_element( "td" );
 			$td1->appendChild( $subject->render_description );
 			my $td2 = $session->make_element( "td" );
-			my $add_button = $session->make_element( "input", 
+			my $add_button = $session->render_button(
 				class=> "ep_form_action_button",
-				type => "submit",
 				name => "_internal_".$prefix."_".$params{button_id},
 				value => $params{button_text} );
 			$td2->appendChild( $add_button );
@@ -294,14 +293,10 @@ sub _render_search
 			name=>$prefix."_searchtext", 
 			type=>"text", 
 			value=>$self->{search} ),
-		search_button=>$session->make_element( 
-			"input", 
-			type=>"submit", 
+		search_button=>$session->render_button( 
 			name=>"_internal_".$prefix."_search",
 			value=>$self->phrase( "search_search_button" ) ),
-		clear_button=>$session->make_element(
-			"input",
-			type=>"submit",
+		clear_button=>$session->render_button(
 			name=>"_internal_".$prefix."_clear",
 			value=>$self->phrase( "search_clear_button" ) ),
 		);
@@ -409,9 +404,8 @@ sub _render_subnode
 	{
 		if( $subject->can_post )
 		{
-			my $add_button = $session->make_element( "input", 
+			my $add_button = $session->render_button(
 				class=> "ep_form_action_button",
-				type => "submit",
 				name => "_internal_".$prefix."_add",
 				value => $self->phrase( "add" ) );
 			$r_node->appendChild( $session->make_text( " " ) );

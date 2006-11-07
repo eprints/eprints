@@ -22,7 +22,7 @@ sub new
 
 sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	foreach my $field ( @{$self->{config}->{fields}} )
 	{
@@ -30,7 +30,7 @@ sub update_from_form
 		$self->{dataobj}->set_value( $field->{name}, $value );
 	}
 
-	return ();
+	return;
 }
 
 sub validate

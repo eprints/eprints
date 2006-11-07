@@ -889,18 +889,25 @@ sub upload
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
-	my( $bytes, $buffer );
+	my( $bytes, $size, $buffer );
 
-	my $out_path = $self->local_path() . "/" . sanitise( $filename );
+	my $out_file = $self->local_path() . "/" . sanitise( $filename );
 
 	seek( $filehandle, 0, SEEK_SET );
 	
-	open OUT, ">$out_path" or return( 0 );
+	open OUT, ">$out_file" or return( 0 );
 	while( $bytes = read( $filehandle, $buffer, 1024 ) )
 	{
+		$size += $bytes;
 		print OUT $buffer;
 	}
 	close OUT;
+
+	if( $size == 0 )
+	{
+		unlink( $out_file );
+		return 0;
+	}
 
 	$self->files_modified;
 	

@@ -192,7 +192,7 @@ sub _read_stages
 
 sub validate
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my @problems = ();
 	foreach my $stage_id ( $self->get_stage_ids )
@@ -289,9 +289,9 @@ sub prev
 }
 
 
-sub from
+sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 		
 	my @problems = ();
 
@@ -313,11 +313,24 @@ sub from
 	}
 	
 	my $stage_obj = $self->get_stage( $self->get_stage_id );
-	# Carry out any updates
-	push @problems, $stage_obj->update_from_form;
-	push @problems, $stage_obj->validate;
 
-	return @problems;
+	$stage_obj->update_from_form( $processor );
+
+	my @problems = $stage_obj->validate( $processor );
+
+	return 1 unless scalar @problems;
+ 
+	my $warnings = $self->{session}->make_element( "ul" );
+	foreach my $problem_xhtml ( @problems )
+	{
+		my $li = $self->{session}->make_element( "li" );
+		$li->appendChild( $problem_xhtml );
+		$warnings->appendChild( $li );
+	}
+	$self->link_problem_xhtml( $warnings, $self->{staff} );
+	$processor->add_message( "warning", $warnings );
+
+	return 0;
 }
 
 

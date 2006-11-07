@@ -139,17 +139,14 @@ sub validate
 # return an array of problems
 sub update_from_form
 {
-	my( $self ) = @_;
+	my( $self , $processor ) = @_;
 
-	my @problems = ();
 	foreach my $component (@{$self->{components}})
 	{
-		push @problems, $component->update_from_form();
+		$component->update_from_form($processor);
 	}
 	
 	$self->{item}->commit;
-
-	return @problems;
 }
 
 sub render
@@ -165,8 +162,7 @@ sub render
 		
 		$div = $session->make_element(
 			"div",
-			class => "ep_form_field_input",
-			id => "inputfield_"."cjg???" );
+			class => "ep_form_field_input" );
 		$div->appendChild( $component->{surround}->render( $component, $session ) );
 		$dom->appendChild( $div );
 	}

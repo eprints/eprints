@@ -88,17 +88,13 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 	{
 		# render as radio buttons
 
-		my $true = $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
+		my $true = $session->render_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
 			name => $basename,
 			value => "TRUE" );
-		my $false = $session->make_element(
-			"input",
-			"accept-charset" => "utf-8",
+		my $false = $session->render_input_field(
 			type => "radio",
 			checked=>( defined $value && $value ne 
 					"TRUE" ? "checked" : undef ),
@@ -111,9 +107,7 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 	}
 			
 	# render as checkbox (ugly)
-	return [[{ el=>$session->make_element(
-				"input",
-				"accept-charset" => "utf-8",
+	return [[{ el=>$session->render_input_field(
 				type => "checkbox",
 				checked=>( defined $value && $value eq 
 						"TRUE" ? "checked" : undef ),

@@ -1328,9 +1328,7 @@ sub _dopage_results
 			$select->appendChild( $option );
 		}
 		my $button = $self->{session}->make_doc_fragment;
-		$button->appendChild( $self->{session}->make_element( 
-				"input", 
-				type=>"submit", 
+		$button->appendChild( $self->{session}->render_button(
 				name=>"_action_export_redir", 
 				value=>$self->{session}->phrase( "lib/searchexpression:export_button" ) ) );
 		$button->appendChild( 

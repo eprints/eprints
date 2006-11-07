@@ -40,12 +40,8 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		my @problems = $self->workflow->from;
-		if( scalar @problems )
-		{
-			$self->add_problems( @problems );
-		}
-		return;
+		my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+		return unless $from_ok;
 	}
 
 	$self->EPrints::Plugin::Screen::from;
@@ -77,7 +73,7 @@ sub action_save
 {
 	my( $self ) = @_;
 
-	$self->workflow->from;
+	$self->workflow->update_from_form( $self->{processor} );
 	$self->{session}->reload_current_user;
 	
 	$self->{processor}->{screenid} = "User::View";
@@ -95,7 +91,7 @@ sub action_prev
 {
 	my( $self ) = @_;
 
-	$self->workflow->from;
+	$self->workflow->update_from_form( $self->{processor} );
 	$self->{session}->reload_current_user;
 	$self->workflow->prev;
 }
@@ -112,13 +108,9 @@ sub action_next
 {
 	my( $self ) = @_;
 
-	my @problems = $self->workflow->from;
+	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
 	$self->{session}->reload_current_user;
-	if( scalar @problems )
-	{
-		$self->add_problems( @problems );
-		return;
-	}
+	return unless $from_ok;
 
 	if( !defined $self->workflow->get_next_stage_id )
 	{
@@ -138,20 +130,6 @@ sub screen_after_flow
 	return "User::View";
 }
 
-sub add_problems
-{
-	my( $self, @problems ) = @_;
- 
-	my $warnings = $self->{session}->make_element( "ul" );
-	foreach my $problem_xhtml ( @problems )
-	{
-		my $li = $self->{session}->make_element( "li" );
-		$li->appendChild( $problem_xhtml );
-		$warnings->appendChild( $li );
-	}
-	$self->workflow->link_problem_xhtml( $warnings, $self->{staff} );
-	$self->{processor}->add_message( "warning", $warnings );
-}
 
 sub render
 {

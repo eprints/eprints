@@ -374,9 +374,7 @@ sub render_action_button
 		$title = $params->{screen}->phrase( "title" );
 	}
 	$form->appendChild( 
-		$session->make_element( 
-			"input", 
-			type=>"submit",
+		$session->render_button(
 			class=>"ep_form_action_button",
 			name=>"_action_$action", 
 			value=>$title ));

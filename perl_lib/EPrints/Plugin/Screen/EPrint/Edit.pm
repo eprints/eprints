@@ -37,11 +37,7 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		my @problems = $self->workflow->from;
-		if( scalar @problems )
-		{
-			$self->add_problems( @problems );
-		}
+		$self->workflow->update_from_form( $self->{processor} );
 		return;
 	}
 
@@ -50,12 +46,8 @@ sub from
 	{
 		my $jump_to = $1;
 
-		my @problems = $self->workflow->from;
-		if( scalar @problems )
-		{
-			$self->add_problems( @problems );
-			return;
-		}
+		my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+		return if( !$from_ok );
 
 		if( $jump_to eq "deposit" )
 		{
@@ -97,7 +89,7 @@ sub action_save
 {
 	my( $self ) = @_;
 
-	$self->workflow->from;
+	$self->workflow->update_from_form( $self->{processor} );
 	
 	$self->{processor}->{screenid} = "EPrint::View";
 }
@@ -114,7 +106,7 @@ sub action_prev
 {
 	my( $self ) = @_;
 
-	$self->workflow->from;
+	$self->workflow->update_from_form( $self->{processor} );
 	$self->workflow->prev;
 }
 
@@ -130,12 +122,8 @@ sub action_next
 {
 	my( $self ) = @_;
 
-	my @problems = $self->workflow->from;
-	if( scalar @problems )
-	{
-		$self->add_problems( @problems );
-		return;
-	}
+	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+	return unless $from_ok;
 
 	if( !defined $self->workflow->get_next_stage_id )
 	{
@@ -156,20 +144,6 @@ sub screen_after_flow
 	return "EPrint::Deposit";
 }
 
-sub add_problems
-{
-	my( $self, @problems ) = @_;
- 
-	my $warnings = $self->{session}->make_element( "ul" );
-	foreach my $problem_xhtml ( @problems )
-	{
-		my $li = $self->{session}->make_element( "li" );
-		$li->appendChild( $problem_xhtml );
-		$warnings->appendChild( $li );
-	}
-	$self->workflow->link_problem_xhtml( $warnings, $self->{staff} );
-	$self->{processor}->add_message( "warning", $warnings );
-}
 
 sub render
 {

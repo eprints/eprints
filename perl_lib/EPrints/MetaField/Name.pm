@@ -116,10 +116,8 @@ sub get_basic_input_elements
 	foreach( $self->get_input_bits( $session ) )
 	{
 		my $size = $self->{input_name_cols}->{$_};
-		push @{$parts}, {el=>$session->make_element(
-			"input",
+		push @{$parts}, {el=>$session->render_input_field(
 			class => "ep_form_text",
-			"accept-charset" => "utf-8",
 			name => $basename."_".$_,
 			id => $basename."_".$_,
 			value => $value->{$_},

@@ -1384,10 +1384,7 @@ sub get_input_elements
 		}
 	}
 	my $more = $session->make_doc_fragment;
-	$more->appendChild( $session->make_element(
-		"input",
-		"accept-charset" => "utf-8",
-		type => "hidden",
+	$more->appendChild( $session->render_hidden_field(
 		name => $spacesid,
 		value => $boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
@@ -1485,10 +1482,7 @@ sub get_input_elements_single
 			$langbit = $session->make_element( 
 				"span", 
 				class => "requiredlang" );
-			$langbit->appendChild( $session->make_element(
-				"input",
-				"accept-charset" => "utf-8",
-				type => "hidden",
+			$langbit->appendChild( $session->render_hidden_field(
 				name => $langparamid,
 				value => $langid ) );
 			$langbit->appendChild( 
@@ -1527,10 +1521,7 @@ sub get_input_elements_single
 	$boxcount = $i-1;
 
 	my $more = $session->make_doc_fragment;	
-	$more->appendChild( $session->make_element(
-		"input",
-		"accept-charset" => "utf-8",
-		type => "hidden",
+	$more->appendChild( $session->render_hidden_field(
 		name => $spacesid,
 		value => $boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
@@ -1552,10 +1543,8 @@ sub get_basic_input_elements
 	my $size = ( $maxlength > $self->{input_cols} ?
 					$self->{input_cols} : 
 					$maxlength );
-	my $input = $session->make_element(
-		"input",
+	my $input = $session->render_input_field(
 		class=>"ep_form_text",
-		"accept-charset" => "utf-8",
 		name => $basename,
 		id => $basename,
 		value => $value,
@@ -2065,8 +2054,7 @@ sub render_search_input
 
 	# complex text types
 	$frag->appendChild(
-		$session->make_element( "input",
-			"accept-charset" => "utf-8",
+		$session->render_input_field(
 			type => "text",
 			name => $searchfield->get_form_prefix,
 			value => $searchfield->get_value,
