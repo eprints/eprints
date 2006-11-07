@@ -120,7 +120,7 @@ sub render
 			searchdesc => $self->html_phrase( "list_desc" ),
 		},
 		columns => $self->{session}->current_user->get_value( "items_fields" ),
-		render_results=> sub {
+		render_result => sub {
 			my( $session, $e ) = @_;
 
 			my $tr = $session->make_element( "tr" );
