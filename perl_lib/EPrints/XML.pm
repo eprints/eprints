@@ -95,6 +95,18 @@ return undef.
 
 # in required dom module
 
+######################################################################
+=pod
+
+=item event_parse( $fh, $handler )
+
+Parses the XML from filehandle $fh, calling the appropriate events
+in the handler where necessary.
+
+=cut
+######################################################################
+
+# in required dom module
 	
 ######################################################################
 =pod

@@ -8,8 +8,6 @@ our @ISA = qw/ EPrints::Plugin::Import /;
 # This reads in all the second level XML elements and passes them
 # as DOM to xml_to_dataobj.
 
-use XML::Parser;
-
 # maybe needs an input_dataobj method which parses the XML from
 # a single record.
 
@@ -56,39 +54,12 @@ sub input_list
 		imported => [], };
 	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
 
-	EPrints::XML::parse_fh_with_handler( $opts{fh}, $handler );
+	EPrints::XML::event_parse( $opts{fh}, $handler );
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
 			session => $plugin->{session},
 			ids => $handler->{imported} );
-}
-
-sub EPrints::XML::parse_fh_with_handler
-{
-	my( $fh, $handler ) = @_;	
-	
-        my $parser = new XML::Parser(
-                Style => "Subs",
-                ErrorContext => 5,
-                Handlers => {
-                        Start => sub { 
-				my( $p, $v, %a ) = @_; 
-				my $attr = {};
-				foreach my $k ( keys %a ) { $attr->{$k} = { Name=>$k, Value=>$a{$k} }; }
-				$handler->start_element( { Name=>$v, Attributes=>$attr } );
-			},
-                        End => sub { 
-				my( $p, $v ) = @_; 
-				$handler->end_element( { Name=>$v } );
-			},
-                        Char => sub { 
-				my( $p, $data ) = @_; 
-				$handler->characters( { Data=>$data } );
-			},
-                } );
-
-	$parser->parse( $fh );
 }
 
 sub xml_to_dataobj

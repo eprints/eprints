@@ -29,7 +29,7 @@ loaded into EPrints::XML namespace if we're using XML::DOM
 =cut
 
 require XML::DOM; 
-
+use XML::Parser;
 # DOM runs really slowly if it checks all it's data is
 # valid...
 $XML::DOM::SafeMode = 0;
@@ -139,6 +139,41 @@ sub parse_xml
 
 	return $doc;
 }
+
+=item event_parse( $fh, $handler )
+
+Parses the XML from filehandle $fh, calling the appropriate events
+in the handler where necessary.
+
+=cut
+
+sub event_parse
+{
+	my( $fh, $handler ) = @_;	
+	
+        my $parser = new XML::Parser(
+                Style => "Subs",
+                ErrorContext => 5,
+                Handlers => {
+                        Start => sub { 
+				my( $p, $v, %a ) = @_; 
+				my $attr = {};
+				foreach my $k ( keys %a ) { $attr->{$k} = { Name=>$k, Value=>$a{$k} }; }
+				$handler->start_element( { Name=>$v, Attributes=>$attr } );
+			},
+                        End => sub { 
+				my( $p, $v ) = @_; 
+				$handler->end_element( { Name=>$v } );
+			},
+                        Char => sub { 
+				my( $p, $data ) = @_; 
+				$handler->characters( { Data=>$data } );
+			},
+                } );
+
+	$parser->parse( $fh );
+}
+
 
 sub dispose
 {

@@ -154,7 +154,7 @@ else
 	my $repoid = $ARGV[1];
 	pod2usage(1) unless defined $repoid;
 	if( $action eq "config_core" ) { config_core( $repoid ); }
-	elsif( $action eq "config_db" ) { configdb( $repoid ); }
+	elsif( $action eq "config_db" ) { config_db( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
 	elsif( $action eq "create_user" ) { create_user( $repoid ); }
 	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }

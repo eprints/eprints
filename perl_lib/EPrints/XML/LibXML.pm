@@ -29,6 +29,7 @@ loaded into EPrints::XML namespace if we're using XML::LibXML
 =cut
 
 use XML::LibXML;
+use XML::LibXML::SAX::Parser;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
 $EPrints::XML::PREFIX = "XML::LibXML::";
@@ -128,6 +129,21 @@ sub parse_xml
 
 	return $doc;
 }
+
+=item event_parse( $fh, $handler )
+
+Parses the XML from filehandle $fh, calling the appropriate events
+in the handler where necessary.
+
+=cut
+
+sub event_parse
+{
+	my( $fh, $handler ) = @_;	
+	my $parser = new XML::LibXML::SAX::Parser->new(Handler => $handler);
+	$parser->parse_file( $fh );	
+}
+
 
 =item dispose( $node )
 
