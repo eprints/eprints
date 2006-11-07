@@ -132,7 +132,7 @@ sub send_http_error
 
 	my $r = EPrints::Apache::AnApache::get_request();
 	$r->content_type( 'text/html' );
-	$r->status_line( "$code $message" );
+	EPrints::Apache::AnApache::send_status_line( $r, $code, $message ); 
 	$r->send_http_header;
 	my $title = "Error $code in Apache::VLit request";
 	$r->print( <<END );
@@ -161,7 +161,7 @@ sub send_http_header
 	{
 		$r->content_type( $type );
 	}
-	$r->status_line( "200 YAY" );
+	EPrints::Apache::AnApache::send_status_line( $r, 200, "YAY"); 
 	$r->send_http_header;
 }
 

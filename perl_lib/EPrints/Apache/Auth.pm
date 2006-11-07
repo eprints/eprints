@@ -168,7 +168,7 @@ sub auth_cookie
 			my $target_url = $r->uri;
 			$target_url =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
 			my $login_url = $session->get_repository->get_conf( "perl_url" )."/users/login?target=$target_url";
-			$r->status_line( "302 Need to login first" );
+			EPrints::Apache::AnApache::send_status_line( $r, 302, "Need to login first" );
 			EPrints::Apache::AnApache::header_out( $r, "Location", $login_url );
 			EPrints::Apache::AnApache::send_http_header( $r );
 			return DONE;

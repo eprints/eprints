@@ -26,7 +26,7 @@ sub new
 sub render
 {
 	my( $self ) = @_;
-
+	
 	my $session = $self->{session};
 
 	my $page = $session->make_doc_fragment();

@@ -460,9 +460,8 @@ sub html_phrase
 	# %inserts [HASH: ASCII->DOM]
 	#
 	# returns [DOM]	
-
-        my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
-
+        
+	my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
 	#my $s = $self->make_element( "span", title=>$phraseid );
 	#$s->appendChild( $r );
 	#return $s;
@@ -2509,7 +2508,7 @@ sub redirect
 		return;
 	}
 
-	$self->{"request"}->status_line( "302 Moved" );
+	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
 		"Location",

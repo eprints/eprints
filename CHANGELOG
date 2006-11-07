@@ -5059,3 +5059,8 @@ PACKAGE: 2.2.99.2
  * Added event_parse subs to all XML parser modules. LibXML uses the SAX parser, and
     GDOME/DOM use the technique from Import::DefaultXML (with XML::Parser). Takes a 
     filehandle to read from, and a handler object (see the example in Import::DefaultXML)
+
+2006-11-07 moj
+ * Added send_status_line to AnApache - this takes a code and message, and does status and
+    status_line on the request. This fixes the problem with redirecting.
+ * Adjusted other modules to use send_status_line.

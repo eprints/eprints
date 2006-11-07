@@ -167,7 +167,7 @@ sub redir
 {
 	my( $r, $url ) = @_;
 
-	$r->status_line( "302 Close but no Cigar" );
+	EPrints::Apache::AnApache::send_status_line( $r, 302, "Close but no Cigar" );
 	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
 	EPrints::Apache::AnApache::send_http_header( $r );
 	return DONE;

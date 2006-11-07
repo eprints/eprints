@@ -150,7 +150,7 @@ if( defined $av && $av eq "2" )
 		sub header_out
 		{
 			my( $request, $header, $value ) = @_;
-
+			
 			$request->headers_out->{$header} = $value;
 		}
 
@@ -294,5 +294,15 @@ sub upload_doc_archive
 		$archive_format );	
 }
 
+sub send_status_line
+{	
+	my( $request, $code, $message ) = @_;
+	
+	if( defined $message )
+	{
+		$request->status_line( "$code $message" );
+	}
+	$request->status( $code );
+}
 
 1;
