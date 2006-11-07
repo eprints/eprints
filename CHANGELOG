@@ -5066,5 +5066,10 @@ PACKAGE: 2.2.99.2
  * Adjusted other modules to use send_status_line.
 
 2006-11-07 tmb
+
  * Added shortcut sub paginate_list_with_columns to Paginate.pm which displays the list as
     a table of field values, with sortable columns.
+
+2006-11-07 cjg
+ * Changed epadmin create_repo back to epadmin create.
+

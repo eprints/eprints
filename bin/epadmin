@@ -20,7 +20,7 @@ B<epadmin> - EPrints repository admin tool
 
 =over 8
 
-=item B<epadmin> create_repo
+=item B<epadmin> create
 
 START HERE! This option will walk you through the tasks needed to create your repository.
 
@@ -148,7 +148,7 @@ my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
 
 my $action = $ARGV[0];
-if( $action eq "create_repo" ) { create_repo(); }
+if( $action eq "create" ) { create(); }
 else
 {
 	my $repoid = $ARGV[1];
@@ -171,7 +171,7 @@ exit;
 
 
 
-sub create_repo
+sub create
 {
 	pod2usage( 2 ) if( scalar @ARGV != 1 ); 
 
