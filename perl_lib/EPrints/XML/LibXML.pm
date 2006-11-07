@@ -50,6 +50,15 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 # incorrectly set to 'text'
 *XML::LibXML::Text::nodeName = sub { '#text' };
 
+# Element::cloneNode should copy attributes too
+*XML::LibXML::Element::cloneNode = sub {
+		my( $self, $deep ) = @_;
+		my $node = XML::LibXML::Node::cloneNode( @_ );
+		return $node if $deep;
+		$node->setAttribute( $_->nodeName, $_->value ) for $self->attributes();
+		return $node;
+	};
+
 ##############################################################################
 # GDOME compatibility
 ##############################################################################
@@ -60,15 +69,6 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 *XML::LibXML::Document::getElementsByTagName =
 *XML::LibXML::DocumentFragment::getElementsByTagName =
 	\&XML::LibXML::Element::getElementsByLocalName;
-
-# Element::cloneNode should copy attributes too
-*XML::LibXML::Element::cloneNode = sub {
-		my( $self, $deep ) = @_;
-		my $node = XML::LibXML::Node::cloneNode( @_ );
-		return $node if $deep;
-		$node->setAttribute( $_->nodeName, $_->value ) for $self->attributes();
-		return $node;
-	};
 
 # LibXML doesn't set a root element on $doc->appendChild (unused, but could
 # cause problems)
@@ -259,6 +259,22 @@ sub make_document
 	# leave ($version, $encoding) blank to avoid getting a declaration
 	# *implicitly* utf8
 	return XML::LibXML::Document->new();
+}
+
+=item $doc = make_document_fragment( $session )
+
+Return a new, empty DOM document fragment.
+
+=cut
+
+sub make_document_fragment
+{
+	my( $session ) = @_;
+	
+	# LibXML segfaults if an empty DocumentFragment is added to a node
+	my $frag = $session->{doc}->createDocumentFragment();
+	$frag->appendChild( $session->{doc}->createTextNode(''));
+	return $frag;
 }
 
 __END__

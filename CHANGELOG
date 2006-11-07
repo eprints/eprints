@@ -5053,6 +5053,8 @@ PACKAGE: 2.2.99.2
  * Added Compat::Term::ReadKey module to avoid Term::ReadKey requirement (linux
     support only via stty)
  * Modified Term::ReadKey usage to fallback to Compat::Term::ReadKey.
+ * $session->make_doc_fragment now calls EPrints::XML::make_document_fragment
+ * Work-around for LibXML appendChild() bug for empty DocumentFragment
 
 2006-11-07 moj
  * Fixed typo in epadmin config_db

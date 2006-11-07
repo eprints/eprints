@@ -931,7 +931,7 @@ sub make_doc_fragment
 {
 	my( $self ) = @_;
 
-	return $self->{doc}->createDocumentFragment;
+	return EPrints::XML::make_document_fragment( $self );
 }
 
 

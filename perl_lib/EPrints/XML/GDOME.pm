@@ -226,3 +226,10 @@ sub make_document
 
 	return $doc;
 }
+
+sub make_document_fragment
+{
+	my( $session ) = @_;
+	
+	return $session->{doc}->createDocumentFragment;
+}
