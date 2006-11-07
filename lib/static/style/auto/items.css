@@ -1,0 +1,16 @@
+
+/* Items Screen */
+
+.ep_items_filters {
+	text-align: center;
+}
+
+.ep_items_filters img {
+	border-width: 0px;
+}
+
+.ep_items_filters a {
+	color: #000000;
+	text-decoration: none;
+}
+

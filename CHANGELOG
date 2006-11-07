@@ -5075,3 +5075,5 @@ PACKAGE: 2.2.99.2
 2006-11-07 cjg
  * Changed epadmin create_repo back to epadmin create.
 
+2006-11-06 cjg 
+ * Cleaned up filters in Items screen.

@@ -74,8 +74,7 @@ sub render
 		"EQ",
 		"ANY" );
 	$list = $list->intersect( $searchexp->perform_search, "-eprintid" );
-	my $filter_div = $self->{session}->make_element( "div" );
-	$filter_div->appendChild( $self->{session}->make_text( "Filters {lang}: " ) );
+	my $filter_div = $self->{session}->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
 		my %f2 = %filters;
@@ -85,16 +84,24 @@ sub render
 		{
 			$url.= "&show_$inner_f=".$f2{$inner_f};
 		}
-		my $a = $self->{session}->render_link( $url );
+		my $a = $self->{session}->render_link( $url,  );
+		my $imagesurl = $self->{session}->get_repository->get_conf( "base_url" )."/style/images";
 		if( $filters{$f} )
 		{
-			$a->appendChild( $self->{session}->make_text( "Showing " ) );
+			$a->appendChild( $self->{session}->make_element(
+				"img",
+				src=> "$imagesurl/checkbox_tick.png",
+				alt=>"Showing" ) );
 		}
 		else
 		{
-			$a->appendChild( $self->{session}->make_text( "Concealing " ) );
+			$a->appendChild( $self->{session}->make_element(
+				"img",
+				src=> "$imagesurl/checkbox_cross.png",
+				alt=>"Not showing" ) );
 		}
-		$a->appendChild( $self->{session}->html_phrase( "dataset_fieldopt_dataset_$f" ) );
+		$a->appendChild( $self->{session}->make_text( " " ) );
+		$a->appendChild( $self->{session}->html_phrase( "eprint_fieldopt_eprint_status_$f" ) );
 		$filter_div->appendChild( $a );
 		$filter_div->appendChild( $self->{session}->make_text( ". " ) );
 	}
