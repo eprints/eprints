@@ -98,21 +98,9 @@ sub render
 		$filter_div->appendChild( $a );
 		$filter_div->appendChild( $self->{session}->make_text( ". " ) );
 	}
-	$chunk->appendChild( $filter_div );		
+	$chunk->appendChild( $filter_div );
 
-	my $table = $self->{session}->make_element( "table", cellspacing=>0, width => "100%" );
-	my $tr = $self->{session}->make_element( "tr", class=>"header_plain" );
-	$table->appendChild( $tr );
-
-	# Columns displayed according to user preference
-	my $cols = $self->{session}->current_user->get_value( "items_fields" );
-	for( @$cols )
-	{
-		my $th = $self->{session}->make_element( "th" );
-		$th->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
-		$tr->appendChild( $th );
-	}
-
+	# Paginate list
 	my %opts = (
 		params => {
 			screen => "Items",
@@ -121,11 +109,11 @@ sub render
 			show_archive=>$filters{archive},
 			show_deletion=>$filters{deletion},
 		},
-		container => $table,
 		pins => {
 			searchdesc => $self->html_phrase( "list_desc" ),
 		},
-		render_result => sub {
+		columns => $self->{session}->current_user->get_value( "items_fields" ),
+		render_results=> sub {
 			my( $session, $e ) = @_;
 
 			my $tr = $session->make_element( "tr" );
@@ -139,7 +127,7 @@ sub render
 			if( $status eq "deletion" ) { $style="background-color: #ccc;"; }
 			$style.=" border-bottom: 1px solid #888; padding: 4px;";
 
-			my $cols = $self->{session}->current_user->get_value( "items_fields" );
+			my $cols = $session->current_user->get_value( "items_fields" );
 			for( @$cols )
 			{
 				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
@@ -151,8 +139,8 @@ sub render
 
 			return $tr;
 		},
-	); 
-	$chunk->appendChild( EPrints::Paginate->paginate_list( $self->{session}, "_buffer", $list, %opts ) );
+	);
+	$chunk->appendChild( EPrints::Paginate->paginate_list_with_columns( $self->{session}, "_buffer", $list, %opts ) );
 
 	# TODO: alt phrase for empty list e.g. "cgi/users/home:no_pending"
 

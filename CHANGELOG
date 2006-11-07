@@ -5064,3 +5064,7 @@ PACKAGE: 2.2.99.2
  * Added send_status_line to AnApache - this takes a code and message, and does status and
     status_line on the request. This fixes the problem with redirecting.
  * Adjusted other modules to use send_status_line.
+
+2006-11-07 tmb
+ * Added shortcut sub paginate_list_with_columns to Paginate.pm which displays the list as
+    a table of field values, with sortable columns.

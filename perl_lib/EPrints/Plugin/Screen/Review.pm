@@ -36,7 +36,6 @@ sub render
 	my( $self ) = @_;
 
 	my $user = $self->{session}->current_user;
-
 	my $page = $self->{session}->make_doc_fragment();
 
 	# Get EPrints in the submission buffer
@@ -52,67 +51,18 @@ sub render
 		"cgi/users/buffer:buffer_blurb",
 		scope=>$self->_get_scope( $user ) ) );
 
-	# Sorting options
-	my $form = $self->{session}->render_form( "GET" );
-	$page->appendChild( $form );
-
-	my $sort_order = $self->{session}->param( "_order" );
-	my $search = EPrints::Search->new(
-		session => $self->{session},
-		dataset => $self->{session}->get_repository->get_dataset( "eprint" ),
-		order_methods => $self->{session}->get_repository->get_conf( "order_methods", "eprint.review" ), # will use default if not defined
-		order => $sort_order,
-	);
-	$form->appendChild( $search->render_order_menu );
-
-	my $basename = "_review";
-	my $offset = $self->{session}->param( "$basename\_offset" );
-	if( defined $offset && $offset ne "" )
-	{
-		$form->appendChild( $self->{session}->render_hidden_field( "$basename\_offset", $offset ) );
-	}
-	$form->appendChild( $self->{session}->render_hidden_field( "screen", "Review" ) );
-	$form->appendChild( $self->{session}->render_action_buttons( submit => "Submit" ) ); 
-
-	# TODO Add filters that respect editorial scope
-	#my $fieldnames = $self->{session}->get_repository->get_conf( "editor_limit_fields" );
-	#foreach my $sv ( @{ $user->get_value( "editperms" ) } )
-	#{
-	#	my $data = EPrints::Search::Field->unserialise( $sv );
-	#}
-	
-	if( defined $sort_order && $sort_order ne "" )
-	{
-		my $order = $self->{session}->get_repository->get_conf( "order_methods" , "eprint.review", $sort_order );
-		$list = $list->reorder( $order );
-	}
-
-	# Headers for paginated list
-	my $table = $self->{session}->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, width=>"100%" );
-	my $tr = $self->{session}->make_element( "tr", class=>"header_plain" );
-	$table->appendChild( $tr );
-
-	# Columns displayed according to user preference
-	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
-	my $cols = $self->{session}->current_user->get_value( "review_fields" );
-	for( @$cols )
-	{
-		my $th = $self->{session}->make_element( "th" );
-		$th->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
-		$tr->appendChild( $th );
-	}
-	
-	my $info = {row => 1};
+	# Paginate list
 	my %opts = (
 		params => {
 			screen => "Review",
-			_order => defined $sort_order ? $sort_order : "",
 		},
-		container => $table,
 		pins => {
 			searchdesc => $self->_get_scope( $user ),
 		},
-		render_result_params => $info,
+		columns => $self->{session}->current_user->get_value( "review_fields" ),
+		render_result_params => {
+			row => 1,
+		},
 		render_result => sub {
 			my( $session, $e, $info ) = @_;
 
@@ -120,7 +70,7 @@ sub render
 
 			my $style = "border-bottom: 1px solid #888; padding: 4px;";
 
-			my $cols = $self->{session}->current_user->get_value( "review_fields" );
+			my $cols = $session->current_user->get_value( "review_fields" );
 			for( @$cols )
 			{
 				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
@@ -135,7 +85,7 @@ sub render
 			return $tr;
 		},
 	);
-	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, $basename, $list, %opts ) );
+	$page->appendChild( EPrints::Paginate->paginate_list_with_columns( $self->{session}, "_review", $list, %opts ) );
 
 	return $page;
 }
