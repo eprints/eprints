@@ -5048,3 +5048,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-06 tmb
  * Columns in Items and Editorial Screens now displayed according to user preference
+ 
+2006-11-07 tdb
+ * Added Compat::Term::ReadKey module to avoid Term::ReadKey requirement (linux
+    support only via stty)
+ * Modified Term::ReadKey usage to fallback to Compat::Term::ReadKey.

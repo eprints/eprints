@@ -33,7 +33,6 @@ use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Path;
 use File::Copy qw();
-use Term::ReadKey;
 use Text::Wrap qw();
 use MIME::Lite;
 use LWP::MediaTypes qw( guess_media_type );
@@ -48,6 +47,9 @@ $EPrints::Utils::FULLTEXT = "_fulltext_";
 my $DF_AVAILABLE;
 
 BEGIN {
+	eval "use Term::ReadKey";
+	eval "use Compat::Term::ReadKey" if $@;
+
 	$DF_AVAILABLE = 0;
 
 	sub detect_df 
