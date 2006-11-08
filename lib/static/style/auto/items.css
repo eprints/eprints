@@ -3,10 +3,12 @@
 
 .ep_items_filters {
 	text-align: center;
+	margin-top: 10px;
 }
 
 .ep_items_filters img {
 	border-width: 0px;
+	margin-left: 10px;
 }
 
 .ep_items_filters a {

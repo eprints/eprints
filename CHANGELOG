@@ -5124,3 +5124,10 @@ PACKAGE: 2.2.99.2
 
 2006-11-08 cjg
  * Used message style for login and logout errors and messages.
+
+2006-11-08 cjg
+ * Added pins above and below results in paginator.
+ * Moved status filter to be between controls and results on items
+    page.
+ * Pagination now defaults to sorting by the first field.
+ * Fixed size of search controls when no controls are needed.

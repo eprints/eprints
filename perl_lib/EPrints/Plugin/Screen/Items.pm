@@ -105,7 +105,6 @@ sub render
 		$filter_div->appendChild( $a );
 		$filter_div->appendChild( $self->{session}->make_text( ". " ) );
 	}
-	$chunk->appendChild( $filter_div );
 
 	# Paginate list
 	my %opts = (
@@ -120,6 +119,7 @@ sub render
 			searchdesc => $self->html_phrase( "list_desc" ),
 		},
 		columns => $self->{session}->current_user->get_value( "items_fields" ),
+		above_results => $filter_div,
 		render_result => sub {
 			my( $session, $e ) = @_;
 

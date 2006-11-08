@@ -160,7 +160,9 @@ EPrints Modules
 <epp:phrase id="lib/list:page">
 <h2 class="ep_search_desc"><epc:pin name="searchdesc"/></h2>
 <div class="ep_search_controls"><epc:pin name="controls"/></div>
+<epc:pin name="above_results" />
 <div class="ep_search_results"><epc:pin name="results"/></div>
+<epc:pin name="below_results" />
 <div class="ep_search_controls_bottom"><epc:pin name="controls_if_matches"/></div>
 </epp:phrase>
 

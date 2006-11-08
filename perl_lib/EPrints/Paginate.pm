@@ -160,6 +160,16 @@ sub paginate_list
 				"lib/searchexpression:noresults" );
 	}
 
+	$pins{above_results} = $opts{above_results};
+	if( !defined $pins{above_results} )
+	{
+		$pins{above_results} = $session->make_doc_fragment;
+	}
+	$pins{below_results} = $opts{below_results};
+	if( !defined $pins{below_results} )
+	{
+		$pins{below_results} = $session->make_doc_fragment;
+	}
 	if( !defined $pins{searchdesc} )
 	{
 		$pins{searchdesc} = $list->render_description;
@@ -300,7 +310,7 @@ sub paginate_list
 	}
 	else
 	{
-		$pins{controls} = $session->make_doc_fragment;
+		$pins{controls} = $session->render_nbsp;
 	}
 
 	# Container for results (e.g. table, div..)
@@ -405,6 +415,11 @@ sub paginate_list_with_columns
 
 	# Sort param
 	my $sort_order = $session->param( $basename."_order" );
+	if( !defined $sort_order ) 
+	{
+		$sort_order = $opts{columns}->[0];
+	}	
+
 	if( defined $sort_order && $sort_order ne "" )
 	{
 		$newopts{params}{ $basename."_order" } = $sort_order;
