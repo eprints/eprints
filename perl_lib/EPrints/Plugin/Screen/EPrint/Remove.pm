@@ -43,8 +43,8 @@ sub render
 		cancel => $self->{session}->phrase(
 				"lib/submissionform:action_cancel" ),
 		remove => $self->{session}->phrase(
-				"lib/submissionform:action_confirm" ),
-		_order => [ "confirm", "cancel" ]
+				"lib/submissionform:action_remove" ),
+		_order => [ "remove", "cancel" ]
 	);
 
 	my $form= $self->render_form;

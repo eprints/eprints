@@ -1,27 +1,13 @@
 
-# return one of:
-# REQ 
-# REQ_AND_USER [default]
-# REQ_OR_USER
-# for just USER security use REQ_AND_USER and make the REQ check always
-# succeed.
-# use REQ for request (location) based security, so it doesn't then
-# ask for a username/password after passing the first part.
-$c->{document_security_rule} = sub
-{
-	my( $security ) = @_;
-
-	# these are example settings for domain based security
-	# return( "REQ_AND_USER" ) if( $security eq "campus_and_validuser" );
-	# return( "REQ_OR_USER" ) if( $security eq "campus_or_validuser" );
-	# return( "REQ" ) if( $security eq "campus" );
-
-	return( "REQ_AND_USER" );
-};
-
 # this method handles checking to see if a basic request is allowed to
-# view a secured document. Usually this means checking the IP address 
-# but other aspects of the request could also be used.
+# view a secured document. 
+
+# Valid return values are
+# "ALLOW" - allow the rquest to view the document
+# "DENY"  - deny the request to view the document
+# "USER"  - allow the request if the current user is allowed to view
+#            the document. Ask for login if nobody is logged in.
+
 $c->{can_request_view_document} = sub
 {
 	my( $doc, $r ) = @_;
@@ -29,13 +15,12 @@ $c->{can_request_view_document} = sub
 	#my $eprint = $doc->get_eprint();
 	my $security = $doc->get_value( "security" );
 
-	return( 1 ) if( $security eq "public" );
-
-	# This _should_ work according to the mod_perl2 documentation,
-	# but does not seem to. 
-	#my $c = $r->connection();
-	#my $remote_ip = $c->remote_ip();
-	#my $remote_host = $c->remote_host();
+	my $eprint = $doc->get_eprint();
+	my $status = $eprint->get_value( "eprint_status" );
+	if( $security eq "public" && $status eq "archive" )
+	{
+		return( "ALLOW" );
+	}
 
 	my $ip = $ENV{REMOTE_ADDR};
 
@@ -43,23 +28,17 @@ $c->{can_request_view_document} = sub
 
 	# my( $oncampus ) = 0;
 	# $oncampus = 1 if( $ip eq "152.78.69.157" );
-	#
-	# return( 1 ) if( $security eq "campus_and_validuser" && $oncampus );
-	# return( 1 ) if( $security eq "campus_or_validuser" && $oncampus );
-	# return( 1 ) if( $security eq "campus" && $oncampus );
+	# return( "USER" ) if( $security eq "campus_and_validuser" && $oncampus );
+	# return( "ALLOW" ) if( $security eq "campus_or_validuser" && $oncampus );
+	# return( "ALLOW" ) if( $security eq "campus" && $oncampus );
+	# 
+	# return( "DENY" ) if( $ip eq "101.34.34.1" );
 
-	# return true if we are in a security model which does not care
-	# about request-authentication.
-	return( 1 ) if( $security eq "validuser" );
-	return( 1 ) if( $security eq "staffonly" );
-
-
-	$doc->get_session->get_repository->log( 
-"unrecognized request security flag '$security' on document ".$doc->get_id );
-	# return 0 if we don't recognise the security flag.
-	return( 0 );
+	return( "USER" );
 };
 
+# Return "ALLOW" if the given user can view the given document,
+# otherwise return "DENY".
 $c->{can_user_view_document} = sub
 {
 	my( $doc, $user ) = @_;
@@ -78,14 +57,13 @@ $c->{can_user_view_document} = sub
 	# Add/remove types of security in metadata-types.xml
 
 	# Trivial cases:
-	return( 1 ) if( $security eq "public" );
-	return( 1 ) if( $security eq "validuser" );
+	return( "ALLOW" ) if( $security eq "public" );
+	return( "ALLOW" ) if( $security eq "validuser" );
 
 	# examples for location validation
-	# return( 1 ) if( $security eq "validuser_and_campus" );
-	# return( 1 ) if( $security eq "validuser_or_campus" );
-	# if the mode is "campus" then this method will never be called 
-	# as we set the rule to "REQ" (above).
+	# return( "ALLOW" ) if( $security eq "validuser_and_campus" );
+	# return( "ALLOW" ) if( $security eq "validuser_or_campus" );
+	# if the mode is "campus" then this method will never be called.
 	
 	if( $security eq "staffonly" )
 	{
@@ -93,26 +71,31 @@ $c->{can_user_view_document} = sub
 		# new privs and use them.
 
 		# people with priv editor can read this document...
-		if( $user->has_priv( "editor" ) )
+		if( $user->get_value( "usertype" ) eq "editor" )
 		{
-			return 1;
+			return "ALLOW";
+		}
+
+		if( $user->get_value( "usertype" ) eq "admin" )
+		{
+			return "ALLOW";
 		}
 
 		# ...as can the user who deposited it...
 		if( $user->get_value( "userid" ) == $eprint->get_value( "userid" ) )
 		{
-			return 1;
+			return "ALLOW";
 		}
 
 		# ...but nobody else can
-		return 0;
+		return "DENY";
 		
 	}
 
 	$doc->get_session->get_repository->log( 
 "unrecognized user security flag '$security' on document ".$doc->get_id );
 	# Unknown security type, be paranoid and deny permission.
-	return( 0 );
+	return( "DENY" );
 };
 
 

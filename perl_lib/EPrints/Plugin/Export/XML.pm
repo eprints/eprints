@@ -19,7 +19,7 @@ sub new
 
 	my( $self ) = $class->SUPER::new( %opts );
 
-	$self->{name} = "XML";
+	$self->{name} = "EP3 XML";
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";

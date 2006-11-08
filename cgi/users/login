@@ -10,17 +10,21 @@ my $c = $session->{request}->connection;
 
 my $code = $c->notes->get( "cookie_code" );
 
-my $cookie = $session->get_query->cookie(
-	-name    => "eprints_session",
-	-path    => "/",
-	-value   => $code,
-	-domain  => $session->get_repository->get_conf("cookie_domain"),
-	-expires => "+10y" );
-EPrints::Apache::AnApache::header_out( 
-	$session->get_request,
-	"Set-Cookie" => $cookie );
 if( !defined $url ) { $url = "/cgi/users/home"; }
-$session->redirect( $url, code=>$code );
+
+my $page = $session->make_doc_fragment;
+
+$page->appendChild( $session->render_message( 
+	"message",	
+	$session->html_phrase("cgi/login:message") ) );
+
+$page->appendChild( $session->html_phrase( 
+	"cgi/login:link_text",
+	link=>$session->render_link( $url ) ) );
+
+my $title = $session->html_phrase( "cgi/login:title" );
+$session->build_page( $title, $page );
+$session->send_page();
 
 $session->terminate;
 

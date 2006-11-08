@@ -1226,24 +1226,35 @@ sub validate
 
 
 ######################################################################
-=pod
-
-=item $boolean = $doc->can_view( $user )
-
-Return true if this documents security settings allow the given user
-to view it.
-
-=cut
+#
+# $boolean = $doc->user_can_view( $user )
+#
+# Return true if this documents security settings allow the given user
+# to view it.
+#
 ######################################################################
 
-sub can_view
+sub user_can_view
 {
 	my( $self, $user ) = @_;
 
-	return $self->{session}->get_repository->call( 
+	if( !defined $user )
+	{
+		$self->{session}->get_repository->log( '$doc->user_can_view called with undefined $user object.' );
+		return( 0 );
+	}
+
+	my $result = $self->{session}->get_repository->call( 
 		"can_user_view_document",
 		$self,
 		$user );	
+
+	return( 1 ) if( $result eq "ALLOW" );
+	return( 0 ) if( $result eq "DENY" );
+
+	$self->{session}->get_repository->log( "Response from can_user_view_document was '$result'. Only ALLOW, DENY are allowed." );
+	return( 0 );
+
 }
 
 

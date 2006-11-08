@@ -74,68 +74,32 @@ sub authen_doc
 	my( $r ) = @_;
 
 	my $session = new EPrints::Session(2); # don't open the CGI info
-	
-	if( !defined $session )
-	{
-		return FORBIDDEN;
-	}
+
+	return FORBIDDEN if( !defined $session );
+
+	my $rvalue = _authen_doc( $r, $session );
+	$session->terminate;
+
+	return $rvalue;
+}
+
+sub _authen_doc
+{
+	my( $r, $session ) = @_;
 
 	my $document = secure_doc_from_url( $r, $session );
-
-	if( !defined $document ) 
-	{
-		$session->terminate();
-		return FORBIDDEN;
-	}
+	return FORBIDDEN if( !defined $document );
 
 	my $security = $document->get_value( "security" );
 
-	my $rule = "REQ_AND_USER";
-	if( $session->get_repository->can_call( "document_security_rule" ) )
+	my $result = $session->get_repository->call( "can_request_view_document", $document, $r );
+
+	return OK if( $result eq "ALLOW" );
+	return FORBIDDEN if( $result eq "DENY" );
+	if( $result ne "USER" )
 	{
-		$rule = $session->get_repository->call("document_security_rule", $security );
-	}
-	if( $rule !~ m/^REQ|REQ_AND_USER|REQ_OR_USER$/ )
-	{
-		$session->get_repository->log( "Bad document_security_rule: '$rule'." );
-		$session->terminate();
+		$session->get_repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
 		return FORBIDDEN;
-	}
-
-	my $req_view = 1;
-	if( $session->get_repository->can_call( "can_request_view_document" ) )
-	{
-		$req_view = $session->get_repository->call( "can_request_view_document", $document, $r );
-	}
-
-	if( $rule eq "REQ" )
-	{
-		if( $req_view )
-		{
-			$session->terminate();
-			return OK;
-		}
-
-		$session->terminate();
-		return FORBIDDEN;
-	}
-
-	if( $rule eq "REQ_AND_USER" )
-	{
-		if( !$req_view )
-		{
-			$session->terminate();
-			return FORBIDDEN;
-		}
-	}
-
-	if( $rule eq "REQ_OR_USER" )
-	{
-		if( $req_view )
-		{
-			$session->terminate();
-			return OK;
-		}
 	}
 
 	my $rc;
@@ -148,7 +112,6 @@ sub authen_doc
 		$rc = auth_basic( $r, $session );
 	}
 
-	$session->terminate();
 	return $rc;
 }
 
@@ -257,61 +220,31 @@ sub authz_doc
 	my $session = new EPrints::Session(2); # don't open the CGI info
 
 	my $document = secure_doc_from_url( $r, $session );
-	if( !defined $document ) {
+	if( !defined $document ) 
+	{
 		$session->terminate();
 		return FORBIDDEN;
 	}
+
+	my $request_result = $session->get_repository->call( "can_request_view_document", $document, $r );
+	return OK if( $request_result eq "ALLOW" );
+	return FORBIDDEN if( $request_result eq "DENY" );
 
 	my $security = $document->get_value( "security" );
 
-#	if( $security->is_public )
-#	{
-#		$session->terminate();
-#		return OK;
-#	}
+	my $user = $session->current_user;
 
-	my $rule = "REQ_AND_USER";
-	if( $session->get_repository->can_call( "document_security_rule" ) )
-	{
-		$rule = $session->get_repository->call("document_security_rule", $security );
-	}
-	# no need to check authen is always called first
-
-	my $req_view = 1;
-	if( $session->get_repository->can_call( "can_request_view_document" ) )
-	{
-		$req_view = $session->get_repository->call( "can_request_view_document", $document, $r );
-	}
-
-	if( $rule eq "REQ_AND_USER" )
-	{
-		if( !$req_view )
-		{
-			$session->terminate();
-			return FORBIDDEN;
-		}
-	}
-	if( $rule eq "REQ_OR_USER" )
-	{
-		if( $req_view )
-		{
-			$session->terminate();
-			return OK;
-		}
-	}
-	# REQ should not have made it this far.
-
-	my $user_sent = $r->user;
-	my $user = EPrints::DataObj::User::user_with_username( $session, $user_sent );
-	unless( $document->can_view( $user ) )
-	{
-		$session->terminate();
-		return FORBIDDEN;
-	}	
-
-
+	my $result = $document->user_can_view( $user );
 	$session->terminate();
-	return OK;
+
+	if( $result )
+	{
+		return OK;
+	}
+	else
+	{
+		return FORBIDDEN;
+	}
 }
 
 ######################################################################

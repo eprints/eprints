@@ -58,7 +58,7 @@ sub handler
 	my $session = new EPrints::Session;
 
 	my $parts;
-	foreach my $part ( "title", "title.textonly", "page" )
+	foreach my $part ( "title", "title.textonly", "page", "head" )
 	{
 		if( open( CACHE, $filename.".".$part ) ) 
 		{

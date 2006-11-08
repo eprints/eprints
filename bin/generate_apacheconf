@@ -535,8 +535,10 @@ print CONF <<END;
 
   <Directory "$documents_path">
     AuthName "Documents Area"
+    AuthType "Basic"
     PerlAuthenHandler EPrints::Apache::Auth::authen_doc
     PerlAuthzHandler EPrints::Apache::Auth::authz_doc
+    require valid-user
   </Directory>
 
   <Directory "$cgidir">

@@ -1384,9 +1384,7 @@ sub get_input_elements
 		}
 	}
 	my $more = $session->make_doc_fragment;
-	$more->appendChild( $session->render_hidden_field(
-		name => $spacesid,
-		value => $boxcount ) );
+	$more->appendChild( $session->render_hidden_field( $spacesid, $boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
 		$basename."_morespaces" => 
 			$session->phrase( 
@@ -1483,8 +1481,8 @@ sub get_input_elements_single
 				"span", 
 				class => "requiredlang" );
 			$langbit->appendChild( $session->render_hidden_field(
-				name => $langparamid,
-				value => $langid ) );
+				$langparamid,
+				$langid ) );
 			$langbit->appendChild( 
 				$session->render_language_name( $langid ) );
 		}
@@ -1521,9 +1519,7 @@ sub get_input_elements_single
 	$boxcount = $i-1;
 
 	my $more = $session->make_doc_fragment;	
-	$more->appendChild( $session->render_hidden_field(
-		name => $spacesid,
-		value => $boxcount ) );
+	$more->appendChild( $session->render_hidden_field( $spacesid, $boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
 		$buttonid => $session->phrase( 
 				"lib/metafield:more_langs" ) ) );

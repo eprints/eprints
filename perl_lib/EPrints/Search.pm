@@ -1318,14 +1318,23 @@ sub _dopage_results
 					can_accept=>"list/".$self->{dataset}->confid, 
 					is_visible=>$self->_vis_level );
 	$bits{export} = $self->{session}->make_doc_fragment;
+	my $links = $self->{session}->make_doc_fragment();
 	if( scalar @plugins > 0 ) {
 		my $select = $self->{session}->make_element( "select", name=>"_output" );
 		foreach my $plugin_id ( @plugins ) {
 			$plugin_id =~ m/^[^:]+::(.*)$/;
-			my $option = $self->{session}->make_element( "option", value=>$1 );
+			my $id = $1;
+			my $option = $self->{session}->make_element( "option", value=>$id );
 			my $plugin = $self->{session}->plugin( $plugin_id );
 			$option->appendChild( $plugin->render_name );
 			$select->appendChild( $option );
+			my $link = $self->{session}->make_element( 
+				"link", 
+				rel=>"alternate",
+				href=>"?_cache=".$self->{cache_id}."&_exp=".$self->serialise."&_action_export_redir=1&_output=$id",
+				type=>$plugin->param("mimetype"),
+				title=>EPrints::XML::to_string( $plugin->render_name ), );
+			$links->appendChild( $link );
 		}
 		my $button = $self->{session}->make_doc_fragment;
 		$button->appendChild( $self->{session}->render_button(
@@ -1347,9 +1356,6 @@ sub _dopage_results
 					menu => $select,
 					button => $button );
 	}
-	
-
-	my $links = $self->{session}->make_doc_fragment(); # TODO: links in document header?
 
 	my $cacheid = $self->{cache_id};
 	my $escexp = $self->serialise;

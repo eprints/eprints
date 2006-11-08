@@ -124,7 +124,6 @@ sub handler
 				$tail = "/" if $tail eq "";
 				return redir( $r, sprintf( "%s/%d/%d%s",$urlpath, $eprintid, $pos, $tail ).$args );
 			}
-
 			my $session = new EPrints::Session(2); # don't open the CGI info
 			my $ds = $repository->get_dataset("eprint") ;
 			my $searchexp = new EPrints::Search( session=>$session, dataset=>$ds );
@@ -140,6 +139,7 @@ sub handler
 			}
 
 			my $filename = sprintf( '%s/%02d%s',$eprint->local_path, $pos, $tail );
+
 			$r->filename( $filename );
 
 			$session->terminate;

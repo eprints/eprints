@@ -551,6 +551,9 @@ User Area CGI Scripts
     <epp:phrase id="cgi/login:dont_bind">no (more convenient)</epp:phrase>
 	<epp:phrase id="cgi/login:failed">Incorrect username or password. If you have forgotten your password, you may <a href="{$config{perl_url}}/reset_password">reset</a> it.</epp:phrase>
     <epp:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <epc:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="{$config{perl_url}}/users/logout">Logout</a> first.</p></epp:phrase>
+    <epp:phrase id="cgi/login:title">Login</epp:phrase>
+    <epp:phrase id="cgi/login:message">Login successful.</epp:phrase>
+    <epp:phrase id="cgi/login:link_text"><p>You may now view <epc:pin name="link">your requested document</epc:pin>.</p></epp:phrase>
 
 <!--********************************************************************** 
 Staff CGI Scripts
@@ -1055,6 +1058,7 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Screen/EPrint/Remove:title">Destroy item</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Remove:description">Remove this item from the system forever.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Remove:item_removed">Item successfully removed</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/Edit:title">Edit item</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Edit:description">Edit item</epp:phrase>

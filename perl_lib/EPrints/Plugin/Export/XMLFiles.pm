@@ -21,7 +21,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "XML with Files Embeded";
+	$self->{name} = "EP3 XML with Files Embeded";
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 
 	# this module outputs the files of an eprint with

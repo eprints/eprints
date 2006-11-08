@@ -293,8 +293,6 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 		
-	my @problems = ();
-
 	# Process data from previous stage
 
 	# If we don't have an item then something's

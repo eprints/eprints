@@ -1296,6 +1296,26 @@ sub generate_static
 
 		my( $page, $title, $links ) = $self->render;
 
+		my @plugins = $self->{session}->plugin_list( 
+					type=>"Export",
+					can_accept=>"dataobj/".$self->{dataset}->confid, 
+					is_visible=>"all" );
+		if( scalar @plugins > 0 ) {
+			$links = $self->{session}->make_doc_fragment() if( !defined $links );
+			foreach my $plugin_id ( @plugins ) 
+			{
+				$plugin_id =~ m/^[^:]+::(.*)$/;
+				my $id = $1;
+				my $plugin = $self->{session}->plugin( $plugin_id );
+				my $link = $self->{session}->make_element( 
+					"link", 
+					rel=>"alternate",
+					href=>$plugin->dataobj_export_url( $self ),
+					type=>$plugin->param("mimetype"),
+					title=>EPrints::XML::to_string( $plugin->render_name ), );
+				$links->appendChild( $link );
+			}
+		}
 		$self->{session}->write_static_page( 
 			$full_path . "/index",
 			{title=>$title, page=>$page, head=>$links },

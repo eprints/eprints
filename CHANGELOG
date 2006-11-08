@@ -5104,3 +5104,20 @@ PACKAGE: 2.2.99.2
 
 2006-11-07 cjg
  * title of pages now has archive id AFTER page name.
+
+2006-11-08 cjg 
+ * Search results now include <link>'s to all the various metadata formats.
+ * Abstract pages now lincude <link>'s to various metadata formats
+ * Fixed issue that links were not included in dynamic templates.
+ * Rewrote document security code and security config file.
+ * Renamed $doc->can_view to $doc->user_can_view
+ * Security config subs now return ALLOW and DENY not 0 and 1.
+ * Fixed bug in buttons in EPrint Remove.
+ * Changed rss mimetpye from text/xml to application/rss+xml
+ * Renamed XML export methods to EP3 XML
+ * Corrected some calls to hidden_field
+ * cgi/users/login no longer tries to set login cookie
+ * cgi/users/login now provides link to target docum,ent, rather than
+    a redirect.
+ * Added some vital code to generate_apacheconf to trip the Auth handlers
+    into working.

@@ -20,7 +20,7 @@ sub new
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".rss";
-	$self->{mimetype} = "text/xml";
+	$self->{mimetype} = "application/rss+xml";
 
 	$self->{number_to_show} = 10;
 
