@@ -86,7 +86,7 @@ sub input_form
 	my %bits;
 	if( defined $problems )
 	{
-		$bits{problems} = $problems;
+		$bits{problems} = $session->render_message( "error", $problems );
 	}
 	else
 	{

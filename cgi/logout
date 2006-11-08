@@ -30,7 +30,9 @@ $session->logout;
 
 
 
-$page->appendChild( $session->make_text( "Logout OK!" ) );
+$page->appendChild( $session->render_message( 
+	"message",
+	$session->make_text( "Logout OK!" ) ) );
 
 $page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 	
