@@ -99,13 +99,13 @@ B<NOTE:> You may need to define your own regexps to munge this free text field i
 
 =over 8
 
-=item Inventor (Patent) B<creators>
+=item Inventor (Patent) B<creators_name>
 
-=item Editor (Edited Book) B<editors>
+=item Editor (Edited Book) B<editors_name>
 
-=item Reporter (Newspaper Article) B<creators>
+=item Reporter (Newspaper Article) B<creators_name>
 
-=item Author (Other Types) B<creators>
+=item Author (Other Types) B<creators_name>
 
 =back
 
@@ -153,7 +153,7 @@ B<FORMAT:> Lastname, Firstname, Lineage
 
 =item Issuing Organisation (Patent) B<institution>
 
-=item Editor (Other Types) B<editors>
+=item Editor (Other Types) B<editors_name>
 
 =back
 
@@ -393,18 +393,11 @@ sub new
 	return $self;
 }
 
-# TODO creators and editors need main
-# TODO type keeps getting changed to article?!
-
 sub input_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $parser = new Text::Refer::Parser(
-		LeadWhite=> "KILLALL", 
-		Newline => "TOSPACE",
-		ForgiveEOF => 1
-	);
+	my $parser = Text::Refer::Parser->new( LeadWhite => 'KEEP', NewLine => "TOSPACE", ForgiveEOF => 1);
 
 	my @ids;
 
@@ -414,8 +407,6 @@ sub input_list
 
 		next unless( defined $epdata );
 
-		use Data::Dumper;
-		print Dumper( $epdata );
 		my $dataobj = $plugin->epdata_to_dataobj( $opts{dataset}, $epdata );
 		if( defined $dataobj )
 		{
@@ -435,7 +426,7 @@ sub convert_input
 	my $epdata = {};
 
 	# 0 Citation type
-	my $input_data_type = $input_data->get( "0" ) || "[none]";
+	my $input_data_type = $input_data->get( "0" ) || "";
 	$epdata->{type} = "article" if $input_data_type =~ /Article/;
 	$epdata->{type} = "book" if $input_data_type =~ /Book/ || $input_data_type eq "Conference Proceedings";
 	$epdata->{type} = "book_section" if $input_data_type eq "Book Section";
@@ -495,11 +486,11 @@ sub convert_input
 		{
 			if( $input_data_type eq "Edited Book" )
 			{
-				push @{$epdata->{editors}}, { family => $1, given => $2, lineage => $4 };
+				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 			else
 			{
-				push @{$epdata->{creators}}, { family => $1, given => $2, lineage => $4 };
+				push @{$epdata->{creators_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
 			output_warning($input_data, "Could not parse author: $_");
@@ -563,7 +554,7 @@ sub convert_input
 			}
 			else
 			{
-				push @{$epdata->{editors}}, { family => $1, given => $2, lineage => $4 };
+				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
 			output_warning($input_data, "Could not parse editor: $_");
@@ -662,3 +653,4 @@ sub convert_input
 }
 
 1;
+
