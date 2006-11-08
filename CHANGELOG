@@ -5131,3 +5131,7 @@ PACKAGE: 2.2.99.2
     page.
  * Pagination now defaults to sorting by the first field.
  * Fixed size of search controls when no controls are needed.
+
+2006-11-08 moj
+ * Added block_enter.js to stop form submission when pressing enter in
+    text inputs, along with a hook in Session's render_input_field.

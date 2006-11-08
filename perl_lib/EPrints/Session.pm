@@ -1345,7 +1345,7 @@ sub render_input_field
 	my( $self, %opts ) = @_;
 
 	$opts{'accept-charset'} = "utf-8" unless defined $opts{'accept-charset'};
-
+	$opts{'onKeyPress'} = "return EPJS_block_enter( event )" unless defined $opts{'onKeyPress'};
 	return $self->make_element( "input",%opts );
 }
 
