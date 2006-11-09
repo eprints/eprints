@@ -5143,3 +5143,15 @@ PACKAGE: 2.2.99.2
  * pagerange now searches as an integer, on the first value. Nb. not
     indexed!
 
+2006-11-09 moj
+ * Re-added Apache::DBI - needed to stop MySQL running out of connections
+ * RejectWithEmail and RemoveWithEmail both use mail_body to send email
+ * Ditto for mail_view for viewing the email on the page (includes header
+    bits)
+ * Added javascript toggle to let users enter a reason where it would appear
+    in the email.
+ * Added action_cancel to RemoveWithEmail
+ * Added relevant phrases (mail_[delete_reason,delete_body,delete_body.inbox,
+    bounce_reason,bounce_body])
+
+

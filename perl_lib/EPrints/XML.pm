@@ -227,7 +227,6 @@ sub to_string
 		#$tagname = "\L$tagname";
 
 		push @n, '<', $tagname;
-
 		my $nnm = $node->attributes;
 		my $done = {};
 		foreach my $i ( 0..$nnm->length-1 )
@@ -291,7 +290,7 @@ sub to_string
 			"ProcessingInstruction",
 			"EntityReference" ) )
 	{
-		push @n, $node->toString;
+		push @n, $node->toString; 
 	}
 	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
 	{
@@ -301,7 +300,6 @@ sub to_string
 	{
 		print STDERR "EPrints::XML: Not sure how to turn node type ".$node->getNodeType."\ninto a string.\n";
 	}
-
 	return join '', @n;
 }
 

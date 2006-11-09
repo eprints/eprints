@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities.dtd">
 
-<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:epp="http://eprints.org/ep3/phrase">
 
-    <epp:phrase id="archive_name">Demonstration EPrints Repository</epp:phrase>
+    <epp:phrase id="archive_name">Test Repository</epp:phrase>
 
 </epp:phrases>
