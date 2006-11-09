@@ -554,7 +554,7 @@ sub tree_to_utf8
 	if( $name eq "a" )
 	{
 		my $href = $node->getAttribute( "href" );
-		$string .= " [$href]" if( defined $href );
+		$string .= " <$href>" if( defined $href );
 	}
 	return $string;
 }

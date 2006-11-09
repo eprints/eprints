@@ -10,11 +10,9 @@ No reason given.
 
 <epp:phrase id="mail_bounce_body">
 <p>Unfortunately your item &apos;<epc:pin name="title"/>&apos; could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
-
-<epc:pin name="reason" />
-
+<p><epc:pin name="reason" /></p>
 <p>The item has been returned to your workspace. If you
-visit your item depositing page you will be able to
+visit your <a href="{$config{userhome}}?screen=Items">item depositing page</a> you will be able to
 edit your item, fix the problem and redeposit.</p>
 </epp:phrase>
 

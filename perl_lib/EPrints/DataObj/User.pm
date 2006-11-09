@@ -684,7 +684,7 @@ sub mail
 		$email = $self->get_value( "email" );
 	}
 
-	return EPrints::Utils::send_mail(
+	return EPrints::Email::send_mail(
 		session  => $self->{session},
 		langid   => $langid,
 		to_name  => EPrints::Utils::tree_to_utf8( $self->render_description ),

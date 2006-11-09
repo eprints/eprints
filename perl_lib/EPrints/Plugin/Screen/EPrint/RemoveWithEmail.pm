@@ -104,7 +104,7 @@ sub render
 		id => "ep_mail_reason_edit",
 		class => "ep_no_js",
 		name => "reason",
-		rows => 10,
+		rows => 5,
 		cols => 60,
 		wrap => "virtual" );
 	$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
@@ -168,7 +168,7 @@ sub action_send
 	my $user = $self->{processor}->{eprint}->get_user();
 	# We can't bounce it if there's no user associated 
 
-	$self->{processor}->{screenid} = "EPrint::View";
+	$self->{processor}->{screenid} = "Review";
 
 	if( !$self->{processor}->{eprint}->remove )
 	{
@@ -195,14 +195,9 @@ sub action_send
 		reason => $self->{session}->make_text( 
 			$self->{session}->param( "reason" ) ) );
 
-	$mail->appendChild(
-		$self->{session}->html_phrase(
-			"mail_body",
-			content => $content ) );
-
 	my $mail_ok = $user->mail(
 		"cgi/users/edit_eprint:subject_bounce",
-		$mail,
+		$content,
 		$self->{session}->current_user );
 	
 	if( !$mail_ok ) 

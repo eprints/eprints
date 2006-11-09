@@ -10,7 +10,7 @@ No reason given.
 <epp:phrase id="mail_delete_body">
 <p>Unfortunately your item &apos;<epc:pin name="title"/>&apos; could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
 
-<epc:pin name="reason" />
+<p><epc:pin name="reason" /></p>
 
 <p>The item has been deleted.</p>
 </epp:phrase>
@@ -18,7 +18,7 @@ No reason given.
 <epp:phrase id="mail_delete_body.inbox">
 <p>&apos;<epc:pin name="title"/>&apos; has been deleted from your User Area.</p>
 
-<epc:pin name="reason" />
+<p><epc:pin name="reason" /></p>
 </epp:phrase>
 
 </epp:phrases>

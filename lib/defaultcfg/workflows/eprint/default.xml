@@ -20,7 +20,7 @@
       <field ref="security" />
       <field ref="license" />
       <field ref="date_embargo" />
-<!--  <field ref="language" /> -->
+<!--  <field ref="language" /> --> 
     </component>
   </stage>
 

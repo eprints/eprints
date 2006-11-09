@@ -3272,21 +3272,19 @@ the values the utf8 strings to replace the pins with.
 sub mail_administrator
 {
 	my( $self,   $subjectid, $messageid, %inserts ) = @_;
-
+	
 	# Mail the admin in the default language
 	my $langid = $self->{repository}->get_conf( "defaultlanguage" );
-	my $lang = $self->{repository}->get_language( $langid );
-
-	return EPrints::Utils::send_mail(
-		$self->{repository},
-		$langid,
-		EPrints::Utils::tree_to_utf8( 
-			$lang->phrase( "lib/session:archive_admin", {}, $self ) ),
-		$self->{repository}->get_conf( "adminemail" ),
-		EPrints::Utils::tree_to_utf8( 
-			$lang->phrase( $subjectid, {}, $self ) ),
-		$lang->phrase( $messageid, \%inserts, $self ), 
-		$lang->phrase( "mail_sig", {}, $self ) ); 
+	return EPrints::Email::send_mail(
+		session => $self,
+		langid => $langid,
+		to_email => $self->{repository}->get_conf( "adminemail" ),
+		to_name => $self->phrase( "lib/session:archive_admin" ),	
+		from_email => $self->{repository}->get_conf( "adminemail" ),
+		from_name => $self->phrase( "lib/session:archive_admin" ),	
+		subject =>  EPrints::Utils::tree_to_utf8(
+			$self->html_phrase( $subjectid ) ),
+		message => $self->html_phrase( $messageid, %inserts ) );
 }
 
 

@@ -82,6 +82,14 @@ sub send_mail
 
 	my $repository = $p{session}->get_repository;
 
+	if( defined $p{message} )
+	{
+		my $msg = $p{message};
+		$p{message} = $p{session}->html_phrase( 
+			"mail_body",
+			content => $msg );
+	}
+
 	if( !defined $p{from_email} ) 
 	{
 		$p{from_name} = $p{session}->phrase( "archive_name" );
@@ -149,7 +157,6 @@ sub send_mail_via_smtp
 		$smtp->quit;
 		return 0;
 	}
-
 	my $message = build_email( %p );
 	$smtp->data();
 	$smtp->datasend( $message->as_string );
@@ -231,12 +238,7 @@ sub build_email
 	}
 
 	my $xml_mail = $p{message};
-	if( defined $p{sig} )
-	{
-		$xml_mail = $p{session}->clone_for_me( $xml_mail, 1 );
-		$xml_mail->appendChild( $p{session}->clone_for_me( $p{sig}, 1 ) );
-	}
-	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH );
+	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH, 0, 0, 1 );
 
 	my $text = MIME::Lite->new( 
 		Type  => "TEXT",

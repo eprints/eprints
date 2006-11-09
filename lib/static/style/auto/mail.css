@@ -1,0 +1,19 @@
+.ep_mail_view {
+	border: dashed 2px #ccc;
+	background-color: #eee;
+}
+
+.ep_mail_header {
+	margin: 4px; 
+	padding: 2px;
+	font-family: monospace;
+}
+
+.ep_mail_body {
+	margin: 4px;
+	padding: 2px;
+}
+
+.ep_mail_body textarea {
+	background-color: #ccc;
+}

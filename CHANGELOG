@@ -5154,4 +5154,13 @@ PACKAGE: 2.2.99.2
  * Added relevant phrases (mail_[delete_reason,delete_body,delete_body.inbox,
     bounce_reason,bounce_body])
 
-
+2006-11-09 moj
+ * mail_administrator should now work (!) using the EPrints::Email::send_mail
+    args.
+ * User now uses Email instead of Utils
+ * Email now uses mail_body to provide the sig, etc - tweaked Remove/Reject to
+    accomodate.
+ * Switched links to use <...> after the link text
+ * Put <p>s around the reason text
+ * Added mail.css
+ * Updated the email cfg to use Email

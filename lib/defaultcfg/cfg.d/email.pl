@@ -10,11 +10,11 @@ $c->{adminemail} = 'cjg@ecs.soton.ac.uk';
 # repository   string   utf8   utf8      utf8      DOM    DOM   string    utf8
 #
 
-# $c->{send_email} = \&EPrints::Utils::send_mail_via_sendmail;
+# $c->{send_email} = \&EPrints::Email::send_mail_via_sendmail;
 # $c->{send_email} = \&some_function;
 
 # Uses the smtp_server specified in SystemSettings
-$c->{send_email} = \&EPrints::Utils::send_mail_via_smtp;
+$c->{send_email} = \&EPrints::Email::send_mail_via_smtp;
 
 # If you want to import legacy data which is excempt from the normal
 # validation methods, then uncomment this function and make it return
