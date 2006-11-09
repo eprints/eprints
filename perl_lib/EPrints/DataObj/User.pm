@@ -179,7 +179,7 @@ sub get_system_field_info
 			type => "search", 
 			datasetid => "buffer",
 			fieldnames => "editpermfields",
-			allow_set_order => 0 },
+		},
 
 		{ name => "permission_group", multiple => 1, type => "namedset", 
 			set_name => "permission_group", },
@@ -1065,6 +1065,8 @@ my $PRIVMAP =
 		"eprint/deletion/staff/export" => 2,
 		"eprint/deletion/staff/details" => 2,
 		"eprint/deletion/history" => 2,
+
+		"staff/eprint_search" => 2,
 	},
 	
 	"view-status" => 
@@ -1235,6 +1237,8 @@ don't own it at that stage.
 sub allow
 {
 	my( $self, $priv, $item ) = @_;
+
+	return 1 if( $self->{session}->allow_anybody( $priv ) );
 
 	my $r = $self->get_privs->{$priv} || 0;
 

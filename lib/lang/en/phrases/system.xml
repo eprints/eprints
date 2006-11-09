@@ -416,6 +416,19 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
 
     <epp:phrase id="lib/utils:date_unspecified">UNSPECIFIED</epp:phrase>
     <epp:phrase id="lib/utils:date_invalid">INVALID</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_00">---</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_01">Jan</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_02">Feb</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_03">Mar</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_04">Apr</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_05">May</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_06">Jun</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_07">Jul</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_08">Aug</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_09">Sep</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_10">Oct</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_11">Nov</epp:phrase>
+    <epp:phrase id="lib/utils:month_short_12">Dec</epp:phrase>
     <epp:phrase id="lib/utils:month_00">Unspecified</epp:phrase>
     <epp:phrase id="lib/utils:month_01">January</epp:phrase>
     <epp:phrase id="lib/utils:month_02">February</epp:phrase>
@@ -695,7 +708,7 @@ Public CGI Scripts
 <!-- advsearch -->
 
     <epp:phrase id="cgi/advsearch:adv_search">Advanced Search</epp:phrase>
-    <epp:phrase id="cgi/advsearch:preamble"><p>Don't panic! Just leave the fields you don't want to search blank. <a href="search">Click here for a simple search.</a></p></epp:phrase>
+    <epp:phrase id="cgi/advsearch:preamble"><p>Don't panic! Just leave the fields you don't want to search blank. <a href="simple">Click here for a simple search.</a></p></epp:phrase>
 
 <!-- handle_http_error -->
 
@@ -906,6 +919,7 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldopt_metadata_visibility_no_search">Hide in search results</epp:phrase>
 
     <epp:phrase id="eprint_fieldname__fulltext_">Full Text</epp:phrase>
+    <epp:phrase id="eprint_fieldname_documents">Documents</epp:phrase>
 
     <epp:phrase id="user_fieldname_userid">User ID Number</epp:phrase>
     <epp:phrase id="user_fieldname_rev_number">Revision</epp:phrase>
@@ -1011,9 +1025,16 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/View:title">User Info.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Edit:title">Edit User Info.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Edit:description">Edit your account information.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:next">Next</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:prev">Previous</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:save">Save</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:stop">Cancel</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:title">Administer Account</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:description">Modify this Account (including changing username and user type)</epp:phrase>
-
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:next">Next</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:prev">Previous</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:save">Save and Exit</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Staff/Edit:stop">Exit</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/NewUser:blurb"><p>Create a new user account.</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:title">Create user</epp:phrase>
@@ -1147,24 +1168,29 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/SavedSearches:title">Saved searches</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:description">View and configure saved searches</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:intro"><p>You may view your saved searches and request to recieve a periodic email update if anything in the search changes.</p></epp:phrase>
-    <epp:phrase id="Plugin/Screen/User/SavedSearches:no_subs"><p>You currently have no saved searches.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearches:no_searches"><p>You currently have no saved searches.</p></epp:phrase>
 
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:title">Settings</epp:phrase>
-    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:save">Save changes</epp:phrase>
-    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:save">Save</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:stop">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:next">Next</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:previous">Previous</epp:phrase>
     <epp:phrase id="saved_search_mail">Email alert</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Remove:sure_delete"><p>Are you sure you want to delete this saved search?</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Remove:title">Remove</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Remove:remove">Yes, delete it</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Remove:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearch/Remove:item_removed">Removed saved search.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Run:title">Do search</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/User/SaveSearch:db_error">Something went wrong with creating your saved search. Sorry.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SaveSearch:done">Successfully stored search.</epp:phrase>
 
+    <!-- other screens -->
 
+    <epp:phrase id="Plugin/Screen/Staff/EPrintSearch:title">Staff EPrint Search</epp:phrase>
 
 
 <!-- export -->

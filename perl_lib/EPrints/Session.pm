@@ -3289,6 +3289,21 @@ sub mail_administrator
 
 
 
+my $PUBLIC_PRIVS =
+{
+	"eprint_search" => 1,
+};
+
+sub allow_anybody
+{
+	my( $session, $priv ) = @_;
+
+	return 1 if( $PUBLIC_PRIVS->{$priv} );
+
+	return 0;
+}
+
+
 
 
 

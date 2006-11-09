@@ -6,6 +6,6 @@ $c->{set_user_defaults} = sub
 	$data->{hideemail} = "TRUE";
 
 	# Default columns shown in Items and Editorial Review screens
-	$data->{items_fields} = [ "title", "lastmod", "type", "eprint_status" ];
-	$data->{review_fields} = [ "title", "status_changed", "type", "userid" ];
+	$data->{items_fields} = [ "lastmod", "title", "type", "eprint_status" ];
+	$data->{review_fields} = [ "status_changed", "title", "type", "userid" ];
 };

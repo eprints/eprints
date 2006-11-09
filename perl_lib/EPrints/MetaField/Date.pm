@@ -74,6 +74,10 @@ sub render_single_value
 	$l = 7 if( defined $res && $res eq "month" );
 	$l = 4 if( defined $res && $res eq "year" );
 
+	if( $self->{render_style} eq "short" )
+	{
+		return EPrints::Utils::render_short_date( $session, substr( $value,0,$l ) );
+	}
 	return EPrints::Utils::render_date( $session, substr( $value,0,$l ) );
 }
 	
@@ -420,6 +424,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{min_resolution} = "day";
 	$defaults{render_res} = "day";
+	$defaults{render_style} = "long";
 	$defaults{text_index} = 0;
 	return %defaults;
 }
@@ -456,6 +461,8 @@ sub get_resolution
 	return 5 if $l == 16;
 	return 6;
 }
+
+sub should_reverse_order { return 1; }
 
 ######################################################################
 1;

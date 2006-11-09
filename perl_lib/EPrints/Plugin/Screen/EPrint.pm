@@ -38,6 +38,8 @@ sub allow
 
 	$priv =~ s/^eprint\//eprint\/$status\//;	
 
+	return 1 if( $self->{session}->allow_anybody( $priv ) );
+	return 0 if( !defined $self->{session}->current_user );
 	return $self->{session}->current_user->allow( $priv, $self->{processor}->{eprint} );
 }
 

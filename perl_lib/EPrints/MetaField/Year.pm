@@ -82,6 +82,7 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub should_reverse_order { return 1; }
 
 ######################################################################
 1;

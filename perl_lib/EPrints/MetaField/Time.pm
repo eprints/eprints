@@ -84,6 +84,10 @@ sub render_single_value
 	if( $res eq "month" ) { $l = 7; }
 	if( $res eq "year" ) { $l = 4; }
 		
+	if( $self->{render_style} eq "short" )
+	{
+		return EPrints::Utils::render_short_date( $session, substr( $value,0,$l ) );
+	}
 	return EPrints::Utils::render_date( $session, substr( $value,0,$l ) );
 }
 	
@@ -352,6 +356,7 @@ sub ordervalue_basic
 	return $value;
 }
 
+sub should_reverse_order { return 1; }
 
 
 ######################################################################

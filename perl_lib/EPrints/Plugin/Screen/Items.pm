@@ -45,6 +45,15 @@ sub get_filters
 	return %f;
 }
 	
+sub render_links
+{
+	my( $self ) = @_;
+
+	my $style = $self->{session}->make_element( "style", type=>"text/css" );
+	$style->appendChild( $self->{session}->make_text( ".ep_main { width: 100%; }" ) );
+
+	return $style;
+}
 
 sub render
 {
@@ -125,19 +134,14 @@ sub render
 
 			my $tr = $session->make_element( "tr" );
 
-			my $style = "";
 			my $status = $e->get_value( "eprint_status" );
 
-			if( $status eq "inbox" ) { $style="background-color: #ffc;"; }
-			if( $status eq "buffer" ) { $style="background-color: #ddf;"; }
-			if( $status eq "archive" ) { $style="background-color: #cfc;"; }
-			if( $status eq "deletion" ) { $style="background-color: #ccc;"; }
-			$style.=" border-bottom: 1px solid #888; padding: 4px;";
-
 			my $cols = $session->current_user->get_value( "items_fields" );
+			my $first = 1;
 			for( @$cols )
 			{
-				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
+				my $td = $session->make_element( "td", class=>"ep_columns_cell_$status".($first?" ep_columns_cell_first":"") );
+				$first = 0;
 				$tr->appendChild( $td );
 				my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Owner" );
 				$td->appendChild( $a );
@@ -147,7 +151,7 @@ sub render
 			return $tr;
 		},
 	);
-	$chunk->appendChild( EPrints::Paginate->paginate_list_with_columns( $self->{session}, "_buffer", $list, %opts ) );
+	$chunk->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_buffer", $list, %opts ) );
 
 	# TODO: alt phrase for empty list e.g. "cgi/users/home:no_pending"
 

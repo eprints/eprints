@@ -127,16 +127,16 @@ sub get_system_field_info
 		datasetid=>"user", required=>0 },
 
 	{ name=>"dir", type=>"text", required=>0, can_clone=>0,
-		text_index=>0, import=>0 },
+		text_index=>0, import=>0, show_in_fieldlist=>0 },
 
 	{ name=>"datestamp", type=>"time", required=>0, import=>0,
-		render_res=>"minute", can_clone=>0 },
+		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
 	{ name=>"lastmod", type=>"time", required=>0, import=>0,
-		render_res=>"minute", can_clone=>0 },
+		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
 	{ name=>"status_changed", type=>"time", required=>0, import=>0,
-		render_res=>"minute", can_clone=>0 },
+		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
 	{ name=>"type", type=>"namedset", set_name=>"eprint", required=>1, 
 		"input_style"=> "long" },

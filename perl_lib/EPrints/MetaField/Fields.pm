@@ -46,7 +46,12 @@ sub tags
 {
 	my( $self, $session ) = @_;
 
-	return $self->get_unsorted_values( $session );
+	my @tags = $self->get_unsorted_values( $session );
+
+	return sort {
+		EPrints::Utils::tree_to_utf8( $self->render_option( $session, $a ) ) cmp
+		EPrints::Utils::tree_to_utf8( $self->render_option( $session, $b ) ) 
+	} @tags;
 }
 
 sub get_unsorted_values
@@ -59,6 +64,7 @@ sub get_unsorted_values
 	my @types = ();
 	foreach my $field ( $ds->get_fields )
 	{
+		next unless $field->get_property( "show_in_fieldlist" );
 		push @types, $field->get_name;
 	}
 

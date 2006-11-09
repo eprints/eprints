@@ -50,7 +50,7 @@
     </div>
 
     <div class="ep_tm_main">
-      <div align="center"><table width="720"><tr><td align="left">
+      <div align="center"><table width="720" class="ep_main"><tr><td align="left">
         <epc:pin ref="page"/>
       </td></tr></table></div>
     </div>

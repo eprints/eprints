@@ -5170,3 +5170,34 @@ PACKAGE: 2.2.99.2
  * Fixed bug on *WithEmail that the From and To names were empty.
  * Made the phrase on *WithEmail only show if the user has a language pref.
     - needs to be split into two phrases now.
+
+2006-11-09 cjg
+ * Added some missing modules to EPrints.pm
+ * Removed "default","contsol","page_size" from search config - it is unused.
+ * Removed search rendering code from Search.pm
+ * Added Search screens. One abstract then subclasses for public and staff 
+    seatch.
+ * /cgi/search now uses Public/EPrintSearch screen
+ * Improved styling of paginate::columns - added nice arrows
+ * Split paginate_with_columns into a separate module.
+ * Fixed bug in from_form of metafield::Search
+ * Added field param to hide some fields from the Metafield::Fields list.
+ * Made subobjects, fulltext and compound fields not show in that list.
+ * Made that list order by name, alphabetically
+ * Added an option to date fields to make them render a short version of
+    the date.
+ * Added the concept of "public privs" so that the search screen works ok.
+ * Moved some of Items style into css.
+ * Removed unused Search/User screen
+ * Made Review and Items screens make the page 100% width
+ * Renamed Save/Cancel buttons on user and savedsearch edit forms to be 
+    clearer.
+ * Fixed bug in EPrint Remove.
+ * Screens can now add links to the <head> and request output other than
+    XHTML.
+ * Fixed bug in resetting search form.
+ * Added property to fields to indicate if they are best ordered in reverse
+    - dates and times have this set so most recent shows first.
+ * Removed unsused staff/eprint_search
+ * Cleaned up user search config.
+ * Results citation now returns a <tr>

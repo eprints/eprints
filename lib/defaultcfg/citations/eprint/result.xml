@@ -5,8 +5,7 @@
 -->
 
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
-<table border="0" width="100%" >
-  <tr>
+  <tr class="ep_search_result">
     <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
     <td style="padding-left: 0.5em">
       <epc:print expr="$item.citation('default')" />
@@ -15,5 +14,4 @@
     </td>
     <td style="padding-right: 0.5em" align="right"><epc:print expr="fileinfo"/></td>
   </tr>
-</table>
 </cite:citation>

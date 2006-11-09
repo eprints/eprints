@@ -30,6 +30,16 @@ sub can_be_viewed
 	return $self->allow( "editorial_review" );
 }
 
+sub render_links
+{
+	my( $self ) = @_;
+
+	my $style = $self->{session}->make_element( "style", type=>"text/css" );
+	$style->appendChild( $self->{session}->make_text( ".ep_main { width: 100%; }" ) );
+
+	return $style;
+}
+
 
 sub render
 {
@@ -68,12 +78,12 @@ sub render
 
 			my $tr = $session->make_element( "tr", class=>"row_".($info->{row}%2?"b":"a") );
 
-			my $style = "border-bottom: 1px solid #888; padding: 4px;";
-
 			my $cols = $session->current_user->get_value( "review_fields" );
+			my $first = 1;
 			for( @$cols )
 			{
-				my $td = $session->make_element( "td", style=> $style . "border-right: 1px dashed #ccc;" );
+				my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"") );
+				$first = 0;
 				$tr->appendChild( $td );
 				my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Editor" );
 				$td->appendChild( $a );
@@ -85,7 +95,7 @@ sub render
 			return $tr;
 		},
 	);
-	$page->appendChild( EPrints::Paginate->paginate_list_with_columns( $self->{session}, "_review", $list, %opts ) );
+	$page->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_review", $list, %opts ) );
 
 	return $page;
 }

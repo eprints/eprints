@@ -158,21 +158,17 @@ sub render_buttons
 	if( defined $self->workflow->get_prev_stage_id )
 	{
 		push @{$buttons{_order}}, "prev";
-		$buttons{prev} = 
-			$self->{session}->phrase( "lib/submissionform:action_prev" );
+		$buttons{prev} = $self->phrase( "prev" );
 	}
 
 	push @{$buttons{_order}}, "stop", "save";
-	$buttons{stop} = 
-		$self->{session}->phrase( "lib/submissionform:action_staff_stop" );
-	$buttons{save} = 
-		$self->{session}->phrase( "lib/submissionform:action_staff_save" );
+	$buttons{stop} = $self->phrase( "stop" );
+	$buttons{save} = $self->phrase( "save" );
 
 	if( defined $self->workflow->get_next_stage_id )
 	{
 		push @{$buttons{_order}}, "next";
-		$buttons{next} = 
-			$self->{session}->phrase( "lib/submissionform:action_next" );
+		$buttons{next} = $self->phrase( "next" );
 	}	
 	return $self->{session}->render_action_buttons( %buttons );
 }

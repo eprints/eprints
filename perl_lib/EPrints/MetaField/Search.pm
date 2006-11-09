@@ -124,11 +124,17 @@ sub get_basic_input_elements
 		$session,
 		$value,
 		$basename."_" );
-	$div->appendChild( $searchexp->render_search_fields( 0 ) );
-	if( $self->get_property( "allow_set_order" ) )
+
+	foreach my $sf ( $searchexp->get_non_filter_searchfields )
 	{
-		$div->appendChild( $searchexp->render_order_menu );
+		my $sfdiv = $session->make_element( 
+				"div" , 
+				class => "ep_search_field_name" );
+		$sfdiv->appendChild( $sf->render_name );
+		$div->appendChild( $sfdiv );
+		$div->appendChild( $sf->render() );
 	}
+
 	$searchexp->dispose();
 
 	return [ [ { el=>$div } ] ];
@@ -146,7 +152,16 @@ sub form_value_basic
 		dataset => $ds,
 		prefix => $basename."_",
 		fieldnames => $self->get_property( "fieldnames" ) );
-	$searchexp->from_form;
+
+	foreach my $sf ( $searchexp->get_non_filter_searchfields )
+	{
+		$sf->from_form();
+	}
+
+	foreach my $sf ( $searchexp->get_non_filter_searchfields )
+	{
+		$sf->from_form;
+	}
 	my $value = undef;
 	unless( $searchexp->is_blank )
 	{
@@ -165,7 +180,6 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED;
 	$defaults{fieldnames} = $EPrints::MetaField::UNDEF;;
-	$defaults{allow_set_order} = 0;
 	return %defaults;
 }
 

@@ -348,6 +348,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{fields} = $EPrints::MetaField::REQUIRED;
 	$defaults{fields_cache} = $EPrints::MetaField::REQUIRED;
+	$defaults{show_in_fieldlist} = 0;
 	$defaults{export_as_xml} = 0;
 	$defaults{text_index} = 0;
 	return %defaults;

@@ -174,7 +174,6 @@ sub new
 	$self->{"match"} = $match if( EPrints::Utils::is_set( $match ) );
 	$self->{"merge"} = "ALL";
 	$self->{"merge"} = $merge if( EPrints::Utils::is_set( $merge ) );
-
 	if( $self->{match} ne "EQ" && $self->{match} ne "IN" && $self->{match} ne "EX" )
 	{
 		$session->get_repository->log( 
@@ -206,7 +205,6 @@ sub new
 	$self->{rawid} = join '/', sort @fieldnames;
 
 	$self->{"id"} = $id || $self->{rawid};
-
 
 	$self->{"form_name_prefix"} = $prefix.$self->{"id"};
 	$self->{"field"} = $fields->[0];
@@ -251,6 +249,7 @@ sub clear
 	my( $self ) = @_;
 	
 	$self->{"match"} = "NO";
+	$self->{"value"} = undef;
 }
 
 

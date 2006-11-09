@@ -44,7 +44,12 @@ sub render
 	return $self->html_phrase( "no_render_subclass", screen => $self );
 }
 
+sub render_links
+{
+	my( $self ) = @_;
 
+	return $self->{session}->make_doc_fragment;
+}
 
 sub register_furniture
 {
@@ -136,6 +141,26 @@ sub render_hidden_bits
 			substr($self->{id},8) ) );
 
 	return $chunk;
+}
+
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return 0;
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	print "Needs to be subclassed\n";
+}
+sub export_mimetype
+{
+	my( $self ) = @_;
+
+	return "text/plain";
 }
 
 	
@@ -231,6 +256,8 @@ sub allow
 {
 	my( $self, $priv ) = @_;
 
+	return 1 if( $self->{session}->allow_anybody( $priv ) );
+	return 0 if( !defined $self->{session}->current_user );
 	return $self->{session}->current_user->allow( $priv );
 }
 

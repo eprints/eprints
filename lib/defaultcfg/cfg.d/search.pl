@@ -101,17 +101,23 @@ $c->{order_methods}->{"eprint.review"} =
 
 
 
-# Fields for a staff user search.
-$c->{user_search_fields} =
-[
-	"name",
-	"username",
-	"userid",
-	"dept/org",
-	"address/country",
-	"usertype",
-	"email"
-];
+$c->{search}->{user} = 
+{
+	search_fields => [
+		{ meta_fields => [ "name", ] },
+		{ meta_fields => [ "username", ] },
+		{ meta_fields => [ "userid", ] },
+		{ meta_fields => [ "dept","org" ] },
+		{ meta_fields => [ "address","country", ] },
+		{ meta_fields => [ "usertype", ] },
+		{ meta_fields => [ "email" ] },
+	],
+	preamble_phrase => "cgi/advsearch:preamble",
+	title_phrase => "cgi/advsearch:adv_search",
+	citation => "result",
+	page_size => 20,
+	controls => { top=>1, bottom=>1 }
+};
 
 # Ways of ordering user search results
 $c->{order_methods}->{user} =

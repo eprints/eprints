@@ -176,7 +176,18 @@ The date given is in UTC but it will be rendered in the local offset.
 
 sub render_date
 {
-	my( $session, $datevalue ) = @_;
+	my( $session, $datevalue) = @_;
+	return _render_date( $session, $datevalue, 0 );
+}
+sub render_short_date
+{
+	my( $session, $datevalue) = @_;
+	return _render_date( $session, $datevalue, 1 );
+}
+
+sub _render_date
+{
+	my( $session, $datevalue, $short ) = @_;
 
 	if( !defined $datevalue )
 	{
@@ -209,8 +220,27 @@ sub render_date
 	# 1999
 	my $r = $year;
 
-	$r = EPrints::Utils::get_month_label( $session, $mon )." $r" if( defined $mon );
-	$r = "$day $r" if( defined $day );
+	my $month_name;
+	if( defined $mon )
+	{
+		if( $short )	
+		{
+			$month_name = EPrints::Utils::get_month_label_short( $session, $mon );
+		}
+		else
+		{
+			$month_name = EPrints::Utils::get_month_label( $session, $mon );
+		}
+		$r = "$month_name $r";
+	}
+	if( $short ) 
+	{
+		$r = sprintf( "%02d",$day)." $r" if( defined $day );
+	}
+	else
+	{
+		$r = "$day $r" if( defined $day );
+	}
 
 	if( !defined $hour )
 	{
@@ -230,13 +260,16 @@ sub render_date
 	{
 		$time = sprintf( "%02d",$hour );
 	}
-	$r = "$time on $r";
+	$r .= " ".$time;
+
 	my $gmt_off = gmt_off();
 	my $hour_diff = $gmt_off/60/60;
 	my $min_diff = ($gmt_off/60)%60;
 	my $c = "";
-	if( $hour_diff > 0 ) { $c="+"; }
-	$r.= sprintf( ' %s%02d:%02d', $c, $hour_diff, $min_diff );
+	if( $hour_diff >= 0 ) { $c="+"; }
+	my $off = sprintf( ' %s%02d:%02d', $c, $hour_diff, $min_diff );
+
+	$r .= " ".$off if( !$short );
 
 	return $session->make_text( $r );
 }
@@ -288,6 +321,16 @@ sub get_month_label
 	my( $session, $monthid ) = @_;
 
 	my $code = sprintf( "lib/utils:month_%02d", $monthid );
+
+	return $session->phrase( $code );
+}
+
+
+sub get_month_label_short
+{
+	my( $session, $monthid ) = @_;
+
+	my $code = sprintf( "lib/utils:month_short_%02d", $monthid );
 
 	return $session->phrase( $code );
 }

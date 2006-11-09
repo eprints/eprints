@@ -2051,6 +2051,7 @@ sub render_search_input
 	# complex text types
 	$frag->appendChild(
 		$session->render_input_field(
+			class => "ep_form_text",
 			type => "text",
 			name => $searchfield->get_form_prefix,
 			value => $searchfield->get_value,
@@ -2194,6 +2195,7 @@ sub get_property_defaults
 		input_ordered 	=> 1,
 		make_single_value_orderkey 	=> $EPrints::MetaField::UNDEF,
 		make_value_orderkey 		=> $EPrints::MetaField::UNDEF,
+		show_in_fieldlist	=> 1,
 		maxlength 	=> $EPrints::MetaField::VARCHAR_SIZE,
 		multilang 	=> 0,
 		multiple 	=> 0,
@@ -2248,6 +2250,9 @@ sub is_virtual
 
 	return 0;
 }
+
+# if ordering by this field, should we sort highest first?
+sub should_reverse_order { return 0; }
 
 ######################################################################
 

@@ -79,7 +79,7 @@ sub action_remove
 
 	$self->{processor}->{screenid} = "User::SavedSearches";
 
-	if( !$self->{processor}->{saved_search}->remove )
+	if( !$self->{processor}->{savedsearch}->remove )
 	{
 		my $db_error = $self->{session}->get_database->error;
 		$self->{session}->get_repository->log( "DB error removing Saved Search ".$self->{processor}->{savedsearch}->get_id.": $db_error" );

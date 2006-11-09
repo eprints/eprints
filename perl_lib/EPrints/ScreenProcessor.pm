@@ -23,8 +23,14 @@ sub process
 		$self->{$k} = $opts{$k};
 	}
 
-	$self->{screenid} = $self->{session}->param( "screen" );
-	$self->{screenid} = "FirstTool" unless EPrints::Utils::is_set( $self->{screenid} );
+	if( !defined $self->{screenid} ) 
+	{
+		$self->{screenid} = $self->{session}->param( "screen" );
+	}
+	if( !defined $self->{screenid} ) 
+	{
+		$self->{screenid} = "FirstTool";
+	}
 
 	# This loads the properties of what the screen is about,
 	# Rather than parameters for the action, if any.
@@ -68,9 +74,17 @@ sub process
 
 	# XHTML or special format?
 	
+	if( $self->screen->wishes_to_export )
+	{
+		$self->{session}->send_http_header( "content_type"=>$self->screen->export_mimetype );
+		$self->screen->export;
+		return;
+	}
+
 	$self->screen->register_furniture;
 
 	my $content = $self->screen->render;
+	my $links = $self->screen->render_links;
 	my $title = $self->screen->render_title;
 
 	my $page = $self->{session}->make_doc_fragment;
@@ -87,7 +101,7 @@ sub process
 
 	$page->appendChild( $content );
 
-	$self->{session}->build_page( $title, $page );
+	$self->{session}->build_page( $title, $page, undef, $links );
 	$self->{session}->send_page();
 }
 

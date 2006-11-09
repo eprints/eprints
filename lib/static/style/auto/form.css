@@ -25,6 +25,8 @@ select, input.ep_form_text, textarea {
 	background-image: url(/style/images/toolbox.png);
 	clear: both;
 	border: solid 1px #d8dbef;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 .ep_form_action_button, .ep_form_internal_button {
