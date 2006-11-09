@@ -749,6 +749,10 @@ END
 			if( $parts[4] ) { $where.= " AND M.${sql_col}_minute ".$self->{op}." "."'".EPrints::Database::prep_value( $parts[4] )."'"; }
 			if( $parts[5] ) { $where.= " AND M.${sql_col}_second ".$self->{op}." "."'".EPrints::Database::prep_value( $parts[5] )."'"; }
 		}
+		elsif( $self->{field}->is_type( "pagerange","int","year" ) )
+		{
+			$where = "M.$sql_col ".$self->{op}." ".EPrints::Database::prep_int( $self->{params}->[0] );
+		}
 		else
 		{
 			$where = "M.$sql_col ".$self->{op}." "."'".EPrints::Database::prep_value( $self->{params}->[0] )."'";

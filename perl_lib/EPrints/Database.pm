@@ -647,6 +647,26 @@ sub add_record
 ######################################################################
 =pod
 
+=item $mungedvalue = EPrints::Database::prep_int( $value )
+
+Escape a numerical value for SQL. undef becomes NULL. Anything else
+becomes a number (zero if needed).
+
+=cut
+######################################################################
+
+sub prep_int
+{
+	my( $value ) = @_; 
+
+	return "NULL" unless( defined $value );
+
+	return $value+0;
+}
+
+######################################################################
+=pod
+
 =item $mungedvalue = EPrints::Database::prep_value( $value )
 
 Escape a value for SQL. Modify value such that " becomes \" and \ 

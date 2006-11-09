@@ -5138,3 +5138,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-09 tdb
  * Bug fix for LibXML, undef warning on empty TextNode
+
+2006-11-09 cjg
+ * pagerange now searches as an integer, on the first value. Nb. not
+    indexed!
+

@@ -35,10 +35,24 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField::Text );
+	@ISA = qw( EPrints::MetaField::Int );
 }
 
 use EPrints::MetaField::Text;
+
+sub get_sql_type
+{
+	my( $self, $notnull ) = @_;
+
+	return $self->get_sql_name()." INTEGER".($notnull?" NOT NULL":"");
+}
+
+sub get_max_input_size
+{
+	my( $self ) = @_;
+
+	return $EPrints::MetaField::VARCHAR_SIZE;
+}
 
 # note that this renders pages ranges differently from
 # eprints 2.2
@@ -140,7 +154,6 @@ sub form_value_basic
 	return( $from . "-" . $to );
 }
 
-sub get_search_group { return 'pagerange'; } 
 
 ######################################################################
 1;
