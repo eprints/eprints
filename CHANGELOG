@@ -5164,3 +5164,9 @@ PACKAGE: 2.2.99.2
  * Put <p>s around the reason text
  * Added mail.css
  * Updated the email cfg to use Email
+
+2006-11-09 cjg
+ * Styled buttons on *WithEmail
+ * Fixed bug on *WithEmail that the From and To names were empty.
+ * Made the phrase on *WithEmail only show if the user has a language pref.
+    - needs to be split into two phrases now.

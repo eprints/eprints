@@ -77,10 +77,13 @@ sub render
 
 	my $page = $self->{session}->make_doc_fragment();
 
-	$page->appendChild( 
-		$self->{session}->html_phrase( 
-			"cgi/users/edit_eprint:bounce_form_intro", 
-			langpref => $user->render_value( "lang" ) ) );
+	if( $user->is_set( "lang" ) )
+	{
+		$page->appendChild( 
+			$self->{session}->html_phrase( 
+				"cgi/users/edit_eprint:bounce_form_intro", 
+				langpref => $user->render_value( "lang" ) ) );
+	}
 
 	my $form = $self->render_form;
 	
@@ -126,15 +129,13 @@ sub render
 	my $to_user = $self->{processor}->{eprint}->get_user();
 	my $from_user =$self->{session}->current_user;
 
-	my $to = EPrints::Utils::tree_to_utf8( $self->{session}->make_text( $to_user->render_description ) );
-	my $from = EPrints::Utils::tree_to_utf8( $self->{session}->make_text( $from_user->render_description ) );
 	my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
 
 	my $view = $self->{session}->html_phrase(
 		"mail_view",
 		subject => $subject,
-		to => $to,
-		from => $from,
+		to => $to_user->render_description,
+		from => $from_user->render_description,
 		body => $body );
 
 	$div->appendChild( $view );
@@ -142,6 +143,7 @@ sub render
 	$form->appendChild( $div );
 
 	$form->appendChild( $self->{session}->render_action_buttons(
+		_class => "ep_form_button_bar",
 		"send" => $self->{session}->phrase( "priv:action/eprint/reject_with_email" ),
 		"cancel" => $self->{session}->phrase( "cgi/users/edit_eprint:action_cancel" ),
  	) );
