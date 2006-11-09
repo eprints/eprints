@@ -493,7 +493,7 @@ sub convert_input
 				push @{$epdata->{creators_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
-			output_warning($input_data, "Could not parse author: $_");
+			$plugin->warning( "Could not parse author: $_" );
 		}
 	}
 
@@ -557,7 +557,7 @@ sub convert_input
 				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
-			output_warning($input_data, "Could not parse editor: $_");
+			$plugin->warning( "Could not parse editor: $_" );
 		}
 	}
 
