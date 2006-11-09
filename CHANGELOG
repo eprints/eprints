@@ -5135,3 +5135,6 @@ PACKAGE: 2.2.99.2
 2006-11-08 moj
  * Added block_enter.js to stop form submission when pressing enter in
     text inputs, along with a hook in Session's render_input_field.
+
+2006-11-09 tdb
+ * Bug fix for LibXML, undef warning on empty TextNode

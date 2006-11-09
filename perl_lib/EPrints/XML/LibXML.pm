@@ -28,6 +28,9 @@ loaded into EPrints::XML namespace if we're using XML::LibXML
 
 =cut
 
+use warnings;
+use strict;
+
 use XML::LibXML;
 use XML::LibXML::SAX::Parser;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
@@ -40,15 +43,14 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 
 {
 	no warnings; # don't complain about redefinition
-	# incorrectly set to '#cdata'
-	*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' };
+	*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' }; # '#cdata'
+	*XML::LibXML::Text::nodeName = sub { '#text' }; # 'text'
+	*XML::LibXML::Comment::nodeName = sub { '#comment' }; # 'comment'
 }
+
 # these aren't set at all
 *XML::LibXML::Document::nodeName = sub { '#document' };
 *XML::LibXML::DocumentFragment::nodeName = sub { '#document-fragment' };
-
-# incorrectly set to 'text'
-*XML::LibXML::Text::nodeName = sub { '#text' };
 
 # Element::cloneNode should copy attributes too
 *XML::LibXML::Element::cloneNode = sub {
@@ -70,13 +72,28 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 *XML::LibXML::DocumentFragment::getElementsByTagName =
 	\&XML::LibXML::Element::getElementsByLocalName;
 
-# LibXML doesn't set a root element on $doc->appendChild (unused, but could
-# cause problems)
+# If $doc->appendChild is called with an element set it as the root element,
+# otherwise it will normally get ignored 
 *XML::LibXML::Document::appendChild = sub {
 		my( $self, $node ) = @_;
-		$self->SUPER::appendChild( $node );
-		$self->setDocumentElement( $node );
-		return $node;
+		return $node->nodeType == XML_ELEMENT_NODE ?
+			XML::LibXML::Document::setDocumentElement( @_ ) :
+			XML::LibXML::Node::appendChild( @_ );
+	};
+
+##############################################################################
+# Bug work-arounds
+##############################################################################
+
+# Check for empty DocumentFragments - causes segfault in LibXML <= 1.61
+*XML::LibXML::DocumentFragment::appendChild =
+*XML::LibXML::Element::appendChild = sub {
+		my( $self, $node ) = @_;
+		return if(
+			$node->nodeType == XML_DOCUMENT_FRAG_NODE and
+			!$node->hasChildNodes
+		);
+		return XML::LibXML::Node::appendChild( @_ );
 	};
 
 ##############################################################################
@@ -271,10 +288,7 @@ sub make_document_fragment
 {
 	my( $session ) = @_;
 	
-	# LibXML segfaults if an empty DocumentFragment is added to a node
-	my $frag = $session->{doc}->createDocumentFragment();
-	$frag->appendChild( $session->{doc}->createTextNode(''));
-	return $frag;
+	return $session->{doc}->createDocumentFragment();
 }
 
 __END__
