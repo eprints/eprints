@@ -82,6 +82,13 @@ sub from
 			{ meta_fields => [ "timestamp" ] },
 			{ meta_fields => [ "objectid" ] },
 		],
+		order_methods => {
+			userid => "userid",
+			timestamp => "timestamp",
+			timestampdesc => "-timestamp",
+			objectid => "objectid",
+		},
+		default_order => "timestampdesc",
 	};
 
 			

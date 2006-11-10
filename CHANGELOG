@@ -5208,3 +5208,6 @@ PACKAGE: 2.2.99.2
  * Redesigned search input form
  * Search results no longer use a phrase.
  * Added User Search and History Search
+
+2006-11-10 cjg
+ * Added ordering for history search

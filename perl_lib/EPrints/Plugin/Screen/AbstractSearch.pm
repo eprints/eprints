@@ -182,6 +182,7 @@ sub from
 	}
 
 	my $order_opt = $self->{session}->param( $self->{prefix}."_order" );
+
 	$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{order_methods}->{$order_opt};
 	if( !defined $self->{processor}->{search}->{custom_order} )
 	{

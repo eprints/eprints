@@ -73,10 +73,10 @@ EPrints Modules
     <epp:phrase id="history_search_premble">Search the logs of changes made to records.</epp:phrase>
     <epp:phrase id="history_search_title">History Search</epp:phrase>
 
-    <epp:phrase id="ordername_history_objectid">Object</epp:phrase>
-    <epp:phrase id="ordername_history_revtime">Time (newest first)</epp:phrase>
-    <epp:phrase id="ordername_history_time">Time (oldest first)</epp:phrase>
-    <epp:phrase id="ordername_history_userid">User</epp:phrase>
+    <epp:phrase id="ordername_history_timestamp">Time (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_history_timestampdesc">Time (newest first)</epp:phrase>
+    <epp:phrase id="ordername_history_objectid">Item</epp:phrase>
+    <epp:phrase id="ordername_history_userid">User causing event</epp:phrase>
 
     <epp:phrase id="history_fieldopt_action_modify">Modified</epp:phrase>
     <epp:phrase id="history_fieldopt_action_move_inbox_to_buffer">Moved from Work Area to Editorial Review</epp:phrase>
