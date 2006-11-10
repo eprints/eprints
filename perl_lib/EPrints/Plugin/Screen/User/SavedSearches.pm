@@ -67,10 +67,8 @@ sub render_saved_search_list
 	my( $table, $tr, $td, $th );
 	$table = $session->make_element( 
 		"table",
-		style => "margin-bottom: 12pt",
-		cellpadding => 4,
-		cellspacing => 0,
-		border => 0 );
+		cellspacing=>0,
+		class => "ep_savedsearches" );
 	$page->appendChild( $table );
 	foreach my $saved_search ( sort { $a->get_value( "id" ) <=> $b->get_value( "id" ) } @saved_searches )
 	{

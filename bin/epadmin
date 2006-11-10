@@ -1019,6 +1019,12 @@ sub upgrade
 		$dbversion="3.0.1";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.1" )
+	{
+		upgrade_3_0_1_to_3_0_2( $repoid, $db );
+		$dbversion="3.0.2";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1066,6 +1072,42 @@ sub upgrade_3_0_to_3_0_1
 
 	$rootdbh->disconnect;
 }
+
+
+
+sub upgrade_3_0_1_to_3_0_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+
+	if( !defined $rootdbh )
+	{
+		die "Could not open database as root";
+	}
+
+	my @tables = $db->get_tables;
+	
+	my $sql;
+
+	$sql = "ALTER TABLE saved_search ADD name VARCHAR(255) NOT NULL AFTER pos";
+	$rootdbh->do( $sql );
+
+	$sql = "ALTER TABLE cachemap ADD userid INTEGER AFTER lastused";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^saved_search__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD name TEXT AFTER pos",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
 
 
 

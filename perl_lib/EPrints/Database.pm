@@ -64,7 +64,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.0.1";
+$EPrints::Database::DBVersion = "3.0.2";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -1136,6 +1136,7 @@ CREATE TABLE $table_name (
 	tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	created DATETIME NOT NULL, 
 	lastused DATETIME NOT NULL, 
+	userid INTEGER,
 	searchexp TEXT,
 	oneshot SET('TRUE','FALSE')
 )
@@ -1297,6 +1298,24 @@ sub cache_exp
 	return $searchexp;
 }
 
+sub cache_userid
+{
+	my( $self , $id ) = @_;
+
+	my $a = $self->{session}->get_repository;
+	my $ds = $a->get_dataset( "cachemap" );
+
+	#cjg NOT escaped!!!
+	my $sql = "SELECT userid FROM ".$ds->get_sql_table_name() . " WHERE tableid = '$id' ";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my( $userid ) = $sth->fetchrow_array;
+	$sth->finish;
+
+	return $userid;
+}
+
 
 
 
@@ -1328,9 +1347,15 @@ sub cache
 	my $sth;
 
 	# nb. all caches are now oneshot.
+	my $userid = "NULL";
+	my $user = $self->{session}->current_user;
+	if( defined $user )
+	{
+		$userid = $user->get_id;
+	}
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , '".prep_value($code)."' , 'TRUE' )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , $userid, '".prep_value($code)."' , 'TRUE' )";
 	
 	$self->do( $sql );
 

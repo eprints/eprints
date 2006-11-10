@@ -72,6 +72,8 @@ sub get_system_field_info
 
 		{ name=>"pos", type=>"int", required=>1 },
 
+		{ name=>"name", type=>"text" },
+
 		{ 
 			name => "spec",
 			type => "search",
@@ -175,11 +177,12 @@ sub get_defaults
 	$data->{mailempty} = "TRUE";
 	$data->{spec} = '';
 	$data->{rev_number} = 1;
+	$data->{public} = "FALSE";
 
-	$session->get_repository->call(
-		"set_saved_search_defaults",
-		$data,
-		$session );
+#	$session->get_repository->call(
+#		"set_saved_search_defaults",
+#		$data,
+#		$session );
 
 	return $data;
 }	
@@ -227,9 +230,9 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
-	$self->{session}->get_repository->call( 
-		"set_saved_search_automatic_fields", 
-		$self );
+#	$self->{session}->get_repository->call( 
+#		"set_saved_search_automatic_fields", 
+#		$self );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{

@@ -5221,3 +5221,14 @@ PACKAGE: 2.2.99.2
  * Remved field_required_in_type
  * Fixed bug in error messages from user functions 
  * Fixed a bug in javascript toggle.
+
+2006-11-10 cjg
+ * Added new field to cachemap (userid)
+ * Added new field to saved_search (name)
+ * Disabled default and automatic calls for saved searches
+ * Added some missing phrases.
+ * Saved search name defaults to a description.
+ * Saved search "public" defaults to false.
+ * Added css to the saved search list
+ * Cleaned up the search button in the template
+ 

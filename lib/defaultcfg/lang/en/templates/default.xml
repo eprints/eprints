@@ -26,9 +26,8 @@
     <tr>
       <td align="left">
         <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
-          <img alt="Search" src="/images/search.gif"/> Search
           <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="q"/>
-          <input class="ep_tm_searchbarbutton" value="Go" type="submit" name="_action_search"/>
+          <input class="ep_tm_searchbarbutton" value="Search" type="submit" name="_action_search"/>
           <input type="hidden" name="_order" value="bytitle"/>
           <input type="hidden" name="basic_srchtype" value="ALL"/>
           <input type="hidden" name="_satisfyall" value="ALL"/>

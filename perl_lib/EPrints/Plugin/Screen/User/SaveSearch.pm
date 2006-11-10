@@ -35,9 +35,26 @@ sub action_create
 
 	my $id = $self->{session}->param( "cache" );
         my $string = $self->{session}->get_database->cache_exp( $id );
+        my $userid = $self->{session}->get_database->cache_userid( $id );
+	if( $userid != $user->get_id )
+	{
+		$self->{processor}->add_message( 
+			"error",
+			$self->html_phrase( "not_your_search" ) );
+		$self->{processor}->{screenid} = "User::View";
+		return;
+	}
+
+   	my $search = new EPrints::Search(
+		keep_cache => 1,
+		session => $self->{session},
+		dataset => $self->{session}->get_repository->get_dataset( "archive" ) );
+	$search->from_string_raw( $string );
+
 
 	$self->{processor}->{savedsearch} = $ds->create_object( $self->{session}, { 
 		userid => $user->get_value( "userid" ),
+		name => EPrints::Utils::tree_to_utf8( $search->render_conditions_description ),
 		spec => $string } );
 
 	if( !defined $self->{processor}->{savedsearch} )
@@ -47,6 +64,7 @@ sub action_create
 		$self->{processor}->add_message( 
 			"error",
 			$self->html_phrase( "db_error" ) );
+		$self->{processor}->{screenid} = "User::View";
 		return;
 	}
 

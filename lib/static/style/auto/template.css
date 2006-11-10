@@ -75,16 +75,17 @@ ul.ep_tm_menu li a:visited {
 }
 
 .ep_tm_searchbarbutton {
-	color: #ccc;
-	/*border: #606060 1px solid;*/
-	background-color: #606060; 
-	font-weight: bold;
+	text-align: center;
+	background-image: url(/style/images/blue_bar.png);
+	color: white;
+	font-weight: normal;
 	font-size: 80%;
-	padding: 0;
+	padding: 0px;
 }
 
 .ep_tm_searchbarbox {
 	font-size: 80%;
+	padding: 2px;
 	border: #606060 1px solid;
 }
 

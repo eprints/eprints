@@ -221,7 +221,7 @@ sub new
 			if( $self->{database}->has_table( "eprint" ) )
 			{	
 				$self->get_repository->log( 
-	"Database tables are in old configuration. Please run bin/upgrade" );
+	"Database tables are in old configuration. Please run:\nepadmin upgrade ".$self->get_repository->get_id );
 			}
 			else
 			{
