@@ -590,60 +590,6 @@ sub best_language
 }
 
 
-######################################################################
-#=pod
-#
-#=item $names = $session->get_order_names( $dataset )
-#
-#Return a reference to a hash.
-#
-#The keys of this hash are the id's of the orderings of the dataset
-#available to the public. eg. "byyear", "title" etc.
-#
-#The values are UTF8 strings containing the human-readable version,
-#eg. "By Year".
-#
-#=cut
-######################################################################
-
-sub get_order_names
-{
-	my( $self, $dataset ) = @_;
-
-	EPrints::deprecated;
-		
-	my %names = ();
-	foreach( keys %{$self->{repository}->get_conf(
-			"order_methods",
-			$dataset->confid() )} )
-	{
-		$names{$_}=$self->get_order_name( $dataset, $_ );
-	}
-	return( \%names );
-}
-
-
-######################################################################
-#=pod
-#
-#=item $name = $session->get_order_name( $dataset, $orderid )
-#
-#Return a UTF8 encoded string describing the human readable name of
-#the ordering with ID $orderid in $dataset. For example, by default,
-#"byyearoldest" will return "By Year (Oldest First)"
-#
-#=cut
-######################################################################
-
-sub get_order_name
-{
-	my( $self, $dataset, $orderid ) = @_;
-
-	EPrints::deprecated;
-	
-        return $self->phrase( 
-		"ordername_".$dataset->confid()."_".$orderid );
-}
 
 
 ######################################################################
@@ -1205,6 +1151,7 @@ sub render_option_list
 	# values   :
 	# labels   :
 	# name     :
+	# checkbox :
 	# defaults_at_top : move items already selected to top
 	# 			of list, so they are visible.
 
@@ -1221,11 +1168,6 @@ sub render_option_list
 		$defaults{$params{default}} = 1;
 	}
 
-	my $element = $self->make_element( "select" , name => $params{name} );
-	if( $params{multiple} )
-	{
-		$element->setAttribute( "multiple" , "multiple" );
-	}
 
 	my $dtop = defined $params{defaults_at_top} && $params{defaults_at_top};
 
@@ -1259,7 +1201,33 @@ sub render_option_list
 		$pairs = [ @pairsa, [ '-', '----------' ], @pairsb ];
 	}
 
+	if( $params{checkbox} )
+	{
+		my $f = $self->make_doc_fragment;
+		foreach my $pair ( @{$pairs} )
+		{
+			my $div = $self->make_element( "div" );
+			my $label = $self->make_element( "label" );
+			$div->appendChild( $label );
+			my $box = $self->make_element( "input", type=>"checkbox", name=>$params{name}, value=>$pair->[0] );
+			$label->appendChild( $box );
+			$label->appendChild( $self->make_text( " ".$pair->[1] ) );
+			if( $defaults{$pair->[0]} )
+			{
+				$box->setAttribute( "checked" , "checked" );
+			}
+			$f->appendChild( $div );
+		}
+		return $f;
+	}
+		
 
+
+	my $element = $self->make_element( "select" , name => $params{name} );
+	if( $params{multiple} )
+	{
+		$element->setAttribute( "multiple" , "multiple" );
+	}
 	my $size = 0;
 	foreach my $pair ( @{$pairs} )
 	{
@@ -1270,7 +1238,6 @@ sub render_option_list
 				$defaults{$pair->[0]} ) );
 		$size++;
 	}
-
 	if( defined $params{height} )
 	{
 		if( $params{height} ne "ALL" )

@@ -16,9 +16,6 @@
 
 
 
-# Default number of results to display on a single search results page
-# can be over-ridden per search config.
-$c->{results_page_size} = 20;
 
 $c->{search}->{simple} = 
 {
@@ -37,9 +34,14 @@ $c->{search}->{simple} =
 	preamble_phrase => "cgi/search:preamble",
 	title_phrase => "cgi/search:simple_search",
 	citation => "result",
-	default_order => "byyear",
 	page_size => 20,
-	controls => { top=>0, bottom=>1 }
+	order_methods => {
+		"byyear" 	 => "-date/creators_name/title",
+		"byyearoldest"	 => "date/creators_name/title",
+		"byname"  	 => "creators_name/-date/title",
+		"bytitle" 	 => "title/creators_name/-date"
+	},
+	default_order => "byyear",
 };
 		
 
@@ -63,42 +65,15 @@ $c->{search}->{advanced} =
 	preamble_phrase => "cgi/advsearch:preamble",
 	title_phrase => "cgi/advsearch:adv_search",
 	citation => "result",
-	default_order => "byyear",
 	page_size => 20,
-	controls => { top=>1, bottom=>1 }
+	order_methods => {
+		"byyear" 	 => "-date/creators_name/title",
+		"byyearoldest"	 => "date/creators_name/title",
+		"byname"  	 => "creators_name/-date/title",
+		"bytitle" 	 => "title/creators_name/-date"
+	},
+	default_order => "byyear",
 };
-
-$c->{order_methods}->{subject} =
-{
-	"byname" 	 =>  "name",
-	"byrevname"	 =>  "-name" 
-};
-
-
-# Fields used for limiting the scope of editors
-$c->{editor_limit_fields} =
-[
-	"subjects",
-	"type"
-];
-
-# Ways of ordering search results
-$c->{order_methods}->{eprint} =
-{
-	"byyear" 	 => "-date/creators_name/title",
-	"byyearoldest"	 => "date/creators_name/title",
-	"byname"  	 => "creators_name/-date/title",
-	"bytitle" 	 => "title/creators_name/-date"
-};
-
-$c->{order_methods}->{"eprint.review"} =
-{
-	"bystatuschanged"	=> "status_changed",
-	"bystatuschangedoldest"	=> "-status_changed",
-	"bytitle"		=> "title",
-	"bytitlerev"		=> "-title",
-};
-
 
 
 $c->{search}->{user} = 
@@ -112,20 +87,15 @@ $c->{search}->{user} =
 		{ meta_fields => [ "usertype", ] },
 		{ meta_fields => [ "email" ] },
 	],
-	preamble_phrase => "cgi/advsearch:preamble",
-	title_phrase => "cgi/advsearch:adv_search",
 	citation => "result",
 	page_size => 20,
-	controls => { top=>1, bottom=>1 }
-};
-
-# Ways of ordering user search results
-$c->{order_methods}->{user} =
-{
-	"byname" 	 =>  "name/joined",
-	"byjoin"	 =>  "joined/name",
-	"byrevjoin"  	 =>  "-joined/name",
-	"bytype" 	 =>  "usertype/name"
+	order_methods => {
+		"byname" 	 =>  "name/joined",
+		"byjoin"	 =>  "joined/name",
+		"byrevjoin"  	 =>  "-joined/name",
+		"bytype" 	 =>  "usertype/name",
+	},
+	default_order => "byname",
 };
 
 # If set to true, this option causes name searches to match the
@@ -133,13 +103,17 @@ $c->{order_methods}->{user} =
 # "Smith".
 $c->{match_start_of_name} = 0;
 
-# The default way of ordering a search result
-#   (must be key to %eprint_order_methods)
-$c->{default_order}->{user} = "byname";
-
 # customise the citation used to give results on the latest page
 # nb. This is the "last 7 days" page not the "latest_tool" page.
-$c->{latest_citation} = "result";
+$c->{latest_citation} = "default";
+
+# Fields used for limiting the scope of editors
+$c->{editor_limit_fields} =
+[
+	"subjects",
+	"type"
+];
+
 
 
 ######################################################################

@@ -66,9 +66,6 @@ sub render
 		params => {
 			screen => "Review",
 		},
-		pins => {
-			searchdesc => $self->_get_scope( $user ),
-		},
 		columns => $self->{session}->current_user->get_value( "review_fields" ),
 		render_result_params => {
 			row => 1,
@@ -95,6 +92,9 @@ sub render
 			return $tr;
 		},
 	);
+	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
+	$h2->appendChild( $self->html_phrase( "list_desc" ) );
+	$page->appendChild( $h2 );
 	$page->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_review", $list, %opts ) );
 
 	return $page;

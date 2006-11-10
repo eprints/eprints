@@ -124,9 +124,6 @@ sub render
 			show_archive=>$filters{archive},
 			show_deletion=>$filters{deletion},
 		},
-		pins => {
-			searchdesc => $self->html_phrase( "list_desc" ),
-		},
 		columns => $self->{session}->current_user->get_value( "items_fields" ),
 		above_results => $filter_div,
 		render_result => sub {
@@ -151,6 +148,9 @@ sub render
 			return $tr;
 		},
 	);
+	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
+	$h2->appendChild( $self->html_phrase( "list_desc" ) );
+	$chunk->appendChild( $h2 );
 	$chunk->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_buffer", $list, %opts ) );
 
 	# TODO: alt phrase for empty list e.g. "cgi/users/home:no_pending"

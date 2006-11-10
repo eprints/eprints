@@ -1084,6 +1084,8 @@ my $PRIVMAP =
 		"user/staff/edit" => 8,
 		"create_user" => 2,
 		# "subject/edit" => 8,
+		"staff/user_search" => 2,
+		"staff/history_search" => 2,
 	},
 
 	"saved-searches" => 

@@ -402,6 +402,7 @@ sub render_search_set_input
 	}
 
 	return $session->render_option_list( 
+		checkbox => ($self->{search_input_style} eq "checkbox"?1:0),
 		name => $prefix,
 		default => \@defaults,
 		multiple => 1,
@@ -494,6 +495,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = "short";
+	$defaults{search_input_style} = "checkbox";
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{input_ordered} = 0;
 	$defaults{search_rows} = $EPrints::MetaField::FROM_CONFIG;

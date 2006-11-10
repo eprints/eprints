@@ -454,6 +454,10 @@ sub render_create
 	my( $self ) = @_;
 
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
+	if( !defined $eprint )
+	{
+		return $self->{session}->render_nbsp;
+	}
 	my $r_new = $self->get_value( "revision" );
 	my $r_file_new =  $eprint->local_path."/revisions/$r_new.xml";
 

@@ -5201,3 +5201,10 @@ PACKAGE: 2.2.99.2
  * Removed unsused staff/eprint_search
  * Cleaned up user search config.
  * Results citation now returns a <tr>
+
+2006-11-10 cjg
+ * Removed more unused stuff from Search 
+ * Removed deprecated order methods 
+ * Redesigned search input form
+ * Search results no longer use a phrase.
+ * Added User Search and History Search

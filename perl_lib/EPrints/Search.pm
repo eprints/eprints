@@ -48,8 +48,6 @@ package EPrints::Search;
 use URI::Escape;
 use strict;
 
-$EPrints::Search::CustomOrder = "_CUSTOM_";
-
 ######################################################################
 =pod
 
@@ -142,17 +140,6 @@ If true then this is a "staff" search, which prevents searching unless
 the user is staff, and the results link to the staff URL of an item
 rather than the public URL.
 
-=item default_order
-
-The ID of a sort order (from ArchiveConfig) which will be the default
-option when the search form is rendered.
-
-=item order_methods
-
-An optional hash mapping order id to a custom order definition.
-Only required for Searches generating a web interface. If not specified
-then the default for the dataset is used.
-
 =item filters
 
 A reference to an array of filter definitions.
@@ -172,9 +159,9 @@ being mentioned in the description of the search.
 
 @EPrints::Search::OPTS = (
 	"session", 	"dataset", 	"allow_blank", 	"satisfy_all", 	
-	"fieldnames", 	"staff", 	"order", 	"custom_order",
+	"fieldnames", 	"staff", 	"custom_order",
 	"keep_cache", 	"cache_id", 	"prefix", 	"defaults",
-	"filters", 	"default_order","search_fields", "order_methods" );
+	"filters", 	"search_fields" );
 
 sub new
 {
@@ -227,23 +214,6 @@ END
 		$self->{"dataset"} = $self->{"session"}->get_repository->get_dataset( $data{"dataset_id"} );
 	}
 
-	if( defined $self->{custom_order} ) 
-	{ 
-		$self->{order} = $EPrints::Search::CustomOrder;
-		# can't cache a search with a custom ordering.
-	}
-
-	# no order now means "do not order" rather than "use default order"
-#	if( !defined $self->{order} && defined $self->{dataset})
-#	{
-#		# Get {order} from {dataset} if possible.
-#
-#		$self->{order} = $self->{session}->get_repository->get_conf( 
-#					"default_order", 
-#					$self->{dataset}->confid );
-#	}
-	
-
 	# Arrays for the Search::Field objects
 	$self->{searchfields} = [];
 	$self->{filterfields} = {};
@@ -254,14 +224,6 @@ END
 	{
 		$self->{fieldnames} = $self->{session}->get_repository->get_conf(
 			"editor_limit_fields" );
-	}
-
-	if( !defined $self->{"default_order"} )
-	{
-		$self->{"default_order"} = 
-			$self->{session}->get_repository->get_conf( 
-				"default_order",
-				"eprint" );
 	}
 
 	foreach my $fielddata (@{$self->{search_fields}})
@@ -448,42 +410,6 @@ sub clear
 
 
 
-# 
-# Return the available orderings for this search, using the default
-# for the dataset if needed.
-
-
-sub order_methods
-{
-	my( $self ) = @_;
-
-	if( !defined $self->{order_methods} )
-	{
-		$self->{order_methods} = $self->{session}->get_repository->get_conf(
-			"order_methods",
-			$self->{dataset}->confid );
-	}
-
-	return $self->{order_methods};
-}
-	
-######################################################################
-=pod
-
-=item $order_id = $searchexp->get_order
-
-Return the id string of the type of ordering. This will be a value
-in the search configuration.
-
-=cut
-######################################################################
-
-sub get_order
-{
-	my( $self ) = @_;
-	return $self->{order};
-}
-
 
 ######################################################################
 =pod
@@ -555,7 +481,7 @@ sub serialise
 	my @parts;
 	push @parts, $self->{allow_blank}?1:0;
 	push @parts, $self->{satisfy_all}?1:0;
-	push @parts, $self->{order};
+	push @parts, $self->{custom_order};
 	push @parts, $self->{dataset}->id();
 	# This inserts an "-" field which we use to spot the join between
 	# the properties and the fields, so in a pinch we can add a new 
@@ -618,7 +544,9 @@ sub from_string
 
 	my @parts = split( /\|/ , $pstring );
 	$self->{satisfy_all} = $parts[1]; 
-	$self->{order} = $parts[2];
+	$self->{custom_order} = $parts[2];
+	delete $self->{custom_order} if( $self->{custom_order} eq "" );
+	
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
 #	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
@@ -658,7 +586,8 @@ sub from_string_raw
 
 	my @parts = split( /\|/ , $pstring );
 	$self->{satisfy_all} = $parts[1]; 
-	$self->{order} = $parts[2];
+	$self->{custom_order} = $parts[2];
+	delete $self->{custom_order} if( $self->{custom_order} eq "" );
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
 #	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
@@ -929,19 +858,24 @@ sub render_order_description
 	my $frag = $self->{session}->make_doc_fragment;
 
 	# empty if there is no order.
-	return $frag unless( EPrints::Utils::is_set( $self->{order} ) );
+	return $frag unless( EPrints::Utils::is_set( $self->{custom_order} ) );
 
-	# empty if it's a custom ordering
-	return $frag if( $self->{"order"} eq $EPrints::Search::CustomOrder );
+	my $first = 1;
+	foreach my $orderid ( split( "/", $self->{custom_order} ) )
+	{
+		$frag->appendChild( $self->{session}->make_text( ", " ) ) if( !$first );
+		my $desc = 0;
+		if( $orderid=~s/^-// ) { $desc = 1; }
+		$frag->appendChild( $self->{session}->make_text( "-" ) ) if( $desc );
+		my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $orderid );
+		$frag->appendChild( $field->render_name( $self->{session} ) );
+		$first = 0;
+	}
 
-	$frag->appendChild( $self->{session}->html_phrase(
+	return $self->{session}->html_phrase(
 		"lib/searchexpression:desc_order",
-		order => $self->{session}->make_text(
-			$self->{session}->get_order_name(
-				$self->{dataset},
-				$self->{order} ) ) ) );
+		order => $frag );
 
-	return $frag;
 }
 	
 
@@ -1117,19 +1051,6 @@ sub perform_search
 		return $self->{results};
 	}
 
-	my $order;
-	if( defined $self->{order} )
-	{
-		if( $self->{order} eq $EPrints::Search::CustomOrder )
-		{
-			$order = $self->{custom_order};
-		}
-		else
-		{
-			my $methods = $self->order_methods;
-			$order = $methods->{ $self->{order} };
-		}
-	}
 
 	#my $conditions = $self->get_conditions;
 	#print STDERR $conditions->describe."\n\n";
@@ -1140,7 +1061,7 @@ sub perform_search
 	$self->{results} = EPrints::List->new( 
 		session => $self->{session},
 		dataset => $self->{dataset},
-		order => $order,
+		order => $self->{custom_order},
 		encoded => $self->serialise,
 		keep_cache => $self->{keep_cache},
 		ids => $unsorted_matches, 

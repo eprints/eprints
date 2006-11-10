@@ -47,9 +47,6 @@ sub render
 	my $cacheid = $list->get_cache_id;
 
 	my %opts = (
-#		pins => \%bits,
-#		controls_before => \@controls_before,
-		phrase => "lib/searchexpression:results_page",
 		params => { 
 			screen => $self->{processor}->{screenid},
 			savedsearchid => $self->{processor}->{savedsearchid},
@@ -64,6 +61,7 @@ sub render
 			return $div;
 		},
 		render_result_params => $list,
+		container => $self->{session}->make_element( "table" ),
 #		page_size => $self->{page_size},
 	);
 

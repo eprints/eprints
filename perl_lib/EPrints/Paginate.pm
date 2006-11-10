@@ -135,7 +135,7 @@ sub paginate_list
 	my $plast = $offset + $pagesize;
 	$plast = $n_results if $n_results< $plast;
 
-	my %pins = ();
+	my %pins;
 
 	my $matches;	
 	if( scalar $n_results > 0 )
@@ -153,7 +153,6 @@ sub paginate_list
 	}
 	else
 	{
-		# TODO default phrase for empty list
 		# override default phrase with opts
 		$matches = 
 			$session->html_phrase( 
@@ -170,10 +169,8 @@ sub paginate_list
 	{
 		$pins{below_results} = $session->make_doc_fragment;
 	}
-	if( !defined $pins{searchdesc} )
-	{
-		$pins{searchdesc} = $list->render_description;
-	}
+	$pins{below_results} = $opts{searchdesc};
+
 
 	# Add params to action urls
 	my $url = $session->get_uri . "?";
@@ -360,16 +357,38 @@ sub paginate_list
 	{
 		$pins{$_} = $custom_pins->{$_} if defined $custom_pins->{$_};
 	}
-	my $page;
-	if( defined $opts{phrase} )
+
+
+	my $page = $session->make_doc_fragment;
+
+	if( defined $pins{controls} )
 	{
-		$page = $session->html_phrase( $opts{phrase}, %pins );
-	}
-	else
+		my $div = $session->make_element( "div", class=>"ep_search_controls" );
+		$div->appendChild( $pins{controls} );
+		$page->appendChild( $div );
+	}	
+	if( defined $pins{above_results} )
 	{
-		# Default: use built-in phrase
-		$page = $session->html_phrase( "lib/list:page", %pins );
-	}
+		$page->appendChild( $pins{above_results} );
+	}	
+	if( defined $pins{results} )
+	{
+		my $div = $session->make_element( "div", class=>"ep_search_results" );
+		$div->appendChild( $pins{results} );
+		$page->appendChild( $div );
+	}	
+	if( defined $pins{below_results} )
+	{
+		$page->appendChild( $pins{below_results} );
+	}	
+	if( defined $pins{controls} )
+	{
+		my $div = $session->make_element( "div", class=>"ep_search_controls_bottom" );
+		$div->appendChild( $session->clone_for_me( $pins{controls}, 1 ) );
+		$page->appendChild( $div );
+	}	
+
+
 	return $page;
 }
 

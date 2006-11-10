@@ -2049,15 +2049,6 @@ sub render_search_input
 	my $frag = $session->make_doc_fragment;
 
 	# complex text types
-	$frag->appendChild(
-		$session->render_input_field(
-			class => "ep_form_text",
-			type => "text",
-			name => $searchfield->get_form_prefix,
-			value => $searchfield->get_value,
-			size => $self->get_property( "search_cols" ),
-			maxlength => 256 ) );
-	$frag->appendChild( $session->make_text(" ") );
 	my @text_tags = ( "ALL", "ANY" );
 	my %text_labels = ( 
 		"ANY" => $session->phrase( "lib/searchfield:text_any" ),
@@ -2068,6 +2059,15 @@ sub render_search_input
 			values=>\@text_tags,
 			default=>$searchfield->get_merge,
 			labels=>\%text_labels ) );
+	$frag->appendChild( $session->make_text(" ") );
+	$frag->appendChild(
+		$session->render_input_field(
+			class => "ep_form_text",
+			type => "text",
+			name => $searchfield->get_form_prefix,
+			value => $searchfield->get_value,
+			size => $self->get_property( "search_cols" ),
+			maxlength => 256 ) );
 	return $frag;
 }
 

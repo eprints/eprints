@@ -31,12 +31,21 @@
 	padding-top: 4px;
 	padding-bottom: 4px;
 	margin-bottom: 0.25em;
-	margin-top: 0.251em;
+	margin-top: 0.25em;
 }
 
-.ep_search_order {
-        padding-top: 12pt;
+.ep_search_fields {
+	margin-top: 1em;
+	margin-bottom: 1em;
 }
+.ep_search_fields th {
+	padding: 4px;
+}
+	
+.ep_search_fields td {
+	padding: 4px;
+}
+	
 
 .ep_search_control
 {

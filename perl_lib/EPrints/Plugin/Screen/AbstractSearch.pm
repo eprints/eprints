@@ -180,8 +180,13 @@ sub from
 	{
 		$self->{processor}->{search}->{satisfy_all} = ( $anyall eq "ALL" );
 	}
-	
-	$self->{order} = $self->{session}->param( $self->{prefix}."_order" );
+
+	my $order_opt = $self->{session}->param( $self->{prefix}."_order" );
+	$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{order_methods}->{$order_opt};
+	if( !defined $self->{processor}->{search}->{custom_order} )
+	{
+		$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{default_order};
+	}
 
 	# do actions
 	$self->SUPER::from;
@@ -355,14 +360,15 @@ sub paginate_opts
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
 
-	$bits{export} = $self->render_export_select;
-
 	my @controls_before = $self->get_controls_before;
+	
+	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
+	$export_div->appendChild( $self->render_export_select );
 
 	return (
 		pins => \%bits,
 		controls_before => \@controls_before,
-		phrase => "lib/searchexpression:results_page",
+		above_results => $export_div,
 		params => { 
 			screen => $self->{processor}->{screenid},
 			_action_search => 1,
@@ -375,6 +381,12 @@ sub paginate_opts
 	);
 }
 
+sub render_results_intro
+{
+	my( $self ) = @_;
+
+	return $self->{session}->make_doc_fragment;
+}
 
 sub render_results
 {
@@ -383,6 +395,7 @@ sub render_results
 	my %opts = $self->paginate_opts;
 
 	my $page = $self->{session}->render_form( "GET" );
+	$page->appendChild( $self->render_results_intro );
 	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, "_search", $self->{processor}->{results}, %opts ) );
 
 	return $page;
@@ -414,11 +427,14 @@ sub render_search_form
 
 	$form->appendChild( $self->render_controls );
 
-	$form->appendChild( $self->render_search_fields );
+	my $table = $self->{session}->make_element( "table", class=>"ep_search_fields" );
+	$form->appendChild( $table );
 
-	$form->appendChild( $self->render_anyall_field );
+	$table->appendChild( $self->render_search_fields );
 
-	$form->appendChild( $self->render_order_field );
+	$table->appendChild( $self->render_anyall_field );
+
+	$table->appendChild( $self->render_order_field );
 
 	$form->appendChild( $self->render_controls );
 
@@ -438,15 +454,17 @@ sub render_search_fields
 				"div" , 
 				class => "ep_search_field_name" );
 		$div->appendChild( $sf->render_name );
-		$frag->appendChild( $div );
 
-		$div = $self->{session}->make_element( 
-			"div" , 
-			class => "ep_search_field_help" );
-		$div->appendChild( $sf->render_help );
-		$frag->appendChild( $div );
+#		$div = $self->{session}->make_element( 
+#			"div" , 
+#			class => "ep_search_field_help" );
+#		$div->appendChild( $sf->render_help );
+#		$frag->appendChild( $div );
 
-		$frag->appendChild( $sf->render() );
+		$frag->appendChild( 
+			$self->{session}->render_row( 
+				$sf->render_name,
+				$sf->render ) );
 	}
 
 	return $frag;
@@ -473,14 +491,10 @@ sub render_anyall_field
 				  "ANY" => $self->{session}->phrase( 
 						"lib/searchexpression:any" )} );
 
-	my $div = $self->{session}->make_element( 
-		"div" , 
-		class => "ep_search_anyall" );
-	$div->appendChild( 
-		$self->{session}->html_phrase( 
-			"lib/searchexpression:must_fulfill",  
-			anyall=>$menu ) );
-	return $div;
+	return $self->{session}->render_row(
+			$self->{session}->html_phrase( 
+				"lib/searchexpression:must_fulfill" ),  
+			$menu );
 }
 
 sub render_controls
@@ -499,6 +513,7 @@ sub render_controls
 }
 
 
+
 sub render_order_field
 {
 	my( $self ) = @_;
@@ -507,10 +522,10 @@ sub render_order_field
 
 	if( !defined $order )
 	{
-		$order = $self->{processor}->{search}->{default_order};
+		$order = $self->{processor}->{sconf}->{default_order};
 	}
 
-	my $methods = $self->{processor}->{search}->order_methods;
+	my $methods = $self->{processor}->{sconf}->{order_methods};
 
 	my %labels = ();
 	foreach( keys %$methods )
@@ -525,15 +540,9 @@ sub render_order_field
 		default=>$order,
 		labels=>\%labels );
 
-	my $div = $self->{session}->make_element( 
-		"div" , 
-		class => "ep_search_ordermenu" );
-	$div->appendChild( 
-		$self->{session}->html_phrase( 
-			"lib/searchexpression:order_results", 
-			ordermenu => $menu  ) );
-
-	return $div;
+	return $self->{session}->render_row(
+			$self->{session}->html_phrase( "lib/searchexpression:order_results" ),
+			$menu );
 }
 
 # $method_map = $searche->order_methods
