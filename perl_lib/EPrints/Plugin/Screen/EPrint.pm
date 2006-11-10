@@ -43,6 +43,40 @@ sub allow
 	return $self->{session}->current_user->allow( $priv, $self->{processor}->{eprint} );
 }
 
+sub render_tab_title
+{
+	my( $self ) = @_;
+
+	return $self->html_phrase( "title" );
+}
+
+sub render_title
+{
+	my( $self ) = @_;
+
+	my $priv = $self->allow( "eprint/view" );
+	my $owner  = $priv & 4;
+	my $editor = $priv & 8;
+
+	my $f = $self->{session}->make_doc_fragment;
+	$f->appendChild( $self->html_phrase( "title" ) );
+	$f->appendChild( $self->{session}->make_text( ": " ) );
+
+	my $title = $self->{processor}->{eprint}->render_citation( "screen" );
+	if( $owner && $editor )
+	{
+		$f->appendChild( $title );
+	}
+	else
+	{
+		my $a = $self->{session}->render_link( "?screen=EPrint::View&eprintid=".$self->{processor}->{eprintid} );
+		$a->appendChild( $title );
+		$f->appendChild( $a );
+	}
+	return $f;
+}
+
+
 sub register_furniture
 {
 	my( $self ) = @_;
@@ -51,17 +85,12 @@ sub register_furniture
 
 	my $f = $self->{session}->make_doc_fragment;
 
-	my $cuser = $self->{session}->current_user;
-	my $owner  = $self->{processor}->{eprint}->has_owner( $cuser );
-	my $editor = $self->{processor}->{eprint}->has_editor( $cuser );
+	my $priv = $self->allow( "eprint/view" );
+	my $owner  = $priv & 4;
+	my $editor = $priv & 8;
 
-	my $h2 = $self->{session}->make_element( "h2", style=>"margin: 0px" );
-	my $title = $self->{processor}->{eprint}->render_citation( "screen" );
 	if( $owner && $editor )
 	{
-		# special!
-		$f->appendChild( $h2 );
-		$h2->appendChild( $title );
 		my $a_owner = $self->{session}->render_link( "?screen=EPrint::View::Owner&eprintid=".$self->{processor}->{eprintid} );
 		my $a_editor = $self->{session}->render_link( "?screen=EPrint::View::Editor&eprintid=".$self->{processor}->{eprintid} );
 		my $div = $self->{session}->make_element( "div" );
@@ -70,13 +99,6 @@ sub register_furniture
 			owner_link=>$a_owner,
 			editor_link=>$a_editor ) );
 		$f->appendChild( $div );
-	}
-	else
-	{
-		my $a = $self->{session}->render_link( "?screen=EPrint::View&eprintid=".$self->{processor}->{eprintid} );
-		$f->appendChild( $h2 );
-		$h2->appendChild( $a );
-		$a->appendChild( $title );
 	}
 
 	$self->{processor}->before_messages( $f );

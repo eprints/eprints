@@ -5240,3 +5240,9 @@ PACKAGE: 2.2.99.2
 2006-11-10 cjg
  * Public saved searches (including export)
 
+2006-11-10 cjg
+ * Fixed bug in EPrint screen header which meant the thing always thought
+    people were an editor.
+ * ditto for EPrint::View
+ * Titles of EPrint Screens are now in the actual title.
+

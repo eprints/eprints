@@ -200,6 +200,13 @@ sub allow_action
 	return $self->$fn;
 }
 
+sub render_tab_title
+{
+	my( $self ) = @_;
+
+	return $self->render_title;
+}
+
 sub from
 {
 	my( $self ) = @_;

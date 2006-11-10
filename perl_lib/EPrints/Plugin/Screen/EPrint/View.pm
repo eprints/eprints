@@ -28,8 +28,10 @@ sub about_to_render
 	my( $self ) = @_;
 
 	my $cuser  = $self->{session}->current_user;
-	my $owner  = $self->{processor}->{eprint}->has_owner( $cuser );
-	my $editor = $self->{processor}->{eprint}->has_editor( $cuser );
+
+	my $priv = $self->allow( "eprint/view" );
+	my $owner  = $priv & 4;
+	my $editor = $priv & 8;
 
 	if( $editor )
 	{
@@ -86,7 +88,7 @@ sub render
 
 		push @{$tabs}, $item->{screen_id};
 		$position->{$item->{screen_id}} = $item->{position};
-		$labels->{$item->{screen_id}} = $item->{screen}->render_title;
+		$labels->{$item->{screen_id}} = $item->{screen}->render_tab_title;
 		$links->{$item->{screen_id}} = "?screen=".$self->{processor}->{screenid}."&eprintid=".$self->{processor}->{eprintid}."&view=".substr( $item->{screen_id}, 8 );
 	}
 
