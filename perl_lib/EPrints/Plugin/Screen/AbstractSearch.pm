@@ -290,39 +290,37 @@ sub render_links
 sub render_export_select
 {
 	my( $self ) = @_;
-
-	my $export = $self->{session}->make_doc_fragment;
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
-	if( scalar @plugins > 0 ) 
+	if( scalar @plugins == 0 ) 
 	{
-		my $select = $self->{session}->make_element( "select", name=>"_output" );
-		foreach my $plugin_id ( @plugins ) {
-			$plugin_id =~ m/^[^:]+::(.*)$/;
-			my $id = $1;
-			my $option = $self->{session}->make_element( "option", value=>$id );
-			my $plugin = $self->{session}->plugin( $plugin_id );
-			$option->appendChild( $plugin->render_name );
-			$select->appendChild( $option );
-		}
-		my $button = $self->{session}->make_doc_fragment;
-		$button->appendChild( $self->{session}->render_button(
-				name=>"_action_export_redir", 
-				value=>$self->{session}->phrase( "lib/searchexpression:export_button" ) ) );
-		$button->appendChild( 
-			$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
-		$button->appendChild( 
-			$self->{session}->render_hidden_field( "_cache", $cacheid ) ); 
-		$button->appendChild( 
-			$self->{session}->render_hidden_field( "_exp", $escexp, ) );
-
-		$export = $self->{session}->html_phrase( "lib/searchexpression:export_section",
-					menu => $select,
-					button => $button );
+		return $self->{session}->make_doc_fragment;
 	}
 
-	return $export;
+	my $select = $self->{session}->make_element( "select", name=>"_output" );
+	foreach my $plugin_id ( @plugins ) {
+		$plugin_id =~ m/^[^:]+::(.*)$/;
+		my $id = $1;
+		my $option = $self->{session}->make_element( "option", value=>$id );
+		my $plugin = $self->{session}->plugin( $plugin_id );
+		$option->appendChild( $plugin->render_name );
+		$select->appendChild( $option );
+	}
+	my $button = $self->{session}->make_doc_fragment;
+	$button->appendChild( $self->{session}->render_button(
+			name=>"_action_export_redir", 
+			value=>$self->{session}->phrase( "lib/searchexpression:export_button" ) ) );
+	$button->appendChild( 
+		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+	$button->appendChild( 
+		$self->{session}->render_hidden_field( "_cache", $cacheid ) ); 
+	$button->appendChild( 
+		$self->{session}->render_hidden_field( "_exp", $escexp, ) );
+
+	return $self->{session}->html_phrase( "lib/searchexpression:export_section",
+					menu => $select,
+					button => $button );
 }
 
 sub get_basic_controls_before

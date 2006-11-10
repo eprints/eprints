@@ -1009,8 +1009,8 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Error:title">Error</epp:phrase>
 
 
-    <epp:phrase id="Plugin/Screen/User/View:title">User Info.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/User/Edit:title">Edit User Info.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/View:title">Profile</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/Edit:title">Modify profile</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Edit:description">Edit your account information.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Edit:next">Next</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Edit:prev">Previous</epp:phrase>
@@ -1175,6 +1175,8 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/SaveSearch:db_error">Something went wrong with creating your saved search. Sorry.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SaveSearch:done">Successfully stored search.</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SaveSearch:not_your_search">That search has expired or was not created by you!</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Public/SavedSearch:not_public">This saved search is not available to the public.</epp:phrase>
 
     <!-- other screens -->
 

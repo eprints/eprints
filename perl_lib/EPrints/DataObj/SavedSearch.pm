@@ -574,6 +574,14 @@ sub has_owner
 	return 0;
 }
 
+sub get_url
+{
+	my( $self , $staff ) = @_;
+
+	return undef if( $self->get_value("public") ne "TRUE" );
+
+	return $self->{session}->get_repository->get_conf( "perl_url" )."/saved_search?savedsearchid=".$self->get_id;
+}
 
 =pod
 

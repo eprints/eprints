@@ -1,0 +1,32 @@
+######################################################################
+#
+#  Saved Search
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+# $session->get_database->set_debug( 1 );
+
+EPrints::ScreenProcessor->process( 
+	session => $session, 
+	url => $session->get_repository->get_conf( "perl_url" )."/ss",
+	screenid => "Public::SavedSearch",
+);
+$session->terminate;
+
+exit;
+
+
+

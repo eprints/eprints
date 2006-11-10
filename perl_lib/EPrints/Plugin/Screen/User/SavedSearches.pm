@@ -84,7 +84,7 @@ sub render_saved_search_list
 		$table->appendChild( $tr );
 		$tr->appendChild( $th );
 		$tr->appendChild( $td );
-		$th->appendChild( $saved_search->render_citation( "default" ) );
+		$th->appendChild( $saved_search->render_citation_link( "default" ) );
 		$td->appendChild( $screen->render_action_list_bar( "saved_search_actions", ['userid','savedsearchid'] ) );
 	}
 	

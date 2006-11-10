@@ -86,16 +86,16 @@ sub render_hidden_bits
 	return $chunk;
 }
 
-sub register_furniture
+
+sub render_title
 {
 	my( $self ) = @_;
 
-	$self->SUPER::register_furniture;
-
-	my $h3 = $self->{session}->make_element( "h3", style=>"margin: 0px" );
-	$h3->appendChild( $self->{processor}->{savedsearch}->render_description );
-
-	$self->{processor}->before_messages( $h3 );
+	my $f = $self->{session}->make_doc_fragment;
+	$f->appendChild( $self->html_phrase( "title" ) );
+	$f->appendChild( $self->{session}->make_text( ": " ));
+	$f->appendChild( $self->{processor}->{savedsearch}->render_description );
+	return $f;
 }
 
 

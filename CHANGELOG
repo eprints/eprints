@@ -5236,3 +5236,7 @@ PACKAGE: 2.2.99.2
  * Moved code to create a login entry in the db into session
  * Registing via email now logs you on confirm
  * Add user now only appears for people with the correct permission.
+
+2006-11-10 cjg
+ * Public saved searches (including export)
+

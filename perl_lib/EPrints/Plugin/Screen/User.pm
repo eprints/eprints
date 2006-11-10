@@ -65,8 +65,11 @@ sub register_furniture
 	my $f = $self->{session}->make_doc_fragment;
 
 	my $cuser = $self->{session}->current_user;
-	my $owner  = $self->{processor}->{user}->has_owner( $cuser );
-	my $editor = $self->{processor}->{user}->has_editor( $cuser );
+
+	if( $cuser->get_id eq $self->{processor}->{userid} )
+	{
+		return $f;
+	}
 
 	my $h2 = $self->{session}->make_element( "h2", style=>"margin: 0px" );
 	my $title = $self->{processor}->{user}->render_citation( "screen" );
