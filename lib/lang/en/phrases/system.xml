@@ -841,7 +841,7 @@ Public CGI Scripts
     <epp:phrase id="cgi/confirm:set_email"><p>Your email address has been changed to <strong><pin name="newemail"/></strong></p></epp:phrase>
     <epp:phrase id="cgi/confirm:set_password"><p>Your password has been changed to the new one you requested.</p></epp:phrase>
     <epp:phrase id="cgi/confirm:username"><p>Your username on this system is: <strong><epc:pin name="username"/></strong></p></epp:phrase>
-    <epp:phrase id="cgi/confirm:go_login"><p>You may now <a href="{$config{userhome}}">login</a> and start using the registered user options.</p></epp:phrase>
+    <epp:phrase id="cgi/confirm:go_login"><p><a href="{$config{userhome}}">Continue</a></p></epp:phrase>
 
 <!--********************************************************************** 
 Command Line Scripts 

@@ -17,12 +17,20 @@ sub new
 
 	$self->{appears} = [
 		{ 
+			action=> "create",
 			place => "admin_actions", 	
 			position => 300, 
 		},
 	];
 
 	return $self;
+}
+
+sub can_be_viewed
+{
+	my ( $self ) = @_;
+
+	return $self->allow( "create_user" );
 }
 
 sub allow_cancel

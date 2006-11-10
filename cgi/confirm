@@ -20,7 +20,6 @@ my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 
 my( $title, $page ) = make_confirm_page( $session );
-$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 
 $session->build_page( $title, $page, "confirm" );
 $session->send_page();
@@ -102,6 +101,7 @@ sub make_confirm_page
 		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET password=newpassword, newpassword=NULL, pin=NULL where userid=".$userid; 
 		$session->get_database->do( $sql );
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
+		$session->login( $user );
 	}
 
 	$page->appendChild( $session->html_phrase( "cgi/confirm:username",

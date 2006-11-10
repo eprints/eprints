@@ -26,19 +26,12 @@ sub handler
 		if( &{$valid_login_handler}( $session, $username, $password ) )
 		{
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
-			my @a = ();
-			for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-			my $code = join( "", @a );
-			my $ip = $ENV{REMOTE_ADDR};
-			my $userid = $user->get_id;
-			my $sql = "INSERT INTO login_tickets VALUES( '".EPrints::Database::prep_value($code)."', $userid, '".EPrints::Database::prep_value($ip)."', ".(time+60*60*24*7)." )";
-			my $sth = $session->get_database->do( $sql );
+			$session->login( $user );
+
+			my $params = $session->param("params");
 
 			my $c = $r->connection;
-			$c->notes->set(userid=>$userid);
 
-			$c->notes->set(cookie_code=>$code);
-			my $params = $session->param("params");
 			$c->notes->set( params=>$params );
 
 			return DECLINED;

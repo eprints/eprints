@@ -3274,6 +3274,25 @@ sub allow_anybody
 
 
 
+sub login
+{
+	my( $self,$user ) = @_;
+
+	my @a = ();
+	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+	my $code = join( "", @a );
+	my $ip = $ENV{REMOTE_ADDR};
+	my $userid = $user->get_id;
+	my $sql = "INSERT INTO login_tickets VALUES( '".EPrints::Database::prep_value($code)."', $userid, '".EPrints::Database::prep_value($ip)."', ".(time+60*60*24*7)." )";
+	my $sth = $self->{database}->do( $sql );
+
+	my $c = $self->{request}->connection;
+	$c->notes->set(userid=>$userid);
+	$c->notes->set(cookie_code=>$code);
+}
+
+
+
 
 
 

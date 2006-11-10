@@ -5232,3 +5232,7 @@ PACKAGE: 2.2.99.2
  * Added css to the saved search list
  * Cleaned up the search button in the template
  
+2006-11-10 cjg
+ * Moved code to create a login entry in the db into session
+ * Registing via email now logs you on confirm
+ * Add user now only appears for people with the correct permission.
