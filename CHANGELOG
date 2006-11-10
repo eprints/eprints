@@ -5211,3 +5211,13 @@ PACKAGE: 2.2.99.2
 
 2006-11-10 cjg
  * Added ordering for history search
+
+2006-11-10 cjg
+ * Changed screen layout.
+ * Heading now centered
+ * User toolbar now at top of screen above the h1.
+ * Fixed some bugs introduced with earlier search changes.
+ * Search forms now do submit when you hit return
+ * Remved field_required_in_type
+ * Fixed bug in error messages from user functions 
+ * Fixed a bug in javascript toggle.

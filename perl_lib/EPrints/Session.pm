@@ -1209,7 +1209,7 @@ sub render_option_list
 			my $div = $self->make_element( "div" );
 			my $label = $self->make_element( "label" );
 			$div->appendChild( $label );
-			my $box = $self->make_element( "input", type=>"checkbox", name=>$params{name}, value=>$pair->[0] );
+			my $box = $self->render_input_field( type=>"checkbox", name=>$params{name}, value=>$pair->[0], class=>"ep_form_text" );
 			$label->appendChild( $box );
 			$label->appendChild( $self->make_text( " ".$pair->[1] ) );
 			if( $defaults{$pair->[0]} )
@@ -1312,8 +1312,15 @@ sub render_input_field
 	my( $self, %opts ) = @_;
 
 	$opts{'accept-charset'} = "utf-8" unless defined $opts{'accept-charset'};
-	$opts{'onKeyPress'} = "return EPJS_block_enter( event )" unless defined $opts{'onKeyPress'};
 	return $self->make_element( "input",%opts );
+}
+
+sub render_noenter_input_field
+{
+	my( $self, %opts ) = @_;
+
+	$opts{'onKeyPress'} = "return EPJS_block_enter( event )" unless defined $opts{'onKeyPress'};
+	return $self->render_input_field( %opts );
 }
 
 
@@ -1341,7 +1348,7 @@ sub render_upload_field
 #		type => "file" ) );
 #	return $div;
 
-	return $self->render_input_field(
+	return $self->render_noenter_input_field(
 		name => $name,
 		type => "file" );
 
@@ -1887,11 +1894,6 @@ sub _render_input_form_field
 	}
 
 	my $req = $field->get_property( "required" );
-	if( defined $dataset && defined $type )
-	{
-		# deprecated!
-		$req = $dataset->field_required_in_type( $field, $type );
-	}
 
 	if( $show_names )
 	{
@@ -2207,7 +2209,7 @@ template_id=>"The template to use instead of default."
 sub build_page
 {
 	my( $self, $title, $mainbit, $page_id, $links, $template_id ) = @_;
-	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, $page_id, $template_id );
+	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template_id=>$template_id );
 }
 
 

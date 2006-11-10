@@ -24,43 +24,40 @@
 
   <table class="ep_tm_searchbar" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
-      <td align="left"><h1 class="ep_tm_pagetitle"><epc:pin ref="title"/></h1></td>
-      <td align="right">
-        <table border="0" cellpadding="0" cellspacing="0">
-          <tr>
-            <td align="right">
-              <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
-                <img alt="Search" src="/images/search.gif"/> Search
-                <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="q"/>
-                <input class="ep_tm_searchbarbutton" value="Go" type="submit" name="_action_search"/>
-                <input type="hidden" name="_order" value="bytitle"/>
-                <input type="hidden" name="basic_srchtype" value="ALL"/>
-                <input type="hidden" name="_satisfyall" value="ALL"/>
-              </form>
-            </td>
-          </tr>
-          <tr>
-            <td align="right"><div style="border-top: 1px solid #888;padding-top:4px;margin-top:4px"><epc:pin ref="login_status"/></div></td>
-          </tr>
-        </table>
+      <td align="left">
+        <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
+          <img alt="Search" src="/images/search.gif"/> Search
+          <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="q"/>
+          <input class="ep_tm_searchbarbutton" value="Go" type="submit" name="_action_search"/>
+          <input type="hidden" name="_order" value="bytitle"/>
+          <input type="hidden" name="basic_srchtype" value="ALL"/>
+          <input type="hidden" name="_satisfyall" value="ALL"/>
+        </form>
       </td>
+      <td align="right"><epc:pin ref="login_status"/></td>
     </tr>
   </table>
+</div>
 
-    </div>
 
-    <div class="ep_tm_main">
-      <div align="center"><table width="720" class="ep_main"><tr><td align="left">
-        <epc:pin ref="page"/>
-      </td></tr></table></div>
-    </div>
-    <div class="ep_tm_footer ep_noprint">
+<div align="center">
+  <epc:pin ref="toolbar" />
+  <table width="800" class="ep_tm_main"><tr><td align="left">
+    <h1 class="ep_tm_pagetitle"><epc:pin ref="title"/></h1>
+    <epc:pin ref="page"/>
+  </td></tr></table>
+</div>
+
+
+<div class="ep_tm_footer ep_noprint">
   <epc:phrase ref="ruler" />
   <hr class="ep_tm_last"/>
-<div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img src="/images/eprintslogo.gif" border="0"/></a></div>
-<div style="font-size: 80%;">
-<div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="/eprints/">More information and software credits</a>.</div>
+  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img src="/images/eprintslogo.gif" border="0"/></a></div>
+  <div style="font-size: 80%;">
+    <div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="/eprints/">More information and software credits</a>.</div>
+  </div>
 </div>
-    </div>
+
+
   </body>
 </html>

@@ -222,8 +222,11 @@ END
 
 	if( $self->{fieldnames} eq "editpermfields" )
 	{
-		$self->{fieldnames} = $self->{session}->get_repository->get_conf(
-			"editor_limit_fields" );
+		$self->{search_fields}= [];
+		foreach( @{ $self->{session}->get_repository->get_conf( "editor_limit_fields" )} )
+		{
+			push @{$self->{search_fields}}, { meta_fields=>[$_] };	
+		}
 	}
 
 	foreach my $fielddata (@{$self->{search_fields}})

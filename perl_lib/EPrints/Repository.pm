@@ -928,6 +928,7 @@ sub call
 	if( ref $cmd eq "ARRAY" )
 	{
 		$fn = $self->get_conf( @$cmd );
+		$cmd = join( "->",@{$cmd} );
 	}
 	else
 	{

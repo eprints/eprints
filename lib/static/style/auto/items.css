@@ -20,22 +20,22 @@
 td.ep_columns_cell_inbox {
 	background-color: #ffc;
 	border-left: 1px dashed #ccc;
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #888;
 }
 td.ep_columns_cell_buffer {
 	background-color: #dde;
 	border-left: 1px dashed #ccc;
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #888;
 }
 td.ep_columns_cell_archive {
 	background-color: #cfc;
 	border-left: 1px dashed #ccc;
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #888;
 }
 td.ep_columns_cell_deletion {
 	background-color: #ccc;
 	border-left: 1px dashed #ccc;
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #888;
 }
 td.ep_columns_cell_first {
 	border-left: none;

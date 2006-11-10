@@ -294,8 +294,8 @@ sub mkpage_editsubject
 #	$form = $session->render_form( "post" );
 #	$form->appendChild( $session->render_hidden_field( "subjectid", $subid ) );
 #	$page->appendChild( $form );
-#	#$form->appendChild( $newidfield->render_input_field( $session ) );
-#	$form->appendChild( $newnamefield->render_input_field( $session ) );
+#	#$form->appendChild( $newidfield->render_noenter_input_field( $session ) );
+#	$form->appendChild( $newnamefield->render_noenter_input_field( $session ) );
 #	$form->appendChild( $session->render_action_buttons( 
 #		"add" => $session->phrase( "cgi/users/edit_subject:action_add" ) ) );
 #	$page->appendChild( $session->render_ruler );

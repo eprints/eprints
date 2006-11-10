@@ -14,13 +14,14 @@ body {
 }
 
 h1 {
-	margin: 0px;
+	margin: 0px 0px 10px 0px;
         font: bold 130% Arial,Sans-serif;
+	text-align: center;
         color: #606060;
 }
 
 h2 {
-        font: bold 120% Arial,Sans-serif;
+        font: bold 110% Arial,Sans-serif;
         color: #606060;
 }
 

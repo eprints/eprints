@@ -103,7 +103,7 @@ sub get_basic_input_elements
 		
 	my $frag = $session->make_doc_fragment;
 
-	$frag->appendChild( $session->render_input_field(
+	$frag->appendChild( $session->render_noenter_input_field(
 		class => "ep_form_text",
 		name => $fromid,
 		id => $fromid,
@@ -116,7 +116,7 @@ sub get_basic_input_elements
 		"lib/metafield:to" ) );
 	$frag->appendChild( $session->make_text(" ") );
 
-	$frag->appendChild( $session->render_input_field(
+	$frag->appendChild( $session->render_noenter_input_field(
 		class => "ep_form_text",
 		name => $toid,
 		id => $toid,

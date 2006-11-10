@@ -35,7 +35,7 @@ sub render_links
 	my( $self ) = @_;
 
 	my $style = $self->{session}->make_element( "style", type=>"text/css" );
-	$style->appendChild( $self->{session}->make_text( ".ep_main { width: 100%; }" ) );
+	$style->appendChild( $self->{session}->make_text( ".ep_tm_main { width: 90%; }" ) );
 
 	return $style;
 }
@@ -92,9 +92,9 @@ sub render
 			return $tr;
 		},
 	);
-	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
-	$h2->appendChild( $self->html_phrase( "list_desc" ) );
-	$page->appendChild( $h2 );
+#	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
+#	$h2->appendChild( $self->html_phrase( "list_desc" ) );
+#	$page->appendChild( $h2 );
 	$page->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_review", $list, %opts ) );
 
 	return $page;

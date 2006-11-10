@@ -55,21 +55,17 @@ sub register_furniture
 {
 	my( $self ) = @_;
 
-	my $f = $self->{session}->make_doc_fragment;
+	return $self->{session}->make_doc_fragment;
+}
 
-	my $div = $self->{session}->make_element( "div", style=>"
-		margin-bottom: 8px; 
-		text-align: center;
-        	background-image: url(/style/images/toolbox.png);
-        	border-top: solid 1px #d8dbef;
-        	border-bottom: solid 1px #d8dbef;
-		padding-top:4px;
-		padding-bottom:4px;
- " );
+sub render_toolbar
+{
+	my( $self ) = @_;
+
+	my $div = $self->{session}->make_element( "div", class=>"ep_toolbar" );
 
 	my @core = $self->list_items( "key_tools" );
 	my @other = $self->list_items( "other_tools" );
-
 
 	my $first = 1;
 	foreach my $tool ( @core )
@@ -98,7 +94,7 @@ sub register_furniture
 	elsif( scalar @other > 1 )
 	{
 		$div->appendChild( $self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );	
-		my $more = $self->{session}->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onClick => "EPJS_toggle('ep_user_menu_more',true,'inline');EPJS_toggle('ep_user_menu_extra',false,'inline');return false", );
+		my $more = $self->{session}->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onClick => "EPJS_toggle_type('ep_user_menu_more',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
 		$more->appendChild( $self->{session}->html_phrase( "Plugin/Screen:more" ) );	
 		$div->appendChild( $more );
 
@@ -124,9 +120,7 @@ sub register_furniture
 	
 	}
 		
-	$f->appendChild( $div );
-
-	$self->{processor}->before_messages( $f );
+	return $div;
 }
 
 sub render_hidden_bits
@@ -444,7 +438,10 @@ sub render_action_list
 		$tr->appendChild( $td2 );
 
 		$td2->appendChild( $session->make_text( " - " ) );
-		$td2->appendChild( $self->get_description( $params ) );
+
+		my $td3 = $session->make_element( "td" );
+		$tr->appendChild( $td3 );
+		$td3->appendChild( $self->get_description( $params ) );
 	}
 
 	return $table;

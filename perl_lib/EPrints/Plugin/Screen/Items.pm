@@ -50,7 +50,7 @@ sub render_links
 	my( $self ) = @_;
 
 	my $style = $self->{session}->make_element( "style", type=>"text/css" );
-	$style->appendChild( $self->{session}->make_text( ".ep_main { width: 100%; }" ) );
+	$style->appendChild( $self->{session}->make_text( ".ep_tm_main { width: 90%; }" ) );
 
 	return $style;
 }
@@ -63,7 +63,7 @@ sub render
 
 	my $user = $self->{session}->current_user;
 
-	$chunk->appendChild( $self->render_action_list( "item_tools" ) );
+	$chunk->appendChild( $self->render_action_list_bar( "item_tools" ) );
 
 	my %filters = $self->get_filters;
 	my @l = ();
@@ -148,9 +148,9 @@ sub render
 			return $tr;
 		},
 	);
-	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
-	$h2->appendChild( $self->html_phrase( "list_desc" ) );
-	$chunk->appendChild( $h2 );
+#	my $h2 = $self->{session}->make_element( "h2",class=>"ep_search_desc" );
+##	$h2->appendChild( $self->html_phrase( "list_desc" ) );
+#	$chunk->appendChild( $h2 );
 	$chunk->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_buffer", $list, %opts ) );
 
 	# TODO: alt phrase for empty list e.g. "cgi/users/home:no_pending"

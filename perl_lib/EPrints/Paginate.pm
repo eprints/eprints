@@ -305,10 +305,6 @@ sub paginate_list
 			$pins{controls}->appendChild( $cspan );
 		}
 	}
-	else
-	{
-		$pins{controls} = $session->render_nbsp;
-	}
 
 	# Container for results (e.g. table, div..)
 	if( defined $opts{container} )
@@ -341,16 +337,6 @@ sub paginate_list
 		}
 	}
 	
-	if( $n_results > 0 )
-	{
-		# Only print a second set of controls if there are matches.
-		$pins{controls_if_matches} = EPrints::XML::clone_node( $pins{controls}, 1 );
-	}
-	else
-	{
-		$pins{controls_if_matches} = $session->make_doc_fragment;
-	}
-
 	# Render a page of results
 	my $custom_pins = $opts{pins};
 	for( keys %$custom_pins )
@@ -381,7 +367,7 @@ sub paginate_list
 	{
 		$page->appendChild( $pins{below_results} );
 	}	
-	if( defined $pins{controls} )
+	if( $n_results > 0 && defined $pins{controls} )
 	{
 		my $div = $session->make_element( "div", class=>"ep_search_controls_bottom" );
 		$div->appendChild( $session->clone_for_me( $pins{controls}, 1 ) );

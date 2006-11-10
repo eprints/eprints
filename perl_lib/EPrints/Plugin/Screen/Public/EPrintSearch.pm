@@ -11,6 +11,14 @@ sub register_furniture
 	return $self->{session}->make_doc_fragment;
 }
 
+sub render_toolbar
+{
+	my( $self ) = @_;
+
+	return $self->{session}->make_doc_fragment;
+}
+
+
 sub can_be_viewed
 {
 	my( $self ) = @_;

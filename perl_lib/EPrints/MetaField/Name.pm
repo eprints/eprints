@@ -116,7 +116,7 @@ sub get_basic_input_elements
 	foreach( $self->get_input_bits( $session ) )
 	{
 		my $size = $self->{input_name_cols}->{$_};
-		push @{$parts}, {el=>$session->render_input_field(
+		push @{$parts}, {el=>$session->render_noenter_input_field(
 			class => "ep_form_text",
 			name => $basename."_".$_,
 			id => $basename."_".$_,

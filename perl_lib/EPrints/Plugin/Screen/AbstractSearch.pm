@@ -186,7 +186,8 @@ sub from
 	$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{order_methods}->{$order_opt};
 	if( !defined $self->{processor}->{search}->{custom_order} )
 	{
-		$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{default_order};
+		$self->{processor}->{search}->{custom_order} = 
+			 $self->{processor}->{sconf}->{order_methods}->{$self->{processor}->{sconf}->{default_order}};
 	}
 
 	# do actions
@@ -519,25 +520,23 @@ sub render_order_field
 {
 	my( $self ) = @_;
 
-	my $order = $self->{processor}->{search}->{order};
+	my $raworder = $self->{processor}->{search}->{order};
 
-	if( !defined $order )
-	{
-		$order = $self->{processor}->{sconf}->{default_order};
-	}
+	my $order = $self->{processor}->{sconf}->{default_order};
 
 	my $methods = $self->{processor}->{sconf}->{order_methods};
 
 	my %labels = ();
 	foreach( keys %$methods )
 	{
-                $labels{$_} = $self->{session}->phrase(
+		$order = $_ if( $methods->{$_} eq $raworder );
+                $labels{$methods->{$_}} = $self->{session}->phrase(
                 	"ordername_".$self->{processor}->{search}->{dataset}->confid() . "_" . $_ );
         }
 
 	my $menu = $self->{session}->render_option_list(
 		name=>"_order",
-		values=>[keys %{$methods}],
+		values=>[values %{$methods}],
 		default=>$order,
 		labels=>\%labels );
 

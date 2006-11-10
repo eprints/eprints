@@ -56,10 +56,6 @@ sub make_page
 	foreach my $fieldid ( @{$extrafields} )
 	{
 		$f->{$fieldid} = $user_ds->get_field( $fieldid )->clone();
-		if( $user_ds->field_required_in_type( $f->{$fieldid}, $default_type ))
-		{
-			$f->{$fieldid}->set_property( "required", 1 );
-		}
 		push @{$fieldlist}, $f->{$fieldid};
 	}
 

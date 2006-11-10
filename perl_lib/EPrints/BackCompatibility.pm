@@ -199,22 +199,6 @@ $INC{"EPrints/Auth.pm"} = 1;
 
 package EPrints::DataSet;
 
-sub field_required_in_type
-{
-	my( $self, $field, $type ) = @_;
-
-	EPrints::deprecated;
-
-	if( $field->get_property( "required" ) eq "yes" )
-	{
-		return 1;
-	}
-
-	$self->load_workflows();
-
-	return $self->{types}->{$type}->{req_field_map}->{$field->get_name};	
-}
-
 sub get_page_fields
 {
 	my( $self, $type, $page, $staff ) = @_;

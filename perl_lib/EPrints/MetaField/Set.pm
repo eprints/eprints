@@ -116,13 +116,6 @@ sub render_input_field_actual
 
 	my $required = $self->get_property( "required" );
 
-	# this should not be needed anymore.
-
-#	if( defined $dataset && defined $type )
-#	{
-#		$required = $dataset->field_required_in_type( $self, $type );
-#	}
-
 	my %settings;
 	my $default = $value;
 	$default = [ $value ] unless( $self->get_property( "multiple" ) );
@@ -251,7 +244,7 @@ sub render_set_input
 				$checked = "checked";
 			}
 		}
-		$label1->appendChild( $session->render_input_field(
+		$label1->appendChild( $session->render_noenter_input_field(
 			type => $type,
 			name => $basename,
 			id => $basename."_".$opt,

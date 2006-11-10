@@ -43,7 +43,7 @@ sub render_links
 	if( $self->{processor}->{search_subscreen} eq "results" )
 	{
 		my $style = $self->{session}->make_element( "style", type=>"text/css" );
-		$style->appendChild( $self->{session}->make_text( ".ep_main { width: 100%; }" ) );
+		$style->appendChild( $self->{session}->make_text( ".ep_tm_main { width: 90%; }" ) );
 		$f->appendChild( $style );
 	}
 

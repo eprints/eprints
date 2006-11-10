@@ -88,13 +88,13 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 	{
 		# render as radio buttons
 
-		my $true = $session->render_input_field(
+		my $true = $session->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
 			name => $basename,
 			value => "TRUE" );
-		my $false = $session->render_input_field(
+		my $false = $session->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value ne 
 					"TRUE" ? "checked" : undef ),
@@ -107,7 +107,7 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 	}
 			
 	# render as checkbox (ugly)
-	return [[{ el=>$session->render_input_field(
+	return [[{ el=>$session->render_noenter_input_field(
 				type => "checkbox",
 				checked=>( defined $value && $value eq 
 						"TRUE" ? "checked" : undef ),
