@@ -74,4 +74,9 @@
 	border-bottom: dashed #bbf 1px;
 }
 
+.ep_paginate_list
+{
+	margin: auto;
+	display: table;
+}
 

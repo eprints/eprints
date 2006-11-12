@@ -46,7 +46,7 @@ database and website.
 #     A hash containing EPrints::Language objects for this repository,
 #     keyed by iso lang id.
 #
-#  $self->{cstyles}
+#  $self->{citation_style}
 #     A cache of all the DOM blocks describing citation styles. Key is 
 #     a lang id. Value is another hash where key is citation type and
 #     value is the actual DOM tree.
@@ -327,18 +327,15 @@ sub _load_citation_specs
 {
 	my( $self ) = @_;
 
-	$self->{cstyles} = {};
-	$self->_load_citation_dir( 
-		$self->get_conf( "config_path" )."/citations",
-		$self->{cstyles} );
-	$self->_load_citation_dir( 
-		$self->get_conf( "lib_path" )."/citations",
-		$self->{cstyles} );
+	$self->{citation_style} = {};
+	$self->{citation_type} = {};
+	$self->_load_citation_dir( $self->get_conf( "config_path" )."/citations" );
+	$self->_load_citation_dir( $self->get_conf( "lib_path" )."/citations" );
 }
 
 sub _load_citation_dir
 {
-	my( $self, $dir, $data ) = @_;
+	my( $self, $dir ) = @_;
 
 	my $dh;
 	opendir( $dh, $dir );
@@ -362,30 +359,36 @@ sub _load_citation_dir
 			push @files,$fn;
 		}
 		close $dh;
-		if( !defined $data->{$dsid} )
+		if( !defined $self->{citation_style}->{$dsid} )
 		{
-			$data->{$dsid} = {};
+			$self->{citation_style}->{$dsid} = {};
+		}
+		if( !defined $self->{citation_type}->{$dsid} )
+		{
+			$self->{citation_type}->{$dsid} = {};
 		}
 		foreach my $file ( @files )
 		{
-			next if defined ( $data->{$dsid}->{$file} );
-			$data->{$dsid}->{$file} = 
-				$self->_parse_citation_file( "$dir/$dsid/$file.xml" );
+			$self->_load_citation_file( 
+				"$dir/$dsid/$file.xml",
+				$dsid,
+				$file,
+			);
 		}
 	}
 
 	return 1;
 }
 
-sub _parse_citation_file
+sub _load_citation_file
 {
-	my( $self, $file ) = @_;
+	my( $self, $file, $dsid, $fileid ) = @_;
 
 	my $doc = $self->parse_xml( $file , 1 );
 	if( !defined $doc )
 	{
 		$self->log( "Error parsing $file\n" );
-		return undef;
+		return;
 	}
 
 	my $citation = ($doc->getElementsByTagName( "citation" ))[0];
@@ -393,8 +396,11 @@ sub _parse_citation_file
 	{
 		$self->log(  "Missing <citations> tag in $file\n" );
 		EPrints::XML::dispose( $doc );
-		return undef;
+		return;
 	}
+	my $type = $citation->getAttribute( "type" );
+	$type = "default" unless defined $type;
+	$self->{citation_type}->{$dsid}->{$fileid} = $type;
 
 	# is this cloning really needed?
 	my( $frag ) = $self->{xmldoc}->createDocumentFragment();
@@ -409,13 +415,13 @@ sub _parse_citation_file
 
 	EPrints::XML::dispose( $doc );
 
-	return $frag;
+	$self->{citation_style}->{$dsid}->{$fileid} = $frag;
 }
 
 ######################################################################
 # =pod
 # 
-# =item $citation = $repository->get_citation_spec( $type, [$style] )
+# =item $citation = $repository->get_citation_spec( $dsid, [$style] )
 # 
 # Returns the DOM citation style for the given type of object. This
 # is the origional and should be cloned before you alter it.
@@ -423,25 +429,40 @@ sub _parse_citation_file
 # If $style is specified then returns a certain style if available, 
 # otherwise the default.
 #
-# type = user,eprint etc.
+# dsid = user,eprint etc.
 # 
 # =cut
 ######################################################################
 
 sub get_citation_spec
 {
-	my( $self, $type, $style  ) = @_;
+	my( $self, $dsid, $style  ) = @_;
 
 	$style = "default" unless defined $style;
 
-	my $spec = $self->{cstyles}->{$type}->{$style};
+	my $spec = $self->{citation_style}->{$dsid}->{$style};
 	if( !defined $spec )
 	{
-		$self->log( "Could not find citation style $type.$style. Using default instead." );
-		$spec = $self->{cstyles}->{$type}->{default};
+		$self->log( "Could not find citation style $dsid.$style. Using default instead." );
+		$spec = $self->{citation_style}->{$dsid}->{default};
 	}
 	
 	return $spec;
+}
+
+sub get_citation_type
+{
+	my( $self, $dsid, $style  ) = @_;
+
+	$style = "default" unless defined $style;
+
+	my $type = $self->{citation_type}->{$dsid}->{$style};
+	if( !defined $type )
+	{
+		return "default";
+	}
+	
+	return $type;
 }
 
 ######################################################################

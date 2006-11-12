@@ -34,9 +34,9 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $page = $self->{session}->make_doc_fragment();
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 
-	$page->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete", #cjg lang
+	$div->appendChild( $self->{session}->html_phrase("lib/submissionform:sure_delete", #cjg lang
 		title=>$self->{processor}->{eprint}->render_description() ) );
 
 	my %buttons = (
@@ -51,9 +51,9 @@ sub render
 	$form->appendChild( 
 		$self->{session}->render_action_buttons( 
 			%buttons ) );
-	$page->appendChild( $form );
+	$div->appendChild( $form );
 
-	return( $page );
+	return( $div );
 }	
 
 sub allow_remove

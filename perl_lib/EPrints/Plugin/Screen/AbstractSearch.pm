@@ -365,6 +365,23 @@ sub paginate_opts
 	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
 	$export_div->appendChild( $self->render_export_select );
 
+	my $type = $self->{session}->get_citation_type( 
+			$self->{processor}->{results}->get_dataset, 
+			$self->get_citation_id );
+	my $container;
+	if( $type eq "table_row" )
+	{
+		$container = $self->{session}->make_element( 
+				"table", 
+				class=>"ep_paginate_list" );
+	}
+	else
+	{
+		$container = $self->{session}->make_element( 
+				"div", 
+				class=>"ep_paginate_list" );
+	}
+
 	return (
 		pins => \%bits,
 		controls_before => \@controls_before,
@@ -378,6 +395,7 @@ sub paginate_opts
 		render_result => sub { return $self->render_result_row( @_ ); },
 		render_result_params => $self,
 		page_size => $self->{processor}->{sconf}->{page_size},
+		container => $container,
 	);
 }
 
@@ -396,7 +414,12 @@ sub render_results
 
 	my $page = $self->{session}->render_form( "GET" );
 	$page->appendChild( $self->render_results_intro );
-	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, "_search", $self->{processor}->{results}, %opts ) );
+	$page->appendChild( 
+		EPrints::Paginate->paginate_list( 
+			$self->{session}, 
+			"_search", 
+			$self->{processor}->{results}, 
+			%opts ) );
 
 	return $page;
 }
@@ -405,11 +428,26 @@ sub render_result_row
 {
 	my( $self, $session, $result, $searchexp, $n ) = @_;
 
+	my $type = $session->get_citation_type( 
+			$self->{processor}->{results}->get_dataset, 
+			$self->get_citation_id );
+
+	if( $type eq "table_row" )
+	{
+		return $result->render_citation_link;
+	}
+
 	my $div = $session->make_element( "div", class=>"ep_search_result" );
 	$div->appendChild( $result->render_citation_link( "default" ) );
 	return $div;
 }
 
+sub get_citation_id 
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{sconf}->{citation} || "default";
+}
 
 sub render_search_form
 {

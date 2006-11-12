@@ -100,8 +100,6 @@ sub paginate_opts
 
 	my %opts = $self->SUPER::paginate_opts;
 	
-	$opts{container} = $self->{session}->make_element( "table" );
-	
 	return %opts;
 }
 

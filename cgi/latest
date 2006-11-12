@@ -29,20 +29,26 @@ my $seensome = 0;
 for( my $d=0; $d<7; ++$d )
 {
 	my $t = time-60*60*24*$d;
-	my $searchexp = new EPrints::Search(
+	my $search = new EPrints::Search(
 		filters => [
-			{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EX', describe=>0 },
-		],
+			{ 
+				meta_fields=>[ 'metadata_visibility' ], 
+				value=>'show', 
+				match=>'EX', 
+				describe=>0,
+			},
+		],	
+		custom_order => "-datestamp",
 		session => $session,
-		dataset => $ds );
-	
+		dataset => $ds,
+	);
 
-	my $date = EPrints::Utils::get_iso_timestamp( $t );
-	$searchexp->add_field( $ds->get_field( "datestamp" ), $date );
+	my $date = EPrints::Utils::get_iso_date( $t );
+	$search->add_field( $ds->get_field( "datestamp" ), $date );
 		
-	$searchexp->perform_search();
+	my $list = $search->perform_search();
 
-	if( $searchexp->count() )
+	if( $list->count() )
 	{
 		$seensome = 1;
 
@@ -64,18 +70,45 @@ for( my $d=0; $d<7; ++$d )
 		my $h2= $session->make_element( "h2" );
 		$h2->appendChild( $day );
 		$page->appendChild( $h2 );
-	
-		$searchexp->map( sub{ 
+
+		my $type = $session->get_citation_type( $ds, $citation );
+		my $container;
+		if( $type eq "table_row" )
+		{
+			$container = $session->make_element( 
+					"table", 
+					class=>"ep_latest_list" );
+		}
+		else
+		{
+			$container = $session->make_element( 
+					"div", 
+					class=>"ep_latest_list" );
+		}
+		$page->appendChild( $container );
+		my $n = 1;
+		$search->map( sub{ 
 			my( $session, $dataset, $item, $info ) = @_;
-		
-			my $p = $session->make_element( "p" );
-			$p->appendChild( $item->render_citation_link( $citation ) );
-			$page->appendChild( $p );
+			my $row = $item->render_citation_link( 
+				$citation,
+				n => [$n++, "INTEGER"] );
+			if( $type eq "table_row" )
+			{
+				$container->appendChild( $row );
+			}
+			else
+			{
+				my $div = $session->make_element( 
+					"div", 
+					class=>"ep_latest_result" );
+				$div->appendChild( $row );
+				$container->appendChild( $div );
+			}
 		} );
 	
 		$page->appendChild( $session->render_ruler() );
 	}
-	$searchexp->dispose();
+	$search->dispose();
 }
 unless( $seensome )
 {

@@ -5258,4 +5258,12 @@ PACKAGE: 2.2.99.2
     the screen itself that was linked.
  * Removed dupicated sub def. in SavedSearch.
  * Fixed bug in reset_password
-  
+
+2006-11-13 cjg
+ * Fixed typo in Session
+ * Added flag to citations to indicate if they should be placed in a table
+    or not. Used this in paginate and latest.
+ * Added ep_block to EPrint::Remove and EPrint::View::Owner
+ * Removed RSS code from latest_tool.
+ * Fixed example code in document_upload.
+ 

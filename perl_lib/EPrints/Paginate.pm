@@ -306,6 +306,7 @@ sub paginate_list
 		}
 	}
 
+	my $type;
 	# Container for results (e.g. table, div..)
 	if( defined $opts{container} )
 	{
@@ -313,7 +314,19 @@ sub paginate_list
 	}
 	else
 	{
-		$pins{results} = $session->make_doc_fragment;
+		$type = $session->get_citation_type( $list->get_dataset );
+		if( $type eq "table_row" )
+		{
+			$pins{results} = $session->make_element( 
+					"table", 
+					class=>"ep_paginate_list" );
+		}
+		else
+		{
+			$pins{results} = $session->make_element( 
+					"div", 
+					class=>"ep_paginate_list" );
+		}
 	}
 
 	my $n = $offset;
@@ -325,14 +338,25 @@ sub paginate_list
 		{
 			# Custom rendering routine specified
 			my $params = $opts{render_result_params};
-			my $custom = &{ $opts{render_result} }( $session, $result, $params, $n );
+			my $custom = &{ $opts{render_result} }( 
+						$session, 
+						$result, 
+						$params, 
+						$n );
 			$pins{results}->appendChild( $custom );
+		}
+		elsif( $type eq "table_row" )
+		{
+			$pins{results}->appendChild( 
+				$result->render_citation_link() ); 
 		}
 		else
 		{
-			# Default: render citation
-			my $div = $session->make_element( "div", class=>"ep_search_result" );
-			$div->appendChild( $result->render_citation_link() ); 
+			my $div = $session->make_element( 
+				"div", 
+				class=>"ep_paginate_result" );
+			$div->appendChild( 
+				$result->render_citation_link() ); 
 			$pins{results}->appendChild( $div );
 		}
 	}

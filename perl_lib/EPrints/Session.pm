@@ -1952,7 +1952,7 @@ sub render_toolbox
 
 	my $div = $self->make_element( "div", class=>"ep_toolbox" );
 
-	if( definde $title )
+	if( defined $title )
 	{
 		my $title_div = $self->make_element( "div", class=>"ep_toolbox_title" );
 		$div->appendChild( $title_div );
@@ -3170,20 +3170,31 @@ sub get_citation_spec
 {
 	my( $self, $dataset, $ctype ) = @_;
 
-	my $citation_id = $dataset->confid();
+	my $ds_id = $dataset->confid();
 
 	my $citespec = $self->{repository}->get_citation_spec( 
-					$citation_id,
-					$ctype );
+				$ds_id,
+				$ctype );
 
 	if( !defined $citespec )
 	{
-		return $self->make_text( "Error: Unknown Citation Style \"$citation_id\"" );
+		return $self->make_text( "Error: Unknown Citation Style \"$ds_id.$ctype\"" );
 	}
 	
 	my $r = $self->clone_for_me( $citespec, 1 );
 
 	return $r;
+}
+
+sub get_citation_type
+{
+	my( $self, $dataset, $ctype ) = @_;
+
+	my $ds_id = $dataset->confid();
+
+	return $self->{repository}->get_citation_type( 
+				$ds_id,
+				$ctype );
 }
 
 

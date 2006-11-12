@@ -93,6 +93,7 @@ sub render_result_row
 			n => [$n,"INTEGER"] );
 }
 
+
 sub render_results_intro
 {
 	my( $self ) = @_;
@@ -102,15 +103,5 @@ sub render_results_intro
 	return $h2;
 }
 
-sub paginate_opts
-{
-	my( $self ) = @_;
-
-	my %opts = $self->SUPER::paginate_opts;
-	
-	$opts{container} = $self->{session}->make_element( "table" );
-	
-	return %opts;
-}
 
 

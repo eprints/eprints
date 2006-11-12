@@ -27,7 +27,7 @@ $c->{required_formats} =
 # for those of type book where a document is optional.
 #
 # $c->{required_formats} = sub {
-# 	my( $session, $eprint ) = @_;
+# 	my( $eprint ) = @_;
 # 
 # 	if( $eprint->get_value( 'type' ) eq "book" )
 # 	{

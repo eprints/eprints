@@ -34,9 +34,9 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $page = $self->{session}->make_doc_fragment();
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 
-	$page->appendChild( $self->html_phrase("sure_delete", 
+	$div->appendChild( $self->html_phrase("sure_delete", 
 		title=>$self->{processor}->{savedsearch}->render_description() ) );
 
 	my %buttons = (
@@ -47,9 +47,9 @@ sub render
 
 	my $form= $self->render_form;
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
-	$page->appendChild( $form );
+	$div->appendChild( $form );
 
-	return( $page );
+	return( $div );
 }	
 
 sub allow_remove
