@@ -1025,7 +1025,7 @@ my $PRIVMAP =
 		
 	"set-password" => 
 	{
-		# not done
+		"set-password" => 2,
 	},
 
 	"change-email" => 

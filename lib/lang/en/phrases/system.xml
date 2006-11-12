@@ -540,12 +540,13 @@ User Area CGI Scripts
 
     <epp:phrase id="cgi/login:page_layout">
       <epc:pin name="problems"/>
-      <p>Please enter your username and password.</p>
-      <table>
-        <tr><td>Username:</td><td><epc:pin name="input_username"/></td></tr>
-        <tr><td>Password:</td><td><epc:pin name="input_password"/></td></tr>
-        <tr><td><epc:pin name="login_button"/></td></tr>
-      </table>
+      <div class="ep_block">
+        <p>Please enter your username and password.</p>
+        <table>
+          <tr><td>Username:</td><td><epc:pin name="input_username"/></td></tr>
+          <tr><td>Password:</td><td><epc:pin name="input_password"/></td><td><epc:pin name="login_button"/></td></tr>
+        </table>
+      </div>
     </epp:phrase>
     <epp:phrase id="cgi/login:until_close">until the browser closes</epp:phrase>
     <epp:phrase id="cgi/login:forever">forever (until I log out)</epp:phrase>
@@ -1026,8 +1027,8 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/NewUser:blurb"><p>Create a new user account.</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:title">Create user</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:description">Create a new user account</epp:phrase>
-    <epp:phrase id="Plugin/Screen/NewUser:create">Create User</epp:phrase>
-    <epp:phrase id="Plugin/Screen/NewUser:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:action:create:title">Create User</epp:phrase>
+    <epp:phrase id="Plugin/Screen/NewUser:action:cancel:title">Cancel</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:no_username">No username entered!</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:user_exists">A user with the username "<epc:pin name="username"/>" already exists!</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:db_error">Error registering user.</epp:phrase>
@@ -1037,7 +1038,6 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/NewEPrint:action:create:description">Begin a new deposit.</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/EPrint:deposit">Deposit</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint:deposit_progress">Deposit progress</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/FirstTool:no_tools">Sorry, you are not able to use any tools</epp:phrase>
 

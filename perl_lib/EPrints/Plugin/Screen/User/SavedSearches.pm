@@ -42,7 +42,9 @@ sub render
 	
 	my $page = $session->make_doc_fragment;
 
-	$page->appendChild( $self->html_phrase( "intro" ) );
+	my $div = $session->make_element( "div", class=>"ep_block" );
+	$div->appendChild( $self->html_phrase( "intro" ) );
+	$page->appendChild( $div );
 
 	$page->appendChild( $self->render_saved_search_list );
 

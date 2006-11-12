@@ -51,13 +51,16 @@ sub render
 	# Get EPrints in the submission buffer
 	my $list = $user->get_editable_eprints();
 
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	$page->appendChild( $div );
 	if( $list->count == 0 )
 	{
 		# Empty list
-		return $self->{session}->html_phrase( "cgi/users/buffer:no_entries", scope=>$self->_get_scope( $user ) );
+		$div->appendChild( $self->{session}->html_phrase( "cgi/users/buffer:no_entries", scope=>$self->_get_scope( $user ) ) );
+		return $page;
 	}
 
-	$page->appendChild( $self->{session}->html_phrase( 
+	$div->appendChild( $self->{session}->html_phrase( 
 		"cgi/users/buffer:buffer_blurb",
 		scope=>$self->_get_scope( $user ) ) );
 

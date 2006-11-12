@@ -30,7 +30,7 @@ $c->{eprint_render} = sub
 
 	$page = $session->make_doc_fragment;
 	# Citation
-	$p = $session->make_element( "p" );
+	$p = $session->make_element( "p", class=>"ep_block", style=>"margin-bottom: 1em" );
 	$p->appendChild( $eprint->render_citation() );
 	$page->appendChild( $p );
 
@@ -39,15 +39,16 @@ $c->{eprint_render} = sub
 	if( $has_multiple_versions )
 	{
 		my $latest = $eprint->last_in_thread( $succeeds_field );
-
+		my $block = $session->make_element( "div", class=>"ep_block", style=>"margin-bottom: 1em" );
+		$page->appendChild( $block );
 		if( $latest->get_value( "eprintid" ) == $eprint->get_value( "eprintid" ) )
 		{
-			$page->appendChild( $session->html_phrase( 
+			$block->appendChild( $session->html_phrase( 
 						"page:latest_version" ) );
 		}
 		else
 		{
-			$page->appendChild( $session->html_phrase( 
+			$block->appendChild( $session->html_phrase( 
 				"page:not_latest_version",
 				link => $session->render_link( $latest->get_url() ) ) );
 		}
@@ -68,7 +69,7 @@ $c->{eprint_render} = sub
 
 	my $docs_to_show = scalar @documents;
 
-	$p = $session->make_element( "p" );
+	$p = $session->make_element( "p", class=>"ep_block", style=>"margin-bottom: 1em" );
 	$page->appendChild( $p );
 
 	if( $docs_to_show == 0 )
@@ -90,7 +91,7 @@ $c->{eprint_render} = sub
 		$p->appendChild( $session->html_phrase( "page:fulltext" ) );
 
 		my( $doctable, $doctr, $doctd );
-		$doctable = $session->make_element( "table" );
+		$doctable = $session->make_element( "table", class=>"ep_block", style=>"margin-bottom: 1em" );
 
 		foreach my $doc ( @documents )
 		{
@@ -136,7 +137,7 @@ $c->{eprint_render} = sub
 	# Alternative locations
 	if( $eprint->is_set( "official_url" ) )
 	{
-		$p = $session->make_element( "p" );
+		$p = $session->make_element( "p", class=>"ep_block", style=>"margin-bottom: 1em" );
 		$page->appendChild( $p );
 		$p->appendChild( $session->html_phrase( "eprint_fieldname_official_url" ) );
 		$p->appendChild( $session->make_text( ": " ) );
@@ -146,14 +147,16 @@ $c->{eprint_render} = sub
 	# Then the abstract
 	if( $eprint->is_set( "abstract" ) )
 	{
+		my $div = $session->make_element( "div", class=>"ep_block" );
+		$page->appendChild( $div );
 		my $h2 = $session->make_element( "h2" );
 		$h2->appendChild( 
 			$session->html_phrase( "eprint_fieldname_abstract" ) );
-		$page->appendChild( $h2 );
+		$div->appendChild( $h2 );
 
-		$p = $session->make_element( "p" );
+		$p = $session->make_element( "p", class=>"ep_block", style=>"margin-bottom: 1em" );
 		$p->appendChild( $eprint->render_value( "abstract" ) );
-		$page->appendChild( $p );
+		$div->appendChild( $p );
 	}
 	else
 	{
@@ -162,6 +165,7 @@ $c->{eprint_render} = sub
 	
 	my( $table, $tr, $td, $th );	# this table needs more class cjg
 	$table = $session->make_element( "table",
+					class=>"ep_block", style=>"margin-bottom: 1em",
 					border=>"0",
 					cellpadding=>"3" );
 	$page->appendChild( $table );
@@ -273,17 +277,21 @@ $c->{eprint_render} = sub
 	# Now show the version and commentary response threads
 	if( $has_multiple_versions )
 	{
-		$page->appendChild( 
+		my $div = $session->make_element( "div", class=>"ep_block", style=>"margin-bottom: 1em" );
+		$page->appendChild( $div );
+		$div->appendChild( 
 			$session->html_phrase( "page:available_versions" ) );
-		$page->appendChild( 
+		$div->appendChild( 
 			$eprint->render_version_thread( $succeeds_field ) );
 	}
 	
 	if( $eprint->in_thread( $commentary_field ) )
 	{
-		$page->appendChild( 
+		my $div = $session->make_element( "div", class=>"ep_block", style=>"margin-bottom: 1em" );
+		$page->appendChild( $div );
+		$div->appendChild( 
 			$session->html_phrase( "page:commentary_threads" ) );
-		$page->appendChild( 
+		$div->appendChild( 
 			$eprint->render_version_thread( $commentary_field ) );
 	}
 

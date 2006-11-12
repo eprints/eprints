@@ -83,25 +83,25 @@ sub register_furniture
 
 	$self->SUPER::register_furniture;
 
-	my $f = $self->{session}->make_doc_fragment;
 
 	my $priv = $self->allow( "eprint/view" );
 	my $owner  = $priv & 4;
 	my $editor = $priv & 8;
 
-	if( $owner && $editor )
+	unless( $owner && $editor )
 	{
-		my $a_owner = $self->{session}->render_link( "?screen=EPrint::View::Owner&eprintid=".$self->{processor}->{eprintid} );
-		my $a_editor = $self->{session}->render_link( "?screen=EPrint::View::Editor&eprintid=".$self->{processor}->{eprintid} );
-		my $div = $self->{session}->make_element( "div" );
-		$div->appendChild( $self->{session}->html_phrase(
-			"cgi/users/edit_eprint:view_as_either",
-			owner_link=>$a_owner,
-			editor_link=>$a_editor ) );
-		$f->appendChild( $div );
+		return $self->{session}->make_doc_fragment;
 	}
 
-	$self->{processor}->before_messages( $f );
+	my $div = $self->{session}->make_element( "div",class=>"ep_block" );
+	my $a_owner = $self->{session}->render_link( "?screen=EPrint::View::Owner&eprintid=".$self->{processor}->{eprintid} );
+	my $a_editor = $self->{session}->render_link( "?screen=EPrint::View::Editor&eprintid=".$self->{processor}->{eprintid} );
+	$div->appendChild( $self->{session}->html_phrase(
+		"cgi/users/edit_eprint:view_as_either",
+		owner_link=>$a_owner,
+		editor_link=>$a_editor ) );
+
+	$self->{processor}->before_messages( $div );
 }
 
 
@@ -176,7 +176,7 @@ sub render_blister
 	}
 
 	return $self->{session}->render_toolbox( 
-			$self->{session}->html_phrase( "Plugin/Screen/EPrint:deposit_progress" ),
+			undef,
 			$table );
 }
 

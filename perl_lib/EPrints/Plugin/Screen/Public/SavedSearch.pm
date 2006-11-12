@@ -49,10 +49,6 @@ sub from
 	$self->SUPER::from;
 }
 
-sub properties_from
-{
-	my( $self ) = @_;
-}
 
 sub can_be_viewed
 {

@@ -16,10 +16,10 @@ sub render_status
 
 	my $status = $self->{processor}->{eprint}->get_value( "eprint_status" );
 
-	my $status_fragment = $self->{session}->make_doc_fragment;
-	$status_fragment->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status ) );
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	$div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status ) );
 
-	return $status_fragment;
+	return $div;
 }
 
 sub render_common_action_buttons

@@ -17,7 +17,6 @@ sub new
 
 	$self->{appears} = [
 		{ 
-			action=> "create",
 			place => "admin_actions", 	
 			position => 300, 
 		},
@@ -108,13 +107,13 @@ sub render
 
 	my $session = $self->{session};
 
-	my $page = $session->make_doc_fragment;
+	my $page = $session->make_element( "div", class=>"ep_block" );
 
 	$page->appendChild( $self->html_phrase( "blurb" ) );
 
 	my %buttons = (
-		cancel => $self->phrase( "cancel" ),
-		create => $self->phrase( "create" ),
+		cancel => $self->phrase( "action:cancel:title" ),
+		create => $self->phrase( "action:create:title" ),
 		_order => [ "create", "cancel" ]
 	);
 

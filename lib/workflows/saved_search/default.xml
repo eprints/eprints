@@ -7,7 +7,7 @@
   </flow>
    
   <stage name="default">
-    <component type="XHTML" surround="None"><p><epc:print expr="$search_description" /></p></component>
+    <component type="XHTML" surround="None"><div class="ep_block"><p><epc:print expr="$search_description" /></p></div></component>
 
     <component><field ref="name"/></component>
 

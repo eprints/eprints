@@ -68,3 +68,8 @@ td.ep_row {
 	border: solid 2px #ff8888;
 	background-color: #ffeeee;
 }
+
+.ep_block {
+	margin: auto;
+	display: table;
+}

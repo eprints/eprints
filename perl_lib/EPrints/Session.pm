@@ -1632,7 +1632,7 @@ sub _render_subjects_aux
 	$elementx->appendChild( $subjects->{$id}->render_description() );
 	if( defined $sizes && $sizes->{$id} > 0 )
 	{
-		$elementx->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );
+		$li->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );
 	}
 		
 	foreach( $subjects->{$id}->get_children() )
@@ -1951,11 +1951,16 @@ sub render_toolbox
 	my( $self, $title, $content ) = @_;
 
 	my $div = $self->make_element( "div", class=>"ep_toolbox" );
-	my $title_div = $self->make_element( "div", class=>"ep_toolbox_title" );
+
+	if( definde $title )
+	{
+		my $title_div = $self->make_element( "div", class=>"ep_toolbox_title" );
+		$div->appendChild( $title_div );
+		$title_div->appendChild( $title );
+	}
+
 	my $content_div = $self->make_element( "div", class=>"ep_toolbox_content" );
-	$div->appendChild( $title_div );
 	$div->appendChild( $content_div );
-	$title_div->appendChild( $title );
 	$content_div->appendChild( $content );
 	return $div;
 }

@@ -33,7 +33,9 @@ sub render
 
 	my ($data,$title) = $self->{processor}->{user}->render; 
 
-	$page->appendChild( $data );
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	$page->appendChild( $div );
+	$div->appendChild( $data );
 	
 	$page->appendChild( $self->render_action_list( "user_actions", ['userid'] ) );
 

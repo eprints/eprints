@@ -60,6 +60,11 @@ sub handler
 	my $parts;
 	foreach my $part ( "title", "title.textonly", "page", "head" )
 	{
+		if( !-e $filename.".".$part )
+		{
+			$parts->{"utf-8.".$part} = "";
+			next;
+		}
 		if( open( CACHE, $filename.".".$part ) ) 
 		{
 			$parts->{"utf-8.".$part} = join("",<CACHE>);

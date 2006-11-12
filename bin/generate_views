@@ -382,7 +382,7 @@ sub make_menu
 		}
 		
 
-		my $page = $session->make_doc_fragment;
+		my $page = $session->make_element( "div", class=>"ep_block" );
 			
 		my @sh_ids = ();
 		if( defined $view->{subheadings} )
@@ -478,7 +478,7 @@ sub make_menu
 
 	return if( $view->{noindex} );
 
-	my $page = $session->make_doc_fragment();
+	my $page = $session->make_element( "div", class=>"ep_block" );
 	$page->appendChild( 
 		$session->html_phrase( "bin/generate_views:intro" ) );
 
@@ -589,9 +589,9 @@ sub render_menu
 			$fields->[0]->get_value_label( 
 				$session, 
 				$value ) );
-		$a->appendChild( 
-			$session->make_text( " (".$sizes->{$value}.")" ) );
 		$li->appendChild( $a );
+		$li->appendChild( 
+			$session->make_text( " (".$sizes->{$value}.")" ) );
 		$ul->appendChild( $li );
 	}
 

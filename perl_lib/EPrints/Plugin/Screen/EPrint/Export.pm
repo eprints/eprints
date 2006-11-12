@@ -33,7 +33,9 @@ sub render
 
 	my ($data,$title) = $self->{processor}->{eprint}->render_export_links; 
 
-	return $data;
+	my $div = $self->{session}->make_element( "div",class=>"ep_block" );
+	$div->appendChild( $data );
+	return $div;
 }	
 
 

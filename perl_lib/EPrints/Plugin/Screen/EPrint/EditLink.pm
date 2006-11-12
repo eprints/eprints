@@ -43,7 +43,9 @@ sub render
 	my $session = $self->{processor}->{session};
 	my $eprint = $self->{processor}->{eprint};
 	my( $escreen, $workflow ) = $self->things;
+	my $div = $session->make_element( "div", class=>"ep_block" );
 	my $ul = $session->make_element( "ul" );
+	$div->appendChild( $ul );
 	foreach my $stage_id ( $workflow->get_stage_ids )
 	{
 		my $li = $session->make_element( "li" );
@@ -53,7 +55,7 @@ sub render
 		$ul->appendChild( $li );
 	}
 
-	return $ul;
+	return $div;
 }	
 
 

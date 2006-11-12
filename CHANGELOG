@@ -5246,3 +5246,16 @@ PACKAGE: 2.2.99.2
  * ditto for EPrint::View
  * Titles of EPrint Screens are now in the actual title.
 
+2006-11-12 cjg
+ * Fixed bug in looking for .head files in static pages using the dynamic
+    template.
+ * links in views no longer place the count inside the anchor.
+ * Render toolbox now has title as optional.
+ * Added "set-password" priv.
+ * Made much of the site centred. Addded ep_block class which is a centered
+    block, the contents of which is left aligned.
+ * Fixed bug in new user - it registered the action when it should have been
+    the screen itself that was linked.
+ * Removed dupicated sub def. in SavedSearch.
+ * Fixed bug in reset_password
+  
