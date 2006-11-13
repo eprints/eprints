@@ -5267,3 +5267,8 @@ PACKAGE: 2.2.99.2
  * Removed RSS code from latest_tool.
  * Fixed example code in document_upload.
  
+2006-11-13 cjg
+ * Cleaned up style on login page.
+ * Login page now focuses on first input field.
+ * Cleaned up default information.html page.
+ 

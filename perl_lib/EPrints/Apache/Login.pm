@@ -86,12 +86,13 @@ sub input_form
 		$bits{problems} = $session->make_doc_fragment;
 	}
 
-	$bits{input_username} = $session->make_element( "input",
-			"accept-charset" => "utf-8",
+	$bits{input_username} = $session->render_input_field(
+			class => "ep_form_text",
+			id => "login_username",
 			name => 'login_username' );
 
-	$bits{input_password} = $session->make_element( "input",
-			"accept-charset" => "utf-8",
+	$bits{input_password} = $session->render_input_field(
+			class => "ep_form_text",
 			name => 'login_password',
 			type => "password" );
 
@@ -130,6 +131,10 @@ sub input_form
 		push @k, $p."=".$v;
 	}
 	$form->appendChild( $session->render_hidden_field( "params", join( "&",@k ) ) );
+	my $script = $session->make_element( "script", type=>"text/javascript" );
+	$script->appendChild( $session->make_text( '$("login_username").focus()' ) ); 
+	$form->appendChild( $script);
+
 	return $form;
 }
 

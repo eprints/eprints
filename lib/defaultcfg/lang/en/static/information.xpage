@@ -4,10 +4,7 @@
 <xpage:title>About the Repository</xpage:title>
 <xpage:body>
 
-<p>This site is running <a href="{$config{base_url}}/eprints/">GNU EPrints</a> / revision: <epc:print expr="$config{version}" />. <a href="{$config{base_url}}/eprints/">More Information</a></p>
-
-<ul>
-<li>More Information about EPrints</li></ul>
+<p>This site is powered by <a href="{$config{base_url}}/eprints/">EPrints 3</a>, free software developed by the University of Southampton.</p>
 
 <h2>Contact Information</h2>
 

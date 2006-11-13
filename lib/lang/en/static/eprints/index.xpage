@@ -7,11 +7,11 @@
 <h2>About this software</h2>
 
 
-<p>This site is running GNU EPrints / revision: <epc:print expr="$config{version}" />.</p>
+<p>This site is running <epc:print expr="$config{version}" />.</p>
 
-<p>GNU EPrints is free software developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
+<p>EPrints is free software developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
 
-<p>Other institutions are invited (and encouraged) to set up their own open repositories for author <a href="http://www.eprints.org/self-faq/">self-archiving</a>, using the freely-distributable <a href="http://www.eprints.org/software/">GNU EPrints software</a> used at this site.  For more information see <a href="http://eprints.org/">eprints.org</a> and <a href="http://www.eprints.org/software/">www..eprints.org/software/</a></p>
+<p>Other institutions are invited (and encouraged) to set up their own open repositories for author <a href="http://www.eprints.org/self-faq/">self-archiving</a>, using the freely-distributable <a href="http://www.eprints.org/software/">EPrints software</a> used at this site. The Southampton EPrints team can also provide <a href="http://www.eprints.org/services/">hosting, training and consultancy services</a>.</p>
 
 <h2>Credits</h2>
 
