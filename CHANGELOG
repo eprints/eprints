@@ -5344,3 +5344,12 @@ PACKAGE: 2.2.99.2
  * Removed need for File::Path
  * Fixed bug that the eprint_fields file was utf-8 encoded rather than 
     latin-1
+
+2006-11-13 cjg
+ * Removed margins from the top and bottom of the upload help to save 
+    vertical real estate.
+ * Radio-button input for metafields can now have UNSPECIFIED if it's 
+    neither multiple or required.
+ * Date-type now uses radio-button-input
+ * Set-input fields are now inside a grid table for consistent styling.
+ * Multi field help now renders nicely if a field does not have help.

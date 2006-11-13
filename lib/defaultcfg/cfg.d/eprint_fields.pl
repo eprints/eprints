@@ -84,7 +84,8 @@ $c->{fields}->{eprint} = [
 
 	{ name => "date", type=>"date", min_resolution=>"year" },
 
-	{ name => "date_type", type=>"set", options=>[qw/ published submitted completed /] },
+	{ name => "date_type", type=>"set", options=>[qw/ published submitted completed /],
+		 input_style=>"medium", },
 
 	{ name => "series", type => "text" },
 
