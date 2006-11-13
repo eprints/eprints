@@ -83,7 +83,7 @@ sub update_from_form
 				$1 );
 			if( !defined $doc )
 			{
-				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $1 ) );
+				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $self->{session}->make_text($1) ) );
 				return;
 			}
 			if( $doc->get_value( "eprintid" ) != $self->{dataobj}->get_id )
@@ -95,7 +95,7 @@ sub update_from_form
 			return;
 		}
 
-		$processor->add_message( "error",$self->html_phrase( "bad_button", button => $internal ));
+		$processor->add_message( "error",$self->html_phrase( "bad_button", button => $self->{session}->make_text($internal) ));
 		return;
 	}
 
@@ -165,7 +165,7 @@ sub doc_update
 		return ();
 	}
 			
-	$processor->add_message( "error", $self->html_phrase( "bad_doc_button", button => $doc_internal ) );
+	$processor->add_message( "error", $self->html_phrase( "bad_doc_button", button => $self->{session}->make_text($doc_internal) ) );
 }
 	
 sub render_help
