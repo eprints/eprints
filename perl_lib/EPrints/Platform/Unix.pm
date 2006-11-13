@@ -37,6 +37,11 @@ sub chown
 	return CORE::chown( @_ );
 }
 
+sub getpwnam 
+{
+	return CORE::getpwnam( @_ );
+}
+
 sub test_uid
 {
 	#my $req($login,$pass,$uid,$gid) = getpwnam($user)

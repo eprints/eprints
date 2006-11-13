@@ -5280,3 +5280,7 @@ PACKAGE: 2.2.99.2
 2006-11-13 cjg
  * DROP TABLE now only drops tables which exist.
  * All drop tables now go via $db->drop_table
+
+2006-11-13 cjg
+ * Fixed timestamp in OAI record headers
+ * Moved getpwnam into platform module
