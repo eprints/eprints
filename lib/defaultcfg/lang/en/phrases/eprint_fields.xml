@@ -38,7 +38,7 @@
 <br/>Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
 <br/>Example: [<span class="ep_form_example">Chance-Collins</span>] [<span class="ep_form_example">Chris</span>] [<span class="ep_form_example">chris@bar.com</span>]
 <br/>Example: [<span class="ep_form_example">Fu</span>] [<span class="ep_form_example">Yan-Li</span>] []
-<br/>Example: [<span class="ep_form_example">von HÃ¶pfner</span>] [<span class="ep_form_example">Ludwig G.</span>] []
+<br/>Example: [<span class="ep_form_example">von Höpfner</span>] [<span class="ep_form_example">Ludwig G.</span>] []
 </epp:phrase>
 
     <epp:phrase id="eprint_fieldname_pages">Number of Pages</epp:phrase>

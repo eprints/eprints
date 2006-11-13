@@ -36,7 +36,6 @@ package EPrints::Probity;
 
 use strict;
 
-use File::Path;
 use URI;
 use Digest::MD5;
 

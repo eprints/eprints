@@ -5335,3 +5335,12 @@ PACKAGE: 2.2.99.2
  * Added Light surround for file upload help
  * Added help phrase for upload
  * Added CC link to license help
+
+2006-11-13 cjg
+ * Added verbose option to import testdata
+ * Removing all of a tree is now done via EPrints::Utils::rmtree which
+    does not use File::Path.
+ * Fixed bug in Auth - stopped you seeing documents.
+ * Removed need for File::Path
+ * Fixed bug that the eprint_fields file was utf-8 encoded rather than 
+    latin-1

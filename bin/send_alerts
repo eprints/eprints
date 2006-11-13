@@ -84,8 +84,6 @@ __GENERICPOD__
 
 use EPrints;
 
-use File::Copy;
-use File::Path;
 use strict;
 use Getopt::Long;
 use Pod::Usage;

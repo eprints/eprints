@@ -14,12 +14,43 @@
 
 use EPrints;
 use strict;
-$|=1;
+
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "import_test_data" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+#pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+
+
+
 
 # nb. This syntax is subject to change in future versions.
 my( $archiveid, $datasetid, $userid ) = @ARGV;
 
-my $session = new EPrints::Session( 1 , $archiveid );
+my $session = new EPrints::Session( 1 , $archiveid, $noise );
 exit( 1 ) unless( defined $session );
 
 my $db = $session->get_database;

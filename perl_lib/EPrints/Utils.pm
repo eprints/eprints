@@ -31,7 +31,6 @@ package EPrints::Utils;
 
 use Filesys::DiskSpace;
 use Unicode::String qw(utf8 latin1 utf16);
-use File::Path;
 use File::Copy qw();
 use Text::Wrap qw();
 use MIME::Lite;
@@ -652,14 +651,83 @@ sub mkdir
 
 	# Make sure $dir is a plain old string (not unicode) as
 	# Unicode::String borks mkdir
+
+	my $dir="";
+	my @parts = split( "/", "$full_path" );
+	while( scalar @parts )
+	{
+		$dir .= "/".(shift @parts );
+		if( !-d $dir )
+		{
+			my $ok = mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
+			if( !$ok )
+			{
+				print STDERR "Failed to mkdir $dir: $!\n";
+				return 0;
+			}
+		}
+	}		
+
+	return 1;	
+}
+
+
+######################################################################
+=pod
+
+=item $ok = EPrints::Utils::rmtree( $full_path )
+
+Unlinks the path and everything in it.
+
+Return true on success.
+
+=cut
+######################################################################
+
+sub rmtree
+{
+	my( $full_path ) = @_;
+
 	$full_path = "$full_path";
 
-	my @created = eval
-        {
-                return EPrints::try sub { mkpath( $full_path, 0,  $EPrints::SystemSettings::conf->{"dir_perms"}  ); };
-        };
-	if( defined $@ && $@ ne "" ) { warn $@; }
-        return ( scalar @created > 0 )
+	my $dh;
+	if( !opendir( $dh, $full_path ) )
+	{
+		print STDERR "Failed to open dir $full_path: $!\n";
+		return 0;
+	}
+	my @dir = ();
+	while( my $fn = readdir( $dh ) )
+	{
+		next if $fn eq ".";
+		next if $fn eq "..";
+		my $file = "$full_path/$fn";
+		if( -d $file )
+		{
+			push @dir, $file;	
+			next;
+		}
+		
+		if( !unlink( $file ) )
+		{
+			print STDERR "Failed to unlink $file: $!\n";
+			return 0;
+		}
+	}
+	closedir( $dh );
+
+	foreach my $a_dir ( @dir )			
+	{
+		EPrints::Utils::rmtree( $a_dir );
+	}
+	
+	if( !rmdir( $full_path ) )
+	{
+		print STDERR "Failed to rmdir $full_path: $!\n";
+		return 0;
+	}
+
+	return 1;
 }
 
 

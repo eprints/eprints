@@ -77,7 +77,6 @@ __GENERICPOD__
 use EPrints;
 
 use File::Copy;
-use File::Path;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
@@ -128,7 +127,7 @@ foreach $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	my $tmpdir = $dir."_tmp.$$";
 	my $doomdir = $dir."_toerase.$$";
 
-	if( -e $tmpdir ) { rmtree( $tmpdir ); }
+	if( -e $tmpdir ) { EPrints::Utils::rmtree( $tmpdir ); }
 	EPrints::Utils::mkdir( $tmpdir );
 
 	foreach my $view ( @{$views} )
@@ -176,7 +175,7 @@ foreach $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	print "Moving $langid views to be online ... " if( $noise > 1 );
 	move( $dir, $doomdir );
 	move( $tmpdir, $dir );
-	rmtree( $doomdir );
+	EPrints::Utils::rmtree( $doomdir );
 	print "done\n" if( $noise > 1 );
 }
 

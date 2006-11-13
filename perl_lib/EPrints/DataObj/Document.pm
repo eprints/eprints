@@ -92,9 +92,9 @@ package EPrints::DataObj::Document;
 @ISA = ( 'EPrints::DataObj' );
 
 use EPrints;
+use EPrints::Search;
 
 use File::Basename;
-use File::Path;
 use File::Copy;
 use Cwd;
 use Fcntl qw(:DEFAULT :seek);
@@ -202,6 +202,29 @@ sub new
 		$docid );
 }
 
+sub doc_with_eprintid_and_pos
+{
+	my( $session, $eprintid, $pos ) = @_;
+	
+	my $document_ds = $session->get_repository->get_dataset( "document" );
+
+	my $searchexp = new EPrints::Search(
+		session=>$session,
+		dataset=>$document_ds );
+
+	$searchexp->add_field(
+		$document_ds->get_field( "eprintid" ),
+		$eprintid );
+	$searchexp->add_field(
+		$document_ds->get_field( "pos" ),
+		$pos );
+
+	my $searchid = $searchexp->perform_search;
+	my @records = $searchexp->get_records(0,1);
+	$searchexp->dispose();
+	
+	return $records[0];
+}
 
 ######################################################################
 =pod
@@ -419,6 +442,8 @@ sub _generate_doc_id
 
 
 
+
+
 ######################################################################
 =pod
 
@@ -503,9 +528,9 @@ sub remove
 
 	# Remove directory and contents
 	my $full_path = $self->local_path();
-	my $num_deleted = rmtree( $full_path, 0, 0 );
+	my $ok = EPrints::Utils::rmtree( $full_path );
 
-	if( $num_deleted <= 0 )
+	if( !$ok )
 	{
 		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
 		$success = 0;
@@ -768,11 +793,11 @@ sub remove_all_files
 
 	my @to_delete = glob ($full_path);
 
-	my $num_deleted = rmtree( \@to_delete, 0, 0 );
+	my $ok = EPrints::Utils::rmtree( \@to_delete );
 
 	$self->set_main( undef );
 
-	if( $num_deleted < scalar @to_delete )
+	if( !$ok )
 	{
 		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
 		return( 0 );

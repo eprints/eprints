@@ -18,7 +18,6 @@ use strict;
 use warnings;
 
 use File::Temp;
-use File::Path qw/ rmtree /;
 
 our @ISA = qw( File::Temp );
 
@@ -77,7 +76,7 @@ sub DESTROY
 	my( $self ) = @_;
 	if( $self->{UNLINK} )
 	{
-		rmtree($self->{dir},0,0);
+		EPrints::Utils::rmtree($self->{dir});
 	}
 }
 

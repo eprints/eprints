@@ -91,7 +91,6 @@ package EPrints::DataObj::EPrint;
 
 @ISA = ( 'EPrints::DataObj' );
 
-use File::Path;
 use strict;
 
 ######################################################################
@@ -1285,11 +1284,7 @@ sub generate_static
 		$self->{session}->change_lang( $langid );
 		my $full_path = $self->_htmlpath( $langid );
 
-		my @created = eval
-		{
-			my @created = EPrints::try sub { mkpath( $full_path, 0,  $EPrints::SystemSettings::conf->{"dir_perms"}  ); };
-			return( @created );
-		};
+		my @created = EPrints::Utils::mkdir( $full_path );
 
 		# only deleted and live records have a web page.
 		next if( $status ne "archive" && $status ne "deletion" );
@@ -1370,7 +1365,7 @@ sub remove_static
 	foreach $langid 
 		( @{$self->{session}->get_repository->get_conf( "languages" )} )
 	{
-		rmtree( $self->_htmlpath( $langid ) );
+		EPrints::Utils::rmtree( $self->_htmlpath( $langid ) );
 	}
 }
 

@@ -283,18 +283,13 @@ sub secure_doc_from_url
 	}
 
 	$uri =~ s/^$urlpath$secpath//;
-	my $docid;
-	my $eprintid;
 
+	my $eprintid;
+	my $pos;
 	if( $uri =~ m#^/(\d+)/(\d+)/# )
 	{
-		# /archive/00000001/01/.....
-		# or
-		# /$archiveid/archive/00000001/01/.....
-
-		# force it to be integer. (Lose leading zeros)
-		$eprintid = $1+0; 
-		$docid = "$eprintid-$2";
+		$eprintid = $1+0;
+		$pos = $2+0;
 	}
 	else
 	{
@@ -302,10 +297,11 @@ sub secure_doc_from_url
 "Request to ".$r->uri." in secure documents area failed to match REGEXP." );
 		return undef;
 	}
-	my $document = EPrints::DataObj::Document->new( $session, $docid );
+
+	my $document = EPrints::DataObj::Document::doc_with_eprintid_and_pos( $session, $eprintid, $pos );
 	if( !defined $document ) {
 		$repository->log( 
-"Request to ".$r->uri.": document $docid not found." );
+"Request to ".$r->uri.": document eprintid=$eprintid pos=$pos not found." );
 		return undef;
 	}
 
