@@ -5287,3 +5287,9 @@ PACKAGE: 2.2.99.2
 
 2006-11-13 cjg
  * Fixed title in latest tool
+
+2006-11-13 moj
+ * switched 'an owner' to 'a depositor' in phrases.
+ * Lost a block of redundant phrases
+ * Fixed typo (cancec->cancel)
+
