@@ -1261,7 +1261,7 @@ sub allow
 
 	if( $r & 8 )
 	{
-		if( !defined $item || !$item->has_editor( $self ) )
+		if( !defined $item || !$item->in_editorial_scope_of( $self ) )
 		{
 			$r-=8;
 		}

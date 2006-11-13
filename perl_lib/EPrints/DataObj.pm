@@ -1150,7 +1150,7 @@ sub has_owner
 ######################################################################
 =pod
 
-=item $boolean = $dataobj->has_edior( $user )
+=item $boolean = $dataobj->in_editorial_scope_of( $user )
 
 As for has_owner, but if the user is identified as someone with an
 editorial scope which includes this record.
@@ -1163,7 +1163,7 @@ that only ones with a scope AND a priv can edit.
 =cut
 ######################################################################
 
-sub has_editor
+sub in_editorial_scope_of
 {
 	my( $self, $user ) = @_;
 

@@ -154,6 +154,20 @@ sub form_value_basic
 	return( $from . "-" . $to );
 }
 
+sub ordervalue_basic
+{
+	my( $self , $value ) = @_;
+
+	unless( EPrints::Utils::is_set( $value ) )
+	{
+		return "";
+	}
+
+	my @pages = split /-/, $value;
+	
+	return sprintf( "%08d-%08d", @pages );
+}
+
 
 ######################################################################
 1;

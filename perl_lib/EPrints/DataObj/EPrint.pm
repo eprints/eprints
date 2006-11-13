@@ -2140,7 +2140,7 @@ sub datestamp
 ######################################################################
 =pod
 
-=item $boolean = $eprint->has_editor( $possible_editor )
+=item $boolean = $eprint->in_editorial_scope_of( $possible_editor )
 
 Returns true if $possible_editor can edit this eprint. This is
 according to the user editperms. 
@@ -2151,7 +2151,7 @@ do then they may edit the given item.
 =cut
 ######################################################################
 
-sub has_editor
+sub in_editorial_scope_of
 {
 	my( $self, $possible_editor ) = @_;
 
