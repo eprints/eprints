@@ -5284,3 +5284,6 @@ PACKAGE: 2.2.99.2
 2006-11-13 cjg
  * Fixed timestamp in OAI record headers
  * Moved getpwnam into platform module
+
+2006-11-13 cjg
+ * Fixed title in latest tool

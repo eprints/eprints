@@ -27,12 +27,17 @@ my $mode = $session->param( "mode" );
 $mode = "default" if( !defined $mode );
 my $filters = [];
 my $conf = $session->get_repository->get_conf( "latest_tool_modes", $mode );
+my $show_conditions = 0;
 if( defined $conf )
 {
 	foreach my $key (keys %{$conf} )
 	{
 		$citation = $conf->{"citation"} if( $key eq "citation" );
-		$filters = $conf->{"filters"} if( $key eq "filters" );
+		if( $key eq "filters" )
+		{
+			$filters = $conf->{"filters"};
+			$show_conditions = 1;
+		}
 		$max = $conf->{"max"} if( $key eq "max" );
 	}
 }
@@ -50,12 +55,12 @@ my $searchexp = new EPrints::Search(
 	custom_order => "-datestamp",
 	dataset => $ds );
 my $title;
-if( EPrints::Utils::is_set( $filters ) )
+if( $show_conditions )
 {
 	$title = $session->html_phrase( 
 		"cgi/latest_tool:title_matching",
 		n => $session->make_text( $number_to_get ),
-		search => $searchexp->render_description );
+		search => $searchexp->render_conditions_description );
 }
 else
 {
