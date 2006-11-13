@@ -77,15 +77,19 @@ sub render
 	}
 
 	my $page = $self->{session}->make_doc_fragment();
+	
+	$page->appendChild( 
+		$self->{session}->html_phrase( 
+			"cgi/users/edit_eprint:remove_form_intro" ) );
 
 	if( $user->is_set( "lang" ) )
-	{
+	{	
 		$page->appendChild( 
-			$self->{session}->html_phrase( 
-				"cgi/users/edit_eprint:bounce_form_intro", 
+			$self->{session}->html_phrase(
+				"cgi/users/edit_eprint:author_lang_pref", 
 				langpref => $user->render_value( "lang" ) ) );
 	}
-
+	
 	my $form = $self->render_form;
 	
 	$page->appendChild( $form );

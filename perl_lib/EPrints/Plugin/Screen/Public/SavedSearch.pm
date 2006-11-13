@@ -1,6 +1,8 @@
 
 package EPrints::Plugin::Screen::Public::SavedSearch;
 
+use EPrints::Plugin::Screen::User::SavedSearch::Run;
+
 @ISA = ( 'EPrints::Plugin::Screen::User::SavedSearch::Run' );
 
 use strict;

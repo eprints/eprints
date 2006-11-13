@@ -630,7 +630,9 @@ Staff CGI Scripts
     <epp:phrase id="cgi/users/edit_eprint:cant_edit">This item (id <epc:pin name="id"/>) does not match the scope of the items you are allowed to edit. If you need assistance please contact the repository administrator.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:cant_remove">Problem removing item with the ID "<epc:pin name="id"/>"</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:cant_clone">Problem cloning item with the ID "<epc:pin name="id"/>"</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:bounce_form_intro"><p>Please enter in the box below the reason for bouncing/deleting this item, and any possible fix. This will be emailed to the relevant author.</p><p>(The authors language of preference is &quot;<epc:pin name="langpref"/>&quot;.)</p></epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:reject_form_intro"><p>Please enter in the box below the reason for returning this item, and any possible fix. This will be emailed to the relevant author.</p></epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:remove_form_intro"><p>Please enter in the box below the reason for removing this item. This will be emailed to the relevant author.</p></epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:author_lang_pref"><p>The author&apos;s language of preference is &quot;<epc:pin name="langpref"/>&quot;.</p></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:title_delete_form">Deleting Submission</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:title_bounce_form">Bouncing Submission</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:action_send">Send</epp:phrase>

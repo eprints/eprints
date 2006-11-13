@@ -5302,3 +5302,10 @@ PACKAGE: 2.2.99.2
  
 2006-11-13 cjg
  * Fixed bug in Platform::Unix::getpwnam
+
+2006-11-13 moj
+ * Split up the intros for reject/remove with email - now have
+    author_lang_pref, remove_form_intro, reject_form_intro
+ * Added use for SavedSearch::Run (cjg)
+ * Removed 'Not logged in' from login bar (cjg)
+ * Switched sides for search/login (cjg)
