@@ -972,6 +972,7 @@ Titles and Help for the System Fields
     <epp:phrase id="subject_fieldname_name">Subject Name</epp:phrase>
     <epp:phrase id="subject_fieldname_rev_number">Revision</epp:phrase>
     <epp:phrase id="subject_fieldhelp_name">This is the "screen" name of the subject, the one that the users will see.</epp:phrase>
+    <epp:phrase id="subject_fieldhelp_ancestors">Subjects which this subject is part of (including itself).</epp:phrase>
     <epp:phrase id="subject_fieldname_parents">Subject Parents Subject(s)</epp:phrase>
     <epp:phrase id="subject_fieldname_depositable">Depositable</epp:phrase>
     <epp:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</epp:phrase>

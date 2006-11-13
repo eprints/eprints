@@ -5324,3 +5324,7 @@ PACKAGE: 2.2.99.2
  * Renamed "More Spaces" to "More input rows"
  * Changed page width back to 720
  * More CSS styling.
+
+2006-11-13 cjg
+ * Added phrase for subject ancestors name
+
