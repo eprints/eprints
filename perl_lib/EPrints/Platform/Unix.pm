@@ -39,7 +39,7 @@ sub chown
 
 sub getpwnam 
 {
-	return CORE::getpwnam( @_ );
+	return CORE::getpwnam( $_[0] );
 }
 
 sub test_uid

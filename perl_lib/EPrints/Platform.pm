@@ -46,7 +46,7 @@ sub chmod { return &{$real_module."::chmod"}( @_ ); }
 
 sub chown { return &{$real_module."::chown"}( @_ ); }
 
-sub getpwnam { return &{$real_module."::getpwnam"}( @_ ); }
+sub getpwnam { return &{$real_module."::getpwnam"}( $_[0] ); }
 
 sub test_uid { return &{$real_module."::test_uid"}( @_ ); }
 
