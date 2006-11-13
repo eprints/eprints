@@ -14,7 +14,7 @@ sub render
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
 	}
-	if( $component->get_internal_button )
+	if( $component->get_internal_button && (scalar @{$component->{stage}->{components}} > 1) )
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>"t" ) );
 	}

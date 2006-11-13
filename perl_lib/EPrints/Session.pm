@@ -1038,6 +1038,56 @@ sub render_row
 	return $tr;
 }
 
+sub render_row_with_help
+{
+	my( $self, %parts ) = @_;
+
+	if( EPrints::XML::is_empty( $parts{help} ) )
+	{
+		delete $parts{help};
+	}
+
+
+	my $tr = $self->make_element( "tr", class=>$parts{class} );
+	
+	my $th = $self->make_element( "th", class=>"ep_multi_heading" );
+	$th->appendChild( $parts{label} );
+	$th->appendChild( $self->make_text( ":" ) );
+	$tr->appendChild( $th );
+
+	my $td = $self->make_element( "td", class=>"ep_multi_input" );
+	$tr->appendChild( $td );
+
+	if( defined $parts{help} ) 
+	{
+		my $inline_help = $self->make_element( "div", id=>$parts{help_prefix}, class=>"ep_no_js ep_multi_inline_help" );
+		my $inline_help_inner = $self->make_element( "div", id=>$parts{help_prefix}."_inner" );
+		$inline_help->appendChild( $inline_help_inner );
+		$inline_help_inner->appendChild( $parts{help} );
+		$td->appendChild( $inline_help );
+	}
+
+	$td->appendChild( $parts{field} );
+	
+	if( defined $parts{help} )
+	{
+		# help toggle
+
+		my $td2 = $self->make_element( "td", class=>"ep_multi_help ep_only_js ep_toggle" );
+		my $show_help = $self->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$parts{help_prefix}."_show" );
+		my $helplink = $self->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
+		$show_help->appendChild( $self->html_phrase( "lib/session:show_help",link=>$helplink ) );
+		$td2->appendChild( $show_help );
+	
+		my $hide_help = $self->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$parts{help_prefix}."_hide" );
+		my $helplink2 = $self->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
+		$hide_help->appendChild( $self->html_phrase( "lib/session:hide_help",link=>$helplink2 ) );
+		$td2->appendChild( $hide_help );
+		$tr->appendChild( $td2 );
+	}
+
+	return $tr;
+}
 
 
 ######################################################################

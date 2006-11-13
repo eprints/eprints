@@ -38,6 +38,7 @@
 .ep_upload_files
 {
 	border: dashed #c8cbdf 1px; 
+	text-align: center;
 	margin-top: 0.5em; 
 	padding: 0.5em; 
 	background-color: white;
@@ -45,6 +46,8 @@
 
 .ep_upload_file_table 
 {
+	margin-left: auto;
+	margin-right: auto;
 	margin-bottom: 0.5em;
 }
 

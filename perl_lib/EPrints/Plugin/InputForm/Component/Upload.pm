@@ -339,26 +339,26 @@ sub _render_doc
 
 	if( scalar @fields )
 	{
-		my $table = $session->make_element( "table", class=>"ep_upload_fields" );
+		my $table = $session->make_element( "table", class=>"ep_upload_fields ep_multi" );
 		$doc_cont->appendChild( $table );
+		my $first = 1;
 		foreach my $field ( @fields )
 		{
-			my $tr = $session->make_element( "tr" );
-			$table->appendChild( $tr );
-			my $th = $session->make_element( "th" );
-			$tr->appendChild( $th );
-			$th->appendChild( $field->render_name($session) );
-			$th->appendChild( $session->make_text( ": ") );
-			my $td = $session->make_element( "td" );
-			$tr->appendChild( $td );
-			$td->appendChild( $field->render_input_field( 
-				$session, 
-				$doc->get_value( $field->get_name ),
-				undef,
-				0,
-				undef,
-				$doc,
-				$doc_prefix ) );
+			$table->appendChild( $session->render_row_with_help(
+				class=>($first?"ep_first":""),
+				label=>$field->render_name($session),
+				field=>$field->render_input_field(
+                                	$session,
+                                	$doc->get_value( $field->get_name ),
+                                	undef,
+                                	0,
+                                	undef,
+                                	$doc,
+                                	$doc_prefix ),
+				help=>$field->render_help($session),
+				help_prefix=>$doc_prefix."_".$field->get_name."_help",
+			));
+			$first = 0;
 		}
 	}
 
@@ -432,7 +432,7 @@ sub _render_add_file
 	if( $hide )
 	{
 		my $hide_add_files = $session->make_element( "div", id=>$doc_prefix."_af1" );
-		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onClick => "if(!confirm('".$self->phrase("really_add")."')) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
+		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onClick => "EPJS_blur(event); if(!confirm('".$self->phrase("really_add")."')) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
 		$hide_add_files->appendChild( $self->html_phrase( 
 			"add_files",
 			link=>$show ));
@@ -516,7 +516,7 @@ sub _render_filelist
 			type => "image", 
 			src => "/style/images/delete.png",
 			name => "_internal_".$doc_prefix."_delete_$i",
-			onClick => "return confirm( '".$self->phrase( "delete_file_confirm", filename => $filename )."' );",
+			onClick => "EPJS_blur(event); return confirm( '".$self->phrase( "delete_file_confirm", filename => $filename )."' );",
 			value => $self->phrase( "delete_file" ) );
 			
 		$td_delete->appendChild( $del_btn );

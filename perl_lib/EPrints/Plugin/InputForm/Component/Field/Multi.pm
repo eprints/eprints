@@ -163,20 +163,28 @@ sub render_content
 	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
 	my $tbody = $self->{session}->make_element( "tbody" );
 	$table->appendChild( $tbody );
-	my ($th, $tr, $td);
 	my $first = 1;
 	foreach my $field ( @{$self->{config}->{fields}} )
 	{
-		my $class = "";
-		$class = "ep_first" if $first;
+		my %parts;
+		$parts{class} = "";
+		$parts{class} = "ep_first" if $first;
 		$first = 0;
 
-		$tr = $self->{session}->make_element( "tr", class=>$class );
-		$table->appendChild( $tr );
-		
+		$parts{label} = $field->render_name( $self->{session} );
+
+		if( $field->{required} eq "yes" ) # moj: Handle for_archive
+		{
+			$parts{label} = $self->{session}->html_phrase( 
+				"sys:ep_form_required",
+				label=>$parts{label} );
+		}
+ 
+		$parts{help} = $field->render_help( $self->{session} );
+
+
 		# Get the field and its value/default
 		my $value;
-		
 		if( $self->{dataobj} )
 		{
 			$value = $self->{dataobj}->get_value( $field->{name} );
@@ -185,42 +193,7 @@ sub render_content
 		{
 			$value = $self->{default};
 		}
-		
-		# Append field
-		$th = $self->{session}->make_element( "th", class=>"ep_multi_heading" );
-
-		my $label = $field->render_name( $self->{session} );
-
-		if( $field->{required} eq "yes" ) # moj: Handle for_archive
-		{
-			$label = $self->{session}->html_phrase( 
-				"sys:ep_form_required",
-				label=>$label );
-		}
-	
-		$th->appendChild( $label );
-		$th->appendChild( $self->{session}->make_text( ":" ) );
- 
-		my $help_prefix = $self->{prefix}."_help_".$field->get_name;
-		$td = $self->{session}->make_element( "td", class=>"ep_multi_input" );
-
-		my $help_dom = $field->render_help(
-			$self->{session},
-			$field->get_type() );
-	
-		my $field_has_help = 1;
-		$field_has_help = 0 if( EPrints::XML::is_empty( $help_dom ) );
-
-		if( $field_has_help ) 
-		{
-			my $inline_help = $self->{session}->make_element( "div", id=>$help_prefix, class=>"ep_no_js ep_multi_inline_help" );
-			my $inline_help_inner = $self->{session}->make_element( "div", id=>$help_prefix."_inner" );
-			$inline_help->appendChild( $inline_help_inner );
-			$inline_help_inner->appendChild( $help_dom );
-			$td->appendChild( $inline_help );
-		}
-
-		$td->appendChild( $field->render_input_field( 
+		$parts{field} = $field->render_input_field( 
 			$self->{session}, 
 			$value, 
 			undef,
@@ -229,31 +202,15 @@ sub render_content
 			$self->{dataobj},
 			$self->{prefix},
 			
-		  ) );
-		$tr->appendChild( $th );
-		$tr->appendChild( $td );
+		  );
 
+		$parts{help_prefix} = $self->{prefix}."_help_".$field->get_name;
 
-		if( $field_has_help )
-		{
-			# help toggle
-
-			my $td2 = $self->{session}->make_element( "td", class=>"ep_multi_help ep_only_js ep_toggle" );
-			my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$help_prefix."_show" );
-			my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
-			$show_help->appendChild( $self->html_phrase( "show_help",link=>$helplink ) );
-			$td2->appendChild( $show_help );
-		
-			my $hide_help = $self->{session}->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$help_prefix."_hide" );
-			my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false,'block');EPJS_toggle('${help_prefix}_hide',false,'block');EPJS_toggle('${help_prefix}_show',true,'block');return false", href=>"#" );
-			$hide_help->appendChild( $self->html_phrase( "hide_help",link=>$helplink2 ) );
-			$td2->appendChild( $hide_help );
-			$tr->appendChild( $td2 );
-		}
-
+		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
 	}
 	return $table;
 }
+
 
 sub render_help
 {

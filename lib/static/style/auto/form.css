@@ -50,4 +50,27 @@ select, input.ep_form_text, textarea {
         padding-bottom: 3pt;
 }
 
+/* input fields grid */
 
+
+.ep_form_input_grid th {
+	vertical-align: middle;
+	text-align: center;
+	font-size: 80%;
+}
+.ep_form_input_grid td {
+	vertical-align: middle;
+}
+
+td.ep_form_input_grid_pos {
+	padding-right: 4px;
+}
+td.ep_form_input_grid_arrows {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+
+td.ep_form_input_grid_wide {
+	text-align: left;
+}

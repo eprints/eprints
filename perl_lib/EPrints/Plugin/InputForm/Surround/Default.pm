@@ -35,7 +35,7 @@ sub render
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
 	}
-	if( $component->get_internal_button )
+	if( $component->get_internal_button && (scalar @{$component->{stage}->{components}} > 1) )
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>"t" ) );
 	}
@@ -74,12 +74,12 @@ sub render
 		$help_table_td1->appendChild( $title_div );
 	
 		my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js ep_toggle", id=>$help_prefix."_show" );
-		my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false);EPJS_toggle('${help_prefix}_hide',false);EPJS_toggle('${help_prefix}_show',true);return false", href=>"#" );
+		my $helplink = $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('$help_prefix',false);EPJS_toggle('${help_prefix}_hide',false);EPJS_toggle('${help_prefix}_show',true);return false", href=>"#" );
 		$show_help->appendChild( $self->html_phrase( "show_help",link=>$helplink ) );
 		$help_table_td2->appendChild( $show_help );
 	
 		my $hide_help = $self->{session}->make_element( "div", class=>"ep_sr_hide_help ep_hide ep_toggle", id=>$help_prefix."_hide" );
-		my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('$help_prefix',false);EPJS_toggle('${help_prefix}_hide',false);EPJS_toggle('${help_prefix}_show',true);return false", href=>"#" );
+		my $helplink2 = $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('$help_prefix',false);EPJS_toggle('${help_prefix}_hide',false);EPJS_toggle('${help_prefix}_show',true);return false", href=>"#" );
 		$hide_help->appendChild( $self->html_phrase( "hide_help",link=>$helplink2 ) );
 		$help_table_td2->appendChild( $hide_help );
 		
@@ -117,7 +117,7 @@ sub render
 		my $col_div = $self->{session}->make_element( "div", class=>"ep_sr_collapse_bar ep_only_js ep_toggle", id => $colbarid );
 
 		my $contentid = $component->{prefix}."_content";		
-		my $col_link =  $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
+		my $col_link =  $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
 
 		$col_div->appendChild( $col_link );
 		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"/style/images/plus.png", border=>0 ) );
@@ -126,7 +126,7 @@ sub render
 		$surround->appendChild( $col_div );
 
 		# alternate title to allow it to re-hide
-		my $recol_link =  $self->{session}->make_element( "a", onClick => "EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle" );
+		my $recol_link =  $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle" );
 		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"/style/images/minus.png", border=>0 ) );
 		$recol_link->appendChild( $self->{session}->make_text( " " ) );
 		#nb. clone the title as we've already used it above.

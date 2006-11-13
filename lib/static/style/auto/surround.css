@@ -24,7 +24,6 @@
 	color: #444;
 }
 .ep_sr_component .ep_sr_content {
-	text-align: left;
 	clear: both;
 	background-image: url(/style/images/toolbox.png);
 	border: solid 1px #d8dbef;
@@ -74,4 +73,11 @@
 	border-bottom: 1px solid #888;
 	padding-bottom: 4px; 
 	margin-bottom: 4px;
+}
+
+.ep_sr_component .ep_form_input_grid {
+	margin: auto;
+}
+.ep_multi_input .ep_form_input_grid {
+	margin-left: 0px;
 }

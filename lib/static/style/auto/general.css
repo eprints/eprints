@@ -70,6 +70,10 @@ td.ep_row {
 }
 
 .ep_block {
-	margin: auto;
-	display: table;
+	width: auto;
+	margin: 0.25em auto 0.25em auto;
+	text-align: center;
+}
+ul {
+	text-align: left;
 }

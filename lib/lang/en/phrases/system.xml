@@ -107,7 +107,7 @@ EPrints Modules
     <epp:phrase id="lib/metafield:given_names">Given Name / Initials</epp:phrase>
     <epp:phrase id="lib/metafield:lineage">Lineage</epp:phrase>
     <epp:phrase id="lib/metafield:honourific">Title</epp:phrase>
-    <epp:phrase id="lib/metafield:more_spaces">More Spaces</epp:phrase>
+    <epp:phrase id="lib/metafield:more_spaces">More input rows</epp:phrase>
     <epp:phrase id="lib/metafield:more_langs">More Languages</epp:phrase>
     <epp:phrase id="lib/metafield:unspecified"><pin name="fieldname"/> UNSPECIFIED</epp:phrase>
     <epp:phrase id="lib/metafield:unspecified_selection">UNSPECIFIED</epp:phrase>
@@ -263,6 +263,9 @@ EPrints Modules
     <epp:phrase id="lib/session:error_title">Error</epp:phrase>
     <epp:phrase id="lib/session:no_login">You are somehow accessing a page which requires you to be logged in, without actually being logged in. This probably indicates a server misconfiguration.</epp:phrase>
     <epp:phrase id="lib/session:no_priv">You do not have the required privilege to use this function.</epp:phrase>
+    <epp:phrase id="lib/session:show_help"><epc:pin name="link">Show&nbsp;Help&nbsp;<img alt="+" src="/style/images/plus.png" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="lib/session:hide_help"><epc:pin name="link">Hide&nbsp;Help&nbsp;<img alt="-" src="/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
+	
 
 <!-- Subject -->
 
@@ -1206,8 +1209,8 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Field/Subject:selections">Current selections:</epp:phrase>
 	
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_no_matches"><p>No matches</p></epp:phrase>
-    <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_bar">Quick Search: <epc:pin name="input"/> <epc:pin name="search_button"/> <epc:pin name="clear_button"/></epp:phrase>
-    <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_search_button">Go!</epp:phrase>
+    <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_bar"><div class="ep_subjectinput_searchbar">Search for subject: <epc:pin name="input"/> <epc:pin name="search_button"/> <epc:pin name="clear_button"/></div></epp:phrase>
+    <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_search_button">Search</epp:phrase>
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_clear_button">Clear</epp:phrase>
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:add">Add</epp:phrase>
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:remove">Remove</epp:phrase>
@@ -1219,11 +1222,6 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <epc:pin name="placeholding"/> component</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <epc:pin name="placeholding"/> component</epp:phrase>
 
-	<!-- Multi -->
-
-    <epp:phrase id="Plugin/InputForm/Component/Field/Multi:show_help"><epc:pin name="link">Show&nbsp;Help&nbsp;<img alt="+" src="/style/images/plus.png" border="0"/></epc:pin></epp:phrase>
-    <epp:phrase id="Plugin/InputForm/Component/Field/Multi:hide_help"><epc:pin name="link">Hide&nbsp;Help&nbsp;<img alt="-" src="/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
-	
 	<!-- Surround -->
 
     <epp:phrase id="Plugin/InputForm/Surround/Default:show_help"><epc:pin name="link">Show Help <img alt="+" src="/style/images/plus.png" border="0"/></epc:pin></epp:phrase>

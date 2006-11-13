@@ -119,33 +119,30 @@ sub render_content
 	
 	# Render the search box
 
-	$self->{search} = "";
-	my $using_store = 0;
-	my $clear = 0;
+	$self->{search} = undef;
 	
+	if( $session->param( $self->{prefix}."_searchstore" ) )
+	{
+		$self->{search} = $session->param( $self->{prefix}."_searchstore" );
+	}
+
 	if( $session->internal_button_pressed )
 	{
 		my $ibutton = $self->get_internal_button;
 	
 		if( $ibutton eq "clear" )
 		{
-			$clear = 1;
+			delete $self->{search};
 		}
-		
 		if( $ibutton eq "search" )
 		{
 			$self->{search} = $session->param( $self->{prefix}."_searchtext" );
-			if( $self->{search} eq "" )
-			{
-				$clear = 1;
-			}
 		}
 	}
 
-	if( !$clear && !$self->{search} && $session->param( $self->{prefix}."_searchstore" ) )
+	if( $self->{search} eq "" )
 	{
-		$self->{search} = $session->param( $self->{prefix}."_searchstore" );
-		$using_store = 1;
+		delete $self->{search};
 	}
 	
 	$out->appendChild( $self->_render_search );
@@ -157,18 +154,32 @@ sub render_content
 			$self->{search} );
 		$out->appendChild( $search_store );
 		
-		my $num_results = $self->_do_search;
+		my $results = $self->_do_search;
 		
-		# If we're using a stored search, don't show the results.
-		if( !$using_store || $num_results > 0 )
+		if( !$results->count )
 		{
-			$out->appendChild( $self->{results} );
+			$out->appendChild( $self->html_phrase(
+				"search_no_matches" ) );
+		}
+		else
+		{
+			my $whitelist = {};
+			foreach my $subj ( $results->get_records )
+			{
+				foreach my $ancestor ( @{$subj->get_value( "ancestors" )} )
+				{	
+					$whitelist->{$ancestor} = 1;
+				}
+			}
+			$out->appendChild( $self->_render_subnodes( $self->{top_subj}, 0, $whitelist ) );
 		}
 	}	
-	
-	# render the tree
+	else
+	{	
+		# render the treeI	
+		$out->appendChild( $self->_render_subnodes( $self->{top_subj}, 0 ) );
+	}
 
-	$out->appendChild( $self->_render_subnodes( $self->{top_subj}, 0 ) );
 
 	return $out;
 }
@@ -179,13 +190,6 @@ sub _do_search
 	my $session = $self->{session};
 	
 	# Carry out search
-
-	if( !$self->{search} )
-	{
-		$self->{results} = $self->html_phrase(
-			"search_no_matches" );
-		return 0;
-	}
 
 	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $searchexp = new EPrints::Search(
@@ -203,27 +207,16 @@ sub _do_search
 		$self->{top_subj}->get_id,
 		"EQ" );
 
-	my $result = $searchexp->perform_search;
-
-	my @records = $result->get_records;
-	$searchexp->dispose();
-	if( !scalar @records )
-	{
-		$self->{results} = $self->html_phrase(
-			"search_no_matches" );
-		return 0;
-	}
-
-	$self->{results} = $self->_format_subjects(
-		table_class => "ep_subjectinput_results",
-		subject_class => "ep_subjectinput_results_subject",
-		button_class => "ep_subjectinput_results_add",
-		button_text => $self->phrase( "add" ),
-		button_id => "add",
-		hide_selected => 1,
-		subjects => \@records );
+	return $searchexp->perform_search;
+#	$self->{results} = $self->_format_subjects(
+#		table_class => "ep_subjectinput_results",
+#		subject_class => "ep_subjectinput_results_subject",
+#		button_class => "ep_subjectinput_results_add",
+#		button_text => $self->phrase( "add" ),
+#		button_id => "add",
+#		hide_selected => 1,
+#		subjects => \@records );
 	
-	return( scalar @records );
 }
 
 # Params:
@@ -253,13 +246,13 @@ sub _format_subjects
 			my $tr = $session->make_element( "tr" );
 			
 			my $td1 = $session->make_element( "td" );
-			$td1->appendChild( $subject->render_description );
-			my $td2 = $session->make_element( "td" );
-			my $add_button = $session->render_button(
-				class=> "ep_form_action_button",
+			my $remove_button = $session->render_button(
+				class=> "ep_subjectinput_remove_button",
 				name => "_internal_".$prefix."_".$params{button_id},
 				value => $params{button_text} );
-			$td2->appendChild( $add_button );
+			$td1->appendChild( $remove_button );
+			my $td2 = $session->make_element( "td" );
+			$td2->appendChild( $subject->render_description );
 			
 			my @td1_attr = ( $params{subject_class} );
 			my @td2_attr = ( $params{button_class} );
@@ -288,8 +281,8 @@ sub _render_search
 	my $session = $self->{session};
 	my $bar = $self->html_phrase(
 		"search_bar",
-		input=>$session->make_element( 
-			"input", 
+		input=>$session->render_noenter_input_field( 
+			class=>"ep_form_text",
 			name=>$prefix."_searchtext", 
 			type=>"text", 
 			value=>$self->{search} ),
@@ -306,7 +299,7 @@ sub _render_search
 
 sub _render_subnodes
 {
-	my( $self, $subject, $depth ) = @_;
+	my( $self, $subject, $depth, $whitelist ) = @_;
 
 	my $session = $self->{session};
 
@@ -318,14 +311,27 @@ sub _render_subnodes
 		@children = @{$self->{reverse_map}->{$node_id}};
 	}
 
-	if( scalar @children == 0 ) { return $session->make_doc_fragment; }
+	my @filteredchildren;
+	if( defined $whitelist )
+	{
+		foreach( @children )
+		{
+			next unless $whitelist->{$_->get_value( "subjectid" )};
+			push @filteredchildren, $_;
+		}
+	}
+	else
+	{
+		@filteredchildren=@children;
+	}
+	if( scalar @filteredchildren == 0 ) { return $session->make_doc_fragment; }
 
 	my $ul = $session->make_element( "ul", class=>"ep_subjectinput_subjects" );
 	
-	foreach my $child ( @children )
+	foreach my $child ( @filteredchildren )
 	{
 		my $li = $session->make_element( "li" );
-		$li->appendChild( $self->_render_subnode( $child, $depth+1 ) );
+		$li->appendChild( $self->_render_subnode( $child, $depth+1, $whitelist ) );
 		$ul->appendChild( $li );
 	}
 	
@@ -335,18 +341,24 @@ sub _render_subnodes
 
 sub _render_subnode
 {
-	my( $self, $subject, $depth ) = @_;
+	my( $self, $subject, $depth, $whitelist ) = @_;
 
 	my $session = $self->{session};
 
 	my $node_id = $subject->get_value( "subjectid" );
+
+#	if( defined $whitelist && !$whitelist->{$node_id} )
+#	{
+#		return $self->{session}->make_doc_fragment;
+#	}
 
 	my $has_kids = 0;
 	$has_kids = 1 if( defined $self->{reverse_map}->{$node_id} );
 
 	my $expanded = 0;
 	$expanded = 1 if( $depth < $self->{visdepth} );
-	$expanded = 1 if( $self->{expanded}->{$node_id} );
+	$expanded = 1 if( defined $whitelist && $whitelist->{$node_id} );
+#	$expanded = 1 if( $self->{expanded}->{$node_id} );
 	$expanded = 0 if( !$has_kids );
 
 	my $prefix = $self->{prefix}."_".$node_id;
@@ -365,7 +377,7 @@ sub _render_subnode
 		push @classes, "ep_subjectinput_selected";
 	}
 
-	if( $has_kids )
+	if( $has_kids && !defined $whitelist )
 	{
 		my $toggle;
 		$toggle = $self->{session}->make_element( "a", href=>"#", class=>"ep_only_js ep_subjectinput_toggle" );
@@ -387,12 +399,12 @@ sub _render_subnode
 		push @classes, "ep_no_js";
 		if( $expanded )
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${id}_kids',true,'block');EPJS_toggle('${id}_hide',true,'inline');EPJS_toggle('${id}_show',false,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',true,'block');EPJS_toggle_type('${id}_hide',true,'inline');EPJS_toggle_type('${id}_show',false,'inline');return false" );
 			$show->setAttribute( "style", "display:none" );
 		}
 		else # not expanded
 		{
-			$toggle->setAttribute( "onClick", "EPJS_toggleSlide('${id}_kids',false,'block');EPJS_toggle('${id}_hide',false,'inline');EPJS_toggle('${id}_show',true,'inline');return false" );
+			$toggle->setAttribute( "onClick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',false,'block');EPJS_toggle_type('${id}_hide',false,'inline');EPJS_toggle_type('${id}_show',true,'inline');return false" );
 			$hide->setAttribute( "style", "display:none" );
 		}
 
@@ -400,16 +412,19 @@ sub _render_subnode
 	}
 	$desc->setAttribute( "class", join( " ", @classes ) );
 	
-	if( !$self->{selected}->{$node_id} )
+	if( !$self->{selected}->{$node_id} && (!defined $whitelist || $whitelist->{$node_id}) )
 	{
 		if( $subject->can_post )
 		{
 			my $add_button = $session->render_button(
-				class=> "ep_form_action_button",
+				class=> "ep_subjectinput_add_button",
 				name => "_internal_".$prefix."_add",
 				value => $self->phrase( "add" ) );
-			$r_node->appendChild( $session->make_text( " " ) );
-			$r_node->appendChild( $add_button ); 
+			my $r_node_tmp = $session->make_doc_fragment;
+			$r_node_tmp->appendChild( $add_button ); 
+			$r_node_tmp->appendChild( $session->make_text( " " ) );
+			$r_node_tmp->appendChild( $r_node ); 
+			$r_node = $r_node_tmp;
 		}
 	}
 
@@ -417,11 +432,11 @@ sub _render_subnode
 	{
 		my $div = $session->make_element( "div", id => $id."_kids" );
 		my $div_inner = $session->make_element( "div", id => $id."_kids_inner" );
-		if( !$expanded ) 
+		if( !$expanded && !defined $whitelist ) 
 		{ 
 			$div->setAttribute( "class", "ep_no_js" ); 
 		}
-		$div_inner->appendChild( $self->_render_subnodes( $subject, $depth ) );
+		$div_inner->appendChild( $self->_render_subnodes( $subject, $depth, $whitelist ) );
 		$div->appendChild( $div_inner );
 		$r_node->appendChild( $div );
 	}

@@ -1092,12 +1092,12 @@ sub render_input_field_actual
 	# if there's only one element then lets not bother making
 	# a table to put it in
 
-	if( scalar @{$elements} == 1 && scalar @{$elements->[0]} == 1 )
-	{
-		return $elements->[0]->[0]->{el};
-	}
+#	if( scalar @{$elements} == 1 && scalar @{$elements->[0]} == 1 )
+#	{
+#		return $elements->[0]->[0]->{el};
+#	}
 
-	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0 );
+	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
 
 	my $col_titles = $self->get_input_col_titles( $session, $staff );
 	if( defined $col_titles )
@@ -1215,17 +1215,17 @@ sub get_input_elements
 				$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")]);'."\n" ) );
 			}
 			$lookup->appendChild( $script );
-			push @{$rows}, [ {el=>$lookup,colspan=>$cols} ];
+			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
 		}
 		if( defined $self->{input_advice_below} )
 		{
 			my $advice = $self->call_property( "input_advice_below", $session, $self, $value );
-			push @{$rows}, [ {el=>$advice,colspan=>$cols} ];
+			push @{$rows}, [ {el=>$advice,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
 		}
 
 		if( defined $assist )
 		{
-			push @{$rows}, [ {el=>$assist,colspan=>3} ];
+			push @{$rows}, [ {el=>$assist,colspan=>3,class=>"ep_form_input_grid_wide"} ];
 		}
 		return $rows;
 	}
@@ -1302,7 +1302,7 @@ sub get_input_elements
 			my $lastcol = {};
 			if( $n == 0 && $self->{input_ordered})
 			{
-				$col1 = { el=>$session->make_text( $i.". " ) };
+				$col1 = { el=>$session->make_text( $i.". " ), class=>"ep_form_input_grid_pos" };
 				my $arrows = $session->make_doc_fragment;
 				if( $i > 1 )
 				{
@@ -1339,7 +1339,7 @@ sub get_input_elements
 						alt=>"down",
 						src=> "/$imagesurl/multi_down_dim.png" ));
 				}
-				$lastcol = { el=>$arrows, valign=>"middle" };
+				$lastcol = { el=>$arrows, valign=>"middle", class=>"ep_form_input_grid_arrows" };
 				$row =  [ $col1, @{$section->[$n]}, $lastcol ];
 			}
 			if( defined $self->{input_advice_right} )
@@ -1372,14 +1372,14 @@ sub get_input_elements
 				$lookup->appendChild( $script );
 				my @row = ();
 				push @row, {} if( $self->{input_ordered} );
-				push @row, {el=>$lookup,colspan=>$cols-1};
+				push @row, {el=>$lookup,colspan=>$cols-1, class=>"ep_form_input_grid_wide"};
 				push @{$rows}, \@row;
 			#, {afterUpdateElement: updated}); " ));
 			}
 			if( defined $self->{input_advice_below} )
 			{
 				my $advice = $self->call_property( "input_advice_below", $session, $self, $value->[$i-1] );
-				push @{$rows}, [ {},{el=>$advice,colspan=>$cols-1} ];
+				push @{$rows}, [ {},{el=>$advice,colspan=>$cols-1, class=>"ep_form_input_grid_wide"} ];
 			}
 		}
 	}
@@ -1396,7 +1396,7 @@ sub get_input_elements
 
 	my @row = ();
 	push @row, {} if( $self->{input_ordered} );
-	push @row, {el=>$more,colspan=>3};
+	push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
 	push @{$rows}, \@row;
 
 	return $rows;

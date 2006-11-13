@@ -5309,3 +5309,18 @@ PACKAGE: 2.2.99.2
  * Added use for SavedSearch::Run (cjg)
  * Removed 'Not logged in' from login bar (cjg)
  * Switched sides for search/login (cjg)
+
+2006-11-13 cjg
+ * Made method in Session to render an input grid with hidden help.
+ * Multi and Upload now use this
+ * Toggles now blur when you click them
+ * If only one component then internal buttons don't do the #t thing
+ * Added help to document fields.
+ * Redesigned subject component interface
+ * Disabled degenerate mode for metafield input - always in a grid now.
+ * Added styling to arrows and pos numbers in grid
+ * Made headings in input grid a bit smaller
+ * Renamed "Email (if known)" to "Email".
+ * Renamed "More Spaces" to "More input rows"
+ * Changed page width back to 720
+ * More CSS styling.

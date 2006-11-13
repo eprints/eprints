@@ -58,8 +58,11 @@ sub _read_components
 					xml_config=>$stage_node, 
 					dataobj=>$self->{item}, 
 					collapse=>$collapse,
+					stage=>$self, 	
 					workflow=>$self->{workflow}, 
 					surround=>$surround_obj );
+
+			# Nb. Cyclic refs on stage & workflow. May mess up g.c.
 
 			# Grab any values inside
 			my $class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::$type"};

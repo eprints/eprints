@@ -40,6 +40,7 @@ table.ep_multi td.ep_multi_input
 
 table.ep_multi td.ep_multi_help
 {
+	white-space: nowrap;
 	border-top: dashed #bbf 1px;
 	padding-top: 0.5em;
 	padding-bottom: 0.5em;
