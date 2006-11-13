@@ -5330,3 +5330,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-13 cjg
  * Fixed a bug in error phrases in Upload
+
+2006-11-13 moj
+ * Added Light surround for file upload help
+ * Added help phrase for upload
+ * Added CC link to license help

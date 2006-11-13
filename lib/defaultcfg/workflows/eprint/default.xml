@@ -14,6 +14,7 @@
   </stage>
 
   <stage name="files">
+    <component type="XHTML" surround="Light"><epc:phrase ref="Plugin/InputForm/Component/Upload:help" /></component>
     <component type="Upload" surround="None">
       <field ref="format" />
       <field ref="formatdesc" />
