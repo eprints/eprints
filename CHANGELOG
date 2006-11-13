@@ -5275,3 +5275,4 @@ PACKAGE: 2.2.99.2
 2006-11-13 cjg
  * Renamed $eprint->has_editor to $eprint->in_editorial_scope_of to 
     avoid semantic confusion. 
+ * Ordervalues of pagerange fixed.
