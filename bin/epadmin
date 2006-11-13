@@ -217,7 +217,11 @@ END
 		print "$repodir MUST be a directory.\n\n";
 	}
 
-	my(undef,undef,$uid,$gid) = EPrints::Platform::getpwnam( EPrints::Config::get( "user" ) );
+	my $username = EPrints::Config::get( "user" );
+	print "Getting uid and gid information for $username\n";
+	my(undef,undef,$uid,$gid) = EPrints::Platform::getpwnam( $username );
+	print "UID: $uid\n";
+	print "GID: $gid\n";
 	print "\nCreating initial files:\n";
 	&install( 
 		EPrints::Config::get( "base_path" )."/lib/defaultcfg",
