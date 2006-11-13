@@ -200,10 +200,48 @@ sub new_from_request
 	{
 		EPrints::Config::abort( "Can't load EPrints repository: $repoid" );
 	}
+	$repository->check_secure_dirs( $request );
 
 	return $repository;
 }
 
+######################################################################
+#
+# $repository->check_secure_dirs( $request );
+#
+# This method triggers an abort if the secure dirs specified in 
+# the apache conf don't match those EPrints is using. This prevents
+# the risk of a security breach after moving directories.
+#
+######################################################################
+
+sub check_secure_dirs
+{
+	my( $self, $request ) = @_;
+
+	my $real_secured_cgi = EPrints::Config::get( "cgi_path" )."/users";
+	my $real_documents_path = $self->get_conf( "documents_path" );
+
+	my $apacheconf_secured_cgi = $request->dir_config( "EPrints_Dir_SecuredCGI" );
+	my $apacheconf_documents_path = $request->dir_config( "EPrints_Dir_Documents" );
+
+	if( $real_secured_cgi ne $apacheconf_secured_cgi )
+	{
+		EPrints::abort( <<END );
+Document path is: $real_secured_cgi 
+but apache conf is securiing: $apacheconf_secured_cgi
+You probably need to run generate_apacheconf!
+END
+	}
+	if( $real_documents_path ne $apacheconf_documents_path )
+	{
+		EPrints::abort( <<END );
+Document path is: $real_documents_path 
+but apache conf is securiing: $apacheconf_documents_path
+You probably need to run generate_apacheconf!
+END
+	}
+}
 
  
 ######################################################################

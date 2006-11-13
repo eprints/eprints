@@ -53,6 +53,7 @@ sub handler
 		return DECLINED;
 	}
 	my $repository = EPrints::Repository->new( $repository_id );
+	$repository->check_secure_dirs( $r );
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
 	my $urlpath;

@@ -47,10 +47,10 @@ sub test_uid
 	#my $req($login,$pass,$uid,$gid) = getpwnam($user)
 	my $req_username = $EPrints::SystemSettings::conf->{user};
 	my $req_group = $EPrints::SystemSettings::conf->{group};
-	my $req_uid = (getpwnam($req_username))[2];
-	my $req_gid = (getgrnam($req_group))[2];
+	my $req_uid = (CORE::getpwnam($req_username))[2];
+	my $req_gid = (CORE::getgrnam($req_group))[2];
 
-	my $username = (getpwuid($>))[0];
+	my $username = (CORE::getpwuid($>))[0];
 
 	if( $username ne $req_username )
 	{

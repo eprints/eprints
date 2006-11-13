@@ -5295,3 +5295,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-13 moj
  * Added back compatibility for get_children
+
+2006-11-13 cjg
+ * Added check that dirs have not changed since generate_apacheconf was run.
+ * Added CORE:: clarity to Platform::UNIX
+ 
