@@ -1533,8 +1533,7 @@ Called dispose_buffer on non-buffer table "$id"
 END
 		return;
 	}
-	my $sql = "DROP TABLE $id";
-	$self->do( $sql );
+	$self->drop_table( $id );
 	delete $TEMPTABLES{$id};
 
 }
@@ -1642,8 +1641,7 @@ sub drop_cache
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
 	# We drop the table before removing the entry from the cachemap
 
-       	$sql = "DROP TABLE $tmptable";
-	$self->do( $sql );
+	$self->drop_table( $tmptable );
 		
 	$sql = "DELETE FROM ".$ds->get_sql_table_name()." WHERE tableid = $id";
 	$self->do( $sql );
@@ -2558,7 +2556,8 @@ sub drop_table
 {
 	my( $self, $tablename ) = @_;
 
-	my $sql = "DROP TABLE ".$tablename;
+	my $sql = "DROP TABLE IF EXISTS ".$tablename;
+
 	$self->do( $sql );
 }
 

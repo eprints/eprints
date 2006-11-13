@@ -5276,3 +5276,7 @@ PACKAGE: 2.2.99.2
  * Renamed $eprint->has_editor to $eprint->in_editorial_scope_of to 
     avoid semantic confusion. 
  * Ordervalues of pagerange fixed.
+
+2006-11-13 cjg
+ * DROP TABLE now only drops tables which exist.
+ * All drop tables now go via $db->drop_table
