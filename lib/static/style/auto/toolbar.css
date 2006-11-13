@@ -1,0 +1,11 @@
+
+.ep_toolbar {
+	border-top: 1px solid rgb(216, 219, 239); 
+	border-bottom: 1px solid rgb(216, 219, 239);
+	text-align: center;
+	background-image: url(/style/images/toolbox.png);
+	padding-top: 4px;
+	padding-bottom: 4px;
+	margin-bottom: 0.25em;
+	margin-top: 0.25em;
+}
