@@ -196,6 +196,12 @@ sub load_repository_config_module
 	foreach( keys %SYSTEMCONF ) { $info->{$_} = $SYSTEMCONF{$_}; }
 	$info->{archiveroot} = $info->{arc_path}."/".$id;
 
+	if( !-d $info->{archiveroot} )
+	{
+		print STDERR "No repository named '$id' found in ".$info->{arc_path}.".\n\n";
+		exit 1;
+	}
+
 	my @oldinc = @INC;
 	local @INC;
 	@INC = (@oldinc, $info->{archiveroot} );

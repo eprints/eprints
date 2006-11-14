@@ -5385,3 +5385,10 @@ PACKAGE: 2.2.99.2
  * Fixed bug in rmtree when dir doesn't exist if gave a warning!
  * (re)Fixed bug in ordervalues of metafield pagerange.
 
+======================================================================
+14/11/2006 - EPRINTS-3.0-beta-2
+======================================================================
+
+2006-11-14 cjg
+ * Tweaked favicon - could still be better
+ * Non existant archiveid now gives a nice error.
