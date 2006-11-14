@@ -5357,3 +5357,6 @@ PACKAGE: 2.2.99.2
 2006-11-14 moj
  * Switched document_upload.pl example for required fields to return
     mime types.
+
+2006-11-14 moj
+ * Fixed typo in RoMEO

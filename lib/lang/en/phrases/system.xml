@@ -1180,7 +1180,7 @@ Titles and Help for the System Fields
 	<!-- Upload component -->
 	
 	<epp:phrase id="Plugin/InputForm/Component/Upload:title">Document upload</epp:phrase>
-        <epp:phrase id="Plugin/InputForm/Component/Upload:help"><p style="margin-top: 0px">To upload a document to this repository, click the Browse button below to select the file and the Upload button to upload it to the archive. You may then add additional files to the document (such as images for HTML files) or upload more files to create additional documents.</p><p style="margin-bottom: 0px">You may wish to use the <a href="http://www.sherpa.ac.uk/romeo.php">SHERPA RoMEo</a> tool to verify publisher policies before depositing.</p></epp:phrase>
+        <epp:phrase id="Plugin/InputForm/Component/Upload:help"><p style="margin-top: 0px">To upload a document to this repository, click the Browse button below to select the file and the Upload button to upload it to the archive. You may then add additional files to the document (such as images for HTML files) or upload more files to create additional documents.</p><p style="margin-bottom: 0px">You may wish to use the <a href="http://www.sherpa.ac.uk/romeo.php">SHERPA RoMEO</a> tool to verify publisher policies before depositing.</p></epp:phrase>
 
 	<!-- errors -->
 	<epp:phrase id="Plugin/InputForm/Component/Upload:create_failed">Document creation failed.</epp:phrase>
