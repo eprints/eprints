@@ -165,7 +165,7 @@ sub ordervalue_basic
 
 	my( $from, $to ) = split /-/, $value;
 
-	$from = $to unless defined $to;
+	$to = $from unless defined $to;
 	
 	return sprintf( "%08d-%08d", $from, $to );
 }
