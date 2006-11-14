@@ -30,7 +30,11 @@ select, input.ep_form_text, textarea {
 
 .ep_form_action_button, .ep_form_internal_button {
 	text-align: center;
+	border-width: 2px;
+	border-style: solid;
+	border-color: #e0e0ff #808080 #808080 #e0e0ff;
 	background-image: url(/style/images/blue_bar.png);
+	background-color: #1f4f76;
 	color: white;
 	font-weight: normal;
 }

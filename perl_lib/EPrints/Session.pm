@@ -1261,7 +1261,7 @@ sub render_option_list
 			my $div = $self->make_element( "div" );
 			my $label = $self->make_element( "label" );
 			$div->appendChild( $label );
-			my $box = $self->render_input_field( type=>"checkbox", name=>$params{name}, value=>$pair->[0], class=>"ep_form_text" );
+			my $box = $self->render_input_field( type=>"checkbox", name=>$params{name}, value=>$pair->[0], class=>"ep_form_checkbox" );
 			$label->appendChild( $box );
 			$label->appendChild( $self->make_text( " ".$pair->[1] ) );
 			if( $defaults{$pair->[0]} )

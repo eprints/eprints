@@ -77,6 +77,7 @@ ul.ep_tm_menu li a:visited {
 .ep_tm_searchbarbutton {
 	text-align: center;
 	background-image: url(/style/images/blue_bar.png);
+	background-color: #1f4f76;
 	color: white;
 	font-weight: normal;
 	font-size: 80%;

@@ -4888,6 +4888,10 @@ PACKAGE: 2.2.99.2
 2006-10-26 cjg
  * Fixed bug introduced in s/children/get_children/ 
 
+======================================================================
+26/10/2006 - EPRINTS-3.0-beta-1
+======================================================================
+
 2006-10-27 tmb
  * Added hook for overriding default username/password check (e.g. for handing off to LDAP server)
 
@@ -5363,3 +5367,7 @@ PACKAGE: 2.2.99.2
 
 2006-11-14 moj
  * Added target="_blank" to license + upload help.
+
+2006-11-14 moj
+ * Updated NEWS for beta-2
+ * Minor css + javascript tweaks to make things look better in windows.
