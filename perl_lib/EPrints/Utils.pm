@@ -690,6 +690,8 @@ sub rmtree
 
 	$full_path = "$full_path";
 
+	return 1 if( !-e $full_path );
+
 	my $dh;
 	if( !opendir( $dh, $full_path ) )
 	{

@@ -163,9 +163,11 @@ sub ordervalue_basic
 		return "";
 	}
 
-	my @pages = split /-/, $value;
+	my( $from, $to ) = split /-/, $value;
+
+	$from = $to unless defined $to;
 	
-	return sprintf( "%08d-%08d", @pages );
+	return sprintf( "%08d-%08d", $from, $to );
 }
 
 

@@ -5381,3 +5381,7 @@ PACKAGE: 2.2.99.2
  * Stopped views being centered
  * Stopped unwanted centering in several places.
 
+2006-11-14 cjg
+ * Fixed bug in rmtree when dir doesn't exist if gave a warning!
+ * (re)Fixed bug in ordervalues of metafield pagerange.
+
