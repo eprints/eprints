@@ -305,7 +305,7 @@ Then run:
 
 Make sure that your main apache config file contains the line:
 
- Include $base_bath/cfg/apache.conf
+ Include $base_path/cfg/apache.conf
 
 Then stop and start your webserver:
 Often:
