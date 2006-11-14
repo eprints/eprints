@@ -381,7 +381,7 @@ sub make_menu
 		}
 		
 
-		my $page = $session->make_element( "div", class=>"ep_block" );
+		my $page = $session->make_element( "div", class=>"ep_view_page" );
 			
 		my @sh_ids = ();
 		if( defined $view->{subheadings} )
@@ -477,7 +477,7 @@ sub make_menu
 
 	return if( $view->{noindex} );
 
-	my $page = $session->make_element( "div", class=>"ep_block" );
+	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 	$page->appendChild( 
 		$session->html_phrase( "bin/generate_views:intro" ) );
 

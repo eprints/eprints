@@ -1,6 +1,4 @@
 
-$c->{adminemail} = 'cjg@ecs.soton.ac.uk';
-
 # If you want to override the way eprints sends email, you can
 # set the send_email config option to be a function to use 
 # instead.

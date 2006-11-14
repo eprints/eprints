@@ -5374,3 +5374,10 @@ PACKAGE: 2.2.99.2
 
 2006-11-14 cjg
  * Improved help in epadmin
+
+2006-11-14 cjg
+ * Removed unused adminemail config option from email.pl
+ * Fixed transparency image problems in IE
+ * Stopped views being centered
+ * Stopped unwanted centering in several places.
+

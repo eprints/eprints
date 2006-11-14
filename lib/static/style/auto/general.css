@@ -74,6 +74,9 @@ td.ep_row {
 	margin: 0.25em auto 0.25em auto;
 	text-align: center;
 }
+.ep_block td {
+	text-align: left;
+}
 ul {
 	text-align: left;
 }
