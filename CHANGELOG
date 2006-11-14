@@ -5360,3 +5360,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-14 moj
  * Fixed typo in RoMEO
+
+2006-11-14 moj
+ * Added target="_blank" to license + upload help.
