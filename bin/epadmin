@@ -282,29 +282,41 @@ END
 	}
 # cjg: Register with website!
 
+
+	my $base_path = EPrints::Config::get( "base_path" );
 print <<END;
 
 --------------------------------------------------------------------------
 That seemed to more or less work...
 --------------------------------------------------------------------------
 
-Now make any required changes to the cfg files.
+Now make any required changes to the cfg files. 
+
+Note that changing the metadata configuration may require the database
+tables to be regenerated. epadmin erase_eprints will regenerate the 
+eprints and documents tables only. erase_data will regenerate everything.
+(nb. these also do erase the contents of the tables, and any uploaded 
+files).
 
 Then run:
 
-bin/generate_static $repoid
-bin/generate_apacheconf 
+ bin/generate_static $repoid
+ bin/generate_apacheconf 
+
+Make sure that your main apache config file contains the line:
+
+ Include $base_bath/cfg/apache.conf
 
 Then stop and start your webserver:
 Often:
-/etc/rc.d/init.d/httpd stop
-/etc/rc.d/init.d/httpd start
+ /etc/rc.d/init.d/httpd stop
+ /etc/rc.d/init.d/httpd start
 (or maybe /usr/local/apache/bin/apachectl stop & start)
 
-Now connect to the repository, see everything work perfectly first time...(!)
+And then try connecting to your repository.
 --------------------------------------------------------------------------
 
-Don't forget to register your repository at http://www.eprints.org/
+Don't forget to register your repository at http://roar.eprints.org/
 
 END
 

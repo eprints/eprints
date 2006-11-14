@@ -5368,6 +5368,9 @@ PACKAGE: 2.2.99.2
 2006-11-14 moj
  * Added target="_blank" to license + upload help.
 
-2006-11-14 moj
+2006-11-14 cjg
  * Updated NEWS for beta-2
  * Minor css + javascript tweaks to make things look better in windows.
+
+2006-11-14 cjg
+ * Improved help in epadmin
