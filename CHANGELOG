@@ -5353,3 +5353,7 @@ PACKAGE: 2.2.99.2
  * Date-type now uses radio-button-input
  * Set-input fields are now inside a grid table for consistent styling.
  * Multi field help now renders nicely if a field does not have help.
+
+2006-11-14 moj
+ * Switched document_upload.pl example for required fields to return
+    mime types.

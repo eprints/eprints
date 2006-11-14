@@ -33,7 +33,12 @@ $c->{required_formats} =
 # 	{
 # 		return [];
 # 	}
-# 	return ['html','pdf','ps','ascii'];
+# 	return [
+#		'text/html',
+#		'application/pdf',
+#		'application/postscript',
+#		'text/plain',
+#	];
 # };
 
 # This sets the minimum amount of free space allowed on a disk before EPrints
