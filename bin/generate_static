@@ -180,7 +180,7 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 		if( !-e $target_dir )
 		{
 			print "mkdir $target_dir\n" if( $noise >= 1);
-			EPrints::Utils::mkdir( $target_dir );
+			EPrints::Platform::mkdir( $target_dir );
 		}
 
 		$source =~ m/\.([^.]+)$/;

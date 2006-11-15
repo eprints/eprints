@@ -206,7 +206,7 @@ END
 	unless( -e $repodir )
 	{
 		print "We need to create $repodir, doing it now...\n";
-		unless( mkdir($repodir) )
+		unless( EPrints::Platform::mkdir( $repodir ) )
 		{
 			print "Problem creating directory\n\n";
 			exit;
@@ -234,7 +234,7 @@ END
 	foreach( "var", "html", "documents", "documents/disk0" )
 	{
 		my $dir = $repodir."/".$_;
-		mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
+		EPrints::Platform::mkdir( $dir );
 		EPrints::Platform::chown( $uid, $gid, $dir );
 	}
 	print <<END;
@@ -335,7 +335,7 @@ sub install
 	opendir(INDIR, $dir) or die("Unable to install directory: $dir");
 	my @dirs = ();
 	my @files = ();
-	mkdir( $dest, $EPrints::SystemSettings::conf->{"dir_perms"} );
+	EPrints::Platform::mkdir( $dest );
 	EPrints::Platform::chown($user, $group, $dest);
 	while(my $item = readdir(INDIR))
 	{

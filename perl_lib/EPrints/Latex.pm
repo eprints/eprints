@@ -252,7 +252,7 @@ sub texstring_to_png
 
 	unless( -d $cachedir )
 	{
-		EPrints::Utils::mkdir( $cachedir);
+		EPrints::Platform::mkdir( $cachedir);
 	}
 
 	# Make sure latex .aux & .log files go in this dir.

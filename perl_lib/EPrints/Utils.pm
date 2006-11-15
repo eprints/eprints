@@ -647,7 +647,13 @@ Return true on success.
 
 sub mkdir
 {
-	my( $full_path ) = @_;
+	my( $full_path, $perms ) = @_;
+
+	Carp::croak("EPrints::Utils::mkdir is deprecated: use EPrints::Platform::mkdir");
+
+	# Default to "dir_perms"
+	$perms = $EPrints::SystemSettings::conf->{"dir_perms"}
+		if @_ < 2;
 
 	# Make sure $dir is a plain old string (not unicode) as
 	# Unicode::String borks mkdir

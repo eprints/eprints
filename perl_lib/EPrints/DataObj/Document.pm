@@ -336,7 +336,7 @@ END
 	{
 		$eprint->get_session()->get_repository->log( "Dir $dir already exists!" );
 	}
-	elsif(!EPrints::Utils::mkdir($dir))
+	elsif(!EPrints::Platform::mkdir($dir))
 	{
 		$eprint->get_session()->get_repository->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$document->get_value( "docid" )." ($dir): ".$! );
 		return undef;

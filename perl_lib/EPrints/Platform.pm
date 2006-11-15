@@ -50,4 +50,6 @@ sub getpwnam { return &{$real_module."::getpwnam"}( $_[0] ); }
 
 sub test_uid { return &{$real_module."::test_uid"}( @_ ); }
 
+sub mkdir { return &{$real_module."::mkdir"}( @_ ); }
+
 1;

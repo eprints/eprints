@@ -503,7 +503,7 @@ END
 		# pagearea/ exists cus of cache_file called above.
 		if( !-d $dir )
 		{
-			mkdir( $dir );
+			EPrints::Platform::mkdir( $dir );
 			my $convert = $repository->get_conf( 'executables','convert' );
 			my $cmd = "$convert '$file' 'tif:$dir/%d'";
 			`$cmd`;
@@ -582,11 +582,11 @@ sub cache_file
 	$resspec =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
 	$param =~ s/[^a-z0-9]/sprintf('_%02X',ord($&))/ieg;
 
-	mkdir( $TMPDIR ) if( !-d $TMPDIR );
+	EPrints::Platform::mkdir( $TMPDIR ) if( !-d $TMPDIR );
 
 	my $dir = $TMPDIR."/".$resspec;
 	
-	mkdir( $dir ) if( !-d $dir );
+	EPrints::Platform::mkdir( $dir ) if( !-d $dir );
 
 	return $dir."/".$param;
 }

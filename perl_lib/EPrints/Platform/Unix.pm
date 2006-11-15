@@ -60,5 +60,34 @@ sub test_uid
 	}
 }
 
+sub mkdir
+{
+	my( $full_path, $perms ) = @_;
+
+	# Default to "dir_perms"
+	$perms = $EPrints::SystemSettings::conf->{"dir_perms"}
+		if @_ < 2;
+
+	# Make sure $dir is a plain old string (not unicode) as
+	# Unicode::String borks mkdir
+
+	my $dir="";
+	my @parts = split( "/", "$full_path" );
+	while( scalar @parts )
+	{
+		$dir .= "/".(shift @parts );
+		if( !-d $dir )
+		{
+			my $ok = mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
+			if( !$ok )
+			{
+				print STDERR "Failed to mkdir $dir: $!\n";
+				return 0;
+			}
+		}
+	}		
+
+	return 1;
+}
 
 1;

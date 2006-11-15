@@ -5392,3 +5392,6 @@ PACKAGE: 2.2.99.2
 2006-11-14 cjg
  * Tweaked favicon - could still be better
  * Non existant archiveid now gives a nice error.
+
+2006-11-15 tdb
+ * Moved mkdir to EPrints::Platform (#2632)

@@ -128,7 +128,7 @@ foreach $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	my $doomdir = $dir."_toerase.$$";
 
 	if( -e $tmpdir ) { EPrints::Utils::rmtree( $tmpdir ); }
-	EPrints::Utils::mkdir( $tmpdir );
+	EPrints::Platform::mkdir( $tmpdir );
 
 	foreach my $view ( @{$views} )
 	{
@@ -316,7 +316,7 @@ sub make_menu
 {
 	my( $session, $dir, $ds, $view, $fieldids, $pfilters, $noise ) = @_;
 
-	EPrints::Utils::mkdir( $dir );
+	EPrints::Platform::mkdir( $dir );
 
 	# head & tail
 	my( $levelids, @sublevelids ) = @{$fieldids};

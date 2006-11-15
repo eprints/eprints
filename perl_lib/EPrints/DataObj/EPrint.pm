@@ -499,7 +499,7 @@ END
 	my $full_path = $session->get_repository->get_conf("documents_path").
 				"/".$docdir;
 	
-	if (!EPrints::Utils::mkdir( $full_path ))
+	if (!EPrints::Platform::mkdir( $full_path ))
 	{
 		$session->get_repository->log(<<END);
 Failed to create directory $full_path: $@
@@ -869,7 +869,7 @@ sub write_revision
 
 	if( !-d $dir )
 	{
-		if(!EPrints::Utils::mkdir($dir))
+		if(!EPrints::Platform::mkdir($dir))
 		{
 			$self->{session}->get_repository->log( "Error creating revision directory for EPrint ".$self->get_value( "eprintid" ).", ($dir): ".$! );
 			return;
@@ -1284,7 +1284,7 @@ sub generate_static
 		$self->{session}->change_lang( $langid );
 		my $full_path = $self->_htmlpath( $langid );
 
-		my @created = EPrints::Utils::mkdir( $full_path );
+		my @created = EPrints::Platform::mkdir( $full_path );
 
 		# only deleted and live records have a web page.
 		next if( $status ne "archive" && $status ne "deletion" );
