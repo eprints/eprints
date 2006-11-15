@@ -5395,3 +5395,4 @@ PACKAGE: 2.2.99.2
 
 2006-11-15 tdb
  * Moved mkdir to EPrints::Platform (#2632)
+ * Documented EPrints::Platform
