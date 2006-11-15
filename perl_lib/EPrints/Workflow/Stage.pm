@@ -37,32 +37,25 @@ sub _read_components
 		my $name = $stage_node->nodeName;
 		if( $name eq "component" )
 		{
-			# Pull out the type
-			my $type = $stage_node->getAttribute( "type" );
-			$type = "Field" if( !EPrints::Utils::is_set( $type ) );
 
-			my $surround = $stage_node->getAttribute( "surround" );
-			$surround = "Default" if( !EPrints::Utils::is_set( $surround ) );
-
-			my $collapse_attr = $stage_node->getAttribute( "collapse" );
-			my $collapse = 1 if( defined $collapse_attr && $collapse_attr eq "yes" );
-
-			my $surround_obj = $self->{session}->plugin( "InputForm::Surround::$surround" );
-			if( !defined $surround_obj )
-			{
-				$surround_obj = $self->{session}->plugin( "InputForm::Surround::Default" ); 
-			}
-
+			# Nb. Cyclic refs on stage & workflow. May mess up g.c.
 			my %params = (
 					session=>$self->{session}, 
 					xml_config=>$stage_node, 
 					dataobj=>$self->{item}, 
-					collapse=>$collapse,
 					stage=>$self, 	
-					workflow=>$self->{workflow}, 
-					surround=>$surround_obj );
+					workflow=>$self->{workflow} ); 
 
-			# Nb. Cyclic refs on stage & workflow. May mess up g.c.
+			# Pull out the type
+
+			my $type = $stage_node->getAttribute( "type" );
+			$type = "Field" if( !EPrints::Utils::is_set( $type ) );
+
+			my $surround = $stage_node->getAttribute( "surround" );
+			$params{surround} = $surround if( EPrints::Utils::is_set( $surround ) );
+			
+			my $collapse_attr = $stage_node->getAttribute( "collapse" );
+			$params{collapse} = 1 if( defined $collapse_attr && $collapse_attr eq "yes" );
 
 			# Grab any values inside
 			my $class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::$type"};
@@ -166,7 +159,7 @@ sub render
 		$div = $session->make_element(
 			"div",
 			class => "ep_form_field_input" );
-		$div->appendChild( $component->{surround}->render( $component, $session ) );
+		$div->appendChild( $component->get_surround()->render( $component, $session ) );
 		$dom->appendChild( $div );
 	}
 

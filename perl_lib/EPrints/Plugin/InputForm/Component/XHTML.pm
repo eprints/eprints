@@ -16,7 +16,7 @@ sub new
 
 	$self->{name} = "XHTML";
 	$self->{visible} = "all";
-
+	$self->{surround} = "Light" unless defined $self->{surround};
 	return $self;
 }
 

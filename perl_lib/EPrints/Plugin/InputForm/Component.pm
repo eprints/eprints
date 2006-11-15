@@ -42,6 +42,7 @@ sub new
 	{
 		$self->{session} = $opts{session};
 		$self->{collapse} = $opts{collapse};
+		$self->{surround} = $opts{surround};
 		$self->{prefix} = "id".$self->{session}->get_next_id;
 		$self->{dataobj} = $opts{dataobj};
 		$self->{dataset} = $opts{dataobj}->get_dataset;
@@ -78,6 +79,35 @@ sub is_required
 {
 	my( $self ) = @_;
 	return 0;
+}
+
+=pod
+
+=item $surround = $component->get_surround()
+
+returns the surround for this component.
+
+=cut
+
+sub get_surround
+{
+	my( $self ) = @_;
+
+	my $surround = "Default";	
+	
+	if( EPrints::Utils::is_set( $self->{surround} ) )
+	{
+		$surround = $self->{surround};
+	}
+		
+	my $surround_obj = $self->{session}->plugin( "InputForm::Surround::$surround" );
+	
+	if( !defined $surround_obj )
+	{
+		$surround_obj = $self->{session}->plugin( "InputForm::Surround::Default" ); 
+	}
+
+	return $surround_obj; 
 }
 
 =pod

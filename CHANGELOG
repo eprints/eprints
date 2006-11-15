@@ -5406,3 +5406,11 @@ PACKAGE: 2.2.99.2
 2006-11-15 moj
  * Metafield.pm now uses the noenter input field (enter blocking wasn't working
     on some fields). 
+
+2006-11-15 moj
+ * Added $self->{surround} to Component. This is overriden by XHTML and Upload
+    to Light and None respectively. Any surround attributes in the workflow files
+    override these defaults.
+ * Added get_surround to component. This returns the relevant Surround object 
+    (Default if none is specified).
+ * Tidied the %params bit in Stage.pm a little.

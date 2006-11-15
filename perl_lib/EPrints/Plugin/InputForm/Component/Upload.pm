@@ -16,6 +16,7 @@ sub new
 	
 	$self->{name} = "Upload";
 	$self->{visible} = "all";
+	$self->{surround} = "None" unless defined $self->{surround};
 	return $self;
 }
 
