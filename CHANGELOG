@@ -5402,3 +5402,7 @@ PACKAGE: 2.2.99.2
     a field.
  * Set reference rows to 15 (also fixes Safari bug)
  * Set subject quicksearch to use the enter javascript
+
+2006-11-15 moj
+ * Metafield.pm now uses the noenter input field (enter blocking wasn't working
+    on some fields). 
