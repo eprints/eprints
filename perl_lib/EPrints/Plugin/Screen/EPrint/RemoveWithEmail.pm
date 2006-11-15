@@ -64,7 +64,8 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $user = $self->{processor}->{eprint}->get_user();
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $eprint->get_user();
 	# We can't bounce it if there's no user associated 
 
 	if( !defined $user )
@@ -120,10 +121,10 @@ sub render
 	# remove any markup:
 	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
-			$self->{processor}->{eprint}->render_description() ) );
+			$eprint->render_description() ) );
 	
 	my $phraseid;
-	if( $self->{processor}->{eprint}->get_dataset->id eq "inbox" )
+	if( $eprint->get_dataset->id eq "inbox" )
 	{
 		$phraseid = "mail_delete_body.inbox";
 	}
@@ -141,7 +142,7 @@ sub render
 		"mail_body",
 		content => $content );
 
-	my $to_user = $self->{processor}->{eprint}->get_user();
+	my $to_user = $eprint->get_user();
 	my $from_user =$self->{session}->current_user;
 
 	my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
@@ -171,15 +172,16 @@ sub action_send
 {
 	my( $self ) = @_;
 
-	my $user = $self->{processor}->{eprint}->get_user();
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $eprint->get_user();
 	# We can't bounce it if there's no user associated 
 
 	$self->{processor}->{screenid} = "Review";
 
-	if( !$self->{processor}->{eprint}->remove )
+	if( !$eprint->remove )
 	{
 		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( "DB error removing EPrint ".$self->{processor}->{eprint}->get_value( "eprintid" ).": $db_error" );
+		$self->{session}->get_repository->log( "DB error removing EPrint ".$eprint->get_value( "eprintid" ).": $db_error" );
 		$self->{processor}->add_message( "message", $self->html_phrase( "item_not_removed" ) );
 		$self->{processor}->{screenid} = "FirstTool";
 		return;
@@ -193,7 +195,7 @@ sub action_send
 	
 	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
-			$self->{processor}->{eprint}->render_description() ) );
+			$eprint->render_description() ) );
 	
 	my $content = $self->{session}->html_phrase( 
 		"mail_delete_body",
@@ -219,7 +221,7 @@ sub action_send
 	$self->{processor}->add_message( "message",
 		$self->{session}->html_phrase( 
 			"cgi/users/edit_eprint:mail_sent" ) );
-	$self->{processor}->{eprint}->log_mail_owner( $mail );
+	$eprint->log_mail_owner( $mail );
 }
 
 

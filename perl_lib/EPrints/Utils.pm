@@ -1485,6 +1485,26 @@ sub human_filesize
 	return $size_in_meg.'Mb';
 }
 
+sub human_delay
+{
+	my( $hours ) = @_;
+	
+	if( $hours < 24 )
+	{
+		return $hours." hour".($hours>1?"s":"");
+	}
+
+	my $days = int( $hours / 24 );
+
+	if( $days < 7 )
+	{
+		return $days." day".($days>1?"s":"");
+	}
+
+	my $weeks = int( $days / 7 );
+
+	return $weeks." week".($weeks>1?"s":"");
+}
 
 ######################################################################
 # Redirect as this function has been moved.

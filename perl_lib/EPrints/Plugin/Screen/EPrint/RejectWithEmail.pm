@@ -63,7 +63,8 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $user = $self->{processor}->{eprint}->get_user();
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $eprint->get_user();
 	# We can't bounce it if there's no user associated 
 
 	if( !defined $user )
@@ -116,21 +117,28 @@ sub render
 	$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
 	$reason->appendChild( $textarea );
 
+
 	# remove any markup:
 	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
-			$self->{processor}->{eprint}->render_description() ) );
-	
+			$eprint->render_description() ) );
+
+	my $eprintid = $eprint->get_id;
+	my $home = $self->{session}->get_repository->get_conf( "userhome" );
+	my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+	my $edit_link = $self->{session}->render_link( $target );
+
 	my $content = $self->{session}->html_phrase(
 		"mail_bounce_body",
 		title => $title,
-		reason => $reason );
+		reason => $reason,
+		edit_link => $edit_link );
 
 	my $body = $self->{session}->html_phrase(
 		"mail_body",
 		content => $content );
 
-	my $to_user = $self->{processor}->{eprint}->get_user();
+	my $to_user = $user;
 	my $from_user =$self->{session}->current_user;
 
 	my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
@@ -160,12 +168,13 @@ sub action_send
 {
 	my( $self ) = @_;
 
-	my $user = $self->{processor}->{eprint}->get_user();
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $eprint->get_user();
 	# We can't bounce it if there's no user associated 
 
 	$self->{processor}->{screenid} = "EPrint::View";
 
-	if( !$self->{processor}->{eprint}->move_to_inbox )
+	if( !$eprint->move_to_inbox )
 	{
 		$self->{processor}->add_message( 
 			"error",
@@ -183,13 +192,19 @@ sub action_send
 	
 	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
-			$self->{processor}->{eprint}->render_description() ) );
+			$eprint->render_description() ) );
 	
-	my $content = $self->{session}->html_phrase( 
+	my $eprintid = $eprint->get_id;
+	my $home = $self->{session}->get_repository->get_conf( "userhome" );
+	my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+	my $edit_link = $self->{session}->render_link( $target );
+
+	my $content = $self->{session}->html_phrase(
 		"mail_bounce_body",
-		title => $title, 
+		title => $title,
 		reason => $self->{session}->make_text( 
-			$self->{session}->param( "reason" ) ) );
+			$self->{session}->param( "reason" ) ),
+		edit_link => $edit_link );
 
 	my $mail_ok = $user->mail(
 		"cgi/users/edit_eprint:subject_bounce",
@@ -209,7 +224,7 @@ sub action_send
 	$self->{processor}->add_message( "message",
 		$self->{session}->html_phrase( 
 			"cgi/users/edit_eprint:mail_sent" ) );
-	$self->{processor}->{eprint}->log_mail_owner( $mail );
+	$eprint->log_mail_owner( $mail );
 }
 
 
