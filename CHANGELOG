@@ -5414,3 +5414,8 @@ PACKAGE: 2.2.99.2
  * Added get_surround to component. This returns the relevant Surround object 
     (Default if none is specified).
  * Tidied the %params bit in Stage.pm a little.
+
+2006-11-15 moj
+ * Removed 10_core.pl, database.pl, and archive_name.xml from the repository 
+    - they are created by epadmin, and otherwise get in the way when making 
+    commits.
