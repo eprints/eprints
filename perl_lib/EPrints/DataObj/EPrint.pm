@@ -321,7 +321,7 @@ sub get_gid
 {
 	my( $self ) = @_;
 
-	my $session = $self->session;
+	my $session = $self->get_session;
 
 	return EPrints::OpenArchives::to_oai_identifier(
 		$session->get_repository->get_conf(
