@@ -180,7 +180,7 @@ $c->{fields}->{eprint} = [
 	},
 
 # nb. Can't call this field "references" because that's a MySQL keyword.
-	{ name => "referencetext", type => "longtext", input_rows => 3 },
+	{ name => "referencetext", type => "longtext", input_rows => 15 },
 
 ];
 

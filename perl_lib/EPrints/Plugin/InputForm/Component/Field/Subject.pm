@@ -208,15 +208,6 @@ sub _do_search
 		"EQ" );
 
 	return $searchexp->perform_search;
-#	$self->{results} = $self->_format_subjects(
-#		table_class => "ep_subjectinput_results",
-#		subject_class => "ep_subjectinput_results_subject",
-#		button_class => "ep_subjectinput_results_add",
-#		button_text => $self->phrase( "add" ),
-#		button_id => "add",
-#		hide_selected => 1,
-#		subjects => \@records );
-	
 }
 
 # Params:
@@ -285,9 +276,11 @@ sub _render_search
 			class=>"ep_form_text",
 			name=>$prefix."_searchtext", 
 			type=>"text", 
-			value=>$self->{search} ),
+			value=>$self->{search},
+			onKeyPress=>"return EPJS_enter_click( event, '_internal_".$prefix."_search' )" ),
 		search_button=>$session->render_button( 
 			name=>"_internal_".$prefix."_search",
+			id=>"_internal_".$prefix."_search",
 			value=>$self->phrase( "search_search_button" ) ),
 		clear_button=>$session->render_button(
 			name=>"_internal_".$prefix."_clear",
