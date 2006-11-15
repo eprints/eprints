@@ -1,0 +1,230 @@
+package EPrints::Plugin::Export::MODS;
+
+use strict;
+use warnings;
+
+use EPrints::Plugin::Export;
+our @ISA = qw( EPrints::Plugin::Export );
+
+our $PREFIX = "mods:";
+
+sub new
+{
+	my( $class, %opts ) = @_;
+
+	my $self = $class->SUPER::new( %opts );
+
+	$self->{name} = "MODS";
+	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{visible} = "all";
+	$self->{suffix} = ".xml";
+	$self->{mimetype} = "text/xml";
+	
+	$self->{xmlns} = "http://www.loc.gov/mods/v3";
+	$self->{schemaLocation} = "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd";
+
+	return $self;
+}
+
+sub output_dataobj
+{
+	my( $plugin, $dataobj ) = @_;
+
+	my $xml = $plugin->xml_dataobj( $dataobj );
+
+	return EPrints::XML::to_string( $xml );
+}
+
+
+sub xml_dataobj
+{
+	my( $plugin, $dataobj ) = @_;
+
+	my $session = $plugin->{ session };
+
+	my $nsp = "xmlns:${PREFIX}";
+	chop($nsp); # Remove the ':'
+	my $mods = $session->make_element(
+		"${PREFIX}mods",
+		"version" => "3.0",
+		$nsp => $plugin->{ xmlns },
+		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+		"xsi:schemaLocation" => ($plugin->{ xmlns } . ' ' . $plugin->{ schemaLocation }),
+	);
+
+	# title
+	$mods->appendChild( _make_title( $session, $dataobj ));
+
+	# creators
+	$mods->appendChild( _make_creators( $session, $dataobj ));
+
+	# abstract
+	$mods->appendChild( _make_abstract( $session, $dataobj ));
+
+	# subjects
+	$mods->appendChild( _make_subjects( $session, $dataobj ));
+	
+	# date_issue
+	$mods->appendChild( _make_issue_date( $session, $dataobj ));
+
+	# publisher
+	$mods->appendChild( _make_publisher( $session, $dataobj ));
+	
+	# genre
+	$mods->appendChild( _make_genre( $session, $dataobj ));
+	
+	return $mods;
+}
+
+sub _make_title
+{
+	my( $session, $dataobj ) = @_;
+
+	my $val = $dataobj->get_value( "title" );
+	return $session->make_doc_fragment unless defined $val;
+	
+	my $titleInfo = $session->make_element( "${PREFIX}titleInfo" );
+	$titleInfo->appendChild( my $title = $session->make_element( "${PREFIX}title" ));
+	$title->appendChild( $session->make_text( $val ));
+	
+	return $titleInfo;
+}
+
+sub _make_creators
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $frag = $session->make_doc_fragment;
+	
+	my $creators = $dataobj->get_value( "creators_name" );
+	return $frag unless defined $creators;
+
+	foreach my $creator ( @{$creators} )
+	{	
+		next if !defined $creator;
+		$frag->appendChild(my $name = $session->make_element(
+			"${PREFIX}name",
+			"type" => "personal"
+		));
+		$name->appendChild(my $given = $session->make_element(
+			"${PREFIX}namePart",
+			"type" => "given"
+		));
+		$given->appendChild( $session->make_text( $creator->{ given } ));
+		$name->appendChild(my $family = $session->make_element(
+			"${PREFIX}namePart",
+			"type" => "family"
+		));
+		$family->appendChild( $session->make_text( $creator->{ family } ));
+		$name->appendChild(my $role = $session->make_element(
+			"${PREFIX}role",
+		));
+		$role->appendChild( my $roleTerm = $session->make_element(
+			"${PREFIX}roleTerm",
+			"type" => "text"
+		));
+		$roleTerm->appendChild( $session->make_text( "author" ));
+	}
+
+	return $frag;
+}
+
+sub _make_abstract
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $val = $dataobj->get_value( "abstract" );
+	return $session->make_doc_fragment unless defined $val;
+	
+	my $abstract = $session->make_element( "${PREFIX}abstract" );
+	$abstract->appendChild( $session->make_text( $val ));
+	
+	return $abstract;
+}
+
+sub _make_subjects
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $frag = $session->make_doc_fragment;
+	
+	my $subjects = $dataobj->get_value("subjects");
+	return $frag unless defined $subjects;
+	
+	foreach my $val (@$subjects)
+	{
+		my $subject = EPrints::DataObj::Subject->new( $session, $val );
+		next unless defined $subject;
+		$frag->appendChild( my $classification = $session->make_element(
+			"${PREFIX}classification",
+			"authority" => "lcc"
+		));
+		$classification->appendChild( $session->make_text(
+			EPrints::XML::to_string($subject->render_description)
+		));
+	}
+	
+	return $frag;
+}
+
+sub _make_issue_date
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $val = $dataobj->get_value( "date" );
+	return $session->make_doc_fragment unless defined $val;
+	
+	$val =~ s/(-0+)+$//;
+	
+	my $originInfo = $session->make_element( "${PREFIX}originInfo" );
+	$originInfo->appendChild( my $dateIssued = $session->make_element(
+		"${PREFIX}dateIssued",
+		"encoding" => "iso8061"
+	));
+	$dateIssued->appendChild( $session->make_text( $val ));
+	
+	return $originInfo;
+}
+
+sub _make_publisher
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $val;
+	
+	my $type = lc($dataobj->get_value( "type" ));
+	if( $type eq "thesis" and $dataobj->is_set( "institution" ) )
+	{
+		$val = $dataobj->get_value( "institution" );
+		if( $dataobj->is_set( "department" ))
+		{
+			$val .= ";" . $dataobj->get_value( "department" );
+		}
+	}
+	else
+	{
+		$val = $dataobj->get_value( "publisher" );		
+	}
+	
+	return $session->make_doc_fragment unless defined $val;	
+	
+	my $originInfo = $session->make_element( "${PREFIX}originInfo" );
+	$originInfo->appendChild( my $pub = $session->make_element( "${PREFIX}publisher" ));
+	$pub->appendChild( $session->make_text( $val ));
+	
+	return $originInfo;
+}
+
+sub _make_genre
+{
+	my( $session, $dataobj ) = @_;
+	
+	my $ds = $dataobj->get_dataset;
+	my $val = $ds->get_type_name( $session, $dataobj->get_value( "type" ));
+	my $genre = $session->make_element( "${PREFIX}genre" );
+	$genre->appendChild( $session->make_text( $val ));
+	
+	return $genre; 
+}
+
+1;
