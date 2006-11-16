@@ -5428,3 +5428,6 @@ PACKAGE: 2.2.99.2
  * The registration mail now says how long the user has to confirm registration.
  * The reject email now has a link to the edit page.
  * Tidied up Reject/Remove a little.
+
+2006-11-16 tdb
+ * Added export plugins for METS and MODS

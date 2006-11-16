@@ -15,6 +15,8 @@ This plugin is based on work by Jon Bell, UWA.
 use strict;
 use warnings;
 
+use EPrints::Plugin::Convert; # for mime_type
+
 use EPrints::Plugin::Export;
 our @ISA = qw( EPrints::Plugin::Export );
 
@@ -57,18 +59,26 @@ sub xml_dataobj
 
 	my $id = $dataobj->get_gid;
 
-	my $mods_plugin = $plugin->{session}->plugin( "Export::MODS" );
+	my $mods_plugin = $session->plugin( "Export::MODS" )
+		or die "Couldn't get Export::MODS plugin";
+	my $conv_plugin = $session->plugin( "Convert" )
+		or die "Couldn't get Convert plugin";
 	
 	my $nsp = "xmlns:${PREFIX}";
 	chop($nsp); # remove the trailing ':'
+	my $mods_nsp = "xmlns:${MODS_PREFIX}";
+	chop($mods_nsp); # remove the trailing ':'
 	my $mets = $session->make_element(
 		"${PREFIX}mets",
 		"OBJID" => $id,
 		"LABEL" => "Eprints Item",
 		$nsp => $plugin->{ xmlns },
+		$mods_nsp => $mods_plugin->{ xmlns },
 		"xmlns:xlink" => "http://www.w3.org/1999/xlink",
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
-		"xsi:schemaLocation" => $plugin->{ xmlns } . " " . $plugin->{ schemaLocation },				
+		"xsi:schemaLocation" =>
+			$plugin->{ xmlns } . " " . $plugin->{ schemaLocation } . " " .
+			$mods_plugin->{ xmlns } . " " . $mods_plugin->{ schemaLocation }				
 	);
 	
 	# metsHdr
@@ -84,14 +94,12 @@ sub xml_dataobj
 		"${PREFIX}mdWrap",
 		"MDTYPE" => "mods"
 	));
-	my $mods = $mods_plugin->xml_dataobj( $dataobj );
+	my $mods = $mods_plugin->xml_dataobj( $dataobj, $MODS_PREFIX );
 	$mods_mdWrap->appendChild( my $xmlData = $session->make_element(
 		"${PREFIX}xmlData"
 	));
-	foreach my $node ($mods->childNodes)
-	{
-		$xmlData->appendChild( $node );
-	}
+	# copy in the child nodes (we don't need to repeat the MODS namespace)
+	$xmlData->appendChild( $_ ) for ($mods->childNodes);
 	
 	# amdSec
 	my $amd_id = "TMD_".$id;
@@ -99,7 +107,7 @@ sub xml_dataobj
 	$mets->appendChild( _make_amdSec( $session, $dataobj, $amd_id, $rights_id ));
 	
 	# fileSec
-	$mets->appendChild( _make_fileSec( $session, $dataobj, $id ));
+	$mets->appendChild( _make_fileSec( $session, $dataobj, $id, $conv_plugin ));
 	
 	# structMap
 	$mets->appendChild( _make_structMap( $session, $dataobj, $id, $mods_id, $amd_id ));
@@ -111,7 +119,7 @@ sub _make_header
 {
 	my( $session, $dataobj ) = @_;
 	
-	my $time = EPrints::Utils::get_iso_timestamp;
+	my $time = EPrints::Utils::get_iso_timestamp();
 	my $repo = $session->get_repository;
 	
 	my $header = $session->make_element(
@@ -165,8 +173,8 @@ sub _make_amdSec
 
 sub _make_fileSec
 {
-	my( $session, $dataobj, $id ) = @_;
-	
+	my( $session, $dataobj, $id, $conv_plugin ) = @_;
+
 	my $fileSec = $session->make_element(
 		"${PREFIX}fileSec"
 	);
@@ -187,7 +195,9 @@ sub _make_fileSec
 		{
 			$file_idx++;
 			my $url = $baseurl . $name;
-			my $mimetype = "TODO: FIXME!!!";
+			my $filepath = $doc->local_path . "/" . $name;
+			my $mimetype = EPrints::Plugin::Convert::mime_type( $filepath );
+			$mimetype = 'application/octet-stream' unless defined $mimetype;
 
 			$fileGrp->appendChild( my $file = $session->make_element(
 				"${PREFIX}file",

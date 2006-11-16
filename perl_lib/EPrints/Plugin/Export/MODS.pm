@@ -38,9 +38,12 @@ sub output_dataobj
 
 sub xml_dataobj
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $plugin, $dataobj, $prefix ) = @_;
 
 	my $session = $plugin->{ session };
+
+	$PREFIX = $prefix
+		if defined( $prefix );	
 
 	my $nsp = "xmlns:${PREFIX}";
 	chop($nsp); # Remove the ':'
@@ -72,6 +75,8 @@ sub xml_dataobj
 	
 	# genre
 	$mods->appendChild( _make_genre( $session, $dataobj ));
+	
+	$PREFIX = "mods:";
 	
 	return $mods;
 }
@@ -220,7 +225,8 @@ sub _make_genre
 	my( $session, $dataobj ) = @_;
 	
 	my $ds = $dataobj->get_dataset;
-	my $val = $ds->get_type_name( $session, $dataobj->get_value( "type" ));
+	my $val = $session->phrase( $ds->confid()."_typename_".$dataobj->get_type() );
+	
 	my $genre = $session->make_element( "${PREFIX}genre" );
 	$genre->appendChild( $session->make_text( $val ));
 	
