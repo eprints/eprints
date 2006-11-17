@@ -5471,3 +5471,7 @@ PACKAGE: 2.2.99.2
 2006-11-17 cjg
  * Added results citation for users which fixed a render bug.
  * Fixed bug in saved search xml export (from within user xml)
+
+2006-11-17 cjg
+ * Removed RequestWrapper
+ * Fixed non-cookie login to use db authentication. maybe.

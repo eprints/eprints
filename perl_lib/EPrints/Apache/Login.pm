@@ -18,7 +18,10 @@ sub handler
 
 	if( defined $username )
 	{
-		my $valid_login_handler = \&valid_login;
+		my $valid_login_handler = sub { 
+			my( $session,$username,$password ) = @_;
+			return $session->get_database->valid_login( $username, $password );
+		};
 		if( $session->get_repository->can_call( "check_user_password" ) )
 		{
 			$valid_login_handler = $session->get_repository->get_conf( "check_user_password" );
@@ -50,25 +53,6 @@ sub handler
 
 	return DONE;
 
-}
-
-
-sub valid_login
-{
-	my( $session, $username, $password ) = @_;
-
-	my $sql = "SELECT password FROM user WHERE username='".EPrints::Database::prep_value($username)."'";
-
-	my $sth = $session->get_database->prepare( $sql );
-	$session->get_database->execute( $sth , $sql );
-	my( $real_password ) = $sth->fetchrow_array;
-	$sth->finish;
-
-	return 0 if( !defined $real_password );
-
-	my $salt = substr( $real_password, 0, 2 );
-
-	return $real_password eq crypt( $password , $salt );
 }
 
 

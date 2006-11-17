@@ -111,7 +111,6 @@ if( defined $av && $av eq "2" )
 	};
 
 	my @modules = ( 
-		'EPrints::Apache::AnApache::RequestWrapper2', 
 		'ModPerl::Registry' 
 	);
 	if( $EPrints::Apache::AnApache::ModPerlAPI == 1 )
@@ -135,8 +134,6 @@ if( defined $av && $av eq "2" )
 		next unless( $@ );
 		die "Error loading module $module:\n$@";
 	}
-
-	$EPrints::Apache::AnApache::RequestWrapper = "EPrints::Apache::AnApache::RequestWrapper2"; 
 
 	eval '
 
@@ -194,10 +191,8 @@ else
 
 		die;
 	};
-	eval "require EPrints::Apache::AnApache::RequestWrapper"; if( $@ ) { die $@; }
 	eval "require Apache::Registry"; if( $@ ) { die $@; }
 	eval "require Apache::Constants; "; if( $@ ) { die $@; }
-	$EPrints::Apache::AnApache::RequestWrapper = "EPrints::Apache::AnApache::RequestWrapper"; 
 	eval '
 
 		sub OK { &Apache::Constants::OK; }

@@ -2725,6 +2725,25 @@ sub pad_date
 	return sprintf("%04d-%02d-%02d",$y,$m,$d);
 }
 
+sub valid_login
+{
+	my( $self, $username, $password ) = @_;
+
+	my $sql = "SELECT password FROM user WHERE username='".EPrints::Database::prep_value($username)."'";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my( $real_password ) = $sth->fetchrow_array;
+	$sth->finish;
+
+	return 0 if( !defined $real_password );
+
+	my $salt = substr( $real_password, 0, 2 );
+
+	return $real_password eq crypt( $password , $salt );
+}
+
+
 ######################################################################
 =pod
 
