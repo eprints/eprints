@@ -383,7 +383,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	my $rc = eval "require Text::Refer";
+	my $rc = EPrints::Utils::require_if_exists("Text::Refer");
 	unless( $rc ) 
 	{
 		$self->{visible} = "";

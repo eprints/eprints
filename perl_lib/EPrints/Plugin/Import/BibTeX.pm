@@ -228,7 +228,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	my $rc = eval "require Text::BibTeX";
+	my $rc = EPrints::Utils::require_if_exists("Text::BibTex");
 	unless( $rc ) 
 	{
 		$self->{visible} = "";
@@ -237,6 +237,8 @@ sub new
 
 	return $self;
 }
+
+		
 
 sub input_list
 {

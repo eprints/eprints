@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "RSS";
+	$self->{name} = "Feed: RSS 1.0";
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".rss";
@@ -41,7 +41,7 @@ sub output_list
 		"xmlns"=>"http://purl.org/rss/1.0/" );
 
 	my $channel = $session->make_element( "channel",
-		"rdf:about"=>"http://www.iamcal.com/rss.php" );
+		"rdf:about"=>$session->get_full_url );
 	$response->appendChild( $channel );
 
 	my $title = $session->phrase( "archive_name" );

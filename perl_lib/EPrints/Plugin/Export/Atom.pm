@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Atom";
+	$self->{name} = "Feed: Atom";
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
@@ -61,7 +61,7 @@ sub output_list
 		"link",
 		"",
 		rel => "self",
-		href => $session->get_repository->get_conf( "frontpage" ) ) );
+		href => $session->get_full_url ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,

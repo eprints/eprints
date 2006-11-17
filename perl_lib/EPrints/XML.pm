@@ -552,4 +552,54 @@ sub contents_of
 	return $f;
 }
 
+
+sub trim_whitespace
+{
+	my( $node, $inner ) = @_;
+
+	$inner = 0 unless defined $inner;
+
+	my $doc = $node->getOwnerDocument;
+	my $text = "";
+	my $first = 1;
+	foreach my $child ( $node->getChildNodes )
+	{
+		if( EPrints::XML::is_dom( $child, "Text" ) )
+		{
+			$node->removeChild( $child );
+			$text .= $child->nodeValue;
+			next;
+		}
+		if( EPrints::XML::is_dom( $child, "Element" ) )
+		{
+			if( $text ne "" )
+			{
+				$text =~ s/[\s\r\n]+/ /g;
+				if( $first )
+				{
+					$first = 0;
+					$text =~ s/^ //;	
+				}
+				$node->insertBefore(
+					$doc->createTextNode( $text ),
+					$child );
+				$text = "";
+			}
+			trim_whitespace( $child );
+		}
+	}
+
+	if( $text ne "" )
+	{
+		$text =~ s/[\s\r\n]+/ /g;
+		if( $first )
+		{
+			$text =~ s/^ //;	
+		}
+		$text =~ s/ $//;	
+		$node->appendChild( $doc->createTextNode( $text ));
+	}
+
+}
+
 1;

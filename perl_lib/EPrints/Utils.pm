@@ -768,7 +768,9 @@ sub render_citation
 	# SavedSearch, if we were better OO people...
 
 	my $collapsed = EPrints::XML::EPC::process( $cstyle, %params );
-	my $r= _render_citation_aux( $collapsed, %params );
+	my $r = _render_citation_aux( $collapsed, %params );
+
+	EPrints::XML::trim_whitespace( $r );
 
 	return $r;
 }
@@ -1504,6 +1506,32 @@ sub human_delay
 	my $weeks = int( $days / 7 );
 
 	return $weeks." week".($weeks>1?"s":"");
+}
+
+
+my $REQUIRED_CACHE = {};
+sub require_if_exists
+{
+	my( $module ) = @_;
+
+	if( defined $REQUIRED_CACHE->{$module} )
+	{
+		return $REQUIRED_CACHE->{$module};
+	}
+
+	$REQUIRED_CACHE->{$module} = 0;
+	my $fp = $module.".pm";
+	$fp =~ s/::/\//g;
+	foreach my $path ( @INC )
+	{
+		if( -e $path."/".$fp )
+		{
+ 			$REQUIRED_CACHE->{$module} = eval "require $module";
+			last;
+		}
+	}
+
+	return $REQUIRED_CACHE->{$module};
 }
 
 ######################################################################

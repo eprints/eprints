@@ -5434,3 +5434,15 @@ PACKAGE: 2.2.99.2
 
 2006-11-17 moj
  * Added export plugin for Atom
+
+2006-11-17 cjg
+ * Added method require_if_exists which requires a perl module if possible, 
+    and caches failures to save time.
+ * Used this to supress warnings in Import plugins
+ * Added XML::trim_whitespace which removes whitespace at the start and end of
+    XML chunks plus converts N whitespace to 1 space.
+ * Used this to tidy up citations.
+ * Added $session->get_full_url to get the, er, full url of the request.
+ * Used this in RSS and ATOM feeds
+ * Renamed feed exports to Feed: foo
+ 
