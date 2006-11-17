@@ -359,6 +359,8 @@ my $htdocs_path = $repository->get_conf( "htdocs_path" );
 my $documents_path = $repository->get_conf( "documents_path" );
 my $host = $repository->get_conf( "host" );
 my $port = $repository->get_conf( "port" );
+my $hostport = $host;
+if( $port != 80 ) { $hostport.=":$port"; }
 my $urlpath = $repository->get_conf( "urlpath" );
 my $userhome = $repository->get_conf( "userhome" );
 my $securehost = $repository->get_conf( "securehost" );
@@ -394,7 +396,7 @@ foreach $aliasinfo ( @{$repository->get_conf( "aliases" )} )
 # Redirect to the correct hostname
 <VirtualHost $virtualhost:$port>
   ServerName $vname
-  Redirect / http://$host/
+  Redirect / http://$hostport/
 </VirtualHost>
 END
 	}
@@ -441,7 +443,7 @@ print CONF <<END;
     ErrorDocument 401 $urlpath/error401.html
     ErrorDocument 404 $urlpath/cgi/handle_404
     PerlSetVar EPrints_ArchiveID $repository_id
-    Redirect /perl/ http://$host/cgi/
+    Redirect /perl/ http://$hostport/cgi/
 
     PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
     PerlSetVar EPrints_Dir_Documents $documents_path
