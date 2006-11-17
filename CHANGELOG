@@ -5445,4 +5445,6 @@ PACKAGE: 2.2.99.2
  * Added $session->get_full_url to get the, er, full url of the request.
  * Used this in RSS and ATOM feeds
  * Renamed feed exports to Feed: foo
- 
+
+2006-11-17 moj
+ * Added export plugin for RSS 2.0
