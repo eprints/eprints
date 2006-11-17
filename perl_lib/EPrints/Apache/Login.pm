@@ -18,15 +18,7 @@ sub handler
 
 	if( defined $username )
 	{
-		my $valid_login_handler = sub { 
-			my( $session,$username,$password ) = @_;
-			return $session->get_database->valid_login( $username, $password );
-		};
-		if( $session->get_repository->can_call( "check_user_password" ) )
-		{
-			$valid_login_handler = $session->get_repository->get_conf( "check_user_password" );
-		}
-		if( &{$valid_login_handler}( $session, $username, $password ) )
+		if( $session->valid_login( $username, $password ) )
 		{
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 			$session->login( $user );

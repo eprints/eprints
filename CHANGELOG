@@ -5475,3 +5475,6 @@ PACKAGE: 2.2.99.2
 2006-11-17 cjg
  * Removed RequestWrapper
  * Fixed non-cookie login to use db authentication. maybe.
+ * Moved DB login code to database, called nicely from 
+    $session->valid_login( $user,$pass)
+

@@ -3398,6 +3398,22 @@ sub login
 }
 
 
+sub valid_login
+{
+	my( $self, $username, $password ) = @_;
+
+	my $valid_login_handler = sub { 
+		my( $session,$username,$password ) = @_;
+		return $session->get_database->valid_login( $username, $password );
+	};
+	if( $self->get_repository->can_call( "check_user_password" ) )
+	{
+		$valid_login_handler = $self->get_repository->get_conf( "check_user_password" );
+	}
+
+	return &{$valid_login_handler}( $self, $username, $password );
+}
+
 
 
 

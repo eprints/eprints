@@ -178,7 +178,7 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
-	return $session->get_database->valid_login( $user_sent, $passwd_sent );
+	return $session->valid_login( $user_sent, $passwd_sent );
 }
 
 sub authz
