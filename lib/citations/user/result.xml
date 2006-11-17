@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<!-- 
+	Result row for user searching.
+-->
+
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control" type="table_row">
+  <tr class="ep_search_result">
+    <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
+    <td style="padding-left: 0.5em">
+      <epc:print expr="$item.citation('default')" />
+    </td>
+  </tr>
+</cite:citation>

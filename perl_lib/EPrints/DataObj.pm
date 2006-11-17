@@ -960,10 +960,10 @@ sub to_xml
 		{
 			my $saved_searches = $self->{session}->make_element( "saved_searches" );
 			$saved_searches->appendChild( $self->{session}->make_text( "\n" ) );
-			foreach my $saved_searches ( $self->get_saved_searches )
+			foreach my $saved_search ( $self->get_saved_searches )
 			{
 				$saved_searches->appendChild( $self->{session}->make_text( "  " ) );
-				$saved_searches->appendChild( $saved_searches->to_xml( %opts ) );
+				$saved_searches->appendChild( $saved_search->to_xml( %opts ) );
 			}	
 			$r->appendChild( $self->{session}->make_text( "\n  " ) );
 			$r->appendChild( $saved_searches );
