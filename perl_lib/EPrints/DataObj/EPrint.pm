@@ -160,6 +160,10 @@ sub get_system_field_info
 	{ name=>"fileinfo", type=>"longtext", 
 		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
 
+	{ name=>"latitude", type=>"float", required=>0 },
+
+	{ name=>"longitude", type=>"float", required=>0 },
+
 	);
 }
 sub render_fileinfo

@@ -192,6 +192,11 @@ sub get_system_field_info
 		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
 
 		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
+
+		{ name=>"latitude", type=>"float", required=>0 },
+
+		{ name=>"longitude", type=>"float", required=>0 },
+
 	)
 };
 

@@ -5464,3 +5464,7 @@ PACKAGE: 2.2.99.2
 
 2006-11-17 cjg
  * Added view-user-history screen.
+
+2006-11-17 cjg
+ * Added latitude and longitude fields to eprints and users.
+

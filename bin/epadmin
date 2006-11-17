@@ -1018,7 +1018,23 @@ sub test
 	$session->terminate;
 
 	print "Everything seems OK.\n";
-}	
+}
+
+
+
+
+
+
+
+
+
+
+
+####################################################################
+#
+#  UPGRADE CODE	
+#
+####################################################################
 
 sub upgrade
 {
@@ -1045,6 +1061,12 @@ sub upgrade
 	{
 		upgrade_3_0_2_to_3_0_3( $repoid, $db );
 		$dbversion="3.0.3";
+		$db->set_version( $dbversion );
+	}
+	if( $dbversion eq "3.0.3" )
+	{
+		upgrade_3_0_3_to_3_0_4( $repoid, $db );
+		$dbversion="3.0.4";
 		$db->set_version( $dbversion );
 	}
 
@@ -1146,6 +1168,51 @@ sub upgrade_3_0_2_to_3_0_3
 
 	$rootdbh->disconnect;
 }
+
+
+
+sub upgrade_3_0_3_to_3_0_4
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE eprint ADD latitude FLOAT AFTER fileinfo";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE eprint ADD longitude FLOAT AFTER latitude";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE user ADD latitude FLOAT AFTER mailempty";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE user ADD longitude FLOAT AFTER latitude";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^eprint__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER fileinfo";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
+			$rootdbh->do( $sql );
+		}
+		if( $table =~ m/^user__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER review_fields";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
+
+
 
 
 
