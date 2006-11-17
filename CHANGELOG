@@ -5431,3 +5431,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-16 tdb
  * Added export plugins for METS and MODS
+
+2006-11-17 moj
+ * Added export plugin for Atom
