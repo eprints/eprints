@@ -5483,3 +5483,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-17 cjg
  * Tidied up field definitions for users & eprints
+
+2006-11-17 cjg
+ * XML::DOM no longer encodes " outside of attributes.

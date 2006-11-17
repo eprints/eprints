@@ -3168,7 +3168,9 @@ sub isReadOnly
 sub print
 {
     my ($self, $FILE) = @_;
-    $FILE->print (XML::DOM::encodeText ($self->getData, '<&>"'));
+    #$FILE->print (XML::DOM::encodeText ($self->getData, '<&>"'));
+    # cjg - don't encode " in text nodes
+    $FILE->print (XML::DOM::encodeText ($self->getData, '<&>'));
 }
 
 sub isTextNode
