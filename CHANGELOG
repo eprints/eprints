@@ -5442,9 +5442,22 @@ PACKAGE: 2.2.99.2
  * Added XML::trim_whitespace which removes whitespace at the start and end of
     XML chunks plus converts N whitespace to 1 space.
  * Used this to tidy up citations.
- * Added $session->get_full_url to get the, er, full url of the request.
  * Used this in RSS and ATOM feeds
  * Renamed feed exports to Feed: foo
 
 2006-11-17 moj
  * Added export plugin for RSS 2.0
+ 
+2006-11-17 cjg
+ * Added Thumbnails convert plugin
+ * Added thumbnails directory for thumbnails
+ * Rewrote fileicon code
+ * fileinfo is now a core field
+ * Added $doc->get_icon_url and $doc->render_icon_link
+ * Added $session->get_full_url to get the, er, full url of the request.
+ * Added New Version and Use as Template actions 
+ * Fixed a bug in loggin of email messages
+ * Added "Message" tab to eprint view
+ * Fixed typo and modified lay-out in ImageMagick.pm
+ * Changed "no reason given" to "no reason was given" - nicer.
+ * Fixed bug with null emails in list_user_emails

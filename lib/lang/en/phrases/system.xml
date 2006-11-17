@@ -70,6 +70,7 @@ EPrints Modules
     <epp:phrase id="history_fieldname_historyid">History ID Number</epp:phrase>
     <epp:phrase id="history_fieldname_timestamp">Timestamp</epp:phrase>
     <epp:phrase id="history_fieldname_userid">User ID Number</epp:phrase>
+    <epp:phrase id="history_fieldname_details">Details</epp:phrase>
     <epp:phrase id="history_search_premble">Search the logs of changes made to records.</epp:phrase>
     <epp:phrase id="history_search_title">History Search</epp:phrase>
 
@@ -1116,6 +1117,9 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Screen/EPrint/History:title">History</epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/EPrint/Messages:title">Messages</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Messages:no_messages">No messages regarding this item.</epp:phrase>
+
     <epp:phrase id="Plugin/Screen/EPrint/View:title">View Item</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/View/Owner:title">View Item</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/View/Owner:deposit">Deposit now!</epp:phrase>
@@ -1124,16 +1128,17 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/EPrint/View:failed">Failed</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/View:no_subclass">render_status should have been subclassed.</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/EPrint/derive_version:title">New version</epp:phrase>
-    <epp:phrase id="Plugin/Screen/EPrint/derive_version:description">Use this to submit a new version of this item. It will create an exact copy which you can then make changes to. This item and the new version will be linked.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/NewVersion:action:new_version:title">New version</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/NewVersion:action:new_version:description">Use this to submit a new version of this item. It will create an exact copy which you can then make changes to. This item and the new version will be linked.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/NewVersion:success">New versions successfully created in your work area. You are now viewing the new version.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/EPrint/UseAsTemplate:action:use_as_template:title">Use as template</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/UseAsTemplate:action:use_as_template:description">Create a new item using this item as a template. There will be no connection between the two items.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/UseAsTemplate:success">New item successfully created in your work area using the previous item as a template. You are now viewing the new item.</epp:phrase>
+
 
     <epp:phrase id="Plugin/Screen/EPrint/request_deletion:title">Request deletion</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/request_deletion:description">Request deletion</epp:phrase>
-
-    <epp:phrase id="Plugin/Screen/EPrint/derive_clone:title">Use as template</epp:phrase>
-    <epp:phrase id="Plugin/Screen/EPrint/derive_clone:description">Create a new item using this item as a template. There will be no connection between the two items.</epp:phrase>
-
-
 
 
     <!-- SavedSearch screens -->

@@ -157,8 +157,29 @@ sub get_system_field_info
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
 
+	{ name=>"fileinfo", type=>"longtext", 
+		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
+
 	);
 }
+sub render_fileinfo
+{
+	my( $session, $field, $value ) = @_;
+
+	my $f = $session->make_doc_fragment;
+	foreach my $icon ( split /\|/ , $value )
+	{
+		my( $imgurl, $url ) = split( /;/, $icon );
+		my $a = $session->render_link( $url );
+		$a->appendChild( $session->make_element( 
+			"img", 
+			src=>$imgurl,
+			border=>0 ));
+		$f->appendChild( $a );
+	}
+
+	return $f;
+};
 
 
 ######################################################################
@@ -558,11 +579,12 @@ sub clone
 		# We assume the new eprint will be a later version of this one,
 		# so we'll fill in the succeeds field, provided this one is
 		# already in the main repository.
-		if( $status eq "archive" || $status eq "deletion" )
-		{
-			$new_eprint->set_value( "succeeds" , 
-				$self->get_value( "eprintid" ) );
-		}
+#		if( $status eq "archive" || $status eq "deletion" )
+#		{
+#		}
+#		cjg disabled this condtion.
+
+		$new_eprint->set_value( "succeeds" , $self->get_value( "eprintid" ) );
 	}
 
 	# Attempt to copy the documents, if appropriate
@@ -585,16 +607,14 @@ sub clone
 	}
 
 	# Now write the new EPrint to the database
-	if( $ok && $new_eprint->commit )
+	unless( $ok && $new_eprint->commit )
 	{
-		return( $new_eprint )
-	}
-	else
-	{
-		# Attempt to remove half-copied version
 		$new_eprint->remove;
 		return( undef );
 	}
+
+
+	return( $new_eprint )
 }
 
 
@@ -692,6 +712,7 @@ sub log_mail_owner
 
 	my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
 	my $details = EPrints::Utils::tree_to_utf8( $mail , 80 );
+
 	$history_ds->create_object( 
 		$self->{session},
 		{
@@ -786,6 +807,14 @@ sub commit
 	$self->{session}->get_repository->call( 
 		"set_eprint_automatic_fields", 
 		$self );
+
+	my @docs = $self->get_all_documents();
+	my @finfo = ();
+	foreach my $doc ( @docs )
+	{
+		push @finfo, $doc->icon_url.";".$doc->get_url;
+	}
+	$self->set_value( "fileinfo", join( "|", @finfo ) );
 
 	if( !$self->is_set( "datestamp" ) && $self->get_value( "eprint_status" ) eq "archive" )
 	{

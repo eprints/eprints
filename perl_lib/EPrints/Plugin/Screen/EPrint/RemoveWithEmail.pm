@@ -191,8 +191,6 @@ sub action_send
 	
 	# Successfully removed, mail the user with the reason
 
-	my $mail = $self->{session}->make_element( "mail" );
-	
 	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
 			$eprint->render_description() ) );
@@ -221,7 +219,7 @@ sub action_send
 	$self->{processor}->add_message( "message",
 		$self->{session}->html_phrase( 
 			"cgi/users/edit_eprint:mail_sent" ) );
-	$eprint->log_mail_owner( $mail );
+	$eprint->log_mail_owner( $content );
 }
 
 

@@ -1,10 +1,10 @@
-package EPrints::Plugin::Convert::ImageMagick;
+package EPrints::Plugin::Convert::Thumbnail;
 
 =pod
 
 =head1 NAME
 
-EPrints::Plugin::Convert::ImageMagick - Example conversion plugin
+EPrints::Plugin::Convert::Thumbnail 
 
 =cut
 
@@ -33,7 +33,6 @@ pnm image/x-portable-anymap
 pbm image/x-portable-bitmap
 pgm image/x-portable-graymap
 ppm image/x-portable-pixmap
-pdf application/pdf
 );
 # formats pref maps mime type to file suffix. Last suffix
 # in the list is used.
@@ -67,10 +66,7 @@ sub can_convert
 	my $fn = $doc->get_main();
 	if( $fn =~ /\.($EXTENSIONS_RE)$/o ) 
 	{
-		for(values %FORMATS) 
-		{
-			$types{$_} = { plugin => $plugin, };
-		}
+		$types{"thumbnail"} = { plugin => $plugin, };
 	}
 
 	return %types;
@@ -83,12 +79,11 @@ sub export
 	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
 
 	# What to call the temporary file
-	my $ext = $FORMATS_PREF{$type};
-	my $fn = $doc->get_main;
-	$fn =~ s/\.\w+$/\.$ext/;
+	my $fn = $doc->get_id.".png";
 	
 	# Call imagemagick to do the conversion
 	system($convert,
+		"-thumbnail","100x50",
 		$doc->local_path . '/' . $doc->get_main,
 		$dir . '/' . $fn
 	);

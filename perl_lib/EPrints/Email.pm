@@ -87,7 +87,7 @@ sub send_mail
 		my $msg = $p{message};
 		$p{message} = $p{session}->html_phrase( 
 			"mail_body",
-			content => $msg );
+			content => $p{session}->clone_for_me($msg,1) );
 	}
 
 	if( !defined $p{from_email} ) 

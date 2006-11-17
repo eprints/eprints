@@ -1177,6 +1177,11 @@ sub commit
 
 	$self->queue_changes;
 
+	if( $self->can_thumbnail )
+	{
+		$self->make_thumbnail;
+	}
+
 	unless( !defined $self->{eprint} || $self->{eprint}->under_construction )
 	{
 		# cause a new new revision of the parent eprint.
@@ -1504,6 +1509,87 @@ sub register_parent
 	my( $self, $parent ) = @_;
 
 	$self->{eprint} = $parent;
+}
+
+
+
+sub icon_url 
+{
+	my( $self ) = @_;
+
+	if( $self->can_thumbnail )
+	{
+		return $self->{session}->get_repository->get_conf( "base_url" ).
+			"/thumbnails/".$self->get_id.".png";
+	}
+
+	my $type = $self->get_value( "format" );
+	$type =~ s/\//_/g;
+
+	return $self->{session}->get_repository->get_conf( "base_url" ).
+			"/style/images/fileicons/$type.png";
+}
+
+sub render_icon_link
+{
+	my( $self ) = @_;
+
+	my $a = $self->{session}->render_link( $self->get_url );
+	$a->appendChild( $self->{session}->make_element( 
+		"img", 
+		src=>$self->icon_url,
+		border=>0 ));
+
+	return $a;
+}
+
+sub can_thumbnail
+{
+	my( $self ) = @_;
+
+	if( !$self->thumbnail_plugin_def ) 
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+sub thumbnail_plugin_def
+{
+	my( $self ) = @_;
+
+	my $convert = $self->{session}->plugin( "Convert" );
+	my %types = $convert->can_convert( $self );
+
+	return $types{'thumbnail'};
+}
+
+
+sub make_thumbnail
+{
+	my( $self ) = @_;
+
+	my $src = $self->local_path."/".$self->get_value( "main" );
+	
+	my $tgtdir = $self->{session}->get_repository->get_conf( "archiveroot" )."/thumbnails";
+	my $tgt = "$tgtdir/".$self->get_id.".png";
+
+	# check mtime:q
+	my @s1 = stat( $src );
+	my @s2 = stat( $tgt );
+    	if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
+	{
+		# src file is older than thumbnail
+		return;
+	}
+
+	EPrints::Platform::mkdir( $tgtdir );
+	
+	my $plugin_def = $self->thumbnail_plugin_def;
+
+	# make a thumbnail
+	$plugin_def->{ "plugin" }->export( $tgtdir, $self, 'thumbnail' );
 }
 
 1;

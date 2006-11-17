@@ -97,16 +97,12 @@ $c->{eprint_render} = sub
 		{
 			$doctr = $session->make_element( "tr" );
 	
-			$doctd = $session->make_element( "td" );
+			$doctd = $session->make_element( "td", valign=>"top" );
 			$doctr->appendChild( $doctd );
-			$doctd->appendChild( 
-				$session->get_repository->call( "render_fileicon", 
-					$session, 
-					$doc->get_type, 
-					$doc->get_url ) );
+			$doctd->appendChild( $doc->render_icon_link );
 	
-			$doctd = $session->make_element( "td" );
-				$doctr->appendChild( $doctd );
+			$doctd = $session->make_element( "td", valign=>"top" );
+			$doctr->appendChild( $doctd );
 			$doctd->appendChild( $doc->render_citation_link() );
 			my %files = $doc->files;
 			if( defined $files{$doc->get_main} )

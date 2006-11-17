@@ -22,7 +22,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "EP3 XML with Files Embeded";
-	$self->{accept} = [ 'list/*', 'dataobj/*' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
 
 	# this module outputs the files of an eprint with
 	# no regard to the security settings so should be 

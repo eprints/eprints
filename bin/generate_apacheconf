@@ -363,6 +363,7 @@ my $urlpath = $repository->get_conf( "urlpath" );
 my $userhome = $repository->get_conf( "userhome" );
 my $securehost = $repository->get_conf( "securehost" );
 my $securepath = '';
+my $archiveroot = $repository->get_conf( "archiveroot" );
 if( EPrints::Utils::is_set( $securehost ) )
 {
 	$securepath = $repository->get_conf( "securepath" );
@@ -432,6 +433,7 @@ if( $repository->get_conf( "use_mimetex" ) )
 }
 
 print CONF <<END;
+  Alias $urlpath/thumbnails/ $archiveroot/thumbnails/
   Alias $urlpath/cgi $cgidir
   Alias $urlpath/ $htdocs_path/
 

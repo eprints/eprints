@@ -299,13 +299,20 @@ sub render_export_select
 	}
 
 	my $select = $self->{session}->make_element( "select", name=>"_output" );
-	foreach my $plugin_id ( @plugins ) {
+	my $options = {};
+	foreach my $plugin_id ( @plugins ) 
+	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
 		my $option = $self->{session}->make_element( "option", value=>$id );
 		my $plugin = $self->{session}->plugin( $plugin_id );
-		$option->appendChild( $plugin->render_name );
-		$select->appendChild( $option );
+		my $dom_name = $plugin->render_name;
+		$option->appendChild( $dom_name );
+		$options->{EPrints::XML::to_string($dom_name)} = $option;
+	}
+	foreach my $optname ( sort keys %{$options} )
+	{
+		$select->appendChild( $options->{$optname} );
 	}
 	my $button = $self->{session}->make_doc_fragment;
 	$button->appendChild( $self->{session}->render_button(

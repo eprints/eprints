@@ -1111,9 +1111,10 @@ my $PRIVMAP =
 		"eprint/inbox/export" => 4,
 		"eprint/inbox/details" => 4,
 		"eprint/inbox/history" => 4,
+		"eprint/inbox/messages" => 4,
 	
 		"eprint/inbox/deposit" => 4,
-		"eprint/inbox/derive_clone" => 4,
+		"eprint/inbox/use_as_template" => 4,
 		"eprint/inbox/derive_version" => 4,
 	
 	
@@ -1123,9 +1124,10 @@ my $PRIVMAP =
 		"eprint/buffer/export" => 4,
 		"eprint/buffer/details" => 4,
 		"eprint/buffer/history" => 4,
+		"eprint/buffer/messages" => 4,
 	
 		"eprint/buffer/request_deletion" => 4,
-		"eprint/buffer/derive_clone" => 4,
+		"eprint/buffer/use_as_template" => 4,
 		"eprint/buffer/derive_version" => 4,
 	
 	
@@ -1134,9 +1136,10 @@ my $PRIVMAP =
 		"eprint/archive/export" => 4,
 		"eprint/archive/details" => 4,
 		"eprint/archive/history" => 4,
+		"eprint/archive/messages" => 4,
 	
 		"eprint/archive/request_deletion" => 4,
-		"eprint/archive/derive_clone" => 4,
+		"eprint/archive/use_as_template" => 4,
 		"eprint/archive/derive_version" => 4,
 	
 
@@ -1145,8 +1148,9 @@ my $PRIVMAP =
 		"eprint/deletion/export" => 4,
 		"eprint/deletion/details" => 4,
 		"eprint/deletion/history" => 4,
+		"eprint/deletion/messages" => 4,
 	
-		"eprint/deletion/derive_clone" => 4,
+		"eprint/deletion/use_as_template" => 4,
 		"eprint/deletion/derive_version" => 4,
 	},
 
@@ -1159,11 +1163,12 @@ my $PRIVMAP =
 		"eprint/inbox/staff/export" => 8,
 		"eprint/inbox/staff/details" => 8,
 		"eprint/inbox/history" => 8,
+		"eprint/inbox/messages" => 8,
 
 		"eprint/inbox/remove_with_email" => 8,
 		"eprint/inbox/move_archive" => 8,
 		"eprint/inbox/move_buffer" => 8,
-		"eprint/inbox/derive_clone" => 8,
+		"eprint/inbox/use_as_template" => 8,
 		"eprint/inbox/derive_version" => 8,
 		"eprint/inbox/staff/edit" => 8,
 
@@ -1173,12 +1178,13 @@ my $PRIVMAP =
 		"eprint/buffer/staff/export" => 8,
 		"eprint/buffer/staff/details" => 8,
 		"eprint/buffer/history" => 8,
+		"eprint/buffer/messages" => 8,
 
 		"eprint/buffer/remove_with_email" => 8,
 		"eprint/buffer/reject_with_email" => 8,
 		"eprint/buffer/move_inbox" => 8,
 		"eprint/buffer/move_archive" => 8,
-		"eprint/buffer/derive_clone" => 8,
+		"eprint/buffer/use_as_template" => 8,
 		"eprint/buffer/derive_version" => 8,
 		"eprint/buffer/staff/edit" => 8,
 
@@ -1188,10 +1194,11 @@ my $PRIVMAP =
 		"eprint/archive/staff/export" => 8,
 		"eprint/archive/staff/details" => 8,
 		"eprint/archive/history" => 8,
+		"eprint/archive/messages" => 8,
 
 		"eprint/archive/move_buffer" => 8,
 		"eprint/archive/move_deletion" => 8,
-		"eprint/archive/derive_clone" => 8,
+		"eprint/archive/use_as_template" => 8,
 		"eprint/archive/derive_version" => 8,
 		"eprint/archive/staff/edit" => 8,
 
@@ -1201,9 +1208,10 @@ my $PRIVMAP =
 		"eprint/deletion/staff/export" => 8,
 		"eprint/deletion/staff/details" => 8,
 		"eprint/deletion/history" => 8,
+		"eprint/deletion/messages" => 8,
 
 		"eprint/deletion/move_archive" => 8,
-		"eprint/deletion/derive_clone" => 8,
+		"eprint/deletion/use_as_template" => 8,
 		"eprint/deletion/derive_version" => 8,
 		#"eprint/archive/staff/edit" => 8,
 	},

@@ -685,6 +685,44 @@ sub get_uri
 	return( $self->{"request"}->uri );
 }
 
+######################################################################
+=pod
+
+=item $uri = $session->get_full_url
+
+Returns the URL of the current script plus the CGI params.
+
+=cut
+######################################################################
+
+sub get_full_url
+{
+	my( $self ) = @_;
+
+	return undef unless defined $self->{request};
+
+
+	my @params = $self->param;
+	my $host = $self->{repository}->get_conf( "host" );
+	my $port = $self->{repository}->get_conf( "port" );
+	my $url = "http://$host".($port!=80?":$port":"").$self->{"request"}->uri;
+	if( scalar @params == 0 )
+	{
+		return $url;
+	}
+	my @param_list = ();
+	foreach my $param ( @params )
+	{
+		my $value = $self->param( $param );
+		$param =~ s/([^a-zA-Z0-9])/sprintf( "%%%02X", ord( $1 ) )/eg;
+		$value =~ s/([^a-zA-Z0-9])/sprintf( "%%%02X", ord( $1 ) )/eg;
+		push @param_list, $param."=".$value;
+	}
+
+	return $url."?".join( "&", @param_list );
+}
+
+
 
 ######################################################################
 =pod

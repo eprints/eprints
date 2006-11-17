@@ -31,6 +31,9 @@ $session->terminate();
 sub print_user_email
 {
 	my( $session, $dataset, $user ) = @_;
-	
-	print $user->get_value( "email" )."\n";
+
+	if( $user->is_set( "email" ) )
+	{
+		print $user->get_value( "email" )."\n";
+	}
 }

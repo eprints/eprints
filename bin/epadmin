@@ -1041,6 +1041,12 @@ sub upgrade
 		$dbversion="3.0.2";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.2" )
+	{
+		upgrade_3_0_2_to_3_0_3( $repoid, $db );
+		$dbversion="3.0.3";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1051,14 +1057,8 @@ sub upgrade_3_0_to_3_0_1
 	my( $repoid, $db ) = @_;
 
 	my $rootdbh = root_dbh( $repoid );
-
-	if( !defined $rootdbh )
-	{
-		die "Could not open database as root";
-	}
-
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
 	my @tables = $db->get_tables;
-	
 	my $sql;
 
 	$sql = "ALTER TABLE saved_search ADD public set('TRUE','FALSE') default 'FALSE' AFTER mailempty";
@@ -1096,14 +1096,8 @@ sub upgrade_3_0_1_to_3_0_2
 	my( $repoid, $db ) = @_;
 
 	my $rootdbh = root_dbh( $repoid );
-
-	if( !defined $rootdbh )
-	{
-		die "Could not open database as root";
-	}
-
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
 	my @tables = $db->get_tables;
-	
 	my $sql;
 
 	$sql = "ALTER TABLE saved_search ADD name VARCHAR(255) NOT NULL AFTER pos";
@@ -1123,6 +1117,38 @@ sub upgrade_3_0_1_to_3_0_2
 
 	$rootdbh->disconnect;
 }
+
+sub upgrade_3_0_2_to_3_0_3
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE eprint DROP fileinfo";
+	$rootdbh->do( $sql );
+
+	$sql = "ALTER TABLE eprint ADD fileinfo TEXT AFTER contact_email";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^eprint__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table DROP fileinfo";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD fileinfo TEXT AFTER contact_email",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
+
 
 
 

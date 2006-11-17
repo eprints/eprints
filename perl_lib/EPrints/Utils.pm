@@ -184,6 +184,17 @@ sub render_short_date
 	return _render_date( $session, $datevalue, 1 );
 }
 
+sub datestring_to_timet
+{
+	my( $session, $datevalue, $short ) = @_;
+
+	my( $year,$mon,$day,$hour,$min,$sec ) = split /[- :TZ]/, $datevalue;
+
+	my $t = timegm_nocheck $sec||0,$min||0,$hour,$day,$mon-1,$year-1900;
+
+	return $t;
+}
+
 sub _render_date
 {
 	my( $session, $datevalue, $short ) = @_;

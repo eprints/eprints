@@ -82,7 +82,7 @@ sub handler
 	my $econf = $repository->get_conf('rewrite_exceptions');
 	my @exceptions = ();
 	if( defined $econf ) { @exceptions = @{$econf}; }
-	push @exceptions, '/cgi/';
+	push @exceptions, '/cgi/', '/thumbnails/';
 
 	my $securehost = $repository->get_conf( "securehost" );
 	if( EPrints::Utils::is_set( $securehost ) && !$secure )
