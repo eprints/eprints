@@ -5480,3 +5480,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-17 cjg
  * Fixed bug in redirecting /perl/ if port!=80
+
+2006-11-17 cjg
+ * Tidied up field definitions for users & eprints
