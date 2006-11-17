@@ -1031,6 +1031,9 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:save">Save and Exit</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/Staff/Edit:stop">Exit</epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/User/History:title">User History</epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/History:description">View all the changes to items caused by this user.</epp:phrase>
+
     <epp:phrase id="Plugin/Screen/NewUser:blurb"><p>Create a new user account.</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:title">Create user</epp:phrase>
     <epp:phrase id="Plugin/Screen/NewUser:description">Create a new user account</epp:phrase>
@@ -1168,6 +1171,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/User/SaveSearch:not_your_search">That search has expired or was not created by you!</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Public/SavedSearch:not_public">This saved search is not available to the public.</epp:phrase>
+
 
     <!-- other screens -->
 

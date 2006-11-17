@@ -1081,6 +1081,7 @@ my $PRIVMAP =
 		"indexer/start" => 2,
 		"indexer/force_start" => 2,
 		"user/view" => 8,
+		"user/history" => 8,
 		"user/staff/edit" => 8,
 		"create_user" => 2,
 		# "subject/edit" => 8,
@@ -1102,6 +1103,7 @@ my $PRIVMAP =
 	{
 		"items" => 2,
 		"create_eprint" => 2,
+		"user/history" => 4,
 	
 		"eprint/inbox/view" => 4,
 		"eprint/inbox/summary" => 4,

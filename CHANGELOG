@@ -5461,3 +5461,6 @@ PACKAGE: 2.2.99.2
  * Fixed typo and modified lay-out in ImageMagick.pm
  * Changed "no reason given" to "no reason was given" - nicer.
  * Fixed bug with null emails in list_user_emails
+
+2006-11-17 cjg
+ * Added view-user-history screen.
