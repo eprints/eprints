@@ -148,7 +148,7 @@
     <epc:if test="type = 'conference_item'">
       <component type="Field::Multi">
         <title>Event Details</title>
-        <field ref="event_title" required="yes" />
+        <field ref="event_title" input_lookup_url="{$config{perl_url}}/users/lookup/event_by_name" required="yes" />
         <field ref="event_type" required="yes" />
         <field ref="event_location"/>
         <field ref="event_dates"/>

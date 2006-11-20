@@ -5524,3 +5524,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-20 cjg
  * Changed METS to call getChildNodes rather than childNodes
+
+2006-11-20 moj
+ * Added inital version of event_by_name (passes back the event
+    type, but this isn't handled by the autocompleter script 
+    yet)
