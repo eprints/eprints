@@ -32,7 +32,7 @@ $c->notes->set( show_404 => undef );
 
 if( defined($show) and !$show )
 {
-	print STDERR "cgi/handle_404: Normal 404 message suppressed by show_404 => 0\n";
+	$session->terminate();
 	exit( 0 );
 }
 

@@ -2601,6 +2601,36 @@ sub redirect
 	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
 }
 
+######################################################################
+=pod
+
+=item $session->not_found( [ $message ] )
+
+Send a 404 Not Found header. If $message is undef sets message to
+'Not Found' but does B<NOT> print an error message, otherwise
+defaults to the normal 404 Not Found type response.
+
+=cut
+######################################################################
+
+sub not_found
+{
+	my( $self, $message ) = @_;
+
+	$message = "Not Found" if @_ == 1;
+	
+	if( !defined($message) )
+	{
+		my $r = $self->{request};
+		my $c = $r->connection;
+	
+		# Suppress the normal 404 message if $message is undefined
+		$c->notes->set( show_404 => 0 );
+		$message = "Not Found";
+	}
+
+	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 404, $message );
+}
 
 ######################################################################
 =pod

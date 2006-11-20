@@ -5515,6 +5515,7 @@ PACKAGE: 2.2.99.2
     system phrase
  * Added a show_404 option to handle_404 that, if set in the connection
     notes and is false, suppresses the normal 404 response
+ * Added a not_found method to Session (compliments redirect)
 
 2006-11-20 cjg
  * Removed bunch of unused CGI scripts
