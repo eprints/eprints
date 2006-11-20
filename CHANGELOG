@@ -5507,3 +5507,7 @@ PACKAGE: 2.2.99.2
  * Autocomplete now handles absolute id's and block replacement
     (in addition to field-value replacement).
  * Name search now uses all values, not just current field.
+
+2006-11-20 tdb
+ * Added wrapper element around <METS> (unsure whether there is
+    an 'official' wrapper?)

@@ -41,6 +41,62 @@ sub new
 	return $self;
 }
 
+sub output_list
+{
+	my( $plugin, %opts ) = @_;
+
+	my $type = $opts{list}->get_dataset->confid;
+	my $toplevel = "mets-objects";
+	
+	my $r = [];
+
+	my $part;
+	$part = <<EOX;
+<?xml version="1.0" encoding="utf-8" ?>
+
+<$toplevel>
+EOX
+	if( defined $opts{fh} )
+	{
+		print {$opts{fh}} $part;
+	}
+	else
+	{
+		push @{$r}, $part;
+	}
+
+	foreach my $dataobj ( $opts{list}->get_records )
+	{
+		$part = $plugin->output_dataobj( $dataobj, %opts );
+		if( defined $opts{fh} )
+		{
+			print {$opts{fh}} $part;
+		}
+		else
+		{
+			push @{$r}, $part;
+		}
+	}	
+
+	$part= "</$toplevel>\n";
+	if( defined $opts{fh} )
+	{
+		print {$opts{fh}} $part;
+	}
+	else
+	{
+		push @{$r}, $part;
+	}
+
+
+	if( defined $opts{fh} )
+	{
+		return;
+	}
+
+	return join( '', @{$r} );
+}
+
 sub output_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
