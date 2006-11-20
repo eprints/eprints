@@ -155,7 +155,7 @@ sub xml_dataobj
 		"${PREFIX}xmlData"
 	));
 	# copy in the child nodes (we don't need to repeat the MODS namespace)
-	$xmlData->appendChild( $_ ) for ($mods->childNodes);
+	$xmlData->appendChild( $_ ) for ($mods->getChildNodes);
 	
 	# amdSec
 	my $amd_id = "TMD_".$id;

@@ -48,6 +48,8 @@ Create the database tables.
 
 Create a new user. You need to do this to create your first admin account.
 
+=item B<epadmin> recommit [repo_id]
+
 =item B<epadmin> reload [repo_id]
 
 Cause the web server to reload the repository configuration.

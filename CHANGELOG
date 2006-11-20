@@ -5517,3 +5517,6 @@ PACKAGE: 2.2.99.2
  * Moved /users/staff/export to users/export so that /users/staff could
     be removed.
  * Tidied help text and plugin-list output for import and export bins.
+
+2006-11-20 cjg
+ * Changed METS to call getChildNodes rather than childNodes
