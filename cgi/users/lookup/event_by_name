@@ -1,0 +1,51 @@
+
+use EPrints;
+
+use strict;
+
+my $session = EPrints::Session->new();
+
+# security?
+
+my $content = "text/xml";
+$session->send_http_header( content_type=>$content );
+my $q = $session->param( "q" );
+
+my $sql = "SELECT count(eprintid),event_title,event_location,event_dates,event_type from eprint WHERE eprint_status='archive' AND event_title IS NOT NULL AND event_title LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY event_title ORDER BY COUNT(eprintid) DESC";
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ul>
+END
+
+my $sth = $session->get_database->prepare( $sql );
+$session->get_database->execute( $sth , $sql );
+my $first = 1;
+while( my( $n,$title,$location,$dates,$type ) = $sth->fetchrow_array )
+{
+	if( $first )
+	{
+		print "<li class='ep_first'>";
+		$first = 0;
+	}
+	else
+	{
+		print "<li>";
+	}
+	print "\"$title\"";
+	print " ($dates)" if defined $dates;
+	print " hosted in $location" if defined $location;;
+	print " ";
+	print "<small>(found on $n record".($n>1?"s":"")." in this repository)</small>";
+	print "<ul>";
+	print "<li id='for:value:component:_event_title'>$title</li>";
+	print "<li id='for:value:component:_event_location'>$location</li>";
+	print "<li id='for:value:component:_event_dates'>$dates</li>";
+	print "<li id='for:value:component:_event_type'>$type</li>";
+	print "</ul></li>\n";
+}
+print "</ul>";
+
+$session->terminate;
+
