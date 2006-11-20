@@ -13,7 +13,12 @@
 ######################################################################
 
 use EPrints;
-use URI::OpenURL;
+
+eval "use URI::OpenURL";
+if( $@ )
+{
+	EPrints::abort( "To enable the OpenURL resolver please install URI::OpenURL: cpan install URI::OpenURL" );
+}
 
 use strict;
 my $session = new EPrints::Session;
@@ -111,7 +116,7 @@ while(my( $epf, $ouf ) = each %EXACT_TERMS)
 # Urg, either the query was empty or we couldn't use the query given
 if( $searchexp->is_blank )
 {
-	die "No query given";
+	not_found( $session, $uri, "empty_query" );
 }
 
 # Perform the search, but we're only interested in the first match
@@ -121,7 +126,7 @@ my( $eprint ) = $list->get_records( 0, 1 );
 
 # No match found for the given query
 unless( $eprint ) {
-	die "No match found";
+	not_found( $session, $uri, "no_match" );
 }
 
 my $svc = $uri->serviceType;
@@ -147,3 +152,22 @@ else
 }
 
 $session->terminate;
+
+sub not_found
+{
+	my( $session, $uri, $message ) = @_;
+
+	$session->not_found( undef ); # Don't print the default 404!
+
+	my %pins = $uri->query_form;
+	$_ = $session->make_text($_) for values %pins;
+
+	$session->build_page( 
+		$session->html_phrase( "cgi/openurl:${message}_title" ),
+		$session->html_phrase( "cgi/openurl:${message}_blurb", %pins ),
+		"plain_404" );
+
+        $session->send_page();
+
+	exit(0);
+}

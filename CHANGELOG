@@ -5511,6 +5511,8 @@ PACKAGE: 2.2.99.2
 2006-11-20 tdb
  * Added wrapper element around <METS> (unsure whether there is
     an 'official' wrapper?)
+ * Made openurl error messages more friendly - "not found" is now a
+    system phrase
 
 2006-11-20 cjg
  * Removed bunch of unused CGI scripts

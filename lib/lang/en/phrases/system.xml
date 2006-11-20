@@ -786,6 +786,13 @@ Public CGI Scripts
     <epp:phrase id="cgi/confirm:username"><p>Your username on this system is: <strong><epc:pin name="username"/></strong></p></epp:phrase>
     <epp:phrase id="cgi/confirm:go_login"><p><a href="{$config{userhome}}">Continue</a></p></epp:phrase>
 
+<!-- openurl -->
+
+	<epp:phrase id="cgi/openurl:empty_query_title">No Query Given</epp:phrase>
+	<epp:phrase id="cgi/openurl:empty_query_blurb"><p>The OpenURL resolver only supports CGI arguments.</p></epp:phrase>
+	<epp:phrase id="cgi/openurl:no_match_title">No Matching Record Found</epp:phrase>
+	<epp:phrase id="cgi/openurl:no_match_blurb"><p>The OpenURL resolver couldn't find the record you searched for.</p></epp:phrase>
+
 <!--********************************************************************** 
 Command Line Scripts 
 ***********************************************************************-->
