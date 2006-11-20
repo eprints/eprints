@@ -24,45 +24,47 @@ B<epadmin> - EPrints repository admin tool
 
 START HERE! This option will walk you through the tasks needed to create your repository.
 
-=item B<epadmin> test [repo_id]
+=item B<epadmin> test I<repository_id>
 
 A null operation which just checks your configuration files are OK and that you can connect to the database.
 
-=item B<epadmin> config_core [repo_id]
+=item B<epadmin> config_core I<repository_id>
 
 Set hostname, contact email and repository name. 
 
-=item B<epadmin> config_db [repo_id]
+=item B<epadmin> config_db I<repository_id>
 
 Set database connection properties and, optionally, to create database and database user.
 
-=item B<epadmin> create_db [repo_id]
+=item B<epadmin> create_db I<repository_id>
 
 Create a database and database user with the current settings.
 
-=item B<epadmin> create_tables [repo_id]
+=item B<epadmin> create_tables I<repository_id>
 
 Create the database tables.
 
-=item B<epadmin> create_user [repo_id]
+=item B<epadmin> create_user I<repository_id>
 
 Create a new user. You need to do this to create your first admin account.
 
-=item B<epadmin> recommit [repo_id]
+=item B<epadmin> recommit I<repository_id> I<dataset_id>
 
-=item B<epadmin> reload [repo_id]
+Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated.
+
+=item B<epadmin> reload I<repository_id>
 
 Cause the web server to reload the repository configuration.
 
-=item B<epadmin> erase_data [repo_id]
+=item B<epadmin> erase_data I<repository_id>
 
 Erases and recreates the database. Removes all documents and files. Does not touch the configuration files.
 
-=item B<epadmin> erase_eprints [repo_id]
+=item B<epadmin> erase_eprints I<repository_id>
 
 Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
 
-=item B<epadmin> upgrade [repo_id]
+=item B<epadmin> upgrade I<repository_id>
 
 After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
 
@@ -165,6 +167,12 @@ else
 	elsif( $action eq "reload" ) { reload( $repoid ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
+	elsif( $action eq "recommit" ) 
+	{
+		my $datasetid = $ARGV[2];
+		pod2usage(1) unless defined $datasetid;
+		recommit( $repoid, $datasetid ); 
+	}
 	else { pod2usage( 1 ); }
 }
 
@@ -1022,6 +1030,63 @@ sub test
 	print "Everything seems OK.\n";
 }
 
+###################################
+#
+# DATASET related utilities
+#
+###################################
+
+
+sub recommit
+{
+	my( $repoid, $datasetid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		$session->terminate();
+		exit( 1 );
+	}
+
+        if( $noise > 0 )
+        {
+                print "\n";
+                print "You are about to recommit \"$datasetid\" in the $repoid repository.\n";
+                print "This can take some time.\n\n";
+                print "Number of records in set: ".$dataset->count( $session )."\n";
+        }
+
+        my $sure = EPrints::Utils::get_input_confirm( "Continue" );
+        unless( $sure )
+        {
+                print "Aborting then.\n\n";
+                $session->terminate();
+                exit( 1 );
+        }
+
+
+	my $fn = sub {
+        	my( $session, $dataset, $item ) = @_;
+	
+        	if( $session->get_noise() >= 2 )
+        	{
+                	print STDERR "Committing item: ".$dataset->id()."/".$item->get_id()."\n";
+        	}
+        	$item->commit();
+	};
+
+	$dataset->map( $session, $fn );
+
+	print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+
+	$session->terminate;
+}
+
+	
 
 
 

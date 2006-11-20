@@ -5530,3 +5530,6 @@ PACKAGE: 2.2.99.2
  * Added inital version of event_by_name (passes back the event
     type, but this isn't handled by the autocompleter script 
     yet)
+
+2006-11-20 cjg
+ * Added recommit functionality to epadmin
