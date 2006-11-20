@@ -1488,18 +1488,21 @@ Titles and Help for the System Fields
 </epp:phrase>
 
 
-<!-- Request eprint -->
+<!-- Request a copy -->
 <epp:phrase id="request:button">Request a copy</epp:phrase>
+<epp:phrase id="Plugin/Screen/Public/RequestCopy:title">Request a copy</epp:phrase>
 
 <epp:phrase id="request_fieldname_requester_email">Email address</epp:phrase>
 <epp:phrase id="request_fieldhelp_requester_email">Enter your email address.</epp:phrase>
 <epp:phrase id="request_fieldname_reason">Reason</epp:phrase>
 <epp:phrase id="request_fieldhelp_reason">You may enter a rationale for requesting this document.</epp:phrase>
 
-<epp:phrase id="request/request_email:subject">Request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
-<epp:phrase id="request/request_email:body"><p>This item has been requested from the <epc:phrase ref="archive_name" /> by <epc:pin name="requester"/>. Please can you respond.</p>
+<epp:phrase id="request:no_email">You must specify an email address.</epp:phrase>
 
-<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
+<epp:phrase id="request/request_email:subject">Request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
+<epp:phrase id="request/request_email:body"><p>This item has been requested from <epc:phrase ref="archive_name" /> by <epc:pin name="requester"/>. Please can you respond.</p>
+
+<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 
 <p>The following reason was given:</p>
 
@@ -1514,33 +1517,35 @@ Titles and Help for the System Fields
 <p>To reject the request, <epc:pin name="reject">click here</epc:pin>.</p>
 </epp:phrase>
 
-<epp:phrase id="request/ack_page"><p>Your request has been sent.</p><epc:pin name="link">Return to item</epc:pin></epp:phrase>
+<epp:phrase id="request/ack_page">Your request has been sent. <epc:pin name="link">Return to item</epc:pin></epp:phrase>
+
 <epp:phrase id="request/ack_email:subject">Confirmation of request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/ack_email:body"><p>Your request for the following item has been passed on for action:</p>
 
-<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
+<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 
 <p>If you do not receive a reply or need advice at a later time please contact <epp:print expr="{$config{adminemail}}" />. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
 </epp:phrase>
 
-<epp:phrase id="request/respond_page:title">Confirm response</epp:phrase>
+<epp:phrase id="Plugin/Screen/Request/Respond:title">Confirm response</epp:phrase>
+
 <epp:phrase id="request/respond_page:action_respond">Confirm</epp:phrase>
-<epp:phrase id="request/respond_page:accept"><p>You have chosen to accept the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>
-<epp:phrase id="request/respond_page:reject"><p>You have chosen to reject the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></epp:phrase>
+<epp:phrase id="request/respond_page:accept"><p>You have chosen to <strong>accept</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>
+<epp:phrase id="request/respond_page:reject"><p>You have chosen to <strong>reject</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></epp:phrase>
 <epp:phrase id="request/respond_page:oa"><p>This item has been made publically accessible since the request was made:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>A notice will be emailed to the requester.</p></epp:phrase>
-<epp:phrase id="request/respond_page:fieldname_oa">Tick this box to make this document publically available from now on.</epp:phrase>
+<epp:phrase id="request/respond_page:fieldname_oa">Tick here to make this document publically available from now on.</epp:phrase>
 
 <epp:phrase id="request/response_email:subject">Result of request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/response_email:body_accept"><p>Your request for the following item has been accepted:</p>
 
-<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
+<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 
 <p>Please find the requested document attached.</p>
 </epp:phrase>
 
 <epp:phrase id="request/response_email:body_reject"><p>Your request for the following item has been rejected:</p>
 
-<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
+<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 
 <p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact <epp:print expr="{$config{adminemail}}" /></p>
 
@@ -1551,10 +1556,10 @@ Titles and Help for the System Fields
 
 <epp:phrase id="request/response_email:body_oa"><p>The item you requested is now publically accessible:</p>
 
-<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
+<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 </epp:phrase>
 
-<epp:phrase id="request/response:ack_page"><p>Thank you. The email has been sent to the requester.</p></epp:phrase>
+<epp:phrase id="request/response:ack_page">Thank you. Your response has been sent.</epp:phrase>
 
 <epp:phrase id="ruler"><hr noshade="noshade" class="ep_ruler" /></epp:phrase>
 

@@ -1,4 +1,16 @@
-#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+######################################################################
+#
+#  Request a copy - respond to request
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
 
 use EPrints;
 use strict;
@@ -6,192 +18,11 @@ use strict;
 my $session = new EPrints::Session();
 exit( 1 ) unless( defined $session );
 
-my $requestid = $session->param( "requestid" );
-my $request = EPrints::DataObj::Request->new( $session, $requestid );
-&_error( $session ) if !defined $request;
-
-my $doc = EPrints::DataObj::Document->new( $session, $request->get_value( "docid" ) );
-&_error( $session ) if !defined $doc;
-
-my $eprint = EPrints::DataObj::EPrint->new( $session, $request->get_value( "eprintid" ) );
-&_error( $session ) if !defined $eprint;
-
-my $user = EPrints::DataObj::User->new( $session, $request->get_value( "userid" ) );
-&_error( $session ) if !defined $user;
-
-my $email = $request->get_value( "email" );
-
-# Check current user can respond
-&_error( $session ) unless $user->get_id eq $session->current_user->get_id;
-
-sub _error
-{
-	my( $session ) = @_;
-	$session->render_error( $session->html_phrase( "general:bad_param" ) );
-	$session->terminate;
-	exit( 1 );
-}
-
-my $title = $session->html_phrase( "request/respond_page:title" );
-my $page = $session->make_doc_fragment();
-
-my $action = $session->param("action");
-$action = "reject" if !defined $action || $action ne "accept";
-# Special case - requested document been made OA in the meantime
-$action = "oa" if $doc->is_public;
-
-my $button = $session->get_action_button;
-unless( defined $button && $button eq "submit" )
-{
-	my( $doctable, $doctr, $doctd );
-	$doctable = $session->make_element( "table" );
-	$doctr = $session->make_element( "tr" );
-	
-	$doctd = $session->make_element( "td" );
-	$doctr->appendChild( $doctd );
-	$doctd->appendChild( 
-		$session->get_repository->call( "render_fileicon", 
-			$session, 
-			$doc->get_type, 
-			$doc->get_url ) );
-	
-	$doctd = $session->make_element( "td" );
-	$doctr->appendChild( $doctd );
-	$doctd->appendChild( $doc->render_citation_link() );
-	my %files = $doc->files;
-	if( defined $files{$doc->get_main} )
-	{
-		my $size = $files{$doc->get_main};
-		$doctd->appendChild( $session->make_element( 'br' ) );
-		$doctd->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
-	}
-
-	$doctable->appendChild( $doctr );
-
-	$page->appendChild( $session->html_phrase( "request/respond_page:$action",
-		eprint => $eprint->render_citation_link,
-		document => $doctable,
-	) );
-
-	# Render response form
-	my $form =  $session->render_form( "post" );
-	$page->appendChild( $form );
-
-	if( $action eq "reject" )
-	{
-		my $textarea = $session->make_element( "textarea", 
-			name => "reason",
-			"accept-charset" => "utf-8",
-			rows => 5,
-			cols => 60,
-			wrap => "virtual",
-		);
-		$textarea->appendChild( $session->make_text( "" ) );
-		$form->appendChild( $textarea );
-	}
-
-	if( $action eq "accept" )
-	{
-		my $p = $session->make_element( "p" );
-		$form->appendChild( $p );
-		my $cb = $session->make_element( "input", type => "checkbox", name => "oa" );
-		$cb->appendChild( $session->html_phrase(
-			"request/respond_page:fieldname_oa" ) );
-		$p->appendChild( $cb );
-	}
-
-	$form->appendChild( $session->make_element( "br" ) );
-	$form->appendChild( $session->render_hidden_field( "requestid", $request->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "action", $action ) );
-	$form->appendChild( $session->render_action_buttons( submit => $session->phrase( "request/respond_page:action_respond" ) ) );
-
-	$session->build_page( $title, $page );
-	$session->send_page();
-
-	$session->terminate();
-	exit( 0 );
-}
-
-my $subject = $session->phrase( 
-	"request/response_email:subject", 
-	eprint => $eprint->get_value( "title" ) );
-
-my $mail = $session->make_element( "mail" );
-my $reason = $session->param( "reason" );
-$mail->appendChild( $session->html_phrase(
-	"request/response_email:body_$action",
-	eprint => $eprint->render_citation_link,
-	document => $doc->render_citation_link,
-	reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
-		: $session->html_phrase( "cgi/users/review:no_reason" ) ) );
-
-my $result;
-if( $action eq "accept")
-{
-	# Send acceptance notice with requested document attached
-	my @paths;
-	my %files = $doc->files;
-	for( keys %files )
-	{
-		push @paths, $doc->local_path . "/" . $_;
-	}
-
-	# Make document OA if flag set
-	if( defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
-	{
-		$doc->set_value( "security", "public" );
-		$doc->commit;
-		$eprint->commit;
-		$eprint->generate_static;
-	}
-
-	$result = EPrints::Utils::send_mail(
-		session => $session,
-		langid => $session->get_langid,
-		to_email => $email,
-		subject => $subject,
-		message => $mail,
-		sig => $session->html_phrase( "mail_sig" ),
-		attach => \@paths,
-	);
-}
-else
-{
-	# Send rejection notice
-	$result = EPrints::Utils::send_mail(
-		session => $session,
-		langid => $session->get_langid,
-		to_email => $email,
-		subject => $subject,
-		message => $mail,
-		sig => $session->html_phrase( "mail_sig" ),
-	);
-}
-	
-# Log event
-my $history_ds = $session->get_repository->get_dataset( "history" );
-$history_ds->create_object(
-	$session,
-	{
-		userid =>$user->get_id,
-		actor=>EPrints::Utils::tree_to_utf8( $user->render_description ),
-		datasetid=>"request",
-		objectid=>$request->get_id,
-		action=>$session->param( "action" ) eq "accept" ? "accept_request" : "reject_request",
-		details=>EPrints::Utils::is_set( $reason ) ? $reason : undef,
-	}
+EPrints::ScreenProcessor->process( 
+	session => $session, 
+	url => $session->get_repository->get_conf( "perl_url" )."/respond_doc",
+	screenid => "Request::Respond",
 );
+$session->terminate;
 
-if( !$result )
-{
-	$session->render_error( $session->html_phrase( "general:email_failed" ) );
-	$session->terminate();
-	exit( 1 );
-}
-	
-# Render confirmation page
-$page->appendChild( $session->html_phrase( "request/response:ack_page" ) );
-$session->build_page( $title, $page );
-$session->send_page();
-$session->terminate();
-exit( 1 );
+exit;
