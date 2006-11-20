@@ -5511,3 +5511,9 @@ PACKAGE: 2.2.99.2
 2006-11-20 tdb
  * Added wrapper element around <METS> (unsure whether there is
     an 'official' wrapper?)
+
+2006-11-20 cjg
+ * Removed bunch of unused CGI scripts
+ * Moved /users/staff/export to users/export so that /users/staff could
+    be removed.
+ * Tidied help text and plugin-list output for import and export bins.

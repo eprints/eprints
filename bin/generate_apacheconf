@@ -447,6 +447,9 @@ print CONF <<END;
 
     PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
     PerlSetVar EPrints_Dir_Documents $documents_path
+
+    Order allow,deny 
+    Allow from all
 END
 # EPrints log handler (this gets called for all requests, not just
 # mod_perl)

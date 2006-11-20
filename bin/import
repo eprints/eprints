@@ -18,7 +18,9 @@ B<import> - Import a file using an import plugin.
 
 =head1 SYNOPSIS
 
-B<import> I<repository_id> [B<options>] I<dataset> [I<plugin> I<filename>] 
+B<import> I<repository_id> [B<options>] I<dataset>
+
+B<import> I<repository_id> [B<options>] I<dataset> I<plugin> I<filename> 
 
 =head1 DESCRIPTION
 
@@ -167,7 +169,8 @@ if( !defined $ipluginid )
 	foreach my $a_plugin_id ( sort keys %p ) 
 	{
 		my $a_plugin = $session->plugin( $a_plugin_id );
-		print $a_plugin->get_subtype.": ".$a_plugin->get_name();
+		printf( "% 16s", $a_plugin->get_subtype);
+		print ": ".$a_plugin->get_name();
 		if( $l{$a_plugin_id} && !$d{$a_plugin_id} )
 		{
 			print " (List input only)";

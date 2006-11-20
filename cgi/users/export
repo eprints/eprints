@@ -30,7 +30,7 @@ unless( $path_info =~ m!^/([0-9]+)(/([^/]*)?)?! ) {
 my $id = $1;
 my $afterid = $2;
 my $format = $3;
-my $export_url = $session->get_repository->get_conf( "perl_url" )."/users/staff/export";
+my $export_url = $session->get_repository->get_conf( "perl_url" )."/users/export";
 
 if( !defined $id ) {
 	error( $session, $session->html_phrase( "cgi/export:no_id" ) );

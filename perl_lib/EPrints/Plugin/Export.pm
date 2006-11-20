@@ -166,7 +166,7 @@ sub dataobj_export_url
 	my $format = $1;
 
 	my $url = $plugin->{session}->get_repository->get_conf( "perl_url" );
-	$url .= "/users/staff" if $staff;
+	$url .= "/users" if $staff;
 	$url .= "/export/".$dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;
 	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->{suffix};
