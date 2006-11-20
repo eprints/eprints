@@ -61,7 +61,8 @@ sub get_system_field_info
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
 
-		{ name=>"name", type=>"text", required=>1, multilang=>1 },
+		{ name=>"name", type=>"text", required=>1, multilang=>1,
+			render_input=>\&render_name_input },
 
 		# should be a itemid?
 		{ name=>"parents", type=>"text", required=>1, text_index=>0, 
@@ -74,7 +75,37 @@ sub get_system_field_info
 			input_style=>"radio" },
 	);
 }
+sub render_name_input
+{
+	my( $field, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename )
+		= @_;
 
+	my $table = $session->make_element( "table" );
+	foreach my $lang ( @{$session->get_repository->get_conf("languages")} )
+	{
+		my $tr = $session->make_element( "tr" );
+		my $td1 = $session->make_element( "td" );
+		my $td2 = $session->make_element( "td" );
+		$tr->appendChild( $td1 );
+		$tr->appendChild( $td2 );
+		$td1->appendChild( $session->render_language_name( $lang ) );
+		$td1->appendChild( $session->make_text( ": " ) );
+		my $maxlength = $field->get_max_input_size;
+		my $size = ( $maxlength > $field->{input_cols} ?
+					$field->{input_cols} : 
+					$maxlength );
+		my $input = $session->render_noenter_input_field(
+			class=>"ep_form_text",
+			name => $basename."_".$lang,
+			id => $basename,
+			value => $value->{$lang},
+			size => $size,
+			maxlength => 255 );
+		$td2->appendChild( $input );
+		$table->appendChild( $tr );
+	}
+	return $table;
+}
 
 
 ######################################################################

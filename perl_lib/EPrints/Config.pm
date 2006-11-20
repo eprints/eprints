@@ -49,7 +49,6 @@ BEGIN { sub abort { return EPrints::abort( @_ ); } }
 my %SYSTEMCONF;
 my @LANGLIST;
 my @SUPPORTEDLANGLIST;
-my %LANGNAMES;
 my %ARCHIVES;
 #my %ARCHIVEMAP;
 my $INIT = 0; 
@@ -278,26 +277,6 @@ END
 }
 
 
-######################################################################
-=pod
-
-=item $title = EPrints::Config::lang_title( $id )
-
-Return the title of a given language as a UTF-8 encoded string. 
-
-For example: "en" would return "English".
-
-=cut
-######################################################################
-
-sub lang_title
-{
-	my( $id, $session ) = @_;
-
-	ensure_init();
-
-	return $LANGNAMES{$id};
-}
 
 
 ######################################################################

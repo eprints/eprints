@@ -1144,13 +1144,9 @@ sub render_language_name
 {
 	my( $self, $langid ) = @_;
 
-	my $phrasename = 'language:'.$langid;
-	if( $self->get_lang->has_phrase( $phrasename ) )
-	{	
-		return $self->html_phrase( $phrasename );
-	}
+	my $phrasename = 'languages_typename_'.$langid;
 
-	return $self->make_text( EPrints::Config::lang_title( $langid ) );
+	return $self->html_phrase( $phrasename );
 }
 
 ######################################################################

@@ -19,4 +19,5 @@
 
 .ep_mail_body textarea {
 	background-color: #ccc;
+	border: solid #888 1px;
 }

@@ -529,7 +529,7 @@ END
 		$session->get_repository->log(<<END);
 Failed to create directory $full_path: $@
 END
-                return( undef );
+		return( undef );
 	}
 	else
 	{
@@ -729,6 +729,29 @@ sub log_mail_owner
 		}
 	);
 }
+
+######################################################################
+=pod
+
+=item $user = $eprint->get_editorial_contact
+
+Return the user identified as the editorial contact for this item.
+
+By default returns undef.
+
+nb. This has nothing to do with the editor defined in the metadata
+
+=cut
+######################################################################
+
+sub get_editorial_contact
+{
+	my( $self ) = @_;
+
+	return undef;
+}	
+
+
 
 ######################################################################
 =pod
@@ -1446,9 +1469,9 @@ sub render_preview
 
 sub render
 {
-        my( $self, $preview ) = @_;
+	my( $self, $preview ) = @_;
 
-        my( $dom, $title, $links );
+	my( $dom, $title, $links );
 
 	my $status = $self->get_value( "eprint_status" );
 	if( $status eq "deletion" )
@@ -1483,7 +1506,7 @@ sub render
 		$links = $self->{session}->make_doc_fragment;
 	}
 	
-        return( $dom, $title, $links );
+	return( $dom, $title, $links );
 }
 
 
@@ -1724,7 +1747,7 @@ sub first_in_thread
 		return( $first ) unless( defined $prev );
 		$first = $prev;
 	}
-		       
+			
 	return( $first );
 }
 

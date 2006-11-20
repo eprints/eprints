@@ -5486,3 +5486,13 @@ PACKAGE: 2.2.99.2
 
 2006-11-17 cjg
  * XML::DOM no longer encodes " outside of attributes.
+
+2006-11-20 cjg
+ * Fixed rendering of language names
+ * Added better error reporting if pins in a phrase are not DOM.
+ * Started work on edit-subject but it's not really working yet.
+ * Added removal request, including it creating a history event.
+ * Removed some unused language code.
+ * Removed some old cgi scripts.
+ * Added a dark border to the mail textarea.
+

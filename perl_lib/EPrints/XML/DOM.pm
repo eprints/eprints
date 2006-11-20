@@ -183,6 +183,11 @@ sub dispose
 	{
 		EPrints::abort "attempt to dispose an undefined dom node";
 	}
+	if( !EPrints::XML::is_dom( $node, "Node" ) )
+	{
+		EPrints::abort "attempt to dispose an dom node which isn't a dom node";
+	}
+	
 
 	$node->dispose;
 }

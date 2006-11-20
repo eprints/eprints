@@ -133,6 +133,7 @@ sub get_system_field_info
 				move_archive_to_buffer 
 				move_deletion_to_archive
 				destroy
+				removal_request 
 				reject_request
 				accept_request
 				/], },
@@ -348,6 +349,7 @@ sub render
 	elsif( $action eq "destroy" ) { $pins{details} = $self->{session}->render_nbsp; } # no details
 	elsif( $action eq "create" ) { $pins{details} = $self->render_create; }
 	elsif( $action eq "mail_owner" ) { $pins{details} = $self->render_mail_owner; }
+	elsif( $action eq "removal_request" ) { $pins{details} = $self->render_removal_request; }
 	else { $pins{details} = $self->{session}->make_text( "Don't know how to render history event: $action" ); }
 
 	my $obj  = $self->get_dataobj;
@@ -423,6 +425,24 @@ sub get_user
 #
 ######################################################################
 
+
+
+######################################################################
+#
+# $xhtml = $history->render_removal_request
+#
+# Render a removal request history event. 
+#
+######################################################################
+
+sub render_removal_request
+{
+	my( $self ) = @_;
+
+	my $div = $self->{session}->make_element( "div" );
+	$div->appendChild( $self->render_value("details") );
+	return $div;
+}
 
 ######################################################################
 #

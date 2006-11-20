@@ -1089,7 +1089,7 @@ my $PRIVMAP =
 		"user/history" => 8,
 		"user/staff/edit" => 8,
 		"create_user" => 2,
-		# "subject/edit" => 8,
+		"subject/edit" => 8,
 		"staff/user_search" => 2,
 		"staff/history_search" => 2,
 	},
@@ -1133,7 +1133,7 @@ my $PRIVMAP =
 		"eprint/buffer/history" => 4,
 		"eprint/buffer/messages" => 4,
 	
-		"eprint/buffer/request_deletion" => 4,
+		"eprint/buffer/request_removal" => 4,
 		"eprint/buffer/use_as_template" => 4,
 		"eprint/buffer/derive_version" => 4,
 	
@@ -1145,7 +1145,7 @@ my $PRIVMAP =
 		"eprint/archive/history" => 4,
 		"eprint/archive/messages" => 4,
 	
-		"eprint/archive/request_deletion" => 4,
+		"eprint/archive/request_removal" => 4,
 		"eprint/archive/use_as_template" => 4,
 		"eprint/archive/derive_version" => 4,
 	
