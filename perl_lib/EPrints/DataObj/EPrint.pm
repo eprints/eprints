@@ -986,6 +986,33 @@ sub validate
 	return( \@problems );
 }
 
+######################################################################
+=pod
+
+=item $warnings = $eprint->get_warnings
+
+Return a reference to an array of XHTML DOM objects describing
+warnings about this eprint - that is things that are not quite 
+validation errors, but it'd be nice if they were fixed.
+
+Calls L</eprint_warnings> for the C<$eprint>.
+
+=cut
+######################################################################
+
+sub get_warnings
+{
+	my( $self , $for_archive ) = @_;
+
+	# Now give the site specific stuff one last chance to have a gander.
+	my @warnings = $self->{session}->get_repository->call( 
+			"eprint_warnings", 
+			$self,
+			$self->{session} );
+
+	return \@warnings;
+}
+
 
 ######################################################################
 =pod

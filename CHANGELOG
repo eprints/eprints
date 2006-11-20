@@ -5496,3 +5496,7 @@ PACKAGE: 2.2.99.2
  * Removed some old cgi scripts.
  * Added a dark border to the mail textarea.
 
+2006-11-20 cjg
+ * Added warnings to deposit page.
+ * No documents now causes a warning, even if it's legal.
+

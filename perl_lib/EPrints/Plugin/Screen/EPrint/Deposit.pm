@@ -66,16 +66,31 @@ sub render
 	my $problems = $self->{processor}->{eprint}->validate( $self->{processor}->{for_archive} );
 	if( scalar @{$problems} > 0 )
 	{
-		my $warnings = $self->{session}->make_element( "ul" );
+		my $dom_problems = $self->{session}->make_element( "ul" );
 		foreach my $problem_xhtml ( @{$problems} )
 		{
 			my $li = $self->{session}->make_element( "li" );
 			$li->appendChild( $problem_xhtml );
-			$warnings->appendChild( $li );
+			$dom_problems->appendChild( $li );
 		}
-		$self->workflow->link_problem_xhtml( $warnings );
-		$self->{processor}->add_message( "warning", $warnings );
+		$self->workflow->link_problem_xhtml( $dom_problems );
+		$self->{processor}->add_message( "warning", $dom_problems );
 	}
+
+	my $warnings = $self->{processor}->{eprint}->get_warnings;
+	if( scalar @{$warnings} > 0 )
+	{
+		my $dom_warnings = $self->{session}->make_element( "ul" );
+		foreach my $warning_xhtml ( @{$warnings} )
+		{
+			my $li = $self->{session}->make_element( "li" );
+			$li->appendChild( $warning_xhtml );
+			$dom_warnings->appendChild( $li );
+		}
+		$self->workflow->link_problem_xhtml( $dom_warnings );
+		$self->{processor}->add_message( "warning", $dom_warnings );
+	}
+
 
 	my $page = $self->{session}->make_doc_fragment;
 	my $form = $self->render_form;

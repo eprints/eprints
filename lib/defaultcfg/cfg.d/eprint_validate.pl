@@ -5,7 +5,8 @@
 # validate_eprint( $eprint, $session, $for_archive ) 
 #
 ######################################################################
-# $field 
+#
+# $eprint 
 # - EPrint object
 # $session 
 # - Session object (the current session)
