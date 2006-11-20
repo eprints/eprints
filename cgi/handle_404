@@ -24,6 +24,17 @@ exit( 0 ) unless( defined $session );
 
 my $url = $ENV{REDIRECT_URL};
 
+my $r = $session->{ request };
+my $c = $r->connection;
+# Has 404 message been suppressed? (don't forget to reset it for this connection)
+my $show = $c->notes->get( "show_404" );
+$c->notes->set( show_404 => undef );
+
+if( defined($show) and !$show )
+{
+	print STDERR "cgi/handle_404: Normal 404 message suppressed by show_404 => 0\n";
+	exit( 0 );
+}
 
 my $newurl;
 my $fn = $session->get_repository->get_conf( "catch404" );

@@ -5513,6 +5513,8 @@ PACKAGE: 2.2.99.2
     an 'official' wrapper?)
  * Made openurl error messages more friendly - "not found" is now a
     system phrase
+ * Added a show_404 option to handle_404 that, if set in the connection
+    notes and is false, suppresses the normal 404 response
 
 2006-11-20 cjg
  * Removed bunch of unused CGI scripts
