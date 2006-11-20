@@ -9,11 +9,26 @@ my $session = EPrints::Session->new();
 
 my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
-my $q = $session->param( "q" );
+my $family = $session->param( "_name_family" );
+my $given = $session->param( "_name_given" );
+my $id = $session->param( "_id" );
 
 my $sql = "
 SELECT count(eprint.eprintid),creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid 
-WHERE eprint.eprint_status = 'archive' AND creators_name_family LIKE '".EPrints::Database::prep_like_value($q)."\%' 
+WHERE eprint.eprint_status = 'archive' ";
+if( EPrints::Utils::is_set( $family ) )
+{
+	$sql .= "AND creators_name_family LIKE '".EPrints::Database::prep_like_value($family)."\%' ";
+}
+if( EPrints::Utils::is_set( $given ) )
+{
+	$sql .= "AND creators_name_given LIKE '".EPrints::Database::prep_like_value($given)."\%' ";
+}
+if( EPrints::Utils::is_set( $id ) )
+{
+	$sql .= "AND creators_id LIKE '".EPrints::Database::prep_like_value($id)."\%' ";
+}
+$sql.="
 GROUP BY creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id 
 ORDER BY count(eprint.eprintid) DESC,creators_name_family,creators_name_given 
 LIMIT 40
@@ -24,6 +39,7 @@ print <<END;
 
 <ul>
 END
+
 
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );

@@ -29,7 +29,7 @@ our %APPS = qw(
 pdf		pdftotext
 doc		antiword
 htm		elinks
-html	elinks
+html		elinks
 xml		elinks
 ps		ps2ascii
 txt		_special

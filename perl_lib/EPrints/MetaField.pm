@@ -1212,7 +1212,7 @@ sub get_input_elements
 			foreach my $id ( @ids )
 			{	
 				my @wcells = ( $id );
-				$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")]);'."\n" ) );
+				$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")], []);'."\n" ) );
 			}
 			$lookup->appendChild( $script );
 			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
@@ -1367,7 +1367,14 @@ sub get_input_elements
 				{	
 					my @wcells = ();
 					for( 1..scalar(@{$row})-2 ) { push @wcells, $basename."_cell_".$_."_".$y; }
-					$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")]); ' ) );
+					my @relfields = ();
+					foreach ( @ids )
+					{
+						my $id2 = $_; # prevent changing it!
+						$id2=~s/^$ibasename//;
+						push @relfields, $id2;
+					}
+					$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")], [ "'.join('","',@relfields).'"]);' ) );
 				}
 				$lookup->appendChild( $script );
 				my @row = ();

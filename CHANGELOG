@@ -5500,3 +5500,10 @@ PACKAGE: 2.2.99.2
  * Added warnings to deposit page.
  * No documents now causes a warning, even if it's legal.
 
+2006-11-20 cjg
+ * Fixed typo in requestremoval
+ * Added tab in a convert plugin
+ * Autocomplete now sends values of all fields in row.
+ * Autocomplete now handles absolute id's and block replacement
+    (in addition to field-value replacement).
+ * Name search now uses all values, not just current field.

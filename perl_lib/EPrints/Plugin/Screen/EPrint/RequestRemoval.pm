@@ -166,7 +166,7 @@ sub action_send
 		"Plugin/Screen/EPrint/RequestRemoval:subject",
 		{},
 		$self->{session} ) );
-	$mail{sig} => $lang->phrase( 
+	$mail{sig} = $lang->phrase( 
 		"mail_sig",
 		{},
 		$self->{session} );
