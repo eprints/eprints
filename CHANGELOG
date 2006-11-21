@@ -5536,3 +5536,8 @@ PACKAGE: 2.2.99.2
 
 2006-11-20 tmb
  * Moved "Request a Copy" scripts to screens
+
+2006-11-21 cjg
+ * Removed a whole bunch of unused cgi scripts
+ * Moved all admin tools into epadmin
+

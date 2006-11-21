@@ -48,9 +48,23 @@ Create the database tables.
 
 Create a new user. You need to do this to create your first admin account.
 
+=item B<epadmin> erase_fulltext_index I<repository_id>
+
+This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
+
+This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
+
 =item B<epadmin> recommit I<repository_id> I<dataset_id>
 
 Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated.
+
+=item B<epadmin> reindex I<repository_id> I<dataset_id>
+
+Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing.
+
+=item B<epadmin> rehash I<repository_id> [I<document_id>]
+
+Recalculate the hashes of the files in this document and write it to a probity log file. If a document id is given then just generate the hash for that document.
 
 =item B<epadmin> reload I<repository_id>
 
@@ -164,6 +178,7 @@ else
 	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
 	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
 	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
+	elsif( $action eq "erase_fulltext_index" ) { erase_fulltext_index( $repoid ); }
 	elsif( $action eq "reload" ) { reload( $repoid ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
@@ -173,6 +188,13 @@ else
 		pod2usage(1) unless defined $datasetid;
 		recommit( $repoid, $datasetid ); 
 	}
+	elsif( $action eq "reindex" ) 
+	{
+		my $datasetid = $ARGV[2];
+		pod2usage(1) unless defined $datasetid;
+		reindex( $repoid, $datasetid ); 
+	}
+	elsif( $action eq "rehash" ) { rehash( $repoid ); }
 	else { pod2usage( 1 ); }
 }
 
@@ -1018,6 +1040,63 @@ sub erase_eprint_files
 	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
 }
 
+sub erase_fulltext_index
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $ds = $session->get_repository->get_dataset( "document" );
+	print "Stating to erase caches\n" if( $noise >= 1 );
+
+	$ds->map( 
+		$session,
+		sub 
+		{
+			my( $session , $dataset , $doc ) = @_;
+
+			if( $noise >= 2 )
+			{
+				print "Removing fulltext index for: ".$doc->get_id."\n";
+			}
+			
+			my @files = ( $doc->words_file, $doc->indexcodes_file );
+			foreach my $file ( @files )
+			{
+				next unless( -e $file );
+				if( $noise >= 2 )
+				{
+					print "Erasing: $file\n";
+				}
+				unlink( $file );
+			}
+		} );
+
+	print "Done erasing\n" if( $noise >= 1 );
+	print "Queuing records for re-indexing\n" if( $noise >= 1 );
+
+	my $fn = sub {
+		my( $session, $dataset, $item ) = @_;
+	
+		$session->get_database->index_queue( 
+			'eprint',
+			$item->get_id,
+			$EPrints::Utils::FULLTEXT );
+	
+		if( $session->get_noise() >= 2 )
+		{
+			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
+		}
+	};
+
+	my $ep_ds = $session->get_repository->get_dataset( "eprint" );
+	$ep_ds->map( $session, $fn );
+
+	print "Done queuing\n" if( $noise >= 1 );
+
+	$session->terminate;
+}
 
 sub test
 {
@@ -1028,6 +1107,56 @@ sub test
 	$session->terminate;
 
 	print "Everything seems OK.\n";
+}
+
+sub rehash
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $docid = $ARGV[2];
+	if( defined $docid )
+	{
+		my $doc = EPrints::DataObj::Document->new( $session, $docid );
+		if( !defined $doc )
+		{
+			$session->get_repository->log( 
+	"Document #$docid not found. Can't rehash." );
+		}
+		else
+		{
+			$doc->rehash;
+			print "Rehashed document #$docid\n" if( $noise > 0);
+		}
+	}
+	else
+	{
+		print "Rehashing documents\n" if( $noise > 0);
+		my $dataset = $session->get_repository->get_dataset( "document" );
+		my $info = { count=>0 };
+		$dataset->map( 
+			$session , 
+			sub 
+			{
+				my( $session, $dataset, $doc, $info ) = @_;
+				$doc->rehash;
+				if( $noise > 1 )
+				{
+					print "Rehashed ".$doc->get_value( "docid" )."\n";
+				}
+				$info->{count}++;
+			},
+			$info );
+
+		if( $noise > 0)
+		{
+			print "Done rehashing ".$info->{count}." documents\n";
+		}
+	}
+
+	$session->terminate;
 }
 
 ###################################
@@ -1086,9 +1215,51 @@ sub recommit
 	$session->terminate;
 }
 
+sub reindex
+{
+	my( $repoid, $datasetid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		$session->terminate();
+		exit( 1 );
+	}
+
+	my $fn = sub {
+		my( $session, $dataset, $item ) = @_;
 	
+		foreach my $field ( $dataset->get_fields() )
+		{
+			next unless( $field->get_property( "text_index" ) );
+	
+			$session->get_database->index_queue( 
+				$dataset->id,
+				$item->get_id,
+				$field->get_name );
+		}	
+		if( $dataset->confid eq "eprint" )
+		{
+			$session->get_database->index_queue( 
+				$dataset->id,
+				$item->get_id,
+				$EPrints::Utils::FULLTEXT );
+		}
+	
+		if( $session->get_noise() >= 2 )
+		{
+			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
+		}
+	};
 
+	$dataset->map( $session, $fn );
 
+	$session->terminate;
+}
 
 
 
