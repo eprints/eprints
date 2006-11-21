@@ -16,8 +16,12 @@ sub render_status
 
 	my $status = $self->{processor}->{eprint}->get_value( "eprint_status" );
 
+	my $url = $self->{processor}->{eprint}->get_url;
+
 	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
-	$div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status ) );
+	$div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status,
+		link => $self->{session}->render_link( $url ), 
+		url  => $self->{session}->make_text( $url ) ) );
 
 	return $div;
 }

@@ -5553,3 +5553,10 @@ PACKAGE: 2.2.99.2
  * Redrew required star icon
  * Added an example image for other icons
  * Redrew delete file/document X icon.
+
+2006-11-21 moj
+ * Fixed small bug in Convert.pm (if split on mime type returned
+    undef)
+ * Added link to repository version from View.pm (if item is in
+    live archive).
+

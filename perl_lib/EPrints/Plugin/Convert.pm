@@ -208,6 +208,9 @@ sub mime_type
 	my $mt = `$cmd`;
 	$mt =~ s/\015?\012?$//s;
 	($mt) = split /,/, $mt, 2; # file can return a 'sub-type'
+	
+	return undef if !defined $mt;
+	
 	return length($mt) > 0 ? $mt : undef;
 }
 
