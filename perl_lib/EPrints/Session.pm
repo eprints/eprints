@@ -2062,7 +2062,7 @@ sub render_message
 	my $tr = $self->make_element( "tr" );
 	$table->appendChild( $tr );
 	my $td1 = $self->make_element( "td" );
-	$td1->appendChild( $self->make_element( "img", src=>"/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
+	$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
 	$tr->appendChild( $td1 );
 	my $td2 = $self->make_element( "td" );
 	$tr->appendChild( $td2 );

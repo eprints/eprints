@@ -6,6 +6,9 @@
 	margin-bottom: 10px;
 }
 
+.ep_msg_message_icon, .ep_msg_warning_icon, .ep_msg_error_icon {
+	padding: 10px;
+}
 /*
 
 Not currently using titles

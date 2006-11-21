@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::Atom;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::Feed;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::Feed" );
 
 use Unicode::String qw(latin1);
 
@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Feed: Atom";
+	$self->{name} = "Atom";
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
@@ -26,7 +26,6 @@ sub new
 
 	return $self;
 }
-
 
 sub output_list
 {

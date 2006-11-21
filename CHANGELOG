@@ -5541,3 +5541,6 @@ PACKAGE: 2.2.99.2
  * Removed a whole bunch of unused cgi scripts
  * Moved all admin tools into epadmin
 
+2006-11-21 cjg
+ * Feeds are now rendered as links in the export bar.
+ * Added some padding to the icons in message windows.

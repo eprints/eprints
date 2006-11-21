@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::RSS2;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::Feed;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::Feed" );
 
 use Unicode::String qw(latin1);
 use Time::Local;
@@ -17,7 +17,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Feed: RSS 2.0";
+	$self->{name} = "RSS 2.0";
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
@@ -27,7 +27,6 @@ sub new
 
 	return $self;
 }
-
 
 sub output_list
 {

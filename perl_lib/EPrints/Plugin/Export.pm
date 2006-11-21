@@ -31,6 +31,10 @@ sub matches
 {
 	my( $self, $test, $param ) = @_;
 
+	if( $test eq "is_feed" )
+	{
+		return( $self->is_feed() );
+	}
 	if( $test eq "is_visible" )
 	{
 		return( $self->is_visible( $param ) );
@@ -46,6 +50,13 @@ sub matches
 
 	# didn't understand this match 
 	return $self->SUPER::matches( $test, $param );
+}
+
+sub is_feed
+{
+	my( $self ) = @_;
+
+	return 0;
 }
 
 

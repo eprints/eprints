@@ -57,6 +57,18 @@
 	text-align: center;
 }
 
+.ep_search_feed {
+	white-space: nowrap;
+}
+.ep_search_feed img {
+	vertical-align: -2px;
+	padding-left: 0.5em;
+}
+.ep_search_feed a {
+	text-decoration: none;
+	color: #888;
+}
+
 .ep_search_results
 {
 	margin: 1em 0 1em 0;
