@@ -117,7 +117,7 @@ sub render
 		my $col_div = $self->{session}->make_element( "div", class=>"ep_sr_collapse_bar ep_only_js ep_toggle", id => $colbarid );
 
 		my $contentid = $component->{prefix}."_content";		
-		my $col_link =  $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
+		my $col_link =  $self->{session}->make_element( "a", class=>"ep_sr_collapse_link", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
 
 		$col_div->appendChild( $col_link );
 		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"/style/images/plus.png", border=>0 ) );
@@ -126,7 +126,7 @@ sub render
 		$surround->appendChild( $col_div );
 
 		# alternate title to allow it to re-hide
-		my $recol_link =  $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle" );
+		my $recol_link =  $self->{session}->make_element( "a", onClick => "EPJS_blur(event); EPJS_toggleSlide('${contentid}',false);EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle ep_sr_collapse_link" );
 		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"/style/images/minus.png", border=>0 ) );
 		$recol_link->appendChild( $self->{session}->make_text( " " ) );
 		#nb. clone the title as we've already used it above.

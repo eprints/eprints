@@ -1304,40 +1304,25 @@ sub get_input_elements
 			{
 				$col1 = { el=>$session->make_text( $i.". " ), class=>"ep_form_input_grid_pos" };
 				my $arrows = $session->make_doc_fragment;
+				$arrows->appendChild( $session->make_element(
+					"input",
+					type=>"image",
+					src=> "$imagesurl/multi_down.png",
+					alt=>"down",
+					title=>"move down",
+               				name=>"_internal_".$basename."_down_$i",
+					value=>"1" ));
 				if( $i > 1 )
 				{
+					$arrows->appendChild( $session->make_text( " " ) );
 					$arrows->appendChild( $session->make_element(
 						"input",
 						type=>"image",
 						alt=>"up",
+						title=>"move up",
 						src=> "$imagesurl/multi_up.png",
                 				name=>"_internal_".$basename."_up_$i",
 						value=>"1" ));
-				}
-				else
-				{
-					$arrows->appendChild( $session->make_element(
-						"img",
-						alt=>"up",
-						src=> "$imagesurl/multi_up_dim.png" ));
-				}
-				$arrows->appendChild( $session->make_element( "br" ) );
-				if( 1 )
-				{
-					$arrows->appendChild( $session->make_element(
-						"input",
-						type=>"image",
-						src=> "$imagesurl/multi_down.png",
-						alt=>"down",
-                				name=>"_internal_".$basename."_down_$i",
-						value=>"1" ));
-				}
-				else
-				{
-					$arrows->appendChild( $session->make_element(
-						"img",
-						alt=>"down",
-						src=> "/$imagesurl/multi_down_dim.png" ));
 				}
 				$lastcol = { el=>$arrows, valign=>"middle", class=>"ep_form_input_grid_arrows" };
 				$row =  [ $col1, @{$section->[$n]}, $lastcol ];

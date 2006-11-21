@@ -5544,3 +5544,12 @@ PACKAGE: 2.2.99.2
 2006-11-21 cjg
  * Feeds are now rendered as links in the export bar.
  * Added some padding to the icons in message windows.
+
+2006-11-21 cjg
+ * Redrew up & down sorting arrows
+ * Redrew up & down multi-row rearranging arrows and changed the layout.
+ * Added vertical aligning to +/- icons.
+ * Redrew +/- icons
+ * Redrew required star icon
+ * Added an example image for other icons
+ * Redrew delete file/document X icon.
