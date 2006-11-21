@@ -5560,3 +5560,5 @@ PACKAGE: 2.2.99.2
  * Added link to repository version from View.pm (if item is in
     live archive).
 
+2006-11-21 moj
+ * Added indexer queue size to Status.pm

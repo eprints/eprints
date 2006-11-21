@@ -126,6 +126,7 @@ sub render
 		$indexer_status = "running";
 	}
 
+	my $indexer_queue = $session->get_database->count_table( "index_queue" );
 	
 	my( $html , $table , $p , $span );
 	
@@ -152,6 +153,12 @@ sub render
 		$session->render_row( 
 			$session->html_phrase( "cgi/users/status:indexer" ),
 			$session->html_phrase( "cgi/users/status:indexer_".$indexer_status ) ) );
+	
+	$table->appendChild(
+		$session->render_row( 
+			$session->html_phrase( "cgi/users/status:indexer_queue" ),
+			$session->html_phrase( "cgi/users/status:indexer_queue_size", 
+				size => $session->make_text( $indexer_queue ) ) ) );
 	
 	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $session->html_phrase( "cgi/users/status:usertitle" ) );
