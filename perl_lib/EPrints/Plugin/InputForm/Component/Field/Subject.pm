@@ -392,12 +392,12 @@ sub _render_subnode
 		push @classes, "ep_no_js";
 		if( $expanded )
 		{
-			$toggle->setAttribute( "onClick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',true,'block');EPJS_toggle_type('${id}_hide',true,'inline');EPJS_toggle_type('${id}_show',false,'inline');return false" );
+			$toggle->setAttribute( "onclick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',true,'block');EPJS_toggle_type('${id}_hide',true,'inline');EPJS_toggle_type('${id}_show',false,'inline');return false" );
 			$show->setAttribute( "style", "display:none" );
 		}
 		else # not expanded
 		{
-			$toggle->setAttribute( "onClick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',false,'block');EPJS_toggle_type('${id}_hide',false,'inline');EPJS_toggle_type('${id}_show',true,'inline');return false" );
+			$toggle->setAttribute( "onclick", "EPJS_blur(event); EPJS_toggleSlide('${id}_kids',false,'block');EPJS_toggle_type('${id}_hide',false,'inline');EPJS_toggle_type('${id}_show',true,'inline');return false" );
 			$hide->setAttribute( "style", "display:none" );
 		}
 

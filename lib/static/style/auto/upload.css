@@ -22,17 +22,48 @@
 
 .ep_upload_doc
 {
-	margin-bottom: 1em;
+	margin-bottom: 0.5em;
+	background-image: url(/style/images/toolbox.png);
 }
 
-/* only shown when js is off */
-.ep_upload_doc_title
+.ep_upload_doc .ep_upload_doc_title_bar {
+	padding: 0px 6px 0px 6px; 
+	border-left: solid 1px #d8dbef;
+	border-top: solid 1px #d8dbef;
+	border-right: solid 1px #d8dbef;
+}
+.ep_upload_doc .ep_upload_doc_title {
+	color: #444;
+}
+.ep_upload_doc .ep_upload_doc_content {
+	clear: both;
+	border: solid 1px #d8dbef;
+	padding: 6px;
+}
+
+.ep_update_doc_delete {
+	white-space: nowrap;
+}
+.ep_update_doc_delete input {
+	vertical-align: -2px;
+}
+
+.ep_update_doc_options {
+	white-space: nowrap;
+}
+.ep_update_doc_options img {
+	vertical-align: -2px;
+	border: none;
+}
+.ep_update_doc_options a {
+	text-decoration: none;
+}
+
+.ep_upload_doc_toolbar
 {
-	padding: 4px; 
-	font-size: 120%;
-	font-weight: bold;
-	background-image: url(/style/images/gray_bar.png);
-	color: black;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	text-align: center;
 }
 
 .ep_upload_files
@@ -49,6 +80,10 @@
 	margin-left: auto;
 	margin-right: auto;
 	margin-bottom: 0.5em;
+}
+.ep_upload_add_file_toolbar
+{
+	margin-top: 0.5em;
 }
 
 /* End of Document section */

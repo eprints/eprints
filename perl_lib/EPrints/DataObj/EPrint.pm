@@ -177,6 +177,7 @@ sub render_fileinfo
 		my $a = $session->render_link( $url );
 		$a->appendChild( $session->make_element( 
 			"img", 
+			class=>"ep_doc_icon",
 			src=>$imgurl,
 			border=>0 ));
 		$f->appendChild( $a );

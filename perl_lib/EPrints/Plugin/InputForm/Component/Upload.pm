@@ -228,81 +228,88 @@ sub render_content
 	{
 		$affected_doc_id = $1;
 	}
-	my $tabs = [];
-	my $labels = {};
-	my $links = {};
-	my $icons = {};
-	my @docids  = ();
-	foreach my $doc ( @eprint_docs )
-	{	
-		my $docid = $doc->get_id;
-		push @docids, $docid;
-		my $doc_prefix = $self->{prefix}."_doc".$docid;
-		my $label = $session->make_doc_fragment;
-		$label->appendChild( $doc->render_description );
-		my $msg = $self->phrase( "delete_document_confirm" );
-		my $del_btn = $session->make_element( "input", 
-			type => "image", 
-			src => "/style/images/delete.png",
-			name => "_internal_".$doc_prefix."_delete_doc",
-			onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( '$msg' );",
-			value => $self->phrase( "delete_document" ) );
-		$labels->{$doc->get_id} = $label;
-		$icons->{$doc->get_id} = $del_btn;
-	}
-
-	@docids = sort @docids;
-
-	foreach my $view_id ( @docids )
-	{
-		$view = $view_id if !defined $view;
-
-		# so it's on or next to the last affected doc 
-		if( defined $affected_doc_id && !( $view_id gt $affected_doc_id ) )
-		{
-			$view = $view_id;
-		}
-			
-		push @{$tabs}, $view_id;
-		#$labels->{$view_id} = $self->{session}->make_text( $view_id );
-		$links->{$view_id} = "#"; # javascript only tabs
-	}
-
-	if( defined $internal && $internal eq "add_format" )
-	{
-		# id of last doc if we just added one.
-		$view = $docids[-1];
-	}
-
-	my $tab_bar = $session->make_element( "div", class=>"ep_only_js" );
-	$f->appendChild( $tab_bar );
-	$tab_bar->appendChild( 
-		$self->{session}->render_tabs( 
-			id_prefix => $self->{prefix},
-			current => $view,
-			tabs => $tabs,
-			labels => $labels,
-			links => $links,
-			icons => $icons ) );
 
 	my $panel = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels" );
 	$f->appendChild( $panel );
-	
+
+	# sort by doc id?	
 	foreach my $doc ( @eprint_docs )
 	{	
 		my $view_id = $doc->get_id;
-		my $hide = "";
-		if( $view_id ne $view )
-		{
-			$hide = 'ep_no_js';
-		}
-		my $doc_div = $self->{session}->make_element( "div", id=>$self->{prefix}."_panel_$view_id",  class=>"ep_upload_doc $hide" );
+		my $doc_prefix = $self->{prefix}."_doc".$view_id;
+		my $hide = 1;
+		if( $view_id eq $view ) { $hide = 0; }	
+		if( defined $affected_doc_id && $view_id eq $affected_doc_id ) { $hide = 0; }
+		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc" );
 		$panel->appendChild( $doc_div );
-		my $doc_title = $session->make_element( "div", class=>"ep_upload_doc_title ep_no_js" );
-		$doc_title->appendChild( $doc->render_description );
-		$doc_div->appendChild( $doc_title );
+		my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 
-		$doc_div->appendChild( $self->_render_doc( $doc ) );
+
+		my $table = $session->make_element( "table", width=>"100%", border=>0 );
+		my $tr = $session->make_element( "tr" );
+		$doc_title_bar->appendChild( $table );
+		$table->appendChild( $tr );
+		my $td_left = $session->make_element( "td", align=>"left" );
+		$tr->appendChild( $td_left );
+
+		my $table_left = $session->make_element( "table", border=>0 );
+		$td_left->appendChild( $table_left );
+		my $table_left_tr = $session->make_element( "tr" );
+		my $table_left_td_left = $session->make_element( "td", align=>"center" );
+		my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
+		$table_left->appendChild( $table_left_tr );
+		$table_left_tr->appendChild( $table_left_td_left );
+		$table_left_tr->appendChild( $table_left_td_right );
+		my $a = $session->render_link( $doc->get_url, "_blank" );
+		$a->appendChild( $session->make_element( 
+			"img", 
+			class=>"ep_doc_icon",
+			src=>$doc->icon_url,
+			border=>0 ));
+		$table_left_td_left->appendChild( $a );
+
+		$table_left_td_right->appendChild( $doc->render_citation);
+		my %files = $doc->files;
+		if( defined $files{$doc->get_main} )
+		{
+			my $size = $files{$doc->get_main};
+			$table_left_td_right->appendChild( $session->make_element( 'br' ) );
+			$table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+		}
+
+		my $td_right = $session->make_element( "td", align=>"right", valign=>"middle" );
+		$tr->appendChild( $td_right );
+
+		my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
+		my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
+		$options->appendChild( $opts_toggle );
+		$td_right->appendChild( $options );
+
+		my $s_options = $session->make_element( "span", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
+		$s_options->appendChild( $session->make_text( "Show options " ));
+		$s_options->appendChild( 
+			$session->make_element( "img",
+				src=>"/style/images/plus.png",
+				) );
+		$opts_toggle->appendChild( $s_options );
+
+		my $h_options = $session->make_element( "span", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
+		$h_options->appendChild( $session->make_text( "Hide options " ));
+		$h_options->appendChild( 
+			$session->make_element( "img",
+				src=>"/style/images/minus.png",
+				) );
+		$opts_toggle->appendChild( $h_options );
+
+
+		#$doc_title->appendChild( $doc->render_description );
+		$doc_div->appendChild( $doc_title_bar );
+	
+		my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
+		my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
+		$content_inner->appendChild( $self->_render_doc( $doc ) );
+		$content->appendChild( $content_inner );
+		$doc_div->appendChild( $content );
 	}
 	
 	return $f;
@@ -331,7 +338,8 @@ sub _render_doc
 
 	my $session = $self->{session};	
 
-	my $doc_cont = $session->make_element( "div", class=>"ep_tab_panel" );
+	my $doc_cont = $session->make_element( "div" );
+
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
@@ -363,12 +371,13 @@ sub _render_doc
 		}
 	}
 
-	# in case javascript is not available...
-	my $tool_div = $session->make_element( "div", class=>"ep_no_js" );
+	my $tool_div = $session->make_element( "div", class=>"ep_upload_doc_toolbar" );
+	my $msg = $self->phrase( "delete_document_confirm" );
 	my $delete_fmt_button = $session->render_button(
 		name => "_internal_".$doc_prefix."_delete_doc",
 		value => $self->phrase( "delete_format" ), 
 		class => "ep_form_internal_button",
+		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( '$msg' );",
 		);
 	$tool_div->appendChild( $delete_fmt_button );
 
@@ -379,7 +388,9 @@ sub _render_doc
 	my $files = $session->make_element( "div", class=>"ep_upload_files" );
 	$doc_cont->appendChild( $files );
 	$files->appendChild( $self->_render_filelist( $doc ) );
-	$files->appendChild( $self->_render_add_file( $doc ) );
+	my $block = $session->make_element( "div", class=>"ep_block" );
+	$block->appendChild( $self->_render_add_file( $doc ) );
+	$doc_cont->appendChild( $block );
 
 	return $doc_cont;
 }
@@ -433,15 +444,15 @@ sub _render_add_file
 	if( $hide )
 	{
 		my $hide_add_files = $session->make_element( "div", id=>$doc_prefix."_af1" );
-		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onClick => "EPJS_blur(event); if(!confirm('".$self->phrase("really_add")."')) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
+		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); if(!confirm('".$self->phrase("really_add")."')) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
 		$hide_add_files->appendChild( $self->html_phrase( 
 			"add_files",
 			link=>$show ));
 		$f->appendChild( $hide_add_files );
 	}
 
-	my %l = ( id=>$doc_prefix."_af2" );
-	$l{class} = "ep_no_js" if( $hide );
+	my %l = ( id=>$doc_prefix."_af2", class=>"ep_upload_add_file_toolbar" );
+	$l{class} .= " ep_no_js" if( $hide );
 	my $toolbar = $session->make_element( "div", %l );
 	my $file_button = $session->make_element( "input",
 		name => $doc_prefix."_file",
@@ -517,7 +528,7 @@ sub _render_filelist
 			type => "image", 
 			src => "/style/images/delete.png",
 			name => "_internal_".$doc_prefix."_delete_$i",
-			onClick => "EPJS_blur(event); return confirm( '".$self->phrase( "delete_file_confirm", filename => $filename )."' );",
+			onclick => "EPJS_blur(event); return confirm( '".$self->phrase( "delete_file_confirm", filename => $filename )."' );",
 			value => $self->phrase( "delete_file" ) );
 			
 		$td_delete->appendChild( $del_btn );

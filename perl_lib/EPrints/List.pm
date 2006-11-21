@@ -381,8 +381,15 @@ sub dispose
 
 	if( defined $self->{cache_id} && !$self->{keep_cache} )
 	{
-		$self->{session}->get_database->drop_cache( $self->{cache_id} );
-		delete $self->{cache_id};
+		if( !defined $self->{session}->get_database )
+		{
+			print STDERR "Wanted to drop cache ".$self->{cache_id}." but we've already entered clean up and closed the database connection.\n";
+		}
+		else
+		{
+			$self->{session}->get_database->drop_cache( $self->{cache_id} );
+			delete $self->{cache_id};
+		}
 	}
 }
 

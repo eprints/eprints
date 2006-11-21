@@ -24,21 +24,21 @@ sub render_content
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "content", placeholding => $self->{placeholding} );
+	return $self->html_phrase( "content", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
 }
 
 sub render_help
 {
 	my( $self, $surround ) = @_;
 	
-	return $self->html_phrase( "help", placeholding => $self->{placeholding} );
+	return $self->html_phrase( "help", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
 }
 
 sub render_title
 {
 	my( $self, $surround ) = @_;
 
-	return $self->html_phrase( "title", placeholding => $self->{placeholding} );
+	return $self->html_phrase( "title", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
 }
 	
 1;

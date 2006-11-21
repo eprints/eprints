@@ -94,7 +94,7 @@ sub render_toolbar
 	elsif( scalar @other > 1 )
 	{
 		$div->appendChild( $self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );	
-		my $more = $self->{session}->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onClick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_more',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
+		my $more = $self->{session}->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_more',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
 		$more->appendChild( $self->{session}->html_phrase( "Plugin/Screen:more" ) );	
 		$div->appendChild( $more );
 

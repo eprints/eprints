@@ -1537,6 +1537,7 @@ sub render_icon_link
 	my $a = $self->{session}->render_link( $self->get_url );
 	$a->appendChild( $self->{session}->make_element( 
 		"img", 
+		class=>"ep_doc_icon",
 		src=>$self->icon_url,
 		border=>0 ));
 

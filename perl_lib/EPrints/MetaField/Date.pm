@@ -137,7 +137,7 @@ sub get_basic_input_elements
 		$session->html_phrase( "lib/metafield:year" ) );
 	$div->appendChild( $session->make_text(" ") );
 
-	$div->appendChild( $session->render_input_field(
+	$div->appendChild( $session->render_noenter_input_field(
 		class=>"ep_form_text",
 		name => $yearid,
 		id => $yearid,

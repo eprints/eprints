@@ -245,8 +245,15 @@ unless( $filename eq "-" )
 if( defined $list )
 {
 	print "Number of records imported: ".$list->count."\n" if $noise > 0;
+	if( defined $user )
+	{
+		my $userobj;
+		if( 
+
+
+
 	print join( ",", @{$list->get_ids})."\n" if $noise > 1;
-	
+	$list->dispose;
 }
 
 $session->terminate();

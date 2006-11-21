@@ -9,10 +9,10 @@
 	margin: auto;
 }
 .ep_blister_join {
-	background-image: url(/style/images/blackline.png);
-	background-repeat: repeat-x;
-	background-position: center;
-	width: 10px;
+	background-image: url(/style/images/blister_arrow.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 20px;
 }
 .ep_blister_node {
 	padding: 3px;
