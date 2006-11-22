@@ -29,10 +29,12 @@ sub handler
 
 			$c->notes->set( params=>$params );
 
+			# Declined to render the HTML, not declined the
+			# request.
 			return DECLINED;
 		}
 
-		$problems = $session->html_phrase("cgi/login:failed" );
+		$problems = $session->html_phrase( "cgi/login:failed" );
 	}
 
 	my $page=$session->make_doc_fragment();
@@ -95,6 +97,18 @@ sub input_form
 	$op2->appendChild( $session->html_phrase( "cgi/login:dont_bind" ) );
 	$bits{bind_to_ip}->appendChild( $op1 );
 	$bits{bind_to_ip}->appendChild( $op2 );
+
+	my $reset_ok =  $session->get_repository->get_conf(
+				"allow_reset_password");
+	if( $reset_ok ) 
+	{
+		$bits{reset_link} = $session->html_phrase(
+					"cgi/login:reset_link" );
+	}
+	else
+	{
+		$bits{reset_link} = $session->make_doc_fragment;
+	}
 	
 	my $form = $session->render_form( "POST" );
 	$form->appendChild( $session->html_phrase( "cgi/login:page_layout", %bits ) );

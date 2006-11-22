@@ -524,21 +524,13 @@ sub render_search_fields
 
 	foreach my $sf ( $self->{processor}->{search}->get_non_filter_searchfields )
 	{
-		my $div = $self->{session}->make_element( 
-				"div" , 
-				class => "ep_search_field_name" );
-		$div->appendChild( $sf->render_name );
-
-#		$div = $self->{session}->make_element( 
-#			"div" , 
-#			class => "ep_search_field_help" );
-#		$div->appendChild( $sf->render_help );
-#		$frag->appendChild( $div );
-
 		$frag->appendChild( 
-			$self->{session}->render_row( 
-				$sf->render_name,
-				$sf->render ) );
+			$self->{session}->render_row_with_help( 
+				help_prefix => $sf->get_form_prefix."_help",
+				help => $sf->render_help,
+				label => $sf->render_name,
+				field => $sf->render,
+			 ) );
 	}
 
 	return $frag;

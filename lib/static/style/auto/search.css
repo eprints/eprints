@@ -1,25 +1,6 @@
 
 /* EPrints 3 search form style */
 
-/* ep_search */
-
-/* start search field */
-
-.ep_search_field_name {
-        padding-top: 1em;
-	font-weight: bold;
-	font-size: 120%;
-}
-
-.ep_search_field_help {
-        font-size: small ;
-}
-
-.ep_search_field_input {
-}
-
-/* end search field */
-
 
 
 /* buttons are on the form, controls on the results */

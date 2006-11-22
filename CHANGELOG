@@ -5579,3 +5579,8 @@ PACKAGE: 2.2.99.2
  
 2006-11-22 cjg
  * Fixed import and it now obeys --user
+
+2006-11-22 cjg
+ * Added help to search forms.
+ * Reset password option now always shows on login page, but only if you are
+    allowed.

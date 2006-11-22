@@ -1076,6 +1076,14 @@ sub render_row
 	return $tr;
 }
 
+# parts...
+#
+#        help: dom of help text
+#       label: dom title of row (to go in <th>)
+#       class: class for <tr>
+#       field: dom content for <td>
+# help_prefix: prefix for id tag of help toggle
+
 sub render_row_with_help
 {
 	my( $self, %parts ) = @_;
