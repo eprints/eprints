@@ -15,8 +15,6 @@ This plugin is based on work by Jon Bell, UWA.
 use strict;
 use warnings;
 
-use EPrints::Plugin::Convert; # for mime_type
-
 use EPrints::Plugin::Export;
 our @ISA = qw( EPrints::Plugin::Export );
 
@@ -251,8 +249,7 @@ sub _make_fileSec
 		{
 			$file_idx++;
 			my $url = $baseurl . $name;
-			my $filepath = $doc->local_path . "/" . $name;
-			my $mimetype = EPrints::Plugin::Convert::mime_type( $filepath );
+			my $mimetype = $doc->mime_type( $name );
 			$mimetype = 'application/octet-stream' unless defined $mimetype;
 
 			$fileGrp->appendChild( my $file = $session->make_element(

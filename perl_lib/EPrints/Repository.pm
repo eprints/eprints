@@ -1201,6 +1201,28 @@ sub exec
 }	
 
 
+sub can_invoke
+{
+	my( $self, $cmd_id, %map ) = @_;
+
+	my $execs = $self->get_conf( "executables" );
+
+	foreach( keys %{$execs} )
+	{
+		$map{$_} = $execs->{$_};
+	}
+
+	my $command = $self->get_conf( "invocation" )->{ $cmd_id };
+	
+	return 0 if( !defined $command );
+
+	$command =~ s/\$\(([a-z]*)\)/$map{$1}/gei;
+
+	return 0 if( $command =~ /\$\([a-z]*\)/ );
+
+	return 1;
+}
+
 ######################################################################
 =pod
 

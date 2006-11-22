@@ -176,44 +176,6 @@ sub convert
 	return $new_doc;
 }
 
-=pod
-
-=item $mime_type = mime_type($fn)
-
-Returns the mime-type of the file located at $fn, using the Unix file command.
-
-Return undef if it can't work it out.
-
-=cut
-
-sub mime_type
-{
-	my $fn = shift;
-
-	return undef unless -e $fn;
-	return undef unless -r $fn;
-	return undef if -d $fn;
-
-	# Prepare the command to call
-	my $file = $EPrints::SystemSettings::conf->{executables}->{file} || `which file` || 'file';
-	$file =~ s/\015?\012?$//s;
-	my $file_cmd = $EPrints::SystemSettings::conf->{invocation}->{file} || '$(file) -b -i $(SOURCE)';
-	my $cmd = EPrints::Utils::prepare_cmd(
-		$file_cmd,
-		file => $file,
-		SOURCE => $fn,
-	);
-	
-	# Call file and return the mime-type found
-	my $mt = `$cmd`;
-	$mt =~ s/\015?\012?$//s;
-	($mt) = split /,/, $mt, 2; # file can return a 'sub-type'
-	
-	return undef if !defined $mt;
-	
-	return length($mt) > 0 ? $mt : undef;
-}
-
 1;
 
 __END__

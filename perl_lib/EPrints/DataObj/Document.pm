@@ -1593,6 +1593,38 @@ sub make_thumbnail
 	$plugin_def->{ "plugin" }->export( $tgtdir, $self, 'thumbnail' );
 }
 
+sub mime_type
+{
+	my( $self, $file ) = @_;
+
+	# Primary doc if no filename
+	$file = $self->get_main unless( defined $file );
+	
+	my $path = $self->local_path . "/" . $file;
+
+	return undef unless -e $path;
+	return undef unless -r $path;
+	return undef if -d $path;
+
+	my $repos = $self->{session}->get_repository;
+
+	my %params = ( SOURCE => $path );
+
+	return undef if( !$repos->can_invoke( "file", %params ) );
+	
+	my $command = $repos->invocation( "file", %params );
+	my $mime_type = `$command`;
+	$mime_type =~ s/\015?\012?$//s;
+	($mime_type) = split /,/, $mime_type, 2; # file can return a 'sub-type'
+	
+	return undef if !defined $mime_type;
+	
+	return length($mime_type) > 0 ? $mime_type : undef;
+
+	return undef;
+}
+
+
 1;
 
 ######################################################################
