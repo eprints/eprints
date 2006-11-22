@@ -5592,3 +5592,12 @@ PACKAGE: 2.2.99.2
     them if --remove is set.
  * The editlink tab now shows the blister bar rather than a <ul>
  
+2006-11-22 moj
+ * Shifted mime_type from Convert to Document. Takes the local filename and
+   prepends the path. If no filename, uses the main file.
+ * Added can_invoke to Repository. This takes a cmd_id and map (as with 
+    invocation) and returns 1 if it can be invoked. This checks that the
+    invocation exists, and also that all the slots $(SOURCE) etc are filled
+    by the map.
+ * Converted METS and Unpack to use the new mime_type call
+
