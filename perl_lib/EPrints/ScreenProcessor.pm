@@ -85,7 +85,7 @@ sub process
 
 	my $content = $self->screen->render;
 	my $links = $self->screen->render_links;
-	my $toolbar = $self->screen->render_toolbar;
+#	my $toolbar = $self->{session}->render_toolbar;
 	my $title = $self->screen->render_title;
 
 	my $page = $self->{session}->make_doc_fragment;
@@ -107,7 +107,7 @@ sub process
 			title => $title, 
 			page => $page,
 			head => $links,
-			toolbar => $toolbar,
+#			toolbar => $toolbar,
 		} );
 	$self->{session}->send_page();
 }

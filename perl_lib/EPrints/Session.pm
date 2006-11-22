@@ -1137,6 +1137,82 @@ sub render_row_with_help
 	return $tr;
 }
 
+sub render_toolbar
+{
+	my( $self ) = @_;
+
+	my $screen_processor = bless {
+		session => $self,
+		screenid => "FirstTool",
+	}, "EPrints::ScreenProcessor";
+
+	my $screen = $screen_processor->screen;
+	$screen->properties_from; 
+
+	my $toolbar = $self->make_element( "span", class=>"ep_toolbar" );
+	my $core = $self->make_element( "span", id=>"ep_user_menu_core" );
+	$toolbar->appendChild( $core );
+
+	my @core = $screen->list_items( "key_tools" );
+	my @other = $screen->list_items( "other_tools" );
+	my $url = $self->get_repository->get_conf( "perl_url" )."/users/home";
+
+	my $first = 1;
+	foreach my $tool ( @core )
+	{
+		if( $first )
+		{
+			$first = 0;
+		}
+		else
+		{
+			$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+		}
+		my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
+		$a->appendChild( $tool->{screen}->render_title );
+		$core->appendChild( $a );
+	}
+
+	if( scalar @other == 1 )
+	{
+		$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
+		my $tool = $other[0];
+		my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
+		$a->appendChild( $tool->{screen}->render_title );
+		$core->appendChild( $a );
+	}
+	elsif( scalar @other > 1 )
+	{
+		my $span = $self->make_element( "span", id=>"ep_user_menu_extra", class=>"ep_no_js" );
+		$toolbar->appendChild( $span );
+
+		my $more = $self->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_core',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
+		$more->appendChild( $self->html_phrase( "Plugin/Screen:more" ) );	
+		$toolbar->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
+		$toolbar->appendChild( $more );
+
+		$first = 1;
+		foreach my $tool ( @other )
+		{
+			if( $first )
+			{
+				$first = 0;
+			}
+			else
+			{
+				$span->appendChild( 
+					$self->html_phrase( "Plugin/Screen:tool_divide" ) );
+			}
+			my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
+			$a->appendChild( $tool->{screen}->render_title );
+			$span->appendChild( $a );
+		}
+	
+	}
+		
+	return $toolbar;
+}
+
 
 ######################################################################
 =pod
@@ -2232,7 +2308,7 @@ sub get_next_id
 ######################################################################
 =pod
 
-=item $session->write_static_page( $filebase, $parts, [$page_id] )
+=item $session->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
 Write an .html file plus a set of files describing the parts of the
 page for use with the dynamic template option.
@@ -2241,12 +2317,14 @@ File base is the name of the page without the .html suffix.
 
 parts is a reference to a hash containing DOM trees.
 
+If $wrote_files is defined then any filenames written are logged in it as keys.
+
 =cut
 ######################################################################
 
 sub write_static_page
 {
-	my( $self, $filebase, $parts, $page_id ) = @_;
+	my( $self, $filebase, $parts, $page_id, $wrote_files ) = @_;
 
 	print "Writing: $filebase\n" if( $self->{noise} > 1 );
 
@@ -2258,6 +2336,10 @@ sub write_static_page
 		{
 			print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
 			close CACHE;
+			if( defined $wrote_files )
+			{
+				$wrote_files->{$file} = 1;
+			}
 		}
 		else
 		{
@@ -2271,6 +2353,10 @@ sub write_static_page
 	{
 		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title} );
 		close CACHE;
+		if( defined $wrote_files )
+		{
+			$wrote_files->{$title_textonly_file} = 1;
+		}
 	}
 	else
 	{
@@ -2279,7 +2365,7 @@ sub write_static_page
 
 	my $html_file = $filebase.".html";
 	$self->prepare_page( $parts, page_id=>$page_id );
-	$self->page_to_file( $html_file );
+	$self->page_to_file( $html_file, $wrote_files );
 }
 
 ######################################################################
@@ -2490,7 +2576,7 @@ END
 ######################################################################
 =pod
 
-=item $session->page_to_file( $filename )
+=item $session->page_to_file( $filename, [$wrote_files] )
 
 Write out the current webpage to the given filename.
 
@@ -2498,12 +2584,15 @@ build_page must have been called first.
 
 Dispose of the XML once it's sent out.
 
+If $wrote_files is set then keys are created in it for each file
+created.
+
 =cut
 ######################################################################
 
 sub page_to_file
 {
-	my( $self , $filename ) = @_;
+	my( $self , $filename, $wrote_files ) = @_;
 	
 	if( defined $self->{text_page} )
 	{
@@ -2513,12 +2602,20 @@ sub page_to_file
 Can't open to write to XML file: $filename
 END
 		}
+		if( defined $wrote_files )
+		{
+			$wrote_files->{$filename} = 1;
+		}
 		print XMLFILE $self->{text_page};
 		close XMLFILE;
 	}
 	else
 	{
 		EPrints::XML::write_xhtml_file( $self->{page}, $filename );
+		if( defined $wrote_files )
+		{
+			$wrote_files->{$filename} = 1;
+		}
 		EPrints::XML::dispose( $self->{page} );
 	}
 	delete $self->{page};

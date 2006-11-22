@@ -5584,3 +5584,11 @@ PACKAGE: 2.2.99.2
  * Added help to search forms.
  * Reset password option now always shows on login page, but only if you are
     allowed.
+
+2006-11-22 cjg
+ * Shifted logged-in toolbar to appear in the dynamic template.
+ * Changed the "more" in the template to a toggle.
+ * generate_static now reports inexpected files in the website and removes 
+    them if --remove is set.
+ * The editlink tab now shows the blister bar rather than a <ul>
+ 

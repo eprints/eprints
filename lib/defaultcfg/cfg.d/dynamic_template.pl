@@ -29,12 +29,15 @@ $c->{dynamic_template}->{function} = sub {
 	my $user = $session->current_user;
 	if( defined $user )
 	{
-		$parts->{login_status} = $session->html_phrase( "dynamic:logged_in", 
-			user => $user->render_description );
+		$parts->{login_status} = $session->html_phrase( 
+			"dynamic:logged_in", 
+			user => $user->render_description,
+			tools => $session->render_toolbar );
 	}
 	else
 	{
-		$parts->{login_status} = $session->html_phrase( "dynamic:not_logged_in" );
+		$parts->{login_status} = $session->html_phrase( 
+			"dynamic:not_logged_in" );
 	}
 };
 

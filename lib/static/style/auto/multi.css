@@ -12,14 +12,14 @@ table.ep_multi
 	width: 100%;
 }
 
-table.ep_multi tr.ep_first th.ep_multi_heading,
-table.ep_multi tr.ep_first td.ep_multi_input, 
-table.ep_multi tr.ep_first td.ep_multi_help 
+th.ep_multi_heading,
+td.ep_multi_input, 
+td.ep_multi_help 
 {
 	border-top: none;
 }
 
-table.ep_multi th.ep_multi_heading
+th.ep_multi_heading
 {
 	border-top: dashed #bbf 1px;
 	padding-top: 0.5em;
@@ -28,7 +28,7 @@ table.ep_multi th.ep_multi_heading
 	text-align: right;
 }
 
-table.ep_multi td.ep_multi_input
+td.ep_multi_input
 {
 	border-top: dashed #bbf 1px;
 	padding-top: 0.5em;
@@ -38,7 +38,7 @@ table.ep_multi td.ep_multi_input
 	border-left: dashed #bbf 1px;
 }
 
-table.ep_multi td.ep_multi_help
+td.ep_multi_help
 {
 	white-space: nowrap;
 	border-top: dashed #bbf 1px;

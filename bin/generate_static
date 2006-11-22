@@ -79,6 +79,10 @@ The ID of the eprint repository to use.
 
 =over 8
 
+=item B<--remove>
+
+Remove stray files from the website (eg. if something was removed from the static pages).
+
 =item B<--help>
 
 Print a brief help message and exit.
@@ -115,6 +119,7 @@ use Pod::Usage;
 my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
+my $remove = 0;
 my $help = 0;
 my $man = 0;
 
@@ -122,6 +127,7 @@ GetOptions(
 	'help|?' => \$help,
 	'man' => \$man,
 	'version' => \$version,
+	'remove' => \$remove,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
 	'quiet' => \$quiet
@@ -152,6 +158,7 @@ if( defined $theme )
 }
 $static_dirs[4] = $session->get_repository->get_conf( "config_path" )."/static";
 
+my $strays = 0;
 foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 {
 	$static_dirs[1] = $session->get_repository->get_conf( "lib_path" )."/lang/$langid/static";
@@ -170,6 +177,7 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	}
 	$session->change_lang( $langid );
 	my $base_target_dir = $session->get_repository->get_conf( "htdocs_path" )."/$langid";
+	my $wrote_files = {};
 	foreach my $target ( keys %{$map} )
 	{
 		my $source = $map->{$target};
@@ -188,9 +196,9 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 		my $suffix = $1;
 
 		print "$source -> $target\n" if( $noise >= 2);
-		if( $suffix eq "xhtml" ) { copy_xhtml( $session, $source, $target ); }
-		elsif( $suffix eq "xpage" ) { copy_xpage( $session, $source, $target ); }
-		else { copy_plain( $session, $source, $target ); }
+		if( $suffix eq "xhtml" ) { copy_xhtml( $session, $source, $target, $wrote_files ); }
+		elsif( $suffix eq "xpage" ) { copy_xpage( $session, $source, $target, $wrote_files ); }
+		else { copy_plain( $session, $source, $target, $wrote_files ); }
 	}	
 
 	# do the magic auto.js and auto.css
@@ -217,20 +225,76 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 
 	$fn = "$base_target_dir/style/auto.css";
 	open( CSS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
+	$wrote_files->{$fn} = 1;
 	print CSS $css;
 	close CSS;
 
 	$fn = "$base_target_dir/javascript/auto.js";
 	open( JS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
+	$wrote_files->{$fn} = 1;
 	print JS $js;
 	close JS;
+
+	my $existing_files = {};
+	scan_dir( $base_target_dir, $existing_files );
+
+	foreach my $e_file ( keys %{$existing_files} )
+	{
+		next if defined( $wrote_files->{$e_file} );
+		next if( $e_file =~ m/^$base_target_dir\/view\// );
+		next if( $e_file =~ m/^$base_target_dir\/view_tmp/ );
+		next if( $e_file =~ m/^$base_target_dir\/archive\// );
+		if( $remove )
+		{
+			print "removing $e_file\n" if( $noise >= 1);
+			unlink( $e_file );
+		}
+		else
+		{
+			print "Unrecognised file in website: $e_file\n" if( $noise >= 1 );
+			$strays = 1;
+		}
+	}
 }
 
+if( $strays )
+{
+	print "To remove unrecognised files run with the --remove option.\n" if( $noise >= 1 );
+}
 $session->terminate();
 
 exit;
 
 ##################################
+
+sub scan_dir
+{
+	my( $dir, $map ) = @_;
+
+	my $dh;
+	my @dirs = ();
+	opendir( $dh, $dir ) || EPrints::abort( "Failed to read dir: $dir" );
+	while( my $file = readdir( $dh ) )
+	{
+		next if $file eq ".svn";
+		next if $file eq "CVS";
+		next if $file eq ".";
+		next if $file eq "..";
+		if( -d "$dir/$file" ) 
+		{
+			push @dirs, $file;
+			next;
+		}
+		# file
+		$map->{"$dir/$file"} = 1;
+	}
+	closedir( $dh );
+
+	foreach my $subdir ( @dirs )
+	{
+		scan_dir( $dir."/".$subdir, $map );
+	}
+}
 
 sub scan_static_dir
 {
@@ -273,17 +337,19 @@ sub scan_static_dir_aux
 
 sub copy_plain
 {
-	my( $session, $from, $to ) = @_;
+	my( $session, $from, $to, $wrote_files ) = @_;
 
 	if( !EPrints::Utils::copy( $from, $to ) )
 	{
 		EPrints::abort( "Can't copy $from to $to: $!" );
 	}
+
+	$wrote_files->{$to} = 1;
 }
 
 sub copy_xpage
 {
-	my( $session, $from, $to ) = @_;
+	my( $session, $from, $to, $wrote_files ) = @_;
 
 	my $doc = $session->get_repository->parse_xml( $from );
 
@@ -323,14 +389,14 @@ sub copy_xpage
 
 	$parts->{page} = delete $parts->{body};
 	$to =~ s/.html$//;
-	$session->write_static_page( $to, $parts, "static" );
+	$session->write_static_page( $to, $parts, "static", $wrote_files );
 
 	EPrints::XML::dispose( $doc );
 }
 
 sub copy_xhtml
 {
-	my( $session, $from, $to ) = @_;
+	my( $session, $from, $to, $wrote_files ) = @_;
 
 	my $doc = $session->get_repository->parse_xml( $from );
 
@@ -354,6 +420,6 @@ sub copy_xhtml
 			$elements->{html}, 
 			session => $session ) ); 
 
-	$session->page_to_file( $to );
+	$session->page_to_file( $to, $wrote_files );
 }
 

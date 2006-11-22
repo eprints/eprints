@@ -58,71 +58,6 @@ sub register_furniture
 	return $self->{session}->make_doc_fragment;
 }
 
-sub render_toolbar
-{
-	my( $self ) = @_;
-
-	my $div = $self->{session}->make_element( "div", class=>"ep_toolbar" );
-
-	my @core = $self->list_items( "key_tools" );
-	my @other = $self->list_items( "other_tools" );
-
-	my $first = 1;
-	foreach my $tool ( @core )
-	{
-		if( $first )
-		{
-			$first = 0;
-		}
-		else
-		{
-			$div->appendChild( $self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );
-		}
-		my $a = $self->{session}->render_link( "?screen=".substr($tool->{screen_id},8) );
-		$a->appendChild( $tool->{screen}->render_title );
-		$div->appendChild( $a );
-	}
-
-	if( scalar @other == 1 )
-	{
-		$div->appendChild( $self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );	
-		my $tool = $other[0];
-		my $a = $self->{session}->render_link( "?screen=".substr($tool->{screen_id},8) );
-		$a->appendChild( $tool->{screen}->render_title );
-		$div->appendChild( $a );
-	}
-	elsif( scalar @other > 1 )
-	{
-		$div->appendChild( $self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );	
-		my $more = $self->{session}->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_more',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
-		$more->appendChild( $self->{session}->html_phrase( "Plugin/Screen:more" ) );	
-		$div->appendChild( $more );
-
-		my $span = $self->{session}->make_element( "span", id=>"ep_user_menu_extra", class=>"ep_no_js" );
-		$div->appendChild( $span );
-
-		$first = 1;
-		foreach my $tool ( @other )
-		{
-			if( $first )
-			{
-				$first = 0;
-			}
-			else
-			{
-				$span->appendChild( 
-					$self->{session}->html_phrase( "Plugin/Screen:tool_divide" ) );
-			}
-			my $a = $self->{session}->render_link( "?screen=".substr($tool->{screen_id},8) );
-			$a->appendChild( $tool->{screen}->render_title );
-			$span->appendChild( $a );
-		}
-	
-	}
-		
-	return $div;
-}
-
 sub render_hidden_bits
 {
 	my( $self ) = @_;
@@ -385,10 +320,16 @@ sub render_action_button
 		
 	my $form = $session->render_form( "form" );
 
-	$form->appendChild( $session->render_hidden_field( "screen", substr( $params->{screen_id}, 8 ) ) );
+	$form->appendChild( 
+		$session->render_hidden_field( 
+			"screen", 
+			substr( $params->{screen_id}, 8 ) ) );
 	foreach my $id ( @{$params->{hidden}} )
 	{
-		$form->appendChild( $session->render_hidden_field( $id, $self->{processor}->{$id} ) );
+		$form->appendChild( 
+			$session->render_hidden_field( 
+				$id, 
+				$self->{processor}->{$id} ) );
 	}
 	my( $action, $title );
 	if( defined $params->{action} )

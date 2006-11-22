@@ -22,7 +22,9 @@ use strict;
 use EPrints::ScreenProcessor;
 my $session = EPrints::Session->new();
 
-EPrints::ScreenProcessor->process( session=>$session, url=>$session->get_repository->get_conf( "perl_url" )."/users/home" );
+EPrints::ScreenProcessor->process( 
+	session=>$session, 
+	url=>$session->get_repository->get_conf( "perl_url" )."/users/home" );
 
 $session->terminate;
 

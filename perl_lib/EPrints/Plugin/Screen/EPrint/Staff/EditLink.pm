@@ -29,12 +29,22 @@ sub can_be_viewed
 	return $self->allow( "eprint/staff/edit" );
 }
 
-sub things
+sub render
 {
 	my( $self ) = @_;
 
-	return( "EPrint::Staff::Edit", $self->workflow(1) );
+	my $form = $self->{session}->render_form( "form" );
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( "screen", "EPrint::Staff::Edit" ) );
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( 
+			"eprintid", 
+			$self->{processor}->{eprintid} ) );
+	$form->appendChild( $self->render_blister( "", 1 ) );
+	return $form;
 }
 
+
+1;
 
 1;

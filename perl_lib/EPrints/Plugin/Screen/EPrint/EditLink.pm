@@ -27,36 +27,20 @@ sub can_be_viewed
 	return $self->allow( "eprint/edit" );
 }
 
-# total ugly code. This is just here to be replaced
-# easily in the sub class.
-sub things
-{
-	my( $self ) = @_;
-
-	return( "EPrint::Edit", $self->workflow );
-}
-
 sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{processor}->{session};
-	my $eprint = $self->{processor}->{eprint};
-	my( $escreen, $workflow ) = $self->things;
-	my $div = $session->make_element( "div", class=>"ep_block" );
-	my $ul = $session->make_element( "ul" );
-	$div->appendChild( $ul );
-	foreach my $stage_id ( $workflow->get_stage_ids )
-	{
-		my $li = $session->make_element( "li" );
-		my $a = $session->render_link( "?eprintid=".$self->{processor}->{eprintid}."&screen=$escreen&stage=$stage_id" );
-		$li->appendChild( $a );
-		$a->appendChild( $session->html_phrase( "metapage_title_".$stage_id ) );
-		$ul->appendChild( $li );
-	}
-
-	return $div;
-}	
+	my $form = $self->{session}->render_form( "form" );
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( "screen", "EPrint::Edit" ) );
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( 
+			"eprintid", 
+			$self->{processor}->{eprintid} ) );
+	$form->appendChild( $self->render_blister( "", 0 ) );
+	return $form;
+}
 
 
 1;

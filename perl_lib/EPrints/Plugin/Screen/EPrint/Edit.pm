@@ -46,8 +46,12 @@ sub from
 	{
 		my $jump_to = $1;
 
-		my $from_ok = $self->workflow->update_from_form( $self->{processor} );
-		return if( !$from_ok );
+		if( defined $self->{session}->param( "stage" ) )
+		{
+			my $from_ok = $self->workflow->update_from_form( 
+						$self->{processor} );
+			return if( !$from_ok );
+		}
 
 		if( $jump_to eq "deposit" )
 		{
