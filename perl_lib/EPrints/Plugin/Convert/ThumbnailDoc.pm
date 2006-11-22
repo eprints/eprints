@@ -1,10 +1,10 @@
-package EPrints::Plugin::Convert::Thumbnail;
+package EPrints::Plugin::Convert::ThumbnailDoc;
 
 =pod
 
 =head1 NAME
 
-EPrints::Plugin::Convert::Thumbnail 
+EPrints::Plugin::Convert::ThumbnailDoc 
 
 =cut
 
@@ -20,19 +20,8 @@ our $ABSTRACT = 0;
 
 our (%FORMATS, @ORDERED, %FORMATS_PREF);
 @ORDERED = %FORMATS = qw(
-bmp image/bmp
-gif image/gif
-ief image/ief
-jpeg image/jpeg
-jpe image/jpeg
-jpg image/jpeg
-png image/png
-tiff image/tiff
-tif image/tiff
-pnm image/x-portable-anymap
-pbm image/x-portable-bitmap
-pgm image/x-portable-graymap
-ppm image/x-portable-pixmap
+pdf application/pdf
+ps application/postscript
 );
 # formats pref maps mime type to file suffix. Last suffix
 # in the list is used.
@@ -48,7 +37,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Thumbnail";
+	$self->{name} = "Thumbnail Documents";
 	$self->{visible} = "all";
 
 	return $self;
@@ -80,19 +69,19 @@ sub export
 
 	my $src = $doc->local_path . '/' . $doc->get_main;
 	
-	my $fn1 = $doc->get_id.".png";
-	my $fn2 = $doc->get_id."_200.png";
+#	my $fn1 = $doc->get_id.".png";
+#	my $fn2 = $doc->get_id."_200.png";
 	my $fn3 = $doc->get_id."_400.png";
 
-	system($convert, "-thumbnail","66x50>", $src.'[66x50]', $dir . '/' . $fn1);
-	system($convert, "-thumbnail","200x150>",$src.'[200x150]', $dir . '/' . $fn2);
-	system($convert, "-thumbnail","400x300>", $src.'[400x300]', $dir . '/' . $fn3);
+#	system($convert, "-thumbnail","66x50>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn1);
+#	system($convert, "-thumbnail","200x150>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn2);
+	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn3);
 
-	unless( -e "$dir/$fn1" ) {
+	unless( -e "$dir/$fn3" ) {
 		return ();
 	}
 	
-	return ($fn1);
+	return ($fn3);
 }
 
 1;

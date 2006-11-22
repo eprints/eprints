@@ -37,6 +37,11 @@ sub chown
 	return CORE::chown( @_ );
 }
 
+sub getgrnam 
+{
+	return CORE::getgrnam( $_[0] );
+}
+
 sub getpwnam 
 {
 	return CORE::getpwnam( $_[0] );
@@ -88,10 +93,12 @@ sub mkdir
 				print STDERR "Failed to mkdir $dir: $!\n";
 				return 0;
 			}
+			EPrints::Utils::chown_for_eprints( $dir );
 		}
 	}		
 
 	return 1;
 }
+
 
 1;

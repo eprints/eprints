@@ -5591,7 +5591,7 @@ PACKAGE: 2.2.99.2
  * generate_static now reports inexpected files in the website and removes 
     them if --remove is set.
  * The editlink tab now shows the blister bar rather than a <ul>
- 
+
 2006-11-22 moj
  * Shifted mime_type from Convert to Document. Takes the local filename and
    prepends the path. If no filename, uses the main file.
@@ -5604,3 +5604,16 @@ PACKAGE: 2.2.99.2
 2006-11-12 moj
  * Tweaked exists_and_set to call is_set - was getting the value incorrectly
     so failing on compound fields.
+
+2006-11-22 cjg
+ * Added document thumbnail plugin
+ * Added popup preview of files
+ * Added redo_thumbnails to epadmin
+ * mkdir now sets the correct gid
+ * $doc->thumbnail_url now checks if the file exists on disk rather than if
+    it theoretically should exist.
+ * Added getgrnam to Platform
+ * Fixed scroll on file roller to go to the outer element not the element 
+    being revealed.
+ * Changed generate_static --remove to --prune
+

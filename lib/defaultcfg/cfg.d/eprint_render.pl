@@ -99,7 +99,7 @@ $c->{eprint_render} = sub
 	
 			$doctd = $session->make_element( "td", valign=>"top" );
 			$doctr->appendChild( $doctd );
-			$doctd->appendChild( $doc->render_icon_link );
+			$doctd->appendChild( $doc->render_icon_link( preview=>1 ) );
 	
 			$doctd = $session->make_element( "td", valign=>"top" );
 			$doctr->appendChild( $doctd );

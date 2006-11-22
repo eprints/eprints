@@ -1545,6 +1545,19 @@ sub require_if_exists
 	return $REQUIRED_CACHE->{$module};
 }
 
+sub chown_for_eprints
+{
+	my( $file ) = @_;
+
+	my $group = $EPrints::SystemSettings::conf->{group};
+	my $username = $EPrints::SystemSettings::conf->{user};
+
+	my(undef,undef,$uid,undef) = EPrints::Platform::getpwnam( $username );
+	my $gid = EPrints::Platform::getgrnam( $group );
+
+	EPrints::Platform::chown( $uid, $gid, $file );
+}
+
 ######################################################################
 # Redirect as this function has been moved.
 ######################################################################

@@ -240,7 +240,7 @@ sub render_content
 		my $hide = 1;
 		if( $view_id eq $view ) { $hide = 0; }	
 		if( defined $affected_doc_id && $view_id eq $affected_doc_id ) { $hide = 0; }
-		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc" );
+		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
 		$panel->appendChild( $doc_div );
 		my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 
@@ -260,13 +260,8 @@ sub render_content
 		$table_left->appendChild( $table_left_tr );
 		$table_left_tr->appendChild( $table_left_td_left );
 		$table_left_tr->appendChild( $table_left_td_right );
-		my $a = $session->render_link( $doc->get_url, "_blank" );
-		$a->appendChild( $session->make_element( 
-			"img", 
-			class=>"ep_doc_icon",
-			src=>$doc->icon_url,
-			border=>0 ));
-		$table_left_td_left->appendChild( $a );
+		
+		$table_left_td_left->appendChild( $doc->render_icon_link( new_screen=>1, preview=>1 ) );
 
 		$table_left_td_right->appendChild( $doc->render_citation);
 		my %files = $doc->files;
@@ -281,7 +276,7 @@ sub render_content
 		$tr->appendChild( $td_right );
 
 		my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
-		my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
+		my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
 		$options->appendChild( $opts_toggle );
 		$td_right->appendChild( $options );
 

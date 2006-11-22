@@ -84,6 +84,18 @@ sub getpwnam { return &{$real_module."::getpwnam"}( $_[0] ); }
 
 #####################################################################
 
+=item getpwnam( $user )
+
+Return the login-name, password crypt, uid and gid for user $user.
+
+=cut
+
+#####################################################################
+
+sub getgrnam { return &{$real_module."::getgrnam"}( $_[0] ); }
+
+#####################################################################
+
 =item test_uid()
 
 Test whether the current user is the same that is configured in

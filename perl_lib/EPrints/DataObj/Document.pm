@@ -1512,16 +1512,31 @@ sub register_parent
 }
 
 
+sub thumbnail_url
+{
+	my( $self, $size ) = @_;
+
+	my $tgtdir = $self->{session}->get_repository->get_conf( "archiveroot" )."/thumbnails";
+
+	my $suffix = "";
+	if( defined $size ) { $suffix = "_$size"; }
+
+	if( -e $tgtdir."/".$self->get_id.$suffix.".png" )	
+	{
+		return $self->{session}->get_repository->get_conf( "base_url" ).
+			"/thumbnails/".$self->get_id.$suffix.".png";
+	}
+
+	return undef;
+}
 
 sub icon_url 
 {
-	my( $self ) = @_;
+	my( $self, $size ) = @_;
 
-	if( $self->can_thumbnail )
-	{
-		return $self->{session}->get_repository->get_conf( "base_url" ).
-			"/thumbnails/".$self->get_id.".png";
-	}
+	my $thumbnail_url = $self->thumbnail_url( $size );
+
+	return $thumbnail_url if defined $thumbnail_url;
 
 	my $type = $self->get_value( "format" );
 	$type =~ s/\//_/g;
@@ -1532,16 +1547,56 @@ sub icon_url
 
 sub render_icon_link
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $a = $self->{session}->render_link( $self->get_url );
+	my %aopts;
+	$aopts{href} = $self->get_url;
+	$aopts{target} = "_blank" if( $opts{new_screen} );
+	my $preview_id = "doc_preview_".$self->get_id;
+	my $preview_url;
+	if( $opts{preview} )
+	{
+		$preview_url = $self->thumbnail_url( 400 );
+		if( !defined $preview_url ) { $opts{preview} = 0; }
+	}
+	if( $opts{preview} )
+	{
+		$aopts{onmouseover} = "EPJS_ShowPreview( event, '$preview_id' );";
+		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
+	}
+	my $a = $self->{session}->make_element( "a", %aopts );
 	$a->appendChild( $self->{session}->make_element( 
 		"img", 
 		class=>"ep_doc_icon",
+		alt=>"[img]",
 		src=>$self->icon_url,
 		border=>0 ));
+	my $f = $self->{session}->make_doc_fragment;
+	$f->appendChild( $a ) ;
+	if( $opts{preview} )
+	{
+		my $preview = $self->{session}->make_element( "div",
+				id => $preview_id,
+				class => "ep_preview", );
+		my $table = $self->{session}->make_element( "table" );
+		$preview->appendChild( $table );
+		my $tr = $self->{session}->make_element( "tr" );
+		my $td = $self->{session}->make_element( "td" );
+		$tr->appendChild( $td );
+		$table->appendChild( $tr );
+		$td->appendChild( $self->{session}->make_element( 
+			"img", 
+			class=>"ep_preview_image",
+			alt=>"",
+			src=>$preview_url,
+			border=>0 ));
+		my $div = $self->{session}->make_element( "div", class=>"ep_preview_title" );
+		$div->appendChild( $self->{session}->html_phrase( "lib/document:preview"));
+		$td->appendChild( $div );
+		$f->appendChild( $preview );
+	}
 
-	return $a;
+	return $f;
 }
 
 sub can_thumbnail
@@ -1576,7 +1631,7 @@ sub make_thumbnail
 	my $tgtdir = $self->{session}->get_repository->get_conf( "archiveroot" )."/thumbnails";
 	my $tgt = "$tgtdir/".$self->get_id.".png";
 
-	# check mtime:q
+	# check mtime
 	my @s1 = stat( $src );
 	my @s2 = stat( $tgt );
     	if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
@@ -1599,7 +1654,7 @@ sub mime_type
 
 	# Primary doc if no filename
 	$file = $self->get_main unless( defined $file );
-	
+
 	my $path = $self->local_path . "/" . $file;
 
 	return undef unless -e $path;
@@ -1611,18 +1666,19 @@ sub mime_type
 	my %params = ( SOURCE => $path );
 
 	return undef if( !$repos->can_invoke( "file", %params ) );
-	
+
 	my $command = $repos->invocation( "file", %params );
 	my $mime_type = `$command`;
 	$mime_type =~ s/\015?\012?$//s;
 	($mime_type) = split /,/, $mime_type, 2; # file can return a 'sub-type'
-	
+
 	return undef if !defined $mime_type;
-	
+
 	return length($mime_type) > 0 ? $mime_type : undef;
 
 	return undef;
 }
+
 
 
 1;

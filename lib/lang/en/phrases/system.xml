@@ -30,6 +30,7 @@ EPrints Modules
     <epp:phrase id="lib/document:no_files">You haven't <epc:pin name="fieldname">uploaded</epc:pin> any files!</epp:phrase>
     <epp:phrase id="lib/document:no_type">You haven't <epc:pin name="fieldname">specified a document type</epc:pin>!</epp:phrase>
     <epp:phrase id="lib/document:no_first">You need to <epc:pin name="fieldname">select a file to be shown first</epc:pin>.</epp:phrase>
+    <epp:phrase id="lib/document:preview">Preview</epp:phrase>
 
 <!-- EPrint -->
 

@@ -79,7 +79,7 @@ The ID of the eprint repository to use.
 
 =over 8
 
-=item B<--remove>
+=item B<--prune>
 
 Remove stray files from the website (eg. if something was removed from the static pages).
 
@@ -119,7 +119,7 @@ use Pod::Usage;
 my $version = 0;
 my $verbose = 0;
 my $quiet = 0;
-my $remove = 0;
+my $prune = 0;
 my $help = 0;
 my $man = 0;
 
@@ -127,7 +127,7 @@ GetOptions(
 	'help|?' => \$help,
 	'man' => \$man,
 	'version' => \$version,
-	'remove' => \$remove,
+	'prune' => \$prune,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
 	'quiet' => \$quiet
@@ -244,7 +244,7 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 		next if( $e_file =~ m/^$base_target_dir\/view\// );
 		next if( $e_file =~ m/^$base_target_dir\/view_tmp/ );
 		next if( $e_file =~ m/^$base_target_dir\/archive\// );
-		if( $remove )
+		if( $prune )
 		{
 			print "removing $e_file\n" if( $noise >= 1);
 			unlink( $e_file );
@@ -259,7 +259,7 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 
 if( $strays )
 {
-	print "To remove unrecognised files run with the --remove option.\n" if( $noise >= 1 );
+	print "To prune unrecognised files run with the --prune option.\n" if( $noise >= 1 );
 }
 $session->terminate();
 
