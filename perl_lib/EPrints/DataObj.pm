@@ -599,11 +599,11 @@ sub exists_and_set
 	my( $self, $fieldname ) = @_;
 
 	if( !$self->{dataset}->get_field( $fieldname ) )
-	{
+	{	
 		return 0;
 	}
 
-	return EPrints::Utils::is_set( $self->{data}->{$fieldname} );
+	return $self->is_set( $fieldname );
 }
 
 

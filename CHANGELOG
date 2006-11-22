@@ -5601,3 +5601,6 @@ PACKAGE: 2.2.99.2
     by the map.
  * Converted METS and Unpack to use the new mime_type call
 
+2006-11-12 moj
+ * Tweaked exists_and_set to call is_set - was getting the value incorrectly
+    so failing on compound fields.
