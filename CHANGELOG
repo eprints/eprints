@@ -5563,7 +5563,7 @@ PACKAGE: 2.2.99.2
 2006-11-21 moj
  * Added indexer queue size to Status.pm
 
-2006-11-21 moj
+2006-11-21 cjg
  * Fixed issue in list that it warns if a cache should have been dropped
     and wasn't but couldn't be as the database had already been GC'd
  * Date didn't supress enter in the year input field. Now does.
@@ -5576,4 +5576,6 @@ PACKAGE: 2.2.99.2
  * Fixed pins in placeholder - they were not DOM
  * Changed the lines between bits in the blister into arrows.
  * Messed up import (will fix asap)
-
+ 
+2006-11-22 cjg
+ * Fixed import and it now obeys --user

@@ -127,7 +127,7 @@ EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV !=4 );
-
+$user=undef if $user eq "0";
 my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
@@ -151,6 +151,23 @@ if( !defined $ds )
 	exit 1;
 }
 
+my $userobj;
+if( defined $user )
+{
+	if( $user =~ m/^\d+/ )
+	{
+		$userobj = EPrints::DataObj::User->new( $session, $user );
+	}
+	else
+	{
+		$userobj = EPrints::DataObj::User::user_with_username( $session, $user );
+	}
+	if( !defined $userobj )
+	{
+		print STDERR "Can't find user with userid/username $user\n";	
+		exit 1;
+	}
+}
 
 if( !defined $ipluginid )
 {
@@ -245,11 +262,15 @@ unless( $filename eq "-" )
 if( defined $list )
 {
 	print "Number of records imported: ".$list->count."\n" if $noise > 0;
-	if( defined $user )
+	if( defined $userobj )
 	{
-		my $userobj;
-		if( 
-
+		$list->map(
+			sub {
+				my( $session, $dataset, $eprint ) = @_;
+				$eprint->set_value( "userid", $userobj->get_id );
+				$eprint->commit;
+			} );
+	}
 
 
 	print join( ",", @{$list->get_ids})."\n" if $noise > 1;
