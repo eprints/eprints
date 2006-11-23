@@ -624,6 +624,8 @@ The following eprint has been deleted from your User Area:
     <epp:phrase id="cgi/users/edit_eprint:status_changed">Item status successfully changed.</epp:phrase>
 
     <epp:phrase id="cgi/users/edit_eprint:view_as_either">You are both <epc:pin name="owner_link">a depositor</epc:pin> and <epc:pin name="editor_link">an editor</epc:pin> of this item.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:as_depositor">This is a depositor screen.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:as_editor">This is an editor screen.</epp:phrase>
 
 
 <!-- edit_user -->

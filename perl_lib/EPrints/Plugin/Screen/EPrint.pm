@@ -101,6 +101,22 @@ sub register_furniture
 		owner_link=>$a_owner,
 		editor_link=>$a_editor ) );
 
+	if( defined $self->{staff} )
+	{
+		$div->appendChild( $self->{session}->make_text( " " ) );
+		if( $self->{staff} == 0 )
+		{
+			$div->appendChild( $self->{session}->html_phrase(
+				"cgi/users/edit_eprint:as_depositor" ));
+		}
+		else
+		{
+			$div->appendChild( $self->{session}->html_phrase(
+				"cgi/users/edit_eprint:as_editor" ));
+		}
+		
+	}
+
 	$self->{processor}->before_messages( $div );
 }
 

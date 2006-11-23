@@ -5617,3 +5617,5 @@ PACKAGE: 2.2.99.2
     being revealed.
  * Changed generate_static --remove to --prune
 
+2006-11-23 cjg
+ * EPrint screens now label explicit editor and depositor screens.

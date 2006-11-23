@@ -7,6 +7,16 @@ use EPrints::Plugin::Screen::EPrint::View;
 
 use strict;
 
+sub new
+{
+	my( $class, %params ) = @_;
+
+	my $self = $class->SUPER::new(%params);
+
+	$self->{staff} = 1;
+
+	return $self;
+}
 
 sub who_filter { return 8; }
 
