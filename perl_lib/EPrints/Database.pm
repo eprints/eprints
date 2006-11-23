@@ -1239,16 +1239,11 @@ sub counter_next
 }
 
 ######################################################################
-=pod
-
-=item $n = $db->counter_reset( $counter )
-
-Use with extreme caution.
-
-Reset the named counter to zero. Only useful if you are erasing the
-dataset. 
-
-=cut
+#
+# $db->counter_reset( $counter )
+#
+# Return the counter. Use with cautiuon.
+#
 ######################################################################
 
 sub counter_reset

@@ -5,5 +5,7 @@
 
 .ep_no_js { display: block; }
 
+.ep_no_js_inline { display: inline; }
+
 .ep_only_js { display: none; }
 

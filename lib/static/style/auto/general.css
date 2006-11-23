@@ -9,6 +9,10 @@ body {
 	display: none; 
 }
 
+.ep_no_js_inline { 
+	display: none; 
+}
+
 .ep_hide { 
 	display: none; 
 }

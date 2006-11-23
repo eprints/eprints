@@ -1,10 +1,10 @@
-package EPrints::Plugin::Convert::ImageMagick;
+package EPrints::Plugin::Convert::ImageMagick::ThumbnailDocuments;
 
 =pod
 
 =head1 NAME
 
-EPrints::Plugin::Convert::ImageMagick - Example conversion plugin
+EPrints::Plugin::Convert::ImageMagick::ThumbnailDocuments 
 
 =cut
 
@@ -20,20 +20,8 @@ our $ABSTRACT = 0;
 
 our (%FORMATS, @ORDERED, %FORMATS_PREF);
 @ORDERED = %FORMATS = qw(
-bmp image/bmp
-gif image/gif
-ief image/ief
-jpeg image/jpeg
-jpe image/jpeg
-jpg image/jpeg
-png image/png
-tiff image/tiff
-tif image/tiff
-pnm image/x-portable-anymap
-pbm image/x-portable-bitmap
-pgm image/x-portable-graymap
-ppm image/x-portable-pixmap
 pdf application/pdf
+ps application/postscript
 );
 # formats pref maps mime type to file suffix. Last suffix
 # in the list is used.
@@ -49,7 +37,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "ImageMagick";
+	$self->{name} = "Thumbnail Documents";
 	$self->{visible} = "all";
 
 	return $self;
@@ -67,10 +55,7 @@ sub can_convert
 	my $fn = $doc->get_main();
 	if( $fn =~ /\.($EXTENSIONS_RE)$/o ) 
 	{
-		for(values %FORMATS) 
-		{
-			$types{$_} = { plugin => $plugin, };
-		}
+		$types{"thumbnail"} = { plugin => $plugin, };
 	}
 
 	return %types;
@@ -82,22 +67,21 @@ sub export
 
 	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
 
-	# What to call the temporary file
-	my $ext = $FORMATS_PREF{$type};
-	my $fn = $doc->get_main;
-	$fn =~ s/\.\w+$/\.$ext/;
+	my $src = $doc->local_path . '/' . $doc->get_main;
 	
-	# Call imagemagick to do the conversion
-	system($convert,
-		$doc->local_path . '/' . $doc->get_main,
-		$dir . '/' . $fn
-	);
+#	my $fn1 = $doc->get_id.".png";
+#	my $fn2 = $doc->get_id."_200.png";
+	my $fn3 = $doc->get_id."_400.png";
 
-	unless( -e "$dir/$fn" ) {
+#	system($convert, "-thumbnail","66x50>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn1);
+#	system($convert, "-thumbnail","200x150>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn2);
+	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn3);
+
+	unless( -e "$dir/$fn3" ) {
 		return ();
 	}
 	
-	return ($fn);
+	return ($fn3);
 }
 
 1;

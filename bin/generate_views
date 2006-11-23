@@ -360,6 +360,7 @@ sub make_menu
 
 
 	my %size = ();
+
 	foreach my $value ( @values )
 	{
 		my $fileid = mk_file_id( $value, $fields[0]->get_type );
@@ -465,7 +466,6 @@ sub make_menu
 		}
 
 		$htmlpage->appendChild( $page );
-
 		$session->write_static_page( $dir."/".$fileid, {title=>$title, page=>$htmlpage}, "browseview" );
 	}
 

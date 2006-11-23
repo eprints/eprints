@@ -1,10 +1,10 @@
-package EPrints::Plugin::Convert::Thumbnail;
+package EPrints::Plugin::Convert::ImageMagick::ThumbnailImages;
 
 =pod
 
 =head1 NAME
 
-EPrints::Plugin::Convert::Thumbnail 
+EPrints::Plugin::Convert::ImageMagick::ThumbnailImages 
 
 =cut
 

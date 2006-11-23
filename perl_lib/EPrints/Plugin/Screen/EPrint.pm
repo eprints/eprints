@@ -191,9 +191,7 @@ sub render_blister
 		$first = 0;
 	}
 
-	return $self->{session}->render_toolbox( 
-			undef,
-			$table );
+	return $table;
 }
 
 sub render_hidden_bits

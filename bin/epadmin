@@ -991,6 +991,7 @@ sub erase_data
 You are about to erase from $repoid:
   - all database tables
   - all eprint files
+  - the generated html pages
 but NOT the configuration files.
 
 END
@@ -1004,6 +1005,65 @@ END
 
 	erase_eprint_files( $repoid );
 	drop_and_recreate_db( $repoid );
+}
+
+sub erase_eprints
+{
+	my( $repoid ) = @_;
+
+	print <<END;
+You are about to erase from $repoid:
+  - all eprints and documents data
+  - all eprint files
+  - all change history
+  - the document requests
+  - the access logs
+  - the generated html pages
+but NOT the configuration files, user data or subject data.
+
+END
+	
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		exit( 1 );
+	}
+
+	erase_eprint_files( $repoid );
+	foreach( "eprint", "history","access","request","document" )
+	{
+		reset_dataset( $repoid, $_ );
+	}		
+	
+}
+
+sub reset_dataset
+{
+	my( $repoid, $datasetid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $db = $session->get_database;
+	my @tables = $db->get_tables;
+	print "Erasing dataset $datasetid\n" if( $noise >= 1 );
+	foreach my $table ( @tables )
+	{
+		next unless( $table =~ m/^$datasetid/ );
+		print "Erasing table $table\n" if( $noise >= 2 );
+		my $sql = "DROP TABLE ".$table;
+		$db->do( $sql );
+	}
+
+	print "Creating dataset $datasetid\n";
+	$db->create_dataset_tables( 
+			$session->get_repository->get_dataset( $datasetid ) );
+
+	print "Resetting counter ${datasetid}id\n";
+	$db->counter_reset( $datasetid."id" );
+
+	$session->terminate;
 }
 
 # not an option directly!

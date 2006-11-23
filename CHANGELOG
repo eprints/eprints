@@ -5634,4 +5634,12 @@ PACKAGE: 2.2.99.2
 
 2006-11-23 tdb
  * Access log now ignores inline content
-
+ 
+2006-11-23 cjg
+ * Added a inline-based no_js class as well as the block one.
+ * Fixed render issue with blister bar in EditLink
+ * Added erase_eprints to epadmin (it was missing)
+ * Moved ImageMagick plugins to a subdir for tidyness.
+ * Fixed error with "prev" button in eprint edit
+ * Shortened some of the admin option names.
+ * Swapped order of views (doesn't really matter)

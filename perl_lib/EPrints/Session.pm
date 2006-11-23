@@ -1183,13 +1183,20 @@ sub render_toolbar
 	}
 	elsif( scalar @other > 1 )
 	{
-		my $span = $self->make_element( "span", id=>"ep_user_menu_extra", class=>"ep_no_js" );
+		my $span = $self->make_element( "span", id=>"ep_user_menu_extra", class=>"ep_no_js_inline" );
 		$toolbar->appendChild( $span );
 
-		my $more = $self->make_element( "a", id=>"ep_user_menu_more", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_core',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
-		$more->appendChild( $self->html_phrase( "Plugin/Screen:more" ) );	
-		$toolbar->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
-		$toolbar->appendChild( $more );
+		my $nojs_divide = $self->make_element( "span", class=>"ep_no_js_inline" );
+		$nojs_divide->appendChild( 
+			$self->html_phrase( "Plugin/Screen:tool_divide" ) );
+		$span->appendChild( $nojs_divide );
+		
+		my $more_bit = $self->make_element( "span", class=>"ep_only_js" );
+		my $more = $self->make_element( "a", id=>"ep_user_menu_more", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_core',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
+		$more->appendChild( $self->html_phrase( "Plugin/Screen:more" ) );
+		$more_bit->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
+		$more_bit->appendChild( $more );
+		$toolbar->appendChild( $more_bit );
 
 		$first = 1;
 		foreach my $tool ( @other )

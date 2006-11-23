@@ -110,7 +110,7 @@ sub action_prev
 {
 	my( $self ) = @_;
 
-	$self->workflow->update_from_form( $self->{processor}, $self->get_prev_stage_id );
+	$self->workflow->update_from_form( $self->{processor}, $self->workflow->get_prev_stage_id );
 
 	$self->workflow->prev;
 }
@@ -155,8 +155,10 @@ sub render
 	my( $self ) = @_;
 
 	my $form = $self->render_form;
-	$form->appendChild( 
-		$self->render_blister( $self->workflow->get_stage_id, 0 ) );
+
+	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
+	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+	$form->appendChild( $toolbox );
 
 	$form->appendChild( $self->render_buttons );
 	$form->appendChild( $self->workflow->render );
