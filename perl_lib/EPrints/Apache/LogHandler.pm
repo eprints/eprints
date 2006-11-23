@@ -129,13 +129,23 @@ sub handler
 
 
 	# Check for an internal referrer
-	my $eprintid = uri_to_eprintid( 
-				$session, 
-				URI->new($access->{referring_entity_id}) );
+	my $ref_uri = URI->new($access->{referring_entity_id});
+	my $eprintid = uri_to_eprintid( $session, $ref_uri );
 
 	if( defined $eprintid ) 
 	{
 		$access->{referring_entity_id} = $eprintid;
+
+		my $docid = uri_to_docid( $session, $eprintid, $ref_uri );
+
+		# If referring entity and referent are the same, and both are fulltext,
+		# then this is likely to be inline content (e.g. an image or
+		# javascript). For now, we'll ignore these requests.
+		if( $access->{referring_entity_id} eq $access->{referent_id} and
+			defined( $docid ) )
+		{
+			return OK;
+		}
 	}
 
 	$session->get_repository->get_dataset( "access" )->create_object( $session, $access );

@@ -5631,3 +5631,7 @@ PACKAGE: 2.2.99.2
 2006-11-23 cjg
  * $subject_field->get_values() was returning values more than once if
     they occured twice in a lattice.
+
+2006-11-23 tdb
+ * Access log now ignores inline content
+
