@@ -812,11 +812,12 @@ Command Line Scripts
 
     <epp:phrase id="bin/generate_views:indextitle">Browse by <epc:pin name="viewname"/></epp:phrase>
     <epp:phrase id="bin/generate_views:title"><epc:pin name="viewname"/>: <epc:pin name="value"/></epp:phrase>
-    <epp:phrase id="bin/generate_views:intro"><p>Please select a value to browse from the list below.</p></epp:phrase>
-    <epp:phrase id="bin/generate_views:blurb"><p>Number of items: <strong><epc:pin name="n"/></strong>.</p></epp:phrase>
+    <epp:phrase id="bin/generate_views:intro"><div class="ep_view_intro">Please select a value to browse from the list below.</div></epp:phrase>
+    <epp:phrase id="bin/generate_views:blurb"><div class="ep_view_blurb">Number of items: <strong><epc:pin name="n"/></strong>.</div></epp:phrase>
+    <epp:phrase id="bin/generate_views:subject_blurb"><div class="ep_view_blurb">Number of items at this level: <strong><epc:pin name="n"/></strong>.</div></epp:phrase>
     <epp:phrase id="bin/generate_views:browsetitle">Browse Items</epp:phrase>
-    <epp:phrase id="bin/generate_views:browseintro"><p>Items may be browsed by the following:</p></epp:phrase>
-    <epp:phrase id="bin/generate_views:timestamp"><p>This list was generated on <strong><epc:pin name="time"/></strong>.</p></epp:phrase>
+    <epp:phrase id="bin/generate_views:browseintro"><div class="ep_view_browse_intro">Items may be browsed by the following:</div></epp:phrase>
+    <epp:phrase id="bin/generate_views:timestamp"><div class="ep_view_timestamp">This list was generated on <strong><epc:pin name="time"/></strong>.</div></epp:phrase>
 
 
 <!--********************************************************************** 
@@ -1207,8 +1208,6 @@ Titles and Help for the System Fields
 	<!-- options -->
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_format">Upload</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_format">Delete document</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_format_confirm">Delete entire document: are you sure?</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_file">Upload additional file</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_file">Delete</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_file_confirm">Delete file <epc:pin name="filename"/>: are you sure?</epp:phrase>

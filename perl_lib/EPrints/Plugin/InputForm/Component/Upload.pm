@@ -110,6 +110,11 @@ sub doc_update
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 	
+	if( $doc_internal eq "update_doc" )
+	{
+		return;
+	}
+
 	if( $doc_internal eq "delete_doc" )
 	{
 		$doc->remove();
@@ -367,10 +372,18 @@ sub _render_doc
 	}
 
 	my $tool_div = $session->make_element( "div", class=>"ep_upload_doc_toolbar" );
+
+	my $update_button = $session->render_button(
+		name => "_internal_".$doc_prefix."_update_doc",
+		value => $self->phrase( "update" ), 
+		class => "ep_form_internal_button",
+		);
+	$tool_div->appendChild( $update_button );
+
 	my $msg = $self->phrase( "delete_document_confirm" );
 	my $delete_fmt_button = $session->render_button(
 		name => "_internal_".$doc_prefix."_delete_doc",
-		value => $self->phrase( "delete_format" ), 
+		value => $self->phrase( "delete_document" ), 
 		class => "ep_form_internal_button",
 		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( '$msg' );",
 		);

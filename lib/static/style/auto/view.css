@@ -1,0 +1,22 @@
+
+
+.ep_view_page h2 {
+	margin-top: 3em;
+	border-bottom: solid 1px #808080;
+}
+
+.ep_view_timestamp {
+	margin-top: 3em;
+	text-align: right;
+}
+
+.ep_view_subjects {
+	padding: 10px;
+	background-image: url(/style/images/toolbox.png);
+	border: solid 1px #d8dbef;
+	margin-bottom: 20px;
+}
+
+.ep_view_blurb {
+	margin-top: 20px;
+}

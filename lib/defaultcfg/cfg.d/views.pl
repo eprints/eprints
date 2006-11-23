@@ -10,7 +10,7 @@ $c->{browse_views} = [
 		fields => "-date;res=year", 
 		subheadings => "-date;res=month",
 		#subheadings => "type", 
-		order => "-date/title", 
+		order => "title", 
 		heading_level => 2,
 	},
         { 

@@ -382,7 +382,7 @@ sub make_menu
 		}
 		
 
-		my $page = $session->make_element( "div", class=>"ep_view_page" );
+		my $page = $session->make_element( "div", class=>"ep_view_page ep_view_page_view_".$view->{id} );
 			
 		my @sh_ids = ();
 		if( defined $view->{subheadings} )
@@ -400,8 +400,13 @@ sub make_menu
 
 		unless( $view->{nocount} )
 		{
+			my $phraseid = "bin/generate_views:blurb";
+			if( $fields[0]->is_type( "subject" ) )
+			{
+				$phraseid = "bin/generate_views:subject_blurb";
+			}
 			$page->appendChild( $session->html_phrase( 
-				"bin/generate_views:blurb",
+				$phraseid,
 				n=>$session->make_text( $size{$value} ) ) );
 		}
 		$page->appendChild( $list );
@@ -447,6 +452,7 @@ sub make_menu
 					$ds, 
 					$view->{id} ) ),
 			value=>$pagedesc );
+
 		my $htmlpage = $session->make_doc_fragment;
 
 		if( $fields[0]->is_type( "subject" ) )
@@ -457,12 +463,12 @@ sub make_menu
 			{
 				push @ids,$_->get_value( "subjectid" );
 			}
+			my $subj = $session->make_element( "div", class=>"ep_view_subjects" );
 			foreach my $field ( @fields )
 			{
-				$htmlpage->appendChild( $session->render_subjects( \@ids, $field->get_property( "top" ), $value, 2, $show_sizes ) );
+				$subj->appendChild( $session->render_subjects( \@ids, $field->get_property( "top" ), $value, 2, $show_sizes ) );
 			}
-
-			$htmlpage->appendChild( $session->render_ruler() );
+			$htmlpage->appendChild( $subj );
 		}
 
 		$htmlpage->appendChild( $page );

@@ -31,7 +31,9 @@ sub render
 {
 	my( $self ) = @_;
 
+	my $div = $self->{session}->make_element( "div", style=>"padding-top: 4em; padding-bottom: 4em" );
 	my $form = $self->{session}->render_form( "form" );
+	$div->appendChild( $form );
 	$form->appendChild( 
 		$self->{session}->render_hidden_field( "screen", "EPrint::Edit" ) );
 	$form->appendChild( 
@@ -39,7 +41,7 @@ sub render
 			"eprintid", 
 			$self->{processor}->{eprintid} ) );
 	$form->appendChild( $self->render_blister( "", 0 ) );
-	return $form;
+	return $div;
 }
 
 

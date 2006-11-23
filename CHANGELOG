@@ -5664,3 +5664,14 @@ PACKAGE: 2.2.99.2
  * Fixed EPC error in phrase in requestdoc
  * Browse by year now subdivides page into months
  * Added a little bit of vertical alignment on +/- icons in subject input.
+
+2006-11-23 cjg
+ * Added some padding above and below the blister in editlink to stop it 
+    looking odd.
+ * Added update button to upload component
+ * Added styles to view pages.
+ * Changed "number of items" text for subject views to make it clearer.
+ * Added forgotten "blister arrow"
+ * Broke up eprints.js
+ * Renamed all js files to be prefixed with a number to make them look 
+    less confusing.
