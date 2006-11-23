@@ -16,17 +16,17 @@ sub new
 		{ 
 			place => "admin_actions", 	
 			action => "start_indexer",
-			position => 100, 
+			position => 1100, 
 		},
 		{ 
 			place => "admin_actions", 	
 			action => "force_start_indexer",
-			position => 200, 
+			position => 1100, 
 		},
 		{ 
 			place => "admin_actions", 	
 			action => "stop_indexer",
-			position => 300, 
+			position => 1100, 
 		},
 	];
 

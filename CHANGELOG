@@ -5675,3 +5675,6 @@ PACKAGE: 2.2.99.2
  * Broke up eprints.js
  * Renamed all js files to be prefixed with a number to make them look 
     less confusing.
+
+2006-11-23 cjg
+ * Got rid of toggling menu at top of screen - moved actions into Admin

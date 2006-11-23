@@ -16,7 +16,7 @@ sub new
 		{ 
 			place => "config_actions", 	
 			action => "reload_config",
-			position => 100, 
+			position => 1200, 
 		},
 	];
 

@@ -13,8 +13,8 @@ sub new
 	
 	$self->{appears} = [
 		{
-			place => "other_tools",
-			position => 400,
+			place => "admin_actions",
+			position => 600,
 		},
 	];
 
