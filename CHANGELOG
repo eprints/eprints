@@ -5628,4 +5628,6 @@ PACKAGE: 2.2.99.2
  * Export link now describes how many results will be exported.
  * Fixed problems with links in submission problems warning boxes.
 
-
+2006-11-23 cjg
+ * $subject_field->get_values() was returning values more than once if
+    they occured twice in a lattice.

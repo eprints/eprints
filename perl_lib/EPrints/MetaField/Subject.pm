@@ -275,9 +275,12 @@ sub get_values
 		1,
 		0 );
 	my @outvalues;
+	my $seen = {};
 	foreach my $pair ( @{$pairs} )
 	{
+		next if( $seen->{$pair->[0]} );
 		push @outvalues, $pair->[0];
+		$seen->{$pair->[0]} = 1;
 	}
 	return \@outvalues;
 }
