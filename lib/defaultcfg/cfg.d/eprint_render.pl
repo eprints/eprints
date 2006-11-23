@@ -97,7 +97,7 @@ $c->{eprint_render} = sub
 		{
 			$doctr = $session->make_element( "tr" );
 	
-			$doctd = $session->make_element( "td", valign=>"top" );
+			$doctd = $session->make_element( "td", valign=>"top", style=>"text-align:center" );
 			$doctr->appendChild( $doctd );
 			$doctd->appendChild( $doc->render_icon_link( preview=>1 ) );
 	

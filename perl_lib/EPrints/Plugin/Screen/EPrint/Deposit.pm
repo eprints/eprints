@@ -95,8 +95,10 @@ sub render
 	my $page = $self->{session}->make_doc_fragment;
 	my $form = $self->render_form;
 	$page->appendChild( $form );
-	$form->appendChild( 
-		 $self->render_blister( "deposit", 0 ) );
+
+	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
+	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+	$form->appendChild( $toolbox );
 
 	if( scalar @{$problems} == 0 )
 	{

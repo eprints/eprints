@@ -71,6 +71,8 @@ sub export
 	opendir DIR, $dir or die "Unable to open directory $dir: $!";
 	my @files = grep { $_ !~ /^\./ } readdir(DIR);
 	closedir DIR;
+
+	foreach( @files ) { EPrints::Utils::chown_for_eprints( $_ ); }
 	
 	return @files;
 }

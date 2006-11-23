@@ -9,6 +9,7 @@
 .ep_items_filters img {
 	border-width: 0px;
 	margin-left: 10px;
+	vertical-align: -2px;
 }
 
 .ep_items_filters a {

@@ -65,7 +65,7 @@ sub can_convert
 
 	# Get the main file name
 	my $fn = $doc->get_main();
-	if( $fn =~ /\.($EXTENSIONS_RE)$/o ) 
+	if( $fn =~ /\.($EXTENSIONS_RE)$/oi ) 
 	{
 		for(values %FORMATS) 
 		{
@@ -96,6 +96,8 @@ sub export
 	unless( -e "$dir/$fn" ) {
 		return ();
 	}
+
+	EPrints::Utils::chown_for_eprints( "$dir/$fn" );
 	
 	return ($fn);
 }

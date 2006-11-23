@@ -184,6 +184,7 @@ sub phrase
 	my $used = {};
 	my $result = EPrints::XML::EPC::process_child_nodes( 
 		$phrase, 
+		in => "Phrase: '$phraseid'",
 		session => $session, 
 		pindata=>{ 
 			inserts => $inserts,

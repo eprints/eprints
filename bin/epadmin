@@ -886,14 +886,6 @@ sub redo_thumbnails
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
 	exit( 1 ) unless( defined $session );
 	
-        my $tgtdir = $session->get_repository->get_conf( "archiveroot" )."/thumbnails";
-	EPrints::Utils::rmtree( $tgtdir );	
-
-	if( $noise > 0 )
-	{
-		print "Thumbnails purged.\n"; #sounds painful!
-	}
-
 	my $doc_ds = $session->get_repository->get_dataset( "document" );
 	$doc_ds->map( 
 		$session,
@@ -901,14 +893,13 @@ sub redo_thumbnails
 		{
 			my( $session , $dataset , $doc ) = @_;
 
-			return unless $doc->can_thumbnail;
-
 			if( $noise >= 2 )
 			{
-				print "Attempting to build thumbnails for: ".$doc->get_id."\n";
+				print "Attempting to build thumbnails for document #".$doc->get_id."\n";
 			}
 
-			$doc->make_thumbnail;
+			$doc->remove_thumbnails; #ouch!
+			$doc->make_thumbnails;
 		} );
 
 	$session->terminate;

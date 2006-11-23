@@ -5,18 +5,19 @@
 # subject or allowing null in this case.
 $c->{browse_views} = [
         { 
+		id => "year", 
+		allow_null => 1, 
+		fields => "-date;res=year", 
+		subheadings => "-date;res=month",
+		#subheadings => "type", 
+		order => "-date/title", 
+		heading_level => 2,
+	},
+        { 
 		id => "subjects", 
 		fields => "subjects", 
 		order => "-date/title", 
 		hideempty => 1, 
-	},
-        { 
-		id => "year", 
-		allow_null => 1, 
-		fields => "-date;res=year", 
-		subheadings => "type", 
-		order => "-date/title", 
-		heading_level => 2,
 	},
 ];
 

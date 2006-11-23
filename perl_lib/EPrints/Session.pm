@@ -2515,7 +2515,7 @@ sub prepare_page
 				}
 				elsif( defined $map->{$pinid} )
 				{
-					my $dom = EPrints::XML::EPC::process( $map->{$pinid}, session=>$self );
+					my $dom = EPrints::XML::EPC::process( $map->{$pinid}, session=>$self, in=>"prepare_page:pin:$pinid.textonly" );
 					push @output, EPrints::Utils::tree_to_utf8( $dom );
 				}
 				# else no title

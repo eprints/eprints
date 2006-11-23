@@ -155,7 +155,7 @@ sub action_request
 	my $mail = $session->make_element( "mail" );
 	$mail->appendChild( $session->html_phrase(
 		"request/request_email:body", 
-		eprint => $eprint->render_citation_link,
+		eprint => $eprint->render_citation_link_staff,
 		document => defined $doc ? $doc->render_value( "main" ) : $session->make_doc_fragment,
 		requester => $session->make_text( $email ),
 		reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
@@ -280,11 +280,7 @@ sub render_document
 	
 	$doctd = $session->make_element( "td" );
 	$doctr->appendChild( $doctd );
-	$doctd->appendChild( 
-	$session->get_repository->call( "render_fileicon", 
-		$session, 
-		$doc->get_type, 
-		$doc->get_url ) );
+	$doctd->appendChild( $doc->render_icon_link );
 	
 	$doctd = $session->make_element( "td" );
 	$doctr->appendChild( $doctd );

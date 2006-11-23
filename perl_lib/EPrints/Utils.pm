@@ -222,7 +222,7 @@ sub _render_date
 	}
 
 
-	if( !defined $year || $year eq "undef" || $year == 0 ) 
+	if( !defined $year || $year eq "undef" || $year eq "" || $year == 0 ) 
 	{
 		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
@@ -778,7 +778,7 @@ sub render_citation
 	# This should belong to the base class of EPrint User Subject and
 	# SavedSearch, if we were better OO people...
 
-	my $collapsed = EPrints::XML::EPC::process( $cstyle, %params );
+	my $collapsed = EPrints::XML::EPC::process( $cstyle, %params, in=>"render_citation" );
 	my $r = _render_citation_aux( $collapsed, %params );
 
 	EPrints::XML::trim_whitespace( $r );

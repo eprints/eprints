@@ -138,6 +138,7 @@ sub export
 			);
 			system( $cmd );
 		}
+		EPrints::Utils::chown_for_eprints( $outfile );
 		
 		if( -s EPrints::Utils::join_path( $dir, $tgt ) > 0 ) {
 			if( $fn eq $doc->get_main ) {

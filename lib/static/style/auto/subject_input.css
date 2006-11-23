@@ -33,6 +33,9 @@ ul.ep_subjectinput_subjects li {
 	margin-bottom: 3px;
 	list-style: none;
 }
+ul.ep_subjectinput_subjects img {
+	vertical-align: -2px;
+}
 
 
 .ep_subjectinput_selections {

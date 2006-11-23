@@ -90,6 +90,7 @@ sub render_content
 	{
 		$self->{selected}->{$subj_id} = 1;
 		my $subj = $self->{subject_map}->{ $subj_id };
+		next if !defined $subj;
 		my @paths = $subj->get_paths( $session, $self->{top_subj} );
 		foreach my $path ( @paths )
 		{
@@ -231,6 +232,8 @@ sub _format_subjects
 		my $first = 1;
 		foreach my $subject ( @subjects )
 		{
+			next if( !defined $subject ); # need a warning?
+
 			my $subject_id = $subject->get_id();
 			next if ( $params{hide_selected} && $self->{selected}->{ $subject_id } );
 			my $prefix = $self->{prefix}."_".$subject_id;

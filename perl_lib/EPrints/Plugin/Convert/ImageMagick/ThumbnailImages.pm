@@ -64,9 +64,11 @@ sub can_convert
 
 	# Get the main file name
 	my $fn = $doc->get_main();
-	if( $fn =~ /\.($EXTENSIONS_RE)$/o ) 
+	if( $fn =~ /\.($EXTENSIONS_RE)$/oi ) 
 	{
-		$types{"thumbnail"} = { plugin => $plugin, };
+		$types{"thumbnail_small"} = { plugin => $plugin, };
+		$types{"thumbnail_medium"} = { plugin => $plugin, };
+		$types{"thumbnail_preview"} = { plugin => $plugin, };
 	}
 
 	return %types;
@@ -79,20 +81,23 @@ sub export
 	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
 
 	my $src = $doc->local_path . '/' . $doc->get_main;
+
+	$type =~ m/^thumbnail_(.*)$/;
+	my $size = $1;
+	return () unless defined $size;
+	my $geom = { small=>"66x50", medium=>"200x150",preview=>"400x300" }->{$1};
+	return () unless defined $geom;
 	
-	my $fn1 = $doc->get_id.".png";
-	my $fn2 = $doc->get_id."_200.png";
-	my $fn3 = $doc->get_id."_400.png";
+	my $fn = "$size.png";
 
-	system($convert, "-thumbnail","66x50>", $src.'[66x50]', $dir . '/' . $fn1);
-	system($convert, "-thumbnail","200x150>",$src.'[200x150]', $dir . '/' . $fn2);
-	system($convert, "-thumbnail","400x300>", $src.'[400x300]', $dir . '/' . $fn3);
+	system($convert, "-thumbnail","$geom>", $src."[$geom]", $dir . '/' . $fn);
 
-	unless( -e "$dir/$fn1" ) {
+	unless( -e "$dir/$fn" ) {
 		return ();
 	}
+	EPrints::Utils::chown_for_eprints( "$dir/$fn" );
 	
-	return ($fn1);
+	return ($fn);
 }
 
 1;

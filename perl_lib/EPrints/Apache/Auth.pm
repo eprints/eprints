@@ -262,10 +262,10 @@ sub secure_doc_from_url
 
 	my $eprintid;
 	my $pos;
-	if( $uri =~ m#^/(\d+)/(\d+)/# )
+	if( $uri =~ m#^/(\d+)/(thumbnails/)?(\d+)/# )
 	{
 		$eprintid = $1+0;
-		$pos = $2+0;
+		$pos = $3+0;
 	}
 	else
 	{

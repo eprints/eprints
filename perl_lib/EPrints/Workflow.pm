@@ -293,7 +293,7 @@ sub prev
 
 sub update_from_form
 {
-	my( $self, $processor, $new_stage ) = @_;
+	my( $self, $processor, $new_stage, $quiet ) = @_;
 		
 	# Process data from previous stage
 
@@ -315,6 +315,8 @@ sub update_from_form
 	my $stage_obj = $self->get_stage( $self->get_stage_id );
 
 	$stage_obj->update_from_form( $processor );
+
+	return if $quiet;
 
 	my @problems = $stage_obj->validate( $processor );
 

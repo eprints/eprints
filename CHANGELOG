@@ -5643,3 +5643,24 @@ PACKAGE: 2.2.99.2
  * Fixed error with "prev" button in eprint edit
  * Shortened some of the admin option names.
  * Swapped order of views (doesn't really matter)
+
+2006-11-23 cjg
+ * Fixed bug in using the same field in view and subheading.
+ * Fixed error in subject upload if metadata subjects don't exist in
+    subject tree.
+ * Added information on where EPC scripts came from (phrase,citation etc.)
+ * Internal buttons no longer trigger validation warmings 
+ * thumbnails now exist in document dir, not one big dir
+ * thumbnails now pick up security of document they came from
+ * Fixed some links to documents which were /02/ when that'll just redirect
+    to /2/ so made it explicit in the link.
+ * Fixed rendering of blister bar on deposit page
+ * Link in "request a copy" email now goes to item control page.
+ * RequestCopy screen now uses new icon link method
+ * Added chown-for-eprints to convert plugins
+ * Fixed bug that imagemagick convert plugins didn't handle uppercase
+    suffixes.
+ * Split thumbnail convert id into thumbnail_small etc.
+ * Fixed EPC error in phrase in requestdoc
+ * Browse by year now subdivides page into months
+ * Added a little bit of vertical alignment on +/- icons in subject input.

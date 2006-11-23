@@ -314,7 +314,7 @@ sub run_citation
 
 	my $stylespec = $state->{session}->get_citation_spec( $object->[0]->get_dataset, $citationid->[0] );
 
-	my $citation = EPrints::XML::EPC::process( $stylespec, item=>$object->[0], session=>$state->{session} );
+	my $citation = EPrints::XML::EPC::process( $stylespec, item=>$object->[0], session=>$state->{session}, in=>"Citation:".$object->[0]->get_dataset.".".$citationid->[0] );
 
 	return [ $citation, "XHTML" ];
 }

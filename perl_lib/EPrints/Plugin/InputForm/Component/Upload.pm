@@ -261,7 +261,7 @@ sub render_content
 		$table_left_tr->appendChild( $table_left_td_left );
 		$table_left_tr->appendChild( $table_left_td_right );
 		
-		$table_left_td_left->appendChild( $doc->render_icon_link( new_screen=>1, preview=>1 ) );
+		$table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
 
 		$table_left_td_right->appendChild( $doc->render_citation);
 		my %files = $doc->files;

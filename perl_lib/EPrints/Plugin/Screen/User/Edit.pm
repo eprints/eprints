@@ -40,7 +40,7 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+		my $from_ok = $self->workflow->update_from_form( $self->{processor},undef,1 );
 		return unless $from_ok;
 	}
 

@@ -404,42 +404,6 @@ sub get_defaults
 
 
 
-######################################################################
-# 
-# $docid = EPrints::DataObj::Document::_generate_doc_id( $session, $eprint )
-#
-#  Generate an ID for a new document associated with $eprint
-#
-######################################################################
-
-sub _generate_doc_id
-{
-	my( $session, $eprint ) = @_;
-
-	my $dataset = $session->get_repository->get_dataset( "document" );
-
-	my $searchexp = EPrints::Search->new(
-				session=>$session,
-				dataset=>$dataset );
-	$searchexp->add_field(
-		$dataset->get_field( "eprintid" ),
-		$eprint->get_value( "eprintid" ) );
-	$searchexp->perform_search();
-	my( @docs ) = $searchexp->get_records();
-	$searchexp->dispose();
-
-	my $n = 0;
-	foreach( @docs )
-	{
-		my $id = $_->get_value( "docid" );
-		$id=~m/-(\d+)$/;
-		if( $1 > $n ) { $n = $1; }
-	}
-	$n = $n + 1;
-
-	return sprintf( "%s-%02d", $eprint->get_value( "eprintid" ), $n );
-}
-
 
 
 
@@ -536,6 +500,8 @@ sub remove
 		$success = 0;
 	}
 
+	$self->remove_thumbnails;
+
 	return( $success );
 }
 
@@ -589,7 +555,7 @@ sub get_baseurl
 
 	my $repository = $self->{session}->get_repository;
 
-	my $docpath = sprintf( "%02d",$self->get_value( "pos" ) );
+	my $docpath = $self->get_value( "pos" );
 
 	return $eprint->url_stem.$docpath.'/';
 }
@@ -1177,10 +1143,7 @@ sub commit
 
 	$self->queue_changes;
 
-	if( $self->can_thumbnail )
-	{
-		$self->make_thumbnail;
-	}
+	$self->make_thumbnails;
 
 	unless( !defined $self->{eprint} || $self->{eprint}->under_construction )
 	{
@@ -1516,27 +1479,40 @@ sub thumbnail_url
 {
 	my( $self, $size ) = @_;
 
-	my $tgtdir = $self->{session}->get_repository->get_conf( "archiveroot" )."/thumbnails";
+	$size = "small" unless defined $size;
 
-	my $suffix = "";
-	if( defined $size ) { $suffix = "_$size"; }
-
-	if( -e $tgtdir."/".$self->get_id.$suffix.".png" )	
+	if( ! -e $self->thumbnail_path."/".$size.".png" )	
 	{
-		return $self->{session}->get_repository->get_conf( "base_url" ).
-			"/thumbnails/".$self->get_id.$suffix.".png";
+		return;
 	}
 
-	return undef;
+	my $eprint = $self->get_eprint();
+
+	return( undef ) if( !defined $eprint );
+
+	my $repository = $self->{session}->get_repository;
+
+	my $docpath = $self->get_value( "pos" );
+
+	return $eprint->url_stem."thumbnails/$docpath/$size.png";
 }
 
+# size => "small","medium","preview" (small is default)
+# public => 0 : show thumbnail only on public docs
+# public => 1 : show thumbnail on all docs if poss.
 sub icon_url 
 {
-	my( $self, $size ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $thumbnail_url = $self->thumbnail_url( $size );
+	$opts{public} = 1 unless defined $opts{public};
+	$opts{size} = "small" unless defined $opts{size};
 
-	return $thumbnail_url if defined $thumbnail_url;
+	if( !$opts{public} || $self->is_public )
+	{
+		my $thumbnail_url = $self->thumbnail_url( $opts{size} );
+
+		return $thumbnail_url if defined $thumbnail_url;
+	}
 
 	my $type = $self->get_value( "format" );
 	$type =~ s/\//_/g;
@@ -1545,18 +1521,31 @@ sub icon_url
 			"/style/images/fileicons/$type.png";
 }
 
+# options:
+#
+# new_window => 1 : make link go to _blank not current window
+# preview => 1 : if possible, provide a preview pop-up
+# public => 0 : show thumbnail/preview only on public docs
+# public => 1 : show thumbnail/preview on all docs if poss.
+# 
 sub render_icon_link
 {
 	my( $self, %opts ) = @_;
 
+	$opts{public} = 1 unless defined $opts{public};
+	if( $opts{public} && !$self->is_public )
+	{
+		$opts{preview} = 0;
+	}
+
 	my %aopts;
 	$aopts{href} = $self->get_url;
-	$aopts{target} = "_blank" if( $opts{new_screen} );
+	$aopts{target} = "_blank" if( $opts{new_window} );
 	my $preview_id = "doc_preview_".$self->get_id;
 	my $preview_url;
 	if( $opts{preview} )
 	{
-		$preview_url = $self->thumbnail_url( 400 );
+		$preview_url = $self->thumbnail_url( "preview" );
 		if( !defined $preview_url ) { $opts{preview} = 0; }
 	}
 	if( $opts{preview} )
@@ -1569,7 +1558,7 @@ sub render_icon_link
 		"img", 
 		class=>"ep_doc_icon",
 		alt=>"[img]",
-		src=>$self->icon_url,
+		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
 	my $f = $self->{session}->make_doc_fragment;
 	$f->appendChild( $a ) ;
@@ -1599,53 +1588,73 @@ sub render_icon_link
 	return $f;
 }
 
-sub can_thumbnail
+sub thumbnail_plugin
 {
-	my( $self ) = @_;
-
-	if( !$self->thumbnail_plugin_def ) 
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-sub thumbnail_plugin_def
-{
-	my( $self ) = @_;
+	my( $self, $size ) = @_;
 
 	my $convert = $self->{session}->plugin( "Convert" );
 	my %types = $convert->can_convert( $self );
 
-	return $types{'thumbnail'};
+	my $def = $types{'thumbnail_'.$size};
+
+	return unless defined $def;
+
+	return $def->{ "plugin" };
+}
+
+sub thumbnail_path
+{
+	my( $self ) = @_;
+
+	my $eprint = $self->get_eprint();
+
+	if( !defined $eprint )
+	{
+		$self->{session}->get_repository->log(
+			"Document ".$self->get_id." has no eprint (eprintid is ".$self->get_value( "eprintid" )."!" );
+		return( undef );
+	}	
+	
+	return( $eprint->local_path()."/thumbnails/".sprintf("%02d",$self->get_value( "pos" )) );
 }
 
 
-sub make_thumbnail
+sub remove_thumbnails
+{
+	my( $self ) = @_;
+
+	EPrints::Utils::rmtree( $self->thumbnail_path );
+}
+
+sub make_thumbnails
 {
 	my( $self ) = @_;
 
 	my $src = $self->local_path."/".$self->get_value( "main" );
 	
-	my $tgtdir = $self->{session}->get_repository->get_conf( "archiveroot" )."/thumbnails";
-	my $tgt = "$tgtdir/".$self->get_id.".png";
+	my $tgtdir = $self->thumbnail_path;
 
-	# check mtime
-	my @s1 = stat( $src );
-	my @s2 = stat( $tgt );
-    	if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
+	foreach my $size ( qw/ small medium preview / )
 	{
-		# src file is older than thumbnail
-		return;
-	}
+		my $tgt = "$tgtdir/".$self->get_id.".".$size.".png";
 
-	EPrints::Platform::mkdir( $tgtdir );
+		# check mtime
+		my @s1 = stat( $src );
+		my @s2 = stat( $tgt );
+    		if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
+		{
+			next;
+			# src file is older than thumbnail
+		}
+
+		EPrints::Platform::mkdir( $tgtdir );
 	
-	my $plugin_def = $self->thumbnail_plugin_def;
+		my $plugin = $self->thumbnail_plugin( $size );
+		next if !defined $plugin;
 
-	# make a thumbnail
-	$plugin_def->{ "plugin" }->export( $tgtdir, $self, 'thumbnail' );
+		# make a thumbnail
+		$plugin->export( $tgtdir, $self, 'thumbnail_'.$size );
+	}
 }
 
 sub mime_type

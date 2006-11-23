@@ -102,6 +102,8 @@ sub handler
 	
 	if( $uri =~ m#^/([0-9]+)(.*)$# )
 	{
+		# It's an eprint...
+	
 		my $eprintid = $1;
 		my $tail = $2;
 		my $redir = 0;
@@ -117,8 +119,13 @@ sub handler
 		my $splitpath = "$1/$2/$3/$4";
 		$uri = "/archive/$splitpath$tail";
 
+		my $thumbnails = 0;
+		$thumbnails = 1 if( $tail =~ s/^\/thumbnails// );
+
 		if( $tail =~ s/^\/(\d+)// )
 		{
+			# it's a document....			
+
 			my $pos = $1;
 			if( $tail eq "" || $pos ne $pos+0 )
 			{
@@ -138,8 +145,8 @@ sub handler
 			{
 				return OK;
 			}
-
-			my $filename = sprintf( '%s/%02d%s',$eprint->local_path, $pos, $tail );
+	
+			my $filename = sprintf( '%s/%02d%s',$eprint->local_path.($thumbnails?"/thumbnails":""), $pos, $tail );
 
 			$r->filename( $filename );
 

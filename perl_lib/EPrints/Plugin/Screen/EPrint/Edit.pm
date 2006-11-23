@@ -37,7 +37,7 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		$self->workflow->update_from_form( $self->{processor} );
+		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
 		return;
 	}
 

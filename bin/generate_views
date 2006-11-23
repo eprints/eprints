@@ -736,9 +736,10 @@ sub render_list
 				session=>$session,
 				dataset=>$ds );
 	$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
+	my $n = 0;
 	foreach my $filter ( @{$pfilters} )
 	{
-     		$searchexp->add_field( $filter->[0], $filter->[1], "EX" );
+     		$searchexp->add_field( $filter->[0], $filter->[1], "EX", undef, "filter".($n++), 1 );
 	}
       	$searchexp->perform_search();
 	my $count = $searchexp->count();

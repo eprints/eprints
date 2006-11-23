@@ -53,9 +53,9 @@ sub can_convert
 
 	# Get the main file name
 	my $fn = $doc->get_main();
-	if( $fn =~ /\.($EXTENSIONS_RE)$/o ) 
+	if( $fn =~ /\.($EXTENSIONS_RE)$/oi ) 
 	{
-		$types{"thumbnail"} = { plugin => $plugin, };
+		$types{"thumbnail_preview"} = { plugin => $plugin, };
 	}
 
 	return %types;
@@ -69,19 +69,17 @@ sub export
 
 	my $src = $doc->local_path . '/' . $doc->get_main;
 	
-#	my $fn1 = $doc->get_id.".png";
-#	my $fn2 = $doc->get_id."_200.png";
-	my $fn3 = $doc->get_id."_400.png";
+	my $fn = "preview.png";
 
-#	system($convert, "-thumbnail","66x50>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn1);
-#	system($convert, "-thumbnail","200x150>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn2);
-	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn3);
+	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn);
 
-	unless( -e "$dir/$fn3" ) {
+	unless( -e "$dir/$fn" ) {
 		return ();
 	}
+
+	EPrints::Utils::chown_for_eprints( "$dir/$fn" );
 	
-	return ($fn3);
+	return ($fn);
 }
 
 1;
