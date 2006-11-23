@@ -783,8 +783,9 @@ sub render_description
 	my $frag = $self->{session}->make_doc_fragment;
 
 	$frag->appendChild( $self->render_conditions_description );
-	$frag->appendChild( $self->{session}->make_text( " " ) );
+	$frag->appendChild( $self->{session}->make_text( ". " ) );
 	$frag->appendChild( $self->render_order_description );
+	$frag->appendChild( $self->{session}->make_text( ". " ) );
 
 	return $frag;
 }
@@ -830,11 +831,7 @@ sub render_conditions_description
 		$frag->appendChild( $bits[$i] );
 	}
 
-	if( scalar @bits > 0 )
-	{
-		$frag->appendChild( $self->{session}->make_text( "." ) );
-	}
-	else
+	if( scalar @bits == 0 )
 	{
 		$frag->appendChild( $self->{session}->html_phrase(
 			"lib/searchexpression:desc_no_conditions" ) );

@@ -31,8 +31,8 @@ sub from
 
 	my $ds = $self->{processor}->{savedsearch}->get_dataset;
 	my $spec = $self->{processor}->{savedsearch}->get_value( 'spec' );
-	my $search = $ds->get_field( "spec" )->make_searchexp( $self->{session}, $spec );
-	$self->{processor}->{results} = $search->perform_search;
+	$self->{processor}->{search} = $ds->get_field( "spec" )->make_searchexp( $self->{session}, $spec );
+	$self->{processor}->{results} = $self->{processor}->{search}->perform_search;
 
 	$self->SUPER::from;
 }
@@ -50,13 +50,11 @@ sub render
 
 	my $session = $self->{session};
 
-	my $page = $session->make_doc_fragment;
-	
 	$self->{processor}->{results}->cache;
 	my $cacheid = $self->{processor}->{results}->get_cache_id;
 
 	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
-	$export_div->appendChild( $self->render_export_select );
+	$export_div->appendChild( $self->render_export_bar );
 
 	my %opts = (
 		params => { 
@@ -78,7 +76,7 @@ sub render
 #		page_size => $self->{page_size},
 	);
 
-	#my $page = $self->{session}->render_form( "GET" );
+	my $page = $self->{session}->render_form( "GET" );
 	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, "_search", $self->{processor}->{results}, %opts ) );
 
 	return $page;
@@ -99,16 +97,9 @@ sub action_export_redir
 {
 	my( $self ) = @_;
 
-	my $savedsearchid = $self->{session}->param( "savedsearchid" );
-	my $userid = $self->{session}->param( "userid" );
 	my $format = $self->{session}->param( "_output" );
-	my $plugin = $self->{session}->plugin( "Export::".$format );
 
-	my $url = $self->{session}->get_uri();
-	#cjg escape URL'ify urls in this bit... (4 of them?)
-	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?userid=$userid&_output=$format&_action_export=1&savedsearchid=$savedsearchid&screen=".$self->{processor}->{screenid};
-
-	$self->{processor}->{redirect} = $fullurl;
+	$self->{processor}->{redirect} = $self->export_url( $format );
 }
 
 sub allow_export { return 1; }
@@ -123,47 +114,98 @@ sub action_export
 }
 
 
-
-sub render_export_select
+sub _get_export_plugins
 {
 	my( $self ) = @_;
 
-	my @plugins =  $self->{session}->plugin_list( 
+	return $self->{session}->plugin_list( 
 			type=>"Export",
 			can_accept=>"list/eprint",
-			is_visible=>"all", 
-	);
+			is_visible=>"all" );
+}
+
+sub export_url
+{
+	my( $self, $format ) = @_;
+
+	my $plugin = $self->{session}->plugin( "Export::".$format );
+
+	my $savedsearchid = $self->{session}->param( "savedsearchid" );
+	my $url = $self->{session}->get_uri();
+	#cjg escape URL'ify urls in this bit... (4 of them?)
+	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?savedsearchid=$savedsearchid&_output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
+	return $fullurl;
+}
+
+
+sub render_export_bar
+{
+	my( $self ) = @_;
+	my @plugins = $self->_get_export_plugins;
+	my $cacheid = $self->{processor}->{results}->{cache_id};
+	my $savedsearchid = $self->{session}->param( "savedsearchid" );
+	my $url = $self->{session}->get_uri();
+	my $session = $self->{session};
 	if( scalar @plugins == 0 ) 
 	{
-		return $self->{session}->make_doc_fragment;
+		return $session->make_doc_fragment;
 	}
-	my $form = $self->{session}->render_form( "GET" );
 
-	my $select = $self->{session}->make_element( "select", name=>"_output" );
-	foreach my $plugin_id ( @plugins ) {
+	my $feeds = $session->make_doc_fragment;
+	my $options = {};
+	foreach my $plugin_id ( @plugins ) 
+	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
-		my $option = $self->{session}->make_element( "option", value=>$id );
-		my $plugin = $self->{session}->plugin( $plugin_id );
-		$option->appendChild( $plugin->render_name );
-		$select->appendChild( $option );
-	}
-	my $button = $self->{session}->make_doc_fragment;
-	$button->appendChild( $self->{session}->render_button(
-			name=>"_action_export_redir", 
-			value=>$self->{session}->phrase( "lib/searchexpression:export_button" ) ) );
-	$button->appendChild( 
-		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
-	my $savedsearchid = $self->{session}->param( "savedsearchid" );
-	my $userid = $self->{session}->param( "userid" );
-	$button->appendChild( $self->{session}->render_hidden_field( "savedsearchid", $savedsearchid ) ); 
-	$button->appendChild( $self->{session}->render_hidden_field( "userid", $userid, ) );
+		my $plugin = $session->plugin( $plugin_id );
+		my $dom_name = $plugin->render_name;
+		if( $plugin->is_feed )
+		{
+			my $span = $session->make_element( "span", class=>"ep_search_feed" );
+			my $url = $self->export_url( $id );
+			my $a1 = $session->render_link( $url );
+			my $icon = $session->make_element( "img", src=>"/style/images/feed-icon-14x14.png", alt=>"[feed]", border=>0 );
+			$a1->appendChild( $icon );
+			my $a2 = $session->render_link( $url );
+			$a2->appendChild( $dom_name );
+			$span->appendChild( $a1 );
+			$span->appendChild( $session->make_text( " " ) );
+			$span->appendChild( $a2 );
 
-	$form->appendChild( $self->{session}->html_phrase( "lib/searchexpression:export_section",
-				menu => $select,
-				button => $button ));
-	return $form;
+			$feeds->appendChild( $session->make_text( " " ) );
+			$feeds->appendChild( $span );
+		}
+		else
+		{
+			my $option = $session->make_element( "option", value=>$id );
+			$option->appendChild( $dom_name );
+			$options->{EPrints::XML::to_string($dom_name)} = $option;
+		}
+	}
+	my $select = $session->make_element( "select", name=>"_output" );
+	foreach my $optname ( sort keys %{$options} )
+	{
+		$select->appendChild( $options->{$optname} );
+	}
+	my $button = $session->make_doc_fragment;
+	$button->appendChild( $session->render_button(
+			name=>"_action_export_redir",
+			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
+	$button->appendChild( 
+		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+	$button->appendChild( 
+		$session->render_hidden_field( "_cache", $cacheid ) ); 
+	$button->appendChild( 
+		$session->render_hidden_field( "savedsearchid", $savedsearchid, ) );
+
+	return $session->html_phrase( "lib/searchexpression:export_section",
+					feeds => $feeds,
+					count => $session->make_text( 
+						$self->{processor}->{results}->count ),
+					menu => $select,
+					button => $button );
 }
+
 
 sub wishes_to_export
 {

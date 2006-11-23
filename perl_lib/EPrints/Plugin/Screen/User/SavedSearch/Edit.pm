@@ -73,7 +73,7 @@ sub action_save
 {
 	my( $self ) = @_;
 
-	$self->workflow->update_from_form( $self->{processor} );
+	$self->workflow->update_from_form( $self->{processor},"User::SavedSearches" );
 	$self->{session}->reload_current_user;
 	
 	$self->{processor}->{screenid} = "User::SavedSearches";

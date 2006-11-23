@@ -51,15 +51,6 @@ sub render_links
 	return $f;
 }
 
-sub render_results_intro
-{
-	my( $self ) = @_;
-
-	my $h2 = $self->{session}->make_element( "h2", class=>"ep_search_desc" );
-	$h2->appendChild( $self->{processor}->{search}->render_conditions_description );
-	return $h2;
-}
-
 sub allow_export { return 1; }
 
 sub allow_export_redir { return 1; }

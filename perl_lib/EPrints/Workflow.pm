@@ -288,10 +288,12 @@ sub prev
 	$self->{stage} = $self->get_prev_stage_id;
 }
 
+# only set new_stage if we're going there for real
+# if an error stalls us then leave it undef.
 
 sub update_from_form
 {
-	my( $self, $processor ) = @_;
+	my( $self, $processor, $new_stage ) = @_;
 		
 	# Process data from previous stage
 
@@ -325,7 +327,7 @@ sub update_from_form
 		$li->appendChild( $problem_xhtml );
 		$warnings->appendChild( $li );
 	}
-	$self->link_problem_xhtml( $warnings, $self->{staff} );
+	$self->link_problem_xhtml( $warnings, $processor->{screenid}, $new_stage );
 	$processor->add_message( "warning", $warnings );
 
 	return 0;
@@ -413,7 +415,7 @@ sub _database_err
 # add links to fields in problem-report xhtml chunks.
 sub link_problem_xhtml
 {
-	my( $self, $node, $staff ) = @_;
+	my( $self, $node, $screenid, $new_stage ) = @_;
 
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
@@ -422,8 +424,8 @@ sub link_problem_xhtml
 		{
 			my $stage = $self->{field_stages}->{$1};
 			return if( !defined $stage );
-			my $url = "?eprintid=".$self->{item}->get_id."&screen=EPrint::".($staff?"Staff::":"")."Edit&stage=$stage#$1";
-			if( $self->get_stage_id eq $stage )
+			my $url = "?eprintid=".$self->{item}->get_id."&screen=$screenid&stage=$stage#$1";
+			if( defined $new_stage && $new_stage eq $stage )
 			{
 				$url = "#$1";
 			}
@@ -440,7 +442,7 @@ sub link_problem_xhtml
 
 		foreach my $kid ( $node->getChildNodes )
 		{
-			$self->link_problem_xhtml( $kid );
+			$self->link_problem_xhtml( $kid, $screenid, $new_stage );
 		}
 	}
 

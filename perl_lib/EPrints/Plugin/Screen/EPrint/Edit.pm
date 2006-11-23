@@ -48,9 +48,7 @@ sub from
 
 		if( defined $self->{session}->param( "stage" ) )
 		{
-			my $from_ok = $self->workflow->update_from_form( 
-						$self->{processor} );
-			return if( !$from_ok );
+			$self->workflow->update_from_form( $self->{processor},$jump_to );
 		}
 
 		if( $jump_to eq "deposit" )
@@ -59,8 +57,9 @@ sub from
 			return;
 		}
 
-		# not checking that this succeded. Maybe we should.
 		$self->workflow->set_stage( $jump_to );
+
+		# not checking that this succeded. Maybe we should.
 		return;
 	}
 
@@ -94,8 +93,9 @@ sub action_save
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor} );
-	
+
 	$self->{processor}->{screenid} = "EPrint::View";
+
 }
 
 
@@ -110,7 +110,8 @@ sub action_prev
 {
 	my( $self ) = @_;
 
-	$self->workflow->update_from_form( $self->{processor} );
+	$self->workflow->update_from_form( $self->{processor}, $self->get_prev_stage_id );
+
 	$self->workflow->prev;
 }
 

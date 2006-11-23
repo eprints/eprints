@@ -179,7 +179,7 @@ EPrints Modules
     <epp:phrase id="lib/searchexpression:noresults">Search has no matches.</epp:phrase>
     <epp:phrase id="lib/searchexpression:export_section">
 <table width="100%"><tr>
-  <td align="left">Export results as <epc:pin name="menu"/><epc:pin name="button"/></td>
+  <td align="left">Export <epc:pin name="count" /> results as <epc:pin name="menu"/><epc:pin name="button"/></td>
   <td align="right"><epc:pin name="feeds"/></td>
 </tr></table>
 </epp:phrase>
@@ -191,8 +191,8 @@ EPrints Modules
     <epp:phrase id="lib/searchexpression:seperator"> | </epp:phrase>
     <epp:phrase id="lib/searchexpression:desc_and"> <b>AND</b> </epp:phrase>
     <epp:phrase id="lib/searchexpression:desc_or"> <b>OR</b> </epp:phrase>
-    <epp:phrase id="lib/searchexpression:desc_order">Results ordered <epc:pin name="order"/>.</epp:phrase>
-    <epp:phrase id="lib/searchexpression:desc_no_conditions">No conditions.</epp:phrase>
+    <epp:phrase id="lib/searchexpression:desc_order">Results ordered <epc:pin name="order"/></epp:phrase>
+    <epp:phrase id="lib/searchexpression:desc_no_conditions">No conditions</epp:phrase>
     <epp:phrase id="lib/searchexpression:export_error_title">Error Exporting Results</epp:phrase>
     <epp:phrase id="lib/searchexpression:export_error_search"><p>The search failed to execute correctly.</p></epp:phrase>
     <epp:phrase id="lib/searchexpression:export_error_format"><p>The requested output format is not available.</p></epp:phrase>

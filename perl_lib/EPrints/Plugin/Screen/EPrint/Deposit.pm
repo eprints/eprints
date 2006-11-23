@@ -73,7 +73,7 @@ sub render
 			$li->appendChild( $problem_xhtml );
 			$dom_problems->appendChild( $li );
 		}
-		$self->workflow->link_problem_xhtml( $dom_problems );
+		$self->workflow->link_problem_xhtml( $dom_problems, "EPrint::Edit" );
 		$self->{processor}->add_message( "warning", $dom_problems );
 	}
 
@@ -87,7 +87,7 @@ sub render
 			$li->appendChild( $warning_xhtml );
 			$dom_warnings->appendChild( $li );
 		}
-		$self->workflow->link_problem_xhtml( $dom_warnings );
+		$self->workflow->link_problem_xhtml( $dom_warnings, "EPrint::Edit" );
 		$self->{processor}->add_message( "warning", $dom_warnings );
 	}
 
@@ -134,7 +134,7 @@ sub action_deposit
 			$li->appendChild( $problem_xhtml );
 			$warnings->appendChild( $li );
 		}
-		$self->workflow->link_problem_xhtml( $warnings );
+		$self->workflow->link_problem_xhtml( $warnings, "EPrint::Edit" );
 		$self->{processor}->add_message( "warning", $warnings );
 		return;
 	}

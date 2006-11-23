@@ -38,12 +38,11 @@ sub export_url
 {
 	my( $self, $format ) = @_;
 
-	my $exp = $self->{session}->param( "_exp" );
 	my $plugin = $self->{session}->plugin( "Export::".$format );
 
 	my $url = $self->{session}->get_uri();
 	#cjg escape URL'ify urls in this bit... (4 of them?)
-	my $escexp = $exp;
+	my $escexp = $self->{processor}->{search}->serialise;
 	$escexp =~ s/ /+/g; # not great way...
 	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?_exp=$escexp&_output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
 	return $fullurl;
@@ -254,6 +253,12 @@ sub render_title
 {
 	my( $self ) = @_;
 
+	my $subscreen = $self->{processor}->{search_subscreen};
+	if( defined $subscreen && $subscreen eq "results" )
+	{
+		return $self->{processor}->{search}->render_conditions_description;
+	}
+
 	my $phraseid = $self->{processor}->{sconf}->{"title_phrase"};
 	if( defined $phraseid )
 	{
@@ -294,7 +299,7 @@ sub render_links
 	return $links;
 }
 
-sub render_export_select
+sub render_export_bar
 {
 	my( $self ) = @_;
 	my @plugins = $self->_get_export_plugins;
@@ -355,6 +360,8 @@ sub render_export_select
 
 	return $session->html_phrase( "lib/searchexpression:export_section",
 					feeds => $feeds,
+					count => $session->make_text( 
+						$self->{processor}->{results}->count ),
 					menu => $select,
 					button => $button );
 }
@@ -399,7 +406,7 @@ sub paginate_opts
 	my @controls_before = $self->get_controls_before;
 	
 	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
-	$export_div->appendChild( $self->render_export_select );
+	$export_div->appendChild( $self->render_export_bar );
 
 	my $type = $self->{session}->get_citation_type( 
 			$self->{processor}->{results}->get_dataset, 

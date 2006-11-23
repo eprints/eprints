@@ -5619,3 +5619,13 @@ PACKAGE: 2.2.99.2
 
 2006-11-23 cjg
  * EPrint screens now label explicit editor and depositor screens.
+
+2006-11-23 cjg
+ * $search->render_condition_description no longer ends with "."
+ * Search results pages now have a title of the search description
+ * Fixed broken saved search export
+ * Fixed broken feeds export
+ * Export link now describes how many results will be exported.
+ * Fixed problems with links in submission problems warning boxes.
+
+

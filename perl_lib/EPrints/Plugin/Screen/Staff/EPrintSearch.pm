@@ -95,14 +95,6 @@ sub render_result_row
 }
 
 
-sub render_results_intro
-{
-	my( $self ) = @_;
-
-	my $h2 = $self->{session}->make_element( "h2", class=>"ep_search_desc" );
-	$h2->appendChild( $self->{processor}->{search}->render_conditions_description );
-	return $h2;
-}
 
 
 
