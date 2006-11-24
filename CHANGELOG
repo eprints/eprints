@@ -5682,3 +5682,7 @@ PACKAGE: 2.2.99.2
 2006-11-24 cjg
  * Fixed plugin loader to only load files _ending_ in .pm
  * Changed ABSTRACT to DISABLE as the varname to disable a plugin.
+
+2006-11-24 cjg
+ * Added local .js and .css files to show people where to add stuff.
+
