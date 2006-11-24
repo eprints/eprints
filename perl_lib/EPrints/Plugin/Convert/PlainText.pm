@@ -22,8 +22,6 @@ use Unicode::String;
 use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;
 
-our $ABSTRACT = 0;
-
 # xml = ?
 our %APPS = qw(
 pdf		pdftotext

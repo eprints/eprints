@@ -7,8 +7,6 @@ use EPrints::Plugin::Export::Feed;
 use Unicode::String qw(latin1);
 use Time::Local;
 
-# $EPrints::Plugin::Export::BibTeX::ABSTRACT = 1;
-
 use strict;
 
 sub new

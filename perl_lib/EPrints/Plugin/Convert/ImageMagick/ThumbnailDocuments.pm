@@ -16,8 +16,6 @@ use Carp;
 use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;
 
-our $ABSTRACT = 0;
-
 our (%FORMATS, @ORDERED, %FORMATS_PREF);
 @ORDERED = %FORMATS = qw(
 pdf application/pdf

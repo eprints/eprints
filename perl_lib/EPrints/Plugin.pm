@@ -375,7 +375,7 @@ sub load_dir
 			load_dir( $reg, $filename, $baseclass, @prefix, $fn );
 			next;
 		}
-		next unless( $fn =~ s/\.pm// );
+		next unless( $fn =~ s/\.pm\$// );
 		my $class = $baseclass."::".join("::",@prefix,$fn );
 		eval "use $class; 1";
 
@@ -385,12 +385,12 @@ sub load_dir
 			next;
 		}
 		no strict "refs";
-		my $absvar = $class.'::ABSTRACT';
-		my $abstract = ${$absvar};
+		my $disvar = $class.'::DISABLE';
+		my $disable = ${$disvar};
 		my $plugin = $class->new();
 		#my %defaults = $class->defaults();
 		use strict "refs";
-		next if( $abstract );
+		next if( $disable );
 
 		my $pluginid = $plugin->{id};
 		if( !defined $pluginid )

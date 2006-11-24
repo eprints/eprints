@@ -27,8 +27,6 @@ our %TYPES = qw(
 	application/x-bzip2 bzip2
 );
 
-our $ABSTRACT = 0;
-
 sub new
 {
 	my( $class, %opts ) = @_;

@@ -5678,3 +5678,7 @@ PACKAGE: 2.2.99.2
 
 2006-11-23 cjg
  * Got rid of toggling menu at top of screen - moved actions into Admin
+
+2006-11-24 cjg
+ * Fixed plugin loader to only load files _ending_ in .pm
+ * Changed ABSTRACT to DISABLE as the varname to disable a plugin.

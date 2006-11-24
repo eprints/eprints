@@ -4,7 +4,7 @@ use strict;
 
 our @ISA = qw/ EPrints::Plugin /;
 
-$EPrints::Plugin::Import::ABSTRACT = 1;
+$EPrints::Plugin::Import::DISABLE = 1;
 
 sub new
 {

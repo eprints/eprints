@@ -6,8 +6,6 @@ use EPrints::Plugin::Export::Feed;
 
 use Unicode::String qw(latin1);
 
-# $EPrints::Plugin::Export::BibTeX::ABSTRACT = 1;
-
 use strict;
 
 sub new

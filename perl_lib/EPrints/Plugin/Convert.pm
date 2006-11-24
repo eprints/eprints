@@ -25,7 +25,6 @@ use EPrints::Utils;
 
 our @ISA = qw/ EPrints::Plugin /;
 
-our $ABSTRACT = 0;
 
 sub new
 {

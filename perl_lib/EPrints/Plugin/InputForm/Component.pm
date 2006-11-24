@@ -27,7 +27,7 @@ use strict;
 
 our @ISA = qw/ EPrints::Plugin /;
 
-$EPrints::Plugin::InputForm::Component::ABSTRACT = 1;
+$EPrints::Plugin::InputForm::Component::DISABLE = 1;
 
 sub new
 {
