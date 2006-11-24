@@ -39,6 +39,13 @@ sub properties_from
 
 }
 
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::redirect_to_me_url."&userid=".$self->{processor}->{userid};
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;

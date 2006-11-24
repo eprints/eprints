@@ -96,7 +96,7 @@ sub render
 	my $form = $self->render_form;
 	$page->appendChild( $form );
 
-	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
+	my $blister = $self->render_blister( "deposit", 0 );
 	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 

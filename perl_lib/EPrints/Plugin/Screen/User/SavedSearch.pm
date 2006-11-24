@@ -32,6 +32,13 @@ sub properties_from
 
 }
 
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::redirect_to_me_url."&savedsearchid=".$self->{processor}->{savedsearchid};
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;

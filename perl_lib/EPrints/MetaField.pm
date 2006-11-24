@@ -1166,6 +1166,17 @@ sub get_input_col_titles
 	return undef;
 }
 
+sub get_internal_value
+{
+	my( $self, $session, $basename, $id ) = @_;
+
+	my $v = $session->param( "_internal_".$basename."_".$id );
+
+	return $v if defined $v;
+	
+	$session->param( "passon_".$basename."_".$id );
+}
+
 sub get_input_elements
 {
 	my( $self, $session, $value, $staff, $obj, $basename ) = @_;	
@@ -1247,35 +1258,31 @@ sub get_input_elements
 			$boxcount = $cnt+$self->{input_add_boxes};
 		}
 	}
-	my $spacesid = $basename."_spaces";
+	my $spacesid = "_internal_".$basename."_spaces";
 
-	if( $session->internal_button_pressed() )
+	if( $self->get_internal_value( $session, $basename, "morespaces" ) )
 	{
-		$boxcount = $session->param( $spacesid );
-		if( $session->internal_button_pressed( 
-			$basename."_morespaces" ) )
-		{
-			$boxcount += $self->{input_add_boxes};
-		}
-
-		for( my $i=1 ; $i<=$boxcount ; ++$i )
-		{
-			if( $i>1 && $session->internal_button_pressed( $basename."_up_".$i ) )
-			{
-				my( $a, $b ) = ( $value->[$i-1], $value->[$i-2] );
-				( $value->[$i-1], $value->[$i-2] ) = ( $b, $a );
-			}
-			if( $session->internal_button_pressed( $basename."_down_".$i ) )
-			{
-				my( $a, $b ) = ( $value->[$i-1], $value->[$i+0] );
-				( $value->[$i-1], $value->[$i+0] ) = ( $b, $a );
-				# If the last item was moved down then extend boxcount by 1
-				$boxcount++ if( $i == $boxcount ); 
-			}
-				
-		}
-
+		$boxcount = $self->get_internal_value( $session, $basename, "spaces" );
+		$boxcount += $self->{input_add_boxes};
 	}
+
+	for( my $i=1 ; $i<=$boxcount ; ++$i )
+	{
+		if( $i>1 && $self->get_internal_value( $session, $basename, "up_$i" ) )
+		{
+			my( $a, $b ) = ( $value->[$i-1], $value->[$i-2] );
+				( $value->[$i-1], $value->[$i-2] ) = ( $b, $a );
+		}
+		if( $self->get_internal_value( $session, $basename, "down_$i" ) )
+		{
+			my( $a, $b ) = ( $value->[$i-1], $value->[$i+0] );
+			( $value->[$i-1], $value->[$i+0] ) = ( $b, $a );
+			# If the last item was moved down then extend boxcount by 1
+			$boxcount++ if( $i == $boxcount ); 
+		}
+			
+	}
+
 
 
 	my $imagesurl = $session->get_repository->get_conf( "base_url" )."/style/images";
@@ -1396,6 +1403,28 @@ sub get_input_elements
 
 
 
+sub get_state_params
+{
+	my( $self, $session, $prefix ) = @_;
+
+	my @ids = ();
+
+	my $params = "";
+	foreach my $id ( $session->param )
+	{
+		next unless $id =~ m/^_internal_$prefix/;
+		next if $id =~ m/\.[xy]$/; # don't propagate .x and .y
+		my $v = $session->param( $id );
+		next unless EPrints::Utils::is_set( $v );
+		$id =~ s/^_internal_/passon_/;
+		$params.= "&$id=$v";
+	}
+	return $params;	
+}
+
+
+
+
 
 sub get_input_elements_single
 {
@@ -1411,21 +1440,11 @@ sub get_input_elements_single
 			$obj );
 	}
 
-
-	my $boxcount = 1;
-	my $spacesid = $basename."_langspaces";
-	my $buttonid = $basename."_morelangspaces";
-
-	if( $session->internal_button_pressed() )
+	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
+	$boxcount = 1 unless $boxcount;
+	if( $self->get_internal_value( $session, $basename, "morelangspaces" ) )
 	{
-		if( defined $session->param( $spacesid ) )
-		{
-			$boxcount = $session->param( $spacesid );
-		}
-		if( $session->internal_button_pressed( $buttonid ) )
-		{
-			$boxcount += $self->{input_add_boxes};
-		}
+		$boxcount += $self->{input_add_boxes};
 	}
 		
 	my( @force ) = @{$self->get_property( "requiredlangs" )};
@@ -1511,9 +1530,10 @@ sub get_input_elements_single
 	$boxcount = $i-1;
 
 	my $more = $session->make_doc_fragment;	
-	$more->appendChild( $session->render_hidden_field( $spacesid, $boxcount ) );
+	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
+	$more->appendChild( $session->render_hidden_field( "_passon_".$basename."_langspaces", $boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
-		$buttonid => $session->phrase( 
+		$basename."_morelangspaces" => $session->phrase( 
 				"lib/metafield:more_langs" ) ) );
 
 	push @{$rows}, [ { el=>$more} ];
@@ -1575,12 +1595,12 @@ sub form_value_actual
 	if( $self->get_property( "multiple" ) )
 	{
 		my @values = ();
-		my $boxcount = $session->param( $basename."_spaces" );
+		my $boxcount = $self->get_internal_value( $session, $basename, "spaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		for( my $i=1; $i<=$boxcount; ++$i )
 		{
 			my $value = $self->form_value_single( $session, $basename."_".$i, $object );
-			if( defined $value || $session->internal_button_pressed )
+			if( defined $value || $self->get_internal_value( $session, $basename, "morespaces" ) )
 			{
 				push @values, $value;
 			}
@@ -1616,7 +1636,7 @@ sub form_value_single
 	}
 
 	my $value = {};
-	my $boxcount = $session->param( $basename."_langspaces" );
+	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
 	$boxcount = 1 if( $boxcount < 1 );
 	for( my $i=1; $i<=$boxcount; ++$i )
 	{

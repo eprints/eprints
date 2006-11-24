@@ -52,6 +52,17 @@ sub update_from_form
 	$self->{dataobj}->set_value( $field->{name}, $value );
 }
 
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $field = $self->{config}->{field};
+
+	return $field->get_state_params( 
+			$self->{session},  
+			$self->{prefix}, );
+}
+
 =pod
 
 =item @problems = $fieldcomponent->validate()

@@ -2780,9 +2780,18 @@ sub send_http_header
 	}
 	$self->{request}->content_type( $opts{content_type} );
 
+	$self->set_cookies( %opts );
+
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
 		"Cache-Control" => "no-store, no-cache, must-revalidate" );
+
+	EPrints::Apache::AnApache::send_http_header( $self->{request} );
+}
+
+sub set_cookies
+{
+	my( $self, %opts ) = @_;
 
 	my $r = $self->{request};
 	my $c = $r->connection;
@@ -2802,6 +2811,7 @@ sub send_http_header
 			-value   => $code,
 			-domain  => $self->{repository}->get_conf("cookie_domain"),
 			-expires => "+10y" );
+print STDERR "SET:$cookie\n";
 		EPrints::Apache::AnApache::header_out( 
 			$self->{"request"},
 			"Set-Cookie" => $cookie );
@@ -2819,11 +2829,7 @@ sub send_http_header
 				$self->{"request"},
 				"Set-Cookie" => $cookie );
 	}
-
-	EPrints::Apache::AnApache::send_http_header( $self->{request} );
 }
-
-
 
 
 #############################################################
@@ -3522,17 +3528,18 @@ sub login
 {
 	my( $self,$user ) = @_;
 
-	my @a = ();
-	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-	my $code = join( "", @a );
 	my $ip = $ENV{REMOTE_ADDR};
+
+        my $code = EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
+	return unless EPrints::Utils::is_set( $code );
+
 	my $userid = $user->get_id;
 	my $sql = "INSERT INTO login_tickets VALUES( '".EPrints::Database::prep_value($code)."', $userid, '".EPrints::Database::prep_value($ip)."', ".(time+60*60*24*7)." )";
 	my $sth = $self->{database}->do( $sql );
 
-	my $c = $self->{request}->connection;
-	$c->notes->set(userid=>$userid);
-	$c->notes->set(cookie_code=>$code);
+#	my $c = $self->{request}->connection;
+#	$c->notes->set(userid=>$userid);
+#	$c->notes->set(cookie_code=>$code);
 }
 
 

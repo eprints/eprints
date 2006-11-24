@@ -181,6 +181,37 @@ sub param
 	return $self->{session}->param( $fullname );
 }
 
+sub get_internal_value
+{
+	my( $self ) = @_;
+
+	my $prefix = $self->{prefix}."_";
+	foreach my $param ( $self->{session}->param )
+	{
+		next unless( $param =~ s/^(_internal|passon)_$prefix// );
+		my $v = $self->{session}->param( $param );
+		next unless EPrints::Utils::is_set( $v );
+		return $v;
+	}
+	return undef;
+}
+
+sub get_internal_value_id
+{
+	my( $self ) = @_;
+
+	my $prefix = $self->{prefix}."_";
+	foreach my $param ( $self->{session}->param )
+	{
+		my $v = $self->{session}->param( $param );
+		next unless( $param =~ s/^(_internal|passon)_$prefix// );
+		next unless EPrints::Utils::is_set( $v );
+		return $param;
+	}
+	return undef;
+}
+
+
 sub get_internal_button
 {
 	my( $self ) = @_;
@@ -347,6 +378,13 @@ sub xml_to_metafield
 	}
 
 	return $field;
+}
+
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	return "";
 }
 
 ######################################################################

@@ -5688,3 +5688,13 @@ PACKAGE: 2.2.99.2
 
 2006-11-24 cjg
  * Fixed bug in plugin loader.
+
+2006-11-24 cjg
+ * Fixed back button/re-post problem
+ * Changed login system to set a cookie BEFORE you log in
+ * stuff now creates a url of the static view for the resource after
+    a post redirects.
+ * Messages in a POST request now save to a db table to be shown the
+    next time the current user gets a screen rendered.
+ * Fixed bug in blister bar - did not highlight deposit stage.
+

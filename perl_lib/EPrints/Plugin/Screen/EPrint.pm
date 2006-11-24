@@ -76,6 +76,12 @@ sub render_title
 	return $f;
 }
 
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::redirect_to_me_url."&eprintid=".$self->{processor}->{eprintid};
+}
 
 sub register_furniture
 {

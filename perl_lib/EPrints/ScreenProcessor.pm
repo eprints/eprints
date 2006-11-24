@@ -61,6 +61,25 @@ sub process
 
 	# used to swap to a different screen if appropriate
 	$self->screen->about_to_render;
+
+	my $current_user = $self->{session}->current_user;
+	if( $ENV{REQUEST_METHOD} eq "POST" && defined $current_user )
+	{
+		my $url = $self->screen->redirect_to_me_url;
+		if( defined $url )
+		{
+			foreach my $message ( @{$self->{messages}} )
+			{
+				$self->{session}->get_database->save_user_message( 
+					$current_user->get_id,
+					$message->{type},
+					$message->{content} );
+			}
+			$self->{session}->redirect( $url );
+			return;
+		}
+	}
+		
 	
 	# rendering
 
@@ -165,7 +184,15 @@ sub render_messages
 
 	my $chunk = $self->{session}->make_doc_fragment;
 
-	foreach my $message ( @{$self->{messages}} )
+	my @old_messages;
+	my $cuser = $self->{session}->current_user;
+	if( defined $cuser )
+	{
+		my $db = $self->{session}->get_database;
+		@old_messages = $db->get_user_messages( $cuser->get_id );
+		$db->clear_user_messages( $cuser->get_id );
+	}
+	foreach my $message ( @old_messages, @{$self->{messages}} )
 	{
 		$chunk->appendChild( 
 			$self->{session}->render_message( 

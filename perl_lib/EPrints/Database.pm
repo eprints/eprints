@@ -64,7 +64,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.0.4";
+$EPrints::Database::DBVersion = "3.0.5";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -248,6 +248,8 @@ sub create_archive_tables
 	$success = $success && $self->_create_cachemap_table();
 
 	$success = $success && $self->_create_counter_table();
+
+	$success = $success && $self->_create_messages_table();
 
 	$success = $success && $self->_create_index_queue_table();
 
@@ -1088,6 +1090,69 @@ sub _create_counter_table
 	
 	# Everything OK
 	return( 1 );
+}
+
+######################################################################
+# 
+# $success = $db->_create_messages_table
+#
+# create the table used to store messages which the user needs to see
+# but are not being sent in the current request.
+#
+######################################################################
+
+sub _create_messages_table
+{
+	my( $self ) = @_;
+
+	# The table creation SQL
+	my $sql = "CREATE TABLE messages (userid INTEGER, type VARCHAR(16), message TEXT, INDEX(userid))";
+	
+	# Send to the database
+	my $sth = $self->do( $sql );
+	
+	# Return with an error if unsuccessful
+	return( 0 ) unless defined( $sth );
+
+	# Everything OK
+	return( 1 );
+}
+
+sub save_user_message
+{
+	my( $self, $userid, $m_type, $dom_m_data ) = @_;
+
+	my $sql = "INSERT INTO messages VALUES ( ".($userid+0).", '".prep_value($m_type)."','".prep_value(EPrints::XML::to_string($dom_m_data))."' )";
+
+	my $sth = $self->do( $sql );
+
+	return defined $sth;
+}
+
+sub get_user_messages
+{
+	my( $self, $userid ) = @_;
+
+	my $sql = "SELECT type,message FROM messages WHERE userid=".($userid+0);
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+	my @messages;
+	while( my( $m_type, $m_data ) = $sth->fetchrow_array )
+	{
+		my $doc = EPrints::XML::parse_xml_string( $m_data );
+		push @messages, { type=>$m_type, content=>$doc };
+	}
+	$sth->finish;
+	
+	return @messages;
+}
+
+sub clear_user_messages
+{
+	my( $self, $userid ) = @_;
+
+	my $sql = "DELETE FROM messages WHERE userid=".($userid+0);
+	$self->do( $sql );
 }
 
 ######################################################################

@@ -412,7 +412,16 @@ sub _database_err
 		$self->{session}->get_repository->get_conf( "userhome" ) );
 }
 
+# return "&foo=bar"  style paramlist to add to url to maintain state
 
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $stage = $self->get_stage( $self->get_stage_id );
+
+	return "&stage=".$self->get_stage_id.$stage->get_state_params;
+}
 
 # add links to fields in problem-report xhtml chunks.
 sub link_problem_xhtml
@@ -426,7 +435,7 @@ sub link_problem_xhtml
 		{
 			my $stage = $self->{field_stages}->{$1};
 			return if( !defined $stage );
-			my $url = "?eprintid=".$self->{item}->get_id."&screen=$screenid&stage=$stage#$1";
+			my $url = "?screen=$screenid&eprintid=".$self->{item}->get_id."&stage=$stage#$1";
 			if( defined $new_stage && $new_stage eq $stage )
 			{
 				$url = "#$1";

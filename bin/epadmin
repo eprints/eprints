@@ -1400,6 +1400,12 @@ sub upgrade
 		$dbversion="3.0.4";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.4" )
+	{
+		upgrade_3_0_4_to_3_0_5( $repoid, $db );
+		$dbversion="3.0.5";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1540,6 +1546,23 @@ sub upgrade_3_0_3_to_3_0_4
 
 	$rootdbh->disconnect;
 }
+
+
+sub upgrade_3_0_4_to_3_0_5
+{
+	my( $repoid, $db ) = @_;
+
+	$db->_create_messages_table;
+}
+
+
+
+
+
+
+
+
+
 
 
 

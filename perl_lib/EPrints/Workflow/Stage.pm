@@ -145,6 +145,18 @@ sub update_from_form
 	$self->{item}->commit;
 }
 
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $params = "";
+	foreach my $component (@{$self->{components}})
+	{
+		$params.= $component->get_state_params;
+	}
+	return $params;
+}
+
 sub render
 {
 	my( $self, $session, $workflow ) = @_;

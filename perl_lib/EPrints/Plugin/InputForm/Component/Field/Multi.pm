@@ -253,6 +253,19 @@ sub get_fields_handled
 	return @names;
 }
 
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $params = "";
+	foreach my $field ( @{$self->{config}->{fields}} )
+	{
+		$params.= $field->get_state_params( $self->{session}, $self->{prefix}."_".$field->get_name );
+	}
+	return $params;
+}
+
+=pod
 1;
 
 

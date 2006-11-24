@@ -441,4 +441,22 @@ sub _render_subnode
 	return $r_node;
 }
 	
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $params = "";
+	foreach my $id ( 
+ 		"_internal_".$self->{prefix}."_search",
+ 		$self->{prefix}."_searchstore",
+		$self->{prefix}."_searchtext",
+	)
+	{
+		my $v = $self->{session}->param( $id );
+		next unless defined $v;
+		$params.= "&$id=$v";
+	}
+	return $params;	
+}
+
 1;

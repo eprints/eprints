@@ -18,13 +18,15 @@ $page->appendChild( $session->render_message(
 	"message",	
 	$session->html_phrase("cgi/login:message") ) );
 
-$page->appendChild( $session->html_phrase( 
-	"cgi/login:link_text",
-	link=>$session->render_link( $url ) ) );
+#$page->appendChild( $session->html_phrase( 
+#	"cgi/login:link_text",
+#	link=>$session->render_link( $url ) ) );
 
 my $title = $session->html_phrase( "cgi/login:title" );
 $session->build_page( $title, $page );
 $session->send_page();
+
+$session->redirect( $url );
 
 $session->terminate;
 

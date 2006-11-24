@@ -632,6 +632,7 @@ sub validate
 	return @problems;
 }
 
+
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
