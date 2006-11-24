@@ -5686,3 +5686,5 @@ PACKAGE: 2.2.99.2
 2006-11-24 cjg
  * Added local .js and .css files to show people where to add stuff.
 
+2006-11-24 cjg
+ * Fixed bug in plugin loader.

@@ -375,7 +375,7 @@ sub load_dir
 			load_dir( $reg, $filename, $baseclass, @prefix, $fn );
 			next;
 		}
-		next unless( $fn =~ s/\.pm\$// );
+		next unless( $fn =~ s/\.pm$// );
 		my $class = $baseclass."::".join("::",@prefix,$fn );
 		eval "use $class; 1";
 
