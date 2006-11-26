@@ -154,7 +154,7 @@ sub from
 	my( $self ) = @_;
 
 	my $action_id = $self->{processor}->{action};
-	
+
 	return if( $action_id eq "" );
 
 	return if( $action_id eq "null" );

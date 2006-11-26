@@ -39,11 +39,6 @@ sub render
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
 	}
-	my $int_id = $component->get_internal_value_id;
-	if( defined $int_id && $int_id !~ m/spaces$/ && (scalar @{$component->{stage}->{components}} > 1) )
-	{
-		$surround->appendChild( $self->{session}->make_element( "a", name=>"t" ) );
-	}
 
 	my $barid = $component->{prefix}."_titlebar";
 	my $title_bar_class="";
@@ -74,6 +69,7 @@ sub render
 		my $help_table_td2 = $self->{session}->make_element( "td", align=>"right" );
 		$help_table->appendChild( $help_table_tr );
 		$help_table_tr->appendChild( $help_table_td1 );
+		$help_table_tr->appendChild( $help_table_td2 );
 		$help_table_td1->appendChild( $title_div );
 	
 		my $show_help = $self->{session}->make_element( "div", class=>"ep_sr_show_help ep_only_js ep_toggle", id=>$help_prefix."_show" );

@@ -448,6 +448,7 @@ sub get_state_params
 	my $params = "";
 	foreach my $id ( 
  		"_internal_".$self->{prefix}."_search",
+ 		"_internal_".$self->{prefix}."_clear",
  		$self->{prefix}."_searchstore",
 		$self->{prefix}."_searchtext",
 	)

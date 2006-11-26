@@ -16,11 +16,6 @@ sub render
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
 	}
-	my $int_id = $component->get_internal_value_id;
-	if( defined $int_id && $int_id !~ m/spaces$/ && (scalar @{$component->{stage}->{components}} > 1) )
-	{
-		$surround->appendChild( $self->{session}->make_element( "a", name=>"t" ) );
-	}
 	
 	my $content = $self->{session}->make_element( "div", id => $component->{prefix}."_content", class=>"$content_class ep_sr_content" );
 	my $content_inner = $self->{session}->make_element( "div", id => $component->{prefix}."_content_inner" );

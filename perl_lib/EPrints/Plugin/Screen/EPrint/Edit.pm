@@ -35,6 +35,7 @@ sub from
 {
 	my( $self ) = @_;
 
+
 	if( defined $self->{processor}->{internal} )
 	{
 		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
@@ -128,6 +129,7 @@ sub action_next
 	my( $self ) = @_;
 
 	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+
 	return unless $from_ok;
 
 	if( !defined $self->workflow->get_next_stage_id )

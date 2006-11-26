@@ -14,11 +14,7 @@ sub render
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
 	}
-	my $int_id = $component->get_internal_value_id;
-	if( defined $int_id && $int_id !~ m/spaces$/ && (scalar @{$component->{stage}->{components}} > 1) )
-	{
-		$surround->appendChild( $self->{session}->make_element( "a", name=>"t" ) );
-	}
+	
 	$surround->appendChild( $component->render_content( $self ) );
 
 	return $surround;

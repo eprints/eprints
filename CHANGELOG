@@ -5698,3 +5698,11 @@ PACKAGE: 2.2.99.2
     next time the current user gets a screen rendered.
  * Fixed bug in blister bar - did not highlight deposit stage.
 
+2006-11-26 cjg
+ * Fixed issues with internal buttons and values being passed int the new
+    POST/GET system.
+ * Fixed bug that surrounds lost the [?] help button.
+ * Disposed of an XML which is tested but not used.
+ * Removed get_internal_value_id - no longer used
+ * removed get_internal_value from metafield
+ 

@@ -1166,16 +1166,6 @@ sub get_input_col_titles
 	return undef;
 }
 
-sub get_internal_value
-{
-	my( $self, $session, $basename, $id ) = @_;
-
-	my $v = $session->param( "_internal_".$basename."_".$id );
-
-	return $v if defined $v;
-	
-	$session->param( "passon_".$basename."_".$id );
-}
 
 sub get_input_elements
 {
@@ -1243,7 +1233,11 @@ sub get_input_elements
 
 	# multiple field...
 
-	my $boxcount = $self->{input_boxes};
+	my $boxcount = $session->param( $self->{name}."_spaces" );
+	if( !defined $boxcount )
+	{
+		$boxcount = $self->{input_boxes};
+	}
 	$value = [] if( !defined $value );
 	my $cnt = scalar @{$value};
 	#cjg hack hack hack
@@ -1258,31 +1252,15 @@ sub get_input_elements
 			$boxcount = $cnt+$self->{input_add_boxes};
 		}
 	}
-	my $spacesid = "_internal_".$basename."_spaces";
 
-	if( $self->get_internal_value( $session, $basename, "morespaces" ) )
+	my $swap = $session->param( $self->{name}."_swap" );
+	if( $swap =~ m/^(\d+),(\d+)$/ )
 	{
-		$boxcount = $self->get_internal_value( $session, $basename, "spaces" );
-		$boxcount += $self->{input_add_boxes};
+		my( $a, $b ) = ( $value->[$1-1], $value->[$2-1] );
+		( $value->[$1-1], $value->[$2-1] ) = ( $b, $a );
+		# If the last item was moved down then extend boxcount by 1
+		$boxcount++ if( $2 == $boxcount ); 
 	}
-
-	for( my $i=1 ; $i<=$boxcount ; ++$i )
-	{
-		if( $i>1 && $self->get_internal_value( $session, $basename, "up_$i" ) )
-		{
-			my( $a, $b ) = ( $value->[$i-1], $value->[$i-2] );
-				( $value->[$i-1], $value->[$i-2] ) = ( $b, $a );
-		}
-		if( $self->get_internal_value( $session, $basename, "down_$i" ) )
-		{
-			my( $a, $b ) = ( $value->[$i-1], $value->[$i+0] );
-			( $value->[$i-1], $value->[$i+0] ) = ( $b, $a );
-			# If the last item was moved down then extend boxcount by 1
-			$boxcount++ if( $i == $boxcount ); 
-		}
-			
-	}
-
 
 
 	my $imagesurl = $session->get_repository->get_conf( "base_url" )."/style/images";
@@ -1317,7 +1295,7 @@ sub get_input_elements
 					src=> "$imagesurl/multi_down.png",
 					alt=>"down",
 					title=>"move down",
-               				name=>"_internal_".$basename."_down_$i",
+               				name=>"_internal_".$self->{name}."_down_$i",
 					value=>"1" ));
 				if( $i > 1 )
 				{
@@ -1328,7 +1306,7 @@ sub get_input_elements
 						alt=>"up",
 						title=>"move up",
 						src=> "$imagesurl/multi_up.png",
-                				name=>"_internal_".$basename."_up_$i",
+                				name=>"_internal_".$self->{name}."_up_$i",
 						value=>"1" ));
 				}
 				$lastcol = { el=>$arrows, valign=>"middle", class=>"ep_form_input_grid_arrows" };
@@ -1383,9 +1361,11 @@ sub get_input_elements
 		}
 	}
 	my $more = $session->make_doc_fragment;
-	$more->appendChild( $session->render_hidden_field( $spacesid, $boxcount ) );
+	$more->appendChild( $session->render_hidden_field(
+					$self->{name}."_spaces",
+					$boxcount ) );
 	$more->appendChild( $session->render_internal_buttons(
-		$basename."_morespaces" => 
+		$self->{name}."_morespaces" => 
 			$session->phrase( 
 				"lib/metafield:more_spaces" ) ) );
 	if( defined $assist )
@@ -1407,19 +1387,32 @@ sub get_state_params
 {
 	my( $self, $session, $prefix ) = @_;
 
-	my @ids = ();
-
 	my $params = "";
-	foreach my $id ( $session->param )
+	my $jump = "";
+
+	my $ibutton = $session->get_internal_button;
+	my $name = $self->{name};
+	if( $ibutton eq "${name}_morespaces" ) 
 	{
-		next unless $id =~ m/^_internal_$prefix/;
-		next if $id =~ m/\.[xy]$/; # don't propagate .x and .y
-		my $v = $session->param( $id );
-		next unless EPrints::Utils::is_set( $v );
-		$id =~ s/^_internal_/passon_/;
-		$params.= "&$id=$v";
+		my $spaces = $session->param( $self->{name}."_spaces" );
+		$spaces += $self->{input_add_boxes};
+		$params.= "&".$self->{name}."_spaces=$spaces";
+		$jump = "#".$self->{name};
 	}
-	return $params;	
+	my $ndown = $name."_down_";
+	if( $ibutton =~ m/^$ndown(\d+)$/ )
+	{
+		$params.= "&".$self->{name}."_swap=$1,".($1+1);
+		$jump = "#".$self->{name};
+	}
+	my $nup = $name."_up_";
+	if( $ibutton =~ m/^$nup(\d+)$/ )
+	{
+		$params.= "&".$self->{name}."_swap=".($1-1).",$1";
+		$jump = "#".$self->{name};
+	}
+
+	return $params.$jump;	
 }
 
 
@@ -1430,115 +1423,12 @@ sub get_input_elements_single
 {
 	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
-	unless( $self->get_property( "multilang" ) )
-	{
-		return $self->get_basic_input_elements( 
+	return $self->get_basic_input_elements( 
 			$session, 
 			$value, 
 			$basename, 
 			$staff,
 			$obj );
-	}
-
-	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
-	$boxcount = 1 unless $boxcount;
-	if( $self->get_internal_value( $session, $basename, "morelangspaces" ) )
-	{
-		$boxcount += $self->{input_add_boxes};
-	}
-		
-	my( @force ) = @{$self->get_property( "requiredlangs" )};
-	
-	my %langstodo = ();
-	foreach( keys %{$value} ) { $langstodo{$_}=1; }
-	my %langlabels = ();
-	foreach( EPrints::Config::get_languages() ) 
-	{ 
-		$langlabels{$_}= EPrints::Utils::tree_to_utf8(
-			$session->render_language_name( $_ ) );
-	}
-	foreach( @force ) { delete $langlabels{$_}; }
-	my @langopts = ("", keys %langlabels );
-	# cjg NOT LANG'd
-	$langlabels{""} = "** Select Language **";
-
-	my $rows = [];	
-	my $i=1;
-	my $langid;
-	while( 
-		scalar( @force ) > 0 || 
-		$i <= $boxcount || 
-		scalar( keys %langstodo ) > 0 )
-	{
-		my $langid = "";
-		my $forced = 0;
-		if( scalar @force )
-		{
-			$langid = shift @force;
-			$forced = 1;
-			delete( $langstodo{$langid} );
-		}
-		elsif( scalar keys %langstodo )
-		{
-			$langid = ( keys %langstodo )[0];
-			delete( $langstodo{$langid} );
-		}
-		
-		my $langparamid = $basename."_".$i."_lang";
-		my $langbit;
-		if( $forced )
-		{
-			$langbit = $session->make_element( 
-				"span", 
-				class => "requiredlang" );
-			$langbit->appendChild( $session->render_hidden_field(
-				$langparamid,
-				$langid ) );
-			$langbit->appendChild( 
-				$session->render_language_name( $langid ) );
-		}
-		else
-		{
-			$langbit = $session->render_option_list(
-				name => $langparamid,
-				values => \@langopts,
-				default => $langid,
-				labels => \%langlabels );
-		}
-	
-		my $elements = $self->get_basic_input_elements( 
-			$session, 
-			$value->{$langid}, 
-			$basename."_".$i, 
-			$staff,
-			$obj );
-
-		my $first = 1;
-		for my $n (0..(scalar @{$elements})-1)
-		{
-			my $lastcol = {};
-			if( $n == 0 )
-			{
-				$lastcol = { el=>$langbit };
-			}
-			push @{$rows}, [ @{$elements->[$n]}, $lastcol ];
-		}
-			
-		++$i;
-	}
-				
-	$boxcount = $i-1;
-
-	my $more = $session->make_doc_fragment;	
-	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
-	$more->appendChild( $session->render_hidden_field( "_passon_".$basename."_langspaces", $boxcount ) );
-	$more->appendChild( $session->render_internal_buttons(
-		$basename."_morelangspaces" => $session->phrase( 
-				"lib/metafield:more_langs" ) ) );
-
-	push @{$rows}, [ { el=>$more} ];
-
-	return $rows;
 }	
 
 
@@ -1595,15 +1485,13 @@ sub form_value_actual
 	if( $self->get_property( "multiple" ) )
 	{
 		my @values = ();
-		my $boxcount = $self->get_internal_value( $session, $basename, "spaces" );
+		my $boxcount = $session->param( $self->{name}."_spaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		for( my $i=1; $i<=$boxcount; ++$i )
 		{
 			my $value = $self->form_value_single( $session, $basename."_".$i, $object );
-			if( defined $value || $self->get_internal_value( $session, $basename, "morespaces" ) )
-			{
-				push @values, $value;
-			}
+			next unless( EPrints::Utils::is_set( $value ) );
+			push @values, $value;
 		}
 		if( scalar @values == 0 )
 		{
@@ -1627,38 +1515,9 @@ sub form_value_single
 {
 	my( $self, $session, $basename, $object ) = @_;
 
-	unless( $self->get_property( "multilang" ) )
-	{
-		# simple case; not multilang
-		my $value = $self->form_value_basic( $session, $basename, $object );
-		return undef unless( EPrints::Utils::is_set( $value ) );
-		return $value;
-	}
-
-	my $value = {};
-	my $boxcount = $self->get_internal_value( $session, $basename, "langspaces" );
-	$boxcount = 1 if( $boxcount < 1 );
-	for( my $i=1; $i<=$boxcount; ++$i )
-	{
-		my $subvalue = $self->form_value_basic( 
-			$session, 
-			$basename."_".$i,
-			$object );
-		my $langid = $session->param( 
-			$basename."_".$i."_lang" );
-		if( $langid eq "" ) 
-		{ 
-			$langid = "_".$i; 
-		}
-		if( defined $subvalue )
-		{
-			$value->{$langid} = $subvalue;
-			# print STDERR "($langid)($subvalue)\n";
-			#cjg -- does not check that this is a valid langid...
-		}
-	}
-	$value = undef if( scalar keys %{$value} == 0 );
-
+	# simple case; not multilang
+	my $value = $self->form_value_basic( $session, $basename, $object );
+	return undef unless( EPrints::Utils::is_set( $value ) );
 	return $value;
 }
 

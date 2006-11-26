@@ -196,22 +196,6 @@ sub get_internal_value
 	return undef;
 }
 
-sub get_internal_value_id
-{
-	my( $self ) = @_;
-
-	my $prefix = $self->{prefix}."_";
-	foreach my $param ( $self->{session}->param )
-	{
-		my $v = $self->{session}->param( $param );
-		next unless( $param =~ s/^(_internal|passon)_$prefix// );
-		next unless EPrints::Utils::is_set( $v );
-		return $param;
-	}
-	return undef;
-}
-
-
 sub get_internal_button
 {
 	my( $self ) = @_;
