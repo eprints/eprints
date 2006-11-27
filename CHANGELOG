@@ -5705,4 +5705,9 @@ PACKAGE: 2.2.99.2
  * Disposed of an XML which is tested but not used.
  * Removed get_internal_value_id - no longer used
  * removed get_internal_value from metafield
- 
+
+2006-11-27 moj
+ * RequestRemoval/RemoveWithEmail/RejectWithEmail now use a phrase for
+    'click to edit'.
+ * AbstractSearch uses phrase for bad subscreen
+ * Upload's Hide/Show options are now phrases. 

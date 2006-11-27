@@ -228,7 +228,8 @@ sub render
 
 	$self->{processor}->add_message(
 		"error",
-		$self->{session}->make_text( "Bad search subscreen: $subscreen" ) );
+		$self->{session}->html_phrase( "lib/searchexpression:bad_subscreen",
+			subscreen => $subscreen ) );
 	return $self->render_search_form;	
 }
 

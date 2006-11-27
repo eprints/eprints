@@ -97,11 +97,11 @@ sub render
 	my $reason = $self->{session}->make_doc_fragment;
 	my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
 	$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
-	$reason_static->appendChild( $self->{session}->make_text( " [" ));	
-	my $editlink = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
-	$editlink->appendChild( $self->{session}->make_text( "click to edit" ));	
-	$reason_static->appendChild( $editlink );
-	$reason_static->appendChild( $self->{session}->make_text( "]" ));	
+	$reason_static->appendChild( $self->{session}->make_text( " " ));	
+	
+	my $edit_link_a = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
+	$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
+		edit_link => $edit_link_a ) ); 
 	$reason->appendChild( $reason_static );
 	
 	my $div = $self->{session}->make_element( "div", class => "ep_form_field_input" );

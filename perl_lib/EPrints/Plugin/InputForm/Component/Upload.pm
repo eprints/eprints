@@ -286,7 +286,8 @@ sub render_content
 		$td_right->appendChild( $options );
 
 		my $s_options = $session->make_element( "span", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
-		$s_options->appendChild( $session->make_text( "Show options " ));
+		$s_options->appendChild( $self->html_phrase( "show_options" ) );
+		$s_options->appendChild( $session->make_text( " " ) );
 		$s_options->appendChild( 
 			$session->make_element( "img",
 				src=>"/style/images/plus.png",
@@ -294,7 +295,8 @@ sub render_content
 		$opts_toggle->appendChild( $s_options );
 
 		my $h_options = $session->make_element( "span", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
-		$h_options->appendChild( $session->make_text( "Hide options " ));
+		$h_options->appendChild( $self->html_phrase( "hide_options" ) );
+		$h_options->appendChild( $session->make_text( " " ) );
 		$h_options->appendChild( 
 			$session->make_element( "img",
 				src=>"/style/images/minus.png",

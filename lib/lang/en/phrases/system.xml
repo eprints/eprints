@@ -163,6 +163,7 @@ EPrints Modules
 
 <!-- Search (used to be SearchExpression) -->
 
+    <epp:phrase id="lib/searchexpression:bad_subscreen">Bad search subscreen: <epc:pin name="subscreen" /></epp:phrase>
     <epp:phrase id="lib/searchexpression:least_one">You need to specify something for at least one field!</epp:phrase>
     <epp:phrase id="lib/searchexpression:any">any of these conditions</epp:phrase>
     <epp:phrase id="lib/searchexpression:all">all of these conditions</epp:phrase>
@@ -1206,6 +1207,8 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <epc:pin name="button"/></epp:phrase>
 	
 	<!-- options -->
+	<epp:phrase id="Plugin/InputForm/Component/Upload:show_options">Show options</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:hide_options">Hide options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_format">Upload</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_file">Upload additional file</epp:phrase>
@@ -1472,6 +1475,7 @@ Titles and Help for the System Fields
     <epp:phrase id="saved_search_fieldhelp_public">Do you want to be able to link directly to this search via a public URL?</epp:phrase>
     <epp:phrase id="saved_search_radio_public"><label><epc:pin name="true"/>Yes, make this search available to anyone.</label><br/><label><epc:pin name="false"/>No. Only I will have access to this search.</label></epp:phrase>
 
+
 <!-- Web-viewable version of email -->
 <epp:phrase id="mail_view">
 <div class="ep_mail_view">
@@ -1498,6 +1502,9 @@ Titles and Help for the System Fields
 <epc:phrase ref="mail_sig" />
 </epp:phrase>
 
+<epp:phrase id="mail_edit_click">
+[<epc:pin name="edit_link">click to edit</epc:pin>]
+</epp:phrase>
 
 <!-- Request a copy -->
 <epp:phrase id="request:button">Request a copy</epp:phrase>
