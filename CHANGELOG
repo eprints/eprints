@@ -5711,3 +5711,7 @@ PACKAGE: 2.2.99.2
     'click to edit'.
  * AbstractSearch uses phrase for bad subscreen
  * Upload's Hide/Show options are now phrases. 
+
+2006-11-27 moj
+ * Added phrases for unphrased admin actions
+
