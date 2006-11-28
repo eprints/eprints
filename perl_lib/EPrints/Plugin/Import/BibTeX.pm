@@ -325,7 +325,7 @@ sub convert_input
 	}
 	if( !defined $epdata->{type} )
 	{
-		$plugin->warning( "Skipping unsupported citation type $input_data_type" );
+		$plugin->warning( $plugin->phrase( "unsupported_cite_type", type => $input_data_type ) );
 		return undef;
 	}
 
@@ -335,12 +335,12 @@ sub convert_input
 	# author
 	for( $input_data->names( "author" ) )
 	{
-		my $name;
-		$name->{given} = join( " ", $_->part( "first" ) ) if scalar $_->part( "first" );
-		$name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
-		$name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
-		$name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
-		push @{ $epdata->{creators} }, $name;
+		my $a_name;
+		$a_name->{given} = join( " ", $_->part( "first" ) ) if scalar $_->part( "first" );
+		$a_name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
+		$a_name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
+		$a_name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
+		push @{ $epdata->{creators} }, $a_name;
 	}
 	
 	# booktitle
@@ -356,12 +356,12 @@ sub convert_input
 	# editor
 	for( $input_data->names( "editor" ) )
 	{
-		my $name;
-		$name->{given} = join( " ", $_->part( "first" ) ) if scalar $_->part( "first" );
-		$name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
-		$name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
-		$name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
-		push @{ $epdata->{editors} }, $name;
+		my $e_name;
+		$e_name->{given} = join( " ", $_->part( "first" ) ) if scalar $_->part( "first" );
+		$e_name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
+		$e_name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
+		$e_name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
+		push @{ $epdata->{editors} }, $e_name;
 	}
 
 	# institution
@@ -434,7 +434,7 @@ sub convert_input
 		}
 		else
 		{
-			$plugin->warning( "Skipping year '$year'" );
+			$plugin->warning( $plugin->phrase( "skip_year", year => $year ) );
 		}
 	}
 	
@@ -462,7 +462,7 @@ sub convert_input
 		}
 		else
 		{
-			$plugin->warning( "Skipping month '$month'" );
+			$plugin->warning( $plugin->phrase( "skip_month", month => $month ) );
 		}
 	}
 

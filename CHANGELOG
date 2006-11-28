@@ -5715,3 +5715,9 @@ PACKAGE: 2.2.99.2
 2006-11-27 moj
  * Added phrases for unphrased admin actions
 
+2006-11-28 moj
+ * Added phrases for import plugins (not for those in constructor,
+    as no session is available at that point). 
+ * Renamed $name to $a_name/$e_name in BibTeX, as this was giving
+    warnings.
+ 

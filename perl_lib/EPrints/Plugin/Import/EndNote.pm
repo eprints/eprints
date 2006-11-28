@@ -440,7 +440,7 @@ sub convert_input
 	$epdata->{type} = "thesis" if $input_data_type eq "Thesis";
 	if( !defined $epdata->{type} ) 
 	{
-		$plugin->warning( "Skipping unsupported citation type $input_data_type" );
+		$plugin->warning( $plugin->phrase( "unsupported_cite_type", type => $input_data_type ) );
 		return undef;
 	}
 
@@ -493,7 +493,7 @@ sub convert_input
 				push @{$epdata->{creators_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
-			$plugin->warning( "Could not parse author: $_" );
+			$plugin->warning( $plugin->phrase( "bad_author", author => $_ ) );
 		}
 	}
 
@@ -557,7 +557,7 @@ sub convert_input
 				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
 			}
 		} else {
-			$plugin->warning( "Could not parse editor: $_" );
+			$plugin->warning( $plugin->phrase( "bad_editor", editor => $_ ) );
 		}
 	}
 
