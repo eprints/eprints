@@ -81,7 +81,10 @@ sub xml_field_to_epdatafield
 			my $expect = $field->get_property( "datasetid" );
 			if( $type ne $expect )
 			{
-				$plugin->warning( $plugin->phrase( "unexpected_type", type => $type, expected => $expect, fieldname => $field->get_name ) );
+				$plugin->warning( $plugin->phrase( "unexpected_type", 
+					type => $type, 
+					expected => $expect, 
+					fieldname => $field->get_name ) );
 				next;
 			}
 			my $sub_dataset = $plugin->{session}->get_repository->get_dataset( $expect );
@@ -159,7 +162,7 @@ sub get_known_nodes
 		next unless EPrints::XML::is_dom( $el, "Element" );
 		if( defined $map{$el->nodeName()} )
 		{
-			$plugin->warning( "dup_element", name => $el );
+			$plugin->warning( $plugin->phrase( "dup_element", name => $el->nodeName ) );
 			next;
 		}
 		$map{$el->nodeName()} = $el;
@@ -175,8 +178,8 @@ sub get_known_nodes
 
 	foreach my $name ( keys %map )
 	{
-		$plugin->warning( "unexpected_element", name => $name );
-		$plugin->warning( "expected", elements => "<".join("> <", @whitelist).">" );
+		$plugin->warning( $plugin->phrase( "unexpected_element", name => $name ) );
+		$plugin->warning( $plugin->phrase( "expected", elements => "<".join("> <", @whitelist).">" ) );
 	}
 	return %toreturn;
 }
