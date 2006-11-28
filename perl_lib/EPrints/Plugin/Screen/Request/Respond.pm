@@ -243,11 +243,7 @@ sub render_document
 	
 	$doctd = $session->make_element( "td" );
 	$doctr->appendChild( $doctd );
-	$doctd->appendChild( 
-	$session->get_repository->call( "render_fileicon", 
-		$session, 
-		$doc->get_type, 
-		$doc->get_url ) );
+	$doctd->appendChild( $doc->render_icon_link );
 	
 	$doctd = $session->make_element( "td" );
 	$doctr->appendChild( $doctd );
