@@ -228,7 +228,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	my $rc = EPrints::Utils::require_if_exists("Text::BibTex");
+	my $rc = EPrints::Utils::require_if_exists("Text::BibTeX");
 	unless( $rc ) 
 	{
 		$self->{visible} = "";
