@@ -96,6 +96,9 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 		return XML::LibXML::Node::appendChild( @_ );
 	};
 
+# Text returns undef on empty string
+*XML::LibXML::Text::toString = sub { shift->data };
+
 ##############################################################################
 
 our $PARSER = XML::LibXML->new();

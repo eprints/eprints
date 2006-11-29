@@ -5724,3 +5724,7 @@ PACKAGE: 2.2.99.2
 2006-11-28 moj
  * Missed phrase in XML, tidied up file a bit.
  * General testing with flawed XML import file. 
+
+2006-11-29 tdb
+ * Fix XML::LibXML::Text->toString returning undef on empty string
+
