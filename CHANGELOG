@@ -5730,3 +5730,7 @@ PACKAGE: 2.2.99.2
  * Added support for File::BOM and dos-format files to Endnote
     import
 
+2006-11-29 moj
+ * Added citations for succeeds/commentary.
+ * Added phrase to put HTML wrapper around mail.
+ * Email.pm uses HTML wrapper phrase.

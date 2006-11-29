@@ -1511,6 +1511,27 @@ Titles and Help for the System Fields
 [<epc:pin name="edit_link">click to edit</epc:pin>]
 </epp:phrase>
 
+<!-- Wrapper for HTML email -->
+<epp:phrase id="mail_wrapper">
+<html>
+<head>
+</head>
+<body>
+<style type="text/css">
+.ep_mail_title
+{
+	color: red;
+	font-size: 14pt;
+	font-weight: bold;
+}
+</style>
+<epc:pin name="body" />
+</body>
+</html>
+</epp:phrase>
+
+
+
 <!-- Request a copy -->
 <epp:phrase id="request:button">Request a copy</epp:phrase>
 <epp:phrase id="Plugin/Screen/Public/RequestCopy:title">Request a copy</epp:phrase>
