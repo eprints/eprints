@@ -97,7 +97,10 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 	};
 
 # Text returns undef on empty string
-*XML::LibXML::Text::toString = sub { shift->data };
+*XML::LibXML::Text::toString = sub {
+		my( $node ) = @_;
+		return $node->data ne '' ? XML::LibXML::Node::toString($node) : '';
+	};
 
 ##############################################################################
 

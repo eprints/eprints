@@ -5729,6 +5729,8 @@ PACKAGE: 2.2.99.2
  * Fix XML::LibXML::Text->toString returning undef on empty string
  * Added support for File::BOM and dos-format files to Endnote
     import
+ * Fix my fix for XML::LibXML::Text (ought to be toString, not
+    ->data!)
 
 2006-11-29 moj
  * Added citations for succeeds/commentary.
