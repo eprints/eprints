@@ -5727,4 +5727,6 @@ PACKAGE: 2.2.99.2
 
 2006-11-29 tdb
  * Fix XML::LibXML::Text->toString returning undef on empty string
+ * Added support for File::BOM and dos-format files to Endnote
+    import
 

@@ -361,6 +361,20 @@ Sponsor (Conference Proceedings), Translator (Other Types)
 
 =back
 
+=head1 ENDNOTE 8 SUPPORT
+
+Endnote 8 appears to add Byte Order Marks to the beginning of its
+exported files. To import these files you need to install the
+L<File::BOM> module from CPAN. If this module is detected EPrints
+will automatically handle BOM (you will need to restart your web
+server if importing via CGI).
+
+=head1 CRLF (WINDOWS) SUPPORT
+
+EPrints will correctly handle CRLF formatted text files, if you
+are using Perl 5.8 or later. Otherwise use the dos2unix tool to
+convert your files.
+
 =head1 SEE ALSO
 
 L<Text::Refer>, L<XML::Writer>, L<EPrints::Plugin::Export::EndNote>
@@ -372,6 +386,10 @@ package EPrints::Plugin::Import::EndNote;
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import /;
+
+# See http://unicode.org/unicode/faq/utf_bom.html#BOM
+eval "use File::BOM";
+our $USE_BOM = $@ ? 0 : 1;
 
 sub new
 {
@@ -400,8 +418,28 @@ sub input_list
 	my $parser = Text::Refer::Parser->new( LeadWhite => 'KEEP', NewLine => "TOSPACE", ForgiveEOF => 1);
 
 	my @ids;
+	
+	my $fh = $opts{fh};
 
-	while (my $input_data = $parser->input( $opts{fh} ) ) 
+	if( $USE_BOM )
+	{
+		# Strip the leading Byte Order Mark and
+		# set the appropriate PerlIO encoding
+		File::BOM::defuse( $fh );
+	}
+	# Work out if we need to use crlf (perl 5.8+)
+	if( $^V gt v5.8.0 ) 
+	{
+		my $start = tell( $fh );
+		my $line = <$fh>;
+		seek( $fh, $start, 0 ); # reset the file handle
+		if( $line =~ /\r$/ )
+		{
+			binmode( $fh, ":crlf" );
+		}
+	}	
+
+	while (my $input_data = $parser->input( $fh ) ) 
 	{
 		my $epdata = $plugin->convert_input( $input_data );
 
