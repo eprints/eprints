@@ -1139,6 +1139,7 @@ sub get_user_messages
 	my @messages;
 	while( my( $m_type, $m_data ) = $sth->fetchrow_array )
 	{
+		$m_data = "<div>$m_data</div>";
 		my $doc = EPrints::XML::parse_xml_string( $m_data );
 		push @messages, { type=>$m_type, content=>$doc };
 	}

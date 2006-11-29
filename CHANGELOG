@@ -5736,3 +5736,7 @@ PACKAGE: 2.2.99.2
  * Added citations for succeeds/commentary.
  * Added phrase to put HTML wrapper around mail.
  * Email.pm uses HTML wrapper phrase.
+
+2006-11-29 moj
+ * Temporary fix to avoid errors with messages (puts <div> around
+    strings). Probably a better way to do this.
