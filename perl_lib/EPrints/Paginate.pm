@@ -360,6 +360,24 @@ sub paginate_list
 			$pins{results}->appendChild( $div );
 		}
 	}
+
+	# If we have no results, we can use a custom renderer to	
+	# put a descriptive phrase in place of the result list.
+
+	if( $n_results == 0 )
+	{
+		if( defined $opts{render_no_results} )
+		{
+			my $params = $opts{render_result_params};
+			my $no_res = &{ $opts{render_no_results} }(
+					$session,
+					$params,
+					$session->html_phrase( 
+						"lib/searchexpression:noresults" )
+					);
+			$pins{results}->appendChild( $no_res );
+		}
+	}
 	
 	# Render a page of results
 	my $custom_pins = $opts{pins};

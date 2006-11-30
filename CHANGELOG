@@ -5747,3 +5747,9 @@ PACKAGE: 2.2.99.2
 2006-11-30 moj
  * Altered password field help (no longer logged out when you change
     password).
+
+2006-11-30 moj
+ * Created render_no_results as an opt to the Paginate module. This
+    is rendered in place of the results if none are returned. 
+ * Added a render_no_results to render a tr with the correct colspan
+    in Paginate::Columns

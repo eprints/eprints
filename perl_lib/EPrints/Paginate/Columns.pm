@@ -168,6 +168,15 @@ sub paginate_list
 		}
 		return $tr;
 	} unless defined $newopts{render_result};
+
+	$newopts{render_no_results} = sub {
+		my( $session, $info, $phrase ) = @_;
+		my $tr = $session->make_element( "tr" );
+		my $td = $session->make_element( "td", class=>"ep_columns_cell", colspan => scalar @{ $info->{columns} } );
+		$td->appendChild( $phrase ); 
+		$tr->appendChild( $td );
+		return $tr;
+	} unless defined $newopts{render_no_results};
 	
 	return EPrints::Paginate->paginate_list( $session, $basename, $list, %newopts );
 }
