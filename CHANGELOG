@@ -5743,3 +5743,7 @@ PACKAGE: 2.2.99.2
 
 2006-11-30 moj
  * Added cursor:pointer to dropdown (better than the text cursor)
+
+2006-11-30 moj
+ * Altered password field help (no longer logged out when you change
+    password).
