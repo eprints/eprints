@@ -5740,3 +5740,6 @@ PACKAGE: 2.2.99.2
 2006-11-29 moj
  * Temporary fix to avoid errors with messages (puts <div> around
     strings). Probably a better way to do this.
+
+2006-11-30 moj
+ * Added cursor:pointer to dropdown (better than the text cursor)

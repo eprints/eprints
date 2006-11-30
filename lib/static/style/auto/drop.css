@@ -18,6 +18,7 @@
 	padding: 3px;
 	list-style: none;
 	border-top: 1px dashed #ccc;
+	cursor: pointer;
 }
 .ep_drop_target ul li.ep_first {
 	border-top: none;
