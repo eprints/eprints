@@ -5760,4 +5760,6 @@ PACKAGE: 2.2.99.2
  * Removed BOM and CRLF detection from EndNote
  * Removed user=0 dropping of the user argument
  * Added a confirmation to bin/import if user argument isn't set
+ * Added an OAI script to export access logs
+
 
