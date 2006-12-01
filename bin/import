@@ -98,6 +98,7 @@ __GENERICPOD__
 
 use Getopt::Long;
 use Pod::Usage;
+use File::BOM;
 use strict;
 
 use EPrints;
@@ -127,7 +128,6 @@ EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV !=4 );
-$user=undef if $user eq "0";
 my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
@@ -164,7 +164,15 @@ if( defined $user )
 	}
 	if( !defined $userobj )
 	{
-		print STDERR "Can't find user with userid/username $user\n";	
+		print STDERR "Can't find user with userid/username [$user]\n";
+		exit 1;
+	}
+}
+else
+{
+	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id, are you sure you want to continue?", 1 ) )
+	{
+		$session->terminate();
 		exit 1;
 	}
 }
@@ -243,18 +251,35 @@ if( $filename eq "-" )
 }
 else
 {
-	unless( open( INFILE, $filename ) )
+	unless( open( $fh, $filename ) )
 	{
 		print STDERR "Could not open file $filename: $!\n";
 		$session->terminate();
 		exit 1;
 	}
-	$fh = *INFILE;
+	if( $^V gt v5.8.0 and seek( $fh, 0, 1 ) )
+	{
+		# Strip the Byte Order Mark and set the encoding appropriately
+		# See http://en.wikipedia.org/wiki/Byte_Order_Mark
+		File::BOM::defuse($fh);
+
+		# Read a line from the file handle and reset the fp
+		my $start = tell( $fh );
+		my $line = <$fh>;
+		seek( $fh, $start, 0 )
+			or die "Unable to reset file handle for crlf detection.";
+			
+		# If the line ends with return add the crlf layer
+		if( $line =~ /\r$/ )
+		{
+			binmode( $fh, ":crlf" );
+		}
+	}
 }
 
 my $list = $plugin->input_list( dataset=>$ds, fh=>$fh, filename=>$filename );
 
-unless( $filename eq "-" )
+unless( $fh eq *STDIN )
 {
 	close $fh;
 }

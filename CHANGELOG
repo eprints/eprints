@@ -5756,4 +5756,8 @@ PACKAGE: 2.2.99.2
 
 2006-12-01 tdb
  * Added experimental mapping from OpenURL resolver to OAI-PMH
+ * Added BOM and CRLF detection to bin/import
+ * Removed BOM and CRLF detection from EndNote
+ * Removed user=0 dropping of the user argument
+ * Added a confirmation to bin/import if user argument isn't set
 
