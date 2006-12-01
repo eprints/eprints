@@ -48,7 +48,7 @@ Address of publisher or institution B<place_of_pub>
 
 =item author 
 
-Name(s) of authors B<creators>
+Name(s) of authors B<creators_name>
 
 B<FORMAT:> Multiple authors separated by 'and'
 
@@ -58,7 +58,7 @@ Title of Book (incollection, inproceedings) B<book_title>
 
 =item editor
 
-Name(s) of editors B<editors>
+Name(s) of editors B<editors_name>
 
 B<FORMAT:> Multiple authors separated by 'and'
 
@@ -148,9 +148,9 @@ Volume B<volume>
 
 =over 8
 
-=item Year written (unpublished) B<date_issue>
+=item Year written (unpublished) B<date>
 
-=item Year published (Other Types) B<date_issue>
+=item Year published (Other Types) B<date>
 
 =back
 
@@ -340,7 +340,7 @@ sub convert_input
 		$a_name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
 		$a_name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
 		$a_name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
-		push @{ $epdata->{creators} }, $a_name;
+		push @{ $epdata->{creators_name} }, $a_name;
 	}
 	
 	# booktitle
@@ -361,7 +361,7 @@ sub convert_input
 		$e_name->{family} = join( " ", $_->part( "von" ) ) if scalar $_->part( "von" );
 		$e_name->{family} .= join( " ", $_->part( "last" ) ) if scalar $_->part( "last" );
 		$e_name->{lineage} = join( " ", $_->part( "jr" ) ) if scalar $_->part( "jr" );
-		push @{ $epdata->{editors} }, $e_name;
+		push @{ $epdata->{editors_name} }, $e_name;
 	}
 
 	# institution
