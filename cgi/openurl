@@ -25,6 +25,8 @@ my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 # $session->get_database->set_debug( 1 );
 
+my $repository = $session->get_repository();
+
 # Create an OpenURL object
 my $uri = URI::OpenURL->new();
 
@@ -69,7 +71,7 @@ if( $md{ "aulast" } )
 if( defined($rft->id) )
 {
 	my $oai_id = $session->get_repository->get_conf( "oai" )->{ "v2" }->{ "archive_id" };
-	if( defined($rft->id) and $rft->id =~ /^oai:$oai_id:(\d+)$/ )
+	if( defined($rft->id) and $rft->id =~ /^(?:info:ofi\/nam:info:)?oai:$oai_id:(\d+)$/ )
 	{
 		$searchexp->add_field(
 			$ds->get_field( "eprintid" ),
@@ -133,7 +135,34 @@ my $svc = $uri->serviceType;
 
 my %svc_md = $svc->metadata;
 
-if( $svc_md{ "fulltext" } and
+# OAI-PMH
+if( $svc->val_fmt and $svc->val_fmt eq 'info:ofi/fmt:kev:mtx:oai_pmh' )
+{
+	# Location of the OAI-PMH interface
+	my $url = $repository->get_conf( "base_url" );
+	$url .= "/cgi/oai2";
+	$url = URI->new( $url );
+
+	# Get the OAI identifier for this eprint
+	my $oai_id = $session->get_repository->get_conf( 
+			"oai", 
+			"v2", 
+			"archive_id" );
+	$oai_id = EPrints::OpenArchives::to_oai_identifier( $oai_id, $eprint->get_id );
+
+	# Add the OAI-PMH arguments
+	my %args = %svc_md;
+	my $verb = $args{verb} || '';
+	if( $verb eq 'GetRecord' || $verb eq 'ListMetadataFormats' )
+	{
+		$args{identifier} = $oai_id;
+	}
+	$url->query_form( %args );
+
+	$session->redirect( $url );
+}
+# Scholarly Service
+elsif( $svc_md{ "fulltext" } and
 	$svc_md{ "fulltext" } eq 'yes' )
 {
 	# Redirect to the main document (if possible)
@@ -144,6 +173,7 @@ if( $svc_md{ "fulltext" } and
 		$session->redirect( $url );
 	}
 }
+# Default to redirecting to the abstract page
 else
 {
 	# Redirect to the abstract page

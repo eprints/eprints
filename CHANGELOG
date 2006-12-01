@@ -5753,3 +5753,7 @@ PACKAGE: 2.2.99.2
     is rendered in place of the results if none are returned. 
  * Added a render_no_results to render a tr with the correct colspan
     in Paginate::Columns
+
+2006-12-01 tdb
+ * Added experimental mapping from OpenURL resolver to OAI-PMH
+
