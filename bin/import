@@ -110,6 +110,7 @@ my $purge = 1;
 my $help = 0;
 my $man = 0;
 my $single = 0;
+my $scripted = 0;
 my $user = 0;
 my $parse_only = 0;
 
@@ -121,6 +122,7 @@ GetOptions(
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
+	'scripted' => \$scripted,
 	'single' => \$single,
 	'parse-only' => \$parse_only,
 ) || pod2usage( 2 );
@@ -132,6 +134,7 @@ my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
 
+if( $scripted ) { $noise = 0; }
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
@@ -216,7 +219,7 @@ if( !defined $ipluginid )
 }
 
 my $pluginid = "Import::".$ipluginid;
-my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only );
+my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only, scripted=>$scripted );
 
 if( !defined $plugin )
 {
@@ -277,6 +280,11 @@ else
 	}
 }
 
+if( $scripted )
+{
+	print "EPRINTS_IMPORT: BEGIN\n";
+}
+
 my $list = $plugin->input_list( dataset=>$ds, fh=>$fh, filename=>$filename );
 
 unless( $fh eq *STDIN )
@@ -286,6 +294,10 @@ unless( $fh eq *STDIN )
 
 if( defined $list )
 {
+	if( $scripted )
+	{
+		print "EPRINTS_IMPORT: DONE ".$list->count."\n";
+	}
 	print "Number of records imported: ".$list->count."\n" if $noise > 0;
 	if( defined $userobj )
 	{

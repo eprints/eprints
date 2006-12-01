@@ -290,7 +290,7 @@ sub to_string
 			"ProcessingInstruction",
 			"EntityReference" ) )
 	{
-		push @n, $node->toString; 
+		push @n, utf8($node->toString); 
 	}
 	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
 	{

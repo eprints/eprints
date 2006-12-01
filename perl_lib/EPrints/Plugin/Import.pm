@@ -120,6 +120,10 @@ sub epdata_to_dataobj
 		{
 			print STDERR "Would have imported an object into dataset ".$dataset->id."\n";
 		}	
+		if( $plugin->{scripted} )
+		{
+			print "EPRINTS_IMPORT: ITEM_PARSED\n";
+		}
 		return;
 	}
 
@@ -128,6 +132,10 @@ sub epdata_to_dataobj
 	{
 		print STDERR "Imported ".$dataset->id.".".$item->get_id."\n";
 	}	
+	if( $plugin->{scripted} )
+	{
+		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$item->get_id."\n";
+	}
 	return $item;
 }
 

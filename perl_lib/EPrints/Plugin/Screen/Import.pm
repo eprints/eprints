@@ -3,6 +3,8 @@ package EPrints::Plugin::Screen::Import;
 
 use EPrints::Plugin::Screen;
 
+use Fcntl qw(:DEFAULT :seek);
+
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
@@ -56,23 +58,82 @@ sub action_import
 		return;
 	}
 
-	my $filename = $session->param( "importfile" );
+
 	my $fh = $session->{query}->upload( "importfile" );
 
-	my $list = $plugin->input_list( dataset=>$ds, fh=>$fh, filename=>$filename );
 
-	if( defined $list )
+	seek( $fh, 0, SEEK_SET );
+
+	my( $buffer );
+
+	my $tmp_file = "/tmp/eprints.import.$$";
+	open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
+	while( read( $fh, $buffer, 1024 ) )
 	{
-		$list->map(
-			sub {
-				my( $session, $dataset, $eprint ) = @_;
-				$eprint->set_value( "userid", $self->{processor}->{user}->get_id );
-				$eprint->commit;
-		} );
-		# TODO add_message not working?
-		# $self->{processor}->add_message( "message", $session->make_text( "Imported " . $list->count . " items" ) );
+		print TMP $buffer;
+	}
+	close TMP;
+
+	my $import_script = $EPrints::SystemSettings::conf->{base_path}."/bin/import";
+	my $ds_id = "inbox";
+	my $cmd = $import_script." --scripted ".$session->get_repository->get_id." ".$ds_id." ".$plugin->get_subtype." --user ".$self->{processor}->{user}->get_id." ".$tmp_file;
+
+#	print STDERR "$cmd\n";
+
+	my $pid = open( OUTPUT, "EPRINTS_NO_CHECK_USER=1 $cmd 2>&1|" );
+	my @imp_out = <OUTPUT>;
+	close OUTPUT;
+
+	if( -e $tmp_file )
+	{
+		unlink( $tmp_file );
 	}
 
+	my @misc = ();
+	my $ok = 0;
+	my @ids;
+	foreach my $line ( @imp_out )
+	{
+		if( $line !~ s/^EPRINTS_IMPORT: // )
+		{
+			push @misc,$line;
+			next;
+		}
+		chomp $line;
+		if( $line =~ m/ITEM_IMPORTED (\d+)/ )
+		{
+			push @ids, $1;
+		}
+		if( $line =~ m/^DONE (\d+)$/ )
+		{
+			$ok = 1;
+		}
+	}
+
+	my $list = EPrints::List->new(
+		dataset => $ds,
+		session => $session,
+		ids=>\@ids );
+
+	if( $ok && $list->count > 0)
+	{
+		if( scalar @misc > 0 )
+		{
+			my $pre = $session->make_element( "pre" );
+			$pre->appendChild( $session->make_text( join( "",$misc[0..99]) ) );
+			$self->{processor}->add_message( "warning", $pre );
+		}
+		$self->{processor}->add_message( "message", $session->make_text( "Imported: ".$list->count ));
+		$self->{processor}->{screenid} = "Items";
+	}
+	else
+	{
+		my $pre = $session->make_element( "pre" );
+		$pre->appendChild( $session->make_text( join( "",$misc[0..99]) ) );
+		$self->{processor}->add_message( "error", $pre );
+	}
+
+	# not used yet.
 }
 
 sub allow_dryrun

@@ -1143,14 +1143,14 @@ sub commit
 
 	$self->queue_changes;
 
-	$self->make_thumbnails;
-
 	unless( !defined $self->{eprint} || $self->{eprint}->under_construction )
 	{
 		# cause a new new revision of the parent eprint.
 		$self->get_eprint->commit( 1 );
 	}
 	
+	$self->make_thumbnails;
+
 	return( $success );
 }
 	

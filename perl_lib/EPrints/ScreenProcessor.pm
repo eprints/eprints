@@ -194,10 +194,15 @@ sub render_messages
 	}
 	foreach my $message ( @old_messages, @{$self->{messages}} )
 	{
-		$chunk->appendChild( 
-			$self->{session}->render_message( 
+		if( !defined $message->{content} )
+		{
+			# parse error!
+			next;
+		}
+		my $dom_message = $self->{session}->render_message( 
 				$message->{type},
-				$message->{content} ));
+				$message->{content});
+		$chunk->appendChild( $dom_message );
 	}
 
 	return $chunk;

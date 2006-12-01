@@ -59,7 +59,7 @@ sub test_uid
 
 	if( $username ne $req_username )
 	{
-		abort( 
+		EPrints::abort( 
 "We appear to be running as user: ".$username."\n".
 "We expect to be running as user: ".$req_username );
 	}

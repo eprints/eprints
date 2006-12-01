@@ -5762,4 +5762,13 @@ PACKAGE: 2.2.99.2
  * Added a confirmation to bin/import if user argument isn't set
  * Added an OAI script to export access logs
 
-
+2006-12-01 cjg
+ * Removed unused #! header from Script.pm
+ * Better handling for broken messages so they don't crash the display.
+ * Moved when thumbnails are triggered.
+ * Made an abort in platform::unix call the abort() method explicitly.
+ * Import screen now uses command line script to import.
+ * bin/import now has --scripted option which gives machine readable info
+    on what has been imported and if it completed ok.
+ * Fixed bug that meant that to_string could contain non utf8 data if 
+    dirty data was used to create the DOM using XML::DOM
