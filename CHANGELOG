@@ -5779,3 +5779,6 @@ PACKAGE: 2.2.99.2
 2006-12-02 cjg
  * Fixed bug that pagerange was an INT in the database.
 
+2006-12-02 cjg
+ * In EPScript = and one_of now do something sensible with multiple fields.
+

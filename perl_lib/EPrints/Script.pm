@@ -223,6 +223,24 @@ sub run_GREATER_THAN
 sub run_EQUALS
 {
 	my( $self, $state, $left, $right ) = @_;
+
+	if( $right->[1]->isa("EPrints::MetaField") && $right->[1]->{multiple} )
+	{
+		foreach( @{$right->[0]} )
+		{
+			return [ 1, "BOOLEAN" ] if( $_ eq $left->[0] );
+		}
+		return [ 0, "BOOLEAN" ];
+	}
+	
+	if( $left->[1]->isa( "EPrints::MetaField") && $left->[1]->{multiple} )
+	{
+		foreach( @{$left->[0]} )
+		{
+			return [ 1, "BOOLEAN" ] if( $_ eq $right->[0] );
+		}
+		return [ 0, "BOOLEAN" ];
+	}
 	
 	return [ $left->[0] eq $right->[0], "BOOLEAN" ];
 }
@@ -230,8 +248,10 @@ sub run_EQUALS
 sub run_NOTEQUALS
 {
 	my( $self, $state, $left, $right ) = @_;
+
+	my $r = $self->run_EQUALS( $state, $left, $right );
 	
-	return [ $left->[0] ne $right->[0], "BOOLEAN" ];
+	return $self->run_NOT( $state, $r );
 }
 
 sub run_NOT
@@ -332,20 +352,21 @@ sub run_yesno
 
 sub run_one_of
 {
-	my( $self, $state, $string, @list ) = @_;
+	my( $self, $state, $left, @list ) = @_;
 
-	if( !defined $string )
+	if( !defined $left )
 	{
 		return [ 0, "BOOLEAN" ];
 	}
-	if( !defined $string->[0] )
+	if( !defined $left->[0] )
 	{
 		return [ 0, "BOOLEAN" ];
 	}
 
 	foreach( @list )
 	{
-		return [ 1, "BOOLEAN" ] if( $string->[0] eq $_->[0] );
+		my $result = $self->run_EQUALS( $state, $left, $_ );
+		return [ 1, "BOOLEAN" ] if( $result->[0] );
 	}
 	return [ 0, "BOOLEAN" ];
 } 
