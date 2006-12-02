@@ -5772,3 +5772,7 @@ PACKAGE: 2.2.99.2
     on what has been imported and if it completed ok.
  * Fixed bug that meant that to_string could contain non utf8 data if 
     dirty data was used to create the DOM using XML::DOM
+
+2006-12-02 cjg
+ * Shortened "fieldname UNSPECIFIED" to "UNSPECIFED".
+

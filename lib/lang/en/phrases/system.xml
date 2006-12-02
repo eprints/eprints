@@ -112,7 +112,7 @@ EPrints Modules
     <epp:phrase id="lib/metafield:honourific">Title</epp:phrase>
     <epp:phrase id="lib/metafield:more_spaces">More input rows</epp:phrase>
     <epp:phrase id="lib/metafield:more_langs">More Languages</epp:phrase>
-    <epp:phrase id="lib/metafield:unspecified"><pin name="fieldname"/> UNSPECIFIED</epp:phrase>
+    <epp:phrase id="lib/metafield:unspecified">UNSPECIFIED</epp:phrase>
     <epp:phrase id="lib/metafield:unspecified_selection">UNSPECIFIED</epp:phrase>
     <epp:phrase id="lib/metafield:unspecified_editperms">No Restrictions</epp:phrase>
     <epp:phrase id="lib/metafield:true">Yes</epp:phrase>
