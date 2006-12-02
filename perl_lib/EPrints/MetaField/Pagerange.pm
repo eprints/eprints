@@ -44,7 +44,7 @@ sub get_sql_type
 {
 	my( $self, $notnull ) = @_;
 
-	return $self->get_sql_name()." INTEGER".($notnull?" NOT NULL":"");
+	return $self->get_sql_name()." VARCHAR($EPrints::MetaField::VARCHAR_SIZE)".($notnull?" NOT NULL":"");
 }
 
 sub get_max_input_size
