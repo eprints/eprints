@@ -229,7 +229,8 @@ sub render
 	$self->{processor}->add_message(
 		"error",
 		$self->{session}->html_phrase( "lib/searchexpression:bad_subscreen",
-			subscreen => $subscreen ) );
+			subscreen => $self->{session}->make_text($subscreen) ) );
+
 	return $self->render_search_form;	
 }
 
@@ -636,11 +637,10 @@ sub wishes_to_export
 	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
 	unless( $ok ) 
 	{
-		$self->{session}->build_page(
-			$self->{session}->html_phrase( "lib/searchexpression:export_error_title" ),
-			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ),
-			"export_error" );
-		$self->{session}->send_page;
+		$self->{processor}->{search_subscreen} = "results";
+		$self->{processor}->add_message(
+			"error",
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ) );
 		return;
 	}
 	

@@ -5782,3 +5782,7 @@ PACKAGE: 2.2.99.2
 2006-12-02 cjg
  * In EPScript = and one_of now do something sensible with multiple fields.
 
+2006-12-03 cjg
+ * Fixed a couple of bugs if abstractsearch gets the wrong subscreen or
+    a non available export format.
+ * Added config to disable plugins and link screens into new lists.

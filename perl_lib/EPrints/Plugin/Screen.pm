@@ -233,14 +233,67 @@ sub list_items
 		my $screen = $self->{session}->plugin( 
 			$screen_id, 
 			processor => $self->{processor} );
-		next if( !defined $screen->{appears} );
+		my $p_conf = $self->{session}->get_repository->get_conf( 
+				"plugins", $screen_id );
+use Data::Dumper;
+print STDERR Dumper($screen_id,$p_conf);
+
+		if( exists $p_conf->{appears}->{$list_id} && 
+			!defined $p_conf->{appears}->{$list_id} )
+		{
+			# set to undef
+			next;
+		}
 
 		my @things_in_list = ();
-		foreach my $opt ( @{$screen->{appears}} )
+		if( defined $screen->{appears} )
 		{
-			next if( $opt->{place} ne $list_id );
-			push @things_in_list, $opt;
+			foreach my $opt ( @{$screen->{appears}} )
+			{
+				next if( $opt->{place} ne $list_id );
+				if( defined $opt->{action} )
+				{
+					# skip if this action is disabled
+					next if( $p_conf->{actions}->{$opt->{action}}->{disable} );
+					# skip if this action/list has got an position
+					# configured
+					next if( defined $p_conf->{actions}->{$opt->{action}}->{appears}->{$list_id} );
+				}
+				else
+				{
+					# skip if this screen/list has got a position 
+					# configured.
+					next if( defined $p_conf->{appears}->{$list_id} );
+				}	
+				push @things_in_list, $opt;
+			}
 		}
+		if( defined $p_conf->{appears}->{$list_id} )
+		{
+			push @things_in_list, 
+				{
+					place => $list_id,
+					position => $p_conf->{appears}->{$list_id},
+				};
+		}
+		if( defined $p_conf->{actions} )
+		{
+			foreach my $action_id ( keys %{$p_conf->{actions}} )
+			{
+				my $a_conf = $p_conf->{actions}->{$action_id};
+				if( defined $a_conf->{appears}->{$list_id} )
+				{
+					push @things_in_list, 
+						{
+						place => $list_id,
+						position => $a_conf->{appears}->{$list_id},
+						action => $action_id,
+						};
+				}
+
+			}
+		}
+
 		next if( scalar @things_in_list == 0 );
 
 		# must be done after checking things in the list

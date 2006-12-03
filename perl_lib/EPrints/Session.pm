@@ -3347,6 +3347,8 @@ sub plugin_list
 	my @out = ();
 	foreach my $plugin_id ( sort keys %pids ) 
 	{
+		next if $self->{repository}->get_conf( "plugins", $plugin_id, "disable" );
+
 		my $plugin = $self->plugin( $plugin_id );
 
 		# should we add this one to the list?
