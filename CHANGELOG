@@ -5796,4 +5796,7 @@ PACKAGE: 2.2.99.2
  * Fixed bug with thumbnails on import
  * Fixed some method="form" oddness.
 
+2006-12-03 cjg
+ * Added MIME::Lite module
+
 
