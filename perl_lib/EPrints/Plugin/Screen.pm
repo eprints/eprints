@@ -235,8 +235,6 @@ sub list_items
 			processor => $self->{processor} );
 		my $p_conf = $self->{session}->get_repository->get_conf( 
 				"plugins", $screen_id );
-use Data::Dumper;
-print STDERR Dumper($screen_id,$p_conf);
 
 		if( exists $p_conf->{appears}->{$list_id} && 
 			!defined $p_conf->{appears}->{$list_id} )

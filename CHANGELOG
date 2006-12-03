@@ -5786,3 +5786,7 @@ PACKAGE: 2.2.99.2
  * Fixed a couple of bugs if abstractsearch gets the wrong subscreen or
     a non available export format.
  * Added config to disable plugins and link screens into new lists.
+
+2006-12-03 cjg
+ * Removed some stray debug lines introduced in last commit.
+
