@@ -83,7 +83,7 @@ sub convert_dataobj
 	if( $dataobj->exists_and_set( "creators" ) )
 	{
 		my $names = $dataobj->get_value( "creators" );	
-		$data->{bibtex}->{author} = join( " and ", map { EPrints::Utils::make_name_string( $_->{main}, 1 ) } @$names );
+		$data->{bibtex}->{author} = join( " and ", map { EPrints::Utils::make_name_string( $_->{name}, 1 ) } @$names );
 	}
 	
 	# booktitle
@@ -94,7 +94,7 @@ sub convert_dataobj
 	if( $dataobj->exists_and_set( "editors" ) )
 	{
 		my $names = $dataobj->get_value( "editors" );	
-		$data->{bibtex}->{editor} = join( " and ", map { EPrints::Utils::make_name_string( $_->{main}, 1 ) } @$names );
+		$data->{bibtex}->{editor} = join( " and ", map { EPrints::Utils::make_name_string( $_->{name}, 1 ) } @$names );
 	}
 
 	# institution
