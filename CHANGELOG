@@ -5790,3 +5790,10 @@ PACKAGE: 2.2.99.2
 2006-12-03 cjg
  * Removed some stray debug lines introduced in last commit.
 
+2006-12-03 cjg
+ * Actions now do POST but screen buttons still do GET
+ * Fixed bug with thumbnails on new-version
+ * Fixed bug with thumbnails on import
+ * Fixed some method="form" oddness.
+
+

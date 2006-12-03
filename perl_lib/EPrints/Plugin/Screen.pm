@@ -375,8 +375,14 @@ sub render_action_button
 	my( $self, $params ) = @_;
 	
 	my $session = $self->{session};
-		
-	my $form = $session->render_form( "form" );
+	
+	my $method = "GET";	
+	if( defined $params->{action} )
+	{
+		$method = "POST";
+	}
+
+	my $form = $session->render_form( $method );
 
 	$form->appendChild( 
 		$session->render_hidden_field( 

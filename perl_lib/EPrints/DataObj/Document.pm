@@ -1149,8 +1149,6 @@ sub commit
 		$self->get_eprint->commit( 1 );
 	}
 	
-	$self->make_thumbnails;
-
 	return( $success );
 }
 	
@@ -1315,6 +1313,7 @@ sub files_modified
 		$self->commit( 1 );
 	}
 
+	$self->make_thumbnails;
 }
 
 ######################################################################
@@ -1650,6 +1649,7 @@ sub make_thumbnails
 		EPrints::Platform::mkdir( $tgtdir );
 	
 		my $plugin = $self->thumbnail_plugin( $size );
+
 		next if !defined $plugin;
 
 		# make a thumbnail
