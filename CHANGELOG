@@ -5830,3 +5830,8 @@ PACKAGE: 2.2.99.2
  * Added EngD thesis as thesis_type
  * Added Keynote as pres_type
  * Added relevant phrases
+
+2006-12-04 cjg
+ * Fixed bug in ordering of search results.
+ * Added form to change order of results from results page.
+

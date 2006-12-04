@@ -305,6 +305,11 @@ sub paginate_list
 			$pins{controls}->appendChild( $cspan );
 		}
 	}
+	
+	if( defined $opts{controls_after} )
+	{
+		$pins{controls}->appendChild( $opts{controls_after} );	
+	}
 
 	my $type;
 	# Container for results (e.g. table, div..)

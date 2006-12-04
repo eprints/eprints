@@ -187,6 +187,7 @@ EPrints Modules
 </tr></table>
 </epp:phrase>
     <epp:phrase id="lib/searchexpression:export_button">Export</epp:phrase>
+    <epp:phrase id="lib/searchexpression:reorder_button">Reorder</epp:phrase>
     <epp:phrase id="lib/searchexpression:next">Next <epc:pin name="n"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:prev">Previous <epc:pin name="n"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:new">New search</epp:phrase>

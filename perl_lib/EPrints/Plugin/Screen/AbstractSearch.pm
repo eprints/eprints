@@ -189,8 +189,17 @@ sub from
 
 	my $order_opt = $self->{session}->param( $self->{prefix}."_order" );
 
-	$self->{processor}->{search}->{custom_order} = $self->{processor}->{sconf}->{order_methods}->{$order_opt};
-	if( !defined $self->{processor}->{search}->{custom_order} )
+	my $allowed_order = 0;
+	foreach my $order_key ( keys %{$self->{processor}->{sconf}->{order_methods}} )
+	{
+		$allowed_order = 1 if( $order_opt eq $self->{processor}->{sconf}->{order_methods}->{$order_key} );
+	}
+
+	if( $allowed_order )
+	{
+		$self->{processor}->{search}->{custom_order} = $order_opt;
+	}
+	else
 	{
 		$self->{processor}->{search}->{custom_order} = 
 			 $self->{processor}->{sconf}->{order_methods}->{$self->{processor}->{sconf}->{default_order}};
@@ -306,6 +315,7 @@ sub render_export_bar
 	my( $self ) = @_;
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};
+	my $order = $self->{processor}->{search}->{custom_order};
 	my $escexp = $self->{processor}->{search}->serialise;
 	my $session = $self->{session};
 	if( scalar @plugins == 0 ) 
@@ -356,16 +366,20 @@ sub render_export_bar
 	$button->appendChild( 
 		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$button->appendChild( 
+		$session->render_hidden_field( "_order", $order ) ); 
+	$button->appendChild( 
 		$session->render_hidden_field( "_cache", $cacheid ) ); 
 	$button->appendChild( 
 		$session->render_hidden_field( "_exp", $escexp, ) );
 
-	return $session->html_phrase( "lib/searchexpression:export_section",
+	my $form = $self->{session}->render_form( "GET" );
+	$form->appendChild( $session->html_phrase( "lib/searchexpression:export_section",
 					feeds => $feeds,
 					count => $session->make_text( 
 						$self->{processor}->{results}->count ),
 					menu => $select,
-					button => $button );
+					button => $button ));
+	return $form;
 }
 
 sub get_basic_controls_before
@@ -375,6 +389,7 @@ sub get_basic_controls_before
 	my $escexp = $self->{processor}->{search}->serialise;
 
 	my $baseurl = $self->{session}->get_uri . "?_cache=$cacheid&_exp=$escexp&screen=".$self->{processor}->{screenid};
+	$baseurl .= "&_order=".$self->{processor}->{search}->{custom_order};
 	my @controls_before = (
 		{
 			url => "$baseurl&_action_update=1",
@@ -427,10 +442,26 @@ sub paginate_opts
 				class=>"ep_paginate_list" );
 	}
 
+	my $order_div = $self->{session}->make_element( "div", class=>"ep_search_reorder" );
+	my $form = $self->{session}->render_form( "GET" );
+	$order_div->appendChild( $form );
+	$form->appendChild( $self->{session}->html_phrase( "lib/searchexpression:order_results" ) );
+	$form->appendChild( $self->{session}->make_text( ": " ) );
+	$form->appendChild( $self->render_order_menu );
+
+	$form->appendChild( $self->{session}->render_button(
+			name=>"_action_search",
+			value=>$self->{session}->phrase( "lib/searchexpression:reorder_button" ) ) );
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+	$form->appendChild( 
+		$self->{session}->render_hidden_field( "_exp", $escexp, ) );
+
 	return (
 		pins => \%bits,
 		controls_before => \@controls_before,
 		above_results => $export_div,
+		controls_after => $order_div,
 		params => { 
 			screen => $self->{processor}->{screenid},
 			_action_search => 1,
@@ -457,7 +488,7 @@ sub render_results
 
 	my %opts = $self->paginate_opts;
 
-	my $page = $self->{session}->render_form( "GET" );
+	my $page = $self->{session}->make_doc_fragment;
 	$page->appendChild( $self->render_results_intro );
 	$page->appendChild( 
 		EPrints::Paginate->paginate_list( 
@@ -593,7 +624,16 @@ sub render_order_field
 {
 	my( $self ) = @_;
 
-	my $raworder = $self->{processor}->{search}->{order};
+	return $self->{session}->render_row(
+			$self->{session}->html_phrase( "lib/searchexpression:order_results" ),
+			$self->render_order_menu );
+}
+
+sub render_order_menu
+{
+	my( $self ) = @_;
+
+	my $raworder = $self->{processor}->{search}->{custom_order};
 
 	my $order = $self->{processor}->{sconf}->{default_order};
 
@@ -602,21 +642,20 @@ sub render_order_field
 	my %labels = ();
 	foreach( keys %$methods )
 	{
-		$order = $_ if( $methods->{$_} eq $raworder );
+		$order = $raworder if( $methods->{$_} eq $raworder );
                 $labels{$methods->{$_}} = $self->{session}->phrase(
                 	"ordername_".$self->{processor}->{search}->{dataset}->confid() . "_" . $_ );
         }
 
-	my $menu = $self->{session}->render_option_list(
+	return $self->{session}->render_option_list(
 		name=>"_order",
 		values=>[values %{$methods}],
 		default=>$order,
 		labels=>\%labels );
-
-	return $self->{session}->render_row(
-			$self->{session}->html_phrase( "lib/searchexpression:order_results" ),
-			$menu );
 }
+
+	
+	
 
 # $method_map = $searche->order_methods
 
