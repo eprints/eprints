@@ -5810,3 +5810,8 @@ PACKAGE: 2.2.99.2
  * Fixed issue with repeating background in toolboxes.
  * Upped user history page size to 50 from 5.
 
+2006-12-04 cjg
+ * Changed "Editorial Review" to "Review" (may still need some tweaks)
+ * Added new history events: "note" and "other". 
+ * "note" appears in the "messages" tab.
+

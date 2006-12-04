@@ -136,6 +136,8 @@ sub get_system_field_info
 				removal_request 
 				reject_request
 				accept_request
+				note
+				other
 				/], },
 
 		{ name=>"details", type=>"longtext", text_index=>0, 
@@ -348,7 +350,9 @@ sub render
 	elsif( $action =~ m/^move_/ ) { $pins{details} = $self->{session}->render_nbsp; } # no details
 	elsif( $action eq "destroy" ) { $pins{details} = $self->{session}->render_nbsp; } # no details
 	elsif( $action eq "create" ) { $pins{details} = $self->render_create; }
-	elsif( $action eq "mail_owner" ) { $pins{details} = $self->render_mail_owner; }
+	elsif( $action eq "mail_owner" ) { $pins{details} = $self->render_with_details; }
+	elsif( $action eq "note" ) { $pins{details} = $self->render_with_details; }
+	elsif( $action eq "other" ) { $pins{details} = $self->render_with_details; }
 	elsif( $action eq "removal_request" ) { $pins{details} = $self->render_removal_request; }
 	else { $pins{details} = $self->{session}->make_text( "Don't know how to render history event: $action" ); }
 
@@ -446,13 +450,13 @@ sub render_removal_request
 
 ######################################################################
 #
-# $xhtml = $history->render_mail_owner
+# $xhtml = $history->render_with_details
 #
 # Render a MAIL_OWNER history event. 
 #
 ######################################################################
 
-sub render_mail_owner
+sub render_with_details
 {
 	my( $self ) = @_;
 

@@ -55,7 +55,9 @@ sub get_messages
 			'eprint' );
 		$searchexp->add_field(
 			$ds->get_field( "action" ),
-			'mail_owner' );
+			'mail_owner note',
+			'IN',
+			'ANY' );
 		
 		$self->{processor}->{$cache_id} = $searchexp->perform_search;
 	}

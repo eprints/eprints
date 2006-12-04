@@ -81,10 +81,10 @@ EPrints Modules
     <epp:phrase id="ordername_history_userid">User causing event</epp:phrase>
 
     <epp:phrase id="history_fieldopt_action_modify">Modified</epp:phrase>
-    <epp:phrase id="history_fieldopt_action_move_inbox_to_buffer">Moved from Work Area to Editorial Review</epp:phrase>
-    <epp:phrase id="history_fieldopt_action_move_buffer_to_inbox">Moved from Editorial Review to Work Area</epp:phrase>
-    <epp:phrase id="history_fieldopt_action_move_buffer_to_archive">Moved from Editorial Review to Repository</epp:phrase>
-    <epp:phrase id="history_fieldopt_action_move_archive_to_buffer">Moved from Repository to Editorial Review</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_move_inbox_to_buffer">Moved from Work Area to Review</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_move_buffer_to_inbox">Moved from Review to Work Area</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_move_buffer_to_archive">Moved from Review to Repository</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_move_archive_to_buffer">Moved from Repository to Review</epp:phrase>
     <epp:phrase id="history_fieldopt_action_move_archive_to_deletion">Moved from Repository to Retired</epp:phrase>
     <epp:phrase id="history_fieldopt_action_move_deletion_to_archive">Moved from Retired to Repository</epp:phrase>
     <epp:phrase id="history_fieldopt_action_mail_owner">Email sent to depositor of record</epp:phrase>
@@ -93,6 +93,8 @@ EPrints Modules
     <epp:phrase id="history_fieldopt_action_reject_request">Reject Request for Document</epp:phrase>
     <epp:phrase id="history_fieldopt_action_accept_request">Accept Request for Document</epp:phrase>
     <epp:phrase id="history_fieldopt_action_removal_request">Item Removal Request</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_note">Note</epp:phrase>
+    <epp:phrase id="history_fieldopt_action_other">General Event</epp:phrase>
 
 
 
@@ -323,7 +325,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     </epp:phrase>
     <epp:phrase id="lib/submissionform:fix_probs">Before you deposit this entry into the repository, the following problems need to be corrected:</epp:phrase>
     <epp:phrase id="lib/submissionform:please_verify"><p><strong>You have not finished yet!</strong></p><p>Please verify that all of the details about your deposit are correct, and that all necessary files have been correctly uploaded including any figures.</p><p>When you are satisfied click the <strong>Deposit Item Now</strong> button at the foot of this page.</p></epp:phrase>
-    <epp:phrase id="lib/submissionform:thanks"><p>Thank you.</p><p>Your submission will now be held for editorial review. Provided there are no problems it should appear in the repository within the next few days.</p><p><a href="{$config{userhome}}">Click here to go to the user page</a></p></epp:phrase>
+    <epp:phrase id="lib/submissionform:thanks"><p>Thank you.</p><p>Your submission will now be held for review. Provided there are no problems it should appear in the repository within the next few days.</p><p><a href="{$config{userhome}}">Click here to go to the user page</a></p></epp:phrase>
     <epp:phrase id="lib/submissionform:sure_delete"><p>Are you absolutely sure you want to delete this item? <epc:pin name="title"/></p></epp:phrase>
     <epp:phrase id="lib/submissionform:filled_wrong">The form doesn't seem to be filled out correctly:</epp:phrase>
     <epp:phrase id="lib/submissionform:please_complete">Please complete the form before continuing.</epp:phrase>
@@ -399,7 +401,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
 <!-- User -->
 
     <epp:phrase id="lib/user:missed_field">You haven't filled out the required <epc:pin name="field"/> field.</epp:phrase>
-    <epp:phrase id="lib/user:editor_update_subject">Editorial Review Summary</epp:phrase>
+    <epp:phrase id="lib/user:editor_update_subject">Review Summary</epp:phrase>
     <epp:phrase id="lib/user:editor_update_mail">
 <p>This mail is your <epc:pin name="howoften"/> summary of items awaiting approval for addition to <epc:phrase ref="archive_name" />.</p>
 <p>Number of items: <epc:pin name="n"/>.</p>
@@ -476,7 +478,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:subsent">Last completed alert mailing</epp:phrase>
     <epp:phrase id="cgi/users/status:subcount">Total Number</epp:phrase>
     <epp:phrase id="cgi/users/status:set_archive">Repository</epp:phrase>
-    <epp:phrase id="cgi/users/status:set_buffer">Editorial Review</epp:phrase>
+    <epp:phrase id="cgi/users/status:set_buffer">Under Review</epp:phrase>
     <epp:phrase id="cgi/users/status:set_inbox">User Areas</epp:phrase>
     <epp:phrase id="cgi/users/status:set_deletion">Retired</epp:phrase>
     <epp:phrase id="cgi/users/status:diskfree">Document Partition <pin name="dir"/></epp:phrase>
@@ -539,7 +541,7 @@ Staff CGI Scripts
 
 <!-- buffer -->
 
-    <epp:phrase id="cgi/users/buffer:overview_title">Editorial Review</epp:phrase>
+    <epp:phrase id="cgi/users/buffer:overview_title">Review</epp:phrase>
     <epp:phrase id="cgi/users/buffer:no_entries"><p>There are currently no items matching your editorial scope, which is: <epc:pin name="scope"/></p></epp:phrase>
     <epp:phrase id="cgi/users/buffer:buffer_blurb"><p>The following items match your editorial scope, which is: <epc:pin name="scope"/></p><p>Click on the title of an item to view, edit, accept or reject it.</p></epp:phrase>
     <epp:phrase id="cgi/users/buffer:title">Title</epp:phrase>
@@ -552,7 +554,7 @@ Staff CGI Scripts
 <!-- eprint_search -->
 
     <epp:phrase id="cgi/users/eprint_search:title_inbox">Staff Search of Items in User Workareas</epp:phrase>
-    <epp:phrase id="cgi/users/eprint_search:title_buffer">Staff Search of Items in Editorial Review</epp:phrase>
+    <epp:phrase id="cgi/users/eprint_search:title_buffer">Staff Search of Items under Review</epp:phrase>
     <epp:phrase id="cgi/users/eprint_search:title_archive">Staff Search of Items in the Repository</epp:phrase>
     <epp:phrase id="cgi/users/eprint_search:title_deletion">Staff Search of Retired Items</epp:phrase>
     <epp:phrase id="cgi/users/eprint_search:title">Searches Available to Staff</epp:phrase>
@@ -560,7 +562,7 @@ Staff CGI Scripts
     <epp:phrase id="dataset_fieldname_dataset">Item Category</epp:phrase>
     <epp:phrase id="dataset_fieldopt_dataset_archive">Repository</epp:phrase>
     <epp:phrase id="dataset_fieldopt_dataset_deletion">Retired</epp:phrase>
-    <epp:phrase id="dataset_fieldopt_dataset_buffer">Editorial Review</epp:phrase>
+    <epp:phrase id="dataset_fieldopt_dataset_buffer">Review</epp:phrase>
     <epp:phrase id="dataset_fieldopt_dataset_inbox">User Workareas</epp:phrase>
 
 
@@ -597,7 +599,7 @@ Staff CGI Scripts
     <epp:phrase id="cgi/users/edit_eprint:remove_title">Removal Successful</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:removed"><p>Item Successfully Removed</p></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:move_title">Move Successful</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:moved"><p>Item Successfully moved back into editorial review.</p><p>You may now <epc:pin name="link">edit it</epc:pin> if you wish.</p></epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:moved"><p>Item Successfully moved back into review.</p><p>You may now <epc:pin name="link">edit it</epc:pin> if you wish.</p></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:view_unavailable">This view is not available.</epp:phrase>
     <epp:phrase id="mail_delete_reason.inbox">
 The following eprint has been deleted from your User Area:
@@ -609,12 +611,12 @@ The following eprint has been deleted from your User Area:
     <epp:phrase id="cgi/users/edit_eprint:cant_edit_deleted">Modifying retired records is not allowed.</epp:phrase>
 
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_inbox">This item is still in the users work area.</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_buffer">This item is in editorial review. It will not appear in the repository until it has been approved by an editor.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_buffer">This item is in review. It will not appear in the repository until it has been approved by an editor.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_archive">This item is in the repository with the URL:<br /><epc:pin name="link"><epc:pin name="url" /></epc:pin></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_deletion">This item has been retired from the repository.</epp:phrase>
 
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_inbox">This item is still in your work area. It will not appear in the repository until you deposit it.</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:item_is_in_buffer">This item is in editorial review. It will not appear in the repository until it has been checked by an editor.</epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:item_is_in_buffer">This item is in review. It will not appear in the repository until it has been checked by an editor.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_archive">This item is in the repository with the URL<br /><epc:pin name="link"><epc:pin name="url" /></epc:pin></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_deletion">This item has been retired from the repository.</epp:phrase>
 
@@ -846,7 +848,7 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldname_eprintid">Item ID</epp:phrase>
     <epp:phrase id="eprint_fieldname_rev_number">Revision</epp:phrase>
     <epp:phrase id="eprint_fieldname_eprint_status">Item Status</epp:phrase>
-    <epp:phrase id="eprint_fieldopt_eprint_status_buffer">Editorial Review</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_eprint_status_buffer">Under Review</epp:phrase>
     <epp:phrase id="eprint_fieldopt_eprint_status_inbox">User Workarea</epp:phrase>
     <epp:phrase id="eprint_fieldopt_eprint_status_deletion">Retired</epp:phrase>
     <epp:phrase id="eprint_fieldopt_eprint_status_archive">Live Archive</epp:phrase>
@@ -897,15 +899,15 @@ Titles and Help for the System Fields
     <!-- These fields are only used by users with "editor" privs -->
     <epp:phrase id="user_fieldname_editperms">Editorial Rights Restriction</epp:phrase>
     <epp:phrase id="user_fieldhelp_editperms">The user will only be able to approve and modify items which match the following rules. If there are no restriction conditions the user will be able to edit any item.</epp:phrase>
-    <epp:phrase id="user_fieldname_frequency">Frequency of Editorial Review Mailings</epp:phrase>
-    <epp:phrase id="user_fieldhelp_frequency">How often do you want to be sent a list of all the items in editorial review matching your editorial rights.</epp:phrase>
+    <epp:phrase id="user_fieldname_frequency">Frequency of items-under-review mailings</epp:phrase>
+    <epp:phrase id="user_fieldhelp_frequency">How often do you want to be sent a list of all the items in review matching your editorial scope.</epp:phrase>
     <epp:phrase id="user_fieldopt_frequency_never">Never</epp:phrase>
     <epp:phrase id="user_fieldopt_frequency_daily">Once per Day</epp:phrase>
     <epp:phrase id="user_fieldopt_frequency_weekly">Once per Week</epp:phrase>
     <epp:phrase id="user_fieldopt_frequency_monthly">Once per Month</epp:phrase>
     <epp:phrase id="user_fieldname_mailempty">Mail Empty Results</epp:phrase>
-    <epp:phrase id="user_fieldhelp_mailempty">If there are items in editorial review, within your editorial rights, should the repository still send you an empty email?</epp:phrase>
-    <epp:phrase id="user_radio_mailempty"><label><epc:pin name="true"/>Yes, mail me when editorial review is empty.</label><br/><label><epc:pin name="false"/>No. Only mail me when there is something I can edit and approve.</label></epp:phrase>
+    <epp:phrase id="user_fieldhelp_mailempty">If there are items under review, within your scope, should the repository still send you an empty email?</epp:phrase>
+    <epp:phrase id="user_radio_mailempty"><label><epc:pin name="true"/>Yes, mail me when there is nothing under review.</label><br/><label><epc:pin name="false"/>No. Only mail me when there is something under review and within my scope.</label></epp:phrase>
     <epp:phrase id="user_fieldname_latitude">Latitude</epp:phrase>
     <epp:phrase id="user_fieldname_longitude">Longitude</epp:phrase>
     <epp:phrase id="user_fieldhelp_latitude">The Latitude associated with this user. Southern latitudes should be expressed as a negative.</epp:phrase>
@@ -951,7 +953,7 @@ Titles and Help for the System Fields
 
     <epp:phrase id="dataset_name_archive">Repository</epp:phrase>
     <epp:phrase id="dataset_name_deletion">Retired</epp:phrase>
-    <epp:phrase id="dataset_name_buffer">Editorial Review</epp:phrase>
+    <epp:phrase id="dataset_name_buffer">Review</epp:phrase>
     <epp:phrase id="dataset_name_inbox">User Workareas</epp:phrase>
     <epp:phrase id="dataset_name_document">Documents</epp:phrase>
     <epp:phrase id="dataset_name_subject">Subjects</epp:phrase>
@@ -974,7 +976,7 @@ Titles and Help for the System Fields
    
     <epp:phrase id="Plugin/Screen/Items:title">Manage deposits</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/Review:title">Editorial review</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Review:title">Review</epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:list_desc">Items under review</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Status:title">Status</epp:phrase>
@@ -1056,8 +1058,8 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/EPrint/Move:cant_move">Problem changing status of item with the ID "<epc:pin name="id"/>".</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_archive:title">Move to Repository</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_archive:description">Move item to repository.</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_buffer:title">Move to Editorial Review</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_buffer:description">Move item to editorial review.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_buffer:title">Move to Review</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_buffer:description">Move item to review.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_inbox:title">Return to Work Area</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_inbox:description">Return to user work area, allowing the user to make changes to it and re-deposit it.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_deletion:title">Retire Item</epp:phrase>
@@ -1164,7 +1166,7 @@ Titles and Help for the System Fields
     <epp:phrase id="cgi/users/edit_subject:error_badsubject">The specified subject does not exist, or a database error has occured.</epp:phrase>
     <epp:phrase id="cgi/users/edit_subject:subject">Subject</epp:phrase>
     <epp:phrase id="cgi/users/edit_subject:inarchive">Items in Repository</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:inbuffer">Items in Editorial Review</epp:phrase>
+    <epp:phrase id="cgi/users/edit_subject:inbuffer">Items in Review</epp:phrase>
     <epp:phrase id="cgi/users/edit_subject:nparents">Number of Parents</epp:phrase>
     <epp:phrase id="cgi/users/edit_subject:nchildren">Number of Children</epp:phrase>
     <epp:phrase id="cgi/users/edit_subject:action_delete">Delete</epp:phrase>
