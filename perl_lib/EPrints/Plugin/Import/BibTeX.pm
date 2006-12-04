@@ -238,11 +238,25 @@ sub new
 	return $self;
 }
 
-		
-
-sub input_list
+sub input_fh
 {
 	my( $plugin, %opts ) = @_;
+	
+	$plugin->error("Does not support input from file handles");
+
+	return undef;
+}
+
+sub input_file
+{
+	my( $plugin, %opts ) = @_;
+
+	if( $opts{filename} eq '-' )
+	{
+		$plugin->error("Does not support input from STDIN");
+
+		return undef;
+	}
 
 	my $bibfile = Text::BibTeX::File->new( $opts{filename} );
 

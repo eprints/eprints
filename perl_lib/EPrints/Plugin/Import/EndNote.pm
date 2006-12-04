@@ -385,11 +385,7 @@ package EPrints::Plugin::Import::EndNote;
 
 use strict;
 
-our @ISA = qw/ EPrints::Plugin::Import /;
-
-# See http://unicode.org/unicode/faq/utf_bom.html#BOM
-eval "use File::BOM";
-our $USE_BOM = $@ ? 0 : 1;
+our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
 
 sub new
 {
@@ -411,7 +407,7 @@ sub new
 	return $self;
 }
 
-sub input_list
+sub input_fh
 {
 	my( $plugin, %opts ) = @_;
 
@@ -420,24 +416,6 @@ sub input_list
 	my @ids;
 	
 	my $fh = $opts{fh};
-
-	if( $USE_BOM )
-	{
-		# Strip the leading Byte Order Mark and
-		# set the appropriate PerlIO encoding
-		File::BOM::defuse( $fh );
-	}
-	# Work out if we need to use crlf (perl 5.8+)
-	if( $^V gt v5.8.0 ) 
-	{
-		my $start = tell( $fh );
-		my $line = <$fh>;
-		seek( $fh, $start, 0 ); # reset the file handle
-		if( $line =~ /\r$/ )
-		{
-			binmode( $fh, ":crlf" );
-		}
-	}	
 
 	while (my $input_data = $parser->input( $fh ) ) 
 	{

@@ -3,7 +3,7 @@ package EPrints::Plugin::Import::FlatSubjects;
 
 use strict;
 
-our @ISA = qw/ EPrints::Plugin::Import /;
+our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
 
 sub new
 {
@@ -18,12 +18,15 @@ sub new
 	return $self;
 }
 
-sub input_list
+sub input_fh
 {
 	my( $plugin, %opts ) = @_;
 
+	my $fh = $opts{fh};
+
 	my @ids = ();
-	while( my $input_data = readline($opts{fh}) ) 
+	my $input_data;
+	while( defined($input_data = <$fh>) ) 
 	{
 		my $epdata = $plugin->convert_input( $input_data );
 
@@ -45,8 +48,6 @@ sub input_list
 sub convert_input 
 {
 	my ( $plugin, $input_data ) = @_;
-
-	$input_data =~ s/\015?\012?$//s;
 
 	return if $input_data =~ m/^\s*(#|$)/;
 	my @vals = split /:/ , $input_data;

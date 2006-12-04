@@ -41,7 +41,7 @@ sub top_level_tag
 }
 
 
-sub input_list
+sub input_fh
 {
 	my( $plugin, %opts ) = @_;
 

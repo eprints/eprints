@@ -5840,3 +5840,16 @@ PACKAGE: 2.2.99.2
  * import script now only frets about no --user if it's an eprint import
  * Import plugins now set eprint_status to buffer if no other value is 
     available.
+
+2006-12-04 tdb
+ * Changed default for user arg in bin/import to undef, otherwise
+    --user 0 gives a confusing error (non-obvious users are 1-indexed)
+ * Replaced input_list with input_file (read from filename) and input_fh
+    (read from filehandle)
+ * input_file opens file for reading, sets binmode and calls input_fh
+ * Added Import::TextFile abstract plugin that subclasses input_file to 
+    detect Byte Order Marks and CRLF encoding
+ * Removed CRLF encoding check from Import::FlatSubjects
+ * Added error for STDIN to Import::BibTeX (unsupported)
+ * Changed bin/import_subjects to use input_file
+

@@ -80,16 +80,58 @@ sub can_produce
 	return 0;
 }
 
+=item $plugin->input_fh( fh => FILEHANDLE [, %opts] )
 
-# parse a file of records.
-# return an EPrints::List of the imported items.
-# the data will be supplied as a file handle (fh)
-# the dataset should be passed as dataset=>$ds
-sub input_list
+Import one or more objects from filehandle FILEHANDLE. FILEHANDLE should be set to binary semantics.
+
+This method should by subclassed.
+
+=cut
+
+sub input_fh
 {
 	my( $plugin, %opts ) = @_;
 
 	return undef;
+}
+
+=item $plugin->input_file( filename => FILENAME [, %opts] )
+
+Opens FILENAME for reading, sets binary semantics and calls input_fh to actually read the file.
+
+This method may be subclassed (e.g. see L<EPrints::Plugin::Import::TextFile>).
+
+=cut
+
+sub input_file
+{
+	my( $plugin, %opts ) = @_;
+
+	my $fh;
+	if( $opts{filename} eq '-' )
+	{
+		$fh = *STDIN;
+	}
+	else
+	{
+		unless( open($fh, "<", $opts{filename}) )
+		{
+			$plugin->error("Could not open file $opts{filename} for import: $!");
+
+			return undef;
+		}
+		binmode($fh);
+	}
+	$opts{fh} = $fh;
+
+	my $list = $plugin->input_fh( %opts );
+
+	unless( $opts{filename} eq '-' )
+	{
+		close($fh);
+	}
+
+	return $list;
 }
 
 sub input_dataobj

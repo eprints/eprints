@@ -98,7 +98,6 @@ __GENERICPOD__
 
 use Getopt::Long;
 use Pod::Usage;
-use File::BOM;
 use strict;
 
 use EPrints;
@@ -111,7 +110,7 @@ my $help = 0;
 my $man = 0;
 my $single = 0;
 my $scripted = 0;
-my $user = 0;
+my $user = undef;
 my $parse_only = 0;
 
 GetOptions( 
@@ -155,7 +154,6 @@ if( !defined $ds )
 }
 
 my $userobj;
-$user = undef if $user eq "0";
 if( defined $user )
 {
 	if( $user =~ m/^\d+/ )
@@ -248,50 +246,16 @@ if( $plugin->broken )
 	exit 1;
 }
 
-my $fh;
-if( $filename eq "-" )
-{
-	$fh = *STDIN;
-}
-else
-{
-	unless( open( $fh, $filename ) )
-	{
-		print STDERR "Could not open file $filename: $!\n";
-		$session->terminate();
-		exit 1;
-	}
-	if( $^V gt v5.8.0 and seek( $fh, 0, 1 ) )
-	{
-		# Strip the Byte Order Mark and set the encoding appropriately
-		# See http://en.wikipedia.org/wiki/Byte_Order_Mark
-		File::BOM::defuse($fh);
-
-		# Read a line from the file handle and reset the fp
-		my $start = tell( $fh );
-		my $line = <$fh>;
-		seek( $fh, $start, 0 )
-			or die "Unable to reset file handle for crlf detection.";
-			
-		# If the line ends with return add the crlf layer
-		if( $line =~ /\r$/ )
-		{
-			binmode( $fh, ":crlf" );
-		}
-	}
-}
-
 if( $scripted )
 {
 	print "EPRINTS_IMPORT: BEGIN\n";
 }
 
-my $list = $plugin->input_list( dataset=>$ds, fh=>$fh, filename=>$filename );
-
-unless( $fh eq *STDIN )
-{
-	close $fh;
-}
+my $list = $plugin->input_file(
+		dataset=>$ds,
+		filename=>$filename,
+		user=>$userobj,
+	);
 
 if( defined $list )
 {

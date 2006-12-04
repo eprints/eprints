@@ -254,25 +254,7 @@ if( $plugin->broken )
 	exit 1;
 }
 
-my $fh;
-if( $filename eq "-" )
-{
-	$fh = *STDIN;
-}
-else
-{
-	unless( open( INFILE, $filename ) )
-	{
-		print STDERR "Could not open file $filename: $!\n";
-		$session->terminate;
-		exit 1;
-	}
-	$fh = *INFILE;
-}
-
-my $list = $plugin->input_list( dataset=>$subds, fh=>$fh, filename=>$filename );
-
-unless( $filename eq "-" ) { close $fh; }
+my $list = $plugin->input_file( dataset=>$subds, filename=>$filename );
 
 print "Done importing ".$list->count." subjects from $filename\n" if( $noise >= 1 );
 print "Reindexing subject dataset to set ancestor data\n" if( $noise >= 1 );
