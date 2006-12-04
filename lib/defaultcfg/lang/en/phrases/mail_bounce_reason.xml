@@ -9,7 +9,8 @@ No reason was given.
 
 
 <epp:phrase id="mail_bounce_body">
-<p>Unfortunately your item &apos;<epc:pin name="title"/>&apos; could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
+<div style="font-size: 11pt">Item Return</div>
+<p>Unfortunately your item <b><epc:pin name="title"/></b> could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
 <p><epc:pin name="reason" /></p>
 <p>The item has been returned to your workspace. You may wish to <epc:pin name="edit_link">edit your item</epc:pin>, fix the problem, and redeposit.</p>
 </epp:phrase>
