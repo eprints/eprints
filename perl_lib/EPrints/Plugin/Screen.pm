@@ -434,24 +434,22 @@ sub render_action_list
 
 	my $session = $self->{session};
 
-	# TODO css me!
-	my $table = $session->make_element( "table", style=>"margin: auto" );
+	my $table = $session->make_element( "table", class=>"ep_act_list" );
 	foreach my $params ( $self->action_list( $list_id ) )
 	{
 		my $tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );
 
-		# TODO css me!
-		my $td = $session->make_element( "td", style=>"text-align: right; padding: 0.25em 0 0.25em 0" );
+		my $td = $session->make_element( "td", class=>"ep_act_list_button" );
 		$tr->appendChild( $td );
 		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
 
-		my $td2 = $session->make_element( "td" );
+		my $td2 = $session->make_element( "td", class=>"ep_act_list_join" );
 		$tr->appendChild( $td2 );
 
 		$td2->appendChild( $session->make_text( " - " ) );
 
-		my $td3 = $session->make_element( "td" );
+		my $td3 = $session->make_element( "td", class=>"ep_act_list_desc" );
 		$tr->appendChild( $td3 );
 		$td3->appendChild( $self->get_description( $params ) );
 	}
@@ -466,8 +464,8 @@ sub render_action_list_bar
 
 	my $session = $self->{session};
 
-	my $div = $self->{session}->make_element( "div", style=>" margin-bottom: 4px; margin-top: 4px; " );
-	my $table = $session->make_element( "table", style=>"margin:auto" );
+	my $div = $self->{session}->make_element( "div", class=>"ep_act_bar" );
+	my $table = $session->make_element( "table" );
 	$div->appendChild( $table );
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );

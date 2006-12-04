@@ -1,0 +1,19 @@
+
+.ep_act_bar {
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.ep_act_bar table {
+	margin: auto;
+}
+
+.ep_act_list {
+	margin: auto;
+}
+
+td.ep_act_list_button {
+	text-align: right;
+	padding: 0.25em 0 0.25em 0;
+}
+
