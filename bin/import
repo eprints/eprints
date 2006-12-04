@@ -155,6 +155,7 @@ if( !defined $ds )
 }
 
 my $userobj;
+$user = undef if $user eq "0";
 if( defined $user )
 {
 	if( $user =~ m/^\d+/ )
@@ -171,9 +172,9 @@ if( defined $user )
 		exit 1;
 	}
 }
-else
+elsif( $ds->confid eq "eprint" )
 {
-	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id, are you sure you want to continue?", 1 ) )
+	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id to own these eprints, are you sure you want to continue?", 1 ) )
 	{
 		$session->terminate();
 		exit 1;
@@ -299,7 +300,7 @@ if( defined $list )
 		print "EPRINTS_IMPORT: DONE ".$list->count."\n";
 	}
 	print "Number of records imported: ".$list->count."\n" if $noise > 0;
-	if( defined $userobj )
+	if( defined $userobj && $ds->confid eq "eprint" )
 	{
 		$list->map(
 			sub {

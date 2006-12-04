@@ -127,6 +127,12 @@ sub epdata_to_dataobj
 		return;
 	}
 
+	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
+	{
+		$plugin->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
+		$epdata->{eprint_status} = "buffer";
+	}
+
 	my $item = $dataset->create_object( $plugin->{session}, $epdata );
 	if( $plugin->{session}->get_noise > 1 )
 	{
