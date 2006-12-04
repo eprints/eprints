@@ -2466,7 +2466,9 @@ sub prepare_page
 		if( $secure ) { $options{template_id} = 'secure'; }
 	}
 
-	my $parts = $self->get_repository->get_template_parts( $self->get_langid, $options{template_id} );
+	my $parts = $self->get_repository->get_template_parts( 
+				$self->get_langid, 
+				$options{template_id} );
 	my @output = ();
 	my $is_html = 0;
 

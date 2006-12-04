@@ -69,9 +69,39 @@ else
 		n => $session->make_text( $number_to_get ) );
 }
 
-$searchexp->perform_search();
-my @records = $searchexp->get_records( 0, $number_to_get );
-$searchexp->dispose();
+my $results = $searchexp->perform_search();
+my $format = $session->param( "output" );
+if( defined $format )
+{
+	my @plugins = $session->plugin_list(
+		type=>"Export",
+		can_accept=>"list/eprint",
+		is_visible=>"all" );
+		
+	my $ok = 0;
+	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
+	if( $ok ) 
+	{
+		my $plugin = $session->plugin( "Export::".$format );
+		$session->send_http_header( 
+				"content_type" => $plugin->param( 'mimetype' ) );
+		print $results->export( $format );
+	}
+	else
+	{
+		my $page = $session->html_phrase( 
+					"lib/searchexpression:export_error_format" );
+		$session->build_page( $title, $page, "latest_tool" );
+		$session->send_page();
+	}
+	
+	$results->dispose;
+	$session->terminate;
+	exit;
+}
+
+my @records = $results->get_records( 0, $number_to_get );
+$results->dispose;
 
 my $page = $session->make_doc_fragment();
 my $type = $session->get_citation_type( $ds, $citation );

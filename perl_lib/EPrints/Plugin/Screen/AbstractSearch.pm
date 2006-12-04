@@ -28,10 +28,10 @@ sub action_export_redir
 {
 	my( $self ) = @_;
 
-	my $cacheid = $self->{session}->param( "_cache" );
-	my $format = $self->{session}->param( "_output" );
+	my $cacheid = $self->{session}->param( "cache" );
+	my $format = $self->{session}->param( "output" );
 
-	$self->{processor}->{redirect} = $self->export_url( $format )."&_cache=".$cacheid;
+	$self->{processor}->{redirect} = $self->export_url( $format )."&cache=".$cacheid;
 }
 
 sub export_url
@@ -44,7 +44,7 @@ sub export_url
 	#cjg escape URL'ify urls in this bit... (4 of them?)
 	my $escexp = $self->{processor}->{search}->serialise;
 	$escexp =~ s/ /+/g; # not great way...
-	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?_exp=$escexp&_output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
+	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?exp=$escexp&output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
 	return $fullurl;
 }
 
@@ -150,7 +150,7 @@ sub from
 	 	$self->{processor}->{action} eq "export_redir"  )
 	{
 		my $loaded = 0;
-		my $id = $self->{session}->param( "_cache" );
+		my $id = $self->{session}->param( "cache" );
 		if( defined $id )
 		{
 			$loaded = $self->{processor}->{search}->from_cache( $id );
@@ -158,7 +158,7 @@ sub from
 	
 		if( !$loaded )
 		{
-			my $exp = $self->{session}->param( "_exp" );
+			my $exp = $self->{session}->param( "exp" );
 			if( defined $exp )
 			{
 				$self->{processor}->{search}->from_string( $exp );
@@ -180,14 +180,14 @@ sub from
 			}
 		}
 	}
-	my $anyall = $self->{session}->param( "_satisfyall" );
+	my $anyall = $self->{session}->param( "satisfyall" );
 
 	if( defined $anyall )
 	{
 		$self->{processor}->{search}->{satisfy_all} = ( $anyall eq "ALL" );
 	}
 
-	my $order_opt = $self->{session}->param( $self->{prefix}."_order" );
+	my $order_opt = $self->{session}->param( $self->{prefix}."order" );
 
 	my $allowed_order = 0;
 	foreach my $order_key ( keys %{$self->{processor}->{sconf}->{order_methods}} )
@@ -299,7 +299,7 @@ sub render_links
 		my $link = $self->{session}->make_element( 
 			"link", 
 			rel=>"alternate",
-			href=>"?_cache=".$self->{cache_id}."&_exp=".$escexp."&_action_export_redir=1&_output=$id",
+			href=>"?cache=".$self->{cache_id}."&exp=".$escexp."&_action_export_redir=1&output=$id",
 			type=>$plugin->param("mimetype"),
 			title=>EPrints::XML::to_string( $plugin->render_name ), );
 		$links->appendChild( $link );
@@ -354,7 +354,7 @@ sub render_export_bar
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}
 	}
-	my $select = $session->make_element( "select", name=>"_output" );
+	my $select = $session->make_element( "select", name=>"output" );
 	foreach my $optname ( sort keys %{$options} )
 	{
 		$select->appendChild( $options->{$optname} );
@@ -366,11 +366,11 @@ sub render_export_bar
 	$button->appendChild( 
 		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$button->appendChild( 
-		$session->render_hidden_field( "_order", $order ) ); 
+		$session->render_hidden_field( "order", $order ) ); 
 	$button->appendChild( 
-		$session->render_hidden_field( "_cache", $cacheid ) ); 
+		$session->render_hidden_field( "cache", $cacheid ) ); 
 	$button->appendChild( 
-		$session->render_hidden_field( "_exp", $escexp, ) );
+		$session->render_hidden_field( "exp", $escexp, ) );
 
 	my $form = $self->{session}->render_form( "GET" );
 	$form->appendChild( $session->html_phrase( "lib/searchexpression:export_section",
@@ -388,8 +388,8 @@ sub get_basic_controls_before
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
 
-	my $baseurl = $self->{session}->get_uri . "?_cache=$cacheid&_exp=$escexp&screen=".$self->{processor}->{screenid};
-	$baseurl .= "&_order=".$self->{processor}->{search}->{custom_order};
+	my $baseurl = $self->{session}->get_uri . "?cache=$cacheid&exp=$escexp&screen=".$self->{processor}->{screenid};
+	$baseurl .= "&order=".$self->{processor}->{search}->{custom_order};
 	my @controls_before = (
 		{
 			url => "$baseurl&_action_update=1",
@@ -455,7 +455,7 @@ sub paginate_opts
 	$form->appendChild( 
 		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$form->appendChild( 
-		$self->{session}->render_hidden_field( "_exp", $escexp, ) );
+		$self->{session}->render_hidden_field( "exp", $escexp, ) );
 
 	return (
 		pins => \%bits,
@@ -493,7 +493,7 @@ sub render_results
 	$page->appendChild( 
 		EPrints::Paginate->paginate_list( 
 			$self->{session}, 
-			"_search", 
+			"search", 
 			$self->{processor}->{results}, 
 			%opts ) );
 
@@ -588,7 +588,7 @@ sub render_anyall_field
 	}
 
 	my $menu = $self->{session}->render_option_list(
-			name=>"_satisfyall",
+			name=>"satisfyall",
 			values=>[ "ALL", "ANY" ],
 			default=>( defined $self->{processor}->{search}->{satisfy_all} && $self->{processor}->{search}->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
@@ -648,7 +648,7 @@ sub render_order_menu
         }
 
 	return $self->{session}->render_option_list(
-		name=>"_order",
+		name=>"order",
 		values=>[values %{$methods}],
 		default=>$order,
 		labels=>\%labels );
@@ -665,7 +665,7 @@ sub wishes_to_export
 
 	return 0 unless $self->{processor}->{search_subscreen} eq "export";
 
-	my $format = $self->{session}->param( "_output" );
+	my $format = $self->{session}->param( "output" );
 
 	my @plugins = $self->{session}->plugin_list(
 		type=>"Export",

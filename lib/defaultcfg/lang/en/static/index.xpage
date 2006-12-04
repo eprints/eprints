@@ -12,9 +12,16 @@ This repository has not yet been fully configured. This paragraph would describe
 
 <p>If you need a bit more help getting started, the EPrints team has a <a href="http://eprints.org/services/">commercial services</a> arm which provides training, support, hosting and consultancy services.</p>
 
+<div style="text-align: right">
+<span class="ep_search_feed"><a href="/cgi/latest_tool?output=Atom"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=Atom">Atom</a></span>
+<span class="ep_search_feed"><a href="/cgi/latest_tool?output=RSS"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=RSS">RSS 1.0</a></span>
+<span class="ep_search_feed"><a href="/cgi/latest_tool?output=RSS2"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=RSS2">RSS 2.0</a></span>
+</div>
+
+
 <div class="ep_toolbox" ><div class="ep_toolbox_content" >
- <a href="{$config{perl_url}}/latest">Latest Additions</a><br /><br />
- View items added to the repository in the past week.  
+  <a href="{$config{perl_url}}/latest">Latest Additions</a><br /><br />
+  View items added to the repository in the past week.  
 </div></div>
 
 <div class="ep_toolbox"><div class="ep_toolbox_content" >
@@ -35,6 +42,7 @@ This repository has not yet been fully configured. This paragraph would describe
 <p style="margin-top: 2em; font-size: 90%">
 <epc:phrase ref="archive_name" /> supports <a href="http://www.openarchives.org"><abbr title="Open Archives Protocol for Metadata Harvesting v2.0">OAI 2.0</abbr></a> with a base URL of <tt><epc:print expr="$config{perl_url}" />/oai2</tt>
 </p>
+
 
 </xpage:body>
 </xpage:page>
