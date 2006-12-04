@@ -5825,3 +5825,8 @@ PACKAGE: 2.2.99.2
 2006-12-04 moj
  * Added email link to activation email.
  * Reworded activation email a little.
+
+2006-12-04 moj
+ * Added EngD thesis as thesis_type
+ * Added Keynote as pres_type
+ * Added relevant phrases

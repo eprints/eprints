@@ -90,6 +90,7 @@ $c->{fields}->{eprint} = [
                            'lecture',
                            'speech',
                            'poster',
+                           'keynote',
                            'other',
                          ],
             'input_style' => 'medium',
@@ -232,6 +233,7 @@ $c->{fields}->{eprint} = [
             'options' => [
                            'masters',
                            'phd',
+                           'engd',
                            'other',
                          ],
             'input_style' => 'medium',

@@ -116,6 +116,7 @@
     <epp:phrase id="eprint_fieldopt_pres_type_poster">Poster</epp:phrase>
     <epp:phrase id="eprint_fieldopt_pres_type_speech">Speech</epp:phrase>
     <epp:phrase id="eprint_fieldopt_pres_type_lecture">Lecture</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_keynote">Keynote</epp:phrase>
     <epp:phrase id="eprint_fieldopt_pres_type_other">Other</epp:phrase>
     
     <epp:phrase id="eprint_fieldname_book_title">Title of Book</epp:phrase>
@@ -211,6 +212,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldhelp_thesis_type">Please select the thesis type.</epp:phrase>
     <epp:phrase id="eprint_fieldopt_thesis_type_masters">Masters</epp:phrase>
     <epp:phrase id="eprint_fieldopt_thesis_type_phd">PhD</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_engd">EngD</epp:phrase>
     <epp:phrase id="eprint_fieldopt_thesis_type_other">Other</epp:phrase>
 
 
