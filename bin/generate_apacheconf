@@ -424,11 +424,11 @@ if( $repository->get_conf( "use_mimetex" ) )
 {
 	if( !defined $EPrints::SystemSettings::conf->{executables}->{mimetex} )
 	{
-		EPrints::Config::abort( "use_mimetex is set to true but\n\$EPrints::SystemSettings::conf->{executables}->{mimetex}\nis not set." );
+		EPrints::abort( "use_mimetex is set to true but\n\$EPrints::SystemSettings::conf->{executables}->{mimetex}\nis not set." );
 	}
 	if( !-e $EPrints::SystemSettings::conf->{executables}->{mimetex} )
 	{
-		EPrints::Config::abort( "use_mimetex is set to true but\n\$EPrints::SystemSettings::conf->{executables}->{mimetex}\nis set to a non existant file." );
+		EPrints::abort( "use_mimetex is set to true but\n\$EPrints::SystemSettings::conf->{executables}->{mimetex}\nis set to a non existant file." );
 	}
 	     
 	print CONF '  ScriptAlias '.$urlpath.'/cgi/mimetex.cgi '.$EPrints::SystemSettings::conf->{executables}->{mimetex}."\n\n";

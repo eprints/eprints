@@ -889,7 +889,7 @@ sub field_from_config_string
 
 	if( !defined $field )
 	{
-		EPrints::Config::abort( "Can't make field from config_string: $fieldname" );
+		EPrints::abort( "Can't make field from config_string: $fieldname" );
 	}
 
 	unless( $modifiers ) { return $field; }

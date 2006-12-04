@@ -2605,7 +2605,7 @@ sub page_to_file
 	{
 		unless( open( XMLFILE, ">$filename" ) )
 		{
-			EPrints::Config::abort( <<END );
+			EPrints::abort( <<END );
 Can't open to write to XML file: $filename
 END
 		}

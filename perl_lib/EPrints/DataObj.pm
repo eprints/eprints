@@ -314,7 +314,7 @@ sub get_value
 
 	if( !defined $field )
 	{
-		EPrints::Config::abort( "Attempt to get value from not existant field: ".$self->{dataset}->id()."/$fieldname" );
+		EPrints::abort( "Attempt to get value from not existant field: ".$self->{dataset}->id()."/$fieldname" );
 	}
 
 	my $r = $field->get_value( $self );
@@ -361,7 +361,7 @@ sub set_value
 
 	if( !defined $field )
 	{
-		EPrints::Config::abort( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
+		EPrints::abort( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
 	}
 
 	$field->set_value( $self, $value );
@@ -1058,14 +1058,14 @@ sub export
 
 	unless( defined $plugin )
 	{
-		EPrints::Config::abort( "Could not find plugin $plugin_id" );
+		EPrints::abort( "Could not find plugin $plugin_id" );
 	}
 
 	my $req_plugin_type = "dataobj/".$self->{dataset}->confid;
 
 	unless( $plugin->can_accept( $req_plugin_type ) )
 	{
-		EPrints::Config::abort( 
+		EPrints::abort( 
 "Plugin $plugin_id can't process $req_plugin_type data." );
 	}
 	

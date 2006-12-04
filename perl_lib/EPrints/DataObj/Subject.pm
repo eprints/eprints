@@ -332,7 +332,7 @@ sub create_from_data
 	my $id = $data->{subjectid};                                                                                       
 	unless( valid_id( $id ) )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Error. Can't create new subject. 
 The value '$id' is not a valid subject identifier.
 Subject id's may not contain whitespace.

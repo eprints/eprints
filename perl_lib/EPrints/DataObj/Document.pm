@@ -316,7 +316,7 @@ sub create_from_data
 
 	unless( defined $eprint )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Error. Can't create new document. 
 There is no eprint with id '$eprintid'.
 END

@@ -120,15 +120,15 @@ sub new
 
 	if( !defined $self->{cache_id} && !defined $self->{ids} ) 
 	{
-		EPrints::Config::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
+		EPrints::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
 	}
 	if( !defined $self->{session} )
 	{
-		EPrints::Config::abort( "session must be defined in a EPrints::List->new()" );
+		EPrints::abort( "session must be defined in a EPrints::List->new()" );
 	}
 	if( !defined $self->{dataset} )
 	{
-		EPrints::Config::abort( "dataset must be defined in a EPrints::List->new()" );
+		EPrints::abort( "dataset must be defined in a EPrints::List->new()" );
 	}
 	bless $self, $class;
 
@@ -425,7 +425,7 @@ sub count
 			"cache".$self->{cache_id} );
 	}
 
-	EPrints::Config::abort( "Called \$list->count() where there was no cache or ids." );
+	EPrints::abort( "Called \$list->count() where there was no cache or ids." );
 }
 
 
@@ -479,7 +479,7 @@ sub _matches_none
 
 	if( !defined $self->{ids} )
 	{
-		EPrints::Config::abort( "Error: Calling _matches_none when {ids} not set\n" );
+		EPrints::abort( "Error: Calling _matches_none when {ids} not set\n" );
 	}
 
 	return( scalar @{$self->{ids}} == 0 );
@@ -497,7 +497,7 @@ sub _matches_all
 
 	if( !defined $self->{ids} )
 	{
-		EPrints::Config::abort( "Error: Calling _matches_all when {ids} not set\n" );
+		EPrints::abort( "Error: Calling _matches_all when {ids} not set\n" );
 	}
 
 	return( 0 ) if( !defined $self->{ids}->[0] );
@@ -665,14 +665,14 @@ sub export
 
 	unless( defined $plugin )
 	{
-		EPrints::Config::abort( "Could not find output plugin $plugin_id" );
+		EPrints::abort( "Could not find output plugin $plugin_id" );
 	}
 
 	my $req_plugin_type = "list/".$self->{dataset}->confid;
 
 	unless( $plugin->can_accept( $req_plugin_type ) )
 	{
-		EPrints::Config::abort( 
+		EPrints::abort( 
 "Plugin $plugin_id can't process $req_plugin_type data." );
 	}
 	

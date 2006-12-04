@@ -45,7 +45,7 @@ END
 
 use Carp qw(verbose);
 
-$ENV{MOD_PERL} or EPrints::Config::abort( "not running under mod_perl!" );
+$ENV{MOD_PERL} or EPrints::abort( "not running under mod_perl!" );
 
 use EPrints;
 

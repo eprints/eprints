@@ -332,7 +332,7 @@ sub write_xml_file
 
 	unless( open( XMLFILE, ">$filename" ) )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Can't open to write to XML file: $filename
 END
 	}
@@ -356,7 +356,7 @@ sub write_xhtml_file
 
 	unless( open( XMLFILE, ">$filename" ) )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Can't open to write to XHTML file: $filename
 END
 		return;

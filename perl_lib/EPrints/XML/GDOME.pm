@@ -58,7 +58,7 @@ sub parse_xml
 
 	unless( -r $file )
 	{
-		EPrints::Config::abort( "Can't read XML file: '$file'" );
+		EPrints::abort( "Can't read XML file: '$file'" );
 	}
 
 	my $tmpfile = $file;

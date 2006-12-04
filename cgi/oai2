@@ -411,7 +411,7 @@ sub GetRecord
 
 	unless( defined $plugin )
 	{
-		EPrints::Config::abort( "Could not find plugin $plugin_id" );
+		EPrints::abort( "Could not find plugin $plugin_id" );
 	}
 
 	$response->appendChild( $session->make_indent( 2 ) );
@@ -591,7 +591,7 @@ sub _list
 				{
 					# Eeep. This is really bad. Just die now.
 					my $type = $field->get_type();
-					EPrints::Config::abort( <<END );
+					EPrints::abort( <<END );
 Cannot generate OAI set for field "$_"
 - Type "$type" cannot be browsed.
 END
@@ -687,7 +687,7 @@ END
 
 		unless( defined $plugin )
 		{
-			EPrints::Config::abort( "Could not find plugin $plugin_id" );
+			EPrints::abort( "Could not find plugin $plugin_id" );
 		}
 
 

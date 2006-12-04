@@ -614,7 +614,7 @@ sub get_owned_eprints
 	my $result = &$fn( $self->{session}, $self, $ds );
 	unless( $result->isa( "EPrints::List" ) )
 	{
-		EPrints::Config::abort( "get_users_owned_eprints should now return an EPrints::List object." );
+		EPrints::abort( "get_users_owned_eprints should now return an EPrints::List object." );
 	}
 	return $result;
 }

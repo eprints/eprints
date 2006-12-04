@@ -917,7 +917,7 @@ sub reload
 	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
-		EPrints::Config::abort( "Cannot write to file $file" );
+		EPrints::abort( "Cannot write to file $file" );
 	}
 	print CHANGEDFILE "This file last poked at: ".EPrints::Utils::human_time()."\n";
 	close CHANGEDFILE;

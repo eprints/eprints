@@ -198,7 +198,7 @@ sub new_from_request
 
 	if( !defined $repository )
 	{
-		EPrints::Config::abort( "Can't load EPrints repository: $repoid" );
+		EPrints::abort( "Can't load EPrints repository: $repoid" );
 	}
 	$repository->check_secure_dirs( $request );
 
@@ -694,7 +694,7 @@ sub get_template_parts
 	my $t = $self->{text_templates}->{$tempid}->{$langid};
 	if( !defined $t ) 
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Error. Template not loaded.
 Language: $langid
 Template ID: $tempid
@@ -722,7 +722,7 @@ sub get_template
 	my $t = $self->{html_templates}->{$tempid}->{$langid};
 	if( !defined $t ) 
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Error. Template not loaded.
 Language: $langid
 Template ID: $tempid

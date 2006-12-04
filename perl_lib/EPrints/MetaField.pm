@@ -128,7 +128,7 @@ sub new
 	{
 		if( !defined $properties{repository} )
 		{
-			EPrints::Config::abort( 
+			EPrints::abort( 
 				"Tried to create a metafield without a ".
 				"dataset or an repository." );
 		}
@@ -240,7 +240,7 @@ sub set_property
 
 	if( $self->{".final"} )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 Attempt to set property "$property" on a finalised metafield.
 Field: $self->{name}, type: $self->{type}
 END
@@ -248,7 +248,7 @@ END
 
 	if( !defined $self->{field_defaults}->{$property} )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 BAD METAFIELD get_property property name: "$property"
 Field: $self->{name}, type: $self->{type}
 END
@@ -268,7 +268,7 @@ END
 	
 	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::REQUIRED )
 	{
-		EPrints::Config::abort( 
+		EPrints::abort( 
 			$property." on a ".$self->{type}." metafield can't be undefined" );
 	}
 
@@ -539,7 +539,7 @@ sub get_property
 
 	if( !defined $self->{field_defaults}->{$property} )
 	{
-		EPrints::Config::abort( <<END );
+		EPrints::abort( <<END );
 BAD METAFIELD get_property property name: "$property"
 Field: $self->{name}, type: $self->{type}
 END

@@ -5815,3 +5815,5 @@ PACKAGE: 2.2.99.2
  * Added new history events: "note" and "other". 
  * "note" appears in the "messages" tab.
 
+2006-12-04 cjg
+ * Changed all aborts to EPrints::abort()
