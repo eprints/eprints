@@ -25,7 +25,7 @@
 }
 .ep_sr_component .ep_sr_content {
 	clear: both;
-	background-image: url(/style/images/toolbox.png);
+	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
 	border: solid 1px #d8dbef;
 	padding: 6px;
 }

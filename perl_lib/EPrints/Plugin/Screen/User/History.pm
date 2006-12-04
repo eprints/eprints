@@ -81,7 +81,7 @@ sub render
 		},
 		render_result => sub { return $self->render_result_row( @_ ); },
 		render_result_params => $self,
-		page_size => 5,
+		page_size => 50,
 		container => $container,
 	);
 

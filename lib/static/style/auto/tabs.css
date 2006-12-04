@@ -44,7 +44,7 @@ td.ep_tab_spacer {
 	border-right: solid #d8dbef 1px;
 	border-bottom: solid #d8dbef 1px;
 	border-left: solid #d8dbef 1px;
-	background-image: url(/style/images/toolbox.png);
+	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
 	padding: 12px;
 	clear: both;
 }
