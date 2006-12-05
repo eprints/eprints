@@ -78,7 +78,7 @@ $c->{eprint_render} = sub
 		if( $has_contact_email && $eprint->get_value( "eprint_status" ) eq "archive"  )
 		{
 			# "Request a copy" button
-			my $form = $session->render_form( "post", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
+			my $form = $session->render_form( "get", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
 			$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id ) );
 			$form->appendChild( $session->render_action_buttons( 
 				"submit" => $session->phrase( "request:button" )
@@ -116,7 +116,7 @@ $c->{eprint_render} = sub
 			{
 				# "Request a copy" button
 				$doctd = $session->make_element( "td" );
-				my $form = $session->render_form( "post", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
+				my $form = $session->render_form( "get", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
 				$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) );
 				$form->appendChild( $session->render_action_buttons( 
 					"submit" => $session->phrase( "request:button" )
