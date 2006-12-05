@@ -5,6 +5,38 @@ CHANGELOG.
 ======================================================================
 
 =========================================================================
+EPRINTS 3.0-beta-3                                             2006-12-05
+=========================================================================
+
+ * Improvements to the look of email sent by the system.
+ * METS export plugin
+ * MODS export plugin
+ * Atom Feeds (similar to RSS)
+ * RSS2.0 Feeds
+ * Global Feeds, in addition to Atom/RSS feeds for search results.
+ * Thumbnails for images
+ * Pop-up previews for images and PDFs
+ * View user history (changes they have made to eprints)
+ * Added built-in lat/long values for users + eprints to support geodata.
+ * Improvements to autocomplete system
+ * Added "feed" icons to search results page.
+ * Added option to reorder a search without going back to the form.
+ * Redesigned all icons to look more professional.
+ * Redesigned file upload to be more straight forward.
+ * "Unrolling" javascript elements now scroll the screen if they were 
+    about to disappear off the bottom.
+ * Simplified the logged-in toolbar.
+ * Better debug messages for embedded scripts.
+ * New configuration options to disable plugins.
+ * Option to change where action links appear.
+ * All POST requests redirect after completion to eliminate errors 
+    caused by browser "back" buttons.
+ * Added web-based import tool.
+ * Bug fixes 
+ * UI tweaks
+ * Minor changes to default configuration
+
+=========================================================================
 EPRINTS 3.0-beta-2                                             2006-11-14
 =========================================================================
 
