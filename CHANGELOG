@@ -5872,3 +5872,7 @@ PACKAGE: 2.2.99.2
  * Added publisher to article type
  * Cleaned up user validation subroutine
 
+2006-12-04 moj
+ * Item(s)->Field(s)
+ * 'No Tools Available' as FirstTool title
+
