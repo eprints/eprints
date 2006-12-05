@@ -1023,6 +1023,23 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Screen/Items:db_error">Database Error</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Items:list_desc">Your Deposits</epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/Import:title">Import Items</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:action:test:title">Test Import</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:import:title">Import</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:no_file">You must specify a file to import.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:test_completed">Test import completed: <epc:pin name="count"/> item(s) found. Although this test completed successfully you should take note of any warning messages before proceeding.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:test_failed">Test import failed: <epc:pin name="count"/> item(s) found before an error caused the test to abort. Carefully check any warning messages before proceeding.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:import_completed">Import completed: <epc:pin name="count"/> item(s) imported.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:import_failed">Import failed: <epc:pin name="count"/> item(s) imported before an error caused the import to abort.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:import_errors">The following warnings were produced:<br/><epc:pin name="errors"/></epp:phrase>
+
 
     <!-- eprint action screens -->
 

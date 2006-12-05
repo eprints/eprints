@@ -5889,6 +5889,9 @@ PACKAGE: 2.2.99.2
  * Fixed bug with messages and GDOME. (hopefully also fixed for LibXML, but
     not tested)
 
+2006-12-05 tmb
+ * Improved Import screen, added "Test Import" option
+
 ======================================================================
 05/12/2006 - EPRINTS-3.0-beta-3
 ======================================================================
