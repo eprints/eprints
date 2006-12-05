@@ -544,8 +544,8 @@ Staff CGI Scripts
 <!-- buffer -->
 
     <epp:phrase id="cgi/users/buffer:overview_title">Review</epp:phrase>
-    <epp:phrase id="cgi/users/buffer:no_entries"><p>There are currently no items matching your editorial scope, which is: <epc:pin name="scope"/></p></epp:phrase>
-    <epp:phrase id="cgi/users/buffer:buffer_blurb"><p>The following items match your editorial scope, which is: <epc:pin name="scope"/></p><p>Click on the title of an item to view, edit, accept or reject it.</p></epp:phrase>
+    <epp:phrase id="cgi/users/buffer:buffer_scope"><p>The following items match your editorial scope, which is: <epc:pin name="scope"/></p></epp:phrase>
+    <epp:phrase id="cgi/users/buffer:buffer_blurb"><p>Click on the title of an item to view, edit, accept or reject it.</p></epp:phrase>
     <epp:phrase id="cgi/users/buffer:title">Title</epp:phrase>
     <epp:phrase id="cgi/users/buffer:sub_by">Submitted by</epp:phrase>
     <epp:phrase id="cgi/users/buffer:sub_date">Submission Date</epp:phrase>
@@ -1601,5 +1601,7 @@ Titles and Help for the System Fields
 <epp:phrase id="request/response:ack_page">Thank you. Your response has been sent.</epp:phrase>
 
 <epp:phrase id="ruler"><hr noshade="noshade" class="ep_ruler" /></epp:phrase>
+
+<epp:phrase id="lib/paginate:no_items">No items</epp:phrase>
 
 </epp:phrases>

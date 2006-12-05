@@ -378,7 +378,7 @@ sub paginate_list
 					$session,
 					$params,
 					$session->html_phrase( 
-						"lib/searchexpression:noresults" )
+						"lib/paginate:no_items" )
 					);
 			$pins{results}->appendChild( $no_res );
 		}

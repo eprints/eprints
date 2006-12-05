@@ -172,7 +172,7 @@ sub paginate_list
 	$newopts{render_no_results} = sub {
 		my( $session, $info, $phrase ) = @_;
 		my $tr = $session->make_element( "tr" );
-		my $td = $session->make_element( "td", class=>"ep_columns_cell", colspan => scalar @{ $info->{columns} } );
+		my $td = $session->make_element( "td", class=>"ep_columns_no_items", colspan => scalar @{ $opts{columns} } );
 		$td->appendChild( $phrase ); 
 		$tr->appendChild( $td );
 		return $tr;

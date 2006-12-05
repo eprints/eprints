@@ -53,16 +53,20 @@ sub render
 
 	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 	$page->appendChild( $div );
-	if( $list->count == 0 )
+
+	if( $user->is_set( "editperms" ) )
 	{
-		# Empty list
-		$div->appendChild( $self->{session}->html_phrase( "cgi/users/buffer:no_entries", scope=>$self->_get_scope( $user ) ) );
-		return $page;
+		$div->appendChild( $self->{session}->html_phrase( 
+			"cgi/users/buffer:buffer_scope",
+			scope=>$user->render_value( "editperms" ) ) );
 	}
 
-	$div->appendChild( $self->{session}->html_phrase( 
-		"cgi/users/buffer:buffer_blurb",
-		scope=>$self->_get_scope( $user ) ) );
+	if( $list->count > 0 )
+	{
+		$div->appendChild( $self->{session}->html_phrase( 
+			"cgi/users/buffer:buffer_blurb" ));
+	}
+	
 
 	# Paginate list
 	my %opts = (
@@ -103,18 +107,6 @@ sub render
 	return $page;
 }
 
-sub _get_scope
-{
-	my( $self, $user ) = @_;
-	if( $user->is_set( "editperms" ) )
-	{
-		return $user->render_value( "editperms" );
-	}
-	else
-	{
-		return $self->{session}->html_phrase( "lib/metafield:unspecified_editperms" );
-	}
-}
 
 # ignore the form. We're screwed at this point, and are just reporting.
 sub from
