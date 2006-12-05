@@ -1141,7 +1141,17 @@ sub get_user_messages
 	{
 		$m_data = "<div>$m_data</div>";
 		my $doc = EPrints::XML::parse_xml_string( $m_data );
-		push @messages, { type=>$m_type, content=>$doc };
+		my $message;
+		if( EPrints::XML::is_dom( $doc, "Document" ) )
+		{
+			$message = $self->{session}->clone_for_me($doc->getDocumentElement,1);
+		}	
+		else
+		{
+			$message = $self->{session}->clone_for_me($doc,1);
+		}	
+		push @messages, { type=>$m_type, content=>$message };
+		EPrints::XML::dispose( $doc );
 	}
 	$sth->finish;
 	
