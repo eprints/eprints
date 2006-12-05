@@ -53,7 +53,6 @@
       </epc:otherwise>
     </epc:choose>
 
-
     <component type="Field::Multi">
       <title>Publication Details</title>
       <epc:if test="type != 'patent' ">
@@ -133,14 +132,15 @@
       </epc:if>
       <epc:if test="type = 'article'">
         <field ref="publication" required="yes" input_lookup_url="{$config{perl_url}}/users/lookup/journal_by_name" />
+        <field ref="issn" input_lookup_url="{$config{perl_url}}/users/lookup/journal_by_issn" />
+        <field ref="publisher" />
+        <field ref="official_url"/>
         <field ref="volume"/>
         <field ref="number"/>
         <field ref="pagerange"/>
         <field ref="date"/>
         <field ref="date_type"/>
         <field ref="id_number"/>
-        <field ref="official_url"/>
-        <field ref="issn" input_lookup_url="{$config{perl_url}}/users/lookup/journal_by_issn" />
       </epc:if>
       <field ref="related_url" />
     </component>

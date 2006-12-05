@@ -340,7 +340,7 @@ sub xml_to_metafield
 
 	my $cloned = 0;
 
-	foreach my $prop ( qw/ required input_lookup_url / )
+	foreach my $prop ( qw/ required input_lookup_url input_lookup_params / )
 	{
 		my $setting = $xml->getAttribute( $prop );
 

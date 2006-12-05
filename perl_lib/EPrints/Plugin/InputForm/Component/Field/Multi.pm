@@ -59,12 +59,7 @@ sub validate
 			push @problems, $problem;
 		}
 		
-		push @problems, $self->{session}->get_repository->call(
-			"validate_field",
-			$field,
-			$self->{dataobj}->get_value( $field->{name} ),
-			$self->{session},
-			$for_archive );
+		push @problems, $self->{dataobj}->validate_field( $field->{name} );
 	}
 	
 	$self->{problems} = \@problems;

@@ -383,6 +383,7 @@ L<Text::Refer>, L<XML::Writer>, L<EPrints::Plugin::Export::EndNote>
 
 package EPrints::Plugin::Import::EndNote;
 
+use EPrints::Plugin::Import::TextFile;
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import::TextFile /;

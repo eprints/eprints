@@ -327,6 +327,18 @@ sub form_value_basic
 	return $value;
 }
 
+sub validate
+{
+	my( $self, $session, $value, $object ) = @_;
+
+	my $f = $self->get_property( "fields_cache" );
+	my @problems;
+	foreach my $field_conf ( @{$f} )
+	{
+		push @problems, $object->validate_field( $field_conf->{name} );
+	}
+	return @problems;
+}
 
 sub is_browsable
 {

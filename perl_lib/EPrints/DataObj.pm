@@ -1170,7 +1170,16 @@ sub in_editorial_scope_of
 	return 1;
 }
 
+# check if a field is valid. Return an array of XHTML problems.
 
+sub validate_field
+{
+	my( $self, $fieldname ) = @_;
+
+	my $field = $self->{dataset}->get_field( $fieldname );
+	
+	return $field->validate( $self->{session}, $self->get_value( $fieldname ), $self );
+}
 
 ######################################################################
 =pod

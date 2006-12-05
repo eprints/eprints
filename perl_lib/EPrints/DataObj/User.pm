@@ -393,42 +393,23 @@ sub validate
 {
 	my( $self ) = @_;
 
-	my @all_problems;
+	my @problems;
+
 	my $user_ds = $self->{session}->get_repository->get_dataset( "user" );
-	my @rfields = $user_ds->get_required_type_fields( $self->get_value( "usertype" ) );
-	my @all_fields = $user_ds->get_fields();
 
-	my $field;
-	foreach $field ( @rfields )
-	{
-		# Check that the field is filled in if it is required
-		if( !$self->is_set( $field->get_name() ) )
-		{
-			push @all_problems, 
-			  $self->{session}->html_phrase( 
-			   "lib/user:missed_field", 
-			   field => $field->render_name( $self->{session} ) );
-		}
-	}
+	my %opts = ( item=> $self, session=>$self->{session} );
+ 	my $workflow = EPrints::Workflow->new( $self->{session}, "default", %opts );
 
-	# Give the validation module a go
-	foreach $field ( @all_fields )
-	{
-		push @all_problems, $self->{session}->get_repository->call(
-			"validate_field",
-			$field,
-			$self->get_value( $field->get_name() ),
-			$self->{session},
-			0 );
-	}
+	push @problems, $workflow->validate;
 
-	push @all_problems, $self->{session}->get_repository->call(
+	push @problems, $self->{session}->get_repository->call(
 			"validate_user",
 			$self,
 			$self->{session} );
 
-	return( \@all_problems );
+	return( \@problems );
 }
+
 
 
 ######################################################################

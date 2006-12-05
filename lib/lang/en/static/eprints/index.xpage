@@ -13,29 +13,68 @@
 
 <p>Other institutions are invited (and encouraged) to set up their own open repositories for author <a href="http://www.eprints.org/self-faq/">self-archiving</a>, using the freely-distributable <a href="http://www.eprints.org/software/">EPrints software</a> used at this site. The Southampton EPrints team can also provide <a href="http://www.eprints.org/services/">hosting, training and consultancy services</a>.</p>
 
+
 <h2>Credits</h2>
 
-<h3>Lead Developer</h3>
+<h3>Lead Developer + Software Architect</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/cjg">Christopher Gutteridge</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
 </ul>
 
 <h3>Developers</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/moj">Michael O. Jewell</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/tmb">Timothy Miles-Board</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/tdb01r">Tim Brody</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/hjm03r">Harry Mason</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/moj">Dr Michael O. Jewell</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/tmb">Dr Timothy Miles-Board</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/tdb01r">Dr Tim Brody</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/hjm03r">Harry Mason</a></li>
 </ul>
 
 <h3>Contributors</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/info/people/jmnh">Jessie Hey</a></li>
-<li><a href="mailto:alriddoch@zepler.org">Al Riddoch</a></li>
-<li>Gui Power</li>
-<li>Pauline Simpson</li>
-<li>Robert Tansley</li>
+<li><a href="http://www.ecs.soton.ac.uk/people/jmnh">Dr Jessie Hey</a></li>
+ <li>Al Riddoch</li>
+ <li>Dr Gui Power</li>
+ <li>Pauline Simpson</li>
+ <li>Robert Tansley</li>
+<li><a href="http://www.ecs.soton.ac.uk/people/dct05r">Dave Tarrant</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/af05v">Adam Field</a></li>
+ <li>Adam White</li>
+ <li>Wendy White</li>
 </ul>
+
+<h3>user experience consultant</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/mc">dr mc schraefel</a></li>
+</ul>
+
+<h3>Project Management</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/lac">Dr Leslie Carr</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/jd">John Darlington</a></li>
+</ul>
+
+<h3>Community Manager</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/sh94r">Steve Hitchcock</a></li>
+</ul>
+
+<h3>Visionary and Software Specifications</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/harnad">Professor Stevan Harnad</a></li>
+</ul>
+
+<p>...and also thanks to the members of the eprints-tech mailing list and the
+EPrints Community members for advice and bug reports.</p>
+
+
+
+
+
+
+
+
+
+
 
 <epc:phrase ref="ruler" />
 

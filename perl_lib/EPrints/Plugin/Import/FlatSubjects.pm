@@ -1,6 +1,7 @@
 
 package EPrints::Plugin::Import::FlatSubjects;
 
+use EPrints::Plugin::Import::TextFile;
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import::TextFile /;

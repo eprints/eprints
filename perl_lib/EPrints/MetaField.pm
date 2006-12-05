@@ -1210,10 +1210,19 @@ sub get_input_elements
 			my @ids = $self->get_basic_input_ids($session, $basename, $staff, $obj );
 			my $script = $session->make_element( "script", type=>"text/javascript" );
 			$script->appendChild( $session->make_text( "\n" ) ); 
+			my $extra_params = $self->{input_lookup_params};
+			if( defined $extra_params ) 
+			{
+				$extra_params = "&$extra_params";
+			}
+			else
+			{
+				$extra_params = "";
+			}
 			foreach my $id ( @ids )
 			{	
 				my @wcells = ( $id );
-				$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")], []);'."\n" ) );
+				$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")], [], "'.$extra_params.'" );'."\n" ) );
 			}
 			$lookup->appendChild( $script );
 			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
@@ -1333,6 +1342,15 @@ sub get_input_elements
 				my @ids = $self->get_basic_input_ids( $session, $ibasename, $staff, $obj );
 				my $script = $session->make_element( "script", type=>"text/javascript" );
 				$script->appendChild( $session->make_text( "\n" ) ); 
+				my $extra_params = $self->{input_lookup_params};
+				if( defined $extra_params ) 
+				{
+					$extra_params = "&$extra_params";
+				}
+				else
+				{
+					$extra_params = "";
+				}
 				foreach my $id ( @ids )
 				{	
 					my @wcells = ();
@@ -1344,7 +1362,7 @@ sub get_input_elements
 						$id2=~s/^$ibasename//;
 						push @relfields, $id2;
 					}
-					$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")], [ "'.join('","',@relfields).'"]);' ) );
+					$script->appendChild( $session->make_text( 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")], [ "'.join('","',@relfields).'"],"'.$extra_params.'" );' ) );
 				}
 				$lookup->appendChild( $script );
 				my @row = ();
@@ -2063,6 +2081,7 @@ sub get_property_defaults
 		input_boxes 	=> $EPrints::MetaField::FROM_CONFIG,
 		input_cols 	=> $EPrints::MetaField::FROM_CONFIG,
 		input_lookup_url 	=> $EPrints::MetaField::UNDEF,
+		input_lookup_params 	=> $EPrints::MetaField::UNDEF,
 		input_ordered 	=> 1,
 		make_single_value_orderkey 	=> $EPrints::MetaField::UNDEF,
 		make_value_orderkey 		=> $EPrints::MetaField::UNDEF,
@@ -2124,6 +2143,21 @@ sub is_virtual
 
 # if ordering by this field, should we sort highest first?
 sub should_reverse_order { return 0; }
+
+
+# return an array of dom problems
+sub validate
+{
+	my( $self, $session, $value, $object ) = @_;
+
+	return $session->get_repository->call(
+		"validate_field",
+		$self,
+		$value,
+		$session );
+}
+
+
 
 ######################################################################
 
