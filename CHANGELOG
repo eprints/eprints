@@ -5859,7 +5859,7 @@ PACKAGE: 2.2.99.2
  * Added export to latest_tool
  * Added links to global feeds from front page.
 
-2006-12-04 cjg
+2006-12-05 cjg
  * Fixed input_list call in testdata to be input_fh
  * Updated contributors list in AUTHORS and webpage.
  * Fixed bug with validating compound fields.
@@ -5872,12 +5872,19 @@ PACKAGE: 2.2.99.2
  * Added publisher to article type
  * Cleaned up user validation subroutine
 
-2006-12-04 moj
+2006-12-05 moj
  * Item(s)->Field(s)
  * 'No Tools Available' as FirstTool title
 
-2006-12-04 cjg
+2006-12-05 cjg
  * Improved the way columns shows no items
 
-2006-12-04 moj
+2006-12-05 moj
  * Added pin delta to reset_password
+
+2006-12-05 cjg
+ * Sort rendering for reset_password
+
+======================================================================
+05/12/2006 - EPRINTS-3.0-beta-3
+======================================================================
