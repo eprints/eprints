@@ -117,12 +117,9 @@ sub _import
 	close OUTPUT;
 
 	# Remove temp file
-	if( !$dryrun )
+	if( -e $tmp_file )
 	{
-		if( -e $tmp_file )
-		{
-			unlink( $tmp_file );
-		}
+		unlink( $tmp_file );
 	}
 
 	my @misc = ();
