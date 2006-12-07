@@ -48,9 +48,12 @@ $c->{eprint_render} = sub
 		}
 		else
 		{
-			$block->appendChild( $session->html_phrase( 
-				"page:not_latest_version",
-				link => $session->render_link( $latest->get_url() ) ) );
+			$block->appendChild( $session->render_message(
+				"warning",
+				$session->html_phrase( 
+					"page:not_latest_version",
+					link => $session->render_link( 
+							$latest->get_url() ) ) ) );
 		}
 	}		
 

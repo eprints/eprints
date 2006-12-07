@@ -2916,7 +2916,7 @@ sub read_params
 	my( $self ) = @_;
 
 	my $c = $self->{request}->connection;
-	my $params = $c->notes->get( "params" );
+	my $params = $c->notes->get( "loginparams" );
 	if( defined $params && $params ne 'undef')
 	{
  		$self->{query} = new CGI( $params ); 

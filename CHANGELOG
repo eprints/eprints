@@ -5900,11 +5900,18 @@ PACKAGE: 2.2.99.2
  * Added placeholders for new eprint types
 
 2006-12-06
- * Added broad strokes of Pubmed XML and Pubmed ID import plugins (needs refining later)
+ * Added broad strokes of Pubmed XML and Pubmed ID import plugins (needs 
+    refining later)
 
 2006-12-06 moj
  * Switched pages->pagerange
 
 2006-12-07 cjg
  * Fixed issue with no columns in items and review
+
+2006-12-07 cjg
+ * Added a clear error if an unknown export plugin is called from the search.
+ * Fixed bug that a failed login caused it to forget where we were going.
+ * Added (!) warning box for "there is a newer version" messages and 
+    improved phrasing.
 

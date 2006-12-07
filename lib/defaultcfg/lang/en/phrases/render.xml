@@ -11,7 +11,7 @@
     <epp:phrase id="page:id_code">ID Code</epp:phrase>
     <epp:phrase id="page:invalid_user">INVALID USER</epp:phrase>
     <epp:phrase id="page:latest_version"><p><em>This is the latest version of this item.</em></p></epp:phrase>
-    <epp:phrase id="page:not_latest_version"><p class="notice">There is a more recent version of this item available. <epc:pin name="link">Click here to view it.</epc:pin></p></epp:phrase>
+    <epp:phrase id="page:not_latest_version">There is a <epc:pin name="link">more recent version of this item</epc:pin> available.</epp:phrase>
     <epp:phrase id="page:available_versions"><h3>Available Versions of this Item</h3></epp:phrase>
     <epp:phrase id="page:commentary_threads"><h3>Commentary/Response Threads</h3></epp:phrase>
 

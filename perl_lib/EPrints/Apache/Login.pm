@@ -23,11 +23,11 @@ sub handler
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 			$session->login( $user );
 
-			my $params = $session->param("params");
+			my $loginparams = $session->param("loginparams");
 
 			my $c = $r->connection;
 
-			$c->notes->set( params=>$params );
+			$c->notes->set( loginparams=>$loginparams );
 
 			# Declined to render the HTML, not declined the
 			# request.
@@ -121,15 +121,29 @@ sub input_form
 	
 	my $form = $session->render_form( "POST" );
 	$form->appendChild( $session->html_phrase( "cgi/login:page_layout", %bits ) );
-	my @p = $session->param;
-	my @k = ();
-	foreach my $p ( @p )
+
+	my $loginparams = $session->param( "loginparams" );
+
+	if( !defined $loginparams )
 	{
-		my $v = $session->param( $p );
-		$v =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
-		push @k, $p."=".$v;
+		my @p = $session->param;
+		my @k = ();
+		foreach my $p ( @p )
+		{
+			my $v = $session->param( $p );
+			$v =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
+			push @k, $p."=".$v;
+		}
+		$loginparams = join( "&", @k );
 	}
-	$form->appendChild( $session->render_hidden_field( "params", join( "&",@k ) ) );
+	$form->appendChild( $session->render_hidden_field( "loginparams", $loginparams ));
+
+	my $target = $session->param( "target" );
+	if( defined $target )
+	{
+		$form->appendChild( $session->render_hidden_field( "target", $target ));
+	}
+
 	my $script = $session->make_element( "script", type=>"text/javascript" );
 	$script->appendChild( $session->make_text( '$("login_username").focus()' ) ); 
 	$form->appendChild( $script);

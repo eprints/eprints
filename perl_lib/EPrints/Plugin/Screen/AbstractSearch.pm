@@ -39,7 +39,10 @@ sub export_url
 	my( $self, $format ) = @_;
 
 	my $plugin = $self->{session}->plugin( "Export::".$format );
-
+	if( !defined $plugin )
+	{
+		EPrints::abort( "No such plugin: $format\n" );	
+	}
 	my $url = $self->{session}->get_uri();
 	#cjg escape URL'ify urls in this bit... (4 of them?)
 	my $escexp = $self->{processor}->{search}->serialise;
