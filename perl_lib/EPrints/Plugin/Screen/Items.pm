@@ -115,6 +115,12 @@ sub render
 		$filter_div->appendChild( $self->{session}->make_text( ". " ) );
 	}
 
+	my $columns = $self->{session}->current_user->get_value( "items_fields" );
+	if( !EPrints::Utils::is_set( $columns ) )
+	{
+		$columns = [ "eprintid","type","eprint_status","lastmod" ];
+	}
+
 	# Paginate list
 	my %opts = (
 		params => {
@@ -124,7 +130,7 @@ sub render
 			show_archive=>$filters{archive},
 			show_deletion=>$filters{deletion},
 		},
-		columns => $self->{session}->current_user->get_value( "items_fields" ),
+		columns => $columns,
 		above_results => $filter_div,
 		render_result => sub {
 			my( $session, $e ) = @_;

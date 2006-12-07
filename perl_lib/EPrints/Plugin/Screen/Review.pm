@@ -67,13 +67,18 @@ sub render
 			"cgi/users/buffer:buffer_blurb" ));
 	}
 	
+	my $columns = $self->{session}->current_user->get_value( "review_fields" );
+	if( !EPrints::Utils::is_set( $columns ) )
+	{
+		$columns = [ "eprintid","type","status_changed", "userid" ];
+	}
 
 	# Paginate list
 	my %opts = (
 		params => {
 			screen => "Review",
 		},
-		columns => $self->{session}->current_user->get_value( "review_fields" ),
+		columns => $columns,
 		render_result_params => {
 			row => 1,
 		},
@@ -82,7 +87,8 @@ sub render
 
 			my $tr = $session->make_element( "tr", class=>"row_".($info->{row}%2?"b":"a") );
 
-			my $cols = $session->current_user->get_value( "review_fields" );
+ 			my $cols = $columns,
+
 			my $first = 1;
 			for( @$cols )
 			{

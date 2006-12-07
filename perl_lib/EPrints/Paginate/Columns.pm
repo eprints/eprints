@@ -61,6 +61,10 @@ sub paginate_list
 	{
 		my $firstcol = $opts{columns}->[0];
 		my $field = $list->get_dataset->get_field( $firstcol );
+		if( !defined $field )
+		{
+			EPrints::abort( "Unknown field in columns: $firstcol\n" );
+		}
 		if( $field->should_reverse_order )
 		{
 			$sort_order = "-$firstcol";
