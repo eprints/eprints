@@ -127,7 +127,7 @@
       <epc:if test="type = 'conference_item'">
         <field ref="date"/>
         <field ref="date_type"/>
-        <field ref="pages"/>
+        <field ref="pagerange"/>
         <field ref="official_url"/>
       </epc:if>
       <epc:if test="type = 'article'">
