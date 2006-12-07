@@ -20,7 +20,7 @@
 #	if( $user_type eq "admin" )
 #	{
 #		# internal authentication for "admin" type
-#		return EPrints::Apache::Login::valid_login( $session, $username, $password );
+#		return $session->get_database->valid_login( $username, $password );
 #	}
 #
 #	# LDAP authentication for "user" and "editor" types
