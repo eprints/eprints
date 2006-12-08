@@ -49,7 +49,7 @@ sub validate
 		}
 
 		# cjg bug - not handling for_archive here.
-		if( $field->{required} eq "yes" && !$self->{dataobj}->is_set( $field->{name} ) )
+		if( $field->{required} && !$self->{dataobj}->is_set( $field->{name} ) )
 		{
 			my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
 			$fieldname->appendChild( $field->render_name( $self->{session} ) );
@@ -168,7 +168,7 @@ sub render_content
 
 		$parts{label} = $field->render_name( $self->{session} );
 
-		if( $field->{required} eq "yes" ) # moj: Handle for_archive
+		if( $field->{required} ) # moj: Handle for_archive
 		{
 			$parts{label} = $self->{session}->html_phrase( 
 				"sys:ep_form_required",
