@@ -127,12 +127,12 @@ sub get_index_codes
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->get_index_codes_single( $session, $value );
+		return $self->get_index_codes_basic( $session, $value );
 	}
 	my( $codes, $grepcodes, $ignored ) = ( [], [], [] );
 	foreach my $v (@{$value} )
 	{		
-		my( $c,$g,$i ) = $self->get_index_codes_single( $session, $v );
+		my( $c,$g,$i ) = $self->get_index_codes_basic( $session, $v );
 		push @{$codes},@{$c};
 		push @{$grepcodes},@{$g};
 		push @{$ignored},@{$i};
@@ -140,30 +140,6 @@ sub get_index_codes
 
 	return( $codes, $grepcodes, $ignored );
 }
-
-sub get_index_codes_single
-{
-	my( $self, $session, $value ) = @_;
-
-	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
-
-	if( !$self->get_property( "multilang" ) )
-	{
-		return $self->get_index_codes_basic( $session, $value );
-	}
-
-	my( $codes, $grepcodes, $ignored ) = ( [], [], [] );
-
-	foreach my $k (keys %{$value} )
-	{		
-		my( $c,$g,$i ) = $self->get_index_codes_basic( $session, $value->{$k} );
-		push @{$codes},@{$c};
-		push @{$grepcodes},@{$g};
-		push @{$ignored},@{$i};
-	}
-
-	return( $codes, $grepcodes, $ignored );
-}	
 
 sub get_index_codes_basic
 {

@@ -550,7 +550,6 @@ sub get_values
 		push @values, $v2;
 
 		# uses function _basic because value will NEVER be multiple
-		# should never by .id or multilang either.
 		my $orderkey = $self->ordervalue_basic(
 			$value, 
 			$session, 

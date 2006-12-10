@@ -64,7 +64,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.0.5";
+$EPrints::Database::DBVersion = "3.0.6";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -475,7 +475,7 @@ sub create_table
 	# build the sub-tables first
 	foreach $field (@fields)
 	{
-		next unless ( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) );
+		next unless ( $field->get_property( "multiple" ) );
 		next if( $field->is_virtual );
 		# make an aux. table for a multiple field
 		# which will contain the same type as the
@@ -486,7 +486,6 @@ sub create_table
 
 		my $auxfield = $field->clone;
 		$auxfield->set_property( "multiple", 0 );
-		$auxfield->set_property( "multilang", 0 );
 		my $keyfield = $dataset->get_key_field()->clone;
 #print $field->get_name()."\n";
 #foreach( keys %{$auxfield} ) { print "* $_ => ".$auxfield->{$_}."\n"; }
@@ -509,14 +508,6 @@ sub create_table
 				type => "int" );
 			push @auxfields,$pos;
 		}
-		if ( $field->get_property( "multilang" ) )
-		{
-			my $lang = EPrints::MetaField->new( 
-				repository=> $self->{session}->get_repository,
-				name => "lang", 
-				type => "langid" );
-			push @auxfields,$lang;
-		}
 		push @auxfields,$auxfield;
 		my $rv = $rv && $self->create_table(	
 			$dataset->get_sql_sub_table_name( $field ),
@@ -533,7 +524,6 @@ sub create_table
 	foreach $field (@fields)
 	{
 		next if( $field->get_property( "multiple" ) );
-		next if( $field->get_property( "multilang" ) );
 		next if( $field->is_virtual );
 
 		if ( $first )
@@ -752,7 +742,7 @@ sub update
 			next;
 		}
 
-		if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) ) 
+		if( $field->get_property( "multiple" ) )
 		{ 
 			push @aux,$field;
 			next;
@@ -845,33 +835,13 @@ sub update
 			{
 				my $value = $fieldvalue->[$pos];
 				my $incp = 0;
-				if( $multifield->get_property( "multilang" ) )
+				if( defined $value || $multifield->get_property( "allow_null" ))
 				{
-					my $langid;
-					foreach $langid ( keys %{$value} )
-					{
-						my $val = $value->{$langid};
-						if( defined $val )
-						{
-							push @values, {
-								v => $val,
-								p => $position,
-								l => $langid
-							};
-							$incp=1;
-						}
-					}
-				}
-				else
-				{
-					if( defined $value || $multifield->get_property( "allow_null" ))
-					{
-						push @values, {
-							v => $value,
-							p => $position
-						};
-						$incp=1;
-					}
+					push @values, {
+						v => $value,
+						p => $position
+					};
+					$incp=1;
 				}
 				$position++ if $incp;
 			}
@@ -879,24 +849,17 @@ sub update
 		else
 		{
 			my $value = $fieldvalue;
-			if( $multifield->get_property( "multilang" ) )
+			my $langid;
+			foreach $langid ( keys %{$value} )
 			{
-				my $langid;
-				foreach $langid ( keys %{$value} )
+				my $val = $value->{$langid};
+				if( defined $val )
 				{
-					my $val = $value->{$langid};
-					if( defined $val )
-					{
-						push @values, { 
-							v => $val,
-							l => $langid
-						};
-					}
+					push @values, { 
+						v => $val,
+						l => $langid
+					};
 				}
-			}
-			else
-			{
-				die "This can't happen in update!"; #cjg!
 			}
 		}
 					
@@ -906,7 +869,6 @@ sub update
 			my $fname = $multifield->get_sql_name();
 			$sql = "INSERT INTO $auxtable (".$keyfield->get_sql_name().", ";
 			$sql.= "pos, " if( $multifield->get_property( "multiple" ) );
-			$sql.= "lang, " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= $fname."_honourific, ";
@@ -935,7 +897,6 @@ sub update
 			}
 			$sql .= ") VALUES (\"$keyvalue\", ";
 			$sql .=	"\"".$v->{p}."\", " if( $multifield->get_property( "multiple" ) );
-			$sql .=	"\"".prep_value( $v->{l} )."\", " if( $multifield->get_property( "multilang" ) );
 			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= "\"".prep_value( $v->{v}->{honourific} )."\", ";
@@ -1026,7 +987,7 @@ sub remove
 	my $field;
 	foreach $field ( @fields ) 
 	{
-		next unless( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) );
+		next unless( $field->get_property( "multiple" ) );
 		# ideally this would actually remove the subobjects
 		next if( $field->is_virtual );
 		my $auxtable = $dataset->get_sql_sub_table_name( $field );
@@ -1932,7 +1893,7 @@ sub _get
 			next;
 		}
 
-		if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
+		if( $field->get_property( "multiple" ) )
 		{ 
 			push @aux,$field;
 			next;
@@ -2022,8 +1983,6 @@ sub _get
 				next;
 			}
 
-			next if( $field->get_property( "multilang" ) );
-
 			my $value;
 			if( $field->is_type( "name" ) )
 			{
@@ -2076,7 +2035,6 @@ sub _get
 		}
 		my $fields_sql = "M.$kn, ";
 		$fields_sql .= "M.pos, " if( $multifield->get_property( "multiple" ) );
-		$fields_sql .= "M.lang, " if( $multifield->get_property( "multilang" ) );
 		$fields_sql .= $col;		
 		if( $mode == 0 )	
 		{
@@ -2114,7 +2072,6 @@ sub _get
 			my $id = shift( @values );
 			my( $pos, $lang );
 			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
-			$lang = shift( @values ) if( $multifield->get_property( "multilang" ) );
 			my $n = $lookup{ $id };
 			my $value;
 			if( $multifield->is_type( "name" ) )
@@ -2142,28 +2099,7 @@ sub _get
 				$value = shift @values;
 			}
 
-			if( $multifield->get_property( "multiple" ) )
-			{
-				if( $multifield->get_property( "multilang" ) )
-				{
-					$data[$n]->{$fn}->[$pos]->{$lang} = $value;
-				}
-				else
-				{
-					$data[$n]->{$fn}->[$pos] = $value;
-				}
-			}
-			else
-			{
-				if( $multifield->get_property( "multilang" ) )
-				{
-					$data[$n]->{$fn}->{$lang} = $value;
-				}
-				else
-				{
-					print STDERR "This cannot happen!\n";#cjg!
-				}
-			}
+			$data[$n]->{$fn}->[$pos] = $value;
 		}
 		$sth->finish;
 	}	
@@ -2219,7 +2155,7 @@ sub get_values
 	$limit = "inbox" if( $dataset->id eq "inbox" );
 	$limit = "deletion" if( $dataset->id eq "deletion" );
 	$limit = "buffer" if( $dataset->id eq "buffer" );
-	if( $field->get_property( "multiple" ) || $field->get_property( "multilang" ) )
+	if( $field->get_property( "multiple" ) )
 	{
 		$sql.= $dataset->get_sql_sub_table_name( $field )." as M";
 		if( $limit )

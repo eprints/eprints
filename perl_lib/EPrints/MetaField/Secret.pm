@@ -62,11 +62,11 @@ sub render_value
 	}
 
 	# this won't handle anyone doing anything clever like
-	# having multiple,multilang or hasid flags on a secret
+	# having multiple flags on a secret
 	# field. If they do, we'll use a more default render
 	# method.
 
-	if( $self->get_property( 'multiple' ) || $self->get_property( 'multilang' )  )
+	if( $self->get_property( 'multiple' ) )
 	{
 		return $self->SUPER::render_value( $session, $value, $alllangs, $nolink );
 	}

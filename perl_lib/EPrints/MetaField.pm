@@ -694,39 +694,7 @@ sub render_value_no_multiple
 	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
 
-	my $rendered;
-	if( !$self->get_property( "multilang" ) )
-	{
-		$rendered = $self->render_value_no_multilang( $session, $value, $nolink, $object );
-	}
-	elsif( !$alllangs )
-	{
-		my $v = EPrints::Session::best_language( 
-			$session->get_repository, 
-			$session->get_langid(), 
-			%$value );
-		$rendered = $self->render_value_no_multilang( $session, $v, $nolink, $object );
-	}
-	else
-	{
-		my( $tr, $td, $th );
-		$rendered = $session->make_element( "table" );
-		foreach( keys %$value )
-		{
-			$tr = $session->make_element( "tr" );
-			$rendered->appendChild( $tr );
-			$td = $session->make_element( "td" );
-			$tr->appendChild( $td );
-			$td->appendChild( 
-				$self->render_value_no_multilang( $session, $value->{$_}, $nolink, $object ) );
-			$th = $session->make_element( "th" );
-			$tr->appendChild( $th );
-			$th->appendChild( $session->make_text( '(' ) );
-			$th->appendChild( $session->render_language_name( $_ ) );
-			$th->appendChild( $session->make_text( ')' ) );
-		}
-	}
-	
+	my $rendered = $self->render_value_withopts( $session, $value, $nolink, $object );
 
 	if( !defined $self->{browse_link} || $nolink)
 	{
@@ -774,9 +742,9 @@ sub render_value_no_multiple
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_value_no_multilang( $session, $value, $nolink, $object )
+=item $xhtml = $field->render_value_withopts( $session, $value, $nolink, $object )
 
-Render a basic value, with no multilang, id, or multiple parts.
+Render a single value but adding the render_opts features.
 
 This uses either the field specific render_single_value or, if one
 is configured, the render_single_value specified in the config.
@@ -786,7 +754,7 @@ Usually just used internally.
 =cut
 ######################################################################
 
-sub render_value_no_multilang
+sub render_value_withopts
 {
 	my( $self, $session, $value, $nolink, $object ) = @_;
 
@@ -813,8 +781,6 @@ sub render_value_no_multilang
 		$value =~ s/[\r\n]/ /g;
 	}
 
-
-
 	if( defined $self->{render_single_value} )
 	{
 		return $self->call_property( "render_single_value",
@@ -836,7 +802,6 @@ sub render_value_no_multilang
 Sorts the in_list into order, based on the "order values" of the 
 values in the in_list. Assumes that the values are not a list of
 multiple values. [ [], [], [] ], but rather a list of single values.
-May be multilang or has_id.
 
 =cut
 ######################################################################
@@ -901,7 +866,6 @@ Return a list of every distinct value in this field.
 
  - for simple fields: return ( $value )
  - for multiple fields: return @{$value}
- - for multilang fields: return all the variations in a list.
 
 This function is used by the item_matches method in Search.
 
@@ -919,29 +883,11 @@ sub list_values
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my @list = ();
-		foreach( @{$value} )
-		{
-			push @list, $self->_list_values2( $_ );
-		}
-		return @list;
-	}
-
-	return $self->_list_values2( $value );
-}
-
-sub _list_values2
-{
-	my( $self, $value ) = @_;
-
-	if( $self->get_property( "multilang" ) )
-	{
-		return values %{$value};
+		return @{$value};
 	}
 
 	return $value;
 }
-
 
 
 
@@ -1050,8 +996,7 @@ sub get_sql_index
 =item $xhtml_dom = $field->render_single_value( $session, $value )
 
 Returns the XHTML representation of the value. The value will be
-non-multiple and non-multilang and have no "id" part. Just the
-simple value.
+non-multiple. Just the  simple value.
 
 =cut
 ######################################################################
@@ -1124,11 +1069,6 @@ sub render_input_field_actual
 				$th->appendChild( $col_title );
 				$tr->appendChild( $th );
 			}
-		}
-		if( $self->get_property( "multilang" ) )
-		{
-			$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
-			$tr->appendChild( $th );
 		}
 		$table->appendChild( $tr );
 	}
@@ -1533,7 +1473,6 @@ sub form_value_single
 {
 	my( $self, $session, $basename, $object ) = @_;
 
-	# simple case; not multilang
 	my $value = $self->form_value_basic( $session, $basename, $object );
 	return undef unless( EPrints::Utils::is_set( $value ) );
 	return $value;
@@ -1635,7 +1574,6 @@ sub get_values
 		push @values, $v2;
 
 		# uses function _basic because value will NEVER be multiple
-		# should never by .id or multilang either.
 		my $orderkey = $self->ordervalue_basic(
 			$value, 
 			$session, 
@@ -1742,14 +1680,6 @@ sub ordervalue_single
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
-	if( $self->get_property( "multilang" ) )
-	{
-		$value = EPrints::Session::best_language( 
-			$session->get_repository,
-			$langid,
-			%{$value} );
-	}
-
 	if( defined $self->{make_single_value_orderkey} )
 	{
 		return $self->call_property( "make_single_value_orderkey",
@@ -1803,54 +1733,16 @@ sub to_xml
 		{
 			$tag->appendChild( $session->make_text( "\n$ind " ) );
 			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_single( $session, $single, $depth+1 ) );
+			$item->appendChild( $self->to_xml_basic( $session, $single, $depth+1 ) );
 			$tag->appendChild( $item );
 		}
 		$tag->appendChild( $session->make_text( "\n$ind" ) );
 	}
 	else
 	{
-		$tag->appendChild( $self->to_xml_single( $session, $value, $depth ) );
+		$tag->appendChild( $self->to_xml_basic( $session, $value, $depth ) );
 	}
 
-	return $r;
-}
-
-sub to_xml_single
-{
-	my( $self, $session, $value, $depth ) = @_;
-
-	$depth = 0 unless defined $depth;
-
-	unless( $self->get_property( "multilang" ) )
-	{
-		return $self->to_xml_basic( $session, $value, $depth );
-	}
-
-	my $ind = "  "x$depth;
-	my $r = $session->make_doc_fragment;	
-	foreach my $langid ( keys %{$value} )
-	{
-		$r->appendChild( $session->make_text( "\n  $ind" ) );
-		my $langvar = $session->make_element( "langvar" );
-		$r->appendChild( $langvar );
-
-		$langvar->appendChild( $session->make_text( "\n    $ind" ) );
-
-		my $lang = $session->make_element( "lang" );
-		$lang->appendChild( $session->make_text( $langid ) );
-		$langvar->appendChild( $lang );
-				
-		$langvar->appendChild( $session->make_text( "\n    $ind" ) );
-
-		my $valuetag = $session->make_element( "value" );
-		$valuetag->appendChild( $self->to_xml_basic( $session, $value->{$langid}, $depth+2 ) );
-		$langvar->appendChild( $valuetag );
-
-		$langvar->appendChild( $session->make_text( "\n  $ind" ) );
-
-		$r->appendChild( $session->make_text( "\n$ind" ) );
-	}
 	return $r;
 }
 
@@ -1911,19 +1803,7 @@ sub to_xml_old_single
 
 	my $r = $session->make_element( "field", %attrs );
 
-	if( $self->get_property( "multilang" ) )
-	{
-		foreach( keys %{$v} )
-		{
-			my $l = $session->make_element( "lang", id=>$_ );
-			$l->appendChild( $self->to_xml_basic( $session, $v->{$_} ) );
-			$r->appendChild( $l );
-		}
-	}
-	else
-	{
-		$r->appendChild( $self->to_xml_basic( $session, $v ) );
-	}
+	$r->appendChild( $self->to_xml_basic( $session, $v ) );
 
 	return $r;
 }
@@ -2087,7 +1967,6 @@ sub get_property_defaults
 		make_value_orderkey 		=> $EPrints::MetaField::UNDEF,
 		show_in_fieldlist	=> 1,
 		maxlength 	=> $EPrints::MetaField::VARCHAR_SIZE,
-		multilang 	=> 0,
 		multiple 	=> 0,
 		name 		=> $EPrints::MetaField::REQUIRED,
 		show_in_html	=> 1,

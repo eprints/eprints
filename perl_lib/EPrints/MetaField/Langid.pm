@@ -35,10 +35,10 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField );
+	@ISA = qw( EPrints::MetaField::Set );
 }
 
-use EPrints::MetaField;
+use EPrints::MetaField::Set;
 
 
 sub get_sql_type
@@ -48,6 +48,22 @@ sub get_sql_type
 	return $self->get_sql_name()." VARCHAR(16)".($notnull?" NOT NULL":"");
 }
 
+
+sub render_option
+{
+	my( $self, $session, $option ) = @_;
+
+	return $session->html_phrase( "languages_typename_".$option );
+}
+
+sub get_property_defaults
+{
+	my( $self ) = @_;
+	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{input_style} = "short";
+	$defaults{options} = [qw/ en fr /];
+	return %defaults;
+}
 
 ######################################################################
 1;

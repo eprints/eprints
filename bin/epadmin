@@ -1033,7 +1033,7 @@ sub reset_dataset
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
 	exit( 1 ) unless( defined $session );
 
 	my $db = $session->get_database;
@@ -1051,8 +1051,11 @@ sub reset_dataset
 	$db->create_dataset_tables( 
 			$session->get_repository->get_dataset( $datasetid ) );
 
-	print "Resetting counter ${datasetid}id\n";
-	$db->counter_reset( $datasetid."id" );
+	if( $datasetid ne "subject" )
+	{
+		print "Resetting counter ${datasetid}id\n";
+		$db->counter_reset( $datasetid."id" );
+	}
 
 	$session->terminate;
 }
@@ -1406,6 +1409,12 @@ sub upgrade
 		$dbversion="3.0.5";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.5" )
+	{
+		upgrade_3_0_5_to_3_0_6( $repoid, $db );
+		$dbversion="3.0.6";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1553,6 +1562,15 @@ sub upgrade_3_0_4_to_3_0_5
 	my( $repoid, $db ) = @_;
 
 	$db->_create_messages_table;
+}
+
+
+
+sub upgrade_3_0_5_to_3_0_6
+{
+	my( $repoid, $db ) = @_;
+
+	reset_dataset( $repoid, 'subject' );
 }
 
 

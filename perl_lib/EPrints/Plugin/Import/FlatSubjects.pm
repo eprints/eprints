@@ -59,11 +59,11 @@ sub convert_input
 
 	my $epdata = {
 			subjectid   => $vals[0],
-			name        => {$lang=>$vals[1]},
+			name_name   => [$vals[1]],
+			name_lang   => [$lang],
 			parents     => \@parents,					
 		        depositable => $vals[3],
 		 };
-
 	return $epdata;
 }
 

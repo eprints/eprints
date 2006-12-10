@@ -1,0 +1,92 @@
+######################################################################
+#
+# EPrints::MetaField::Multilang;
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<EPrints::MetaField::Multilang> - Subclass of compound for multilingual data.
+
+=head1 DESCRIPTION
+
+not done
+
+=over 4
+
+=cut
+
+package EPrints::MetaField::Multilang;
+
+use strict;
+use warnings;
+
+BEGIN
+{
+	our( @ISA );
+	
+	@ISA = qw( EPrints::MetaField::Compound );
+}
+
+use EPrints::MetaField::Compound;
+
+sub get_search_conditions_not_ex
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+	
+	my $f = $self->get_property( "fields_cache" );
+	my $first_name = $f->[0]->{name};
+	my $field = $dataset->get_field( $first_name );
+	return $field->get_search_conditions_not_ex( 
+		$session, $dataset,$search_value,$match,$merge,$search_mode );
+}
+
+sub render_value
+{
+	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+
+	if( $alllangs )
+	{
+		return $self->SUPER::render_value( 
+				$session,$value,$alllangs,$nolink,$object);
+	}
+	my $f = $self->get_property( "fields_cache" );
+	my $first_name = $f->[0]->{name};
+	my $field = $object->get_dataset->get_field( $first_name );
+	my $pre = $session->make_element( "pre" );
+	my %fieldname_to_alias = $self->get_fieldname_to_alias;
+	my $map = ();
+	foreach my $row ( @{$value} )
+	{
+		my $lang = $row->{lang};
+		$map->{$row->{lang}} = $row->{$fieldname_to_alias{$first_name}};
+	}
+	my $best = $self->most_local( $session, $map );
+
+	return $field->render_single_value( $session, $best );
+}
+
+sub get_property_defaults
+{
+	my( $self ) = @_;
+	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{input_ordered} = 0;
+	$defaults{input_boxes} = 1;
+	return %defaults;
+}
+
+######################################################################
+
+######################################################################
+1;

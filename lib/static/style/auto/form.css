@@ -70,6 +70,7 @@ td.ep_form_input_grid_pos {
 	padding-right: 4px;
 }
 td.ep_form_input_grid_arrows {
+	white-space: nowrap;
 	padding-top: 2px;
 	padding-bottom: 2px;
 }

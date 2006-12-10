@@ -255,10 +255,7 @@ sub new
 	{
 		foreach my $fielddata ( $oclass->get_system_field_info() )
 		{
-			my $field = EPrints::MetaField->new( dataset=>$self , %{$fielddata} );	
-			push @{$self->{fields}}	, $field;
-			push @{$self->{system_fields}} , $field;
-			$self->{field_index}->{$field->get_name()} = $field;
+			$self->process_field( $fielddata, 1 );
 		}
 	}
 	my $repository_fields = $repository->get_conf( "fields", $self->{confid} );
@@ -266,31 +263,9 @@ sub new
 	{
 		foreach my $fielddata ( @{$repository_fields} )
 		{
-			if( $fielddata->{type} eq "compound" )
-			{	
-				$fielddata->{fields_cache} = [];
-				foreach my $inner_field ( @{$fielddata->{fields}} )
-				{
-					my $field = EPrints::MetaField->new( 
-						parent_name => $fielddata->{name},
-						show_in_html => 0,
-						dataset => $self, 
-						multiple => $fielddata->{multiple},
-						%{$inner_field} );	
-					push @{$self->{fields}}	, $field;
-					$self->{field_index}->{$field->get_name()} = 
-						$field;
-					push @{$fielddata->{fields_cache}}, $field;
-				}
-			}
-			my $field = EPrints::MetaField->new( 
-				dataset => $self, 
-				%{$fielddata} );	
-			push @{$self->{fields}}	, $field;
-			$self->{field_index}->{$field->get_name()} = $field;
+			$self->process_field( $fielddata, 0 );
 		}
 	}
-
 
 	# lock these metadata fields against being modified again.
 	foreach my $field ( @{$self->{fields}} )
@@ -300,6 +275,58 @@ sub new
 
 	return $self;
 }
+
+sub process_field
+{
+	my( $self, $fielddata, $system ) = @_;
+
+	my @cfields;
+	if( $fielddata->{type} eq "compound" )
+	{	
+		@cfields = @{$fielddata->{fields}};
+	}
+	if( $fielddata->{type} eq "multilang" )
+	{	
+		@cfields = (
+			@{$fielddata->{fields}},
+			{ sub_name=>"lang",type=>"langid" },
+		);
+	}
+		
+	if( scalar @cfields )
+	{	
+		$fielddata->{fields_cache} = [];
+		foreach my $inner_field ( @cfields )
+		{
+			my $field = EPrints::MetaField->new( 
+				parent_name => $fielddata->{name},
+				show_in_html => 0,
+				dataset => $self, 
+				multiple => $fielddata->{multiple},
+				%{$inner_field} );	
+			push @{$self->{fields}}	, $field;
+			if( $system )
+			{
+				push @{$self->{system_fields}} , $field;
+			}
+			$self->{field_index}->{$field->get_name()} = 
+				$field;
+			push @{$fielddata->{fields_cache}}, $field;
+		}
+	}
+
+	my $field = EPrints::MetaField->new( 
+		dataset => $self, 
+		%{$fielddata} );	
+	push @{$self->{fields}}	, $field;
+	if( $system )
+	{
+		push @{$self->{system_fields}} , $field;
+	}
+
+	$self->{field_index}->{$field->get_name()} = $field;
+}
+
 
 
 ######################################################################
@@ -865,7 +892,6 @@ sub count_indexes
 	foreach my $field ( $self->get_fields( 1 ) )
 	{
 		next if( $field->get_property( "multiple" ) );
-		next if( $field->get_property( "multilang" ) );
 		next unless( defined $field->get_sql_index );
 		$n++;
 	}

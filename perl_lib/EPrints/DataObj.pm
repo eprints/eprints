@@ -525,7 +525,7 @@ sub get_data
 
 	foreach my $field ( $self->{dataset}->get_fields )
 	{
-		next unless $field->is_type( "compound" );
+		next unless $field->is_type( "compound", "multilang" );
 		my $name = $field->get_name;
 		$self->{data}->{$name} = $self->get_value( $name );
 	}

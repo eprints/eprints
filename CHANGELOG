@@ -5923,3 +5923,9 @@ PACKAGE: 2.2.99.2
 2006-12-10 cjg
  * Added lookup scripts to use files and directories.
  * Added an empty autocomplete directory.
+
+2006-12-10 cjg
+ * Added new metadata type : multilang
+ * Subject now uses multilang rather than the hack
+ * Removed lots of old multilang code.
+ * Made up/down arrows on multiple input css style nowrap.

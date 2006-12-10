@@ -123,15 +123,14 @@ foreach my $datasetid ( &EPrints::DataSet::get_sql_dataset_ids )
 	my @fields = $dataset->get_fields( 1 );
 	foreach my  $field (@fields)
 	{
-		if ( $field->get_property( "multiple" ) ||
-		     $field->get_property( "multilang" ) )
+		if( $field->get_property( "multiple" ) )
 		{ 	
 		 	my $tid= $dataset->get_sql_sub_table_name( $field );
 			my $fid = $tid;
 			my $idmsg = '';
 			if( $fid =~ s/_id$// ) { $idmsg = 'the "id" part of ';}
 			$fid =~ s/^([a-z]*)_//;
-			print row( $tid, "Stores ".$idmsg."the multiple/multilang field '$fid' of $1" );
+			print row( $tid, "Stores ".$idmsg."the multiple field '$fid' of $1" );
 			
 
 		}
