@@ -1,0 +1,53 @@
+use EPrints;
+
+use strict;
+use warnings;
+
+my $session = EPrints::Session->new();
+
+my $string_frag = lc $session->param( "q" );
+my $table = "ac_".$session->param( "table" );
+my $mode = $session->param( "mode" ) || "phrase";
+if( !defined $table )
+{
+	EPrints::abort( "table" );
+}
+$table=~s/[^_a-z0-9]//gi;
+my $sql;
+if( $mode eq "phrase" )
+{
+	$sql = "SELECT value from $table WHERE value LIKE '%".EPrints::Database::prep_like_value( $string_frag )."%' LIMIT 40";
+}
+if( $mode eq "prefix" )
+{
+	$sql = "SELECT value from $table WHERE value LIKE '".EPrints::Database::prep_like_value( $string_frag )."%' LIMIT 40";
+}
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ul>
+END
+my $sth = $session->get_database->prepare( $sql );
+$session->get_database->execute( $sth , $sql );
+my $first = 1;
+while( my( $value ) = $sth->fetchrow_array )
+{
+	chomp $value;
+	$value =~ s/&/&amp;/g;
+	$value =~ s/>/&gt;/g;
+	$value =~ s/</&lt;/g;
+	print "<li";
+	if( $first )
+	{
+		print " class='ep_first'";
+	}
+	print ">$value";
+	print "<ul><li id='for:value:relative:'>$value</li></ul>";
+	print "</li>";
+	$first= 0;
+}
+print '</ul>';
+
+
+$session->terminate;
