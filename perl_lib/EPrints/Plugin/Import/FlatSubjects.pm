@@ -51,6 +51,7 @@ sub convert_input
 	my ( $plugin, $input_data ) = @_;
 
 	return if $input_data =~ m/^\s*(#|$)/;
+	chomp $input_data;
 	my @vals = split /:/ , $input_data;
 
 	my @parents = split( ",", $vals[2] );
@@ -62,7 +63,7 @@ sub convert_input
 			name_name   => [$vals[1]],
 			name_lang   => [$lang],
 			parents     => \@parents,					
-		        depositable => $vals[3],
+		        depositable => ($vals[3]?"TRUE":"FALSE"),
 		 };
 	return $epdata;
 }

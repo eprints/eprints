@@ -5929,3 +5929,7 @@ PACKAGE: 2.2.99.2
  * Subject now uses multilang rather than the hack
  * Removed lots of old multilang code.
  * Made up/down arrows on multiple input css style nowrap.
+
+2006-12-10 cjg
+ * Fixed no add button bug - subject importer was broken.
+
