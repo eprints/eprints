@@ -78,3 +78,8 @@
 	display: table;
 }
 
+.ep_search_field_name
+{
+	font-weight: bold;
+	margin-top: 0.5em;
+}

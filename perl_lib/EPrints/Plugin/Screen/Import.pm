@@ -216,16 +216,45 @@ sub render
 	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 	$page->appendChild( $form );
 
-	$form->appendChild( $session->render_upload_field( "import_filename" ) );
 
-	$form->appendChild( $session->make_element( "br" ) );
+
+	my $table = $session->make_element( "table", width=>"100%" );
+	my $textarea_help_div = $session->make_element( "div" );
+	$textarea_help_div->appendChild( $session->make_text( "help!" ) );
+	$table->appendChild( $session->render_row_with_help(
+		help => $textarea_help_div,
+		label => $session->make_text( "label" ),
+		class => "ep_first",
+		field => $session->make_text( "input here" ),
+		help_prefix => "textarea_help",
+	));
+	
+	$form->appendChild( $session->render_toolbox( undef, $table ) );
+
+	my $upload_help_div = $session->make_element( "div" );
+	$upload_help_div->appendChild( $session->make_text( "help" ) );
+	$table->appendChild( $session->render_row_with_help(
+		help => $upload_help_div,
+		label => $session->make_text( "label" ),
+		field => $session->render_upload_field( "import_filename" ),
+		help_prefix => "upload_help",
+	));
 
 	my @plugins = $session->plugin_list( 
 			type=>"Import",
 			can_produce=>"dataobj/".$ds->confid );
 
+	my $pluginid_help_div = $session->make_element( "div" );
+	$pluginid_help_div->appendChild( $session->make_text( "help" ) );
 	my $select = $session->make_element( "select", name => "pluginid" );
 	$form->appendChild( $select );
+	$table->appendChild( $session->render_row_with_help(
+		help => $pluginid_help_div,
+		label => $session->make_text( "label" ),
+		field => $select,
+		help_prefix => "pluginid_help",
+	));
+	
 
 	for( @plugins )
 	{
@@ -238,6 +267,7 @@ sub render
 	}
 
 	$form->appendChild( $session->render_action_buttons( 
+		_class => "ep_form_button_bar",
 		test => $session->phrase( "Plugin/Screen/Import:action:test:title" ), 
 		import => $session->phrase( "Plugin/Screen/Import:action:import:title" ) ) );
 

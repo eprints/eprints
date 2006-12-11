@@ -2812,8 +2812,7 @@ sub set_cookies
 			-path    => "/",
 			-value   => $code,
 			-domain  => $self->{repository}->get_conf("cookie_domain"),
-			-expires => "+10y" );
-print STDERR "SET:$cookie\n";
+		);	
 		EPrints::Apache::AnApache::header_out( 
 			$self->{"request"},
 			"Set-Cookie" => $cookie );
