@@ -5979,3 +5979,9 @@ PACKAGE: 2.2.99.2
 
 2006-12-11 cjg
  * Now removes expired login tickets.
+
+2006-12-11 cjg 
+ * Fixed bug in "next" search results 
+ * List was leaving stray caches around. Fixed.
+ * NULL dir field in EPrint now causes abort: it's too serious for just a 
+    warning.

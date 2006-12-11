@@ -1300,8 +1300,7 @@ sub local_path
 
 	unless( $self->is_set( "dir" ) )
 	{
-		$self->{session}->get_repository->log( "EPrint ".$self->get_id." has no directory set." );
-		return undef;
+		EPrints::abort( "EPrint ".$self->get_id." has no directory set. This is very dangerous as EPrints has no idea where to write files for this eprint. This may imply a buggy import tool or some other cause of corrupt data." );
 	}
 
 	return( 

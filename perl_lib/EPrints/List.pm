@@ -350,11 +350,16 @@ sub cache
 	{
 		my $srctable = $db->cache_table( $self->{cache_id} );
 
-		$self->{cache_id}  = $db->cache( 
+		my $new_cache_id = $db->cache( 
 			$self->{encoded},
 			$self->{dataset},
 			$srctable,
 			$self->{order} );
+
+		# clean up intermediate cache table
+		$self->{session}->get_database->drop_cache( $self->{cache_id} );
+
+		$self->{cache_id} = $new_cache_id;
 	}
 }
 

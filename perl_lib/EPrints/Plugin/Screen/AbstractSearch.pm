@@ -476,8 +476,8 @@ sub paginate_opts
 		params => { 
 			screen => $self->{processor}->{screenid},
 			_action_search => 1,
-			_cache => $cacheid,
-			_exp => $escexp,
+			cache => $cacheid,
+			exp => $escexp,
 		},
 		render_result => sub { return $self->render_result_row( @_ ); },
 		render_result_params => $self,

@@ -2705,7 +2705,6 @@ sub redirect
 		print STDERR "ODD! redirect called in offline script.\n";
 		return;
 	}
-
 	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
