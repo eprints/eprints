@@ -153,7 +153,7 @@ $c->{eprint_render} = sub
 			$session->html_phrase( "eprint_fieldname_abstract" ) );
 		$div->appendChild( $h2 );
 
-		$p = $session->make_element( "p", class=>"ep_block", style=>"margin-bottom: 1em" );
+		$p = $session->make_element( "p", style=>"text-align: left; margin: 1em auto 0em auto" );
 		$p->appendChild( $eprint->render_value( "abstract" ) );
 		$div->appendChild( $p );
 	}

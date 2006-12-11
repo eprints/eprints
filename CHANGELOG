@@ -5939,3 +5939,6 @@ PACKAGE: 2.2.99.2
 
 2006-12-10 cjg
  * Fixed bug that export buffer exported all datasets
+
+2006-12-10 cjg
+ * De-centered abstracts.
