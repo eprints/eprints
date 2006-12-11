@@ -319,6 +319,24 @@ END
 	}
 # cjg: Register with website!
 
+	my $ok;
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "generate_static", "--verbose", $repoid );	
+	}
+
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to import the LOC subjects?", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "import_subjects", "--verbose", "--force", $repoid );	
+	}
+
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to update the apache config files? (you still need to add the 'Include' line)", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "generate_apacheconf", "--verbose" );
+	}
 
 	my $base_path = EPrints::Config::get( "base_path" );
 print <<END;
@@ -330,15 +348,10 @@ That seemed to more or less work...
 Now make any required changes to the cfg files. 
 
 Note that changing the metadata configuration may require the database
-tables to be regenerated. epadmin erase_eprints will regenerate the 
+tables to be regenerated. epadmin erase_data will regenerate the 
 eprints and documents tables only. erase_data will regenerate everything.
 (nb. these also do erase the contents of the tables, and any uploaded 
 files).
-
-Then run:
-
- bin/generate_static $repoid
- bin/generate_apacheconf 
 
 Make sure that your main apache config file contains the line:
 
@@ -413,7 +426,15 @@ sub install
 	}
 }
 
+sub run_script
+{
+	my( $repoid, $script, @opts ) = @_;
 
+	my $repo = EPrints::Repository->new( $repoid );
+	my $bin = $repo->get_conf( "bin_path" );
+
+	system( "$bin/$script", @opts );
+}
 
 sub config_core
 {
