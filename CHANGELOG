@@ -5930,6 +5930,8 @@ PACKAGE: 2.2.99.2
  * Removed lots of old multilang code.
  * Made up/down arrows on multiple input css style nowrap.
 
+2006-12-11 cjg
+ * Added a note about cookies being needed.
+
 2006-12-10 cjg
- * Fixed no add button bug - subject importer was broken.
 

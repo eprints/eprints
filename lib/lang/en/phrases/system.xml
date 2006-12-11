@@ -524,6 +524,7 @@ User Area CGI Scripts
           <tr><td>Username:</td><td><epc:pin name="input_username"/></td></tr>
           <tr><td>Password:</td><td><epc:pin name="input_password"/></td><td><epc:pin name="login_button"/></td></tr>
         </table>
+        <p>Note: you must have cookies enabled.</p>
       </div>
     </epp:phrase>
     <epp:phrase id="cgi/login:reset_link">If you have forgotten your password, you may <a href="{$config{perl_url}}/reset_password">reset</a> it.</epp:phrase>
