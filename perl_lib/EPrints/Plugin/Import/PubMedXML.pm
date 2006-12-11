@@ -14,7 +14,7 @@ sub new
 
 	$self->{name} = "PubMed XML";
 	$self->{visible} = "all";
-	$self->{produce} = [ 'list/*', 'dataobj/*' ];
+	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
 	return $self;
 }

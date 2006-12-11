@@ -48,6 +48,10 @@ This is the file to import the subjects from. If you do not specify it then the 
 
 =over 8
 
+=item B<--xml>
+
+Import XML format instead of flat text.
+
 =item B<--help>
 
 Print a brief help message and exit.
@@ -167,11 +171,13 @@ my $force = 0;
 my $purge = 1;
 my $help = 0;
 my $man = 0;
+my $xml = 0;
 
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,
 	'force' => \$force , 
+	'xml' => \$xml , 
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
@@ -228,6 +234,10 @@ my $subds = $session->get_repository->get_dataset( "subject" );
 print "Importing from $filename...\n" if( $noise >= 1 );
 
 my $ipluginid = "FlatSubjects";
+if( $xml ) 
+{
+	$ipluginid = "XML";
+}
 my $pluginid = "Import::".$ipluginid;
 my $plugin = $session->plugin( $pluginid );
 
