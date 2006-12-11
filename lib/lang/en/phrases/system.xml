@@ -1128,13 +1128,14 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/EPrint/UseAsTemplate:success">New item successfully created in your work area using the previous item as a template. You are now viewing the new item.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/RequestRemoval:mail">
+<div style="font-size: 11pt">Removal Request</div>
 <p>User <epc:pin name="user"/> (Email: <epc:pin name="email"/>) requests the removal of the following item:</p>
 
 <p><epc:pin name="citation"/></p>
 
 <p><epc:pin name="reason"/></p>
 
-<p>To view the item details and have the option to retire it from the live repository, <epc:pin name="url">click here</epc:pin>.</p>
+<p>You should <epc:pin name="url">view the item details</epc:pin> before determining whether to retire it from the live repository.</p>
     </epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RequestRemoval:reason">No reason was given.</epp:phrase>
 
