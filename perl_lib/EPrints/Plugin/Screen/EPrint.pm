@@ -126,6 +126,20 @@ sub register_furniture
 	$self->{processor}->before_messages( $div );
 }
 
+sub register_error
+{
+	my( $self ) = @_;
+
+	unless( $self->{processor}->{eprint}->has_owner( $self->{session}->current_user ) )
+	{
+		$self->SUPER::register_error;
+	}
+
+	$self->{processor}->add_message( "error", $self->{session}->html_phrase( 
+		"Plugin/Screen/EPrint:owner_denied",
+		screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
+}
+
 
 sub workflow
 {

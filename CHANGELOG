@@ -5945,3 +5945,6 @@ PACKAGE: 2.2.99.2
 
 2006-12-10 cjg
  * Fixed validate jump links for user area validate fields.
+
+2006-12-10 cjg
+ * Friendly error for owner of eprint on denied screens.

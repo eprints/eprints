@@ -43,9 +43,7 @@ sub process
 
 	if( !$self->screen->can_be_viewed )
 	{
-		$self->add_message( "error", $self->{session}->html_phrase( 
-			"Plugin/Screen:screen_not_allowed",
-			screen=>$self->{session}->make_text( $self->{screenid} ) ) );
+		$self->screen->register_error;
 		$self->{screenid} = "Error";
 	}
 	else
@@ -130,6 +128,8 @@ sub process
 		} );
 	$self->{session}->send_page();
 }
+
+
 
 sub before_messages
 {
