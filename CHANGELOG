@@ -5936,3 +5936,6 @@ PACKAGE: 2.2.99.2
 2006-12-10 cjg
  * XML subject import now ok.
  * PubMedXML now only imports eprints, not all types.
+
+2006-12-10 cjg
+ * Fixed bug that export buffer exported all datasets
