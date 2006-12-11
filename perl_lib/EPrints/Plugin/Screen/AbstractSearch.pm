@@ -30,6 +30,14 @@ sub action_export_redir
 
 	my $cacheid = $self->{session}->param( "cache" );
 	my $format = $self->{session}->param( "output" );
+	if( !defined $format )
+	{
+		$self->{processor}->{search_subscreen} = "results";
+		$self->{processor}->add_message(
+			"error",
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ) );
+		return;
+	}
 
 	$self->{processor}->{redirect} = $self->export_url( $format )."&cache=".$cacheid;
 }
