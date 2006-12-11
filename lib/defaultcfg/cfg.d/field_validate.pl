@@ -40,12 +40,14 @@ $c->{validate_field} = sub
 		{
 			my $v = $_;
 
+			my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$field->get_name );
+			$fieldname->appendChild( $field->render_name( $session ) );
 			# Check a URL for correctness
 			if( $field->is_type( "url" ) && $v !~ /^\w+:/ )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_http",
-					fieldname=>$field->render_name( $session ) );
+						fieldname=>$fieldname );
 			}
 
 			# Check a name has a family part
@@ -53,7 +55,7 @@ $c->{validate_field} = sub
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_family",
-					fieldname=>$field->render_name( $session ) );
+						fieldname=>$fieldname );
 			}
 
 			# Check a name has a given part
@@ -61,7 +63,7 @@ $c->{validate_field} = sub
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_given",
-					fieldname=>$field->render_name( $session ) );
+						fieldname=>$fieldname );
 			}
 
 			# Check an email looks "ok". Just checks it has only one "@" and no
@@ -70,7 +72,7 @@ $c->{validate_field} = sub
 			{
 				push @problems,
 					$session->html_phrase( "validate:bad_email",
-					fieldname=>$field->render_name( $session ) );
+						fieldname=>$fieldname );
 			}
 		}
 	}
