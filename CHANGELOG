@@ -5976,3 +5976,6 @@ PACKAGE: 2.2.99.2
 
 2006-12-11 cjg
  * Abstract search now does not abort on bad plugin in redirect substage.
+
+2006-12-11 cjg
+ * Now removes expired login tickets.

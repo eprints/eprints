@@ -443,7 +443,13 @@ sub get_ticket_userid
 {
 	my( $self, $code, $ip ) = @_;
 
-	my $sql = "SELECT userid FROM login_tickets WHERE (ip='' OR ip='".prep_value($ip)."') AND code='".prep_value($code)."'";
+	my $sql;
+
+	# clean up old tickets
+	$sql = "DELETE FROM login_tickets WHERE ".time." > expires";
+	$self->do( $sql );
+
+	$sql = "SELECT userid FROM login_tickets WHERE (ip='' OR ip='".prep_value($ip)."') AND code='".prep_value($code)."'";
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
 	my( $userid ) = $sth->fetchrow_array;
