@@ -179,10 +179,10 @@ sub action_send
 	}
 	else
 	{
- 		$mail{to_name} = $lang->phrase( 
+ 		$mail{to_name} = EPrints::Utils::tree_to_utf8( $lang->phrase( 
 			"lib/session:archive_admin",
 			{},
-			$self->{session} );
+			$self->{session} ) );
  		$mail{to_email} = $self->{session}->get_repository->get_conf( "adminemail" );
 	}
 	

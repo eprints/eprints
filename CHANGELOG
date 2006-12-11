@@ -5956,3 +5956,7 @@ PACKAGE: 2.2.99.2
 2006-12-11 moj
  * Added maxdelta to password change mail_sent phrase
  * Changed confirmation email to put link around 'active password'.
+
+2006-12-11 moj
+ * Fixed 'to name' in RequestDeletion email (was not being converted
+    from DOM to string).
