@@ -5970,3 +5970,6 @@ PACKAGE: 2.2.99.2
  * Improved style of search field titles in editorial scope select
  * Added pretty styles to Import screen.
  * Changed eprint_render to call null action on request copy screen.
+
+2006-12-11 cjg
+ * Added Readonly.pm
