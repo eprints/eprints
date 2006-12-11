@@ -455,7 +455,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/change_email:intro"><p>To change your email address you should enter the new email below. The system will then mail you a URL to visit to activate this new address.</p><p>This system ensures that we always have a valid email address for you.</p><p>The email address we currently have for you is: <pin name="email"/></p></epp:phrase>
     <epp:phrase id="cgi/users/change_email:action_submit">Submit</epp:phrase>
     <epp:phrase id="cgi/users/change_email:no_email"><p>You did not actually supply a new email address.</p></epp:phrase>
-    <epp:phrase id="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><epc:pin name="email"/></b> containing the code required to confirm this new email address.</p><p>This code is only valid for a short time</p></epp:phrase>
+    <epp:phrase id="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><epc:pin name="email"/></b> containing the code required to confirm this new email address.</p><p>This code is only valid for <epc:pin name="maxdelta" />.</p></epp:phrase>
     <epp:phrase id="cgi/users/change_email:changeemail">Email Change Request</epp:phrase>
     <epp:phrase id="cgi/users/change_email:email_exists"><p>A user with the email address <tt><epc:pin name="email"/></tt> already exists.</p><p>If this is your email address, you should just <a href="../reset_password">reset your password</a>.</p></epp:phrase>
 
@@ -766,7 +766,7 @@ Public CGI Scripts
     <epp:phrase id="cgi/set_password:no_such_user"><p>There is no account with email address "<epc:pin name="email"/>".</p></epp:phrase>
     <epp:phrase id="cgi/set_password:no_priv"><p>The user with the email address <epc:pin name="email"/> may not change their password via this mechanism. If this is a problem please contact the site administrator.</p></epp:phrase>
     <epp:phrase id="cgi/set_password:no_password"><p>You did not actually specify a password.</p></epp:phrase>
-    <epp:phrase id="cgi/set_password:mail_sent"><p>An email has been sent to <b><epc:pin name="email"/></b> containing the code required to confirm this password.</p><p>This code is only valid for a short time</p></epp:phrase>
+    <epp:phrase id="cgi/set_password:mail_sent"><p>An email has been sent to <b><epc:pin name="email"/></b> containing the code required to confirm this password.</p><p>This code is only valid for <epc:pin name="maxdelta" />.</p></epp:phrase>
     <epp:phrase id="cgi/set_password:account">Reset Password</epp:phrase>
     <epp:phrase id="setpass_fieldhelp_email">Enter your email address</epp:phrase>
     <epp:phrase id="setpass_fieldhelp_newpassword">Enter a new password</epp:phrase>
