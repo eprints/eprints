@@ -115,7 +115,7 @@ my $searchexp = new EPrints::Search(
 		dataset=>$ds,
 		custom_order=>"title");
 
-my $date = sprintf("-%04d-%02d-%02d", EPrints::Utils::get_date_array( time ) );
+my $date = sprintf("-%04d-%02d-%02d", EPrints::Time::get_date_array( time ) );
 $searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
 
 $searchexp->perform_search;

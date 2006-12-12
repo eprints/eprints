@@ -63,7 +63,7 @@ sub output_list
 	$response->appendChild( $session->render_data_element(
 		4,
 		"updated", 
-		EPrints::Utils::get_iso_timestamp() ) );
+		EPrints::Time::get_iso_timestamp() ) );
 
 	my( $sec,$min,$hour,$mday,$mon,$year ) = localtime;
 
@@ -100,7 +100,7 @@ sub output_list
 		else
 		{
 			print STDERR "Invalid date\n";
-			$updated =  EPrints::Utils::get_iso_timestamp();
+			$updated =  EPrints::Time::get_iso_timestamp();
 		}
 		
 		$item->appendChild( $session->render_data_element(

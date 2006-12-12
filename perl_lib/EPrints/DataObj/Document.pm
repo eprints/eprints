@@ -1348,7 +1348,7 @@ sub rehash
 
 	my $hashfile = $self->get_eprint->local_path."/".
 		$self->get_value( "docid" ).".".
-		EPrints::Utils::get_iso_timestamp().".xsh";
+		EPrints::Time::get_iso_timestamp().".xsh";
 
 	EPrints::Probity::create_log( 
 		$self->{session}, 

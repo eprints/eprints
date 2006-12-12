@@ -53,7 +53,7 @@ $c->{validate_document} = sub
 	if( EPrints::Utils::is_set( $document->get_value( "date_embargo" ) ) )
 	{
 		my $value = $document->get_value( "date_embargo" );
-		my ($thisyear, $thismonth, $thisday) = EPrints::Utils::get_date_array();
+		my ($thisyear, $thismonth, $thisday) = EPrints::Time::get_date_array();
 		my ($year, $month, $day) = split( '-', $value );
 		if( $year < $thisyear || ( $year == $thisyear && $month < $thismonth ) ||
 			( $year == $thisyear && $month == $thismonth && $day <= $thisday ) )

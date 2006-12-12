@@ -458,7 +458,7 @@ sub write_pid
 # to be running.
 END
 	print PID $$."\n";
-	print PID EPrints::Utils::human_time()."\n";
+	print PID EPrints::Time::human_time()."\n";
 	close PID;
 }
 

@@ -173,7 +173,7 @@ sub _make_header
 {
 	my( $session, $dataobj ) = @_;
 	
-	my $time = EPrints::Utils::get_iso_timestamp();
+	my $time = EPrints::Time::get_iso_timestamp();
 	my $repo = $session->get_repository;
 	
 	my $header = $session->make_element(

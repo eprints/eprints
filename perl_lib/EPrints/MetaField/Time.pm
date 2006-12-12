@@ -86,9 +86,9 @@ sub render_single_value
 		
 	if( $self->{render_style} eq "short" )
 	{
-		return EPrints::Utils::render_short_date( $session, substr( $value,0,$l ) );
+		return EPrints::Time::render_short_date( $session, substr( $value,0,$l ) );
 	}
-	return EPrints::Utils::render_date( $session, substr( $value,0,$l ) );
+	return EPrints::Time::render_date( $session, substr( $value,0,$l ) );
 }
 	
 
@@ -337,7 +337,7 @@ sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
 
-	return EPrints::Utils::render_date( $session, $value );
+	return EPrints::Time::render_date( $session, $value );
 }
 
 sub get_property_defaults

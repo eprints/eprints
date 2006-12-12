@@ -153,7 +153,7 @@ sub get_defaults
 	
 	$data->{requestid} = $session->get_database->counter_next( "requestid" );
 
-	$data->{datestamp} = EPrints::Utils::get_iso_timestamp();
+	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
 
 	return $data;
 }

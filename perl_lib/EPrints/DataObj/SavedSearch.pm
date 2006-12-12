@@ -347,7 +347,7 @@ sub send_out_alert
 	if( $freq eq "daily" )
 	{
 		# Get the date for yesterday
-		my $yesterday = EPrints::Utils::get_iso_date( 
+		my $yesterday = EPrints::Time::get_iso_date( 
 			time - (24*60*60) );
 		# Get from the last day
 		$searchexp->add_field( 
@@ -357,7 +357,7 @@ sub send_out_alert
 	elsif( $freq eq "weekly" )
 	{
 		# Work out date a week ago
-		my $last_week = EPrints::Utils::get_iso_date( 
+		my $last_week = EPrints::Time::get_iso_date( 
 			time - (7*24*60*60) );
 
 		# Get from the last week
@@ -368,7 +368,7 @@ sub send_out_alert
 	elsif( $freq eq "monthly" )
 	{
 		# Get today's date
-		my( $year, $month, $day ) = EPrints::Utils::get_iso_date( time );
+		my( $year, $month, $day ) = EPrints::Time::get_iso_date( time );
 		# Substract a month		
 		$month--;
 
@@ -498,7 +498,7 @@ sub process_set
 # this repository successfully completed sending the *$frequency* 
 # alerts. It should not be edited.
 END
-		print TIMESTAMP EPrints::Utils::human_time()."\n";
+		print TIMESTAMP EPrints::Time::human_time()."\n";
 		close TIMESTAMP;
 	}
 }

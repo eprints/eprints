@@ -43,7 +43,7 @@ for( my $d=0; $d<7; ++$d )
 		dataset => $ds,
 	);
 
-	my $date = EPrints::Utils::get_iso_date( $t );
+	my $date = EPrints::Time::get_iso_date( $t );
 	$search->add_field( $ds->get_field( "datestamp" ), $date );
 		
 	my $list = $search->perform_search();

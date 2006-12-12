@@ -109,7 +109,7 @@ sub convert_dataobj
 	# month
 	if ($dataobj->exists_and_set( "date" )) {
 		$dataobj->get_value( "date" ) =~ /^[0-9]{4}-([0-9]{2})/;
-		$data->{bibtex}->{month} = EPrints::Utils::get_month_label( $plugin->{session}, $1 ) if $1;
+		$data->{bibtex}->{month} = EPrints::Time::get_month_label( $plugin->{session}, $1 ) if $1;
 	}
 
 	# note	

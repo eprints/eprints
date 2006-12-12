@@ -76,9 +76,9 @@ sub render_single_value
 
 	if( $self->{render_style} eq "short" )
 	{
-		return EPrints::Utils::render_short_date( $session, substr( $value,0,$l ) );
+		return EPrints::Time::render_short_date( $session, substr( $value,0,$l ) );
 	}
-	return EPrints::Utils::render_date( $session, substr( $value,0,$l ) );
+	return EPrints::Time::render_date( $session, substr( $value,0,$l ) );
 }
 	
 @EPrints::MetaField::Date::MONTHKEYS = ( 
@@ -94,7 +94,7 @@ sub _month_names
 	my $month;
 	foreach $month ( @EPrints::MetaField::Date::MONTHKEYS )
 	{
-		$months->{$month} = EPrints::Utils::get_month_label( 
+		$months->{$month} = EPrints::Time::get_month_label( 
 			$session, 
 			$month );
 	}
@@ -246,7 +246,7 @@ sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
 
-	return EPrints::Utils::render_date( $session, $value );
+	return EPrints::Time::render_date( $session, $value );
 }
 
 sub render_search_input
@@ -304,10 +304,10 @@ sub render_search_value
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_date_between",
-			from => EPrints::Utils::render_date( 
+			from => EPrints::Time::render_date( 
 					$session, 
 					$firstdate ),
-			to => EPrints::Utils::render_date( 
+			to => EPrints::Time::render_date( 
 					$session, 
 					$lastdate ) );
 	}
@@ -316,7 +316,7 @@ sub render_search_value
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_date_orless",
-			to => EPrints::Utils::render_date( 
+			to => EPrints::Time::render_date( 
 					$session,
 					$lastdate ) );
 	}
@@ -325,12 +325,12 @@ sub render_search_value
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_date_ormore",
-			from => EPrints::Utils::render_date( 
+			from => EPrints::Time::render_date( 
 					$session,
 					$firstdate ) );
 	}
 	
-	return EPrints::Utils::render_date( $session, $value );
+	return EPrints::Time::render_date( $session, $value );
 }
 
 # overridden, date searches being EX means that 2000 won't match 

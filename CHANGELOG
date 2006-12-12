@@ -5985,3 +5985,10 @@ PACKAGE: 2.2.99.2
  * List was leaving stray caches around. Fixed.
  * NULL dir field in EPrint now causes abort: it's too serious for just a 
     warning.
+
+2006-12-12 moj
+ * Shifted time/date-related functions from Utils to Time.
+ * Added moved functions to BackCompatibility
+ * Searched/Replaced any functions that were moved and updated to 
+    Time.
+

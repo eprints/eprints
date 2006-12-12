@@ -49,7 +49,7 @@ $response->appendChild(
 	$session->render_data_element( 
 		2, 
 		"responseDate", 
-		EPrints::Utils::get_iso_timestamp() ) );
+		EPrints::Time::get_iso_timestamp() ) );
 
 
 my @bits = ();

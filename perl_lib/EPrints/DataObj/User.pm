@@ -287,7 +287,7 @@ sub get_defaults
 
 	my $userid = _create_userid( $session );
 
-	my $date_joined = EPrints::Utils::get_iso_timestamp();
+	my $date_joined = EPrints::Time::get_iso_timestamp();
 
 	my $defaults = { 
 		"userid"=>$userid,

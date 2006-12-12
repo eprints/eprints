@@ -165,7 +165,7 @@ sub make_page
 			email=>$session->make_text( $v->{email} ),
 			username=>$session->make_text( $v->{username} ) ) );
 
-	my $maxdelta = EPrints::Utils::human_delay(
+	my $maxdelta = EPrints::Time::human_delay(
 		$session->get_repository->get_conf( "pin_timeout" ) );
 
 	# If email fails then we should abort

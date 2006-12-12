@@ -940,7 +940,7 @@ sub reload
 	{
 		EPrints::abort( "Cannot write to file $file" );
 	}
-	print CHANGEDFILE "This file last poked at: ".EPrints::Utils::human_time()."\n";
+	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
 	close CHANGEDFILE;
 	if( $noise > 0 )
 	{
