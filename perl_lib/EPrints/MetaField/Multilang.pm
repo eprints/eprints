@@ -83,6 +83,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_ordered} = 0;
+	$defaults{languages} = $EPrints::MetaField::UNDEF;
 	$defaults{input_boxes} = 1;
 	return %defaults;
 }

@@ -61,7 +61,6 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = "short";
-	$defaults{options} = [qw/ en fr /];
 	return %defaults;
 }
 

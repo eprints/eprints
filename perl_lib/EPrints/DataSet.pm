@@ -287,9 +287,18 @@ sub process_field
 	}
 	if( $fielddata->{type} eq "multilang" )
 	{	
+		my $langs = $self->{repository}->get_conf('languages');
+		if( defined $fielddata->{languages} )
+		{
+			$langs = $fielddata->{languages};
+		}
 		@cfields = (
 			@{$fielddata->{fields}},
-			{ sub_name=>"lang",type=>"langid" },
+			{ 
+				sub_name=>"lang",
+				type=>"langid",
+				options => $langs,
+			}, 
 		);
 	}
 		

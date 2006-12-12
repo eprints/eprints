@@ -6011,3 +6011,7 @@ PACKAGE: 2.2.99.2
 2006-12-12 cjg
  * Added hook on files modified.
 
+2006-12-12 cjg
+ * Added description for subject::edit
+ * Made multilang use $c->{languages} for their default list of langs.
+ * ...or take it from a multifield property.
