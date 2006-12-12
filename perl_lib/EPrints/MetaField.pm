@@ -1717,38 +1717,34 @@ sub ordervalue_basic
 
 sub to_xml
 {
-	my( $self, $session, $value, $depth ) = @_;
+	my( $self, $session, $value, $dataset ) = @_;
 
-	$depth = 0 unless defined $depth;
+	if( defined $self->{parent_name} )
+	{
+		return $session->make_doc_fragment;
+	}
 
-	my $r = $session->make_doc_fragment;
-	my $ind = "  "x$depth;
-
-	$r->appendChild( $session->make_text( "\n$ind" ) );
 	my $tag = $session->make_element( $self->get_name );	
-	$r->appendChild( $tag );
 	if( $self->get_property( "multiple" ) )
 	{
 		foreach my $single ( @{$value} )
 		{
-			$tag->appendChild( $session->make_text( "\n$ind " ) );
 			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_basic( $session, $single, $depth+1 ) );
+			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset ) );
 			$tag->appendChild( $item );
 		}
-		$tag->appendChild( $session->make_text( "\n$ind" ) );
 	}
 	else
 	{
-		$tag->appendChild( $self->to_xml_basic( $session, $value, $depth ) );
+		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset ) );
 	}
 
-	return $r;
+	return $tag;
 }
 
 sub to_xml_basic
 {
-	my( $self, $session, $value, $depth ) = @_;
+	my( $self, $session, $value, $dataset ) = @_;
 
 	if( !defined $value ) 
 	{

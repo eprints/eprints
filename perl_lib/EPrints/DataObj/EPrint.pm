@@ -223,24 +223,14 @@ reference of metadata.
 
 sub new_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $session, $known, $dataset ) = @_;
 
-	my $self = {};
-	if( defined $data )
-	{
-		$self->{data} = EPrints::Utils::clone( $data );
-	}
-	else
-	{
-		$self->{data} = {};
-	}
-	$self->{dataset} = $dataset;
-	$self->{session} = $session;
-
-	bless( $self, $class );
-
-	return( $self );
+	return $class->SUPER::new_from_data(
+			$session,
+			$known,
+			$dataset );
 }
+
 	
 
 ######################################################################

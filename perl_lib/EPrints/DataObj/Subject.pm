@@ -102,16 +102,23 @@ sub new
 	{
 		my $data = {
 			subjectid => $EPrints::DataObj::Subject::root_subject,
-			name_name => [ "ROOT" ],
-			name_lang => [ "en" ],
+			name => [],
 			parents => [],
 			ancestors => [ $EPrints::DataObj::Subject::root_subject ],
 			depositable => "FALSE" 
 		};
-		my $langid;
-		foreach $langid ( @{$session->get_repository->get_conf( "languages" )} )
+		my $name;
+		foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 		{
-			$data->{name}->{$langid} = EPrints::XML::to_string( $session->get_repository->get_language( $langid )->phrase( "lib/subject:top_level", {}, $session ) );
+ 			my $top_level_name = EPrints::XML::to_string( 
+				$session->get_repository->get_language( $langid )->phrase( 
+							"lib/subject:top_level", 
+							{}, 
+							$session ) );
+
+			push @{$data->{name}}, { 
+				lang => $langid,
+				name => $top_level_name };
 		}
 
 		return EPrints::DataObj::Subject->new_from_data( $session, $data );
@@ -139,17 +146,14 @@ new Subjects coming out of the database.
 
 sub new_from_data
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $known ) = @_;
 
-	my $self = {};
-	
-	$self->{data} = $data;
-	$self->{dataset} = $session->get_repository->get_dataset( "subject" ); 
-	$self->{session} = $session;
-	bless $self, $class;
-
-	return( $self );
+	return $class->SUPER::new_from_data(
+			$session,
+			$known,
+			$session->get_repository->get_dataset( "subject" ) );
 }
+
 
 
 

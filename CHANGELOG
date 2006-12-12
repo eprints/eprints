@@ -6034,3 +6034,9 @@ PACKAGE: 2.2.99.2
  * namedset fields can have an option param. This is largely used to limit
     the options shown in workflows.
 
+2006-12-12 cjg
+ * New from data now handles compound datastructures
+ * XML export now run through XML::tidy.
+ * Import/Export XML does something nice with compound fields.
+ * Fixed some $plugin->params which should have been ->param
+

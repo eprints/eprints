@@ -101,15 +101,12 @@ sub new_from_data
 {
 	my( $class, $session, $known ) = @_;
 
-	my $self = {};
-	
-	$self->{data} = $known;
-	$self->{dataset} = $session->get_repository->get_dataset( "request" ); 
-	$self->{session} = $session;
-	bless $self, $class;
-
-	return( $self );
+	return $class->SUPER::new_from_data(
+			$session,
+			$known,
+			$session->get_repository->get_dataset( "request" ) );
 }
+
 
 ######################################################################
 

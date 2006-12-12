@@ -103,7 +103,7 @@ sub xml_field_to_epdatafield
 			next;
 		}
 	
-		if( $field->is_virtual )
+		if( $field->is_virtual && !$field->is_type( "compound","multilang") )
 		{
 			$plugin->warning( $plugin->phrase( "unknown_virtual", type => $type, fieldname => $field->get_name ) );
 			next;
@@ -135,6 +135,27 @@ sub xml_field_to_data_single
 sub xml_field_to_data_basic
 {
 	my( $plugin,$dataset,$field,$xml ) = @_;
+
+	if( $field->is_type( "compound","multilang") )
+	{
+		my $data = {};
+		my @list = $xml->getChildNodes;
+		my %a_to_f = $field->get_alias_to_fieldname;
+		foreach my $el ( @list )
+		{
+			next unless EPrints::XML::is_dom( $el, "Element" );
+			my $nodename = $el->nodeName();
+			my $name = $a_to_f{$nodename};
+			if( !defined $name )
+			{
+				$plugin->warning( "Unknown element found inside compound field: $nodename. (skipping)" );
+				next;
+			}
+			my $f = $dataset->get_field( $name );
+			$data->{$nodename} = $plugin->xml_field_to_data_basic( $dataset, $f, $el );
+		}
+		return $data;
+	}
 
 	unless( $field->is_type( "name" ) )
 	{

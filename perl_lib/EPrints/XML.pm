@@ -221,7 +221,7 @@ sub to_string
 	my @n = ();
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
-		my $tagname = $node->tagName;
+		my $tagname = $node->getTagName;
 
 		# lowercasing all tags screws up OAI.
 		#$tagname = "\L$tagname";

@@ -109,7 +109,7 @@ sub has_xmlns
 {
 	my( $plugin, $unused ) = @_;
 
-	return 1 if( defined $plugin->params("xmlns") );
+	return 1 if( defined $plugin->param("xmlns") );
 }
 
 
@@ -188,7 +188,7 @@ sub dataobj_export_url
 	$url .= "/users" if $staff;
 	$url .= "/export/".$dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;
-	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->params("suffix");
+	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->param("suffix");
 
 	return $url;
 }

@@ -111,6 +111,30 @@ sub render_single_value
 	return $table;
 }
 
+sub to_xml_basic
+{
+	my( $self, $session, $value, $dataset ) = @_;
+
+	my $r = $session->make_doc_fragment;
+	if( !EPrints::Utils::is_set( $value )  )
+	{
+		return $r;
+	}
+	my $f = $self->get_property( "fields_cache" );
+	my %fieldname_to_alias = $self->get_fieldname_to_alias;
+	foreach my $field_conf ( @{$f} )
+	{
+		my $name = $field_conf->{name};
+		my $field = $dataset->get_field( $name );
+		my $alias = $fieldname_to_alias{$name};
+		my $v = $value->{$alias};
+		my $tag = $session->make_element( $alias );
+		$tag->appendChild( $field->to_xml_basic( $session, $v, $dataset ) );
+		$r->appendChild( $tag );
+	}
+	return $r;
+}
+
 # This type of field is virtual.
 sub is_virtual
 {
@@ -361,7 +385,7 @@ sub get_property_defaults
 	$defaults{fields} = $EPrints::MetaField::REQUIRED;
 	$defaults{fields_cache} = $EPrints::MetaField::REQUIRED;
 	$defaults{show_in_fieldlist} = 0;
-	$defaults{export_as_xml} = 0;
+	$defaults{export_as_xml} = 1;
 	$defaults{text_index} = 0;
 	return %defaults;
 }

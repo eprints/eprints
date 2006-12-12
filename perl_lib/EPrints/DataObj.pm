@@ -113,6 +113,20 @@ sub new_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
+	my $self = { data=>{} };
+	$self->{dataset} = $dataset;
+	$self->{session} = $session;
+	bless( $self, $class );
+
+	if( defined $data )
+	{
+		foreach( keys %{$data} )
+		{
+			$self->set_value( $_, $data->{$_} );
+		}
+	}
+
+	return( $self );
 }
 
 ######################################################################
@@ -185,7 +199,9 @@ sub create_from_data
 		$data->{$k} = $defaults->{$k};
 	}
 
-	$session->get_database->add_record( $dataset, $data );
+	my $temp_item = $class->new_from_data( $session, $data, $dataset );
+
+	$session->get_database->add_record( $dataset, $temp_item->get_data );
                                                                                                                   
 	my $keyfield = $dataset->get_key_field;
 	my $kfname = $keyfield->get_name;
@@ -912,8 +928,6 @@ sub to_xml
 
 	$opts{version} = "2" unless defined $opts{version};
 
-	my $frag = $self->{session}->make_doc_fragment;
-	$frag->appendChild( $self->{session}->make_text( "  " ) );
 	my %attrs = ();
 	my $ns = EPrints::XML::namespace( 'data', $opts{version} );
 	if( !defined $ns )
@@ -928,6 +942,7 @@ sub to_xml
 	my $tl = "record";
 	if( $opts{version} == 2 ) { $tl = $self->{dataset}->confid; }	
 	my $r = $self->{session}->make_element( $tl, %attrs );
+	$r->appendChild( $self->{session}->make_text( "\n" ) );
 #$r->appendChild( $self->{session}->make_text( "x\nx" ) );
 	foreach my $field ( $self->{dataset}->get_fields() )
 	{
@@ -943,14 +958,14 @@ sub to_xml
 			$r->appendChild( $field->to_xml( 
 				$self->{session}, 
 				$self->get_value( $field->get_name() ),
-				1 ) ); # no xmlns on inner elements
+				$self->{dataset} ) ); # no xmlns on inner elements
 		}
 		if( $opts{version} eq "1" )
 		{
 			$r->appendChild( $field->to_xml_old( 
 				$self->{session}, 
 				$self->get_value( $field->get_name() ),
-				1 ) ); # no xmlns on inner elements
+				2 ) ); # no xmlns on inner elements
 		}
 	}
 
@@ -959,31 +974,21 @@ sub to_xml
 		if( $self->{dataset}->confid eq "user" )
 		{
 			my $saved_searches = $self->{session}->make_element( "saved_searches" );
-			$saved_searches->appendChild( $self->{session}->make_text( "\n" ) );
 			foreach my $saved_search ( $self->get_saved_searches )
 			{
-				$saved_searches->appendChild( $self->{session}->make_text( "  " ) );
 				$saved_searches->appendChild( $saved_search->to_xml( %opts ) );
 			}	
-			$r->appendChild( $self->{session}->make_text( "\n  " ) );
 			$r->appendChild( $saved_searches );
-			$saved_searches->appendChild( $self->{session}->make_text( "  " ) );
-			$r->appendChild( $self->{session}->make_text( "\n" ) );
 		}
 
 		if( $self->{dataset}->confid eq "eprint" )
 		{
 			my $docs = $self->{session}->make_element( "documents" );
-			$docs->appendChild( $self->{session}->make_text( "\n" ) );
 			foreach my $doc ( $self->get_all_documents )
 			{
-				$docs->appendChild( $self->{session}->make_text( "  " ) );
 				$docs->appendChild( $doc->to_xml( %opts ) );
 			}	
-			$r->appendChild( $self->{session}->make_text( "\n  " ) );
 			$r->appendChild( $docs );
-			$docs->appendChild( $self->{session}->make_text( "  " ) );
-			$r->appendChild( $self->{session}->make_text( "\n" ) );
 		}
 
 		if( $self->{dataset}->confid eq "document" )
@@ -1020,19 +1025,16 @@ sub to_xml
 					$data_el->appendChild( $self->{session}->make_text( MIME::Base64::encode($data) ) );
 					$file->appendChild( $data_el );
 				}
-				$files->appendChild( $self->{session}->make_text( "    " ) );
 				$files->appendChild( $file );
-				$file->appendChild( $self->{session}->make_text( "\n    " ) );
-				$files->appendChild( $self->{session}->make_text( "\n" ) );
 			}
-			$r->appendChild( $self->{session}->make_text( "\n  " ) );
 			$r->appendChild( $files );
-			$files->appendChild( $self->{session}->make_text( "  " ) );
-			$r->appendChild( $self->{session}->make_text( "\n" ) );
 		}	
 	}
 
-	$r->appendChild( $self->{session}->make_text( "  " ) );
+	EPrints::XML::tidy( $r, {}, 1 );
+
+	my $frag = $self->{session}->make_doc_fragment;
+	$frag->appendChild( $self->{session}->make_text( "  " ) );
 	$frag->appendChild( $r );
 	$frag->appendChild( $self->{session}->make_text( "\n" ) );
 

@@ -122,18 +122,14 @@ reference of metadata.
 
 sub new_from_data
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $known ) = @_;
 
-	my $self = {};
-	bless $self, $class;
-
-	$self->{data} = $data;
-	$self->{dataset} = $session->get_repository->get_dataset( 
-		"saved_search" );
-	$self->{session} = $session;
-	
-	return $self;
+	return $class->SUPER::new_from_data(
+			$session,
+			$known,
+			$session->get_repository->get_dataset( "saved_search" ) );
 }
+
 
 ######################################################################
 # =pod
