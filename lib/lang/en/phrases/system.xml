@@ -948,8 +948,8 @@ Titles and Help for the System Fields
     <epp:phrase id="subject_fieldname_depositable">Depositable</epp:phrase>
     <epp:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</epp:phrase>
     <epp:phrase id="subject_radio_depositable"><label><epc:pin name="true"/>Yes, users can add items to this subject.</label><br/><label><epc:pin name="false"/>No. (In which case it should probably have some children.</label></epp:phrase>
-    <epp:phrase id="subject_fieldname_newsubjectid">Subject ID String</epp:phrase>
-    <epp:phrase id="subject_fieldhelp_newsubjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It shoud contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</epp:phrase>
+    <epp:phrase id="subject_fieldname_subjectid">Subject ID String</epp:phrase>
+    <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It shoud contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</epp:phrase>
 
     <epp:phrase id="history_fieldname_objectid">Object ID</epp:phrase>
     <epp:phrase id="history_fieldname_datasetid">Object Type</epp:phrase>
@@ -1182,28 +1182,32 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Subject/Edit:title">Edit subject</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:subjectid"><p>Subject ID: <epc:pin name="id"/></p></epp:phrase>
 
-<!--
-    <epp:phrase id="cgi/users/edit_subject:intro_title">Edit Subjects Tool</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:intro_blurb"><p>This is the EPrints subject editor tool. You should be aware that it can make major changes <em>which cannot be undone</em>. If you remove a subject which is the only subject of an eprint then you will no longer be able to find that eprint via the browse views, only by the search.</p><p>Be careful. Think before deleting anything.</p><p>(Of course, if this is not a live repository, then it doesn't matter.)</p><p><epc:pin name="continuelink">Continue</epc:pin></p></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:error_badsubject">The specified subject does not exist, or a database error has occured.</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:subject">Subject</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:inarchive">Items in Repository</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:inbuffer">Items in Review</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:nparents">Number of Parents</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:nchildren">Number of Children</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:action_delete">Delete</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:action_unlink">Unlink</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:location"><h2>Location(s) in Hierarchy</h2></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:children"><h2>Children</h2></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:action_submit">Submit</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:action_add">Add Child</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:add_child"><h2>Add Child to <pin name="subid"/></h2></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:edit_heading"><h2>Edit <pin name="subid"/></h2></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an used subject id to create a new subject.</p></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:problem_noid">No ID given for new child</epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:problems"><h2>Problems</h2></epp:phrase>
-    <epp:phrase id="cgi/users/edit_subject:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</epp:phrase>
--->
+    <epp:phrase id="Plugin/Screen/Subject/Edit:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:problem_noid">No ID given for new child</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:problems"><h2>Problems</h2></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:location">Location(s) in Hierarchy</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:subject">Subject</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:inarchive">Items in Repository</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:inbuffer">Items in Review</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:nparents">Number of Parents</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:nchildren">Number of Children</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:action_delete">Delete</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:action_unlink">Unlink</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:children">Children</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:add_child">Add child to subject node: <epc:pin name="subid"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an unused subject id to create a new subject.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:action_add">Add Child</epp:phrase>
+    <epp:phrase id="subject_fieldname_name_name">Name</epp:phrase>
+    <epp:phrase id="subject_fieldname_name_lang">Language</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:modify">Modify subject node</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:action_save">Save changes</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:saved">Saved changes</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:error_badsubject">The specified subject does not exist, or a database error has occured.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:unlinked">Unlinked subject. This subject node still exists in other places in the subject tree.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:removed">Removed subject. This subject node has been deleted.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:added">Created new subject node with ID "<epc:pin name="newchild" />". Please now enter a subject name and set the subject to be depositable, if applicable.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:linked">Linked the existing subject node "<epc:pin name="newchild" />" as a child of this subject node.</epp:phrase>
+
 
     <!-- other screens -->
 

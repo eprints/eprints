@@ -102,7 +102,8 @@ sub new
 	{
 		my $data = {
 			subjectid => $EPrints::DataObj::Subject::root_subject,
-			name => {},
+			name_name => [ "ROOT" ],
+			name_lang => [ "en" ],
 			parents => [],
 			ancestors => [ $EPrints::DataObj::Subject::root_subject ],
 			depositable => "FALSE" 

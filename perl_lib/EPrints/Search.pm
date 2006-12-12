@@ -682,12 +682,20 @@ sub get_conditions
 
 	my $any_field_set = 0;
 	my @r = ();
+	my @filters = ();
 	foreach my $sf ( $self->get_searchfields )
 	{
 		next unless( $sf->is_set() );
 		$any_field_set = 1;
 
-		push @r, $sf->get_conditions;
+                if( $self->{filtersmap}->{$sf->get_id} )
+		{
+			push @filters, $sf->get_conditions;
+		}
+		else
+		{
+			push @r, $sf->get_conditions;
+		}
 	}
 
 	my $cond;
@@ -713,6 +721,21 @@ sub get_conditions
 			$cond = EPrints::Search::Condition->new( "FALSE" );
 		}
 	}
+
+	if( scalar @filters )
+	{
+		my $fcond;
+		if( scalar @filters == 1 )
+		{
+			$fcond = $filters[0];
+		}
+		else
+		{
+			$fcond = EPrints::Search::Condition->new( "AND", @filters );
+		}
+		$cond = EPrints::Search::Condition->new( "AND", $fcond, $cond );
+	}
+	
 		
 	$cond->optimise;
 

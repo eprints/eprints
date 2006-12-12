@@ -5997,3 +5997,13 @@ PACKAGE: 2.2.99.2
 
 2006-12-12 moj
  * Removed a '!' and fixed the required fields bug
+
+2006-12-12 cjg
+ * Added Subject::Edit
+ * Fixed bug in filtered searches when searchfields were being OR'd so 
+    were filters. Which was bad.
+ * Multilang subjects now don't spew warnings to log if they have undefined
+    languages (although there should be a validation issue)
+ * Added more code to keep abstract search from spewing warnings when it
+    gets odd params.
+ * Added subject editor to admin options.

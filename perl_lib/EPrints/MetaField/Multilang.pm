@@ -70,7 +70,8 @@ sub render_value
 	foreach my $row ( @{$value} )
 	{
 		my $lang = $row->{lang};
-		$map->{$row->{lang}} = $row->{$fieldname_to_alias{$first_name}};
+		$lang = "undef" unless defined $lang;	
+		$map->{$lang} = $row->{$fieldname_to_alias{$first_name}};
 	}
 	my $best = $self->most_local( $session, $map );
 

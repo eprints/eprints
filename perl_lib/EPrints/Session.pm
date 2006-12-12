@@ -1779,7 +1779,7 @@ sub _render_subjects_aux
 	{
 		if( $linkmode == 1 )
 		{
-			$elementx = $self->render_link( "edit_subject?subjectid=".$id ); 
+			$elementx = $self->render_link( "?screen=Subject::Edit&subjectid=".$id ); 
 		}
 		elsif( $linkmode == 2 )
 		{
