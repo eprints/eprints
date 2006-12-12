@@ -46,6 +46,10 @@ sub tags
 {
 	my( $self, $session ) = @_;
 
+	if( defined $self->{options} )
+	{
+		return @{$self->{options}};
+	}
 	return $session->get_repository->get_types( $self->{set_name} );
 }
 
@@ -53,6 +57,10 @@ sub get_unsorted_values
 {
 	my( $self, $session, $dataset, %opts ) = @_;
 
+	if( defined $self->{options} )
+	{
+		return @{$self->{options}};
+	}
 	my @types = $session->get_repository->get_types( $self->{set_name} );
 
 	return @types;
@@ -70,7 +78,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{set_name} = $EPrints::MetaField::REQUIRED;
-	delete $defaults{options}; # inherrited but unwanted
+	$defaults{options} = $EPrints::MetaField::UNDEF;
 	return %defaults;
 }
 
