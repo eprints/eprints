@@ -30,7 +30,7 @@
     <epp:phrase id="eprint_fieldname_editors">Editors</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_corp_creators">Corporate Creators</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_corp_creators"></epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_corp_creators">Companies that are considered authors of this item.</epp:phrase>
     
 	<epp:phrase id="eprint_fieldname_creators_name">Creators</epp:phrase>
     <epp:phrase id="eprint_fieldname_creators_id">Email</epp:phrase>
