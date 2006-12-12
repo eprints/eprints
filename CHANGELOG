@@ -5994,3 +5994,6 @@ PACKAGE: 2.2.99.2
 
 2006-12-12 moj
  * Added help for corp authors
+
+2006-12-12 moj
+ * Removed a '!' and fixed the required fields bug

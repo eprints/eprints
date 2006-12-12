@@ -342,7 +342,7 @@ sub xml_to_metafield
 	foreach my $prop ( qw/ required input_lookup_url input_lookup_params / )
 	{
 		my $setting = $xml->getAttribute( $prop );
-		if( !defined $setting && $prop eq "required" && $setting eq "yes" )
+		if( defined $setting && $prop eq "required" && $setting eq "yes" )
 		{
 			$setting = 1;
 		}
@@ -362,7 +362,6 @@ sub xml_to_metafield
 				EPrints::XML::contents_of( $child ) );
 		}
 	}
-
 	return $field;
 }
 
