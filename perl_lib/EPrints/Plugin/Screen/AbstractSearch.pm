@@ -329,6 +329,10 @@ sub render_export_bar
 	{
                 return $self->{session}->make_doc_fragment;
 	}
+	if( ref($self->{processor}->{results}) ne "EPrints::List" )
+	{
+                return $self->{session}->make_doc_fragment;
+	}
 
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};

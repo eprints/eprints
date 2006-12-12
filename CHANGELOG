@@ -6015,3 +6015,7 @@ PACKAGE: 2.2.99.2
  * Added description for subject::edit
  * Made multilang use $c->{languages} for their default list of langs.
  * ...or take it from a multifield property.
+
+2006-12-12 cjg
+ * Another attempt to supress the odd no-results bug we're seeing in the log.
+ * Added a warning if no contact_email and no public docs.
