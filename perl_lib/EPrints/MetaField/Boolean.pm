@@ -71,13 +71,22 @@ sub get_basic_input_elements
 
 	if( $self->{input_style} eq "menu" )
 	{
-		my %settings = (
-			height=>2,
-			values=>[ "TRUE", "FALSE" ],
-			labels=>{
+		my @values = qw/ TRUE FALSE /;
+		my %labels = (
 TRUE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
-FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
-			},
+FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
+);
+		my $height = 2;
+		if( !$self->get_property( "required" ) )
+		{
+			push @values, "";
+			$labels{""} = $session->phrase( "lib/metafield:unspecified_selection" );
+			$height++;
+		}
+		my %settings = (
+			height=>$height,
+			values=>\@values,
+			labels=>\%labels,
 			name=>$basename,
 			default=>$value
 		);
@@ -96,14 +105,30 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE")
 			value => "TRUE" );
 		my $false = $session->render_noenter_input_field(
 			type => "radio",
-			checked=>( defined $value && $value ne 
-					"TRUE" ? "checked" : undef ),
+			checked=>( defined $value && $value eq 
+					"FALSE" ? "checked" : undef ),
 			name => $basename,
 			value => "FALSE" );
-		return [[{ el=>$session->html_phrase(
-			$self->{confid}."_radio_".$self->{name},
-			true=>$true,
-			false=>$false ) }]];
+		my $f = $session->make_doc_fragment;
+		$f->appendChild( 
+			$session->html_phrase(
+				$self->{confid}."_radio_".$self->{name},
+				true=>$true,
+				false=>$false ) );
+		if( !$self->get_property( "required" ) )
+		{
+			my $div = $session->make_element( "div" );
+			$div->appendChild( 
+				$session->render_noenter_input_field(
+					type => "radio",
+					checked=>( !EPrints::Utils::is_set($value) ? "checked" : undef ),
+					name => $basename,
+					value => "" ) );
+			$f->appendChild( $div );
+			$div->appendChild( $session->html_phrase( 
+				"lib/metafield:unspecified_selection" ) );
+		}
+		return [[{ el=>$f }]];
 	}
 			
 	# render as checkbox (ugly)
@@ -120,18 +145,18 @@ sub form_value_basic
 	my( $self, $session, $basename ) = @_;
 	
 	my $form_val = $session->param( $basename );
-	my $true = 0;
 	if( 
 		$self->{input_style} eq "radio" || 
 		$self->{input_style} eq "menu" )
 	{
-			$true = (defined $form_val && $form_val eq "TRUE");
+		return "TRUE" if( $form_val eq "TRUE" );
+		return "FALSE" if( $form_val eq "FALSE" );
+		return;
 	}
-	else
-	{
-		$true = defined $form_val;
-	}
-	return ( $true ? "TRUE" : "FALSE" );
+
+	# checkbox can't be NULL.
+	return "TRUE" if defined $form_val;
+	return "FALSE";
 }
 
 sub get_unsorted_values

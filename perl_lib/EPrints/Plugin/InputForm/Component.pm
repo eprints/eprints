@@ -339,18 +339,17 @@ sub xml_to_metafield
 	}
 
 	my $cloned = 0;
-	foreach my $prop ( qw/ required input_lookup_url input_lookup_params / )
+	foreach my $prop ( qw/ required input_lookup_url input_lookup_params top options / )
 	{
 		my $setting = $xml->getAttribute( $prop );
-		if( defined $setting && $prop eq "required" && $setting eq "yes" )
-		{
-			$setting = 1;
-		}
-		if( EPrints::Utils::is_set( $setting ) )
-		{
-			if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
-			$field->set_property( $prop, $setting );
-		}
+		next unless EPrints::Utils::is_set( $setting );
+
+		if( $prop eq "required" && $setting eq "yes" ) { $setting = 1; }
+		if( $prop eq "required" && $setting eq "no" ) { $setting = 0; }
+		if( $prop eq "options" ) { $setting = [split( ",", $setting )]; }
+		
+		if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
+		$field->set_property( $prop, $setting );
 	}
 	foreach my $child ( $xml->getChildNodes )
 	{

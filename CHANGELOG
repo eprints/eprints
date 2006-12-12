@@ -6019,3 +6019,8 @@ PACKAGE: 2.2.99.2
 2006-12-12 cjg
  * Another attempt to supress the odd no-results bug we're seeing in the log.
  * Added a warning if no contact_email and no public docs.
+
+2006-12-12 cjg
+ * Boolean fields which are not required now get an UNSPECIFIED option
+ * workflow can override the top subject field and the options from a set
+ 
