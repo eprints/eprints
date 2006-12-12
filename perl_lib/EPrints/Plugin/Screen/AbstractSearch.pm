@@ -261,6 +261,7 @@ sub _get_export_plugins
 	return $self->{session}->plugin_list( 
 			type=>"Export",
 			can_accept=>"list/".$self->{processor}->{search}->{dataset}->confid, 
+			is_advertised=>1,
 			is_visible=>$self->_vis_level );
 }
 

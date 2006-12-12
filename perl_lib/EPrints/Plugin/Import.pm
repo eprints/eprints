@@ -14,6 +14,7 @@ sub new
 
 	$self->{name} = "Base input plugin: This should have been subclassed";
 	$self->{visible} = "all";
+	$self->{advertise} = 1;
 
 	return $self;
 }
@@ -22,7 +23,7 @@ sub render_name
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{session}->make_text( $plugin->{name} );
+	return $plugin->{session}->make_text( $plugin->param("name") );
 }
 
 sub matches 
@@ -37,6 +38,10 @@ sub matches
 	{
 		return( $self->can_produce( $param ) );
 	}
+	if( $test eq "is_advertised" )
+	{
+		return( $self->param( "advertise" ) == $param );
+	}
 
 	# didn't understand this match 
 	return $self->SUPER::matches( $test, $param );
@@ -50,13 +55,14 @@ sub is_visible
 
 	return( 1 ) unless( defined $vis_level );
 
-	return( 0 ) unless( defined $plugin->{visible} );
+	my $visible = $plugin->param("visible");
+	return( 0 ) unless( defined $visible );
 
-	if( $vis_level eq "all" && $plugin->{visible} ne "all" ) {
+	if( $vis_level eq "all" && $visible ne "all" ) {
 		return 0;
 	}
 
-	if( $vis_level eq "staff" && $plugin->{visible} ne "all" && $plugin->{visible} ne "staff" ) {
+	if( $vis_level eq "staff" && $visible ne "all" && $visible ne "staff" ) {
 		return 0;
 	}
 
@@ -67,7 +73,8 @@ sub can_produce
 {
 	my( $plugin, $format ) = @_;
 
-	foreach my $a_format ( @{$plugin->{produce}} ) {
+	my $produce = $plugin->param( "produce" );
+	foreach my $a_format ( @{$produce} ) {
 		if( $a_format =~ m/^(.*)\*$/ ) {
 			my $base = $1;
 			return( 1 ) if( substr( $format, 0, length $base ) eq $base );

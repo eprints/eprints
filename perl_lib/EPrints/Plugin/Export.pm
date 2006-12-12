@@ -16,6 +16,7 @@ sub new
 	$self->{suffix} = ".txt";
 	$self->{visible} = "all";
 	$self->{mimetype} = "text/plain";
+	$self->{advertise} = 1;
 
 	return $self;
 }
@@ -24,7 +25,7 @@ sub render_name
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{session}->make_text( $plugin->{name} );
+	return $plugin->{session}->make_text( $plugin->param("name") );
 }
 
 sub matches 
@@ -47,6 +48,10 @@ sub matches
 	{
 		return( $self->has_xmlns( $param ) );
 	}
+	if( $test eq "is_advertised" )
+	{
+		return( $self->param( "advertise" ) == $param );
+	}
 
 	# didn't understand this match 
 	return $self->SUPER::matches( $test, $param );
@@ -67,13 +72,15 @@ sub is_visible
 
 	return( 1 ) unless( defined $vis_level );
 
-	return( 0 ) unless( defined $plugin->{visible} );
+	my $visible = $plugin->param("visible");
+	return( 0 ) unless( defined $visible );
 
-	if( $vis_level eq "all" && $plugin->{visible} ne "all" ) {
+	if( $vis_level eq "all" && $visible ne "all" ) {
 		return 0;
 	}
 
-	if( $vis_level eq "staff" && $plugin->{visible} ne "all" && $plugin->{visible} ne "staff" ) {
+	if( $vis_level eq "staff" && $visible ne "all" && $visible ne "staff" ) 
+	{
 		return 0;
 	}
 
@@ -84,7 +91,8 @@ sub can_accept
 {
 	my( $plugin, $format ) = @_;
 
-	foreach my $a_format ( @{$plugin->{accept}} ) {
+	my $accept = $plugin->param( "accept" );
+	foreach my $a_format ( @{$accept} ) {
 		if( $a_format =~ m/^(.*)\*$/ ) {
 			my $base = $1;
 			return( 1 ) if( substr( $format, 0, length $base ) eq $base );
@@ -101,7 +109,7 @@ sub has_xmlns
 {
 	my( $plugin, $unused ) = @_;
 
-	return 1 if( defined $plugin->{xmlns} );
+	return 1 if( defined $plugin->params("xmlns") );
 }
 
 
@@ -180,7 +188,7 @@ sub dataobj_export_url
 	$url .= "/users" if $staff;
 	$url .= "/export/".$dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;
-	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->{suffix};
+	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->params("suffix");
 
 	return $url;
 }

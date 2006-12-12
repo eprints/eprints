@@ -27,3 +27,17 @@
 # To remove action "blah" of Screen::Items from the key_tools list
 # $c->{plugins}->{"Screen::Items"}->{actions}->{blah}->{appears}->{key_tools} = undef;
 
+
+# Import/export plugins
+
+# to make a plugin only available to staff
+# $c->{plugins}->{"Export::Text"}->{params}->{visible} = "staff";
+
+# to only command line tools
+# $c->{plugins}->{"Export::Text"}->{params}->{visible} = "api";
+
+# to prevent a import/export plugin from being shown as an option, but
+# not actually disable it.
+# $c->{plugins}->{"Export::BibTeX"}->{params}->{advertise} = 0;
+
+

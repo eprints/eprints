@@ -104,23 +104,6 @@ sub global_uri
 ######################################################################
 =pod
 
-=item $value = EPrints::Plugin->param( $key )
-
-Return the value of a parameter in the current plugin.
-
-=cut
-######################################################################
-
-sub param
-{
-	my( $self, $key ) = @_;
-
-	return $self->{$key};
-}
-
-######################################################################
-=pod
-
 =item $id = $plugin->get_id
 
 Return the ID of this plugin.
@@ -252,6 +235,31 @@ sub matches
 
 	# didn't understand this match 
 	return 0;
+}
+
+######################################################################
+=pod
+
+=item $value = $plugin->param( $paramid )
+
+Return the parameter with the given id. This uses the hard wired
+parameter unless an override has been configured for this archive.
+
+=cut
+######################################################################
+
+sub param 
+{
+	my( $self, $paramid ) = @_;
+
+	my $pconf = $self->{session}->get_repository->get_conf( "plugins", $self->{id} );
+
+	if( defined $pconf->{params} && exists $pconf->{params}->{$paramid} )
+	{
+		return $pconf->{params}->{$paramid};
+	}
+
+	return $self->{$paramid};
 }
 
 ######################################################################

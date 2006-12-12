@@ -2155,6 +2155,7 @@ sub render_export_links
 	my @plugins = $self->{session}->plugin_list( 
 					type=>"Export",
 					can_accept=>"dataobj/eprint", 
+					is_advertised=>1,
 					is_visible=>$vis );
 	foreach my $plugin_id ( @plugins ) {
 		my $li = $self->{session}->make_element( "li" );

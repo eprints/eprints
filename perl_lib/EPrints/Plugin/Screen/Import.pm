@@ -242,6 +242,7 @@ sub render
 
 	my @plugins = $session->plugin_list( 
 			type=>"Import",
+			is_advertised=>1,
 			can_produce=>"dataobj/".$ds->confid );
 
 	my $pluginid_help_div = $session->make_element( "div" );
