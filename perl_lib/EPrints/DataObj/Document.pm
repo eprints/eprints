@@ -1314,6 +1314,10 @@ sub files_modified
 	}
 
 	$self->make_thumbnails;
+	if( $self->{session}->get_repository->can_call( "on_files_modified" ) )
+	{
+		$self->{session}->get_repository->call( "on_files_modified", $self->{session}, $self );
+	}
 }
 
 ######################################################################

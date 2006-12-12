@@ -86,3 +86,16 @@ $c->{guess_doc_type} = sub
 
 	return "other";
 };
+
+# This subroutine is called every time that the files in a document are
+# modified (added or removed).
+# You can place hooks for things like automatic data extraction here.
+
+$c->{on_files_modified} = sub
+{
+	my( $session, $document ) = @_;
+
+	# do your stuff
+};
+
+

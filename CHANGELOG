@@ -6007,3 +6007,7 @@ PACKAGE: 2.2.99.2
  * Added more code to keep abstract search from spewing warnings when it
     gets odd params.
  * Added subject editor to admin options.
+
+2006-12-12 cjg
+ * Added hook on files modified.
+
