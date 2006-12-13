@@ -41,6 +41,7 @@ sub from
 	if( defined $self->{processor}->{internal} )
 	{
 		my $from_ok = $self->workflow->update_from_form( $self->{processor},undef,1 );
+		$self->uncache_workflow;
 		return unless $from_ok;
 	}
 
@@ -74,6 +75,7 @@ sub action_save
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor} );
+	$self->uncache_workflow;
 	$self->{session}->reload_current_user;
 	
 	$self->{processor}->{screenid} = "User::View";
@@ -93,6 +95,7 @@ sub action_prev
 
 	$self->workflow->update_from_form( $self->{processor} );
 	$self->{session}->reload_current_user;
+	$self->uncache_workflow;
 	$self->workflow->prev;
 }
 
@@ -109,6 +112,7 @@ sub action_next
 	my( $self ) = @_;
 
 	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+	$self->uncache_workflow;
 	$self->{session}->reload_current_user;
 	return unless $from_ok;
 

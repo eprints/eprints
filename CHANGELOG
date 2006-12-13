@@ -6056,3 +6056,7 @@ PACKAGE: 2.2.99.2
  * added default organisation structure hierarchy for divisions field
  * added lookup script which attempts to detect and prevent duplicate deposits
     by looking at the title being entered
+
+2006-12-13 cjg
+ * Fixed bug that workflow next/prev didn't look at current data, but pre-
+    update from form data.

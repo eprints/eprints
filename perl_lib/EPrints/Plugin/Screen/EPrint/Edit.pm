@@ -39,6 +39,7 @@ sub from
 	if( defined $self->{processor}->{internal} )
 	{
 		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		$self->uncache_workflow;
 		return;
 	}
 
@@ -50,6 +51,7 @@ sub from
 		if( defined $self->{session}->param( "stage" ) )
 		{
 			$self->workflow->update_from_form( $self->{processor},$jump_to );
+			$self->uncache_workflow;
 		}
 
 		if( $jump_to eq "deposit" )
@@ -94,6 +96,7 @@ sub action_save
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor} );
+	$self->uncache_workflow;
 
 	$self->{processor}->{screenid} = "EPrint::View";
 
@@ -112,6 +115,7 @@ sub action_prev
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor}, $self->workflow->get_prev_stage_id );
+	$self->uncache_workflow;
 
 	$self->workflow->prev;
 }
@@ -129,6 +133,7 @@ sub action_next
 	my( $self ) = @_;
 
 	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
+	$self->uncache_workflow;
 
 	return unless $from_ok;
 

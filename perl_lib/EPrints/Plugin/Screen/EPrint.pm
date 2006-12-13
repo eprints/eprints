@@ -158,6 +158,13 @@ sub workflow
 	return $self->{processor}->{$cache_id};
 }
 
+sub uncache_workflow
+{
+	my( $self ) = @_;
+
+	delete $self->{processor}->{workflow};
+	delete $self->{processor}->{workflow_staff};
+}
 
 sub render_blister
 {
