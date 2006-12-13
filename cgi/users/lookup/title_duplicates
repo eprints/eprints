@@ -7,9 +7,15 @@ my $session = EPrints::Session->new();
 
 # security?
 
+# How many chars needed before we try and suggest duplicates?
+my $need = 5;
+
 my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
 my $q = $session->param( "q" );
+
+exit unless length( $q ) >= $need; 
+
 my $eprintid = $session->param( "eprintid" );
 
 my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!='$eprintid' AND eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
