@@ -1368,6 +1368,7 @@ sub generate_static
 		my @plugins = $self->{session}->plugin_list( 
 					type=>"Export",
 					can_accept=>"dataobj/".$self->{dataset}->confid, 
+					is_advertised => 1,
 					is_visible=>"all" );
 		if( scalar @plugins > 0 ) {
 			$links = $self->{session}->make_doc_fragment() if( !defined $links );
@@ -1383,6 +1384,7 @@ sub generate_static
 					type=>$plugin->param("mimetype"),
 					title=>EPrints::XML::to_string( $plugin->render_name ), );
 				$links->appendChild( $link );
+				$links->appendChild( $self->{session}->make_text( "\n" ) );
 			}
 		}
 		$self->{session}->write_static_page( 

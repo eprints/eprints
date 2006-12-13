@@ -1048,6 +1048,12 @@ END
 		reset_dataset( $repoid, $_ );
 	}		
 	
+	my $ok;
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "generate_static", "--verbose", $repoid );	
+	}
 }
 
 sub reset_dataset

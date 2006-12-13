@@ -6080,3 +6080,11 @@ PACKAGE: 2.2.99.2
 
 2006-12-13 tmb
  * Don't try and suggest duplicate titles unless at least 5 chars have been typed
+
+2006-12-13 cjg
+ * erase_eprints now offers to rebuild static pages.
+ * added google scholar headers
+ * moved LINKS in eprint_render to being done by plugins - cleaner 
+    eprint_render.pl
+ * Added \n after header links to make produced page less annoying.
+ 

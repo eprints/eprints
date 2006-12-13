@@ -49,6 +49,32 @@ sub output_dataobj
 	return $r;
 }
 
+sub dataobj_to_html_header
+{
+	my( $plugin, $dataobj ) = @_;
+
+	my $data = $plugin->convert_dataobj( $dataobj );
+
+	my $links = $plugin->{session}->make_doc_fragment;
+
+	$links->appendChild( $plugin->{session}->make_element(
+		"link",
+		rel => "schema.DC",
+		href => "http://purl.org/DC/elements/1.0/" ) );
+	$links->appendChild( $plugin->{session}->make_text( "\n" ));
+	my $dc = $plugin->convert_dataobj( $dataobj );
+	foreach( @{$dc} )
+	{
+		$links->appendChild( $plugin->{session}->make_element(
+			"meta",
+			name => "DC.".$_->[0],
+			content => $_->[1] ) );
+		$links->appendChild( $plugin->{session}->make_text( "\n" ));
+	}
+	return $links;
+}
+
+	
 
 sub convert_dataobj
 {

@@ -364,20 +364,8 @@ if(0){
 	my $title = $eprint->render_description();
 
 	my $links = $session->make_doc_fragment();
-
-	$links->appendChild( $session->make_element( 
-		"link",
-		rel => "schema.DC",
-		href => "http://purl.org/DC/elements/1.0/" ) );
-	my $dcplugin = $session->plugin( "Export::DC" );
-	my $dc = $dcplugin->convert_dataobj( $eprint );
-	foreach( @{$dc} )
-	{
-		$links->appendChild( $session->make_element( 
-			"meta",
-			name => "DC.".$_->[0],
-			content => $_->[1] ) );
-	}
+	$links->appendChild( $session->plugin( "Export::GoogleHeader" )->dataobj_to_html_header( $eprint ) );
+	$links->appendChild( $session->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
 
 	return( $page, $title, $links );
 };
