@@ -6065,3 +6065,7 @@ PACKAGE: 2.2.99.2
  * Prettier import screen
  * Import screen complains if no file/data given
  * Test run and Test run + Import actions for import screen
+
+2006-12-13 cjg
+ * Fixed OldXML export.
+

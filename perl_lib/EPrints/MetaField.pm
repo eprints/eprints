@@ -1766,6 +1766,12 @@ sub to_xml_old
 	my( $self, $session, $v, $no_xmlns ) = @_;
 
 	my $r = $session->make_doc_fragment;
+
+	if( $self->is_virtual )
+	{
+		return $r;
+	}
+
 	if( $self->get_property( "multiple" ) )
 	{
 		my @list = @{$v};
