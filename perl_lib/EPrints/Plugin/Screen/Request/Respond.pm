@@ -49,6 +49,8 @@ sub properties_from
 		return;
 	}
 
+	$self->{processor}->{response_sent} = $self->{session}->param( "response_sent" );
+
 	$self->SUPER::properties_from;
 
 }
@@ -170,6 +172,22 @@ sub action_confirm
 
 	$self->{processor}->add_message( "message", $self->{session}->html_phrase( "request/response:ack_page" ) );
 	$self->{processor}->{response_sent} = 1;
+}
+
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	my $url = $self->SUPER::redirect_to_me_url;
+	if( defined $self->{processor}->{requestid} )
+	{
+		$url.="&requestid=".$self->{processor}->{requestid};
+	}
+	if( defined $self->{processor}->{response_sent} )
+	{
+		$url.="&response_sent=".$self->{processor}->{response_sent};
+	}
+	return $url;
 }
 
 sub render

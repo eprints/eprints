@@ -1567,7 +1567,7 @@ Titles and Help for the System Fields
 <epp:phrase id="request/request_email:subject">Request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/request_email:body"><p>This item has been requested from <epc:phrase ref="archive_name" /> by <epc:pin name="requester"/>. Please can you respond.</p>
 
-<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
+<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
 
 <p>The following reason was given:</p>
 
@@ -1577,9 +1577,8 @@ Titles and Help for the System Fields
 </epp:phrase>
 
 <epp:phrase id="request/request_email:links">
-<p>To send the requested document, <epc:pin name="accept">click here</epc:pin>.</p>
-
-<p>To reject the request, <epc:pin name="reject">click here</epc:pin>.</p>
+<p><epc:pin name="accept">Accept the request</epc:pin></p>
+<p><epc:pin name="reject">Reject the request</epc:pin></p>
 </epp:phrase>
 
 <epp:phrase id="request/ack_page">Your request has been sent. <epc:pin name="link">Return to item</epc:pin></epp:phrase>
@@ -1587,7 +1586,7 @@ Titles and Help for the System Fields
 <epp:phrase id="request/ack_email:subject">Confirmation of request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/ack_email:body"><p>Your request for the following item has been passed on for action:</p>
 
-<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
+<p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
 
 <p>If you do not receive a reply or need advice at a later time please contact the <a href="mailto:{$config{adminemail}}">administrator</a>. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
 </epp:phrase>

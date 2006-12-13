@@ -6069,3 +6069,6 @@ PACKAGE: 2.2.99.2
 2006-12-13 cjg
  * Fixed OldXML export.
 
+2006-12-13 tmb
+ * Added redirect_to_me_url subs to fix Public::RequestCopy and Request::Respond screens 
+ * Removed "click here" from request copy email

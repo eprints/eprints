@@ -10,28 +10,10 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
+	# submit is a null action
 	$self->{actions} = [qw/ submit request /];
 
 	return $self;
-}
-
-sub register_furniture
-{
-	my( $self ) = @_;
-
-	return $self->{session}->make_doc_fragment;
-}
-
-sub render_toolbar
-{
-	my( $self ) = @_;
-
-	return $self->{session}->make_doc_fragment;
-}
-
-sub can_be_viewed
-{
-	return 1;
 }
 
 sub properties_from
@@ -58,6 +40,7 @@ sub properties_from
 	else
 	{
 		$self->{processor}->{eprint} = $self->{processor}->{document}->get_eprint;
+		$self->{processor}->{eprintid} = $self->{processor}->{eprint}->get_id;
 	}
 
 	# Check requested document is not already OA
@@ -81,6 +64,8 @@ sub properties_from
 		return;
 	}
 
+	$self->{processor}->{request_sent} = $self->{session}->param( "request_sent" );
+
 	$self->SUPER::properties_from;
 
 }
@@ -93,11 +78,8 @@ sub _properties_error
 	$self->{processor}->add_message( "error", $self->{session}->html_phrase( "general:bad_param" ) );
 }
 
-sub allow_submit
-{
-	return 1;
-}
-
+# submit is a null action
+sub allow_submit { return 1; }
 sub action_submit {}
 
 sub allow_request
@@ -231,6 +213,27 @@ sub action_request
 	$self->{processor}->add_message( "message", $session->html_phrase( "request/ack_page", link => $session->render_link( $eprint->get_url ) ) );
 	$self->{processor}->{request_sent} = 1;
 }
+
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	my $url = $self->SUPER::redirect_to_me_url;
+	if( defined $self->{processor}->{eprintid} )
+	{
+		$url.="&eprintid=".$self->{processor}->{eprintid};
+	}
+	if( defined $self->{processor}->{docid} )
+	{
+		$url.="&docid=".$self->{processor}->{docid};
+	}
+	if( defined $self->{processor}->{request_sent} )
+	{
+		$url.="&request_sent=".$self->{processor}->{request_sent};
+	}
+	return $url;
+} 
+
 
 sub render
 {
