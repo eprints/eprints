@@ -219,8 +219,10 @@ sub _import
 
 	if( scalar @misc > 0 && !$quiet )
 	{
+		my @lines = EPrints::DataObj::History::_mktext( $session, join( "", @misc[0..99] ), 0, 0, 80 );
+
 		my $pre = $session->make_element( "pre" );
-		$pre->appendChild( $session->make_text( join( "", @misc[0..99] ) ) );
+		$pre->appendChild( $session->make_text( join( "\n", @lines ) ) );
 		$self->{processor}->add_message( "warning", $session->html_phrase(
 			"Plugin/Screen/Import:import_errors",
 			errors => $pre ) );

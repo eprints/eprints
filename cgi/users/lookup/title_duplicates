@@ -10,8 +10,9 @@ my $session = EPrints::Session->new();
 my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
 my $q = $session->param( "q" );
+my $eprintid = $session->param( "eprintid" );
 
-my $sql = "SELECT eprintid, title FROM eprint WHERE eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
+my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!='$eprintid' AND eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
