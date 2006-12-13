@@ -1611,7 +1611,7 @@ Titles and Help for the System Fields
 
 <p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 
-<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact the <a href="mailto:{$config{adminemail}">administrator</a>.</p>
+<p>It may not always be straightforward to provide full text. Your local library may also be able to help you. For more general queries you may also contact the <a href="mailto:{$config{adminemail}}">administrator</a>.</p>
 
 <p>The following reason was given:</p>
 
