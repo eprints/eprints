@@ -6092,3 +6092,6 @@ PACKAGE: 2.2.99.2
 2006-12-13 cjg
  * Tiny change to render_citation so that we can pass through a target param.
  * Used this to stop entire citation being a link in title_lookup
+
+2006-12-13 cjg
+ * Fixed rendering problem with itemref fields.

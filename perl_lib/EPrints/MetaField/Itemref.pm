@@ -57,7 +57,7 @@ sub get_basic_input_elements
 
 	my $desc = $self->render_single_value( $session, $value );
 
-	push @{$ex->[0]}, {el=>$desc};
+	push @{$ex->[0]}, {el=>$desc, style=>"padding: 0 0.5em 0 0.5em;"};
 
 	return $ex;
 }
@@ -101,28 +101,19 @@ sub get_item
 
 sub get_input_elements
 {   
-	my( $self, $session, $value, $staff ) = @_;
+	my( $self, $session, $value, $staff, $obj, $basename ) = @_;
 
-	my $ex = $self->SUPER::get_input_elements( $session, $value, $staff );
+	my $input = $self->SUPER::get_input_elements( $session, $value, $staff, $obj, $basename );
 
-	#my $buttons = $ex->[scalar @{$ex}-1]->[1]->{el};
-	#$buttons->appendChild( $session->render_internal_buttons( $self->{name}."_null" => "Check ID's" ));
 	my $buttons = $session->make_doc_fragment;
 	$buttons->appendChild( 
 		$session->render_internal_buttons( 
 			$self->{name}."_null" => $session->phrase(
 				"lib/metafield/itemref:lookup" )));
-	my $bl = [];
-	# pad the bottom line by one if this is a list to 
-	# skip the column with the number in.
-	if( $self->get_property( 'multiple' ) )
-	{
-		push @{$bl},{};
-	}
-	push @{$bl},{el=>$buttons,colspan=>3};
-	push @{$ex}, $bl;
 
-	return $ex;
+	push @{ $input->[0] }, {el=>$buttons};
+
+	return $input;
 }
 
 
