@@ -170,14 +170,6 @@ if( defined $user )
 		exit 1;
 	}
 }
-elsif( $ds->confid eq "eprint" )
-{
-	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id to own these eprints, are you sure you want to continue?", 1 ) )
-	{
-		$session->terminate();
-		exit 1;
-	}
-}
 
 if( !defined $ipluginid )
 {
@@ -215,6 +207,15 @@ if( !defined $ipluginid )
 	}
 	$session->terminate();
 	exit;
+}
+
+if( !defined $user && $ds->confid eq "eprint" )
+{
+	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id to own these eprints, are you sure you want to continue?", 1 ) )
+	{
+		$session->terminate();
+		exit 1;
+	}
 }
 
 my $pluginid = "Import::".$ipluginid;

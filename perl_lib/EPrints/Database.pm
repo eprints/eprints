@@ -817,8 +817,7 @@ sub update
 	$rv = $rv && $self->do( $sql );
 
 	# Erase old, and insert new, values into aux-tables.
-	my $multifield;
-	foreach $multifield ( @aux )
+	foreach my $multifield ( @aux )
 	{
 		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
 		$sql = "DELETE FROM $auxtable WHERE $where";
@@ -833,46 +832,20 @@ sub update
 		my @values;
 		my $fieldvalue = $data->{$multifield->get_name()};
 
-		if( $multifield->get_property( "multiple" ) )
+		my $position=0;
+		foreach my $pos (0..(scalar @{$fieldvalue}-1) )
 		{
-			my $position=0;
-			my $pos;
-			foreach $pos (0..(scalar @{$fieldvalue}-1) )
-			{
-				my $value = $fieldvalue->[$pos];
-				my $incp = 0;
-				if( defined $value || $multifield->get_property( "allow_null" ))
-				{
-					push @values, {
-						v => $value,
-						p => $position
-					};
-					$incp=1;
-				}
-				$position++ if $incp;
-			}
-		}
-		else
-		{
-			my $value = $fieldvalue;
-			my $langid;
-			foreach $langid ( keys %{$value} )
-			{
-				my $val = $value->{$langid};
-				if( defined $val )
-				{
-					push @values, { 
-						v => $val,
-						l => $langid
-					};
-				}
-			}
+			my $value = $fieldvalue->[$pos];
+			push @values, {
+				v => $value,
+				p => $position
+			};
+			$position++;
 		}
 					
-		my $v;
-		foreach $v ( @values )
+		my $fname = $multifield->get_sql_name();
+		foreach my $v ( @values )
 		{
-			my $fname = $multifield->get_sql_name();
 			$sql = "INSERT INTO $auxtable (".$keyfield->get_sql_name().", ";
 			$sql.= "pos, " if( $multifield->get_property( "multiple" ) );
 			if( $multifield->is_type( "name" ) )

@@ -380,7 +380,8 @@ sub get_field
 	}
 
 	my $value = $self->{field_index}->{$fieldname};
-	if (!defined $value) {
+	if (!defined $value) 
+	{
 		$self->{repository}->log( 
 			"dataset ".$self->{id}." has no field: ".
 			$fieldname );

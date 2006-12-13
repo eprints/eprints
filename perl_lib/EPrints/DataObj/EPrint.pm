@@ -856,6 +856,7 @@ sub commit
 		"lastmod" , 
 		EPrints::Time::get_iso_timestamp() );
 
+	$self->tidy;
 	my $success = $self->{session}->get_database->update(
 		$self->{dataset},
 		$self->{data} );

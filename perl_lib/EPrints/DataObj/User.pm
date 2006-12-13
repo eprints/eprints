@@ -439,6 +439,7 @@ sub commit
 	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 
 	my $user_ds = $self->{session}->get_repository->get_dataset( "user" );
+	$self->tidy;
 	my $success = $self->{session}->get_database->update(
 		$user_ds,
 		$self->{data} );

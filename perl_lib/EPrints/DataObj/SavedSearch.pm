@@ -239,6 +239,7 @@ sub commit
 
 	my $subs_ds = $self->{session}->get_repository->get_dataset( 
 		"saved_search" );
+	$self->tidy;
 	my $success = $self->{session}->get_database->update(
 		$subs_ds,
 		$self->{data} );

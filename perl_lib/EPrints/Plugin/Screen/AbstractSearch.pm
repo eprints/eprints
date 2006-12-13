@@ -326,11 +326,8 @@ sub render_export_bar
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{processor}->{results} )
-	{
-                return $self->{session}->make_doc_fragment;
-	}
-	if( ref($self->{processor}->{results}) ne "EPrints::List" )
+	if( !defined $self->{processor}->{results} || 
+		ref($self->{processor}->{results}) ne "EPrints::List" )
 	{
                 return $self->{session}->make_doc_fragment;
 	}
@@ -437,6 +434,12 @@ sub paginate_opts
 {
 	my( $self ) = @_;
 
+	if( !defined $self->{processor}->{results} || 
+		ref($self->{processor}->{results}) ne "EPrints::List" )
+	{
+                return $self->{session}->make_doc_fragment;
+	}
+
 	my %bits = ();
 
 	my $cacheid = $self->{processor}->{results}->{cache_id};
@@ -507,6 +510,12 @@ sub render_results_intro
 sub render_results
 {
 	my( $self ) = @_;
+
+	if( !defined $self->{processor}->{results} || 
+		ref($self->{processor}->{results}) ne "EPrints::List" )
+	{
+                return $self->{session}->make_doc_fragment;
+	}
 
 	my %opts = $self->paginate_opts;
 

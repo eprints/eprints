@@ -122,6 +122,7 @@ sub new_from_data
 	{
 		foreach( keys %{$data} )
 		{
+			# this will cause an error if the field is unknown
 			$self->set_value( $_, $data->{$_} );
 		}
 	}
@@ -373,12 +374,16 @@ sub set_value
 {
 	my( $self, $fieldname, $value ) = @_;
 
-	my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname );
 
-	if( !defined $field )
+	if( !$self->{dataset}->has_field( $fieldname ) )
 	{
-		EPrints::abort( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
+		if( $self->{session}->get_noise > 0 )
+		{
+			$self->{session}->get_repository->log( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
+		}
+		return;
 	}
+	my $field = $self->{dataset}->get_field( $fieldname );
 
 	$field->set_value( $self, $value );
 }
@@ -1182,6 +1187,37 @@ sub validate_field
 	
 	return $field->validate( $self->{session}, $self->get_value( $fieldname ), $self );
 }
+
+
+# Clean up any multiple fields with gaps in.
+sub tidy
+{
+	my( $self ) = @_;
+
+	foreach my $field ( $self->{dataset}->get_fields )
+	{
+		next unless $field->get_property( "multiple" );
+		
+		# squash compound fields as one.
+		next if( $field->get_property( "parent_name" ) );
+		my @list = ();
+		my $changed = 0;
+		foreach my $item ( @{$self->get_value($field->get_name)} )
+		{
+			if( !EPrints::Utils::is_set( $item ) )
+			{
+				$changed = 1;
+				next;
+			}
+			push @list, $item;
+		}
+		if( $changed )
+		{
+			$self->set_value( $field->get_name, \@list );
+		}
+	}
+}
+	
 
 ######################################################################
 =pod

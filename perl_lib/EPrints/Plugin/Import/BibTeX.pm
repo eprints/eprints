@@ -486,7 +486,6 @@ sub convert_input
 	$epdata->{keywords} = $input_data->get( "keywords" ) if $input_data->exists( "keywords" );
 	# url
 	$epdata->{official_url} = $input_data->get( "url" ) if $input_data->exists( "url" );
-
 	return $epdata;
 }
 

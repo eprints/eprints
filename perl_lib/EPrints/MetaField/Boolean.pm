@@ -149,6 +149,7 @@ sub form_value_basic
 		$self->{input_style} eq "radio" || 
 		$self->{input_style} eq "menu" )
 	{
+		return if( !defined $form_val );
 		return "TRUE" if( $form_val eq "TRUE" );
 		return "FALSE" if( $form_val eq "FALSE" );
 		return;

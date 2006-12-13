@@ -41,7 +41,7 @@ Inherits from L<EPrints::DataObj>.
 
 Unique id for the access.
 
-=item timestamp
+=item datestamp
 
 Time of access.
 
@@ -238,7 +238,7 @@ sub get_defaults
 	
 	$data->{accessid} = $session->get_database->counter_next( "accessid" );
 
-	$data->{timestamp} = EPrints::Time::get_iso_timestamp();
+	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
 
 	return $data;
 }

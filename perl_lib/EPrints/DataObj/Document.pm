@@ -1128,6 +1128,7 @@ sub commit
 	}
 	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 
+	$self->tidy;
 	my $success = $self->{session}->get_database->update(
 		$dataset,
 		$self->{data} );

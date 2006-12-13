@@ -6040,3 +6040,14 @@ PACKAGE: 2.2.99.2
  * Import/Export XML does something nice with compound fields.
  * Fixed some $plugin->params which should have been ->param
 
+2006-12-13 cjg
+ * set_value now does not abort if the field is not a real field, but it
+    still gives a warning.
+ * Added tidy method to dataobj to remove empty rows in multiple fields.
+ * Called tidy from each commit() method
+ * Removed broken blank-row-removed from database module.
+ * Fixed warning in Boolean caused by recent changes.
+ * Fixed typo in Access where timestamp should have been datestamp.
+ * More attempts to fix that weird abstractsearch no results bug.
+ * Fixed import to only ask about userid if we are actually importing.
+
