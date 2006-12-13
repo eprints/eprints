@@ -57,6 +57,13 @@ $c->{fields}->{eprint} = [
           },
 
           {
+            'name' => 'divisions',
+            'type' => 'subject',
+            'multiple' => 1,
+            'top' => 'divisions',
+          },
+
+          {
             'name' => 'full_text_status',
             'type' => 'set',
             'options' => [
@@ -315,6 +322,20 @@ $c->{fields}->{eprint} = [
             'name' => 'referencetext',
             'type' => 'longtext',
             'input_rows' => 15,
-          }
+          },
+
+          {
+            'name' => 'funders',
+            'type' => 'text',
+            'multiple' => 1,
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'projects',
+            'type' => 'text',
+            'multiple' => 1,
+            'input_boxes' => 1,
+          },
 
 ];

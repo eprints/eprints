@@ -1,5 +1,8 @@
 # Some initial subjects for an archive. This list
 # is based on the Library of Congress subject tree.
+# An example organisational structure is also 
+# provided, which you should change to suit the
+# structure of your own organisation.
 # 
 # This file is only used by bin/import_subjects 
 #
@@ -12,16 +15,33 @@
 #
 # Non ASCII characters may cause problems. If this
 # is the case, use subjects.xml
+
+###################################################
 #
-# You can make more than one heirarchical set.
-#  eg. # departments...
-# depts:Departments:ROOT:0
-# maths:Maths:depts:0
-# stats:Statistics:maths:1
-# appmath:Applied Maths:maths:1
-# etc.
-# And make a new subject field who's "top" is "depts"
+# ORGANISATIONAL STRUCTURE
 #
+###################################################
+
+divisions:University Structure:ROOT:0
+fac_eng:Faculty of Engineering, Science and Mathematics:divisions:0
+sch_che:School of Chemistry:fac_eng:1
+sch_civ:School of Civil Engineering and the Environment:fac_eng:1
+sch_ecs:School of Electronics and Computer Science:fac_eng:1
+sch_eng:School of Engineering Sciences:fac_eng:1
+sch_geo:School of Geography:fac_eng:1
+sch_mat:School of Mathematics:fac_eng:1
+sch_phy:School of Physics:fac_eng:1
+fac_law:Faculty of Law, Arts and Social Sciences:divisions:0
+sch_art:School of Art:fac_law:1
+sch_edu:School of Education:fac_law:1
+sch_hum:School of Humanities:fac_law:1
+sch_law:School of Law:fac_law:1
+sch_man:School of Management:fac_law:1
+sch_soc:School of Social Sciences:fac_law:1
+fac_med:Faculty of Medicine, Health and Life Sciences:divisions:0
+sch_psy:School of Psychology:fac_med:1
+sch_bio:School of Biological Sciences:fac_med:1
+sch_med:School of Medicine:fac_med:1
 
 ###################################################
 #

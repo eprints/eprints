@@ -6051,3 +6051,8 @@ PACKAGE: 2.2.99.2
  * More attempts to fix that weird abstractsearch no results bug.
  * Fixed import to only ask about userid if we are actually importing.
 
+2006-12-13 tmb
+ * added funders, projects and divisions fields
+ * added default organisation structure hierarchy for divisions field
+ * added lookup script which attempts to detect and prevent duplicate deposits
+    by looking at the title being entered

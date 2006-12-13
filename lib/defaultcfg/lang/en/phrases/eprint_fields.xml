@@ -228,15 +228,16 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldopt_full_text_status_none">None</epp:phrase>
     <epp:phrase id="eprint_fieldopt_full_text_status_restricted">Restricted</epp:phrase>
 
-    <epp:phrase id="eprint_fieldname_date_embargo">Embargo expiry date</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_date_embargo">The date that a publisher- or funder-imposed embargo expires. On and after this date, <em>all</em> documents associated with this deposit will be made publically accessible. For more complex embargo requirements, please contact the repository administrator.
-<br/>Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
-<br/>Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
-</epp:phrase>
-
     <epp:phrase id="eprint_fieldname_contact_email">Contact Email Address</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_contact_email">The contact email address for this item.</epp:phrase>
 
+    <epp:phrase id="eprint_fieldname_funders">Funders</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_funders">The sponsoring bodies who contributed funding for the creation of this item.</epp:phrase>
 
+    <epp:phrase id="eprint_fieldname_projects">Projects</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_projects">The names or codes of the projects that created of this item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_divisions">Divisions</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_divisions">The divisions with which this item should be associated.</epp:phrase>
 
 </epp:phrases>

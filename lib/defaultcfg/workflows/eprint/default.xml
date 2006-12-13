@@ -28,7 +28,7 @@
 
   <stage name="core">
 
-    <component><field ref="title" required="yes" /></component>
+    <component><field ref="title" required="yes" input_lookup_url="{$config{perl_url}}/users/lookup/title_duplicates" /></component>
     <component><field ref="abstract"/></component>
 
     <epc:if test="type = 'monograph'">
@@ -52,6 +52,8 @@
         <component><field ref="corp_creators"/></component>
       </epc:otherwise>
     </epc:choose>
+
+    <component><field ref="divisions" /></component>
 
     <component type="Field::Multi">
       <title>Publication Details</title>
@@ -143,6 +145,8 @@
         <field ref="id_number"/>
       </epc:if>
       <field ref="related_url" />
+      <field ref="funders" />
+      <field ref="projects" />
     </component>
 
     <epc:if test="type = 'conference_item'">
