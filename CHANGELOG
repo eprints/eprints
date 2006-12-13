@@ -6060,3 +6060,8 @@ PACKAGE: 2.2.99.2
 2006-12-13 cjg
  * Fixed bug that workflow next/prev didn't look at current data, but pre-
     update from form data.
+
+2006-12-13 tmb
+ * Prettier import screen
+ * Import screen complains if no file/data given
+ * Test run and Test run + Import actions for import screen

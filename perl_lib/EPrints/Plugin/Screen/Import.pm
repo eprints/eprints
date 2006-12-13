@@ -55,7 +55,6 @@ sub properties_from
 		$self->{processor}->{plugin} = $plugin;
 
 	}
-
 }
 
 sub allow_test
@@ -74,36 +73,75 @@ sub action_test
 {
 	my ( $self ) = @_;
 
-	$self->_import( 1 );
+	my $tmp_file = $self->make_tmp_file;
+	return if !defined $tmp_file;
+
+	$self->_import( 1, 0, $tmp_file ); # dry run with messages
+
+	unlink $tmp_file if -e $tmp_file;
 }
 
 sub action_import
 {
 	my ( $self ) = @_;
 
-	$self->_import( 0 );
+	my $tmp_file = $self->make_tmp_file;
+	return if !defined $tmp_file;
+
+	my $ok = $self->_import( 1, 1, $tmp_file ); # quiet dry run
+	$self->_import( 0, 0, $tmp_file ) if $ok; # real run with messages
+
+	unlink $tmp_file if -e $tmp_file;
+
 	$self->{processor}->{screenid} = "Items";
+}
+
+
+sub make_tmp_file
+{
+	my ( $self ) = @_;
+
+	# Write import records to temp file
+	my $tmp_file = "/tmp/eprints.import.$$";
+
+	my $import_fh = $self->{session}->{query}->upload( "import_filename" );
+	my $import_data = $self->{session}->param( "import_data" );
+
+	unless( defined $import_fh || ( defined $import_data && $import_data ne "" ) )
+	{
+		$self->{processor}->add_message( "error", $self->{session}->html_phrase( "Plugin/Screen/Import:nothing_to_import" ) );
+		return undef;
+	}
+
+	if( defined $import_fh )
+	{
+		my $fh = $self->{session}->{query}->upload( "import_filename" );
+		seek( $fh, 0, SEEK_SET );
+
+		my( $buffer );
+		open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
+		while( read( $fh, $buffer, 1024 ) )
+		{
+			print TMP $buffer;
+		}
+		close TMP;
+	}
+	else
+	{
+		open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
+		print TMP $import_data;
+		close TMP;
+	}
+
+	return $tmp_file;
 }
 
 sub _import
 {
-	my( $self, $dryrun ) = @_;
+	my( $self, $dryrun, $quiet, $tmp_file ) = @_;
 
 	my $session = $self->{session};
 	my $ds = $session->get_repository->get_dataset( "inbox" );
-
-	# Write to temp file
-	my $fh = $self->{session}->{query}->upload( "import_filename" );
-	seek( $fh, 0, SEEK_SET );
-
-	my( $buffer );
-	my $tmp_file = "/tmp/eprints.import.$$";
-	open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
-	while( read( $fh, $buffer, 1024 ) )
-	{
-		print TMP $buffer;
-	}
-	close TMP;
 
 	# Build command
 	my $import_script = $EPrints::SystemSettings::conf->{base_path}."/bin/import";
@@ -116,12 +154,7 @@ sub _import
 	my @imp_out = <OUTPUT>;
 	close OUTPUT;
 
-	# Remove temp file
-	if( -e $tmp_file )
-	{
-		unlink( $tmp_file );
-	}
-
+	# Parse command output
 	my @misc = ();
 	my $ok = 0;
 	my $parsed = 0;
@@ -159,7 +192,7 @@ sub _import
 		{
 			$self->{processor}->add_message( "message", $session->html_phrase(
 				"Plugin/Screen/Import:test_completed", 
-				count => $session->make_text( $parsed ) ) );
+				count => $session->make_text( $parsed ) ) ) unless $quiet;
 		}
 		else
 		{
@@ -184,7 +217,7 @@ sub _import
 		}
 	}
 
-	if( scalar @misc > 0 )
+	if( scalar @misc > 0 && !$quiet )
 	{
 		my $pre = $session->make_element( "pre" );
 		$pre->appendChild( $session->make_text( join( "", @misc[0..99] ) ) );
@@ -192,7 +225,9 @@ sub _import
 			"Plugin/Screen/Import:import_errors",
 			errors => $pre ) );
 	}
-	
+
+	return $ok;
+
 }
 
 sub redirect_to_me_url
@@ -210,53 +245,46 @@ sub render
 
 	my $page = $session->make_doc_fragment;
 
-	# TODO: preamble/instructions
+	# Preamble
+	$page->appendChild( $session->html_phrase( "Plugin/Screen/Import:intro" ) );
 
 	my $form =  $session->render_form( "post" );
 	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 	$page->appendChild( $form );
 
-
-
 	my $table = $session->make_element( "table", width=>"100%" );
-	my $textarea_help_div = $session->make_element( "div" );
-	$textarea_help_div->appendChild( $session->make_text( "help!" ) );
+
+	my $frag = $session->make_doc_fragment;
+	$frag->appendChild( $session->make_element(
+		"textarea",
+		"accept-charset" => "utf-8",
+		name => "import_data",
+		rows => 10,
+		cols => 50,
+		wrap => "virtual" ) );
+	$frag->appendChild( $session->make_element( "br" ) );
+	$frag->appendChild( $session->make_element( "br" ) );
+	$frag->appendChild( $session->render_upload_field( "import_filename" ) );
+
 	$table->appendChild( $session->render_row_with_help(
-		help => $textarea_help_div,
-		label => $session->make_text( "label" ),
+		help => $session->make_doc_fragment,
+		label => $session->html_phrase( "Plugin/Screen/Import:step1" ),
 		class => "ep_first",
-		field => $session->make_text( "input here" ),
-		help_prefix => "textarea_help",
+		field => $frag,
 	));
 	
-	$form->appendChild( $session->render_toolbox( undef, $table ) );
-
-	my $upload_help_div = $session->make_element( "div" );
-	$upload_help_div->appendChild( $session->make_text( "help" ) );
-	$table->appendChild( $session->render_row_with_help(
-		help => $upload_help_div,
-		label => $session->make_text( "label" ),
-		field => $session->render_upload_field( "import_filename" ),
-		help_prefix => "upload_help",
-	));
-
 	my @plugins = $session->plugin_list( 
 			type=>"Import",
 			is_advertised=>1,
 			can_produce=>"dataobj/".$ds->confid );
 
-	my $pluginid_help_div = $session->make_element( "div" );
-	$pluginid_help_div->appendChild( $session->make_text( "help" ) );
 	my $select = $session->make_element( "select", name => "pluginid" );
-	$form->appendChild( $select );
 	$table->appendChild( $session->render_row_with_help(
-		help => $pluginid_help_div,
-		label => $session->make_text( "label" ),
+		help => $session->make_doc_fragment,
+		label => $session->html_phrase( "Plugin/Screen/Import:step2" ),
 		field => $select,
-		help_prefix => "pluginid_help",
 	));
 	
-
 	for( @plugins )
 	{
 		my $plugin = $session->plugin( $_ );
@@ -266,6 +294,8 @@ sub render
 		$opt->appendChild( $plugin->render_name );
 		$select->appendChild( $opt );
 	}
+
+	$form->appendChild( $session->render_toolbox( undef, $table ) );
 
 	$form->appendChild( $session->render_action_buttons( 
 		_class => "ep_form_button_bar",
