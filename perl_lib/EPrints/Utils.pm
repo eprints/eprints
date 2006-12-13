@@ -628,6 +628,7 @@ sub _render_citation_aux
 			{
 				$rendered = $params{session}->make_element( 
 					"a",
+					target=>$params{target},
 					href=>EPrints::Utils::url_escape( 
 						$params{url} ) );
 			}

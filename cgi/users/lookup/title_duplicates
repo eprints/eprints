@@ -60,8 +60,8 @@ while( my( $eprintid, $title ) = $sth->fetchrow_array )
 	else
 	{
 		my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-		my $citation = $eprint->render_citation->toString;
-		print "<a target=\"_blank\" href=\"$base_url/$eprintid\">\"$citation\"</a>\n";
+		my $citation = $eprint->render_citation_link( "default", target=>"_blank" );
+		print $citation->toString;
 	}
 
 	print "</li>\n";

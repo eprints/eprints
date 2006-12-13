@@ -6070,12 +6070,13 @@ PACKAGE: 2.2.99.2
  * Fixed OldXML export.
 
 2006-12-13 tmb
- * Added redirect_to_me_url subs to fix Public::RequestCopy and Request::Respond screens 
+ * Added redirect_to_me_url subs to fix Public::RequestCopy and 
+    Request::Respond screens 
  * Removed "click here" from request copy email
 
 2006-12-13 tmb
- * Added eprintid param to title dup lookup so that the current record isn't suggested as
-    a duplicate
+ * Added eprintid param to title dup lookup so that the current record isn't 
+    suggested as a duplicate
  * Wrapping for warning/error messages in Import screen
 
 2006-12-13 tmb
@@ -6088,3 +6089,6 @@ PACKAGE: 2.2.99.2
     eprint_render.pl
  * Added \n after header links to make produced page less annoying.
  
+2006-12-13 cjg
+ * Tiny change to render_citation so that we can pass through a target param.
+ * Used this to stop entire citation being a link in title_lookup
