@@ -6106,3 +6106,6 @@ PACKAGE: 2.2.99.2
 2006-12-14 cjg
  * Registration errors now use proper error message style.
 
+2006-12-14 cjg
+ * Document upload no longer required by default (but a warning is still
+    given).

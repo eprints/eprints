@@ -13,10 +13,10 @@
 
 $c->{required_formats} = 
 [
-	"text/html",
-	"application/pdf",
-	"application/postscript",
-	"text/plain"
+#	"text/html",
+#	"application/pdf",
+#	"application/postscript",
+#	"text/plain",
 ];
 
 # if you want to make this depend on the values in the eprint then
