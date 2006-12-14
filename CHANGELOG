@@ -6095,3 +6095,7 @@ PACKAGE: 2.2.99.2
 
 2006-12-13 cjg
  * Fixed rendering problem with itemref fields.
+
+2006-12-13 cjg
+ * Moved google-friendly headers into a plugin called "simple" and 
+    made it available as an export option.

@@ -17,7 +17,8 @@ sub new
 	$self->{name} = "Simple Metadata";
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
-	$self->{advertise} = 0;
+	$self->{suffix} = "text";
+	$self->{mimetype} = "text/plain";
 
 	return $self;
 }
