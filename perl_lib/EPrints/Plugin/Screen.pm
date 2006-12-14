@@ -14,7 +14,10 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{session} = $self->{processor}->{session};
+	if( !defined $self->{session} ) 
+	{
+		$self->{session} = $self->{processor}->{session};
+	}
 	$self->{actions} = [];
 
 	# flag to indicate that it takes some effort to make this screen, so

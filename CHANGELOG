@@ -6118,3 +6118,10 @@ PACKAGE: 2.2.99.2
     can't identify).
  * Modified BackCompatibility to set %INC correctly (now works with
     Apache::Reload!)
+
+2006-12-14 cjg
+ * Fixed odd situation when screen plugin forgot it's session
+ * Added option to disable plugins by default and then de-disable them per
+    repository.
+ * Changed disable config option from {pluginid}->{disable} to 
+    {pluginid}->{params}->{disable} and updated plugins.pl to reflect this.

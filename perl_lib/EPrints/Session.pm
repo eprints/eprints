@@ -3316,6 +3316,11 @@ sub plugin
 
 	my $plugin = $class->new( session=>$self, %params );	
 
+	if( $plugin->param( "disable" ) )
+	{
+		return undef;
+	}
+
 	return $plugin;
 }
 
@@ -3347,9 +3352,9 @@ sub plugin_list
 	my @out = ();
 	foreach my $plugin_id ( sort keys %pids ) 
 	{
-		next if $self->{repository}->get_conf( "plugins", $plugin_id, "disable" );
-
 		my $plugin = $self->plugin( $plugin_id );
+
+		next if( !defined $plugin );
 
 		# should we add this one to the list?
 		my $add = 1;	

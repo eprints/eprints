@@ -2,8 +2,10 @@
 # Generic Plugin Options
 
 # To disbale the plugin "Export::BibTeX":
-# $c->{plugins}->{"Export::BibTeX"}->{disable} = 1;
+# $c->{plugins}->{"Export::BibTeX"}->{params}->{disable} = 1;
 
+# To enable the plugin "Export::LocalThing":
+# $c->{plugins}->{"Export::LocalThing"}->{params}->{disable} = 0;
 
 # Screen Plugin Configuration
 # (Disabling a screen will also remove it and it's actions from all lists)
