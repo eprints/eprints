@@ -6109,3 +6109,6 @@ PACKAGE: 2.2.99.2
 2006-12-14 cjg
  * Document upload no longer required by default (but a warning is still
     given).
+
+2006-12-14 cjg
+ * Removed unused secure template.
