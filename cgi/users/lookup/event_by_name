@@ -11,7 +11,7 @@ my $content = "text/xml";
 $session->send_http_header( content_type=>$content );
 my $q = $session->param( "q" );
 
-my $sql = "SELECT count(eprintid),event_title,event_location,event_dates,event_type from eprint WHERE eprint_status='archive' AND event_title IS NOT NULL AND event_title LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY event_title ORDER BY COUNT(eprintid) DESC";
+my $sql = "SELECT COUNT(eprintid) as num_matches,event_title,event_location,event_dates,event_type from eprint WHERE eprint_status='archive' AND event_title IS NOT NULL AND event_title LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY event_title ORDER BY num_matches DESC";
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>

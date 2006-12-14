@@ -14,7 +14,7 @@ my $given = $session->param( "_name_given" );
 my $id = $session->param( "_id" );
 
 my $sql = "
-SELECT count(eprint.eprintid),creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid 
+SELECT COUNT(eprint.eprintid) AS num_matches,creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid 
 WHERE eprint.eprint_status = 'archive' ";
 if( EPrints::Utils::is_set( $family ) )
 {
@@ -30,7 +30,7 @@ if( EPrints::Utils::is_set( $id ) )
 }
 $sql.="
 GROUP BY creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id 
-ORDER BY count(eprint.eprintid) DESC,creators_name_family,creators_name_given 
+ORDER BY num_matches DESC,creators_name_family,creators_name_given 
 LIMIT 40
 ";
 
