@@ -53,7 +53,7 @@ package EPrints::Document;
 
 our @ISA = qw/ EPrints::DataObj::Document /;
 
-$INC{"EPrints/Document.pm"} = 1;
+$INC{"EPrints/Document.pm"} = "EPrints/BackCompatibility.pm";
 
 sub create { EPrints::deprecated; return EPrints::DataObj::Document::create( @_ ); }
 
@@ -65,7 +65,7 @@ package EPrints::EPrint;
 
 our @ISA = qw/ EPrints::DataObj::EPrint /;
 
-$INC{"EPrints/EPrint.pm"} = 1;
+$INC{"EPrints/EPrint.pm"} = "EPrints/BackCompatibility.pm";
 
 sub create { EPrints::deprecated; return EPrints::DataObj::EPrint::create( @_ ); }
 sub eprintid_to_path { EPrints::deprecated; return EPrints::DataObj::EPrint::eprintid_to_path( @_ ); }
@@ -76,7 +76,7 @@ package EPrints::Subject;
 
 our @ISA = qw/ EPrints::DataObj::Subject /;
 
-$INC{"EPrints/Subject.pm"} = 1;
+$INC{"EPrints/Subject.pm"} = "EPrints/BackCompatibility.pm";
 
 $EPrints::Subject::root_subject = "ROOT";
 sub remove_all { EPrints::deprecated; return EPrints::DataObj::Subject::remove_all( @_ ); }
@@ -92,7 +92,7 @@ package EPrints::Subscription;
 
 our @ISA = qw/ EPrints::DataObj::SavedSearch /;
 
-$INC{"EPrints/Subscription.pm"} = 1;
+$INC{"EPrints/Subscription.pm"} = "EPrints/BackCompatibility.pm";
 
 sub process_set { EPrints::deprecated; return EPrints::DataObj::SavedSearch::process_set( @_ ); }
 sub get_last_timestamp { EPrints::deprecated; return EPrints::DataObj::SavedSearch::get_last_timestamp( @_ ); }
@@ -103,7 +103,7 @@ package EPrints::User;
 
 our @ISA = qw/ EPrints::DataObj::User /;
 
-$INC{"EPrints/User.pm"} = 1;
+$INC{"EPrints/User.pm"} = "EPrints/BackCompatibility.pm";
 
 sub create { EPrints::deprecated; return EPrints::DataObj::User::create( @_ ); }
 sub user_with_email { EPrints::deprecated; return EPrints::DataObj::User::user_with_email( @_ ); }
@@ -144,7 +144,7 @@ package EPrints::Archive;
 
 our @ISA = qw/ EPrints::Repository /;
 
-$INC{"EPrints/Archive.pm"} = 1;
+$INC{"EPrints/Archive.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
@@ -162,7 +162,7 @@ our @ISA = qw/ EPrints::Search /;
 
 $EPrints::SearchExpression::CustomOrder = "_CUSTOM_";
 
-$INC{"EPrints/SearchExpression.pm"} = 1;
+$INC{"EPrints/SearchExpression.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
@@ -170,7 +170,7 @@ package EPrints::SearchField;
 
 our @ISA = qw/ EPrints::Search::Field /;
 
-$INC{"EPrints/SearchField.pm"} = 1;
+$INC{"EPrints/SearchField.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
@@ -185,7 +185,7 @@ $EPrints::SearchCondition::operators = {
 	'is_null'=>4, '>'=>4, '<'=>4, '>='=>4, '<='=>4, 'in_subject'=>4,
 	'grep'=>4	};
 
-$INC{"EPrints/SearchCondition.pm"} = 1;
+$INC{"EPrints/SearchCondition.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
@@ -199,7 +199,7 @@ sub header_in { EPrints::deprecated; return EPrints::Apache::AnApache::header_in
 sub get_request { EPrints::deprecated; return EPrints::Apache::AnApache::get_request( @_ ); }
 sub cookie { EPrints::deprecated; return EPrints::Apache::AnApache::cookie( @_ ); }
 
-$INC{"EPrints/AnApache.pm"} = 1;
+$INC{"EPrints/AnApache.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
@@ -208,7 +208,7 @@ package EPrints::Auth;
 sub authz { EPrints::deprecated; return EPrints::Apache::Auth::authz( @_ ); }
 sub authen { EPrints::deprecated; return EPrints::Apache::Auth::authen( @_ ); }
 
-$INC{"EPrints/Auth.pm"} = 1;
+$INC{"EPrints/Auth.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 

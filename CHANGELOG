@@ -6112,3 +6112,9 @@ PACKAGE: 2.2.99.2
 
 2006-12-14 cjg
  * Removed unused secure template.
+
+2006-12-14 tdb
+ * Increased dependency for LibXML to 1.62 (segfault under 1.58* that I
+    can't identify).
+ * Modified BackCompatibility to set %INC correctly (now works with
+    Apache::Reload!)
