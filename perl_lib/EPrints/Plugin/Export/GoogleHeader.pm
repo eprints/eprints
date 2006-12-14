@@ -1,4 +1,4 @@
-package EPrints::Plugin::Export::GoogleHeader;
+package EPrints::Plugin::Export::Simple;
 
 use Unicode::String qw( utf8 );
 
@@ -14,7 +14,7 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{name} = "Google HEaders";
+	$self->{name} = "Simple Metadata";
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
 	$self->{advertise} = 0;
