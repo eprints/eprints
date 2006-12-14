@@ -6093,12 +6093,16 @@ PACKAGE: 2.2.99.2
  * Tiny change to render_citation so that we can pass through a target param.
  * Used this to stop entire citation being a link in title_lookup
 
-2006-12-13 cjg
+2006-12-14 cjg
  * Fixed rendering problem with itemref fields.
 
-2006-12-13 cjg
+2006-12-14 cjg
  * Moved google-friendly headers into a plugin called "simple" and 
     made it available as an export option.
 
-2006-12-13 cjg
+2006-12-14 cjg
  * Minor change to lookup scripts to make them work in mysql 4.
+
+2006-12-14 cjg
+ * Registration errors now use proper error message style.
+

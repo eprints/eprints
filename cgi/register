@@ -202,9 +202,10 @@ sub mk_err_page
 	my( $session, $phrase, $fieldlist, $defaults, $opts ) = @_;
 
 	my $page = $session->make_doc_fragment;
-	my $problems = $session->make_element( "div",class=>'problems' );
-	$page->appendChild( $problems );
-	$problems->appendChild( $session->html_phrase( $phrase, %{$opts} ) );
+
+	$page->appendChild( $session->render_message( "error", 
+		$session->html_phrase( $phrase, %{$opts} ) ) );
+
 #	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 	if( defined $fieldlist )
 	{
