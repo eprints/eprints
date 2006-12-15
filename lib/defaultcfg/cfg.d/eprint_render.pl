@@ -244,10 +244,7 @@ $c->{eprint_render} = sub
 	my $usersname;
 	if( defined $user )
 	{
-		$usersname = $session->make_element( "a", 
-				href=>$eprint->{session}->get_repository->get_conf( "perl_url" )."/user?userid=".$user->get_value( "userid" ) );
-		$usersname->appendChild( 
-			$user->render_description() );
+		$usersname = $user->render_description();
 	}
 	else
 	{
