@@ -6131,3 +6131,6 @@ PACKAGE: 2.2.99.2
     method.
  * Fixed security hole in PubMedID import.
  * Fixed issue with importing data via compound fields.
+
+2006-12-15 cjg
+ * Added DOI Import
