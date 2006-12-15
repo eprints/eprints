@@ -172,15 +172,6 @@ sub params
 	return %params;
 }
 
-sub param
-{
-	my( $self, $param ) = @_;
-
-	my $fullname = $self->{prefix}."_".$param;
-	
-	return $self->{session}->param( $fullname );
-}
-
 sub get_internal_value
 {
 	my( $self ) = @_;

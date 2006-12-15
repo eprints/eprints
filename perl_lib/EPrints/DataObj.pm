@@ -120,6 +120,10 @@ sub new_from_data
 
 	if( defined $data )
 	{
+		if( $dataset->confid eq "eprint" )
+		{
+			$self->set_value( "eprint_status", $data->{"eprint_status"} );
+		}
 		foreach( keys %{$data} )
 		{
 			# this will cause an error if the field is unknown

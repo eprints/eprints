@@ -30,7 +30,9 @@ sub input_fh
 	{
 		chomp;
 
-		my $pubmed_xml = `wget -O - http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed\\\&retmode=xml\\\&rettype=abstract\\\&id=$_ 2>/dev/null`;
+		$_ =~ s/(['\\])/\\$1/g;
+		my $cmd = "wget -O - 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed\\\&retmode=xml\\\&rettype=abstract\\\&id=$_' -q";
+		my $pubmed_xml = `$cmd`;
 		
 		my $tmp_file = "/tmp/eprints.import.$$";
 		open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";

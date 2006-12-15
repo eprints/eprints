@@ -6125,3 +6125,9 @@ PACKAGE: 2.2.99.2
     repository.
  * Changed disable config option from {pluginid}->{disable} to 
     {pluginid}->{params}->{disable} and updated plugins.pl to reflect this.
+
+2006-12-15 cjg 
+ * Fixed buggy use of param() in component which classed with plugin param
+    method.
+ * Fixed security hole in PubMedID import.
+ * Fixed issue with importing data via compound fields.
