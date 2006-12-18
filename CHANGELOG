@@ -6141,3 +6141,7 @@ PACKAGE: 2.2.99.2
 2006-12-18 cjg
  * Moved stty in Compat::Term::ReadKey so that it's only called if needed,
     not at the start time, which was producing a warning in cron.
+
+======================================================================
+18/12/2006 - EPRINTS-3.0-RC-1
+======================================================================

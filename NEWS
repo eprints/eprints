@@ -5,6 +5,47 @@ CHANGELOG.
 ======================================================================
 
 =========================================================================
+EPRINTS 3.0-RC-1                                               2006-12-18
+=========================================================================
+
+ * Import via CGI
+ * More basic types of eprint:
+    Artefact, Exhibition, Composition, Performance, Image, Video,
+    Audio, Dataset, Experiment, Teaching Resource.
+ * Import via PubMed ID.
+ * Import via DOI. 
+ * When you enter a title the system checks for possible duplicates as
+    you type and lists them as a warning.
+ * New autocomplete scripts which can use a file or a database table for
+    the lookup.
+ * Added a multilingual field type for multilingual titles, abstracts 
+    etc.
+ * Import and Export via XML of multilingual and compound fields now 
+    treats compound fields as one field. 
+ * Import subjects via XML now works.
+ * "epadmin create" now offers to run the required scripts for you, to
+     make setup even easier.
+ * Fixed bug which left many cache tables lying around.
+ * Tool to edit the subject tree
+ * Non-required boolean fields now show a third option to allow them to
+    be set to unspecified.
+ * Plugins may now have an "advertise" flag. If this is false then the
+    plugin is not advertised in the user interface but is still 
+    available.
+ * Plugins may now be disabled by default. This is used if you have 
+    several repositories and only want to enable the plugin on one.
+ * XML Export now makes the XML nicely indented.
+ * The workflow may now conditionally limit the options available for a 
+    set. This allows, for example, to make certain options only available
+    on some types of EPrint or only to certain users.
+ * The workflow may modify the top subject node so that different parts
+    of the subject tree are available for different eprints or users.
+ * New default fields for projects and funders and organisational 
+    divisions.
+ * Added more metadata to the <head> of the summary pages, for the 
+    benefit of search engines.
+
+=========================================================================
 EPRINTS 3.0-beta-3                                             2006-12-05
 =========================================================================
 
