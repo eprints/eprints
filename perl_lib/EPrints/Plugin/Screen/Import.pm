@@ -278,7 +278,7 @@ sub render
 	my @plugins = $session->plugin_list( 
 			type=>"Import",
 			is_advertised=>1,
-			can_produce=>"dataobj/".$ds->confid );
+			can_produce=>"list/".$ds->confid );
 
 	my $select = $session->make_element( "select", name => "pluginid" );
 	$table->appendChild( $session->render_row_with_help(
