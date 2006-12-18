@@ -53,11 +53,6 @@ use Exporter;
 
 use vars qw( $STTY_NORMAL $STTY_RESTORE );
 
-if( $^O eq 'linux' )
-{
-	$STTY_NORMAL = $STTY_RESTORE = &_fetch_tty;
-}
-
 # Fetch the tty settings
 sub _fetch_tty
 {
@@ -78,6 +73,11 @@ sub ReadMode
 	$fh ||= \*STDIN;
 
 	return unless $^O eq 'linux';
+
+	if( !defined $STTY_NORMAL )
+	{
+		$STTY_NORMAL = $STTY_RESTORE = &_fetch_tty;
+	}
 
 	if( $mode eq 'restore' or $mode eq '0' )
 	{
