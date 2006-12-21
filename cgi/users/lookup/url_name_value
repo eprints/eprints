@@ -50,4 +50,6 @@ while( my( $url,$name,$value ) = $sth->fetchrow_array )
 
 print EPrints::XML::to_string( $doc );
 
+EPrints::XML::dispose( $doc );
+
 $session->terminate;
