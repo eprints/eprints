@@ -6149,3 +6149,16 @@ PACKAGE: 2.2.99.2
 2006-12-21 tdb
  * Added url_name_value lookup script
 
+2007-01-03 tmb
+ * Added more examples for Request Copy configuration (eg. first author)
+
+2007-01-03 tmb
+ * Used File::Temp for temp files in Import screen
+
+2007-01-03 tmb
+ * Moved EFetch URL out of code
+ * Added filter on PubMed ID - must be an int
+ * Used LWP::Simple to get PubMed XML - not wget
+ * Used File::Temp for temp file in PubMed ID import
+ * Added extra mappings to PubMed XML import
+

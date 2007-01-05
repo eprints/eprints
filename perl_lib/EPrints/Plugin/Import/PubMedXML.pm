@@ -28,6 +28,7 @@ sub top_level_tag
 
 sub xml_to_epdata
 {
+	# $xml is the PubmedArticle element
 	my( $plugin, $dataset, $xml ) = @_;
 
 	my $epdata = {};
@@ -38,29 +39,32 @@ sub xml_to_epdata
 	my $article = $citation->getElementsByTagName("Article")->item(0);
 	return unless defined $article;
 
-	my $title_node = $article->getElementsByTagName( "ArticleTitle" )->item(0);
-	$epdata->{title} = $plugin->xml_to_text( $title_node ) if defined $title_node;
+	my $articletitle = $article->getElementsByTagName( "ArticleTitle" )->item(0);
+	$epdata->{title} = $plugin->xml_to_text( $articletitle ) if defined $articletitle;
 
 	my $journal = $article->getElementsByTagName( "Journal" )->item(0);
 	if( defined $journal )
 	{
-		my $issn_node = $journal->getElementsByTagName( "ISSN" )->item(0);
-		$epdata->{issn} = $plugin->xml_to_text( $issn_node ) if defined $issn_node;
+		my $title = $journal->getElementsByTagName( "Title" )->item(0);
+		$epdata->{publication} = $plugin->xml_to_text( $title ) if defined $title;
 
-		my $issue = $journal->getElementsByTagName( "JournalIssue" )->item( 0 );
-		if( defined $issue )
+		my $issn = $journal->getElementsByTagName( "ISSN" )->item(0);
+		$epdata->{issn} = $plugin->xml_to_text( $issn ) if defined $issn;
+
+		my $journalissue = $journal->getElementsByTagName( "JournalIssue" )->item( 0 );
+		if( defined $journalissue )
 		{
-			my $volume_node = $issue->getElementsByTagName( "Volume" )->item(0);
-			$epdata->{volume} = $plugin->xml_to_text( $volume_node ) if defined $volume_node;
+			my $volume = $journalissue->getElementsByTagName( "Volume" )->item(0);
+			$epdata->{volume} = $plugin->xml_to_text( $volume ) if defined $volume;
 	
-			my $issue_node = $issue->getElementsByTagName( "Issue" )->item(0);
-			$epdata->{number} = $plugin->xml_to_text( $issue_node ) if defined $issue_node;
+			my $issue = $journalissue->getElementsByTagName( "Issue" )->item(0);
+			$epdata->{number} = $plugin->xml_to_text( $issue ) if defined $issue;
 
-			my $date = $issue->getElementsByTagName( "PubDate" )->item(0);
-			if( defined $date )
+			my $pubdate = $journalissue->getElementsByTagName( "PubDate" )->item(0);
+			if( defined $pubdate )
 			{
-				my $year_node = $date->getElementsByTagName( "Year" )->item(0);
-				$epdata->{date} = $plugin->xml_to_text( $year_node ) if defined $year_node;
+				my $year = $pubdate->getElementsByTagName( "Year" )->item(0);
+				$epdata->{date} = $plugin->xml_to_text( $year ) if defined $year;
 			}
 		}
 	}
@@ -68,15 +72,29 @@ sub xml_to_epdata
 	my $pagination = $article->getElementsByTagName( "Pagination" )->item(0);
 	if( defined $pagination )
 	{
-		my $page_node = $pagination->getElementsByTagName( "MedlinePgn" )->item(0);
-		$epdata->{pagerange} = $plugin->xml_to_text( $page_node ) if defined $page_node;
+		my $medlinepgn = $pagination->getElementsByTagName( "MedlinePgn" )->item(0);
+		if( defined $medlinepgn )
+		{
+			$epdata->{pagerange} = $plugin->xml_to_text( $medlinepgn );
+		}
+		else
+		{
+			my $startpage = $pagination->getElementsByTagName( "StartPage" )->item(0);
+			if( defined $startpage )
+			{
+				$epdata->{pagerange} = $plugin->xml_to_text( $startpage );
+
+				my $endpage = $pagination->getElementsByTagName( "EndPage" )->item(0);
+				$epdata->{pagerange} .= "-" . $plugin->xml_to_text( $endpage ) if defined $endpage;
+			}
+		}
 	}
 
 	my $abstract = $article->getElementsByTagName( "Abstract" )->item(0);
 	if( defined $abstract )
 	{
-		my $abs_node = $abstract->getElementsByTagName( "AbstractText" )->item(0);
-		$epdata->{abstract} = $plugin->xml_to_text( $abs_node ) if defined $abs_node;
+		my $abstracttext = $abstract->getElementsByTagName( "AbstractText" )->item(0);
+		$epdata->{abstract} = $plugin->xml_to_text( $abstracttext ) if defined $abstracttext;
 	}
 
 	my $authorlist = $article->getElementsByTagName( "AuthorList" )->item(0);
@@ -86,22 +104,32 @@ sub xml_to_epdata
 		{
 			my $name = {};
 			
-			my $lastname_node = $author->getElementsByTagName( "LastName" )->item(0);
-			$name->{family} = $plugin->xml_to_text( $lastname_node ) if defined $lastname_node;
+			my $lastname = $author->getElementsByTagName( "LastName" )->item(0);
+			$name->{family} = $plugin->xml_to_text( $lastname ) if defined $lastname;
 
-			my $firstname_node = $author->getElementsByTagName( "ForeName" )->item(0);
-			$name->{given} = $plugin->xml_to_text( $firstname_node ) if defined $firstname_node;
+			my $forename = $author->getElementsByTagName( "ForeName" )->item(0);
+			$name->{given} = $plugin->xml_to_text( $forename ) if defined $forename;
 
 			push @{ $epdata->{creators_name} }, $name;
 		}
 	}
 
-	my $medlinejournalinfo = $citation->getElementsByTagName( "MedlineJournalInfo" )->item(0);
-	if( defined $medlinejournalinfo )
+
+	unless( defined $epdata->{publication} )
 	{
-		my $medlineta_node = $medlinejournalinfo->getElementsByTagName( "MedlineTA" )->item(0);
-		$epdata->{publication} = $plugin->xml_to_text( $medlineta_node ) if defined $medlineta_node;
+		# Alternative way of getting (abbrev.) journal title
+		my $medlinejournalinfo = $citation->getElementsByTagName( "MedlineJournalInfo" )->item(0);
+		if( defined $medlinejournalinfo )
+		{
+			my $medlineta = $medlinejournalinfo->getElementsByTagName( "MedlineTA" )->item(0);
+			$epdata->{publication} = $plugin->xml_to_text( $medlineta ) if defined $medlineta;
+		}
 	}
+
+	# NLMCommon DTD has "Book" entity, but PubMed seems to
+	# only contain articles
+	# http://www.ncbi.nlm.nih.gov/entrez/query/DTD/nlmcommon_070101.dtd
+	$epdata->{type} = "article";
 
 	return $epdata;
 

@@ -4,6 +4,7 @@ package EPrints::Plugin::Screen::Import;
 use EPrints::Plugin::Screen;
 
 use Fcntl qw(:DEFAULT :seek);
+use File::Temp qw/ tempfile /;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
@@ -78,7 +79,7 @@ sub action_test
 
 	$self->_import( 1, 0, $tmp_file ); # dry run with messages
 
-	unlink $tmp_file if -e $tmp_file;
+	undef $tmp_file;
 }
 
 sub action_import
@@ -91,7 +92,7 @@ sub action_import
 	my $ok = $self->_import( 1, 1, $tmp_file ); # quiet dry run
 	$self->_import( 0, 0, $tmp_file ) if $ok; # real run with messages
 
-	unlink $tmp_file if -e $tmp_file;
+	undef $tmp_file;
 
 	$self->{processor}->{screenid} = "Items";
 }
@@ -102,7 +103,8 @@ sub make_tmp_file
 	my ( $self ) = @_;
 
 	# Write import records to temp file
-	my $tmp_file = "/tmp/eprints.import.$$";
+	my $tmp_file = new File::Temp;
+	$tmp_file->autoflush;
 
 	my $import_fh = $self->{session}->{query}->upload( "import_filename" );
 	my $import_data = $self->{session}->param( "import_data" );
@@ -115,22 +117,17 @@ sub make_tmp_file
 
 	if( defined $import_fh )
 	{
-		my $fh = $self->{session}->{query}->upload( "import_filename" );
-		seek( $fh, 0, SEEK_SET );
+		seek( $import_fh, 0, SEEK_SET );
 
 		my( $buffer );
-		open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
-		while( read( $fh, $buffer, 1024 ) )
+		while( read( $import_fh, $buffer, 1024 ) )
 		{
-			print TMP $buffer;
+			print $tmp_file $buffer;
 		}
-		close TMP;
 	}
 	else
 	{
-		open( TMP, ">$tmp_file" ) || die "Could not write to $tmp_file";
-		print TMP $import_data;
-		close TMP;
+		print $tmp_file $import_data;
 	}
 
 	return $tmp_file;
@@ -146,7 +143,7 @@ sub _import
 	# Build command
 	my $import_script = $EPrints::SystemSettings::conf->{base_path}."/bin/import";
 	my $ds_id = "inbox";
-	my $cmd = $import_script." --scripted ".$session->get_repository->get_id." ".$ds_id." ".$self->{processor}->{plugin}->get_subtype." --user ".$self->{processor}->{user}->get_id." ".$tmp_file;
+	my $cmd = $import_script." --scripted ".$session->get_repository->get_id." ".$ds_id." ".$self->{processor}->{plugin}->get_subtype." --user ".$self->{processor}->{user}->get_id." ".$tmp_file->filename;
 	$cmd .= " --parse-only" if $dryrun;
 
 	# Run command without user check
