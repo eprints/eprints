@@ -53,7 +53,7 @@ sub get_system_field_info
 		{ name=>"datestamp", type=>"time", required=>1, },
 
 		{ name=>"userid", type=>"itemref", 
-			datasetid=>"document", required=>1 },
+			datasetid=>"user", required=>1 },
 
 		{ name=>"email", type=>"text", required=>1 },
 
