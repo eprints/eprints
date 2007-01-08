@@ -6166,3 +6166,7 @@ PACKAGE: 2.2.99.2
  * Set userid to be optional
  * Previous commit: Changed userid to use user dataset rather than
     document.
+
+2007-01-08
+ * Added ApacheLog import plugin for access log data
+
