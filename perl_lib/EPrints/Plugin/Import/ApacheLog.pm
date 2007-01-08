@@ -59,7 +59,7 @@ sub convert_input
 	}
 
 	my( $ip, $date, $method, $page, $status, $size, $referrer, $agent ) =
-		($1, $2, $3, $4, $5, $6, $7 );
+		($1, $2, $3, $4, $5, $6, $7, $8);
 	
 	$status += 0;
 		
