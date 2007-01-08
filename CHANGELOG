@@ -6162,3 +6162,7 @@ PACKAGE: 2.2.99.2
  * Used File::Temp for temp file in PubMed ID import
  * Added extra mappings to PubMed XML import
 
+2007-01-08 moj
+ * Set userid to be optional
+ * Previous commit: Changed userid to use user dataset rather than
+    document.
