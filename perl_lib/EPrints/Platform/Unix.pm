@@ -100,5 +100,18 @@ sub mkdir
 	return 1;
 }
 
+sub exec 
+{
+	my( $repository, $cmd_id, %map ) = @_;
+
+	my $command = $repository->invocation( $cmd_id, %map );
+
+	$repository->log( "Executing command: $command" );	
+
+	my $rc = 0xffff & system $command;
+
+	return $rc;
+}	
+
 
 1;

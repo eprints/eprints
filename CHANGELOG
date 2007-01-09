@@ -6170,3 +6170,9 @@ PACKAGE: 2.2.99.2
 2007-01-08
  * Added ApacheLog import plugin for access log data
 
+2007-01-09 cjg 
+ * Changed INSERT to REPLACE on login tickets- should fix bug with IP 
+    changing on laptops.
+ * Added $current_lang to available data in eprint script.
+ * Moved exec'ing of SystemSetting binaries into Platform so that they
+    can use custom code on non-UNIX platforms.

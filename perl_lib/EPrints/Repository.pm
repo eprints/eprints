@@ -1191,14 +1191,8 @@ sub exec
 {
 	my( $self, $cmd_id, %map ) = @_;
 
-	my $command = $self->invocation( $cmd_id, %map );
-
-	$self->log( "Executing command: $command" );	
-
-	my $rc = 0xffff & system $command;
-
-	return $rc;
-}	
+	return EPrints::Platform::exec( $self, $cmd_id, %map );
+}
 
 
 sub can_invoke

@@ -121,6 +121,20 @@ SystemSettings.
 
 sub mkdir { return &{$real_module."::mkdir"}( @_ ); }
 
+#####################################################################
+
+=item exec()
+
+Executes certain named tasks, which were once (and may be) handled
+by external binaries. This allows a per-platform solution to each
+task. (example is unpacking a .tar.gz file).
+
+=cut
+
+#####################################################################
+ 
+sub exec { return &{$real_module."::exec"}( @_ ); }
+
 1;
 
 =back

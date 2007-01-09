@@ -57,6 +57,7 @@ sub execute
 
 	# might be undefined
 	$state->{current_user} = $state->{session}->current_user; 
+	$state->{current_lang} = [$state->{session}->get_langid, "STRING" ]; 
 
 	my $compiled = EPrints::Script::Compiler->new()->compile( $code, $state->{in} );
 
