@@ -1,7 +1,12 @@
 package EPrints::Plugin::Import::ApacheLog;
 
+=head1 LOG FORMAT
+
+The only currently supported log format is the 'commonlog' format.
+
+=cut
+
 use EPrints::Apache::LogHandler;
-use Date::Parse;
 use URI;
 
 use strict;
@@ -15,8 +20,15 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "ApacheLog";
-	$self->{visible} = "yes";
+	$self->{visible} = "all";
 	$self->{produce} = [ 'list/access' ];
+
+	my $rc = EPrints::Utils::require_if_exists("Date::Parse");
+	unless($rc)
+	{
+		$self->{visible} = "";
+		$self->{error} = "Failed to load required module Date::Parse";
+	}
 
 	return $self;
 }
@@ -53,7 +65,8 @@ sub convert_input
 	my( $plugin, $input_data ) = @_;
 	my $session = $plugin->{session};
 
-	unless( $input_data =~ /^((?:\d{1,3}\.){3}\d{1,3}) - \S+ \[([^\]]+)\] "([A-Z]+) (\S+) HTTP\/1\.[01]" (\d+) (\d+|-) "([^"]*)" "(.*)"$/ )
+	# This regexp should cope with commonlog format
+	unless( $input_data =~ /^((?:\d{1,3}\.){3}\d{1,3}) - .*? +\[([^\]]+)\] "([A-Z]+) +(\S+) +HTTP\/1\.[01]" (\d+) (\d+|-) "(.*)" "(.*)"$/ )
 	{
 		EPrints::abort("Unknown or unrecognised ApacheLog input: '$input_data'");
 	}
