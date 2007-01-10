@@ -1065,6 +1065,7 @@ my $PRIVMAP =
 		"indexer/stop" => 2,
 		"indexer/start" => 2,
 		"indexer/force_start" => 2,
+		"user/remove" => 8,
 		"user/view" => 8,
 		"user/history" => 8,
 		"user/staff/edit" => 8,

@@ -6181,3 +6181,8 @@ PACKAGE: 2.2.99.2
  * Made ApacheLog optional on Date::Parse dependency
  * Made commonlog regexp in ApacheLog more flexible
 
+2007-01-10 moj
+ * Added user/remove action
+ * Changed sure_delete to be a plugin phrase
+ * Added User::Remove screen (similar to EPrint::Remove)
+ * Added phrases for User::Remove

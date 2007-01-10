@@ -1,6 +1,6 @@
-package EPrints::Plugin::Screen::EPrint::Remove;
+package EPrints::Plugin::Screen::User::Remove;
 
-our @ISA = ( 'EPrints::Plugin::Screen::EPrint' );
+our @ISA = ( 'EPrints::Plugin::Screen::User' );
 
 use strict;
 
@@ -12,7 +12,7 @@ sub new
 
 	$self->{appears} = [
 		{
-			place => "eprint_actions",
+			place => "user_actions",
 			position => 1600,
 		}
 	];
@@ -27,7 +27,7 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return $self->allow( "eprint/remove" );
+	return $self->allow( "user/remove" );
 }
 
 sub render
@@ -36,8 +36,8 @@ sub render
 
 	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 
-	$div->appendChild( $self->html_phrase("sure_delete",
-		title=>$self->{processor}->{eprint}->render_description() ) );
+	$div->appendChild( $self->html_phrase("sure_delete", 
+		title=>$self->{processor}->{user}->render_description() ) );
 
 	my %buttons = (
 		cancel => $self->{session}->phrase(
@@ -74,25 +74,25 @@ sub action_cancel
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "EPrint::View";
+	$self->{processor}->{screenid} = "User::View";
 }
 
 sub action_remove
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "Items";
+	$self->{processor}->{screenid} = "Users";
 
-	if( !$self->{processor}->{eprint}->remove )
+	if( !$self->{processor}->{user}->remove )
 	{
 		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( "DB error removing EPrint ".$self->{processor}->{eprint}->get_value( "eprintid" ).": $db_error" );
-		$self->{processor}->add_message( "message", $self->html_phrase( "item_not_removed" ) );
+		$self->{session}->get_repository->log( "DB error removing User ".$self->{processor}->{user}->get_value( "userid" ).": $db_error" );
+		$self->{processor}->add_message( "message", $self->html_phrase( "user_not_removed" ) );
 		$self->{processor}->{screenid} = "FirstTool";
 		return;
 	}
 
-	$self->{processor}->add_message( "message", $self->html_phrase( "item_removed" ) );
+	$self->{processor}->add_message( "message", $self->html_phrase( "user_removed" ) );
 }
 
 
