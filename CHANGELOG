@@ -6186,3 +6186,7 @@ PACKAGE: 2.2.99.2
  * Changed sure_delete to be a plugin phrase
  * Added User::Remove screen (similar to EPrint::Remove)
  * Added phrases for User::Remove
+
+2007-01-11 moj
+ * Public::RequestCopy stores actor as user's name (if logged in)
+    or email address (if not).

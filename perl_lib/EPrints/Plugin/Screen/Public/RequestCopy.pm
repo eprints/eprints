@@ -120,17 +120,24 @@ sub action_request
 
 	my $request = $session->get_repository->get_dataset( "request" )->create_object( $session, $data );
 
+	my $history_data = {
+		datasetid=>"request",
+		objectid=>$request->get_id,
+		action=>"create",
+	};
+	
+	if( defined $self->{processor}->{user} )
+	{
+		$history_data->{userid} = $self->{processor}->{user}->get_id;
+	}
+	else
+	{
+		$history_data->{actor} = $email;
+	}
+
 	# Log request creation event
 	my $history_ds = $session->get_repository->get_dataset( "history" );
-	$history_ds->create_object(
-		$session,
-		{
-			actor=>"cgi/request_doc",
-			datasetid=>"request",
-			objectid=>$request->get_id,
-			action=>"create",
-		}
-	);
+	$history_ds->create_object( $session, $history_data );
 
 	# Send request email
 	my $subject = $session->phrase( "request/request_email:subject", eprint => $eprint->get_value( "title" ) );
