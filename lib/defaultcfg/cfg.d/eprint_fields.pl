@@ -338,4 +338,162 @@ $c->{fields}->{eprint} = [
             'input_boxes' => 1,
           },
 
+          {
+            'name' => 'output_media',
+            'type' => 'text',
+          },
+
+          {
+            'name' => 'exhibitors',
+            'type' => 'compound',
+            'multiple' => 1,
+            'fields' => [
+                          {
+                            'sub_name' => 'name',
+                            'type' => 'name',
+                            'hide_honourific' => 1,
+                            'hide_lineage' => 1,
+                            'family_first' => 1,
+                          },
+                          {
+                            'sub_name' => 'id',
+                            'type' => 'text',
+                            'input_cols' => 20,
+                            'allow_null' => 1,
+                          }
+                        ],
+            'input_boxes' => 2,
+          },
+
+          {
+            'name' => 'num_pieces',
+            'type' => 'int',
+          },
+
+          {
+            'name' => 'composition_type',
+            'type' => 'text',
+          },
+
+          {
+            'name' => 'producers',
+            'type' => 'compound',
+            'multiple' => 1,
+            'fields' => [
+                          {
+                            'sub_name' => 'name',
+                            'type' => 'name',
+                            'hide_honourific' => 1,
+                            'hide_lineage' => 1,
+                            'family_first' => 1,
+                          },
+                          {
+                            'sub_name' => 'id',
+                            'type' => 'text',
+                            'input_cols' => 20,
+                            'allow_null' => 1,
+                          }
+                        ],
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'conductors',
+            'type' => 'compound',
+            'multiple' => 1,
+            'fields' => [
+                          {
+                            'sub_name' => 'name',
+                            'type' => 'name',
+                            'hide_honourific' => 1,
+                            'hide_lineage' => 1,
+                            'family_first' => 1,
+                          },
+                          {
+                            'sub_name' => 'id',
+                            'type' => 'text',
+                            'input_cols' => 20,
+                            'allow_null' => 1,
+                          }
+                        ],
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'lyricists',
+            'type' => 'compound',
+            'multiple' => 1,
+            'fields' => [
+                          {
+                            'sub_name' => 'name',
+                            'type' => 'name',
+                            'hide_honourific' => 1,
+                            'hide_lineage' => 1,
+                            'family_first' => 1,
+                          },
+                          {
+                            'sub_name' => 'id',
+                            'type' => 'text',
+                            'input_cols' => 20,
+                            'allow_null' => 1,
+                          }
+                        ],
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'accompaniment',
+            'type' => 'text',
+            'multiple' => 1,
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'data_type',
+            'type' => 'text',
+          },
+
+          {
+            'name' => 'pedagogic_type',
+            'type' => 'set',
+            'options' => [
+                           'presentation',
+                           'activity',
+                           'case',
+                           'enquiry',
+                           'problem',
+                           'collaboration',
+                           'communication',
+                         ],
+          },
+
+          {
+            'name' => 'completion_time',
+            'type' => 'text',
+          },
+
+          {
+            'name' => 'task_purpose',
+            'type' => 'longtext',
+          },
+
+          {
+            'name' => 'skill_areas',
+            'type' => 'text',
+            'multiple' => 1,
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'copyright_holders',
+            'type' => 'text',
+            'multiple' => 1,
+            'input_boxes' => 1,
+          },
+
+          {
+            'name' => 'learning_level',
+            'type' => 'text',
+          },
+
 ];

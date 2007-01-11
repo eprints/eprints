@@ -240,4 +240,73 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldname_divisions">Divisions</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_divisions">The divisions with which this item should be associated.</epp:phrase>
 
+    <epp:phrase id="eprint_fieldname_output_media">Media of Output</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_output_media">The media of output.
+<br/>Example: <span class="ep_form_example">CD-ROM</span>
+<br/>Example: <span class="ep_form_example">DVD</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_exhibitors">Exhibitors</epp:phrase>
+    <epp:phrase id="eprint_fieldname_exhibitors_id">Email</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_exhibitors">The exhibitors.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_num_pieces">Number of Pieces</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_num_pieces">The number of pieces exhibited.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_composition_type">Composition Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_composition_type">The type of the composition
+<br/>Example: <span class="ep_form_example">Concerto</span>
+<br/>Example: <span class="ep_form_example">Opera</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_producers">Producers</epp:phrase>
+    <epp:phrase id="eprint_fieldname_producers_id">Email</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_producers">The producers of the recording.</epp:phrase>-->
+
+    <epp:phrase id="eprint_fieldname_conductors">Conductors</epp:phrase>
+    <epp:phrase id="eprint_fieldname_conductors_id">Email</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_conductors">The conductors of the recording.</epp:phrase>-->
+
+    <epp:phrase id="eprint_fieldname_accompaniment">Accompaniment</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_accompaniment">Example: <span class="ep_form_example">BBC Singers</span></epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_lyricists">Lyricists</epp:phrase>
+    <epp:phrase id="eprint_fieldname_lyricists_id">Email</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_lyricists">The lyricists.</epp:phrase>-->
+
+    <epp:phrase id="eprint_fieldname_data_type">Type of Data</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_data_type">
+<br/>Example: <span class="ep_form_example">Geospatial</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_copyright_holders">Copyright Holders</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_copyright_holders">A person, firm or corporate body which holds the copyright for the item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_pedagogic_type">Pedagogic Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_pedagogic_type">The pedagogic type that defines the resource.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_presentation">Presentation</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_activity">Activity</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_case">Case</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_enquiry">Enquiry</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_problem">Problem</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_collaboration">Collaboration</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_communication">Communication</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_completion_time">Completion Time</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_completion_time">The approximate learning time required to complete.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_task_purpose">Task Purpose</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_task_purpose">Outline of the main purpose of the tasks involved.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_skill_areas">Skill Areas</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_skill_areas">The skill areas covered.
+<br/>Example: <span class="ep_form_example">Language Learning</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_learning_level">Learning Level</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_learning_level">The learning level. This should link to a national/international framework to allow easy comparison of resources.
+<br/>Example: <span class="ep_form_example">Breakthrough 1-3</span>
+<br/>Example: <span class="ep_form_example">GCSE</span>
+</epp:phrase>
+
 </epp:phrases>

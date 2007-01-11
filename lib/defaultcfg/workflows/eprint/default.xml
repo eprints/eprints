@@ -40,6 +40,12 @@
     <epc:if test="type = 'conference_item'">
       <component><field ref="pres_type" required="yes" /></component>
     </epc:if>
+    <epc:if test="type = 'composition'">
+      <component><field ref="composition_type" required="yes" /></component>
+    </epc:if>
+    <epc:if test="type = 'dataset'">
+      <component><field ref="data_type" required="yes" /></component>
+    </epc:if>
 
     <epc:choose>
       <epc:when test="type.one_of('book','book_section')">
@@ -53,6 +59,24 @@
       </epc:otherwise>
     </epc:choose>
 
+    <epc:if test="type = 'exhibition'">
+      <component collapse="yes"><field ref="exhibitors"/></component>
+      <component><field ref="num_pieces"/></component>
+    </epc:if>
+
+    <epc:if test="type = 'composition'">
+      <component collapse="yes"><field ref="producers"/></component>
+      <component collapse="yes"><field ref="conductors"/></component>
+      <component collapse="yes"><field ref="accompaniment"/></component>
+      <component collapse="yes"><field ref="lyricists"/></component>
+    </epc:if>
+
+    <epc:if test="type = 'performance'">
+      <component collapse="yes"><field ref="producers"/></component>
+      <component collapse="yes"><field ref="conductors"/></component>
+      <component collapse="yes"><field ref="accompaniment"/></component>
+    </epc:if>
+
     <component><field ref="divisions" /></component>
 
     <component type="Field::Multi">
@@ -61,7 +85,9 @@
         <epc:if test="type.one_of('book_section', 'book', 'article', 'conference_item')">
           <field ref="refereed" required="yes" />
         </epc:if>
-        <field ref="ispublished" required="yes" />
+        <epc:if test="type != 'artefact' and type != 'exhibition'">
+          <field ref="ispublished" required="yes" />
+        </epc:if>
       </epc:if>
 
       <epc:if test='type = "patent"'>
@@ -144,10 +170,98 @@
         <field ref="date_type"/>
         <field ref="id_number"/>
       </epc:if>
+      <epc:if test="type = 'artefact'">
+        <field ref="output_media"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'exhibition'">
+        <field ref="output_media"/>
+        <field ref="isbn"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'composition'">
+        <field ref="output_media"/>
+        <field ref="publisher" />
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'performance'">
+        <field ref="output_media"/>
+        <field ref="publisher" />
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'image'">
+        <field ref="output_media"/>
+        <field ref="publisher" />
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'video'">
+        <field ref="output_media"/>
+        <field ref="publisher" />
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'audio'">
+        <field ref="output_media"/>
+        <field ref="publisher" />
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'dataset'">
+        <field ref="output_media"/>
+        <field ref="publisher"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'experiment'">
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
+      <epc:if test="type = 'teaching_resource'">
+        <field ref="copyright_holders"/>
+        <field ref="publisher"/>
+        <field ref="date"/>
+        <field ref="date_type"/>
+        <field ref="official_url"/>
+      </epc:if>
       <field ref="related_url" />
-      <field ref="funders" />
-      <field ref="projects" />
     </component>
+
+    <component><field ref="funders" /></component>
+    <component><field ref="projects" /></component>
+
+    <epc:if test="type = 'teaching_resource'">
+      <component type="Field::Multi">
+        <title>Pedagogic Details</title>
+        <field ref="pedagogic_type"/>
+        <field ref="completion_time"/>
+        <field ref="task_purpose"/>
+        <field ref="skill_areas"/>
+        <field ref="learning_level"/>
+      </component>
+    </epc:if>
+
+    <epc:if test="type.one_of( 'exhibition', 'performance' )">
+      <component type="Field::Multi">
+        <title>Venue Details</title>
+        <field ref="event_title" />
+        <field ref="event_location"/>
+        <field ref="event_dates"/>
+      </component>
+    </epc:if>
 
     <epc:if test="type = 'conference_item'">
       <component type="Field::Multi">

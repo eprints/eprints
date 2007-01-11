@@ -6177,6 +6177,10 @@ PACKAGE: 2.2.99.2
  * Moved exec'ing of SystemSetting binaries into Platform so that they
     can use custom code on non-UNIX platforms.
 
+2007-01-09 tmb
+ * Used TeX::Encode to provide some handling of accented characters in
+    BibTeX import.
+
 2007-01-10 tdb
  * Made ApacheLog optional on Date::Parse dependency
  * Made commonlog regexp in ApacheLog more flexible
@@ -6190,3 +6194,7 @@ PACKAGE: 2.2.99.2
 2007-01-11 moj
  * Public::RequestCopy stores actor as user's name (if logged in)
     or email address (if not).
+
+2007-01-11 tmb
+ * Added first cut of metadata fields, phrases and citations for new 
+    eprint types.

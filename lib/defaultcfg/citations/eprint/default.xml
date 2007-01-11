@@ -74,6 +74,10 @@
     <print expr="publisher"/><if test="place_of_pub">, <print expr="place_of_pub"/></if>.
   </when>
 
+  <otherwise>
+    [<print expr="type"/>]
+  </otherwise>
+
 </choose>
 
 <if test=" ! type.one_of( 'patent','thesis' )">
