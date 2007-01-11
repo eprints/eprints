@@ -214,6 +214,7 @@ L<Text::BibTeX>, <EPrints::Plugin::Export::BibTeX>
 
 package EPrints::Plugin::Import::BibTeX;
 
+use Encode;
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import /;
@@ -233,6 +234,13 @@ sub new
 	{
 		$self->{visible} = "";
 		$self->{error} = "Failed to load required module Text::BibTeX";
+	}
+
+	$self->{decode_tex} = 1;
+	$rc = EPrints::Utils::require_if_exists("TeX::Encode");
+	unless( $rc ) 
+	{
+		$self->{decode_tex} = 0;
 	}
 
 	return $self;
@@ -301,6 +309,17 @@ sub convert_input
 	my ( $plugin, $input_data ) = @_;
 	my $epdata = ();
 
+	# Decode latex
+	if( $plugin->{decode_tex} )
+	{
+		for( $input_data->fieldlist )
+		{
+			my $value = $input_data->get( $_ );
+			$value = decode( "latex", $value );
+			utf8::encode( $value );
+			$input_data->set( $_, $value );
+		}
+	}
 
 	# Entry Type
 	my $input_data_type = $input_data->type;
