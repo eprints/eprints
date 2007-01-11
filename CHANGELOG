@@ -6198,3 +6198,6 @@ PACKAGE: 2.2.99.2
 2007-01-11 tmb
  * Added first cut of metadata fields, phrases and citations for new 
     eprint types.
+
+2007-01-11 tmb
+ * Added necessary bits to make activating minimal users simple.

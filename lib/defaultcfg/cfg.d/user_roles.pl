@@ -43,12 +43,10 @@ $c->{user_roles}->{admin} = [qw/
 	admin
 /],
 
-
-#$c->{user_roles}->{minuser} = [qw/
-#	saved-searches
-#	set-password
-#	change-email
-#	change-user
-#	no_edit_own_record
-#	lock-username-to-email
-#/];
+$c->{user_roles}->{minuser} = [qw/
+	general
+	edit-own-record
+	saved-searches
+	set-password
+	lock-username-to-email
+/];

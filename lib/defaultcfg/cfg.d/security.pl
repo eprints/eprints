@@ -58,6 +58,7 @@ $c->{can_user_view_document} = sub
 
 	# Trivial cases:
 	return( "ALLOW" ) if( $security eq "public" );
+	return( "DENY" ) if( $user->get_type eq "minuser" ); 
 	return( "ALLOW" ) if( $security eq "validuser" );
 
 	# examples for location validation
