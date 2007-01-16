@@ -6204,3 +6204,6 @@ PACKAGE: 2.2.99.2
 
 2007-01-16 moj
  * Added exists_and_set checks to DC exporter.
+
+2007-01-16 cjg
+ * made fileinfo not export in XML.
