@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 use Encode::Encoding;
 use Pod::LaTeX;

@@ -158,7 +158,7 @@ sub get_system_field_info
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
 
 	{ name=>"fileinfo", type=>"longtext", 
-		export_xml=>0,
+		export_as_xml=>0,
 		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
 
 	{ name=>"latitude", type=>"float", required=>0 },

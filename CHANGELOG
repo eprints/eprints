@@ -6207,3 +6207,9 @@ PACKAGE: 2.2.99.2
 
 2007-01-16 cjg
  * made fileinfo not export in XML.
+
+2007-01-16 cjg
+ * made fileinfo not export in XML actually work.
+
+2007-01-16 cjg
+ * Commented out autoloader in Tex::Encode to get rid of a warning.
