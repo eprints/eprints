@@ -81,56 +81,68 @@ sub convert_dataobj
 	my( $plugin, $eprint ) = @_;
 
 	my @dcdata = ();
-	push @dcdata, [ "title", $eprint->get_value( "title" ) ]; 
-	
+	push @dcdata, [ "title", $eprint->get_value( "title" ) ] if( $eprint->exists_and_set( "title" ) ); 
+
 	# grab the creators without the ID parts so if the site admin
 	# sets or unsets creators to having and ID part it will make
 	# no difference to this bit.
 
-	my $creators = $eprint->get_value( "creators_name" );
-	if( defined $creators )
+	if( $eprint->exists_and_set( "creators_name" ) )
 	{
-		foreach my $creator ( @{$creators} )
-		{	
-			next if !defined $creator;
-			push @dcdata, [ "creator", EPrints::Utils::make_name_string( $creator ) ];
+		my $creators = $eprint->get_value( "creators_name" );
+		if( defined $creators )
+		{
+			foreach my $creator ( @{$creators} )
+			{	
+				next if !defined $creator;
+				push @dcdata, [ "creator", EPrints::Utils::make_name_string( $creator ) ];
+			}
 		}
 	}
 
-	my $subjectid;
-	foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
+	if( $eprint->exists_and_set( "subjects" ) )
 	{
-		my $subject = EPrints::DataObj::Subject->new( $plugin->{session}, $subjectid );
-		# avoid problems with bad subjects
-		next unless( defined $subject ); 
-		push @dcdata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ) ];
+		my $subjectid;
+		foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
+		{
+			my $subject = EPrints::DataObj::Subject->new( $plugin->{session}, $subjectid );
+			# avoid problems with bad subjects
+				next unless( defined $subject ); 
+			push @dcdata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ) ];
+		}
 	}
 
-	push @dcdata, [ "description", $eprint->get_value( "abstract" ) ]; 
+	push @dcdata, [ "description", $eprint->get_value( "abstract" ) ] if( $eprint->exists_and_set( "abstract" ) ); 
+	push @dcdata, [ "publisher", $eprint->get_value( "publisher" ) ] if( $eprint->exists_and_set( "publisher" ) ); 
 
-	push @dcdata, [ "publisher", $eprint->get_value( "publisher" ) ]; 
-
-	my $editors = $eprint->get_value( "editors_name" );
-	if( defined $editors )
+	if( $eprint->exists_and_set( "editors_name" ) )
 	{
-		foreach my $editor ( @{$editors} )
+		my $editors = $eprint->get_value( "editors_name" );
+		if( defined $editors )
 		{
-			push @dcdata, [ "contributor", EPrints::Utils::make_name_string( $editor ) ];
+			foreach my $editor ( @{$editors} )
+			{
+				push @dcdata, [ "contributor", EPrints::Utils::make_name_string( $editor ) ];
+			}
 		}
 	}
 
 	## Date for discovery. For a month/day we don't have, assume 01.
-	my $date = $eprint->get_value( "date" );
-	if( defined $date )
+	if( $eprint->exists_and_set( "date" ) )
 	{
-		$date =~ s/(-0+)+$//;
-		push @dcdata, [ "date", $date ];
+		my $date = $eprint->get_value( "date" );
+		if( defined $date )
+		{
+			$date =~ s/(-0+)+$//;
+			push @dcdata, [ "date", $date ];
+		}
+	}
+	
+	if( $eprint->exists_and_set( "type" ) )
+	{
+		push @dcdata, [ "type", EPrints::Utils::tree_to_utf8( $eprint->render_value( "type" ) ) ];
 	}
 
-
-	my $ds = $eprint->get_dataset();
-	push @dcdata, [ "type", EPrints::Utils::tree_to_utf8( $eprint->render_value( "type" ) ) ];
-	
 	my $ref = "NonPeerReviewed";
 	if( $eprint->exists_and_set( "refereed" ) && $eprint->get_value( "refereed" ) eq "TRUE" )
 	{
