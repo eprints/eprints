@@ -370,7 +370,7 @@ while( 1 )
 			EPrints::Index::indexlog( "** Wake up... time to die: $$" ) if( $p->{loglevel} > 2 );
 			EPrints::Index::indexlog( "** Worker process restarting: $$" ) if( $p->{loglevel} > 2 );
 			foreach( @sessions ) { $_->terminate; }
-			rolllogs();
+			EPrints::Index::rolllogs();
 			exit;
 		};
 		# restart once a day in case of memory leaks

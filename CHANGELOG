@@ -6218,3 +6218,6 @@ PACKAGE: 2.2.99.2
  * Fixed issue with &<> in autocomplete.
  * Fixed up confusing help in import
  * Added --force option to import
+
+2007-01-17 cjg
+ * fix rolllogs to EPrints::Index::rolllogs in indexer
