@@ -6213,3 +6213,8 @@ PACKAGE: 2.2.99.2
 
 2007-01-16 cjg
  * Commented out autoloader in Tex::Encode to get rid of a warning.
+
+2007-01-17 cjg
+ * Fixed issue with &<> in autocomplete.
+ * Fixed up confusing help in import
+ * Added --force option to import

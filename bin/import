@@ -36,7 +36,9 @@ The ID of the EPrint repository to import to.
 
 =item I<dataset>
 
-The name of the dataset to import into, such as "archive", "subject" or "user".
+The name of the dataset to import into, such as "eprint","archive", "subject" or "user".
+
+Please note that for the "subject" dataset, you are probably better off using the import_subjects tool which will empty the dataset before importing.
 
 =item I<plugin>
 
@@ -52,18 +54,23 @@ If this is ommited or an invalid plugin is requested, then 'import' will list al
 
 =item B<--user USERID/USERNAME> 
 
-Required for importing EPrint records.
+For eprint datasets only. (not user or subject). 
 
-When importing EPrints, this field sets the userid of the user who will
-own the created EPrint records. If set to star (*) it will use the userid
-values imported from the file.
+Sets the userid/username of the user in the system who will own the imported records.
 
-If this is an integer then it is assumed to be the userid of the user,
-otherwise it is assumed to be the username.
+Usually required for importing EPrint records. This may not be required if the import format contains the userid value, eg. an import in the EPrints 3 XML format.
+
+If this is an integer then it is assumed to be the userid of the user, otherwise it is assumed to be the username.
+
+You may wish to create one or more "bulk import" users and make imported eprint records belong to them.
 
 =item B<--parse-only>
 
 Don't import, just check the file.
+
+=item B<--force>
+
+Don't ask any questions, just do it!
 
 =item B<--help>
 
@@ -108,6 +115,7 @@ my $quiet = 0;
 my $purge = 1;
 my $help = 0;
 my $man = 0;
+my $force = 0;
 my $single = 0;
 my $scripted = 0;
 my $user = undef;
@@ -116,6 +124,7 @@ my $parse_only = 0;
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,
+	'force' => \$force,
 	'user=s' => \$user,
 	'version' => \$version,
 	'verbose+' => \$verbose,
@@ -209,9 +218,14 @@ if( !defined $ipluginid )
 	exit;
 }
 
-if( !defined $user && $ds->confid eq "eprint" )
+if( !defined $user && $ds->confid eq "eprint" && !$force )
 {
-	unless( EPrints::Utils::get_input_confirm( "Warning! You haven't specified a user id to own these eprints, are you sure you want to continue?", 1 ) )
+	print <<END;
+Warning! You haven't specified a user id to own these eprints, 
+That's OK, assuming the input file specifies the userid for each eprint. 
+(you can supress this check with --force).
+END
+	unless( EPrints::Utils::get_input_confirm( "Continue?", 1 ) )
 	{
 		$session->terminate();
 		exit 1;
