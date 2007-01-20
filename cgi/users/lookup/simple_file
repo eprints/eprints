@@ -14,10 +14,10 @@ if( !defined $lookup_file )
 }
 my $lookup_xml ={};
 my $lookup_lc_names = [];
-$lookup_file=~s/\///g;
-$lookup_file=~s/^\.+//;
+$lookup_file=~s/\///sg;
+$lookup_file=~s/^\.+//s;
 my $filepath = $session->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
-open( DATA, $filepath ) || EPrints::abort "can't read $filepath: $!";
+open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
 my @filtered_lookup_names;
 if( $mode eq "phrase" )
 {
