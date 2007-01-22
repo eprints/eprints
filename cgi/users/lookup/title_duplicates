@@ -17,7 +17,7 @@ my $q = $session->param( "q" );
 exit unless length( $q ) >= $need; 
 
 my $eprintid = $session->param( "eprintid" ) || '';
-$eprintid =~ /^([0-9])$/;
+$eprintid =~ /^([0-9]+)$/;
 $eprintid = $1;
 
 my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!=$eprintid AND eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
