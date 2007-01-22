@@ -6223,5 +6223,7 @@ PACKAGE: 2.2.99.2
  * fix rolllogs to EPrints::Index::rolllogs in indexer
 
 2007-01-20 tdb
- * Fixed security holes (I hope) in lookup scripts
+ * Fixed security holes in lookup scripts
 
+2007-01-22 cjg
+ * Removed SQL from lookup script.

@@ -24,7 +24,6 @@ my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!=$eprintid AND epri
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
-$sql;
 <ul>
 END
 
