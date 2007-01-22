@@ -2924,7 +2924,7 @@ sub read_params
  		$self->{query} = new CGI;
 	}
 
-	$c->notes->set( params=>'undef' );
+	$c->notes->set( loginparams=>'undef' );
 }
 
 
