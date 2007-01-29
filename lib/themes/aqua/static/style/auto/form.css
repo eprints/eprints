@@ -1,0 +1,78 @@
+
+/* Form related styles */
+
+form {
+	display: inline;
+}
+
+select, input.ep_form_text, textarea {
+	padding: 1px 2px 1px 2px;
+	margin-right: 4px;
+	border: solid 1px #ccc;
+}
+
+.ep_form_example {
+	font-weight: bold;
+	color: blue;
+}
+
+/* buttons */
+
+.ep_form_button_bar {
+	text-align: center;
+	padding: 4px;
+	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
+	clear: both;
+	border: solid 1px #d8dbef;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.ep_form_action_button, .ep_form_internal_button {
+	text-align: center;
+	border: 1px #000 solid;
+	background: url(/style/images/blue_button.png) top left repeat-x;
+	color: #000;
+	font-weight: normal;
+}
+
+/* form fields */
+
+.ep_form_field_help {
+        font-size: small ;
+}
+
+.ep_form_field_name {
+        padding-top: 1em;
+	font-weight: bold;
+}
+
+.ep_form_field_input {
+        padding-bottom: 3pt;
+}
+
+/* input fields grid */
+
+
+.ep_form_input_grid th {
+	vertical-align: middle;
+	text-align: center;
+	font-size: 80%;
+}
+.ep_form_input_grid td {
+	vertical-align: middle;
+}
+
+td.ep_form_input_grid_pos {
+	padding-right: 4px;
+}
+td.ep_form_input_grid_arrows {
+	white-space: nowrap;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+
+td.ep_form_input_grid_wide {
+	text-align: left;
+}

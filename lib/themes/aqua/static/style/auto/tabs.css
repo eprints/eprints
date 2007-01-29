@@ -1,0 +1,59 @@
+
+/* Tab Bar */
+
+table.ep_tab_bar, td.ep_tab, td.ep_tab_selected, td.ep_tab_spacer {
+/*	border: 1px dashed #f00; */
+}
+
+table.ep_tab_bar {
+	margin-top: 10px;
+	width: 100%;
+	background: url(/style/images/tab_line.png) repeat-x bottom left;
+}
+
+td.ep_tab table, td.ep_tab_selected table {
+	text-align: center;
+	margin-bottom: 5px;
+	border-collapse: collapse;
+}
+
+td.ep_tab table {
+	background: url(/style/images/tab_right_off.png) no-repeat top right;
+	border-bottom: 1px #888 solid;
+}
+td.ep_tab_selected table {
+	background: url(/style/images/tab_right_on.png) no-repeat top right;
+	border-bottom: 1px #fff none;
+}
+
+td.ep_tab a, td.ep_tab_selected a {
+	display: block;
+	padding-bottom: 4px;
+	padding-top: 2px;
+	text-decoration: none;
+	color: #000;
+}
+
+td.ep_tab a {
+	background: url(/style/images/tab_left_off.png) no-repeat top left;
+}
+td.ep_tab_selected a {
+	background: url(/style/images/tab_left_on.png) no-repeat top left;
+}
+
+td.ep_tab_spacer {
+	width: 20px;
+}
+
+.ep_tab_panel {
+	padding: 12px;
+	clear: both;
+	background: #fff url(/style/images/toolbox.png);
+	border-right: 1px solid #c0c0c0;
+	border-bottom: 1px solid #c0c0c0;
+}
+
+table.ep_tab_bar a {
+	text-decoration: none;
+}
+

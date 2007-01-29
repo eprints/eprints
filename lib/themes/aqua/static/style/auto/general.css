@@ -1,0 +1,86 @@
+
+body {
+	margin: 1em;
+	font-family: Arial,Sans-serif;
+	font-size: 80%;
+}
+
+.ep_no_js { 
+	display: none; 
+}
+
+.ep_no_js_inline { 
+	display: none; 
+}
+
+.ep_hide { 
+	display: none; 
+}
+
+h1 {
+	margin: 0px 0px 10px 0px;
+        font: bold 130% Arial,Sans-serif;
+	text-align: center;
+}
+
+h2 {
+        font: bold 110% Arial,Sans-serif;
+}
+
+h3 {
+        font: 120% Arial,Sans-serif;
+}
+
+h4 {
+        font: 100% Arial,Sans-serif;
+}
+
+hr {
+	border: 0px;
+	color: #ccc;
+	background-color: #ccc;
+	height: 2px;
+}
+
+.ep_required {
+}
+
+.ep_toggle a, a.ep_toggle {
+	text-decoration: none;
+	color: #44c;
+}
+
+th.ep_row {
+	border-bottom: dashed #bbf 1px;
+	padding-right: 0.25em;
+	text-align: right;
+	width: 20%;
+}
+td.ep_row {
+	border-left: dashed #bbf 1px;
+	border-bottom: dashed #bbf 1px;
+	padding-left: 0.25em;
+	text-align: left;
+}
+
+.ep_highlight {
+	padding: 0.5em;
+	border: solid 2px #ff8888;
+	background-color: #ffeeee;
+}
+
+.ep_block {
+	width: auto;
+	margin: 0.25em auto 0.25em auto;
+	text-align: center;
+}
+.ep_block td {
+	text-align: left;
+}
+ul {
+	text-align: left;
+}
+.ep_doc_icon
+{
+	padding: 2px;
+}

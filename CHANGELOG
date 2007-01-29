@@ -6232,3 +6232,7 @@ PACKAGE: 2.2.99.2
  * Fixed bug in Session which caused buttons to do odd things for
     a few seconds after initial login. (due to failing to clear an
     apache note).
+
+2007-01-29 tdb
+ * Initial version of an 'aqua' theme
+

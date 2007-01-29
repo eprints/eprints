@@ -1,0 +1,88 @@
+
+/* Message styles - used to provide alerts and errors */
+
+.ep_msg_message, .ep_msg_warning, .ep_msg_error {
+	margin: 10px 0;
+}
+
+.ep_msg_message_icon, .ep_msg_warning_icon, .ep_msg_error_icon {
+/*	padding: 10px; */
+}
+/*
+
+Not currently using titles
+
+.ep_msg_message_title {
+	color: #70cf70;
+	padding: 2px 10px 2px 10px;
+}
+.ep_msg_error_title {
+	color: #ff8080;
+	padding: 2px 10px 2px 10px;
+}
+.ep_msg_warning_title {
+	color: #cf9070;
+	padding: 2px 10px 2px 10px;
+}
+
+*/
+
+.ep_msg_message {
+	background: url(/style/images/green_back_right.png) right top no-repeat;
+}
+.ep_msg_warning {
+	background: url(/style/images/orange_back_right.png) right top no-repeat;
+}
+.ep_msg_error {
+	background: url(/style/images/red_back_right.png) right top no-repeat;
+}
+
+.ep_msg_message_content {
+	background: url(/style/images/green_back_rb.png) right bottom no-repeat;
+}
+.ep_msg_warning_content {
+	background: url(/style/images/orange_back_rb.png) right bottom no-repeat;
+}
+.ep_msg_error_content {
+	background: url(/style/images/red_back_rb.png) right bottom no-repeat;
+}
+
+.ep_msg_message table {
+	background: url(/style/images/green_back_lb.png) left bottom no-repeat;
+}
+.ep_msg_warning table {
+	background: url(/style/images/orange_back_lb.png) left bottom no-repeat;
+}
+.ep_msg_error table {
+	background: url(/style/images/red_back_lb.png) left bottom no-repeat;
+}
+
+.ep_msg_message img {
+	background: url(/style/images/green_back_left.png) left top no-repeat;
+}
+.ep_msg_warning img {
+	background: url(/style/images/orange_back_left.png) left top no-repeat;
+}
+.ep_msg_error img {
+	background: url(/style/images/red_back_left.png) left top no-repeat;
+}
+
+.ep_msg_message table, .ep_msg_warning table, .ep_msg_error table {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+.ep_msg_message img, .ep_msg_warning img, .ep_msg_error img {
+	padding: 10px 0 0 10px;
+	position: relative;
+	top: -10px;
+	left: -5px;
+}
+
+.ep_msg_message td, .ep_msg_warning td, .ep_msg_error td {
+	padding: 10px 10px 10px 5px;
+	vertical-align: top;
+}
