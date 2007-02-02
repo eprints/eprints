@@ -6236,3 +6236,5 @@ PACKAGE: 2.2.99.2
 2007-01-29 tdb
  * Initial version of an 'aqua' theme
 
+2007-02-02 tdb
+ * Make File::BOM use conditional on Perl version
