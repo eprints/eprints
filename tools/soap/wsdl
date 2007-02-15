@@ -16,7 +16,7 @@ my @ops = (qw/ echo removeEprint getEprintFiles getEprint putEprint modifyEprint
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
-<definitions name="PmSoapRpcApi"
+<definitions name="EPrintsSoapRpcApi"
              targetNamespace="$host/EPrints/WebServices"
              xmlns:pm="$host/EPrints/WebServices"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -27,11 +27,7 @@ print <<END;
   <types>
 END
 
-print <<END;
-    <xsd:schema>
-        <xsd:import schemaLocation="$perl/soap/xsd" />
-    </xsd:schema>
-END
+&print_schema( $session, $host );
 
 #do "fooxsd";
 #rrr($session,$host);
@@ -62,7 +58,7 @@ print <<END;
   </message>
 
   <message name="getEprintFilesOutput">
-    <part name="eprint"                  type="pm:Eprint"/>
+    <part name="eprint"                  type="tns:Eprint"/>
   </message>
 
 
@@ -71,12 +67,12 @@ print <<END;
   </message>
 
   <message name="getEprintOutput">
-    <part name="eprint"                  type="pm:Eprint"/>
+    <part name="eprint"                  type="tns:Eprint"/>
   </message>
 
 
   <message name="putEprintInput">
-    <part name="eprint"                  type="pm:Eprint"/>
+    <part name="eprint"                  type="tns:Eprint"/>
   </message>
 
   <message name="putEprintOutput">
@@ -86,7 +82,7 @@ print <<END;
 
   <message name="modifyEprintInput">
     <part name="eprintID"                  type="xsd:string"/>
-    <part name="eprint"                    type="pm:Eprint"/>
+    <part name="eprint"                    type="tns:Eprint"/>
   </message>
 
   <message name="modifyEprintOutput">
@@ -95,7 +91,7 @@ print <<END;
 
   <message name="addDocumentInput">
     <part name="eprintID"                  type="xsd:string"/>
-    <part name="document"                  type="pm:Document"/>
+    <part name="document"                  type="tns:Document"/>
   </message>
 
   <message name="addDocumentOutput">
@@ -104,7 +100,7 @@ print <<END;
 
   <message name="modifyDocumentInput">
     <part name="documentID"                  type="xsd:string"/>
-    <part name="document"                    type="pm:Document"/>
+    <part name="document"                    type="tns:Document"/>
   </message>
 
   <message name="modifyDocumentOutput">
@@ -139,16 +135,16 @@ print <<END;
 
 
   <message name="searchEprintInput">
-    <part name="params"                  type="pm:ListParam"/>
-    <part name="searchFields"            type="pm:ListSearchField"/>
+    <part name="params"                  type="tns:ListParam"/>
+    <part name="searchFields"            type="tns:ListSearchField"/>
   </message>
 
   <message name="searchEprintOutput">
-    <part name="results"                 type="pm:ListEprint"/>
+    <part name="results"                 type="tns:ListEprint"/>
   </message>
 
 
-  <portType name="PmSoapRpcApiPort">
+  <portType name="EPrintsSoapRpcApiPort">
 END
 foreach my $operation ( @ops )
 {
@@ -156,8 +152,8 @@ foreach my $operation ( @ops )
 	my $output = $operation."Output";
 	print <<END;
     <operation name="$operation">
-      <input  name='$input'  message="pm:$input"/>
-      <output name='$output' message="pm:$output"/>
+      <input  name='$input'  message="tns:$input"/>
+      <output name='$output' message="tns:$output"/>
     </operation>
 
 END
@@ -165,7 +161,7 @@ END
 print <<END;
   </portType>
 
-  <binding name="PmSoapRpcApiBinding" type="pm:PmSoapRpcApiPort">
+  <binding name="EPrintsSoapRpcApiBinding" type="tns:EPrintsSoapRpcApiPort">
     <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
 END
 foreach my $operation ( @ops )
@@ -176,12 +172,12 @@ foreach my $operation ( @ops )
     <operation name="$operation">
       <soap:operation soapAction="$host/EPrints/WebServices#$operation"/>
       <input name="$input">
-        <soap:body use="encoded"
+        <soap:body use="literal"
                    namespace="$host/EPrints/WebServices"
                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
       </input>
       <output name="$output">
-        <soap:body use="encoded"
+        <soap:body use="literal"
                    namespace="$host/EPrints/WebServices"
                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
       </output>
@@ -191,8 +187,8 @@ END
 print <<END;
   </binding>
 
-  <service name="PmSoapRpcApi">
-    <port name="PmSoapRpcApiPort" binding="pm:PmSoapRpcApiBinding">
+  <service name="EPrintsSoapRpcApi">
+    <port name="EPrintsSoapRpcApiPort" binding="tns:EPrintsSoapRpcApiBinding">
       <soap:address location="$perl/soap/soap"/>
     </port>
   </service>
@@ -201,3 +197,220 @@ print <<END;
 END
 
 exit;
+
+
+
+
+sub print_schema
+{
+	my( $session, $host ) = @_;
+
+print <<END;
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="$host/EPrints/WebServices"
+            xmlns="$host/EPrints/WebServices"
+            xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+            elementFormDefault="qualified" >
+
+<xsd:complexType name="Param">
+  <xsd:sequence>
+    <xsd:element minOccurs="1" maxOccurs="1" name="name" type="xsd:string" />
+    <xsd:element minOccurs="1" maxOccurs="1" name="value" type="xsd:string" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ListParam">
+  <xsd:sequence>
+    <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="Param" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ListSearchField">
+  <xsd:sequence>
+    <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="SearchField" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="SearchField">
+  <xsd:sequence>
+    <xsd:element minOccurs="1" maxOccurs="1" name="fields" type="ListField" />
+    <xsd:element minOccurs="1" maxOccurs="1" name="value" type="xsd:string" />
+    <xsd:element minOccurs="0" maxOccurs="1" name="merge" type="xsd:string" />
+    <xsd:element minOccurs="0" maxOccurs="1" name="match" type="xsd:string" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ListField">
+  <xsd:sequence>
+    <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="xsd:string" />
+  </xsd:sequence>
+</xsd:complexType>
+
+END
+
+if( 0) {
+	foreach my $fieldtype ( qw/
+	boolean child namedset date email fulltext id int itemref langid
+	longtext pagerange search secret set subject text url year 
+	raeeprintid data / ) {
+		print <<END
+<xsd:simpleType name="Data-$fieldtype">
+  <xsd:restriction base="xsd:string">
+  </xsd:restriction>
+</xsd:simpleType>
+END
+	}
+}
+print <<END;
+
+<xsd:complexType name="NameValue">
+  <xsd:all>
+    <xsd:element minOccurs="0" name="family" type="xsd:string" />
+    <xsd:element minOccurs="0" name="given" type="xsd:string" />
+    <xsd:element minOccurs="0" name="honourific" type="xsd:string" />
+    <xsd:element minOccurs="0" name="lineage" type="xsd:string" />
+  </xsd:all>
+</xsd:complexType>
+
+END
+
+my @datasetids = ( "eprint","subject","user","saved_search","document" );
+
+#print <<END;
+#  <xsd:element name="records">
+#    <xsd:complexType>
+#      <xsd:choice>
+#END
+
+#foreach my $dsid ( @datasetids )
+#{
+#	my $ds = $session->get_repository()->get_dataset( $dsid );
+#        print "        <xsd:sequence>\n";
+#        print "          <xsd:element ref=\"".$ds->confid."\" maxOccurs=\"unbounded\" minOccurs=\"0\" />\n";
+#        print "        </xsd:sequence>\n";
+#}
+#print <<END;
+#      </xsd:choice>
+#    </xsd:complexType>
+#  </xsd:element>
+#
+#END
+
+foreach my $dsid ( @datasetids )
+{
+	dataset_schema( $dsid, $session );
+}
+
+
+print <<END;
+
+</xsd:schema>
+END
+}
+
+
+sub dataset_schema
+{
+	my( $dsid, $session ) = @_;
+
+	my $data = "";
+
+	my $ds = $session->get_repository->get_dataset( $dsid );
+
+	$data.= "<xsd:complexType name=\"List\u$dsid\">\n";
+	$data.= "  <xsd:sequence>\n";
+	$data.= "    <xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"name\" type=\"\u${dsid}\" />\n";
+	$data.= "  </xsd:sequence>\n";
+	$data.= "</xsd:complexType>\n";
+
+	$data.= "<xsd:complexType name=\"\u$dsid\">\n";
+
+	$data.= "  <xsd:all>\n";
+
+	if( $dsid eq "document" )
+	{
+		$data.= "    <xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"files\" type=\"DocumentFiles\" />\n";
+
+		print <<END;
+<xsd:complexType name="DocumentFiles">
+  <xsd:sequence>
+    <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="DocumentFilesItem" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="DocumentFilesItem">
+  <xsd:sequence>
+    <xsd:element minOccurs="1" maxOccurs="1" name="filename" type="xsd:string" />
+    <xsd:element minOccurs="0" maxOccurs="1" name="url" type="xsd:string" />
+    <xsd:element minOccurs="0" maxOccurs="1" name="filesize" type="xsd:string" />
+    <xsd:element minOccurs="0" maxOccurs="1" name="data" type="xsd:base64Binary" />
+  </xsd:sequence>
+</xsd:complexType>
+END
+	}
+
+
+
+	foreach my $field ( $ds->get_fields )
+	{
+		next if( $field->is_type( "file" ) ); # hack, for now.
+		my $fn = $field->get_name;
+		$fn =~ s/_([a-z])/\u$1/g;
+		my $type = &field_schema( $field, "\u$dsid\u$fn" );
+    	$data.= "    <xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"".$field->get_name."\" type=\"$type\" />\n";
+	}
+
+	$data.= "  </xsd:all>\n";
+	$data.= "</xsd:complexType>\n";
+
+	print $data;
+}
+
+
+
+sub field_schema
+{
+	my( $field, $name ) = @_;
+
+	unless( $field->get_property( "multiple" ) )
+	{
+		return &field_schema_single( $field, $name );
+	}
+
+	my $type = &field_schema_single( $field, $name."Item" );
+
+	print <<END;
+<xsd:complexType name="$name">
+  <xsd:sequence>
+    <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="$type" />
+  </xsd:sequence>
+</xsd:complexType>
+END
+
+	return $name;
+}
+
+
+
+
+sub field_schema_single
+{
+	my( $field, $name ) = @_;
+
+#	if( $field->get_search_group eq "int" )
+#	{
+#		return "xsd:int";
+#	}
+	if( $field->get_search_group eq "name" )
+	{
+		return "NameValue";
+	}
+	if( $field->is_type( "subobject" ) )
+	{
+		my $datasetid = $field->get_property( "datasetid" );
+		return "\u$datasetid";
+	}
+
+	return( 'xsd:string' );
+}
+

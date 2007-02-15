@@ -10,7 +10,14 @@ exit( 0 ) unless( defined $session );
 my $POSTDATA = $session->param( "POSTDATA" );
 my $xPOSTDATA=<<END;
 <?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://devel.eprints.org/EPrints/WebServices" xmlns:types="http://devel.eprints.org/EPrints/WebServices/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><tns:echo><inputString xsi:type="xsd:string">hello</inputString><stringDuplicationCount xsi:type="xsd:int">2</stringDuplicationCount></tns:echo></soap:Body></soap:Envelope>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://devel.eprints.org/EPrints/WebServices" xmlns:types="http://devel.eprints.org/EPrints/WebServices/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+    <tns:echo>
+      <inputString xsi:type="xsd:string">hello</inputString>
+      <stringDuplicationCount xsi:type="xsd:int">2</stringDuplicationCount>
+    </tns:echo>
+  </soap:Body>
+</soap:Envelope>
 END
 
 my $doc = EPrints::XML::parse_xml_string( $POSTDATA );
@@ -25,8 +32,12 @@ my $body = $bodys[0];
 print STDERR "\n\n";
 $session->send_http_header( content_type=>"text/xml" );
 
-my $response = '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/1999/XMLSchema" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
-$response.= '<SOAP-ENV:Body>';
+my $response = '<soap:Envelope 
+	xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+	xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+>';
+$response.= '<soap:Body>';
 my $action = $body->getFirstChild;
 my $map = {};
 foreach my $kid ( $body->getChildNodes )
@@ -71,8 +82,8 @@ $response.= '<'.$tn.' xmlns="'.$ns.'">';
 $response.= $result->toString if defined $result;
 $response.= '</'.$tn.'>';
 
-$response.= '</SOAP-ENV:Body>';
-$response.= '</SOAP-ENV:Envelope>';
+$response.= '</soap:Body>';
+$response.= '</soap:Envelope>';
 
 print $response;
 open( TMP, ">/tmp/lastsoap.xml" ) ||die"can't write to lastsoap.xml";
@@ -85,10 +96,12 @@ close TMP;
 
 $session->terminate;
 my $null = <<END;
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:namesp2="http://namespaces.soaplite.com/perl" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/1999/XMLSchema" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-  <SOAP-ENV:Body>
+<soap:Envelope 
+	xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+	xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+  <soap:Body>
     <namesp1:searchEprint xmlns:namesp1="http://devel.eprints.org/EPrints/WebServices">
-      <foo xmlns:pm="http://devel.eprints.org/EPrints/WebServices" xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="xsd:ur-type[0]"/>
       <varr xmlns:pm="http://devel.eprints.org/EPrints/WebServices" xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="namesp2:SearchField[1]">
         <item xsi:type="namesp2:SearchField">
           <fields xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="xsd:string[1]">
@@ -98,8 +111,8 @@ my $null = <<END;
         </item>
       </varr>
     </namesp1:searchEprint>
-  </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
+  </soap:Body>
+</soap:Envelope>
 END
 exit;
 
@@ -517,7 +530,7 @@ print STDERR Dumper( $sf );
 	my $list = $sexp->perform_search;
 
 	my $host = $repository->get_conf( "base_url" );
-	my $results = $session->make_element( "results", "SOAP-ENC:arrayType"=>"eprints:Eprint[".$list->count."]", "xmlns:eprints"=>"$host/EPrints/WebServices" );
+	my $results = $session->make_element( "results", "xmlns:eprints"=>"$host/EPrints/WebServices" );
 	$list->map( sub {
 		my( $session, $dataset, $item ) = @_;
 		$results->appendChild( object_to_soap( $item, 0 ) );
@@ -545,7 +558,7 @@ sub object_to_soap
 	if( $datasetid eq "eprint" )
 	{
 		my @docs = $obj->get_all_documents;
-		my $documents = $session->make_element( "documents", "SOAP-ENC:arrayType"=>"eprints:Document[".(scalar @docs)."]" );
+		my $documents = $session->make_element( "documents" );
 		foreach my $doc ( @docs )
 		{
 			$documents->appendChild( object_to_soap( $doc, $whole_files ) );
@@ -556,7 +569,7 @@ sub object_to_soap
 	if( $datasetid eq "document" )
 	{
 		my %filelist = $obj->files;
-		my $files = $session->make_element( "documents", "SOAP-ENC:arrayType"=>"eprints:DocumentFilesItem[".(scalar keys %filelist)."]" );
+		my $files = $session->make_element( "documents" );
 		foreach my $filename ( keys %filelist )
 		{
 			my $item = $session->make_element( "item", "xsi:type"=>"eprints:DocumentFilesItem" );
@@ -607,8 +620,8 @@ sub soapy_field
 	{
 		my $itemtype = xsd_type_item( $field );
 		$value = [] if( !defined $value );
-		my $arraytype=$itemtype."[".(scalar @{$value})."]";
-		my $soaped = $session->make_element( $fname, "SOAP-ENC:arrayType"=>$arraytype );
+		#my $arraytype=$itemtype."[".(scalar @{$value})."]";
+		my $soaped = $session->make_element( $fname );
 		foreach my $v ( @{$value} )
 		{
 			my $item = $session->make_element( "item", "xsi:type"=>$itemtype );

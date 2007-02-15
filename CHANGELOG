@@ -6249,3 +6249,7 @@ PACKAGE: 2.2.99.2
  * WorkflowEdit now has a render function
  * Nested ifs are now collapsed
  * Special case for XHTML component added.
+
+2007-02-15 cjg
+ * Removed the SOAP encoding from the SOAP tool.
+ * Merged xsd into wsdl
