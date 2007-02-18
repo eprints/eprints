@@ -28,43 +28,37 @@ Not currently using titles
 */
 
 .ep_msg_message {
-	background: url(/style/images/green_back_right.png) right top no-repeat;
+	background: url(/style/images/green_back.png);
+	border-bottom: #3a3 1px solid;
 }
 .ep_msg_warning {
-	background: url(/style/images/orange_back_right.png) right top no-repeat;
+	background: url(/style/images/orange_back.png);
+	border-bottom: #a81 1px solid;
 }
 .ep_msg_error {
-	background: url(/style/images/red_back_right.png) right top no-repeat;
+	background: url(/style/images/red_back.png);
+	border-bottom: #a33 1px solid;
 }
 
 .ep_msg_message_content {
-	background: url(/style/images/green_back_rb.png) right bottom no-repeat;
 }
 .ep_msg_warning_content {
-	background: url(/style/images/orange_back_rb.png) right bottom no-repeat;
 }
 .ep_msg_error_content {
-	background: url(/style/images/red_back_rb.png) right bottom no-repeat;
 }
 
 .ep_msg_message table {
-	background: url(/style/images/green_back_lb.png) left bottom no-repeat;
 }
 .ep_msg_warning table {
-	background: url(/style/images/orange_back_lb.png) left bottom no-repeat;
 }
 .ep_msg_error table {
-	background: url(/style/images/red_back_lb.png) left bottom no-repeat;
 }
 
 .ep_msg_message img {
-	background: url(/style/images/green_back_left.png) left top no-repeat;
 }
 .ep_msg_warning img {
-	background: url(/style/images/orange_back_left.png) left top no-repeat;
 }
 .ep_msg_error img {
-	background: url(/style/images/red_back_left.png) left top no-repeat;
 }
 
 .ep_msg_message table, .ep_msg_warning table, .ep_msg_error table {
@@ -76,13 +70,9 @@ Not currently using titles
 }
 
 .ep_msg_message img, .ep_msg_warning img, .ep_msg_error img {
-	padding: 10px 0 0 10px;
-	position: relative;
-	top: -10px;
-	left: -5px;
+	margin: 10px;
+	border: none;
 }
 
 .ep_msg_message td, .ep_msg_warning td, .ep_msg_error td {
-	padding: 10px 10px 10px 5px;
-	vertical-align: top;
 }

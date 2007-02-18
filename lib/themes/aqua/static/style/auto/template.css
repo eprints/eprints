@@ -38,33 +38,34 @@ ul.ep_tm_menu {
 
 ul.ep_tm_menu li {
 	float: left;
-	background: #22c url('/style/images/blue_button_right.png') top right no-repeat;
-	margin: 0;
+	background: #fff url('/style/images/dark_blue_button_right.png') top right no-repeat;
+	margin: 0 0 0 2px;
 	padding: 0;
 }
 
 ul.ep_tm_menu li:hover {
-	background: #44f url('/style/images/blue_button_right_on.png') top right no-repeat;;
+	background: #fff url('/style/images/blue_button_right.png') top right no-repeat;;
 }
 
 ul.ep_tm_menu li a {
 	display: block;
-	background: url('/style/images/blue_button_left.png') top left no-repeat;
+	background: url('/style/images/dark_blue_button_left.png') top left no-repeat;
 	padding: 0px 15px 3px;
-	line-height: 25px;
+	line-height: 21px;
+	margin: 0;
 	font-family: Verdana, sans-serif;
 	text-decoration: none;
-	color: #fff;
+	color: #000;
 	font-size: 85%;
 	font-weight: bold;
 }
 
 ul.ep_tm_menu li a:hover {
-	background: url('/style/images/blue_button_left_on.png') top left no-repeat;
+	background: url('/style/images/blue_button_left.png') top left no-repeat;
 }
 
 ul.ep_tm_menu li a:visited {
-	color: white;
+	color: #000;
 }
 
 /* end of menu bar */
@@ -80,10 +81,17 @@ ul.ep_tm_menu li a:visited {
 }
 
 .ep_tm_searchbarbutton {
-	background: #0a0 url(/style/images/green_small_button.png) top left repeat-x;
+	background: url(/style/images/search_button_back.png) top left no-repeat;
+	height: 20px;
+	line-height: 18px;
+	margin: 0;
+	padding: 0 0 4px 0;
+	width: 74px;
+	text-align: center;
 	color: #fff;
-	border-color: #0a0;
-	font-size: 80%;
+	border: none;
+	font-family: sans-serif;
+	font-size: 10pt;
 	font-weight: bold;
 }
 

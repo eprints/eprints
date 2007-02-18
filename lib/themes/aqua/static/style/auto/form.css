@@ -21,17 +21,16 @@ select, input.ep_form_text, textarea {
 .ep_form_button_bar {
 	text-align: center;
 	padding: 4px;
-	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
+	background: #fff url(/style/images/toolbox.png);
 	clear: both;
-	border: solid 1px #d8dbef;
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
 
 .ep_form_action_button, .ep_form_internal_button {
 	text-align: center;
-	border: 1px #000 solid;
-	background: url(/style/images/blue_button.png) top left repeat-x;
+	border: 1px #444 solid;
+	background: #fff url(/style/images/blue_button.png) top left repeat-x;
 	color: #000;
 	font-weight: normal;
 }

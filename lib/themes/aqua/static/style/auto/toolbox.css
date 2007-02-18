@@ -13,6 +13,6 @@
 .ep_toolbox_content {
 	padding: 10px;
 	background: #fff url(/style/images/toolbox.png);
-	border-right: 1px solid #c0c0c0;
+/*	border-right: 1px solid #c0c0c0; */
 	border-bottom: 1px solid #c0c0c0;
 }
