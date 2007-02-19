@@ -315,7 +315,7 @@ sub is_set
 ######################################################################
 =pod
 
-=item $string = EPrints::Utils::tree_to_utf8( $tree, $width, [$pre], [$whitespace_before] )
+=item $string = EPrints::Utils::tree_to_utf8( $tree, $width, [$pre], [$whitespace_before], [$ignore_a] )
 
 Convert a XML DOM tree to a utf-8 encoded string.
 
@@ -331,12 +331,14 @@ XHTML elements are removed with the following exceptions:
 
 <hr /> will, if a width was specified, insert a line of dashes.
 
+<a href="foo">bar</a> will be converted into "bar <foo>" unless ignore_a is set.
+
 =cut
 ######################################################################
 
 sub tree_to_utf8
 {
-	my( $node, $width, $pre, $whitespace_before ) = @_;
+	my( $node, $width, $pre, $whitespace_before, $ignore_a ) = @_;
 
 	$whitespace_before = 0 unless defined $whitespace_before;
 
@@ -355,7 +357,8 @@ sub tree_to_utf8
 					$node->item( $i ), 
 					$width,
 					$pre,
-					$ws );
+					$ws,
+					$ignore_a );
 			$ws = _blank_lines( $ws, $string );
 		}
 		return $string;
@@ -378,7 +381,8 @@ sub tree_to_utf8
 				$_,
 				$width, 
 				( $pre || $name eq "pre" || $name eq "mail" ),
-				$ws );
+				$ws,
+				$ignore_a );
 		$ws = _blank_lines( $ws, $string );
 	}
 
@@ -417,7 +421,7 @@ sub tree_to_utf8
 		my $alt = $node->getAttribute( "alt" );
 		$string = $alt if( defined $alt );
 	}
-	if( $name eq "a" )
+	if( $name eq "a" && !$ignore_a)
 	{
 		my $href = $node->getAttribute( "href" );
 		$string .= " <$href>" if( defined $href );

@@ -2358,7 +2358,7 @@ sub write_static_page
 	my $title_textonly_file = $filebase.".title.textonly";
 	if( open( CACHE, ">$title_textonly_file" ) )
 	{
-		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title} );
+		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title}, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
 		close CACHE;
 		if( defined $wrote_files )
 		{
@@ -2518,7 +2518,7 @@ sub prepare_page
 				elsif( defined $map->{$pinid} )
 				{
 					my $dom = EPrints::XML::EPC::process( $map->{$pinid}, session=>$self, in=>"prepare_page:pin:$pinid.textonly" );
-					push @output, EPrints::Utils::tree_to_utf8( $dom );
+					push @output, EPrints::Utils::tree_to_utf8( $dom, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
 				}
 				# else no title
 		
