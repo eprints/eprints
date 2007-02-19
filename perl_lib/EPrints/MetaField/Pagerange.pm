@@ -167,7 +167,7 @@ sub ordervalue_basic
 
 	$to = $from unless defined $to;
 	
-	return sprintf( "%08d-%08d", $from, $to );
+	return sprintf( "%08d-%08d", $from+0, $to+0 );
 }
 
 
