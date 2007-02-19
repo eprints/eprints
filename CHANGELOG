@@ -6267,3 +6267,6 @@ PACKAGE: 2.2.99.2
  * Rewrite now automatically updates static pages where possible. This code
     has duplicates of stuff in generate_static and isn't smart about the auto
     javascript and css or themes (yet).
+
+2007-02-19 cjg
+ * Changed Convert::PlainText into house code style.

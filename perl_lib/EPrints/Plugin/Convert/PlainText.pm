@@ -23,7 +23,7 @@ use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;
 
 # xml = ?
-our %APPS = qw(
+%EPrints::Plugin::Convert::PlainText::APPS = qw(
 pdf		pdftotext
 doc		antiword
 htm		elinks
@@ -63,11 +63,17 @@ sub can_convert
 		return @type;
 	}
 
-	keys(%APPS);
-	while( my( $ext, $app ) = each %APPS )
+	
+	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		if( $fn =~ /\.$ext$/ and defined($plugin->get_repository->get_conf( "executables", $app )) ) {
-			return @type;
+		my $app = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
+
+		if( $fn =~ /\.$ext$/ )
+		{
+			if( defined($plugin->get_repository->get_conf( "executables", $app )) ) 
+			{
+				return @type;
+			}
 		}
 	}
 	
@@ -83,27 +89,29 @@ sub export
 	
 	my( $bin, $ext, $app );
 	
-	keys(%APPS);
 	# Find the app to use
-	while( ( $ext, $app ) = each %APPS )
+	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		if( $main =~ /\.$ext$/ and defined($plugin->get_repository->get_conf( "executables", $app )) ) {
+		my $app = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
+
+		if( $main =~ /\.$ext$/ )
+		{
 			$bin = $plugin->get_repository->get_conf( "executables", $app );
-			last if defined($bin);
+			last if defined $bin;
 		}
 	}
-	return () unless defined($bin);
+	return () unless defined $bin;
 	
 	my $invo = $plugin->get_repository->get_conf( "invocation", $app );
 	$invo ||= "\$($app) \$(SOURCE) \$(TARGET)";
 	
 	my %files = $doc->files;
 	my @txt_files;
-	foreach my $fn ( keys %files )
+	foreach my $filename ( keys %files )
 	{
-		my $tgt = $fn;
+		my $tgt = $filename;
 		next unless $tgt =~ s/\.$ext$/\.txt/;
-		my $infile = EPrints::Utils::join_path( $doc->local_path, $fn );
+		my $infile = EPrints::Utils::join_path( $doc->local_path, $filename );
 		my $outfile = EPrints::Utils::join_path( $dir, $tgt );
 		
 		if( $ext eq 'txt' )
@@ -137,15 +145,26 @@ sub export
 			system( $cmd );
 		}
 		EPrints::Utils::chown_for_eprints( $outfile );
-		
-		if( -s EPrints::Utils::join_path( $dir, $tgt ) > 0 ) {
-			if( $fn eq $doc->get_main ) {
-				unshift @txt_files, $tgt;
-			} else {
-				push @txt_files, $tgt;
+	
+		if( !-e $outfile || -z $outfile )
+		{		
+			if( $filename eq $doc->get_main )
+			{
+				return ();
 			}
-		} elsif( $fn eq $doc->get_main ) {
-			return ();
+			else
+			{
+				next;
+			}
+		}
+
+		if( $filename eq $doc->get_main ) 
+		{
+			unshift @txt_files, $tgt;
+		} 
+		else 
+		{
+			push @txt_files, $tgt;
 		}
 	}
 
