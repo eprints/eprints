@@ -177,7 +177,7 @@ sub get_system_field_info
 			input_add_boxes => 1,
 			input_boxes => 1,
 			type => "search", 
-			datasetid => "buffer",
+			datasetid => "eprint",
 			fieldnames => "editpermfields",
 		},
 

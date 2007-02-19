@@ -6256,3 +6256,6 @@ PACKAGE: 2.2.99.2
 
 2007-02-19 cjg
  * Added cache to MetaField::Fields to prevent execsive rendering times.
+
+2007-02-19 cjg
+ * Editorial restrictions now in dataset "eprint" rather than "buffer".
