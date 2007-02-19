@@ -157,18 +157,211 @@ sub handler
 	}
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves
+	my $localpath = $uri;
 	if( $uri =~ m#/$# )
 	{
-		$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$uri."index.html" );
+		$localpath.="index.html";
 	}
-	else
-	{
-		$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$uri );
-	}
+	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
+
+	update_static_file( $repository, $lang, $localpath );
+
 	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
 
 	return OK;
 }
+
+sub update_static_file
+{
+	my( $repository, $langid, $localpath ) = @_;
+
+	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
+
+	return if $localpath =~ m!/style/auto.css$!;
+	return if $localpath =~ m!/javascript/auto.js$!;
+
+	my @static_dirs = ();;
+
+	my $theme = $repository->get_conf( "theme" );
+	$static_dirs[0] = $repository->get_conf( "lib_path" )."/static";
+	if( defined $theme )
+	{	
+		$static_dirs[2] = $repository->get_conf( "lib_path" )."/themes/$theme/static";
+	}
+	$static_dirs[4] = $repository->get_conf( "config_path" )."/static";
+
+	$static_dirs[1] = $repository->get_conf( "lib_path" )."/lang/$langid/static";
+	if( defined $theme )
+	{	
+		$static_dirs[3] = $repository->get_conf( "lib_path" )."/themes/$theme/lang/$langid/static";
+	}
+	$static_dirs[5] = $repository->get_conf( "config_path" )."/lang/$langid/static";
+
+	my $source;
+
+	if( $localpath =~ m/\.html$/ )
+	{
+		my $base = $localpath;
+		$base =~ s/\.html$//;
+		DIRLOOP: foreach my $dir ( reverse @static_dirs )
+		{
+			foreach my $suffix ( qw/ .html .xpage .xhtml / )
+			{
+				if( -e $dir.$base.$suffix )
+				{
+					$source = $dir.$base.$suffix;
+					last DIRLOOP;
+				}
+			}
+		}
+	}
+	else
+	{
+		foreach my $dir ( reverse @static_dirs )
+		{
+			if( -e $dir.$localpath )
+			{
+				$source = $dir.$localpath;
+				last;
+			}
+		}
+	}
+
+	if( !defined $source ) 
+	{
+		$repository->log( "No static-website cfg file for $localpath." );
+		return;
+	}
+
+	my @sourcestat = stat( $source );
+	my @targetstat = stat( $target );
+	my $sourcemtime = $sourcestat[9];
+	my $targetmtime = $targetstat[9];
+
+	return if( $targetmtime > $sourcemtime ); # nothing to do
+
+	print STDERR "$source ($sourcemtime/$targetmtime)\n";
+
+	$target =~ m/^(.*)\/([^\/]+)/;
+	my( $target_dir, $target_file ) = ( $1, $2 );
+	
+	if( !-e $target_dir )
+	{
+		EPrints::Platform::mkdir( $target_dir );
+	}
+
+	$source =~ m/\.([^.]+)$/;
+	my $suffix = $1;
+	print STDERR  "$source -> $target\n";
+	if( $suffix eq "xhtml" ) 
+	{ 
+		my $session = new EPrints::Session(2); # don't open the CGI info
+		copy_xhtml( $session, $source, $target, {} ); 
+		$session->terminate;
+	}
+	elsif( $suffix eq "xpage" ) 
+	{ 
+		my $session = new EPrints::Session(2); # don't open the CGI info
+		copy_xpage( $session, $source, $target, {} ); 
+		$session->terminate;
+	}
+	else 
+	{ 
+		copy_plain( $source, $target, {} ); 
+	}
+}
+
+sub copy_plain
+{
+	my( $from, $to, $wrote_files ) = @_;
+
+	if( !EPrints::Utils::copy( $from, $to ) )
+	{
+		EPrints::abort( "Can't copy $from to $to: $!" );
+	}
+
+	$wrote_files->{$to} = 1;
+}
+
+
+sub copy_xpage
+{
+	my( $session, $from, $to, $wrote_files ) = @_;
+
+	my $doc = $session->get_repository->parse_xml( $from );
+
+	if( !defined $doc )
+	{
+		$session->get_repository->log( "Could not load file: $from" );
+		return;
+	}
+
+	my $html = $doc->documentElement;
+	my $parts = {};
+	foreach my $node ( $html->getChildNodes )
+	{
+		my $part = $node->nodeName;
+		$part =~ s/^.*://;
+		next unless( $part eq "body" || $part eq "title" );
+
+		$parts->{$part} = $session->make_doc_fragment;
+			
+		foreach my $kid ( $node->getChildNodes )
+		{
+			$parts->{$part}->appendChild( 
+				EPrints::XML::EPC::process( 
+					$kid,
+					in => $from,
+					session => $session ) ); 
+		}
+	}
+	foreach my $part ( qw/ title body / )
+	{
+		if( !$parts->{$part} )
+		{
+			$session->get_repository->log( "Error: no $part element in ".$from );
+			EPrints::XML::dispose( $doc );
+			return;
+		}
+	}
+
+	$parts->{page} = delete $parts->{body};
+	$to =~ s/.html$//;
+	$session->write_static_page( $to, $parts, "static", $wrote_files );
+
+	EPrints::XML::dispose( $doc );
+}
+
+sub copy_xhtml
+{
+	my( $session, $from, $to, $wrote_files ) = @_;
+
+	my $doc = $session->get_repository->parse_xml( $from );
+
+	if( !defined $doc )
+	{
+		$session->get_repository->log( "Could not load file: $from" );
+		return;
+	}
+
+	my( $elements ) = EPrints::XML::find_elements( $doc, "html" );
+	if( !defined $elements->{html} )
+	{
+		$session->get_repository->log( "Error: no html element in ".$from );
+		EPrints::XML::dispose( $doc );
+		return;
+	}
+	# why clone?
+	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
+	$session->set_page( 
+		EPrints::XML::EPC::process( 
+			$elements->{html}, 
+			in => $from,
+			session => $session ) ); 
+
+	$session->page_to_file( $to, $wrote_files );
+}
+
 
 
 sub redir
