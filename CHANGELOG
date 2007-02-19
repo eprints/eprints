@@ -6253,3 +6253,6 @@ PACKAGE: 2.2.99.2
 2007-02-15 cjg
  * Removed the SOAP encoding from the SOAP tool.
  * Merged xsd into wsdl
+
+2007-02-19 cjg
+ * Added cache to MetaField::Fields to prevent execsive rendering times.

@@ -71,15 +71,26 @@ sub get_unsorted_values
 	return @types;
 }
 
+# this method uses a dirty little cache to make things run much faster.
 sub render_option
 {
 	my( $self, $session, $value ) = @_;
 
+	my $cacheid = $self->get_property('datasetid').".".$value;
+
+	my $text = $session->{cache_metafield_options}->{$cacheid};
+	if( defined $text )
+	{
+		return $session->make_text( $text );
+	}
 	my $ds = $session->get_repository->get_dataset( 
 			$self->get_property('datasetid') );
-	my $field = $ds->get_field( $value );
 
-	return $field->render_name( $session );
+	my $field = $ds->get_field( $value );
+	$text = EPrints::Utils::tree_to_utf8( $field->render_name( $session ) );
+	$session->{cache_metafield_options}->{$cacheid} = $text;
+
+	return $session->make_text( $text );
 }
 
 sub get_property_defaults
