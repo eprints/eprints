@@ -1393,7 +1393,8 @@ sub get_text
 	for( @files )
 	{
 		open my $fi, "<:utf8", "$tempdir/$_" or next;
-		while( $fi->read($buffer,4096,length($buffer)) ) {
+		while( $fi->read($buffer,4096,length($buffer)) ) 
+		{
 			last if length($buffer) > 4 * 1024 * 1024;
 		}
 		close $fi;
