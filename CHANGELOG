@@ -6276,4 +6276,8 @@ PACKAGE: 2.2.99.2
  * Fixed broken calls to $user->has_priv to use $user->has_role instead.
 
 2007-02-19 cjg
- * If a title contains a link, it no longer shows the URL in the <title> element.
+ * If a title contains a link, it no longer shows the URL in the <title> 
+    element.
+
+2007-02-19 cjg
+ * Cookie values are now randomised every time the login page is rendered.

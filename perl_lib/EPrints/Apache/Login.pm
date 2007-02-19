@@ -42,12 +42,11 @@ sub handler
 
         my $cookie = EPrints::Apache::AnApache::cookie( $r, "eprints_session" );
 	my %opts = ();
-	if( !defined $cookie )
-	{
-		my @a = ();
-		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-		$opts{code} = join( "", @a );
-	}
+
+	# always set a new random cookie value when we render the login form.
+	my @a = ();
+	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+	$opts{code} = join( "", @a );
 
 	my $title = $session->make_text( "Login" );
 	$session->build_page( $title, $page, "login" );
