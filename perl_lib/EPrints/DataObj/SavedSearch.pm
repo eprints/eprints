@@ -440,7 +440,7 @@ sub send_out_alert
 
 =item EPrints::DataObj::SavedSearch::process_set( $session, $frequency );
 
-Static method. Calls send_out_alerts on every saved search 
+Static method. Calls send_out_alert on every saved search 
 with a frequency matching $frequency.
 
 Also saves a file logging that the alerts for this frequency
@@ -474,7 +474,7 @@ sub process_set
 	my $fn = sub {
 		my( $session, $dataset, $item, $info ) = @_;
 
-		$item->send_out_alerts;
+		$item->send_out_alert;
 	};
 
 	$searchexp->perform_search;

@@ -882,11 +882,11 @@ sub send_out_editor_alert
 		return;
 	}
 
-	unless( $self->has_priv( "editor" ) )
+	unless( $self->has_role( "editor" ) )
 	{
 		$self->{session}->get_repository->log( 
 			"Attempt to send out an editor alert for a user\n".
-			"which does not have editor priv (".
+			"which does not have editor role (".
 			$self->get_value("username").")\n" );
 		return;
 	}
@@ -972,7 +972,7 @@ sub process_editor_alerts
 	my $fn = sub {
 		my( $session, $dataset, $item, $info ) = @_;
 
-		return unless( $item->has_priv( "editor" ) );
+		return unless( $item->has_role( "editor" ) );
 
 		$item->send_out_editor_alert;
 		if( $session->get_noise >= 2 )
@@ -1313,6 +1313,17 @@ sub get_roles
 	return @{$roles};
 }
 
+sub has_role
+{
+	my( $self, $roleid ) = @_;
+
+	foreach my $hasid ( $self->get_roles )
+	{
+		return 1 if $hasid eq $roleid;
+	}
+	
+	return 0;
+}
 
 
 

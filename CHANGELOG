@@ -6270,3 +6270,7 @@ PACKAGE: 2.2.99.2
 
 2007-02-19 cjg
  * Changed Convert::PlainText into house code style.
+
+2007-02-19 cjg
+ * Added has_role method to User.pm
+ * Fixed broken calls to $user->has_priv to use $user->has_role instead.
