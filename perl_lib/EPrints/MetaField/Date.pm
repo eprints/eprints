@@ -340,6 +340,17 @@ sub get_search_conditions
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
+	if( $match eq "EX" )
+	{
+		if( $search_value eq "" )
+		{	
+			return EPrints::Search::Condition->new( 
+					'is_null', 
+					$dataset, 
+					$self );
+		}
+	}
+
 	return $self->get_search_conditions_not_ex(
 			$session, 
 			$dataset, 

@@ -710,8 +710,16 @@ END
 
 	if( $self->{op} eq "is_null" )
 	{
-		my $where = "(M.$sql_col IS NULL OR ";
-		$where .= "M.$sql_col = '')";
+		my $where;
+		if( $self->{field}->is_type( "date", "time" ) )
+		{
+			$where = "(M.${sql_col}_year IS NULL)";
+		}
+		else
+		{
+			$where = "(M.$sql_col IS NULL OR ";
+			$where .= "M.$sql_col = '')";
+		}
 		$r = $session->get_database->search( 
 			$keyfield, 
 			{ M=>$self->get_table },
