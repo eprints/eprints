@@ -6289,3 +6289,7 @@ PACKAGE: 2.2.99.2
 2007-03-02 cjg
  * Added a filter to eprints under review so that it only lists ones in
     buffer, not all those matching the scope.
+
+2007-03-02 moj
+ * Added platform subs for hash filename
+ * Removed timestamp call from DataObj/Document.pm

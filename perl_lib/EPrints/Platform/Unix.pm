@@ -26,6 +26,7 @@ B<EPrints::Platform> - Functions for the UNIX Platform
 package EPrints::Platform::Unix;
 
 use strict;
+use EPrints::Time;
 
 sub chmod 
 {
@@ -113,5 +114,9 @@ sub exec
 	return $rc;
 }	
 
+sub get_hash_name
+{
+	return EPrints::Time::get_iso_timestamp().".xsh";
+}
 
 1;
