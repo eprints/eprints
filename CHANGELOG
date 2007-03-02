@@ -6285,3 +6285,7 @@ PACKAGE: 2.2.99.2
 2007-02-19 cjg
  * Pagerange now adds zero to to and from in ordering to force them to be
     numeric. so "foo" becomes "0" and "1234a" becomes "1234".
+
+2007-03-02 cjg
+ * Added a filter to eprints under review so that it only lists ones in
+    buffer, not all those matching the scope.

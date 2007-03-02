@@ -550,6 +550,9 @@ sub get_editable_eprints
 		my $searchexp = $editperms->make_searchexp(
 			$self->{session},
 			$sv );
+		$searchexp->add_field(
+			$self->{session}->get_repository->get_dataset("eprint" )->get_field( "eprint_status" ),
+			"buffer" );
 		$searchexp->{custom_order}="-datestamp";
 	        $searchexp->{order} = $EPrints::Search::CustomOrder;
 
