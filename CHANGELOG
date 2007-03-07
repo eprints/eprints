@@ -6293,3 +6293,6 @@ PACKAGE: 2.2.99.2
 2007-03-02 moj
  * Added platform subs for hash filename
  * Removed timestamp call from DataObj/Document.pm
+
+2007-03-07 cjg
+ * Fixed bug that meant subjects were not ordered in input.

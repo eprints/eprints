@@ -791,19 +791,31 @@ sub get_all
 		"subject" )->get_field( "name" );
 	foreach( keys %rmap )
 	{
-		#cjg note the OO busting speedup hack.
 		@{$rmap{$_}} = sort {   
-my $av = $namefield->most_local( $session, $a->{data}->{name} );
-my $bv = $namefield->most_local( $session, $b->{data}->{name} );
-$av = "" unless defined $av;
-$bv = "" unless defined $bv;
-$av cmp $bv;
+			$a->local_name cmp $b->local_name
 			} @{$rmap{$_}};
 	}
 	
 	return( \%subjectmap, \%rmap );
 }
 
+sub local_name
+{
+	my( $self ) = @_;
+
+	my $lang_hash = {};
+	my $value = $self->get_value( "name" );
+	foreach ( @{$value} )
+	{
+		$lang_hash->{$_->{lang}} = $_->{name};
+	}
+	my $namefield = $self->{dataset}->get_field( "name" );
+
+	my $r = $namefield->most_local( $self->{session}, $lang_hash );
+	return "" unless defined $r;
+	return $r;
+}
+	
 
 
 

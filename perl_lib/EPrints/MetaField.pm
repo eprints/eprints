@@ -908,7 +908,7 @@ then just return $value.
 sub most_local
 {
 	my( $self, $session, $value ) = @_;
-	#cjg not done yet
+
 	my $bestvalue =  EPrints::Session::best_language( 
 		$session->get_repository, $session->get_langid(), %{$value} );
 	return $bestvalue;
