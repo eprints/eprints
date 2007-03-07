@@ -1574,7 +1574,7 @@ sub get_index_ids
 	$self->execute( $sth, $sql );
 	while( my @info = $sth->fetchrow_array ) {
 		my @list = split(":",$info[0]);
-		foreach( @list ) { $r->{$_}=1; }
+		foreach( @list ) { next if $_ eq ""; $r->{$_}=1; }
 	}
 	$sth->finish;
 	my $results = [ keys %{$r} ];
