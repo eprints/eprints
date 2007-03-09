@@ -127,7 +127,8 @@ my $list = $searchexp->perform_search();
 my( $eprint ) = $list->get_records( 0, 1 );
 
 # No match found for the given query
-unless( $eprint ) {
+unless( $eprint ) 
+{
 	not_found( $session, $uri, "no_match" );
 }
 
