@@ -42,7 +42,8 @@ my $action = $body->getFirstChild;
 my $map = {};
 foreach my $kid ( $body->getChildNodes )
 {
-	if( $kid->hasAttribute( "id" ) )
+
+	if( EPrints::XML::is_dom($kid,"Element") && $kid->hasAttribute( "id" ) )
 	{
 		my $id = $kid->getAttribute( "id" );
 		print STDERR "mapping:$id\n";
@@ -53,7 +54,7 @@ foreach my $kid ( $body->getChildNodes )
 my $tn = (split( ":",$action->getTagName))[-1];
 my $params = unsoap( $action, $map );
 print STDERR Dumper( $params );
-print STDERR "-$tn\n";
+print STDERR "-$ttargetNamespacen\n";
 my $result;
 # hacky hole!
 $tn=~s/[^a-z]//gi;

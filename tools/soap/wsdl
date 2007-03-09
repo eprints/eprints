@@ -18,6 +18,7 @@ print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 <definitions name="EPrintsSoapRpcApi"
              targetNamespace="$host/EPrints/WebServices"
+             xmlns:tns="$host/EPrints/WebServices"
              xmlns:pm="$host/EPrints/WebServices"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
              xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
