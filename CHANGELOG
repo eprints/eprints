@@ -6299,3 +6299,7 @@ PACKAGE: 2.2.99.2
 
 2007-03-07 cjg
  * Fixed bug in database which returned empty strings in list of index ids.
+
+2007-03-09 cjg
+ * Fixed issue in autocompleter file and simple_file which didn't lowercase 
+    keys.

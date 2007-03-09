@@ -12,8 +12,6 @@ if( !defined $lookup_file )
 {
 	EPrints::abort( "no filename" );
 }
-my $lookup_xml ={};
-my $lookup_lc_names = [];
 $lookup_file=~s/\///sg;
 $lookup_file=~s/^\.+//s;
 my $filepath = $session->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
@@ -22,14 +20,14 @@ my @filtered_lookup_names;
 if( $mode eq "phrase" )
 {
 	@filtered_lookup_names = grep 
-		{ index( $_, $string_frag ) != -1 }  
+		{ index( lc($_), $string_frag ) != -1 }  
 		<DATA>;
 }
 if( $mode eq "prefix" )
 {
 	my $l = length $string_frag;
 	@filtered_lookup_names = grep 
-		{ substr( $_, 0, $l ) eq $string_frag }
+		{ lc(substr( $_, 0, $l )) eq $string_frag }
 		<DATA>;
 }
 close DATA;

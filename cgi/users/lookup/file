@@ -21,6 +21,7 @@ open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
 while( <DATA> )
 {
 	my( $key, $xml ) = split( /\t/, $_, 2 );
+	$key = lc $key;
 	$lookup_xml->{$key} = $xml;
 	push @{$lookup_lc_names}, $key;
 }
