@@ -6303,3 +6303,6 @@ PACKAGE: 2.2.99.2
 2007-03-09 cjg
  * Fixed issue in autocompleter file and simple_file which didn't lowercase 
     keys.
+
+2007-03-11 tdb
+ * Fix typo in Platform::get_hash_name

@@ -135,7 +135,7 @@ task. (example is unpacking a .tar.gz file).
  
 sub exec { return &{$real_module."::exec"}( @_ ); }
 
-sub get_hash_name { return &{$real_module."::exec"}( @_ ); }
+sub get_hash_name { return &{$real_module."::get_hash_name"}( @_ ); }
 
 1;
 
