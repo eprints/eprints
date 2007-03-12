@@ -146,9 +146,9 @@ sub convert_input
 	{
 		$epdata->{isbn} = $data->{"isbn"};
 	}
-	if( defined $data->{"volumne"} )
+	if( defined $data->{"volume"} )
 	{
-		$epdata->{volumne} = $data->{"volumne"};
+		$epdata->{volume} = $data->{"volume"};
 	}
 	if( defined $data->{"issue"} )
 	{

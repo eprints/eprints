@@ -6314,3 +6314,7 @@ PACKAGE: 2.2.99.2
 
 2007-03-12 cjg
  * Added missing phrases mentioned in #2873
+
+2007-03-12 cjg
+ * Fixed spelling mistake in DOI import plugin volunme / volume.
+
