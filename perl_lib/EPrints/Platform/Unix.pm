@@ -26,7 +26,11 @@ B<EPrints::Platform> - Functions for the UNIX Platform
 package EPrints::Platform::Unix;
 
 use strict;
+use warnings;
+
 use EPrints::Time;
+use EPrints::SystemSettings;
+use Carp;
 
 sub chmod 
 {
@@ -118,5 +122,155 @@ sub get_hash_name
 {
 	return EPrints::Time::get_iso_timestamp().".xsh";
 }
+
+##############################################################################
+#
+# disk-free utility methods
+#
+# This is intended to be bullet-proof. Modules are checked in this order:
+#  Filesys::DfPortable, Filesys::Df, Filesys::DiskSpace (built in), df
+#
+# For debugging purposes $DF_METHOD will contain the actual method used.
+#
+#############################################################################
+
+our $DF_METHOD = undef;
+
+sub _filesys_dfportable
+{
+	my( $dir ) = @_;
+
+	my $info = Filesys::DfPortable::dfportable($dir);
+	return $info->{bavail};
+}
+
+sub _filesys_df
+{
+	my( $dir ) = @_;
+
+	my $info = Filesys::Df::df($dir);
+	return $info->{bavail};
+}
+
+sub _check_statfs
+{
+	my( $dir ) = @_;
+
+	my ($fmt, $res) = ('', -1);
+
+# try with statvfs..
+	eval 
+	{  
+		{
+			package main;
+			require "sys/syscall.ph";
+		}
+		$fmt = "\0" x 512;
+		$res = syscall (&main::SYS_statvfs, $dir, $fmt) ;
+	}
+# try with statfs..
+	|| eval 
+	{ 
+		{
+			package main;
+			require "sys/syscall.ph";
+		}	
+		$fmt = "\0" x 512;
+		$res = syscall (&main::SYS_statfs, $dir, $fmt);
+	};
+
+	return $res == 0;
+}
+
+sub _filesys_diskspace
+{
+	my( $dir ) = @_;
+
+	my @retval = Filesys::DiskSpace::df( $dir );
+	return @retval ? $retval[3] * 1024 : undef; # df returns Kb
+}
+
+sub _gnu_df
+{
+	my( $dir ) = @_;
+
+	$dir = quotemeta($dir);
+	my $fh;
+	# -P is available in RH7.3, FC6, Mac OS X, Solaris
+	$ENV{POSIXLY_CORRECT} = 1; # Needed for GNU df?
+	unless( open($fh, "df -P $dir|") )
+	{
+		warn("DEBUG: Error calling df for [$dir] under POSIX: $!");
+		return;
+	}
+	my @lines = <$fh>;
+	close $fh;
+	# /dev/hda5            1975365632  36544512 1838477312       2% /tmp
+	unless( $lines[$#lines] =~ /^\S+\s+\w+\s+\w+\s+(\d+)\s+/ )
+	{
+		warn("DEBUG: Error scanning df output for [$dir] under POSIX: ".$lines[$#lines]);
+		return;
+	}
+	my $free = $1;
+	return $free * 512; # POSIX standard is 512 byte chunks
+}
+
+sub _enable_free_space
+{
+	my $dir = $EPrints::SystemSettings::conf->{'base_path'};
+	eval "use Filesys::DfPortable ()";
+	eval {
+		if( !$@ and _filesys_dfportable($dir) )
+		{
+			$DF_METHOD = '_filesys_dfportable';
+			*EPrints::Platform::Unix::free_space = \&_filesys_dfportable;
+		}
+	};
+	return if $DF_METHOD;
+	eval "use Filesys::Df ()";
+	eval {
+		if( !$@ and _filesys_df($dir) > 0 )
+		{
+			$DF_METHOD = '_filesys_df';
+			*EPrints::Platform::Unix::free_space = \&_filesys_df;
+			return;
+		}
+	};
+	return if $DF_METHOD;
+	eval "use Filesys::DiskSpace ()";
+	eval {
+		# Replicates the previous method, but with an actual invocation check
+		if( !$@ and _check_statfs($dir) and _filesys_diskspace($dir) )
+		{
+			$DF_METHOD = '_filesys_diskspace';
+			*EPrints::Platform::Unix::free_space = \&_filesys_diskspace;
+			return;
+		}
+	};
+	return if $DF_METHOD;
+	if( _gnu_df($dir) )
+	{
+		$DF_METHOD = '_gnu_df';
+		*EPrints::Platform::Unix::free_space = \&_gnu_df;
+		return;
+	}
+	EPrints::abort("No available method worked to get disk free space: either install Filesys::DfPortable or set disable_df to 1 in perl_lib/EPrints/SystemSettings.pm to disable disk space checking. This error will also occur if [$dir] has zero bytes free (in which case you probably want to free some space up!).");
+}
+
+if( $EPrints::SystemSettings::conf->{'disable_df'} )
+{
+	*EPrints::Platform::Unix::free_space = sub { Carp::croak("Call to EPrints::Platform::Unix::free_space not supported when disable_df is enabled in perl_lib/EPrints/SystemSettings.pm") }
+}
+else
+{
+	&_enable_free_space;
+	#warn "Using $DF_METHOD for DF\n";
+}
+
+##############################################################################
+#
+# End of disk-free methods
+#
+##############################################################################
 
 1;

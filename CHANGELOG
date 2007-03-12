@@ -6306,3 +6306,8 @@ PACKAGE: 2.2.99.2
 
 2007-03-11 tdb
  * Fix typo in Platform::get_hash_name
+
+2007-03-12 tdb
+ * Moved df_dir into Platform
+ * Added support for Filesys::Df, Filesys::DfPortable and df (support for more
+    file system types than Filesys::DiskSpace)

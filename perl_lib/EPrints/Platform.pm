@@ -137,6 +137,18 @@ sub exec { return &{$real_module."::exec"}( @_ ); }
 
 sub get_hash_name { return &{$real_module."::get_hash_name"}( @_ ); }
 
+#####################################################################
+
+=item free_space(DIR)
+
+Return the amount of free space (in bytes) available at DIR. DIR may contain a drive (C:) on Windows platforms.
+
+=cut
+
+#####################################################################
+
+sub free_space { return &{$real_module."::free_space"}( @_ ); }
+
 1;
 
 =back

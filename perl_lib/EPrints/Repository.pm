@@ -1118,9 +1118,7 @@ sub get_store_dir_size
 		return undef;
 	}
 
-	my @retval = EPrints::Utils::df_dir $filepath;
-	return undef unless @retval;
-	return (@retval)[3];
+	return EPrints::Platform::free_space( $filepath );
 } 
 
 
