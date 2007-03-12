@@ -249,6 +249,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldname_exhibitors">Exhibitors</epp:phrase>
     <epp:phrase id="eprint_fieldname_exhibitors_id">Email</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_exhibitors">The exhibitors.</epp:phrase>
+    <epp:phrase id="eprint_fieldname_exhibitors_name">The exhibitiors name</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_num_pieces">Number of Pieces</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_num_pieces">The number of pieces exhibited.</epp:phrase>
@@ -260,18 +261,23 @@ This field is required if no creators are listed.
 </epp:phrase>
 
     <epp:phrase id="eprint_fieldname_producers">Producers</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_producers"></epp:phrase>
     <epp:phrase id="eprint_fieldname_producers_id">Email</epp:phrase>
     <!--<epp:phrase id="eprint_fieldhelp_producers">The producers of the recording.</epp:phrase>-->
 
     <epp:phrase id="eprint_fieldname_conductors">Conductors</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_conductors"></epp:phrase>
     <epp:phrase id="eprint_fieldname_conductors_id">Email</epp:phrase>
     <!--<epp:phrase id="eprint_fieldhelp_conductors">The conductors of the recording.</epp:phrase>-->
+    <epp:phrase id="eprint_fieldname_conductors_name">The conductors name</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_accompaniment">Accompaniment</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_accompaniment">Example: <span class="ep_form_example">BBC Singers</span></epp:phrase>
 
     <epp:phrase id="eprint_fieldname_lyricists">Lyricists</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_lyricists"></epp:phrase>
     <epp:phrase id="eprint_fieldname_lyricists_id">Email</epp:phrase>
+    <epp:phrase id="eprint_fieldname_lyricists_name">The conductors name</epp:phrase>
     <!--<epp:phrase id="eprint_fieldhelp_lyricists">The lyricists.</epp:phrase>-->
 
     <epp:phrase id="eprint_fieldname_data_type">Type of Data</epp:phrase>
