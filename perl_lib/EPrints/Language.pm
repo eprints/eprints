@@ -117,6 +117,7 @@ sub _read_phrases_dir
 	while( my $fn = readdir( $dh ) )
 	{
 		next if $fn =~ m/^\./;
+		next unless $fn =~ m/\.xml$/;
 		push @phrase_files,$fn;
 	}
 	close $dh;

@@ -6329,3 +6329,6 @@ PACKAGE: 2.2.99.2
 2007-03-22 cjg
  * Change to make the document roll-up always open if there's but one 
     document.
+
+2007-03-22 cjg
+ * Caused only .xml files to be loaded in phrase directories.
