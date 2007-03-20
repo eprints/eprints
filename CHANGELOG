@@ -6360,3 +6360,6 @@ PACKAGE: 2.2.99.2
 
 2007-03-22 cjg
  * Used the tool divide phrase instead of hardwiring "|"
+
+2007-03-22 cjg
+ * Commented out heavy regexps in indexer.pl

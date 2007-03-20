@@ -17,6 +17,9 @@
 # "ing" and "s" off the end of word so "looks", "looking" and "look"
 # all get indexed as "look". Which is probably helpful.
 #
+# If you change this file, make sure you cause the indexes to be
+# rebuilt or odd things may happen.
+#
 ######################################################################
 
 use Unicode::String qw(utf8);
@@ -92,10 +95,12 @@ $c->{extract_words} = sub
 	# The F.B.I. is like M.I.5.
 	# becomes
 	# The FBI  is like MI5
-	my $a;
-	$text =~ s#[A-Z0-9]\.([A-Z0-9]\.)+#$a=$&;$a=~s/\.//g;$a#ge;
+	# These are rather expensive to run, so are being commented out
+	# by default. 
+	#my $a;
+	#$text =~ s#[A-Z0-9]\.([A-Z0-9]\.)+#$a=$&;$a=~s/\.//g;$a#ge;
 	# Remove hyphens from acronyms
-	$text=~ s#[A-Z]-[A-Z](-[A-Z])*#$a=$&;$a=~s/-//g;$a#ge;
+	#$text=~ s#[A-Z]-[A-Z](-[A-Z])*#$a=$&;$a=~s/-//g;$a#ge;
 
 	# Process string. 
 	# First we apply the char_mappings.
