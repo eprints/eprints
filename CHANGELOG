@@ -6344,3 +6344,8 @@ PACKAGE: 2.2.99.2
 2007-03-22 cjg
  * Fixed bug which meant two subsequent 404's on one apache connection would
     blank the 2nd one.
+
+2007-03-22 cjg
+ * Fixed an issue which meant that after removing a user the system went to 
+    an undefined screen. Now goes to the front which isn't ideal, but is 
+    better.

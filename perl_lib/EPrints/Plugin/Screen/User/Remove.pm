@@ -81,14 +81,13 @@ sub action_remove
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "Users";
+	$self->{processor}->{screenid} = "FirstTool";
 
 	if( !$self->{processor}->{user}->remove )
 	{
 		my $db_error = $self->{session}->get_database->error;
 		$self->{session}->get_repository->log( "DB error removing User ".$self->{processor}->{user}->get_value( "userid" ).": $db_error" );
 		$self->{processor}->add_message( "message", $self->html_phrase( "user_not_removed" ) );
-		$self->{processor}->{screenid} = "FirstTool";
 		return;
 	}
 
