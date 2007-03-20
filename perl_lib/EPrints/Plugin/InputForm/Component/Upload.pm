@@ -243,6 +243,7 @@ sub render_content
 		my $view_id = $doc->get_id;
 		my $doc_prefix = $self->{prefix}."_doc".$view_id;
 		my $hide = 1;
+		if( scalar @eprint_docs == 1 ) { $hide = 0; } 
 		if( $view_id eq $view ) { $hide = 0; }	
 		if( defined $affected_doc_id && $view_id eq $affected_doc_id ) { $hide = 0; }
 		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );

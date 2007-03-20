@@ -6325,3 +6325,7 @@ PACKAGE: 2.2.99.2
 2007-03-22 cjg
  * Fixed bug in epadmin that didn't use the groupid set in SystemSettings for
     making new repository files.
+
+2007-03-22 cjg
+ * Change to make the document roll-up always open if there's but one 
+    document.
