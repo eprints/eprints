@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">
   <head>
     <title><epc:pin ref="title" textonly="yes"/> - <epc:phrase ref="archive_name"/></title>
-    <script src="{$config{base_url}}/javascript/auto.js" type="text/javascript"><!-- nope --></script>
+    <script type="text/javascript" src="{$config{base_url}}/javascript/auto.js"><!-- padder --></script>
     <style type="text/css" media="screen">@import url(<epc:print expr="$config{base_url}"/>/style/auto.css);</style>
     <style type="text/css" media="print">@import url(<epc:print expr="$config{base_url}"/>/style/print.css);</style>
     <link rel="icon" href="/favicon.ico" type="image/x-icon"/>
@@ -12,9 +12,10 @@
     <link rel="Top" href="{$config{frontpage}}"/>
     <link rel="Search" href="{$config{perl_url}}/search"/>
     <epc:pin ref="head"/>
+    <style type='text/css' media="screen">@import url(<epc:print expr="$config{base_url}"/>/style/nojs.css);</style>
+    <script type="text/javascript" src="{$config{base_url}}/javascript/jscss.js"><!-- padder --></script>
   </head>
   <body bgcolor="#ffffff" text="#000000">
-    <div class="ep_noprint"><noscript><style type='text/css'>@import url(<epc:print expr="$config{base_url}"/>/style/nojs.css);</style></noscript></div>
     <epc:pin ref="pagetop"/>
     <div class="ep_tm_header ep_noprint">
       <div class="ep_tm_logo"><a href="{$config{frontpage}}"><img alt="Logo" src="{$config{site_logo}}" /></a></div>
@@ -27,7 +28,7 @@
       <td align="left"><epc:pin ref="login_status"/></td>
       <td align="right" style="white-space: nowrap">
         <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
-          <input class="ep_tm_searchbarbox" accept-charset="utf-8" size="20" type="text" name="q"/>
+          <input class="ep_tm_searchbarbox" size="20" type="text" name="q"/>
           <input class="ep_tm_searchbarbutton" value="Search" type="submit" name="_action_search"/>
           <input type="hidden" name="_order" value="bytitle"/>
           <input type="hidden" name="basic_srchtype" value="ALL"/>
@@ -51,7 +52,7 @@
 <div class="ep_tm_footer ep_noprint">
   <epc:phrase ref="ruler" />
   <hr class="ep_tm_last"/>
-  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img src="/images/eprintslogo.gif" border="0"/></a></div>
+  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img alt="EPrints Logo" src="/images/eprintslogo.gif" border="0"/></a></div>
   <div style="font-size: 80%;">
     <div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="/eprints/">More information and software credits</a>.</div>
   </div>

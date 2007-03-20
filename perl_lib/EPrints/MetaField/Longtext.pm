@@ -81,7 +81,6 @@ sub get_basic_input_elements
 
 	my $textarea = $session->make_element(
 		"textarea",
-		"accept-charset" => "utf-8",
 		name => $basename,
 		id => $basename,
 		rows => $self->{input_rows},

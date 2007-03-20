@@ -219,7 +219,6 @@ sub render
 	{
 		my $textarea = $session->make_element( "textarea", 
 			name => "reason",
-			"accept-charset" => "utf-8",
 			rows => 5,
 			cols => 60,
 			wrap => "virtual",

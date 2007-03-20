@@ -256,7 +256,6 @@ sub render
 	my $frag = $session->make_doc_fragment;
 	$frag->appendChild( $session->make_element(
 		"textarea",
-		"accept-charset" => "utf-8",
 		name => "import_data",
 		rows => 10,
 		cols => 50,

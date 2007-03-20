@@ -6336,3 +6336,7 @@ PACKAGE: 2.2.99.2
 2007-03-22 cjg
  * Removed debug code from Rewrite
 
+2007-03-22 cjg
+ * Sorted out XHTML validation. Involved removing some accept-charset 
+    attributes, changing forms from GET to get, changing the way css 
+    works with/without javascript and adding an alt="" tag.
