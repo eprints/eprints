@@ -6349,3 +6349,8 @@ PACKAGE: 2.2.99.2
  * Fixed an issue which meant that after removing a user the system went to 
     an undefined screen. Now goes to the front which isn't ideal, but is 
     better.
+
+2007-03-22 cjg
+ * XML import finding an incorrect top level tag now tells you what it was
+    actually expecting. In the case of Import::XML getting <eprintsdata> it
+    gives some advice about v2 and v3 XML files.

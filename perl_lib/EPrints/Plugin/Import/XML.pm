@@ -26,6 +26,19 @@ sub top_level_tag
 	return $dataset->confid."s";
 }
 
+sub unknown_start_element
+{
+	my( $self, $found, $expected ) = @_;
+
+	print STDERR "Unexpected tag: expected <$expected> found <$found>\n";
+	if( $found eq "eprintsdata" ) 
+	{
+		print STDERR "You appear to be attempting to import an EPrints 2 XML file!\n";
+		print STDERR "This importer only handles v3 files. Use the migration toolkit to convert!\n";
+	}
+	exit 1;
+}
+
 sub xml_to_epdata
 {
 	my( $plugin, $dataset, $xml ) = @_;

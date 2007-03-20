@@ -40,6 +40,14 @@ sub top_level_tag
 	return undef;
 }
 
+sub unknown_start_element
+{
+	my( $self, $found, $expected ) = @_;
+
+	print STDERR "Unexpected tag: expected <$expected> found <$found>\n";
+	exit 1;
+}
+
 
 sub input_fh
 {
@@ -198,7 +206,7 @@ sub start_element
 		my $tlt = $self->{plugin}->top_level_tag( $self->{dataset} );
 		if( defined $tlt && $tlt ne $node_info->{Name} )
 		{
-			die "Unexpected tag: $node_info->{Name}\n";
+			$self->{plugin}->unknown_start_element( $node_info->{Name}, $tlt ); #dies
 		}
 	}
 
