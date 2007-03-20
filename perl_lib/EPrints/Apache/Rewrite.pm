@@ -229,7 +229,7 @@ sub update_static_file
 
 	if( !defined $source ) 
 	{
-		$repository->log( "No static-website cfg file for $localpath." );
+#		$repository->log( "No static-website cfg file for $localpath." );
 		return;
 	}
 
@@ -240,7 +240,7 @@ sub update_static_file
 
 	return if( $targetmtime > $sourcemtime ); # nothing to do
 
-	print STDERR "$source ($sourcemtime/$targetmtime)\n";
+#	print STDERR "$source ($sourcemtime/$targetmtime)\n";
 
 	$target =~ m/^(.*)\/([^\/]+)/;
 	my( $target_dir, $target_file ) = ( $1, $2 );
@@ -252,7 +252,7 @@ sub update_static_file
 
 	$source =~ m/\.([^.]+)$/;
 	my $suffix = $1;
-	print STDERR  "$source -> $target\n";
+#	print STDERR  "$source -> $target\n";
 	if( $suffix eq "xhtml" ) 
 	{ 
 		my $session = new EPrints::Session(2); # don't open the CGI info

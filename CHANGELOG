@@ -6332,3 +6332,7 @@ PACKAGE: 2.2.99.2
 
 2007-03-22 cjg
  * Caused only .xml files to be loaded in phrase directories.
+	
+2007-03-22 cjg
+ * Removed debug code from Rewrite
+
