@@ -109,6 +109,8 @@ sub exec
 {
 	my( $repository, $cmd_id, %map ) = @_;
 
+ 	if( !defined $repository ) { EPrints::abort( "exec called with undefined repository" ); }
+
 	my $command = $repository->invocation( $cmd_id, %map );
 
 	$repository->log( "Executing command: $command" );	

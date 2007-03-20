@@ -6318,3 +6318,7 @@ PACKAGE: 2.2.99.2
 2007-03-12 cjg
  * Fixed spelling mistake in DOI import plugin volunme / volume.
 
+2007-03-22 cjg
+ * Added Comment to the Platform file
+ * Added warning if exec() is not passed a repository parameter
+
