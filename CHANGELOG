@@ -6357,3 +6357,6 @@ PACKAGE: 2.2.99.2
 
 2007-03-22 cjg
  * Changed "authors" to "creators" in endnote plugin.
+
+2007-03-22 cjg
+ * Used the tool divide phrase instead of hardwiring "|"
