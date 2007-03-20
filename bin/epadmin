@@ -255,8 +255,10 @@ END
 	}
 
 	my $username = EPrints::Config::get( "user" );
+	my $group = EPrints::Config::get( "group" );
 	print "Getting uid and gid information for $username\n";
-	my(undef,undef,$uid,$gid) = EPrints::Platform::getpwnam( $username );
+	my $uid = EPrints::Platform::getpwnam( $username );
+	my $gid = EPrints::Platform::getgrnam( $group );
 	print "UID: $uid\n";
 	print "GID: $gid\n";
 	print "\nCreating initial files:\n";
