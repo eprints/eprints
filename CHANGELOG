@@ -6340,3 +6340,7 @@ PACKAGE: 2.2.99.2
  * Sorted out XHTML validation. Involved removing some accept-charset 
     attributes, changing forms from GET to get, changing the way css 
     works with/without javascript and adding an alt="" tag.
+
+2007-03-22 cjg
+ * Fixed bug which meant two subsequent 404's on one apache connection would
+    blank the 2nd one.

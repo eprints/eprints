@@ -28,7 +28,7 @@ my $r = $session->{ request };
 my $c = $r->connection;
 # Has 404 message been suppressed? (don't forget to reset it for this connection)
 my $show = $c->notes->get( "show_404" );
-$c->notes->set( show_404 => undef );
+$c->notes->set( show_404 => 1 );
 
 if( defined($show) and !$show )
 {
