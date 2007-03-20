@@ -42,7 +42,7 @@ sub convert_dataobj
 	$data->{0} = "Book" if $type eq "book";
 	$data->{0} = "Book Section" if $type eq "book_section";
 	$data->{0} = "Conference Paper" if $type eq "conference_item";
-	$data->{0} = "Edited Book" if $type eq "book" && !$dataobj->is_set( "authors" ) && $dataobj->is_set( "editors" );
+	$data->{0} = "Edited Book" if $type eq "book" && !$dataobj->is_set( "creators" ) && $dataobj->is_set( "editors" );
 	$data->{0} = "Journal Article" if $type eq "article";
 	$data->{0} = "Patent" if $type eq "patent";
 	$data->{0} = "Report" if $type eq "monograph";

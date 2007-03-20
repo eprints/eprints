@@ -6354,3 +6354,6 @@ PACKAGE: 2.2.99.2
  * XML import finding an incorrect top level tag now tells you what it was
     actually expecting. In the case of Import::XML getting <eprintsdata> it
     gives some advice about v2 and v3 XML files.
+
+2007-03-22 cjg
+ * Changed "authors" to "creators" in endnote plugin.
