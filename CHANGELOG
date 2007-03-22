@@ -6371,3 +6371,6 @@ PACKAGE: 2.2.99.2
 2007-03-22 tdb
  * Missed size adjustment from modified df_free
 
+2007-03-22 tdb
+ * Removed use of prepare_cmd from Convert plugins (now uses $repository->exec)
+

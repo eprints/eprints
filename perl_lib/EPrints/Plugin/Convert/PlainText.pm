@@ -66,11 +66,11 @@ sub can_convert
 	
 	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		my $app = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
+		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
 
 		if( $fn =~ /\.$ext$/ )
 		{
-			if( defined($plugin->get_repository->get_conf( "executables", $app )) ) 
+			if( defined($plugin->get_repository->get_conf( "executables", $cmd_id )) ) 
 			{
 				return @type;
 			}
@@ -87,23 +87,22 @@ sub export
 	# What to call the temporary file
 	my $main = $doc->get_main;
 	
-	my( $bin, $ext, $app );
+	my( $bin, $ext, $cmd_id );
 	
+	my $repository = $plugin->get_repository();
+
 	# Find the app to use
 	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		my $app = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
+		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
 
 		if( $main =~ /\.$ext$/ )
 		{
-			$bin = $plugin->get_repository->get_conf( "executables", $app );
+			$bin = $repository->get_conf( "executables", $app );
 			last if defined $bin;
 		}
 	}
 	return () unless defined $bin;
-	
-	my $invo = $plugin->get_repository->get_conf( "invocation", $app );
-	$invo ||= "\$($app) \$(SOURCE) \$(TARGET)";
 	
 	my %files = $doc->files;
 	my @txt_files;
@@ -135,14 +134,12 @@ sub export
 		}
 		else
 		{
-			my $cmd = EPrints::Utils::prepare_cmd( $invo,
-				$app => $bin,
+			$repository->exec( $cmd_id,
 				SOURCE_DIR => $doc->local_path,
 				SOURCE => $infile,
 				TARGET_DIR => $dir,
 				TARGET => $outfile,
 			);
-			system( $cmd );
 		}
 		EPrints::Utils::chown_for_eprints( $outfile );
 	

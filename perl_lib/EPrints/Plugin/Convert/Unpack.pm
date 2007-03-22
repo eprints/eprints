@@ -55,16 +55,17 @@ sub export
 	# What to call the temporary file
 	my $fn = $doc->local_path . '/' . $doc->get_main;
 	
-	my $cmd = $plugin->get_repository->get_conf( 'executables', $type ) or die "Executable location not set for $type conversion";
-	my $invo = $plugin->get_repository->get_conf->( 'invocation', $type ) or die "Invocation not set for $type conversion";
-	system(EPrints::Utils::prepare_cmd($invo,
-		$type => $cmd,
+	my $repository = $plugin->get_repository;
+
+	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$type};
+
+	$repository->exec( $cmd_id,
 		DIR => $dir,
 		ARC => $fn,
 		FILENAME => $doc->get_main,
 		FILEPATH => $doc->local_path,
-	));
-
+	);
+		
 	local *DIR;
 	opendir DIR, $dir or die "Unable to open directory $dir: $!";
 	my @files = grep { $_ !~ /^\./ } readdir(DIR);
