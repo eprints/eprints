@@ -98,7 +98,7 @@ sub export
 
 		if( $main =~ /\.$ext$/ )
 		{
-			$bin = $repository->get_conf( "executables", $app );
+			$bin = $repository->get_conf( "executables", $cmd_id );
 			last if defined $bin;
 		}
 	}
