@@ -212,7 +212,7 @@ sub render
 					$session->html_phrase( 
 						"cgi/users/status:mbfree",
 						mb=>$session->make_text( 
-							int($size/1024) ) ) ) );
+							int($size/1024/1024) ) ) ) );
 		
 			$best_size = $size if( $size > $best_size );
 		}
