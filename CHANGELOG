@@ -6363,3 +6363,8 @@ PACKAGE: 2.2.99.2
 
 2007-03-22 cjg
  * Commented out heavy regexps in indexer.pl
+
+2007-03-22 tdb
+ * Removed executable properties
+ * Added license statement to ScreenProcessor
+
