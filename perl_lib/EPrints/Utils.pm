@@ -55,7 +55,7 @@ BEGIN {
 Return the number of bytes of disk space available in the directory
 $dir or undef if we can't find out.
 
-DEPRECATED
+DEPRECATED - use EPrints::Platform::free_space instead.
 
 =cut
 ######################################################################
