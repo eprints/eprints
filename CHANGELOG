@@ -6379,3 +6379,9 @@ PACKAGE: 2.2.99.2
  * Add 'html_phrase_id' method to Plugin, to get the phrase id (used by
     Convert)
 
+2007-03-23 tdb
+ * Added draft conversion option to document upload page
+ * Made Unpack work
+ * Few robustness changes to Convert plugins
+
+

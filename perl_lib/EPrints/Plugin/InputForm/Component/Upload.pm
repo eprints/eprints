@@ -152,6 +152,27 @@ sub doc_update
 		return;
 	}
 
+	if( $doc_internal eq "convert_document" )
+	{
+		my $eprint = $self->{workflow}->{item};
+		my $target = $self->{session}->param( $doc_prefix . "_convert_to" );
+		$target ||= '-';
+		my( $plugin_id, $type ) = split /-/, $target, 2;
+		my $plugin = $self->{session}->plugin( $plugin_id );
+		if( !$plugin )
+		{
+			$processor->add_message( "error", $self->html_phrase( "plugin_error" ) );
+			return;
+		}
+		my $new_doc = $plugin->convert( $eprint, $doc, $type );
+		if( !$new_doc )
+		{
+			$processor->add_message( "error", $self->html_phrase( "conversion_failed" ) );
+			return;
+		}
+		return;
+	}
+
 	if( $doc_internal =~ m/^main_(\d+)$/ )
 	{
 		my $fileid = $1;
@@ -402,6 +423,9 @@ sub _render_doc
 	my $block = $session->make_element( "div", class=>"ep_block" );
 	$block->appendChild( $self->_render_add_file( $doc ) );
 	$doc_cont->appendChild( $block );
+	$block = $session->make_element( "div", class=>"ep_block" );
+	$block->appendChild( $self->_render_convert_document( $doc ) );
+	$doc_cont->appendChild( $block );
 
 	return $doc_cont;
 }
@@ -482,6 +506,81 @@ sub _render_add_file
 
 	return $f; 
 }
+
+sub _render_convert_document
+{
+	my( $self, $document ) = @_;
+
+	my $session = $self->{session};
+	
+	# Create a document-specific prefix
+	my $docid = $document->get_id;
+	my $doc_prefix = $self->{prefix}."_doc".$docid;
+
+	my $convert_plugin = $session->plugin( 'Convert' );
+
+	my %available = $convert_plugin->can_convert( $document );
+
+	# Ignore plugins that don't provide a phrase for the conversion
+	# (don't want to publicise a conversion we can't describe)
+	foreach my $type (keys %available)
+	{
+		unless( exists($available{$type}->{'phraseid'}) )
+		{
+			delete $available{$type}
+		}
+	}
+
+	my $f = $session->make_doc_fragment;	
+
+	unless( scalar(%available) )
+	{
+		return $f;
+	}
+
+	my $select_button = $session->make_element( "select",
+		name => $doc_prefix."_convert_to",
+		id => "format",
+		);
+	my $option = $session->make_element( "option" );
+	$select_button->appendChild( $option );
+	# Use $available{$a}->{preference} for ordering?
+	foreach my $type (keys %available)
+	{
+		my $plugin_id = $available{$type}->{ "plugin" }->get_id();
+		my $phrase_id = $available{$type}->{ "phraseid" };
+		my $option = $session->make_element( "option",
+			value => $plugin_id . '-' . $type
+		);
+		$option->appendChild( $session->html_phrase( $phrase_id ));
+		$select_button->appendChild( $option );
+	}
+	my $upload_button = $session->render_button(
+		name => "_internal_".$doc_prefix."_convert_document",
+		class => "ep_form_internal_button",
+		value => $self->phrase( "convert_document_button" ),
+		);
+
+	my $table = $session->make_element( "table", class=>"ep_multi" );
+	$f->appendChild( $table );
+
+	my %l = ( id=>$doc_prefix."_af2", class=>"ep_convert_document_toolbar" );
+	my $toolbar = $session->make_element( "div", %l );
+
+	$toolbar->appendChild( $select_button );
+	$toolbar->appendChild( $session->make_text( " " ) );
+	$toolbar->appendChild( $upload_button );
+
+	$table->appendChild( $session->render_row_with_help(
+				label=>$self->html_phrase( "convert_document" ),
+				field=>$toolbar,
+				help=>$self->html_phrase( "convert_document_help" ),
+				help_prefix=>$doc_prefix."_convert_document_help",
+				));
+
+	return $f; 
+}
+
 
 
 sub _render_filelist

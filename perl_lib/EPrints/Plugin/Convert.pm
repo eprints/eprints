@@ -157,8 +157,8 @@ sub convert
 
 	my $dir = EPrints::TempDir->new( "ep-convertXXXXX", UNLINK => 1);
 
-	my @files;
-	unless( @files = $plugin->export( $dir, $doc, $type ) ) {
+	my @files = $plugin->export( $dir, $doc, $type );
+	unless( @files ) {
 		return undef;
 	}
 

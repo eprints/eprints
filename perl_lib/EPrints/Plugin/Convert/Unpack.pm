@@ -44,32 +44,52 @@ sub can_convert
 	my ($plugin, $doc) = @_;
 
 	# Get the main file name
-	my $mt = $doc->mime_type() or return ();
-	return $TYPES{$mt} ? ($TYPES{$mt}=>{plugin=>$plugin}) : ();
+	my $mimetype = $doc->mime_type();
+
+	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
+
+	if( !$mimetype or !$cmd_id or !$plugin->get_repository->can_invoke( $cmd_id ) )
+	{
+		return ();
+	}
+
+	my @type = ( 'other' => {
+		plugin => $plugin,
+		phraseid => $plugin->html_phrase_id( $mimetype ),
+	} );
+
+	return @type;
 }
 
 sub export
 {
 	my ( $plugin, $dir, $doc, $type ) = @_;
 
+	my $repository = $plugin->get_repository;
+
 	# What to call the temporary file
 	my $fn = $doc->local_path . '/' . $doc->get_main;
 	
-	my $repository = $plugin->get_repository;
+	# Get the main file name
+	my $mimetype = $doc->mime_type();
 
-	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$type};
+	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
-	$repository->exec( $cmd_id,
-		DIR => $dir,
-		ARC => $fn,
-		FILENAME => $doc->get_main,
-		FILEPATH => $doc->local_path,
+	my %opts = (
+		SOURCE => $fn,
+		DIRECTORY => $dir,
 	);
+
+	if( !$mimetype or !$cmd_id or !$repository->can_invoke( $cmd_id, %opts ) )
+	{
+		return ();
+	}
+
+	$repository->exec( $cmd_id, %opts );
 		
-	local *DIR;
-	opendir DIR, $dir or die "Unable to open directory $dir: $!";
-	my @files = grep { $_ !~ /^\./ } readdir(DIR);
-	closedir DIR;
+	opendir my $dh, $dir or die "Unable to open directory $dir: $!";
+	my @files = grep { $_ !~ /^\./ } readdir($dh);
+	closedir $dh;
 
 	foreach( @files ) { EPrints::Utils::chown_for_eprints( $_ ); }
 	
