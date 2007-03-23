@@ -6384,4 +6384,7 @@ PACKAGE: 2.2.99.2
  * Made Unpack work
  * Few robustness changes to Convert plugins
 
+2007-03-23 tdb
+ * Only list conversions TO formats listed in document formats
+ * Use document format phrases in ImageMagick/Images
 

@@ -519,13 +519,19 @@ sub _render_convert_document
 
 	my $convert_plugin = $session->plugin( 'Convert' );
 
+	my $dataset = $document->get_dataset();
+	my $field = $dataset->get_field( 'format' );
+	my %document_formats = map { ($_ => 1) } $field->tags( $session );
+
 	my %available = $convert_plugin->can_convert( $document );
 
-	# Ignore plugins that don't provide a phrase for the conversion
-	# (don't want to publicise a conversion we can't describe)
+	# Only provide conversion for plugins that
+	#  1) Provide a phrase (i.e. are public-facing)
+	#  2) Provide a conversion to a format in document_types
 	foreach my $type (keys %available)
 	{
-		unless( exists($available{$type}->{'phraseid'}) )
+		unless( exists($available{$type}->{'phraseid'}) and
+				exists($document_formats{$type}) )
 		{
 			delete $available{$type}
 		}

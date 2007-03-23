@@ -70,7 +70,7 @@ sub can_convert
 		{
 			$types{$_} = {
 				plugin => $plugin,
-				phraseid => $plugin->html_phrase_id( $_ ),
+				phraseid => "document_typename_" . $_,
 				preference => 1,
 			};
 		}
