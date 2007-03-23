@@ -1673,13 +1673,13 @@ sub mime_type
 	return undef unless -r $path;
 	return undef if -d $path;
 
-	my $repos = $self->{session}->get_repository;
+	my $repository = $self->{session}->get_repository;
 
 	my %params = ( SOURCE => $path );
 
-	return undef if( !$repos->can_invoke( "file", %params ) );
+	return undef if( !$repository->can_invoke( "file", %params ) );
 
-	my $command = $repos->invocation( "file", %params );
+	my $command = $repository->invocation( "file", %params );
 	my $mime_type = `$command`;
 	$mime_type =~ s/\015?\012?$//s;
 	($mime_type) = split /,/, $mime_type, 2; # file can return a 'sub-type'
