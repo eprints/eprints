@@ -50,12 +50,14 @@ sub can_convert
 	my ($plugin, $doc) = @_;
 
 	# Get the main file name
-	my $fn = $doc->get_main();
+	my $fn = $doc->get_main() or return ();
 
-	my @type = ('text/plain' => {
+	my $mimetype = 'text/plain';
+
+	my @type = ($mimetype => {
 		plugin => $plugin,
 		encoding => 'utf-8',
-		phraseid => 'plaintext',
+		phraseid => $plugin->html_phrase_id( $mimetype ),
 	});
 
 	if( $fn =~ /\.txt$/ )
@@ -63,10 +65,9 @@ sub can_convert
 		return @type;
 	}
 
-	
 	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
+		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS{$ext};
 
 		if( $fn =~ /\.$ext$/ )
 		{
@@ -87,33 +88,34 @@ sub export
 	# What to call the temporary file
 	my $main = $doc->get_main;
 	
-	my( $bin, $ext, $cmd_id );
+	my( $file_extension, $cmd_id );
 	
 	my $repository = $plugin->get_repository();
 
 	# Find the app to use
 	foreach my $ext ( keys %EPrints::Plugin::Convert::PlainText::APPS )
 	{
-		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS->{$ext};
-
-		if( $main =~ /\.$ext$/ )
+		$file_extension = $ext;
+		if( $main =~ /\.$ext$/i )
 		{
-			$bin = $repository->get_conf( "executables", $cmd_id );
-			last if defined $bin;
+			$cmd_id = $EPrints::Plugin::Convert::PlainText::APPS{$ext};
+			last if defined $repository->get_conf( "executables", $cmd_id );
 		}
+
+		undef $cmd_id;
 	}
-	return () unless defined $bin;
+	return () unless defined $cmd_id;
 	
 	my %files = $doc->files;
 	my @txt_files;
 	foreach my $filename ( keys %files )
 	{
 		my $tgt = $filename;
-		next unless $tgt =~ s/\.$ext$/\.txt/;
+		next unless $tgt =~ s/\.$file_extension$/\.txt/;
 		my $infile = EPrints::Utils::join_path( $doc->local_path, $filename );
 		my $outfile = EPrints::Utils::join_path( $dir, $tgt );
 		
-		if( $ext eq 'txt' )
+		if( $file_extension eq 'txt' )
 		{
 			# PerlIO
 			if( $PERL_VERSION gt v5.8.0 )

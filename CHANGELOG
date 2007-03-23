@@ -6374,3 +6374,8 @@ PACKAGE: 2.2.99.2
 2007-03-22 tdb
  * Removed use of prepare_cmd from Convert plugins (now uses $repository->exec)
 
+2007-03-23 tdb
+ * Fix Convert plugins that I broke yesterday
+ * Add 'html_phrase_id' method to Plugin, to get the phrase id (used by
+    Convert)
+

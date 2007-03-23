@@ -265,6 +265,27 @@ sub param
 ######################################################################
 =pod
 
+=item $phraseid = $plugin->html_phrase_id( $id )
+
+Returns the fully-qualified phrase identifier for the $id phrase for this
+plugin.
+
+=cut
+######################################################################
+
+sub html_phrase_id 
+{
+	my( $self, $id ) = @_;
+
+	my $base = "Plugin/".$self->{id};
+	$base =~ s/::/\//g;
+
+	return $base . ':' . $id;
+}
+
+######################################################################
+=pod
+
 =item $xhtml = $plugin->html_phrase( $id, %bits )
 
 Return the phrase belonging to this plugin, with the given id.

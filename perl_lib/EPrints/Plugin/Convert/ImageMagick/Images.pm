@@ -62,12 +62,17 @@ sub can_convert
 	my %types;
 
 	# Get the main file name
-	my $fn = $doc->get_main();
+	my $fn = $doc->get_main() or return ();
+
 	if( $fn =~ /\.($EXTENSIONS_RE)$/oi ) 
 	{
 		for(values %FORMATS) 
 		{
-			$types{$_} = { plugin => $plugin, };
+			$types{$_} = {
+				plugin => $plugin,
+				phraseid => $plugin->html_phrase_id( $_ ),
+				preference => 1,
+			};
 		}
 	}
 
@@ -82,12 +87,12 @@ sub export
 
 	# What to call the temporary file
 	my $ext = $FORMATS_PREF{$type};
-	my $fn = $doc->get_main;
+	my $fn = $doc->get_main() or return ();
 	$fn =~ s/\.\w+$/\.$ext/;
 	
 	# Call imagemagick to do the conversion
 	system($convert,
-		$doc->local_path . '/' . $doc->get_main,
+		$doc->local_path . '/' . $doc->get_main(),
 		$dir . '/' . $fn
 	);
 

@@ -61,7 +61,8 @@ sub can_convert
 	my %types;
 
 	# Get the main file name
-	my $fn = $doc->get_main();
+	my $fn = $doc->get_main() or return ();
+
 	if( $fn =~ /\.($EXTENSIONS_RE)$/oi ) 
 	{
 		$types{"thumbnail_small"} = { plugin => $plugin, };
