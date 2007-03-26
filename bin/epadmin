@@ -264,7 +264,7 @@ END
 	print "\nCreating initial files:\n";
 	&install( 
 		EPrints::Config::get( "base_path" )."/lib/defaultcfg",
-		$EPrints::SystemSettings::conf->{"file_perms"},
+		oct($EPrints::SystemSettings::conf->{"file_perms"}),
 		$uid,
 		$gid,
 		$repodir."/cfg",

@@ -428,7 +428,7 @@ sub mkdir
 	Carp::croak("EPrints::Utils::mkdir is deprecated: use EPrints::Platform::mkdir");
 
 	# Default to "dir_perms"
-	$perms = $EPrints::SystemSettings::conf->{"dir_perms"}
+	$perms = oct($EPrints::SystemSettings::conf->{"dir_perms"})
 		if @_ < 2;
 
 	# Make sure $dir is a plain old string (not unicode) as
@@ -441,7 +441,7 @@ sub mkdir
 		$dir .= "/".(shift @parts );
 		if( !-d $dir )
 		{
-			my $ok = mkdir( $dir, $EPrints::SystemSettings::conf->{"dir_perms"} );
+			my $ok = mkdir( $dir, $perms );
 			if( !$ok )
 			{
 				print STDERR "Failed to mkdir $dir: $!\n";
