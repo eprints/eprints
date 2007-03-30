@@ -6388,3 +6388,6 @@ PACKAGE: 2.2.99.2
  * Only list conversions TO formats listed in document formats
  * Use document format phrases in ImageMagick/Images
 
+2007-03-30 tdb
+ * quote command line arguments in invocation, using quotemeta
+

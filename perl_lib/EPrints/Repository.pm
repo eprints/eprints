@@ -1208,7 +1208,7 @@ sub can_invoke
 	
 	return 0 if( !defined $command );
 
-	$command =~ s/\$\(([a-z]*)\)/$map{$1}/gei;
+	$command =~ s/\$\(([a-z]*)\)/quotemeta($map{$1})/gei;
 
 	return 0 if( $command =~ /\$\([a-z]*\)/ );
 
