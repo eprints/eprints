@@ -6396,3 +6396,6 @@ PACKAGE: 2.2.99.2
 
 2007-04-11 cjg
  * Bail out of an unpack if there is no mimetype, avoiding an undef warning.
+
+2007-04-11 cjg
+ * Don't index fileinfo field!
