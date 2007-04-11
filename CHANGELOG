@@ -6391,3 +6391,6 @@ PACKAGE: 2.2.99.2
 2007-03-30 tdb
  * quote command line arguments in invocation, using quotemeta
 
+2007-04-11 cjg
+ * Added a new loglevel which tells when (de)indexing a field is finished.
+

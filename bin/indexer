@@ -72,7 +72,7 @@ Log to I<filename> rather than default indexer log.
 
 =item B<--loglevel> I<level>
 
-Set the level of detail to log. Level may be 0-5.
+Set the level of detail to log. Level may be 0-6.
 
 =item B<--rollcount> I<number>
 
@@ -406,6 +406,8 @@ while( 1 )
 				foreach( @sessions ) { $_->terminate; }
 				exit;
 			}
+
+			# wait 30 seconds. Check suicide requests every 5 seconds.
 			for( my $i=0; $i<6; $i++ )
 			{
 				if( EPrints::Index::suicidal )

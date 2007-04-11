@@ -598,6 +598,7 @@ sub do_index
 	
 		EPrints::Index::indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
 		EPrints::Index::remove( $session, $dataset, $objectid, $fieldid );
+		EPrints::Index::indexlog( "* done-de-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
 	
 		next unless( $field->get_property( "text_index" ) );
 	
@@ -610,6 +611,7 @@ sub do_index
 	
 		EPrints::Index::indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
 		EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value );
+		EPrints::Index::indexlog( "* done-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
 	}
 	# always remove them, even if they didn't index right.
 	foreach my $fieldcode ( keys %todo )
