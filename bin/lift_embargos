@@ -112,8 +112,7 @@ my $ds = $session->get_repository->get_dataset( "document" );
 # Search for expired embargos
 my $searchexp = new EPrints::Search( 
 		session=>$session, 
-		dataset=>$ds,
-		custom_order=>"title");
+		dataset=>$ds );
 
 my $date = sprintf("-%04d-%02d-%02d", EPrints::Time::get_date_array( time ) );
 $searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
