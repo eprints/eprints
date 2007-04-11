@@ -46,9 +46,14 @@ sub can_convert
 	# Get the main file name
 	my $mimetype = $doc->mime_type();
 
+	if( !defined $mimetype )
+	{
+		return ();
+	}
+
 	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
-	if( !$mimetype or !$cmd_id or !$plugin->get_repository->can_invoke( $cmd_id ) )
+	if( !$cmd_id or !$plugin->get_repository->can_invoke( $cmd_id ) )
 	{
 		return ();
 	}
