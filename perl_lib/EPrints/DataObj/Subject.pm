@@ -416,7 +416,7 @@ sub get_children
 	my $searchexp = EPrints::Search->new(
 		session=>$self->{session},
 		dataset=>$self->{dataset},
-		custom_order=>"name" );
+		custom_order=>"name_name" );
 
 	$searchexp->add_field(
 		$self->{dataset}->get_field( "parents" ),
