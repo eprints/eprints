@@ -6399,3 +6399,6 @@ PACKAGE: 2.2.99.2
 
 2007-04-11 cjg
  * Don't index fileinfo field!
+
+2007-04-11 cjg
+ * Changed views to index subjects first, and to order subject pages by title.
