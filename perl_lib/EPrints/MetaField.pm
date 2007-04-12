@@ -1628,7 +1628,7 @@ sub get_value_label
 ######################################################################
 =pod
 
-=item $ov = $field->ordervalue( $value, $session, $langid )
+=item $ov = $field->ordervalue( $value, $session, $langid, $dataset )
 
 Return a string representing this value which can be used to sort
 it into order by comparing it alphabetically.
@@ -1638,7 +1638,7 @@ it into order by comparing it alphabetically.
 
 sub ordervalue
 {
-	my( $self , $value , $session , $langid ) = @_;
+	my( $self , $value , $session , $langid , $dataset ) = @_;
 
 	return "" if( !defined $value );
 
@@ -1649,19 +1649,20 @@ sub ordervalue
 			$self, 
 			$value, 
 			$session, 
-			$langid );
+			$langid,
+			$dataset );
 	}
 
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->ordervalue_single( $value , $session , $langid );
+		return $self->ordervalue_single( $value , $session , $langid, $dataset );
 	}
 
 	my @r = ();	
 	foreach( @$value )
 	{
-		push @r, $self->ordervalue_single( $_ , $session , $langid );
+		push @r, $self->ordervalue_single( $_ , $session , $langid, $dataset );
 	}
 	return join( ":", @r );
 }
@@ -1669,7 +1670,7 @@ sub ordervalue
 
 ######################################################################
 # 
-# $ov = $field->ordervalue_single( $value, $session, $langid )
+# $ov = $field->ordervalue_single( $value, $session, $langid, $dataset )
 # 
 # undocumented
 # 
@@ -1677,7 +1678,7 @@ sub ordervalue
 
 sub ordervalue_single
 {
-	my( $self , $value , $session , $langid ) = @_;
+	my( $self , $value , $session , $langid, $dataset ) = @_;
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
@@ -1685,7 +1686,8 @@ sub ordervalue_single
 	{
 		return $self->call_property( "make_single_value_orderkey",
 			$self, 
-			$value ); 
+			$value, 
+			$dataset ); 
 	}
 
 	return $self->ordervalue_basic( $value );

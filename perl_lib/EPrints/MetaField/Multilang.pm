@@ -61,10 +61,24 @@ sub render_value
 		return $self->SUPER::render_value( 
 				$session,$value,$alllangs,$nolink,$object);
 	}
+
 	my $f = $self->get_property( "fields_cache" );
 	my $first_name = $f->[0]->{name};
+
+	my $map = $self->value_to_langhash( $value );
+
+	my $best = $self->most_local( $session, $map );
+
 	my $field = $object->get_dataset->get_field( $first_name );
-	my $pre = $session->make_element( "pre" );
+	return $field->render_single_value( $session, $best );
+}
+
+sub value_to_langhash
+{
+	my( $self, $value ) = @_;
+
+	my $f = $self->get_property( "fields_cache" );
+	my $first_name = $f->[0]->{name};
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
 	my $map = ();
 	foreach my $row ( @{$value} )
@@ -73,9 +87,19 @@ sub render_value
 		$lang = "undef" unless defined $lang;	
 		$map->{$lang} = $row->{$fieldname_to_alias{$first_name}};
 	}
-	my $best = $self->most_local( $session, $map );
 
-	return $field->render_single_value( $session, $best );
+	return $map;
+}
+
+sub ordervalue
+{
+	my( $self , $value , $session , $langid, $dataset ) = @_;
+
+	my $langhash = $self->value_to_langhash( $value );
+
+	my $best = $self->most_local( $session, $langhash );
+	
+	return $best;
 }
 
 sub get_property_defaults

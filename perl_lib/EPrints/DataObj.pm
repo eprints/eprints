@@ -1205,19 +1205,28 @@ sub tidy
 		# squash compound fields as one.
 		next if( $field->get_property( "parent_name" ) );
 		my @list = ();
-		my $changed = 0;
+		my $set = 0;
 		foreach my $item ( @{$self->get_value($field->get_name)} )
 		{
 			if( !EPrints::Utils::is_set( $item ) )
 			{
-				$changed = 1;
+				$set = 1;
 				next;
 			}
 			push @list, $item;
 		}
-		if( $changed )
+
+		# set if there was a blank line
+		if( $set )
 		{
 			$self->set_value( $field->get_name, \@list );
+		}
+
+		# directly add this to the data if it's a compound field
+		# this is so that the ordervalues code can see it.
+		if( $field->isa( "EPrints::MetaField::Compound" ) )
+		{
+			$self->{data}->{$field->get_name} = \@list;	
 		}
 	}
 }

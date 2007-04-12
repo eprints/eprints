@@ -275,11 +275,11 @@ sub _do_ordervalues
 		my @fvals = ( $keyvalue );
 		foreach my $field ( @fields )
 		{
-			next if( $field->is_virtual );
 			my $ov = $field->ordervalue( 
 					$data->{$field->get_name()},
 					$session,
-					$langid );
+					$langid,
+					$dataset );
 			
 			push @fnames, $field->get_sql_name();
 			push @fvals, EPrints::Database::prep_value( $ov );

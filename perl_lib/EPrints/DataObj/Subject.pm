@@ -416,7 +416,9 @@ sub get_children
 	my $searchexp = EPrints::Search->new(
 		session=>$self->{session},
 		dataset=>$self->{dataset},
-		custom_order=>"name_name" );
+		custom_order=>"name/name_name" );
+	# nb. name_name is a hack for 3.0.0 repositories which can't sort
+	# on compound fields.
 
 	$searchexp->add_field(
 		$self->{dataset}->get_field( "parents" ),

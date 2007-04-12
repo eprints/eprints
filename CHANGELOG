@@ -6409,3 +6409,8 @@ PACKAGE: 2.2.99.2
 2007-04-11 cjg
  * Removed custom_order from lift_embargos which should fix a bug.
 
+2007-04-11 cjg
+ * Changed custom_order again to make it sort by name, then failing that
+    name_name.
+ * ordervalues now gets passed dataset.
+ * Compound fields now have their ordervalues set.
