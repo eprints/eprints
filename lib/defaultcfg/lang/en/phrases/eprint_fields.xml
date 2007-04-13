@@ -229,7 +229,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldopt_full_text_status_restricted">Restricted</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_contact_email">Contact Email Address</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_contact_email">The contact email address for this item.</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_contact_email">The contact email address for this item. If the full-text is not available to the public, then requests to view the full-text will be sent to this email. The email address will not be made public.</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_funders">Funders</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_funders">The sponsoring bodies who contributed funding for the creation of this item.</epp:phrase>
@@ -264,6 +264,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldhelp_producers"></epp:phrase>
     <epp:phrase id="eprint_fieldname_producers_id">Email</epp:phrase>
     <!--<epp:phrase id="eprint_fieldhelp_producers">The producers of the recording.</epp:phrase>-->
+    <epp:phrase id="eprint_fieldname_producers_name">The producers name</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_conductors">Conductors</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_conductors"></epp:phrase>

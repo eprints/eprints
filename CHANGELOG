@@ -6420,3 +6420,8 @@ PACKAGE: 2.2.99.2
  * Bad db version now does an abort() instead of a log - that way the
     message appears in the web output.
 
+2007-04-13 cjg
+ * Fixed spelling mistake recieve => receive
+ * Improved the help text regarding security documents and contact-email.
+ * Added missing phrase: eprint_fieldname_producers_name
+
