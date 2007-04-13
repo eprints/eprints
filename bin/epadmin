@@ -1444,6 +1444,12 @@ sub upgrade
 		$dbversion="3.0.6";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.6" )
+	{
+		upgrade_3_0_6_to_3_0_7( $repoid, $db );
+		$dbversion="3.0.7";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1603,14 +1609,20 @@ sub upgrade_3_0_5_to_3_0_6
 }
 
 
+sub upgrade_3_0_6_to_3_0_7
+{
+	my( $repoid, $db ) = @_;
 
+	my $repo = EPrints::Repository->new( $repoid );
+	foreach my $datasetid ( qw/
+			access document eprint history
+			request saved_search subject user /)
+	{
+		my $dataset = $repo->get_dataset( $datasetid );
+		$db->add_index_to_indextable( $dataset );
+	}
 
-
-
-
-
-
-
+}
 
 
 

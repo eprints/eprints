@@ -64,7 +64,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.0.6";
+$EPrints::Database::DBVersion = "3.0.7";
 
 # cjg not using transactions so there is a (very small) chance of
 # dupping on a counter. 
@@ -332,6 +332,7 @@ sub create_dataset_index_tables
 		$dataset,
 		0, # no primary key
 		( $field_fieldword, $field_pos, $field_ids ) );
+	$rv = $rv & $self->add_index_to_indextable( $dataset );
 
 	#######################
 
@@ -375,6 +376,17 @@ sub create_dataset_index_tables
 	return $rv;
 }
 
+sub add_index_to_indextable
+{
+	my( $self, $dataset ) = @_;
+
+	my $sql = "ALTER TABLE ".
+		$dataset->get_sql_index_table_name.
+		" ADD INDEX( fieldword, pos )";
+
+	return $self->do( $sql );
+}
+ 
 ######################################################################
 =pod
 

@@ -6414,3 +6414,9 @@ PACKAGE: 2.2.99.2
     name_name.
  * ordervalues now gets passed dataset.
  * Compound fields now have their ordervalues set.
+
+2007-04-12 cjg
+ * Added index to __index tables causing a great indexing speed improvemnt.
+ * Bad db version now does an abort() instead of a log - that way the
+    message appears in the web output.
+

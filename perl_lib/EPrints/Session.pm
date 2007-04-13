@@ -220,12 +220,12 @@ sub new
 		{ 
 			if( $self->{database}->has_table( "eprint" ) )
 			{	
-				$self->get_repository->log( 
+				EPrints::abort(
 	"Database tables are in old configuration. Please run:\nepadmin upgrade ".$self->get_repository->get_id );
 			}
 			else
 			{
-				$self->get_repository->log( 
+				EPrints::abort(
 					"No tables in the MySQL database! ".
 					"Did you run create_tables?" );
 			}
