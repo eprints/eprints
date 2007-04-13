@@ -326,13 +326,13 @@ sub create_dataset_index_tables
 		repository=> $self->{session}->get_repository,
 		name => "ids", 
 		type => "longtext");
-
 	$rv = $rv & $self->create_table(
 		$dataset->get_sql_index_table_name,
 		$dataset,
 		0, # no primary key
 		( $field_fieldword, $field_pos, $field_ids ) );
-	$rv = $rv & $self->add_index_to_indextable( $dataset );
+	my $r= $self->add_index_to_indextable( $dataset );
+	$rv = $rv & $r;
 
 	#######################
 
@@ -2232,6 +2232,7 @@ sub do
 		($secs,$micro) = gettimeofday();
 	}
 	my $result = $self->{dbh}->do( $sql );
+
 	if( !$result )
 	{
 		$self->{session}->get_repository->log( "SQL ERROR (do): $sql" );
@@ -2249,7 +2250,7 @@ sub do
 			if( defined $self->{dbh} )
 			{
 				$result = $self->{dbh}->do( $sql );
-				return $result if( defined $result );
+				return 1 if( defined $result );
 				$self->{session}->get_repository->log( "SQL ERROR (do): ".$self->{dbh}->errstr );
 			}
 		}
@@ -2263,7 +2264,12 @@ sub do
 		$self->{session}->get_repository->log( "$s : $sql" );
 	}
 
-	return $result;
+	if( defined $result )
+	{
+		return 1;
+	}
+
+	return undef;
 }
 
 

@@ -6425,3 +6425,6 @@ PACKAGE: 2.2.99.2
  * Improved the help text regarding security documents and contact-email.
  * Added missing phrase: eprint_fieldname_producers_name
 
+2007-04-13 cjg
+ * Fixed issue with database which meant that zero rows affected was 
+    treated as an unsuccessful operation. Which it isn't.
