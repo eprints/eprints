@@ -25,6 +25,26 @@ This module handles loading the main configuration for an instance
 of the eprints software - such as the list of language id's and 
 the top level configurations for repositories - the XML files in /archives/
 
+=head1 METHODS
+
+=head2 Deprecated Methods
+
+=over 4
+
+=item EPrints::Config::abort
+
+Deprecated, use L<EPrints>::abort.
+
+=item EPrints::Config::get_archive_config
+=item EPrints::Config::get_archive_ids
+=item EPrints::Config::load_archive_config_module
+
+Deprecated, use *_repository_*.
+
+=back
+
+=head2 Normal Methods
+
 =over 4
 
 =cut
