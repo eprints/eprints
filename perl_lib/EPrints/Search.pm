@@ -24,7 +24,7 @@ The Search object represents the conditions of a single
 search.
 
 It used to also store the results of the search, but now it returns
-an EPrints::List object. 
+an L<EPrints::List> object. 
 
 A search expression can also render itself as a web-form, populate
 itself with values from that web-form and render the results as a
@@ -42,15 +42,32 @@ web page.
 		dataset => $ds,
 	);
 
+	# Search for an eprint with eprintid 23
+	# (ought to use EPrints::DataObj::EPrint->new( SESSION, ID ))
 	$searchexp->add_field( $ds->get_field( "eprintid" ), 23 );
+
+	$searchexp->add_field( $ds->get_field( "creators" ), "John Smith" );
 
 =head2 Getting Results
 
 	$results = $searchexp->perform_search;
 
 	my $count = $searchexp->count;
+	my $count = $results->count;
+
+	my $ids = $results->get_ids( 0, 10 );
+	my $ids = $results->get_ids; # Get all matching ids
+
+	my $info = { matches => 0 };
+	sub fn {
+		my( $session, $dataset, $eprint, $info ) = @_;
+		$info->{matches}++;
+	};
+	$results->map( \&fn, $info );
 
 	$searchexp->dispose;
+
+See L<EPrints::List> for more.
 
 =over 4
 
@@ -345,9 +362,9 @@ sub from_cache
 
 =item $searchfield = $searchexp->add_field( $metafields, $value, $match, $merge, $id, $filter )
 
-Adds a new search field for the MetaField $metafields, or a list of fields
-if $metafields is an array ref, with default $value. If a search field
-already exist, the value of that field is replaced with $value.
+Adds a new search in $metafields which is either a single L<EPrints::MetaField>
+or a list of fields in an array ref with default $value. If a search field
+already exists, the value of that field is replaced with $value.
 
 
 =cut
@@ -971,7 +988,7 @@ sub get_searchfields
 
 =item @search_fields = $searchexp->get_non_filter_searchfields();
 
-Return the EPrints::Search::Field objects relating to this search,
+Return the L<EPrints::Search::Field> objects relating to this search,
 which are normal search fields, and not "filters".
 
 =cut
