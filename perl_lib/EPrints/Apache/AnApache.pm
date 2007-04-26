@@ -240,7 +240,7 @@ else
 
 Return the value of the named cookie, or undef if it is not set.
 
-This avoids using CGI.pm, so does not consume the POST data.
+This avoids using L<CGI>, so does not consume the POST data.
 
 =cut
 ######################################################################
@@ -288,6 +288,16 @@ sub upload_doc_archive
 		$cgi->param( $paramid ), 
 		$archive_format );	
 }
+
+######################################################################
+=pod
+
+=item EPrints::Apache::AnApache::send_status_line( $request, $code, $message )
+
+Send a HTTP status to the client with $code and $message.
+
+=cut
+######################################################################
 
 sub send_status_line
 {	

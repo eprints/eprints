@@ -69,6 +69,8 @@ web page.
 
 See L<EPrints::List> for more.
 
+=head1 METHODS
+
 =over 4
 
 =cut

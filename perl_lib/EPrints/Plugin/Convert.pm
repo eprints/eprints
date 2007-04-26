@@ -8,11 +8,28 @@ EPrints::Plugin::Convert - Convert EPrints::DataObj::Document into different for
 
 =head1 DESCRIPTION
 
-This plugin and its dependents allow EPrints to convert documents from one format into another format.
+This plugin and its dependents allow EPrints to convert documents from one format into another format. Convert plugins are also used by the full-text indexer to extract plain-text from documents.
+
+Convert plugins may provide conversions from any number of formats to any number of other formats (or not even 'formats' per-se e.g. unpacking/packing archives). A single plugin may represent a particular software package (e.g. ImageMagick) or a common goal (e.g. textifying documents for indexing).
+
+Using the root Convert plugin it is possible to query all loaded conversion plugins for available conversions from a given L<EPrints::DataObj::Document>.
+
+To allow for simpler local configuration Convert plugins should use SystemSettings to store the location of external programs.
+
+=head1 SYNOPSIS
+
+	my $root = $session->plugin( 'Convert' );
+
+	my %available = $root->can_convert( $document );
+
+	# Convert a document to plain-text
+	my $txt_tool = $available{'text/plain'};
+	my $plugin = $txt_tool->{ plugin };
+	$plugin->convert( $eprint, $document, 'text/plain' );
 
 =head1 METHODS
 
-=over 5
+=over 4
 
 =cut
 
@@ -26,6 +43,16 @@ use EPrints::Utils;
 our @ISA = qw/ EPrints::Plugin /;
 
 
+######################################################################
+=pod
+
+=item new OPTIONS
+
+Create a new plugin object using OPTIONS (should only be called by L<EPrints::Session>).
+
+=cut
+######################################################################
+
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -38,12 +65,32 @@ sub new
 	return $self;
 }
 
+######################################################################
+=pod
+
+=item $xhtml = $plugin->render_name
+
+Return the name of this plugin as a chunk of XHTML.
+
+=cut
+######################################################################
+
 sub render_name
 {
 	my( $plugin ) = @_;
 
 	return $plugin->{session}->make_text( $plugin->{name} );
 }
+
+######################################################################
+=pod
+
+=item $plugin->is_visible( $level )
+
+Returns whether this plugin is visible at level (currently 'all' or '').
+
+=cut
+######################################################################
 
 # all or ""
 sub is_visible
@@ -147,7 +194,7 @@ sub export
 
 =item $doc = $p->convert( $eprint, $doc, $type )
 
-Convert $doc to format $type. Stores the resulting $doc in $eprint, and returns the new document or undef on failure.
+Convert $doc to format $type (as returned by can_convert). Stores the resulting $doc in $eprint, and returns the new document or undef on failure.
 
 =cut
 

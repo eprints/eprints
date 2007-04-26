@@ -66,6 +66,12 @@ use EPrints::Apache::AnApache;
 
 use constant NOT_MODIFIED => 304;
 
+=item handler REQUEST
+
+Called by mod_perl whenever a request is made to the web server where REQUEST is an Apache Request object.
+
+=cut
+
 sub handler
 {
 	my( $r ) = @_;

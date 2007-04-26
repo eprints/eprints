@@ -20,11 +20,11 @@ B<EPrints::DataObj> - Base class for records in EPrints.
 
 =head1 DESCRIPTION
 
-This module is a base class which is inherited by EPrints::DataObj::EPrint, 
-EPrints::User, EPrints::DataObj::Subject and EPrints::DataObj::Document and several
-other classes.
+This module is a base class which is inherited by L<EPrints::DataObj::EPrint>,
+L<EPrints::User>, L<EPrints::DataObj::Subject> and
+L<EPrints::DataObj::Document> and several other classes.
 
-It is ABSTRACT, its methods should not be called directly.
+It is ABSTRACT - its methods should not be called directly.
 
 =over 4
 
