@@ -183,6 +183,18 @@ sub end_element
 				$self->{plugin}->{session}->make_text( $tmpfile ) );
 			delete $self->{basedata};
 		}
+		elsif(
+			$self->{href} and
+			$self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" )
+		)
+		{
+			my $href = $self->{href};
+			$self->{href} = 0;
+			$href =~ s/^file:\/\///;
+			push @{$self->{tmpfiles}}, $href;
+			$self->{xmlcurrent}->appendChild( 
+				$self->{plugin}->{session}->make_text( $href ) );
+		}
 		pop @{$self->{xmlstack}};
 		
 		$self->{xmlcurrent} = $self->{xmlstack}->[-1]; # the end!
@@ -227,6 +239,10 @@ sub start_element
 		{
 			$self->{base64} = 1;
 			$self->{base64data} = [];
+		}
+		elsif( $params{href} )
+		{
+			$self->{href} = $params{href};
 		}
 	}
 
