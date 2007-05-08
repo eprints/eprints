@@ -1,7 +1,11 @@
+#!/usr/bin/perl
+
+# warns of duplicates based on a simple title string match
 
 use EPrints;
 
 use strict;
+use warnings;
 
 my $session = EPrints::Session->new();
 
@@ -16,22 +20,23 @@ my $q = $session->param( "q" );
 
 exit unless length( $q ) >= $need; 
 
-my $eprintid = $session->param( "eprintid" ) || '';
-$eprintid =~ /^([0-9]+)$/;
-$eprintid = $1;
+my $eprintid = $session->param( "eprintid" );
+if( defined($eprintid) and $eprintid =~ /^([0-9]+)$/ )
+{
+	$eprintid = $1;
+}
+else
+{
+	EPrints::abort "Requires numeric eprintid argument";
+}
 
 my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!=$eprintid AND eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
 
-print <<END;
-<?xml version="1.0" encoding="UTF-8" ?>
-<ul>
-END
+my $doc = $session->make_doc_fragment();
 
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
-my $first = 1;
 
-my $count = $sth->rows;
 my $base_url = $session->get_repository->get_conf( "base_url" );
 
 my $warning =<<END;
@@ -39,37 +44,45 @@ The following records matching this title already exist in the archive.
 Please check that you are not entering a duplicate record.
 END
 
-if( $count )
-{
-	print $session->render_message( "warning", $session->make_text( $warning) )->toString;
-}
+my $row = $sth->fetch;
 
-while( my( $eprintid, $title ) = $sth->fetchrow_array )
+exit unless defined $row;
+
+$doc->appendChild( my $div = $session->render_message( "warning", $session->make_text( $warning) ) );
+
+$div->appendChild( my $ul = $session->make_element( 'ul' ));
+
+my $count = 0;
+my $first = 1;
+
+do
 {
+	my( $eprintid, $title ) = @$row;
+	$ul->appendChild( my $li = $session->make_element( 'li' ) );
 	if( $first )
 	{
-		print "<li class='ep_first'>";
+		$li->setAttribute( 'class', 'ep_first' );
 		$first = 0;
 	}
-	else
+	if( ++$count > 5 )
 	{
-		print "<li>";
-	}
-	if( $count > 5 )
-	{
-		print "<a target=\"_blank\" href=\"$base_url/$eprintid\">\"$title\"</a>\n";
+		$li->appendChild( $session->make_element( 'a',
+					target => '_blank',
+					href => "$base_url/$eprintid",
+					) )->appendChild( $session->make_text( "\"$title\"" ) );
 	}
 	else
 	{
 		my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-		my $citation = $eprint->render_citation_link( "default", target=>"_blank" );
-		print $citation->toString;
+		$li->appendChild( $eprint->render_citation_link( "default", target=>"_blank" ) );
 	}
+} while( $row = $sth->fetch );
 
-	print "</li>\n";
-}
-print "</ul>";
+print <<END,
+<?xml version="1.0" encoding="UTF-8" ?>
+END
+	EPrints::XML::to_string( $doc );
+
+EPrints::XML::dispose( $doc );
 
 $session->terminate;
-
-
