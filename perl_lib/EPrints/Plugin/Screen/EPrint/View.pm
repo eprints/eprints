@@ -219,6 +219,14 @@ sub derive_clone
 	$self->{processor}->{screenid} = "EPrint::Edit";
 }
 
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	return defined $self->{processor}->{view} ?
+		$self->SUPER::redirect_to_me_url."&view=".$self->{processor}->{view} :
+		$self->SUPER::redirect_to_me_url;
+}
 
 
 1;
