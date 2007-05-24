@@ -6428,3 +6428,7 @@ PACKAGE: 2.2.99.2
 2007-04-13 cjg
  * Fixed issue with database which meant that zero rows affected was 
     treated as an unsuccessful operation. Which it isn't.
+
+2007-05-24 tdb
+ * Added support for exporting partial data in Eprints Application Profile
+    format
