@@ -196,8 +196,8 @@ Return the given node (and its children) as a UTF8 encoded string.
 
 $enc is only used when $node is a document.
 
-If $stripxmlns is true then all xmlns attributes are removed. Handy
-for making legal XHTML.
+If $stripxmlns is true then all xmlns attributes and namespace prefixes are
+removed. Handy for making legal XHTML.
 
 Papers over some cracks, specifically that XML::GDOME does not 
 support toString on a DocumentFragment, and that XML::GDOME does
@@ -222,6 +222,11 @@ sub to_string
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
 		my $tagname = $node->nodeName;
+
+		if( $noxmlns )
+		{
+			$tagname =~ s/^.+://;
+		}
 
 		# lowercasing all tags screws up OAI.
 		#$tagname = "\L$tagname";
@@ -269,7 +274,7 @@ sub to_string
 			push @n,"</",$tagname,">";
 		}
 	}
-	elsif( is_dom( $node, "DocumentFragment" ) )
+	elsif( EPrints::XML::is_dom( $node, "DocumentFragment" ) )
 	{
 		foreach my $kid ( $node->getChildNodes )
 		{

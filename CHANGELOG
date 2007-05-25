@@ -6445,6 +6445,7 @@ PACKAGE: 2.2.99.2
 
 2007-05-25 tdb
  * Pretty-printing from POD tester
+ * Strip prefixes from noxmlns to_string output (bug fix for XML::LibXML)
 
 2007-05-25 cjg
  * Fixed typo in the textonly pins change
