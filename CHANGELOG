@@ -6436,3 +6436,6 @@ PACKAGE: 2.2.99.2
 2007-05-25 cjg
  * Corrected the way the security.pl config file gets the remote IP.
 
+2007-05-25 cjg
+ * Fixed conf_id/confid typo in Backcompatability
+

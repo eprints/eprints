@@ -284,7 +284,7 @@ sub is_valid_type
 {
 	my( $self, $type ) = @_;
 	EPrints::deprecated;
-	return( defined $self->{repository}->{types}->{$self->conf_id}->{$type} );
+	return( defined $self->{repository}->{types}->{$self->confid}->{$type} );
 }
 
 sub get_types
@@ -293,7 +293,7 @@ sub get_types
 
 	EPrints::deprecated;
 
-	return( $self->{repository}->{types}->{$self->conf_id} );
+	return( $self->{repository}->{types}->{$self->confid} );
 }
 
 sub get_type_names
