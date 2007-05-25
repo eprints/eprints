@@ -195,6 +195,18 @@ sub create_from_data
 	foreach my $field ( $dataset->get_fields )
 	{
 		next if $field->get_property( "import" );
+
+		# This is a bit of a hack. The import script may set "allow_import_id" on session
+		# This will allow eprintids and userids to be imported as-is rather than just being 
+		# assigned one. 
+		if( $session->{allow_import_id} )
+		{
+			if( $dataset->id eq "eprint" || $dataset->id eq "user" )
+			{
+				next if( $field->get_name eq $dataset->get_key_field->get_name );
+			}
+		}
+
 		delete $data->{$field->get_name};
 	}
 
@@ -623,7 +635,7 @@ sub exists_and_set
 {
 	my( $self, $fieldname ) = @_;
 
-	if( !$self->{dataset}->get_field( $fieldname ) )
+	if( !$self->{dataset}->has_field( $fieldname ) )
 	{	
 		return 0;
 	}

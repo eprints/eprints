@@ -2518,7 +2518,7 @@ sub prepare_page
 				elsif( defined $map->{$pinid} )
 				{
 					# don't convert href's to <http://...>'s
-					push @output, EPrints::Utils::tree_to_utf8( $map->{$pidin}, undef, undef, undef, 1 ); 
+					push @output, EPrints::Utils::tree_to_utf8( $map->{$pinid}, undef, undef, undef, 1 ); 
 				}
 				# else no title
 		

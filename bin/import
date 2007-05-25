@@ -68,6 +68,10 @@ You may wish to create one or more "bulk import" users and make imported eprint 
 
 Don't import, just check the file.
 
+=item B<--use-ids>
+
+By default import will generate a new eprintid, or userid for each record. This option tells it to use the id spcified in the imported data. This is generally used for importing into a new repository from an old one.
+
 =item B<--force>
 
 Don't ask any questions, just do it!
@@ -120,6 +124,7 @@ my $single = 0;
 my $scripted = 0;
 my $user = undef;
 my $parse_only = 0;
+my $use_ids = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -133,6 +138,7 @@ GetOptions(
 	'scripted' => \$scripted,
 	'single' => \$single,
 	'parse-only' => \$parse_only,
+	'use-ids' => \$use_ids,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -266,11 +272,19 @@ if( $scripted )
 	print "EPRINTS_IMPORT: BEGIN\n";
 }
 
+if( $use_ids ) 
+{ 
+	$session->{allow_import_id} = 1;
+}
 my $list = $plugin->input_file(
 		dataset=>$ds,
 		filename=>$filename,
 		user=>$userobj,
 	);
+if( $use_ids ) 
+{ 
+	$session->{allow_import_id} = 0;
+}
 
 if( defined $list )
 {

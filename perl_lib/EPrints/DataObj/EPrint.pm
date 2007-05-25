@@ -286,6 +286,8 @@ sub create_from_data
 
 	my $new_eprint = $class->SUPER::create_from_data( $session, $data, $dataset );
 
+	$session->get_database->counter_minimum( "eprintid", $new_eprint->get_id );
+	
 	$new_eprint->set_under_construction( 1 );
 
 	return unless defined $new_eprint;

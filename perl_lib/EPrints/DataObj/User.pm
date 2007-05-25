@@ -270,6 +270,31 @@ sub create
 }
 
 ######################################################################
+# =pod
+# 
+# =item $dataobj = EPrints::DataObj->create_from_data( $session, $data, $dataset )
+# 
+# Create a new object of this type in the database. 
+# 
+# $dataset is the dataset it will belong to. 
+# 
+# $data is the data structured as with new_from_data.
+# 
+# =cut
+######################################################################
+
+sub create_from_data
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	my $new_user = $class->SUPER::create_from_data( $session, $data, $dataset );
+
+	$session->get_database->counter_minimum( "userid", $new_user->get_id );
+
+	return $new_user;
+}
+
+######################################################################
 =pod
 
 =item $defaults = EPrints::DataObj::User->get_defaults( $session, $data )

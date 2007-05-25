@@ -1267,6 +1267,33 @@ sub counter_next
 }
 
 ######################################################################
+=pod
+
+=item $db->counter_minimum( $counter, $value )
+
+Ensure that the counter is set no lower that $value. This is used when
+importing eprints which may not be in scrict sequence.
+
+=cut
+######################################################################
+
+sub counter_minimum
+{
+	my( $self, $counter, $value ) = @_;
+
+	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
+
+	$value+=0; # ensure numeric!
+
+	# Update the counter to be at least $value
+	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter="
+		. "CASE WHEN $value>counter THEN $value ELSE counter END"
+		. " WHERE countername = \"$counter\"";
+	$self->do( $sql );
+}
+
+
+######################################################################
 #
 # $db->counter_reset( $counter )
 #

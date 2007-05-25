@@ -6446,3 +6446,12 @@ PACKAGE: 2.2.99.2
 2007-05-25 tdb
  * Pretty-printing from POD tester
 
+2007-05-25 cjg
+ * Fixed typo in the textonly pins change
+ * bin/import now has an option to use ids from the data file
+ * counters are now set to the minimum of their current value and the 
+    last eprintid,userid when an eprint/user is added.
+ * $obj->exists_and_set now uses has_field instead of get_field which
+    should prevent the annoying warning.
+
+
