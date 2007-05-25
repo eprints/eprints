@@ -2517,8 +2517,8 @@ sub prepare_page
 				}
 				elsif( defined $map->{$pinid} )
 				{
-					my $dom = EPrints::XML::EPC::process( $map->{$pinid}, session=>$self, in=>"prepare_page:pin:$pinid.textonly" );
-					push @output, EPrints::Utils::tree_to_utf8( $dom, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
+					# don't convert href's to <http://...>'s
+					push @output, EPrints::Utils::tree_to_utf8( $map->{$pidin}, undef, undef, undef, 1 ); 
 				}
 				# else no title
 		

@@ -6439,3 +6439,6 @@ PACKAGE: 2.2.99.2
 2007-05-25 cjg
  * Fixed conf_id/confid typo in Backcompatability
 
+2007-05-25 cjg
+ * Textonly pins now don't expand. Fixing a bug that {} in titles caused
+    an error.
