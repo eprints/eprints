@@ -22,7 +22,7 @@ $c->{can_request_view_document} = sub
 		return( "ALLOW" );
 	}
 
-	my $ip = $ENV{REMOTE_ADDR};
+	my $ip = $r->connection()->remote_ip();
 
 	# some examples of possible settings 
 

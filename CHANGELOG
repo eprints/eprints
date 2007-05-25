@@ -6432,3 +6432,7 @@ PACKAGE: 2.2.99.2
 2007-05-24 tdb
  * Added support for exporting partial data in Eprints Application Profile
     format
+
+2007-05-25 cjg
+ * Corrected the way the security.pl config file gets the remote IP.
+
