@@ -28,6 +28,10 @@ Show help for this script.
 
 Show which functions are missing documentation.
 
+=item --pretty
+
+Pretty-print output for printing.
+
 =item --verbose
 
 Be more verbose (i.e. show functions that do have POD).
@@ -45,12 +49,13 @@ use Getopt::Long;
 use Pod::Usage;
 use Pod::Coverage;
 
-my( $opt_help, $opt_verbose, $opt_detail );
+my( $opt_help, $opt_verbose, $opt_detail, $opt_pretty );
 
 GetOptions(
 	"help" => \$opt_help,
 	"verbose" => \$opt_verbose,
 	"detail" => \$opt_detail,
+	"pretty" => \$opt_pretty,
 ) or pod2usage( 2 );
 
 pod2usage( 1 ) if $opt_help;
@@ -105,32 +110,47 @@ our $RES_COL = 60;
 
 for(sort @VICTIMS)
 {
-	print STDERR $_, '_' x ($RES_COL-length($_));
+	if( $opt_pretty )
+	{
+		print "$_\n";
+	}
+	else
+	{
+		print STDERR $_, '_' x ($RES_COL-length($_));
+	}
 	my $pc = Pod::Coverage->new(package => $_);
 	if( !defined $pc->coverage )
 	{
-		print &FAILED;
+		print &FAILED unless $opt_pretty;
 		if( $opt_detail )
 		{
-			print "Unable to parse: " . $pc->why_unrated . "\n";
+			print "\tUnable to parse: " . $pc->why_unrated . "\n";
 		}
 	}
 	elsif( $pc->coverage < 1 )
 	{
-		print &FAILED;
+		print &FAILED unless $opt_pretty;
 		if( $opt_detail )
 		{
-			print "POD missing for: ", join(', ', sort $pc->uncovered), "\n";
+			print "\tPOD missing for: ", join(', ', sort $pc->uncovered), "\n";
 			if( $opt_verbose )
 			{
-				print "POD found for: ", join(', ', sort $pc->covered), "\n";
+				print "\tPOD found for: ", join(', ', sort $pc->covered), "\n";
 			}
 		}
 	}
 	else
 	{
-		print &OK;
+		if( $opt_pretty )
+		{
+			print "\tDocumentation appears complete.\n";
+		}
+		else
+		{
+			print &OK;
+		}
 	}
+	print "\n" if $opt_pretty;
 }
 
 sub OK()
