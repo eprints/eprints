@@ -1,18 +1,39 @@
+=head1 NAME
+
+B<EPrints::Plugin::Import::DefaultXML> - Import XML
+
+=head1 DESCRIPTION
+
+It is ABSTRACT - its methods should not be called directly.
+
+You probably want to look at L<EPrints::Plugin::Import::XML> for importing from XML.
+
+This plugin reads in all the second level XML elements and passes them as DOM to xml_to_dataobj.
+
+(Maybe needs an input_dataobj method which parses the XML from a single record?)
+
+=head1 METHODS
+
+=over 4
+
+=cut
+
 package EPrints::Plugin::Import::DefaultXML;
 
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import /;
 
-
-# This reads in all the second level XML elements and passes them
-# as DOM to xml_to_dataobj.
-
-# maybe needs an input_dataobj method which parses the XML from
-# a single record.
-
-
 $EPrints::Plugin::Import::DISABLE = 1;
+
+##############################################################################
+
+=item $plugin = EPrints::Plugin::Import::DefaultXML->new()
+
+ABSTRACT.
+
+=cut
+##############################################################################
 
 sub new
 {
@@ -28,10 +49,14 @@ sub new
 }
 
 
+##############################################################################
 
+=item $name = $plugin->top_level_tag( $dataset )
 
-# if this is defined then it is used to check that the top
-# level XML element is correct.
+Return the expected root element node name or undef to not check at all. If the names do not match calls $plugin->unknown_start_element.
+
+=cut
+##############################################################################
 
 sub top_level_tag
 {
@@ -39,6 +64,15 @@ sub top_level_tag
 
 	return undef;
 }
+
+##############################################################################
+
+=item $plugin->unknown_start_element( $found, $expected )
+
+Prints the error and exits.
+
+=cut
+##############################################################################
 
 sub unknown_start_element
 {
@@ -48,6 +82,14 @@ sub unknown_start_element
 	exit 1;
 }
 
+##############################################################################
+
+=item $list = $plugin->input_fh( %opts )
+
+Import objects in XML format from $opts{fh}. Returns an L<EPrints::List> of all the imported objects.
+
+=cut
+##############################################################################
 
 sub input_fh
 {
@@ -58,7 +100,7 @@ sub input_fh
 		state => 'toplevel',
 		plugin => $plugin,
 		depth => 0,
-		tmpfiles => [],
+		tmpfiles => [], # temporary files for Base64
 		imported => [], };
 	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
 
@@ -70,6 +112,17 @@ sub input_fh
 			ids => $handler->{imported} );
 }
 
+##############################################################################
+
+=item $dataobj = $plugin->xml_to_dataobj( $dataset, $xml )
+
+Import an object in XML format from $xml into $dataset. Calls $plugin->xml_to_dataobj to convert the XML to epdata (hashrefs) and then $plugin->epdata_to_dataobj to actually create the object.
+
+Returns the object created.
+
+=cut
+##############################################################################
+
 sub xml_to_dataobj
 {
 	my( $plugin, $dataset, $xml ) = @_;
@@ -79,6 +132,17 @@ sub xml_to_dataobj
 	return $plugin->epdata_to_dataobj( $dataset, $epdata );
 }
 
+##############################################################################
+
+=item $epdata = $plugin->xml_to_epdata( $dataset, $xml )
+
+ABSTRACT.
+
+Converts $xml into $epdata.
+
+=cut
+##############################################################################
+
 sub xml_to_epdata
 {
 	my( $plugin, $dataset, $xml ) = @_;
@@ -86,9 +150,14 @@ sub xml_to_epdata
 	$plugin->error( $plugin->phrase( "no_subclass" ) );
 }
 
-# takes a chunck of XML and returns it as a utf8 string.
-# If the text contains anything but elements then this gives 
-# a warning.
+##############################################################################
+
+=item $string = $plugin->xml_to_text( $node )
+
+Returns the text content of $node and gives a warning if $node contains any elements.
+
+=cut
+##############################################################################
 
 sub xml_to_text
 {
@@ -121,11 +190,31 @@ sub xml_to_text
 	return $r;
 }
 
+=back
+
+=cut
 
 
 package EPrints::Plugin::Import::DefaultXML::Handler;
 
 use strict;
+
+##############################################################################
+
+=head1 NAME
+
+EPrints::Plugin::Import::DefaultXML::Handler - SAX handler
+
+=head1 METHODS
+
+=over 4
+
+=item $handler->characters( $node_info )
+
+Concantenate Base64 data if we're in a Base64 container, otherwise just add the text to the current node.
+
+=cut
+##############################################################################
 
 sub characters
 {
@@ -144,6 +233,17 @@ sub characters
 	}
 }
 
+##############################################################################
+
+=item $handler->end_element( $node_info )
+
+At the end of each item calls $plugin->xml_to_dataobj( $dataset, $xml ).
+
+If Base64 data was included it is written to a temporary file before xml_to_dataobj is called and unlinked afterwards.
+
+=cut
+##############################################################################
+
 sub end_element
 {
         my( $self , $node_info ) = @_;
@@ -160,10 +260,7 @@ sub end_element
 		}
 
 		# don't keep tmpfiles between items...
-		foreach( @{$self->{tmpfiles}} )
-		{
-			unlink( $_ );
-		}
+		$self->{tmpfiles} = [];
 	}
 
 	if( $self->{depth} > 1 )
@@ -171,29 +268,27 @@ sub end_element
 		if( $self->{base64} )
 		{
 			$self->{base64} = 0;
-			my $tf = $self->{tmpfilecount}++;
-			my $tmpfile = "/tmp/epimport.$$.".time.".$tf.data";
-			$self->{tmpfile} = $tmpfile;
-			push @{$self->{tmpfiles}},$tmpfile;
-			open( TMP, ">$tmpfile" );
-			print TMP MIME::Base64::decode( join('',@{$self->{base64data}}) );
-			close TMP;
+			my $tmpfile = File::Temp->new( UNLINK => 1 );
+			push @{$self->{tmpfiles}}, $tmpfile;
+			print $tmpfile MIME::Base64::decode( join('',@{$self->{base64data}}) );
 
 			$self->{xmlcurrent}->appendChild( 
-				$self->{plugin}->{session}->make_text( $tmpfile ) );
+				$self->{plugin}->{session}->make_text( "$tmpfile" ) );
 			delete $self->{basedata};
 		}
-		elsif(
-			$self->{href} and
-			$self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" )
-		)
+		elsif( $self->{href} )
 		{
-			my $href = $self->{href};
-			$self->{href} = 0;
+			my $href = delete $self->{href};
 			$href =~ s/^file:\/\///;
-			push @{$self->{tmpfiles}}, $href;
-			$self->{xmlcurrent}->appendChild( 
-				$self->{plugin}->{session}->make_text( $href ) );
+			if( $self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" ) )
+			{
+				$self->{xmlcurrent}->appendChild( 
+					$self->{plugin}->{session}->make_text( $href ) );
+			}
+			else
+			{
+				$self->{plugin}->warning( $self->{plugin}->phrase( "file_import_disabled", filename => $href ) );
+			}
 		}
 		pop @{$self->{xmlstack}};
 		
@@ -201,6 +296,19 @@ sub end_element
 	}
 
 }
+
+##############################################################################
+
+=item $handler->start_element( $node_info )
+
+Build a DOM tree for the incoming XML elements. Spots Base64 encoded and references to files, which are stored for later handling in end_element.
+
+ <foo encoding="base64">YmFy</foo>
+
+ <foo href="file:///tmp/bar.pdf" />
+
+=cut
+##############################################################################
 
 sub start_element
 {
@@ -235,11 +343,13 @@ sub start_element
 		$self->{xmlcurrent}->appendChild( $new );
 		push @{$self->{xmlstack}}, $new;
 		$self->{xmlcurrent} = $new;
+		# this is a base64 container
 		if( $params{encoding} && $params{encoding} eq "base64" )
 		{
 			$self->{base64} = 1;
 			$self->{base64data} = [];
 		}
+		# file reference
 		elsif( $params{href} )
 		{
 			$self->{href} = $params{href};
@@ -248,20 +358,8 @@ sub start_element
 
 	$self->{depth}++;
 }
-	
-
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	foreach( @{$self->{tmpfiles}} )
-	{
-		unlink( $_ );
-	}
-}
-
- 
-
 
 1;
+
+=back
+

@@ -1307,6 +1307,7 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Import/XML:expected_item">&lt;<epc:pin name="type"/>&gt; where &lt;item&gt; was expected inside &lt;<epc:pin name="fieldname"/>&gt;</epp:phrase>
 	<epp:phrase id="Plugin/Import/XML:expected">Expected <epc:pin name="elements"/></epp:phrase>
 	<epp:phrase id="Plugin/Import/XML:unexpected_xml">Expected only text, found: <epc:pin name="xml" /></epp:phrase>
+	<epp:phrase id="Plugin/Import/XML:file_import_disabled">File imports are currently disabled, failed to import: <epc:pin name="filename" />. To enable file imports set "enable_file_imports" to 1 in SystemSettings (this is a security risk and should be disabled when your import is done).</epp:phrase>
 	<epp:phrase id="Plugin/Import/DefaultXML:no_subclass">xml_to_epdata should be overridden.</epp:phrase>
 	<epp:phrase id="Plugin/Import/DefaultXML:unexpected_xml">Expected only text, found: <epc:pin name="xml" /></epp:phrase>
 

@@ -6455,4 +6455,11 @@ PACKAGE: 2.2.99.2
  * $obj->exists_and_set now uses has_field instead of get_field which
     should prevent the annoying warning.
 
-
+2007-05-28 tdb
+ * Fixed bug on XML import where source files would get unlinked
+ * Added POD to DefaultXML
+ * Added XMLFilerefs export plugin (to test XML file link import)
+ * Added embed_links option to embed links to files in XML output
+ * XMLFiles and XMLFilerefs inherit from XML, removed redundant code
+ * Added warning on attempt to import file links but SystemSettings
+    doesn't have enable_file_imports

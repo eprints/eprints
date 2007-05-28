@@ -1,4 +1,4 @@
-package EPrints::Plugin::Export::XMLFiles;
+package EPrints::Plugin::Export::XMLFilerefs;
 
 use Unicode::String qw( utf8 );
 
@@ -21,7 +21,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "EP3 XML with Files Embeded";
+	$self->{name} = "EP3 XML with Files Linked";
 
 	return $self;
 }
@@ -30,7 +30,7 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	return $dataobj->to_xml( embed=>1 );
+	return $dataobj->to_xml( embed_links=>1 );
 }
 
 1;
