@@ -940,8 +940,6 @@ to use "1" or "2"
 
 embed=>1 : include the data of a file, not just it's URL.
 
-embed_links=>1 : include a file system link to a file, not just it's URL.
-
 =cut
 ######################################################################
 
@@ -1038,23 +1036,15 @@ sub to_xml
 						6, 
 						'url',
 						$self->get_url($filename) ) );
-				if( $opts{embed} || $opts{embed_links} )
+				if( $opts{embed} )
 				{
-					my $data_el = $self->{session}->make_element( 'data' );
-					$file->appendChild( $data_el );
 					my $fullpath = $self->local_path."/".$filename;
-					if( $opts{embed} )
-					{
-						$data_el->setAttribute( 'encoding', 'base64' );
-						open( FH, $fullpath ) || die "fullpath '$fullpath' read error: $!";
-						my $data = join( "", <FH> );
-						close FH;
-						$data_el->appendChild( $self->{session}->make_text( MIME::Base64::encode($data) ) );
-					}
-					if( $opts{embed_links} )
-					{
-						$data_el->setAttribute( 'href', "file://$fullpath" );
-					}
+					open( FH, $fullpath ) || die "fullpath '$fullpath' read error: $!";
+					my $data = join( "", <FH> );
+					close FH;
+					my $data_el = $self->{session}->make_element( 'data', encoding=>"base64" );
+					$data_el->appendChild( $self->{session}->make_text( MIME::Base64::encode($data) ) );
+					$file->appendChild( $data_el );
 				}
 				$files->appendChild( $file );
 			}
