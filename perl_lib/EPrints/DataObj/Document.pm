@@ -357,7 +357,7 @@ END
 			$srcfile =~ s/^\s+//;
 			$srcfile =~ s/\s+$//;
 
-			$document->add_file( $srcfile, $filedata->{filename} );		
+			$document->add_file( $srcfile, $filedata->{filename} );	
 		}
 	}
 

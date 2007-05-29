@@ -163,6 +163,20 @@ sub epdata_to_dataobj
 {
 	my( $plugin, $dataset, $epdata ) = @_;
 	
+	if( $plugin->{session}->get_repository->get_conf('enable_import_ids') )
+	{
+		my $ds_id = $dataset->id;
+		if( $ds_id eq "eprint" || $ds_id eq "user" )
+		{
+			my $id = $epdata->{$dataset->get_key_field->get_name};
+			if( $plugin->{session}->get_database->exists( $dataset, $id ) )
+			{
+				$plugin->error("Failed attampt to import existing $ds_id.$id");
+				return;
+			}
+		}
+	}
+
 	if( $plugin->{parse_only} )
 	{
 		if( $plugin->{session}->get_noise > 1 )

@@ -47,9 +47,17 @@ could cause this not to be set.
 The directory, relative to the documents directory for this repository, which
 this eprints data is stored in. Eg. disk0/00/00/03/34 for record 334.
 
-=item datestamp (date)
+=item datestamp (time)
+
+The date this record first appeared live in the repository.
+
+=item lastmod (time)
 
 The date this record was last modified.
+
+=item status_changes (time)
+
+The date/time this record was moved between inbox, buffer, archive, etc.
 
 =item type (namedset)
 
@@ -285,6 +293,8 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
 
 	my $new_eprint = $class->SUPER::create_from_data( $session, $data, $dataset );
+	
+	return undef unless defined $new_eprint;
 
 	$session->get_database->counter_minimum( "eprintid", $new_eprint->get_id );
 	

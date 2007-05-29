@@ -196,10 +196,11 @@ sub create_from_data
 	{
 		next if $field->get_property( "import" );
 
-		# This is a bit of a hack. The import script may set "allow_import_id" on session
-		# This will allow eprintids and userids to be imported as-is rather than just being 
+		# This is a bit of a hack. The import script may set 
+		# "allow_import_ids" on session This will allow eprintids 
+		# and userids to be imported as-is rather than just being 
 		# assigned one. 
-		if( $session->{allow_import_id} )
+		if( $session->get_repository->get_conf('enable_import_ids') )
 		{
 			if( $dataset->id eq "eprint" || $dataset->id eq "user" )
 			{
@@ -207,8 +208,18 @@ sub create_from_data
 			}
 		}
 
+		if( $session->get_repository->get_conf(
+						'enable_import_datestamps') )
+		{
+			if( $dataset->id eq "eprint" )
+			{
+				next if( $field->get_name eq "datestamp" );
+			}
+		}
+
 		delete $data->{$field->get_name};
 	}
+
 
 	foreach my $k ( keys %{$defaults} )
 	{
@@ -218,8 +229,9 @@ sub create_from_data
 
 	my $temp_item = $class->new_from_data( $session, $data, $dataset );
 
-	$session->get_database->add_record( $dataset, $temp_item->get_data );
-                                                                                                                  
+	my $result = $session->get_database->add_record( $dataset, $temp_item->get_data );
+	return undef unless $result;
+
 	my $keyfield = $dataset->get_key_field;
 	my $kfname = $keyfield->get_name;
 	my $id = $data->{$kfname};

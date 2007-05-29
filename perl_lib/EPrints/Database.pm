@@ -618,7 +618,7 @@ sub add_record
 	{
 		# item already exists.
 		$self->{session}->get_repository->log( 
-"Attempt to create existing item $id in table $table." );
+"Failed in attempt to create existing item $id in table $table." );
 		return 0;
 	}
 

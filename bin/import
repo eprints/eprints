@@ -68,9 +68,22 @@ You may wish to create one or more "bulk import" users and make imported eprint 
 
 Don't import, just check the file.
 
-=item B<--use-ids>
+=item B<--migration>
+
+Turn on all the options needed to correctly import an XML data file exported from version 2, using the migration toolkit. This is the same as using --enable-import-ids --enable-import-datestamps --enable-file-imports --force
+
+=item B<--enable-import-ids>
 
 By default import will generate a new eprintid, or userid for each record. This option tells it to use the id spcified in the imported data. This is generally used for importing into a new repository from an old one.
+
+=item B<--enable-import-datestamps>
+
+Normally import will set the datestamp the the time the eprint was imported. This option causes it to take the datestamp from the imported data, if available.
+
+=item B<--enable-file-imports>
+
+Allow the imported data to import files from the local filesystem. This can obviously be seen as a security hole if you don't trust the data you are importing.
+This sets the "enable_file_imports" configuration option for this session only.
 
 =item B<--force>
 
@@ -124,7 +137,10 @@ my $single = 0;
 my $scripted = 0;
 my $user = undef;
 my $parse_only = 0;
-my $use_ids = 0;
+my $enable_file_imports = 0;
+my $enable_import_ids = 0;
+my $enable_import_datestamps = 0;
+my $migration = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -138,7 +154,10 @@ GetOptions(
 	'scripted' => \$scripted,
 	'single' => \$single,
 	'parse-only' => \$parse_only,
-	'use-ids' => \$use_ids,
+	'enable-file-imports' => \$enable_file_imports,
+	'enable-import-ids' => \$enable_import_ids,
+	'enable-import-datestamps' => \$enable_import_datestamps,
+	'migration' => \$migration,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -147,6 +166,14 @@ pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV !=4 );
 my $noise = 1;
 $noise = 0 if( $quiet );
 $noise = 1+$verbose if( $verbose );
+
+if( $migration )
+{
+	$force = 1;
+	$enable_file_imports = 1;
+	$enable_import_ids = 1;
+	$enable_import_datestamps = 1;
+}
 
 if( $scripted ) { $noise = 0; }
 # Set STDOUT to auto flush (without needing a \n)
@@ -159,6 +186,23 @@ my $filename = shift @ARGV;
 
 my $session = new EPrints::Session( 1, $repository_id, $noise );
 exit( 1 ) unless defined $session;
+
+if( $enable_file_imports )
+{
+	# doesn't use a setter method!
+	$session->get_repository->{config}->{enable_file_imports} = 1;
+}
+if( $enable_import_ids ) 
+{ 
+	# doesn't use a setter method!
+	$session->get_repository->{config}->{enable_import_ids} = 1;
+}
+if( $enable_import_datestamps ) 
+{ 
+	# doesn't use a setter method!
+	$session->get_repository->{config}->{enable_import_datestamps} = 1;
+}
+
 
 my $ds = $session->get_repository->get_dataset( $datasetid ) ;
 if( !defined $ds )
@@ -272,19 +316,11 @@ if( $scripted )
 	print "EPRINTS_IMPORT: BEGIN\n";
 }
 
-if( $use_ids ) 
-{ 
-	$session->{allow_import_id} = 1;
-}
 my $list = $plugin->input_file(
 		dataset=>$ds,
 		filename=>$filename,
 		user=>$userobj,
 	);
-if( $use_ids ) 
-{ 
-	$session->{allow_import_id} = 0;
-}
 
 if( defined $list )
 {

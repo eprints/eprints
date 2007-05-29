@@ -114,7 +114,7 @@ sub xml_to_text
 
 	unless( $ok )
 	{
-		$plugin->warning( $plugin->phrase( "unexpected_xml", xml => $xml->toString ) );
+		$plugin->warning( $plugin->{session}->phrase( "Plugin/Import/DefaultXML:unexpected_xml", xml => $xml->toString ) );
 	}
 	my $r = join( "", @v );
 
@@ -183,23 +183,32 @@ sub end_element
 				$self->{plugin}->{session}->make_text( $tmpfile ) );
 			delete $self->{basedata};
 		}
-		elsif(
-			$self->{href} and
-			$self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" )
-		)
+		elsif( $self->{href} )
 		{
-			my $href = $self->{href};
-			$self->{href} = 0;
-			$href =~ s/^file:\/\///;
-			push @{$self->{tmpfiles}}, $href;
-			$self->{xmlcurrent}->appendChild( 
-				$self->{plugin}->{session}->make_text( $href ) );
+			if( $self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" ) )
+			{
+				my $href = $self->{href};
+				$href =~ s/^file:\/\///;
+				if( -e $href )
+				{
+					$self->{xmlcurrent}->appendChild( 
+						$self->{plugin}->{session}->make_text( $href ) );
+				}
+				else
+				{
+					$self->{plugin}->warning( "Could not see import file: ".$self->{href} );
+				}
+			}	
+			else
+			{
+				$self->{plugin}->warning( $self->{plugin}->{session}->phrase( "Plugin/Import/DefaultXML:file_imports_disabled" ) );
+			}
+			delete $self->{href};
 		}
 		pop @{$self->{xmlstack}};
 		
 		$self->{xmlcurrent} = $self->{xmlstack}->[-1]; # the end!
 	}
-
 }
 
 sub start_element
@@ -248,8 +257,6 @@ sub start_element
 
 	$self->{depth}++;
 }
-	
-
 
 sub DESTROY
 {
@@ -260,8 +267,5 @@ sub DESTROY
 		unlink( $_ );
 	}
 }
-
- 
-
 
 1;

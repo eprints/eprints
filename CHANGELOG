@@ -6455,4 +6455,17 @@ PACKAGE: 2.2.99.2
  * $obj->exists_and_set now uses has_field instead of get_field which
     should prevent the annoying warning.
 
-
+2007-05-29 cjg
+ * Creating eprint now returns undef if add_record fails (eg. that the id
+    already exists)
+ * 2 new configure options: enable_import_ids and enable_import_datestamps
+ * Corrected documentation on time/date system fields in EPrints dataobjs
+ * Clarified error message when (failing in) writing an item with a existing
+    ID.
+ * XML plugin warnings now use absolute phrase paths, so that you don't need
+    to keep duplicating the same phrase for multiple plugins.
+ * Added warnings to import-from-file code if the source file does not 
+    exist, or if from-file imports are disabled.
+ * import-from-file no longer deletes first file.
+ * Added new options to import to allow correct importing of migration data.
+  
