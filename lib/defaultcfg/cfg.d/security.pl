@@ -24,6 +24,24 @@ $c->{can_request_view_document} = sub
 
 	my $ip = $r->connection()->remote_ip();
 
+	# Example of how to allow an override for certain basic auth type usernames/passwords.
+	# This is useful if you want the site to be read by a crawler, for example.
+	# You may wish to wrap it all in a if( $ip eq "xxx" ) for added security.
+	#
+	# my( $res, $passwd_sent ) = $r->get_basic_auth_pw;
+	# my( $user_sent ) = $r->user;
+	# if( defined $user_sent )
+	# {
+	#	if( $user_sent eq "foo" && $passwd_sent eq "bar" )
+	#	{
+	#		return "ALLOW";
+	#	}
+	#	# return a 403.
+	#	$r->note_basic_auth_failure;
+	#	return "DENY";
+	# }
+
+
 	# some examples of possible settings 
 
 	# my( $oncampus ) = 0;

@@ -6469,3 +6469,6 @@ PACKAGE: 2.2.99.2
  * import-from-file no longer deletes first file.
  * Added new options to import to allow correct importing of migration data.
   
+2007-05-29 cjg
+ * Added an example to security.pl
+
