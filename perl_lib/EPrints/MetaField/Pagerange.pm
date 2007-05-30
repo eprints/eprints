@@ -166,8 +166,16 @@ sub ordervalue_basic
 	my( $from, $to ) = split /-/, $value;
 
 	$to = $from unless defined $to;
-	
-	return sprintf( "%08d-%08d", $from+0, $to+0 );
+
+	# remove non digits
+	$from =~ s/[^0-9]//g;
+	$to =~ s/[^0-9]//g;
+
+	# set to zero if undef
+	$from = 0 if $from eq "";
+	$to = 0 if $to eq "";
+
+	return sprintf( "%08d-%08d", $from, $to );
 }
 
 

@@ -6472,3 +6472,6 @@ PACKAGE: 2.2.99.2
 2007-05-29 cjg
  * Added an example to security.pl
 
+2007-05-30 cjg
+ * Fixed warning when pagerange met non digit data.
+
