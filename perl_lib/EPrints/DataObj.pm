@@ -197,14 +197,19 @@ sub create_from_data
 		next if $field->get_property( "import" );
 
 		# This is a bit of a hack. The import script may set 
-		# "allow_import_ids" on session This will allow eprintids 
+		# "enable_import_ids" on session This will allow eprintids 
 		# and userids to be imported as-is rather than just being 
 		# assigned one. 
 		if( $session->get_repository->get_conf('enable_import_ids') )
 		{
-			if( $dataset->id eq "eprint" || $dataset->id eq "user" )
+			if( $dataset->id eq "eprint" )
 			{
-				next if( $field->get_name eq $dataset->get_key_field->get_name );
+				next if( $field->get_name eq "eprintid" );
+				next if( $field->get_name eq "dir" );
+			}
+			if( $dataset->id eq "user" )
+			{
+				next if( $field->get_name eq "userid" );
 			}
 		}
 

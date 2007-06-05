@@ -6475,3 +6475,6 @@ PACKAGE: 2.2.99.2
 2007-05-30 cjg
  * Fixed warning when pagerange met non digit data.
 
+2007-06-05 cjg
+ * Fixed bug with "dir" when importing migration data.
+
