@@ -6478,3 +6478,9 @@ PACKAGE: 2.2.99.2
 2007-06-05 cjg
  * Fixed bug with "dir" when importing migration data.
 
+2007-06-05 cjg
+ * Fixed stray warning when a zero byte file is added to a document.
+ * Fixed some problems with importing files with "/" or " " in the title.
+    When create_from_data is passed a filename then it is used as-is, but
+    checks for things like ../ still.
+

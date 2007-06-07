@@ -345,19 +345,11 @@ END
 		{
 			next unless defined $filedata->{data};
 
-			my $fn = $filedata->{filename};
-
-			if( $fn =~ m/^\// || $fn =~ m/\/../ || $fn=~m/\~/ )
-			{
-				$session->get_repository->log( "Bad filename for file in document: $fn (skipping)\n" );
-				next;
-			}
-
 			my $srcfile = $filedata->{data};		
 			$srcfile =~ s/^\s+//;
 			$srcfile =~ s/\s+$//;
 
-			$document->add_file( $srcfile, $filedata->{filename} );	
+			$document->add_file( $srcfile, $filedata->{filename}, 1 );	
 		}
 	}
 
@@ -862,29 +854,66 @@ sub set_format_desc
 ######################################################################
 =pod
 
-=item $success = $doc->upload( $filehandle, $filename )
+=item $success = $doc->upload( $filehandle, $filename, [$preserve_path] )
 
 Upload the contents of the given file handle into this document as
 the given filename.
+
+if $preserve_path then make any subdirectories needed, otherwise place
+this in the top level.
 
 =cut
 ######################################################################
 
 sub upload
 {
-	my( $self, $filehandle, $filename ) = @_;
+	my( $self, $filehandle, $filename, $preserve_path ) = @_;
 
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
-	my( $bytes, $size, $buffer );
-
+	my $repository = $self->{session}->get_repository;
+	if( $filename =~ m/^~/ )
+	{
+		$repository->log( "Bad filename for file '$filename' in document: starts with ~ (will not add)\n" );
+		return 0;
+	}
+	if( $filename =~ m/\/~/ )
+	{
+		$repository->log( "Bad filename for file '$filename' in document: contains /~ (will not add)\n" );
+		return 0;
+	}
+	if( $filename =~ m/\/\.\./ )
+	{
+		$repository->log( "Bad filename for file '$filename' in document: contains /.. (will not add)\n" );
+		return 0;
+	}
+	if( $filename =~ m/^\.\./ )
+	{
+		$repository->log( "Bad filename for file '$filename' in document: starts with .. (will not add)\n" );
+		return 0;
+	}
+	if( $filename =~ m/^\// )
+	{
+		$repository->log( "Bad filename for file '$filename' in document: starts with slash (will not add)\n" );
+		return 0;
+	}
 	my $out_file = $self->local_path() . "/" . sanitise( $filename );
+	if( $preserve_path )
+	{
+		if( $filename=~m/^(.*)\/([^\/]+)$/ )
+		{
+			EPrints::Platform::mkdir( $self->local_path()."/".$1 );
+		}
+		$out_file = $self->local_path() . "/" . $filename;
+	}
 
 	seek( $filehandle, 0, SEEK_SET );
-	
+
+	my $size = 0;
+	my $buffer;	
 	open OUT, ">$out_file" or return( 0 );
-	while( $bytes = read( $filehandle, $buffer, 1024 ) )
+	while( my $bytes = read( $filehandle, $buffer, 1024 ) )
 	{
 		$size += $bytes;
 		print OUT $buffer;
@@ -905,21 +934,24 @@ sub upload
 ######################################################################
 =pod
 
-=item $success = $doc->add_file( $file, $filename )
+=item $success = $doc->add_file( $file, $filename, [$preserve_path] )
 
 $file is the full path to a file to be added to the document, with
 name $filename.
+
+If $preserve_path then keep the filename as is (including subdirs and
+spaces)
 
 =cut
 ######################################################################
 
 sub add_file
 {
-	my( $self, $file, $filename ) = @_;
+	my( $self, $file, $filename, $preserve_path ) = @_;
 
 	my $fh;
 	open( $fh, $file ) or return( 0 );
-	my $rc = $self->upload( $fh, $filename );
+	my $rc = $self->upload( $fh, $filename, $preserve_path );
 	close $fh;
 
 	return $rc;
