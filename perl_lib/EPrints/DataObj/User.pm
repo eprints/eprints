@@ -308,17 +308,20 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $userid = _create_userid( $session );
-
 	my $date_joined = EPrints::Time::get_iso_timestamp();
 
 	my $defaults = { 
-		"userid"=>$userid,
+		"userid"=>$data->{userid},
 		"joined"=>$date_joined,
 		"frequency"=>'never',
 		"mailempty"=>"FALSE",
 		"rev_number"=>1,
 	};
+
+	if( !defined $data->{userid} )
+	{ 
+		$defaults->{userid} = _create_userid( $session );
+	}
 
 	$session->get_repository->call(
 		"set_user_defaults",

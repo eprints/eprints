@@ -400,11 +400,14 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $new_id = $session->get_database->counter_next( "eprintid" );
+	if( !defined $data->{eprintid} )
+	{ 
+		my $new_id = $session->get_database->counter_next( "eprintid" );
+		$data->{eprintid} = $new_id;
+	}
 
-	my $dir = _create_directory( $session, $new_id );
+	my $dir = _create_directory( $session, $data->{eprintid} );
 
-	$data->{eprintid} = $new_id;
 	$data->{dir} = $dir;
 	$data->{rev_number} = 1;
 	$data->{lastmod} = EPrints::Time::get_iso_timestamp();

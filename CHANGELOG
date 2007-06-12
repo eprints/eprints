@@ -6484,3 +6484,7 @@ PACKAGE: 2.2.99.2
     When create_from_data is passed a filename then it is used as-is, but
     checks for things like ../ still.
 
+2007-06-12 cjg
+ * Fixed bug in importing eprints which gave them the wrong "dir"
+ * Fixed issue when migrating items that un-needed eprintid and userid's
+    got created.
