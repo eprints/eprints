@@ -909,10 +909,12 @@ Escape the given $url, so that it can appear safely in HTML.
 sub url_escape
 {
 	my( $url ) = @_;
+	
+	$url =~ s/([%'<>^ "])/sprintf( '%%%02X', ord($1) )/eg;
 
-	my $uri = URI->new( $url );
-	return $uri->as_string;
+	return $url;
 }
+
 
 ######################################################################
 =pod
@@ -1110,7 +1112,7 @@ sub escape_filename
 	
 	$stringobj->pack( @out );
 
-        return $stringobj;
+	return $stringobj;
 }
 
 ######################################################################

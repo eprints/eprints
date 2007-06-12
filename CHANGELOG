@@ -6488,3 +6488,6 @@ PACKAGE: 2.2.99.2
  * Fixed bug in importing eprints which gave them the wrong "dir"
  * Fixed issue when migrating items that un-needed eprintid and userid's
     got created.
+
+2007-06-12 cjg
+ * Simplified URL escape method. This fixes an issue with unknown URL schemes.
