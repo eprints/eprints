@@ -6491,3 +6491,7 @@ PACKAGE: 2.2.99.2
 
 2007-06-12 cjg
  * Simplified URL escape method. This fixes an issue with unknown URL schemes.
+
+2007-06-13 cjg
+ * Set all primary key fields to be can_clone=>0 (fixing bug introduced in 
+    new-version by the wrong dir fix earlier)

@@ -140,7 +140,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"userid", type=>"int", required=>1, import=>0 },
+		{ name=>"userid", type=>"int", required=>1, import=>0, can_clone=>1, },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
 

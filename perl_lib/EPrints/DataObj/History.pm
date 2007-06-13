@@ -104,7 +104,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"historyid", type=>"int", required=>1, }, 
+		{ name=>"historyid", type=>"int", required=>1, can_clone=>0, }, 
 
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>0 },
