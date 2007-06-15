@@ -6498,3 +6498,6 @@ PACKAGE: 2.2.99.2
 
 2007-06-13 tmb
  * Added some latitude + longitude values to example data
+
+2007-06-15 tmb
+ * Fixed bug which caused URLs not to be included in text version of emails

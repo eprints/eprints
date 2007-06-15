@@ -246,7 +246,7 @@ sub build_email
 	}
 
 	my $xml_mail = $p{message};
-	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH, 0, 0, 1 );
+	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH, 0, 0, 0 );
 
 	my $text = MIME::Lite->new( 
 		Type  => "TEXT",
