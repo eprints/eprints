@@ -69,7 +69,7 @@ sub workflow
 			item => $self->{processor}->{savedsearch},
 			search_description=>[$self->{processor}->{savedsearch}->render_value( "spec" ),"XHTML"],
 			session => $self->{session} );
-		if( $staff ) { $opts{STAFF_ONLY} = ["TRUE","BOOLEAN"]; }
+		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( 
 			$self->{session}, 
 			"default", 

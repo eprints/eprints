@@ -1666,6 +1666,11 @@ sub make_thumbnails
 
 	my $src = $self->local_path."/".$self->get_value( "main" );
 	
+	if( !-e $src || !-r $src )
+	{
+		return undef;
+	}
+	
 	my $tgtdir = $self->thumbnail_path;
 
 	foreach my $size ( qw/ small medium preview / )

@@ -6506,3 +6506,12 @@ PACKAGE: 2.2.99.2
  * close-quote is now a seperating character, rather than mapping to quote.
     this should fix bug #3048
 
+2007-07-02 tdb/cjg
+ * #3061 - define STAFF_ONLY as FALSE as well as TRUE, otherwise we can never
+    test its falseness
+ * #3050 - only attempt to generate a thumbnail if the main file exists
+ * #3049 - don't remove content from hidden directories in /documents (i.e. be
+    svn friendly)
+ * #3037 - if a set has a value of "" then the option will render as 
+    UNSPECIFIED unless explicitly defined in a phrase.
+ * #3065 - Fixed bug that .txt files never indexed.

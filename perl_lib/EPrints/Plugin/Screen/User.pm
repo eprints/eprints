@@ -104,7 +104,7 @@ sub workflow
 		my %opts = ( 
 			item => $self->{processor}->{user},
 			session => $self->{session} );
-		if( $staff ) { $opts{STAFF_ONLY} = ["TRUE","BOOLEAN"]; }
+		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( 
 			$self->{session}, 
 			"default", 

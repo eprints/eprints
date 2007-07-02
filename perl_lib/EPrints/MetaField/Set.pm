@@ -98,7 +98,16 @@ sub render_option
 		return $self->call_property( "render_option", $session, $option );
 	}
 
+	$option = "" if !defined $option;
+
 	my $phrasename = $self->{confid}."_fieldopt_".$self->{name}."_".$option;
+
+	# if the option is empty, and no explicit phrase is defined, print 
+	# UNDEFINED rather than an error phrase.
+	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename ) )
+	{
+		$phrasename = "lib/metafield:unspecified";
+	}
 
 	return $session->html_phrase( $phrasename );
 }

@@ -1147,7 +1147,7 @@ sub erase_eprint_files
 	my @doomeddirs;
 	foreach( readdir DOCSTORE )
 	{
-		next if m/^\.\.?$/; # skip . and ..
+		next if m/^\./; # skip . and .. and any hidden directories
 		push @doomeddirs,
 			$documents_path."/".$_;
 	}
