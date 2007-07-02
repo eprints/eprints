@@ -6501,3 +6501,8 @@ PACKAGE: 2.2.99.2
 
 2007-06-15 tmb
  * Fixed bug which caused URLs not to be included in text version of emails
+
+2007-07-02 cjg/tdb
+ * close-quote is now a seperating character, rather than mapping to quote.
+    this should fix bug #3048
+
