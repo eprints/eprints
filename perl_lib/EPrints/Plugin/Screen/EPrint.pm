@@ -162,6 +162,7 @@ sub uncache_workflow
 {
 	my( $self ) = @_;
 
+	delete $self->{session}->{id_counter};
 	delete $self->{processor}->{workflow};
 	delete $self->{processor}->{workflow_staff};
 }

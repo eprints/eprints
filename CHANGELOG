@@ -6515,3 +6515,7 @@ PACKAGE: 2.2.99.2
  * #3037 - if a set has a value of "" then the option will render as 
     UNSPECIFIED unless explicitly defined in a phrase.
  * #3065 - Fixed bug that .txt files never indexed.
+
+2007-07-02 cjg
+ * Fixed problem with searching subjects in input forms. #2962
+

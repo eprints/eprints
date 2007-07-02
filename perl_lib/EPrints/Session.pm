@@ -2273,6 +2273,10 @@ sub render_tabs
 # Return a number unique within this session. Used to generate id's
 # in the HTML.
 #
+# DO NOT use this to generate anything other than id's for use in the
+# workflow. Some tools will need to reset this value when the workflow
+# is generated more than once in a single session.
+#
 ######################################################################
 
 sub get_next_id
