@@ -6519,3 +6519,6 @@ PACKAGE: 2.2.99.2
 2007-07-02 cjg
  * Fixed problem with searching subjects in input forms. #2962
 
+2007-07-20 cjg
+ * Added "binmode" to some file opens for Harry.
+
