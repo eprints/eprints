@@ -32,8 +32,6 @@ package EPrints::Utils;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Copy qw();
 use Text::Wrap qw();
-use MIME::Lite;
-use LWP::MediaTypes qw( guess_media_type );
 use URI;
 
 use strict;

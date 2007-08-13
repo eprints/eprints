@@ -6522,3 +6522,5 @@ PACKAGE: 2.2.99.2
 2007-07-20 cjg
  * Added "binmode" to some file opens for Harry.
 
+2007-08-13 cjg
+ * Removed unneeded "use" from Utils.pm
