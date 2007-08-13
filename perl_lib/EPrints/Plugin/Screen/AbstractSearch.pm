@@ -256,13 +256,16 @@ sub render
 
 sub _get_export_plugins
 {
-	my( $self ) = @_;
+	my( $self, $include_not_advertised ) = @_;
 
-	return $self->{session}->plugin_list( 
+	my $is_advertised = 1;
+	my %opts =  (
 			type=>"Export",
 			can_accept=>"list/".$self->{processor}->{search}->{dataset}->confid, 
-			is_advertised=>1,
-			is_visible=>$self->_vis_level );
+			is_visible=>$self->_vis_level,
+	);
+	unless( $include_not_advertised ) { $is_advertised = 1; }
+	return $self->{session}->plugin_list( %opts );
 }
 
 sub _vis_level
@@ -698,10 +701,7 @@ sub wishes_to_export
 
 	my $format = $self->{session}->param( "output" );
 
-	my @plugins = $self->{session}->plugin_list(
-		type=>"Export",
-		can_accept=>"list/eprint",
-		is_visible=>$self->_vis_level );
+	my @plugins = $self->_get_export_plugins( 1 );
 		
 	my $ok = 0;
 	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }

@@ -6528,3 +6528,7 @@ PACKAGE: 2.2.99.2
 2007-08-13 cjg
  * Added experimental (not yet used) method for reading from the beast.
 
+2007-08-13 cjg
+ * Tidied Abstract search to be easier to subclass export plugin list.
+
+
