@@ -6531,4 +6531,6 @@ PACKAGE: 2.2.99.2
 2007-08-13 cjg
  * Tidied Abstract search to be easier to subclass export plugin list.
 
-
+2007-08-15 cjg
+ * Fixed weird sort of error which didn't fail but should in xhtml_help.
+ * Added support for <title> override in workflow.

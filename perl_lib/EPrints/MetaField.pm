@@ -336,6 +336,10 @@ sub render_name
 {
 	my( $self, $session ) = @_;
 
+	if( defined $self->{title_xhtml} )
+	{
+		return $self->{title_xhtml};
+	}
 	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
 
 	return $session->html_phrase( $phrasename );
@@ -1992,6 +1996,7 @@ sub get_property_defaults
 		sub_name	=> $EPrints::MetaField::UNDEF,
 		parent_name	=> $EPrints::MetaField::UNDEF,
 		help_xhtml	=> $EPrints::MetaField::UNDEF,
+		title_xhtml	=> $EPrints::MetaField::UNDEF,
 );
 }
 		
