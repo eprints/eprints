@@ -50,6 +50,7 @@ sub properties_from
 	}
 
 	$self->{processor}->{response_sent} = $self->{session}->param( "response_sent" );
+	$self->{processor}->{actionid} = $self->{session}->param( "action" );
 
 	$self->SUPER::properties_from;
 
@@ -182,6 +183,10 @@ sub redirect_to_me_url
 	if( defined $self->{processor}->{requestid} )
 	{
 		$url.="&requestid=".$self->{processor}->{requestid};
+	}
+	if( defined $self->{processor}->{actionid} )
+	{
+		$url.="&action=".$self->{processor}->{actionid};
 	}
 	if( defined $self->{processor}->{response_sent} )
 	{
