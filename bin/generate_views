@@ -114,6 +114,7 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
+$session->cache_subjects;
 
 my $views = $session->get_repository->get_conf( "browse_views" );
 

@@ -126,11 +126,16 @@ sub auth_cookie
 
 	if( !defined $user ) 
 	{
+		my $target_url = $r->uri;
+		$target_url =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
+		my $login_url = $session->get_repository->get_conf( "perl_url" )."/users/login?target=$target_url";
+		if( $session->get_repository->can_call( 'get_login_url' ) )
+		{
+			$login_url = $session->get_repository->call( 'get_login_url', $session, $target_url );
+			$redir = 1;
+		}
 		if( $redir )
 		{
-			my $target_url = $r->uri;
-			$target_url =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
-			my $login_url = $session->get_repository->get_conf( "perl_url" )."/users/login?target=$target_url";
 			EPrints::Apache::AnApache::send_status_line( $r, 302, "Need to login first" );
 			EPrints::Apache::AnApache::header_out( $r, "Location", $login_url );
 			EPrints::Apache::AnApache::send_http_header( $r );

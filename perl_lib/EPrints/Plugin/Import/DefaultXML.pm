@@ -153,7 +153,8 @@ sub end_element
 	if( $self->{depth} == 1 )
 	{
 		my $item = $self->{plugin}->xml_to_dataobj( $self->{dataset}, $self->{xml} );
-
+		EPrints::XML::dispose( $self->{xml} );
+		delete $self->{xml};
 		if( defined $item )
 		{
 			push @{$self->{imported}}, $item->get_id;

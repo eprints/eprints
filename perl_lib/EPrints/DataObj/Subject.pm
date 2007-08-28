@@ -98,6 +98,11 @@ sub new
 {
 	my( $class, $session, $subjectid ) = @_;
 
+	if( $session->{subjects_cached} )
+	{
+		return $session->{subject_cache}->{$subjectid};
+	}
+
 	if( $subjectid eq $EPrints::DataObj::Subject::root_subject )
 	{
 		my $data = {
@@ -412,6 +417,12 @@ of the current subject.
 sub get_children
 {
 	my( $self ) = @_;
+
+	if( $self->{session}->{subjects_cached} )
+	{
+		my $subjectid = $self->get_value( "subjectid" );
+		return @{$self->{session}->{subject_child_map}->{$subjectid}};
+	}
 
 	my $searchexp = EPrints::Search->new(
 		session=>$self->{session},
@@ -768,6 +779,11 @@ sub get_all
 {
 	my( $session ) = @_;
 	
+	if( $session->{subjects_cached} )
+	{
+		return ( $session->{subject_cache}, $session->{subject_child_map} );
+	}
+
 	# Retrieve all of the subjects
 	my @subjects = $session->get_database->get_all( 
 		$session->get_repository->get_dataset( "subject" ) );

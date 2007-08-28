@@ -6537,3 +6537,14 @@ PACKAGE: 2.2.99.2
 
 2007-08-22 tmb
  * Fixed "action" parameter not being included in redirect_to_me_url
+
+2007-08-28 cjg
+ * Added config. hook to override current_user 
+ * Added config hook to set the URL to go to if there is no current_user
+ * Import::DefaultXML now disposes of no-longer needed XML chunks, stopping
+    memory links if using XML::DOM
+ * Added method for caching all subjects. generate_views now uses these 
+    which gives a notable speed up.
+ * Added on_logout hook which is called when the login page is accessed
+    which allows non-eprints login cookies to be hosed.
+ 

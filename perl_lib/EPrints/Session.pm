@@ -2992,7 +2992,11 @@ sub current_user
 
 	if( !defined $self->{current_user} )
 	{
-		if( $self->get_archive->get_conf( "cookie_auth" ) ) 
+		if( $self->get_repository->can_call( 'get_current_user' ) )
+		{
+			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
+		}
+		elsif( $self->get_archive->get_conf( "cookie_auth" ) ) 
 		{
 			$self->{current_user} = $self->_current_user_auth_cookie;
 		}
@@ -3592,6 +3596,19 @@ sub DESTROY
 
 	EPrints::Utils::destroy( $self );
 }
+
+
+sub cache_subjects
+{
+  my( $self ) = @_;
+
+  ( $self->{subject_cache}, $self->{subject_child_map} ) =
+    EPrints::DataObj::Subject::get_all( $self );
+    $self->{subjects_cached} = 1;
+}
+
+
+
 
 ######################################################################
 =pod
