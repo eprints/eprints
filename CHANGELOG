@@ -6550,3 +6550,6 @@ PACKAGE: 2.2.99.2
  
 2007-08-31 tmb
  * Fixed "for:value:relative:" autocomplete IDs not working under IE
+
+2007-09-03 cjg
+ * current_user now returns undef if working offline. Fixing #3091

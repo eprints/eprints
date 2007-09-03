@@ -2985,6 +2985,11 @@ sub current_user
 {
 	my( $self ) = @_;
 
+	if( $self->{offline} )
+	{
+		return undef;
+	}
+
 	if( $self->{logged_out} )
 	{	
 		return undef;
