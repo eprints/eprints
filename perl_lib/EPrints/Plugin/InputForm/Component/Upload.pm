@@ -77,6 +77,83 @@ sub update_from_form
 			return;
 		}
 
+		if( $internal eq "add_format_zip" )
+		{
+			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
+
+			my $repository = $self->{session}->get_repository;
+
+			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
+			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
+			if( !defined $document )
+			{
+				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
+				return;
+			}
+			my $success = EPrints::Apache::AnApache::upload_doc_archive( 
+				$self->{session},
+				$document,
+				$self->{prefix}."_first_file_zip",
+				"zip" );
+			if( !$success )
+			{
+				$document->remove();
+				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
+				return;
+			}
+			return;
+		}
+
+		if( $internal eq "add_format_targz" )
+		{
+			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
+
+			my $repository = $self->{session}->get_repository;
+
+			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
+			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
+			if( !defined $document )
+			{
+				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
+				return;
+			}
+			my $success = EPrints::Apache::AnApache::upload_doc_archive( 
+				$self->{session},
+				$document,
+				$self->{prefix}."_first_file_targz",
+				"targz" );
+			if( !$success )
+			{
+				$document->remove();
+				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
+				return;
+			}
+			return;
+		}
+
+		if( $internal eq "add_format_fromurl" )
+		{
+			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
+
+			my $repository = $self->{session}->get_repository;
+
+			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
+			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
+			if( !defined $document )
+			{
+				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
+				return;
+			}
+			my $success = $document->upload_url( $self->{session}->param( $self->{prefix}."_first_file_fromurl" ) );
+			if( !$success )
+			{
+				$document->remove();
+				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
+				return;
+			}
+			return;
+		}
+
 		if( $internal =~ m/^doc(\d+)_(.*)$/ )
 		{
 			my $doc = EPrints::DataObj::Document->new(
@@ -436,8 +513,47 @@ sub _render_add_document
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $toolbar = $session->make_element( "div", class=>"ep_toolbox_content ep_upload_newdoc" );
-	$toolbar->appendChild( $self->html_phrase( "new_document" ) );
+
+	my $add = $session->make_doc_fragment;
+
+	my $tabs = [qw/ file zip targz fromurl /];	
+	my $links = { file=>"", zip=>"", targz=>"", fromurl=>"" };
+	my $labels = {
+		file=>$session->make_text( "File" ), 
+		zip=>$session->make_text( "Zip File" ), 
+		targz=>$session->make_text( ".tar.gz File" ), 
+		fromurl=>$session->make_text( "From URL" ), 
+	};
+	
+	my $newdoc = $self->{session}->make_element( 
+			"div", 
+			class => "ep_upload_newdoc" );
+	$add->appendChild( $newdoc );
+	my $tab_block = $session->make_element( "div", class=>"ep_only_js" );	
+	$tab_block->appendChild( 
+		$self->{session}->render_tabs( 
+			id_prefix => $self->{prefix}."_upload",
+			current => "file",
+			tabs => $tabs,
+			labels => $labels,
+			links => $links,
+		));
+	$newdoc->appendChild( $tab_block );
+		
+	my $panel = $self->{session}->make_element( 
+			"div", 
+			id => $self->{prefix}."_upload_panels", 
+			class => "ep_tab_panel" );
+	$newdoc->appendChild( $panel );
+
+##############
+{
+	my $inner_panel = $self->{session}->make_element( 
+			"div", 
+			id => $self->{prefix}."_upload_panel_file" );
+	$panel->appendChild( $inner_panel );
+
+	$inner_panel->appendChild( $self->html_phrase( "new_document" ) );
 
 	my $ffname = $self->{prefix}."_first_file";	
 	my $file_button = $session->make_element( "input",
@@ -449,16 +565,104 @@ sub _render_add_document
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format" );
-	$toolbar->appendChild( $file_button );
-	$toolbar->appendChild( $session->make_text( " " ) );
-	$toolbar->appendChild( $add_format_button );
+	$inner_panel->appendChild( $file_button );
+	$inner_panel->appendChild( $session->make_text( " " ) );
+	$inner_panel->appendChild( $add_format_button );
 
 	my $script = $session->make_element( "script", type=>"text/javascript" );
 	$script->appendChild( $session->make_text( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( '".$self->phrase("really_next")."' ); } return true; } );" ));
-	$toolbar->appendChild( $script);
+	$inner_panel->appendChild( $script);
+}
+
+$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
+
+{
+	my $inner_panel = $self->{session}->make_element( 
+			"div", 
+			class => "ep_no_js",
+			id => $self->{prefix}."_upload_panel_zip" );
+	$panel->appendChild( $inner_panel );
+
+	$inner_panel->appendChild( $session->make_text( "New document (from ZIP file): " ) );
+
+	my $ffname = $self->{prefix}."_first_file_zip";	
+	my $file_button = $session->make_element( "input",
+		name => $ffname,
+		id => $ffname,
+		type => "file",
+		);
+	my $add_format_button = $session->render_button(
+		value => $self->phrase( "add_format" ), 
+		class => "ep_form_internal_button",
+		name => "_internal_".$self->{prefix}."_add_format_zip" );
+	$inner_panel->appendChild( $file_button );
+	$inner_panel->appendChild( $session->make_text( " " ) );
+	$inner_panel->appendChild( $add_format_button );
+
+	my $script = $session->make_element( "script", type=>"text/javascript" );
+	$script->appendChild( $session->make_text( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( '".$self->phrase("really_next")."' ); } return true; } );" ));
+	$inner_panel->appendChild( $script);
+}
+
+$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
+
+{
+	my $inner_panel = $self->{session}->make_element( 
+			"div", 
+			class => "ep_no_js",
+			id => $self->{prefix}."_upload_panel_targz" );
+	$panel->appendChild( $inner_panel );
+
+	$inner_panel->appendChild( $session->make_text( "New document (from .tar.gz file): " ));
+
+	my $ffname = $self->{prefix}."_first_file_targz";	
+	my $file_button = $session->make_element( "input",
+		name => $ffname,
+		id => $ffname,
+		type => "file",
+		);
+	my $add_format_button = $session->render_button(
+		value => $self->phrase( "add_format" ), 
+		class => "ep_form_internal_button",
+		name => "_internal_".$self->{prefix}."_add_format_targz" );
+	$inner_panel->appendChild( $file_button );
+	$inner_panel->appendChild( $session->make_text( " " ) );
+	$inner_panel->appendChild( $add_format_button );
+
+	my $script = $session->make_element( "script", type=>"text/javascript" );
+	$script->appendChild( $session->make_text( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( '".$self->phrase("really_next")."' ); } return true; } );" ));
+	$inner_panel->appendChild( $script);
+}
+
+$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
+
+{
+	my $inner_panel = $self->{session}->make_element( 
+			"div", 
+			class => "ep_no_js",
+			id => $self->{prefix}."_upload_panel_fromurl" );
+	$panel->appendChild( $inner_panel );
+
+	$inner_panel->appendChild( $session->make_text( "Capture from URL: " ));
+
+	my $ffname = $self->{prefix}."_first_file_fromurl";	
+	my $file_button = $session->make_element( "input",
+		name => $ffname,
+		size => "30",
+		id => $ffname,
+		);
+	my $add_format_button = $session->render_button(
+		value => $self->phrase( "add_format" ), 
+		class => "ep_form_internal_button",
+		name => "_internal_".$self->{prefix}."_add_format_fromurl" );
+	$inner_panel->appendChild( $file_button );
+	$inner_panel->appendChild( $session->make_text( " " ) );
+	$inner_panel->appendChild( $add_format_button );
+}
+##############
 
 	
-	return $toolbar; 
+	return $add; 
 }
 
 sub _render_add_file

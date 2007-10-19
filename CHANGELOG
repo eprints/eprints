@@ -6561,3 +6561,6 @@ PACKAGE: 2.2.99.2
  * Added basic changes for searching chained fields eg. documents.format
  * Fixed bug is date/time searches
  * Fixed issue with double escaping in citations.
+
+2007-10-19 cjg
+ * Added tabs for zip and wget upload of documents.
