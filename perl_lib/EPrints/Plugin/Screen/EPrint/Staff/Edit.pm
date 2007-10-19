@@ -14,11 +14,17 @@ sub new
 
 	$self->{actions} = [qw/ stop save next prev /];
 
+	$self->{icon} = "/style/images/action_edit.png";
+
 	$self->{appears} = [
 		{
 			place => "eprint_actions",
 			position => 1700,
-		}
+		},
+		{
+			place => "eprint_review_actions",
+			position => 100,
+		},
 	];
 
 	$self->{staff} = 1;

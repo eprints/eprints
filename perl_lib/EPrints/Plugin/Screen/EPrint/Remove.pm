@@ -10,11 +10,17 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
+	$self->{icon} = "/style/images/action_remove.png";
+
 	$self->{appears} = [
 		{
 			place => "eprint_actions",
 			position => 1600,
-		}
+		},
+		{
+			place => "eprint_item_actions",
+			position => 100,
+		},
 	];
 	
 	$self->{actions} = [qw/ remove cancel /];

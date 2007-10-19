@@ -10,6 +10,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
+	$self->{icon} = "/style/images/action_reject.png";
 	$self->{appears} = [
 		{
 			place => "eprint_actions",
@@ -18,6 +19,10 @@ sub new
 		{
 			place => "eprint_actions_editor_buffer", 
 			position => 200,
+		},
+		{
+			place => "eprint_review_actions",
+			position => 400,
 		},
 	];
 

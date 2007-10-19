@@ -100,6 +100,15 @@ sub render
 				$a->appendChild( $e->render_value( $_ ) );
 			}
 
+			$self->{processor}->{eprint} = $e;
+			$self->{processor}->{eprintid} = $e->get_id;
+			my $td = $session->make_element( "td", class=>"ep_columns_cell", align=>"left" );
+			$tr->appendChild( $td );
+			$td->appendChild( 
+				$self->render_action_list_icons( "eprint_review_actions", ['eprintid'] ) );
+			delete $self->{processor}->{eprint};
+
+
 			++$info->{row};
 
 			return $tr;
