@@ -382,9 +382,23 @@ sub get_description
 	return $description;
 }
 
+sub render_action_icon
+{
+	my( $self, $params ) = @_;
+
+	return $self->_render_action_aux( $params, 1 );
+}
+
 sub render_action_button
 {
 	my( $self, $params ) = @_;
+
+	return $self->_render_action_aux( $params, 0 );
+}
+
+sub _render_action_aux
+{
+	my( $self, $params, $asicon ) = @_;
 	
 	my $session = $self->{session};
 	
@@ -407,22 +421,48 @@ sub render_action_button
 				$id, 
 				$self->{processor}->{$id} ) );
 	}
-	my( $action, $title );
+	my( $action, $title, $icon );
 	if( defined $params->{action} )
 	{
 		$action = $params->{action};
 		$title = $params->{screen}->phrase( "action:$action:title" );
+		$icon = $session->get_repository->get_conf( "plugins", $params->{screen_id}, "actions", $action, "icon" );
+		if( !defined $icon ) 
+		{
+			$icon = $params->{screen}->{action_icon}->{$action};
+		}
 	}
 	else
 	{
 		$action = "null";
 		$title = $params->{screen}->phrase( "title" );
+		$icon = $session->get_repository->get_conf( "plugins", $params->{screen_id}, "icon" );
+		if( !defined $icon ) 
+		{
+			$icon = $params->{screen}->{icon};
+		}
 	}
-	$form->appendChild( 
-		$session->render_button(
-			class=>"ep_form_action_button",
-			name=>"_action_$action", 
-			value=>$title ));
+	if( defined $icon && $asicon )
+	{
+		$form->appendChild( 
+			$session->make_element(
+				"input",
+				type=>"image",
+				class=>"ep_form_action_icon",
+				name=>"_action_$action", 
+				src=>$icon,
+				title=>$title,
+				value=>$title ));
+	}
+	else
+	{
+		$form->appendChild( 
+			$session->render_button(
+				class=>"ep_form_action_button",
+				name=>"_action_$action", 
+				value=>$title ));
+	}
+
 	return $form;
 }
 
@@ -491,6 +531,27 @@ sub render_action_list_bar
 	return $div;
 }
 
+
+sub render_action_list_icons
+{
+	my( $self, $list_id, $hidden ) = @_;
+
+	my $session = $self->{session};
+
+	my $div = $self->{session}->make_element( "div", class=>"ep_act_icons" );
+	my $table = $session->make_element( "table" );
+	$div->appendChild( $table );
+	my $tr = $session->make_element( "tr" );
+	$table->appendChild( $tr );
+	foreach my $params ( $self->action_list( $list_id ) )
+	{
+		my $td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		$td->appendChild( $self->render_action_icon( { %$params, hidden => $hidden } ) );
+	}
+
+	return $div;
+}
 
 1;
 
