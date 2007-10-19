@@ -6564,3 +6564,6 @@ PACKAGE: 2.2.99.2
 
 2007-10-19 cjg
  * Added tabs for zip and wget upload of documents.
+
+2007-10-19 cjg
+ * Added "on_logout" hook.

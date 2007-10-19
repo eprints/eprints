@@ -21,6 +21,14 @@ exit( 0 ) unless( defined $session );
 my $page=$session->make_doc_fragment();
 
 
+
+if( $session->get_repository->can_call( 'on_logout' ) )
+{
+	$session->get_repository->call( 'on_logout', $session );
+}
+
+
+
 my $ticketid = EPrints::Apache::AnApache::cookie( $session->get_request, "eprints_session" );
 
 my $sql = "DELETE FROM login_tickets WHERE code='".EPrints::Database::prep_value($ticketid)."'";
