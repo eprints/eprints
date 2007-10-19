@@ -825,7 +825,7 @@ sub local_name
 	my $value = $self->get_value( "name" );
 	foreach ( @{$value} )
 	{
-		$lang_hash->{$_->{lang}} = $_->{name};
+		$lang_hash->{$_->{lang}||""} = $_->{name};
 	}
 	my $namefield = $self->{dataset}->get_field( "name" );
 

@@ -6553,3 +6553,7 @@ PACKAGE: 2.2.99.2
 
 2007-09-03 cjg
  * current_user now returns undef if working offline. Fixing #3091
+
+2007-10-19 cjg
+ * Prevented warning in case of undefined subject-name-language.
+
