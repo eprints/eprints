@@ -234,14 +234,14 @@ sub start_element
 
 	if( $self->{depth} == 1 )
 	{
-		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name} );
+		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name}, %params );
 		$self->{xmlstack} = [$self->{xml}];
 		$self->{xmlcurrent} = $self->{xml};
 	}
 
 	if( $self->{depth} > 1 )
 	{
-		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name} );
+		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name}, %params );
 		$self->{xmlcurrent}->appendChild( $new );
 		push @{$self->{xmlstack}}, $new;
 		$self->{xmlcurrent} = $new;

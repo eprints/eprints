@@ -6567,3 +6567,8 @@ PACKAGE: 2.2.99.2
 
 2007-10-19 cjg
  * Added "on_logout" hook.
+
+2007-10-19 cjg
+ * Change to DefaultXML import plugin to pass through attributes to the 
+    subclassing import plugin.
+
