@@ -1625,23 +1625,26 @@ sub get_index_ids
 ######################################################################
 =pod
 
-=item $ids = $db->search( $keyfield, $tables, $conditions )
+=item $ids = $db->search( $keyfield, $tables, $conditions, [$main_table_alias] )
 
 Return a reference to an array of ids - the results of the search
 specified by $conditions accross the tables specified in the $tables
-hash where keys are tables aliases and values are table names. One
-of the keys MUST be "M".
+hash where keys are tables aliases and values are table names. 
+
+If no table alias is passed then M is assumed. 
 
 =cut
 ######################################################################
 
 sub search
 {
-	my( $self, $keyfield, $tables, $conditions) = @_;
+	my( $self, $keyfield, $tables, $conditions, $main_table_alias ) = @_;
 
 	EPrints::abort "No SQL tables passed to search()" if( scalar keys %{$tables} == 0 );
-	
-	my $sql = "SELECT DISTINCT M.".$keyfield->get_sql_name()." FROM ";
+
+	$main_table_alias = "M" unless defined $main_table_alias;
+
+	my $sql = "SELECT DISTINCT $main_table_alias.".$keyfield->get_sql_name()." FROM ";
 	my $first = 1;
 	foreach( keys %{$tables} )
 	{

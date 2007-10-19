@@ -579,8 +579,7 @@ sub _render_citation_aux
 				$rendered = $params{session}->make_element( 
 					"a",
 					target=>$params{target},
-					href=>EPrints::Utils::url_escape( 
-						$params{url} ) );
+					href=> $params{url} );
 			}
 			else
 			{
@@ -616,9 +615,6 @@ sub _render_citation_aux
 
 Return the EPrint::MetaField from $dataset with the given name.
 
-If fieldname ends in ".id" then return a metafield representing the
-ID part only.
-
 If fieldname has a semicolon followed by render options then these
 are passed as render options to the new EPrints::MetaField object.
 
@@ -629,44 +625,63 @@ sub field_from_config_string
 {
 	my( $dataset, $fieldname ) = @_;
 
-	my $modifiers = 0;
-
 	my %q = ();
-	if( $fieldname =~ s/^([^;\.]*)(\.id)?(;(.*))?$/$1/ )
+	if( $fieldname =~ s/^([^;]*)(;(.*))?$/$1/ )
 	{
-		if( defined $4 )
+		if( defined $3 )
 		{
-			foreach( split( /;/, $4 ) )
+			foreach my $render_pair ( split( /;/, $3 ) )
 			{
-				$q{$_}=1;
-				$modifiers = 1;
+				my( $k, $v ) = split( /=/, $render_pair );
+				$v = 1 unless defined $v;
+				$q{"render_$k"} = $v;
 			}
-		}
-		if( defined $2 ) 
-		{ 
-			$q{id} = 1; 
-			$modifiers = 1;
 		}
 	}
 
-	my $field = $dataset->get_field( $fieldname );
+	my $field;
+	my @join = ();
+	
+	my @fnames = split /\./, $fieldname;
+	foreach my $fname ( @fnames )
+	{
+		if( !defined $dataset )
+		{
+			EPrints::abort( "Attempt to get a field or subfield from a non existant dataset. Could be due to a sub field of a inappropriate field type." );
+		}
+		$field = $dataset->get_field( $fname );
+		push @join, [ $field, $dataset ];
+		if( defined $field->{"datasetid"} )
+		{
+			my $datasetid = $field->get_property( "datasetid" );
+			$dataset = $dataset->get_repository->get_dataset( $datasetid );
+		}
+		else
+		{
+			# for now, force an error if an attempt is made
+			# to get a sub-field from a field other than
+			# subobject or itemid.
+			$dataset = undef;
+		}
+	}
 
 	if( !defined $field )
 	{
 		EPrints::abort( "Can't make field from config_string: $fieldname" );
 	}
+	pop @join;
+	if( scalar @join )
+	{
+		$q{"join_path"} = \@join;
+	}
 
-	unless( $modifiers ) { return $field; }
-
-	if( scalar keys %q )
+	if( scalar keys %q  )
 	{
 		$field = $field->clone;
 	
-		foreach( keys %q )
+		foreach my $k ( keys %q )
 		{
-			my( $k, $v ) = split( /=/, $_ );
-			$v = 1 unless defined $v;
-			$field->set_property( "render_$k", $v );
+			$field->set_property( $k, $q{$k} );
 		}
 	}
 	
