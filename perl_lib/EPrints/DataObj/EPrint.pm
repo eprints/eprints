@@ -467,7 +467,7 @@ sub _create_directory
 
 		my $best_free_space = 0;
 		my $dir;	
-		foreach $dir (sort @dirs)
+		foreach $dir (reverse sort @dirs)
 		{
 			my $free_space = $session->get_repository->
 						get_store_dir_size( $dir );
