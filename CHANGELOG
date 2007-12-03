@@ -6580,3 +6580,7 @@ PACKAGE: 2.2.99.2
 
 2007-10-19 cjg
  * Added new icons (part of previous change)
+
+2007-12-03 tdb
+ * #3139, show deleted records in OAI output instead of just repeating the
+    current data set

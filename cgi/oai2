@@ -633,6 +633,7 @@ END
 		my $delsearchexp = $searchexp->clone;
 		$delsearchexp->set_dataset(
 			$session->get_repository->get_dataset( "deletion" ) );
+		$delsearchexp->{searchfieldmap}->{eprint_status}->{value} = "deletion";
 		$delsearchexp->perform_search();
 		$searchexp->dispose();
 		$searchexp = $delsearchexp;
@@ -722,6 +723,7 @@ END
 		my $delsearchexp = $searchexp->clone;
 		$delsearchexp->set_dataset(
 			$session->get_repository->get_dataset( "deletion" ) );
+		$delsearchexp->{searchfieldmap}->{eprint_status}->{value} = "deletion";
 		$delsearchexp->perform_search();
 		my $cache = $delsearchexp->get_cache_id();
 		my $count = $delsearchexp->count();
