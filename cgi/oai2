@@ -608,7 +608,7 @@ END
 		if( defined $date_range )
 		{
 			$searchexp->add_field( 
-					$ds->get_field( "datestamp" ), 
+					$ds->get_field( "lastmod" ), 
 					$date_range );
 		}
 

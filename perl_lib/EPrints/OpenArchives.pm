@@ -78,7 +78,7 @@ sub make_header
 			$oai_id,
 			$eprint->get_id ) ) );
 
-	my $datestamp = $eprint->get_value( "datestamp" );
+	my $datestamp = $eprint->get_value( "lastmod" );
 	unless( EPrints::Utils::is_set( $datestamp ) )
 	{
 		# is this a good default?
