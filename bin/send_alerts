@@ -18,7 +18,7 @@ B<send_alerts> - Send out all the email alerts for a given frequency.
 
 =head1 SYNOPSIS
 
-B<generate_views> I<repository_id> I<frequency> [B<options>] 
+B<send_alerts> I<repository_id> I<frequency> [B<options>] 
 
 =head1 DESCRIPTION
 
