@@ -339,17 +339,31 @@ END
 		return undef;
 	}
 
+
 	if( defined $data->{files} )
 	{
 		foreach my $filedata ( @{$data->{files}} )
 		{
-			next unless defined $filedata->{data};
+			if( defined $filedata->{data} )
+			{
+				my $srcfile = $filedata->{data};		
+				$srcfile =~ s/^\s+//;
+				$srcfile =~ s/\s+$//;
+				$document->add_file( $srcfile, $filedata->{filename}, 1 );	
+				next;
+			}
+		
+			next unless defined $filedata->{url};
+			next unless defined $eprint->get_session()->get_repository->get_conf( "enable_web_imports" );
 
-			my $srcfile = $filedata->{data};		
-			$srcfile =~ s/^\s+//;
-			$srcfile =~ s/\s+$//;
-
-			$document->add_file( $srcfile, $filedata->{filename}, 1 );	
+			my $url = $filedata->{url};
+			$url =~ s/'/\\'/g;
+			my $tf = $eprint->get_session()->get_next_id;
+			my $tmpfile = "/tmp/epimport.$$.".time.".$tf.data";
+			my $cmd = "wget -O $tmpfile  '$url' -q ";
+			`$cmd`;
+			$document->add_file( $tmpfile, $filedata->{filename}, 1 );	
+			unlink( $tmpfile );
 		}
 	}
 
