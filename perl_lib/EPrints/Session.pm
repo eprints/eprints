@@ -1688,7 +1688,7 @@ sub render_form
 	{
 		$dest = $self->get_uri;
 	}
-	$form->setAttribute( "action", "\L$dest" );
+	$form->setAttribute( "action", $dest );
 	if( "\L$method" eq "post" )
 	{
 		$form->setAttribute( "enctype", "multipart/form-data" );
