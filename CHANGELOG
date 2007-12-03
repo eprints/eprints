@@ -6586,4 +6586,7 @@ PACKAGE: 2.2.99.2
     current data set
 
 2007-12-03 cjg
+ * Added code to Document to allow importing from URLS
+
+2007-12-03 cjg
  * Import IDs are removed unless import_ids is enabled.

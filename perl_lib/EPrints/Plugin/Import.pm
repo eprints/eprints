@@ -162,7 +162,7 @@ sub convert_input
 sub epdata_to_dataobj
 {
 	my( $plugin, $dataset, $epdata ) = @_;
-	
+
 	if( $plugin->{session}->get_repository->get_conf('enable_import_ids') )
 	{
 		my $ds_id = $dataset->id;
@@ -175,6 +175,10 @@ sub epdata_to_dataobj
 				return;
 			}
 		}
+	}
+	else
+	{
+		delete $epdata->{$dataset->get_key_field->get_name};
 	}
 
 	if( $plugin->{parse_only} )
