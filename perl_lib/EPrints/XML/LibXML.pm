@@ -31,7 +31,7 @@ loaded into EPrints::XML namespace if we're using XML::LibXML
 use warnings;
 use strict;
 
-use XML::LibXML 1.62;
+use XML::LibXML 1.63;
 use XML::LibXML::SAX::Parser;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
