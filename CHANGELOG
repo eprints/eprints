@@ -6596,4 +6596,6 @@ PACKAGE: 2.2.99.2
     specified
  * Allow enable_import_ids to be used with inbox/buffer/archive/deletion
  * Cleaned up some spelling errors, fixing #3141
+ * Don't repeat validation warnings on the Deposit workflow screen, fixing
+    #3133
 

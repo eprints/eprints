@@ -318,6 +318,9 @@ sub update_from_form
 
 	return if $quiet;
 
+	# Deposit performs a full validation, so don't repeat any warnings here
+	return if $new_stage eq 'deposit';
+
 	my @problems = $stage_obj->validate( $processor );
 
 	return 1 unless scalar @problems;
