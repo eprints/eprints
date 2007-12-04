@@ -6598,4 +6598,6 @@ PACKAGE: 2.2.99.2
  * Cleaned up some spelling errors, fixing #3141
  * Don't repeat validation warnings on the Deposit workflow screen, fixing
     #3133
+ * Added missing EPrints_Dir_SecuredCGI and EPrints_Dir_Documents variables,
+    fixing #2973
 

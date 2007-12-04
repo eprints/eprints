@@ -632,6 +632,10 @@ $secureconfig
   <Location "$securepath">
     PerlSetVar EPrints_ArchiveID $repository_id
     PerlSetVar EPrints_Secure yes
+
+    PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
+    PerlSetVar EPrints_Dir_Documents $documents_path
+
 END
 # EPrints log handler (this gets called for all requests, not just
 # mod_perl)
