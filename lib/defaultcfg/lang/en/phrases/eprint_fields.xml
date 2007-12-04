@@ -86,7 +86,7 @@
 
     <epp:phrase id="eprint_fieldname_event_title">Event Title</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_event_title">The title of the conference or workshop.
-<br/>Example: <span class="ep_form_example">11th onference of PanHellenic Librarians</span>
+<br/>Example: <span class="ep_form_example">11th Conference of Pan-Hellenic Librarians</span>
 <br/>Example: <span class="ep_form_example">SIGIR 2001</span>
 </epp:phrase>
 
@@ -190,7 +190,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It may be used to link your item to those it cites and to those that cite it.</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_subjects">Subjects</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submisson, from the list below.</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submission, from the list below.</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_note">Additional Information</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_note">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here. This information <strong>will</strong> appear on the public summary page for this item.</epp:phrase>
@@ -249,7 +249,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldname_exhibitors">Exhibitors</epp:phrase>
     <epp:phrase id="eprint_fieldname_exhibitors_id">Email</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_exhibitors">The exhibitors.</epp:phrase>
-    <epp:phrase id="eprint_fieldname_exhibitors_name">The exhibitiors name</epp:phrase>
+    <epp:phrase id="eprint_fieldname_exhibitors_name">The exhibitors name</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_num_pieces">Number of Pieces</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_num_pieces">The number of pieces exhibited.</epp:phrase>

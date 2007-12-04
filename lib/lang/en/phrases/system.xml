@@ -222,11 +222,11 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:help_email">Enter some text to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_datatype">Select one or more values from the list. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_longtext">Enter a term or terms to search for.</epp:phrase>
-    <epp:phrase id="lib/searchfield:help_name">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indictated by surrounding them with double quotes, eg. "van Damme, J".</epp:phrase>
+    <epp:phrase id="lib/searchfield:help_name">Enter a name or names to search for. Either the family name, or the family name followed by a comma and the first name or initial. Names with spaces may be indicated by surrounding them with double quotes, eg. "van Damme, J".</epp:phrase>
     <epp:phrase id="lib/searchfield:help_set">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_subject">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_namedset">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
-    <epp:phrase id="lib/searchfield:help_username">Enter one or more usernames (space seperated) and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
+    <epp:phrase id="lib/searchfield:help_username">Enter one or more usernames (space separated) and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_text">Enter a term or terms to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_fulltext">Enter a term or terms to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_url">Enter some text to search for.</epp:phrase>
@@ -934,9 +934,9 @@ Titles and Help for the System Fields
     <epp:phrase id="document_fieldname_license">License</epp:phrase>
     <epp:phrase id="document_fieldhelp_license">Specify an explicit license for this document (does not effect the access rights you grant at the end of this deposit process). This repository allows <a href="http://creativecommons.org/about/licenses/" target="_blank">Creative Commons</a> licenses.</epp:phrase>
     <epp:phrase id="document_fieldname_date_embargo">Embargo expiry date</epp:phrase>
-    <epp:phrase id="document_fieldhelp_date_embargo">The date that a publisher- or sponsor-imposed embargo expires. On and after this date, this document will be made publically accessible.
-<br/>Example: <span class="ep_form_example">2006 - all documents made publically accessible on 1st January 2006</span>
-<br/>Example: <span class="ep_form_example">2006 June - all documents made publically accessible on 1st June 2006</span>
+    <epp:phrase id="document_fieldhelp_date_embargo">The date that a publisher- or sponsor-imposed embargo expires. On and after this date, this document will be made publicly accessible.
+<br/>Example: <span class="ep_form_example">2006 - all documents made publicly accessible on 1st January 2006</span>
+<br/>Example: <span class="ep_form_example">2006 June - all documents made publicly accessible on 1st June 2006</span>
 </epp:phrase>
 
     <epp:phrase id="document_fieldname_main">Main file</epp:phrase>
@@ -952,7 +952,7 @@ Titles and Help for the System Fields
     <epp:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</epp:phrase>
     <epp:phrase id="subject_radio_depositable"><label><epc:pin name="true"/>Yes, users can add items to this subject.</label><br/><label><epc:pin name="false"/>No. (In which case it should probably have some children.</label></epp:phrase>
     <epp:phrase id="subject_fieldname_subjectid">Subject ID String</epp:phrase>
-    <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It shoud contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</epp:phrase>
+    <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It should contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</epp:phrase>
 
     <epp:phrase id="history_fieldname_objectid">Object ID</epp:phrase>
     <epp:phrase id="history_fieldname_datasetid">Object Type</epp:phrase>
@@ -1214,7 +1214,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Subject/Edit:modify">Modify subject node</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:action_save">Save changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:saved">Saved changes</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:error_badsubject">The specified subject does not exist, or a database error has occured.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:error_badsubject">The specified subject does not exist, or a database error has occurred.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:unlinked">Unlinked subject. This subject node still exists in other places in the subject tree.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:removed">Removed subject. This subject node has been deleted.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:added">Created new subject node with ID "<epc:pin name="newchild" />". Please now enter a subject name and set the subject to be depositable, if applicable.</epp:phrase>
@@ -1619,7 +1619,7 @@ Titles and Help for the System Fields
 
 <p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p>
 
-<p>If you do not receive a reply or need advice at a later time please contact the <a href="mailto:{$config{adminemail}}">administrator</a>. For items with copyright implications, you may also be able to contact your local interlibrary loan service.</p>
+<p>If you do not receive a reply or need advice at a later time please contact the <a href="mailto:{$config{adminemail}}">administrator</a>. For items with copyright implications, you may also be able to contact your local inter-library loan service.</p>
 </epp:phrase>
 
 <epp:phrase id="Plugin/Screen/Request/Respond:title">Confirm response</epp:phrase>
@@ -1627,8 +1627,8 @@ Titles and Help for the System Fields
 <epp:phrase id="request/respond_page:action_respond">Confirm</epp:phrase>
 <epp:phrase id="request/respond_page:accept"><p>You have chosen to <strong>accept</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>
 <epp:phrase id="request/respond_page:reject"><p>You have chosen to <strong>reject</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></epp:phrase>
-<epp:phrase id="request/respond_page:oa"><p>This item has been made publically accessible since the request was made:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>A notice will be emailed to the requester.</p></epp:phrase>
-<epp:phrase id="request/respond_page:fieldname_oa">Tick here to make this document publically available from now on.</epp:phrase>
+<epp:phrase id="request/respond_page:oa"><p>This item has been made publicly accessible since the request was made:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>A notice will be emailed to the requester.</p></epp:phrase>
+<epp:phrase id="request/respond_page:fieldname_oa">Tick here to make this document publicly available from now on.</epp:phrase>
 
 <epp:phrase id="request/response_email:subject">Result of request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/response_email:body_accept"><p>Your request for the following item has been accepted:</p>
@@ -1649,7 +1649,7 @@ Titles and Help for the System Fields
 <epc:pin name="reason"/>
 </epp:phrase>
 
-<epp:phrase id="request/response_email:body_oa"><p>The item you requested is now publically accessible:</p>
+<epp:phrase id="request/response_email:body_oa"><p>The item you requested is now publicly accessible:</p>
 
 <p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 </epp:phrase>
