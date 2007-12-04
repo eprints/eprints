@@ -166,7 +166,7 @@ sub epdata_to_dataobj
 	if( $plugin->{session}->get_repository->get_conf('enable_import_ids') )
 	{
 		my $ds_id = $dataset->id;
-		if( $ds_id eq "eprint" || $ds_id eq "user" )
+		if( $dataset->confid eq "eprint" || $ds_id eq "user" )
 		{
 			my $id = $epdata->{$dataset->get_key_field->get_name};
 			if( $plugin->{session}->get_database->exists( $dataset, $id ) )

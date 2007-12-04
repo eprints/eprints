@@ -202,10 +202,9 @@ sub create_from_data
 		# assigned one. 
 		if( $session->get_repository->get_conf('enable_import_ids') )
 		{
-			if( $dataset->id eq "eprint" )
+			if( $dataset->confid eq "eprint" )
 			{
 				next if( $field->get_name eq "eprintid" );
-				next if( $field->get_name eq "dir" );
 			}
 			if( $dataset->id eq "user" )
 			{
@@ -216,7 +215,7 @@ sub create_from_data
 		if( $session->get_repository->get_conf(
 						'enable_import_datestamps') )
 		{
-			if( $dataset->id eq "eprint" )
+			if( $dataset->confid eq "eprint" )
 			{
 				next if( $field->get_name eq "datestamp" );
 			}

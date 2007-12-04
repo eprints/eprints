@@ -6590,3 +6590,9 @@ PACKAGE: 2.2.99.2
 
 2007-12-03 cjg
  * Import IDs are removed unless import_ids is enabled.
+
+2007-12-04 tdb
+ * Don't use the directory from the XML import if enable_import_ids is
+    specified
+ * Allow enable_import_ids to be used with inbox/buffer/archive/deletion
+
