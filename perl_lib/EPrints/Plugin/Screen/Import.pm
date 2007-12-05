@@ -216,7 +216,8 @@ sub _import
 
 	if( scalar @misc > 0 && !$quiet )
 	{
-		my @lines = EPrints::DataObj::History::_mktext( $session, join( "", @misc[0..99] ), 0, 0, 80 );
+		my $text = substr(join( "", @misc[0..99]),0,40000);
+		my @lines = EPrints::DataObj::History::_mktext( $session, $text, 0, 0, 80 );
 
 		my $pre = $session->make_element( "pre" );
 		$pre->appendChild( $session->make_text( join( "\n", @lines ) ) );
