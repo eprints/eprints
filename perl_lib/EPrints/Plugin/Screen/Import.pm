@@ -58,10 +58,16 @@ sub properties_from
 	}
 }
 
-sub allow_test
+sub can_be_viewed
 {
 	my( $self ) = @_;
 	return $self->allow( "create_eprint" );
+}
+
+sub allow_test
+{
+	my( $self ) = @_;
+	return $self->can_be_viewed;
 }
 
 sub allow_import

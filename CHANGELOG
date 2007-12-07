@@ -6606,4 +6606,5 @@ PACKAGE: 2.2.99.2
  * "If there are no items under review" phrase correction, fixing #2998
  * Modified SESSION::render_ruler to use the ruler phrase, fixing #3155
  * Compound fields can be non-multiple, fixing #2983
+ * 'minuser' type users can no longer view Screen::Import, fixing #3108
 
