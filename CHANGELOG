@@ -6600,5 +6600,8 @@ PACKAGE: 2.2.99.2
     #3133
  * Added missing EPrints_Dir_SecuredCGI and EPrints_Dir_Documents variables,
     fixing #2973
+
+2007-12-07 tdb
  * Quote names in emails if they contain a comma, fixing #3112
+ * "If there are no items under review" phrase correction, fixing #2998
 

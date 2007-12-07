@@ -912,7 +912,7 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldopt_frequency_weekly">Once per Week</epp:phrase>
     <epp:phrase id="user_fieldopt_frequency_monthly">Once per Month</epp:phrase>
     <epp:phrase id="user_fieldname_mailempty">Mail Empty Results</epp:phrase>
-    <epp:phrase id="user_fieldhelp_mailempty">If there are items under review, within your scope, should the repository still send you an empty email?</epp:phrase>
+    <epp:phrase id="user_fieldhelp_mailempty">If there are no items under review, within your scope, should the repository still send you an empty email?</epp:phrase>
     <epp:phrase id="user_radio_mailempty"><label><epc:pin name="true"/>Yes, mail me when there is nothing under review.</label><br/><label><epc:pin name="false"/>No. Only mail me when there is something under review and within my scope.</label></epp:phrase>
     <epp:phrase id="user_fieldname_latitude">Latitude</epp:phrase>
     <epp:phrase id="user_fieldname_longitude">Longitude</epp:phrase>
