@@ -6604,4 +6604,5 @@ PACKAGE: 2.2.99.2
 2007-12-07 tdb
  * Quote names in emails if they contain a comma, fixing #3112
  * "If there are no items under review" phrase correction, fixing #2998
+ * Modified SESSION::render_ruler to use the ruler phrase, fixing #3155
 

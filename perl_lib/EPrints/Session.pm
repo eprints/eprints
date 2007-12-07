@@ -957,7 +957,7 @@ sub render_ruler
 {
 	my( $self ) = @_;
 
-	return $self->make_element( "hr", noshade=>"noshade", class=>"ep_ruler" );
+	return $self->html_phrase( "ruler" );
 }
 
 ######################################################################
