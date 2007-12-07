@@ -104,6 +104,16 @@ sub send_mail
 		$p{from_email} = $repository->get_conf( "adminemail" );
 	}
 	
+	# If a name contains a comma we must quote it, because comma is the
+	# separator for multiple addressees
+	foreach my $name (qw( from_name to_name replyto_name ))
+	{
+		if( $p{$name} =~ /,/ )
+		{
+			$p{$name} = "\"".$p{$name}."\"";
+		}
+	}
+
 	my $result;
 	if( $repository->can_call( 'send_email' ) )
 	{
