@@ -69,9 +69,16 @@ sub render_value
 		$th->appendChild( $field->render_name( $session ) );
 	}
 
-	foreach my $row ( @{$value} )
+	if( $self->get_property( "multiple" ) )
 	{
-		$table->appendChild( $self->render_single_value_row( $session, $row, $object ) );
+		foreach my $row ( @{$value} )
+		{
+			$table->appendChild( $self->render_single_value_row( $session, $row, $object ) );
+		}
+	}
+	else
+	{
+		$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
 	}
 	return $table;
 }
@@ -233,15 +240,25 @@ sub set_value
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
 	my $f = $self->get_property( "fields_cache" );
 	my $values = {};
-	foreach my $as ( keys %alias_to_fieldname )
-	{
-		$values->{$as} = [];
-	}
-	foreach my $row ( @{$value} )
+	if( $self->get_property( "multiple" ) )
 	{
 		foreach my $as ( keys %alias_to_fieldname )
 		{
-			push @{$values->{$alias_to_fieldname{$as}}}, $row->{$as};
+			$values->{$as} = [];
+		}
+		foreach my $row ( @{$value} )
+		{
+			foreach my $as ( keys %alias_to_fieldname )
+			{
+				push @{$values->{$alias_to_fieldname{$as}}}, $row->{$as};
+			}
+		}
+	}
+	else
+	{
+		foreach my $as ( keys %alias_to_fieldname )
+		{
+			$values->{$alias_to_fieldname{$as}} = $value->{$as};
 		}
 	}
 	foreach my $fieldname ( keys %fieldname_to_alias )
