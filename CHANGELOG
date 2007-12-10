@@ -6610,4 +6610,6 @@ PACKAGE: 2.2.99.2
 
 2007-12-10 tdb
  * Don't substr an undefined value in Time fields, fixing #3111
+ * Moved page range rendering into 4 phrases, dependent on the pagerange value,
+    fixing #2987
 

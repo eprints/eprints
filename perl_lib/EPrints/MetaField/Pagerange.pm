@@ -60,35 +60,42 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
-	unless( $value =~ m/^(\d+)-(\d+)$/ )
+	my $frag = $session->make_doc_fragment;
+
+	# If there are leading zeros it's probably electronic (so 'other')
+	if( $value =~ /^([1-9]\d*)$/ )
 	{
-		# value not in expected form. Ah, well. Muddle through.
-		return $session->make_text( $value );
+		$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:page",
+			from => $session->make_text( $1 ),
+			pagerange => $session->make_text( $value ),
+		));
 	}
-
-	my( $a, $b ) = ( $1, $2 );
-
-	# possibly there could be a non-breaking space after p.?
-
-	if( $a == $b )
+	# As a special case, if they give e.g. 12-12 we assume that's 12 pages
+	# long, not 1 page located at page 12
+	elsif( $value =~ m/^([1-9]\d*)-(\d+)$/ )
 	{
-		my $frag = $session->make_doc_fragment();
-		$frag->appendChild( $session->make_text( "p." ) );
-		$frag->appendChild( $session->render_nbsp );
-		$frag->appendChild( $session->make_text( $a ) );
+		if( $1 == $2 )
+		{
+			$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:pages",
+				pages => $session->make_text( $1 ),
+				pagerange => $session->make_text( $value ),
+			));
+		}
+		else
+		{
+			$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:range",
+				from => $session->make_text( $1 ),
+				to => $session->make_text( $2 ),
+				pagerange => $session->make_text( $value ),
+			));
+		}
 	}
-
-#	consider compressing pageranges so that
-#	207-209 is rendered as 207-9
-#
-#       if( length $a == length $b )
-#       {
-#       }
-
-	my $frag = $session->make_doc_fragment();
-	$frag->appendChild( $session->make_text( "pp." ) );
-	$frag->appendChild( $session->render_nbsp );
-	$frag->appendChild( $session->make_text( $a.'-'.$b ) );
+	else
+	{
+		$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:other",
+			pagerange => $session->make_text( $value )
+		));
+	}
 
 	return $frag;
 }

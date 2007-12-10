@@ -162,6 +162,11 @@ EPrints Modules
     <epp:phrase id="lib/metafield/itemref:not_found"><i><epc:pin name="objtype"/> <epc:pin name="id"/> not found.</i></epp:phrase>
     <epp:phrase id="lib/metafield/secret:show_value">[hidden]</epp:phrase>
 
+<!-- Page ranges: total pages, page, page range and other -->
+	<epp:phrase id="lib/metafield/pagerange:pages"><epc:pin name="pages"/></epp:phrase>
+	<epp:phrase id="lib/metafield/pagerange:page">p. <epc:pin name="from"/></epp:phrase>
+	<epp:phrase id="lib/metafield/pagerange:range">pp. <epc:pin name="from"/>-<epc:pin name="to"/></epp:phrase>
+	<epp:phrase id="lib/metafield/pagerange:other"><epc:pin name="pagerange"/></epp:phrase>
 
 <!-- Search (used to be SearchExpression) -->
 
