@@ -6608,3 +6608,6 @@ PACKAGE: 2.2.99.2
  * Compound fields can be non-multiple, fixing #2983
  * 'minuser' type users can no longer view Screen::Import, fixing #3108
 
+2007-12-10 tdb
+ * Don't substr an undefined value in Time fields, fixing #3111
+
