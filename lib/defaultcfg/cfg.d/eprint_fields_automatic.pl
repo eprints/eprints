@@ -30,7 +30,6 @@ $c->{set_eprint_automatic_fields} = sub
 
 	my @docs = $eprint->get_all_documents();
 	my $textstatus = "none";
-	my @finfo = ();
 	if( scalar @docs > 0 )
 	{
 		$textstatus = "public";
@@ -38,13 +37,12 @@ $c->{set_eprint_automatic_fields} = sub
 		{
 			if( !$doc->is_public )
 			{
-				$textstatus = "restricted"
+				$textstatus = "restricted";
+				last;
 			}
-			push @finfo, $doc->get_type.";".$doc->get_url;
 		}
 	}
 	$eprint->set_value( "full_text_status", $textstatus );
-	$eprint->set_value( "fileinfo", join( "|", @finfo ) );
 
 
 };

@@ -319,6 +319,26 @@ sub under_construction
 ######################################################################
 =pod
 
+=item $dataobj->clear_changed( )
+
+Clear any changed fields, which will result in them not being committed unless
+force is used.
+
+This method is used by the Database to avoid unnecessary commits.
+
+=cut
+######################################################################
+
+sub clear_changed
+{
+	my( $self ) = @_;
+	
+	$self->{changed} = {};
+}
+
+######################################################################
+=pod
+
 =item $success = $dataobj->commit( [$force] )
 
 ABSTRACT.
