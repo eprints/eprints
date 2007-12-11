@@ -65,19 +65,18 @@ sub render_single_value
 	# If there are leading zeros it's probably electronic (so 'other')
 	if( $value =~ /^([1-9]\d*)$/ )
 	{
-		$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:page",
+		$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:from_page",
 			from => $session->make_text( $1 ),
 			pagerange => $session->make_text( $value ),
 		));
 	}
-	# As a special case, if they give e.g. 12-12 we assume that's 12 pages
-	# long, not 1 page located at page 12
 	elsif( $value =~ m/^([1-9]\d*)-(\d+)$/ )
 	{
 		if( $1 == $2 )
 		{
-			$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:pages",
-				pages => $session->make_text( $1 ),
+			$frag->appendChild( $session->html_phrase( "lib/metafield/pagerange:same_page",
+				from => $session->make_text( $1 ),
+				to => $session->make_text( $2 ),
 				pagerange => $session->make_text( $value ),
 			));
 		}
