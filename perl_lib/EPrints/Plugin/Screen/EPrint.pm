@@ -175,7 +175,7 @@ sub render_blister
 	my $session = $self->{session};
 	my $staff = 0;
 
-	my $workflow = $self->workflow;
+	my $workflow = $self->workflow( $staff_mode );
 	my $table = $session->make_element( "table", cellpadding=>0, cellspacing=>0, class=>"ep_blister_bar" );
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
