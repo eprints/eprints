@@ -6653,3 +6653,8 @@ PACKAGE: 2.2.99.2
     on set and subject fields. This allows you to specifiy an exact
     search, although there's no option in the form for this, it will
     be understood if part of the GET request.
+
+2007-12-11 cjg
+ * In default XML importer; fixed very minor bug that a field was not 
+    cleared after use. Also rearranged code to be more suitable for 
+    allowing URL formats other than file://

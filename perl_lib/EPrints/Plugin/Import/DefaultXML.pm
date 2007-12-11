@@ -182,27 +182,30 @@ sub end_element
 
 			$self->{xmlcurrent}->appendChild( 
 				$self->{plugin}->{session}->make_text( $tmpfile ) );
-			delete $self->{basedata};
+			delete $self->{base64data};
 		}
 		elsif( $self->{href} )
 		{
-			if( $self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" ) )
+			if( $self->{href} =~ m/^file:\/\// )
 			{
-				my $href = $self->{href};
-				$href =~ s/^file:\/\///;
-				if( -e $href )
+				if( $self->{plugin}->{session}->get_repository->get_conf( "enable_file_imports" ) )
 				{
-					$self->{xmlcurrent}->appendChild( 
-						$self->{plugin}->{session}->make_text( $href ) );
-				}
+					my $href = $self->{href};
+					$href =~ s/^file:\/\///;
+					if( -e $href )
+					{
+						$self->{xmlcurrent}->appendChild( 
+							$self->{plugin}->{session}->make_text( $href ) );
+					}
+					else
+					{
+						$self->{plugin}->warning( "Could not see import file: ".$self->{href} );
+					}
+				}	
 				else
 				{
-					$self->{plugin}->warning( "Could not see import file: ".$self->{href} );
+					$self->{plugin}->warning( $self->{plugin}->{session}->phrase( "Plugin/Import/DefaultXML:file_imports_disabled" ) );
 				}
-			}	
-			else
-			{
-				$self->{plugin}->warning( $self->{plugin}->{session}->phrase( "Plugin/Import/DefaultXML:file_imports_disabled" ) );
 			}
 			delete $self->{href};
 		}
