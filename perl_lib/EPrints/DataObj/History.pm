@@ -87,6 +87,8 @@ use Unicode::String qw(utf8 latin1);
 
 use strict;
 
+# Override this with 'max_history_width' in a configuration file
+our $DEFAULT_MAX_WIDTH = 120;
 
 ######################################################################
 =pod
@@ -474,7 +476,7 @@ sub render_create
 {
 	my( $self ) = @_;
 
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
 	if( !defined $eprint )
@@ -511,7 +513,7 @@ sub render_modify
 {
 	my( $self ) = @_;
 
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
 
@@ -520,7 +522,7 @@ sub render_modify
 		return $self->{session}->render_nbsp;
 	}
 
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
 	my $r_new = $self->get_value( "revision" );
 	my $r_old = $r_new-1;
