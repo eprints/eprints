@@ -34,7 +34,7 @@ sub output_dataobj
 
 	my $xml = $plugin->xml_dataobj( $dataobj );
 
-	return EPrints::XML::to_string( $xml );
+	return EPrints::XML::to_string( $xml, undef, 1 );
 }
 
 

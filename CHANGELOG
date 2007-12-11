@@ -6628,4 +6628,6 @@ PACKAGE: 2.2.99.2
  * Added 'Save for Later' button to deposit screen, fixing #3071
  * Added a note to Saved searches screen to indicate how to create a Saved
     Search, fixing #2999
+ * Strip namespacing from HTML exports (fixes <emph> in citations) under
+    LibXML, fixing #3085
 
