@@ -63,6 +63,15 @@ sub render
 
 	my $user = $self->{session}->current_user;
 
+	if( $self->{session}->get_lang->has_phrase( $self->html_phrase_id( "intro" ) ) )
+	{
+		my $intro_div_outer = $self->{session}->make_element( "div", class => "ep_toolbox" );
+		my $intro_div = $self->{session}->make_element( "div", class => "ep_toolbox_content" );
+		$intro_div->appendChild( $self->html_phrase( "intro" ) );
+		$intro_div_outer->appendChild( $intro_div );
+		$chunk->appendChild( $intro_div_outer );
+	}
+
 	$chunk->appendChild( $self->render_action_list_bar( "item_tools" ) );
 
 	my %filters = $self->get_filters;

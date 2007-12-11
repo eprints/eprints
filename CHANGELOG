@@ -6616,4 +6616,6 @@ PACKAGE: 2.2.99.2
 2007-12-11 tdb
  * Fixed blister-bar so it correctly hides/shows workflow items controlled with
     STAFF_ONLY, fixing #2985
+ * Added optional phrase to Manage Deposits screen "Plugin/Screen/Items:intro"
+    that allows some explanatory text to be added, fixing #3000
 
