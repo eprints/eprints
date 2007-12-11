@@ -6637,3 +6637,7 @@ PACKAGE: 2.2.99.2
 2007-12-11 cjg
  * Fixed an issue with some indexer related subroutines being called with 
     neither &foo or foo() which caused issues in some perl setups.
+
+2007-12-11 cjg
+ * Fixed a trivial case - a session wasn't terminated when exiting Rewrite
+    in a certain way.

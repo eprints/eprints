@@ -143,6 +143,7 @@ sub handler
 			# let it fail if this isn't a real eprint	
 			if( !defined $eprint )
 			{
+				$session->terminate;
 				return OK;
 			}
 	
