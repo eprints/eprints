@@ -392,6 +392,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="format_fieldopt_arc_format_targz">.tar.gz Archive</epp:phrase>
     <epp:phrase id="lib/submissionform:controls_at_bottom">The control buttons are at the bottom of the page, you must read the deposit agreement.</epp:phrase>
     <epp:phrase id="priv:action/eprint/deposit">Deposit Item Now</epp:phrase>
+    <epp:phrase id="priv:action/eprint/deposit_later">Save for Later</epp:phrase>
     <epp:phrase id="priv:action/eprint/reject_with_email">Return Item</epp:phrase>
     <epp:phrase id="priv:action/eprint/remove_with_email">Destroy Item</epp:phrase>
 

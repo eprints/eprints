@@ -27,7 +27,7 @@ sub new
 		},
 	];
 
-	$self->{actions} = [qw/ deposit /];
+	$self->{actions} = [qw/ deposit save /];
 
 	return $self;
 }
@@ -106,19 +106,29 @@ sub render
 	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 
+
 	if( scalar @{$problems} == 0 )
 	{
 		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 	
-		$form->appendChild(
-		 	$self->{session}->render_action_buttons( 
-				deposit=>$self->{session}->phrase( "priv:action/eprint/deposit" ) ) );
+		$form->appendChild( $self->{session}->render_action_buttons(
+			deposit => $self->{session}->phrase( "priv:action/eprint/deposit" ),
+			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
+			_order => [qw( deposit save )],
+		) );
 	}
 
 	return $page;
 }
 
 sub allow_deposit
+{
+	my( $self ) = @_;
+
+	return $self->can_be_viewed;
+}
+
+sub allow_save
 {
 	my( $self ) = @_;
 
@@ -174,5 +184,13 @@ sub action_deposit
 	}
 }
 
+sub action_save
+{
+	my( $self ) = @_;
+
+	$self->uncache_workflow;
+
+	$self->{processor}->{screenid} = "EPrint::View";
+}
 
 1;
