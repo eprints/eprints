@@ -6647,3 +6647,9 @@ PACKAGE: 2.2.99.2
     foo.template file in same dir as foo.title etc.)
  * Added config option to searches to pick alternate template.
  * Added additional option to ScreenProcessor to allow custom template.
+
+2007-12-11 cjg
+ * Added code to pull an optional "match" value from the search form
+    on set and subject fields. This allows you to specifiy an exact
+    search, although there's no option in the form for this, it will
+    be understood if part of the GET request.
