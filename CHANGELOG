@@ -6618,4 +6618,6 @@ PACKAGE: 2.2.99.2
     STAFF_ONLY, fixing #2985
  * Added optional phrase to Manage Deposits screen "Plugin/Screen/Items:intro"
     that allows some explanatory text to be added, fixing #3000
+ * Subjects inputform plugin now uses a field-specific search_bar phrase,
+    fixing #3070
 

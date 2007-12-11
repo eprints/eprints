@@ -273,8 +273,9 @@ sub _render_search
 	my( $self ) = @_;
 	my $prefix = $self->{prefix};
 	my $session = $self->{session};
+	my $field = $self->{config}->{field};
 	my $bar = $self->html_phrase(
-		"search_bar",
+		$field->get_name."_search_bar",
 		input=>$session->render_noenter_input_field( 
 			class=>"ep_form_text",
 			name=>$prefix."_searchtext", 
