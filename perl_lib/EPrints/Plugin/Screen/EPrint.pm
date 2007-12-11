@@ -130,14 +130,16 @@ sub register_error
 {
 	my( $self ) = @_;
 
-	unless( $self->{processor}->{eprint}->has_owner( $self->{session}->current_user ) )
+	if( $self->{processor}->{eprint}->has_owner( $self->{session}->current_user ) )
+	{
+		$self->{processor}->add_message( "error", $self->{session}->html_phrase( 
+			"Plugin/Screen/EPrint:owner_denied",
+			screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
+	}
+	else
 	{
 		$self->SUPER::register_error;
 	}
-
-	$self->{processor}->add_message( "error", $self->{session}->html_phrase( 
-		"Plugin/Screen/EPrint:owner_denied",
-		screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
 }
 
 
