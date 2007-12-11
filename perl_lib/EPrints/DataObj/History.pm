@@ -474,6 +474,8 @@ sub render_create
 {
 	my( $self ) = @_;
 
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
+
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
 	if( !defined $eprint )
 	{
@@ -493,7 +495,7 @@ sub render_create
 	my $dom_new = $file_new->getFirstChild;
 
 	my $div = $self->{session}->make_element( "div" );
-	$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, 120 ) ) );
+	$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, $width ) ) );
 	return $div;
 }
 
@@ -509,12 +511,16 @@ sub render_modify
 {
 	my( $self ) = @_;
 
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
+
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
 
 	if( !defined $eprint )
 	{
 		return $self->{session}->render_nbsp;
 	}
+
+	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || 60;
 
 	my $r_new = $self->get_value( "revision" );
 	my $r_old = $r_new-1;
@@ -535,7 +541,7 @@ sub render_modify
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_earlier" ) );
-		$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, 120 ) ) );
+		$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, $width ) ) );
 		return $div;
 	}
 
@@ -577,7 +583,7 @@ sub render_modify
 	{
 		if( !empty_tree( $old_nodes{$fn} ) && empty_tree( $new_nodes{$fn} ) )
 		{
-			my( $old, $pad ) = render_xml( $self->{session}, $old_nodes{$fn}, 0, 1, 60 );
+			my( $old, $pad ) = render_xml( $self->{session}, $old_nodes{$fn}, 0, 1, $width/2 );
 			$tr = $self->{session}->make_element( "tr" );
 
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #fcc; " );
@@ -595,7 +601,7 @@ sub render_modify
 		}
 		elsif( empty_tree( $old_nodes{$fn} ) && !empty_tree( $new_nodes{$fn} ) )
 		{
-			my( $new, $pad ) = render_xml( $self->{session}, $new_nodes{$fn}, 0, 1, 60 );
+			my( $new, $pad ) = render_xml( $self->{session}, $new_nodes{$fn}, 0, 1, $width/2 );
 			$tr = $self->{session}->make_element( "tr" );
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
 
@@ -614,7 +620,7 @@ sub render_modify
 		elsif( diff( $old_nodes{$fn}, $new_nodes{$fn} ) )
 		{
 			$tr = $self->{session}->make_element( "tr" );
-			my( $t1, $t2 ) = render_xml_diffs( $self->{session}, $old_nodes{$fn}, $new_nodes{$fn}, 0, 60 );
+			my( $t1, $t2 ) = render_xml_diffs( $self->{session}, $old_nodes{$fn}, $new_nodes{$fn}, 0, $width/2 );
 
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #ffc" );
 			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$t1 ) );

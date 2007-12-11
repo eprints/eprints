@@ -6622,4 +6622,6 @@ PACKAGE: 2.2.99.2
     fixing #3070
  * Don't always show the owner_denied message, fixing #3130
  * Use has_role to determine whether a user is an editor or admin, fixing #2968
+ * Added a config option 'max_history_width' to control the width of XML diffs
+    on the History screen, fixing #3146
 
