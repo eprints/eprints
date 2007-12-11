@@ -1175,7 +1175,7 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Screen/User/SavedSearches:title">Saved searches</epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:description">View and configure saved searches</epp:phrase>
-    <epp:phrase id="Plugin/Screen/User/SavedSearches:intro"><p>You may view your saved searches and request to receive a periodic email update if anything in the search changes.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/User/SavedSearches:intro"><p>You may view your saved searches and request to receive a periodic email update if anything in the search changes.</p><p>To create a new saved search, carry out a <a href="{$config{perl_url}}/search">search</a> and select <strong>Save search</strong> from the search results page.</p></epp:phrase>
     <epp:phrase id="Plugin/Screen/User/SavedSearches:no_searches"><p>You currently have no saved searches.</p></epp:phrase>
 
     <epp:phrase id="Plugin/Screen/User/SavedSearch/Edit:title">Settings</epp:phrase>

@@ -6626,4 +6626,6 @@ PACKAGE: 2.2.99.2
     on the History screen, fixing #3146
  * Set the character encoding in MIME emails to UTF8, fixing #3150
  * Added 'Save for Later' button to deposit screen, fixing #3071
+ * Added a note to Saved searches screen to indicate how to create a Saved
+    Search, fixing #2999
 
