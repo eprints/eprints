@@ -139,7 +139,9 @@ sub process
 			page => $page,
 			head => $links,
 #			toolbar => $toolbar,
-		} );
+		},
+		template_id => $self->{template_id},
+ 	);
 	$self->{session}->send_page();
 }
 

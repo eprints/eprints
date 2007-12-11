@@ -6641,3 +6641,9 @@ PACKAGE: 2.2.99.2
 2007-12-11 cjg
  * Fixed a trivial case - a session wasn't terminated when exiting Rewrite
     in a certain way.
+
+2007-12-11 cjg
+ * Added method of setting alternate template for a static file (using 
+    foo.template file in same dir as foo.title etc.)
+ * Added config option to searches to pick alternate template.
+ * Added additional option to ScreenProcessor to allow custom template.

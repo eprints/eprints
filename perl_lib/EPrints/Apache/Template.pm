@@ -58,7 +58,7 @@ sub handler
 	my $session = new EPrints::Session;
 
 	my $parts;
-	foreach my $part ( "title", "title.textonly", "page", "head" )
+	foreach my $part ( "title", "title.textonly", "page", "head", "template" )
 	{
 		if( !-e $filename.".".$part )
 		{
@@ -77,7 +77,11 @@ sub handler
 		}
 	}
 
-	$session->prepare_page( $parts, pageid=>"static" );
+	
+	my $template = delete $parts->{"utf-8.template"};
+	chomp $template;
+	$template = 'default' if $template eq "";
+	$session->prepare_page( $parts, pageid=>"static", template_id=>$template );
 	$session->send_page;
 
 	$session->terminate;
