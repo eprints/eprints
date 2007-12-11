@@ -90,12 +90,12 @@ $c->{can_user_view_document} = sub
 		# new privs and use them.
 
 		# people with priv editor can read this document...
-		if( $user->get_value( "usertype" ) eq "editor" )
+		if( $user->has_role( "editor" ) )
 		{
 			return "ALLOW";
 		}
 
-		if( $user->get_value( "usertype" ) eq "admin" )
+		if( $user->has_role( "admin" ) )
 		{
 			return "ALLOW";
 		}
