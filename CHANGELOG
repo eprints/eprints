@@ -6631,3 +6631,5 @@ PACKAGE: 2.2.99.2
  * Strip namespacing from HTML exports (fixes <emph> in citations) under
     LibXML, fixing #3085
 
+2007-12-11 cjg
+ * Added first cut of toolbox code. Still needs security before release.
