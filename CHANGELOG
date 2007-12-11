@@ -6633,3 +6633,7 @@ PACKAGE: 2.2.99.2
 
 2007-12-11 cjg
  * Added first cut of toolbox code. Still needs security before release.
+
+2007-12-11 cjg
+ * Fixed an issue with some indexer related subroutines being called with 
+    neither &foo or foo() which caused issues in some perl setups.

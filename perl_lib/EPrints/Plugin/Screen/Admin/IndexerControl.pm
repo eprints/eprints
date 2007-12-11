@@ -43,7 +43,7 @@ sub about_to_render
 sub allow_stop_indexer
 {
 	my( $self ) = @_;
-	return 0 if( !EPrints::Index::is_running || EPrints::Index::has_stalled);
+	return 0 if( !EPrints::Index::is_running() || EPrints::Index::has_stalled() );
 	return $self->allow( "indexer/stop" );
 }
 
@@ -74,7 +74,7 @@ sub action_stop_indexer
 sub allow_start_indexer
 {
 	my( $self ) = @_;
-	return 0 if( EPrints::Index::is_running );
+	return 0 if( EPrints::Index::is_running() );
 	return $self->allow( "indexer/start" );
 }
 
@@ -104,7 +104,7 @@ sub action_start_indexer
 sub allow_force_start_indexer
 {
 	my( $self ) = @_;
-	return 0 if( !EPrints::Index::has_stalled );
+	return 0 if( !EPrints::Index::has_stalled() );
 	return $self->allow( "indexer/force_start" );
 }
 

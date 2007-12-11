@@ -34,7 +34,7 @@ sub indexer_warnings
 {
 	my( $self ) = @_;
 
-	if( EPrints::Index::has_stalled )
+	if( EPrints::Index::has_stalled() )
 	{
 		my $index_screen = $self->{session}->plugin( "Screen::Admin::IndexerControl", processor => $self->{processor} );
 		my $force_start_button = $self->render_action_button_if_allowed( 
@@ -49,7 +49,7 @@ sub indexer_warnings
 			$self->html_phrase( "indexer_stalled", force_start_button => $force_start_button ) 
 		);
 	}
-	elsif( !EPrints::Index::is_running )
+	elsif( !EPrints::Index::is_running() )
 	{
 		my $index_screen = $self->{session}->plugin( "Screen::Admin::IndexerControl", processor => $self->{processor} );
 		my $start_button = $self->render_action_button_if_allowed( 
@@ -113,11 +113,11 @@ sub render
 
 	my $indexer_status;
 
-	if( !EPrints::Index::is_running )
+	if( !EPrints::Index::is_running() )
 	{
 		$indexer_status = "stopped";
 	}
-	elsif( EPrints::Index::has_stalled )
+	elsif( EPrints::Index::has_stalled() )
 	{
 		$indexer_status = "stalled";
 	}
