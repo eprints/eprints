@@ -45,8 +45,8 @@
 
     <epp:phrase id="user_section_prefs">User Preferences</epp:phrase>
 
-    <epp:phrase id="user_fieldname_items_fields">Items Fields</epp:phrase>
-    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the Items page.</epp:phrase>
+    <epp:phrase id="user_fieldname_items_fields">Manage Deposits Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the Manage Deposits page.</epp:phrase>
 
     <epp:phrase id="user_fieldname_review_fields">Editorial Review Fields</epp:phrase>
     <epp:phrase id="user_fieldhelp_review_fields">The fields shown for each item on the Editorial Review page.</epp:phrase>
