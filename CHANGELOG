@@ -6673,3 +6673,8 @@ PACKAGE: 2.2.99.2
     using @import. This appears to significantly improve the time taken
     to load a page!
  * This all-but deprecates generate_static!
+
+2007-12-12 tdb
+ * 'x' and 'y' values will now sort correctly (along with ~n, 'e etc.), fixing
+    #2944
+

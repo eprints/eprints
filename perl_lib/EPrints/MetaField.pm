@@ -843,12 +843,19 @@ sub _normalize
 {
 	my( $in ) = @_;
   	
+	use utf8;
+	$in = "$in";
+	utf8::decode($in);
+
 	$in = lc($in);
 	# lc probably didn't catch this
 	$in =~ tr/Ñ/ñ/; 
 	# lc probably failed to turn É to é, etc 
 	$in =~ tr<áéíóúüÁÉÍÓÚÜ>  <aeiouuaeiouu>;
 	$in =~ tr<abcdefghijklmnñopqrstuvwxyz> <\x01-\x1B>; # 1B = 27
+
+	utf8::encode($in);
+
 	return $in;
 }
 
