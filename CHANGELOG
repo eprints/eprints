@@ -6658,3 +6658,9 @@ PACKAGE: 2.2.99.2
  * In default XML importer; fixed very minor bug that a field was not 
     cleared after use. Also rearranged code to be more suitable for 
     allowing URL formats other than file://
+
+2007-12-11 cjg 
+ * epadmin has new option "refresh_abstracts" which causes the webserver
+    to regenerate abstract pages when they are requested. Closes ticket
+    #3162 and probably deprcates generate_abstracts.
+
