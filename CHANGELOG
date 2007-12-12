@@ -6664,3 +6664,12 @@ PACKAGE: 2.2.99.2
     to regenerate abstract pages when they are requested. Closes ticket
     #3162 and probably deprcates generate_abstracts.
 
+2007-12-11 cjg 
+ * Rewrite now tests and recreates auto.js and auto.css if any of the 
+    source files have changed.
+ * There's now a configuration option to disable the test on auto.js and
+    auto.css as they stat quite a lot of files. It seems faster.
+ * auto.css now actually includes all the other .css files, rather than 
+    using @import. This appears to significantly improve the time taken
+    to load a page!
+ * This all-but deprecates generate_static!

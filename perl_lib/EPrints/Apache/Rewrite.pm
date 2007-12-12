@@ -205,29 +205,64 @@ sub update_static_file
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 
-	return if $localpath =~ m!/style/auto.css$!;
-	return if $localpath =~ m!/javascript/auto.js$!;
-
 	my @static_dirs = ();;
 
 	my $theme = $repository->get_conf( "theme" );
-	$static_dirs[0] = $repository->get_conf( "lib_path" )."/static";
+	push @static_dirs, $repository->get_conf( "lib_path" )."/static";
+	push @static_dirs, $repository->get_conf( "lib_path" )."/lang/$langid/static";
 	if( defined $theme )
 	{	
-		$static_dirs[2] = $repository->get_conf( "lib_path" )."/themes/$theme/static";
+		push @static_dirs, $repository->get_conf( "lib_path" )."/themes/$theme/static";
+		push @static_dirs, $repository->get_conf( "lib_path" )."/themes/$theme/lang/$langid/static";
 	}
-	$static_dirs[4] = $repository->get_conf( "config_path" )."/static";
+	push @static_dirs, $repository->get_conf( "config_path" )."/static";
+	push @static_dirs, $repository->get_conf( "config_path" )."/lang/$langid/static";
 
-	$static_dirs[1] = $repository->get_conf( "lib_path" )."/lang/$langid/static";
-	if( defined $theme )
-	{	
-		$static_dirs[3] = $repository->get_conf( "lib_path" )."/themes/$theme/lang/$langid/static";
+	my $ok = $repository->get_conf( "auto_update_auto_files" );
+	if( defined $ok && $ok == 0 )
+	{
+		return if $localpath =~ m!/style/auto.css$!;
+		return if $localpath =~ m!/javascript/auto.js$!;
 	}
-	$static_dirs[5] = $repository->get_conf( "config_path" )."/lang/$langid/static";
 
+	my $source_mtime;
 	my $source;
+	my $map;
 
-	if( $localpath =~ m/\.html$/ )
+	my $auto_to_scan;
+	$auto_to_scan = 'style' if( $localpath =~ m!/style/auto\.css$! );
+	$auto_to_scan = 'javascript' if( $localpath =~ m!/javascript/auto\.js$! );
+
+	if( defined $auto_to_scan )
+	{
+		$source_mtime = 0;
+
+		DIRLOOP: foreach my $dir ( reverse @static_dirs )
+		{
+			my $dh;
+			my $path;
+			$path = "$dir/$auto_to_scan/auto";
+			next unless -d $path;
+			# check the dir too, just in case a file got removed.
+			my $this_mtime = _mtime( $path );
+
+			$source_mtime = $this_mtime if( $this_mtime > $source_mtime );	
+			opendir( $dh, $path ) || EPrints::abort( "Failed to read dir: $path" );
+			while( my $file = readdir( $dh ) )
+			{
+				next if $file eq ".svn";
+				next if $file eq "CVS";
+				next if $file eq ".";
+				next if $file eq "..";
+				# file
+				my $this_mtime = _mtime( "$path/$file" );
+				$source_mtime = $this_mtime if( $this_mtime > $source_mtime );	
+				$map->{"/$auto_to_scan/auto/$file"} = "$path/$file";
+			}
+			closedir( $dh );
+		}
+	}
+	elsif( $localpath =~ m/\.html$/ )
 	{
 		my $base = $localpath;
 		$base =~ s/\.html$//;
@@ -237,7 +272,8 @@ sub update_static_file
 			{
 				if( -e $dir.$base.$suffix )
 				{
-					$source = $dir.$base.$suffix;
+					$source = _mtime( $dir.$base.$suffix );
+					$source_mtime = _mtime( $source );
 					last DIRLOOP;
 				}
 			}
@@ -249,26 +285,73 @@ sub update_static_file
 		{
 			if( -e $dir.$localpath )
 			{
-				$source = $dir.$localpath;
+				$source = $dir.$localpath; 
+				$source_mtime = _mtime( $source );
 				last;
 			}
 		}
 	}
 
-	if( !defined $source ) 
+	if( !defined $source_mtime ) 
 	{
-#		$repository->log( "No static-website cfg file for $localpath." );
+		# no source file therefore source file not changed.
 		return;
 	}
 
-	my @sourcestat = stat( $source );
-	my @targetstat = stat( $target );
-	my $sourcemtime = $sourcestat[9];
-	my $targetmtime = $targetstat[9];
+	my $target_mtime = _mtime( $target );
 
-	return if( $targetmtime > $sourcemtime ); # nothing to do
+	return if( $target_mtime > $source_mtime ); # nothing to do
 
-#	print STDERR "$source ($sourcemtime/$targetmtime)\n";
+	if( defined $auto_to_scan && $auto_to_scan eq "style" )
+	{
+		# do the magic auto.css
+		my $css = "";
+		my $base_url = $repository->get_conf( "base_url" );
+		foreach my $target ( sort keys %{$map} )
+		{
+			if( $target =~ m/(\/style\/auto\/.*\.css$)/ )
+			{
+				# $css .= "\@import url($base_url$1);\n";
+				my $fn = $map->{$target};
+				open( CSS, $fn ) || EPrints::abort( "Can't read $fn: $!" );
+				$css .= "\n\n\n/* From: $fn */\n\n";
+				$css .= join( "", <CSS> );
+				close CSS;	
+			}	
+		}
+	
+		my $fn = $repository->get_conf( "htdocs_path" )."/$langid/style/auto.css";
+		open( CSS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
+		print CSS $css;
+		close CSS;
+	
+		return;
+	}
+
+	if( defined $auto_to_scan && $auto_to_scan eq "javascript" )
+	{
+		# do the magic auto.js 
+		my $js = "";
+		foreach my $target ( sort keys %{$map} )
+		{
+			if( $target =~ m/(\/javascript\/auto\/.*\.js$)/ )
+			{
+				my $fn = $map->{$target};
+				open( JS, $fn ) || EPrints::abort( "Can't read $fn: $!" );
+				$js .= "\n\n\n/* From: $fn */\n\n";
+				$js .= join( "", <JS> );
+				close JS;	
+			}	
+		}
+	
+		my $fn = $repository->get_conf( "htdocs_path" )."/$langid/javascript/auto.js";
+		open( JS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
+		print JS $js;
+		close JS;
+
+		return;
+	}
+
 
 	$target =~ m/^(.*)\/([^\/]+)/;
 	my( $target_dir, $target_file ) = ( $1, $2 );
@@ -280,7 +363,7 @@ sub update_static_file
 
 	$source =~ m/\.([^.]+)$/;
 	my $suffix = $1;
-#	print STDERR  "$source -> $target\n";
+
 	if( $suffix eq "xhtml" ) 
 	{ 
 		my $session = new EPrints::Session(2); # don't open the CGI info
@@ -297,6 +380,15 @@ sub update_static_file
 	{ 
 		copy_plain( $source, $target, {} ); 
 	}
+}
+
+sub _mtime
+{
+	my( $file ) = @_;
+
+	my @filestat = stat( $file );
+
+	return $filestat[9];
 }
 
 sub copy_plain
