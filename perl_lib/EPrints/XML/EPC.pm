@@ -153,7 +153,10 @@ sub _process_pin
 "missing parameter \"$ref\" when making phrase \"".$params{pindata}->{phraseid}."\"" );
 		return $params{session}->make_text( "[pin missing: $ref]" );
 	}
-	if( !EPrints::XML::is_dom( $params{pindata}->{inserts}->{$ref}, "Node" ) )
+	if( !EPrints::XML::is_dom( $params{pindata}->{inserts}->{$ref},
+			"DocumentFragment",
+			"Text",
+			"Element" ) )
 	{
 		$params{session}->get_repository->log(
 "parameter \"$ref\" is not an XML node when making phrase \"".$params{pindata}->{phraseid}."\"" );

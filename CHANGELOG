@@ -6677,4 +6677,6 @@ PACKAGE: 2.2.99.2
 2007-12-12 tdb
  * 'x' and 'y' values will now sort correctly (along with ~n, 'e etc.), fixing
     #2944
+ * Changed is_dom back to not use ->isa, due to inheritance problems in
+    trim_whitespace under LibXML, fixing #3159
 

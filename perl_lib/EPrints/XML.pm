@@ -128,10 +128,11 @@ sub is_dom
 
 	return 1 if( scalar @nodestrings == 0 );
 
+	my $name = ref($node);
+	$name =~ s/^.*:://;
 	foreach( @nodestrings )
 	{
-		my $name = $EPrints::XML::PREFIX.$_;
-		return 1 if $node->isa( $name );
+		return 1 if $name eq $_;
 	}
 
 	return 0;
