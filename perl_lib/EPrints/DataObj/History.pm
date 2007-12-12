@@ -513,8 +513,6 @@ sub render_modify
 {
 	my( $self ) = @_;
 
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
-
 	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
 
 	if( !defined $eprint )
