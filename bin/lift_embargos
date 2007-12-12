@@ -14,7 +14,7 @@
 
 =head1 NAME
 
-B<lift_embargos> - lift expired publisher- or funder-imposed embargos from an repository
+B<lift_embargos> - lift expired publisher- or funder-imposed embargos from a repository
 
 =head1 SYNOPSIS
 
@@ -22,12 +22,12 @@ B<lift_embargos> - I<repository_id> [B<options>]
 
 =head1 DESCRIPTION
 
-Lift expired publisher- or funder-imposed embargos from an repository.
+Lift expired publisher- or funder-imposed embargos from a repository.
 
 This script will:
 
-  - search the repository for eprints which have an expired publisher- or funder-imposed embargo date (relative to the system date)
-  - make all documents associated with each eprint publically available
+  - search the repository for documents which have an expired publisher- or funder-imposed embargo date (relative to the system date)
+  - make all documents whose embargo has expired publically available
   - remove the expired embargo date value
   - re-generate the abstract page for the eprint
 
