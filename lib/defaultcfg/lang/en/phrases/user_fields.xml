@@ -45,11 +45,11 @@
 
     <epp:phrase id="user_section_prefs">User Preferences</epp:phrase>
 
-    <epp:phrase id="user_fieldname_items_fields">Manage Deposits Fields</epp:phrase>
-    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the Manage Deposits page.</epp:phrase>
+    <epp:phrase id="user_fieldname_items_fields"><epc:phrase ref="Plugin/Screen/Items:title" /> Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the <epc:phrase ref="Plugin/Screen/Items:title" /> page.</epp:phrase>
 
-    <epp:phrase id="user_fieldname_review_fields">Editorial Review Fields</epp:phrase>
-    <epp:phrase id="user_fieldhelp_review_fields">The fields shown for each item on the Editorial Review page.</epp:phrase>
+    <epp:phrase id="user_fieldname_review_fields"><epc:phrase ref="Plugin/Screen/Review:title" /> Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_review_fields">The fields shown for each item on the <epc:phrase ref="Plugin/Screen/Review:title" /> page.</epp:phrase>
 
     <epp:phrase id="user_typename_minuser">Minimal User</epp:phrase>
     <epp:phrase id="user_typename_user">User</epp:phrase>
