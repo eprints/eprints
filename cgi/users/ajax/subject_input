@@ -1,0 +1,106 @@
+######################################################################
+#
+#  Util for responding to AjaxSubjects
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my $node_id = $session->param( "subjectid" );
+my $top_prefix = $session->param( "prefix" );
+my $top_subject = EPrints::DataObj::Subject->new( $session, $node_id );
+
+my @children = $top_subject->get_children;
+if( scalar @children )
+{
+	print "<ul class='ep_subjectinput_subjects'>\n";
+	
+	foreach my $subject ( @children )
+	{
+		print "<li>\n";
+	
+		my $node_id = $subject->get_value( "subjectid" );
+
+		my @kids = $subject->get_children;
+		my $has_kids = scalar @kids;
+
+		my $prefix = $top_prefix."_".$node_id;
+		my $id = $prefix."_".$session->get_next_id;
+
+		my $desc = $subject->render_description;
+		my $label = EPrints::Utils::tree_to_utf8( $desc );
+		EPrints::XML::dispose( $desc );
+
+		my $add="";
+		if( $subject->can_post )
+		{
+			$add= "<input name='_internal_".$prefix."_add' class='ep_subjectinput_add_button' value='Add' type='submit' />";
+		}
+
+		if( !$has_kids )
+		{
+			print $label." ".$add;
+			print "</li>\n";
+			next;
+		}
+
+		print <<END;
+<span class="ep_only_js ep_subjectinput_toggle" id="${id}_toggle">
+<span id='${id}_hide' style='display: none' onclick="
+EPJS_blur(event);
+EPJS_toggle_type('${id}_hide',false,'inline');
+EPJS_toggle_type('${id}_show',true,'inline');
+EPJS_toggleSlide('${id}_kids',false,'block'); ">
+<img alt="-" src="/style/images/minus.png" border="0" /> $label $add
+</span>
+
+<span id='${id}_show' onclick="
+EPJS_blur(event);
+EPJS_toggle_type('${id}_kids_loading',false,'block');
+EPJS_toggle_type('${id}_hide',false,'inline');
+EPJS_toggle_type('${id}_show',true,'inline');
+new Ajax.Request(
+'/cgi/users/ajax/subject_input?subjectid=$node_id&prefix=$top_prefix',
+{ 
+	method: 'get', 
+	onSuccess: function(transport) { 
+		var kids = \$('${id}_kids'); 
+		var kids_inner = \$('${id}_kids_inner'); 
+		kids_inner.innerHTML = transport.responseText; 
+		EPJS_toggle_type('${id}_kids_loading',false,'block');
+		EPJS_toggleSlideScroll('${id}_kids',false,'${id}_toggle');
+	} 
+});"> 
+<img alt="+" src="/style/images/plus.png" border="0" /> $label
+</span>
+</span>
+
+<div id="${id}_kids_loading" style="border: solid 1px #888; background-color: #ccc; padding: 4px; display: none">Loading...</div>
+<div id="${id}_kids" class="ep_no_js">
+<div id="${id}_kids_inner">
+</div>
+</div>
+
+</li>
+END
+	}
+
+	print "</ul>\n";	
+}
+
+$session->terminate;
+exit;
+
+1;

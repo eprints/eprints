@@ -6680,3 +6680,10 @@ PACKAGE: 2.2.99.2
  * Changed is_dom back to not use ->isa, due to inheritance problems in
     trim_whitespace under LibXML, fixing #3159
 
+2007-12-13 cjg
+ * Added first cut of AjaxSubject which dynamically loads subsections when
+    selecting subjects in the deposit workflow. Comes with a cjg script to
+    provide the subsections. Still needs some work. for #2857
+
+
+
