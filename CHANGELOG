@@ -6689,4 +6689,6 @@ PACKAGE: 2.2.99.2
  * Templates are now reloaded if they have been modified since they were
     loaded. Closes #3163
 
+2007-12-13 cjg
+ * Added QA Screen. This will show the planned QA plugins. Closes #3167
 
