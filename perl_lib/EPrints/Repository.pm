@@ -558,10 +558,8 @@ sub freshen_template
 	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
 	if( defined $old_mtime && $old_mtime == $mtime )
 	{
-		print STDERR "$langid/$id not changed\n";
 		return;
 	}
-	print STDERR "$langid/$id reloading\n";
 
 	my $template = $self->_load_template( $file );
 	if( !defined $template ) { return 0; }
