@@ -6685,5 +6685,8 @@ PACKAGE: 2.2.99.2
     selecting subjects in the deposit workflow. Comes with a cjg script to
     provide the subsections. Still needs some work. for #2857
 
+2007-12-13 cjg
+ * Templates are now reloaded if they have been modified since they were
+    loaded. Closes #3163
 
 
