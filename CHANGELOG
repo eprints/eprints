@@ -6695,4 +6695,5 @@ PACKAGE: 2.2.99.2
 2007-12-14 tdb
  * The main repository hostname can now be unqualified (to allow 'localhost'),
     fixing #3184
+ * Added action for staff to eprint actions menu to reindex an eprint
 

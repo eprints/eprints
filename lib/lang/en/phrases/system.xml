@@ -1108,6 +1108,9 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_inbox:description">Return to user work area, allowing the user to make changes to it and re-deposit it.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_deletion:title">Retire Item</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_deletion:description">Removes the item from the archive.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/Reindex:action:reindex:description">Queue this item for re-indexing.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/Reindex:action:reindex:title">Reindex Item</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/Reindex:reindexing">Item has been queued for re-indexing (may take some time to complete).</epp:phrase>
 
     <!-- eprint view screens -->
 
