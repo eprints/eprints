@@ -769,16 +769,33 @@ sub root_dbh
 
 	$dbname = $config->{dbname} unless defined $dbname;
 
-	my $mysqlrootpassword = get_mysql_root_password();
-	print "Connecting to the database...\n";
-	my $dbh = DBI->connect(
-		EPrints::Database::build_connection_string(
-			dbname=>$dbname,
-			dbsock=>$config->{dbsock},
-			dbport=>$config->{dbport},
-			dbhost=>$config->{dbhost} ),
-		"root",
-		$mysqlrootpassword );
+	my $dbh;
+	
+	while( !defined $dbh )
+	{
+		my $password = get_mysql_root_password();
+		print "Connecting to the database...\n";
+		$dbh = DBI->connect(
+			EPrints::Database::build_connection_string(
+				dbname=>$dbname,
+				dbsock=>$config->{dbsock},
+				dbport=>$config->{dbport},
+				dbhost=>$config->{dbhost} ),
+			"root",
+			$password );
+
+		if( !defined $dbh )
+		{
+			$mysql_root_password = undef;
+			print "\nCould not connect to database: $DBI::errstr\n\n";
+			my $try_again = EPrints::Utils::get_input( $REGEXP_YESNO, "Try again?", "yes" );
+			if( $try_again eq "no" )
+			{
+				exit( 1 );
+			}
+		}
+	}
+
 	return $dbh;
 }
 
@@ -1131,15 +1148,8 @@ sub drop_and_recreate_db
 	my $database = $repo->get_conf( "dbname" );
 	
 	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
-	
-	my $dbh = DBI->connect(
-		EPrints::Database::build_connection_string(
-			dbname=>"mysql",
-			dbsock=>$repo->get_conf( "dbsock" ),
-			dbport=>$repo->get_conf( "dbport" ),
-			dbhost=>$repo->get_conf( "dbhost" ) ),
-		"root",
-		get_mysql_root_password() );
+
+	my $dbh = root_dbh( $repoid, "mysql" );
 
 	if( !defined $dbh )
 	{

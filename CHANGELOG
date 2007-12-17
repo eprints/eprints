@@ -6715,3 +6715,7 @@ PACKAGE: 2.2.99.2
 2007-12-17 cjg
  * Small change to previous commit to make it use a more generic name for
     the hash which tracks which config file mtimes have been checked.
+
+2007-12-17 cjg
+ * If root database connect fails, in epadmin, it offers you the option to
+    try again, rather than instantly exiting. Closes #2807
