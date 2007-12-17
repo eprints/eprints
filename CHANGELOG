@@ -6701,3 +6701,7 @@ PACKAGE: 2.2.99.2
  * Changed Items and Review screens to use an icon to view the eprint rather
     than hyperlinking the text.
 
+2007-12-17 tdb
+ * Removed backwards compatibility stuff from LibXML - we need 1.63 which has
+    all the fixes in anyway.
+

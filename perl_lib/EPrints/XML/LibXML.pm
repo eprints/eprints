@@ -41,26 +41,6 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 # DOM spec fixes
 ##############################################################################
 
-{
-	no warnings; # don't complain about redefinition
-	*XML::LibXML::CDATASection::nodeName = sub { '#cdata-section' }; # '#cdata'
-	*XML::LibXML::Text::nodeName = sub { '#text' }; # 'text'
-	*XML::LibXML::Comment::nodeName = sub { '#comment' }; # 'comment'
-}
-
-# these aren't set at all
-*XML::LibXML::Document::nodeName = sub { '#document' };
-*XML::LibXML::DocumentFragment::nodeName = sub { '#document-fragment' };
-
-# Element::cloneNode should copy attributes too
-*XML::LibXML::Element::cloneNode = sub {
-		my( $self, $deep ) = @_;
-		my $node = XML::LibXML::Node::cloneNode( @_ );
-		return $node if $deep;
-		$node->setAttribute( $_->nodeName, $_->value ) for $self->attributes();
-		return $node;
-	};
-
 ##############################################################################
 # GDOME compatibility
 ##############################################################################
@@ -84,23 +64,6 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 ##############################################################################
 # Bug work-arounds
 ##############################################################################
-
-# Check for empty DocumentFragments - causes segfault in LibXML <= 1.61
-*XML::LibXML::DocumentFragment::appendChild =
-*XML::LibXML::Element::appendChild = sub {
-		my( $self, $node ) = @_;
-		return if(
-			$node->nodeType == XML_DOCUMENT_FRAG_NODE and
-			!$node->hasChildNodes
-		);
-		return XML::LibXML::Node::appendChild( @_ );
-	};
-
-# Text returns undef on empty string
-*XML::LibXML::Text::toString = sub {
-		my( $node ) = @_;
-		return $node->data ne '' ? XML::LibXML::Node::toString($node) : '';
-	};
 
 ##############################################################################
 
