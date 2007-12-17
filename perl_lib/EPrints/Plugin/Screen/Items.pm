@@ -151,7 +151,7 @@ sub render
 			my $first = 1;
 			for( @$columns )
 			{
-				my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
+				my $td = $session->make_element( "td", class=>"ep_columns_cell_$status".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
 				$first = 0;
 				$tr->appendChild( $td );
 				$td->appendChild( $e->render_value( $_ ) );
