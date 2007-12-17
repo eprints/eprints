@@ -171,7 +171,7 @@ sub phrase
 	my( $self, $phraseid, $inserts, $session ) = @_;
 
 	# not using fb 
-	my( $phrase , $fb ) = $self->_phrase_aux( $phraseid );
+	my( $phrase , $fb ) = $self->_get_phrase( $phraseid, $session );
 
 	if( !defined $phrase )
 	{
@@ -207,34 +207,77 @@ sub phrase
 
 ######################################################################
 # 
-# $foo = $language->_phrase_aux( $phraseid, $session )
+# ( $phrasexml, $is_fallback ) = $language->_get_phrase( $phraseid, $session )
 #
-# Return the phrase for the given id or undef if no phrase is defined.
+# Return the phrase for the given id or undef if no phrase is defined,
+# and reload the phrase from disk if needed.
 #
 ######################################################################
 
-sub _phrase_aux
+sub _get_phrase
+{
+	my( $self, $phraseid, $session ) = @_;
+
+	my( $phraseinfo, $srchash, $is_fallback ) = $self->_get_phraseinfo_in_memory( $phraseid, $session );
+
+	if( !defined $session->{language_file_checked}->{$phraseinfo->{file}} )
+	{
+		my @filestat = stat( $phraseinfo->{file} );
+		my $mtime = $filestat[9];
+		if( $mtime ne $phraseinfo->{mtime} )
+		{
+			my $new = $self->_read_phrases( $phraseinfo->{file}, $session->get_repository );
+			foreach( keys %{$new} ) { $srchash->{$_} = $new->{$_}; }
+			$phraseinfo = $srchash->{$phraseid};
+		}
+		$session->{language_file_checked}->{$phraseinfo->{file}} = 1;
+	}
+
+	return $phraseinfo->{xml};
+}
+
+######################################################################
+# 
+# ( $phraseinfo, $srchash, $is_fallback ) = $language->_get_phraseinfo_in_memory( $phraseid, $session )
+#
+# Return the phrase details for the given id or undef if no phrase is 
+# defined. Details include the xml, source file and last modification
+# time.
+# $srchash is the hash where the phrase came from, and is_fallback is
+# true if it's not the users language of preference.
+#
+######################################################################
+
+sub _get_phraseinfo_in_memory
 {
 	my( $self, $phraseid ) = @_;
 
 	my $res = undef;
+	my $src = undef;
 
-	$res = $self->{repository_data}->{$phraseid};
-	return( $res , 0 ) if ( defined $res );
+	# repository specific, correct language
+	$src = $self->{repository_data};
+	return( $src->{$phraseid}, $src , 0 ) if( defined $src->{$phraseid} );
+
+	# repository specific, fallback language
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_repositorydata->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
+		$src = $self->{fallback}->_get_repositorydata;
+		return( $src->{$phraseid}, $src , 1 ) if( defined $src->{$phraseid} );
 	}
 
-	$res = $self->{data}->{$phraseid};
-	return ( $res , 0 ) if ( defined $res );
+	# system phrases, correct language
+	$src = $self->{data};
+	return( $src->{$phraseid}, $src , 0 ) if( defined $src->{$phraseid} );
+
+	# system phrases, fallback language
 	if( defined $self->{fallback} )
 	{
-		$res = $self->{fallback}->_get_data->{$phraseid};
-		return ( $res , 1 ) if ( defined $res );
+		$src = $self->{fallback}->_get_data;
+		return( $src->{$phraseid}, $src , 1 ) if( defined $src->{$phraseid} );
 	}
 
+	# no phrase found at all.
 	return undef;
 }
 
@@ -253,7 +296,7 @@ sub has_phrase
 {
 	my( $self, $phraseid, $session ) = @_;
 
-	my( $phrase , $fb ) = $self->_phrase_aux( $phraseid );
+	my( $phrase , $fb ) = $self->_get_phrase( $phraseid, $session );
 
 	return( defined $phrase && !$fb );
 }
@@ -307,6 +350,8 @@ sub _read_phrases
 		print STDERR "Error loading $file\n";
 		return;
 	}
+	my @filestat = stat( $file );
+	my $mtime = $filestat[9];
 	my $phrases = ($doc->getElementsByTagName( "phrases" ))[0];
 
 	if( !defined $phrases ) 
@@ -348,7 +393,7 @@ sub _read_phrases
 				}
 			}
 			$near = $key;
-			$data->{$key} = $element;
+			$data->{$key} = { xml=>$element, file=>$file, mtime=>$mtime };
 		}
 	}
 

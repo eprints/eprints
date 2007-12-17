@@ -6707,3 +6707,7 @@ PACKAGE: 2.2.99.2
     all the fixes in anyway.
  * Fixed compatibility problem with IE in jscss.js, fixing #3164
 
+2007-12-17 cjg
+ * Phrase files now dynamically reload if they have changed, but this won't
+    handle phrases being moved between phrase files. eg. from system.xml
+    to repository specific.
