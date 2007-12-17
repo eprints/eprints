@@ -36,7 +36,7 @@ sub input_file
 	{
 		unless( open($fh, "<", $opts{filename}) )
 		{
-			print STDERR "Could not open file $opts{filename}: $!\n";
+			$plugin->error( "Could not open file $opts{filename}: $!\n" );
 			return undef;
 		}
 	}
