@@ -6700,10 +6700,10 @@ PACKAGE: 2.2.99.2
 2007-12-17 cjg
  * Changed Items and Review screens to use an icon to view the eprint rather
     than hyperlinking the text.
+ * Fixed bug introduced in r3149 which lost the colour on rows in Items.
 
 2007-12-17 tdb
  * Removed backwards compatibility stuff from LibXML - we need 1.63 which has
     all the fixes in anyway.
+ * Fixed compatibility problem with IE in jscss.js, fixing #3164
 
-2007-12-17 tdb
- * Fixed bug introduced in r3149 which lost the colour on rows in Items.
