@@ -172,6 +172,7 @@ my $REGEXP_VARNAME = '^[a-zA-Z][_A-Za-z0-9]*$';
 my $REGEXP_NUMBER = '^[0-9]+$';
 my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
+my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 
 my $action = $ARGV[0];
 if( $action eq "create" ) { create(); }
@@ -691,8 +692,18 @@ sub config_db
 	$config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
 	$config{dbsock} = undef if( $config{dbsock} eq "#" );
 
+	my $defaultpass = $config{dbpass};
+	if( !defined $config{dbpass} || $config{dbpass} eq "" )
+	{
+		$defaultpass = "";
+		srand;
+		for( 1..8 )
+		{
+			$defaultpass .= $PASSWORD_CHARS[int rand scalar @PASSWORD_CHARS];
+		}
+	}
 	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
-	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $config{dbpass} );
+	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $defaultpass );
 
 	print "\n";
 	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );

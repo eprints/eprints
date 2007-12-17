@@ -6719,3 +6719,8 @@ PACKAGE: 2.2.99.2
 2007-12-17 cjg
  * If root database connect fails, in epadmin, it offers you the option to
     try again, rather than instantly exiting. Closes #2807
+
+2007-12-17 cjg
+ * epadmin now generates a random 8 character database password as the 
+    default value when configuring the database for a repository, although
+    this may still be over-ridden.
