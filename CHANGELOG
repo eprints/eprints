@@ -6711,3 +6711,7 @@ PACKAGE: 2.2.99.2
  * Phrase files now dynamically reload if they have changed, but this won't
     handle phrases being moved between phrase files. eg. from system.xml
     to repository specific.
+	
+2007-12-17 cjg
+ * Small change to previous commit to make it use a more generic name for
+    the hash which tracks which config file mtimes have been checked.

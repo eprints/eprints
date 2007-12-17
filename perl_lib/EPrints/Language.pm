@@ -220,7 +220,7 @@ sub _get_phrase
 
 	my( $phraseinfo, $srchash, $is_fallback ) = $self->_get_phraseinfo_in_memory( $phraseid, $session );
 
-	if( !defined $session->{language_file_checked}->{$phraseinfo->{file}} )
+	if( !defined $session->{config_file_mtime_checked}->{$phraseinfo->{file}} )
 	{
 		my @filestat = stat( $phraseinfo->{file} );
 		my $mtime = $filestat[9];
@@ -230,7 +230,7 @@ sub _get_phrase
 			foreach( keys %{$new} ) { $srchash->{$_} = $new->{$_}; }
 			$phraseinfo = $srchash->{$phraseid};
 		}
-		$session->{language_file_checked}->{$phraseinfo->{file}} = 1;
+		$session->{config_file_mtime_checked}->{$phraseinfo->{file}} = 1;
 	}
 
 	return $phraseinfo->{xml};
