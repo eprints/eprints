@@ -6697,3 +6697,7 @@ PACKAGE: 2.2.99.2
     fixing #3184
  * Added action for staff to eprint actions menu to reindex an eprint
 
+2007-12-17 cjg
+ * Changed Items and Review screens to use an icon to view the eprint rather
+    than hyperlinking the text.
+

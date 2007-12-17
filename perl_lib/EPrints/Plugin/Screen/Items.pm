@@ -151,12 +151,10 @@ sub render
 			my $first = 1;
 			for( @$columns )
 			{
-				my $td = $session->make_element( "td", class=>"ep_columns_cell_$status".($first?" ep_columns_cell_first":"") );
+				my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
 				$first = 0;
 				$tr->appendChild( $td );
-				my $a = $session->render_link( "?eprintid=".$e->get_id."&screen=EPrint::View::Owner" );
-				$td->appendChild( $a );
-				$a->appendChild( $e->render_value( $_ ) );
+				$td->appendChild( $e->render_value( $_ ) );
 			}
 
 			$self->{processor}->{eprint} = $e;

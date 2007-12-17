@@ -15,6 +15,15 @@ sub new
 
 	$self->{staff} = 0;
 
+	$self->{icon} = "/style/images/action_view.png";
+
+	$self->{appears} = [
+		{
+			place => "eprint_item_actions",
+			position => 10,
+		},
+	];
+
 	return $self;
 }
 
