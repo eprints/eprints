@@ -6724,3 +6724,7 @@ PACKAGE: 2.2.99.2
  * epadmin now generates a random 8 character database password as the 
     default value when configuring the database for a repository, although
     this may still be over-ridden.
+
+2007-12-18 cjg
+ * Added Export/IDs which is a very simple (and fast) export that just 
+    outputs a \n separated list of IDs of the items.
