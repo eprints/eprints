@@ -1030,7 +1030,7 @@ sub render_link
 
 	return $self->make_element(
 		"a",
-		href=>EPrints::Utils::url_escape( $uri ),
+		href=>$uri,
 		target=>$target );
 }
 

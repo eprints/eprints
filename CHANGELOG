@@ -6728,3 +6728,8 @@ PACKAGE: 2.2.99.2
 2007-12-18 cjg
  * Added Export/IDs which is a very simple (and fast) export that just 
     outputs a \n separated list of IDs of the items.
+
+2007-12-19 tdb
+ * Session::render_link shouldn't URI escape (should be HTML escaping, which
+    the DOM library will do for us), fixing #3197
+
