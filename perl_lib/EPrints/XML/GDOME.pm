@@ -52,6 +52,20 @@ sub parse_xml_string
 	return $doc;
 }
 
+sub parse_url
+{
+	my( $url, $no_expand ) = @_;
+
+	my $opts = 8; #GDOME_LOAD_COMPLETE_ATTRS
+	unless( $no_expand )
+	{
+		$opts += 4; #GDOME_LOAD_SUBSTITUTE_ENTITIES
+	}
+	my $doc = XML::GDOME->createDocFromURI( "$url", $opts );
+
+	return $doc;
+}
+
 sub parse_xml
 {
 	my( $file, $basepath, $no_expand ) = @_;

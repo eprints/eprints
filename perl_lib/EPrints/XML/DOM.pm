@@ -100,6 +100,26 @@ sub parse_xml_string
 	return $doc;
 }
 
+sub parse_url
+{
+	my( $url, $no_expand ) = @_;
+
+	my( %c ) = (
+		Namespaces => 1,
+		ParseParamEnt => 1,
+		ErrorContext => 2,
+	);
+	if( $no_expand )
+	{
+		$c{ParseParamEnt} = 0;
+	}
+	my $parser =  XML::DOM::Parser->new( %c );
+
+	my $doc = $parser->parsefile( $url );
+
+	return $doc;
+}
+
 sub parse_xml
 {
 	my( $file, $basepath, $no_expand ) = @_;

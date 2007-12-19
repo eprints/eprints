@@ -82,6 +82,15 @@ sub parse_xml_string
 	return $PARSER->parse_string( $string );
 }
 
+sub parse_url
+{
+	my( $url, $no_expand ) = @_;
+
+	my $doc = $PARSER->parse_file( "$url" );
+
+	return $doc;
+}
+
 =item $doc = parse_xml( $filename [, $basepath [, $no_expand]] )
 
 Parse $filename and return it as a new DOM document.
@@ -97,21 +106,9 @@ sub parse_xml
 		EPrints::abort( "Can't read XML file: '$file'" );
 	}
 
-#	my $tmpfile = $file;
-#	if( defined $basepath )
-#	{	
-#		$tmpfile =~ s#/#_#g;
-#		$tmpfile = $basepath."/".$tmpfile;
-#		symlink( $file, $tmpfile );
-#	}
-	my $fh;
-	open( $fh, $file );
+	open(my $fh, "<", $file) or die "Error opening $file: $!";
 	my $doc = $PARSER->parse_fh( $fh, $basepath );
-	close $fh;
-#	if( defined $basepath )
-#	{
-#		unlink( $tmpfile );
-#	}
+	close($fh);
 
 	return $doc;
 }
