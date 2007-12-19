@@ -6733,4 +6733,6 @@ PACKAGE: 2.2.99.2
  * Session::render_link shouldn't URI escape (should be HTML escaping, which
     the DOM library will do for us), fixing #3197
  * Added methods to parse XML direct from a URL
+ * Added 'pid' configuration to Import::DOI, removed use of wget, fixing #3193
+    and #2854, and part of #2820
 

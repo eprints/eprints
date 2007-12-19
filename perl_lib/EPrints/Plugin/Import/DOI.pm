@@ -3,6 +3,7 @@ package EPrints::Plugin::Import::DOI;
 use strict;
 
 use EPrints::Plugin::Import::TextFile;
+use URI;
 
 our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
 
@@ -25,29 +26,31 @@ sub input_fh
 
 	my @ids;
 
+	my $pid = $plugin->param( "pid" );
+
+	unless( $pid )
+	{
+		$plugin->error( 'You need to configure your pid by setting the `pid\' variable in cfg.d/plugins.pl (see http://www.crossref.org/openurl): $c->{plugins}->{"Import::DOI"}->{params}->{pid} = "ourl_username:password";' );
+		return undef;
+	}
+
 	my $fh = $opts{fh};
 	while( my $doi = <$fh> )
 	{
 		chomp $doi;
 
+		$doi =~ s/^(doi:)?/doi:/i;
+
 		my %params = (
+			pid => $pid,
 			noredirect => "true",
 			id => $doi,
 		);
 
-		my @cgi_params;
-		foreach my $key (keys %params)
-		{
-        		push @cgi_params, $key . '=' . url_encode($params{$key});
-		}
-		my $url = "http://www.crossref.org/openurl?".join ('&', @cgi_params);
+		my $url = URI->new( "http://www.crossref.org/openurl" );
+		$url->query_form( %params );
 
-		$url =~ s/(['\\])/\\$1/g;
-
-		my $cmd = "wget -O - '$url' 2>/dev/null";
-		my $crossref_xml = `$cmd`;
-	
-		my $dom_doc = EPrints::XML::parse_xml_string( $crossref_xml );
+		my $dom_doc = EPrints::XML::parse_url( $url );
 
 		my $dom_top = $dom_doc->getDocumentElement;
 
