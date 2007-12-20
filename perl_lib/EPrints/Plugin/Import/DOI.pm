@@ -1,5 +1,7 @@
 package EPrints::Plugin::Import::DOI;
 
+# 10.1002/asi.20373
+
 use strict;
 
 use EPrints::Plugin::Import::TextFile;
@@ -70,6 +72,8 @@ sub input_fh
 			}
 			$data->{$name} = $value;
 		}
+
+		EPrints::XML::dispose( $dom_doc );
 
 		my $epdata = $plugin->convert_input( $data );
 		next unless( defined $epdata );
