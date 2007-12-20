@@ -2,10 +2,10 @@ package EPrints::Plugin::Import::PubMedID;
 
 use strict;
 
-use EPrints::Plugin::Import::TextFile;
-use LWP::Simple;
+use EPrints::Plugin::Import::PubMedXML;
+use URI;
 
-our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
+our @ISA = qw/ EPrints::Plugin::Import::PubMedXML /;
 
 sub new
 {
@@ -17,7 +17,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	$self->{EFETCH_URL} = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&rettype=full&id=';
+	$self->{EFETCH_URL} = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&rettype=full';
 
 	return $self;
 }
@@ -42,40 +42,29 @@ sub input_fh
 		# NB. EFetch utility can be passed a list of PubMed IDs but
 		# fails to return all available metadata if the list 
 		# contains an invalid ID
-		my $pmxml = get( $plugin->{EFETCH_URL} . $pmid );
-		if( defined $pmxml )
+		my $url = URI->new( $plugin->{EFETCH_URL} );
+		$url->query_form( $url->query_form, id => $pmid );
+
+		my $xml = EPrints::XML::parse_url( $url );
+		my $root = $xml->documentElement;
+
+		if( $root->nodeName eq 'ERROR' )
 		{
-			# Check record found
-			if( $pmxml =~ /<ERROR>/ )
+			EPrints::XML::dispose( $xml );
+			$plugin->warning( "No match: $pmid" );
+			next;
+		}
+
+		foreach my $article ($root->getElementsByTagName( "PubmedArticle" ))
+		{
+			my $item = $plugin->xml_to_dataobj( $opts{dataset}, $article );
+			if( defined $item )
 			{
-				$plugin->warning( "No match: $pmid" );
-				next;
+				push @ids, $item->get_id;
 			}
-
-			# Write XML to temp file
-			my $fh = new File::Temp;
-			$fh->autoflush;
-			print $fh $pmxml;
-
-			# Hand over to Pubmed XML import plugin	
-			my $pluginid = "Import::PubMedXML";
-			my $sub_plugin = $plugin->{session}->plugin( $pluginid, parse_only => $plugin->{parse_only}, scripted => $plugin->{scripted} );
-
-			my $list = $sub_plugin->input_file(
-				dataset => $opts{dataset},
-				filename => $fh->filename,
-				user => $opts{user},
-			);
-
-			push @ids, @{ $list->get_ids };
-
-			undef $fh;
-		}
-		else
-		{
-			$plugin->warning( "Could not access Pubmed EFETCH interface" );
 		}
 
+		EPrints::XML::dispose( $xml );
 	}
 
 	return EPrints::List->new( 

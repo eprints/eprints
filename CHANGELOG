@@ -6736,3 +6736,6 @@ PACKAGE: 2.2.99.2
  * Added 'pid' configuration to Import::DOI, removed use of wget, fixing #3193
     and #2854, and part of #2820
 
+2007-12-20 tdb
+ * Removed temporary file usage from PubMedID import script, fixing #2820
+
