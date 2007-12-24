@@ -6739,3 +6739,6 @@ PACKAGE: 2.2.99.2
 2007-12-20 tdb
  * Removed temporary file usage from PubMedID import script, fixing #2820
 
+2007-12-24 cjg
+ * Removed bin/list_user_emails, replacing it with an export plugin to 
+    perform the same action.
