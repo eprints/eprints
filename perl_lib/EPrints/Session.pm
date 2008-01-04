@@ -1789,16 +1789,8 @@ sub _render_subjects_aux
 		}
 		elsif( $linkmode == 3 )
 		{
-			if( defined $sizes && defined $sizes->{$id} && $sizes->{$id} > 0 )
-			{
-				$elementx = $self->render_link( 
-					EPrints::Utils::escape_filename( $id ).
-						"/" ); 
-			}
-			else
-			{
-				$elementx = $self->make_element( "span" );
-			}
+			$elementx = $self->render_link( 
+				EPrints::Utils::escape_filename( $id )."/" ); 
 		}
 		else
 		{
@@ -2338,7 +2330,11 @@ sub write_static_page
 	my( $self, $filebase, $parts, $page_id, $wrote_files ) = @_;
 
 	print "Writing: $filebase\n" if( $self->{noise} > 1 );
-
+	
+	my $dir = $filebase;
+	$dir =~ s/\/[^\/]*$//;
+	print STDERR "===($dir)\n";
+	if( !-d $dir ) { EPrints::Platform::mkdir( $dir ); }
 
 	foreach my $part_id ( keys %{$parts} )
 	{

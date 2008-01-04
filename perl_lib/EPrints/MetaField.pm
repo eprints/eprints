@@ -1605,6 +1605,13 @@ sub get_unsorted_values
 	return $session->get_database->get_values( $self, $dataset );
 }
 
+sub get_ids_by_value
+{
+	my( $self, $session, $dataset, %opts ) = @_;
+
+	return $session->get_database->get_ids_by_field_values( $self, $dataset, %opts );
+}
+
 ######################################################################
 =pod
 

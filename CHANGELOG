@@ -6742,3 +6742,13 @@ PACKAGE: 2.2.99.2
 2007-12-24 cjg
  * Removed bin/list_user_emails, replacing it with an export plugin to 
     perform the same action.
+
+2008-01-04 cjg
+ * Added mtime function to EPrints::Utils
+ * Moved update routines for static and view pages into their own modules.
+ * views now use a "variations" config option
+ * New function to get all eprints ids from a dataset, grouped by a certain 
+    field. Used to show how many in a section in views.
+ * Writing pages now creates any needed directories.
+ * Tweaked the way session renders a subject tree.
+ * nb. Some debug code left in this commit

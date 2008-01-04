@@ -154,6 +154,8 @@ use EPrints::ScreenProcessor;
 use EPrints::Session;
 use EPrints::Script;
 use EPrints::Paracite;
+use EPrints::Update::Static;
+use EPrints::Update::Views;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::Workflow::Processor;

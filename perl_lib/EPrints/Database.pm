@@ -2231,7 +2231,138 @@ sub get_values
 	return \@values;
 }
 
+sub get_ids_by_field_values
+{
+	my( $self, $field, $dataset, %opts ) = @_;
 
+	# what if a subobjects field is called?
+	if( $field->is_virtual )
+	{
+		$self->{session}->get_repository->log( 
+"Attempt to call get_ids_by_field_values on a virtual field." );
+		return [];
+	}
+
+	my %tables = ();
+	my $srctable;
+	if( $field->get_property( "multiple" ) )
+	{
+		$srctable = $dataset->get_sql_sub_table_name( $field );
+	}
+	else
+	{
+		$srctable = $dataset->get_sql_table_name();
+	}
+	$tables{$srctable} = 1;
+
+	my $fn = "$srctable.".$field->get_sql_name();
+	if( $field->is_type( "name" ) )
+	{
+		$fn = "$fn\_honourific,$fn\_given,$fn\_family,$fn\_lineage";
+	}
+	elsif( $field->is_type( "date" ) )
+	{
+		$fn = "$fn\_year,$fn\_month,$fn\_day";
+	}
+	elsif( $field->is_type( "time" ) )
+	{
+		$fn = "$fn\_year,$fn\_month,$fn\_day,$fn\_hour,$fn\_minute,$fn\_second";
+	}
+
+	my @where = ();
+
+	my $dsid = $dataset->id;
+	if( $dsid =~ m/^archive|inbox|deletion|buffer$/ )
+	{
+		$tables{eprint} = 1;
+		push @where, "eprint.eprint_status = '$dsid'";
+	}
+
+	if( defined $opts{filters} )
+	{
+print STDERR "\\\\\\\a\n";
+		foreach my $filter (@{$opts{filters}})
+		{
+			my @ors = ();
+			foreach my $ffield ( @{$filter->{fields}} )
+			{	
+				if( $ffield->get_property( "multiple" ) )
+				{
+					$srctable = $dataset->get_sql_sub_table_name( $ffield );
+				}
+				else
+				{
+					$srctable = $dataset->get_sql_table_name();
+				}
+				$tables{$srctable} = 1;
+				# note filters don't handle date, time or name fields yet.
+				push @ors, "$srctable.".$ffield->get_sql_name()." = '".prep_value( $filter->{value} )."'";
+			}
+			push @where, "(".join( ") OR (", @ors ).")";
+		}
+	}
+
+	my @tables = keys %tables;
+	if( scalar @tables > 1 )
+	{
+		for( my $i=1;$i<scalar @tables;++$i )
+		{
+			push @where, $tables[0].".eprintid = ".$tables[$i].".eprintid";
+		}
+	}
+
+	my $keyfield = $dataset->get_key_field();
+	my $sql = "SELECT DISTINCT $srctable.".$keyfield->get_sql_name().", $fn";
+	$sql .= " FROM ".join( ", ", @tables );
+	$sql .= " WHERE (".join( ") AND (", @where ).")";
+print STDERR ">> $sql\n";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+	my $ids = {};
+	my @row = ();
+	my $id;
+	my @parts;
+	if( $field->is_type( "name" ) )
+	{
+		while( @row = $sth->fetchrow_array ) 
+		{
+			$id = shift @row;
+			push @{$ids->{join(":",@row)}}, $id;
+		}
+	}
+	elsif( $field->is_type( "date" ) )
+	{
+		while( @row = $sth->fetchrow_array ) 
+		{
+			$id = shift @row;
+			@parts = ();
+			for(0..2) { push @parts, shift @row; }
+			push @{$ids->{mk_date( @parts )}}, $id;
+		}
+	}
+	elsif( $field->is_type( "time" ) )
+	{
+		while( @row = $sth->fetchrow_array ) 
+		{
+			$id = shift @row;
+			@parts = ();
+			for(0..5) { push @parts, shift @row; }
+			push @{$ids->{mk_time( @parts )}}, $id;
+		}
+	}
+	else
+	{
+		while( @row = $sth->fetchrow_array ) 
+		{
+			$id = shift @row;
+			push @{$ids->{$row[0]}}, $id;
+		}
+	}
+	$sth->finish;
+
+	return $ids;
+}
 
 ######################################################################
 =pod

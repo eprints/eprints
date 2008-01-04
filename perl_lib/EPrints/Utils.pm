@@ -1203,6 +1203,19 @@ sub chown_for_eprints
 	EPrints::Platform::chown( $uid, $gid, $file );
 }
 
+
+# Return the last modification time of a file.
+
+sub mtime
+{
+	my( $file ) = @_;
+
+	my @filestat = stat( $file );
+
+	return $filestat[9];
+}
+
+
 ######################################################################
 # Redirect as this function has been moved.
 ######################################################################
