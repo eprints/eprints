@@ -6755,3 +6755,7 @@ PACKAGE: 2.2.99.2
 
 2008-01-09 cjg
  * Added EPrints::Bench -- used for testing speed of sections of code.
+
+2008-01-09 tdb
+ * Changed name of ordervalue_single to ordervalue_basic, fixing #3201
+

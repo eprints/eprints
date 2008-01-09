@@ -330,7 +330,7 @@ sub get_value_label
 	return $self->render_option( $session, $value );
 }
 
-sub ordervalue_single
+sub ordervalue_basic
 {
 	my( $self , $value , $session , $langid ) = @_;
 
