@@ -6752,3 +6752,6 @@ PACKAGE: 2.2.99.2
  * Writing pages now creates any needed directories.
  * Tweaked the way session renders a subject tree.
  * nb. Some debug code left in this commit
+
+2008-01-09 cjg
+ * Added EPrints::Bench -- used for testing speed of sections of code.
