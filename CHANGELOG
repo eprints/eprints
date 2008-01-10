@@ -6758,4 +6758,5 @@ PACKAGE: 2.2.99.2
 
 2008-01-09 tdb
  * Changed name of ordervalue_single to ordervalue_basic, fixing #3201
+ * Added $session and $langid to call to ordervalue_basic, really fixing #3201
 
