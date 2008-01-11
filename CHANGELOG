@@ -6760,3 +6760,6 @@ PACKAGE: 2.2.99.2
  * Changed name of ordervalue_single to ordervalue_basic, fixing #3201
  * Added $session and $langid to call to ordervalue_basic, really fixing #3201
 
+2008-01-11 tdb
+ * import_subjects should use the import ids, fixing #3209
+

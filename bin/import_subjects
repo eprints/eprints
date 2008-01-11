@@ -200,6 +200,9 @@ my $session = new EPrints::Session( 1, $ARGV[0], $noise );
 exit( 1 ) unless defined $session;
 my $filename = $ARGV[1];
 
+# We are always going to use the ids from the imported file
+$session->get_repository->{config}->{enable_import_ids} = 1;
+
 if( !defined $filename )
 {
 	$filename = $session->get_repository->get_conf( "config_path" )."/subjects";
