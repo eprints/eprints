@@ -763,7 +763,7 @@ sub render_value_withopts
 {
 	my( $self, $session, $value, $nolink, $object ) = @_;
 
-	if( !defined $value )
+	if( !EPrints::Utils::is_set( $value ) )
 	{
 		return $session->html_phrase( 
 			"lib/metafield:unspecified",
