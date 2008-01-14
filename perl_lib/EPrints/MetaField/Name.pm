@@ -202,7 +202,7 @@ sub ordervalue_basic
 			push @a, "";
 		}
 	}
-	return join( "," , @a );
+	return join( "\t" , @a );
 }
 
 

@@ -64,6 +64,7 @@ package EPrints::MetaField;
 use strict;
 
 use Unicode::String qw( utf8 );
+use Text::Unidecode qw();
 
 $EPrints::MetaField::VARCHAR_SIZE 	= 255;
 # get the default value from field defaults in the config
@@ -829,41 +830,18 @@ sub sort_values
 }
 
 
-######################################################################
-#
-# $text = _normalize( $text )
-#
-# Internal function to assist sorts
-# _normalize code taken from:
-# http://interglacial.com/~sburke/tpj/as_html/tpj14.html
-# by Sean M. Burke
-######################################################################
-
 sub _normalize 
 {
 	my( $in ) = @_;
   	
-	use utf8;
-	$in = "$in";
-	utf8::decode($in);
-
-	$in = lc($in);
-	# lc probably didn't catch this
-	$in =~ tr/Ñ/ñ/; 
-	# lc probably failed to turn É to é, etc 
-	$in =~ tr<áéíóúüÁÉÍÓÚÜ>  <aeiouuaeiouu>;
-	$in =~ tr<abcdefghijklmnñopqrstuvwxyz> <\x01-\x1B>; # 1B = 27
-
-	utf8::encode($in);
-
-	return $in;
+	return Text::Unidecode::unidecode( $in );
 }
 
 sub _normalcmp
 {
-	my( $a, $b ) = @_;
+	my( $i, $j ) = @_;
 
-	return( (_normalize($a) cmp _normalize($b)) or ($a cmp $b ) );
+	return( (_normalize($i) cmp _normalize($j)) or ($i cmp $j ) );
 }
 
 
