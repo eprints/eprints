@@ -3550,7 +3550,7 @@ sub login
 	return unless EPrints::Utils::is_set( $code );
 
 	my $userid = $user->get_id;
-	my $sql = "REPLACE INTO login_tickets VALUES( '".EPrints::Database::prep_value($code)."', $userid, '".EPrints::Database::prep_value($ip)."', ".(time+60*60*24*7)." )";
+	my $sql = "REPLACE INTO login_tickets VALUES( ".$self->{database}->quote_value($code).", $userid, ".$self->{database}->quote_value($ip).", ".(time+60*60*24*7)." )";
 	my $sth = $self->{database}->do( $sql );
 
 #	my $c = $self->{request}->connection;

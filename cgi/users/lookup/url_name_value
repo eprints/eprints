@@ -7,10 +7,10 @@ my $session = EPrints::Session->new();
 
 my $string_frag = lc $session->param( "q" );
 my $table = $session->param( "table" );
-$table = "`ac_".EPrints::Database::prep_value($table)."`";
+$table = $session->get_database->quote_identifier("ac_".$table);
 my $sql;
 my $term = EPrints::Database::prep_like_value( $string_frag );
-$sql = "SELECT `url`,`name`,`value` from $table WHERE `name` LIKE '%$term%' OR `value` LIKE '%$term%' LIMIT 10";
+$sql = "SELECT url,name,value from $table WHERE name LIKE '%$term%' OR value LIKE '%$term%' LIMIT 10";
 
 my $doc = $session->make_element( 'ul' );
 

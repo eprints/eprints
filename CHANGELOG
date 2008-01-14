@@ -6768,4 +6768,7 @@ PACKAGE: 2.2.99.2
  * Removed Text::BibTeX dependency, fixing #3202
  * EPrints::Metafield::render_value_withopts now checks definedness by using
     EPrints::Utils::is_set, fixing #2923
+ * Added quote_value and quote_identifier methods to Database.pm
+ * Replaced all occurences of prep_value with quote_value
+ * Replaced all (?) occurences of \" in database values with quote_value
 

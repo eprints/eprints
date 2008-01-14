@@ -628,6 +628,8 @@ sub process
 {
 	my( $self, $session, $i, $filter ) = @_;
 
+	my $database = $session->get_database;
+
 	$i = 0 unless( defined $i );
 
 	if( $self->{op} eq "TRUE" )
@@ -693,14 +695,14 @@ END
 
 	if( $self->{op} eq "index" )
 	{
-		my $where = "fieldword = '".EPrints::Database::prep_value( 
-			$self->{field}->get_sql_name.":".$self->{params}->[0] )."'";
+		my $where = "fieldword = ".$database->quote_value( 
+			$self->{field}->get_sql_name.":".$self->{params}->[0] );
 		$r = $session->get_database->get_index_ids( $self->get_table, $where );
 	}
 	if( $self->{op} eq "index_start" )
 	{
-		my $where = "fieldword LIKE '".EPrints::Database::prep_value( 
-			$self->{field}->get_sql_name.":".$self->{params}->[0] )."%'";
+		my $where = "fieldword LIKE ".$database->quote_value( 
+			EPrints::Database::prep_like_value($self->{field}->get_sql_name.":".$self->{params}->[0]) . "\%");
 		$r = $session->get_database->get_index_ids( $self->get_table, $where );
 	}
 
@@ -763,7 +765,7 @@ END
 		};
 		push @{$tables}, {
 			left => "subjectid",
-			where => "$TABLEALIAS.ancestors='".EPrints::Database::prep_value( $self->{params}->[0] )."'",
+			where => "$TABLEALIAS.ancestors=".$database->quote_value( $self->{params}->[0] ),
 			table => 'subject_ancestors',
 		};
 		
@@ -796,7 +798,7 @@ END
 
 	if( $self->{op} eq 'name_match' )
 	{
-		my $where = "($TABLEALIAS.".$sql_col."_given = '".EPrints::Database::prep_value( $self->{params}->[0]->{given} )."' AND $TABLEALIAS.".$sql_col."_family = '".EPrints::Database::prep_value( $self->{params}->[0]->{family} )."')";
+		my $where = "($TABLEALIAS.".$sql_col."_given = ".$database->quote_value( $self->{params}->[0]->{given} )." AND $TABLEALIAS.".$sql_col."_family = ".$database->quote_value( $self->{params}->[0]->{family} ).")";
 		my $tables = $self->get_tables( $session );
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
@@ -840,7 +842,7 @@ END
 						my $o = "=";
 						if( $j==$i ) { $o = $cmp; }
 						push @and, $TABLEALIAS.".".$sql_col."_".$timemap->[$j]." ".$o.
-							" '".EPrints::Database::prep_value( $parts[$j] )."'"; 
+							" ".$database->quote_value( $parts[$j] ); 
 					}
 					push @or, "( ".join( " AND ", @and )." )";
 				}
@@ -851,7 +853,7 @@ END
 				for( my $i=0;$i<$nparts;++$i )
 				{
 					push @and, $TABLEALIAS.".".$sql_col."_".$timemap->[$i]." =".
-							" '".EPrints::Database::prep_value( $parts[$i] )."'"; 
+							" ".$database->quote_value( $parts[$i] ); 
 				}
 				push @or, "( ".join( " AND ", @and )." )";
 			}
@@ -864,7 +866,7 @@ END
 		}
 		else
 		{
-			$where = "$TABLEALIAS.$sql_col ".$self->{op}." "."'".EPrints::Database::prep_value( $self->{params}->[0] )."'";
+			$where = "$TABLEALIAS.$sql_col ".$self->{op}." ".$database->quote_value( $self->{params}->[0] );
 		}
 		my $tables = $self->get_tables( $session );
 		push @{$tables}, {

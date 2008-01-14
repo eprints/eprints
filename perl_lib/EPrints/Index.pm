@@ -58,7 +58,7 @@ sub remove
 	my $sql;
 
 	my $keyfield = $dataset->get_key_field();
-	my $where = $keyfield->get_sql_name()." = \"$objectid\" AND field=\"".EPrints::Database::prep_value($fieldid)."\"";
+	my $where = $keyfield->get_sql_name()." = ".$session->{database}->quote_value($objectid)." AND field=".$session->{database}->quote_value($fieldid);
 
 	my $indextable = $dataset->get_sql_index_table_name();
 	my $rindextable = $dataset->get_sql_rindex_table_name();
@@ -75,8 +75,8 @@ sub remove
 
 	foreach my $code ( @codes )
 	{
-		my $fieldword = EPrints::Database::prep_value( "$fieldid:$code" );
-		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword='$fieldword' AND ids LIKE '%:$objectid:%'";
+		my $fieldword = $session->{database}->quote_value( "$fieldid:$code" );
+		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword=".$session->{database}->quote_value($fieldword)." AND ids LIKE ".$session->{database}->quote_value("\%:$objectid:\%");
 		$sth=$session->get_database->prepare( $sql );
 		$rv = $rv && $session->get_database->execute( $sth, $sql );
 		if( my($ids,$pos) = $sth->fetchrow_array )
@@ -150,9 +150,9 @@ sub add
 		next if $done{$code};
 		$done{$code} = 1;
 		my $sql;
-		my $fieldword = EPrints::Database::prep_value($field->get_sql_name().":$code");
+		my $fieldword = $session->{database}->quote_value($field->get_sql_name().":$code");
 		my $sth;
-		$sql = "SELECT max(pos) FROM $indextable where fieldword='$fieldword'"; 
+		$sql = "SELECT max(pos) FROM $indextable where fieldword=$fieldword"; 
 		$sth=$session->get_database->prepare( $sql );
 		$rv = $rv && $session->get_database->execute( $sth, $sql );
 		return 0 unless $rv;
@@ -201,8 +201,8 @@ sub add
 
 	foreach my $grepcode ( @{$grepcodes} )
 	{
-		my $sql = "INSERT INTO ".$dataset->get_sql_grep_table_name." VALUES ('".
-EPrints::Database::prep_value($objectid)."','".EPrints::Database::prep_value($name)."','".EPrints::Database::prep_value($grepcode)."');";
+		my $sql = "INSERT INTO ".$dataset->get_sql_grep_table_name." VALUES (".
+$session->{database}->quote_value($objectid).",".$session->{database}->quote_value($name).",".$session->{database}->quote_value($grepcode).");";
 		$session->get_database->do( $sql ); 
 	}
 }
@@ -266,7 +266,7 @@ sub _do_ordervalues
 	# remove the key field
 	splice( @fields, 0, 1 ); 
 	my $keyfield = $dataset->get_key_field();
-	my $keyvalue = EPrints::Database::prep_value( $data->{$keyfield->get_sql_name()} );
+	my $keyvalue = $data->{$keyfield->get_sql_name()};
 	my @orderfields = ( $keyfield );
 
 	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
@@ -282,7 +282,7 @@ sub _do_ordervalues
 					$dataset );
 			
 			push @fnames, $field->get_sql_name();
-			push @fvals, EPrints::Database::prep_value( $ov );
+			push @fvals, $ov;
 		}
 
 		# cjg raw SQL!
@@ -291,16 +291,16 @@ sub _do_ordervalues
 		my $sql;
 		if( $insert )
 		{
-			$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (\"".join( "\",\"", @fvals )."\")";
+			$sql = "INSERT INTO ".$ovt." (".join( ",", @fnames ).") VALUES (".join( ",", map { $session->{database}->quote_value($_) } @fvals ).")";
 		}
 		else
 		{
 			my @l = ();
 			for( my $i=0; $i<scalar @fnames; ++$i )
 			{
-				push @l, $fnames[$i].'="'.$fvals[$i].'"';
+				push @l, $fnames[$i].'='.$session->{database}->quote_value($fvals[$i]);
 			}
-			$sql = "UPDATE ".$ovt." SET ".join( ",", @l )." WHERE ".$keyfield->get_sql_name().' = "'.EPrints::Database::prep_value( $keyvalue ).'"';
+			$sql = "UPDATE ".$ovt." SET ".join( ",", @l )." WHERE ".$keyfield->get_sql_name().' = '.$session->{database}->quote_value( $keyvalue );
 		}
 		$session->get_database->do( $sql );
 	}
@@ -326,7 +326,7 @@ sub delete_ordervalues
 	# remove the key field
 	splice( @fields, 0, 1 ); 
 	my $keyfield = $dataset->get_key_field();
-	my $keyvalue = EPrints::Database::prep_value( $id );
+	my $keyvalue = $id;
 
 	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
@@ -334,7 +334,7 @@ sub delete_ordervalues
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );
 		if( $tmp ) { $ovt .= "_tmp"; }
 		my $sql;
-		$sql = "DELETE FROM ".$ovt." WHERE ".$keyfield->get_sql_name().' = "'.EPrints::Database::prep_value( $keyvalue ).'"';
+		$sql = "DELETE FROM ".$ovt." WHERE ".$keyfield->get_sql_name().' = '.$session->{database}->quote_value( $keyvalue );
 		$session->get_database->do( $sql );
 	}
 }

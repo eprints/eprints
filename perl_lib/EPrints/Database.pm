@@ -461,7 +461,7 @@ sub get_ticket_userid
 	$sql = "DELETE FROM login_tickets WHERE ".time." > expires";
 	$self->do( $sql );
 
-	$sql = "SELECT userid FROM login_tickets WHERE (ip='' OR ip='".prep_value($ip)."') AND code='".prep_value($code)."'";
+	$sql = "SELECT userid FROM login_tickets WHERE (ip='' OR ip=".$self->quote_value($ip).") AND code=".$self->quote_value($code);
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
 	my( $userid ) = $sth->fetchrow_array;
@@ -626,23 +626,10 @@ sub add_record
 	# a stub entry, then call the update method which does the hard
 	# work.
 
-	my $sql = "INSERT INTO $table ( $kf_sql ) VALUES (\"";
-	$sql.= prep_value( $id )."\")";
+	my $sql = "INSERT INTO $table ( $kf_sql ) VALUES (".$self->quote_int( $id ).")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
-
-#	unless( $rv )
-#	{
-#		# something went wrong! try and clean up
-#
-#		my $sql = "DELETE FROM $table WHERE $kf_sql = (\"";
-#		$sql.= prep_value( $id )."\")";
-#		$self->do( $sql );
-#
-#		return 0;
-#	}
-
 
 	EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
 
@@ -715,6 +702,60 @@ sub prep_like_value
 	return $value;
 }
 
+######################################################################
+=pod
+
+=item $str = EPrints::Database::quote_value( $value )
+
+Return a quoted value. To quote a 'like' value you should do:
+
+ my $str = $database->quote_value( EPrints::Database::prep_like_value( $foo ) . '%' );
+
+=cut
+######################################################################
+
+sub quote_value
+{
+	my( $self, $value ) = @_;
+
+	return $self->{dbh}->quote( $value );
+}
+
+######################################################################
+=pod
+
+=item $str = EPrints::Database::quote_int( $value )
+
+Return a quoted integer value
+
+=cut
+######################################################################
+
+sub quote_int
+{
+	my( $self, $value ) = @_;
+
+	return "NULL" unless( defined $value );
+
+	return $value+0;
+}
+
+######################################################################
+=pod
+
+=item $str = EPrints::Database::quote_identifier( $value )
+
+Quote a database identifier (e.g. table names).
+
+=cut
+######################################################################
+
+sub quote_identifier
+{
+	my( $self, $value ) = @_;
+
+	return $self->{dbh}->quote_identifier( $value );
+}
 
 ######################################################################
 =pod
@@ -739,11 +780,11 @@ sub update
 
 	my $keyfield = $dataset->get_key_field();
 
-	my $keyvalue = prep_value( $data->{$keyfield->get_sql_name()} );
+	my $keyvalue = $self->quote_value( $data->{$keyfield->get_sql_name()} );
 
 	# The same WHERE clause will be used a few times, so lets define
 	# it now:
-	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
+	my $where = $keyfield->get_sql_name()." = $keyvalue";
 
 	my @aux;
 	my %values = ();
@@ -814,15 +855,7 @@ sub update
 		{
 			$sql.= ", ";
 		}
-		$sql.= "$_ = ";
-		if( defined $values{$_} ) 
-		{
-			$sql.= "\"".prep_value( $values{$_} )."\"";
-		}
-		else
-		{
-			$sql .= "NULL";
-		}
+		$sql.= "$_ = " . $self->quote_value( $values{$_} );
 	}
 	$sql.=" WHERE $where";
 	
@@ -886,14 +919,14 @@ sub update
 			{
 				$sql .= $fname;
 			}
-			$sql .= ") VALUES (\"$keyvalue\", ";
-			$sql .=	"\"".$v->{p}."\", " if( $multifield->get_property( "multiple" ) );
+			$sql .= ") VALUES ($keyvalue, ";
+			$sql .=	$self->quote_int($v->{p}).", " if( $multifield->get_property( "multiple" ) );
 			if( $multifield->is_type( "name" ) )
 			{
-				$sql .= "\"".prep_value( $v->{v}->{honourific} )."\", ";
-				$sql .= "\"".prep_value( $v->{v}->{given} )."\", ";
-				$sql .= "\"".prep_value( $v->{v}->{family} )."\", ";
-				$sql .= "\"".prep_value( $v->{v}->{lineage} )."\"";
+				$sql .= $self->quote_value( $v->{v}->{honourific} ).", ";
+				$sql .= $self->quote_value( $v->{v}->{given} ).", ";
+				$sql .= $self->quote_value( $v->{v}->{family} ).", ";
+				$sql .= $self->quote_value( $v->{v}->{lineage} );
 			}
 			elsif( $multifield->is_type( "date" ) )
 			{
@@ -931,7 +964,7 @@ sub update
 			}
 			else
 			{
-				$sql .= "\"".prep_value( $v->{v} )."\"";
+				$sql .= $self->quote_value( $v->{v} );
 			}
 			$sql.=")";
 	                $rv = $rv && $self->do( $sql );
@@ -965,9 +998,9 @@ sub remove
 
 	my $keyfield = $dataset->get_key_field();
 
-	my $keyvalue = prep_value( $id );
+	my $keyvalue = $self->quote_value( $id );
 
-	my $where = $keyfield->get_sql_name()." = \"$keyvalue\"";
+	my $where = $keyfield->get_sql_name()." = $keyvalue";
 
 
 	# Delete from index (no longer used)
@@ -1032,7 +1065,7 @@ sub _create_counter_table
 	foreach $counter (@EPrints::Database::counters)
 	{
 		$sql = "INSERT INTO ".$counter_ds->get_sql_table_name()." ".
-			"VALUES (\"$counter\", 0);";
+			"VALUES (".$self->quote_value($counter).", 0);";
 
 		$sth = $self->do( $sql );
 		
@@ -1074,7 +1107,7 @@ sub save_user_message
 {
 	my( $self, $userid, $m_type, $dom_m_data ) = @_;
 
-	my $sql = "INSERT INTO messages VALUES ( ".($userid+0).", '".prep_value($m_type)."','".prep_value(EPrints::XML::to_string($dom_m_data))."' )";
+	my $sql = "INSERT INTO messages VALUES (".$self->quote_int($userid).", ".$self->quote_value($m_type).",".$self->quote_value(EPrints::XML::to_string($dom_m_data)).")";
 
 	my $sth = $self->do( $sql );
 
@@ -1085,7 +1118,7 @@ sub get_user_messages
 {
 	my( $self, $userid ) = @_;
 
-	my $sql = "SELECT type,message FROM messages WHERE userid=".($userid+0);
+	my $sql = "SELECT type,message FROM messages WHERE userid=".$self->quote_int($userid);
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my @messages;
@@ -1251,7 +1284,7 @@ sub counter_next
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter=".
-		"LAST_INSERT_ID(counter+1) WHERE countername = \"$counter\";";
+		"LAST_INSERT_ID(counter+1) WHERE countername = ".$self->quote_value($counter);
 	
 	# Send to the database
 	my $rows_affected = $self->do( $sql );
@@ -1288,7 +1321,7 @@ sub counter_minimum
 	# Update the counter to be at least $value
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET counter="
 		. "CASE WHEN $value>counter THEN $value ELSE counter END"
-		. " WHERE countername = \"$counter\"";
+		. " WHERE countername = ".$self->quote_value($counter);
 	$self->do( $sql );
 }
 
@@ -1309,7 +1342,7 @@ sub counter_reset
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." ";
-	$sql.="SET counter=0 WHERE countername = \"$counter\";";
+	$sql.="SET counter=0 WHERE countername = ".$self->quote_value($counter);
 	
 	# Send to the database
 	$self->do( $sql );
@@ -1405,7 +1438,7 @@ sub cache
 	}
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , $userid, '".prep_value($code)."' , 'TRUE' )";
+	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , $userid, ".$self->quote_value($code)." , 'TRUE' )";
 	
 	$self->do( $sql );
 
@@ -1961,7 +1994,7 @@ sub _get
 	if ( $mode == 0 )
 	{
 		$sql = "SELECT $cols FROM $table AS M ".
-		       "WHERE M.$kn = \"".prep_value( $param )."\"";
+		       "WHERE M.$kn = ".$self->quote_value( $param );
 	}
 	elsif ( $mode == 1 )	
 	{
@@ -2061,7 +2094,7 @@ sub _get
 		{
 			$sql = "SELECT $fields_sql FROM ";
 			$sql.= $dataset->get_sql_sub_table_name( $multifield )." AS M ";
-			$sql.= "WHERE M.$kn=\"".prep_value( $param )."\"";
+			$sql.= "WHERE M.$kn=".$self->quote_value( $param );
 		}
 		elsif( $mode == 1)
 		{
@@ -2602,7 +2635,7 @@ sub _add_field_ordervalues_lang
 	my $sql = $sql_field->get_sql_type( 0 ); # only first field can not be null
 	$sql = _sql_type_to_alter_add( $sql );
 
-	return $self->do( "ALTER TABLE `$order_table` $sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
 }
 
 # Add the field to the main tables
@@ -2628,7 +2661,7 @@ sub _add_field
 		$column_sql .= ', ' . $key_sql;
 	}
 
-	return $self->do( "ALTER TABLE `$table` $column_sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($table)." $column_sql" );
 }
 
 # Add a multiple field to the main tables
@@ -2714,7 +2747,7 @@ sub _remove_field_ordervalues_lang
 	my $sql = $sql_field->get_sql_type( 0 ); # only first field can not be null
 	$sql = _sql_type_to_alter_drop( $sql );
 
-	return $self->do( "ALTER TABLE `$order_table` $sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
 }
 
 # Remove the field from the main tables
@@ -2734,7 +2767,7 @@ sub _remove_field
 	my $column_sql = $field->get_sql_type( 0 ); # only first field can be not null
 	$column_sql = _sql_type_to_alter_drop( $column_sql );
 
-	return $self->do( "ALTER TABLE `$table` $column_sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($table)." $column_sql" );
 }
 
 # Remove a multiple field from the main tables
@@ -2744,7 +2777,7 @@ sub _remove_multiple_field
 
 	my $table = $dataset->get_sql_sub_table_name( $field );
 
-	$self->do( "DROP TABLE `$table`" );
+	$self->do( "DROP TABLE ".$self->quote_identifier($table) );
 }
 
 ######################################################################
@@ -2771,7 +2804,7 @@ sub exists
 
 	my $sql = "SELECT ".$keyfield->get_sql_name().
 		" FROM ".$dataset->get_sql_table_name()." WHERE ".
-		$keyfield->get_sql_name()." = \"".prep_value( $id )."\";";
+		$keyfield->get_sql_name()." = ".$self->quote_value( $id );
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -2862,8 +2895,7 @@ sub set_version
 
 	my $sql;
 
-	$sql = "UPDATE version SET version = '".
-		prep_value( $versionid )."'";
+	$sql = "UPDATE version SET version = ".$self->quote_value( $versionid );
 	$self->do( $sql );
 
 	if( $self->{session}->get_noise >= 1 )
@@ -3119,7 +3151,7 @@ sub valid_login
 {
 	my( $self, $username, $password ) = @_;
 
-	my $sql = "SELECT password FROM user WHERE username='".EPrints::Database::prep_value($username)."'";
+	my $sql = "SELECT password FROM user WHERE username=".$self->quote_value($username);
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -3175,7 +3207,7 @@ sub index_queue
 {
 	my( $self, $datasetid, $objectid, $fieldname ) = @_; 
 
-	my $sql = "INSERT INTO index_queue VALUES ( \"$datasetid.$objectid.$fieldname\", NOW() )";
+	my $sql = "INSERT INTO index_queue VALUES ( ".$self->quote_value($datasetid.$objectid.$fieldname).", NOW() )";
 	$self->do( $sql );
 }
 
@@ -3207,9 +3239,9 @@ sub add_roles
 		foreach my $role (@roles)
 		{
 			$self->do(
-				"REPLACE permission_group (user,role) VALUES ('" .
-					prep_value( $role ) . "','" .
-					prep_value( $priv ) . "')"
+				"REPLACE permission_group (user,role) VALUES (" .
+					$self->quote_value( $role ) . "," .
+					$self->quote_value( $priv ) . ")"
 			);
 		}
 	}
@@ -3223,9 +3255,9 @@ sub add_roles
 		foreach my $role (@roles)
 		{
 			$self->do(
-				"REPLACE permission (role,privilege,net_from,net_to) VALUES ('" .
-					prep_value( $role ) . "','" .
-					prep_value( $priv ) . "'," .
+				"REPLACE permission (role,privilege,net_from,net_to) VALUES (" .
+					$self->quote_value( $role ) . "," .
+					$self->quote_value( $priv ) . "," .
 					$ip_f . "," .
 					$ip_t . ")"
 			);
@@ -3258,8 +3290,8 @@ sub remove_roles
 		{
 			$self->do(
 				"DELETE FROM permission_group WHERE " .
-					"user='" . prep_value( $role ) . "' AND ".
-					"role='" . prep_value( $priv ) . "'"
+					"user=" . $self->quote_value( $role ) . " AND ".
+					"role=" . $self->quote_value( $priv ) . ""
 			);
 		}
 	}
@@ -3269,8 +3301,8 @@ sub remove_roles
 		{
 			$self->do(
 				"DELETE FROM permission WHERE " .
-					"role='" . prep_value( $role ) . "' AND ".
-					"privilege='" . prep_value( $priv ) . "'"
+					"role=" . $self->quote_value( $role ) . " AND ".
+					"privilege=" . $self->quote_value( $priv )
 			);
 		}
 	}
@@ -3302,7 +3334,7 @@ sub get_privileges
 
 	$sql = "SELECT role,privilege,net_from,net_to FROM permission";
 	if( defined( $role ) ) {
-		$sql .= " WHERE role='" . prep_value( $role ) . "'";
+		$sql .= " WHERE role=" . $self->quote_value( $role );
 	}
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql ) or return;
@@ -3337,7 +3369,7 @@ sub get_groups
 
 	$sql = "SELECT user,role FROM permission_group";
 	if( defined( $role ) ) {
-		$sql .= " WHERE user='" . prep_value( $role ) . "'";
+		$sql .= " WHERE user=" . $self->quote_value( $role );
 	}
 	$sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql ) or return;
@@ -3366,9 +3398,9 @@ sub get_roles
 
 	# Standard WHERE clauses
 	if( $priv =~ s/\.\*$// ) {
-		push @clauses, "privilege LIKE '" . prep_value( $priv ) . "\%'";
+		push @clauses, "privilege LIKE " . $self->quote_value( prep_like_value($priv)."\%" );
 	} else {
-		push @clauses, "privilege = '" . prep_value( $priv ) . "'";
+		push @clauses, "privilege = " . $self->quote_value( $priv );
 	}
 	if( defined( $ip ) )
 	{
@@ -3381,7 +3413,7 @@ sub get_roles
 	$sql .= join(
 		" AND ",
 		@clauses,
-		"(" . join(' OR ', map { "role = '" . prep_value( $_ ) . "'" } @roles) . ")"
+		"(" . join(' OR ', map { "role = " . $self->quote_value( $_ ) } @roles) . ")"
 	);
 	
 	# Provide a generic privilege query
@@ -3398,7 +3430,7 @@ sub get_roles
 		 " AND ",
 		 "G.role=P.role",
 		@clauses,
-		"(" . join(' OR ', map { "G.role = '" . prep_value( $_ ) . "'" } @roles) . ")"
+		"(" . join(' OR ', map { "G.role = " . $self->quote_value( $_ ) } @roles) . ")"
 	);
 	
 	$sth = $self->prepare( $sql );
