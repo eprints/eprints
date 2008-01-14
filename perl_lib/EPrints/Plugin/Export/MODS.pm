@@ -42,6 +42,8 @@ sub xml_dataobj
 
 	my $session = $plugin->{ session };
 
+	my $dataset = $dataobj->get_dataset;
+
 	$PREFIX = $prefix
 		if defined( $prefix );	
 
@@ -56,25 +58,25 @@ sub xml_dataobj
 	);
 
 	# title
-	$mods->appendChild( _make_title( $session, $dataobj ));
+	$mods->appendChild( _make_title( $session, $dataset, $dataobj ));
 
 	# creators
-	$mods->appendChild( _make_creators( $session, $dataobj ));
+	$mods->appendChild( _make_creators( $session, $dataset, $dataobj ));
 
 	# abstract
-	$mods->appendChild( _make_abstract( $session, $dataobj ));
+	$mods->appendChild( _make_abstract( $session, $dataset, $dataobj ));
 
 	# subjects
-	$mods->appendChild( _make_subjects( $session, $dataobj ));
+	$mods->appendChild( _make_subjects( $session, $dataset, $dataobj ));
 	
 	# date_issue
-	$mods->appendChild( _make_issue_date( $session, $dataobj ));
+	$mods->appendChild( _make_issue_date( $session, $dataset, $dataobj ));
 
 	# publisher
-	$mods->appendChild( _make_publisher( $session, $dataobj ));
+	$mods->appendChild( _make_publisher( $session, $dataset, $dataobj ));
 	
 	# genre
-	$mods->appendChild( _make_genre( $session, $dataobj ));
+	$mods->appendChild( _make_genre( $session, $dataset, $dataobj ));
 	
 	$PREFIX = "mods:";
 	
@@ -83,7 +85,7 @@ sub xml_dataobj
 
 sub _make_title
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 
 	my $val = $dataobj->get_value( "title" );
 	return $session->make_doc_fragment unless defined $val;
@@ -97,7 +99,7 @@ sub _make_title
 
 sub _make_creators
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $frag = $session->make_doc_fragment;
 	
@@ -136,7 +138,7 @@ sub _make_creators
 
 sub _make_abstract
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $val = $dataobj->get_value( "abstract" );
 	return $session->make_doc_fragment unless defined $val;
@@ -149,12 +151,14 @@ sub _make_abstract
 
 sub _make_subjects
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $frag = $session->make_doc_fragment;
 	
-	my $subjects = $dataobj->get_value("subjects");
-	return $frag unless defined $subjects;
+	my $subjects = $dataset->has_field("subjects") ?
+		$dataobj->get_value("subjects") :
+		undef;
+	return $frag unless EPrints::Utils::is_set( $subjects );
 	
 	foreach my $val (@$subjects)
 	{
@@ -174,7 +178,7 @@ sub _make_subjects
 
 sub _make_issue_date
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $val = $dataobj->get_value( "date" );
 	return $session->make_doc_fragment unless defined $val;
@@ -193,7 +197,7 @@ sub _make_issue_date
 
 sub _make_publisher
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $val;
 	
@@ -222,10 +226,9 @@ sub _make_publisher
 
 sub _make_genre
 {
-	my( $session, $dataobj ) = @_;
+	my( $session, $dataset, $dataobj ) = @_;
 	
-	my $ds = $dataobj->get_dataset;
-	my $val = $session->phrase( $ds->confid()."_typename_".$dataobj->get_type() );
+	my $val = $session->phrase( $dataset->confid()."_typename_".$dataobj->get_type() );
 	
 	my $genre = $session->make_element( "${PREFIX}genre" );
 	$genre->appendChild( $session->make_text( $val ));

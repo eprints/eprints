@@ -6771,4 +6771,6 @@ PACKAGE: 2.2.99.2
  * Added quote_value and quote_identifier methods to Database.pm
  * Replaced all occurences of prep_value with quote_value
  * Replaced all (?) occurences of \" in database values with quote_value
+ * Added check for whether the subjects field is configured in MODS (METS)
+    export
 
