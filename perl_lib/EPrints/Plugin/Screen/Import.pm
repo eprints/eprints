@@ -117,7 +117,7 @@ sub make_tmp_file
 
 	unless( defined $import_fh || ( defined $import_data && $import_data ne "" ) )
 	{
-		$self->{processor}->add_message( "error", $self->{session}->html_phrase( "Plugin/Screen/Import:nothing_to_import" ) );
+		$self->{processor}->add_message( "error", $self->html_phrase( "nothing_to_import" ) );
 		return undef;
 	}
 
@@ -193,14 +193,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $session->html_phrase(
-				"Plugin/Screen/Import:test_completed", 
+			$self->{processor}->add_message( "message", $self->html_phrase(
+				"test_completed", 
 				count => $session->make_text( $parsed ) ) ) unless $quiet;
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:test_failed", 
+			$self->{processor}->add_message( "warning", $self->html_phrase( 
+				"test_failed", 
 				count => $session->make_text( $parsed ) ) );
 		}
 	}
@@ -208,14 +208,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $session->html_phrase( 
-				"Plugin/Screen/Import:import_completed", 
+			$self->{processor}->add_message( "message", $self->html_phrase( 
+				"import_completed", 
 				count => $session->make_text( $list->count ) ) );
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:import_failed", 
+			$self->{processor}->add_message( "warning", $self->html_phrase( 
+				"import_failed", 
 				count => $session->make_text( $list->count ) ) );
 		}
 	}
@@ -227,8 +227,8 @@ sub _import
 
 		my $pre = $session->make_element( "pre" );
 		$pre->appendChild( $session->make_text( join( "\n", @lines ) ) );
-		$self->{processor}->add_message( "warning", $session->html_phrase(
-			"Plugin/Screen/Import:import_errors",
+		$self->{processor}->add_message( "warning", $self->html_phrase(
+			"import_errors",
 			errors => $pre ) );
 	}
 
@@ -252,7 +252,7 @@ sub render
 	my $page = $session->make_doc_fragment;
 
 	# Preamble
-	$page->appendChild( $session->html_phrase( "Plugin/Screen/Import:intro" ) );
+	$page->appendChild( $self->html_phrase( "intro" ) );
 
 	my $form =  $session->render_form( "post" );
 	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
@@ -273,7 +273,7 @@ sub render
 
 	$table->appendChild( $session->render_row_with_help(
 		help => $session->make_doc_fragment,
-		label => $session->html_phrase( "Plugin/Screen/Import:step1" ),
+		label => $self->html_phrase( "step1" ),
 		class => "ep_first",
 		field => $frag,
 	));
@@ -286,7 +286,7 @@ sub render
 	my $select = $session->make_element( "select", name => "pluginid" );
 	$table->appendChild( $session->render_row_with_help(
 		help => $session->make_doc_fragment,
-		label => $session->html_phrase( "Plugin/Screen/Import:step2" ),
+		label => $self->html_phrase( "step2" ),
 		field => $select,
 	));
 	
@@ -304,8 +304,8 @@ sub render
 
 	$form->appendChild( $session->render_action_buttons( 
 		_class => "ep_form_button_bar",
-		test => $session->phrase( "Plugin/Screen/Import:action:test:title" ), 
-		import => $session->phrase( "Plugin/Screen/Import:action:import:title" ) ) );
+		test => $self->phrase( "action:test:title" ), 
+		import => $self->phrase( "action:import:title" ) ) );
 
 	return $page;
 

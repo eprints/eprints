@@ -6776,6 +6776,8 @@ PACKAGE: 2.2.99.2
 
 2008-01-15 tdb
  * Check whether an executable is set as "NOTFOUND", fixing #2874
+ * Replaced $session->html_phrase with $self->html_phrase in Screen::Import,
+    fixing #3203
 
 2008-01-15 cjg
  * Added code to keep track of which phrases were used during a $session
