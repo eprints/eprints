@@ -147,6 +147,7 @@ sub new
 	$mode = 0 unless defined( $mode );
 	$noise = 0 unless defined( $noise );
 	$self->{noise} = $noise;
+	$self->{used_phrases} = {};
 
 	if( $mode == 0 || $mode == 2 || !defined $mode )
 	{
@@ -461,6 +462,8 @@ sub html_phrase
 	#
 	# returns [DOM]	
         
+	$self->{used_phrases}->{$phraseid} = 1;
+
 	my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
 	#my $s = $self->make_element( "span", title=>$phraseid );
 	#$s->appendChild( $r );
@@ -488,6 +491,7 @@ sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
 
+	$self->{used_phrases}->{$phraseid} = 1;
 	foreach( keys %inserts )
 	{
 		$inserts{$_} = $self->make_text( $inserts{$_} );
@@ -2417,6 +2421,48 @@ sub prepare_page
 			$self->{page} = $map->{page};
 			return;
 		}
+
+		my $dp = $self->param( "debug_phrases" );
+		# phrase debugging code.
+		# disabled until we have a permission system planned.
+		if( 0 && defined $dp && $dp eq "yes" )
+		{
+			my $table = $self->make_element( "table" );
+			my $arc_langs = $self->{repository}->get_conf( "languages" );	
+			foreach my $phraseid ( sort keys %{$self->{used_phrases}} )
+			{
+				my $tr = $self->make_element( "tr" );
+				$table->appendChild( $tr );
+				my $th = $self->make_element( "th" );
+				my $td = $self->make_element( "td" );
+				$tr->appendChild( $th );
+				$th->appendChild( $self->make_text( $phraseid ) );
+				$tr->appendChild( $td );
+
+				my $t2 = $self->make_element( "table", border=>1, cellpadding=>4 );
+				foreach my $langid ( @{$arc_langs} )
+				{
+					my $lang = $self->{repository}->get_language( $langid );
+        				my( $phrase , $fb ) = $lang->_get_phrase( $phraseid, $self );
+					my $tr2 = $self->make_element( "tr" );
+					my $th2 = $self->make_element( "th" );
+					my $td2 = $self->make_element( "td" );
+					$t2->appendChild( $tr2 );
+					$tr2->appendChild( $th2 );
+					$tr2->appendChild( $td2 );
+					$th2->appendChild( $self->make_text( "$langid" ) );
+					if( defined $phrase )
+					{
+						$td2->appendChild( $self->make_text( EPrints::XML::contents_of( $phrase )->toString ) );
+					}
+				}
+				$td->appendChild( $t2 );
+
+			}
+			$self->{page} = $table;
+			return;
+		}
+		
 	}
 	
 	if( $self->get_repository->get_conf( "dynamic_template","enable" ) )
