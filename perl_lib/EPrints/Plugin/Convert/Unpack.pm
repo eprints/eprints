@@ -53,7 +53,7 @@ sub can_convert
 
 	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
-	if( !$cmd_id or !$plugin->get_repository->can_invoke( $cmd_id ) )
+	if( !$cmd_id or !$plugin->get_repository->can_execute( $cmd_id ) )
 	{
 		return ();
 	}

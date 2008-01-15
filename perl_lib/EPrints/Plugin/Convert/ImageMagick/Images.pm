@@ -57,7 +57,7 @@ sub can_convert
 {
 	my ($plugin, $doc) = @_;
 
-	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
+	return () unless $plugin->get_repository->can_execute( "convert" );
 
 	my %types;
 
@@ -83,7 +83,9 @@ sub export
 {
 	my ( $plugin, $dir, $doc, $type ) = @_;
 
-	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
+	return () unless $plugin->get_repository->can_execute( "convert" );
+
+	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' );
 
 	# What to call the temporary file
 	my $ext = $FORMATS_PREF{$type};

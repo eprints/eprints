@@ -45,7 +45,7 @@ sub can_convert
 {
 	my ($plugin, $doc) = @_;
 
-	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
+	return () unless $plugin->get_repository->can_execute( "convert" );
 
 	my %types;
 
@@ -64,7 +64,9 @@ sub export
 {
 	my ( $plugin, $dir, $doc, $type ) = @_;
 
-	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' ) or return ();
+	return () unless $plugin->get_repository->can_execute( "convert" );
+
+	my $convert = $plugin->get_repository->get_conf( 'executables', 'convert' );
 
 	my $src = $doc->local_path . '/' . $doc->get_main;
 	

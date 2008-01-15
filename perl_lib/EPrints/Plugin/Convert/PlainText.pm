@@ -71,7 +71,7 @@ sub can_convert
 
 		if( $fn =~ /\.$ext$/ )
 		{
-			if( defined($plugin->get_repository->get_conf( "executables", $cmd_id )) ) 
+			if( $plugin->get_repository->can_execute( $cmd_id ) )
 			{
 				return @type;
 			}
@@ -99,7 +99,7 @@ sub export
 		if( $main =~ /\.$ext$/i )
 		{
 			$cmd_id = $EPrints::Plugin::Convert::PlainText::APPS{$ext};
-			last if defined $repository->get_conf( "executables", $cmd_id );
+			last if $repository->can_execute( $cmd_id );
 			last if $cmd_id eq "_special";
 		}
 
