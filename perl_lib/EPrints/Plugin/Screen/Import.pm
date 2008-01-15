@@ -281,6 +281,7 @@ sub render
 	my @plugins = $session->plugin_list( 
 			type=>"Import",
 			is_advertised=>1,
+			is_visible=>"all",
 			can_produce=>"list/".$ds->confid );
 
 	my $select = $session->make_element( "select", name => "pluginid" );
