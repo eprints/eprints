@@ -6782,3 +6782,7 @@ PACKAGE: 2.2.99.2
 2008-01-15 cjg
  * Added code to keep track of which phrases were used during a $session
  * Added code to report on this, but currently disabled the report.
+
+2008-01-15 cjg
+ * Added template option to views.
+ * Changed "template_id" option in page generation to "template"

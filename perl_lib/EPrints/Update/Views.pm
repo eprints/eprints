@@ -127,7 +127,13 @@ sub update_browse_view_list
 
 	$title = $session->html_phrase( "bin/generate_views:browsetitle" );
 
-	$session->write_static_page( $target, {title=>$title, page=>$page}, "browsemain" );
+	$session->write_static_page( 
+			$target, 
+			{
+				title => $title, 
+				page => $page,
+			},
+			"browsemain" );
 
 	$session->terminate;
 }
@@ -253,7 +259,14 @@ sub update_view_menu
 
 	# Write page to disk
 	
-	$session->write_static_page( $target, {title=>$title, page=>$page}, "browseindex" );
+	$session->write_static_page( 
+			$target, 
+			{
+				title => $title, 
+				page => $page,
+				template => $session->make_text($view->{template}),
+			},
+			"browseindex" );
 
 	$session->terminate;
 }
@@ -545,6 +558,12 @@ EPrints::Bench::leave( "render_list_variations_search" );
 		open( TITLETXT, ">$page_file_name.title.textonly" );
 		print TITLETXT "title: $page_file_name";
 		close TITLETXT;
+		if( defined $view->{template} )
+		{
+			open( TEMPLATE, ">$page_file_name.template" );
+			print TEMPLATE $view->{template};
+			close TEMPLATE;
+		}
 		open( PAGE, ">$page_file_name.page" );
 
 		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";

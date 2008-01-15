@@ -2389,7 +2389,7 @@ Create an XHTML page for this session.
 $parts is a hash of XHTML elements to insert into the pins in the
 template. Usually: title, page. Maybe pagetop and head.
 
-If template_id is set then an alternate template file is used.
+If template is set then an alternate template file is used.
 
 This function only builds the page it does not output it any way, see
 the methods below for that.
@@ -2397,15 +2397,15 @@ the methods below for that.
 Options include:
 
 page_id=>"id to put in body tag"
-template_id=>"The template to use instead of default."
+template=>"The template to use instead of default."
 
 =cut
 ######################################################################
 # move to compat module?
 sub build_page
 {
-	my( $self, $title, $mainbit, $page_id, $links, $template_id ) = @_;
-	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template_id=>$template_id );
+	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
+	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
 }
 
 
@@ -2500,7 +2500,7 @@ sub prepare_page
 		$map->{$_} = $pt;
 	}
 
-	if( !defined $options{template_id} )
+	if( !defined $options{template} )
 	{
 		my $secure = 0;
 		unless( $self->{offline} )
@@ -2508,13 +2508,13 @@ sub prepare_page
 			my $esec = $self->{request}->dir_config( "EPrints_Secure" );
 			$secure = (defined $esec && $esec eq "yes" );
 		}	
-		$options{template_id} = "default";
-		if( $secure ) { $options{template_id} = 'secure'; }
+		$options{template} = "default";
+		if( $secure ) { $options{template} = 'secure'; }
 	}
 
 	my $parts = $self->get_repository->get_template_parts( 
 				$self->get_langid, 
-				$options{template_id} );
+				$options{template} );
 	my @output = ();
 	my $is_html = 0;
 
