@@ -32,12 +32,9 @@ sub unknown_start_element
 
 	if( $found eq "eprintsdata" ) 
 	{
-		die( "You appear to be attempting to import an EPrints 2 XML file!\nThis importer only handles v3 files. Use the migration toolkit to convert!\n" );
+		$self->warning( "You appear to be attempting to import an EPrints 2 XML file!\nThis importer only handles v3 files. Use the migration toolkit to convert!\n" );
 	}
-	else
-	{
-		die "Unexpected tag: expected <$expected> found <$found>\n";
-	}
+	$self->SUPER::unknown_start_element( @_[1..$#_] );
 }
 
 sub xml_to_epdata

@@ -44,7 +44,8 @@ sub unknown_start_element
 {
 	my( $self, $found, $expected ) = @_;
 
-	die "Unexpected tag: expected <$expected> found <$found>\n";
+	$self->error("Unexpected tag: expected <$expected> found <$found>\n");
+	die "\n"; # Break out of the parsing
 }
 
 
@@ -62,11 +63,7 @@ sub input_fh
 	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
 
 	eval { EPrints::XML::event_parse( $opts{fh}, $handler ) };
-	if( $@ )
-	{
-		$plugin->error( $@ );
-		return;
-	}
+	die $@ unless $@ eq "\n";
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
