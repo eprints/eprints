@@ -43,7 +43,7 @@ sub new
 		$self->{session} = $opts{session};
 		$self->{collapse} = $opts{collapse};
 		$self->{surround} = $opts{surround};
-		$self->{prefix} = "id".$self->{session}->get_next_id;
+		$self->{prefix} = $opts{id};
 		$self->{dataobj} = $opts{dataobj};
 		$self->{dataset} = $opts{dataobj}->get_dataset;
 		$self->parse_config( $opts{xml_config} );

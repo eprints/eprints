@@ -496,6 +496,14 @@ sub load_all
 			{
 				my $doc = EPrints::XML::parse_xml( $filename );
 				$v->{$id} = $doc->documentElement();
+				# assign id attributes to every component
+				my $i = 1;
+				foreach my $component ( $v->{$id}->getElementsByTagName( "component" ) )
+				{
+					next if $component->hasAttribute( "id" );
+					$component->setAttribute( "id", "c".$i );
+					++$i;
+				}
 			}
 		}
 	}

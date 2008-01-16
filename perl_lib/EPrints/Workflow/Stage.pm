@@ -57,6 +57,14 @@ sub _read_components
 			my $collapse_attr = $stage_node->getAttribute( "collapse" );
 			$params{collapse} = 1 if( defined $collapse_attr && $collapse_attr eq "yes" );
 
+			my $id = $stage_node->getAttribute( "id" );
+			if( !defined $id )
+			{
+				EPrints::abort( "ID did not get set in component" );
+			}
+			$params{id} = $id;
+			
+
 			# Grab any values inside
 			my $class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::$type"};
 			if( !defined $class )

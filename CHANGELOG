@@ -6814,3 +6814,7 @@ PACKAGE: 2.2.99.2
 
 2008-01-16 cjg
  * Can now do sub-object searches on indexed fields. Fixing #3188
+
+2008-01-16 cjg
+ * Workflows now assign ID's to component level elements when the file is
+    loaded rather than ad-hoc. This fixes #3216.
