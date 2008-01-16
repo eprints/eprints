@@ -52,7 +52,15 @@ sub input_fh
 		my $url = URI->new( "http://www.crossref.org/openurl" );
 		$url->query_form( %params );
 
-		my $dom_doc = EPrints::XML::parse_url( $url );
+		my $dom_doc;
+		eval {
+			$dom_doc = EPrints::XML::parse_url( $url );
+		};
+		if( $@ )
+		{
+			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi", doi => $plugin->{session}->make_text( $doi )));
+			next;
+		}
 
 		my $dom_top = $dom_doc->getDocumentElement;
 

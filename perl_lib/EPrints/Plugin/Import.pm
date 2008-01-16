@@ -12,11 +12,30 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
+	if( !$self->{session} )
+	{
+		$self->{session} = $self->{processor}->{session};
+	}
+
 	$self->{name} = "Base input plugin: This should have been subclassed";
 	$self->{visible} = "all";
 	$self->{advertise} = 1;
 
 	return $self;
+}
+
+sub handler
+{
+	my( $plugin ) = @_;
+
+	return $plugin->{Handler};
+}
+
+sub set_handler
+{
+	my( $plugin, $handler ) = @_;
+
+	$plugin->{Handler} = $handler;
 }
 
 sub render_name
@@ -181,18 +200,8 @@ sub epdata_to_dataobj
 		delete $epdata->{$dataset->get_key_field->get_name};
 	}
 
-	if( $plugin->{parse_only} )
-	{
-		if( $plugin->{session}->get_noise > 1 )
-		{
-			print STDERR "Would have imported an object into dataset ".$dataset->id."\n";
-		}	
-		if( $plugin->{scripted} )
-		{
-			print "EPRINTS_IMPORT: ITEM_PARSED\n";
-		}
-		return;
-	}
+	$plugin->handler->parsed( $epdata );
+	return if( $plugin->{parse_only} );
 
 	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
 	{
@@ -201,14 +210,9 @@ sub epdata_to_dataobj
 	}
 
 	my $item = $dataset->create_object( $plugin->{session}, $epdata );
-	if( $plugin->{session}->get_noise > 1 )
-	{
-		print STDERR "Imported ".$dataset->id.".".$item->get_id."\n";
-	}	
-	if( $plugin->{scripted} )
-	{
-		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$item->get_id."\n";
-	}
+
+	$plugin->handler->object( $dataset, $item );
+
 	return $item;
 }
 
@@ -216,14 +220,14 @@ sub warning
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->{session}->get_repository->log( $plugin->{id}.": ".$msg );
+	$plugin->handler->message( "warning", $plugin->{session}->make_text( $msg ));
 }	
 
 sub error
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->warning( $msg );
+	$plugin->handler->message( "error", $plugin->{session}->make_text( $msg ));
 }
 
 1;

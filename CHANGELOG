@@ -6795,3 +6795,9 @@ PACKAGE: 2.2.99.2
 
 2008-01-16 cjg
  * Minor tweak to supress undef warning in Language.pm. Fixes #3199
+
+2008-01-16 tdb
+ * Overhauled Import plugins to use a Handler mechanism to output errors,
+    warnings and object parse/creation events (should be transparent to the
+	actual plugins), fixing #3206, #2812, #3205
+

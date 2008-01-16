@@ -39,7 +39,7 @@ sub properties_from
 	
 	if( defined $pluginid )
 	{
-		my $plugin = $self->{session}->plugin( $pluginid, dataset=>$self->{session}->get_repository->get_dataset( "inbox" ) );
+		my $plugin = $self->{session}->plugin( $pluginid, session=>$self->{session}, dataset=>$self->{session}->get_repository->get_dataset( "inbox" ), processor=>$self->{processor} );
 		if( !defined $plugin || $plugin->broken )
 		{
 			$self->{processor}->add_message( "error", $self->{session}->html_phrase( "general:bad_param" ) );
@@ -145,95 +145,95 @@ sub _import
 
 	my $session = $self->{session};
 	my $ds = $session->get_repository->get_dataset( "inbox" );
+	my $user = $self->{processor}->{user};
 
-	# Build command
-	my $import_script = $EPrints::SystemSettings::conf->{base_path}."/bin/import";
-	my $ds_id = "inbox";
-	my $cmd = $import_script." --scripted ".$session->get_repository->get_id." ".$ds_id." ".$self->{processor}->{plugin}->get_subtype." --user ".$self->{processor}->{user}->get_id." ".$tmp_file->filename;
-	$cmd .= " --parse-only" if $dryrun;
+	my $plugin = $self->{processor}->{plugin};
 
-	# Run command without user check
-	my $pid = open( OUTPUT, "EPRINTS_NO_CHECK_USER=1 $cmd 2>&1|" );
-	my @imp_out = <OUTPUT>;
-	close OUTPUT;
+	my $handler = EPrints::Plugin::Screen::Import::Handler->new(
+		processor => $self->{processor},
+	);
 
-	# Parse command output
-	my @misc = ();
-	my $ok = 0;
-	my $parsed = 0;
-	my @ids;
-	foreach my $line ( @imp_out )
+	$plugin->{Handler} = $handler;
+	$plugin->{parse_only} = $dryrun;
+
+	my $err_file = File::Temp->new(
+		UNLINK => 1
+	);
+
+	# We'll capture anything from STDERR that an import library may
+	# spew out
 	{
-		if( $line !~ s/^EPRINTS_IMPORT: // )
-		{
-			push @misc,$line unless $line =~ /^\s+$/s;
-			next;
-		}
-		chomp $line;
-		if( $line =~ m/ITEM_IMPORTED (\d+)/ )
-		{
-			push @ids, $1;
-		}
-		if( $line =~ m/ITEM_PARSED/ )
-		{
-			$parsed++;
-		}
-		if( $line =~ m/^DONE (\d+)$/ )
-		{
-			$ok = 1;
-		}
+	# Perl complains about OLD_STDERR being used only once with warnings
+	no warnings;
+	open(OLD_STDERR, ">&STDERR") or die "Failed to save STDERR";
+	}
+	open(STDERR, ">$err_file") or die "Failed to redirect STDERR";
+
+	my @problems;
+
+	# Don't let an import plugin die() on us
+	eval {
+		$plugin->input_file(
+			dataset=>$ds,
+			filename=>"$tmp_file",
+			user=>$user,
+		);
+	};
+	push @problems, "Unhandled exception in ".$plugin->{id}.": $@" if $@;
+
+	my $count = $dryrun ? $handler->{parsed} : $handler->{wrote};
+
+	open(STDERR,">&OLD_STDERR") or die "Failed to restore STDERR";
+
+	seek( $err_file, 0, SEEK_SET );
+
+	while(<$err_file>)
+	{
+		$_ =~ s/^\s+//;
+		$_ =~ s/\s+$//;
+		next unless length($_);
+		push @problems, "Unhandled warning in ".$plugin->{id}.": $_";
 	}
 
-	my $list = EPrints::List->new(
-		dataset => $ds,
-		session => $session,
-		ids=>\@ids );
+	splice(@problems,100);
+	for(@problems)
+	{
+		s/^(.{400}).*$/$1 .../s;
+		$self->{processor}->add_message( "warning", $session->make_text( $_ ));
+	}
+
+	my $ok = (scalar(@problems) == 0 and $count > 0);
 
 	if( $dryrun )
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $self->html_phrase(
-				"test_completed", 
-				count => $session->make_text( $parsed ) ) ) unless $quiet;
+			$self->{processor}->add_message( "message", $session->html_phrase(
+				"Plugin/Screen/Import:test_completed", 
+				count => $session->make_text( $count ) ) ) unless $quiet;
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $self->html_phrase( 
-				"test_failed", 
-				count => $session->make_text( $parsed ) ) );
+			$self->{processor}->add_message( "warning", $session->html_phrase( 
+				"Plugin/Screen/Import:test_failed", 
+				count => $session->make_text( $count ) ) );
 		}
 	}
 	else
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $self->html_phrase( 
-				"import_completed", 
-				count => $session->make_text( $list->count ) ) );
+			$self->{processor}->add_message( "message", $session->html_phrase( 
+				"Plugin/Screen/Import:import_completed", 
+				count => $session->make_text( $count ) ) );
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $self->html_phrase( 
-				"import_failed", 
-				count => $session->make_text( $list->count ) ) );
+			$self->{processor}->add_message( "warning", $session->html_phrase( 
+				"Plugin/Screen/Import:import_failed", 
+				count => $session->make_text( $count ) ) );
 		}
 	}
-
-	if( scalar @misc > 0 && !$quiet )
-	{
-		my $text = substr(join( "", @misc[0..99]),0,40000);
-		my @lines = EPrints::DataObj::History::_mktext( $session, $text, 0, 0, 80 );
-
-		my $pre = $session->make_element( "pre" );
-		$pre->appendChild( $session->make_text( join( "\n", @lines ) ) );
-		$self->{processor}->add_message( "warning", $self->html_phrase(
-			"import_errors",
-			errors => $pre ) );
-	}
-
-	return $ok;
-
 }
 
 sub redirect_to_me_url
@@ -293,7 +293,9 @@ sub render
 	
 	for( @plugins )
 	{
-		my $plugin = $session->plugin( $_ );
+		my $plugin = $session->plugin( $_,
+			processor => $self->{processor},
+		);
 		next if $plugin->broken;
 		my $opt = $session->make_element( "option", value => $_  );
 		$opt->setAttribute( "selected", "selected" ) if $self->{processor}->{plugin} && $_ eq $self->{processor}->{plugin}->get_id;
@@ -310,6 +312,39 @@ sub render
 
 	return $page;
 
+}
+
+package EPrints::Plugin::Screen::Import::Handler;
+
+sub new
+{
+	my( $class, %self ) = @_;
+
+	$self{wrote} = 0;
+	$self{parsed} = 0;
+
+	bless \%self, $class;
+}
+
+sub message
+{
+	my( $self, $type, $msg ) = @_;
+
+	$self->{processor}->add_message( $type, $msg );
+}
+
+sub parsed
+{
+	my( $self, $epdata ) = @_;
+
+	$self->{parsed}++;
+}
+
+sub object
+{
+	my( $self, $dataset, $dataobj ) = @_;
+
+	$self->{wrote}++;
 }
 
 1;

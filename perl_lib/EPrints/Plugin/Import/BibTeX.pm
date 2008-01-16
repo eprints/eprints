@@ -2,7 +2,7 @@
 
 =head1 FILE FORMAT
 
-=head2 Supported fields->
+=head2 Supported fields
 
 =over 8
 
@@ -176,7 +176,7 @@ URL
 
 Abstract
 
-=head2 Unsupported fields->
+=head2 Unsupported fields
 
 =over 8
 
