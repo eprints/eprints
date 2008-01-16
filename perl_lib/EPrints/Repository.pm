@@ -123,7 +123,7 @@ sub new
 		# it each time the main server forks.
 		if( defined $poketime && $poketime > $self->{loadtime} )
 		{
-			print STDERR "$file has been modified since the repository config was loaded: reloading!";
+			print STDERR "$file has been modified since the repository config was loaded: reloading!\n";
 		}
 		else
 		{
@@ -1363,7 +1363,36 @@ END
 
 
 
+######################################################################
+=pod
 
+=item ( $returncode, $output) = $repository->test_config
+
+This runs "epadmin test" as an external script to test if the current
+configuraion on disk loads OK. This can be used by the web interface
+to test if changes to config. files may be saved, or not.
+
+$returncode will be zero if everything seems OK.
+
+If not, then $output will contain the output of epadmin test 
+
+=cut
+######################################################################
+
+sub test_config
+{
+	my( $self ) = @_;
+
+	my $cmd = $EPrints::SystemSettings::conf->{base_path}."/bin/epadmin test ".$self->get_id;
+
+        # Run command without user check
+        my $pid = open( OUTPUT, "EPRINTS_NO_CHECK_USER=1 $cmd 2>&1|" );
+	print STDERR "$cmd\n";
+        my @output = <OUTPUT>;
+        close OUTPUT;
+
+	return ($?/256, join( "", @output ));
+}
 
 
 

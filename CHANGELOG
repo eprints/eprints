@@ -6787,3 +6787,8 @@ PACKAGE: 2.2.99.2
 2008-01-15 cjg
  * Added template option to views.
  * Changed "template_id" option in page generation to "template"
+
+2008-01-16 cjg
+ * Added admin screen to reload config. Same as epadmin reload.
+ * Added method to Repository to test if the current configuration is valid.
+ * Added a missing \n to a errror message in Repository.pm

@@ -517,6 +517,13 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_start_indexer">Unable to start indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_stop_indexer">Unable to stop indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/Admin/Reload:title">Reload Configuration</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Reload:action:reload_config:title">Reload Configuration</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Reload:action:reload_config:description">Cause the repository to re-read its configuration files. Use with caution!</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Reload:reloaded">Repository configuration reloaded!</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Reload:reload_write_failed">Repository configuration not reloaded: Could not write to lastchanged.timestamp file.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Reload:reload_bad_config"><div>Repository configuration not reloaded. Errors in configuration files.</div><pre><epc:pin name="output" /></pre></epp:phrase>
+
 
     <epp:phrase id="cgi/export:no_id"><p>No valid EPrint ID Number was specified.</p></epp:phrase>
     <epp:phrase id="cgi/export:eprint_not_fount">EPrint with ID <epc:pin name="eprintid"/> was not found.</epp:phrase>
@@ -1344,6 +1351,9 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Convert/ImageMagick/Images:image/x-portable-pixmap">PPM</epp:phrase>
 	<epp:phrase id="Plugin/Convert/ImageMagick/Images:application/pdf">Adobe PDF</epp:phrase>
 	<epp:phrase id="Plugin/Convert/PlainText:text/plain">Plain Text</epp:phrase>
+
+  <epp:phrase id="Plugin/Screen/Admin/Config/Edit:could_not_write">Could not write file '<epc:pin name="filename" />'. Error message: <epc:pin name="error_msg" /></epp:phrase>  
+
 
 
   <epp:phrase id="languages_typename_aa">Afar</epp:phrase>  
