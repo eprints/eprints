@@ -125,14 +125,14 @@ package bin::import::Handler;
 use vars qw( %COLORS );
 
 eval "use Term::ANSIColor qw()";
-
-%COLORS = $@ ?
-()
-: (
-	reset => "reset",
-	error => "bold red",
-	warning => "bold yellow",
-);
+unless( $@ )
+{
+	%COLORS = (
+		reset => "reset",
+		error => "bold red",
+		warning => "bold yellow",
+	);
+}
 
 sub color
 {
@@ -158,7 +158,7 @@ sub message
 
 	print STDERR color($type);
 	$msg = EPrints::Utils::tree_to_utf8( $msg );
-	print STDERR "$msg\n";
+	print STDERR "\u$type! $msg\n";
 	print STDERR color('reset');
 }
 
@@ -395,11 +395,17 @@ if( $scripted )
 	print "EPRINTS_IMPORT: BEGIN\n";
 }
 
+eval {
 $plugin->input_file(
 		dataset=>$ds,
 		filename=>$filename,
 		user=>$userobj,
 	);
+};
+if( $@ )
+{
+	$handler->message( "error", $session->make_text( "Unhandled exception in ".$plugin->{id}.": $@" ) );
+}
 
 my $count = $parse_only ? $handler->{parsed} : $handler->{wrote};
 
