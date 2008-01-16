@@ -151,6 +151,7 @@ sub _import
 
 	my $handler = EPrints::Plugin::Screen::Import::Handler->new(
 		processor => $self->{processor},
+		user => $user,
 	);
 
 	$plugin->{Handler} = $handler;
@@ -208,14 +209,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $session->html_phrase(
-				"Plugin/Screen/Import:test_completed", 
+			$self->{processor}->add_message( "message", $self->html_phrase(
+				"test_completed", 
 				count => $session->make_text( $count ) ) ) unless $quiet;
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:test_failed", 
+			$self->{processor}->add_message( "warning", $self->html_phrase( 
+				"test_failed", 
 				count => $session->make_text( $count ) ) );
 		}
 	}
@@ -223,14 +224,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $session->html_phrase( 
-				"Plugin/Screen/Import:import_completed", 
+			$self->{processor}->add_message( "message", $self->html_phrase( 
+				"import_completed", 
 				count => $session->make_text( $count ) ) );
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:import_failed", 
+			$self->{processor}->add_message( "warning", $self->html_phrase( 
+				"import_failed", 
 				count => $session->make_text( $count ) ) );
 		}
 	}
@@ -345,6 +346,12 @@ sub object
 	my( $self, $dataset, $dataobj ) = @_;
 
 	$self->{wrote}++;
+
+	if( $dataset->confid eq "eprint" )
+	{
+		$dataobj->set_value( "userid", $self->{user}->get_id );
+		$dataobj->commit;
+	}	
 }
 
 1;
