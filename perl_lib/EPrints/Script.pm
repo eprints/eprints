@@ -35,7 +35,7 @@ The syntax is
  string := string := boolean
  boolean or boolean := boolean
  boolean and boolean := boolean
- dataobj.property := string or datastructure
+ dataobj{property} := string or datastructure
  dataobj.is_set( fieldname ) := boolean
  string.one_of( string, string, string... ) := boolean
  string.reverse() := string ( foobar=>raboof ) 
