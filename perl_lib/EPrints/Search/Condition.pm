@@ -693,17 +693,43 @@ END
 	my $r = [];
 #print STDERR "PROCESS: ".("  "x$i).$self->describe;
 
-	if( $self->{op} eq "index" )
+	my $tables = $self->get_tables( $session );
+
+	if( scalar @{$tables} == 0 )
 	{
-		my $where = "fieldword = ".$database->quote_value( 
-			$self->{field}->get_sql_name.":".$self->{params}->[0] );
-		$r = $session->get_database->get_index_ids( $self->get_table, $where );
+		if( $self->{op} eq "index" )
+		{
+			my $where = "fieldword = ".$database->quote_value( 
+				$self->{field}->get_sql_name.":".$self->{params}->[0] );
+			$r = $session->get_database->get_index_ids( $self->get_table, $where );
+		}
+
+		if( $self->{op} eq "indexstart" )
+		{
+			my $where = "fieldword LIKE ".$database->quote_value( 
+				EPrints::Database::prep_like_value($self->{field}->get_sql_name.":".$self->{params}->[0]) . "\%");
+			$r = $session->get_database->get_index_ids( $self->get_table, $where );
+		}
 	}
-	if( $self->{op} eq "index_start" )
+	elsif( $self->{op} eq "index" || $self->{op} eq "index_start" )
 	{
-		my $where = "fieldword LIKE ".$database->quote_value( 
-			EPrints::Database::prep_like_value($self->{field}->get_sql_name.":".$self->{params}->[0]) . "\%");
-		$r = $session->get_database->get_index_ids( $self->get_table, $where );
+		# joined tables on an index -- not efficient but this will work...
+
+		my $where = "$TABLEALIAS.field = ".$database->quote_value( $self->{field}->get_sql_name );
+		if( $self->{op} eq "index" )
+		{
+			$where .= " AND $TABLEALIAS.word = ".$database->quote_value( $self->{params}->[0] ); 
+		}
+		else
+		{
+			$where .= " AND $TABLEALIAS.word LIKE '".EPrints::Database::prep_like_value( $self->{params}->[0] )."\%'";
+		}	
+		push @{$tables}, {
+			left => $self->{field}->get_dataset->get_key_field->get_name, 
+			where => $where,
+			table => $self->{field}->get_dataset->get_sql_rindex_table_name,
+		};
+		$r = $self->run_tables( $session, $tables );
 	}
 
        	my $keyfield = $self->{dataset}->get_key_field();
@@ -738,7 +764,6 @@ END
 			$max = $total-1 if( $max > $total - 1 );
 			my @fset = @{$filter}[$i..$max];
 
-			my $tables = $self->get_tables( $session );
 			$tables->[0]->{where} = '('.$kfn.'='.join(' OR '.$kfn.'=', @fset ).' )';
 			push @{$tables}, {
 				left => $self->{field}->get_dataset->get_key_field->get_name, 
@@ -755,7 +780,6 @@ END
 
 	if( $self->{op} eq "in_subject" )
 	{
-		my $tables = $self->get_tables( $session );
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
 			right => $self->{field}->get_name,
@@ -785,7 +809,6 @@ END
 			$where = "($TABLEALIAS.$sql_col IS NULL OR ";
 			$where .= "$TABLEALIAS.$sql_col = '')";
 		}
-		my $tables = $self->get_tables( $session );
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
 			where => $where,
@@ -799,7 +822,6 @@ END
 	if( $self->{op} eq 'name_match' )
 	{
 		my $where = "($TABLEALIAS.".$sql_col."_given = ".$database->quote_value( $self->{params}->[0]->{given} )." AND $TABLEALIAS.".$sql_col."_family = ".$database->quote_value( $self->{params}->[0]->{family} ).")";
-		my $tables = $self->get_tables( $session );
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
 			where => $where,
@@ -868,7 +890,6 @@ END
 		{
 			$where = "$TABLEALIAS.$sql_col ".$self->{op}." ".$database->quote_value( $self->{params}->[0] );
 		}
-		my $tables = $self->get_tables( $session );
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
 			where => $where,

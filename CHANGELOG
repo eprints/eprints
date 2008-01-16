@@ -6811,3 +6811,6 @@ PACKAGE: 2.2.99.2
     not be reset, the revision number increased nor the XML file snapshotted
     on account of a change to this field. It still causes the abstract page
     to be updated and the field to be indexed. Closes #3221
+
+2008-01-16 cjg
+ * Can now do sub-object searches on indexed fields. Fixing #3188
