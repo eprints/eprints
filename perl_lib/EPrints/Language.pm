@@ -220,6 +220,11 @@ sub _get_phrase
 
 	my( $phraseinfo, $srchash, $is_fallback ) = $self->_get_phraseinfo_in_memory( $phraseid, $session );
 
+	if( !defined $phraseinfo )
+	{
+		return undef;
+	}
+
 	if( !defined $session->{config_file_mtime_checked}->{$phraseinfo->{file}} )
 	{
 		my @filestat = stat( $phraseinfo->{file} );
