@@ -514,8 +514,6 @@ sub update_view_page
 		return;
 	}
 
-use EPrints::Bench;
-EPrints::Bench::enter( "render_list_variations_search" );
 	my $ds = $session->get_repository->get_dataset( "archive" );
 	my $searchexp = new EPrints::Search(
 				custom_order=>$view->{order},
@@ -533,7 +531,6 @@ EPrints::Bench::enter( "render_list_variations_search" );
 	my $count = $list->count;
 	my @items = $list->get_records;
 	$list->dispose;
-EPrints::Bench::leave( "render_list_variations_search" );
 
 	# modes = first_letter, first_value, all_values (default)
 	my $alt_views = $view->{variations};
@@ -575,7 +572,6 @@ EPrints::Bench::leave( "render_list_variations_search" );
 		if( scalar @{$alt_views} > 1 )
 		{
 			print PAGE "<div class='ep_view_group_by'>Group by: ";
-	EPrints::Bench::enter( "loop0" );
 			foreach my $alt_view2 ( @{$alt_views} )
 			{
 				my( $fieldname2, $mode2 ) = split( /;/, $alt_view2 );
@@ -603,7 +599,6 @@ EPrints::Bench::leave( "render_list_variations_search" );
 				$first = 0;
 			}
 			print PAGE "</div>";
-	EPrints::Bench::leave( "loop0" );
 		}
 
 		if( $fieldname eq "DEFAULT" ) 
@@ -620,13 +615,10 @@ EPrints::Bench::leave( "render_list_variations_search" );
 
 
 		my $field = $ds->get_field( $fieldname );
-EPrints::Bench::enter( "group_items" );
 		my $data = group_items( $session, \@items, $field, $mode );
-EPrints::Bench::leave( "group_items" );
 
 		$first = 1;
 		print PAGE "<div class='ep_view_jump_to'>Jump to: ";
-EPrints::Bench::enter( "loop1" );
 		foreach my $pair ( @{$data} )
 		{
 			my( $code, $value, $items ) = @{$pair};
@@ -648,9 +640,7 @@ EPrints::Bench::enter( "loop1" );
 			$first = 0;
 		}
 		print PAGE "</div>\n";
-EPrints::Bench::leave( "loop1" );
 
-EPrints::Bench::enter( "loop2" );
 		foreach my $pair ( @{$data} )
 		{
 			my( $code, $value, $items ) = @{$pair};
@@ -670,7 +660,6 @@ EPrints::Bench::enter( "loop2" );
 			my( $block, $n ) = render_array_of_eprints( $session, $view, $items );
 			print PAGE $block;
 		}
-EPrints::Bench::leave( "loop2" );
 
 
 
@@ -747,26 +736,18 @@ sub render_array_of_eprints
 {
 	my( $session, $view, $items ) = @_;
 
-EPrints::Bench::enter( "render_array" );
 	my @r = ();
 
 	$view->{layout} = "paragraph" unless defined $view->{layout};	
 	foreach my $item ( @{$items} )
 	{
-EPrints::Bench::enter( "render_citation" );
 
-my $ctype = $view->{citation}||"default";
-if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
-{
-EPrints::Bench::enter( "real_render_citation" );
-	$session->{citesdone}->{$ctype}->{$item->get_id} = $item->render_citation_link( $view->{citation} )->toString;;
-EPrints::Bench::leave( "real_render_citation" );
-}
-EPrints::Bench::enter( "clone_citation" );
-my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
-EPrints::Bench::leave( "clone_citation" );
-
-EPrints::Bench::leave( "render_citation" );
+		my $ctype = $view->{citation}||"default";
+		if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
+		{
+			$session->{citesdone}->{$ctype}->{$item->get_id} = $item->render_citation_link( $view->{citation} )->toString;;
+		}
+		my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
 
 		if( $view->{layout} eq "paragraph" )
 		{
@@ -783,7 +764,6 @@ EPrints::Bench::leave( "render_citation" );
 			push @r, $cite, "\n";
 		}
 	}
-EPrints::Bench::leave( "render_array" );
 
 	my $n = @{$items};
 	if( !defined $view->{layout} )
