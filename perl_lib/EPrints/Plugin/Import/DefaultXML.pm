@@ -63,7 +63,7 @@ sub input_fh
 	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
 
 	eval { EPrints::XML::event_parse( $opts{fh}, $handler ) };
-	die $@ unless $@ eq "\n";
+	die $@ if $@ and $@ ne "\n";
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
