@@ -1387,7 +1387,6 @@ sub test_config
 
         # Run command without user check
         my $pid = open( OUTPUT, "EPRINTS_NO_CHECK_USER=1 $cmd 2>&1|" );
-	print STDERR "$cmd\n";
         my @output = <OUTPUT>;
         close OUTPUT;
 
