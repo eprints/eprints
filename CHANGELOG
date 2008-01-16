@@ -6801,3 +6801,8 @@ PACKAGE: 2.2.99.2
     warnings and object parse/creation events (should be transparent to the
 	actual plugins), fixing #3206, #2812, #3205
 
+2008-01-16 cjg
+ * Added riched syntax to user role specification
+ * Added web-based configuration editing (needs to have "config" option added
+    to a role to activate it)
+

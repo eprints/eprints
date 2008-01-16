@@ -1092,7 +1092,6 @@ my $PRIVMAP =
 
 	"admin" =>
 	{
-		"config/reload" => 2,
 		"indexer/stop" => 2,
 		"indexer/start" => 2,
 		"indexer/force_start" => 2,
@@ -1104,6 +1103,30 @@ my $PRIVMAP =
 		"subject/edit" => 8,
 		"staff/user_search" => 2,
 		"staff/history_search" => 2,
+	},
+
+	"config" => 
+	{
+		"config/view" => 2,
+		"config/view/workflow" => 2,
+		"config/view/citation" => 2,
+		"config/view/phrase" => 2,
+		"config/view/namedset" => 2,
+		"config/view/template" => 2,
+		"config/view/static" => 2,
+		"config/view/autocomplete" => 2,
+		"config/view/apache" => 2,
+		"config/view/perl" => 2,
+		"config/edit" => 2,
+		"config/edit/workflow" => 2,
+		"config/edit/citation" => 2,
+		"config/edit/phrase" => 2,
+		"config/edit/namedset" => 2,
+		"config/edit/template" => 2,
+		"config/edit/static" => 2,
+		"config/edit/autocomplete" => 2,
+		# not editing perl files or apache files!
+		"config/reload" => 2,
 	},
 
 	"saved-searches" => 
@@ -1314,11 +1337,45 @@ sub get_privs
 	return $self->{".privs"} if( defined $self->{".privs"} ) ;
 
 	$self->{".privs"} = {};
-	foreach my $role ( $self->get_roles )
+	my $rep = $self->{session}->get_repository;
+	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
+	foreach my $role ( @{$role_config} )
 	{
+		next if( $role =~ m/^[+-]/ );
 		foreach my $priv ( keys %{$PRIVMAP->{$role}} ) 
 		{ 
 			$self->{".privs"}->{$priv} = ($self->{".privs"}->{$priv}||0) + $PRIVMAP->{$role}->{$priv}; 
+		}
+	}
+	foreach my $role ( @{$role_config} )
+	{
+		if( $role =~ m/^([-+])([^[]+)(\[([^]]+)\])?$/ )
+		{
+			my $action = $1;
+			my $priv = $2;
+			my $relations = $4;
+			my $mode = 15;
+			if( defined $relations )
+			{
+				$mode = 0;
+				foreach my $relation ( split( ",", $relations ) )
+				{
+					if( $relation eq "public" ) { $mode |= 1; next; }
+					if( $relation eq "user" ) { $mode |= 2; next; }
+					if( $relation eq "owner" ) { $mode |= 4; next; }
+					if( $relation eq "editor" ) { $mode |= 8; next; }
+					EPrints::abort( "Unkown relation ($relation) in priv ($role)" );
+				}
+			}
+			if( $action eq "+" )
+			{
+				$self->{".privs"}->{$priv} |= $mode;
+			}
+
+			if( $action eq "-" )
+			{
+				$self->{".privs"}->{$priv} &= (~$mode);
+			}
 		}
 	}
 
@@ -1339,9 +1396,15 @@ sub get_roles
 	my( $self ) = @_;
 
 	my $rep = $self->{session}->get_repository;
-	my $roles = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
+	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
+	my @roles = ();
+	foreach my $role ( @{$role_config} )
+	{
+		next if( $role =~ m/^[+-]/ );
+		push @roles, $role;
+	}
 
-	return @{$roles};
+	return @roles;
 }
 
 sub has_role
