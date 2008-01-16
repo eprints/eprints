@@ -333,6 +333,7 @@ sub clear_changed
 {
 	my( $self ) = @_;
 	
+	$self->{non_volatile_change} = 0;
 	$self->{changed} = {};
 }
 
@@ -452,6 +453,11 @@ sub set_value_raw
 		if( !_equal( $self->{data}->{$fieldname}, $value ) )
 		{
 			$self->{changed}->{$fieldname} = $self->{data}->{$fieldname};
+			my $field = $self->{dataset}->get_field( $fieldname );
+			if( $field->get_property( "volatile" ) == 0 )
+			{
+				$self->{non_volatile_change} = 1;
+			}
 		}
 	}
 

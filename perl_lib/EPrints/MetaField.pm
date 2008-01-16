@@ -1987,6 +1987,7 @@ sub get_property_defaults
 		type 		=> $EPrints::MetaField::REQUIRED,
 		sub_name	=> $EPrints::MetaField::UNDEF,
 		parent_name	=> $EPrints::MetaField::UNDEF,
+		volatile	=> 0,
 
 		help_xhtml	=> $EPrints::MetaField::UNDEF,
 		title_xhtml	=> $EPrints::MetaField::UNDEF,

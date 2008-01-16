@@ -6806,3 +6806,8 @@ PACKAGE: 2.2.99.2
  * Added web-based configuration editing (needs to have "config" option added
     to a role to activate it)
 
+2008-01-16 cjg
+ * Added "volatile" flag to fields to indicate that the last modified should
+    not be reset, the revision number increased nor the XML file snapshotted
+    on account of a change to this field. It still causes the abstract page
+    to be updated and the field to be indexed. Closes #3221

@@ -188,7 +188,10 @@ sub commit
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;
 	}
-	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
+	if( $self->{non_volatile_change} )
+	{
+		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
+	}
 
 	$self->tidy;
 	my $rv = $self->{session}->get_database->update(

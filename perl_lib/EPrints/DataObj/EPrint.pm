@@ -865,14 +865,17 @@ sub commit
 		return( 1 ) unless $force;
 	}
 
-	my $rev_number = $self->get_value( "rev_number" ) || 0;
-	$rev_number += 1;
+	if( $self->{non_volatile_change} )
+	{
+		my $rev_number = $self->get_value( "rev_number" ) || 0;
+		$rev_number += 1;
 	
-	$self->set_value( "rev_number", $rev_number );
+		$self->set_value( "rev_number", $rev_number );
 
-	$self->set_value( 
-		"lastmod" , 
-		EPrints::Time::get_iso_timestamp() );
+		$self->set_value( 
+			"lastmod" , 
+			EPrints::Time::get_iso_timestamp() );
+	}
 
 	$self->tidy;
 	my $success = $self->{session}->get_database->update(
@@ -890,28 +893,34 @@ sub commit
 
 	unless( $self->under_construction )
 	{
-		$self->write_revision;
+		if( $self->{non_volatile_change} )
+		{
+			$self->write_revision;
+		}
 		$self->generate_static;
 	}
 
 	$self->queue_changes;
 	
-	my $user = $self->{session}->current_user;
-	my $userid = undef;
-	$userid = $user->get_id if defined $user;
-
-	my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
-	$history_ds->create_object( 
-		$self->{session},
-		{
-			userid=>$userid,
-			datasetid=>"eprint",
-			objectid=>$self->get_id,
-			revision=>$self->get_value( "rev_number" ),
-			action=>"modify",
-			details=>undef
-		}
-	);
+	if( $self->{non_volatile_change} )
+	{
+		my $user = $self->{session}->current_user;
+		my $userid = undef;
+		$userid = $user->get_id if defined $user;
+	
+		my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
+		$history_ds->create_object( 
+			$self->{session},
+			{
+				userid=>$userid,
+				datasetid=>"eprint",
+				objectid=>$self->get_id,
+				revision=>$self->get_value( "rev_number" ),
+				action=>"modify",
+				details=>undef
+			}
+		);
+	}
 
 	return( $success );
 }
