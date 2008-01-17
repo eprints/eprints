@@ -514,7 +514,6 @@ sub update_view_page
 		return;
 	}
 
-	my $ds = $session->get_repository->get_dataset( "archive" );
 	my $searchexp = new EPrints::Search(
 				custom_order=>$view->{order},
 				satisfy_all=>1,
