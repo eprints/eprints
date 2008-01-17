@@ -6821,4 +6821,5 @@ PACKAGE: 2.2.99.2
 
 2008-01-17 tdb
  * Fixed a problem with parsing BibTeX names that contained braces
+ * Change OAI record headers to use yyyy-mm-dd, fixing #3227
 
