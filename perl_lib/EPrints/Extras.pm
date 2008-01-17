@@ -66,13 +66,14 @@ sub render_xhtml_field
                 ErrorContext => 2,
                 NoLWP => 1 );
 
+		local $SIG{__DIE__};
         my $doc = eval { EPrints::XML::parse_xml_string( "<fragment>".$value."</fragment>" ); };
         if( $@ )
         {
                 my $err = $@;
                 $err =~ s# at /.*##;
 		my $pre = $session->make_element( "pre" );
-		$pre->appendChild( $session->make_text( "Error parsing XML: ".$err ) );
+		$pre->appendChild( $session->make_text( "Error parsing XML in render_xhtml_field: ".$err ) );
 		return $pre;
         }
 	my $fragment = $session->make_doc_fragment;
