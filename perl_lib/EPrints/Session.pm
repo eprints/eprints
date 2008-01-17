@@ -2337,7 +2337,7 @@ sub write_static_page
 	
 	my $dir = $filebase;
 	$dir =~ s/\/[^\/]*$//;
-	print STDERR "===($dir)\n";
+
 	if( !-d $dir ) { EPrints::Platform::mkdir( $dir ); }
 
 	foreach my $part_id ( keys %{$parts} )
