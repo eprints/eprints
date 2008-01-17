@@ -38,6 +38,8 @@ sub update_static_file
 {
 	my( $repository, $langid, $localpath ) = @_;
 
+	if( $localpath =~ m/\/$/ ) { $localpath .= "index.html"; }
+
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 
 	my @static_dirs = ();;
@@ -107,7 +109,7 @@ sub update_static_file
 			{
 				if( -e $dir.$base.$suffix )
 				{
-					$source = EPrints::Utils::mtime( $dir.$base.$suffix );
+					$source = $dir.$base.$suffix;
 					$source_mtime = EPrints::Utils::mtime( $source );
 					last DIRLOOP;
 				}
