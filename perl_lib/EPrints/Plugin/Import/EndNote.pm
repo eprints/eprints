@@ -418,6 +418,8 @@ sub input_fh
 	
 	my $fh = $opts{fh};
 
+	local $SIG{__WARN__} = sub { $plugin->warning( $_[0] ) };
+
 	while (my $input_data = $parser->input( $fh ) ) 
 	{
 		my $epdata = $plugin->convert_input( $input_data );

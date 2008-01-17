@@ -6,6 +6,8 @@ use EPrints::Plugin::Screen;
 use Fcntl qw(:DEFAULT :seek);
 use File::Temp qw/ tempfile /;
 
+our $MAX_ERR_LEN = 1024;
+
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
@@ -188,19 +190,29 @@ sub _import
 
 	seek( $err_file, 0, SEEK_SET );
 
+	my $err = "";
+
 	while(<$err_file>)
 	{
-		$_ =~ s/^\s+//;
 		$_ =~ s/\s+$//;
 		next unless length($_);
-		push @problems, "Unhandled warning in ".$plugin->{id}.": $_";
+		$err .= "$_\n";
+		last if length($err) > $MAX_ERR_LEN;
 	}
 
-	splice(@problems,100);
+	if( length($err) )
+	{
+		push @problems, "Unhandled warning in ".$plugin->{id}.": $err";
+	}
+
 	for(@problems)
 	{
-		s/^(.{400}).*$/$1 .../s;
-		$self->{processor}->add_message( "warning", $session->make_text( $_ ));
+		s/^(.{$MAX_ERR_LEN}).*$/$1 .../s;
+		s/\t/        /g; # help _mktext out a bit
+		my @lines = EPrints::DataObj::History::_mktext( $session, $_, 0, 0, 80 );
+		my $pre = $session->make_element( "pre" );
+		$pre->appendChild( $session->make_text( join( "\n", @lines )));
+		$self->{processor}->add_message( "warning", $pre );
 	}
 
 	my $ok = (scalar(@problems) == 0 and $count > 0);
