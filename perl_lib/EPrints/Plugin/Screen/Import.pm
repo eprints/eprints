@@ -154,6 +154,7 @@ sub _import
 	my $handler = EPrints::Plugin::Screen::Import::Handler->new(
 		processor => $self->{processor},
 		user => $user,
+		quiet => $quiet,
 	);
 
 	$plugin->{Handler} = $handler;
@@ -247,13 +248,11 @@ sub _import
 				count => $session->make_text( $count ) ) );
 		}
 	}
+
+	return $ok;
 }
 
-sub redirect_to_me_url
-{
-	my( $self ) = @_;
-	return $self->SUPER::redirect_to_me_url."&import_filename=" . $self->{session}->param( "import_filename" ) . "&pluginid=" . $self->{processor}->{plugin}->get_id;
-}
+sub redirect_to_me_url { }
 
 sub render
 {
@@ -274,12 +273,16 @@ sub render
 	my $table = $session->make_element( "table", width=>"100%" );
 
 	my $frag = $session->make_doc_fragment;
-	$frag->appendChild( $session->make_element(
+	my $textarea = $frag->appendChild( $session->make_element(
 		"textarea",
 		name => "import_data",
 		rows => 10,
 		cols => 50,
 		wrap => "virtual" ) );
+	if( defined(my $import_data = $session->param( "import_data" )) )
+	{
+		$textarea->appendChild( $session->make_text( $import_data ) );
+	}
 	$frag->appendChild( $session->make_element( "br" ) );
 	$frag->appendChild( $session->make_element( "br" ) );
 	$frag->appendChild( $session->render_upload_field( "import_filename" ) );
@@ -343,7 +346,10 @@ sub message
 {
 	my( $self, $type, $msg ) = @_;
 
-	$self->{processor}->add_message( $type, $msg );
+	unless( $self->{quiet} )
+	{
+		$self->{processor}->add_message( $type, $msg );
+	}
 }
 
 sub parsed
