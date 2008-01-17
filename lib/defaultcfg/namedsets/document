@@ -5,6 +5,7 @@ application/pdf
 application/postscript
 text/plain
 application/vnd.ms-powerpoint
+application/vnd.ms-excel
 application/msword
 image/jpeg
 image/png

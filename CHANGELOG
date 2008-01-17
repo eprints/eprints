@@ -6824,4 +6824,5 @@ PACKAGE: 2.2.99.2
  * Change OAI record headers to use yyyy-mm-dd, fixing #3227
  * Keep the data from a Test import, fixing #3134
  * Don't exit on bad XML when using render_xhtml_field, fixing #3147
+ * Added Microsoft Excel document format, fixing #3217
 

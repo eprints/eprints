@@ -70,6 +70,7 @@ $c->{guess_doc_type} = sub
 		return "application/postscript" if $suffix eq "ps";
 		return "text/plain" if $suffix eq "txt";
 		return "application/vnd.ms-powerpoint" if $suffix eq "ppt";
+		return "application/vnd.ms-excel" if $suffix eq "xls";
 		return "application/msword" if $suffix eq "doc";
 		return "image/jpeg" if $suffix eq "jpg";
 		return "image/jpeg" if $suffix eq "jpeg";
