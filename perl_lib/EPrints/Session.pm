@@ -1404,7 +1404,7 @@ sub render_option_list
 		
 
 
-	my $element = $self->make_element( "select" , name => $params{name} );
+	my $element = $self->make_element( "select" , name => $params{name}, id => $params{name} );
 	if( $params{multiple} )
 	{
 		$element->setAttribute( "multiple" , "multiple" );
