@@ -64,6 +64,8 @@ sub to_string
 }
 }
 
+use Carp;
+
 our $REGEXP_VON = qr/[a-z][^ ,]*/;
 
 
@@ -307,24 +309,33 @@ sub _Lexer
 {
 	my( $self ) = @_;
 
-	length($self->YYData->{INPUT})
-	or return ('', undef);
-
 	$self->YYData->{INPUT} =~ s/\n/ /g;
 	$self->YYData->{INPUT} =~ s/^[ \t\r]+//;
+
+	length($self->YYData->{INPUT})
+	or return ('', undef);
 
 	for($self->YYData->{INPUT})
 	{
 		s/^and //
 			and return( "AND" );
-		s/^\{//
-			and return( "PART", _Lexer_brace( $self ));
 		s/^,//
 			and return( "COMMA" );
 		s/^($REGEXP_VON)//
 			and return( "VON", $1 );
-		s/^([^ ,]+)//
-			and return( "PART", $1 );
+		my $buffer = "";
+		while( s/^(\{|[^ ,])// )
+		{
+			if( $1 eq '{' )
+			{
+				$buffer .= _Lexer_brace( $self );
+			}
+			else
+			{
+				$buffer .= $1;
+			}
+		}
+		return( "PART", $buffer );
 	}
 }
 
@@ -351,13 +362,26 @@ sub _Lexer_brace
 	return $buffer;
 }
 
+sub _Error
+{
+	my( $self ) = @_;
+
+	$self->YYData->{ERR} = 1;
+	$self->YYData->{ERRMSG} = "Unrecognised input near line " . $self->YYData->{LINE};
+}
+
 sub parse_string
 {
 	my( $self, $data ) = @_;
 
 	$self->YYData->{INPUT} = $data;
 
-	my $r = $self->YYParse( yylex => \&_Lexer );
+	my $r = $self->YYParse( yylex => \&_Lexer, yyerror => \&_Error );
+
+	if( $self->YYData->{ERR} )
+	{
+		Carp::croak "An error occurred while parsing BibTeX: " . ($self->YYData->{ERRMSG} || 'Unknown error?');
+	}
 
 	return $r;
 }

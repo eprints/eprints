@@ -6818,3 +6818,7 @@ PACKAGE: 2.2.99.2
 2008-01-16 cjg
  * Workflows now assign ID's to component level elements when the file is
     loaded rather than ad-hoc. This fixes #3216.
+
+2008-01-17 tdb
+ * Fixed a problem with parsing BibTeX names that contained braces
+

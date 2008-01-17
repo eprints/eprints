@@ -375,8 +375,14 @@ sub convert_input
 	# author/editor
 	foreach my $field (qw( author editor ))
 	{
-		next unless exists $fields->{$field};
-		my $names = $name_parser->parse_string( $fields->{$field}->[0] );
+		next unless exists $fields->{$field} and length $fields->{$field}->[0];
+		my $names;
+		eval { $names = $name_parser->parse_string( $fields->{$field}->[0] ) };
+		if( $@ )
+		{
+			$plugin->warning("Error parsing $field names: ".$fields->{$field}->[0]);
+			next;
+		}
 		foreach my $name (@$names)
 		{
 			my $a_name;
