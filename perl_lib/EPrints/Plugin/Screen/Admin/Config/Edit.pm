@@ -114,6 +114,10 @@ sub action_save_config
 	my( $self ) = @_;
 
 	my $data = $self->{session}->param( "data" );
+	
+	# de-dos da data
+	$data =~ s/\r\n/\n/g;	
+
 	if( !defined $data )
 	{
 		$self->{processor}->add_message( 
