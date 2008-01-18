@@ -77,6 +77,10 @@ sub render
 	$edit_screen_id =~ s/::View::/::Edit::/;
 	my $edit_screen = $self->{session}->plugin( $edit_screen_id, processor => $self->{processor} );
 
+	$self->{processor}->{screenid}=~m/::View::(.*)$/;
+	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
+	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/View:documentation", link=>$doc_link ));
+
 	if( $edit_screen->can_be_viewed )
 	{
 		my $form = $edit_screen->render_form;

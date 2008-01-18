@@ -6834,3 +6834,9 @@ PACKAGE: 2.2.99.2
 2008-01-17 cjg
  * Added an "id" attribute to <select> fields, which means that they can be
     found with prototype $F() method -- fixing some issues with autocomplete.
+
+2008-01-18 cjg
+ * Added missing phrase for reload-config screen.
+ * Added Links to documentation from config editor.
+ * Improved layout of config browse.
+

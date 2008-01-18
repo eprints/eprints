@@ -526,6 +526,7 @@ User Area CGI Scripts
 
 
     <epp:phrase id="Plugin/Screen/Admin/Config:title">View Configuration</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Config:description">View configuration files for this repository.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config:back_to_config"><p><epc:pin name="link">View other configuration files</epc:pin>.</p></epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Apache:page_title">View config file: <epc:pin name="file" /></epp:phrase>
@@ -594,6 +595,9 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit:save_config_button">Save changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit:revert_config_button">Revert to previous</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit:file_saved">File has been installed</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Admin/Config/Edit:documentation"><p><epc:pin name="link">View Documentation</epc:pin>.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Config/View:documentation"><p><epc:pin name="link">View Documentation</epc:pin>.</p></epp:phrase>
 
 
     <epp:phrase id="cgi/export:no_id"><p>No valid EPrint ID Number was specified.</p></epp:phrase>

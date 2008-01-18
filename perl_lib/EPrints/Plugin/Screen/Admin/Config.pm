@@ -41,7 +41,7 @@ sub render
 
 	my $page = $session->make_doc_fragment;
 
-	my $path_div = $session->make_element( "div" );
+	my $path_div = $session->make_element( "div", style=>"padding-bottom: 0.5em" );
 	$path_div->appendChild( $session->make_text( $path ));
 	$page->appendChild( $path_div );
 
@@ -67,11 +67,12 @@ sub render_dir
 	}
 	closedir( $dh );
 
-	my $div = $self->{session}->make_element( "div", style=>"margin-left: 0.5em; padding: 0.5em; border-left: 1px solid blue" );
+	my $div = $self->{session}->make_element( "div", style=>"margin-left: 1em; padding: 0.5em 0 0.5em 0; border-left: 1px solid blue" );
 	foreach my $file ( sort @files )
 	{
-		my $div_title = $self->{session}->make_element( "div", style=>"padding: 0.25em;" );
+		my $div_title = $self->{session}->make_element( "div", style=>"padding: 0.25em 0 0.25em 0;" );
 		$div->appendChild( $div_title );
+		$div_title->appendChild( $self->{session}->make_text( "- " ) );
 		if( -d "$realpath/$file" )
 		{
 			$div_title->appendChild( $self->{session}->make_text( $file ) );

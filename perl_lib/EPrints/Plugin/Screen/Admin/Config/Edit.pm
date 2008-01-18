@@ -215,6 +215,10 @@ sub render
 
 	$page->appendChild( $self->html_phrase( "intro" ));
 
+	$self->{processor}->{screenid}=~m/::Edit::(.*)$/;
+	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
+	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:documentation", link=>$doc_link ));
+
 	my $form = $self->render_form;
 	$page->appendChild( $form );
 
