@@ -471,7 +471,7 @@ sub link_problem_xhtml
 
 sub load_all
 {
-	my( $path, $v ) = @_;
+	my( $path, $confhash ) = @_;
 
 	my $dh;
 	opendir( $dh, $path ) || die "Could not open $path";
@@ -485,28 +485,51 @@ sub load_all
 		my $filename = "$path/$fn";
 		if( -d $filename )
 		{
-			$v->{$fn} = {} if( !defined $v->{$fn} );
-			load_all( $filename, $v->{$fn} );
+			$confhash->{$fn} = {} if( !defined $confhash->{$fn} );
+			load_all( $filename, $confhash->{$fn} );
 			next;
 		}
 		if( $fn=~m/^(.*)\.xml$/ )
 		{
 			my $id = $1;
-			if( !defined $v->{$id} )
-			{
-				my $doc = EPrints::XML::parse_xml( $filename );
-				$v->{$id} = $doc->documentElement();
-				# assign id attributes to every component
-				my $i = 1;
-				foreach my $component ( $v->{$id}->getElementsByTagName( "component" ) )
-				{
-					next if $component->hasAttribute( "id" );
-					$component->setAttribute( "id", "c".$i );
-					++$i;
-				}
-			}
+			load_workflow_file( $filename, $id, $confhash );
 		}
 	}
+}
+
+sub load_workflow_file
+{
+	my( $file, $id, $confhash ) = @_;
+
+	my $doc = EPrints::XML::parse_xml( $file );
+	$confhash->{$id}->{workflow} = $doc->documentElement();
+	# assign id attributes to every component
+	my $i = 1;
+	foreach my $component ( $confhash->{$id}->{workflow}->getElementsByTagName( "component" ) )
+	{
+		next if $component->hasAttribute( "id" );
+		$component->setAttribute( "id", "c".$i );
+		++$i;
+	}
+
+	$confhash->{$id}->{file} = $file;
+	$confhash->{$id}->{mtime} = EPrints::Utils::mtime( $file );
+}
+
+sub get_workflow_config
+{
+	my( $id, $confhash ) = @_;
+
+	my $file = $confhash->{$id}->{file};
+
+	my $mtime = EPrints::Utils::mtime( $file );
+
+	if( $mtime > $confhash->{$id}->{mtime} )
+	{
+		load_workflow_file( $file, $id, $confhash );
+	}
+
+	return $confhash->{$id}->{workflow};
 }
 
 

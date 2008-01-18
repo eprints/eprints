@@ -286,7 +286,9 @@ sub get_workflow_config
 {
 	my( $self, $datasetid, $workflowid ) = @_;
 
-	my $r = $self->{workflows}->{$datasetid}->{$workflowid};
+	my $r = EPrints::Workflow::get_workflow_config( 
+		$workflowid,
+		$self->{workflows}->{$datasetid} );
 
 	return $r;
 }
@@ -454,6 +456,29 @@ sub _load_citation_file
 	EPrints::XML::dispose( $doc );
 
 	$self->{citation_style}->{$dsid}->{$fileid} = $frag;
+
+	$self->{citation_sourcefile}->{$dsid}->{$fileid} = $file;
+	$self->{citation_mtime}->{$dsid}->{$fileid} = EPrints::Utils::mtime( $file );
+
+}
+
+sub freshen_citation
+{
+	my( $self, $dsid, $fileid ) = @_;
+
+	# this only really needs to be done once per file per session, but we
+	# don't have a handle on the current session
+
+	my $file = $self->{citation_sourcefile}->{$dsid}->{$fileid};
+	my $mtime = EPrints::Utils::mtime( $file );
+
+	my $old_mtime = $self->{citation_mtime}->{$dsid}->{$fileid};
+	if( defined $old_mtime && $old_mtime == $mtime )
+	{
+		return;
+	}
+
+	$self->_load_citation_file( $file, $dsid, $fileid );
 }
 
 ######################################################################
@@ -478,6 +503,8 @@ sub get_citation_spec
 
 	$style = "default" unless defined $style;
 
+	$self->freshen_citation( $dsid, $style );
+
 	my $spec = $self->{citation_style}->{$dsid}->{$style};
 	if( !defined $spec )
 	{
@@ -493,6 +520,8 @@ sub get_citation_type
 	my( $self, $dsid, $style  ) = @_;
 
 	$style = "default" unless defined $style;
+
+	$self->freshen_citation( $dsid, $style );
 
 	my $type = $self->{citation_type}->{$dsid}->{$style};
 	if( !defined $type )

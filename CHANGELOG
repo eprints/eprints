@@ -6847,3 +6847,7 @@ PACKAGE: 2.2.99.2
 2008-01-18 cjg
  * User "admin" role now can view config, but requires a edit-config role to
     be allowed to change it via CGI.
+
+2008-01-18 cjg
+ * Workflow config reloads if changed on disk. Closes #3182
+ * Citation config reloads if changed on disk. Closes #3181 
