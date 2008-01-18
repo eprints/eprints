@@ -6843,3 +6843,7 @@ PACKAGE: 2.2.99.2
 2008-01-18 cjg
  * Multiple field tables now get a primary key, although this isn't created
     if you upgrade (yet).
+	
+2008-01-18 cjg
+ * User "admin" role now can view config, but requires a edit-config role to
+    be allowed to change it via CGI.

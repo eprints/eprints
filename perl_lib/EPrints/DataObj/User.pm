@@ -1106,10 +1106,6 @@ my $PRIVMAP =
 		"subject/edit" => 8,
 		"staff/user_search" => 2,
 		"staff/history_search" => 2,
-	},
-
-	"config" => 
-	{
 		"config/view" => 2,
 		"config/view/workflow" => 2,
 		"config/view/citation" => 2,
@@ -1120,6 +1116,10 @@ my $PRIVMAP =
 		"config/view/autocomplete" => 2,
 		"config/view/apache" => 2,
 		"config/view/perl" => 2,
+	},
+
+	"edit-config" => 
+	{
 		"config/edit" => 2,
 		"config/edit/workflow" => 2,
 		"config/edit/citation" => 2,
