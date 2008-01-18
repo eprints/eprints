@@ -530,7 +530,7 @@ sub create_table
 		my $rv = $rv && $self->create_table(	
 			$dataset->get_sql_sub_table_name( $field ),
 			$dataset,
-			0, # no primary key
+			2, # use key + pos as primary key
 			@auxfields );
 	}
 
@@ -571,9 +571,16 @@ sub create_table
 		$sql .= $field->get_sql_type( $notnull );
 
 	}
-	if ( $setkey )	
+	if( $setkey )	
 	{
-		$sql .= ", PRIMARY KEY (".$key->get_sql_name().")";
+		if( $setkey == 2 )	
+		{
+			$sql .= ", PRIMARY KEY (".$key->get_sql_name().", pos )";
+		}
+		else
+		{
+			$sql .= ", PRIMARY KEY (".$key->get_sql_name().")";
+		}
 	}
 
 	

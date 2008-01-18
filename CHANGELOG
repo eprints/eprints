@@ -6840,3 +6840,6 @@ PACKAGE: 2.2.99.2
  * Added Links to documentation from config editor.
  * Improved layout of config browse.
 
+2008-01-18 cjg
+ * Multiple field tables now get a primary key, although this isn't created
+    if you upgrade (yet).
