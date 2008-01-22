@@ -846,7 +846,7 @@ END
 				'=', [ undef, 1 ] }->{$self->{op}} };
 			my $timemap = [ 'year','month','day','hour','minute','second' ];
 
-			my @parts = split( /[-: ]/, $self->{params}->[0] );
+			my @parts = split( /[-: TZ]/, $self->{params}->[0] );
 			my $nparts = scalar @parts;
 			if( $self->{field}->is_type( "date" ) && $nparts > 3 )
 			{
