@@ -224,7 +224,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"earliestDatestamp",
-		"0001-01-01" ) );
+		"0001-01-01T00:00:00Z" ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -234,7 +234,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"granularity",
-		"YYYY-MM-DD" ) );
+		"YYYY-MM-DDThh:mm:ssZ" ) );
 
 	my $d1 = $session->make_element( "description" );
 	my $NS = "http://www.openarchives.org/OAI/2.0/oai-identifier";
@@ -526,7 +526,7 @@ sub _list
 		}
 
 		my $date_range;
-		my( $date, $date, $errors, $g1, $g2, $e );
+		my( $date, $errors, $g1, $g2, $e );
 		$errors = [];
 		if( defined $args->{from} )
 		{
@@ -1038,43 +1038,7 @@ sub munge_date
 	}
 	my( $year, $month, $day, $hour, $min, $sec ) = ( $1 , $2 , $3 , $5, $6 , $7 );
 
-	if( defined $hour )
-	{
-		return( "", "", [render_oai_error(
-				$session,
-				"badArgument",
-				"Max granularity is YYYY-MM-DD: $string" )] );
-	}
+	my $granularity = defined($hour) ? "YYYY-MM-DDThh:mm:ssZ" : "YYYY-MM-DD";
 
-	my $granularity = "YYYY-MM-DD";
-
-	# $granularity = "YYYY-MM" unless( defined $day );
-	# $granularity = "YYYY" unless( defined $month );
-
-	# YYYY and YYYY-MM granularities disappeard between OAI2.0alpha3
-	# and OAI2.0 but I'll keep the code around just in case.
-
-#	if( !defined $month )
-#	{
-#		$month = ( $roundup ? 12 : 1 );
-#	}
-#	if( !defined $day )
-#	{
-#		$day = 1;
-#		if( $roundup )
-#		{
-#			$month+=1;
-#			if( $month == 13 ) { $month = 1; $year+=1; }
-#			my $gt = timegm(0,0,0,$day,$month-1,$year);
-#			# $gt is one month too far so we want one day less.
-#			my @bits = gmtime( $gt - 24*60*60 );
-#			$day = $bits[3];
-#			$month = $bits[4]+1;
-#			$year = $bits[5]+1900;
-#		}
-#	}
-
-	my $date = sprintf( "%04d-%02d-%02d",$year,$month,$day );
-
-	return( $date, $granularity, []);
+	return( $string, $granularity, []);
 }

@@ -6856,4 +6856,6 @@ PACKAGE: 2.2.99.2
  * Added handler to test data import tool, fixing #3241
  * When finding the parts of a date/time allow splitting on 'T' and 'Z' (time)
  * Allow date/datetime search terms to include a time component
+ * Modified oai interface to support seconds granularity, fixing #3227 in a
+    different way
 

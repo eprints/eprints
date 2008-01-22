@@ -82,12 +82,12 @@ sub make_header
 	unless( EPrints::Utils::is_set( $datestamp ) )
 	{
 		# is this a good default?
-		$datestamp = '0001-01-01';
+		$datestamp = '0001-01-01T00:00:00Z';
 	}
 	else
 	{
 		my( $date, $time ) = split( " ", $datestamp );
-		$datestamp = $date;
+		$datestamp = $date."T".$time."Z";
 	}
 	$header->appendChild( $session->render_data_element(
 		6,
