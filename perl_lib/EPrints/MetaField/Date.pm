@@ -400,24 +400,27 @@ sub get_search_conditions
 			$search_mode );
 }
 
+our $REGEXP_DATETIME = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
+
 sub get_search_conditions_not_ex
 {
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
-	# YYYY-MM-DD 
-	# YYYY-MM-DD-
-	# -YYYY-MM-DD
-	# YYYY-MM-DD-YYYY-MM-DD
+	# DATETIME
+	# DATETIME-
+	# -DATETIME
+	# DATETIME-DATETIME
+	# DATETIME := YEAR-MON-DAY{'T',' '}HOUR:MIN:SEC{'Z'}
 
 	my $drange = $search_value;
 	my $lastdate;
 	my $firstdate;
-	if( $drange =~ s/-(\d\d\d\d(-\d\d(-\d\d)?)?)$/-/ )
+	if( $drange =~ s/-($REGEXP_DATETIME)$/-/o )
 	{	
 		$lastdate = $1;
 	}
-	if( $drange =~ s/^(\d\d\d\d(-\d\d(-\d\d)?)?)(-?)$/$4/ )
+	if( $drange =~ s/^($REGEXP_DATETIME)(-?)$/$2/o )
 	{
 		$firstdate = $1;
 	}
