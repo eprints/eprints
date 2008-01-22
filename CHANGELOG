@@ -6851,3 +6851,7 @@ PACKAGE: 2.2.99.2
 2008-01-18 cjg
  * Workflow config reloads if changed on disk. Closes #3182
  * Citation config reloads if changed on disk. Closes #3181 
+
+2008-01-22 tdb
+ * Added handler to test data import tool, fixing #3241
+
