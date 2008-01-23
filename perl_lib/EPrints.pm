@@ -145,7 +145,6 @@ use EPrints::OpenArchives;
 use EPrints::Paginate;
 use EPrints::Paginate::Columns;
 use EPrints::Probity;
-use EPrints::Plugin;
 use EPrints::Repository;
 use EPrints::Search;
 use EPrints::Search::Field;
@@ -160,5 +159,9 @@ use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::Workflow::Processor;
 use EPrints::XML::EPC;
+
+# Load EPrints::Plugin last, because dynamically loaded plugins may have
+# EPrints dependencies
+use EPrints::Plugin;
 
 1;

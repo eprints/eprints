@@ -6860,3 +6860,7 @@ PACKAGE: 2.2.99.2
  * Modified oai interface to support seconds granularity, fixing #3227 in a
     different way
 
+2008-01-23 tdb
+ * Load the EPrints::Plugin module last to avoid dependency issues in
+    dynamically loaded plugins
+
