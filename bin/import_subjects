@@ -156,80 +156,7 @@ __GENERICPOD__
 
 =cut
 
-{
-package bin::import::Handler;
 
-use vars qw( %COLORS );
-
-eval "use Term::ANSIColor qw()";
-unless( $@ )
-{
-	%COLORS = (
-		reset => "reset",
-		error => "bold red",
-		warning => "bold yellow",
-	);
-}
-
-sub color
-{
-	my( $type ) = @_;
-
-	return exists $COLORS{$type} ? Term::ANSIColor::color( $COLORS{$type} ) : "";
-}
-
-sub new
-{
-    my( $class, %self ) = @_;
-
-    $self{wrote} = 0;
-    $self{parsed} = 0;
-	$self{ids} = [];
-
-    bless \%self, $class;
-}
-
-sub message
-{
-    my( $self, $type, $msg ) = @_;
-
-	print STDERR color($type);
-	$msg = EPrints::Utils::tree_to_utf8( $msg );
-	print STDERR "\u$type! $msg\n";
-	print STDERR color('reset');
-}
-
-sub parsed
-{
-    my( $self, $epdata ) = @_;
-
-    $self->{parsed}++;
-
-	if( $self->{scripted} )
-	{
-		print "EPRINTS_IMPORT: ITEM_PARSED\n";
-	}
-}
-
-sub object
-{
-    my( $self, $dataset, $dataobj ) = @_;
-
-    $self->{wrote}++;
-
-	push @{$self->{ids}}, $dataobj->get_id;
-
-	if( $self->{session}->get_noise > 1 )
-	{
-		print STDERR "Imported ".$dataset->id." ".$dataobj->get_id."\n";
-	}
-
-	if( $self->{scripted} )
-	{
-		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$dataobj->get_id."\n";
-	}
-}
-}
 
 use Getopt::Long;
 use Pod::Usage;
@@ -307,11 +234,6 @@ if( $purge )
 
 my $subds = $session->get_repository->get_dataset( "subject" );
 
-my $handler = bin::import::Handler->new(
-	session => $session,
-	scripted => 0,
-);
-
 print "Importing from $filename...\n" if( $noise >= 1 );
 
 my $ipluginid = "FlatSubjects";
@@ -320,7 +242,7 @@ if( $xml )
 	$ipluginid = "XML";
 }
 my $pluginid = "Import::".$ipluginid;
-my $plugin = $session->plugin( $pluginid, Handler => $handler );
+my $plugin = $session->plugin( $pluginid );
 
 if( !defined $plugin )
 {

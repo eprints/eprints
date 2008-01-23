@@ -119,81 +119,6 @@ __GENERICPOD__
 
 =cut
 
-{
-package bin::import::Handler;
-
-use vars qw( %COLORS );
-
-eval "use Term::ANSIColor qw()";
-unless( $@ )
-{
-	%COLORS = (
-		reset => "reset",
-		error => "bold red",
-		warning => "bold yellow",
-	);
-}
-
-sub color
-{
-	my( $type ) = @_;
-
-	return exists $COLORS{$type} ? Term::ANSIColor::color( $COLORS{$type} ) : "";
-}
-
-sub new
-{
-    my( $class, %self ) = @_;
-
-    $self{wrote} = 0;
-    $self{parsed} = 0;
-	$self{ids} = [];
-
-    bless \%self, $class;
-}
-
-sub message
-{
-    my( $self, $type, $msg ) = @_;
-
-	print STDERR color($type);
-	$msg = EPrints::Utils::tree_to_utf8( $msg );
-	print STDERR "\u$type! $msg\n";
-	print STDERR color('reset');
-}
-
-sub parsed
-{
-    my( $self, $epdata ) = @_;
-
-    $self->{parsed}++;
-
-	if( $self->{scripted} )
-	{
-		print "EPRINTS_IMPORT: ITEM_PARSED\n";
-	}
-}
-
-sub object
-{
-    my( $self, $dataset, $dataobj ) = @_;
-
-    $self->{wrote}++;
-
-	push @{$self->{ids}}, $dataobj->get_id;
-
-	if( $self->{session}->get_noise > 1 )
-	{
-		print STDERR "Imported ".$dataset->id." ".$dataobj->get_id."\n";
-	}
-
-	if( $self->{scripted} )
-	{
-		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$dataobj->get_id."\n";
-	}
-}
-}
-
 use Getopt::Long;
 use Pod::Usage;
 use strict;
@@ -356,7 +281,7 @@ END
 	}
 }
 
-my $handler = bin::import::Handler->new(
+my $handler = EPrints::CLIProcessor->new(
 	session => $session,
 	scripted => $scripted,
 );

@@ -6853,8 +6853,6 @@ PACKAGE: 2.2.99.2
  * Citation config reloads if changed on disk. Closes #3181 
 
 2008-01-22 tdb
- * Added handler to test data import tool, fixing #3241
- * Added handler to subject data import tool
  * When finding the parts of a date/time allow splitting on 'T' and 'Z' (time)
  * Allow date/datetime search terms to include a time component
  * Modified oai interface to support seconds granularity, fixing #3227 in a
@@ -6863,4 +6861,5 @@ PACKAGE: 2.2.99.2
 2008-01-23 tdb
  * Load the EPrints::Plugin module last to avoid dependency issues in
     dynamically loaded plugins
+ * Added EPrints::CLIProcessor module for handling CLI messages
 
