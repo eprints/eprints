@@ -633,7 +633,7 @@ sub add_record
 	# a stub entry, then call the update method which does the hard
 	# work.
 
-	my $sql = "INSERT INTO $table ( $kf_sql ) VALUES (".$self->quote_int( $id ).")";
+	my $sql = "INSERT INTO $table ( $kf_sql ) VALUES (".$self->quote_value( $id ).")";
 
 	# Send to the database
 	my $rv = $self->do( $sql );
@@ -927,7 +927,7 @@ sub update
 				$sql .= $fname;
 			}
 			$sql .= ") VALUES ($keyvalue, ";
-			$sql .=	$self->quote_int($v->{p}).", " if( $multifield->get_property( "multiple" ) );
+			$sql .=	$self->quote_value($v->{p}).", " if( $multifield->get_property( "multiple" ) );
 			if( $multifield->is_type( "name" ) )
 			{
 				$sql .= $self->quote_value( $v->{v}->{honourific} ).", ";
