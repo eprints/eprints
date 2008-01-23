@@ -87,6 +87,7 @@ sub make_header
 	else
 	{
 		my( $date, $time ) = split( " ", $datestamp );
+		$time = "00:00:00" unless defined $time; # Work-around for bad imports
 		$datestamp = $date."T".$time."Z";
 	}
 	$header->appendChild( $session->render_data_element(

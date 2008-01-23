@@ -6862,4 +6862,5 @@ PACKAGE: 2.2.99.2
  * Load the EPrints::Plugin module last to avoid dependency issues in
     dynamically loaded plugins
  * Added EPrints::CLIProcessor module for handling CLI messages
+ * If the time part of the lastmod is null default to 00:00:00, fixing #3243
 
