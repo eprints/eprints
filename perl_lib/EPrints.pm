@@ -149,6 +149,7 @@ use EPrints::Repository;
 use EPrints::Search;
 use EPrints::Search::Field;
 use EPrints::Search::Condition;
+use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
 use EPrints::Session;
 use EPrints::Script;
