@@ -17,6 +17,13 @@ sub new
 		$self->{session} = $self->{processor}->{session};
 	}
 
+	if( !$self->{Handler} )
+	{
+		$self->{Handler} = EPrints::CLIProcessor->new(
+			session => $self->{session}
+		);
+	}
+
 	$self->{name} = "Base input plugin: This should have been subclassed";
 	$self->{visible} = "all";
 	$self->{advertise} = 1;
