@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 ######################################################################
 #
 #  EPrints OAI 2.0 Handler
@@ -14,25 +16,20 @@
 #
 ######################################################################
 
-#cjg need to recomment all subs
-
 use EPrints;
-
-EPrints::abort( "OAI access to access logs is currently disabled" );
-
-# use FileHandle;
-# use IO::File;
-# use POSIX;
-# use XML::Writer;
-
-use URI::Escape;
-# use Time::Local;
 
 use strict;
 
 # New session
 my $session = new EPrints::Session();
 exit( 0 ) unless( defined $session );
+
+# Check the user is allowed to view the access logs
+if( !can_view_access( $session ) )
+{
+	$session->terminate;
+	exit 0;
+}
 
 # Allowed exports (OAI restricts the prefixes that can be used)
 our %FORMATS = ();
@@ -386,7 +383,7 @@ sub GetRecord
 
 	return join_errors( $session, $errors ) if( scalar @{$errors} > 0 );
 		
-	if( !defined $session->get_repository->get_conf( "oai", "v2", "metadata_namespaces" )->{$args->{metadataPrefix}} )
+	if( !defined($FORMATS{ $args->{metadataPrefix} }) )
 	{
 		return render_oai_error(
 				$session,
@@ -395,14 +392,24 @@ sub GetRecord
 
 	}
 
-	my $id = EPrints::OpenArchives::from_oai_identifier(
+	my $id = $args->{identifier};
+	$id =~ s/:access//;
+	$id = EPrints::OpenArchives::from_oai_identifier(
 			$session,
-			$args->{identifier} );
+			$id );
 
 	my $eprint = new EPrints::DataObj::Access(
 		$session,
 		$id,
 		$session->get_repository->get_dataset( "access" ) );
+
+	unless( $eprint )
+	{
+		return render_oai_error(
+				$session,
+				"idDoesNotExist",
+				"$args->{identifier} is not a valid identifier in this repository" );
+	}
 
 	my $response = $session->make_element( "GetRecord" );
 
@@ -530,7 +537,7 @@ sub _list
 		}
 
 		my $date_range;
-		my( $date, $date, $errors, $g1, $g2, $e );
+		my( $date, $errors, $g1, $g2, $e );
 		$errors = [];
 		if( defined $args->{from} )
 		{
@@ -613,7 +620,8 @@ END
 		{
 			$searchexp->add_field( 
 					$ds->get_field( "datestamp" ), 
-					$date_range );
+					$date_range,
+					"EX" );
 		}
 
 		$offset = 0;
@@ -651,7 +659,7 @@ END
 		return render_oai_error(
 			$session,
 			"noRecordsMatch",
-			"No items match. None. None at all. Not even deleted ones." );
+			"No items match. None. None at all. Not even deleted ones. (Internal query=" . $searchexp->serialise . ")" );
 	}	
 
 	my $cache = $searchexp->get_cache_id();
@@ -674,7 +682,7 @@ END
                	{
 			$response->appendChild( $session->make_indent( 2 ) );
 			$response->appendChild(
-				 EPrints::OpenArchives::make_header(
+				 make_header(
 					$session,
 					$eprint,
 					1 ) );
@@ -976,43 +984,19 @@ sub munge_date
 	}
 	my( $year, $month, $day, $hour, $min, $sec ) = ( $1 , $2 , $3 , $5, $6 , $7 );
 
+	my( $granularity, $date );
+
 	if( defined $hour )
+	{	
+		$date = sprintf( "%04d-%02d-%02dT%02d:%02d:%02dZ",$year,$month,$day,$hour,$min,$sec );
+		$granularity = "YYYY-MM-DDThh:mm:ssZ";
+	}
+	else
 	{
-		return( "", "", [render_oai_error(
-				$session,
-				"badArgument",
-				"Max granularity is YYYY-MM-DD: $string" )] );
+		$date = sprintf( "%04d-%02d-%02d",$year,$month,$day );
+		$granularity = "YYYY-MM-DD";
 	}
 
-	my $granularity = "YYYY-MM-DD";
-
-	# $granularity = "YYYY-MM" unless( defined $day );
-	# $granularity = "YYYY" unless( defined $month );
-
-	# YYYY and YYYY-MM granularities disappeard between OAI2.0alpha3
-	# and OAI2.0 but I'll keep the code around just in case.
-
-#	if( !defined $month )
-#	{
-#		$month = ( $roundup ? 12 : 1 );
-#	}
-#	if( !defined $day )
-#	{
-#		$day = 1;
-#		if( $roundup )
-#		{
-#			$month+=1;
-#			if( $month == 13 ) { $month = 1; $year+=1; }
-#			my $gt = timegm(0,0,0,$day,$month-1,$year);
-#			# $gt is one month too far so we want one day less.
-#			my @bits = gmtime( $gt - 24*60*60 );
-#			$day = $bits[3];
-#			$month = $bits[4]+1;
-#			$year = $bits[5]+1900;
-#		}
-#	}
-
-	my $date = sprintf( "%04d-%02d-%02d",$year,$month,$day );
 
 	return( $date, $granularity, []);
 }
@@ -1104,4 +1088,28 @@ sub make_record
     }
 
     return $record;
+}
+
+sub can_view_access
+{
+	my( $session ) = @_;
+
+	my $rc = 0;
+
+	my $user = $session->current_user;
+
+	if( !defined $user )
+	{
+		EPrints::Apache::AnApache::send_status_line( $session->{request}, 401, "Access denied" );
+	}
+	elsif( !$user->has_role( "access-view" ) )
+	{
+		EPrints::Apache::AnApache::send_status_line( $session->{request}, 401, "Access denied" );
+	}
+	else
+	{
+		$rc = 1;
+	}
+
+	return $rc;
 }

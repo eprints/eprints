@@ -6869,4 +6869,6 @@ PACKAGE: 2.2.99.2
     fixing #3235
  * Changed eprint & doc ids in access to INT, changed referring_entity_id to
     LONG, fixing #3128
+ * oai_accesslogs script is now *enabled*, but requires that the user be logged
+    in and have the 'access-view' role
 
