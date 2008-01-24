@@ -6864,3 +6864,7 @@ PACKAGE: 2.2.99.2
  * Added EPrints::CLIProcessor module for handling CLI messages
  * If the time part of the lastmod is null default to 00:00:00, fixing #3243
 
+2008-01-24 tdb
+ * Upgrade multiple tables by extending the PRIMARY KEY over the pos field,
+    fixing #3235
+

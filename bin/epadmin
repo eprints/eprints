@@ -1504,6 +1504,12 @@ sub upgrade
 		$dbversion="3.0.7";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.0.7" )
+	{
+		upgrade_3_0_7_to_3_0_8( $repoid, $db );
+		$dbversion="3.0.8";
+		$db->set_version( $dbversion );
+	}
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1678,6 +1684,27 @@ sub upgrade_3_0_6_to_3_0_7
 
 }
 
+sub upgrade_3_0_7_to_3_0_8
+{
+	my( $repoid, $db ) = @_;
+
+	# Expand id primary keys to id-pos on multiple fields
+	my $repo = EPrints::Repository->new( $repoid );
+	foreach my $datasetid ( qw/
+			access document eprint history
+			request saved_search subject user /)
+	{
+		my $dataset = $repo->get_dataset( $datasetid );
+		foreach my $field ($dataset->get_fields)
+		{
+			next unless $field->get_property( "multiple" );
+			next if $field->is_virtual;
+			my $table = $dataset->get_sql_sub_table_name( $field );
+			my $keyfield = $dataset->get_key_field;
+			$db->do("ALTER TABLE $table DROP PRIMARY KEY, ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
+		}
+	}
+}
 
 
 
