@@ -117,13 +117,13 @@ sub get_system_field_info
 
 		{ name=>"requester_institution", type=>"text", required=>0, text_index=>0, },
 
-		{ name=>"referring_entity_id", type=>"text", required=>0, text_index=>0, },
+		{ name=>"referring_entity_id", type=>"longtext", required=>0, text_index=>0, },
 
 		{ name=>"service_type_id", type=>"text", required=>1, text_index=>0, },
 
-		{ name=>"referent_id", type=>"text", required=>1, text_index=>0, },
+		{ name=>"referent_id", type=>"int", required=>1, text_index=>0, },
 
-		{ name=>"referent_docid", type=>"text", required=>0, text_index=>0, },
+		{ name=>"referent_docid", type=>"int", required=>0, text_index=>0, },
 	);
 }
 
@@ -294,6 +294,42 @@ sub remove
 	return $self->{session}->get_database->remove(
 		$self->{dataset},
 		$self->get_id );
+}
+
+=item $dataobj->get_referent_id()
+
+Return the fully qualified referent id.
+
+=cut
+
+sub get_referent_id
+{
+	my( $self ) = @_;
+
+	my $id = $self->get_value( "referent_id" );
+
+	$id =~ /:?(\d+)$/;
+
+	$id = EPrints::OpenArchives::to_oai_identifier( $self->{session}->get_repository->get_conf( "oai" )->{v2}->{ "archive_id" }, $1 );
+
+	return $id;
+}
+
+=item $dataobj->get_requester_id()
+
+Return the fully qualified requester id.
+
+=cut
+
+sub get_requester_id
+{
+	my( $self ) = @_;
+
+	my $id = $self->get_value( "requester_id" );
+
+	$id =~ s/^urn:ip://;
+
+	return "urn:ip:$id";
 }
 
 1;

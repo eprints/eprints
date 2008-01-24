@@ -6867,4 +6867,6 @@ PACKAGE: 2.2.99.2
 2008-01-24 tdb
  * Upgrade multiple tables by extending the PRIMARY KEY over the pos field,
     fixing #3235
+ * Changed eprint & doc ids in access to INT, changed referring_entity_id to
+    LONG, fixing #3128
 

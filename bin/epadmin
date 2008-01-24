@@ -1688,8 +1688,9 @@ sub upgrade_3_0_7_to_3_0_8
 {
 	my( $repoid, $db ) = @_;
 
-	# Expand id primary keys to id-pos on multiple fields
 	my $repo = EPrints::Repository->new( $repoid );
+
+	# Expand id primary keys to id-pos on multiple fields
 	foreach my $datasetid ( qw/
 			access document eprint history
 			request saved_search subject user /)
@@ -1704,8 +1705,24 @@ sub upgrade_3_0_7_to_3_0_8
 			$db->do("ALTER TABLE $table DROP PRIMARY KEY, ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
 		}
 	}
-}
 
+	# access dataset changes
+	my $dataset = $repo->get_dataset( "access" );
+	my $table = $dataset->get_sql_table_name;
+
+	# remove the 'urn:ip:' and 'info:oai:...:' bits
+	$db->do("UPDATE $table SET
+		referent_id=SUBSTRING_INDEX(referent_id,':',-1),
+		referent_docid=SUBSTRING_INDEX(referent_docid,'-',-1),
+		requester_id=SUBSTRING_INDEX(requester_id,'urn:ip:',-1)
+	");
+	my $changes_sql = '';
+	$changes_sql .= "MODIFY referring_entity_id LONG,";
+	$changes_sql .= "MODIFY referent_id INT,";
+	$changes_sql .= "MODIFY referent_docid INT,";
+	chop($changes_sql);
+	$db->do("ALTER TABLE $table $changes_sql");
+}
 
 
 
