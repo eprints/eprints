@@ -24,11 +24,101 @@ use EPrints::Plugin::Export;
 
 our $prefix = 'epdcx';
 
-our %SCHOLARLY_WORK_ELEMENTS = (
+# See http://www.ukoln.ac.uk/repositories/digirep/index/Eprints_Type_Vocabulary_Encoding_Scheme
+our %EPRINT_TYPES = (
+	article => "JournalArticle", # maybe SubmittedJournalArticle
+	book => "Book",
+	book_section => "BookItem",
+	conference_item => "ConferencePaper", # or Conference{Item,Poster}
+	thesis => "Thesis",
+);
+
+our @SCHOLARLY_WORK_ELEMENTS = (
 	"http://purl.org/dc/elements/1.1/title" => "title",
 	"http://purl.org/dc/elements/dc/terms/abstract" => "abstract",
-	"http://purl.org/dc/elements/dc/elements/1.1/creator" => "creators_name",
+	"http://purl.org/dc/elements/dc/elements/1.1/creator" => {
+		name => "creators_name",
+		render_value => \&name_value,
+	},
+	"http://purl.org/dc/elements/1.1/subject" => "subjects",
+	"http://www.loc.gov/loc.terms/relators/FND" => "funders",
+	"http://purl.org/eprint/terms/grantNumber" => "projects",
 );
+our @EXPRESSION_ELEMENTS = (
+	"http://purl.org/dc/elements/1.1/identifier" => {
+		name => "official_url",
+		render_value => \&doi_value,
+	},
+	"http://purl.org/dc/elements/1.1/title" => "title",
+	"http://purl.org/dc/terms/available" => {
+		name => "datestamp",
+		render_value => \&datetime_value,
+	},
+	"http://purl.org/dc/elements/1.1/language" => "lang",
+	"http://purl.org/dc/elements/1.1/type" => {
+		name => "type",
+		render_value => \&type_value,
+	},
+	"http://purl.org/dc/terms/bibliographicCitation" => {
+		name => "eprint_status", # always set, but ignored
+		render_value => \&citation_value,
+	},
+	"http://www.loc.gov/loc.terms/relators/EDT" => {
+		name => "editors_name",
+		render_value => \&name_value,
+	},
+);
+our @MANIFESTATION_ELEMENTS = (
+	"http://purl.org/dc/elements/1.1/format" => "format",
+);
+
+sub datetime_value
+{
+	my( $self, $value ) = @_;
+
+	my( $date, $time ) = split / /, $value;
+
+	$value = $date;
+	$value .= "T${time}Z" if $time;
+
+	return $self->{session}->make_text( $value );
+}
+
+sub name_value
+{
+	my( $self, $value ) = @_;
+
+	$value = EPrints::Utils::make_name_string( $value );
+
+	return $self->{session}->make_text( $value );
+}
+
+sub type_value
+{
+	my( $self, $value ) = @_;
+
+	return exists($EPRINT_TYPES{$value}) ?
+		("http://purl.org/eprint/type/" . $EPRINT_TYPES{$value}) :
+		undef;
+}
+
+sub citation_value
+{
+	my( $self, $value, $dataobj ) = @_;
+
+	$value = EPrints::Utils::tree_to_utf8( $dataobj->render_citation );
+
+	return $self->{session}->make_text( $value );
+}
+
+sub doi_value
+{
+	my( $self, $value ) = @_;
+
+	return unless $value =~ /^doi:/;
+
+	return $self->{session}->make_text( $value );
+}
 
 use strict;
 
@@ -134,7 +224,7 @@ sub scholarly_work
 	$description->appendChild( $session->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/identifier",
-	))->appendChild( $self->valueString( $dataobj->get_url,
+	))->appendChild( $self->valueString( $dataobj->get_url, $dataobj, undef,
 		"$prefix:sesURI" => "http://purl.org/dc/terms/URI",
 	) );
 
@@ -147,30 +237,14 @@ sub scholarly_work
 		));
 	}
 
-	while(my( $uri, $fieldname ) = each %SCHOLARLY_WORK_ELEMENTS)
-	{
-		next unless $dataobj->is_set( $fieldname );
-		my $field = $dataobj->get_dataset->get_field( $fieldname );
-		my $value = $dataobj->get_value( $fieldname );
-		my @values = ref($value) eq 'ARRAY' ? @$value : ($value);
-		foreach my $value (@values)
-		{
-			$value = EPrints::Utils::make_name_string( $value )
-				if $field->isa( "EPrints::MetaField::Name" );
-			$description->appendChild( $session->make_element(
-				"$prefix:statement",
-				"$prefix:propertyURI" => $uri,
-			))->appendChild( $self->valueString( $value ) );
-		}
-
-	}
+	$description->appendChild( $self->render_elements( $dataobj, \@SCHOLARLY_WORK_ELEMENTS ));
 
 	return $description;
 }
 
 sub expression
 {
-	my( $self, $eprint, $id, $manifestations ) = @_;
+	my( $self, $dataobj, $id, $manifestations ) = @_;
 
 	my $session = $self->{session};
 
@@ -180,10 +254,28 @@ sub expression
 		"$prefix:resourceId" => $id,
 	);
 
-	$description->appendChild( $session->make_element(
-		"$prefix:statement",
-		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/identifier",
-	))->appendChild( $self->valueString( EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
+	$description->appendChild( $self->render_elements( $dataobj, \@EXPRESSION_ELEMENTS ));
+
+	my $dataset = $dataobj->get_dataset;
+	if( $dataset->has_field( "refereed" ) and $dataobj->is_set( "refereed" ) )
+	{
+		if( $dataobj->get_value( "refereed" ) eq "TRUE" )
+		{
+			$description->appendChild( $session->make_element(
+				"$prefix:statement",
+				"$prefix:propertyURI" => "http://purl.org/eprint/terms/status",
+				"$prefix:valueURI" => "http://purl.org/eprint/status/PeerReviewed",
+			));
+		}
+		else
+		{
+			$description->appendChild( $session->make_element(
+				"$prefix:statement",
+				"$prefix:propertyURI" => "http://purl.org/eprint/terms/status",
+				"$prefix:valueURI" =>  "http://purl.org/eprint/status/NonPeerReviewed",
+			));
+		}
+	}
 
 	while(my( $id, $eprint ) = each %$manifestations )
 	{
@@ -215,10 +307,7 @@ sub manifestation
 		"$prefix:valueURI" => "http://purl.org/eprint/entity/entityType/Manifestation",
 	));
 
-	$description->appendChild( $session->make_element(
-		"$prefix:statement",
-		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/format",
-	))->appendChild( $self->valueString( $doc->get_value( "format" ) ) );
+	$description->appendChild( $self->render_elements( $doc, \@MANIFESTATION_ELEMENTS ));
 
 	$description->appendChild( $session->make_element(
 		"$prefix:statement",
@@ -259,9 +348,52 @@ sub available
 	return $description;
 }
 
+sub render_elements
+{
+	my( $self, $dataobj, $elements ) = @_;
+
+	my $session = $self->{session};
+
+	my $frag = $session->make_doc_fragment;
+
+	my $dataset = $dataobj->get_dataset;
+	for(my $i = 0; $i < @$elements; $i+=2)
+	{
+		my( $uri, $field ) = @$elements[$i,$i+1];
+		my( $f, $fieldname ) = ref($field) ?
+			@$field{qw( render_value name )} :
+			(\&valueString, $field);
+		next unless $dataset->has_field( $fieldname );
+		next unless $dataobj->is_set( $fieldname );
+		my $value = $dataobj->get_value( $fieldname );
+		my @values = ref($value) eq 'ARRAY' ? @$value : ($value);
+		foreach my $value (@values)
+		{
+			my $v = &$f( $self, $value, $dataobj, $field );
+			if( $v and ref($v) )
+			{
+				$frag->appendChild( $session->make_element(
+					"$prefix:statement",
+					"$prefix:propertyURI" => $uri,
+				))->appendChild( $v );
+			}
+			elsif( defined $v )
+			{
+				$frag->appendChild( $session->make_element(
+					"$prefix:statement",
+					"$prefix:propertyURI" => $uri,
+					"$prefix:valueURI" => $v,
+				));
+			}
+		}
+	}
+
+	return $frag;
+}
+
 sub valueString
 {
-	my( $self, $value, %attr ) = @_;
+	my( $self, $value, $dataobj, $field, %attr ) = @_;
 
 	my $ele = $self->{session}->make_element( "$prefix:valueString", %attr );
 	$ele->appendChild( $self->{session}->make_text( $value ) );
