@@ -6877,4 +6877,7 @@ PACKAGE: 2.2.99.2
 
 2008-02-01 tdb
  * Fixed typo in oai2 that prevented filters working, fixing #3250
+ * Added Export::TextFile superclass to support BOMed outputs, modified EndNote
+    export to export in UTF-8, modified RIS export to export in latin-1 (don't
+    squash hi-byte chars), fixing #2934
 

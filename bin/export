@@ -225,6 +225,7 @@ if( $single )
 		exit 1;
 	}
 
+	print $plugin->byte_order_mark;
 	print $dataobj->export( $opluginid );
 }
 else
@@ -245,6 +246,7 @@ else
 		session => $session,
 		ids=>\@objectids );
 
+	print $plugin->byte_order_mark;
 	$plugin->output_list( list=>$list, fh=>*STDOUT );
 }
 

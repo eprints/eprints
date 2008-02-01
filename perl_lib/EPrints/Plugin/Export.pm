@@ -193,6 +193,10 @@ sub dataobj_export_url
 	return $url;
 }
 
-	
+sub byte_order_mark
+{
+	"";
+}
+
 
 1;

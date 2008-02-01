@@ -305,7 +305,7 @@ use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
 
-use Unicode::String;
+use Encode;
 
 use strict;
 
@@ -560,27 +560,12 @@ sub remove_utf8
 {
 	my( $text, $char ) = @_;
 
-	$char = '?' unless defined $char;
+	return "" unless defined $text;
 
-	$text = "" unless( defined $text );
+	$text = Encode::decode_utf8($text); # stringify $text
+	$text = Encode::encode("iso-8859-1", $text, Encode::FB_DEFAULT);
 
-	my $stringobj = Unicode::String->new();
-	$stringobj->utf8( $text );
-	my $escstr = "";
-
-	foreach($stringobj->unpack())
-	{
-		if( $_ < 128)
-		{
-			$escstr .= chr( $_ );
-		}
-		else
-		{
-			$escstr .= $char;
-		}
-	}
-
-	return $escstr;
+	return $text;
 }
 
 1;

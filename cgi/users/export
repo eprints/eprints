@@ -93,6 +93,7 @@ unless( $ok ) {
 
 my $plugin = $session->plugin( "Export::$format" );
 $session->send_http_header( "content_type"=>$plugin->param("mimetype") );
+print $plugin->byte_order_mark;
 print $eprint->export( $format );	
 	
 $session->terminate;

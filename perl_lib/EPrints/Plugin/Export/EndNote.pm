@@ -8,10 +8,10 @@ See L<EPrints::Plugin::Import::EndNote>
 
 package EPrints::Plugin::Export::EndNote;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::TextFile;
 use EPrints;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::TextFile" );
 
 use strict;
 
@@ -209,49 +209,22 @@ sub output_dataobj
 
 	my $data = $plugin->convert_dataobj( $dataobj );
 
-	my $out;
+	my $out = "";
 	foreach my $k ( sort keys %{ $data } )
 	{
 		if( ref( $data->{$k} ) eq "ARRAY" )
 		{
 			foreach( @{ $data->{$k} } )
 			{
-				$out .= "%$k " . remove_utf8( $_ ) . "\n";
+				$out .= "\%$k " . $_ . "\n";
 			}
 		} else {
-			$out .= "%$k " . remove_utf8( $data->{$k} ) . "\n";
+			$out .= "\%$k " . $data->{$k} . "\n";
 		}
 	}
 	$out .= "\n";
 
 	return $out;
-}
-
-sub remove_utf8
-{
-	my( $text, $char ) = @_;
-
-	$char = '?' unless defined $char;
-
-	$text = "" unless( defined $text );
-
-	my $stringobj = Unicode::String->new();
-	$stringobj->utf8( $text );
-	my $escstr = "";
-
-	foreach($stringobj->unpack())
-	{
-		if( $_ < 128)
-		{
-			$escstr .= chr( $_ );
-		}
-		else
-		{
-			$escstr .= $char;
-		}
-	}
-
-	return $escstr;
 }
 
 1;
