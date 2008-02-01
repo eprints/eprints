@@ -482,7 +482,7 @@ sub _list
 				"badResumptionToken",
 				"Token is invalid (does not match regexp)" );
 		}
-		my $filters => $session->get_repository->get_conf( "oai", "filters" );
+		my $filters = $session->get_repository->get_conf( "oai", "filters" );
 		$filters = [] unless defined $filters;
 		my $cache_id;
 		( $offset, $cache_id, $metadata_format ) = ( $2, $3, $5 );
@@ -553,7 +553,7 @@ sub _list
 		}
 
 		my $ds = $session->get_repository->get_dataset( "archive" );
-		my $filters => $session->get_repository->get_conf( "oai", "filters" );
+		my $filters = $session->get_repository->get_conf( "oai", "filters" );
 		$filters = [] unless defined $filters;
 		$searchexp = new EPrints::Search(
 			session => $session,

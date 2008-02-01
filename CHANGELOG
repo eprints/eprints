@@ -6875,3 +6875,6 @@ PACKAGE: 2.2.99.2
 2008-01-25 tdb
  * Added URI::OpenURL module, to enable the openurl resolver by default
 
+2008-02-01 tdb
+ * Fixed typo in oai2 that prevented filters working, fixing #3250
+
