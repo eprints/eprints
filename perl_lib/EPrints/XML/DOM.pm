@@ -104,8 +104,6 @@ sub parse_url
 {
 	my( $url, $no_expand ) = @_;
 
-	EPrints::abort("parsefile has been disabled to avoid LWP dependency, looks like you'll need to use LibXML or GDOME");
-
 	my( %c ) = (
 		Namespaces => 1,
 		ParseParamEnt => 1,

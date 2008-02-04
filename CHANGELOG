@@ -6882,3 +6882,6 @@ PACKAGE: 2.2.99.2
     squash hi-byte chars), fixing #2934
  * Don't fill in autocompletion on tab, fixing #3247
 
+2008-02-04 tdb
+ * Re-enabled remote retrieval in XML::DOM's parsefile
+

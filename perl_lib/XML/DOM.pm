@@ -4247,55 +4247,54 @@ sub set_LWP_UserAgent
 
 sub parsefile
 {
-die "XML::DOM::parsefile disabled in EPrints2 Bundled Version to save you needing LWP!\n";
-#    my $self = shift;
-#    my $url = shift;
-#
-#
-#    # Any other URL schemes?
-#    if ($url =~ /^(https?|ftp|wais|gopher|file):/)
-#    {
-#	# Read the file from the web with LWP.
-#	#
-#	# Note that we read in the entire file, which may not be ideal
-#	# for large files. LWP::UserAgent also provides a callback style
-#	# request, which we could convert to a stream with a fork()...
-#
-#	my $result;
-#	eval
-#	{
-#	    use LWP::UserAgent;
-#
-#	    my $ua = $self->{LWP_UserAgent};
-#	    unless (defined $ua)
-#	    {
-#		unless (defined $LWP_USER_AGENT)
-#		{
-#		    $LWP_USER_AGENT = LWP::UserAgent->new;
-#
-#		    # Load proxy settings from environment variables, i.e.:
-#		    # http_proxy, ftp_proxy, no_proxy etc. (see LWP::UserAgent(3))
-#		    # You need these to go thru firewalls.
-#		    $LWP_USER_AGENT->env_proxy;
-#		}
-#		$ua = $LWP_USER_AGENT;
-#	    }
-#	    my $req = new HTTP::Request 'GET', $url;
-#	    my $response = $LWP_USER_AGENT->request ($req);
-#
-#	    # Parse the result of the HTTP request
-#	    $result = $self->parse ($response->content, @_);
-#	};
-#	if ($@)
-#	{
-#	    die "Couldn't parsefile [$url] with LWP: $@";
-#	}
-#	return $result;
-#    }
-#    else
-#    {
-#	return $self->SUPER::parsefile ($url, @_);
-#    }
+    my $self = shift;
+    my $url = shift;
+
+
+    # Any other URL schemes?
+    if ($url =~ /^(https?|ftp|wais|gopher|file):/)
+    {
+	# Read the file from the web with LWP.
+	#
+	# Note that we read in the entire file, which may not be ideal
+	# for large files. LWP::UserAgent also provides a callback style
+	# request, which we could convert to a stream with a fork()...
+
+	my $result;
+	eval
+	{
+	    use LWP::UserAgent;
+
+	    my $ua = $self->{LWP_UserAgent};
+	    unless (defined $ua)
+	    {
+		unless (defined $LWP_USER_AGENT)
+		{
+		    $LWP_USER_AGENT = LWP::UserAgent->new;
+
+		    # Load proxy settings from environment variables, i.e.:
+		    # http_proxy, ftp_proxy, no_proxy etc. (see LWP::UserAgent(3))
+		    # You need these to go thru firewalls.
+		    $LWP_USER_AGENT->env_proxy;
+		}
+		$ua = $LWP_USER_AGENT;
+	    }
+	    my $req = new HTTP::Request 'GET', $url;
+	    my $response = $LWP_USER_AGENT->request ($req);
+
+	    # Parse the result of the HTTP request
+	    $result = $self->parse ($response->content, @_);
+	};
+	if ($@)
+	{
+	    die "Couldn't parsefile [$url] with LWP: $@";
+	}
+	return $result;
+    }
+    else
+    {
+	return $self->SUPER::parsefile ($url, @_);
+    }
 }
 
 ######################################################################
