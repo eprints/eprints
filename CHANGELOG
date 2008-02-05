@@ -6885,3 +6885,6 @@ PACKAGE: 2.2.99.2
 2008-02-04 tdb
  * Re-enabled remote retrieval in XML::DOM's parsefile
 
+2008-02-05 tdb
+ * Added support for 'contributors' in DOI import
+

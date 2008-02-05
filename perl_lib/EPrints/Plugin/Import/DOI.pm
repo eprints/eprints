@@ -73,12 +73,18 @@ sub input_fh
 		{
 			next if( !EPrints::XML::is_dom( $node, "Element" ) );
 			my $name = $node->tagName;
-			my $value = EPrints::XML::to_string( EPrints::XML::contents_of( $node ) );
 			if( $node->hasAttribute( "type" ) )
 			{
 				$name .= ".".$node->getAttribute( "type" );
 			}
-			$data->{$name} = $value;
+			if( $name eq "contributors" )
+			{
+				$plugin->contributors( $data, $node );
+			}
+			else
+			{
+				$data->{$name} = EPrints::Utils::tree_to_utf8( $node );
+			}
 		}
 
 		EPrints::XML::dispose( $dom_doc );
@@ -99,13 +105,46 @@ sub input_fh
 		ids=>\@ids );
 }
 
+sub contributors
+{
+	my( $plugin, $data, $node ) = @_;
+
+	my @creators;
+
+	foreach my $contributor ($node->childNodes)
+	{
+		next unless EPrints::XML::is_dom( $contributor, "Element" );
+
+		my $creator_name = {};
+		foreach my $part ($contributor->childNodes)
+		{
+			if( $part->nodeName eq "given_name" )
+			{
+				$creator_name->{given} = EPrints::Utils::tree_to_utf8($part);
+			}
+			elsif( $part->nodeName eq "surname" )
+			{
+				$creator_name->{family} = EPrints::Utils::tree_to_utf8($part);
+			}
+		}
+		push @creators, { name => $creator_name }
+			if exists $creator_name->{family};
+	}
+
+	$data->{creators} = \@creators if @creators;
+}
+
 sub convert_input
 {
 	my( $plugin, $data ) = @_;
 
 	my $epdata = {};
 
-	if( defined $data->{author} )
+	if( defined $data->{creators} )
+	{
+		$epdata->{creators} = $data->{creators};
+	}
+	elsif( defined $data->{author} )
 	{
 		$epdata->{creators} = [ 
 			{ 
