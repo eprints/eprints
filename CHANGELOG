@@ -6887,4 +6887,5 @@ PACKAGE: 2.2.99.2
 
 2008-02-05 tdb
  * Added support for 'contributors' in DOI import
+ * Added export plugin for OpenURL COinS, hidden ContextObject dependencies
 

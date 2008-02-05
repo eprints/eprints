@@ -1,4 +1,4 @@
-package EPrints::Plugin::Export::ContextObject::Dissertation;
+package EPrints::Plugin::Export::ContextObject::Book;
 
 use EPrints::Plugin::Export::ContextObject;
 
@@ -7,11 +7,17 @@ use EPrints::Plugin::Export::ContextObject;
 use strict;
 
 our %MAPPING = qw(
+	book_title	btitle
 	title	title
 	pages	tpages
 	date	date
-	institution	inst
-	thesis_type	degree
+	isbn	isbn
+	issn	issn
+);
+our %GENRE_MAPPING = qw(
+	book	book
+	book_section	bookitem
+	conference_item	proceeding
 );
 
 sub new
@@ -20,11 +26,37 @@ sub new
 
 	my( $self ) = $class->SUPER::new( %opts );
 
-	$self->{name} = "OpenURL Dissertation";
+	$self->{name} = "OpenURL Book";
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "";
 
 	return $self;
+}
+
+sub convert_dataobj
+{
+	my( $plugin, $dataobj, %opts ) = @_;
+
+	my $data = $plugin->SUPER::convert_dataobj( $dataobj, %opts );
+
+	my $dataset = $dataobj->get_dataset;
+
+	if( $dataset->has_field( "type") && $dataobj->is_set( "type" ) )
+	{
+		my $type = $dataobj->get_value( "type" );
+		if( exists $GENRE_MAPPING{$type} )
+		{
+			push @$data, [ "genre", $GENRE_MAPPING{$type} ];
+		}
+		if( $type eq "book" )
+		{
+			for(@$data) {
+				$_->[0] = "btitle" if $_->[0] eq "title";
+			}
+		}
+	}
+
+	return $data;
 }
 
 sub xml_dataobj
@@ -34,8 +66,8 @@ sub xml_dataobj
 	return $plugin->xml_entity_dataobj( $dataobj, %opts,
 		mapping => \%MAPPING,
 		prefix => "dis",
-		namespace => "info:ofi/fmt:xml:xsd:dissertation",
-		schemaLocation => "info:ofi/fmt:xml:xsd:dissertation http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:dissertation",
+		namespace => "info:ofi/fmt:xml:xsd:book",
+		schemaLocation => "info:ofi/fmt:xml:xsd:book http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:book",
 	);
 }
 
@@ -60,7 +92,7 @@ sub kev_dataobj
 	# Sorry, this is a very compact way of expanding out the sub-arrays
 	@$data = (%$first_author, map { @$_ } @$data);
 
-	$ctx->dissertation( @$data );
+	$ctx->book( @$data );
 }
 
 1;

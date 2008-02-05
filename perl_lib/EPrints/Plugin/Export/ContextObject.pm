@@ -13,6 +13,33 @@ use strict;
 # not be any broken characters, but better to be
 # sure.
 
+our %TYPES = (
+	article => {
+		namespace => "info:ofi/fmt:xml:xsd:journal",
+		plugin => "Export::ContextObject::Journal"
+	},
+	book => {
+		namespace => "info:ofi/fmt:xml:xsd:book",
+		plugin => "Export::ContextObject::Book"
+	},
+	book_section => {
+		namespace => "info:ofi/fmt:xml:xsd:book",
+		plugin => "Export::ContextObject::Book"
+	},
+	conference_item => {
+		namespace => "info:ofi/fmt:xml:xsd:book",
+		plugin => "Export::ContextObject::Book"
+	},
+	thesis => {
+		namespace => "info:ofi/fmt:xml:xsd:dissertation",
+		plugin => "Export::ContextObject::Dissertation"
+	},
+	other => {
+		namespace => "info:ofi/fmt:xml:xsd:oai_dc",
+		plugin => "Export::ContextObject::DublinCore"
+	},
+);
+
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -31,9 +58,112 @@ sub new
 	return $self;
 }
 
+# This is used by sub-classed objects
+sub convert_dataobj
+{
+	my( $plugin, $dataobj, %opts ) = @_;
 
+	my $mapping = $opts{mapping} || {};
 
+	my $dataset = $dataobj->get_dataset;
 
+	my $data = [];
+
+	if( $dataset->has_field( "creators_name" ) and $dataobj->is_set( "creators_name" ) )
+	{
+		my $field = $dataset->get_field( "creators_name" );
+		foreach my $author ( @{$dataobj->get_value( "creators_name" )} )
+		{
+			push @$data, [ author => {
+				aulast => $author->{family},
+				aufirst => $author->{given},
+				au => EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{session}, [ $author ] ) )
+			} ];
+		}
+	}
+
+	while(my( $fieldname, $entity_field ) = each %$mapping)
+	{
+		next unless $dataset->has_field( $fieldname );
+		next unless $dataobj->is_set( $fieldname );
+		my $field = $dataset->get_field( $fieldname );
+
+		my $value;
+		if( $field->is_type( "pagerange" ) )
+		{
+			$value = $dataobj->get_value( $fieldname );
+		}
+		else
+		{
+			$value = EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{session}, $dataobj->get_value( $fieldname ) ) );
+		}
+		push @$data, [ $entity_field => $value ];
+	}
+
+	return $data;
+}
+
+sub xml_entity_dataobj
+{
+	my( $plugin, $dataobj, %opts ) = @_;
+
+	my $session = $plugin->{ "session" };
+	my $repository = $session->get_repository;
+
+	my $prefix = $opts{prefix};
+	my $namespace = $opts{namespace};
+	my $schemaLocation = $opts{schemaLocation};
+
+	my $entity = $session->make_element(
+		"$prefix:journal",
+		"xmlns:$prefix" => $namespace,
+		"xmlns:xsi" => "http://www.w3.org/2001/XML",
+		"xsi:schemaLocation" => $schemaLocation,
+	);
+
+	my $data = $plugin->convert_dataobj( $dataobj, %opts );
+
+	my $auths = $session->make_element( "$prefix:authors" );
+	$entity->appendChild( $auths );
+
+	foreach my $e (@$data)
+	{
+		if( $e->[0] eq "author" )
+		{
+			my $author = $e->[1];
+
+			my $auth = $auths->appendChild( $session->make_element( "$prefix:author" ) );
+
+			$auth->appendChild(
+				$session->make_element( "$prefix:aulast" )
+			)->appendChild(
+				$session->make_text( $author->{ "aulast" } )
+			);
+
+			$auth->appendChild(
+				$session->make_element( "$prefix:aufirst" )
+			)->appendChild(
+				$session->make_text( $author->{ "aufirst" } )
+			);
+
+			$auth->appendChild(
+				$session->make_element( "$prefix:au" )
+			)->appendChild(
+				$session->make_text( $author->{ "au" } )
+			);
+		}
+		else
+		{
+			my $node = $session->make_element( "$prefix:$e->[0]" );
+			$entity->appendChild( $node );
+			$node->appendChild( $session->make_text( $e->[1] ));
+		}
+	}
+
+	$entity->removeChild( $auths ) unless $auths->hasChildNodes;
+
+	return $entity;
+}
 
 sub output_list
 {
@@ -167,28 +297,13 @@ sub xml_eprint
 		$session->make_text( "info:".$oai_id )
 	);
 
-	my $etype = $eprint->get_value( "type" );
-	if( $etype eq "article" or $etype eq "conference_item" )
-	{
-		$rft->appendChild( $plugin->_metadata_by_val( $eprint, %opts,
-			schema => "info:ofi/fmt:xml:xsd:journal",
-			plugin => "Export::ContextObject::Journal"
-		));
-	}
-	elsif( $etype eq "thesis" )
-	{
-		$rft->appendChild( $plugin->_metadata_by_val( $eprint, %opts,
-			schema => "info:ofi/fmt:xml:xsd:dissertation",
-			plugin => "Export::ContextObject::Dissertation"
-		));
-	}
-	else
-	{
-		$rft->appendChild( $plugin->_metadata_by_val( $eprint, %opts,
-			schema => "info:ofi/fmt:xml:xsd:oai_dc",
-			plugin => "Export::OAI_DC"
-		));
-	}
+	my $type = $eprint->get_value( "type" );
+	$type = "other" unless exists $TYPES{$type};
+
+	$rft->appendChild( $plugin->_metadata_by_val( $eprint, %opts,
+		namespace => $TYPES{$type}->{namespace},
+		plugin => $TYPES{$type}->{plugin},
+	));
 
 	return $rft;
 }
@@ -284,14 +399,14 @@ sub _metadata_by_val
 	$md_val->appendChild(
 		$session->make_element( "ctx:format" )
 	)->appendChild(
-		$session->make_text( $opts{ "schema" } )
+		$session->make_text( $opts{ "namespace" } )
 	);
 	
 	my $md = $session->make_element( "ctx:metadata" );
 	$md_val->appendChild( $md );
 
-	my $jnl_plugin = $session->plugin( $opts{ "plugin" } );
-	$md->appendChild( $jnl_plugin->xml_dataobj( $dataobj ) );
+	my $entity_plugin = $session->plugin( $opts{ "plugin" } );
+	$md->appendChild( $entity_plugin->xml_dataobj( $dataobj ) );
 
 	return $md_val;
 }
