@@ -6894,4 +6894,5 @@ PACKAGE: 2.2.99.2
  * Only show a "deposit" button for eprints in the inbox
  * Removed debug log message in Platform::exec
  * Added EPrints namespace to <eprints> in XML export
+ * Added import/export plugins for XSL transforms
 
