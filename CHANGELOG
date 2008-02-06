@@ -6888,4 +6888,8 @@ PACKAGE: 2.2.99.2
 2008-02-05 tdb
  * Added support for 'contributors' in DOI import
  * Added export plugin for OpenURL COinS, hidden ContextObject dependencies
+ * Added an XSLT processor export plugin and example XSLT
+
+2008-02-06 tdb
+ * Only show a "deposit" button for eprints in the inbox
 

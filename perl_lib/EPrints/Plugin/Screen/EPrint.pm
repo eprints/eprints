@@ -183,7 +183,7 @@ sub render_blister
 	$table->appendChild( $tr );
 	my $first = 1;
 	my @stages = $workflow->get_stage_ids;
-	if( !$staff_mode )
+	if( !$staff_mode && $eprint->get_value( "eprint_status" ) eq "inbox" )
 	{
 		push @stages, "deposit";
 	}

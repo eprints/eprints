@@ -166,7 +166,16 @@ sub screen_after_flow
 {
 	my( $self ) = @_;
 
-	return "EPrint::Deposit";
+	my $eprint = $self->{processor}->{eprint};
+
+	if( $eprint->get_value( "eprint_status" ) eq "inbox" )
+	{
+		return "EPrint::Deposit";
+	}
+	else
+	{
+		return "EPrint::View";
+	}
 }
 
 
