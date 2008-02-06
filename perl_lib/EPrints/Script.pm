@@ -466,12 +466,12 @@ sub tokenise
 		elsif( $code =~ s/^\}// ) { $newtoken= { pos=>$pos, id=>'CLOSE_C' };  }
 		elsif( $code =~ s/^=// ) { $newtoken= { pos=>$pos, id=>'EQUALS' };  }
 		elsif( $code =~ s/^!=// ) { $newtoken= { pos=>$pos, id=>'NOTEQUALS' };  }
-		elsif( $code =~ s/^gt// ) { $newtoken= { pos=>$pos, id=>'GREATER_THAN' };  }
-		elsif( $code =~ s/^lt// ) { $newtoken= { pos=>$pos, id=>'LESS_THAN' };  }
+		elsif( $code =~ s/^gt\b// ) { $newtoken= { pos=>$pos, id=>'GREATER_THAN' };  }
+		elsif( $code =~ s/^lt\b// ) { $newtoken= { pos=>$pos, id=>'LESS_THAN' };  }
 		elsif( $code =~ s/^,// ) { $newtoken= { pos=>$pos, id=>'COMMA' };  }
 		elsif( $code =~ s/^!// ) { $newtoken= { pos=>$pos, id=>'NOT' };  }
-		elsif( $code =~ s/^and// ) { $newtoken= { pos=>$pos, id=>'AND' };  }
-		elsif( $code =~ s/^or// ) { $newtoken= { pos=>$pos, id=>'OR' };  }
+		elsif( $code =~ s/^and\b// ) { $newtoken= { pos=>$pos, id=>'AND' };  }
+		elsif( $code =~ s/^or\b// ) { $newtoken= { pos=>$pos, id=>'OR' };  }
 		elsif( $code =~ s/^([0-9]+)// ) { $newtoken= { pos=>$pos, id=>'INTEGER', value=>$1 };  }
 		elsif( $code =~ s/^([a-zA-Z][a-zA-Z0-9_-]*)// ) { $newtoken= { pos=>$pos, id=>'IDENT', value=>$1 };  }
 		else { $self->compile_error( "Parse error near: ".substr( $code, 0, 20) ); }

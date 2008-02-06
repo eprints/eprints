@@ -6895,4 +6895,5 @@ PACKAGE: 2.2.99.2
  * Removed debug log message in Platform::exec
  * Added EPrints namespace to <eprints> in XML export
  * Added import/export plugins for XSL transforms
+ * Only match whole words as logical operators, fixing #3252
 
