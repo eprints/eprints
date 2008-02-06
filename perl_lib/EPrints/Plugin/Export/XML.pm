@@ -42,7 +42,7 @@ sub output_list
 	my $r = [];
 
 	my $part;
-	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel>\n";
+	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel xmlns=\"http://eprints.org/ep2/data/2.0\">\n";
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
