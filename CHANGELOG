@@ -6902,4 +6902,5 @@ PACKAGE: 2.2.99.2
 2008-02-07 tdb
  * Don't roll indexer logs on start/stop, only every 24 hours, fixing #2855
  * Fixed doubly-quoted database values
+ * Make sure we actually remove index_queue entries, fixing #3256
 

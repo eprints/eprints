@@ -581,6 +581,9 @@ sub do_index
 	$sth->finish;
 	foreach my $fieldcode ( keys %todo )
 	{
+		# always remove them, even if they didn't index right.
+		my $sql = "DELETE FROM index_queue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
+		$session->get_database->do( $sql );
 		my( $datasetid, $objectid, $fieldid ) = split( /\./, $fieldcode );
 	
 		my $dataset = $session->get_repository->get_dataset( $datasetid );
@@ -612,12 +615,6 @@ sub do_index
 		EPrints::Index::indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
 		EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value );
 		EPrints::Index::indexlog( "* done-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
-	}
-	# always remove them, even if they didn't index right.
-	foreach my $fieldcode ( keys %todo )
-	{
-		my $sql = "DELETE FROM index_queue where field=\"$fieldcode\" AND added<FROM_UNIXTIME($now-1)";
-		$session->get_database->do( $sql );
 	}
 	return $seen_action;
 }	
