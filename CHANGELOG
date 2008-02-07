@@ -6899,3 +6899,6 @@ PACKAGE: 2.2.99.2
  * Updated to scriptaculous 1.8.1
  * Work-around for autocompletion not working in Opera, fixing #3041
 
+2008-02-07 tdb
+ * Don't roll indexer logs on start/stop, only every 24 hours, fixing #2855
+

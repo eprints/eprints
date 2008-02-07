@@ -298,7 +298,6 @@ if( $p->{loglevel} > 0 && $p->{daemon})
 	select( STDERR );
 	$| = 1;
 
-	EPrints::Index::rolllogs( $p );
 	EPrints::Index::indexlog();
 	EPrints::Index::indexlog();
 	EPrints::Index::indexlog( "**** Indexer starting..." );
@@ -436,8 +435,6 @@ while( 1 )
 		EPrints::Index::cleanup_indexer($p); 
 		exit;
 	}
-
-	EPrints::Index::rolllogs( $p );
 }
 
 
