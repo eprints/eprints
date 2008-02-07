@@ -76,13 +76,13 @@ sub remove
 	foreach my $code ( @codes )
 	{
 		my $fieldword = $session->{database}->quote_value( "$fieldid:$code" );
-		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword=".$session->{database}->quote_value($fieldword)." AND ids LIKE ".$session->{database}->quote_value("\%:$objectid:\%");
+		$sql = "SELECT ids,pos FROM $indextable WHERE fieldword=$fieldword AND ids LIKE ".$session->{database}->quote_value("\%:$objectid:\%");
 		$sth=$session->get_database->prepare( $sql );
 		$rv = $rv && $session->get_database->execute( $sth, $sql );
 		if( my($ids,$pos) = $sth->fetchrow_array )
 		{
 			$ids =~ s/:$objectid:/:/g;
-			$sql = "UPDATE $indextable SET ids = '$ids' WHERE fieldword='$fieldword' AND pos='$pos'";
+			$sql = "UPDATE $indextable SET ids = ".$session->{database}->quote_value($ids)." WHERE fieldword=$fieldword AND pos=$pos";
 			$rv = $rv && $session->get_database->do( $sql );
 		}
 		$sth->finish;
@@ -166,7 +166,7 @@ sub add
 		}
 		else
 		{
-			$sql = "SELECT ids FROM $indextable WHERE fieldword='$fieldword' AND pos=$n"; 
+			$sql = "SELECT ids FROM $indextable WHERE fieldword=$fieldword AND pos=$n"; 
 			$sth=$session->get_database->prepare( $sql );
 			$rv = $rv && $session->get_database->execute( $sth, $sql );
 			my( $ids ) = $sth->fetchrow_array;
@@ -175,7 +175,7 @@ sub add
 			# don't forget the first and last are empty!
 			if( (scalar @list)-2 < 128 )
 			{
-				$sql = "UPDATE $indextable SET ids='$ids$objectid:' WHERE fieldword='$fieldword' AND pos=$n";	
+				$sql = "UPDATE $indextable SET ids='$ids$objectid:' WHERE fieldword=$fieldword AND pos=$n";	
 				$rv = $rv && $session->get_database->do( $sql );
 				return 0 unless $rv;
 			}
@@ -187,7 +187,7 @@ sub add
 		}
 		if( $insert )
 		{
-			$sql = "INSERT INTO $indextable (fieldword,pos,ids ) VALUES ('$fieldword',$n,':$objectid:')";
+			$sql = "INSERT INTO $indextable (fieldword,pos,ids ) VALUES ($fieldword,$n,':$objectid:')";
 			$rv = $rv && $session->get_database->do( $sql );
 			return 0 unless $rv;
 		}
