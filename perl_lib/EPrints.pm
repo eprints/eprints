@@ -137,6 +137,7 @@ use EPrints::DataSet;
 use EPrints::Email;
 use EPrints::Extras;
 use EPrints::Index;
+use EPrints::Index::Daemon;
 use EPrints::Language;
 use EPrints::Latex;
 use EPrints::List;

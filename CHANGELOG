@@ -6903,4 +6903,6 @@ PACKAGE: 2.2.99.2
  * Don't roll indexer logs on start/stop, only every 24 hours, fixing #2855
  * Fixed doubly-quoted database values
  * Make sure we actually remove index_queue entries, fixing #3256
+ * Separated indexer daemon code into a new module, now checks and warns if key
+    files aren't writable, fixing #3242
 

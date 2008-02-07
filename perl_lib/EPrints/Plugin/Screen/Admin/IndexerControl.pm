@@ -30,8 +30,20 @@ sub new
 		},
 	];
 
+	$self->{daemon} = EPrints::Index::Daemon->new(
+		session => $self->{session},
+		Handler => $self->{processor},
+		logfile => EPrints::Index::logfile(),
+		noise => ($self->{session}->{noise}||1),
+	);
 
 	return $self;
+}
+
+sub get_daemon
+{
+	my( $self ) = @_;
+	return $self->{daemon};
 }
 
 sub about_to_render
@@ -43,7 +55,8 @@ sub about_to_render
 sub allow_stop_indexer
 {
 	my( $self ) = @_;
-	return 0 if( !EPrints::Index::is_running() || EPrints::Index::has_stalled() );
+
+	return 0 if( !$self->get_daemon->is_running || $self->get_daemon->has_stalled );
 	return $self->allow( "indexer/stop" );
 }
 
@@ -51,7 +64,7 @@ sub action_stop_indexer
 {
 	my( $self ) = @_;
 
-	my $result = EPrints::Index::stop( $self->{session} );
+	my $result = $self->get_daemon->stop( $self->{session} );
 
 	if( $result == 1 )
 	{
@@ -74,14 +87,17 @@ sub action_stop_indexer
 sub allow_start_indexer
 {
 	my( $self ) = @_;
-	return 0 if( EPrints::Index::is_running() );
+
+	return 0 if( $self->get_daemon->is_running() );
+
 	return $self->allow( "indexer/start" );
 }
 
 sub action_start_indexer
 {
 	my( $self ) = @_;
-	my $result = EPrints::Index::start( $self->{session} );
+
+	my $result = $self->get_daemon->start( $self->{session} );
 
 	if( $result == 1 )
 	{

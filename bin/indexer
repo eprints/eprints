@@ -149,7 +149,6 @@ EPrints::Utils::cmd_version( "indexer" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 1 );
-pod2usage( 2 ) if( $ARGV[0] ne "start" && $ARGV[0] ne "stop" && $ARGV[0] ne "status" );
 
 our $noise = 1;
 $noise = 0 if( $quiet );
@@ -166,108 +165,81 @@ my $p = {
 	tickfile => EPrints::Index::tickfile(),
 };
 
-if( defined $logfile ) 
-{
-	$p->{logfile} = $logfile;
-}
+$logfile ||= EPrints::Index::logfile();
+$logfile = undef if $logfile eq "-" or $notdaemon;
+
+my $daemon = EPrints::Index::Daemon->new(
+	noise => $loglevel,
+	rollcount => $rollcount,
+	logfile => $logfile,
+	once => $once,
+);
 
 if( $ARGV[0] eq "status" )
 {
-	if( !-e $p->{pidfile} )
+	status();
+}
+elsif( $ARGV[0] eq "start" )
+{
+	if( $force )
+	{
+		$daemon->remove_pid;
+	}
+
+	start();
+}
+elsif( $ARGV[0] eq "stop" )
+{
+	stop();
+}
+else
+{
+	pod2usage( 2 );
+}
+
+sub status
+{
+	if( !$daemon->is_running )
 	{
 		print "Indexer is not running\n";
-		exit;
-	}
-
-	if( !-e $p->{tickfile} )
-	{
-		print "Indexer may not have started correctly - tick file not found.\n";
-		exit;
-	}
-
-	if( EPrints::Index::has_stalled() )
+	} 
+	elsif( $daemon->has_stalled() )
 	{
 		print "Indexer appears to have stalled. It may need restarting.\n";
-		exit;
 	}	
 	else
 	{
-		my $last_tick = EPrints::Index::get_last_tick();
-		my $pid = EPrints::Index::get_pid();
-		print "Indexer appears to be running with PID $pid. Next index in ".(30-$last_tick)." seconds.\n";
-		exit;
-	}
-}
-
-
-if( $ARGV[0] eq "stop" )
-{
-	exit if EPrints::Index::stop();
-
-	print "First request for indexer to stop failed. I'll try and kill it...\n\n";
-
-	if( !-e $p->{pidfile} )
-	{
-		print <<END;
-$p->{pidfile} does not appear to exist.
-
-Maybe something bad happened? If indexer is still running you will have to
-shut it down by hand.
-END
-		exit 1;
-	}
-
-	my $pid = EPrints::Index::get_pid();
-
-	if( !defined $pid )
-	{	
-		die "Could not find PID in $p->{pidfile}.  Weird. Better kill it by hand.";
-	}
-	
-	# if "kill" is not in bin then this will cause trouble. 
-	print "Sending TERM signal to $pid\n" if( $p->{noise} > 1 );
-	kill 15, $pid;
-
-
-	# give it 10 seconds
-	my $counter = 10;
-	for( 1..$counter )
-	{
-		if( !-e $p->{pidfile} )
+		my $last_tick = $daemon->get_last_tick();
+		my $pid = $daemon->get_pid;
+		my $interval = $daemon->get_interval;
+		if( $last_tick > $interval )
 		{
-			print "...Killed $pid\n" if( $p->{noise} > 1 );
-			exit 0;
+			print "Indexer is running with PID $pid but the next index is overdue by ".($last_tick-$interval)." seconds.\n";
 		}
-		sleep 1;
-		print "tick\n" if( $p->{noise} > 2 );
+		else
+		{
+			print "Indexer is running with PID $pid. Next index in ".($interval-$last_tick)." seconds.\n";
+		}
 	}
-
-	print <<END;
-pidfile did not disappear within $counter seconds, so something didn't 
-work somewhere. Try killing process number $pid (if it exists) and 
-then removing $p->{pidfile}
-END
-
-	exit;
 }
 
 
-#foreach my $arc_id ( EPrints::Config::get_repository_ids() )
-#{
-#
-#	my $session  = new EPrints::Session( 1 , $arc_id , $noise );
-#	if( !defined $session ) 
-#	{
-#		print STDERR "Error opening session: $arc_id\n";
-#		exit( 1 );
-#	}
-#	$session->terminate;
-#}
-
-if( !$force && -e $p->{pidfile} )
+sub stop
 {
-	my $pid = EPrints::Index::get_pid();
-	print <<END;
+	if( $daemon->is_running )
+	{
+		$daemon->stop_daemon;
+	}
+}
+
+
+sub start
+{
+	if( $daemon->is_running )
+	{
+		my $pid = $daemon->get_pid();
+		my $pidfile = $daemon->get_pidfile();
+		print <<END;
 
 EPrints indexer appears to be running with process ID $pid. 
 It may have crashed. 
@@ -275,168 +247,29 @@ It may have crashed.
 To check if the process is still running (on a linux system)
 use:
 
-ps auwwx | grep indexer
+ps auwx | grep indexer
 
 Options to "ps" vary on other systems. You may also try:
 
 ps -ef | grep indexer
 
 If indexer is not already running you may either:
- * delete the PID file: $p->{pidfile} 
+ * delete the PID file: $pidfile
  * run indexer with the --force option
 
 END
-	exit 1;
-}
-if( $p->{daemon})
-{
-	close STDERR;
-}
-if( $p->{loglevel} > 0 && $p->{daemon})
-{
-	open( STDERR, ">>$p->{logfile}" ) || die "Error opening $p->{logfile} as STDERR: $!";
-	select( STDERR );
-	$| = 1;
-
-	EPrints::Index::indexlog();
-	EPrints::Index::indexlog();
-	EPrints::Index::indexlog( "**** Indexer starting..." );
-}
-
-
-if( $p->{daemon} )
-{
-	EPrints::Index::indexlog( "**** Becoming Daemon" );
-	close STDIN;
-	open STDIN, "/dev/null" || die "Can't open /dev/null for reading: $!";
-	close STDOUT;
-	open( STDOUT, ">>$p->{logfile}" ) || die "Error opening $p->{logfile} as STDOUT: $!";
-	exit if fork;
-	exit if fork;
-}
-
-
-
-$SIG{TERM} = sub { 
-	EPrints::Index::indexlog( "*** TERM signal received" ) if( $p->{loglevel} > 1 );
-	EPrints::Index::cleanup_indexer( $p );
-	exit;
-};
-
-
-if( $p->{daemon} )
-{
-	EPrints::Index::write_pid();
-	EPrints::Index::do_tick();
-}
-
-if( EPrints::Index::suicidal() ) 
-{
-	unlink( EPrints::Index::suicidefile() );
-}
-
-EPrints::Index::indexlog( "** Indexer control process started with process ID: $$" ) if( $p->{loglevel} > 2 );
-
-while( 1 ) 
-{
-	EPrints::Index::indexlog( "*** Starting indexing" ) if( $p->{loglevel} > 1 );
-	
-	$p->{kid} = fork();
-	if( $p->{kid} == 0 )
-	{
-		setsid or die "Unable to start UNIX setsid session: $!\n";
-		my @sessions = ();
-		my @arc_ids = EPrints::Config::get_repository_ids();
-		foreach my $arc_id ( sort @arc_ids )
-		{
-			my $repository = EPrints::Repository->new( $arc_id );
-			next unless $repository->get_conf( "index" );
-			my $session = new EPrints::Session( 1 , $arc_id );
-			if( !defined $session )
-			{
-				EPrints::Index::indexlog( "!! Could not open session for $arc_id" );
-				next;
-			}
-			push @sessions, $session;
-		}
-
-		$SIG{TERM} = sub { 
-			EPrints::Index::indexlog( "** Worker process terminated: $$" ) if( $p->{loglevel} > 2 );
-			foreach( @sessions ) { $_->terminate; }
-			exit;
-		};
-		$SIG{ALRM} = sub {
-			EPrints::Index::indexlog( "** Wake up... time to die: $$" ) if( $p->{loglevel} > 2 );
-			EPrints::Index::indexlog( "** Worker process restarting: $$" ) if( $p->{loglevel} > 2 );
-			foreach( @sessions ) { $_->terminate; }
-			EPrints::Index::rolllogs( $p );
-			exit;
-		};
-		# restart once a day in case of memory leaks
-		alarm( 60*60*24 ) unless $p->{once};  
-			
-		EPrints::Index::indexlog( "** Worker process started: $$" ) if( $p->{loglevel} > 2 );
-		my $cmd = "/usr/bin/renice 8 $$";	
-		`$cmd`;
-
-		while( 1 ) 
-		{
-			my $seen_action = 0;
-
-			foreach my $session ( sort @sessions )
-			{
-				$seen_action ||= EPrints::Index::do_index( $session, $p );
-			}
-
-			EPrints::Index::indexlog( "* tick: $$" ) if( $p->{loglevel} > 3 );
-#			EPrints::Index::write_pid();
-			EPrints::Index::do_tick();
-			if( EPrints::Index::suicidal )
-			{
-				EPrints::Index::indexlog( "** Indexer sub process asked to suicide" );
-				exit;
-			}
-	
-			next if( $seen_action );
-			
-			if( $p->{once} )	
-			{
-				EPrints::Index::indexlog( "** Queue empty: Sub process exiting: $$" ) if( $p->{loglevel} > 2 );
-				foreach( @sessions ) { $_->terminate; }
-				exit;
-			}
-
-			# wait 30 seconds. Check suicide requests every 5 seconds.
-			for( my $i=0; $i<6; $i++ )
-			{
-				if( EPrints::Index::suicidal )
-				{
-					EPrints::Index::indexlog( "** Indexer sub process asked to suicide" );
-					exit;
-				}
-				sleep 5;
-			}
-		}
-		exit;
-	}
-	wait; 
-	undef $p->{kid};
-
-	if( EPrints::Index::suicidal )
-	{
-		EPrints::Index::indexlog( "** Indexer control process asked to suicide" );
-		EPrints::Index::cleanup_indexer($p);
-		exit;
+		exit 1;
 	}
 
-
-	if( $p->{once} )
+	if( $notdaemon )
 	{
-		EPrints::Index::cleanup_indexer($p); 
-		exit;
+		$daemon->run_index();
+	}
+	else
+	{
+		$daemon->start_daemon();
 	}
 }
-
 
 ####################################################################################
 
