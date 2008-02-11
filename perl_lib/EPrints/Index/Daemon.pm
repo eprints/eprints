@@ -620,8 +620,17 @@ sub should_respawn
 {
 	my( $self ) = @_;
 
-	my $rc = (defined($self->{nextrespawn}) and time() > $self->{nextrespawn});
-	$self->{nextrespawn} = time() + $self->get_respawn;
+	my $rc = 0;
+
+	if( !defined $self->{nextrespawn} )
+	{
+		$self->{nextrespawn} = time() + $self->get_respawn;
+	}
+	elsif( time() > $self->{nextrespawn} )
+	{
+		$rc = 1;
+		$self->{nextrespawn} += $self->get_respawn;
+	}
 
 	return $rc;
 }
