@@ -3214,7 +3214,7 @@ sub index_queue
 {
 	my( $self, $datasetid, $objectid, $fieldname ) = @_; 
 
-	my $sql = "INSERT INTO index_queue VALUES ( ".$self->quote_value($datasetid.$objectid.$fieldname).", NOW() )";
+	my $sql = "INSERT INTO index_queue VALUES ( ".$self->quote_value("$datasetid.$objectid.$fieldname").", NOW() )";
 	$self->do( $sql );
 }
 

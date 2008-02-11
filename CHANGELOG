@@ -6906,3 +6906,6 @@ PACKAGE: 2.2.99.2
  * Separated indexer daemon code into a new module, now checks and warns if key
     files aren't writable, fixing #3242
 
+2008-02-11 tdb
+ * Fixed indexed field codes not containing stops
+
