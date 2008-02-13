@@ -380,11 +380,9 @@ sub add_index_to_indextable
 {
 	my( $self, $dataset ) = @_;
 
-	my $sql = "ALTER TABLE ".
-		$dataset->get_sql_index_table_name.
-		" ADD INDEX( fieldword, pos )";
+	my $table_name = $dataset->get_sql_index_table_name;
 
-	return $self->do( $sql );
+	return $self->create_index( $table_name, "fieldword", "pos" );
 }
  
 ######################################################################
@@ -562,10 +560,10 @@ sub create_table
 		}
 		else
 		{
-			my( $index ) = $field->get_sql_index();
-			if( defined $index )
+			my @index_columns = $field->get_sql_index();
+			if( scalar @index_columns )
 			{
-				push @indices, $index;
+				push @indices, \@index_columns;
 			}
 		}
 		$sql .= $field->get_sql_type( $notnull );
@@ -584,21 +582,69 @@ sub create_table
 	}
 
 	
-	foreach (@indices)
-	{
-		$sql .= ", $_";
-	}
-	
-	$sql .= ");";
+	$sql .= ")";
 	
 
 	# Send to the database
 	$rv = $rv && $self->do( $sql );
 	
+	my $idx = 1;
+	foreach (@indices)
+	{
+		$rv &&= $self->create_index( $tablename, @$_ );
+	}
+	
 	# Return with an error if unsuccessful
 	return( defined $rv );
 }
 
+######################################################################
+=pod
+
+=item  $success = $db->create_index( $tablename, @columns )
+
+Creates an index over @columns for $tablename. Returns true on success.
+
+=cut
+######################################################################
+
+sub create_index
+{
+	my( $self, $table, @columns ) = @_;
+
+	return 1 unless @columns;
+
+	# MySQL max index name length is 64 chars
+	my $index_name = substr(join("_",$table,@columns),0,63);
+
+	my $sql = "CREATE INDEX $index_name ON $table(".join(',',@columns).")";
+
+	return $self->do($sql);
+}
+
+######################################################################
+=pod
+
+=item  $success = $db->create_unique_index( $tablename, @columns )
+
+Creates a unique index over @columns for $tablename. Returns true on success.
+
+=cut
+######################################################################
+
+sub create_unique_index
+{
+	my( $self, $table, @columns ) = @_;
+
+	return 1 unless @columns;
+
+	# MySQL max index name length is 64 chars
+	my $index_name = substr(join("_",$table,@columns),0,63);
+
+	my $sql = "CREATE UNIQUE INDEX $index_name ON $table(".join(',',@columns).")";
+
+	return $self->do($sql);
+}
 
 ######################################################################
 =pod
@@ -1097,17 +1143,13 @@ sub _create_messages_table
 {
 	my( $self ) = @_;
 
-	# The table creation SQL
-	my $sql = "CREATE TABLE messages (userid INTEGER, type VARCHAR(16), message TEXT, INDEX(userid))";
-	
-	# Send to the database
-	my $sth = $self->do( $sql );
-	
-	# Return with an error if unsuccessful
-	return( 0 ) unless defined( $sth );
+	my $rc = 1;
 
-	# Everything OK
-	return( 1 );
+	# The table creation SQL
+	$rc &&= $self->do("CREATE TABLE messages (userid INTEGER, type VARCHAR(16), message TEXT)");
+	$rc &&= $self->create_index( "messages", "userid" );
+	
+	return $rc;
 }
 
 sub save_user_message
@@ -1171,17 +1213,14 @@ sub _create_index_queue_table
 {
 	my( $self ) = @_;
 
-	# The table creation SQL
-	my $sql = "CREATE TABLE index_queue ( field VARCHAR(128), added DATETIME , index(field), index(added) )";
+	my $rc = 1;
 
-	# Send to the database
-	my $sth = $self->do( $sql );
-	
-	# Return with an error if unsuccessful
-	return( 0 ) unless defined( $sth );
-	
-	# Everything OK
-	return( 1 );
+	# The table creation SQL
+	$rc &&= $self->do("CREATE TABLE index_queue (field VARCHAR(128), added DATETIME)");
+	$rc &&= $self->create_index( "index_queue", "field" );
+	$rc &&= $self->create_index( "index_queue", "added" );
+
+	return $rc;
 }
 
 ######################################################################
@@ -1231,17 +1270,15 @@ END
 sub _create_permission_table
 {
 	my( $self ) = @_;
-	my( $sql, $rc );
 
-	$sql = "CREATE TABLE permission (role CHAR(64) NOT NULL, privilege CHAR(64) NOT NULL, net_from LONG, net_to LONG, PRIMARY KEY(role,privilege), UNIQUE(privilege,role))";
+	my $rc = 1;
 
-	$self->do( $sql ) or return 0;
+	$rc &&= $self->do("CREATE TABLE permission (role CHAR(64) NOT NULL, privilege CHAR(64) NOT NULL, net_from LONG, net_to LONG, PRIMARY KEY(role,privilege))");
+	$rc &&= $self->create_unique_index( "permission", "privilege", "role" );
 
-	$sql = "CREATE TABLE permission_group (user CHAR(64) NOT NULL, role CHAR(64) NOT NULL, PRIMARY KEY(user,role))";
+	$rc &&= $self->do("CREATE TABLE permission_group (user CHAR(64) NOT NULL, role CHAR(64) NOT NULL, PRIMARY KEY(user,role))");
 
-	$self->do( $sql ) or return 0;
-
-	return 1;
+	return $rc;
 }
 
 #
@@ -1541,11 +1578,15 @@ sub create_buffer
 	$TEMPTABLES{$tmptable} = 1;
 	#print STDERR "Pushed $tmptable onto temporary table list\n";
 #cjg VARCHAR!! Should this not be whatever type is bestest?
-        my $sql = "CREATE TEMPORARY TABLE $tmptable ".
-	          "( $keyname VARCHAR(255) NOT NULL, INDEX($keyname))";
 
-	$self->do( $sql );
-		
+	my $rc = 1;
+
+	$rc &&= $self->do( "CREATE TEMPORARY TABLE $tmptable ($keyname VARCHAR(255) NOT NULL)" );
+	$rc &&= $self->create_index( $tmptable, $keyname );
+	
+	EPrints::abort( "Error creating temporary table $tmptable" )
+		unless $rc;
+
 	return $tmptable;
 }
 
@@ -2925,21 +2966,11 @@ sub has_table
 {
 	my( $self, $tablename ) = @_;
 
-	my $sql = "SHOW TABLES";
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth , $sql );
-	my @row;
-	my $result = 0;
-	while( @row = $sth->fetchrow_array )
-	{
-		if( $row[0] eq $tablename )
-		{
-			$result = 1;
-			last;
-		}
-	}
+	my $sth = $self->{dbh}->table_info( '%', '%', $tablename, 'TABLE' );
+	my $rc = defined $sth->fetch ? 1 : 0;
 	$sth->finish;
-	return $result;
+
+	return $rc;
 }
 
 ######################################################################
@@ -2985,7 +3016,9 @@ sub drop_table
 {
 	my( $self, $tablename ) = @_;
 
-	my $sql = "DROP TABLE IF EXISTS ".$tablename;
+	return 1 unless $self->has_table( $tablename );
+
+	my $sql = "DROP TABLE ".$tablename;
 
 	$self->do( $sql );
 }
@@ -3011,7 +3044,7 @@ sub rename_table
 ######################################################################
 =pod
 
-=item $db->has_table( $table_a, $table_b )
+=item $db->swap_table( $table_a, $table_b )
 
 Swap table a and table b. 
 
@@ -3041,18 +3074,16 @@ sub get_tables
 {
 	my( $self ) = @_;
 
-	my $sql = "SHOW TABLES";
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth , $sql );
-	my @row;
-	my @list = ();
-	while( @row = $sth->fetchrow_array )
+	my @tables;
+
+	my $sth = $self->{dbh}->table_info( '%', '%', '%', 'TABLE' );
+	while(my $row = $sth->fetch)
 	{
-		push @list, $row[0];
+		push @tables, $row->[$sth->{NAME_lc_hash}{table_name}];
 	}
 	$sth->finish;
 
-	return @list;
+	return @tables;
 }
 
 

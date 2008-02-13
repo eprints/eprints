@@ -64,9 +64,9 @@ sub get_sql_index
 {
 	my( $self ) = @_;
 
-	return undef unless( $self->get_property( "sql_index" ) );
+	return () unless( $self->get_property( "sql_index" ) );
 
-	return "INDEX( ".$self->get_sql_name."_family)";
+	return ($self->get_sql_name."_family");
 }
 	
 sub render_single_value

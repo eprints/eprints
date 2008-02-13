@@ -60,15 +60,16 @@ sub get_sql_index
 {
 	my( $self ) = @_;
 
-	return undef unless( $self->get_property( "sql_index" ) );
+	return () unless( $self->get_property( "sql_index" ) );
 
-	return "INDEX( ".
-		$self->get_sql_name()."_year, ".
-		$self->get_sql_name()."_month, ".
-		$self->get_sql_name()."_day, ".
-		$self->get_sql_name()."_hour, ".
-		$self->get_sql_name()."_minute, ".
-		$self->get_sql_name()."_second )";
+	return (
+		$self->get_sql_name()."_year",
+		$self->get_sql_name()."_month",
+		$self->get_sql_name()."_day",
+		$self->get_sql_name()."_hour",
+		$self->get_sql_name()."_minute",
+		$self->get_sql_name()."_second"
+	);
 }
 
 sub render_single_value

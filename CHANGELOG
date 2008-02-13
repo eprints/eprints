@@ -6909,3 +6909,7 @@ PACKAGE: 2.2.99.2
 2008-02-11 tdb
  * Fixed indexed field codes not containing stops
 
+2008-02-13 tdb
+ * Modified creation of database indices to use SQL standard CREATE [ UNIQUE ]
+    INDEX, see #3261
+
