@@ -40,13 +40,6 @@ BEGIN
 
 use EPrints::MetaField::Text;
 
-sub get_sql_type
-{
-	my( $self, $notnull ) = @_;
-
-	return $self->get_sql_name()." VARCHAR($EPrints::MetaField::VARCHAR_SIZE)".($notnull?" NOT NULL":"");
-}
-
 sub get_max_input_size
 {
 	my( $self ) = @_;

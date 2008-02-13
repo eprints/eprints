@@ -46,7 +46,7 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
 	return undef;
 }

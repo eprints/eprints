@@ -46,17 +46,20 @@ my $VARCHAR_SIZE = 255;
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
-	my $sqlname = $self->get_sql_name();
-	my $param = ($notnull?" NOT NULL":"");
-	my $vc = 'VARCHAR('.$VARCHAR_SIZE.')';
+	my @parts = qw( honourific given family lineage );
+	for(@parts)
+	{
+		$_ = $session->get_database->get_column_type(
+			$self->get_sql_name . "_" . $_,
+			EPrints::Database::SQL_VARCHAR,
+			$notnull,
+			$VARCHAR_SIZE
+		);
+	}
 
-	return
-		$sqlname.'_honourific '.$vc.' '.$param.', '.
-		$sqlname.'_given '.$vc.' '.$param.', '.
-		$sqlname.'_family '.$vc.' '.$param.', '.
-		$sqlname.'_lineage '.$vc.' '.$param;
+	return join ", ", @parts;
 }
 
 # index the family part only...

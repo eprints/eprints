@@ -941,7 +941,7 @@ sub call_property
 ######################################################################
 =pod
 
-=item $sql = $field->get_sql_type( $notnull )
+=item $sql = $field->get_sql_type( $session, $notnull )
 
 Return the SQL type of this field, used for creating tables. $notnull
 being true indicates that this column may not be null.
@@ -951,9 +951,16 @@ being true indicates that this column may not be null.
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
-	return $self->get_sql_name()." VARCHAR($EPrints::MetaField::VARCHAR_SIZE)".($notnull?" NOT NULL":"");
+	my $database = $session->get_database;
+
+	return $database->get_column_type(
+		$self->get_sql_name,
+		EPrints::Database::SQL_VARCHAR,
+		$notnull,
+		$EPrints::MetaField::VARCHAR_SIZE
+	);
 }
 
 ######################################################################

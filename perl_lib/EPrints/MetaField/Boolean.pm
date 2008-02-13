@@ -43,9 +43,15 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
-	return $self->get_sql_name()." SET('TRUE','FALSE')".($notnull?" NOT NULL":"");
+	# Could be a 'SET' on MySQL/Postgres
+	return $session->get_database->get_column_type(
+		$self->get_sql_name(),
+		EPrints::Database::SQL_VARCHAR,
+		$notnull,
+		5 # 'TRUE' or 'FALSE'
+	);
 }
 
 sub get_index_codes

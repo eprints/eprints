@@ -44,9 +44,13 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
-	return $self->get_sql_name()." INTEGER".($notnull?" NOT NULL":"");
+	return $session->get_database->get_column_type(
+		$self->get_sql_name(),
+		EPrints::Database::SQL_INTEGER,
+		$notnull
+	);
 }
 
 sub get_max_input_size

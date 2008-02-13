@@ -6912,4 +6912,7 @@ PACKAGE: 2.2.99.2
 2008-02-13 tdb
  * Modified creation of database indices to use SQL standard CREATE [ UNIQUE ]
     INDEX, see #3261
+ * Added get_column_type method to Database, which returns a column
+    specification for the local database: modified most table creation to use
+	it, see #3262
 

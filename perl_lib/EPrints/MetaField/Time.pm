@@ -43,17 +43,20 @@ use EPrints::MetaField::Date;
 
 sub get_sql_type
 {
-	my( $self, $notnull ) = @_;
+	my( $self, $session, $notnull ) = @_;
 
 	# ignoring notnull.
 
-	return 
-		$self->get_sql_name()."_year SMALLINT, ".
-		$self->get_sql_name()."_month SMALLINT, ".
-		$self->get_sql_name()."_day SMALLINT, ".
-		$self->get_sql_name()."_hour SMALLINT, ".
-		$self->get_sql_name()."_minute SMALLINT, ".
-		$self->get_sql_name()."_second SMALLINT ";
+	my @parts = qw( year month day hour minute second );
+	for(@parts)
+	{
+		$_ = $session->get_database->get_column_type(
+			$self->get_sql_name . "_" . $_,
+			EPrints::Database::SQL_SMALLINT
+		);
+	}
+
+	return join ", ", @parts;
 }
 
 sub get_sql_index

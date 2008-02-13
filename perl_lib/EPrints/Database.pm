@@ -55,9 +55,47 @@ $db = $session->get_repository
 
 package EPrints::Database;
 
-use DBI;
+use DBI ();
 
 use EPrints;
+
+require Exporter;
+@ISA = qw( Exporter );
+
+use constant {
+	SQL_NULL => 0,
+	SQL_NOT_NULL => 1,
+	SQL_VARCHAR => DBI::SQL_VARCHAR,
+	SQL_LONGVARCHAR => DBI::SQL_LONGVARCHAR,
+	SQL_VARBINARY => DBI::SQL_VARBINARY,
+	SQL_LONGVARBINARY => DBI::SQL_LONGVARBINARY,
+	SQL_TINYINT => DBI::SQL_TINYINT,
+	SQL_SMALLINT => DBI::SQL_SMALLINT,
+	SQL_INTEGER => DBI::SQL_INTEGER,
+	SQL_REAL => DBI::SQL_REAL,
+	SQL_DOUBLE => DBI::SQL_DOUBLE,
+	SQL_DATE => DBI::SQL_DATE,
+	SQL_TIME => DBI::SQL_TIME,
+};
+
+%EXPORT_TAGS = (
+	sql_types => [qw(
+		SQL_NULL
+		SQL_NOT_NULL
+		SQL_VARCHAR
+		SQL_LONGVARCHAR
+		SQL_VARBINARY
+		SQL_LONGVARBINARY
+		SQL_TINYINT
+		SQL_SMALLINT
+		SQL_INTEGER
+		SQL_REAL
+		SQL_DOUBLE
+		SQL_DATE
+		SQL_TIME
+		)],
+);
+Exporter::export_tags( qw( sql_types ) );
 
 use strict;
 my $DEBUG_SQL = 0;
@@ -440,7 +478,12 @@ sub create_login_tickets_table
 {
 	my( $self ) = @_;
 
-	my $sql = "CREATE TABLE login_tickets ( code CHAR(32) NOT NULL, userid INTEGER, ip VARCHAR(64), expires INTEGER, primary key( code ) )";
+	my $sql = "CREATE TABLE login_tickets (".
+		$self->get_column_type( "code", SQL_VARCHAR, SQL_NOT_NULL, 32 ).",".
+		$self->get_column_type( "userid", SQL_INTEGER ).",".
+		$self->get_column_type( "ip", SQL_VARCHAR, SQL_NULL, 64).",".
+		$self->get_column_type( "expires", SQL_INTEGER ).",".
+	"PRIMARY KEY(code))";
 
 	return $self->do( $sql );
 }
@@ -468,6 +511,62 @@ sub get_ticket_userid
 	return $userid;
 }
 
+######################################################################
+=pod
+
+=item $real_type = $db->get_column_type( NAME, TYPE, NOT_NULL, [, LENGTH ] )
+
+Returns a column definition for NAME of type TYPE. If NOT_NULL is true the column will be created NOT NULL. For column types that require a length use LENGTH.
+
+TYPE is the SQL type. The types are constants defined by this module, to import them use:
+
+  use EPrints::Database qw( :sql_types );
+
+Supported types (n = requires LENGTH argument):
+
+Character data: SQL_VARCHAR(n), SQL_LONGVARCHAR.
+
+Binary data: SQL_VARBINARY(n), SQL_LONGVARBINARY.
+
+Integer data: SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER.
+
+Floating-point data: SQL_REAL, SQL_DOUBLE.
+
+Time data: SQL_DATE, SQL_TIME.
+
+=cut
+######################################################################
+
+sub get_column_type
+{
+	my( $self, $name, $data_type, $not_null, $length, $scale ) = @_;
+
+	my $type_info = $self->{dbh}->type_info( $data_type );
+
+	my $type = $name . " " . $type_info->{TYPE_NAME};
+	if( !defined($type_info->{CREATE_PARAMS}) )
+	{
+	}
+	elsif( $type_info->{CREATE_PARAMS} eq "max length" )
+	{
+		EPrints::abort( "get_sql_type expected LENGTH argument for $data_type [$type]" )
+			unless defined $length;
+		$type .= "($length)";
+	}
+	elsif( $type_info->{CREATE_PARAMS} eq "precision,scale" )
+	{
+		EPrints::abort( "get_sql_type expected PRECISION and SCALE arguments for $data_type [$type]" )
+			unless defined $scale;
+		$type .= "($length,$scale)";
+	}
+
+	if( $not_null )
+	{
+		$type .= " NOT NULL";
+	}
+
+	return $type;
+}
 
 ######################################################################
 =pod
@@ -566,7 +665,7 @@ sub create_table
 				push @indices, \@index_columns;
 			}
 		}
-		$sql .= $field->get_sql_type( $notnull );
+		$sql .= $field->get_sql_type( $self->{session}, $notnull );
 
 	}
 	if( $setkey )	
@@ -1104,8 +1203,11 @@ sub _create_counter_table
 	my $counter_ds = $self->{session}->get_repository->get_dataset( "counter" );
 	
 	# The table creation SQL
-	my $sql = "CREATE TABLE ".$counter_ds->get_sql_table_name().
-		"(countername VARCHAR(255) PRIMARY KEY, counter INT NOT NULL);";
+	my $table = $counter_ds->get_sql_table_name;
+	my $sql = "CREATE TABLE $table (".
+		$self->get_column_type( "countername", SQL_VARCHAR, SQL_NOT_NULL , 255 ).",".
+		$self->get_column_type( "counter", SQL_INTEGER, SQL_NOT_NULL ).",".
+	" PRIMARY KEY(countername))";
 	
 	# Send to the database
 	my $sth = $self->do( $sql );
@@ -1146,7 +1248,11 @@ sub _create_messages_table
 	my $rc = 1;
 
 	# The table creation SQL
-	$rc &&= $self->do("CREATE TABLE messages (userid INTEGER, type VARCHAR(16), message TEXT)");
+	$rc &&= $self->do("CREATE TABLE messages (".
+		$self->get_column_type( "userid", SQL_INTEGER ).",".
+		$self->get_column_type( "type", SQL_VARCHAR, SQL_NULL, 16 ).",".
+		$self->get_column_type( "message", SQL_LONGVARCHAR ).
+	")");
 	$rc &&= $self->create_index( "messages", "userid" );
 	
 	return $rc;
@@ -1216,7 +1322,10 @@ sub _create_index_queue_table
 	my $rc = 1;
 
 	# The table creation SQL
-	$rc &&= $self->do("CREATE TABLE index_queue (field VARCHAR(128), added DATETIME)");
+	$rc &&= $self->do("CREATE TABLE index_queue (".
+		$self->get_column_type( "field", SQL_VARCHAR, SQL_NULL, 128).",".
+		$self->get_column_type( "added", SQL_TIME ).
+	")");
 	$rc &&= $self->create_index( "index_queue", "field" );
 	$rc &&= $self->create_index( "index_queue", "added" );
 
@@ -1273,10 +1382,18 @@ sub _create_permission_table
 
 	my $rc = 1;
 
-	$rc &&= $self->do("CREATE TABLE permission (role CHAR(64) NOT NULL, privilege CHAR(64) NOT NULL, net_from LONG, net_to LONG, PRIMARY KEY(role,privilege))");
+	$rc &&= $self->do("CREATE TABLE permission (".
+		$self->get_column_type( "role", SQL_VARCHAR, SQL_NOT_NULL, 64 ).",".
+		$self->get_column_type( "privilege", SQL_VARCHAR, SQL_NOT_NULL, 64).",".
+		$self->get_column_type( "net_from", SQL_INTEGER ).",".
+		$self->get_column_type( "net_to", SQL_INTEGER ).",".
+	"PRIMARY KEY(role,privilege))");
 	$rc &&= $self->create_unique_index( "permission", "privilege", "role" );
 
-	$rc &&= $self->do("CREATE TABLE permission_group (user CHAR(64) NOT NULL, role CHAR(64) NOT NULL, PRIMARY KEY(user,role))");
+	$rc &&= $self->do("CREATE TABLE permission_group (".
+		$self->get_column_type( "user", SQL_VARCHAR, SQL_NOT_NULL, 64).",".
+		$self->get_column_type( "role", SQL_VARCHAR, SQL_NOT_NULL, 64).",".
+	"PRIMARY KEY(user,role))");
 
 	return $rc;
 }
@@ -1499,7 +1616,7 @@ sub cache
 
         $sql = "CREATE TABLE $cache_table ".
 		"( pos INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
-		$keyfield->get_sql_type( 1 )." )";
+		$keyfield->get_sql_type( $self->{session}, 1 )." )";
 	$self->do( $sql );
 
 	return $id if( $srctable eq "NONE" ); 
@@ -1581,7 +1698,9 @@ sub create_buffer
 
 	my $rc = 1;
 
-	$rc &&= $self->do( "CREATE TEMPORARY TABLE $tmptable ($keyname VARCHAR(255) NOT NULL)" );
+	$rc &&= $self->do( "CREATE TEMPORARY TABLE $tmptable (".
+		$self->get_column_type($keyname, SQL_VARCHAR, SQL_NOT_NULL, 255).
+	")");
 	$rc &&= $self->create_index( $tmptable, $keyname );
 	
 	EPrints::abort( "Error creating temporary table $tmptable" )
@@ -2680,7 +2799,7 @@ sub _add_field_ordervalues_lang
 		name => $field->get_name,
 		type => "longtext" );
 
-	my $sql = $sql_field->get_sql_type( 0 ); # only first field can not be null
+	my $sql = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
 	$sql = _sql_type_to_alter_add( $sql );
 
 	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
@@ -2700,7 +2819,7 @@ sub _add_field
 
 	my $table = $dataset->get_sql_table_name;
 
-	my $column_sql = $field->get_sql_type( 0 ); # only first field can be not null
+	my $column_sql = $field->get_sql_type( $self->{session}, 0 ); # only first field can be not null
 	$column_sql = _sql_type_to_alter_add( $column_sql );
 	my $key_sql = $field->get_sql_index;
 	if( $key_sql )
@@ -2792,7 +2911,7 @@ sub _remove_field_ordervalues_lang
 		name => $field->get_name,
 		type => "longtext" );
 
-	my $sql = $sql_field->get_sql_type( 0 ); # only first field can not be null
+	my $sql = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
 	$sql = _sql_type_to_alter_drop( $sql );
 
 	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
@@ -2812,7 +2931,7 @@ sub _remove_field
 
 	my $table = $dataset->get_sql_table_name;
 
-	my $column_sql = $field->get_sql_type( 0 ); # only first field can be not null
+	my $column_sql = $field->get_sql_type( $self->{session}, 0 ); # only first field can be not null
 	$column_sql = _sql_type_to_alter_drop( $column_sql );
 
 	return $self->do( "ALTER TABLE ".$self->quote_identifier($table)." $column_sql" );
@@ -2918,12 +3037,13 @@ sub create_version_table
 
 	my $sql;
 
-	$sql = "CREATE TABLE version ( version VARCHAR(255) )";
+	$sql = "CREATE TABLE version (".
+		$self->get_column_type( "version", SQL_VARCHAR, SQL_NULL, 255 ).
+	")";
 	$self->do( $sql );
 
 	$sql = "INSERT INTO version ( version ) VALUES ( NULL )";
 	$self->do( $sql );
-
 }
 
 ######################################################################
