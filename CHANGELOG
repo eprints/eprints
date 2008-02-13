@@ -6915,4 +6915,6 @@ PACKAGE: 2.2.99.2
  * Added get_column_type method to Database, which returns a column
     specification for the local database: modified most table creation to use
 	it, see #3262
+ * Added data set "cachemap" that is now used to manage cache ids/creating the
+    cachemap table
 

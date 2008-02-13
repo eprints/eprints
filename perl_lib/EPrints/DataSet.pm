@@ -109,7 +109,8 @@ use strict;
 
 my $INFO = {
 	cachemap => {
-		sqlname => "cachemap"
+		sqlname => "cachemap",
+		class => "EPrints::DataObj::Cachemap",
 	},
 	counter => {
 		sqlname => "counters"
@@ -876,7 +877,7 @@ into SQL (not counters or cache which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ eprint user document saved_search subject history access request / );
+	return( qw/ cachemap eprint user document saved_search subject history access request / );
 }
 
 ######################################################################

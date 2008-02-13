@@ -110,7 +110,7 @@ $EPrints::Database::DBVersion = "3.0.7";
 #
 # Counters
 #
-@EPrints::Database::counters = ( "eprintid", "userid", "savedsearchid","historyid","accessid","requestid","documentid" );
+@EPrints::Database::counters = ( "cachemapid", "eprintid", "userid", "savedsearchid","historyid","accessid","requestid","documentid" );
 
 
 # ID of next buffer table. This can safely reset to zero each time
@@ -282,8 +282,6 @@ sub create_archive_tables
 		$success = $success && $self->create_dataset_tables( 
 			$self->{session}->get_repository->get_dataset( $_ ) );
 	}
-
-	$success = $success && $self->_create_cachemap_table();
 
 	$success = $success && $self->_create_counter_table();
 
@@ -1334,42 +1332,6 @@ sub _create_index_queue_table
 
 ######################################################################
 # 
-# $success = $db->_create_cachemap_table
-#
-# create the table which remembers what each cache file represents.
-#
-######################################################################
-
-sub _create_cachemap_table
-{
-	my( $self ) = @_;
-	
-	# The table creation SQL
-	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	my $table_name = $ds->get_sql_table_name();
-	my $sql = <<END;
-CREATE TABLE $table_name ( 
-	tableid INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-	created DATETIME NOT NULL, 
-	lastused DATETIME NOT NULL, 
-	userid INTEGER,
-	searchexp TEXT,
-	oneshot SET('TRUE','FALSE')
-)
-END
-	
-	# Send to the database
-	my $sth = $self->do( $sql );
-	
-	# Return with an error if unsuccessful
-	return( 0 ) unless defined( $sth );
-
-	# Everything OK
-	return( 1 );
-}
-
-######################################################################
-# 
 # $success = $db->_create_permission_table
 #
 # create the tables needed to store the permissions. 
@@ -1529,10 +1491,11 @@ sub cache_exp
 	my $ds = $a->get_dataset( "cachemap" );
 
 	#cjg NOT escaped!!!
-	my $sql = "SELECT searchexp FROM ".$ds->get_sql_table_name() . " WHERE tableid = '$id' ";
+	my $table = $ds->get_sql_table_name();
+	my $sql = "SELECT searchexp FROM $table WHERE cachemapid = ".$self->quote_int($id);
 
 	# Never include items past maxlife
-	$sql.= " AND created > NOW()-INTERVAL ".$a->get_conf("cache_maxlife")." HOUR"; 
+	$sql.= " AND created > ".(time() - $a->get_conf("cache_maxlife") * 3600);
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1550,7 +1513,7 @@ sub cache_userid
 	my $ds = $a->get_dataset( "cachemap" );
 
 	#cjg NOT escaped!!!
-	my $sql = "SELECT userid FROM ".$ds->get_sql_table_name() . " WHERE tableid = '$id' ";
+	my $sql = "SELECT userid FROM ".$ds->get_sql_table_name() . " WHERE cachemapid = ".$self->quote_int($id);
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
@@ -1599,16 +1562,14 @@ sub cache
 	}
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	$sql = "INSERT INTO ".$ds->get_sql_table_name()." VALUES ( NULL , NOW(), NOW() , $userid, ".$self->quote_value($code)." , 'TRUE' )";
+	my $cachemap = $ds->create_object( $self->{session}, {
+		lastused => time(),
+		userid => $userid,
+		searchexp => $code,
+		oneshot => "TRUE",
+	});
 	
-	$self->do( $sql );
-
-	$sql = "SELECT LAST_INSERT_ID()";
-
-	$sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql );
-	my( $id ) = $sth->fetchrow_array;
-	$sth->finish;
+	my $id = $cachemap->get_id;
 
 	my $keyfield = $dataset->get_key_field();
 
@@ -1890,14 +1851,12 @@ sub drop_cache
 
 	my $tmptable = $self->cache_table( $id );
 
-	my $sql;
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
 	# We drop the table before removing the entry from the cachemap
 
 	$self->drop_table( $tmptable );
-		
-	$sql = "DELETE FROM ".$ds->get_sql_table_name()." WHERE tableid = $id";
-	$self->do( $sql );
+
+	$self->remove( $ds, $id );
 }
 
 
@@ -1995,7 +1954,7 @@ sub from_cache
 	}
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET lastused = NOW() WHERE tableid = $cacheid";
+	my $sql = "UPDATE ".$ds->get_sql_table_name()." SET lastused = ".time()." WHERE cachemapid = $cacheid";
 	$self->do( $sql );
 
 	$self->drop_old_caches();
@@ -2020,9 +1979,9 @@ sub drop_old_caches
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
 	my $a = $self->{session}->get_repository;
-	my $sql = "SELECT tableid FROM ".$ds->get_sql_table_name()." WHERE";
-	$sql.= " (lastused < NOW()-INTERVAL ".($a->get_conf("cache_timeout") + 5)." MINUTE AND oneshot = 'FALSE' )";
-	$sql.= " OR created < NOW()-INTERVAL ".$a->get_conf("cache_maxlife")." HOUR"; 
+	my $sql = "SELECT cachemapid FROM ".$ds->get_sql_table_name()." WHERE";
+	$sql.= " (lastused < ".(time() - ($a->get_conf("cache_timeout") + 5) * 60)." AND oneshot = 'FALSE')";
+	$sql.= " OR created < ".(time() - $a->get_conf("cache_maxlife") * 3600);
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
 	my $id;

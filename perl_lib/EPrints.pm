@@ -126,6 +126,7 @@ use EPrints::Config;
 use EPrints::Database;
 use EPrints::DataObj;
 use EPrints::DataObj::Access;
+use EPrints::DataObj::Cachemap;
 use EPrints::DataObj::Document;
 use EPrints::DataObj::EPrint;
 use EPrints::DataObj::History;
