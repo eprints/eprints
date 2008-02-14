@@ -6918,3 +6918,5 @@ PACKAGE: 2.2.99.2
  * Added data set "cachemap" that is now used to manage cache ids/creating the
     cachemap table
 
+2008-02-14 cjg
+ * Added "billboard" div to input forms. Useful as a target for javascript.

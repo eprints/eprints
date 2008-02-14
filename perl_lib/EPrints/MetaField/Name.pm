@@ -119,13 +119,16 @@ sub get_basic_input_elements
 	foreach( $self->get_input_bits( $session ) )
 	{
 		my $size = $self->{input_name_cols}->{$_};
-		push @{$parts}, {el=>$session->render_noenter_input_field(
+		my $f = $session->make_element( "div" );
+		push @{$parts}, {el=>$f};
+		$f->appendChild( $session->render_noenter_input_field(
 			class => "ep_form_text",
 			name => $basename."_".$_,
 			id => $basename."_".$_,
 			value => $value->{$_},
 			size => $size,
-			maxlength => $self->{maxlength} ) };
+			maxlength => $self->{maxlength} ) );
+		$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
 	}
 
 	return [ $parts ];
