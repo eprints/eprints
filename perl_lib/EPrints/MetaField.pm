@@ -1396,6 +1396,8 @@ sub get_basic_input_elements
 					$self->{input_cols} : 
 					$maxlength );
 
+
+	my $f = $session->make_element( "div" );
 	my $input = $session->render_noenter_input_field(
 		class=>"ep_form_text",
 		name => $basename,
@@ -1403,8 +1405,10 @@ sub get_basic_input_elements
 		value => $value,
 		size => $size,
 		maxlength => $maxlength );
+	$f->appendChild( $input );
+	$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
 
-	return [ [ { el=>$input } ] ];
+	return [ [ { el=>$f } ] ];
 }
 
 # array of all the ids of input fields
