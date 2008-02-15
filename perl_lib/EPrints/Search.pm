@@ -1109,8 +1109,8 @@ sub perform_search
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
-			desc => $self->render_conditions_description,
-			desc_order => $self->render_order_description,
+			desc => $self,
+			desc_order => $self,
 		);
 		return $self->{results};
 	}
@@ -1129,8 +1129,8 @@ sub perform_search
 		encoded => $self->serialise,
 		keep_cache => $self->{keep_cache},
 		ids => $unsorted_matches, 
-		desc => $self->render_conditions_description,
-		desc_order => $self->render_order_description,
+		desc => $self,
+		desc_order => $self,
 	);
 
 	$self->{cache_id} = $self->{results}->get_cache_id;
