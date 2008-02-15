@@ -4,13 +4,10 @@
 <xpage:title>Welcome to <epc:phrase ref="archive_name" /></xpage:title>
 <xpage:body>
 
-<div class="ep_msg_warning"><div class="ep_msg_warning_content"><table><tbody><tr><td>
-<img alt="Warning" src="/style/images/warning.png" /></td><td>
-This repository has not yet been fully configured. This paragraph would describe the repository, who runs it and what it contains. To modify this text edit 
-<tt><epc:print expr="$config{config_path}" />/lang/en/static/index.xpage</tt> then run <tt>generate_static</tt>.
+<div class="ep_msg_message"><div class="ep_msg_message_content"><table><tbody><tr><td>
+<img alt="Message" src="/style/images/message.png" /></td><td>
+Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/?keyword=NewRepository&amp;version={$config{version_id}}">Click here to start customising this repository</a>.
 </td></tr></tbody></table></div></div>
-
-<p>If you need a bit more help getting started, the EPrints team has a <a href="http://eprints.org/services/">commercial services</a> arm which provides training, support, hosting and consultancy services.</p>
 
 <div style="text-align: right">
 <span class="ep_search_feed"><a href="/cgi/latest_tool?output=Atom"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=Atom">Atom</a></span>
