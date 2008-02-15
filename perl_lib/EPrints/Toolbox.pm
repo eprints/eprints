@@ -61,6 +61,23 @@ sub get_data
 	return join( "", <STDIN> );
 }
 
+sub tool_getEprintField
+{
+	my( %opts ) = @_;
+
+	my @problems = ensure( \%opts, 'session', 'eprint', 'field' );
+	return( 1, \@problems ) if( @problems );
+
+	my $field = $opts{eprint}->get_dataset->get_field( $opts{field} );
+
+	my $fieldxml = $field->to_xml( 
+			$opts{session},
+			$opts{eprint}->get_value( $opts{field} ),
+			$opts{eprint}->get_dataset );
+
+	return( 0, EPrints::XML::to_string( $fieldxml ) );
+}
+
 sub tool_getEprint
 {
 	my( %opts ) = @_;

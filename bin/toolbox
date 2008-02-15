@@ -20,6 +20,8 @@ B<toolbox> - EPrints Toolbox
 
 B<toolbox> I<repository_id> [B<options>] getEprint --eprint B<eprintid>
 
+B<toolbox> I<repository_id> [B<options>] getEprintField --eprint B<eprintid> --field B<fieldname>
+
 B<toolbox> I<repository_id> [B<options>] createEprint < B<data>
 
 B<toolbox> I<repository_id> [B<options>] modifyEprint --eprint B<eprintid> < B<data>
@@ -107,6 +109,7 @@ my $man = 0;
 my $eprintid = undef;
 my $docid = undef;
 my $filename = undef;
+my $field = undef;
 my $cuserid = undef;
 my $format = undef;
 
@@ -121,6 +124,7 @@ GetOptions(
 	'eprint=i' => \$eprintid,
 	'document=i' => \$docid,
 	'filename=s' => \$filename,
+	'field=s' => \$field,
 	'cuser=s' => \$cuserid,
 	'format=s' => \$format,
 ) || pod2usage( 2 );
@@ -156,6 +160,8 @@ if( defined $cuserid )
 $opts{format} = $format;
 
 $opts{filename} = $filename;
+
+$opts{field} = $field;
 
 if( defined $eprintid )
 {
