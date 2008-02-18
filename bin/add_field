@@ -110,7 +110,7 @@ my $database = $session->{ database };
 
 my $fields = $session->get_repository->get_conf( "fields" );
 
-if( !exists( $fields->{ $datasetid } ) )
+if( !$force && !exists( $fields->{ $datasetid } ) )
 {
 	pod2usage( "$datasetid is not a valid dataset id, should be one of: " . join(',', keys %$fields) );
 }

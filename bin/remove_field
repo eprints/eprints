@@ -110,9 +110,9 @@ my $database = $session->{ database };
 
 my $fields = $session->get_repository->get_conf( "fields" );
 
-if( !exists( $fields->{ $datasetid } ) )
+if( !$force && !exists( $fields->{ $datasetid } ) )
 {
-	pod2usage( "$datasetid is not a valid dataset id, should be one of: " . join(',', keys %$fields) );
+	pod2usage( "$datasetid is not a valid dataset id or has no user-configured fields, should be one of: " . join(',', keys %$fields) );
 }
 
 my $dataset = $session->get_repository->get_dataset( $datasetid );
@@ -131,7 +131,7 @@ for(@{$fields->{ $datasetid }})
 	}
 }
 
-if( $system_field )
+if( !$force && $system_field )
 {
 	print "$fieldid is a system field. You should hide this field in the workflow, rather than try to remove it.\n";
 	exit(1);
