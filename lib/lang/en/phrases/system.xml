@@ -476,6 +476,8 @@ User Area CGI Scripts
 
     <epp:phrase id="cgi/users/status:release">EPrints Release</epp:phrase>
     <epp:phrase id="cgi/users/status:database">Database Status</epp:phrase>
+    <epp:phrase id="cgi/users/status:database_driver">Database Driver</epp:phrase>
+    <epp:phrase id="cgi/users/status:database_version">Database Server Version</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer">Indexer Status</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_running">Running</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_stopped">Stopped</epp:phrase>
@@ -489,6 +491,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:articles"><h2>Items</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:diskspace"><h2>Disk Space</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:saved_searches"><h2>Saved Searches and Alerts</h2></epp:phrase>
+    <epp:phrase id="cgi/users/status:cache_tables"><h2>Cache Tables</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:subsent">Last completed alert mailing</epp:phrase>
     <epp:phrase id="cgi/users/status:subcount">Total Number</epp:phrase>
     <epp:phrase id="cgi/users/status:set_archive">Repository</epp:phrase>

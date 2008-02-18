@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::DataObj::Cachemap
+# EPrints::DataObj::Message
 #
 ######################################################################
 #
@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-B<EPrints::DataObj::Cachemap> - cache tables
+B<EPrints::DataObj::Message> - user system message
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,7 @@ This is an internal class that shouldn't be used outside L<EPrints::Database>.
 
 =cut
 
-package EPrints::DataObj::Cachemap;
+package EPrints::DataObj::Message;
 
 @ISA = ( 'EPrints::DataObj' );
 
@@ -47,17 +47,17 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"cachemapid", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"messageid", type=>"int", required=>1, can_clone=>0 },
 
-		{ name=>"created", type=>"int", required=>1, text_index=>0 },
+		{ name=>"datestamp", type=>"time", required=>1, text_index=>0 },
 
-		{ name=>"lastused", type=>"int", required=>0, text_index=>0 },
+		{ name=>"userid", type=>"itemref", datasetid=>"user", required=>1, text_index=>0 },
 
-		{ name=>"userid", type=>"itemref", datasetid=>"user", required=>0, text_index=>0 },
+		{ name=>"type", type=>"set", required=>1, text_index=>0,
+			options => [qw/ message warning error /] },
 
-		{ name=>"searchexp", type=>"text", required=>0, text_index=>0 },
+		{ name=>"message", type=>"longtext", required=>1, text_index=>0 },
 
-		{ name=>"oneshot", type=>"boolean", required=>0, text_index=>0 },
 	);
 }
 
@@ -73,24 +73,24 @@ sub get_system_field_info
 
 ######################################################################
 
-=item $thing = EPrints::DataObj::Cachemap->new( $session, $cachemapid )
+=item $thing = EPrints::DataObj::Message->new( $session, $id )
 
-The data object identified by $cachemapid.
+The data object identified by $id.
 
 =cut
 
 sub new
 {
-	my( $class, $session, $cachemapid ) = @_;
+	my( $class, $session, $id ) = @_;
 
 	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( "cachemap" ), 
-			$cachemapid );
+			$session->get_repository->get_dataset( "message" ),
+			$id );
 }
 
-=item $thing = EPrints::DataObj::Cachemap->new_from_data( $session, $known )
+=item $thing = EPrints::DataObj::Message->new_from_data( $session, $known )
 
-A new C<EPrints::DataObj::Cachemap> object containing data $known (a hash reference).
+A new C<EPrints::DataObj::Message> object containing data $known (a hash reference).
 
 =cut
 
@@ -101,7 +101,7 @@ sub new_from_data
 	return $class->SUPER::new_from_data(
 			$session,
 			$known,
-			$session->get_repository->get_dataset( "cachemap" ) );
+			$session->get_repository->get_dataset( "message" ) );
 }
 
 ######################################################################
@@ -112,9 +112,9 @@ sub new_from_data
 
 ######################################################################
 
-=item EPrints::DataObj::Cachemap::remove_all( $session )
+=item EPrints::DataObj::Message::remove_all( $session )
 
-Remove all records from the cachemap dataset.
+Remove all records from the message dataset.
 
 =cut
 
@@ -122,7 +122,7 @@ sub remove_all
 {
 	my( $class, $session ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "cachemap" );
+	my $ds = $session->get_repository->get_dataset( "message" );
 	foreach my $obj ( $session->get_database->get_all( $ds ) )
 	{
 		$obj->remove();
@@ -132,7 +132,7 @@ sub remove_all
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::Cachemap->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::Message->get_defaults( $session, $data )
 
 Return default values for this object based on the starting data.
 
@@ -144,18 +144,18 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 	
-	if( !defined $data->{cachemapid} )
+	if( !defined $data->{messageid} )
 	{ 
-		my $new_id = $session->get_database->counter_next( "cachemapid" );
-		$data->{cachemapid} = $new_id;
+		my $new_id = $session->get_database->counter_next( "messageid" );
+		$data->{messageid} = $new_id;
 	}
 
-	$data->{created} = time();
+	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
 
 	return $data;
 }
 
-=item ($tags,$labels) = EPrints::DataObj::Cachemap::tags_and_labels( $session, $dataset )
+=item ($tags,$labels) = EPrints::DataObj::Message::tags_and_labels( $session, $dataset )
 
 Returns the tags and labels for all records in this dataset.
 
@@ -167,7 +167,7 @@ sub tags_and_labels
 
 	my $searchexp = EPrints::Search->new(
 		allow_blank => 1,
-		custom_order => "cachemapid",
+		custom_order => "messageid",
 		session => $session,
 		dataset => $ds );
 
@@ -176,7 +176,7 @@ sub tags_and_labels
 	my( @tags, %labels );
 	foreach my $l ( $searchexp->get_records() )
 	{
-		push @tags, my $id = $l->get_value( "cachemapid" );
+		push @tags, my $id = $l->get_value( "messageid" );
 		$labels{$id} = $l->get_label();
 	}
 
@@ -211,18 +211,7 @@ sub remove
 		$self->{dataset},
 		$self->get_id );
 
-	my $table = $database->cache_table( $self->get_id );
-
-	$rc &&= $database->drop_table( $table );
-
 	return $rc;
-}
-
-sub get_sql_table_name
-{
-	my( $self ) = @_;
-
-	return "cache" . $self->get_id;
 }
 
 1;

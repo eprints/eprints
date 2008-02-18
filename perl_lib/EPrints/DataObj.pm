@@ -1152,6 +1152,8 @@ sub queue_changes
 {
 	my( $self ) = @_;
 
+	return unless $self->{dataset}->indexable;
+
 	foreach my $fieldname ( keys %{$self->{changed}} )
 	{
 		my $field = $self->{dataset}->get_field( $fieldname );
@@ -1178,6 +1180,8 @@ Add all the fields into the indexers todo queue.
 sub queue_all
 {
 	my( $self ) = @_;
+
+	return unless $self->{dataset}->indexable;
 
 	my @fields = $self->{dataset}->get_fields;
 	foreach my $field ( @fields )

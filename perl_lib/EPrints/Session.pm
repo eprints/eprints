@@ -219,10 +219,11 @@ sub new
 		# if it's not there is a show stopper.
 		unless( $self->{database}->is_latest_version )
 		{ 
+			my $cur_version = $self->{database}->get_version || "unknown";
 			if( $self->{database}->has_table( "eprint" ) )
 			{	
 				EPrints::abort(
-	"Database tables are in old configuration. Please run:\nepadmin upgrade ".$self->get_repository->get_id );
+	"Database tables are in old configuration (version $cur_version). Please run:\nepadmin upgrade ".$self->get_repository->get_id );
 			}
 			else
 			{
@@ -3596,8 +3597,7 @@ sub login
 	return unless EPrints::Utils::is_set( $code );
 
 	my $userid = $user->get_id;
-	my $sql = "REPLACE INTO login_tickets VALUES( ".$self->{database}->quote_value($code).", $userid, ".$self->{database}->quote_value($ip).", ".(time+60*60*24*7)." )";
-	my $sth = $self->{database}->do( $sql );
+	$self->{database}->update_ticket_userid( $code, $userid, $ip );
 
 #	my $c = $self->{request}->connection;
 #	$c->notes->set(userid=>$userid);

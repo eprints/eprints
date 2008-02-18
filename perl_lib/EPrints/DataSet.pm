@@ -112,6 +112,14 @@ my $INFO = {
 		sqlname => "cachemap",
 		class => "EPrints::DataObj::Cachemap",
 	},
+	message => {
+		sqlname => "message",
+		class => "EPrints::DataObj::Message",
+	},
+	loginticket => {
+		sqlname => "loginticket",
+		class => "EPrints::DataObj::LoginTicket",
+	},
 	counter => {
 		sqlname => "counters"
 	},
@@ -119,12 +127,14 @@ my $INFO = {
 		sqlname => "user",
 		class => "EPrints::DataObj::User",
 		import => 1,
+		index => 1,
 	},
 	archive => {
 		sqlname => "eprint",
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
+		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 	},
@@ -133,6 +143,7 @@ my $INFO = {
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
+		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'buffer', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 	},
@@ -141,6 +152,7 @@ my $INFO = {
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
+		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'inbox', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 	},
@@ -149,32 +161,38 @@ my $INFO = {
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
+		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'deletion', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 	},
 	eprint => {
 		sqlname => "eprint",
-		class => "EPrints::DataObj::EPrint"
+		class => "EPrints::DataObj::EPrint",
+		index => 1,
 	},
 	document => {
 		sqlname => "document",
 		class => "EPrints::DataObj::Document",
 		import => 1,
+		index => 1,
 	},
 	subject => {
 		sqlname => "subject",
 		class => "EPrints::DataObj::Subject",
 		import => 1,
+		index => 1,
 	},
 	history => {
 		sqlname => "history",
 		class => "EPrints::DataObj::History",
 		import => 1,
+		index => 1,
 	},
 	saved_search => {
 		sqlname => "saved_search",
 		class => "EPrints::DataObj::SavedSearch",
 		import => 1,
+		index => 1,
 	},
 	access => {
 		sqlname => "access",
@@ -185,6 +203,7 @@ my $INFO = {
 		sqlname => "request",	
 		class => "EPrints::DataObj::Request",
 		import => 1,
+		index => 1,
 	},
 };
 
@@ -877,7 +896,7 @@ into SQL (not counters or cache which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ cachemap eprint user document saved_search subject history access request / );
+	return( qw/ cachemap message loginticket eprint user document saved_search subject history access request / );
 }
 
 ######################################################################
@@ -975,6 +994,13 @@ sub get_filters
 	return () unless defined $f;
 
 	return @{$f};
+}
+
+sub indexable
+{
+	my( $self ) = @_;
+
+	return $INFO->{$self->{id}}->{index};
 }
 
 

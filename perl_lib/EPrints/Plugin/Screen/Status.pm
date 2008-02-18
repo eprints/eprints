@@ -146,6 +146,16 @@ sub render
 
 	$table->appendChild(
 		$session->render_row( 
+			$session->html_phrase( "cgi/users/status:database_driver" ),
+			$session->make_text( $session->get_database()->get_driver_name ) ) );
+	
+	$table->appendChild(
+		$session->render_row( 
+			$session->html_phrase( "cgi/users/status:database_version" ),
+			$session->make_text( $session->get_database()->get_server_version ) ) );
+	
+	$table->appendChild(
+		$session->render_row( 
 			$session->html_phrase( "cgi/users/status:database" ),
 			$session->html_phrase( "cgi/users/status:database_".$db_status ) ) );
 	
@@ -281,6 +291,33 @@ sub render
 				$session->make_text( $sent ) ) );
 	}
 
+	$table = $session->make_element( "table", border=>"0" );
+	$html->appendChild( $session->html_phrase( "cgi/users/status:cache_tables" ) );
+	$html->appendChild( $table );
+
+	my $cache_ds = $session->get_repository->get_dataset( "cachemap" );
+	foreach my $name ($session->get_database->get_tables)
+	{
+		next unless $name =~ /^cache(\d+)$/;
+		my $cachemap = $cache_ds->get_object( $session, $1 );
+		my $count = $session->get_database->count_table($name);
+		my $created;
+		if( $cachemap )
+		{
+			$created = scalar gmtime($cachemap->get_value( "created" ));
+		}
+		else
+		{
+			$created = "Ooops! Orphaned!";
+		}
+
+		$table->appendChild(
+			$session->render_row( 
+				$session->make_text( $name ),
+				$session->make_text( $created ),
+				$session->make_text( $count ) ) );
+	}
+	
 	$self->{processor}->{title} = $session->html_phrase( "cgi/users/status:title" );
 
 	return $html;

@@ -41,38 +41,58 @@ BEGIN
 
 use EPrints::MetaField::Date;
 
+sub get_sql_names
+{
+	my( $self ) = @_;
+
+	return map { $self->get_name() . "_" . $_ } qw( year month day hour minute second );
+}
+
+sub value_from_sql_row
+{
+	my( $self, $session, $row ) = @_;
+
+	my @parts = splice(@$row,0,6);
+
+	my $value = "";
+	$value.= sprintf("%04d",$parts[0]) if( defined $parts[0] );
+	$value.= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
+	$value.= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
+	$value.= sprintf(" %02d",$parts[3]) if( defined $parts[3] );
+	$value.= sprintf(":%02d",$parts[4]) if( defined $parts[4] );
+	$value.= sprintf(":%02d",$parts[5]) if( defined $parts[5] );
+
+	return $value;
+}
+
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	my @parts;
+	@parts = split /[-: TZ]/, $value if defined $value;
+	push @parts, undef while scalar(@parts) < 6;
+
+	return @parts;
+}
+
 sub get_sql_type
 {
 	my( $self, $session, $notnull ) = @_;
 
 	# ignoring notnull.
 
-	my @parts = qw( year month day hour minute second );
+	my @parts = $self->get_sql_names;
+
 	for(@parts)
 	{
 		$_ = $session->get_database->get_column_type(
-			$self->get_sql_name . "_" . $_,
+			$_,
 			EPrints::Database::SQL_SMALLINT
 		);
 	}
 
 	return join ", ", @parts;
-}
-
-sub get_sql_index
-{
-	my( $self ) = @_;
-
-	return () unless( $self->get_property( "sql_index" ) );
-
-	return (
-		$self->get_sql_name()."_year",
-		$self->get_sql_name()."_month",
-		$self->get_sql_name()."_day",
-		$self->get_sql_name()."_hour",
-		$self->get_sql_name()."_minute",
-		$self->get_sql_name()."_second"
-	);
 }
 
 sub render_single_value

@@ -44,15 +44,43 @@ use EPrints::MetaField::Text;
 
 my $VARCHAR_SIZE = 255;
 
+# database order
+my @PARTS = qw( honourific given family lineage );
+
+sub get_sql_names
+{
+	my( $self ) = @_;
+
+	return map { $self->get_name() . "_" . $_ } @PARTS;
+}
+
+sub value_from_sql_row
+{
+	my( $self, $session, $row ) = @_;
+
+	my %value;
+	@value{@PARTS} = splice(@$row,0,4);
+
+	return \%value;
+}
+
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return @$value{@PARTS};
+}
+
 sub get_sql_type
 {
 	my( $self, $session, $notnull ) = @_;
 
-	my @parts = qw( honourific given family lineage );
+	my @parts = $self->get_sql_names;
+
 	for(@parts)
 	{
 		$_ = $session->get_database->get_column_type(
-			$self->get_sql_name . "_" . $_,
+			$_,
 			EPrints::Database::SQL_VARCHAR,
 			$notnull,
 			$VARCHAR_SIZE
@@ -69,7 +97,7 @@ sub get_sql_index
 
 	return () unless( $self->get_property( "sql_index" ) );
 
-	return ($self->get_sql_name."_family");
+	return ($self->get_name()."_family");
 }
 	
 sub render_single_value

@@ -6929,4 +6929,22 @@ PACKAGE: 2.2.99.2
     database outright
  * Added migration code for cachemap
  * Allow --force to add/remove system fields
+ * Support for Oracle DB! (10g)
+ * Modified all use of SQL to quote database identifiers (tables, columns)
+ * Added value_from_sql_row and sql_row_from_value methods to metafields to
+    replace bespoke Name/Date/Time cases in Database.pm 
+ * Added "dbdriver" database option to specific different database driver
+ * Added create_sequence, create_index methods for creating sequences and
+    indexes
+ * Changed messages and login_tickets tables to be DataSets
+ * Added "index" option to DataSets to control index and order sub-tables
+    creation/use
+ * Modified table creation to use _create_table
+ * Replaced direct INSERT SQL with insert/insert_quoted methods
+ * Added index_dequeue method to dequeue items from index_queue
+ * Added get_sql_names method to fields, to get database column names
+ * Added the current DB version to the "in old configuration" error
+ * Added update_ticket_userid method to update user tickets
+ * Added database driver information to Status screen
+ * Added create_counters method to create database counters
 

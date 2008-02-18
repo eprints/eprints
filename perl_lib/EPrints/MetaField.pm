@@ -936,7 +936,39 @@ sub call_property
 	return $self->{repository}->call( $v, @args );
 }
 
+######################################################################
+=pod
 
+=item $val = $field->value_from_sql_row( $session, $row )
+
+Shift and return the value of this field from the database input $row.
+
+=cut
+######################################################################
+
+sub value_from_sql_row
+{
+	my( $self, $session, $row ) = @_;
+
+	return shift @$row;
+}
+
+######################################################################
+=pod
+
+=item @row = $field->sql_row_from_value( $session, $value )
+
+Return a list of values to insert into the database based on $value.
+
+=cut
+######################################################################
+
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return( $value );
+}
 
 ######################################################################
 =pod
@@ -968,8 +1000,7 @@ sub get_sql_type
 
 =item $sql = $field->get_sql_index
 
-Return the SQL definition of the index/indexes required for this field 
-or an empty string if no index is required.
+Return the columns that an index should be created over.
 
 =cut
 ######################################################################
@@ -980,7 +1011,7 @@ sub get_sql_index
 	
 	return () unless( $self->get_property( "sql_index" ) );
 
-	return ($self->get_sql_name);
+	return $self->get_sql_names;
 }
 
 
@@ -1501,26 +1532,30 @@ sub form_value_basic
 	return $value;
 }
 
-
-
-
 ######################################################################
 =pod
 
-=item $sqlname = $field->get_sql_name
+=item @sqlnames = $field->get_sql_names
 
-Return the name of this field as it appears in an SQL table.
+Return the names of this field's columns as they appear in a SQL table.
 
 =cut
 ######################################################################
 
+sub get_sql_names
+{
+	my( $self ) = @_;
+
+	return( $self->{name} );
+}
+
+# Utility/backwards compatibility
 sub get_sql_name
 {
 	my( $self ) = @_;
 
-	return $self->{name};
+	return $self->{ name };
 }
-
 
 ######################################################################
 =pod

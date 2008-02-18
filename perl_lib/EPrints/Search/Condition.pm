@@ -699,14 +699,14 @@ END
 	{
 		if( $self->{op} eq "index" )
 		{
-			my $where = "fieldword = ".$database->quote_value( 
+			my $where = $database->quote_identifier("fieldword")." = ".$database->quote_value( 
 				$self->{field}->get_sql_name.":".$self->{params}->[0] );
 			$r = $session->get_database->get_index_ids( $self->get_table, $where );
 		}
 
 		if( $self->{op} eq "indexstart" )
 		{
-			my $where = "fieldword LIKE ".$database->quote_value( 
+			my $where = $database->quote_identifier("fieldword")." LIKE ".$database->quote_value( 
 				EPrints::Database::prep_like_value($self->{field}->get_sql_name.":".$self->{params}->[0]) . "\%");
 			$r = $session->get_database->get_index_ids( $self->get_table, $where );
 		}
@@ -715,14 +715,14 @@ END
 	{
 		# joined tables on an index -- not efficient but this will work...
 
-		my $where = "$TABLEALIAS.field = ".$database->quote_value( $self->{field}->get_sql_name );
+		my $where = $database->quote_identifier($TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
 		if( $self->{op} eq "index" )
 		{
-			$where .= " AND $TABLEALIAS.word = ".$database->quote_value( $self->{params}->[0] ); 
+			$where .= " AND ".$database->quote_identifier($TABLEALIAS,"word")." = ".$database->quote_value( $self->{params}->[0] ); 
 		}
 		else
 		{
-			$where .= " AND $TABLEALIAS.word LIKE '".EPrints::Database::prep_like_value( $self->{params}->[0] )."\%'";
+			$where .= " AND ".$database->quote_identifier($TABLEALIAS,"word")." LIKE '".EPrints::Database::prep_like_value( $self->{params}->[0] )."\%'";
 		}	
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
@@ -743,21 +743,21 @@ END
 			# cjg better logging?
 		}
 
-		my $where = "( $TABLEALIAS.fieldname = '$sql_col' AND (";
+		my $where = "( ".$database->quote_identifier($TABLEALIAS,"fieldname")." = '$sql_col' AND (";
 		my $first = 1;
 		foreach my $cond (@{$self->{params}})
 		{
 			$where.=" OR " unless( $first );
 			$first = 0;
 			# not prepping like values...
-			$where .= "$TABLEALIAS.grepstring LIKE '$cond'";
+			$where .= $database->quote_identifier($TABLEALIAS,"grepstring")." LIKE '$cond'";
 		}
 		$where.="))";
 
  		my $gtable = $self->{dataset}->get_sql_grep_table_name;
 		my $SSIZE = 50;
 		my $total = scalar @{$filter};
-		my $kfn = $keyfield->get_sql_name; # key field name
+		my $kfn = $database->quote_identifier($keyfield->get_sql_name); # key field name
 		for( my $i = 0; $i<$total; $i+=$SSIZE )
 		{
 			my $max = $i+$SSIZE;
@@ -789,7 +789,7 @@ END
 		};
 		push @{$tables}, {
 			left => "subjectid",
-			where => "$TABLEALIAS.ancestors=".$database->quote_value( $self->{params}->[0] ),
+			where => $database->quote_identifier($TABLEALIAS,"ancestors")."=".$database->quote_value( $self->{params}->[0] ),
 			table => 'subject_ancestors',
 		};
 		
@@ -802,12 +802,12 @@ END
 		my $where;
 		if( $self->{field}->is_type( "date", "time" ) )
 		{
-			$where = "($TABLEALIAS.${sql_col}_year IS NULL)";
+			$where = "(".$database->quote_identifier($TABLEALIAS,"${sql_col}_year")." IS NULL)";
 		}
 		else
 		{
-			$where = "($TABLEALIAS.$sql_col IS NULL OR ";
-			$where .= "$TABLEALIAS.$sql_col = '')";
+			$where = "(".$database->quote_identifier($TABLEALIAS,$sql_col)." IS NULL OR ";
+			$where .= $database->quote_identifier($TABLEALIAS,$sql_col)." = '')";
 		}
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
@@ -821,7 +821,9 @@ END
 
 	if( $self->{op} eq 'name_match' )
 	{
-		my $where = "($TABLEALIAS.".$sql_col."_given = ".$database->quote_value( $self->{params}->[0]->{given} )." AND $TABLEALIAS.".$sql_col."_family = ".$database->quote_value( $self->{params}->[0]->{family} ).")";
+		my $where = "(".join(") AND (", map {
+			$database->quote_identifier($TABLEALIAS,"$sql_col\_$_")."=".$database->quote_value($self->{params}->[0]->{$_})
+		} qw( given family )).")";
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
 			where => $where,
@@ -863,8 +865,7 @@ END
 					{	
 						my $o = "=";
 						if( $j==$i ) { $o = $cmp; }
-						push @and, $TABLEALIAS.".".$sql_col."_".$timemap->[$j]." ".$o.
-							" ".$database->quote_value( $parts[$j] ); 
+						push @and, $database->quote_identifier($TABLEALIAS,$sql_col."_".$timemap->[$j])." ".$o." ".$database->quote_value( $parts[$j] ); 
 					}
 					push @or, "( ".join( " AND ", @and )." )";
 				}
@@ -874,8 +875,7 @@ END
 				my @and = ();
 				for( my $i=0;$i<$nparts;++$i )
 				{
-					push @and, $TABLEALIAS.".".$sql_col."_".$timemap->[$i]." =".
-							" ".$database->quote_value( $parts[$i] ); 
+					push @and, $database->quote_identifier($TABLEALIAS,$sql_col."_".$timemap->[$i])." = ".$database->quote_value( $parts[$i] ); 
 				}
 				push @or, "( ".join( " AND ", @and )." )";
 			}
@@ -884,11 +884,11 @@ END
 		}
 		elsif( $self->{field}->is_type( "pagerange","int","year" ) )
 		{
-			$where = "$TABLEALIAS.$sql_col ".$self->{op}." ".EPrints::Database::prep_int( $self->{params}->[0] );
+			$where = $database->quote_identifier($TABLEALIAS,$sql_col)." ".$self->{op}." ".EPrints::Database::prep_int( $self->{params}->[0] );
 		}
 		else
 		{
-			$where = "$TABLEALIAS.$sql_col ".$self->{op}." ".$database->quote_value( $self->{params}->[0] );
+			$where = $database->quote_identifier($TABLEALIAS,$sql_col)." ".$self->{op}." ".$database->quote_value( $self->{params}->[0] );
 		}
 		push @{$tables}, {
 			left => $self->{field}->get_dataset->get_key_field->get_name, 
@@ -906,6 +906,8 @@ END
 sub run_tables
 {
 	my( $self, $session, $tables ) = @_;
+
+	my $db = $session->get_database;
 
 	my @opt_tables;
 	while( scalar @{$tables} )
@@ -935,10 +937,10 @@ sub run_tables
 	for( my $tn=0; $tn<scalar @opt_tables; $tn++ )
 	{
 		my $tabinfo = $opt_tables[$tn];
-		push @sql_tables, $tabinfo->{table}." AS T$tn";
+		push @sql_tables, $db->quote_identifier($tabinfo->{table})." ".$db->quote_identifier("T$tn");
 		if( defined $tabinfo->{right} )
 		{
-			push @sql_wheres, "T".$tn.".".$tabinfo->{right}."=T".($tn+1).".".$opt_tables[$tn+1]->{left};
+			push @sql_wheres, $db->quote_identifier("T$tn", $tabinfo->{right})."=".$db->quote_identifier("T".($tn+1), $opt_tables[$tn+1]->{left});
 		}
 		if( defined $tabinfo->{where} )
 		{
@@ -948,7 +950,7 @@ sub run_tables
 		}
 	}
 
-	my $sql = "SELECT DISTINCT T0.".$opt_tables[0]->{left}." FROM ".join( ", ", @sql_tables )." WHERE (".join(") AND (", @sql_wheres ).")";
+	my $sql = "SELECT DISTINCT ".$db->quote_identifier("T0",$opt_tables[0]->{left})." FROM ".join( ", ", @sql_tables )." WHERE (".join(") AND (", @sql_wheres ).")";
 #print "$sql\n";
 	my $results = [];
 	my $sth = $session->get_database->prepare( $sql );
