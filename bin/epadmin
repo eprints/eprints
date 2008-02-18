@@ -1079,7 +1079,7 @@ END
 	}
 
 	erase_eprint_files( $repoid );
-	drop_and_recreate_db( $repoid );
+	drop_tables_and_recreate_db( $repoid );
 }
 
 sub erase_eprints
@@ -1145,6 +1145,54 @@ sub reset_dataset
 	{
 		print "Resetting counter ${datasetid}id\n";
 		$db->counter_reset( $datasetid."id" );
+	}
+
+	$session->terminate;
+}
+
+sub drop_tables_and_recreate_db
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
+
+	my $db = $session->get_database;
+
+	my @tables = $db->get_tables;
+
+	foreach my $dataset_id (EPrints::DataSet::get_sql_dataset_ids)
+	{
+		if( $noise>=2 ) { print "Removing dataset $dataset_id\n"; }
+		foreach my $table (@tables)
+		{
+			$db->drop_table( $table ) if $table =~ /^$dataset_id/i;
+		}
+	}
+
+	if( $noise>=2 ) { print "Cleaning up cache tables\n"; }
+	foreach my $table (@tables)
+	{
+		if( $table =~ /^cache\d+$/i )
+		{
+			if( $noise>=3 ) { print "Dropping $table\n"; }
+			$db->drop_table( $table );
+		}
+	}
+
+	if( $noise>=2 ) { print "Removing counters\n"; }
+	$db->remove_counters();
+
+	for(qw( index_queue version ))
+	{
+		if( $noise>=2 ) { print "Removing support table $_\n"; }
+		$db->drop_table( $_ ) if $db->has_table( $_ );
+	}
+
+	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
+	if( $mktables eq "yes" )
+	{
+		create_tables( $repoid );
 	}
 
 	$session->terminate;
@@ -1722,6 +1770,12 @@ sub upgrade_3_0_7_to_3_0_8
 	$changes_sql .= "MODIFY referent_docid INT,";
 	chop($changes_sql);
 	$db->do("ALTER TABLE $table $changes_sql");
+
+	# cachemap changes
+	$table = $repo->get_dataset( "cachemap" )->get_sql_table_name;
+	$db->do("ALTER TABLE $table MODIFY created INTEGER, MODIFY lastused INTEGER");
+	my $t = time();
+	$db->do("UPDATE $table SET created=$t AND lastused=$t");
 }
 
 

@@ -6923,3 +6923,9 @@ PACKAGE: 2.2.99.2
 
 2008-02-14 cjg
  * Added getEprintField to toolbox. 
+
+2008-02-18 tdb
+ * erase_data now recreates all eprints tables rather than destroying the
+    database outright
+ * Added migration code for cachemap
+
