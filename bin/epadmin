@@ -1771,11 +1771,23 @@ sub upgrade_3_0_7_to_3_0_8
 	chop($changes_sql);
 	$db->do("ALTER TABLE $table $changes_sql");
 
+	# remove the index and order tables
+	for(qw(__index __index_grep __ordervalues_en __rindex))
+	{
+		$db->drop_table("$table$_");
+	}
+
 	# cachemap changes
 	$table = $repo->get_dataset( "cachemap" )->get_sql_table_name;
 	$db->do("ALTER TABLE $table MODIFY created INTEGER, MODIFY lastused INTEGER");
 	my $t = time();
 	$db->do("UPDATE $table SET created=$t AND lastused=$t");
+
+	# new message and loginticket datasets
+	$db->create_dataset_tables( $repo->get_dataset( "message" ) );
+	$db->create_dataset_tables( $repo->get_dataset( "loginticket" ) );
+	$db->drop_table( "messages" );
+	$db->drop_table( "login_tickets" );
 }
 
 
