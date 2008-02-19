@@ -942,6 +942,37 @@ sub insert_quoted
 ######################################################################
 =pod
 
+=item $success = $db->delete_from( $table, $columns, @values )
+
+Perform a SQL DELETE FROM $table using $columns to build a where clause.
+@values is a list of array references of values in the same order as $columns.
+
+If you want to clear a table completely use clear_table().
+
+=cut
+######################################################################
+
+sub delete_from
+{
+	my( $self, $table, $keys, @values ) = @_;
+
+	my $rc = 1;
+
+	my $sql = "DELETE FROM ".$self->quote_identifier($table)." WHERE ".
+		join(" AND ", map { $self->quote_identifier($_)."=?" } @$keys);
+	
+	my $sth = $self->prepare($sql);
+	for(@values)
+	{
+		$rc &&= $sth->execute( @$_ );
+	}
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
 =item $success = $db->add_record( $dataset, $data )
 
 Add the given data as a new record in the given dataset. $data is

@@ -6961,4 +6961,5 @@ PACKAGE: 2.2.99.2
  * Moved a SELECT from List to Database (SELECT 'ALL')
  * Remove stale sequences in create_sequence if they already exist
  * strip spaces and lowercase when normalising for comparison, fixing #3263
+ * added delete_from() method to Database, tidied up _do_ordervalues
 

@@ -280,23 +280,22 @@ sub _do_ordervalues
 {
         my( $session, $dataset, $data, $insert, $tmp ) = @_;
 
+	# insert is ignored
 	# insert = 0 => update
 	# insert = 1 => insert
 	# tmp = 1 = use_tmp_table
 	# tmp = 0 = use normal table
 
-	my $db = $session->get_database;
-	my @fields = $dataset->get_fields( 1 );
-
-	# remove the key field
-	splice( @fields, 0, 1 ); 
-	my $keyfield = $dataset->get_key_field();
-	my $keyvalue = $data->{$keyfield->get_sql_name()};
-	my @orderfields = ( $keyfield );
+	my( $keyfield, @fields ) = $dataset->get_fields( 1 );
+	my $keyname = $keyfield->get_sql_name;
+	my $keyvalue = $data->{$keyfield->get_name()};
 
 	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
-		my @fnames = ( $keyfield->get_sql_name() );
+		my $ovt = $dataset->get_ordervalues_table_name( $langid );
+		if( $tmp ) { $ovt .= "_tmp"; }
+
+		my @fnames = ( $keyname );
 		my @fvals = ( $keyvalue );
 		foreach my $field ( @fields )
 		{
@@ -310,23 +309,8 @@ sub _do_ordervalues
 			push @fvals, $ov;
 		}
 
-		# cjg raw SQL!
-		my $ovt = $dataset->get_ordervalues_table_name( $langid );
-		if( $tmp ) { $ovt .= "_tmp"; }
-		if( $insert )
-		{
-			$session->get_database->insert( $ovt, \@fnames, \@fvals );
-		}
-		else
-		{
-			my @l = ();
-			for( my $i=0; $i<scalar @fnames; ++$i )
-			{
-				push @l, $db->quote_identifier($fnames[$i])."=".$db->quote_value($fvals[$i]);
-			}
-			my $sql = "UPDATE ".$db->quote_identifier($ovt)." SET ".join( ",", @l )." WHERE ".$db->quote_identifier( $keyfield->get_sql_name() )."=".$db->quote_value( $keyvalue );
-			$db->do( $sql );
-		}
+		$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
+		$session->get_database->insert( $ovt, \@fnames, \@fvals );
 	}
 }
 
