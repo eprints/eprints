@@ -6960,4 +6960,5 @@ PACKAGE: 2.2.99.2
  * Don't show deleted *eprints* in the access log OAI interface
  * Moved a SELECT from List to Database (SELECT 'ALL')
  * Remove stale sequences in create_sequence if they already exist
+ * strip spaces and lowercase when normalising for comparison, fixing #3263
 

@@ -834,7 +834,10 @@ sub _normalize
 {
 	my( $in ) = @_;
   	
-	return Text::Unidecode::unidecode( $in );
+	$in =~ s/^\s+//;
+
+	# lowercase after unidecode, so we "lowercase" i18n.
+	return lc(Text::Unidecode::unidecode( $in ));
 }
 
 sub _normalcmp
