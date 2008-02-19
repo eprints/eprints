@@ -6962,4 +6962,5 @@ PACKAGE: 2.2.99.2
  * Remove stale sequences in create_sequence if they already exist
  * strip spaces and lowercase when normalising for comparison, fixing #3263
  * added delete_from() method to Database, tidied up _do_ordervalues
+ * utf8 decode values before passing to Unidecode, fixing #3270
 
