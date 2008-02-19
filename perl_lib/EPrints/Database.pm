@@ -2460,7 +2460,6 @@ sub get_values
 	my $Q_eprint_status = $self->quote_identifier( "eprint_status" );
 	my $Q_eprintid = $self->quote_identifier( "eprintid" );
 
-	my $fn = "$M.".$field->get_sql_name();
 	my $cols = join(", ", map {
 		"$M.".$self->quote_identifier($_)
 	} $field->get_sql_names);
@@ -2482,7 +2481,7 @@ sub get_values
 	} 
 	else 
 	{
-		$sql.= $dataset->get_sql_table_name()." as $M";
+		$sql.= $dataset->get_sql_table_name()." $M";
 		if( $limit )
 		{
 			$sql.=" WHERE $M.$Q_eprint_status = '$limit'";

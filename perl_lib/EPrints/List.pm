@@ -323,6 +323,7 @@ sub cache
 			$self->{dataset},
 			"ALL",
 			$self->{order} );
+		$self->{ids} = undef;
 		return;	
 	}
 
