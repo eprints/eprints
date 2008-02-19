@@ -486,12 +486,18 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:indexer_queue_size"><pin name="size" /> Field(s)</epp:phrase>
     <epp:phrase id="cgi/users/status:database_ok">OK</epp:phrase>
     <epp:phrase id="cgi/users/status:database_down">DOWN</epp:phrase>
+    <epp:phrase id="cgi/users/status:database_link">View database schema</epp:phrase>
     <epp:phrase id="cgi/users/status:users">Total Users</epp:phrase>
     <epp:phrase id="cgi/users/status:usertitle"><h2>Users</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:articles"><h2>Items</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:diskspace"><h2>Disk Space</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:saved_searches"><h2>Saved Searches and Alerts</h2></epp:phrase>
     <epp:phrase id="cgi/users/status:cache_tables"><h2>Cache Tables</h2></epp:phrase>
+    <epp:phrase id="cgi/users/status:cachedate">Created at</epp:phrase>
+    <epp:phrase id="cgi/users/status:cachesize">Size</epp:phrase>
+    <epp:phrase id="cgi/users/status:database_tables"><h2>Database Tables</h2></epp:phrase>
+    <epp:phrase id="cgi/users/status:dataset_tables"><h4>Dataset Tables</h4></epp:phrase>
+    <epp:phrase id="cgi/users/status:misc_tables"><h4>Misc. Tables</h4></epp:phrase>
     <epp:phrase id="cgi/users/status:subsent">Last completed alert mailing</epp:phrase>
     <epp:phrase id="cgi/users/status:subcount">Total Number</epp:phrase>
     <epp:phrase id="cgi/users/status:set_archive">Repository</epp:phrase>
@@ -1763,5 +1769,48 @@ Titles and Help for the System Fields
 <epp:phrase id="ruler"><hr noshade="noshade" class="ep_ruler" /></epp:phrase>
 
 <epp:phrase id="lib/paginate:no_items">No items</epp:phrase>
+
+<epp:phrase id="database/name_">???</epp:phrase>
+<epp:phrase id="database/help_">Not created by EPrints</epp:phrase>
+<epp:phrase id="database/name__index">Reverse Index</epp:phrase>
+<epp:phrase id="database/help__index"></epp:phrase>
+<epp:phrase id="database/name__rindex">Indexed Terms</epp:phrase>
+<epp:phrase id="database/help__rindex"></epp:phrase>
+<epp:phrase id="database/name__index_grep">Index for Grep</epp:phrase>
+<epp:phrase id="database/help__index_grep"></epp:phrase>
+<epp:phrase id="database/name__ordervalues">Order-by Values</epp:phrase>
+<epp:phrase id="database/help__ordervalues">Values used to sort the dataset for <epc:pin name="lang"/></epp:phrase>
+
+<epp:phrase id="database/name_counters">Global Identifiers</epp:phrase>
+<epp:phrase id="database/help_counters">Used to store highest identifier for eprints and users etc.</epp:phrase>
+<epp:phrase id="database/name_version">Schema Version</epp:phrase>
+<epp:phrase id="database/help_version">Stores the database schema version</epp:phrase>
+<epp:phrase id="database/name_index_queue">Indexer Queue</epp:phrase>
+<epp:phrase id="database/help_index_queue">Contains fields waiting to be indexed by the indexer</epp:phrase>
+<epp:phrase id="database/name_dual">Oracle Null Table</epp:phrase>
+<epp:phrase id="database/help_dual">This table is created by EPrints if it doesn't already exist in Oracle</epp:phrase>
+
+<epp:phrase id="datasetname_eprint">EPrints</epp:phrase>
+<epp:phrase id="datasethelp_eprint">Used to store eprints records</epp:phrase>
+<epp:phrase id="datasetname_user">Users</epp:phrase>
+<epp:phrase id="datasethelp_user">Used to store info on eprints users</epp:phrase>
+<epp:phrase id="datasetname_subject">Subjects</epp:phrase>
+<epp:phrase id="datasethelp_subject">Used to store the heirarchical subject tree(s)</epp:phrase>
+<epp:phrase id="datasetname_document">Documents</epp:phrase>
+<epp:phrase id="datasethelp_document">Used to store documents metadata, for ALL of archive,inbox,etc.</epp:phrase>
+<epp:phrase id="datasetname_saved_search">Saved Searches</epp:phrase>
+<epp:phrase id="datasethelp_saved_search">Used to store what seaches users have and the frequency of alert emails</epp:phrase>
+<epp:phrase id="datasetname_cachemap">Cache Tables</epp:phrase>
+<epp:phrase id="datasethelp_cachemap">Index to the tables used for temporarily storing search results</epp:phrase>
+<epp:phrase id="datasetname_message">User Notifications</epp:phrase>
+<epp:phrase id="datasethelp_message">Used to store messages waiting to be shown to the user</epp:phrase>
+<epp:phrase id="datasetname_loginticket">User Log-ins</epp:phrase>
+<epp:phrase id="datasethelp_loginticket">Stores user login tickets (cookies-based authentication)</epp:phrase>
+<epp:phrase id="datasetname_access">Access Logs</epp:phrase>
+<epp:phrase id="datasethelp_access">Stores requests generated from the Web interface</epp:phrase>
+<epp:phrase id="datasetname_history">Object Revisions</epp:phrase>
+<epp:phrase id="datasethelp_history">Stores information about revisions made to objects (eprints, users etc.)</epp:phrase>
+<epp:phrase id="datasetname_request">Full-text Requests</epp:phrase>
+<epp:phrase id="datasethelp_request">Stores requests made for full-texts to be delivered by email</epp:phrase>
 
 </epp:phrases>

@@ -6956,3 +6956,5 @@ PACKAGE: 2.2.99.2
  * Changed 3.1 database to version 3.1.0
  * Added upgrading of cachemap dataset tables + counters, fixing #3272 and
     #3273
+ * Replaced explain_tables with a GUI version in admin-Status, fixing #3276
+
