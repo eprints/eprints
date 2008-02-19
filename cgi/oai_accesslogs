@@ -639,7 +639,7 @@ END
 	$searchexp->perform_search();
 	my $count = $searchexp->count();
 
-	if( $count == 0 )
+	if( 0 and $count == 0 )
 	{	
 		## End of archive items, time to do deleted ones.
 		my $delsearchexp = $searchexp->clone;
