@@ -6963,4 +6963,5 @@ PACKAGE: 2.2.99.2
  * strip spaces and lowercase when normalising for comparison, fixing #3263
  * added delete_from() method to Database, tidied up _do_ordervalues
  * utf8 decode values before passing to Unidecode, fixing #3270
+ * added "reorder" command to epadmin to re-write ordering codes
 

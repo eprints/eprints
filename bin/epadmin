@@ -62,6 +62,10 @@ Recommit all the records in the given dataset. What this does is cause the autom
 
 Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing.
 
+=item B<epadmin> reorder I<repository_id> I<dataset_id>
+
+Regenerate the order values for the dataset.
+
 =item B<epadmin> rehash I<repository_id> [I<document_id>]
 
 Recalculate the hashes of the files in this document and write it to a probity log file. If a document id is given then just generate the hash for that document.
@@ -204,6 +208,12 @@ else
 		my $datasetid = $ARGV[2];
 		pod2usage(1) unless defined $datasetid;
 		reindex( $repoid, $datasetid ); 
+	}
+	elsif( $action eq "reorder" )
+	{
+		my $datasetid = $ARGV[2];
+		pod2usage(1) unless defined $datasetid;
+		reorder( $repoid, $datasetid ); 
 	}
 	elsif( $action eq "rehash" ) { rehash( $repoid ); }
 	else { pod2usage( 1 ); }
@@ -1438,6 +1448,37 @@ sub recommit
 	$dataset->map( $session, $fn );
 
 	print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+
+	$session->terminate;
+}
+
+sub reorder
+{
+	my( $repoid, $datasetid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		$session->terminate();
+		exit( 1 );
+	}
+
+	my $fn = sub {
+		my( $session, $dataset, $item ) = @_;
+	
+		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data} );
+
+		if( $session->get_noise() >= 2 )
+		{
+			print STDERR "Re-ordered item: ".$dataset->id()."/".$item->get_id()."\n";
+		}
+	};
+
+	$dataset->map( $session, $fn );
 
 	$session->terminate;
 }
