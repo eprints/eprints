@@ -6952,3 +6952,7 @@ PACKAGE: 2.2.99.2
  * Added create_counters method to create database counters
  * Database upgrade steps from 3.0.7 to 3.0.8
 
+2008-02-19 tdb
+ * Changed 3.1 database to version 3.1.0
+ * Added upgrading of cachemap dataset tables + counters, fixing #3272 and
+    #3273

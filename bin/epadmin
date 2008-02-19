@@ -1554,8 +1554,8 @@ sub upgrade
 	}
 	if( $dbversion eq "3.0.7" )
 	{
-		upgrade_3_0_7_to_3_0_8( $repoid, $db );
-		$dbversion="3.0.8";
+		upgrade_3_0_7_to_3_1_0( $repoid, $db );
+		$dbversion="3.1.0";
 		$db->set_version( $dbversion );
 	}
 
@@ -1732,7 +1732,7 @@ sub upgrade_3_0_6_to_3_0_7
 
 }
 
-sub upgrade_3_0_7_to_3_0_8
+sub upgrade_3_0_7_to_3_1_0
 {
 	my( $repoid, $db ) = @_;
 
@@ -1750,7 +1750,8 @@ sub upgrade_3_0_7_to_3_0_8
 			next if $field->is_virtual;
 			my $table = $dataset->get_sql_sub_table_name( $field );
 			my $keyfield = $dataset->get_key_field;
-			$db->do("ALTER TABLE $table DROP PRIMARY KEY, ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
+			$db->do("ALTER TABLE $table DROP PRIMARY KEY");
+			$db->do("ALTER TABLE $table ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
 		}
 	}
 
@@ -1777,17 +1778,23 @@ sub upgrade_3_0_7_to_3_0_8
 		$db->drop_table("$table$_");
 	}
 
-	# cachemap changes
-	$table = $repo->get_dataset( "cachemap" )->get_sql_table_name;
-	$db->do("ALTER TABLE $table MODIFY created INTEGER, MODIFY lastused INTEGER");
-	my $t = time();
-	$db->do("UPDATE $table SET created=$t AND lastused=$t");
+	for($db->get_tables)
+	{
+		$db->drop_table($_) if /^cache(\d+)$/;
+	}
 
-	# new message and loginticket datasets
-	$db->create_dataset_tables( $repo->get_dataset( "message" ) );
-	$db->create_dataset_tables( $repo->get_dataset( "loginticket" ) );
 	$db->drop_table( "messages" );
 	$db->drop_table( "login_tickets" );
+	$db->drop_table( "cachemap" );
+
+	# new datasets
+	$db->create_dataset_tables( $repo->get_dataset( "message" ) );
+	$db->create_dataset_tables( $repo->get_dataset( "loginticket" ) );
+	$db->create_dataset_tables( $repo->get_dataset( "cachemap" ) );
+
+	# new counters
+	$db->do("INSERT INTO counters VALUES ( 'messageid', 0 )");
+	$db->do("INSERT INTO counters VALUES ( 'cachemapid', 0 )");
 }
 
 
