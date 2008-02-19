@@ -236,6 +236,57 @@ sub index_dequeue
 	return split(/\./, $field);
 }
 
+######################################################################
+=pod
+
+=item @tables = $db->get_tables
+
+Return a list of all the tables in the database.
+
+=cut
+######################################################################
+
+sub get_tables
+{
+	my( $self ) = @_;
+
+	my @tables;
+
+	my $dbuser = $self->{session}->get_repository->get_conf( "dbuser" );
+	my $sth = $self->{dbh}->table_info( '%', $dbuser, '%', 'TABLE' );
+
+	while(my $row = $sth->fetch)
+	{
+		my $name = $row->[$sth->{NAME_lc_hash}{table_name}];
+		next if $name =~ /\$/;
+		push @tables, $name;
+	}
+	$sth->finish;
+
+	return @tables;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->has_sequence( $name )
+
+Return true if a sequence of the given name exists in the database.
+
+=cut
+######################################################################
+
+sub has_sequence
+{
+	my( $self, $name ) = @_;
+
+	my $sql = "SELECT 1 FROM ALL_SEQUENCES WHERE SEQUENCE_NAME=?";
+	my $sth = $self->prepare($sql);
+	$sth->execute( $name );
+
+	return $sth->fetch ? 1 : 0;
+}
+
 1; # For use/require success
 
 ######################################################################

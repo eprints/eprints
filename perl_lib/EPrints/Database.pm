@@ -760,6 +760,23 @@ sub _create_table
 ######################################################################
 =pod
 
+=item $boolean = $db->has_sequence( $name )
+
+Return true if a sequence of the given name exists in the database.
+
+=cut
+######################################################################
+
+sub has_sequence
+{
+	my( $self, $name ) = @_;
+
+	return 0;
+}
+
+######################################################################
+=pod
+
 =item  $success = $db->create_sequence( $seq_name )
 
 Creates a new sequence object initialised to zero.
@@ -770,6 +787,11 @@ Creates a new sequence object initialised to zero.
 sub create_sequence
 {
 	my( $self, $name ) = @_;
+
+	if( $self->has_sequence( $name ) )
+	{
+		$self->drop_sequence( $name );
+	}
 
 	my $sql = "CREATE SEQUENCE ".$self->quote_identifier($name)." " .
 		"INCREMENT BY 1 " .
@@ -1615,7 +1637,7 @@ sub cache_exp
 	return unless $cache;
 
 	my $created = $cache->get_value( "created" );
-	if( $created > (time() - $a->get_conf("cache_maxlife") * 3600) )
+	if( $created < (time() - $a->get_conf("cache_maxlife") * 3600) )
 	{
 		return;
 	}
@@ -1655,6 +1677,9 @@ year are ordered by title.
 If $srctable is set to "LIST" then order is ignored and the list of
 ids is taken from the array reference $list.
 
+If $srctable is set to "ALL" every matching record from $dataset is added to
+the cache, optionally ordered by $order.
+
 =cut
 ######################################################################
 
@@ -1690,6 +1715,16 @@ sub cache
 	{
 		# Leave the table empty
 	}
+	elsif( $srctable eq "ALL" )
+	{
+		my $logic = [];
+		$srctable = $dataset->get_sql_table_name;
+		if( $dataset->get_dataset_id_field )
+		{
+			push @$logic, $self->quote_identifier( $dataset->get_dataset_id_field ) . "=" . $self->quote_value( $dataset->id );
+		}
+		$self->_cache_from_TABLE($cachemap, $dataset, $srctable, $order, $list, $logic );
+	}
 	elsif( $srctable eq "LIST" )
 	{
 		$self->_cache_from_LIST($cachemap, @_[2..$#_]);
@@ -1718,12 +1753,13 @@ sub _cache_from_LIST
 
 sub _cache_from_TABLE
 {
-	my( $self, $cachemap, $dataset, $srctable, $order ) = @_;
+	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
 	my $cache_seq = $cache_table . "_seq";
 	my $cache_trigger = $cache_table . "_trig";
 	my $keyfield = $dataset->get_key_field();
+	$logic ||= [];
 
 	my $Q_cache_table = $self->quote_identifier( $cache_table );
 	my $Q_trigger = $self->quote_identifier( $cache_trigger );
@@ -1749,7 +1785,15 @@ EOT
 	if( defined $order )
 	{
 		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." $O";
-		$sql .= " ON $B.$Q_keyname = $O.$Q_keyname ORDER BY ";
+		$sql .= " ON $B.$Q_keyname = $O.$Q_keyname";
+	}
+	if( scalar @$logic )
+	{
+		$sql .= " WHERE ".join(" AND ", @$logic);
+	}
+	if( defined $order )
+	{
+		$sql .= " ORDER BY ";
 		my $first = 1;
 		foreach( split( "/", $order ) )
 		{
@@ -2413,6 +2457,8 @@ sub get_values
 
 	my $M = $self->quote_identifier("M");
 	my $L = $self->quote_identifier("L");
+	my $Q_eprint_status = $self->quote_identifier( "eprint_status" );
+	my $Q_eprintid = $self->quote_identifier( "eprintid" );
 
 	my $fn = "$M.".$field->get_sql_name();
 	my $cols = join(", ", map {
@@ -2430,16 +2476,16 @@ sub get_values
 		if( $limit )
 		{
 			$sql.=", ".$dataset->get_sql_table_name()." $L";
-			$sql.=" WHERE $L.eprintid = $M.eprintid";
-			$sql.=" AND $L.eprint_status = '$limit'";
+			$sql.=" WHERE $L.$Q_eprintid = $M.$Q_eprintid";
+			$sql.=" AND $L.$Q_eprint_status = '$limit'";
 		}
 	} 
 	else 
 	{
-		$sql.= $dataset->get_sql_table_name()." as M";
+		$sql.= $dataset->get_sql_table_name()." as $M";
 		if( $limit )
 		{
-			$sql.=" WHERE M.eprint_status = '$limit'";
+			$sql.=" WHERE $M.$Q_eprint_status = '$limit'";
 		}
 	}
 	my $sth = $self->prepare( $sql );

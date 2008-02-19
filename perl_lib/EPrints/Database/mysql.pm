@@ -220,13 +220,14 @@ sub counter_reset
 
 sub _cache_from_TABLE
 {
-	my( $self, $cachemap, $dataset, $srctable, $order ) = @_;
+	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
 
 	my $sql;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
 	my $keyfield = $dataset->get_key_field();
 	my $Q_keyname = $self->quote_identifier($keyfield->get_name);
+	$logic ||= [];
 
 	$sql = "ALTER TABLE $cache_table MODIFY `pos` INT NOT NULL AUTO_INCREMENT";
 	$self->do($sql);
@@ -235,7 +236,15 @@ sub _cache_from_TABLE
 	if( defined $order )
 	{
 		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." O";
-		$sql .= " ON B.$Q_keyname = O.$Q_keyname ORDER BY ";
+		$sql .= " ON B.$Q_keyname = O.$Q_keyname";
+	}
+	if( scalar @$logic )
+	{
+		$sql .= " WHERE ".join(" AND ", @$logic);
+	}
+	if( defined $order )
+	{
+		$sql .= " ORDER BY ";
 		my $first = 1;
 		foreach( split( "/", $order ) )
 		{

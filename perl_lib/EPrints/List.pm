@@ -316,29 +316,17 @@ sub cache
 #	}
 
 	my $db = $self->{session}->get_database;
-	if( $self->_matches_all && !defined $self->{dataset}->get_filters )
+	if( $self->_matches_all )
 	{
 		$self->{cache_id} = $db->cache( 
 			$self->{encoded}, 
 			$self->{dataset},
-			$self->{dataset}->get_sql_table_name(),
+			"ALL",
 			$self->{order} );
 		return;	
 	}
 
 	my $ids = $self->{ids};
-	if( $self->_matches_all )
-	{
-		my $sql = "SELECT eprintid FROM eprint WHERE eprint_status='".$self->{dataset}->id."'";
-		my $sth = $self->{session}->get_database->prepare( $sql );
-		$self->{session}->get_database->execute( $sth, $sql );
-		while( my( $id ) = $sth->fetchrow_array )
-		{
-			push @{$ids}, $id;
-		}
-		$sth->finish;
-	}
-	
 	$self->{cache_id} = $db->cache( 
 		$self->{encoded}, 
 		$self->{dataset},

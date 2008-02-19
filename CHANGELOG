@@ -6958,4 +6958,6 @@ PACKAGE: 2.2.99.2
     #3273
  * Replaced explain_tables with a GUI version in admin-Status, fixing #3276
  * Don't show deleted *eprints* in the access log OAI interface
+ * Moved a SELECT from List to Database (SELECT 'ALL')
+ * Remove stale sequences in create_sequence if they already exist
 
