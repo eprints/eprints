@@ -1637,7 +1637,7 @@ sub cache_exp
 	return unless $cache;
 
 	my $created = $cache->get_value( "created" );
-	if( $created < (time() - $a->get_conf("cache_maxlife") * 3600) )
+	if( (time() - $created) > ($a->get_conf("cache_maxlife") * 3600) )
 	{
 		return;
 	}
