@@ -179,7 +179,7 @@ sub render
 	
 	my $url = "?screen=Status&status=database";
 	my $link = $session->render_link( $url );
-	my $p = $session->make_element( "p" );
+	$p = $session->make_element( "p" );
 	$html->appendChild( $p );
 	$p->appendChild( $link );
 	$link->appendChild( $self->{session}->html_phrase( "cgi/users/status:database_link" ) );
