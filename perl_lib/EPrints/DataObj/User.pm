@@ -1116,6 +1116,7 @@ my $PRIVMAP =
 		"config/view/autocomplete" => 2,
 		"config/view/apache" => 2,
 		"config/view/perl" => 2,
+		"config/test_email" => 2,
 	},
 
 	"edit-config" => 

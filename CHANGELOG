@@ -6965,3 +6965,7 @@ PACKAGE: 2.2.99.2
  * utf8 decode values before passing to Unidecode, fixing #3270
  * added "reorder" command to epadmin to re-write ordering codes
 
+2008-02-20 tdb
+ * Request-a-copy email now goes to the correct person, fixing #3260
+ * Emailed HTML now rendered with EPrints::XML::to_string
+

@@ -86,7 +86,7 @@ sub action_confirm
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
 
-	my $email = $self->{processor}->{request}->get_value( "email" );
+	my $email = $self->{processor}->{request}->get_value( "requester_email" );
 
 	my $action = $session->param("action");
 	$action = "reject" if !defined $action || $action ne "accept";

@@ -267,7 +267,7 @@ sub build_email
 	$mimemsg->attach( $text );
 	my $html = MIME::Lite->new( 
 		Type  => "text/html",
-		Data  => $xml_mail->toString,
+		Data  => EPrints::XML::to_string($xml_mail, undef, 1),
 	);
 	$html->attr('content-type.charset' => 'UTF8');
 	$html->attr("Content-disposition" => "");
