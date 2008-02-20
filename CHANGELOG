@@ -6974,3 +6974,5 @@ PACKAGE: 2.2.99.2
  * Added create_counter/drop_counter methods, fixed currval unavailable error
  * Fixed adding/removing fields for Oracle
 
+2008-02-20 cjg
+ * Fixed typo in suffix of Export::Simple s/text/txt/
