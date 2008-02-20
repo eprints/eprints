@@ -140,7 +140,12 @@ sub get_pid
 	my( $self ) = @_;
 	my $pidfile = $self->{pidfile};
 	open( PID, "<", $pidfile) or return undef;
-	my $pid = <PID>;
+	my $pid;
+	while(defined($pid = <PID>))
+	{
+		chomp($pid);
+		last if $pid+0 > 0;
+	}
 	close( PID );
 	return ($pid and $pid > 0) ? $pid : undef;
 }
