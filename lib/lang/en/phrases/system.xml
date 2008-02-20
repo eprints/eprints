@@ -1734,6 +1734,13 @@ Titles and Help for the System Fields
 
 <epp:phrase id="Plugin/Screen/Request/Respond:title">Confirm response</epp:phrase>
 
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:title">Send Test Email</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:description">Test your email configuration by sending a test email.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:test_mail_subject">Test email from <epc:print expr="$config{frontpage}" /></epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:test_mail">This is a test email sent by the administrator. If you received this your EPrints email configuration is working correctly!</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:send">Send</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/TestEmail:mail_sent">Email successfully sent to <em><epc:pin name="requester"/></em>. It may take a few minutes for the email to arrive, depending on your local conditions.</epp:phrase>
+
 <epp:phrase id="request/respond_page:action_respond">Confirm</epp:phrase>
 <epp:phrase id="request/respond_page:accept"><p>You have chosen to <strong>accept</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>
 <epp:phrase id="request/respond_page:reject"><p>You have chosen to <strong>reject</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>You may enter a reason below if you wish. This will be emailed to the requester along with a rejection notice.</p></epp:phrase>
