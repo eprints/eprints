@@ -6976,3 +6976,7 @@ PACKAGE: 2.2.99.2
 
 2008-02-20 cjg
  * Fixed typo in suffix of Export::Simple s/text/txt/
+
+2008-02-20 cjg
+ * Added documents.format to default adv. search
+

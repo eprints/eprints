@@ -52,6 +52,7 @@ $c->{search}->{advanced} =
 		{ meta_fields => [ "title" ] },
 		{ meta_fields => [ "creators_name" ] },
 		{ meta_fields => [ "abstract" ] },
+		{ meta_fields => [ "date" ] }
 		{ meta_fields => [ "keywords" ] },
 		{ meta_fields => [ "subjects" ] },
 		{ meta_fields => [ "type" ] },
@@ -60,7 +61,7 @@ $c->{search}->{advanced} =
 		{ meta_fields => [ "ispublished" ] },
 		{ meta_fields => [ "refereed" ] },
 		{ meta_fields => [ "publication" ] },
-		{ meta_fields => [ "date" ] }
+		{ meta_fields => [ "documents.format" ] },
 	],
 	preamble_phrase => "cgi/advsearch:preamble",
 	title_phrase => "cgi/advsearch:adv_search",
