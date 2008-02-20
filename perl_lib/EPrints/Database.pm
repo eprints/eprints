@@ -2886,29 +2886,43 @@ sub add_field
 	}
 
 	# Add the field to order values (used to order search results)
-	$self->_add_field_ordervalues( $dataset, $field );
+	if( $dataset->indexable )
+	{
+		$self->_add_field_ordervalues( $dataset, $field );
+	}
 }
 
-# Convert sql returned by $field->get_sql_type or $field->get_sql_index into something we can give to ALTER TABLE:
-sub _sql_type_to_alter_add
+# Split a sql type definition into its constituant columns
+sub _split_sql_type
 {
 	my( $sql ) = @_;
-	$sql =~ s/,/, ADD /g;
-	$sql = "ADD $sql";
-	return $sql;
-}
-sub _sql_type_to_alter_drop
-{
-	my( $sql ) = @_;
-	my @fields = split /\s*,\s*/, $sql;
-	$_ =~ s/(\S+)\s.*/$1/ for @fields;
-	return join(', ', map { "DROP $_" } @fields);
-}
-sub _sql_index_to_alter_add
-{
-	my( $sql ) = @_;
-	$sql =~ s/(PRIMARY\s+KEY|INDEX|KEY|UNIQUE)/ADD $1/ig;
-	return $sql;
+	my @types;
+	my $type = "";
+	while(length($sql))
+	{
+	for($sql)
+	{
+		if( s/^\s+// )
+		{
+		}
+		elsif( s/^[^,\(]+// )
+		{
+			$type .= $&;
+		}
+		elsif( s/^\(// )
+		{
+			$type .= $&;
+			s/^[^\)]+\)// and $type .= $&;
+		}
+		elsif( s/^,\s*// )
+		{
+			push @types, $type;
+			$type = "";
+		}
+	}
+	}
+	push @types, $type if $type ne "";
+	return @types;
 }
 
 # Add the field to the ordervalues tables
@@ -2934,10 +2948,9 @@ sub _add_field_ordervalues_lang
 		name => $field->get_name,
 		type => "longtext" );
 
-	my $sql = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
-	$sql = _sql_type_to_alter_add( $sql );
+	my $col = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
 
-	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." ADD $col" );
 }
 
 # Add the field to the main tables
@@ -2956,10 +2969,11 @@ sub _add_field
 
 	my $table = $dataset->get_sql_table_name;
 
-	my $column_sql = $field->get_sql_type( $self->{session}, 0 ); # only first field can be not null
-	$column_sql = _sql_type_to_alter_add( $column_sql );
-
-	$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." $column_sql" );
+	my $cols = $field->get_sql_type( $self->{session}, 0 );
+	for(_split_sql_type($cols))
+	{
+		$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ADD $_" );
+	}
 	if( my @columns = $field->get_sql_index )
 	{
 		$rc &&= $self->create_index( $table, @columns );
@@ -3022,7 +3036,10 @@ sub remove_field
 	}
 
 	# Remove the field from order values (used to order search results)
-	$self->_remove_field_ordervalues( $dataset, $field );
+	if( $dataset->indexable )
+	{
+		$self->_remove_field_ordervalues( $dataset, $field );
+	}
 }
 
 # Remove the field from the ordervalues tables
@@ -3043,21 +3060,17 @@ sub _remove_field_ordervalues_lang
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-	my $sql_field = EPrints::MetaField->new(
-		repository => $self->{ session }->get_repository,
-		name => $field->get_name,
-		type => "longtext" );
+	my $column_sql = "DROP COLUMN ".$self->quote_identifier($field->get_sql_name);
 
-	my $sql = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
-	$sql = _sql_type_to_alter_drop( $sql );
-
-	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $sql" );
+	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $column_sql" );
 }
 
 # Remove the field from the main tables
 sub _remove_field
 {
 	my( $self, $dataset, $field ) = @_;
+
+	my $rc = 1;
 
 	return if $field->is_virtual; # Virtual fields are still removed from ordervalues???
 
@@ -3066,12 +3079,14 @@ sub _remove_field
 		return $self->_remove_multiple_field( $dataset, $field );
 	}
 
-	my $table = $dataset->get_sql_table_name;
+	my $Q_table = $self->quote_identifier($dataset->get_sql_table_name);
 
-	my $column_sql = $field->get_sql_type( $self->{session}, 0 ); # only first field can be not null
-	$column_sql = _sql_type_to_alter_drop( $column_sql );
+	for($field->get_sql_names)
+	{
+		$rc &&= $self->do( "ALTER TABLE $Q_table DROP COLUMN ".$self->quote_identifier($_) );
+	}
 
-	return $self->do( "ALTER TABLE ".$self->quote_identifier($table)." $column_sql" );
+	return $rc;
 }
 
 # Remove a multiple field from the main tables
