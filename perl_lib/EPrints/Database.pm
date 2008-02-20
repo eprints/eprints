@@ -788,6 +788,8 @@ sub create_sequence
 {
 	my( $self, $name ) = @_;
 
+	my $rc = 1;
+
 	if( $self->has_sequence( $name ) )
 	{
 		$self->drop_sequence( $name );
@@ -799,7 +801,9 @@ sub create_sequence
 		"MAXVALUE 999999999999999999999999999 " .
 		"START WITH 1 ";
 
-	return $self->do($sql);
+	$rc &&= $self->do($sql);
+
+	return $rc;
 }
 
 ######################################################################
@@ -1332,10 +1336,27 @@ sub create_counters
 	# Create the counters 
 	foreach my $counter (@EPrints::Database::counters)
 	{
-		$rc &&= $self->create_sequence( $counter . "_seq" );
+		$rc &&= $self->create_counter( $counter );
 	}
 	
 	return $rc;
+}
+
+######################################################################
+=pod
+
+=item $success = $db->create_counter( $name )
+
+Create and initialise to zero a new counter called $name.
+
+=cut
+######################################################################
+
+sub create_counter
+{
+	my( $self, $name ) = @_;
+
+	return $self->create_sequence( $name . "_seq" );
 }
 
 ######################################################################
@@ -1354,8 +1375,25 @@ sub remove_counters
 
 	foreach my $counter (@EPrints::Database::counters)
 	{
-		$self->drop_sequence( $counter . "_seq" );
+		$self->drop_counter( $counter );
 	}
+}
+
+######################################################################
+=pod
+
+=item $success = $db->drop_counter( $name )
+
+Destroy the counter named $name.
+
+=cut
+######################################################################
+
+sub drop_counter
+{
+	my( $self, $name ) = @_;
+
+	$self->drop_sequence( $name . "_seq" );
 }
 
 sub save_user_message
@@ -1538,7 +1576,7 @@ sub next_doc_pos
 
 =item $n = $db->counter_current( $counter )
 
-Return the current value of $counter.
+Return the value of the previous counter_next on $counter.
 
 =cut
 ######################################################################
@@ -1605,10 +1643,8 @@ sub counter_minimum
 
 	my $counter_seq = $counter . "_seq";
 
-	my $curval = $self->counter_current( $counter );
+	my $curval = $self->counter_next( $counter );
 
-	# We don't know what the counter's interval is, so we'll just inc by one
-	# until we get to $value
 	if( $curval < $value )
 	{
 		$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY ".($value-$curval-1));
@@ -1636,9 +1672,9 @@ sub counter_reset
 
 	my $counter_seq = $counter . "_seq";
 
-	my $curval = $self->counter_current( $counter );
+	my $curval = $self->counter_next( $counter );
 
-	$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY ".(-$curval)." MINVALUE 0");
+	$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY ".(-1*$curval)." MINVALUE 0");
 	$curval = $self->counter_next( $counter );
 	$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY 1 MINVALUE 0");
 

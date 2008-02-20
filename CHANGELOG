@@ -6970,4 +6970,6 @@ PACKAGE: 2.2.99.2
  * Emailed HTML now rendered with EPrints::XML::to_string
  * Added a plugin to send a test email
  * Ignore non-PID things in the indexer pid file
+ * Fixed erase_eprints epadmin command for Oracle
+ * Added create_counter/drop_counter methods, fixed currval unavailable error
 

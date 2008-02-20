@@ -1143,13 +1143,8 @@ sub reset_dataset
 	{
 		next unless( $table =~ m/^$datasetid/ );
 		print "Erasing table $table\n" if( $noise >= 2 );
-		my $sql = "DROP TABLE ".$table;
-		$db->do( $sql );
+		$db->clear_table($table);
 	}
-
-	print "Creating dataset $datasetid\n";
-	$db->create_dataset_tables( 
-			$session->get_repository->get_dataset( $datasetid ) );
 
 	if( $datasetid ne "subject" )
 	{
@@ -1834,8 +1829,8 @@ sub upgrade_3_0_7_to_3_1_0
 	$db->create_dataset_tables( $repo->get_dataset( "cachemap" ) );
 
 	# new counters
-	$db->do("INSERT INTO counters VALUES ( 'messageid', 0 )");
-	$db->do("INSERT INTO counters VALUES ( 'cachemapid', 0 )");
+	$db->create_counter( "messageid" );
+	$db->create_counter( "cachemapid" );
 }
 
 

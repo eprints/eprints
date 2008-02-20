@@ -103,23 +103,24 @@ sub create_counters
 		$self->get_column_type( "counter", SQL_INTEGER, SQL_NOT_NULL ),
 	]);
 
-	# Return with an error if unsuccessful
-	return( 0 ) unless $rc;
-
-	# Create the counters 
-	foreach my $counter (@EPrints::Database::counters)
-	{
-		my $sql = "INSERT INTO ".$self->quote_identifier($table)." ".
-			"VALUES (".$self->quote_value($counter).", 0)";
-
-		my $sth = $self->do( $sql );
-		
-		# Return with an error if unsuccessful
-		return( 0 ) unless defined( $sth );
-	}
+	$rc &&= $self->SUPER::create_counters();
 	
 	# Everything OK
-	return( 1 );
+	return $rc;
+}
+
+sub create_counter
+{
+	my( $self, $name ) = @_;
+
+	return $self->insert( "counters", ["countername", "counter"], [$name, 0] );
+}
+
+sub drop_counter
+{
+	my( $self, $name ) = @_;
+
+	return $self->delete_from( "counters", ["countername"], [$name] );
 }
 
 sub remove_counters
@@ -284,36 +285,6 @@ sub index_queue
 		$self->quote_value("$datasetid.$objectid.$fieldname"),
 		"SYSDATE()"
 	]);
-}
-
-######################################################################
-=pod
-
-=item ($datasetid, $objectid, $field) = $db->index_dequeue();
-
-Pops an item off the queue. Returns empty list if nothing left.
-
-=cut
-######################################################################
-
-sub index_dequeue
-{
-	my( $self ) = @_;
-
-	my $field;
-
-	my $sql = "SELECT field FROM index_queue ORDER BY added LIMIT 1";
-	my $sth = $self->prepare($sql);
-	$self->execute($sth, $sql);
-
-	if( defined(my $row = $sth->fetch) )
-	{
-		$field = $row->[0];
-		$sql = "DELETE FROM index_queue WHERE field=".$self->quote_value($field);
-		$self->do($sql);
-	}
-
-	return defined $field ? split(/\./, $field) : ();
 }
 
 1; # For use/require success
