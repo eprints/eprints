@@ -6985,3 +6985,7 @@ PACKAGE: 2.2.99.2
  * Added "row" prefix for autocompletion to target cells in the row
  * Added "hide" and "show" actions to autocomplete processor.
 
+2008-02-21 tdb
+ * Added has_field/has_column methods to database to determine whether a
+    dataset/table has the field/column configured
+

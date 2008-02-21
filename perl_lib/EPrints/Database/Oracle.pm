@@ -118,7 +118,7 @@ sub connect
 
 	return unless $self->SUPER::connect();
 
-	$self->{dbh}->{LongReadLen} = 1024;
+	$self->{dbh}->{LongReadLen} = 2048;
 }
 
 sub create_archive_tables
@@ -285,6 +285,34 @@ sub has_sequence
 	$sth->execute( $name );
 
 	return $sth->fetch ? 1 : 0;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->has_column( $tablename, $columnname )
+
+Return true if the a table of the given name has a column named $columnname in the database.
+
+=cut
+######################################################################
+
+# Default method is really, really slow
+sub has_column
+{
+	my( $self, $table, $column ) = @_;
+
+	my $rc = 1;
+
+	my $sql = "SELECT 1 FROM USER_TAB_COLUMNS WHERE ".
+		"TABLE_NAME=".$self->quote_value( $table )." AND ".
+		"COLUMN_NAME=".$self->quote_value( $column );
+	my $sth = $self->prepare( $sql );
+	$sth->execute;
+	$rc = $sth->fetch ? 1 : 0;
+	$sth->finish;
+
+	return $rc;
 }
 
 1; # For use/require success

@@ -2856,6 +2856,63 @@ sub execute
 	return $result;
 }
 
+######################################################################
+=pod
+
+=item $db->has_field( $dataset, $field )
+
+Returns true if $field is in the database for $dataset.
+
+=cut
+######################################################################
+
+sub has_field
+{
+	my( $self, $dataset, $field ) = @_;
+
+	my $rc = 1;
+
+	# If this field is virtual and has sub-fields, check them
+	if( $field->is_virtual )
+	{
+		my $sub_fields = $field->get_property( "fields_cache" );
+		foreach my $sub_field (@$sub_fields)
+		{
+			$rc &&= $self->has_field( $dataset, $sub_field );
+		}
+	}
+	else # Check the field itself
+	{
+		$rc &&= $self->_has_field( $dataset, $field );
+	}
+
+	return $rc;
+}
+
+sub _has_field
+{
+	my( $self, $dataset, $field ) = @_;
+
+	my $rc = 1;
+
+	return $rc if $field->is_virtual; # Shouldn't happen
+
+	if( $field->get_property( "multiple" ) )
+	{
+		my $table = $dataset->get_sql_sub_table_name( $field );
+
+		$rc &&= $self->has_table( $table );
+	}
+	else
+	{
+		my $table = $dataset->get_sql_table_name;
+		my $first_column = ($field->get_sql_names)[0];
+
+		$rc &&= $self->has_column( $table, $first_column );
+	}
+
+	return $rc;
+}
 
 ######################################################################
 =pod
@@ -3241,6 +3298,33 @@ sub has_table
 
 	my $sth = $self->{dbh}->table_info( '%', '%', $tablename, 'TABLE' );
 	my $rc = defined $sth->fetch ? 1 : 0;
+	$sth->finish;
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->has_column( $tablename, $columnname )
+
+Return true if the a table of the given name has a column named $columnname in the database.
+
+=cut
+######################################################################
+
+sub has_column
+{
+	my( $self, $table, $column ) = @_;
+
+	my $rc = 0;
+
+	my $sth = $self->{dbh}->column_info( '%', '%', $table, $column );
+	while(my $row = $sth->fetch)
+	{
+		my $column_name = $row->[$sth->{NAME_lc_hash}{column_name}];
+		$rc = 1 if $column_name eq $column;
+	}
 	$sth->finish;
 
 	return $rc;
