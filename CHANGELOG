@@ -6991,6 +6991,6 @@ PACKAGE: 2.2.99.2
  * An admin plugin to add/remove fields from the database
 
 2008-02-21 cjg
- * generate_views now works with the new Update::Views module.
+ * generate_views now works with the new Update::Views module. Closes #3264
  * Added --view --lang and --generate options to generate_views
 
