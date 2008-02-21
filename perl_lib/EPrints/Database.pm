@@ -2615,7 +2615,6 @@ sub get_ids_by_field_values
 
 	if( defined $opts{filters} )
 	{
-print STDERR "\\\\\\\a\n";
 		foreach my $filter (@{$opts{filters}})
 		{
 			my @ors = ();
@@ -2650,7 +2649,6 @@ print STDERR "\\\\\\\a\n";
 	my $sql = "SELECT DISTINCT $srctable.".$keyfield->get_sql_name().", $fn";
 	$sql .= " FROM ".join( ", ", @tables );
 	$sql .= " WHERE (".join( ") AND (", @where ).")";
-print STDERR ">> $sql\n";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
