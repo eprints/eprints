@@ -285,7 +285,7 @@ sub get_ids_by_value
 	my $l = 10;
 	if( $res eq "month" ) { $l = 7; }
 	if( $res eq "year" ) { $l = 4; }
-print STDERR "( $res ) ( $l )\n";	
+
 	my $id_map = {};
 	foreach my $value ( keys %{$in_ids} )
 	{
