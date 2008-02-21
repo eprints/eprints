@@ -41,7 +41,9 @@ use strict;
 
 sub update_view_file
 {
-	my( $repository, $langid, $localpath, $uri ) = @_;
+	my( $session, $langid, $localpath, $uri ) = @_;
+
+	my $repository = $session->get_repository;
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 	$target =~ s/\.[^\.]*$//;
@@ -51,11 +53,10 @@ sub update_view_file
 		my $age = time-$this_mtime;
 		print STDERR "$target - $age (update?)\n";
 	}
-	print STDERR "$target\n";
 
 	if( $uri eq "/view/" )
 	{
-		update_browse_view_list( $langid );
+		update_browse_view_list( $session, $langid );
 		return;
 	}
 	
@@ -75,7 +76,7 @@ sub update_view_file
 
 	if( !EPrints::Utils::is_set( $viewinfo ) )
 	{
-		update_view_menu( $repository, $view, $langid );
+		update_view_menu( $session, $view, $langid );
 		return;
 	}
 
@@ -84,28 +85,30 @@ sub update_view_file
 		# if it ends with "/" then it's a submenu
 		my @view_path = split( '/', $viewinfo );
 		
-		update_view_menu( $repository, $view, $langid, \@view_path );
+		update_view_menu( $session, $view, $langid, \@view_path );
 		return;
 	}
 
 	# Otherwise it's (probably) a view page
 	my @view_path = split( '/', $viewinfo );
 	
-	update_view_page( $repository, $view, $langid, \@view_path );
+	update_view_page( $session, $view, $langid, \@view_path );
 }
 
 
 
 # Update the main menu of views (pretty cheap to do)
+# return list of files written
 
 sub update_browse_view_list
 {
-	my( $repository, $langid ) = @_;
+	my( $session, $langid ) = @_;
+
+	my $repository = $session->get_repository;
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/index";
 	print STDERR "Reminder: this should only happen sometimes!\n";
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
 	my $ds = $repository->get_dataset( "archive" );
 
 	my( $ul, $li, $page, $a, $file, $title );
@@ -135,17 +138,84 @@ sub update_browse_view_list
 			},
 			"browsemain" );
 
-	$session->terminate;
+	return( $target );
 }
 
+# return an array of the filters required for the given path_values
+# or undef if something funny occurs.
 
+sub get_filters
+{
+	my( $session, $view, $path_values ) = @_;
+
+	my $repository = $session->get_repository;
+
+	my $ds = $repository->get_dataset( "archive" );
+
+	my @fields = get_fields_from_config( $ds, $view->{fields} );
+
+	my @menu_levels = split( ",", $view->{fields} );
+	my $menu_level = scalar @{$path_values};
+
+	my $filters = [];
+
+	for( my $i=0; $i<$menu_level; ++$i )
+	{
+		my $ok = 0;
+		LEVELTEST: foreach my $a_value ( get_fieldlist_values( $session, $ds, $fields[$i] ) )
+		{
+			if( $a_value eq $path_values->[$i] )
+			{
+				$ok = 1;
+				last LEVELTEST;
+			}
+		}
+		if( !$ok )
+		{
+			$repository->log( "Invalid path value '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
+			return;
+		}
+		push @{$filters}, { fields=>$fields[$i], value=>$path_values->[$i] };
+	}
+
+	return $filters;
+}
+
+# return a hash mapping keys at this level to number of items in db
+# if a leaf level, return undef
+
+sub get_sizes
+{
+	my( $session, $view, $path_values ) = @_;
+
+	my $ds = $session->get_repository->get_dataset( "archive" );
+
+	my @fields = get_fields_from_config( $ds, $view->{fields} );
+
+	my $menu_level = scalar @{$path_values};
+
+	if( !defined $fields[$menu_level] )
+	{
+		# no sub pages at this level
+		return undef;
+	}
+
+	my $filters = get_filters( $session, $view, $path_values );
+
+	my @menu_fields = @{$fields[$menu_level]};
+
+	my $show_sizes = get_fieldlist_totals( $session, $ds, \@menu_fields, $filters );
+
+	return $show_sizes;
+}
 
 # Update a view menu - potentially expensive to do.
 
 sub update_view_menu
 {
-	my( $repository, $view, $langid, $path_values ) = @_;
+	my( $session, $view, $langid, $path_values ) = @_;
 
+	my $repository = $session->get_repository;
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 	if( defined $path_values )
 	{
@@ -158,39 +228,21 @@ sub update_view_menu
 
 	print STDERR "Reminder: this should only happen sometimes! (update_view_menu)\n";
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
-	my $ds = $repository->get_dataset( "archive" );
-
-	my @fields = get_fields_from_config( $ds, $view->{fields} );
-	my @menu_levels = split( ",", $view->{fields} );
-
 	my $menu_level = 0;
 	my $filters;
 	if( defined $path_values )
 	{
 		$filters = [];
 		$menu_level = scalar @{$path_values};
-		# check values are valid
-		for( my $i=0; $i<$menu_level; ++$i )
-		{
-			my $ok = 0;
-			LEVELTEST: foreach my $a_value ( get_fieldlist_values( $session, $ds, $fields[$i] ) )
-			{
-				if( $a_value eq $path_values->[$i] )
-				{
-					$ok = 1;
-					last LEVELTEST;
-				}
-			}
-			if( !$ok )
-			{
-				$repository->log( "Invalid path value '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
-				$session->terminate;
-				return;
-			}
-			push @{$filters}, { fields=>$fields[$i], value=>$path_values->[$i] };
-		}
-	}
+
+		$filters = get_filters( $session, $view, $path_values );
+	
+		return if !defined $filters;
+	}	
+
+	my $ds = $repository->get_dataset( "archive" );
+	my @fields = get_fields_from_config( $ds, $view->{fields} );
+	my @menu_levels = split( ",", $view->{fields} );
 
 	# if number of fields is 1 then menu_level must be 0
 	# if number of fields is 2 then menu_level must be 0 or 1 
@@ -198,7 +250,6 @@ sub update_view_menu
 	if( $menu_level >= scalar @fields )
 	{
 		$repository->log( "Too many values when asked for a for view menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
-		$session->terminate;
 		return;
 	}
 
@@ -268,7 +319,7 @@ sub update_view_menu
 			},
 			"browseindex" );
 
-	$session->terminate;
+	return( $target );
 }
 
 sub get_fieldlist_totals
@@ -294,9 +345,6 @@ sub get_fieldlist_totals
 	{
 		$totals->{$v} = scalar keys %{$map{$v}};
 	}
-	
-use Data::Dumper;
-print STDERR Dumper( $totals );
 	
 	return $totals;
 }
@@ -343,7 +391,7 @@ sub render_view_menu
 
 	foreach my $value ( @{$values} )
 	{
-		next if( $view->{hideempty} && defined $sizes && $sizes->{$value} == 0 );
+		next if( $view->{hideempty} && defined $sizes && defined $sizes->{$value} && $sizes->{$value} == 0 );
 
 		my $fileid = &mk_file_id( $value, $fields->[0]->get_type );
 
@@ -364,7 +412,7 @@ sub render_view_menu
 				$session,
 				$value ) );
 		$li->appendChild( $a );
-		if( defined $sizes )
+		if( defined $sizes && defined $sizes->{$value} )
 		{
 			$li->appendChild( $session->make_text( " (".$sizes->{$value}.")" ) );
 		}
@@ -385,7 +433,7 @@ sub render_view_subj_menu
                 my %show = ();
                 foreach my $value ( @{$values} )
                 {
-                        next unless( $sizes->{$value} > 0 );
+                        next unless( defined $sizes->{$value} && $sizes->{$value} > 0 );
                         my $subject = EPrints::DataObj::Subject->new(
                                                 $session, $value );
                         my @ids= @{$subject->get_value( "ancestors" )};
@@ -456,7 +504,9 @@ sub get_fields_from_config
 
 sub update_view_page
 {
-	my( $repository, $view, $langid, $path_values ) = @_;
+	my( $session, $view, $langid, $path_values ) = @_;
+
+	my $repository = $session->get_repository;
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 
@@ -470,7 +520,6 @@ sub update_view_page
 
 	print STDERR "Reminder: this should only happen sometimes! (update_view_page) $target\n";
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
 	my $ds = $repository->get_dataset( "archive" );
 
 	my @fields = get_fields_from_config( $ds, $view->{fields} );
@@ -497,7 +546,6 @@ sub update_view_page
 			if( !$ok )
 			{
 				$repository->log( "Invalid path value '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} ) );
-				$session->terminate;
 				return;
 			}
 			push @{$filters}, { fields=>$fields[$i], value=>$path_values->[$i] };
@@ -510,7 +558,6 @@ sub update_view_page
 	if( $menu_level != scalar @fields )
 	{
 		$repository->log( "Wrong depth to generate a view page: ".$view->{id}."/".join( "/", @{$path_values} ) );
-		$session->terminate;
 		return;
 	}
 
@@ -538,6 +585,7 @@ sub update_view_page
 		$alt_views = [ 'DEFAULT' ];
 	}
 
+	my @files = ();
 	my $first_view = 1;	
 	ALTVIEWS: foreach my $alt_view ( @{$alt_views} )
 	{
@@ -546,6 +594,9 @@ sub update_view_page
 
 		my $page_file_name = "$target.\L$fieldname";
 		if( $first_view ) { $page_file_name = $target; }
+
+		push @files, $page_file_name;
+
 		# needs html escaping?
 		# needs open testing etc.
 		open( TITLE, ">$page_file_name.title" );
@@ -563,8 +614,6 @@ sub update_view_page
 		open( PAGE, ">$page_file_name.page" );
 
 		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
-
-
 
 		my $first = 1;
 
@@ -667,7 +716,7 @@ sub update_view_page
 		$first_view = 0;
 	}
 
-	$session->terminate;
+	return @files;
 }
 	
 sub group_items

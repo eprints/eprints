@@ -199,7 +199,9 @@ sub handler
 
 	if( $uri =~ m#^/view(.*)# )
 	{
-		EPrints::Update::Views::update_view_file( $repository, $lang, $localpath, $uri );
+		my $session = new EPrints::Session(2); # don't open the CGI info
+		EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		$session->terminate;
 	}
 	else
 	{
