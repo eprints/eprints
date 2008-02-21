@@ -1117,6 +1117,8 @@ my $PRIVMAP =
 		"config/view/apache" => 2,
 		"config/view/perl" => 2,
 		"config/test_email" => 2,
+		"config/add_field" => 2,
+		"config/remove_field" => 2,
 	},
 
 	"edit-config" => 
