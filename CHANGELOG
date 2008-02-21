@@ -6994,3 +6994,7 @@ PACKAGE: 2.2.99.2
  * generate_views now works with the new Update::Views module. Closes #3264
  * Added --view --lang and --generate options to generate_views
 
+2008-02-21 cjg
+ * Added a "uri" method to dataobj which returns a currently unresolveable URI
+    for any dataobject. We might make themresolvable later.
+ * Added this URI as an "id" attribute when XML exporting data.
