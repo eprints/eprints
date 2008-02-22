@@ -6989,6 +6989,7 @@ PACKAGE: 2.2.99.2
  * Added has_field/has_column methods to database to determine whether a
     dataset/table has the field/column configured
  * An admin plugin to add/remove fields from the database
+ * Added options to add/remove fields scripts to add/remove a dataset
 
 2008-02-21 cjg
  * generate_views now works with the new Update::Views module. Closes #3264
@@ -6998,3 +6999,4 @@ PACKAGE: 2.2.99.2
  * Added a "uri" method to dataobj which returns a currently unresolveable URI
     for any dataobject. We might make themresolvable later.
  * Added this URI as an "id" attribute when XML exporting data.
+

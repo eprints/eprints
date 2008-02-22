@@ -364,6 +364,50 @@ sub create_dataset_tables
 ######################################################################
 =pod
 
+=item $db->drop_dataset_tables( $dataset )
+
+Drop all the SQL tables for a single dataset.
+
+=cut
+######################################################################
+
+sub drop_dataset_tables
+{
+	my( $self, $dataset ) = @_;
+
+	foreach my $field ($dataset->get_fields)
+	{
+		next if defined $field->get_property( "sub_name" );
+		next unless $field->get_property( "multiple" );
+		if( $self->{session}->get_noise >= 1 )
+		{
+			print "Removing ".$dataset->id.".".$field->get_name."\n";
+		}
+		$self->remove_field( $dataset, $field );
+	}
+
+	if( $self->{session}->get_noise >= 1 )
+	{
+		print "Removing ".$dataset->id."\n";
+	}
+	$self->drop_table( $dataset->get_sql_table_name );
+
+	if( $dataset->indexable )
+	{
+		foreach(
+			$dataset->get_sql_index_table_name,
+			$dataset->get_sql_grep_table_name,
+			$dataset->get_sql_rindex_table_name
+		)
+		{
+			$self->drop_table( $_ );
+		}
+	}
+}
+
+######################################################################
+=pod
+
 =item $success = $db->create_dataset_index_tables( $dataset )
 
 Create all the index tables for a single dataset.

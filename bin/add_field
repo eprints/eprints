@@ -60,6 +60,10 @@ Explain in detail what is going on. May be repeated for greater effect.
 
 Output version information and exit.
 
+=item B<--add-dataset>
+
+Add all the fields for the given dataset.
+
 =back
 
 =cut
@@ -78,6 +82,7 @@ my $help = 0;
 my $man = 0;
 my $dryrun = 0;
 my $force = 0;
+my $add_dataset = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -87,12 +92,13 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'force' => \$force,
+	'add-dataset' => \$add_dataset,
 	'dry-run' => \$dryrun
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "lift_embargos" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 3 ); 
+pod2usage( 2 ) unless( scalar @ARGV == 3 or ($add_dataset and scalar @ARGV == 2) ); 
 
 our $noise = 1;
 $noise = 0 if( $quiet );
@@ -117,19 +123,36 @@ if( !$force && !exists( $fields->{ $datasetid } ) )
 
 my $dataset = $session->get_repository->get_dataset( $datasetid );
 
-if( !$dataset->has_field( $fieldid ) )
+if( $add_dataset )
 {
-	pod2usage( "$fieldid is not a configured field in the $datasetid dataset - you need to add the field to your configuration file(s) before running this utility" );
+	add_dataset( $dataset );
 }
-
-my $field = $dataset->get_field( $fieldid );
-
-unless( $force )
+else
 {
-	my $confirm = EPrints::Utils::get_input_confirm( "Are you sure you want to add the database tables for " . $field->get_name . "?" );
-	exit(0) unless $confirm;
+	add_field( $dataset, $fieldid );
 }
-
-$database->add_field( $dataset, $field );
 
 $session->terminate();
+
+sub add_field
+{
+	if( !$dataset->has_field( $fieldid ) )
+	{
+		pod2usage( "$fieldid is not a configured field in the $datasetid dataset - you need to add the field to your configuration file(s) before running this utility" );
+	}
+
+	my $field = $dataset->get_field( $fieldid );
+
+	unless( $force )
+	{
+		my $confirm = EPrints::Utils::get_input_confirm( "Are you sure you want to add the database tables for " . $field->get_name . "?" );
+		exit(0) unless $confirm;
+	}
+
+	$database->add_field( $dataset, $field );
+}
+
+sub add_dataset
+{
+	$database->create_dataset_tables( $dataset );
+}
