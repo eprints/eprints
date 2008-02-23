@@ -1412,14 +1412,19 @@ sub test_config
 {
 	my( $self ) = @_;
 
-	my $cmd = $EPrints::SystemSettings::conf->{base_path}."/bin/epadmin test ".$self->get_id;
+	my $rc = 0;
+	my $output = "";
 
-        # Run command without user check
-        my $pid = open( OUTPUT, "EPRINTS_NO_CHECK_USER=1 $cmd 2>&1|" );
-        my @output = <OUTPUT>;
-        close OUTPUT;
+	my $tmp = File::Temp->new;
 
-	return ($?/256, join( "", @output ));
+	$rc = EPrints::Platform::read_perl_script( $self, $tmp, "-e", "use EPrints qw( no_check_user );" );
+
+	while(<$tmp>)
+	{
+		$output .= $_;
+	}
+
+	return ($rc/256, $output);
 }
 
 

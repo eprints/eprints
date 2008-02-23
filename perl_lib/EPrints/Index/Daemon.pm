@@ -323,13 +323,13 @@ sub start
 	my $perl_lib = $EPrints::SystemSettings::conf->{base_path} . "/perl_lib";
 	my $logfile = quotemeta($self->{logfile}||'');
 	my $prog = <<END;
+use EPrints qw( no_check_user );
 EPrints::Index::Daemon->new( logfile => "$logfile" )->start_daemon();
 END
 
 	my( $in_fh, $out_fh, $err_fh ) = $session->get_request->spawn_proc_prog( $perl, [
 		"-w",
 		"-I$perl_lib",
-		"-MEPrints",
 		"-e", $prog,
 	]);
 

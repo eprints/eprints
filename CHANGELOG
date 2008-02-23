@@ -7000,3 +7000,7 @@ PACKAGE: 2.2.99.2
     for any dataobject. We might make themresolvable later.
  * Added this URI as an "id" attribute when XML exporting data.
 
+2008-02-23 tdb
+ * Changed user check to be overridable by a use() pragma: "no_check_user"
+ * Made test_config cross-platform with a new Platform call: "read_perl_script"
+

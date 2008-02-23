@@ -137,6 +137,21 @@ sub exec { return &{$real_module."::exec"}( @_ ); }
 
 #####################################################################
 
+=item $rc = read_perl_script( $repository, $filename, @args )
+
+Executes Perl with @args, including the current EPrints library path. Writes
+output from the script to $filename (errors and stdout).
+
+Returns 0 on success.
+
+=cut
+
+#####################################################################
+
+sub read_perl_script { return &{$real_module."::read_perl_script"}( @_ ); }
+
+#####################################################################
+
 =item get_hash_name()
 
 Returns the last part of the filename of the hashfile for a document.

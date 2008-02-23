@@ -118,6 +118,38 @@ sub exec
 	return $rc;
 }	
 
+sub read_perl_script
+{
+	my( $repository, $tmp, @args ) = @_;
+
+	no warnings; # suppress "only used once" warnings
+
+	my $perl = $repository->get_conf( "executables", "perl" );
+
+	my $perl_lib = $repository->get_conf( "base_path" ) . "/perl_lib";
+
+	open(OLDERR,">&STDERR");
+	open(OLDOUT,">&STDOUT");
+
+	open(STDOUT,">","$tmp") or die "Can't redirect stdout to $tmp: $!";
+	open(STDERR,">&STDOUT") or die "Can't dup stdout: $!";
+
+	select(STDERR); $| = 1;
+	select(STDOUT); $| = 1;
+
+	unshift @args, $perl, "-I$perl_lib";
+	my $cmd = join " ", map { quotemeta($_) } @args;
+	my $rc = system($cmd);
+
+	close(STDOUT);
+	close(STDERR);
+
+	open(STDOUT, ">&OLDOUT");
+	open(STDERR, ">&OLDERR");
+
+	return 0xffff & $rc;
+}
+
 sub get_hash_name
 {
 	return EPrints::Time::get_iso_timestamp().".xsh";
