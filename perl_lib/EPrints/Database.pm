@@ -347,9 +347,9 @@ sub create_dataset_tables
 	if( $dataset->indexable )
 	{
 		$rv = $rv && $self->create_dataset_index_tables( $dataset );
-
-		$rv = $rv && $self->create_dataset_ordervalues_tables( $dataset );
 	}
+
+	$rv = $rv && $self->create_dataset_ordervalues_tables( $dataset );
 
 	# Create the main tables
 	$rv = $rv && $self->create_table( 
@@ -384,6 +384,11 @@ sub drop_dataset_tables
 			print "Removing ".$dataset->id.".".$field->get_name."\n";
 		}
 		$self->remove_field( $dataset, $field );
+	}
+
+	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
+	{
+		$self->drop_table( $dataset->get_ordervalues_table_name( $langid ) );
 	}
 
 	if( $self->{session}->get_noise >= 1 )
@@ -1465,6 +1470,7 @@ sub get_user_messages
 		satisfy_all => 1,
 		session => $self->{session},
 		dataset => $dataset,
+		custom_order => $dataset->get_key_field->get_name,
 	);
 
 	$searchexp->add_field( $dataset->get_field( "userid" ), $userid );
@@ -2985,10 +2991,7 @@ sub add_field
 	}
 
 	# Add the field to order values (used to order search results)
-	if( $dataset->indexable )
-	{
-		$self->_add_field_ordervalues( $dataset, $field );
-	}
+	$self->_add_field_ordervalues( $dataset, $field );
 }
 
 # Split a sql type definition into its constituant columns
@@ -3135,10 +3138,7 @@ sub remove_field
 	}
 
 	# Remove the field from order values (used to order search results)
-	if( $dataset->indexable )
-	{
-		$self->_remove_field_ordervalues( $dataset, $field );
-	}
+	$self->_remove_field_ordervalues( $dataset, $field );
 }
 
 # Remove the field from the ordervalues tables

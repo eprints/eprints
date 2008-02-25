@@ -248,8 +248,6 @@ sub update_ordervalues
 {
 	my( $session, $dataset, $data, $tmp ) = @_;
 
-	return unless $dataset->indexable;
-
 	&_do_ordervalues( $session, $dataset, $data, 0, $tmp );	
 }
 
@@ -267,8 +265,6 @@ returned by $dataobj->get_data
 sub insert_ordervalues
 {
 	my( $session, $dataset, $data, $tmp ) = @_;
-
-	return unless $dataset->indexable;
 
 	&_do_ordervalues( $session, $dataset, $data, 1, $tmp );	
 }
@@ -306,7 +302,7 @@ sub _do_ordervalues
 					$dataset );
 			
 			push @fnames, $field->get_sql_name();
-			push @fvals, $ov;
+			push @fvals, substr($ov,0,$EPrints::MetaField::VARCHAR_SIZE);
 		}
 
 		$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
@@ -328,8 +324,6 @@ $dataset.
 sub delete_ordervalues
 {
 	my( $session, $dataset, $id, $tmp ) = @_;
-
-	return unless $dataset->indexable;
 
 	my $db = $session->get_database;
 
