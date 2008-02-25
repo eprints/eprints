@@ -7007,4 +7007,5 @@ PACKAGE: 2.2.99.2
 2008-02-25 tdb
  * Don't squash ordervalues where a dataset is !indexable
  * Truncate ordervalues values before insertion
+ * The "no_check_user" pragma from r3357
 

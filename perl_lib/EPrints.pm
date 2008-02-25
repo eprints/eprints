@@ -9,16 +9,6 @@ BEGIN {
 
 	umask( 0002 );
 
-	# mod_perl will probably be running as root for the main httpd.
-	# The sub processes should run as the same user as the one specified
-	# in $EPrints::SystemSettings
-	# An exception to this is running as root (uid==0) in which case
-	# we can become the required user.
-	if( !$ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER}) 
-	{
-		EPrints::Platform::test_uid();
-	}
-
 	if( $ENV{MOD_PERL} )
 	{
 		eval '
@@ -168,5 +158,22 @@ use EPrints::XML::EPC;
 # Load EPrints::Plugin last, because dynamically loaded plugins may have
 # EPrints dependencies
 use EPrints::Plugin;
+
+sub import
+{
+	my( $class, @args ) = @_;
+
+	my %opts = map { $_ => 1 } @args;
+
+	# mod_perl will probably be running as root for the main httpd.
+	# The sub processes should run as the same user as the one specified
+	# in $EPrints::SystemSettings
+	# An exception to this is running as root (uid==0) in which case
+	# we can become the required user.
+	if( !$opts{"no_check_user"} && !$ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER} )
+	{
+		EPrints::Platform::test_uid();
+	}
+}
 
 1;
