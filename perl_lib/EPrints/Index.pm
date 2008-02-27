@@ -302,7 +302,9 @@ sub _do_ordervalues
 					$dataset );
 			
 			push @fnames, $field->get_sql_name();
-			push @fvals, substr($ov,0,$EPrints::MetaField::VARCHAR_SIZE);
+			push @fvals, defined $ov ?
+				substr($ov,0,$EPrints::MetaField::VARCHAR_SIZE) :
+				$ov;
 		}
 
 		$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
