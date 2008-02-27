@@ -7009,3 +7009,6 @@ PACKAGE: 2.2.99.2
  * Truncate ordervalues values before insertion
  * The "no_check_user" pragma from r3357
 
+2008-02-27 tdb
+ * Made Boolean respect "input_rows"
+

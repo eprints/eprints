@@ -89,6 +89,10 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 			$labels{""} = $session->phrase( "lib/metafield:unspecified_selection" );
 			$height++;
 		}
+		if( $self->get_property( "input_rows" ) )
+		{
+			$height = $self->get_property( "input_rows" );
+		}
 		my %settings = (
 			height=>$height,
 			values=>\@values,
@@ -242,6 +246,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = 0;
 	$defaults{text_index} = 0;
+	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	return %defaults;
 }
 
