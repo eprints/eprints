@@ -667,7 +667,7 @@ sub add_to_phrases
 		{
 			mkdir( $phrases_path );
 		}
-		my $file_name = "$phrases_path/metafield.xml";
+		my $file_name = "$phrases_path/fields.xml";
 		my( $doc, $xml );
 		local $session->{doc};
 		if( !-e $file_name )
