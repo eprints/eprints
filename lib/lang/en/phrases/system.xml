@@ -509,19 +509,6 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:out_of_space"><span class="alert">NO DISK SPACE LEFT!</span></epp:phrase>
     <epp:phrase id="cgi/users/status:nearly_out_of_space"><span class="alert">WARNING:</span> Available space for new items is running low</epp:phrase>
     <epp:phrase id="cgi/users/status:title">Server Status</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:title">Manage Database Fields</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:description">Add or remove fields from the database</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:datasets"><h2>Datasets with Configurable Fields</h2></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:edit_dataset">Manage Dataset</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:add">Add</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:remove">Remove</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:cancel">Cancel</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:confirm">Confirm</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:invalid_field">The field "<epc:pin name="fieldid" />" you are attempting to modify doesn't appear to be configured for the dataset "<epc:pin name="datasetid"/>" (perhaps it's a system field?).</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:confirm_add">You are about to add the database entry for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:confirm_remove">You are about to remove the database entry for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>This means you will lose any data stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:added_field">Added the database entry for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Admin/ManageFields:removed_field">Removed the database entry for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin:title">Admin</epp:phrase>
     <epp:phrase id="Plugin/Screen/QA:title">QA</epp:phrase>
     <epp:phrase id="Plugin/Screen/FirstTool:title">No Tools Available</epp:phrase>
@@ -1810,7 +1797,9 @@ Titles and Help for the System Fields
 <epp:phrase id="database/name_dual">Oracle Null Table</epp:phrase>
 <epp:phrase id="database/help_dual">This table is created by EPrints if it doesn't already exist in Oracle</epp:phrase>
 
-<epp:phrase id="datasetname_eprint">EPrints</epp:phrase>
+<epp:phrase id="datasetname_metafield">Metafield</epp:phrase>
+<epp:phrase id="datasethelp_metafield">Used to store metadata field records</epp:phrase>
+<epp:phrase id="datasetname_eprint">Eprints</epp:phrase>
 <epp:phrase id="datasethelp_eprint">Used to store eprints records</epp:phrase>
 <epp:phrase id="datasetname_user">Users</epp:phrase>
 <epp:phrase id="datasethelp_user">Used to store info on eprints users</epp:phrase>

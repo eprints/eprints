@@ -428,7 +428,7 @@ sub render_database_status
 
 			my $field_name = $field->get_name;
 
-			delete $all_tables{"$datasetid\_$field_name"};
+			delete $all_tables{"$table_name\_$field_name"};
 
 			my $nameid = "${datasetid}_fieldname_$field_name";
 			my $name = $session->html_phrase( $nameid );
@@ -440,7 +440,7 @@ sub render_database_status
 
 			$table->appendChild(
 					$session->render_row(
-						$session->make_text( "$datasetid\_$field_name" ),
+						$session->make_text( "$table_name\_$field_name" ),
 						$name,
 						$help
 						) );

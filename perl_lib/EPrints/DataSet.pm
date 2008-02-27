@@ -108,6 +108,10 @@ use strict;
 # These are both used by the virtual datasets inbox, buffer etc.
 
 my $INFO = {
+	metafield => {
+		sqlname => "mf", # identifiers get too long
+		class => "EPrints::DataObj::MetaField",
+	},
 	cachemap => {
 		sqlname => "cachemap",
 		class => "EPrints::DataObj::Cachemap",
@@ -299,6 +303,11 @@ sub new
 sub process_field
 {
 	my( $self, $fielddata, $system ) = @_;
+
+	if( !defined $fielddata->{providence} )
+	{
+		$fielddata->{providence} = $system ? "core" : "config";
+	}
 
 	my @cfields;
 	if( $fielddata->{type} eq "compound" )
@@ -896,7 +905,7 @@ into SQL (not counters or cache which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ cachemap message loginticket eprint user document saved_search subject history access request / );
+	return( qw/ metafield cachemap message loginticket eprint user document saved_search subject history access request / );
 }
 
 ######################################################################

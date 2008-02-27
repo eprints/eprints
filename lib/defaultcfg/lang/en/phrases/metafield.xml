@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<!--
+
+Phrases related to the Manage Metadata Fields tool.
+
+-->
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+	<epp:phrase id="metafield_fieldopt_mfstatus_inbox">inbox</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfstatus_archive">archive</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfstatus_deletion">deletion</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_core">core</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_config">config</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_user">user</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_document">document</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_eprint">eprint</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_user">user</epp:phrase>
+
+	<epp:phrase id="metafield_compound_stylesheet"><style>
+.ep_blister_bar { margin: 0px; }
+.ep_form_button_bar { margin: 0px; text-align: left }
+.ep_sr_component .ep_form_input_grid { margin: 0px }
+.ep_tm_pagetitle { margin-left: 0px; text-align: left; }
+	</style></epp:phrase>
+	<epp:phrase id="metafield_properties_help">Metadata field properties have sensible defaults that can be overriden by specifying a value on this page. If you wish to use the default leave the value as <em>UNSPECIFIED</em>.</epp:phrase>
+	<epp:phrase id="priv:action/metafield/commit">Add field now</epp:phrase>
+	<epp:phrase id="priv:action/metafield/save">Save for Later</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/MetaField/View:field_exists">The metadata field name you specified already exists in this dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField:commit">Commit</epp:phrase>
+	<epp:phrase id="metapage_title_settings">Properties</epp:phrase>
+	<epp:phrase id="metapage_title_sub_fields">Sub-Fields</epp:phrase>
+	<epp:phrase id="metapage_title_phrases">Phrases</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:commit_help">
+<p>Note: For this to work the web server must have write access to the var, phrases and workflow directories for this repository.</p>
+
+<p>When you commit this new metadata field its configuration will be written to the metadata fields configuration file and the appropriate columns added to the database. If you specified a name and help phrase for this field they will be added to the <tt>fields.xml</tt> phrases file for each language you specified (see also the <a href="http://eprints.org/d/?keyword=PhraseConfigFile&amp;filename=lang/en/phrases/fields.xml">phrases documentation</a>).</p>
+
+<p>If this field is being added to the Eprints dataset it will also be added to the Eprints submission workflow (see also the <a href="http://eprints.org/d/?keyword=WorkflowConfigFile&amp;filename=workflows/eprint/default.xml">workflow documentation</a>).</p>
+
+<p>To make use of your new field (e.g. by adding it to the abstract page) look at <a href="http://eprints.org/d/?keyword=HOW_TO:_Add_a_New_Field">HOW TO: Add a New Field</a>.</p>
+
+<p>If you don't want to add a new field now click <em>Save for Later</em>.</p>
+	</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:title">Adding a new metadata field</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Edit:title">Adding a new metadata field</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:title">Manage Metadata Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:help">This tool allows you to add metadata fields to your repository. Only fields added using this tool can be removed by this tool. To start configuring fields choose a dataset to add/remove fields from the following list.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:description">Add or remove metadata fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:datasets"><h2>Datasets with Configurable Fields</h2></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:edit_dataset">View Dataset Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:new">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:inbox_empty">No existing in-progress fields found ...</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:new_form">
+	<div style="margin: 20px; border: 1px dashed #aaf; padding: 5px;">
+	<h3 style="margin: 0px; font-weight: bold;">Continue an existing new field</h3>
+	<epc:pin name="inbox"/>
+	<h3 style="margin: 0px; font-weight: bold;">Create a new field</h3>
+	<epc:pin name="form"/>
+	</div>
+	</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:remove">Remove</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:core_field"><em>Core Field</em></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:config_field">From cfg.d</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:confirm">Confirm</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:invalid_field">The field "<epc:pin name="fieldid" />" you are attempting to modify doesn't appear to be configured for the dataset "<epc:pin name="datasetid"/>" (perhaps it's a system field?).</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:confirm_remove">You are about to remove the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>This means you will permanently lose any data stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:metafield_committed">Added the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:removed_field">Removed the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_type_arclanguage">arclanguage</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_arclanguage">arclanguage</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_arclanguage">Select from a list of configured languages in the repository.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_boolean">boolean</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_boolean">boolean</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_boolean">Boolean value of "TRUE" or "FALSE".</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_compound">compound</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_compound">compound</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_compound">A container for other fields. The interface for adding compound fields is complex and may allow you to create an inconsistent configuration, use with care!</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_date">date</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_date">date</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_date">A year-month-day (YYYY-MM-DD).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_email">email</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_email">email</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_email">An email address.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_fields">fields</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_fields">fields</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_fields">Select from a list of fields in a data set.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_file">file</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_file">file</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_file">Select a file from the user's file system.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_float">float</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_float">float</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_float">A floating-point number (0.2, 1.11, 3.14159265).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_id">id</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_id">id</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_id">[Deprecated] Use Itemref.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_int">int</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_int">int</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_int">An integer (1, 5, 10).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_itemref">itemref</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_itemref">itemref</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_itemref">A reference to another object in the repository.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_langid">langid</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_langid">langid</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_langid">[Internal] Used by Multilang.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_longtext">longtext</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_longtext">longtext</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_longtext">A large text field (more than 255 characters).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_multilang">multilang</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_multilang">multilang</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_multilang">A multi-lingual field behaves the same as a Compound field but always has a "lang" sub-field that is a set of the currently configured languages. Use this type of field to allow users to enter metadata in more than one language.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_name">name</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_name">name</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_name">The name of a person, consisting of honourific, given, family and lineage parts.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_namedset">namedset</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_namedset">namedset</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_namedset">A Set that takes its values from a namedset file.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_pagerange">pagerange</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_pagerange">pagerange</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_pagerange">A page range (4-10, 201-3)</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_search">search</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_search">search</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_search">A serialised search expression.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_secret">secret</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_secret">secret</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_secret">A secret (e.g. passwords).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_set">set</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_set">set</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_set">A Set of values to choose from (if you are likely to ever change the set of values use <em>namedset</em> instead).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_subject">subject</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_subject">subject</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_subject">Choose a value from the subjects hierarchy.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_subobject">subobject</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_subobject">subobject</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_subobject">A sub-object container (eprints contain documents).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_text">text</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_text">text</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_text">A free-text field (upto 255 characters).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_time">time</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_time">time</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_time">A year-month-day hour-minute-second field (YYYY-MM-DD:hh:mm:ss).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_url">url</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_url">url</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_url">Any URL/Web link.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_year">year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_year">year</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_year">[Deprecated] Use Date.</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_phrase_name">Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_phrase_name">The human-readable name of this field - will be shown above the field input.</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help">Help</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_phrase_help">The optional help text to show for this field.</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_name_text">Text</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_name_lang">Language</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help_text">Text</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help_lang">Language</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_name">Field Name</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields">Sub-Fields</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_sub_name">Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_name">The name of a field should be made up of lowercase English letters.</epp:phrase>
+<epp:phrase id="metafield_fieldname_type">Type</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_type">Choose from the available metadata field types to determine the type of information you want to capture. The field type will determine the form elements used, data constraints and rendering in Web pages.<p/>
+
+Compound and Multilang are special fields that allow you to combine multiple sub-fields in a logical fashion (for instance "name" and "email"). The way fields behave can be refined by using <em>properties</em>.<p/>
+
+For more information see <a href="http://eprints.org/d/?keyword=MetaFields">MetaFields</a>.</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_type">Type</epp:phrase>
+<epp:phrase id="metafield_fieldname_help">Specify the type of data the field will contain. The available types are defined by MetaField classes.</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_required">Required</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_required">Required</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_required">Whether the user is required to enter data for this field (may be overridden in the workflow).</epp:phrase>
+<epp:phrase id="metafield_fieldname_multiple">Multiple Values</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_multiple">Multiple</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_multiple">Whether this field should allow more than one value.</epp:phrase>
+<epp:phrase id="metafield_fieldname_allow_null">Allow Null Values</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_allow_null">Allow Null</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_allow_null">Whether this field can be undefined (NULL) in the database.</epp:phrase>
+<epp:phrase id="metafield_fieldname_export_as_xml">Include in XML Export</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_export_as_xml">Include in XML Export</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_export_as_xml">Whether this field should be exported in EPrints XML. You may not want to export things like passwords or other sensitive data.</epp:phrase>
+<epp:phrase id="metafield_fieldname_volatile">Volatile Field</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_volatile">Volatile</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_volatile">By default any changes to an object will trigger a new revision of that object. By setting a field as <em>volatile</em> changes made just to volatile fields will not cause new revisions to occur.</epp:phrase>
+<epp:phrase id="metafield_fieldname_min_resolution">Minimum Resolution</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_min_resolution">Resolution</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_min_resolution">Minimum required date resolution.</epp:phrase>
+<epp:phrase id="metafield_fieldname_sql_index">Index</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_sql_index">Index</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_sql_index">Whether this field should have a database index added to it.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_input">Custom Input</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_input">Custom Input</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_input">The name of a custom input render function.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_value">Custom Render</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_value">Custom Render</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_value">The name of a custom render function.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_ordered">Ordered</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_ordered">Order Multiple</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_ordered">Set to true if the order of the values is important (applicable to multiple fields).</epp:phrase>
+<epp:phrase id="metafield_fieldname_maxlength">Maximum Length</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_maxlength">Max Length</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_maxlength">Maximum number of characters to allow the user to enter. Use <em>input_cols</em> to control the size of the form input control.</epp:phrase>
+<epp:phrase id="metafield_fieldname_browse_link">Browse View Link</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_browse_link">View Link</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_browse_link">When rendering values you can add a link on the value to the browse view pages. Specify the name of the view to link the value to - this will depend on the views you have defined.</epp:phrase>
+<epp:phrase id="metafield_fieldname_top">Top Subject Entry</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_top">Top Subject</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_top">Top element of the subject hierarchy to show.</epp:phrase>
+<epp:phrase id="metafield_fieldname_datasetid">Dataset Name</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_datasetid">Dataset</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_datasetid">The repository dataset to link the object identifier to (e.g. "eprint").</epp:phrase>
+<epp:phrase id="metafield_fieldname_set_name">Named Set Filename</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_set_name">Named Set</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_set_name">The name of the file to read the option values from (in <tt>/cfg/namedsets</tt>).</epp:phrase>
+<epp:phrase id="metafield_fieldname_options">Set Options</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_options">Options</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_options">A comma-separated list of values to choose from (e.g. <em>london,paris,new_york</em>)). You will need to create phrases for every defined option.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_order">Name Render Order</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_order">Render Order</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_order">The order to render the name <b>value</b> in (family, given or given family).</epp:phrase>
+<epp:phrase id="metafield_fieldname_hide_honourific">Hide Honourific Part</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_hide_honourific">Hide Honourific</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_hide_honourific">Hide the honourific name part in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_hide_lineage">Hide Lineage Part</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_hide_lineage">Hide Lineage</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_hide_lineage">Hide the lineage name part in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_family_first">Family Part First</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_family_first">Family First</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_family_first">Whether to show the family first in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_style">Set Input Style</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_style">Input Style</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_style">Input style of the <em>set</em> selector.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_rows">Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_rows">Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_rows">Input rows to show (lines of text, or options visible).</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_cols">Input Columns</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_cols">Input Cols</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_cols">Input columns to show (columns of text). To restrict the maximum number of characters entered for text fields use the <em>maxlength</em> property.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_boxes">Initial Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_boxes">Input Boxes</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_boxes">Starting number of input rows to show (if field is multiple). As users add values more rows will be shown.</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_required_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_required_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_multiple_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_multiple_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_multiple_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_multiple_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_allow_null_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_allow_null_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_allow_null_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_allow_null_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_export_as_xml_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_export_as_xml_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_export_as_xml_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_export_as_xml_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_volatile_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_volatile_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_volatile_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_volatile_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_sql_index_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_sql_index_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_sql_index_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_sql_index_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_ordered_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_ordered_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_ordered_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_ordered_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_honourific_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_honourific_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_honourific_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_honourific_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_lineage_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_lineage_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_lineage_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_lineage_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_family_first_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_family_first_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_family_first_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_family_first_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_min_resolution_year">Year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_year">Year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_month">Month</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_month">Month</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_day">Day</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_day">Day</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_hour">Hour</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_hour">Hour</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_minute">Minute</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_minute">Minute</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_second">Second</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_second">Second</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_render_order_fg">Family, Given</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_render_order_fg">Family, Given</epp:phrase>
+<epp:phrase id="metafield_fieldopt_render_order_gf">Given Family</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_render_order_gf">Given Family</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_input_style_menu">Menu</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_menu">Menu</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_radio">Radio</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_radio">Radio</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_long">Long</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_long">Long</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_medium">Medium</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_medium">Medium</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_short">Short</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_short">Short</epp:phrase>
+
+</epp:phrases>

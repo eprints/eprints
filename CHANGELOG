@@ -7011,4 +7011,5 @@ PACKAGE: 2.2.99.2
 
 2008-02-27 tdb
  * Made Boolean respect "input_rows"
+ * add/remove field plugin now does the whole process using a workflow
 

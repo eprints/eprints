@@ -1166,12 +1166,15 @@ sub drop_tables_and_recreate_db
 
 	my @tables = $db->get_tables;
 
-	foreach my $dataset_id (EPrints::DataSet::get_sql_dataset_ids)
+	foreach my $datasetid (EPrints::DataSet::get_sql_dataset_ids())
 	{
-		if( $noise>=2 ) { print "Removing dataset $dataset_id\n"; }
+		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $sql_name = $dataset->get_sql_table_name;
+		if( $noise>=2 ) { print "Removing dataset $datasetid [$sql_name]\n"; }
 		foreach my $table (@tables)
 		{
-			$db->drop_table( $table ) if $table =~ /^$dataset_id/i;
+			$db->drop_table( $table )
+				if $table eq $sql_name or $table =~ /^$sql_name\_/i;
 		}
 	}
 
@@ -1809,7 +1812,7 @@ sub upgrade_3_0_7_to_3_1_0
 	$db->do("ALTER TABLE $table $changes_sql");
 
 	# remove the index and order tables
-	for(qw(__index __index_grep __ordervalues_en __rindex))
+	for(qw(__index __index_grep __rindex))
 	{
 		$db->drop_table("$table$_");
 	}
@@ -1827,6 +1830,7 @@ sub upgrade_3_0_7_to_3_1_0
 	$db->create_dataset_tables( $repo->get_dataset( "message" ) );
 	$db->create_dataset_tables( $repo->get_dataset( "loginticket" ) );
 	$db->create_dataset_tables( $repo->get_dataset( "cachemap" ) );
+	$db->create_dataset_tables( $repo->get_dataset( "metafield" ) );
 
 	# new counters
 	$db->create_counter( "messageid" );

@@ -323,6 +323,12 @@ sub create_archive_tables
 	
 	$self->set_version( $EPrints::Database::DBVersion );
 	
+	if( $success )
+	{
+		my $list = EPrints::DataObj::MetaField::load_all( $self->{session} );
+		$success = $list->count > 0;
+	}
+
 	return( $success );
 }
 		
@@ -839,10 +845,7 @@ sub create_sequence
 
 	my $rc = 1;
 
-	if( $self->has_sequence( $name ) )
-	{
-		$self->drop_sequence( $name );
-	}
+	$self->drop_sequence( $name );
 
 	my $sql = "CREATE SEQUENCE ".$self->quote_identifier($name)." " .
 		"INCREMENT BY 1 " .
@@ -869,7 +872,10 @@ sub drop_sequence
 {
 	my( $self, $name ) = @_;
 
-	$self->do("DROP SEQUENCE ".$self->quote_identifier($name));
+	if( $self->has_sequence( $name ) )
+	{
+		$self->do("DROP SEQUENCE ".$self->quote_identifier($name));
+	}
 }
 
 ######################################################################

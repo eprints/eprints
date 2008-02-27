@@ -2000,6 +2000,7 @@ sub get_search_group { return 'basic'; }
 sub get_property_defaults
 {
 	return (
+		providence => $EPrints::MetaField::FROM_CONFIG,
 		allow_null 	=> 0,
 		browse_link 	=> $EPrints::MetaField::UNDEF,
 		can_clone 	=> 1,

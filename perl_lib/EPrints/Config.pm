@@ -234,18 +234,23 @@ sub load_repository_config_module
 	{
 		next if $file =~ /^\./;
 		next unless $file =~ /\.pl$/;
-		push @files, $file;
+		push @files, "$dir/$file";
 	}
 	closedir( $dh );
+
+	my $metafield_pl = $info->{archiveroot}."/var/metafield.pl";
+	if( -e $metafield_pl )
+	{
+		push @files, $metafield_pl;
+	}
 
 	$info->{set_in} = {};
 	my $set = {};
 	foreach( keys %$info ) { $set->{$_} = 1; }
 		
-	foreach my $file ( sort @files )
+	foreach my $filepath ( sort @files )
 	{
 		$@ = undef;
-		my $filepath = "$dir/$file";
 		my $err;
 		unless( open( CFGFILE, $filepath ) )
 		{
