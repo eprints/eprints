@@ -108,7 +108,7 @@ sub send_mail
 	# separator for multiple addressees
 	foreach my $name (qw( from_name to_name replyto_name ))
 	{
-		if( $p{$name} =~ /,/ )
+		if( defined $p{$name} and $p{$name} =~ /,/ )
 		{
 			$p{$name} = "\"".$p{$name}."\"";
 		}

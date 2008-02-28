@@ -933,8 +933,11 @@ sub send_out_editor_alert
 
 	if( $list->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
 	{
-		my $url = $self->{session}->get_repository->get_conf( "perl_url" ).
-			"/users/record";
+		my $url = URI->new($self->{session}->get_repository->get_conf( "perl_url" )."/users/home");
+		$url->query_form(
+			screen => "User::Edit",
+			userid => $self->get_id
+		);
 		my $freqphrase = $self->{session}->html_phrase(
 			"lib/saved_search:".$freq ); # nb. reusing the SavedSearch.pm phrase
 		my $searchdesc = $self->render_value( "editperms" );

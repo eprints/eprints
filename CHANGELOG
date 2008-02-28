@@ -7014,3 +7014,7 @@ PACKAGE: 2.2.99.2
  * add/remove field plugin now does the whole process using a workflow
  * Tool for boot-strapping the metafield dataset
 
+2008-02-28 tdb
+ * Corrected link in editor alert email, fixing #3286
+ * Fixed an undef warning in EPrints::Email
+
