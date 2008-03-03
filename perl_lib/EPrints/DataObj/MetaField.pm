@@ -630,6 +630,16 @@ sub _phrases_empty
 	return $phrases;
 }
 
+sub _opt_to_phrase
+{
+	my( $name ) = @_;
+
+	$name =~ s/_/ /g;
+	$name =~ s/\b(\w)/\u$1/g;
+
+	return $name;
+}
+
 sub add_to_phrases
 {
 	my( $self ) = @_;
@@ -638,6 +648,7 @@ sub add_to_phrases
 
 	my $ok = 1;
 
+	my $name = $self->get_value( "name" );
 	my $datasetid = $self->get_value( "mfdatasetid" );
 	my $path = get_config_path( $session ) . "/lang";
 
@@ -652,6 +663,36 @@ sub add_to_phrases
 			$phrase->{lang} ||= "en";
 			my $name = "$datasetid\_field$type\_".$self->get_value( "name" );
 			$phrases{$phrase->{lang}}->{$name} = $phrase->{text};
+		}
+	}
+
+	# Add default phrases for sub-fields/options
+	foreach my $field_data ($self->{data},@{$self->{data}->{fields}||[]})
+	{
+		my $type = $field_data->{"type"};
+		my $field_name = $name;
+		if( exists($field_data->{"sub_name"}) )
+		{
+			$field_name .= "_" . $field_data->{"sub_name"};
+			foreach my $langid (keys %phrases)
+			{
+				my $phraseid = "$datasetid\_fieldname_$field_name";
+				my $phrase = _opt_to_phrase($field_name);
+				$phrases{$langid}->{$phraseid} = $phrase;
+			}
+		}
+		if( $type eq "set" )
+		{
+			my @options = split /\s*,\s*/, ($field_data->{"options"}||"");
+			for(@options)
+			{
+				my $phraseid = "$datasetid\_fieldopt_$field_name\_$_";
+				my $phrase = _opt_to_phrase($_);
+				foreach my $langid (keys %phrases)
+				{
+					$phrases{$langid}->{$phraseid} = $phrase;
+				}
+			}
 		}
 	}
 
