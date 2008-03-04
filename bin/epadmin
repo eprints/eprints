@@ -837,7 +837,8 @@ END
 		exit 1;
 	}
 
-	my $mversion = EPrints::Database::mysql_version_from_dbh( $dbh );
+	use EPrints::Database::mysql;
+	my $mversion = EPrints::Database::mysql::mysql_version_from_dbh( $dbh );
 	my $oldpasswords = 0;
 	if( $mversion >= 40100 ) 
 	{

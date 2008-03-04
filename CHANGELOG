@@ -7022,3 +7022,6 @@ PACKAGE: 2.2.99.2
  * Added missing Perl export plugin
  * Now adds default phrases for sub-fields/set options
 
+2008-03-05 tdb
+ * Added missing mysql_version_from_dbh method, fixing #3301
+

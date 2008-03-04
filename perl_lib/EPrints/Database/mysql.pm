@@ -79,6 +79,15 @@ sub get_server_version
 	return "MySQL $version";
 }
 
+sub mysql_version_from_dbh
+{
+	my( $dbh ) = @_;
+	my $sql = "SELECT VERSION();";
+	my( $version ) = $dbh->selectrow_array( $sql );
+	$version =~ m/^(\d+).(\d+).(\d+)/;
+	return $1*10000+$2*100+$3;
+}
+
 ######################################################################
 =pod
 
