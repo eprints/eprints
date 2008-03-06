@@ -1,4 +1,3 @@
-
 use EPrints;
 
 use strict;
@@ -7,44 +6,70 @@ my $session = EPrints::Session->new();
 
 # security?
 
-my $content = "text/xml";
-$session->send_http_header( content_type=>$content );
-my $q = $session->param( "q" );
+my $q = $session->param( "q" ) || "";
 
-my $sql = "SELECT COUNT(eprintid) AS num_matches,publication,publisher,issn from eprint WHERE eprint_status='archive' AND publication IS NOT NULL AND publication LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY publication ORDER BY num_matches DESC LIMIT 40";
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
 
-print <<END;
-<?xml version="1.0" encoding="UTF-8" ?>
+my @fields = qw( publication publisher issn );
 
-<ul>
-END
+my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+my $Q_eprintid = $database->quote_identifier( "eprintid" );
+my $Q_num_matches = $database->quote_identifier( "num_matches" );
+my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+my $Q_publication = $database->quote_identifier( "publication" );
+my $Q_issn = $database->quote_identifier( "issn" );
+
+my $sql = "SELECT COUNT($Q_eprintid) $Q_num_matches," .
+	join(",", map { $database->quote_identifier($_) } @fields) .
+	" FROM $Q_table" .
+	" WHERE " .
+	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
+	" AND $Q_issn IS NOT NULL" .
+	" AND $Q_publication LIKE ".$database->quote_value( EPrints::Database::prep_like_value($q) . '%' ) .
+	" GROUP BY $Q_publication,$Q_issn" .
+	" ORDER BY $Q_num_matches DESC LIMIT 40";
+	
+my @rows;
 
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $n,$pub,$org,$issn ) = $sth->fetchrow_array )
 {
-	if( $first )
-	{
-		print "<li class='ep_first'>";
-		$first = 0;
-	}
-	else
-	{
-		print "<li>";
-	}
-	print "\"$pub\"";
-	print " published by \"$org\"" if defined $org;
-	print " ISSN:$issn" if defined $issn;
-	print " ";
-	print "<small>(found on $n record".($n>1?"s":"")." in this repository)</small>";
-	print "<ul>";
-	print "<li id='for:value:component:_publication'>$pub</li>";
-	print "<li id='for:value:component:_publisher'>$org</li>";
-	print "<li id='for:value:component:_issn'>$issn</li>";
-	print "</ul></li>\n";
+	my $row = {};
+	push @rows, $row;
+
+	my $frag = $session->make_doc_fragment;
+
+	my $desc = "\"$pub\"";
+	$desc .= " published by \"$org\"" if defined $org;
+	$desc .= " ISSN:$issn" if defined $issn;
+	$desc .= " ";
+	$frag->appendChild( $session->make_text( $desc ) );
+	my $small = $session->make_element( "small" );
+	$frag->appendChild( $small );
+	$small->appendChild( $session->make_text( "found on $n record".($n>1?"s":"")." in this repository)" ) );
+
+	$row->{xhtml} = $frag;
+	$row->{values} = [
+		"for:value:component:_publication" => $pub,
+		"for:value:component:_publisher" => $org,
+		"for:value:component:_issn" => $issn,
+	];
 }
-print "</ul>";
+
+my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
+
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
+
+EPrints::XML::dispose( $ul );
 
 $session->terminate;
 

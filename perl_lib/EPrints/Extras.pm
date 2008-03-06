@@ -135,6 +135,44 @@ sub render_highlighted_field
 	return $div;
 }
 
+sub render_lookup_list
+{
+	my( $session, $rows ) = @_;
+
+	my $ul = $session->make_element( "ul" );
+
+	my $first = 1;
+	foreach my $row (@$rows)
+	{
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+		if( $first )
+		{
+			$li->setAttribute( "class", "ep_first" );
+			$first = 0;
+		}
+		if( defined($row->{xhtml}) )
+		{
+			$li->appendChild( $row->{xhtml} );
+		}
+		elsif( defined($row->{desc}) )
+		{
+			$li->appendChild( $session->make_text( $row->{desc} ) );
+		}
+		my @values = @{$row->{values}};
+		my $ul = $session->make_element( "ul" );
+		$li->appendChild( $ul );
+		for(my $i = 0; $i < @values; $i+=2)
+		{
+			my( $name, $value ) = @values[$i,$i+1];
+			my $li = $session->make_element( "li", id => $name );
+			$ul->appendChild( $li );
+			$li->appendChild( $session->make_text( $value ) );
+		}
+	}
+
+	return $ul;
+}
 
 ######################################################################
 =pod

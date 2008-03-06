@@ -1,4 +1,3 @@
-
 use EPrints;
 
 use strict;
@@ -7,45 +6,71 @@ my $session = EPrints::Session->new();
 
 # security?
 
-my $content = "text/xml";
-$session->send_http_header( content_type=>$content );
-my $q = $session->param( "q" );
+my $q = $session->param( "q" ) || "";
 
-my $sql = "SELECT COUNT(eprintid) as num_matches,event_title,event_location,event_dates,event_type from eprint WHERE eprint_status='archive' AND event_title IS NOT NULL AND event_title LIKE '".EPrints::Database::prep_like_value($q)."\%' GROUP BY event_title ORDER BY num_matches DESC";
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
 
-print <<END;
-<?xml version="1.0" encoding="UTF-8" ?>
+my @fields = qw( event_title event_location event_dates event_type );
 
-<ul>
-END
+my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+my $Q_eprintid = $database->quote_identifier( "eprintid" );
+my $Q_num_matches = $database->quote_identifier( "num_matches" );
+my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+my $Q_event_title = $database->quote_identifier( "event_title" );
+
+my $sql = "SELECT COUNT($Q_eprintid) $Q_num_matches," .
+	join(",", map { $database->quote_identifier($_) } @fields) .
+	" FROM $Q_table" .
+	" WHERE " .
+	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
+	" AND $Q_event_title IS NOT NULL" .
+	" AND $Q_event_title LIKE " .
+	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' ) .
+	" GROUP BY $Q_event_title" .
+	" ORDER BY $Q_num_matches DESC LIMIT 40";
+
+my @rows;
 
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $n,$title,$location,$dates,$type ) = $sth->fetchrow_array )
 {
-	if( $first )
-	{
-		print "<li class='ep_first'>";
-		$first = 0;
-	}
-	else
-	{
-		print "<li>";
-	}
-	print "\"$title\"";
-	print " ($dates)" if defined $dates;
-	print " hosted in $location" if defined $location;;
-	print " ";
-	print "<small>(found on $n record".($n>1?"s":"")." in this repository)</small>";
-	print "<ul>";
-	print "<li id='for:value:component:_event_title'>$title</li>";
-	print "<li id='for:value:component:_event_location'>$location</li>";
-	print "<li id='for:value:component:_event_dates'>$dates</li>";
-	print "<li id='for:value:component:_event_type'>$type</li>";
-	print "</ul></li>\n";
+	my $row = {};
+	push @rows, $row;
+
+	my $frag = $session->make_doc_fragment;
+
+	my $desc = "\"$title\"";
+	$desc .= " ($dates)" if defined $dates;
+	$desc .= " hosted in $location" if defined $location;;
+	$desc .= " ";
+	$frag->appendChild( $session->make_text( $desc ) );
+	my $small = $session->make_element( "small" );
+	$frag->appendChild( $small );
+	$small->appendChild( $session->make_text( "(found on $n record".($n>1?"s":"")." in this repository)" ) );
+
+	$row->{xhtml} = $frag;
+	$row->{values} = [
+		"for:value:component:_event_title" => $title,
+		"for:value:component:_event_location" => $location,
+		"for:value:component:_event_dates" => $dates,
+		"for:value:component:_event_type" => $type,
+	];
 }
-print "</ul>";
+
+my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
+
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
+
+EPrints::XML::dispose( $ul );
 
 $session->terminate;
 

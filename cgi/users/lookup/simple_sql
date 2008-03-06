@@ -5,49 +5,74 @@ use warnings;
 
 my $session = EPrints::Session->new();
 
-my $string_frag = lc $session->param( "q" );
-my $table = "ac_".$session->param( "table" );
+my $string_frag = lc($session->param( "q" ) || "");
+my $table = $session->param( "table" );
 my $mode = $session->param( "mode" ) || "phrase";
 if( !defined $table )
 {
 	EPrints::abort( "table" );
 }
-$table=~s/[^_a-z0-9]//sig;
-my $sql;
+my $Q_table = $session->get_database->quote_identifier( "ac_$table" );
+my $Q_xml = $session->get_database->quote_identifier( "xml" );
+my $Q_value = $session->get_database->quote_identifier( "value" );
+my $Q_string_frag = EPrints::Database::prep_like_value( $string_frag );
 if( $mode eq "phrase" )
 {
-	$sql = "SELECT value from $table WHERE value LIKE '%".EPrints::Database::prep_like_value( $string_frag )."%' LIMIT 40";
+	$Q_string_frag = "\%$Q_string_frag\%";
 }
-if( $mode eq "prefix" )
+elsif( $mode eq "prefix" )
 {
-	$sql = "SELECT value from $table WHERE value LIKE '".EPrints::Database::prep_like_value( $string_frag )."%' LIMIT 40";
+	$Q_string_frag = "$Q_string_frag\%";
 }
+$Q_string_frag = $session->get_database->quote_value( $Q_string_frag );
 
-print <<END;
-<?xml version="1.0" encoding="UTF-8" ?>
+my $sql = "SELECT $Q_xml from $Q_table WHERE $Q_value LIKE $Q_string_frag LIMIT 40";
 
-<ul>
-END
+my $ul = $session->make_element( "ul" );
+
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $value ) = $sth->fetchrow_array )
 {
 	chomp $value;
-	$value =~ s/&/&amp;/g;
-	$value =~ s/>/&gt;/g;
-	$value =~ s/</&lt;/g;
-	print "<li";
+	my $doc;
+	eval { $doc = EPrints::XML::parse_xml_string( "<div>$value</div>" ) };
+	if( $@ )
+	{
+		$value = $session->make_text( $value );
+	}
+	else
+	{
+		$value = $session->make_doc_fragment;
+		for($doc->documentElement->childNodes)
+		{
+			$value->appendChild( $session->clone_for_me( $_, 1 ) );
+		}
+		EPrints::XML::dispose( $doc );
+	}
+	my $li = $session->make_element( "li" );
+	$ul->appendChild( $li );
 	if( $first )
 	{
-		print " class='ep_first'";
+		$li->setAttribute( "class", "ep_first" );
+		$first = 0;
 	}
-	print ">$value";
-	print "<ul><li id='for:value:relative:'>$value</li></ul>";
-	print "</li>";
-	$first= 0;
+	$li->appendChild( $value );
+	my $ul2 = $session->make_element( "ul" );
+	my $li2 = $session->make_element( "li", id => "for:value:relative:" );
+	$li->appendChild( $ul2 );
+	$ul2->appendChild( $li2 );
+	$li2->appendChild( $session->clone_for_me( $value, 1 ) );
 }
-print '</ul>';
 
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
+
+EPrints::XML::dispose( $ul );
 
 $session->terminate;

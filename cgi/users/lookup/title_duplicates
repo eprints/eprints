@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # warns of duplicates based on a simple title string match
 
 use EPrints;
@@ -14,14 +12,17 @@ my $session = EPrints::Session->new();
 # How many chars needed before we try and suggest duplicates?
 my $need = 5;
 
-my $content = "text/xml";
-$session->send_http_header( content_type=>$content );
-my $q = $session->param( "q" );
+my $q = $session->param( "q" ) || "";
 
 exit unless length( $q ) >= $need; 
 
 my $eprintid = $session->param( "eprintid" );
-if( defined($eprintid) and $eprintid =~ /^([0-9]+)$/ )
+if( !defined($eprintid) )
+{
+	$session->get_repository->log( "title_duplicates lookup script called without eprintid argument: ".join(',',$session->param));
+	exit(0);
+}
+elsif( $eprintid =~ /^([0-9]+)$/ )
 {
 	$eprintid = $1;
 }
@@ -30,7 +31,23 @@ else
 	EPrints::abort "Requires numeric eprintid argument";
 }
 
-my $sql = "SELECT eprintid, title FROM eprint WHERE eprintid!=$eprintid AND eprint_status='archive' AND title IS NOT NULL AND title LIKE '".EPrints::Database::prep_like_value($q)."\%' LIMIT 10";
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
+
+my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+my $Q_eprintid = $database->quote_identifier( "eprintid" );
+my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+my $Q_title = $database->quote_identifier( "title" );
+
+my $sql = "SELECT $Q_eprintid" .
+	" FROM $Q_table" .
+	" WHERE " .
+	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
+	" AND $Q_eprintid!=$eprintid" .
+	" AND $Q_title IS NOT NULL" .
+	" AND $Q_title LIKE " .
+	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' ) .
+	" LIMIT 10";
 
 my $doc = $session->make_doc_fragment();
 
@@ -78,10 +95,13 @@ do
 	}
 } while( $row = $sth->fetch );
 
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+
 print <<END,
 <?xml version="1.0" encoding="UTF-8" ?>
+
 END
-	EPrints::XML::to_string( $doc );
+	EPrints::XML::to_string( $doc, "utf-8", 1 );
 
 EPrints::XML::dispose( $doc );
 

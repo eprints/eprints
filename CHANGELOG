@@ -7025,3 +7025,7 @@ PACKAGE: 2.2.99.2
 2008-03-05 tdb
  * Added missing mysql_version_from_dbh method, fixing #3301
 
+2008-03-07 tdb
+ * Revised lookup scripts to work with Oracle/abstracted results rendering into
+    an Extras method
+

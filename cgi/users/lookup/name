@@ -1,4 +1,3 @@
-
 use EPrints;
 
 use strict;
@@ -13,60 +12,89 @@ my $family = $session->param( "_name_family" );
 my $given = $session->param( "_name_given" );
 my $id = $session->param( "_id" );
 
-my $sql = "
-SELECT COUNT(eprint.eprintid) AS num_matches,creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id from eprint_creators_name LEFT JOIN eprint_creators_id ON eprint_creators_name.pos = eprint_creators_id.pos AND eprint_creators_name.eprintid = eprint_creators_id.eprintid LEFT JOIN eprint ON eprint_creators_name.eprintid = eprint.eprintid 
-WHERE eprint.eprint_status = 'archive' ";
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $name_field = $dataset->get_field( "creators_name" );
+my $id_field = $dataset->get_field( "creators_id" );
+
+my @fields = ($name_field->get_sql_names, $id_field->get_sql_names);
+
+my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+my $Q_name_table = $database->quote_identifier($dataset->get_sql_sub_table_name($name_field));
+my $Q_id_table = $database->quote_identifier($dataset->get_sql_sub_table_name($id_field));
+my $Q_eprintid = $database->quote_identifier( "eprintid" );
+my $Q_pos = $database->quote_identifier( "pos" );
+my $Q_num_matches = $database->quote_identifier( "num_matches" );
+my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+
+my $sql = "SELECT COUNT($Q_table.$Q_eprintid) $Q_num_matches," .
+	join(",", map { $database->quote_identifier($_) } @fields) .
+	" FROM $Q_table" .
+	" LEFT JOIN $Q_name_table" .
+	" ON $Q_table.$Q_eprintid=$Q_name_table.$Q_eprintid" .
+	" LEFT JOIN $Q_id_table" .
+	" ON $Q_name_table.$Q_eprintid=$Q_id_table.$Q_eprintid " .
+	" AND $Q_name_table.$Q_pos=$Q_id_table.$Q_pos " .
+	" WHERE " .
+	" $Q_table.$Q_eprint_status=".$database->quote_value( "archive" );
 if( EPrints::Utils::is_set( $family ) )
 {
-	$sql .= "AND creators_name_family LIKE '".EPrints::Database::prep_like_value($family)."\%' ";
+	$sql .= " AND ".$database->quote_identifier("creators_name_family")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($family).'%');
 }
 if( EPrints::Utils::is_set( $given ) )
 {
-	$sql .= "AND creators_name_given LIKE '".EPrints::Database::prep_like_value($given)."\%' ";
+	$sql .= " AND ".$database->quote_identifier("creators_name_given")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($given).'%');
 }
 if( EPrints::Utils::is_set( $id ) )
 {
-	$sql .= "AND creators_id LIKE '".EPrints::Database::prep_like_value($id)."\%' ";
+	$sql .= " AND ".$database->quote_identifier("creators_id")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($id).'%');
 }
-$sql.="
-GROUP BY creators_name_honourific,creators_name_given,creators_name_family,creators_name_lineage,creators_id 
-ORDER BY num_matches DESC,creators_name_family,creators_name_given 
-LIMIT 40
-";
+$sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields) .
+	" ORDER BY $Q_num_matches DESC," .
+	$database->quote_identifier("creators_name_family").",".
+	$database->quote_identifier("creators_name_given") .
+	" LIMIT 40";
+
+my @rows;
+
+my $sth = $session->get_database->prepare( $sql );
+$session->get_database->execute( $sth , $sql );
+while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
+{
+	my $row = {};
+	push @rows, $row;
+
+	my $frag = $session->make_doc_fragment;
+
+	my $desc = "$h $g $f $l"; 
+	$desc .= " ($id)" if defined $id;
+	$desc .= " ";
+	$frag->appendChild( $session->make_text( $desc ) );
+	my $small = $session->make_element( "small" );
+	$frag->appendChild( $small );
+	$small->appendChild( $session->make_text( "(author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
+
+	$row->{xhtml} = $frag;
+	$row->{values} = [
+		"for:value:relative:_name_family" => $f,
+		"for:value:relative:_name_given" => $g,
+		"for:value:relative:_name_honourific" => $h,
+		"for:value:relative:_name_lineage" => $l,
+		"for:value:relative:_id" => $id,
+	];
+}
+
+my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
+
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<ul>
 END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
 
-
-my $sth = $session->get_database->prepare( $sql );
-$session->get_database->execute( $sth , $sql );
-my $first = 1;
-while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
-{
-	if( $first )
-	{
-		print "<li class='ep_first'>";
-		$first = 0;
-	}
-	else
-	{
-		print "<li>";
-	}
-	print "$h $g $f $l"; 
-	if( defined $id ) { print " ($id)"; }
-	print " <small>(author of ".$cnt." item".($cnt>1?"s":"")." in this repository)</small>";
-	print "<ul>";
-	print "<li id='for:value:relative:_name_family'>$f</li>";
-	print "<li id='for:value:relative:_name_given'>$g</li>";
-	print "<li id='for:value:relative:_name_honourific'>$h</li>";
-	print "<li id='for:value:relative:_name_lineage'>$l</li>";
-	print "<li id='for:value:relative:_id'>$id</li>";
-	print "</ul></li>\n";
-}
-print "</ul>";
+EPrints::XML::dispose( $ul );
 
 $session->terminate;
 
