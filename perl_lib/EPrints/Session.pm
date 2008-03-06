@@ -901,6 +901,42 @@ sub make_text
 	return $textnode;
 }
 
+######################################################################
+=pod
+
+=item $DOM = $session->make_javascript( $code, %attribs )
+
+Return a new DOM "script" element containing $code in javascript. %attribs will
+be added to the script element, similar to make_element().
+
+E.g.
+
+	<script type="text/javascript">
+	// <![CDATA[
+	alert("Hello, World!");
+	// ]]>
+	</script>
+
+=cut
+######################################################################
+
+sub make_javascript
+{
+	my( $self, $text, %attr ) = @_;
+
+	if( !defined( $text ) )
+	{
+		$text = "";
+	}
+	chomp($text);
+
+	my $script = $self->make_element( "script", type => "text/javascript", %attr );
+
+	$script->appendChild( $self->make_text( "\n// " ) );
+	$script->appendChild( $self->{doc}->createCDATASection( "\n$text\n// " ) );
+
+	return $script;
+}
 
 ######################################################################
 =pod

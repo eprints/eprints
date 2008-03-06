@@ -143,8 +143,7 @@ sub input_form
 		$form->appendChild( $session->render_hidden_field( "target", $target ));
 	}
 
-	my $script = $session->make_element( "script", type=>"text/javascript" );
-	$script->appendChild( $session->make_text( '$("login_username").focus()' ) ); 
+	my $script = $session->make_javascript( '$("login_username").focus()' );
 	$form->appendChild( $script);
 
 	return $form;

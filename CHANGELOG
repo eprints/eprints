@@ -7028,4 +7028,5 @@ PACKAGE: 2.2.99.2
 2008-03-07 tdb
  * Revised lookup scripts to work with Oracle/abstracted results rendering into
     an Extras method
+ * Put javascripts inside CDATA sections, fixing #3303
 
