@@ -1050,15 +1050,16 @@ sub call
 
 	local $SIG{__WARN__} = sub {
         	my( $msg ) = @_;
-        	print STDERR " (while in configuration subroutine $cmd) $msg\n";
-	};
-	local $SIG{__DIE__} = sub {
-        	my( $msg ) = @_;
-        	print STDERR " (while in configuration subroutine $cmd) $msg\n";
-		exit 1;
+        	print STDERR " (warning while in configuration subroutine $cmd) $msg\n";
 	};
 
-	return &$fn( @params );
+	my @r = eval { return &$fn( @params ) };
+	if( $@ )
+	{
+		print STDERR " (error while in configuration subroutine $cmd) $@\n";
+		exit 1;
+	}
+	return @r;
 }
 
 ######################################################################

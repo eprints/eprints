@@ -7029,4 +7029,7 @@ PACKAGE: 2.2.99.2
  * Revised lookup scripts to work with Oracle/abstracted results rendering into
     an Extras method
  * Put javascripts inside CDATA sections, fixing #3303
+ * Added childNodes and firstChild to XML::DOM
+ * Don't use a SIG handler when making calls - breaks eval() wrappers in
+    libraries
 
