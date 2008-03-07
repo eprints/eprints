@@ -1,0 +1,186 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+#-d:DProf
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use strict;
+
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+use Text::Lorem::More qw( lorem );
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $userid = 1;
+
+GetOptions( 
+	'user' => \$userid,
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "import_test_data" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+#pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+
+srand(1); # Reproduce the exact same set of data
+
+
+
+# nb. This syntax is subject to change in future versions.
+my( $archiveid, $datasetid, $total ) = @ARGV;
+
+my $session = new EPrints::Session( 1 , $archiveid, $noise );
+exit( 1 ) unless( defined $session );
+
+my $db = $session->get_database;
+#$db->set_timer( 1 );
+
+$datasetid = "archive" unless defined $datasetid;
+$total ||= 1000;
+
+# Basic data
+our @TYPES = @{$session->get_repository->{types}->{eprint}};
+our @SUBJECTS = @{read_subjects( $session )};
+our $PDFDATA = "";
+
+my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
+
+{
+use bytes;
+open(my $fh, "<", "$datapath/paper.pdf") or die "$!";
+binmode($fh);
+while(read($fh,$PDFDATA,1024,length($PDFDATA)))
+{
+}
+close($fh);
+$PDFDATA = MIME::Base64::encode($PDFDATA);
+}
+
+my $ds = $session->get_archive()->get_dataset( $datasetid );
+
+for(1..$total)
+{
+	my $data = {
+		eprint_status => $datasetid,
+		userid => $userid,
+		type => rand_type(),
+		title => rand_title(),
+		creators => rand_names(),
+		ispublished => "pub",
+		subjects => [ rand_subjects() ],
+		full_text_status => "public",
+		abstract => rand_abstract(),
+		date => rand_date(),
+		documents => [ {
+			format => "application/pdf",
+			language => "en",
+			security => "public",
+			main => "paper.pdf",
+			files => [ {
+				filename => "paper.pdf",
+				filesize => "12174",
+				data => "$datapath/paper.pdf",
+			} ],
+		} ],
+	};
+	my $eprint = $ds->create_object( $session, $data );
+	print $eprint->get_id, "\n";
+}
+
+$session->terminate;
+
+exit;
+
+sub rand_names
+{
+	my @names;
+	my $max = int(rand(6))+1;
+	while($max--)
+	{
+		my $name = {
+			name => {
+				family => lorem->name,
+				given => lorem->name,
+			},
+		};
+		push @names, $name;
+	}
+	return \@names;
+}
+
+sub rand_type
+{
+	$TYPES[int(rand(@TYPES))];
+}
+
+sub rand_subjects
+{
+	my @subjects;
+	my $max = int(rand(4))+1;
+	while($max--)
+	{
+		push @subjects, $SUBJECTS[int(rand(@SUBJECTS))];
+	}
+	return @subjects;
+}
+
+sub rand_title
+{
+	my $title = lorem->sentence;
+	$title =~ s/\.$//;
+	return $title;
+}
+
+sub rand_abstract
+{
+	return lorem->paragraphs(int(rand(3))+2);
+}
+
+sub rand_date
+{
+	my $res = int(rand(2));
+	my $date = 1950 + int(rand(50));
+	if( $res > 0 )
+	{
+		$date .= sprintf("-%02d",1+int(rand(12)));
+	}
+	if( $res > 1 )
+	{
+		$date .= sprintf("-%02d",1+int(rand(29)));
+	}
+	return $date;
+}
+
+sub read_subjects
+{
+	my( $session ) = @_;
+
+	my $ds = $session->get_repository->get_dataset( "subject" );
+
+	return $ds->get_item_ids( $session );
+}

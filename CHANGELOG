@@ -7032,4 +7032,5 @@ PACKAGE: 2.2.99.2
  * Added childNodes and firstChild to XML::DOM
  * Don't use a SIG handler when making calls - breaks eval() wrappers in
     libraries
+ * Tool to create unlimited number of randomly-generated eprints
 
