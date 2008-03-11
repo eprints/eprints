@@ -819,7 +819,7 @@ sub ListMetadataFormats
 	my $dataobj;
 	if( defined $args->{identifier} )
 	{
-		my( $datasetid, $id ) = parse_identifier( $args->{identifier} );
+		my( $datasetid, $id ) = parse_identifier( $session, $args->{identifier} );
 		my $dataset = $DATASETS{ $datasetid };
 #		my $class = $dataset->get_object_class;
 #		$dataobj = $class->new(
@@ -1022,7 +1022,7 @@ sub get_oai_args
 
 	if( defined $args{identifier} )
 	{
-		my( $datasetid, $id ) = parse_identifier( $args{identifier} );
+		my( $datasetid, $id ) = parse_identifier( $session, $args{identifier} );
 		if( !$datasetid || !exists($DATASETS{$datasetid}) || !$id )
 		{
 			push @errors, render_oai_error(
@@ -1278,7 +1278,7 @@ sub get_export_plugins
 
 sub parse_identifier
 {
-	my( $identifier ) = @_;
+	my( $session, $identifier ) = @_;
 
 	my $base = $session->get_repository->get_conf( "oai","v2","archive_id" );
 	$base = "oai:$base:";
@@ -1309,7 +1309,7 @@ sub get_object_from_identifier
 {
 	my( $session, $identifier ) = @_;
 
-	my( $datasetid, $id ) = parse_identifier( $identifier );
+	my( $datasetid, $id ) = parse_identifier( $session, $identifier );
 
 	my $dataset = $DATASETS{ $datasetid };
 	my $class = $dataset->get_object_class;
