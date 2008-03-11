@@ -119,6 +119,7 @@ my $INFO = {
 	message => {
 		sqlname => "message",
 		class => "EPrints::DataObj::Message",
+		datestamp => "datestamp",
 	},
 	loginticket => {
 		sqlname => "loginticket",
@@ -132,6 +133,7 @@ my $INFO = {
 		class => "EPrints::DataObj::User",
 		import => 1,
 		index => 1,
+		datestamp => "joined",
 	},
 	archive => {
 		sqlname => "eprint",
@@ -141,6 +143,7 @@ my $INFO = {
 		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 } ],
 		dataset_id_field => "eprint_status",
+		datestamp => "lastmod",
 	},
 	buffer => {
 		sqlname => "eprint",
@@ -150,6 +153,7 @@ my $INFO = {
 		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'buffer', describe=>0 } ],
 		dataset_id_field => "eprint_status",
+		datestamp => "lastmod",
 	},
 	inbox => {
 		sqlname => "eprint",
@@ -159,6 +163,7 @@ my $INFO = {
 		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'inbox', describe=>0 } ],
 		dataset_id_field => "eprint_status",
+		datestamp => "lastmod",
 	},
 	deletion => {
 		sqlname => "eprint",
@@ -168,11 +173,13 @@ my $INFO = {
 		index => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'deletion', describe=>0 } ],
 		dataset_id_field => "eprint_status",
+		datestamp => "lastmod",
 	},
 	eprint => {
 		sqlname => "eprint",
 		class => "EPrints::DataObj::EPrint",
 		index => 1,
+		datestamp => "lastmod",
 	},
 	document => {
 		sqlname => "document",
@@ -191,6 +198,7 @@ my $INFO = {
 		class => "EPrints::DataObj::History",
 		import => 1,
 		index => 1,
+		datestamp => "timestamp",
 	},
 	saved_search => {
 		sqlname => "saved_search",
@@ -202,12 +210,14 @@ my $INFO = {
 		sqlname => "access",
 		class => "EPrints::DataObj::Access",
 		import => 1,
+		datestamp => "datestamp",
 	},
 	request => {
 		sqlname => "request",	
 		class => "EPrints::DataObj::Request",
 		import => 1,
 		index => 1,
+		datestamp => "datestamp",
 	},
 };
 
@@ -1010,6 +1020,26 @@ sub indexable
 	my( $self ) = @_;
 
 	return $INFO->{$self->{id}}->{index};
+}
+
+######################################################################
+=pod
+
+=item $field = $dataset->get_datestamp_field()
+
+Returns the datestamp field for this dataset which may be used for incremental
+harvesting. Returns undef if no such field is available.
+
+=cut
+######################################################################
+
+sub get_datestamp_field
+{
+	my( $self ) = @_;
+
+	my $datestamp = $INFO->{$self->{id}}->{datestamp};
+
+	return defined $datestamp ? $self->get_field( $datestamp ) : undef;
 }
 
 

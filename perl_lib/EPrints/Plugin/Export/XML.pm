@@ -24,6 +24,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "text/xml";
+	$self->{xmlns} = "http://eprints.org/ep2/data/2.0";
 
 	return $self;
 }
