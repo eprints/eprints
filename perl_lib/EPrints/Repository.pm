@@ -1053,13 +1053,21 @@ sub call
         	print STDERR " (warning while in configuration subroutine $cmd) $msg\n";
 	};
 
-	my @r = eval { return &$fn( @params ) };
+	my( $r, @r );
+	if( wantarray )
+	{
+		@r = eval { return &$fn( @params ) };
+	}
+	else
+	{
+		$r = eval { return &$fn( @params ) };
+	}
 	if( $@ )
 	{
 		print STDERR " (error while in configuration subroutine $cmd) $@\n";
 		exit 1;
 	}
-	return @r;
+	return wantarray ? @r : $r;
 }
 
 ######################################################################

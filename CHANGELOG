@@ -7036,4 +7036,5 @@ PACKAGE: 2.2.99.2
 
 2008-03-11 tdb
  * Modified oai_accesslog to export all datasets
+ * Fixed bug in Repository::call always returning an array
 
