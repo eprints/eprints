@@ -110,7 +110,9 @@ for(1..$total)
 			} ],
 		} ],
 	};
+	$session->get_database->begin;
 	my $eprint = $ds->create_object( $session, $data );
+	$session->get_database->commit;
 	print $eprint->get_id, "\n";
 }
 

@@ -7044,4 +7044,7 @@ PACKAGE: 2.2.99.2
  * Merged r3371 and r3368 - support for http_* config variables
  * More database quoting fixes: added _update and _update_quoted methods to
     Database.pm, don't INSERT-UPDATE for INSERT (for performance)
+ * index_queue can now take multiple field name values
+ * Oracle doesn't support multiple VALUES inserts
+ * Make more use of multi-value insert calls to insert()
 

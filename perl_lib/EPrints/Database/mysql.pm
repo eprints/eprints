@@ -284,16 +284,19 @@ Queues the field of the specified object to be reindexed.
 
 sub index_queue
 {
-	my( $self, $datasetid, $objectid, $fieldname ) = @_; 
+	my( $self, $datasetid, $objectid, @fieldnames ) = @_; 
 
 	my $table = "index_queue";
 
 	# SYSDATE is the date/time at the point of insertion, but is supported
 	# by most databases unlike NOW(), which is only in MySQL
-	$self->insert_quoted( $table, ["field","added"], [
-		$self->quote_value("$datasetid.$objectid.$fieldname"),
-		"SYSDATE()"
-	]);
+	for(@fieldnames)
+	{
+		$self->insert_quoted( $table, ["field","added"], [
+			$self->quote_value("$datasetid.$objectid.$_"),
+			"SYSDATE()"
+		]);
+	}
 }
 
 1; # For use/require success

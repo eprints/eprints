@@ -307,7 +307,10 @@ sub _do_ordervalues
 				$ov;
 		}
 
-		$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
+		if( !$insert )
+		{
+			$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
+		}
 		$session->get_database->insert( $ovt, \@fnames, \@fvals );
 	}
 }

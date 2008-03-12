@@ -239,14 +239,14 @@ sub create_from_data
 	my $keyfield = $dataset->get_key_field;
 	my $kfname = $keyfield->get_name;
 	my $id = $data->{$kfname};
-                                                                                                                  
+
 	my $obj = $dataset->get_object( $session, $id );
-                                                                                                                  
+
 	return undef unless( defined $obj );
 
-	# queue all the fields for indexing.                                                          
+	# queue all the fields for indexing.
 	$obj->queue_all;
-                                                                                                                  
+
 	return $obj;
 }
                                                                                                                   
@@ -1183,17 +1183,20 @@ sub queue_changes
 
 	return unless $self->{dataset}->indexable;
 
+	my @names;
 	foreach my $fieldname ( keys %{$self->{changed}} )
 	{
 		my $field = $self->{dataset}->get_field( $fieldname );
 
 		next unless( $field->get_property( "text_index" ) );
 
-		$self->{session}->get_database->index_queue( 
-			$self->{dataset}->id,
-			$self->get_id,
-			$fieldname );
+		push @names, $fieldname;
 	}	
+
+	$self->{session}->get_database->index_queue( 
+		$self->{dataset}->id,
+		$self->get_id,
+		@names );
 }
 
 ######################################################################
@@ -1212,16 +1215,20 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
+	my @names;
+
 	my @fields = $self->{dataset}->get_fields;
 	foreach my $field ( @fields )
 	{
 		next unless( $field->get_property( "text_index" ) );
 
-		$self->{session}->get_database->index_queue( 
-			$self->{dataset}->id,
-			$self->get_id,
-			$field->get_name );
+		push @names, $field->get_name;
 	}	
+
+	$self->{session}->get_database->index_queue( 
+		$self->{dataset}->id,
+		$self->get_id,
+		@names );
 }
 
 ######################################################################

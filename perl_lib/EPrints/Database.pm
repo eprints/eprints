@@ -290,6 +290,60 @@ sub error
 	return $self->{dbh}->errstr;
 }
 
+######################################################################
+=pod
+
+=item $db->begin
+
+Begin a transaction.
+
+=cut
+######################################################################
+
+sub begin
+{
+	my( $self ) = @_;
+
+	$self->{dbh}->{AutoCommit} = 0;
+}
+
+######################################################################
+=pod
+
+=item $db->commit
+
+Commit the previous begun transaction.
+
+=cut
+######################################################################
+
+sub commit
+{
+	my( $self ) = @_;
+
+	return if $self->{dbh}->{AutoCommit};
+	$self->{dbh}->commit;
+	$self->{dbh}->{AutoCommit} = 1;
+}
+
+######################################################################
+=pod
+
+=item $db->rollback
+
+Rollback the partially completed transaction.
+
+=cut
+######################################################################
+
+sub rollback
+{
+	my( $self ) = @_;
+
+	return if $self->{dbh}->{AutoCommit};
+	$self->{dbh}->rollback;
+	$self->{dbh}->{AutoCommit} = 1;
+}
 
 ######################################################################
 =pod
@@ -1043,22 +1097,23 @@ sub insert
 {
 	my( $self, $table, $columns, @values ) = @_;
 
+	my $rc = 1;
+
 	my $sql = "INSERT INTO ".$self->quote_identifier($table);
 	if( $columns )
 	{
 		$sql .= " (".join(",", map { $self->quote_identifier($_) } @$columns).")";
 	}
 	$sql .= " VALUES ";
-	my $first = 1;
-	foreach my $row (@values)
-	{
-		$sql .= ", " unless $first;
-		$first = 0;
-		$sql .= " (".join(",", map { '?' } @$row).")";
-	}
+	$sql .= "(".join(",", map { '?' } @$columns).")";
 
 	my $sth = $self->prepare($sql);
-	return $sth->execute( map { @$_ } @values );
+	for(@values)
+	{
+		$rc &&= $sth->execute( @$_ );
+	}
+
+	return $rc;
 }
 
 ######################################################################
@@ -1079,21 +1134,22 @@ sub insert_quoted
 {
 	my( $self, $table, $columns, @values ) = @_;
 
+	my $rc = 1;
+
 	my $sql = "INSERT INTO ".$self->quote_identifier($table);
 	if( $columns )
 	{
 		$sql .= " (".join(",", map { $self->quote_identifier($_) } @$columns).")";
 	}
 	$sql .= " VALUES ";
-	my $first = 1;
-	foreach my $row (@values)
+
+	for(@values)
 	{
-		$sql .= ", " unless $first;
-		$first = 0;
-		$sql .= " (".join(",", @$row).")";
+		my $sql = $sql . "(".join(",", @$_).")";
+		$rc &&= $self->do($sql);
 	}
 
-	return $self->do($sql);
+	return $rc;
 }
 
 ######################################################################
@@ -1305,8 +1361,6 @@ sub update
 	my $keyname = $keyfield->get_sql_name();
 	my $keyvalue = $data->{$keyname};
 
-	my $Q_pos = $self->quote_identifier( "pos" );
-
 	my @names;
 	my @values;
 
@@ -1371,34 +1425,26 @@ sub update
 		{
 			next;
 		}
-		my @values;
+
 		my $fieldvalue = $data->{$multifield->get_name()};
 
+		my @names = ($keyname, "pos");
+		push @names, $multifield->get_sql_names;
+
+		my @rows;
+
 		my $position=0;
-		foreach my $pos (0..(scalar @{$fieldvalue}-1) )
+		foreach my $value (@$fieldvalue)
 		{
-			my $value = $fieldvalue->[$pos];
-			push @values, {
-				v => $value,
-				p => $position
-			};
-			$position++;
+			my @values = (
+				$keyvalue,
+				$position++,
+				$multifield->sql_row_from_value( $self->{session}, $value )
+			);
+			push @rows, \@values;
 		}
-					
-		my $fname = $multifield->get_sql_name();
-		foreach my $v ( @values )
-		{
-			my @fnames = ($keyname);
-			my @fvals = ($keyvalue);
-			if( $multifield->get_property( "multiple" ) )
-			{
-				push @fnames, "pos";
-				push @fvals, $v->{p};
-			}
-			push @fnames, $multifield->get_sql_names;
-			push @fvals, $multifield->sql_row_from_value( $self->{session}, $v->{v} );
-			$rv &&= $self->insert( $auxtable, \@fnames, \@fvals );
-		}
+
+		$rv &&= $self->insert( $auxtable, \@names, @rows );
 	}
 
 	if( $insert )
@@ -3702,7 +3748,7 @@ sub valid_login
 ######################################################################
 =pod
 
-=item $db->index_queue( $datasetid, $objectid, $fieldname );
+=item $db->index_queue( $datasetid, $objectid, $fieldname [, $fieldname ] );
 
 Queues the field of the specified object to be reindexed.
 
@@ -3711,16 +3757,26 @@ Queues the field of the specified object to be reindexed.
 
 sub index_queue
 {
-	my( $self, $datasetid, $objectid, $fieldname ) = @_; 
+	my( $self, $datasetid, $objectid, @fieldnames ) = @_; 
+
+	my $rc = 1;
+
+	return $rc unless @fieldnames;
 
 	my $table = "index_queue";
 
 	# SYSDATE is the date/time at the point of insertion, but is supported
 	# by most databases unlike NOW(), which is only in MySQL
-	$self->insert_quoted( $table, ["field","added"], [
-		$self->quote_value("$datasetid.$objectid.$fieldname"),
-		"SYSDATE"
-	]);
+	my $sql = "INSERT INTO ".$self->quote_identifier($table)." (".
+		join(',',map { $self->quote_identifier($_) } qw( field added )).
+		") VALUES (?, SYSDATE)";
+	my $sth = $self->prepare($sql);
+	for(@fieldnames)
+	{
+		$rc &&= $sth->execute( "$datasetid.$objectid.$_" );
+	}
+
+	return $rc;
 }
 
 ######################################################################
