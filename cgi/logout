@@ -31,9 +31,13 @@ if( $session->get_repository->can_call( 'on_logout' ) )
 
 my $ticketid = EPrints::Apache::AnApache::cookie( $session->get_request, "eprints_session" );
 
-my $sql = "DELETE FROM login_tickets WHERE code=".$session->get_database->quote_value($ticketid);
-my $sth = $session->get_database->prepare( $sql );
-$session->get_database->execute( $sth , $sql );
+my $dataset = $session->get_repository->get_dataset( "loginticket" );
+
+$session->get_database->delete_from(
+	$dataset->get_sql_table_name(),
+	["code"],
+	[$ticketid],
+);
 $session->logout;
 
 

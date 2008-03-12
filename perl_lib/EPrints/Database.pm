@@ -930,6 +930,104 @@ sub create_unique_index
 ######################################################################
 =pod
 
+=item  $success = $db->_update( $tablename, $keycols, $keyvals, $columns, @values )
+
+UDATES $tablename where $keycols equals $keyvals.
+
+This method is internal.
+
+=cut
+######################################################################
+
+sub _update
+{
+	my( $self, $table, $keynames, $keyvalues, $columns, @values ) = @_;
+
+	my $rc = 1;
+
+	my $prefix = "UPDATE ".$self->quote_identifier($table)." SET ";
+	my @where;
+	for(my $i = 0; $i < @$keynames; ++$i)
+	{
+		push @where,
+			$self->quote_identifier($keynames->[$i]).
+			"=".
+			$self->quote_value($keyvalues->[$i]);
+	}
+	my $postfix = "WHERE ".join(" AND ", @where);
+
+	my $sql = $prefix;
+	my $first = 1;
+	for(@$columns)
+	{
+		$sql .= ", " unless $first;
+		$first = 0;
+		$sql .= $self->quote_identifier($_)."=?";
+	}
+	$sql .= " $postfix";
+
+	my $sth = $self->prepare($sql);
+
+	for(@values)
+	{
+		$rc &&= $sth->execute(@$_);
+	}
+
+	$sth->finish;
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
+=item  $success = $db->_update_quoted( $tablename, $keycols, $keyvals, $columns, @values )
+
+UDATES $tablename where $keycols equals $keyvals. Won't quote @keyvals or @values before use - use this method with care!
+
+This method is internal.
+
+=cut
+######################################################################
+
+sub _update_quoted
+{
+	my( $self, $table, $keynames, $keyvalues, $columns, @values ) = @_;
+
+	my $rc = 1;
+
+	my $prefix = "UPDATE ".$self->quote_identifier($table)." SET ";
+	my @where;
+	for(my $i = 0; $i < @$keynames; ++$i)
+	{
+		push @where,
+			$self->quote_identifier($keynames->[$i]).
+			"=".
+			$keyvalues->[$i];
+	}
+	my $postfix = "WHERE ".join(" AND ", @where);
+
+	foreach my $row (@values)
+	{
+		my $sql = $prefix;
+		for(my $i = 0; $i < @$columns; ++$i)
+		{
+			$sql .= ", " unless $i == 0;
+			$sql .= $self->quote_identifier($columns->[$i])."=".$row->[$i];
+		}
+		$sql .= " $postfix";
+
+		my $sth = $self->prepare($sql);
+		$rc &&= $self->execute($sth, $sql);
+		$sth->finish;
+	}
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
 =item $success = $db->insert( $table, $columns, @values )
 
 Inserts values into the table $table. If $columns is defined it will be used as
@@ -1058,16 +1156,8 @@ sub add_record
 		return 0;
 	}
 
-	# To save duplication of code, all this function does is insert
-	# a stub entry, then call the update method which does the hard
-	# work.
-
-	my $rv = $self->insert( $table, [$kf_sql], [$id] );
-
-	EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
-
 	# Now add the ACTUAL data:
-	$self->update( $dataset , $data );
+	my $rv = $self->update( $dataset , $data, 1 );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -1194,7 +1284,7 @@ sub quote_identifier
 ######################################################################
 =pod
 
-=item $success = $db->update( $dataset, $data )
+=item $success = $db->update( $dataset, $data, $insert )
 
 Updates a record in the database with the given $data. Obviously the
 value of the primary key must be set.
@@ -1206,24 +1296,21 @@ This also updates the text indexes and the ordering keys.
 
 sub update
 {
-	my( $self, $dataset, $data ) = @_;
+	my( $self, $dataset, $data, $insert ) = @_;
 
 	my $rv = 1;
-	my $sql;
 	my @fields = $dataset->get_fields( 1 );
 
 	my $keyfield = $dataset->get_key_field();
-
-	my $keyvalue = $data->{$keyfield->get_sql_name()};
-
-	# The same WHERE clause will be used a few times, so lets define
-	# it now:
-	my $where =  $self->quote_identifier($keyfield->get_sql_name())."=".$self->quote_value($keyvalue);
+	my $keyname = $keyfield->get_sql_name();
+	my $keyvalue = $data->{$keyname};
 
 	my $Q_pos = $self->quote_identifier( "pos" );
 
+	my @names;
+	my @values;
+
 	my @aux;
-	my %values = ();
 	my $field;
 	foreach $field ( @fields ) 
 	{
@@ -1246,32 +1333,37 @@ sub update
 		my $value = $data->{$field->get_name()};
 		# clearout the freetext search index table for this field.
 
-		@values{$field->get_sql_names} = $field->sql_row_from_value( $self->{session}, $value );
+		push @names, $field->get_sql_names;
+		push @values, $field->sql_row_from_value( $self->{session}, $value );
 	}
 	
-	$sql = "UPDATE ".$self->quote_identifier($dataset->get_sql_table_name())." SET ";
-	my $first=1;
-	foreach( keys %values ) {
-		if( $first )
-		{
-			$first = 0;
-		}
-		else
-		{
-			$sql.= ", ";
-		}
-		$sql.= $self->quote_identifier($_)."=".$self->quote_value( $values{$_} );
+	if( $insert )
+	{
+		$self->insert(
+			$dataset->get_sql_table_name,
+			\@names,
+			\@values,
+		);
 	}
-	$sql.=" WHERE $where";
-	
-	$rv = $rv && $self->do( $sql );
+	else
+	{
+		$rv &&= $self->_update(
+			$dataset->get_sql_table_name,
+			[$keyname],
+			[$keyvalue],
+			\@names,
+			\@values,
+		);
+	}
 
 	# Erase old, and insert new, values into aux-tables.
 	foreach my $multifield ( @aux )
 	{
 		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
-		$sql = "DELETE FROM ".$self->quote_identifier($auxtable)." WHERE $where";
-		$rv = $rv && $self->do( $sql );
+		if( !$insert )
+		{
+			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
+		}
 
 		# skip to next table if there are no values at all for this
 		# one.
@@ -1296,7 +1388,7 @@ sub update
 		my $fname = $multifield->get_sql_name();
 		foreach my $v ( @values )
 		{
-			my @fnames = ($keyfield->get_sql_name());
+			my @fnames = ($keyname);
 			my @fvals = ($keyvalue);
 			if( $multifield->get_property( "multiple" ) )
 			{
@@ -1309,7 +1401,14 @@ sub update
 		}
 	}
 
-	EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data );
+	if( $insert )
+	{
+		EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
+	}
+	else
+	{
+		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data );
+	}
 
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -1335,29 +1434,33 @@ sub remove
 	my $rv=1;
 
 	my $keyfield = $dataset->get_key_field();
-
-	my $where = $self->quote_identifier($keyfield->get_sql_name())."=".$self->quote_value($id);
-
+	my $keyname = $keyfield->get_sql_name();
+	my $keyvalue = $id;
 
 	# Delete from index (no longer used)
 	#$self->_deindex( $dataset, $id );
 
 	# Delete Subtables
 	my @fields = $dataset->get_fields( 1 );
-	my $field;
-	foreach $field ( @fields ) 
+	foreach my $field ( @fields ) 
 	{
 		next unless( $field->get_property( "multiple" ) );
 		# ideally this would actually remove the subobjects
 		next if( $field->is_virtual );
 		my $auxtable = $dataset->get_sql_sub_table_name( $field );
-		my $sql = "DELETE FROM ".$self->quote_identifier($auxtable)." WHERE $where";
-		$rv = $rv && $self->do( $sql );
+		$rv &&= $self->delete_from(
+			$auxtable,
+			[$keyname],
+			[$keyvalue]
+		);
 	}
 
 	# Delete main table
-	my $sql = "DELETE FROM ".$self->quote_identifier($dataset->get_sql_table_name())." WHERE ".$where;
-	$rv = $rv && $self->do( $sql );
+	$rv &&= $self->delete_from(
+		$dataset->get_sql_table_name,
+		[$keyname],
+		[$keyvalue]
+	);
 
 	if( !$rv )
 	{
@@ -1699,7 +1802,12 @@ sub counter_minimum
 
 	my $counter_seq = $counter . "_seq";
 
-	my $curval = $self->counter_next( $counter );
+	my $curval = $self->counter_current( $counter );
+	# If .next() hasn't been called .current() will be undefined/0
+	if( !$curval )
+	{
+		$self->counter_next( $counter );
+	}
 
 	if( $curval < $value )
 	{
@@ -2286,12 +2394,13 @@ sub from_cache
 
 	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
 
-	my $Q_table = $self->quote_identifier($ds->get_sql_table_name);
-	my $Q_lastused = $self->quote_identifier("lastused");
-	my $Q_cachemapid = $self->quote_identifier("cachemapid");
-
-	my $sql = "UPDATE $Q_table SET $Q_lastused = ".time()." WHERE $Q_cachemapid = ".$cacheid;
-	$self->do( $sql );
+	$self->_update(
+		$ds->get_sql_table_name,
+		["cachemapid"],
+		[$cacheid],
+		["lastused"],
+		[time()],
+	);
 
 	$self->drop_old_caches();
 

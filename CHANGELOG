@@ -7042,5 +7042,6 @@ PACKAGE: 2.2.99.2
 2008-03-12 tdb
  * Added datestamp to metafields
  * Merged r3371 and r3368 - support for http_* config variables
-
+ * More database quoting fixes: added _update and _update_quoted methods to
+    Database.pm, don't INSERT-UPDATE for INSERT (for performance)
 

@@ -81,25 +81,31 @@ sub make_confirm_page
 	
 	if( $user->is_set( "newemail" ) )
 	{
-		# check no one else has this email! cjg
-		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET email=newemail, newemail=NULL, pin=NULL where userid=".$userid; 
-		$session->get_database->do( $sql );
-		if( $user->has_priv( "lock-username-to-email" ) )# cjg change to new system
-		{
-			my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET username=email where userid=".$userid; 
-			$session->get_database->do( $sql );
-			# shim the username in the current user object
-			$user->set_value( "username", $user->get_value( "newemail" ) );
-		}
 		$page->appendChild( $session->html_phrase( 
 			"cgi/confirm:set_email",
 			newemail=>$session->make_text( $user->get_value( "newemail" ) ) ) );
+		# check no one else has this email! cjg
+		$user->set_value( "email", $user->get_value( "newemail" ) );
+		$user->set_value( "newemail", undef );
+		$user->set_value( "pin", undef );
+		if( $user->has_priv( "lock-username-to-email" ) )# cjg change to new system
+		{
+			# shim the username in the current user object
+			$user->set_value( "username", $user->get_value( "email" ) );
+		}
+		# write the changes
+		$user->commit();
 	} 
 	else
 	{
 		# Must be password then. Can't see it 'cus it's a "secret".
-		my $sql = "UPDATE ".$user_ds->get_sql_table_name()." SET password=newpassword, newpassword=NULL, pin=NULL where userid=".$userid; 
-		$session->get_database->do( $sql );
+		$session->get_database->_update_quoted(
+			$user_ds->get_sql_table_name,
+			["userid"],
+			[$session->get_database->quote_value($userid)],
+			["password","newpassword","pin"],
+			[$session->get_database->quote_identifier("newpassword"),"NULL","NULL"],
+		);
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
 		$session->login( $user );
 	}
