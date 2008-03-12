@@ -2597,14 +2597,14 @@ sub get_values
 		$sql.= $self->quote_identifier($dataset->get_sql_sub_table_name( $field ))." $M";
 		if( $limit )
 		{
-			$sql.=", ".$dataset->get_sql_table_name()." $L";
+			$sql.=", ".$self->quote_identifier($dataset->get_sql_table_name())." $L";
 			$sql.=" WHERE $L.$Q_eprintid = $M.$Q_eprintid";
 			$sql.=" AND $L.$Q_eprint_status = '$limit'";
 		}
 	} 
 	else 
 	{
-		$sql.= $dataset->get_sql_table_name()." $M";
+		$sql.= $self->quote_identifier($dataset->get_sql_table_name())." $M";
 		if( $limit )
 		{
 			$sql.=" WHERE $M.$Q_eprint_status = '$limit'";
