@@ -51,6 +51,8 @@ sub get_system_field_info
 	( 
 		{ name=>"metafieldid", type=>"text", required=>1, },
 
+		{ name=>"mfdatestamp", type=>"time", required=>1, },
+
 		{ name=>"mfstatus", type=>"set", required=>1,
 			options => [qw( inbox archive deletion )],
 		},
@@ -423,6 +425,8 @@ sub get_defaults
 	}
 
 	$data->{"mfstatus"} = "inbox";
+
+	$data->{"mfdatestamp"} = EPrints::Time::get_iso_timestamp();
 
 	# This is set by DataSet for core and config fields
 	$data->{"providence"} = "user";

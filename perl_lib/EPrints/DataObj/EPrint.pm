@@ -152,7 +152,7 @@ sub get_system_field_info
 		datasetid=>"eprint", can_clone=>0 },
 
 	{ name=>"commentary", type=>"itemref", required=>0,
-		datasetid=>"eprint", can_clone=>0 },
+		datasetid=>"eprint", can_clone=>0, sql_index=>0 },
 
 	{ name=>"replacedby", type=>"itemref", required=>0,
 		datasetid=>"eprint", can_clone=>0 },

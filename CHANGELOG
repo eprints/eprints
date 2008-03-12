@@ -7038,3 +7038,6 @@ PACKAGE: 2.2.99.2
  * Modified oai_accesslog to export all datasets
  * Fixed bug in Repository::call always returning an array
 
+2008-03-12 tdb
+ * Added datestamp to metafields
+

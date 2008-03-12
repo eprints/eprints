@@ -111,6 +111,7 @@ my $INFO = {
 	metafield => {
 		sqlname => "mf", # identifiers get too long
 		class => "EPrints::DataObj::MetaField",
+		datestamp => "mfdatestamp",
 	},
 	cachemap => {
 		sqlname => "cachemap",
