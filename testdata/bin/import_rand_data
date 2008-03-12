@@ -19,7 +19,7 @@ use strict;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Text::Lorem::More qw( lorem );
+use Text::Lorem;
 
 my $version = 0;
 my $verbose = 0;
@@ -29,7 +29,7 @@ my $man = 0;
 my $userid = 1;
 
 GetOptions( 
-	'user' => \$userid,
+	'user=s' => \$userid,
 	'help|?' => \$help,
 	'man' => \$man,
 	'version' => \$version,
@@ -49,6 +49,13 @@ $noise = 1+$verbose if( $verbose );
 
 srand(1); # Reproduce the exact same set of data
 
+our $lorem = Text::Lorem->new();
+sub Text::Lorem::name {
+	my( $lorem ) = @_;
+
+	my $word = $lorem->words(1);
+	return "\u$word";
+};
 
 
 # nb. This syntax is subject to change in future versions.
@@ -66,20 +73,13 @@ $total ||= 1000;
 # Basic data
 our @TYPES = @{$session->get_repository->{types}->{eprint}};
 our @SUBJECTS = @{read_subjects( $session )};
-our $PDFDATA = "";
+our @PUBLICATIONS;
+for(1..100)
+{
+	push @PUBLICATIONS, $lorem->sentences(1);
+}
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
-
-{
-use bytes;
-open(my $fh, "<", "$datapath/paper.pdf") or die "$!";
-binmode($fh);
-while(read($fh,$PDFDATA,1024,length($PDFDATA)))
-{
-}
-close($fh);
-$PDFDATA = MIME::Base64::encode($PDFDATA);
-}
 
 my $ds = $session->get_archive()->get_dataset( $datasetid );
 
@@ -96,6 +96,8 @@ for(1..$total)
 		full_text_status => "public",
 		abstract => rand_abstract(),
 		date => rand_date(),
+		refereed => "TRUE",
+		publication => rand_publication(),
 		documents => [ {
 			format => "application/pdf",
 			language => "en",
@@ -124,8 +126,8 @@ sub rand_names
 	{
 		my $name = {
 			name => {
-				family => lorem->name,
-				given => lorem->name,
+				family => $lorem->name,
+				given => $lorem->name,
 			},
 		};
 		push @names, $name;
@@ -151,14 +153,14 @@ sub rand_subjects
 
 sub rand_title
 {
-	my $title = lorem->sentence;
+	my $title = $lorem->sentences( 1 );
 	$title =~ s/\.$//;
 	return $title;
 }
 
 sub rand_abstract
 {
-	return lorem->paragraphs(int(rand(3))+2);
+	return $lorem->paragraphs(int(rand(3))+2);
 }
 
 sub rand_date
@@ -183,4 +185,9 @@ sub read_subjects
 	my $ds = $session->get_repository->get_dataset( "subject" );
 
 	return $ds->get_item_ids( $session );
+}
+
+sub rand_publication
+{
+	return $PUBLICATIONS[int(rand(@PUBLICATIONS))];
 }
