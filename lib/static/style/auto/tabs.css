@@ -10,7 +10,7 @@ td.ep_tab {
 	background-color: #e0e0ff;
 	text-align: center;
 	border: solid #d8dbef 1px;
-	background-image: url(/style/images/gray_bar.png);
+	background-image: url(images/gray_bar.png);
 }
 td.ep_tab a {
 	display: block;
@@ -44,7 +44,7 @@ td.ep_tab_spacer {
 	border-right: solid #d8dbef 1px;
 	border-bottom: solid #d8dbef 1px;
 	border-left: solid #d8dbef 1px;
-	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
 	padding: 12px;
 	clear: both;
 }

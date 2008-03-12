@@ -823,14 +823,14 @@ sub get_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "perl_url" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
 }
 
 sub get_control_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "perl_url" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
 }
 	
 
@@ -933,7 +933,7 @@ sub send_out_editor_alert
 
 	if( $list->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
 	{
-		my $url = URI->new($self->{session}->get_repository->get_conf( "perl_url" )."/users/home");
+		my $url = URI->new($self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home");
 		$url->query_form(
 			screen => "User::Edit",
 			userid => $self->get_id

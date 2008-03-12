@@ -82,12 +82,7 @@ sub paginate_list
 	}
 	
 	# URL for images
-	my $imagesurl = $session->get_repository->get_conf( "base_url" )."/style/images";
-	my $esec = $session->get_request->dir_config( "EPrints_Secure" );
-	if( defined $esec && $esec eq "yes" )
-	{
-		$imagesurl = $session->get_repository->get_conf( "securepath" )."/style/images";
-	}
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
 
 	# Container for list
 	my $table = $session->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, class=>"ep_columns" );

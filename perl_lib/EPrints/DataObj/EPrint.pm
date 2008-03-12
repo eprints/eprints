@@ -1345,7 +1345,7 @@ sub url_stem
 	my $repository = $self->{session}->get_repository;
 
 	my $url;
-	$url = $repository->get_conf( "base_url" );
+	$url = $repository->get_conf( "http_url" );
 	$url .= '/';
 	$url .= $self->get_value( "eprintid" )+0;
 	$url .= '/';
@@ -1611,7 +1611,7 @@ sub get_control_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "perl_url" ).
+	return $self->{session}->get_repository->get_conf( "http_cgiurl" ).
 		"/users/home?screen=EPrint::View&eprintid=".
 		$self->get_value( "eprintid" )
 }

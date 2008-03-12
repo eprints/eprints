@@ -181,6 +181,8 @@ sub new
 
 	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Session.\n"; }
 
+	$self->_add_http_paths;
+
 	if( $self->{offline} )
 	{
 		# Set a script to use the default language unless it 
@@ -240,6 +242,41 @@ sub new
 	$self->{repository}->call( "session_init", $self, $self->{offline} );
 
 	return( $self );
+}
+
+# add the relative paths + http_* config if not set already by cfg.d
+sub _add_http_paths
+{
+	my( $self ) = @_;
+
+	my $config = $self->{repository}->{config};
+
+	$config->{"rel_path"} = $self->get_url(
+		path => "static",
+	);
+	$config->{"rel_cgipath"} = $self->get_url(
+		path => "cgi",
+	);
+	$config->{"http_url"} ||= $self->get_url(
+		scheme => "http",
+		host => 1,
+		path => "static",
+	);
+	$config->{"http_cgiurl"} ||= $self->get_url(
+		scheme => "http",
+		host => 1,
+		path => "cgi",
+	);
+	$config->{"https_url"} ||= $self->get_url(
+		scheme => "https",
+		host => 1,
+		path => "static",
+	);
+	$config->{"https_cgiurl"} ||= $self->get_url(
+		scheme => "https",
+		host => 1,
+		path => "cgi",
+	);
 }
 
 ######################################################################
@@ -670,6 +707,33 @@ sub get_repository
 	return $self->{repository};
 }
 
+######################################################################
+=pod
+
+=item $url = $session->get_url( [ %OPTS ] )
+
+Utility method to get various URLs. See L<EPrints::URL>. With no arguments returns the same as get_uri().
+
+	# Return the current static path
+	$session->get_url( path => "static" );
+	# Return the current cgi path
+	$session->get_url( path => "cgi" );
+	# Return a full URL to the current cgi path
+	$session->get_url( host => 1, path => "cgi" );
+	# Return a full URL to the static path under HTTP
+	$session->get_url( scheme => "http", host => 1, path => "static" );
+
+=cut
+######################################################################
+
+sub get_url
+{
+	my( $self, %opts ) = @_;
+
+	my $url = EPrints::URL->new( session => $self );
+
+	return $url->get( %opts );
+}
 
 ######################################################################
 =pod
@@ -728,7 +792,6 @@ sub get_full_url
 }
 
 
-
 ######################################################################
 =pod
 
@@ -763,9 +826,28 @@ sub get_online
 {
 	my( $self ) = @_;
 	
-	return( $self->{online} );
+	return( !$self->{offline} );
 }
 
+######################################################################
+=pod
+
+=item $secure = $session->get_secure
+
+Returns true if we're using HTTPS/SSL (checks get_online first).
+
+=cut
+######################################################################
+
+sub get_secure
+{
+	my( $self ) = @_;
+
+	return $self->get_online && $ENV{"HTTPS"};
+# There's also this variable defined by EPrints, but the HTTPS environment
+# variable is the official way to know if we're running secure.
+#	my $esec = $self->get_request->dir_config( "EPrints_Secure" );
+}
 
 
 
@@ -1196,7 +1278,7 @@ sub render_toolbar
 
 	my @core = $screen->list_items( "key_tools" );
 	my @other = $screen->list_items( "other_tools" );
-	my $url = $self->get_repository->get_conf( "perl_url" )."/users/home";
+	my $url = $self->get_repository->get_conf( "http_cgiurl" )."/users/home";
 
 	my $first = 1;
 	foreach my $tool ( @core )
@@ -2005,12 +2087,7 @@ sub render_input_form
 	$form =	$self->render_form( "post", $p{dest} );
 	if( defined $p{default_action} && $self->client() ne "LYNX" )
 	{
-		my $imagesurl = $self->get_repository->get_conf( "base_url" )."/images";
-		my $esec = $self->get_request->dir_config( "EPrints_Secure" );
-		if( defined $esec && $esec eq "yes" )
-		{
-			$imagesurl = $self->get_repository->get_conf( "securepath" )."/images";
-		}
+		my $imagesurl = $self->get_repository->get_conf( "rel_path" )."/images";
 		# This button will be the first on the page, so
 		# if a user hits return and the browser auto-
 		# submits then it will be this image button, not
@@ -2186,7 +2263,8 @@ sub render_message
 	my $tr = $self->make_element( "tr" );
 	$table->appendChild( $tr );
 	my $td1 = $self->make_element( "td" );
-	$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
+	my $imagesurl = $self->get_repository->get_conf( "rel_path" );
+	$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
 	$tr->appendChild( $td1 );
 	my $td2 = $self->make_element( "td" );
 	$tr->appendChild( $td2 );
@@ -2539,14 +2617,14 @@ sub prepare_page
 
 	if( !defined $options{template} )
 	{
-		my $secure = 0;
-		unless( $self->{offline} )
+		if( $self->get_secure )
 		{
-			my $esec = $self->{request}->dir_config( "EPrints_Secure" );
-			$secure = (defined $esec && $esec eq "yes" );
-		}	
-		$options{template} = "default";
-		if( $secure ) { $options{template} = 'secure'; }
+			$options{template_id} = "secure";
+		}
+		else
+		{
+			$options{template_id} = "default";
+		}
 	}
 
 	my $parts = $self->get_repository->get_template_parts( 

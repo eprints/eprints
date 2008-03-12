@@ -335,6 +335,8 @@ sub render_content
 	my $panel = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels" );
 	$f->appendChild( $panel );
 
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
+
 	# sort by doc id?	
 	foreach my $doc ( @eprint_docs )
 	{	
@@ -389,7 +391,7 @@ sub render_content
 		$s_options->appendChild( $session->make_text( " " ) );
 		$s_options->appendChild( 
 			$session->make_element( "img",
-				src=>"/style/images/plus.png",
+				src=>"$imagesurl/style/images/plus.png",
 				) );
 		$opts_toggle->appendChild( $s_options );
 
@@ -398,7 +400,7 @@ sub render_content
 		$h_options->appendChild( $session->make_text( " " ) );
 		$h_options->appendChild( 
 			$session->make_element( "img",
-				src=>"/style/images/minus.png",
+				src=>"$imagesurl/style/images/minus.png",
 				) );
 		$opts_toggle->appendChild( $h_options );
 
@@ -818,6 +820,7 @@ sub _render_filelist
 		return $table;
 	}
 
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
 
 	my $i = 0;
 	foreach my $filename ( sort keys %files )
@@ -843,7 +846,7 @@ sub _render_filelist
 		my $del_btn_text = $session->html_phrase( "lib/submissionform:delete" );
 		my $del_btn = $session->make_element( "input", 
 			type => "image", 
-			src => "/style/images/delete.png",
+			src => "$imagesurl/style/images/delete.png",
 			name => "_internal_".$doc_prefix."_delete_$i",
 			onclick => "EPJS_blur(event); return confirm( '".$self->phrase( "delete_file_confirm", filename => $filename )."' );",
 			value => $self->phrase( "delete_file" ) );

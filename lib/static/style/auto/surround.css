@@ -9,7 +9,7 @@
 	margin-top: 10px;
 }
 .ep_sr_component .ep_sr_title_bar {
-	background-image: url(/style/images/toolbox_title.png);
+	background-image: url(images/toolbox_title.png);
 	padding: 2px 6px 2px 6px; 
 	border-left: solid 1px #d8dbef;
 	border-top: solid 1px #d8dbef;
@@ -25,7 +25,7 @@
 }
 .ep_sr_component .ep_sr_content {
 	clear: both;
-	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
 	border: solid 1px #d8dbef;
 	padding: 6px;
 }
@@ -33,7 +33,7 @@
 /* collapse bar */
 
 .ep_sr_collapse_bar {
-	background-image: url(/style/images/toolbox_title.png);
+	background-image: url(images/toolbox_title.png);
 	padding: 2px 6px 2px 6px; 
 	border: solid 1px #d8dbef;
 	font-weight: bold;

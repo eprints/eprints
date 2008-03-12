@@ -707,7 +707,7 @@ sub render_value_no_multiple
 	}
 
 	my $url = $session->get_repository->get_conf(
-			"base_url" );
+			"http_url" );
 	my $views = $session->get_repository->get_conf( "browse_views" );
 	my $linkview;
 	foreach my $view ( @{$views} )
@@ -1245,12 +1245,7 @@ sub get_input_elements
 	}
 
 
-	my $imagesurl = $session->get_repository->get_conf( "base_url" )."/style/images";
-	my $esec = $session->get_request->dir_config( "EPrints_Secure" );
-	if( defined $esec && $esec eq "yes" )
-	{
-		$imagesurl = $session->get_repository->get_conf( "securepath" )."/style/images";
-	}
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
 	
 	my $rows = [];
 	for( my $i=1 ; $i<=$boxcount ; ++$i )

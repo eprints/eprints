@@ -152,6 +152,8 @@ sub new
 	$self->{id} = $id;
 	$self->{xmldoc} = EPrints::XML::make_document();
 
+	$self->_add_http_paths;
+
 	# If loading any of the XML config files then 
 	# abort loading the config for this repository.
 	unless( $noxml )
@@ -243,6 +245,28 @@ END
 	}
 }
 
+sub _add_http_paths
+{
+	my( $self ) = @_;
+
+	my $config = $self->{config};
+
+	# Backwards-compatibility: http is fairly simple, https may go wrong
+	if( !$config->{"http_root"} )
+	{
+		my $u = URI->new( $config->{"base_url"} );
+		$config->{"http_root"} = $u->path;
+		$u = URI->new( $config->{"perl_url"} );
+		$config->{"http_cgiroot"} = $u->path;
+		if( $config->{"securehost"} )
+		{
+			$config->{"secureport"} ||= 443;
+			$config->{"https_root"} ||= $config->{"securepath"};
+			$config->{"https_cgiroot"} ||= $config->{"https_root"} . $config->{"http_cgiroot"};
+		}
+	}
+
+}
  
 ######################################################################
 #=pod

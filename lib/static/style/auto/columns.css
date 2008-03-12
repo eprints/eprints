@@ -10,7 +10,7 @@ td.ep_columns_cell {
 	border-bottom: 1px solid #ccc;
 }
 th.ep_columns_title {
-	background: url(/style/images/gray_bar.png) repeat-x;
+	background: url(images/gray_bar.png) repeat-x;
 	font-weight: normal;
 	border-top: solid 1px #888;	
 	border-bottom: solid 1px #888;	

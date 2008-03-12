@@ -288,8 +288,8 @@ EPrints Modules
     <epp:phrase id="lib/session:error_title">Error</epp:phrase>
     <epp:phrase id="lib/session:no_login">You are somehow accessing a page which requires you to be logged in, without actually being logged in. This probably indicates a server misconfiguration.</epp:phrase>
     <epp:phrase id="lib/session:no_priv">You do not have the required privilege to use this function.</epp:phrase>
-    <epp:phrase id="lib/session:show_help"><epc:pin name="link"><img alt="+" title="Show help" src="/style/images/help.gif" border="0"/></epc:pin></epp:phrase>
-    <epp:phrase id="lib/session:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="lib/session:show_help"><epc:pin name="link"><img alt="+" title="Show help" src="{$config{rel_path}}/style/images/help.gif" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="lib/session:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="{$config{rel_path}}/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
 	
 
 <!-- Subject -->
@@ -638,7 +638,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/login:bind">yes (more secure)</epp:phrase>
     <epp:phrase id="cgi/login:dont_bind">no (more convenient)</epp:phrase>
     <epp:phrase id="cgi/login:failed">Incorrect username or password.</epp:phrase>
-    <epp:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <epc:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="{$config{perl_url}}/users/logout">Logout</a> first.</p></epp:phrase>
+    <epp:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <epc:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="{$config{http_url}}/users/logout">Logout</a> first.</p></epp:phrase>
     <epp:phrase id="cgi/login:title">Login</epp:phrase>
     <epp:phrase id="cgi/login:message">Login successful.</epp:phrase>
     <epp:phrase id="cgi/login:link_text"><p>You may now view <epc:pin name="link">your requested document</epc:pin>.</p></epp:phrase>
@@ -1339,7 +1339,7 @@ Titles and Help for the System Fields
 
 <!-- export -->
 
-    <epp:phrase id="sys:ep_form_required"><img src="/style/images/required.png" border="0" class="ep_required" alt="Required"/>&nbsp;<epc:pin name="label"/></epp:phrase>
+    <epp:phrase id="sys:ep_form_required"><img src="{$config{rel_path}}/style/images/required.png" border="0" class="ep_required" alt="Required"/>&nbsp;<epc:pin name="label"/></epp:phrase>
 
 
 
@@ -1395,8 +1395,8 @@ Titles and Help for the System Fields
 
 	<!-- Surround -->
 
-    <epp:phrase id="Plugin/InputForm/Surround/Default:show_help"><epc:pin name="link"><img alt="+" title="Show help" src="/style/images/help.gif" border="0"/></epc:pin></epp:phrase>
-    <epp:phrase id="Plugin/InputForm/Surround/Default:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="Plugin/InputForm/Surround/Default:show_help"><epc:pin name="link"><img alt="+" title="Show help" src="{$config{rel_path}}/style/images/help.gif" border="0"/></epc:pin></epp:phrase>
+    <epp:phrase id="Plugin/InputForm/Surround/Default:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="{$config{rel_path}}/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
 	
 	<!-- Import Plugins -->
 

@@ -9,7 +9,7 @@
 	margin: auto;
 }
 .ep_blister_join {
-	background-image: url(/style/images/blister_arrow.png);
+	background-image: url(images/blister_arrow.png);
 	background-repeat: no-repeat;
 	background-position: center center;
 	width: 20px;
@@ -18,12 +18,12 @@
 	padding: 3px;
 	text-align: center;
 	border: solid 1px #cccccc;
-	background-image: url(/style/images/gray_bar.png);
+	background-image: url(images/gray_bar.png);
 }
 .ep_blister_node_selected {
 	padding: 3px;
 	text-align: center;
 	border: solid 1px #204f76;
-	background-image: url(/style/images/blue_bar.png);
+	background-image: url(images/blue_bar.png);
 	color: #ffffff;
 }

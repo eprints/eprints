@@ -43,11 +43,12 @@ if( defined $fn )
 	$newurl = &{$fn}( $session, $url );
 }
 
+my $urlpath = $session->get_repository->get_conf( "rel_path" );
 if( defined $newurl )
 {
 	$session->redirect( $newurl );
 }
-elsif( $url =~ m#^/view/# )
+elsif( $url =~ m#^$urlpath/view/# )
 {
 	&noview_404( $session );
 }

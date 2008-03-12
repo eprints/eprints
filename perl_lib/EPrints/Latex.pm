@@ -135,7 +135,7 @@ sub render_string
 				$param =~ s/\\?\s/~/g;     
 
 				$url = $session->get_repository->get_conf( 
-        				"base_url" )."/cgi/mimetex.cgi?".$param;
+        				"http_cgiurl" )."/mimetex.cgi?".$param;
 			}
 			else
 			{
@@ -148,7 +148,7 @@ sub render_string
 				$param =~ s/^\$(.*)\$$/$1/; 
 	
 				$url = $session->get_repository->get_conf( 
-					"perl_url" )."/latex2png?latex=".$param;
+					"http_cgiurl" )."/latex2png?latex=".$param;
 			}
 
 			my $img = $session->make_element( 

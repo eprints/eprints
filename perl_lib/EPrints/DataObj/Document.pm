@@ -1570,7 +1570,7 @@ sub icon_url
 	my $type = $self->get_value( "format" );
 	$type =~ s/\//_/g;
 
-	return $self->{session}->get_repository->get_conf( "base_url" ).
+	return $self->{session}->get_repository->get_conf( "http_url" ).
 			"/style/images/fileicons/$type.png";
 }
 

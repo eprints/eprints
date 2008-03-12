@@ -391,7 +391,7 @@ sub send_out_alert
 			$last_month."-" );
 	}
 
-	my $url = $self->{session}->get_repository->get_conf( "perl_url" ).
+	my $url = $self->{session}->get_repository->get_conf( "http_cgiurl" ).
 		"/users/home?screenid=SavedSearh::View";
 	my $freqphrase = $self->{session}->html_phrase(
 		"lib/saved_search:".$freq );
@@ -580,7 +580,7 @@ sub get_url
 
 	return undef if( $self->get_value("public") ne "TRUE" );
 
-	return $self->{session}->get_repository->get_conf( "perl_url" )."/saved_search?savedsearchid=".$self->get_id;
+	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/saved_search?savedsearchid=".$self->get_id;
 }
 
 =pod

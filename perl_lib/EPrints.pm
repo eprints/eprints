@@ -148,6 +148,7 @@ use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
 use EPrints::Session;
 use EPrints::Script;
+use EPrints::URL;
 use EPrints::Paracite;
 use EPrints::Update::Static;
 use EPrints::Update::Views;

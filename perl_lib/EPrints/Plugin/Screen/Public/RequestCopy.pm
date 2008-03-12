@@ -156,7 +156,7 @@ sub action_request
 		# Contact is registered user and EPrints holds requested document
 		# Send email to contact with accept/reject links
 
-		my $url =  $session->get_repository->get_conf( "perl_url" ) .
+		my $url =  $session->get_repository->get_conf( "http_cgiurl" ) .
 			"/users/home?screen=Request::Respond&requestid=" . $request->get_id;
 
 		$mail->appendChild( $session->html_phrase( "request/request_email:links",

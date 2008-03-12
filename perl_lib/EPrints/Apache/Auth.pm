@@ -126,9 +126,17 @@ sub auth_cookie
 
 	if( !defined $user ) 
 	{
-		my $target_url = $r->uri;
-		$target_url =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
-		my $login_url = $session->get_repository->get_conf( "perl_url" )."/users/login?target=$target_url";
+		my $login_url = $session->get_url(
+			path => "cgi",
+		) . "/users/login";
+		my $target_url = $session->get_url(
+			host => 1,
+			path => "auto",
+		);
+		$login_url = URI->new( $login_url );
+		$login_url->query_form(
+			target => $target_url
+		);
 		if( $session->get_repository->can_call( 'get_login_url' ) )
 		{
 			$login_url = $session->get_repository->call( 'get_login_url', $session, $target_url );
@@ -250,20 +258,9 @@ sub secure_doc_from_url
 	my $repository = $session->{repository};
 	my $uri = $r->uri;
 
-	my $secpath = $repository->get_conf( "secure_urlpath" );
-	my $esec = $r->dir_config( "EPrints_Secure" );
-	my $https = (defined $esec && $esec eq "yes" );
-	my $urlpath;
-	if( $https ) 
-	{ 
-		$urlpath = $repository->get_conf( "securepath" );
-	}
-	else
-	{ 
-		$urlpath = $repository->get_conf( "urlpath" );
-	}
+	my $urlpath = $repository->get_conf( "rel_path" );
 
-	$uri =~ s/^$urlpath$secpath//;
+	$uri =~ s/^$urlpath//;
 
 	my $eprintid;
 	my $pos;

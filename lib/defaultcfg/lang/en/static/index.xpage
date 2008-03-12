@@ -5,7 +5,7 @@
 <xpage:body>
 
 <div class="ep_msg_message"><div class="ep_msg_message_content"><table><tbody><tr><td>
-<img alt="Message" src="/style/images/message.png" /></td><td>
+<img alt="Message" src="${config{rel_path}}/style/images/message.png" /></td><td>
 Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/?keyword=NewRepository&amp;version={$config{version_id}}">Click here to start customising this repository</a>.
 </td></tr></tbody></table></div></div>
 

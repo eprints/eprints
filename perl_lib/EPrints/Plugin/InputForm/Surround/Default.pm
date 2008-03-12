@@ -107,6 +107,7 @@ sub render
 		$surround->appendChild( $problem_div );
 	}
 
+	my $imagesurl = $self->{session}->get_repository->get_conf( "rel_path" );
 
 	$content_inner->appendChild( $component->render_content( $self ) );
 
@@ -120,14 +121,14 @@ sub render
 		my $col_link =  $self->{session}->make_element( "a", class=>"ep_sr_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
 
 		$col_div->appendChild( $col_link );
-		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"/style/images/plus.png", border=>0 ) );
+		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
 		$col_link->appendChild( $self->{session}->make_text( " " ) );
 		$col_link->appendChild( $component->render_title( $self ) );
 		$surround->appendChild( $col_div );
 
 		# alternate title to allow it to re-hide
 		my $recol_link =  $self->{session}->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle ep_sr_collapse_link" );
-		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"/style/images/minus.png", border=>0 ) );
+		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
 		$recol_link->appendChild( $self->{session}->make_text( " " ) );
 		#nb. clone the title as we've already used it above.
 		$recol_link->appendChild( $self->render_title( $component ) );

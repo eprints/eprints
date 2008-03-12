@@ -24,7 +24,7 @@ my $session = EPrints::Session->new();
 
 EPrints::ScreenProcessor->process( 
 	session=>$session, 
-	url=>$session->get_repository->get_conf( "perl_url" )."/users/home" );
+	url=>$session->get_repository->get_conf( "rel_cgipath" )."/users/home" );
 
 $session->terminate;
 

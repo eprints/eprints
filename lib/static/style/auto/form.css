@@ -21,7 +21,7 @@ select, input.ep_form_text, textarea {
 .ep_form_button_bar {
 	text-align: center;
 	padding: 4px;
-	background: #e7e9f5 url(/style/images/toolbox.png) repeat-x;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
 	clear: both;
 	border: solid 1px #d8dbef;
 	margin-top: 10px;
@@ -33,7 +33,7 @@ select, input.ep_form_text, textarea {
 	border-width: 2px;
 	border-style: solid;
 	border-color: #e0e0ff #808080 #808080 #e0e0ff;
-	background-image: url(/style/images/blue_bar.png);
+	background-image: url(images/blue_bar.png);
 	background-color: #1f4f76;
 	color: white;
 	font-weight: normal;

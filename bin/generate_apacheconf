@@ -361,15 +361,19 @@ my $host = $repository->get_conf( "host" );
 my $port = $repository->get_conf( "port" );
 my $hostport = $host;
 if( $port != 80 ) { $hostport.=":$port"; }
-my $urlpath = $repository->get_conf( "urlpath" );
 my $userhome = $repository->get_conf( "userhome" );
 my $securehost = $repository->get_conf( "securehost" );
-my $securepath = '';
+my $secureport = $repository->get_conf( "secureport" ) || 443;
+my $securehostport = $securehost;
 my $archiveroot = $repository->get_conf( "archiveroot" );
-if( EPrints::Utils::is_set( $securehost ) )
+if( EPrints::Utils::is_set( $securehost ) && $secureport != 443 )
 {
-	$securepath = $repository->get_conf( "securepath" );
+		$securehostport .= ":$secureport";
 }
+my $http_root = $repository->get_conf( "http_root" );
+my $http_cgiroot = $repository->get_conf( "http_cgiroot" );
+my $https_root = $repository->get_conf( "https_root" );
+my $https_cgiroot = $repository->get_conf( "https_cgiroot" );
 
 
 print "Creating $sysfile\n" if( $noise >= 2 );
@@ -431,19 +435,19 @@ if( $repository->get_conf( "use_mimetex" ) )
 		EPrints::abort( "use_mimetex is set to true but\n\$EPrints::SystemSettings::conf->{executables}->{mimetex}\nis set to a non existant file." );
 	}
 	     
-	print CONF '  ScriptAlias '.$urlpath.'/cgi/mimetex.cgi '.$EPrints::SystemSettings::conf->{executables}->{mimetex}."\n\n";
+	print CONF '  ScriptAlias '.$http_root.'/cgi/mimetex.cgi '.$EPrints::SystemSettings::conf->{executables}->{mimetex}."\n\n";
 }
 
 print CONF <<END;
-  Alias $urlpath/thumbnails/ $archiveroot/thumbnails/
-  Alias $urlpath/cgi $cgidir
-  Alias $urlpath/ $htdocs_path/
+  Alias $http_root/thumbnails/ $archiveroot/thumbnails/
+  Alias $http_cgiroot $cgidir
+  Alias $http_root/ $htdocs_path/
 
-  <Location "$urlpath">
-    ErrorDocument 401 $urlpath/error401.html
-    ErrorDocument 404 $urlpath/cgi/handle_404
+  <Location "$http_root">
+    ErrorDocument 401 $http_root/error401.html
+    ErrorDocument 404 $http_cgiroot/handle_404
     PerlSetVar EPrints_ArchiveID $repository_id
-    Redirect /perl/ http://$hostport/cgi/
+    Redirect $http_root/perl/ http://$hostport$http_cgiroot
 
     PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
     PerlSetVar EPrints_Dir_Documents $documents_path
@@ -578,7 +582,7 @@ my $secureconfig = <<END;
 
 END
 
-unless( EPrints::Utils::is_set( $securehost ) )
+unless( EPrints::Utils::is_set( $securehostport ) )
 {
 	print CONF <<END;
 $secureconfig
@@ -592,16 +596,17 @@ END
 
 # This site has an HTTPS component. Redirect sceure stuff there...
 
-my $securebase = "https://".$securehost.$securepath;
+my $https_cgi = "https://".$securehostport.$https_cgiroot;
+my $https = "https://".$securehostport.$https_root;
 
 print CONF <<END;
 
-  Redirect /cgi/users/ $securebase/cgi/users/
-  Redirect /change_user $securebase/change_user
-  Redirect /cgi/confirm $securebase/cgi/accounts/confirm
-  Redirect /cgi/register $securebase/cgi/accounts/register
-  Redirect /cgi/reset_password $securebase/cgi/accounts/reset_password
-  Redirect /cgi/set_password $securebase/cgi/accounts/set_password
+  Redirect $http_cgiroot/users/ $https_cgi/users/
+  Redirect $http_root/change_user $https/change_user
+  Redirect $http_cgiroot/confirm $https_cgi/accounts/confirm
+  Redirect $http_cgiroot/register $https_cgi/accounts/register
+  Redirect $http_cgiroot/reset_password $https_cgi/accounts/reset_password
+  Redirect $http_cgiroot/set_password $https_cgi/accounts/set_password
 
 </VirtualHost>
 
@@ -629,13 +634,15 @@ print CONF <<END;
 
 $secureconfig
 
-  <Location "$securepath">
+  <Location "$https_root">
     PerlSetVar EPrints_ArchiveID $repository_id
     PerlSetVar EPrints_Secure yes
 
     PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
     PerlSetVar EPrints_Dir_Documents $documents_path
 
+    Order allow,deny 
+    Allow from all
 END
 # EPrints log handler (this gets called for all requests, not just
 # mod_perl)
@@ -652,6 +659,20 @@ END
 }
 print CONF <<END;
   </Location>
+  <Directory "$htdocs_path">
+    Order deny,allow
+    Allow from all
+    AddType 'text/html; charset=UTF-8' .html
+  </Directory>
+
+  <Directory "$documents_path">
+    AuthName "Documents Area"
+    AuthType "Basic"
+    PerlAuthenHandler EPrints::Apache::Auth::authen_doc
+    PerlAuthzHandler EPrints::Apache::Auth::authz_doc
+    require valid-user
+  </Directory>
+
   <Directory "$cgidir">
     SetHandler perl-script
     PerlHandler $registry_module
@@ -659,18 +680,44 @@ print CONF <<END;
     Options ExecCGI FollowSymLinks
   </Directory>
 
+END
+if( $repository->get_conf( "dynamic_template","enable" ) )
+{
+	foreach my $langid ( @langs )
+	{
+		print CONF <<END;
+  <Directory "$htdocs_path">
+    SetHandler perl-script
+    PerlResponseHandler EPrints::Apache::Template::handler
+  </Directory>
+
+END
+	}
+}
+
+print CONF <<END;
   PerlTransHandler EPrints::Apache::Rewrite
 
-  Alias $securepath/cgi/accounts/confirm $cgidir/confirm
-  Alias $securepath/cgi/accounts/register $cgidir/register
-  Alias $securepath/cgi/accounts/reset_password $cgidir/reset_password
-  Alias $securepath/cgi/accounts/set_password $cgidir/set_password
-  Alias $securepath/cgi/users/ $cgidir/users/
-  Alias $securepath/ $htdocs_path/
+  Alias $https_cgiroot/accounts/confirm $cgidir/confirm
+  Alias $https_cgiroot/accounts/register $cgidir/register
+  Alias $https_cgiroot/accounts/reset_password $cgidir/reset_password
+  Alias $https_cgiroot/accounts/set_password $cgidir/set_password
+  Alias $https_cgiroot/users/ $cgidir/users/
+  Alias $https_root/ $htdocs_path/
 
 ##### END OF CONFIG FOR $id
 END
 close CONF;
+
+my $cfg_path = $repository->get_conf( "config_path" );
+my $secure_template = "$cfg_path/lang/en/templates/secure.xml";
+my $default_template = "$cfg_path/lang/en/templates/default.xml";
+
+if( !-e $secure_template and -e $default_template )
+{
+	EPrints::Utils::copy( $default_template, $secure_template );
+	print "Copied default template to secure template, you will probably need to edit the secure template:\n$secure_template\n";
+}
 
 }
 

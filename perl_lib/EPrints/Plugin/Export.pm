@@ -184,7 +184,7 @@ sub dataobj_export_url
 	}
 	my $format = $1;
 
-	my $url = $plugin->{session}->get_repository->get_conf( "perl_url" );
+	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
 	$url .= "/users" if $staff;
 	$url .= "/export/".$dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;

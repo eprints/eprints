@@ -89,7 +89,7 @@ sub handler
 	my $uri = $r->uri;	
 	$uri =~ s#/([0-9]+)/([0-9][0-9])/([0-9][0-9])/([0-9][0-9])/#/$1$2$3$4/#;
 	my $repository = EPrints::Repository->new_from_request( $r );
-	my $baseurl = $repository->get_conf( "base_url" ).$uri;
+	my $baseurl = $repository->get_conf( "http_url" ).$uri;
 	
 	my $LSMAP = {
 "area" => \&ls_area,
@@ -370,7 +370,7 @@ END
 </div>
 END
 		}
-		my $cssurl = $repository->get_conf( "base_url" )."/style/vlit.css";
+		my $cssurl = $repository->get_conf( "http_url" )."/style/vlit.css";
 		$r->print( <<END );
 <html>
 <head>
@@ -432,7 +432,7 @@ sub ls_area
 	if( $mode eq "human" )
 	{
 		send_http_header( "text/html" );
-		my $cssurl = $repository->get_conf( "base_url" )."/vlit.css";
+		my $cssurl = $repository->get_conf( "http_url" )."/vlit.css";
 		my $title = "title";
 		my $html = "html";
 		my $copyurl = $repository->get_conf( "vlit" )->{copyright_url};

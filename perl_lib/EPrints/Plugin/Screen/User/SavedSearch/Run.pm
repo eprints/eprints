@@ -164,7 +164,8 @@ sub render_export_bar
 			my $span = $session->make_element( "span", class=>"ep_search_feed" );
 			my $url = $self->export_url( $id );
 			my $a1 = $session->render_link( $url );
-			my $icon = $session->make_element( "img", src=>"/style/images/feed-icon-14x14.png", alt=>"[feed]", border=>0 );
+			my $imagesurl = $session->get_repository->get_conf( "rel_path" );
+			my $icon = $session->make_element( "img", src=>"$imagesurl/style/images/feed-icon-14x14.png", alt=>"[feed]", border=>0 );
 			$a1->appendChild( $icon );
 			my $a2 = $session->render_link( $url );
 			$a2->appendChild( $dom_name );

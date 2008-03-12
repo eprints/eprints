@@ -7021,6 +7021,7 @@ PACKAGE: 2.2.99.2
 2008-03-04 tdb
  * Added missing Perl export plugin
  * Now adds default phrases for sub-fields/set options
+ * Fixed HTTPS support/sub-directory support simplified
 
 2008-03-05 tdb
  * Added missing mysql_version_from_dbh method, fixing #3301
@@ -7040,4 +7041,6 @@ PACKAGE: 2.2.99.2
 
 2008-03-12 tdb
  * Added datestamp to metafields
+ * Merged r3371 and r3368 - support for http_* config variables
+
 

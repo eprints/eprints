@@ -103,7 +103,7 @@ sub render
 			$url.= "&show_$inner_f=".$f2{$inner_f};
 		}
 		my $a = $self->{session}->render_link( $url,  );
-		my $imagesurl = $self->{session}->get_repository->get_conf( "base_url" )."/style/images";
+		my $imagesurl = $self->{session}->get_repository->get_conf( "rel_path" )."/style/images";
 		if( $filters{$f} )
 		{
 			$a->appendChild( $self->{session}->make_element(
