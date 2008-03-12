@@ -598,7 +598,8 @@ sub _list
 			filters => [
 				@{$filters},
 			],
-			cache_id => $cacheid );
+			cache_id => $cacheid,
+			custom_order => $dataset->get_datestamp_field->get_name );
 
 		unless( defined $searchexp )
 		{
@@ -617,7 +618,8 @@ sub _list
 			allow_blank => 1,
 			filters => [
 				@{$filters},
-			]);
+			],
+			custom_order => $dataset->get_datestamp_field->get_name );
 
 		if( !defined $searchexp )
 		{
