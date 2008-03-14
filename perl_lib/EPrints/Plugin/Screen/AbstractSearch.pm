@@ -116,7 +116,7 @@ sub run_search
 		$self->{processor}->{search_subscreen} = "form";
 	}
 
-	if( $list->count == 0 )
+	if( $list->count == 0 && !$self->{processor}->{search}->{show_zero_results} )
 	{
 		$self->{processor}->add_message( "warning",
 			$self->{session}->html_phrase(

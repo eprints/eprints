@@ -202,7 +202,8 @@ being mentioned in the description of the search.
 	"session", 	"dataset", 	"allow_blank", 	"satisfy_all", 	
 	"fieldnames", 	"staff", 	"custom_order",
 	"keep_cache", 	"cache_id", 	"prefix", 	"defaults",
-	"filters", 	"search_fields" );
+	"filters", 	"search_fields","show_zero_results", 
+);
 
 sub new
 {

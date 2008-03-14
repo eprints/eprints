@@ -7056,3 +7056,8 @@ PACKAGE: 2.2.99.2
 2008-03-14 cjg
  * Fixed a couple of http_url items in the template which needed to be 
     perl_url
+
+2008-03-14 cjg
+ * Added show_zero_results option to search config. which if true still
+    shows the search results even if there is zero results. Closing #3278
+    although it might want a nicer message later.

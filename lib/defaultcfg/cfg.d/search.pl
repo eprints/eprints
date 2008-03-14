@@ -42,6 +42,7 @@ $c->{search}->{simple} =
 		"bytitle" 	 => "title/creators_name/-date"
 	},
 	default_order => "byyear",
+	show_zero_results => 1,
 };
 		
 
@@ -74,6 +75,7 @@ $c->{search}->{advanced} =
 		"bytitle" 	 => "title/creators_name/-date"
 	},
 	default_order => "byyear",
+	show_zero_results => 1,
 };
 
 
@@ -97,6 +99,7 @@ $c->{search}->{user} =
 		"bytype" 	 =>  "usertype/name",
 	},
 	default_order => "byname",
+	show_zero_results => 1,
 };
 
 # If set to true, this option causes name searches to match the
