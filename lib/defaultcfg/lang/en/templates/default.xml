@@ -13,7 +13,7 @@
     <link rel="Search" href="{$config{http_cgiurl}}/search"/>
     <epc:pin ref="head"/>
     <style type='text/css' media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/nojs.css);</style>
-    <script type="text/javascript" src="{$config{base_url}}/javascript/jscss.js"><!-- padder --></script>
+    <script type="text/javascript" src="{$config{rel_path}}/javascript/jscss.js"><!-- padder --></script>
   </head>
   <body bgcolor="#ffffff" text="#000000">
     <epc:pin ref="pagetop"/>
