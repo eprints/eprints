@@ -7053,3 +7053,6 @@ PACKAGE: 2.2.99.2
  * Added a "wget" method to EPrints::Utils to retrieve items from the Web
  * Only create one revision when creating new eprint objects
 
+2008-03-14 cjg
+ * Fixed a couple of http_url items in the template which needed to be 
+    perl_url
