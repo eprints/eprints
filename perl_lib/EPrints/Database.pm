@@ -1022,6 +1022,11 @@ sub _update
 
 	my $sth = $self->prepare($sql);
 
+	if( $self->{debug} )
+	{
+		$self->{session}->get_repository->log( "Database execute debug: $sql" );
+	}
+
 	for(@values)
 	{
 		$rc &&= $sth->execute(@$_);
@@ -1106,6 +1111,11 @@ sub insert
 	}
 	$sql .= " VALUES ";
 	$sql .= "(".join(",", map { '?' } @$columns).")";
+
+	if( $self->{debug} )
+	{
+		$self->{session}->get_repository->log( "Database execute debug: $sql" );
+	}
 
 	my $sth = $self->prepare($sql);
 	for(@values)
