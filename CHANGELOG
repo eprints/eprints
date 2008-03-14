@@ -7048,3 +7048,6 @@ PACKAGE: 2.2.99.2
  * Oracle doesn't support multiple VALUES inserts
  * Make more use of multi-value insert calls to insert()
 
+2008-03-14 tdb
+ * Added --enable-web-imports option to bin/import
+

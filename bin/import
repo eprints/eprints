@@ -85,6 +85,11 @@ Normally import will set the datestamp the the time the eprint was imported. Thi
 Allow the imported data to import files from the local filesystem. This can obviously be seen as a security hole if you don't trust the data you are importing.
 This sets the "enable_file_imports" configuration option for this session only.
 
+=item B<--enable-web-imports>
+
+Allow the imported data to import files from the Web. This can obviously be seen as a security hole if you don't trust the data you are importing.
+This sets the "enable_web_imports" configuration option for this session only.
+
 =item B<--force>
 
 Don't ask any questions, just do it!
@@ -137,6 +142,7 @@ my $scripted = 0;
 my $user = undef;
 my $parse_only = 0;
 my $enable_file_imports = 0;
+my $enable_web_imports = 0;
 my $enable_import_ids = 0;
 my $enable_import_datestamps = 0;
 my $migration = 0;
@@ -154,6 +160,7 @@ GetOptions(
 	'single' => \$single,
 	'parse-only' => \$parse_only,
 	'enable-file-imports' => \$enable_file_imports,
+	'enable-web-imports' => \$enable_web_imports,
 	'enable-import-ids' => \$enable_import_ids,
 	'enable-import-datestamps' => \$enable_import_datestamps,
 	'migration' => \$migration,
@@ -170,6 +177,7 @@ if( $migration )
 {
 	$force = 1;
 	$enable_file_imports = 1;
+	$enable_web_imports = 1;
 	$enable_import_ids = 1;
 	$enable_import_datestamps = 1;
 }
@@ -190,6 +198,11 @@ if( $enable_file_imports )
 {
 	# doesn't use a setter method!
 	$session->get_repository->{config}->{enable_file_imports} = 1;
+}
+if( $enable_web_imports )
+{
+	# doesn't use a setter method!
+	$session->get_repository->{config}->{enable_web_imports} = 1;
 }
 if( $enable_import_ids ) 
 { 
