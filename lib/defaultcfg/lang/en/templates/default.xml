@@ -10,7 +10,7 @@
     <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="Top" href="{$config{frontpage}}"/>
-    <link rel="Search" href="{$config{perl_url}}/search"/>
+    <link rel="Search" href="{$config{http_cgiurl}}/search"/>
     <epc:pin ref="head"/>
     <style type='text/css' media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/nojs.css);</style>
     <script type="text/javascript" src="{$config{base_url}}/javascript/jscss.js"><!-- padder --></script>
@@ -27,7 +27,7 @@
     <tr>
       <td align="left"><epc:pin ref="login_status"/></td>
       <td align="right" style="white-space: nowrap">
-        <form method="get" accept-charset="utf-8" action="{$config{perl_url}}/search" style="display:inline">
+        <form method="get" accept-charset="utf-8" action="{$config{http_cgiurl}}/search" style="display:inline">
           <input class="ep_tm_searchbarbox" size="20" type="text" name="q"/>
           <input class="ep_tm_searchbarbutton" value="Search" type="submit" name="_action_search"/>
           <input type="hidden" name="_action_search" value="Search"/>

@@ -7056,6 +7056,7 @@ PACKAGE: 2.2.99.2
 2008-03-14 cjg
  * Fixed a couple of http_url items in the template which needed to be 
     perl_url
+ * (Re-fixed above to http_cgiurl)
 
 2008-03-14 cjg
  * Added show_zero_results option to search config. which if true still
