@@ -32,6 +32,7 @@ package EPrints::Utils;
 use Unicode::String qw(utf8 latin1 utf16);
 use File::Copy qw();
 use Text::Wrap qw();
+use LWP::UserAgent;
 use URI;
 
 use strict;
@@ -405,6 +406,54 @@ sub copy
 	my( $source, $target ) = @_;
 	
 	return File::Copy::copy( $source, $target );
+}
+
+######################################################################
+=pod
+
+=item $response = EPrints::Utils::wget( $session, $source, $target )
+
+Copy $source file or URL to $target file without alteration.
+
+Will fail if $source is a "file:" and "enable_file_imports" is false or if $source is any other scheme and "enable_web_imports" is false.
+
+Returns the HTTP response object: use $response->is_success to check whether the copy succeeded.
+
+=cut
+######################################################################
+
+sub wget
+{
+	my( $session, $url, $target ) = @_;
+
+	$target = "$target";
+
+	$url = URI->new( $url );
+
+	if( !defined($url->scheme) )
+	{
+		$url->scheme( "file" );
+	}
+
+	if( $url->scheme eq "file" )
+	{
+		if( !$session->get_repository->get_conf( "enable_file_imports" ) )
+		{
+			return HTTP::Response->new( 403, "Access denied by configuration: file imports disabled" );
+		}
+	}
+	elsif( !$session->get_repository->get_conf( "enable_web_imports" ) )
+	{
+		return HTTP::Response->new( 403, "Access denied by configuration: web imports disabled" );
+	}
+
+	my $ua = LWP::UserAgent->new();
+
+	my $r = $ua->get( $url,
+		":content_file" => $target
+	);
+
+	return $r;
 }
 
 ######################################################################

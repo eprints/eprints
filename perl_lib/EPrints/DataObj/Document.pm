@@ -304,25 +304,14 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
        
-	EPrints::abort "session not defined" unless defined $session;
-	EPrints::abort "data not defined" unless defined $data;
-                   
 	my $eprintid = $data->{eprintid}; 
+	my $eprint = delete $data->{eprint};
 
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-
-	unless( defined $eprint )
-	{
-		EPrints::abort( <<END );
-Error. Can't create new document. 
-There is no eprint with id '$eprintid'.
-END
-	}
-	
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $document;
 
+	# Hint for get_eprint()
 	$document->{eprint} = $eprint;
 
 	$document->set_under_construction( 1 );
@@ -331,11 +320,11 @@ END
 
 	if( -d $dir )
 	{
-		$eprint->get_session()->get_repository->log( "Dir $dir already exists!" );
+		$session->get_repository->log( "Dir $dir already exists!" );
 	}
 	elsif(!EPrints::Platform::mkdir($dir))
 	{
-		$eprint->get_session()->get_repository->log( "Error creating directory for EPrint ".$eprint->get_value( "eprintid" ).", docid=".$document->get_value( "docid" )." ($dir): ".$! );
+		$session->get_repository->log( "Error creating directory for EPrint $eprintid, docid=".$document->get_value( "docid" )." ($dir): ".$! );
 		return undef;
 	}
 
@@ -350,20 +339,22 @@ END
 				$srcfile =~ s/^\s+//;
 				$srcfile =~ s/\s+$//;
 				$document->add_file( $srcfile, $filedata->{filename}, 1 );	
-				next;
 			}
-		
-			next unless defined $filedata->{url};
-			next unless defined $eprint->get_session()->get_repository->get_conf( "enable_web_imports" );
+			elsif( defined $filedata->{url} )
+			{
+				my $tmpfile = File::Temp->new;
 
-			my $url = $filedata->{url};
-			$url =~ s/'/\\'/g;
-			my $tf = $eprint->get_session()->get_next_id;
-			my $tmpfile = "/tmp/epimport.$$.".time.".$tf.data";
-			my $cmd = "wget -O $tmpfile  '$url' -q ";
-			`$cmd`;
-			$document->add_file( $tmpfile, $filedata->{filename}, 1 );	
-			unlink( $tmpfile );
+				my $r = EPrints::Utils::wget( $session, $filedata->{url}, $tmpfile );
+				if( $r->is_success )
+				{
+					# upload fseeks to zero
+					$document->upload( $tmpfile, $filedata->{filename}, 1 );	
+				}
+				else
+				{
+					$session->get_repository->log( "Failed to retrieve $filedata->{url}: " . $r->code . " " . $r->message );
+				}
+			}
 		}
 	}
 
@@ -398,7 +389,7 @@ sub get_defaults
 			"set_document_defaults", 
 			$data,
  			$session,
- 			$eprint );
+			$eprint );
 
 	return $data;
 }

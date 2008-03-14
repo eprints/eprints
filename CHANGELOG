@@ -7050,4 +7050,6 @@ PACKAGE: 2.2.99.2
 
 2008-03-14 tdb
  * Added --enable-web-imports option to bin/import
+ * Added a "wget" method to EPrints::Utils to retrieve items from the Web
+ * Only create one revision when creating new eprint objects
 

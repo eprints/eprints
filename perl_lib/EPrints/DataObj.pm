@@ -188,8 +188,7 @@ sub create_from_data
 	}
 
 	# get defaults modifies the hash so we must copy it.
-	my $defaults = {};
-	foreach( keys %{$data} ) { $defaults->{$_} = $data->{$_}; }
+	my $defaults = EPrints::Utils::clone( $data );
 	$defaults = $class->get_defaults( $session, $defaults );
 	
 	foreach my $field ( $dataset->get_fields )
@@ -240,7 +239,7 @@ sub create_from_data
 	my $kfname = $keyfield->get_name;
 	my $id = $data->{$kfname};
 
-	my $obj = $dataset->get_object( $session, $id );
+	my $obj = $temp_item; # $dataset->get_object( $session, $id );
 
 	return undef unless( defined $obj );
 

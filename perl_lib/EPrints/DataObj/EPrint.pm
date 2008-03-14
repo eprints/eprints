@@ -292,6 +292,8 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
+	my $documents = delete $data->{documents};
+
 	my $new_eprint = $class->SUPER::create_from_data( $session, $data, $dataset );
 	
 	return undef unless defined $new_eprint;
@@ -301,18 +303,37 @@ sub create_from_data
 	$new_eprint->set_under_construction( 1 );
 
 	return unless defined $new_eprint;
-	if( defined $data->{documents} )
+
+	if( defined $documents )
 	{
-		foreach my $docdata_orig ( @{$data->{documents}} )
+		my @docs;
+		foreach my $docdata_orig ( @{$documents} )
 		{
 			my %docdata = %{$docdata_orig};
 			$docdata{eprintid} = $new_eprint->get_id;
+			$docdata{eprint} = $new_eprint;
 			my $docds = $session->get_repository->get_dataset( "document" );
-			EPrints::DataObj::Document->create_from_data( $session,\%docdata,$docds );
+			push @docs, EPrints::DataObj::Document->create_from_data( $session,\%docdata,$docds );
 		}
+		my @finfo = ();
+		foreach my $doc ( @docs )
+		{
+			push @finfo, $doc->icon_url.";".$doc->get_url;
+		}
+		$new_eprint->set_value( "fileinfo", join( "|", @finfo ) );
 	}
 
 	$new_eprint->set_under_construction( 0 );
+
+	$session->get_repository->call( 
+		"set_eprint_automatic_fields", 
+		$new_eprint );
+
+	$session->get_database->update(
+		$dataset,
+		$new_eprint->{data} );
+
+	$new_eprint->queue_changes;
 
 	my $user = $session->current_user;
 	my $userid = undef;
@@ -332,8 +353,7 @@ sub create_from_data
 	);
 	$new_eprint->write_revision;
 
-	# write revision, generate static and set auto fields
-	$new_eprint->commit;
+	$new_eprint->generate_static;
 
 	return $new_eprint;
 }
