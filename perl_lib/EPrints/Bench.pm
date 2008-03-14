@@ -2,6 +2,8 @@ package EPrints::Bench;
 
 use Time::HiRes qw( gettimeofday );
 
+our @ids = ();
+
 our $totals = {};
 
 our $starts = {};
@@ -22,6 +24,7 @@ sub enter
 		die "Double entry in $id";
 	}
 
+	push @ids, $id;
 	$starts->{$id} = hitime();
 }
 
@@ -41,8 +44,11 @@ sub leave
 sub totals
 {
 	print "TOTALS\n";
-	foreach ( sort keys %{$totals} )
+	my %seen;
+	foreach ( @ids )
 	{
+		next if $seen{$_};
+		$seen{$_} = 1;
 		printf(  "%16d - %s\n",$totals->{$_},$_ );
 	}
 }
