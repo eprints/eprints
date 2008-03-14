@@ -81,7 +81,11 @@ for(1..100)
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
-my $ds = $session->get_archive()->get_dataset( $datasetid );
+my $ds = $session->get_repository->get_dataset( $datasetid );
+
+$session->get_repository->{config}->{enable_file_imports} = 1;
+$session->get_repository->{config}->{enable_web_imports} = 1;
+
 
 for(1..$total)
 {
@@ -106,7 +110,7 @@ for(1..$total)
 			files => [ {
 				filename => "paper.pdf",
 				filesize => "12174",
-				data => "$datapath/paper.pdf",
+				url => "file:$datapath/paper.pdf",
 			} ],
 		} ],
 	};
