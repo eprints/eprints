@@ -172,7 +172,7 @@ sub end_element
 			$self->{base64} = 0;
 			my $tmpfile = File::Temp->new;
 			push @{$self->{tmpfiles}}, $tmpfile;
-			print $tmpfile MIME::Base64::decode( join('',@{$self->{base64data}}) );
+			syswrite($tmpfile, MIME::Base64::decode( join('',@{$self->{base64data}}) ));
 
 			$self->{xmlcurrent}->appendChild( 
 				$self->{plugin}->{session}->make_text( "$tmpfile" ) );

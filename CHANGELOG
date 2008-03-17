@@ -7062,3 +7062,7 @@ PACKAGE: 2.2.99.2
  * Added show_zero_results option to search config. which if true still
     shows the search results even if there is zero results. Closing #3278
     although it might want a nicer message later.
+
+2008-03-17 tdb
+ * Use syswrite to avoid buffered IO problems with file writing
+
