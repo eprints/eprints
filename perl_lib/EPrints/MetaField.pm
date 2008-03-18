@@ -269,8 +269,7 @@ END
 	
 	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::REQUIRED )
 	{
-		EPrints::abort( 
-			$property." on a ".$self->{type}." metafield can't be undefined" );
+		EPrints::abort( "Error in field property for ".$self->{dataset}->id.".".$self->{name}.": $property on a ".$self->{type}." metafield can't be undefined" );
 	}
 
 	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::UNDEF )
