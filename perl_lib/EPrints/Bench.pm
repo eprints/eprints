@@ -8,6 +8,13 @@ our $totals = {};
 
 our $starts = {};
 
+sub clear
+{
+	@ids = ();
+	$totals = {};
+	$starts = {};
+}
+
 sub hitime
 {
 	my( $s,$ms ) = gettimeofday();
@@ -43,13 +50,13 @@ sub leave
 
 sub totals
 {
-	print "TOTALS\n";
+	print STDERR "TOTALS\n";
 	my %seen;
 	foreach ( @ids )
 	{
 		next if $seen{$_};
 		$seen{$_} = 1;
-		printf(  "%16d - %s\n",$totals->{$_},$_ );
+		print STDERR sprintf("%16d - %s\n", $totals->{$_} , $_);
 	}
 }
 BEGIN {
