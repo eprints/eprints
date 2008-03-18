@@ -182,12 +182,10 @@ sub action_edit
 	}
 }
 
-use EPrints::Bench;
 sub render
 {
 	my( $self ) = @_;
 
-EPrints::Bench::clear();
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
@@ -195,7 +193,6 @@ EPrints::Bench::clear();
 
 	$page = $session->make_doc_fragment;
 
-EPrints::Bench::enter( "get_searchexp/perform_search" );
 	my $searchexp = $self->get_searchexp;
 
 	if( !defined $searchexp )
@@ -205,7 +202,6 @@ EPrints::Bench::enter( "get_searchexp/perform_search" );
 	}
 
 	my $list = $searchexp->perform_search;
-EPrints::Bench::leave( "get_searchexp/perform_search" );
 
 	$p = $session->make_element( "p" );
 	$page->appendChild( $p );
@@ -217,11 +213,8 @@ EPrints::Bench::leave( "get_searchexp/perform_search" );
 		"Applying batch alterations to " . $list->count . " items"
 	) );
 
-EPrints::Bench::enter( "render_changes_form" );
 	$page->appendChild( $self->render_changes_form( $searchexp ) );
-EPrints::Bench::leave( "render_changes_form" );
 
-&EPrints::Bench::totals;
 
 	return $page;
 }
@@ -232,7 +225,6 @@ sub get_fields
 
 	my @fields;
 
-EPrints::Bench::enter("get_fields");
 	foreach my $field ($dataset->get_fields)
 	{
 		next if defined $field->{sub_name};
@@ -241,7 +233,6 @@ EPrints::Bench::enter("get_fields");
 
 		push @fields, $field;
 	}
-EPrints::Bench::leave("get_fields");
 
 	return @fields;
 }
@@ -344,7 +335,6 @@ sub render_changes_form
 		edit => "Apply Changes",
 	);
 
-EPrints::Bench::enter("render_input_form");
 	my $form = $session->render_input_form(
 		dataset => $dataset,
 		fields => \@input_fields,
@@ -357,7 +347,6 @@ EPrints::Bench::enter("render_input_form");
 			cache => $searchexp->get_cache_id,
 		},
 	);
-EPrints::Bench::leave("render_input_form");
 
 	$page->appendChild( $form );
 
