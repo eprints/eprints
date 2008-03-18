@@ -7,7 +7,7 @@ use WWW::Mechanize::Sleepy;
 use URI;
 
 our $MECH = WWW::Mechanize::Sleepy->new(
-	sleep => '3..10',
+	sleep => '5..15',
 	autocheck => 1,
 );
 
@@ -26,17 +26,19 @@ sub get_cites
 	$creator = $creator->{family};
 
 	my $eprint_link = $eprint->get_url;
+	$eprint_link =~ s/(\d+\/)/(?:archive\/0+)?$1/;
 
 	my $quri = $SCHOLAR->clone;
 
 	$quri->query_form(
-			q => "allintitle:($title) author:$creator"
+			q => "$title author:$creator"
 			);
 
 	my $cluster_id;
 
 	print STDERR "GET $quri\n" if $session->{noise} > 1;
-	$MECH->get( $quri );
+	my $r = $MECH->get( $quri );
+	die $r->code unless $r->is_success;
 
 	# The EPrint URL
 	my $by_url = $MECH->find_link( url_regex => qr/^$eprint_link/ );
@@ -55,17 +57,20 @@ sub get_cites
 		}
 		for(; $i < @links; ++$i)
 		{
-			last if $links[$i]->text =~ /^all \d+ versions/;
-			last if $links[$i]->text =~ /^Cited by \d+/;
-			if( $links[$i]->text =~ /Web Search/ )
+			if( $links[$i]->text =~ /^all \d+ versions/ )
 			{
-				$i = @links;
+				$cluster_id = {$links[$i]->URI->query_form}->{"cluster"};
 				last;
 			}
-		}
-		if( $links[$i] )
-		{
-			$cluster_id = {$links[$i]->URI->query_form}->{"cluster"};
+			if( $links[$i]->text =~ /^Cited by \d+/ )
+			{
+				$cluster_id = {$links[$i]->URI->query_form}->{"cites"};
+				last;
+			}
+			if( $links[$i]->text =~ /Web Search/ )
+			{
+				last;
+			}
 		}
 	}
 
@@ -78,11 +83,11 @@ sub get_cites
 			print STDERR "GET $url\n" if $session->{noise} > 1;
 			$MECH->get( $url );
 
-			$eprint_link = $MECH->find_link( url_regex => qr/^$eprint_link/ );
+			my $by_link = $MECH->find_link( url_regex => qr/^$eprint_link/ );
 
 			$MECH->back;
 
-			if( $eprint_link )
+			if( $by_link )
 			{
 				$cluster_id = {$url->query_form}->{cluster};
 				last;
