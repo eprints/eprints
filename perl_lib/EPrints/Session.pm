@@ -1610,17 +1610,19 @@ sub render_hidden_field
 
 sub render_input_field
 {
-	my( $self, %opts ) = @_;
+	my( $self, @opts ) = @_;
 
-	return $self->make_element( "input",%opts );
+	return $self->make_element( "input", @opts );
 }
 
 sub render_noenter_input_field
 {
-	my( $self, %opts ) = @_;
+	my( $self, @opts ) = @_;
 
-	$opts{'onKeyPress'} = "return EPJS_block_enter( event )" unless defined $opts{'onKeyPress'};
-	return $self->render_input_field( %opts );
+	return $self->make_element( "input",
+		onKeyPress => "return EPJS_block_enter( event )",
+		@opts,
+	);
 }
 
 

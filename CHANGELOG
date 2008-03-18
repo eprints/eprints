@@ -7068,4 +7068,6 @@ PACKAGE: 2.2.99.2
 
 2008-03-18 tdb
  * Don't return utf8 objects from tree_to_utf8 (much faster)
+ * Performance tweaks: pass arrays rather than building hashes if not needed,
+    $field_conf is always an object in MetaField::Compound
 

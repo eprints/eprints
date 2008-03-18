@@ -62,13 +62,14 @@ current language.
 sub tags_and_labels
 {
 	my( $self , $session ) = @_;
+	my @tags = $self->tags( $session );
 	my %labels = ();
-	foreach( $self->tags( $session ) )
+	foreach( @tags )
 	{
 		$labels{$_} = EPrints::Utils::tree_to_utf8( 
 			$self->render_option( $session, $_ ) );
 	}
-	return ([$self->tags( $session )], \%labels);
+	return (\@tags, \%labels);
 }
 
 sub tags
