@@ -167,8 +167,11 @@ sub action_edit
 			my $value = $opts->{"value"};
 			my $li = $session->make_element( "li" );
 			$ul->appendChild( $li );
+			$value = defined($value) ?
+				$field->render_single_value( $session, $value ) :
+				$session->html_phrase( "lib/metafield:unspecified" );
 			$li->appendChild( $self->html_phrase( "applied_$action",
-				value => $field->render_single_value( $session, $value ),
+				value => $value,
 				fieldname => $session->html_phrase( "eprint_fieldname_$fieldname" ),
 			) );
 		}
@@ -296,7 +299,7 @@ sub render_changes_form
 		my @options;
 		if( $field->get_property( "multiple" ) )
 		{
-			@options = qw( clear replace insert append );
+			@options = qw( clear insert append );
 		}
 		else
 		{
@@ -339,7 +342,7 @@ sub render_changes_form
 		dataset => $dataset,
 		fields => \@input_fields,
 		show_help => 0,
-		show_name => 1,
+		show_names => 1,
 		top_buttons => \%buttons,
 		buttons => \%buttons,
 		hidden_fields => {
