@@ -89,16 +89,13 @@ sub render_single_value_row
 
 	my $f = $self->get_property( "fields_cache" );
 
-	if( !defined $object ) { EPrints::abort( "Object not defined in Metafield Compound render_single_value_row!" ); }
-
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
 	my $tr = $session->make_element( "tr" );
-	foreach my $field_conf ( @{$f} )
+	foreach my $field ( @{$f} )
 	{
-		my $name = $field_conf->{name};
+		my $name = $field->get_name;
 		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
-		my $field = $object->get_dataset->get_field( $name );
 		$td->appendChild( 
 			$field->render_single_value( 
 				$session, 
@@ -274,10 +271,9 @@ sub get_input_col_titles
 
 	my @r  = ();
 	my $f = $self->get_property( "fields_cache" );
-	foreach my $field_conf ( @{$f} )
+	foreach my $field ( @{$f} )
 	{
-		my $fieldname = $field_conf->{name};
-		my $field = $self->{dataset}->get_field( $fieldname );
+		my $fieldname = $field->get_name;
 		my $sub_r = $field->get_input_col_titles( $session, $staff );
 
 		if( !defined $sub_r )
@@ -296,17 +292,14 @@ sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $object ) = @_;
 
-	if( !defined $object ) { EPrints::abort( "Object not defined in Metafield Compound get_basic_input_elements!" ); }
-
 	my $f = $self->get_property( "fields_cache" );
 	my $grid_row = [];
 
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field_conf ( @{$f} )
+	foreach my $field ( @{$f} )
 	{
-		my $fieldname = $field_conf->{name};
+		my $fieldname = $field->get_name;
 		my $alias = $fieldname_to_alias{$fieldname};
-		my $field = $object->get_dataset->get_field( $fieldname );
 		my $part_grid = $field->get_basic_input_elements( 
 					$session, 
 					$value->{$fieldname_to_alias{$fieldname}}, 
@@ -348,17 +341,14 @@ sub form_value_basic
 {
 	my( $self, $session, $basename, $object ) = @_;
 	
-	if( !defined $object ) { EPrints::abort( "Object not defined in Metafield Compound form_value_basic!" ); }
-
 	my $value = {};
 
 	my $f = $self->get_property( "fields_cache" );
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field_conf ( @{$f} )
+	foreach my $field ( @{$f} )
 	{
-		my $fieldname = $field_conf->{name};
+		my $fieldname = $field->get_name;
 		my $alias = $fieldname_to_alias{$fieldname};
-		my $field = $object->get_dataset->get_field( $fieldname );
 		my $v = $field->form_value_basic( $session, $basename."_".$alias, $object );
 		$value->{$alias} = $v;
 	}
