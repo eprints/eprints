@@ -296,7 +296,7 @@ sub tree_to_utf8
 	if( EPrints::XML::is_dom( $node, "NodeList" ) )
 	{
 # Hmm, a node list, not a node.
-		my $string = utf8("");
+		my $string = "";
 		my $ws = $whitespace_before;
 		for( my $i=0 ; $i<$node->length ; ++$i )
 		{
@@ -320,7 +320,7 @@ sub tree_to_utf8
 	}
 	my $name = $node->nodeName();
 
-	my $string = utf8("");
+	my $string = "";
 	my $ws = $whitespace_before;
 	foreach( $node->getChildNodes )
 	{
@@ -339,15 +339,15 @@ sub tree_to_utf8
 	}
 
 	# <hr /> only makes sense if we are generating a known width.
-	if( $name eq "hr" && defined $width )
+	if( defined $width && $name eq "hr" )
 	{
-		$string = latin1("\n"."-"x$width."\n");
+		$string = "\n"."-"x$width."\n";
 	}
 
 	# Handle wrapping block elements if a width was set.
-	if( ( $name eq "p" || $name eq "mail" ) && defined $width)
+	if( defined $width && ( $name eq "p" || $name eq "mail" ) )
 	{
-		$string = utf8( wrap_text( $string, $width ) );
+		$string = wrap_text( $string, $width );
 	}
 	$ws = $whitespace_before;
 	if( $name eq "p" )

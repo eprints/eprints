@@ -7066,3 +7066,6 @@ PACKAGE: 2.2.99.2
 2008-03-17 tdb
  * Use syswrite to avoid buffered IO problems with file writing
 
+2008-03-18 tdb
+ * Don't return utf8 objects from tree_to_utf8 (much faster)
+
