@@ -58,6 +58,8 @@ sub render_option
 {
 	my( $self, $session, $option ) = @_;
 
+	$option = "" if !defined $option;
+
 	return $session->html_phrase( "languages_typename_".$option );
 }
 

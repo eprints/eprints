@@ -173,8 +173,7 @@ sub get_basic_input_elements
 	# If it's not multiple and not required there 
 	# must be a way to unselect it.
 	$tags = [ "", @{$tags} ];
-	my $unspec = $session->phrase( 
-		"lib/metafield:unspecified_selection" );
+	my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $session, undef ) );
 	$labels = { ""=>$unspec, %{$labels} };
 
 	return( [ [ { el=>$session->render_option_list(
@@ -203,8 +202,7 @@ sub render_set_input
 		# If it's not multiple and not required there 
 		# must be a way to unselect it.
 		$tags = [ "", @{$tags} ];
-		my $unspec = $session->phrase( 
-			"lib/metafield:unspecified_selection" );
+		my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $session, undef ) );
 		$labels = { ""=>$unspec, %{$labels} };
 	}
 

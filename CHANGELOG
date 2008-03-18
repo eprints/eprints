@@ -7073,4 +7073,5 @@ PACKAGE: 2.2.99.2
  * Fixed get_ids_by_field_values for cross-database, removed mk_time & mk_date
     and added "get_id_from_value" method to MetaFields
  * Alpha batch-editing plug-in
+ * Allow UNSPECIFIED to be overridden in Compound fields
 

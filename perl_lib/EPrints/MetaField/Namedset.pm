@@ -70,6 +70,11 @@ sub render_option
 {
 	my( $self, $session, $value ) = @_;
 
+	if( !defined $value )
+	{
+		return $self->SUPER::render_option( $session, $value );
+	}
+
 	return $session->render_type_name( $self->{set_name}, $value );
 }
 
