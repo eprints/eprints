@@ -1640,6 +1640,23 @@ sub get_ids_by_value
 ######################################################################
 =pod
 
+=item $id = $field->get_id_from_value( $session, $value )
+
+Returns a unique id for $value.
+
+=cut
+######################################################################
+
+sub get_id_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return $value;
+}
+
+######################################################################
+=pod
+
 =item $xhtml = $field->get_value_label( $session, $value )
 
 Return an XHTML DOM object describing the given value. Normally this

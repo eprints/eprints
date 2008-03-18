@@ -2799,6 +2799,10 @@ sub get_ids_by_field_values
 		return [];
 	}
 
+	my $session = $self->{session};
+
+	my $keyfield = $dataset->get_key_field();
+
 	my %tables = ();
 	my $srctable;
 	if( $field->get_property( "multiple" ) )
@@ -2811,27 +2815,21 @@ sub get_ids_by_field_values
 	}
 	$tables{$srctable} = 1;
 
-	my $fn = "$srctable.".$field->get_sql_name();
-	if( $field->is_type( "name" ) )
-	{
-		$fn = "$fn\_honourific,$fn\_given,$fn\_family,$fn\_lineage";
-	}
-	elsif( $field->is_type( "date" ) )
-	{
-		$fn = "$fn\_year,$fn\_month,$fn\_day";
-	}
-	elsif( $field->is_type( "time" ) )
-	{
-		$fn = "$fn\_year,$fn\_month,$fn\_day,$fn\_hour,$fn\_minute,$fn\_second";
-	}
+	my @cols = (
+		$keyfield->get_sql_names(),
+		$field->get_sql_names(),
+	);
 
 	my @where = ();
 
-	my $dsid = $dataset->id;
-	if( $dsid =~ m/^archive|inbox|deletion|buffer$/ )
+	if( $dataset->confid eq "eprint" && $dataset->id ne $dataset->confid )
 	{
-		$tables{eprint} = 1;
-		push @where, "eprint.eprint_status = '$dsid'";
+		my $srctable = $dataset->get_sql_table_name();
+		$tables{$srctable} = 1;
+		push @where,
+			$self->quote_identifier($srctable, "eprint_status").
+			" = ".
+			$self->quote_value($dataset->id);
 	}
 
 	if( defined $opts{filters} )
@@ -2851,67 +2849,37 @@ sub get_ids_by_field_values
 				}
 				$tables{$srctable} = 1;
 				# note filters don't handle date, time or name fields yet.
-				push @ors, "$srctable.".$ffield->get_sql_name()." = '".prep_value( $filter->{value} )."'";
+				push @ors,
+					$self->quote_identifier($srctable,$ffield->get_sql_name()).
+					" = ".
+					$self->quote_value( $filter->{value} );
 			}
 			push @where, "(".join( ") OR (", @ors ).")";
 		}
 	}
 
-	my @tables = keys %tables;
-	if( scalar @tables > 1 )
+	foreach my $table (keys %tables)
 	{
-		for( my $i=1;$i<scalar @tables;++$i )
-		{
-			push @where, $tables[0].".eprintid = ".$tables[$i].".eprintid";
-		}
+		next if $srctable eq $table;
+		push @where,
+			$self->quote_identifier($srctable,"eprintid").
+			" = ".
+			$self->quote_identifier($table,"eprintid");
 	}
 
-	my $keyfield = $dataset->get_key_field();
-	my $sql = "SELECT DISTINCT $srctable.".$keyfield->get_sql_name().", $fn";
-	$sql .= " FROM ".join( ", ", @tables );
-	$sql .= " WHERE (".join( ") AND (", @where ).")";
+	my $sql = "SELECT DISTINCT ";
+	$sql .= join(",",map { $self->quote_identifier($srctable,$_) } @cols);
+	$sql .= " FROM ".join( ",", map { $self->quote_identifier($_) } keys %tables );
+	$sql .= " WHERE ".join( " AND ", @where );
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 	my $ids = {};
-	my @row = ();
-	my $id;
-	my @parts;
-	if( $field->is_type( "name" ) )
+	while(my( $eprintid, @row ) = $sth->fetchrow_array ) 
 	{
-		while( @row = $sth->fetchrow_array ) 
-		{
-			$id = shift @row;
-			push @{$ids->{join(":",@row)}}, $id;
-		}
-	}
-	elsif( $field->is_type( "date" ) )
-	{
-		while( @row = $sth->fetchrow_array ) 
-		{
-			$id = shift @row;
-			@parts = ();
-			for(0..2) { push @parts, shift @row; }
-			push @{$ids->{mk_date( @parts )}}, $id;
-		}
-	}
-	elsif( $field->is_type( "time" ) )
-	{
-		while( @row = $sth->fetchrow_array ) 
-		{
-			$id = shift @row;
-			@parts = ();
-			for(0..5) { push @parts, shift @row; }
-			push @{$ids->{mk_time( @parts )}}, $id;
-		}
-	}
-	else
-	{
-		while( @row = $sth->fetchrow_array ) 
-		{
-			$id = shift @row;
-			push @{$ids->{$row[0]}}, $id;
-		}
+		my $value = $field->value_from_sql_row( $session, \@row );
+		my $id = $field->get_id_from_value( $session, $value );
+		push @{$ids->{$id}}, $eprintid;
 	}
 	$sth->finish;
 
@@ -4051,31 +4019,6 @@ sub get_roles
 	}
 
 	return @permitted_roles;
-}
-
-sub mk_date
-{
-	my( @parts ) = @_;
-
-	my $value = "";
-	$value.= sprintf("%04d",$parts[0]) if( defined $parts[0] );
-	$value.= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
-	$value.= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
-	return $value;
-}
-
-sub mk_time
-{
-	my( @parts ) = @_;
-
-	my $value = "";
-	$value.= sprintf("%04d",$parts[0]) if( defined $parts[0] );
-	$value.= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
-	$value.= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
-	$value.= sprintf(" %02d",$parts[3]) if( defined $parts[3] );
-	$value.= sprintf(":%02d",$parts[4]) if( defined $parts[4] );
-	$value.= sprintf(":%02d",$parts[5]) if( defined $parts[5] );
-	return $value;
 }
 
 ######################################################################

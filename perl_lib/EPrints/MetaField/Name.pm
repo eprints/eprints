@@ -588,16 +588,18 @@ sub get_values
 			$value, 
 			$session, 
 			$langid );
-		$orderkeys{_f($v2)} = $orderkey;
+		$orderkeys{$self->get_id_from_value($session, $v2)} = $orderkey;
 	}
 
-	my @outvalues = sort {$orderkeys{_f($a)} cmp $orderkeys{_f($b)}} @values;
+	my @outvalues = sort {$orderkeys{$self->get_id_from_value($session, $a)} cmp $orderkeys{$self->get_id_from_value($session, $b)}} @values;
 	return \@outvalues;
 }
 
-sub _f
+sub get_id_from_value
 {
-	my( $name ) = @_;
+	my( $self, $session, $name ) = @_;
+
+	no warnings;
 
 	return $name->{family}.':'.$name->{given}.':'.$name->{lineage}.':'.$name->{honourific};
 }

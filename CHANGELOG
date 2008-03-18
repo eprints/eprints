@@ -7070,4 +7070,6 @@ PACKAGE: 2.2.99.2
  * Don't return utf8 objects from tree_to_utf8 (much faster)
  * Performance tweaks: pass arrays rather than building hashes if not needed,
     $field_conf is always an object in MetaField::Compound
+ * Fixed get_ids_by_field_values for cross-database, removed mk_time & mk_date
+    and added "get_id_from_value" method to MetaFields
 
