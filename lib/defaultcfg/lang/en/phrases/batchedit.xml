@@ -1,0 +1,24 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+
+    <epp:phrase id="Plugin/Screen/BatchEdit:title">Batch Editing Tool</epp:phrase>
+    <epp:phrase id="eprint_fieldname_batchedit_action">Action</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_clear">Clear all values</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_insert">Insert new value</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_append">Append new value</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_replace">Replace existing with</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:invalid_cache">The search expression could not be found - you will need to re-do your search and start again.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:no_changes">You attempted to apply some changes but didn't specify any actions to take?</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied">The batch edit was made: <epc:pin name="changes"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_clear">Cleared existing value(s) from <epc:pin name="fieldname"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_insert">Inserted "<epc:pin name="value"/>" into <epc:pin name="fieldname"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_append">Appended "<epc:pin name="value"/>" onto <epc:pin name="fieldname"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_replace">Replaced existing value in <epc:pin name="fieldname"/> with "<epc:pin name="value"/>".</epp:phrase>
+
+
+
+</epp:phrases>
+
