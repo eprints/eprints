@@ -98,7 +98,7 @@ sub output_list
 <?xml version="1.0"?>
 
 EOX
-	$xml .= $schema->toString(1);
+	$xml .= EPrints::XML::to_string($schema);
 	$xml .= "\n";
 
 	if( defined $opts{fh} )

@@ -1880,6 +1880,24 @@ sub render_xml_schema
 
 	my $element = $session->make_element( "xs:element", name => $self->get_name );
 
+	my $phraseid = $self->{dataset}->confid . "_fieldname_" . $self->get_name;
+	my $helpid = $self->{dataset}->confid . "_fieldhelp_" . $self->get_name;
+	if( $session->get_lang->has_phrase( $phraseid ) )
+	{
+		my $annotation = $session->make_element( "xs:annotation" );
+		$element->appendChild( $annotation );
+		my $documentation = $session->make_element( "xs:documentation" );
+		$annotation->appendChild( $documentation );
+		$documentation->appendChild( $session->make_text( "\n" ) );
+		$documentation->appendChild( $session->make_text( $session->phrase( $phraseid ) ) );
+		if( $session->get_lang->has_phrase( $helpid ) )
+		{
+			$documentation->appendChild( $session->make_text( "\n\n" ) );
+			$documentation->appendChild( $session->make_text( $session->phrase( $helpid ) ) );
+		}
+		$documentation->appendChild( $session->make_text( "\n" ) );
+	}
+
 	if( $self->get_property( "multiple" ) )
 	{
 		my $complexType = $session->make_element( "xs:complexType" );
