@@ -2824,10 +2824,10 @@ sub get_ids_by_field_values
 
 	if( $dataset->confid eq "eprint" && $dataset->id ne $dataset->confid )
 	{
-		my $srctable = $dataset->get_sql_table_name();
-		$tables{$srctable} = 1;
+		my $table = $dataset->get_sql_table_name();
+		$tables{$table} = 1;
 		push @where,
-			$self->quote_identifier($srctable, "eprint_status").
+			$self->quote_identifier($table, "eprint_status").
 			" = ".
 			$self->quote_value($dataset->id);
 	}
@@ -2839,18 +2839,19 @@ sub get_ids_by_field_values
 			my @ors = ();
 			foreach my $ffield ( @{$filter->{fields}} )
 			{	
+				my $table;
 				if( $ffield->get_property( "multiple" ) )
 				{
-					$srctable = $dataset->get_sql_sub_table_name( $ffield );
+					$table = $dataset->get_sql_sub_table_name( $ffield );
 				}
 				else
 				{
-					$srctable = $dataset->get_sql_table_name();
+					$table = $dataset->get_sql_table_name();
 				}
-				$tables{$srctable} = 1;
+				$tables{$table} = 1;
 				# note filters don't handle date, time or name fields yet.
 				push @ors,
-					$self->quote_identifier($srctable,$ffield->get_sql_name()).
+					$self->quote_identifier($table,$ffield->get_sql_name()).
 					" = ".
 					$self->quote_value( $filter->{value} );
 			}

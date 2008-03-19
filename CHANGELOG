@@ -7086,3 +7086,5 @@ PACKAGE: 2.2.99.2
  * Added tool plugin feature (like feeds)
  * Made batch-edit a tool.
 
+2008-03-19 cjg
+ * Fixed bug in Database.pm caused by re-use of variable name in a loop.
