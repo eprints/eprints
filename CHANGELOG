@@ -7078,3 +7078,6 @@ PACKAGE: 2.2.99.2
 2008-03-19 tdb
  * Added XML Schema export for the EPrints database schema
 
+2008-03-19 cjg
+ * Added strlen method to EPrints Script
+ * Added <epc:foreach> tool to EPC

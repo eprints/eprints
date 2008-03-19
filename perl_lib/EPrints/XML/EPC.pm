@@ -83,6 +83,10 @@ sub process
 		{
 			return _process_pin( $node, %params );
 		}
+		if( $name eq "foreach" )
+		{
+			return _process_foreach( $node, %params );
+		}
 
 	}
 
@@ -239,6 +243,62 @@ sub _process_print
 
 	return EPrints::Script::print( $expr, \%params, $opts );
 }	
+
+sub _process_foreach
+{
+	my( $node, %params ) = @_;
+
+	if( !$node->hasAttribute( "expr" ) )
+	{
+		EPrints::abort( "In ".$params{in}.": foreach element with no expr attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $expr = $node->getAttribute( "expr" );
+	if( $expr =~ m/^\s*$/ )
+	{
+		EPrints::abort( "In ".$params{in}.": foreach element with empty expr attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+
+	if( !$node->hasAttribute( "iterator" ) )
+	{
+		EPrints::abort( "In ".$params{in}.": foreach element with no iterator attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $iterator = $node->getAttribute( "iterator" );
+	if( $iterator !~ m/^[a-z][a-z0-9_]*$/i )
+	{
+		EPrints::abort( "In ".$params{in}.": foreach element with non alphanumeric iterator.\n".substr( $node->toString, 0, 100 ) );
+	}
+
+	my $result = EPrints::Script::execute( $expr, \%params );
+
+	my $list = $result->[0];
+	my $type = $result->[1];
+	my $output = $params{session}->make_doc_fragment;
+
+	if( !EPrints::Utils::is_set( $list ) )
+	{
+		return $output;
+	}
+
+	if( ref( $list ) ne "ARRAY" )
+	{
+		$list = [ $list ];
+	}
+
+	if( ref( $type ) =~ m/EPrints::MetaField/ && $type->get_property( "multiple" ) )
+	{
+		$type = $type->clone;
+		$type->set_property( "multiple", 0 );
+	}
+
+	foreach my $item ( @{$list} )
+	{
+		my %newparams = %params;
+		$newparams{$iterator} = [ $item, $type ];
+		$output->appendChild( process_child_nodes( $node, %newparams ) );
+	}
+
+	return $output;
+}
 
 sub _process_if
 {

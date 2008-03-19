@@ -386,6 +386,18 @@ sub run_as_item # maybe change later
 	return [ $object ];
 }
 
+sub run_strlen
+{
+	my( $self, $state, $value ) = @_;
+
+	if( !EPrints::Utils::is_set( $value->[0] ) )
+	{
+		return [0,"INTEGER"];
+	}
+
+	return [ length( $value->[0] ), "INTEGER" ];
+}
+
 sub run_length
 {
 	my( $self, $state, $value ) = @_;
