@@ -1,4 +1,4 @@
-package EPrints::Plugin::Export::Feed;
+package EPrints::Plugin::Export::Tool;
 
 use Unicode::String qw( utf8 );
 
@@ -14,14 +14,14 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Abstract Feed";
+	$self->{name} = "Abstract Tool";
 	$self->{visible} = "";
 	
 	return $self;
 }
 
-sub is_feed { return 1; }
+sub is_tool { return 1; }
 
-sub icon { return "feed-icon-14x14.png"; }
+sub icon { return "tool-icon.png"; }
 
 1;

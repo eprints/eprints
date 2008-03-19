@@ -32,6 +32,10 @@ sub matches
 {
 	my( $self, $test, $param ) = @_;
 
+	if( $test eq "is_tool" )
+	{
+		return( $self->is_tool() );
+	}
 	if( $test eq "is_feed" )
 	{
 		return( $self->is_feed() );
@@ -56,6 +60,14 @@ sub matches
 	# didn't understand this match 
 	return $self->SUPER::matches( $test, $param );
 }
+
+sub is_tool
+{
+	my( $self ) = @_;
+
+	return 0;
+}
+
 
 sub is_feed
 {

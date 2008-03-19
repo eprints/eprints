@@ -346,6 +346,7 @@ sub render_export_bar
 	}
 
 	my $feeds = $session->make_doc_fragment;
+	my $tools = $session->make_doc_fragment;
 	my $options = {};
 	foreach my $plugin_id ( @plugins ) 
 	{
@@ -353,13 +354,15 @@ sub render_export_bar
 		my $id = $1;
 		my $plugin = $session->plugin( $plugin_id );
 		my $dom_name = $plugin->render_name;
-		if( $plugin->is_feed )
+		if( $plugin->is_feed || $plugin->is_tool )
 		{
-			my $span = $session->make_element( "span", class=>"ep_search_feed" );
+			my $type = "feed";
+			$type = "tool" if( $plugin->is_tool );
+			my $span = $session->make_element( "span", class=>"ep_search_$type" );
 			my $url = $self->export_url( $id );
 			my $a1 = $session->render_link( $url );
 			my $imagesurl = $session->get_repository->get_conf( "rel_path" );
-			my $icon = $session->make_element( "img", src=>"$imagesurl/style/images/feed-icon-14x14.png", alt=>"[feed]", border=>0 );
+			my $icon = $session->make_element( "img", src=>"$imagesurl/style/images/".$plugin->icon, alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
 			my $a2 = $session->render_link( $url );
 			$a2->appendChild( $dom_name );
@@ -367,8 +370,16 @@ sub render_export_bar
 			$span->appendChild( $session->make_text( " " ) );
 			$span->appendChild( $a2 );
 
-			$feeds->appendChild( $session->make_text( " " ) );
-			$feeds->appendChild( $span );
+			if( $type eq "tool" )
+			{
+				$tools->appendChild( $session->make_text( " " ) );
+				$tools->appendChild( $span );	
+			}
+			if( $type eq "feed" )
+			{
+				$feeds->appendChild( $session->make_text( " " ) );
+				$feeds->appendChild( $span );	
+			}
 		}
 		else
 		{
@@ -377,6 +388,7 @@ sub render_export_bar
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}
 	}
+
 	my $select = $session->make_element( "select", name=>"output" );
 	foreach my $optname ( sort keys %{$options} )
 	{
@@ -398,10 +410,12 @@ sub render_export_bar
 	my $form = $self->{session}->render_form( "GET" );
 	$form->appendChild( $session->html_phrase( "lib/searchexpression:export_section",
 					feeds => $feeds,
+					tools => $tools,
 					count => $session->make_text( 
 						$self->{processor}->{results}->count ),
 					menu => $select,
 					button => $button ));
+
 	return $form;
 }
 

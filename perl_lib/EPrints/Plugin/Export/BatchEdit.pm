@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::BatchEdit;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::Tool;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::Tool" );
 
 use strict;
 
