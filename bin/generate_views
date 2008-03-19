@@ -229,7 +229,7 @@ sub update_view_by_path
 	if( !defined $sizes && $opts{do_lists} )
 	{
 		# is a leaf node
-		my @leaf_files = EPrints::Update::Views::update_view_page( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
+		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
 		foreach my $file ( @leaf_files )
 		{
 			print "Wrote: $file\n" if( $noise > 1 );

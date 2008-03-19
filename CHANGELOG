@@ -7088,3 +7088,11 @@ PACKAGE: 2.2.99.2
 
 2008-03-19 cjg
  * Fixed bug in Database.pm caused by re-use of variable name in a loop.
+
+2008-03-19 cjg
+ * Cleanup of new view code, now titles in views look OK and everything is
+    phrased and css'ed etc. Fixing #3266, #3267, #3268
+ * Views regenerate if they are older than a set age. Fixing #3265
+ * Fixed typo in generate_views.
+ * Removed debug code.
+

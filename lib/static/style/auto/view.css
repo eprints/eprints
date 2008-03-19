@@ -20,3 +20,18 @@
 .ep_view_blurb {
 	margin-top: 20px;
 }
+
+.ep_view_group_by_current {
+	font-weight: bold;
+}
+
+.ep_view_group_by {
+	border-top: 1px solid rgb(216, 219, 239); 
+	border-bottom: 1px solid rgb(216, 219, 239);
+	text-align: center;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	margin-bottom: 0.75em;
+	margin-top: 0.25em;
+}
