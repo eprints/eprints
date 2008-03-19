@@ -77,6 +77,7 @@ my $purge = 1;
 my $help = 0;
 my $man = 0;
 my $single = 0;
+my $unset = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -86,6 +87,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'single' => \$single,
+	'unset' => \$unset,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -122,6 +124,11 @@ my $is_volatile = $dataset->get_field( $field_name )->{ "volatile" };
 my $fn = sub {
 	my( $session, $dataset, $eprint, $ctx ) = @_;
 
+	if( $unset && $eprint->exists_and_set( "gscholar" ) )
+	{
+		return;
+	}
+
 	print "Updating ".$dataset->confid.".".$eprint->get_id."\n";
 
 	my $cite_data = GScholar::get_cites( $session, $eprint );
@@ -155,6 +162,9 @@ my $fn = sub {
 };
 
 $list->map( $fn );
+
+undef $list;
+undef $searchexp;
 
 $session->terminate();
 exit;
