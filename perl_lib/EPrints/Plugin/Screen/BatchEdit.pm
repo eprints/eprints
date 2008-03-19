@@ -296,6 +296,7 @@ sub render_changes_form
 
 	foreach my $field ($self->get_fields( $dataset ))
 	{
+		$field = $field->clone;
 		my @options;
 		if( $field->get_property( "multiple" ) )
 		{
@@ -323,10 +324,9 @@ sub render_changes_form
 		}
 		else
 		{
-			my %cfield = %$field;
-			delete $cfield{"multiple"};
-			$cfield{sub_name} = $cfield{name};
-			push @{$custom_field->{fields}}, \%cfield;
+			delete $field->{"multiple"};
+			$field->{sub_name} = $field->{name};
+			push @{$custom_field->{fields}}, $field;
 		}
 
 		$custom_field = $self->custom_field_to_field( $dataset, $custom_field );
