@@ -69,5 +69,57 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub render_xml_schema
+{
+	my( $self, $session ) = @_;
+
+	my $element = $session->make_element( "xs:element", name => $self->get_name );
+
+	if( $self->get_property( "multiple" ) )
+	{
+		my $complexType = $session->make_element( "xs:complexType" );
+		$element->appendChild( $complexType );
+		my $sequence = $session->make_element( "xs:sequence" );
+		$complexType->appendChild( $sequence );
+		my $item = $session->make_element( "xs:element", name => "file", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
+		$sequence->appendChild( $item );
+	}
+	else
+	{
+		$element->setAttribute( type => $self->get_xml_schema_type() );
+	}
+
+	return $element;
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+
+	my $all = $session->make_element( "xs:all", minOccurs => "0" );
+	$type->appendChild( $all );
+	foreach my $part ( qw/ filename filesize url / )
+	{
+		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string" );
+		$all->appendChild( $element );
+	}
+	{
+		my $element = $session->make_element( "xs:element", name => "data" );
+		$all->appendChild( $element );
+		my $complexType = $session->make_element( "xs:complexType" );
+		$element->appendChild( $complexType );
+		my $simpleContent = $session->make_element( "xs:simpleContent" );
+		$complexType->appendChild( $simpleContent );
+		my $extension = $session->make_element( "xs:extension", base => "xs:base64Binary" );
+		$simpleContent->appendChild( $extension );
+		my $attribute = $session->make_element( "xs:attribute", name => "href", type => "xs:anyURI" );
+		$extension->appendChild( $attribute );
+	}
+
+	return $type;
+}
+
 ######################################################################
 1;

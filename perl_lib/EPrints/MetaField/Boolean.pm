@@ -250,5 +250,22 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+
+	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	$type->appendChild( $restriction );
+	foreach my $value (@{$self->get_unsorted_values})
+	{
+		my $enumeration = $session->make_element( "xs:enumeration", value => $value );
+		$restriction->appendChild( $enumeration );
+	}
+
+	return $type;
+}
+
 ######################################################################
 1;

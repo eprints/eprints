@@ -75,5 +75,17 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub get_xml_schema_type
+{
+	return "xs:double";
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	return $session->make_doc_fragment;
+}
+
 ######################################################################
 1;

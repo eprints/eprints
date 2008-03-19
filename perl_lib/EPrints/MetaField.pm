@@ -1874,6 +1874,49 @@ sub to_xml_old_single
 
 ########## end of old XML
 
+sub render_xml_schema
+{
+	my( $self, $session ) = @_;
+
+	my $element = $session->make_element( "xs:element", name => $self->get_name );
+
+	if( $self->get_property( "multiple" ) )
+	{
+		my $complexType = $session->make_element( "xs:complexType" );
+		$element->appendChild( $complexType );
+		my $sequence = $session->make_element( "xs:sequence" );
+		$complexType->appendChild( $sequence );
+		my $item = $session->make_element( "xs:element", name => "item", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
+		$sequence->appendChild( $item );
+	}
+	else
+	{
+		$element->setAttribute( type => $self->get_xml_schema_type() );
+	}
+
+	return $element;
+}
+
+sub get_xml_schema_type
+{
+	my( $self ) = @_;
+
+	return $self->get_property( "type" );
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+
+	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	$type->appendChild( $restriction );
+	my $length = $session->make_element( "xs:maxLength", value => $self->get_max_input_size );
+	$restriction->appendChild( $length );
+
+	return $type;
+}
 
 sub render_search_input
 {

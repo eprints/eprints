@@ -623,6 +623,23 @@ sub to_xml_basic
 	return $r;
 }
 
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+
+	my $all = $session->make_element( "xs:all", minOccurs => "0" );
+	$type->appendChild( $all );
+	foreach my $part ( qw/ family given honourific lineage / )
+	{
+		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string" );
+		$all->appendChild( $element );
+	}
+
+	return $type;
+}
+
 
 
 ######################################################################

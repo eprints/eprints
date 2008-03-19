@@ -397,6 +397,31 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub get_xml_schema_type
+{
+	my( $self ) = @_;
+
+	return $self->get_property( "type" ) . "_" . $self->{dataset}->confid . "_" . $self->get_name;
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+
+	my $sequence = $session->make_element( "xs:sequence" );
+	$type->appendChild( $sequence );
+	foreach my $field (@{$self->{fields_cache}})
+	{
+		my $name = $field->{sub_name};
+		my $element = $session->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type() );
+		$sequence->appendChild( $element );
+	}
+
+	return $type;
+}
+
 ######################################################################
 
 ######################################################################

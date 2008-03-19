@@ -545,5 +545,19 @@ sub get_resolution
 
 sub should_reverse_order { return 1; }
 
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+
+	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	$type->appendChild( $restriction );
+	my $pattern = $session->make_element( "xs:pattern", value => "([0-9]{4}-[0-9]{2}-[0-9]{2})|([0-9]{4}-[0-9]{2})|([0-9]{4})" );
+	$restriction->appendChild( $pattern );
+
+	return $type;
+}
+
 ######################################################################
 1;

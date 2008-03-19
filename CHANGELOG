@@ -7075,3 +7075,6 @@ PACKAGE: 2.2.99.2
  * Alpha batch-editing plug-in
  * Allow UNSPECIFIED to be overridden in Compound fields
 
+2008-03-19 tdb
+ * Added XML Schema export for the EPrints database schema
+

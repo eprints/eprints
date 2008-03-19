@@ -346,6 +346,7 @@ sub get_perl_struct
 		next if
 			$field->get_name eq "metafieldid" or
 			$field->get_name eq "mfdatasetid" or
+			$field->get_name eq "mfdatestamp" or
 			$field->get_name eq "mfstatus" or
 			$field->get_name eq "phrase_name" or
 			$field->get_name eq "phrase_help"
@@ -367,6 +368,12 @@ sub get_perl_struct
 			next if !$field->is_type( "boolean" ) or !defined $value;
 			$_->{$name} = $BOOLEAN{$value};
 		}
+	}
+
+	# Fix for document.main (options => [])
+	if( $data->{type} eq "set" && !defined $data->{options} )
+	{
+		$data->{options} = "";
 	}
 
 	# Split options text
@@ -527,7 +534,7 @@ sub get_warnings
 
 sub get_valid_datasets
 {
-	qw( document eprint user );
+	qw( document eprint user saved_search );
 }
 
 sub get_config_path
@@ -1197,6 +1204,59 @@ sub destroy_field
 	}
 
 	return $ok;
+}
+
+sub get_field
+{
+	my( $self, $session ) = @_;
+
+	my $datasetid = $self->get_value( "mfdatasetid" );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+
+	my $fielddata = $self->get_perl_struct();
+
+	my @cfields;
+	if( $fielddata->{type} eq "compound" )
+	{	
+		@cfields = @{$fielddata->{fields}};
+	}
+	if( $fielddata->{type} eq "multilang" )
+	{	
+		my $langs = $self->{repository}->get_conf('languages');
+		if( defined $fielddata->{languages} )
+		{
+			$langs = $fielddata->{languages};
+		}
+		@cfields = (
+			@{$fielddata->{fields}},
+			{ 
+				sub_name=>"lang",
+				type=>"langid",
+				options => $langs,
+			}, 
+		);
+	}
+		
+	if( scalar @cfields )
+	{	
+		$fielddata->{fields_cache} = [];
+		foreach my $inner_field ( @cfields )
+		{
+			my $field = EPrints::MetaField->new( 
+				parent_name => $fielddata->{name},
+				show_in_html => 0,
+				dataset => $dataset, 
+				multiple => $fielddata->{multiple},
+				%{$inner_field} );	
+			push @{$fielddata->{fields_cache}}, $field;
+		}
+	}
+
+	my $field = EPrints::MetaField->new( 
+		dataset => $dataset, 
+		%{$fielddata} );	
+
+	return $field;
 }
 
 1;

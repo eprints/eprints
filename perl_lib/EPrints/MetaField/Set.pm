@@ -517,5 +517,41 @@ sub get_property_defaults
 	return %defaults;
 }
 
+sub get_xml_schema_type
+{
+	my( $self ) = @_;
+
+	if( scalar @{$self->{options}||[]} )
+	{
+		return $self->get_property( "type" ) . "_" . $self->{dataset}->confid . "_" . $self->get_name;
+	}
+	else
+	{
+		return "xs:string";
+	}
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	if( !scalar @{$self->{options}||[]} )
+	{
+		return $session->make_doc_fragment;
+	}
+
+	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+
+	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	$type->appendChild( $restriction );
+	foreach my $value (@{$self->{options}})
+	{
+		my $enumeration = $session->make_element( "xs:enumeration", value => $value );
+		$restriction->appendChild( $enumeration );
+	}
+
+	return $type;
+}
+
 ######################################################################
 1;

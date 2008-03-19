@@ -54,5 +54,17 @@ sub render_single_value
 	return $a;
 }
 
+sub get_xml_schema_type
+{
+	return "xs:anyURI";
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	return $session->make_doc_fragment;
+}
+
 ######################################################################
 1;
