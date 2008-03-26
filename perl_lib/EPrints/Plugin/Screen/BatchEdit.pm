@@ -111,6 +111,11 @@ sub action_edit
 	my $session = $processor->{session};
 
 	my $searchexp = $self->get_searchexp;
+	if( !$searchexp )
+	{
+		return;
+	}
+
 	my $list = $searchexp->perform_search;
 
 	my $dataset = $searchexp->get_dataset;
@@ -131,6 +136,18 @@ sub action_edit
 			{
 				$object->set_value( $fieldname,
 					$field->get_property( "multiple" ) ? [] : undef );
+			}
+			elsif( $action eq "delete" )
+			{
+				if( $field->get_property( "multiple" ) )
+				{
+					my $values = $object->get_value( $fieldname );
+					@$values = grep { cmp_deeply($value, $_) != 0 } @$values;
+					$object->set_value( $fieldname, $values );
+				}
+				else
+				{
+				}
 			}
 			elsif( $action eq "replace" )
 			{
@@ -213,8 +230,19 @@ sub render
 	$p = $session->make_element( "p" );
 	$page->appendChild( $p );
 	$p->appendChild( $session->make_text(
-		"Applying batch alterations to " . $list->count . " items"
+		"Applying batch alterations to " . $list->count . " items (first 5 shown):"
 	) );
+
+	my $ul = $session->make_element( "ul" );
+	$p->appendChild( $ul );
+
+	my @eprints = $list->get_records( 0, 5 );
+	foreach my $eprint (@eprints)
+	{
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+		$li->appendChild( $eprint->render_citation_link( ) );
+	}
 
 	$page->appendChild( $self->render_changes_form( $searchexp ) );
 
@@ -300,7 +328,7 @@ sub render_changes_form
 		my @options;
 		if( $field->get_property( "multiple" ) )
 		{
-			@options = qw( clear insert append );
+			@options = qw( clear delete insert append );
 		}
 		else
 		{
@@ -382,6 +410,42 @@ sub custom_field_to_field
 	);
 
 	return $field;
+}
+
+sub cmp_deeply
+{
+	my( $var_a, $var_b ) = @_;
+
+	if( !EPrints::Utils::is_set($var_a) )
+	{
+		return 0;
+	}
+	elsif( !EPrints::Utils::is_set($var_b) )
+	{
+		return -1;
+	}
+
+	my $rc = 0;
+
+	$rc ||= ref($var_a) cmp ref($var_b);
+	$rc ||= _cmp_hash($var_a, $var_b) if( ref($var_a) eq "HASH" );
+	$rc ||= $var_a cmp $var_b if( ref($var_a) eq "" );
+
+	return $rc;
+}
+
+sub _cmp_hash
+{
+	my( $var_a, $var_b ) = @_;
+
+	my $rc = 0;
+
+	for(keys %$var_a)
+	{
+		$rc ||= cmp_deeply( $var_a->{$_}, $var_b->{$_} );
+	}
+
+	return $rc;
 }
 
 1;
