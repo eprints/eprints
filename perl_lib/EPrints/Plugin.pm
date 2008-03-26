@@ -48,8 +48,11 @@ sub new
 	my $self = EPrints::Utils::clone( \%params );
 	bless $self, $class;
 
-	$self->{id} = $class;
-	$self->{id} =~ s/^EPrints::Plugin:://;
+	if( !defined $self->{id} )
+	{
+		$self->{id} = $class;
+		$self->{id} =~ s/^EPrints::Plugin:://;
+	}
 	#$self->{id} =~ s/^EPrints::LocalPlugin::([^:]*):://;
 
 	return $self;

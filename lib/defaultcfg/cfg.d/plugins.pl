@@ -43,3 +43,14 @@
 # $c->{plugins}->{"Export::BibTeX"}->{params}->{advertise} = 0;
 
 
+# Plugin Mapping
+
+# The following would make the repository use the LocalDC export plugin
+# anytime anything asks for the DC plugin - this is a handy way to override
+# the behaviour without hacking the existing plugin. 
+# $c->{plugin_alias_map}->{"Export::DC"} = "Export::LocalDC";
+# This line just means that the LocalDC plugin doesn't appear in addition
+# as that would be confusing. 
+# $c->{plugin_alias_map}->{"Export::LocalDC"} = undef;
+        
+

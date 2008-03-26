@@ -7119,3 +7119,7 @@ PACKAGE: 2.2.99.2
  * Added a missing phrase for the mf dataset.
  * Shifted some phrase files to the system phrase dir from the repository
     phrase dir.
+
+2008-03-26 cjg
+ * Added feature to allow one plugin to mask another. Fixing #3196.
+

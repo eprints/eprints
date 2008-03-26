@@ -3478,6 +3478,14 @@ sub plugin
 {
 	my( $self, $pluginid, %params ) = @_;
 
+	my $map = $self->get_repository->get_conf( "plugin_alias_map" );
+	if( defined $map && exists $map->{$pluginid} )
+	{
+		$params{id} = $pluginid;
+		$pluginid = $map->{$pluginid};
+	}
+	return if !defined $pluginid;
+
 	my $class = $EPrints::Plugin::REGISTRY->{$pluginid};
 
 	if( !defined $class )
