@@ -248,6 +248,7 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:help_url">Enter some text to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_year">Enter a single year (e.g. 1999), or a range of years, e.g. `1990-2000', `1990-' or -2000'.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_int">Enter a single number (e.g. 93), or a range of numbers, e.g. `17-23', `17-' or -23'.</epp:phrase>
+    <epp:phrase id="lib/searchfield:help_float">Enter a single number (e.g. 3.14159), or a range of numbers, e.g. `4.8-15', `16-' or -23.42'.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_itemref">Select a single record ID number (e.g. 93), or a range of numbers, e.g. `17-23', `17-' or -23'.</epp:phrase>
     <epp:phrase id="lib/searchfield:bool_nopref">No Preference</epp:phrase>
     <epp:phrase id="lib/searchfield:bool_yes">Yes</epp:phrase>
@@ -270,13 +271,17 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:desc_int_orless"><epc:pin name="to"/> or less</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_int_ormore"><epc:pin name="from"/> or more</epp:phrase>
 
+    <epp:phrase id="lib/searchfield:desc_float_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
+    <epp:phrase id="lib/searchfield:desc_float_orless"><epc:pin name="to"/> or less</epp:phrase>
+    <epp:phrase id="lib/searchfield:desc_float_ormore"><epc:pin name="from"/> or more</epp:phrase>
+
     <epp:phrase id="lib/searchfield:desc_date_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_date_orless"><epc:pin name="to"/> or before</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_date_ormore"><epc:pin name="from"/> or after</epp:phrase>
 
-	<epp:phrase id="lib/searchfield:desc_itemref_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-	<epp:phrase id="lib/searchfield:desc_itemref_orless"><epc:pin name="to"/> or less</epp:phrase>
-	<epp:phrase id="lib/searchfield:desc_itemref_ormore"><epc:pin name="from"/> or more</epp:phrase>
+    <epp:phrase id="lib/searchfield:desc_itemref_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
+    <epp:phrase id="lib/searchfield:desc_itemref_orless"><epc:pin name="to"/> or less</epp:phrase>
+    <epp:phrase id="lib/searchfield:desc_itemref_ormore"><epc:pin name="from"/> or more</epp:phrase>
 
     <epp:phrase id="lib/searchfield:desc_ignored"> (Ignoring: <epc:pin name="list"/>)</epp:phrase>
 

@@ -7123,3 +7123,8 @@ PACKAGE: 2.2.99.2
 2008-03-26 cjg
  * Added feature to allow one plugin to mask another. Fixing #3196.
 
+2008-03-26 cjg
+ * Float now subclasses int and both are of search group "number"
+ * Int will accept numbers with a decimal point, so that floats and ints
+    can be mixed. 
+ * Floats can now be searched. Closing #3314.

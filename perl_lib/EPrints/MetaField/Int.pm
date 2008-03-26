@@ -100,7 +100,9 @@ sub from_search_form
 	my $val = $session->param( $prefix );
 	return unless defined $val;
 
-	if( $val =~ m/^(\d+)?\-?(\d+)?/ )
+	my $number = '[0-9]+\.?[0-9]*';
+
+	if( $val =~ m/^($number)?\-?($number)?/ )
 	{
 		return( $val );
 	}
@@ -114,7 +116,9 @@ sub render_search_value
 
 	my $type = $self->get_type;
 
-	if( $value =~ m/^([0-9]+)-([0-9]+)$/ )
+	my $number = '[0-9]+\.?[0-9]*';
+
+	if( $value =~ m/^($number)-($number)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_between",
@@ -122,14 +126,14 @@ sub render_search_value
 			to => $session->make_text( $2 ) );
 	}
 
-	if( $value =~ m/^-([0-9]+)$/ )
+	if( $value =~ m/^-($number)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_orless",
 			to => $session->make_text( $1 ) );
 	}
 
-	if( $value =~ m/^([0-9]+)-$/ )
+	if( $value =~ m/^($number)-$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_ormore",
@@ -149,7 +153,9 @@ sub get_search_conditions_not_ex
 	# -N
 	# N-N
 
-	if( $search_value =~ m/^\d+$/ )
+	my $number = '[0-9]+\.?[0-9]*';
+
+	if( $search_value =~ m/^$number$/ )
 	{
 		return EPrints::Search::Condition->new( 
 			'=', 
@@ -158,7 +164,7 @@ sub get_search_conditions_not_ex
 			$search_value );
 	}
 
-	unless( $search_value=~ m/^(\d+)?\-(\d+)?$/ )
+	unless( $search_value=~ m/^($number)?\-($number)?$/ )
 	{
 		return EPrints::Search::Condition->new( 'FALSE' );
 	}
@@ -191,7 +197,7 @@ sub get_search_conditions_not_ex
 	return EPrints::Search::Condition->new( "AND", @r );
 }
 
-sub get_search_group { return 'int'; } 
+sub get_search_group { return 'number'; } 
 
 sub get_property_defaults
 {

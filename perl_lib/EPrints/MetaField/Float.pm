@@ -35,10 +35,10 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField );
+	@ISA = qw( EPrints::MetaField::Int );
 }
 
-use EPrints::MetaField;
+use EPrints::MetaField::Int;
 
 # does not yet support searching.
 
@@ -64,8 +64,6 @@ sub ordervalue_basic
 
 	return sprintf( "%020f", $value );
 }
-
-sub get_search_group { return 'float'; } 
 
 sub get_property_defaults
 {
