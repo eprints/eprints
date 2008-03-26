@@ -30,7 +30,7 @@ $c->{user_roles}->{editor} = [qw/
 	staff-view
 /],
 
-$c->{user_roles}->{admin} = [qw/
+$c->{user_roles}->{admin} = [qw{
 	general
 	edit-own-record
 	saved-searches
@@ -41,7 +41,8 @@ $c->{user_roles}->{admin} = [qw/
 	view-status
 	staff-view
 	admin
-/],
+	edit-config
+}],
 
 $c->{user_roles}->{minuser} = [qw/
 	general
