@@ -18,6 +18,7 @@ Phrases related to the Manage Metadata Fields tool.
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_document">document</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_eprint">eprint</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_user">user</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_saved_search">saved_search</epp:phrase>
 
 	<epp:phrase id="metafield_compound_stylesheet"><style>
 .ep_blister_bar { margin: 0px; }

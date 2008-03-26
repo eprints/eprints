@@ -7114,3 +7114,8 @@ PACKAGE: 2.2.99.2
     types. Closing #3283 and #3284
  * Corrected text in epadmin to remind people that thumbnails can be other 
     stuff too.
+
+2008-03-26 cjg 
+ * Added a missing phrase for the mf dataset.
+ * Shifted some phrase files to the system phrase dir from the repository
+    phrase dir.
