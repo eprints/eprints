@@ -152,6 +152,7 @@ use EPrints::URL;
 use EPrints::Paracite;
 use EPrints::Update::Static;
 use EPrints::Update::Views;
+use EPrints::Update::Abstract;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::Workflow::Processor;

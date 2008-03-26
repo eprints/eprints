@@ -353,7 +353,8 @@ sub create_from_data
 	);
 	$new_eprint->write_revision;
 
-	$new_eprint->generate_static;
+	# No longer needed - generates on demand.
+	# $new_eprint->generate_static;
 
 	return $new_eprint;
 }
@@ -917,7 +918,7 @@ sub commit
 		{
 			$self->write_revision;
 		}
-		$self->generate_static;
+		$self->remove_static;
 	}
 
 	$self->queue_changes;

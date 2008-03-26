@@ -167,33 +167,9 @@ sub handler
 			
 			return OK;
 		}
-		
-		my $file = $repository->get_conf( "variables_path" )."/abstracts.timestamp";	
-		if( -e $file )
-		{
-			my $poketime = (stat( $file ))[9];
-			my $localpath = $uri;
-			$localpath.="index.html" if( $uri =~ m#/$# );
-			my $targetfile = $repository->get_conf( "htdocs_path" )."/".$lang.$localpath;
-			if( -e $targetfile )
-			{
-				my $targettime = (stat( $targetfile ))[9];
-				if( $targettime < $poketime )
-				{
-					# There is an abstracts file, AND we're looking
-					# at serving an abstract page, AND the abstracts timestamp
-					# file is newer than the abstracts page...
-					# so try and regenerate the abstracts page.
-					my $session = new EPrints::Session(2); # don't open the CGI info
-					my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-					if( defined $eprint )
-					{
-						$eprint->generate_static;
-					}
-					$session->terminate;
-				}
-			}
-		}
+	
+		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
+		EPrints::Update::Abstract::update( $repository, $lang, $eprintid, $uri );
 	}
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves

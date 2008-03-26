@@ -7096,3 +7096,12 @@ PACKAGE: 2.2.99.2
  * Fixed typo in generate_views.
  * Removed debug code.
 
+2008-03-26 cjg
+ * Moved auto-regeneration of abstract pages to its own new module.
+ * Abstract pages now regenerate if they don't exist OR are older than
+    the regen file.
+ * Creating and importing eprints now does not generate abstracts at that 
+    time.
+ * Commiting an eprint just removes the current abstract page (if any) but 
+    does not bother to generate a new one.
+
