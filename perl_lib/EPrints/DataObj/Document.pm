@@ -1683,7 +1683,14 @@ sub make_thumbnails
 	
 	my $tgtdir = $self->thumbnail_path;
 
-	foreach my $size ( qw/ small medium preview / )
+	my @list = qw/ small medium preview /;
+
+	if( $self->{session}->get_repository->can_call( "thumbnail_types" ) )
+	{
+		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
+	}
+
+	foreach my $size ( @list )
 	{
 		my $tgt = "$tgtdir/".$self->get_id.".".$size.".png";
 
@@ -1704,6 +1711,11 @@ sub make_thumbnails
 
 		# make a thumbnail
 		$plugin->export( $tgtdir, $self, 'thumbnail_'.$size );
+	}
+
+	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )
+	{
+		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
 	}
 }
 

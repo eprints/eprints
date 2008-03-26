@@ -80,7 +80,7 @@ Tell the webserver that all abstract summary pages must be regenerated. The webs
 
 =item B<epadmin> redo_thumbnails I<repository_id> 
 
-Regenerate all the thumbnail and image-preview files.
+Regenerate all the thumbnail and image-preview files and any other things which are triggered if the document file changed.
 
 =item B<epadmin> erase_data I<repository_id>
 
@@ -962,7 +962,7 @@ sub redo_thumbnails
 
 			if( $noise >= 2 )
 			{
-				print "Attempting to build thumbnails for document #".$doc->get_id."\n";
+				print "Attempting to build thumbnails (and other auto-conversions) for document #".$doc->get_id."\n";
 			}
 
 			$doc->remove_thumbnails; #ouch!

@@ -7107,3 +7107,10 @@ PACKAGE: 2.2.99.2
 
 2008-03-26 cjg
  * Added edit-config to admin role.
+
+2008-03-26 cjg 
+ * Added new hooks: on_generate_thumbnails and thumbnail_types to allow a
+    trigger when thumbnails are generated and to add (or remove) thumbnail
+    types. Closing #3283 and #3284
+ * Corrected text in epadmin to remind people that thumbnails can be other 
+    stuff too.
