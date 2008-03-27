@@ -62,7 +62,7 @@ sub _read_components
 			{
 				EPrints::abort( "ID did not get set in component" );
 			}
-			$params{id} = $id;
+			$params{prefix} = $id;
 			
 
 			# Grab any values inside
