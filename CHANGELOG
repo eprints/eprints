@@ -7140,4 +7140,6 @@ PACKAGE: 2.2.99.2
     source object identifier respectively
  * Added import dataset for storing imported collections (alpha)
  * Moved database schema into a separate Admin screen "Database Schema"
+ * Added has_dataset and has_counter methods to Database
+ * Fixed has_table and has_column for MySQL
 

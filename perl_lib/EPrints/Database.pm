@@ -1559,6 +1559,23 @@ sub create_counters
 ######################################################################
 =pod
 
+=item $success = $db->has_counter( $counter )
+
+Returns true if $counter exists.
+
+=cut
+######################################################################
+
+sub has_counter
+{
+	my( $self, $name ) = @_;
+
+	return $self->has_sequence( $name . "_seq" );
+}
+
+######################################################################
+=pod
+
 =item $success = $db->create_counter( $name )
 
 Create and initialise to zero a new counter called $name.
@@ -3047,6 +3064,27 @@ sub execute
 ######################################################################
 =pod
 
+=item $db->has_dataset( $dataset )
+
+Returns true if $dataset exists in the database or has no database tables.
+
+This does not check that all fields are configured - see has_field().
+
+=cut
+######################################################################
+
+sub has_dataset
+{
+	my( $self, $dataset ) = @_;
+
+	my $table = $dataset->get_sql_table_name;
+
+	return $self->has_table( $table );
+}
+
+######################################################################
+=pod
+
 =item $db->has_field( $dataset, $field )
 
 Returns true if $field is in the database for $dataset.
@@ -3063,10 +3101,13 @@ sub has_field
 	# If this field is virtual and has sub-fields, check them
 	if( $field->is_virtual )
 	{
-		my $sub_fields = $field->get_property( "fields_cache" );
-		foreach my $sub_field (@$sub_fields)
+		if( $field->is_type( "compound", "multilang" ) )
 		{
-			$rc &&= $self->has_field( $dataset, $sub_field );
+			my $sub_fields = $field->get_property( "fields_cache" );
+			foreach my $sub_field (@$sub_fields)
+			{
+				$rc &&= $self->has_field( $dataset, $sub_field );
+			}
 		}
 	}
 	else # Check the field itself
@@ -3116,22 +3157,26 @@ sub add_field
 {
 	my( $self, $dataset, $field ) = @_;
 
+	my $rc = 1;
+
 	# If this field is virtual and has sub-fields, add them
 	if( $field->is_virtual )
 	{
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
 		{
-			$self->add_field( $dataset, $sub_field );
+			$rc &&= $self->add_field( $dataset, $sub_field );
 		}
 	}
 	else # Add the field itself to the metadata table
 	{
-		$self->_add_field( $dataset, $field );
+		$rc &&= $self->_add_field( $dataset, $field );
 	}
 
 	# Add the field to order values (used to order search results)
-	$self->_add_field_ordervalues( $dataset, $field );
+	$rc &&= $self->_add_field_ordervalues( $dataset, $field );
+
+	return $rc;
 }
 
 # Split a sql type definition into its constituant columns
@@ -3172,10 +3217,14 @@ sub _add_field_ordervalues
 {
 	my( $self, $dataset, $field ) = @_;
 
+	my $rc = 1;
+
 	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
 	{
-		$self->_add_field_ordervalues_lang( $dataset, $field, $langid );
+		$rc &&= $self->_add_field_ordervalues_lang( $dataset, $field, $langid );
 	}
+
+	return $rc;
 }
 
 # Add the field to the ordervalues table for $langid
@@ -3502,7 +3551,7 @@ sub has_column
 	my $rc = 0;
 
 	my $sth = $self->{dbh}->column_info( '%', '%', $table, $column );
-	while(my $row = $sth->fetch)
+	while(!$rc && (my $row = $sth->fetch))
 	{
 		my $column_name = $row->[$sth->{NAME_lc_hash}{column_name}];
 		$rc = 1 if $column_name eq $column;

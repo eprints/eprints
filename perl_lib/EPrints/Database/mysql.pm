@@ -118,6 +118,77 @@ sub create_counters
 	return $rc;
 }
 
+######################################################################
+=pod
+
+=item $boolean = $db->has_table( $tablename )
+
+Return true if the a table of the given name exists in the database.
+
+=cut
+######################################################################
+
+sub has_table
+{
+	my( $self, $tablename ) = @_;
+
+	my $sth = $self->prepare("SHOW TABLES LIKE ".$self->quote_value($tablename));
+	$sth->execute;
+	my $rc = defined $sth->fetch ? 1 : 0;
+	$sth->finish;
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $db->has_column( $tablename, $columnname )
+
+Return true if the a table of the given name has a column named $columnname in the database.
+
+=cut
+######################################################################
+
+sub has_column
+{
+	my( $self, $table, $column ) = @_;
+
+	my $rc = 0;
+
+	my $sth = $self->{dbh}->column_info( undef, undef, $table, '%' );
+	while(!$rc && (my $row = $sth->fetch))
+	{
+		my $column_name = $row->[$sth->{NAME_lc_hash}{column_name}];
+		$rc = 1 if $column_name eq $column;
+	}
+	$sth->finish;
+
+	return $rc;
+}
+
+######################################################################
+=pod
+
+=item $success = $db->has_counter( $counter )
+
+Returns true if $counter exists.
+
+=cut
+######################################################################
+
+sub has_counter
+{
+	my( $self, $name ) = @_;
+
+	my $sql = "SELECT 1 FROM `counters` WHERE `countername`=".$self->quote_value( $name );
+
+	my $sth = $self->prepare($sql);
+	$self->execute( $sth, $sql );
+
+	return defined $sth->fetch;
+}
+
 sub create_counter
 {
 	my( $self, $name ) = @_;
