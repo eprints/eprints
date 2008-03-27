@@ -1603,6 +1603,75 @@ sub upgrade
 	$session->terminate;
 }
 
+# This will check for any missing datasets or fields and add them
+sub upgrade_datasets
+{
+	my( $repo, $db ) = @_;
+
+	my $success = 1;
+
+	foreach( &EPrints::DataSet::get_sql_dataset_ids )
+	{
+		my $dataset = $repo->get_dataset( $_ );
+		if( !$db->has_dataset( $dataset ) )
+		{
+			if( $db->create_dataset_tables( $dataset ) )
+			{
+				print "Added dataset $_\n" if $noise;
+			}
+			else
+			{
+				$success = 0;
+				print STDERR "Failed adding dataset $_\n";
+			}
+			next;
+		}
+		foreach my $field ($dataset->get_fields)
+		{
+			if( !$db->has_field( $dataset, $field ) )
+			{
+				if( $db->add_field( $dataset, $field ) )
+				{
+					print "Added ".$field->get_name." to dataset $_\n" if $noise;
+				}
+				else
+				{
+					$success = 0;
+					print STDERR "Failed adding ".$field->get_name." to dataset $_\n";
+				}
+			}
+		}
+	}
+
+	return $success;
+}
+
+# This will check for any missing counters and add them
+sub upgrade_counters
+{
+	my( $repo, $db ) = @_;
+
+	my $success = 1;
+
+	foreach( @EPrints::Database::counters )
+	{
+		if( !$db->has_counter( $_ ) )
+		{
+			if( $db->create_counter( $_ ) )
+			{
+				print "Added counter $_\n" if $noise;
+			}
+			else
+			{
+				$success = 0;
+				print STDERR "Failed adding counter $_\n";
+			}
+		}
+	}
+
+	return $success;
+}
+
 sub upgrade_3_0_to_3_0_1
 {
 	my( $repoid, $db ) = @_;
@@ -1827,15 +1896,8 @@ sub upgrade_3_0_7_to_3_1_0
 	$db->drop_table( "login_tickets" );
 	$db->drop_table( "cachemap" );
 
-	# new datasets
-	$db->create_dataset_tables( $repo->get_dataset( "message" ) );
-	$db->create_dataset_tables( $repo->get_dataset( "loginticket" ) );
-	$db->create_dataset_tables( $repo->get_dataset( "cachemap" ) );
-	$db->create_dataset_tables( $repo->get_dataset( "metafield" ) );
-
-	# new counters
-	$db->create_counter( "messageid" );
-	$db->create_counter( "cachemapid" );
+	upgrade_datasets( $repo, $db );
+	upgrade_counters( $repo, $db );
 }
 
 
