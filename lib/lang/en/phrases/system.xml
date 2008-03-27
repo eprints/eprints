@@ -525,6 +525,7 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/QA:title">QA</epp:phrase>
     <epp:phrase id="Plugin/Screen/FirstTool:title">No Tools Available</epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:description">Status information for this server.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/DatabaseSchema:description">Show the database schema.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:indexer_not_running">The full-text indexer is not currently running. You should start it to ensure full-text searching operates correctly. <epc:pin name="start_button" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:indexer_stalled">The full-text indexer appears to have stalled. You may need to force restart it to ensure full-text searching operates correctly. <epc:pin name="force_start_button" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/IndexerControl:action:force_start_indexer:title">Force Start Indexer</epp:phrase>
@@ -1109,6 +1110,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Review:list_desc">Items under review</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Status:title">Status</epp:phrase>
+    <epp:phrase id="Plugin/Screen/DatabaseSchema:title">Database Schema</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Error:title">Error</epp:phrase>
 

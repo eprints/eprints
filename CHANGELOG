@@ -7139,4 +7139,5 @@ PACKAGE: 2.2.99.2
  * Added importid and source_id fields to eprint for the import set and 
     source object identifier respectively
  * Added import dataset for storing imported collections (alpha)
+ * Moved database schema into a separate Admin screen "Database Schema"
 
