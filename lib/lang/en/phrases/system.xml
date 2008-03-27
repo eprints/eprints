@@ -980,6 +980,8 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldopt_eprint_status_deletion">Retired</epp:phrase>
     <epp:phrase id="eprint_fieldopt_eprint_status_archive">Live Archive</epp:phrase>
     <epp:phrase id="eprint_fieldname_userid">Depositing User</epp:phrase>
+	<epp:phrase id="eprint_fieldname_importid">Import Collection</epp:phrase>
+	<epp:phrase id="eprint_fieldname_source_id">Source Identifier</epp:phrase>
     <epp:phrase id="eprint_fieldname_dir">Directory</epp:phrase>
     <epp:phrase id="eprint_fieldname_datestamp">Date Deposited</epp:phrase>
     <epp:phrase id="eprint_fieldname_lastmod">Last Modified</epp:phrase>
