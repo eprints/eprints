@@ -7134,3 +7134,9 @@ PACKAGE: 2.2.99.2
     middle. Closes #3245.
  * Added an Extras render funcion to render the related URL field. Closes
     #3246.
+
+2008-03-27 tdb
+ * Added importid and source_id fields to eprint for the import set and 
+    source object identifier respectively
+ * Added import dataset for storing imported collections (alpha)
+

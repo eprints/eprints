@@ -534,7 +534,7 @@ sub get_warnings
 
 sub get_valid_datasets
 {
-	qw( document eprint user saved_search );
+	qw( document eprint user saved_search import );
 }
 
 sub get_config_path

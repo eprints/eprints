@@ -120,6 +120,7 @@ use EPrints::DataObj::Cachemap;
 use EPrints::DataObj::Document;
 use EPrints::DataObj::EPrint;
 use EPrints::DataObj::History;
+use EPrints::DataObj::Import;
 use EPrints::DataObj::LoginTicket;
 use EPrints::DataObj::Message;
 use EPrints::DataObj::MetaField;
