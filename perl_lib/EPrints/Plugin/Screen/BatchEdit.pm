@@ -118,6 +118,11 @@ sub action_edit
 
 	my $list = $searchexp->perform_search;
 
+	if( $list->count == 0 )
+	{
+		return;
+	}
+
 	my $dataset = $searchexp->get_dataset;
 
 	my %changes = $self->get_changes( $dataset );
@@ -222,6 +227,12 @@ sub render
 	}
 
 	my $list = $searchexp->perform_search;
+
+	if( $list->count == 0 )
+	{
+		$processor->add_message( "error", $session->html_phrase( "lib/searchexpression:noresults" ) );
+		return $page;
+	}
 
 	$p = $session->make_element( "p" );
 	$page->appendChild( $p );
