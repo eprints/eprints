@@ -7149,3 +7149,18 @@ PACKAGE: 2.2.99.2
  * Commented-out scroll-to code as it appears to be breaking in my 
     firefox (and scrolling to the top of the page) and that's worst than
     doing nothing.
+
+2008-03-27 cjg
+ * Added new document formats: RTF plus several for audio and archive 
+    formats (zip, tgz etc.) Closes #3106, #2919
+ * Added revised icons for all formats.
+ * Added new content field to documents core fields. Closes #3281
+ * Added new relation field to documents core fields.
+ * Added new relation field to eprint core fields.
+ * Added new contributors field to eprint config fields.
+ * Modified workflow to have place holders for new fields, and to actually
+    include document.content.
+ * Added named sets to support these new fields.
+ * Tweaked config so that thesis is now only defaulted to unpub, not forced.
+    Closes #3234
+

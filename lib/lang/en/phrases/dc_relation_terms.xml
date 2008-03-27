@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<!--
+
+The list of dc relations used by the relation field.
+
+-->
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isVersionOf">Is Version Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasVersion">Has Version</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isReplacedBy">Is Replaced By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/replaces">Replaces</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isRequiredBy">Is Required By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/requires">Requires</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isPartOf">Is Part Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasPart">Has Part</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isReferencedBy">Is Referenced By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/references">References</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isFormatOf">Is Format Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasFormat">Has Format</epp:phrase>
+
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isVersionOf">Is Version Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasVersion">Has Version</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isReplacedBy">Is Replaced By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/replaces">Replaces</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isRequiredBy">Is Required By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/requires">Requires</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isPartOf">Is Part Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasPart">Has Part</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isReferencedBy">Is Referenced By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/references">References</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isFormatOf">Is Format Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasFormat">Has Format</epp:phrase>
+
+
+
+</epp:phrases>

@@ -4,6 +4,7 @@ text/html
 application/pdf
 application/postscript
 text/plain
+application/rtf
 application/vnd.ms-powerpoint
 application/vnd.ms-excel
 application/msword
@@ -15,4 +16,13 @@ image/tiff
 video/mpeg
 video/quicktime
 video/x-msvideo
+text/xml
+application/bzip2
+application/x-compressed   # tgz
+application/zip
+audio/x-wav
+audio/mpeg
+audio/ogg
+audio/flac
+audio/x-ms-wma
 other

@@ -178,6 +178,20 @@ sub get_system_field_info
 
 	{ name=>"longitude", type=>"float", required=>0 },
 
+	{ name=>"relation", type=>"compound", multiple=>1,
+		fields => [
+			{
+				sub_name => "type",
+				type => "namedset",
+				set_name => "document_relation",
+			},
+			{
+				sub_name => "uri",
+				type => "text",
+			},
+		],
+	},
+
 	);
 }
 sub render_fileinfo

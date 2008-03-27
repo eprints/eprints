@@ -19,5 +19,15 @@
     <epp:phrase id="document_typename_video/quicktime">Video (QuickTime)</epp:phrase>
     <epp:phrase id="document_typename_video/x-msvideo">Video (AVI)</epp:phrase>
     <epp:phrase id="document_typename_other">Other</epp:phrase>
+    <epp:phrase id="document_typename_text/xml">XML</epp:phrase>
+    <epp:phrase id="document_typename_application/bzip2">Archive (BZ2)</epp:phrase>
+    <epp:phrase id="document_typename_application/x-compressed">Archive (TGZ)</epp:phrase>
+    <epp:phrase id="document_typename_application/zip">Archive (ZIP)</epp:phrase>
+    <epp:phrase id="document_typename_application/rtf">Rich Text (RTF)</epp:phrase>
+    <epp:phrase id="document_typename_audio/x-wav">Audio (WAV)</epp:phrase>
+    <epp:phrase id="document_typename_audio/mpeg">Audio (MP3)</epp:phrase>
+    <epp:phrase id="document_typename_audio/ogg">Audio (OGG)</epp:phrase>
+    <epp:phrase id="document_typename_audio/flac">Audio (FLAC)</epp:phrase>
+    <epp:phrase id="document_typename_audio/x-ms-wma">Audio (WMA)</epp:phrase>
 
 </epp:phrases>

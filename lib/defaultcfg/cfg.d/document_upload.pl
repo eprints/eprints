@@ -69,9 +69,14 @@ $c->{guess_doc_type} = sub
 		return "application/pdf" if $suffix eq "pdf";
 		return "application/postscript" if $suffix eq "ps";
 		return "text/plain" if $suffix eq "txt";
+		return "text/xml" if $suffix eq "xml";
 		return "application/vnd.ms-powerpoint" if $suffix eq "ppt";
+		return "application/vnd.ms-powerpoint" if $suffix eq "pptx";
 		return "application/vnd.ms-excel" if $suffix eq "xls";
+		return "application/vnd.ms-excel" if $suffix eq "xlsx";
 		return "application/msword" if $suffix eq "doc";
+		return "application/msword" if $suffix eq "docx";
+		return "application/rtf" if $suffix eq "rtf";
 		return "image/jpeg" if $suffix eq "jpg";
 		return "image/jpeg" if $suffix eq "jpeg";
 		return "image/png" if $suffix eq "png";
@@ -83,6 +88,15 @@ $c->{guess_doc_type} = sub
 		return "video/mpeg" if $suffix eq "mpeg";
 		return "video/quicktime" if $suffix eq "mov";
 		return "video/x-msvideo" if $suffix eq "avi";
+		return "application/bzip2" if $suffix eq "bz2";
+		return "application/x-compressed" if $suffix eq "gz";
+		return "application/x-compressed" if $suffix eq "tgz";
+		return "application/zip" if $suffix eq "zip";
+		return "audio/x-wav" if $suffix eq "wav";
+		return "audio/mpeg" if $suffix eq "mp3";
+		return "audio/ogg" if $suffix eq "ogg";
+		return "audio/flac" if $suffix eq "flac";
+		return "audio/x-ms-wma" if $suffix eq "wma";
 	}
 
 	return "other";

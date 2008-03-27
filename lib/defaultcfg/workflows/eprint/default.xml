@@ -16,11 +16,13 @@
   <stage name="files">
     <component type="XHTML"><epc:phrase ref="Plugin/InputForm/Component/Upload:help" /></component>
     <component type="Upload">
+      <field ref="content" />
       <field ref="format" />
       <field ref="formatdesc" />
       <field ref="security" />
       <field ref="license" />
       <field ref="date_embargo" />
+<!--  <field ref="relation" /> -->
 <!--  <field ref="language" /> --> 
     </component>
   </stage>
@@ -58,6 +60,10 @@
         <component><field ref="corp_creators"/></component>
       </epc:otherwise>
     </epc:choose>
+
+<!-- This field is much more complicated than creators, but hear if you need it.
+    <component><field ref="contributors" /></component>
+-->
 
     <epc:if test="type = 'exhibition'">
       <component collapse="yes"><field ref="exhibitors"/></component>
@@ -272,6 +278,10 @@
         <field ref="event_dates"/>
       </component>
     </epc:if>
+
+<!-- This field is not really intended to be edited directly by users.
+    <component><field ref="relation"/></component>
+-->
 
     <component collapse="yes"><field ref="contact_email"/></component>
     <component collapse="yes"><field ref="referencetext"/></component>

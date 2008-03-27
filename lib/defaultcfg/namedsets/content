@@ -1,0 +1,16 @@
+# types for document content
+
+# These are the content types recommended by the VERSIONS toolkit
+# http://www.lse.ac.uk/library/versions/VERSIONS_Toolkit_v1_final.pdf
+# plus a few extras.
+
+draft
+submitted
+accepted
+published
+updated
+supplemental
+presentation
+coverimage
+metadata
+other

@@ -157,6 +157,22 @@ sub get_system_field_info
 		{ name=>"date_embargo", type=>"date", required=>0,
 			min_resolution=>"year" },	
 
+		{ name=>"content", type=>"namedset", required=>0, input_rows=>1,
+			set_name=>"content" },
+
+		{ name=>"relation", type=>"compound", multiple=>1,
+			fields => [
+				{
+					sub_name => "type",
+					type => "namedset",
+					set_name => "document_relation",
+				},
+				{
+					sub_name => "uri",
+					type => "text",
+				},
+			],
+		},
 	);
 
 }

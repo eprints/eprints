@@ -26,6 +26,11 @@
     <epp:phrase id="eprint_fieldname_keywords">Uncontrolled Keywords</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_keywords">Natural language terms to describe the content of the item</epp:phrase>
 
+    <epp:phrase id="eprint_fieldname_contributors">Contributors</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_contributors"></epp:phrase>
+    <epp:phrase id="eprint_fieldname_contributors_type">Contribution</epp:phrase>
+    <epp:phrase id="eprint_fieldname_contributors_id">Email</epp:phrase>
+
     <epp:phrase id="eprint_fieldname_creators">Creators</epp:phrase>
     <epp:phrase id="eprint_fieldname_editors">Editors</epp:phrase>
 

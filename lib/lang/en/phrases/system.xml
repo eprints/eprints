@@ -1004,6 +1004,13 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldhelp_latitude">The Latitude of this item. Southern latitudes should be expressed as a negative.</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_longitude">The Longitude of this item. Western longitudes should be expressed as a negative.</epp:phrase>
 
+    <epp:phrase id="eprint_fieldname_relation">Relationships</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_relation">This field describes relationships this item has to other entities. Ideally, use URIs for the target identifier.</epp:phrase>
+    <epp:phrase id="eprint_fieldname_relation_uri">Target identifier</epp:phrase>
+    <epp:phrase id="eprint_fieldname_relation_type">Relation type</epp:phrase>
+
+
+
     <epp:phrase id="eprint_fieldname__fulltext_">Full Text</epp:phrase>
     <epp:phrase id="eprint_fieldname_documents">Documents</epp:phrase>
 
@@ -1053,6 +1060,8 @@ Titles and Help for the System Fields
     <epp:phrase id="document_fieldhelp_format">Please select the storage format of this document.</epp:phrase>
     <epp:phrase id="document_fieldname_formatdesc">Description</epp:phrase>
     <epp:phrase id="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</epp:phrase>
+    <epp:phrase id="document_fieldname_content">Content</epp:phrase>
+    <epp:phrase id="document_fieldhelp_content">The content of this document, as oppose to the format.</epp:phrase>
     <epp:phrase id="document_fieldname_security">Visible to</epp:phrase>
     <epp:phrase id="document_fieldhelp_security">Please indicate the required "security level" of this document. Who is allowed to download it?  If you set this to anything other than "anyone" then consider adding a contact email for this eprint (on the next page), this will allow users to use a web form to request a copy of the document, and you can decide on a case-by-case basis.</epp:phrase>
     <epp:phrase id="document_fieldname_license">License</epp:phrase>
@@ -1062,6 +1071,11 @@ Titles and Help for the System Fields
 <br/>Example: <span class="ep_form_example">2006 - all documents made publicly accessible on 1st January 2006</span>
 <br/>Example: <span class="ep_form_example">2006 June - all documents made publicly accessible on 1st June 2006</span>
 </epp:phrase>
+    <epp:phrase id="document_fieldname_relation">Relationships</epp:phrase>
+    <epp:phrase id="document_fieldhelp_relation">This field describes relationships this document has to other entities. Ideally, use URIs for the target identifier.</epp:phrase>
+    <epp:phrase id="document_fieldname_relation_uri">Target identifier</epp:phrase>
+    <epp:phrase id="document_fieldname_relation_type">Relation type</epp:phrase>
+
 
     <epp:phrase id="document_fieldname_main">Main file</epp:phrase>
     <epp:phrase id="document_fieldhelp_main">The file which is linked to.</epp:phrase>
