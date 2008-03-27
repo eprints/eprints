@@ -565,6 +565,10 @@ sub update_view_list
 	$target .= $value;
 
 	push @{$path_values}, $value;
+	for(@$path_values)
+	{
+		$_ = EPrints::Utils::unescape_filename( $_ );
+	}
 
 	my $ds = $repository->get_dataset( "archive" );
 

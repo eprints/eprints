@@ -1140,41 +1140,44 @@ sub escape_filename
 
 	return "NULL" if( $fileid eq "" );
 
-	$fileid = utf8( $fileid );
+	$fileid = "$fileid";
+	utf8::decode($fileid);
 
-	my $stringobj = Unicode::String->new();
-	$stringobj->utf8( $fileid );
+	# Valid chars: 0-9, a-z, A-Z, ",", "-", "_", 
 
-	my $hc = [ 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70 ];
-	
-	my @in = $stringobj->unpack;
-	my @out = ();
-	foreach( @in )
-	{
-		if( $_ < 33 ) { push @out, 95; next; }
-		if( $_ >=48 && $_ <= 57 ) { push @out, $_; next; }
-		if( $_ >=65 && $_ <= 90 ) { push @out, $_; next; }
-		if( $_ >=97 && $_ <= 122 ) { push @out, $_; next; }
-		if( $_ == 44 || $_ == 45 || $_ == 46 || $_ == 58 || $_ == 95 ) { push @out, $_; next; }
-		if( $_ < 256 )
-		{
-			push @out, 61;
-			push @out, $hc->[($_ / 16 )%16];
-			push @out, $hc->[$_%16];
-			next;
-		}
-		push @out, 61;
-		push @out, 61;
-		push @out, $hc->[($_ / 0x1000 )%16];
-		push @out, $hc->[($_ / 0x100 )%16];
-		push @out, $hc->[($_ / 0x10 )%16];
-		push @out, $hc->[$_%16];
-		
-	}
-	
-	$stringobj->pack( @out );
+	# Replace control chars with "_"
+	$fileid =~ s/[\x00-\x20]/_/g;
 
-	return $stringobj;
+	# Escape to either '=XX' (8bit) or '==XXXX' (16bit)
+	$fileid =~ s/([^0-9a-zA-Z,\-_])/
+		ord($1) < 256 ?
+			sprintf("=%02X",ord($1)) :
+			sprintf("==%04X",ord($1))
+	/exg;
+
+	utf8::encode($fileid);
+
+	return $fileid;
+}
+
+######################################################################
+=pod
+
+=item $string = EPrints::Utils::unescape_filename( $esc_string )
+
+Unescape a string previously escaped with escape_filename().
+
+=cut
+######################################################################
+
+sub unescape_filename
+{
+	my( $fileid ) = @_;
+
+	$fileid =~ s/==(....)/chr(hex($1))/eg;
+	$fileid =~ s/=(..)/chr(hex($1))/eg;
+
+	return $fileid;
 }
 
 ######################################################################

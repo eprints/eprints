@@ -7143,4 +7143,5 @@ PACKAGE: 2.2.99.2
  * Added has_dataset and has_counter methods to Database
  * Fixed has_table and has_column for MySQL
  * Added generic upgrading of datasets/fields/counters to epadmin
+ * Allow values to be used in views containing ':' or '.', fixing #3316
 
