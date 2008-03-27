@@ -135,7 +135,7 @@ sub get_system_field_info
 
 	{ name=>"importid", type=>"itemref", required=>0, datasetid=>"import" },
 
-	{ name=>"source_id", type=>"text", required=>0, },
+	{ name=>"source", type=>"text", required=>0, },
 
 	{ name=>"dir", type=>"text", required=>0, can_clone=>0,
 		text_index=>0, import=>0, show_in_fieldlist=>0 },
