@@ -7128,3 +7128,9 @@ PACKAGE: 2.2.99.2
  * Int will accept numbers with a decimal point, so that floats and ints
     can be mixed. 
  * Floats can now be searched. Closing #3314.
+
+2008-03-27 cjg
+ * Added new Extras render functions to truncate URLs at the end and in the
+    middle. Closes #3245.
+ * Added an Extras render funcion to render the related URL field. Closes
+    #3246.

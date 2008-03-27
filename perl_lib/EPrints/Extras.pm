@@ -177,6 +177,104 @@ sub render_lookup_list
 ######################################################################
 =pod
 
+=item $xhtml = EPrints::Extras::render_url_truncate_end( $session, $field, $value )
+
+Hyper link the URL but truncate the end part if it gets longer 
+than 50 characters.
+
+=cut
+######################################################################
+
+sub render_url_truncate_end
+{
+	my( $session, $field, $value ) = @_;
+
+	my $len = 50;	
+	my $link = $session->render_link( $value );
+	my $text = $value;
+	if( length( $value ) > $len )
+	{
+		$text = substr( $value, 0, $len )."...";
+	}
+	$link->appendChild( $session->make_text( $text ) );
+	return $link
+}
+
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Extras::render_url_truncate_middle( $session, $field, $value )
+
+Hyper link the URL but truncate the middle part if it gets longer 
+than 50 characters.
+
+=cut
+######################################################################
+
+sub render_url_truncate_middle
+{
+	my( $session, $field, $value ) = @_;
+
+	my $len = 50;	
+	my $link = $session->render_link( $value );
+	my $text = $value;
+	if( length( $value ) > $len )
+	{
+		$text = substr( $value, 0, $len/2 )."...".substr( $value, -$len/2, -1 );
+	}
+	$link->appendChild( $session->make_text( $text ) );
+	return $link
+}
+
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Extras::render_related_url( $session, $field, $value )
+
+Hyper link the URL but truncate the middle part if it gets longer 
+than 50 characters.
+
+=cut
+######################################################################
+
+sub render_related_url
+{
+	my( $session, $field, $value ) = @_;
+
+	my $f = $field->get_property( "fields_cache" );
+	my $fmap = {};	
+	foreach my $field_conf ( @{$f} )
+	{
+		my $fieldname = $field_conf->{name};
+		my $field = $field->{dataset}->get_field( $fieldname );
+		$fmap->{$field_conf->{sub_name}} = $field;
+	}
+
+	my $ul = $session->make_element( "ul" );
+	foreach my $row ( @{$value} )
+	{
+		my $li = $session->make_element( "li" );
+		my $link = $session->render_link( $row->{url} );
+		if( defined $row->{type} )
+		{
+			$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+		}
+		else
+		{
+			my $text = $row->{url};
+			if( length( $text ) > 40 ) { $text = substr( $value, 0, 40 )."..."; }
+			$link->appendChild( $session->make_text( $text ) );
+		}
+		$li->appendChild( $link );
+		$ul->appendChild( $li );
+	}
+
+	return $ul;
+}
+
+######################################################################
+=pod
+
 =back
 
 =cut

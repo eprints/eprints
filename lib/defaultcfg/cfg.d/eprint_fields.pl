@@ -52,7 +52,6 @@ $c->{fields}->{eprint} = [
             'type' => 'subject',
             'multiple' => 1,
             'top' => 'subjects',
-            'render_input' => 'EPrints::Extras::subject_browser_input',
             'browse_link' => 'subjects',
           },
 
@@ -292,12 +291,14 @@ $c->{fields}->{eprint} = [
           {
             'name' => 'official_url',
             'type' => 'url',
+            'render_value' => 'EPrints::Extras::render_url_truncate_end',
           },
 
           {
             'name' => 'related_url',
             'type' => 'compound',
             'multiple' => 1,
+            'render_value' => 'EPrints::Extras::render_related_url',
             'fields' => [
                           {
                             'sub_name' => 'url',
