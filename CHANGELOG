@@ -7145,3 +7145,7 @@ PACKAGE: 2.2.99.2
  * Added generic upgrading of datasets/fields/counters to epadmin
  * Allow values to be used in views containing ':' or '.', fixing #3316
 
+2008-03-27 cjg
+ * Commented-out scroll-to code as it appears to be breaking in my 
+    firefox (and scrolling to the top of the page) and that's worst than
+    doing nothing.
