@@ -7171,3 +7171,7 @@ PACKAGE: 2.2.99.2
 2008-03-28 cjg
  * Added update_database_structure option to epadmin (but not shown in the
     --help yet.)
+
+2008-03-28 cjg
+ * Added proper audio icon. Closing #3317.
+
