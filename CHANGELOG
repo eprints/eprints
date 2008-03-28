@@ -7168,3 +7168,6 @@ PACKAGE: 2.2.99.2
  * Added "Import full text" option to Import screen (if enable_web_imports is
     true)
 
+2008-03-28 cjg
+ * Added update_database_structure option to epadmin (but not shown in the
+    --help yet.)

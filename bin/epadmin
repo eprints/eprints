@@ -196,6 +196,7 @@ else
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
+	elsif( $action eq "upgrade_database_structure" ) { upgrade_database_structure( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
 	elsif( $action eq "recommit" ) 
 	{
@@ -1901,9 +1902,22 @@ sub upgrade_3_0_7_to_3_1_0
 }
 
 
+# undocumented option - use with caution!
+sub upgrade_database_structure
+{
+	my( $repoid ) = @_;
 
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
+	my $db = $session->get_db();
+	
+	my $repo = EPrints::Repository->new( $repoid );
 
+	upgrade_datasets( $repo, $db );
+	upgrade_counters( $repo, $db );
 
+	$session->terminate;
+}
 
 
 
