@@ -7164,3 +7164,7 @@ PACKAGE: 2.2.99.2
  * Tweaked config so that thesis is now only defaulted to unpub, not forced.
     Closes #3234
 
+2008-03-28 tdb
+ * Added "Import full text" option to Import screen (if enable_web_imports is
+    true)
+

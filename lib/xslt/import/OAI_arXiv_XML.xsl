@@ -17,6 +17,21 @@
 <ep:eprint>
 <ep:type>article</ep:type>
 <ep:official_url>http://arXiv.org/abs/<xsl:value-of select="xxx:id"/></ep:official_url>
+<ep:documents>
+<ep:document>
+<ep:pos>1</ep:pos>
+<ep:format>application/pdf</ep:format>
+<ep:language>en</ep:language>
+<ep:security>public</ep:security>
+<ep:main>paper.pdf</ep:main>
+<ep:files>
+<ep:file>
+<ep:filename>paper.pdf</ep:filename>
+<ep:url>http://arXiv.org/pdf/<xsl:value-of select="xxx:id"/></ep:url>
+</ep:file>
+</ep:files>
+</ep:document>
+</ep:documents>
 <ep:creators>
 <xsl:for-each select="xxx:authors/xxx:author">
 <ep:item>

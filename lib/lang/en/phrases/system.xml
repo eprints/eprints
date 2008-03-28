@@ -1191,6 +1191,7 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Screen/Import:step1">Cut and paste import records<br/><i>or</i><br />Upload import file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:step2">Select import format</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:import_documents">Import full text (if available)</epp:phrase>
 
     <!-- eprint action screens -->
 

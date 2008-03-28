@@ -207,6 +207,11 @@ sub epdata_to_dataobj
 		delete $epdata->{$dataset->get_key_field->get_name};
 	}
 
+	if( $dataset->confid eq "eprint" && exists($plugin->{import_documents}) && !$plugin->{import_documents} )
+	{
+		delete $epdata->{documents};
+	}
+
 	$plugin->handler->parsed( $epdata );
 	return if( $plugin->{parse_only} );
 
