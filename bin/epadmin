@@ -196,7 +196,7 @@ else
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
-	elsif( $action eq "upgrade_database_structure" ) { upgrade_database_structure( $repoid ); }
+	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
 	elsif( $action eq "recommit" ) 
 	{
@@ -1605,7 +1605,7 @@ sub upgrade
 }
 
 # This will check for any missing datasets or fields and add them
-sub upgrade_datasets
+sub update_datasets
 {
 	my( $repo, $db ) = @_;
 
@@ -1648,7 +1648,7 @@ sub upgrade_datasets
 }
 
 # This will check for any missing counters and add them
-sub upgrade_counters
+sub update_counters
 {
 	my( $repo, $db ) = @_;
 
@@ -1897,13 +1897,13 @@ sub upgrade_3_0_7_to_3_1_0
 	$db->drop_table( "login_tickets" );
 	$db->drop_table( "cachemap" );
 
-	upgrade_datasets( $repo, $db );
-	upgrade_counters( $repo, $db );
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
 }
 
 
 # undocumented option - use with caution!
-sub upgrade_database_structure
+sub update_database_structure
 {
 	my( $repoid ) = @_;
 
@@ -1913,8 +1913,8 @@ sub upgrade_database_structure
 	
 	my $repo = EPrints::Repository->new( $repoid );
 
-	upgrade_datasets( $repo, $db );
-	upgrade_counters( $repo, $db );
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
 
 	$session->terminate;
 }
