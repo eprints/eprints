@@ -7180,3 +7180,7 @@ PACKAGE: 2.2.99.2
 
 2008-03-31 cjg
  * Fixed bug in rendering input for MetaField::Fields
+
+2008-03-31
+ * Stopped update_database_structure checking sub-fields, fixing #3323
+
