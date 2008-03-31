@@ -76,6 +76,7 @@ sub render_option
 {
 	my( $self, $session, $value ) = @_;
 
+	if( !defined $value ) { return $self->SUPER::render_option( $session, undef ); }
 	my $cacheid = $self->get_property('datasetid').".".$value;
 
 	my $text = $session->{cache_metafield_options}->{$cacheid};

@@ -7177,3 +7177,6 @@ PACKAGE: 2.2.99.2
 
 2008-03-30 cjg
  * Renamed update_database_structure to update_database_structure
+
+2008-03-31 cjg
+ * Fixed bug in rendering input for MetaField::Fields
