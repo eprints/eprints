@@ -39,14 +39,12 @@ sub output_list
 
 	my %datasets;
 
-	my @records = $opts{list}->get_records;
+	$opts{list}->map( sub {
+		my( $session, $dataset, $item ) = @_;
 
-	foreach my $record (@records)
-	{
-		my $datasetid = $record->get_value( "mfdatasetid" );
-
-		push @{$datasets{$datasetid}}, $plugin->output_dataobj( $record );
-	}
+		my $datasetid = $item->get_value( "mfdatasetid" );
+		push @{$datasets{$datasetid}}, $plugin->output_dataobj( $item );
+	} );
 
 	my $r = "";
 

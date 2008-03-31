@@ -7211,3 +7211,6 @@ PACKAGE: 2.2.99.2
 
 2008-03-31 cjg
  * Added role and priv restrictions for cgi toolbox. Closing #3165
+
+2008-03-31 cjg
+ * Moved export plugins to use map rather than get_records.

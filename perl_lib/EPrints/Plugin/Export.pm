@@ -130,9 +130,10 @@ sub output_list
 	my( $plugin, %opts ) = @_;
 
 	my $r = [];
-	foreach my $dataobj ( $opts{list}->get_records ) 
-	{
-		my $part = $plugin->output_dataobj( $dataobj, %opts );
+	$opts{list}->map( sub {
+		my( $session, $dataset, $item ) = @_;
+
+		my $part = $plugin->output_dataobj( $item, %opts );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -141,7 +142,7 @@ sub output_list
 		{
 			push @{$r}, $part;
 		}
-	}	
+	} );
 
 	if( defined $opts{fh} )
 	{

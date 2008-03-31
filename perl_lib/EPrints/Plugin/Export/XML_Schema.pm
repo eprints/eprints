@@ -30,16 +30,15 @@ sub output_list
 
 	my $session = $plugin->{session};
 
-	my @records = $opts{list}->get_records;
-
 	my %elements;
 	my %types;
 
-	for(@records)
-	{
-		my $field = $_->get_field( $session );
+	$opts{list}->map( sub {
+		my( $session, $dataset, $item ) = @_;
 
-		my $datasetid = $_->get_value( "mfdatasetid" );
+		my $field = $item->get_field( $session );
+
+		my $datasetid = $item->get_value( "mfdatasetid" );
 		my $element = $field->render_xml_schema( $session );
 		push @{$elements{$datasetid}}, $element;
 
@@ -51,7 +50,7 @@ sub output_list
 				$types{$type} ||= $sub_field->render_xml_schema_type( $session );
 			}
 		}
-	}
+	} );
 
 	my $schema = $session->make_element( "xs:schema",
 		"targetNamespace" => "http://eprints.org/ep2/data/2.0",
