@@ -7183,4 +7183,5 @@ PACKAGE: 2.2.99.2
 
 2008-03-31
  * Stopped update_database_structure checking sub-fields, fixing #3323
+ * langid now uses UNDEFINED phrase for blanks
 

@@ -60,7 +60,16 @@ sub render_option
 
 	$option = "" if !defined $option;
 
-	return $session->html_phrase( "languages_typename_".$option );
+	my $phrasename = "languages_typename_".$option;
+
+	# if the option is empty, and no explicit phrase is defined, print 
+	# UNDEFINED rather than an error phrase.
+	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename ) )
+	{
+		$phrasename = "lib/metafield:unspecified";
+	}
+
+	return $session->html_phrase( $phrasename );
 }
 
 sub get_property_defaults
