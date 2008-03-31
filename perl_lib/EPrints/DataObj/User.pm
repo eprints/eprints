@@ -189,9 +189,11 @@ sub get_system_field_info
 
 		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
 
-		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
+		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", 
+			multiple=>1, input_ordered=>1, required=>1 },
 
-		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", multiple=>1, input_ordered=>1 },
+		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", 
+			multiple=>1, input_ordered=>1, required=>1 },
 
 		{ name=>"latitude", type=>"float", required=>0 },
 
@@ -1109,6 +1111,7 @@ my $PRIVMAP =
 		"subject/edit" => 8,
 		"staff/user_search" => 2,
 		"staff/history_search" => 2,
+		"staff/issue_search" => 2,
 		"config/view" => 2,
 		"config/view/workflow" => 2,
 		"config/view/citation" => 2,
@@ -1165,6 +1168,7 @@ my $PRIVMAP =
 		"eprint/inbox/details" => 4,
 		"eprint/inbox/history" => 4,
 		"eprint/inbox/messages" => 4,
+		"eprint/inbox/issues" => 4,
 	
 		"eprint/inbox/deposit" => 4,
 		"eprint/inbox/use_as_template" => 4,
@@ -1232,6 +1236,7 @@ my $PRIVMAP =
 		"eprint/buffer/staff/details" => 8,
 		"eprint/buffer/history" => 8,
 		"eprint/buffer/messages" => 8,
+		"eprint/buffer/issues" => 8,
 
 		"eprint/buffer/remove_with_email" => 8,
 		"eprint/buffer/reject_with_email" => 8,
@@ -1248,6 +1253,7 @@ my $PRIVMAP =
 		"eprint/archive/staff/details" => 8,
 		"eprint/archive/history" => 8,
 		"eprint/archive/messages" => 8,
+		"eprint/archive/issues" => 8,
 
 		"eprint/archive/move_buffer" => 8,
 		"eprint/archive/move_deletion" => 8,

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<issues xmlns="http://eprints.org/ep3/issues" xmlns:epc="http://eprints.org/ep3/control">
+
+   <epc:if test="date.is_set() and date lt today().datemath( -2,'year' ) and ( ispublished = 'submitted' or ispublished = 'inpress' )">
+      <issue type="old_but_not_published">Date is <strong><epc:print expr="date" /></strong> but item is still marked as <strong><epc:print expr="ispublished" /></strong>.</issue>
+   </epc:if>
+
+   <epc:foreach expr="creators_name" iterator="creator">
+     <epc:if test="strlen( $creator{family} ) lt 2">
+       <issue type="short_family_name">Missing or one character family name on: <strong><epc:print expr="$creator" /></strong></issue>
+     </epc:if>
+   </epc:foreach>
+  
+</issues>

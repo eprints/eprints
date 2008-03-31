@@ -85,6 +85,10 @@ sub print
 	{
 		return $state->{session}->make_text( $result->[0] );
 	}
+	if( $result->[1] eq "DATE"  )
+	{
+		return $state->{session}->make_text( $result->[0] );
+	}
 	if( $result->[1] eq "INTEGER"  )
 	{
 		return $state->{session}->make_text( $result->[0] );
@@ -127,6 +131,8 @@ sub error
 }
 
 package EPrints::Script::Compiled;
+
+use Time::Local 'timelocal_nocheck';
 
 sub debug
 {
@@ -210,6 +216,11 @@ sub runtime_error
 sub run_LESS_THAN
 {
 	my( $self, $state, $left, $right ) = @_;
+
+	if( ref( $left->[1] ) eq "EPrints::MetaField::Date" || ref( $left->[1] ) eq "EPrints::MetaField::Time" || $left->[1] eq "DATE" )
+	{
+		return [ ($left->[0]||"0000") lt ($right->[0]||"0000"), "BOOLEAN" ];
+	}
 	
 	return [ $left->[0] < $right->[0], "BOOLEAN" ];
 }
@@ -217,6 +228,11 @@ sub run_LESS_THAN
 sub run_GREATER_THAN
 {
 	my( $self, $state, $left, $right ) = @_;
+
+	if( ref( $left->[1] ) eq "EPrints::MetaField::Date" || ref( $left->[1] ) eq "EPrints::MetaField::Time" || $left->[1] eq "DATE" )
+	{
+		return [ ($left->[0]||"0000") gt ($right->[0]||"0000"), "BOOLEAN" ];
+	}
 	
 	return [ $left->[0] > $right->[0], "BOOLEAN" ];
 }
@@ -242,8 +258,12 @@ sub run_EQUALS
 		}
 		return [ 0, "BOOLEAN" ];
 	}
+	my $l = $left->[0];
+	$l = "" if( !defined $l );
+	my $r = $right->[0];
+	$r = "" if( !defined $r );
 	
-	return [ $left->[0] eq $right->[0], "BOOLEAN" ];
+	return [ $l eq $r, "BOOLEAN" ];
 }
 
 sub run_NOTEQUALS
@@ -420,6 +440,52 @@ sub run_length
 	return [ scalar @{$value->[0]}, "INTEGER" ];
 }
 
+sub run_today
+{
+	my( $self, $state ) = @_;
+
+	return [EPrints::Time::get_iso_date, "DATE"];
+}
+
+sub run_datemath
+{
+	my( $self, $state, $date, $alter, $type ) = @_;
+
+	my( $year, $month, $day ) = split( "-", $date->[0] );
+
+	if( $type->[0] eq "day" )
+	{
+		$day+=$alter->[0];
+	}
+	elsif( $type->[0] eq "month" )
+	{
+		$month+=$alter->[0];
+		while( $month < 1 )
+		{
+			$year--;
+			$month += 12;
+		}
+		while( $month > 12 )
+		{
+			$year++;
+			$month -= 12;
+		}
+		
+	}
+	elsif( $type->[0] eq "year" )
+	{
+		$year+=$alter->[0];
+	}
+	else
+	{
+		return [ "DATE ERROR: Unknown part '".$type->[0]."'", "STRING" ];
+	}
+
+        my $t = timelocal_nocheck( 0,0,0,$day,$month-1,$year-1900 );
+
+	return [ EPrints::Time::get_iso_date( $t ), "DATE" ];
+}
+
 ########################################################
 
 
@@ -484,7 +550,7 @@ sub tokenise
 		elsif( $code =~ s/^!// ) { $newtoken= { pos=>$pos, id=>'NOT' };  }
 		elsif( $code =~ s/^and\b// ) { $newtoken= { pos=>$pos, id=>'AND' };  }
 		elsif( $code =~ s/^or\b// ) { $newtoken= { pos=>$pos, id=>'OR' };  }
-		elsif( $code =~ s/^([0-9]+)// ) { $newtoken= { pos=>$pos, id=>'INTEGER', value=>$1 };  }
+		elsif( $code =~ s/^(\-?[0-9]+)// ) { $newtoken= { pos=>$pos, id=>'INTEGER', value=>$1 };  }
 		elsif( $code =~ s/^([a-zA-Z][a-zA-Z0-9_-]*)// ) { $newtoken= { pos=>$pos, id=>'IDENT', value=>$1 };  }
 		else { $self->compile_error( "Parse error near: ".substr( $code, 0, 20) ); }
 

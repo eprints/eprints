@@ -275,6 +275,28 @@ sub render_related_url
 ######################################################################
 =pod
 
+=item $orderkey = EPrints::Extras::render_related_url( $field, $value, $dataset )
+
+Strip the leading a/an/the and any non alpha numerics from the start of a orderkey
+value. Suitable for make_single_value_orderkey on the title field.
+
+=cut
+######################################################################
+
+sub english_title_orderkey 
+{
+        my( $field, $value, $dataset ) = @_;
+
+        $value =~ s/^[^a-z0-9]+//gi;
+        if( $value =~ s/^(a|an|the) //i ) { $value .= ", $1"; }
+
+        return $value;
+}
+
+
+######################################################################
+=pod
+
 =back
 
 =cut

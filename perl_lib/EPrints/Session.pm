@@ -1503,7 +1503,13 @@ sub render_option_list
 
 	if( $params{checkbox} )
 	{
-		my $f = $self->make_doc_fragment;
+		my $table = $self->make_element( "table", cellspacing=>"10", border=>"0", cellpadding=>"0" );
+		my $tr = $self->make_element( "tr" );
+		$table->appendChild( $tr );	
+		my $td = $self->make_element( "td", valign=>"top" );
+		$tr->appendChild( $td );	
+		my $i = 0;
+		my $len = scalar @$pairs;
 		foreach my $pair ( @{$pairs} )
 		{
 			my $div = $self->make_element( "div" );
@@ -1516,9 +1522,15 @@ sub render_option_list
 			{
 				$box->setAttribute( "checked" , "checked" );
 			}
-			$f->appendChild( $div );
+			$td->appendChild( $div );
+			++$i;
+			if( $len > 5 && int($len / 2)==$i )
+			{
+				$td = $self->make_element( "td", valign=>"top" );
+				$tr->appendChild( $td );	
+			}
 		}
-		return $f;
+		return $table;
 	}
 		
 

@@ -1008,11 +1008,20 @@ Titles and Help for the System Fields
     <epp:phrase id="eprint_fieldhelp_relation">This field describes relationships this item has to other entities. Ideally, use URIs for the target identifier.</epp:phrase>
     <epp:phrase id="eprint_fieldname_relation_uri">Target identifier</epp:phrase>
     <epp:phrase id="eprint_fieldname_relation_type">Relation type</epp:phrase>
-
-
+    <epp:phrase id="eprint_fieldname_issues">Issues</epp:phrase>
+    <epp:phrase id="eprint_fieldname_issues_id">Issue ID</epp:phrase>
+    <epp:phrase id="eprint_fieldname_issues_type">Issue type</epp:phrase>
+    <epp:phrase id="eprint_fieldname_issues_description">Description</epp:phrase>
+    <epp:phrase id="eprint_fieldname_issues_first_seen">First seen</epp:phrase>
+    <epp:phrase id="eprint_fieldname_issues_count">Number of issues</epp:phrase>
 
     <epp:phrase id="eprint_fieldname__fulltext_">Full Text</epp:phrase>
     <epp:phrase id="eprint_fieldname_documents">Documents</epp:phrase>
+
+    <epp:phrase id="ordername_eprint_bydatestampoldest">by date deposited (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_bydatestamp">by date deposited</epp:phrase>
+    <epp:phrase id="ordername_eprint_byfirstseen">by date of most recent issue</epp:phrase>
+    <epp:phrase id="ordername_eprint_bynissues">by number of issues</epp:phrase>
 
     <epp:phrase id="user_fieldname_userid">User ID Number</epp:phrase>
     <epp:phrase id="user_fieldname_rev_number">Revision</epp:phrase>
@@ -1303,6 +1312,17 @@ Titles and Help for the System Fields
 <p><em>Please note that we strongly discourage removal of items from the repository. If you upload a new version of an items, a link to the later version will appear on the older version. Thus, anyone finding the old version will be able to see that a newer version has been deposited.</em></p>
     </epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/EPrint/Issues:title">Issues</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Issues:live_audit_intro"><h3>Current Issues</h3><p>The current issues section may not contain all issues discovered in the periodic audit, such as items with similar titles.</p></epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Issues:no_live_issues">No issues found.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Issues:last_audit"><h3>Issues discovered in last audit</h3></epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Staff/IssueSearch:description">Search for issues discovered in current records.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Staff/IssueSearch:title">Issues Search</epp:phrase>
+
+    <epp:phrase id="search/issues:title">Search for issues</epp:phrase>
+    <epp:phrase id="search/issues:preamble"><p>Search for items by issue. The issues are updated periodically.</p></epp:phrase>
+   
 
     <!-- SavedSearch screens -->
 
@@ -1859,5 +1879,6 @@ Titles and Help for the System Fields
 <epp:phrase id="datasethelp_history">Stores information about revisions made to objects (eprints, users etc.)</epp:phrase>
 <epp:phrase id="datasetname_request">Full-text Requests</epp:phrase>
 <epp:phrase id="datasethelp_request">Stores requests made for full-texts to be delivered by email</epp:phrase>
+
 
 </epp:phrases>

@@ -7185,3 +7185,27 @@ PACKAGE: 2.2.99.2
  * Stopped update_database_structure checking sub-fields, fixing #3323
  * langid now uses UNDEFINED phrase for blanks
 
+2008-03-31 cjg
+ * Added new basic variable type "DATE" to EP Script.
+ * Supressed some perl warnings in EPScript, where undefs were compared.
+ * Added today() method to EPScript which returns todays date. 
+ * Added datemath() method to EPScript which modifies a date by days,
+    months or years.
+ * Negative integers are now parsed by EPScript
+ * When rendering a big set of checkboxes (more then 5), they are now
+    displayed in two columns.
+ * Added "required" to item_fields and review_fields as these should
+    never be null.
+ * Added fields to eprint for storing issues.
+ * Added Issues finding plugin system.
+ * Added Issues audit script.
+ * Added Issues search plugin.
+ * Added EPrint Issues tab.
+ * Added issues related privs.
+ * Added orderkey method to EPrint::Extras to strip an/a/the for ordering.
+ * Made title use this method, by default.
+ * Added initial issues plugin for XML config (with config file), exact
+    titles and similar titles.
+ * Added issues citation (to lib not defaultcfg) to show results of issues
+    search.
+

@@ -192,8 +192,81 @@ sub get_system_field_info
 		],
 	},
 
+	{ name=>"issues", type=>"compound", multiple=>1,
+		fields => [
+			{
+				sub_name => "id",
+				type => "text",
+				text_index => 0,
+			},
+			{
+				sub_name => "type",
+				type => "text",
+				text_index => 0,
+			},
+			{
+				sub_name => "description",
+				type => "longtext",
+				text_index => 0,
+				render_single_value => "EPrints::Extras::render_xhtml_field",
+			},
+			{
+				sub_name => "first_seen",
+				make_value_orderkey => "EPrints::DataObj::EPrint::order_issues_first_seen",
+				type => "date",
+			},
+		],
+		render_value=>"EPrints::DataObj::EPrint::render_issues",
+		volatile => 1,
+	},
+
+	{ name=>"issues_count", type=>"int",  volatile=>1 },
+
+
 	);
 }
+
+
+
+
+sub render_issues
+{
+	my( $session, $field, $value ) = @_;
+
+	my $f = $field->get_property( "fields_cache" );
+	my $fmap = {};	
+	foreach my $field_conf ( @{$f} )
+	{
+		my $fieldname = $field_conf->{name};
+		my $field = $field->{dataset}->get_field( $fieldname );
+		$fmap->{$field_conf->{sub_name}} = $field;
+	}
+
+	my $ol = $session->make_element( "ol" );
+	foreach my $row ( @{$value} )
+	{
+		my $li = $session->make_element( "li" );
+		$li->appendChild( EPrints::Extras::render_xhtml_field( $session, $fmap->{description}, $row->{description} ) );
+		$li->appendChild( $session->make_text( " - " ) );
+		$li->appendChild( $fmap->{first_seen}->render_name( $session ) );
+		$li->appendChild( $session->make_text( " " ) );
+		$li->appendChild( $fmap->{first_seen}->render_single_value( $session, $row->{first_seen} ) );
+		$ol->appendChild( $li );
+	}
+
+	return $ol;
+}
+
+
+sub order_issues_first_seen
+{
+	my( $field, $value, $session, $langid, $dataset ) = @_;
+
+	return "" if !defined $value;
+
+	return join( ":", sort { $b cmp $a } @{$value} );
+}
+
 sub render_fileinfo
 {
 	my( $session, $field, $value ) = @_;
