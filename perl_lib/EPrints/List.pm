@@ -722,14 +722,12 @@ sub render_description
 
 	if( defined $self->{desc} )
 	{
-		my $desc = $self->{desc}->render_conditions_description;
-		$frag->appendChild( $desc );
+		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc}, 1 ) );
 		$frag->appendChild( $self->{session}->make_text( " " ) );
 	}
 	if( defined $self->{desc_order} )
 	{
-		my $desc = $self->{desc}->render_order_description;
-		$frag->appendChild( $desc );
+		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc_order}, 1 ) );
 	}
 
 	return $frag;
@@ -746,6 +744,8 @@ sub DESTROY
 	my( $self ) = @_;
 	
 	$self->dispose;
+	if( defined $self->{desc} ) { EPrints::XML::dispose( $self->{desc} ); }
+	if( defined $self->{desc_order} ) { EPrints::XML::dispose( $self->{desc_order} ); }
 }
 
 1;
