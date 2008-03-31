@@ -3099,21 +3099,21 @@ sub has_field
 	my $rc = 1;
 
 	# If this field is virtual and has sub-fields, check them
-	if( $field->is_virtual )
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
 	{
-		if( $field->is_type( "compound", "multilang" ) )
+		my $sub_fields = $field->get_property( "fields_cache" );
+		foreach my $sub_field (@$sub_fields)
 		{
-			my $sub_fields = $field->get_property( "fields_cache" );
-			foreach my $sub_field (@$sub_fields)
-			{
-				$rc &&= $self->has_field( $dataset, $sub_field );
-			}
+			$rc &&= $self->has_field( $dataset, $sub_field );
 		}
 	}
 	else # Check the field itself
 	{
 		$rc &&= $self->_has_field( $dataset, $field );
 	}
+
+	# Check the order values (used to order search results)
+	$rc &&= $self->_has_field_ordervalues( $dataset, $field );
 
 	return $rc;
 }
@@ -3124,7 +3124,7 @@ sub _has_field
 
 	my $rc = 1;
 
-	return $rc if $field->is_virtual; # Shouldn't happen
+	return $rc if $field->is_virtual;
 
 	if( $field->get_property( "multiple" ) )
 	{
@@ -3160,7 +3160,7 @@ sub add_field
 	my $rc = 1;
 
 	# If this field is virtual and has sub-fields, add them
-	if( $field->is_virtual )
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
 	{
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
@@ -3212,6 +3212,29 @@ sub _split_sql_type
 	return @types;
 }
 
+sub _has_field_ordervalues
+{
+	my( $self, $dataset, $field ) = @_;
+
+	my $rc = 1;
+
+	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
+	{
+		$rc &&= $self->_has_field_ordervalues_lang( $dataset, $field, $langid );
+	}
+
+	return $rc;
+}
+
+sub _has_field_ordervalues_lang
+{
+	my( $self, $dataset, $field, $langid ) = @_;
+
+	my $order_table = $dataset->get_ordervalues_table_name( $langid );
+
+	return $self->has_column( $order_table, $field->get_sql_name() );
+}
+
 # Add the field to the ordervalues tables
 sub _add_field_ordervalues
 {
@@ -3221,6 +3244,7 @@ sub _add_field_ordervalues
 
 	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
 	{
+		next if $self->_has_field_ordervalues_lang( $dataset, $field, $langid );
 		$rc &&= $self->_add_field_ordervalues_lang( $dataset, $field, $langid );
 	}
 
@@ -3236,7 +3260,7 @@ sub _add_field_ordervalues_lang
 
 	my $sql_field = EPrints::MetaField->new(
 		repository => $self->{ session }->get_repository,
-		name => $field->get_name,
+		name => $field->get_sql_name(),
 		type => "longtext" );
 
 	my $col = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
@@ -3260,6 +3284,8 @@ sub _add_field
 
 	my $table = $dataset->get_sql_table_name;
 
+	return $rc if $self->has_column( $table, $field->get_sql_name() );
+
 	my $cols = $field->get_sql_type( $self->{session}, 0 );
 	for(_split_sql_type($cols))
 	{
@@ -3278,6 +3304,10 @@ sub _add_multiple_field
 {
 	my( $self, $dataset, $field ) = @_;
 
+	my $table = $dataset->get_sql_sub_table_name( $field );
+	
+	return 1 if $self->has_table( $table );
+
 	my $key_field = $dataset->get_key_field();
 
 	# $database->create_table spots multiples and attempts to create auxillary tables, which we don't want to do
@@ -3289,8 +3319,6 @@ sub _add_multiple_field
 		name => "pos",
 		type => "int" );
 
-	my $table = $dataset->get_sql_sub_table_name( $field );
-	
 	return $self->create_table(
 		$table,
 		$dataset,
