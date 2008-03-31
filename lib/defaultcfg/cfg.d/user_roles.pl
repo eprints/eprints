@@ -43,6 +43,7 @@ $c->{user_roles}->{admin} = [qw{
 	admin
 	edit-config
 }],
+# Note -- nobody has the very powerful "toolbox" role by default!
 
 $c->{user_roles}->{minuser} = [qw/
 	general

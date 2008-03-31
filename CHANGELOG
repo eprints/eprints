@@ -7209,3 +7209,5 @@ PACKAGE: 2.2.99.2
  * Added issues citation (to lib not defaultcfg) to show results of issues
     search.
 
+2008-03-31 cjg
+ * Added role and priv restrictions for cgi toolbox. Closing #3165

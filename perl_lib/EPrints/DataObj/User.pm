@@ -1129,6 +1129,11 @@ my $PRIVMAP =
 		"metafield/edit" => 2,
 	},
 
+	"toolbox" => 
+	{
+		"toolbox" => 2,
+	},
+
 	"edit-config" => 
 	{
 		"config/edit" => 2,

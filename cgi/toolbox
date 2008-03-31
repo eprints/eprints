@@ -24,10 +24,17 @@ my $username = $session->param( "username" );
 my $password = $session->param( "password" );
 
 my %opts = ();
-$session->get_database->set_debug(1);
+
 if( !$session->valid_login( $username, $password ) )
 {
 	toolbox_fail( $session, "Invalid username/password" );
+}
+
+$session->{current_user} = EPrints::DataObj::User::user_with_username( $session, $username );
+
+if( !$session->{current_user}->allow( "toolbox" ) )
+{
+	toolbox_fail( $session, "User '$username' not authorised to use toolbox functions" );
 }
 
 $opts{data_fn} = sub {
@@ -44,7 +51,6 @@ $opts{data_fn} = sub {
 	return $data;
 };
 
-$session->{current_user} = EPrints::DataObj::User::user_with_username( $session, $username );
 
 $opts{format} = $session->param( "format" );
 $opts{filename} = $session->param( "filename" );
