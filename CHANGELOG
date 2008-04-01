@@ -7222,3 +7222,6 @@ PACKAGE: 2.2.99.2
  * Added column add/delete/rearrange options to Item and Review.
  * Made user.items_fields and user.review_fields volatile.
  * Removed those fields from the default user workflow.
+
+2008-04-01 cjg
+ * Fixed function which stopped the review form reading params.

@@ -320,15 +320,5 @@ sub render
 }
 
 
-# ignore the form. We're screwed at this point, and are just reporting.
-sub from
-{
-	my( $self ) = @_;
-
-	return;
-}
-
-
-
 
 1;
