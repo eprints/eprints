@@ -334,6 +334,11 @@ sub paginate_list
 		}
 	}
 
+	if( defined $opts{rows_before} )
+	{
+		$pins{results}->appendChild( $opts{rows_before} );
+	}
+
 	my $n = $offset;
 	foreach my $result ( @results )
 	{
@@ -384,6 +389,11 @@ sub paginate_list
 		}
 	}
 	
+	if( defined $opts{rows_after} )
+	{
+		$pins{results}->appendChild( $opts{rows_after} );
+	}
+
 	# Render a page of results
 	my $custom_pins = $opts{pins};
 	for( keys %$custom_pins )

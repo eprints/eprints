@@ -190,10 +190,10 @@ sub get_system_field_info
 		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
 
 		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", 
-			multiple=>1, input_ordered=>1, required=>1 },
+			multiple=>1, input_ordered=>1, required=>1, volatile=>1 },
 
 		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", 
-			multiple=>1, input_ordered=>1, required=>1 },
+			multiple=>1, input_ordered=>1, required=>1, volatile=>1 },
 
 		{ name=>"latitude", type=>"float", required=>0 },
 

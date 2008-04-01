@@ -30,14 +30,6 @@
       <field ref="url"/>
     </component>
 
-    <epc:if test="usertype != 'minuser'">
-      <component type="Field::Multi">
-        <title><epc:phrase ref="user_section_prefs" /></title>
-        <field ref="items_fields"/>
-        <epc:if test="usertype = 'editor' or usertype = 'admin'"><field ref="review_fields" /></epc:if>
-      </component>
-    </epc:if>
-
     <epc:if test="usertype = 'editor'">
       <epc:if test="$STAFF_ONLY = 'TRUE'"><component><field ref="editperms"/></component></epc:if>
       <component type="Field::Multi">
