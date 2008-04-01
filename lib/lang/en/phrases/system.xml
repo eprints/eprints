@@ -1886,6 +1886,8 @@ Titles and Help for the System Fields
 <epp:phrase id="datasethelp_history">Stores information about revisions made to objects (eprints, users etc.)</epp:phrase>
 <epp:phrase id="datasetname_request">Full-text Requests</epp:phrase>
 <epp:phrase id="datasethelp_request">Stores requests made for full-texts to be delivered by email</epp:phrase>
+<epp:phrase id="datasetname_import">Import</epp:phrase>
+<epp:phrase id="datasethelp_import">Stores the details of an import.</epp:phrase>
 
 <epp:phrase id="message_fieldopt_type_message">Message</epp:phrase>
 <epp:phrase id="message_fieldopt_type_warning">Warning</epp:phrase>
@@ -1894,6 +1896,5 @@ Titles and Help for the System Fields
 <epp:phrase id="message_fieldname_userid">UserID</epp:phrase>
 
 <epp:phrase id="user_fieldname_permission_group">Permission Group</epp:phrase>
-<epp:phrase id="datasetname_import">Import</epp:phrase>
 
 </epp:phrases>
