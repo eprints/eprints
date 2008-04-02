@@ -194,7 +194,7 @@ sub new
 
 	my $self = {};
 	bless $self, $class;
-	$self->{session} = $session;
+	Scalar::Util::weaken($self->{session} = $session);
 
 	$self->connect;
 

@@ -2,6 +2,8 @@ package EPrints;
 
 use EPrints::SystemSettings;
 
+use Scalar::Util;
+
 BEGIN {
 	use Carp qw(cluck);
 

@@ -7228,4 +7228,6 @@ PACKAGE: 2.2.99.2
 
 2008-04-02 tdb
  * Don't set the port if it's the default for the URI, fixing #3325
+ * Weaken circular references to prevent memory leaks under unusual conditions
+    (e.g. EPrints::abort)
 

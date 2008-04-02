@@ -122,8 +122,8 @@ sub new
 	if( defined $properties{dataset} ) 
 	{ 
 		$self->{confid} = $properties{dataset}->confid(); 
-		$self->{dataset} = $properties{dataset};
-		$self->{repository} = $properties{dataset}->get_repository;
+		Scalar::Util::weaken($self->{dataset} = $properties{dataset});
+		Scalar::Util::weaken($self->{repository} = $properties{dataset}->get_repository);
 	}
 	else
 	{
