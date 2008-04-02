@@ -92,13 +92,15 @@ sub get
 		{
 			$uri->scheme( "https" );
 			$uri->host( $session->get_repository->get_conf( "securehost" ) );
-			$uri->port( $session->get_repository->get_conf( "secureport" ) || 443 );
+			my $port = $session->get_repository->get_conf( "secureport" ) || 443;
+			$uri->port( $port ) if $port != 443;
 		}
 		else
 		{
 			$uri->scheme( "http" );
 			$uri->host( $session->get_repository->get_conf( "host" ) );
-			$uri->port( $session->get_repository->get_conf( "port" ) || 80 );
+			my $port = $session->get_repository->get_conf( "port" ) || 80;
+			$uri->port( $port ) if $port != 80;
 		}
 	}
 
