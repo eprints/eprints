@@ -99,8 +99,6 @@ sub handler
 			$repository->get_conf( "https_root" );
 	}
 	
-
-
 	foreach my $exppath ( @exceptions )
 	{
 		return DECLINED if( $uri =~ m/^$exppath/ );
@@ -110,6 +108,30 @@ sub handler
 	unless( $uri =~ s/^$urlpath// || $uri =~ s/^$cgipath// )
 	{
 		return DECLINED;
+	}
+
+	# URI redirection
+	if( $uri =~ m!^$urlpath/id/([^/]+)/(.*)$! )
+	{
+		my( $datasetid, $id ) = ( $1, $2 );
+
+		my $dataset = $repository->get_dataset( $datasetid );
+		my $item;
+		my $session = new EPrints::Session(2); # don't open the CGI info
+		if( defined $dataset )
+		{
+			$item = $dataset->get_object( $session, $id );
+		}
+		my $url;
+		if( defined $item )
+		{
+			$url = $item->get_url;
+		}
+		$session->terminate;
+		if( defined $url )
+		{
+			return redir( $r, $url );
+		}
 	}
 
 	if( $uri =~ m#^/([0-9]+)(.*)$# )

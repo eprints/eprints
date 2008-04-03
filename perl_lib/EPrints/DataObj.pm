@@ -949,7 +949,7 @@ sub get_url
 {
 	my( $self ) = @_;
 
-	return "EPrints::DataObj::get_url should have been over-ridden.";
+	return;
 }
 
 ######################################################################
