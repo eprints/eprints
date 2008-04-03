@@ -145,7 +145,7 @@ $c->{fields}->{eprint} = [
           {
             'name' => 'suggestions',
             'type' => 'longtext',
-            'render_value' => 'EPrints::Extras::render_highlighted_field',
+            'render_value' => 'EPrints::Extras::render_possible_doi',
           },
 
           {
@@ -244,6 +244,7 @@ $c->{fields}->{eprint} = [
           {
             'name' => 'id_number',
             'type' => 'text',
+            'render_single_value' => "EPrints
           },
 
           {
