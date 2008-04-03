@@ -275,7 +275,7 @@ sub render
 	$page->appendChild( EPrints::Paginate::Columns->paginate_list( $self->{session}, "_review", $list, %opts ) );
 
 	# Add form
-	my $div = $session->make_element( "div", class=>"ep_columns_add" );
+	my $add_div = $session->make_element( "div", class=>"ep_columns_add" );
 	my $form_add = $session->render_form( "post" );
 	$form_add->appendChild( $session->render_hidden_field( "screen", "Review" ) );
 
@@ -311,8 +311,8 @@ sub render
 				class=>"ep_form_action_button",
 				name=>"_action_add_col", 
 				value => $self->phrase( "add" ) ) );
-	$div->appendChild( $form_add );
-	$page->appendChild( $div );
+	$add_div->appendChild( $form_add );
+	$page->appendChild( $add_div );
 	# End of Add form
 
 

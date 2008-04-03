@@ -54,7 +54,7 @@ sub from
 	if( !defined $sconf) { $sconf = $self->default_search_config; }
 
 	my %sopts = %{$sconf};
-	$sopts{filters} = [ { meta_fields => [ 'issues_count' ], value => '1-', describe=>1 } ];
+	$sopts{filters} = [ { meta_fields => [ 'item_issues_count' ], value => '1-', describe=>1 } ];
 
 	$self->{processor}->{sconf} = \%sopts;
 
@@ -65,8 +65,8 @@ sub default_search_config
 {
 	return {
 	search_fields => [
-		{ meta_fields => [ "issues_type" ] },
-		{ meta_fields => [ "issues_first_seen" ] },
+		{ meta_fields => [ "item_issues_type" ] },
+		{ meta_fields => [ "item_issues_first_seen" ] },
 		{ meta_fields => [ "userid.username" ] },
 		{ meta_fields => [ "eprint_status" ], default=>'archive' },
 		{ meta_fields => [ "creators_name" ] },
@@ -84,8 +84,8 @@ sub default_search_config
 		"byyearoldest"	 => "date/creators_name/title",
 		"bydatestamp"	 => "-datestamp",
 		"bydatestampoldest" => "datestamp",
-		"byfirstseen" => "issues_first_seen",
-		"bynissues" => "-issues",
+		"byfirstseen" => "item_issues",
+		"bynissues" => "-item_issues_count",
 	},
 	default_order => "byfirstseen",
 	show_zero_results => 0,

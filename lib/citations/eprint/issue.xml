@@ -9,7 +9,7 @@
     <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
     <td style="padding-left: 0.5em">
       <epc:print expr="$item.citation('default')" />
-      <div><epc:print expr="issues"/></div>
+      <div><epc:print expr="item_issues"/></div>
     </td>
   </tr>
 </cite:citation>

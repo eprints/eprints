@@ -7233,3 +7233,14 @@ PACKAGE: 2.2.99.2
 
 2008-04-03 cjg
  * Added option to use a custom citation file in saved search emails.
+
+2008-04-03 cjg
+ * Renamed issues to item_issues as a precaution against namespace clashes.
+ * Renamed issues_first_seen to item_issues_timestamp as it's more correctly
+    descriptive.
+ * Added a bunch of fields to item_issues: reported_by, resolved_by, comments
+    and status.
+ * Renamed issues_count to item_issues_count.
+ * Made related changes to issues search and citation.
+ * Rendering issues only shows open issues.
+ 

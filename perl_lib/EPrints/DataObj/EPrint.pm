@@ -192,7 +192,7 @@ sub get_system_field_info
 		],
 	},
 
-	{ name=>"issues", type=>"compound", multiple=>1,
+	{ name=>"item_issues", type=>"compound", multiple=>1,
 		fields => [
 			{
 				sub_name => "id",
@@ -211,17 +211,38 @@ sub get_system_field_info
 				render_single_value => "EPrints::Extras::render_xhtml_field",
 			},
 			{
-				sub_name => "first_seen",
-				make_value_orderkey => "EPrints::DataObj::EPrint::order_issues_first_seen",
-				type => "date",
+				sub_name => "timestamp",
+				type => "time",
+			},
+			{
+				sub_name => "status",
+				type => "set",
+				text_index => 0,
+				options=> [qw/ discovered ignored reported autoresolved resolved /],
+			},
+			{
+				sub_name => "reported_by",
+				type => "itemref",
+				datasetid => "user",
+			},
+			{
+				sub_name => "resolved_by",
+				type => "itemref",
+				datasetid => "user",
+			},
+			{
+				sub_name => "comment",
+				type => "longtext",
+				text_index => 0,
+				render_single_value => "EPrints::Extras::render_xhtml_field",
 			},
 		],
+		make_value_orderkey => "EPrints::DataObj::EPrint::order_issues_newest_open_timestamp",
 		render_value=>"EPrints::DataObj::EPrint::render_issues",
 		volatile => 1,
 	},
 
-	{ name=>"issues_count", type=>"int",  volatile=>1 },
-
+	{ name=>"item_issues_count", type=>"int",  volatile=>1 },
 
 	);
 }
@@ -233,6 +254,8 @@ sub render_issues
 {
 	my( $session, $field, $value ) = @_;
 
+	# Default rendering only shows discovered and reported issues (not resolved or ignored ones)
+
 	my $f = $field->get_property( "fields_cache" );
 	my $fmap = {};	
 	foreach my $field_conf ( @{$f} )
@@ -243,14 +266,13 @@ sub render_issues
 	}
 
 	my $ol = $session->make_element( "ol" );
-	foreach my $row ( @{$value} )
+	foreach my $issue ( @{$value} )
 	{
+		next if( $issue->{status} ne "reported" && $issue->{status} ne "discovered" ); 
 		my $li = $session->make_element( "li" );
-		$li->appendChild( EPrints::Extras::render_xhtml_field( $session, $fmap->{description}, $row->{description} ) );
+		$li->appendChild( EPrints::Extras::render_xhtml_field( $session, $fmap->{description}, $issue->{description} ) );
 		$li->appendChild( $session->make_text( " - " ) );
-		$li->appendChild( $fmap->{first_seen}->render_name( $session ) );
-		$li->appendChild( $session->make_text( " " ) );
-		$li->appendChild( $fmap->{first_seen}->render_single_value( $session, $row->{first_seen} ) );
+		$li->appendChild( $fmap->{timestamp}->render_single_value( $session, $issue->{timestamp} ) );
 		$ol->appendChild( $li );
 	}
 
@@ -258,13 +280,20 @@ sub render_issues
 }
 
 
-sub order_issues_first_seen
+sub order_issues_newest_open_timestamp
 {
 	my( $field, $value, $session, $langid, $dataset ) = @_;
 
 	return "" if !defined $value;
 
-	return join( ":", sort { $b cmp $a } @{$value} );
+	my $v = "";
+	foreach my $issue ( sort { $b->{timestamp} cmp $a->{timestamp} } @{$value} )
+	{
+		next if( $issue->{status} ne "reported" && $issue->{status} ne "discovered" );
+		$v.=$issue->{timestamp};
+	}
+
+	return $v;	
 }
 
 sub render_fileinfo
@@ -951,6 +980,16 @@ sub commit
 		my $new_succ = EPrints::EPrint->new( $self->{session}, $self->{data}->{succeeds} );
 		$new_succ->succeed_thread_modified if( defined $new_succ );
 	}
+
+	# recalculate issues number
+	my $issues = $self->get_value( "item_issues" ) || [];
+	my $c = 0;
+	foreach my $issue ( @{$issues} )
+	{
+		$c+=1 if( $issue->{status} eq "discovered" );
+		$c+=1 if( $issue->{status} eq "reported" );
+	}
+	$self->set_value( "item_issues_count", $c );
 
 	$self->{session}->get_repository->call( 
 		"set_eprint_automatic_fields", 

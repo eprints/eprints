@@ -338,7 +338,6 @@ sub render
 
 	my $colcurr = {};
 	foreach( @$columns ) { $colcurr->{$_} = 1; }
-        my $ds = $session->get_repository->get_dataset( "eprint" );
 	my $fieldnames = {};
         foreach my $field ( $ds->get_fields )
         {

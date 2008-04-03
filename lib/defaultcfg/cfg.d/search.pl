@@ -81,8 +81,8 @@ $c->{search}->{advanced} =
 $c->{issues_search} =
 {
 	search_fields => [
-		{ meta_fields => [ "issues_type" ] },
-		{ meta_fields => [ "issues_first_seen" ] },
+		{ meta_fields => [ "item_issues_type" ] },
+		{ meta_fields => [ "item_issues_timestamp" ] },
 		{ meta_fields => [ "userid.username" ] },
 		{ meta_fields => [ "eprint_status" ], default=>'archive' },
 		{ meta_fields => [ "creators_name" ] },
@@ -100,8 +100,8 @@ $c->{issues_search} =
 		"byyearoldest"	 => "date/creators_name/title",
 		"bydatestamp"	 => "-datestamp",
 		"bydatestampoldest" => "datestamp",
-		"byfirstseen" => "issues_first_seen",
-		"bynissues" => "-issues",
+		"byfirstseen" => "item_issues",
+		"bynissues" => "-item_issues_count",
 	},
 	default_order => "byfirstseen",
 	show_zero_results => 0,

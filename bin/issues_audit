@@ -166,34 +166,60 @@ foreach my $plugin_id ( @issues_plugins )
 
 # Update the issues fields
 print "Updating database\n" if $noise > 0;
-my $today = EPrints::Time::get_iso_date();
+my $now = EPrints::Time::get_iso_timestamp();
 $list->map( 
 		sub { 
 			my( $session, $dataset, $item, $info ) = @_;
-			
-			my $old_issues = $item->get_value( "issues" ) || [];
+		
+			my $new_issues = $issues->{$item->get_id} || [];	
+			my $current_issues = $item->get_value( "item_issues" ) || [];
 			my $map = {};
-			foreach my $issue ( @{$old_issues} )
+			foreach my $issue ( @{$new_issues} )
 			{
-				next unless $issue->{id};
-				$map->{$issue->{id}} = $issue;				
+				$issue->{id} = $issue->{type} unless( EPrints::Utils::is_set( $issue->{id} ));
+				$map->{$issue->{id}} = $issue;	
 			}
-			my $new_issues = [];
-			foreach my $issue ( @{$issues->{$item->get_id} || []} )
+
+			my $issues_out = [];
+			ISSUE: foreach my $issue ( @{$current_issues} )
 			{
-				$issue->{id} = $issue->{type} unless EPrints::Utils::is_set( $issue->{id} );
-				if( defined $map->{$issue->{id}} )
+				my $newfound = $map->{$issue->{id}};
+				if( $issue->{status} =~ m/^(reported|resolved)$/ )
 				{
-					$issue->{first_seen} = $map->{$issue->{id}}->{first_seen};
+					print STDERR "Odd issue reported on item ".$item->get_id." - ".$issue->{id}." has status of ".$issue->{status}." so can't be auto-modified!\n" if( $noise > 0 );
+					next ISSUE;
+				}
+				if( defined $newfound )
+				{
+					# issue used to exist, and still exists
+
+					# reopen it if needed
+					if( $issue->{status} eq "autoresolved" ) 
+					{ 
+						$issue->{status} = "discovered"; 
+						$issue->{timestamp} = $now;
+					}
+					# (if it's 'ignored' then leave it alone)
+
+					$issue->{description} = $newfound->{description};
+					delete $map->{$issue->{id}};
 				}
 				else
 				{
-					$issue->{first_seen} = $today;
+					# issue used to exist, but now doesn't.
+					$issue->{timestamp} = $now;
+					$issue->{status} = "autoresolved";
 				}
-				push @{$new_issues}, $issue;
 			}
-			$item->set_value( "issues", $new_issues );
-			$item->set_value( "issues_count", scalar( @{$new_issues} ) );
+			foreach my $id ( keys %{$map} )
+			{
+				my $issue = $map->{$id};	
+				$issue->{timestamp} = $now;
+				$issue->{status} = "discovered";
+				push @{$current_issues}, $issue;
+			}
+			# add new issues
+			$item->set_value( "item_issues", $current_issues );
 			$item->commit;
 		},
 	);

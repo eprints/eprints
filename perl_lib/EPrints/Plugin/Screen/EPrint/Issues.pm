@@ -65,9 +65,12 @@ sub render
 	{
 		$page->appendChild( $self->html_phrase( "no_live_issues" ) );
 	}
-				
-	$page->appendChild( $self->html_phrase( "last_audit" ) );
-	$page->appendChild( $eprint->render_value( "issues" ) );
+
+	if( $eprint->get_value( "item_issues_count" ) > 0 )
+	{
+		$page->appendChild( $self->html_phrase( "issues" ) );
+		$page->appendChild( $eprint->render_value( "item_issues" ) );
+	}
 
 	return $page;
 }
