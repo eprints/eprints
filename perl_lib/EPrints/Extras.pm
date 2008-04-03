@@ -293,6 +293,30 @@ sub english_title_orderkey
         return $value;
 }
 
+######################################################################
+=pod
+
+=item $xhtml_dom = EPrints::Extras::render_possible_doi( $field, $value, $dataset )
+
+If the field looks like it contains a DOI then link it.
+
+=cut
+######################################################################
+
+sub render_possible_doi
+{
+	my( $session, $field, $value ) = @_; 
+
+	if( $value !~ /^(doi:)?10\.\d\d\d\d\// ) { return $session->make_text( $value ); }
+	
+	$value =~ s/^doi://;
+
+	my $url = "http://dx.doi.org/$value";
+	my $link = $session->render_link( $url );
+	$link->appendChild( $session->make_text( $value ) );
+	return $link; 
+}
+
 
 ######################################################################
 =pod

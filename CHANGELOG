@@ -7258,3 +7258,6 @@ PACKAGE: 2.2.99.2
 2008-04-03 cjg
  * Added "views.timestamp" to work like abstracts.timestamp
  * Added regenerate views and regenerate abstracts buttons.
+
+2008-04-03 cjg
+ * Added renderer to extras to link DOI's if spotted in value.
