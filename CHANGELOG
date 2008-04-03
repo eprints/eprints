@@ -7250,3 +7250,7 @@ PACKAGE: 2.2.99.2
 
 2008-04-03 cjg
  * EPrint & Document URI's now correctly redirect to the appropriate URL.
+
+2008-04-03 cjg
+ * Added user.username and user.name to the staff eprint serach. Closing
+    #3236
