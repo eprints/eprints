@@ -400,7 +400,7 @@ sub send_out_alert
 		my( $session, $dataset, $item, $info ) = @_;
 
 		my $p = $session->make_element( "p" );
-		$p->appendChild( $item->render_citation_link );
+		$p->appendChild( $item->render_citation_link( $session->get_repository->get_conf( "saved_search_citation" )));
 		$info->{matches}->appendChild( $p );
 #		$info->{matches}->appendChild( $session->make_text( $item->get_url ) );
 	};

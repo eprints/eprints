@@ -7231,3 +7231,5 @@ PACKAGE: 2.2.99.2
  * Weaken circular references to prevent memory leaks under unusual conditions
     (e.g. EPrints::abort)
 
+2008-04-03 cjg
+ * Added option to use a custom citation file in saved search emails.
