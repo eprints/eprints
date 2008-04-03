@@ -52,7 +52,18 @@ sub update_view_file
 	my $age;
 	if( -e "$target.page" ) 
 	{
-		$age = time - EPrints::Utils::mtime( "$target.page" );
+		my $target_timestamp = EPrints::Utils::mtime( "$target.page" );
+
+		$age = time - $target_timestamp;
+
+		my $timestampfile = $repository->get_conf( "variables_path" )."/views.timestamp";	
+		if( -e $timestampfile )
+		{
+			my $poketime = (stat( $timestampfile ))[9];
+			# if the poktime is more recent than the file then make it look like the 
+			# file does not exist (forcing it to regenerate)
+			$age = undef if( $target_timestamp < $poketime );
+		}		
 	}
 
 	if( $uri eq "/view/" )

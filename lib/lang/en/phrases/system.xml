@@ -539,6 +539,18 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_start_indexer">Unable to start indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/IndexerControl:cant_stop_indexer">Unable to stop indexer. You should check the log file in <epc:pin name="logpath" /> for more information.</epp:phrase>
 
+    <epp:phrase id="Plugin/Screen/Admin/RegenViews:title">Regenerate Views</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenViews:action:regen_views:title">Regenerate Views</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenViews:action:regen_views:description">Cause views pages to be regenerated when they are next requested.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenViews:ok">Successfully set views to regenerate.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenViews:failed">Failed writing timestamp file.</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Admin/RegenAbstracts:title">Regenerate Abstracts</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenAbstracts:action:regen_abstracts:title">Regenerate Abstracts</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenAbstracts:action:regen_abstracts:description">Cause abstract pages to be regenerated when they are next requested.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenAbstracts:ok">Successfully set abstracts to regenerate.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/RegenAbstracts:failed">Failed writing timestamp file.</epp:phrase>
+
     <epp:phrase id="Plugin/Screen/Admin/Reload:title">Reload Configuration</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Reload:action:reload_config:title">Reload Configuration</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Reload:action:reload_config:description">Cause the repository to re-read its configuration files. Use with caution!</epp:phrase>

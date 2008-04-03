@@ -1125,6 +1125,8 @@ my $PRIVMAP =
 		"config/test_email" => 2,
 		"config/add_field" => 2,
 		"config/remove_field" => 2,
+		"config/regen_abstracts" => 2,
+		"config/regen_views" => 2,
 		"metafield/view" => 2,
 		"metafield/edit" => 2,
 	},
