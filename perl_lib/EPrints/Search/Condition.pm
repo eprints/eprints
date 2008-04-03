@@ -111,7 +111,7 @@ sub new
 
 	my $self = {};
 	bless $self, $class;
-
+	$op = "" unless defined $op;	
 	$self->{op} = $op;
 	if( $op eq "AND" || $op eq "OR" || $op eq "CANPASS" )
 	{
