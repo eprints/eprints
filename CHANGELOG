@@ -7261,3 +7261,10 @@ PACKAGE: 2.2.99.2
 
 2008-04-03 cjg
  * Added renderer to extras to link DOI's if spotted in value.
+
+2008-04-05 cjg
+ * Added a plugin to export history as ical. 
+ * Added a history citation to fix a bug that appears to have been 
+    introduced by the citation auto-reloader.
+
+
