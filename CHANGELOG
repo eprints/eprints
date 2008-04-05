@@ -7276,3 +7276,6 @@ PACKAGE: 2.2.99.2
 
 2008-04-05 cjg
  * Added (slightly shonky) plugin to convert .doc to .pdf
+
+2008-04-05 cjg
+ * Added an optional /plugins/ directory to the repository cfg directory.

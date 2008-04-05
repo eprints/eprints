@@ -379,7 +379,7 @@ sub load
 ######################################################################
 =pod
 
-=item EPrints::Plugin::load_dir( $reg, $path, $baseclass, @prefix ) [static]
+=item EPrints::Plugin::load_dir( $reg, $path, $baseclass, $prefix ) [static]
 
 Load plugins in this directory and recurse through subdirectories.
 
@@ -390,7 +390,7 @@ $reg is a pointer to a hash to store the lost of found plugins in.
 
 sub load_dir
 {
-	my( $reg, $path, $baseclass, @prefix ) = @_;
+	my( $reg, $path, $class ) = @_;
 
 	my $dh;
 	opendir( $dh, $path ) || die "Could not open $path";
@@ -404,11 +404,11 @@ sub load_dir
 		my $filename = "$path/$fn";
 		if( -d $filename )
 		{
-			load_dir( $reg, $filename, $baseclass, @prefix, $fn );
+			load_dir( $reg, $filename, $class."::".$fn );
 			next;
 		}
 		next unless( $fn =~ s/\.pm$// );
-		my $class = $baseclass."::".join("::",@prefix,$fn );
+		my $class = $class."::".$fn;
 		eval "use $class; 1";
 
 		if( $@ ne "" )
@@ -433,7 +433,6 @@ sub load_dir
 		$reg->{$pluginid} = $class;
 	}
 	closedir( $dh );
-
 }
 
 

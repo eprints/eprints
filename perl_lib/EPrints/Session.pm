@@ -3498,7 +3498,7 @@ sub plugin
 	}
 	return if !defined $pluginid;
 
-	my $class = $EPrints::Plugin::REGISTRY->{$pluginid};
+	my $class = $self->get_repository->get_plugin_class( $pluginid );
 
 	if( !defined $class )
 	{
@@ -3537,12 +3537,11 @@ sub plugin_list
 {
 	my( $self, %restrictions ) = @_;
 
-	my %pids = ();
-	foreach( EPrints::Plugin::plugin_list() ) { $pids{$_}=1; }
+	my @plugin_ids = $self->get_repository->get_plugin_ids();
 
-	return sort keys %pids if( !scalar %restrictions );
+	return @plugin_ids if( !scalar %restrictions );
 	my @out = ();
-	foreach my $plugin_id ( sort keys %pids ) 
+	foreach my $plugin_id ( @plugin_ids )
 	{
 		my $plugin = $self->plugin( $plugin_id );
 

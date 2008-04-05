@@ -167,6 +167,8 @@ sub new
 		$self->_load_citation_specs() || return;
 	}
 
+	$self->_load_plugins() || return;
+
 	# Map OAI plugins to functions, namespaces etc.
 	$self->_map_oai_plugins() || return;
 
@@ -922,6 +924,71 @@ sub get_dataset
 	}
 
 	return $ds;
+}
+
+
+######################################################################
+# 
+# $success = $repository->_load_plugins
+#
+# Load any plugins distinct to this repository.
+#
+######################################################################
+
+sub _load_plugins
+{
+	my( $self ) = @_;
+
+	my $dir = $self->get_conf( "config_path" )."/plugins";
+	my $pdir ="$dir/EPrints/Plugin";
+	return 1 unless -d $pdir;
+
+$self->{local_plugins} = {};
+	local @INC = ($dir, @INC);
+	EPrints::Plugin::load_dir( $self->{local_plugins}, $pdir, "EPrints::Plugin" );
+
+print STDERR join( " , ", keys %{$self->{local_plugins}} )."\n";
+
+	return 1;
+}
+
+######################################################################
+# 
+# $classname = $repository->get_plugin_class
+#
+# Returns the perl module for a plugin with this id, using global
+# and repository-sepcific plugins.
+#
+######################################################################
+
+sub get_plugin_class
+{
+	my( $self, $pluginid ) = @_;
+
+	if( defined $self->{local_plugins}->{$pluginid} )
+	{
+		return $self->{local_plugins}->{$pluginid};
+	}
+
+	return $EPrints::Plugin::REGISTRY->{$pluginid};
+}
+
+######################################################################
+# 
+# @list = $repository->get_plugin_ids
+#
+# Returns a list of plugin ids available to this repository.
+#
+######################################################################
+
+sub get_plugin_ids
+{
+	my( $self, $pluginid ) = @_;
+
+	my %pids = ();
+	foreach( EPrints::Plugin::plugin_list() ) { $pids{$_}=1; }
+	foreach( keys %{$self->{local_plugins}} ) { $pids{$_}=1; }
+	return keys %pids;
 }
 
 ######################################################################
