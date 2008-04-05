@@ -307,6 +307,8 @@ sub render_possible_doi
 {
 	my( $session, $field, $value ) = @_; 
 
+	$value = "" unless defined $value;
+
 	if( $value !~ /^(doi:)?10\.\d\d\d\d\// ) { return $session->make_text( $value ); }
 	
 	$value =~ s/^doi://;
