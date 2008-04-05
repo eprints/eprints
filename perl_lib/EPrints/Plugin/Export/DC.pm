@@ -43,7 +43,9 @@ sub output_dataobj
 	foreach( @{$data} )
 	{
 		next unless defined( $_->[1] );
-		$r.=$_->[0].": ".$_->[1]."\n";
+		my $v = $_->[1];
+		$v=~s/[\r\n]/ /g;
+		$r.=$_->[0].": $v\n";
 	}
 	$r.="\n";
 	return $r;

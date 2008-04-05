@@ -7279,3 +7279,7 @@ PACKAGE: 2.2.99.2
 
 2008-04-05 cjg
  * Added an optional /plugins/ directory to the repository cfg directory.
+
+2008-04-05 cjg 
+ * Some minor bugfixes to remove newlines from abstracts in some export
+    formats.
