@@ -15,7 +15,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "History ICal";
-	$self->{accept} = [ 'list/*' ];
+	$self->{accept} = [ 'list/history' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".ics";
 	$self->{mimetype} = "text/calendar; charset=utf-8";
