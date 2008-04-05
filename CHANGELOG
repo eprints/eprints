@@ -7270,3 +7270,6 @@ PACKAGE: 2.2.99.2
 2008-04-05 cjg
  * Made a <label> tag surround the checkbox and label in the respond 
     to request screen.
+
+2008-04-05 cjg
+ * In History search, now searches username not userid.

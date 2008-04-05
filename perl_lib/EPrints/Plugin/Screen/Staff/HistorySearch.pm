@@ -68,7 +68,7 @@ sub from
 
 	my $sconf = {
 		search_fields => [
-			{ meta_fields => [ "userid" ] },
+			{ meta_fields => [ "userid.username" ] },
 			{ meta_fields => [ "action" ] },
 			{ meta_fields => [ "timestamp" ] },
 			{ meta_fields => [ "objectid" ] },
