@@ -947,8 +947,6 @@ $self->{local_plugins} = {};
 	local @INC = ($dir, @INC);
 	EPrints::Plugin::load_dir( $self->{local_plugins}, $pdir, "EPrints::Plugin" );
 
-print STDERR join( " , ", keys %{$self->{local_plugins}} )."\n";
-
 	return 1;
 }
 
