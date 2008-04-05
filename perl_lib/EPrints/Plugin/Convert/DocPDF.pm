@@ -22,8 +22,6 @@ use Unicode::String;
 use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;
 
-'antiwordpdf' => '$(antiword) -a a4 -m 8859-1 $(SOURCE) > $(TARGET)',
-
 sub new
 {
 	my( $class, %opts ) = @_;
