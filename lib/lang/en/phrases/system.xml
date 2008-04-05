@@ -1524,6 +1524,7 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Convert/ImageMagick/Images:image/x-portable-pixmap">PPM</epp:phrase>
 	<epp:phrase id="Plugin/Convert/ImageMagick/Images:application/pdf">Adobe PDF</epp:phrase>
 	<epp:phrase id="Plugin/Convert/PlainText:text/plain">Plain Text</epp:phrase>
+	<epp:phrase id="Plugin/Convert/DocPDF:application/pdf">PDF (via antiword)</epp:phrase>
 
   <epp:phrase id="Plugin/Screen/Admin/Config/Edit:could_not_write">Could not write file '<epc:pin name="filename" />'. Error message: <epc:pin name="error_msg" /></epp:phrase>  
 

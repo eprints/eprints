@@ -7273,3 +7273,6 @@ PACKAGE: 2.2.99.2
 
 2008-04-05 cjg
  * In History search, now searches username not userid.
+
+2008-04-05 cjg
+ * Added (slightly shonky) plugin to convert .doc to .pdf
