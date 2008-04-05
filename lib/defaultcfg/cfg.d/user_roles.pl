@@ -52,3 +52,16 @@ $c->{user_roles}->{minuser} = [qw/
 	set-password
 	lock-username-to-email
 /];
+
+# If you want to add additional roles to the system, you can do it here.
+# These can be useful to create "hats" which can be given to a user via
+# the roles field. You can also override the default roles.
+#
+#$c->{roles}->{"approve-hat"} = {
+#	"eprint/buffer/view" => 8,
+#	"eprint/buffer/summary" => 8,
+#	"eprint/buffer/details" => 8,
+#	"eprint/buffer/move_archive" => 8,
+#};
+
+

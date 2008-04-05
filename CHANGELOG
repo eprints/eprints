@@ -7283,3 +7283,10 @@ PACKAGE: 2.2.99.2
 2008-04-05 cjg 
  * Some minor bugfixes to remove newlines from abstracts in some export
     formats.
+
+2008-04-05 cjg
+ * Added a new field to user: roles, which assigns new roles or privs to
+    individual users.
+ * Added a config option for creating new roles, or overriding existing
+    ones. This can be used to create "hats" to assign to people.
+

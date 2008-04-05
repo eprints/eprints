@@ -1599,6 +1599,13 @@ sub upgrade
 		$dbversion="3.1.0";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.1.0" )
+	{
+		upgrade_3_1_0_to_3_1_1( $repoid, $db );
+		$dbversion="3.1.1";
+		$db->set_version( $dbversion );
+	}
+
 
 	print $dbversion."\n";
 	$session->terminate;
@@ -1918,6 +1925,15 @@ sub update_database_structure
 	update_counters( $repo, $db );
 
 	$session->terminate;
+}
+
+sub upgrade_3_1_0_to_3_1_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = EPrints::Repository->new( $repoid );
+
+	update_datasets( $repo, $db );
 }
 
 

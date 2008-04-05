@@ -184,6 +184,8 @@ sub get_system_field_info
 		{ name => "permission_group", multiple => 1, type => "namedset", 
 			set_name => "permission_group", },
 
+		{ name => "roles", multiple => 1, type => "text", text_index=>0 },
+
 		{ name=>"frequency", type=>"set", input_style=>"medium",
 			options=>["never","daily","weekly","monthly"] },
 
@@ -1363,15 +1365,22 @@ sub get_privs
 	$self->{".privs"} = {};
 	my $rep = $self->{session}->get_repository;
 	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
-	foreach my $role ( @{$role_config} )
+	my $extra_roles = $self->get_value( "roles" ) || [];
+	my %privmap = %{$PRIVMAP};
+	my %override_roles = %{$rep->get_conf( "roles" )||{}};
+	foreach my $role_id ( keys %override_roles )
+	{
+		$privmap{$role_id} = $override_roles{$role_id};
+	}
+	foreach my $role ( @{$role_config}, @{$extra_roles} )
 	{
 		next if( $role =~ m/^[+-]/ );
-		foreach my $priv ( keys %{$PRIVMAP->{$role}} ) 
+		foreach my $priv ( keys %{$privmap{$role}} ) 
 		{ 
-			$self->{".privs"}->{$priv} = ($self->{".privs"}->{$priv}||0) + $PRIVMAP->{$role}->{$priv}; 
+			$self->{".privs"}->{$priv} = ($self->{".privs"}->{$priv}||0) + $privmap{$role}->{$priv}; 
 		}
 	}
-	foreach my $role ( @{$role_config} )
+	foreach my $role ( @{$role_config}, @{$extra_roles} )
 	{
 		if( $role =~ m/^([-+])([^[]+)(\[([^]]+)\])?$/ )
 		{
@@ -1421,8 +1430,9 @@ sub get_roles
 
 	my $rep = $self->{session}->get_repository;
 	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
+	my $extra_roles = $self->get_value( "roles" ) || [];
 	my @roles = ();
-	foreach my $role ( @{$role_config} )
+	foreach my $role ( @{$role_config}, @{$extra_roles} )
 	{
 		next if( $role =~ m/^[+-]/ );
 		push @roles, $role;
