@@ -275,7 +275,7 @@ sub render_related_url
 ######################################################################
 =pod
 
-=item $orderkey = EPrints::Extras::render_related_url( $field, $value, $dataset )
+=item $orderkey = EPrints::Extras::english_title_orderkey( $field, $value, $dataset )
 
 Strip the leading a/an/the and any non alpha numerics from the start of a orderkey
 value. Suitable for make_single_value_orderkey on the title field.
