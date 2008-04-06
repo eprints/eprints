@@ -7290,3 +7290,5 @@ PACKAGE: 2.2.99.2
  * Added a config option for creating new roles, or overriding existing
     ones. This can be used to create "hats" to assign to people.
 
+2008-04-06 cjg
+ * Changed view-eprint icon to a magnifying glass.
