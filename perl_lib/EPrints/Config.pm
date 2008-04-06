@@ -261,14 +261,7 @@ sub load_repository_config_module
 	 	my $todo = <<END;
 package EPrints::Config::$id; 
 our \$c = \$EPrints::Config::${id}::config;
-local \$SIG{__WARN__} = sub { 
-	my( \$msg ) = \@_; 
-	my \@a = split( / at /, \$msg );
-	pop \@a;
-	print STDERR join( " at ", \@a );	
-	my \@c = caller;
-	print STDERR " at $filepath line ".(\$c[2]-10).".\\n";
-};
+#line 1 "$filepath"
 $cfgfile
 END
 #print STDERR "$filepath...\n";

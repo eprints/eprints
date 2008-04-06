@@ -7292,3 +7292,8 @@ PACKAGE: 2.2.99.2
 
 2008-04-06 cjg
  * Changed view-eprint icon to a magnifying glass.
+
+2008-04-06 cjg
+ * Made an improvement to warnings and errors so it now shows file and
+    line number.
+

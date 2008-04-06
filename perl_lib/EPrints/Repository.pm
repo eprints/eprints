@@ -1137,11 +1137,6 @@ sub call
 		return;
 	}
 
-	local $SIG{__WARN__} = sub {
-        	my( $msg ) = @_;
-        	print STDERR " (warning while in configuration subroutine $cmd) $msg\n";
-	};
-
 	my( $r, @r );
 	if( wantarray )
 	{
@@ -1153,7 +1148,7 @@ sub call
 	}
 	if( $@ )
 	{
-		print STDERR " (error while in configuration subroutine $cmd) $@\n";
+		print "$@\n";
 		exit 1;
 	}
 	return wantarray ? @r : $r;
