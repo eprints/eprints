@@ -57,11 +57,11 @@ $c->{user_roles}->{minuser} = [qw/
 # These can be useful to create "hats" which can be given to a user via
 # the roles field. You can also override the default roles.
 #
-#$c->{roles}->{"approve-hat"} = {
-#	"eprint/buffer/view" => 8,
-#	"eprint/buffer/summary" => 8,
-#	"eprint/buffer/details" => 8,
-#	"eprint/buffer/move_archive" => 8,
-#};
+#$c->{roles}->{"approve-hat"} = [
+#	"eprint/buffer/view:editor",
+#	"eprint/buffer/summary:editor",
+#	"eprint/buffer/details:editor",
+#	"eprint/buffer/move_archive:editor",
+#];
 
 
