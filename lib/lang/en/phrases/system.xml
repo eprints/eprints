@@ -1065,6 +1065,8 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldhelp_email">The email address for this user</epp:phrase>
     <epp:phrase id="user_fieldname_lang">Preferred Language</epp:phrase>
     <epp:phrase id="user_fieldhelp_lang">Your preferred language. Where possible information will be mailed in this language.</epp:phrase>
+    <epp:phrase id="user_fieldname_roles">Roles</epp:phrase>
+    <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may ealso be used to assign (and remove) indiviudal privilidges by prefixing the priv string with plus (+) or minus (-).</epp:phrase>
 
     <!-- These fields are only used by users with "editor" privs -->
     <epp:phrase id="user_fieldname_editperms">Editorial Rights Restriction</epp:phrase>

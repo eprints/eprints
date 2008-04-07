@@ -7304,3 +7304,9 @@ PACKAGE: 2.2.99.2
  * Changed priv config format to be an array of values. With :editor and
     :owner indicatng editor or owner only privs. This gets rid of the 2,4,8
     stuff. The revision makes it easier to understand.
+
+2008-04-07 cjg
+ * Added importid counter for generating new ids
+ * Added user.roles to staff-edit-user workflow
+ * Added phrases for user.roles
+ 

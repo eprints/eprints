@@ -10,6 +10,7 @@
   <stage name="usertype">
       <component><field ref="usertype"/></component>
       <component><field ref="username"/></component>
+      <component><field ref="roles"/></component>
   </stage>
 
   <stage name="default">
