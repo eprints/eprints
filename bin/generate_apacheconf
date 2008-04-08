@@ -439,6 +439,9 @@ if( $repository->get_conf( "use_mimetex" ) )
 }
 
 print CONF <<END;
+  # You must add $http_root/archive/ to rewrite_exceptions in cfg.d/urls.pl
+  Redirect $http_root/archive/ http://$hostport$http_root/
+
   Alias $http_root/thumbnails/ $archiveroot/thumbnails/
   Alias $http_cgiroot $cgidir
   Alias $http_root/ $htdocs_path/

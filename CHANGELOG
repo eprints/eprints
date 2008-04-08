@@ -7310,3 +7310,6 @@ PACKAGE: 2.2.99.2
  * Added user.roles to staff-edit-user workflow
  * Added phrases for user.roles
  
+2008-04-08 tdb
+ * Added Apache rewrite rule for /archive/* to /*, fixing #3328
+

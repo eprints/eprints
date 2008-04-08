@@ -16,5 +16,5 @@ $c->{userhome} = "$c->{perl_url}/users/home";
 # except for /cgi/. List other exceptions here.
 # These will be used in a regular expression, so characters like
 # .()[]? have special meaning.
-$c->{rewrite_exceptions} = [ '/cgi/' ];
+$c->{rewrite_exceptions} = [ '/cgi/', '/archive/' ];
 
