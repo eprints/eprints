@@ -30,7 +30,7 @@
 
   <stage name="core">
 
-    <component><field ref="title" required="yes" input_lookup_url="{$config{perl_url}}/users/lookup/title_duplicates" input_lookup_params="eprintid={eprintid}" /></component>
+    <component><field ref="title" required="yes" input_lookup_url="{$config{http_cgiurl}}/users/lookup/title_duplicates" input_lookup_params="eprintid={eprintid}" /></component>
     <component><field ref="abstract"/></component>
 
     <epc:if test="type = 'monograph'">
@@ -51,12 +51,12 @@
 
     <epc:choose>
       <epc:when test="type.one_of('book','book_section')">
-        <component><field ref="creators" input_lookup_url="{$config{perl_url}}/users/lookup/name" /></component>
+        <component><field ref="creators" input_lookup_url="{$config{http_cgiurl}}/users/lookup/name" /></component>
         <component><field ref="corp_creators"/></component>
-        <component><field ref="editors" input_lookup_url="{$config{perl_url}}/users/lookup/name" /></component>
+        <component><field ref="editors" input_lookup_url="{$config{http_cgiurl}}/users/lookup/name" /></component>
       </epc:when>
       <epc:otherwise>
-        <component><field ref="creators" required="yes" input_lookup_url="{$config{perl_url}}/users/lookup/name" /></component>
+        <component><field ref="creators" required="yes" input_lookup_url="{$config{http_cgiurl}}/users/lookup/name" /></component>
         <component><field ref="corp_creators"/></component>
       </epc:otherwise>
     </epc:choose>
@@ -166,8 +166,8 @@
         <field ref="official_url"/>
       </epc:if>
       <epc:if test="type = 'article'">
-        <field ref="publication" required="yes" input_lookup_url="{$config{perl_url}}/users/lookup/journal_by_name" />
-        <field ref="issn" input_lookup_url="{$config{perl_url}}/users/lookup/journal_by_issn" />
+        <field ref="publication" required="yes" input_lookup_url="{$config{http_cgiurl}}/users/lookup/journal_by_name" />
+        <field ref="issn" input_lookup_url="{$config{http_cgiurl}}/users/lookup/journal_by_issn" />
         <field ref="publisher" />
         <field ref="official_url"/>
         <field ref="volume"/>
@@ -273,7 +273,7 @@
     <epc:if test="type = 'conference_item'">
       <component type="Field::Multi">
         <title>Event Details</title>
-        <field ref="event_title" input_lookup_url="{$config{perl_url}}/users/lookup/event_by_name" required="yes" />
+        <field ref="event_title" input_lookup_url="{$config{http_cgiurl}}/users/lookup/event_by_name" required="yes" />
         <field ref="event_type" required="yes" />
         <field ref="event_location"/>
         <field ref="event_dates"/>
