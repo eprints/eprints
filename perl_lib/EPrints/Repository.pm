@@ -254,7 +254,7 @@ sub _add_http_paths
 	my $config = $self->{config};
 
 	# Backwards-compatibility: http is fairly simple, https may go wrong
-	if( !$config->{"http_root"} )
+	if( !defined($config->{"http_root"}) )
 	{
 		my $u = URI->new( $config->{"base_url"} );
 		$config->{"http_root"} = $u->path;
@@ -263,8 +263,10 @@ sub _add_http_paths
 		if( $config->{"securehost"} )
 		{
 			$config->{"secureport"} ||= 443;
-			$config->{"https_root"} ||= $config->{"securepath"};
-			$config->{"https_cgiroot"} ||= $config->{"https_root"} . $config->{"http_cgiroot"};
+			$config->{"https_root"} = $config->{"securepath"}
+				if !defined($config->{"https_root"});
+			$config->{"https_cgiroot"} = $config->{"https_root"} . $config->{"http_cgiroot"}
+				if !defined($config->{"https_cgiroot"});
 		}
 	}
 

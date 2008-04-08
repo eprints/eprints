@@ -7313,4 +7313,5 @@ PACKAGE: 2.2.99.2
 2008-04-08 tdb
  * Added Apache rewrite rule for /archive/* to /*, fixing #3328
  * Changed workflow autocomplete URLs to use http_cgiurl, fixing #3327
+ * Allow "http(s)_root" to be empty, fixing #3319
 
