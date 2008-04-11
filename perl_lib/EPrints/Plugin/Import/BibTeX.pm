@@ -223,6 +223,9 @@ our %BIBTEX_MAPPING = qw(
 	author creators_name
 	editor editors_name
 );
+our %BIBTEX_NAMES = (
+#	jan => Text::BibTeX::Yapp::String->new( "January" ),
+);
 
 sub new
 {
@@ -261,9 +264,12 @@ sub input_fh
 	my $parser = Text::BibTeX::Yapp->new;
 
 	my $bibs = $parser->parse_fh( $opts{fh} );
+	$bibs = Text::BibTeX::Yapp::expand_names( $bibs, %BIBTEX_NAMES );
 
 	foreach my $entry (@$bibs)
 	{
+		my( $type, $struct ) = @$entry;
+		next if( $type eq "STRING" );
 		my $epdata = $plugin->convert_input( $entry );
 		next unless( defined $epdata );
 

@@ -34,6 +34,16 @@ sub value
 	${$_[0]};
 }
 
+sub lc_value
+{
+	lc(${$_[0]});
+}
+
+sub uc_value
+{
+	uc(${$_[0]});
+}
+
 sub type
 {
 	my( $self ) = @_;
@@ -70,6 +80,15 @@ Text::BibTeX::Yapp - Pure-perl BibTeX parser
 	open(my $fh, "<", "my.bib");
 	my $entries = $p->parse_file($fh);
 	close($fh);
+
+	# Expand names defined within $entries
+	$entries = Text::BibTeX::Yapp::expand_names( $entries );
+
+	# Expand names defined externally
+	$hash{"STOC"} = Text::BibTeX::Yapp::String->new(
+		"Symposium on the Theory of Computing"
+	);
+	$entries = Text::BibTeX::Yapp::expand_names( $entries, \%hash );
 
 =head1 DESCRIPTION
 
@@ -140,6 +159,12 @@ http://artis.imag.fr/~Xavier.Decoret/resources/xdkbibtex/bibtex_summary.html
 =item $parser = Text::BibTeX::Yapp->new
 
 Create and return a new parser object.
+
+=item $entries = Text::BibTeX::Yapp::expand_names( $entries [, LOOKUP ] )
+
+Expand NAMEd values in $entries that are defined by @STRING objects (@STRING
+definition must occur before the use) and/or in LOOKUP which is a reference to
+a hash table of NAME identifiers and VALUE objects.
 
 =item $bibs = $parser->parse_file( HANDLE )
 
@@ -212,6 +237,21 @@ at your option, any later version of Perl 5 you may have available.
 use Carp;
 
 our $REGEXP_NAME = qr/[a-zA-Z0-9\!\$\&\*\+\-\.\/\:\;\<\>\?\[\]\^\_\`\|]+/;
+
+our %_BIBTEX_MONTHS = qw(
+	jan January
+	feb February
+	mar March
+	apr April
+	may May
+	jun June
+	jul July
+	aug August
+	sep September
+	oct October
+	nov November
+	dec December
+);
 
 
 
@@ -772,6 +812,64 @@ sub parse_string
 	$r = $self->_parse;
 
 	return $r;
+}
+
+sub _expand_names
+{
+	my( $values, $lookup ) = @_;
+
+	for(my $i = 0; $i < @$values; ++$i)
+	{
+		if( $values->[$i]->type eq "NAME" )
+		{
+			my $name = $values->[$i]->lc_value;
+			if( exists($lookup->{$name}) )
+			{
+				splice(@$values,$i,1,@{$lookup->{$name}});
+				$i += $#{$lookup->{$name}};
+			}
+		}
+	}
+}
+
+sub expand_names
+{
+	my( $entries, $lookup ) = @_;
+
+	my %strings;
+	if( 2 == @_ )
+	{
+		while(my( $name, $value ) = each %$lookup)
+		{
+			$strings{lc($name)} = ref($value) eq "ARRAY" ? $value : [$value];
+		}
+	}
+
+	foreach my $entry (@$entries)
+	{
+		my( $type, $struct ) = @$entry;
+		my( $identifier, $content ) = @$struct;
+		if( ref($content) eq "ARRAY" )
+		{
+			_expand_names( $content, \%strings );
+		}
+		else
+		{
+			for(values %$content)
+			{
+				_expand_names( $_, \%strings );
+			}
+		}
+		if( uc($type) eq "STRING" )
+		{
+			while(my( $name, $value ) = each %$content)
+			{
+				$strings{lc($name)} = $value;
+			}
+		}
+	}
+
+	return $entries;
 }
 
 # End of the grammar

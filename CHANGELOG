@@ -7315,3 +7315,7 @@ PACKAGE: 2.2.99.2
  * Changed workflow autocomplete URLs to use http_cgiurl, fixing #3327
  * Allow "http(s)_root" to be empty, fixing #3319
 
+2008-04-11 tdb
+ * Make use of @STRING in BibTeX parsing to expand pre-defined NAMEs, fixing
+    #3307
+
