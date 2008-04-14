@@ -2904,7 +2904,7 @@ sub get_ids_by_field_values
 	my $sql = "SELECT DISTINCT ";
 	$sql .= join(",",map { $self->quote_identifier($srctable,$_) } @cols);
 	$sql .= " FROM ".join( ",", map { $self->quote_identifier($_) } keys %tables );
-	$sql .= " WHERE ".join( " AND ", @where );
+	$sql .= " WHERE ".join( " AND ", @where ) if @where;
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
