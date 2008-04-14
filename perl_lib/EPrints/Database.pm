@@ -2810,6 +2810,16 @@ sub get_values
 	return \@values;
 }
 
+######################################################################
+=pod
+
+=item $ids = $db->get_ids_by_field_values( $field, $dataset [ %opts ] )
+
+Return a reference to a hash table where the keys are field value ids and the value is a reference to an array of ids.
+
+=cut
+######################################################################
+
 sub get_ids_by_field_values
 {
 	my( $self, $field, $dataset, %opts ) = @_;
