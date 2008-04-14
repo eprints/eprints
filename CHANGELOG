@@ -7320,8 +7320,6 @@ PACKAGE: 2.2.99.2
     #3307
 
 2008-04-14 tdb
- * Added methods to database/list to generate a histogram of unique values
-    (needed by eprints.soton)
  * Fixed cellpading => cellpadding typo, seems to fix IE layout for #3332
  * Use relative path to autocomplete scripts (seems autocomplete won't follow a
     secure redirect), fixing #3327

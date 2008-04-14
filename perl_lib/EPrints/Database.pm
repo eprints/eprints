@@ -2810,64 +2810,6 @@ sub get_values
 	return \@values;
 }
 
-######################################################################
-=pod
-
-=item ($values, $counts) = $db->get_histogram_from_list( $field, $list )
-
-Returns a list of values for $field and the number of times they occur in $list.
-
-You shouldn't call this directly: instead use $list->get_histogram( $field ).
-
-=cut
-######################################################################
-
-sub get_histogram_from_list
-{
-	my( $self, $field, $list ) = @_;
-
-	# what if a subobjects field is called?
-	if( $field->is_virtual )
-	{
-		$self->{session}->get_repository->log( 
-"Attempt to call get_values on a virtual field." );
-		return [];
-	}
-
-	my $dataset = $list->get_dataset();
-
-	my $M = $self->quote_identifier("M");
-	my $Q_cache = $self->quote_identifier($list->get_sql_table_name);
-	my $Q_keyname = $self->quote_identifier( $dataset->get_key_field->get_sql_name );
-
-	my $cols = join(", ", map {
-		"$M.".$self->quote_identifier($_)
-	} $field->get_sql_names);
-	my $sql = "SELECT $cols,COUNT(*) FROM $Q_cache ";
-	if( $field->get_property( "multiple" ) )
-	{
-		$sql.= ", ".$self->quote_identifier($dataset->get_sql_sub_table_name( $field ))." $M";
-	} 
-	else 
-	{
-		$sql.= ", ".$self->quote_identifier($dataset->get_sql_table_name())." $M";
-	}
-	$sql .= " WHERE $Q_cache.$Q_keyname=$M.$Q_keyname";
-	$sql .= " GROUP BY $cols";
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql );
-	my @values = ();
-	my @counts = ();
-	my @row = ();
-	while( @row = $sth->fetchrow_array ) 
-	{
-		push @values, $field->value_from_sql_row( $self->{session}, \@row );
-		push @counts, $row[$#row];
-	}
-	$sth->finish;
-	return \@values, \@counts;
-}
-
 sub get_ids_by_field_values
 {
 	my( $self, $field, $dataset, %opts ) = @_;
