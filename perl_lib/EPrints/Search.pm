@@ -1192,6 +1192,40 @@ sub get_ids
 	return $self->{results}->get_ids( $offset , $count );
 }
 
+######################################################################
+=pod
+
+=item $hash = $searchexp->get_ids_by_value( $field )
+
+Find the ids for each unique value in $field.
+
+=cut
+######################################################################
+
+sub get_ids_by_value
+{
+	my( $self, $field ) = @_;
+
+	my @filters = @{$self->{filters}};
+
+	foreach my $sf_id ( keys %{$self->{searchfieldmap}} )
+	{
+		my $sf = $self->{searchfieldmap}->{$sf_id};
+		push @filters, {
+			fields => $sf->get_fields,
+			value => $sf->get_value,
+		};
+	}
+
+	my $counts = $field->get_ids_by_value(
+		$self->{session},
+		$self->{dataset},
+		filters => \@filters
+	);
+
+	return $counts;
+}
+
 sub map
 {
 	my( $self, $function, $info ) = @_;	

@@ -7320,6 +7320,8 @@ PACKAGE: 2.2.99.2
     #3307
 
 2008-04-14 tdb
+ * Added get_ids_by_value method to EPrints::Search, to get summary data for
+    search results
  * Fixed cellpading => cellpadding typo, seems to fix IE layout for #3332
  * Use relative path to autocomplete scripts (seems autocomplete won't follow a
     secure redirect), fixing #3327
