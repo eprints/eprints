@@ -1195,14 +1195,14 @@ sub get_ids
 ######################################################################
 =pod
 
-=item $hash = $searchexp->get_ids_by_value( $field )
+=item $hash = $searchexp->get_ids_by_field_values( $field )
 
 Find the ids for each unique value in $field.
 
 =cut
 ######################################################################
 
-sub get_ids_by_value
+sub get_ids_by_field_values
 {
 	my( $self, $field ) = @_;
 
