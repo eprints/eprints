@@ -7322,4 +7322,5 @@ PACKAGE: 2.2.99.2
 2008-04-14 tdb
  * Added methods to database/list to generate a histogram of unique values
     (needed by eprints.soton)
+ * Fixed cellpading => cellpadding typo, seems to fix IE layout for #3332
 

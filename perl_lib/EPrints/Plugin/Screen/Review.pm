@@ -158,7 +158,7 @@ sub render
 			my $td = $session->make_element( "td", class=>"ep_columns_alter".($last?" ep_columns_alter_last":"") );
 			$final_row->appendChild( $td );
 	
-			my $acts_table = $session->make_element( "table", cellpading=>0, cellspacing=>0, border=>0, width=>"100%" );
+			my $acts_table = $session->make_element( "table", cellpadding=>0, cellspacing=>0, border=>0, width=>"100%" );
 			my $acts_row = $session->make_element( "tr" );
 			my $acts_td1 = $session->make_element( "td", align=>"left", width=>"14" );
 			my $acts_td2 = $session->make_element( "td", align=>"center", width=>"100%");
