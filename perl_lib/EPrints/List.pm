@@ -355,6 +355,26 @@ sub cache
 ######################################################################
 =pod
 
+=item $sql = $list->get_sql_table_name
+
+Return the SQL table name for this list (calls cache() first to write the list
+to the database).
+
+=cut
+######################################################################
+
+sub get_sql_table_name
+{
+	my( $self ) = @_;
+	
+	$self->cache();
+
+	return "cache" . $self->{cache_id};
+}
+
+######################################################################
+=pod
+
 =item $cache_id = $list->get_cache_id
 
 Return the ID of the cache table for this list, or undef.
@@ -472,6 +492,23 @@ sub get_ids
 	return $self->_get_records( $offset , $count, 1 );
 }
 
+
+######################################################################
+=pod
+
+=item ($values, $counts) = $list->get_histogram( $field )
+
+Returns a list of values for $field and the number of times they occur.
+
+=cut
+######################################################################
+
+sub get_histogram
+{
+	my( $self , $field ) = @_;
+	
+	return $self->{session}->get_database->get_histogram_from_list( $field, $self );
+}
 
 ######################################################################
 # 
