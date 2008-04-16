@@ -200,6 +200,8 @@ sub xml_dataobj
 		$md->appendChild( $self->available( $doc, $id ) );
 	}
 
+	EPrints::XML::tidy( $md );
+
 	return $md;
 }
 

@@ -225,7 +225,7 @@ sub _get_phrase
 		return undef;
 	}
 
-	if( !defined $session->{config_file_mtime_checked}->{$phraseinfo->{file}} )
+	if( defined $session && !defined $session->{config_file_mtime_checked}->{$phraseinfo->{file}} )
 	{
 		my @filestat = stat( $phraseinfo->{file} );
 		my $mtime = $filestat[9];

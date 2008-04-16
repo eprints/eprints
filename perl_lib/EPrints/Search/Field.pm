@@ -200,6 +200,21 @@ sub new
 	my( @fieldnames );
 	foreach my $f (@{$self->{"fieldlist"}})
 	{
+		if( !defined $f ) { EPrints::abort( "field not defined" ); }
+		my $jp = $f->get_property( "join_path" );
+		if( defined $jp )
+		{
+			my @join_bits = ();
+			foreach my $join ( @{$jp} )
+			{
+				my( $j_field, $j_dataset ) = @{$join};
+				push @join_bits, $j_field->get_sql_name();
+			}
+			push @join_bits, $f->get_sql_name;
+			push @fieldnames, join( ".", @join_bits );
+			next;
+		}
+
 		push @fieldnames, $f->get_sql_name();
 	}
 	$self->{rawid} = join '/', sort @fieldnames;
@@ -592,7 +607,7 @@ field.
 
 sub render_help
 {
-        my( $self ) = @_;
+	my( $self ) = @_;
 
 	my $custom_help = "searchfield_help_".$self->{"id"};
 	my $phrase_id = "lib/searchfield:help_".$self->{"field"}->get_type();
@@ -601,7 +616,7 @@ sub render_help
 		$phrase_id = $custom_help
 	}
 		
-        return $self->{"session"}->html_phrase( $phrase_id );
+	return $self->{"session"}->html_phrase( $phrase_id );
 }
 
 

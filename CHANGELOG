@@ -7310,6 +7310,10 @@ PACKAGE: 2.2.99.2
  * Added user.roles to staff-edit-user workflow
  * Added phrases for user.roles
  
+======================================================================
+EPRINTS-3.1-beta-2
+======================================================================
+
 2008-04-08 tdb
  * Added Apache rewrite rule for /archive/* to /*, fixing #3328
  * Changed workflow autocomplete URLs to use http_cgiurl, fixing #3327
@@ -7325,4 +7329,20 @@ PACKAGE: 2.2.99.2
  * Fixed cellpading => cellpadding typo, seems to fix IE layout for #3332
  * Use relative path to autocomplete scripts (seems autocomplete won't follow a
     secure redirect), fixing #3327
+
+2008-04-16 cjg
+ * Added support for serialising/unserialising subfield searches. Fixes a bug
+    with batch-edit.
+ * Fixed a typo in the relation renderer in Extras
+ * Auto phrase reloading now only happens if there is a current session, 
+    fixing an obscure sitatuation when a phrase is extracted without a session
+    being open.
+ * Slightly changed layout of the config-file tree view to be nicer.
+ * Fixed typo in default_search_config in issues search
+ * Added "tidy" to the end of the EPrints App Profile export. Makes it easier
+    to understand.
+ * Fixed an error in a regexp in Issues::SimilarTitles
+ * Added new bit to view.css to make columns use 100% of available width.
+    (columns to be added to views in coming commit)
+
 

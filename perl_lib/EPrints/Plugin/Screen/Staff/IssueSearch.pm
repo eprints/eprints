@@ -66,7 +66,7 @@ sub default_search_config
 	return {
 	search_fields => [
 		{ meta_fields => [ "item_issues_type" ] },
-		{ meta_fields => [ "item_issues_first_seen" ] },
+		{ meta_fields => [ "item_issues_timestamp" ] },
 		{ meta_fields => [ "userid.username" ] },
 		{ meta_fields => [ "eprint_status" ], default=>'archive' },
 		{ meta_fields => [ "creators_name" ] },

@@ -72,7 +72,7 @@ sub make_code
 	$string = "\L$string";
 
 	# remove one and two character words
-	$string =~ s/\b[a-][a-z]?\b//g; 
+	$string =~ s/\b[a-z][a-z]?\b//g; 
 
 	# turn one-or more non-alphanumerics into a single space.
 	$string =~ s/[^a-z0-9]+/ /g;

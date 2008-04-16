@@ -262,7 +262,7 @@ sub render_related_url
 		else
 		{
 			my $text = $row->{url};
-			if( length( $text ) > 40 ) { $text = substr( $value, 0, 40 )."..."; }
+			if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
 			$link->appendChild( $session->make_text( $text ) );
 		}
 		$li->appendChild( $link );

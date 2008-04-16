@@ -643,7 +643,7 @@ sub from_string_raw
 		my $fields = [];
 		foreach my $fname ( split( "/", $data->{rawid} ) )
 		{
-			push @{$fields}, $self->{dataset}->get_field( $fname );
+                        push @{$fields}, EPrints::Utils::field_from_config_string( $self->{dataset}, $fname );
 		}
 		$self->add_field( 
 			$fields,
@@ -658,7 +658,7 @@ sub from_string_raw
 		my $fields = [];
 		foreach my $fname ( split( "/", $data->{rawid} ) )
 		{
-			push @{$fields}, $self->{dataset}->get_field( $fname );
+                        push @{$fields}, EPrints::Utils::field_from_config_string( $self->{dataset}, $fname );
 		}
 		my $sf = $self->add_field( 
 			$fields,

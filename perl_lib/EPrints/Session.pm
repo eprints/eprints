@@ -3168,6 +3168,9 @@ sub current_user
 
 	if( !defined $self->{current_user} )
 	{
+		return undef if( $self->{already_in_current_user} );
+		$self->{already_in_current_user} = 1;
+
 		if( $self->get_repository->can_call( 'get_current_user' ) )
 		{
 			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
@@ -3180,6 +3183,7 @@ sub current_user
 		{
 			$self->{current_user} = $self->_current_user_auth_basic;
 		}
+		$self->{already_in_current_user} = 0;
 	}
 	return $self->{current_user};
 }
