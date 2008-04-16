@@ -424,7 +424,7 @@ END
 		return( 0 );
 	}
 
-       	my $keyfield = $self->{dataset}->get_key_field();
+ 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
 	if( $self->{op} eq "grep" )
@@ -732,7 +732,7 @@ END
 		$r = $self->run_tables( $session, $tables );
 	}
 
-       	my $keyfield = $self->{dataset}->get_key_field();
+	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
 	if( $self->{op} eq "grep" )
@@ -757,24 +757,21 @@ END
  		my $gtable = $self->{dataset}->get_sql_grep_table_name;
 		my $SSIZE = 50;
 		my $total = scalar @{$filter};
-		my $kfn = $database->quote_identifier($keyfield->get_sql_name); # key field name
+		my $kfn = $database->quote_identifier($TABLEALIAS,$keyfield->get_sql_name); # key field name and table
 		for( my $i = 0; $i<$total; $i+=$SSIZE )
 		{
 			my $max = $i+$SSIZE;
 			$max = $total-1 if( $max > $total - 1 );
 			my @fset = @{$filter}[$i..$max];
 
-			$tables->[0]->{where} = '('.$kfn.'='.join(' OR '.$kfn.'=', @fset ).' )';
 			push @{$tables}, {
 				left => $self->{field}->get_dataset->get_key_field->get_name, 
-				where => $where,
+				where => '('.$where.' AND ('.$kfn.'='.join(' OR '.$kfn.'=', @fset ).' ))',
 				table => $gtable,
 			};
-			
 			my $set = $self->run_tables( $session, $tables );
-                        $r = _merge( $r , $set, 0 );
+			$r = _merge( $r , $set, 0 );
 		}
-	
 	}
 
 

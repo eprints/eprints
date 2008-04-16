@@ -7345,4 +7345,5 @@ EPRINTS-3.1-beta-2
  * Added new bit to view.css to make columns use 100% of available width.
     (columns to be added to views in coming commit)
 
-
+2008-04-16 cjg
+ * Fixed a problem with SQL generation for "grep" conditions. Fixed by #3335
