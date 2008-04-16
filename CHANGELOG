@@ -7347,3 +7347,32 @@ EPRINTS-3.1-beta-2
 
 2008-04-16 cjg
  * Fixed a problem with SQL generation for "grep" conditions. Fixed by #3335
+
+2008-04-16 cjg
+ Fixes and improvements to views:
+ * Added an optional phrase to replace "please select..." on a per-page basis.
+ * .include files are now always generated, fixing #3336
+ * Addded a new option "new_column_at" to make view menus able to be multi
+    column.
+ * Added an optional phrase to name groupings. Fixing #3341.
+ * Added count to views pages, fixing #3337
+ * Added "last updated" message, fixing #3338
+ * Added a no_seperator option to groups, to hide the " | "
+ * Option to groups "cloud" to cause the links to render as a tag cloud.
+ * Added a cloud_max and cloud_min option to groups, the max and min % in a 
+    cloud at the top of the groups page.
+ * Changed the "#foo" links in groups to be "#group_foo" to avoid clashing
+    if imported into an external site.
+ * Another option, jump=plain, will supress the phrase around the group jump
+    links, just showing the links themselves.
+ * The option "tags" causes the fields values to be broken up on ";" and ","
+    before being grouped. This works well on the keywords field. Fixing #3340
+ * New option "truncate=XXX" to truncate values to "n" chars. Handy on dates
+    to truncate to year only. Fixing #3343.
+ * New option "string", mostly used internally, which indicates to use the 
+    string value as is, rather than call the renderer function for the  
+    field.
+ * New option on groups: first_initial, which only works on names, but
+    causes them to be grouped by surname and only the first letter of the 
+    given name.
+
