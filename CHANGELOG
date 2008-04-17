@@ -7376,3 +7376,6 @@ EPRINTS-3.1-beta-2
     causes them to be grouped by surname and only the first letter of the 
     given name.
 
+2008-04-17 tdb
+ * Removed redundant, unused "tags_and_labels" from DataObjs
+

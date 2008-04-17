@@ -441,36 +441,6 @@ sub get_defaults
 	return $data;
 }
 
-=item ($tags,$labels) = EPrints::DataObj::MetaField::tags_and_labels( $session, $dataset )
-
-Returns the tags and labels for all records in this dataset.
-
-=cut
-
-sub tags_and_labels
-{
-	my( $class, $session, $ds ) = @_;
-
-	my $searchexp = EPrints::Search->new(
-		allow_blank => 1,
-		custom_order => "name",
-		session => $session,
-		dataset => $ds );
-
-	$searchexp->perform_search();
-	
-	my( @tags, %labels );
-	foreach my $l ( $searchexp->get_records() )
-	{
-		push @tags, my $id = $l->get_value( "name" );
-		$labels{$id} = $l->get_label();
-	}
-
-	$searchexp->dispose();
-
-	return( \@tags, \%labels );
-}
-
 ######################################################################
 
 =head2 Object Methods
