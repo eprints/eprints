@@ -7378,4 +7378,8 @@ EPRINTS-3.1-beta-2
 
 2008-04-17 tdb
  * Removed redundant, unused "tags_and_labels" from DataObjs
+ * BibTeX import
+ 	- fixed numeric ids not being parsed correctly
+	- ignore the case of NAMES
+	- don't decode_latex URLs or URIs
 

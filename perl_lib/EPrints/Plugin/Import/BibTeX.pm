@@ -365,9 +365,9 @@ sub convert_input
 	while(my( $field, $value ) = each %$fields)
 	{
 		next if $field eq 'author' or $field eq 'editor';
-		for(@$value)
+		if( $plugin->{decode_tex} and $field ne 'url' and $field ne 'uri' )
 		{
-			if( $plugin->{decode_tex} )
+			for(@$value)
 			{
 				$_ = $plugin->decode_tex( $_ );
 			}
