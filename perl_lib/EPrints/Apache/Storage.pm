@@ -2,12 +2,16 @@ package EPrints::Apache::Storage;
 
 # This handler serves document files and thumbnails
 
+use EPrints::Apache::AnApache; # exports apache constants
+
 use strict;
 use warnings;
 
 sub handler
 {
 	my( $r ) = @_;
+
+	my $rc = OK;
 
 	my $session = EPrints::Session->new();
 	my $repository = $session->get_repository;
@@ -38,6 +42,13 @@ sub handler
 	if( !$doc )
 	{
 		return 404;
+	}
+
+	$rc = check_auth( $session, $r, $doc );
+
+	if( $rc != OK )
+	{
+		return $rc;
 	}
 
 	my $stored_uri;
@@ -87,7 +98,36 @@ sub handler
 
 	$session->terminate;
 
-	return 0;
+	return $rc;
+}
+
+sub check_auth
+{
+	my( $session, $r, $doc ) = @_;
+
+	my $security = $doc->get_value( "security" );
+
+	my $result = $session->get_repository->call( "can_request_view_document", $doc, $r );
+
+	return OK if( $result eq "ALLOW" );
+	return FORBIDDEN if( $result eq "DENY" );
+	if( $result ne "USER" )
+	{
+		$session->get_repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
+		return FORBIDDEN;
+	}
+
+	my $rc;
+	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	{
+		$rc = EPrints::Apache::Auth::auth_cookie( $r, $session, 1 );
+	}
+	else
+	{
+		$rc = EPrints::Apache::Auth::auth_basic( $r, $session );
+	}
+
+	return $rc;
 }
 
 1;

@@ -7388,4 +7388,5 @@ EPRINTS-3.1-beta-2
  * Modified Document to store and retrieve files via Storage layer
  * Added Storage abstraction layer EPrints::Storage that uses Storage plugins
  * Added Storage::Local plugin for legacy EPrints file system
+ * Added security checks to Storage layer-based document retrieval
 
