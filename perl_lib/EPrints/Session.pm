@@ -237,6 +237,9 @@ sub new
 			return undef;
 		}
 	}
+
+	$self->{storage} = EPrints::Storage->new( $self );
+
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
 	$self->{repository}->call( "session_init", $self, $self->{offline} );
@@ -686,6 +689,18 @@ sub get_database
 {
 	my( $self ) = @_;
 	return $self->{database};
+}
+
+=item $store = $session->get_storage
+
+Return the storage control object.
+
+=cut
+
+sub get_storage
+{
+	my( $self ) = @_;
+	return $self->{storage};
 }
 
 

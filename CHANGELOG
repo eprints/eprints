@@ -7383,3 +7383,9 @@ EPRINTS-3.1-beta-2
 	- ignore the case of NAMES
 	- don't decode_latex URLs or URIs
 
+2008-04-21 tdb,dct05r
+ * Added store/retrieval methods to DataObj
+ * Modified Document to store and retrieve files via Storage layer
+ * Added Storage abstraction layer EPrints::Storage that uses Storage plugins
+ * Added Storage::Local plugin for legacy EPrints file system
+

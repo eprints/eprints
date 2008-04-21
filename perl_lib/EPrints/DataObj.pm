@@ -1323,10 +1323,65 @@ sub tidy
 		}
 	}
 }
-	
 
 ######################################################################
 =pod
+
+=item $dataobj->get_storage_uri( $bucket, $filename )
+
+Return the URI to store the $filename at in the $bucket of files.
+
+=cut
+######################################################################
+
+sub get_storage_uri
+{
+	my( $self, $bucket, $filename ) = @_;
+
+	my $stored_uri = $self->{session}->get_repository->get_conf( "http_url" );
+
+	$stored_uri .= "/id";
+	$stored_uri .= "/" . $self->get_dataset->confid;
+	$stored_uri .= "/" . $self->get_id;
+	$stored_uri .= "/" . $bucket;
+	$stored_uri .= "/" . URI::Escape::uri_escape( $filename );
+
+	return $stored_uri;
+}
+
+######################################################################
+=pod
+
+=item $dataobj->store( $uri, $filehandle )
+
+Read and store binary data from $filehandle into $uri.
+
+=cut
+######################################################################
+
+sub store
+{
+	my( $self, $uri, $fh ) = @_;
+
+	$self->{session}->get_storage->store( $self, $uri, $fh );
+}
+
+######################################################################
+=pod
+
+=item $filehandle = $dataobj->retrieve( $uri )
+
+Return a $filehandle to the object stored at $uri.
+
+=cut
+######################################################################
+
+sub retrieve
+{
+	my( $self, $uri ) = @_;
+
+	return $self->{session}->get_storage->retrieve( $self, $uri );
+}
 
 ######################################################################
 =pod
