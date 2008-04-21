@@ -236,7 +236,7 @@ at your option, any later version of Perl 5 you may have available.
 
 use Carp;
 
-our $REGEXP_NUM = qw/[0-9]+(?=[,\{\(\)\}\s#])/;
+our $REGEXP_NUM = qr/[0-9]+(?=[,\{\(\)\}\s#])/;
 our $REGEXP_NAME = qr/[a-zA-Z0-9\!\$\&\*\+\-\.\/\:\;\<\>\?\[\]\^\_\`\|]+/;
 
 our %_BIBTEX_MONTHS = qw(
