@@ -129,7 +129,7 @@ Return the $size (in bytes) of the object stored at $uri.
 
 sub get_size
 {
-	my( $self, $dataobj, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $uri ) = @_;
 
 	return $self->{default}->get_size( $dataobj, $bucket, $uri );
 }

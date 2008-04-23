@@ -76,8 +76,16 @@ sub handler
 
 	my $stored_uri = $dataobj->get_storage_uri( $bucket, $filename );
 	my $content_type = $dataobj->get_mime_type( $bucket, $filename );
+	my $content_length = $session->get_storage->get_size( $dataobj, $bucket, $stored_uri );
 
-	$session->send_http_header( content_type => $content_type );
+	EPrints::Apache::AnApache::header_out( 
+		$r,
+		"Content-Length" => $content_length
+	);
+
+	$session->send_http_header(
+		content_type => $content_type,
+	);
 
 	my $fh = $dataobj->retrieve( $bucket, $stored_uri );
 	# byte semantics are much faster
