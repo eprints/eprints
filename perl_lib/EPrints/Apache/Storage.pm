@@ -14,74 +14,72 @@ sub handler
 	my $rc = OK;
 
 	my $session = EPrints::Session->new();
-	my $repository = $session->get_repository;
 
-	my $rel_path = $repository->get_conf( "rel_path" );
+	my $pnotes = $r->pnotes;
+	my %pnotes = %$pnotes;
 
-	# Get just the eprint/document/filename part
-	my $uri = $session->get_uri;
-	$uri = substr($uri, length($rel_path));
-	$uri =~ s/^\///;
-
-	my $use_thumbnails = 0;
-
-	# If it's thumbnails/document we want the thumbnail path
-	if( $uri =~ s/^(\d+)\/thumbnails/$1/ )
+	for(qw( datasetid bucket filename ))
 	{
-		$use_thumbnails = 1;
+		if( !defined($pnotes{$_}) )
+		{
+			EPrints::abort( "Fatal error in storage retrieval: required note '$_' is not defined in mod_perl pnotes" );
+		}
 	}
 
-	my( $eprintid, $pos, $filename ) = split /\//, $uri;
+	my $datasetid = $pnotes{ "datasetid" };
+	my $bucket = $pnotes{ "bucket" };
+	my $filename = $pnotes{ "filename" };
 
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$session,
-		$eprintid,
-		$pos
-	);
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	if( !$dataset )
+	{
+		EPrints::abort( "Fatal error in storage retrieval: dataset '$datasetid' defined in mod_perl pnotes is not a valid dataset" );
+	}
 
-	if( !$doc )
+	my $dataobj;
+
+	# Retrieve document via eprintid + pos
+	if( $datasetid eq "document" && defined($pnotes{ "eprintid" }) && defined($pnotes{ "pos" }) )
+	{
+		$dataobj = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
+			$session,
+			$pnotes{ "eprintid" },
+			$pnotes{ "pos" }
+		);
+	}
+	else
+	{
+		my( $keyfield ) = $dataset->get_fields();
+		my $keyname = $keyfield->get_name;
+
+		my $id = $pnotes{ $keyname };
+
+		if( !defined( $id ) )
+		{
+			EPrints::abort( "Fatal error in storage retrieval: expected to find a mod_perl pnote for '$keyname' (keyfield for '$datasetid'), but didn't" );
+		}
+
+		$dataobj = $dataset->get_object( $session, $id );
+	}
+
+	if( !defined( $dataobj ) )
 	{
 		return 404;
 	}
 
-	$rc = check_auth( $session, $r, $doc );
+	$rc = check_auth( $session, $r, $dataobj );
 
 	if( $rc != OK )
 	{
 		return $rc;
 	}
 
-	my $stored_uri;
+	my $stored_uri = $dataobj->get_storage_uri( $bucket, $filename );
+	my $content_type = $dataobj->get_mime_type( $bucket, $filename );
 
-	if( $use_thumbnails )
-	{
-		$stored_uri = $doc->get_storage_uri( "thumbnail", $filename );
-	}
-	else
-	{
-		$stored_uri = $doc->get_storage_uri( "bitstream", $filename );
-	}
+	$session->send_http_header( content_type => $content_type );
 
-	my $fh = $doc->retrieve( $stored_uri );
-
-	# Thumbnails are all PNG format at the moment
-	if( $use_thumbnails )
-	{
-		my $content_type = "image/png";
-		$session->send_http_header( content_type => $content_type );
-	}
-	# Otherwise set the content type to the document type
-	elsif( $filename eq $doc->get_value( "main" ) )
-	{
-		my $content_type = $doc->get_value( "format" );
-		$session->send_http_header( content_type => $content_type );
-	}
-	# Don't have any MIME type to set for other files
-	else
-	{
-		# print STDERR "Unknown content type for $filename [".$doc->get_value( "main" )."]\n";
-	}
-
+	my $fh = $dataobj->retrieve( $bucket, $stored_uri );
 	# byte semantics are much faster
 	{
 		use bytes;

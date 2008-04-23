@@ -7390,3 +7390,9 @@ EPRINTS-3.1-beta-2
  * Added Storage::Local plugin for legacy EPrints file system
  * Added security checks to Storage layer-based document retrieval
 
+2008-04-22 tdb
+ * Added more POD for Storage layer changes
+ * Added $bucket argument to Storage layer API
+ * Added get_mime_type() method to DataObj
+ * Replaced duplicated URL parsing in Apache::Storage with passed pnotes
+

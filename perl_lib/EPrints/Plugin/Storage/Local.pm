@@ -20,7 +20,7 @@ sub new
 	return $self;
 }
 
-=item $success = $store->store( $dataobj, $uri, $filehandle )
+=item $success = $store->store( $dataobj, $bucket, $uri, $filehandle )
 
 Read and store all data from $filehandle at $uri. Returns true on success.
 
@@ -28,7 +28,7 @@ Read and store all data from $filehandle at $uri. Returns true on success.
 
 sub store
 {
-	my( $self, $dataobj, $uri, $fh ) = @_;
+	my( $self, $dataobj, $bucket, $uri, $fh ) = @_;
 
 	my $local_path = $dataobj->local_path;
 	EPrints::Platform::mkdir( $local_path );
@@ -50,7 +50,7 @@ sub store
 	return 1;
 }
 
-=item $filehandle = $store->retrieve( $dataobj, $uri )
+=item $filehandle = $store->retrieve( $dataobj, $bucket, $uri )
 
 Retrieve a $filehandle to the object stored at $uri.
 
@@ -58,7 +58,7 @@ Retrieve a $filehandle to the object stored at $uri.
 
 sub retrieve
 {
-	my( $self, $dataobj, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $uri ) = @_;
 
 	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
 
@@ -68,7 +68,7 @@ sub retrieve
 	return $in_fh;
 }
 
-=item $success = $store->delete( $dataobj, $uri )
+=item $success = $store->delete( $dataobj, $bucket, $uri )
 
 Delete the object stored at $uri.
 
@@ -76,14 +76,14 @@ Delete the object stored at $uri.
 
 sub delete
 {
-	my( $self, $dataobj, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $uri ) = @_;
 
 	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
 
 	return unlink($in_file);
 }
 
-=item $size = $store->get_size( $dataobj, $uri )
+=item $size = $store->get_size( $dataobj, $bucket, $uri )
 
 Return the $size (in bytes) of the object stored at $uri.
 
@@ -91,7 +91,7 @@ Return the $size (in bytes) of the object stored at $uri.
 
 sub get_size
 {
-	my( $self, $dataobj, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $uri ) = @_;
 
 	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
 
@@ -124,7 +124,7 @@ sub _uri_to_filename
 	}
 	else
 	{
-		EPrints::abort("Unrecognised storage sub-type '$sub_type' from URL $uri");
+		EPrints::abort("Unrecognised storage sub-type '$sub_type' from URL '$uri'");
 	}
 
 	return $in_file;

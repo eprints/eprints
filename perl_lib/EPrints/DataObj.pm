@@ -1327,7 +1327,7 @@ sub tidy
 ######################################################################
 =pod
 
-=item $dataobj->get_storage_uri( $bucket, $filename )
+=item $uri = $dataobj->get_storage_uri( $bucket, $filename )
 
 Return the URI to store the $filename at in the $bucket of files.
 
@@ -1352,35 +1352,52 @@ sub get_storage_uri
 ######################################################################
 =pod
 
-=item $dataobj->store( $uri, $filehandle )
+=item $mime_type = $dataobj->get_mime_type( $bucket, $filename )
 
-Read and store binary data from $filehandle into $uri.
+Return the $mime_type of $filename contained in $bucket.
+
+=cut
+######################################################################
+
+sub get_mime_type
+{
+	my( $self, $bucket, $filename ) = @_;
+
+	return "application/octet-stream";
+}
+
+######################################################################
+=pod
+
+=item $dataobj->store( $bucket, $uri, $filehandle )
+
+Read and store binary data from $filehandle into $uri contained in $bucket.
 
 =cut
 ######################################################################
 
 sub store
 {
-	my( $self, $uri, $fh ) = @_;
+	my( $self, $bucket, $uri, $fh ) = @_;
 
-	$self->{session}->get_storage->store( $self, $uri, $fh );
+	return $self->{session}->get_storage->store( $self, $bucket, $uri, $fh );
 }
 
 ######################################################################
 =pod
 
-=item $filehandle = $dataobj->retrieve( $uri )
+=item $filehandle = $dataobj->retrieve( $bucket, $uri )
 
-Return a $filehandle to the object stored at $uri.
+Return a $filehandle to the object stored at $uri contained in $bucket.
 
 =cut
 ######################################################################
 
 sub retrieve
 {
-	my( $self, $uri ) = @_;
+	my( $self, $bucket, $uri ) = @_;
 
-	return $self->{session}->get_storage->retrieve( $self, $uri );
+	return $self->{session}->get_storage->retrieve( $self, $bucket, $uri );
 }
 
 ######################################################################

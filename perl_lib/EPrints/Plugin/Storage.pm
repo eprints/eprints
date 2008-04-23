@@ -37,24 +37,28 @@ sub is_available
 	return 1;
 }
 
-sub store
-{
-	my( $self, $dataobj, $uri, $fh ) = @_;
-}
+=item $success = $store->store( $dataobj, $bucket, $uri, $filehandle )
 
-sub retrieve
-{
-	my( $self, $dataobj, $uri ) = @_;
-}
+Read and store all data from $filehandle at $uri. Returns true on success.
 
-sub delete
-{
-	my( $self, $dataobj, $uri ) = @_;
-}
+=cut
 
-sub get_size
-{
-	my( $self, $dataobj, $uri ) = @_;
-}
+=item $filehandle = $store->retrieve( $dataobj, $bucket, $uri )
+
+Retrieve a $filehandle to the object stored at $uri.
+
+=cut
+
+=item $success = $store->delete( $dataobj, $bucket, $uri )
+
+Delete the object stored at $uri.
+
+=cut
+
+=item $size = $store->get_size( $dataobj, $bucket, $uri )
+
+Return the $size (in bytes) of the object stored at $uri.
+
+=cut
 
 1;

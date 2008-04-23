@@ -922,7 +922,7 @@ sub upload
 
 	my $uri = $self->get_storage_uri( "bitstream", sanitise( $filename ));
 
-	my $rc = $self->store( $uri, $filehandle );
+	my $rc = $self->store( "bitstream", $uri, $filehandle );
 
 	$rc &&= $self->files_modified;
 	
@@ -1740,6 +1740,37 @@ sub mime_type
 	return length($mime_type) > 0 ? $mime_type : undef;
 
 	return undef;
+}
+
+######################################################################
+=pod
+
+=item $mime_type = $dataobj->get_mime_type( $bucket, $filename )
+
+Return the $mime_type of $filename contained in $bucket.
+
+=cut
+######################################################################
+
+sub get_mime_type
+{
+	my( $self, $bucket, $filename ) = @_;
+
+	# All thumbnails are PNG at the moment
+	if( $bucket eq "thumbnail" )
+	{
+		return "image/png";
+	}
+	# Use the main document type
+	elsif( $filename eq $self->get_main() )
+	{
+		return $self->get_value( "format" );
+	}
+	# Otherwise guess it with file (see above)
+	else
+	{
+		return $self->mime_type( $filename );
+	}
 }
 
 

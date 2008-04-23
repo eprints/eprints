@@ -167,6 +167,15 @@ sub handler
 				return redir( $r, sprintf( "%s/%d/%d%s",$urlpath, $eprintid, $pos, $tail ).$args );
 			}
 
+			my $filename = $tail;
+			$filename =~ s/^\/+//;
+
+			$r->pnotes( datasetid => "document" );
+			$r->pnotes( eprintid => $eprintid );
+			$r->pnotes( pos => $pos );
+			$r->pnotes( bucket => ($thumbnails ? "thumbnail" : "bitstream" ) );
+			$r->pnotes( filename => $filename );
+
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
 			return DECLINED;
