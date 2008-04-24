@@ -288,7 +288,7 @@ sub english_title_orderkey
         my( $field, $value, $dataset ) = @_;
 
         $value =~ s/^[^a-z0-9]+//gi;
-        if( $value =~ s/^(a|an|the) //i ) { $value .= ", $1"; }
+        if( $value =~ s/^(a|an|the) [^a-z0-9]*//i ) { $value .= ", $1"; }
 
         return $value;
 }
