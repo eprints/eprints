@@ -7396,3 +7396,7 @@ EPRINTS-3.1-beta-2
  * Added get_mime_type() method to DataObj
  * Replaced duplicated URL parsing in Apache::Storage with passed pnotes
 
+2008-04-24 tdb
+ * Added a simple default citation style for imports
+ * import->run() now replaces existing records and pulls in full-texts
+

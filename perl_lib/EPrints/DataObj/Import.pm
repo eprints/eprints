@@ -227,17 +227,15 @@ sub run
 {
 	my( $self ) = @_;
 
+	my $session = $self->{session};
 	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $plugin = $self->{session}->plugin( "Import::XML" );
 
 	my $url = $self->get_value( "url" );
-	my $base_uri = $self->get_value( "source" );
 	my $importid = $self->get_id;
 
 	return unless EPrints::Utils::is_set( $url );
-
-	$self->clear();
 
 	my $file = File::Temp->new;
 
@@ -252,26 +250,39 @@ sub run
 
 	foreach my $eprint ($root->getElementsByTagName( "eprint" ))
 	{
-		my( $_documents ) = $root->getElementsByTagName( "documents" );
-		$eprint->removeChild( $_documents );
-
 		my( $_eprintid ) = $eprint->getElementsByTagName( "eprintid" );
-		$eprint->removeChild( $_eprintid );
-		my $_import = $doc->createElement( "import" );
-		my $_importid = $doc->createElement( "importid" );
-		my $_derivedfrom = $doc->createElement( "derivedfrom" );
+		my( $_eprint_status ) = $eprint->getElementsByTagName( "eprint_status" );
+		my( $_userid ) = $eprint->getElementsByTagName( "userid" );
+		$eprint->removeChild( $_userid );
 
-		$eprint->appendChild( $_import );
-		$_import->appendChild( $_importid );
+		my $sourceid = EPrints::Utils::tree_to_utf8($_eprintid);
+
+		my $old_eprint = $self->get_from_source( $sourceid );
+
+		if( defined( $old_eprint ) )
+		{
+			$_eprintid->removeChild( $_eprintid->firstChild );
+			$_eprintid->appendChild( $doc->createTextNode( $old_eprint->get_id ) );
+			$_eprint_status->removeChild( $_eprint_status->firstChild );
+			$_eprint_status->appendChild( $doc->createTextNode( $old_eprint->get_value( "eprint_status" ) ) );
+		}
+		else
+		{
+			$eprint->removeChild( $_eprintid );
+		}
+
+		my $_importid = $doc->createElement( "importid" );
+		my $_source = $doc->createElement( "source" );
+
+		$eprint->appendChild( $_importid );
 		$_importid->appendChild( $doc->createTextNode( $importid ) );
 
-		$_import->appendChild( $_derivedfrom );
-		my $url = $base_uri . EPrints::Utils::tree_to_utf8($_eprintid) . "/";
-		$_derivedfrom->appendChild( $doc->createTextNode( $url ) );
+		$eprint->appendChild( $_source );
+		$_source->appendChild( $doc->createTextNode( $sourceid ) );
 	}
 
 
-	print STDERR $doc->toString;
+#	print STDERR $doc->toString;
 
 	my $xml_file = File::Temp->new;
 
@@ -280,10 +291,22 @@ sub run
 
 	seek($xml_file,0,0);
 
+	my $config = $session->get_repository->{config};
+
+	my $enable_import_ids = $config->{enable_import_ids};
+	$config->{enable_import_ids} = 1;
+	my $enable_web_imports = $config->{enable_web_imports};
+	$config->{enable_web_imports} = 1;
+
+	$self->clear();
+
 	my $list = $plugin->input_fh(
 		dataset => $dataset,
 		fh => $xml_file,
 	);
+
+	$config->{enable_import_ids} = $enable_import_ids;
+	$config->{enable_web_imports} = $enable_web_imports;
 
 	return $list;
 }
@@ -304,7 +327,8 @@ sub clear
 		session => $self->{session},
 		dataset => $dataset,
 	);
-	$searchexp->add_field( $dataset->get_field( "import_importid" ), $self->get_id );
+
+	$searchexp->add_field( $dataset->get_field( "importid" ), $self->get_id );
 
 	my $list = $searchexp->perform_search;
 
@@ -313,6 +337,31 @@ sub clear
 
 		$eprint->remove();
 	});
+}
+
+=item $eprint = $import->get_from_source( $sourceid )
+
+Get the $eprint that is from this import set and identified by $sourceid.
+
+=cut
+
+sub get_from_source
+{
+	my( $self, $sourceid ) = @_;
+
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+
+	my $searchexp = EPrints::Search->new(
+		session => $self->{session},
+		dataset => $dataset,
+	);
+
+	$searchexp->add_field( $dataset->get_field( "importid" ), $self->get_id );
+	$searchexp->add_field( $dataset->get_field( "source" ), $sourceid );
+
+	my $list = $searchexp->perform_search;
+
+	return $list->count > 0 ? $list->get_records(0,1) : undef;
 }
 
 1;
