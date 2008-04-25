@@ -95,7 +95,7 @@ sub new
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new_from_data( $session, $data )
+=item $dataobj = EPrints::DataObj->new_from_data( $session, $data [, $dataset ] )
 
 Construct a new EPrints::DataObj object based on the $data hash 
 reference of metadata.
@@ -107,11 +107,18 @@ Used to create an object from the data retrieved from the database.
 
 sub new_from_data
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
 	my $self = { data=>{} };
 	$self->{session} = $session;
-	$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
+	if( defined( $dataset ) )
+	{
+		$self->{dataset} = $dataset;
+	}
+	else
+	{
+		$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
+	}
 	bless( $self, $class );
 
 	if( defined $data )
