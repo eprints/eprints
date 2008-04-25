@@ -7404,4 +7404,5 @@ EPRINTS-3.1-beta-2
 2008-04-25 tdb
  * Use the EPrint object to render fileinfo
  * Don't DECLINE requests to "/" when https_root is set to "", fixing #3361
+ * Use relative path for icons and thumbnails, fixing #3360
 

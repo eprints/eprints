@@ -1530,7 +1530,7 @@ sub thumbnail_url
 
 	my $docpath = $self->get_value( "pos" );
 
-	return $eprint->url_stem."thumbnails/$docpath/$size.png";
+	return $repository->get_conf( "rel_path" )."/".($eprint->get_id+0)."/thumbnails/$docpath/$size.png";
 }
 
 # size => "small","medium","preview" (small is default)
@@ -1553,7 +1553,7 @@ sub icon_url
 	my $type = $self->get_value( "format" );
 	$type =~ s/\//_/g;
 
-	return $self->{session}->get_repository->get_conf( "http_url" ).
+	return $self->{session}->get_repository->get_conf( "rel_path" ).
 			"/style/images/fileicons/$type.png";
 }
 
