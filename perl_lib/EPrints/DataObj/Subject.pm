@@ -239,6 +239,21 @@ sub remove
 		$self->{data}->{subjectid} );
 }
 
+######################################################################
+=pod
+
+=item $dataset = EPrints::DataObj::Subject->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+
+=cut
+######################################################################
+
+sub get_dataset_id
+{
+	return "subject";
+}
+
 
 ######################################################################
 =pod

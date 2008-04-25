@@ -152,48 +152,17 @@ render_single_value => \&EPrints::Extras::render_preformatted_field },
 ######################################################################
 =pod
 
-=item $history = EPrints::DataObj::History->new( $session, $historyid )
+=item $dataset = EPrints::DataObj::History->get_dataset_id
 
-Return a history object with id $historyid, from the database.
-
-Return undef if no such object extists.
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
 ######################################################################
 
-sub new
+sub get_dataset_id
 {
-	my( $class, $session, $historyid ) = @_;
-
-	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( "history" ), 
-			$historyid );
-
+	return "history";
 }
-
-
-
-######################################################################
-=pod
-
-=item undef = EPrints::DataObj::History->new_from_data( $session, $data )
-
-Create a new History object from the given $data. Used to turn items
-from the database into objects.
-
-=cut
-######################################################################
-
-sub new_from_data
-{
-	my( $class, $session, $known ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$session->get_repository->get_dataset( "history" ) );
-}
-
 
 
 

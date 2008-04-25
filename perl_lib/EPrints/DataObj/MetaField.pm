@@ -394,22 +394,19 @@ sub get_perl_struct
 
 ######################################################################
 
-=item EPrints::DataObj::MetaField::remove_all( $session )
+######################################################################
+=pod
 
-Remove all records from the metafield dataset.
+=item $dataset = EPrints::DataObj::MetaField->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
+######################################################################
 
-sub remove_all
+sub get_dataset_id
 {
-	my( $class, $session ) = @_;
-
-	my $ds = $session->get_repository->get_dataset( "metafield" );
-	foreach my $obj ( $session->get_database->get_all( $ds ) )
-	{
-		$obj->remove();
-	}
-	return;
+	return "metafield";
 }
 
 ######################################################################
@@ -448,27 +445,6 @@ sub get_defaults
 =cut
 
 ######################################################################
-
-=item $foo = $thing->remove()
-
-Remove this record from the data set (see L<EPrints::Database>).
-
-=cut
-
-sub remove
-{
-	my( $self ) = @_;
-	
-	my $rc = 1;
-	
-	my $database = $self->{session}->get_database;
-
-	$rc &&= $database->remove(
-		$self->{dataset},
-		$self->get_id );
-
-	return $rc;
-}
 
 sub commit
 {

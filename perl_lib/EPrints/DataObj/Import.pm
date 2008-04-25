@@ -108,69 +108,23 @@ sub get_system_field_info
 
 =back
 
-=head2 Constructor Methods
-
-=over 4
-
-=cut
-
-######################################################################
-
-=item $thing = EPrints::DataObj::Import->new( $session, $importid )
-
-The data object identified by $importid.
-
-=cut
-
-sub new
-{
-	my( $class, $session, $importid ) = @_;
-
-	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( "import" ), 
-			$importid );
-}
-
-=item $thing = EPrints::DataObj::Import->new_from_data( $session, $known )
-
-A new C<EPrints::DataObj::Import> object containing data $known (a hash reference).
-
-=cut
-
-sub new_from_data
-{
-	my( $class, $session, $known ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$session->get_repository->get_dataset( "import" ) );
-}
-
-######################################################################
-
 =head2 Class Methods
 
 =cut
 
 ######################################################################
+=pod
 
-=item EPrints::DataObj::Import::remove_all( $session )
+=item $dataset = EPrints::DataObj::Import->get_dataset_id
 
-Remove all records from the license dataset.
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
+######################################################################
 
-sub remove_all
+sub get_dataset_id
 {
-	my( $class, $session ) = @_;
-
-	my $ds = $session->get_repository->get_dataset( "import" );
-	foreach my $obj ( $session->get_database->get_all( $ds ) )
-	{
-		$obj->remove();
-	}
-	return;
+	return "import";
 }
 
 ######################################################################
@@ -201,21 +155,6 @@ sub get_defaults
 =cut
 
 ######################################################################
-
-=item $foo = $thing->remove()
-
-Remove this record from the data set (see L<EPrints::Database>).
-
-=cut
-
-sub remove
-{
-	my( $self ) = @_;
-	
-	return $self->{session}->get_database->remove(
-		$self->{dataset},
-		$self->get_id );
-}
 
 =item $list = $import->run()
 

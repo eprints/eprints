@@ -76,14 +76,9 @@ sub get_system_field_info
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new( $session, $id, [$dataset] )
-
-ABSTRACT.
+=item $dataobj = EPrints::DataObj->new( $session, $id )
 
 Return new data object, created by loading it from the database.
-
-$dataset is used by EPrint->new to save searching through all four
-tables that it could be in.
 
 =cut
 ######################################################################
@@ -92,14 +87,15 @@ sub new
 {
 	my( $class, $session, $id ) = @_;
 
+	return $session->get_database->get_single( 
+			$session->get_repository->get_dataset( $class->get_dataset_id ), 
+			$id );
 }
 
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new_from_data( $session, $data, $dataset )
-
-ABSTRACT.
+=item $dataobj = EPrints::DataObj->new_from_data( $session, $data )
 
 Construct a new EPrints::DataObj object based on the $data hash 
 reference of metadata.
@@ -111,16 +107,16 @@ Used to create an object from the data retrieved from the database.
 
 sub new_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $session, $data ) = @_;
 
 	my $self = { data=>{} };
-	$self->{dataset} = $dataset;
 	$self->{session} = $session;
+	$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
 	bless( $self, $class );
 
 	if( defined $data )
 	{
-		if( $dataset->confid eq "eprint" )
+		if( $self->{dataset}->confid eq "eprint" )
 		{
 			$self->set_value( "eprint_status", $data->{"eprint_status"} );
 		}
@@ -137,7 +133,7 @@ sub new_from_data
 ######################################################################
 #=pod
 #
-#=item $dataobj = EPrints::DataObj->create( $session, @default_data )
+#=item $dataobj = EPrints::DataObj::create( $session, @default_data )
 #
 #ABSTRACT.
 #
@@ -150,8 +146,9 @@ sub new_from_data
 
 sub create
 {
-	my( $class, $session, @defaunt_data ) = @_;
+	my( $session, @default_data ) = @_;
 
+	Carp::croak( "EPrints::DataObj::create must be overridden" );
 }
 
 
@@ -274,11 +271,7 @@ sub get_defaults
 
 =item $success = $dataobj->remove
 
-ABSTRACT
-
-Remove this data object from the database. 
-
-Also removes any sub-objects or related files.
+Remove this data object from the database and any sub-objects or related files. 
 
 Return true if successful.
 
@@ -289,6 +282,9 @@ sub remove
 {
 	my( $self ) = @_;
 
+	return $self->{session}->get_database->remove(
+		$self->{dataset},
+		$self->get_id );
 }
 
 # $dataobj->set_under_construction( $boolean )
@@ -611,13 +607,30 @@ sub get_data
 	return $self->{data};
 }
 
+######################################################################
+=pod
+
+=item $dataset = EPrints::DataObj->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+
+=cut
+######################################################################
+
+sub get_dataset_id
+{
+	my( $class ) = @_;
+
+	Carp::croak( "get_dataset_id must be overridden by $class" );
+}
+
 
 ######################################################################
 =pod
 
 =item $dataset = $dataobj->get_dataset
 
-Returns the EPrints::DataSet object to which this record belongs.
+Returns the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
 ######################################################################

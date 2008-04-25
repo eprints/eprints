@@ -317,51 +317,6 @@ sub render_fileinfo
 };
 
 
-######################################################################
-=pod
-
-=item $eprint = EPrints::DataObj::EPrint->new( $session, $eprint_id )
-
-Return the eprint with the given eprint_id, or undef if it does not exist.
-
-=cut
-######################################################################
-
-sub new
-{
-	my( $class, $session, $eprint_id ) = @_;
-
-	EPrints::abort "session not defined in EPrint->new" unless defined $session;
-	#EPrints::abort "eprint_id not defined in EPrint->new" unless defined $eprint_id;
-
-	my $dataset = $session->get_repository->get_dataset( "eprint" );
-
-	return $session->get_database->get_single( $dataset , $eprint_id );
-}
-
-
-######################################################################
-=pod
-
-=item $eprint = EPrints::DataObj::EPrint->new_from_data( $session, $data, $dataset )
-
-Construct a new EPrints::DataObj::EPrint object based on the $data hash 
-reference of metadata.
-
-=cut
-######################################################################
-
-sub new_from_data
-{
-	my( $class, $session, $known, $dataset ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$dataset );
-}
-
-	
 
 ######################################################################
 # =pod
@@ -385,7 +340,7 @@ sub create
 {
 	my( $session, $dataset, $data ) = @_;
 
-	return EPrints::EPrint->create_from_data( 
+	return EPrints::DataObj::EPrint->create_from_data( 
 		$session, 
 		$data, 
 		$dataset );
@@ -476,6 +431,21 @@ sub create_from_data
 	# $new_eprint->generate_static;
 
 	return $new_eprint;
+}
+
+######################################################################
+=pod
+
+=item $dataset = EPrints::DataObj::EPrint->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+
+=cut
+######################################################################
+
+sub get_dataset_id
+{
+	return "eprint";
 }
 
 ######################################################################

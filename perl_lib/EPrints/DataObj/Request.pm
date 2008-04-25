@@ -68,70 +68,25 @@ sub get_system_field_info
 
 =back
 
-=head2 Constructor Methods
-
-=over 4
-
-=cut
-
-######################################################################
-
-=item $thing = EPrints::DataObj::Access->new( $session, $accessid )
-
-The data object identified by $accessid.
-
-=cut
-
-sub new
-{
-	my( $class, $session, $accessid ) = @_;
-
-	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( "request" ), 
-			$accessid );
-}
-
-=item $thing = EPrints::DataObj::Access->new_from_data( $session, $known )
-
-A new C<EPrints::DataObj::Access> object containing data $known (a hash reference).
-
-=cut
-
-sub new_from_data
-{
-	my( $class, $session, $known ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$session->get_repository->get_dataset( "request" ) );
-}
-
-
-######################################################################
-
 =head2 Class Methods
 
 =cut
 
 ######################################################################
 
-=item EPrints::DataObj::Access::remove_all( $session )
+######################################################################
+=pod
 
-Remove all records from the license dataset.
+=item $dataset = EPrints::DataObj::Request->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
+######################################################################
 
-sub remove_all
+sub get_dataset_id
 {
-	my( $class, $session ) = @_;
-
-	my $ds = $session->get_repository->get_dataset( "request" );
-	foreach my $obj ( $session->get_database->get_all( $ds ) )
-	{
-		$obj->remove();
-	}
-	return;
+	return "request";
 }
 
 ######################################################################
@@ -162,21 +117,6 @@ sub get_defaults
 =cut
 
 ######################################################################
-
-=item $foo = $thing->remove()
-
-Remove this record from the data set (see L<EPrints::Database>).
-
-=cut
-
-sub remove
-{
-	my( $self ) = @_;
-	
-	return $self->{session}->get_database->remove(
-		$self->{dataset},
-		$self->get_id );
-}
 
 1;
 

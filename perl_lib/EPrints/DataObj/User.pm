@@ -301,6 +301,21 @@ sub create_from_data
 ######################################################################
 =pod
 
+=item $dataset = EPrints::DataObj::User->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+
+=cut
+######################################################################
+
+sub get_dataset_id
+{
+	return "user";
+}
+
+######################################################################
+=pod
+
 =item $defaults = EPrints::DataObj::User->get_defaults( $session, $data )
 
 Return default values for this object based on the starting data.

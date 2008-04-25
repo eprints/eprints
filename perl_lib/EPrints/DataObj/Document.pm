@@ -198,26 +198,6 @@ sub main_render_option
 
 
 
-######################################################################
-=pod
-
-=item $thing = EPrints::DataObj::Document->new( $session, $docid )
-
-Return the document with the given $docid, or undef if it does not
-exist.
-
-=cut
-######################################################################
-
-sub new
-{
-	my( $class, $session, $docid ) = @_;
-
-	return $session->get_database->get_single( 
-		$session->get_repository->get_dataset( "document" ),
-		$docid );
-}
-
 sub doc_with_eprintid_and_pos
 {
 	my( $session, $eprintid, $pos ) = @_;
@@ -245,24 +225,17 @@ sub doc_with_eprintid_and_pos
 ######################################################################
 =pod
 
-=item $doc = EPrints::DataObj::Document->new_from_data( $session, $data )
+=item $dataset = EPrints::DataObj::Document->get_dataset_id
 
-Construct a new EPrints::DataObj::Document based on the ref to a hash of metadata.
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
 ######################################################################
 
-sub new_from_data
+sub get_dataset_id
 {
-	my( $class, $session, $known ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$session->get_repository->get_dataset( "document" ) );
+	return "document";
 }
-
-
 
 ######################################################################
 # =pod
@@ -286,22 +259,6 @@ sub create
 		$session, 
 		{ eprintid=>$eprint->get_id },
 		$session->get_repository->get_dataset( "document" ) );
-}
-
-######################################################################
-# 
-# $eprintid = EPrints::DataObj::Document::_create_id( $session )
-#
-#  Create a new Document ID code. 
-#
-######################################################################
-
-sub _create_id
-{
-	my( $session ) = @_;
-	
-	return $session->get_database->counter_next( "documentid" );
-
 }
 
 ######################################################################
@@ -409,14 +366,6 @@ sub get_defaults
 
 	return $data;
 }
-
-
-
-
-
-
-
-
 
 ######################################################################
 =pod

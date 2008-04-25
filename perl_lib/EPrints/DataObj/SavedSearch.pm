@@ -92,44 +92,17 @@ sub get_system_field_info
 ######################################################################
 =pod
 
-=item $saved_search = EPrints::DataObj::SavedSearch->new( $session, $id )
+=item $dataset = EPrints::DataObj::SavedSearch->get_dataset_id
 
-Return new Saved Search object, created by loading the Saved Search
-with id $id from the database.
-
-=cut
-######################################################################
-
-sub new
-{
-	my( $class, $session, $id ) = @_;
-
-	return $session->get_database->get_single( 	
-		$session->get_repository->get_dataset( "saved_search" ),
-		$id );
-}
-
-######################################################################
-=pod
-
-=item $saved_search = EPrints::DataObj::SavedSearch->new_from_data( $session, $data )
-
-Construct a new EPrints::DataObj::SavedSearch object based on the $data hash 
-reference of metadata.
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 
 =cut
 ######################################################################
 
-sub new_from_data
+sub get_dataset_id
 {
-	my( $class, $session, $known ) = @_;
-
-	return $class->SUPER::new_from_data(
-			$session,
-			$known,
-			$session->get_repository->get_dataset( "saved_search" ) );
+	return "saved_search";
 }
-
 
 ######################################################################
 # =pod
@@ -182,31 +155,6 @@ sub get_defaults
 
 	return $data;
 }	
-
-
-######################################################################
-=pod
-
-=item $success = $saved_search->remove
-
-Remove the saved search.
-
-=cut
-######################################################################
-
-sub remove
-{
-	my( $self ) = @_;
-
-	my $subs_ds = $self->{session}->get_repository->get_dataset( 
-		"saved_search" );
-	
-	my $success = $self->{session}->get_database->remove(
-		$subs_ds,
-		$self->get_value( "id" ) );
-
-	return $success;
-}
 
 
 ######################################################################
