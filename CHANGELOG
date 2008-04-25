@@ -7401,3 +7401,6 @@ EPRINTS-3.1-beta-2
  * import->run() now replaces existing records and pulls in full-texts
  * Fixed <img> link to EPrints logo for default template
 
+2008-04-25 tdb
+ * Use the EPrint object to render fileinfo
+

@@ -298,18 +298,17 @@ sub order_issues_newest_open_timestamp
 
 sub render_fileinfo
 {
-	my( $session, $field, $value ) = @_;
+	my( $session, $field, $value, $alllangs, $nolink, $eprint ) = @_;
 
 	my $f = $session->make_doc_fragment;
-	foreach my $icon ( split /\|/ , $value )
+	foreach my $doc ($eprint->get_all_documents)
 	{
-		my( $imgurl, $url ) = split( /;/, $icon );
-		my $a = $session->render_link( $url );
+		my $a = $session->render_link( $doc->get_url );
 		$a->appendChild( $session->make_element( 
 			"img", 
 			class=>"ep_doc_icon",
 			alt=>"file",
-			src=>$imgurl,
+			src=>$doc->icon_url,
 			border=>0 ));
 		$f->appendChild( $a );
 	}
