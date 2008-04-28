@@ -30,15 +30,14 @@ sub store
 {
 	my( $self, $dataobj, $bucket, $filename, $fh ) = @_;
 
-	my $local_path = $dataobj->local_path;
-	EPrints::Platform::mkdir( $local_path );
-
 	if( !EPrints::Utils::is_set( $filename ) )
 	{
 		EPrints::abort( "Requires filename argument" );
 	}
 
-	my $out_file = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $out_file ) = $self->_filename( $dataobj, $bucket, $filename );
+
+	EPrints::Platform::mkdir( $local_path );
 
 	open(my $out_fh, ">", $out_file)
 		or EPrints::abort( "Unable to write to $out_file: $!" );
@@ -65,7 +64,7 @@ sub retrieve
 {
 	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
 
 	open(my $in_fh, "<", $in_file)
 		or EPrints::abort( "Unable to read from $in_file: $!" );
@@ -83,7 +82,7 @@ sub delete
 {
 	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
 
 	return unlink($in_file);
 }
@@ -98,7 +97,7 @@ sub get_size
 {
 	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
 
 	return -s $in_file;
 }
@@ -125,7 +124,7 @@ sub _filename
 		EPrints::abort("Unrecognised storage bucket '$bucket'");
 	}
 
-	return $in_file;
+	return( $local_path, $in_file );
 }
 
 =back

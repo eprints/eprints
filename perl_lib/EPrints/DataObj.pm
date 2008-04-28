@@ -182,6 +182,7 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
 
 	$data = EPrints::Utils::clone( $data );
+	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
 
 	# If there is a field which indicates the virtual dataset,
 	# set that now, so it's visible to get_defaults.
@@ -361,6 +362,13 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
+	my $rc = 1;
+
+	$rc &&= $self->{session}->get_database->update(
+		$self->get_dataset,
+		$self->{data} );
+
+	return $rc;
 }
 
 
@@ -1384,6 +1392,121 @@ sub get_mime_type
 	my( $self, $bucket, $filename ) = @_;
 
 	return "application/octet-stream";
+}
+
+######################################################################
+=pod
+
+=item $stored = $dataobj->add_stored_file( $bucket, $filename, $filehandle )
+
+Convenience method to add the file record for $filename in $bucket to this object. If $filehandle is defined will read and store data from it. Returns the storaged file.
+
+Returns undef if the storage failed.
+
+=cut
+######################################################################
+
+sub add_stored_file
+{
+	my( $self, $bucket, $filename, $filehandle ) = @_;
+
+	my $stored = EPrints::DataObj::File->create_from_filename(
+		$self->get_session,
+		$self,
+		$bucket,
+		$filename,
+		$filehandle
+	);
+
+	return $stored;
+}
+
+######################################################################
+=pod
+
+=item @files = $dataobj->get_stored_files( [ $bucket [, $filename ] ] )
+
+Returns a list of all the files stored for this object. If $bucket is specified returns only files in that bucket. If $filename is specified returns only files matching $filename.
+
+=cut
+######################################################################
+
+sub get_stored_files
+{
+	my( $self, $bucket, $filename ) = @_;
+
+	my $ds = $self->get_session->get_repository->get_dataset( "file" );
+
+	my $searchexp = EPrints::Search->new(
+		session => $self->get_session,
+		dataset => $ds,
+	);
+
+	$searchexp->add_field(
+		$ds->get_field( "datasetid" ),
+		$self->get_dataset->confid
+	);
+	$searchexp->add_field(
+		$ds->get_field( "objectid" ),
+		$self->get_id
+	);
+	if( defined( $bucket ) )
+	{
+		$searchexp->add_field(
+			$ds->get_field( "bucket" ),
+			$bucket
+		);
+		if( defined( $filename ) )
+		{
+			$searchexp->add_field(
+					$ds->get_field( "filename" ),
+					$filename
+					);
+		}
+	}
+
+	my $list = $searchexp->perform_search;
+
+	my @files = $list->get_records();
+
+	$searchexp->dispose;
+
+	foreach my $file (@files)
+	{
+		$file->set_parent( $self );
+	}
+
+	return wantarray ? @files : $files[0];
+}
+
+######################################################################
+=pod
+
+=item $success = $dataobj->remove_stored_files( [ $bucket [, $filename] ] )
+
+Delete all the files stored for this object. If $bucket is specified deletes only those files in that bucket. If $filename is specified deletes only that filename.
+
+=cut
+######################################################################
+
+sub remove_stored_files
+{
+	my( $self, $bucket, $filename ) = @_;
+
+	# Sanity check, otherwise could accidentally delete everything!
+	if( scalar(@_) == 2 && !defined($bucket) )
+	{
+		EPrints::abort( "bucket argument is undefined" );
+	}
+	if( scalar(@_) == 3 && !defined($filename) )
+	{
+		EPrints::abort( "filename argument is undefined" );
+	}
+
+	foreach my $file ($self->get_stored_files( $bucket, $filename ))
+	{
+		$file->remove;
+	}
 }
 
 ######################################################################

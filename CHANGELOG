@@ -7413,4 +7413,9 @@ EPRINTS-3.1-beta-2
 2008-04-28 tdb
  * Removed store/retrieve methods from DataObj, just wrapper methods anyway
  * Call storage layer with filename rather than uri
+ * Added "DataObj::SubObject" to add parent methods to sub-objects
+ * Added "file" dataset to store file metadata
+ * Example adaption of a Convert plugin for storage layer use
+ * Added utility storage methods to DataObj
+ * Added database update to DataObj::commit superclass
 

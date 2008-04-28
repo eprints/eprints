@@ -461,6 +461,8 @@ sub remove
 
 	$self->remove_thumbnails;
 
+	$self->remove_all_files;
+
 	return( $success );
 }
 
@@ -616,10 +618,9 @@ sub files
 	
 	my %files;
 
-	my $root = $self->local_path();
-	if( defined $root )
+	foreach my $file ($self->get_stored_files( "data" ))
 	{
-		_get_files( \%files, $root, "" );
+		$files{$file->get_value( "filename" )} = $file->get_value( "size" );
 	}
 
 	return( %files );
@@ -839,6 +840,8 @@ sub upload
 {
 	my( $self, $filehandle, $filename, $preserve_path ) = @_;
 
+	my $rc = 1;
+
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
@@ -877,7 +880,33 @@ sub upload
 		return 0;
 	}
 
-	my $rc = $self->get_session->get_storage->store( $self, "data", $filename, $filehandle );
+	my $stored = $self->add_stored_file(
+		"data", # bucket
+		$filename,
+		$filehandle
+	);
+
+	$rc = defined($stored);
+
+	if( $rc )
+	{
+		if( !EPrints::Utils::is_set( $stored->get_value( "mime_type" ) ) )
+		{
+			my $type = $self->get_session->get_repository->call( "guess_doc_type", $self->get_session, $filename );
+			if( $type ne "other" )
+			{
+				$stored->set_value( "mime_type", $type );
+			}
+		}
+		if( !EPrints::Utils::is_set( $stored->get_value( "hash" ) ) )
+		{
+			my $md5 = $stored->generate_md5;
+			$stored->set_value( "hash", $md5 );
+			$stored->set_value( "hash_type", "MD5" );
+		}
+
+		$stored->commit;
+	}
 
 	$rc &&= $self->files_modified;
 	
@@ -1621,13 +1650,10 @@ sub make_thumbnails
 {
 	my( $self ) = @_;
 
-	my $src = $self->local_path."/".$self->get_value( "main" );
-	
-	if( !-e $src || !-r $src )
-	{
-		return undef;
-	}
-	
+	my $src = $self->get_stored_files( "data", $self->get_value( "main" ) );
+
+	return unless defined $src;
+
 	my $tgtdir = $self->thumbnail_path;
 
 	my @list = qw/ small medium preview /;
@@ -1639,25 +1665,31 @@ sub make_thumbnails
 
 	foreach my $size ( @list )
 	{
-		my $tgt = "$tgtdir/".$self->get_id.".".$size.".png";
+		my $tgt_filename = $size.".png";
 
 		# check mtime
-		my @s1 = stat( $src );
-		my @s2 = stat( $tgt );
-    		if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
+		my $tgt = $self->get_stored_files( "thumbnail", $tgt_filename );
+   		if( defined($tgt) && $tgt->get_mtime gt $src->get_mtime )
 		{
 			next;
 			# src file is older than thumbnail
 		}
 
-		EPrints::Platform::mkdir( $tgtdir );
-	
 		my $plugin = $self->thumbnail_plugin( $size );
 
 		next if !defined $plugin;
 
+		my $tmpdir = EPrints::TempDir->new;
+	
 		# make a thumbnail
-		$plugin->export( $tgtdir, $self, 'thumbnail_'.$size );
+		$plugin->export( $tmpdir, $self, 'thumbnail_'.$size );
+
+		# store the thumbnail image
+		next if !open(my $fh, "<", "$tmpdir/$tgt_filename");
+
+		$self->add_stored_file( "thumbnail", $tgt_filename, $fh );
+
+		close($fh);
 	}
 
 	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )

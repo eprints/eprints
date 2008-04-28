@@ -86,9 +86,11 @@ sub new
 	return $self;
 }
 
-=item $success = $store->store( $dataobj, $bucket, $filename, $filehandle )
+=item $dataobj = $store->store( $dataobj, $bucket, $filename, $filehandle )
 
-Read from and store all data for $filehandle. Returns true on success.
+Read from and store all data for $filehandle. Returns the L<EPrints::DataObj::Storage> record for this file.
+
+Returns undef if the file couldn't be stored.
 
 =cut
 
@@ -149,6 +151,17 @@ sub get_revisions
 	my( $dataobj, $bucket, $filename ) = @_;
 
 	return $self->{default}->get_revisions( $dataobj, $bucket, $filename );
+}
+
+=item $session = $store->get_session
+
+Returns the current session.
+
+=cut
+
+sub get_session
+{
+	$_[0]->{session};
 }
 
 =back

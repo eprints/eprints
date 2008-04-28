@@ -108,6 +108,11 @@ use strict;
 # These are both used by the virtual datasets inbox, buffer etc.
 
 my $INFO = {
+	file => {
+		sqlname => "file",
+		class => "EPrints::DataObj::File",
+		datestamp => "mtime",
+	},
 	import => {
 		sqlname => "import",
 		class => "EPrints::DataObj::Import",
@@ -914,14 +919,14 @@ sub get_dataset_ids
 =item @ids = EPrints::DataSet::get_sql_dataset_ids
 
 Return a list of all dataset ids of datasets which are directly mapped
-into SQL (not counters or cache which work a bit differently).
+into SQL (not counters which work a bit differently).
 
 =cut
 ######################################################################
 
 sub get_sql_dataset_ids
 {
-	return( qw/ import metafield cachemap message loginticket eprint user document saved_search subject history access request / );
+	return( qw/ file import metafield cachemap message loginticket eprint user document saved_search subject history access request / );
 }
 
 ######################################################################
