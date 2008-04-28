@@ -24,17 +24,17 @@ B<EPrints::Storage> - store and retrieve objects in the storage engine
 	my $store = $session->get_storage();
 
 	$store->store(
-		$eprint,			# data object
-		"revision",			# bucket
-		"http://example.org/id/eprint/23/revision/1", # uri
-		$fh					# file handle
+		$eprint,		# data object
+		"revision",		# bucket
+		"diddle.pdf",	# filename
+		$fh				# file handle
 	);
 
 =head1 DESCRIPTION
 
 This module is the storage control layer which uses L<EPrints::Plugin::Storage> plugins to support various storage back-ends. It enables the storage, retrieval and deletion of data streams. The maximum size of a stream is dependent on the back-end storage mechanism.
 
-Each data stream is located at a globally unique URI. This URI may not be externally locatable, but as with all URIs it is recommended that it is. Currently EPrints uses the Web location of data objects as their stored URI.
+Each data stream is located at a repository unique location constructed from the data object id, bucket name and file name. This may be turned into a URI by the storage layer to achieve global uniqueness (e.g. by using the repository's hostname).
 
 =head2 Multiple Storage Mediums
 
@@ -42,9 +42,13 @@ The storage layer may make use of multiple storage back-ends. To assist locating
 
 The B<EPrints object> passed to the storage API may be used to choose different storage mediums or to add metadata to the stored stream (e.g. if the storage back end is another repository).
 
-The B<bucket> is a string that identifies classes of streams. For instance L<EPrints::DataObj::Document> objects (currently) have "bitstream" and "thumbnail" buckets for storing files and thumbnails respectively.
+The B<bucket> is a string that identifies classes of streams. For instance L<EPrints::DataObj::Document> objects (currently) have "data" and "thumbnail" buckets for storing files and thumbnails respectively.
 
-The storage layer may not make any use of the EPrints object nor bucket - the URI must uniquely identify the stream regardless of where it came from.
+=head2 Revisions
+
+The storage layer may store multiple revisions located at the same filename.
+
+If the storage medium supports revisioning it is expected that repeated store() calls to the same location will result in multiple revisions. A retrieve() call without any revision will always return the data stored in the last store() call.
 
 =head1 METHODS
 
@@ -82,56 +86,69 @@ sub new
 	return $self;
 }
 
-=item $success = $store->store( $dataobj, $bucket, $uri, $filehandle )
+=item $success = $store->store( $dataobj, $bucket, $filename, $filehandle )
 
-Read from and store all data for $filehandle at $uri. Returns true on success.
+Read from and store all data for $filehandle. Returns true on success.
 
 =cut
 
 sub store
 {
-	my( $self, $dataobj, $bucket, $uri, $fh ) = @_;
+	my( $self, $dataobj, $bucket, $filename, $fh ) = @_;
 
-	return $self->{default}->store( $dataobj, $bucket, $uri, $fh );
+	return $self->{default}->store( $dataobj, $bucket, $filename, $fh );
 }
 
-=item $filehandle = $store->retrieve( $dataobj, $bucket, $uri )
+=item $filehandle = $store->retrieve( $dataobj, $bucket, $filename [, $revision ] )
 
-Retrieve a $filehandle to the object stored at $uri.
+Retrieve a $filehandle to the object stored at $filename. If no $revision is specified returns the latest revision.
 
 =cut
 
 sub retrieve
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
 
-	return $self->{default}->retrieve( $dataobj, $bucket, $uri );
+	return $self->{default}->retrieve( $dataobj, $bucket, $filename, $revision );
 }
 
-=item $success = $store->delete( $dataobj, $bucket, $uri )
+=item $success = $store->delete( $dataobj, $bucket, $filename [, $revision ] )
 
-Delete the object stored at $uri.
+Delete the object stored at $filename. If no $revision is specified deletes the latest revision.
 
 =cut
 
 sub delete
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
 
-	return $self->{default}->delete( $dataobj, $bucket, $uri );
+	return $self->{default}->delete( $dataobj, $bucket, $filename, $revision );
 }
 
-=item $size = $store->get_size( $dataobj, $bucket, $uri )
+=item $size = $store->get_size( $dataobj, $bucket, $filename [, $revision ] )
 
-Return the $size (in bytes) of the object stored at $uri.
+Return the $size (in bytes) of the object stored at $filename. If no $revision is specified returns the size of the latest revision.
 
 =cut
 
 sub get_size
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
 
-	return $self->{default}->get_size( $dataobj, $bucket, $uri );
+	return $self->{default}->get_size( $dataobj, $bucket, $filename, $revision );
+}
+
+=item @revisions = $store->get_revisions( $dataobj, $bucket, $filename )
+
+Return a list of revision numbers for $filename, in order from oldest to latest.
+
+=cut
+
+sub get_revisions
+{
+	my( $dataobj, $bucket, $filename ) = @_;
+
+	return $self->{default}->get_revisions( $dataobj, $bucket, $filename );
 }
 
 =back

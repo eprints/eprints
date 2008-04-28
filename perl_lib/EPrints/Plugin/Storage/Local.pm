@@ -28,12 +28,17 @@ Read and store all data from $filehandle at $uri. Returns true on success.
 
 sub store
 {
-	my( $self, $dataobj, $bucket, $uri, $fh ) = @_;
+	my( $self, $dataobj, $bucket, $filename, $fh ) = @_;
 
 	my $local_path = $dataobj->local_path;
 	EPrints::Platform::mkdir( $local_path );
 
-	my $out_file = $self->_uri_to_filename( $dataobj, $uri );
+	if( !EPrints::Utils::is_set( $filename ) )
+	{
+		EPrints::abort( "Requires filename argument" );
+	}
+
+	my $out_file = $self->_filename( $dataobj, $bucket, $filename );
 
 	open(my $out_fh, ">", $out_file)
 		or EPrints::abort( "Unable to write to $out_file: $!" );
@@ -50,17 +55,17 @@ sub store
 	return 1;
 }
 
-=item $filehandle = $store->retrieve( $dataobj, $bucket, $uri )
+=item $filehandle = $store->retrieve( $dataobj, $bucket, $filename )
 
-Retrieve a $filehandle to the object stored at $uri.
+Retrieve a $filehandle to the object stored at $filename.
 
 =cut
 
 sub retrieve
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
+	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
 
 	open(my $in_fh, "<", $in_file)
 		or EPrints::abort( "Unable to read from $in_file: $!" );
@@ -68,63 +73,56 @@ sub retrieve
 	return $in_fh;
 }
 
-=item $success = $store->delete( $dataobj, $bucket, $uri )
+=item $success = $store->delete( $dataobj, $bucket, $filename )
 
-Delete the object stored at $uri.
+Delete the object stored at $filename.
 
 =cut
 
 sub delete
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
+	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
 
 	return unlink($in_file);
 }
 
-=item $size = $store->get_size( $dataobj, $bucket, $uri )
+=item $size = $store->get_size( $dataobj, $bucket, $filename )
 
-Return the $size (in bytes) of the object stored at $uri.
+Return the $size (in bytes) of the object stored at $filename.
 
 =cut
 
 sub get_size
 {
-	my( $self, $dataobj, $bucket, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename ) = @_;
 
-	my $in_file = $self->_uri_to_filename( $dataobj, $uri );
+	my $in_file = $self->_filename( $dataobj, $bucket, $filename );
 
 	return -s $in_file;
 }
 
-sub _uri_to_filename
+sub _filename
 {
-	my( $self, $dataobj, $uri ) = @_;
+	my( $self, $dataobj, $bucket, $filename ) = @_;
 
 	my $local_path = $dataobj->local_path;
-	$uri = URI->new( $uri );
-
-	my( undef, undef, $obj_type, $id, $sub_type, $filename ) = split /\//, $uri->path;
-
-	$filename = URI::Escape::uri_unescape( $filename );
-	$filename =~ s/[\/\\:]//g;
-	$filename =~ s/^\.+//g;
 
 	my $in_file;
 
-	if( $sub_type eq "bitstream" )
+	if( $bucket eq "data" )
 	{
 		$in_file = "$local_path/$filename";
 	}
-	elsif( $sub_type eq "thumbnail" )
+	elsif( $bucket eq "thumbnail" )
 	{
 		$local_path =~ s/(\/\d+)$/\/thumbnails$1/;
 		$in_file = "$local_path/$filename";
 	}
 	else
 	{
-		EPrints::abort("Unrecognised storage sub-type '$sub_type' from URL '$uri'");
+		EPrints::abort("Unrecognised storage bucket '$bucket'");
 	}
 
 	return $in_file;

@@ -74,9 +74,8 @@ sub handler
 		return $rc;
 	}
 
-	my $stored_uri = $dataobj->get_storage_uri( $bucket, $filename );
 	my $content_type = $dataobj->get_mime_type( $bucket, $filename );
-	my $content_length = $session->get_storage->get_size( $dataobj, $bucket, $stored_uri );
+	my $content_length = $session->get_storage->get_size( $dataobj, $bucket, $filename );
 
 	EPrints::Apache::AnApache::header_out( 
 		$r,
@@ -87,7 +86,7 @@ sub handler
 		content_type => $content_type,
 	);
 
-	my $fh = $dataobj->retrieve( $bucket, $stored_uri );
+	my $fh = $session->get_storage->retrieve( $dataobj, $bucket, $filename );
 	# byte semantics are much faster
 	{
 		use bytes;

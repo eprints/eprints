@@ -7410,3 +7410,7 @@ EPRINTS-3.1-beta-2
   - added get_dataset_id class method to return dataset id
   - shared super-class new, new_from_data, remove for most classes
 
+2008-04-28 tdb
+ * Removed store/retrieve methods from DataObj, just wrapper methods anyway
+ * Call storage layer with filename rather than uri
+

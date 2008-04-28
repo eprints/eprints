@@ -1389,40 +1389,6 @@ sub get_mime_type
 ######################################################################
 =pod
 
-=item $dataobj->store( $bucket, $uri, $filehandle )
-
-Read and store binary data from $filehandle into $uri contained in $bucket.
-
-=cut
-######################################################################
-
-sub store
-{
-	my( $self, $bucket, $uri, $fh ) = @_;
-
-	return $self->{session}->get_storage->store( $self, $bucket, $uri, $fh );
-}
-
-######################################################################
-=pod
-
-=item $filehandle = $dataobj->retrieve( $bucket, $uri )
-
-Return a $filehandle to the object stored at $uri contained in $bucket.
-
-=cut
-######################################################################
-
-sub retrieve
-{
-	my( $self, $bucket, $uri ) = @_;
-
-	return $self->{session}->get_storage->retrieve( $self, $bucket, $uri );
-}
-
-######################################################################
-=pod
-
 =back
 
 =cut

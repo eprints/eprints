@@ -869,9 +869,15 @@ sub upload
 		return 0;
 	}
 
-	my $uri = $self->get_storage_uri( "bitstream", sanitise( $filename ));
+	$filename = sanitise( $filename );
 
-	my $rc = $self->store( "bitstream", $uri, $filehandle );
+	if( !$filename )
+	{
+		$repository->log( "Bad filename in document: no valid characters in file name\n" );
+		return 0;
+	}
+
+	my $rc = $self->get_session->get_storage->store( $self, "data", $filename, $filehandle );
 
 	$rc &&= $self->files_modified;
 	
