@@ -55,7 +55,7 @@ Check sum of the file.
 
 Type of check sum used (e.g. "MD5").
 
-=item size
+=item filesize
 
 Size of the file in bytes.
 
@@ -152,12 +152,12 @@ sub create_from_filename
 			objectid => $dataobj->get_id,
 			bucket => $bucket,
 			filename => $filename,
-			size => $session->get_storage->get_size( $dataobj, $bucket, $filename ),
+			filesize => $session->get_storage->get_size( $dataobj, $bucket, $filename ),
 		} );
 	}
 	else
 	{
-		$self->set_value( "size", $session->get_storage->get_size( $dataobj, $bucket, $filename ) );
+		$self->set_value( "filesize", $session->get_storage->get_size( $dataobj, $bucket, $filename ) );
 		$self->commit;
 	}
 
@@ -200,7 +200,7 @@ sub get_system_field_info
 
 		{ name=>"hash_type", type=>"text", },
 
-		{ name=>"size", type=>"int", },
+		{ name=>"filesize", type=>"int", },
 
 		{ name=>"mtime", type=>"time", },
 	);
@@ -317,7 +317,7 @@ sub write_copy
 
 	close($out);
 
-	return $self->get_value( "size" ) == -s $filename;
+	return $self->get_value( "filesize" ) == -s $filename;
 }
 
 =item $success = $stored->write_copy_fh( $filehandle )

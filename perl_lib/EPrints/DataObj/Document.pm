@@ -620,7 +620,7 @@ sub files
 
 	foreach my $file ($self->get_stored_files( "data" ))
 	{
-		$files{$file->get_value( "filename" )} = $file->get_value( "size" );
+		$files{$file->get_value( "filename" )} = $file->get_value( "filesize" );
 	}
 
 	return( %files );
