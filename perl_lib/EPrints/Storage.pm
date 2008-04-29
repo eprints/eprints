@@ -86,11 +86,11 @@ sub new
 	return $self;
 }
 
-=item $dataobj = $store->store( $dataobj, $bucket, $filename, $filehandle )
+=item $success = $store->store( $dataobj, $bucket, $filename, $filehandle )
 
-Read from and store all data for $filehandle. Returns the L<EPrints::DataObj::Storage> record for this file.
+Read from and store all data for $filehandle.
 
-Returns undef if the file couldn't be stored.
+Returns false on error.
 
 =cut
 
