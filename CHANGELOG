@@ -7419,3 +7419,6 @@ EPRINTS-3.1-beta-2
  * Added utility storage methods to DataObj
  * Added database update to DataObj::commit superclass
 
+2008-04-29 cjg
+ * Added "schema" option to epadmin
+ * Added XML::tidy to schema exporter

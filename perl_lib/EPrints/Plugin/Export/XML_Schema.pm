@@ -97,6 +97,7 @@ sub output_list
 <?xml version="1.0"?>
 
 EOX
+	EPrints::XML::tidy( $schema );
 	$xml .= EPrints::XML::to_string($schema);
 	$xml .= "\n";
 

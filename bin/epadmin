@@ -48,6 +48,10 @@ Create the database tables.
 
 Create a new user. You need to do this to create your first admin account.
 
+=item B<epadmin> schema I<repository_id>
+
+Use this to produce a schema for the EP3 XML read/writen by your repository. 
+
 =item B<epadmin> erase_fulltext_index I<repository_id>
 
 This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
@@ -201,6 +205,7 @@ else
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
+	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "test" ) { test( $repoid ); }
 	elsif( $action eq "recommit" ) 
@@ -1563,8 +1568,27 @@ sub reindex
 }
 
 
+sub schema 
+{
+	my( $repoid ) = @_;
 
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
+	my $mf_dataset = $session->get_repository->get_dataset( "metafield" );
+
+	my $plugin = $session->plugin( "Export::XML_Schema" );
+
+	my $list = EPrints::List->new(
+		dataset => $mf_dataset,
+		session => $session,
+		ids=>["ALL"] );
+
+	print $plugin->byte_order_mark;
+	$plugin->output_list( list=>$list, fh=>*STDOUT );
+
+	$session->terminate;
+}
 
 
 
