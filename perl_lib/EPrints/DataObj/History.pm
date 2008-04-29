@@ -79,7 +79,7 @@ to the user.
 
 package EPrints::DataObj::History;
 
-@ISA = ( 'EPrints::DataObj' );
+@ISA = ( 'EPrints::DataObj::SubObject' );
 
 use EPrints;
 
@@ -447,22 +447,28 @@ sub render_create
 
 	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
-	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
+	my $eprint = $self->get_parent();
 	if( !defined $eprint )
 	{
 		return $self->{session}->render_nbsp;
 	}
-	my $r_new = $self->get_value( "revision" );
-	my $r_file_new =  $eprint->local_path."/revisions/$r_new.xml";
+	my $r_file = $eprint->get_stored_files( "revision", "eprint.xml" );
 
-	unless( -e $r_file_new )
+	my $r_new = $self->get_value( "revision" );
+	my $r_file_new = File::Temp->new;
+
+	unless(
+		defined( $r_file ) &&
+		$r_file->write_copy_fh( $r_file_new, $r_new )
+	)
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
 		return $div;
 	}
 
-	my $file_new = EPrints::XML::parse_xml( $r_file_new );
+	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
+
 	my $dom_new = $file_new->getFirstChild;
 
 	my $div = $self->{session}->make_element( "div" );
@@ -482,8 +488,7 @@ sub render_modify
 {
 	my( $self ) = @_;
 
-	my $eprint = EPrints::DataObj::EPrint->new( $self->{session}, $self->get_value( "objectid" ) );
-
+	my $eprint = $self->get_parent();
 	if( !defined $eprint )
 	{
 		return $self->{session}->render_nbsp;
@@ -491,22 +496,29 @@ sub render_modify
 
 	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
+	my $r_file = $eprint->get_stored_files( "revision", "eprint.xml" );
+
 	my $r_new = $self->get_value( "revision" );
 	my $r_old = $r_new-1;
 
-	my $r_file_old =  $eprint->local_path."/revisions/$r_old.xml";
-	my $r_file_new =  $eprint->local_path."/revisions/$r_new.xml";
-	unless( -e $r_file_new )
+	my $r_file_new = File::Temp->new;
+
+	unless(
+		defined( $r_file ) &&
+		$r_file->write_copy_fh( $r_file_new, $r_new )
+	)
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
 		return $div;
 	}
 
-	my $file_new = EPrints::XML::parse_xml( $r_file_new );
+	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
 	my $dom_new = $file_new->getFirstChild;
 
-	unless( -e $r_file_old )
+	my $r_file_old = File::Temp->new;
+
+	unless( $r_file->write_copy_fh( $r_file_old, $r_old ) )
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_earlier" ) );
@@ -514,7 +526,7 @@ sub render_modify
 		return $div;
 	}
 
-	my $file_old = EPrints::XML::parse_xml( $r_file_old );
+	my $file_old = EPrints::XML::parse_xml( "$r_file_old" );
 	my $dom_old = $file_old->getFirstChild;
 
 	my %fieldnames = ();

@@ -89,7 +89,7 @@ Document has all the methods of dataobj with the addition of the following.
 
 package EPrints::DataObj::Document;
 
-@ISA = ( 'EPrints::DataObj' );
+@ISA = ( 'EPrints::DataObj::SubObject' );
 
 use EPrints;
 use EPrints::Search;
@@ -278,14 +278,14 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
        
 	my $eprintid = $data->{eprintid}; 
-	my $eprint = delete $data->{eprint};
+	my $eprint = delete $data->{_parent} || delete $data->{eprint};
 
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $document;
 
 	# Hint for get_eprint()
-	$document->{eprint} = $eprint;
+	$document->set_parent( $eprint );
 
 	$document->set_under_construction( 1 );
 
@@ -481,15 +481,7 @@ sub get_eprint
 {
 	my( $self ) = @_;
 	
-	# If we have it already just pass it on
-	return( $self->{eprint} ) if( defined $self->{eprint} );
-
-	# Otherwise, create object and return
-	$self->{eprint} = new EPrints::DataObj::EPrint( 
-		$self->{session},
-		$self->get_value( "eprintid" ) );
-	
-	return( $self->{eprint} );
+	return $self->get_parent( "eprint", $self->get_value( "eprintid" ) );
 }
 
 
@@ -1159,7 +1151,7 @@ sub commit
 
 	$self->queue_changes;
 
-	unless( !defined $self->{eprint} || $self->{eprint}->under_construction )
+	unless( !defined $self->{_parent} || $self->{_parent}->under_construction )
 	{
 		# cause a new new revision of the parent eprint.
 		$self->get_eprint->commit( 1 );
@@ -1491,7 +1483,7 @@ sub register_parent
 {
 	my( $self, $parent ) = @_;
 
-	$self->{eprint} = $parent;
+	$self->set_parent( $parent );
 }
 
 
@@ -1680,14 +1672,16 @@ sub make_thumbnails
 		next if !defined $plugin;
 
 		my $tmpdir = EPrints::TempDir->new;
+		my $tgt_filepath = "$tmpdir/$tgt_filename";
 	
 		# make a thumbnail
 		$plugin->export( $tmpdir, $self, 'thumbnail_'.$size );
 
 		# store the thumbnail image
-		next if !open(my $fh, "<", "$tmpdir/$tgt_filename");
+		next if !open(my $fh, "<", $tgt_filepath);
+		my $filesize = -s $tgt_filepath;
 
-		$self->add_stored_file( "thumbnail", $tgt_filename, $fh );
+		$self->add_stored_file( "thumbnail", $tgt_filename, $fh, $filesize );
 
 		close($fh);
 	}

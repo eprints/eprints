@@ -1397,7 +1397,7 @@ sub get_mime_type
 ######################################################################
 =pod
 
-=item $stored = $dataobj->add_stored_file( $bucket, $filename, $filehandle )
+=item $file = $dataobj->add_stored_file( $bucket, $filename, $filehandle, $filesize )
 
 Convenience method to add the file record for $filename in $bucket to this object. If $filehandle is defined will read and store data from it. Returns the storaged file.
 
@@ -1408,17 +1408,26 @@ Returns undef if the storage failed.
 
 sub add_stored_file
 {
-	my( $self, $bucket, $filename, $filehandle ) = @_;
+	my( $self, $bucket, $filename, $filehandle, $filesize ) = @_;
 
-	my $stored = EPrints::DataObj::File->create_from_filename(
-		$self->get_session,
-		$self,
-		$bucket,
-		$filename,
-		$filehandle
-	);
+	my $file = $self->get_stored_files( $bucket, $filename );
 
-	return $stored;
+	if( defined( $file ) )
+	{
+		$file->upload( $filehandle, $filename, $filesize );
+	}
+	else
+	{
+		$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
+			_parent => $self,
+			_filehandle => $filehandle,
+			bucket => $bucket,
+			filename => $filename,
+			filesize => $filesize,
+		} );
+	}
+
+	return $file;
 }
 
 ######################################################################

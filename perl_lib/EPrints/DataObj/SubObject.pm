@@ -33,6 +33,36 @@ package EPrints::DataObj::SubObject;
 
 @ISA = qw( EPrints::DataObj );
 
+=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
+
+Looks for a special B<_parent> element in $data and uses it to set the parent object, if defined.
+
+Will create default values for B<datasetid> and B<objectid> if parent is available.
+
+=cut
+
+sub create_from_data
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	my $parent = delete $data->{_parent};
+
+	if( defined( $parent ) )
+	{
+		$data->{datasetid} ||= $parent->get_dataset->confid;
+		$data->{objectid} ||= $parent->get_id;
+	}
+
+	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
+
+	if( defined( $parent ) )
+	{
+		$self->set_parent( $parent );
+	}
+
+	return $self;
+}
+
 =item $dataobj = $dataobj->get_parent( [ $datasetid [, $objectid ] ] )
 
 Get and cache the parent data object. If $datasetid and/or $objectid are specified will use these values rather than the stored values.

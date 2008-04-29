@@ -162,6 +162,16 @@ EPrints Modules
     <epp:phrase id="lib/metafield/itemref:not_found"><i><epc:pin name="objtype"/> <epc:pin name="id"/> not found.</i></epp:phrase>
     <epp:phrase id="lib/metafield/secret:show_value">[hidden]</epp:phrase>
 
+<!-- File -->
+	<epp:phrase id="file_fieldname_datasetid">Object dataset id</epp:phrase>
+	<epp:phrase id="file_fieldname_objectid">Object id</epp:phrase>
+	<epp:phrase id="file_fieldname_bucket">File bucket</epp:phrase>
+	<epp:phrase id="file_fieldname_filename">File name</epp:phrase>
+	<epp:phrase id="file_fieldname_filesize">File size</epp:phrase>
+	<epp:phrase id="file_fieldname_hash">File checksum</epp:phrase>
+	<epp:phrase id="file_fieldname_hash_type">Checksum type</epp:phrase>
+	<epp:phrase id="file_fieldname_mtime">File modification time</epp:phrase>
+
 <!-- Page ranges -->
 	<!-- 123-123 -->
 	<epp:phrase id="lib/metafield/pagerange:same_page">p. <epc:pin name="from"/></epp:phrase>

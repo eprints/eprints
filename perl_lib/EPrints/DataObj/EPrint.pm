@@ -1060,26 +1060,27 @@ sub write_revision
 {
 	my( $self ) = @_;
 
-	my $dir = $self->local_path."/revisions";
+	my $tmpfile = File::Temp->new;
+	my $filename = "eprint.xml";
 
-	if( !-d $dir )
-	{
-		if(!EPrints::Platform::mkdir($dir))
-		{
-			$self->{session}->get_repository->log( "Error creating revision directory for EPrint ".$self->get_value( "eprintid" ).", ($dir): ".$! );
-			return;
-		}
-	}
+	print $tmpfile '<?xml version="1.0" encoding="utf-8" ?>'."\n";
+	print $tmpfile $self->export( "XML" );
 
-	my $rev_file = $dir."/".$self->get_value("rev_number").".xml";
-	unless( open( REVFILE, ">$rev_file" ) )
+	seek($tmpfile,0,0);
+
+	# Bit more complex, because we want to use our revision for controlling
+	# the file revision numbers
+	my $file = $self->get_stored_files( "revision", $filename );
+	unless( $file )
 	{
-		$self->{session}->get_repository->log( "Error writing file: $!" );
-		return;
+		$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
+			_parent => $self,
+			bucket => "revision",
+			filename => $filename,
+		} );
 	}
-	print REVFILE '<?xml version="1.0" encoding="utf-8" ?>'."\n";
-	print REVFILE $self->export( "XML", fh=>*REVFILE );
-	close REVFILE;
+	$file->set_value( "rev_number", $self->get_value( "rev_number" )-1 );
+	$file->upload( $tmpfile, "eprint.xml", -s "$tmpfile" );
 }
 
 
@@ -1711,6 +1712,7 @@ sub render_history
 	$results->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
+		$item->set_parent( $self );
 		$page->appendChild( $item->render );
 	} );
 

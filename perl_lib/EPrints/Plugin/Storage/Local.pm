@@ -1,3 +1,17 @@
+=head1 NAME
+
+EPrints::Plugin::Storage::Local - storage on the local disk
+
+=head1 DESCRIPTION
+
+See L<EPrints::Plugin::Storage> for available methods.
+
+=head1 METHODS
+
+=over 4
+
+=cut
+
 package EPrints::Plugin::Storage::Local;
 
 use URI;
@@ -20,22 +34,11 @@ sub new
 	return $self;
 }
 
-=item $success = $store->store( $dataobj, $bucket, $uri, $filehandle )
-
-Read and store all data from $filehandle at $uri. Returns true on success.
-
-=cut
-
 sub store
 {
-	my( $self, $dataobj, $bucket, $filename, $fh ) = @_;
+	my( $self, $fileobj, $fh ) = @_;
 
-	if( !EPrints::Utils::is_set( $filename ) )
-	{
-		EPrints::abort( "Requires filename argument" );
-	}
-
-	my( $local_path, $out_file ) = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $out_file ) = $self->_filename( $fileobj );
 
 	EPrints::Platform::mkdir( $local_path );
 
@@ -54,17 +57,11 @@ sub store
 	return 1;
 }
 
-=item $filehandle = $store->retrieve( $dataobj, $bucket, $filename )
-
-Retrieve a $filehandle to the object stored at $filename.
-
-=cut
-
 sub retrieve
 {
-	my( $self, $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
 
 	open(my $in_fh, "<", $in_file)
 		or EPrints::abort( "Unable to read from $in_file: $!" );
@@ -72,41 +69,34 @@ sub retrieve
 	return $in_fh;
 }
 
-=item $success = $store->delete( $dataobj, $bucket, $filename )
-
-Delete the object stored at $filename.
-
-=cut
-
 sub delete
 {
-	my( $self, $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
 
 	return unlink($in_file);
 }
 
-=item $size = $store->get_size( $dataobj, $bucket, $filename )
-
-Return the $size (in bytes) of the object stored at $filename.
-
-=cut
-
 sub get_size
 {
-	my( $self, $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $dataobj, $bucket, $filename );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
 
 	return -s $in_file;
 }
 
 sub _filename
 {
-	my( $self, $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	my $local_path = $dataobj->local_path;
+	my $doc = $fileobj->get_parent();
+	my $local_path = $doc->local_path;
+
+	$revision ||= $fileobj->get_value( "rev_number" );
+	my $bucket = $fileobj->get_value( "bucket" );
+	my $filename = $fileobj->get_value( "filename" );
 
 	my $in_file;
 
@@ -117,6 +107,12 @@ sub _filename
 	elsif( $bucket eq "thumbnail" )
 	{
 		$local_path =~ s/(\/\d+)$/\/thumbnails$1/;
+		$in_file = "$local_path/$filename";
+	}
+	elsif( $bucket eq "revision" )
+	{
+		$local_path .= "/revisions";
+		$filename =~ s/^eprint/$revision/;
 		$in_file = "$local_path/$filename";
 	}
 	else

@@ -19,6 +19,8 @@ B<EPrints::DataObj::File> - a stored file
 
 =head1 DESCRIPTION
 
+Files have revisions but work slightly differently to other objects. A File is only revised when it's contained object data is changed, otherwise revision numbers would get out of sync.
+
 =head1 CORE FIELDS
 
 =over 4
@@ -26,6 +28,10 @@ B<EPrints::DataObj::File> - a stored file
 =item fileid
 
 UID for this filename.
+
+=item rev_number (int)
+
+The number of the current revision of this record.
 
 =item datasetid
 
@@ -126,39 +132,23 @@ sub new_from_filename
 	return $records[0];
 }
 
-=item $dataobj = EPrints::DataObj::File->create_from_filename( $session, $dataobj, $bucket, $filename [, $fh ] )
+=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
-Convenience method to create a File object for $filename stored in the $bucket in $dataobj. If $fh is defined will read and store the data from $fh in the storage layer.
-
-Returns undef on error.
+Create a new File record using $data. If "_filehandle" is defined in $data it will be read from and stored.
 
 =cut
 
-sub create_from_filename
+sub create_from_data
 {
-	my( $class, $session, $dataobj, $bucket, $filename, $fh ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
+
+	my $fh = delete $data->{_filehandle};
+
+	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	if( defined( $fh ) )
 	{
-		return unless
-			$session->get_storage->store( $dataobj, $bucket, $filename, $fh );
-	}
-
-	my $self = $class->new_from_filename( @_[1..$#_] );
-	if( !defined( $self ) )
-	{
-		$self = $class->create_from_data( $session, {
-			datasetid => $dataobj->get_dataset->confid,
-			objectid => $dataobj->get_id,
-			bucket => $bucket,
-			filename => $filename,
-			filesize => $session->get_storage->get_size( $dataobj, $bucket, $filename ),
-		} );
-	}
-	else
-	{
-		$self->set_value( "filesize", $session->get_storage->get_size( $dataobj, $bucket, $filename ) );
-		$self->commit;
+		$session->get_storage->store( $self, $fh );
 	}
 
 	return $self;
@@ -184,7 +174,9 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"fileid", type=>"int", }, 
+		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0 },
+
+		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0 },
 
 		{ name=>"datasetid", type=>"text", text_index=>0, }, 
 
@@ -243,6 +235,8 @@ sub get_defaults
 
 	$data->{mtime} = EPrints::Time::get_iso_timestamp();
 
+	$data->{rev_number} = 1;
+
 	return $data;
 }
 
@@ -256,6 +250,13 @@ sub get_defaults
 
 ######################################################################
 
+sub revised
+{
+	my( $self ) = @_;
+
+	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );
+}
+
 sub get_mtime
 {
 	my( $self ) = @_;
@@ -265,7 +266,7 @@ sub get_mtime
 
 =item $success = $stored->remove
 
-Remove the stored file.
+Remove the stored file. Deletes all revisions of the contained object.
 
 =cut
 
@@ -275,14 +276,13 @@ sub remove
 
 	$self->SUPER::remove();
 
-	$self->get_session->get_storage->delete(
-		$self->get_parent,
-		$self->get_value( "bucket" ),
-		$self->get_value( "filename" )
-	);
+	foreach my $revision (1..$self->get_value( "rev_number" ))
+	{
+		$self->get_session->get_storage->delete( $self, $revision );
+	}
 }
 
-=item $fh = $stored->get_fh
+=item $fh = $stored->get_fh( [ $revision ] )
 
 Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).
 
@@ -290,16 +290,61 @@ Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::S
 
 sub get_fh
 {
-	my( $self ) = @_;
+	my( $self, $revision ) = @_;
 
-	return $self->get_session->get_storage->retrieve(
-		$self->get_parent,
-		$self->get_value( "bucket" ),
-		$self->get_value( "filename" )
-	);
+	return $self->get_session->get_storage->retrieve( $self, $revision );
 }
 
-=item $success = $stored->write_copy( $filename )
+=item $success = $file->add_file( $filepath, $filename [, $preserve_path ] )
+
+Read and store the contents of $filepath at $filename.
+
+If $preserve_path is untrue will strip any leading path in $filename.
+
+=cut
+
+sub add_file
+{
+	my( $self, $filepath, $filename, $preserve_path ) = @_;
+
+	open(my $fh, "<", $filepath) or return 0;
+	binmode($fh);
+
+	my $rc = $self->upload( $fh, $filename, -s $filepath, $preserve_path );
+
+	close($fh);
+
+	return $rc;
+}
+
+=item $success = $file->upload( $filehandle, $filename, $filesize [, $preserve_path ] )
+
+Read and store the data from $filehandle at $filename at the next revision number.
+
+If $preserve_path is untrue will strip any leading path in $filename.
+
+=cut
+
+sub upload
+{
+	my( $self, $fh, $filename, $filesize, $preserve_path ) = @_;
+
+	unless( $preserve_path )
+	{
+		$filename =~ s/^.*\///; # Unix
+		$filename =~ s/^.*\\//; # Windows
+	}
+
+	$self->set_value( "filename", $filename );
+	$self->set_value( "filesize", $filesize );
+	$self->revised();
+
+	$self->commit();
+
+	return $self->get_session->get_storage->store( $self, $fh );
+}
+
+=item $success = $stored->write_copy( $filename [, $revision] )
 
 Write a copy of this file to $filename.
 
@@ -309,18 +354,18 @@ Returns true if the written file contains the same number of bytes as the stored
 
 sub write_copy
 {
-	my( $self, $filename ) = @_;
+	my( $self, $filename, $revision ) = @_;
 
 	open(my $out, ">", $filename) or return 0;
 
-	$self->write_copy_fh( $out );
+	my $rc = $self->write_copy_fh( $out, $revision );
 
 	close($out);
 
-	return $self->get_value( "filesize" ) == -s $filename;
+	return $rc;
 }
 
-=item $success = $stored->write_copy_fh( $filehandle )
+=item $success = $stored->write_copy_fh( $filehandle [, $revision ] )
 
 Write a copy of this file to $filehandle.
 
@@ -328,11 +373,11 @@ Write a copy of this file to $filehandle.
 
 sub write_copy_fh
 {
-	my( $self, $out ) = @_;
+	my( $self, $out, $revision ) = @_;
 
 	use bytes;
 
-	my $in = $self->get_fh;
+	my $in = $self->get_fh( $revision ) or return 0;
 
 	binmode($in);
 	binmode($out);
@@ -345,6 +390,8 @@ sub write_copy_fh
 
 	close($in);
 	close($out);
+
+	return 1;
 }
 
 =item $md5 = $stored->generate_md5

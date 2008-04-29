@@ -37,39 +37,41 @@ sub is_available
 	return 1;
 }
 
-=item $success = $store->store( $dataobj, $bucket, $filename, $filehandle )
+=item $success = $store->store( $fileobj, $filehandle )
 
-Read and store all data from $filehandle at $filename. Returns true on success.
+Read from and store all data from $filehandle for $fileobj.
 
-=cut
-
-=item $filehandle = $store->retrieve( $dataobj, $bucket, $filename )
-
-Retrieve a $filehandle to the object stored at $filename.
+Returns false on error.
 
 =cut
 
-=item $success = $store->delete( $dataobj, $bucket, $filename )
+=item $filehandle = $store->retrieve( $fileobj [, $revision ] )
 
-Delete the object stored at $filename.
-
-=cut
-
-=item $size = $store->get_size( $dataobj, $bucket, $filename )
-
-Return the $size (in bytes) of the object stored at $filename.
+Retrieve a $filehandle to the object stored for $fileobj. If no $revision is specified returns the revision in $fileobj.
 
 =cut
 
-=item @revisions = $store->get_revisions( $dataobj, $bucket, $filename )
+=item $success = $store->delete( $fileobj [, $revision ] )
 
-Return a list of revision numbers for $filename, in order from oldest to latest.
+Delete the object stored for $fileobj. If no $revision is specified deletes the revision in $fileobj.
+
+=cut
+
+=item $size = $store->get_size( $fileobj [, $revision ] )
+
+Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.
+
+=cut
+
+=item @revisions = $store->get_revisions( $fileobj )
+
+Return a list of available revision numbers for $fileobj, in order from latest to oldest.
 
 =cut
 
 sub get_revisions
 {
-	my( $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	return (1); # default to storing one revision, "1"
 }

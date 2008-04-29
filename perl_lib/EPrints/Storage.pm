@@ -86,9 +86,9 @@ sub new
 	return $self;
 }
 
-=item $success = $store->store( $dataobj, $bucket, $filename, $filehandle )
+=item $success = $store->store( $fileobj, $filehandle )
 
-Read from and store all data for $filehandle.
+Read from and store all data from $filehandle for $fileobj.
 
 Returns false on error.
 
@@ -96,72 +96,61 @@ Returns false on error.
 
 sub store
 {
-	my( $self, $dataobj, $bucket, $filename, $fh ) = @_;
+	my( $self, $fileobj, $fh ) = @_;
 
-	return $self->{default}->store( $dataobj, $bucket, $filename, $fh );
+	return $self->{default}->store( $fileobj, $fh );
 }
 
-=item $filehandle = $store->retrieve( $dataobj, $bucket, $filename [, $revision ] )
+=item $filehandle = $store->retrieve( $fileobj [, $revision ] )
 
-Retrieve a $filehandle to the object stored at $filename. If no $revision is specified returns the latest revision.
+Retrieve a $filehandle to the object stored for $fileobj. If no $revision is specified returns the revision in $fileobj.
 
 =cut
 
 sub retrieve
 {
-	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->retrieve( $dataobj, $bucket, $filename, $revision );
+	return $self->{default}->retrieve( $fileobj, $revision );
 }
 
-=item $success = $store->delete( $dataobj, $bucket, $filename [, $revision ] )
+=item $success = $store->delete( $fileobj [, $revision ] )
 
-Delete the object stored at $filename. If no $revision is specified deletes the latest revision.
+Delete the object stored for $fileobj. If no $revision is specified deletes the revision in $fileobj.
 
 =cut
 
 sub delete
 {
-	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->delete( $dataobj, $bucket, $filename, $revision );
+	return $self->{default}->delete( $fileobj, $revision );
 }
 
-=item $size = $store->get_size( $dataobj, $bucket, $filename [, $revision ] )
+=item $size = $store->get_size( $fileobj [, $revision ] )
 
-Return the $size (in bytes) of the object stored at $filename. If no $revision is specified returns the size of the latest revision.
+Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.
 
 =cut
 
 sub get_size
 {
-	my( $self, $dataobj, $bucket, $filename, $revision ) = @_;
+	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->get_size( $dataobj, $bucket, $filename, $revision );
+	return $self->{default}->get_size( $fileobj, $revision );
 }
 
-=item @revisions = $store->get_revisions( $dataobj, $bucket, $filename )
+=item @revisions = $store->get_revisions( $fileobj )
 
-Return a list of revision numbers for $filename, in order from oldest to latest.
+Return a list of available revision numbers for $fileobj, in order from latest to oldest.
 
 =cut
 
 sub get_revisions
 {
-	my( $dataobj, $bucket, $filename ) = @_;
+	my( $self, $fileobj ) = @_;
 
-	return $self->{default}->get_revisions( $dataobj, $bucket, $filename );
-}
-
-=item $session = $store->get_session
-
-Returns the current session.
-
-=cut
-
-sub get_session
-{
-	$_[0]->{session};
+	return $self->{default}->get_revisions( $fileobj );
 }
 
 =back
