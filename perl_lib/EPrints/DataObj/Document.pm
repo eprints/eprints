@@ -817,12 +817,12 @@ sub set_format_desc
 ######################################################################
 =pod
 
-=item $success = $doc->upload( $filehandle, $filename, [$preserve_path] )
+=item $success = $doc->upload( $filehandle, $filename [, $preserve_path [, $filesize ] ] )
 
 Upload the contents of the given file handle into this document as
 the given filename.
 
-if $preserve_path then make any subdirectories needed, otherwise place
+If $preserve_path then make any subdirectories needed, otherwise place
 this in the top level.
 
 =cut
@@ -830,7 +830,7 @@ this in the top level.
 
 sub upload
 {
-	my( $self, $filehandle, $filename, $preserve_path ) = @_;
+	my( $self, $filehandle, $filename, $preserve_path, $filesize ) = @_;
 
 	my $rc = 1;
 
@@ -875,29 +875,15 @@ sub upload
 	my $stored = $self->add_stored_file(
 		"data", # bucket
 		$filename,
-		$filehandle
+		$filehandle,
+		$filesize
 	);
 
 	$rc = defined($stored);
 
 	if( $rc )
 	{
-		if( !EPrints::Utils::is_set( $stored->get_value( "mime_type" ) ) )
-		{
-			my $type = $self->get_session->get_repository->call( "guess_doc_type", $self->get_session, $filename );
-			if( $type ne "other" )
-			{
-				$stored->set_value( "mime_type", $type );
-			}
-		}
-		if( !EPrints::Utils::is_set( $stored->get_value( "hash" ) ) )
-		{
-			my $md5 = $stored->generate_md5;
-			$stored->set_value( "hash", $md5 );
-			$stored->set_value( "hash_type", "MD5" );
-		}
-
-		$stored->commit;
+		$stored->update_md5();
 	}
 
 	$rc &&= $self->files_modified;
@@ -924,9 +910,9 @@ sub add_file
 	my( $self, $file, $filename, $preserve_path ) = @_;
 
 	my $fh;
-	open( $fh, $file ) or return( 0 );
+	open( $fh, "<", $file ) or return( 0 );
 	binmode( $fh );
-	my $rc = $self->upload( $fh, $filename, $preserve_path );
+	my $rc = $self->upload( $fh, $filename, $preserve_path, -s $file );
 	close $fh;
 
 	return $rc;
@@ -1343,29 +1329,20 @@ sub rehash
 {
 	my( $self ) = @_;
 
-	my %f = $self->files;
-	my @filelist = ();
-	foreach my $file ( keys %f )
-	{
-		push @filelist, $self->local_path."/".$file;
-	}
+	my @files = $self->get_stored_files();
 
-	my $eprint = $self->get_eprint;
-	unless( defined $eprint )
-	{
-		$self->{session}->get_repository->log(
-"rehash: skipped document with no associated eprint (".$self->get_id.")." );
-		return;
-	}
-
-	my $hashfile = $self->get_eprint->local_path."/".
-		$self->get_value( "docid" ).".".
+	my $tmpfile = File::Temp->new;
+	my $hashfile = $self->get_value( "docid" ).".".
 		EPrints::Platform::get_hash_name();
 
-	EPrints::Probity::create_log( 
+	EPrints::Probity::create_log_fh( 
 		$self->{session}, 
-		\@filelist,
-		$hashfile );
+		\@files,
+		$tmpfile );
+
+	seek($tmpfile, 0, 0);
+
+	$self->add_stored_file( "probity", $hashfile, $tmpfile, -s "$tmpfile" );
 }
 
 ######################################################################

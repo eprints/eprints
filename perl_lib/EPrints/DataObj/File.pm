@@ -237,6 +237,15 @@ sub get_defaults
 
 	$data->{rev_number} = 1;
 
+	if( defined( $data->{filename} ) )
+	{
+		my $type = $session->get_repository->call( "guess_doc_type", $session, $data->{filename} );
+		if( $type ne "other" )
+		{
+			$data->{mime_type} = $type;
+		}
+	}
+
 	return $data;
 }
 
@@ -409,6 +418,18 @@ sub generate_md5
 	$md5->addfile( $self->get_fh );
 
 	return $md5->hexdigest;
+}
+
+sub update_md5
+{
+	my( $self ) = @_;
+
+	my $md5 = $self->generate_md5;
+
+	$self->set_value( "hash", $md5 );
+	$self->set_value( "hash_type", "MD5" );
+
+	$self->commit();
 }
 
 1;

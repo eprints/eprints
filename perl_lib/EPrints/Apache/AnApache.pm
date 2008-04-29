@@ -272,9 +272,13 @@ sub upload_doc_file
 
 	my $cgi = $session->get_query;
 
+	my $filesize = $session->get_request->headers_in->{'Content-Length'};
+
 	return $document->upload( 
 		$cgi->upload( $paramid ), 
-		$cgi->param( $paramid ) );	
+		$cgi->param( $paramid ),
+		0, # preserve_path
+		$filesize );	
 }
 
 sub upload_doc_archive

@@ -115,6 +115,11 @@ sub _filename
 		$filename =~ s/^eprint/$revision/;
 		$in_file = "$local_path/$filename";
 	}
+	elsif( $bucket eq "probity" )
+	{
+		$local_path =~ s/\/\d+$//;
+		$in_file = "$local_path/$filename";
+	}
 	else
 	{
 		EPrints::abort("Unrecognised storage bucket '$bucket'");
