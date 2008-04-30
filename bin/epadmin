@@ -18,6 +18,62 @@ B<epadmin> - EPrints repository admin tool
 
 =head1 SYNOPSIS
 
+B<epadmin> I<command> I<repository_id> [B<options>]
+
+Where I<command> is one of:
+
+=over 4
+
+=item config_core
+
+=item config_db
+
+=item create
+
+=item create_db
+
+=item create_tables
+
+=item create_user
+
+=item erase_data
+
+=item erase_eprints
+
+=item erase_fulltext_index
+
+=item help
+
+=item recommit
+
+=item recorder
+
+=item redo_thumbnails
+
+=item refresh_abstracts
+
+=item refresh_views
+
+=item rehash
+
+=item reindex
+
+=item reload
+
+=item schema
+
+=item test
+
+=item update_database_structure
+
+=item upgrade
+
+=back
+
+Type I<epadmin help> for further help.
+
+=head1 ARGUMENTS
+
 =over 8
 
 =item B<epadmin> create
@@ -50,7 +106,7 @@ Create a new user. You need to do this to create your first admin account.
 
 =item B<epadmin> schema I<repository_id>
 
-Use this to produce a schema for the EP3 XML read/writen by your repository. 
+Use this to produce a schema for the EP3 XML read/written by your repository. 
 
 =item B<epadmin> erase_fulltext_index I<repository_id>
 
@@ -1586,6 +1642,8 @@ sub schema
 
 	print $plugin->byte_order_mark;
 	$plugin->output_list( list=>$list, fh=>*STDOUT );
+
+	undef $list;
 
 	$session->terminate;
 }

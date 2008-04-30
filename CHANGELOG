@@ -7422,3 +7422,8 @@ EPRINTS-3.1-beta-2
 2008-04-29 cjg
  * Added "schema" option to epadmin
  * Added XML::tidy to schema exporter
+
+2008-04-30 tdb
+ * Output a short list of commands with no arguments to epadmin
+ * Clean up the list object in epadmin schema
+
