@@ -139,7 +139,19 @@ sub _filename
 	}
 	else
 	{
-		EPrints::abort("Unrecognised storage bucket '$bucket'");
+		if( $parent->isa( "EPrints::DataObj::Document" ) )
+		{
+			$local_path =~ s/(\/\d+)$/\/$bucket$1/;
+		}
+		else
+		{
+			$local_path .= "/$bucket";
+		}
+		unless( $filename =~ s/(\.\w+)$/v$revision$1/ )
+		{
+			$filename .= "v$revision";
+		}
+		$in_file = "$local_path/$filename";
 	}
 
 	return( $local_path, $in_file );
