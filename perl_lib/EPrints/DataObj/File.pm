@@ -291,6 +291,21 @@ sub remove
 	}
 }
 
+=item $filename = $file->get_local_copy( [ $revision ] )
+
+Return the name of a local copy of the file (may be a L<File::Temp> object).
+
+Will retrieve and cache the remote object if necessary.
+
+=cut
+
+sub get_local_copy
+{
+	my( $self, $revision ) = @_;
+
+	return $self->get_session->get_storage->get_local_copy( $self, $revision );
+}
+
 =item $fh = $stored->get_fh( [ $revision ] )
 
 Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).

@@ -49,7 +49,10 @@ sub store
 	my $buffer;
 	while(sysread($fh,$buffer,4096))
 	{
-		print $out_fh $buffer;
+		unless( syswrite($out_fh,$buffer) )
+		{
+			EPrints::abort( "Error writing to $out_file: $!" );
+		}
 	}
 
 	close($out_fh);
@@ -78,6 +81,15 @@ sub delete
 	return unlink($in_file);
 }
 
+sub get_local_copy
+{
+	my( $self, $fileobj, $revision ) = @_;
+
+	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
+
+	return $in_file;
+}
+
 sub get_size
 {
 	my( $self, $fileobj, $revision ) = @_;
@@ -91,8 +103,8 @@ sub _filename
 {
 	my( $self, $fileobj, $revision ) = @_;
 
-	my $doc = $fileobj->get_parent();
-	my $local_path = $doc->local_path;
+	my $parent = $fileobj->get_parent();
+	my $local_path = $parent->local_path;
 
 	$revision ||= $fileobj->get_value( "rev_number" );
 	my $bucket = $fileobj->get_value( "bucket" );
@@ -119,6 +131,11 @@ sub _filename
 	{
 		$local_path =~ s/\/\d+$//;
 		$in_file = "$local_path/$filename";
+	}
+	elsif( $bucket eq "cache" )
+	{
+		$local_path =~ s/\/\d+$//;
+		$in_file = "$local_path/".$parent->get_id.".$filename";
 	}
 	else
 	{

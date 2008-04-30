@@ -75,15 +75,15 @@ sub handler
 	}
 
 	# Now get the file object itself
-	$dataobj = $dataobj->get_stored_files( $bucket, $filename );
+	my $fileobj = $dataobj->get_stored_files( $bucket, $filename );
 
-	if( !defined( $dataobj ) )
+	if( !defined( $fileobj ) )
 	{
 		return 404;
 	}
 
-	my $content_type = $dataobj->get_value( "mime_type" );
-	my $content_length = $dataobj->get_value( "filesize" );
+	my $content_type = $fileobj->get_value( "mime_type" );
+	my $content_length = $fileobj->get_value( "filesize" );
 
 	EPrints::Apache::AnApache::header_out( 
 		$r,
@@ -94,20 +94,7 @@ sub handler
 		content_type => $content_type,
 	);
 
-	my $fh = $dataobj->get_fh();
-	# byte semantics are much faster
-	{
-		use bytes;
-		binmode($fh);
-		binmode(STDOUT);
-		my $buffer;
-		while(sysread($fh,$buffer,4096))
-		{
-			print $buffer;
-		}
-	}
-
-	close($fh);
+	$fileobj->write_copy_fh( \*STDOUT );
 
 	$session->terminate;
 

@@ -69,16 +69,15 @@ sub export
 	
 	my $repository = $plugin->get_repository();
 
-	my %files = $doc->files;
 	my @txt_files;
-	foreach my $filename ( keys %files )
+	foreach my $file ( $doc->get_stored_files( "data" ) )
 	{
+		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
 		$tgt=~s/\.doc$/\.pdf/;
-		my $infile = EPrints::Utils::join_path( $doc->local_path, $filename );
+		my $infile = $file->get_local_copy();
 		my $outfile = EPrints::Utils::join_path( $dir, $tgt );
 		$repository->exec( "antiwordpdf",
-			SOURCE_DIR => $doc->local_path,
 			SOURCE => $infile,
 			TARGET_DIR => $dir,
 			TARGET => $outfile,

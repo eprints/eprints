@@ -67,27 +67,18 @@ sub get_index_codes_basic
 	}
 	my $doc = EPrints::DataObj::Document->new( $session, $value );
 
-	my $eprint =  $doc->get_eprint;
-	return( [], [], [] ) unless( defined $eprint );
+	my $main_file = $doc->get_stored_files( "data", $doc->get_main );
+	return( [], [], [] ) unless $main_file;
 
-	my $words_file = $doc->words_file;
-	my $indexcodes_file = $doc->indexcodes_file;
-	my @s1 = stat( $words_file );
-	my @s2 = stat( $indexcodes_file );
-    	if( defined $s1[9] && defined $s2[9] && $s2[9] > $s1[9] )
+	my $indexcodes_file = $doc->get_stored_files( "cache", "indexcodes" );
+   	if( defined $indexcodes_file &&
+		$indexcodes_file->get_mtime gt $main_file->get_mtime )
 	{
-		my $codes = [];
-		unless( open( CODELOG, $indexcodes_file ) )
-		{
-			$session->get_repository->log( "Failed to open $indexcodes_file: $!" );
-		}
-		else
-		{
-			@$codes = <CODELOG>;
-			s/\015?\012?$//s for @$codes;
-			close CODELOG;
-		}
-		return( $codes, [], [] );
+		my $fh = $indexcodes_file->get_fh;
+		my @codes = <$fh>;
+		s/\015?\012?$//s for @codes;
+		close $fh;
+		return( \@codes, [], [] );
 	}
 
 	$value = $doc->get_text;
@@ -97,16 +88,13 @@ sub get_index_codes_basic
 		( $codes, $badwords ) = EPrints::MetaField::Text::_extract_words( $session, $value );
 	}
 	
-	unless( open( CODELOG, ">".$indexcodes_file ) )
 	{
-		$session->get_repository->log( "Failed to write to $indexcodes_file: $!" );
+		my $tmpfile = File::Temp->new;
+		print $tmpfile "$_\n" for @$codes;
+		seek($tmpfile,0,0);
+		$doc->add_stored_file( "cache", "indexcodes", $tmpfile, -s "$tmpfile" );
 	}
-	else
-	{
-		print CODELOG join( "\n", @$codes );
-		close CODELOG;
-	}
-		
+
 	# does not return badwords
 	return( $codes, [], [] );
 }

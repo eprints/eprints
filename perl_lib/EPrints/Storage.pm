@@ -127,6 +127,21 @@ sub delete
 	return $self->{default}->delete( $fileobj, $revision );
 }
 
+=item $filename = $store->get_local_copy( $fileobj [, $revision ] )
+
+Return the name of a local copy of the file (may be a L<File::Temp> object).
+
+Will retrieve and cache the remote object if necessary.
+
+=cut
+
+sub get_local_copy
+{
+	my( $self, $fileobj, $revision ) = @_;
+
+	return $self->{default}->get_local_copy( $fileobj, $revision );
+}
+
 =item $size = $store->get_size( $fileobj [, $revision ] )
 
 Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.

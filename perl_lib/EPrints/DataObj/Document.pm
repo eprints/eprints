@@ -1648,7 +1648,7 @@ sub make_thumbnails
 
 		next if !defined $plugin;
 
-		my $tmpdir = EPrints::TempDir->new;
+		my $tmpdir = EPrints::TempDir->new( UNLINK => 1 );
 		my $tgt_filepath = "$tmpdir/$tgt_filename";
 	
 		# make a thumbnail

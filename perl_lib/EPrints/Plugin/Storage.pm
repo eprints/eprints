@@ -57,6 +57,37 @@ Delete the object stored for $fileobj. If no $revision is specified deletes the 
 
 =cut
 
+=item $filename = $store->get_local_copy( $fileobj [, $revision ] )
+
+Return the name of a local copy of the file (may be a L<File::Temp> object).
+
+Will retrieve and cache the remote object if necessary.
+
+=cut
+
+sub get_local_copy
+{
+	my( $self, $fileobj, $revision ) = @_;
+
+	my $file = File::Temp->new;
+	my $fh = $self->retrieve( $fileobj, $revision ) or return;
+
+	binmode($file);
+	binmode($fh);
+
+	my $buffer;
+	while(sysread($fh,$buffer,4096))
+	{
+		syswrite($file,$buffer);
+	}
+
+	close($fh);
+
+	seek($file,0,0);
+
+	return $file;
+}
+
 =item $size = $store->get_size( $fileobj [, $revision ] )
 
 Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.

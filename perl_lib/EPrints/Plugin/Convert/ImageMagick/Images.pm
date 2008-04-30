@@ -97,6 +97,7 @@ sub export
 	# Call imagemagick to do the conversion
 	my $cmd = sprintf("%s - %s", quotemeta($convert), quotemeta("$dir/$fn"));
 	open( my $out, "|$cmd" ) or return;
+	binmode($out);
 
 	$src->write_copy_fh( $out );
 
