@@ -33,6 +33,8 @@ package EPrints::DataObj::SubObject;
 
 @ISA = qw( EPrints::DataObj );
 
+use strict;
+
 =item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to set the parent object, if defined.
@@ -84,7 +86,7 @@ sub get_parent
 
 	my $ds = $session->get_repository->get_dataset( $datasetid );
 
-	$parent = $ds->get_object( $session, $objectid );
+	my $parent = $ds->get_object( $session, $objectid );
 	$self->set_parent( $parent );
 
 	return $parent;
