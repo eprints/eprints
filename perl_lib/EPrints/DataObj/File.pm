@@ -19,7 +19,11 @@ B<EPrints::DataObj::File> - a stored file
 
 =head1 DESCRIPTION
 
-Files have revisions but work slightly differently to other objects. A File is only revised when it's contained object data is changed, otherwise revision numbers would get out of sync.
+This class contains the technical metadata associated with a file. A file is a sequence of bytes stored in the storage layer (a "stored object"). Utility methods for storing and retrieving the stored object from the storage layer are made available.
+
+Revision numbers on File work slightly differently to other objects. A File is only revised when it's stored object is changed and not when changes to it's metadata are made.
+
+This class is a subclass of L<EPrints::DataObj::SubObject>.
 
 =head1 CORE FIELDS
 
@@ -27,27 +31,27 @@ Files have revisions but work slightly differently to other objects. A File is o
 
 =item fileid
 
-UID for this filename.
+Unique identifier for this file.
 
 =item rev_number (int)
 
-The number of the current revision of this record.
+The number of the current revision of this file.
 
 =item datasetid
 
-Dataset the file belongs to.
+Id of the dataset of the parent object.
 
 =item objectid
 
-Object the file belongs to.
+Id of the parent object.
 
 =item bucket
 
-Bucket the file belongs to.
+Name of the bucket the file is in.
 
 =item filename
 
-Name of the file.
+Name of the file (may contain directory separators).
 
 =item mime_type
 
@@ -59,7 +63,7 @@ Check sum of the file.
 
 =item hash_type
 
-Type of check sum used (e.g. "MD5").
+Name of check sum algorithm used (e.g. "MD5").
 
 =item filesize
 
