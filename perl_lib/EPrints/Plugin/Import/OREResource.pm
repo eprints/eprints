@@ -1,5 +1,7 @@
 package EPrints::Plugin::Import::OREResource;
 
+use MIME::Types;
+
 use strict;
 
 our $RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -222,15 +224,23 @@ sub xml_to_dataobj
 	while(my( $uri, $format ) = each %resources)
 	{
 		next unless $aggregates{$uri};
+		my $cnt_file = File::Temp->new();
+		my $r = EPrints::Utils::wget($session,$uri,$cnt_file);
+		next unless $r->is_success;
+		my $content_type = $r->header( "Content-Type" ) or next;
+		($content_type) = split /;/, $content_type;
+		my $mime_type = MIME::Types->new->type( $content_type ) or next;
 		my $doc = EPrints::DataObj::Document->create_from_data(
 			$session,
 			{
 				eprintid => $eprint->get_id,
-				format => $format,
+				format => $content_type,
 			},
 			$session->get_repository->get_dataset( "document" )
 		);
-		$doc->upload_url( $uri );
+
+		my( $ext ) = $mime_type->extensions;
+		$doc->upload( $cnt_file, "main.$ext" );
 	}
 
 	$plugin->handler->object( $dataset, $eprint );
