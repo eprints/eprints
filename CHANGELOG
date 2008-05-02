@@ -7427,3 +7427,6 @@ EPRINTS-3.1-beta-2
  * Output a short list of commands with no arguments to epadmin
  * Clean up the list object in epadmin schema
 
+2008-05-02 tdb
+ * Added Import plugin for ORE resource maps
+
