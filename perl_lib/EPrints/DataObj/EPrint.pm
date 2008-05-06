@@ -1225,25 +1225,9 @@ sub get_all_documents
 {
 	my( $self ) = @_;
 
-	my $doc_ds = $self->{session}->get_repository->get_dataset( "document" );
+	my $docs = $self->get_value( "documents" );
 
-	my $searchexp = EPrints::Search->new(
-		session=>$self->{session},
-		dataset=>$doc_ds );
-
-	$searchexp->add_field(
-		$doc_ds->get_field( "eprintid" ),
-		$self->get_value( "eprintid" ) );
-
-	my $searchid = $searchexp->perform_search;
-	my @documents = $searchexp->get_records;
-	$searchexp->dispose;
-	foreach my $doc ( @documents )
-	{
-		$doc->register_parent( $self );
-	}
-
-	return( @documents );
+	return @$docs;
 }
 
 

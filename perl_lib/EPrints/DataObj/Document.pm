@@ -126,7 +126,7 @@ sub get_system_field_info
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0 },
 
-		{ name=>"files", type=>"file", multiple=>1 },
+		{ name=>"files", type=>"subobject", datasetid=>"file", multiple=>1 },
 
 		{ name=>"eprintid", type=>"itemref",
 			datasetid=>"eprint", required=>1, show_in_html=>0 },
