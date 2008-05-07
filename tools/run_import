@@ -1,0 +1,205 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2008 University of Southampton. All Rights Reserved.
+#
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<run_import> - (Re-)run an existing import
+
+=head1 SYNOPSIS
+
+B<run_import> I<repository_id> I<importid> [B<options>] 
+
+=head1 DESCRIPTION
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the eprint repository to use.
+
+=item B<importid> 
+
+The import id to run.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=item B<--list>
+
+List existing registered imports.
+
+=item B<--baseurl>
+
+Add a related link based on the given URL appended with the source identifier.
+
+=item B<--user USERID/USERNAME> 
+
+For eprint datasets only. (not user or subject). 
+
+Sets the userid/username of the user in the system who will own the imported records.
+
+Usually required for importing EPrint records. This may not be required if the import format contains the userid value, eg. an import in the EPrints 3 XML format.
+
+If this is an integer then it is assumed to be the userid of the user, otherwise it is assumed to be the username.
+
+You may wish to create one or more "bulk import" users and make imported eprint records belong to them.
+
+=back   
+
+=cut
+
+use EPrints;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $list = 0;
+my $baseurl = 0;
+my $user = undef;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet,
+	'list' => \$list,
+	'baseurl=s' => \$baseurl,
+	'user=s' => \$user,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "run_import" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+#pod2usage( 2 ) if( scalar @ARGV != 2 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $session );
+
+if( $list )
+{
+	my $dataset = $session->get_repository->get_dataset( "import" );
+	if( $dataset->count( $session ) == 0 )
+	{
+		print "No imports defined\n";
+	}
+	else
+	{
+		print "Available imports:\n";
+	}
+	$dataset->map($session, sub {
+		my( $session, $dataset, $import ) = @_;
+
+		print EPrints::Utils::tree_to_utf8( $import->render_citation( "default" )), "\n";
+	});
+	$session->terminate();
+	exit(0);
+}
+
+my $importid = $ARGV[1] or pod2usage( 2 );
+
+my $import = $session->get_repository->get_dataset( "import" )->get_object( $session, $importid );
+
+if( !$import )
+{
+	die "Import id not found, use --list to list available import ids\n";
+}
+
+my $userobj;
+if( defined $user )
+{
+	if( $user =~ m/^\d+/ )
+	{
+		$userobj = EPrints::DataObj::User->new( $session, $user );
+	}
+	else
+	{
+		$userobj = EPrints::DataObj::User::user_with_username( $session, $user );
+	}
+	if( !defined $userobj )
+	{
+		print STDERR "Can't find user with userid/username [$user]\n";
+		exit 1;
+	}
+}
+
+$list = $import->run;
+
+$list->map(sub {
+	my( $session, $dataset, $eprint ) = @_;
+
+	if( defined($baseurl) )
+	{
+		my $uri = $baseurl . $eprint->get_value( "source" );
+		my $relations = $eprint->get_value( "relation" ) || [];
+		push @$relations, {
+			type => "http://purl.org/dc/terms/isVersionOf",
+			uri => $uri,
+		};
+		$eprint->set_value( "relation", $relations );
+	}
+
+	if( defined($userobj) )
+	{
+		$eprint->set_value( "userid", $userobj->get_id );
+	}
+
+	$eprint->commit();
+
+	print $eprint->get_id() . "\n";
+});
+
+undef $list;
+
+$session->terminate();
+exit;
+
+
