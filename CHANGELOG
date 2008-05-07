@@ -7430,3 +7430,6 @@ EPRINTS-3.1-beta-2
 2008-05-02 tdb
  * Added Import plugin for ORE resource maps
 
+2008-05-07 tdb
+ * Export Subjects in the same format as plain text
+
