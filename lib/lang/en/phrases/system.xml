@@ -163,6 +163,7 @@ EPrints Modules
     <epp:phrase id="lib/metafield/secret:show_value">[hidden]</epp:phrase>
 
 <!-- File -->
+	<epp:phrase id="file_fieldname_fileid">Unique file id</epp:phrase>
 	<epp:phrase id="file_fieldname_datasetid">Object dataset id</epp:phrase>
 	<epp:phrase id="file_fieldname_objectid">Object id</epp:phrase>
 	<epp:phrase id="file_fieldname_bucket">File bucket</epp:phrase>

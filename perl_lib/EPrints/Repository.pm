@@ -159,6 +159,7 @@ sub new
 	unless( $noxml )
 	{
 		$self->generate_dtd() || return;
+		$self->_load_storage() || return;
 		$self->_load_workflows() || return;
 		$self->_load_namedsets() || return;
 		$self->_load_datasets() || return;
@@ -272,6 +273,34 @@ sub _add_http_paths
 
 }
  
+sub _load_storage
+{
+	my( $self ) = @_;
+
+	$self->{storage} = {};
+
+	EPrints::Storage::load_all( 
+		$self->get_conf( "lib_path" )."/storage",
+		$self->{storage} );
+
+	EPrints::Storage::load_all( 
+		$self->get_conf( "config_path" )."/storage",
+		$self->{storage} );
+
+	return 1;
+}
+
+sub get_storage_config
+{
+	my( $self, $storageid ) = @_;
+
+	my $r = EPrints::Storage::get_storage_config( 
+		$storageid,
+		$self->{storage} );
+
+	return $r;
+}
+
 ######################################################################
 #=pod
 #

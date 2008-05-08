@@ -65,6 +65,8 @@ package EPrints::Storage;
 use URI;
 use URI::Escape;
 
+use strict;
+
 sub new
 {
 	my( $class, $session ) = @_;
@@ -72,18 +74,53 @@ sub new
 	my $self = bless {}, $class;
 	Scalar::Util::weaken( $self->{session} = $session );
 
-	my @plugins = $session->plugin_list( type => "Storage" );
+	$self->{config} = $session->get_repository->get_storage_config( "default" );
 
-	unless( @plugins )
+	unless( $self->{config} )
 	{
-		EPrints::abort( "No storage plugins available for use" );
+		EPrints::abort "No storage configuration available for use";
 	}
 
-	my $plugin = $session->plugin( $plugins[0] );
-
-	$self->{default} = $plugin;
-
 	return $self;
+}
+
+sub load_all
+{
+	my( $path, $confhash ) = @_;
+
+	my $file = "$path/default.xml";
+
+	load_config_file( $file, $confhash );
+}
+
+sub load_config_file
+{
+	my( $file, $confhash ) = @_;
+
+	return unless -e $file;
+
+	my $doc = EPrints::XML::parse_xml( $file );
+	$confhash->{"default"}->{storage} = $doc->documentElement();
+	$confhash->{"default"}->{file} = $file;
+	$confhash->{"default"}->{mtime} = EPrints::Utils::mtime( $file );
+
+	return 1;
+}
+
+sub get_storage_config
+{
+	my( $id, $confhash ) = @_;
+
+	my $file = $confhash->{$id}->{file};
+
+	my $mtime = EPrints::Utils::mtime( $file );
+
+	if( $mtime > $confhash->{$id}->{mtime} )
+	{
+		load_config_file( $file, $confhash );
+	}
+
+	return $confhash->{$id}->{storage};
 }
 
 =item $success = $store->store( $fileobj, $filehandle )
@@ -98,7 +135,15 @@ sub store
 {
 	my( $self, $fileobj, $fh ) = @_;
 
-	return $self->{default}->store( $fileobj, $fh );
+	my $rc;
+
+	foreach my $plugin ($self->get_plugins( $fileobj, $fh ))
+	{
+		$rc = $plugin->store( $fileobj, $fh );
+		last if $rc;
+	}
+
+	return $rc;
 }
 
 =item $filehandle = $store->retrieve( $fileobj [, $revision ] )
@@ -111,7 +156,15 @@ sub retrieve
 {
 	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->retrieve( $fileobj, $revision );
+	my $fh;
+
+	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	{
+		$fh = $plugin->retrieve( $fileobj, $revision );
+		last if defined $fh;
+	}
+
+	return $fh;
 }
 
 =item $success = $store->delete( $fileobj [, $revision ] )
@@ -124,7 +177,15 @@ sub delete
 {
 	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->delete( $fileobj, $revision );
+	my $rc;
+
+	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	{
+		$rc = $plugin->delete( $fileobj, $revision );
+		last if $rc;
+	}
+
+	return $rc;
 }
 
 =item $filename = $store->get_local_copy( $fileobj [, $revision ] )
@@ -139,7 +200,15 @@ sub get_local_copy
 {
 	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->get_local_copy( $fileobj, $revision );
+	my $filename;
+
+	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	{
+		$filename = $plugin->get_local_copy( $fileobj, $revision );
+		last if defined $filename;
+	}
+
+	return $filename;
 }
 
 =item $size = $store->get_size( $fileobj [, $revision ] )
@@ -152,7 +221,15 @@ sub get_size
 {
 	my( $self, $fileobj, $revision ) = @_;
 
-	return $self->{default}->get_size( $fileobj, $revision );
+	my $filesize;
+
+	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	{
+		$filesize = $plugin->get_local_copy( $fileobj, $revision );
+		last if defined $filesize;
+	}
+
+	return $filesize;
 }
 
 =item @revisions = $store->get_revisions( $fileobj )
@@ -165,7 +242,47 @@ sub get_revisions
 {
 	my( $self, $fileobj ) = @_;
 
-	return $self->{default}->get_revisions( $fileobj );
+	my @revisions;
+
+	foreach my $plugin ($self->get_plugins( $fileobj ))
+	{
+		@revisions = $plugin->get_local_copy( $fileobj );
+		last if scalar(@revisions);
+	}
+
+	return @revisions;
+}
+
+=item @plugins = $store->get_plugins( $fileobj [, $revision ] )
+
+Returns the L<EPrints::Plugin::Storage> plugin(s) to use for $fileobj. If more than one plugin is returned they should be used in turn until one succeeds.
+
+=cut
+
+sub get_plugins
+{
+	my( $self, $fileobj, $revision ) = @_;
+
+	my @plugins;
+
+	my $session = $self->{session};
+
+	my %params;
+	$params{item} = $fileobj;
+	$params{current_user} = $session->current_user;
+	$params{session} = $session;
+
+	my $_plugins = EPrints::XML::EPC::process( $self->{config}, %params );
+
+	foreach my $child ($_plugins->childNodes)
+	{
+		next unless( $child->nodeName eq "plugin" );
+		my $pluginid = $child->getAttribute( "name" );
+		my $plugin = $session->plugin( "Storage::$pluginid" );
+		push @plugins, $plugin if defined $plugin;
+	}
+
+	return @plugins;
 }
 
 =back
