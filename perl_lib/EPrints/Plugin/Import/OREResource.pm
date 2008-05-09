@@ -1,7 +1,5 @@
 package EPrints::Plugin::Import::OREResource;
 
-use MIME::Types;
-
 use strict;
 
 our $RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -23,6 +21,13 @@ sub new
 	$self->{name} = "OAI-ORE Resource";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
+
+	my $rc = EPrints::Utils::require_if_exists("MIME::Types");
+	unless( $rc ) 
+	{
+		$self->{visible} = "";
+		$self->{error} = "Failed to load required module MIME::Types";
+	}
 
 	return $self;
 }

@@ -7435,3 +7435,6 @@ EPRINTS-3.1-beta-2
  * Added admin tool to check the subject tree for orphaned elements or circular
     references
 
+2008-05-09 tdb
+ * OREResource tests for MIME::Types
+
