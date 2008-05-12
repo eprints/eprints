@@ -595,7 +595,7 @@ sub create_dataset_ordervalues_tables
 		push @orderfields, EPrints::MetaField->new( 
 					repository=> $self->{session}->get_repository,
 					name => $fname,
-					type => "text" );
+					type => "longtext" );
 	}
 	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
 	{
