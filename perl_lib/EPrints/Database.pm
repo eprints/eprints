@@ -993,7 +993,7 @@ sub create_unique_index
 
 =item  $success = $db->_update( $tablename, $keycols, $keyvals, $columns, @values )
 
-UDATES $tablename where $keycols equals $keyvals.
+UPDATES $tablename where $keycols equals $keyvals.
 
 This method is internal.
 
@@ -1047,9 +1047,9 @@ sub _update
 ######################################################################
 =pod
 
-=item  $success = $db->_update_quoted( $tablename, $keycols, $keyvals, $columns, @values )
+=item  $success = $db->_update_quoted( $tablename, $keycols, $keyvals, $columns, @qvalues )
 
-UDATES $tablename where $keycols equals $keyvals. Won't quote @keyvals or @values before use - use this method with care!
+UPDATES $tablename where $keycols equals $keyvals. Won't quote $keyvals or @qvalues before use - use this method with care!
 
 This method is internal.
 
@@ -1136,10 +1136,10 @@ sub insert
 ######################################################################
 =pod
 
-=item $success = $db->insert_quoted( $table, $columns, @values )
+=item $success = $db->insert_quoted( $table, $columns, @qvalues )
 
 Inserts values into the table $table. If $columns is defined it will be used as
-a list of columns to insert into. @values is a list of arrays containing values
+a list of columns to insert into. @qvalues is a list of arrays containing values
 to insert.
 
 Values will NOT be quoted before insertion - care must be exercised!
@@ -1301,7 +1301,7 @@ sub prep_like_value
 ######################################################################
 =pod
 
-=item $str = EPrints::Database::quote_value( $value )
+=item $str = $db->quote_value( $value )
 
 Return a quoted value. To quote a 'like' value you should do:
 
@@ -1320,7 +1320,7 @@ sub quote_value
 ######################################################################
 =pod
 
-=item $str = EPrints::Database::quote_int( $value )
+=item $str = $db->quote_int( $value )
 
 Return a quoted integer value
 
@@ -1339,7 +1339,7 @@ sub quote_int
 ######################################################################
 =pod
 
-=item $str = EPrints::Database::quote_identifier( @parts )
+=item $str = $db->quote_identifier( @parts )
 
 Quote a database identifier (e.g. table names). Multiple @parts will be joined
 by dot.
@@ -1975,8 +1975,7 @@ sub cache_userid
 ######################################################################
 =pod
 
-=item $cacheid = $db->cache( $searchexp, $dataset, $srctable, 
-[$order], [$list] )
+=item $cacheid = $db->cache( $searchexp, $dataset, $srctable, [$order], [$list] )
 
 Create a cache of the specified search expression from the SQL table
 $srctable.
@@ -3563,7 +3562,7 @@ sub set_version
 
 =item $boolean = $db->has_table( $tablename )
 
-Return true if the a table of the given name exists in the database.
+Return true if a table of the given name exists in the database.
 
 =cut
 ######################################################################
