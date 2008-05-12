@@ -75,7 +75,20 @@ sub handler
 	}
 
 	# Now get the file object itself
-	my $fileobj = $dataobj->get_stored_files( $bucket, $filename );
+	my $fileobj;
+	
+	if( $datasetid eq "document" && $bucket eq "data" )
+	{
+		$fileobj = $dataobj->get_stored_files( "deliverable", $filename );
+		if( !defined( $fileobj ) )
+		{
+			$fileobj = $dataobj->get_stored_files( $bucket, $filename );
+		}
+	}
+	else
+	{
+		$fileobj = $dataobj->get_stored_files( $bucket, $filename );
+	}
 
 	if( !defined( $fileobj ) )
 	{
