@@ -7443,3 +7443,6 @@ EPRINTS-3.1-beta-2
  * Check current_user exists before accessing it in Subject plugin
  * UTF8 => utf-8 in email charset, fixing #3370
 
+2008-05-12 dct05r
+ * ORE Resource Map Export Plugin
+
