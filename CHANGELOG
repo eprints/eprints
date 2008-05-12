@@ -7441,4 +7441,5 @@ EPRINTS-3.1-beta-2
 2008-05-12 tdb
  * Changed ordervalues columns to LONGTEXT from TEXT, fixing #3369
  * Check current_user exists before accessing it in Subject plugin
+ * UTF8 => utf-8 in email charset, fixing #3370
 

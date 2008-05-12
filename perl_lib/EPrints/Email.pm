@@ -262,14 +262,14 @@ sub build_email
 		Type  => "TEXT",
 		Data  => $data
 	);
-	$text->attr('content-type.charset' => 'UTF8');
+	$text->attr('content-type.charset' => 'utf-8');
 	$text->attr("Content-disposition" => "");
 	$mimemsg->attach( $text );
 	my $html = MIME::Lite->new( 
 		Type  => "text/html",
 		Data  => EPrints::XML::to_string($xml_mail, undef, 1),
 	);
-	$html->attr('content-type.charset' => 'UTF8');
+	$html->attr('content-type.charset' => 'utf-8');
 	$html->attr("Content-disposition" => "");
 	$mimemsg->attach( $html );
 
