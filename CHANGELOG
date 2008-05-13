@@ -7446,3 +7446,6 @@ EPRINTS-3.1-beta-2
 2008-05-12 dct05r
  * ORE Resource Map Export Plugin
 
+2008-05-13 tdb
+ * Removed deprecated methods: make_buffer, garbage_collect, dispose_buffer, from_buffer, install_table
+

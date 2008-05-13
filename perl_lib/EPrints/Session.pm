@@ -335,7 +335,6 @@ sub terminate
 	my( $self ) = @_;
 	
 	
-	$self->{database}->garbage_collect();
 	$self->{repository}->call( "session_close", $self );
 	$self->{database}->disconnect();
 

@@ -2143,123 +2143,6 @@ sub cache_table
 	return "cache".$id;
 }
 
-
-######################################################################
-=pod
-
-=item $tablename = $db->create_buffer( $keyname )
-
-Create a temporary table with the given keyname. This table will not
-be available to other processes and should be disposed of when you've
-finished with them - MySQL only allows so many temporary tables.
-
-=cut
-######################################################################
-
-sub create_buffer
-{
-	my ( $self , $keyname ) = @_;
-
-	my $tmptable = "searchbuffer".($NEXTBUFFER++);
-	$TEMPTABLES{$tmptable} = 1;
-	#print STDERR "Pushed $tmptable onto temporary table list\n";
-#cjg VARCHAR!! Should this not be whatever type is bestest?
-
-	my $rc = 1;
-
-	$rc &&= $self->do( "CREATE TEMPORARY TABLE $tmptable (".
-		$self->get_column_type($keyname, SQL_VARCHAR, SQL_NOT_NULL, 255).
-	")");
-	$rc &&= $self->create_index( $tmptable, $keyname );
-	
-	EPrints::abort( "Error creating temporary table $tmptable" )
-		unless $rc;
-
-	return $tmptable;
-}
-
-
-######################################################################
-=pod
-
-=item $id = $db->make_buffer( $keyname, $data )
-
-Create a temporary table and dump the values from the array reference
-$data into it. 
-
-Even in debugging mode it does not mention this SQL as it's very
-dull.
-
-=cut
-######################################################################
-
-sub make_buffer
-{
-	my( $self, $keyname, $data ) = @_;
-
-	my $id = $self->create_buffer( $keyname );
-
-	my $sth = $self->prepare( "INSERT INTO ".$self->quote_identifier($id)." VALUES (?)" );
-	foreach( @{$data} )
-	{
-		$sth->execute( $_ );
-	}
-
-	return $id;
-}
-
-
-######################################################################
-=pod
-
-=item $foo = $db->garbage_collect
-
-Loop through known temporary tables, and remove them.
-
-=cut
-######################################################################
-
-sub garbage_collect
-{
-	my( $self ) = @_;
-
-	foreach( keys %TEMPTABLES )
-	{
-		$self->dispose_buffer( $_ );
-	}
-}
-
-
-######################################################################
-=pod
-
-=item $db->dispose_buffer( $id )
-
-Remove temporary table with given id. Won't just remove any
-old table.
-
-=cut
-######################################################################
-
-sub dispose_buffer
-{
-	my( $self, $id ) = @_;
-	
-	unless( defined $TEMPTABLES{$id} )
-	{
-		$self->{session}->get_repository->log( <<END );
-Called dispose_buffer on non-buffer table "$id"
-END
-		return;
-	}
-	$self->drop_table( $id );
-	delete $TEMPTABLES{$id};
-
-}
-	
-
-
-
 ######################################################################
 =pod
 
@@ -2395,25 +2278,6 @@ sub count_table
 
 	return $count;
 }
-
-######################################################################
-=pod
-
-=item $items = $db->from_buffer( $dataset, $buffer, [$offset], [$count], [$justids] )
-
-Return a reference to an array containing all the items from the
-given dataset that have id's in the specified buffer.
-
-=cut
-######################################################################
-
-sub from_buffer 
-{
-	my ( $self , $dataset , $buffer , $offset, $count, $justids ) = @_;
-	return $self->_get( $dataset, 1 , $buffer, $offset, $count );
-}
-
-
 
 ######################################################################
 =pod
@@ -3605,35 +3469,6 @@ sub has_column
 	return $rc;
 }
 
-######################################################################
-=pod
-
-=item $db->install_table( $tablename, $newtablename )
-
-Move table $tablename to $newtablename. Erase $newtablename if it
-exists.
-
-=cut
-######################################################################
-
-sub install_table
-{
-	my( $self, $current_pos, $target_pos ) = @_;
-
-	if( $self->has_table( $target_pos ) )
-	{
-		$self->swap_tables( 
-			$current_pos,
-			$target_pos );
-		$self->drop_table( $current_pos );
-		return;
-	}
-
-	$self->rename_table( 
-		$current_pos,
-		$target_pos );
-}
-		
 ######################################################################
 =pod
 
