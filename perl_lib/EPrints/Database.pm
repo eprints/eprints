@@ -413,17 +413,20 @@ sub create_dataset_tables
 
 	if( $dataset->indexable )
 	{
-		$rv = $rv && $self->create_dataset_index_tables( $dataset );
+		$rv &&= $self->create_dataset_index_tables( $dataset );
 	}
 
-	$rv = $rv && $self->create_dataset_ordervalues_tables( $dataset );
+	$rv &&= $self->create_dataset_ordervalues_tables( $dataset );
 
 	# Create the main tables
-	$rv = $rv && $self->create_table( 
+	if( !$self->has_table( $dataset->get_sql_table_name ) )
+	{
+		$rv &&= $self->create_table( 
 				$dataset->get_sql_table_name, 
 				$dataset, 
 				1, 
 				$dataset->get_fields( 1 ) );
+	}
 
 	return $rv;
 }
@@ -507,13 +510,15 @@ sub create_dataset_index_tables
 		repository=> $self->{session}->get_repository,
 		name => "ids", 
 		type => "longtext");
-	$rv = $rv & $self->create_table(
-		$dataset->get_sql_index_table_name,
-		$dataset,
-		0, # no primary key
-		( $field_fieldword, $field_pos, $field_ids ) );
-	my $r= $self->add_index_to_indextable( $dataset );
-	$rv = $rv & $r;
+	if( !$self->has_table( $dataset->get_sql_index_table_name ) )
+	{
+		$rv &= $self->create_table(
+			$dataset->get_sql_index_table_name,
+			$dataset,
+			0, # no primary key
+			( $field_fieldword, $field_pos, $field_ids ) );
+		$rv &= $self->add_index_to_indextable( $dataset );
+	}
 
 	#######################
 
@@ -527,11 +532,14 @@ sub create_dataset_index_tables
 		name => "grepstring", 
 		type => "text");
 
-	$rv = $rv & $self->create_table(
-		$dataset->get_sql_grep_table_name,
-		$dataset,
-		0, # no primary key
-		( $keyfield, $field_fieldname, $field_grepstring ) );
+	if( !$self->has_table( $dataset->get_sql_grep_table_name ) )
+	{
+		$rv = $rv & $self->create_table(
+			$dataset->get_sql_grep_table_name,
+			$dataset,
+			0, # no primary key
+			( $keyfield, $field_fieldname, $field_grepstring ) );
+	}
 
 
 	return 0 unless $rv;
@@ -546,11 +554,14 @@ sub create_dataset_index_tables
 		name => "word", 
 		type => "text");
 
-	$rv = $rv & $self->create_table(
-		$dataset->get_sql_rindex_table_name,
-		$dataset,
-		0, # no primary key
-		( $keyfield, $field_field, $field_word ) );
+	if( !$self->has_table( $dataset->get_sql_rindex_table_name ) )
+	{
+		$rv = $rv & $self->create_table(
+			$dataset->get_sql_rindex_table_name,
+			$dataset,
+			0, # no primary key
+			( $keyfield, $field_field, $field_word ) );
+	}
 
 
 
@@ -563,7 +574,7 @@ sub add_index_to_indextable
 
 	my $table_name = $dataset->get_sql_index_table_name;
 
-	return $self->create_index( $table_name, "fieldword", "pos" );
+	return $self->create_index( $table_name, "fieldword", "pos" ) ? 1 : 0;
 }
  
 ######################################################################
@@ -601,12 +612,14 @@ sub create_dataset_ordervalues_tables
 	{
 		my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-		$rv = $rv && $self->create_table( 
-			$order_table,
-			$dataset, 
-			1, 
-			@orderfields );
-		return 0 unless $rv;
+		if( !$self->has_table( $order_table ) )
+		{
+			$rv &&= $self->create_table( 
+				$order_table,
+				$dataset, 
+				1, 
+				@orderfields );
+		}
 	}
 
 	return $rv;
@@ -2957,9 +2970,20 @@ sub has_dataset
 {
 	my( $self, $dataset ) = @_;
 
+	my $rc = 1;
+
 	my $table = $dataset->get_sql_table_name;
 
-	return $self->has_table( $table );
+	$rc &&= $self->has_table( $table );
+
+	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
+	{
+		my $order_table = $dataset->get_ordervalues_table_name( $langid );
+
+		$rc &&= $self->has_table( $order_table );
+	}
+
+	return $rc;
 }
 
 ######################################################################
