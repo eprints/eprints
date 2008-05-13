@@ -461,6 +461,8 @@ sub remove
 
 	$self->remove_thumbnails;
 
+	$self->remove_stored_files;
+
 	$self->remove_all_files;
 
 	return( $success );
@@ -474,14 +476,20 @@ sub remove
 
 Return the EPrint this document is associated with.
 
+This is a synonym for get_parent().
+
 =cut
 ######################################################################
 
-sub get_eprint
+sub get_eprint { &get_parent }
+sub get_parent
 {
-	my( $self ) = @_;
-	
-	return $self->get_parent( "eprint", $self->get_value( "eprintid" ) );
+	my( $self, $datasetid, $objectid ) = @_;
+
+	$datasetid = "eprint";
+	$objectid = $self->get_value( "eprintid" );
+
+	return $self->SUPER::get_parent( $datasetid, $objectid );
 }
 
 
