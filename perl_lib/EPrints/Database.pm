@@ -1938,6 +1938,13 @@ sub counter_reset
 	return $curval + 0;
 }
 
+# Internal method to get a cache object
+sub get_cachemap
+{
+	my( $self, $id ) = @_;
+
+	return $self->{session}->get_repository->get_dataset( "cachemap" )->get_object( $self->{session}, $id );
+}
 
 ######################################################################
 =pod
@@ -1955,9 +1962,8 @@ sub cache_exp
 	my( $self , $id ) = @_;
 
 	my $a = $self->{session}->get_repository;
-	my $ds = $a->get_dataset( "cachemap" );
+	my $cache = $self->get_cachemap( $id );
 
-	my $cache = $ds->get_object( $self->{session}, $id );
 	return unless $cache;
 
 	my $created = $cache->get_value( "created" );
@@ -1973,17 +1979,10 @@ sub cache_userid
 {
 	my( $self , $id ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
+	my $cache = $self->get_cachemap( $id );
 
-	my $cache = $ds->get_object( $self->{session}, $id );
-	return unless $cache;
-
-	return $cache->get_value( "userid" );
+	return defined( $cache ) ? $cache->get_value( "userid" ) : undef;
 }
-
-
-
-
 
 ######################################################################
 =pod
@@ -2254,17 +2253,10 @@ sub drop_cache
 {
 	my ( $self , $id ) = @_;
 
-	# $id MUST be an integer.
-	$id += 0;
-
-	my $tmptable = $self->cache_table( $id );
-
-	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	# We drop the table before removing the entry from the cachemap
-
-	$self->drop_table( $tmptable );
-
-	$self->remove( $ds, $id );
+	if( defined( my $cache = $self->get_cachemap( $id ) ) )
+	{
+		$cache->remove;
+	}
 }
 
 
@@ -2348,15 +2340,11 @@ sub from_cache
 		@results = $self->_get( $dataset, 3, $self->cache_table($cacheid), $offset , $count );
 	}
 
-	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-
-	$self->_update(
-		$ds->get_sql_table_name,
-		["cachemapid"],
-		[$cacheid],
-		["lastused"],
-		[time()],
-	);
+	if( defined( my $cache = $self->get_cachemap( $cacheid ) ) )
+	{
+		$cache->set_value( "lastused", time() );
+		$cache->commit();
+	}
 
 	$self->drop_old_caches();
 
