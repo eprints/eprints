@@ -7450,3 +7450,6 @@ EPRINTS-3.1-beta-2
  * Removed deprecated methods: make_buffer, garbage_collect, dispose_buffer, from_buffer, install_table
  * Check tables exist before attempting to create them when creating dataset tables (allows update_database_structure to "fill in the gaps")
 
+2008-05-15 tdb
+ * Reduced background images to 1px wide, reducing file size
+
