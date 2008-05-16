@@ -7458,3 +7458,6 @@ EPRINTS-3.1-beta-2
 
 2008-05-16 cjg 
  * Fixed bug in toolbox which prevented searching sub-objects and linked items.
+
+2008-05-16 cjg 
+ * Added boxes plugin system for EPrint summary pages.
