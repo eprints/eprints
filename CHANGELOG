@@ -7461,3 +7461,6 @@ EPRINTS-3.1-beta-2
 
 2008-05-16 cjg 
  * Added boxes plugin system for EPrint summary pages.
+
+2008-05-16 cjg 
+ * Improved text-browsing for Items and Review screen-- use of alt tags on icons.

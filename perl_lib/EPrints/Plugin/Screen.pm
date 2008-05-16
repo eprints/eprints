@@ -452,6 +452,7 @@ sub _render_action_aux
 				name=>"_action_$action", 
 				src=>$icon,
 				title=>$title,
+				alt=>$title,
 				value=>$title ));
 	}
 	else

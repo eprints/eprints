@@ -242,6 +242,7 @@ sub render
 					value=>"Move Left",
 					title=>"Move Left",
 					src => "$imagesurl/left.png",
+					alt => "<",
 					name => "_action_col_left" ) );
 				$acts_td1->appendChild( $form_l );
 			}
@@ -262,6 +263,7 @@ sub render
 				value=>"Remove Column",
 				title=>"Remove Column",
 				src => "$imagesurl/delete.png",
+				alt => "X",
 				onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( '$msg' );",
 				name => "_action_remove_col" ) );
 			$acts_td2->appendChild( $form_rm );
@@ -279,6 +281,7 @@ sub render
 					value=>"Move Right",
 					title=>"Move Right",
 					src => "$imagesurl/right.png",
+					alt => ">",
 					name => "_action_col_right" ) );
 				$acts_td3->appendChild( $form_r );
 			}
