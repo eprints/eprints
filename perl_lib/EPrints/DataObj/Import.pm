@@ -192,7 +192,7 @@ sub run
 		my( $_eprintid ) = $eprint->getElementsByTagName( "eprintid" );
 		my( $_eprint_status ) = $eprint->getElementsByTagName( "eprint_status" );
 		my( $_userid ) = $eprint->getElementsByTagName( "userid" );
-		$eprint->removeChild( $_userid );
+		$eprint->removeChild( $_userid ) if $_userid;
 
 		my $sourceid = EPrints::Utils::tree_to_utf8($_eprintid);
 
