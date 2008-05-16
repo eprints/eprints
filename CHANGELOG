@@ -7464,3 +7464,6 @@ EPRINTS-3.1-beta-2
 
 2008-05-16 cjg 
  * Improved text-browsing for Items and Review screen-- use of alt tags on icons.
+
+2008-05-16 cjg 
+ * Added AJAX Phrase editor!

@@ -532,7 +532,10 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:out_of_space"><span class="alert">NO DISK SPACE LEFT!</span></epp:phrase>
     <epp:phrase id="cgi/users/status:nearly_out_of_space"><span class="alert">WARNING:</span> Available space for new items is running low</epp:phrase>
     <epp:phrase id="cgi/users/status:title">Server Status</epp:phrase>
+
     <epp:phrase id="Plugin/Screen/Admin:title">Admin</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Phrases:title">Phrase Editor</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Phrases:description">Modify phrases used in the system.</epp:phrase>
     <epp:phrase id="Plugin/Screen/QA:title">QA</epp:phrase>
     <epp:phrase id="Plugin/Screen/FirstTool:title">No Tools Available</epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:description">Status information for this server.</epp:phrase>

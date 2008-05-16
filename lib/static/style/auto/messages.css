@@ -30,16 +30,19 @@ Not currently using titles
 
 .ep_msg_message_content {
 	background-image: url(images/green_back.png);
+	background-color: #c0ffc0;
 	border: solid 1px #80ff80;
 }
 
 .ep_msg_error_content {
 	background-image: url(images/red_back.png);
+	background-color: #ffe0e0;
 	border: solid 1px #ffc0c0;
 }
 
 .ep_msg_warning_content {
 	background-image: url(images/orange_back.png);
+	background-color: #ffe0c0;
 	border: solid 1px #ffc080;
 }
 
