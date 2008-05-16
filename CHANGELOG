@@ -7456,3 +7456,5 @@ EPRINTS-3.1-beta-2
 2008-05-16 tdb
  * Added "dblanguages" config option to control the database encoding
 
+2008-05-16 cjg 
+ * Fixed bug in toolbox which prevented searching sub-objects and linked items.

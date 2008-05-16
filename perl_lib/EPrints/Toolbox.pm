@@ -448,7 +448,7 @@ sub xml_to_conditions
 			return( undef, "merge set to $merge. Can only be ANY or ALL." );
 		}
 
-		my $field = $dataset->get_field( $name );
+		my $field = EPrints::Utils::field_from_config_string( $dataset, $name );
 		if( !defined $field )
 		{
 			return( undef, "can't find field '$name'" );
@@ -462,7 +462,6 @@ sub xml_to_conditions
 				$value,
 				$match,
 				$merge );
-
 		return( $con );	
 	}
 
