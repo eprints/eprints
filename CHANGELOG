@@ -7467,3 +7467,7 @@ EPRINTS-3.1-beta-2
 
 2008-05-16 cjg 
  * Added AJAX Phrase editor!
+
+2008-05-16 tdb
+ * Removed redundant add_field script (use update_database_structure)
+
