@@ -85,7 +85,11 @@ sub get_sql_type
 	{
 		$_ = $session->get_database->get_column_type(
 			$_,
-			EPrints::Database::SQL_SMALLINT
+			EPrints::Database::SQL_SMALLINT,
+			0,
+			undef,
+			undef,
+			$self->get_sql_properties,
 		);
 	}
 

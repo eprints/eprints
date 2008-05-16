@@ -7453,3 +7453,6 @@ EPRINTS-3.1-beta-2
 2008-05-15 tdb
  * Reduced background images to 1px wide, reducing file size
 
+2008-05-16 tdb
+ * Added "dblanguages" config option to control the database encoding
+

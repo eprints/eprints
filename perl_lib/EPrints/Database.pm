@@ -599,18 +599,14 @@ sub create_dataset_ordervalues_tables
 	my @fields = $dataset->get_fields( 1 );
 	# remove the key field
 	splice( @fields, 0, 1 ); 
-	my @orderfields = ( $keyfield );
-	foreach my $field ( @fields )
-	{
-		my $fname = $field->get_sql_name();
-		push @orderfields, EPrints::MetaField->new( 
-					repository=> $self->{session}->get_repository,
-					name => $fname,
-					type => "longtext" );
-	}
 	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
 	{
 		my $order_table = $dataset->get_ordervalues_table_name( $langid );
+		my @orderfields = ( $keyfield );
+		foreach my $field ( @fields )
+		{
+			push @orderfields, $field->create_ordervalues_field( $self->{session}, $langid );
+		}
 
 		if( !$self->has_table( $order_table ) )
 		{
@@ -695,9 +691,22 @@ sub update_ticket_userid
 ######################################################################
 =pod
 
-=item $real_type = $db->get_column_type( NAME, TYPE, NOT_NULL, [, LENGTH ] )
+=item $real_type = $db->get_column_type( NAME, TYPE, NOT_NULL, [ LENGTH/PRECISION ], [ SCALE ], %opts )
 
-Returns a column definition for NAME of type TYPE. If NOT_NULL is true the column will be created NOT NULL. For column types that require a length use LENGTH.
+Returns a SQL column definition for NAME of type TYPE, usually something like:
+
+	$name $type($length,$scale) [ NOT NULL ]
+
+If NOT_NULL is true column will be set "not null".
+
+LENGTH/PRECISION and SCALE control the maximum lengths of character or decimal types (see below).
+
+Other options available to refine the column definition:
+
+	langid - character set/collation to use
+	sorted - whether this column will be used to order by
+
+B<langid> is mapped to real database values by the "dblanguages" configuration option. The database may not be able to order the request column type in which case, if B<sorted> is true, the database may use a substitute column type.
 
 TYPE is the SQL type. The types are constants defined by this module, to import them use:
 
@@ -715,12 +724,17 @@ Floating-point data: SQL_REAL, SQL_DOUBLE.
 
 Time data: SQL_DATE, SQL_TIME.
 
+The actual column types used will be database-specific.
+
 =cut
 ######################################################################
 
 sub get_column_type
 {
-	my( $self, $name, $data_type, $not_null, $length, $scale ) = @_;
+	my( $self, $name, $data_type, $not_null, $length, $scale, %opts ) = @_;
+
+	my $session = $self->{session};
+	my $repository = $session->get_repository;
 
 	my $type_info = $self->{dbh}->type_info( $data_type );
 
@@ -741,6 +755,20 @@ sub get_column_type
 		EPrints::abort( "get_sql_type expected PRECISION and SCALE arguments for $data_type [$type]" )
 			unless defined $scale;
 		$type .= "($length,$scale)";
+	}
+
+	if( $opts{langid} )
+	{
+		my $conf = $repository->get_conf( "dblanguages", $opts{langid} );
+
+		if( defined( $conf ) && defined( $conf->{charset} ) )
+		{
+			$type .= " CHARACTER SET ".$conf->{charset};
+			if( defined( $conf->{collate} ) )
+			{
+				$type .= " COLLATE ".$conf->{collate};
+			}
+		}
 	}
 
 	if( $not_null )

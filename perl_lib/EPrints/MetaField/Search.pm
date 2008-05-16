@@ -37,29 +37,10 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField );
+	@ISA = qw( EPrints::MetaField::Longtext );
 }
 
-use EPrints::MetaField;
-
-sub get_sql_type
-{
-	my( $self, $session, $notnull ) = @_;
-
-	return $session->get_database->get_column_type(
-		$self->get_sql_name(),
-		EPrints::Database::SQL_LONGVARCHAR,
-		$notnull
-	);
-}
-
-# never SQL index this type
-sub get_sql_index
-{
-	my( $self ) = @_;
-
-	return ();
-}
+use EPrints::MetaField::Longtext;
 
 
 sub render_single_value

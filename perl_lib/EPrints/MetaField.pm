@@ -978,6 +978,27 @@ sub sql_row_from_value
 ######################################################################
 =pod
 
+=item %opts = $field->get_sql_properties( $session )
+
+Map the relevant SQL properties for this field to options passed to L<EPrints::Database>::get_column_type().
+
+=cut
+######################################################################
+
+sub get_sql_properties
+{
+	my( $self, $session ) = @_;
+
+	return (
+		index => $self->{ "sql_index" },
+		langid => $self->{ "sql_langid" },
+		sorted => $self->{ "sql_sorted" },
+	);
+}
+
+######################################################################
+=pod
+
 =item $sql = $field->get_sql_type( $session, $notnull )
 
 Return the SQL type of this field, used for creating tables. $notnull
@@ -996,7 +1017,32 @@ sub get_sql_type
 		$self->get_sql_name,
 		EPrints::Database::SQL_VARCHAR,
 		$notnull,
-		$EPrints::MetaField::VARCHAR_SIZE
+		$self->get_property( "maxlength" ),
+		undef, # precision
+		$self->get_sql_properties,
+	);
+}
+
+######################################################################
+=pod
+
+=item $field = $field->create_ordervalues_field( $session [, $langid ] )
+
+Return a new field object that this field can use to store order values, optionally for language $langid.
+
+=cut
+######################################################################
+
+sub create_ordervalues_field
+{
+	my( $self, $session, $langid ) = @_;
+
+	return EPrints::MetaField->new(
+		repository => $session->get_repository,
+		type => "longtext",
+		name => $self->get_name,
+		sql_sorted => 1,
+		sql_langid => $langid,
 	);
 }
 
@@ -2107,6 +2153,8 @@ sub get_property_defaults
 		requiredlangs 	=> [],
 		search_cols 	=> $EPrints::MetaField::FROM_CONFIG,
 		sql_index 	=> 1,
+		sql_langid 	=> $EPrints::MetaField::UNDEF,
+		sql_sorted	=> 0,
 		text_index 	=> 0,
 		toform 		=> $EPrints::MetaField::UNDEF,
 		type 		=> $EPrints::MetaField::REQUIRED,

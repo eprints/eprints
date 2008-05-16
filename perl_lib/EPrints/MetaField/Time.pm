@@ -76,25 +76,6 @@ sub sql_row_from_value
 	return @parts;
 }
 
-sub get_sql_type
-{
-	my( $self, $session, $notnull ) = @_;
-
-	# ignoring notnull.
-
-	my @parts = $self->get_sql_names;
-
-	for(@parts)
-	{
-		$_ = $session->get_database->get_column_type(
-			$_,
-			EPrints::Database::SQL_SMALLINT
-		);
-	}
-
-	return join ", ", @parts;
-}
-
 sub render_single_value
 {
 	my( $self, $session, $value ) = @_;

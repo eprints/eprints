@@ -48,7 +48,9 @@ sub get_sql_type
 		$self->get_sql_name(),
 		EPrints::Database::SQL_VARCHAR,
 		$notnull,
-		$EPrints::MetaField::VARCHAR_SIZE
+		$self->get_property( "maxlength" ),
+		undef,
+		$self->get_sql_properties,
 	);
 }
 

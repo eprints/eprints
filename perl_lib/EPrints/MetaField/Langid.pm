@@ -49,7 +49,9 @@ sub get_sql_type
 		$self->get_sql_name(),
 		EPrints::Database::SQL_VARCHAR,
 		$notnull,
-		16
+		16,
+		undef,
+		$self->get_sql_properties,
 	);
 }
 
