@@ -223,7 +223,10 @@ sub epdata_to_dataobj
 
 	my $item = $dataset->create_object( $plugin->{session}, $epdata );
 
-	$plugin->handler->object( $dataset, $item );
+	if( defined( $item ) )
+	{
+		$plugin->handler->object( $dataset, $item );
+	}
 
 	return $item;
 }
