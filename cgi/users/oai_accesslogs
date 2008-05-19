@@ -17,44 +17,12 @@
 ######################################################################
 
 use EPrints;
-use EPrints::Apache::AnApache;
 
 use strict;
 
 # New session
 my $session = new EPrints::Session();
 exit( 0 ) unless( defined $session );
-
-my $auth_name = "EPrints Username and Password";
-
-my $r = $session->get_request;
-
-print STDERR map { "$_\n" }
-	$r->auth_type,
-	$r->auth_name;
-
-$session->get_request->auth_name( $auth_name );
-my( $res, $passwd_sent ) = $session->get_request->get_basic_auth_pw;
-my( $user_sent ) = $session->get_request->user;
-
-print STDERR "$user_sent/$passwd_sent\n";
-
-# Attempt auth_basic
-if( !defined( $session->current_user ) )
-{
-	$session->{current_user} = $session->_current_user_auth_basic;
-}
-
-# Check the that the user is logged in, otherwise throw up a basic auth
-if( !defined( $session->current_user ) )
-{
-	my $request = $session->get_request;
-	EPrints::Apache::AnApache::err_header_out( $session->get_request, "WWW-Authenticate" => "Basic realm=\"$auth_name\"" );
-	EPrints::Apache::AnApache::send_status_line( $session->get_request, AUTH_REQUIRED, "Requires authentication" );
-	EPrints::Apache::AnApache::send_http_header( $session->get_request );
-	$session->terminate;
-	exit 0;
-}
 
 # Allowed exports (OAI restricts the prefixes that can be used)
 our %FORMATS = ();
