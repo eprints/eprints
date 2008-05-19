@@ -35,6 +35,7 @@ package EPrints::Apache::Auth;
 use strict;
 
 use EPrints::Apache::AnApache; # exports apache constants
+use URI;
 
 #use EPrints::Session;
 #use EPrints::SystemSettings;
@@ -55,7 +56,7 @@ sub authen
 	}
 
 	my $rc;
-	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	if( !_use_auth_basic( $r, $session ) )
 	{
 		$rc = auth_cookie( $r, $session );
 	}
@@ -65,6 +66,40 @@ sub authen
 	}
 
 	$session->terminate();
+
+	return $rc;
+}
+
+sub _use_auth_basic
+{
+	my( $r, $session ) = @_;
+
+	my $rc = 0;
+
+	if( !$session->get_repository->get_conf( "cookie_auth" ) ) 
+	{
+		$rc = 1;
+	}
+	else
+	{
+		my $uri = URI->new( $r->uri, "http" );
+		my $script = $uri->path;
+
+		my $econf = $session->get_repository->get_conf( "auth_basic" ) || [];
+
+		foreach my $exppath ( @$econf )
+		{
+			if( $exppath !~ /^\// )
+			{
+				$exppath = $session->get_repository->get_conf( "rel_cgipath" )."/$exppath";
+			}
+			if( $script =~ /^$exppath/ )
+			{
+				$rc = 1;
+				last;
+			}
+		}
+	}
 
 	return $rc;
 }
@@ -103,7 +138,7 @@ sub _authen_doc
 	}
 
 	my $rc;
-	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	if( !_use_auth_basic( $r, $session ) )
 	{
 		$rc = auth_cookie( $r, $session, 1 );
 	}
@@ -180,8 +215,6 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
-	my $area = $r->dir_config( "EPrints_Security_Area" );
-
 	my $user_ds = $session->get_repository->get_dataset( "user" );
 
 	my $user = EPrints::DataObj::User::user_with_username( $session, $user_sent );
@@ -191,7 +224,8 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
-	return $session->valid_login( $user_sent, $passwd_sent );
+	return $session->valid_login( $user_sent, $passwd_sent ) ?
+			OK : AUTH_REQUIRED;
 }
 
 sub authz

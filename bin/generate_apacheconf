@@ -447,7 +447,7 @@ print CONF <<END;
   Alias $http_root/ $htdocs_path/
 
   <Location "$http_root">
-    ErrorDocument 401 $http_root/error401.html
+    # ErrorDocument 401 $http_root/error401.html
     ErrorDocument 404 $http_cgiroot/handle_404
     PerlSetVar EPrints_ArchiveID $repository_id
     Redirect $http_root/perl/ http://$hostport$http_cgiroot

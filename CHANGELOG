@@ -7473,4 +7473,5 @@ EPRINTS-3.1-beta-2
 
 2008-05-19 tdb
  * Fixed bug in Session::get_secure that returned false in Auth stage
+ * Added support for an "auth_basic" config to use basic authentication on specific URLs
 
