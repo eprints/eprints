@@ -857,10 +857,9 @@ sub get_secure
 {
 	my( $self ) = @_;
 
-	return $self->get_online && $ENV{"HTTPS"};
-# There's also this variable defined by EPrints, but the HTTPS environment
-# variable is the official way to know if we're running secure.
-#	my $esec = $self->get_request->dir_config( "EPrints_Secure" );
+	# mod_ssl sets "HTTPS", but only AFTER the Auth stage
+	return $self->get_online &&
+		($ENV{"HTTPS"} || $self->get_request->dir_config( 'EPrints_Secure' ));
 }
 
 

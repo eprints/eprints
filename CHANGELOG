@@ -7471,3 +7471,6 @@ EPRINTS-3.1-beta-2
 2008-05-16 tdb
  * Removed redundant add_field script (use update_database_structure)
 
+2008-05-19 tdb
+ * Fixed bug in Session::get_secure that returned false in Auth stage
+
