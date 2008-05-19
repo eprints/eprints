@@ -17,6 +17,7 @@
 ######################################################################
 
 use EPrints;
+use EPrints::Apache::AnApache;
 
 use strict;
 
@@ -24,9 +25,33 @@ use strict;
 my $session = new EPrints::Session();
 exit( 0 ) unless( defined $session );
 
-# Check the user is allowed to view the access logs
-if( 0 && !can_view_access( $session ) )
+my $auth_name = "EPrints Username and Password";
+
+my $r = $session->get_request;
+
+print STDERR map { "$_\n" }
+	$r->auth_type,
+	$r->auth_name;
+
+$session->get_request->auth_name( $auth_name );
+my( $res, $passwd_sent ) = $session->get_request->get_basic_auth_pw;
+my( $user_sent ) = $session->get_request->user;
+
+print STDERR "$user_sent/$passwd_sent\n";
+
+# Attempt auth_basic
+if( !defined( $session->current_user ) )
 {
+	$session->{current_user} = $session->_current_user_auth_basic;
+}
+
+# Check the that the user is logged in, otherwise throw up a basic auth
+if( !defined( $session->current_user ) )
+{
+	my $request = $session->get_request;
+	EPrints::Apache::AnApache::err_header_out( $session->get_request, "WWW-Authenticate" => "Basic realm=\"$auth_name\"" );
+	EPrints::Apache::AnApache::send_status_line( $session->get_request, AUTH_REQUIRED, "Requires authentication" );
+	EPrints::Apache::AnApache::send_http_header( $session->get_request );
 	$session->terminate;
 	exit 0;
 }
@@ -101,8 +126,7 @@ foreach my $attr (
 	next unless defined $value;
 	$request_desc->setAttribute( $attr=>$value );
 }
-my $url = $session->get_repository->get_conf( "base_url" );
-$url .= $session->get_uri;
+my $url = get_baseurl($session);
 $request_desc->appendChild( $session->make_text( $url ) );
 
 $response->appendChild( $session->make_indent( 2 ) );
@@ -212,7 +236,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"baseURL",
-		$session->get_repository->get_conf( "oai","v2","base_url" ) ) );
+		get_baseurl($session) ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -229,7 +253,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"earliestDatestamp",
-		"0001-01-01" ) );
+		"0001-01-01T00:00:00Z" ) );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -239,7 +263,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"granularity",
-		"YYYY-MM-DD" ) );
+		"YYYY-MM-DDThh:mm:ssZ" ) );
 
 	my $d1 = $session->make_element( "description" );
 	my $NS = "http://www.openarchives.org/OAI/2.0/oai-identifier";
@@ -1171,20 +1195,15 @@ sub can_view
 {
 	my( $session, $dataset ) = @_;
 
-return 1;
-
 	my $rc = 0;
 
 	my $priv = get_view_priv( $dataset );
 
 	my $user = $session->current_user;
 
-	if( defined $user )
+	if( defined $user && $user->allow( $priv ) )
 	{
-		if( $user->has_role( $priv ) )
-		{
-			$rc = 1;
-		}
+		$rc = 1;
 	}
 
 	return $rc;
@@ -1213,6 +1232,9 @@ sub can_view_access
 
 	return $rc;
 }
+
+# Return all the datasets that the current user can view and that can be
+# sorted by a datestamp field
 
 sub get_datasets
 {
@@ -1410,4 +1432,14 @@ END
 	$searchexp->add_field( \@fields, $value, $match );
 
 	return 1;
+}
+
+sub get_baseurl
+{
+	my( $session ) = @_;
+
+	my $url = $session->get_repository->get_conf( "http_cgiurl" );
+	$url .= "/oai_accesslogs";
+
+	return $url;
 }
