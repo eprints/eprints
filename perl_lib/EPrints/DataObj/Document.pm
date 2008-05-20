@@ -321,7 +321,7 @@ sub create_from_data
 				if( $r->is_success )
 				{
 					# upload fseeks to zero
-					$document->upload( $tmpfile, $filedata->{filename}, 1 );	
+					$document->upload( $tmpfile, $filedata->{filename}, 1, $filedata->{filesize} );	
 				}
 				else
 				{
