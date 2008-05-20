@@ -24,6 +24,12 @@ use strict;
 my $session = new EPrints::Session();
 exit( 0 ) unless( defined $session );
 
+if( !$session->current_user )
+{
+	$session->terminate;
+	exit( 0 );
+}
+
 # Allowed exports (OAI restricts the prefixes that can be used)
 our %FORMATS = ();
 # Allow datasets
