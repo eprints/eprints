@@ -451,6 +451,30 @@ sub update_md5
 	$self->commit();
 }
 
+sub to_xml
+{
+	my( $self, %opts ) = @_;
+
+	my $frag = $self->SUPER::to_xml( %opts );
+
+	# This is a bit of a hack to inject the publicly accessible URL of data
+	# files in documents into XML exports.
+	# In future importers should probably use the "id" URI to retrieve
+	# file objects?
+	if( $self->get_value( "datasetid" ) eq "document" &&
+		$self->get_value( "bucket" ) eq "data" )
+	{
+		my( $file ) = $frag->getElementsByTagName( "file" );
+		my $doc = $self->get_parent();
+		my $url = $doc->get_url( $self->get_value( "filename" ) );
+		my $e = $self->{session}->make_element( "url" );
+		$file->appendChild( $e );
+		$e->appendChild( $self->{session}->make_text( $url ) );
+	}
+
+	return $frag;
+}
+
 1;
 
 __END__

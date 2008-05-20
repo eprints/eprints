@@ -134,6 +134,13 @@ sub get_value
 			$parent->get_id
 		);
 	}
+	elsif( $ds->confid eq "saved_search" )
+	{
+		$searchexp->add_field(
+			$ds->get_field( "userid" ),
+			$parent->get_id
+		);
+	}
 	else
 	{
 		$searchexp->add_field(
@@ -162,6 +169,32 @@ sub get_value
 	else
 	{
 		return $records[0];
+	}
+}
+
+sub to_xml
+{
+	my( $self, $session, $value, $dataset ) = @_;
+
+	if( $self->get_property( "multiple" ) )
+	{
+		if( scalar(@$value) == 0 )
+		{
+			return $session->make_doc_fragment;
+		}
+		else
+		{
+			my $e = $session->make_element( $self->get_name() );
+			foreach my $dataobj ( @$value )
+			{
+				$e->appendChild( $dataobj->to_xml() );
+			}
+			return $e;
+		}
+	}
+	else
+	{
+		return $value->to_xml();
 	}
 }
 

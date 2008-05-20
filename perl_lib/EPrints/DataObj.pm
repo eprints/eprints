@@ -1062,7 +1062,6 @@ sub to_xml
 	}	
 	my $r = $self->{session}->make_element( $tl, %attrs );
 	$r->appendChild( $self->{session}->make_text( "\n" ) );
-#$r->appendChild( $self->{session}->make_text( "x\nx" ) );
 	foreach my $field ( $self->{dataset}->get_fields() )
 	{
 		next unless( $field->get_property( "export_as_xml" ) );
@@ -1086,68 +1085,6 @@ sub to_xml
 				$self->get_value( $field->get_name() ),
 				2 ) ); # no xmlns on inner elements
 		}
-	}
-
-	if( $opts{version} eq "2" )
-	{
-		if( $self->{dataset}->confid eq "user" )
-		{
-			my $saved_searches = $self->{session}->make_element( "saved_searches" );
-			foreach my $saved_search ( $self->get_saved_searches )
-			{
-				$saved_searches->appendChild( $saved_search->to_xml( %opts ) );
-			}	
-			$r->appendChild( $saved_searches );
-		}
-
-		if( $self->{dataset}->confid eq "eprint" )
-		{
-			my $docs = $self->{session}->make_element( "documents" );
-			foreach my $doc ( $self->get_all_documents )
-			{
-				$docs->appendChild( $doc->to_xml( %opts ) );
-			}	
-			$r->appendChild( $docs );
-		}
-
-		if( $self->{dataset}->confid eq "document" )
-		{
-			my $files = $self->{session}->make_element( "files" );
-			$files->appendChild( $self->{session}->make_text( "\n" ) );
-			my %files = $self->files;
-			foreach my $filename ( keys %files )
-			{
-				my $file = $self->{session}->make_element( "file" );
-
-				$file->appendChild( 
-					$self->{session}->render_data_element( 
-						6, 
-						'filename',
-						$filename ) );
-				$file->appendChild( 
-					$self->{session}->render_data_element( 
-						6, 
-						'filesize',
-						$files{$filename} ) );
-				$file->appendChild( 
-					$self->{session}->render_data_element( 
-						6, 
-						'url',
-						$self->get_url($filename) ) );
-				if( $opts{embed} )
-				{
-					my $fullpath = $self->local_path."/".$filename;
-					open( FH, $fullpath ) || die "fullpath '$fullpath' read error: $!";
-					my $data = join( "", <FH> );
-					close FH;
-					my $data_el = $self->{session}->make_element( 'data', encoding=>"base64" );
-					$data_el->appendChild( $self->{session}->make_text( MIME::Base64::encode($data) ) );
-					$file->appendChild( $data_el );
-				}
-				$files->appendChild( $file );
-			}
-			$r->appendChild( $files );
-		}	
 	}
 
 	EPrints::XML::tidy( $r, {}, 1 );

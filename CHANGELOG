@@ -7475,3 +7475,6 @@ EPRINTS-3.1-beta-2
  * Fixed bug in Session::get_secure that returned false in Auth stage
  * Added support for an "auth_basic" config to use basic authentication on specific URLs
 
+2008-05-20 tdb
+ * Render sub-object XML using MetaField::Subobject on XML export
+

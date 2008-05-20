@@ -39,7 +39,7 @@ multiple saved searches.
 
 package EPrints::DataObj::SavedSearch;
 
-@ISA = ( 'EPrints::DataObj' );
+@ISA = ( 'EPrints::DataObj::SubObject' );
 
 use EPrints;
 
