@@ -230,9 +230,20 @@ $c->{eprint_render} = sub
 
 
 	# Subjects...
-	$table->appendChild( $session->render_row(
-		$session->html_phrase( "eprint_fieldname_subjects" ),
-		$eprint->render_value( "subjects" ) ) );
+	if( $eprint->is_set( "subjects" ) )
+	{
+		$table->appendChild( $session->render_row(
+			$session->html_phrase( "eprint_fieldname_subjects" ),
+			$eprint->render_value( "subjects" ) ) );
+	}
+
+	# Divisions...
+	if( $eprint->is_set( "divisions" ) )
+	{
+		$table->appendChild( $session->render_row(
+			$session->html_phrase( "eprint_fieldname_divisions" ),
+			$eprint->render_value( "divisions" ) ) );
+	}
 
 	$table->appendChild( $session->render_row(
 		$session->html_phrase( "page:id_code" ),
