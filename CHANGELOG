@@ -7491,3 +7491,6 @@ EPRINTS-3.1-beta-2
  * Made the divisions view field link to the view.
  * Linked the divisions from the template.
 
+2008-05-20 cjg
+ * Added policies page with a link to OpenDOAR.
+ * Linked to policies page from default homepage.

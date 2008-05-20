@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title>Repository Policies</xpage:title>
+<xpage:body>
+
+
+
+
+<div class="ep_msg_warning"><div class="ep_msg_warning_content"><table><tbody><tr><td>
+<img alt="Warning" src="{$config{rel_path}}/style/images/warning.png" /></td><td>
+<p>No policies have been defined for this repository. </p>
+<p>You can use the <a href="http://www.opendoar.org/tools/en/policies.php">OpenDOAR Policies Tool</a> to produce a standard policy page. Use the button below to define your policies.</p>
+</td></tr></tbody></table></div></div>
+
+<form method="post" action="http://www.opendoar.org/tools/policytool.php">
+<textarea style='display: none' name='rName'><epc:phrase ref="archive_name" /></textarea>
+<input type="hidden" name="la" value="en" />
+<input type="hidden" name="rUrl" value="{$config{base_url}}/" />
+<input type="hidden" name="rOaiBaseUrl" value="{$config{perl_url}}/oai2" />
+<input type="submit" value="Start defining policies" class="ep_form_action_button" />
+</form>
+
+<p>Add your policies to: <tt><epc:print expr="$config{config_path}" />/lang/en/static/policies.xpage</tt></p>
+
+
+
+
+</xpage:body>
+</xpage:page>
