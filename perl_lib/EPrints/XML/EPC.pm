@@ -98,22 +98,9 @@ sub process
 		{
 			my $attr = $attrs->item( $i );
 			my $v = $attr->nodeValue;
-			next unless( $v =~ m/\{/ );
 			my $name = $attr->nodeName;
-			my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
-			my $newv='';
-			for( my $i=0; $i<scalar @r; ++$i )
-			{
-				if( $i % 2 == 0 )
-				{
-					$newv.= $r[$i];
-				}
-				else
-				{
-					$newv.=EPrints::Script::print( $r[$i], \%params )->toString;
-				}
-			}
-			$attr->setValue( $newv );
+			my $newv = EPrints::XML::EPC::expand_attribute( $v, $name, \%params );
+			if( $v ne $newv ) { $attr->setValue( $newv ); }
 		}
 	}
 
@@ -122,6 +109,28 @@ sub process
 		$collapsed->appendChild( process_child_nodes( $node, %params ) );
 	}
 	return $collapsed;
+}
+
+sub expand_attribute
+{
+	my( $v, $name, $params ) = @_;
+
+	return $v unless( $v =~ m/\{/ );
+
+	my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
+	my $newv='';
+	for( my $i=0; $i<scalar @r; ++$i )
+	{
+		if( $i % 2 == 0 )
+		{
+			$newv.= $r[$i];
+		}
+		else
+		{
+			$newv.=EPrints::Script::print( $r[$i], $params )->toString;
+		}
+	}
+	return $newv;
 }
 
 sub process_child_nodes
@@ -197,7 +206,7 @@ sub _process_phrase
 	{
 		EPrints::abort( "In ".$params{in}.": phrase element with no ref attribute.\n".substr( $node->toString, 0, 100 ) );
 	}
-	my $ref = $node->getAttribute( "ref" );
+	my $ref = EPrints::XML::EPC::expand_attribute( $node->getAttribute( "ref" ), "ref", \%params );
 
 	my %pins = ();
 	foreach my $param ( $node->getChildNodes )

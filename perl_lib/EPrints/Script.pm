@@ -392,7 +392,7 @@ sub run_one_of
 	return [ 0, "BOOLEAN" ];
 } 
 
-sub run_as_item # maybe change later
+sub run_as_item 
 {
 	my( $self, $state, $itemref ) = @_;
 
@@ -404,6 +404,13 @@ sub run_as_item # maybe change later
 	my $object = $itemref->[1]->get_item( $state->{session}, $itemref->[0] );
 
 	return [ $object ];
+}
+
+sub run_as_string
+{
+	my( $self, $state, $value ) = @_;
+
+	return [ $value->[0], "STRING" ];
 }
 
 sub run_strlen

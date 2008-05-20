@@ -7478,3 +7478,9 @@ EPRINTS-3.1-beta-2
 2008-05-20 tdb
  * Render sub-object XML using MetaField::Subobject on XML export
 
+2008-05-20 cjg
+ * new Script option: as_string, which converts a typed value to a plain string. Useful for inserting a value into an attribute.
+ * epc:phrase refs now expound out {} so values from the object can be used to build the phrase id.
+ * Redesigned document citation to be neater and show all fields.
+  
+
