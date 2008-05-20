@@ -7483,4 +7483,11 @@ EPRINTS-3.1-beta-2
  * epc:phrase refs now expound out {} so values from the object can be used to build the phrase id.
  * Redesigned document citation to be neater and show all fields.
   
+2008-05-20 cjg
+ * Fixed some minor warnings in Views.pm
+ * Added divisions to default eprint summary page.
+ * Made subjects inside a "ifset" in summary page.
+ * Added a divisions view.
+ * Made the divisions view field link to the view.
+ * Linked the divisions from the template.
 

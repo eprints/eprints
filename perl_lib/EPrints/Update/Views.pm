@@ -495,7 +495,7 @@ sub render_view_menu
 		$f->appendChild( $add_ul );	
 	}
 
-	for( my $i; $i<@showvalues; ++$i )
+	for( my $i=0; $i<@showvalues; ++$i )
 	{
 		if( $cols>1 && $i % $col_len == 0 )
 		{
@@ -1108,6 +1108,11 @@ sub group_items
 			keys %{$code_to_list};
 	}
 
+	if( $opts->{reverse} )
+	{
+		@codes = reverse @codes;
+	}
+
 	foreach my $code ( @codes )
 	{
 		push @{$data}, [ $code, $code_to_heading->{$code}, $code_to_list->{$code} ];
@@ -1174,6 +1179,7 @@ sub get_view_opts
 	my( $options, $fieldname ) = @_;
  
 	my $opts = {};
+	$options = "" unless defined $options;
 	foreach my $optspec ( split( ",", $options ) )
 	{
 		my( $opt, $opt_value );

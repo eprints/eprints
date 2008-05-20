@@ -88,6 +88,7 @@ $c->{fields}->{eprint} = [
             'type' => 'subject',
             'multiple' => 1,
             'top' => 'divisions',
+            'browse_link' => 'divisions',
           },
 
           {

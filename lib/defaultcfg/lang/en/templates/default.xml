@@ -21,7 +21,7 @@
       <div class="ep_tm_logo"><a href="{$config{frontpage}}"><img alt="Logo" src="{$config{rel_path}}{$config{site_logo}}" /></a></div>
       <div><a class="ep_tm_archivetitle" href="{$config{frontpage}}"><epc:phrase ref="archive_name"/></a></div>
 
-  <ul class="ep_tm_menu"><li><a href="{$config{http_url}}">Home</a></li><li><a href="{$config{http_url}}/information.html">About</a></li><li><a href="{$config{http_url}}/view/year">Browse by Year</a></li><li><a href="{$config{http_url}}/view/subjects">Browse by Subject</a></li></ul>
+  <ul class="ep_tm_menu"><li><a href="{$config{http_url}}">Home</a></li><li><a href="{$config{http_url}}/information.html">About</a></li><li><a href="{$config{http_url}}/view/year">Browse by Year</a></li><li><a href="{$config{http_url}}/view/subjects">Browse by Subject</a></li><li><a href="{$config{http_url}}/view/divisions">Browse by Division</a></li></ul>
 
   <table class="ep_tm_searchbar" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>

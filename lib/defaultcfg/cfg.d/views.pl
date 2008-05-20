@@ -28,6 +28,19 @@ $c->{browse_views} = [
 		],
         },
         {
+                id => "divisions",
+                allow_null => 0,
+                fields => "divisions,-date;res=year",
+                order => "creators_name/title",
+                include => 1,
+                hideempty => 1,
+		variations => [
+			"creators_name;first_letter",
+			"type",
+			"DEFAULT",
+		],
+        },
+        {
                 id => "person",
                 allow_null => 0,
                 fields => "creators_id/editors_id",
