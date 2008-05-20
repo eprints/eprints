@@ -7490,6 +7490,7 @@ EPRINTS-3.1-beta-2
  * Added a divisions view.
  * Made the divisions view field link to the view.
  * Linked the divisions from the template.
+ * Added "reverse" option to a view variation to list the groupings backwards. eg. for dates.
 
 2008-05-20 cjg
  * Added policies page with a link to OpenDOAR.
