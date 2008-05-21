@@ -124,6 +124,8 @@ $|=1;
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
 
+my $processor = EPrints::CLIProcessor->new( session => $session );
+
 if( $list )
 {
 	my $dataset = $session->get_repository->get_dataset( "import" );
@@ -171,7 +173,13 @@ if( defined $user )
 	}
 }
 
-$list = $import->run;
+$list = $import->run( $processor );
+
+if( !defined($list) )
+{
+	$processor->add_message( "error", $session->make_text( "Didn't get list of imported records from running import $importid, finished" ) );
+	exit 1;
+}
 
 $list->map(sub {
 	my( $session, $dataset, $eprint ) = @_;

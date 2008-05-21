@@ -156,15 +156,15 @@ sub get_defaults
 
 ######################################################################
 
-=item $list = $import->run()
+=item $list = $import->run( $processor )
 
-Run this bulk import. Returns a list of EPrints created.
+Run this bulk import. Returns a list of EPrints created. $processor is used for reporting errors.
 
 =cut
 
 sub run
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my $session = $self->{session};
 	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
@@ -174,16 +174,42 @@ sub run
 	my $url = $self->get_value( "url" );
 	my $importid = $self->get_id;
 
-	return unless EPrints::Utils::is_set( $url );
+	if( !EPrints::Utils::is_set( $url ) )
+	{
+		$processor->add_message( "error", $session->make_text( "Can't run import that doesn't contain a URL" ) );
+		return;
+	}
 
 	my $file = File::Temp->new;
 
 	my $ua = LWP::UserAgent->new;
 	my $r = $ua->get( $url, ":content_file" => "$file" );
 
-	return unless $r->is_success;
+	if( !$r->is_success )
+	{
+		my $err = $session->make_doc_fragment;
+		$err->appendChild( $session->make_text( "Error requesting " ) );
+		$err->appendChild( $session->make_link( $url ) );
+		$err->appendChild( $session->make_text( ": ".$r->status_line ) );
+		$processor->add_message( "error", $err );
+		return;
+	}
 
-	my $doc = EPrints::XML::parse_xml( "$file" );
+	my $doc;
+	
+	eval {
+		$doc = EPrints::XML::parse_xml( "$file" );
+	};
+
+	if( $@ )
+	{
+		my $err = $session->make_doc_fragment;
+		$err->appendChild( $session->make_text( "Error requesting " ) );
+		$err->appendChild( $session->make_link( $url ) );
+		$err->appendChild( $session->make_text( ": ".$@ ) );
+		$processor->add_message( "error", $err );
+		return;
+	}
 
 	my $root = $doc->documentElement;
 
