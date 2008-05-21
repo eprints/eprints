@@ -189,7 +189,7 @@ sub run
 	{
 		my $err = $session->make_doc_fragment;
 		$err->appendChild( $session->make_text( "Error requesting " ) );
-		$err->appendChild( $session->make_link( $url ) );
+		$err->appendChild( $session->render_link( $url ) );
 		$err->appendChild( $session->make_text( ": ".$r->status_line ) );
 		$processor->add_message( "error", $err );
 		return;
@@ -205,7 +205,7 @@ sub run
 	{
 		my $err = $session->make_doc_fragment;
 		$err->appendChild( $session->make_text( "Error requesting " ) );
-		$err->appendChild( $session->make_link( $url ) );
+		$err->appendChild( $session->render_link( $url ) );
 		$err->appendChild( $session->make_text( ": ".$@ ) );
 		$processor->add_message( "error", $err );
 		return;
