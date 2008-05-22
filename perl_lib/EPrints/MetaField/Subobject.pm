@@ -174,27 +174,24 @@ sub get_value
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset ) = @_;
+	my( $self, $session, $value, $dataset, %opts ) = @_;
 
 	if( $self->get_property( "multiple" ) )
 	{
-		if( scalar(@$value) == 0 )
+		my $tag = $session->make_element( $self->get_name() );
+		foreach my $dataobj ( @{$value||[]} )
 		{
-			return $session->make_doc_fragment;
+			$tag->appendChild( $dataobj->to_xml( %opts ) );
 		}
-		else
-		{
-			my $e = $session->make_element( $self->get_name() );
-			foreach my $dataobj ( @$value )
-			{
-				$e->appendChild( $dataobj->to_xml() );
-			}
-			return $e;
-		}
+		return $tag;
+	}
+	elsif( defined $value )
+	{
+		return $value->to_xml( %opts );
 	}
 	else
 	{
-		return $value->to_xml();
+		return $session->make_doc_fragment;
 	}
 }
 

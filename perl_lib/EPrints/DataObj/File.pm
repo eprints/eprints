@@ -73,6 +73,14 @@ Size of the file in bytes.
 
 Last modification time of the file.
 
+=item url
+
+Virtual field for storing the file's URL.
+
+=item data
+
+Virtual field for storing the file's content.
+
 =back
 
 =head1 METHODS
@@ -87,6 +95,7 @@ package EPrints::DataObj::File;
 
 use EPrints;
 use Digest::MD5;
+use MIME::Base64 ();
 
 use strict;
 
@@ -150,9 +159,37 @@ sub create_from_data
 
 	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 
+	return unless defined $self;
+
 	if( defined( $fh ) )
 	{
 		$session->get_storage->store( $self, $fh );
+	}
+	elsif( EPrints::Utils::is_set( $data->{data} ) )
+	{
+		my $tmpfile = File::Temp->new;
+
+		syswrite($tmpfile, MIME::Base64::decode( $data->{data} ));
+		seek( $tmpfile, 0, 0 );
+		$session->get_storage->store( $self, $tmpfile );
+	}
+	elsif( EPrints::Utils::is_set( $data->{url} ) )
+	{
+		my $tmpfile = File::Temp->new;
+
+		my $r = EPrints::Utils::wget( $session, $data->{url}, $tmpfile );
+		if( $r->is_success )
+		{
+			seek( $tmpfile, 0, 0 );
+			$session->get_storage->store( $self, $tmpfile );
+		}
+		else
+		{
+			# warn, cleanup and return
+			$session->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
+			$self->remove();
+			return;
+		}
 	}
 
 	return $self;
@@ -199,6 +236,11 @@ sub get_system_field_info
 		{ name=>"filesize", type=>"int", },
 
 		{ name=>"mtime", type=>"time", },
+
+		{ name=>"url", type=>"url", virtual=>1 },
+
+		{ name=>"data", type=>"base64", virtual=>1 },
+
 	);
 }
 
@@ -231,11 +273,7 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 	
-	if( !defined $data->{fileid} )
-	{ 
-		my $new_id = $session->get_database->counter_next( "fileid" );
-		$data->{fileid} = $new_id;
-	}
+	$data->{fileid} = $session->get_database->counter_next( "fileid" );
 
 	$data->{mtime} = EPrints::Time::get_iso_timestamp();
 
@@ -455,8 +493,6 @@ sub to_xml
 {
 	my( $self, %opts ) = @_;
 
-	my $file = $self->SUPER::to_xml( %opts );
-
 	# This is a bit of a hack to inject the publicly accessible URL of data
 	# files in documents into XML exports.
 	# In future importers should probably use the "id" URI to retrieve
@@ -466,10 +502,24 @@ sub to_xml
 	{
 		my $doc = $self->get_parent();
 		my $url = $doc->get_url( $self->get_value( "filename" ) );
-		my $e = $self->{session}->make_element( "url" );
-		$file->appendChild( $e );
-		$e->appendChild( $self->{session}->make_text( $url ) );
+		$self->set_value( "url", $url );
+
 	}
+
+	if( $opts{embed} )
+	{
+		if( defined(my $fh = $self->get_fh) )
+		{
+			use bytes;
+			binmode($fh);
+			my $data = "";
+			while(sysread($fh,$data,4096,length($data))) { }
+			close($fh);
+			$self->set_value( "data", MIME::Base64::encode( $data ) );
+		}
+	}
+
+	my $file = $self->SUPER::to_xml( %opts );
 
 	return $file;
 }

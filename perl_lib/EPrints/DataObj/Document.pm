@@ -280,6 +280,8 @@ sub create_from_data
 	my $eprintid = $data->{eprintid}; 
 	my $eprint = delete $data->{_parent} || delete $data->{eprint};
 
+	my $files = delete $data->{files};
+
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $document;
@@ -289,47 +291,29 @@ sub create_from_data
 
 	$document->set_under_construction( 1 );
 
-	my $dir = $document->local_path();
-
-	if( -d $dir )
+	foreach my $filedata ( @{$files||[]} )
 	{
-		$session->get_repository->log( "Dir $dir already exists!" );
-	}
-	elsif(!EPrints::Platform::mkdir($dir))
-	{
-		$session->get_repository->log( "Error creating directory for EPrint $eprintid, docid=".$document->get_value( "docid" )." ($dir): ".$! );
-		return undef;
-	}
-
-
-	if( defined $data->{files} )
-	{
-		foreach my $filedata ( @{$data->{files}} )
+		# Don't try to add empty file objects
+		if( !defined($filedata->{data}) && !defined($filedata->{url}) )
 		{
-			if( defined $filedata->{data} )
-			{
-				my $srcfile = $filedata->{data};		
-				$srcfile =~ s/^\s+//;
-				$srcfile =~ s/\s+$//;
-				$document->add_file( $srcfile, $filedata->{filename}, 1 );	
-			}
-			elsif( defined $filedata->{url} )
-			{
-				my $tmpfile = File::Temp->new;
-
-				my $r = EPrints::Utils::wget( $session, $filedata->{url}, $tmpfile );
-				if( $r->is_success )
-				{
-					# upload fseeks to zero
-					$document->upload( $tmpfile, $filedata->{filename}, 1, $filedata->{filesize} );	
-				}
-				else
-				{
-					$session->get_repository->log( "Failed to retrieve $filedata->{url}: " . $r->code . " " . $r->message );
-				}
-			}
+			next;
+		}
+		$filedata->{_parent} = $document;
+		$filedata->{datasetid} = $document->get_dataset->confid;
+		$filedata->{objectid} = $document->get_id;
+		$filedata->{bucket} = "data";
+		my $fileobj = EPrints::DataObj::File->create_from_data(
+				$session,
+				$filedata
+			);
+		if( defined( $fileobj ) )
+		{
+			# Calculate and store the MD5 checksum
+			$fileobj->update_md5();
 		}
 	}
+
+	$document->files_modified;
 
 	$document->set_under_construction( 0 );
 
@@ -688,16 +672,20 @@ sub remove_file
 	# If it's the main file, unset it
 	$self->set_value( "main" , undef ) if( $filename eq $self->get_main() );
 
-	my $count = unlink $self->local_path()."/".$filename;
-	
-	if( $count != 1 )
+	my $fileobj = $self->get_stored_files( "data", $filename );
+
+	if( defined( $fileobj ) )
+	{
+		$fileobj->remove();
+
+		$self->files_modified;
+	}
+	else
 	{
 		$self->{session}->get_repository->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
 	}
 
-	$self->files_modified;
-
-	return( $count==1 );
+	return defined $fileobj;
 }
 
 
@@ -1285,26 +1273,31 @@ sub files_modified
 
 	$self->rehash;
 
+	# remove the now invalid cache of words from this document
+	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
+	my $indexcodes = $self->get_stored_files( "cache", "indexcodes" );
+	if( defined( $indexcodes ) )
+	{
+		$indexcodes->remove;
+	}
+
 	$self->{session}->get_database->index_queue( 
 		$self->get_eprint->get_dataset->id,
 		$self->get_eprint->get_id,
 		$EPrints::Utils::FULLTEXT );
-
-	# remove the now invalid cache of words from this document
-	unlink $self->words_file if( -e $self->words_file );
 
 	# nb. The "main" part is not automatically calculated when
 	# the item is under contruction. This means bulk imports 
 	# will have to set the name themselves.
 	unless( $self->under_construction )
 	{
+		my %files = $self->files;
 
 		# Pick a file to be the one that gets linked. There will 
 		# usually only be one, if there's more than one then this
 		# uses the first alphabetically.
-		if( !$self->get_value( "main" ) )
+		if( !$self->get_value( "main" ) || !$files{$self->get_value( "main" )} )
 		{
-			my %files = $self->files;
 			my @filenames = sort keys %files;
 			if( scalar @filenames ) 
 			{

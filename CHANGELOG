@@ -7500,3 +7500,19 @@ EPRINTS-3.1-beta-2
  * Moved XML::tidy from DataObjs into export plugins
  * Removed getElementsByTagName in DataObj::File, fixing #3376
 
+2008-05-22 tdb
+ * Added "url" and "data" virtual fields to DataObj::File
+ * Simplified and made Import::XMLFiles inherit from Import::XML (moved
+    file-specific code into DataObj::File)
+ * MetaField::is_virtual now looks at a "virtual" property, allowing any field
+    type to be defined as virtual
+ * Pass opts into MetaField from DataObj::to_xml
+ * Added "Base64" field type, that just adds "encoding" attribute to_xml
+ * Adding a file to a document that has main set incorrectly now overwrites the
+    main value with the first file (as if it was unset)
+ * Added file dataset to erase_eprints epadmin command
+ * XMLFiles export now embeds all files, not just data files, and includes the
+    EP data namespace
+ * Fixed DataObj::File::get_defaults not overwriting fileid values
+ * Fixed removing files
+

@@ -1212,7 +1212,7 @@ END
 	}
 
 	erase_eprint_files( $repoid );
-	foreach( "eprint", "history","access","request","document" )
+	foreach( "eprint", "history","access","request","document","file" )
 	{
 		reset_dataset( $repoid, $_ );
 	}		

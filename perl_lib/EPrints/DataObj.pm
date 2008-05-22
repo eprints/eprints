@@ -1054,7 +1054,12 @@ sub to_xml
 		return;
 	}
 
-	$attrs{'xmlns'}=$ns unless( $opts{no_xmlns} );
+	if( !$opts{no_xmlns} )
+	{
+		$attrs{'xmlns'} = $ns;
+	}
+	$opts{no_xmlns} = 1;
+
 	my $tl = "record";
 	if( $opts{version} == 2 ) { 
 		$tl = $self->{dataset}->confid; 
@@ -1076,7 +1081,8 @@ sub to_xml
 			$r->appendChild( $field->to_xml( 
 				$self->{session}, 
 				$self->get_value( $field->get_name() ),
-				$self->{dataset} ) ); # no xmlns on inner elements
+				$self->{dataset},
+				%opts ) );
 		}
 		if( $opts{version} eq "1" )
 		{

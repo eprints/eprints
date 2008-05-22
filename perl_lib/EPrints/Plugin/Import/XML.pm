@@ -56,22 +56,6 @@ sub xml_to_epdata
 	return $epdata;
 }
 
-sub xml_to_file
-{
-	my( $plugin, $dataset, $xml ) = @_;
-
-	my %toprocess = $plugin->get_known_nodes( $xml, qw/ filename filesize url data / );
-
-	my $data = {};
-	foreach my $part ( keys %toprocess )
-	{
-		$data->{$part} = $plugin->xml_to_text( $toprocess{$part} );
-	}
-	
-	return $data;
-}
-
-
 sub xml_field_to_epdatafield
 {
 	my( $plugin,$dataset,$field,$xml ) = @_;
@@ -103,17 +87,6 @@ sub xml_field_to_epdatafield
 			next;
 		}
 
-		if( $field->is_type( "file" ) )
-		{
-			if( $type ne "file" )
-			{
-				$plugin->warning( $plugin->phrase( "expected_file", type => $type, fieldname => $field->get_name ) );
-				next;
-			}
-			push @{$epdatafield}, $plugin->xml_to_file( $dataset,$el );
-			next;
-		}
-	
 		if( $field->is_virtual && !$field->is_type( "compound","multilang") )
 		{
 			$plugin->warning( $plugin->phrase( "unknown_virtual", type => $type, fieldname => $field->get_name ) );

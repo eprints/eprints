@@ -1825,7 +1825,7 @@ sub ordervalue_basic
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset ) = @_;
+	my( $self, $session, $value, $dataset, %opts ) = @_;
 
 	if( defined $self->{parent_name} )
 	{
@@ -1838,13 +1838,13 @@ sub to_xml
 		foreach my $single ( @{$value} )
 		{
 			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset ) );
+			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset, %opts ) );
 			$tag->appendChild( $item );
 		}
 	}
 	else
 	{
-		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset ) );
+		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset, %opts ) );
 	}
 
 	return $tag;
@@ -1852,7 +1852,7 @@ sub to_xml
 
 sub to_xml_basic
 {
-	my( $self, $session, $value, $dataset ) = @_;
+	my( $self, $session, $value, $dataset, %opts ) = @_;
 
 	if( !defined $value ) 
 	{
@@ -2161,6 +2161,7 @@ sub get_property_defaults
 		sub_name	=> $EPrints::MetaField::UNDEF,
 		parent_name	=> $EPrints::MetaField::UNDEF,
 		volatile	=> 0,
+		virtual		=> 0,
 
 		help_xhtml	=> $EPrints::MetaField::UNDEF,
 		title_xhtml	=> $EPrints::MetaField::UNDEF,
@@ -2195,7 +2196,7 @@ sub is_virtual
 {
 	my( $self ) = @_;
 
-	return 0;
+	return $self->get_property( "virtual" );
 }
 
 # if ordering by this field, should we sort highest first?

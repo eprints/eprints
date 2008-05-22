@@ -2,9 +2,9 @@ package EPrints::Plugin::Export::XMLFiles;
 
 use Unicode::String qw( utf8 );
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XML;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XML" );
 
 use strict;
 
@@ -33,74 +33,6 @@ sub new
 	$self->{mimetype} = "text/xml";
 
 	return $self;
-}
-
-
-
-
-
-sub output_list
-{
-	my( $plugin, %opts ) = @_;
-
-	my $type = $opts{list}->get_dataset->confid;
-	my $toplevel = $type."s";
-	
-	my $r = [];
-
-	my $part;
-	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel>\n";
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $part;
-	}
-	else
-	{
-		push @{$r}, $part;
-	}
-
-	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
-
-		my $part = $plugin->output_dataobj( $item, %opts );
-		if( defined $opts{fh} )
-		{
-			print {$opts{fh}} $part;
-		}
-		else
-		{
-			push @{$r}, $part;
-		}
-	} );
-
-	$part= "</$toplevel>\n";
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $part;
-	}
-	else
-	{
-		push @{$r}, $part;
-	}
-
-
-	if( defined $opts{fh} )
-	{
-		return;
-	}
-
-	return join( '', @{$r} );
-}
-
-sub output_dataobj
-{
-	my( $plugin, $dataobj ) = @_;
-
-	my $itemtype = $dataobj->get_dataset->confid;
-
-	my $xml = $plugin->xml_dataobj( $dataobj );
-
-	return EPrints::XML::to_string( $xml );
 }
 
 sub xml_dataobj

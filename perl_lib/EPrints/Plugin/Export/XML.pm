@@ -39,11 +39,12 @@ sub output_list
 
 	my $type = $opts{list}->get_dataset->confid;
 	my $toplevel = $type."s";
+	my $namespace = EPrints::XML::namespace( "data", "2" );
 	
 	my $r = [];
 
 	my $part;
-	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel xmlns=\"http://eprints.org/ep2/data/2.0\">\n";
+	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel xmlns=\"$namespace\">\n";
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;

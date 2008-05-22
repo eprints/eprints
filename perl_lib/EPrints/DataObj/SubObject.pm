@@ -57,7 +57,7 @@ sub create_from_data
 
 	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 
-	if( defined( $parent ) )
+	if( defined( $self ) && defined( $parent ) )
 	{
 		$self->set_parent( $parent );
 	}
