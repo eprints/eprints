@@ -455,7 +455,7 @@ sub to_xml
 {
 	my( $self, %opts ) = @_;
 
-	my $frag = $self->SUPER::to_xml( %opts );
+	my $file = $self->SUPER::to_xml( %opts );
 
 	# This is a bit of a hack to inject the publicly accessible URL of data
 	# files in documents into XML exports.
@@ -464,7 +464,6 @@ sub to_xml
 	if( $self->get_value( "datasetid" ) eq "document" &&
 		$self->get_value( "bucket" ) eq "data" )
 	{
-		my( $file ) = $frag->getElementsByTagName( "file" );
 		my $doc = $self->get_parent();
 		my $url = $doc->get_url( $self->get_value( "filename" ) );
 		my $e = $self->{session}->make_element( "url" );
@@ -472,7 +471,7 @@ sub to_xml
 		$e->appendChild( $self->{session}->make_text( $url ) );
 	}
 
-	return $frag;
+	return $file;
 }
 
 1;

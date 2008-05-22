@@ -97,7 +97,9 @@ sub output_dataobj
 
 	my $xml = $plugin->xml_dataobj( $dataobj );
 
-	return EPrints::XML::to_string( $xml );
+	EPrints::XML::tidy( $xml, {}, 1 );
+
+	return EPrints::XML::to_string( $xml ) . "\n";
 }
 
 sub xml_dataobj

@@ -7495,3 +7495,8 @@ EPRINTS-3.1-beta-2
 2008-05-20 cjg
  * Added policies page with a link to OpenDOAR.
  * Linked to policies page from default homepage.
+
+2008-05-22 tdb
+ * Moved XML::tidy from DataObjs into export plugins
+ * Removed getElementsByTagName in DataObj::File, fixing #3376
+

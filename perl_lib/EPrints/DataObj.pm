@@ -1087,14 +1087,7 @@ sub to_xml
 		}
 	}
 
-	EPrints::XML::tidy( $r, {}, 1 );
-
-	my $frag = $self->{session}->make_doc_fragment;
-	$frag->appendChild( $self->{session}->make_text( "  " ) );
-	$frag->appendChild( $r );
-	$frag->appendChild( $self->{session}->make_text( "\n" ) );
-
-	return $frag;
+	return $r;
 }
 
 ######################################################################
