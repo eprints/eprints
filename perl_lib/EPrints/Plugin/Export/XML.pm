@@ -96,7 +96,7 @@ sub output_dataobj
 
 	EPrints::XML::tidy( $xml, {}, 1 );
 
-	return EPrints::XML::to_string( $xml ) . "\n";
+	return "  " . EPrints::XML::to_string( $xml ) . "\n";
 }
 
 sub xml_dataobj
