@@ -266,6 +266,27 @@ $c->{eprint_render} = sub
 		$session->html_phrase( "page:deposited_by" ),
 		$usersname ) );
 
+	if( $eprint->is_set( "sword_depositor" ) )
+	{
+		my $depositor = new EPrints::DataObj::User(
+					$eprint->{session},
+					$eprint->get_value( "sword_depositor" ) );
+		my $depo_user;
+		if( defined $depositor )
+		{
+			$depo_user = $depositor->render_description();
+		}
+		else
+		{
+			$depo_user = $session->html_phrase( "page:invalid_user" );
+		}
+
+		$table->appendChild( $session->render_row(
+			$session->html_phrase( "page:sword_deposited_by" ),
+			$depo_user) );
+	}
+
+
 	if( $eprint->is_set( "datestamp" ) )
 	{
 		$table->appendChild( $session->render_row(

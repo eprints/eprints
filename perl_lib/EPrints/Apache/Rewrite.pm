@@ -86,6 +86,7 @@ sub handler
 	if( defined $econf ) { @exceptions = @{$econf}; }
 	push @exceptions,
 		$cgipath,
+		"$urlpath/sword-app/",
 		"$urlpath/thumbnails/";
 
 	foreach my $exppath ( @exceptions )

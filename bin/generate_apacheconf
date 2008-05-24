@@ -442,6 +442,16 @@ print CONF <<END;
   # You must add $http_root/archive/ to rewrite_exceptions in cfg.d/urls.pl
   Redirect $http_root/archive/ http://$hostport$http_root/
 
+  <Location "$http_root/sword-app/deposit">
+    SetHandler perl-script
+    PerlResponseHandler EPrints::Sword::DepositHandler
+  </Location>
+
+  <Location "$http_root/sword-app/servicedocument">
+    SetHandler perl-script
+    PerlResponseHandler EPrints::Sword::ServiceDocument
+  </Location>
+
   Alias $http_root/thumbnails/ $archiveroot/thumbnails/
   Alias $http_cgiroot $cgidir
   Alias $http_root/ $htdocs_path/
@@ -479,7 +489,7 @@ print CONF <<END;
   # a "Location" block as it occurs before the
   # Location is known.
   PerlTransHandler EPrints::Apache::Rewrite
-
+  
 END
 
 my @langs = @{$repository->get_conf( "languages" )};

@@ -7516,3 +7516,6 @@ EPRINTS-3.1-beta-2
  * Fixed DataObj::File::get_defaults not overwriting fileid values
  * Fixed removing files
 
+2008-05-24 cjg
+ * Added SWORD support.
+
