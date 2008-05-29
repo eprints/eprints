@@ -443,7 +443,7 @@ sub xml_to_conditions
 		}
 
 		my $merge = $xml->getAttribute( "merge" );
-		if( defined $merge && $merge !~ m/^AND|ALL|$/ )
+		if( defined $merge && $merge !~ m/^ANY|ALL|$/ )
 		{
 			return( undef, "merge set to $merge. Can only be ANY or ALL." );
 		}

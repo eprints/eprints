@@ -460,7 +460,7 @@ print CONF <<END;
     # ErrorDocument 401 $http_root/error401.html
     ErrorDocument 404 $http_cgiroot/handle_404
     PerlSetVar EPrints_ArchiveID $repository_id
-    Redirect $http_root/perl/ http://$hostport$http_cgiroot
+    Redirect $http_root/perl/ http://$hostport$http_cgiroot/
 
     PerlSetVar EPrints_Dir_SecuredCGI $cgidir/users
     PerlSetVar EPrints_Dir_Documents $documents_path

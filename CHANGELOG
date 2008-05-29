@@ -7519,3 +7519,12 @@ EPRINTS-3.1-beta-2
 2008-05-24 cjg
  * Added SWORD support.
 
+2008-05-27 tdb
+ * Added --description and --source-repository options to bin/import
+
+2008-05-29 cjg
+ * Fixed bug in rendering of XHTML values in EPScript.
+ * Fixed some out-of-data apache methods in the VLit extension.
+ * Fixed a typo in the toolbox code s/AND/ANY/
+ * Fixed missing / with redirecting /perl/ to /cgi/
+

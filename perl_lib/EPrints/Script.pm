@@ -75,7 +75,7 @@ sub print
 
 	if( $result->[1] eq "XHTML"  )
 	{
-		return $result->[0];
+		return $state->{session}->clone_for_me( $result->[0], 1 );
 	}
 	if( $result->[1] eq "BOOLEAN"  )
 	{
@@ -310,6 +310,7 @@ sub run_PROPERTY
 		my $v = $objvar->[0]->{ $self->{value} };
 		my $type = ref( $v );
 		$type = "STRING" if( $type eq "" ); 	
+		$type = "XHTML" if( $type =~ /^XML::/ );
 		return [ $v, $type ];
 	}
 	if( $ref !~ m/::/ )
