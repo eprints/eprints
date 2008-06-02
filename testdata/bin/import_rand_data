@@ -65,7 +65,6 @@ my $session = new EPrints::Session( 1 , $archiveid, $noise );
 exit( 1 ) unless( defined $session );
 
 my $db = $session->get_database;
-#$db->set_timer( 1 );
 
 $datasetid = "archive" unless defined $datasetid;
 $total ||= 1000;

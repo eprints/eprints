@@ -2832,14 +2832,9 @@ sub do
 		$sql = $self->{session}->get_repository->call( 'sql_adjust', $sql );
 	}
 	
-	my( $secs, $micro );
 	if( $self->{debug} )
 	{
 		$self->{session}->get_repository->log( "Database execute debug: $sql" );
-	}
-	if( $self->{timer} )
-	{
-		($secs,$micro) = gettimeofday();
 	}
 	my $result = $self->{dbh}->do( $sql );
 
@@ -2866,12 +2861,6 @@ sub do
 		}
 		$self->{session}->get_repository->log( "Giving up after 10 tries" );
 		return undef;
-	}
-	if( $self->{timer} )
-	{
-		my($secs2,$micro2) = gettimeofday();
-		my $s = ($secs2-$secs)+($micro2-$micro)/1000000;
-		$self->{session}->get_repository->log( "$s : $sql" );
 	}
 
 	if( defined $result )
@@ -3374,26 +3363,6 @@ sub exists
 ######################################################################
 =pod
 
-=item $db->set_timer( $boolean )
-
-Set the detailed timing option.
-
-=cut
-######################################################################
-
-sub set_timer
-{
-	my( $self, $boolean ) = @_;
-
-	$self->{timer} = $boolean;
-	eval 'use Time::HiRes qw( gettimeofday );';
-
-	if( $@ ne "" ) { EPrints::abort $@; }
-}
-
-######################################################################
-=pod
-
 =item $db->set_debug( $boolean )
 
 Set the SQL debug mode to true or false.
@@ -3761,238 +3730,6 @@ sub index_dequeue
 ######################################################################
 =pod
 
-=back
-
-=head2 Permissions
-
-=over 4
-
-=item $db->add_roles( $privilege, $ip_from, $ip_to, @roles )
-
-Add $privilege to @roles, optionally in net space $ip_from to $ip_to.
-
-If $privilege begins with '@' adds @roles to that group.
-
-=cut
-######################################################################
-
-sub add_roles
-{
-	my( $self, $priv, $ip_f, $ip_t, @roles ) = @_;
-	my $sql;
-
-	# Adding users to groups
-	if( $priv =~ /^\@/ ) {
-		foreach my $role (@roles)
-		{
-			$self->do(
-				"REPLACE permission_group (user,role) VALUES (" .
-					$self->quote_value( $role ) . "," .
-					$self->quote_value( $priv ) . ")"
-			);
-		}
-	}
-	# Adding privileges to roles
-	else
-	{
-		# Convert quad-dotted to long to allow easy lookup
-		$ip_f = $ip_f ? EPrints::Utils::ip2long( $ip_f ) : "null";
-		$ip_t = $ip_t ? EPrints::Utils::ip2long( $ip_t ) : "null";
-
-		foreach my $role (@roles)
-		{
-			$self->do(
-				"REPLACE permission (role,privilege,net_from,net_to) VALUES (" .
-					$self->quote_value( $role ) . "," .
-					$self->quote_value( $priv ) . "," .
-					$ip_f . "," .
-					$ip_t . ")"
-			);
-		}
-	}
-
-	return scalar(@roles);
-}
-
-######################################################################
-=pod
-
-=item $db->remove_roles( $privilege, $ip_from, $ip_to, @roles )
-
-Remove $privilege from @roles, $ip_from and $ip_to are currently ignored, but this behaviour may change in future.
-
-If $privilege beings with '@' removes @roles from that group instead.
-
-=cut
-######################################################################
-
-sub remove_roles
-{
-	my( $self, $priv, $ip_f, $ip_t, @roles ) = @_;
-	my $sql;
-
-	if( $priv =~ /^\@/ )
-	{
-		foreach my $role (@roles)
-		{
-			$self->do(
-				"DELETE FROM permission_group WHERE " .
-					"user=" . $self->quote_value( $role ) . " AND ".
-					"role=" . $self->quote_value( $priv ) . ""
-			);
-		}
-	}
-	else
-	{
-		foreach my $role (@roles)
-		{
-			$self->do(
-				"DELETE FROM permission WHERE " .
-					"role=" . $self->quote_value( $role ) . " AND ".
-					"privilege=" . $self->quote_value( $priv )
-			);
-		}
-	}
-
-	return scalar( @roles );
-}
-
-######################################################################
-=pod
-
-=item %privs = $db->get_privileges( [$role] )
-
-Return the privileges granted for $role. If $role is undefined returns all set privileges.
-
-Returns a hash:
-
-	role => {
-		priv1 => [ ip_from, ip_to ],
-		priv2 => [ ip_from, ip_to ],
-	}
-
-=cut
-######################################################################
-
-sub get_privileges
-{
-	my( $self, $role ) = @_;
-	my( %privs, $sth, $sql );
-
-	$sql = "SELECT role,privilege,net_from,net_to FROM permission";
-	if( defined( $role ) ) {
-		$sql .= " WHERE role=" . $self->quote_value( $role );
-	}
-	$sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql ) or return;
-	while( my ($r,$priv,$ip_from,$ip_to) = $sth->fetchrow_array )
-	{
-		$ip_from = EPrints::Utils::long2ip( $ip_from ) if defined($ip_from);
-		$ip_to = EPrints::Utils::long2ip( $ip_to ) if defined($ip_to);
-		$privs{$r}->{$priv} = [$ip_from, $ip_to];
-	}
-
-	return %privs;
-}
-
-######################################################################
-=pod
-
-=item %groups = $db->get_groups( [$role] )
-
-Returns a list of groups that $role belongs to, or all groups if $role is undefined.
-
-Returns a hash:
-
-	role => [ group1, group2, group3 ]
-
-=cut
-######################################################################
-
-sub get_groups
-{
-	my( $self, $role ) = @_;
-	my( %groups, $sth, $sql );
-
-	$sql = "SELECT user,role FROM permission_group";
-	if( defined( $role ) ) {
-		$sql .= " WHERE user=" . $self->quote_value( $role );
-	}
-	$sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql ) or return;
-	while( my ($user,$r) = $sth->fetchrow_array )
-	{
-		push @{$groups{$user}}, $r;
-	}
-
-	return %groups;
-}
-
-######################################################################
-=pod
-
-=item @roles = $db->get_roles( $privilege, $remote_ip, @roles )
-
-Get the matching roles for @roles that have $privilege, optionally restricted to $remote_ip.
-
-=cut
-######################################################################
-
-sub get_roles
-{
-	my ( $self, $priv, $ip, @roles ) = @_;
-	my ( @permitted_roles, $sth, $sql, @clauses );
-
-	# Standard WHERE clauses
-	if( $priv =~ s/\.\*$// ) {
-		push @clauses, "privilege LIKE " . $self->quote_value( prep_like_value($priv)."\%" );
-	} else {
-		push @clauses, "privilege = " . $self->quote_value( $priv );
-	}
-	if( defined( $ip ) )
-	{
-		my $longip = EPrints::Util::ip2long( $ip );
-		push @clauses, "(net_from IS NULL OR ($longip >= net_from AND $longip <= net_to))";
-	}
-
-	# Get roles from the permissions table
-	$sql = "SELECT role FROM permission WHERE ";
-	$sql .= join(
-		" AND ",
-		@clauses,
-		"(" . join(' OR ', map { "role = " . $self->quote_value( $_ ) } @roles) . ")"
-	);
-	
-	# Provide a generic privilege query
-	$sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql ) or return;
-	while( my ($role) = $sth->fetchrow_array )
-	{
-		push @permitted_roles, $role;
-	}
-
-	# Get roles inherited from group membership
-	$sql = "SELECT G.role FROM permission_group AS G, permission AS P WHERE ";
-	$sql .= join(
-		 " AND ",
-		 "G.role=P.role",
-		@clauses,
-		"(" . join(' OR ', map { "G.role = " . $self->quote_value( $_ ) } @roles) . ")"
-	);
-	
-	$sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql ) or return;
-	while( my ($role) = $sth->fetchrow_array )
-	{
-		push @permitted_roles, $role;
-	}
-
-	return @permitted_roles;
-}
-
-######################################################################
-=pod
-
 =item $version = $db->get_server_version
 
 Return the database server version.
@@ -4000,12 +3737,7 @@ Return the database server version.
 =cut
 ######################################################################
 
-sub get_server_version
-{
-	my( $self ) = @_;
-
-	return undef;
-}
+sub get_server_version;
 
 ######################################################################
 =pod

@@ -7528,3 +7528,6 @@ EPRINTS-3.1-beta-2
  * Fixed a typo in the toolbox code s/AND/ANY/
  * Fixed missing / with redirecting /perl/ to /cgi/
 
+2008-06-02 tdb
+ * Removed set_timer() method - MySQL already supports slow query logging
+
