@@ -7530,4 +7530,5 @@ EPRINTS-3.1-beta-2
 
 2008-06-02 tdb
  * Removed set_timer() method - MySQL already supports slow query logging
+ * Weaken the memory cycle between DataObjs and Session (current_user)
 
