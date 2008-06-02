@@ -31,7 +31,7 @@ as easily as possible.
 The database object is created automatically when you start a new
 eprints session. To get a handle on it use:
 
-$db = $session->get_repository
+$db = $session->get_database
 
 =head2 Cross-database Support
 
@@ -2896,8 +2896,7 @@ sub prepare
 #		$self->{session}->get_repository->log( "Database prepare debug: $sql" );
 #	}
 
-	my $result = $self->{dbh}->prepare( $sql )
-		or Carp::confess $self->{dbh}->errstr;
+	my $result = $self->{dbh}->prepare( $sql );
 	my $ccount = 0;
 	if( !$result )
 	{
@@ -2921,7 +2920,7 @@ sub prepare
 			}
 		}
 		$self->{session}->get_repository->log( "Giving up after 10 tries" );
-		return undef;
+		Carp::confess( $self->{dbh}->{errstr} );
 	}
 
 	return $result;
