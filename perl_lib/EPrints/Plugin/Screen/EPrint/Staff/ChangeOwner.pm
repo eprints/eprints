@@ -71,14 +71,6 @@ sub action_setowner
 		return;
 	}
 
-	my $eprintid = $session->param( "eprintid" );
-
-	return unless EPrints::Utils::is_set( $eprintid );
-
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
-
-	return unless $eprint;
-
 	$eprint->set_value( "userid", $user->get_id );
 	$eprint->commit;
 
