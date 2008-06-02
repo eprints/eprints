@@ -2903,7 +2903,11 @@ sub prepare
 		$self->{session}->get_repository->log( "SQL ERROR (prepare): $sql" );
 		$self->{session}->get_repository->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
 
-		return undef unless( $self->{dbh}->err == 2006 );
+		# MySQL disconnect?
+		if( $self->{dbh}->err == 2006 )
+		{
+			EPrints::abort( $self->{dbh}->{errstr} );
+		}
 
 		my $ccount = 0;
 		while( $ccount < 10 )
@@ -2920,7 +2924,8 @@ sub prepare
 			}
 		}
 		$self->{session}->get_repository->log( "Giving up after 10 tries" );
-		Carp::confess( $self->{dbh}->{errstr} );
+
+		EPrints::abort( $self->{dbh}->{errstr} );
 	}
 
 	return $result;
