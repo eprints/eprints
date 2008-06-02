@@ -1281,6 +1281,14 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/EPrint/Staff/Edit:title">Edit item</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Staff/Edit:description">Edit item (as an editor)</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:action:changeowner:title">Change Owner</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:action:changeowner:description">Change the owner of this eprint</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:title">Change Eprint Owner</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:changeowner">Change</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:cancel">Cancel</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:invaliduser">The username given was not a valid user account</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Staff/ChangeOwner:changedowner">Transferred ownership of this eprint to "<epc:pin name="user"/>".</epp:phrase>
+
     <epp:phrase id="Plugin/Screen/EPrint/Move:status_changed">Status of item changed to "<epc:pin name="status"/>".</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Move:cant_move">Problem changing status of item with the ID "<epc:pin name="id"/>".</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Move:action:move_archive:title">Move to Repository</epp:phrase>
