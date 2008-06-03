@@ -2706,6 +2706,79 @@ sub get_values
 ######################################################################
 =pod
 
+=item $values = $db->sort_values( $field, $values [, $langid ] )
+
+ALPHA!!! Liable to API change!!!
+
+Sorts and returns the list of $values using the database.
+
+$field is used to get the order value for each value. $langid (or $session->get_langid if unset) is used to determine the database collation to use when sorting the resulting order values.
+
+=cut
+######################################################################
+
+sub sort_values
+{
+	my( $self, $field, $values, $langid ) = @_;
+
+	my $session = $self->{session};
+
+	$langid ||= $session->get_langid;
+
+	# we'll use a cachemap but inverted (order by the key and use the pos)
+	my $cachemap = EPrints::DataObj::Cachemap->create_from_data( $session, {
+		lastused => time(),
+		oneshot => "TRUE",
+	});
+	my $table  = $cachemap->get_sql_table_name;
+
+	# collation-aware field to use to order by
+	my $ofield = $field->create_ordervalues_field(
+		$session,
+		$langid
+	);
+
+	# create a table to sort the values in
+	$self->_create_table( $table, [ "pos" ], [
+		$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
+		$ofield->get_sql_type( $session, 1 ),
+	]);
+
+	# insert all the order values with their index in $values
+	my @pairs;
+	my $i = 0;
+	foreach(@$values)
+	{
+		push @pairs, [
+			$i++,
+			$field->ordervalue_single( $_, $session, $langid )
+		];
+	}
+	$self->insert( $table, [ "pos", $ofield->get_sql_names ], @pairs );
+
+	# retrieve the order the values should be in
+	my $Q_table = $self->quote_identifier( $table );
+	my $Q_index = $self->quote_identifier( "pos" );
+	my $Q_ovalue = $self->quote_identifier( $ofield->get_sql_names );
+	my $sth = $self->prepare( "SELECT $Q_index FROM $Q_table ORDER BY $Q_ovalue ASC" );
+	$sth->execute;
+	my @values;
+	my $row;
+	while( $row = $sth->fetch ) 
+	{
+		push @values, $values->[$row->[0]];
+	}
+	$sth->finish;
+
+	# clean up
+	$cachemap->remove();
+
+	return \@values;
+}
+
+######################################################################
+=pod
+
 =item $ids = $db->get_ids_by_field_values( $field, $dataset [ %opts ] )
 
 Return a reference to a hash table where the keys are field value ids and the value is a reference to an array of ids.

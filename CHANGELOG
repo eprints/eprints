@@ -7535,4 +7535,5 @@ EPRINTS-3.1-beta-2
 
 2008-06-03 tdb
  * Moved tokenizing code from Index.pm into Index/Tokenizer.pm
+ * Sort field values using the database
 

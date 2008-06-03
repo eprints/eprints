@@ -814,41 +814,8 @@ sub sort_values
 {
 	my( $self, $session, $in_list ) = @_;
 
-	my $o_keys = {};
-	my $langid = $session->get_langid;
-	foreach my $value ( @{$in_list} )
-	{
-		$o_keys->{$value} = $self->ordervalue_basic( 
-						$value,
-						$session,
-						$langid );
-	}
-	my @out_list = sort { _normalcmp($o_keys->{$a}, $o_keys->{$b}) } @{$in_list};
-
-	return \@out_list;
+	return $session->get_database->sort_values( $self, $in_list );
 }
-
-
-sub _normalize 
-{
-	my( $in ) = @_;
-  	
-	$in = "$in";
-	utf8::decode($in);
-
-	$in =~ s/^\s+//;
-
-	# lowercase after unidecode, so we "lowercase" i18n.
-	return lc(Text::Unidecode::unidecode( $in ));
-}
-
-sub _normalcmp
-{
-	my( $i, $j ) = @_;
-
-	return( (_normalize($i) cmp _normalize($j)) or ($i cmp $j ) );
-}
-
 
 
 ######################################################################
