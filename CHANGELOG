@@ -7533,3 +7533,6 @@ EPRINTS-3.1-beta-2
  * Weaken the memory cycle between DataObjs and Session (current_user)
  * Staff eprint action screen to change eprint owner
 
+2008-06-03 tdb
+ * Moved tokenizing code from Index.pm into Index/Tokenizer.pm
+

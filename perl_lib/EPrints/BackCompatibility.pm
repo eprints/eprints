@@ -394,6 +394,10 @@ sub load_workflows
 	$self->{workflows_loaded} = 1;
 }
 
+package EPrints::Index;
+
+sub split_words { &EPrints::Index::Tokenizer::split_words }
+sub apply_mapping { &EPrints::Index::Tokenizer::apply_mapping }
 
 
 1;
