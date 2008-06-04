@@ -273,17 +273,22 @@ sub build_email
 	$html->attr("Content-disposition" => "");
 	$mimemsg->attach( $html );
 
-	for( @{ $p{attach} } )
+	if( !$p{attach} )
 	{
-		my $part = MIME::Lite->new(
-			Type => guess_media_type( $_ ),
-			Path => $_,
-		);
-		$mixedmsg->attach( $part );
-		return $mixedmsg;
+		# not a multipart message
+		return $mimemsg;
 	}
 
-	return $mimemsg;
+	foreach my $file ( @{ $p{attach} } )
+	{
+		my $part = MIME::Lite->new(
+			Type => guess_media_type( $file ),
+			Path => $file,
+		);
+		$mixedmsg->attach( $part );
+	}
+
+	return $mixedmsg;
 }
 
 

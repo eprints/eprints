@@ -7540,3 +7540,6 @@ EPRINTS-3.1-beta-2
 2008-06-04 tdb
  * Fixed views not working for name-type metafields, fixing #3380
 
+2008-06-04 cjg
+ * Fixed bug which meant only first attachment to an email actually
+    got attached.
