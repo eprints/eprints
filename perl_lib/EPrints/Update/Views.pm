@@ -196,6 +196,11 @@ sub get_filters
 
 	for( my $i=0; $i<$menu_level; ++$i )
 	{
+		if( $path_values->[$i] eq "NULL" )
+		{
+			push @{$filters}, { fields=>$fields[$i], value=>undef };
+			next;
+		}
 		my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
 		my $value = $key_values->{$path_values->[$i]};
 		if( !defined($value) )
@@ -621,6 +626,11 @@ sub update_view_list
 		# check values are valid
 		for( my $i=0; $i<$menu_level; ++$i )
 		{
+			if( $path_values->[$i] eq "NULL" )
+			{
+				push @{$filters}, { fields=>$fields[$i], value=>undef };
+				next;
+			}
 			my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
 			my $value = $key_values->{$path_values->[$i]};
 			if( !defined($value) )
