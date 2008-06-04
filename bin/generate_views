@@ -221,6 +221,7 @@ sub update_view_by_path
 		foreach my $menu_value ( keys %{$sizes} )
 		{
 			my %newopts = %opts;
+			$menu_value = EPrints::Utils::escape_filename( $menu_value );
 			$newopts{path} = [@{$newopts{path}}, $menu_value];
 			push @files, update_view_by_path( %newopts );
 		}

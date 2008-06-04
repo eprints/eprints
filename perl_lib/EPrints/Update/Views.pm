@@ -196,21 +196,14 @@ sub get_filters
 
 	for( my $i=0; $i<$menu_level; ++$i )
 	{
-		my $ok = 0;
-		LEVELTEST: foreach my $a_value ( get_fieldlist_values( $session, $ds, $fields[$i] ) )
+		my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
+		my $value = $key_values->{$path_values->[$i]};
+		if( !defined($value) )
 		{
-			if( $a_value eq $path_values->[$i] )
-			{
-				$ok = 1;
-				last LEVELTEST;
-			}
-		}
-		if( !$ok )
-		{
-			$repository->log( "Invalid path value '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
+			$repository->log( "Invalid value id in get_filters '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
 			return;
 		}
-		push @{$filters}, { fields=>$fields[$i], value=>$path_values->[$i] };
+		push @{$filters}, { fields=>$fields[$i], value=>$value };
 	}
 
 	return $filters;
@@ -289,7 +282,8 @@ sub update_view_menu
 	# fields for the current menu level
 	my @menu_fields = @{$fields[$menu_level]};
 
-	my @values = get_fieldlist_values( $session, $ds, \@menu_fields );
+	my $key_values = get_fieldlist_values( $session, $ds, \@menu_fields );
+	my @values = values %$key_values;
 
 	if( !$view->{allow_null} )
 	{
@@ -418,34 +412,17 @@ sub get_fieldlist_values
 {
 	my( $session, $ds, $fields ) = @_;
 
-	if( $fields->[0]->is_type( "name" ) )
-	{
-		my %v=();
-		foreach my $field ( @{$fields} )
-		{
-			my $vref = $field->get_values( $session, $ds );
-			foreach( @{$vref} )
-			{
-				if( !defined $_ ) { $_=""; }
-				$_->{given} = '' unless defined( $_->{given} );
-				$_->{family} = '' unless defined( $_->{family} );
-				$v{$_->{given}.':'.$_->{family}}=$_; 
-			}
-		}
-		return values %v;
-	}
-
 	my %v=();
 	foreach my $field ( @{$fields} )
 	{
 		my $vref = $field->get_values( $session, $ds );
 		foreach( @{$vref} )
 		{ 
-			if( !defined $_ ) { $_=""; }
-			$v{$_}=1; 
+			my $id = $fields->[0]->get_id_from_value( $session, $_ );
+			$v{defined($id) ? $id : ""} = $_; # hash key can't be undef
 		}
 	}
-	return keys %v;
+	return \%v;
 }
 
 sub render_view_menu
@@ -514,11 +491,11 @@ sub render_view_menu
 
 		next if( $view->{hideempty} && $size == 0 );
 
-		my $fileid = &mk_file_id( $value, $fields->[0]->get_type );
+		my $fileid = $fields->[0]->get_id_from_value( $session, $value );
 
 		my $li = $session->make_element( "li" );
 
-		my $link = $fileid;
+		my $link = EPrints::Utils::escape_filename( $fileid );
 		if( $has_submenu )
 		{
 			$link .= '/';
@@ -584,19 +561,6 @@ sub render_view_subj_menu
 }
 
 
-sub mk_file_id
-{
-	my( $value, $type ) = @_;
-
-	my $fileid = $value;
-	if( $type eq "name" )
-	{
-		$fileid = EPrints::Utils::make_name_string( $value );
-	}
-
-	return EPrints::Utils::escape_filename( $fileid );
-}
-
 sub get_fields_from_config
 {
 	my( $ds, $fieldconfig ) = @_;
@@ -657,21 +621,14 @@ sub update_view_list
 		# check values are valid
 		for( my $i=0; $i<$menu_level; ++$i )
 		{
-			my $ok = 0;
-			LEVELTEST: foreach my $a_value ( get_fieldlist_values( $session, $ds, $fields[$i] ) )
+			my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
+			my $value = $key_values->{$path_values->[$i]};
+			if( !defined($value) )
 			{
-				if( $a_value eq $path_values->[$i] )
-				{
-					$ok = 1;
-					last LEVELTEST;
-				}
-			}
-			if( !$ok )
-			{
-				$repository->log( "Invalid path value '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} ) );
+				$repository->log( "Invalid value id in update_view_list '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
 				return;
 			}
-			push @{$filters}, { fields=>$fields[$i], value=>$path_values->[$i] };
+			push @{$filters}, { fields=>$fields[$i], value=>$value };
 		}
 	}
 
@@ -1133,7 +1090,7 @@ sub render_array_of_eprints
 		my $ctype = $view->{citation}||"default";
 		if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
 		{
-			$session->{citesdone}->{$ctype}->{$item->get_id} = $item->render_citation_link( $view->{citation} )->toString;;
+			$session->{citesdone}->{$ctype}->{$item->get_id} = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ) );
 		}
 		my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
 

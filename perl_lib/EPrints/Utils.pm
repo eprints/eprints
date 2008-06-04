@@ -1175,6 +1175,8 @@ sub unescape_filename
 	$fileid =~ s/==(....)/chr(hex($1))/eg;
 	$fileid =~ s/=(..)/chr(hex($1))/eg;
 
+	utf8::encode($fileid);
+
 	return $fileid;
 }
 
