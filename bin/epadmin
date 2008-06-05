@@ -182,6 +182,10 @@ This option does not do anything.
 
 Explain in detail what is going on. May be repeated for greater effect.
 
+=item B<--force>
+
+Be more forceful (don't ask for confirmation).
+
 =item B<--version>
 
 Output version information and exit.
@@ -211,6 +215,7 @@ my $quiet = 0;
 my $help = 0;
 my $man = 0;
 my $version = 0;
+my $force = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -218,7 +223,8 @@ GetOptions(
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
-	'quiet' => \$quiet
+	'quiet' => \$quiet,
+	'force' => \$force,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "epadmin" ) if $version;
 pod2usage( 1 ) if $help;
@@ -1189,7 +1195,7 @@ but NOT the configuration files.
 
 END
 	
-	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	my $sure = $force || EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
 	unless( $sure )
 	{
 		print "Aborting then.\n";
@@ -1305,8 +1311,8 @@ sub drop_tables_and_recreate_db
 		$db->drop_table( $_ ) if $db->has_table( $_ );
 	}
 
-	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
-	if( $mktables eq "yes" )
+	my $mktables = $force || EPrints::Utils::get_input_confirm( "Create database tables?", 0, 1 ); # not quick, default to "yes"
+	if( $mktables )
 	{
 		create_tables( $repoid );
 	}

@@ -835,10 +835,12 @@ sub get_input_hidden
 ######################################################################
 =pod
 
-=item EPrints::Utils::get_input_confirm( [$prompt], [$quick] )
+=item EPrints::Utils::get_input_confirm( [$prompt], [$quick], [$default] )
 
 Asks the user for confirmation (yes/no). If $quick is true only checks for a
 single-character input ('y' or 'n').
+
+If $default is '1' defaults to yes, if '0' defaults to no.
 
 Returns true if the user answers 'yes' or false for any other value.
 
@@ -847,12 +849,17 @@ Returns true if the user answers 'yes' or false for any other value.
 
 sub get_input_confirm
 {
-	my( $prompt, $quick ) = @_;
+	my( $prompt, $quick, $default ) = @_;
 
 	$prompt = "" if( !defined $prompt );
+	if( defined($default) )
+	{
+		$default = $default ? "yes" : "no";
+	}
 
 	if( $quick )
 	{
+		$default = substr($default,0,1) if defined $default;
 		$prompt .= " [y/n] ? ";
 		print wrap_text( $prompt, 'console' );
 
@@ -862,22 +869,24 @@ sub get_input_confirm
 			Term::ReadKey::ReadMode( 'raw' );
 			$in = lc(Term::ReadKey::ReadKey( 0 ));
 			Term::ReadKey::ReadMode( 'normal' );
+			$in = $default if ord($in) == 10 && defined $default;
 		}
-		if( $in eq "y" ) { print wrap_text( "yes" ); }
-		if( $in eq "n" ) { print wrap_text( "no" ); }
+		if( $in eq "y" ) { print wrap_text( "es" ); }
+		if( $in eq "n" ) { print wrap_text( "o" ); }
 		print "\n";
 		return( $in eq "y" );
 	}
 	else
 	{
-		$prompt .= " [yes/no] ? ";
+		$prompt .= defined($default) ? " [$default] ? " : " [yes/no] ? ";
 		my $in="";
-		while( $in ne "no" && $in ne "yes" )
+		while($in ne "no" && $in ne "yes")
 		{
 			print wrap_text( $prompt, 'console' );
 
 			$in = lc(Term::ReadKey::ReadLine( 0 ));
 			$in =~ s/\015?\012?$//s;
+			$in = $default if length($in) == 0 && defined $default;
 		}
 		return( $in eq "yes" );
 	}
