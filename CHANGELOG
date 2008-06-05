@@ -7543,3 +7543,7 @@ EPRINTS-3.1-beta-2
 2008-06-04 cjg
  * Fixed bug which meant only first attachment to an email actually
     got attached.
+
+2008-06-05 tdb
+ * Trap die()s in Repository::parse_xml(), fixing #3220
+

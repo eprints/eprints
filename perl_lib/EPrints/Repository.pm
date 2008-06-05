@@ -1300,12 +1300,14 @@ sub get_store_dir_size
 
 =item $domdocument = $repository->parse_xml( $file, $no_expand );
 
-Turns the given $file into a XML DOM/GDOME document. If $no_expand
+Turns the given $file into a XML DOM document. If $no_expand
 is true then load &entities; but do not expand them to the values in
 the DTD.
 
 This function also sets the path in which the Parser will look for 
 DTD files to the repository's config directory.
+
+Returns undef if an error occurs during parsing.
 
 =cut
 ######################################################################
@@ -1314,13 +1316,16 @@ sub parse_xml
 {
 	my( $self, $file, $no_expand ) = @_;
 
-	my $doc = EPrints::XML::parse_xml( 
-		$file, 
-		$self->get_conf( "variables_path" )."/",
-		$no_expand );
+	my $doc;
+	eval {
+		$doc = EPrints::XML::parse_xml( 
+			$file, 
+			$self->get_conf( "variables_path" )."/",
+			$no_expand );
+	};
 	if( !defined $doc )
 	{
-		$self->log( "Failed to parse XML file: $file" );
+		$self->log( "Failed to parse XML file: $file: $@" );
 	}
 	return $doc;
 }
