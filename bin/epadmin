@@ -973,18 +973,30 @@ sub create_user
 	exit unless( defined $session );
 
 	my $user_info = {};
+	@{$user_info}{qw( username usertype password email )} = @ARGV[2..$#ARGV];
+	if( defined($user_info->{username}) &&
+		$user_info->{username} eq "_" )
+	{
+		@{$user_info}{qw( username usertype password email )} = (
+			"admin",
+			"admin",
+			"admin",
+			"admin\@localhost",
+		);
+	}
+
 	print "Creating a new user in $repoid\n\n";
-	$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	$user_info->{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
 	while( defined EPrints::DataObj::User::user_with_username( $session, $user_info->{username} ) )
 	{
 		print STDERR "User with username '".$user_info->{username}."' already exists.\n";
 		$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
 	}
 	my @utypes = $session->get_repository->get_types( "user" );
-	$user_info->{usertype} = EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
-	my $rawpassword = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
-	$user_info->{password} = EPrints::Utils::crypt_password( $rawpassword, $session );
-	$user_info->{email} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
+	$user_info->{usertype} ||= EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
+	$user_info->{password} ||= EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
+	$user_info->{password} = EPrints::Utils::crypt_password( $user_info->{password}, $session );
+	$user_info->{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
 	
 	my $user_ds = $session->get_repository->get_dataset( "user" );
 	my $new_user = $user_ds->create_object( $session, $user_info );
