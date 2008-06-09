@@ -1150,17 +1150,17 @@ sub escape_filename
 	$fileid = "$fileid";
 	utf8::decode($fileid);
 
-	# Valid chars: 0-9, a-z, A-Z, ",", "-", "_", 
-
-	# Replace control chars with "_"
-	$fileid =~ s/[\x00-\x20]/_/g;
+	# Valid chars: 0-9, a-z, A-Z, ",", "-", " "
 
 	# Escape to either '=XX' (8bit) or '==XXXX' (16bit)
-	$fileid =~ s/([^0-9a-zA-Z,\-_])/
+	$fileid =~ s/([^0-9a-zA-Z,\- ])/
 		ord($1) < 256 ?
 			sprintf("=%02X",ord($1)) :
 			sprintf("==%04X",ord($1))
 	/exg;
+
+	# Replace spaces with "_"
+	$fileid =~ s/ /_/g;
 
 	utf8::encode($fileid);
 
@@ -1181,6 +1181,7 @@ sub unescape_filename
 {
 	my( $fileid ) = @_;
 
+	$fileid =~ s/_/ /g;
 	$fileid =~ s/==(....)/chr(hex($1))/eg;
 	$fileid =~ s/=(..)/chr(hex($1))/eg;
 

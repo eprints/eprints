@@ -9,7 +9,6 @@ $c->{browse_views} = [
                 allow_null => 1,
                 fields => "-date;res=year",
                 order => "creators_name/title",
-                subheadings => "type",
 		variations => [
 			"creators_name;first_letter",
 			"type",
@@ -49,7 +48,6 @@ $c->{browse_views} = [
                 nolink => 1,
                 nocount => 0,
                 include => 1,
-                subheadings => "type",
         },
 ];
 

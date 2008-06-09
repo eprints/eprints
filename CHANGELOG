@@ -7554,3 +7554,8 @@ EPRINTS-3.1-beta-2
 
 2008-06-09 cjg
  * Added missing phrase Plugin/InputForm/Component/Upload:conversion_failed
+
+2008-06-09 cjg
+ * Removed unused "subheadings" property from views.pl
+ * Made the encode/decode utils have a one-to-one mapping so it can be 
+    correctly reversed. Fixed issues with view values containing whitespace.
