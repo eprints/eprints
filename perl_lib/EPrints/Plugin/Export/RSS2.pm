@@ -4,7 +4,6 @@ use EPrints::Plugin::Export::Feed;
 
 @ISA = ( "EPrints::Plugin::Export::Feed" );
 
-use Unicode::String qw(latin1);
 use Time::Local;
 
 use strict;

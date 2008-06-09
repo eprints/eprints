@@ -1,19 +1,10 @@
 package EPrints::Plugin::Export::XMLFiles;
 
-use Unicode::String qw( utf8 );
-
 use EPrints::Plugin::Export::XML;
 
 @ISA = ( "EPrints::Plugin::Export::XML" );
 
 use strict;
-
-# The utf8() method is called to ensure that
-# any broken characters are removed. There should
-# not be any broken characters, but better to be
-# sure.
-
-
 
 sub new
 {

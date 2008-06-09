@@ -90,8 +90,6 @@ package EPrints::Session;
 
 use EPrints;
 
-use Unicode::String qw(utf8 latin1);
-
 #use URI::Escape;
 use CGI qw(-compile);
 
@@ -1110,7 +1108,7 @@ sub render_nbsp
 {
 	my( $self ) = @_;
 
-	my $string = latin1(chr(160));
+	my $string = pack("U",160);
 
 	return $self->make_text( $string );
 }
@@ -2487,6 +2485,7 @@ sub write_static_page
 		my $file = $filebase.".".$part_id;
 		if( open( CACHE, ">$file" ) )
 		{
+			binmode(CACHE,":utf8");
 			print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
 			close CACHE;
 			if( defined $wrote_files )
@@ -2504,6 +2503,7 @@ sub write_static_page
 	my $title_textonly_file = $filebase.".title.textonly";
 	if( open( CACHE, ">$title_textonly_file" ) )
 	{
+		binmode(CACHE,":utf8");
 		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title}, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
 		close CACHE;
 		if( defined $wrote_files )
@@ -2758,10 +2758,12 @@ sub send_page
 END
 	if( defined $self->{text_page} )
 	{
+		binmode(STDOUT,":utf8");
 		print $self->{text_page};
 	}
 	else
 	{
+		binmode(STDOUT,":utf8");
 		print EPrints::XML::to_string( $self->{page}, undef, 1 );
 		EPrints::XML::dispose( $self->{page} );
 		delete $self->{page};
@@ -2803,6 +2805,7 @@ END
 		{
 			$wrote_files->{$filename} = 1;
 		}
+		binmode(XMLFILE,":utf8");
 		print XMLFILE $self->{text_page};
 		close XMLFILE;
 	}

@@ -16,8 +16,6 @@ http://www.ukoln.ac.uk/repositories/digirep/index/Eprints_Application_Profile
 
 # documents needs magic files field
 
-use Unicode::String qw( utf8 );
-
 use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
@@ -121,11 +119,6 @@ sub doi_value
 }
 
 use strict;
-
-# The utf8() method is called to ensure that
-# any broken characters are removed. There should
-# not be any broken characters, but better to be
-# sure.
 
 sub new
 {

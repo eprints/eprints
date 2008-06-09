@@ -17,7 +17,6 @@ use warnings;
 
 use Carp;
 use English;
-use Unicode::String;
 
 use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;
@@ -129,7 +128,11 @@ sub export
 			# Unicode::String
 			else
 			{
-				while(<$fh>) { print $fo Unicode::String::latin1($_)->utf8; }
+				eval "use Unicode::String";
+				unless( $@ )
+				{
+					while(<$fh>) { print $fo Unicode::String::latin1($_)->utf8; }
+				}
 			}
 			close( $fh ); close( $fo );
 		}

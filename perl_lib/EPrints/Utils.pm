@@ -29,7 +29,6 @@ This package contains functions which don't belong anywhere else.
 
 package EPrints::Utils;
 
-use Unicode::String qw(utf8 latin1 utf16);
 use File::Copy qw();
 use Text::Wrap qw();
 use LWP::UserAgent;

@@ -7565,3 +7565,8 @@ EPRINTS-3.1-beta-2
     formats, it's just set as "XML".
  * XML files may be viewed and edited by people with the other permissions
     to view/edit config files. Fixing #3339
+
+2008-06-09 tdb
+ * Replaced Unicode::String with Perl-native utf-8 string processing
+ * Metafield::Text now flags data coming from the database as utf-8
+

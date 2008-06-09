@@ -1,7 +1,5 @@
 package EPrints::Plugin::Issues::ExactTitleDups;
 
-use Unicode::String qw( utf8 );
-
 use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Issues" );

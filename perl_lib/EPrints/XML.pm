@@ -34,7 +34,6 @@ package EPrints::XML;
 
 #use EPrints::SystemSettings;
 
-use Unicode::String qw(utf8 latin1);
 use Carp;
 
 @EPrints::XML::COMPRESS_TAGS = qw/br hr img link input meta/;
@@ -53,7 +52,6 @@ else
 }
 
 use strict;
-use bytes;
 
 
 ######################################################################
@@ -296,7 +294,7 @@ sub to_string
 			"ProcessingInstruction",
 			"EntityReference" ) )
 	{
-		push @n, utf8($node->toString); 
+		push @n, $node->toString; 
 	}
 	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
 	{

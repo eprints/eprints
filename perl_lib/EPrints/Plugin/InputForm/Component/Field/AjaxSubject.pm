@@ -4,8 +4,6 @@ use EPrints;
 use EPrints::Plugin::InputForm::Component::Field;
 @ISA = ( "EPrints::Plugin::InputForm::Component::Field" );
 
-use Unicode::String qw(latin1);
-
 use strict;
 
 sub new

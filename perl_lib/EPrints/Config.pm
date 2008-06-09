@@ -58,7 +58,6 @@ package EPrints::Config;
 
 use EPrints;
 
-use Unicode::String qw(utf8 latin1);
 use Data::Dumper;
 use Cwd;
 

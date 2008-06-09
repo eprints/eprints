@@ -63,7 +63,6 @@ package EPrints::MetaField;
 
 use strict;
 
-use Unicode::String qw( utf8 );
 use Text::Unidecode qw();
 
 $EPrints::MetaField::VARCHAR_SIZE 	= 255;

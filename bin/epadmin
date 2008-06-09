@@ -203,7 +203,6 @@ use EPrints;
 
 use Sys::Hostname;
 use DBI;
-use Unicode::String qw(utf8 latin1);
 use Data::Dumper;
 
 use strict;

@@ -40,7 +40,6 @@ package EPrints::Workflow::Processor;
 
 use EPrints;
 
-use Unicode::String qw(utf8 latin1);
 use strict;
 
 ######################################################################

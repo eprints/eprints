@@ -67,6 +67,7 @@ sub handler
 		}
 		if( open( CACHE, $filename.".".$part ) ) 
 		{
+			binmode(CACHE,":utf8");
 			$parts->{"utf-8.".$part} = join("",<CACHE>);
 			close CACHE;
 		}

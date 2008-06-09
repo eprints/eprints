@@ -31,8 +31,6 @@ package EPrints::MetaField::Name;
 use strict;
 use warnings;
 
-use Unicode::String qw( latin1 utf8 );
-
 BEGIN
 {
 	our( @ISA );
@@ -60,6 +58,8 @@ sub value_from_sql_row
 
 	my %value;
 	@value{@PARTS} = splice(@$row,0,4);
+
+	utf8::decode($_) for values %value;
 
 	return \%value;
 }
@@ -535,17 +535,7 @@ sub get_index_codes_basic
 	# up initials. Will screw up names with capital
 	# letters in the middle of words. But that's
 	# pretty rare.
-	my $len_g = $g->length;
-        my $new_g = utf8( "" );
-        for(my $i = 0; $i<$len_g; ++$i )
-        {
-                my $s = $g->substr( $i, 1 );
-                if( $s eq "\U$s" )
-                {
-			$new_g .= ' ';
-                }
-		$new_g .= $s;
-	}
+	$g =~ s/([[:upper:]])/ $1/g;
 
 	my $code = '';
 	my @r = ();
@@ -556,7 +546,7 @@ sub get_index_codes_basic
 		$code.= "[\L$_]";
 	}
 	$code.= "-";
-	foreach( EPrints::Index::split_words( $session, $new_g ) )
+	foreach( EPrints::Index::split_words( $session, $g ) )
 	{
 		next if( $_ eq "" );
 #		push @r, "given:\L$_";

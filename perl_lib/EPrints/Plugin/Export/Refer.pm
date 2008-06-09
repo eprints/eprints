@@ -4,8 +4,6 @@ use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
 
-use Unicode::String qw(latin1);
-
 use strict;
 
 sub new
@@ -132,23 +130,9 @@ sub remove_utf8
 
 	$text = "" unless( defined $text );
 
-	my $stringobj = Unicode::String->new();
-	$stringobj->utf8( $text );
-	my $escstr = "";
+	$text =~ s/[^\x00-\x80]/$char/g;
 
-	foreach($stringobj->unpack())
-	{
-		if( $_ < 128)
-		{
-			$escstr .= chr( $_ );
-		}
-		else
-		{
-			$escstr .= $char;
-		}
-	}
-
-	return $escstr;
+	return $text;
 }
 
 1;

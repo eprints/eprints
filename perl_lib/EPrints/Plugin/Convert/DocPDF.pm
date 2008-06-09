@@ -17,7 +17,6 @@ use warnings;
 
 use Carp;
 use English;
-use Unicode::String;
 
 use EPrints::Plugin::Convert;
 our @ISA = qw/ EPrints::Plugin::Convert /;

@@ -83,8 +83,6 @@ package EPrints::DataObj::History;
 
 use EPrints;
 
-use Unicode::String qw(utf8 latin1);
-
 use strict;
 
 # Override this with 'max_history_width' in a configuration file
@@ -1066,14 +1064,12 @@ sub _mktext
 
 	return () unless length( $text );
 
-	my $lb = utf8("");
-	$lb->pack( 8626 );
+	my $lb = chr(8626);
 	my @bits = split(/[\r\n]/, $text );
 	my @b2 = ();
 	
-	foreach( @bits )
+	foreach my $t2 ( @bits )
 	{
-		my $t2 = utf8($_);
 		while( $offset+length( $t2 ) > $width )
 		{
 			my $cut = $width-1-$offset;
