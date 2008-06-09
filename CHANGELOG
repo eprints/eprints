@@ -7547,3 +7547,7 @@ EPRINTS-3.1-beta-2
 2008-06-05 tdb
  * Trap die()s in Repository::parse_xml(), fixing #3220
 
+2008-06-09 cjg
+ * Added a test for illegal searching of a compound field with a useful 
+    error rather than a crash. Fixies #3329 (still aborts, but is no longer
+    confusing)

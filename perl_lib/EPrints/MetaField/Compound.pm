@@ -422,6 +422,14 @@ sub render_xml_schema_type
 	return $type;
 }
 
+sub get_search_conditions_not_ex
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+
+	EPrints::abort( "Attempt to search compound field. Repository ID=".$session->get_repository->get_id.", dataset=". $self->{dataset}->confid . ", field=" . $self->get_name );
+}
+
 ######################################################################
 
 ######################################################################
