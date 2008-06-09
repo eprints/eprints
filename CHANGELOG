@@ -7551,3 +7551,6 @@ EPRINTS-3.1-beta-2
  * Added a test for illegal searching of a compound field with a useful 
     error rather than a crash. Fixies #3329 (still aborts, but is no longer
     confusing)
+
+2008-06-09 cjg
+ * Added missing phrase Plugin/InputForm/Component/Upload:conversion_failed
