@@ -135,6 +135,8 @@ sub config_file_to_type
 
 	return "Workflow" if( $configfile =~ m#^workflows/[a-z]+/[^/]+\.xml$# );
 
+	return "XML" if( $configfile =~ m#\.xml$# );
+
 	return;
 }
 

@@ -7559,3 +7559,9 @@ EPRINTS-3.1-beta-2
  * Removed unused "subheadings" property from views.pl
  * Made the encode/decode utils have a one-to-one mapping so it can be 
     correctly reversed. Fixed issues with view values containing whitespace.
+
+2008-06-09 cjg
+ * If a config file ends with .xml and does not match one of the config file
+    formats, it's just set as "XML".
+ * XML files may be viewed and edited by people with the other permissions
+    to view/edit config files. Fixing #3339

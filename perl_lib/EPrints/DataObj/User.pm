@@ -1130,6 +1130,7 @@ my $PRIVMAP =
 		"staff/history_search",
 		"staff/issue_search",
 		"config/view",
+		"config/view/xml",
 		"config/view/workflow",
 		"config/view/citation",
 		"config/view/phrase",
@@ -1156,6 +1157,7 @@ my $PRIVMAP =
 	"edit-config" => 
 	[
 		"config/edit",
+		"config/edit/xml",
 		"config/edit/workflow",
 		"config/edit/citation",
 		"config/edit/phrase",

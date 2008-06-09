@@ -6,6 +6,13 @@ use EPrints::Plugin::Screen::Admin::Config::Edit;
 
 use strict;
 
+sub can_be_viewed
+{
+	my( $self ) = @_;
+
+	return $self->allow( "config/edit/xml" );
+}
+
 sub validate_config_file
 {
 	my( $self, $data ) = @_;

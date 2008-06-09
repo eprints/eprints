@@ -6,6 +6,11 @@ use EPrints::Plugin::Screen::Admin::Config::View;
 
 use strict;
 
-# could do something clever later...
+sub can_be_viewed
+{
+	my( $self ) = @_;
+
+	return $self->allow( "config/view/xml" );
+}
 
 1;
