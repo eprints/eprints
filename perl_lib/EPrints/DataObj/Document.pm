@@ -96,6 +96,7 @@ use EPrints::Search;
 
 use File::Basename;
 use File::Copy;
+use File::Find;
 use Cwd;
 use Fcntl qw(:DEFAULT :seek);
 
@@ -550,7 +551,7 @@ sub get_url
 	return $self->get_baseurl unless( defined $file );
 
 	# unreserved characters according to RFC 2396
-	$file =~ s/([^-_\.!~\*'\(\)A-Za-z0-9])/sprintf('%%%02X',ord($1))/ge;
+	$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9])/sprintf('%%%02X',ord($1))/ge;
 	
 	return $self->get_baseurl.$file;
 }
@@ -740,10 +741,10 @@ sub set_main
 	if( defined $main_file )
 	{
 		# Ensure that the file exists
-		my %all_files = $self->files();
+		my $fileobj = $self->get_stored_files( "data", $main_file );
 
 		# Set the main file if it does
-		$self->set_value( "main", $main_file ) if( defined $all_files{$main_file} );
+		$self->set_value( "main", $main_file ) if( defined $fileobj );
 	}
 	else
 	{
@@ -987,15 +988,76 @@ sub add_archive
 {
 	my( $self, $file, $archive_format ) = @_;
 
+	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
+
 	# Do the extraction
 	my $rc = $self->{session}->get_repository->exec( 
 			$archive_format, 
-			DIR => $self->local_path,
+			DIR => $tmpdir,
 			ARC => $file );
 	
+	$self->add_directory( "$tmpdir" );
+
 	$self->files_modified;
 
 	return( $rc==0 );
+}
+
+######################################################################
+=pod
+
+=item $success = $doc->add_directory( $directory )
+
+Upload the contents of $directory to this document. This will not set the main file.
+
+This method expects $directory to have a trailing slash (/).
+
+=cut
+######################################################################
+
+sub add_directory
+{
+	my( $self, $directory ) = @_;
+
+	$directory =~ s/[\/\\]?$/\//;
+
+	my $rc = 1;
+
+	if( !-d $directory )
+	{
+		EPrints::abort( "Attempt to call upload_dir on a non-directory: $directory" );
+	}
+
+	File::Find::find( {
+		no_chdir => 1,
+		wanted => sub {
+			return unless $rc and !-d $File::Find::name;
+			my $filepath = $File::Find::name;
+			my $filename = substr($filepath, length($directory));
+			open(my $filehandle, "<", $filepath);
+			unless( defined( $filehandle ) )
+			{
+				$rc = 0;
+				return;
+			}
+			my $stored = $self->add_stored_file(
+				"data", # bucket
+				$filename,
+				$filehandle,
+				-s $filepath
+			);
+			if( defined($stored) )
+			{
+				$stored->update_md5();
+			}
+			else
+			{
+				$rc = 0;
+			}
+		},
+	}, $directory );
+
+	return $rc;
 }
 
 
@@ -1021,14 +1083,20 @@ sub upload_url
 	
 	# Use the URI heuristic module to attempt to get a valid URL, in case
 	# users haven't entered the initial http://.
-	my $url = URI::Heuristic::uf_uristr( $url_in );
+	my $url = URI::Heuristic::uf_uri( $url_in );
+	if( !$url->path )
+	{
+		$url->path( "/" );
+	}
+
+	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
 
 	# save previous dir
 	my $prev_dir = getcwd();
 
 	# Change directory to destination dir., return with failure if this 
 	# fails.
-	unless( chdir $self->local_path() )
+	unless( chdir "$tmpdir" )
 	{
 		chdir $prev_dir;
 		return( 0 );
@@ -1038,23 +1106,7 @@ sub upload_url
 	# at the top level in the destination dir.
 	
 	# Count slashes
-	my $pos = -1;
-	my $count = -1;
-	
-	do
-	{
-		$pos = index $url, "/", $pos+1;
-		$count++;
-	}
-	while( $pos >= 0 );
-	
-	# Assuming http://server/dir/dir/filename, number of dirs to cut is
-	# $count - 3.
-	my $cut_dirs = $count - 3;
-	
-	# If the result is less than zero, assume no cut dirs (probably have URL
-	# with no trailing slash, an INCORRECT result from URI::Heuristic
-	$cut_dirs = 0 if( $cut_dirs < 0 );
+	my $cut_dirs = substr($url->path,1) =~ tr"/""; # ignore leading /
 
 	my $rc = $self->{session}->get_repository->exec( 
 			"wget",
@@ -1066,6 +1118,8 @@ sub upload_url
 	# If something's gone wrong...
 
 	return( 0 ) if ( $rc!=0 );
+
+	$self->add_directory( "$tmpdir" );
 
 	# Otherwise set the main file if appropriate
 	if( !defined $self->get_main() || $self->get_main() eq "" )
