@@ -16,6 +16,7 @@ package EPrints::Plugin::Storage::Local;
 
 use URI;
 use URI::Escape;
+use File::Basename;
 
 use EPrints::Plugin::Storage;
 
@@ -40,7 +41,9 @@ sub store
 
 	my( $local_path, $out_file ) = $self->_filename( $fileobj );
 
-	EPrints::Platform::mkdir( $local_path );
+	my( $name, $path, $suffix ) = File::Basename::fileparse( $out_file );
+
+	EPrints::Platform::mkdir( $path );
 
 	open(my $out_fh, ">", $out_file)
 		or EPrints::abort( "Unable to write to $out_file: $!" );
