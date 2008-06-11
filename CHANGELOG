@@ -7570,3 +7570,6 @@ EPRINTS-3.1-beta-2
  * Replaced Unicode::String with Perl-native utf-8 string processing
  * Metafield::Text now flags data coming from the database as utf-8
 
+2008-06-11 cjg 
+ * Files grabbed from URLs now correctly run throught the guess format 
+    method, so don't just end up as "Other".

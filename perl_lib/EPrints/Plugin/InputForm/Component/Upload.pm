@@ -149,6 +149,12 @@ sub update_from_form
 				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
 				return;
 			}
+
+			$document->set_value( "format", $repository->call( 'guess_doc_type', 
+				$self->{session},
+				$document->get_value( "main" ) ) );
+			$document->commit;
+
 			return;
 		}
 
