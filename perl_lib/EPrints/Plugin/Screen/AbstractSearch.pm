@@ -15,6 +15,7 @@ sub new
 	return $self;
 }
 
+
 sub can_be_viewed
 {
 	my( $self ) = @_;
@@ -146,6 +147,11 @@ sub from
 {
 	my( $self ) = @_;
 
+	if( $self->{session}->have_parameters && !EPrints::Utils::is_set( $self->{processor}->{action} ) )
+	{
+		$self->{processor}->{action} = "search";
+	}
+
 	$self->{processor}->{search} = new EPrints::Search(
 		keep_cache => 1,
 		session => $self->{session},
@@ -218,6 +224,7 @@ sub from
 
 	# do actions
 	$self->SUPER::from;
+
 
 	if( $self->{processor}->{search}->is_blank && ! $self->{processor}->{search}->{allow_blank} )
 	{

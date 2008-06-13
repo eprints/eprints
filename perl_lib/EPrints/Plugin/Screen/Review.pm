@@ -204,7 +204,7 @@ sub render
 				title=>"Remove Column",
 				src => "$imagesurl/delete.png",
 				alt => "X",
-				onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( '$msg' );",
+				onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( ".EPrints::Utils::js_string($msg)." );",
 				name => "_action_remove_col" ) );
 			$acts_td2->appendChild( $form_rm );
 

@@ -1278,6 +1278,18 @@ sub mtime
 }
 
 
+# return a quoted string safe to go in javascript
+
+sub js_string
+{
+	my( $string ) = @_;
+
+	$string =~ s/([^a-z0-9])/sprintf( "%%%02x", ord( $1 ) )/egi;
+	
+	return "unescape('$string')";
+}
+
+
 ######################################################################
 # Redirect as this function has been moved.
 ######################################################################

@@ -7573,3 +7573,8 @@ EPRINTS-3.1-beta-2
 2008-06-11 cjg 
  * Files grabbed from URLs now correctly run throught the guess format 
     method, so don't just end up as "Other".
+
+2008-06-13 cjg
+ * Fixed issue with single quotes in javascript confirm messages.
+ * No "action" on a search is now considered a search action, if there were
+    other cgi parameters set. Fixing #2975.
