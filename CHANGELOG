@@ -7578,3 +7578,7 @@ EPRINTS-3.1-beta-2
  * Fixed issue with single quotes in javascript confirm messages.
  * No "action" on a search is now considered a search action, if there were
     other cgi parameters set. Fixing #2975.
+
+2008-06-13 cjg
+ * Fixed issue in issues which meant XML was being double escaped.
+

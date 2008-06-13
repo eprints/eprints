@@ -201,7 +201,7 @@ $list->map(
 					}
 					# (if it's 'ignored' then leave it alone)
 
-					$issue->{description} = $newfound->{description};
+					$issue->{description} = $newfound->{description}->toString;
 					delete $map->{$issue->{id}};
 				}
 				else

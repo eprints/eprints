@@ -56,7 +56,7 @@ sub render
 		foreach my $issue ( @issues )
 		{
 			my $li = $session->make_element( "li" );
-			$li->appendChild( $session->make_text( $issue->{description} ) );
+			$li->appendChild( $issue->{description} );
 			$ol->appendChild( $li );
 		}
 		$page->appendChild( $ol );

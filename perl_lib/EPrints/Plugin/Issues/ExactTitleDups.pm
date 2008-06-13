@@ -29,8 +29,9 @@ sub process_at_end
 		foreach my $id ( @set )
 		{
 			my $eprint = EPrints::DataObj::EPrint->new( $session, $id );
-			my $desc = "Duplicate title to ";
-			$desc.= $eprint->render_citation_link_staff->toString;
+			my $desc = $session->make_doc_fragment;
+			$desc->appendChild( $session->make_text( "Duplicate title to " ) );
+			$desc->appendChild( $eprint->render_citation_link_staff );
 			OTHER: foreach my $id2 ( @set )
 			{
 				next OTHER if $id == $id2;

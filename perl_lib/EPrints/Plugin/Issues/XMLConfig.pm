@@ -76,7 +76,7 @@ sub item_issues
 	{
 		next unless( $child->nodeName eq "issue" );
 		my $issue = {};
-		$issue->{description} = EPrints::XML::contents_of( $child )->toString;
+		$issue->{description} = EPrints::XML::contents_of( $child );
 		$issue->{type} = $child->getAttribute( "type" );
 		$issue->{id} = $child->getAttribute( "issue_id" );
 		push @issues_list, $issue;
