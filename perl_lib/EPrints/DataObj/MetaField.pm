@@ -1078,7 +1078,7 @@ sub remove_from_workflow
 
 	if( $fielde )
 	{
-		my $component = $fielde->parentNode;
+		my $component = $fielde->getParentNode;
 		$component->removeChild( $fielde );
 		my @fields = $component->getElementsByTagName( "field" );
 		if( scalar @fields == 0 )

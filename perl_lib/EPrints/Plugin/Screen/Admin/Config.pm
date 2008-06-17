@@ -128,7 +128,7 @@ sub config_file_to_type
 
 	return "Template" if( $configfile =~ m#^lang/[^/]+/templates/[^/]+\.xml$# );
 
-	return "NamedSet" if( $configfile =~ m#^namedsets/[a-z]+$# );
+	return "NamedSet" if( $configfile =~ m#^namedsets/[a-z0-9_]+$# );
 
 	return "XPage" if( $configfile =~ m#^static/.*\.xpage$# );
 	return "Static" if( $configfile =~ m#^static/# );

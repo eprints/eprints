@@ -7582,3 +7582,8 @@ EPRINTS-3.1-beta-2
 2008-06-13 cjg
  * Fixed issue in issues which meant XML was being double escaped.
 
+2008-06-17 cjg
+ * Fixed a couple of parentNode DOM calls, which should have been 
+    getParentNode
+ * Fixed a bug in the config viewer which stoped namedsets with underscores
+    being counted as namedsets. (extended the regexp)
