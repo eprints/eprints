@@ -87,6 +87,11 @@ sub render_option
 	my $ds = $session->get_repository->get_dataset( 
 			$self->get_property('datasetid') );
 
+	if( !$ds->has_field( $value ) )
+	{
+		return $session->make_text( "???$value???" );
+	}
+
 	my $field = $ds->get_field( $value );
 	$text = EPrints::Utils::tree_to_utf8( $field->render_name( $session ) );
 	$session->{cache_metafield_options}->{$cacheid} = $text;

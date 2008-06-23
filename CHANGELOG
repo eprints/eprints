@@ -7587,3 +7587,7 @@ EPRINTS-3.1-beta-2
     getParentNode
  * Fixed a bug in the config viewer which stoped namedsets with underscores
     being counted as namedsets. (extended the regexp)
+
+2008-06-23 tdb
+ * If a user's field list contains an invalid field fallback gracefully
+
