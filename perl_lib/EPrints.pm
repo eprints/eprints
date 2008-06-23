@@ -1,3 +1,58 @@
+######################################################################
+#
+# EPrints
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+=pod
+
+=head1 NAME
+
+B<EPrints> - Institutional Repository software
+
+=head1 SYNOPSIS
+
+	use EPrints qw();
+
+	my $session = EPrints::Session->new( 1, "demoprints" );
+
+	...
+
+	$session->terminate;
+
+=head1 DESCRIPTION
+
+See http://www.eprints.org/.
+
+=head2 Available Symbols
+
+You can pass options to the EPrints package that effect the EPrints initialisation e.g.
+
+	use EPrints qw( no_check_user );
+
+=over 4
+
+=item no_check_user
+
+Do not check the current user/group is the same as the user/group in Systemsettings.
+
+=back
+
+=head1 METHODS
+
+=over 4
+
+=cut
+
 package EPrints;
 
 use EPrints::SystemSettings;
@@ -187,3 +242,19 @@ sub import
 }
 
 1;
+
+__END__
+
+=back
+
+=head1 SEE ALSO
+
+L<EPrints::Session>
+
+=head1 COPYRIGHT
+
+__COPYRIGHT__
+
+Copyright 2000-2008 University of Southampton. All Rights Reserved.
+
+__LICENSE__
