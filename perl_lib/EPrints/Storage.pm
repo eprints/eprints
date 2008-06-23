@@ -72,7 +72,9 @@ sub new
 	my( $class, $session ) = @_;
 
 	my $self = bless {}, $class;
-	Scalar::Util::weaken( $self->{session} = $session );
+	$self->{session} = $session;
+	Scalar::Util::weaken($self->{session})
+		if defined &Scalar::Util::weaken;
 
 	$self->{config} = $session->get_repository->get_storage_config( "default" );
 

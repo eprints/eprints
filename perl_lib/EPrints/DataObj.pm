@@ -110,7 +110,9 @@ sub new_from_data
 	my( $class, $session, $data, $dataset ) = @_;
 
 	my $self = { data=>{} };
-	Scalar::Util::weaken($self->{session} = $session);
+	$self->{session} = $session;
+	Scalar::Util::weaken($self->{session})
+		if defined &Scalar::Util::weaken;
 	if( defined( $dataset ) )
 	{
 		$self->{dataset} = $dataset;

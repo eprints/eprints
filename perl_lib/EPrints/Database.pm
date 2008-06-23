@@ -201,7 +201,9 @@ sub new
 
 	my $self = {};
 	bless $self, $class;
-	Scalar::Util::weaken($self->{session} = $session);
+	$self->{session} = $session;
+	Scalar::Util::weaken($self->{session})
+		if defined &Scalar::Util::weaken;
 
 	$self->connect;
 

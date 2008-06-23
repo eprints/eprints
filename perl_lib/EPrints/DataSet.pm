@@ -286,7 +286,9 @@ sub new
 	
 	my $self = EPrints::DataSet->new_stub( $id );
 
-	Scalar::Util::weaken($self->{repository} = $repository);
+	$self->{repository} = $repository;
+	Scalar::Util::weaken($self->{repository})
+		if defined &Scalar::Util::weaken;
 
 	$self->{fields} = [];
 	$self->{system_fields} = [];
