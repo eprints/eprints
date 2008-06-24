@@ -141,6 +141,10 @@ sub make_tmp_file
 		$tmp_file = File::Temp->new;
 		$tmp_file->autoflush;
 
+		# Write a Byte Order Mark for utf-8
+		# (the form is set to utf-8)
+		binmode($tmp_file);
+		print $tmp_file pack("CCC", 0xef, 0xbb, 0xbf);
 		print $tmp_file $import_data;
 	}
 	else

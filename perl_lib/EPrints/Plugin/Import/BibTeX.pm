@@ -217,7 +217,8 @@ package EPrints::Plugin::Import::BibTeX;
 use Encode;
 use strict;
 
-our @ISA = qw/ EPrints::Plugin::Import /;
+use EPrints::Plugin::Import::TextFile;
+our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
 
 our %BIBTEX_MAPPING = qw(
 	author creators_name
@@ -255,7 +256,7 @@ sub new
 	return $self;
 }
 
-sub input_fh
+sub input_text_fh
 {
 	my( $plugin, %opts ) = @_;
 	

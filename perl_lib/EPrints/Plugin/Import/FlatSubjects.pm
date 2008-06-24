@@ -19,7 +19,7 @@ sub new
 	return $self;
 }
 
-sub input_fh
+sub input_text_fh
 {
 	my( $plugin, %opts ) = @_;
 
