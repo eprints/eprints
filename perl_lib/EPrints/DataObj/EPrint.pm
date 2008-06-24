@@ -1067,6 +1067,8 @@ sub write_revision
 	my $tmpfile = File::Temp->new;
 	my $filename = "eprint.xml";
 
+	binmode($tmpfile, ":utf8");
+
 	print $tmpfile '<?xml version="1.0" encoding="utf-8" ?>'."\n";
 	print $tmpfile $self->export( "XML" );
 

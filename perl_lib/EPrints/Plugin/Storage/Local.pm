@@ -39,6 +39,8 @@ sub store
 {
 	my( $self, $fileobj, $fh ) = @_;
 
+	use bytes;
+
 	my( $local_path, $out_file ) = $self->_filename( $fileobj );
 
 	my( $name, $path, $suffix ) = File::Basename::fileparse( $out_file );
