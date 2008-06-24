@@ -7592,3 +7592,6 @@ EPRINTS-3.1-beta-2
  * If a user's field list contains an invalid field fallback gracefully
  * Don't use Scalar::Util::weaken if the vendor didn't install it
 
+2008-06-24 tdb
+ * BibTeX month entries being added even without a month value
+
