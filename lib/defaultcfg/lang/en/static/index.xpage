@@ -27,7 +27,7 @@ Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/
 </div></div>
 
 <div class="ep_toolbox"><div class="ep_toolbox_content" >
- <a href="{$config{base_url}}/view/subjects">Browse Repository</a><br /><br />
+ <a href="{$config{base_url}}/view/subjects/">Browse Repository</a><br /><br />
  Browse the items in the repository by subject.
 </div></div>
 
