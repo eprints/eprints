@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Plugin::Export::ResMap
+# EPrints::Plugin::Export::OAI_ORE
 #
 ######################################################################
 #
@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Plugin::Export::ResMap> - OAI_ORE Resource Map Export/Aggregation Plugin.
+B<EPrints::Plugin::Export::OAI_ORE> - OAI_ORE Resource Map Export/Aggregation Plugin.
 
 =head1 DESCRIPTION
 
@@ -38,7 +38,7 @@ defined by.
 
 =cut
 
-package EPrints::Plugin::Export::ResMap;
+package EPrints::Plugin::Export::OAI_ORE;
 
 use EPrints::Plugin::Export;
 @ISA = ( "EPrints::Plugin::Export" );
@@ -50,11 +50,13 @@ sub new
         my( $class, %opts ) = @_;
 	my $self = $class->SUPER::new( %opts );
 
-        $self->{name} = "Resource Map";
+        $self->{name} = "OAI_ORE";
         $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
         $self->{visible} = "all";
         $self->{suffix} = ".xml";
         $self->{mimetype} = "application/rdf+xml; charset=utf-8";
+
+	$self->{xmlns} = "http://www.openarchives.org/ore/terms/";
 
         return $self;
 }
@@ -187,6 +189,8 @@ sub output_dataobj
 
 	}
 	
+	my $xml_node;
+	
 	my @plugins = $session->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
@@ -203,63 +207,140 @@ sub output_dataobj
 			my $plugin_location = substr($uri,pos($uri)+1,length($uri));
 			$url = $url."$plugin_location/$archive_id-eprint-$eprint_id$plugin_suffix";
 
-			$sub_content = $session->make_element("ore:aggregates",
-				"rdf:resource"=>"$url" );
-			$aggregation->appendChild ( $sub_content );
+			if ($plugin_name eq "XML") {
+				$sub_content = $session->make_element("ore:aggregates",
+					"rdf:resource"=>"$url" );
+				$aggregation->appendChild ( $sub_content );
+				my $dc_title = $plugin_temp->param("name") || "";
+				my $dc_format = $plugin_temp->param("mimetype") || "";
+				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
+				my $schema_location = $plugin_temp->param("schemaLocation") || "";
+			
+				my $additional = $session->make_element( "rdf:Description",
+					"rdf:about"=>"$url" );
 
-			my $dc_title = $plugin_temp->param("name") || "";
-			my $dc_format = $plugin_temp->param("mimetype") || "";
-			my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
-			my $schema_location = $plugin_temp->param("schemaLocation") || "";
+				if ( $dc_title ne "" )
+				{	
+					$sub_content = $session->render_data_element(
+						4,
+						"dc:title",
+						$dc_title
+		 			);
+					$additional->appendChild( $sub_content );
+				}
 			
-			my $additional = $session->make_element( "rdf:Description",
-				"rdf:about"=>"$url" );
-
-			if ( $dc_title ne "" )
-			{	
-				$sub_content = $session->render_data_element(
-					4,
-					"dc:title",
-					$dc_title
-	 			);
-				$additional->appendChild( $sub_content );
-			}
+				if ( $dc_format ne "" )		
+				{
+					$sub_content = $session->render_data_element(
+						4,
+						"dc:format",
+						$dc_format
+	 				);
+					$additional->appendChild( $sub_content );
+				}
 			
-			if ( $dc_format ne "" )		
-			{
-				$sub_content = $session->render_data_element(
-					4,
-					"dc:format",
-					$dc_format
- 				);
-				$additional->appendChild( $sub_content );
-			}
+				if ( $dc_conformsTo ne "" ) 
+				{
+					$sub_content = $session->render_data_element(
+						4,
+						"dc:conformsTo",
+						$dc_conformsTo
+ 					);
+					$additional->appendChild( $sub_content );
+				}
 			
-			if ( $dc_conformsTo ne "" ) 
-			{
-				$sub_content = $session->render_data_element(
-					4,
-					"dc:conformsTo",
-					$dc_conformsTo
- 				);
-				$additional->appendChild( $sub_content );
+				if ( $schema_location ne "") 
+				{
+					$sub_content = $session->render_data_element(
+						4,
+						"rdfs:comment",
+						$schema_location
+	 				);
+					$additional->appendChild( $sub_content );
+				}
+				if ( $plugin_name eq "XML" ) {
+				 	$xml_node = $additional;
+				}
+			
 			}
-		
-			if ( $schema_location ne "") 
-			{
-				$sub_content = $session->render_data_element(
-					4,
-					"rdfs:comment",
-					$schema_location
-	 			);
-				$additional->appendChild( $sub_content );
-			}
-			$response->appendChild( $additional );
-		
 		}
-		
 	}	
+	
+	my @plugins = $session->plugin_list();
+	foreach my $plugin_name (@plugins) 
+	{
+		my $url = "$base_url/cgi/export/$eprint_id/";
+		my $string = substr($plugin_name,0,6);
+		if ($string eq "Export") 
+		{
+			my $plugin_id = $plugin_name;
+			$plugin_name = substr($plugin_id,8,length($plugin_id));
+			my $plugin_temp = $session->plugin($plugin_id);
+			my $plugin_suffix = $plugin_temp->param("suffix");
+			my $uri =  $plugin_temp->local_uri();
+			$uri =~ /Export/g;
+			my $plugin_location = substr($uri,pos($uri)+1,length($uri));
+			$url = $url."$plugin_location/$archive_id-eprint-$eprint_id$plugin_suffix";
 
+			if ($plugin_name eq "XML") {
+			} else {
+				$sub_content = $session->make_element("rdfs:seeAlso",
+					"rdf:resource"=>"$url" );
+				$xml_node->appendChild ( $sub_content );
+				my $dc_title = $plugin_temp->param("name") || "";
+				my $dc_format = $plugin_temp->param("mimetype") || "";
+				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
+				my $schema_location = $plugin_temp->param("schemaLocation") || "";
+
+				my $additional = $session->make_element( "rdf:Description",
+						"rdf:about"=>"$url" );
+
+				if ( $dc_title ne "" )
+				{	
+					$sub_content = $session->render_data_element(
+							4,
+							"dc:title",
+							$dc_title
+							);
+					$additional->appendChild( $sub_content );
+				}
+
+				if ( $dc_format ne "" )		
+				{
+					$sub_content = $session->render_data_element(
+							4,
+							"dc:format",
+							$dc_format
+							);
+					$additional->appendChild( $sub_content );
+				}
+
+				if ( $dc_conformsTo ne "" ) 
+				{
+					$sub_content = $session->render_data_element(
+							4,
+							"dc:conformsTo",
+							$dc_conformsTo
+							);
+					$additional->appendChild( $sub_content );
+				}
+
+				if ( $schema_location ne "") 
+				{
+					$sub_content = $session->render_data_element(
+							4,
+							"rdfs:comment",
+							$schema_location
+							);
+					$additional->appendChild( $sub_content );
+				}
+				$response->appendChild( $additional );
+
+			}
+		}
+	}	
+	
+	$response->appendChild( $xml_node );
 	EPrints::XML::tidy( $response );
 
 	my $resourceMap= EPrints::XML::to_string( $response );
