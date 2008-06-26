@@ -108,6 +108,10 @@ use strict;
 # These are both used by the virtual datasets inbox, buffer etc.
 
 my $INFO = {
+	upload_progress => {
+		sqlname => "upload_progress",
+		class => "EPrints::DataObj::UploadProgress",
+	},
 	file => {
 		sqlname => "file",
 		class => "EPrints::DataObj::File",
@@ -928,7 +932,7 @@ into SQL (not counters which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ file import metafield cachemap message loginticket eprint user document saved_search subject history access request / );
+	return( qw/ upload_progress file import metafield cachemap message loginticket eprint user document saved_search subject history access request / );
 }
 
 ######################################################################

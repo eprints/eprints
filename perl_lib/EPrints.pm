@@ -188,6 +188,7 @@ use EPrints::DataObj::MetaField;
 use EPrints::DataObj::Request;
 use EPrints::DataObj::Subject;
 use EPrints::DataObj::SavedSearch;
+use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
 use EPrints::DataSet;
 use EPrints::Email;
