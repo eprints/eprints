@@ -7602,4 +7602,5 @@ EPRINTS-3.1-beta-2
 
 2008-06-26 tdb
  * Added AJAX-based file upload progress reporting
+ * Only allow batch editing of eprint objects
 

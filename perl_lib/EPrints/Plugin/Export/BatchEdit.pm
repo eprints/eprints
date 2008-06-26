@@ -13,7 +13,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Batch Edit";
-	$self->{accept} = [ 'list/*' ];
+	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "staff";
 	$self->{suffix} = ".html";
 	$self->{mimetype} = "text/html; charset=utf-8";
