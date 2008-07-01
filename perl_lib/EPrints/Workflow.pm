@@ -172,7 +172,7 @@ sub _read_stages
 		my $stage_id = $element->getAttribute("name");
 		if( !EPrints::Utils::is_set( $stage_id ) )
 		{
-			EPrints::abort( $self->descipriont." - <element> definition has no name attribute.\n".$element->toString );
+			EPrints::abort( $self->description." - <element> definition has no name attribute.\n".$element->toString );
 		}
 		$self->{stages}->{$stage_id} = new EPrints::Workflow::Stage( $element, $self, $stage_id );
 		foreach my $field_id ( $self->{stages}->{$stage_id}->get_fields_handled )
