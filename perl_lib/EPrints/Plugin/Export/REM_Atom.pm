@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Plugin::Export::REM_RDF
+# EPrints::Plugin::Export::REM_Atom
 #
 ######################################################################
 #
@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Plugin::Export::REM_RDF> - OAI ORE Resource Map Export/Aggregation Plugin.
+B<EPrints::Plugin::Export::REM_Atom> - OAI_ORE Resource Map Export/Aggregation Plugin (Atom Serialisation).
 
 =head1 DESCRIPTION
 
@@ -30,16 +30,17 @@ Related to an EPrint are all the documents this EPrint contains as well as a lis
 of the possible representations and additional metadata available via ALL other 
 export plugins. 
 
-For ORE importers we have included the compulsary dc:conformsTo field in each objects
+For ORE importers we have included the compulsary dcterms:conformsTo field in each objects
 description. This provides the namespace which any metadata related to an EPrint is 
 defined by.
 
-This plugin serialises the Resource Map in RDF/XML format.
+This plugin serialises the Resource Map in Atom format.
+
 =over 4
 
 =cut
 
-package EPrints::Plugin::Export::REM_RDF;
+package EPrints::Plugin::Export::REM_Atom;
 
 use EPrints::Plugin::Export;
 @ISA = ( "EPrints::Plugin::Export" );
@@ -51,13 +52,14 @@ sub new
         my( $class, %opts ) = @_;
 	my $self = $class->SUPER::new( %opts );
 
-        $self->{name} = "REM (RDF Format)";
+        $self->{name} = "OAI-ORE Resource Map (Atom Format)";
         $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
         $self->{visible} = "all";
         $self->{suffix} = ".xml";
-        $self->{mimetype} = "application/rdf+xml; charset=utf-8";
+        $self->{mimetype} = "application/atom+xml; charset=utf-8";
 
-	$self->{xmlns} = "http://www.openarchives.org/ore/terms/";
+	$self->{xmlns} = "http://www.w3.org/2005/Atom";
+	$self->{schemaLocation} = "http://exyus.com/xcs/tasklist/source/?f=put_atom.xsd";
 
         return $self;
 }
@@ -119,7 +121,10 @@ sub output_dataobj
 	my $single = $opts{"single"};
 	
 	my $title = $dataobj->get_value( "title" );
+	#my $lastmod = EPrints::Time::get_iso_timestamp()
 	my $lastmod = $dataobj->get_value( "lastmod" );
+	$lastmod =~ s/ /T/;
+	$lastmod = $lastmod."Z";
 	my $eprint_id = $dataobj->get_value( "eprintid" );
 	my $eprint_rev = $dataobj->get_value( "rev_number" );
 	my $eprint_url = $dataobj->get_url;
@@ -127,36 +132,98 @@ sub output_dataobj
 	my $session = $plugin->{session};
 	my $base_url = $session->get_repository->get_conf("base_url");
 	my $archive_id = $session->get_repository->get_id;
-	
+	my $archive_name = $session->phrase( "archive_name" );
 	my $response = $session->make_doc_fragment;
 
-	my $topcontent = $session->make_element( "rdf:Description",
-		"rdf:about"=>"$resmap_url" );
-	
-	my $sub_content = $session->make_element ("rdf:type",
-		"rdf:resource"=>"http://www.openarchives.org/ore/terms/ResourceMap" );
-	
-	$topcontent->appendChild( $sub_content );
-	
-	$sub_content = $session->render_data_element (
+	my $topcontent = $session->render_data_element(
 		4,
-		"dc:modified",
-		$lastmod,
-		"rdf:datatype"=>"http://www.w3.org/2001/XMLSchema#dateTime" );
-
-	$topcontent->appendChild( $sub_content);
-
-	$sub_content = $session->make_element ("ore:describes",
-		"rdf:resource"=>"$resmap_url#aggregation" );
-
-	$topcontent->appendChild( $sub_content );
+		"id",
+		"$resmap_url#aggregation"
+	);
+	$response->appendChild( $topcontent );
 	
-	my $aggregation = $session->make_element( "rdf:Description",
-		"rdf:about"=>"$resmap_url#aggregation" );
+	my $sub_content = $session->make_element ("link",
+		"href"=>"$resmap_url",
+		"rel"=>"self",
+		"type"=>"application/atom+xml"
+	);
 	
-	$response->appendChild( $topcontent );	
-	$response->appendChild( $aggregation );
+	$response->appendChild( $sub_content );
+	
+	$topcontent = $session->render_data_element(
+		4,
+		"updated",
+		$lastmod
+	);
+	$response->appendChild( $topcontent );
+	
+	$sub_content = $session->render_data_element ( 
+		4,
+		"generator",
+		$archive_name,
+		url=>"$base_url"
+	);
 
+	$response->appendChild( $sub_content);
+	
+
+	$sub_content = $session->make_element ("category",
+		"scheme"=>"http://www.openarchives.org/ore/terms/",
+		"term"=>"http://www.openarchives.org/ore/terms/Aggregation",
+		"label"=>"Aggregation"
+	);
+
+	$response->appendChild( $sub_content );
+	
+	$topcontent = $session->render_data_element(
+		4,
+		"title",
+		$title
+	);
+	$response->appendChild( $topcontent );
+
+	my $author = $session->make_element("author");	
+	$topcontent = $session->render_data_element(
+		4,
+		"name",
+		"$archive_id EPrints Repository @ $base_url"
+	);
+	$author->appendChild( $topcontent );
+	$response->appendChild( $author );
+
+	
+	my $content = $session->make_element("entry");
+	my $sub_content = $session->render_data_element(
+		4,
+		"id",
+		"http://oreproxy.org/r?what=$base_url/$eprint_id&where=$resmap_url#aggregation"
+	);
+	$content->appendChild( $sub_content );
+	$sub_content = $session->make_element("link",
+		"href"=>"$base_url/$eprint_id",
+		"rel"=>"alternate",
+		"type"=>"text/html"
+	);
+	$content->appendChild( $sub_content );
+	my $sub_content = $session->render_data_element(
+		4,
+		"title",
+		"Splash Page for \"$title\" (text/html)"
+	);
+	$content->appendChild( $sub_content );
+	$sub_content = $session->render_data_element(
+		4,
+		"updated",
+		$lastmod
+	);
+	$content->appendChild( $sub_content );
+	$sub_content = $session->make_element("category",
+		"scheme"=>"info:eu-repo/semantics/",
+		"term"=>"info:eu-repo/semantics/humanStartPage",
+		"label"=>"humanStartPage"
+	);
+	$content->appendChild( $sub_content );
+	$response->appendChild( $content );	
 	my @docs = $dataobj->get_all_documents;
 	foreach my $doc (@docs)
 	{
@@ -166,32 +233,40 @@ sub output_dataobj
 		foreach my $key (keys %files)
 		{
 			my $fileurl = $doc->get_url($key);
-			$sub_content = $session->make_element("ore:aggregates",
-				"rdf:resource"=>"$fileurl" );
-			$aggregation->appendChild ( $sub_content );
-			my $additional = $session->make_element( "rdf:Description",
-				"rdf:about"=>"$fileurl" );
+			my $content = $session->make_element("entry");
 			$sub_content = $session->render_data_element(
 				4,
-				"dc:format",
-				$format
- 			);
-			$additional->appendChild( $sub_content );
-		
-			$sub_content = $session->render_data_element(
-				4,
-				"dc:hasVersion",
-				$rev_number
+				"id",
+				"http://oreproxy.org/r?what=$fileurl&where=$resmap_url#aggregation"
 			);
-			$additional->appendChild( $sub_content );
+			$content->appendChild( $sub_content );
+			$sub_content = $session->make_element("link",
+				"href"=>$fileurl,
+				"rel"=>"alternate",
+				"type"=>$format
+ 			);
+			$content->appendChild( $sub_content );
+			$sub_content = $session->render_data_element(
+					4,
+					"updated",
+					$lastmod
+					);
+			$content->appendChild( $sub_content );
+			$sub_content = $session->render_data_element(
+				4,
+				"title",
+				"$title ($format)" 
+			);
+			$content->appendChild ( $sub_content );
 			
-			$response->appendChild( $additional );	
+			$response->appendChild( $content );	
 		}
 
 	}
 	
-	my $xml_node;
-	
+	my $xml_node = $session->make_element("entry");
+	my $sub_xml_node;
+
 	my @plugins = $session->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
@@ -209,22 +284,46 @@ sub output_dataobj
 			$url = $url."$plugin_location/$archive_id-eprint-$eprint_id$plugin_suffix";
 
 			if ($plugin_name eq "XML") {
-				$sub_content = $session->make_element("ore:aggregates",
-					"rdf:resource"=>"$url" );
-				$aggregation->appendChild ( $sub_content );
+				$sub_content = $session->render_data_element(
+					4,
+					"id",
+					"http://oreproxy.org/r?what=$url&where=$resmap_url#aggregation" 
+				);
+				$xml_node->appendChild ( $sub_content );
 				my $dc_title = $plugin_temp->param("name") || "";
 				my $dc_format = $plugin_temp->param("mimetype") || "";
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 			
-				my $additional = $session->make_element( "rdf:Description",
-					"rdf:about"=>"$url" );
+				$sub_content = $session->make_element( "link",
+					"href"=>$url,
+					"rel"=>"alternate",
+					"type"=>$dc_format
+				);
+				$xml_node->appendChild ( $sub_content );
+				
+				$sub_content = $session->render_data_element(
+						4,
+						"updated",
+						$lastmod
+						);
+				$xml_node->appendChild( $sub_content );
+				
+				$sub_content = $session->render_data_element(
+					4,
+					"title",
+					"$dc_title for Resource @ $base_url/$eprint_id ($dc_format)" 
+				);
+				$xml_node->appendChild ( $sub_content );
+	
+				my $additional = $session->make_element("rdf:Description",
+					"rdf:about"=>"http://oreproxy.org/r?what=$url&where=$resmap_url#aggregation" );
 
 				if ( $dc_title ne "" )
 				{	
 					$sub_content = $session->render_data_element(
 						4,
-						"dc:title",
+						"dcterms:title",
 						$dc_title
 		 			);
 					$additional->appendChild( $sub_content );
@@ -234,7 +333,7 @@ sub output_dataobj
 				{
 					$sub_content = $session->render_data_element(
 						4,
-						"dc:format",
+						"dcterms:format",
 						$dc_format
 	 				);
 					$additional->appendChild( $sub_content );
@@ -244,7 +343,7 @@ sub output_dataobj
 				{
 					$sub_content = $session->render_data_element(
 						4,
-						"dc:conformsTo",
+						"dcterms:conformsTo",
 						$dc_conformsTo
  					);
 					$additional->appendChild( $sub_content );
@@ -260,14 +359,13 @@ sub output_dataobj
 					$additional->appendChild( $sub_content );
 				}
 				if ( $plugin_name eq "XML" ) {
-				 	$xml_node = $additional;
+				 	$sub_xml_node = $additional;
 				}
 			
 			}
 		}
-	}
-
-	#Note: Removing this redecloration of @plugins breaks the plugin, no idea why.	
+	}	
+	
 	my @plugins = $session->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
@@ -288,85 +386,47 @@ sub output_dataobj
 			} else {
 				$sub_content = $session->make_element("rdfs:seeAlso",
 					"rdf:resource"=>"$url" );
-				$xml_node->appendChild ( $sub_content );
+				#$sub_xml_node->appendChild ( $sub_content );
 				my $dc_title = $plugin_temp->param("name") || "";
 				my $dc_format = $plugin_temp->param("mimetype") || "";
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 
-				my $additional = $session->make_element( "rdf:Description",
-						"rdf:about"=>"$url" );
-
-				if ( $dc_title ne "" )
-				{	
-					$sub_content = $session->render_data_element(
-							4,
-							"dc:title",
-							$dc_title
-							);
-					$additional->appendChild( $sub_content );
-				}
-
-				if ( $dc_format ne "" )		
-				{
-					$sub_content = $session->render_data_element(
-							4,
-							"dc:format",
-							$dc_format
-							);
-					$additional->appendChild( $sub_content );
-				}
-
-				if ( $dc_conformsTo ne "" ) 
-				{
-					$sub_content = $session->render_data_element(
-							4,
-							"dc:conformsTo",
-							$dc_conformsTo
-							);
-					$additional->appendChild( $sub_content );
-				}
-
-				if ( $schema_location ne "") 
-				{
-					$sub_content = $session->render_data_element(
-							4,
-							"rdfs:comment",
-							$schema_location
-							);
-					$additional->appendChild( $sub_content );
-				}
-				$response->appendChild( $additional );
+				my $additional = $session->make_element( "link",
+						"rel"=>"alternate",
+						"href"=>$url,
+						"type"=>$dc_format
+				);
+				$xml_node->appendChild( $additional );
 
 			}
 		}
 	}	
-	
+	$xml_node->appendChild( $sub_xml_node );	
 	$response->appendChild( $xml_node );
 	EPrints::XML::tidy( $response );
-
 	my $resourceMap= EPrints::XML::to_string( $response );
-	EPrints::XML::dispose( $response );
-	
 	if( $single )
 	{
-		return $resourceMap;
+		return $response;
 	}
 	else 
 	{
-		return $plugin->rdf_header.$resourceMap.$plugin->rdf_footer;
+		return $plugin->header.$resourceMap.$plugin->footer;
 	}
+	EPrints::XML::dispose( $response );
+	
 
 }
 
-sub rdf_header
+sub header
 {
-	return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n\txmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n\txmlns:ore=\"http://www.openarchives.org/ore/terms/\"\n\txmlns:dc=\"http://purl.org/dc/terms/\">\n";
+	return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n\txmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n\txmlns:ore=\"http://www.openarchives.org/ore/terms/\"\n\txmlns:dcterms=\"http://purl.org/dc/terms/\">\n";
 }
 
-sub rdf_footer
+sub footer
 {
-	return "</rdf:RDF>";
+	return "</feed>";
 }
 
 1;

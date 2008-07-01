@@ -39,7 +39,8 @@ $oai->{v2}->{archive_id} = "generic.eprints.org";
 # The keys of this hash are the OAI metadataPrefix to use, and the values
 # are the ID of the output plugin to use for that prefix.
 $oai->{v2}->{output_plugins} = { 
-	"oai_dc" => "OAI_DC", 
+	"oai_dc" => "OAI_DC",
+	"rem_atom" => "REM_Atom_via_PMH", 
 	"didl" => "DIDL", 
 	"uketd_dc" =>"OAI_UKETD_DC",
 	"context_object" => "ContextObject",
