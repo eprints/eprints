@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Plugin::Export::ORE_RDF
+# EPrints::Plugin::Export::REM_RDF
 #
 ######################################################################
 #
@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Plugin::Export::ORE_RDF> - OAI ORE Resource Map Export/Aggregation Plugin.
+B<EPrints::Plugin::Export::REM_RDF> - OAI ORE Resource Map Export/Aggregation Plugin.
 
 =head1 DESCRIPTION
 
@@ -38,7 +38,7 @@ defined by.
 
 =cut
 
-package EPrints::Plugin::Export::ORE_RDF;
+package EPrints::Plugin::Export::REM_RDF;
 
 use EPrints::Plugin::Export;
 @ISA = ( "EPrints::Plugin::Export" );
@@ -50,7 +50,7 @@ sub new
         my( $class, %opts ) = @_;
 	my $self = $class->SUPER::new( %opts );
 
-        $self->{name} = "ORE (RDF Format)";
+        $self->{name} = "REM (RDF Format)";
         $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
         $self->{visible} = "all";
         $self->{suffix} = ".xml";
