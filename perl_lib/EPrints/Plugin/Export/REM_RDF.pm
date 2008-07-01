@@ -267,8 +267,7 @@ sub output_dataobj
 		}
 	}
 
-	#Note: Removing this redecloration of @plugins breaks the plugin, no idea why.	
-	my @plugins = $session->plugin_list();
+	@plugins = $session->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
 		my $url = "$base_url/cgi/export/$eprint_id/";
