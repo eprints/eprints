@@ -3126,12 +3126,20 @@ sub read_params
 			received => 0,
 		});
 
- 		$self->{query} = new CGI( \&EPrints::DataObj::UploadProgress::update_cb, $progress );
+		# Something odd happened (user may have stopped/retried)
+		if( !defined $progress )
+		{
+			$self->{query} = new CGI();
+		}
+		else
+		{
+			$self->{query} = new CGI( \&EPrints::DataObj::UploadProgress::update_cb, $progress );
 
-		# The CGI callback doesn't include the rest of the POST that
-		# Content-Length includes
-		$progress->set_value( "received", $size );
-		$progress->commit;
+			# The CGI callback doesn't include the rest of the POST that
+			# Content-Length includes
+			$progress->set_value( "received", $size );
+			$progress->commit;
+		}
 	}
 	else
 	{

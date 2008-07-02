@@ -567,7 +567,7 @@ sub _render_add_document
 		id => $ffname,
 		type => "file",
 		);
-	my $upload_progress_url = $session->get_url( path => "cgi" ) . "/users/lookup/upload_progress";
+	my $upload_progress_url = $session->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
 	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
 	my $add_format_button = $session->render_button(
 		value => $self->phrase( "add_format" ), 
