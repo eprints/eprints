@@ -7,6 +7,9 @@ use EPrints;
 
 my( $repoid ) = @ARGV;
 
+my $droid_path = "/home/dct05r/temp/DROID_v3.0";
+my $java_path = "/home/dct05r/java/jdk1.6.0_06/bin";
+
 my $session = EPrints::Session->new( 1, $repoid );
 
 my $dataset = $session->get_repository->get_dataset( "file" );
@@ -23,18 +26,20 @@ while(1)
 	my $list = $searchexp->perform_search;
 	$list->map(sub {
 		my( $session, $dataset, $file ) = @_;
-		print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
 		if( 1 || $check-- == 0 )
 		{
 			$check = 10;
 			my $list = &fetch_unset();
 			if( $list->count > 0 )
 			{
-				print "Found ".$list->count." unset files!\n";
+				#print "Found ".$list->count." unset files!\n";
+				#print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
+				my $fh = $file->get_local_copy();
+				my $droid_cmd = "$java_path/java -jar $droid_path/droid.jar -S$droid_path/DROID_SignatureFile_V13.xml -Odroid -FXML -L$fh";
+				print "$droid_cmd\n";
 				# $list->map(sub { ... });
 			}
 		}
-		my $fh = $file->get_fh();
 	});
 	last;
 }
