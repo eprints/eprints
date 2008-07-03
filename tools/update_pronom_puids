@@ -14,7 +14,14 @@ my $dataset = $session->get_repository->get_dataset( "file" );
 while(1)
 {
 	my $check = 10;
-	$dataset->map($session, sub {
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+	);
+	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
+	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
+	my $list = $searchexp->perform_search;
+	$list->map(sub {
 		my( $session, $dataset, $file ) = @_;
 		print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
 		if( 1 || $check-- == 0 )
@@ -34,17 +41,19 @@ while(1)
 
 sub fetch_unset
 {
-my $searchexp = EPrints::Search->new(
-	session => $session,
-	dataset => $dataset,
-	custom_order => "-mtime",
-);
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+		custom_order => "-mtime",
+	);
 
-$searchexp->add_field( $dataset->get_field( "pronom_uid" ), "", "EX" );
+	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
+	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
+	$searchexp->add_field( $dataset->get_field( "pronom_uid" ), "", "EX" );
 
-my $list = $searchexp->perform_search;
+	my $list = $searchexp->perform_search;
 
-return $list;
+	return $list;
 }
 
 END
