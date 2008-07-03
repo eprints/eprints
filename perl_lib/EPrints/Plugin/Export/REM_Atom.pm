@@ -193,7 +193,7 @@ sub output_dataobj
 
 	
 	my $content = $session->make_element("entry");
-	my $sub_content = $session->render_data_element(
+	$sub_content = $session->render_data_element(
 		4,
 		"id",
 		"http://oreproxy.org/r?what=$base_url/$eprint_id&where=$resmap_url#aggregation"
@@ -205,7 +205,7 @@ sub output_dataobj
 		"type"=>"text/html"
 	);
 	$content->appendChild( $sub_content );
-	my $sub_content = $session->render_data_element(
+	$sub_content = $session->render_data_element(
 		4,
 		"title",
 		"Splash Page for \"$title\" (text/html)"
