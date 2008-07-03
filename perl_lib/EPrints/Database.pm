@@ -624,22 +624,6 @@ sub create_dataset_ordervalues_tables
 }
 
 
-# $db->create_login_tickets_table()
-# 
-# create the login_tickets table.
-
-sub create_login_tickets_table
-{
-	my( $self ) = @_;
-
-	return $self->_create_table("login_tickets", ["code"], [
-		$self->get_column_type( "code", SQL_VARCHAR, SQL_NOT_NULL, 32 ),
-		$self->get_column_type( "userid", SQL_INTEGER ),
-		$self->get_column_type( "ip", SQL_VARCHAR, SQL_NULL, 64),
-		$self->get_column_type( "expires", SQL_INTEGER ),
-	]);
-}
-
 # $db->get_ticket_userid( $code, $ip )
 # 
 # return the userid, if any, associated with the given ticket code and IP address.

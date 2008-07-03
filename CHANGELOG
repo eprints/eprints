@@ -7604,3 +7604,6 @@ EPRINTS-3.1-beta-2
  * Added AJAX-based file upload progress reporting
  * Only allow batch editing of eprint objects
 
+2008-07-03 tdb
+ * Removed unused database method "create_login_tickets_table"
+
