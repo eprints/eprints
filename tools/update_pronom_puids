@@ -14,6 +14,13 @@ my $session = EPrints::Session->new( 1, $repoid );
 
 my $dataset = $session->get_repository->get_dataset( "file" );
 
+unless( $session->get_repository->get_conf( "invocation", "droid" ) )
+{
+	die <<EOH;
+You do not have droid configured in your SystemSettings ...
+EOH
+}
+
 while(1)
 {
 	my $check = 10;
@@ -35,8 +42,13 @@ while(1)
 				#print "Found ".$list->count." unset files!\n";
 				#print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
 				my $fh = $file->get_local_copy();
+				my $droid_xml = File::Temp->new;
 				my $droid_cmd = "$java_path/java -jar $droid_path/droid.jar -S$droid_path/DROID_SignatureFile_V13.xml -Odroid -FXML -L$fh";
 				print "$droid_cmd\n";
+				$session->get_repository->exec( "droid",
+					SOURCE => $fh,
+					TARGET => "$droid_xml",
+				);
 				# $list->map(sub { ... });
 			}
 		}
