@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use EPrints;
+
+my( $repoid ) = @ARGV;
+
+my $session = EPrints::Session->new( 1, $repoid );
+
+my $dataset = $session->get_repository->get_dataset( "file" );
+
+while(1)
+{
+	my $check = 10;
+	$dataset->map($session, sub {
+		my( $session, $dataset, $file ) = @_;
+		print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
+		if( 1 || $check-- == 0 )
+		{
+			$check = 10;
+			my $list = &fetch_unset();
+			if( $list->count > 0 )
+			{
+				print "Found ".$list->count." unset files!\n";
+				# $list->map(sub { ... });
+			}
+		}
+		my $fh = $file->get_fh();
+	});
+	last;
+}
+
+sub fetch_unset
+{
+my $searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	custom_order => "-mtime",
+);
+
+$searchexp->add_field( $dataset->get_field( "pronom_uid" ), "", "EX" );
+
+my $list = $searchexp->perform_search;
+
+return $list;
+}
+
+END
+{
+	$session->terminate;
+}
