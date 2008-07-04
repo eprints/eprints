@@ -97,6 +97,12 @@ use EPrints;
 use Digest::MD5;
 use MIME::Base64 ();
 
+BEGIN
+{
+	eval "use Digest::SHA";
+	eval "use Digest::SHA::PurePerl" if $@;
+}
+
 use strict;
 
 ######################################################################
@@ -485,6 +491,46 @@ sub update_md5
 
 	$self->set_value( "hash", $md5 );
 	$self->set_value( "hash_type", "MD5" );
+
+	$self->commit();
+}
+
+=item $digest = $file->generate_sha( [ ALGORITHM ] )
+
+Generate a SHA for this file, see L<Digest::SHA::PurePerl> for a list of supported algorithms. Defaults to "256" (SHA-256).
+
+Returns the hex-encoded digest.
+
+=cut
+
+sub generate_sha
+{
+	my( $self, $alg ) = @_;
+
+	$alg ||= "256";
+
+	# PurePerl is quite slow
+	my $class = defined(&Digest::SHA::new) ?
+		"Digest::SHA" :
+		"Digest::SHA::PurePerl";
+
+	my $sha = $class->new( $alg );
+
+	$sha->addfile( $self->get_fh );
+
+	return $sha->hexdigest;
+}
+
+sub update_sha
+{
+	my( $self, $alg ) = @_;
+
+	$alg ||= "256";
+
+	my $digest = $self->generate_sha( $alg );
+
+	$self->set_value( "hash", $digest );
+	$self->set_value( "hash_type", "SHA-$alg" );
 
 	$self->commit();
 }

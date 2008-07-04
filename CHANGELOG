@@ -7607,3 +7607,6 @@ EPRINTS-3.1-beta-2
 2008-07-03 tdb
  * Removed unused database method "create_login_tickets_table"
 
+2008-07-04 tdb
+ * Changed default file hashing to use SHA-256
+

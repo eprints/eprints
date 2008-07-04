@@ -880,7 +880,7 @@ sub upload
 
 	if( $rc )
 	{
-		$stored->update_md5();
+		$stored->update_sha();
 	}
 
 	$rc &&= $self->files_modified;
