@@ -47,6 +47,16 @@ Do not check the current user/group is the same as the user/group in Systemsetti
 
 =back
 
+=head2 Debugging Slow Processes
+
+This module installs a signal handler that will print a stack trace if given a USR2 signal (if your system supports this signal). To print a stack trace to the error log execute:
+
+ $ kill -USR2 PID
+
+Where PID is the id number of the stalled process.
+
+A shell script will print the stack trace to the console.
+
 =head1 METHODS
 
 =over 4
@@ -241,6 +251,14 @@ sub import
 		EPrints::Platform::test_uid();
 	}
 }
+
+sub sigusr2_cluck
+{
+	Carp::cluck( "caught SIGUSR2" );
+	$SIG{'USR2'} = \&sigusr2_cluck;
+}
+
+$SIG{'USR2'} = \&sigusr2_cluck;
 
 1;
 

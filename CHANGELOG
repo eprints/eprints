@@ -7610,3 +7610,6 @@ EPRINTS-3.1-beta-2
 2008-07-04 tdb
  * Changed default file hashing to use SHA-256
 
+2008-07-07 tdb
+ * Added a USR2 signal handler for debugging 100% cpu situations
+
