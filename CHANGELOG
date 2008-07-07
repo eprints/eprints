@@ -7612,4 +7612,5 @@ EPRINTS-3.1-beta-2
 
 2008-07-07 tdb
  * Added a USR2 signal handler for debugging 100% cpu situations
+ * If phrases or workflow aren't writable don't abort when writing new fields
 

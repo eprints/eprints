@@ -150,9 +150,17 @@ sub action_commit
 
 	my $dataobj = $self->{processor}->{metafield};
 	$ok &&= $dataobj->move_to_archive();
-	$ok &&= $dataobj->add_to_phrases();
-	$ok &&= $dataobj->add_to_workflow();
 	$ok &&= EPrints::DataObj::MetaField::save_all( $self->{session} );
+
+	if( !$dataobj->add_to_phrases() )
+	{
+		$self->{processor}->add_message( "warning", $self->html_phrase( "add_to_phrases_failed" ) );
+	}
+
+	if( !$dataobj->add_to_workflow() )
+	{
+		$self->{processor}->add_message( "warning", $self->html_phrase( "add_to_workflow_failed" ) );
+	}
 
 	if( $ok )
 	{

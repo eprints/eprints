@@ -47,6 +47,8 @@ Phrases related to the Manage Metadata Fields tool.
 
 <p>If you don't want to add a new field now click <em>Save for Later</em>.</p>
 	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_phrases_failed">Failed to add this field's phrase, you should check that your phrases directory is writable.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_workflow_failed">Failed to add this field to the workflow, you should check that your workflow directory is writable.</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/Commit:title">Adding a new metadata field</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/Edit:title">Adding a new metadata field</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/View:title">Manage Metadata Fields</epp:phrase>

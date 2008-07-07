@@ -719,9 +719,16 @@ sub add_to_phrases
 			}
 		}
 
-		open(my $fh, ">", $file_name) or EPrints::abort "Failed to open $file_name for writing: $!";
-		print $fh $doc->toString;
-		close($fh);
+		if( open(my $fh, ">", $file_name) )
+		{
+			print $fh $doc->toString;
+			close($fh);
+		}
+		else
+		{
+			$session->get_repository->log( "Failed to open $file_name for writing: $!" );
+			$ok = 0;
+		}
 
 		EPrints::XML::dispose( $doc );
 	}
@@ -807,9 +814,16 @@ sub add_to_workflow
 	$stage->appendChild( $session->make_text( "\n\t" ) );
 	$component->appendChild( $field );
 
-	open(my $fh, ">", $file_name) or EPrints::abort "Failed to open $file_name for writing: $!";
-	print $fh $doc->toString;
-	close($fh);
+	if( open(my $fh, ">", $file_name) )
+	{
+		print $fh $doc->toString;
+		close($fh);
+	}
+	else
+	{
+		$session->get_repository->log( "Failed to open $file_name for writing: $!" );
+		$ok = 0;
+	}
 
 	EPrints::XML::dispose( $doc );
 
