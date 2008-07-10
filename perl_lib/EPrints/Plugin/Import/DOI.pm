@@ -58,7 +58,10 @@ sub input_text_fh
 		};
 		if( $@ )
 		{
-			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi", doi => $plugin->{session}->make_text( $doi )));
+			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi",
+				doi => $plugin->{session}->make_text( $doi ),
+				msg => $plugin->{session}->make_text( "No or unrecognised response" )
+			));
 			next;
 		}
 
@@ -67,6 +70,19 @@ sub input_text_fh
 		my $dom_query_result = ($dom_top->getElementsByTagName( "query_result" ))[0];
 		my $dom_body = ($dom_query_result->getElementsByTagName( "body" ))[0];
 		my $dom_query = ($dom_body->getElementsByTagName( "query" ))[0];
+
+		my $status = $dom_query->getAttribute( "status" );
+
+		if( defined($status) && $status eq "unresolved" )
+		{
+			my $msg = ($dom_query->getElementsByTagName( "msg" ))[0];
+			$msg = EPrints::Utils::tree_to_utf8( $msg );
+			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi",
+				doi => $plugin->{session}->make_text( $doi ),
+				msg => $plugin->{session}->make_text( $msg )
+			));
+			next;
+		}
 
 		my $data = { doi => $doi };
 		foreach my $node ( $dom_query->getChildNodes )
