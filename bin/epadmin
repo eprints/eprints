@@ -2000,7 +2000,10 @@ sub upgrade_3_0_7_to_3_1_0
 			next if $field->is_virtual;
 			my $table = $dataset->get_sql_sub_table_name( $field );
 			my $keyfield = $dataset->get_key_field;
-			$db->do("ALTER TABLE $table DROP PRIMARY KEY");
+			unless( $db->get_primary_key( $table ) )
+			{
+				$db->do("ALTER TABLE $table DROP PRIMARY KEY");
+			}
 			$db->do("ALTER TABLE $table ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
 		}
 	}

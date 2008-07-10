@@ -969,6 +969,25 @@ sub drop_sequence
 ######################################################################
 =pod
 
+=item @columns = $db->get_primary_key( $tablename )
+
+Returns the list of column names that comprise the primary key for $tablename.
+
+Returns empty list if no primary key exists.
+
+=cut
+######################################################################
+
+sub get_primary_key
+{
+	my( $self, $tablename ) = @_;
+
+	return $self->{dbh}->primary_key( undef, undef, $tablename );
+}
+
+######################################################################
+=pod
+
 =item  $success = $db->create_index( $tablename, @columns )
 
 Creates an index over @columns for $tablename. Returns true on success.
