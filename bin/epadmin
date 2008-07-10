@@ -1999,6 +1999,7 @@ sub upgrade_3_0_7_to_3_1_0
 			next unless $field->get_property( "multiple" );
 			next if $field->is_virtual;
 			my $table = $dataset->get_sql_sub_table_name( $field );
+			next unless $db->has_table( $table );
 			my $keyfield = $dataset->get_key_field;
 			unless( $db->get_primary_key( $table ) )
 			{
