@@ -208,7 +208,12 @@ if( !defined $filename )
 	$filename = $session->get_repository->get_conf( "config_path" )."/subjects";
 }
 
-unless( $force )
+my $subds = $session->get_repository->get_dataset( "subject" );
+
+my $oldids = $subds->get_item_ids( $session );
+my $existing = scalar(@$oldids) > 0;
+
+if( !$force && $existing )
 {
 	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to make bulk changes to the subject table in the $ARGV[0] repository" );
 	unless( $sure )
@@ -219,7 +224,7 @@ unless( $force )
 	}
 }
 
-if( $purge )
+if( $purge && $existing )
 {
 	if( $noise > 0 )
 	{
@@ -231,8 +236,6 @@ if( $purge )
 		print "...done purging.\n";
 	}
 }
-
-my $subds = $session->get_repository->get_dataset( "subject" );
 
 print "Importing from $filename...\n" if( $noise >= 1 );
 

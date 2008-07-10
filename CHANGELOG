@@ -7618,4 +7618,6 @@ EPRINTS-3.1-beta-2
  * Added default account for CrossRef imports, fixing #3397
  * Check for an XML "unresolved" response from CrossRef, fixing #3386
  * Added get_primary_key method to Database to fix #3396
+ * import_subjects will not ask for confirmation if there are no existing
+    subjects
 
