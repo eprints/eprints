@@ -1,7 +1,7 @@
 
 # Generic Plugin Options
 
-# To disbale the plugin "Export::BibTeX":
+# To disable the plugin "Export::BibTeX":
 # $c->{plugins}->{"Export::BibTeX"}->{params}->{disable} = 1;
 
 # To enable the plugin "Export::LocalThing":
@@ -53,4 +53,9 @@
 # as that would be confusing. 
 # $c->{plugin_alias_map}->{"Export::LocalDC"} = undef;
         
+# CrossRef registration
+
+# You should replace this with your own CrossRef account username and password.
+
+$c->{plugins}->{"Import::DOI"}->{params}->{pid} = "ourl_eprintsorg:eprintsorg";
 
