@@ -180,6 +180,8 @@ use EPrints::BackCompatibility;
 use EPrints::XML;
 use EPrints::Utils;
 use EPrints::Time;
+
+use EPrints::Box;
 use EPrints::Config;
 use EPrints::Database;
 use EPrints::Storage;

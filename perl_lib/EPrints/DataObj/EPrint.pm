@@ -1695,67 +1695,23 @@ sub render_box_list
 	my $processor = bless { session=>$session, eprint=>$eprint, eprintid=>$eprint->get_id }, "EPrints::ScreenProcessor";
 	my $some_plugin = $session->plugin( "Screen", processor=>$processor );
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
 	my $chunk = $session->make_doc_fragment;
 	foreach my $item ( $some_plugin->list_items( $list ) )
 	{
 		my $i = $session->get_next_id;
-		my $id = "ep_summary_box_$i";
-		my $contentid = $id."_content";
-		my $colbarid = $id."_colbar";
-		my $barid = $id."_bar";
 
-		my $div = $session->make_element( "div", class=>"ep_summary_box", id=>$id );
-		$chunk->appendChild( $div );
-
-
-		# Title
-		my $div_title = $session->make_element( "div", class=>"ep_summary_box_title" );
-		$div->appendChild( $div_title );
-
-		my $nojstitle = $session->make_element( "div", class=>"ep_no_js" );
-		$nojstitle->appendChild( $item->{screen}->render_title );
-		$div_title->appendChild( $nojstitle );
-
-		my $collapse_bar = $session->make_element( "div", class=>"ep_js_only", id=>$colbarid );
-		my $collapse_link = $session->make_element( "a", class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',true,'${id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
-		$collapse_link->appendChild( $session->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
-		$collapse_link->appendChild( $session->make_text( " " ) );
-		$collapse_link->appendChild( $item->{screen}->render_title );
-		$collapse_bar->appendChild( $collapse_link );
-		$div_title->appendChild( $collapse_bar );
-		
-		my $uncollapse_bar = $session->make_element( "div", class=>"ep_js_only", id=>$barid );
-		my $uncollapse_link = $session->make_element( "a", id=>$barid, class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
-		$uncollapse_link->appendChild( $session->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
-		$uncollapse_link->appendChild( $session->make_text( " " ) );
-		$uncollapse_link->appendChild( $item->{screen}->render_title );
-		$uncollapse_bar->appendChild( $uncollapse_link );
-		$div_title->appendChild( $uncollapse_bar );
-	
-		# Body	
-		my $div_body = $session->make_element( "div", class=>"ep_summary_box_body", id=>$contentid );
-		my $div_body_inner = $session->make_element( "div", id=>$contentid."_inner" );
-		$div_body->appendChild( $div_body_inner );
-		$div->appendChild( $div_body );
-		$div_body_inner->appendChild( $item->{screen}->render );
-
-		if( $item->{screen}->render_collapsed ) 
-		{ 
-			$collapse_bar->setAttribute( "style", "display: none" ); 
-			$uncollapse_bar->setAttribute( "style", "display: block" ); 
-			$div_body->setAttribute( "style", "display: none" ); 
-		}
-		else
-		{
-			$uncollapse_bar->setAttribute( "style", "display: none" ); 
-			$collapse_bar->setAttribute( "style", "display: block" ); 
-		}
+		my %options;
+		$options{session} = $session;
+		$options{id} = "ep_summary_box_$i";
+		$options{title} = $item->{screen}->render_title;
+		$options{content} = $item->{screen}->render;
+		$options{collapsed} = $item->{screen}->render_collapsed;
+		# $options{content_style} = "height: 100px; overflow: auto";
+		$chunk->appendChild( EPrints::Box::render( %options ) );
 	}
-		
+
 	return $chunk;
 }
-
 
 
 ######################################################################
