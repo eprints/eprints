@@ -7621,6 +7621,8 @@ EPRINTS-3.1-beta-2
  * import_subjects will not ask for confirmation if there are no existing
     subjects
 
-2008-07-12 cjg + af05v
+2008-07-14 cjg + af05v
  * Spun "Box" off into it's own package with some funky options.
 
+2008-07-14 cjg + af05v
+ * Added call_back options to render view menus and view items pages.

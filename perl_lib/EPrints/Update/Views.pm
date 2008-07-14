@@ -331,19 +331,28 @@ sub update_view_menu
 	}
 	$page->appendChild( $session->html_phrase( $phrase_id ));
 
-	my $render_menu_fn = \&render_view_menu;
-	if( $menu_fields[0]->is_type( "subject" ) )
-	{
-		$render_menu_fn = \&render_view_subj_menu;
-	}
-	$page->appendChild( &{$render_menu_fn}(
+	my @render_menu_opts = (
 				$session,
 				$view,
 				$show_sizes,
 				\@values,
 				\@menu_fields,
-				$has_submenu ) );
+				$has_submenu );
 
+	my $menu_xhtml;
+	if( $menu_fields[0]->is_type( "subject" ) )
+	{
+		$menu_xhtml = render_view_subj_menu( @render_menu_opts );
+	}
+	elsif( $view->{render_menu} )
+	{
+		$menu_xhtml = $repository->call( $view->{render_menu}, @render_menu_opts );
+	}
+	else
+	{
+		$menu_xhtml = render_view_menu( @render_menu_opts );
+	}
+	$page->appendChild( $menu_xhtml );
 
 	my $title;
 	my $title_phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_menu_".( $menu_level + 1 );
@@ -846,6 +855,35 @@ sub update_view_list
 					time=>$session->make_text(
 						EPrints::Time::human_time() ) )->toString;
 		}
+
+
+		if( defined $opts->{render_fn} )
+		{
+			my $block = $repository->call( $opts->{render_fn}, 
+					$session,
+					\@items,
+					$view,
+					$path_values,
+					$opts->{filename} );
+
+			print PAGE $intro;
+			print PAGE $count_div;
+			print PAGE $block;
+			print PAGE $time_div;
+			print PAGE "</div>\n";
+			close PAGE;
+
+			print INCLUDE $intro;
+			print INCLUDE $count_div;
+			print INCLUDE $block;
+			print INCLUDE $time_div;
+			print INCLUDE "</div>\n";
+			close INCLUDE;
+
+			$first_view = 0;
+			next ALTVIEWS;
+		}
+
 
 		# If this grouping is "DEFAULT" then there is no actual grouping-- easy!
 		if( $fieldname eq "DEFAULT" ) 
