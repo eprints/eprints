@@ -1397,7 +1397,9 @@ sub rehash
 
 	seek($tmpfile, 0, 0);
 
-	$self->add_stored_file( "probity", $hashfile, $tmpfile, -s "$tmpfile" );
+	# Probity files must not be deleted when the document is deleted, therefore
+	# we store them in the parent Eprint
+	$self->get_parent->add_stored_file( "probity", $hashfile, $tmpfile, -s "$tmpfile" );
 }
 
 ######################################################################

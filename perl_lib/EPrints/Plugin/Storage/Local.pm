@@ -134,7 +134,6 @@ sub _filename
 	}
 	elsif( $bucket eq "probity" )
 	{
-		$local_path =~ s/\/\d+$//;
 		$in_file = "$local_path/$filename";
 	}
 	elsif( $bucket eq "cache" )
