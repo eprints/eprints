@@ -2040,48 +2040,6 @@ sub render_search_value
 	return $session->make_text( '"'.$value.'"' );
 }	
 
-sub split_search_value
-{
-	my( $self, $session, $value ) = @_;
-
-#	return EPrints::Index::split_words( 
-#			$session,
-#			EPrints::Index::apply_mapping( $session, $value ) );
-
-	return split /\s+/, $value;
-}
-
-sub get_search_conditions
-{
-	my( $self, $session, $dataset, $search_value, $match, $merge,
-		$search_mode ) = @_;
-
-	if( $match eq "EX" )
-	{
-		if( $search_value eq "" )
-		{	
-			return EPrints::Search::Condition->new( 
-					'is_null', 
-					$dataset, 
-					$self );
-		}
-
-		return EPrints::Search::Condition->new( 
-				'=', 
-				$dataset, 
-				$self, 
-				$search_value );
-	}
-
-	return $self->get_search_conditions_not_ex(
-			$session, 
-			$dataset, 
-			$search_value, 
-			$match, 
-			$merge, 
-			$search_mode );
-}
-
 sub get_search_group { return 'basic'; } 
 
 
@@ -2139,13 +2097,111 @@ sub get_property_defaults
 		join_path	=> $EPrints::MetaField::UNDEF,
 );
 }
-		
+
+=item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $session, $value )
+
+Get indexable terms from $value. $terms is a reference to an array of strings to index. $grep_terms is a reference to an array of terms to add to the grep index. $ignored is a reference to an array of terms that should be ignored (e.g. stop words in a free-text field).
+
+=cut
+
 # Most types are not indexed		
 sub get_index_codes
 {
 	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] );
+}
+
+=item @terms = $field->split_search_value( $session, $value )
+
+Split $value into terms that can be used to search against this field.
+
+=cut
+
+sub split_search_value
+{
+	my( $self, $session, $value ) = @_;
+
+#	return EPrints::Index::split_words( 
+#			$session,
+#			EPrints::Index::apply_mapping( $session, $value ) );
+
+	return split /\s+/, $value;
+}
+
+=item $cond = $field->get_search_conditions( $session, $dataset, $value, $match, $merge, $mode )
+
+Return a L<Search::Condition> for $value based on this field.
+
+=cut
+
+sub get_search_conditions
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+
+	if( $match eq "EX" )
+	{
+		if( $search_value eq "" )
+		{	
+			return EPrints::Search::Condition->new( 
+					'is_null', 
+					$dataset, 
+					$self );
+		}
+
+		return EPrints::Search::Condition->new( 
+				'=', 
+				$dataset, 
+				$self, 
+				$search_value );
+	}
+
+	return $self->get_search_conditions_not_ex(
+			$session, 
+			$dataset, 
+			$search_value, 
+			$match, 
+			$merge, 
+			$search_mode );
+}
+
+=item $cond = $field->get_search_conditions_not_ex( $session, $dataset, $value, $match, $merge, $mode )
+
+Return the search condition for a search which is not-exact ($match ne "EX").
+
+=cut
+
+sub get_search_conditions_not_ex
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+	
+	if( $match eq "EQ" )
+	{
+		return EPrints::Search::Condition->new( 
+			'=', 
+			$dataset,
+			$self, 
+			$search_value );
+	}
+
+	# free text!
+
+	# apply stemming and stuff
+	my( $codes, $grep_codes, $bad ) = $self->get_index_codes( $session, $search_value );
+
+	# Just go "yeah" if stemming removed the word
+	if( !EPrints::Utils::is_set( $codes->[0] ) )
+	{
+		return EPrints::Search::Condition->new( "PASS" );
+	}
+
+	return EPrints::Search::Condition->new( 
+			'index',
+ 			$dataset,
+			$self, 
+			$codes->[0] );
 }
 
 sub get_value
