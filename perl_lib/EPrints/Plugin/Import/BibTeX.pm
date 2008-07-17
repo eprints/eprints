@@ -221,8 +221,8 @@ use EPrints::Plugin::Import::TextFile;
 our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
 
 our %BIBTEX_MAPPING = qw(
-	author creators_name
-	editor editors_name
+	author creators
+	editor editors
 );
 our %BIBTEX_NAMES = (
 #	jan => Text::BibTeX::Yapp::String->new( "January" ),
@@ -404,7 +404,10 @@ sub convert_input
 					$_ = $plugin->decode_tex( $_ );
 				}
 			}
-			push @{$epdata->{$BIBTEX_MAPPING{$field}}}, $a_name;
+			push @{$epdata->{$BIBTEX_MAPPING{$field}}}, {
+				name => $a_name,
+				id => $name->email,
+			};
 		}
 	}
 	
