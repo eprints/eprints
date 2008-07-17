@@ -173,14 +173,31 @@ sub phrase
 	# not using fb 
 	my( $phrase , $fb ) = $self->_get_phrase( $phraseid, $session );
 
+	$inserts = {} if( !defined $inserts );
 	if( !defined $phrase )
 	{
 		$session->get_repository->log( 
 			'Undefined phrase: "'.$phraseid.'" ('.$self->{id}.')' );
-		return $session->make_text( '["'.$phraseid.'" not defined]' );
+		my $frag = $session->make_doc_fragment;
+		$frag->appendChild( $session->make_text( '["'.$phraseid.'" not defined' ) );
+		if( scalar(keys %$inserts) )
+		{
+			my $dl = $session->make_element( "dl", class => "ep_undefined_phrase"  );
+			$frag->appendChild( $dl );
+			while(my( $key, $insert ) = each %$inserts)
+			{
+				my $dt = $session->make_element( "dt" );
+				$dl->appendChild( $dt );
+				$dt->appendChild( $session->make_text( $key ) );
+				my $dd = $session->make_element( "dd" );
+				$dl->appendChild( $dd );
+				$dd->appendChild( $insert );
+			}
+		}
+		$frag->appendChild( $session->make_text( ']' ) );
+		return $frag;
 	}
 
-	$inserts = {} if( !defined $inserts );
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
 	my $used = {};
 	my $result = EPrints::XML::EPC::process_child_nodes( 

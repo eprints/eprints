@@ -7629,4 +7629,5 @@ EPRINTS-3.1-beta-2
 
 2008-07-17 tdb
  * When importing BibTeX can now specify email addresses
+ * Show the inserts if a phrase is undefined
 
