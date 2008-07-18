@@ -7634,5 +7634,5 @@ EPRINTS-3.1-beta-2
 2008-07-18 tdb
  * Added get_default_charset and get_default_collation methods to Database
  * Can now specify merge and match settings in advanced search configuration
-
+ * Added --update option to bin/import to update existing records
 

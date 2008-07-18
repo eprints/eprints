@@ -90,6 +90,11 @@ This sets the "enable_file_imports" configuration option for this session only.
 Allow the imported data to import files from the Web. This can obviously be seen as a security hole if you don't trust the data you are importing.
 This sets the "enable_web_imports" configuration option for this session only.
 
+=item B<--update>
+
+Normally you can not import a new item with the same id as an existing item.
+With this option enabled existing items will be updated with the new item (implies --enable-import-ids).
+
 =item B<--force>
 
 Don't ask any questions, just do it!
@@ -146,6 +151,7 @@ my $enable_web_imports = 0;
 my $enable_import_ids = 0;
 my $enable_import_datestamps = 0;
 my $migration = 0;
+my $update = 0;
 
 GetOptions( 
 	'help|?' => \$help,
@@ -164,6 +170,7 @@ GetOptions(
 	'enable-import-ids' => \$enable_import_ids,
 	'enable-import-datestamps' => \$enable_import_datestamps,
 	'migration' => \$migration,
+	'update' => \$update,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -180,6 +187,10 @@ if( $migration )
 	$enable_web_imports = 1;
 	$enable_import_ids = 1;
 	$enable_import_datestamps = 1;
+}
+if( $update )
+{
+	$enable_import_ids = 1;
 }
 
 if( $scripted ) { $noise = 0; }
@@ -300,7 +311,7 @@ my $handler = EPrints::CLIProcessor->new(
 );
 
 my $pluginid = "Import::".$ipluginid;
-my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only, Handler=>$handler );
+my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only, update=>$update, Handler=>$handler );
 
 if( !defined $plugin )
 {
