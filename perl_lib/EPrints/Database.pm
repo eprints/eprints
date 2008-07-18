@@ -745,14 +745,16 @@ sub get_column_type
 
 	if( $opts{langid} )
 	{
-		my $conf = $repository->get_conf( "dblanguages", $opts{langid} );
+		my $charset = $self->get_default_charset( $opts{langid} );
 
-		if( defined( $conf ) && defined( $conf->{charset} ) )
+		if( defined( $charset ) )
 		{
-			$type .= " CHARACTER SET ".$conf->{charset};
-			if( defined( $conf->{collate} ) )
+			$type .= " CHARACTER SET ".$charset;
+
+			my $collate = $self->get_default_collation( $opts{langid} );
+			if( defined( $collate ) )
 			{
-				$type .= " COLLATE ".$conf->{collate};
+				$type .= " COLLATE ".$collate;
 			}
 		}
 	}
@@ -3820,6 +3822,34 @@ Return the database server version.
 ######################################################################
 
 sub get_server_version;
+
+######################################################################
+=pod
+
+=item $charset = $db->get_default_charset( LANGUAGE )
+
+Return the character set to use for LANGUAGE.
+
+Returns undef if character sets are unsupported.
+
+=cut
+######################################################################
+
+sub get_default_charset {}
+
+######################################################################
+=pod
+
+=item $collation = $db->get_default_collation( LANGUAGE )
+
+Return the collation to use for LANGUAGE.
+
+Returns undef if collation is unsupported.
+
+=cut
+######################################################################
+
+sub get_default_collation {}
 
 ######################################################################
 =pod

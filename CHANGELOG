@@ -7631,3 +7631,7 @@ EPRINTS-3.1-beta-2
  * When importing BibTeX can now specify email addresses
  * Show the inserts if a phrase is undefined
 
+2008-07-18 tdb
+ * Added get_default_charset and get_default_collation methods to Database
+
+

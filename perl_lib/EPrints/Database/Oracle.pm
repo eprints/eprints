@@ -62,6 +62,8 @@ use EPrints;
 use EPrints::Database qw( :sql_types );
 @ISA = qw( EPrints::Database );
 
+our $I18L = {};
+
 # DBD::Oracle seems to not be very good on type_info
 our %ORACLE_TYPES = (
 	SQL_VARCHAR() => {
