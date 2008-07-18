@@ -293,8 +293,8 @@ END
 		my $sf = $self->add_field( 
 			\@meta_fields, 
 			$fielddata->{default},
-			undef,
-			undef,
+			$fielddata->{match},
+			$fielddata->{merge},
 			$fielddata->{id},
 			0 );
 	}
