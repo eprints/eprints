@@ -7636,3 +7636,6 @@ EPRINTS-3.1-beta-2
  * Can now specify merge and match settings in advanced search configuration
  * Added --update option to bin/import to update existing records
 
+2008-07-23 tdb
+ * Indexer daemon checking now looks at /proc/$pid, fixing #3311
+

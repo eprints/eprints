@@ -175,6 +175,20 @@ Return the amount of free space (in bytes) available at $dir. $dir may contain a
 
 sub free_space { return &{$real_module."::free_space"}( @_ ); }
 
+#####################################################################
+
+=item $bool = proc_exists( $pid )
+
+Returns true if a process exists using id $pid.
+
+Returns undef if process identification is unsupported.
+
+=cut
+
+#####################################################################
+
+sub proc_exists { &{$real_module."::proc_exists"} }
+
 1;
 
 =back

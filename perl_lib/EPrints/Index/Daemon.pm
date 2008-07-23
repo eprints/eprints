@@ -173,7 +173,9 @@ sub is_running
 {
 	my( $self ) = @_;
 	my $pid = $self->get_pid or return undef;
-	return kill(0, $pid) ? 1 : 0;
+	return 1 if kill(0, $pid); # Running as the same uid as us
+	return 1 if EPrints::Platform::proc_exists( $pid );
+	return 0;
 }
 
 # tick tock
@@ -512,7 +514,10 @@ sub stop_daemon
 {
 	my( $self ) = @_;
 
-	open(SUICIDE, ">", $self->{suicidefile});
+	unless( open(SUICIDE, ">", $self->{suicidefile}) )
+	{
+		EPrints::abort( "Unable to write to stop file $self->{suicidefile}: $!" );
+	}
 	print SUICIDE <<END;
 # This file is recreated by the indexer to indicate
 # that the indexer should exit.
