@@ -7639,3 +7639,6 @@ EPRINTS-3.1-beta-2
 2008-07-23 tdb
  * Indexer daemon checking now looks at /proc/$pid, fixing #3311
 
+2008-07-25 tdb
+ * Thumbnail module for video files (based on Seb's work for EdSpace)
+
