@@ -7641,4 +7641,5 @@ EPRINTS-3.1-beta-2
 
 2008-07-25 tdb
  * Thumbnail module for video files (based on Seb's work for EdSpace)
+ * Video thumbnail module for generating flash-video previews
 
