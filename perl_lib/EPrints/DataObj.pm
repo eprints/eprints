@@ -752,6 +752,24 @@ sub get_gid
 	return undef;
 }
 
+=item $datestamp = $dataobj->get_datestamp
+
+Returns the datestamp of this object in "YYYY-MM-DD hh:mm:ss" format.
+
+=cut
+
+sub get_datestamp
+{
+	my( $self ) = @_;
+
+	my $dataset = $self->get_dataset;
+
+	my $field = $dataset->get_datestamp_field;
+	return unless $field;
+
+	return $field->get_value( $self );
+}
+
 ######################################################################
 =pod
 
