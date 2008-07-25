@@ -30,4 +30,16 @@
 	text-align: center;
 }
 
+div#ep_video_preview
+{
+	margin: 1em 0em;
+	border: solid 1px black;
+	width: 320px;
+	display: none;
+}
 
+div#ep_video_preview_inner
+{
+	height: 264px;
+	width: 320px;
+}

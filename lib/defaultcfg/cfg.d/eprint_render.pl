@@ -93,6 +93,16 @@ $c->{eprint_render} = sub
 	{
 		$p->appendChild( $session->html_phrase( "page:fulltext" ) );
 
+		my $video_preview = $session->make_element( "div",
+				id => "ep_video_preview",
+				);
+		$video_preview->appendChild( $session->make_element( 
+			"div", 
+			id=>"ep_video_preview_inner",
+			));
+
+		$page->appendChild( $video_preview );
+
 		my( $doctable, $doctr, $doctd );
 		$doctable = $session->make_element( "table", class=>"ep_block", style=>"margin-bottom: 1em" );
 

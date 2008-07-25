@@ -7643,4 +7643,5 @@ EPRINTS-3.1-beta-2
  * Thumbnail module for video files (based on Seb's work for EdSpace)
  * Video thumbnail module for generating flash-video previews
  * Added convenience method for getting the datestamp of an object
+ * Added video preview to abstract pages
 
