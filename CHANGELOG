@@ -7645,3 +7645,6 @@ EPRINTS-3.1-beta-2
  * Added convenience method for getting the datestamp of an object
  * Added video preview to abstract pages
 
+2008-07-28 tdb
+ * Changed preview to use Lightbox 2 and added support for video previewing
+

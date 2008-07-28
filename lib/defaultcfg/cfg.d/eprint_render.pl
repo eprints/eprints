@@ -26,6 +26,7 @@ $c->{eprint_render} = sub
 	my $commentary_field = $session->get_repository->get_dataset( "eprint" )->get_field( "commentary" );
 	my $has_multiple_versions = $eprint->in_thread( $succeeds_field );
 
+	my( $table, $tr, $td, $th );	# this table needs more class cjg
 	my( $page, $p, $a );
 
 	$page = $session->make_doc_fragment;
@@ -81,7 +82,7 @@ $c->{eprint_render} = sub
 		if( $has_contact_email && $eprint->get_value( "eprint_status" ) eq "archive"  )
 		{
 			# "Request a copy" button
-			my $form = $session->render_form( "get", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
+			my $form = $session->render_form( "get", $session->get_repository->get_conf( "http_cgiurl" ) . "/request_doc" );
 			$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id ) );
 			$form->appendChild( $session->render_action_buttons( 
 				"null" => $session->phrase( "request:button" )
@@ -93,49 +94,52 @@ $c->{eprint_render} = sub
 	{
 		$p->appendChild( $session->html_phrase( "page:fulltext" ) );
 
-		my $video_preview = $session->make_element( "div",
-				id => "ep_video_preview",
-				);
-		$video_preview->appendChild( $session->make_element( 
-			"div", 
-			id=>"ep_video_preview_inner",
-			));
-
-		$page->appendChild( $video_preview );
-
 		my( $doctable, $doctr, $doctd );
 		$doctable = $session->make_element( "table", class=>"ep_block", style=>"margin-bottom: 1em" );
 
 		foreach my $doc ( @documents )
 		{
+			my $icon_url = $doc->icon_url();
+
 			$doctr = $session->make_element( "tr" );
 	
 			$doctd = $session->make_element( "td", valign=>"top", style=>"text-align:center" );
 			$doctr->appendChild( $doctd );
-			$doctd->appendChild( $doc->render_icon_link( preview => 1 ) );
+			$doctd->appendChild( $doc->render_icon_link( preview => 0 ) );
 	
 			$doctd = $session->make_element( "td", valign=>"top" );
 			$doctr->appendChild( $doctd );
 			$doctd->appendChild( $doc->render_citation_link() );
+
+			my @doc_actions;
+
 			my %files = $doc->files;
 			if( defined $files{$doc->get_main} )
 			{
 				my $size = $files{$doc->get_main};
 				$doctd->appendChild( $session->make_element( 'br' ) );
-				$doctd->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+				my $download_link = $session->render_link( $doc->get_url );
+				$download_link->appendChild( $session->html_phrase( "lib/document:download", size => $session->make_text( EPrints::Utils::human_filesize($size) ) ) );
+				push @doc_actions, $download_link;
+				push @doc_actions, $doc->render_preview_link();
 			}
 
 			if( $has_contact_email && !$doc->is_public && $eprint->get_value( "eprint_status" ) eq "archive" )
 			{
 				# "Request a copy" button
-				$doctd = $session->make_element( "td" );
-				my $form = $session->render_form( "get", $session->get_repository->get_conf( "perl_url" ) . "/request_doc" );
-				$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) );
-				$form->appendChild( $session->render_action_buttons( 
-					"null" => $session->phrase( "request:button" )
-				) );
-				$doctd->appendChild( $form );
-				$doctr->appendChild( $doctd );
+				my $uri = URI->new( $session->get_repository->get_conf( "http_cgiurl" ) . "/request_doc" );
+				$uri->query_form(
+					docid => $doc->get_id
+				);
+				my $request_link = $session->render_link( $uri );
+				$request_link->appendChild( $session->html_phrase( "request:button" ) );
+				push @doc_actions, $request_link;
+			}
+
+			for(my $i = 0; $i < @doc_actions; ++$i)
+			{
+				$doctd->appendChild( $session->html_phrase( "lib/document:action_separator" ) ) if $i > 0;
+				$doctd->appendChild( $doc_actions[$i] );
 			}
 
 			$doctable->appendChild( $doctr );
@@ -172,7 +176,6 @@ $c->{eprint_render} = sub
 		$page->appendChild( $session->make_element( 'br' ) );
 	}
 	
-	my( $table, $tr, $td, $th );	# this table needs more class cjg
 	$table = $session->make_element( "table",
 					class=>"ep_block", style=>"margin-bottom: 1em",
 					border=>"0",

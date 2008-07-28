@@ -1640,24 +1640,43 @@ sub render_preview_link
 	my( $self, %opts ) = @_;
 
 	my $f = $self->{session}->make_doc_fragment;
-	my $div = $self->{session}->make_element( "div" );
-	$f->appendChild( $div );
+
+	my $base_url = $self->get_parent->get_url . "thumbnails/" . $self->get_value( "pos" );
+
+	my $link = $self->{session}->render_link( $self->get_url );
+	my %files = $self->files;
+	my $size = $files{$self->get_main};
+	$link->appendChild( $self->{session}->html_phrase( "lib/document:download", size => $self->{session}->make_text( EPrints::Utils::human_filesize($size) ) ) );
+
+	my $caption = $self->{session}->make_doc_fragment;
+	$caption->appendChild( $self->render_citation_link() );
+	$caption->appendChild( $self->{session}->make_element( "br" ) );
+	$caption->appendChild( $link );
 
 	if( $self->get_stored_files( "thumbnail", "video_preview.flv" ) )
 	{
-		my $player_url = "../" . $self->{session}->get_repository->get_conf( "rel_path" ) . "/FlowPlayerClassic.swf";
-		my $video_url = $self->get_parent->get_url . "thumbnails/" . $self->get_value( "pos" ) . "/video_preview.flv";
-		my $javascript = <<EOJ;
-EPJS_show_video_preview('ep_video_preview','$player_url','$video_url');
-return false;
-EOJ
+		my $video_url = "$base_url/video_preview.flv";
 		my $video_link = $self->{session}->make_element( "a",
 			href=>$video_url,
-			onclick=>$javascript,
+			rel=>"lightbox[documents]",
+			title=>EPrints::XML::to_string($caption),
 		);
 		$video_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
-		$div->appendChild( $video_link );
+		$f->appendChild( $video_link );
 	}
+	elsif( $self->get_stored_files( "thumbnail", "preview.png" ) )
+	{
+		my $preview_url = "$base_url/preview.png";
+		my $image_link = $self->{session}->make_element( "a",
+			href=>$preview_url,
+			rel=>"lightbox[documents]",
+			title=>EPrints::XML::to_string($caption),
+		);
+		$image_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
+		$f->appendChild( $image_link );
+	}
+
+	EPrints::XML::dispose($caption);
 
 	return $f;
 }

@@ -31,6 +31,8 @@ EPrints Modules
     <epp:phrase id="lib/document:no_type">You haven't <epc:pin name="fieldname">specified a document type</epc:pin>!</epp:phrase>
     <epp:phrase id="lib/document:no_first">You need to <epc:pin name="fieldname">select a file to be shown first</epc:pin>.</epp:phrase>
     <epp:phrase id="lib/document:preview">Preview</epp:phrase>
+    <epp:phrase id="lib/document:download">Download (<epc:pin name="size"/>)</epp:phrase>
+    <epp:phrase id="lib/document:action_separator"> | </epp:phrase>
 
 <!-- EPrint -->
 
