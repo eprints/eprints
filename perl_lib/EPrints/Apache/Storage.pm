@@ -140,6 +140,13 @@ sub check_auth
 		$rc = EPrints::Apache::Auth::auth_basic( $r, $session );
 	}
 
+	if( $rc eq OK )
+	{
+		my $user = $session->current_user;
+		return FORBIDDEN unless defined $user; # Shouldn't happen
+		$rc = $doc->user_can_view( $user ) ? OK : FORBIDDEN;
+	}
+
 	return $rc;
 }
 
