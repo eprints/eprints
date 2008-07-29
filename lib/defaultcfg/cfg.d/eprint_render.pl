@@ -107,21 +107,34 @@ $c->{eprint_render} = sub
 			$doctr->appendChild( $doctd );
 			$doctd->appendChild( $doc->render_icon_link( preview => 0 ) );
 	
+			my %files = $doc->files;
+			my $size = $files{$doc->get_main};
+
 			$doctd = $session->make_element( "td", valign=>"top" );
 			$doctr->appendChild( $doctd );
-			$doctd->appendChild( $doc->render_citation_link() );
+			$doctd->appendChild( $doc->render_citation() );
 
 			my @doc_actions;
 
-			my %files = $doc->files;
 			if( defined $files{$doc->get_main} )
 			{
-				my $size = $files{$doc->get_main};
 				$doctd->appendChild( $session->make_element( 'br' ) );
 				my $download_link = $session->render_link( $doc->get_url );
 				$download_link->appendChild( $session->html_phrase( "lib/document:download", size => $session->make_text( EPrints::Utils::human_filesize($size) ) ) );
 				push @doc_actions, $download_link;
-				push @doc_actions, $doc->render_preview_link();
+				if( $doc->is_public )
+				{
+					my $caption = $session->make_doc_fragment;
+
+					$caption->appendChild( $doc->render_citation() );
+					$caption->appendChild( $session->make_element( "br" ) );
+					$caption->appendChild( EPrints::XML::clone_node( $download_link ) );
+
+					push @doc_actions, $doc->render_preview_link(
+						caption=>$caption,
+						set=>"documents",
+					);
+				}
 			}
 
 			if( $has_contact_email && !$doc->is_public && $eprint->get_value( "eprint_status" ) eq "archive" )

@@ -7648,3 +7648,6 @@ EPRINTS-3.1-beta-2
 2008-07-28 tdb
  * Changed preview to use Lightbox 2 and added support for video previewing
 
+2008-07-29 tdb
+ * Refined the $doc->render_preview_link() method
+

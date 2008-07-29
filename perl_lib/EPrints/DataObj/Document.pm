@@ -73,7 +73,7 @@ part of this record.
 
 =back
 
-Document has all the methods of dataobj with the addition of the following.
+=head1 METHODS
 
 =over 4
 
@@ -1567,13 +1567,34 @@ sub icon_url
 			"/style/images/fileicons/$type.png";
 }
 
-# options:
-#
-# new_window => 1 : make link go to _blank not current window
-# preview => 1 : if possible, provide a preview pop-up
-# public => 0 : show thumbnail/preview only on public docs
-# public => 1 : show thumbnail/preview on all docs if poss.
-# 
+=item $frag = $doc->render_icon_link( %opts )
+
+Render a link to the icon for this document.
+
+Options:
+
+=over 4
+
+=item new_window => 1
+
+Make link go to _blank not current window.
+
+=item preview => 1
+
+If possible, provide a preview pop-up.
+
+=item public => 0
+
+Show thumbnail/preview only on public docs.
+
+=item public => 1
+
+Show thumbnail/preview on all docs if poss.
+
+=back
+
+=cut
+
 sub render_icon_link
 {
 	my( $self, %opts ) = @_;
@@ -1610,7 +1631,6 @@ sub render_icon_link
 	$f->appendChild( $a ) ;
 	if( $opts{preview} )
 	{
-		$f->appendChild( $self->render_preview_link( %opts ) );
 		my $preview = $self->{session}->make_element( "div",
 				id => $preview_id,
 				class => "ep_preview", );
@@ -1635,6 +1655,26 @@ sub render_icon_link
 	return $f;
 }
 
+=item $frag = $doc->render_preview_link( %opts )
+
+Render a link to the preview for this document (if available) using a lightbox.
+
+Options:
+
+=over 4
+
+=item caption => $frag
+
+XHTML fragment to use as the caption, defaults to empty.
+
+=item set => "foo"
+
+The name of the set this document belongs to, defaults to none (preview won't be shown as part of a set).
+
+=back
+
+=cut
+
 sub render_preview_link
 {
 	my( $self, %opts ) = @_;
@@ -1643,22 +1683,23 @@ sub render_preview_link
 
 	my $base_url = $self->get_parent->get_url . "thumbnails/" . $self->get_value( "pos" );
 
-	my $link = $self->{session}->render_link( $self->get_url );
-	my %files = $self->files;
-	my $size = $files{$self->get_main};
-	$link->appendChild( $self->{session}->html_phrase( "lib/document:download", size => $self->{session}->make_text( EPrints::Utils::human_filesize($size) ) ) );
-
-	my $caption = $self->{session}->make_doc_fragment;
-	$caption->appendChild( $self->render_citation_link() );
-	$caption->appendChild( $self->{session}->make_element( "br" ) );
-	$caption->appendChild( $link );
+	my $caption = $opts{caption} || $self->{session}->make_doc_fragment;
+	my $set = $opts{set};
+	if( EPrints::Utils::is_set($set) )
+	{
+		$set = "[$set]";
+	}
+	else
+	{
+		$set = "";
+	}
 
 	if( $self->get_stored_files( "thumbnail", "video_preview.flv" ) )
 	{
 		my $video_url = "$base_url/video_preview.flv";
 		my $video_link = $self->{session}->make_element( "a",
 			href=>$video_url,
-			rel=>"lightbox[documents]",
+			rel=>"lightbox$set",
 			title=>EPrints::XML::to_string($caption),
 		);
 		$video_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
@@ -1669,7 +1710,7 @@ sub render_preview_link
 		my $preview_url = "$base_url/preview.png";
 		my $image_link = $self->{session}->make_element( "a",
 			href=>$preview_url,
-			rel=>"lightbox[documents]",
+			rel=>"lightbox$set",
 			title=>EPrints::XML::to_string($caption),
 		);
 		$image_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
