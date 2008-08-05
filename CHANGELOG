@@ -7650,4 +7650,8 @@ EPRINTS-3.1-beta-2
 
 2008-07-29 tdb
  * Refined the $doc->render_preview_link() method
+ 
+2008-08-05 tdb
+ * If no mime-type is available default to application/octet-stream
+ * Added "download=1" optional parameter for Storage requests
 

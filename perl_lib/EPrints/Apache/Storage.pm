@@ -95,13 +95,34 @@ sub handler
 		return 404;
 	}
 
-	my $content_type = $fileobj->get_value( "mime_type" );
 	my $content_length = $fileobj->get_value( "filesize" );
+
+	# Use octet-stream for unknown mime-types
+	my $content_type = $fileobj->is_set( "mime_type" )
+		? $fileobj->get_value( "mime_type" )
+		: "application/octet-stream";
 
 	EPrints::Apache::AnApache::header_out( 
 		$r,
 		"Content-Length" => $content_length
 	);
+
+	# Can use download=1 to force a download
+	my $download = $session->param( "download" );
+	if( $download )
+	{
+		EPrints::Apache::AnApache::header_out(
+			$r,
+			"Content-Disposition" => "attachment; filename=$filename",
+		);
+	}
+	else
+	{
+		EPrints::Apache::AnApache::header_out(
+			$r,
+			"Content-Disposition" => "inline; filename=$filename",
+		);
+	}
 
 	$session->send_http_header(
 		content_type => $content_type,
