@@ -7655,3 +7655,6 @@ EPRINTS-3.1-beta-2
  * If no mime-type is available default to application/octet-stream
  * Added "download=1" optional parameter for Storage requests
 
+2008-08-06 tdb
+ * Chown entities.dtd for eprints and use File::Temp
+

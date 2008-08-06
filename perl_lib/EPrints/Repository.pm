@@ -1487,34 +1487,32 @@ sub generate_dtd
 	my( $self ) = @_;
 
 	my $dtdfile = $self->get_conf("lib_path")."/xhtml-entities.dtd";
-	open( XHTMLENTITIES, $dtdfile ) ||
+	open( XHTMLENTITIES, "<", $dtdfile ) ||
 		die "Failed to open system DTD ($dtdfile) to include ".
 			"in repository DTD";
 	my $xhtmlentities = join( "", <XHTMLENTITIES> );
 	close XHTMLENTITIES;
 
 	my $file = $self->get_conf( "variables_path" )."/entities.dtd";
-	my $tmpfile = $file.".".$$;
-	open( DTD, ">$tmpfile" ) || die "Failed to open $tmpfile for writing";
+	my $tmpfile = File::Temp->new;
 
-	print DTD <<END;
+	print $tmpfile <<END;
 <!-- 
 	XHTML Entities
 
 	*** DO NOT EDIT, This is auto-generated ***
 -->
-
-END
-		print DTD <<END;
-
 <!--
 	Generic XHTML entities 
 -->
 
 END
-	print DTD $xhtmlentities;
-	close DTD;
-	move( $tmpfile, $file );
+	print $tmpfile $xhtmlentities;
+	close $tmpfile;
+
+	copy( "$tmpfile", $file );
+
+	EPrints::Utils::chown_for_eprints( $file );
 
 	return 1;
 }
