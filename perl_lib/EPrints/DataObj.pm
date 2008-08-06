@@ -1353,11 +1353,11 @@ sub get_mime_type
 ######################################################################
 =pod
 
-=item $file = $dataobj->add_stored_file( $bucket, $filename, $filehandle, $filesize )
+=item $file = $dataobj->add_stored_file( $bucket, $filename, $filehandle [, $filesize ] )
 
-Convenience method to add the file record for $filename in $bucket to this object. If $filehandle is defined will read and store data from it. Returns the storaged file.
+Convenience method to add the file record for $filename in $bucket to this object. If $filehandle is defined will read and store data from it. If $filesize is undefined will use the number of bytes actually read from $filehandle as the file size.
 
-Returns undef if the storage failed.
+Returns the storaged file or undef if the storage failed.
 
 =cut
 ######################################################################

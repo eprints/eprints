@@ -167,9 +167,11 @@ sub create_from_data
 
 	return unless defined $self;
 
+	my $length;
+
 	if( defined( $fh ) )
 	{
-		$session->get_storage->store( $self, $fh );
+		$length = $session->get_storage->store( $self, $fh );
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
@@ -177,7 +179,7 @@ sub create_from_data
 
 		syswrite($tmpfile, MIME::Base64::decode( $data->{data} ));
 		seek( $tmpfile, 0, 0 );
-		$session->get_storage->store( $self, $tmpfile );
+		$length = $session->get_storage->store( $self, $tmpfile );
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
@@ -187,7 +189,7 @@ sub create_from_data
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
-			$session->get_storage->store( $self, $tmpfile );
+			$length = $session->get_storage->store( $self, $tmpfile );
 		}
 		else
 		{
@@ -197,6 +199,9 @@ sub create_from_data
 			return;
 		}
 	}
+
+	# make sure the filesize is the actual number of stored bytes
+	$self->set_value( "filesize", $length );
 
 	return $self;
 }
@@ -389,11 +394,13 @@ sub add_file
 	return $rc;
 }
 
-=item $success = $file->upload( $filehandle, $filename, $filesize [, $preserve_path ] )
+=item $bytes = $file->upload( $filehandle, $filename, $filesize [, $preserve_path ] )
 
 Read and store the data from $filehandle at $filename at the next revision number.
 
 If $preserve_path is untrue will strip any leading path in $filename.
+
+Returns the number of bytes read from $filehandle.
 
 =cut
 
@@ -413,7 +420,13 @@ sub upload
 
 	$self->commit();
 
-	return $self->get_session->get_storage->store( $self, $fh );
+	$filesize = $self->get_session->get_storage->store( $self, $fh );
+
+	# make sure the filesize is the actual number of stored bytes
+	$self->set_value( "filesize", $filesize );
+	$self->commit();
+
+	return $filesize;
 }
 
 =item $success = $stored->write_copy( $filename [, $revision] )

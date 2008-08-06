@@ -125,11 +125,11 @@ sub get_storage_config
 	return $confhash->{$id}->{storage};
 }
 
-=item $success = $store->store( $fileobj, $filehandle )
+=item $bytes = $store->store( $fileobj, $filehandle )
 
 Read from and store all data from $filehandle for $fileobj.
 
-Returns false on error.
+Returns number of bytes read from $filehandle, or undef on error.
 
 =cut
 
@@ -137,15 +137,15 @@ sub store
 {
 	my( $self, $fileobj, $fh ) = @_;
 
-	my $rc;
+	my $length;
 
 	foreach my $plugin ($self->get_plugins( $fileobj, $fh ))
 	{
-		$rc = $plugin->store( $fileobj, $fh );
-		last if $rc;
+		$length = $plugin->store( $fileobj, $fh );
+		last if defined $length;
 	}
 
-	return $rc;
+	return $length;
 }
 
 =item $filehandle = $store->retrieve( $fileobj [, $revision ] )

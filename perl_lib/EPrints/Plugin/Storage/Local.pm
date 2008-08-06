@@ -40,6 +40,9 @@ sub store
 	my( $self, $fileobj, $fh ) = @_;
 
 	use bytes;
+	use integer;
+
+	my $length = 0;
 
 	my( $local_path, $out_file ) = $self->_filename( $fileobj );
 
@@ -54,6 +57,7 @@ sub store
 	my $buffer;
 	while(sysread($fh,$buffer,4096))
 	{
+		$length += length($buffer);
 		unless( syswrite($out_fh,$buffer) )
 		{
 			EPrints::abort( "Error writing to $out_file: $!" );
@@ -62,7 +66,7 @@ sub store
 
 	close($out_fh);
 
-	return 1;
+	return $length;
 }
 
 sub retrieve
