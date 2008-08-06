@@ -1048,7 +1048,7 @@ sub add_directory
 			);
 			if( defined($stored) )
 			{
-				$stored->update_md5();
+				$stored->update_sha();
 			}
 			else
 			{
