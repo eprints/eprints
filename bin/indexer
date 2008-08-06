@@ -131,6 +131,8 @@ my $rollcount = 5;
 my $notdaemon = 0;
 my $once = 0;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

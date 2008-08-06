@@ -103,6 +103,8 @@ my $help = 0;
 my $man = 0;
 my $single = 0;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

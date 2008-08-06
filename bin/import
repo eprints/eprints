@@ -153,6 +153,8 @@ my $enable_import_datestamps = 0;
 my $migration = 0;
 my $update = 0;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

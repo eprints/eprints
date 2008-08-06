@@ -84,6 +84,8 @@ my $dryrun = 0;
 my $force = 0;
 my $remove_dataset = 0;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

@@ -110,6 +110,8 @@ my $generate_opt;
 my $view_opt;
 my $lang_opt;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

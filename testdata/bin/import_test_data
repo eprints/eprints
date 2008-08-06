@@ -26,6 +26,8 @@ my $quiet = 0;
 my $help = 0;
 my $man = 0;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,
@@ -69,7 +71,7 @@ my $infile = $datapath."/data.xml.gz";
 
 
 my $fh;
-open( $fh, "gunzip $infile -c |" ) || die "Can't gunzip file.";
+open( $fh, "gunzip -c $infile |" ) || die "Can't gunzip file.";
 my $list = $plugin->input_fh( dataset=>$ds, fh=>$fh, filename=>$infile );
 close $fh; 
 

@@ -113,6 +113,8 @@ my $field = undef;
 my $cuserid = undef;
 my $format = undef;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'help|?' => \$help,
 	'man' => \$man,

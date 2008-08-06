@@ -28,6 +28,8 @@ my $help = 0;
 my $man = 0;
 my $userid = 1;
 
+Getopt::Long::Configure("permute");
+
 GetOptions( 
 	'user=s' => \$userid,
 	'help|?' => \$help,
