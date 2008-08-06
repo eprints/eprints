@@ -51,6 +51,7 @@ $EPrints::XML::PREFIX = "XML::DOM::";
 *XML::DOM::Attr::nodeValue = \&XML::DOM::Attr::getValue;
 *XML::DOM::Element::tagName = \&XML::DOM::Element::getTagName;
 *XML::DOM::NamedNodeMap::length = \&XML::DOM::NamedNodeMap::getLength;
+*XML::DOM::NodeList::length = \&XML::DOM::NodeList::getLength;
 *XML::DOM::Element::hasAttribute = sub { defined(shift->getAttributeNode(@_)) };
 *XML::DOM::Node::childNodes = \&XML::DOM::Node::getChildNodes;
 *XML::DOM::Node::firstChild = \&XML::DOM::Node::getFirstChild;

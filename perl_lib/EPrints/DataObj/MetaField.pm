@@ -1007,6 +1007,12 @@ sub load_all
 	);
 }
 
+=item $ok = $mf->remove_from_workflow()
+
+Remove all occurrences of this field from the workflow. Will remove the "local" stage if it is empty.
+
+=cut
+
 sub remove_from_workflow
 {
 	my( $self ) = @_;
@@ -1031,79 +1037,65 @@ sub remove_from_workflow
 
 	my( $flow ) = $workflow->getElementsByTagName( "flow" );
 
-	my $stage_ref;
-	for($flow->childNodes)
+	# find and remove all occurrences of the $name field
+	foreach my $field ($workflow->getElementsByTagName( "field" ))
 	{
-		if( EPrints::XML::is_dom( $_, "Element" ) and
-			$_->hasAttribute( "ref" ) and
-			$_->getAttribute( "ref" ) eq "local"
+		if(
+			$field->hasAttribute( "ref" ) and
+			$field->getAttribute( "ref" ) eq $name
 		)
 		{
-			$stage_ref = $_;
-			last;
-		}
-	}
-	if( !defined( $stage_ref ) )
-	{
-		$stage_ref = $session->make_element( "stage",
-			ref => "local"
-		);
-		$flow->appendChild( $stage_ref );
-	}
-
-	my $stage;
-	for($workflow->childNodes)
-	{
-		if( EPrints::XML::is_dom( $_, "Element" ) and
-			$_->hasAttribute( "name" ) and
-			$_->getAttribute( "name" ) eq "local"
-		)
-		{
-			$stage = $_;
-			last;
-		}
-	}
-
-	if( !defined( $stage ) )
-	{
-		$stage = $session->make_element( "stage",
-			name => "local"
-		);
-		$workflow->appendChild( $session->make_text( "\t" ) );
-		$workflow->appendChild( $stage );
-		$workflow->appendChild( $session->make_text( "\n\n" ) );
-		$stage->appendChild( $session->make_text( "\n\t" ) );
-	}
-
-	my $fielde;
-
-	foreach my $component ($stage->getElementsByTagName( "component" ))
-	{
-		foreach my $f ($component->getElementsByTagName( "field" ))
-		{
-			if( $f->getAttribute( "ref" ) eq $name )
+			my $component = $field->parentNode;
+			$component->removeChild( $field );
+			# remove the component as well if it doesn't contain any other
+			# fields
+			if( $component->getElementsByTagName( "field" )->length == 0 )
 			{
-				$fielde = $f;
+				$component->parentNode->removeChild( $component );
+			}
+		}
+	}
+
+	my $remove_local = 0;
+
+	# if the "local" stage contains no components or fields, remove it
+	foreach my $stage ($workflow->getElementsByTagName( "stage" ))
+	{
+		if(
+			$stage->hasAttribute( "name" ) and
+			$stage->getAttribute( "name" ) eq "local"
+		)
+		{
+			if( $stage->getElementsByTagName( "component" )->length == 0 and
+				$stage->getElementsByTagName( "field" )->length == 0
+			)
+			{
+				$workflow->removeChild( $stage );
+				$remove_local = 1;
+			}
+			last;
+		}
+	}
+
+	# remove the reference to the local stage if we deleted it
+	if( $remove_local )
+	{
+		foreach my $stage ( $flow->getElementsByTagName( "stage" ) )
+		{
+			if(
+				$stage->hasAttribute( "ref" ) and
+				$stage->getAttribute( "ref" ) eq "local"
+			)
+			{
+				$flow->removeChild( $stage );
 				last;
 			}
 		}
-		last if $fielde;
 	}
 
-	if( $fielde )
-	{
-		my $component = $fielde->getParentNode;
-		$component->removeChild( $fielde );
-		my @fields = $component->getElementsByTagName( "field" );
-		if( scalar @fields == 0 )
-		{
-			$stage->removeChild( $component );
-		}
-
-		open(my $fh, ">", $file_name) or EPrints::abort "Failed to open $file_name for writing: $!";
-		print $fh $doc->toString;
-		close($fh);
-	}
+	open(my $fh, ">", $file_name) or EPrints::abort "Failed to open $file_name for writing: $!";
+	print $fh $doc->toString;
+	close($fh);
 
 	EPrints::XML::dispose( $doc );
 

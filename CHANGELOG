@@ -7679,5 +7679,7 @@ EPRINTS-3.1-beta-2
     a sub-field. 
  * Fixed typo in epadmin --help
 
- 
+2008-08-06 tdb
+ * Removing all Admin-configured fields will also remove the 'Misc.' stage,
+    fixing 3415
 
