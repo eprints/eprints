@@ -49,6 +49,8 @@ Options:
 
 =item content-style: the css style to apply to the content box. For example; "overflow-y: auto; height: 300px;"
 
+=item show_icon_url and hide_icon_url: the icons to show instead of the default [+] and [-]
+
 =back
 
 =cut
@@ -63,10 +65,14 @@ sub EPrints::Box::render
 	if( !defined $options{content} ) { EPrints::abort( "EPrints::Box::render called without a content. Bad bad bad." ); }
 	if( !defined $options{session} ) { EPrints::abort( "EPrints::Box::render called without a session. Bad bad bad." ); }
 
+
 	my $session = $options{session};
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
+	if( !defined $options{show_icon_url} ) { $options{show_icon_url} = "$imagesurl/style/images/plus.png"; }
+	if( !defined $options{hide_icon_url} ) { $options{hide_icon_url} = "$imagesurl/style/images/minus.png"; }
+
 	my $id = $options{id};
 		
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
 	my $contentid = $id."_content";
 	my $colbarid = $id."_colbar";
 	my $barid = $id."_bar";
@@ -81,17 +87,24 @@ sub EPrints::Box::render
 	$nojstitle->appendChild( $session->clone_for_me( $options{title},1 ) );
 	$div_title->appendChild( $nojstitle );
 
-	my $collapse_bar = $session->make_element( "div", class=>"ep_js_only", id=>$colbarid );
+	my $collapse_bar = $session->make_element( "div", class=>"ep_only_js", id=>$colbarid );
 	my $collapse_link = $session->make_element( "a", class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',true,'${id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
-	$collapse_link->appendChild( $session->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
+	$collapse_link->appendChild( $session->make_element( "img", alt=>"-", src=>$options{hide_icon_url}, border=>0 ) );
 	$collapse_link->appendChild( $session->make_text( " " ) );
 	$collapse_link->appendChild( $session->clone_for_me( $options{title},1 ) );
 	$collapse_bar->appendChild( $collapse_link );
 	$div_title->appendChild( $collapse_bar );
-		
-	my $uncollapse_bar = $session->make_element( "div", class=>"ep_js_only", id=>$barid );
-	my $uncollapse_link = $session->make_element( "a", id=>$barid, class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
-	$uncollapse_link->appendChild( $session->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
+
+	my $a = "true";
+	my $b = "false";
+	if( $options{collapsed} ) 
+	{ 
+		$b = "true";
+		$a = "false";
+	}
+	my $uncollapse_bar = $session->make_element( "div", class=>"ep_only_js", id=>$barid );
+	my $uncollapse_link = $session->make_element( "a", id=>$barid, class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${id}');EPJS_toggle('${colbarid}',$a);EPJS_toggle('${barid}',$b);return false", href=>"#" );
+	$uncollapse_link->appendChild( $session->make_element( "img", alt=>"+", src=>$options{show_icon_url}, border=>0 ) );
 	$uncollapse_link->appendChild( $session->make_text( " " ) );
 	$uncollapse_link->appendChild( $session->clone_for_me( $options{title},1 ) );
 	$uncollapse_bar->appendChild( $uncollapse_link );
@@ -107,13 +120,11 @@ sub EPrints::Box::render
 	if( $options{collapsed} ) 
 	{ 
 		$collapse_bar->setAttribute( "style", "display: none" ); 
-		$uncollapse_bar->setAttribute( "style", "display: block" ); 
 		$div_body->setAttribute( "style", "display: none" ); 
 	}
 	else
 	{
 		$uncollapse_bar->setAttribute( "style", "display: none" ); 
-		$collapse_bar->setAttribute( "style", "display: block" ); 
 	}
 		
 	return $div;

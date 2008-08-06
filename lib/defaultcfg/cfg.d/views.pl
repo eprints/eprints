@@ -16,8 +16,8 @@ $c->{browse_views} = [
         },
         {
                 id => "subjects",
-                allow_null => 0,
-                fields => "subjects,-date;res=year",
+                allow_null => 1,
+                fields => "subjects",
                 order => "creators_name/title",
                 include => 1,
                 hideempty => 1,
@@ -28,7 +28,7 @@ $c->{browse_views} = [
         },
         {
                 id => "divisions",
-                allow_null => 0,
+                allow_null => 1,
                 fields => "divisions,-date;res=year",
                 order => "creators_name/title",
                 include => 1,

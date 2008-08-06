@@ -129,12 +129,19 @@ sub render
 			scope=>$user->render_value( "editperms" ) ) );
 	}
 
-	if( $list->count > 0 )
-	{
-		$div->appendChild( $self->{session}->html_phrase( 
-			"cgi/users/buffer:buffer_blurb" ));
-	}
-	
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+
+	my %options;
+ 	$options{session} = $session;
+	$options{id} = "ep_review_instructions";
+	$options{title} = $session->html_phrase( "Plugin/Screen/Review:help_title" );
+	$options{content} = $session->html_phrase( "Plugin/Screen/Review:help" );
+	$options{collapsed} = 1;
+	$options{show_icon_url} = "$imagesurl/help.gif";
+	my $box = $session->make_element( "div", style=>"text-align: left" );
+	$box->appendChild( EPrints::Box::render( %options ) );
+	$div->appendChild( $box );
+
 	my $columns = $session->current_user->get_value( "review_fields" );
 	if( !EPrints::Utils::is_set( $columns ) )
 	{
@@ -149,13 +156,11 @@ sub render
 	if( $len > 1 )
 	{	
 		$final_row = $session->make_element( "tr" );
-		my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
 		for(my $i=0; $i<$len;++$i )
 		{
 			my $col = $columns->[$i];
-			my $last = ($i == $len-1);
 			# Column headings
-			my $td = $session->make_element( "td", class=>"ep_columns_alter".($last?" ep_columns_alter_last":"") );
+			my $td = $session->make_element( "td", class=>"ep_columns_alter" );
 			$final_row->appendChild( $td );
 	
 			my $acts_table = $session->make_element( "table", cellpadding=>0, cellspacing=>0, border=>0, width=>"100%" );
@@ -230,6 +235,8 @@ sub render
 				$acts_td3->appendChild( $session->make_element("img",src=>"$imagesurl/noicon.png",alt=>"")  );
 			}
 		}
+		my $td = $session->make_element( "td", class=>"ep_columns_alter ep_columns_alter_last" );
+		$final_row->appendChild( $td );
 	}
 
 	# Paginate list
@@ -237,7 +244,7 @@ sub render
 		params => {
 			screen => "Review",
 		},
-		columns => $columns,
+		columns => [@{$columns}, undef ],
 		render_result_params => {
 			row => 1,
 		},
@@ -259,7 +266,7 @@ sub render
 
 			$self->{processor}->{eprint} = $e;
 			$self->{processor}->{eprintid} = $e->get_id;
-			my $td = $session->make_element( "td", class=>"ep_columns_cell", align=>"left" );
+			my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
 			$tr->appendChild( $td );
 			$td->appendChild( 
 				$self->render_action_list_icons( "eprint_review_actions", ['eprintid'] ) );
@@ -317,7 +324,6 @@ sub render
 	$add_div->appendChild( $form_add );
 	$page->appendChild( $add_div );
 	# End of Add form
-
 
 	return $page;
 }

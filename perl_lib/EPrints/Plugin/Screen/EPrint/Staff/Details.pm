@@ -20,5 +20,12 @@ sub edit_ok
 	return $self->allow( "eprint/staff/edit" ) & 8;
 }
 
+sub workflow
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::workflow( 1 );
+}
+
 
 

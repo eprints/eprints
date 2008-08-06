@@ -98,6 +98,7 @@ sub paginate_list
 		# Column headings
 		my $th = $session->make_element( "th", class=>"ep_columns_title".($last?" ep_columns_title_last":"") );
 		$tr->appendChild( $th );
+		next if !defined $col;
 	
 		my $linkurl = "$url&$basename\_order=$col";
 		if( $col eq $sort_order )
@@ -158,12 +159,12 @@ sub paginate_list
 
 		my $tr = $session->make_element( "tr" );
 		my $first = 1;
-		for( @{ $info->{columns} } )
+		foreach my $column ( @{ $info->{columns} } )
 		{
 			my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"") );
 			$first = 0;
 			$tr->appendChild( $td );
-			$td->appendChild( $e->render_value( $_ ) );
+			$td->appendChild( $e->render_value( $column ) );
 		}
 		return $tr;
 	} unless defined $newopts{render_result};

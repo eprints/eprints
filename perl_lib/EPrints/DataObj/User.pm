@@ -609,7 +609,7 @@ sub get_editable_eprints
 		my $newlist = $searchexp->perform_search;
 		if( defined $list )
 		{
-			$list = $list->merge( $newlist );
+			$list = $list->union( $newlist );
 		}
 		else
 		{
@@ -967,9 +967,11 @@ sub send_out_editor_alert
 			my( $session, $dataset, $eprint ) = @_;
 
 			my $p = $self->{session}->make_element( "p" );
-			$p->appendChild( $eprint->render_citation );
+			$p->appendChild( $eprint->render_citation_link );
 			$matches->appendChild( $p );
-			$matches->appendChild( $self->{session}->make_text( $eprint->get_url( 1 ) ) );
+			my $link = $self->{session}->render_link( $eprint->get_url( 1 ) );
+			$link->appendChild( $self->{session}->make_text( $eprint->get_url( 1 ) ) );
+			$matches->appendChild( $link );
 			$matches->appendChild( $self->{session}->make_element( "br" ) );
 		} );
 

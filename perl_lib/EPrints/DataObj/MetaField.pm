@@ -708,7 +708,7 @@ sub add_to_phrases
 			}
 			my $html;
 			eval { $html = EPrints::XML::parse_xml_string( $text ) };
-			if( $@ )
+			if( $@ || !defined $html )
 			{
 				$phrase->appendChild( $session->make_text( $text ) );
 			}

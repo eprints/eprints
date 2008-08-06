@@ -974,7 +974,7 @@ sub _load_plugins
 	my $pdir ="$dir/EPrints/Plugin";
 	return 1 unless -d $pdir;
 
-$self->{local_plugins} = {};
+	$self->{local_plugins} = {};
 	local @INC = ($dir, @INC);
 	EPrints::Plugin::load_dir( $self->{local_plugins}, $pdir, "EPrints::Plugin" );
 

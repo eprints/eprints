@@ -10,7 +10,8 @@
      <epp:phrase id="viewname_eprint_subjects">Subject</epp:phrase>
      <epp:phrase id="viewtitle_eprint_subjects_menu_1">Browse by Subject and Year</epp:phrase>
      <epp:phrase id="viewtitle_eprint_subjects_menu_2">Browse by Year where Subject is "<epc:pin name="value1" />"</epp:phrase>
-     <epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>
+     <!--<epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>-->
+     <epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />"</epp:phrase>
 
      <epp:phrase id="viewname_eprint_year">Year</epp:phrase>
      <epp:phrase id="viewtitle_eprint_year_menu_1">Browse by Year</epp:phrase>

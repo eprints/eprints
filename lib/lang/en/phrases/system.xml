@@ -692,13 +692,6 @@ Staff CGI Scripts
 
     <epp:phrase id="cgi/users/buffer:overview_title">Review</epp:phrase>
     <epp:phrase id="cgi/users/buffer:buffer_scope"><p>The following items match your editorial scope, which is: <epc:pin name="scope"/></p></epp:phrase>
-    <epp:phrase id="cgi/users/buffer:buffer_blurb"><p>Click on the title of an item to view, edit, accept or reject it.</p></epp:phrase>
-    <epp:phrase id="cgi/users/buffer:title">Title</epp:phrase>
-    <epp:phrase id="cgi/users/buffer:sub_by">Submitted by</epp:phrase>
-    <epp:phrase id="cgi/users/buffer:sub_date">Submission Date</epp:phrase>
-    <epp:phrase id="cgi/users/buffer:invalid">INVALID</epp:phrase>
-    <epp:phrase id="cgi/users/buffer:return_staff">Click here to go to the User Area</epp:phrase>
-
 
 <!-- eprint_search -->
 
@@ -1172,10 +1165,52 @@ Titles and Help for the System Fields
    
     <epp:phrase id="Plugin/Screen/Items:title">Manage deposits</epp:phrase>
     <epp:phrase id="Plugin/Screen/Items:remove_column_confirm">Really remove this column from the display?</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Items:help_title">Help</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Items:help">
+<p>This page shows items which you have not yet deposited, or are still under review.</p>
+<p>To start depositing an item use the "New Item" button, and follow the instructions.</p>
+<p>If you stop before completing the deposit, or a deposit is returned for corrections, it will appear in the list as in the "User Workarea".</p>
+
+<p style='margin-bottom: 1px;'>Click on an icon to the right of an item to:</p>
+<table class='ep_icontable'>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_view.png" border="0" align='absmiddle' alt=""/></th><td>View Item in Detail, including additional actions</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_edit.png" border="0" align='absmiddle' alt=""/></th><td>Edit Item</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_reject.png" border="0" align='absmiddle' alt=""/></th><td>Destroy Item</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_approve.png" border="0" align='absmiddle' alt=""/></th><td>Deposit Item</td></tr>
+</table>
+<p>To reorder the list of items, click on the title of the column to sort by. Clicking a second time will reverse the order.</p>
+<p>You may modify the columns displayed. Add a new column using the menu at the bottom of the page.</p>
+
+<table class='ep_icontable'>
+<tr><th style='padding: 4px;'><img title="Move Left" src="{$config{rel_path}}/style/images/left.png" alt="&lt;" align="absmiddle" /></th><td>Move column left</td></tr>
+<tr><th style='padding: 4px;'><img title="Remove Column" src="{$config{rel_path}}/style/images/delete.png" alt="X" align='absmiddle' /></th><td>Remove column</td></tr>
+<tr><th style='padding: 4px;'><img title="Move Right" src="{$config{rel_path}}/style/images/right.png" alt="&lt;" align="absmiddle" /></th><td>Move column right</td></tr>
+</table>
+</epp:phrase>
     <epp:phrase id="Plugin/Screen/Items:add">Add Column</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Review:title">Review</epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:list_desc">Items under review</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Review:help_title">Help</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Review:help">
+<p>This page shows items awaiting review.</p>
+<p style='margin-bottom: 1px;'>Click on an icon to the right of an item to:</p>
+<table class='ep_icontable'>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_view.png" border="0" align='absmiddle' alt=""/></th><td>View Item in Detail, including additional actions</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_edit.png" border="0" align='absmiddle' alt=""/></th><td>Edit Item</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_bounce.png" border="0" align='absmiddle' alt=""/></th><td>Return Item to Depositor (and notify depositing user)</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_reject.png" border="0" align='absmiddle' alt=""/></th><td>Destroy Item (with notification to depositing user)</td></tr>
+  <tr><th><img src="{$config{rel_path}}/style/images/action_approve.png" border="0" align='absmiddle' alt=""/></th><td>Move Item to Repository</td></tr>
+</table>
+<p>To reorder the list of items, click on the title of the column to sort by. Clicking a second time will reverse the order.</p>
+<p>You may modify the columns displayed. Add a new column using the menu at the bottom of the page.</p>
+
+<table class='ep_icontable'>
+<tr><th style='padding: 4px;'><img title="Move Left" src="{$config{rel_path}}/style/images/left.png" alt="&lt;" align="absmiddle" /></th><td>Move column left</td></tr>
+<tr><th style='padding: 4px;'><img title="Remove Column" src="{$config{rel_path}}/style/images/delete.png" alt="X" align='absmiddle' /></th><td>Remove column</td></tr>
+<tr><th style='padding: 4px;'><img title="Move Right" src="{$config{rel_path}}/style/images/right.png" alt="&lt;" align="absmiddle" /></th><td>Move column right</td></tr>
+</table>
+</epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:remove_column_confirm">Really remove this column from the display?</epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:add">Add Column</epp:phrase>
 

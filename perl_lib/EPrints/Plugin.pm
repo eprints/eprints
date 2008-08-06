@@ -419,6 +419,7 @@ sub load_dir
 		no strict "refs";
 		my $disvar = $class.'::DISABLE';
 		my $disable = ${$disvar};
+		$disable = ${$disvar}; # supress "only once" warning
 		my $plugin = $class->new();
 		#my %defaults = $class->defaults();
 		use strict "refs";

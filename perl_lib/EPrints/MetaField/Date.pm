@@ -413,7 +413,7 @@ sub get_search_conditions
 
 	if( $match eq "EX" )
 	{
-		if( $search_value eq "" )
+		if( !EPrints::Utils::is_set( $search_value ) )
 		{	
 			return EPrints::Search::Condition->new( 
 					'is_null', 

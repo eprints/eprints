@@ -46,7 +46,7 @@ Where I<command> is one of:
 
 =item recommit
 
-=item recorder
+=item reorder
 
 =item redo_thumbnails
 

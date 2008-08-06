@@ -7659,3 +7659,25 @@ EPRINTS-3.1-beta-2
  * Chown entities.dtd for eprints and use File::Temp
  * Allow archive file names to contain spaces etc. fixing #3409
 
+2008-08-01 cjg
+ * Fixed typo in User.pm s/merge/union/ resolving #3413
+ * Fixed most issues in render views resolving #3416, #3417
+ * Added the 'local tree' view back into subject browsing.
+ * Tidied up the main tables on Items and Review
+ * Added "help" rollup to Items and Review to resolve #3418
+ * Fixed an "undef" warning in MetaField::Date
+ * Started to clean up email for alerts. Still not quite there, but better.
+    SHould resolve #3405
+ * Fixed issue with the mf dataset crashing when an item is created.
+ * Tweak to plugin loader to supress an overzelous warning about a variable
+    only being used once.
+ * Cleaned up some bugs in "Box" when Javascript was turned off.
+ * A couple of new options to Box::render to allow it to override the [+] 
+    and [-] icons.
+ * EPrint/Staff/Details should now use STAFFONLY workflow, fixing #3411
+ * Changed default views to allow null values and so subjects does not have
+    a sub-field. 
+ * Fixed typo in epadmin --help
+
+ 
+

@@ -77,7 +77,7 @@ sub update_view_file
 		return;
 	}
 	
-	$uri =~ m#^/view(/(([^/]+)(/(.*))?)?)?$#;
+	$uri =~ m/^\/view(\/(([^\/]+)(\/(.*))?)?)?$/;
 
 	my( $x, $y, $viewid, $z, $viewinfo ) = ( $1,$2,$3,$4,$5 );
 
@@ -181,7 +181,7 @@ sub update_browse_view_list
 
 sub get_filters
 {
-	my( $session, $view, $path_values ) = @_;
+	my( $session, $view, $esc_path_values ) = @_;
 
 	my $repository = $session->get_repository;
 
@@ -190,22 +190,22 @@ sub get_filters
 	my @fields = get_fields_from_config( $ds, $view->{fields} );
 
 	my @menu_levels = split( ",", $view->{fields} );
-	my $menu_level = scalar @{$path_values};
+	my $menu_level = scalar @{$esc_path_values};
 
 	my $filters = [];
 
 	for( my $i=0; $i<$menu_level; ++$i )
 	{
-		if( $path_values->[$i] eq "NULL" )
+		if( $esc_path_values->[$i] eq "NULL" )
 		{
-			push @{$filters}, { fields=>$fields[$i], value=>undef };
+			push @{$filters}, { fields=>$fields[$i], value=>"" };
 			next;
 		}
 		my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
-		my $value = $key_values->{$path_values->[$i]};
+		my $value = $key_values->{EPrints::Utils::unescape_filename( $esc_path_values->[$i] )};
 		if( !defined($value) )
 		{
-			$repository->log( "Invalid value id in get_filters '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
+			$repository->log( "Invalid value id in get_filters '".$esc_path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$esc_path_values} )."/" );
 			return;
 		}
 		push @{$filters}, { fields=>$fields[$i], value=>$value };
@@ -217,15 +217,16 @@ sub get_filters
 # return a hash mapping keys at this level to number of items in db
 # if a leaf level, return undef
 
+# path_values is escaped 
 sub get_sizes
 {
-	my( $session, $view, $path_values ) = @_;
+	my( $session, $view, $esc_path_values ) = @_;
 
 	my $ds = $session->get_repository->get_dataset( "archive" );
 
 	my @fields = get_fields_from_config( $ds, $view->{fields} );
 
-	my $menu_level = scalar @{$path_values};
+	my $menu_level = scalar @{$esc_path_values};
 
 	if( !defined $fields[$menu_level] )
 	{
@@ -233,26 +234,27 @@ sub get_sizes
 		return undef;
 	}
 
-	my $filters = get_filters( $session, $view, $path_values );
+	my $filters = get_filters( $session, $view, $esc_path_values );
 
 	my @menu_fields = @{$fields[$menu_level]};
 
-	my $show_sizes = get_fieldlist_totals( $session, $ds, \@menu_fields, $filters );
+	my $show_sizes = get_fieldlist_totals( $session, $ds, \@menu_fields, $filters, $view->{allow_null} );
 
 	return $show_sizes;
 }
 
 # Update a view menu - potentially expensive to do.
 
+# nb. path_values are considered escaped at this point
 sub update_view_menu
 {
-	my( $session, $view, $langid, $path_values ) = @_;
+	my( $session, $view, $langid, $esc_path_values ) = @_;
 
 	my $repository = $session->get_repository;
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
-	if( defined $path_values )
+	if( defined $esc_path_values )
 	{
-		$target .= join( "/", @{$path_values}, "index" );
+		$target .= join( "/", @{$esc_path_values}, "index" );
 	}
 	else
 	{
@@ -260,16 +262,23 @@ sub update_view_menu
 	}
 
 	my $menu_level = 0;
+	my $path_values = [];
 	my $filters;
-	if( defined $path_values )
+	if( defined $esc_path_values )
 	{
 		$filters = [];
-		$menu_level = scalar @{$path_values};
+		$menu_level = scalar @{$esc_path_values};
 
-		$filters = get_filters( $session, $view, $path_values );
+		$filters = get_filters( $session, $view, $esc_path_values );
 	
 		return if !defined $filters;
+
+		foreach my $esc_value (@{$esc_path_values})
+		{
+			push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
+		}
 	}	
+
 
 	my $ds = $repository->get_dataset( "archive" );
 	my @fields = get_fields_from_config( $ds, $view->{fields} );
@@ -280,7 +289,7 @@ sub update_view_menu
 	# etc.
 	if( $menu_level >= scalar @fields )
 	{
-		$repository->log( "Too many values when asked for a for view menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
+		$repository->log( "Too many values when asked for a for view menu: ".$view->{id}."/".join( "/", @{$esc_path_values} )."/" );
 		return;
 	}
 
@@ -309,7 +318,7 @@ sub update_view_menu
 
 	# now render the menu page
 
-	my $show_sizes = get_fieldlist_totals( $session, $ds, \@menu_fields, $filters );
+	my $show_sizes = get_fieldlist_totals( $session, $ds, \@menu_fields, $filters, $view->{allow_null} );
 
 	# Not doing submenus just yet.
 	my $has_submenu = 0;
@@ -321,7 +330,7 @@ sub update_view_menu
 	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 
 	my $phrase_id = "viewintro_".$view->{id};
-	if( defined $path_values )
+	if( defined $esc_path_values )
 	{
 		$phrase_id.= "/".join( "/", @{$path_values} );
 	}
@@ -357,10 +366,10 @@ sub update_view_menu
 	my $title;
 	my $title_phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_menu_".( $menu_level + 1 );
 
-	if( $session->get_lang()->has_phrase( $title_phrase_id ) && defined $path_values )
+	if( $session->get_lang()->has_phrase( $title_phrase_id ) && defined $esc_path_values )
 	{
 		my %o = ();
-		for( my $i = 0; $i < scalar( @{$path_values} ); ++$i )
+		for( my $i = 0; $i < scalar( @{$esc_path_values} ); ++$i )
 		{
 			my @menu_fields = @{$fields[$i]};
 			$o{"value".($i+1)} = $menu_fields[0]->render_single_value( $session, $path_values->[$i]);
@@ -399,26 +408,69 @@ sub get_fieldlist_totals
 {
 	my( $session, $ds, $fields, $filters ) = @_;
 
+	my $is_subject = $fields->[0]->is_type( "subject" );
+	my $subject_map;
+	my $subject_map_r;
+	my $topsubj;
+	if( $is_subject )
+	{
+		( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $session );
+	}
+
+
 	my %map=();
-	foreach my $field ( @{$fields} )
+	my %only_these_values = ();
+	FIELD: foreach my $field ( @{$fields} )
 	{
 		my $vref = $field->get_ids_by_value( $session, $ds, filters=>$filters );
-
-		foreach my $v ( keys %{$vref} )
+		if( $is_subject )
 		{
-			foreach my $id ( @{$vref->{$v}} )
+			my $top_node_id= $field->get_property( "top" );
+			SUBJECT: foreach my $subject_id ( keys %{$subject_map} )
 			{
-				$map{$v}->{$id} = 1;
+				foreach my $ancestor ( @{$subject_map->{$subject_id}->get_value( "ancestors" )} )
+				{
+					if( $ancestor eq $top_node_id )
+					{
+						$only_these_values{$subject_id} = 1;
+						next SUBJECT;
+					}
+				}
+			}
+		}
+
+		VALUE: foreach my $value ( keys %{$vref} )
+		{
+			$only_these_values{$value} = 1;
+			if( $is_subject )
+			{
+				my $subject = $subject_map->{$value};
+				next VALUE if ( !defined $subject );
+				foreach my $ancestor ( @{$subject->get_value( "ancestors" )} )
+				{
+					foreach my $itemid ( @{$vref->{$value}} ) 
+					{ 
+						$map{$ancestor}->{$itemid} = 1; 
+					}
+				}
+			}
+			else
+			{
+				foreach my $itemid ( @{$vref->{$value}} ) 
+				{ 
+					$map{$value}->{$itemid} = 1; 
+				}
 			}
 		}
 	}
 
 	my $totals = {};
-	foreach my $v ( keys %map )
+	foreach my $value ( keys %map )
 	{
-		$totals->{$v} = scalar keys %{$map{$v}};
+		next unless $only_these_values{$value};
+		$totals->{$value} = scalar keys %{$map{$value}};
 	}
-	
+
 	return $totals;
 }
 
@@ -426,17 +478,18 @@ sub get_fieldlist_values
 {
 	my( $session, $ds, $fields ) = @_;
 
-	my %v=();
+	my $values = {};
 	foreach my $field ( @{$fields} )
 	{
-		my $vref = $field->get_values( $session, $ds );
-		foreach( @{$vref} )
+		foreach my $value ( @{$field->get_values( $session, $ds )} )
 		{ 
-			my $id = $fields->[0]->get_id_from_value( $session, $_ );
-			$v{defined($id) ? $id : ""} = $_; # hash key can't be undef
+			my $id = $fields->[0]->get_id_from_value( $session, $value );
+			$id = "" if !defined $id;
+			$values->{$id} = $value;
 		}
 	}
-	return \%v;
+
+	return $values;
 }
 
 sub render_view_menu
@@ -536,42 +589,42 @@ sub render_view_menu
 
 sub render_view_subj_menu
 {
-        my( $session, $view, $sizes, $values, $fields, $has_submenu ) = @_;
+	my( $session, $view, $sizes, $values, $fields, $has_submenu ) = @_;
 
-        my $subjects_to_show = $values;
+	my $subjects_to_show = $values;
 
-        if( $view->{hideempty} && defined $sizes)
-        {
-                my %show = ();
-                foreach my $value ( @{$values} )
-                {
-                        next unless( defined $sizes->{$value} && $sizes->{$value} > 0 );
-                        my $subject = EPrints::DataObj::Subject->new(
-                                                $session, $value );
-                        my @ids= @{$subject->get_value( "ancestors" )};
-                        foreach my $id ( @ids ) { $show{$id} = 1; }
-                }
-                $subjects_to_show = [];
-                foreach my $value ( @{$values} )
-                {
-                        next unless( $show{$value} );
-                        push @{$subjects_to_show}, $value;
-                }
-        }
+	if( $view->{hideempty} && defined $sizes)
+	{
+		my %show = ();
+		foreach my $value ( @{$values} )
+		{
+			next unless( defined $sizes->{$value} && $sizes->{$value} > 0 );
+			my $subject = EPrints::DataObj::Subject->new(
+					 $session, $value );
+			my @ids= @{$subject->get_value( "ancestors" )};
+			foreach my $id ( @ids ) { $show{$id} = 1; }
+		}
+		$subjects_to_show = [];
+		foreach my $value ( @{$values} )
+		{
+			next unless( $show{$value} );
+			push @{$subjects_to_show}, $value;
+		}
+	}
 
-        my $f = $session->make_doc_fragment;
-        foreach my $field ( @{$fields} )
-        {
-                $f->appendChild(
-                        $session->render_subjects(
-                                $subjects_to_show,
-                                $field->get_property( "top" ),
-                                undef,
-                                ($has_submenu?3:2),
-                                $sizes ) );
-        }
+	my $f = $session->make_doc_fragment;
+	foreach my $field ( @{$fields} )
+	{
+		$f->appendChild(
+			$session->render_subjects(
+				$subjects_to_show,
+				$field->get_property( "top" ),
+				undef,
+				($has_submenu?3:2),
+				$sizes ) );
+	}
 
-        return $f;
+	return $f;
 }
 
 
@@ -601,24 +654,27 @@ sub get_fields_from_config
 
 # Update a (set of) view list(s) - potentially expensive to do.
 
+# nb. path_values are considered escaped at this point
 sub update_view_list
 {
-	my( $session, $view, $langid, $path_values ) = @_;
+	my( $session, $view, $langid, $esc_path_values ) = @_;
 
 	my $repository = $session->get_repository;
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 
-	my $filename = pop @{$path_values};
-	foreach( @{$path_values} ) { $target .= "$_/"; }
+	my $filename = pop @{$esc_path_values};
+	foreach( @{$esc_path_values} ) { $target .= "$_/"; }
 
 	my( $value, $suffix ) = split( /\./, $filename );
 	$target .= $value;
 
-	push @{$path_values}, $value;
-	for(@$path_values)
+	push @{$esc_path_values}, $value;
+
+	my $path_values = [];
+	foreach my $esc_value (@{$esc_path_values})
 	{
-		$_ = EPrints::Utils::unescape_filename( $_ );
+		push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
 	}
 
 	my $ds = $repository->get_dataset( "archive" );
@@ -628,23 +684,23 @@ sub update_view_list
 
 	my $menu_level = 0;
 	my $filters;
-	if( defined $path_values )
+	if( defined $esc_path_values )
 	{
 		$filters = [];
-		$menu_level = scalar @{$path_values};
+		$menu_level = scalar @{$esc_path_values};
 		# check values are valid
 		for( my $i=0; $i<$menu_level; ++$i )
 		{
 			if( $path_values->[$i] eq "NULL" )
 			{
-				push @{$filters}, { fields=>$fields[$i], value=>undef };
+				push @{$filters}, { fields=>$fields[$i], value=>"" };
 				next;
 			}
 			my $key_values = get_fieldlist_values( $session, $ds, $fields[$i] );
 			my $value = $key_values->{$path_values->[$i]};
 			if( !defined($value) )
 			{
-				$repository->log( "Invalid value id in update_view_list '".$path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$path_values} )."/" );
+				$repository->log( "Invalid value id in update_view_list '".$esc_path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$esc_path_values} )."/" );
 				return;
 			}
 			push @{$filters}, { fields=>$fields[$i], value=>$value };
@@ -656,7 +712,7 @@ sub update_view_list
 	# etc.
 	if( $menu_level != scalar @fields )
 	{
-		$repository->log( "Wrong depth to generate a view list: ".$view->{id}."/".join( "/", @{$path_values} ) );
+		$repository->log( "Wrong depth to generate a view list: ".$view->{id}."/".join( "/", @{$esc_path_values} ) );
 		return;
 	}
 
@@ -706,10 +762,12 @@ sub update_view_list
 		if( $session->get_lang()->has_phrase( $phrase_id ) )
 		{
 			my %o = ();
-			for( my $i = 0; $i < scalar( @{$path_values} ); ++$i )
+			for( my $i = 0; $i < scalar( @{$esc_path_values} ); ++$i )
 			{
 				my @menu_fields = @{$fields[$i]};
-				$o{"value".($i+1)} = $menu_fields[0]->render_single_value( $session, $path_values->[$i]);
+				my $value = EPrints::Utils::unescape_filename($esc_path_values->[$i]);
+				$value = "" if $value eq "NULL";
+				$o{"value".($i+1)} = $menu_fields[0]->render_single_value( $session, $value);
 			}		
 			my $grouping_phrase_id = "viewgroup_".$ds->confid()."_".$view->{id}."_".$opts->{filename};
 			if( $session->get_lang()->has_phrase( $grouping_phrase_id ) )
@@ -757,11 +815,16 @@ sub update_view_list
 		open( PAGE, ">$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
 		open( INCLUDE, ">$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
+		my $navigation_aids = render_navigation_aids( $session, $path_values, $view, \@fields );
+
+		print PAGE $navigation_aids;
+		print INCLUDE $navigation_aids;
+		
 		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
 		print INCLUDE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
 
 		# Render links to alternate groupings
-		if( scalar @{$alt_views} > 1 )
+		if( scalar @{$alt_views} > 1 && $count )
 		{
 			my $groups = $session->make_doc_fragment;
 			my $first = 1;
@@ -822,9 +885,9 @@ sub update_view_list
 
 		# Intro phrase, if any 
 		my $intro_phrase_id = "viewintro_".$view->{id};
-		if( defined $path_values )
+		if( defined $esc_path_values )
 		{
-			$intro_phrase_id.= "/".join( "/", @{$path_values} );
+			$intro_phrase_id.= "/".join( "/", @{$esc_path_values} );
 		}
 		my $intro = "";
 		if( $session->get_lang()->has_phrase( $intro_phrase_id ) )
@@ -837,7 +900,7 @@ sub update_view_list
 		unless( $view->{nocount} )
 		{
 			my $phraseid = "bin/generate_views:blurb";
-			if( defined $field && $field->is_type( "subject" ) )
+			if( $fields[-1]->[0]->is_type( "subject" ) )
 			{
 				$phraseid = "bin/generate_views:subject_blurb";
 			}
@@ -975,9 +1038,11 @@ sub update_view_list
 		my $viewid = $view->{id};
 		$jumpmenu =  "<div class='ep_view_jump ep_view_${viewid}_${fieldname}_jump'>$jumpmenu</div>";
 
-		# if "none" then leave as empty string.
-		print PAGE $jumpmenu;
-		print INCLUDE $jumpmenu;
+		if( $count )
+		{
+			print PAGE $jumpmenu;
+			print INCLUDE $jumpmenu;
+		}
 
 		print PAGE $intro;
 		print INCLUDE $intro;
@@ -1011,6 +1076,33 @@ sub update_view_list
 	}
 
 	return @files;
+}
+
+sub render_navigation_aids
+{
+	my( $session, $path_values, $view, $fields ) = @_;
+
+	my $block = "";
+	if( $fields->[-1]->[0]->is_type( "subject" ) )
+	{
+		my @all_but_this_level_path_values = @{$path_values};
+		pop @all_but_this_level_path_values;
+		my $sizes = get_sizes( $session, $view, \@all_but_this_level_path_values );
+		my $subject = EPrints::Subject->new( $session, $path_values->[-1] );
+		my @ids= @{$subject->get_value( "ancestors" )};
+		foreach my $sub_subject ( $subject->get_children() )
+		{
+			push @ids,$sub_subject->get_value( "subjectid" );
+		}
+		foreach my $field ( @{$fields->[-1]} )
+		{
+			$block .= "<div class='ep_toolbox'><div class='ep_toolbox_content'>";
+			$block .= EPrints::XML::to_string( $session->render_subjects( \@ids, $field->get_property( "top" ), $path_values->[-1], 2, $sizes ) );
+			$block .= "</div></div>";
+		}
+	}
+
+	return $block;
 }
 	
 sub group_items
@@ -1106,9 +1198,9 @@ sub group_items
 			{ 
 				my $v_a = $code_to_value->{$a};
 				my $v_b = $code_to_value->{$b};
-                		my $o_a = $field->ordervalue_basic( $v_a, $session, $langid );
-                		my $o_b = $field->ordervalue_basic( $v_b, $session, $langid );
-                        	return $o_a cmp $o_b;
+				my $o_a = $field->ordervalue_basic( $v_a, $session, $langid );
+				my $o_b = $field->ordervalue_basic( $v_b, $session, $langid );
+				return $o_a cmp $o_b;
 			}
 			keys %{$code_to_list};
 	}
