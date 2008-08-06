@@ -955,19 +955,21 @@ sub upload_archive
 {
 	my( $self, $filehandle, $filename, $archive_format ) = @_;
 
-	my $file = $self->local_path.'/'.$filename;
+	use bytes;
 
-	# Grab the archive into a temp file
-	$self->upload( 
-		$filehandle, 
-		$filename ) || return( 0 );
+	binmode($filehandle);
+
+	my $zipfile = File::Temp->new();
+	binmode($zipfile);
+
+	while(sysread($filehandle, $_, 4096))
+	{
+		syswrite($zipfile, $_);
+	}
 
 	my $rc = $self->add_archive( 
-		$file,
+		"$zipfile",
 		$archive_format );
-
-	# Remove the temp archive
-	unlink $file;
 
 	return $rc;
 }

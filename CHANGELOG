@@ -7657,4 +7657,5 @@ EPRINTS-3.1-beta-2
 
 2008-08-06 tdb
  * Chown entities.dtd for eprints and use File::Temp
+ * Allow archive file names to contain spaces etc. fixing #3409
 
