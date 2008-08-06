@@ -785,8 +785,7 @@ sub ListMetadataFormats
 		my $plugin = $session->plugin( $plugin_id ) or next;
 		if( defined($eprint) )
 		{
-			my $md = $eprint->export( $FORMATS{ $_ } ) or next;
-			EPrints::XML::dispose( $md );
+			$eprint->export( $FORMATS{ $_ } ) or next;
 		}
 		
 		my $mdf = $session->make_element( "metadataFormat" );
