@@ -1408,6 +1408,9 @@ Finds the invocation for the specified command from SystemSetting and
 fills in the blanks using %map. Returns a string which may be executed
 as a system call.
 
+All arguments are ESCAPED using quotemeta() before being used (i.e. don't
+pre-escape arguments in %map).
+
 =cut
 ######################################################################
 
@@ -1423,7 +1426,7 @@ sub invocation
 
 	my $command = $self->get_conf( "invocation" )->{ $cmd_id };
 
-	$command =~ s/\$\(([a-z]*)\)/$map{$1}/gei;
+	$command =~ s/\$\(([a-z]*)\)/quotemeta($map{$1})/gei;
 
 	return $command;
 }

@@ -7683,4 +7683,5 @@ EPRINTS-3.1-beta-2
  * Removing all Admin-configured fields will also remove the 'Misc.' stage,
     fixing 3415
  * Don't dispose scalars returned by Export->export, fixing #3420
+ * Escape arguments in Repository::invocation
 
