@@ -12,7 +12,7 @@ sub new
 
 	$self->{actions} = [qw/ stop save next prev /];
 
-	$self->{icon} = "/style/images/action_edit.png";
+	$self->{icon} = "action_edit.png";
 
 	$self->{appears} = [
 		{

@@ -15,7 +15,7 @@ sub new
 
 	$self->{staff} = 1;
 
-	$self->{icon} = "/style/images/action_view.png";
+	$self->{icon} = "action_view.png";
 
 	$self->{appears} = [
 		{

@@ -382,6 +382,30 @@ sub get_description
 	return $description;
 }
 
+=item $url = $screen->action_icon_url( $action )
+
+Returns the relative URL to the $action icon for this screen.
+
+=cut
+
+sub action_icon_url
+{
+	my( $self, $action ) = @_;
+
+	my $icon = $self->{session}->get_repository->get_conf( "plugins", $self->{id}, "actions", $action, "icon" );
+	if( !defined $icon ) 
+	{
+		$icon = $self->{action_icon}->{$action};
+	}
+
+	if( defined( $icon ) )
+	{
+		$icon = $self->{session}->get_url( path => "images", $icon );
+	}
+
+	return $icon;
+}
+
 sub render_action_icon
 {
 	my( $self, $params ) = @_;
@@ -426,21 +450,13 @@ sub _render_action_aux
 	{
 		$action = $params->{action};
 		$title = $params->{screen}->phrase( "action:$action:title" );
-		$icon = $session->get_repository->get_conf( "plugins", $params->{screen_id}, "actions", $action, "icon" );
-		if( !defined $icon ) 
-		{
-			$icon = $params->{screen}->{action_icon}->{$action};
-		}
+		$icon = $params->{screen}->action_icon_url( $action );
 	}
 	else
 	{
 		$action = "null";
 		$title = $params->{screen}->phrase( "title" );
-		$icon = $session->get_repository->get_conf( "plugins", $params->{screen_id}, "icon" );
-		if( !defined $icon ) 
-		{
-			$icon = $params->{screen}->{icon};
-		}
+		$icon = $params->{screen}->icon_url();
 	}
 	if( defined $icon && $asicon )
 	{

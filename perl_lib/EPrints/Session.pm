@@ -723,29 +723,35 @@ sub get_repository
 ######################################################################
 =pod
 
-=item $url = $session->get_url( [ %OPTS ] )
+=item $url = $session->get_url( [ @OPTS ] [, $page] )
 
 Utility method to get various URLs. See L<EPrints::URL>. With no arguments returns the same as get_uri().
 
 	# Return the current static path
 	$session->get_url( path => "static" );
+
 	# Return the current cgi path
 	$session->get_url( path => "cgi" );
+
 	# Return a full URL to the current cgi path
 	$session->get_url( host => 1, path => "cgi" );
+
 	# Return a full URL to the static path under HTTP
 	$session->get_url( scheme => "http", host => 1, path => "static" );
+
+	# Return a full URL to the image 'foo.png'
+	$session->get_url( host => 1, path => "images", "foo.png" );
 
 =cut
 ######################################################################
 
 sub get_url
 {
-	my( $self, %opts ) = @_;
+	my( $self, @opts ) = @_;
 
 	my $url = EPrints::URL->new( session => $self );
 
-	return $url->get( %opts );
+	return $url->get( @opts );
 }
 
 ######################################################################

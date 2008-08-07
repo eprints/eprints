@@ -7690,3 +7690,9 @@ EPRINTS-3.1-beta-2
     added on the end.
  * Changed -c in gunzip to the first argument in import test data -- this 
     stops a bug which shows up in POSIX compliant mode.
+
+2008-08-07 tdb
+ * Added "page" to Session::get_url/URL::get_url
+ * Added Plugin::icon_url and Screen::action_icon_url methods
+ * Use ->icon_url and ->action_icon_url to get icon URLs, fixing #3354
+

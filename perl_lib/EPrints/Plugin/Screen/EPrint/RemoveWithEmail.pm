@@ -10,7 +10,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{icon} = "/style/images/action_reject.png";
+	$self->{icon} = "action_reject.png";
 	$self->{appears} = [
 		{
 			place => "eprint_actions",

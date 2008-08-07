@@ -60,9 +60,50 @@ sub to_string
 	return $self->get( path => "auto" );
 }
 
+=item $url = $url->get( %opts [, $page ] )
+
+Constructs a $url based on the current configuration and %opts. If $page is specified will return a URL to that page.
+
+=over 4
+
+=item scheme => "auto"
+
+Link to same protocol as is active now (N/A to shell scripts).
+
+=item scheme => "http"
+
+Link to the non-secure location.
+
+=item scheme => "https"
+
+Link to the secure location.
+
+=item host => 1
+
+Create an absolute link (including host and port).
+
+=item path => "auto"
+
+Use the current path (N/A to shell scripts).
+
+=item path => "static", path => "cgi", path => "images"
+
+Link to the root of the static, cgi and images respectively.
+
+=item query => 1
+
+Create a self-referential link (i.e. include all parameters in the query part).
+
+=back
+
+=cut
+
 sub get
 {
-	my( $self, %opts ) = @_;
+	my( $self, @opts ) = @_;
+
+	my $page = scalar(@opts) % 2 ? pop(@opts) : undef;
+	my %opts = @opts;
 
 	my $session = $self->{session};
 
@@ -70,7 +111,7 @@ sub get
 
 	$opts{scheme} ||= "auto";
 	$opts{host} ||= "";
-	$opts{path} ||= "";
+	$opts{path} ||= "auto";
 
 	# scheme
 	if( $opts{scheme} eq "auto" )
@@ -117,6 +158,10 @@ sub get
 	{
 		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_cgiroot" ) );
 	}
+	elsif( $opts{path} eq "images" )
+	{
+		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_root" ) . "/style/images" );
+	}
 
 	# query
 	if( $opts{path} && $opts{query} )
@@ -128,6 +173,11 @@ sub get
 			push @params, $param => $value;
 		}
 		$uri->query_form( @params );
+	}
+
+	if( $opts{path} && defined($page) )
+	{
+		$uri->path( $uri->path . "/" . $page );
 	}
 
 	return "$uri";

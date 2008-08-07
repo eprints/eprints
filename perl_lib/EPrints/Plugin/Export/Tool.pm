@@ -13,13 +13,12 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Abstract Tool";
+	$self->{icon} = "tool-icon.png";
 	$self->{visible} = "";
 	
 	return $self;
 }
 
 sub is_tool { return 1; }
-
-sub icon { return "tool-icon.png"; }
 
 1;

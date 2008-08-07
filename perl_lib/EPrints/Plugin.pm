@@ -310,6 +310,32 @@ sub html_phrase
 }
 
 ######################################################################
+=item $url = $plugin->icon_url
+
+Returns the relative URL to the icon for this plugin.
+
+=cut
+######################################################################
+
+sub icon_url
+{
+	my( $self ) = @_;
+
+	my $icon = $self->{session}->get_repository->get_conf( "plugins", $self->{id}, "icon" );
+	if( !defined( $icon ) )
+	{
+		$icon = $self->{icon};
+	}
+
+	if( defined( $icon ) )
+	{
+		$icon = $self->{session}->get_url( path => "images", $icon );
+	}
+
+	return $icon;
+}
+
+######################################################################
 =pod
 
 =item $utf8 = $plugin->phrase( $id, %bits )

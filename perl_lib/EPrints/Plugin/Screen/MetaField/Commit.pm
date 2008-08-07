@@ -12,7 +12,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{icon} = "/style/images/action_deposit.png";
+	$self->{icon} = "action_deposit.png";
 
 	$self->{appears} = [ ];
 
