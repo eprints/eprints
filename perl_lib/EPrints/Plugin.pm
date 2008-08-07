@@ -327,12 +327,11 @@ sub icon_url
 		$icon = $self->{icon};
 	}
 
-	if( defined( $icon ) )
-	{
-		$icon = $self->{session}->get_url( path => "images", $icon );
-	}
+	return undef if !defined $icon;
 
-	return $icon;
+	my $url = $self->{session}->get_url( path => "images", $icon );
+
+	return $url;
 }
 
 ######################################################################

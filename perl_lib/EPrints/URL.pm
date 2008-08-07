@@ -109,9 +109,9 @@ sub get
 
 	my $uri = URI->new("", "http");
 
-	$opts{scheme} ||= "auto";
-	$opts{host} ||= "";
-	$opts{path} ||= "auto";
+	$opts{scheme} = "auto" unless defined $opts{scheme};
+	$opts{host} = "" unless defined $opts{host};
+	$opts{path} = "auto" unless defined $opts{path};
 
 	# scheme
 	if( $opts{scheme} eq "auto" )
