@@ -181,6 +181,44 @@ sub render_verb
 	return render_oai_error( $session, "badVerb", "Unknown verb: '$verb'" );
 }
 
+sub get_eprint_by_identifier
+{
+	my( $session, $identifier ) = @_;
+
+	my $id = EPrints::OpenArchives::from_oai_identifier(
+			$session,
+			$identifier );
+
+	my $dataset = $session->get_repository->get_dataset( "eprint" );
+
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+	);
+
+	$searchexp->add_field(
+		$dataset->get_field( "eprint_status" ),
+		"archive deletion",
+		"EQ",
+		"ANY"
+	);
+
+	$searchexp->add_field(
+		$dataset->get_field( "eprintid" ),
+		$id
+	);
+
+#print $searchexp->render_description->toString;
+
+	my $list = $searchexp->perform_search;
+
+	my( $eprint ) = $list->get_records( 0, 1 );
+
+	$list->dispose;
+
+	return $eprint;
+}
+
 ######################################################################
 #
 # Identify( $session )
@@ -382,22 +420,16 @@ sub GetRecord
 
 	}
 
-	my $id = EPrints::OpenArchives::from_oai_identifier(
-			$session,
-			$args->{identifier} );
+	my $dataset = $session->get_repository->get_dataset( "archive" );
 
-	my $eprint = new EPrints::DataObj::EPrint(
-		$session,
-		$id,
-		$session->get_repository->get_dataset( "archive" ) );
+	my $eprint = get_eprint_by_identifier( $session, $args->{ identifier } );
 
 	if( !defined $eprint )
 	{
-		# try deleted records
-		$eprint = new EPrints::DataObj::EPrint(
-			$session,
-			$id,
-			$session->get_repository->get_dataset( "deletion" ) );
+		return render_oai_error(
+				$session,
+				"idDoesNotExist",
+				"'".$args->{identifier}."' is not a valid item in this repository" );
 	}
 
 	my $response = $session->make_element( "GetRecord" );
@@ -768,13 +800,15 @@ sub ListMetadataFormats
 	my $eprint;
 	if( defined $args->{identifier} )
 	{
-		$eprint = new EPrints::DataObj::EPrint(
-			$session,
-			EPrints::OpenArchives::from_oai_identifier(
-				$session,
-				$args->{identifier} ),
-			$session->get_repository->get_dataset( "archive" ) );
+		$eprint = get_eprint_by_identifier( $session, $args->{identifier} );
 
+		if( !defined $eprint )
+		{
+			return render_oai_error(
+					$session,
+					"idDoesNotExist",
+					"'".$args->{identifier}."' is not a valid item in this repository" );
+		}
 	}
 	
 	my $response = $session->make_element( "ListMetadataFormats" );

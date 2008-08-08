@@ -7696,3 +7696,7 @@ EPRINTS-3.1-beta-2
  * Added Plugin::icon_url and Screen::action_icon_url methods
  * Use ->icon_url and ->action_icon_url to get icon URLs, fixing #3354
 
+2008-08-08 tdb
+ * OAI now searches for the eprint in archive or deletion, fixing #3424
+ * OAI GetRecord no longer errors on an invalid identifier, fixing #3423
+
