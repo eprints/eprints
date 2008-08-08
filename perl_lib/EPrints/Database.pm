@@ -2486,14 +2486,24 @@ sub _get
 	my $keyfield = $fields[0];
 	my $Q_keyname = $self->quote_identifier($keyfield->get_sql_name());
 
-	my $cols = "";
 	my @aux = ();
-	my $first = 1;
 
 	my $Q_table = $self->quote_identifier($dataset->get_sql_table_name());
-	my $M = $self->quote_identifier("M");
-	my $C = $self->quote_identifier("C");
+	my $M = $self->quote_identifier("M"); # main table
+	my $C = $self->quote_identifier("C"); # cache table
+	my $A = $self->quote_identifier("A"); # aux table
 	my $Q_pos = $self->quote_identifier("pos");
+
+	my( @cols, @tables, @logic, @order );
+	push @tables, "$Q_table $M";
+
+	# inbox,buffer,archive etc.
+	if( $dataset->id ne $dataset->confid )
+	{
+		my $ds_field = $dataset->get_field( $dataset->get_dataset_id_field() );
+		my $Q_ds_field = $self->quote_identifier($ds_field->get_sql_name());
+		push @logic, "$M.$Q_ds_field = ".$self->quote_value($dataset->id);
+	}
 
 	foreach $field ( @fields ) 
 	{
@@ -2513,44 +2523,43 @@ sub _get
 			next;
 		}
 
-		if ($first)
-		{
-			$first = 0;
-		}
-		else
-		{
-			$cols .= ", ";
-		}
-		$cols .= join(", ", map {
+		push @cols, map {
 			"$M.".$self->quote_identifier($_)
-		} $field->get_sql_names);
+		} $field->get_sql_names;
 	}
 
-	my $sql;
 	if ( $mode == 0 )
 	{
-		$sql = "SELECT $cols FROM $Q_table $M ".
-		       "WHERE $M.$Q_keyname = ".$self->quote_value( $param );
+		push @logic, "$M.$Q_keyname = ".$self->quote_value( $param );
 	}
 	elsif ( $mode == 1 )	
 	{
-		$sql = "SELECT $cols FROM ".$self->quote_identifier($param)." $C, $Q_table $M ".
-		       "WHERE $M.$Q_keyname = $C.$Q_keyname";
+		push @tables, $self->quote_identifier($param)." $C";
+		push @logic, "$M.$Q_keyname = $C.$Q_keyname";
 	}
 	elsif ( $mode == 2 )	
 	{
-		$sql = "SELECT $cols FROM $Q_table $M";
 	}
 	elsif ( $mode == 3 )	
 	{
-		$sql = "SELECT $cols, $C.$Q_pos FROM ".$self->quote_identifier($param)." $C, $Q_table $M ";
-		$sql.= "WHERE $M.$Q_keyname = $C.$Q_keyname AND $C.$Q_pos>".$offset." ";
+		push @tables, $self->quote_identifier($param)." $C";
+		push @logic,
+			"$M.$Q_keyname = $C.$Q_keyname",
+			"$C.$Q_pos > ".$offset;
 		if( $ntoreturn > 0 )
 		{
-			$sql.="AND $C.$Q_pos<=".($offset+$ntoreturn)." ";
+			push @logic, "$C.$Q_pos <= ".($offset+$ntoreturn);
 		}
-		$sql .= "ORDER BY $C.$Q_pos";
-		#print STDERR "$sql\n";
+		push @order, "$C.$Q_pos";
+	}
+	my $sql = "SELECT ".join(",",@cols)." FROM ".join(",",@tables);
+	if( scalar(@logic) )
+	{
+		$sql .= " WHERE ".join(" AND ",@logic);
+	}
+	if( scalar(@order) )
+	{
+		$sql .= " ORDER BY ".join(",",@order);
 	}
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
@@ -2585,46 +2594,66 @@ sub _get
 	foreach my $multifield ( @aux )
 	{
 		my $fn = $multifield->get_name();
-		my $cols = "$M.$Q_keyname, ";
-		if( $multifield->get_property( "multiple" ) )
-		{
-			$cols .= "$M.$Q_pos, "
-		}
-		$cols .= join(", ", map {
-			"$M.".$self->quote_identifier($_)
-		} $multifield->get_sql_names);
+		my( $sql, @cols, @tables, @logic, @order );
+
 		my $Q_subtable = $self->quote_identifier($dataset->get_sql_sub_table_name( $multifield ));
+		push @tables, "$Q_subtable $A";
+
+		# inbox,buffer,archive etc.
+		if( $dataset->id ne $dataset->confid )
+		{
+			my $ds_field = $dataset->get_field( $dataset->get_dataset_id_field() );
+			my $Q_ds_field = $self->quote_identifier($ds_field->get_sql_name());
+			push @tables, "$Q_table $M";
+			push @logic,
+				"$M.$Q_keyname = $A.$Q_keyname",
+				"$M.$Q_ds_field = ".$self->quote_value($dataset->id);
+		}
+
+		push @cols,
+			"$A.$Q_keyname",
+			"$A.$Q_pos",
+			map {
+				"$A.".$self->quote_identifier($_)
+			} $multifield->get_sql_names;
 		if( $mode == 0 )	
 		{
-			$sql = "SELECT $cols FROM $Q_subtable $M ";
-			$sql.= "WHERE $M.$Q_keyname=".$self->quote_value( $param );
+			push @logic, "$A.$Q_keyname = ".$self->quote_value( $param );
 		}
 		elsif( $mode == 1)
 		{
-			$sql = "SELECT $cols FROM $param $C, $Q_subtable $M ";
-			$sql.= "WHERE $M.$Q_keyname=$C.$Q_keyname";
+			push @tables, $self->quote_identifier( $param )." $C";
+			push @logic, "$A.$Q_keyname = $C.$Q_keyname";
 		}	
 		elsif( $mode == 2)
 		{
-			$sql = "SELECT $cols FROM $Q_subtable $M ";
 		}
 		elsif ( $mode == 3 )	
 		{
-			$sql = "SELECT $cols, $C.$Q_pos FROM ".$self->quote_identifier($param)." $C, $Q_subtable $M ";
-			$sql.= "WHERE $M.$Q_keyname = $C.$Q_keyname AND $C.$Q_pos>".$offset." ";
+			push @tables, $self->quote_identifier( $param )." $C";
+			push @logic,
+				 "$A.$Q_keyname = $C.$Q_keyname",
+				 "$C.$Q_pos > ".$offset;
 			if( $ntoreturn > 0 )
 			{
-				$sql.="AND $C.$Q_pos<=".($offset+$ntoreturn)." ";
+				push @logic, "$C.$Q_pos <= ".($offset+$ntoreturn);
 			}
-			$sql .= "ORDER BY $C.$Q_pos";
+			push @order, "$C.$Q_pos";
+		}
+		my $sql = "SELECT ".join(",",@cols)." FROM ".join(",",@tables);
+		if( scalar(@logic) )
+		{
+			$sql .= " WHERE ".join(" AND ",@logic);
+		}
+		if( scalar(@order) )
+		{
+			$sql .= " ORDER BY ".join(",",@order);
 		}
 		$sth = $self->prepare( $sql );
 		$self->execute( $sth, $sql );
 		while( my @values = $sth->fetchrow_array ) 
 		{
-			my $id = shift( @values );
-			my( $pos, $lang );
-			$pos = shift( @values ) if( $multifield->get_property( "multiple" ) );
+			my( $id, $pos ) = splice(@values,0,2);
 			my $n = $lookup{ $id };
 			my $value = $multifield->value_from_sql_row( $self->{session}, \@values );
 

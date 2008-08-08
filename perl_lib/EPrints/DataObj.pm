@@ -76,19 +76,26 @@ sub get_system_field_info
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new( $session, $id )
+=item $dataobj = EPrints::DataObj->new( $session, $id [, $dataset] )
 
 Return new data object, created by loading it from the database.
+
+If $dataset is not defined uses the default dataset for this object.
 
 =cut
 ######################################################################
 
 sub new
 {
-	my( $class, $session, $id ) = @_;
+	my( $class, $session, $id, $dataset ) = @_;
+
+	if( !defined($dataset) )
+	{
+		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+	}
 
 	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( $class->get_dataset_id ), 
+			$dataset,
 			$id );
 }
 
