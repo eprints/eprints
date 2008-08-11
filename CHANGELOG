@@ -7701,3 +7701,6 @@ EPRINTS-3.1-beta-2
  * OAI GetRecord no longer errors on an invalid identifier, fixing #3423
  * get_object()/DataObj::new will no longer return eprints from any dataset
 
+2008-08-11 tdb
+ * Indexer should now stop if asked to stop while busy
+

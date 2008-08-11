@@ -178,6 +178,21 @@ sub is_running
 	return 0;
 }
 
+=item $daemon->is_child_running()
+
+Returns true if a child process appears to be running.
+
+=cut
+
+sub is_child_running
+{
+	my( $self ) = @_;
+	my $pid = $self->{child} or return undef;
+	return 1 if kill(0, $pid); # Running as the same uid as us
+	return 1 if EPrints::Platform::proc_exists( $pid );
+	return 0;
+}
+
 # tick tock
 sub tick
 {
@@ -378,10 +393,22 @@ sub cleanup
 	# ask child to exit now
 	if( $force )
 	{
-		if( $self->{child} ) {
-			$self->log(1,"** Asking child to exit: $self->{child}");
-			kill 9, $self->{child};
-			delete $self->{child};
+		if( $self->is_child_running ) {
+			$self->log(1,"** Asking child nicely to exit: $self->{child}");
+			kill 15, $self->{child};
+			my $tries = $self->{maxwait};
+			while($tries--)
+			{
+				last if !$self->is_child_running;
+				sleep(1);
+			}
+			# now I really mean it
+			if( $self->is_child_running )
+			{
+				$self->log(1,"** Asking child strongly to exit: $self->{child}");
+				kill 9, $self->{child};
+				delete $self->{child};
+			}
 		}
 	}
 	elsif( $self->{child} )
@@ -481,6 +508,7 @@ sub start_daemon
 			# parent
 			waitpid($pid, 0);
 			delete $self->{child};
+			$self->log( 2, "*** Indexer sub-process stopped" );
 
 			if( $self->suicidal )
 			{
@@ -539,7 +567,12 @@ END
 	# That didn't work, lets try killing it
 	if( my $pid = $self->get_pid )
 	{
-		kill 9, $pid;
+		kill 15, $pid;
+	}
+
+	if( $self->is_running )
+	{
+		return 0;
 	}
 
 	return 1;
@@ -597,6 +630,12 @@ sub run_index
 		{
 			$self->log( 3, "** Worker process restarting: $$" );
 			$self->roll_logs unless $self->{once};
+			last;
+		}
+
+		if( $self->suicidal )
+		{
+			$suicidal = 1;
 			last;
 		}
 

@@ -228,10 +228,22 @@ sub status
 
 sub stop
 {
-	if( $daemon->is_running )
+	if( !$daemon->is_running )
 	{
-		$daemon->stop_daemon;
+		exit 1;
 	}
+
+	if( !$daemon->stop_daemon )
+	{
+		my $pid = $daemon->get_pid();
+		print STDERR <<END;
+The indexer process with process ID $pid failed to stop. You may
+need to stop it (and any child processes) by hand.
+END
+		exit 1;
+	}
+
+	exit 0;
 }
 
 
