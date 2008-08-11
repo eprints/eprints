@@ -2640,7 +2640,7 @@ sub _get
 			}
 			push @order, "$C.$Q_pos";
 		}
-		my $sql = "SELECT ".join(",",@cols)." FROM ".join(",",@tables);
+		$sql = "SELECT ".join(",",@cols)." FROM ".join(",",@tables);
 		if( scalar(@logic) )
 		{
 			$sql .= " WHERE ".join(" AND ",@logic);
