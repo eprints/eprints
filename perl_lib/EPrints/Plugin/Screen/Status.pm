@@ -20,7 +20,20 @@ sub new
 		},
 	];
 
+	$self->{daemon} = EPrints::Index::Daemon->new(
+		session => $self->{session},
+		Handler => $self->{processor},
+		logfile => EPrints::Index::logfile(),
+		noise => ($self->{session}->{noise}||1),
+	);
+
 	return $self;
+}
+
+sub get_daemon
+{
+	my( $self ) = @_;
+	return $self->{daemon};
 }
 
 sub can_be_viewed
@@ -34,7 +47,7 @@ sub indexer_warnings
 {
 	my( $self ) = @_;
 
-	if( EPrints::Index::has_stalled() )
+	if( $self->get_daemon->has_stalled() )
 	{
 		my $index_screen = $self->{session}->plugin( "Screen::Admin::IndexerControl", processor => $self->{processor} );
 		my $force_start_button = $self->render_action_button_if_allowed( 
@@ -49,7 +62,7 @@ sub indexer_warnings
 			$self->html_phrase( "indexer_stalled", force_start_button => $force_start_button ) 
 		);
 	}
-	elsif( !EPrints::Index::is_running() )
+	elsif( !$self->get_daemon->is_running() )
 	{
 		my $index_screen = $self->{session}->plugin( "Screen::Admin::IndexerControl", processor => $self->{processor} );
 		my $start_button = $self->render_action_button_if_allowed( 
@@ -113,11 +126,11 @@ sub render
 
 	my $indexer_status;
 
-	if( !EPrints::Index::is_running() )
+	if( !$self->get_daemon->is_running() )
 	{
 		$indexer_status = "stopped";
 	}
-	elsif( EPrints::Index::has_stalled() )
+	elsif( $self->get_daemon->has_stalled() )
 	{
 		$indexer_status = "stalled";
 	}

@@ -7704,4 +7704,5 @@ EPRINTS-3.1-beta-2
 2008-08-11 tdb
  * Indexer should now stop if asked to stop while busy
  * Removed redundant indexer control code
+ * Modified Status/Admin plugins to use Index::Daemon
 

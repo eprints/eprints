@@ -120,14 +120,17 @@ sub action_start_indexer
 sub allow_force_start_indexer
 {
 	my( $self ) = @_;
-	return 0 if( !EPrints::Index::has_stalled() );
+	return 0 if( !$self->get_daemon->is_running() );
 	return $self->allow( "indexer/force_start" );
 }
 
 sub action_force_start_indexer
 {
 	my( $self ) = @_;
-	my $result = EPrints::Index::force_start( $self->{session} );
+
+	$self->get_daemon->stop(); # give the indexer a chance to stop
+	$self->get_daemon->cleanup(); # remove pid/tick file
+	my $result = $self->get_daemon->start( $self->{session} );
 
 	if( $result == 1 )
 	{
