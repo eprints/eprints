@@ -120,6 +120,7 @@ sub generate_thumbnails
 	my @finfo = ();
 	foreach my $doc ($eprint->get_all_documents)
 	{
+		$doc->remove_thumbnails();
 		$doc->make_thumbnails();
 		push @finfo, $doc->icon_url.";".$doc->get_url;
 	}
