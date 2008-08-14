@@ -1535,6 +1535,8 @@ sub thumbnail_url
 
 	my $docpath = $self->get_value( "pos" );
 
+	my $repository = $self->{session}->get_repository;
+
 	# Search for a thumbnail in jpeg or png format
 	foreach my $ext (qw( jpg png ))
 	{
