@@ -1529,20 +1529,22 @@ sub thumbnail_url
 
 	$size = "small" unless defined $size;
 
-	if( ! -e $self->thumbnail_path."/".$size.".png" )	
-	{
-		return;
-	}
-
 	my $eprint = $self->get_eprint();
 
 	return( undef ) if( !defined $eprint );
 
-	my $repository = $self->{session}->get_repository;
-
 	my $docpath = $self->get_value( "pos" );
 
-	return $repository->get_conf( "rel_path" )."/".($eprint->get_id+0)."/thumbnails/$docpath/$size.png";
+	# Search for a thumbnail in jpeg or png format
+	foreach my $ext (qw( jpg png ))
+	{
+		if( -e $self->thumbnail_path."/".$size.".$ext" )	
+		{
+			return $repository->get_conf( "rel_path" )."/".($eprint->get_id+0)."/thumbnails/$docpath/$size.$ext";
+		}
+	}
+
+	return undef;
 }
 
 # size => "small","medium","preview" (small is default)
@@ -1707,6 +1709,17 @@ sub render_preview_link
 		$video_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
 		$f->appendChild( $video_link );
 	}
+	elsif( $self->get_stored_files( "thumbnail", "preview.jpg" ) )
+	{
+		my $preview_url = "$base_url/preview.jpg";
+		my $image_link = $self->{session}->make_element( "a",
+			href=>$preview_url,
+			rel=>"lightbox$set",
+			title=>EPrints::XML::to_string($caption),
+		);
+		$image_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
+		$f->appendChild( $image_link );
+	}
 	elsif( $self->get_stored_files( "thumbnail", "preview.png" ) )
 	{
 		my $preview_url = "$base_url/preview.png";
@@ -1781,7 +1794,7 @@ sub make_thumbnails
 
 	foreach my $size ( @list )
 	{
-		my $tgt_filename = $size.".png";
+		my $tgt_filename = $size.".jpg";
 
 		# check mtime
 		my $tgt = $self->get_stored_files( "thumbnail", $tgt_filename );
@@ -1861,10 +1874,16 @@ sub get_mime_type
 {
 	my( $self, $bucket, $filename ) = @_;
 
-	# All thumbnails are PNG at the moment
 	if( $bucket eq "thumbnail" )
 	{
-		return "image/png";
+		if( $filename =~ /\.jpg$/ )
+		{
+			return "image/jpg";
+		}
+		else
+		{
+			return "image/png";
+		}
 	}
 	# Use the main document type
 	elsif( $filename eq $self->get_main() )

@@ -34,6 +34,8 @@ asf	video/x-ms-asf
 asr	video/x-ms-asf
 avi	video/x-msvideo
 vob	video/mpeg
+m4v	video/mpeg
+m2v	video/mpeg
 );
 # formats pref maps mime type to file suffix. Last suffix
 # in the list is used.
@@ -127,11 +129,11 @@ sub export_cell
 	my $src = $doc->get_stored_files( "data", $doc->get_main );
 	$src = $self->{_local_copy} ||= $src->get_local_copy();
 
-	my $fn = "$size.png";
+	my $fn = "$size.jpg";
 
 	my $geom = $GEOMETRY->{$size};
 
-	my $cmd = "$ffmpeg -y -i ".quotemeta($src)." -vcodec png -vframes 1 -an -f rawvideo -ss $offset -s $geom ".quotemeta($dir.'/'.$fn)." 2>/dev/null";
+	my $cmd = "$ffmpeg -y -i ".quotemeta($src)." -vcodec mjpeg -vframes 1 -an -f rawvideo -ss $offset -s $geom ".quotemeta($dir.'/'.$fn)." 2>/dev/null";
 	system($cmd);
 
 	if( not -s "$dir/$fn" )

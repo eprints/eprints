@@ -7706,3 +7706,6 @@ EPRINTS-3.1-beta-2
  * Removed redundant indexer control code
  * Modified Status/Admin plugins to use Index::Daemon
 
+2008-08-14 tdb
+ * Generate new thumbnails in JPEG format
+

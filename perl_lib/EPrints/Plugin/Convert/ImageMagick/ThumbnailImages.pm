@@ -90,7 +90,7 @@ sub export
 	my $geom = { small=>"66x50", medium=>"200x150",preview=>"400x300" }->{$1};
 	return () unless defined $geom;
 	
-	my $fn = "$size.png";
+	my $fn = "$size.jpg";
 
 	system($convert, "-thumbnail","$geom>", $src."[$geom]", $dir . '/' . $fn);
 

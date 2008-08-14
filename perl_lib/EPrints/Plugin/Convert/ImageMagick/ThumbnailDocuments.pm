@@ -71,7 +71,7 @@ sub export
 	my $src = $doc->get_stored_files( "data", $doc->get_main );
 	$src = $src->get_local_copy();
 	
-	my $fn = "preview.png";
+	my $fn = "preview.jpg";
 
 	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn);
 
