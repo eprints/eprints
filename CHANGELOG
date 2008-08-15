@@ -7709,3 +7709,6 @@ EPRINTS-3.1-beta-2
 2008-08-14 tdb
  * Generate new thumbnails in JPEG format
 
+2008-08-15 tdb
+ * Use an absolute URL for document icons (will complain under HTTPS)
+
