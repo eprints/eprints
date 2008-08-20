@@ -45,7 +45,9 @@
 		<component><field ref="maxlength"/></component>
 		<component><field ref="input_cols"/></component>
 	</epc:if>
-  	<component><field ref="input_rows"/></component>
+	<epc:if test="type='longtext' or type='boolean' or type='set' or type='namedset' or type='subject'">
+		<component><field ref="input_rows"/></component>
+	</epc:if>
 	<epc:if test="type='subject'">
 		<component><field ref="top"/></component>
 	</epc:if>

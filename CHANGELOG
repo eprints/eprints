@@ -7712,3 +7712,6 @@ EPRINTS-3.1-beta-2
 2008-08-15 tdb
  * Use an absolute URL for document icons (will complain under HTTPS)
 
+2008-08-20 tdb
+ * input_rows is specific to certain field types
+
