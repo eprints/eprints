@@ -390,6 +390,8 @@ sub process_field
 	}
 
 	$self->{field_index}->{$field->get_name()} = $field;
+
+	return $field;
 }
 
 
