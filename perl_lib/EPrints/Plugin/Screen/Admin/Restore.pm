@@ -50,7 +50,7 @@ sub action_restore_repository
 	if( defined( $fh ) )
 	{
 		binmode($fh);
-		my $tmpfile = File::Temp->new( SUFFIX => ".tgz" );
+		my $tmpfile = File::Temp->new( SUFFIX => ".tgz");
 		binmode($tmpfile);
 
 		use bytes;
@@ -63,6 +63,7 @@ sub action_restore_repository
 		my $database_name = $self->{session}->get_repository->get_conf('dbname');
 		my $database_password = $self->{session}->get_repository->get_conf('dbpass');
 		my $database_user = $self->{session}->get_repository->get_conf('dbuser');
+		my $database_host = $self->{session}->get_repository->get_conf('dbhost');
 		my $repository_id = $self->{session}->get_repository->get_id;
 		my $eprints_base_path = $self->{session}->get_repository->get_conf('base_path');
 		#my $eprints_base_path = "/tmp/test";
@@ -71,7 +72,7 @@ sub action_restore_repository
 		my $tar_executable = $self->{session}->get_repository->get_conf('executables','tar');
 		my $mysql_executable = 'mysql';
 	
-		`$tar_executable -zxf $tmpfile -C $check_path . `; 
+		`$tar_executable -zxf $tmpfile -C $check_path/ --same-owner`; 
 
 		my $import_base_path;
 
@@ -91,8 +92,15 @@ sub action_restore_repository
 			
 				my $ret = `diff /home/dct05r/eprints/archives/preserv2/cfg/cfg.d/database.pl /tmp/test/archives/preserv2/cfg/cfg.d/database.pl`;
 				if ($ret eq "") {
-				
-					`mv $check_path/* $eprints_base_path/`;
+						
+					`echo "drop database $database_name" | mysql -u $database_user -p$database_password -h $database_host`; 
+					`echo "create database $database_name" | mysql -u $database_user -p$database_password -h $database_host`; 
+					my $local_database_file = `ls $check_path/tmp/`;
+					`mysql -u $database_user -p$database_password -h $database_host $database_name < $check_path/tmp/$local_database_file`;
+					`rm -fR $eprints_base_path/*`;
+					`rm -fR $check_path/tmp/`;
+					`cp -R $check_path/* $eprints_base_path/`;
+					`rm -fR $check_path`;
 					$self->{processor}->add_message( "message", $session->make_text( "Repsotory Restored" ) );
 					
 				} else {
