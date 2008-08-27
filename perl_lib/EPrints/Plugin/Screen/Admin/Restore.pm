@@ -50,7 +50,7 @@ sub action_restore_repository
 	if( defined( $fh ) )
 	{
 		binmode($fh);
-		my $tmpfile = File::Temp->new( SUFFIX => ".tgz");
+		my $tmpfile = File::Temp->new( SUFFIX => ".tgz" );
 		binmode($tmpfile);
 
 		use bytes;
@@ -66,13 +66,12 @@ sub action_restore_repository
 		my $database_host = $self->{session}->get_repository->get_conf('dbhost');
 		my $repository_id = $self->{session}->get_repository->get_id;
 		my $eprints_base_path = $self->{session}->get_repository->get_conf('base_path');
-		#my $eprints_base_path = "/tmp/test";
-		my $check_path = "/tmp/test";
-
+		
+		my $check_path = EPrints::TempDir->new();
 		my $tar_executable = $self->{session}->get_repository->get_conf('executables','tar');
 		my $mysql_executable = 'mysql';
 	
-		`$tar_executable -zxf $tmpfile -C $check_path/ --same-owner`; 
+		`$tar_executable -zxf $tmpfile -C $check_path --same-owner`; 
 
 		my $import_base_path;
 
@@ -85,22 +84,26 @@ sub action_restore_repository
 		
 		}
 
-		my $import_archive_id = trim(`ls /tmp/test/archives/`);
+		my $import_archive_id = trim(`ls $check_path/archives/`);
 
 		if ($import_base_path eq $eprints_base_path) {
 			if ($import_archive_id eq $repository_id) {
 			
-				my $ret = `diff /home/dct05r/eprints/archives/preserv2/cfg/cfg.d/database.pl /tmp/test/archives/preserv2/cfg/cfg.d/database.pl`;
-				if ($ret eq "") {
-						
+				my $ret = `diff $eprints_base_path/archives/$repository_id/cfg/cfg.d/database.pl $check_path/archives/$repository_id/cfg/cfg.d/database.pl`;
+				if ($ret eq "") {	
+					my $archive_dir = EPrints::TempDir->new();
+					`cp -pR $eprints_base_path/archives/* $archive_dir`;
+					`rm -fR $archive_dir/$repository_id`; 
+
 					`echo "drop database $database_name" | mysql -u $database_user -p$database_password -h $database_host`; 
 					`echo "create database $database_name" | mysql -u $database_user -p$database_password -h $database_host`; 
 					my $local_database_file = `ls $check_path/tmp/`;
 					`mysql -u $database_user -p$database_password -h $database_host $database_name < $check_path/tmp/$local_database_file`;
 					`rm -fR $eprints_base_path/*`;
 					`rm -fR $check_path/tmp/`;
-					`cp -R $check_path/* $eprints_base_path/`;
+					`cp -pR $check_path/* $eprints_base_path/`;
 					`rm -fR $check_path`;
+					`cp -pR $archive_dir/* $eprints_base_path/archives/`;
 					$self->{processor}->add_message( "message", $session->make_text( "Repsotory Restored" ) );
 					
 				} else {
@@ -108,7 +111,7 @@ sub action_restore_repository
 				}
 				
 			} else {
-				$self->{processor}->add_message( "error", $session->make_text( "Unable to import this archive as it's ID does not match the one you are currently logged into. <$import_archive_id> != <$repository_id>" ) );
+				$self->{processor}->add_message( "error", $session->make_text( "Unable to import this archive as it's ID does not match the one you are currently logged into. <$import_archive_id> != <$repository_id> $check_path" ) );
 			}
 		} else {
 			$self->{processor}->add_message( "error", $session->make_text( "EPrints base paths did not match...this next version of this script will correct this for you...see how nice we are as everything could have broken!" ) );
