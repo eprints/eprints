@@ -92,7 +92,7 @@ sub action_restore_repository
 				my $ret = `diff /home/dct05r/eprints/archives/preserv2/cfg/cfg.d/database.pl /tmp/test/archives/preserv2/cfg/cfg.d/database.pl`;
 				if ($ret eq "") {
 				
-					`mv $check_path/* $eprints_base_path/`
+					`mv $check_path/* $eprints_base_path/`;
 					$self->{processor}->add_message( "message", $session->make_text( "Repsotory Restored" ) );
 					
 				} else {
