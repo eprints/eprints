@@ -73,7 +73,7 @@ sub export
 	
 	my $fn = "preview.jpg";
 
-	system($convert, "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn);
+	system($convert, "-strip", "-colorspace", "RGB", "-thumbnail","400x300>", '-bordercolor', 'rgb(128,128,128)', '-border', '1', $src.'[0]', $dir . '/' . $fn);
 
 	unless( -e "$dir/$fn" ) {
 		return ();
