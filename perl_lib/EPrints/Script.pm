@@ -321,6 +321,10 @@ sub run_PROPERTY
 	{
 		$self->runtime_error( "can't get a property from non-dataobj: ".$self->{value} );
 	}
+	if( !$objvar->[0]->get_dataset->has_field( $self->{value} ) )
+	{
+		$self->runtime_error( $objvar->[0]->get_dataset->confid . " object does not have a '".$self->{value}."' field" );
+	}
 
 	return [ 
 		$objvar->[0]->get_value( $self->{value} ),
