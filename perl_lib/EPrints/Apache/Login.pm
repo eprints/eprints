@@ -45,6 +45,7 @@ sub handler
 
 	# always set a new random cookie value when we render the login form.
 	my @a = ();
+	srand;
 	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
 	$opts{code} = join( "", @a );
 

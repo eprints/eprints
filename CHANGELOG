@@ -7715,3 +7715,5 @@ EPRINTS-3.1-beta-2
 2008-08-20 tdb
  * input_rows is specific to certain field types
 
+2008-09-08 cjg
+ * added srand to improve randomness of login cookies.
