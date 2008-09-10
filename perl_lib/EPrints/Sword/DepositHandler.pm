@@ -138,6 +138,12 @@ sub handler
 	# Saving the data/file sent through POST
         my $postdata = $session->{query}->{'POSTDATA'};
 
+ 	# This is because CGI.pm (>3.15) has changed:
+        if( !defined $postdata || scalar @$postdata < 1 )
+	{
+		push @$postdata, $session->{query}->param( 'POSTDATA' );
+	}
+			
         if( !defined $postdata || scalar @$postdata < 1 )
         {
 		$request->headers_out->{'X-Error-Code'} = 'ErrorBadRequest';

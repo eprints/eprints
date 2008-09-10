@@ -501,7 +501,8 @@ sub render_view_menu
 	{
 		foreach my $value ( @{$values} )
 		{
-			push @showvalues, $value if( $sizes->{$value} );
+			my $id = $fields->[0]->get_id_from_value( $session, $value );
+			push @showvalues, $value if( $sizes->{$id} );
 		}
 	}
 	else
@@ -551,9 +552,10 @@ sub render_view_menu
 		}
 		my $value = $showvalues[$i];
 		my $size = 0;
-		if( defined $sizes && defined $sizes->{$value} )
+		my $id = $fields->[0]->get_id_from_value( $session, $value );
+		if( defined $sizes && defined $sizes->{$id} )
 		{
-			$size = $sizes->{$value};
+			$size = $sizes->{$id};
 		}
 
 		next if( $view->{hideempty} && $size == 0 );

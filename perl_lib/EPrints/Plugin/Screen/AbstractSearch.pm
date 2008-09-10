@@ -147,9 +147,20 @@ sub from
 {
 	my( $self ) = @_;
 
-	if( $self->{session}->have_parameters && !EPrints::Utils::is_set( $self->{processor}->{action} ) )
+	# This rather oddly now checks for the special case of one parameter, but
+	# that parameter being a screenid, in which case the search effectively has
+	# no parameters and should not default to action = 'search'.
+	# maybe this can be removed later, but for a minor release this seems safest.
+	if( !EPrints::Utils::is_set( $self->{processor}->{action} ) )
 	{
-		$self->{processor}->{action} = "search";
+		my @paramlist = $self->{session}->param();
+		my $has_params = 0;
+		$has_params = 1 if( scalar @paramlist );
+		$has_params = 0 if( scalar @paramlist == 1 && $paramlist[0] eq 'screen' );
+		if( $has_params )
+		{
+			$self->{processor}->{action} = "search";
+		}
 	}
 
 	$self->{processor}->{search} = new EPrints::Search(
@@ -233,8 +244,8 @@ sub from
 			$self->{processor}->add_message( "warning",
 				$self->{session}->html_phrase( 
 					"lib/searchexpression:least_one" ) );
-			$self->{processor}->{search_subscreen} = "form";
 		}
+		$self->{processor}->{search_subscreen} = "form";
 	}
 
 }

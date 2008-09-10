@@ -7717,3 +7717,14 @@ EPRINTS-3.1-beta-2
 
 2008-09-08 cjg
  * added srand to improve randomness of login cookies.
+
+2008-09-10 cjg
+ * Tweaked search so that a search with the only parameter being screen=
+    still counts as not-filled-in rather than defaulting to action=search.
+    Fixing #3431
+ * Made change to Sword deposit to handle a change in the way CGI.pm > 3.15
+    does post data. Fixing #3430
+ * Fixed issue with view-by-name not making the actual names appear on the 
+    menu page. This was due to it ending up looking up HASH(0x£@*&£$) in 
+    the sizes hash.
+
