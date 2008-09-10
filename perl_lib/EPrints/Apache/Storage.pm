@@ -18,7 +18,7 @@ sub handler
 	my $pnotes = $r->pnotes;
 	my %pnotes = %$pnotes;
 
-	for(qw( datasetid bucket filename ))
+	for(qw( datasetid filename ))
 	{
 		if( !defined($pnotes{$_}) )
 		{
@@ -27,7 +27,6 @@ sub handler
 	}
 
 	my $datasetid = $pnotes{ "datasetid" };
-	my $bucket = $pnotes{ "bucket" };
 	my $filename = $pnotes{ "filename" };
 
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
@@ -75,32 +74,19 @@ sub handler
 	}
 
 	# Now get the file object itself
-	my $fileobj;
-	
-	if( $datasetid eq "document" && $bucket eq "data" )
-	{
-		$fileobj = $dataobj->get_stored_files( "deliverable", $filename );
-		if( !defined( $fileobj ) )
-		{
-			$fileobj = $dataobj->get_stored_files( $bucket, $filename );
-		}
-	}
-	else
-	{
-		$fileobj = $dataobj->get_stored_files( $bucket, $filename );
-	}
+	my $fileobj = $dataobj->get_stored_file( $filename );
 
 	if( !defined( $fileobj ) )
 	{
 		return 404;
 	}
 
-	my $content_length = $fileobj->get_value( "filesize" );
-
 	# Use octet-stream for unknown mime-types
 	my $content_type = $fileobj->is_set( "mime_type" )
 		? $fileobj->get_value( "mime_type" )
 		: "application/octet-stream";
+
+	my $content_length = $fileobj->get_value( "filesize" );
 
 	EPrints::Apache::AnApache::header_out( 
 		$r,
@@ -128,7 +114,10 @@ sub handler
 		content_type => $content_type,
 	);
 
-	$fileobj->write_copy_fh( \*STDOUT );
+	if( !$fileobj->write_copy_fh( \*STDOUT ) )
+	{
+		EPrints::abort( "Error in file retrieval: failed to get file contents" );
+	}
 
 	$session->terminate;
 

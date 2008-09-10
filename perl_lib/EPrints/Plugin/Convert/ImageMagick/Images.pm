@@ -92,7 +92,7 @@ sub export
 	my $fn = $doc->get_main() or return ();
 	$fn =~ s/\.\w+$/\.$ext/;
 	
-	my $src = $doc->get_stored_files( "data", $doc->get_main() );
+	my $src = $doc->get_stored_file( $doc->get_main() );
 
 	# Call imagemagick to do the conversion
 	my $cmd = sprintf("%s - %s", quotemeta($convert), quotemeta("$dir/$fn"));

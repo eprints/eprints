@@ -123,6 +123,9 @@ sub get_system_field_info
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1 },
 
+	{ name=>"files", type=>"subobject", datasetid=>"file",
+		multiple=>1 },
+
 	{ name=>"eprint_status", type=>"set", required=>1,
 		options=>[qw/ inbox buffer archive deletion /] },
 
@@ -418,7 +421,7 @@ sub create_from_data
 	$userid = $user->get_id if defined $user;
 
 	my $history_ds = $session->get_repository->get_dataset( "history" );
-	$history_ds->create_object( 
+	my $event = $history_ds->create_object( 
 		$session,
 		{
 			userid=>$userid,
@@ -429,7 +432,7 @@ sub create_from_data
 			details=>undef,
 		}
 	);
-	$new_eprint->write_revision;
+	$event->set_dataobj_xml( $new_eprint );
 
 	# No longer needed - generates on demand.
 	# $new_eprint->generate_static;
@@ -910,16 +913,19 @@ sub remove
 		}
 	);
 
-	foreach my $doc ( $self->get_all_documents )
+	foreach my $doc ( @{($self->get_value( "documents" ))} )
 	{
 		$doc->remove;
 	}
 
-	my $success = $self->{session}->get_database->remove(
-		$self->{dataset},
-		$self->get_value( "eprintid" ) );
+	foreach my $file (@{($self->get_value( "files" ))} )
+	{
+		$file->remove;
+	}
 
-	# remove the webpages assocaited with this record.
+	my $success = $self->SUPER::remove();
+
+	# remove the webpages associated with this record.
 	$self->remove_static;
 
 	return $success;
@@ -1017,10 +1023,6 @@ sub commit
 
 	unless( $self->under_construction )
 	{
-		if( $self->{non_volatile_change} )
-		{
-			$self->write_revision;
-		}
 		$self->remove_static;
 	}
 
@@ -1033,7 +1035,7 @@ sub commit
 		$userid = $user->get_id if defined $user;
 	
 		my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
-		$history_ds->create_object( 
+		my $event = $history_ds->create_object( 
 			$self->{session},
 			{
 				userid=>$userid,
@@ -1044,6 +1046,7 @@ sub commit
 				details=>undef
 			}
 		);
+		$event->set_dataobj_xml( $self );
 	}
 
 	return( $success );
@@ -1074,19 +1077,7 @@ sub write_revision
 
 	seek($tmpfile,0,0);
 
-	# Bit more complex, because we want to use our revision for controlling
-	# the file revision numbers
-	my $file = $self->get_stored_files( "revision", $filename );
-	unless( $file )
-	{
-		$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
-			_parent => $self,
-			bucket => "revision",
-			filename => $filename,
-		} );
-	}
-	$file->set_value( "rev_number", $self->get_value( "rev_number" )-1 );
-	$file->upload( $tmpfile, "eprint.xml", -s "$tmpfile" );
+	$self->add_stored_file( $filename, $tmpfile, -s "$tmpfile" );
 }
 
 
@@ -1231,9 +1222,20 @@ sub get_all_documents
 {
 	my( $self ) = @_;
 
-	my $docs = $self->get_value( "documents" );
+	my @docs;
 
-	return @$docs;
+	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+
+	# Filter out any documents that are volatile versions
+	foreach my $doc (@{($self->get_value( "documents" ))})
+	{
+		if( ! $doc->has_related_objects( $relation ) )
+		{
+			push @docs, $doc;
+		}
+	}
+
+	return @docs;
 }
 
 

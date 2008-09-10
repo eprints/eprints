@@ -45,10 +45,6 @@ Id of the dataset of the parent object.
 
 Id of the parent object.
 
-=item bucket
-
-Name of the bucket the file is in.
-
 =item filename
 
 Name of the file (may contain directory separators).
@@ -113,9 +109,9 @@ use strict;
 
 ######################################################################
 
-=item $dataobj = EPrints::DataObj::File->new_from_filename( $session, $dataobj, $bucket, $filename )
+=item $dataobj = EPrints::DataObj::File->new_from_filename( $session, $dataobj, $filename )
 
-Convenience method to get an existing File object for $filename stored in the $bucket in $dataobj.
+Convenience method to get an existing File object for $filename stored in $dataobj.
 
 Returns undef if no such record exists.
 
@@ -123,7 +119,7 @@ Returns undef if no such record exists.
 
 sub new_from_filename
 {
-	my( $class, $session, $dataobj, $bucket, $filename ) = @_;
+	my( $class, $session, $dataobj, $filename ) = @_;
 	
 	my $ds = $session->get_repository->get_dataset( $class->get_dataset_id );
 
@@ -137,9 +133,6 @@ sub new_from_filename
 	$searchexp->add_field(
 		$ds->get_field( "objectid" ),
 		$dataobj->get_id );
-	$searchexp->add_field(
-		$ds->get_field( "bucket" ),
-		$bucket );
 	$searchexp->add_field(
 		$ds->get_field( "filename" ),
 		$filename );
@@ -167,11 +160,10 @@ sub create_from_data
 
 	return unless defined $self;
 
-	my $length;
-
 	if( defined( $fh ) )
 	{
-		$length = $session->get_storage->store( $self, $fh );
+		$self->set_file( $fh );
+		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
@@ -179,7 +171,8 @@ sub create_from_data
 
 		syswrite($tmpfile, MIME::Base64::decode( $data->{data} ));
 		seek( $tmpfile, 0, 0 );
-		$length = $session->get_storage->store( $self, $tmpfile );
+		$self->set_file( $tmpfile );
+		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
@@ -189,7 +182,8 @@ sub create_from_data
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
-			$length = $session->get_storage->store( $self, $tmpfile );
+			$self->set_file( $tmpfile );
+			$self->commit();
 		}
 		else
 		{
@@ -199,9 +193,6 @@ sub create_from_data
 			return;
 		}
 	}
-
-	# make sure the filesize is the actual number of stored bytes
-	$self->set_value( "filesize", $length );
 
 	return $self;
 }
@@ -228,13 +219,9 @@ sub get_system_field_info
 	( 
 		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0 },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0 },
-
 		{ name=>"datasetid", type=>"text", text_index=>0, }, 
 
 		{ name=>"objectid", type=>"int", }, 
-
-		{ name=>"bucket", type=>"text", },
 
 		{ name=>"filename", type=>"text", },
 
@@ -252,6 +239,16 @@ sub get_system_field_info
 
 		{ name=>"data", type=>"base64", virtual=>1 },
 
+		{
+			name=>"copies", type=>"compound", multiple=>1,
+			fields=>[{
+				sub_name=>"pluginid",
+				type=>"text",
+			},{
+				sub_name=>"sourceid",
+				type=>"text",
+			}],
+		},
 	);
 }
 
@@ -288,8 +285,6 @@ sub get_defaults
 
 	$data->{mtime} = EPrints::Time::get_iso_timestamp();
 
-	$data->{rev_number} = 1;
-
 	if( defined( $data->{filename} ) )
 	{
 		my $type = $session->get_repository->call( "guess_doc_type", $session, $data->{filename} );
@@ -312,23 +307,9 @@ sub get_defaults
 
 ######################################################################
 
-sub revised
-{
-	my( $self ) = @_;
+=item $success = $file->remove
 
-	$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );
-}
-
-sub get_mtime
-{
-	my( $self ) = @_;
-
-	return $self->get_value( "mtime" );
-}
-
-=item $success = $stored->remove
-
-Remove the stored file. Deletes all revisions of the contained object.
+Delete the stored file.
 
 =cut
 
@@ -338,13 +319,10 @@ sub remove
 
 	$self->SUPER::remove();
 
-	foreach my $revision (1..$self->get_value( "rev_number" ))
-	{
-		$self->get_session->get_storage->delete( $self, $revision );
-	}
+	$self->get_session->get_storage->delete( $self );
 }
 
-=item $filename = $file->get_local_copy( [ $revision ] )
+=item $filename = $file->get_local_copy()
 
 Return the name of a local copy of the file (may be a L<File::Temp> object).
 
@@ -354,22 +332,9 @@ Will retrieve and cache the remote object if necessary.
 
 sub get_local_copy
 {
-	my( $self, $revision ) = @_;
+	my( $self ) = @_;
 
-	return $self->get_session->get_storage->get_local_copy( $self, $revision );
-}
-
-=item $fh = $stored->get_fh( [ $revision ] )
-
-Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).
-
-=cut
-
-sub get_fh
-{
-	my( $self, $revision ) = @_;
-
-	return $self->get_session->get_storage->retrieve( $self, $revision );
+	return $self->get_session->get_storage->get_local_copy( $self );
 }
 
 =item $success = $file->add_file( $filepath, $filename [, $preserve_path ] )
@@ -416,20 +381,15 @@ sub upload
 
 	$self->set_value( "filename", $filename );
 	$self->set_value( "filesize", $filesize );
-	$self->revised();
 
-	$self->commit();
+	$filesize = $self->set_file( $fh );
 
-	$filesize = $self->get_session->get_storage->store( $self, $fh );
-
-	# make sure the filesize is the actual number of stored bytes
-	$self->set_value( "filesize", $filesize );
 	$self->commit();
 
 	return $filesize;
 }
 
-=item $success = $stored->write_copy( $filename [, $revision] )
+=item $success = $stored->write_copy( $filename )
 
 Write a copy of this file to $filename.
 
@@ -439,18 +399,18 @@ Returns true if the written file contains the same number of bytes as the stored
 
 sub write_copy
 {
-	my( $self, $filename, $revision ) = @_;
+	my( $self, $filename ) = @_;
 
 	open(my $out, ">", $filename) or return 0;
 
-	my $rc = $self->write_copy_fh( $out, $revision );
+	my $rc = $self->write_copy_fh( $out );
 
 	close($out);
 
 	return $rc;
 }
 
-=item $success = $stored->write_copy_fh( $filehandle [, $revision ] )
+=item $success = $stored->write_copy_fh( $filehandle )
 
 Write a copy of this file to $filehandle.
 
@@ -462,11 +422,14 @@ sub write_copy_fh
 
 	use bytes;
 
-	my $in = $self->get_fh( $revision ) or return 0;
+	my $in = $self->get_file();
+
+	return 0 if !defined $in;
 
 	binmode($in);
 	binmode($out);
 
+	# note: syswrite(STDOUT) doesn't work under mod_perl!
 	my $buffer;
 	while(sysread($in,$buffer,4096))
 	{
@@ -491,7 +454,7 @@ sub generate_md5
 
 	my $md5 = Digest::MD5->new;
 
-	$md5->addfile( $self->get_fh );
+	$md5->addfile( $self->get_file() );
 
 	return $md5->hexdigest;
 }
@@ -529,7 +492,9 @@ sub generate_sha
 
 	my $sha = $class->new( $alg );
 
-	$sha->addfile( $self->get_fh );
+	my $fh = $self->get_file();
+	$sha->addfile( $fh );
+	close($fh);
 
 	return $sha->hexdigest;
 }
@@ -556,8 +521,7 @@ sub to_xml
 	# files in documents into XML exports.
 	# In future importers should probably use the "id" URI to retrieve
 	# file objects?
-	if( $self->get_value( "datasetid" ) eq "document" &&
-		$self->get_value( "bucket" ) eq "data" )
+	if( $self->get_value( "datasetid" ) eq "document" )
 	{
 		my $doc = $self->get_parent();
 		my $url = $doc->get_url( $self->get_value( "filename" ) );
@@ -567,7 +531,7 @@ sub to_xml
 
 	if( $opts{embed} )
 	{
-		if( defined(my $fh = $self->get_fh) )
+		if( defined(my $fh = $self->get_file()) )
 		{
 			use bytes;
 			binmode($fh);
@@ -581,6 +545,77 @@ sub to_xml
 	my $file = $self->SUPER::to_xml( %opts );
 
 	return $file;
+}
+
+=item $sourceid = $stored->get_plugin_copy( $plugin )
+
+Returns the source id used to retrieve the copy of this file stored using $plugin.
+
+=cut
+
+sub get_plugin_copy
+{
+	my( $self, $plugin ) = @_;
+
+	my $copies = $self->get_value( "copies" );
+
+	foreach my $copy (@$copies)
+	{
+		if( $copy->{pluginid} eq $plugin->get_id )
+		{
+			return $copy->{sourceid};
+		}
+	}
+
+	return undef;
+}
+
+=item $stored->add_plugin_copy( $plugin, $sourceid )
+
+Add a copy of this file stored using $plugin identified by $sourceid.
+
+=cut
+
+sub add_plugin_copy
+{
+	my( $self, $plugin, $sourceid ) = @_;
+
+	my $copies = $self->get_value( "copies" );
+	push @$copies, {
+		pluginid => $plugin->get_id,
+		sourceid => $sourceid,
+	};
+	$self->set_value( "copies", $copies );
+	$self->commit();
+}
+
+=item $fh = $stored->get_file()
+
+Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).
+
+=cut
+
+sub get_file
+{
+	my( $self ) = @_;
+
+	return $self->{session}->get_storage->retrieve( $self );
+}
+
+=item $filesize = $stored->set_file( $fh )
+
+Reads the content of $fh to EOF and stores it. Returns the number of bytes written.
+
+=cut
+
+sub set_file
+{
+	my( $self, $fh ) = @_;
+
+	my $filesize = $self->{session}->get_storage->store( $self, $fh );
+	$self->set_value( "filesize", $filesize );
+
+	return $filesize;
 }
 
 1;

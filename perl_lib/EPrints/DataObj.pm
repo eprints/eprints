@@ -128,7 +128,7 @@ sub new_from_data
 	{
 		$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
 	}
-	bless( $self, $class );
+	bless( $self, ref($class) || $class );
 
 	if( defined $data )
 	{
@@ -144,6 +144,17 @@ sub new_from_data
 	}
 
 	return( $self );
+}
+
+sub clone
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $clone = $self->create_from_data( $session, $self->get_data, $self->get_dataset );
+
+	return $clone;
 }
 
 ######################################################################
@@ -989,6 +1000,19 @@ sub uri
 	return $self->get_session->get_repository->get_conf( "base_url" )."/id/".$ds_id."/".$self->get_id;
 }
 
+=item $uri = $dataobj->internal_uri()
+
+Return an internal URI for this object (independent of repository hostname).
+
+=cut
+
+sub internal_uri
+{
+	my( $self ) = @_;
+
+	return sprintf("_internal:%s.%s", $self->get_dataset->confid, $self->get_id);
+}
+
 ######################################################################
 =pod
 
@@ -1360,35 +1384,32 @@ sub get_mime_type
 ######################################################################
 =pod
 
-=item $file = $dataobj->add_stored_file( $bucket, $filename, $filehandle [, $filesize ] )
+=item $file = $dataobj->add_stored_file( $filename, $filehandle [, $filesize ] )
 
-Convenience method to add the file record for $filename in $bucket to this object. If $filehandle is defined will read and store data from it. If $filesize is undefined will use the number of bytes actually read from $filehandle as the file size.
+Convenience method to add the file record for $filename to this object. Reads data from $filehandle. If $filesize is defined it may used to determine where the file should be stored.
 
-Returns the storaged file or undef if the storage failed.
+Returns the file object or undef if the storage failed.
 
 =cut
 ######################################################################
 
 sub add_stored_file
 {
-	my( $self, $bucket, $filename, $filehandle, $filesize ) = @_;
+	my( $self, $filename, $filehandle, $filesize ) = @_;
 
-	my $file = $self->get_stored_files( $bucket, $filename );
+	my $file = $self->get_stored_file( $filename );
 
-	if( defined( $file ) )
+	if( defined($file) )
 	{
-		$file->upload( $filehandle, $filename, $filesize );
+		$file->remove();
 	}
-	else
-	{
-		$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
-			_parent => $self,
-			_filehandle => $filehandle,
-			bucket => $bucket,
-			filename => $filename,
-			filesize => $filesize,
-		} );
-	}
+
+	$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
+		_parent => $self,
+		_filehandle => $filehandle,
+		filename => $filename,
+		filesize => $filesize,
+	} );
 
 	return $file;
 }
@@ -1396,88 +1417,198 @@ sub add_stored_file
 ######################################################################
 =pod
 
-=item @files = $dataobj->get_stored_files( [ $bucket [, $filename ] ] )
+=item $file = $dataobj->get_stored_file( $filename )
 
-Returns a list of all the files stored for this object. If $bucket is specified returns only files in that bucket. If $filename is specified returns only files matching $filename.
+Get the file object for $filename.
+
+Returns the file object or undef if the file doesn't exist.
 
 =cut
 ######################################################################
 
-sub get_stored_files
+sub get_stored_file
 {
-	my( $self, $bucket, $filename ) = @_;
+	my( $self, $filename ) = @_;
 
-	my $ds = $self->get_session->get_repository->get_dataset( "file" );
-
-	my $searchexp = EPrints::Search->new(
-		session => $self->get_session,
-		dataset => $ds,
+	my $file = EPrints::DataObj::File->new_from_filename(
+		$self->{session},
+		$self,
+		$filename
 	);
 
-	$searchexp->add_field(
-		$ds->get_field( "datasetid" ),
-		$self->get_dataset->confid
-	);
-	$searchexp->add_field(
-		$ds->get_field( "objectid" ),
-		$self->get_id
-	);
-	if( defined( $bucket ) )
+	return $file;
+}
+
+=head2 Related Objects
+
+=item $dataobj->add_object_relations( $target, $has => $is [, $has => $is ] )
+
+Add a relation between this object and $target of type $has. If $is is defined will also add the reciprocal relationship $is from $target to this object. May be repeated to add multiple relationships.
+
+You must commit $target after calling this method.
+
+=cut
+
+sub add_object_relations
+{
+	my( $self, $target, %relations ) = @_;
+
+	my $uri = $target->internal_uri;
+
+	my @types = grep { defined $_ } keys %relations;
+
+	my $relations = $self->get_value( "relation" );
+	push @$relations, map { {
+		type => $_,
+		uri => $uri,
+	} } @types;
+	$self->set_value( "relation", $relations );
+
+	my @reciprocal = grep { defined $_ } values %relations;
+	if( scalar @reciprocal )
 	{
-		$searchexp->add_field(
-			$ds->get_field( "bucket" ),
-			$bucket
-		);
-		if( defined( $filename ) )
+		$target->add_object_relations( $self, map { $_ => undef } @reciprocal );
+	}
+}
+
+sub _get_related_uris
+{
+	my( $self, @required ) = @_;
+
+	my $relations = $self->get_value( "relation" );
+
+	# create a look-up table
+	my %haystack;
+	foreach my $relation (@$relations)
+	{
+		$haystack{$relation->{"uri"}}->{$relation->{"type"}} = undef;
+	}
+
+	# remove any relations that don't satisfy our @required types
+	foreach my $type (@required)
+	{
+		foreach my $uri (keys %haystack)
 		{
-			$searchexp->add_field(
-					$ds->get_field( "filename" ),
-					$filename
-					);
+			if( !exists( $haystack{$uri}->{$type} ) )
+			{
+				delete $haystack{$uri};
+			}
 		}
 	}
 
-	my $list = $searchexp->perform_search;
-
-	my @files = $list->get_records();
-
-	$searchexp->dispose;
-
-	foreach my $file (@files)
-	{
-		$file->set_parent( $self );
-	}
-
-	return wantarray ? @files : $files[0];
+	return keys %haystack;
 }
 
-######################################################################
-=pod
+=item $bool = $dataobj->has_object_relations( $target, @types )
 
-=item $success = $dataobj->remove_stored_files( [ $bucket [, $filename] ] )
+Returns true if this object is related to $target by all @types.
 
-Delete all the files stored for this object. If $bucket is specified deletes only those files in that bucket. If $filename is specified deletes only that filename.
+If @types is empty will return true if any relationships exist.
 
 =cut
-######################################################################
 
-sub remove_stored_files
+sub has_object_relations
 {
-	my( $self, $bucket, $filename ) = @_;
+	my( $self, $target, @required ) = @_;
 
-	# Sanity check, otherwise could accidentally delete everything!
-	if( scalar(@_) == 2 && !defined($bucket) )
+	my $match = $target->internal_uri;
+
+	my @uris = $self->_get_related_uris( @required );
+
+	foreach my $uri (@uris)
 	{
-		EPrints::abort( "bucket argument is undefined" );
-	}
-	if( scalar(@_) == 3 && !defined($filename) )
-	{
-		EPrints::abort( "filename argument is undefined" );
+		if( $uri eq $match )
+		{
+			return 1;
+		}
 	}
 
-	foreach my $file ($self->get_stored_files( $bucket, $filename ))
+	return 0;
+}
+
+=item $bool = $dataobj->has_related_objects( @types )
+
+Returns true if get_related_objects() would return some objects, but without actually retrieving the related objects from the database.
+
+=cut
+
+sub has_related_objects
+{
+	my( $self, @required ) = @_;
+
+	my @uris = $self->_get_related_uris( @required );
+
+	return scalar @uris > 0;
+}
+
+=item $dataobjs = $dataobj->get_related_objects( @types )
+
+Returns a list of objects related to this object by @types.
+
+=cut
+
+sub get_related_objects
+{
+	my( $self, @required ) = @_;
+
+	my @uris = $self->_get_related_uris( @required );
+
+	# Translate matching uris into real objects
+	my @matches;
+	foreach my $uri (@uris)
 	{
-		$file->remove;
+		my( $ds_id, $id ) = $uri =~ m/^_internal:([^.]+)\.(.+)/;
+		if( !defined $id )
+		{
+			next;
+		}
+
+		my $dataset = $self->get_session->get_repository->get_dataset( $ds_id );
+		if( !defined( $dataset ) )
+		{
+			next;
+		}
+
+		push @matches, $dataset->get_object( $self->get_session, $id );
+	}
+
+	return \@matches;
+}
+
+=item $dataobj->remove_object_relations( $target [, $has => $is [, $has => $is ] )
+
+Remove relations between this object and $target. If $has => $is pairs are defined will only remove those relationships given.
+
+You must commit $target after calling this method.
+
+=cut
+
+sub remove_object_relations
+{
+	my( $self, $target, %relations ) = @_;
+
+	my $uri = $target->internal_uri;
+
+	my @relations;
+	foreach my $relation (@{($self->get_value( "relation" ))})
+	{
+		# doesn't match $target
+		if( $relation->{"uri"} ne $uri )
+		{
+			push @relations, $relation;
+		}
+		# we're removing specific relations, and this one isn't given
+		elsif( scalar(%relations) && !exists($relations{$relation->{"type"}}) )
+		{
+			push @relations, $relation;
+		}
+	}
+	$self->set_value( "relation", \@relations );
+
+	my @reciprocal = grep { defined $_ } values %relations;
+	if( scalar @reciprocal )
+	{
+		$target->remove_object_relations( $self, map { $_ => undef } @reciprocal );
 	}
 }
 

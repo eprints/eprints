@@ -419,13 +419,27 @@ sub remove
 {
 	my( $self ) = @_;
 
-	my $eprint = $self->get_eprint();
+	# remove dependent objects
+
+	foreach my $dataobj (@{($self->get_related_objects( EPrints::Utils::make_relation( "hasVolatileVersion" ) ))})
+	{
+		$dataobj->remove();
+	}
+
+	foreach my $file (@{($self->get_value( "files" ))})
+	{
+		$file->remove();
+	}
+
+	# remove relations to us
+	foreach my $dataobj (@{($self->get_related_objects())})
+	{
+		$dataobj->remove_object_relations( $self );
+		$dataobj->commit();
+	}
 
 	# Remove database entry
-	my $success = $self->{session}->get_database->remove(
-		$self->{session}->get_repository->get_dataset( "document" ),
-		$self->get_value( "docid" ) );
-	
+	my $success = $self->SUPER::remove();
 
 	if( !$success )
 	{
@@ -443,12 +457,6 @@ sub remove
 		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
 		$success = 0;
 	}
-
-	$self->remove_thumbnails;
-
-	$self->remove_stored_files;
-
-	$self->remove_all_files;
 
 	return( $success );
 }
@@ -603,7 +611,7 @@ sub files
 	
 	my %files;
 
-	foreach my $file ($self->get_stored_files( "data" ))
+	foreach my $file (@{($self->get_value( "files" ))})
 	{
 		$files{$file->get_value( "filename" )} = $file->get_value( "filesize" );
 	}
@@ -870,7 +878,6 @@ sub upload
 	}
 
 	my $stored = $self->add_stored_file(
-		"data", # bucket
 		$filename,
 		$filehandle,
 		$filesize
@@ -1043,7 +1050,6 @@ sub add_directory
 				return;
 			}
 			my $stored = $self->add_stored_file(
-				"data", # bucket
 				$filename,
 				$filehandle,
 				-s $filepath
@@ -1327,14 +1333,19 @@ sub files_modified
 {
 	my( $self ) = @_;
 
-	$self->rehash;
+#	$self->rehash;
 
-	# remove the now invalid cache of words from this document
-	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
-	my $indexcodes = $self->get_stored_files( "cache", "indexcodes" );
-	if( defined( $indexcodes ) )
 	{
-		$indexcodes->remove;
+		my $relation = EPrints::Utils::make_relation( "hasIndexCodesVersion" );
+
+		# remove the now invalid cache of words from this document
+		# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
+		my $indexcodes = $self->get_related_objects( $relation );
+		foreach my $dataobj (@$indexcodes)
+		{
+			$self->remove_related_objects( $relation, $dataobj );
+			$dataobj->remove();
+		}
 	}
 
 	$self->{session}->get_database->index_queue( 
@@ -1401,7 +1412,7 @@ sub rehash
 
 	# Probity files must not be deleted when the document is deleted, therefore
 	# we store them in the parent Eprint
-	$self->get_parent->add_stored_file( "probity", $hashfile, $tmpfile, -s "$tmpfile" );
+	$self->get_parent->add_stored_file( $hashfile, $tmpfile, -s "$tmpfile" );
 }
 
 ######################################################################
@@ -1529,24 +1540,11 @@ sub thumbnail_url
 
 	$size = "small" unless defined $size;
 
-	my $eprint = $self->get_eprint();
+	my( $thumbnail ) = @{($self->get_related_objects( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ) ))};
 
-	return( undef ) if( !defined $eprint );
+	return undef if !defined $thumbnail;
 
-	my $docpath = $self->get_value( "pos" );
-
-	my $repository = $self->{session}->get_repository;
-
-	# Search for a thumbnail in jpeg or png format
-	foreach my $ext (qw( jpg png ))
-	{
-		if( -e $self->thumbnail_path."/".$size.".$ext" )	
-		{
-			return $repository->get_conf( "rel_path" )."/".($eprint->get_id+0)."/thumbnails/$docpath/$size.$ext";
-		}
-	}
-
-	return undef;
+	return $thumbnail->get_url;
 }
 
 # size => "small","medium","preview" (small is default)
@@ -1687,8 +1685,6 @@ sub render_preview_link
 
 	my $f = $self->{session}->make_doc_fragment;
 
-	my $base_url = $self->get_parent->get_url . "thumbnails/" . $self->get_value( "pos" );
-
 	my $caption = $opts{caption} || $self->{session}->make_doc_fragment;
 	my $set = $opts{set};
 	if( EPrints::Utils::is_set($set) )
@@ -1700,38 +1696,16 @@ sub render_preview_link
 		$set = "";
 	}
 
-	if( $self->get_stored_files( "thumbnail", "video_preview.flv" ) )
+	my $url = $self->thumbnail_url( "preview" );
+	if( defined( $url ) )
 	{
-		my $video_url = "$base_url/video_preview.flv";
-		my $video_link = $self->{session}->make_element( "a",
-			href=>$video_url,
-			rel=>"lightbox$set",
-			title=>EPrints::XML::to_string($caption),
-		);
-		$video_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
-		$f->appendChild( $video_link );
-	}
-	elsif( $self->get_stored_files( "thumbnail", "preview.jpg" ) )
-	{
-		my $preview_url = "$base_url/preview.jpg";
-		my $image_link = $self->{session}->make_element( "a",
-			href=>$preview_url,
-			rel=>"lightbox$set",
-			title=>EPrints::XML::to_string($caption),
-		);
-		$image_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
-		$f->appendChild( $image_link );
-	}
-	elsif( $self->get_stored_files( "thumbnail", "preview.png" ) )
-	{
-		my $preview_url = "$base_url/preview.png";
-		my $image_link = $self->{session}->make_element( "a",
-			href=>$preview_url,
-			rel=>"lightbox$set",
-			title=>EPrints::XML::to_string($caption),
-		);
-		$image_link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
-		$f->appendChild( $image_link );
+		my $link = $self->{session}->make_element( "a",
+				href=>$url,
+				rel=>"lightbox$set",
+				title=>EPrints::XML::to_string($caption),
+			);
+		$link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
+		$f->appendChild( $link );
 	}
 
 	EPrints::XML::dispose($caption);
@@ -1781,11 +1755,16 @@ sub make_thumbnails
 {
 	my( $self ) = @_;
 
-	my $src = $self->get_stored_files( "data", $self->get_value( "main" ) );
+	# If we're a volatile version of another document, don't make thumbnails 
+	# otherwise we'll cause a recursive loop
+	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+	{
+		return;
+	}
+
+	my $src = $self->get_stored_file( $self->get_main() );
 
 	return unless defined $src;
-
-	my $tgtdir = $self->thumbnail_path;
 
 	my @list = qw/ small medium preview /;
 
@@ -1796,39 +1775,43 @@ sub make_thumbnails
 
 	foreach my $size ( @list )
 	{
-		my $tgt_filename = $size.".jpg";
+		my @relations = ( "has${size}ThumbnailVersion", "hasVolatileVersion" );
 
-		# check mtime
-		my $tgt = $self->get_stored_files( "thumbnail", $tgt_filename );
-   		if( defined($tgt) && $tgt->get_mtime gt $src->get_mtime )
+		my( $tgt ) = @{($self->get_related_objects( @relations ))};
+
+		# remove the existing thumbnail
+   		if( defined($tgt) )
 		{
-			next;
-			# src file is older than thumbnail
+			if( $tgt->get_datestamp gt $src->get_datestamp )
+			{
+				next;
+				# src file is older than thumbnail
+			}
+			$self->remove_object_relations( $tgt );
+			$tgt->remove;
 		}
 
 		my $plugin = $self->thumbnail_plugin( $size );
 
 		next if !defined $plugin;
 
-		my $tmpdir = EPrints::TempDir->new( UNLINK => 1 );
-		my $tgt_filepath = "$tmpdir/$tgt_filename";
-	
-		# make a thumbnail
-		$plugin->export( $tmpdir, $self, 'thumbnail_'.$size );
+		my $doc = $plugin->convert( $self->get_parent, $self, 'thumbnail_'.$size );
 
-		# store the thumbnail image
-		next if !open(my $fh, "<", $tgt_filepath);
-		my $filesize = -s $tgt_filepath;
+		$self->add_object_relations(
+				$doc,
+				EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ) =>
+				EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" )
+			);
 
-		$self->add_stored_file( "thumbnail", $tgt_filename, $fh, $filesize );
-
-		close($fh);
+		$doc->commit();
 	}
 
 	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )
 	{
 		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
 	}
+
+	$self->commit();
 }
 
 sub mime_type
@@ -1865,30 +1848,19 @@ sub mime_type
 ######################################################################
 =pod
 
-=item $mime_type = $dataobj->get_mime_type( $bucket, $filename )
+=item $mime_type = $dataobj->get_mime_type( $filename )
 
-Return the $mime_type of $filename contained in $bucket.
+Return the $mime_type of $filename.
 
 =cut
 ######################################################################
 
 sub get_mime_type
 {
-	my( $self, $bucket, $filename ) = @_;
+	my( $self, $filename ) = @_;
 
-	if( $bucket eq "thumbnail" )
-	{
-		if( $filename =~ /\.jpg$/ )
-		{
-			return "image/jpg";
-		}
-		else
-		{
-			return "image/png";
-		}
-	}
 	# Use the main document type
-	elsif( $filename eq $self->get_main() )
+	if( $filename eq $self->get_main() )
 	{
 		return $self->get_value( "format" );
 	}
@@ -1898,8 +1870,6 @@ sub get_mime_type
 		return $self->mime_type( $filename );
 	}
 }
-
-
 
 1;
 

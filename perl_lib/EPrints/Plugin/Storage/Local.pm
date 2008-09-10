@@ -71,9 +71,9 @@ sub store
 
 sub retrieve
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
 	open(my $in_fh, "<", $in_file)
 		or EPrints::abort( "Unable to read from $in_file: $!" );
@@ -83,83 +83,61 @@ sub retrieve
 
 sub delete
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
 	return unlink($in_file);
 }
 
 sub get_local_copy
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
 	return $in_file;
 }
 
 sub get_size
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $fileobj, $revision );
+	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
 	return -s $in_file;
 }
 
 sub _filename
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my $parent = $fileobj->get_parent();
-	my $local_path = $parent->local_path;
 
-	$revision ||= $fileobj->get_value( "rev_number" );
-	my $bucket = $fileobj->get_value( "bucket" );
+	my $local_path;
 	my $filename = $fileobj->get_value( "filename" );
 
 	my $in_file;
 
-	if( $bucket eq "data" )
+	if( $parent->isa( "EPrints::DataObj::Document" ) )
 	{
+		$local_path = $parent->local_path;
 		$in_file = "$local_path/$filename";
 	}
-	elsif( $bucket eq "thumbnail" )
+	elsif( $parent->isa( "EPrints::DataObj::History" ) )
 	{
-		$local_path =~ s/(\/\d+)$/\/thumbnails$1/;
+		$local_path = $parent->get_parent->local_path."/revisions";
+		$filename = $parent->get_value( "revision" ) . ".xml";
 		$in_file = "$local_path/$filename";
 	}
-	elsif( $bucket eq "revision" )
+	elsif( $parent->isa( "EPrints::DataObj::EPrint" ) )
 	{
-		$local_path .= "/revisions";
-		$filename =~ s/^eprint/$revision/;
+		$local_path = $parent->local_path;
 		$in_file = "$local_path/$filename";
-	}
-	elsif( $bucket eq "probity" )
-	{
-		$in_file = "$local_path/$filename";
-	}
-	elsif( $bucket eq "cache" )
-	{
-		$local_path =~ s/\/\d+$//;
-		$in_file = "$local_path/".$parent->get_id.".$filename";
 	}
 	else
 	{
-		if( $parent->isa( "EPrints::DataObj::Document" ) )
-		{
-			$local_path =~ s/(\/\d+)$/\/$bucket$1/;
-		}
-		else
-		{
-			$local_path .= "/$bucket";
-		}
-		unless( $filename =~ s/(\.\w+)$/v$revision$1/ )
-		{
-			$filename .= "v$revision";
-		}
-		$in_file = "$local_path/$filename";
+		# Gawd knows?!
 	}
 
 	return( $local_path, $in_file );

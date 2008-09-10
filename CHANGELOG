@@ -7728,3 +7728,13 @@ EPRINTS-3.1-beta-2
     menu page. This was due to it ending up looking up HASH(0x£@*&£$) in 
     the sizes hash.
 
+2008-09-10 tdb
+ * Thumbnails are now created as separate documents
+ * Document conversions now add relations between converted documents
+ * Removed "bucket" classes in the storage layer
+ * XML revision files now belong to the History event, not the EPrint
+ * Added relation API methods to DataObj for manipulating object relations
+ * Added EPrints::Utils::make_relation method to generate a URI relation
+    from a simple term
+ * Added "files" field to EPrint (for accessing contained files)
+

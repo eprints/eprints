@@ -389,6 +389,47 @@ sub get_user
 	return undef;
 }
 
+=item $history = $history->get_previous()
+
+Returns the previous event for the object parent of this event.
+
+Returns undef if no such event exists.
+
+=cut
+
+sub get_previous
+{
+	my( $self ) = @_;
+
+	return $self->{_previous} if defined( $self->{_previous} );
+
+	my $revision = $self->get_value( "revision" ) - 1;
+	
+	my $searchexp = EPrints::Search->new(
+		session => $self->get_session,
+		dataset => $self->get_dataset,
+		filters => [
+			{
+				meta_fields => [ "datasetid" ],
+				value => $self->get_value( "datasetid" ),
+			},{
+				meta_fields => [ "objectid" ],
+				value => $self->get_value( "objectid" ),
+			},{
+				meta_fields => [ "revision" ],
+				value => $revision,
+			}],
+	);
+
+	my $list = $searchexp->perform_search;
+
+	my( $event ) = $list->get_records( 0, 1 );
+
+	$searchexp->dispose;
+
+	return $self->{_previous} = $event;
+}
+
 ######################################################################
 #
 # methods to render various types of history event
@@ -445,32 +486,21 @@ sub render_create
 
 	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
-	my $eprint = $self->get_parent();
-	if( !defined $eprint )
-	{
-		return $self->{session}->render_nbsp;
-	}
-	my $r_file = $eprint->get_stored_files( "revision", "eprint.xml" );
-
-	my $r_new = $self->get_value( "revision" );
-	my $r_file_new = File::Temp->new;
-
-	unless(
-		defined( $r_file ) &&
-		$r_file->write_copy_fh( $r_file_new, $r_new )
-	)
+	my $r_file = $self->get_stored_file( "dataobj.xml" );
+	unless( defined( $r_file ) )
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
 		return $div;
 	}
 
+	my $r_file_new = $r_file->get_local_copy();
 	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
-
 	my $dom_new = $file_new->getFirstChild;
 
 	my $div = $self->{session}->make_element( "div" );
 	$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, $width ) ) );
+
 	return $div;
 }
 
@@ -486,37 +516,30 @@ sub render_modify
 {
 	my( $self ) = @_;
 
-	my $eprint = $self->get_parent();
-	if( !defined $eprint )
-	{
-		return $self->{session}->render_nbsp;
-	}
-
 	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
-	my $r_file = $eprint->get_stored_files( "revision", "eprint.xml" );
+	my $r_file = $self->get_stored_file( "dataobj.xml" );
 
-	my $r_new = $self->get_value( "revision" );
-	my $r_old = $r_new-1;
-
-	my $r_file_new = File::Temp->new;
-
-	unless(
-		defined( $r_file ) &&
-		$r_file->write_copy_fh( $r_file_new, $r_new )
-	)
+	unless( defined( $r_file ) )
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
 		return $div;
 	}
 
+	my $r_file_new = $r_file->get_local_copy();
 	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
 	my $dom_new = $file_new->getFirstChild;
 
-	my $r_file_old = File::Temp->new;
+	$r_file = undef;
 
-	unless( $r_file->write_copy_fh( $r_file_old, $r_old ) )
+	my $previous = $self->get_previous();
+	if( defined( $previous ) )
+	{
+		$r_file = $previous->get_stored_file( "dataobj.xml" );
+	}
+
+	unless( defined( $r_file ) )
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_earlier" ) );
@@ -524,6 +547,7 @@ sub render_modify
 		return $div;
 	}
 
+	my $r_file_old = $r_file->get_local_copy();
 	my $file_old = EPrints::XML::parse_xml( "$r_file_old" );
 	my $dom_old = $file_old->getFirstChild;
 
@@ -1127,6 +1151,25 @@ sub mkpad
 	return $session->make_text( "\n"x((scalar @bits)-1) );
 }
 
+sub set_dataobj_xml
+{
+	my( $self, $dataobj ) = @_;
+
+	my $tmpfile = File::Temp->new;
+
+	binmode($tmpfile, ":utf8");
+
+	my $xml = $dataobj->to_xml;
+
+	print $tmpfile '<?xml version="1.0" encoding="utf-8" ?>'."\n";
+	print $tmpfile EPrints::XML::to_string( $xml );
+
+	EPrints::XML::dispose( $xml );
+
+	seek($tmpfile,0,0);
+
+	$self->add_stored_file( "dataobj.xml", $tmpfile, -s "$tmpfile" );
+}
 
 ######################################################################
 1;

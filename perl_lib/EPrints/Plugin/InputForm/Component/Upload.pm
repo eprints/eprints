@@ -251,6 +251,14 @@ sub doc_update
 			$processor->add_message( "error", $self->html_phrase( "conversion_failed" ) );
 			return;
 		}
+		$doc->remove_object_relations(
+				$new_doc,
+				EPrints::Utils::make_relation( "hasVolatileVersion" ) =>
+				EPrints::Utils::make_relation( "isVolatileVersionOf" )
+			);
+		$new_doc->make_thumbnails();
+		$doc->commit();
+		$new_doc->commit();
 		return;
 	}
 

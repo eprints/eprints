@@ -24,8 +24,7 @@ B<EPrints::Storage> - store and retrieve objects in the storage engine
 	my $store = $session->get_storage();
 
 	$store->store(
-		$eprint,		# data object
-		"revision",		# bucket
+		$fileobj,		# file object
 		"diddle.pdf",	# filename
 		$fh				# file handle
 	);
@@ -33,22 +32,6 @@ B<EPrints::Storage> - store and retrieve objects in the storage engine
 =head1 DESCRIPTION
 
 This module is the storage control layer which uses L<EPrints::Plugin::Storage> plugins to support various storage back-ends. It enables the storage, retrieval and deletion of data streams. The maximum size of a stream is dependent on the back-end storage mechanism.
-
-Each data stream is located at a repository unique location constructed from the data object id, bucket name and file name. This may be turned into a URI by the storage layer to achieve global uniqueness (e.g. by using the repository's hostname).
-
-=head2 Multiple Storage Mediums
-
-The storage layer may make use of multiple storage back-ends. To assist locating the correct place to store and retrieve streams the API requires the EPrints object and a "bucket" name.
-
-The B<EPrints object> passed to the storage API may be used to choose different storage mediums or to add metadata to the stored stream (e.g. if the storage back end is another repository).
-
-The B<bucket> is a string that identifies classes of streams. For instance L<EPrints::DataObj::Document> objects (currently) have "data" and "thumbnail" buckets for storing files and thumbnails respectively.
-
-=head2 Revisions
-
-The storage layer may store multiple revisions located at the same filename.
-
-If the storage medium supports revisioning it is expected that repeated store() calls to the same location will result in multiple revisions. A retrieve() call without any revision will always return the data stored in the last store() call.
 
 =head1 METHODS
 
@@ -148,49 +131,49 @@ sub store
 	return $length;
 }
 
-=item $filehandle = $store->retrieve( $fileobj [, $revision ] )
+=item $filehandle = $store->retrieve( $fileobj )
 
-Retrieve a $filehandle to the object stored for $fileobj. If no $revision is specified returns the revision in $fileobj.
+Retrieve a $filehandle to the object stored for $fileobj.
 
 =cut
 
 sub retrieve
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my $fh;
 
-	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		$fh = $plugin->retrieve( $fileobj, $revision );
+		$fh = $plugin->retrieve( $fileobj );
 		last if defined $fh;
 	}
 
 	return $fh;
 }
 
-=item $success = $store->delete( $fileobj [, $revision ] )
+=item $success = $store->delete( $fileobj )
 
-Delete the object stored for $fileobj. If no $revision is specified deletes the revision in $fileobj.
+Delete the object stored for $fileobj.
 
 =cut
 
 sub delete
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my $rc;
 
-	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		$rc = $plugin->delete( $fileobj, $revision );
+		$rc = $plugin->delete( $fileobj );
 		last if $rc;
 	}
 
 	return $rc;
 }
 
-=item $filename = $store->get_local_copy( $fileobj [, $revision ] )
+=item $filename = $store->get_local_copy( $fileobj )
 
 Return the name of a local copy of the file (may be a L<File::Temp> object).
 
@@ -200,62 +183,43 @@ Will retrieve and cache the remote object if necessary.
 
 sub get_local_copy
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my $filename;
 
-	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		$filename = $plugin->get_local_copy( $fileobj, $revision );
+		$filename = $plugin->get_local_copy( $fileobj );
 		last if defined $filename;
 	}
 
 	return $filename;
 }
 
-=item $size = $store->get_size( $fileobj [, $revision ] )
+=item $size = $store->get_size( $fileobj )
 
-Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.
+UNUSED?
+
+Return the $size (in bytes) of the object stored at $fileobj.
 
 =cut
 
 sub get_size
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my $filesize;
 
-	foreach my $plugin ($self->get_plugins( $fileobj, $revision ))
+	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		$filesize = $plugin->get_local_copy( $fileobj, $revision );
+		$filesize = $plugin->get_local_copy( $fileobj );
 		last if defined $filesize;
 	}
 
 	return $filesize;
 }
 
-=item @revisions = $store->get_revisions( $fileobj )
-
-Return a list of available revision numbers for $fileobj, in order from latest to oldest.
-
-=cut
-
-sub get_revisions
-{
-	my( $self, $fileobj ) = @_;
-
-	my @revisions;
-
-	foreach my $plugin ($self->get_plugins( $fileobj ))
-	{
-		@revisions = $plugin->get_local_copy( $fileobj );
-		last if scalar(@revisions);
-	}
-
-	return @revisions;
-}
-
-=item @plugins = $store->get_plugins( $fileobj [, $revision ] )
+=item @plugins = $store->get_plugins( $fileobj )
 
 Returns the L<EPrints::Plugin::Storage> plugin(s) to use for $fileobj. If more than one plugin is returned they should be used in turn until one succeeds.
 
@@ -263,7 +227,7 @@ Returns the L<EPrints::Plugin::Storage> plugin(s) to use for $fileobj. If more t
 
 sub get_plugins
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj ) = @_;
 
 	my @plugins;
 

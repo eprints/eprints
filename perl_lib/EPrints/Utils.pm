@@ -1295,6 +1295,11 @@ sub js_string
 ######################################################################
 sub render_xhtml_field { return EPrints::Extras::render_xhtml_field( @_ ); }
 
+sub make_relation
+{
+	return "http://eprints.org/relation/" . $_[0];
+}
+
 1;
 
 ######################################################################
