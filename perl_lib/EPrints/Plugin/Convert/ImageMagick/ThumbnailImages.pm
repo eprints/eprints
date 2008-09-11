@@ -92,7 +92,7 @@ sub export
 	
 	my $fn = "$size.jpg";
 
-	system($convert, "-strip", "-colorspace", "RGB", "-thumbnail","$geom>", $src."[$geom]", $dir . '/' . $fn);
+	system($convert, "-strip", "-colorspace", "RGB", "-thumbnail","$geom>", "-extract", $geom, $src."[0]", $dir . '/' . $fn);
 
 	unless( -e "$dir/$fn" ) {
 		return ();
