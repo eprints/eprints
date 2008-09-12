@@ -984,7 +984,9 @@ sub get_primary_key
 {
 	my( $self, $tablename ) = @_;
 
-	return $self->{dbh}->primary_key( undef, undef, $tablename );
+	my @columns = $self->{dbh}->primary_key( undef, undef, $tablename );
+
+	return @columns;
 }
 
 ######################################################################

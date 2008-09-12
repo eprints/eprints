@@ -7738,3 +7738,6 @@ EPRINTS-3.1-beta-2
     from a simple term
  * Added "files" field to EPrint (for accessing contained files)
 
+2008-09-12 tdb
+ * Force DBI::primary_key call to be in list context
+
