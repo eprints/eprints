@@ -65,38 +65,39 @@ sub get_index_codes_basic
 	{
 		return $self->SUPER::get_index_codes_basic( $session, $value );
 	}
+
 	my $doc = EPrints::DataObj::Document->new( $session, $value );
+	my $main_file = $doc->get_stored_file( $doc->get_main );
 
-	my $main_file = $doc->get_stored_files( "data", $doc->get_main );
-	return( [], [], [] ) unless $main_file;
+	return( [], [], [] ) unless defined $main_file;
 
-	my $indexcodes_file = $doc->get_stored_files( "cache", "indexcodes" );
-   	if( defined $indexcodes_file &&
-		$indexcodes_file->get_mtime gt $main_file->get_mtime )
+	my( $indexcodes_doc ) = @{($doc->get_related_objects(
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
+		))};
+	my $indexcodes_file;
+	if( defined $indexcodes_doc )
 	{
-		my $fh = $indexcodes_file->get_fh;
-		my @codes = <$fh>;
-		s/\015?\012?$//s for @codes;
-		close $fh;
-		return( \@codes, [], [] );
+		$indexcodes_file = $indexcodes_doc->get_stored_file( "indexcodes.txt" );
 	}
 
-	$value = $doc->get_text;
-	my( $codes, $badwords ) = ( [], [] );
-	if( EPrints::Utils::is_set( $value ) )
+	# (re)generate indexcodes if it doesn't exist or is out of date
+	if( !defined( $indexcodes_doc ) ||
+		$main_file->get_datestamp() gt $indexcodes_file->get_datestamp() )
 	{
-		( $codes, $badwords ) = EPrints::MetaField::Text::_extract_words( $session, $value );
-	}
-	
-	{
-		my $tmpfile = File::Temp->new;
-		print $tmpfile "$_\n" for @$codes;
-		seek($tmpfile,0,0);
-		$doc->add_stored_file( "cache", "indexcodes", $tmpfile, -s "$tmpfile" );
+		$indexcodes_doc = $doc->make_indexcodes();
+		if( defined( $indexcodes_doc ) )
+		{
+			$indexcodes_file = $indexcodes_doc->get_stored_file( "indexcodes.txt" );
+		}
 	}
 
-	# does not return badwords
-	return( $codes, [], [] );
+	return( [], [], [] ) unless defined $indexcodes_doc;
+
+	my $fh = $indexcodes_file->get_file();
+	my @codes = <$fh>;
+	close $fh;
+
+	return( \@codes, [], [] );
 }
 
 

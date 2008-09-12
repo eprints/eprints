@@ -126,7 +126,7 @@ sub export_cell
 
 	# As we may be attempting this twice, don't attempt to copy the file
 	# twice!
-	my $src = $doc->get_stored_files( "data", $doc->get_main );
+	my $src = $doc->get_stored_file( $doc->get_main );
 	$src = $self->{_local_copy} ||= $src->get_local_copy();
 
 	my $fn = "$size.jpg";
@@ -165,7 +165,7 @@ sub export_flv
 
 	my $ffmpeg = $self->{ffmpeg};
 
-	my $src = $doc->get_stored_files( "data", $doc->get_main );
+	my $src = $doc->get_stored_file( $doc->get_main );
 	$src = $src->get_local_copy;
 
 	my $fn = "video_preview.flv";

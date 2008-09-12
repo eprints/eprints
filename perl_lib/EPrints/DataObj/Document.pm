@@ -681,7 +681,7 @@ sub remove_file
 	# If it's the main file, unset it
 	$self->set_value( "main" , undef ) if( $filename eq $self->get_main() );
 
-	my $fileobj = $self->get_stored_files( "data", $filename );
+	my $fileobj = $self->get_stored_file( $filename );
 
 	if( defined( $fileobj ) )
 	{
@@ -749,7 +749,7 @@ sub set_main
 	if( defined $main_file )
 	{
 		# Ensure that the file exists
-		my $fileobj = $self->get_stored_files( "data", $main_file );
+		my $fileobj = $self->get_stored_file( $main_file );
 
 		# Set the main file if it does
 		$self->set_value( "main", $main_file ) if( defined $fileobj );
@@ -1335,18 +1335,12 @@ sub files_modified
 
 #	$self->rehash;
 
-	{
-		my $relation = EPrints::Utils::make_relation( "hasIndexCodesVersion" );
-
-		# remove the now invalid cache of words from this document
-		# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
-		my $indexcodes = $self->get_related_objects( $relation );
-		foreach my $dataobj (@$indexcodes)
-		{
-			$self->remove_related_objects( $relation, $dataobj );
-			$dataobj->remove();
-		}
-	}
+	# remove the now invalid cache of words from this document
+	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
+	my $indexcodes  = $self->get_related_objects(
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" );
+		);
+	$_->remove for @$indexcodes;
 
 	$self->{session}->get_database->index_queue( 
 		$self->get_eprint->get_dataset->id,
@@ -1397,7 +1391,7 @@ sub rehash
 {
 	my( $self ) = @_;
 
-	my @files = $self->get_stored_files();
+	my $files = $self->get_value( "files" );
 
 	my $tmpfile = File::Temp->new;
 	my $hashfile = $self->get_value( "docid" ).".".
@@ -1405,7 +1399,7 @@ sub rehash
 
 	EPrints::Probity::create_log_fh( 
 		$self->{session}, 
-		\@files,
+		$files,
 		$tmpfile );
 
 	seek($tmpfile, 0, 0);
@@ -1418,46 +1412,52 @@ sub rehash
 ######################################################################
 =pod
 
-=item $text = $doc->get_text
+=item $doc = $doc->make_indexcodes()
 
-Get the text of the document as a UTF-8 encoded string, if possible.
-
-This is used for full-text indexing. The text will probably not
-be well formated.
+Make the indexcodes document for this document. Returns the generated document or undef on failure.
 
 =cut
 ######################################################################
 
-sub get_text
+sub make_indexcodes
 {
 	my( $self ) = @_;
 
-	# Get the main conversion plugin
-	my $session = $self->{ "session" };
-	my $convert = $session->plugin( "Convert" );
-
-	# Find a 'text/plain' converter
-	my $type = "text/plain";
-	my %types = $convert->can_convert( $self );
-	my $def = $types{$type} or return '';
-
-	# Convert the document
-	my $tempdir = EPrints::TempDir->new( UNLINK => 1 );
-	my @files = $def->{ "plugin" }->export( $tempdir, $self, $type );
-	
-	# Read all the outputted files
-	my $buffer = '';
-	for( @files )
+	# if we're a volatile version of another document, don't make indexcodes 
+	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
 	{
-		open my $fi, "<:utf8", "$tempdir/$_" or next;
-		while( $fi->read($buffer,4096,length($buffer)) ) 
-		{
-			last if length($buffer) > 4 * 1024 * 1024;
-		}
-		close $fi;
+		return undef;
 	}
 
-	return $buffer;
+	# remove any existing indexcodes documents
+	my $docs = $self->get_related_objects(
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
+		);
+	$_->remove() for @$docs;
+	
+	# find a conversion plugin to convert us to indexcodes
+	my $type = "indexcodes";
+	my %types = $self->{session}->plugin( "Convert" )->can_convert( $self, $type );
+	return undef unless exists($types{$type});
+	my $plugin = $types{$type}->{"plugin"};
+
+	# convert us to indexcodes
+	my $doc = $plugin->convert(
+			$self->get_parent,
+			$self,
+			$type
+		);
+	return undef unless defined $doc;
+
+	# relate the new document to us
+	$self->add_object_relations( $doc,
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" ) =>
+			EPrints::Utils::make_relation( "isIndexCodesVersionOf" ),
+		);
+	$self->commit();
+	$doc->commit();
+
+	return $doc;
 }
 
 ######################################################################
@@ -1821,28 +1821,11 @@ sub mime_type
 	# Primary doc if no filename
 	$file = $self->get_main unless( defined $file );
 
-	my $path = $self->local_path . "/" . $file;
+	my $fileobj = $self->get_stored_file( $file );
 
-	return undef unless -e $path;
-	return undef unless -r $path;
-	return undef if -d $path;
+	return undef unless defined $fileobj;
 
-	my $repository = $self->{session}->get_repository;
-
-	my %params = ( SOURCE => $path );
-
-	return undef if( !$repository->can_invoke( "file", %params ) );
-
-	my $command = $repository->invocation( "file", %params );
-	my $mime_type = `$command`;
-	$mime_type =~ s/\015?\012?$//s;
-	($mime_type) = split /,/, $mime_type, 2; # file can return a 'sub-type'
-
-	return undef if !defined $mime_type;
-
-	return length($mime_type) > 0 ? $mime_type : undef;
-
-	return undef;
+	return $fileobj->get_value( "mime_type" );
 }
 
 ######################################################################

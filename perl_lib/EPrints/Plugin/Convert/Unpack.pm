@@ -23,7 +23,7 @@ our @ISA = qw/ EPrints::Plugin::Convert /;
 our %TYPES = qw(
 	application/x-gzip gunzip
 	application/x-tar tar
-	application/x-zip unzip
+	application/zip unzip
 	application/x-bzip2 bzip2
 );
 
@@ -43,13 +43,7 @@ sub can_convert
 {
 	my ($plugin, $doc) = @_;
 
-	# Get the main file name
 	my $mimetype = $doc->mime_type();
-
-	if( !defined $mimetype )
-	{
-		return ();
-	}
 
 	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
@@ -58,7 +52,9 @@ sub can_convert
 		return ();
 	}
 
-	my @type = ( 'other' => {
+	my $format = "unknown_" . $plugin->get_id;
+
+	my @type = ( $format => {
 		plugin => $plugin,
 		phraseid => $plugin->html_phrase_id( $mimetype ),
 	} );
@@ -72,16 +68,15 @@ sub export
 
 	my $repository = $plugin->get_repository;
 
-	# What to call the temporary file
-	my $fn = $doc->local_path . '/' . $doc->get_main;
-	
 	# Get the main file name
 	my $mimetype = $doc->mime_type();
+
+	my $file = $doc->get_stored_file( $doc->get_main )->get_local_copy();
 
 	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
 	my %opts = (
-		SOURCE => $fn,
+		SOURCE => "$file",
 		DIRECTORY => $dir,
 	);
 

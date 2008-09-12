@@ -107,7 +107,7 @@ sub export
 	return () unless defined $cmd_id;
 	
 	my @txt_files;
-	foreach my $file ( $doc->get_stored_files( "data" ) )
+	foreach my $file ( @{($doc->get_value( "files" ))} )
 	{
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;

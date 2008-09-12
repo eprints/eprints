@@ -150,7 +150,7 @@ A value between 0 and 1 representing the 'quality' or confidence in this convers
 
 sub can_convert
 {
-	my ($plugin, $doc) = @_;
+	my ($plugin, $doc, $type) = @_;
 	
 	my $session = $plugin->{ "session" };
 	my @ids = $session->plugin_list( type => 'Convert' );
@@ -159,9 +159,10 @@ sub can_convert
 	for(@ids)
 	{
 		next if $_ eq $plugin->get_id;
-		my %avail = $session->plugin( $_ )->can_convert( $doc );
+		my %avail = $session->plugin( $_ )->can_convert( $doc, $type );
 		while( my( $mt, $def ) = each %avail )
 		{
+			next if defined( $type ) && $mt ne $type;
 			if(
 				!exists($types{$mt}) ||
 				!$types{$mt}->{ "preference" } ||
@@ -239,7 +240,7 @@ sub convert
 			EPrints::Utils::make_relation( "hasVolatileVersion" => undef )
 		);
 
-	return $new_doc;
+	return wantarray ? ($new_doc) : $new_doc;
 }
 
 1;

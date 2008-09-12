@@ -7741,3 +7741,11 @@ EPRINTS-3.1-beta-2
 2008-09-12 tdb
  * Force DBI::primary_key call to be in list context
 
+2008-09-12 tdb
+ * indexcodes are now stored in a document
+ * Plugin::Convert::can_convert() now takes an optional "mime-type" argument
+ * Plugin::Convert::convert() may return more than one document
+ * Fixes for Plugin::Convert::Unpack [zip]
+ * Removed bucket usage from remaining conversion plugins
+ * Added IndexCodes conversion plugin to generate index codes froma document
+

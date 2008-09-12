@@ -69,7 +69,7 @@ sub export
 	my $repository = $plugin->get_repository();
 
 	my @txt_files;
-	foreach my $file ( $doc->get_stored_files( "data" ) )
+	foreach my $file ( @{($doc->get_value( "files" ))} )
 	{
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
