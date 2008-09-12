@@ -1338,7 +1338,7 @@ sub files_modified
 	# remove the now invalid cache of words from this document
 	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
 	my $indexcodes  = $self->get_related_objects(
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" );
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
 		);
 	$_->remove for @$indexcodes;
 
