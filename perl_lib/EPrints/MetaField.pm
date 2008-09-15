@@ -727,17 +727,19 @@ sub render_value_no_multiple
 		return $rendered;
 	}
 
+	my $link_id = $self->get_id_from_value( $session, $value );
+
 	if( $linkview->{fields} =~ m/,/ )
 	{
 		# has sub pages
 		$url .= "/view/".$self->{browse_link}."/".
-			EPrints::Utils::escape_filename( $value )."/";
+			EPrints::Utils::escape_filename( $link_id )."/";
 	}
 	else
 	{
 		# no sub pages
 		$url .= "/view/".$self->{browse_link}."/".
-			EPrints::Utils::escape_filename( $value ).
+			EPrints::Utils::escape_filename( $link_id ).
 			".html";
 	}
 

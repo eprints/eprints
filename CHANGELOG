@@ -7751,4 +7751,5 @@ EPRINTS-3.1-beta-2
 
 2008-09-15 tdb
  * Added get_primary_key() for MySQL by using DESCRIBE
+ * Further fix for linking creators to browse views
 
