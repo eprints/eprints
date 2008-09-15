@@ -7749,3 +7749,6 @@ EPRINTS-3.1-beta-2
  * Removed bucket usage from remaining conversion plugins
  * Added IndexCodes conversion plugin to generate index codes froma document
 
+2008-09-15 tdb
+ * Added get_primary_key() for MySQL by using DESCRIBE
+
