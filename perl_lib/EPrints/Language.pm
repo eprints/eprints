@@ -230,7 +230,7 @@ sub _get_phrase
 		return( $xml, 0 ) if defined $xml;
 
 		next unless defined $self->{fallback};
-		my $xml = $self->{fallback}->_get_src_phrase( $src, $phraseid, $session );
+		$xml = $self->{fallback}->_get_src_phrase( $src, $phraseid, $session );
 		return( $xml, 1 ) if defined $xml;
 	}
 
