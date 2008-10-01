@@ -273,18 +273,30 @@ sub run
 	$config->{enable_import_ids} = $enable_import_ids;
 	$config->{enable_web_imports} = $enable_web_imports;
 
+	if( $session->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
+	{
+		$list->map( sub {
+			my( $session, $dataset, $eprint ) = @_;
+			$session->get_repository->call(
+				"set_eprint_import_automatic_fields",
+				$eprint,
+				$self
+			);
+		} );
+	}
+
 	return $list;
 }
 
-=item $import->clear()
+=item $import->map( $fn, $info )
 
-Clear the contents of this bulk import.
+Maps the function $fn onto every eprint in this import.
 
 =cut
 
-sub clear
+sub map
 {
-	my( $self ) = @_;
+	my( $self, $fn, $info ) = @_;
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
@@ -297,7 +309,22 @@ sub clear
 
 	my $list = $searchexp->perform_search;
 
-	$list->map(sub {
+	$list->map($fn, $info );
+
+	$list->dispose;
+}
+
+=item $import->clear()
+
+Clear the contents of this bulk import.
+
+=cut
+
+sub clear
+{
+	my( $self ) = @_;
+
+	$self->map(sub {
 		my( $session, $dataset, $eprint ) = @_;
 
 		$eprint->remove();

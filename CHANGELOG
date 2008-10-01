@@ -7756,3 +7756,9 @@ EPRINTS-3.1-beta-2
 2008-09-25 tdb
  * Reduced the memory requirement of in-memory phrases (3MB in testing)
 
+2008-10-01 tdb
+ * Added map() method to Import objects to apply a method to all imported
+    objects
+ * Now calls set_eprint_import_automatic_fields for every eprint imported
+    via an import object
+
