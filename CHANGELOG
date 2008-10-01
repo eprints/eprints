@@ -7763,4 +7763,5 @@ EPRINTS-3.1-beta-2
     via an import object
  * Removed redundant DataObj::get_gid() method (replaced by uri())
  * Removed redundant DataObj::get_mime_type()
+ * Fixed undef warning on rendering undefined value in MetaField::Email
 

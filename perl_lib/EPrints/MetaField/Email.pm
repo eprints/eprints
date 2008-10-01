@@ -46,6 +46,7 @@ sub render_single_value
 	
 	my $text = $session->make_text( $value );
 
+	return $text if !defined $value;
 	return $text if( $self->{render_dont_link} );
 
 	my $a = $session->render_link( "mailto:".$value );
