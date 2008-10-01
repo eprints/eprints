@@ -1342,31 +1342,6 @@ sub tidy
 ######################################################################
 =pod
 
-=item $uri = $dataobj->get_storage_uri( $bucket, $filename )
-
-Return the URI to store the $filename at in the $bucket of files.
-
-=cut
-######################################################################
-
-sub get_storage_uri
-{
-	my( $self, $bucket, $filename ) = @_;
-
-	my $stored_uri = $self->{session}->get_repository->get_conf( "http_url" );
-
-	$stored_uri .= "/id";
-	$stored_uri .= "/" . $self->get_dataset->confid;
-	$stored_uri .= "/" . $self->get_id;
-	$stored_uri .= "/" . $bucket;
-	$stored_uri .= "/" . URI::Escape::uri_escape( $filename );
-
-	return $stored_uri;
-}
-
-######################################################################
-=pod
-
 =item $mime_type = $dataobj->get_mime_type( $bucket, $filename )
 
 Return the $mime_type of $filename contained in $bucket.
