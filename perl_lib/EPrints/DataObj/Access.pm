@@ -155,32 +155,6 @@ sub get_dataset_id
 }
 
 ######################################################################
-=pod
-
-=item $dataset = $eprint->get_gid
-
-Returns the OAI identifier for this access.
-
-=cut
-######################################################################
-
-sub get_gid
-{
-	my( $self ) = @_;
-
-	my $session = $self->{ "session" };
-
-	return EPrints::OpenArchives::to_oai_identifier(
-		$session->get_repository->get_conf(
-			"oai",
-			"v2",
-			"archive_id",
-		),
-		"access:" . $self->get_id,
-	);
-}
-
-######################################################################
 
 =item $defaults = EPrints::DataObj::Access->get_defaults( $session, $data )
 

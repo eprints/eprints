@@ -757,6 +757,8 @@ sub get_id
 
 =item $id = $dataobj->get_gid
 
+DEPRECATED (see uri())
+
 Returns the globally referential fully-qualified identifier for this object or
 undef if this object can not be externally referenced.
 
@@ -767,7 +769,7 @@ sub get_gid
 {
 	my( $self ) = @_;
 
-	return undef;
+	return $self->uri;
 }
 
 =item $datestamp = $dataobj->get_datestamp
@@ -1337,23 +1339,6 @@ sub tidy
 			$self->{data}->{$field->get_name} = \@list;	
 		}
 	}
-}
-
-######################################################################
-=pod
-
-=item $mime_type = $dataobj->get_mime_type( $bucket, $filename )
-
-Return the $mime_type of $filename contained in $bucket.
-
-=cut
-######################################################################
-
-sub get_mime_type
-{
-	my( $self, $bucket, $filename ) = @_;
-
-	return "application/octet-stream";
 }
 
 ######################################################################

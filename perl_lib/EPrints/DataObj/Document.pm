@@ -1828,32 +1828,6 @@ sub mime_type
 	return $fileobj->get_value( "mime_type" );
 }
 
-######################################################################
-=pod
-
-=item $mime_type = $dataobj->get_mime_type( $filename )
-
-Return the $mime_type of $filename.
-
-=cut
-######################################################################
-
-sub get_mime_type
-{
-	my( $self, $filename ) = @_;
-
-	# Use the main document type
-	if( $filename eq $self->get_main() )
-	{
-		return $self->get_value( "format" );
-	}
-	# Otherwise guess it with file (see above)
-	else
-	{
-		return $self->mime_type( $filename );
-	}
-}
-
 1;
 
 ######################################################################

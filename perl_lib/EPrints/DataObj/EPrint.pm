@@ -458,32 +458,6 @@ sub get_dataset_id
 ######################################################################
 =pod
 
-=item $dataset = $eprint->get_gid
-
-Returns the OAI identifier for this eprint.
-
-=cut
-######################################################################
-
-sub get_gid
-{
-	my( $self ) = @_;
-
-	my $session = $self->get_session;
-
-	return EPrints::OpenArchives::to_oai_identifier(
-		$session->get_repository->get_conf(
-			"oai",
-			"v2",
-			"archive_id",
-		),
-		$self->get_id,
-	);
-}
-
-######################################################################
-=pod
-
 =item $dataset = $eprint->get_dataset
 
 Return the dataset to which this object belongs. This will return

@@ -7761,4 +7761,6 @@ EPRINTS-3.1-beta-2
     objects
  * Now calls set_eprint_import_automatic_fields for every eprint imported
     via an import object
+ * Removed redundant DataObj::get_gid() method (replaced by uri())
+ * Removed redundant DataObj::get_mime_type()
 

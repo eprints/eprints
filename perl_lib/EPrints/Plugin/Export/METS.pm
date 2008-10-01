@@ -112,7 +112,7 @@ sub xml_dataobj
 
 	my $session = $plugin->{ session };
 
-	my $id = $dataobj->get_gid;
+	my $id = $dataobj->uri;
 
 	my $mods_plugin = $session->plugin( "Export::MODS" )
 		or die "Couldn't get Export::MODS plugin";
