@@ -188,14 +188,7 @@ sub commit
 		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
-	my $subs_ds = $self->{session}->get_repository->get_dataset( 
-		"saved_search" );
-	$self->tidy;
-	my $success = $self->{session}->get_database->update(
-		$subs_ds,
-		$self->{data} );
-
-	$self->queue_changes;
+	my $success = $self->SUPER::commit( $force );
 
 	return $success;
 }

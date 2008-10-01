@@ -981,27 +981,14 @@ sub commit
 			EPrints::Time::get_iso_timestamp() );
 	}
 
-	$self->tidy;
-	my $success = $self->{session}->get_database->update(
-		$self->{dataset},
-		$self->{data} );
-
-	if( !$success )
-	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( 
-			"Error committing EPrint ".
-			$self->get_value( "eprintid" ).": ".$db_error );
-		return $success;
-	}
+	my $success = $self->SUPER::commit( $force );
+	return( 0 ) unless $success;
 
 	unless( $self->under_construction )
 	{
 		$self->remove_static;
 	}
 
-	$self->queue_changes;
-	
 	if( $self->{non_volatile_change} )
 	{
 		my $user = $self->{session}->current_user;

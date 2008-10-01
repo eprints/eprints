@@ -180,6 +180,7 @@ sub commit
 
 	$self->{session}->get_repository->log(
 		"WARNING: Called commit on a EPrints::DataObj::History object." );
+
 	return 0;
 }
 

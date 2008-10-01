@@ -365,15 +365,12 @@ sub clear_changed
 
 =item $success = $dataobj->commit( [$force] )
 
-ABSTRACT.
-
 Write this object to the database.
 
 If $force isn't true then it only actually modifies the database
 if one or more fields have been changed.
 
-Commit may also log the changes, depending on the type of data 
-object.
+Commit may also queue indexer jobs or log changes, depending on the object.
 
 =cut
 ######################################################################
@@ -382,13 +379,33 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
-	my $rc = 1;
+	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
+	{
+		# don't do anything if there isn't anything to do
+		return( 1 ) unless $force;
+	}
 
-	$rc &&= $self->{session}->get_database->update(
-		$self->get_dataset,
+	# Remove empty slots in multiple fields
+	$self->tidy;
+
+	# Write the data to the database
+	my $success = $self->{session}->get_database->update(
+		$self->{dataset},
 		$self->{data} );
 
-	return $rc;
+	if( !$success )
+	{
+		my $db_error = $self->{session}->get_database->error;
+		$self->{session}->get_repository->log( 
+			"Error committing ".$self->get_dataset_id.".".
+			$self->get_id.": ".$db_error );
+		return 0;
+	}
+
+	# Queue changes for the indexer (if indexable)
+	$self->queue_changes();
+
+	return $success;
 }
 
 

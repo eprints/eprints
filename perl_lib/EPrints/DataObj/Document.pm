@@ -1182,19 +1182,8 @@ sub commit
 		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
-	$self->tidy;
-	my $success = $self->{session}->get_database->update(
-		$dataset,
-		$self->{data} );
+	my $success = $self->SUPER::commit( $force );
 	
-	if( !$success )
-	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( "Error committing Document ".$self->get_value( "docid" ).": $db_error" );
-	}
-
-	$self->queue_changes;
-
 	unless( !defined $self->{_parent} || $self->{_parent}->under_construction )
 	{
 		# cause a new new revision of the parent eprint.

@@ -430,24 +430,6 @@ sub get_defaults
 
 ######################################################################
 
-sub commit
-{
-	my( $self, $force ) = @_;
-
-	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
-	{
-		# don't do anything if there isn't anything to do
-		return( 1 ) unless $force;
-	}
-
-	$self->tidy;
-	my $success = $self->{session}->get_database->update(
-		$self->{dataset},
-		$self->{data} );
-	
-	return( $success );
-}
-
 sub validate
 {
 	my( $self, $repository ) = @_;
