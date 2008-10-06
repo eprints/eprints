@@ -33,10 +33,10 @@ sub new
 	$self->{name} = "HoneyComb storage";
 	if( $params{session} )
 	{
-		$self->{honey} = Net::Sun::HoneyComb->new(
+		eval { $self->{honey} = Net::Sun::HoneyComb->new(
 			"hc-data",
 			8080
-		);
+		) };
 	}
 
 	return $self;
