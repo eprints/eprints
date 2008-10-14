@@ -966,7 +966,7 @@ sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 	
-	$self->{config}->{fields} = [];
+	$self->{config}->{doc_fields} = [];
 
 # moj: We need some default phrases for when these aren't specified.
 #	$self->{config}->{title} = ""; 
