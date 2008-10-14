@@ -59,6 +59,28 @@ sub store
 	use bytes;
 	use integer;
 
+	my $parent = $fileobj->get_parent();
+
+	my $metadata = {
+		'dc.isPartOf' => $self->{session}->get_repository->get_conf( 'base_url' ),
+		'dc.format' => $fileobj->get_value( "mime_type" ),
+	};
+
+	if( $parent->isa( "EPrints::DataObj::History" ) )
+	{
+		$metadata->{'dc.identifier'} = $parent->get_parent->uri;
+		$metadata->{'eprints.revision'} = $parent->get_parent->get_value( "rev_number" );
+		$metadata->{'dc.conformsTo'} = 'http://eprints.org/ep2/data/2.0';
+	}
+	elsif( $parent->isa( "EPrints::DataObj::Document" ) )
+	{
+		$metadata->{'dc.identifier'} = $fileobj->uri;
+	}
+	else
+	{
+		$metadata->{'dc.identifier'} = $fileobj->uri;
+	}
+
 	my $oid = $self->{honey}->store_both( sub {
 			my( $ctx, $n ) = @_;
 			sysread($ctx, my $buffer, $n);
@@ -66,10 +88,10 @@ sub store
 			return $buffer;
 		},
 		$fh,
-		{}
+		$metadata
 	);
 
-	$fileobj->set_plugin_copy( $self, $oid );
+	$fileobj->add_plugin_copy( $self, $oid );
 
 	return $length;
 }
