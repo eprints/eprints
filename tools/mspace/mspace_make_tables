@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+use EPrints;
+use EPrints::Database;
+
+use strict;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit( 1 ) unless( defined $session );
+
+my $repository = $session->get_repository;
+
+my $db = $session->get_database;
+
+my $ds = $repository->get_dataset( "archive" );
+
+foreach my $field ( $ds->get_fields )
+{
+	next if $field->is_virtual;
+	my $table_name = "mspace_".$field->{name};
+	if( $db->has_table( $table_name ) )
+	{
+		$db->drop_table( $table_name );
+	}
+	print "making $table_name\n";
+	my $rc = $db->_create_table($table_name, [], [
+		$db->get_column_type( "eprintid", SQL_INTEGER, SQL_NULL ),
+		$db->get_column_type( "value", SQL_VARCHAR, SQL_NULL, 255 ),
+		$db->get_column_type( "desc", SQL_VARCHAR, SQL_NULL, 255 ),
+	]);
+	if( !$rc ) { die "Make table failed: $table_name"; }
+	$db->create_index( $table_name, "eprintid" );
+	$db->create_index( $table_name, "value" );
+	$db->create_index( $table_name, "desc" );
+}
+
+my $table_name = "mspace_citation";
+if( $db->has_table( $table_name ) )
+{
+	$db->drop_table( $table_name );
+}
+print "making $table_name\n";
+my $rc = $db->_create_table($table_name, [], [
+	$db->get_column_type( "eprintid", SQL_INTEGER, SQL_NULL ),
+	$db->get_column_type( "citation", SQL_LONGVARCHAR, SQL_NULL ),
+]);
+if( !$rc ) { die "Make table failed: $table_name"; }
+$db->create_index( $table_name, "eprintid" );
+
+$session->terminate();
+exit;
+

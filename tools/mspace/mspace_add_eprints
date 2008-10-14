@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+use EPrints;
+use EPrints::Database;
+use Data::Dumper;
+require "EPrints::MSpace.pm";
+
+use strict;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit( 1 ) unless( defined $session );
+
+my $repository = $session->get_repository;
+
+my $ds = $repository->get_dataset( "archive" );
+
+$ds->map(
+	$session,
+	sub {
+		my( $session, $dataset, $eprint ) = @_;
+
+		EPrints::MSpace::remove_eprint( $eprint );
+		EPrints::MSpace::add_eprint( $eprint );
+	}
+);
+
+
+$session->terminate;
+exit;
+
