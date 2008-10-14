@@ -7795,5 +7795,5 @@ EPRINTS-3.1-beta-2
     phrase id's -- for planned by-page phrase editing.
 
 2008-10-14 tdb
- * If a format doesn't have an icon, use unknown.png
+ * If a format doesn't have an icon use it's major mime type icon, or unknown
 

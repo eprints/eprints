@@ -1553,18 +1553,27 @@ sub icon_url
 		return $thumbnail_url if defined $thumbnail_url;
 	}
 
-	my $type = $self->get_value( "format" );
-	$type =~ s/\//_/g;
+	my $icon = "unknown.png";
+	my $rel_path = "style/images/fileicons";
+	my $local_path = $self->{session}->get_repository->get_conf( "htdocs_path" )."/".$self->{session}->get_langid;
 
-	# If there isn't a specific icon for this type use "unknown"
-	my $path = $self->{session}->get_repository->get_conf( "htdocs_path" )."/style/images/fileicons";
-	if( !-e "$path/$type.png" )
+	# e.g. audio/mp3 will look for "audio_mp3.png" then "audio.png" then
+	# "unknown.png"
+	my( $major, $minor ) = split /\//, $self->get_value( "format" ), 2;
+	$minor = "" if !defined $minor;
+	$minor =~ s/\//_/g;
+
+	if( -e "$local_path/$rel_path/$major\_$minor.png" )
 	{
-		$type = "unknown";
+		$icon = "$major\_$minor.png";
 	}
+	elsif( -e "$local_path/$rel_path/$major.png" )
+	{
+		$icon = "$major.png";
+	}
+	print STDERR "$local_path/$rel_path/$major.png\n";
 
-	return $self->{session}->get_repository->get_conf( "http_url" ).
-			"/style/images/fileicons/$type.png";
+	return $self->{session}->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
 
 =item $frag = $doc->render_icon_link( %opts )
