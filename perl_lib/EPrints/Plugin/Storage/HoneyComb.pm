@@ -16,7 +16,6 @@ package EPrints::Plugin::Storage::HoneyComb;
 
 use URI;
 use URI::Escape;
-use Net::Sun::HoneyComb;
 
 use EPrints::Plugin::Storage;
 
@@ -31,6 +30,15 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "HoneyComb storage";
+
+	my $rc = EPrints::Utils::require_if_exists("Net::Sun::HoneyComb");
+	unless( $rc ) 
+	{
+		$self->{visible} = "";
+		$self->{error} = "Failed to load required module Net::Sun::HoneyComb";
+		return $self;
+	}
+
 	if( $params{session} )
 	{
 		eval { $self->{honey} = Net::Sun::HoneyComb->new(
