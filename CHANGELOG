@@ -7789,3 +7789,7 @@ EPRINTS-3.1-beta-2
 2008-10-14 cjg
  * Fixed honeycomb plugin to not cause problems if the honeycomb module is 
     not installed.
+
+2008-10-14 cjg
+ * Added feature to phrase editor so it can be called with a limited list of
+    phrase id's -- for planned by-page phrase editing.
