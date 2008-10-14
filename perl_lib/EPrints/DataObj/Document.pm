@@ -1571,7 +1571,6 @@ sub icon_url
 	{
 		$icon = "$major.png";
 	}
-	print STDERR "$local_path/$rel_path/$major.png\n";
 
 	return $self->{session}->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
