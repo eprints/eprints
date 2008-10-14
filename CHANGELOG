@@ -7793,3 +7793,7 @@ EPRINTS-3.1-beta-2
 2008-10-14 cjg
  * Added feature to phrase editor so it can be called with a limited list of
     phrase id's -- for planned by-page phrase editing.
+
+2008-10-14 tdb
+ * If a format doesn't have an icon, use unknown.png
+

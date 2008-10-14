@@ -1556,6 +1556,13 @@ sub icon_url
 	my $type = $self->get_value( "format" );
 	$type =~ s/\//_/g;
 
+	# If there isn't a specific icon for this type use "unknown"
+	my $path = $self->{session}->get_repository->get_conf( "htdocs_path" )."/style/images/fileicons";
+	if( !-e "$path/$type.png" )
+	{
+		$type = "unknown";
+	}
+
 	return $self->{session}->get_repository->get_conf( "http_url" ).
 			"/style/images/fileicons/$type.png";
 }
