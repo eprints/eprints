@@ -169,6 +169,11 @@ sub update_static_file
 	{
 		# do the magic auto.js 
 		my $js = "";
+		$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $repository->get_conf('base_url') ).";\n";
+		$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $repository->get_conf('perl_url') ).";\n";
+		$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $repository->get_conf('oai','v2','archive_id') ).";\n";
+		$js .= "\n";
+
 		foreach my $target ( sort keys %{$map} )
 		{
 			if( $target =~ m/(\/javascript\/auto\/.*\.js$)/ )

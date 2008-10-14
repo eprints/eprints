@@ -7766,3 +7766,6 @@ EPRINTS-3.1-beta-2
  * Fixed undef warning on rendering undefined value in MetaField::Email
  * Moved duplicated commit() commit in DataObj subclasses to DataObj
 
+2008-10-14
+ * Added javascript constants to the top of auto.js for things like the base
+    URL path. This fixes issues with the image path in the lightbox code.
