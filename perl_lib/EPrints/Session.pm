@@ -1880,6 +1880,9 @@ the subject)
 3. Links the subjects to "subjectid/".  $sizes must be set. Only 
 subjects with a size of more than one are linked.
 
+4. Links the subjects to "../subjectid/".  $sizes must be set. Only 
+subjects with a size of more than one are linked.
+
 $sizes may be a ref. to hash mapping the subjectid's to the number
 of items in that subject which will be rendered in brackets next to
 each subject.
@@ -1945,6 +1948,11 @@ sub _render_subjects_aux
 		{
 			$elementx = $self->render_link( 
 				EPrints::Utils::escape_filename( $id )."/" ); 
+		}
+		elsif( $linkmode == 4 )
+		{
+			$elementx = $self->render_link( 
+				"../".EPrints::Utils::escape_filename( $id )."/" ); 
 		}
 		else
 		{

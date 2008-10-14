@@ -7769,3 +7769,15 @@ EPRINTS-3.1-beta-2
 2008-10-14
  * Added javascript constants to the top of auto.js for things like the base
     URL path. This fixes issues with the image path in the lightbox code.
+
+2008-10-14
+ * Added "Navigation Aids" to the sub-menus in views in addition to the leaf
+    pages.
+ * Correctly set /view files to be utf-8 to fix "wide character" warnings.
+ * Fixed navigation aids to correctly link to subjects in a sub-menu, which
+    required a new mode (4) to $session->render_subjects
+ * Added code to generate_views to report an error if an illegal view id is
+    passed as an option.
+ * Added warning to Subjects about subjects with non-existant parents.
+ * Added "root" subject to Subject->get_all
+ * Added "up a level" to browsing multi level views.

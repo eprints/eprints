@@ -329,6 +329,9 @@ sub update_view_menu
 
 	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 
+	my $navigation_aids = render_navigation_aids( $session, $path_values, $view, \@fields, "menu" );
+	$page->appendChild( $navigation_aids );
+
 	my $phrase_id = "viewintro_".$view->{id};
 	if( defined $esc_path_values )
 	{
@@ -398,6 +401,7 @@ sub update_view_menu
 			"browseindex" );
 
 	open( INCLUDE, ">$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
+	binmode(INCLUDE,":utf8");
 	print INCLUDE $page->toString;
 	close INCLUDE;
 
@@ -799,25 +803,31 @@ sub update_view_list
 
 		# This writes the title including HTML tags
 		open( TITLE, ">$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
+		binmode(TITLE,":utf8");
 		print TITLE $title->toString;
 		close TITLE;
 
 		# This writes the title with HTML tags stripped out.
 		open( TITLETXT, ">$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
+		binmode(TITLETXT,":utf8");
 		print TITLETXT EPrints::Utils::tree_to_utf8( $title );
 		close TITLETXT;
 
 		if( defined $view->{template} )
 		{
 			open( TEMPLATE, ">$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
+			binmode(TEMPLATE,":utf8");
 			print TEMPLATE $view->{template};
 			close TEMPLATE;
 		}
 
 		open( PAGE, ">$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
+		binmode(PAGE,":utf8");
 		open( INCLUDE, ">$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
+		binmode(INCLUDE,":utf8");
 
-		my $navigation_aids = render_navigation_aids( $session, $path_values, $view, \@fields );
+		my $navigation_aids = EPrints::XML::to_string( 
+			render_navigation_aids( $session, $path_values, $view, \@fields, "list" ) );
 
 		print PAGE $navigation_aids;
 		print INCLUDE $navigation_aids;
@@ -1080,12 +1090,27 @@ sub update_view_list
 	return @files;
 }
 
+# pagetype is "menu" or "list"
 sub render_navigation_aids
 {
-	my( $session, $path_values, $view, $fields ) = @_;
+	my( $session, $path_values, $view, $fields, $pagetype ) = @_;
 
-	my $block = "";
-	if( $fields->[-1]->[0]->is_type( "subject" ) )
+	my $f = $session->make_doc_fragment();
+
+	# this is the field of the level ABOVE this level. So we get options to 
+	# go to related values in subjects.	
+	my $fields_being_browsed;
+	if( scalar @{$path_values} )
+	{
+		$fields_being_browsed = $fields->[scalar @{$path_values}-1];
+	}
+
+	if( scalar @{$path_values} && !$view->{hideup} )
+	{
+		$f->appendChild( $session->html_phrase( "Update/Views:up_a_level" ) );
+	}
+
+	if( defined $fields_being_browsed && $fields_being_browsed->[0]->is_type( "subject" ) )
 	{
 		my @all_but_this_level_path_values = @{$path_values};
 		pop @all_but_this_level_path_values;
@@ -1094,17 +1119,39 @@ sub render_navigation_aids
 		my @ids= @{$subject->get_value( "ancestors" )};
 		foreach my $sub_subject ( $subject->get_children() )
 		{
-			push @ids,$sub_subject->get_value( "subjectid" );
+			push @ids, $sub_subject->get_value( "subjectid" );
 		}
-		foreach my $field ( @{$fields->[-1]} )
+	
+		# strip empty subjects if needed
+		if( $view->{hideempty} )
 		{
-			$block .= "<div class='ep_toolbox'><div class='ep_toolbox_content'>";
-			$block .= EPrints::XML::to_string( $session->render_subjects( \@ids, $field->get_property( "top" ), $path_values->[-1], 2, $sizes ) );
-			$block .= "</div></div>";
+			my @newids = ();
+			foreach my $id ( @ids )
+			{
+				push @newids, $id if $sizes->{$id};
+			}
+			@ids = @newids;
+		}
+		
+		my $mode = 2;
+		if( $pagetype eq "menu" ) { $mode = 4; }
+		foreach my $field ( @{$fields_being_browsed} )
+		{
+			my $div_box = $session->make_element( "div", class=>"ep_toolbox" );
+			my $div_contents = $session->make_element( "div", class=>"ep_toolbox_content" );
+			$f->appendChild( $div_box );
+			$div_box->appendChild( $div_contents );
+			$div_contents->appendChild( 
+				$session->render_subjects( 
+					\@ids, 
+					$field->get_property( "top" ), 
+					$path_values->[-1], 
+					$mode, 
+					$sizes ) );
 		}
 	}
 
-	return $block;
+	return $f;
 }
 	
 sub group_items
@@ -1232,7 +1279,8 @@ sub render_array_of_eprints
 		my $ctype = $view->{citation}||"default";
 		if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
 		{
-			$session->{citesdone}->{$ctype}->{$item->get_id} = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ) );
+			my $cite = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ) );
+			$session->{citesdone}->{$ctype}->{$item->get_id} = $cite;
 		}
 		my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
 

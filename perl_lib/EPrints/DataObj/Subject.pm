@@ -588,9 +588,13 @@ sub get_paths
 		return ([]);
 	}
 	my( @paths ) = ();
-	foreach( @{$self->{data}->{parents}} )
+	foreach my $subjectid ( @{$self->{data}->{parents}} )
 	{
-		my $subj = new EPrints::DataObj::Subject( $session, $_ );
+		my $subj = new EPrints::DataObj::Subject( $session, $subjectid );
+		if( !defined $subj )
+		{
+			$session->get_repository->log( "Non existant subjectid: $subjectid in parents of ".$self->get_value( "subjectid" ) );
+		}
 		push @paths, $subj->get_paths( $session, $topsubjid );
 	}
 	foreach( @paths )
@@ -800,6 +804,7 @@ sub get_all
 	# Retrieve all of the subjects
 	my @subjects = $session->get_database->get_all( 
 		$session->get_repository->get_dataset( "subject" ) );
+	push @subjects, EPrints::DataObj::Subject->new( $session, $EPrints::DataObj::Subject::root_subject );
 
 	return( undef ) if( scalar @subjects == 0 );
 

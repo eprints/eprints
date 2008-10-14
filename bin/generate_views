@@ -145,7 +145,7 @@ my $PATH = "view";
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-
+binmode( STDOUT, ":utf8" );
 
 my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
 exit( 1 ) unless( defined $session );
@@ -157,6 +157,19 @@ my $repository = $session->get_repository;
 my $views = $repository->get_conf( "browse_views" );
 
 my $ds = $repository->get_dataset( "archive" );
+
+if( defined $view_opt )
+{
+	my $ok = 0;
+	foreach my $view ( @{$views} )
+	{
+		$ok = 1 if( $view->{id} eq $view_opt );
+	}
+	if( !$ok )
+	{
+		EPrints::abort( "Unknown view: $view_opt" );
+	}
+}
 
 LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 {
