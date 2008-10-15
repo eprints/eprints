@@ -63,8 +63,12 @@ sub store
 
 	my $metadata = {
 		'dc.isPartOf' => $self->{session}->get_repository->get_conf( 'base_url' ),
-		'dc.format' => $fileobj->get_value( "mime_type" ),
 	};
+
+	if( $fileobj->is_set( "mime_type" ) )
+	{
+		$metadata->{'dc.format'} = $fileobj->get_value( "mime_type" );
+	}
 
 	if( $parent->isa( "EPrints::DataObj::History" ) )
 	{
