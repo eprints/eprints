@@ -7798,10 +7798,10 @@ EPRINTS-3.1-beta-2
  * If a format doesn't have an icon use it's major mime type icon, or unknown
 
 2008-10-15 cjg
- * Added dates to UKETD export plugin.
+ * Added dates to UKETD export plugin. Resolving #3445.
 
 2008-10-15 cjg
  * Changed URL fields to be TEXT not VARCHAR(255). These are *not* a subclass
     of "Longtext", the only change is to storage. This will only impact newly
-    created fields.
+    created fields. Resolving #3436.
 
