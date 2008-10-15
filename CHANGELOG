@@ -7799,3 +7799,9 @@ EPRINTS-3.1-beta-2
 
 2008-10-15 cjg
  * Added dates to UKETD export plugin.
+
+2008-10-15 cjg
+ * Changed URL fields to be TEXT not VARCHAR(255). These are *not* a subclass
+    of "Longtext", the only change is to storage. This will only impact newly
+    created fields.
+
