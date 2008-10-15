@@ -7797,3 +7797,5 @@ EPRINTS-3.1-beta-2
 2008-10-14 tdb
  * If a format doesn't have an icon use it's major mime type icon, or unknown
 
+2008-10-15 cjg
+ * Added dates to UKETD export plugin.

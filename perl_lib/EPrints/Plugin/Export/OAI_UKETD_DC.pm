@@ -171,14 +171,16 @@ sub eprint_to_uketd_dc
 				push @etddata, [ "contributor", EPrints::Utils::make_name_string( $editor ), "dc" ];
 			}
 		}
-#	 cjg commented out. need to make work for new date layout
-##		## Date for discovery. For a month/day we don't have, assume 01.
-##		my $date = $eprint->get_value( "date_issue" );
-#		if( defined $date )
-#		{
-#	        	$date =~ s/(-0+)+$//;
-#			push @etddata, [ "issued", $date, "dcterms" ];
-#		}
+
+		## Date for discovery. For a month/day we don't have, assume 01.
+		my $date = $eprint->get_value( "date" );
+		if( defined $date )
+		{
+	        	$date =~ m/^(\d\d\d\d)(-\d\d)?/;
+			my $issued = $1;
+			if( defined $2 ) { $issued .= $2; }
+			push @etddata, [ "issued", $issued, "dcterms" ];
+		}
 	
 	
 		my $ds = $eprint->get_dataset();
