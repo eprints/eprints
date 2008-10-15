@@ -980,7 +980,7 @@ Views
     <epp:phrase id="Update/Views:no_grouping_title">Nothing</epp:phrase>
     <epp:phrase id="Update/Views:jump_to"><div class="ep_view_jump_to">Jump to: <epc:pin name="jumps" /></div></epp:phrase>
     <epp:phrase id="Update/Views:jump_seperator"> | </epp:phrase>
-    <epp:phrase id="Update/Views:up_a_level"><table><tr><td><a href=".."><img src="{$config{rel_path}}/style/images/multi_up.png" border='0' /></a></td><td><a href="..">Up a level</a></td></tr></table></epp:phrase>
+    <epp:phrase id="Update/Views:up_a_level"><table><tr><td><epc:pin name="url"><img src="{$config{rel_path}}/style/images/multi_up.png" border='0' /></epc:pin></td><td><epc:pin name="url">Up a level</epc:pin></td></tr></table></epp:phrase>
 
 <!--********************************************************************** 
 General phrases, used alot

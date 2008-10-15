@@ -830,7 +830,6 @@ sub update_view_list
 			render_navigation_aids( $session, $path_values, $view, \@fields, "list" ) );
 
 		print PAGE $navigation_aids;
-		print INCLUDE $navigation_aids;
 		
 		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
 		print INCLUDE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
@@ -1107,7 +1106,16 @@ sub render_navigation_aids
 
 	if( scalar @{$path_values} && !$view->{hideup} )
 	{
-		$f->appendChild( $session->html_phrase( "Update/Views:up_a_level" ) );
+		print STDERR Dumper( $path_values );
+		my $url = '../';
+		my $maxdepth = scalar( split( /,/, $view->{fields} ) );	
+		my $depth = scalar( @{$path_values} );
+		if( $depth == $maxdepth ) 
+		{
+			$url = "./";
+		}
+		$f->appendChild( $session->html_phrase( "Update/Views:up_a_level", 
+			url => $session->render_link( $url ) ) );
 	}
 
 	if( defined $fields_being_browsed && $fields_being_browsed->[0]->is_type( "subject" ) )
