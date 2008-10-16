@@ -7809,5 +7809,5 @@ EPRINTS-3.1-beta-2
  * Fixed "up a level" to link correctly.
  * Removed the "navigation aids" from the .include files.
 
-2008-10-15 cjg
+2008-10-16 cjg
  * Fixed minor bug introduced in previous change to Url.pm
