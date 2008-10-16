@@ -7811,3 +7811,6 @@ EPRINTS-3.1-beta-2
 
 2008-10-16 cjg
  * Fixed minor bug introduced in previous change to Url.pm
+
+2008-10-16 cjg
+ * Removed stray Dumper() debug line from Update::Views

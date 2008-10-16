@@ -1106,7 +1106,6 @@ sub render_navigation_aids
 
 	if( scalar @{$path_values} && !$view->{hideup} )
 	{
-		print STDERR Dumper( $path_values );
 		my $url = '../';
 		my $maxdepth = scalar( split( /,/, $view->{fields} ) );	
 		my $depth = scalar( @{$path_values} );
