@@ -1107,7 +1107,8 @@ sub render_navigation_aids
 	if( scalar @{$path_values} && !$view->{hideup} )
 	{
 		my $url = '../';
-		my $maxdepth = scalar( split( /,/, $view->{fields} ) );	
+		my @fields = split( /,/, $view->{fields} );
+		my $maxdepth = scalar( @fields );
 		my $depth = scalar( @{$path_values} );
 		if( $depth == $maxdepth ) 
 		{
