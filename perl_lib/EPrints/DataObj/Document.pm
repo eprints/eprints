@@ -1800,6 +1800,7 @@ sub make_thumbnails
 		next if !defined $plugin;
 
 		my $doc = $plugin->convert( $self->get_parent, $self, 'thumbnail_'.$size );
+		next if !defined $doc;
 
 		$self->add_object_relations(
 				$doc,
