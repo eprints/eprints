@@ -7839,3 +7839,6 @@ EPRINTS-3.1-beta-2
  * Fixed bug in bin/export which exported ALL items from "eprint" even if
     the dataset was "inbox" or "archive" etc.
 
+2008-10-29 tdb
+ * Added copy of File::Temp 0.20, fixing #3447
+
