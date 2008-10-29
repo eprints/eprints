@@ -7827,3 +7827,6 @@ EPRINTS-3.1-beta-2
  * Fixed typo in prepare_page. template_id should have been template. Closes
     #3457.
 
+2008-10-29 cjg
+ * Added <template> option to .xpage files.
+
