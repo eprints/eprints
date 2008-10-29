@@ -7834,3 +7834,8 @@ EPRINTS-3.1-beta-2
  * Turned :utf8 views to :bytes. 
  * Removed encode from the from_view_id function. The previous fix should
     have been to remove the line, not invert it.
+
+2008-10-29 cjg
+ * Fixed bug in bin/export which exported ALL items from "eprint" even if
+    the dataset was "inbox" or "archive" etc.
+

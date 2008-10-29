@@ -241,12 +241,24 @@ else
 		exit 1;
 	}
 
-	@objectids = ("ALL") unless( scalar @objectids );
+	my $list;
 
-	my $list = EPrints::List->new(
-		dataset => $ds,
-		session => $session,
-		ids=>\@objectids );
+	if( scalar @objectids )
+	{
+		$list = EPrints::List->new(
+			dataset => $ds,
+			session => $session,
+			ids=>\@objectids );
+	}
+	else
+	{
+		my $searchexp = new EPrints::Search(
+			allow_blank=>1,
+			session=>$session,
+			dataset=>$ds );
+
+		$list = $searchexp->perform_search;
+	}
 
 	print $plugin->byte_order_mark;
 	$plugin->output_list( list=>$list, fh=>*STDOUT );
