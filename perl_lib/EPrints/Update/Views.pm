@@ -127,7 +127,6 @@ sub update_view_file
 	}
 
 	my @view_path = split( '/', $viewinfo );
-	
 	update_view_list( $session, $view, $langid, \@view_path );
 }
 
@@ -400,9 +399,8 @@ sub update_view_menu
 			},
 			"browseindex" );
 
-	open( INCLUDE, ">$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
-	binmode(INCLUDE,":utf8");
-	print INCLUDE $page->toString;
+	open( INCLUDE, ">:utf8", "$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
+	print INCLUDE EPrints::XML::to_string( $page );
 	close INCLUDE;
 
 	return( $target );
@@ -802,29 +800,24 @@ sub update_view_list
 
 
 		# This writes the title including HTML tags
-		open( TITLE, ">$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
-		binmode(TITLE,":utf8");
-		print TITLE $title->toString;
+		open( TITLE, ">:utf8", "$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
+		print TITLE EPrints::XML::to_string( $title );
 		close TITLE;
 
 		# This writes the title with HTML tags stripped out.
-		open( TITLETXT, ">$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
-		binmode(TITLETXT,":utf8");
+		open( TITLETXT, ">:utf8", "$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
 		print TITLETXT EPrints::Utils::tree_to_utf8( $title );
 		close TITLETXT;
 
 		if( defined $view->{template} )
 		{
-			open( TEMPLATE, ">$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
-			binmode(TEMPLATE,":utf8");
+			open( TEMPLATE, ">:utf8", "$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
 			print TEMPLATE $view->{template};
 			close TEMPLATE;
 		}
 
-		open( PAGE, ">$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
-		binmode(PAGE,":utf8");
-		open( INCLUDE, ">$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
-		binmode(INCLUDE,":utf8");
+		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
+		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
 		my $navigation_aids = EPrints::XML::to_string( 
 			render_navigation_aids( $session, $path_values, $view, \@fields, "list" ) );
@@ -884,7 +877,7 @@ sub update_view_list
 				$first = 0;
 			}
 
-			print PAGE $session->html_phrase( "Update/Views:group_by", groups=>$groups )->toString;
+			print PAGE EPrints::XML::to_string( $session->html_phrase( "Update/Views:group_by", groups=>$groups ) );
 		}
 
 		my $field;
@@ -903,7 +896,7 @@ sub update_view_list
 		my $intro = "";
 		if( $session->get_lang()->has_phrase( $intro_phrase_id ) )
 		{
-			$intro = $session->html_phrase( $intro_phrase_id )->toString;
+			$intro = EPrints::XML::to_string( $session->html_phrase( $intro_phrase_id ) );
 		}
 
 		# Number of items div.
@@ -915,19 +908,19 @@ sub update_view_list
 			{
 				$phraseid = "bin/generate_views:subject_blurb";
 			}
-			$count_div = $session->html_phrase(
+			$count_div = EPrints::XML::to_string( $session->html_phrase(
 				$phraseid,
-				n=>$session->make_text( $count ) )->toString;
+				n=>$session->make_text( $count ) ) );
 		}
 
 		# Timestamp div
 		my $time_div = "";
 		unless( $view->{notimestamp} )
 		{
-			$time_div = $session->html_phrase(
+			$time_div = EPrints::XML::to_string( $session->html_phrase(
 				"bin/generate_views:timestamp",
 					time=>$session->make_text(
-						EPrints::Time::human_time() ) )->toString;
+						EPrints::Time::human_time() ) ) );
 		}
 
 
@@ -1038,11 +1031,11 @@ sub update_view_list
 		my $jumpmenu = "";
 		if( $opts->{"jump"} eq "plain" ) 
 		{
-			$jumpmenu = $jumps->toString;
+			$jumpmenu = EPrints::XML::to_string( $jumps );
 		}
 		if( $opts->{"jump"} eq "default" )
 		{
-			$jumpmenu = $session->html_phrase( "Update/Views:jump_to", jumps=>$jumps )->toString;
+			$jumpmenu = EPrints::XML::to_string( $session->html_phrase( "Update/Views:jump_to", jumps=>$jumps ) );
 		}
 
 		# css for your convenience
@@ -1068,8 +1061,8 @@ sub update_view_list
 			print PAGE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
 			print INCLUDE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
 		
-			print PAGE "<h2>".$heading->toString."</h2>";
-			print INCLUDE "<h2>".$heading->toString."</h2>";
+			print PAGE "<h2>".EPrints::XML::to_string( $heading )."</h2>";
+			print INCLUDE "<h2>".EPrints::XML::to_string( $heading )."</h2>";
 			my( $block, $n ) = render_array_of_eprints( $session, $view, $items );
 			print PAGE $block;
 			print INCLUDE $block;

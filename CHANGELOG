@@ -7814,3 +7814,12 @@ EPRINTS-3.1-beta-2
 
 2008-10-16 cjg
  * Removed stray Dumper() debug line from Update::Views
+
+2008-10-23 tdb
+ * Fixed utf-8 problems in views by removing binmode(FH,":utf8")
+ * Replaced all uses of toString with EPrints::XML::to_string in views
+
+2008-10-29 cjg
+ * Added :utf8 back in! 
+ * Fixed issue in Utils which decoded when it should have encoded.
+
