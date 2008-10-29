@@ -32,9 +32,9 @@ while(1)
 		dataset => $dataset,
 	);
 	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
-	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
 	my $list = $searchexp->perform_search;
-	$list->map(sub {
+	$list->map(
+		sub {
 		my( $session, $dataset, $file ) = @_;
 		if( 1 || $check-- == 0 )
 		{
@@ -42,26 +42,38 @@ while(1)
 			my $list = &fetch_unset();
 			if( $list->count > 0 )
 			{
-				#print "Found ".$list->count." unset files!\n";
-				#print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
-				my $fh = $file->get_local_copy();
-				my $droid_xml = File::Temp->new();
-				my $sig = $session->get_repository->get_conf( "droid_sig_file" );
-				$session->get_repository->exec( "droid",
-					SOURCE => $fh,
-					TARGET => "$droid_xml",
-					SIGFILE => "$sig", 
-				);
-				my $doc = EPrints::XML::parse_xml("$droid_xml.xml");
-				my $PUID_node = ($doc->getElementsByTagName( "PUID" ))[0];
-				my $PUID = EPrints::Utils::tree_to_utf8($PUID_node);
-				print $PUID;
-				#unlink("$droid_xml.xml");
-				# getElemntsByTagName & getChildNode 
-				EPrints::XML::dispose($doc);
-				# $list->map(sub { ... });
-				$file->set_value( "pronum_uid", $PUID );
-				$file->commit;
+				my $todo = $list->count;
+				
+				#if (!($file->get_value("mime_type") eq "")) 
+				{
+					my $fh = $file->get_local_copy();
+					if ( -e $fh) {
+						print "\n\n";
+						print $todo." unset files remaining.\n";
+						print "============================\n";
+						$todo--;
+						print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
+						print "FH:" .$fh ."\n";		
+						my $droid_xml = File::Temp->new();
+						my $sig = $session->get_repository->get_conf( "droid_sig_file" );
+						$session->get_repository->exec( "droid",
+							SOURCE => $fh,
+							TARGET => "$droid_xml",
+							SIGFILE => "$sig", 
+						);
+						my $doc = EPrints::XML::parse_xml("$droid_xml.xml");
+						my $PUID_node = ($doc->getElementsByTagName( "PUID" ))[0];
+						my $PUID = EPrints::Utils::tree_to_utf8($PUID_node);
+						print "FOUND A PUID: " . $PUID . "\n\n";
+						# getElemntsByTagName & getChildNode 
+						# $list->map(sub { ... });
+						$file->set_value( "pronom_uid", $PUID );
+						my $temp = $file->get_value("pronom_uid");
+						$file->commit;
+						unlink("$droid_xml.xml");
+						EPrints::XML::dispose($doc);
+					}
+				}
 			}
 		}
 	});
@@ -77,7 +89,7 @@ sub fetch_unset
 	);
 
 	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
-	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
+#	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
 	$searchexp->add_field( $dataset->get_field( "pronom_uid" ), "", "EX" );
 
 	my $list = $searchexp->perform_search;
