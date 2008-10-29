@@ -7823,3 +7823,7 @@ EPRINTS-3.1-beta-2
  * Added :utf8 back in! 
  * Fixed issue in Utils which decoded when it should have encoded.
 
+2008-10-29 cjg
+ * Fixed typo in prepare_page. template_id should have been template. Closes
+    #3457.
+

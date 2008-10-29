@@ -2493,7 +2493,10 @@ sub write_static_page
 	$dir =~ s/\/[^\/]*$//;
 
 	if( !-d $dir ) { EPrints::Platform::mkdir( $dir ); }
-
+	if( !defined $parts->{template} && -e "$filebase.template" )
+	{
+		unlink( "$filebase.template" );
+	}
 	foreach my $part_id ( keys %{$parts} )
 	{
 		my $file = $filebase.".".$part_id;
@@ -2660,11 +2663,11 @@ sub prepare_page
 	{
 		if( $self->get_secure )
 		{
-			$options{template_id} = "secure";
+			$options{template} = "secure";
 		}
 		else
 		{
-			$options{template_id} = "default";
+			$options{template} = "default";
 		}
 	}
 
