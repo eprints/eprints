@@ -7830,3 +7830,7 @@ EPRINTS-3.1-beta-2
 2008-10-29 cjg
  * Added <template> option to .xpage files.
 
+2008-10-29 cjg
+ * Turned :utf8 views to :bytes. 
+ * Removed encode from the from_view_id function. The previous fix should
+    have been to remove the line, not invert it.

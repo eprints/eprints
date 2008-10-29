@@ -399,7 +399,7 @@ sub update_view_menu
 			},
 			"browseindex" );
 
-	open( INCLUDE, ">:utf8", "$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
+	open( INCLUDE, ">:bytes", "$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
 	print INCLUDE EPrints::XML::to_string( $page );
 	close INCLUDE;
 
@@ -800,24 +800,24 @@ sub update_view_list
 
 
 		# This writes the title including HTML tags
-		open( TITLE, ">:utf8", "$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
+		open( TITLE, ">:bytes", "$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
 		print TITLE EPrints::XML::to_string( $title );
 		close TITLE;
 
 		# This writes the title with HTML tags stripped out.
-		open( TITLETXT, ">:utf8", "$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
+		open( TITLETXT, ">:bytes", "$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
 		print TITLETXT EPrints::Utils::tree_to_utf8( $title );
 		close TITLETXT;
 
 		if( defined $view->{template} )
 		{
-			open( TEMPLATE, ">:utf8", "$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
+			open( TEMPLATE, ">:bytes", "$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
 			print TEMPLATE $view->{template};
 			close TEMPLATE;
 		}
 
-		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
-		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
+		open( PAGE, ">:bytes", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
+		open( INCLUDE, ">:bytes", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
 		my $navigation_aids = EPrints::XML::to_string( 
 			render_navigation_aids( $session, $path_values, $view, \@fields, "list" ) );

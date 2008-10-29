@@ -1149,6 +1149,7 @@ sub escape_filename
 
 	$fileid = "$fileid";
 	utf8::decode($fileid);
+	# now we're working with a utf-8 tagged string, temporarily.
 
 	# Valid chars: 0-9, a-z, A-Z, ",", "-", " "
 
@@ -1184,8 +1185,6 @@ sub unescape_filename
 	$fileid =~ s/_/ /g;
 	$fileid =~ s/==(....)/chr(hex($1))/eg;
 	$fileid =~ s/=(..)/chr(hex($1))/eg;
-
-	utf8::decode($fileid);
 
 	return $fileid;
 }
