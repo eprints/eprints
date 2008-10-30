@@ -92,7 +92,7 @@ sub render
 			"div",
 			align => "center"
 			);	
-	$unclassified->appendText( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script" );
+	$unclassified->appendText( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script. If not installed this tool is availale via http://files.eprints.org" );
 	my $br = $plugin->{session}->make_element(
 			"br"
 	);
@@ -139,6 +139,9 @@ sub render
 		}
 		#$pronom_output .= " [" . $format_code . "] ";
 		my $format_bar_width = ($count / $max_count) * $max_width;
+		if ($format_bar_width < 10) {
+			$format_bar_width = 10;
+		}
 		my $format_count_bar = $plugin->{session}->make_element(
 				"table",
 				#type => "submit",
