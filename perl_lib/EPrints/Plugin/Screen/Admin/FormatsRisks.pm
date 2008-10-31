@@ -71,7 +71,6 @@ sub render
 	my $session = $plugin->{session};
 
 	my $files_by_format = $plugin->fetch_data();
-##This is how you do it
 	
 	my( $html , $table , $p , $span );
 
@@ -147,7 +146,8 @@ sub render
 				#type => "submit",
 				cellpadding => 0,
 				cellspacing => 0,
-				style => "width: ".$format_bar_width."px; background-color=red;"
+				width => "100%",
+				style => "background-color=red;"
 				#value => ""
 		);
 		my $format_count_bar_tr = $plugin->{session}->make_element(
@@ -163,6 +163,7 @@ sub render
 				style => "padding-left: 2px"
 				
 		);
+		
 		$format_count_bar_td->appendText ( "  " );
 		$format_count_bar_td2->appendText(" " .$count);
 		$format_count_bar_tr->appendChild( $format_count_bar_td ); 
@@ -173,7 +174,57 @@ sub render
 		$format_panel_tr->appendChild( $format_details_td );
 		$format_panel_tr->appendChild( $format_count_td );
 		$format_table->appendChild( $format_panel_tr );
-	# do something with	$files_by_format->{format};
+
+		my $format_users = {};
+		my $format_eprints = {};
+		foreach my $fileid (@{$files_by_format->{$format}}) {
+			my $file = EPrints::DataObj::File->new(
+				$plugin->{session},
+				$fileid
+			);
+			my $document = $file->get_parent();
+			my $eprint = $document->get_parent();
+			my $eprint_id = $eprint->get_value( "eprintid" );
+			my $user = $eprint->get_user();
+			my $user_id = $user->get_value( "userid" );
+			push(@{$format_eprints->{$format}->{$eprint_id}},$fileid);
+			push(@{$format_users->{$format}->{$user_id}},$fileid);
+		}
+
+		my $table = $plugin->get_user_files($format_users,$format);
+		
+		my $other_row = $plugin->{session}->make_element(
+			"tr"
+			);
+		my $other_column = $plugin->{session}->make_element(
+			"td",
+			colspan => 2
+			);
+		my $inner_table = $plugin->{session}->make_element(
+			"table",
+			width => "100%"
+			);
+		my $inner_row = $plugin->{session}->make_element(
+			"tr"
+			);
+		my $inner_column1 = $plugin->{session}->make_element(
+			"td",
+			width => "70%"
+			);
+		my $inner_column2 = $plugin->{session}->make_element(
+			"td",
+			width => "30%",
+			valign => "top"
+			);
+		my $eprints_table = $plugin->get_eprints_files($format_eprints,$format);
+		$inner_column1->appendChild ( $eprints_table );
+		$inner_column2->appendChild ( $table );
+		$inner_row->appendChild( $inner_column1 );
+		$inner_row->appendChild( $inner_column2 );
+		$inner_table->appendChild( $inner_row );
+		$other_column->appendChild( $inner_table );
+		$other_row->appendChild( $other_column );
+		$format_table->appendChild( $other_row );
 
 	}
 	if ($classified eq "false") {
@@ -189,11 +240,197 @@ sub render
 	return $html;
 }
 
+sub get_eprints_files
+{
+	my ( $plugin, $format_eprints, $format ) = @_;
+	
+	my $block = $plugin->{session}->make_element(
+		"div"
+		);
+	
+	my $eprint_ids = %{$format_eprints}->{$format};
+	foreach my $eprint_id (keys %{$eprint_ids})
+	{
+		my $file_ids = %{$format_eprints}->{$format}->{$eprint_id};
+		foreach my $file_id (@{$file_ids})
+		{
+			my $file = EPrints::DataObj::File->new(
+                                $plugin->{session},
+                                $file_id
+                        );
+
+			my $table = $plugin->{session}->make_element(
+					"table",
+					width => "100%",
+					cellpadding => 1,
+					cellspacing => 1
+                        );
+			my $row1 = $plugin->{session}->make_element(
+					"tr"
+			);			
+			my $col1 = $plugin->{session}->make_element(
+					"td",
+					style => "border: 1px dashed black;",
+					colspan => 2
+			);
+			my $bold = $plugin->{session}->make_element(
+					"b"
+			);
+			$bold->appendText( $file->get_value("filename") );	
+			$col1->appendChild( $bold );
+			$col1->appendText( " (" . EPrints::Utils::human_filesize($file->get_value("filesize")) . ")");
+			$row1->appendChild( $col1 );
+			$table->appendChild ( $row1 );
+			my $row2 = $plugin->{session}->make_element(
+					"tr"
+			);			
+			my $col2 = $plugin->{session}->make_element(
+					"td",
+					style => "border-right: 1px dashed black; border-left: 1px dashed black;",
+					colspan => 2
+			);			
+			$col2->appendText( "URL: " . $file->get_parent()->get_url());
+			$row2->appendChild( $col2 );
+			$table->appendChild ( $row2 );
+			my $row3 = $plugin->{session}->make_element(
+					"tr"
+			);			
+			my $col3a = $plugin->{session}->make_element(
+					"td",
+					style => "border: 1px dashed black;"
+			);			
+			$col3a->appendText( "EPrint ID: " . $file->get_parent()->get_parent()->get_value( "eprintid" ));
+			my $col3b = $plugin->{session}->make_element(
+					"td",
+					style => "border-right: 1px dashed black; border-top: 1px dashed black; border-bottom: 1px dashed black;"
+			);
+			$col3b->appendText( "User: " . EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description()));
+			$row3->appendChild( $col3a );
+			$row3->appendChild( $col3b );
+			$table->appendChild( $row3 );
+			$block->appendChild($table);
+			my $br = $plugin->{session}->make_element(
+				"br"
+			);
+			$block->appendChild($br);
+		}
+	}
+	
+	return $block;
+}
+
+sub get_user_files 
+{
+	my ( $plugin, $format_users, $format ) = @_;
+	
+	my $user_format_count_table = $plugin->{session}->make_element(
+			"table",
+			width => "250px",
+			cellpadding => 1,
+			style => "border: 1px solid black;",
+			cellspacing => 0
+			);
+	my $user_format_count_tr = $plugin->{session}->make_element(
+			"tr"
+			);
+	my $user_format_count_htr = $plugin->{session}->make_element(
+			"tr"
+			);
+	my $user_format_count_th1 = $plugin->{session}->make_element(
+			"th",
+			align => "center",
+			style => "font-size: 1em; font-weight: bold;"
+			);
+	my $user_format_count_th2 = $plugin->{session}->make_element(
+			"th",
+			align => "center",
+			style => "font-size: 1em; font-weight: bold;"
+			);
+	$user_format_count_th1->appendText( "User" );
+	$user_format_count_th2->appendText( "No of Files" );
+	$user_format_count_htr->appendChild( $user_format_count_th1 );
+	$user_format_count_htr->appendChild( $user_format_count_th2 );
+	
+	$user_format_count_table->appendChild( $user_format_count_htr );
+	
+	my $max_width=120;
+	my $max_count = 0;
+
+	my $user_ids = %{$format_users}->{$format};
+	foreach my $user_id (sort { $#{$user_ids->{$b}} <=> $#{$user_ids->{$a}} } keys %{$user_ids})
+	{
+		my $count = $#{$format_users->{$format}->{$user_id}};
+		$count++;
+		if ($max_count < 1) {
+			$max_count = $count;
+		}
+		my $user_format_count_tr = $plugin->{session}->make_element(
+				"tr",
+				);
+		my $user_format_count_td1 = $plugin->{session}->make_element(
+				"td",
+				align => "right",
+				style => "font-size: 0.9em;",
+				width => "120px"
+				);
+		my $user = EPrints::DataObj::User->new(
+				$plugin->{session},
+				$user_id
+				);
+		$user_format_count_td1->appendText( EPrints::Utils::tree_to_utf8($user->render_description()) );
+		my $user_format_count_td2 = $plugin->{session}->make_element(
+				"td",
+				width => "130px"
+				);
+		my $file_count_bar = $plugin->{session}->make_element(
+				"table",
+				cellpadding => 0,
+				cellspacing => 0,
+				style => "width: 130px;"
+				);
+		my $file_count_bar_tr = $plugin->{session}->make_element(
+				"tr"
+				);
+		my $file_bar_width = ($count / $max_count) * $max_width;
+		if ($file_bar_width < 10) {
+			$file_bar_width = 10;
+		}
+		my $file_count_bar_td1 = $plugin->{session}->make_element(
+				"td",
+				width => $file_bar_width . "px"
+				);
+		my $file_bar_width = ($count / $max_count) * $max_width;
+		if ($file_bar_width < 10) {
+			$file_bar_width = 10;
+		}
+		my $file_count_bar_div = $plugin->{session}->make_element(
+				"div",
+				style => "width=".$file_bar_width."px; height: 10px; background-color: blue;"
+				);
+		#$file_count_bar_div->appendText ("1");
+		my $file_count_bar_td2 = $plugin->{session}->make_element(
+				"td",
+				style => "padding-left: 2px;font-size: 0.8em;"
+				);
+		$file_count_bar_td1->appendChild( $file_count_bar_div );
+		$file_count_bar_td2->appendText( $count );
+		$file_count_bar_tr->appendChild( $file_count_bar_td1 );
+		$file_count_bar_tr->appendChild( $file_count_bar_td2 );
+		$file_count_bar->appendChild( $file_count_bar_tr );
+		$user_format_count_td2->appendChild( $file_count_bar );
+		$user_format_count_tr->appendChild( $user_format_count_td1 );
+		$user_format_count_tr->appendChild( $user_format_count_td2 );
+		$user_format_count_table->appendChild( $user_format_count_tr );
+	}
+	return $user_format_count_table;	
+}
+
 sub redirect_to_me_url
 {
 	my( $plugin ) = @_;
 
 	return undef;
 }
+
 
 1;
