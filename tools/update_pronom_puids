@@ -26,7 +26,7 @@ EOH
 
 while(1)
 {
-	my $check = 10;
+	#my $check = 10;
 	my $searchexp = EPrints::Search->new(
 		session => $session,
 		dataset => $dataset,
@@ -36,15 +36,15 @@ while(1)
 	$list->map(
 		sub {
 		my( $session, $dataset, $file ) = @_;
-		if( 1 || $check-- == 0 )
+		#if( 1 || $check-- == 0 )
 		{
-			$check = 10;
+			#$check = 10;
 			my $list = &fetch_unset();
 			if( $list->count > 0 )
 			{
 				my $todo = $list->count;
 				
-				#if (!($file->get_value("mime_type") eq "")) 
+				if ($file->get_value("pronom_uid") eq "") 
 				{
 					my $fh = $file->get_local_copy();
 					if ( -e $fh) {
