@@ -76,6 +76,37 @@ sub render
 
 	$html = $session->make_doc_fragment;
 	
+	my $script = $plugin->{session}->make_javascript('
+		function show(id) {
+			var canSee = "block";
+			if(navigator.appName.indexOf("Microsoft") > -1){
+				canSee = "block";
+			} else {
+				canSee = "table-row";
+			}
+			document.getElementById(id).style.display = canSee;
+		}
+		function hide(id) {
+			
+			document.getElementById(id).style.display = "none";
+		}
+		function plus(format) {
+			hide(format + "_plus");
+			show(format + "_minus");
+			show(format + "_inner_row");
+		}
+		function minus(format) {
+			show(format + "_plus");
+			hide(format + "_minus");
+			hide(format + "_inner_row");
+		}
+	');
+	#my $script_node = $plugin->{session}->make_element(
+	#		"script",
+	#		type => "text/javascript"
+	#);
+	#$script_node->appendText($script);
+	$html->appendChild($script);
 	my $inner_panel = $plugin->{session}->make_element( 
 			"div", 
 			id => $plugin->{prefix}."_panel" );
@@ -95,6 +126,7 @@ sub render
 	my $br = $plugin->{session}->make_element(
 			"br"
 	);
+	my $hideall = "";
 	foreach my $format (sort { $#{$files_by_format->{$b}} <=> $#{$files_by_format->{$a}} } keys %{$files_by_format})
 	{
 		my $count = $#{$files_by_format->{$format}};
@@ -131,11 +163,28 @@ sub render
 				"td",
 				align => "left"
 		);
-		my $pronom_output = $format_name;
+		my $pronom_output = $format_name . " ";
 		if (trim($format_version) eq "") {
 		} else {	
-			$pronom_output .= " (Version " . $format_version . ") ";
+			$pronom_output .= "(Version " . $format_version . ") ";
 		}
+		my $plus_button = $plugin->{session}->make_element(
+			"img",
+			id => $format . "_plus",
+			onclick => 'plus("'.$format.'")',
+			src => "/style/images/plus.png",
+			border => 0,
+			alt => "PLUS"
+		);
+		my $minus_button = $plugin->{session}->make_element(
+			"img",
+			id => $format . "_minus",
+			onclick => 'minus("'.$format.'")',
+			src => "/style/images/minus.png",
+			border => 0,
+			alt => "MINUS"
+		);
+		$hideall = $hideall . 'hide("'.$format.'_minus");' . "\n";
 		#$pronom_output .= " [" . $format_code . "] ";
 		my $format_bar_width = ($count / $max_count) * $max_width;
 		if ($format_bar_width < 10) {
@@ -170,6 +219,8 @@ sub render
 		$format_count_bar_tr->appendChild( $format_count_bar_td2 ); 
 		$format_count_bar->appendChild( $format_count_bar_tr );
 		$format_details_td->appendText ( $pronom_output );
+		$format_details_td->appendChild ( $plus_button );
+		$format_details_td->appendChild ( $minus_button );
 		$format_count_td->appendChild( $format_count_bar );
 		$format_panel_tr->appendChild( $format_details_td );
 		$format_panel_tr->appendChild( $format_count_td );
@@ -205,8 +256,10 @@ sub render
 			width => "100%"
 			);
 		my $inner_row = $plugin->{session}->make_element(
-			"tr"
+			"tr",
+			id => $format . "_inner_row"
 			);
+		$hideall = $hideall . 'hide("'. $format.'_inner_row");' . "\n";
 		my $inner_column1 = $plugin->{session}->make_element(
 			"td",
 			width => "70%"
@@ -237,6 +290,10 @@ sub render
 	$inner_panel->appendChild($format_table);
 	$html->appendChild( $inner_panel );
 	
+	my $script = $plugin->{session}->make_javascript(
+		$hideall
+	);
+	$html->appendChild($script);
 	return $html;
 }
 
@@ -261,16 +318,14 @@ sub get_eprints_files
 
 			my $table = $plugin->{session}->make_element(
 					"table",
-					width => "100%",
-					cellpadding => 1,
-					cellspacing => 1
+					width => "100%"
                         );
 			my $row1 = $plugin->{session}->make_element(
 					"tr"
 			);			
 			my $col1 = $plugin->{session}->make_element(
 					"td",
-					style => "border: 1px dashed black;",
+					style => "border: 1px dashed black; padding: 0.3em;",
 					colspan => 2
 			);
 			my $bold = $plugin->{session}->make_element(
@@ -286,10 +341,17 @@ sub get_eprints_files
 			);			
 			my $col2 = $plugin->{session}->make_element(
 					"td",
-					style => "border-right: 1px dashed black; border-left: 1px dashed black;",
+					style => "border-right: 1px dashed black; border-left: 1px dashed black; padding: 0.3em;",
 					colspan => 2
-			);			
-			$col2->appendText( "URL: " . $file->get_parent()->get_url());
+			);
+			my $file_url = $file->get_parent()->get_url();			
+			my $file_href = $plugin->{session}->make_element(
+					"a",
+					href => $file_url
+			);
+			$file_href->appendText( $file_url );
+			$col2->appendText( "URL: " );
+			$col2->appendChild( $file_href );
 			$row2->appendChild( $col2 );
 			$table->appendChild ( $row2 );
 			my $row3 = $plugin->{session}->make_element(
@@ -297,12 +359,18 @@ sub get_eprints_files
 			);			
 			my $col3a = $plugin->{session}->make_element(
 					"td",
-					style => "border: 1px dashed black;"
-			);			
-			$col3a->appendText( "EPrint ID: " . $file->get_parent()->get_parent()->get_value( "eprintid" ));
+					style => "border: 1px dashed black; padding: 0.3em;"
+			);
+			my $eprint_href = $plugin->{session}->make_element(
+					"a",
+					href => $file->get_parent()->get_parent()->get_url()
+			);
+			$eprint_href->appendText( $file->get_parent()->get_parent()->get_value( "eprintid" ) );	
+			$col3a->appendText( "EPrint ID: " );
+			$col3a->appendChild( $eprint_href );
 			my $col3b = $plugin->{session}->make_element(
 					"td",
-					style => "border-right: 1px dashed black; border-top: 1px dashed black; border-bottom: 1px dashed black;"
+					style => "border-right: 1px dashed black; border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 0.3em;"
 			);
 			$col3b->appendText( "User: " . EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description()));
 			$row3->appendChild( $col3a );
