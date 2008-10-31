@@ -290,7 +290,7 @@ sub render
 	$inner_panel->appendChild($format_table);
 	$html->appendChild( $inner_panel );
 	
-	my $script = $plugin->{session}->make_javascript(
+	$script = $plugin->{session}->make_javascript(
 		$hideall
 	);
 	$html->appendChild($script);
@@ -305,11 +305,14 @@ sub get_eprints_files
 		"div"
 		);
 	
-	my $eprint_ids = %{$format_eprints}->{$format};
-	foreach my $eprint_id (keys %{$eprint_ids})
+	#my $eprint_ids = %{$format_eprints}->{$format};
+	#foreach my $eprint_id (keys %{$eprint_ids})
+	my @eprint_ids = keys %{$format_eprints->{$format}};
+	foreach my $eprint_id (@eprint_ids)
 	{
-		my $file_ids = %{$format_eprints}->{$format}->{$eprint_id};
-		foreach my $file_id (@{$file_ids})
+
+		my @file_ids = @{$format_eprints->{$format}->{$eprint_id}};
+		foreach my $file_id (@file_ids)
 		{
 			my $file = EPrints::DataObj::File->new(
                                 $plugin->{session},
@@ -424,8 +427,11 @@ sub get_user_files
 	my $max_width=120;
 	my $max_count = 0;
 
-	my $user_ids = %{$format_users}->{$format};
-	foreach my $user_id (sort { $#{$user_ids->{$b}} <=> $#{$user_ids->{$a}} } keys %{$user_ids})
+
+
+	my @user_ids = keys %{$format_users->{$format}};
+
+	foreach my $user_id (sort  @user_ids)
 	{
 		my $count = $#{$format_users->{$format}->{$user_id}};
 		$count++;
@@ -467,7 +473,7 @@ sub get_user_files
 				"td",
 				width => $file_bar_width . "px"
 				);
-		my $file_bar_width = ($count / $max_count) * $max_width;
+		$file_bar_width = ($count / $max_count) * $max_width;
 		if ($file_bar_width < 10) {
 			$file_bar_width = 10;
 		}
