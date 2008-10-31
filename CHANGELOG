@@ -7842,3 +7842,6 @@ EPRINTS-3.1-beta-2
 2008-10-29 tdb
  * Added copy of File::Temp 0.20, fixing #3447
 
+2008-10-31 tdb
+ * Added Media RSS tags to RSS2 export
+

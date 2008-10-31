@@ -36,7 +36,8 @@ sub output_list
 	my $response = $session->make_element( "rss",
 		"version" => "2.0",
 		"xmlns:content" => "http://purl.org/rss/1.0/modules/content/",
-		"xmlns:dc" => "http://purl.org/dc/elements/1.1/" );
+		"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
+		"xmlns:media" => "http://search.yahoo.com/mrss" );
 
 	my $channel = $session->make_element( "channel" );
 	$response->appendChild( $channel );
@@ -112,6 +113,7 @@ sub output_list
 			2,
 			"description",
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
+		$item->appendChild( $plugin->render_media_content( $eprint ) );
 		
 		$channel->appendChild( $item );		
 	}	
@@ -137,6 +139,47 @@ sub RFC822_time
 	my( $time ) = @_;
 	$time = time if( !defined $time );
 	return( strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( $time ) ) );
+}
+
+sub render_media_content
+{
+	my( $self, $dataobj ) = @_;
+
+	my $session = $self->{session};
+
+	my $frag = $session->make_doc_fragment;
+
+	# Pick a random, public document from the eprint
+	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		my @docs = $dataobj->get_all_documents();
+
+		@docs = grep { $_->is_public() } @docs;
+
+		return $frag unless scalar @docs;
+
+		$dataobj = $docs[int(rand(scalar @docs))];
+	}
+
+	my( $thumbnail ) = @{($dataobj->get_related_objects( EPrints::Utils::make_relation( "hassmallThumbnailVersion" ) ))};
+	if( $thumbnail )
+	{
+		$frag->appendChild( $session->make_element( "media:thumbnail", 
+			url => $thumbnail->get_url,
+			type => $thumbnail->mime_type,
+		) );
+	}
+
+	my( $preview ) = @{($dataobj->get_related_objects( EPrints::Utils::make_relation( "haspreviewThumbnailVersion" ) ))};
+	if( $preview )
+	{
+		$frag->appendChild( $session->make_element( "media:content", 
+			url => $preview->get_url,
+			type => $thumbnail->mime_type,
+		) );
+	}
+
+	return $frag;
 }
 
 1;
