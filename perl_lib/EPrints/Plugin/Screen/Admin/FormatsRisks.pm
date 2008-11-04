@@ -3,6 +3,11 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
+my $classified = "true";
+my $hideall = "";
+my $unstable = 0;
+my $risks_url = "";
+our $classified, $hideall, $unstable, $risks_url;
 
 sub new
 {
@@ -70,7 +75,6 @@ sub render
 
 	my $session = $plugin->{session};
 
-	my $files_by_format = $plugin->fetch_data();
 	
 	my( $html , $table , $p , $span );
 
@@ -111,24 +115,156 @@ sub render
 			"div", 
 			id => $plugin->{prefix}."_panel" );
 
-	my $max_count = 0;	
-	my $max_width = 300;
-	my $format_table = $plugin->{session}->make_element(
-			"table",
-			width => "100%"
-	);
-	my $classified = "true";
 	my $unclassified = $plugin->{session}->make_element(
 			"div",
 			align => "center"
 			);	
 	$unclassified->appendText( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script. If not installed this tool is availale via http://files.eprints.org" );
+	my $risks_warning = $plugin->{session}->make_element(
+			"div",
+			align => "center"
+			);	
+	$risks_warning->appendText( "Risks analysis functionality is currently not available.\nThis feature is due to be made available by The National Archives (UK) in the near future.\nThis page will automatically pick up the data when this feature becomes available." );
+	my $risks_unstable = $plugin->{session}->make_element(
+			"div",
+			align => "center"
+			);	
+	$risks_unstable->appendText( "This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should be ignored." );
+
 	my $br = $plugin->{session}->make_element(
 			"br"
 	);
-	my $hideall = "";
+
+	my $format_table;
+	my $warning;
+	my $doc;
+	my $available;
+	my $risk_xml = "http://www.eprints.org/services/pronom_risk.xml";
+	eval {
+		$doc = EPrints::XML::parse_url($risk_xml);
+	};
+	if ($@) {
+		$risks_url = "http://nationalarchives.gov.uk/pronom/preservationplanning.asmx";
+		my $risk_state_warning_div = $plugin->{session}->make_element(
+			"div"
+		);
+		$risk_state_warning_div->appendText("Risk Service Status Unavailable trying default url.");
+		$warning = $plugin->{session}->render_message("warning",
+			$risk_state_warning_div
+		);
+		#$inner_panel->appendChild($unclassified);
+		$inner_panel->appendChild($warning);
+		$available = 1;
+	} else {
+		my $node; 
+		if ($unstable eq 1) {
+			$node = ($doc->getElementsByTagName( "risks_unstable" ))[0];
+		} else {
+			$node = ($doc->getElementsByTagName( "risks_stable" ))[0];
+		}
+		$available = ($node->getElementsByTagName( "available" ))[0];
+		$available = EPrints::Utils::tree_to_utf8($available);
+		if ($available eq 1) {
+			$risks_url = ($node->getElementsByTagName( "base_url" ))[0];
+			$risks_url = EPrints::Utils::tree_to_utf8($risks_url);
+		} else {
+			$risks_url = "";
+		}
+	}
+	if ($available eq 1) {
+		if ( $unstable eq 1 ) {
+			$warning = $plugin->{session}->render_message("warning",
+					$risks_unstable
+					);
+		}
+		$format_table = $plugin->get_format_risks_table();
+	} else {
+		#$format_table = $plugin->get_format_table();
+		$warning = $plugin->{session}->render_message("warning",
+				$risks_warning
+				);
+	}
+	$format_table = $plugin->get_format_risks_table();
+
+	if ($classified eq "false") {
+		$warning = $plugin->{session}->render_message("warning",
+			$unclassified
+		);
+		#$inner_panel->appendChild($unclassified);
+		$inner_panel->appendChild($warning);
+	}
+
+	$inner_panel->appendChild($warning);
+	$inner_panel->appendChild($format_table);
+	$html->appendChild( $inner_panel );
+	
+	$script = $plugin->{session}->make_javascript(
+		$hideall
+	);
+	$html->appendChild($script);
+	return $html;
+}
+
+sub get_format_risks_table {
+	
+	my( $plugin ) = @_;
+
+	my $files_by_format = $plugin->fetch_data();
+	
+	my $url = $risks_url;
+
+	my $max_count = 0;	
+	my $max_width = 300;
+	
+	my $format_table = $plugin->{session}->make_element(
+			"table",
+			width => "100%"
+	);
+
+	my $soap_error = "";
+	my $pronom_error_message = "";
 	foreach my $format (sort { $#{$files_by_format->{$b}} <=> $#{$files_by_format->{$a}} } keys %{$files_by_format})
 	{
+		my @SOAP_ERRORS = "";
+		use SOAP::Lite
+			on_fault => sub { my($soap, $res) = @_;
+				if( ref( $res ) ) {
+					chomp( my $err = $res->faultstring );
+					push( @SOAP_ERRORS, "SOAP FAULT: $err" );
+				}
+				else {
+					chomp( my $err = $soap->transport->status );
+					push( @SOAP_ERRORS, "TRANSPORT ERROR: $err" );
+				}
+				return SOAP::SOM->new;
+			};
+		my $color = "blue";
+		if (!($url eq "")) {	
+			my $soap = SOAP::Lite 
+				-> uri('http://pp.pronom.nationalarchives.gov.uk/getFormatRiskIn')
+				-> proxy($url)
+				#-> on_fault(sub { my($soap, $res) = @_;
+			#		die ref $res ? $res->faultstring : $soap->transport->status;
+			#	        return ref $res ? $res : new SOAP::SOM;
+			#        })
+				-> method (SOAP::Data->name('PUID' => \SOAP::Data->value( SOAP::Data->name('Value' => $format) ))->attr({xmlns => 'http://pp.pronom.nationalarchives.gov.uk'}) );
+	
+			my $result = $soap->result();
+			
+			foreach my $error (@SOAP_ERRORS) {
+				if ($soap_error eq "" && !($error eq "")) {
+					$soap_error = $error;
+				}
+			}
+			
+		
+			if ($result < 200 && $soap_error eq "") {
+				$color = "red";
+			} else {
+				$color = "blue";
+			}
+		}
+	
 		my $count = $#{$files_by_format->{$format}};
 		$count++;
 		if ($max_count < 1) {
@@ -143,12 +279,24 @@ sub render
 			$classified = "false";
 		} else {
 			$format_code = $format;
-			my $natxml = "http://www.nationalarchives.gov.uk/pronom/".$format.".xml";
-			my $doc = EPrints::XML::parse_url($natxml);
-			my $format_name_node = ($doc->getElementsByTagName( "FormatName" ))[0];
-			my $format_version_node = ($doc->getElementsByTagName( "FormatVersion" ))[0];
-			$format_name = EPrints::Utils::tree_to_utf8($format_name_node);
-			$format_version = EPrints::Utils::tree_to_utf8($format_version_node);
+			if (!($pronom_error_message eq "")) {
+					$format_name = $format;
+			} else {
+				my $natxml = "http://www.nationalarchives.gov.uk/pronom/".$format.".xml";
+				my $doc;
+				eval {
+					$doc = EPrints::XML::parse_url($natxml);
+				};	
+				if ($@) {
+					$format_name = $format;
+					$pronom_error_message = "Format Classification Service Unavailable";
+				} else {
+					my $format_name_node = ($doc->getElementsByTagName( "FormatName" ))[0];
+					my $format_version_node = ($doc->getElementsByTagName( "FormatVersion" ))[0];
+					$format_name = EPrints::Utils::tree_to_utf8($format_name_node);
+					$format_version = EPrints::Utils::tree_to_utf8($format_version_node);
+				}
+			}
 		}
 			
 		my $format_panel_tr = $plugin->{session}->make_element( 
@@ -196,7 +344,7 @@ sub render
 				cellpadding => 0,
 				cellspacing => 0,
 				width => "100%",
-				style => "background-color=red;"
+				style => "background-color=$color;"
 				#value => ""
 		);
 		my $format_count_bar_tr = $plugin->{session}->make_element(
@@ -205,7 +353,7 @@ sub render
 		my $format_count_bar_td = $plugin->{session}->make_element(
 				"td",
 				width => $format_bar_width."px",
-				style => "background-color: red;"
+				style => "background-color: $color;"
 		);
 		my $format_count_bar_td2 = $plugin->{session}->make_element(
 				"td",
@@ -280,21 +428,36 @@ sub render
 		$format_table->appendChild( $other_row );
 
 	}
-	if ($classified eq "false") {
+	my $ret = $plugin->{session}->make_doc_fragment;
+
+	if (!($pronom_error_message eq "")) {
+		my $pronom_error_div = $plugin->{session}->make_element(
+			"div",
+			align => "center"
+			);	
+		$pronom_error_div->appendText( $pronom_error_message );
+
 		my $warning = $plugin->{session}->render_message("warning",
-			$unclassified
+			$pronom_error_div
 		);
-		#$inner_panel->appendChild($unclassified);
-		$inner_panel->appendChild($warning);
+		$ret->appendChild($warning);
+		
 	}
-	$inner_panel->appendChild($format_table);
-	$html->appendChild( $inner_panel );
-	
-	$script = $plugin->{session}->make_javascript(
-		$hideall
-	);
-	$html->appendChild($script);
-	return $html;
+
+	if (!($soap_error eq "")) {
+		my $soap_error_div = $plugin->{session}->make_element(
+			"div",
+			align => "center"
+			);	
+		$soap_error_div->appendText( "Risks Analysis Error:" . $soap_error);
+
+		my $warning = $plugin->{session}->render_message("warning",
+			$soap_error_div
+		);
+		$ret->appendChild($warning);
+	}
+	$ret->appendChild($format_table);
+	return $ret;
 }
 
 sub get_eprints_files
