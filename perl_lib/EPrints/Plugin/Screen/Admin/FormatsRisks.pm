@@ -5,7 +5,7 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 use strict;
 my $classified = "true";
 my $hideall = "";
-my $unstable = 0;
+my $unstable = 1;
 my $risks_url = "";
 our $classified, $hideall, $unstable, $risks_url;
 
@@ -105,11 +105,6 @@ sub render
 			hide(format + "_inner_row");
 		}
 	');
-	#my $script_node = $plugin->{session}->make_element(
-	#		"script",
-	#		type => "text/javascript"
-	#);
-	#$script_node->appendText($script);
 	$html->appendChild($script);
 	my $inner_panel = $plugin->{session}->make_element( 
 			"div", 
@@ -119,17 +114,17 @@ sub render
 			"div",
 			align => "center"
 			);	
-	$unclassified->appendText( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script. If not installed this tool is availale via http://files.eprints.org" );
+	$unclassified->appendChild( $plugin->{session}->make_text( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script. If not installed this tool is availale via http://files.eprints.org" ));
 	my $risks_warning = $plugin->{session}->make_element(
 			"div",
 			align => "center"
 			);	
-	$risks_warning->appendText( "Risks analysis functionality is currently not available.\nThis feature is due to be made available by The National Archives (UK) in the near future.\nThis page will automatically pick up the data when this feature becomes available." );
+	$risks_warning->appendChild( $plugin->{session}->make_text( "Risks analysis functionality is currently not available.\nThis feature is due to be made available by The National Archives (UK) in the near future.\nThis page will automatically pick up the data when this feature becomes available." ));
 	my $risks_unstable = $plugin->{session}->make_element(
 			"div",
 			align => "center"
 			);	
-	$risks_unstable->appendText( "This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should be ignored." );
+	$risks_unstable->appendChild( $plugin->{session}->make_text("This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should be ignored." ));
 
 	my $br = $plugin->{session}->make_element(
 			"br"
@@ -148,7 +143,7 @@ sub render
 		my $risk_state_warning_div = $plugin->{session}->make_element(
 			"div"
 		);
-		$risk_state_warning_div->appendText("Risk Service Status Unavailable trying default url.");
+		$risk_state_warning_div->appendChild( $plugin->{session}->make_text("Risk Service Status Unavailable trying default url."));
 		$warning = $plugin->{session}->render_message("warning",
 			$risk_state_warning_div
 		);
@@ -254,8 +249,12 @@ sub get_format_risks_table {
 				}
 			}
 		
-			if ($result < 200 && $soap_error eq "") {
+			if ($result < 1000 && $soap_error eq "") {
 				$color = "red";
+			} elsif ($result > 999 && $result < 2000) {
+				$color = "orange";
+			} elsif ($result > 1999) {
+				$color = "green";
 			} else {
 				$color = "blue";
 			}
@@ -357,12 +356,12 @@ sub get_format_risks_table {
 				
 		);
 		
-		$format_count_bar_td->appendText ( "  " );
-		$format_count_bar_td2->appendText(" " .$count);
+		$format_count_bar_td->appendChild( $plugin->{session}->make_text( "  " ) );
+		$format_count_bar_td2->appendChild ( $plugin->{session}->make_text( " " .$count) );
 		$format_count_bar_tr->appendChild( $format_count_bar_td ); 
 		$format_count_bar_tr->appendChild( $format_count_bar_td2 ); 
 		$format_count_bar->appendChild( $format_count_bar_tr );
-		$format_details_td->appendText ( $pronom_output );
+		$format_details_td->appendChild ( $plugin->{session}->make_text( $pronom_output ) );
 		$format_details_td->appendChild ( $plus_button );
 		$format_details_td->appendChild ( $minus_button );
 		$format_count_td->appendChild( $format_count_bar );
@@ -431,7 +430,7 @@ sub get_format_risks_table {
 			"div",
 			align => "center"
 			);	
-		$pronom_error_div->appendText( $pronom_error_message );
+		$pronom_error_div->appendChild( $plugin->{session}->make_text($pronom_error_message ));
 
 		my $warning = $plugin->{session}->render_message("warning",
 			$pronom_error_div
@@ -445,7 +444,7 @@ sub get_format_risks_table {
 			"div",
 			align => "center"
 			);	
-		$soap_error_div->appendText( "Risks Analysis Error:" . $soap_error);
+		$soap_error_div->appendChild( $plugin->{session}->make_text("Risks Analysis Error:" . $soap_error));
 
 		my $warning = $plugin->{session}->render_message("warning",
 			$soap_error_div
@@ -490,12 +489,18 @@ sub get_eprints_files
 					style => "border: 1px dashed black; padding: 0.3em;",
 					colspan => 2
 			);
+			my $file_url = $file->get_parent()->get_url();			
+			my $file_href = $plugin->{session}->make_element(
+					"a",
+					href => $file_url
+			);
 			my $bold = $plugin->{session}->make_element(
 					"b"
 			);
-			$bold->appendText( $file->get_value("filename") );	
-			$col1->appendChild( $bold );
-			$col1->appendText( " (" . EPrints::Utils::human_filesize($file->get_value("filesize")) . ")");
+			$bold->appendChild( $plugin->{session}->make_text( $file->get_value("filename") ));	
+			$file_href->appendChild( $bold );
+			$col1->appendChild( $file_href );
+			$col1->appendChild( $plugin->{session}->make_text(" (" . EPrints::Utils::human_filesize($file->get_value("filesize")) . ")"));
 			$row1->appendChild( $col1 );
 			$table->appendChild ( $row1 );
 			my $row2 = $plugin->{session}->make_element(
@@ -506,14 +511,12 @@ sub get_eprints_files
 					style => "border-right: 1px dashed black; border-left: 1px dashed black; padding: 0.3em;",
 					colspan => 2
 			);
-			my $file_url = $file->get_parent()->get_url();			
-			my $file_href = $plugin->{session}->make_element(
-					"a",
-					href => $file_url
+			$bold = $plugin->{session}->make_element(
+					"b"
 			);
-			$file_href->appendText( $file_url );
-			$col2->appendText( "URL: " );
-			$col2->appendChild( $file_href );
+			$bold->appendChild( $plugin->{session}->make_text("Title: " ));
+			$col2->appendChild( $bold );
+			$col2->appendChild( $plugin->{session}->make_text($file->get_parent()->get_parent()->get_value( "title" )));
 			$row2->appendChild( $col2 );
 			$table->appendChild ( $row2 );
 			my $row3 = $plugin->{session}->make_element(
@@ -527,14 +530,23 @@ sub get_eprints_files
 					"a",
 					href => $file->get_parent()->get_parent()->get_url()
 			);
-			$eprint_href->appendText( $file->get_parent()->get_parent()->get_value( "eprintid" ) );	
-			$col3a->appendText( "EPrint ID: " );
+			$eprint_href->appendChild( $plugin->{session}->make_text($file->get_parent()->get_parent()->get_value( "eprintid" ) ));	
+			$bold = $plugin->{session}->make_element(
+					"b"
+			);
+			$bold->appendChild( $plugin->{session}->make_text("EPrint ID: " ));
+			$col3a->appendChild( $bold );
 			$col3a->appendChild( $eprint_href );
 			my $col3b = $plugin->{session}->make_element(
 					"td",
 					style => "border-right: 1px dashed black; border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 0.3em;"
 			);
-			$col3b->appendText( "User: " . EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description()));
+			$bold = $plugin->{session}->make_element(
+					"b"
+			);
+			$bold->appendChild( $plugin->{session}->make_text("User: " ));
+			$col3b->appendChild( $bold );
+			$col3b->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description())));
 			$row3->appendChild( $col3a );
 			$row3->appendChild( $col3b );
 			$table->appendChild( $row3 );
@@ -576,8 +588,8 @@ sub get_user_files
 			align => "center",
 			style => "font-size: 1em; font-weight: bold;"
 			);
-	$user_format_count_th1->appendText( "User" );
-	$user_format_count_th2->appendText( "No of Files" );
+	$user_format_count_th1->appendChild( $plugin->{session}->make_text( "User" ));
+	$user_format_count_th2->appendChild( $plugin->{session}->make_text( "No of Files" ));
 	$user_format_count_htr->appendChild( $user_format_count_th1 );
 	$user_format_count_htr->appendChild( $user_format_count_th2 );
 	
@@ -610,7 +622,7 @@ sub get_user_files
 				$plugin->{session},
 				$user_id
 				);
-		$user_format_count_td1->appendText( EPrints::Utils::tree_to_utf8($user->render_description()) );
+		$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
 		my $user_format_count_td2 = $plugin->{session}->make_element(
 				"td",
 				width => "130px"
@@ -640,13 +652,12 @@ sub get_user_files
 				"div",
 				style => "width=".$file_bar_width."px; height: 10px; background-color: blue;"
 				);
-		#$file_count_bar_div->appendText ("1");
 		my $file_count_bar_td2 = $plugin->{session}->make_element(
 				"td",
 				style => "padding-left: 2px;font-size: 0.8em;"
 				);
 		$file_count_bar_td1->appendChild( $file_count_bar_div );
-		$file_count_bar_td2->appendText( $count );
+		$file_count_bar_td2->appendChild( $plugin->{session}->make_text( $count ));
 		$file_count_bar_tr->appendChild( $file_count_bar_td1 );
 		$file_count_bar_tr->appendChild( $file_count_bar_td2 );
 		$file_count_bar->appendChild( $file_count_bar_tr );
