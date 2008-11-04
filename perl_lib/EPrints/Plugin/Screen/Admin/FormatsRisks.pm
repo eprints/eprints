@@ -5,7 +5,7 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 use strict;
 my $classified = "true";
 my $hideall = "";
-my $unstable = 1;
+my $unstable = 0;
 my $risks_url = "";
 our $classified, $hideall, $unstable, $risks_url;
 
