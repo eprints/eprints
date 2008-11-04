@@ -5,7 +5,7 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 use strict;
 my $classified = "true";
 my $hideall = "";
-my $unstable = 0;
+my $unstable = 1;
 my $risks_url = "";
 our $classified, $hideall, $unstable, $risks_url;
 
@@ -177,9 +177,7 @@ sub render
 					$risks_unstable
 					);
 		}
-		$format_table = $plugin->get_format_risks_table();
 	} else {
-		#$format_table = $plugin->get_format_table();
 		$warning = $plugin->{session}->render_message("warning",
 				$risks_warning
 				);
@@ -190,7 +188,6 @@ sub render
 		$warning = $plugin->{session}->render_message("warning",
 			$unclassified
 		);
-		#$inner_panel->appendChild($unclassified);
 		$inner_panel->appendChild($warning);
 	}
 
@@ -256,7 +253,6 @@ sub get_format_risks_table {
 					$soap_error = $error;
 				}
 			}
-			
 		
 			if ($result < 200 && $soap_error eq "") {
 				$color = "red";
