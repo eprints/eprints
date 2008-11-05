@@ -145,21 +145,55 @@ sub render_media_content
 {
 	my( $self, $dataobj ) = @_;
 
+	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		return $self->render_eprint_media_content( $dataobj );
+	}
+	elsif( $dataobj->isa( "EPrints::DataObj::Document" ) )
+	{
+		return $self->render_doc_media_content( $dataobj );
+	}
+
+	return $self->{session}->make_doc_fragment();
+}
+
+sub render_eprint_media_content
+{
+	my( $self, $dataobj ) = @_;
+
 	my $session = $self->{session};
 
-	my $frag = $session->make_doc_fragment;
+	my $doc;
 
-	# Pick a random, public document from the eprint
-	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	if( $session->get_repository->can_call( "eprint_rss_media_doc" ) )
+	{
+		$doc = $session->get_repository->call(
+				"eprint_rss_media_doc",
+				$dataobj,
+				$self
+			);
+	}
+	else
 	{
 		my @docs = $dataobj->get_all_documents();
 
 		@docs = grep { $_->is_public() } @docs;
 
-		return $frag unless scalar @docs;
-
-		$dataobj = $docs[int(rand(scalar @docs))];
+		$doc = $docs[0];
 	}
+
+	return $session->make_doc_fragment unless defined $doc;
+
+	return $self->render_doc_media_content( $doc );
+}
+
+sub render_doc_media_content
+{
+	my( $self, $dataobj ) = @_;
+
+	my $session = $self->{session};
+
+	my $frag = $session->make_doc_fragment;
 
 	my( $thumbnail ) = @{($dataobj->get_related_objects( EPrints::Utils::make_relation( "hassmallThumbnailVersion" ) ))};
 	if( $thumbnail )
