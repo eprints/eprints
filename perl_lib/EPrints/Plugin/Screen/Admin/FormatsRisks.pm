@@ -3,11 +3,13 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
-my $classified = "true";
-my $hideall = "";
-my $unstable = 0;
-my $risks_url = "";
+my $classified;
+my $hideall;
+my $unstable;
+my $risks_url;
 our ($classified, $hideall, $unstable, $risks_url);
+$unstable = 1;
+$classified = "true";
 
 sub new
 {
