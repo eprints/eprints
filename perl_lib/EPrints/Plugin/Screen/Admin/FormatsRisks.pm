@@ -650,7 +650,13 @@ sub get_eprints_files
 			);
 			$bold->appendChild( $plugin->{session}->make_text("User: " ));
 			$col3b->appendChild( $bold );
-			$col3b->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description())));
+			eval {
+				$col3b->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description())));
+			};
+			if ($@) {
+				my $user_id = $file->get_parent()->get_parent()->get_user()->get_value("userid");
+				$col3b->appendChild( $plugin->{session}->make_text( "Unknown User (ID: ".$user_id.")"));
+			}
 			$row3->appendChild( $col3a );
 			$row3->appendChild( $col3b );
 			$table->appendChild( $row3 );
