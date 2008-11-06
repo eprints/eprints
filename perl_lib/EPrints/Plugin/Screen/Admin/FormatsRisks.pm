@@ -7,7 +7,7 @@ my $classified = "true";
 my $hideall = "";
 my $unstable = 0;
 my $risks_url = "";
-our $classified, $hideall, $unstable, $risks_url;
+our ($classified, $hideall, $unstable, $risks_url);
 
 sub new
 {
@@ -450,8 +450,15 @@ sub get_format_risks_table {
 			my $document = $file->get_parent();
 			my $eprint = $document->get_parent();
 			my $eprint_id = $eprint->get_value( "eprintid" );
-			my $user = $eprint->get_user();
-			my $user_id = $user->get_value( "userid" );
+			my $user;
+			my $user_id;
+			eval  {
+				$user = $eprint->get_user();
+				$user_id = $user->get_value( "userid" );
+			};
+			if ($@) {
+				$user_id = "Unknown";
+			}
 			push(@{$format_eprints->{$format}->{$eprint_id}},$fileid);
 			push(@{$format_users->{$format}->{$user_id}},$fileid);
 		}
@@ -715,11 +722,15 @@ sub get_user_files
 				style => "font-size: 0.9em;",
 				width => "120px"
 				);
-		my $user = EPrints::DataObj::User->new(
-				$plugin->{session},
-				$user_id
-				);
-		$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
+		if (!($user_id eq "Unknown")) {
+			my $user = EPrints::DataObj::User->new(
+					$plugin->{session},
+					$user_id
+					);
+			$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
+		} else {
+			$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User" ));
+		}
 		my $user_format_count_td2 = $plugin->{session}->make_element(
 				"td",
 				width => "130px"
