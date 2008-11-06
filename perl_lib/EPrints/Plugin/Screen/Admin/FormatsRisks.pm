@@ -320,8 +320,6 @@ sub get_format_risks_table {
 				$blue_count = $blue_count + 1;
 				$color = "blue";
 			}
-		} else {
-			$blue_count = $orange_count + 1;
 		}
 	
 		my $count = $#{$files_by_format->{$format}};
@@ -377,11 +375,12 @@ sub get_format_risks_table {
 		} else {	
 			$pronom_output .= "(Version " . $format_version . ") ";
 		}
+		my $imagesurl = $plugin->{session}->get_repository->get_conf( "rel_path" );
 		my $plus_button = $plugin->{session}->make_element(
 			"img",
 			id => $format . "_plus",
 			onclick => 'plus("'.$format.'")',
-			src => "/style/images/plus.png",
+			src => "$imagesurl/style/images/plus.png",
 			border => 0,
 			alt => "PLUS"
 		);
@@ -389,7 +388,7 @@ sub get_format_risks_table {
 			"img",
 			id => $format . "_minus",
 			onclick => 'minus("'.$format.'")',
-			src => "/style/images/minus.png",
+			src => "$imagesurl/style/images/minus.png",
 			border => 0,
 			alt => "MINUS"
 		);
@@ -450,15 +449,8 @@ sub get_format_risks_table {
 			my $document = $file->get_parent();
 			my $eprint = $document->get_parent();
 			my $eprint_id = $eprint->get_value( "eprintid" );
-			my $user;
-			my $user_id;
-			eval  {
-				$user = $eprint->get_user();
-				$user_id = $user->get_value( "userid" );
-			};
-			if ($@) {
-				$user_id = "Unknown";
-			}
+			my $user = $eprint->get_user();
+			my $user_id = $eprint->get_value( "userid" );
 			push(@{$format_eprints->{$format}->{$eprint_id}},$fileid);
 			push(@{$format_users->{$format}->{$user_id}},$fileid);
 		}
@@ -650,12 +642,15 @@ sub get_eprints_files
 			);
 			$bold->appendChild( $plugin->{session}->make_text("User: " ));
 			$col3b->appendChild( $bold );
-			eval {
-				$col3b->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($file->get_parent()->get_parent()->get_user()->render_description())));
-			};
-			if ($@) {
-				my $user_id = $file->get_parent()->get_parent()->get_user()->get_value("userid");
-				$col3b->appendChild( $plugin->{session}->make_text( "Unknown User (ID: ".$user_id.")"));
+			my $eprint = $file->get_parent()->get_parent();
+			my $user = $eprint->get_user();
+			if( defined $user )
+			{
+				$col3b->appendChild( $user->render_description() );
+			}
+			else
+			{
+				$col3b->appendChild( $plugin->{session}->make_text( "Unknown User (ID: ".$eprint->get_value( "userid" ).")"));
 			}
 			$row3->appendChild( $col3a );
 			$row3->appendChild( $col3b );
@@ -728,19 +723,14 @@ sub get_user_files
 				style => "font-size: 0.9em;",
 				width => "120px"
 				);
-		if (!($user_id eq "Unknown")) {
-			eval {
-				my $user = EPrints::DataObj::User->new(
-						$plugin->{session},
-						$user_id
-						);
-				$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
-			}; 
-			if ($@) {
-				$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User (ID: " + $user_id + ")"));
-			}
-		} else {
-			$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User" ));
+		my $user = EPrints::DataObj::User->new( $plugin->{session}, $user_id );
+		if( defined $user )
+		{
+			$user_format_count_td1->appendChild( $user->render_description() );
+		}
+		else
+		{
+			$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User (ID: $user_id)"));
 		}
 		my $user_format_count_td2 = $plugin->{session}->make_element(
 				"td",
