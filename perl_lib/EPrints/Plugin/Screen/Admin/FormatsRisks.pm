@@ -723,11 +723,16 @@ sub get_user_files
 				width => "120px"
 				);
 		if (!($user_id eq "Unknown")) {
-			my $user = EPrints::DataObj::User->new(
-					$plugin->{session},
-					$user_id
-					);
-			$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
+			eval {
+				my $user = EPrints::DataObj::User->new(
+						$plugin->{session},
+						$user_id
+						);
+				$user_format_count_td1->appendChild( $plugin->{session}->make_text( EPrints::Utils::tree_to_utf8($user->render_description()) ));
+			}; 
+			if ($@) {
+				$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User (ID: " + $user_id + ")"));
+			}
 		} else {
 			$user_format_count_td1->appendChild( $plugin->{session}->make_text( "Unknown User" ));
 		}
