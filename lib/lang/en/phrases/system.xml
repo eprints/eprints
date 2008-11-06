@@ -174,6 +174,7 @@ EPrints Modules
 	<epp:phrase id="file_fieldname_hash">File checksum</epp:phrase>
 	<epp:phrase id="file_fieldname_hash_type">Checksum type</epp:phrase>
 	<epp:phrase id="file_fieldname_mtime">File modification time</epp:phrase>
+	<epp:phrase id="file_fieldname_pronom_uid">Pronom Format Identifier</epp:phrase>
 
 <!-- Page ranges -->
 	<!-- 123-123 -->
@@ -563,6 +564,9 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/Restore:description">Restores a complete repository, including all eprints system files..</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Restore:backup_archive">Backup archive file:</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Restore:upload">Upload</epp:phrase>
+    
+    <epp:phrase id="Plugin/Screen/Admin/FormatsRisks:title">Formats/Risks</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/FormatsRisks:description">View data formats and related risks to documents in your repository.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Admin/RegenViews:title">Regenerate Views</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/RegenViews:action:regen_views:title">Regenerate Views</epp:phrase>
