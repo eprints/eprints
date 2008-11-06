@@ -5,7 +5,7 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 use strict;
 my $classified = "true";
 my $hideall = "";
-my $unstable = 1;
+my $unstable = 0;
 my $risks_url = "";
 our $classified, $hideall, $unstable, $risks_url;
 
@@ -124,7 +124,7 @@ sub render
 			"div",
 			align => "center"
 			);	
-	$risks_unstable->appendChild( $plugin->{session}->make_text("This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should be ignored." ));
+	$risks_unstable->appendChild( $plugin->{session}->make_text("This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should not be used as the basis for a program of action." ));
 
 	my $br = $plugin->{session}->make_element(
 			"br"
@@ -134,6 +134,15 @@ sub render
 	my $warning;
 	my $doc;
 	my $available;
+	my $warning_width_table = $plugin->{session}->make_element(
+		"table",
+		id => "warnings",
+		align=> "center",
+		width => "620px"
+	);
+	my $wtr = $plugin->{session}->make_element( "tr" );
+	my $warning_width_limit = $plugin->{session}->make_element( "td", width => "620px", align=>"center" );
+
 	my $risk_xml = "http://www.eprints.org/services/pronom_risk.xml";
 	eval {
 		$doc = EPrints::XML::parse_url($risk_xml);
@@ -147,8 +156,8 @@ sub render
 		$warning = $plugin->{session}->render_message("warning",
 			$risk_state_warning_div
 		);
+		$warning_width_limit->appendChild($warning);
 		#$inner_panel->appendChild($unclassified);
-		$inner_panel->appendChild($warning);
 		$available = 1;
 	} else {
 		my $node; 
@@ -171,11 +180,13 @@ sub render
 			$warning = $plugin->{session}->render_message("warning",
 					$risks_unstable
 					);
+			$warning_width_limit->appendChild($warning);
 		}
 	} else {
 		$warning = $plugin->{session}->render_message("warning",
 				$risks_warning
 				);
+		$warning_width_limit->appendChild($warning);
 	}
 	$format_table = $plugin->get_format_risks_table();
 
@@ -183,10 +194,12 @@ sub render
 		$warning = $plugin->{session}->render_message("warning",
 			$unclassified
 		);
-		$inner_panel->appendChild($warning);
+		$warning_width_limit->appendChild($warning);
 	}
 
-	$inner_panel->appendChild($warning);
+	$wtr->appendChild($warning_width_limit);
+	$warning_width_table->appendChild($wtr);
+	$inner_panel->appendChild($warning_width_table);
 	$inner_panel->appendChild($format_table);
 	$html->appendChild( $inner_panel );
 	
@@ -194,6 +207,8 @@ sub render
 		$hideall
 	);
 	$html->appendChild($script);
+	
+	
 	return $html;
 }
 
@@ -203,15 +218,54 @@ sub get_format_risks_table {
 
 	my $files_by_format = $plugin->fetch_data();
 	
+	my $green = $plugin->{session}->make_element( "div", class=>"ep_msg_message", id=>"green" );
+	my $orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"orange" );
+	my $red = $plugin->{session}->make_element( "div", class=>"ep_msg_error", id=>"red" );
+	my $blue = $plugin->{session}->make_element( "div", class=>"ep_msg_other", id=>"blue" );
+	my $unclassified_orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"unclassified_orange" );
+	my $green_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_message_content" );
+	my $orange_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_warning_content" );
+	my $unclassified_orange_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_warning_content" );
+	my $red_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_error_content" );
+	my $blue_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_other_content" );
+
+	my $heading_red = $plugin->{session}->make_element( "h1" );
+	$heading_red->appendChild( $plugin->{session}->make_text( " High Risk Objects ") );
+	$red_content_div->appendChild( $heading_red );
+	my $heading_orange = $plugin->{session}->make_element( "h1" );
+	$heading_orange->appendChild( $plugin->{session}->make_text( " Medium Risk Objects ") );
+	$orange_content_div->appendChild( $heading_orange );
+	my $heading_green = $plugin->{session}->make_element( "h1" );
+	$heading_green->appendChild( $plugin->{session}->make_text( " Low Risk Objects ") );
+	$green_content_div->appendChild( $heading_green );
+	my $heading_blue = $plugin->{session}->make_element( "h1" );
+	$heading_blue->appendChild( $plugin->{session}->make_text( " No Risk Scores Available ") );
+	$blue_content_div->appendChild( $heading_blue );
+	my $heading_unclassified_orange = $plugin->{session}->make_element( "h1" );
+	$heading_unclassified_orange->appendChild( $plugin->{session}->make_text( " Unclassified Objects ") );
+	$unclassified_orange_content_div->appendChild( $heading_unclassified_orange );
+	
+#	$div->appendChild( $title_div );
+	my $green_count = 0;
+	my $orange_count = 0;
+	my $red_count = 0;
+	my $blue_count = 0;
+	my $unclassified_count = 0;
+
+
 	my $url = $risks_url;
 
 	my $max_count = 0;	
 	my $max_width = 300;
 	
-	my $format_table = $plugin->{session}->make_element(
-			"table",
-			width => "100%"
-	);
+	
+	my $green_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	my $orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	my $unclassified_orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	my $red_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	my $blue_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	
+	my $format_table = $blue_format_table;
 
 	my $soap_error = "";
 	my $pronom_error_message = "";
@@ -250,14 +304,24 @@ sub get_format_risks_table {
 			}
 		
 			if ($result < 1000 && $soap_error eq "") {
+				$format_table = $red_format_table;
+				$red_count = $red_count + 1;
 				$color = "red";
 			} elsif ($result > 999 && $result < 2000) {
+				$format_table = $orange_format_table;
+				$orange_count = $orange_count + 1;
 				$color = "orange";
 			} elsif ($result > 1999) {
+				$format_table = $green_format_table;
+				$green_count = $green_count + 1;
 				$color = "green";
 			} else {
+				$format_table = $blue_format_table;
+				$blue_count = $blue_count + 1;
 				$color = "blue";
 			}
+		} else {
+			$blue_count = $orange_count + 1;
 		}
 	
 		my $count = $#{$files_by_format->{$format}};
@@ -300,10 +364,12 @@ sub get_format_risks_table {
 
 		my $format_details_td = $plugin->{session}->make_element(
 				"td",
+				width => "50%",
 				align => "right"
 		);
 		my $format_count_td = $plugin->{session}->make_element(
 				"td",
+				width => "50%",
 				align => "left"
 		);
 		my $pronom_output = $format_name . " ";
@@ -367,7 +433,12 @@ sub get_format_risks_table {
 		$format_count_td->appendChild( $format_count_bar );
 		$format_panel_tr->appendChild( $format_details_td );
 		$format_panel_tr->appendChild( $format_count_td );
-		$format_table->appendChild( $format_panel_tr );
+		if ($format_name eq "Not Classified") {
+			$unclassified_orange_format_table->appendChild ( $format_panel_tr );
+			$unclassified_count = $unclassified_count + 1;
+		} else {
+			$format_table->appendChild( $format_panel_tr );
+		}
 
 		my $format_users = {};
 		my $format_eprints = {};
@@ -420,7 +491,11 @@ sub get_format_risks_table {
 		$inner_table->appendChild( $inner_row );
 		$other_column->appendChild( $inner_table );
 		$other_row->appendChild( $other_column );
-		$format_table->appendChild( $other_row );
+		if ($format_name eq "Not Classified") {
+			$unclassified_orange_format_table->appendChild ( $other_row );
+		} else {
+			$format_table->appendChild( $other_row );
+		}
 
 	}
 	my $ret = $plugin->{session}->make_doc_fragment;
@@ -451,7 +526,29 @@ sub get_format_risks_table {
 		);
 		$ret->appendChild($warning);
 	}
-	$ret->appendChild($format_table);
+	#$ret->appendChild($format_table);
+	$green_content_div->appendChild($green_format_table);
+	$orange_content_div->appendChild($orange_format_table);
+	$red_content_div->appendChild($red_format_table);
+	$blue_content_div->appendChild($blue_format_table);
+	$unclassified_orange_content_div->appendChild($unclassified_orange_format_table);
+	if ($green_count > 0 || $orange_count > 0 || $red_count > 0) {
+		$green->appendChild( $green_content_div );
+		$orange->appendChild( $orange_content_div );
+		$red->appendChild( $red_content_div );
+		$ret->appendChild($red);
+		$ret->appendChild($orange);
+		$ret->appendChild($green);
+	}
+	if ($unclassified_count > 0) {
+		$unclassified_orange->appendChild( $unclassified_orange_content_div );
+		$ret->appendChild($unclassified_orange);
+	}
+	if ($blue_count > 0) {
+		$blue->appendChild( $blue_content_div );
+		$ret->appendChild($blue);
+	}
+	
 	return $ret;
 }
 
