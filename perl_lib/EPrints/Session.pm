@@ -1313,6 +1313,27 @@ sub render_toolbar
 		$core->appendChild( $a );
 	}
 
+
+	my $current_user = $self->current_user;
+	if( defined $current_user && $current_user->allow( "config/edit/static" ) )
+	{
+		my $conffile = $self->get_static_page_conf_file;
+		if( defined $conffile )
+		{
+			if( !$first )
+			{
+				$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+			}
+			$first = 0;
+			
+			# Will do odd things for non xpages
+			my $a = $self->render_link( $url."?screen=Admin::Config::Edit::XPage&configfile=".$conffile );
+			$a->appendChild( $self->html_phrase( "lib/session:edit_page" ) );
+			$core->appendChild( $a );
+		}
+	}
+
+
 	if( scalar @other == 1 )
 	{
 		$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
@@ -3857,6 +3878,73 @@ sub cache_subjects
 }
 
 
+######################################################################
+#
+# $session->get_static_page_conf_file
+# 
+# Utility method to return the config file for the static html page 
+# being viewed, if there is one, and it's in the repository config.
+#
+######################################################################
+
+sub get_static_page_conf_file
+{
+	my( $session ) = @_;
+
+	my $repository = $session->get_repository;
+
+	my $r = $session->get_request;
+	$repository->check_secure_dirs( $r );
+	my $esec = $r->dir_config( "EPrints_Secure" );
+	my $secure = (defined $esec && $esec eq "yes" );
+	my $urlpath;
+	if( $secure ) 
+	{ 
+		$urlpath = $repository->get_conf( "https_root" );
+	}
+	else
+	{ 
+		$urlpath = $repository->get_conf( "http_root" );
+	}
+
+	my $uri = $r->uri;
+
+	my $lang = EPrints::Session::get_session_language( $repository, $r );
+	my $args = $r->args;
+	if( $args ne "" ) { $args = '?'.$args; }
+
+	# Skip rewriting the /cgi/ path and any other specified in
+	# the config file.
+	my $econf = $repository->get_conf('rewrite_exceptions');
+	my @exceptions = ();
+	if( defined $econf ) { @exceptions = @{$econf}; }
+	push @exceptions,
+		"$urlpath/id/";
+		"$urlpath/view/";
+		"$urlpath/sword-app/",
+		"$urlpath/thumbnails/";
+
+	foreach my $exppath ( @exceptions )
+	{
+		return undef if( $uri =~ m/^$exppath/ );
+	}
+
+	return undef if( $uri =~ m!^$urlpath/\d+/! );
+	return undef unless( $uri =~ s/^$urlpath// );
+	$uri =~ s/\/$/\/index.html/;
+	return undef unless( $uri =~ s/\.html$// );
+
+	foreach my $suffix ( qw/ xpage xhtml html / )
+	{
+		my $conffile = "lang/".$session->get_langid."/static".$uri.".".$suffix;	
+		if( -e $session->get_repository->get_conf( "config_path" )."/".$conffile )
+		{
+			return $conffile;
+		}
+	}
+
+	return undef;
+}
 
 
 ######################################################################
@@ -3867,6 +3955,8 @@ sub cache_subjects
 =cut
 
 ######################################################################
+
+
 
 1;
 

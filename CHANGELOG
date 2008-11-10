@@ -7852,3 +7852,6 @@ EPRINTS-3.1-beta-2
  * Added Screen admin plugins to support some management of bulk imports
  * Adde validation of itemref field
 
+2008-11-10 cjg + dct05r
+ * Added a hook into the tool bar to link to the edit page admin tool if
+    appropriate (page is editable, and user can edit it).

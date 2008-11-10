@@ -316,6 +316,8 @@ EPrints Modules
     <epp:phrase id="lib/session:no_priv">You do not have the required privilege to use this function.</epp:phrase>
     <epp:phrase id="lib/session:show_help"><epc:pin name="link"><img alt="+" title="Show help" src="{$config{rel_path}}/style/images/help.gif" border="0"/></epc:pin></epp:phrase>
     <epp:phrase id="lib/session:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="{$config{rel_path}}/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
+
+    <epp:phrase id="lib/session:edit_page">Edit page</epp:phrase>
 	
 
 <!-- Subject -->
