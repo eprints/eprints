@@ -43,7 +43,7 @@ Unique id for the import.
 
 =item datestamp
 
-Time of import.
+Time import record was created.
 
 =item userid
 
@@ -60,6 +60,14 @@ Location of the imported content (e.g. the file name).
 =item description
 
 Human-readable description of the import.
+
+=item last_run
+
+Time the import was last started.
+
+=item last_success
+
+Time the import was last successfully completed.
 
 =back
 
@@ -100,6 +108,10 @@ sub get_system_field_info
 		{ name=>"url", type=>"longtext", required=>0, },
 
 		{ name=>"description", type=>"longtext", required=>0, },
+
+		{ name=>"last_run", type=>"time", required=>0, },
+
+		{ name=>"last_success", type=>"time", required=>0, },
 
 	);
 }
@@ -166,13 +178,12 @@ sub run
 {
 	my( $self, $processor ) = @_;
 
-	my $session = $self->{session};
-	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+	$self->set_value( "last_run", EPrints::Time::get_iso_timestamp() );
+	$self->commit();
 
-	my $plugin = $self->{session}->plugin( "Import::XML" );
+	my $session = $self->{session};
 
 	my $url = $self->get_value( "url" );
-	my $importid = $self->get_id;
 
 	if( !EPrints::Utils::is_set( $url ) )
 	{
@@ -195,95 +206,18 @@ sub run
 		return;
 	}
 
-	my $doc;
-	
-	eval {
-		$doc = EPrints::XML::parse_xml( "$file" );
-	};
+	my $plugin = EPrints::DataObj::Import::XML->new(
+			session => $session,
+			import => $self,
+		);
 
-	if( $@ )
-	{
-		my $err = $session->make_doc_fragment;
-		$err->appendChild( $session->make_text( "Error requesting " ) );
-		$err->appendChild( $session->render_link( $url ) );
-		$err->appendChild( $session->make_text( ": ".$@ ) );
-		$processor->add_message( "error", $err );
-		return;
-	}
+	my $list = $plugin->input_file(
+			filename => "$file",
+			dataset => $session->get_repository->get_dataset( "eprint" ),
+		);
 
-	my $root = $doc->documentElement;
-
-	foreach my $eprint ($root->getElementsByTagName( "eprint" ))
-	{
-		my( $_eprintid ) = $eprint->getElementsByTagName( "eprintid" );
-		my( $_eprint_status ) = $eprint->getElementsByTagName( "eprint_status" );
-		my( $_userid ) = $eprint->getElementsByTagName( "userid" );
-		$eprint->removeChild( $_userid ) if $_userid;
-
-		my $sourceid = EPrints::Utils::tree_to_utf8($_eprintid);
-
-		my $old_eprint = $self->get_from_source( $sourceid );
-
-		if( defined( $old_eprint ) )
-		{
-			$_eprintid->removeChild( $_eprintid->firstChild );
-			$_eprintid->appendChild( $doc->createTextNode( $old_eprint->get_id ) );
-			$_eprint_status->removeChild( $_eprint_status->firstChild );
-			$_eprint_status->appendChild( $doc->createTextNode( $old_eprint->get_value( "eprint_status" ) ) );
-		}
-		else
-		{
-			$eprint->removeChild( $_eprintid );
-		}
-
-		my $_importid = $doc->createElement( "importid" );
-		my $_source = $doc->createElement( "source" );
-
-		$eprint->appendChild( $_importid );
-		$_importid->appendChild( $doc->createTextNode( $importid ) );
-
-		$eprint->appendChild( $_source );
-		$_source->appendChild( $doc->createTextNode( $sourceid ) );
-	}
-
-
-#	print STDERR $doc->toString;
-
-	my $xml_file = File::Temp->new;
-
-	print $xml_file $doc->toString;
-	EPrints::XML::dispose($doc);
-
-	seek($xml_file,0,0);
-
-	my $config = $session->get_repository->{config};
-
-	my $enable_import_ids = $config->{enable_import_ids};
-	$config->{enable_import_ids} = 1;
-	my $enable_web_imports = $config->{enable_web_imports};
-	$config->{enable_web_imports} = 1;
-
-	$self->clear();
-
-	my $list = $plugin->input_fh(
-		dataset => $dataset,
-		fh => $xml_file,
-	);
-
-	$config->{enable_import_ids} = $enable_import_ids;
-	$config->{enable_web_imports} = $enable_web_imports;
-
-	if( $session->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
-	{
-		$list->map( sub {
-			my( $session, $dataset, $eprint ) = @_;
-			$session->get_repository->call(
-				"set_eprint_import_automatic_fields",
-				$eprint,
-				$self
-			);
-		} );
-	}
+	$self->set_value( "last_success", EPrints::Time::get_iso_timestamp() );
+	$self->commit();
 
 	return $list;
 }
@@ -341,6 +275,8 @@ sub get_from_source
 {
 	my( $self, $sourceid ) = @_;
 
+	return undef unless defined $sourceid;
+
 	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(
@@ -355,6 +291,134 @@ sub get_from_source
 
 	return $list->count > 0 ? $list->get_records(0,1) : undef;
 }
+
+=item $dataobj = $import->epdata_to_dataobj( $dataset, $epdata )
+
+Convert $epdata to a $dataobj. If an existing object exists in this import that has the same identifier that object will be used instead of creating a new object.
+
+Also calls "set_eprint_import_automatic_fields" on the object before writing it to the database.
+
+=cut
+
+# hack to make import work with oversized field values
+sub _cleanup_data
+{
+	my( $self, $field, $value ) = @_;
+
+	if( EPrints::Utils::is_set($value) && $field->isa( "EPrints::MetaField::Text" ) )
+	{
+		if( $field->get_property( "multiple" ) )
+		{
+			for(@$value)
+			{
+				$_ = substr($_,0,$field->get_property( "maxlength" ));
+			}
+		}
+		else
+		{
+			$value = substr($value,0,$field->get_property( "maxlength"));
+		}
+	}
+
+	return $value;
+}
+
+sub epdata_to_dataobj
+{
+	my( $self, $dataset, $imdata ) = @_;
+
+	my $epdata = {};
+
+	my $keyfield = $dataset->get_key_field();
+
+	foreach my $fieldname (keys %$imdata)
+	{
+		next if $fieldname eq $keyfield->get_name();
+		next if $fieldname eq "rev_number";
+		my $field = $dataset->get_field( $fieldname );
+		next if $field->get_property( "volatile" );
+		next unless $field->get_property( "import" ); # includes datestamp
+
+		my $value = $self->_cleanup_data( $field, $imdata->{$fieldname} );
+		$epdata->{$fieldname} = $value;
+	}
+
+	# the source is the eprintid
+	$epdata->{"source"} = $imdata->{$keyfield->get_name()};
+
+	# importid will always be us
+	$epdata->{"importid"} = $self->get_id();
+
+	# any objects created by this import must be owned by our owner
+	$epdata->{"userid"} = $self->get_value( "userid" );
+
+	my $dataobj = $self->get_from_source( $epdata->{"source"} );
+
+	if( defined $dataobj )
+	{
+		foreach my $fieldname (keys %$epdata)
+		{
+			$dataobj->set_value( $fieldname, $epdata->{$fieldname} );
+		}
+	}
+	else
+	{
+		$dataobj = $dataset->create_object( $self->{session}, $epdata );
+	}
+
+	return undef unless defined $dataobj;
+
+	if( $self->{session}->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
+	{
+		$self->{session}->get_repository->call(
+			"set_eprint_import_automatic_fields",
+			$dataobj,
+			$self
+		);
+	}
+
+	$dataobj->commit();
+
+	return $dataobj;
+}
+
+1;
+
+package EPrints::DataObj::Import::XML;
+
+# This is a utility module for importing existing eprints from an XML file
+
+use EPrints::Plugin::Import::XML;
+
+our @ISA = qw( EPrints::Plugin::Import::XML );
+
+sub new
+{
+	my( $class, %params ) = @_;
+
+	my $self = $class->SUPER::new( %params );
+
+	$self->{import} = $params{import};
+	$self->{id} = "Import::XML"; # hack to make phrases work
+
+	return $self;
+}
+
+sub epdata_to_dataobj
+{
+	my( $self, $dataset, $epdata ) = @_;
+
+	my $dataobj = $self->{import}->epdata_to_dataobj( $dataset, $epdata );
+
+	$self->handler->parsed( $epdata ); # TODO: parse-only import?
+	$self->handler->object( $dataset, $dataobj );
+
+	return $dataobj;
+}
+
+# suppress warnings, in particular that various imported fields don't exist
+# in our repository
+sub warning {}
 
 1;
 

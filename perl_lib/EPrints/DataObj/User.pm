@@ -1137,12 +1137,15 @@ my $PRIVMAP =
 		"config/view/apache",
 		"config/view/perl",
 		"config/test_email",
+		"config/imports",
 		"config/add_field",
 		"config/remove_field",
 		"config/regen_abstracts",
 		"config/regen_views",
 		"metafield/view",
 		"metafield/edit",
+		"import/view",
+		"import/edit",
 	],
 
 	"toolbox" => 

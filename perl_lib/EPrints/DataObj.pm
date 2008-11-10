@@ -1308,6 +1308,28 @@ sub in_editorial_scope_of
 	return 1;
 }
 
+=item $problems = $dataobj->validate( [ $for_archive ] )
+
+Return a reference to an array of XHTML DOM objects describing
+validation problems with the entire $dataobj.
+
+A reference to an empty array indicates no problems.
+
+=cut
+
+sub validate { [] }
+
+=item $warnings = $dataobj->get_warnings( )
+
+Return a reference to an array of XHTML DOM objects describing
+problems with the entire $dataobj.
+
+A reference to an empty array indicates no problems.
+
+=cut
+
+sub get_warnings { [] }
+
 # check if a field is valid. Return an array of XHTML problems.
 
 sub validate_field
