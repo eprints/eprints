@@ -560,15 +560,16 @@ sub get_citation_spec
 
 	$style = "default" unless defined $style;
 
-	$self->freshen_citation( $dsid, $style );
-
 	my $spec = $self->{citation_style}->{$dsid}->{$style};
 	if( !defined $spec )
 	{
 		$self->log( "Could not find citation style $dsid.$style. Using default instead." );
-		$spec = $self->{citation_style}->{$dsid}->{default};
+		$style = "default";
+		$spec = $self->{citation_style}->{$dsid}->{$style};
 	}
 	
+	$self->freshen_citation( $dsid, $style );
+
 	return $spec;
 }
 
@@ -578,14 +579,15 @@ sub get_citation_type
 
 	$style = "default" unless defined $style;
 
-	$self->freshen_citation( $dsid, $style );
-
 	my $type = $self->{citation_type}->{$dsid}->{$style};
 	if( !defined $type )
 	{
-		return "default";
+		$style = "default";
+		$type = $self->{citation_type}->{$dsid}->{$style};
 	}
 	
+	$self->freshen_citation( $dsid, $style );
+
 	return $type;
 }
 

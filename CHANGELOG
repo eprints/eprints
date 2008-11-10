@@ -7845,3 +7845,6 @@ EPRINTS-3.1-beta-2
 2008-10-31 tdb
  * Added Media RSS tags to RSS2 export
 
+2008-11-10 tdb
+ * Don't attempt to reload a non-existant citation file
+
