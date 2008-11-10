@@ -93,18 +93,18 @@ sub action_new_field
 
 	if( my $obj = $ds->get_object( $session, $metafieldid ) )
 	{
-		$self->{processor}->{metafield} = $obj;
+		$self->{processor}->{dataobj} = $obj;
 	}
 	else
 	{
-		$self->{processor}->{metafield} = $ds->create_object( $session, {
+		$self->{processor}->{dataobj} = $ds->create_object( $session, {
 			metafieldid => $metafieldid,
 			mfdatasetid => $datasetid,
 			name => $name,
 		});
 	}
 
-	if( !$self->{processor}->{metafield} )
+	if( !$self->{processor}->{dataobj} )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "create_failed" )
@@ -112,7 +112,7 @@ sub action_new_field
 		return;
 	}
 
-	$self->{processor}->{metafieldid} = $metafieldid;
+	$self->{processor}->{dataobj_id} = $metafieldid;
 	$self->{processor}->{screenid} = "MetaField::Edit";
 }	
 

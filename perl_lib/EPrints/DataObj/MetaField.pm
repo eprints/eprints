@@ -430,11 +430,41 @@ sub get_defaults
 
 ######################################################################
 
+sub _validate_epdata
+{
+	my( $self, $epdata ) = @_;
+
+	my @problems;
+
+	if( $epdata->{"type"} eq "itemref" )
+	{
+		my $datasetid = $epdata->{"datasetid"};
+		$datasetid = "" unless defined $datasetid;
+
+		unless( $self->get_session->get_repository->get_dataset( $datasetid ) )
+		{
+			push @problems, $self->get_session->html_phrase(
+					"validate:unknown_datasetid",
+					datasetid => $self->get_session->make_text( $datasetid ),
+				);
+		}
+	}
+
+	return @problems;
+}
+
 sub validate
 {
 	my( $self, $repository ) = @_;
 
-	return [];
+	my @problems;
+
+	for($self->{data}, @{$self->{data}->{fields}||[]})
+	{
+		push @problems, $self->_validate_epdata( $_ );
+	}
+
+	return \@problems;
 }
 
 sub get_warnings

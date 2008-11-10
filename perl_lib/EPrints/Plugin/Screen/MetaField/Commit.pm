@@ -1,10 +1,12 @@
 package EPrints::Plugin::Screen::MetaField::Commit;
 
-@ISA = ( 'EPrints::Plugin::Screen::MetaField' );
+@ISA = ( 'EPrints::Plugin::Screen::Workflow' );
 
 use EPrints::Plugin::Screen::Admin::Reload;
 
 use strict;
+
+sub get_dataset_id { "metafield" }
 
 sub new
 {
@@ -19,6 +21,15 @@ sub new
 	$self->{actions} = [qw/ commit save /];
 
 	return $self;
+}
+
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->SUPER::properties_from;
+
+	$self->{processor}->{dataset} = $self->{processor}->{dataobj}->get_dataset;
 }
 
 sub from
@@ -55,7 +66,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $problems = $self->{processor}->{metafield}->validate( $self->{processor}->{for_archive} );
+	my $problems = $self->{processor}->{dataobj}->validate( $self->{processor}->{for_archive} );
 	if( scalar @{$problems} > 0 )
 	{
 		my $dom_problems = $self->{session}->make_element( "ul" );
@@ -69,7 +80,7 @@ sub render
 		$self->{processor}->add_message( "warning", $dom_problems );
 	}
 
-	my $warnings = $self->{processor}->{metafield}->get_warnings;
+	my $warnings = $self->{processor}->{dataobj}->get_warnings;
 	if( scalar @{$warnings} > 0 )
 	{
 		my $dom_warnings = $self->{session}->make_element( "ul" );
@@ -126,9 +137,9 @@ sub action_commit
 	my( $self ) = @_;
 
 	$self->{processor}->{screenid} = "MetaField::View";
-	$self->{processor}->{datasetid} = $self->{processor}->{metafield}->get_value( "mfdatasetid" );
+	$self->{processor}->{datasetid} = $self->{processor}->{dataobj}->get_value( "mfdatasetid" );
 
-	my $problems = $self->{processor}->{metafield}->validate( $self->{processor}->{for_archive} );
+	my $problems = $self->{processor}->{dataobj}->validate( $self->{processor}->{for_archive} );
 	if( scalar @{$problems} > 0 )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "validation_errors" ) ); 
@@ -148,7 +159,7 @@ sub action_commit
 
 	my $ok = 1; # TODO write it to the config file!
 
-	my $dataobj = $self->{processor}->{metafield};
+	my $dataobj = $self->{processor}->{dataobj};
 	$ok &&= $dataobj->move_to_archive();
 	$ok &&= EPrints::DataObj::MetaField::save_all( $self->{session} );
 
@@ -190,7 +201,7 @@ sub action_save
 	$self->uncache_workflow;
 
 	$self->{processor}->{screenid} = "MetaField::View";
-	$self->{processor}->{datasetid} = $self->{processor}->{metafield}->get_value( "mfdatasetid" );
+	$self->{processor}->{datasetid} = $self->{processor}->{dataobj}->get_value( "mfdatasetid" );
 }
 
 1;
