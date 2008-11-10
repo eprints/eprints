@@ -230,7 +230,6 @@ use EPrints::Update::Views;
 use EPrints::Update::Abstract;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
-use EPrints::Workflow::Processor;
 use EPrints::XML::EPC;
 
 # Load EPrints::Plugin last, because dynamically loaded plugins may have
