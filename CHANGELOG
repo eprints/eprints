@@ -7850,4 +7850,5 @@ EPRINTS-3.1-beta-2
  * Added "last_run" and "last_success" fields to import
  * Record when bulk imports are run and succeed
  * Added Screen admin plugins to support some management of bulk imports
+ * Adde validation of itemref field
 

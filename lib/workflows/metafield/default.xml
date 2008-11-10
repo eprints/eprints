@@ -32,7 +32,7 @@
 		</epc:if>
 	</component>
 	<epc:if test="type='search' or type='fields' or type='subobject' or type='itemref'">
-		<component><field ref="datasetid"/></component>
+		<component><field ref="datasetid" required="yes"/></component>
 	</epc:if>
 	<epc:if test="multiple='TRUE'">
 		<component type="Field::Multi">

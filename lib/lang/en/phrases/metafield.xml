@@ -322,4 +322,6 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 <epp:phrase id="metafield_fieldopt_input_style_short">Short</epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_input_style_short">Short</epp:phrase>
 
+<epp:phrase id="validate:unknown_datasetid">Unspecified or unknown dataset id "<epc:pin name="datasetid"/>" given</epp:phrase>
+
 </epp:phrases>
