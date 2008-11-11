@@ -7855,3 +7855,7 @@ EPRINTS-3.1-beta-2
 2008-11-10 cjg + dct05r
  * Added a hook into the tool bar to link to the edit page admin tool if
     appropriate (page is editable, and user can edit it).
+
+2008-11-11 tdb
+ * Correctly escape search export URLs (lac request)
+

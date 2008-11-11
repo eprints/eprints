@@ -52,12 +52,17 @@ sub export_url
 	{
 		EPrints::abort( "No such plugin: $format\n" );	
 	}
-	my $url = $self->{session}->get_uri();
-	#cjg escape URL'ify urls in this bit... (4 of them?)
-	my $escexp = $self->{processor}->{search}->serialise;
-	$escexp =~ s/ /+/g; # not great way...
-	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?exp=$escexp&output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
-	return $fullurl;
+
+	my $url = URI->new( $self->{session}->get_uri() . "/export_" . $self->{session}->get_repository->get_id . "_" . $format . $plugin->param( "suffix" ) );
+
+	$url->query_form(
+		screen => $self->{processor}->{screenid},
+		_action_export => 1,
+		output => $format,
+		exp => $self->{processor}->{search}->serialise,
+	);
+
+	return $url;
 }
 
 sub allow_export { return 0; }
