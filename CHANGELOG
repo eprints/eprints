@@ -7863,3 +7863,6 @@ EPRINTS-3.1-beta-2
 2008-11-12 tdb
  * Added dc:date to UKETD export
 
+2008-11-12 tdb
+ * Fixed bugs in static file updating #3444 and #3460
+

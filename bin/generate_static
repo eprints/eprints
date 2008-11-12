@@ -341,93 +341,12 @@ sub scan_static_dir_aux
 	}
 }
 
-sub copy_plain
-{
-	my( $session, $from, $to, $wrote_files ) = @_;
+# copy_plain( $from, $to, $wrote_files )
+sub copy_plain { &EPrints::Update::Static::copy_plain(@_[1..$#_]) }
 
-	if( !EPrints::Utils::copy( $from, $to ) )
-	{
-		EPrints::abort( "Can't copy $from to $to: $!" );
-	}
+# copy_xpage( $session, $from, $to, $wrote_files )
+sub copy_xpage { &EPrints::Update::Static::copy_xpage }
 
-	$wrote_files->{$to} = 1;
-}
-
-sub copy_xpage
-{
-	my( $session, $from, $to, $wrote_files ) = @_;
-
-	my $doc = $session->get_repository->parse_xml( $from );
-
-	if( !defined $doc )
-	{
-		$session->get_repository->log( "Could not load file: $from" );
-		return;
-	}
-
-	my $html = $doc->documentElement;
-	my $parts = {};
-	foreach my $node ( $html->getChildNodes )
-	{
-		my $part = $node->nodeName;
-		$part =~ s/^.*://;
-		next unless( $part eq "body" || $part eq "title" );
-
-		$parts->{$part} = $session->make_doc_fragment;
-			
-		foreach my $kid ( $node->getChildNodes )
-		{
-			$parts->{$part}->appendChild( 
-				EPrints::XML::EPC::process( 
-					$kid,
-					in => $from,
-					session => $session ) ); 
-		}
-	}
-	foreach my $part ( qw/ title body / )
-	{
-		if( !$parts->{$part} )
-		{
-			$session->get_repository->log( "Error: no $part element in ".$from );
-			EPrints::XML::dispose( $doc );
-			return;
-		}
-	}
-
-	$parts->{page} = delete $parts->{body};
-	$to =~ s/.html$//;
-	$session->write_static_page( $to, $parts, "static", $wrote_files );
-
-	EPrints::XML::dispose( $doc );
-}
-
-sub copy_xhtml
-{
-	my( $session, $from, $to, $wrote_files ) = @_;
-
-	my $doc = $session->get_repository->parse_xml( $from );
-
-	if( !defined $doc )
-	{
-		$session->get_repository->log( "Could not load file: $from" );
-		return;
-	}
-
-	my( $elements ) = EPrints::XML::find_elements( $doc, "html" );
-	if( !defined $elements->{html} )
-	{
-		$session->get_repository->log( "Error: no html element in ".$from );
-		EPrints::XML::dispose( $doc );
-		return;
-	}
-	# why clone?
-	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
-	$session->set_page( 
-		EPrints::XML::EPC::process( 
-			$elements->{html}, 
-			in => $from,
-			session => $session ) ); 
-
-	$session->page_to_file( $to, $wrote_files );
-}
+# copy_xhtml( $session, $from, $to, $wrote_files )
+sub copy_xhtml { &EPrints::Update::Static::copy_xhtml }
 

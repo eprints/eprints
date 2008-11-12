@@ -74,7 +74,7 @@ sub update_static_file
 	{
 		$source_mtime = 0;
 
-		DIRLOOP: foreach my $dir ( reverse @static_dirs )
+		DIRLOOP: foreach my $dir ( @static_dirs )
 		{
 			my $dh;
 			my $path;
@@ -103,7 +103,7 @@ sub update_static_file
 	{
 		my $base = $localpath;
 		$base =~ s/\.html$//;
-		DIRLOOP: foreach my $dir ( reverse @static_dirs )
+		DIRLOOP: foreach my $dir ( @static_dirs )
 		{
 			foreach my $suffix ( qw/ .html .xpage .xhtml / )
 			{
@@ -118,7 +118,7 @@ sub update_static_file
 	}
 	else
 	{
-		foreach my $dir ( reverse @static_dirs )
+		foreach my $dir ( @static_dirs )
 		{
 			if( -e $dir.$localpath )
 			{
