@@ -133,6 +133,11 @@ sub eprint_to_uketd_dc
 		
 		push @etddata, [ "title", $eprint->get_value( "title" ), "dc" ]; 
 		
+		if( $eprint->is_set( "date" ) )
+		{
+			push @etddata, [ "date", $eprint->get_value( "date" ), "dc" ];
+		}
+
 		# grab the creators without the ID parts so if the site admin
 		# sets or unsets creators to having and ID part it will make
 		# no difference to this bit.
