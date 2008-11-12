@@ -3919,8 +3919,8 @@ sub get_static_page_conf_file
 	my @exceptions = ();
 	if( defined $econf ) { @exceptions = @{$econf}; }
 	push @exceptions,
-		"$urlpath/id/";
-		"$urlpath/view/";
+		"$urlpath/id/",
+		"$urlpath/view/",
 		"$urlpath/sword-app/",
 		"$urlpath/thumbnails/";
 
