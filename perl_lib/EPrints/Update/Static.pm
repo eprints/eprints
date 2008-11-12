@@ -66,40 +66,24 @@ sub update_static_file
 	my $source;
 	my $map;
 
-	my $auto_to_scan;
-	$auto_to_scan = 'style' if( $localpath =~ m!/style/auto\.css$! );
-	$auto_to_scan = 'javascript' if( $localpath =~ m!/javascript/auto\.js$! );
-
-	if( defined $auto_to_scan )
+	if( $localpath =~ m{/style/auto\.css$} )
 	{
-		$source_mtime = 0;
-
-		DIRLOOP: foreach my $dir ( @static_dirs )
-		{
-			my $dh;
-			my $path;
-			$path = "$dir/$auto_to_scan/auto";
-			next unless -d $path;
-			# check the dir too, just in case a file got removed.
-			my $this_mtime = EPrints::Utils::mtime( $path );
-
-			$source_mtime = $this_mtime if( $this_mtime > $source_mtime );	
-			opendir( $dh, $path ) || EPrints::abort( "Failed to read dir: $path" );
-			while( my $file = readdir( $dh ) )
-			{
-				next if $file eq ".svn";
-				next if $file eq "CVS";
-				next if $file eq ".";
-				next if $file eq "..";
-				# file
-				my $this_mtime = EPrints::Utils::mtime( "$path/$file" );
-				$source_mtime = $this_mtime if( $this_mtime > $source_mtime );	
-				$map->{"/$auto_to_scan/auto/$file"} = "$path/$file";
-			}
-			closedir( $dh );
-		}
+		return update_auto_css( 
+				$repository,
+				$repository->get_conf( "htdocs_path" )."/$langid",
+				\@static_dirs
+			);
 	}
-	elsif( $localpath =~ m/\.html$/ )
+	elsif( $localpath =~ m{/javascript/auto\.js$} )
+	{
+		return update_auto_js(
+				$repository,
+				$repository->get_conf( "htdocs_path" )."/$langid",
+				\@static_dirs
+			);
+	}
+
+	if( $localpath =~ m/\.html$/ )
 	{
 		my $base = $localpath;
 		$base =~ s/\.html$//;
@@ -139,62 +123,6 @@ sub update_static_file
 
 	return if( $target_mtime > $source_mtime ); # nothing to do
 
-	if( defined $auto_to_scan && $auto_to_scan eq "style" )
-	{
-		# do the magic auto.css
-		my $css = "";
-		my $base_url = $repository->get_conf( "base_url" );
-		foreach my $target ( sort keys %{$map} )
-		{
-			if( $target =~ m/(\/style\/auto\/.*\.css$)/ )
-			{
-				# $css .= "\@import url($base_url$1);\n";
-				my $fn = $map->{$target};
-				open( CSS, $fn ) || EPrints::abort( "Can't read $fn: $!" );
-				$css .= "\n\n\n/* From: $fn */\n\n";
-				$css .= join( "", <CSS> );
-				close CSS;	
-			}	
-		}
-	
-		my $fn = $repository->get_conf( "htdocs_path" )."/$langid/style/auto.css";
-		open( CSS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
-		print CSS $css;
-		close CSS;
-	
-		return;
-	}
-
-	if( defined $auto_to_scan && $auto_to_scan eq "javascript" )
-	{
-		# do the magic auto.js 
-		my $js = "";
-		$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $repository->get_conf('base_url') ).";\n";
-		$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $repository->get_conf('perl_url') ).";\n";
-		$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $repository->get_conf('oai','v2','archive_id') ).";\n";
-		$js .= "\n";
-
-		foreach my $target ( sort keys %{$map} )
-		{
-			if( $target =~ m/(\/javascript\/auto\/.*\.js$)/ )
-			{
-				my $fn = $map->{$target};
-				open( JS, $fn ) || EPrints::abort( "Can't read $fn: $!" );
-				$js .= "\n\n\n/* From: $fn */\n\n";
-				$js .= join( "", <JS> );
-				close JS;	
-			}	
-		}
-	
-		my $fn = $repository->get_conf( "htdocs_path" )."/$langid/javascript/auto.js";
-		open( JS, ">$fn" ) || EPrints::abort( "Can't write $fn: $!" );
-		print JS $js;
-		close JS;
-
-		return;
-	}
-
-
 	$target =~ m/^(.*)\/([^\/]+)/;
 	my( $target_dir, $target_file ) = ( $1, $2 );
 	
@@ -222,6 +150,125 @@ sub update_static_file
 	{ 
 		copy_plain( $source, $target, {} ); 
 	}
+}
+
+=item update_auto_css( $target_dir, $dirs )
+
+=cut
+
+sub update_auto_css
+{
+	my( $repository, $target_dir, $static_dirs ) = @_;
+
+	my @dirs = map { "$_/style/auto" } grep { defined } @$static_dirs;
+
+	update_auto(
+			"$target_dir/style",
+			"css",
+			\@dirs
+		);
+}
+
+sub update_auto_js
+{
+	my( $repository, $target_dir, $static_dirs ) = @_;
+
+	my @dirs = map { "$_/javascript/auto" } grep { defined } $static_dirs;
+
+	my $js = "";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $repository->get_conf('base_url') ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $repository->get_conf('perl_url') ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "\n";
+
+	update_auto(
+			"$target_dir/javascript",
+			"js",
+			\@dirs,
+			{ prefix => $js },
+		);
+}
+
+=item $auto = update_auto( $target_dir, $extension, $dirs [, $opts ] )
+
+Update a file called "auto.$extension" in $target_dir by concantenating all of the files found in $dirs with the extension $extension (js, css etc. - may be a regexp).
+
+If more than one file with the same name exists in $dirs then only the last encountered file will be used.
+
+Returns the full path to the resulting auto file.
+
+$opts:
+
+=over 4
+
+=item prefix
+
+Prefix text to the output file.
+
+=item postfix
+
+Postfix text to the output file.
+
+=back
+
+=cut
+
+sub update_auto
+{
+	my( $target_dir, $ext, $dirs, $opts ) = @_;
+
+	my $target = "$target_dir/auto.$ext";
+
+	my $target_time = EPrints::Utils::mtime( $target );
+	$target_time = 0 unless defined $target_time;
+	my $out_of_date = 0;
+
+	my %map;
+	# build a map of every uniquely-named auto file from $dirs
+	foreach my $dir (@$dirs)
+	{
+		opendir(my $dh, $dir) or next;
+		$out_of_date = 1 if (stat($dir))[9] > $target_time;
+		foreach my $fn (readdir($dh))
+		{
+			next if $fn =~ /^\./;
+			next if -d "$dir/$fn";
+			next unless $fn =~ /\.$ext$/;
+			$map{$fn} = "$dir/$fn";
+			$out_of_date = 1 if (stat(_))[9] > $target_time;
+		}
+		closedir($dh);
+	}
+
+	return $target unless $out_of_date;
+
+	EPrints::Platform::mkdir( $target_dir );
+
+	# to improve speed use raw read/write
+	open(my $fh, ">:raw", $target) or EPrints::abort( "Can't write to $target: $!" );
+
+	print $fh Encode::encode_utf8($opts->{prefix}) if defined $opts->{prefix};
+
+	# concat all of the mapped files into a single "auto" file
+	foreach my $fn (sort keys %map)
+	{
+		my $path = $map{$fn};
+
+		print $fh "\n\n\n/* From: $path */\n\n";
+		open(my $in, "<:raw", $path) or EPrints::abort( "Can't read from $path: $!" );
+		my $buffer = "";
+		while(read($in, $buffer, 4096))
+		{
+			print $fh $buffer;
+		}
+		close($in);
+	}
+
+	print $fh Encode::encode_utf8($opts->{postfix}) if defined $opts->{postfix};
+
+	close($fh);
+
+	return $target;
 }
 
 sub copy_plain
