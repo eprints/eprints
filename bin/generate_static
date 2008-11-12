@@ -205,6 +205,11 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 
 	# do the magic auto.js and auto.css
 	my $js = "";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_repository->get_conf('base_url') ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_repository->get_conf('perl_url') ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "\n";
+
 	my $css = "";
 	my $fn;
 	my $base_url = $session->get_repository->get_conf( "http_url" );
