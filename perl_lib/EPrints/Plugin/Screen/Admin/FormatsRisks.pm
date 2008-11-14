@@ -8,7 +8,7 @@ my $hideall;
 my $unstable;
 my $risks_url;
 our ($classified, $hideall, $unstable, $risks_url);
-$unstable = 1;
+$unstable = 0;
 $classified = "true";
 
 sub new
@@ -268,6 +268,7 @@ sub get_format_risks_table {
 	my $blue_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	
 	my $format_table = $blue_format_table;
+	
 
 	my $soap_error = "";
 	my $pronom_error_message = "";
@@ -322,6 +323,10 @@ sub get_format_risks_table {
 				$blue_count = $blue_count + 1;
 				$color = "blue";
 			}
+		} else {
+			$format_table = $blue_format_table;
+			$blue_count = $blue_count + 1;
+			$color = "blue";
 		}
 	
 		my $count = $#{$files_by_format->{$format}};
