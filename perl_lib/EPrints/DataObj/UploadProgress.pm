@@ -159,7 +159,7 @@ sub get_defaults
 
 =item $progress->update_cb( FILENAME, BUFFER, BYTES_READ, PROGRESS )
 
-Update callback for use with L<CGI>.
+Update callback for use with L<CGI>. Limits database writes to a minimum of 1 seconds between updates.
 
 =cut
 
@@ -168,7 +168,11 @@ sub update_cb
 	my( $filename, $buffer, $bytes_read, $self ) = @_;
 
 	$self->set_value( "received", $bytes_read );
-	$self->commit;
+	if( !defined( $self->{_mtime} ) || (time() - $self->{_mtime}) > 0 )
+	{
+		$self->commit;
+		$self->{_mtime} = time();
+	}
 }
 
 =item $javascript = $progress->render_json()
