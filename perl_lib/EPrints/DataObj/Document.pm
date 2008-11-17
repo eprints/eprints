@@ -302,7 +302,6 @@ sub create_from_data
 		$filedata->{_parent} = $document;
 		$filedata->{datasetid} = $document->get_dataset->confid;
 		$filedata->{objectid} = $document->get_id;
-		$filedata->{bucket} = "data";
 		my $fileobj = EPrints::DataObj::File->create_from_data(
 				$session,
 				$filedata
