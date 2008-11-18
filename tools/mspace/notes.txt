@@ -1,3 +1,5 @@
+ mysql ecs -e 'show tables' -B | grep mspace | xargs mysqldump -u root ecs   >
+/tmp/mspacedump3.sql
 
 add to:
 $c->{set_eprint_automatic_fields} = sub

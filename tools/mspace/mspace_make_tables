@@ -87,10 +87,30 @@ $db->create_index( $table_name, "eprintid" );
 $db->create_index( $table_name, "formatid" );
 $db->create_index( $table_name, "contentid" );
 
+$db->drop_table( "mspace_cache" );
+$db->do( <<END );
+CREATE TABLE `mspace_cache` (
+  `id` int(11) NOT NULL auto_increment,
+  `in` varchar(255) NOT NULL default '',
+  `out` longtext NOT NULL,
+  `kb` varchar(255) NOT NULL default '',
+  `lastdate` datetime default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `in` (`in`),
+  KEY `kb` (`kb`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+END
 
-
-
-
+$db->drop_table( "mspace_sphinx" );
+$db->do( <<END );
+CREATE TABLE `mspace_sphinx` (
+  `id` int(11) NOT NULL,
+  `weight` int(11) NOT NULL,
+  `query` varchar(3072) NOT NULL,
+  `group_id` int(11) default NULL,
+  KEY `query` (`query`)
+) ENGINE=SPHINX DEFAULT CHARSET=latin1 CONNECTION='sphinx://localhost:3312/eprints_mspace';
+END
 
 
 
