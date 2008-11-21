@@ -66,6 +66,8 @@ if( $driver eq "mysql" )
 
 my @rows;
 
+my $count = 0;
+
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
 while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
@@ -92,7 +94,7 @@ while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
 		"for:value:relative:_id" => $id,
 	];
 
-	last if --$max == 0;
+	last if ++$count == $max;
 }
 
 $sth->finish();
