@@ -12,6 +12,9 @@ my $family = $session->param( "_name_family" );
 my $given = $session->param( "_name_given" );
 my $id = $session->param( "_id" );
 
+my $driver = $session->get_repository->get_conf( "dbdriver" );
+$driver ||= "mysql";
+
 my $database = $session->get_database;
 my $dataset = $session->get_repository->get_dataset( "eprint" );
 my $name_field = $dataset->get_field( "creators_name" );
@@ -52,8 +55,14 @@ if( EPrints::Utils::is_set( $id ) )
 $sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields) .
 	" ORDER BY $Q_num_matches DESC," .
 	$database->quote_identifier("creators_name_family").",".
-	$database->quote_identifier("creators_name_given") .
-	" LIMIT 40";
+	$database->quote_identifier("creators_name_given");
+
+my $max = 40; # Show a maximum of 40 matches
+
+if( $driver eq "mysql" )
+{
+	$sql .= " LIMIT $max";
+}
 
 my @rows;
 
@@ -82,7 +91,11 @@ while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
 		"for:value:relative:_name_lineage" => $l,
 		"for:value:relative:_id" => $id,
 	];
+
+	last if --$max == 0;
 }
+
+$sth->finish();
 
 my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
 
