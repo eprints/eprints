@@ -19,6 +19,16 @@
 
 B<EPrints::Database::Oracle> - custom database methods for Oracle DB
 
+=head1 SYNOPSIS
+
+These settings are what you would use for the free Oracle developer version.
+
+	# Oracle driver settings for database.pl
+	$c->{dbdriver} = "Oracle";
+	$c->{dbsid} = "XE;
+	$c->{dbuser} = "HR";
+	$c->{dbpass} = "HR";
+
 =head1 DESCRIPTION
 
 Oracle database wrapper.
