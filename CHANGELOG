@@ -7866,3 +7866,5 @@ EPRINTS-3.1-beta-2
 2008-11-12 tdb
  * Fixed bugs in static file updating #3444 and #3460
 
+2008-11-21 cjg
+ * Added first stab at Excel and CSV Export and Import tool.
