@@ -27,10 +27,11 @@ sub header_row
 	my( $plugin, %opts ) = @_;
 
 	my $ds = $opts{list}->get_dataset;
-	my @n= ( "eprintid", "rowid" );
+	my $key_field = $ds->get_key_field();
+	my @n = ( $key_field->get_name, "rowid" );
 	foreach my $field ( $ds->get_fields )
 	{
-		next if $field->get_name eq "eprintid";
+		next if $field->get_name eq $key_field->get_name;
 		next if $field->is_type( "compound", "multilang", "subobject" );
 		
 		if( $field->is_type( "name" ) )
@@ -54,12 +55,13 @@ sub dataobj_to_rows
 	my( $plugin, $dataobj ) = @_;
 
 	my $ds = $dataobj->get_dataset;
+	my $key_field = $ds->get_key_field();
 	my $rows = [];
 	my $col = 2;
 	foreach my $field ( $ds->get_fields )
 	{
+		next if $field->get_name eq $key_field->get_name;
 		next if $field->is_type( "compound", "multilang" );
-		next if $field->get_name eq "eprintid";
 
 		my $v = $dataobj->get_value( $field->get_name );
 		if( EPrints::Utils::is_set( $v ) )
@@ -100,8 +102,8 @@ sub dataobj_to_rows
 	for( my $row_n=0;$row_n<scalar @{$rows};++$row_n  )
 	{
 		my $row = $rows->[$row_n];
-		$row->[0] = $dataobj->get_value( "eprintid" );
-		$row->[1] = $dataobj->get_value( "eprintid" )."_".$row_n;
+		$row->[0] = $dataobj->get_value( $key_field->get_name );
+		$row->[1] = $dataobj->get_value( $key_field->get_name )."_".$row_n;
 	}
 
 	return $rows;

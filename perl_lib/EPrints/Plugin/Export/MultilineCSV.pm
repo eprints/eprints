@@ -17,7 +17,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Multiline CSV";
-	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{accept} = [ 'dataobj/eprint', 'list/eprint', ];
 	$self->{visible} = "staff";
 	$self->{suffix} = ".csv";
 	$self->{mimetype} = "text/csv";

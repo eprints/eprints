@@ -93,7 +93,7 @@ sub input_file
 		foreach my $row ( sort keys %{$rowsdata} )
 		{
 			my $rowdata = $rowsdata->{$row};
-			my( $_, $row_n ) = split( /_/, $rowdata->{rowid} );
+			my( undef, $row_n ) = split( /_/, $rowdata->{rowid} );
 			foreach my $dataid ( keys %{$rowdata} )
 			{
 				next if $dataid eq "rowid";
