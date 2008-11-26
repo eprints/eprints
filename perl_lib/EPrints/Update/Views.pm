@@ -328,7 +328,7 @@ sub update_view_menu
 
 	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 
-	my $navigation_aids = render_navigation_aids( $session, $path_values, $view, \@fields, "menu" );
+	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, \@fields, "menu" );
 	$page->appendChild( $navigation_aids );
 
 	my $phrase_id = "viewintro_".$view->{id};
@@ -820,7 +820,7 @@ sub update_view_list
 		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
 		my $navigation_aids = EPrints::XML::to_string( 
-			render_navigation_aids( $session, $path_values, $view, \@fields, "list" ) );
+			render_navigation_aids( $session, $path_values, $esc_path_values, $view, \@fields, "list" ) );
 
 		print PAGE $navigation_aids;
 		
@@ -1085,7 +1085,7 @@ sub update_view_list
 # pagetype is "menu" or "list"
 sub render_navigation_aids
 {
-	my( $session, $path_values, $view, $fields, $pagetype ) = @_;
+	my( $session, $path_values, $esc_path_values, $view, $fields, $pagetype ) = @_;
 
 	my $f = $session->make_doc_fragment();
 
@@ -1109,6 +1109,11 @@ sub render_navigation_aids
 		}
 		$f->appendChild( $session->html_phrase( "Update/Views:up_a_level", 
 			url => $session->render_link( $url ) ) );
+	}
+
+	if( $pagetype eq "list" )
+	{
+		$f->appendChild( render_export_bar( $session, $esc_path_values, $view ) );
 	}
 
 	if( defined $fields_being_browsed && $fields_being_browsed->[0]->is_type( "subject" ) )
@@ -1154,6 +1159,96 @@ sub render_navigation_aids
 
 	return $f;
 }
+
+sub render_export_bar
+{
+	my( $session, $esc_path_values, $view ) = @_;
+
+	my %opts =  (
+			type=>"Export",
+			can_accept=>"list/eprint",
+			is_visible=>"all",
+	);
+	my @plugins = $session->plugin_list( %opts );
+
+	if( scalar @plugins == 0 ) 
+	{
+		return $session->make_doc_fragment;
+	}
+
+	my $export_url = $session->get_repository->get_conf( "perl_url" )."/exportview";
+	my $values = join( "/", @{$esc_path_values} );	
+
+	my $feeds = $session->make_doc_fragment;
+	my $tools = $session->make_doc_fragment;
+	my $options = {};
+	foreach my $plugin_id ( @plugins ) 
+	{
+		$plugin_id =~ m/^[^:]+::(.*)$/;
+		my $id = $1;
+		my $plugin = $session->plugin( $plugin_id );
+		my $dom_name = $plugin->render_name;
+		if( $plugin->is_feed || $plugin->is_tool )
+		{
+			my $type = "feed";
+			$type = "tool" if( $plugin->is_tool );
+			my $span = $session->make_element( "span", class=>"ep_search_$type" );
+
+			my $fn = join( "_", @{$esc_path_values} );	
+			my $url = $export_url."/".$view->{id}."/$values/$id/$fn".$plugin->param("suffix");
+
+			my $a1 = $session->render_link( $url );
+			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
+			$a1->appendChild( $icon );
+			my $a2 = $session->render_link( $url );
+			$a2->appendChild( $dom_name );
+			$span->appendChild( $a1 );
+			$span->appendChild( $session->make_text( " " ) );
+			$span->appendChild( $a2 );
+
+			if( $type eq "tool" )
+			{
+				$tools->appendChild( $session->make_text( " " ) );
+				$tools->appendChild( $span );	
+			}
+			if( $type eq "feed" )
+			{
+				$feeds->appendChild( $session->make_text( " " ) );
+				$feeds->appendChild( $span );	
+			}
+		}
+		else
+		{
+			my $option = $session->make_element( "option", value=>$id );
+			$option->appendChild( $dom_name );
+			$options->{EPrints::XML::to_string($dom_name)} = $option;
+		}
+	}
+
+	my $select = $session->make_element( "select", name=>"format" );
+	foreach my $optname ( sort keys %{$options} )
+	{
+		$select->appendChild( $options->{$optname} );
+	}
+	my $button = $session->make_doc_fragment;
+	$button->appendChild( $session->render_button(
+			name=>"_action_export_redir",
+			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
+	$button->appendChild( 
+		$session->render_hidden_field( "view", $view->{id} ) );
+	$button->appendChild( 
+		$session->render_hidden_field( "values", $values ) ); 
+
+	my $form = $session->render_form( "GET", $export_url );
+	$form->appendChild( $session->html_phrase( "Update/Views:export_section",
+					feeds => $feeds,
+					tools => $tools,
+					menu => $select,
+					button => $button ));
+
+	return $form;
+}
+
 	
 sub group_items
 {

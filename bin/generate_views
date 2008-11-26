@@ -137,7 +137,12 @@ my $do_lists = 1;
 if( defined $generate_opt )
 {
 	if( $generate_opt eq "menus" ) { $do_lists = 0; }
-	if( $generate_opt eq "lists" ) { $do_menus = 0; }
+	elsif( $generate_opt eq "lists" ) { $do_menus = 0; }
+	else 
+	{
+		print STDERR "--generate must be either menus or lists.\n";
+		exit 1;
+	}
 }
 
 my $PATH = "view";

@@ -61,7 +61,7 @@ sub dataobj_to_rows
 	foreach my $field ( $ds->get_fields )
 	{
 		next if $field->get_name eq $key_field->get_name;
-		next if $field->is_type( "compound", "multilang" );
+		next if $field->is_type( "compound", "multilang", "subobject" );
 
 		my $v = $dataobj->get_value( $field->get_name );
 		if( EPrints::Utils::is_set( $v ) )

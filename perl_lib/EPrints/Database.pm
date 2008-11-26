@@ -2884,11 +2884,19 @@ sub get_ids_by_field_values
 					$table = $dataset->get_sql_table_name();
 				}
 				$tables{$table} = 1;
-				# note filters don't handle date, time or name fields yet.
-				push @ors,
-					$self->quote_identifier($table,$ffield->get_sql_name()).
-					" = ".
-					$self->quote_value( $filter->{value} );
+		
+				my @sql_cols = $ffield->get_sql_names();
+				my @sql_vals = $ffield->sql_row_from_value( $session, $filter->{value} );
+				my @ands = ();
+				for( my $i=0; $i<scalar @sql_cols; ++$i )
+				{
+					next if( !defined $sql_vals[$i] );
+					push @ands,
+						$self->quote_identifier($table,$sql_cols[$i]).
+						" = ".
+						$self->quote_value( $sql_vals[$i] );
+				}
+				push @ors, "(".join( ") AND (", @ands ).")";
 			}
 			push @where, "(".join( ") OR (", @ors ).")";
 		}

@@ -7868,3 +7868,13 @@ EPRINTS-3.1-beta-2
 
 2008-11-21 cjg
  * Added first stab at Excel and CSV Export and Import tool.
+
+2008-11-26 cjg
+ * Added export tool to views pages.
+ * Fixed small issue in Database which prevented dates or names being anything
+    but the last level in views.
+ * Minor css tweaks to views.
+ * generate_views now gives a useful error message if --generate is called 
+    with an illegal option.
+ * Fixed a bug in the Grid abstract export module that meant that headers did
+    not align with the columns. (skipping subobjects in one but not the other)
