@@ -9,16 +9,16 @@
 ######################################################################
 
 	
-$c->{user_roles}->{user} = [qw/
+$c->{user_roles}->{user} = [qw{
 	general
 	edit-own-record
 	saved-searches
 	set-password
 	deposit
 	change-email
-/],
+}],
 
-$c->{user_roles}->{editor} = [qw/
+$c->{user_roles}->{editor} = [qw{
 	general
 	edit-own-record
 	saved-searches
@@ -28,7 +28,7 @@ $c->{user_roles}->{editor} = [qw/
 	editor
 	view-status
 	staff-view
-/],
+}],
 
 $c->{user_roles}->{admin} = [qw{
 	general
@@ -45,13 +45,13 @@ $c->{user_roles}->{admin} = [qw{
 }],
 # Note -- nobody has the very powerful "toolbox" role by default!
 
-$c->{user_roles}->{minuser} = [qw/
+$c->{user_roles}->{minuser} = [qw{
 	general
 	edit-own-record
 	saved-searches
 	set-password
 	lock-username-to-email
-/];
+}];
 
 # If you want to add additional roles to the system, you can do it here.
 # These can be useful to create "hats" which can be given to a user via

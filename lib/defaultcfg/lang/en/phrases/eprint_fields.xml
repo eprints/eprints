@@ -240,7 +240,7 @@ This field is required if no creators are listed.
     <epp:phrase id="eprint_fieldhelp_funders">The sponsoring bodies who contributed funding for the creation of this item.</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_projects">Projects</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_projects">The names or codes of the projects that created of this item.</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_projects">The names or codes of the projects that created this item.</epp:phrase>
 
     <epp:phrase id="eprint_fieldname_divisions">Divisions</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_divisions">The divisions with which this item should be associated.</epp:phrase>

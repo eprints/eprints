@@ -270,7 +270,7 @@ sub send_out_alert
 	{
 		$self->{session}->get_repository->log( 
 			"Attempt to send out an alert for a\n".
-			"non-existant user. ID#".$self->get_id."\n" );
+			"non-existant user. SavedSearch ID#".$self->get_id."\n" );
 		return;
 	}
 
@@ -332,8 +332,8 @@ sub send_out_alert
 			$last_month."-" );
 	}
 
-	my $url = $self->{session}->get_repository->get_conf( "http_cgiurl" ).
-		"/users/home?screenid=SavedSearh::View";
+	my $settings_url = $self->{session}->get_repository->get_conf( "http_cgiurl" ).
+		"/users/home?screen=User::SavedSearch::Edit&savedsearchid=".$self->get_id;
 	my $freqphrase = $self->{session}->html_phrase(
 		"lib/saved_search:".$freq );
 
@@ -347,23 +347,23 @@ sub send_out_alert
 	};
 
 
-	$searchexp->perform_search;
+	my $list = $searchexp->perform_search;
 	my $mempty = $self->get_value( "mailempty" );
 	$mempty = 0 unless defined $mempty;
 
-	if( $searchexp->count > 0 || $mempty eq 'TRUE' )
+	if( $list->count > 0 || $mempty eq 'TRUE' )
 	{
 		my $info = {};
 		$info->{matches} = $self->{session}->make_doc_fragment;
-		$searchexp->map( $fn, $info );
+		$list->map( $fn, $info );
 
 		my $mail = $self->{session}->html_phrase( 
 				"lib/saved_search:mail",
 				howoften => $freqphrase,
-				n => $self->{session}->make_text( $searchexp->count ),
+				n => $self->{session}->make_text( $list->count ),
 				search => $searchdesc,
 				matches => $info->{matches},
-				url => $self->{session}->render_link( $url ) );
+				url => $self->{session}->render_link( $settings_url ) );
 		if( $self->{session}->get_noise >= 2 )
 		{
 			print "Sending out alert #".$self->get_id." to ".$user->get_value( "email" )."\n";
@@ -373,7 +373,7 @@ sub send_out_alert
 			$mail );
 		EPrints::XML::dispose( $mail );
 	}
-	$searchexp->dispose;
+	$list->dispose;
 
 	$self->{session}->change_lang( $origlangid );
 }

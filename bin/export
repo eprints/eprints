@@ -233,7 +233,7 @@ if( $single )
 else
 {
 	my $req_plugin_type = "list/".$ds->confid;
-	
+
 	unless( $plugin->can_accept( $req_plugin_type ) )
 	{
 		print STDERR "Plugin $pluginid can't process $req_plugin_type data.\n";

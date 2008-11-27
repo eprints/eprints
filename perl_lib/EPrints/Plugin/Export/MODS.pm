@@ -15,7 +15,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "MODS";
-	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "text/xml";

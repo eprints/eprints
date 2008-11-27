@@ -7878,3 +7878,44 @@ EPRINTS-3.1-beta-2
     with an illegal option.
  * Fixed a bug in the Grid abstract export module that meant that headers did
     not align with the columns. (skipping subobjects in one but not the other)
+
+2008-11-26 cjg
+ * Added fix to Utils::filename_decode to correctly unset the utf-8 flag on 
+    strings containing long ==XXXX style chars. Not to be merged into 3.2
+
+2008-11-27 cjg
+ * Split search.pl into a bunch of smaller files to make it less daunting.
+ * Standardised use of qw{} in user_roles.pl resolving #3458
+
+2008-11-27 cjg
+ * Fixed typo in phrases, resolving #3473
+
+2008-11-27 cjg
+ * MODS plugin now only handles eprints, not lists of eprints. Fixes #3472
+
+2008-11-27 cjg
+ * Fixed the problems with rendering issues. Fixing #3427.
+
+2008-11-27 cjg
+ * Fixed typo in EPrints::Apache::Template. Fixing #3441.
+
+2008-11-27 cjg
+ * Upgraded prototype and scriptaculous to the newest version.
+
+2008-11-27 cjg
+ * Tweak to controls.js file in scriptaculous to fix "jump around" 
+    issue when arrows are pressed.
+
+2008-11-27 cjg
+ * Fixed bug in export which meant it exported items from 'buffer' when
+    you asked for 'archive' etc. Closes #3474
+
+2008-11-27 cjg
+ * Improved a saved search error message
+ * Made saved searches use new style search API
+ * Fixed broken links in saved searches, resolving #3470
+ * Fixed incorrect links in review alerts.
+ * Improved saved search and review emails to look smarter in HTML
+    email readers. (still work in plain text)
+ * Improved default repository mail .sig to look nicer in HTML.
+

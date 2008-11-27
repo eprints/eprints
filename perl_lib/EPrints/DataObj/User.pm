@@ -961,12 +961,8 @@ sub send_out_editor_alert
 			my( $session, $dataset, $eprint ) = @_;
 
 			my $p = $self->{session}->make_element( "p" );
-			$p->appendChild( $eprint->render_citation_link );
+			$p->appendChild( $eprint->render_citation_link_staff );
 			$matches->appendChild( $p );
-			my $link = $self->{session}->render_link( $eprint->get_url( 1 ) );
-			$link->appendChild( $self->{session}->make_text( $eprint->get_url( 1 ) ) );
-			$matches->appendChild( $link );
-			$matches->appendChild( $self->{session}->make_element( "br" ) );
 		} );
 
 		my $mail = $self->{session}->html_phrase( 

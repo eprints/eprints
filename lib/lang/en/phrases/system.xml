@@ -429,11 +429,14 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
 
     <epp:phrase id="lib/saved_search:mail">
 <p>This mail contains your <epc:pin name="howoften"/> alert from <epc:phrase ref="archive_name" />.</p>
+<div style='border: solid 1px #99f; padding: 1em'>
+<div style='display: none'><hr /></div>
+<epc:pin name="matches"/>
+<div style='display: none'><hr /></div>
+</div>
 <p>Number of new (or changed) submissions: <epc:pin name="n"/>.</p>
 <p>Your alert is: <epc:pin name="search"/></p>
 <p>To cancel, temporarily disable or alter your alert, <epc:pin name="url">click here</epc:pin>.</p>
-<epc:phrase ref="ruler" />
-<epc:pin name="matches"/>
 </epp:phrase>
     <epp:phrase id="lib/saved_search:weekly">weekly</epp:phrase>
     <epp:phrase id="lib/saved_search:daily">daily</epp:phrase>
@@ -445,12 +448,15 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/user:missed_field">You haven't filled out the required <epc:pin name="field"/> field.</epp:phrase>
     <epp:phrase id="lib/user:editor_update_subject">Review Summary</epp:phrase>
     <epp:phrase id="lib/user:editor_update_mail">
+<p><epc:pin name="n"/> item(s) <a href='{$config{userhome}}?screen=Review'>awaiting review</a>.</p>
+<div style='border: solid 1px #99f; padding: 1em'>
+<div style='display: none'><hr /></div>
+<epc:pin name="matches"/>
+<div style='display: none'><hr /></div>
+</div>
 <p>This mail is your <epc:pin name="howoften"/> summary of items awaiting approval for addition to <epc:phrase ref="archive_name" />.</p>
-<p>Number of items: <epc:pin name="n"/>.</p>
 <p>Only items matching your editorial scope are listed. Your scope is: <epc:pin name="search"/></p>
 <p>To cancel or temporarily disable this email update, <epc:pin name="url">click here</epc:pin>.</p>
-<epc:phrase ref="ruler" />
-<epc:pin name="matches"/>
 </epp:phrase>
 
 
