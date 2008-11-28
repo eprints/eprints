@@ -7919,3 +7919,11 @@ EPRINTS-3.1-beta-2
     email readers. (still work in plain text)
  * Improved default repository mail .sig to look nicer in HTML.
 
+2008-11-28 tdb
+ * Alpha support for editing metafield definitions
+ * MetaField::get_sql_type() may now return multiple values
+ * MetaField::get_sql_type() no longer accepts a notnull argument (use
+    allow_null field property)
+ * Improved Metafield validation
+ * Added missing phrases for Metafield
+

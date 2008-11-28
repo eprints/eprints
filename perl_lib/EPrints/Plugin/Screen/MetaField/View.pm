@@ -10,7 +10,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_field new_field delete_field cancel /]; 
+	$self->{actions} = [qw/ edit_field remove_field new_field delete_field cancel /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -29,33 +29,11 @@ sub can_be_viewed
 	return $self->allow( "config/remove_field" );
 }
 
-sub allow_cancel
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
-}
-
-sub allow_new_field
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
-}
-
-sub allow_remove_field
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
-}
-
-sub allow_delete_field
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
-}
+*allow_cancel =
+*allow_new_field =
+*allow_edit_field =
+*allow_remove_field = 
+*allow_delete_field = \&can_be_viewed;
 
 sub action_cancel {}
 
@@ -70,6 +48,16 @@ sub action_new_field
 	my $metafieldid = "$datasetid.$name";
 
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
+
+	if( $name =~ /[^a-z_]/ )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "bad_name",
+				name => $session->make_text( $name )
+			)
+		);
+		return;
+	}
 
 	if( !$dataset )
 	{
@@ -115,6 +103,69 @@ sub action_new_field
 	$self->{processor}->{dataobj_id} = $metafieldid;
 	$self->{processor}->{screenid} = "MetaField::Edit";
 }	
+
+sub action_edit_field
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "field" ) or return;
+	my $confirm = $session->param( "confirm" );
+	my $metafieldid = "$datasetid.$fieldid";
+
+	unless( $confirm )
+	{
+		my $form = $session->render_input_form(
+			fields => [],
+			buttons => { edit_field => $self->phrase( "confirm" ), cancel => $self->phrase( "cancel" ), _order => [qw( edit_field cancel )] },
+		);
+		$self->{processor}->add_message( "warning",
+			$self->html_phrase( "confirm_edit",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+				confirm_button => $form,
+			) );
+		$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+		$form->appendChild( $self->render_hidden_field( "dataset", $datasetid ) );
+		$form->appendChild( $self->render_hidden_field( "field", $fieldid ) );
+		$form->appendChild( $self->render_hidden_field( "confirm", 1 ) );
+		return;
+	}
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+
+	if( !$dataset )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "invalid_dataset" )
+		);
+		return;
+	}
+
+	$self->{processor}->{datasetid} = $dataset->confid;
+
+	if( !$dataset->has_field( $fieldid ) )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "invalid_field",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+			) );
+		return;
+	}
+
+	my $ds = $session->get_repository->get_dataset( "metafield" );
+
+	if( my $obj = $ds->get_object( $session, $metafieldid ) )
+	{
+		$self->{processor}->{dataobj} = $obj;
+	}
+
+	$self->{processor}->{dataobj_id} = $metafieldid;
+	$self->{processor}->{screenid} = "MetaField::Edit";
+}
 
 sub action_remove_field
 {
@@ -380,7 +431,10 @@ sub render_dataset
 				fields => [],
 				show_names => 0,
 				show_help => 0,
-				buttons => { remove_field => $self->phrase( "remove" ) },
+				buttons => {
+						edit_field => $self->phrase( "edit" ),
+						remove_field => $self->phrase( "remove" ),
+					},
 			);
 			$actions->appendChild( $form );
 			$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );

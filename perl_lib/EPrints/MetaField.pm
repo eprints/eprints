@@ -972,24 +972,23 @@ sub get_sql_properties
 ######################################################################
 =pod
 
-=item $sql = $field->get_sql_type( $session, $notnull )
+=item @types = $field->get_sql_type( $session )
 
-Return the SQL type of this field, used for creating tables. $notnull
-being true indicates that this column may not be null.
+Return the SQL column types of this field, used for creating tables.
 
 =cut
 ######################################################################
 
 sub get_sql_type
 {
-	my( $self, $session, $notnull ) = @_;
+	my( $self, $session ) = @_;
 
 	my $database = $session->get_database;
 
 	return $database->get_column_type(
 		$self->get_sql_name,
 		EPrints::Database::SQL_VARCHAR,
-		$notnull,
+		!$self->get_property( "allow_null" ),
 		$self->get_property( "maxlength" ),
 		undef, # precision
 		$self->get_sql_properties,

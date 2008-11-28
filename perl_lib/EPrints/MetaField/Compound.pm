@@ -149,7 +149,7 @@ sub is_virtual
 
 sub get_sql_type
 {
-	my( $self, $session, $notnull ) = @_;
+	my( $self, $session ) = @_;
 
 	return undef;
 }

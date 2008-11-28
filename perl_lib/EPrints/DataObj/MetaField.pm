@@ -360,11 +360,23 @@ sub get_perl_struct
 		$data->{options} = "";
 	}
 
-	# Split options text
-	for($data,@{$data->{fields}||[]})
+	foreach my $field_data ($data,@{$data->{fields}||[]})
 	{
-		next if !defined $_->{options};
-		$_->{options} = [split /\s*,\s*/, $_->{options}];
+		# Remove unused properties (avoid warnings)
+		my $defaults = $self->get_property_defaults( $field_data->{type} );
+		foreach my $property (keys %$field_data)
+		{
+			if( !defined $defaults->{$property} )
+			{
+				delete $field_data->{$property};
+			}
+		}
+
+		# Split options text
+		if( defined( $field_data->{options} ) )
+		{
+			$field_data->{options} = [split /\s*,\s*/, $field_data->{options}];
+		}
 	}
 
 	return $data;
@@ -434,18 +446,50 @@ sub _validate_epdata
 {
 	my( $self, $epdata ) = @_;
 
+	my $session = $self->get_session;
+
 	my @problems;
+
+	if( !defined $epdata->{"type"} )
+	{
+		push @problems, $session->html_phrase(
+				"validate:missing_type",
+			);
+		return @problems;
+	}
+
+	my $field_defaults = $self->get_property_defaults( $epdata->{type} );
+
+	if( !defined $field_defaults )
+	{
+		push @problems, $session->html_phrase(
+				"validate:bad_type",
+				type => $session->make_text( $epdata->{type} ),
+			);
+		return @problems;
+	}
+
+	foreach my $property (keys %$field_defaults)
+	{
+		if( $field_defaults->{$property} eq $EPrints::MetaField::REQUIRED && !EPrints::Utils::is_set( $epdata->{$property} ) )
+		{
+			push @problems, $session->html_phrase(
+					"validate:missing_property",
+					property => $session->make_text( $property )
+				);
+		}
+	}
 
 	if( $epdata->{"type"} eq "itemref" )
 	{
 		my $datasetid = $epdata->{"datasetid"};
 		$datasetid = "" unless defined $datasetid;
 
-		unless( $self->get_session->get_repository->get_dataset( $datasetid ) )
+		unless( $session->get_repository->get_dataset( $datasetid ) )
 		{
-			push @problems, $self->get_session->html_phrase(
+			push @problems, $session->html_phrase(
 					"validate:unknown_datasetid",
-					datasetid => $self->get_session->make_text( $datasetid ),
+					datasetid => $session->make_text( $datasetid ),
 				);
 		}
 	}
@@ -699,6 +743,15 @@ sub add_to_workflow
 
 	my $workflow = $doc->documentElement;
 
+	# return if this field is already referred to in the workflow
+	foreach my $field ($workflow->getElementsByTagName( "field" ) )
+	{
+		if( $field->getAttribute( "ref" ) eq $self->get_value( "name" ) )
+		{
+			return $ok;
+		}
+	}
+
 	my( $flow ) = $workflow->getElementsByTagName( "flow" );
 
 	my $stage_ref;
@@ -718,7 +771,9 @@ sub add_to_workflow
 		$stage_ref = $session->make_element( "stage",
 			ref => "local"
 		);
+		$flow->appendChild( $session->make_text( "\t" ) );
 		$flow->appendChild( $stage_ref );
+		$flow->appendChild( $session->make_text( "\n" ) );
 	}
 
 	my $stage;
@@ -807,8 +862,8 @@ sub move_to_archive
 	my $fields = $session->get_repository->get_conf( "fields" );
 	push @{$fields->{$datasetid}||=[]}, $conf;
 
-	# add to the database
-	$session->get_database->add_field( $dataset, $field );
+	# add to the database (force changes)
+	$session->get_database->add_field( $dataset, $field, 1 );
 
 	return 1;
 }
@@ -1165,6 +1220,35 @@ sub get_field
 		%{$fielddata} );	
 
 	return $field;
+}
+
+=item $defaults = $mf->get_property_defaults( TYPE )
+
+Gets the property defaults for metafield TYPE.
+
+=cut
+
+sub get_property_defaults
+{
+	my( $self, $type ) = @_;
+
+	my $field_defaults = $self->{session}->get_repository->get_field_defaults( $type );
+	return $field_defaults if defined $field_defaults;
+
+	my $class = $type;
+	$class =~ s/[^a-zA-Z]//g; # don't let badness into eval()
+	$class = "EPrints::MetaField::\u$class";
+	eval "use $class;";
+	if( $@ )
+	{
+		return undef;
+	}
+
+	my $prototype = bless {
+			repository => $self->{session}->get_repository
+		}, $class;
+
+	return { $prototype->get_property_defaults };
 }
 
 1;
