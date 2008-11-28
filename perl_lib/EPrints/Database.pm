@@ -839,13 +839,10 @@ sub create_table
 		next if( $field->get_property( "multiple" ) );
 		next if( $field->is_virtual );
 
-		my $notnull = 0;
-			
 		# First field is primary key.
 		if( !defined $key && $setkey)
 		{
 			$key = $field;
-			$notnull = 1;
 		}
 		else
 		{
@@ -855,7 +852,7 @@ sub create_table
 				push @indices, \@index_columns;
 			}
 		}
-		push @columns, $field->get_sql_type( $self->{session}, $notnull );
+		push @columns, $field->get_sql_type( $self->{session} );
 
 	}
 	my @primary_key;
@@ -2065,7 +2062,7 @@ sub cache
 
 	$self->_create_table( $cache_table, ["pos"], [
 			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-			$keyfield->get_sql_type( $self->{session}, 1 ),
+			$keyfield->get_sql_type( $self->{session} ),
 			]);
 
 	if( $srctable eq "NONE" )
@@ -2777,7 +2774,7 @@ sub sort_values
 	# create a table to sort the values in
 	$self->_create_table( $table, [ "pos" ], [
 		$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-		$ofield->get_sql_type( $session, 1 ),
+		$ofield->get_sql_type( $session ),
 	]);
 
 	# insert all the order values with their index in $values
@@ -3176,16 +3173,18 @@ sub _has_field
 ######################################################################
 =pod
 
-=item $db->add_field( $dataset, $field )
+=item $db->add_field( $dataset, $field [, $force ] )
 
 Add $field to $dataset's tables.
+
+If $force is true will modify/replace an existing column (use with care!).
 
 =cut
 ######################################################################
 
 sub add_field
 {
-	my( $self, $dataset, $field ) = @_;
+	my( $self, $dataset, $field, $force ) = @_;
 
 	my $rc = 1;
 
@@ -3195,12 +3194,12 @@ sub add_field
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
 		{
-			$rc &&= $self->add_field( $dataset, $sub_field );
+			$rc &&= $self->add_field( $dataset, $sub_field, $force );
 		}
 	}
 	else # Add the field itself to the metadata table
 	{
-		$rc &&= $self->_add_field( $dataset, $field );
+		$rc &&= $self->_add_field( $dataset, $field, $force );
 	}
 
 	# Add the field to order values (used to order search results)
@@ -3291,9 +3290,10 @@ sub _add_field_ordervalues_lang
 	my $sql_field = EPrints::MetaField->new(
 		repository => $self->{ session }->get_repository,
 		name => $field->get_sql_name(),
-		type => "longtext" );
+		type => "longtext",
+		allow_null => 1 );
 
-	my $col = $sql_field->get_sql_type( $self->{session}, 0 ); # only first field can not be null
+	my( $col ) = $sql_field->get_sql_type( $self->{session} );
 
 	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." ADD $col" );
 }
@@ -3301,7 +3301,7 @@ sub _add_field_ordervalues_lang
 # Add the field to the main tables
 sub _add_field
 {
-	my( $self, $dataset, $field ) = @_;
+	my( $self, $dataset, $field, $force ) = @_;
 
 	my $rc = 1;
 
@@ -3309,18 +3309,29 @@ sub _add_field
 
 	if( $field->get_property( "multiple" ) )
 	{
-		return $self->_add_multiple_field( $dataset, $field );
+		return $self->_add_multiple_field( $dataset, $field, $force );
 	}
 
 	my $table = $dataset->get_sql_table_name;
+	my @names = $field->get_sql_names;
+	my @types = $field->get_sql_type( $self->{session} );
 
-	return $rc if $self->has_column( $table, $field->get_sql_name() );
+	return $rc if $self->has_column( $table, $names[0] ) && !$force;
 
-	my $cols = $field->get_sql_type( $self->{session}, 0 );
-	for(_split_sql_type($cols))
+	for(my $i = 0; $i < @names; ++$i)
 	{
-		$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ADD $_" );
+		if( $self->has_column( $table, $names[$i] ) )
+		{
+			$types[$i] = "MODIFY $types[$i]";
+		}
+		else
+		{
+			$types[$i] = "ADD $types[$i]";
+		}
 	}
+	
+	$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ".join(",", @types));
+
 	if( my @columns = $field->get_sql_index )
 	{
 		$rc &&= $self->create_index( $table, @columns );
@@ -3332,28 +3343,49 @@ sub _add_field
 # Add a multiple field to the main tables
 sub _add_multiple_field
 {
-	my( $self, $dataset, $field ) = @_;
+	my( $self, $dataset, $field, $force ) = @_;
 
 	my $table = $dataset->get_sql_sub_table_name( $field );
 	
-	return 1 if $self->has_table( $table );
+	# modify the existing table
+	if( $self->has_table( $table ) )
+	{
+		return 1 unless $force;
+
+		my @names = $field->get_sql_names;
+		my @types = $field->get_sql_type( $self->{session} );
+		for(my $i = 0; $i < @names; ++$i)
+		{
+			if( $self->has_column( $table, $names[$i] ) )
+			{
+				$types[$i] = "MODIFY $types[$i]";
+			}
+			else
+			{
+				$types[$i] = "ADD $types[$i]";
+			}
+		}
+		return $self->do( "ALTER TABLE ".$self->quote_identifier( $table )." ".join(",", @types) );
+	}
 
 	my $key_field = $dataset->get_key_field();
-
-	# $database->create_table spots multiples and attempts to create auxillary tables, which we don't want to do
-	my $aux_field = $field->clone;
-	$aux_field->set_property( "multiple", 0 );
 
 	my $pos_field = EPrints::MetaField->new(
 		repository => $self->{ session }->get_repository,
 		name => "pos",
 		type => "int" );
 
-	return $self->create_table(
+	return $self->_create_table(
 		$table,
-		$dataset,
-		0,
-		( $key_field, $pos_field, $aux_field ) );
+		[ # primary key
+			$key_field->get_sql_name,
+			$pos_field->get_sql_name
+		],
+		[ # columns
+			$key_field->get_sql_type( $self->{session} ),
+			$pos_field->get_sql_type( $self->{session} ),
+			$field->get_sql_type( $self->{session} )
+		] );
 }
 
 ######################################################################
