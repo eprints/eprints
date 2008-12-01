@@ -1,0 +1,246 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+######################################################################
+#
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<pirus_pingbackd> - PIRUS pingback daemon
+
+=head1 SYNOPSIS
+
+B<pirus_pingbackd> I<repository_id> I<pingback_url> [B<options>]
+
+=head1 DESCRIPTION
+
+This tool watches for requests to the eprint repository and forwards them to a
+pingback server.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<repository_id> 
+
+The ID of the EPrint repository to use.
+
+=item I<pingback_url>
+
+The URL of the pingback interface to 'ping'.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+Shows why a plugin is disabled.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+=cut
+
+
+use Getopt::Long;
+use Pod::Usage;
+use strict;
+
+use EPrints;
+use LWP::UserAgent;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $purge = 1;
+my $help = 0;
+my $man = 0;
+my $single = 0;
+my $from = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet,
+	'single' => \$single,
+	'from' => \$from,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "export_xml" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV < 2 );
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+die "--from must be a positive number" if $from =~ /\D/;
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my( $repoid, $pingback_url ) = @ARGV;
+
+my $session = new EPrints::Session( 1, $repoid, $noise );
+exit( 1 ) unless defined $session;
+
+our $UA = LWP::UserAgent->new();
+
+# expiry, doi & format of a document
+our( %DOI_EXPIRES, %DOC_DOI, %DOC_FORMAT );
+
+# maximum time to store an eprint's DOI before checking it again
+our $MAX_AGE = 86400;
+
+# use a meaningful user agent
+$UA->agent( "EPrints/".$session->get_repository->get_conf( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
+
+# start from the last access or --from, if greater than zero
+our $CUR_ID = $from || get_max_accessid( $session );
+
+while(1)
+{
+	mainloop( $session );
+}
+
+$session->terminate();
+exit;
+
+sub mainloop
+{
+	my( $session ) = @_;
+
+	my $cur_id = get_max_accessid( $session );
+
+	if( $cur_id > $CUR_ID )
+	{
+		do_pings( $session, $CUR_ID, $cur_id );
+		$CUR_ID = $cur_id + 1; # don't do the last one twice!
+	}
+	else
+	{
+		sleep( 10 );
+	}
+}
+
+sub get_max_accessid
+{
+	my( $session ) = @_;
+
+	my $database = $session->get_database();
+	my $dataset = $session->get_repository->get_dataset( "access" );
+	my $table = $dataset->get_sql_table_name;
+
+	my $sql = "SELECT MAX(".$database->quote_identifier($dataset->get_key_field->get_sql_name).") FROM ".$database->quote_identifier($table);
+
+	my $sth = $database->prepare( $sql );
+	$sth->execute;
+
+	my( $accessid ) = $sth->fetchrow_array;
+
+	$sth->finish;
+
+	return 0 unless defined $accessid;
+
+	return $accessid;
+}
+
+sub do_pings
+{
+	my( $session, $from, $to ) = @_;
+
+	my $dataset = $session->get_repository->get_dataset( "access" );
+
+	my $searchexp = EPrints::Search->new(
+			session => $session,
+			dataset => $dataset,
+		);
+	$searchexp->add_field( $dataset->get_field( "accessid" ), "$from-$to" );
+
+	my $list = $searchexp->perform_search();
+
+	$list->map(sub {
+		my( $session, $dataset, $access ) = @_;
+
+		return unless $access->get_value( "service_type_id" ) eq "?fulltext=yes";
+
+		my $eprintid = $access->get_value( "referent_id" );
+		$eprintid =~ s/^.*://; # backwards compatibility
+		my $docid = $access->get_value( "referent_docid" );
+
+		# get the doi for this eprint
+		my $ctime = $DOI_EXPIRES{$docid};
+		if( !defined( $ctime ) || (time() - $ctime) > $MAX_AGE )
+		{
+			$DOI_EXPIRES{$docid} = $ctime;
+
+			my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
+				$session,
+				$eprintid,
+				$docid );
+			return unless defined $doc;
+
+			if( $doc->is_set( "format" ) && $doc->get_value( "format" ) eq "application/pdf" )
+			{
+				$DOC_FORMAT{$docid} = "pdf";
+			}
+
+			my $eprint = $doc->get_eprint();
+
+			return unless $eprint->is_set( "type" ) &&
+				($eprint->get_value( "type" ) eq "article" ||
+				 $eprint->get_value( "type" ) eq "book_section");
+
+			if( $eprint->is_set( "id_number") && $eprint->get_value( "id_number" ) =~ /^doi:/ )
+			{
+				$DOC_DOI{$docid} = $eprint->get_value( "id_number" );
+			}
+		}
+
+		# eprint doesn't have a doi
+		return unless exists $DOC_DOI{$docid};
+
+		# check we have an official format
+		return unless exists $DOC_FORMAT{$docid};
+
+		# do the ping
+		my $url = URI->new( $pingback_url );
+		$url->query_form(
+				doi => $DOC_DOI{$docid},
+				format => $DOC_FORMAT{$docid},
+				ip => $access->get_value( "requester_id" )
+			);
+		my $r = $UA->head( $url );
+		print $r->code . " $url\n";
+	});
+
+	$list->dispose;
+}
