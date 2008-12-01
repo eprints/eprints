@@ -120,6 +120,9 @@ our( %DOI_EXPIRES, %DOC_DOI, %DOC_FORMAT );
 # maximum time to store an eprint's DOI before checking it again
 our $MAX_AGE = 86400;
 
+# regexp to use to identify doi's in eprint fields
+our $DOI_REGEXP = qr/(?:DOI:\s*|http:\/\/(?:dx\.doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)\/)([^&;]+)/i;
+
 # use a meaningful user agent
 $UA->agent( "EPrints/".$session->get_repository->get_conf( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
 
@@ -177,15 +180,9 @@ sub do_pings
 {
 	my( $session, $from, $to ) = @_;
 
-	my $dataset = $session->get_repository->get_dataset( "access" );
+	print "Processing from $from to $to\n" if $noise > 1;
 
-	my $searchexp = EPrints::Search->new(
-			session => $session,
-			dataset => $dataset,
-		);
-	$searchexp->add_field( $dataset->get_field( "accessid" ), "$from-$to" );
-
-	my $list = $searchexp->perform_search();
+	my $list = get_accesses( $session, $from, $to );
 
 	$list->map(sub {
 		my( $session, $dataset, $access ) = @_;
@@ -219,9 +216,9 @@ sub do_pings
 				($eprint->get_value( "type" ) eq "article" ||
 				 $eprint->get_value( "type" ) eq "book_section");
 
-			if( $eprint->is_set( "id_number") && $eprint->get_value( "id_number" ) =~ /^doi:/ )
+			if( defined(my $doi = eprint_get_doi( $eprint )) )
 			{
-				$DOC_DOI{$docid} = $eprint->get_value( "id_number" );
+				$DOC_DOI{$docid} = $doi;
 			}
 		}
 
@@ -239,8 +236,81 @@ sub do_pings
 				ip => $access->get_value( "requester_id" )
 			);
 		my $r = $UA->head( $url );
-		print $r->code . " $url\n";
+		print $r->code . " $url\n" if $noise;
 	});
 
 	$list->dispose;
+
+	print "Finished processing\n" if $noise > 1;
+}
+
+sub eprint_get_doi
+{
+	my( $eprint ) = @_;
+
+	my $doi;
+
+	if( $eprint->get_dataset->has_field( "id_number" ) &&
+		$eprint->is_set( "id_number") &&
+		$eprint->get_value( "id_number" ) =~ /$DOI_REGEXP/ )
+	{
+		 $doi = $1;
+	}
+	elsif( $eprint->get_dataset->has_field( "altloc" ) )
+	{
+		foreach my $altloc( @{$eprint->get_value( "altloc" )||[]} )
+		{
+			if( $altloc =~ /$DOI_REGEXP/ )
+			{
+				$doi = $1;
+			}
+		}
+	}
+
+	if( defined($doi) && $doi !~ /^\d+\.\d+\// )
+	{
+		$doi = undef;
+	}
+
+	return $doi;
+}
+
+sub get_accesses
+{
+	my( $session, $from, $to ) = @_;
+
+	my $database = $session->get_database;
+
+	my $dataset = $session->get_repository->get_dataset( "access" );
+
+	my $Q_accessid = $database->quote_identifier( $dataset->get_key_field->get_sql_name );
+
+	my $sql = "SELECT $Q_accessid FROM ".$database->quote_identifier( $dataset->get_sql_table_name )." WHERE $Q_accessid BETWEEN $from AND $to";
+
+	my $sth = $database->prepare( $sql );
+	$sth->execute;
+
+	my @accessids;
+
+	my $row;
+	while(defined($row = $sth->fetch))
+	{
+		push @accessids, $row->[0];
+	}
+
+	return EPrints::List->new(
+			session => $session,
+			dataset => $dataset,
+			ids => \@accessids
+		);
+
+# below is uber inefficient (does less-than, greater-than separately)
+#
+#	my $searchexp = EPrints::Search->new(
+#			session => $session,
+#			dataset => $dataset,
+#		);
+#	$searchexp->add_field( $dataset->get_field( "accessid" ), "$from-$to" );
+#
+#	my $list = $searchexp->perform_search();
 }
