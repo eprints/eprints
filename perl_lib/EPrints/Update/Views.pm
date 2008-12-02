@@ -770,6 +770,18 @@ sub update_view_list
 			{
 				my @menu_fields = @{$fields[$i]};
 				my $value = EPrints::Utils::unescape_filename($esc_path_values->[$i]);
+				# possibly this needs to be made more generic but this fixes 
+				# the short term problem.
+				if( $menu_fields[0]->get_type eq "name" && $value ne "NULL" )
+				{
+					my @parts = split( /:/, $value );
+					$value = {
+					 	    family => $parts[0],
+						     given => $parts[1],
+						   lineage => $parts[2],
+						honourific => $parts[3],
+					};
+				}
 				$value = "" if $value eq "NULL";
 				$o{"value".($i+1)} = $menu_fields[0]->render_single_value( $session, $value);
 			}		
@@ -815,6 +827,10 @@ sub update_view_list
 			print TEMPLATE $view->{template};
 			close TEMPLATE;
 		}
+
+		open( EXPORT , ">:utf8", "$page_file_name.export" )  || EPrints::abort( "Failed to write $page_file_name.export: $!" );
+		print EXPORT EPrints::XML::to_string( render_export_bar( $session, $esc_path_values, $view ) );
+		close EXPORT;
 
 		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
 		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );

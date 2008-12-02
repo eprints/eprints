@@ -82,7 +82,9 @@ sub handler
 	my $template = delete $parts->{"utf-8.template"};
 	chomp $template;
 	$template = 'default' if $template eq "";
+	$session->{preparing_static_page} = 1; 
 	$session->prepare_page( $parts, page_id=>"static", template=>$template );
+	delete $session->{preparing_static_page};
 	$session->send_page;
 
 	$session->terminate;

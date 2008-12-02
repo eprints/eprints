@@ -271,6 +271,14 @@ sub render_search_value
 {
         my( $self, $session, $value ) = @_;
 
+	# bit of a hack but fixes the dodgey name rendering in RSS titles etc.
+	# probably need to be removed when the code is rationalised.
+	if( ref( $value ) eq "HASH" )
+	{
+		my $text = "\"".$value->{family}.", ".$value->{given}."\"";		
+		return $session->make_text( $text );
+	}
+
 	my @bits = $self->split_search_value( $session, $value );
         return $session->make_text( '"'.join( '", "', @bits).'"' );
 }

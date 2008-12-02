@@ -318,6 +318,10 @@ EPrints Modules
     <epp:phrase id="lib/session:hide_help"><epc:pin name="link"><img alt="-" title="Hide help" src="{$config{rel_path}}/style/images/minus.png" border="0"/></epc:pin></epp:phrase>
 
     <epp:phrase id="lib/session:edit_page">Edit page</epp:phrase>
+    <epp:phrase id="lib/session:edit_phrases">Edit page phrases</epp:phrase>
+    <epp:phrase id="lib/session:phrase_edit_title">Editing phrases from page "<epc:pin name="page_title" />"</epp:phrase>
+    <epp:phrase id="lib/session:phrase_edit_back">Return to <epc:pin name="link"><epc:pin name="page_title" /></epc:pin>.</epp:phrase>
+    
 	
 
 <!-- Subject -->
@@ -1929,6 +1933,20 @@ Titles and Help for the System Fields
 <epp:phrase id="Plugin/Screen/Admin/TestEmail:test_mail">This is a test email sent by the administrator. If you received this your EPrints email configuration is working correctly!</epp:phrase>
 <epp:phrase id="Plugin/Screen/Admin/TestEmail:send">Send</epp:phrase>
 <epp:phrase id="Plugin/Screen/Admin/TestEmail:mail_sent">Email successfully sent to <em><epc:pin name="requester"/></em>. It may take a few minutes for the email to arrive, depending on your local conditions.</epp:phrase>
+
+<epp:phrase id="Plugin/Screen/Admin/Phrases:intro"><div>This tool writes modified phrases to zz_webcfg.xml. Click the phrase text to edit it. Javascript required.</div></epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:new_phrase">Add New Phrase</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:save">Save</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:cancel">Cancel Edit</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:reset">Reset</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:phrase_not_defined">This phrase is used in the page, but has not been defined yet.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:write_failed">Save phrase failed</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:problem_writing_file">Problem writing file '<epc:pin name="file" />': <epc:pin name="error" />.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:save_ok">Phrase saved.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:reload_not_required">Full configuration reload not required.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:reload_required">Full configuration reload required for this phrase to change will appear. You don't have rights to do that.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:will_reload">Configuration will be automatically reloaded.</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:reloaded">Repository configuration reloaded!</epp:phrase>
 
 <epp:phrase id="request/respond_page:action_respond">Confirm</epp:phrase>
 <epp:phrase id="request/respond_page:accept"><p>You have chosen to <strong>accept</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>

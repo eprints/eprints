@@ -244,6 +244,8 @@ sub to_string
 			my $value = $attr->nodeValue;
 			utf8::decode($value);
 			$value =~ s/&/&amp;/g;
+			$value =~ s/</&lt;/g;
+			$value =~ s/>/&gt;/g;
 			$value =~ s/"/&quot;/g;
 			push @n, " ", $name."=\"".$value."\"";
 		}

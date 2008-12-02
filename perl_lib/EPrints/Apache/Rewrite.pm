@@ -186,7 +186,9 @@ sub handler
 	if( $uri =~ m#^/view(.*)# )
 	{
 		my $session = new EPrints::Session(2); # don't open the CGI info
+		$session->{preparing_static_page} = 1; 
 		EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		delete $session->{preparing_static_page};
 		$session->terminate;
 	}
 	else

@@ -38,6 +38,7 @@
 
 .ep_view_cols {
 	width: 100%;
+	margin-top: 1em;
 }
 
 .ep_view_cols_2 td { width: 50%; }

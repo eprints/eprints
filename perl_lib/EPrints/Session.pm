@@ -1315,6 +1315,7 @@ sub render_toolbar
 
 
 	my $current_user = $self->current_user;
+
 	if( defined $current_user && $current_user->allow( "config/edit/static" ) )
 	{
 		my $conffile = $self->get_static_page_conf_file;
@@ -1333,6 +1334,32 @@ sub render_toolbar
 		}
 	}
 
+	if( defined $current_user && $current_user->allow( "config/edit/phrase" ) )
+	{
+		if( !$self->{preparing_static_page} )
+		{
+			if( !$first )
+			{
+				$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+			}
+			$first = 0;
+
+			my $editurl = $self->get_full_url;
+			if( $editurl =~ m/\?/ )
+			{
+				$editurl .= "&edit_phrases=yes";
+			}
+			else	
+			{
+				$editurl .= "?edit_phrases=yes";
+			}
+
+			# Will do odd things for non xpages
+			my $a = $self->render_link( $editurl );
+			$a->appendChild( $self->html_phrase( "lib/session:edit_phrases" ) );
+			$core->appendChild( $a );
+		}
+	}
 
 	if( scalar @other == 1 )
 	{
@@ -2314,7 +2341,9 @@ sub render_toolbox
 
 sub render_message
 {
-	my( $self, $type, $content ) = @_;
+	my( $self, $type, $content, $show_icon ) = @_;
+	
+	$show_icon = 1 unless defined $show_icon;
 
 	my $id = "m".$self->get_next_id;
 	my $div = $self->make_element( "div", class=>"ep_msg_".$type, id=>$id );
@@ -2322,10 +2351,13 @@ sub render_message
 	my $table = $self->make_element( "table" );
 	my $tr = $self->make_element( "tr" );
 	$table->appendChild( $tr );
-	my $td1 = $self->make_element( "td" );
-	my $imagesurl = $self->get_repository->get_conf( "rel_path" );
-	$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
-	$tr->appendChild( $td1 );
+	if( $show_icon )
+	{
+		my $td1 = $self->make_element( "td" );
+		my $imagesurl = $self->get_repository->get_conf( "rel_path" );
+		$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
+		$tr->appendChild( $td1 );
+	}
 	my $td2 = $self->make_element( "td" );
 	$tr->appendChild( $td2 );
 	$td2->appendChild( $content );
@@ -2602,47 +2634,36 @@ sub prepare_page
 			return;
 		}
 
-		my $dp = $self->param( "debug_phrases" );
+		my $dp = $self->param( "edit_phrases" );
 		# phrase debugging code.
-		# disabled until we have a permission system planned.
-		if( 0 && defined $dp && $dp eq "yes" )
+
+		if( defined $dp && $dp eq "yes" )
 		{
-			my $table = $self->make_element( "table" );
-			my $arc_langs = $self->{repository}->get_conf( "languages" );	
-			foreach my $phraseid ( sort keys %{$self->{used_phrases}} )
+			my $current_user = $self->current_user;	
+			if( defined $current_user && $current_user->allow( "config/edit/phrase" ) )
 			{
-				my $tr = $self->make_element( "tr" );
-				$table->appendChild( $tr );
-				my $th = $self->make_element( "th" );
-				my $td = $self->make_element( "td" );
-				$tr->appendChild( $th );
-				$th->appendChild( $self->make_text( $phraseid ) );
-				$tr->appendChild( $td );
-
-				my $t2 = $self->make_element( "table", border=>1, cellpadding=>4 );
-				foreach my $langid ( @{$arc_langs} )
+				my $phrase_screen = $self->plugin( "Screen::Admin::Phrases",
+		  			phrase_ids => [ sort keys %{$self->{used_phrases}} ] );
+				$map->{page} = $self->make_doc_fragment;
+				my $url = $self->get_full_url;
+				my( $a, $b ) = split( /\?/, $url );
+				my @parts = ();
+				foreach my $part ( split( "&", $b ) )	
 				{
-					my $lang = $self->{repository}->get_language( $langid );
-        				my( $phrase , $fb ) = $lang->_get_phrase( $phraseid, $self );
-					my $tr2 = $self->make_element( "tr" );
-					my $th2 = $self->make_element( "th" );
-					my $td2 = $self->make_element( "td" );
-					$t2->appendChild( $tr2 );
-					$tr2->appendChild( $th2 );
-					$tr2->appendChild( $td2 );
-					$th2->appendChild( $self->make_text( "$langid" ) );
-					if( defined $phrase )
-					{
-						$td2->appendChild( $self->make_text( EPrints::XML::contents_of( $phrase )->toString ) );
-					}
+					next if( $part =~ m/^edit(_|\%5F)phrases=yes$/ );
+					push @parts, $part;
 				}
-				$td->appendChild( $t2 );
-
+				$url = $a."?".join( "&", @parts );
+				my $div = $self->make_element( "div", style=>"margin-bottom: 1em" );
+				$map->{page}->appendChild( $div );
+				$div->appendChild( $self->html_phrase( "lib/session:phrase_edit_back",
+					link => $self->render_link( $url ),
+					page_title => $self->clone_for_me( $map->{title},1 ) ) );
+				$map->{page}->appendChild( $phrase_screen->render );
+				$map->{title} = $self->html_phrase( "lib/session:phrase_edit_title",
+					page_title => $map->{title} );
 			}
-			$self->{page} = $table;
-			return;
 		}
-		
 	}
 	
 	if( $self->get_repository->get_conf( "dynamic_template","enable" ) )

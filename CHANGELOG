@@ -7931,3 +7931,31 @@ EPRINTS-3.1-beta-2
  * Modified Upload component to use phrases for file upload tabs
  * Don't bother creating repository-specific entities.dtd (see [1936])
 
+2008-11-27 cjg
+ * Added contextual phrase editor.
+
+2008-11-27 cjg
+ * Many improvements to phrase editing, including nicer css and textareas
+    which start the right size and grow as you type, handling for missing
+    phrases, and now properly i18l itself.
+ * Added option to $session->render_message which allows the icon to be 
+    not rendered.
+ * Fixed minor issue in EPrints::XML::to_string which didn't escape <> 
+    inside attributes.
+
+2008-11-27 cjg
+ * Fixed minor css issue in views which meanth that multi column wasn't
+    consistant with single column.
+
+2008-12-02 tdb
+ * Modified Upload component to use phrases for file upload tabs
+
+2008-11-27 cjg
+ * Set/unset flag to stop the edit-phrases option appearing in views or
+    abstract pages.
+
+2008-11-27 cjg
+ * Added .export file to the clutch of files created for view list pages
+    to people can #include it with the .include file if wanted.
+ * Some slightly hacky fixes to fix how name values are rendered in view
+    page titles and search descriptions. Fixes #3459
