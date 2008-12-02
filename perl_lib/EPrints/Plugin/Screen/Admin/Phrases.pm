@@ -64,7 +64,7 @@ sub write_phrase
 	my $phrase_id = $session->param( "phrase_id" );
 	my $lib_path = $session->get_repository->get_conf( "lib_path" );
 	my $phrase_xml_str = "<?xml version='1.0' encoding='utf-8' standalone='no' ?>
-<!DOCTYPE phrases SYSTEM '$lib_path/xhtml-entities.dtd' >
+<!DOCTYPE phrases SYSTEM '$lib_path/entities.dtd' >
 <epp:phrase id='$phrase_id' xmlns='http://www.w3.org/1999/xhtml' xmlns:epp='http://eprints.org/ep3/phrase' xmlns:epc='http://eprints.org/ep3/control'>".$session->param( "phrase" )."</epp:phrase>\n\n";
 	my $phrase_xml = eval { 
 		EPrints::XML::contents_of( 

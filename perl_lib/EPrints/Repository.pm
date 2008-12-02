@@ -158,7 +158,7 @@ sub new
 	# abort loading the config for this repository.
 	unless( $noxml )
 	{
-		$self->generate_dtd() || return;
+		# $self->generate_dtd() || return;
 		$self->_load_storage() || return;
 		$self->_load_workflows() || return;
 		$self->_load_namedsets() || return;
@@ -1322,7 +1322,7 @@ sub parse_xml
 	eval {
 		$doc = EPrints::XML::parse_xml( 
 			$file, 
-			$self->get_conf( "variables_path" )."/",
+			$self->get_conf( "lib_path" ),
 			$no_expand );
 	};
 	if( !defined $doc )
@@ -1475,14 +1475,7 @@ sub set_field_defaults
 
 =item $success = $repository->generate_dtd
 
-Regenerate the DTD file for each language. This file is used when
-loading some of the XML files. It contains entities such as &ruler;
-and &adminemail; which make maintaining the XML files easier.
-
-The entites in the DTD file are configured by get_entities in the
-ArchiveConfig.pm module.
-
-Returns true. Might return false on error (not checking yet).
+DEPRECATED
 
 =cut
 ######################################################################

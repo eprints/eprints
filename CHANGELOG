@@ -7929,4 +7929,5 @@ EPRINTS-3.1-beta-2
 
 2008-12-02 tdb
  * Modified Upload component to use phrases for file upload tabs
+ * Don't bother creating repository-specific entities.dtd (see [1936])
 
