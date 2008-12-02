@@ -7927,3 +7927,6 @@ EPRINTS-3.1-beta-2
  * Improved Metafield validation
  * Added missing phrases for Metafield
 
+2008-12-02 tdb
+ * Modified Upload component to use phrases for file upload tabs
+

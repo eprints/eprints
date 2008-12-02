@@ -533,10 +533,10 @@ sub _render_add_document
 	my $tabs = [qw/ file zip targz fromurl /];	
 	my $links = { file=>"", zip=>"", targz=>"", fromurl=>"" };
 	my $labels = {
-		file=>$session->make_text( "File" ), 
-		zip=>$session->make_text( "Zip File" ), 
-		targz=>$session->make_text( ".tar.gz File" ), 
-		fromurl=>$session->make_text( "From URL" ), 
+		file=>$self->html_phrase( "from_file" ),
+		zip=>$self->html_phrase( "from_zip" ),
+		targz=>$self->html_phrase( "from_targz" ),
+		fromurl=>$self->html_phrase( "from_url" ),
 	};
 	
 	my $newdoc = $self->{session}->make_element( 
