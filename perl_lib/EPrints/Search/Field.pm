@@ -141,7 +141,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $thing = EPrints::Search::Field->new( $session, $dataset, $fields, $value, [$match], [$merge], [$prefix] )
+=item $thing = EPrints::Search::Field->new( $session, $dataset, $fields, $value, [$match], [$merge], [$prefix], [$show_help] )
 
 Create a new search field object. 
 
@@ -156,12 +156,14 @@ $merge is ANY or ALL. default is ALL
 Special case - if match is "EX" and field type is name then value must
 be a name hash.
 
+$show_help is used to control if the help shows up on the search form. A value of "always" shows the help without the show/hide toggle. "never" shows no help and no toggle. "toggle" shows no help, but shows the [?] icon which will reveal the help. The default is "toggle". If javascript is off, toggle will show the help and show no toggle.
+
 =cut
 ######################################################################
 
 sub new
 {
-	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix, $id ) = @_;
+	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix, $id, $show_help ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
@@ -186,6 +188,15 @@ sub new
 		$session->get_repository->log( 
 "search field merge value was '".$self->{merge}."'. Should be ALL or ANY." );
 		$self->{merge} = "ALL";
+	}
+
+	$self->{"show_help"} = $show_help;
+	$self->{"show_help"} = "toggle" unless defined $self->{"show_help"};
+	if( $self->{"show_help"} ne "toggle" && $self->{"show_help"} ne "always" && $self->{"show_help"} ne "never" )
+	{
+		$session->get_repository->log( 
+"search field show_help value was '".$self->{"show_help"}."'. Should be toggle, always or never." );
+		$self->{"show_help"} = "toggle";
 	}
 
 	if( ref( $fields ) ne "ARRAY" )
@@ -613,7 +624,7 @@ sub render_help
 	my $phrase_id = "lib/searchfield:help_".$self->{"field"}->get_type();
 	if( $self->{"session"}->get_lang->has_phrase( $custom_help ) )
 	{
-		$phrase_id = $custom_help
+		$phrase_id = $custom_help;
 	}
 		
 	return $self->{"session"}->html_phrase( $phrase_id );

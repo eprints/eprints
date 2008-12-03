@@ -1484,14 +1484,25 @@ sub generate_dtd
 {
 	my( $self ) = @_;
 
-	my $dtdfile = $self->get_conf("lib_path")."/xhtml-entities.dtd";
-	open( XHTMLENTITIES, "<", $dtdfile ) ||
-		die "Failed to open system DTD ($dtdfile) to include ".
+	my $src_dtdfile = $self->get_conf("lib_path")."/xhtml-entities.dtd";
+	my $tgt_dtdfile = $self->get_conf( "variables_path" )."/entities.dtd";
+
+	my $src_mtime = EPrints::Utils::mtime( $src_dtdfile );
+	my $tgt_mtime = EPrints::Utils::mtime( $tgt_dtdfile );
+	if( $tgt_mtime > $src_mtime )
+	{
+		# as this file doesn't change anymore, except possibly after an
+		# upgrade, only update the var/entities.dtd file if the one in
+		# the lib directory is newer.
+		return 1;
+	}
+
+	open( XHTMLENTITIES, "<", $src_dtdfile ) ||
+		die "Failed to open system DTD ($src_dtdfile) to include ".
 			"in repository DTD";
 	my $xhtmlentities = join( "", <XHTMLENTITIES> );
 	close XHTMLENTITIES;
 
-	my $file = $self->get_conf( "variables_path" )."/entities.dtd";
 	my $tmpfile = File::Temp->new;
 
 	print $tmpfile <<END;
@@ -1508,9 +1519,9 @@ END
 	print $tmpfile $xhtmlentities;
 	close $tmpfile;
 
-	copy( "$tmpfile", $file );
+	copy( "$tmpfile", $tgt_dtdfile );
 
-	EPrints::Utils::chown_for_eprints( $file );
+	EPrints::Utils::chown_for_eprints( $tgt_dtdfile );
 
 	return 1;
 }

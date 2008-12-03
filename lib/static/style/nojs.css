@@ -7,6 +7,10 @@
 
 .ep_no_js_inline { display: inline; }
 
+.ep_no_js_table_cell { display: table-cell; }
+
 .ep_only_js { display: none; }
 
 .ep_only_js_inline { display: none; }
+
+.ep_only_js_table_cell { display: none; }

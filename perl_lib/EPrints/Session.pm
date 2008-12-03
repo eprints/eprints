@@ -1223,25 +1223,30 @@ sub render_row
 #       class: class for <tr>
 #       field: dom content for <td>
 # help_prefix: prefix for id tag of help toggle
+#   no_toggle: if true, renders the help always on with no toggle
+#     no_help: don't actually render help or a toggle (for rendering same styled rows in the same table)
 
 sub render_row_with_help
 {
 	my( $self, %parts ) = @_;
 
-	if( EPrints::XML::is_empty( $parts{help} ) )
+	if( defined $parts{help} && EPrints::XML::is_empty( $parts{help} ) )
 	{
 		delete $parts{help};
 	}
 
 
 	my $tr = $self->make_element( "tr", class=>$parts{class} );
-	
+
+	#
+	# COL 1
+	#
 	my $th = $self->make_element( "th", class=>"ep_multi_heading" );
 	$th->appendChild( $parts{label} );
 	$th->appendChild( $self->make_text( ":" ) );
 	$tr->appendChild( $th );
 
-	if( !defined $parts{help} )
+	if( !defined $parts{help} || $parts{no_help} )
 	{
 		my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>"2" );
 		$tr->appendChild( $td );
@@ -1249,20 +1254,41 @@ sub render_row_with_help
 		return $tr;
 	}
 
-	my $td = $self->make_element( "td", class=>"ep_multi_input" );
+	#
+	# COL 2
+	#
+	
+	my $inline_help_class = "ep_multi_inline_help";
+	my $colspan = "2";
+	if( !$parts{no_toggle} ) 
+	{ 
+		# ie, yes to toggle
+		$inline_help_class .= " ep_no_js"; 
+		$colspan = 1;
+	}
+
+	my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>$colspan );
 	$tr->appendChild( $td );
 
-	my $inline_help = $self->make_element( "div", id=>$parts{help_prefix}, class=>"ep_no_js ep_multi_inline_help" );
+	my $inline_help = $self->make_element( "div", id=>$parts{help_prefix}, class=>$inline_help_class );
 	my $inline_help_inner = $self->make_element( "div", id=>$parts{help_prefix}."_inner" );
 	$inline_help->appendChild( $inline_help_inner );
 	$inline_help_inner->appendChild( $parts{help} );
 	$td->appendChild( $inline_help );
 
 	$td->appendChild( $parts{field} );
-	
-	# help toggle
 
-	my $td2 = $self->make_element( "td", class=>"ep_multi_help ep_only_js ep_toggle" );
+	if( $parts{no_toggle} ) 
+	{ 
+		return $tr;
+	}
+		
+	#
+	# COL 3
+	# help toggle
+	#
+
+	my $td2 = $self->make_element( "td", class=>"ep_multi_help ep_only_js_table_cell ep_toggle" );
 	my $show_help = $self->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$parts{help_prefix}."_show" );
 	my $helplink = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
 	$show_help->appendChild( $self->html_phrase( "lib/session:show_help",link=>$helplink ) );

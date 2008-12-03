@@ -199,10 +199,11 @@ being mentioned in the description of the search.
 ######################################################################
 
 @EPrints::Search::OPTS = (
-	"session", 	"dataset", 	"allow_blank", 	"satisfy_all", 	
-	"fieldnames", 	"staff", 	"custom_order",
-	"keep_cache", 	"cache_id", 	"prefix", 	"defaults",
-	"filters", 	"search_fields","show_zero_results", 
+	"session", 	"dataset", 	"allow_blank", 	
+	"satisfy_all", 	"fieldnames", 	"staff", 	
+	"custom_order", "keep_cache", 	"cache_id", 	
+	"prefix", 	"defaults", 	"filters", 
+	"search_fields","show_zero_results", "show_help",
 );
 
 sub new
@@ -289,6 +290,12 @@ END
 				@{$fielddata->{meta_fields}} );
 		}
 
+		my $show_help = $self->{show_help};
+		if( defined $fielddata->{show_help} )
+		{
+			$show_help = $fielddata->{show_help};
+		}
+
 		# Add a reference to the list
 		my $sf = $self->add_field( 
 			\@meta_fields, 
@@ -296,7 +303,8 @@ END
 			$fielddata->{match},
 			$fielddata->{merge},
 			$fielddata->{id},
-			0 );
+			0,
+			$show_help );
 	}
 	$self->{filters} = [] unless defined $self->{filters};
 	my @filters = @{$self->{filters}};
@@ -363,7 +371,7 @@ sub from_cache
 ######################################################################
 =pod
 
-=item $searchfield = $searchexp->add_field( $metafields, $value, $match, $merge, $id, $filter )
+=item $searchfield = $searchexp->add_field( $metafields, $value, $match, $merge, $id, $filter, $show_help )
 
 Adds a new search in $metafields which is either a single L<EPrints::MetaField>
 or a list of fields in an array ref with default $value. If a search field
@@ -375,7 +383,7 @@ already exists, the value of that field is replaced with $value.
 
 sub add_field
 {
-	my( $self, $metafields, $value, $match, $merge, $id, $filter ) = @_;
+	my( $self, $metafields, $value, $match, $merge, $id, $filter, $show_help ) = @_;
 
 	# metafields may be a field OR a ref to an array of fields
 
@@ -388,7 +396,8 @@ sub add_field
 					$match,
 					$merge,
 					$self->{prefix},
-					$id );
+					$id,
+					$show_help );
 
 	my $sf_id = $searchfield->get_id();
 	unless( defined $self->{searchfieldmap}->{$sf_id} )

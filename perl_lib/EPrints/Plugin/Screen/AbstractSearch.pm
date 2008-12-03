@@ -641,6 +641,8 @@ sub render_search_fields
 				help => $sf->render_help,
 				label => $sf->render_name,
 				field => $sf->render,
+				no_toggle => ( $sf->{show_help} eq "always" ),
+				no_help => ( $sf->{show_help} eq "never" ),
 			 ) );
 	}
 
@@ -668,10 +670,12 @@ sub render_anyall_field
 				  "ANY" => $self->{session}->phrase( 
 						"lib/searchexpression:any" )} );
 
-	return $self->{session}->render_row(
-			$self->{session}->html_phrase( 
+	return $self->{session}->render_row_with_help( 
+			no_help => 1,
+			label => $self->{session}->html_phrase( 
 				"lib/searchexpression:must_fulfill" ),  
-			$menu );
+			field => $menu,
+	);
 }
 
 sub render_controls
@@ -695,9 +699,12 @@ sub render_order_field
 {
 	my( $self ) = @_;
 
-	return $self->{session}->render_row(
-			$self->{session}->html_phrase( "lib/searchexpression:order_results" ),
-			$self->render_order_menu );
+	return $self->{session}->render_row_with_help( 
+			no_help => 1,
+			label => $self->{session}->html_phrase( 
+				"lib/searchexpression:order_results" ),  
+			field => $self->render_order_menu,
+	);
 }
 
 sub render_order_menu

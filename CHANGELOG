@@ -7959,3 +7959,11 @@ EPRINTS-3.1-beta-2
     to people can #include it with the .include file if wanted.
  * Some slightly hacky fixes to fix how name values are rendered in view
     page titles and search descriptions. Fixes #3459
+
+2008-12-03 cjg
+ * Some clean up to the way search forms are rendered. Fixes #3433 and #2777.
+ * Added show_help option to search configuration to allow help to be hidden
+    or always shown (rather than toggled.)
+ * Added css for table cells which are dependant on javascript being 
+    available. (using display: block caused render errors)
+
